@@ -428,11 +428,11 @@ god-eye/
 **Hedef:** Terminale ve VS Code'a hiç girmeden her şeyi tarayıcıdan yapmak.
 
 #### 2.1 Gömülü terminal (tam uyumluluk)
-- [ ] ⭐ xterm.js + node-pty: gerçek `claude`, `codex` ve `gemini` TUI'leri tarayıcıda çalışır
-- [ ] ⭐ Sekmeli çoklu session; her sekmede proje, araç, hesap ve durum rozeti
-- [ ] ⭐ Sayfa kapansa bile session arka planda yaşar, tekrar açınca kaldığı yerden devam eder
-- [ ] Canlı durum: çalışıyor, bekliyor, onay bekliyor, hata
-- [ ] Session'ı kopyalama (fork) ve devam ettirme (resume)
+- [x] ⭐ xterm.js + node-pty: gerçek `claude`, `codex` ve `gemini` TUI'leri tarayıcıda çalışır — *node-pty yerine Bun'ın yerleşik PTY'si; kullanıcının gerçek login kabuğu*
+- [x] ⭐ Sekmeli çoklu session; her sekmede proje, araç, hesap ve durum rozeti — *JetBrains tarzı sekmeler, proje adı ve durum noktası*
+- [x] ⭐ Sayfa kapansa bile session arka planda yaşar, tekrar açınca kaldığı yerden devam eder — *son 512 KB çıktı tekrar bağlanınca geri gelir; God Eye yeniden başlarsa terminaller kapanır*
+- [x] Canlı durum: çalışıyor, bekliyor, onay bekliyor, hata — *"cevabını bekliyor" durumu menüde rozet olarak görünür*
+- [x] Session'ı kopyalama (fork) ve devam ettirme (resume) — *session sayfasında: devam et, kopyala ve devam et, özetle temiz başla*
 
 #### 2.2 Chat görünümü (rahat arayüz)
 - [ ] ⭐ `claude -p --output-format stream-json` ve `codex exec --json` üzerinden zengin chat
@@ -493,7 +493,7 @@ god-eye/
 - [ ] Hızlı soru geçmişi
 
 #### 2.6b 📥 Gelen Kutusu (dikkatini isteyen her şey tek yerde)
-- [ ] ⭐ Onay bekleyen agent'lar, @bahsetmeler, başarısız testler, düşen puanlar, limit uyarıları, zamanlanmış iş raporları, deploy sonuçları, takımdan öneriler
+- [ ] ⭐ Onay bekleyen agent'lar, @bahsetmeler, başarısız testler, düşen puanlar, limit uyarıları, zamanlanmış iş raporları, deploy sonuçları, takımdan öneriler — *cevap bekleyen terminaller ve hafıza çelişkileri hazır; diğer kaynaklar ilgili fazlarla eklenecek*
 - [ ] Öncelik sıralaması: 🔴 acil · 🟡 bugün · ⚪ bilgi
 - [ ] Tek tıkla aksiyon: onayla, reddet, aç, ertele
 - [ ] Ayrıca "Sıfır gelen kutusu" hedefi: her şey ya halledilir ya ertelenir

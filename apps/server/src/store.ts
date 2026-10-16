@@ -459,6 +459,16 @@ export class Store {
     })();
   }
 
+  /** Memory conflicts across all projects, for the inbox. */
+  openConflicts(): { projectId: string; projectName: string; count: number }[] {
+    return this.db
+      .query(
+        `SELECT m.project_id AS projectId, p.name AS projectName, COUNT(*) AS count FROM memory_items m
+         JOIN projects p ON p.id = m.project_id WHERE m.status = 'conflict' GROUP BY m.project_id`,
+      )
+      .all() as { projectId: string; projectName: string; count: number }[];
+  }
+
   updateMemory(id: string, text: string): void {
     this.db.query("UPDATE memory_items SET text = ?, updated_at = ? WHERE id = ?").run(text, Date.now(), id);
   }

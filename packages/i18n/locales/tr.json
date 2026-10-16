@@ -9,7 +9,8 @@
     "limits": "Limitler",
     "team": "Takım",
     "settings": "Ayarlar",
-    "design": "Tasarım sistemi"
+    "design": "Tasarım sistemi",
+    "terminals": "Terminaller"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -64,7 +65,10 @@
   "inbox": {
     "title": "Gelen Kutusu",
     "emptyTitle": "Her şey yolunda",
-    "emptyBody": "Onaylar, bahsetmeler ve uyarılar burada görünecek."
+    "emptyBody": "Onaylar, bahsetmeler ve uyarılar burada görünecek.",
+    "needsYou": "Cevabını bekleyenler",
+    "conflicts": "Hafızada karar bekleyenler",
+    "openTerminal": "Aç"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -266,5 +270,29 @@
     "remove": "Kaldır",
     "installed": "Eklendi",
     "manual": "Bunu bilgisayarında çalıştır:"
+  },
+  "term": {
+    "title": "Terminaller",
+    "empty": "Açık terminal yok",
+    "emptyBody": "Herhangi bir projeden Claude, Codex ya da shell session'ı başlat. Bu sayfayı kapatsan bile çalışmaya devam eder.",
+    "new": "Yeni session",
+    "close": "Kapat",
+    "remove": "Kaldır",
+    "running": "Çalışıyor",
+    "idle": "Seni bekliyor",
+    "attention": "Cevabını bekliyor",
+    "exited": "Bitti",
+    "shell": "Shell",
+    "claude": "Claude",
+    "codex": "Codex",
+    "gemini": "Gemini",
+    "open": "Aç",
+    "project": "Proje",
+    "resume": "Bu session'a devam et",
+    "fork": "Kopyala ve devam et",
+    "forkHint": "Bu konuşmanın yeni bir dalını açar; orijinali olduğu gibi kalır.",
+    "fresh": "Özetle temiz başla",
+    "freshHint": "Ne yapıldığını ve ne kaldığını zaten bilen yeni bir session açar.",
+    "notInstalled": "kurulu değil"
   }
 }

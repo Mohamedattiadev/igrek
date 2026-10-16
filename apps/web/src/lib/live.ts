@@ -1,5 +1,6 @@
-import type { IndexStatus, ServerMessage } from "@godeye/core";
+import type { IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
 import { type DependencyList, useEffect, useRef, useState } from "react";
+import { api } from "./api";
 
 const events = new EventTarget();
 
@@ -59,4 +60,17 @@ export function useIndexStatus(): IndexStatus | undefined {
   const [status, setStatus] = useState<IndexStatus>();
   useServerEvent("index", (message) => setStatus(message.status));
   return status;
+}
+
+/** Open terminals, kept current by the server's "terminals" events. */
+export function useTerminals(): TerminalInfo[] {
+  const [terminals, setTerminals] = useState<TerminalInfo[]>([]);
+  useEffect(() => {
+    api
+      .terminals()
+      .then(setTerminals)
+      .catch(() => undefined);
+  }, []);
+  useServerEvent("terminals", (message) => setTerminals(message.terminals));
+  return terminals;
 }

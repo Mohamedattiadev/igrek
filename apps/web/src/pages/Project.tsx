@@ -13,6 +13,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
+import { NewSession } from "../components/NewSession";
 import { Badge, Button, Card, EmptyState, Section } from "../components/ui";
 import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
@@ -287,6 +288,8 @@ export function ProjectPage() {
           {project && <ActiveDot active={project.activeSessions > 0} />}
           <h1 className="text-[15px] font-semibold">{project?.name ?? "…"}</h1>
           {project?.health && <HealthBadge health={project.health} />}
+          <div className="flex-1" />
+          {project && <NewSession projectId={project.id} />}
         </div>
         <nav className="mt-2 flex gap-1">
           {TABS.map((name) => (

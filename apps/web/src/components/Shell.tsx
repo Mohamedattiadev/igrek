@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet } from "react-router";
 import { cn } from "../lib/cn";
-import { dispatchServerMessage, useIndexStatus } from "../lib/live";
+import { dispatchServerMessage, useIndexStatus, useTerminals } from "../lib/live";
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
@@ -14,7 +14,7 @@ import { NAV_ITEMS, type NavItem } from "./nav";
 import { StopButton } from "./StopButton";
 import { Kbd, StatusDot } from "./ui";
 
-function ToolStripLink({ item }: { item: NavItem }) {
+function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
   const { t } = useTranslation();
   return (
     <NavLink
@@ -24,12 +24,17 @@ function ToolStripLink({ item }: { item: NavItem }) {
       aria-label={t(item.label)}
       className={({ isActive }) =>
         cn(
-          "flex size-9 items-center justify-center rounded-ui transition-colors",
+          "relative flex size-9 items-center justify-center rounded-ui transition-colors",
           isActive ? "bg-bg-active text-accent" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
         )
       }
     >
       <item.icon size={18} strokeWidth={1.75} />
+      {!!badge && (
+        <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-white">
+          {badge}
+        </span>
+      )}
     </NavLink>
   );
 }
@@ -37,6 +42,8 @@ function ToolStripLink({ item }: { item: NavItem }) {
 function ToolStrip() {
   const { settings } = useSettings();
   const visible = NAV_ITEMS.filter((item) => !item.proOnly || settings.mode === "pro");
+  const waiting = useTerminals().filter((term) => term.status === "attention").length;
+  const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting };
   return (
     <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2">
       <div className="mb-2 flex size-9 items-center justify-center" aria-hidden>
@@ -50,7 +57,7 @@ function ToolStrip() {
       {visible
         .filter((item) => !item.bottom)
         .map((item) => (
-          <ToolStripLink key={item.to} item={item} />
+          <ToolStripLink key={item.to} item={item} badge={badges[item.to]} />
         ))}
       <div className="flex-1" />
       {visible

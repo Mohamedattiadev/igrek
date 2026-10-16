@@ -9,7 +9,8 @@
     "limits": "Limits",
     "team": "Team",
     "settings": "Settings",
-    "design": "Design system"
+    "design": "Design system",
+    "terminals": "Terminals"
   },
   "workspace": {
     "local": "My computer",
@@ -64,7 +65,10 @@
   "inbox": {
     "title": "Inbox",
     "emptyTitle": "All clear",
-    "emptyBody": "Approvals, mentions and alerts will show up here."
+    "emptyBody": "Approvals, mentions and alerts will show up here.",
+    "needsYou": "Waiting for your answer",
+    "conflicts": "Memory needs a decision",
+    "openTerminal": "Open"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -266,5 +270,29 @@
     "remove": "Remove",
     "installed": "Added",
     "manual": "Run this on your computer:"
+  },
+  "term": {
+    "title": "Terminals",
+    "empty": "No terminals open",
+    "emptyBody": "Start a Claude, Codex or shell session from any project. It keeps running even if you close this page.",
+    "new": "New session",
+    "close": "Close",
+    "remove": "Remove",
+    "running": "Working",
+    "idle": "Waiting for you",
+    "attention": "Needs your answer",
+    "exited": "Finished",
+    "shell": "Shell",
+    "claude": "Claude",
+    "codex": "Codex",
+    "gemini": "Gemini",
+    "open": "Open",
+    "project": "Project",
+    "resume": "Continue this session",
+    "fork": "Copy and continue",
+    "forkHint": "Starts a new branch of this conversation; the original stays as it is.",
+    "fresh": "Start fresh with a summary",
+    "freshHint": "Opens a new session that already knows what was done and what is left.",
+    "notInstalled": "not installed"
   }
 }

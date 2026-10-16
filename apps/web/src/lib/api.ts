@@ -12,6 +12,8 @@ import type {
   SessionSummaryData,
   Settings,
   SystemStatus,
+  TerminalInfo,
+  TerminalTool,
   TimelineEntry,
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
@@ -74,4 +76,10 @@ export const api = {
   mcpStatus: () => request<{ installed: boolean; command: string; inContainer: boolean }>("/api/mcp"),
   installMcp: () => request<{ ok: boolean }>("/api/mcp", { method: "POST" }),
   removeMcp: () => request<{ ok: boolean }>("/api/mcp", { method: "DELETE" }),
+  inbox: () => request<{ conflicts: { projectId: string; projectName: string; count: number }[] }>("/api/inbox"),
+  terminals: () => request<TerminalInfo[]>("/api/terminals"),
+  startTerminal: (body: { projectId: string; tool: TerminalTool; resume?: string; fork?: boolean }) =>
+    request<TerminalInfo>("/api/terminals", { method: "POST", body: JSON.stringify(body) }),
+  handoff: (sessionId: string) => request<TerminalInfo>(`/api/sessions/${sessionId}/handoff`, { method: "POST" }),
+  closeTerminal: (id: string) => request<{ ok: boolean }>(`/api/terminals/${id}`, { method: "DELETE" }),
 };

@@ -14,6 +14,7 @@ import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
 import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
+import { TerminalPage, TerminalsPage } from "./pages/Terminals";
 import "./styles.css";
 
 const router = createBrowserRouter([
@@ -24,6 +25,8 @@ const router = createBrowserRouter([
       { index: true, element: <ProjectsPage /> },
       { path: "p/:projectId", element: <ProjectPage /> },
       { path: "p/:projectId/s/:sessionId", element: <SessionPage /> },
+      { path: "terminals", element: <TerminalsPage /> },
+      { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <PlaceholderPage title="nav.limits" icon={Gauge} /> },
       { path: "team", element: <PlaceholderPage title="nav.team" icon={Users} /> },

@@ -3,6 +3,7 @@ import { join } from "node:path";
 import type { AskAnswer, Digest, MemorySection, SessionSummaryData, Settings, SummaryText } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import type { Bus, StopRegistry } from "./bus";
+import { cleanEnv } from "./env";
 import type { Store } from "./store";
 
 /** Which model each kind of background job uses (plan.md 1.6): cheap work goes to the cheap model. */
@@ -92,7 +93,7 @@ function toText(value: Partial<SummaryText> | undefined): SummaryText | undefine
 export async function runClaude(prompt: string, cwd: string, register: StopRegistry, model: string): Promise<string> {
   const proc = Bun.spawn(
     ["claude", "-p", "--no-session-persistence", "--model", model, "--tools", "", "--output-format", "json"],
-    { cwd, stdin: new Blob([prompt]), stdout: "pipe", stderr: "pipe", env: { ...process.env, GODEYE_INTERNAL: "1" } },
+    { cwd, stdin: new Blob([prompt]), stdout: "pipe", stderr: "pipe", env: cleanEnv({ GODEYE_INTERNAL: "1" }) },
   );
   const unregister = register.register(`claude-${proc.pid}`, { label: "summary", stop: () => proc.kill() });
   const timer = setTimeout(() => proc.kill(), TIMEOUT_MS);

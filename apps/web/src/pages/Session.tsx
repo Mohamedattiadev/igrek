@@ -4,8 +4,11 @@ import {
   ArrowLeft,
   Bot,
   FileWarning,
+  GitFork,
   MessageSquare,
   Package,
+  Play,
+  RotateCcw,
   Sparkles,
   User,
   Wrench,
@@ -13,7 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { Badge, Button, Card, EmptyState } from "../components/ui";
 import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
@@ -66,6 +69,52 @@ function Message({ message }: { message: TranscriptMessage }) {
   );
 }
 
+function ResumeButtons({ session }: { session: SessionDetail }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [error, setError] = useState<string>();
+  const open = async (action: () => Promise<{ id: string }>) => {
+    setError(undefined);
+    try {
+      navigate(`/t/${(await action()).id}`);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+  const projectId = session.projectId ?? "";
+  return (
+    <div className="flex items-center gap-1">
+      {error && <span className="me-2 text-xs text-danger">{error}</span>}
+      <Button
+        size="sm"
+        variant="ghost"
+        icon={RotateCcw}
+        title={t("term.freshHint")}
+        onClick={() => open(() => api.handoff(session.id))}
+      >
+        <span className="hidden lg:inline">{t("term.fresh")}</span>
+      </Button>
+      <Button
+        size="sm"
+        variant="ghost"
+        icon={GitFork}
+        title={t("term.forkHint")}
+        onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id, fork: true }))}
+      >
+        <span className="hidden lg:inline">{t("term.fork")}</span>
+      </Button>
+      <Button
+        size="sm"
+        variant="primary"
+        icon={Play}
+        onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id }))}
+      >
+        {t("term.resume")}
+      </Button>
+    </div>
+  );
+}
+
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -77,6 +126,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function HealthCard({ session }: { session: SessionDetail }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { health } = session;
   return (
     <Card className="space-y-3 p-pad">
@@ -102,7 +152,17 @@ function HealthCard({ session }: { session: SessionDetail }) {
         <p className="rounded-md bg-accent-soft p-2.5 text-xs leading-relaxed text-accent">{t("health.compact")}</p>
       )}
       {health.suggestFresh && (
-        <p className="rounded-md bg-warning-soft p-2.5 text-xs leading-relaxed text-warning">{t("health.fresh")}</p>
+        <div className="space-y-2 rounded-md bg-warning-soft p-2.5">
+          <p className="text-xs leading-relaxed text-warning">{t("health.fresh")}</p>
+          <Button
+            size="sm"
+            variant="primary"
+            icon={RotateCcw}
+            onClick={async () => navigate(`/t/${(await api.handoff(session.id)).id}`)}
+          >
+            {t("term.fresh")}
+          </Button>
+        </div>
       )}
     </Card>
   );
@@ -154,6 +214,7 @@ export function SessionPage() {
           {session?.summary?.title || session?.title || "…"}
         </h1>
         {session?.active && <Badge tone="success">{t("session.active")}</Badge>}
+        {session?.projectId && <ResumeButtons session={session} />}
       </header>
       {!session ? (
         <div className="m-6 h-64 animate-pulse rounded-ui bg-bg-subtle" />

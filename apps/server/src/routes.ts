@@ -171,6 +171,8 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
     return c.json({ ok: true });
   });
 
+  app.get("/api/inbox", (c) => c.json({ conflicts: store.openConflicts() }));
+
   app.get("/api/search", (c) => {
     const cwd = c.req.query("cwd");
     const projectId = cwd ? store.projectForCwd(cwd) : undefined;

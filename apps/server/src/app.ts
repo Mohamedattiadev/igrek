@@ -20,9 +20,11 @@ export interface AppDeps {
   startedAt: number;
   /** Projects, sessions and memory; left out in tests that only cover the shell. */
   work?: WorkDeps;
+  /** More API routes registered before the 404 fallback. */
+  extraRoutes?: (app: Hono) => void;
 }
 
-export function createApp({ config, db, token, bus, stops, startedAt, work }: AppDeps) {
+export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes }: AppDeps) {
   const app = new Hono();
 
   app.use("*", async (c, next) => {
@@ -65,6 +67,7 @@ export function createApp({ config, db, token, bus, stops, startedAt, work }: Ap
   });
 
   if (work) registerWorkRoutes(app, work);
+  extraRoutes?.(app);
 
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 

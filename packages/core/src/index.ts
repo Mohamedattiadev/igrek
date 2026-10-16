@@ -225,6 +225,22 @@ export interface IndexStatus {
   lastError?: string;
 }
 
+export type TerminalTool = "claude" | "codex" | "gemini" | "shell";
+export type TerminalStatus = "running" | "idle" | "attention" | "exited";
+
+export interface TerminalInfo {
+  id: string;
+  projectId: string;
+  cwd: string;
+  tool: TerminalTool;
+  title: string;
+  startedAt: number;
+  lastOutputAt: number;
+  status: TerminalStatus;
+  exitCode?: number;
+  exitedAt?: number;
+}
+
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =
   | { type: "hello"; version: string }
@@ -232,7 +248,8 @@ export type ServerMessage =
   | { type: "emergency-stop"; stoppedAt: string; stopped: number }
   | { type: "pong"; at: number }
   | { type: "index"; status: IndexStatus }
-  | { type: "sessions-changed"; projectIds: string[]; sessionIds: string[] };
+  | { type: "sessions-changed"; projectIds: string[]; sessionIds: string[] }
+  | { type: "terminals"; terminals: TerminalInfo[] };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };
