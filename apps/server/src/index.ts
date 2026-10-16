@@ -14,6 +14,8 @@ import { writeHookScript } from "./hooks";
 import { Indexer } from "./indexer";
 import { Jobs } from "./jobs";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
+import { registerServerRoutes } from "./server-routes";
+import { Servers } from "./servers";
 import { readSettings } from "./settings";
 import { Store } from "./store";
 import { Summarizer } from "./summarizer";
@@ -45,6 +47,7 @@ const summarizer = new Summarizer(
 const hookScript = writeHookScript(config.dataDir, config.publicPort);
 const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
+const servers = new Servers(sqlite, bus, stops);
 const assist = new Assist(sqlite, store, stops, () => readSettings(db), join(config.dataDir, "runner"));
 const files = new Files(
   () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],
@@ -58,7 +61,8 @@ const app = createApp({
   stops,
   startedAt: Date.now(),
   extraRoutes: (hono) => {
-    registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language });
+    registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers });
+    registerServerRoutes(hono, servers);
     registerFileRoutes(hono, { files, store });
     registerAssistRoutes(hono, assist);
   },
@@ -75,6 +79,9 @@ const app = createApp({
 indexer.start();
 summarizer.start();
 jobs.start();
+// Light health probe of saved servers every 5 minutes (read-only, nothing installed there).
+setTimeout(() => void servers.checkAll(), 15_000);
+setInterval(() => void servers.checkAll(), 5 * 60_000);
 
 type SocketData = { unsubscribe?: () => void; terminal?: string };
 

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet } from "react-router";
 import { cn } from "../lib/cn";
-import { dispatchServerMessage, useIndexStatus, useTerminals } from "../lib/live";
+import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
@@ -45,7 +45,8 @@ function ToolStrip() {
   const { settings } = useSettings();
   const visible = NAV_ITEMS.filter((item) => !item.proOnly || settings.mode === "pro");
   const waiting = useTerminals().filter((term) => term.status === "attention").length;
-  const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting };
+  const approvals = useApprovals().length;
+  const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting + approvals };
   return (
     <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2">
       <div className="mb-2 flex size-9 items-center justify-center" aria-hidden>

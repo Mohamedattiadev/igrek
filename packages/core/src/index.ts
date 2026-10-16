@@ -231,7 +231,7 @@ export interface IndexStatus {
   lastError?: string;
 }
 
-export type TerminalTool = "claude" | "codex" | "gemini" | "shell";
+export type TerminalTool = "claude" | "codex" | "gemini" | "shell" | "ssh";
 export type TerminalStatus = "running" | "idle" | "attention" | "exited";
 
 export interface TerminalInfo {
@@ -312,6 +312,57 @@ export interface QuickAnswer {
   context: { project?: string; session?: string; mode: "quick" | "full" };
 }
 
+export type CommandRisk = "read" | "change" | "danger";
+export type ServerTag = "prod" | "staging" | "test" | "other";
+
+export interface ServerInfo {
+  id: string;
+  name: string;
+  /** user@host or an ~/.ssh/config alias. */
+  target: string;
+  port?: number;
+  tag: ServerTag;
+  createdAt: number;
+  health?: ServerHealth;
+}
+
+export interface ServerHealth {
+  ok: boolean;
+  checkedAt: number;
+  error?: string;
+  uptime?: string;
+  load?: string;
+  diskPercent?: number;
+  memPercent?: number;
+  containers?: { name: string; status: string }[];
+  failedUnits?: string[];
+}
+
+export interface RemoteRun {
+  id: string;
+  serverId: string;
+  command: string;
+  risk: CommandRisk;
+  actor: "user" | "agent";
+  reason?: string;
+  startedAt: number;
+  exitCode?: number;
+  output?: string;
+  durationMs?: number;
+}
+
+export interface Approval {
+  id: string;
+  kind: "server-command";
+  serverId: string;
+  serverName: string;
+  serverTag: ServerTag;
+  command: string;
+  risk: CommandRisk;
+  reason?: string;
+  requestedAt: number;
+}
+
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =
   | { type: "hello"; version: string }
@@ -320,7 +371,9 @@ export type ServerMessage =
   | { type: "pong"; at: number }
   | { type: "index"; status: IndexStatus }
   | { type: "sessions-changed"; projectIds: string[]; sessionIds: string[] }
-  | { type: "terminals"; terminals: TerminalInfo[] };
+  | { type: "terminals"; terminals: TerminalInfo[] }
+  | { type: "approvals"; approvals: Approval[] }
+  | { type: "servers-changed" };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };

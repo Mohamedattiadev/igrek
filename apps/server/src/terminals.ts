@@ -33,6 +33,7 @@ export interface StartOptions {
 
 function commandFor(tool: TerminalTool): string[] {
   if (tool === "shell") return [loginShell(), "-l"];
+  if (tool === "ssh") return ["ssh"];
   const bin = Bun.which(tool);
   if (!bin) throw new Error(`${tool} is not installed on this computer`);
   return [bin];

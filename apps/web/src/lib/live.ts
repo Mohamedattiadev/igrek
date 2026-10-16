@@ -1,4 +1,4 @@
-import type { IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
+import type { Approval, IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
 import { type DependencyList, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 
@@ -73,4 +73,17 @@ export function useTerminals(): TerminalInfo[] {
   }, []);
   useServerEvent("terminals", (message) => setTerminals(message.terminals));
   return terminals;
+}
+
+/** AI requests waiting for the user's approval (server commands for now). */
+export function useApprovals(): Approval[] {
+  const [approvals, setApprovals] = useState<Approval[]>([]);
+  useEffect(() => {
+    api
+      .approvals()
+      .then(setApprovals)
+      .catch(() => undefined);
+  }, []);
+  useServerEvent("approvals", (message) => setApprovals(message.approvals));
+  return approvals;
 }

@@ -372,7 +372,13 @@ describe("MCP server", () => {
     };
     expect(init.serverInfo.name).toBe("godeye");
     const list = (await handle({ jsonrpc: "2.0", id: 2, method: "tools/list" })) as { tools: { name: string }[] };
-    expect(list.tools.map((t) => t.name)).toEqual(["godeye_project_memory", "godeye_search", "godeye_recent_sessions"]);
+    expect(list.tools.map((t) => t.name)).toEqual([
+      "godeye_project_memory",
+      "godeye_search",
+      "godeye_servers",
+      "godeye_server_run",
+      "godeye_recent_sessions",
+    ]);
   });
 });
 

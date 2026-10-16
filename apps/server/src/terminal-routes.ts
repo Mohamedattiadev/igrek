@@ -1,5 +1,7 @@
+import { homedir } from "node:os";
 import type { SessionSummaryData, TerminalTool } from "@godeye/core";
 import type { Hono } from "hono";
+import type { Servers } from "./servers";
 import type { Store } from "./store";
 import type { Terminals } from "./terminals";
 
@@ -24,7 +26,12 @@ export function handoffPrompt(title: string, summary: SessionSummaryData | undef
 
 export function registerTerminalRoutes(
   app: Hono,
-  { store, terminals, language }: { store: Store; terminals: Terminals; language: () => string },
+  {
+    store,
+    terminals,
+    language,
+    servers,
+  }: { store: Store; terminals: Terminals; language: () => string; servers: Servers },
 ): void {
   app.get("/api/terminals", (c) => c.json(terminals.list()));
 
@@ -36,12 +43,31 @@ export function registerTerminalRoutes(
       fork?: unknown;
       cols?: unknown;
       rows?: unknown;
+      serverId?: unknown;
     };
+    // An interactive SSH session on a saved server.
+    if (body.tool === "ssh") {
+      const server = typeof body.serverId === "string" ? servers.get(body.serverId) : undefined;
+      if (!server) return c.json({ error: "Server not found" }, 404);
+      try {
+        return c.json(
+          terminals.start({
+            projectId: `server:${server.id}`,
+            cwd: homedir(),
+            tool: "ssh",
+            title: `SSH · ${server.name}`,
+            args: [...(server.port ? ["-p", String(server.port)] : []), server.target],
+          }),
+        );
+      } catch (err) {
+        return c.json({ error: (err as Error).message }, 400);
+      }
+    }
     const project = typeof body.projectId === "string" ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
     const tool = TOOLS.find((t) => t === body.tool) ?? "claude";
     const args: string[] = [];
-    const label = { claude: "Claude", codex: "Codex", gemini: "Gemini", shell: "Shell" }[tool];
+    const label = { claude: "Claude", codex: "Codex", gemini: "Gemini", shell: "Shell", ssh: "SSH" }[tool];
     let title = `${label} · ${project.name}`;
     if (typeof body.resume === "string") {
       const session = store.sessionRow(body.resume);

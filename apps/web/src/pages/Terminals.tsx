@@ -107,7 +107,13 @@ export function TerminalPage() {
       <Tabs terminals={terminals} active={termId} />
       <header className="flex h-10 shrink-0 items-center gap-2 border-b border-border px-4">
         <Link
-          to={term ? `/p/${term.projectId}` : "/terminals"}
+          to={
+            !term
+              ? "/terminals"
+              : term.projectId.startsWith("server:")
+                ? `/servers/${term.projectId.slice(7)}`
+                : `/p/${term.projectId}`
+          }
           className="text-fg-subtle hover:text-fg"
           aria-label={t("term.project")}
         >

@@ -15,6 +15,7 @@ import { PlaceholderPage } from "./pages/Placeholder";
 import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
 import { PromptsPage } from "./pages/Prompts";
+import { ServerPage, ServersPage } from "./pages/Servers";
 import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
 import { TerminalPage, TerminalsPage } from "./pages/Terminals";
@@ -31,6 +32,8 @@ const router = createBrowserRouter([
       { path: "terminals", element: <TerminalsPage /> },
       { path: "files", element: <FilesPage /> },
       { path: "ideas", element: <IdeasPage /> },
+      { path: "servers", element: <ServersPage /> },
+      { path: "servers/:serverId", element: <ServerPage /> },
       { path: "prompts", element: <PromptsPage /> },
       { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },

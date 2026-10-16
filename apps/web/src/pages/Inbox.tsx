@@ -1,10 +1,11 @@
 import { Brain, Inbox, SquareTerminal } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { ApprovalCard } from "../components/ApprovalCard";
 import { Badge, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { useLiveData, useTerminals } from "../lib/live";
+import { useApprovals, useLiveData, useTerminals } from "../lib/live";
 import { TerminalStatus } from "./Terminals";
 
 /** Everything waiting for you, in one place (plan.md 2.6b). */
@@ -13,7 +14,8 @@ export function InboxPage() {
   const waiting = useTerminals().filter((term) => term.status === "attention" || term.status === "idle");
   const { data } = useLiveData(() => api.inbox(), []);
   const conflicts = data?.conflicts ?? [];
-  const empty = waiting.length === 0 && conflicts.length === 0;
+  const approvals = useApprovals();
+  const empty = waiting.length === 0 && conflicts.length === 0 && approvals.length === 0;
 
   return (
     <>
@@ -22,6 +24,14 @@ export function InboxPage() {
         <EmptyState icon={Inbox} title={t("inbox.emptyTitle")} body={t("inbox.emptyBody")} />
       ) : (
         <div className="mx-auto w-full max-w-4xl space-y-5 p-6">
+          {approvals.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("approvals.title")}</h2>
+              {approvals.map((approval) => (
+                <ApprovalCard key={approval.id} approval={approval} />
+              ))}
+            </section>
+          )}
           {waiting.length > 0 && (
             <section>
               <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">

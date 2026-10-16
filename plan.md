@@ -472,16 +472,16 @@ god-eye/
 - [x] 🔒 Hassas klasörlerin **dosya olarak okunması** varsayılan olarak yasak (`~/.ssh` içindeki anahtarlar, tarayıcı profilleri vb.). Bu, SSH ile bağlanmayı engellemez (bkz. 2.5)
 
 #### 2.5 🖧 Sunucular (SSH ile uzaktaki makinelerde iş yapma)
-- [ ] ⭐ Doğal dille komut: *"195.2.x.x'e gir, disk doluluğuna bak ve nginx'i yeniden başlat"* → agent SSH ile bağlanıp yapar
-- [ ] ⭐ Sunucular sayfası: kayıtlı sunucular (isim, adres, kullanıcı, etiket: **prod** / test), bağlantı testi
-- [ ] Mevcut `~/.ssh/config` içindeki sunucuları otomatik içeri alma
-- [ ] 🔒 Bağlantı **ssh-agent** üzerinden yapılır. Özel anahtar dosyası God Eye tarafından okunmaz ve AI'a asla gösterilmez
-- [ ] 🔒 Komut sınıflandırma: **okuma** komutları (log, durum, disk) serbest; **değiştiren** komutlar (restart, deploy, config) onaylı; **tehlikeli** komutlar (`rm -rf`, `DROP`, `mkfs`, firewall) çift onaylı
-- [ ] 🔒 Prod etiketli sunucularda her değiştiren komut önce "Ne yapacağım ve neden" açıklamasıyla gösterilir, sonra çalıştırılır
-- [ ] Denetim kaydı: her uzak komut, kimin hangi persona ile çalıştırdığı, çıktısı ve zamanıyla kaydedilir (takımla paylaşılır)
-- [ ] Hafif izleme (sunucuya hiçbir şey kurmadan): belirli aralıklarla SSH üzerinden uptime, disk, RAM, `docker ps`, son hatalar
-- [ ] Sunucu kartı: sağlık durumu, son deploy, son hatalar, "DevOps'a sor" butonu
-- [ ] Sunucudaki bir projeyi God Eye projesine bağlama: kod git'ten gelir, canlı ortam SSH ile izlenir
+- [x] ⭐ Doğal dille komut: *"195.2.x.x'e gir, disk doluluğuna bak ve nginx'i yeniden başlat"* → agent SSH ile bağlanıp yapar — *Claude, MCP aracı `godeye_server_run` ile ister; okuma hemen çalışır, değiştiren komutlar Gelen Kutusu'nda onay bekler*
+- [x] ⭐ Sunucular sayfası: kayıtlı sunucular (isim, adres, kullanıcı, etiket: **prod** / test), bağlantı testi — *sağlık kartları, disk/bellek, container'lar, çöken servisler, SSH terminali*
+- [x] Mevcut `~/.ssh/config` içindeki sunucuları otomatik içeri alma — *sadece config okunur, anahtarlar asla*
+- [x] 🔒 Bağlantı **ssh-agent** üzerinden yapılır. Özel anahtar dosyası God Eye tarafından okunmaz ve AI'a asla gösterilmez — *sistem ssh'ı çağrılır; hedefler ssh seçeneği enjekte edilemeyecek şekilde doğrulanır*
+- [x] 🔒 Komut sınıflandırma: **okuma** komutları (log, durum, disk) serbest; **değiştiren** komutlar (restart, deploy, config) onaylı; **tehlikeli** komutlar (`rm -rf`, `DROP`, `mkfs`, firewall) çift onaylı — *tanınmayan her komut "değiştirir" sayılır; tehlikeli komutta sunucu adını yazmak gerekir*
+- [x] 🔒 Prod etiketli sunucularda her değiştiren komut önce "Ne yapacağım ve neden" açıklamasıyla gösterilir, sonra çalıştırılır — *onay penceresinde komut, risk ve "canlı sunucu" uyarısı; agent istekleri gerekçesiyle gelir*
+- [x] Denetim kaydı: her uzak komut, kimin hangi persona ile çalıştırdığı, çıktısı ve zamanıyla kaydedilir (takımla paylaşılır) — *kim (sen / AI), komut, risk, çıktı, süre; takımla paylaşım Faz 4*
+- [x] Hafif izleme (sunucuya hiçbir şey kurmadan): belirli aralıklarla SSH üzerinden uptime, disk, RAM, `docker ps`, son hatalar — *5 dakikada bir, sadece okuyan tek komut*
+- [ ] Sunucu kartı: sağlık durumu, son deploy, son hatalar, "DevOps'a sor" butonu — *sağlık hazır; son deploy ve "DevOps'a sor" Faz 6/8*
+- [ ] Sunucudaki bir projeyi God Eye projesine bağlama: kod git'ten gelir, canlı ortam SSH ile izlenir — *Faz 4 ortamlar ile*
 - [ ] Sunucu dosyalarını görüntüleme ve düzenleme (SFTP), değişiklikten önce otomatik yedek
 
 #### 2.6 ⚡ Hızlı Soru (btw)

@@ -46,13 +46,50 @@ const TOOLS = [
     },
   },
   {
+    name: "godeye_servers",
+    description: "Servers the user saved in God Eye (name, ssh target, tag like prod/test).",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "godeye_server_run",
+    description:
+      "Run a shell command on one of the user's servers through God Eye. Read-only commands (logs, status, disk) run immediately. Commands that change something wait until the user approves them in God Eye; destructive ones need a double confirmation. Always give a short reason. Prefer this over raw ssh so every step is approved and logged.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        server: { type: "string", description: "Server name from godeye_servers" },
+        command: { type: "string" },
+        reason: { type: "string", description: "Why this command is needed, in one sentence" },
+      },
+      required: ["server", "command", "reason"],
+    },
+  },
+  {
     name: "godeye_recent_sessions",
     description: "The latest sessions in this project with their plain-language summaries.",
     inputSchema: { type: "object", properties: { path: pathArg } },
   },
 ];
 
-type Args = { path?: string; query?: string };
+type Args = { path?: string; query?: string; server?: string; command?: string; reason?: string };
+
+async function post<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`http://127.0.0.1:${PORT}${path}`, {
+    method: "POST",
+    headers: { host: `localhost:${PORT}`, cookie: `godeye_session=${key()}`, "content-type": "application/json" },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(130_000),
+  });
+  const data = (await res.json()) as T & { error?: string };
+  if (!res.ok) throw new Error(data.error ?? `God Eye answered ${res.status}`);
+  return data;
+}
+
+type Run = { exitCode?: number; output?: string; risk: string };
+
+function formatRun(run: Run): string {
+  return `exit code ${run.exitCode}\n${run.output ?? ""}`.trim();
+}
 
 async function callTool(name: string, args: Args): Promise<string> {
   const cwd = args.path ?? process.cwd();
@@ -74,6 +111,32 @@ async function callTool(name: string, args: Args): Promise<string> {
           `- ${new Date(h.ts).toISOString().slice(0, 10)} · ${h.projectName ?? ""} · ${h.sessionTitle}: ${h.snippet.replace(/\[\[|\]\]/g, "")}`,
       )
       .join("\n");
+  }
+  if (name === "godeye_servers") {
+    const list = await api<{ name: string; target: string; tag: string }[]>("/api/agent/servers");
+    return list.length
+      ? list.map((s) => `- ${s.name} (${s.tag}): ${s.target}`).join("\n")
+      : "No servers saved in God Eye.";
+  }
+  if (name === "godeye_server_run") {
+    const first = await post<{ status: "done"; run: Run } | { status: "pending"; approvalId: string }>(
+      "/api/agent/servers/run",
+      {
+        server: args.server,
+        command: args.command,
+        reason: args.reason,
+      },
+    );
+    if (first.status === "done") return formatRun(first.run);
+    // Wait for the user's decision in God Eye (up to 10 minutes).
+    for (let i = 0; i < 300; i++) {
+      await Bun.sleep(2000);
+      const state = await api<{ status: string; run?: Run }>(`/api/agent/approvals/${first.approvalId}`);
+      if (state.status === "denied")
+        return "The user did not approve this command. Do not retry it; ask them what to do instead.";
+      if (state.status === "approved" && state.run) return formatRun(state.run);
+    }
+    return "No answer from the user within 10 minutes. Ask them in the chat before trying again.";
   }
   if (name === "godeye_recent_sessions") {
     const sessions = await api<

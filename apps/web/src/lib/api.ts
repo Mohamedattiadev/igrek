@@ -1,5 +1,7 @@
 import type {
+  Approval,
   AskAnswer,
+  CommandRisk,
   Digest,
   FileContent,
   FileEntry,
@@ -12,8 +14,11 @@ import type {
   ProjectDetail,
   ProjectListItem,
   QuickAnswer,
+  RemoteRun,
   SavedPrompt,
   SearchHit,
+  ServerHealth,
+  ServerInfo,
   SessionDetail,
   SessionListItem,
   SessionSummaryData,
@@ -106,6 +111,29 @@ export const api = {
     request<SavedPrompt>("/api/prompts", { method: "POST", body: JSON.stringify(prompt) }),
   markPromptUsed: (id: string) => request<{ ok: boolean }>(`/api/prompts/${id}/use`, { method: "POST" }),
   deletePrompt: (id: string) => request<{ ok: boolean }>(`/api/prompts/${id}`, { method: "DELETE" }),
+  servers: () => request<ServerInfo[]>("/api/servers"),
+  sshConfigHosts: () =>
+    request<{ alias: string; hostname?: string; user?: string; port?: number }[]>("/api/servers/ssh-config"),
+  addServer: (server: { name: string; target: string; port?: number; tag: string }) =>
+    request<ServerInfo>("/api/servers", { method: "POST", body: JSON.stringify(server) }),
+  removeServer: (id: string) => request<{ ok: boolean }>(`/api/servers/${id}`, { method: "DELETE" }),
+  checkServer: (id: string) => request<ServerHealth>(`/api/servers/${id}/health`, { method: "POST" }),
+  classify: (command: string) =>
+    request<{ risk: CommandRisk; reasons: string[] }>("/api/servers/classify", {
+      method: "POST",
+      body: JSON.stringify({ command }),
+    }),
+  runOnServer: (id: string, command: string, confirmations: number) =>
+    request<RemoteRun>(`/api/servers/${id}/run`, { method: "POST", body: JSON.stringify({ command, confirmations }) }),
+  serverAudit: (id: string) => request<RemoteRun[]>(`/api/servers/${id}/audit`),
+  sshTerminal: (serverId: string) =>
+    request<TerminalInfo>("/api/terminals", { method: "POST", body: JSON.stringify({ tool: "ssh", serverId }) }),
+  approvals: () => request<Approval[]>("/api/approvals"),
+  decide: (id: string, approve: boolean) =>
+    request<{ status: string; run?: RemoteRun }>(`/api/approvals/${id}`, {
+      method: "POST",
+      body: JSON.stringify({ approve }),
+    }),
   inbox: () => request<{ conflicts: { projectId: string; projectName: string; count: number }[] }>("/api/inbox"),
   terminals: () => request<TerminalInfo[]>("/api/terminals"),
   startTerminal: (body: { projectId: string; tool: TerminalTool; resume?: string; fork?: boolean }) =>

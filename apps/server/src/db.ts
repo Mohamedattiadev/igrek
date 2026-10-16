@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { join } from "node:path";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { SERVER_MIGRATION } from "./servers";
 
 export const settingsTable = sqliteTable("settings", {
   key: text("key").primaryKey(),
@@ -157,6 +158,8 @@ const migrations: string[] = [
      created_at INTEGER NOT NULL,
      updated_at INTEGER NOT NULL
    );`,
+  // Faz 2.5: servers over SSH and their audit log.
+  SERVER_MIGRATION,
 ];
 
 export function migrate(sqlite: Database): number {
