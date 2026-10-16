@@ -8,6 +8,7 @@ import { registerAssistRoutes } from "./assist-routes";
 import { Bus, StopRegistry } from "./bus";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { Chats } from "./chats";
+import { createCheckpoint } from "./checkpoints";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
 import { registerFileRoutes } from "./file-routes";
@@ -50,7 +51,7 @@ const hookScript = writeHookScript(config.dataDir, config.publicPort);
 const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
 const servers = new Servers(sqlite, bus, stops);
-const chats = new Chats(bus, stops);
+const chats = new Chats(bus, stops, undefined, (cwd, label) => createCheckpoint(cwd, label)?.id);
 const assist = new Assist(sqlite, store, stops, () => readSettings(db), join(config.dataDir, "runner"));
 const files = new Files(
   () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],

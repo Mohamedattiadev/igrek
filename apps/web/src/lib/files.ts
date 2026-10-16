@@ -1,4 +1,4 @@
-export type PreviewKind = "image" | "video" | "audio" | "pdf" | "markdown" | "csv" | "json" | "text" | "binary";
+export type PreviewKind = "image" | "video" | "audio" | "pdf" | "markdown" | "csv" | "json" | "log" | "text" | "binary";
 
 const BY_EXT: Record<string, PreviewKind> = {
   png: "image",
@@ -21,6 +21,7 @@ const BY_EXT: Record<string, PreviewKind> = {
   csv: "csv",
   tsv: "csv",
   json: "json",
+  log: "log",
 };
 
 export function previewKind(path: string): PreviewKind | undefined {

@@ -72,7 +72,12 @@
     "emptyBody": "Onaylar, bahsetmeler ve uyarılar burada görünecek.",
     "needsYou": "Cevabını bekleyenler",
     "conflicts": "Hafızada karar bekleyenler",
-    "openTerminal": "Aç"
+    "openTerminal": "Aç",
+    "snooze": "Bugün sonra",
+    "snoozed": "Ertelendi",
+    "urgent": "Acil",
+    "today": "Bugün",
+    "info": "Bilgi"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -354,7 +359,16 @@
   },
   "preview": {
     "rows": "{{count}} satır",
-    "truncated": "İlk {{count}} satır gösteriliyor."
+    "truncated": "İlk {{count}} satır gösteriliyor.",
+    "explain": "Açıkla",
+    "summarize": "Özetle",
+    "explainAsk": "Bu dosyayı sade dille açıkla: ne işe yarıyor ve içinde önemli olan ne?",
+    "summarizeAsk": "Bu dosyayı 3-5 kısa maddede özetle.",
+    "askSelection": "Bunu AI'a sor",
+    "askSelectionQ": "Bu kodu sade dille açıkla.",
+    "logFollow": "Takip et",
+    "logFilter": "Satırlarda ara…",
+    "logErrors": "Sadece hatalar"
   },
   "quick": {
     "title": "Hızlı soru",
@@ -506,5 +520,17 @@
     "empty": "Ne üzerinde çalışalım?",
     "emptyBody": "Claude bu projenin klasöründe çalışır. Bir şeyi değiştiren adımlar senin onayını bekler.",
     "chats": "Sohbetler"
+  },
+  "checkpoint": {
+    "title": "Kayıtlar",
+    "hint": "God Eye her AI adımından önce kodunun bir kaydını alır. İstediğine geri dönebilirsin.",
+    "saved": "Kayıt alındı",
+    "restore": "Bu noktaya geri dön",
+    "restoreTitle": "Bu kayda geri dönülsün mü?",
+    "restoreBody": "Bu dosyalar o anki hâline döner. Önce şimdiki hâlin kaydedilir, yani bunu da geri alabilirsin.",
+    "restored": "Geri yüklendi",
+    "none": "Henüz kayıt yok.",
+    "now": "Şimdi kayıt al",
+    "noGit": "Kayıtlar için git reposu gerekiyor."
   }
 }

@@ -65,6 +65,8 @@ export class Chats {
     private readonly stops: StopRegistry,
     /** Path to the claude binary; injectable so tests never call the real one. */
     private readonly claudeBin: () => string | null = () => Bun.which("claude"),
+    /** Snapshot of the code before each AI turn; returns the checkpoint id. */
+    private readonly checkpoint: (cwd: string, label: string) => string | undefined = () => undefined,
   ) {}
 
   list(): ChatInfo[] {
@@ -174,6 +176,16 @@ export class Chats {
     ];
     if (content.length === 0) return;
     if (chat.info.title === "Chat" && text) chat.info.title = clip(text.replace(/\s+/g, " "), 60);
+    const checkpointId = this.checkpoint(chat.info.cwd, clip(text.replace(/\s+/g, " "), 60) || "chat turn");
+    if (checkpointId) {
+      this.upsert(chat, {
+        kind: "checkpoint",
+        id: `cp-${Date.now()}`,
+        at: Date.now(),
+        checkpointId,
+        projectId: chat.info.projectId,
+      });
+    }
     this.upsert(chat, { kind: "user", id: `u-${Date.now()}`, at: Date.now(), text, images: images.length });
     chat.write({ type: "user", message: { role: "user", content } });
     chat.info.status = "working";

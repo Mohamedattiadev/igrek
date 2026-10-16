@@ -1,4 +1,4 @@
-import type { FileEntry, GitChange, ProjectDetail } from "@godeye/core";
+import type { Checkpoint, FileEntry, GitChange, ProjectDetail } from "@godeye/core";
 import {
   ChevronDown,
   ChevronRight,
@@ -7,6 +7,7 @@ import {
   FileDiff,
   Folder,
   GitCommitHorizontal,
+  History,
   Pencil,
   RefreshCw,
   Save,
@@ -16,12 +17,14 @@ import {
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { CheckpointRestore } from "../../components/CheckpointRestore";
 import { FilePreview } from "../../components/FilePreview";
 import { Button } from "../../components/ui";
 import { actions } from "../../lib/actions";
 import { fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { nameOf, previewKind } from "../../lib/files";
+import { relativeTime } from "../../lib/format";
 import { useSettings } from "../../lib/settings";
 
 // Monaco is large; load it only when a file is opened.
@@ -181,6 +184,54 @@ function ChangesPanel({ project, onOpenDiff }: { project: ProjectDetail; onOpenD
   );
 }
 
+function SnapshotsPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [list, setList] = useState<Checkpoint[]>();
+  const [error, setError] = useState<string>();
+  const load = useCallback(() => {
+    fs.checkpoints(projectId)
+      .then(setList)
+      .catch(() => setList([]));
+  }, [projectId]);
+  useEffect(load, [load]);
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="space-y-1.5 border-b border-border p-2">
+        <p className="text-[11px] leading-snug text-fg-subtle">{t("checkpoint.hint")}</p>
+        <Button
+          size="sm"
+          icon={History}
+          onClick={async () => {
+            setError(undefined);
+            try {
+              await fs.checkpointNow(projectId);
+              load();
+            } catch (err) {
+              setError((err as Error).message);
+            }
+          }}
+        >
+          {t("checkpoint.now")}
+        </Button>
+        {error && <p className="text-[11px] text-danger">{error}</p>}
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        {list?.length === 0 && <p className="p-3 text-xs text-fg-subtle">{t("checkpoint.none")}</p>}
+        {list?.map((cp) => (
+          <div key={cp.id} className="space-y-0.5 border-b border-border px-2 py-1.5">
+            <p className="truncate text-[12px]">{cp.label}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-[10.5px] text-fg-subtle">{relativeTime(cp.at)}</span>
+              <span className="flex-1" />
+              <CheckpointRestore compact projectId={projectId} checkpointId={cp.id} onDone={load} />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SearchPanel({ root, onOpen }: { root: string; onOpen: (path: string, line?: number) => void }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
@@ -233,7 +284,7 @@ function SearchPanel({ root, onOpen }: { root: string; onOpen: (path: string, li
 export function CodeTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
-  const [panel, setPanel] = useState<"files" | "changes" | "search">("files");
+  const [panel, setPanel] = useState<"files" | "changes" | "snapshots" | "search">("files");
   const [root, setRoot] = useState<FileEntry[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [active, setActive] = useState<Tab>();
@@ -353,7 +404,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
     <div className="flex min-h-96 min-w-0 flex-1">
       <aside className="flex w-64 shrink-0 flex-col border-e border-border bg-bg-subtle">
         <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1">
-          {(["files", "changes", "search"] as const).map((name) => (
+          {(["files", "changes", "snapshots", "search"] as const).map((name) => (
             <button
               key={name}
               type="button"
@@ -363,7 +414,15 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
                 panel === name ? "bg-bg font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg",
               )}
             >
-              {name === "files" ? t("code.files") : name === "changes" ? t("code.changes") : <Search size={12} />}
+              {name === "files" ? (
+                t("code.files")
+              ) : name === "changes" ? (
+                t("code.changes")
+              ) : name === "snapshots" ? (
+                <History size={12} aria-label={t("checkpoint.title")} />
+              ) : (
+                <Search size={12} />
+              )}
             </button>
           ))}
         </div>
@@ -375,6 +434,8 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
           </div>
         ) : panel === "changes" ? (
           <ChangesPanel project={project} onOpenDiff={openDiff} />
+        ) : panel === "snapshots" ? (
+          <SnapshotsPanel projectId={project.id} />
         ) : (
           <SearchPanel root={project.path} onOpen={openFile} />
         )}

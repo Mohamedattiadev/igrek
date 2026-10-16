@@ -449,10 +449,10 @@ god-eye/
 - [x] ⭐ **Vim modu** (ayarlardan aç/kapat): normal, insert ve visual modlar, `:w`, `:q`, `/arama`, makrolar, register'lar, `.vimrc` benzeri özel tuş eşlemeleri, durum çubuğunda mod göstergesi — *monaco-vim; durum çubuğunda mod göstergesi; özel tuş eşlemeleri kalan iş*
 - [x] Vim tarzı gezinme uygulamanın geneline de yayılır (opsiyonel): listelerde `j/k`, `gg/G`, `/` ile arama, `Esc` ile geri — *j/k, gg/G, /*
 - [ ] Hazır tuş düzenleri: VS Code, JetBrains, Vim, Emacs
-- [ ] Dosyada "Bunu AI'a sor" ve "Bunu açıkla" sağ tık menüsü
+- [x] Dosyada "Bunu AI'a sor" ve "Bunu açıkla" sağ tık menüsü — *editörde sağ tık → "Bunu AI'a sor" (seçim ya da satır)*
 - [ ] Dosya içinde ve projede arama/değiştirme — *projede içerik arama (ripgrep / git grep) ve satıra gitme hazır; toplu değiştirme kalan iş*
 - [ ] Git paneli: değişiklikler, diff, commit, branch, worktree listesi — *değişiklikler, yan yana diff ve commit hazır; branch/worktree listesi Faz 8 agent işleriyle*
-- [ ] Git checkpoint: her AI işinden önce otomatik kayıt, tek tıkla geri alma
+- [x] Git checkpoint: her AI işinden önce otomatik kayıt, tek tıkla geri alma — *chat'te her turdan önce ve AI terminali açılırken; gizli git ref'lerinde, branch/index/geçmişe dokunmadan; geri yüklemenin kendisi de geri alınabilir*
 - [ ] Hangi satırı hangi session'ın değiştirdiğini gösterme ("AI blame")
 
 #### 2.4 Bilgisayar ve internet erişimi
@@ -468,7 +468,7 @@ god-eye/
   - Toplu işlemler: çoklu seçim, toplu yeniden adlandırma
   - Disk kullanımı görünümü: hangi klasör ne kadar yer kaplıyor
   - Vim tuşlarıyla gezinme (`j/k`, `h/l`, `/`)
-- [ ] Agent'lar için web arama ve web sayfası okuma araçları (MCP üzerinden)
+- [x] Agent'lar için web arama ve web sayfası okuma araçları (MCP üzerinden) — *Claude Code'un kendi WebSearch/WebFetch araçları; ayrı MCP gerekmedi*
 - [x] 🔒 Hassas klasörlerin **dosya olarak okunması** varsayılan olarak yasak (`~/.ssh` içindeki anahtarlar, tarayıcı profilleri vb.). Bu, SSH ile bağlanmayı engellemez (bkz. 2.5)
 
 #### 2.5 🖧 Sunucular (SSH ile uzaktaki makinelerde iş yapma)
@@ -494,8 +494,8 @@ god-eye/
 
 #### 2.6b 📥 Gelen Kutusu (dikkatini isteyen her şey tek yerde)
 - [ ] ⭐ Onay bekleyen agent'lar, @bahsetmeler, başarısız testler, düşen puanlar, limit uyarıları, zamanlanmış iş raporları, deploy sonuçları, takımdan öneriler — *cevap bekleyen terminaller ve hafıza çelişkileri hazır; diğer kaynaklar ilgili fazlarla eklenecek*
-- [ ] Öncelik sıralaması: 🔴 acil · 🟡 bugün · ⚪ bilgi
-- [ ] Tek tıkla aksiyon: onayla, reddet, aç, ertele
+- [x] Öncelik sıralaması: 🔴 acil · 🟡 bugün · ⚪ bilgi — *onaylar (acil) · cevap bekleyen session'lar (bugün) · hafıza kararları (bilgi)*
+- [x] Tek tıkla aksiyon: onayla, reddet, aç, ertele — *onayla, reddet, aç, ertele (4 saat)*
 - [ ] Ayrıca "Sıfır gelen kutusu" hedefi: her şey ya halledilir ya ertelenir
 
 #### 2.6c 💡 Fikir Kutusu (çok fikir gelen biri için)
@@ -522,8 +522,8 @@ god-eye/
 - [ ] CSV ve Excel → tablo görünümü (sıralama, filtre) — *CSV/TSV tablo hazır; Excel kalan iş*
 - [ ] JSON, YAML ve TOML → ağaç görünümü — *JSON biçimli görünüm hazır; ağaç ve YAML/TOML kalan iş*
 - [ ] Word ve PowerPoint → salt okunur önizleme
-- [ ] Log dosyaları → renkli, filtrelenebilir, canlı takip (`tail -f` gibi)
-- [ ] Her önizlemede "Bunu açıkla" ve "Bunu özetle" butonları
+- [x] Log dosyaları → renkli, filtrelenebilir, canlı takip (`tail -f` gibi) — *seviye renkleri, filtre, sadece hatalar, canlı takip*
+- [x] Her önizlemede "Bunu açıkla" ve "Bunu özetle" butonları — *dosya yöneticisinde ve kod görünümünde*
 
 **Bitti sayılır:** Bir gün boyunca terminal açmadan, sadece God Eye ile bir projede çalışabiliyorum.
 

@@ -1,5 +1,7 @@
 import { initVimMode } from "monaco-vim";
 import { useEffect, useRef } from "react";
+import { actions } from "../lib/actions";
+import i18n from "../lib/i18n";
 import { applyMonacoTheme, languageFor, monaco } from "../lib/monaco";
 
 export interface CodeEditorProps {
@@ -41,6 +43,25 @@ export default function CodeEditor({ path, value, onChange, onSave, vim, readOnl
     });
     editorRef.current = editor;
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => handlers.current.onSave?.());
+    // Right-click → "Ask AI about this" sends the selection (or the current line) to the quick question panel.
+    editor.addAction({
+      id: "godeye.ask",
+      label: i18n.t("preview.askSelection"),
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 0,
+      run: (ed) => {
+        const model = ed.getModel();
+        const selection = ed.getSelection();
+        if (!model || !selection) return;
+        const line = selection.startLineNumber;
+        const range = selection.isEmpty() ? new monaco.Range(line, 1, line, model.getLineMaxColumn(line)) : selection;
+        const name = `${model.uri.path.split("/").pop()}:${range.startLineNumber}-${range.endLineNumber}`;
+        actions.quickAsk({
+          question: i18n.t("preview.askSelectionQ"),
+          attachment: { name, text: model.getValueInRange(range) },
+        });
+      },
+    });
     const themeWatch = new MutationObserver(applyMonacoTheme);
     themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => {

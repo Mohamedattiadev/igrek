@@ -1,6 +1,7 @@
 import { basename, extname, join } from "node:path";
 import type { Hono } from "hono";
 import { gitChanges, gitCommit, gitShowHead } from "./adapters/git";
+import { checkpointChanges, createCheckpoint, listCheckpoints, restoreCheckpoint } from "./checkpoints";
 import { FileAccessError, type Files } from "./files";
 import type { Store } from "./store";
 
@@ -41,6 +42,17 @@ async function guard(c: Ctx, run: () => unknown | Promise<unknown>): Promise<Res
 export function registerFileRoutes(app: Hono, { files, store }: { files: Files; store: Store }): void {
   app.get("/api/fs/list", (c) => guard(c, () => files.list(c.req.query("path") ?? "", c.req.query("hidden") === "1")));
   app.get("/api/fs/read", (c) => guard(c, () => files.read(c.req.query("path") ?? "")));
+  // The end of a (possibly huge) log file, for live following.
+  app.get("/api/fs/tail", (c) =>
+    guard(c, async () => {
+      const path = files.resolve(c.req.query("path") ?? "");
+      const bytes = Math.min(1_000_000, Math.max(1000, Number(c.req.query("bytes") ?? 200_000)));
+      const file = Bun.file(path);
+      const size = file.size;
+      const text = await file.slice(Math.max(0, size - bytes), size).text();
+      return { text: size > bytes ? text.slice(text.indexOf("\n") + 1) : text, size };
+    }),
+  );
 
   // Raw bytes for previews and downloads. Sandboxed so an HTML/SVG file from a repo
   // can never run scripts with access to God Eye.
@@ -127,6 +139,27 @@ export function registerFileRoutes(app: Hono, { files, store }: { files: Files; 
       };
     });
   });
+  app.get("/api/projects/:id/checkpoints", (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    return row ? c.json(listCheckpoints(row.path)) : c.json({ error: "Project not found" }, 404);
+  });
+  app.post("/api/projects/:id/checkpoints", (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    if (!row) return c.json({ error: "Project not found" }, 404);
+    const checkpoint = createCheckpoint(row.path, "manual");
+    return checkpoint ? c.json(checkpoint) : c.json({ error: "This folder is not a git repository" }, 409);
+  });
+  app.get("/api/projects/:id/checkpoints/:cid/changes", (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    return row ? c.json(checkpointChanges(row.path, c.req.param("cid"))) : c.json({ error: "Project not found" }, 404);
+  });
+  app.post("/api/projects/:id/checkpoints/:cid/restore", (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    if (!row) return c.json({ error: "Project not found" }, 404);
+    const result = restoreCheckpoint(row.path, c.req.param("cid"));
+    return result.ok ? c.json(result) : c.json({ error: result.error }, 409);
+  });
+
   app.post("/api/projects/:id/git/commit", async (c) => {
     const row = store.projectRow(c.req.param("id"));
     if (!row) return c.json({ error: "Project not found" }, 404);

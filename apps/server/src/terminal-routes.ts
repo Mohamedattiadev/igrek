@@ -1,6 +1,7 @@
 import { homedir } from "node:os";
 import type { SessionSummaryData, TerminalTool } from "@godeye/core";
 import type { Hono } from "hono";
+import { createCheckpoint } from "./checkpoints";
 import type { Servers } from "./servers";
 import type { Store } from "./store";
 import type { Terminals } from "./terminals";
@@ -76,6 +77,8 @@ export function registerTerminalRoutes(
       else args.push("--resume", body.resume, ...(body.fork === true ? ["--fork-session"] : []));
       title = session.title ?? title;
     }
+    // A snapshot before an AI tool starts working, so its changes can be rolled back.
+    if (tool !== "shell") createCheckpoint(project.path, `${label} session started`);
     try {
       const info = terminals.start({
         projectId: project.id,

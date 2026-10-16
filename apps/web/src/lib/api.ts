@@ -3,6 +3,7 @@ import type {
   AskAnswer,
   ChatInfo,
   ChatMode,
+  Checkpoint,
   CommandRisk,
   Digest,
   FileContent,
@@ -179,6 +180,15 @@ export const fs = {
       `/api/fs/search?root=${encodeURIComponent(root)}&q=${encodeURIComponent(q)}${content ? "&content=1" : ""}`,
     ),
   usage: (path: string) => request<{ path: string; size: number }[]>(`/api/fs/usage?path=${encodeURIComponent(path)}`),
+  checkpoints: (projectId: string) => request<Checkpoint[]>(`/api/projects/${projectId}/checkpoints`),
+  checkpointNow: (projectId: string) =>
+    request<Checkpoint>(`/api/projects/${projectId}/checkpoints`, { method: "POST" }),
+  checkpointChanges: (projectId: string, id: string) =>
+    request<string[]>(`/api/projects/${projectId}/checkpoints/${id}/changes`),
+  restoreCheckpoint: (projectId: string, id: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/checkpoints/${id}/restore`, { method: "POST" }),
+  tail: (path: string, bytes = 200_000) =>
+    request<{ text: string; size: number }>(`/api/fs/tail?path=${encodeURIComponent(path)}&bytes=${bytes}`),
   changes: (projectId: string) => request<GitChange[]>(`/api/projects/${projectId}/git/changes`),
   diff: (projectId: string, path: string) =>
     request<{ original: string; modified: string; binary: boolean }>(

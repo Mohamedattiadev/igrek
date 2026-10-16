@@ -14,6 +14,7 @@ import {
   Plus,
   RotateCcw,
   Search,
+  Sparkles,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -21,6 +22,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useTranslation } from "react-i18next";
 import { FilePreview } from "../components/FilePreview";
 import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
+import { actions } from "../lib/actions";
 import { api, fs } from "../lib/api";
 import { cn } from "../lib/cn";
 import { fileSize, nameOf, parentOf, previewKind } from "../lib/files";
@@ -127,6 +129,35 @@ function Viewer({ entry }: { entry: FileEntry }) {
           <Button size="sm" variant="primary" onClick={save}>
             {t("code.save")}
           </Button>
+        )}
+        {text && !text.binary && (
+          <>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={Sparkles}
+              onClick={() =>
+                actions.quickAsk({
+                  question: t("preview.explainAsk"),
+                  attachment: { name: entry.name, text: text.content },
+                })
+              }
+            >
+              {t("preview.explain")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() =>
+                actions.quickAsk({
+                  question: t("preview.summarizeAsk"),
+                  attachment: { name: entry.name, text: text.content },
+                })
+              }
+            >
+              {t("preview.summarize")}
+            </Button>
+          </>
         )}
         <a href={fs.rawUrl(entry.path, true)} aria-label={t("code.download")}>
           <Button size="sm" variant="ghost" icon={Download} />

@@ -26,6 +26,7 @@ import { marked } from "marked";
 import { type ClipboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { CheckpointRestore } from "../components/CheckpointRestore";
 import { PromptPicker } from "../components/PromptPicker";
 import { Badge, Button, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
@@ -383,6 +384,13 @@ export function ChatPage() {
                       ? `${t("chat.failed")}${event.text ? `: ${event.text}` : ""}`
                       : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
                   </p>
+                );
+              case "checkpoint":
+                return (
+                  <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
+                    <span>📍 {t("checkpoint.saved")}</span>
+                    <CheckpointRestore compact projectId={event.projectId} checkpointId={event.checkpointId} />
+                  </div>
                 );
               case "notice":
                 return (

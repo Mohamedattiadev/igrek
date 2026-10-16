@@ -72,7 +72,12 @@
     "emptyBody": "Approvals, mentions and alerts will show up here.",
     "needsYou": "Waiting for your answer",
     "conflicts": "Memory needs a decision",
-    "openTerminal": "Open"
+    "openTerminal": "Open",
+    "snooze": "Later today",
+    "snoozed": "Snoozed",
+    "urgent": "Urgent",
+    "today": "Today",
+    "info": "FYI"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -354,7 +359,16 @@
   },
   "preview": {
     "rows": "{{count}} rows",
-    "truncated": "Showing the first {{count}} rows."
+    "truncated": "Showing the first {{count}} rows.",
+    "explain": "Explain",
+    "summarize": "Summarize",
+    "explainAsk": "Explain this file in plain words: what is it for and what's important in it?",
+    "summarizeAsk": "Summarize this file in 3-5 short bullet points.",
+    "askSelection": "Ask AI about this",
+    "askSelectionQ": "Explain this code in plain words.",
+    "logFollow": "Follow",
+    "logFilter": "Filter lines…",
+    "logErrors": "Errors only"
   },
   "quick": {
     "title": "Quick question",
@@ -506,5 +520,17 @@
     "empty": "What should we work on?",
     "emptyBody": "Claude works in this project's folder. Steps that change things wait for your approval.",
     "chats": "Chats"
+  },
+  "checkpoint": {
+    "title": "Snapshots",
+    "hint": "God Eye saves your code before every AI step. Go back to any of them.",
+    "saved": "Snapshot saved",
+    "restore": "Go back to this point",
+    "restoreTitle": "Go back to this snapshot?",
+    "restoreBody": "These files will be put back as they were. Your current state is saved first, so you can undo this.",
+    "restored": "Restored",
+    "none": "No snapshots yet.",
+    "now": "Save snapshot now",
+    "noGit": "Snapshots need a git repository."
   }
 }

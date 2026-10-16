@@ -412,7 +412,14 @@ export type ChatEvent =
       status: "pending" | "allowed" | "denied";
     }
   | { kind: "result"; id: string; at: number; durationMs?: number; isError: boolean; text?: string }
-  | { kind: "notice"; id: string; at: number; text: string; tone: "danger" | "neutral" };
+  | { kind: "notice"; id: string; at: number; text: string; tone: "danger" | "neutral" }
+  | { kind: "checkpoint"; id: string; at: number; checkpointId: string; projectId: string };
+
+export interface Checkpoint {
+  id: string;
+  label: string;
+  at: number;
+}
 
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =

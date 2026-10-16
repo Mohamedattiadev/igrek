@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { fs } from "../lib/api";
 import type { PreviewKind } from "../lib/files";
+import { LogView } from "./LogView";
 import { Button } from "./ui";
 
 const MAX_ROWS = 500;
@@ -116,6 +117,8 @@ export function FilePreview({ path, kind, text }: { path: string; kind: PreviewK
           )}
         </div>
       );
+    case "log":
+      return <LogView path={path} />;
     case "json":
       return <pre className="h-full overflow-auto p-4 font-mono text-[12px] leading-relaxed">{json}</pre>;
     default:

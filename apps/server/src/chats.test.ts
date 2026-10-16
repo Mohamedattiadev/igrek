@@ -42,7 +42,11 @@ for await (const chunk of Bun.stdin.stream()) {
 describe("chat", () => {
   test("streams text, asks permission in the UI, and finishes the turn", async () => {
     const bin = fakeClaude();
-    const chats = new Chats(new Bus(), new StopRegistry(), () => join(bin, "claude"));
+    const snapshots: string[] = [];
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(bin, "claude"), (_cwd, label) => {
+      snapshots.push(label);
+      return "abc123";
+    });
     const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal" });
 
     const events = new Map<string, ChatEvent>();
@@ -54,6 +58,9 @@ describe("chat", () => {
 
     chats.send(info.id, "Write hi to /x");
     await Bun.sleep(600);
+    // A snapshot is taken before the AI turn and shown in the chat.
+    expect(snapshots).toEqual(["Write hi to /x"]);
+    expect([...events.values()].find((e) => e.kind === "checkpoint")).toMatchObject({ checkpointId: "abc123" });
     const permission = [...events.values()].find((e) => e.kind === "permission");
     expect(permission).toMatchObject({ toolName: "Write", status: "pending" });
     expect(chats.get(info.id)?.status).toBe("waiting");
