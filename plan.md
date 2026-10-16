@@ -485,12 +485,12 @@ god-eye/
 - [ ] Sunucu dosyalarını görüntüleme ve düzenleme (SFTP), değişiklikten önce otomatik yedek
 
 #### 2.6 ⚡ Hızlı Soru (btw)
-- [ ] ⭐ Her ekranda `Ctrl+Space` ile açılan yan panel
-- [ ] ⭐ Ayrı session: ana chat'e dokunmaz, onun geçmişini bozmaz
-- [ ] Ana session'ın bağlamını salt okunur alır, yani "şu an ne yapıyorduk" bilgisini bilir
-- [ ] Varsayılan model hızlı ve ucuz olanıdır, istenirse yükseltilir
-- [ ] Cevap tek tıkla ana session'a not olarak gönderilebilir
-- [ ] Hızlı soru geçmişi
+- [x] ⭐ Her ekranda `Ctrl+Space` ile açılan yan panel — *editörde Ctrl+Shift+Space (orada Ctrl+Space otomatik tamamlama)*
+- [x] ⭐ Ayrı session: ana chat'e dokunmaz, onun geçmişini bozmaz
+- [x] Ana session'ın bağlamını salt okunur alır, yani "şu an ne yapıyorduk" bilgisini bilir — *"Hızlı": hafıza + özet + son mesajlar (Haiku); "Tam bağlam": session'ın kaydedilmeyen, araçsız kopyası*
+- [x] Varsayılan model hızlı ve ucuz olanıdır, istenirse yükseltilir
+- [x] Cevap tek tıkla ana session'a not olarak gönderilebilir — *açık terminale yazar (Enter'a basmaz), değilse panoya kopyalar*
+- [x] Hızlı soru geçmişi — *proje başına*
 
 #### 2.6b 📥 Gelen Kutusu (dikkatini isteyen her şey tek yerde)
 - [ ] ⭐ Onay bekleyen agent'lar, @bahsetmeler, başarısız testler, düşen puanlar, limit uyarıları, zamanlanmış iş raporları, deploy sonuçları, takımdan öneriler — *cevap bekleyen terminaller ve hafıza çelişkileri hazır; diğer kaynaklar ilgili fazlarla eklenecek*
@@ -499,21 +499,21 @@ god-eye/
 - [ ] Ayrıca "Sıfır gelen kutusu" hedefi: her şey ya halledilir ya ertelenir
 
 #### 2.6c 💡 Fikir Kutusu (çok fikir gelen biri için)
-- [ ] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir)
-- [ ] PM personası fikirleri otomatik sınıflandırır: hangi proje, hangi faz, ne kadar iş, ne kadar değerli
-- [ ] Haftalık fikir değerlendirmesi: CEO Danışmanı ile "Hangilerini yapalım, hangilerini bırakalım?"
-- [ ] Onaylanan fikir tek tıkla plana ve görev panosuna eklenir
-- [ ] Hiçbir fikir kaybolmaz, ama hiçbir fikir de odağı bozmaz
+- [x] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir) — *Ctrl+I; sesli giriş Faz 11*
+- [x] PM personası fikirleri otomatik sınıflandırır: hangi proje, hangi faz, ne kadar iş, ne kadar değerli — *tek tıkla: proje, tür, iş büyüklüğü, değer, kısa not*
+- [ ] Haftalık fikir değerlendirmesi: CEO Danışmanı ile "Hangilerini yapalım, hangilerini bırakalım?" — *CEO Danışmanı personasıyla (Faz 6)*
+- [ ] Onaylanan fikir tek tıkla plana ve görev panosuna eklenir — *durumlar (Yapılacak/Sonra/Bırakıldı) hazır; görev panosu Faz 8*
+- [x] Hiçbir fikir kaybolmaz, ama hiçbir fikir de odağı bozmaz
 
 #### 2.7 Prompt kütüphanesi
-- [ ] Prompt kaydetme, etiketleme, değişkenli şablonlar (`{dosya}`, `{proje}`)
-- [ ] Chat'te `/` ile hızlı çağırma
-- [ ] Personalar da bu kütüphaneyi kullanabilir
-- [ ] En çok işe yarayan prompt'ları otomatik öne çıkarma
+- [x] Prompt kaydetme, etiketleme, değişkenli şablonlar (`{dosya}`, `{proje}`)
+- [ ] Chat'te `/` ile hızlı çağırma — *terminal sayfasındaki "Prompt'lar" butonuyla seçip doldurma hazır; `/` chat görünümüyle*
+- [ ] Personalar da bu kütüphaneyi kullanabilir — *Faz 6*
+- [x] En çok işe yarayan prompt'ları otomatik öne çıkarma — *kullanım sayısına göre*
 
 #### 2.8 Session devri
-- [ ] Bir session'ı bağlamıyla birlikte başka araca veya hesaba devretme (Claude → Codex)
-- [ ] Devir özeti otomatik hazırlanır: ne yapıldı, nerede kalındı, sıradaki adım
+- [x] Bir session'ı bağlamıyla birlikte başka araca veya hesaba devretme (Claude → Codex) — *session sayfasında "Codex'e / Claude'a devret"; hesap değiştirme Faz 3*
+- [x] Devir özeti otomatik hazırlanır: ne yapıldı, nerede kalındı, sıradaki adım
 
 #### 2.9 📄 Dosya önizleyici (her şeyi uygulama içinde aç)
 - [ ] PDF görüntüleyici: sayfa küçük resimleri, arama, yakınlaştırma, "bu sayfayı AI'a sor" — *PDF tarayıcı görüntüleyicisinde açılıyor; sayfa küçük resimleri ve "AI'a sor" kalan iş*
