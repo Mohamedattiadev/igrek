@@ -1,0 +1,95 @@
+{
+  "app": {
+    "tagline": "See, understand and manage all your AI coding projects."
+  },
+  "nav": {
+    "projects": "Projects",
+    "inbox": "Inbox",
+    "search": "Search",
+    "limits": "Limits",
+    "team": "Team",
+    "settings": "Settings",
+    "design": "Design system"
+  },
+  "workspace": {
+    "local": "My computer",
+    "localHint": "Projects on this computer. Private by default."
+  },
+  "status": {
+    "connected": "Connected",
+    "connecting": "Connecting…",
+    "offline": "Offline",
+    "allSaved": "Everything saved locally"
+  },
+  "stop": {
+    "button": "Stop all",
+    "title": "Emergency stop",
+    "body": "This stops every running agent, scheduled job and remote command right away.",
+    "confirm": "Stop everything",
+    "cancel": "Cancel",
+    "done": "Stopped. Nothing is running."
+  },
+  "palette": {
+    "placeholder": "What do you want to do?",
+    "empty": "Nothing found.",
+    "goTo": "Pages",
+    "actions": "Actions",
+    "toggleTheme": "Switch light / dark",
+    "toggleDensity": "Switch comfortable / compact"
+  },
+  "projects": {
+    "title": "Projects",
+    "emptyTitle": "No projects yet",
+    "emptyBody": "Soon God Eye will find your projects automatically from your AI sessions. For now, everything is ready and waiting.",
+    "emptyAction": "Open settings"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "emptyTitle": "All clear",
+    "emptyBody": "Approvals, mentions and alerts will show up here."
+  },
+  "placeholder": {
+    "soon": "Coming in a later phase",
+    "body": "This page is planned. See plan.md for the details."
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "languageHint": "Turkish and English are ready. Other languages will be prepared for you the first time you pick them.",
+    "languageSoon": "will be prepared",
+    "theme": "Theme",
+    "themeSystem": "Follow system",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "density": "Density",
+    "densityComfortable": "Comfortable",
+    "densityCompact": "Compact",
+    "mode": "Mode",
+    "modeSimple": "Simple",
+    "modeSimpleHint": "Only what you need, in plain words.",
+    "modePro": "Pro",
+    "modeProHint": "Every panel and detail.",
+    "keymap": "Keyboard",
+    "keymapDefault": "Standard",
+    "keymapVim": "Vim",
+    "keymapVimHint": "j/k to move, gg/G to jump, / to search.",
+    "system": "System check",
+    "systemHint": "Tools God Eye can use on this computer.",
+    "found": "Found",
+    "missing": "Not found",
+    "optional": "optional",
+    "dataDir": "Your data is stored in"
+  },
+  "onboarding": {
+    "welcome": "Welcome to God Eye",
+    "pickLanguage": "Which language do you want?",
+    "search": "Search languages…",
+    "continue": "Continue",
+    "readyTitle": "You're all set",
+    "readyBody": "God Eye runs only on your computer. Nothing leaves it unless you decide to share.",
+    "start": "Start"
+  },
+  "help": {
+    "what": "What is this?"
+  }
+}

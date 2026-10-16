@@ -1,0 +1,95 @@
+{
+  "app": {
+    "tagline": "Tüm AI kod projelerini gör, anla ve yönet."
+  },
+  "nav": {
+    "projects": "Projeler",
+    "inbox": "Gelen Kutusu",
+    "search": "Ara",
+    "limits": "Limitler",
+    "team": "Takım",
+    "settings": "Ayarlar",
+    "design": "Tasarım sistemi"
+  },
+  "workspace": {
+    "local": "Bilgisayarım",
+    "localHint": "Bu bilgisayardaki projeler. Varsayılan olarak özel."
+  },
+  "status": {
+    "connected": "Bağlı",
+    "connecting": "Bağlanıyor…",
+    "offline": "Çevrimdışı",
+    "allSaved": "Her şey lokal olarak kaydedildi"
+  },
+  "stop": {
+    "button": "Hepsini durdur",
+    "title": "Acil durdurma",
+    "body": "Çalışan tüm agent'ları, zamanlanmış işleri ve uzak komutları hemen durdurur.",
+    "confirm": "Her şeyi durdur",
+    "cancel": "Vazgeç",
+    "done": "Durduruldu. Hiçbir şey çalışmıyor."
+  },
+  "palette": {
+    "placeholder": "Ne yapmak istiyorsun?",
+    "empty": "Bir şey bulunamadı.",
+    "goTo": "Sayfalar",
+    "actions": "İşlemler",
+    "toggleTheme": "Açık / koyu tema değiştir",
+    "toggleDensity": "Rahat / kompakt görünüm değiştir"
+  },
+  "projects": {
+    "title": "Projeler",
+    "emptyTitle": "Henüz proje yok",
+    "emptyBody": "Yakında God Eye projelerini AI session'larından otomatik olarak bulacak. Şimdilik her şey hazır ve bekliyor.",
+    "emptyAction": "Ayarları aç"
+  },
+  "inbox": {
+    "title": "Gelen Kutusu",
+    "emptyTitle": "Her şey yolunda",
+    "emptyBody": "Onaylar, bahsetmeler ve uyarılar burada görünecek."
+  },
+  "placeholder": {
+    "soon": "Sonraki bir fazda geliyor",
+    "body": "Bu sayfa planlandı. Detaylar plan.md dosyasında."
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "language": "Dil",
+    "languageHint": "Türkçe ve İngilizce hazır. Diğer diller, ilk seçtiğinde senin için hazırlanacak.",
+    "languageSoon": "hazırlanacak",
+    "theme": "Tema",
+    "themeSystem": "Sisteme uy",
+    "themeLight": "Açık",
+    "themeDark": "Koyu",
+    "density": "Yoğunluk",
+    "densityComfortable": "Rahat",
+    "densityCompact": "Kompakt",
+    "mode": "Mod",
+    "modeSimple": "Basit",
+    "modeSimpleHint": "Sadece gerekenler, sade dille.",
+    "modePro": "Pro",
+    "modeProHint": "Tüm paneller ve detaylar.",
+    "keymap": "Klavye",
+    "keymapDefault": "Standart",
+    "keymapVim": "Vim",
+    "keymapVimHint": "j/k ile gez, gg/G ile atla, / ile ara.",
+    "system": "Sistem kontrolü",
+    "systemHint": "God Eye'ın bu bilgisayarda kullanabileceği araçlar.",
+    "found": "Bulundu",
+    "missing": "Bulunamadı",
+    "optional": "opsiyonel",
+    "dataDir": "Verilerin şurada saklanıyor"
+  },
+  "onboarding": {
+    "welcome": "God Eye'a hoş geldin",
+    "pickLanguage": "Hangi dili istersin?",
+    "search": "Dil ara…",
+    "continue": "Devam",
+    "readyTitle": "Her şey hazır",
+    "readyBody": "God Eye sadece senin bilgisayarında çalışır. Sen paylaşmaya karar vermedikçe hiçbir şey dışarı çıkmaz.",
+    "start": "Başla"
+  },
+  "help": {
+    "what": "Bu nedir?"
+  }
+}

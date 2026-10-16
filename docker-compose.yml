@@ -1,0 +1,28 @@
+services:
+  god-eye:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        INSTALL_CLAUDE: ${GODEYE_INSTALL_CLAUDE:-false}
+    image: god-eye:local
+    container_name: god-eye
+    restart: unless-stopped
+    # Run as you, so files God Eye touches keep your ownership.
+    user: "${GODEYE_UID:-1000}:${GODEYE_GID:-1000}"
+    ports:
+      # Only reachable from this computer, never from the network.
+      - "127.0.0.1:${GODEYE_PORT:-7777}:7777"
+    environment:
+      HOME: ${HOME}
+      GODEYE_HOME: ${HOME}/.godeye
+      # The browser talks to the published port, so accept that Host header.
+      GODEYE_ALLOWED_HOSTS: localhost:${GODEYE_PORT:-7777},127.0.0.1:${GODEYE_PORT:-7777}
+    volumes:
+      # Your God Eye data (database, settings).
+      - ${HOME}/.godeye:${HOME}/.godeye
+      # AI session history, read to track your work.
+      - ${HOME}/.claude:${HOME}/.claude
+      # Your projects, mounted at the same path so session paths match.
+      - ${GODEYE_PROJECTS_DIR:-${HOME}/projects}:${GODEYE_PROJECTS_DIR:-${HOME}/projects}
+    mem_limit: 512m

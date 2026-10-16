@@ -1,0 +1,23 @@
+{
+  "name": "god-eye",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --filter '@godeye/server' dev & bun run --filter '@godeye/web' dev",
+    "build": "bun run --filter '@godeye/web' build",
+    "start": "bun run apps/server/src/index.ts",
+    "doctor": "bun run apps/server/src/cli.ts doctor",
+    "typecheck": "bun run --filter '*' typecheck",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15"
+  }
+}
