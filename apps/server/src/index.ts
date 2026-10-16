@@ -3,6 +3,8 @@ import { APP_VERSION, type ClientMessage, type ServerMessage } from "@godeye/cor
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
 import { createApp } from "./app";
+import { Assist } from "./assist";
+import { registerAssistRoutes } from "./assist-routes";
 import { Bus, StopRegistry } from "./bus";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
@@ -43,6 +45,7 @@ const summarizer = new Summarizer(
 const hookScript = writeHookScript(config.dataDir, config.publicPort);
 const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
+const assist = new Assist(sqlite, store, stops, () => readSettings(db), join(config.dataDir, "runner"));
 const files = new Files(
   () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],
   join(config.dataDir, "trash"),
@@ -57,6 +60,7 @@ const app = createApp({
   extraRoutes: (hono) => {
     registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language });
     registerFileRoutes(hono, { files, store });
+    registerAssistRoutes(hono, assist);
   },
   work: {
     store,

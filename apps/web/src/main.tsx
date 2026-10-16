@@ -8,11 +8,13 @@ import "./lib/i18n";
 import { SettingsProvider, useSettings } from "./lib/settings";
 import { DesignPage } from "./pages/Design";
 import { FilesPage } from "./pages/Files";
+import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
 import { Onboarding } from "./pages/Onboarding";
 import { PlaceholderPage } from "./pages/Placeholder";
 import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
+import { PromptsPage } from "./pages/Prompts";
 import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
 import { TerminalPage, TerminalsPage } from "./pages/Terminals";
@@ -28,6 +30,8 @@ const router = createBrowserRouter([
       { path: "p/:projectId/s/:sessionId", element: <SessionPage /> },
       { path: "terminals", element: <TerminalsPage /> },
       { path: "files", element: <FilesPage /> },
+      { path: "ideas", element: <IdeasPage /> },
+      { path: "prompts", element: <PromptsPage /> },
       { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <PlaceholderPage title="nav.limits" icon={Gauge} /> },

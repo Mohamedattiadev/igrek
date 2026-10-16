@@ -67,7 +67,8 @@ export function registerTerminalRoutes(
   });
 
   // "Fresh start": a new Claude session primed with the tired session's summary.
-  app.post("/api/sessions/:id/handoff", (c) => {
+  app.post("/api/sessions/:id/handoff", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { tool?: unknown };
     const session = store.sessionRow(c.req.param("id"));
     const project = session?.project_id ? store.projectRow(session.project_id) : undefined;
     if (!session || !project) return c.json({ error: "Session not found" }, 404);
@@ -76,7 +77,8 @@ export function registerTerminalRoutes(
       const info = terminals.start({
         projectId: project.id,
         cwd: session.cwd ?? project.path,
-        tool: session.tool === "codex" ? "codex" : "claude",
+        // Hand over to another tool (e.g. Claude → Codex when a limit is hit), or stay on the same one.
+        tool: TOOLS.find((t) => t === body.tool && t !== "shell") ?? (session.tool === "codex" ? "codex" : "claude"),
         title: `↻ ${summary?.title || session.title || "handoff"}`,
         args: [handoffPrompt(session.title ?? "", summary, language())],
       });
@@ -84,6 +86,14 @@ export function registerTerminalRoutes(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
+  });
+
+  // Types text into a terminal without pressing Enter (e.g. a note from a quick question).
+  app.post("/api/terminals/:id/input", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };
+    if (typeof body.text !== "string" || !terminals.get(c.req.param("id"))) return c.json({ error: "Not found" }, 404);
+    terminals.input(c.req.param("id"), body.text.replace(/\r?\n/g, " "));
+    return c.json({ ok: true });
   });
 
   app.delete("/api/terminals/:id", (c) => {

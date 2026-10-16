@@ -138,6 +138,25 @@ const migrations: string[] = [
      checked_at INTEGER NOT NULL,
      PRIMARY KEY (manager, name)
    );`,
+  // Faz 2: idea box and prompt library.
+  `CREATE TABLE ideas (
+     id TEXT PRIMARY KEY,
+     text TEXT NOT NULL,
+     project_id TEXT REFERENCES projects(id) ON DELETE SET NULL,
+     status TEXT NOT NULL DEFAULT 'new',
+     triage TEXT,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE TABLE prompts (
+     id TEXT PRIMARY KEY,
+     title TEXT NOT NULL,
+     body TEXT NOT NULL,
+     tags TEXT NOT NULL DEFAULT '[]',
+     uses INTEGER NOT NULL DEFAULT 0,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

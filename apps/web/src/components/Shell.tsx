@@ -10,7 +10,9 @@ import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
 import { CommandPalette } from "./CommandPalette";
+import { IdeaCapture } from "./IdeaCapture";
 import { NAV_ITEMS, type NavItem } from "./nav";
+import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
 import { Kbd, StatusDot } from "./ui";
 
@@ -167,6 +169,8 @@ export function Shell() {
         <StatusBar status={status} />
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+      <QuickAsk />
+      <IdeaCapture onSaved={setToast} />
       {toast && (
         <div
           role="status"

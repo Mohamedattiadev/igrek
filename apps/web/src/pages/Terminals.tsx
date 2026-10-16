@@ -2,6 +2,7 @@ import type { TerminalInfo } from "@godeye/core";
 import { ArrowLeft, SquareTerminal, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { PromptPicker } from "../components/PromptPicker";
 import { TerminalView } from "../components/TerminalView";
 import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
@@ -113,6 +114,7 @@ export function TerminalPage() {
           <ArrowLeft size={15} className="rtl:rotate-180" />
         </Link>
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{term?.title ?? "…"}</h1>
+        {term && term.status !== "exited" && <PromptPicker onUse={(text) => api.terminalInput(term.id, text)} />}
         {term && <Badge>{t(`term.${term.tool}`)}</Badge>}
         {term && <TerminalStatus term={term} />}
       </header>

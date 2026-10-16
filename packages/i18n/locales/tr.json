@@ -11,7 +11,9 @@
     "settings": "Ayarlar",
     "design": "Tasarım sistemi",
     "terminals": "Terminaller",
-    "files": "Dosyalar"
+    "files": "Dosyalar",
+    "ideas": "Fikirler",
+    "prompts": "Prompt'lar"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -294,7 +296,9 @@
     "forkHint": "Bu konuşmanın yeni bir dalını açar; orijinali olduğu gibi kalır.",
     "fresh": "Özetle temiz başla",
     "freshHint": "Ne yapıldığını ve ne kaldığını zaten bilen yeni bir session açar.",
-    "notInstalled": "kurulu değil"
+    "notInstalled": "kurulu değil",
+    "handTo": "{{tool}}'a devret",
+    "handToHint": "Bu işe ne yapıldığı ve ne kaldığının özetiyle {{tool}}'da devam et."
   },
   "code": {
     "tab": "Kod",
@@ -350,5 +354,67 @@
   "preview": {
     "rows": "{{count}} satır",
     "truncated": "İlk {{count}} satır gösteriliyor."
+  },
+  "quick": {
+    "title": "Hızlı soru",
+    "hint": "Ana session'ına dokunmadan her şeyi sor.",
+    "placeholder": "Hızlı bir soru sor…",
+    "quick": "Hızlı",
+    "full": "Tam bağlam",
+    "fullHint": "Session'ın gördüğü her şeyi kullanır (daha yavaş, limitinden daha çok harcar).",
+    "thinking": "Düşünüyor…",
+    "sendToSession": "Session'a gönder",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "sent": "Session'a yazıldı",
+    "clear": "Temizle",
+    "noContext": "Genel",
+    "explainFile": "Bu dosya ne yapıyor? Sade dille açıkla.",
+    "explain": "Açıkla"
+  },
+  "ideas": {
+    "title": "Fikirler",
+    "capture": "Yeni fikir",
+    "capturePlaceholder": "Tek satır yeterli…",
+    "saved": "Fikir kaydedildi",
+    "empty": "Henüz fikir yok. Her yerden Ctrl+I ile bir fikir bırakabilirsin.",
+    "triage": "PM ile sınıflandır",
+    "triaging": "Sınıflandırılıyor…",
+    "new": "Yeni",
+    "accepted": "Yapılacak",
+    "later": "Sonra",
+    "dropped": "Bırakıldı",
+    "noProject": "Yeni proje",
+    "effort_small": "Küçük iş",
+    "effort_medium": "Orta iş",
+    "effort_large": "Büyük iş",
+    "value_low": "Düşük değer",
+    "value_medium": "Orta değer",
+    "value_high": "Yüksek değer",
+    "kind_feature": "Özellik",
+    "kind_fix": "Düzeltme",
+    "kind_improvement": "İyileştirme",
+    "kind_new-project": "Yeni proje",
+    "kind_research": "Araştırma",
+    "kind_other": "Diğer",
+    "project": "Proje",
+    "shortcut": "Ctrl+I"
+  },
+  "prompts": {
+    "title": "Prompt'lar",
+    "empty": "Kayıtlı prompt yok. İşe yarayanları kaydet, tek tıkla tekrar kullan.",
+    "new": "Yeni prompt",
+    "titleLabel": "Ad",
+    "bodyLabel": "Prompt",
+    "bodyHint": "Her seferinde dolduracağın boşluklar için {ad} kullan, örneğin {dosya} ya da {özellik}.",
+    "tags": "Etiketler (virgülle)",
+    "save": "Kaydet",
+    "use": "Kullan",
+    "sendTo": "Şuraya yaz",
+    "copy": "Kopyala",
+    "uses_one": "{{count}} kez kullanıldı",
+    "uses_other": "{{count}} kez kullanıldı",
+    "fill": "Boşlukları doldur",
+    "noTerminal": "Açık terminal yok"
   }
 }

@@ -5,10 +5,14 @@ import type {
   FileEntry,
   GitChange,
   GitInfo,
+  Idea,
+  IdeaStatus,
   IndexStatus,
   MemorySection,
   ProjectDetail,
   ProjectListItem,
+  QuickAnswer,
+  SavedPrompt,
   SearchHit,
   SessionDetail,
   SessionListItem,
@@ -80,11 +84,34 @@ export const api = {
   mcpStatus: () => request<{ installed: boolean; command: string; inContainer: boolean }>("/api/mcp"),
   installMcp: () => request<{ ok: boolean }>("/api/mcp", { method: "POST" }),
   removeMcp: () => request<{ ok: boolean }>("/api/mcp", { method: "DELETE" }),
+  quickAsk: (body: {
+    question: string;
+    projectId?: string;
+    sessionId?: string;
+    mode: "quick" | "full";
+    history?: { q: string; a: string }[];
+    attachment?: { name: string; text: string };
+  }) => request<QuickAnswer>("/api/quick-ask", { method: "POST", body: JSON.stringify(body) }),
+  terminalInput: (id: string, text: string) =>
+    request<{ ok: boolean }>(`/api/terminals/${id}/input`, { method: "POST", body: JSON.stringify({ text }) }),
+  ideas: () => request<Idea[]>("/api/ideas"),
+  addIdea: (text: string, projectId?: string) =>
+    request<Idea>("/api/ideas", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  updateIdea: (id: string, patch: { status?: IdeaStatus; projectId?: string | null; text?: string }) =>
+    request<{ ok: boolean }>(`/api/ideas/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  deleteIdea: (id: string) => request<{ ok: boolean }>(`/api/ideas/${id}`, { method: "DELETE" }),
+  triageIdeas: () => request<Idea[]>("/api/ideas/triage", { method: "POST" }),
+  prompts: () => request<SavedPrompt[]>("/api/prompts"),
+  savePrompt: (prompt: { id?: string; title: string; body: string; tags: string[] }) =>
+    request<SavedPrompt>("/api/prompts", { method: "POST", body: JSON.stringify(prompt) }),
+  markPromptUsed: (id: string) => request<{ ok: boolean }>(`/api/prompts/${id}/use`, { method: "POST" }),
+  deletePrompt: (id: string) => request<{ ok: boolean }>(`/api/prompts/${id}`, { method: "DELETE" }),
   inbox: () => request<{ conflicts: { projectId: string; projectName: string; count: number }[] }>("/api/inbox"),
   terminals: () => request<TerminalInfo[]>("/api/terminals"),
   startTerminal: (body: { projectId: string; tool: TerminalTool; resume?: string; fork?: boolean }) =>
     request<TerminalInfo>("/api/terminals", { method: "POST", body: JSON.stringify(body) }),
-  handoff: (sessionId: string) => request<TerminalInfo>(`/api/sessions/${sessionId}/handoff`, { method: "POST" }),
+  handoff: (sessionId: string, tool?: TerminalTool) =>
+    request<TerminalInfo>(`/api/sessions/${sessionId}/handoff`, { method: "POST", body: JSON.stringify({ tool }) }),
   closeTerminal: (id: string) => request<{ ok: boolean }>(`/api/terminals/${id}`, { method: "DELETE" }),
 };
 

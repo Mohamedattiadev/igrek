@@ -276,6 +276,42 @@ export interface GitChange {
   staged: boolean;
 }
 
+export type IdeaStatus = "new" | "accepted" | "later" | "dropped";
+
+export interface IdeaTriage {
+  /** Best-matching project, by id, or null when it's a new project idea. */
+  projectId: string | null;
+  kind: "feature" | "fix" | "improvement" | "new-project" | "research" | "other";
+  effort: "small" | "medium" | "large";
+  value: "low" | "medium" | "high";
+  /** One plain sentence on why, in the user's language. */
+  note: string;
+}
+
+export interface Idea {
+  id: string;
+  text: string;
+  projectId: string | null;
+  status: IdeaStatus;
+  triage?: IdeaTriage;
+  createdAt: number;
+}
+
+export interface SavedPrompt {
+  id: string;
+  title: string;
+  body: string;
+  tags: string[];
+  uses: number;
+  createdAt: number;
+}
+
+export interface QuickAnswer {
+  answer: string;
+  /** What the answer was based on, shown as a chip. */
+  context: { project?: string; session?: string; mode: "quick" | "full" };
+}
+
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =
   | { type: "hello"; version: string }

@@ -11,12 +11,14 @@ import {
   RefreshCw,
   Save,
   Search,
+  Sparkles,
   X,
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FilePreview } from "../../components/FilePreview";
 import { Button } from "../../components/ui";
+import { actions } from "../../lib/actions";
 import { fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { nameOf, previewKind } from "../../lib/files";
@@ -417,6 +419,21 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
             >
               {showPreview ? <Pencil size={12} /> : <Eye size={12} />}
               {showPreview ? t("code.edit") : t("code.preview")}
+            </button>
+          )}
+          {active?.mode === "file" && buffer && !buffer.binary && (
+            <button
+              type="button"
+              onClick={() =>
+                actions.quickAsk({
+                  question: t("quick.explainFile"),
+                  attachment: { name: nameOf(active.path), text: buffer.content },
+                })
+              }
+              className="flex items-center gap-1 px-2 text-[11.5px] text-fg-muted hover:text-accent"
+            >
+              <Sparkles size={12} />
+              {t("quick.explain")}
             </button>
           )}
           <button

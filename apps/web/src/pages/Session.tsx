@@ -2,6 +2,7 @@ import type { SessionDetail, TranscriptMessage } from "@godeye/core";
 import {
   AlertTriangle,
   ArrowLeft,
+  ArrowRightLeft,
   Bot,
   FileWarning,
   GitFork,
@@ -94,6 +95,20 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
       >
         <span className="hidden lg:inline">{t("term.fresh")}</span>
       </Button>
+      {(["claude", "codex"] as const)
+        .filter((tool) => tool !== session.tool)
+        .map((tool) => (
+          <Button
+            key={tool}
+            size="sm"
+            variant="ghost"
+            icon={ArrowRightLeft}
+            title={t("term.handToHint", { tool: t(`term.${tool}`) })}
+            onClick={() => open(() => api.handoff(session.id, tool))}
+          >
+            <span className="hidden xl:inline">{t("term.handTo", { tool: t(`term.${tool}`) })}</span>
+          </Button>
+        ))}
       <Button
         size="sm"
         variant="ghost"

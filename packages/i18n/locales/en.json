@@ -11,7 +11,9 @@
     "settings": "Settings",
     "design": "Design system",
     "terminals": "Terminals",
-    "files": "Files"
+    "files": "Files",
+    "ideas": "Ideas",
+    "prompts": "Prompts"
   },
   "workspace": {
     "local": "My computer",
@@ -294,7 +296,9 @@
     "forkHint": "Starts a new branch of this conversation; the original stays as it is.",
     "fresh": "Start fresh with a summary",
     "freshHint": "Opens a new session that already knows what was done and what is left.",
-    "notInstalled": "not installed"
+    "notInstalled": "not installed",
+    "handTo": "Hand over to {{tool}}",
+    "handToHint": "Continue this work in {{tool}} with a summary of what was done and what is left."
   },
   "code": {
     "tab": "Code",
@@ -350,5 +354,67 @@
   "preview": {
     "rows": "{{count}} rows",
     "truncated": "Showing the first {{count}} rows."
+  },
+  "quick": {
+    "title": "Quick question",
+    "hint": "Ask anything without touching your main session.",
+    "placeholder": "Ask a quick question…",
+    "quick": "Quick",
+    "full": "Full context",
+    "fullHint": "Uses everything the session saw (slower, uses more of your limit).",
+    "thinking": "Thinking…",
+    "sendToSession": "Send to session",
+    "copy": "Copy",
+    "copied": "Copied",
+    "sent": "Typed into the session",
+    "clear": "Clear",
+    "noContext": "General",
+    "explainFile": "What does this file do? Explain it in plain words.",
+    "explain": "Explain"
+  },
+  "ideas": {
+    "title": "Ideas",
+    "capture": "New idea",
+    "capturePlaceholder": "One line is enough…",
+    "saved": "Idea saved",
+    "empty": "No ideas yet. Press Ctrl+I anywhere to drop one.",
+    "triage": "Sort with the PM",
+    "triaging": "Sorting…",
+    "new": "New",
+    "accepted": "Doing it",
+    "later": "Later",
+    "dropped": "Dropped",
+    "noProject": "New project",
+    "effort_small": "Small job",
+    "effort_medium": "Medium job",
+    "effort_large": "Big job",
+    "value_low": "Low value",
+    "value_medium": "Medium value",
+    "value_high": "High value",
+    "kind_feature": "Feature",
+    "kind_fix": "Fix",
+    "kind_improvement": "Improvement",
+    "kind_new-project": "New project",
+    "kind_research": "Research",
+    "kind_other": "Other",
+    "project": "Project",
+    "shortcut": "Ctrl+I"
+  },
+  "prompts": {
+    "title": "Prompts",
+    "empty": "No saved prompts. Save the ones that work well and reuse them in one click.",
+    "new": "New prompt",
+    "titleLabel": "Name",
+    "bodyLabel": "Prompt",
+    "bodyHint": "Use {name} for blanks you fill in each time, e.g. {file} or {feature}.",
+    "tags": "Tags (comma separated)",
+    "save": "Save",
+    "use": "Use",
+    "sendTo": "Type into",
+    "copy": "Copy",
+    "uses_one": "used {{count}} time",
+    "uses_other": "used {{count}} times",
+    "fill": "Fill in the blanks",
+    "noTerminal": "No open terminal"
   }
 }
