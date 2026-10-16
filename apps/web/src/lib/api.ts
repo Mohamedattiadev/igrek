@@ -11,6 +11,8 @@ import type {
   CommandRisk,
   Digest,
   EnhanceResult,
+  EnvBackup,
+  EnvOverview,
   FileContent,
   FileEntry,
   GitChange,
@@ -206,6 +208,31 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ force }),
     }),
+  envOverview: (projectId: string) => request<EnvOverview>(`/api/projects/${projectId}/env`),
+  envReveal: (projectId: string, file: string, key: string) =>
+    request<{ value: string }>(`/api/projects/${projectId}/env/reveal`, {
+      method: "POST",
+      body: JSON.stringify({ file, key }),
+    }),
+  envSet: (projectId: string, file: string, key: string, value: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/env`, {
+      method: "PUT",
+      body: JSON.stringify({ file, key, value }),
+    }),
+  envRemove: (projectId: string, file: string, key: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/env`, {
+      method: "DELETE",
+      body: JSON.stringify({ file, key }),
+    }),
+  envHistory: (projectId: string, file: string) =>
+    request<EnvBackup[]>(`/api/projects/${projectId}/env/history?file=${encodeURIComponent(file)}`),
+  envRestore: (projectId: string, file: string, id: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/env/restore`, {
+      method: "POST",
+      body: JSON.stringify({ file, id }),
+    }),
+  envSyncExample: (projectId: string) =>
+    request<{ file: string; added: string[] }>(`/api/projects/${projectId}/env/example`, { method: "POST" }),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

@@ -17,6 +17,8 @@ import { loadConfig } from "./config";
 import { openDb } from "./db";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
+import { registerEnvRoutes } from "./env-routes";
+import { EnvFiles } from "./envfiles";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { writeHookScript } from "./hooks";
@@ -118,6 +120,7 @@ const app = createApp({
     registerTeamRoutes(hono, sync);
     registerEnhanceRoutes(hono, enhancer);
     registerInsightRoutes(hono, insight);
+    registerEnvRoutes(hono, { env: new EnvFiles(join(config.dataDir, "env-backups")), store, insight });
   },
   work: {
     store,

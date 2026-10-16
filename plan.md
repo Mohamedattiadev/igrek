@@ -750,28 +750,28 @@ god-eye/
 - [ ] İlerleme çubuğu + tahmini süre ve token maliyeti önceden gösterilir
 
 #### 5.5 🔌 API Haritası
-- [ ] ⭐ Projede kullanılan **tüm API'ler** otomatik bulunur:
+- [x] ⭐ Projede kullanılan **tüm API'ler** otomatik bulunur: — *31 bilinen servis (Stripe, iyzico, OpenAI, Firebase, ZITADEL…) + bilinmeyenler URL adresinden; kendi endpoint'ler Express/Hono/Fastify/NestJS/FastAPI/Flask/Next.js'ten*
   - **Dış servisler:** Stripe, OpenAI, Google Maps, e-posta, SMS… (koddaki SDK'lardan, URL'lerden ve `.env` anahtarlarından)
   - **Kendi API'lerin:** projedeki endpoint'ler (route dosyaları, OpenAPI şemaları)
-- [ ] Her API için kart:
+- [ ] Her API için kart: — *ne işe yaradığı, doküman linki, kodda nerede (tıklanabilir) ve `.env` anahtarları var; kullanım istatistiği ve sağlık kontrolü sonra*
   - **Ne işe yarıyor** (sade dille), **nereden geliyor** (sağlayıcı, doküman linki)
   - **Kodda nerede kullanılıyor** (dosya:satır listesi, tıklanabilir)
   - **Hangi `.env` anahtarını kullanıyor**
   - **Ne kadar kullanıldı:** lokalde dev proxy'den, prod'da SSH ile log analizinden (istek sayısı, hata oranı, ortalama süre). Sağlayıcının kullanım API'si varsa maliyet bilgisi
   - Sağlık: anahtar geçerli mi, endpoint cevap veriyor mu, deprecated sürüm kullanılıyor mu
-- [ ] Endpoint akış diyagramı: "Frontend → `/api/pay` → Stripe → webhook → DB"
-- [ ] Yerleşik API test aracı (Postman gibi): endpoint seç, istek gönder, cevabı gör
-- [ ] Kullanılmayan API'ler ve anahtarlar için uyarı ("bu anahtar hiçbir yerde kullanılmıyor")
+- [x] Endpoint akış diyagramı: "Frontend → `/api/pay` → Stripe → webhook → DB" — *frontend → endpoint grupları → dış servisler, koddaki çağrılardan*
+- [ ] Yerleşik API test aracı (Postman gibi): endpoint seç, istek gönder, cevabı gör — *sonra*
+- [x] Kullanılmayan API'ler ve anahtarlar için uyarı ("bu anahtar hiçbir yerde kullanılmıyor") — *anahtarlar için; compose/script referansları da kullanım sayılıyor*
 
 #### 5.6 🔑 `.env` ve Sır Yönetimi
-- [ ] ⭐ Ortam bazında `.env` editörü: Local · Staging · Prod (prod dosyası SSH ile okunur ve yazılır)
-- [ ] ⭐ Değerler varsayılan olarak maskeli (`sk-••••3f2a`), göz ikonuyla gösterilir
-- [ ] ⭐ Değiştirmeden önce otomatik yedek; değişiklik geçmişi; tek tıkla geri alma
-- [ ] Doğrulama: eksik anahtar ("kod `STRIPE_KEY` istiyor ama `.env`'de yok"), hatalı format, ortamlar arası fark tablosu
-- [ ] Her anahtarın yanında: ne işe yaradığı, hangi API'ye ait olduğu, kodda nerede kullanıldığı
-- [ ] `.env.example` dosyasını otomatik güncel tutma
+- [ ] ⭐ Ortam bazında `.env` editörü: Local · Staging · Prod (prod dosyası SSH ile okunur ve yazılır) — *projedeki tüm .env* dosyaları (alt paketler dahil) ortam sütunlarıyla düzenleniyor; SSH ile prod sonra*
+- [x] ⭐ Değerler varsayılan olarak maskeli (`sk-••••3f2a`), göz ikonuyla gösterilir — *gösterilen değer 20 sn sonra yine gizlenir*
+- [x] ⭐ Değiştirmeden önce otomatik yedek; değişiklik geçmişi; tek tıkla geri alma — *yedekler God Eye'ın veri klasöründe, 600 izinli; çok satırlı değerler (private key) tek parça düzenleniyor*
+- [x] Doğrulama: eksik anahtar ("kod `STRIPE_KEY` istiyor ama `.env`'de yok"), hatalı format, ortamlar arası fark tablosu
+- [x] Her anahtarın yanında: ne işe yaradığı, hangi API'ye ait olduğu, kodda nerede kullanıldığı — *hangi servise ait ve kodda nerede okunduğu; servis açıklaması API Haritası'nda*
+- [x] `.env.example` dosyasını otomatik güncel tutma — *tek tıkla: sadece adlar eklenir, değerler asla kopyalanmaz*
 - [ ] Prod `.env` değişikliği sonrası "servisi yeniden başlatayım mı?" önerisi (onaylı)
-- [ ] 🔒 `.env` değerleri **asla** AI'a gönderilmez (sadece anahtar isimleri gider), asla Hub ile senkron edilmez, asla loglara yazılmaz
+- [x] 🔒 `.env` değerleri **asla** AI'a gönderilmez (sadece anahtar isimleri gider), asla Hub ile senkron edilmez, asla loglara yazılmaz
 - [ ] 🔒 Takımda sadece anahtar isimleri ve "kim, ne zaman değiştirdi" bilgisi görünür, değerler görünmez
 
 **Bitti sayılır:** Bir projeye girdiğimde her bölümün ne olduğunu, puanını ve nasıl iyileşeceğini 1 dakikada anlıyorum.

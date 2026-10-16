@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
+  type ApiMap,
   type Category,
   type CategoryDetail,
   type CategoryExplanation,
@@ -28,6 +29,7 @@ interface WorkerReply {
   categories: CategoryScore[];
   overall: number;
   diagrams: DiagramSet;
+  apis: ApiMap;
   fileCount: number;
 }
 
@@ -93,6 +95,7 @@ export class Insight {
           grade: gradeOf(reply.overall),
           categories: reply.categories,
           diagrams: reply.diagrams,
+          apis: reply.apis,
           fileCount: reply.fileCount,
         };
         const scores = Object.fromEntries(reply.categories.map((c) => [c.category, c.score]));

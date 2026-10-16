@@ -107,11 +107,43 @@ describe("insight service", () => {
     const first = await insight.scan("p1");
     await insight.scan("p1");
     expect(first.categories.length).toBeGreaterThan(0);
+    // The worker's reply carries everything the pages need.
+    expect(first.apis?.env).toBeDefined();
+    expect(first.diagrams).toBeDefined();
     const latest = insight.latest("p1");
     expect("trend" in latest && latest.trend.length).toBe(2);
     const architecture = insight.detail("p1", "architecture");
     expect(architecture?.sessions.map((s) => s.id)).toEqual(["s1"]);
     expect(architecture?.trend.length).toBe(2);
     insight.stop();
+  });
+});
+
+describe("api map", () => {
+  test("services, endpoints, env names; doc links and shell variables don't count", async () => {
+    const { apiMap } = await import("./apis");
+    const root = repo({
+      "package.json": JSON.stringify({ dependencies: { stripe: "^14", hono: "^4" } }),
+      "src/pay.ts":
+        'import Stripe from "stripe";\nconst s = new Stripe(process.env.STRIPE_SECRET_KEY);\n// docs: "https://docs.stripe.com/api"\n',
+      "src/routes.ts":
+        'import "./pay";\napp.post("/api/pay", (c) => c.json({}));\napp.get("/api/pay/:id", (c) => c.json({}));\n',
+      "web/src/api.ts":
+        'export const pay = () => fetch("/api/pay", { method: "POST" });\nconst w = "https://api.weather.example.net/v1/now";\n',
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: a shell script fixture
+      "deploy.sh": 'APP_DIR=/srv\ncd "$APP_DIR" && echo ${POSTGRES_PASSWORD}\n',
+      ".env.example": "STRIPE_SECRET_KEY=\nPOSTGRES_PASSWORD=\nOLD_KEY=\n",
+      "src/ci.ts": "if (process.env.CI) {}\n",
+    });
+    const map = apiMap(takeSnapshot(root));
+    expect(map.external.map((e) => e.id)).toEqual(expect.arrayContaining(["stripe", "url:api.weather.example.net"]));
+    expect(map.external.find((e) => e.id === "stripe")?.envKeys).toEqual(["STRIPE_SECRET_KEY"]);
+    expect(map.endpoints.map((e) => `${e.method} ${e.path}`)).toEqual(["POST /api/pay", "GET /api/pay/:id"]);
+    const names = map.env.map((e) => e.name);
+    expect(names).toEqual(expect.arrayContaining(["STRIPE_SECRET_KEY", "POSTGRES_PASSWORD"]));
+    expect(names).not.toContain("APP_DIR");
+    expect(names).not.toContain("CI");
+    expect(map.unusedEnv).toEqual(["OLD_KEY"]);
+    expect(map.flow).toContain("/api/pay");
   });
 });

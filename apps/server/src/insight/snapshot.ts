@@ -104,7 +104,11 @@ export function takeSnapshot(root: string): Snapshot {
       continue; // deleted but still in the index
     }
     const file: RepoFile = { path, size, lines: 0 };
-    const readable = (TEXT_EXT.test(path) || TEXT_NAMES.test(path)) && !SENSITIVE.test(path) && !LOCKFILE.test(path);
+    // Example env files only hold names and placeholders, so they're read (real .env files never are).
+    const readable =
+      (TEXT_EXT.test(path) || TEXT_NAMES.test(path) || isEnvExample(path)) &&
+      (!SENSITIVE.test(path) || isEnvExample(path)) &&
+      !LOCKFILE.test(path);
     if (readable && size <= MAX_READ && total + size <= MAX_TOTAL) {
       try {
         const text = readFileSync(join(root, path), "utf8");

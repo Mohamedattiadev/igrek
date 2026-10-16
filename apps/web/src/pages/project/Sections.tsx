@@ -8,11 +8,13 @@ import {
   FileText,
   FlaskConical,
   Gauge,
+  KeyRound,
   type LucideIcon,
   Monitor,
   Network,
   Package,
   Palette,
+  Plug,
   RefreshCw,
   Server,
   ShieldCheck,
@@ -31,6 +33,8 @@ import { relativeTime } from "../../lib/format";
 import i18n from "../../lib/i18n";
 import { useServerEvent } from "../../lib/live";
 import { useSettings } from "../../lib/settings";
+import { ApiMapView } from "./ApiMap";
+import { EnvView } from "./EnvView";
 
 export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   architecture: Network,
@@ -360,6 +364,7 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
   const { latest, error, reload } = useInsight(project.id);
   const [scanning, setScanning] = useState(false);
   const category = params.get("cat") as Category | null;
+  const view = params.get("view");
 
   const scan = () => {
     setScanning(true);
@@ -385,6 +390,8 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
       />
     );
   }
+  if (view === "apis" && latest.apis) return <ApiMapView projectId={project.id} map={latest.apis} />;
+  if (view === "env") return <EnvView projectId={project.id} />;
   if (category && latest.categories.some((c) => c.category === category))
     return <CategoryView project={project} category={category} scan={latest} />;
 
@@ -407,6 +414,37 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
           {scanning || latest.scanning ? t("insight.scanning") : t("insight.scan")}
         </Button>
       </Card>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          data-nav-item
+          onClick={() => setParams({ tab: "sections", view: "apis" })}
+          className="flex items-center gap-3 rounded-ui border border-border bg-bg p-pad text-start hover:border-border-strong hover:bg-bg-subtle"
+        >
+          <Plug size={20} className="text-accent" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-semibold">{t("apis.title")}</p>
+            <p className="text-xs text-fg-muted">
+              {t("apis.summary", {
+                external: latest.apis?.external.length ?? 0,
+                endpoints: latest.apis?.endpoints.length ?? 0,
+              })}
+            </p>
+          </div>
+        </button>
+        <button
+          type="button"
+          data-nav-item
+          onClick={() => setParams({ tab: "sections", view: "env" })}
+          className="flex items-center gap-3 rounded-ui border border-border bg-bg p-pad text-start hover:border-border-strong hover:bg-bg-subtle"
+        >
+          <KeyRound size={20} className="text-accent" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[13px] font-semibold">{t("env.title")}</p>
+            <p className="text-xs text-fg-muted">{t("env.summary", { count: latest.apis?.env.length ?? 0 })}</p>
+          </div>
+        </button>
+      </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {latest.categories.map((c) => {
           const Icon = CATEGORY_ICONS[c.category];

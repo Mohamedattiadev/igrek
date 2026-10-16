@@ -59,6 +59,7 @@ export interface InsightScan {
   grade: CategoryScore["grade"];
   categories: CategoryScore[];
   diagrams: DiagramSet;
+  apis?: ApiMap;
   fileCount: number;
 }
 
@@ -79,4 +80,83 @@ export interface CategoryDetail extends CategoryScore {
 
 export function gradeOf(score: number): CategoryScore["grade"] {
   return score >= 90 ? "A" : score >= 80 ? "B" : score >= 70 ? "C" : score >= 60 ? "D" : "F";
+}
+
+/** Where an API or setting shows up in the code. */
+export interface CodeRef {
+  path: string;
+  line: number;
+}
+
+export interface ExternalApi {
+  /** Known provider id (also the i18n key insight.api.<id>), or "url:<host>" for an unknown host. */
+  id: string;
+  name: string;
+  docs?: string;
+  refs: CodeRef[];
+  /** Environment variable names that belong to it (names only, never values). */
+  envKeys: string[];
+}
+
+export interface Endpoint {
+  method: string;
+  path: string;
+  ref: CodeRef;
+  framework: string;
+  /** Known providers the handler's file talks to. */
+  calls: string[];
+}
+
+export interface EnvKeyUse {
+  name: string;
+  refs: CodeRef[];
+  /** In .env.example (or similar) — only the name is read from there. */
+  documented: boolean;
+  provider?: string;
+}
+
+export interface ApiMap {
+  external: ExternalApi[];
+  endpoints: Endpoint[];
+  env: EnvKeyUse[];
+  /** Names in .env.example that no code reads. */
+  unusedEnv: string[];
+  flow?: string;
+}
+
+/** .env editor (plan.md 5.6). Listings only ever carry masked values. */
+export interface EnvFileInfo {
+  path: string;
+  /** "default", "local", "development", "staging", "production", "test", or the suffix. */
+  env: string;
+  example: boolean;
+  keys: number;
+}
+
+export interface EnvKeyRow {
+  name: string;
+  /** Per file path: masked value, or absent when the file doesn't have the key. */
+  values: Record<string, { masked: string; empty: boolean; line: number }>;
+  usedInCode: boolean;
+  provider?: string;
+  refs: { path: string; line: number }[];
+  issues: EnvIssue[];
+}
+
+export type EnvIssue =
+  | { kind: "missing"; file: string }
+  | { kind: "empty"; file: string }
+  | { kind: "duplicate"; file: string }
+  | { kind: "format"; file: string; expected: "url" | "number" | "boolean" }
+  | { kind: "unused" };
+
+export interface EnvOverview {
+  files: EnvFileInfo[];
+  keys: EnvKeyRow[];
+}
+
+export interface EnvBackup {
+  id: string;
+  at: number;
+  keys: number;
 }

@@ -1,4 +1,5 @@
 /// <reference lib="webworker" />
+import { apiMap } from "./apis";
 import { scoreCategories } from "./checks";
 import { diagrams } from "./diagram";
 import { takeSnapshot } from "./snapshot";
@@ -15,6 +16,7 @@ self.onmessage = (event: MessageEvent<{ id: number; root: string }>) => {
       categories,
       overall,
       diagrams: diagrams(snap),
+      apis: apiMap(snap),
       fileCount: snap.files.length,
     });
   } catch (err) {
