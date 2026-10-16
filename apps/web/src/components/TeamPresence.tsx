@@ -18,7 +18,7 @@ export function usePresence(projectId?: string): Presence[] {
   return list;
 }
 
-/** "🟢 Kerim is working here", with a warning when you're both in the same files. */
+/** "Kerim is working here" (green dot), with a warning when you're both in the same files. */
 export function TeamPresence({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
   const presence = usePresence(projectId);

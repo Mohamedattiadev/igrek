@@ -4,7 +4,11 @@ import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv, loginShell } from "./env";
 
 const SCROLLBACK_BYTES = 512 * 1024;
-const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;?]*[A-Za-z]`, "g");
+const ESC = String.fromCharCode(27);
+const BEL = String.fromCharCode(7);
+const ANSI = new RegExp(`${ESC}\\[[0-9;?]*[A-Za-z]`, "g");
+/** Colours, cursor moves and window titles, plus carriage returns: what's left is the text. */
+const ANSI_ALL = new RegExp(`${ESC}\\[[0-9;?]*[A-Za-z]|${ESC}\\][^${BEL}]*${BEL}|\r`, "g");
 /** Prompts that mean the AI is waiting for the user (approve, choose, confirm). */
 const NEEDS_YOU =
   /(Do you want to|Would you like to|\(y\/n\)|\[y\/N\]|Allow (this|once)|❯ 1\. Yes|Press Enter to|Approve\?)/i;
@@ -129,6 +133,38 @@ export class Terminals {
     this.terms.set(id, term);
     this.changed();
     return { ...term.info };
+  }
+
+  /**
+   * The latest error lines printed in this project's shell terminals (a failing
+   * test, a crashed dev server), for the prompt enhancer. Plain text, no colours.
+   */
+  recentErrors(projectId: string): { title: string; text: string } | undefined {
+    const terms = [...this.terms.values()]
+      .filter((t) => t.info.projectId === projectId && t.info.tool === "shell")
+      .sort((a, b) => b.info.lastOutputAt - a.info.lastOutputAt);
+    for (const term of terms) {
+      const text = term.chunks.join("").slice(-12_000).replace(ANSI_ALL, "");
+      const lines = text.split("\n");
+      let last = -1;
+      for (let i = lines.length - 1; i >= 0; i--)
+        if (
+          /\b(error|failed|failure|exception|traceback|panic|cannot find|not found|ERR!|FAIL)\b/i.test(lines[i] ?? "")
+        ) {
+          last = i;
+          break;
+        }
+      if (last < 0) continue;
+      return {
+        title: term.info.title,
+        text: lines
+          .slice(Math.max(0, last - 12), last + 6)
+          .join("\n")
+          .trim()
+          .slice(0, 2000),
+      };
+    }
+    return undefined;
   }
 
   /** Replays recent output, then streams new output to `listener`. Returns an unsubscribe. */

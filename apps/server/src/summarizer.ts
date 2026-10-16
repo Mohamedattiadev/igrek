@@ -56,7 +56,7 @@ Return ONLY a JSON object, no markdown, with this shape:
 - did: what was actually done (max 5 items). why: the goal, one sentence. left: what is still unfinished (max 4). risks: anything that may be broken or needs checking (max 3, can be empty).
 - memory: only durable facts a future session must know. "decision" = a choice that was made, "convention" = a rule to follow, "failed" = something tried that did not work and why, "issue" = an unsolved problem, "status" = one line on where the project stands now. Max 8 items, one sentence each, in ${languageName(language)}. Empty array if nothing.
 - Only state what the transcript supports. Do not guess.
-- If the AI in the transcript states something that contradicts KNOWN MEMORY (e.g. memory says PostgreSQL, the AI assumes MySQL), add a risk that starts with "⚠" explaining the mismatch.
+- If the AI in the transcript states something that contradicts KNOWN MEMORY (e.g. memory says PostgreSQL, the AI assumes MySQL), add a risk that starts with "Mismatch:" explaining it.
 - Do not repeat facts already in KNOWN MEMORY. If a new fact contradicts a known one (e.g. a different database was chosen), add it with "contradicts" set to that known item's id and a short "reason".
 
 KNOWN MEMORY (id: section: text):

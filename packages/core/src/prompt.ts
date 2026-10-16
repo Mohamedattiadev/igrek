@@ -2,7 +2,7 @@
 
 export type EnhanceIntent = "fix" | "add" | "refactor" | "explain" | "test" | "review" | "deploy" | "other";
 
-export type EnhanceContextKind = "memory" | "session" | "git" | "file" | "error" | "team";
+export type EnhanceContextKind = "memory" | "session" | "git" | "file" | "error" | "log" | "team";
 
 export interface EnhanceContextItem {
   kind: EnhanceContextKind;
@@ -26,6 +26,8 @@ export interface EnhancedParts {
 
 export interface EnhanceResult {
   original: string;
+  /** The text after the user's shorthands were expanded, when any were. */
+  expanded?: string;
   intent: EnhanceIntent;
   /** Set when the request is too vague to improve without guessing. */
   questions?: EnhanceQuestion[];
@@ -75,6 +77,32 @@ export function promptWeakness(text: string): number {
   if (SPECIFIC.test(trimmed)) score -= 0.3;
   if (trimmed.includes("\n")) score -= 0.2;
   return Math.max(0, Math.min(1, score));
+}
+
+/** Replaces the user's shorthands as whole words ("dyy" → "doğrusunu yap"). */
+export function expandShortcuts(text: string, shortcuts: Record<string, string>): string {
+  let out = text;
+  for (const [short, long] of Object.entries(shortcuts)) {
+    if (!short.trim() || !long.trim()) continue;
+    const escaped = short.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    out = out.replace(
+      new RegExp(`(^|[\\s,.;:!?(])${escaped}(?=$|[\\s,.;:!?)])`, "giu"),
+      (_m, before: string) => `${before}${long.trim()}`,
+    );
+  }
+  return out;
+}
+
+export interface EnhanceStats {
+  /** Last 7 days. */
+  week: { total: number; enhanced: number; edited: number; original: number };
+  /** Average errors in the 30 minutes after sending, enhanced vs. as written (null without data). */
+  errorsEnhanced: number | null;
+  errorsOriginal: number | null;
+  /** What the user's own prompts most often lacked this week. */
+  missing: { part: "files" | "done" | "limits"; count: number }[];
+  /** Short words the user keeps using that might be shorthands worth defining. */
+  suggestions: string[];
 }
 
 export const isWeakPrompt = (text: string) => promptWeakness(text) >= 0.5;

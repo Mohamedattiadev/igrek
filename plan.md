@@ -238,6 +238,7 @@ god-eye/
 - [ ] "Zen modu": tek tıkla tüm paneller gizlenir, sadece içerik kalır
 - [ ] Hazır temalar: Açık, Koyu, JetBrains Darcula benzeri, Notion benzeri açık tema
 - [ ] Kural: bir ekranda aynı anda en fazla bir ana aksiyon butonu
+- [x] ⭐ **Emoji yok, gerçek ikonlar:** arayüzde hiç emoji kullanılmaz; her ikon SVG'dir (lucide), ekran okuyucu için etiketlidir ya da `aria-hidden` ile gizlidir. Terminal çıktısında da emoji yok
 - [x] ⭐ **Her yerde ipucu (tooltip):** her ikon butonun ve her seçeneğin üzerine gelince ne işe yaradığı sade dille yazar, varsa kısayolu da gösterir. Klavyeyle odaklanınca da çıkar, Esc ya da herhangi bir tuş kapatır — *tek global katman: `data-tip`, `title` ve ikon butonlardaki `aria-label` otomatik ipucuna dönüşür*
 
 ### 7.1 Tasarım sistemi
@@ -682,10 +683,10 @@ god-eye/
 > *Varsayımlar (silinebilir):* Sorun sadece web girişinde, mobil etkilenmiyor.
 
 #### 4.5.1 Temel güçlendirme (ilk sürüm) ⭐
-- [x] ⭐ Chat, terminal ve Hızlı Soru giriş kutularında **"✨ Güçlendir"** butonu + kısayol (`Ctrl+Shift+Enter`) — *chat ve terminal (terminalde çok satırlı yapıştırma, Enter'ı sen basarsın); Hızlı Soru sonra*
+- [x] ⭐ Chat, terminal ve Hızlı Soru giriş kutularında **"Güçlendir"** butonu + kısayol (`Ctrl+Shift+Enter`) — *terminalde çok satırlı yapıştırma, Enter'ı sen basarsın*
 - [x] ⭐ Sonuç yan yana gösterilir: **benim yazdığım ↔ güçlendirilmiş hali**. Üç seçenek: *Güçlendirilmişi gönder* · *Düzenle* · *Orijinali gönder* — *düzenleme doğrudan güçlendirilmiş metin kutusunda*
 - [x] ⭐ Sabit, okunaklı yapı: **Hedef · Bağlam · Kısıtlar · Bitti sayılır · Varsayımlar**. Gereksiz uzunluk yok, küçük işler için kısa kalır
-- [x] ⭐ **Ücretsiz:** kendi Claude girişimle Haiku kullanılır (`claude -p`, özetlerdeki gibi). Limit dolarsa AI'sız şablon moduna düşer (bağlamı ekler, yapıyı kurar) — *şu an ~10 sn sürüyor; 3 sn hedefi için önce anında şablon gösterip AI ile iyileştirmek sonra*
+- [x] ⭐ **Ücretsiz:** kendi Claude girişimle Haiku kullanılır (`claude -p`, özetlerdeki gibi). Limit dolarsa AI'sız şablon moduna düşer (bağlamı ekler, yapıyı kurar) — *sonuç anında (şablon) gelir, AI sürümü arka planda gelip yerine geçer*
 - [x] ⭐ **Uydurmaz:** sadece God Eye'ın gerçekten bildiği bilgileri ekler (hafıza, git, loglar). Tahmin ettiği her şey **"Varsayımlar"** bölümüne yazılır, tek tıkla silinebilir — *ayrıca AI işleri artık üstteki git reposunu göremiyor (GIT_CEILING_DIRECTORIES); boş projede bağlam boş geliyor*
 - [x] ⭐ **Kapsamı büyütmez:** "login'i düzelt" dediysem prompt'a "ayrıca testleri yeniden yaz" gibi istemediğim işler eklenmez
 - [x] Çok belirsizse (bağlam da yoksa) tahmin etmek yerine **1–3 kısa soru** sorar, cevaplar tıklanabilir seçenek olarak gelir: *"Hangi login? Web · Mobil · Admin paneli"* — *"Diğer…" ile serbest cevap ve "Sorusuz devam et" de var*
@@ -696,8 +697,8 @@ god-eye/
 - [x] ⭐ **Proje hafızası:** ilgili kararlar, kurallar ve "denendi, işe yaramadı" notları eklenir. Böylece AI eski hatayı tekrarlamaz
 - [x] ⭐ **Aktif session:** son mesajlar, son hata, değişen dosyalar. *"bu çalışmıyor"* derken "bu"nun ne olduğu buradan anlaşılır — *gerçek testte "bunu hallet" son hatayı doğru buldu*
 - [x] ⭐ **Git:** branch, commit edilmemiş değişiklikler, son commit'ler
-- [ ] Kod sekmesinde açık dosya ve seçili satırlar ("burayı düzelt" → hangi dosya, hangi satırlar) — *sunucu tarafı hazır; Kod sekmesine buton sonra*
-- [ ] Son test ve log çıktıları (sunucular, önizleme logları), çalışmayan komutun hata mesajı
+- [x] Kod sekmesinde açık dosya ve seçili satırlar ("burayı düzelt" → hangi dosya, hangi satırlar) — *editörde sağ tık → "Bunun için prompt yaz" veya Ctrl+Shift+Enter; sonuç chat'e taslak olarak gider*
+- [x] Son test ve log çıktıları (sunucular, önizleme logları), çalışmayan komutun hata mesajı — *projenin terminallerindeki son hata satırları*
 - [x] Takım (Faz 4): arkadaşım aynı dosyada çalışıyorsa prompt'a not düşülür: *"Kerim de `auth.ts` üzerinde çalışıyor, onun değişikliklerini bozma"*
 - [x] Hangi bağlamın eklendiği küçük etiketlerle gösterilir (🧠 hafıza · 🌿 git · 📄 dosya · ❌ hata). Her biri tek tıkla çıkarılabilir
 - [x] Bağlam boyutu sınırı: context'i şişirmez, sadece ilgili parçalar eklenir (session sağlığı ile uyumlu)
@@ -706,15 +707,15 @@ god-eye/
 - [x] **Zayıf prompt tespiti:** prompt çok kısa veya belirsizse gönderirken nazikçe *"✨ Güçlendireyim mi?"* önerisi (zorla değil)
 - [x] Mod ayarı: **Kapalı · Öner · Otomatik** (otomatikte bile göndermeden önce kısa önizleme)
 - [x] **İş büyüklüğü tahmini:** büyük işlerde *"Bu iş büyük, önce Plan modunda başlayalım mı?"* veya *"Bunu 3 adıma bölelim mi?"* — *Plan moduna geçiş butonu var; adımlara bölme sonra*
-- [ ] Araca göre ayar: Claude ve Codex için en iyi çalışan biçim (ör. Codex'e daha net dosya listesi)
+- [x] Araca göre ayar: Claude ve Codex için en iyi çalışan biçim (ör. Codex'e daha net dosya listesi)
 - [x] Hazır niyet kalıpları: *düzelt · ekle · yeniden düzenle · açıkla · test yaz · gözden geçir · deploy'a hazırla*. Her biri kendi "Bitti sayılır" maddeleriyle gelir
 - [ ] Personalar (Faz 6) gelince: prompt seçilen personaya göre hazırlanır (ör. "Güvenlik uzmanı" için risk kontrolü maddeleri)
 
 #### 4.5.4 Benden öğrenme
-- [ ] Hangi güçlendirilmiş prompt'ların iyi sonuç verdiğini takip eder (az hata, az tekrar deneme, session sağlığı iyi, kabul edildi) — *ne gönderildiği (güçlendirilmiş / düzenlenmiş / orijinal) kaydediliyor; sonuçla eşleştirme sonra*
-- [ ] Benim yazma tarzımı ve sık kullandığım kısaltmaları öğrenir (*"dyy" = "doğrusunu yap"* gibi)
-- [ ] Sonuç alan prompt'lar tek tıkla **Prompt kütüphanesine** (2.7) kaydedilir
-- [ ] Haftalık küçük not: *"Bu hafta 14 prompt'u güçlendirdin; en çok eksik kalan şey 'bitti sayılır' maddesiydi"*
+- [x] Hangi güçlendirilmiş prompt'ların iyi sonuç verdiğini takip eder (az hata, az tekrar deneme, session sağlığı iyi, kabul edildi) — *gönderilen sürüm session'a bağlanır; sonraki 30 dk'daki hatalar güçlendirilmiş/orijinal olarak karşılaştırılır*
+- [x] Benim yazma tarzımı ve sık kullandığım kısaltmaları öğrenir (*"dyy" = "doğrusunu yap"* gibi) — *kendi kısaltmaların + sık yazdığın kısa kelimeler öneri olarak çıkar*
+- [x] Sonuç alan prompt'lar tek tıkla **Prompt kütüphanesine** (2.7) kaydedilir
+- [x] Haftalık küçük not: *"Bu hafta 14 prompt'u güçlendirdin; en çok eksik kalan şey 'bitti sayılır' maddesiydi"* — *Ayarlar → Prompt güçlendirici*
 
 **Bitti sayılır:** `login bozuk düzelt` yazıp `Ctrl+Shift+Enter`'a bastığımda 3 saniye içinde projemin gerçek bağlamıyla dolu, uydurma bilgi içermeyen bir prompt görüyorum; tek tıkla gönderiyorum ve AI ilk denemede doğru işe odaklanıyor.
 

@@ -8,7 +8,20 @@ import type {
   TeamStatus,
   TeamUser,
 } from "@godeye/core";
-import { Copy, KeyRound, LogOut, Plus, RefreshCw, ShieldCheck, Trash2, Users, UserX } from "lucide-react";
+import {
+  Copy,
+  Eraser,
+  EyeOff,
+  KeyRound,
+  Lock,
+  LogOut,
+  Plus,
+  RefreshCw,
+  ShieldCheck,
+  Trash2,
+  Users,
+  UserX,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented, StatusDot } from "../components/ui";
@@ -158,9 +171,17 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
         </div>
       </Card>
       <ul className="space-y-1.5 text-xs text-fg-subtle">
-        <li>🔒 {t("team.privacyE2e")}</li>
-        <li>🙈 {t("team.privacyOff")}</li>
-        <li>🧹 {t("team.privacyScrub")}</li>
+        {(
+          [
+            [Lock, "team.privacyE2e"],
+            [EyeOff, "team.privacyOff"],
+            [Eraser, "team.privacyScrub"],
+          ] as const
+        ).map(([Icon, key]) => (
+          <li key={key} className="flex items-start gap-2">
+            <Icon size={13} className="mt-0.5 shrink-0" aria-hidden="true" /> {t(key)}
+          </li>
+        ))}
       </ul>
     </div>
   );

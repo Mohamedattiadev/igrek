@@ -2,6 +2,7 @@ import type { SystemStatus } from "@godeye/core";
 import { CheckCircle2, Circle, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { EnhanceSettings } from "../components/EnhanceSettings";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
@@ -193,6 +194,7 @@ export function SettingsPage() {
                 ]}
               />
             </div>
+            <EnhanceSettings />
           </div>
         </Section>
         <Section title={t("mcp.title")} hint={t("mcp.hint")}>

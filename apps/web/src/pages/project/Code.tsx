@@ -17,12 +17,13 @@ import {
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { CheckpointRestore } from "../../components/CheckpointRestore";
+import { EnhanceDialog } from "../../components/Enhance";
 import { FilePreview } from "../../components/FilePreview";
 import { Button } from "../../components/ui";
-import { actions } from "../../lib/actions";
-import { fs } from "../../lib/api";
+import { actions, type EnhanceCodeRequest } from "../../lib/actions";
+import { api, fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { nameOf, previewKind } from "../../lib/files";
 import { relativeTime } from "../../lib/format";
@@ -282,6 +283,32 @@ function SearchPanel({ root, onOpen }: { root: string; onOpen: (path: string, li
 }
 
 /** VS Code-like code view for a project (plan.md 2.3). */
+/** Editor → "write a prompt for this": opens the enhancer with the file and selection, then a chat with it waiting. */
+function CodeEnhance({ projectId }: { projectId: string }) {
+  const navigate = useNavigate();
+  const [request, setRequest] = useState<EnhanceCodeRequest>();
+  useEffect(() => actions.onEnhanceCode(setRequest), []);
+  return (
+    <EnhanceDialog
+      open={!!request}
+      onClose={() => setRequest(undefined)}
+      target={{
+        projectId,
+        file: request && {
+          path: request.file,
+          selection: request.selection,
+          startLine: request.startLine,
+          endLine: request.endLine,
+        },
+      }}
+      onUse={async (prompt) => {
+        const chat = await api.startChat({ projectId });
+        navigate(`/c/${chat.id}?draft=${encodeURIComponent(prompt)}`);
+      }}
+    />
+  );
+}
+
 export function CodeTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
@@ -412,6 +439,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
 
   return (
     <div className="flex min-h-96 min-w-0 flex-1">
+      <CodeEnhance projectId={project.id} />
       <aside className="flex w-64 shrink-0 flex-col border-e border-border bg-bg-subtle">
         <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1">
           {(["files", "changes", "snapshots", "search"] as const).map((name) => (

@@ -29,6 +29,8 @@ export interface Settings {
   enhanceMode: "off" | "suggest" | "auto";
   /** Language of the enhanced prompt: English (AI tools follow it best) or the user's own. */
   enhanceLanguage: "en" | "user";
+  /** The user's own shorthands, expanded before enhancing: { "dyy": "doğrusunu yap" }. */
+  enhanceShortcuts: Record<string, string>;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -44,6 +46,7 @@ export const DEFAULT_SETTINGS: Settings = {
   editorVim: false,
   enhanceMode: "suggest",
   enhanceLanguage: "en",
+  enhanceShortcuts: {},
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */

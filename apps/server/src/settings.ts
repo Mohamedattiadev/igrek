@@ -40,6 +40,15 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
       Object.assign(patch, { [key]: body[key] });
     }
   }
+  if ("enhanceShortcuts" in body) {
+    const value = body.enhanceShortcuts;
+    if (!value || typeof value !== "object" || Array.isArray(value)) return { error: "Invalid enhanceShortcuts" };
+    const entries = Object.entries(value as Record<string, unknown>)
+      .filter(([k, v]) => typeof v === "string" && /^[\p{L}\p{N}_-]{1,16}$/u.test(k.trim()) && v.trim().length > 0)
+      .slice(0, 100)
+      .map(([k, v]) => [k.trim().toLowerCase(), String(v).trim().slice(0, 200)]);
+    patch.enhanceShortcuts = Object.fromEntries(entries);
+  }
   if ("allowedFolders" in body) {
     const folders = body.allowedFolders;
     if (!Array.isArray(folders) || !folders.every((f) => typeof f === "string" && f.startsWith("/"))) {

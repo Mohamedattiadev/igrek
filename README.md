@@ -1,15 +1,14 @@
-# 👁️ God Eye
+# God Eye
 
 **Tüm AI kod projelerini tek ekrandan gör, anla ve yönet.**
 *See, understand and manage all your AI coding projects from one screen.*
 
-> 🚧 **Durum / Status:** Faz 0 bitti: uygulama iskeleti, tasarım sistemi, dil seçimi, ayarlar, güvenlik ve Docker hazır.
-> Proje takibi Faz 1 ile geliyor. Yol haritası: [plan.md](plan.md).
-> *Phase 0 done: app shell, design system, languages, settings, security and Docker. Project tracking arrives in Phase 1.*
+> **Durum / Status:** Faz 0–5 bitti (takip, hafıza, çalışma alanı, hesaplar, takım senkronu, prompt güçlendirici, bölüm sayfaları ve puanlama). Ayrıntılar `plan.md` içinde. / Phases 0–5 are done; see `plan.md`.
+> Yol haritası / Roadmap: [plan.md](plan.md).
 
 ---
 
-## 🇹🇷 Türkçe
+## Türkçe
 
 ### Bu nedir?
 
@@ -18,17 +17,17 @@ neyin yapıldığı, neyin kaldığı ve neyin bozuk olduğu kayboluyor.
 
 **God Eye bunu çözer:**
 
-- 📋 **Her şeyi takip eder:** Tüm AI sohbetlerini otomatik okur ve "bugün ne yapıldı" diye sade dille anlatır.
-- 🧠 **Her şeyi hatırlar:** Alınan kararları, yapılan hataları ve projenin durumunu unutmaz. Yeni bir sohbette AI'a bunları kendisi hatırlatır.
-- 📊 **Puan verir:** Projenin her bölümünü (tasarım, ön yüz, arka yüz, veritabanı…) inceler ve "iyi mi, kötü mü, nasıl düzelir" diye açıklar.
-- 👥 **Uzman bir takım sunar:** Tasarımcı, yazılımcı, güvenlik uzmanı gibi AI uzmanları projen üzerinde birlikte çalışır.
-- 👁️ **Canlı gösterir:** Uygulamanı ekranda açar. Bir yere tıklayıp "bunu değiştir" yazman yeterli.
-- 🔑 **Hesapları yönetir:** Birden fazla AI hesabın arasında tek tıkla geçersin ve ne kadar limitin kaldığını görürsün.
+- **Her şeyi takip eder:** Tüm AI sohbetlerini otomatik okur ve "bugün ne yapıldı" diye sade dille anlatır.
+- **Her şeyi hatırlar:** Alınan kararları, yapılan hataları ve projenin durumunu unutmaz. Yeni bir sohbette AI'a bunları kendisi hatırlatır.
+- **Puan verir:** Projenin her bölümünü (tasarım, ön yüz, arka yüz, veritabanı…) inceler ve "iyi mi, kötü mü, nasıl düzelir" diye açıklar.
+- **Uzman bir takım sunar:** Tasarımcı, yazılımcı, güvenlik uzmanı gibi AI uzmanları projen üzerinde birlikte çalışır.
+- **Canlı gösterir:** Uygulamanı ekranda açar. Bir yere tıklayıp "bunu değiştir" yazman yeterli.
+- **Hesapları yönetir:** Birden fazla AI hesabın arasında tek tıkla geçersin ve ne kadar limitin kaldığını görürsün.
 - ⏰ **Zamanlı iş yapar:** "Cuma sabahı şunu yap" dersin, zamanı gelince kendisi yapar.
-- 📚 **Öğrenir:** Her hatadan ve senin eklediğin kitaplardan öğrenir, aynı hatayı bir daha yapmaz.
-- 🤝 **Takımla çalışır:** Arkadaşların ne yaptığını canlı görürsün, herkes aynı bilgiyle çalışır.
-- 🖧 **Sunucularını yönetir:** "Şu sunucuya gir, şunu yap" dersin, onayınla yapar.
-- 🌍 **Senin dilinde konuşur:** Hangi dili istersen.
+- **Öğrenir:** Her hatadan ve senin eklediğin kitaplardan öğrenir, aynı hatayı bir daha yapmaz.
+- **Takımla çalışır:** Arkadaşların ne yaptığını canlı görürsün, herkes aynı bilgiyle çalışır.
+- **Sunucularını yönetir:** "Şu sunucuya gir, şunu yap" dersin, onayınla yapar.
+- **Senin dilinde konuşur:** Hangi dili istersen.
 
 Her şey **senin bilgisayarında** çalışır. Takımla paylaştığın veriler şifrelenerek gönderilir. Aradaki sunucu bile içeriğini okuyamaz.
 
@@ -46,10 +45,10 @@ docker compose up -d
 
 Sonra tarayıcında şu adresi aç: **http://localhost:7777**
 
-İlk açılışta dilini seçersin, o kadar. 🎉
+İlk açılışta dilini seçersin, o kadar.
 (AI araçları, hesaplar ve proje klasörleri sonraki fazlarda bu sihirbaza eklenecek.)
 
-> 💡 `.env` dosyasındaki `GODEYE_PROJECTS_DIR` mutlaka var olan bir klasör olmalı. Yoksa Docker onu kendisi oluşturur ve klasörün sahibi `root` olur.
+> **Not / Note:** `.env` dosyasındaki `GODEYE_PROJECTS_DIR` mutlaka var olan bir klasör olmalı. Yoksa Docker onu kendisi oluşturur ve klasörün sahibi `root` olur.
 
 ### Docker'sız çalıştırmak (geliştirici)
 
@@ -99,7 +98,7 @@ Her değişiklik kaydedilir. Tek tıkla geri alabilirsin.
 
 ---
 
-## 🇬🇧 English
+## English
 
 ### What is it?
 
@@ -108,17 +107,17 @@ track of what was done, what's left and what's broken.
 
 **God Eye fixes that:**
 
-- 📋 **Tracks everything:** Reads all your AI chats automatically and explains "what happened today" in plain words.
-- 🧠 **Remembers everything:** Keeps decisions, mistakes and project status, and reminds the AI in every new chat.
-- 📊 **Scores your project:** Reviews each part (design, frontend, backend, database…) and explains what's good, what's bad and how to fix it.
-- 👥 **Gives you an expert team:** AI experts (designer, developer, security…) work on your project together.
-- 👁️ **Shows it live:** Opens your app on screen. Click on something, type "change this", done.
-- 🔑 **Manages accounts:** Switch between AI accounts in one click and see how much limit is left.
+- **Tracks everything:** Reads all your AI chats automatically and explains "what happened today" in plain words.
+- **Remembers everything:** Keeps decisions, mistakes and project status, and reminds the AI in every new chat.
+- **Scores your project:** Reviews each part (design, frontend, backend, database…) and explains what's good, what's bad and how to fix it.
+- **Gives you an expert team:** AI experts (designer, developer, security…) work on your project together.
+- **Shows it live:** Opens your app on screen. Click on something, type "change this", done.
+- **Manages accounts:** Switch between AI accounts in one click and see how much limit is left.
 - ⏰ **Runs scheduled jobs:** Say "do this on Friday morning" and it does it on its own.
-- 📚 **Learns:** Learns from every mistake and from the books you add, so the same mistake doesn't happen twice.
-- 🤝 **Works with your team:** See what your teammates are doing live; everyone works from the same knowledge.
-- 🖧 **Manages your servers:** Say "log into that server and do this", and it does it with your approval.
-- 🌍 **Speaks your language:** Any language you choose.
+- **Learns:** Learns from every mistake and from the books you add, so the same mistake doesn't happen twice.
+- **Works with your team:** See what your teammates are doing live; everyone works from the same knowledge.
+- **Manages your servers:** Say "log into that server and do this", and it does it with your approval.
+- **Speaks your language:** Any language you choose.
 
 Everything runs **on your own computer**. Anything you share with your team is encrypted first. Even the server in between can't read it.
 
@@ -134,10 +133,10 @@ mkdir -p ~/.godeye
 docker compose up -d
 ```
 
-Then open **http://localhost:7777** and pick your language. That's it. 🎉
+Then open **http://localhost:7777** and pick your language. That's it.
 (AI tools, accounts and project folders join the setup wizard in later phases.)
 
-> 💡 `GODEYE_PROJECTS_DIR` in `.env` must be a folder that already exists, otherwise Docker creates it owned by `root`.
+> **Not / Note:** `GODEYE_PROJECTS_DIR` in `.env` must be a folder that already exists, otherwise Docker creates it owned by `root`.
 
 ### Run without Docker (developers)
 

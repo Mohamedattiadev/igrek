@@ -9,7 +9,9 @@ import {
   FileEdit,
   FilePlus,
   FileText,
+  Flag,
   Globe,
+  Image as ImageIcon,
   ImagePlus,
   ListTodo,
   Search,
@@ -368,8 +370,8 @@ export function ChatPage() {
                   <div key={event.id} className="flex justify-end">
                     <div className="max-w-[85%] whitespace-pre-wrap rounded-xl rounded-ee-sm bg-accent px-3.5 py-2 text-[13.5px] text-accent-fg">
                       {event.images > 0 && (
-                        <p className="mb-1 text-[11px] opacity-80">
-                          🖼 {event.images} {t("chat.image")}
+                        <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
+                          <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
                         </p>
                       )}
                       {event.text}
@@ -407,7 +409,9 @@ export function ChatPage() {
               case "checkpoint":
                 return (
                   <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
-                    <span>📍 {t("checkpoint.saved")}</span>
+                    <span className="flex items-center gap-1">
+                      <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
+                    </span>
                     <CheckpointRestore compact projectId={event.projectId} checkpointId={event.checkpointId} />
                   </div>
                 );

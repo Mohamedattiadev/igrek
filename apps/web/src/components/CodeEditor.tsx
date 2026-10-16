@@ -62,6 +62,25 @@ export default function CodeEditor({ path, value, onChange, onSave, vim, readOnl
         });
       },
     });
+    // Right-click (or Ctrl+Shift+Enter) → "Write a prompt for this": the selection becomes context for the enhancer.
+    editor.addAction({
+      id: "godeye.enhance",
+      label: i18n.t("enhance.forSelection"),
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 1,
+      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.Enter],
+      run: (ed) => {
+        const model = ed.getModel();
+        const selection = ed.getSelection();
+        if (!model || !selection) return;
+        actions.enhanceCode({
+          file: model.uri.path,
+          selection: selection.isEmpty() ? undefined : model.getValueInRange(selection),
+          startLine: selection.startLineNumber,
+          endLine: selection.endLineNumber,
+        });
+      },
+    });
     const themeWatch = new MutationObserver(applyMonacoTheme);
     themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => {

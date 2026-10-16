@@ -4,6 +4,14 @@ export interface QuickAskRequest {
   attachment?: { name: string; text: string };
 }
 
+/** "Prepare a prompt for this code" from the editor. */
+export interface EnhanceCodeRequest {
+  file: string;
+  selection?: string;
+  startLine?: number;
+  endLine?: number;
+}
+
 const target = new EventTarget();
 
 export const actions = {
@@ -12,6 +20,14 @@ export const actions = {
   },
   captureIdea(): void {
     target.dispatchEvent(new CustomEvent("capture-idea"));
+  },
+  enhanceCode(request: EnhanceCodeRequest): void {
+    target.dispatchEvent(new CustomEvent("enhance-code", { detail: request }));
+  },
+  onEnhanceCode(handler: (detail: EnhanceCodeRequest) => void): () => void {
+    const listener = (event: Event) => handler((event as CustomEvent).detail);
+    target.addEventListener("enhance-code", listener);
+    return () => target.removeEventListener("enhance-code", listener);
   },
   on(type: "quick-ask" | "capture-idea", handler: (detail: QuickAskRequest) => void): () => void {
     const listener = (event: Event) => handler((event as CustomEvent).detail ?? {});

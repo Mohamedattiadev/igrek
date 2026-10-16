@@ -2,7 +2,7 @@ import type { AiTool } from "@godeye/core";
 import type { Hono } from "hono";
 import type { EnhanceRequest, Enhancer } from "./enhance";
 
-const KINDS = ["memory", "session", "git", "file", "error", "team"] as const;
+const KINDS = ["memory", "session", "git", "file", "error", "log", "team"] as const;
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : undefined);
 
 /** Prompt enhancer (plan.md Faz 4.5). */
@@ -38,12 +38,14 @@ export function registerEnhanceRoutes(app: Hono, enhancer: Enhancer): void {
     return c.json(await enhancer.enhance(req));
   });
 
+  app.get("/api/enhance/stats", (c) => c.json(enhancer.stats()));
+
   app.post("/api/enhance/:id/used", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { choice?: string; final?: string };
+    const body = (await c.req.json().catch(() => ({}))) as { choice?: string; final?: string; sessionId?: string };
     const choice =
       body.choice === "enhanced" || body.choice === "edited" || body.choice === "original" ? body.choice : undefined;
     if (!choice) return c.json({ error: "Unknown choice" }, 400);
-    enhancer.record(c.req.param("id"), choice, str(body.final, 20_000));
+    enhancer.record(c.req.param("id"), choice, str(body.final, 20_000), str(body.sessionId, 128));
     return c.json({ ok: true });
   });
 }

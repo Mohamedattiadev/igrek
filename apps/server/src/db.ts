@@ -247,6 +247,8 @@ const migrations: string[] = [
      at INTEGER NOT NULL,
      PRIMARY KEY (project_id, category)
    );`,
+  // Faz 4.5.4: link what was sent to the session, so outcomes can be compared.
+  `ALTER TABLE enhancements ADD COLUMN session_id TEXT;`,
 ];
 
 export function migrate(sqlite: Database): number {

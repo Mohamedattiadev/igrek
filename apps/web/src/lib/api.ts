@@ -11,6 +11,7 @@ import type {
   CommandRisk,
   Digest,
   EnhanceResult,
+  EnhanceStats,
   EnvBackup,
   EnvOverview,
   FileContent,
@@ -193,8 +194,12 @@ export const api = {
     exclude?: string[];
     template?: boolean;
   }) => request<EnhanceResult & { id: string }>("/api/enhance", { method: "POST", body: JSON.stringify(body) }),
-  enhanceUsed: (id: string, choice: "enhanced" | "edited" | "original", final?: string) =>
-    request<{ ok: boolean }>(`/api/enhance/${id}/used`, { method: "POST", body: JSON.stringify({ choice, final }) }),
+  enhanceUsed: (id: string, choice: "enhanced" | "edited" | "original", final?: string, sessionId?: string) =>
+    request<{ ok: boolean }>(`/api/enhance/${id}/used`, {
+      method: "POST",
+      body: JSON.stringify({ choice, final, sessionId }),
+    }),
+  enhanceStats: () => request<EnhanceStats>("/api/enhance/stats"),
   insight: (projectId: string) =>
     request<
       (InsightScan & { scanning: boolean; trend: { at: number; overall: number }[] }) | { scanning: boolean; trend: [] }

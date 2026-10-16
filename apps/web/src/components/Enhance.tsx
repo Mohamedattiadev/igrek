@@ -1,6 +1,20 @@
 import { type AiTool, type EnhanceContextKind, type EnhanceResult, isWeakPrompt, renderEnhanced } from "@godeye/core";
-import { Brain, CircleAlert, FileCode, GitBranch, ListChecks, MessagesSquare, Sparkles, Users, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  BookmarkPlus,
+  Brain,
+  Check,
+  CircleAlert,
+  FileCode,
+  GitBranch,
+  ListChecks,
+  LoaderCircle,
+  MessagesSquare,
+  Sparkles,
+  SquareTerminal,
+  Users,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -15,6 +29,7 @@ export interface EnhanceTarget {
 }
 
 const CONTEXT_ICONS: Record<EnhanceContextKind, typeof Brain> = {
+  log: SquareTerminal,
   memory: Brain,
   session: MessagesSquare,
   git: GitBranch,
@@ -83,23 +98,55 @@ export function EnhancePanel({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [dropped, setDropped] = useState<number[]>([]);
   const [draft, setDraft] = useState<string>();
+  /** The AI version is still being written (the instant template is shown meanwhile). */
+  const [refining, setRefining] = useState(false);
+  /** An AI version that arrived after the user started editing: offered, never forced. */
+  const [pendingAi, setPendingAi] = useState<EnhanceResult & { id: string }>();
+  const [saved, setSaved] = useState(false);
+  const runId = useRef(0);
+  const draftRef = useRef<string>(undefined);
+  draftRef.current = draft;
 
   const run = (opts: { exclude?: EnhanceContextKind[]; answers?: Record<string, string>; template?: boolean } = {}) => {
+    const id = ++runId.current;
     setBusy(true);
     setError(undefined);
     setDraft(undefined);
     setDropped([]);
+    setPendingAi(undefined);
+    setSaved(false);
+    const body = {
+      text,
+      ...target,
+      exclude: opts.exclude ?? exclude,
+      answers: Object.entries(opts.answers ?? answers).map(([question, answer]) => ({ question, answer })),
+    };
+    // 1) Instant: the no-AI version from the project's facts.
+    const fast = api.enhance({ ...body, template: true }).then((r) => {
+      if (id !== runId.current) return;
+      setResult(r);
+      setBusy(false);
+    });
+    if (opts.template) {
+      fast.catch((err: Error) => setError(err.message)).finally(() => setBusy(false));
+      return;
+    }
+    // 2) Better: the small model's version replaces it unless the user is already editing.
+    setRefining(true);
     api
-      .enhance({
-        text,
-        ...target,
-        exclude: opts.exclude ?? exclude,
-        template: opts.template,
-        answers: Object.entries(opts.answers ?? answers).map(([question, answer]) => ({ question, answer })),
+      .enhance(body)
+      .then((r) => {
+        if (id !== runId.current || r.mode !== "ai") return;
+        if (draftRef.current === undefined) setResult(r);
+        else setPendingAi(r);
       })
-      .then(setResult)
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setBusy(false));
+      .catch(() => undefined)
+      .finally(() => {
+        if (id !== runId.current) return;
+        setRefining(false);
+        setBusy(false);
+      });
+    fast.catch(() => undefined);
   };
   // biome-ignore lint/correctness/useExhaustiveDependencies: run once for the text it was opened with
   useEffect(() => run(), []);
@@ -108,9 +155,14 @@ export function EnhancePanel({
   const final = draft ?? rendered;
   const use = (choice: "enhanced" | "edited" | "original") => {
     const value = choice === "original" ? text : final;
-    if (result) void api.enhanceUsed(result.id, choice, value).catch(() => undefined);
+    if (result) void api.enhanceUsed(result.id, choice, value, target.sessionId).catch(() => undefined);
     onUse(value);
   };
+  const saveToLibrary = () =>
+    void api
+      .savePrompt({ title: (result?.expanded ?? text).slice(0, 70), body: final, tags: ["enhanced"] })
+      .then(() => setSaved(true))
+      .catch(() => undefined);
 
   return (
     <fieldset
@@ -127,10 +179,33 @@ export function EnhancePanel({
       <div className="flex items-center gap-2">
         <Sparkles size={15} className="text-accent" />
         <h3 className="text-[13px] font-semibold">{t("enhance.title")}</h3>
-        {result?.mode === "template" && (
-          <span data-tip={t("enhance.templateTip")}>
-            <Badge tone="warning">{t("enhance.template")}</Badge>
+        {refining ? (
+          <span
+            className="inline-flex items-center gap-1 text-[11px] text-fg-subtle"
+            data-tip={t("enhance.refiningTip")}
+          >
+            <LoaderCircle size={12} className="animate-spin" aria-hidden="true" /> {t("enhance.refining")}
           </span>
+        ) : (
+          result?.mode === "template" && (
+            <span data-tip={t("enhance.templateTip")}>
+              <Badge tone="warning">{t("enhance.template")}</Badge>
+            </span>
+          )
+        )}
+        {pendingAi && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={Sparkles}
+            onClick={() => {
+              setResult(pendingAi);
+              setPendingAi(undefined);
+              setDraft(undefined);
+            }}
+          >
+            {t("enhance.useAi")}
+          </Button>
         )}
         <div className="flex-1" />
         <button
@@ -297,7 +372,23 @@ export function EnhancePanel({
               </div>
             </div>
           )}
+          {result.expanded && (
+            <p className="text-[11px] text-fg-subtle" data-tip={t("enhance.expandedTip")}>
+              {t("enhance.expanded", { text: result.expanded })}
+            </p>
+          )}
           <div className="flex flex-wrap items-center justify-end gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={saved ? Check : BookmarkPlus}
+              disabled={saved}
+              onClick={saveToLibrary}
+              data-tip={t("enhance.saveTip")}
+            >
+              {saved ? t("enhance.saved") : t("enhance.save")}
+            </Button>
+            <div className="flex-1" />
             <Button size="sm" variant="ghost" onClick={() => use("original")} data-tip={t("enhance.sendOriginalTip")}>
               {t("enhance.sendOriginal")}
             </Button>

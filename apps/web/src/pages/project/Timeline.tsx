@@ -80,8 +80,8 @@ function DigestView({ digest }: { digest: Digest }) {
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-2">
         <p className="text-[14px] font-semibold">{digest.title}</p>
-        <span className="shrink-0 text-[11px] text-fg-subtle">
-          {digest.period === "week" ? "📅" : ""} {digest.day} ·{" "}
+        <span className="flex shrink-0 items-center gap-1 text-[11px] text-fg-subtle">
+          {digest.period === "week" && <CalendarDays size={11} aria-hidden="true" />} {digest.day} ·{" "}
           {t("project.sessionsAndCommits", { sessions: digest.sessions, commits: digest.commits })}
         </span>
       </div>

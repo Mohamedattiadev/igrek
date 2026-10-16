@@ -7,6 +7,7 @@ import { actions, contextFromPath } from "../lib/actions";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useTerminals } from "../lib/live";
+import { EnhanceButton, EnhancePanel } from "./Enhance";
 import { Badge, Kbd, Segmented } from "./ui";
 
 interface Turn {
@@ -41,6 +42,7 @@ export function QuickAsk() {
   const [attachment, setAttachment] = useState<{ name: string; text: string }>();
   const [busy, setBusy] = useState(false);
   const [flash, setFlash] = useState<string>();
+  const [enhancing, setEnhancing] = useState<string>();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -230,6 +232,21 @@ export function QuickAsk() {
             </button>
           </p>
         )}
+        {enhancing !== undefined && (
+          <div className="mb-2">
+            <EnhancePanel
+              key={enhancing}
+              text={enhancing}
+              target={{ projectId, sessionId: route.sessionId }}
+              onClose={() => setEnhancing(undefined)}
+              onUse={(prompt) => {
+                setInput(prompt);
+                setEnhancing(undefined);
+                inputRef.current?.focus();
+              }}
+            />
+          </div>
+        )}
         <div className="flex items-end gap-2 rounded-ui border border-border bg-bg-subtle p-1.5 focus-within:border-accent">
           <textarea
             ref={inputRef}
@@ -245,6 +262,7 @@ export function QuickAsk() {
             placeholder={t("quick.placeholder")}
             className="min-w-0 flex-1 resize-none bg-transparent px-1.5 text-[13px] outline-none placeholder:text-fg-subtle"
           />
+          <EnhanceButton onClick={() => input.trim() && setEnhancing(input.trim())} disabled={!input.trim()} />
           <button
             type="button"
             onClick={ask}

@@ -104,3 +104,37 @@ describe("enhancer", () => {
     });
   });
 });
+
+describe("shortcuts and stats", () => {
+  test("shorthands expand as whole words only", async () => {
+    const { expandShortcuts } = await import("@godeye/core");
+    expect(expandShortcuts("login bozuk dyy", { dyy: "doğrusunu yap" })).toBe("login bozuk doğrusunu yap");
+    expect(expandShortcuts("dyyx kalsın", { dyy: "doğrusunu yap" })).toBe("dyyx kalsın");
+    expect(expandShortcuts("DYY, lütfen", { dyy: "doğrusunu yap" })).toBe("doğrusunu yap, lütfen");
+  });
+
+  test("stats count only what was sent and suggest repeated shorthands", () => {
+    const db = new Database(":memory:");
+    migrate(db);
+    const e = new Enhancer(
+      db,
+      new Store(db),
+      new StopRegistry(),
+      () => ({ language: "tr", enhanceShortcuts: {} }) as never,
+      "/tmp",
+    );
+    const now = Date.now();
+    for (let i = 0; i < 3; i++) {
+      db.query(
+        "INSERT INTO enhancements (id, at, intent, mode, original, choice) VALUES (?, ?, 'fix', 'ai', 'login dyy', 'enhanced')",
+      ).run(`a${i}`, now - i);
+      db.query(
+        "INSERT INTO enhancements (id, at, intent, mode, original, choice) VALUES (?, ?, 'fix', 'template', 'login dyy', 'pending')",
+      ).run(`b${i}`, now - i);
+    }
+    const s = e.stats(now + 1);
+    expect(s.week.total).toBe(3);
+    expect(s.suggestions).toContain("dyy");
+    expect(s.missing[0]?.count).toBe(3);
+  });
+});

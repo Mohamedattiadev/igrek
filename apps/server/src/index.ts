@@ -102,6 +102,7 @@ const enhancer = new Enhancer(
   () => readSettings(db),
   join(config.dataDir, "runner"),
   (id) => sync.presenceList(id),
+  (id) => terminals.recentErrors(id),
 );
 const app = createApp({
   config,
@@ -222,7 +223,7 @@ const server = Bun.serve<SocketData>({
   },
 });
 
-console.log(`👁️  God Eye ${APP_VERSION} → http://localhost:${server.port}  (data: ${config.dataDir})`);
+console.log(`God Eye ${APP_VERSION} → http://localhost:${server.port}  (data: ${config.dataDir})`);
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, async () => {

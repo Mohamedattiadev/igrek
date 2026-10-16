@@ -13,26 +13,26 @@ const HELP: Record<string, string> = {
 
 async function doctor(): Promise<number> {
   const config = loadConfig();
-  console.log(`\n👁️  God Eye ${APP_VERSION} — health check\n`);
+  console.log(`\nGod Eye ${APP_VERSION} — health check\n`);
   console.log(`   Data folder: ${config.dataDir}`);
   console.log(`   Address:     http://localhost:${config.port}\n`);
 
   let problems = 0;
   for (const tool of await checkTools()) {
     if (tool.found) {
-      console.log(`   ✅ ${tool.id.padEnd(7)} ${tool.version ?? ""}`);
+      console.log(`   [ok]   ${tool.id.padEnd(7)} ${tool.version ?? ""}`);
     } else {
       if (tool.required) problems++;
-      const mark = tool.required ? "❌" : "⚪";
+      const mark = tool.required ? "[fail]" : "[--]  ";
       console.log(`   ${mark} ${tool.id.padEnd(7)} not found — ${HELP[tool.id]}`);
     }
   }
   const aiTools = (await checkTools()).filter((t) => ["claude", "codex", "gemini"].includes(t.id) && t.found);
   if (aiTools.length === 0) {
     problems++;
-    console.log("\n   ❌ No AI tool found. Install at least one (Claude Code, Codex or Gemini).");
+    console.log("\n   [fail] No AI tool found. Install at least one (Claude Code, Codex or Gemini).");
   }
-  console.log(problems === 0 ? "\n   Everything looks good. 🎉\n" : `\n   ${problems} thing(s) need attention.\n`);
+  console.log(problems === 0 ? "\n   Everything looks good.\n" : `\n   ${problems} thing(s) need attention.\n`);
   return problems === 0 ? 0 : 1;
 }
 
