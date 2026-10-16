@@ -159,6 +159,15 @@ export function applyLine(state: SessionState, line: string, fallbackId: string)
         state.tokensCacheRead += cacheRead;
         state.tokensCacheWrite += cacheWrite;
         state.contextTokens = input + cacheRead + cacheWrite;
+        state.usageEvents ??= [];
+        state.usageEvents.push({
+          ts: at,
+          model: model && model !== "<synthetic>" ? model : undefined,
+          input,
+          output: usage.output_tokens ?? 0,
+          cacheRead,
+          cacheWrite,
+        });
       }
     }
     const blocks = Array.isArray(message.content) ? (message.content as Json[]) : [];
@@ -190,6 +199,6 @@ export function applyLine(state: SessionState, line: string, fallbackId: string)
   return out;
 }
 
-export function claudeAdapter(root = CLAUDE_PROJECTS_DIR): Adapter {
-  return { tool: "claude", listFiles: () => listSessionFiles(root), applyLine };
+export function claudeAdapter(root = CLAUDE_PROJECTS_DIR, accountId?: string): Adapter {
+  return { tool: "claude", accountId, listFiles: () => listSessionFiles(root), applyLine };
 }

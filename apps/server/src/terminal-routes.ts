@@ -1,6 +1,7 @@
 import { homedir } from "node:os";
 import type { SessionSummaryData, TerminalTool } from "@godeye/core";
 import type { Hono } from "hono";
+import type { Accounts } from "./accounts";
 import { createCheckpoint } from "./checkpoints";
 import type { Servers } from "./servers";
 import type { Store } from "./store";
@@ -32,8 +33,14 @@ export function registerTerminalRoutes(
     terminals,
     language,
     servers,
-  }: { store: Store; terminals: Terminals; language: () => string; servers: Servers },
+    accounts,
+  }: { store: Store; terminals: Terminals; language: () => string; servers: Servers; accounts: Accounts },
 ): void {
+  /** Account env: a resumed session must use the account it was created in; otherwise the project's/active one. */
+  const accountEnv = (provider: "claude" | "codex", projectId: string, sessionAccount?: string | null) => {
+    const account = (sessionAccount && accounts.get(sessionAccount)) || accounts.forProject(provider, projectId);
+    return accounts.env(account);
+  };
   app.get("/api/terminals", (c) => c.json(terminals.list()));
 
   app.post("/api/terminals", async (c) => {
@@ -70,8 +77,10 @@ export function registerTerminalRoutes(
     const args: string[] = [];
     const label = { claude: "Claude", codex: "Codex", gemini: "Gemini", shell: "Shell", ssh: "SSH" }[tool];
     let title = `${label} · ${project.name}`;
+    let sessionAccount: string | null | undefined;
     if (typeof body.resume === "string") {
       const session = store.sessionRow(body.resume);
+      sessionAccount = session?.account_id;
       if (!session) return c.json({ error: "Session not found" }, 404);
       if (session.tool === "codex") args.push("resume", body.resume.replace(/^codex-/, ""));
       else args.push("--resume", body.resume, ...(body.fork === true ? ["--fork-session"] : []));
@@ -86,6 +95,8 @@ export function registerTerminalRoutes(
         tool,
         title,
         args,
+        // Shells get the active Claude account too, so typing `claude` there uses it.
+        env: accountEnv(tool === "codex" ? "codex" : "claude", project.id, sessionAccount),
         cols: typeof body.cols === "number" ? body.cols : undefined,
         rows: typeof body.rows === "number" ? body.rows : undefined,
       });
@@ -102,12 +113,14 @@ export function registerTerminalRoutes(
     const project = session?.project_id ? store.projectRow(session.project_id) : undefined;
     if (!session || !project) return c.json({ error: "Session not found" }, 404);
     const summary = session.summary ? (JSON.parse(session.summary) as SessionSummaryData) : undefined;
+    const tool = TOOLS.find((t) => t === body.tool && t !== "shell") ?? (session.tool === "codex" ? "codex" : "claude");
     try {
       const info = terminals.start({
         projectId: project.id,
         cwd: session.cwd ?? project.path,
         // Hand over to another tool (e.g. Claude → Codex when a limit is hit), or stay on the same one.
-        tool: TOOLS.find((t) => t === body.tool && t !== "shell") ?? (session.tool === "codex" ? "codex" : "claude"),
+        tool,
+        env: accountEnv(tool === "codex" ? "codex" : "claude", project.id),
         title: `↻ ${summary?.title || session.title || "handoff"}`,
         args: [handoffPrompt(session.title ?? "", summary, language())],
       });

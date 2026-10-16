@@ -1,4 +1,4 @@
-import type { Approval, ChatInfo, IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
+import type { Account, Approval, ChatInfo, IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
 import { type DependencyList, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 
@@ -99,4 +99,19 @@ export function useChats(): ChatInfo[] {
   }, []);
   useServerEvent("chats", (message) => setChats(message.chats));
   return chats;
+}
+
+/** Accounts with their latest limit reading; refreshed when accounts or limits change. */
+export function useAccounts(): Account[] {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const load = () => {
+    api
+      .accounts()
+      .then(setAccounts)
+      .catch(() => undefined);
+  };
+  useEffect(load, []);
+  useServerEvent("accounts-changed", load);
+  useServerEvent("limits-changed", load);
+  return accounts;
 }

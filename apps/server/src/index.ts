@@ -2,6 +2,10 @@ import { join } from "node:path";
 import { APP_VERSION, type ClientMessage, type ServerMessage } from "@godeye/core";
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
+import { Accounts } from "./accounts";
+import { registerAccountRoutes } from "./accounts-routes";
+import { claudeAdapter } from "./adapters/claude";
+import { codexAdapter } from "./adapters/codex";
 import { createApp } from "./app";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
@@ -21,7 +25,7 @@ import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
 import { Store } from "./store";
-import { Summarizer } from "./summarizer";
+import { claudeAccount, Summarizer } from "./summarizer";
 import { registerTerminalRoutes } from "./terminal-routes";
 import { Terminals } from "./terminals";
 
@@ -34,7 +38,26 @@ const token = loadSessionToken(config.dataDir);
 const bus = new Bus();
 const stops = new StopRegistry();
 const store = new Store(sqlite);
-const indexer = new Indexer(store, bus);
+const accounts = new Accounts(sqlite, bus, join(config.dataDir, "accounts"));
+accounts.ensureDefault("claude");
+accounts.ensureDefault("codex");
+// Background AI calls run as the active Claude account; every limit report it sends is kept.
+claudeAccount.env = (accountId) => {
+  const account = (accountId && accounts.get(accountId)) || accounts.active("claude");
+  return { env: accounts.env(account), accountId: account?.id };
+};
+claudeAccount.onRateLimit = (accountId, info) => {
+  if (accountId) accounts.recordLimit(accountId, info);
+};
+// Watch every account's session folder, re-evaluated each scan so new accounts appear.
+const indexer = new Indexer(store, bus, () => {
+  const claudeDirs = accounts.claudeProjectDirs();
+  const codex = accounts.list().filter((a) => a.provider === "codex");
+  return [
+    ...(claudeDirs.length ? claudeDirs.map(({ accountId, dir }) => claudeAdapter(dir, accountId)) : [claudeAdapter()]),
+    ...(codex.length ? codex.map((a) => codexAdapter(join(a.configDir, "sessions"), a.id)) : [codexAdapter()]),
+  ];
+});
 const summarizer = new Summarizer(
   store,
   bus,
@@ -52,6 +75,10 @@ const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
 const servers = new Servers(sqlite, bus, stops);
 const chats = new Chats(bus, stops, undefined, (cwd, label) => createCheckpoint(cwd, label)?.id);
+chats.onRateLimit = (accountId, info) => {
+  const id = accountId ?? accounts.active("claude")?.id;
+  if (id) accounts.recordLimit(id, info);
+};
 const assist = new Assist(sqlite, store, stops, () => readSettings(db), join(config.dataDir, "runner"));
 const files = new Files(
   () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],
@@ -65,9 +92,10 @@ const app = createApp({
   stops,
   startedAt: Date.now(),
   extraRoutes: (hono) => {
-    registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers });
+    registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers, accounts });
+    registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);
-    registerChatRoutes(hono, { chats, store });
+    registerChatRoutes(hono, { chats, store, accounts });
     registerFileRoutes(hono, { files, store });
     registerAssistRoutes(hono, assist);
   },
@@ -84,6 +112,9 @@ const app = createApp({
 indexer.start();
 summarizer.start();
 jobs.start();
+// Who is logged in where: at start and every 30 minutes.
+void accounts.refreshAll();
+setInterval(() => void accounts.refreshAll(), 30 * 60_000);
 // Light health probe of saved servers every 5 minutes (read-only, nothing installed there).
 setTimeout(() => void servers.checkAll(), 15_000);
 setInterval(() => void servers.checkAll(), 5 * 60_000);

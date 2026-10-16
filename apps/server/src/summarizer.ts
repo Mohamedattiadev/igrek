@@ -1,6 +1,14 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import type { AskAnswer, Digest, MemorySection, SessionSummaryData, Settings, SummaryText } from "@godeye/core";
+import type {
+  AskAnswer,
+  Digest,
+  MemorySection,
+  RateLimitInfo,
+  SessionSummaryData,
+  Settings,
+  SummaryText,
+} from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
@@ -90,10 +98,60 @@ function toText(value: Partial<SummaryText> | undefined): SummaryText | undefine
  * Runs Claude Code headless with the user's own login (no API key). Sessions are
  * not persisted and no tools are available, so it can only read and write text.
  */
-export async function runClaude(prompt: string, cwd: string, register: StopRegistry, model: string): Promise<string> {
+/** Which account background calls run as, and where limit reports go (set by the server at startup). */
+export const claudeAccount: {
+  env: (accountId?: string) => { env: Record<string, string>; accountId?: string };
+  onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void;
+} = { env: () => ({ env: {} }), onRateLimit: () => undefined };
+
+/** Reads Claude's rate_limit_event into the shared shape. */
+export function parseRateLimit(message: Record<string, unknown>, now = Date.now()): RateLimitInfo | undefined {
+  const info = message.rate_limit_info as Record<string, unknown> | undefined;
+  const windows = info?.unifiedWindows as Record<string, { utilization?: number; resetsAt?: number }> | undefined;
+  if (!windows) return undefined;
+  return {
+    fiveHour: windows.five_hour?.utilization,
+    fiveHourResetsAt: windows.five_hour?.resetsAt ? windows.five_hour.resetsAt * 1000 : undefined,
+    week: windows.seven_day?.utilization,
+    weekResetsAt: windows.seven_day?.resetsAt ? windows.seven_day.resetsAt * 1000 : undefined,
+    at: now,
+  };
+}
+
+/**
+ * Runs Claude Code headless with the user's own login (no API key). Sessions are
+ * not persisted and no tools are available, so it can only read and write text.
+ * Output is streamed so the limit report that comes with every call is kept too.
+ */
+export async function runClaude(
+  prompt: string,
+  cwd: string,
+  register: StopRegistry,
+  model: string,
+  extraArgs: string[] = [],
+  accountId?: string,
+): Promise<string> {
+  const account = claudeAccount.env(accountId);
   const proc = Bun.spawn(
-    ["claude", "-p", "--no-session-persistence", "--model", model, "--tools", "", "--output-format", "json"],
-    { cwd, stdin: new Blob([prompt]), stdout: "pipe", stderr: "pipe", env: cleanEnv({ GODEYE_INTERNAL: "1" }) },
+    [
+      "claude",
+      "-p",
+      "--no-session-persistence",
+      ...(model ? ["--model", model] : []),
+      "--tools",
+      "",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      ...extraArgs,
+    ],
+    {
+      cwd,
+      stdin: new Blob([prompt]),
+      stdout: "pipe",
+      stderr: "pipe",
+      env: cleanEnv({ ...account.env, GODEYE_INTERNAL: "1" }),
+    },
   );
   const unregister = register.register(`claude-${proc.pid}`, { label: "summary", stop: () => proc.kill() });
   const timer = setTimeout(() => proc.kill(), TIMEOUT_MS);
@@ -103,9 +161,22 @@ export async function runClaude(prompt: string, cwd: string, register: StopRegis
       new Response(proc.stderr).text(),
       proc.exited,
     ]);
-    if (code !== 0) throw new Error(stderr.trim() || `claude exited with ${code}`);
-    const result = JSON.parse(stdout) as { result?: string; is_error?: boolean };
-    if (result.is_error || typeof result.result !== "string") throw new Error(result.result ?? "Empty reply");
+    let result: { result?: string; is_error?: boolean } | undefined;
+    for (const line of stdout.split("\n")) {
+      if (!line.trim()) continue;
+      try {
+        const message = JSON.parse(line) as Record<string, unknown>;
+        if (message.type === "rate_limit_event") {
+          const info = parseRateLimit(message);
+          if (info) claudeAccount.onRateLimit(account.accountId, info);
+        } else if (message.type === "result") result = message as typeof result;
+      } catch {
+        // Not JSON; ignore.
+      }
+    }
+    if (code !== 0 && !result) throw new Error(stderr.trim() || `claude exited with ${code}`);
+    if (!result || result.is_error || typeof result.result !== "string")
+      throw new Error(result?.result ?? "Empty reply");
     return result.result;
   } finally {
     clearTimeout(timer);

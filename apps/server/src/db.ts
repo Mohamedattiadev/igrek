@@ -160,6 +160,50 @@ const migrations: string[] = [
    );`,
   // Faz 2.5: servers over SSH and their audit log.
   SERVER_MIGRATION,
+  // Faz 3: accounts, per-message usage and limit snapshots. Transcripts are re-read once
+  // (summaries, memory and commits are kept) so past usage lands in the new table.
+  `CREATE TABLE accounts (
+     id TEXT PRIMARY KEY,
+     provider TEXT NOT NULL,
+     label TEXT NOT NULL,
+     config_dir TEXT,
+     email TEXT,
+     plan TEXT,
+     logged_in INTEGER NOT NULL DEFAULT 0,
+     active INTEGER NOT NULL DEFAULT 0,
+     checked_at INTEGER,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE usage (
+     session_id TEXT NOT NULL,
+     project_id TEXT,
+     account_id TEXT,
+     ts INTEGER NOT NULL,
+     model TEXT,
+     input INTEGER NOT NULL,
+     output INTEGER NOT NULL,
+     cache_read INTEGER NOT NULL,
+     cache_write INTEGER NOT NULL
+   );
+   CREATE INDEX usage_ts ON usage(ts);
+   CREATE INDEX usage_session ON usage(session_id);
+   CREATE TABLE rate_limits (
+     account_id TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     five_hour REAL,
+     five_hour_resets INTEGER,
+     week REAL,
+     week_resets INTEGER
+   );
+   CREATE INDEX rate_limits_account ON rate_limits(account_id, at);
+   ALTER TABLE sessions ADD COLUMN account_id TEXT;
+   ALTER TABLE projects ADD COLUMN account_id TEXT;
+   DELETE FROM messages;
+   DELETE FROM source_files;
+   UPDATE sessions SET user_messages = 0, assistant_messages = 0, tool_calls = 0, tool_errors = 0,
+     recent_errors = '[]', compactions = 0, tokens_in = 0, tokens_out = 0, tokens_cache_read = 0,
+     tokens_cache_write = 0, context_tokens = 0, models = '{}', files_touched = '[]', last_message_id = NULL,
+     unverified_claims = '[]', packages = '[]', last_tool_failed = 0, first_prompt = NULL;`,
 ];
 
 export function migrate(sqlite: Database): number {

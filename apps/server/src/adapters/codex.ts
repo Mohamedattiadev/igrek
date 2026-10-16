@@ -137,7 +137,19 @@ export function applyCodexLine(state: SessionState, line: string, fallbackId: st
       state.tokensIn = Math.max(0, (total.input_tokens ?? 0) - state.tokensCacheRead);
       state.tokensOut = (total.output_tokens ?? 0) + (total.reasoning_output_tokens ?? 0);
     }
-    if (last) state.contextTokens = last.input_tokens ?? state.contextTokens;
+    if (last) {
+      state.contextTokens = last.input_tokens ?? state.contextTokens;
+      const cached = last.cached_input_tokens ?? 0;
+      state.usageEvents ??= [];
+      state.usageEvents.push({
+        ts: at,
+        model: Object.keys(state.models).at(-1),
+        input: Math.max(0, (last.input_tokens ?? 0) - cached),
+        output: (last.output_tokens ?? 0) + (last.reasoning_output_tokens ?? 0),
+        cacheRead: cached,
+        cacheWrite: 0,
+      });
+    }
     if (typeof info?.model_context_window === "number") state.contextWindow = info.model_context_window;
     return [];
   }
@@ -185,6 +197,6 @@ export function applyCodexLine(state: SessionState, line: string, fallbackId: st
   return [];
 }
 
-export function codexAdapter(root = CODEX_SESSIONS_DIR): Adapter {
-  return { tool: "codex", listFiles: () => listCodexFiles(root), applyLine: applyCodexLine };
+export function codexAdapter(root = CODEX_SESSIONS_DIR, accountId?: string): Adapter {
+  return { tool: "codex", accountId, listFiles: () => listCodexFiles(root), applyLine: applyCodexLine };
 }

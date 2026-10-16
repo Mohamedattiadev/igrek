@@ -138,7 +138,9 @@ export function TerminalPage() {
               ? "/terminals"
               : term.projectId.startsWith("server:")
                 ? `/servers/${term.projectId.slice(7)}`
-                : `/p/${term.projectId}`
+                : term.projectId.startsWith("account:")
+                  ? "/limits"
+                  : `/p/${term.projectId}`
           }
           className="text-fg-subtle hover:text-fg"
           aria-label={t("term.project")}

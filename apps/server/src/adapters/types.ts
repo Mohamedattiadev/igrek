@@ -1,6 +1,15 @@
 /** Shared shapes every AI-tool adapter produces (plan.md 3: adapter pattern). */
 import type { AiTool } from "@godeye/core";
 
+export interface UsageEvent {
+  ts: number;
+  model?: string;
+  input: number;
+  output: number;
+  cacheRead: number;
+  cacheWrite: number;
+}
+
 export interface SessionFile {
   path: string;
   sessionId: string;
@@ -40,6 +49,8 @@ export interface SessionState {
   lastToolFailed?: boolean;
   /** Tool call id → tool name, to label failures. Not persisted. */
   pendingTools?: Record<string, string>;
+  /** Token use per API message since the last save, for the Limits page. Not persisted. */
+  usageEvents?: UsageEvent[];
 }
 
 export interface ParsedMessage {
@@ -74,6 +85,8 @@ export function emptyState(): SessionState {
 /** One AI coding tool whose transcripts God Eye can read. */
 export interface Adapter {
   tool: AiTool;
+  /** God Eye account the transcripts belong to (each account has its own folder). */
+  accountId?: string;
   listFiles(): SessionFile[];
   /** Folds one transcript line into the session and returns its readable messages. */
   applyLine(state: SessionState, line: string, fallbackId: string): ParsedMessage[];

@@ -19,7 +19,7 @@ import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
-import { useLiveData } from "../lib/live";
+import { useAccounts, useLiveData } from "../lib/live";
 import { CodeTab } from "./project/Code";
 import { MemoryTab } from "./project/Memory";
 import { SessionRow } from "./project/SessionRow";
@@ -200,6 +200,7 @@ function Sessions({ projectId }: { projectId: string }) {
 
 function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => void }) {
   const { t } = useTranslation();
+  const accounts = useAccounts();
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(project.name);
   const toggle = async () => {
@@ -226,6 +227,24 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
         <p className="mt-3 text-xs text-fg-subtle">
           {t("setup.file")} <code className="font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
+      </Section>
+      <Section title={t("accounts.forProject")} hint={t("accounts.noSwitch")}>
+        <select
+          defaultValue={project.accountId ?? ""}
+          onChange={async (e) => {
+            await api.setProjectAccount(project.id, e.target.value || null);
+            onChange();
+          }}
+          className="h-8 rounded-ui border border-border bg-bg px-2 text-[13px]"
+        >
+          <option value="">{t("accounts.followActive")}</option>
+          {accounts.map((account) => (
+            <option key={account.id} value={account.id}>
+              {account.provider === "codex" ? "Codex" : "Claude"} · {account.label}
+              {account.email ? ` (${account.email})` : ""}
+            </option>
+          ))}
+        </select>
       </Section>
       <Section title={t("project.rename")} hint={t("project.renameHint")}>
         <div className="flex max-w-md gap-2">

@@ -52,10 +52,12 @@ interface SessionRow {
   unverified_claims: string;
   packages: string;
   last_tool_failed: number;
+  account_id: string | null;
 }
 
 interface ProjectRow {
   id: string;
+  account_id?: string | null;
   name: string;
   path: string;
   hidden: number;
@@ -171,6 +173,7 @@ export class Store {
       lastActivity: row.last_activity,
       hidden: !!row.hidden,
       hooksInstalled: !!row.hooks_installed,
+      accountId: row.account_id ?? undefined,
       tools: [...new Set(sessions.map((s) => s.tool))],
       health: worst,
       lastSummary: lastSummary ? (JSON.parse(lastSummary) as SessionSummaryData) : undefined,
@@ -188,11 +191,13 @@ export class Store {
   saveChunk(args: {
     sessionId: string;
     tool: AiTool;
+    accountId?: string;
     file: { path: string; offset: number; size: number; mtime: number };
     state: SessionState;
     messages: ParsedMessage[];
   }): string | null {
-    const { sessionId, tool, file, state, messages } = args;
+    const { sessionId, tool, file, state, messages, accountId } = args;
+    const usage = state.usageEvents?.splice(0) ?? [];
     const projectId = state.cwd ? this.resolveProject(state.cwd) : null;
     const insertMessage = this.db.query(
       `INSERT OR IGNORE INTO messages (id, session_id, ts, role, kind, tool_name, text) VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -248,6 +253,24 @@ export class Store {
           state.lastToolFailed ? 1 : 0,
         );
       for (const m of messages) insertMessage.run(m.id, sessionId, m.ts, m.role, m.kind, m.toolName ?? null, m.text);
+      const insertUsage = this.db.query(
+        `INSERT INTO usage (session_id, project_id, account_id, ts, model, input, output, cache_read, cache_write)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      );
+      for (const u of usage) {
+        insertUsage.run(
+          sessionId,
+          projectId,
+          accountId ?? null,
+          u.ts,
+          u.model ?? null,
+          u.input,
+          u.output,
+          u.cacheRead,
+          u.cacheWrite,
+        );
+      }
+      if (accountId) this.db.query("UPDATE sessions SET account_id = ? WHERE id = ?").run(accountId, sessionId);
       this.db
         .query(
           `INSERT INTO source_files (path, session_id, offset, size, mtime) VALUES (?, ?, ?, ?, ?)
@@ -267,6 +290,7 @@ export class Store {
   resetSession(sessionId: string, path: string): void {
     this.db.transaction(() => {
       this.db.query("DELETE FROM messages WHERE session_id = ?").run(sessionId);
+      this.db.query("DELETE FROM usage WHERE session_id = ?").run(sessionId);
       this.db.query("DELETE FROM sessions WHERE id = ?").run(sessionId);
       this.db.query("DELETE FROM source_files WHERE path = ?").run(path);
     })();

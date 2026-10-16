@@ -1,4 +1,4 @@
-import { Gauge, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { DesignPage } from "./pages/Design";
 import { FilesPage } from "./pages/Files";
 import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
+import { LimitsPage } from "./pages/Limits";
 import { Onboarding } from "./pages/Onboarding";
 import { PlaceholderPage } from "./pages/Placeholder";
 import { ProjectPage } from "./pages/Project";
@@ -39,7 +40,7 @@ const router = createBrowserRouter([
       { path: "prompts", element: <PromptsPage /> },
       { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },
-      { path: "limits", element: <PlaceholderPage title="nav.limits" icon={Gauge} /> },
+      { path: "limits", element: <LimitsPage /> },
       { path: "team", element: <PlaceholderPage title="nav.team" icon={Users} /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "design", element: <DesignPage /> },

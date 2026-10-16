@@ -9,6 +9,7 @@ import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } fro
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
+import { AccountChip } from "./AccountChip";
 import { CommandPalette } from "./CommandPalette";
 import { IdeaCapture } from "./IdeaCapture";
 import { NAV_ITEMS, type NavItem } from "./nav";
@@ -96,6 +97,7 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
         <Kbd>Ctrl K</Kbd>
       </button>
       <div className="flex-1" />
+      <AccountChip />
       <StopButton onStopped={onToast} />
     </header>
   );

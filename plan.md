@@ -534,22 +534,22 @@ god-eye/
 **Hedef:** `/login` derdine son vermek ve neyin nereye harcandığını görmek.
 
 #### 3.1 Hesap yöneticisi
-- [ ] ⭐ Sağlayıcı başına birden fazla hesap: Claude, Codex, Gemini, Antigravity (adaptörle genişler)
-- [ ] ⭐ Her hesap kendi izole config klasöründe tutulur (Claude: `CLAUDE_CONFIG_DIR`, Codex: `CODEX_HOME`). Çıkış yapıp tekrar giriş yapmaya gerek kalmaz
-- [ ] ⭐ Hesap ekleme sihirbazı: login bir kere web terminalinde yapılır, sonra hep hazırdır
-- [ ] ⭐ Üst barda aktif hesap + tek tıkla geçiş; yeni session'lar seçilen hesapla açılır
-- [ ] Proje bazında varsayılan hesap (ör. iş projeleri iş hesabıyla)
-- [ ] Hesap sağlık kontrolü: oturum düşmüş mü, token yenilenmeli mi
-- [ ] 🔒 Credential dosyaları `chmod 600`; hiçbir yere gönderilmez, loglara yazılmaz
+- [x] ⭐ Sağlayıcı başına birden fazla hesap: Claude, Codex, Gemini, Antigravity (adaptörle genişler) — *Claude ve Codex; Gemini/Antigravity araçları kurulunca*
+- [x] ⭐ Her hesap kendi izole config klasöründe tutulur (Claude: `CLAUDE_CONFIG_DIR`, Codex: `CODEX_HOME`). Çıkış yapıp tekrar giriş yapmaya gerek kalmaz — *mevcut ~/.claude otomatik "Ana" hesap; yeniler ~/.godeye/accounts altında; her hesabın session'ları da izlenir*
+- [x] ⭐ Hesap ekleme sihirbazı: login bir kere web terminalinde yapılır, sonra hep hazırdır — *login web terminalinde `claude auth login` / `codex login`; gerçek giriş akışı henüz denenmedi (tarayıcı açtığı için)*
+- [x] ⭐ Üst barda aktif hesap + tek tıkla geçiş; yeni session'lar seçilen hesapla açılır — *hesap adı + 5 saatlik doluluk; terminal, sohbet, özet ve hızlı soru seçili hesapla açılır; devam edilen session kendi hesabında açılır*
+- [x] Proje bazında varsayılan hesap (ör. iş projeleri iş hesabıyla) — *proje Kurulum sekmesinde*
+- [x] Hesap sağlık kontrolü: oturum düşmüş mü, token yenilenmeli mi — *`claude auth status` ile 30 dakikada bir: giriş var mı, e-posta, plan*
+- [x] 🔒 Credential dosyaları `chmod 600`; hiçbir yere gönderilmez, loglara yazılmaz
 
 #### 3.2 📊 Limitler sayfası
-- [ ] ⭐ Her hesap için 5 saatlik ve haftalık limit çubukları + sıfırlanma geri sayımı
-- [ ] ⭐ **Ne, nerede, ne zaman:** zaman çizelgesi grafiği; proje, persona, session ve model bazında kırılım
-- [ ] "En çok harcayan 10 session" listesi; tıklayınca session açılır
-- [ ] Günlük, haftalık ve aylık raporlar
-- [ ] Tahmin: "Bu hızla limit saat 16:40'ta dolar"
-- [ ] Uyarılar: limitin %80 ve %95'inde bildirim + "şu hesaba geç" önerisi
-- [ ] Bütçe kuralları: persona veya zamanlanmış iş başına üst sınır
+- [x] ⭐ Her hesap için 5 saatlik ve haftalık limit çubukları + sıfırlanma geri sayımı — *Claude'un kendi bildirdiği gerçek doluluk; her God Eye Claude çağrısında ek maliyetsiz güncellenir*
+- [x] ⭐ **Ne, nerede, ne zaman:** zaman çizelgesi grafiği; proje, persona, session ve model bazında kırılım — *14 günlük proje kırılımlı grafik, proje/model/saat dağılımı; persona kırılımı Faz 6*
+- [x] "En çok harcayan 10 session" listesi; tıklayınca session açılır
+- [ ] Günlük, haftalık ve aylık raporlar — *günlük ve haftalık grafikler hazır; aylık rapor kalan iş*
+- [x] Tahmin: "Bu hızla limit saat 16:40'ta dolar" — *son ölçümlerden saatlik hız; sıfırlanmadan önce dolacaksa saatini söyler*
+- [x] Uyarılar: limitin %80 ve %95'inde bildirim + "şu hesaba geç" önerisi — *%80 ve üstü Gelen Kutusu'nda acil + üst bar renk değişimi + "başka hesaba geç / Codex'e devret" önerisi; masaüstü bildirimi Faz 11*
+- [ ] Bütçe kuralları: persona veya zamanlanmış iş başına üst sınır — *zamanlanmış işler (Faz 9) ve personalar (Faz 6) ile*
 
 **Bitti sayılır:** Hesaplar arasında tek tıkla geçiyorum, hangi projenin limitimi ne zaman yediğini grafikte görüyorum.
 

@@ -1,11 +1,17 @@
 import type { ChatMode } from "@godeye/core";
 import type { Hono } from "hono";
+import type { Accounts } from "./accounts";
 import type { Chats } from "./chats";
 import type { Store } from "./store";
 
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 
-export function registerChatRoutes(app: Hono, { chats, store }: { chats: Chats; store: Store }): void {
+export function registerChatRoutes(
+  app: Hono,
+  { chats, store, accounts }: { chats: Chats; store: Store; accounts: Accounts },
+): void {
+  const account = (projectId: string, sessionAccount?: string | null) =>
+    (sessionAccount && accounts.get(sessionAccount)) || accounts.forProject("claude", projectId);
   app.get("/api/chats", (c) => c.json(chats.list()));
 
   app.post("/api/chats", async (c) => {
@@ -29,6 +35,10 @@ export function registerChatRoutes(app: Hono, { chats, store }: { chats: Chats; 
           resume: body.resume,
           model: typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : undefined,
           mode: MODES.find((m) => m === body.mode),
+          ...(() => {
+            const chosen = account(project.id, session?.account_id);
+            return { accountId: chosen?.id, env: accounts.env(chosen) };
+          })(),
         }),
       );
     } catch (err) {
@@ -51,6 +61,8 @@ export function registerChatRoutes(app: Hono, { chats, store }: { chats: Chats; 
         resume: info.sessionId,
         model: body.model,
         mode: info.mode,
+        accountId: info.accountId,
+        env: accounts.env(info.accountId ? accounts.get(info.accountId) : undefined),
       }),
     );
   });

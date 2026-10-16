@@ -77,7 +77,8 @@
     "snoozed": "Snoozed",
     "urgent": "Urgent",
     "today": "Today",
-    "info": "FYI"
+    "info": "FYI",
+    "limits": "Limits"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -532,5 +533,46 @@
     "none": "No snapshots yet.",
     "now": "Save snapshot now",
     "noGit": "Snapshots need a git repository."
+  },
+  "limits": {
+    "title": "Limits",
+    "subtitle": "How much of your AI limits is used, where, and when.",
+    "fiveHour": "5-hour limit",
+    "week": "Weekly limit",
+    "resets": "resets {{when}}",
+    "noData": "No limit reading yet. It appears after the next Claude reply in God Eye (chat, quick question or a summary).",
+    "fullAt": "At this pace it fills at {{time}}.",
+    "pace": "Using about {{pct}}% per hour.",
+    "safe": "At this pace it lasts until the reset.",
+    "switchHint": "Close to the limit: switch to another account for new sessions, or hand the work over to Codex.",
+    "days": "Last 14 days",
+    "projects": "By project",
+    "models": "By model",
+    "sessions": "Heaviest sessions",
+    "hours": "By hour of day",
+    "total": "{{tokens}} tokens in 14 days",
+    "tokens": "tokens",
+    "other": "Other",
+    "tokensHint": "Counted: new input, output and cache writes (cache reads are left out)."
+  },
+  "accounts": {
+    "title": "Accounts",
+    "add": "Add account",
+    "provider": "Tool",
+    "label": "Name",
+    "labelPlaceholder": "e.g. Work, Personal",
+    "login": "Log in",
+    "relogin": "Log in again",
+    "refresh": "Check",
+    "active": "In use",
+    "use": "Use this",
+    "remove": "Remove",
+    "loggedOut": "Not logged in",
+    "main": "Main",
+    "manage": "Manage accounts",
+    "forProject": "Account for this project",
+    "followActive": "Follow the active account",
+    "loginHint": "A terminal opens with the tool's login. Finish it there, then press Check.",
+    "noSwitch": "God Eye never switches accounts on its own; you choose."
   }
 }

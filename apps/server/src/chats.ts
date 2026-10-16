@@ -38,6 +38,9 @@ export interface ChatStart {
   model?: string;
   mode?: ChatMode;
   resume?: string;
+  /** Account the chat runs as (its folder goes in env). */
+  accountId?: string;
+  env?: Record<string, string>;
 }
 
 function clip(text: string, max: number): string {
@@ -59,6 +62,8 @@ function resultText(content: unknown): string {
  */
 export class Chats {
   private chats = new Map<string, Chat>();
+  /** Called whenever Claude reports limit usage (wired to the Limits page). */
+  onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void = () => undefined;
 
   constructor(
     private readonly bus: Bus,
@@ -105,7 +110,7 @@ export class Chats {
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ GODEYE_CHAT: id }),
+      env: cleanEnv({ ...options.env, GODEYE_CHAT: id }),
     });
     const chat: Chat = {
       info: {
@@ -118,6 +123,7 @@ export class Chats {
         status: "idle",
         startedAt: Date.now(),
         sessionId: options.resume,
+        accountId: options.accountId,
       },
       events: [],
       index: new Map(),
@@ -311,6 +317,7 @@ export class Chats {
             at: now,
           };
           this.emitInfo(chat);
+          this.onRateLimit(chat.info.accountId, chat.info.rateLimit);
         }
         return;
       }

@@ -77,7 +77,8 @@
     "snoozed": "Ertelendi",
     "urgent": "Acil",
     "today": "Bugün",
-    "info": "Bilgi"
+    "info": "Bilgi",
+    "limits": "Limitler"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -532,5 +533,46 @@
     "none": "Henüz kayıt yok.",
     "now": "Şimdi kayıt al",
     "noGit": "Kayıtlar için git reposu gerekiyor."
+  },
+  "limits": {
+    "title": "Limitler",
+    "subtitle": "AI limitlerinin ne kadarı, nerede ve ne zaman kullanılıyor.",
+    "fiveHour": "5 saatlik limit",
+    "week": "Haftalık limit",
+    "resets": "{{when}} sıfırlanır",
+    "noData": "Henüz limit bilgisi yok. God Eye'daki bir sonraki Claude cevabında (sohbet, hızlı soru ya da özet) görünür.",
+    "fullAt": "Bu hızla saat {{time}}'da dolar.",
+    "pace": "Saatte yaklaşık %{{pct}} kullanılıyor.",
+    "safe": "Bu hızla sıfırlanana kadar yeter.",
+    "switchHint": "Limite yaklaştın: yeni session'lar için başka bir hesaba geç ya da işi Codex'e devret.",
+    "days": "Son 14 gün",
+    "projects": "Projeye göre",
+    "models": "Modele göre",
+    "sessions": "En çok harcayan session'lar",
+    "hours": "Günün saatine göre",
+    "total": "14 günde {{tokens}} token",
+    "tokens": "token",
+    "other": "Diğer",
+    "tokensHint": "Sayılanlar: yeni girdi, çıktı ve önbelleğe yazılanlar (önbellekten okunanlar hariç)."
+  },
+  "accounts": {
+    "title": "Hesaplar",
+    "add": "Hesap ekle",
+    "provider": "Araç",
+    "label": "Ad",
+    "labelPlaceholder": "örn. İş, Kişisel",
+    "login": "Giriş yap",
+    "relogin": "Tekrar giriş yap",
+    "refresh": "Kontrol et",
+    "active": "Kullanımda",
+    "use": "Bunu kullan",
+    "remove": "Kaldır",
+    "loggedOut": "Giriş yapılmamış",
+    "main": "Ana",
+    "manage": "Hesapları yönet",
+    "forProject": "Bu projenin hesabı",
+    "followActive": "Aktif hesabı kullan",
+    "loginHint": "Aracın girişiyle bir terminal açılır. Orada bitir, sonra Kontrol et'e bas.",
+    "noSwitch": "God Eye hesap değiştirmeyi asla kendi başına yapmaz; sen seçersin."
   }
 }

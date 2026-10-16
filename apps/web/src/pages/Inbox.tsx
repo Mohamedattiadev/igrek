@@ -1,4 +1,4 @@
-import { AlarmClock, Brain, Inbox, MessageSquare, SquareTerminal } from "lucide-react";
+import { AlarmClock, Brain, Gauge, Inbox, MessageSquare, SquareTerminal } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -56,7 +56,9 @@ export function InboxPage() {
   const chats = useChats().filter((chat) => chat.status === "waiting" && !isSnoozed(`chat-${chat.id}`));
   const { data } = useLiveData(() => api.inbox(), []);
   const conflicts = (data?.conflicts ?? []).filter((c) => !isSnoozed(`conflict-${c.projectId}-${c.count}`));
-  const empty = approvals.length + terminals.length + chats.length + conflicts.length === 0;
+  const { data: alerts } = useLiveData(() => api.limitAlerts(), []);
+  const limitAlerts = (alerts ?? []).filter((a) => !isSnoozed(`limit-${a.accountId}-${a.window}-${a.resetsAt}`));
+  const empty = approvals.length + terminals.length + chats.length + conflicts.length + limitAlerts.length === 0;
 
   return (
     <>
@@ -76,6 +78,33 @@ export function InboxPage() {
             </section>
           )}
 
+          {limitAlerts.length > 0 && (
+            <section>
+              <Heading dot="bg-danger">
+                {t("inbox.urgent")} · {t("inbox.limits")}
+              </Heading>
+              <Card>
+                <div className="divide-y divide-border">
+                  {limitAlerts.map((a) => (
+                    <Link
+                      key={`${a.accountId}-${a.window}`}
+                      to="/limits"
+                      data-nav-item
+                      className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
+                    >
+                      <Gauge size={15} className="text-warning" />
+                      <span className="flex-1 text-[13px] font-medium">
+                        {a.label} · {a.window === "fiveHour" ? t("limits.fiveHour") : t("limits.week")}
+                      </span>
+                      <Badge tone={a.value >= 0.95 ? "danger" : "warning"}>{Math.round(a.value * 100)}%</Badge>
+                      {a.resetsAt && <span className="text-[11px] text-fg-subtle">{relativeTime(a.resetsAt)}</span>}
+                      <SnoozeButton onClick={() => later(`limit-${a.accountId}-${a.window}-${a.resetsAt}`)} />
+                    </Link>
+                  ))}
+                </div>
+              </Card>
+            </section>
+          )}
           {terminals.length + chats.length > 0 && (
             <section>
               <Heading dot="bg-warning">

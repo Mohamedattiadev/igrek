@@ -23,11 +23,13 @@ export class Indexer {
   constructor(
     private readonly store: Store,
     private readonly bus: Bus,
-    private readonly adapters: Adapter[] = [claudeAdapter(), codexAdapter()],
+    /** Re-read on every scan, so a newly added account's sessions show up without a restart. */
+    private readonly adapters: Adapter[] | (() => Adapter[]) = [claudeAdapter(), codexAdapter()],
   ) {}
 
   private files(): { file: SessionFile; adapter: Adapter }[] {
-    return this.adapters.flatMap((adapter) => adapter.listFiles().map((file) => ({ file, adapter })));
+    const adapters = typeof this.adapters === "function" ? this.adapters() : this.adapters;
+    return adapters.flatMap((adapter) => adapter.listFiles().map((file) => ({ file, adapter })));
   }
 
   start(): void {
@@ -138,6 +140,7 @@ export class Indexer {
       projectId = this.store.saveChunk({
         sessionId: file.sessionId,
         tool: adapter.tool,
+        accountId: adapter.accountId,
         file: { path: file.path, offset, size: file.size, mtime: file.mtime },
         state,
         messages,

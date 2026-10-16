@@ -199,6 +199,8 @@ export interface ProjectListItem {
   lastActivity: number;
   hidden: boolean;
   hooksInstalled: boolean;
+  /** Account pinned for this project; empty means "follow the active one". */
+  accountId?: string;
   tools: AiTool[];
   git?: GitInfo;
   /** Worst health among sessions active in the last day. */
@@ -387,6 +389,7 @@ export interface ChatInfo {
   sessionId?: string;
   exitCode?: number;
   rateLimit?: RateLimitInfo;
+  accountId?: string;
 }
 
 export type ChatEvent =
@@ -421,6 +424,47 @@ export interface Checkpoint {
   at: number;
 }
 
+export interface Account {
+  id: string;
+  provider: AiTool;
+  /** Name the user gave it, e.g. "Work" or "Personal". */
+  label: string;
+  configDir: string;
+  /** The login that already existed (~/.claude); can't be removed from God Eye. */
+  isDefault: boolean;
+  email?: string;
+  plan?: string;
+  loggedIn: boolean;
+  /** New sessions use the active account (unless a project picks another). */
+  active: boolean;
+  checkedAt?: number;
+  rateLimit?: RateLimitInfo;
+}
+
+export interface LimitForecast {
+  /** When the 5-hour limit will be full at the current pace, if it will before reset. */
+  fullAt?: number;
+  /** Utilization per hour over the last snapshots. */
+  perHour?: number;
+}
+
+export interface UsageBucket {
+  key: string;
+  label: string;
+  tokens: number;
+}
+
+export interface LimitsOverview {
+  accounts: (Account & { forecast?: LimitForecast; history: RateLimitInfo[] })[];
+  /** Tokens per day for the last 14 days, split by project. */
+  days: { day: string; total: number; byProject: Record<string, number> }[];
+  projects: UsageBucket[];
+  models: UsageBucket[];
+  sessions: (UsageBucket & { projectId: string | null })[];
+  hours: { hour: number; tokens: number }[];
+  total: number;
+}
+
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =
   | { type: "hello"; version: string }
@@ -432,7 +476,9 @@ export type ServerMessage =
   | { type: "terminals"; terminals: TerminalInfo[] }
   | { type: "approvals"; approvals: Approval[] }
   | { type: "servers-changed" }
-  | { type: "chats"; chats: ChatInfo[] };
+  | { type: "chats"; chats: ChatInfo[] }
+  | { type: "accounts-changed" }
+  | { type: "limits-changed" };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };

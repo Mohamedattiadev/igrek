@@ -29,6 +29,8 @@ export interface StartOptions {
   args?: string[];
   cols?: number;
   rows?: number;
+  /** Extra environment, e.g. CLAUDE_CONFIG_DIR for the chosen account. */
+  env?: Record<string, string>;
 }
 
 function commandFor(tool: TerminalTool): string[] {
@@ -94,7 +96,7 @@ export class Terminals {
 
     const proc = Bun.spawn(cmd, {
       cwd: options.cwd,
-      env: cleanEnv({ TERM: "xterm-256color", COLORTERM: "truecolor", GODEYE_TERMINAL: id }),
+      env: cleanEnv({ ...options.env, TERM: "xterm-256color", COLORTERM: "truecolor", GODEYE_TERMINAL: id }),
       terminal: {
         cols,
         rows,

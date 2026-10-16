@@ -1,4 +1,6 @@
 import type {
+  Account,
+  AiTool,
   Approval,
   AskAnswer,
   ChatInfo,
@@ -13,6 +15,7 @@ import type {
   Idea,
   IdeaStatus,
   IndexStatus,
+  LimitsOverview,
   MemorySection,
   ProjectDetail,
   ProjectListItem,
@@ -143,6 +146,23 @@ export const api = {
   chatModel: (id: string, model: string) =>
     request<ChatInfo>(`/api/chats/${id}/model`, { method: "POST", body: JSON.stringify({ model }) }),
   closeChat: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}`, { method: "DELETE" }),
+  accounts: () => request<Account[]>("/api/accounts"),
+  addAccount: (provider: AiTool, label: string) =>
+    request<Account>("/api/accounts", { method: "POST", body: JSON.stringify({ provider, label }) }),
+  loginAccount: (id: string) => request<TerminalInfo>(`/api/accounts/${id}/login`, { method: "POST" }),
+  refreshAccount: (id: string) => request<Account>(`/api/accounts/${id}/refresh`, { method: "POST" }),
+  activateAccount: (id: string) => request<{ ok: boolean }>(`/api/accounts/${id}/activate`, { method: "POST" }),
+  removeAccount: (id: string) => request<{ ok: boolean }>(`/api/accounts/${id}`, { method: "DELETE" }),
+  setProjectAccount: (projectId: string, accountId: string | null) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/account`, {
+      method: "PUT",
+      body: JSON.stringify({ accountId }),
+    }),
+  limits: () => request<LimitsOverview>("/api/limits"),
+  limitAlerts: () =>
+    request<{ accountId: string; label: string; window: "fiveHour" | "week"; value: number; resetsAt?: number }[]>(
+      "/api/limits/alerts",
+    ),
   inbox: () => request<{ conflicts: { projectId: string; projectName: string; count: number }[] }>("/api/inbox"),
   terminals: () => request<TerminalInfo[]>("/api/terminals"),
   startTerminal: (body: { projectId: string; tool: TerminalTool; resume?: string; fork?: boolean }) =>

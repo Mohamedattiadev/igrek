@@ -10,7 +10,6 @@ import type {
 } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import type { StopRegistry } from "./bus";
-import { cleanEnv } from "./env";
 import { buildContext } from "./hooks";
 import type { Store } from "./store";
 import { parseModelReply, runClaude } from "./summarizer";
@@ -71,6 +70,7 @@ export class Assist {
         session.id,
         session.cwd ?? project?.path ?? this.runnerDir,
         `Side question from the user; answer briefly in ${languageName(language)} and do not continue the main task.${history ? `\n\nEarlier side questions:\n${history}` : ""}${attachment}\n\nQUESTION: ${args.question}`,
+        session.account_id ?? undefined,
       );
       return { answer, context: { project: project?.name, session: session.title ?? undefined, mode: "full" } };
     }
@@ -102,37 +102,9 @@ QUESTION: ${args.question}`;
     };
   }
 
-  private async runForked(sessionId: string, cwd: string, question: string): Promise<string> {
-    const proc = Bun.spawn(
-      [
-        "claude",
-        "-p",
-        "--resume",
-        sessionId,
-        "--fork-session",
-        "--no-session-persistence",
-        "--tools",
-        "",
-        "--output-format",
-        "json",
-      ],
-      { cwd, stdin: new Blob([question]), stdout: "pipe", stderr: "pipe", env: cleanEnv({ GODEYE_INTERNAL: "1" }) },
-    );
-    const unregister = this.stops.register(`fork-${proc.pid}`, { label: "quick question", stop: () => proc.kill() });
-    const timer = setTimeout(() => proc.kill(), 180_000);
-    try {
-      const [stdout, stderr, code] = await Promise.all([
-        new Response(proc.stdout).text(),
-        new Response(proc.stderr).text(),
-        proc.exited,
-      ]);
-      if (code !== 0) throw new Error(stderr.trim() || `claude exited with ${code}`);
-      const result = JSON.parse(stdout) as { result?: string };
-      return (result.result ?? "").trim();
-    } finally {
-      clearTimeout(timer);
-      unregister();
-    }
+  /** A throwaway fork of the session, in the same account it belongs to (nothing is saved). */
+  private runForked(sessionId: string, cwd: string, question: string, accountId?: string): Promise<string> {
+    return runClaude(question, cwd, this.stops, "", ["--resume", sessionId, "--fork-session"], accountId);
   }
 
   // ---- ideas ------------------------------------------------------------------
