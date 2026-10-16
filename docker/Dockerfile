@@ -27,8 +27,10 @@ RUN bun install --frozen-lockfile --production --filter '@godeye/server'
 
 # ---- 3. Runtime --------------------------------------------------------------
 FROM oven/bun:${BUN_VERSION}-slim AS runtime
-# Set to "true" to bake Claude Code into the image (adds its native binary).
+# Set to "true" to bake Claude Code / Codex into the image (each adds its native binary).
 ARG INSTALL_CLAUDE=false
+ARG INSTALL_CODEX=false
+ARG CODEX_VERSION=0.163.0
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends git openssh-client ca-certificates \
@@ -40,6 +42,13 @@ RUN apt-get update \
       && apt-get purge -y curl && apt-get autoremove -y; \
     fi \
  && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man
+# Codex ships as a native binary inside its npm package: install it, keep only the binary.
+RUN if [ "$INSTALL_CODEX" = "true" ]; then \
+      bun install -g "@openai/codex@${CODEX_VERSION}" \
+      && BIN="$(find /root/.bun/install/global/node_modules -type f -name codex -path '*vendor*' | head -1)" \
+      && install -m 0755 "$BIN" /usr/local/bin/codex \
+      && rm -rf /root/.bun/install /root/.bun/bin/codex; \
+    fi
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules

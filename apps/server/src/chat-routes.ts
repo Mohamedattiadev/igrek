@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type { ChatMode } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
@@ -20,6 +23,8 @@ export function registerChatRoutes(
       resume?: string;
       model?: string;
       mode?: string;
+      /** For a new chat only: a resumed session must stay in the account that holds it. */
+      accountId?: string;
     };
     const project = body.projectId ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
@@ -36,7 +41,8 @@ export function registerChatRoutes(
           model: typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : undefined,
           mode: MODES.find((m) => m === body.mode),
           ...(() => {
-            const chosen = account(project.id, session?.account_id);
+            const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
+            const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
             return { accountId: chosen?.id, env: accounts.env(chosen) };
           })(),
         }),
@@ -44,6 +50,50 @@ export function registerChatRoutes(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
+  });
+
+  // Custom slash commands: the project's .claude/commands and each Claude account's own (for the "/" menu).
+  app.get("/api/projects/:id/slash-commands", (c) => {
+    const project = store.projectRow(c.req.param("id"));
+    if (!project) return c.json([]);
+    const dirs: [string, "project" | "user"][] = [[join(project.path, ".claude", "commands"), "project"]];
+    for (const a of accounts.list().filter((x) => x.provider === "claude"))
+      dirs.push([join(a.configDir || join(homedir(), ".claude"), "commands"), "user"]);
+    const seen = new Set<string>();
+    const out: { name: string; description: string; source: "project" | "user" }[] = [];
+    const walk = (dir: string, prefix: string, source: "project" | "user", depth: number) => {
+      let entries: import("node:fs").Dirent[] = [];
+      try {
+        entries = readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+      for (const e of entries) {
+        if (e.isDirectory() && depth < 2) walk(join(dir, e.name), `${prefix}${e.name}:`, source, depth + 1);
+        if (!e.isFile() || !e.name.endsWith(".md")) continue;
+        const name = `${prefix}${e.name.slice(0, -3)}`;
+        if (seen.has(name)) continue;
+        seen.add(name);
+        let description = "";
+        try {
+          const text = readFileSync(join(dir, e.name), "utf8").slice(0, 2000);
+          description =
+            text.match(/^description:\s*(.+)$/m)?.[1]?.trim() ??
+            text
+              .replace(/^---[\s\S]*?---/, "")
+              .trim()
+              .split("\n")[0]
+              ?.replace(/^#+\s*/, "")
+              .slice(0, 120) ??
+            "";
+        } catch {
+          // unreadable: still listed by name
+        }
+        out.push({ name, description, source });
+      }
+    };
+    for (const [dir, source] of dirs) walk(dir, "", source, 0);
+    return c.json(out.sort((a, b) => a.name.localeCompare(b.name)).slice(0, 200));
   });
 
   // Switching model means restarting on the same saved session.

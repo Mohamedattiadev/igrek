@@ -342,7 +342,13 @@
     "search": "Dosyalarda ara…",
     "vim": "Vim",
     "explain": "Bu dosyayı açıkla",
-    "closeTab": "Kapat"
+    "closeTab": "Kapat",
+    "keymap": "Tuş düzeni",
+    "keymapTip": "Kod editörünün hangi editörün kısayollarını kullanacağı",
+    "keymap_vscode": "VS Code",
+    "keymap_jetbrains": "JetBrains",
+    "keymap_vim": "Vim",
+    "keymap_emacs": "Emacs"
   },
   "files": {
     "title": "Dosyalar",
@@ -533,7 +539,8 @@
     "toolOutput": "Çıktı",
     "empty": "Ne üzerinde çalışalım?",
     "emptyBody": "Claude bu projenin klasöründe çalışır. Bir şeyi değiştiren adımlar senin onayını bekler.",
-    "chats": "Sohbetler"
+    "chats": "Sohbetler",
+    "newIn": "{{account}} hesabında yeni sohbet"
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -1254,5 +1261,17 @@
     "start": "Başlat",
     "startTip": "Kendi Claude girişini kullanır; başka hiçbir yere bir şey gönderilmez.",
     "stop": "Durdur"
+  },
+  "firewall": {
+    "found_one": "Bu mesajda bir sır var gibi görünüyor ({{hints}}).",
+    "found_other": "Bu mesajda {{count}} sır var gibi görünüyor ({{hints}}).",
+    "hint": "AI araçları konuşmaları saklar. AI'ın değere gerçekten ihtiyacı yoksa maskele.",
+    "mask": "Maskele ve gönder",
+    "sendAnyway": "Yine de gönder"
+  },
+  "slash": {
+    "title": "Komutlar ve kayıtlı prompt'lar",
+    "command": "komut",
+    "prompt": "kayıtlı prompt"
   }
 }

@@ -1,4 +1,4 @@
-import type { QuickAnswer } from "@godeye/core";
+import { findSecrets, type QuickAnswer } from "@godeye/core";
 import { Copy, CornerDownLeft, Paperclip, Send, Sparkles, Trash2, X, Zap } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useTerminals } from "../lib/live";
 import { EnhanceButton, EnhancePanel } from "./Enhance";
+import { maskSecrets, SecretGuard } from "./SecretGuard";
 import { Badge, Kbd, Segmented } from "./ui";
 
 interface Turn {
@@ -88,9 +89,15 @@ export function QuickAsk() {
     if (open) inputRef.current?.focus();
   }, [open]);
 
-  const ask = async () => {
-    const question = input.trim();
+  const [guarded, setGuarded] = useState<string>();
+  const ask = async (override?: string, allowSecrets = false) => {
+    const question = override ?? input.trim();
     if (!question || busy) return;
+    if (!allowSecrets && findSecrets(question).length) {
+      setGuarded(question);
+      return;
+    }
+    setGuarded(undefined);
     setInput("");
     setBusy(true);
     const turn: Turn = { q: question, attachment: attachment?.name };
@@ -232,6 +239,14 @@ export function QuickAsk() {
             </button>
           </p>
         )}
+        {guarded !== undefined && (
+          <SecretGuard
+            text={guarded}
+            onMask={() => void ask(maskSecrets(guarded), true)}
+            onSendAnyway={() => void ask(guarded, true)}
+            onCancel={() => setGuarded(undefined)}
+          />
+        )}
         {enhancing !== undefined && (
           <div className="mb-2">
             <EnhancePanel
@@ -265,7 +280,7 @@ export function QuickAsk() {
           <EnhanceButton onClick={() => input.trim() && setEnhancing(input.trim())} disabled={!input.trim()} />
           <button
             type="button"
-            onClick={ask}
+            onClick={() => void ask()}
             disabled={!input.trim() || busy}
             aria-label={t("quick.title")}
             className={cn("rounded-md p-1.5", input.trim() && !busy ? "bg-accent text-accent-fg" : "text-fg-subtle")}

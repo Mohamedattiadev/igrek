@@ -5,6 +5,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         INSTALL_CLAUDE: ${GODEYE_INSTALL_CLAUDE:-false}
+        INSTALL_CODEX: ${GODEYE_INSTALL_CODEX:-false}
     image: god-eye:local
     container_name: god-eye
     restart: unless-stopped
@@ -22,8 +23,9 @@ services:
     volumes:
       # Your God Eye data (database, settings).
       - ${HOME}/.godeye:${HOME}/.godeye
-      # AI session history, read to track your work.
+      # AI session history, read to track your work (Claude Code and Codex).
       - ${HOME}/.claude:${HOME}/.claude
+      - ${HOME}/.codex:${HOME}/.codex
       # Your projects, mounted at the same path so session paths match.
       - ${GODEYE_PROJECTS_DIR:-${HOME}/projects}:${GODEYE_PROJECTS_DIR:-${HOME}/projects}
     mem_limit: 512m

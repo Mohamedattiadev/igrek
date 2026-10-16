@@ -1,4 +1,4 @@
-import { type ChatEvent, type ChatMode, isWeakPrompt } from "@godeye/core";
+import { type ChatEvent, type ChatMode, findSecrets, isWeakPrompt } from "@godeye/core";
 import DOMPurify from "dompurify";
 import {
   ArrowLeft,
@@ -31,6 +31,8 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel } from "../components/Enhance";
 import { PromptPicker } from "../components/PromptPicker";
+import { maskSecrets, SecretGuard } from "../components/SecretGuard";
+import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
 import { Badge, Button, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
@@ -265,6 +267,15 @@ export function ChatPage() {
     if (searchParams.has("draft")) setSearchParams({}, { replace: true });
   }, []);
   const { settings } = useSettings();
+  const slashItems = useSlashItems(chat.info?.projectId);
+  const slashMatches = filterSlash(slashItems, text);
+  const [slashActive, setSlashActive] = useState(0);
+  const pickSlash = (item: SlashItem) => {
+    setText(item.insert);
+    setSlashActive(0);
+  };
+  /** A message held back because it seems to contain a secret. */
+  const [guarded, setGuarded] = useState<string>();
   /** The text the enhancer was opened with; undefined while closed. */
   const [enhancing, setEnhancing] = useState<string>();
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
@@ -278,9 +289,15 @@ export function ChatPage() {
   }, [chat.events]);
 
   const openEnhancer = () => text.trim() && setEnhancing(text.trim());
-  const send = (override?: string) => {
+  const send = (override?: string, allowSecrets = false) => {
     const value = override ?? text.trim();
     if (!value && images.length === 0) return;
+    // Prompt firewall: a key or password in the message waits for the user's choice.
+    if (!allowSecrets && findSecrets(value).length) {
+      setGuarded(value);
+      return;
+    }
+    setGuarded(undefined);
     // "auto": a weak prompt opens the enhancer first instead of going out as is.
     if (override === undefined && settings.enhanceMode === "auto" && isWeakPrompt(value)) {
       setEnhancing(value);
@@ -461,6 +478,14 @@ export function ChatPage() {
               ))}
             </div>
           )}
+          {guarded !== undefined && (
+            <SecretGuard
+              text={guarded}
+              onMask={() => send(maskSecrets(guarded), true)}
+              onSendAnyway={() => send(guarded, true)}
+              onCancel={() => setGuarded(undefined)}
+            />
+          )}
           {enhancing !== undefined && info && (
             <div className="mb-2">
               <EnhancePanel
@@ -478,12 +503,35 @@ export function ChatPage() {
               <EnhanceHint text={text} onEnhance={openEnhancer} />
             </div>
           )}
+          <SlashMenu
+            items={slashMatches}
+            active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
+            onPick={pickSlash}
+          />
           <div className="rounded-ui border border-border bg-bg p-1.5 focus-within:border-accent">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               onPaste={onPaste}
               onKeyDown={(e) => {
+                if (slashMatches.length) {
+                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                    e.preventDefault();
+                    const step = e.key === "ArrowDown" ? 1 : -1;
+                    setSlashActive((i) => (i + step + slashMatches.length) % slashMatches.length);
+                    return;
+                  }
+                  if (e.key === "Enter" || e.key === "Tab") {
+                    e.preventDefault();
+                    const item = slashMatches[Math.min(slashActive, slashMatches.length - 1)];
+                    if (item) pickSlash(item);
+                    return;
+                  }
+                  if (e.key === "Escape") {
+                    setText("");
+                    return;
+                  }
+                }
                 if (e.key === "Enter" && e.shiftKey && (e.ctrlKey || e.metaKey)) {
                   e.preventDefault();
                   openEnhancer();

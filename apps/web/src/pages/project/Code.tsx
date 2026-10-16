@@ -27,6 +27,7 @@ import { api, fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { nameOf, previewKind } from "../../lib/files";
 import { relativeTime } from "../../lib/format";
+import type { EditorKeymap } from "../../lib/keymaps";
 import { useSettings } from "../../lib/settings";
 
 // Monaco is large; load it only when a file is opened.
@@ -312,6 +313,9 @@ function CodeEnhance({ projectId }: { projectId: string }) {
 export function CodeTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
+  // Older settings only had a Vim switch.
+  const keymap: EditorKeymap =
+    settings.editorKeymap === "vscode" && settings.editorVim ? "vim" : (settings.editorKeymap ?? "vscode");
   const [panel, setPanel] = useState<"files" | "changes" | "snapshots" | "search">("files");
   const [root, setRoot] = useState<FileEntry[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
@@ -428,14 +432,14 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
         path={active.path}
         value={buffer.saved}
         line={active.line}
-        vim={settings.editorVim}
+        keymap={keymap}
         onChange={(value) =>
           setBuffers((all) => ({ ...all, [active.path]: { ...(all[active.path] as Buffer), content: value } }))
         }
         onSave={save}
       />
     );
-  }, [active, buffer, diffs, kind, textual, showPreview, settings.editorVim, save]);
+  }, [active, buffer, diffs, kind, textual, showPreview, keymap, save]);
 
   return (
     <div className="flex min-h-96 min-w-0 flex-1">
@@ -535,16 +539,22 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
               {t("quick.explain")}
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => update({ editorVim: !settings.editorVim })}
-            className={cn(
-              "px-2 font-mono text-[11px]",
-              settings.editorVim ? "font-semibold text-accent" : "text-fg-subtle hover:text-fg",
-            )}
+          <select
+            value={keymap}
+            onChange={(e) => {
+              const next = e.target.value as EditorKeymap;
+              void update({ editorKeymap: next, editorVim: next === "vim" });
+            }}
+            aria-label={t("code.keymap")}
+            data-tip={t("code.keymapTip")}
+            className="h-6 bg-transparent px-1 font-mono text-[11px] text-fg-subtle outline-none hover:text-fg"
           >
-            {t("code.vim")}
-          </button>
+            {(["vscode", "jetbrains", "vim", "emacs"] as const).map((k) => (
+              <option key={k} value={k}>
+                {t(`code.keymap_${k}`)}
+              </option>
+            ))}
+          </select>
           {active?.mode === "file" && buffer && !buffer.binary && (
             <button
               type="button"

@@ -342,7 +342,13 @@
     "search": "Search in files…",
     "vim": "Vim",
     "explain": "Explain this file",
-    "closeTab": "Close"
+    "closeTab": "Close",
+    "keymap": "Key bindings",
+    "keymapTip": "Which editor's shortcuts the code editor uses",
+    "keymap_vscode": "VS Code",
+    "keymap_jetbrains": "JetBrains",
+    "keymap_vim": "Vim",
+    "keymap_emacs": "Emacs"
   },
   "files": {
     "title": "Files",
@@ -533,7 +539,8 @@
     "toolOutput": "Output",
     "empty": "What should we work on?",
     "emptyBody": "Claude works in this project's folder. Steps that change things wait for your approval.",
-    "chats": "Chats"
+    "chats": "Chats",
+    "newIn": "New chat in {{account}}"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1254,5 +1261,17 @@
     "start": "Start",
     "startTip": "Uses your own Claude login; nothing else is sent anywhere.",
     "stop": "Stop"
+  },
+  "firewall": {
+    "found_one": "This message seems to contain a secret ({{hints}}).",
+    "found_other": "This message seems to contain {{count}} secrets ({{hints}}).",
+    "hint": "AI tools keep conversations. Mask it unless the AI really needs the value.",
+    "mask": "Mask and send",
+    "sendAnyway": "Send anyway"
+  },
+  "slash": {
+    "title": "Commands and saved prompts",
+    "command": "command",
+    "prompt": "saved prompt"
   }
 }

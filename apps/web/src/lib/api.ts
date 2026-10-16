@@ -135,6 +135,10 @@ export const api = {
   deleteIdea: (id: string) => request<{ ok: boolean }>(`/api/ideas/${id}`, { method: "DELETE" }),
   triageIdeas: () => request<Idea[]>("/api/ideas/triage", { method: "POST" }),
   prompts: () => request<SavedPrompt[]>("/api/prompts"),
+  slashCommands: (projectId: string) =>
+    request<{ name: string; description: string; source: "project" | "user" }[]>(
+      `/api/projects/${projectId}/slash-commands`,
+    ),
   savePrompt: (prompt: { id?: string; title: string; body: string; tags: string[] }) =>
     request<SavedPrompt>("/api/prompts", { method: "POST", body: JSON.stringify(prompt) }),
   markPromptUsed: (id: string) => request<{ ok: boolean }>(`/api/prompts/${id}/use`, { method: "POST" }),
@@ -163,7 +167,7 @@ export const api = {
       body: JSON.stringify({ approve }),
     }),
   chats: () => request<ChatInfo[]>("/api/chats"),
-  startChat: (body: { projectId: string; resume?: string; model?: string; mode?: ChatMode }) =>
+  startChat: (body: { projectId: string; resume?: string; model?: string; mode?: ChatMode; accountId?: string }) =>
     request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
   chatModel: (id: string, model: string) =>
     request<ChatInfo>(`/api/chats/${id}/model`, { method: "POST", body: JSON.stringify({ model }) }),

@@ -32,6 +32,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     ["keymap", KEYMAPS],
     ["summaryTone", TONES],
     ["enhanceMode", ["off", "suggest", "auto"]],
+    ["editorKeymap", ["vscode", "jetbrains", "vim", "emacs"]],
     ["enhanceLanguage", ["en", "user"]],
   ];
   for (const [key, allowed] of enums) {

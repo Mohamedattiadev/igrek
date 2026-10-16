@@ -1,5 +1,6 @@
 export * from "./insight";
 export * from "./prompt";
+export * from "./scrub";
 
 export const APP_NAME = "God Eye";
 export const APP_VERSION = "0.1.0";
@@ -23,8 +24,10 @@ export interface Settings {
   summaryTone: "plain" | "technical";
   /** Extra folders (besides projects) God Eye may open in the file manager. */
   allowedFolders: string[];
-  /** Vim keys inside the code editor (independent of list navigation). */
+  /** Vim keys inside the code editor (independent of list navigation). Kept for older settings; see editorKeymap. */
   editorVim: boolean;
+  /** Key bindings in the code editor. */
+  editorKeymap: "vscode" | "jetbrains" | "vim" | "emacs";
   /** Prompt enhancer: never, offer it on weak prompts, or open it on every weak prompt. */
   enhanceMode: "off" | "suggest" | "auto";
   /** Language of the enhanced prompt: English (AI tools follow it best) or the user's own. */
@@ -44,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   summaryTone: "plain",
   allowedFolders: [],
   editorVim: false,
+  editorKeymap: "vscode",
   enhanceMode: "suggest",
   enhanceLanguage: "en",
   enhanceShortcuts: {},

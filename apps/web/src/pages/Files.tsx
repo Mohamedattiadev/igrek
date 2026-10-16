@@ -187,7 +187,7 @@ function Viewer({ entry }: { entry: FileEntry }) {
             <CodeEditor
               path={entry.path}
               value={text.content}
-              vim={settings.editorVim}
+              keymap={settings.editorKeymap === "vscode" && settings.editorVim ? "vim" : settings.editorKeymap}
               onChange={(value) => setDraft(value === text.content ? undefined : value)}
               onSave={save}
             />

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
+import { useAccounts } from "../lib/live";
 import { Button } from "./ui";
 
 const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "shell"];
@@ -16,6 +17,7 @@ export function NewSession({ projectId }: { projectId: string }) {
   const [error, setError] = useState<string>();
   const [installed, setInstalled] = useState<Record<string, boolean>>({});
   const ref = useRef<HTMLDivElement>(null);
+  const claudeAccounts = useAccounts().filter((a) => a.provider === "claude");
 
   useEffect(() => {
     api
@@ -33,11 +35,11 @@ export function NewSession({ projectId }: { projectId: string }) {
     return () => window.removeEventListener("mousedown", close);
   }, [open]);
 
-  const startChat = async () => {
+  const startChat = async (accountId?: string) => {
     setOpen(false);
     setError(undefined);
     try {
-      const chat = await api.startChat({ projectId });
+      const chat = await api.startChat({ projectId, accountId });
       navigate(`/c/${chat.id}`);
     } catch (err) {
       setError((err as Error).message);
@@ -58,7 +60,7 @@ export function NewSession({ projectId }: { projectId: string }) {
   return (
     <div ref={ref} className="relative">
       <div className="flex">
-        <Button variant="primary" size="sm" icon={Plus} onClick={startChat} className="rounded-e-none">
+        <Button variant="primary" size="sm" icon={Plus} onClick={() => void startChat()} className="rounded-e-none">
           {t("chat.new")}
         </Button>
         <Button
@@ -75,12 +77,25 @@ export function NewSession({ projectId }: { projectId: string }) {
         <div className="absolute end-0 top-full z-20 mt-1 w-52 rounded-ui border border-border bg-bg p-1 shadow-ui">
           <button
             type="button"
-            onClick={startChat}
+            onClick={() => void startChat()}
             className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-start text-[13px] hover:bg-bg-hover"
           >
             <MessageSquare size={14} className="text-accent" />
             <span className="flex-1">{t("chat.new")}</span>
           </button>
+          {/* With more than one Claude account, start in a chosen one (a running session stays in its own). */}
+          {claudeAccounts.length > 1 &&
+            claudeAccounts.map((account) => (
+              <button
+                key={account.id}
+                type="button"
+                onClick={() => void startChat(account.id)}
+                className="flex h-8 w-full items-center gap-2 rounded-md px-2 ps-8 text-start text-[12px] text-fg-muted hover:bg-bg-hover"
+                data-tip={account.email ?? account.label}
+              >
+                <span className="flex-1 truncate">{t("chat.newIn", { account: account.label })}</span>
+              </button>
+            ))}
           <div className="my-1 border-t border-border" />
           {TOOLS.map((tool) => {
             const ok = tool === "shell" || installed[tool] !== false;

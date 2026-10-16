@@ -2,6 +2,7 @@ import { initVimMode } from "monaco-vim";
 import { useEffect, useRef } from "react";
 import { actions } from "../lib/actions";
 import i18n from "../lib/i18n";
+import { applyKeymap, type EditorKeymap } from "../lib/keymaps";
 import { applyMonacoTheme, languageFor, monaco } from "../lib/monaco";
 
 export interface CodeEditorProps {
@@ -9,7 +10,7 @@ export interface CodeEditorProps {
   value: string;
   onChange?: (value: string) => void;
   onSave?: () => void;
-  vim?: boolean;
+  keymap?: EditorKeymap;
   readOnly?: boolean;
   /** Line to reveal on open (from search results). */
   line?: number;
@@ -19,7 +20,16 @@ export interface CodeEditorProps {
  * VS Code's editor (Monaco) with optional Vim mode (plan.md 2.3). One model per
  * file path, so undo history survives switching tabs.
  */
-export default function CodeEditor({ path, value, onChange, onSave, vim, readOnly, line }: CodeEditorProps) {
+export default function CodeEditor({
+  path,
+  value,
+  onChange,
+  onSave,
+  keymap = "vscode",
+  readOnly,
+  line,
+}: CodeEditorProps) {
+  const vim = keymap === "vim";
   const host = useRef<HTMLDivElement>(null);
   const vimBar = useRef<HTMLDivElement>(null);
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
@@ -110,6 +120,12 @@ export default function CodeEditor({ path, value, onChange, onSave, vim, readOnl
   useEffect(() => {
     editorRef.current?.updateOptions({ readOnly: !!readOnly });
   }, [readOnly]);
+
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || keymap === "vscode" || keymap === "vim") return;
+    return applyKeymap(monaco, editor, keymap, () => handlers.current.onSave?.());
+  }, [keymap]);
 
   useEffect(() => {
     const editor = editorRef.current;
