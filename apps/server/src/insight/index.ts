@@ -4,14 +4,19 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   type ApiMap,
+  CATEGORIES,
   type Category,
   type CategoryDetail,
   type CategoryExplanation,
   type CategoryScore,
   type DiagramSet,
   gradeOf,
+  type InsightConfig,
   type InsightScan,
   type Settings,
+  type ToolKind,
+  type ToolPlan,
+  type ToolResult,
 } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import type { Bus, StopRegistry } from "../bus";
@@ -19,6 +24,7 @@ import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
 import { scrub } from "../sync/scrub";
 import { SENSITIVE } from "./snapshot";
+import { planTools, runTool } from "./tools";
 
 const STALE = 30 * 60_000;
 
@@ -28,6 +34,7 @@ interface WorkerReply {
   error?: string;
   categories: CategoryScore[];
   overall: number;
+  catalog: Partial<Record<Category, string[]>>;
   diagrams: DiagramSet;
   apis: ApiMap;
   fileCount: number;
@@ -58,7 +65,7 @@ export class Insight {
     private readonly runnerDir: string,
   ) {}
 
-  private scanInWorker(root: string): Promise<WorkerReply> {
+  private scanInWorker(root: string, projectId: string): Promise<WorkerReply> {
     if (!this.worker) {
       this.worker = new Worker(new URL("./worker.ts", import.meta.url).href);
       this.worker.onmessage = (event: MessageEvent<WorkerReply>) => {
@@ -69,7 +76,7 @@ export class Insight {
     const id = this.next++;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
-      this.worker?.postMessage({ id, root });
+      this.worker?.postMessage({ id, root, config: this.config(projectId), tools: this.toolResults(projectId) });
     });
   }
 
@@ -84,7 +91,7 @@ export class Insight {
     if (existing) return existing;
     const root = this.rootOf(projectId);
     if (!root) return Promise.reject(new Error("This project's folder isn't on this computer"));
-    const job = this.scanInWorker(root)
+    const job = this.scanInWorker(root, projectId)
       .then((reply) => {
         if (!reply.ok) throw new Error(reply.error ?? "Scan failed");
         const at = Date.now();
@@ -94,6 +101,7 @@ export class Insight {
           overall: reply.overall,
           grade: gradeOf(reply.overall),
           categories: reply.categories,
+          catalog: reply.catalog,
           diagrams: reply.diagrams,
           apis: reply.apis,
           fileCount: reply.fileCount,
@@ -184,6 +192,24 @@ export class Insight {
         author: s.author_name ?? undefined,
       }));
 
+    // Decisions and known issues that talk about this part's files.
+    const names = new Set(
+      score.files
+        .map((f) =>
+          f
+            .split("/")
+            .pop()
+            ?.replace(/\.[a-z]+$/i, "")
+            .toLowerCase(),
+        )
+        .filter((n): n is string => !!n && n.length > 3),
+    );
+    const decisions = this.store
+      .listMemory(projectId, false)
+      .filter((m) => m.section !== "status")
+      .filter((m) => (m.text.toLowerCase().match(/[\w.-]+/g) ?? []).some((w) => names.has(w.replace(/\.[a-z]+$/i, ""))))
+      .slice(0, 10)
+      .map((m) => ({ id: m.id, section: m.section, text: m.text }));
     const text = this.db
       .query("SELECT texts, at FROM category_texts WHERE project_id = ? AND category = ?")
       .get(projectId, category) as { texts: string; at: number } | undefined;
@@ -191,6 +217,7 @@ export class Insight {
       ...score,
       trend,
       sessions,
+      decisions,
       explanation: text ? (JSON.parse(text.texts) as Record<string, CategoryExplanation>) : undefined,
       explainedAt: text?.at,
     };
@@ -285,5 +312,112 @@ ${heads.join("\n\n") || "(none)"}`;
 
   stop(): void {
     this.worker?.terminate();
+    this.unsubscribe?.();
+    for (const t of this.rescans.values()) clearTimeout(t);
+  }
+
+  // ---- automatic rescans ---------------------------------------------------------------
+
+  private unsubscribe?: () => void;
+  private rescans = new Map<string, ReturnType<typeof setTimeout>>();
+
+  /** Rescans a project a few minutes after its sessions change (a session ended, files were edited). */
+  watch(delayMs = 3 * 60_000): void {
+    this.unsubscribe = this.bus.subscribe((message) => {
+      if (message.type !== "sessions-changed") return;
+      for (const projectId of message.projectIds) {
+        if (!this.rootOf(projectId)) continue;
+        const last = this.db.query("SELECT MAX(at) AS at FROM insight_scans WHERE project_id = ?").get(projectId) as {
+          at: number | null;
+        };
+        if (!last.at) continue; // never opened the Sections tab: don't scan behind the user's back
+        clearTimeout(this.rescans.get(projectId));
+        this.rescans.set(
+          projectId,
+          setTimeout(() => {
+            this.rescans.delete(projectId);
+            void this.scan(projectId).catch(() => undefined);
+          }, delayMs),
+        );
+      }
+    });
+  }
+
+  // ---- scoring choices -------------------------------------------------------------------
+
+  config(projectId: string): InsightConfig {
+    const row = this.db.query("SELECT data FROM insight_config WHERE project_id = ?").get(projectId) as
+      | { data: string }
+      | undefined;
+    const parsed = row ? (JSON.parse(row.data) as Partial<InsightConfig>) : {};
+    return { weights: parsed.weights ?? {}, disabled: parsed.disabled ?? [] };
+  }
+
+  setConfig(projectId: string, config: InsightConfig): InsightConfig {
+    const weights = Object.fromEntries(
+      Object.entries(config.weights ?? {})
+        .filter(([k, v]) => (CATEGORIES as readonly string[]).includes(k) && typeof v === "number" && v >= 0 && v <= 5)
+        .map(([k, v]) => [k, Math.round((v as number) * 10) / 10]),
+    );
+    const disabled = (config.disabled ?? [])
+      .filter((id) => typeof id === "string" && /^[a-z]+\.[A-Za-z]+$/.test(id))
+      .slice(0, 200);
+    this.db
+      .query(
+        "INSERT INTO insight_config (project_id, data) VALUES (?, ?) ON CONFLICT(project_id) DO UPDATE SET data = excluded.data",
+      )
+      .run(projectId, JSON.stringify({ weights, disabled }));
+    void this.scan(projectId).catch(() => undefined);
+    return { weights, disabled };
+  }
+
+  // ---- the project's own tools -----------------------------------------------------------
+
+  private toolsRunning = new Set<string>();
+
+  tools(projectId: string): { plans: ToolPlan[]; results: ToolResult[]; running: boolean } {
+    const root = this.rootOf(projectId);
+    return {
+      plans: root ? planTools(root) : [],
+      results: this.toolResults(projectId),
+      running: this.toolsRunning.has(projectId),
+    };
+  }
+
+  toolResults(projectId: string): ToolResult[] {
+    return (
+      this.db.query("SELECT result FROM insight_tools WHERE project_id = ? ORDER BY kind").all(projectId) as {
+        result: string;
+      }[]
+    ).map((r) => JSON.parse(r.result) as ToolResult);
+  }
+
+  /** Runs the chosen tools one after another, then rescans so their results count. Only what planTools offered can run. */
+  async runTools(projectId: string, kinds: ToolKind[]): Promise<ToolResult[]> {
+    const root = this.rootOf(projectId);
+    if (!root) throw new Error("This project's folder isn't on this computer");
+    if (this.toolsRunning.has(projectId)) throw new Error("Already running");
+    const plans = planTools(root).filter((p) => kinds.includes(p.kind));
+    this.toolsRunning.add(projectId);
+    this.bus.publish({ type: "insight-changed", projectId });
+    const results: ToolResult[] = [];
+    try {
+      for (const plan of plans) {
+        const result = await runTool(root, plan, (stop) =>
+          this.stops.register(`tool-${projectId}-${plan.kind}`, { label: plan.command.join(" "), stop }),
+        );
+        results.push(result);
+        this.db
+          .query(
+            "INSERT INTO insight_tools (project_id, kind, result, at) VALUES (?, ?, ?, ?) ON CONFLICT(project_id, kind) DO UPDATE SET result = excluded.result, at = excluded.at",
+          )
+          .run(projectId, plan.kind, JSON.stringify(result), result.at);
+        this.bus.publish({ type: "insight-changed", projectId });
+      }
+    } finally {
+      this.toolsRunning.delete(projectId);
+    }
+    await this.scan(projectId).catch(() => undefined);
+    return results;
   }
 }

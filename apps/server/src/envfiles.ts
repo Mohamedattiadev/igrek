@@ -93,6 +93,46 @@ function quoteIfNeeded(value: string): string {
   return /[\s#"'$`\\]/.test(value) || value === "" ? JSON.stringify(value) : value;
 }
 
+// ---- text-level edits (shared by local files and files on a server) ----------------------
+
+export function valueIn(text: string, key: string): string {
+  const found = parse(text).find((e) => e.key === key);
+  if (!found) throw new Error("Key not found");
+  return found.value;
+}
+
+/** Adds or changes one key; comments, order and other lines stay as they were. */
+export function setInText(text: string, key: string, value: string): string {
+  if (!/^[A-Za-z_][A-Za-z0-9_.-]*$/.test(key)) throw new Error("Invalid key name");
+  if (/[\r\n]/.test(value)) throw new Error("Values can't contain line breaks");
+  const lines = text.split("\n");
+  const entry = `${key}=${quoteIfNeeded(value)}`;
+  const found = parse(text).find((e) => e.key === key);
+  if (found) {
+    const line = lines[found.start]?.match(/^\s*export\s+/) ? `export ${entry}` : entry;
+    // A multi-line value is replaced as a whole.
+    lines.splice(found.start, found.end - found.start + 1, line);
+  } else {
+    if (lines.length && lines.at(-1) === "") lines.pop();
+    lines.push(entry, "");
+  }
+  return lines.join("\n");
+}
+
+/** Removes every definition of the key, including all lines of a multi-line value. */
+export function removeFromText(text: string, key: string): string {
+  const lines = text.split("\n");
+  for (const e of parse(text)
+    .filter((x) => x.key === key)
+    .reverse())
+    lines.splice(e.start, e.end - e.start + 1);
+  return lines.join("\n");
+}
+
+export function keyCount(text: string): number {
+  return parse(text).length;
+}
+
 export class EnvFiles {
   constructor(private readonly backupDir: string) {}
 
@@ -125,8 +165,21 @@ export class EnvFiles {
     return full;
   }
 
-  overview(root: string, used: EnvKeyUse[]): EnvOverview {
-    const paths = this.list(root);
+  /** `extra`: env files read from elsewhere (a server over SSH), already as text. */
+  overview(
+    root: string,
+    used: EnvKeyUse[],
+    extra: { path: string; text?: string; error?: string; serverId: string; remotePath: string }[] = [],
+  ): EnvOverview {
+    const sources: { path: string; text?: string; error?: string; remote?: { serverId: string; path: string } }[] = [
+      ...this.list(root).map((path) => ({ path })),
+      ...extra.map((e) => ({
+        path: e.path,
+        text: e.text,
+        error: e.error,
+        remote: { serverId: e.serverId, path: e.remotePath },
+      })),
+    ];
     const files: EnvFileInfo[] = [];
     const rows = new Map<string, EnvKeyRow>();
     const row = (name: string) => {
@@ -145,16 +198,23 @@ export class EnvFiles {
       }
       return r;
     };
-    for (const path of paths) {
-      const name = path.split("/").pop() ?? "";
+    for (const source of sources) {
+      const path = source.path;
+      const name = (source.remote?.path ?? path).split("/").pop() ?? "";
       const example = EXAMPLE.test(name);
       let keyed: (Entry & { line: number })[] = [];
+      if (source.error) {
+        files.push({ path, env: "production", example: false, keys: 0, remote: source.remote, error: source.error });
+        continue;
+      }
       try {
-        keyed = parse(readFileSync(join(root, path), "utf8")).map((e) => ({ ...e, line: e.start + 1 }));
+        keyed = parse(source.text ?? readFileSync(join(root, path), "utf8")).map((e) => ({ ...e, line: e.start + 1 }));
       } catch {
         continue;
       }
-      files.push({ path, env: envLabel(name), example, keys: keyed.length });
+      // A server's file is the live one: production unless its name says otherwise.
+      const env = source.remote && envLabel(name) === "default" ? "production" : envLabel(name);
+      files.push({ path, env, example, keys: keyed.length, remote: source.remote });
       const seen = new Set<string>();
       for (const l of keyed) {
         const r = row(l.key as string);
@@ -193,9 +253,7 @@ export class EnvFiles {
   }
 
   reveal(root: string, file: string, key: string): string {
-    const found = parse(readFileSync(this.resolveFile(root, file), "utf8")).find((e) => e.key === key);
-    if (!found) throw new Error("Key not found");
-    return found.value ?? "";
+    return valueIn(readFileSync(this.resolveFile(root, file), "utf8"), key);
   }
 
   private backupFolder(root: string, file: string): string {
@@ -228,32 +286,13 @@ export class EnvFiles {
     if (/[\r\n]/.test(value)) throw new Error("Values can't contain line breaks");
     const full = this.resolveFile(root, file, false);
     this.backup(root, file);
-    const text = existsSync(full) ? readFileSync(full, "utf8") : "";
-    const lines = text.split("\n");
-    const entry = `${key}=${quoteIfNeeded(value)}`;
-    const found = parse(text).find((e) => e.key === key);
-    if (found) {
-      const line = lines[found.start]?.match(/^\s*export\s+/) ? `export ${entry}` : entry;
-      // A multi-line value is replaced as a whole.
-      lines.splice(found.start, found.end - found.start + 1, line);
-    } else {
-      if (lines.length && lines.at(-1) === "") lines.pop();
-      lines.push(entry, "");
-    }
-    this.write(full, lines.join("\n"));
+    this.write(full, setInText(existsSync(full) ? readFileSync(full, "utf8") : "", key, value));
   }
 
   remove(root: string, file: string, key: string): void {
     const full = this.resolveFile(root, file);
     this.backup(root, file);
-    const text = readFileSync(full, "utf8");
-    const lines = text.split("\n");
-    // Remove every definition of the key, including all lines of a multi-line value (from the bottom up).
-    for (const e of parse(text)
-      .filter((x) => x.key === key)
-      .reverse())
-      lines.splice(e.start, e.end - e.start + 1);
-    this.write(full, lines.join("\n"));
+    this.write(full, removeFromText(readFileSync(full, "utf8"), key));
   }
 
   history(root: string, file: string): EnvBackup[] {

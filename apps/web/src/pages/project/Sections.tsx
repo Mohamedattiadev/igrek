@@ -18,6 +18,7 @@ import {
   RefreshCw,
   Server,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   TriangleAlert,
   Wrench,
@@ -35,6 +36,7 @@ import { useServerEvent } from "../../lib/live";
 import { useSettings } from "../../lib/settings";
 import { ApiMapView } from "./ApiMap";
 import { EnvView } from "./EnvView";
+import { ImportCard, ScoringDialog, ToolsCard } from "./SectionsExtras";
 
 export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   architecture: Network,
@@ -300,6 +302,22 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
         )}
       </Card>
 
+      {detail.decisions.length > 0 && (
+        <Card className="p-pad">
+          <h3 className="mb-2 text-[13px] font-semibold">{t("insight.decisions")}</h3>
+          <ul className="space-y-1.5">
+            {detail.decisions.map((d) => (
+              <li key={d.id} className="flex gap-2 text-[13px]">
+                <Badge tone={d.section === "issue" || d.section === "failed" ? "warning" : "neutral"}>
+                  {t(`memory.${d.section}`)}
+                </Badge>
+                <span className="min-w-0 flex-1">{d.text}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
       {detail.sessions.length > 0 && (
         <Card className="p-pad">
           <h3 className="mb-2 text-[13px] font-semibold">{t("insight.sessions")}</h3>
@@ -363,6 +381,7 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
   const [params, setParams] = useSearchParams();
   const { latest, error, reload } = useInsight(project.id);
   const [scanning, setScanning] = useState(false);
+  const [scoring, setScoring] = useState(false);
   const category = params.get("cat") as Category | null;
   const view = params.get("view");
 
@@ -410,10 +429,23 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
           <p className="mb-1 text-[11px] font-medium text-fg-subtle">{t("insight.trend")}</p>
           <Trend points={latest.trend.map((p) => ({ at: p.at, score: p.overall }))} />
         </div>
-        <Button icon={RefreshCw} disabled={scanning || latest.scanning} onClick={scan} data-tip={t("insight.scanTip")}>
-          {scanning || latest.scanning ? t("insight.scanning") : t("insight.scan")}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button
+            icon={RefreshCw}
+            disabled={scanning || latest.scanning}
+            onClick={scan}
+            data-tip={t("insight.scanTip")}
+          >
+            {scanning || latest.scanning ? t("insight.scanning") : t("insight.scan")}
+          </Button>
+          <Button variant="ghost" icon={SlidersHorizontal} onClick={() => setScoring(true)} data-tip={t("scoring.tip")}>
+            {t("scoring.title")}
+          </Button>
+        </div>
       </Card>
+      <ScoringDialog projectId={project.id} scan={latest} open={scoring} onClose={() => setScoring(false)} />
+      <ImportCard projectId={project.id} />
+      <ToolsCard projectId={project.id} />
       <div className="grid gap-3 sm:grid-cols-2">
         <button
           type="button"

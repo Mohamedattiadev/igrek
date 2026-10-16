@@ -1,4 +1,4 @@
-import type { EnvIssue, EnvKeyRow, EnvOverview } from "@godeye/core";
+import type { EnvChange, EnvIssue, EnvKeyRow, EnvOverview, ServerInfo } from "@godeye/core";
 import {
   ArrowLeft,
   Eye,
@@ -9,8 +9,11 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  RotateCw,
+  Server,
   Trash2,
   TriangleAlert,
+  Unlink,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,7 +21,7 @@ import { Link, useSearchParams } from "react-router";
 import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
-import { dateTime } from "../../lib/format";
+import { dateTime, relativeTime } from "../../lib/format";
 
 const field =
   "h-8 w-full rounded-ui border border-border bg-bg px-2 font-mono text-[12px] outline-none focus:border-accent";
@@ -39,7 +42,7 @@ function ValueCell({
   projectId: string;
   file: string;
   row: EnvKeyRow;
-  onChanged: () => void;
+  onChanged: (remoteFile?: string) => void;
 }) {
   const { t } = useTranslation();
   const cell = row.values[file];
@@ -57,10 +60,10 @@ function ValueCell({
     if (editing === undefined) return;
     api
       .envSet(projectId, file, row.name, editing)
-      .then(() => {
+      .then((r) => {
         setEditing(undefined);
         setShown(undefined);
-        onChanged();
+        onChanged(r.remote ? file : undefined);
       })
       .catch((err: Error) => setError(err.message));
   };
@@ -148,7 +151,9 @@ function ValueCell({
         className="rounded p-1 text-fg-subtle opacity-0 hover:bg-bg-hover hover:text-danger group-hover:opacity-100 focus-visible:opacity-100"
         onClick={() =>
           window.confirm(t("env.removeConfirm", { key: row.name, file })) &&
-          void api.envRemove(projectId, file, row.name).then(onChanged)
+          void api
+            .envRemove(projectId, file, row.name)
+            .then(() => onChanged(file.startsWith("ssh:") ? file : undefined))
         }
       >
         <Trash2 size={12} />
@@ -225,8 +230,32 @@ export function EnvView({ projectId }: { projectId: string }) {
   const [history, setHistory] = useState<string>();
   const [adding, setAdding] = useState<{ file: string; key: string; value: string }>();
   const [note, setNote] = useState<string>();
+  const [servers, setServers] = useState<ServerInfo[]>([]);
+  const [linking, setLinking] = useState<{ serverId: string; path: string; error?: string }>();
+  /** A server's .env just changed: offer to restart the service (the user confirms the command). */
+  const [restart, setRestart] = useState<{ serverId: string; command: string; output?: string; error?: string }>();
+  const [changes, setChanges] = useState<EnvChange[]>([]);
+  useEffect(() => {
+    api
+      .servers()
+      .then(setServers)
+      .catch(() => undefined);
+  }, []);
+  const serverName = (id: string) => servers.find((s) => s.id === id)?.name ?? id;
+  const changed = (remoteFile?: string) => {
+    load();
+    const remote = remoteFile?.match(/^ssh:([^:]+):(.+)$/);
+    if (remote) {
+      const dir = (remote[2] as string).replace(/\/[^/]*$/, "") || "/";
+      setRestart({ serverId: remote[1] as string, command: `cd '${dir}' && docker compose up -d` });
+    }
+  };
 
   const load = () => {
+    api
+      .envChanges(projectId)
+      .then(setChanges)
+      .catch(() => undefined);
     api
       .envOverview(projectId)
       .then(setData)
@@ -272,6 +301,15 @@ export function EnvView({ projectId }: { projectId: string }) {
         >
           {t("env.sync")}
         </Button>
+        {servers.length > 0 && (
+          <Button
+            icon={Server}
+            onClick={() => setLinking({ serverId: servers[0]?.id ?? "", path: "" })}
+            data-tip={t("env.linkTip")}
+          >
+            {t("env.link")}
+          </Button>
+        )}
         {realFiles.length > 0 && (
           <Button
             variant="primary"
@@ -283,6 +321,56 @@ export function EnvView({ projectId }: { projectId: string }) {
         )}
       </div>
       {note && <p className="rounded-ui bg-accent-soft px-3 py-2 text-xs text-accent">{note}</p>}
+      {restart && (
+        <Card className="space-y-2 border-warning/50 p-pad">
+          <p className="flex items-center gap-2 text-[13px] font-medium">
+            <RotateCw size={14} className="text-warning" aria-hidden="true" />{" "}
+            {t("env.restartTitle", { server: serverName(restart.serverId) })}
+          </p>
+          <p className="text-xs text-fg-muted">{t("env.restartHint")}</p>
+          <div className="flex gap-2">
+            <input
+              value={restart.command}
+              onChange={(e) => setRestart({ ...restart, command: e.target.value })}
+              aria-label={t("env.restartCommand")}
+              className="h-8 flex-1 rounded-ui border border-border bg-bg px-2 font-mono text-[12px] outline-none focus:border-accent"
+            />
+            <Button
+              variant="primary"
+              onClick={async () => {
+                if (
+                  !window.confirm(
+                    t("env.restartConfirm", { command: restart.command, server: serverName(restart.serverId) }),
+                  )
+                )
+                  return;
+                const run = (confirmations: number) =>
+                  api.runOnServer(restart.serverId, restart.command, confirmations);
+                try {
+                  const r = await run(1).catch(async (err: Error) => {
+                    if (!/2 confirmation/.test(err.message) || !window.confirm(t("env.restartDanger"))) throw err;
+                    return run(2);
+                  });
+                  setRestart({ ...restart, output: r.output || `exit ${r.exitCode}`, error: undefined });
+                } catch (err) {
+                  setRestart({ ...restart, error: (err as Error).message });
+                }
+              }}
+            >
+              {t("env.restartRun")}
+            </Button>
+            <Button variant="ghost" onClick={() => setRestart(undefined)}>
+              {t("env.restartSkip")}
+            </Button>
+          </div>
+          {restart.error && <p className="text-xs text-danger">{restart.error}</p>}
+          {restart.output && (
+            <pre className="max-h-40 overflow-auto rounded-ui bg-bg-subtle p-2 font-mono text-[11px] whitespace-pre-wrap">
+              {restart.output}
+            </pre>
+          )}
+        </Card>
+      )}
 
       {files.length === 0 ? (
         <EmptyState
@@ -304,7 +392,27 @@ export function EnvView({ projectId }: { projectId: string }) {
                 {files.map((f) => (
                   <th key={f.path} className="px-3 py-2 text-start font-medium">
                     <div className="flex items-center gap-1">
-                      <span className="font-mono">{f.path}</span>
+                      {f.remote ? (
+                        <span className="flex items-center gap-1 font-mono" data-tip={f.error ?? t("env.remoteTip")}>
+                          <Server size={11} aria-hidden="true" /> {serverName(f.remote.serverId)}:{f.remote.path}
+                        </span>
+                      ) : (
+                        <span className="font-mono">{f.path}</span>
+                      )}
+                      {f.remote && (
+                        <button
+                          type="button"
+                          aria-label={t("env.unlink")}
+                          className="rounded p-0.5 hover:bg-bg-hover hover:text-danger"
+                          onClick={() =>
+                            f.remote &&
+                            window.confirm(t("env.unlinkConfirm")) &&
+                            void api.envUnlinkRemote(projectId, f.remote.serverId, f.remote.path).then(load)
+                          }
+                        >
+                          <Unlink size={12} />
+                        </button>
+                      )}
                       <button
                         type="button"
                         aria-label={t("env.history")}
@@ -315,7 +423,11 @@ export function EnvView({ projectId }: { projectId: string }) {
                       </button>
                     </div>
                     <span className={cn("text-[10px]", f.env === "production" ? "text-danger" : "text-fg-subtle")}>
-                      {f.example ? t("env.example") : t(`env.env_${f.env}`, { defaultValue: f.env })}
+                      {f.error
+                        ? t("env.unreachable")
+                        : f.example
+                          ? t("env.example")
+                          : t(`env.env_${f.env}`, { defaultValue: f.env })}
                     </span>
                   </th>
                 ))}
@@ -349,7 +461,7 @@ export function EnvView({ projectId }: { projectId: string }) {
                   </td>
                   {files.map((f) => (
                     <td key={f.path} className="max-w-[260px] px-3 py-2">
-                      <ValueCell projectId={projectId} file={f.path} row={row} onChanged={load} />
+                      <ValueCell projectId={projectId} file={f.path} row={row} onChanged={changed} />
                     </td>
                   ))}
                 </tr>
@@ -429,7 +541,79 @@ export function EnvView({ projectId }: { projectId: string }) {
           </div>
         )}
       </Dialog>
-      <HistoryDialog projectId={projectId} file={history} onClose={() => setHistory(undefined)} onRestored={load} />
+      {changes.length > 0 && (
+        <Card className="p-pad">
+          <h3 className="mb-2 text-[13px] font-semibold">{t("env.changes")}</h3>
+          <ul className="space-y-1 text-xs">
+            {changes.slice(0, 15).map((c) => (
+              <li key={`${c.at}-${c.key}-${c.file}`} className="flex flex-wrap gap-x-2">
+                <span className="w-28 shrink-0 text-fg-subtle">{relativeTime(c.at)}</span>
+                <span className="font-medium">{c.author ?? t("team.you")}</span>
+                <span className="text-fg-muted">{t(`env.action_${c.action}`)}</span>
+                <span className="font-mono">{c.key === "*" ? t("env.wholeFile") : c.key}</span>
+                <span className="font-mono text-fg-subtle">
+                  {c.file.replace(/^ssh:([^:]+):/, (_m, id: string) => `${serverName(id)}:`)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      )}
+
+      <Dialog open={!!linking} onClose={() => setLinking(undefined)} label={t("env.link")}>
+        {linking && (
+          <div className="space-y-3 p-5">
+            <h2 className="text-[14px] font-semibold">{t("env.link")}</h2>
+            <p className="text-xs text-fg-muted">{t("env.linkHint")}</p>
+            <select
+              value={linking.serverId}
+              onChange={(e) => setLinking({ ...linking, serverId: e.target.value })}
+              aria-label={t("env.server")}
+              className={field}
+            >
+              {servers.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.target})
+                </option>
+              ))}
+            </select>
+            <input
+              value={linking.path}
+              onChange={(e) => setLinking({ ...linking, path: e.target.value })}
+              placeholder="/srv/app/.env"
+              aria-label={t("env.remotePath")}
+              className={field}
+            />
+            {linking.error && <p className="text-xs text-danger">{linking.error}</p>}
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setLinking(undefined)}>
+                {t("memory.cancel")}
+              </Button>
+              <Button
+                variant="primary"
+                disabled={!linking.serverId || !linking.path.trim()}
+                onClick={() =>
+                  api
+                    .envLinkRemote(projectId, linking.serverId, linking.path.trim())
+                    .then(() => {
+                      setLinking(undefined);
+                      load();
+                    })
+                    .catch((err: Error) => setLinking({ ...linking, error: err.message }))
+                }
+              >
+                {t("env.linkSave")}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
+      <HistoryDialog
+        projectId={projectId}
+        file={history}
+        onClose={() => setHistory(undefined)}
+        onRestored={() => changed()}
+      />
     </div>
   );
 }

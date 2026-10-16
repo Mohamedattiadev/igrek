@@ -984,6 +984,28 @@
           "title": "Deprecated packages: {{metric}}",
           "fix": "Replace the listed deprecated packages with their maintained alternatives."
         }
+      },
+      "tool": {
+        "typecheck": {
+          "title": "Type check passes",
+          "fix": "Fix the type errors reported by the type check (see the output in \"Run the project's own checks\")."
+        },
+        "lint": {
+          "title": "Linter passes",
+          "fix": "Fix the problems the linter reports."
+        },
+        "tests": {
+          "title": "Tests pass: {{metric}}",
+          "fix": "Make the failing tests pass, or fix the code they caught."
+        },
+        "audit": {
+          "title": "Known vulnerabilities in dependencies: {{metric}}",
+          "fix": "Update the packages with known vulnerabilities (start with critical and high)."
+        },
+        "auditSecurity": {
+          "title": "Serious vulnerabilities in dependencies: {{metric}}",
+          "fix": "Update the packages with critical or high vulnerabilities now."
+        }
       }
     },
     "cat": {
@@ -1011,7 +1033,8 @@
       "performance": "How fast it loads: heavy files and loading only what's needed.",
       "docs": "How easy it is for someone new to understand and start.",
       "dependencies": "The outside packages it relies on and how safely they're pinned."
-    }
+    },
+    "decisions": "Related decisions and notes"
   },
   "apis": {
     "title": "API map",
@@ -1106,7 +1129,19 @@
       "huggingface": "Hugging Face",
       "replicate": "Replicate",
       "elevenlabs": "ElevenLabs"
-    }
+    },
+    "try": "Try",
+    "tryTip": "Send a request to this endpoint and see the answer",
+    "tester": "Try an endpoint",
+    "testerHint": "Sent from this computer. Fill in path parameters like :id before sending.",
+    "send": "Send",
+    "headers": "Headers (one per line)",
+    "body": "Body",
+    "truncated": "shortened",
+    "base": "Base address",
+    "baseTip": "Where your API is running (read from PORT / API_URL in your .env when there is one)",
+    "health": "Health check",
+    "healthTip": "Calls every GET endpoint without parameters once and shows the status code"
   },
   "env": {
     "title": ".env and secrets",
@@ -1157,6 +1192,67 @@
     "issue_format_url": "doesn't look like an address in {{file}}",
     "issue_format_number": "should be a number in {{file}}",
     "issue_format_boolean": "should be true or false in {{file}}",
-    "issue_unused": "no code reads it"
+    "issue_unused": "no code reads it",
+    "link": "Link a server's .env",
+    "linkTip": "Edit the .env on one of your servers next to the local ones (over SSH)",
+    "linkHint": "Choose a server you added on the Servers page and the full path of its .env file. It's read over SSH; values only come to this computer.",
+    "server": "Server",
+    "remotePath": "Path on the server",
+    "linkSave": "Link",
+    "remoteTip": "Read and written over SSH. A dated backup is kept on the server before every change.",
+    "unlink": "Unlink",
+    "unlinkConfirm": "Stop showing this server file here? Nothing is deleted on the server.",
+    "unreachable": "couldn't read",
+    "restartTitle": "The .env on {{server}} changed",
+    "restartHint": "Running services read .env when they start. Restart the service so it uses the new values.",
+    "restartCommand": "Restart command",
+    "restartRun": "Restart",
+    "restartSkip": "Not now",
+    "restartConfirm": "Run on {{server}}?\n\n{{command}}",
+    "restartDanger": "This command is marked dangerous. Run it anyway?",
+    "changes": "Recent changes",
+    "action_added": "added",
+    "action_changed": "changed",
+    "action_removed": "removed",
+    "action_restored": "restored",
+    "wholeFile": "the whole file"
+  },
+  "tools": {
+    "title": "Run the project's own checks",
+    "hint": "These run your project's code on this computer (type check, linter, tests, dependency audit). Check the commands, then start them. The results count toward the scores for two weeks.",
+    "run": "Run selected",
+    "runTip": "Starts the checked commands one after another. The emergency stop button stops them.",
+    "running": "Running…",
+    "kind_typecheck": "Type check",
+    "kind_lint": "Linter",
+    "kind_test": "Tests",
+    "kind_audit": "Audit",
+    "ok": "Passed",
+    "failed": "Failed",
+    "noVulns": "no known vulnerabilities",
+    "tests": "{{passed}} passed, {{failed}} failed",
+    "exit": "exit",
+    "output": "Show output"
+  },
+  "scoring": {
+    "title": "Scoring",
+    "tip": "Choose how much each part counts and turn off checks that don't fit this project",
+    "hint": "The overall score is the weighted average of the parts. A weight of 0 leaves a part out. Turned-off checks don't count.",
+    "weight": "Weight",
+    "weightOf": "Weight of {{section}}",
+    "enableTip": "Turned off: click to count it again",
+    "disableTip": "Click to turn this check off for this project",
+    "reset": "Back to defaults",
+    "save": "Save and rescan"
+  },
+  "import": {
+    "title": "Bring in this project's history",
+    "estimate": "{{sessions}} past sessions have no summary yet. Summarizing them fills the project memory: about {{tokens}} tokens with the small model ({{model}}), around {{minutes}} min.",
+    "progress": "{{done}} of {{total}} sessions summarized…",
+    "finished": "{{done}} sessions summarized {{when}}.",
+    "failed": "{{count}} failed",
+    "start": "Start",
+    "startTip": "Uses your own Claude login; nothing else is sent anywhere.",
+    "stop": "Stop"
   }
 }

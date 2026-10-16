@@ -22,8 +22,10 @@ import { EnvFiles } from "./envfiles";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { writeHookScript } from "./hooks";
+import { registerHttpRoutes } from "./http-routes";
 import { Indexer } from "./indexer";
 import { Insight } from "./insight";
+import { HistoryImport } from "./insight/history";
 import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
@@ -95,6 +97,7 @@ const files = new Files(
 // Team hub: only active once the user connects from the Team page.
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
 const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
+insight.watch();
 const enhancer = new Enhancer(
   sqlite,
   store,
@@ -120,8 +123,16 @@ const app = createApp({
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync);
     registerEnhanceRoutes(hono, enhancer);
-    registerInsightRoutes(hono, insight);
-    registerEnvRoutes(hono, { env: new EnvFiles(join(config.dataDir, "env-backups")), store, insight });
+    registerHttpRoutes(hono, store);
+    registerInsightRoutes(hono, insight, new HistoryImport(sqlite, bus, summarizer, insight));
+    registerEnvRoutes(hono, {
+      env: new EnvFiles(join(config.dataDir, "env-backups")),
+      store,
+      insight,
+      servers,
+      db: sqlite,
+      onChange: (projectId, change) => void sync.envChanged(projectId, change),
+    });
   },
   work: {
     store,

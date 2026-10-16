@@ -471,6 +471,22 @@ export class Sync {
     }
   }
 
+  /** A setting was added/changed/removed: teammates see the name, who and when — never the value. */
+  async envChanged(projectId: string, change: { file: string; key: string; action: string }): Promise<void> {
+    if (!this.connected || !this.key || this.config?.user.role === "viewer") return;
+    const project = this.sharedProjects().find((p) => p.id === projectId);
+    if (!project) return;
+    const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
+    // A server file is shown by its path on the server, not by the server's address.
+    const file = change.file.startsWith("ssh:") ? change.file.replace(/^ssh:[^:]+:/, "server:") : change.file;
+    await this.publish(key, "env", `env-${projectId}-${Date.now()}`, {
+      file,
+      key: change.key,
+      action: change.action,
+      at: Date.now(),
+    });
+  }
+
   /** "Mohamed is working on …": active own sessions in shared projects. */
   private async sendPresence(): Promise<void> {
     if (!this.connected || !this.key || !this.config) return;
@@ -583,6 +599,20 @@ export class Sync {
         if (event.kind === "session") this.applySession(projectId, value, author);
         else if (event.kind === "messages") this.applyMessages(value);
         else if (event.kind === "memory") this.applyMemory(projectId, value, author);
+        else if (event.kind === "env")
+          this.db
+            .query(
+              "INSERT INTO env_changes (project_id, file, key, action, author_id, author_name, at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            )
+            .run(
+              projectId,
+              String(value.file ?? ""),
+              String(value.key ?? ""),
+              String(value.action ?? "changed"),
+              author.id,
+              author.name,
+              Number(value.at ?? event.at),
+            );
         changed.add(projectId);
       } catch {
         // A tampered or foreign event fails authentication and is skipped.

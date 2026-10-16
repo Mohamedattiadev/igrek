@@ -561,6 +561,7 @@ export type ServerMessage =
   | { type: "limits-changed" }
   | { type: "team-changed" }
   | { type: "insight-changed"; projectId: string }
+  | { type: "import-progress"; projectId: string }
   | { type: "presence" };
 
 /** Messages sent from UI to server over the WebSocket. */

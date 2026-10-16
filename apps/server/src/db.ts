@@ -249,6 +249,36 @@ const migrations: string[] = [
    );`,
   // Faz 4.5.4: link what was sent to the session, so outcomes can be compared.
   `ALTER TABLE enhancements ADD COLUMN session_id TEXT;`,
+  // Faz 5: the project's own tools (run on request) and per-project scoring choices.
+  `CREATE TABLE insight_tools (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     kind TEXT NOT NULL,
+     result TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, kind)
+   );
+   CREATE TABLE insight_config (
+     project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+     data TEXT NOT NULL
+   );`,
+  // Faz 5.6: a server's .env linked to the project, and who changed which setting (names only, never values).
+  `CREATE TABLE project_remote_env (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     server_id TEXT NOT NULL,
+     path TEXT NOT NULL,
+     PRIMARY KEY (project_id, server_id, path)
+   );
+   CREATE TABLE env_changes (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     file TEXT NOT NULL,
+     key TEXT NOT NULL,
+     action TEXT NOT NULL,
+     author_id TEXT,
+     author_name TEXT,
+     at INTEGER NOT NULL
+   );
+   CREATE INDEX env_changes_project ON env_changes(project_id, at);`,
 ];
 
 export function migrate(sqlite: Database): number {

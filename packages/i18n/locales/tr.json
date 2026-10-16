@@ -984,6 +984,28 @@
           "title": "Artık desteklenmeyen paketler: {{metric}}",
           "fix": "Listelenen desteklenmeyen paketleri bakımı süren alternatifleriyle değiştir."
         }
+      },
+      "tool": {
+        "typecheck": {
+          "title": "Tip kontrolü geçiyor",
+          "fix": "Tip kontrolünün bildirdiği hataları düzelt (çıktı \"Projenin kendi kontrollerini çalıştır\" kartında)."
+        },
+        "lint": {
+          "title": "Linter geçiyor",
+          "fix": "Linter'ın bildirdiği sorunları düzelt."
+        },
+        "tests": {
+          "title": "Testler geçiyor: {{metric}}",
+          "fix": "Başarısız testleri geçir veya yakaladıkları kodu düzelt."
+        },
+        "audit": {
+          "title": "Bağımlılıklarda bilinen açıklar: {{metric}}",
+          "fix": "Bilinen açığı olan paketleri güncelle (kritik ve yüksekten başla)."
+        },
+        "auditSecurity": {
+          "title": "Bağımlılıklarda ciddi açıklar: {{metric}}",
+          "fix": "Kritik veya yüksek açığı olan paketleri hemen güncelle."
+        }
       }
     },
     "cat": {
@@ -1011,7 +1033,8 @@
       "performance": "Ne kadar hızlı yüklendiği: ağır dosyalar ve sadece gerekenin yüklenmesi.",
       "docs": "Yeni biri için anlamanın ve başlamanın ne kadar kolay olduğu.",
       "dependencies": "Dayandığı dış paketler ve sürümlerinin ne kadar güvenli sabitlendiği."
-    }
+    },
+    "decisions": "İlgili kararlar ve notlar"
   },
   "apis": {
     "title": "API Haritası",
@@ -1106,7 +1129,19 @@
       "huggingface": "Hugging Face",
       "replicate": "Replicate",
       "elevenlabs": "ElevenLabs"
-    }
+    },
+    "try": "Dene",
+    "tryTip": "Bu endpoint'e istek gönder ve cevabı gör",
+    "tester": "Endpoint dene",
+    "testerHint": "Bu bilgisayardan gönderilir. Göndermeden önce :id gibi yol parametrelerini doldur.",
+    "send": "Gönder",
+    "headers": "Başlıklar (her satıra bir tane)",
+    "body": "Gövde",
+    "truncated": "kısaltıldı",
+    "base": "Temel adres",
+    "baseTip": "API'nin çalıştığı yer (varsa .env'deki PORT / API_URL'den okunur)",
+    "health": "Sağlık kontrolü",
+    "healthTip": "Parametresiz her GET endpoint'ini bir kez çağırır ve durum kodunu gösterir"
   },
   "env": {
     "title": ".env ve sırlar",
@@ -1157,6 +1192,67 @@
     "issue_format_url": "{{file}} dosyasında adrese benzemiyor",
     "issue_format_number": "{{file}} dosyasında sayı olmalı",
     "issue_format_boolean": "{{file}} dosyasında true veya false olmalı",
-    "issue_unused": "hiçbir kod okumuyor"
+    "issue_unused": "hiçbir kod okumuyor",
+    "link": "Sunucudaki .env'i bağla",
+    "linkTip": "Sunucularından birindeki .env'i lokal olanların yanında düzenle (SSH ile)",
+    "linkHint": "Sunucular sayfasında eklediğin bir sunucuyu ve .env dosyasının tam yolunu seç. SSH ile okunur; değerler sadece bu bilgisayara gelir.",
+    "server": "Sunucu",
+    "remotePath": "Sunucudaki yol",
+    "linkSave": "Bağla",
+    "remoteTip": "SSH ile okunur ve yazılır. Her değişiklikten önce sunucuda tarihli bir yedek alınır.",
+    "unlink": "Bağlantıyı kaldır",
+    "unlinkConfirm": "Bu sunucu dosyası burada gösterilmesin mi? Sunucuda hiçbir şey silinmez.",
+    "unreachable": "okunamadı",
+    "restartTitle": "{{server}} üzerindeki .env değişti",
+    "restartHint": "Çalışan servisler .env'i başlarken okur. Yeni değerleri kullanması için servisi yeniden başlat.",
+    "restartCommand": "Yeniden başlatma komutu",
+    "restartRun": "Yeniden başlat",
+    "restartSkip": "Şimdi değil",
+    "restartConfirm": "{{server}} üzerinde çalıştırılsın mı?\n\n{{command}}",
+    "restartDanger": "Bu komut tehlikeli olarak işaretli. Yine de çalıştırılsın mı?",
+    "changes": "Son değişiklikler",
+    "action_added": "ekledi",
+    "action_changed": "değiştirdi",
+    "action_removed": "sildi",
+    "action_restored": "geri yükledi",
+    "wholeFile": "tüm dosya"
+  },
+  "tools": {
+    "title": "Projenin kendi kontrollerini çalıştır",
+    "hint": "Bunlar projenin kodunu bu bilgisayarda çalıştırır (tip kontrolü, linter, testler, bağımlılık denetimi). Komutlara bak, sonra başlat. Sonuçlar iki hafta boyunca puanlara sayılır.",
+    "run": "Seçilenleri çalıştır",
+    "runTip": "İşaretli komutları sırayla başlatır. Acil durdurma butonu durdurur.",
+    "running": "Çalışıyor…",
+    "kind_typecheck": "Tip kontrolü",
+    "kind_lint": "Linter",
+    "kind_test": "Testler",
+    "kind_audit": "Denetim",
+    "ok": "Geçti",
+    "failed": "Başarısız",
+    "noVulns": "bilinen açık yok",
+    "tests": "{{passed}} geçti, {{failed}} başarısız",
+    "exit": "çıkış",
+    "output": "Çıktıyı göster"
+  },
+  "scoring": {
+    "title": "Puanlama",
+    "tip": "Her bölümün ne kadar sayılacağını seç ve bu projeye uymayan kontrolleri kapat",
+    "hint": "Genel puan bölümlerin ağırlıklı ortalamasıdır. 0 ağırlık bir bölümü dışarıda bırakır. Kapatılan kontroller sayılmaz.",
+    "weight": "Ağırlık",
+    "weightOf": "{{section}} ağırlığı",
+    "enableTip": "Kapalı: tekrar saymak için tıkla",
+    "disableTip": "Bu proje için bu kontrolü kapatmak için tıkla",
+    "reset": "Varsayılana dön",
+    "save": "Kaydet ve yeniden tara"
+  },
+  "import": {
+    "title": "Bu projenin geçmişini içeri al",
+    "estimate": "{{sessions}} eski session'ın henüz özeti yok. Özetlemek proje hafızasını doldurur: küçük modelle ({{model}}) yaklaşık {{tokens}} token, {{minutes}} dk civarı.",
+    "progress": "{{total}} session'dan {{done}} tanesi özetlendi…",
+    "finished": "{{done}} session {{when}} özetlendi.",
+    "failed": "{{count}} başarısız",
+    "start": "Başlat",
+    "startTip": "Kendi Claude girişini kullanır; başka hiçbir yere bir şey gönderilmez.",
+    "stop": "Durdur"
   }
 }

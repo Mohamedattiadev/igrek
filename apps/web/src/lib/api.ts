@@ -13,14 +13,19 @@ import type {
   EnhanceResult,
   EnhanceStats,
   EnvBackup,
+  EnvChange,
   EnvOverview,
   FileContent,
   FileEntry,
   GitChange,
   GitInfo,
+  HttpResponse,
   Idea,
   IdeaStatus,
+  ImportEstimate,
+  ImportStatus,
   IndexStatus,
+  InsightConfig,
   InsightScan,
   LimitsOverview,
   MemorySection,
@@ -47,6 +52,9 @@ import type {
   TerminalInfo,
   TerminalTool,
   TimelineEntry,
+  ToolKind,
+  ToolPlan,
+  ToolResult,
   TrashItem,
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
@@ -220,7 +228,7 @@ export const api = {
       body: JSON.stringify({ file, key }),
     }),
   envSet: (projectId: string, file: string, key: string, value: string) =>
-    request<{ ok: boolean }>(`/api/projects/${projectId}/env`, {
+    request<{ ok: boolean; remote?: boolean }>(`/api/projects/${projectId}/env`, {
       method: "PUT",
       body: JSON.stringify({ file, key, value }),
     }),
@@ -238,6 +246,40 @@ export const api = {
     }),
   envSyncExample: (projectId: string) =>
     request<{ file: string; added: string[] }>(`/api/projects/${projectId}/env/example`, { method: "POST" }),
+  insightTools: (projectId: string) =>
+    request<{ plans: ToolPlan[]; results: ToolResult[]; running: boolean }>(`/api/projects/${projectId}/insight-tools`),
+  insightRunTools: (projectId: string, kinds: ToolKind[]) =>
+    request<ToolResult[]>(`/api/projects/${projectId}/insight-tools`, {
+      method: "POST",
+      body: JSON.stringify({ kinds }),
+    }),
+  insightConfig: (projectId: string) => request<InsightConfig>(`/api/projects/${projectId}/insight-config`),
+  insightSetConfig: (projectId: string, config: InsightConfig) =>
+    request<InsightConfig>(`/api/projects/${projectId}/insight-config`, {
+      method: "PUT",
+      body: JSON.stringify(config),
+    }),
+  importStatus: (projectId: string) =>
+    request<{ estimate: ImportEstimate; status: ImportStatus | null }>(`/api/projects/${projectId}/import`),
+  importStart: (projectId: string) => request<ImportStatus>(`/api/projects/${projectId}/import`, { method: "POST" }),
+  importStop: (projectId: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/import`, { method: "DELETE" }),
+  httpBase: (projectId: string) => request<{ base: string }>(`/api/projects/${projectId}/http-base`),
+  http: (body: { method: string; url: string; headers?: Record<string, string>; body?: string }) =>
+    request<HttpResponse>("/api/http", { method: "POST", body: JSON.stringify(body) }),
+  envRemoteLinks: (projectId: string) =>
+    request<{ serverId: string; path: string }[]>(`/api/projects/${projectId}/env/remote`),
+  envLinkRemote: (projectId: string, serverId: string, path: string) =>
+    request<{ ok: boolean; keys: number }>(`/api/projects/${projectId}/env/remote`, {
+      method: "POST",
+      body: JSON.stringify({ serverId, path }),
+    }),
+  envUnlinkRemote: (projectId: string, serverId: string, path: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/env/remote`, {
+      method: "DELETE",
+      body: JSON.stringify({ serverId, path }),
+    }),
+  envChanges: (projectId: string) => request<EnvChange[]>(`/api/projects/${projectId}/env/changes`),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

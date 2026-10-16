@@ -147,6 +147,24 @@ describe("team sync", () => {
     }
   });
 
+  test("teammates see which setting changed, never its value", async () => {
+    a.db
+      .query(
+        "INSERT INTO env_changes (project_id, file, key, action, at) VALUES ('p1', '.env', 'STRIPE_KEY', 'changed', ?)",
+      )
+      .run(Date.now());
+    await a.sync.envChanged("p1", { file: ".env", key: "STRIPE_KEY", action: "changed" });
+    await until(() => !!b.db.query("SELECT 1 FROM env_changes WHERE key = 'STRIPE_KEY'").get());
+    expect(
+      b.db.query("SELECT project_id, file, action, author_name FROM env_changes WHERE key = 'STRIPE_KEY'").get(),
+    ).toEqual({
+      project_id: "local-p",
+      file: ".env",
+      action: "changed",
+      author_name: "mohamed",
+    });
+  });
+
   test("disconnect forgets the hub and the key", async () => {
     b.sync.disconnect();
     expect(b.sync.status()).toMatchObject({ configured: false, connected: false });

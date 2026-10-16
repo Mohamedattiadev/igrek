@@ -58,6 +58,8 @@ export interface InsightScan {
   overall: number;
   grade: CategoryScore["grade"];
   categories: CategoryScore[];
+  /** Every check that applies, per part, including turned-off ones. */
+  catalog?: Partial<Record<Category, string[]>>;
   diagrams: DiagramSet;
   apis?: ApiMap;
   fileCount: number;
@@ -76,6 +78,8 @@ export interface CategoryDetail extends CategoryScore {
   explainedAt?: number;
   trend: { at: number; score: number }[];
   sessions: { id: string; title: string; updatedAt: number; author?: string }[];
+  /** Memory items (decisions, conventions, known issues) that mention this part's files. */
+  decisions: { id: string; section: string; text: string }[];
 }
 
 export function gradeOf(score: number): CategoryScore["grade"] {
@@ -127,6 +131,10 @@ export interface ApiMap {
 /** .env editor (plan.md 5.6). Listings only ever carry masked values. */
 export interface EnvFileInfo {
   path: string;
+  /** Set for a file on a server (read and written over SSH). */
+  remote?: { serverId: string; path: string };
+  /** The server couldn't be reached or the file couldn't be read. */
+  error?: string;
   /** "default", "local", "development", "staging", "production", "test", or the suffix. */
   env: string;
   example: boolean;
@@ -159,4 +167,72 @@ export interface EnvBackup {
   id: string;
   at: number;
   keys: number;
+}
+
+/** The project's own checks, run only when the user starts them (plan.md 5.3). */
+export type ToolKind = "typecheck" | "lint" | "test" | "audit";
+
+export interface ToolPlan {
+  kind: ToolKind;
+  command: string[];
+}
+
+export interface ToolResult {
+  kind: ToolKind;
+  command: string;
+  exitCode: number;
+  ok: boolean;
+  ms: number;
+  at: number;
+  /** Last part of the output, secrets removed. */
+  output: string;
+  vulnerabilities?: Record<string, number>;
+  tests?: { passed?: number; failed?: number };
+}
+
+/** Per-project scoring choices: how much each part counts, and checks that don't apply. */
+export interface InsightConfig {
+  weights: Partial<Record<Category, number>>;
+  disabled: string[];
+}
+
+export const DEFAULT_WEIGHTS: Partial<Record<Category, number>> = { security: 1.5, testing: 1.2 };
+
+/** Importing an existing project's history (plan.md 5.4). */
+export interface ImportEstimate {
+  sessions: number;
+  /** Rough input + output tokens for the small model. */
+  tokens: number;
+  seconds: number;
+  model: string;
+}
+
+export interface ImportStatus {
+  running: boolean;
+  done: number;
+  total: number;
+  failed: number;
+  startedAt: number;
+  finishedAt?: number;
+  cancelled?: boolean;
+}
+
+/** A response seen in the built-in API tester. */
+export interface HttpResponse {
+  status: number;
+  statusText: string;
+  ms: number;
+  headers: Record<string, string>;
+  body: string;
+  size: number;
+  truncated: boolean;
+}
+
+/** "Kerim changed STRIPE_KEY in .env.production" — never the value. */
+export interface EnvChange {
+  file: string;
+  key: string;
+  action: "added" | "changed" | "removed" | "restored";
+  author?: string;
+  at: number;
 }

@@ -377,7 +377,7 @@ god-eye/
 - [x] ⭐ God Eye repoya hiçbir dosya eklemez. Gerekirse `.git/info/exclude` kullanılır, `.gitignore` bile değişmez
 - [x] ⭐ `SessionStart`: proje hafızasının kısa özetini yeni session'a enjekte eder (≤ 1.5k token)
 - [x] ⭐ `Stop` / `SessionEnd`: özet üretme + hafıza güncelleme + puan yeniden hesaplama tetiklenir — *SessionEnd ile; watcher zaten yeni satırları 3 sn içinde alıyor*
-- [ ] `PostToolUse`: değişen dosyaları ilgili kategoriye işaretler — *kategoriler gelince (Faz 5)*
+- [x] `PostToolUse`: değişen dosyaları ilgili kategoriye işaretler — *değişen dosyalar session'a yazılır, bölüm sayfasında o bölümün session'ları olarak görünür ve yeniden taramayı tetikler*
 - [x] Hook'lar devre dışı kalırsa watcher yedek olarak aynı işi yapar
 
 #### 1.4 Proje hafızası
@@ -733,47 +733,47 @@ god-eye/
 #### 5.2 Kategori sayfası
 - [x] **Sade anlatım:** "Bu bölüm nasıl çalışıyor?" (TR/EN) — *Haiku ile, dosyalar değişene kadar önbellekte*
 - [x] **Otomatik diyagram:** mimari, DB şeması, API akışı, deploy akışı (Mermaid) — *mimari (import grafiği) ve DB şeması var; API ve deploy akışı API Haritası ile gelecek*
-- [ ] **İlgili her şey:** dosyalar, session'lar, kararlar, açık sorunlar, fazlar, görevler — *dosyalar, session'lar ve sorunlar var; kararlar/görevler bağlantısı sonra*
+- [x] **İlgili her şey:** dosyalar, session'lar, kararlar, açık sorunlar, fazlar, görevler — *dosyalar, session'lar, sorunlar ve bölümün dosyalarından bahseden kararlar/notlar; görevler Faz 8 panosuyla*
 - [x] **Puan halkası (0–100) + not (A–F):** neden bu puan, ne düzelirse kaç puan artar
 - [x] **Trend grafiği:** puan zaman içinde nasıl değişti
 - [x] **"Düzelt" butonları:** her sorunun yanında, tek tıkla ilgili personaya görev olarak gider — *şimdilik hazır prompt'la chat açar (gönderilmez); personalar Faz 6'da*
 - [x] Sayfa altında bağlama duyarlı prompt kutusu
 
 #### 5.3 Kanıta dayalı puanlama
-- [ ] Önce deterministik araçlar: `tsc`, eslint/biome, testler + coverage, `npm audit` / `osv-scanner`, semgrep, gitleaks, bundle size, Lighthouse — *şimdilik kodu çalıştırmayan 44 statik kontrol (sır tarama, SQL injection kalıbı, Docker, CI, testler, tipler…); dış araçları onaylı çalıştırma sonra*
-- [ ] LLM bu çıktıları ve kodu rubriğe göre yorumlar; her puanın yanında kanıt linki zorunlu — *her bulgu dosya:satır kanıtıyla, tıklayınca Kod sekmesinde açılıyor; LLM sadece açıklamayı yazıyor, puanı değil*
-- [ ] Açık rubrik dosyaları (`rubrics/*.md`), düzenlenebilir
-- [x] Genel sağlık puanı = kategori ağırlıklı ortalaması (ağırlıklar ayarlanabilir) — *güvenlik ×1.5, test ×1.2; ayar ekranı sonra*
-- [ ] Puanlama otomatik tetiklenir (session bitince, commit sonrası), zorunlu olmadıkça pahalı model kullanılmaz — *proje açılınca 30 dk'dan eskiyse arka planda (worker) yeniden taranır; puanlar için AI hiç kullanılmaz*
+- [x] Önce deterministik araçlar: `tsc`, eslint/biome, testler + coverage, `npm audit` / `osv-scanner`, semgrep, gitleaks, bundle size, Lighthouse — *44 statik kontrol + projenin kendi tip kontrolü/linter/testleri/denetimi (bun/npm/pnpm/yarn/pip-audit), komutlar gösterilip onayla çalışır; Lighthouse canlı önizlemeyle (Faz 10)*
+- [x] LLM bu çıktıları ve kodu rubriğe göre yorumlar; her puanın yanında kanıt linki zorunlu — *her bulgu dosya:satır kanıtlı (araç çıktısındaki hatalar dahil); LLM sadece açıklamayı yazar, puanı değil*
+- [x] Açık rubrik dosyaları (`rubrics/*.md`), düzenlenebilir — *`rubrics/` kontrolleri, ağırlıkları ve çözümlerini anlatır; proje bazında Bölümler → Puanlama'dan değiştirilir*
+- [x] Genel sağlık puanı = kategori ağırlıklı ortalaması (ağırlıklar ayarlanabilir)
+- [x] Puanlama otomatik tetiklenir (session bitince, commit sonrası), zorunlu olmadıkça pahalı model kullanılmaz — *session'lar değişince 3 dk sonra yeniden taranır (worker); puanlar için AI hiç kullanılmaz*
 
 #### 5.4 Mevcut projeyi içeri alma
-- [ ] "Projeyi Tara" → geçmiş session'lar okunur, ilk hafıza, kategori sayfaları ve puanlar üretilir
-- [ ] İlerleme çubuğu + tahmini süre ve token maliyeti önceden gösterilir
+- [x] "Projeyi Tara" → geçmiş session'lar okunur, ilk hafıza, kategori sayfaları ve puanlar üretilir
+- [x] İlerleme çubuğu + tahmini süre ve token maliyeti önceden gösterilir
 
 #### 5.5 🔌 API Haritası
 - [x] ⭐ Projede kullanılan **tüm API'ler** otomatik bulunur: — *31 bilinen servis (Stripe, iyzico, OpenAI, Firebase, ZITADEL…) + bilinmeyenler URL adresinden; kendi endpoint'ler Express/Hono/Fastify/NestJS/FastAPI/Flask/Next.js'ten*
   - **Dış servisler:** Stripe, OpenAI, Google Maps, e-posta, SMS… (koddaki SDK'lardan, URL'lerden ve `.env` anahtarlarından)
   - **Kendi API'lerin:** projedeki endpoint'ler (route dosyaları, OpenAPI şemaları)
-- [ ] Her API için kart: — *ne işe yaradığı, doküman linki, kodda nerede (tıklanabilir) ve `.env` anahtarları var; kullanım istatistiği ve sağlık kontrolü sonra*
+- [x] Her API için kart: — *ne işe yaradığı, doküman linki, kodda nerede, `.env` anahtarları; kendi endpoint'ler için sağlık kontrolü. Sağlayıcı kullanım/maliyet istatistiği ücretli API gerektirdiği için yok*
   - **Ne işe yarıyor** (sade dille), **nereden geliyor** (sağlayıcı, doküman linki)
   - **Kodda nerede kullanılıyor** (dosya:satır listesi, tıklanabilir)
   - **Hangi `.env` anahtarını kullanıyor**
   - **Ne kadar kullanıldı:** lokalde dev proxy'den, prod'da SSH ile log analizinden (istek sayısı, hata oranı, ortalama süre). Sağlayıcının kullanım API'si varsa maliyet bilgisi
   - Sağlık: anahtar geçerli mi, endpoint cevap veriyor mu, deprecated sürüm kullanılıyor mu
 - [x] Endpoint akış diyagramı: "Frontend → `/api/pay` → Stripe → webhook → DB" — *frontend → endpoint grupları → dış servisler, koddaki çağrılardan*
-- [ ] Yerleşik API test aracı (Postman gibi): endpoint seç, istek gönder, cevabı gör — *sonra*
+- [x] Yerleşik API test aracı (Postman gibi): endpoint seç, istek gönder, cevabı gör
 - [x] Kullanılmayan API'ler ve anahtarlar için uyarı ("bu anahtar hiçbir yerde kullanılmıyor") — *anahtarlar için; compose/script referansları da kullanım sayılıyor*
 
 #### 5.6 🔑 `.env` ve Sır Yönetimi
-- [ ] ⭐ Ortam bazında `.env` editörü: Local · Staging · Prod (prod dosyası SSH ile okunur ve yazılır) — *projedeki tüm .env* dosyaları (alt paketler dahil) ortam sütunlarıyla düzenleniyor; SSH ile prod sonra*
+- [x] ⭐ Ortam bazında `.env` editörü: Local · Staging · Prod (prod dosyası SSH ile okunur ve yazılır) — *sunucudaki .env bağlanır, SSH ile okunur/yazılır, sunucuda tarihli yedek alınır*
 - [x] ⭐ Değerler varsayılan olarak maskeli (`sk-••••3f2a`), göz ikonuyla gösterilir — *gösterilen değer 20 sn sonra yine gizlenir*
 - [x] ⭐ Değiştirmeden önce otomatik yedek; değişiklik geçmişi; tek tıkla geri alma — *yedekler God Eye'ın veri klasöründe, 600 izinli; çok satırlı değerler (private key) tek parça düzenleniyor*
 - [x] Doğrulama: eksik anahtar ("kod `STRIPE_KEY` istiyor ama `.env`'de yok"), hatalı format, ortamlar arası fark tablosu
 - [x] Her anahtarın yanında: ne işe yaradığı, hangi API'ye ait olduğu, kodda nerede kullanıldığı — *hangi servise ait ve kodda nerede okunduğu; servis açıklaması API Haritası'nda*
 - [x] `.env.example` dosyasını otomatik güncel tutma — *tek tıkla: sadece adlar eklenir, değerler asla kopyalanmaz*
-- [ ] Prod `.env` değişikliği sonrası "servisi yeniden başlatayım mı?" önerisi (onaylı)
+- [x] Prod `.env` değişikliği sonrası "servisi yeniden başlatayım mı?" önerisi (onaylı)
 - [x] 🔒 `.env` değerleri **asla** AI'a gönderilmez (sadece anahtar isimleri gider), asla Hub ile senkron edilmez, asla loglara yazılmaz
-- [ ] 🔒 Takımda sadece anahtar isimleri ve "kim, ne zaman değiştirdi" bilgisi görünür, değerler görünmez
+- [x] 🔒 Takımda sadece anahtar isimleri ve "kim, ne zaman değiştirdi" bilgisi görünür, değerler görünmez
 
 **Bitti sayılır:** Bir projeye girdiğimde her bölümün ne olduğunu, puanını ve nasıl iyileşeceğini 1 dakikada anlıyorum.
 

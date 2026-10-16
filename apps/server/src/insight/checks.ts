@@ -1,4 +1,13 @@
-import { type Category, type CategoryScore, type Evidence, type Finding, gradeOf } from "@godeye/core";
+import {
+  type Category,
+  type CategoryScore,
+  DEFAULT_WEIGHTS,
+  type Evidence,
+  type Finding,
+  gradeOf,
+  type InsightConfig,
+  type ToolResult,
+} from "@godeye/core";
 import { SECRET_PATTERNS } from "../sync/scrub";
 import { isEnvExample, type RepoFile, SENSITIVE, type Snapshot } from "./snapshot";
 
@@ -713,10 +722,85 @@ export function runChecks(snap: Snapshot, categories: Category[]): Draft[] {
   return out;
 }
 
-export function scoreCategories(snap: Snapshot): { categories: CategoryScore[]; overall: number } {
+/** "src/a.ts(12,5): error" and "src/a.ts:12:5 - error" lines from compilers and linters. */
+function outputEvidence(output: string, snap: Snapshot): Evidence[] {
+  const out: Evidence[] = [];
+  for (const m of output.matchAll(/([\w./@-]+\.[a-z]{1,5})(?:\((\d+),\d+\)|:(\d+)(?::\d+)?)/g)) {
+    const path = (m[1] ?? "").replace(/^\.\//, "");
+    if (!snap.byPath.has(path)) continue;
+    const line = Number(m[2] ?? m[3]);
+    if (!out.some((e) => e.path === path && e.line === line)) out.push({ path, line });
+    if (out.length >= 12) break;
+  }
+  return out;
+}
+
+/** The project's own tools, when the user has run them in the last two weeks. */
+function toolDrafts(snap: Snapshot, tools: ToolResult[], present: Category[]): Draft[] {
+  const fresh = tools.filter((t) => Date.now() - t.at < 14 * 86_400_000);
+  const out: Draft[] = [];
+  for (const t of fresh) {
+    if (t.kind === "typecheck" && present.includes("architecture"))
+      out.push({
+        id: "tool.typecheck",
+        category: "architecture",
+        weight: 2,
+        value: t.ok ? 1 : 0,
+        metric: t.command,
+        evidence: outputEvidence(t.output, snap),
+      });
+    if (t.kind === "lint" && present.includes("architecture"))
+      out.push({
+        id: "tool.lint",
+        category: "architecture",
+        weight: 1.5,
+        value: t.ok ? 1 : 0.3,
+        metric: t.command,
+        evidence: outputEvidence(t.output, snap),
+      });
+    if (t.kind === "test" && present.includes("testing")) {
+      const passed = t.tests?.passed ?? 0;
+      const failed = t.tests?.failed ?? 0;
+      const value = t.ok ? 1 : passed + failed > 0 ? passed / (passed + failed) / 2 : 0;
+      out.push({
+        id: "tool.tests",
+        category: "testing",
+        weight: 3,
+        value,
+        metric: passed + failed > 0 ? `${passed}/${passed + failed}` : t.ok ? "ok" : "fail",
+        evidence: outputEvidence(t.output, snap),
+      });
+    }
+    if (t.kind === "audit" && t.vulnerabilities) {
+      const v = t.vulnerabilities;
+      const serious = (v.critical ?? 0) + (v.high ?? 0);
+      const value = serious ? 0 : (v.moderate ?? 0) ? 0.5 : (v.low ?? 0) || (v.info ?? 0) || (v.unknown ?? 0) ? 0.8 : 1;
+      const metric =
+        Object.entries(v)
+          .filter(([, n]) => n)
+          .map(([k, n]) => `${n} ${k}`)
+          .join(", ") || "0";
+      if (present.includes("dependencies"))
+        out.push({ id: "tool.audit", category: "dependencies", weight: 2, value, metric });
+      if (serious && present.includes("security"))
+        out.push({ id: "tool.auditSecurity", category: "security", weight: 1, value: 0, metric });
+    }
+  }
+  return out;
+}
+
+export function scoreCategories(
+  snap: Snapshot,
+  opts: { config?: InsightConfig; tools?: ToolResult[] } = {},
+): { categories: CategoryScore[]; overall: number; catalog: Partial<Record<Category, string[]>> } {
   const present = presentCategories(snap);
-  const drafts = runChecks(snap, present);
-  const weights: Partial<Record<Category, number>> = { security: 1.5, testing: 1.2 };
+  const disabled = new Set(opts.config?.disabled ?? []);
+  const all = [...runChecks(snap, present), ...toolDrafts(snap, opts.tools ?? [], present)];
+  // Every check that applies here, including ones the user turned off (so they can be turned back on).
+  const catalog: Partial<Record<Category, string[]>> = {};
+  for (const d of all) catalog[d.category] = [...(catalog[d.category] ?? []), d.id];
+  const drafts = all.filter((d) => !disabled.has(d.id));
+  const weights: Partial<Record<Category, number>> = { ...DEFAULT_WEIGHTS, ...(opts.config?.weights ?? {}) };
   const categories: CategoryScore[] = present.map((category) => {
     const own = drafts.filter((d) => d.category === category);
     const total = own.reduce((n, d) => n + d.weight, 0) || 1;
@@ -738,5 +822,5 @@ export function scoreCategories(snap: Snapshot): { categories: CategoryScore[]; 
   });
   const sum = categories.reduce((n, c) => n + (weights[c.category] ?? 1), 0) || 1;
   const overall = Math.round(categories.reduce((n, c) => n + c.score * (weights[c.category] ?? 1), 0) / sum);
-  return { categories, overall };
+  return { categories, overall, catalog };
 }

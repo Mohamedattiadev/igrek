@@ -189,12 +189,13 @@ export class Servers {
     server: ServerInfo,
     command: string,
     timeoutMs = 120_000,
+    input?: string,
   ): Promise<{ code: number; output: string; ms: number }> {
     const started = Date.now();
     const proc = Bun.spawn(["ssh", ...this.sshArgs(server), "--", command], {
       stdout: "pipe",
       stderr: "pipe",
-      stdin: "ignore",
+      stdin: input === undefined ? "ignore" : new Blob([input]),
       env: cleanEnv(),
     });
     const unregister = this.stops.register(`ssh-${proc.pid}`, { label: `ssh ${server.name}`, stop: () => proc.kill() });
@@ -232,6 +233,79 @@ export class Servers {
     this.db.query("UPDATE servers SET health = ? WHERE id = ?").run(JSON.stringify(health), id);
     this.bus.publish({ type: "servers-changed" });
     return health;
+  }
+
+  // ---- env files on the server (plan.md 5.6) -------------------------------------------
+
+  /** Only .env-style files, by a plain path: nothing that could change the shell command. */
+  private envPath(path: string): string {
+    const clean = path.trim();
+    if (!/^(~\/|\/)[A-Za-z0-9_./~-]*$/.test(clean) || clean.includes("..") || !/(^|\/)\.env(\.[\w.-]+)?$/.test(clean))
+      throw new Error("Use the full path of a .env file on the server, e.g. /srv/app/.env");
+    return clean;
+  }
+
+  private quote(path: string): string {
+    // ~ must stay outside the quotes so the remote shell expands it.
+    return path.startsWith("~/") ? `~/'${path.slice(2)}'` : `'${path}'`;
+  }
+
+  private logRemote(id: string, command: string, risk: CommandRisk, result: { code: number; ms: number }): void {
+    this.db
+      .query(
+        "INSERT INTO remote_audit (id, server_id, command, risk, actor, reason, started_at, exit_code, output, duration_ms) VALUES (?, ?, ?, ?, 'user', ?, ?, ?, '', ?)",
+      )
+      .run(crypto.randomUUID(), id, command, risk, "env editor", Date.now() - result.ms, result.code, result.ms);
+  }
+
+  /** Reads a server's .env file. The text goes only to this computer's UI; it is not logged. */
+  async readEnvFile(id: string, path: string): Promise<string> {
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const safe = this.envPath(path);
+    const result = await this.exec(server, `cat -- ${this.quote(safe)}`, 20_000);
+    this.logRemote(id, `read ${safe}`, "read", result);
+    if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not read the file");
+    return result.output;
+  }
+
+  /** Writes it back: a dated backup next to it first, then an atomic replace that keeps the file private. */
+  async writeEnvFile(id: string, path: string, text: string): Promise<{ backup: string }> {
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const safe = this.envPath(path);
+    const q = this.quote(safe);
+    const backup = `${safe}.godeye-bak-${Date.now()}`;
+    const command = `set -e; umask 077; [ -f ${q} ] && cp -p -- ${q} ${this.quote(backup)}; cat > ${this.quote(`${safe}.godeye-tmp`)}; mv -f -- ${this.quote(`${safe}.godeye-tmp`)} ${q}`;
+    const result = await this.exec(server, command, 20_000, text);
+    this.logRemote(id, `write ${safe} (backup ${backup.split("/").pop()})`, "change", result);
+    if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not write the file");
+    return { backup };
+  }
+
+  /** Dated backups made by writeEnvFile, newest first. */
+  async envBackups(id: string, path: string): Promise<{ id: string; at: number }[]> {
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const safe = this.envPath(path);
+    const result = await this.exec(server, `ls -1 -- ${this.quote(safe)}.godeye-bak-* 2>/dev/null || true`, 20_000);
+    return result.output
+      .split("\n")
+      .map((l) => l.trim().match(/\.godeye-bak-(\d+)$/)?.[1])
+      .filter((n): n is string => !!n)
+      .map((n) => ({ id: n, at: Number(n) }))
+      .sort((a, b) => b.at - a.at)
+      .slice(0, 30);
+  }
+
+  async restoreEnvBackup(id: string, path: string, backupId: string): Promise<void> {
+    if (!/^\d+$/.test(backupId)) throw new Error("Unknown backup");
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const safe = this.envPath(path);
+    const text = await this.exec(server, `cat -- ${this.quote(`${safe}.godeye-bak-${backupId}`)}`, 20_000);
+    if (text.code !== 0) throw new Error("Unknown backup");
+    await this.writeEnvFile(id, safe, text.output);
   }
 
   async checkAll(): Promise<void> {
