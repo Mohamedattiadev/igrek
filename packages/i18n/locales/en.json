@@ -55,7 +55,11 @@
     "ahead": "{{count}} ahead",
     "behind": "{{count}} behind",
     "lastActive": "Last active {{when}}",
-    "indexing": "Reading your sessions… {{done}}/{{total}}"
+    "indexing": "Reading your sessions… {{done}}/{{total}}",
+    "add": "Add folder",
+    "addTitle": "Add a project folder",
+    "addHint": "Full path, for example /home/you/projects/shop",
+    "addAction": "Add"
   },
   "inbox": {
     "title": "Inbox",
@@ -96,7 +100,11 @@
     "autoSummarize": "Automatic summaries",
     "autoSummarizeHint": "Finished sessions are summarized in plain words with a small, cheap model on your own account.",
     "on": "On",
-    "off": "Off"
+    "off": "Off",
+    "tone": "Summary style",
+    "toneHint": "Plain is for anyone; technical names files, functions and tools.",
+    "tonePlain": "Plain",
+    "toneTechnical": "Technical"
   },
   "onboarding": {
     "welcome": "Welcome to God Eye",
@@ -124,7 +132,22 @@
     "lastCommit": "Last commit",
     "hide": "Hide project",
     "unhide": "Show project",
-    "notFound": "Project not found"
+    "notFound": "Project not found",
+    "timeline": "Timeline",
+    "reports": "Reports",
+    "today": "Today's report",
+    "week": "This week's report",
+    "writing": "Writing…",
+    "noReports": "No reports yet. They are written automatically for days with activity, or you can ask for one now.",
+    "highlights": "Highlights",
+    "next": "Next",
+    "fetch": "Check remote",
+    "fetching": "Checking…",
+    "rename": "Rename",
+    "renameHint": "Only changes the name shown in God Eye.",
+    "save": "Save",
+    "commitBy": "{{author}} committed",
+    "sessionsAndCommits": "{{sessions}} sessions · {{commits}} commits"
   },
   "memory": {
     "title": "Project memory",
@@ -137,7 +160,16 @@
     "issue": "Open problems",
     "delete": "Forget",
     "fromSession": "From a session",
-    "preview": "See what the AI receives"
+    "preview": "See what the AI receives",
+    "add": "Add a fact",
+    "addPlaceholder": "Something every AI session should know…",
+    "edit": "Edit",
+    "conflictTitle": "These two don't agree",
+    "conflictBody": "A newer session said something different. Which one is right?",
+    "keepNew": "Keep the new one",
+    "keepOld": "Keep the old one",
+    "keepBoth": "Keep both",
+    "cancel": "Cancel"
   },
   "setup": {
     "hooksTitle": "Give new sessions the project memory",
@@ -173,7 +205,23 @@
     "missingHint": "The AI changed these files, but they are not on disk anymore. They may have been moved or deleted.",
     "older": "Only the latest messages are shown.",
     "active": "Working now",
-    "notFound": "Session not found"
+    "notFound": "Session not found",
+    "failed": "Failed step",
+    "claims": "Said it worked, right after a failure",
+    "claimsHint": "The AI said this right after a step failed. Check it before you trust it.",
+    "packages": "Installed packages",
+    "packagesHint": "Checked against the public registry (npm, PyPI).",
+    "pkg_ok": "Exists",
+    "pkg_new": "Rarely used",
+    "pkg_missing": "Doesn't exist",
+    "pkg_unknown": "Not checked yet",
+    "pkgWarn": "AI sometimes invents package names, and attackers publish packages with those names. Check this one before using it.",
+    "inView": "What the AI has in view",
+    "inViewHint": "Files it read or changed most recently.",
+    "memoryOn": "Project memory was given at start",
+    "memoryOff": "Project memory is not given to sessions (turn it on in Setup)",
+    "mentioned": "Files the AI mentioned that don't exist",
+    "mentionedHint": "The AI wrote these paths in its answers, but there is no such file in the project. It may have made them up."
   },
   "health": {
     "title": "Session health",
@@ -187,7 +235,8 @@
     "long": "Very long conversation",
     "errors": "Many failed steps recently",
     "compacted": "Already compressed several times",
-    "fresh": "This session is tired. Starting a new one with a summary will give better, more reliable answers."
+    "fresh": "This session is tired. Starting a new one with a summary will give better, more reliable answers.",
+    "compact": "Half of the AI's working memory is used. Typing /compact in this session now keeps it sharp for longer."
   },
   "search": {
     "results": "In your sessions",
@@ -195,5 +244,27 @@
   },
   "time": {
     "justNow": "just now"
+  },
+  "git": {
+    "title": "Code flow",
+    "behind": "Others pushed {{count}} commits you don't have. Pull before you start, so your work doesn't collide.",
+    "ahead": "{{count}} of your commits are not pushed yet. Others can't see them.",
+    "changed": "{{count}} changes aren't committed. Commit them before switching tasks or deploying.",
+    "noUpstream": "This branch isn't connected to a remote branch yet.",
+    "clean": "Everything is in sync."
+  },
+  "ask": {
+    "action": "Ask AI about your past work",
+    "thinking": "Looking through your sessions…",
+    "noAnswer": "Nothing in your sessions answers this.",
+    "sources": "Sources"
+  },
+  "mcp": {
+    "title": "God Eye tools inside Claude",
+    "hint": "Lets Claude look up project memory and past sessions by itself, in every project.",
+    "install": "Add to Claude",
+    "remove": "Remove",
+    "installed": "Added",
+    "manual": "Run this on your computer:"
   }
 }

@@ -16,6 +16,8 @@ export interface Settings {
   onboarded: boolean;
   /** Summarize finished sessions automatically with a small, cheap model. */
   autoSummarize: boolean;
+  /** How summaries are written: for anyone, or with technical detail. */
+  summaryTone: "plain" | "technical";
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keymap: "default",
   onboarded: false,
   autoSummarize: true,
+  summaryTone: "plain",
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */
@@ -69,6 +72,8 @@ export interface SessionHealth {
   flags: HealthFlag[];
   /** True when starting fresh with a handoff summary is the better move. */
   suggestFresh: boolean;
+  /** True when compressing the conversation (/compact) would help before it gets worse. */
+  suggestCompact: boolean;
 }
 
 export interface SummaryText {
@@ -106,9 +111,19 @@ export interface TranscriptMessage {
   id: string;
   ts: number;
   role: "user" | "assistant";
-  kind: "prompt" | "text" | "tool";
+  kind: "prompt" | "text" | "tool" | "error";
   toolName?: string;
   text: string;
+}
+
+export type PackageStatus = "ok" | "new" | "missing" | "unknown";
+
+export interface PackageCheck {
+  manager: "npm" | "pip";
+  name: string;
+  status: PackageStatus;
+  /** e.g. "published 3 days ago", "120 weekly downloads". */
+  detail?: string;
 }
 
 export interface SessionDetail extends SessionListItem {
@@ -117,8 +132,15 @@ export interface SessionDetail extends SessionListItem {
   filesTouched: string[];
   /** Files the session edited that no longer exist on disk. */
   missingFiles: string[];
+  /** File paths the AI mentioned in its replies that don't exist in the project. */
+  mentionedMissing: string[];
+  /** What the AI most likely has in view right now (plan.md 1.8). */
+  inView: { recentFiles: string[]; memoryInjected: boolean };
   toolErrors: number;
   compactions: number;
+  /** "Tests pass" style claims made right after a failed step. */
+  unverifiedClaims: { ts: number; text: string }[];
+  packages: PackageCheck[];
   messages: TranscriptMessage[];
 }
 
@@ -130,6 +152,35 @@ export interface MemoryItem {
   text: string;
   sourceSession?: string;
   createdAt: number;
+  /** Set when this item contradicts an older one; the user decides which stays. */
+  conflict?: { withId: string; withText: string; reason: string };
+}
+
+export interface CommitItem {
+  hash: string;
+  author: string;
+  subject: string;
+  at: number;
+  files: number;
+}
+
+export type TimelineEntry =
+  | { kind: "session"; at: number; session: SessionListItem }
+  | { kind: "commit"; at: number; commit: CommitItem };
+
+export interface Digest {
+  period: "day" | "week";
+  day: string;
+  title: string;
+  texts: Record<string, { summary: string; highlights: string[]; next: string[] }>;
+  sessions: number;
+  commits: number;
+  createdAt: number;
+}
+
+export interface AskAnswer {
+  answer: string;
+  sources: SearchHit[];
 }
 
 export interface ProjectListItem {

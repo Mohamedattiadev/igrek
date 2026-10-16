@@ -120,7 +120,8 @@ const HEADINGS: Record<MemorySection, string> = {
 export function buildContext(store: Store, projectId: string): string | undefined {
   const project = store.projectRow(projectId);
   if (!project) return undefined;
-  const memory = store.listMemory(projectId);
+  // Unresolved conflicts stay out until the user picks a side.
+  const memory = store.listMemory(projectId, false);
   const sessions = store.listSessions(projectId, 5).filter((s) => s.summary);
   if (memory.length === 0 && sessions.length === 0) return undefined;
 

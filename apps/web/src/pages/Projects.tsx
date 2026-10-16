@@ -1,9 +1,9 @@
 import type { ProjectListItem } from "@godeye/core";
-import { ArrowDown, ArrowUp, FolderKanban, GitBranch, Search, Settings } from "lucide-react";
+import { ArrowDown, ArrowUp, FolderKanban, FolderPlus, GitBranch, Search, Settings } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
@@ -63,6 +63,53 @@ function ProjectCard({ project }: { project: ProjectListItem }) {
   );
 }
 
+function AddProject() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [path, setPath] = useState("");
+  const [error, setError] = useState<string>();
+  const add = async () => {
+    setError(undefined);
+    try {
+      const { id } = await api.addProject(path.trim());
+      setOpen(false);
+      navigate(`/p/${id}`);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+  return (
+    <>
+      <Button size="sm" variant="ghost" icon={FolderPlus} onClick={() => setOpen(true)}>
+        {t("projects.add")}
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} label={t("projects.addTitle")}>
+        <div className="space-y-3 p-5">
+          <h2 className="text-[15px] font-semibold">{t("projects.addTitle")}</h2>
+          <input
+            value={path}
+            onChange={(e) => setPath(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && add()}
+            placeholder={t("projects.addHint")}
+            autoFocus
+            className="h-9 w-full rounded-ui border border-border bg-bg px-3 font-mono text-[13px] outline-none focus:border-accent"
+          />
+          {error && <p className="text-xs text-danger">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              {t("memory.cancel")}
+            </Button>
+            <Button variant="primary" onClick={add} disabled={!path.trim()}>
+              {t("projects.addAction")}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+    </>
+  );
+}
+
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -85,16 +132,21 @@ export function ProjectsPage() {
         title={t("projects.title")}
         actions={
           projects && projects.length > 0 ? (
-            <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
-              <Search size={13} className="text-fg-subtle" />
-              <input
-                value={filter}
-                onChange={(event) => setFilter(event.target.value)}
-                placeholder={t("projects.filter")}
-                className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-fg-subtle"
-              />
-            </label>
-          ) : undefined
+            <div className="flex items-center gap-2">
+              <AddProject />
+              <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
+                <Search size={13} className="text-fg-subtle" />
+                <input
+                  value={filter}
+                  onChange={(event) => setFilter(event.target.value)}
+                  placeholder={t("projects.filter")}
+                  className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-fg-subtle"
+                />
+              </label>
+            </div>
+          ) : (
+            <AddProject />
+          )
         }
       />
       {status?.running && (

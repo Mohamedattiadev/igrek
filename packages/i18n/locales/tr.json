@@ -55,7 +55,11 @@
     "ahead": "{{count}} önde",
     "behind": "{{count}} geride",
     "lastActive": "Son aktivite {{when}}",
-    "indexing": "Session'ların okunuyor… {{done}}/{{total}}"
+    "indexing": "Session'ların okunuyor… {{done}}/{{total}}",
+    "add": "Klasör ekle",
+    "addTitle": "Proje klasörü ekle",
+    "addHint": "Tam yol, örneğin /home/sen/projeler/dukkan",
+    "addAction": "Ekle"
   },
   "inbox": {
     "title": "Gelen Kutusu",
@@ -96,7 +100,11 @@
     "autoSummarize": "Otomatik özetler",
     "autoSummarizeHint": "Biten session'lar kendi hesabınla, küçük ve ucuz bir modelle sade bir dille özetlenir.",
     "on": "Açık",
-    "off": "Kapalı"
+    "off": "Kapalı",
+    "tone": "Özet tarzı",
+    "toneHint": "Sade herkes içindir; teknik dosya, fonksiyon ve araç adlarını yazar.",
+    "tonePlain": "Sade",
+    "toneTechnical": "Teknik"
   },
   "onboarding": {
     "welcome": "God Eye'a hoş geldin",
@@ -124,7 +132,22 @@
     "lastCommit": "Son commit",
     "hide": "Projeyi gizle",
     "unhide": "Projeyi göster",
-    "notFound": "Proje bulunamadı"
+    "notFound": "Proje bulunamadı",
+    "timeline": "Zaman Tüneli",
+    "reports": "Raporlar",
+    "today": "Bugünün raporu",
+    "week": "Bu haftanın raporu",
+    "writing": "Yazılıyor…",
+    "noReports": "Henüz rapor yok. Aktivite olan günler için otomatik yazılır, istersen şimdi de isteyebilirsin.",
+    "highlights": "Öne çıkanlar",
+    "next": "Sıradaki",
+    "fetch": "Uzak repoyu kontrol et",
+    "fetching": "Kontrol ediliyor…",
+    "rename": "Yeniden adlandır",
+    "renameHint": "Sadece God Eye'da görünen adı değiştirir.",
+    "save": "Kaydet",
+    "commitBy": "{{author}} commit attı",
+    "sessionsAndCommits": "{{sessions}} session · {{commits}} commit"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -137,7 +160,16 @@
     "issue": "Açık sorunlar",
     "delete": "Unut",
     "fromSession": "Bir session'dan",
-    "preview": "AI'a ne gittiğini gör"
+    "preview": "AI'a ne gittiğini gör",
+    "add": "Bilgi ekle",
+    "addPlaceholder": "Her AI session'ının bilmesi gereken bir şey…",
+    "edit": "Düzenle",
+    "conflictTitle": "Bu ikisi birbirini tutmuyor",
+    "conflictBody": "Daha yeni bir session farklı bir şey söyledi. Hangisi doğru?",
+    "keepNew": "Yenisini tut",
+    "keepOld": "Eskisini tut",
+    "keepBoth": "İkisini de tut",
+    "cancel": "Vazgeç"
   },
   "setup": {
     "hooksTitle": "Yeni session'lara proje hafızasını ver",
@@ -173,7 +205,23 @@
     "missingHint": "AI bu dosyaları değiştirmiş ama artık diskte yoklar. Taşınmış ya da silinmiş olabilirler.",
     "older": "Sadece son mesajlar gösteriliyor.",
     "active": "Şu an çalışıyor",
-    "notFound": "Session bulunamadı"
+    "notFound": "Session bulunamadı",
+    "failed": "Başarısız adım",
+    "claims": "Hatadan hemen sonra 'çalıştı' dedi",
+    "claimsHint": "AI bunu bir adım başarısız olduktan hemen sonra söyledi. Güvenmeden önce kontrol et.",
+    "packages": "Kurulan paketler",
+    "packagesHint": "Herkese açık kayıtlarda (npm, PyPI) kontrol edildi.",
+    "pkg_ok": "Var",
+    "pkg_new": "Az kullanılan",
+    "pkg_missing": "Yok",
+    "pkg_unknown": "Henüz kontrol edilmedi",
+    "pkgWarn": "AI bazen paket adı uydurur ve saldırganlar bu adlarla paket yayınlar. Kullanmadan önce bunu kontrol et.",
+    "inView": "AI'ın şu an gördükleri",
+    "inViewHint": "En son okuduğu ya da değiştirdiği dosyalar.",
+    "memoryOn": "Başlangıçta proje hafızası verildi",
+    "memoryOff": "Proje hafızası session'lara verilmiyor (Kurulum'dan aç)",
+    "mentioned": "AI'ın bahsettiği ama olmayan dosyalar",
+    "mentionedHint": "AI bu yolları cevaplarında yazdı ama projede böyle bir dosya yok. Uydurmuş olabilir."
   },
   "health": {
     "title": "Session sağlığı",
@@ -187,7 +235,8 @@
     "long": "Çok uzun konuşma",
     "errors": "Son zamanlarda çok sayıda başarısız adım",
     "compacted": "Birkaç kez sıkıştırılmış",
-    "fresh": "Bu session yorulmuş. Özetle birlikte yeni bir session açmak daha iyi ve güvenilir cevaplar verir."
+    "fresh": "Bu session yorulmuş. Özetle birlikte yeni bir session açmak daha iyi ve güvenilir cevaplar verir.",
+    "compact": "AI'ın çalışma hafızasının yarısı dolmuş. Bu session'da şimdi /compact yazarsan daha uzun süre keskin kalır."
   },
   "search": {
     "results": "Session'larında",
@@ -195,5 +244,27 @@
   },
   "time": {
     "justNow": "az önce"
+  },
+  "git": {
+    "title": "Kod akışı",
+    "behind": "Başkaları senin almadığın {{count}} commit push etmiş. Başlamadan önce pull yap ki işler çakışmasın.",
+    "ahead": "{{count}} commit'in henüz push edilmedi. Başkaları bunları göremez.",
+    "changed": "{{count}} değişiklik commit edilmedi. İş değiştirmeden ya da deploy etmeden önce commit'le.",
+    "noUpstream": "Bu branch henüz uzak bir branch'e bağlı değil.",
+    "clean": "Her şey senkron."
+  },
+  "ask": {
+    "action": "Geçmiş çalışmaların hakkında AI'a sor",
+    "thinking": "Session'larına bakılıyor…",
+    "noAnswer": "Session'larında bunun cevabı yok.",
+    "sources": "Kaynaklar"
+  },
+  "mcp": {
+    "title": "Claude içinde God Eye araçları",
+    "hint": "Claude her projede proje hafızasına ve geçmiş session'lara kendisi bakabilsin.",
+    "install": "Claude'a ekle",
+    "remove": "Kaldır",
+    "installed": "Eklendi",
+    "manual": "Bunu bilgisayarında çalıştır:"
   }
 }

@@ -1,5 +1,9 @@
 import type {
+  AskAnswer,
+  Digest,
+  GitInfo,
   IndexStatus,
+  MemorySection,
   ProjectDetail,
   ProjectListItem,
   SearchHit,
@@ -8,6 +12,7 @@ import type {
   SessionSummaryData,
   Settings,
   SystemStatus,
+  TimelineEntry,
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
 
@@ -46,4 +51,27 @@ export const api = {
   summarize: (id: string) => request<SessionSummaryData>(`/api/sessions/${id}/summarize`, { method: "POST" }),
   forget: (id: string) => request<{ ok: boolean }>(`/api/memory/${id}`, { method: "DELETE" }),
   search: (q: string) => request<SearchHit[]>(`/api/search?q=${encodeURIComponent(q)}`),
+  addProject: (path: string) =>
+    request<{ id: string }>("/api/projects", { method: "POST", body: JSON.stringify({ path }) }),
+  renameProject: (id: string, name: string) =>
+    request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name }) }),
+  fetchRemote: (id: string) => request<{ git: GitInfo }>(`/api/projects/${id}/fetch`, { method: "POST" }),
+  timeline: (id: string) => request<TimelineEntry[]>(`/api/projects/${id}/timeline`),
+  digests: (id: string) => request<Digest[]>(`/api/projects/${id}/digests`),
+  writeDigest: (id: string, period: "day" | "week", day?: string) =>
+    request<Digest>(`/api/projects/${id}/digests`, { method: "POST", body: JSON.stringify({ period, day }) }),
+  addMemory: (projectId: string, section: MemorySection, text: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/memory`, {
+      method: "POST",
+      body: JSON.stringify({ section, text }),
+    }),
+  editMemory: (id: string, text: string) =>
+    request<{ ok: boolean }>(`/api/memory/${id}`, { method: "PATCH", body: JSON.stringify({ text }) }),
+  resolveMemory: (id: string, keep: "new" | "old" | "both") =>
+    request<{ ok: boolean }>(`/api/memory/${id}/resolve`, { method: "POST", body: JSON.stringify({ keep }) }),
+  ask: (question: string, projectId?: string) =>
+    request<AskAnswer>("/api/ask", { method: "POST", body: JSON.stringify({ question, projectId }) }),
+  mcpStatus: () => request<{ installed: boolean; command: string; inContainer: boolean }>("/api/mcp"),
+  installMcp: () => request<{ ok: boolean }>("/api/mcp", { method: "POST" }),
+  removeMcp: () => request<{ ok: boolean }>("/api/mcp", { method: "DELETE" }),
 };

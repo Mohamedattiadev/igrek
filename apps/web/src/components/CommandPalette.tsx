@@ -1,7 +1,7 @@
-import type { ProjectListItem, SearchHit } from "@godeye/core";
+import type { AskAnswer, ProjectListItem, SearchHit } from "@godeye/core";
 import { Command } from "cmdk";
 import type { LucideIcon } from "lucide-react";
-import { Contrast, FolderKanban, MessageSquare, Rows3 } from "lucide-react";
+import { Contrast, FolderKanban, MessageSquare, Rows3, Sparkles } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -38,15 +38,18 @@ function Item({
   label,
   onSelect,
   keywords,
+  value,
 }: {
   icon: LucideIcon;
   label: string;
   onSelect: () => void;
   keywords?: string[];
+  value?: string;
 }) {
   return (
     <Command.Item
       onSelect={onSelect}
+      value={value}
       keywords={keywords}
       className="flex h-9 cursor-default items-center gap-2.5 rounded-md px-2.5 text-[13px] text-fg-muted data-[selected=true]:bg-bg-hover data-[selected=true]:text-fg"
     >
@@ -63,10 +66,21 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   const [query, setQuery] = useState("");
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [hits, setHits] = useState<SearchHit[]>([]);
+  const [answer, setAnswer] = useState<AskAnswer | "loading">();
+
+  const ask = async (question: string) => {
+    setAnswer("loading");
+    try {
+      setAnswer(await api.ask(question));
+    } catch {
+      setAnswer({ answer: "", sources: [] });
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
     setQuery("");
+    setAnswer(undefined);
     api
       .projects()
       .then(setProjects)
@@ -110,8 +124,45 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         />
         <Kbd>Esc</Kbd>
       </div>
+      {answer && (
+        <div className="max-h-56 overflow-y-auto border-b border-border bg-bg-subtle px-4 py-3 text-[13px] leading-relaxed">
+          {answer === "loading" ? (
+            <p className="animate-pulse text-fg-muted">{t("ask.thinking")}</p>
+          ) : (
+            <>
+              <p>{answer.answer || t("ask.noAnswer")}</p>
+              {answer.sources.length > 0 && (
+                <p className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-fg-subtle">
+                  {t("ask.sources")}:
+                  {answer.sources.slice(0, 6).map((source, i) => (
+                    <button
+                      key={source.messageId}
+                      type="button"
+                      onClick={() => run(() => navigate(`/p/${source.projectId}/s/${source.sessionId}`))}
+                      className="hover:text-accent"
+                    >
+                      [{i + 1}] {source.sessionTitle.slice(0, 30)}
+                    </button>
+                  ))}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
       <Command.List className="max-h-[360px] overflow-y-auto p-1.5">
         <Command.Empty className="py-8 text-center text-[13px] text-fg-subtle">{t("palette.empty")}</Command.Empty>
+        {query.trim().length >= 4 && (
+          <Command.Group heading={t("ask.action")} className={GROUP}>
+            <Item
+              icon={Sparkles}
+              label={`${t("ask.action")}: “${query.trim()}”`}
+              value={`ask ${query}`}
+              keywords={[query]}
+              onSelect={() => ask(query.trim())}
+            />
+          </Command.Group>
+        )}
         {projects.length > 0 && (
           <Command.Group heading={t("nav.projects")} className={GROUP}>
             {projects

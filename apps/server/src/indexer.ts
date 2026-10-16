@@ -1,11 +1,7 @@
 import type { IndexStatus } from "@godeye/core";
-import {
-  applyLine,
-  CLAUDE_PROJECTS_DIR,
-  listSessionFiles,
-  type ParsedMessage,
-  type SessionFile,
-} from "./adapters/claude";
+import { claudeAdapter } from "./adapters/claude";
+import { codexAdapter } from "./adapters/codex";
+import type { Adapter, ParsedMessage, SessionFile } from "./adapters/types";
 import type { Bus } from "./bus";
 import type { Store } from "./store";
 
@@ -27,8 +23,12 @@ export class Indexer {
   constructor(
     private readonly store: Store,
     private readonly bus: Bus,
-    private readonly root = CLAUDE_PROJECTS_DIR,
+    private readonly adapters: Adapter[] = [claudeAdapter(), codexAdapter()],
   ) {}
+
+  private files(): { file: SessionFile; adapter: Adapter }[] {
+    return this.adapters.flatMap((adapter) => adapter.listFiles().map((file) => ({ file, adapter })));
+  }
 
   start(): void {
     const loop = async () => {
@@ -46,8 +46,8 @@ export class Indexer {
 
   /** Re-reads one transcript right away (used by the session-end hook). */
   async touch(sessionId: string): Promise<void> {
-    const file = listSessionFiles(this.root).find((f) => f.sessionId === sessionId);
-    const result = file && (await this.processFile(file));
+    const match = this.files().find(({ file }) => file.sessionId === sessionId);
+    const result = match && (await this.processFile(match.file, match.adapter));
     if (result) this.announce([result]);
   }
 
@@ -55,20 +55,20 @@ export class Indexer {
     if (this.scanning) return;
     this.scanning = true;
     try {
-      const files = listSessionFiles(this.root)
-        .filter((file) => {
+      const files = this.files()
+        .filter(({ file }) => {
           const known = this.store.fileOffset(file.path);
           return !known || known.size !== file.size || known.mtime !== file.mtime;
         })
         // Newest first, so today's work shows up before last month's.
-        .sort((a, b) => b.mtime - a.mtime);
+        .sort((a, b) => b.file.mtime - a.file.mtime);
       if (files.length === 0) return;
 
       const big = files.length > 5;
       Object.assign(this.status, { running: big, filesTotal: files.length, filesDone: 0 });
       const changed: { projectId: string | null; sessionId: string }[] = [];
-      for (const file of files) {
-        const result = await this.processFile(file);
+      for (const { file, adapter } of files) {
+        const result = await this.processFile(file, adapter);
         if (result) changed.push(result);
         this.status.filesDone++;
         if (big) {
@@ -101,7 +101,10 @@ export class Indexer {
     this.bus.publish({ type: "index", status: { ...this.status } });
   }
 
-  private async processFile(file: SessionFile): Promise<{ projectId: string | null; sessionId: string } | undefined> {
+  private async processFile(
+    file: SessionFile,
+    adapter: Adapter,
+  ): Promise<{ projectId: string | null; sessionId: string } | undefined> {
     let offset = this.store.fileOffset(file.path)?.offset ?? 0;
     if (file.size < offset) {
       // Transcript got shorter: it was rewritten, start over.
@@ -129,12 +132,12 @@ export class Indexer {
       let lineNo = 0;
       for (const line of decoder.decode(bytes.subarray(0, usable)).split("\n")) {
         lineNo++;
-        if (line) messages.push(...applyLine(state, line, `${file.sessionId}:${offset}:${lineNo}`));
+        if (line) messages.push(...adapter.applyLine(state, line, `${file.sessionId}:${offset}:${lineNo}`));
       }
       offset += usable;
       projectId = this.store.saveChunk({
         sessionId: file.sessionId,
-        tool: "claude",
+        tool: adapter.tool,
         file: { path: file.path, offset, size: file.size, mtime: file.mtime },
         state,
         messages,

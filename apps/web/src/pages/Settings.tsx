@@ -3,7 +3,7 @@ import { CheckCircle2, Circle, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LanguagePicker } from "../components/LanguagePicker";
-import { Badge, Card, PageHeader, Section, Segmented } from "../components/ui";
+import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { useSettings } from "../lib/settings";
 
@@ -48,6 +48,51 @@ function SystemCheck() {
         {t("settings.dataDir")} <code className="font-mono text-fg-muted">{status.dataDir}</code>
       </p>
     </Card>
+  );
+}
+
+function McpSetup() {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<{ installed: boolean; command: string; inContainer: boolean }>();
+  const [error, setError] = useState<string>();
+  const load = () => {
+    api
+      .mcpStatus()
+      .then(setStatus)
+      .catch(() => undefined);
+  };
+  useEffect(load, []);
+  const toggle = async () => {
+    setError(undefined);
+    try {
+      await (status?.installed ? api.removeMcp() : api.installMcp());
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+  if (!status) return <div className="h-9 animate-pulse rounded-ui bg-bg-subtle" />;
+  return (
+    <div className="space-y-2">
+      {status.inContainer ? (
+        <>
+          <p className="text-xs text-fg-muted">{t("mcp.manual")}</p>
+          <code className="block break-all rounded-ui border border-border bg-bg-subtle p-2 font-mono text-[11px]">
+            {status.command}
+          </code>
+        </>
+      ) : (
+        <div className="flex items-center gap-3">
+          <Badge tone={status.installed ? "success" : "neutral"}>
+            {status.installed ? t("mcp.installed") : t("setup.off")}
+          </Badge>
+          <Button variant={status.installed ? "secondary" : "primary"} onClick={toggle}>
+            {status.installed ? t("mcp.remove") : t("mcp.install")}
+          </Button>
+        </div>
+      )}
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
   );
 }
 
@@ -115,6 +160,19 @@ export function SettingsPage() {
               { value: "off", label: t("settings.off") },
             ]}
           />
+        </Section>
+        <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
+          <Segmented
+            value={settings.summaryTone}
+            onChange={(summaryTone) => update({ summaryTone })}
+            options={[
+              { value: "plain", label: t("settings.tonePlain") },
+              { value: "technical", label: t("settings.toneTechnical") },
+            ]}
+          />
+        </Section>
+        <Section title={t("mcp.title")} hint={t("mcp.hint")}>
+          <McpSetup />
         </Section>
         <Section title={t("settings.system")} hint={t("settings.systemHint")}>
           <SystemCheck />

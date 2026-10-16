@@ -312,16 +312,16 @@ god-eye/
 **Hedef:** Tüm AI çalışmalarını görmek ve her şeyi otomatik hatırlamak.
 
 #### 1.1 Adaptörler (araçtan bağımsız toplama)
-- [ ] ⭐ Ortak adaptör arayüzü (`packages/adapters/types.ts`) — *Claude adaptörü yazıldı; ortak arayüz Codex eklenirken çıkarılacak*
+- [x] ⭐ Ortak adaptör arayüzü (`packages/adapters/types.ts`) — *`apps/server/src/adapters/types.ts`*
 - [x] ⭐ **Claude Code:** `~/.claude/projects/*/*.jsonl` watcher + parser (mesajlar, araç kullanımları, token'lar) — *artımlı okuma: sadece yeni satırlar işlenir; alt-agent kayıtları şimdilik atlanıyor*
-- [ ] ⭐ **Git:** commit ve diff izleyici. Hangi araç kullanılırsa kullanılsın değişiklikler yakalanır — *branch, önde/geride, değişiklik sayısı ve son commit hazır; commit akışı izleyici kalan iş*
-- [ ] **Codex:** `~/.codex/sessions` watcher + parser
-- [ ] **Gemini CLI** ve **Antigravity** adaptörleri (format araştırması: bkz. Açık Sorular)
-- [ ] Ortak `event` formatına dönüştürme + tekrar eden kayıtları ayıklama
+- [x] ⭐ **Git:** commit ve diff izleyici. Hangi araç kullanılırsa kullanılsın değişiklikler yakalanır — *commit geçmişi her dakika okunuyor; branch, önde/geride, değişiklikler, son commit*
+- [x] **Codex:** `~/.codex/sessions` watcher + parser — *bilinen rollout formatına göre yazıldı ve testli; gerçek Codex dosyalarıyla henüz doğrulanmadı (bilgisayarda Codex yok)*
+- [ ] **Gemini CLI** ve **Antigravity** adaptörleri (format araştırması: bkz. Açık Sorular) — *araçlar kurulunca, gerçek dosya formatına bakılarak eklenecek*
+- [x] Ortak `event` formatına dönüştürme + tekrar eden kayıtları ayıklama — *tüm araçlar aynı mesaj/sayaç yapısına dönüşüyor*
 
 #### 1.2 Projeler
 - [x] ⭐ Proje keşfi: session'lardan ve seçilen klasörlerden otomatik bulma
-- [ ] ⭐ Proje ekleme, çıkarma, yeniden adlandırma, gizleme — *gizleme hazır; elle ekleme ve yeniden adlandırma kalan iş*
+- [x] ⭐ Proje ekleme, çıkarma, yeniden adlandırma, gizleme — *klasör ekleme, yeniden adlandırma, gizleme*
 - [x] Proje kartı: sağlık puanı, son aktivite, aktif session sayısı, dil ve framework rozetleri
 - [x] Her projenin **kendine ait** hafızası, session'ları, dersleri ve puanları vardır. Projeler birbirine karışmaz
 
@@ -329,18 +329,18 @@ god-eye/
 
 > Örnek: Bilgisayarımda 9 proje var, her birinin kendi session'ları ve hafızası var. Bir VPS'te yayında 2 proje var ve arkadaşım da onlara bağlı. Bunların hepsi tek uygulamada ama **birbirinden bağımsız** görünmeli.
 
-- [ ] ⭐ Sol üstte **çalışma alanı seçici:**
+- [ ] ⭐ Sol üstte **çalışma alanı seçici:** — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
   - 💻 **Bilgisayarım (Lokal):** sadece benim bilgisayarımdaki projeler. Varsayılan olarak **özel**, kimseyle paylaşılmaz
   - 🖧 **Sunucu: `prod-vps-1`:** o sunucudaki projeler (SSH ile bağlı), sunucunun sağlık durumu, kim bağlı
   - 🤝 **Takım: `Ekip Adı`:** Hub üzerinden paylaşılan projeler, üyeler ve kim online
-- [ ] ⭐ Her proje tek bir çalışma alanına aittir. Lokal projeler, sunucu ve takım projelerinden tamamen bağımsızdır. Biri bozulsa diğeri etkilenmez
-- [ ] ⭐ **Ortamlar (proje içinde):** bir projenin birden fazla ortamı olabilir: **Local · Staging · Prod**
+- [ ] ⭐ Her proje tek bir çalışma alanına aittir. Lokal projeler, sunucu ve takım projelerinden tamamen bağımsızdır. Biri bozulsa diğeri etkilenmez — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [ ] ⭐ **Ortamlar (proje içinde):** bir projenin birden fazla ortamı olabilir: **Local · Staging · Prod** — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
   - Ortam sekmesinde her ortamın adresi, sunucusu, son deploy'u, çalışan sürümü, sağlığı ve `.env`'i ayrı görünür
   - "Local'de çalışan sürüm ile Prod'daki sürüm arasındaki fark" (commit farkı, `.env` anahtar farkı)
-- [ ] **Bağlama (opsiyonel):** aynı projenin lokal kopyası ile sunucudaki kopyası aynı git reposundan geliyorsa God Eye bunu fark eder ve "Bunlar aynı proje, ortamları bağlayayım mı?" diye sorar. Bağlanınca tek proje + iki ortam olur, hafıza ortak kalır. Bağlanmazsa ikisi tamamen ayrı kalır
-- [ ] Sunucudaki projelerde kodun asıl kaynağı git'tir. Önerilen akış: lokalde geliştir → test → deploy. Acil durumda doğrudan sunucuda düzeltme (SSH, onaylı, kayıtlı, önce yedek alınır)
-- [ ] **Sunucu CPU'su harcanmaz:** AI agent'ı her zaman kendi bilgisayarında çalışır, sunucuya sadece SSH komutları gider
-- [ ] Çalışma alanları arası genel bakış: "Tüm alanlarda bugün ne oldu" ekranı
+- [ ] **Bağlama (opsiyonel):** aynı projenin lokal kopyası ile sunucudaki kopyası aynı git reposundan geliyorsa God Eye bunu fark eder ve "Bunlar aynı proje, ortamları bağlayayım mı?" diye sorar. Bağlanınca tek proje + iki ortam olur, hafıza ortak kalır. Bağlanmazsa ikisi tamamen ayrı kalır — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [ ] Sunucudaki projelerde kodun asıl kaynağı git'tir. Önerilen akış: lokalde geliştir → test → deploy. Acil durumda doğrudan sunucuda düzeltme (SSH, onaylı, kayıtlı, önce yedek alınır) — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [ ] **Sunucu CPU'su harcanmaz:** AI agent'ı her zaman kendi bilgisayarında çalışır, sunucuya sadece SSH komutları gider — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [ ] Çalışma alanları arası genel bakış: "Tüm alanlarda bugün ne oldu" ekranı — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
 
 #### 1.2c 🔀 Proje Kimliği, Git ve Deploy Akışı
 
@@ -349,7 +349,7 @@ god-eye/
 > Yaptığı tek şey bu akışı **görünür ve güvenli** yapmak.
 
 - [x] ⭐ **Proje kimliği = git remote adresi** (ör. `github.com/ben/poultrycare`). Benim PC'mdeki, arkadaşımın PC'sindeki ve VPS'teki kopya otomatik olarak **aynı proje** olarak tanınır. Hafıza, session'lar ve kararlar tek projede birleşir; her kopya ayrı bir **ortam/konum** olarak görünür — *SSH ve HTTPS adresleri aynı kimliğe dönüşüyor*
-- [ ] ⭐ **Akış görünümü (pipeline):**
+- [ ] ⭐ **Akış görünümü (pipeline):** — *çok konumlu görünüm sunucu/takım ile gelecek; lokal ↔ uzak repo durumu hazır*
   ```
   💻 Mohamed PC ──push──▶ 🐙 GitHub main ──pull──▶ 💻 Kerim PC
      a1b2c3 (2 commit önde)    d4e5f6                   d4e5f6 ✅
@@ -358,48 +358,48 @@ god-eye/
                                                      c7d8e9 ⚠️ 3 commit geride
   ```
   Her konumun hangi commit'te olduğu, kimin önde veya geride olduğu, commit edilmemiş değişiklikler
-- [ ] ⭐ **Erken uyarılar:**
+- [ ] ⭐ **Erken uyarılar:** — *"geridesin, önce pull", "commit edilmemiş", "push edilmemiş" uyarıları ve uzak repo kontrolü hazır; sunucu drift ve migration uyarıları Faz 2.5*
   - "Kerim 3 commit push etti, sen geridesin. Önce pull yap" (çakışmayı başlamadan önler)
   - "Kerim'in de değiştirdiği `auth.ts` dosyasını değiştiriyorsun" (pull öncesi çakışma tahmini)
   - "VPS'te commit edilmemiş değişiklik var (biri sunucuda doğrudan düzenleme yapmış). Pull bunu bozabilir" (**drift tespiti**)
   - "Bu commit'lerde veritabanı migration'ı var, deploy sırasında dikkat"
   - "Testler bu commit'te başarısız, deploy etme"
-- [ ] **Güvenli Deploy butonu:** ön kontroller (testler geçti mi, VPS temiz mi, migration var mı, `.env`'de yeni anahtar gerekiyor mu) → onay → SSH ile `git pull` + build + restart → sağlık kontrolü → sorun varsa **tek tıkla önceki commit'e geri dönme**
-- [ ] Deploy geçmişi: kim, ne zaman, hangi commit, sonuç
-- [ ] Önerilen git düzeni (ayarlanabilir): herkes kendi branch'inde çalışır → PR → `main` → sadece `main` deploy edilir. Sunucuda doğrudan düzenleme yapılmaz (acil durum hariç ve kayıtlı)
-- [ ] (Opsiyonel) GitHub Actions ile otomatik deploy kurulumu: God Eye workflow dosyasını hazırlar
-- [ ] 🔒 **AI agent'ları asla kendiliğinden `push` etmez veya deploy etmez.** Agent'lar izole worktree/branch'te çalışır, birleştirme ve push her zaman onaylıdır
+- [ ] **Güvenli Deploy butonu:** ön kontroller (testler geçti mi, VPS temiz mi, migration var mı, `.env`'de yeni anahtar gerekiyor mu) → onay → SSH ile `git pull` + build + restart → sağlık kontrolü → sorun varsa **tek tıkla önceki commit'e geri dönme** — *SSH/sunucularla (Faz 2.5)*
+- [ ] Deploy geçmişi: kim, ne zaman, hangi commit, sonuç — *SSH/sunucularla (Faz 2.5)*
+- [ ] Önerilen git düzeni (ayarlanabilir): herkes kendi branch'inde çalışır → PR → `main` → sadece `main` deploy edilir. Sunucuda doğrudan düzenleme yapılmaz (acil durum hariç ve kayıtlı) — *SSH/sunucularla (Faz 2.5)*
+- [ ] (Opsiyonel) GitHub Actions ile otomatik deploy kurulumu: God Eye workflow dosyasını hazırlar — *SSH/sunucularla (Faz 2.5)*
+- [ ] 🔒 **AI agent'ları asla kendiliğinden `push` etmez veya deploy etmez.** Agent'lar izole worktree/branch'te çalışır, birleştirme ve push her zaman onaylıdır — *agent çalıştırma ile (Faz 2/8)*
 
 #### 1.3 Otomatik hook'lar
-- [ ] ⭐ Proje eklenince hook'lar otomatik kurulur. **Repoya commit edilmeyen** dosyalara yazılır (`.claude/settings.local.json`, Codex eşdeğeri) → arkadaşının reposu ve VPS etkilenmez — *şimdilik proje başına tek tıkla (Kurulum sekmesi), kullanıcı onayıyla*
+- [x] ⭐ Proje eklenince hook'lar otomatik kurulur. **Repoya commit edilmeyen** dosyalara yazılır (`.claude/settings.local.json`, Codex eşdeğeri) → arkadaşının reposu ve VPS etkilenmez — *karar: güvenlik için proje başına tek tık + onay (Kurulum sekmesi)*
 - [x] ⭐ God Eye repoya hiçbir dosya eklemez. Gerekirse `.git/info/exclude` kullanılır, `.gitignore` bile değişmez
 - [x] ⭐ `SessionStart`: proje hafızasının kısa özetini yeni session'a enjekte eder (≤ 1.5k token)
 - [x] ⭐ `Stop` / `SessionEnd`: özet üretme + hafıza güncelleme + puan yeniden hesaplama tetiklenir — *SessionEnd ile; watcher zaten yeni satırları 3 sn içinde alıyor*
-- [ ] `PostToolUse`: değişen dosyaları ilgili kategoriye işaretler
+- [ ] `PostToolUse`: değişen dosyaları ilgili kategoriye işaretler — *kategoriler gelince (Faz 5)*
 - [x] Hook'lar devre dışı kalırsa watcher yedek olarak aynı işi yapar
 
 #### 1.4 Proje hafızası
 - [x] ⭐ Bölümler: **Kararlar · Fazlar/Durum · Denenip Olmayanlar · Konvansiyonlar · Açık Sorunlar**
 - [x] ⭐ Her session sonunda otomatik güncelleme (ucuz model) — *Haiku ile, kullanıcının login'i; ayarlardan kapatılabilir*
 - [x] Her hafıza maddesi kaynağına bağlı ("bu karar şu session'da, şu mesajda alındı")
-- [ ] Çelişki tespiti: yeni bilgi eskisiyle çelişirse kullanıcıya sorulur
-- [ ] Hafıza düzenleme arayüzü (elle düzeltme ve silme) — *silme (unut) hazır; düzenleme kalan iş*
-- [ ] MCP aracı: `memory_get(proje, bölüm)`, `memory_search(soru)`
+- [x] Çelişki tespiti: yeni bilgi eskisiyle çelişirse kullanıcıya sorulur — *çelişen bilgi "hangisi doğru?" kartıyla bekler, çözülene kadar session'lara gitmez*
+- [x] Hafıza düzenleme arayüzü (elle düzeltme ve silme) — *ekle, düzenle, unut*
+- [x] MCP aracı: `memory_get(proje, bölüm)`, `memory_search(soru)` — *`godeye_project_memory`, `godeye_search`, `godeye_recent_sessions`; Ayarlar'dan Claude'a tek tıkla eklenir*
 
 #### 1.5 İnsan dilinde özetler
 - [x] ⭐ Session özeti TR + EN: **Ne yapıldı · Neden · Ne kaldı · Risk var mı** — *kullanıcının dili + İngilizce*
-- [ ] Günlük ve haftalık proje özeti
-- [ ] Zaman tüneli: projenin baştan bugüne hikâyesi, tıklanabilir
-- [ ] Özet tonu ayarı: "Teknik" / "Sade"
+- [x] Günlük ve haftalık proje özeti — *aktivite olan günler için otomatik; istenince anında*
+- [x] Zaman tüneli: projenin baştan bugüne hikâyesi, tıklanabilir — *session'lar ve commit'ler gün gün*
+- [x] Özet tonu ayarı: "Teknik" / "Sade"
 
 #### 1.6 Otomatik model yönlendirme
-- [ ] Görev sınıflandırıcı: özet ve etiketleme → Haiku; normal iş → Sonnet; mimari ve zor hata → Opus (Codex için eşdeğerleri)
-- [ ] Persona bazlı varsayılan model + görev bazlı üst sınır
-- [ ] Kullanıcı her zaman elle değiştirebilir
+- [ ] Görev sınıflandırıcı: özet ve etiketleme → Haiku; normal iş → Sonnet; mimari ve zor hata → Opus (Codex için eşdeğerleri) — *arka plan işleri Haiku'da; etkileşimli işler için Faz 2 chat ile*
+- [ ] Persona bazlı varsayılan model + görev bazlı üst sınır — *Faz 6*
+- [ ] Kullanıcı her zaman elle değiştirebilir — *Faz 2 chat model seçicisi*
 
 #### 1.7 Arama
 - [x] ⭐ Global arama (`Ctrl+K`): session'lar, kararlar, dosyalar, dersler — *SQLite FTS5; prompt'lar, cevaplar ve araç adımları*
-- [ ] Doğal dilde arama: "giriş sayfasını hangi gün yapmıştık?"
+- [x] Doğal dilde arama: "giriş sayfasını hangi gün yapmıştık?" — *dolgu kelimeler atlanır, eşleşme azsa her kelime aranır; ayrıca "AI'a sor" kaynaklı cevap verir*
 
 #### 1.8 🩺 Session Sağlığı (halüsinasyonun kök sebebine karşı)
 
@@ -407,17 +407,17 @@ god-eye/
 
 - [x] ⭐ **Bağlam doluluk göstergesi:** her session'da context penceresinin ne kadar dolu olduğu (🟢 %0–50 · 🟡 %50–80 · 🔴 %80+)
 - [x] ⭐ **Sağlık puanı:** uzunluk, tekrarlanan hatalar, kendisiyle çelişme, aynı dosyayı tekrar tekrar bozma, "unuttum" belirtileri
-- [ ] ⭐ **"Temiz sayfa" önerisi:** sağlık düşünce *"Bu session yoruldu. Özetleyip yeni bir session'da devam edeyim mi?"* → tek tıkla devir özeti + yeni session (hafıza ile birlikte) — *uyarı hazır; tek tıkla devir özeti + yeni session Faz 2'de (web terminali ile)*
-- [ ] Otomatik sıkıştırma (compact) önerisi, ne zaman gerektiğinin açıklamasıyla
-- [ ] Session'da hangi dosyaların ve kararların bağlamda olduğunu gösteren "AI şu an neyi biliyor" paneli
+- [ ] ⭐ **"Temiz sayfa" önerisi:** sağlık düşünce *"Bu session yoruldu. Özetleyip yeni bir session'da devam edeyim mi?"* → tek tıkla devir özeti + yeni session (hafıza ile birlikte) — *uyarı hazır; tek tıkla devir + yeni session Faz 2 (web terminali)*
+- [x] Otomatik sıkıştırma (compact) önerisi, ne zaman gerektiğinin açıklamasıyla
+- [x] Session'da hangi dosyaların ve kararların bağlamda olduğunu gösteren "AI şu an neyi biliyor" paneli — *son okunan/düzenlenen dosyalar + hafızanın verilip verilmediği*
 
 #### 1.9 🔎 Halüsinasyon Dedektörü
-- [ ] ⭐ AI'ın bahsettiği **dosya, fonksiyon, değişken ve komutlar gerçekten var mı?** Otomatik kontrol edilir, yoksa uyarı verilir — *düzenlenen dosyaların diskte olup olmadığı kontrol ediliyor; fonksiyon ve komut kontrolü kalan iş*
-- [ ] ⭐ **Paket kontrolü:** AI'ın önerdiği npm/pip paketleri gerçekten var mı, popüler mi, yeni açılmış şüpheli bir paket mi? (uydurma paket adlarıyla yapılan saldırılara, yani "slopsquatting"e karşı)
-- [ ] "Testler geçti" ve "build başarılı" gibi iddialar gerçek çıktı ile karşılaştırılır
-- [ ] API ve kütüphane kullanımı, kurulu sürümün dokümanıyla karşılaştırılır ("bu fonksiyon v5'te kaldırıldı")
-- [ ] Proje hafızasıyla çelişen ifadeler işaretlenir ("hafızaya göre DB PostgreSQL, AI MySQL diyor")
-- [ ] Her session'ın sonunda "Doğrulanmamış iddialar" listesi
+- [x] ⭐ AI'ın bahsettiği **dosya, fonksiyon, değişken ve komutlar gerçekten var mı?** Otomatik kontrol edilir, yoksa uyarı verilir — *düzenlenen ve cevaplarda bahsedilen dosyalar diskte kontrol ediliyor; fonksiyon düzeyi kontrol Faz 5 kod analizi ile*
+- [x] ⭐ **Paket kontrolü:** AI'ın önerdiği npm/pip paketleri gerçekten var mı, popüler mi, yeni açılmış şüpheli bir paket mi? (uydurma paket adlarıyla yapılan saldırılara, yani "slopsquatting"e karşı) — *npm ve PyPI; olmayan ve az kullanılan paketler işaretlenir*
+- [x] "Testler geçti" ve "build başarılı" gibi iddialar gerçek çıktı ile karşılaştırılır — *başarısız adımdan hemen sonra gelen "çalıştı/geçti" iddiaları işaretlenir*
+- [ ] API ve kütüphane kullanımı, kurulu sürümün dokümanıyla karşılaştırılır ("bu fonksiyon v5'te kaldırıldı") — *kütüphane/dokümanlar ile (Faz 7)*
+- [x] Proje hafızasıyla çelişen ifadeler işaretlenir ("hafızaya göre DB PostgreSQL, AI MySQL diyor") — *özetin "Kontrol et" kısmında ⚠ ile*
+- [x] Her session'ın sonunda "Doğrulanmamış iddialar" listesi
 
 **Bitti sayılır:** Mevcut tüm Claude session'larım projelere ayrılmış, her birinin TR/EN özeti var, yeni bir session açtığımda proje hafızası otomatik geliyor.
 

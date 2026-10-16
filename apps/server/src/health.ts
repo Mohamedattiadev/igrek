@@ -7,6 +7,8 @@ export interface HealthInput {
   recentErrors: number[];
   compactions: number;
   updatedAt: number;
+  /** Window size reported by the tool (Codex does); otherwise guessed from the model. */
+  contextWindow?: number;
 }
 
 const ACTIVE_WINDOW = 15 * 60_000;
@@ -21,7 +23,7 @@ function contextWindow(models: Record<string, number>, contextTokens: number): n
  * forget and invent things, so this scores how "tired" a session is.
  */
 export function sessionHealth(input: HealthInput, now = Date.now()): SessionHealth {
-  const window = contextWindow(input.models, input.contextTokens);
+  const window = input.contextWindow ?? contextWindow(input.models, input.contextTokens);
   const fill = Math.min(1, input.contextTokens / window);
   const flags: HealthFlag[] = [];
   let score = 100;
@@ -46,7 +48,15 @@ export function sessionHealth(input: HealthInput, now = Date.now()): SessionHeal
   score = Math.max(0, score);
   const level: HealthLevel = score >= 70 ? "good" : score >= 45 ? "warn" : "bad";
   const active = now - input.updatedAt < ACTIVE_WINDOW;
-  return { score, level, contextFill: fill, contextWindow: window, flags, suggestFresh: active && level === "bad" };
+  return {
+    score,
+    level,
+    contextFill: fill,
+    contextWindow: window,
+    flags,
+    suggestFresh: active && level === "bad",
+    suggestCompact: active && level !== "bad" && fill >= 0.6,
+  };
 }
 
 export function isActive(updatedAt: number, now = Date.now()): boolean {

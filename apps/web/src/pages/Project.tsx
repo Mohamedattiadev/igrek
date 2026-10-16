@@ -1,38 +1,39 @@
-import type { MemoryItem, MemorySection, ProjectDetail, SessionListItem } from "@godeye/core";
-import { ArrowLeft, Brain, EyeOff, GitBranch, GitCommitHorizontal, Plug, Trash2 } from "lucide-react";
+import type { GitInfo, ProjectDetail } from "@godeye/core";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Brain,
+  CheckCircle2,
+  EyeOff,
+  GitBranch,
+  GitCommitHorizontal,
+  Plug,
+  RefreshCw,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 import { Badge, Button, Card, EmptyState, Section } from "../components/ui";
-import { ActiveDot, HealthBadge, SummaryView, useSummaryText } from "../components/work";
+import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
-import { mainModel, modelName, relativeTime } from "../lib/format";
+import { relativeTime } from "../lib/format";
 import { useLiveData } from "../lib/live";
+import { MemoryTab } from "./project/Memory";
+import { SessionRow } from "./project/SessionRow";
+import { ReportsCard, TimelineTab } from "./project/Timeline";
 
-const TABS = ["overview", "sessions", "memory", "setup"] as const;
+const TABS = ["overview", "timeline", "sessions", "memory", "setup"] as const;
 type Tab = (typeof TABS)[number];
-const SECTIONS: MemorySection[] = ["status", "decision", "convention", "failed", "issue"];
 
-export function SessionRow({ session, projectId }: { session: SessionListItem; projectId: string }) {
-  const summary = useSummaryText(session.summary);
-  const model = mainModel(session.models);
-  return (
-    <Link
-      to={`/p/${projectId}/s/${session.id}`}
-      data-nav-item
-      className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-    >
-      <ActiveDot active={session.active} />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[13px] font-medium">{session.summary?.title || session.title}</p>
-        <p className="truncate text-xs text-fg-subtle">{summary?.did[0] ?? session.title}</p>
-      </div>
-      {model && <span className="hidden font-mono text-[11px] text-fg-subtle md:inline">{modelName(model)}</span>}
-      <HealthBadge health={session.health} />
-      <span className="w-24 shrink-0 text-end text-[11px] text-fg-subtle">{relativeTime(session.updatedAt)}</span>
-    </Link>
-  );
+/** Plain-language warnings about where the code stands vs. the remote (plan.md 1.2c). */
+function gitWarnings(git: GitInfo): { tone: "warning" | "accent"; key: string; count?: number }[] {
+  const out: { tone: "warning" | "accent"; key: string; count?: number }[] = [];
+  if (git.behind > 0) out.push({ tone: "warning", key: "git.behind", count: git.behind });
+  if (git.changed > 0) out.push({ tone: "warning", key: "git.changed", count: git.changed });
+  if (git.ahead > 0) out.push({ tone: "accent", key: "git.ahead", count: git.ahead });
+  if (!git.hasUpstream && git.branch) out.push({ tone: "accent", key: "git.noUpstream" });
+  return out;
 }
 
 function Overview({ project }: { project: ProjectDetail }) {
@@ -40,7 +41,7 @@ function Overview({ project }: { project: ProjectDetail }) {
   const latest = project.recentSessions.find((s) => s.summary);
   const status = project.memory.filter((m) => m.section === "status").slice(0, 2);
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-4">
         <Card className="p-pad">
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("project.latest")}</h3>
@@ -58,6 +59,7 @@ function Overview({ project }: { project: ProjectDetail }) {
             <p className="text-[13px] text-fg-muted">{t("project.noSummary")}</p>
           )}
         </Card>
+        <ReportsCard projectId={project.id} />
         <Card>
           <h3 className="border-b border-border px-pad py-2.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
             {t("project.recent")}
@@ -81,6 +83,7 @@ function Overview({ project }: { project: ProjectDetail }) {
           </Card>
         )}
         <GitCard project={project} />
+        {project.git && <GitFlow project={project} />}
       </div>
     </div>
   );
@@ -125,6 +128,57 @@ function GitCard({ project }: { project: ProjectDetail }) {
   );
 }
 
+function GitFlow({ project }: { project: ProjectDetail }) {
+  const { t } = useTranslation();
+  const [git, setGit] = useState(project.git);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  if (!git) return null;
+  const warnings = gitWarnings(git);
+  const fetchRemote = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      setGit((await api.fetchRemote(project.id)).git);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card className="space-y-2.5 p-pad">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("git.title")}</h3>
+        {git.remote && (
+          <Button size="sm" variant="ghost" icon={RefreshCw} onClick={fetchRemote} disabled={busy}>
+            {busy ? t("project.fetching") : t("project.fetch")}
+          </Button>
+        )}
+      </div>
+      {warnings.length === 0 ? (
+        <p className="flex items-center gap-2 text-[13px] text-success">
+          <CheckCircle2 size={14} />
+          {t("git.clean")}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {warnings.map((w) => (
+            <li key={w.key} className="flex gap-2 text-[13px] leading-relaxed">
+              <AlertTriangle
+                size={14}
+                className={cn("mt-0.5 shrink-0", w.tone === "warning" ? "text-warning" : "text-accent")}
+              />
+              {t(w.key, { count: w.count })}
+            </li>
+          ))}
+        </ul>
+      )}
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </Card>
+  );
+}
+
 function Sessions({ projectId }: { projectId: string }) {
   const { data } = useLiveData(
     () => api.projectSessions(projectId),
@@ -142,78 +196,10 @@ function Sessions({ projectId }: { projectId: string }) {
   );
 }
 
-function Memory({ project, onChange }: { project: ProjectDetail; onChange: () => void }) {
-  const { t } = useTranslation();
-  const [context, setContext] = useState<string>();
-  const forget = async (item: MemoryItem) => {
-    await api.forget(item.id);
-    onChange();
-  };
-  return (
-    <div className="space-y-4">
-      <p className="max-w-2xl text-[13px] leading-relaxed text-fg-muted">{t("memory.hint")}</p>
-      {project.memory.length === 0 ? (
-        <Card>
-          <EmptyState icon={Brain} title={t("memory.title")} body={t("memory.empty")} />
-        </Card>
-      ) : (
-        SECTIONS.map((section) => {
-          const items = project.memory.filter((m) => m.section === section);
-          if (items.length === 0) return null;
-          return (
-            <Card key={section}>
-              <h3 className="border-b border-border px-pad py-2.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
-                {t(`memory.${section}`)}
-              </h3>
-              <ul className="divide-y divide-border">
-                {items.map((item) => (
-                  <li key={item.id} data-nav-item tabIndex={-1} className="group flex items-start gap-3 px-pad py-2.5">
-                    <p className="flex-1 text-[13px] leading-relaxed">{item.text}</p>
-                    {item.sourceSession && (
-                      <Link
-                        to={`/p/${project.id}/s/${item.sourceSession}`}
-                        className="shrink-0 text-[11px] text-fg-subtle hover:text-accent"
-                      >
-                        {relativeTime(item.createdAt)}
-                      </Link>
-                    )}
-                    <button
-                      type="button"
-                      title={t("memory.delete")}
-                      aria-label={t("memory.delete")}
-                      onClick={() => forget(item)}
-                      className="shrink-0 text-fg-subtle opacity-0 hover:text-danger group-hover:opacity-100 focus:opacity-100"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          );
-        })
-      )}
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={async () => setContext(context ? undefined : (await api.projectContext(project.id)).context)}
-        >
-          {t("memory.preview")}
-        </Button>
-        {context !== undefined && (
-          <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap rounded-ui border border-border bg-bg-subtle p-pad font-mono text-xs">
-            {context || "—"}
-          </pre>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => void }) {
   const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
+  const [name, setName] = useState(project.name);
   const toggle = async () => {
     setBusy(true);
     try {
@@ -238,6 +224,25 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
         <p className="mt-3 text-xs text-fg-subtle">
           {t("setup.file")} <code className="font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
+      </Section>
+      <Section title={t("project.rename")} hint={t("project.renameHint")}>
+        <div className="flex max-w-md gap-2">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            aria-label={t("project.rename")}
+            className="h-8 flex-1 rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent"
+          />
+          <Button
+            disabled={!name.trim() || name === project.name}
+            onClick={async () => {
+              await api.renameProject(project.id, name);
+              onChange();
+            }}
+          >
+            {t("project.save")}
+          </Button>
+        </div>
       </Section>
       <Section title={project.hidden ? t("project.unhide") : t("project.hide")}>
         <Button
@@ -296,7 +301,13 @@ export function ProjectPage() {
             >
               {t(`project.${name}`)}
               {name === "sessions" && project && <span className="ms-1.5 text-fg-subtle">{project.sessionCount}</span>}
-              {name === "memory" && project && <span className="ms-1.5 text-fg-subtle">{project.memory.length}</span>}
+              {name === "memory" && project && (
+                <span
+                  className={cn("ms-1.5", project.memory.some((m) => m.conflict) ? "text-warning" : "text-fg-subtle")}
+                >
+                  {project.memory.length}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -306,10 +317,12 @@ export function ProjectPage() {
           <div className="h-64 animate-pulse rounded-ui bg-bg-subtle" />
         ) : tab === "overview" ? (
           <Overview project={project} />
+        ) : tab === "timeline" ? (
+          <TimelineTab projectId={project.id} />
         ) : tab === "sessions" ? (
           <Sessions projectId={project.id} />
         ) : tab === "memory" ? (
-          <Memory project={project} onChange={reload} />
+          <MemoryTab project={project} onChange={reload} />
         ) : (
           <Setup project={project} onChange={reload} />
         )}

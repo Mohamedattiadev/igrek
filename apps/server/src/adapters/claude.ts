@@ -1,15 +1,20 @@
 import { readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
+import {
+  type Adapter,
+  checkClaim,
+  clip,
+  noteFile,
+  notePackages,
+  noteToolResult,
+  type ParsedMessage,
+  type SessionFile,
+  type SessionState,
+  touch,
+} from "./types";
 
 export const CLAUDE_PROJECTS_DIR = join(process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude"), "projects");
-
-export interface SessionFile {
-  path: string;
-  sessionId: string;
-  size: number;
-  mtime: number;
-}
 
 /** Top-level session transcripts (subagent transcripts live in subfolders and are skipped). */
 export function listSessionFiles(root = CLAUDE_PROJECTS_DIR): SessionFile[] {
@@ -43,63 +48,7 @@ export function listSessionFiles(root = CLAUDE_PROJECTS_DIR): SessionFile[] {
   return files;
 }
 
-/** Running totals for one session, updated line by line. */
-export interface SessionState {
-  cwd?: string;
-  gitBranch?: string;
-  title?: string;
-  firstPrompt?: string;
-  startedAt?: number;
-  updatedAt?: number;
-  userMessages: number;
-  assistantMessages: number;
-  toolCalls: number;
-  toolErrors: number;
-  recentErrors: number[];
-  compactions: number;
-  tokensIn: number;
-  tokensOut: number;
-  tokensCacheRead: number;
-  tokensCacheWrite: number;
-  contextTokens: number;
-  models: Record<string, number>;
-  filesTouched: string[];
-  lastMessageId?: string;
-}
-
-export interface ParsedMessage {
-  id: string;
-  ts: number;
-  role: "user" | "assistant";
-  kind: "prompt" | "text" | "tool";
-  toolName?: string;
-  text: string;
-}
-
-export function emptyState(): SessionState {
-  return {
-    userMessages: 0,
-    assistantMessages: 0,
-    toolCalls: 0,
-    toolErrors: 0,
-    recentErrors: [],
-    compactions: 0,
-    tokensIn: 0,
-    tokensOut: 0,
-    tokensCacheRead: 0,
-    tokensCacheWrite: 0,
-    contextTokens: 0,
-    models: {},
-    filesTouched: [],
-  };
-}
-
-const MAX_TEXT = 4000;
 const EDIT_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
-
-function clip(text: string, max = MAX_TEXT): string {
-  return text.length > max ? `${text.slice(0, max)}…` : text;
-}
 
 /** Strips Claude Code's wrapper tags so prompts read like what the person typed. */
 function cleanPrompt(text: string): string {
@@ -121,6 +70,14 @@ function describeToolInput(name: string, input: Record<string, unknown> | undefi
 
 type Json = Record<string, unknown>;
 
+function resultText(content: unknown): string {
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return (content as Json[]).map((part) => (typeof part.text === "string" ? part.text : "")).join("\n");
+  }
+  return "";
+}
+
 /**
  * Applies one transcript line to the running session state and returns the
  * readable messages it contains (prompts, replies, tool calls). Tool results
@@ -137,17 +94,13 @@ export function applyLine(state: SessionState, line: string, fallbackId: string)
   if (type === "ai-title" && typeof entry.aiTitle === "string") state.title = entry.aiTitle;
   if (entry.isSidechain) return [];
 
-  const ts = typeof entry.timestamp === "string" ? Date.parse(entry.timestamp) : Number.NaN;
-  if (!Number.isNaN(ts)) {
-    state.startedAt = state.startedAt === undefined ? ts : Math.min(state.startedAt, ts);
-    state.updatedAt = state.updatedAt === undefined ? ts : Math.max(state.updatedAt, ts);
-  }
+  const ts = touch(state, entry.timestamp);
   if (typeof entry.cwd === "string") state.cwd = entry.cwd;
   if (typeof entry.gitBranch === "string" && entry.gitBranch) state.gitBranch = entry.gitBranch;
   if (type === "system" && entry.subtype === "compact_boundary") state.compactions++;
 
   const id = (entry.uuid as string | undefined) ?? fallbackId;
-  const at = Number.isNaN(ts) ? (state.updatedAt ?? 0) : ts;
+  const at = ts;
   const message = entry.message as Json | undefined;
   const out: ParsedMessage[] = [];
 
@@ -163,10 +116,18 @@ export function applyLine(state: SessionState, line: string, fallbackId: string)
     else if (Array.isArray(content)) {
       for (const part of content as Json[]) {
         if (part.type === "text" && typeof part.text === "string") texts.push(part.text);
-        if (part.type === "tool_result" && part.is_error) {
-          state.toolErrors++;
-          state.recentErrors.push(at);
-          if (state.recentErrors.length > 20) state.recentErrors.shift();
+        if (part.type === "tool_result") {
+          const callId = String(part.tool_use_id ?? "");
+          const failure = noteToolResult(
+            state,
+            at,
+            `${id}:r:${callId}`,
+            part.is_error === true,
+            state.pendingTools?.[callId],
+            resultText(part.content),
+          );
+          if (failure) out.push(failure);
+          if (state.pendingTools) delete state.pendingTools[callId];
         }
       }
     }
@@ -204,16 +165,17 @@ export function applyLine(state: SessionState, line: string, fallbackId: string)
     blocks.forEach((block, index) => {
       const blockId = blocks.length > 1 ? `${id}:${index}` : id;
       if (block.type === "text" && typeof block.text === "string" && block.text.trim()) {
+        checkClaim(state, at, block.text);
         out.push({ id: blockId, ts: at, role: "assistant", kind: "text", text: clip(block.text.trim()) });
       } else if (block.type === "tool_use") {
         const name = String(block.name ?? "tool");
         const input = block.input as Json | undefined;
         state.toolCalls++;
+        state.pendingTools ??= {};
+        if (typeof block.id === "string") state.pendingTools[block.id] = name;
         const file = input?.file_path ?? input?.notebook_path;
-        if (EDIT_TOOLS.has(name) && typeof file === "string" && !state.filesTouched.includes(file)) {
-          state.filesTouched.push(file);
-          if (state.filesTouched.length > 300) state.filesTouched.shift();
-        }
+        if (EDIT_TOOLS.has(name) && typeof file === "string") noteFile(state, file);
+        if (name === "Bash" && typeof input?.command === "string") notePackages(state, input.command);
         out.push({
           id: blockId,
           ts: at,
@@ -226,4 +188,8 @@ export function applyLine(state: SessionState, line: string, fallbackId: string)
     });
   }
   return out;
+}
+
+export function claudeAdapter(root = CLAUDE_PROJECTS_DIR): Adapter {
+  return { tool: "claude", listFiles: () => listSessionFiles(root), applyLine };
 }

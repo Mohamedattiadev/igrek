@@ -5,6 +5,7 @@ const THEMES = ["system", "light", "dark"];
 const DENSITIES = ["comfortable", "compact"];
 const MODES = ["simple", "pro"];
 const KEYMAPS = ["default", "vim"];
+const TONES = ["plain", "technical"];
 
 export function readSettings(db: Db): Settings {
   const rows = db.select().from(settingsTable).all();
@@ -29,6 +30,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     ["density", DENSITIES],
     ["mode", MODES],
     ["keymap", KEYMAPS],
+    ["summaryTone", TONES],
   ];
   for (const [key, allowed] of enums) {
     if (key in body) {

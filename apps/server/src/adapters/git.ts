@@ -1,4 +1,4 @@
-import type { GitInfo } from "@godeye/core";
+import type { CommitItem, GitInfo } from "@godeye/core";
 
 function git(cwd: string, args: string[]): string | undefined {
   try {
@@ -66,4 +66,31 @@ export function gitInfo(root: string): GitInfo | undefined {
   info.remote = gitRemote(root);
   infoCache.set(root, { at: Date.now(), info });
   return info;
+}
+
+/** Commits since `sinceMs` (newest first), with the number of files each touched. */
+export function gitLog(root: string, sinceMs: number, max = 300): CommitItem[] {
+  const args = ["log", `-n${max}`, "--no-merges", "--format=%x1e%h%x1f%an%x1f%ct%x1f%s", "--name-only"];
+  if (sinceMs > 0) args.push(`--since=@${Math.floor(sinceMs / 1000) + 1}`);
+  const out = git(root, args);
+  if (!out) return [];
+  return out
+    .split("\x1e")
+    .filter(Boolean)
+    .map((block) => {
+      const [header = "", ...files] = block.trim().split("\n");
+      const [hash = "", author = "", at = "0", subject = ""] = header.split("\x1f");
+      return { hash, author, subject, at: Number(at) * 1000, files: files.filter(Boolean).length };
+    });
+}
+
+/** Updates remote-tracking branches so ahead/behind is current. Network call, user-triggered only. */
+export function gitFetch(root: string): boolean {
+  const proc = Bun.spawnSync(["git", "-C", root, "fetch", "--quiet", "--no-tags"], {
+    stdout: "ignore",
+    stderr: "ignore",
+    env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+  });
+  infoCache.delete(root);
+  return proc.exitCode === 0;
 }

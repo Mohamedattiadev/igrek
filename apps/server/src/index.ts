@@ -7,6 +7,7 @@ import { loadConfig } from "./config";
 import { openDb } from "./db";
 import { writeHookScript } from "./hooks";
 import { Indexer } from "./indexer";
+import { Jobs } from "./jobs";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
 import { readSettings } from "./settings";
 import { Store } from "./store";
@@ -35,6 +36,7 @@ const summarizer = new Summarizer(
   },
 );
 const hookScript = writeHookScript(config.dataDir, config.publicPort);
+const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const app = createApp({
   config,
   db,
@@ -42,10 +44,19 @@ const app = createApp({
   bus,
   stops,
   startedAt: Date.now(),
-  work: { store, indexer, summarizer, hookScript },
+  work: {
+    store,
+    indexer,
+    summarizer,
+    hookScript,
+    publicPort: config.publicPort,
+    dataDir: config.dataDir,
+    syncCommits: () => jobs.syncCommits(),
+  },
 });
 indexer.start();
 summarizer.start();
+jobs.start();
 
 type SocketData = { unsubscribe?: () => void };
 
@@ -97,6 +108,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, async () => {
     indexer.stop();
     summarizer.stop();
+    jobs.stop();
     await stops.stopAll();
     server.stop();
     process.exit(0);

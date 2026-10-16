@@ -1,5 +1,16 @@
 import type { SessionDetail, TranscriptMessage } from "@godeye/core";
-import { AlertTriangle, ArrowLeft, Bot, FileWarning, MessageSquare, Sparkles, User, Wrench } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Bot,
+  FileWarning,
+  MessageSquare,
+  Package,
+  Sparkles,
+  User,
+  Wrench,
+  XCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
@@ -12,6 +23,20 @@ import { useLiveData } from "../lib/live";
 
 function Message({ message }: { message: TranscriptMessage }) {
   const { t } = useTranslation();
+  if (message.kind === "error") {
+    return (
+      <div className="ms-9 rounded-md border border-danger/30 bg-danger-soft px-2.5 py-1.5 text-xs">
+        <p className="mb-0.5 flex items-center gap-1.5 font-medium text-danger">
+          <XCircle size={12} />
+          {t("session.failed")}
+          {message.toolName && <span className="font-mono font-normal">· {message.toolName}</span>}
+        </p>
+        <pre className="max-h-24 overflow-hidden whitespace-pre-wrap font-mono text-[11px] text-fg-muted">
+          {message.text}
+        </pre>
+      </div>
+    );
+  }
   if (message.kind === "tool") {
     return (
       <div className="flex items-center gap-2 ps-9 text-xs text-fg-subtle">
@@ -73,6 +98,9 @@ function HealthCard({ session }: { session: SessionDetail }) {
           ))}
         </ul>
       )}
+      {health.suggestCompact && (
+        <p className="rounded-md bg-accent-soft p-2.5 text-xs leading-relaxed text-accent">{t("health.compact")}</p>
+      )}
       {health.suggestFresh && (
         <p className="rounded-md bg-warning-soft p-2.5 text-xs leading-relaxed text-warning">{t("health.fresh")}</p>
       )}
@@ -112,7 +140,8 @@ export function SessionPage() {
   };
 
   const model = session && mainModel(session.models);
-  const messages = session?.messages.filter((m) => showTools || m.kind !== "tool") ?? [];
+  const messages = session?.messages.filter((m) => showTools || (m.kind !== "tool" && m.kind !== "error")) ?? [];
+  const riskyPackages = session?.packages.filter((p) => p.status === "missing" || p.status === "new") ?? [];
 
   return (
     <>
@@ -129,7 +158,7 @@ export function SessionPage() {
       {!session ? (
         <div className="m-6 h-64 animate-pulse rounded-ui bg-bg-subtle" />
       ) : (
-        <div className="mx-auto grid w-full max-w-6xl gap-4 p-6 lg:grid-cols-[1fr_300px]">
+        <div className="mx-auto grid w-full max-w-6xl gap-4 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-4">
             <Card className="p-pad">
               <div className="mb-3 flex items-center justify-between">
@@ -184,6 +213,88 @@ export function SessionPage() {
                 value={compactNumber(session.tokens.input + session.tokens.cacheRead + session.tokens.output)}
               />
             </Card>
+            <Card className="space-y-2 p-pad">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("session.inView")}</h3>
+              <p className={cn("text-xs", session.inView.memoryInjected ? "text-success" : "text-fg-muted")}>
+                {session.inView.memoryInjected ? t("session.memoryOn") : t("session.memoryOff")}
+              </p>
+              {session.inView.recentFiles.length > 0 && (
+                <>
+                  <p className="text-[11px] text-fg-subtle">{t("session.inViewHint")}</p>
+                  <ul className="space-y-0.5">
+                    {session.inView.recentFiles.map((file) => (
+                      <li key={file} className="truncate font-mono text-[11px] text-fg-muted" title={file}>
+                        {session.cwd && file.startsWith(session.cwd) ? file.slice(session.cwd.length + 1) : file}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </Card>
+            {session.mentionedMissing.length > 0 && (
+              <Card className="space-y-2 border-warning p-pad">
+                <h3 className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                  <FileWarning size={13} />
+                  {t("session.mentioned")}
+                </h3>
+                <p className="text-xs text-fg-muted">{t("session.mentionedHint")}</p>
+                <ul className="space-y-0.5">
+                  {session.mentionedMissing.map((file) => (
+                    <li key={file} className="truncate font-mono text-[11px]" title={file}>
+                      {file}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            {session.unverifiedClaims.length > 0 && (
+              <Card className="space-y-2 border-warning p-pad">
+                <h3 className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                  <AlertTriangle size={13} />
+                  {t("session.claims")}
+                </h3>
+                <p className="text-xs text-fg-muted">{t("session.claimsHint")}</p>
+                <ul className="space-y-1.5">
+                  {session.unverifiedClaims.slice(-5).map((claim) => (
+                    <li key={claim.ts} className="rounded-md bg-bg-subtle p-2 text-xs leading-relaxed">
+                      “{claim.text}”
+                      <span className="mt-0.5 block text-[11px] text-fg-subtle">{relativeTime(claim.ts)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            {session.packages.length > 0 && (
+              <Card className={cn("space-y-2 p-pad", riskyPackages.length > 0 && "border-danger")}>
+                <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+                  <Package size={13} />
+                  {t("session.packages")} · {session.packages.length}
+                </h3>
+                <p className="text-[11px] text-fg-subtle">{t("session.packagesHint")}</p>
+                {riskyPackages.length > 0 && <p className="text-xs text-danger">{t("session.pkgWarn")}</p>}
+                <ul className="max-h-48 space-y-1 overflow-y-auto">
+                  {session.packages.map((pkg) => (
+                    <li key={`${pkg.manager}:${pkg.name}`} className="flex items-center gap-2 text-xs">
+                      <span className="min-w-0 flex-1 truncate font-mono">{pkg.name}</span>
+                      <span className="text-[10px] text-fg-subtle">{pkg.manager}</span>
+                      <Badge
+                        tone={
+                          pkg.status === "ok"
+                            ? "success"
+                            : pkg.status === "missing"
+                              ? "danger"
+                              : pkg.status === "new"
+                                ? "warning"
+                                : "neutral"
+                        }
+                      >
+                        {t(`session.pkg_${pkg.status}`)}
+                      </Badge>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
             {session.missingFiles.length > 0 && (
               <Card className="space-y-2 border-warning p-pad">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-warning">

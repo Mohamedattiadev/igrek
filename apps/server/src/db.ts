@@ -100,6 +100,44 @@ const migrations: string[] = [
      status TEXT NOT NULL DEFAULT 'active'
    );
    CREATE INDEX memory_project ON memory_items(project_id, section);`,
+  // Faz 1 part 2: Codex, hallucination checks, commits, digests, memory conflicts.
+  `ALTER TABLE sessions ADD COLUMN context_window INTEGER;
+   ALTER TABLE sessions ADD COLUMN unverified_claims TEXT NOT NULL DEFAULT '[]';
+   ALTER TABLE sessions ADD COLUMN packages TEXT NOT NULL DEFAULT '[]';
+   ALTER TABLE sessions ADD COLUMN last_tool_failed INTEGER NOT NULL DEFAULT 0;
+
+   CREATE TABLE commits (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     hash TEXT NOT NULL,
+     author TEXT NOT NULL,
+     subject TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     files INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (project_id, hash)
+   );
+   CREATE INDEX commits_project ON commits(project_id, at DESC);
+
+   CREATE TABLE digests (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     period TEXT NOT NULL,
+     day TEXT NOT NULL,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, period, day)
+   );
+
+   ALTER TABLE memory_items ADD COLUMN conflict_with TEXT;
+   ALTER TABLE memory_items ADD COLUMN conflict_reason TEXT;
+   ALTER TABLE memory_items ADD COLUMN updated_at INTEGER;
+
+   CREATE TABLE package_checks (
+     manager TEXT NOT NULL,
+     name TEXT NOT NULL,
+     status TEXT NOT NULL,
+     detail TEXT,
+     checked_at INTEGER NOT NULL,
+     PRIMARY KEY (manager, name)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {
