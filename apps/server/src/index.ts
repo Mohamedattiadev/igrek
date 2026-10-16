@@ -21,6 +21,8 @@ import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { writeHookScript } from "./hooks";
 import { Indexer } from "./indexer";
+import { Insight } from "./insight";
+import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
 import { registerServerRoutes } from "./server-routes";
@@ -90,6 +92,7 @@ const files = new Files(
 );
 // Team hub: only active once the user connects from the Team page.
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
+const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
 const enhancer = new Enhancer(
   sqlite,
   store,
@@ -114,6 +117,7 @@ const app = createApp({
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync);
     registerEnhanceRoutes(hono, enhancer);
+    registerInsightRoutes(hono, insight);
   },
   work: {
     store,

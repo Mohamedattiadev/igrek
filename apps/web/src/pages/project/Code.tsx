@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSearchParams } from "react-router";
 import { CheckpointRestore } from "../../components/CheckpointRestore";
 import { FilePreview } from "../../components/FilePreview";
 import { Button } from "../../components/ui";
@@ -323,6 +324,15 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
     },
     [buffers],
   );
+
+  // Links from elsewhere (e.g. a finding's evidence): ?tab=code&file=src/a.ts&line=12
+  const [params] = useSearchParams();
+  const linked = params.get("file");
+  const linkedLine = Number(params.get("line")) || undefined;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: open once per link
+  useEffect(() => {
+    if (linked) void openFile(linked.startsWith("/") ? linked : `${project.path}/${linked}`, linkedLine);
+  }, [linked, linkedLine]);
 
   const openDiff = async (relative: string) => {
     const path = `${project.path}/${relative}`;

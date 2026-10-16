@@ -3,7 +3,7 @@
  * hide a harmless string than to leak a key; the end of each secret is kept so
  * people can still tell which one it was.
  */
-const PATTERNS: RegExp[] = [
+export const SECRET_PATTERNS: RegExp[] = [
   /\bsk-ant-[A-Za-z0-9_-]{20,}/g, // Anthropic
   /\bsk-(proj-)?[A-Za-z0-9_-]{20,}/g, // OpenAI
   /\bgh[pousr]_[A-Za-z0-9]{30,}/g, // GitHub
@@ -29,7 +29,7 @@ function mask(secret: string): string {
 
 export function scrub(text: string): string {
   let out = text;
-  for (const pattern of PATTERNS)
+  for (const pattern of SECRET_PATTERNS)
     out = out.replace(pattern, (m) => (m.startsWith("-----BEGIN") ? "[private key removed]" : mask(m)));
   out = out.replace(
     ASSIGNMENT,

@@ -173,7 +173,8 @@
     "renameHint": "Sadece God Eye'da görünen adı değiştirir.",
     "save": "Kaydet",
     "commitBy": "{{author}} commit attı",
-    "sessionsAndCommits": "{{sessions}} session · {{commits}} commit"
+    "sessionsAndCommits": "{{sessions}} session · {{commits}} commit",
+    "sections": "Bölümler"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -711,5 +712,278 @@
     "sendOriginalTip": "Tam olarak yazdığını gönder",
     "send": "Güçlendirilmişi gönder",
     "dialogPlaceholder": "Üşenerek yaz, ör. \"login bozuk düzelt\""
+  },
+  "insight": {
+    "scoreLabel": "Puan 100 üzerinden {{score}}, not {{grade}}",
+    "scoreTip": "{{score}}/100 · not {{grade}}. Aşağıdaki kontrollerden hesaplanır; her puanın kanıtı var.",
+    "trend": "Zaman içinde",
+    "trendEmpty": "Trend bir sonraki taramadan sonra görünür.",
+    "trendLabel": "Puan {{from}} → {{to}}",
+    "diagramFailed": "Diyagram çizilemedi.",
+    "allSections": "Tüm bölümler",
+    "fileCount_one": "{{count}} dosya",
+    "fileCount_other": "{{count}} dosya",
+    "howItWorks": "Nasıl çalışıyor?",
+    "reexplain": "Yeniden açıkla",
+    "reexplainTip": "Yeni bir açıklama yaz (küçük modeli kullanır)",
+    "explaining": "Projenin bu bölümü okunuyor…",
+    "diagramArch": "Parçalar nasıl bağlı",
+    "diagramArchHint": "Oklar: kim kimi import ediyor, import sayısıyla.",
+    "diagramDb": "Tablolar",
+    "diagramDbHint": "Koddaki migration ve şema dosyalarından.",
+    "toImprove_one": "İyileştirilecek {{count}} şey",
+    "toImprove_other": "İyileştirilecek {{count}} şey",
+    "allGood": "Burada düzeltilecek bir şey yok",
+    "passed_one": "{{count}} kontrol geçti",
+    "passed_other": "{{count}} kontrol geçti",
+    "showEvidence_one": "Nerede ({{count}})",
+    "showEvidence_other": "Nerede ({{count}})",
+    "hideEvidence": "Gizle",
+    "openFile": "Kod editöründe aç",
+    "gainTip": "Bunu düzeltmek puanı yaklaşık {{points}} artırır",
+    "fix": "Düzelt",
+    "fixTip": "Bunun için hazır bir prompt'la chat aç. Gönder'e basana kadar hiçbir şey gönderilmez.",
+    "fixDone": "God Eye'ın \"{{check}}\" kontrolü geçiyor",
+    "fixTests": "Mevcut testler hâlâ geçiyor",
+    "fixFocus": "Sadece bunun gerektirdiğini değiştir",
+    "sessions": "Burada çalışan session'lar",
+    "files_one": "Bu bölümde {{count}} dosya",
+    "files_other": "Bu bölümde {{count}} dosya",
+    "askPlaceholder": "{{section}} hakkında sor ya da bir şey iste…",
+    "unavailable": "Bu proje puanlanamıyor",
+    "scanning": "Taranıyor…",
+    "noScan": "Henüz taranmadı",
+    "noScanBody": "God Eye kodu okur (hiçbir şey çalıştırılmaz veya bir yere gönderilmez) ve her bölümü kanıtla puanlar.",
+    "scan": "Şimdi tara",
+    "scanTip": "Kodu yeniden oku ve tekrar puanla. Ücretsiz: puanlar için AI kullanılmaz.",
+    "overall": "Proje sağlığı",
+    "overallHint": "Aşağıdaki bölümlerin ortalaması; güvenlik ve testler biraz daha fazla sayılır.",
+    "lastScan": "{{when}} tarandı · {{files}} dosya",
+    "check": {
+      "arch": {
+        "readme": {
+          "title": "Projenin en üstünde README",
+          "fix": "Proje kökünde ne olduğunu ve nasıl çalıştırıldığını anlatan bir README.md ekle."
+        },
+        "bigFiles": {
+          "title": "Çok uzun dosyalar: {{metric}}",
+          "fix": "En uzun dosyaları (600 satırdan fazla) her biri tek bir işi yapan küçük modüllere böl; davranış değişmesin."
+        },
+        "todo": {
+          "title": "TODO / FIXME notları: {{metric}}",
+          "fix": "TODO ve FIXME yorumlarını gözden geçir: kısa olanları yap, kalanları göreve çevir, eskimişleri sil."
+        },
+        "types": {
+          "title": "Tipli kod oranı: {{metric}}",
+          "fix": "Kalan JavaScript dosyalarını en çok kullanılanlardan başlayarak TypeScript'e çevir."
+        },
+        "lint": {
+          "title": "Linter / formatter kurulu",
+          "fix": "Repoya bir linter ve formatter ekle (örneğin Biome veya ESLint + Prettier, Python için Ruff) ve ayar dosyasını koy."
+        }
+      },
+      "fe": {
+        "strict": {
+          "title": "TypeScript strict modu",
+          "fix": "tsconfig.json'da \"strict\": true'yu aç ve çıkan tip hatalarını düzelt."
+        },
+        "bigComponents": {
+          "title": "Çok büyük arayüz bileşenleri: {{metric}}",
+          "fix": "En büyük arayüz bileşenlerini (400 satırdan fazla) daha küçük bileşenlere ve hook'lara böl; görünüm aynı kalsın."
+        },
+        "any": {
+          "title": "\"any\" kullanımı: {{metric}}",
+          "fix": "Listelenen yerlerde \"any\" tiplerini gerçek tiplerle (ya da \"unknown\" + kontrol) değiştir."
+        },
+        "errorBoundary": {
+          "title": "Boş sayfa yerine hata ekranı",
+          "fix": "Bir error boundary (veya router'ın errorElement'i) ekle; çökme olunca boş sayfa yerine anlaşılır bir hata ekranı çıksın."
+        },
+        "i18n": {
+          "title": "Başka dillere hazır",
+          "fix": "Arayüz metinlerini bir i18n kütüphanesiyle çeviri dosyalarına taşı; uygulama çevrilebilir olsun."
+        }
+      },
+      "ux": {
+        "dark": {
+          "title": "Koyu tema",
+          "fix": "Ortak renk değişkenleriyle, sistem ayarını (prefers-color-scheme) izleyen bir koyu tema ekle."
+        },
+        "responsive": {
+          "title": "Küçük ekranlarda çalışıyor",
+          "fix": "Düzeni breakpoint'lerle duyarlı yap; telefonlarda ve dar pencerelerde de çalışsın."
+        },
+        "alt": {
+          "title": "Alt metni olmayan görseller: {{metric}}",
+          "fix": "Listelenen görsellere anlamlı alt metni ekle (sadece süs olanlara alt=\"\")."
+        },
+        "focus": {
+          "title": "Görünür klavye odağı",
+          "fix": "Klavye kullananlar nerede olduklarını görsün diye belirgin :focus-visible stilleri ekle."
+        }
+      },
+      "be": {
+        "validation": {
+          "title": "Girdi doğrulama",
+          "fix": "API girişinde istek gövdesini ve parametreleri bir şema kütüphanesiyle doğrula (örneğin zod veya valibot; Python'da pydantic)."
+        },
+        "rateLimit": {
+          "title": "İstek sınırlama",
+          "fix": "Giriş ve diğer pahalı veya herkese açık endpoint'lere istek sınırı (rate limit) ekle."
+        },
+        "emptyCatch": {
+          "title": "Sessizce yutulan hatalar: {{metric}}",
+          "fix": "Listelenen yerlerde boş catch ile hatayı yok saymak yerine işle ya da logla."
+        }
+      },
+      "db": {
+        "migrations": {
+          "title": "Veritabanı migration'ları",
+          "fix": "Tablo değişikliklerini elle yapmak yerine sürümlü migration'larla yönet."
+        },
+        "injection": {
+          "title": "Metinle kurulan sorgular: {{metric}}",
+          "fix": "Listelenen sorgularda değerleri ${...} ile eklemek yerine parametre olarak geçir (SQL injection riski)."
+        }
+      },
+      "ops": {
+        "ci": {
+          "title": "Her push'ta otomatik kontrol (CI)",
+          "fix": "Her push'ta kurulum, lint, tip kontrolü ve testleri çalıştıran bir CI akışı ekle (örneğin GitHub Actions)."
+        },
+        "dockerUser": {
+          "title": "Container'lar root olarak çalışmıyor",
+          "fix": "Listelenen Dockerfile'lara root olmayan bir USER ekle."
+        },
+        "dockerignore": {
+          "title": ".dockerignore var",
+          "fix": "node_modules, .git, build çıktıları ve .env dosyalarını dışarıda bırakan bir .dockerignore ekle."
+        },
+        "healthcheck": {
+          "title": "Sağlık kontrolü",
+          "fix": "Bozulan container fark edilsin diye Dockerfile'a HEALTHCHECK (veya compose'a healthcheck) ekle."
+        },
+        "pinned": {
+          "title": "Sürümü sabit olmayan imajlar: {{metric}}",
+          "fix": "Listelenen base imajları :latest veya etiketsiz yerine belirli bir sürüme sabitle."
+        }
+      },
+      "sec": {
+        "envTracked": {
+          "title": ".env dosyaları git'te değil",
+          "fix": "Listelenen .env dosyalarını git'ten çıkar (git rm --cached), .gitignore'a .env ekle ve içindeki tüm sırları değiştir."
+        },
+        "secrets": {
+          "title": "Kodda anahtar veya şifre: {{metric}}",
+          "fix": "Listelenen satırlardaki sırları ortam değişkenlerine taşı ve commit edildikleri için o anahtarları değiştir."
+        },
+        "publicKeys": {
+          "title": "Kısıtlanması gereken açık anahtarlar: {{metric}}",
+          "fix": "Bu Google/Firebase istemci anahtarları zaten herkese açık olacak şekilde tasarlandı; Google Cloud Console'da her birinin kısıtlı olduğundan emin ol (uygulama, site ve API kısıtları)."
+        },
+        "gitignoreEnv": {
+          "title": ".env, .gitignore'da",
+          "fix": ".gitignore'a .env (ve örnekler hariç .env.*) ekle."
+        },
+        "dangerous": {
+          "title": "Riskli kod kalıpları: {{metric}}",
+          "fix": "Listelenen eval, innerHTML, metinden kurulan shell komutları gibi yerleri incele: güvenli alternatiflerle değiştir veya girdiyi temizle."
+        }
+      },
+      "test": {
+        "exists": {
+          "title": "Testler: {{metric}} dosya",
+          "fix": "En önemli davranışlar için, en sık bozulan koddan başlayarak testler ekle."
+        },
+        "ratio": {
+          "title": "Kod dosyası başına test: {{metric}}",
+          "fix": "Henüz testi olmayan ana modüllere test ekle (yaklaşık her üç kod dosyasına bir test dosyası hedefle)."
+        },
+        "script": {
+          "title": "Testler tek komutla çalışıyor",
+          "fix": "Tüm testler tek komutla çalışsın diye bir \"test\" script'i (veya pytest ayarı) ekle."
+        },
+        "ci": {
+          "title": "CI testleri çalıştırıyor",
+          "fix": "CI akışı sadece build değil test paketini de çalıştırsın."
+        }
+      },
+      "perf": {
+        "assets": {
+          "title": "Repoda ağır dosyalar: {{metric}}",
+          "fix": "Listelenen dosyaları sıkıştır veya küçült (görseller için WebP/AVIF) ya da bir CDN'den yükle."
+        },
+        "lazy": {
+          "title": "Sayfalar sadece gerekeni yüklüyor",
+          "fix": "Az kullanılan sayfaları ve ağır bileşenleri ihtiyaç anında yükle (React.lazy / dynamic import)."
+        }
+      },
+      "docs": {
+        "readme": {
+          "title": "README uzunluğu: {{metric}} karakter",
+          "fix": "README'yi genişlet: proje ne yapıyor, nasıl kurulur ve çalıştırılır, nasıl düzenlenmiş."
+        },
+        "install": {
+          "title": "README nasıl başlanacağını anlatıyor",
+          "fix": "README'ye tam komutlarla bir \"Kurulum\" ve \"Kullanım\" bölümü ekle."
+        },
+        "license": {
+          "title": "Lisans",
+          "fix": "Başkaları kodu nasıl kullanabileceğini bilsin diye bir LICENSE dosyası ekle."
+        },
+        "envExample": {
+          "title": "Ayarlar için .env.example",
+          "fix": "Kodun okuduğu her ortam değişkenini boş veya örnek değerlerle listeleyen bir .env.example ekle."
+        },
+        "any": {
+          "title": "Herhangi bir doküman",
+          "fix": "En azından projeyi anlatan bir README ekle."
+        }
+      },
+      "deps": {
+        "lockfile": {
+          "title": "Sürümler kilitli (lockfile)",
+          "fix": "Herkes aynı sürümleri kursun diye lockfile'ı commit et."
+        },
+        "loose": {
+          "title": "Sınırsız sürümler: {{metric}}",
+          "fix": "\"*\", \"latest\" ve ucu açık \">=\" sürümlerini normal aralıklarla değiştir (örneğin ^1.2.3)."
+        },
+        "mixedLocks": {
+          "title": "Tek paket yöneticisi",
+          "fix": "Tek bir paket yöneticisi kullan: listelenen klasörlerdeki fazladan lockfile'ları sil."
+        },
+        "deprecated": {
+          "title": "Artık desteklenmeyen paketler: {{metric}}",
+          "fix": "Listelenen desteklenmeyen paketleri bakımı süren alternatifleriyle değiştir."
+        }
+      }
+    },
+    "cat": {
+      "architecture": "Mimari",
+      "frontend": "Frontend",
+      "uiux": "Arayüz / Deneyim",
+      "backend": "Backend",
+      "database": "Veritabanı",
+      "devops": "DevOps",
+      "security": "Güvenlik",
+      "testing": "Testler",
+      "performance": "Performans",
+      "docs": "Dokümantasyon",
+      "dependencies": "Bağımlılıklar"
+    },
+    "catHint": {
+      "architecture": "Projenin nasıl kurulduğu: parçaları ve birbirine nasıl bağlı oldukları.",
+      "frontend": "Tarayıcıda veya uygulamada çalışan kod: ekranlar ve bileşenler.",
+      "uiux": "Nasıl görünüyor ve hissettiriyor: temalar, küçük ekranlar, erişilebilirlik.",
+      "backend": "Sunucu tarafı: API'ler, iş kuralları ve isteklerin nasıl işlendiği.",
+      "database": "Verinin saklandığı yer: tablolar, migration'lar ve sorgular.",
+      "devops": "Derleme, yayınlama ve çalıştırma: Docker, CI ve deploy.",
+      "security": "Sırlar, riskli kod ve sızabilecek şeyler.",
+      "testing": "Kodun otomatik olarak ne kadar iyi kontrol edildiği.",
+      "performance": "Ne kadar hızlı yüklendiği: ağır dosyalar ve sadece gerekenin yüklenmesi.",
+      "docs": "Yeni biri için anlamanın ve başlamanın ne kadar kolay olduğu.",
+      "dependencies": "Dayandığı dış paketler ve sürümlerinin ne kadar güvenli sabitlendiği."
+    }
   }
 }

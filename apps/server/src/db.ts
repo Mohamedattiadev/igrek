@@ -229,6 +229,24 @@ const migrations: string[] = [
      choice TEXT NOT NULL DEFAULT 'pending'
    );
    CREATE INDEX enhancements_at ON enhancements(at);`,
+  // Faz 5: category pages. Every scan is kept small (scores + findings) so the trend has history.
+  `CREATE TABLE insight_scans (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     at INTEGER NOT NULL,
+     overall INTEGER NOT NULL,
+     scores TEXT NOT NULL,
+     data TEXT NOT NULL
+   );
+   CREATE INDEX insight_scans_project ON insight_scans(project_id, at);
+   CREATE TABLE category_texts (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     category TEXT NOT NULL,
+     texts TEXT NOT NULL,
+     files_hash TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, category)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

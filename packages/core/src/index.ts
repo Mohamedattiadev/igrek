@@ -1,3 +1,4 @@
+export * from "./insight";
 export * from "./prompt";
 
 export const APP_NAME = "God Eye";
@@ -556,6 +557,7 @@ export type ServerMessage =
   | { type: "accounts-changed" }
   | { type: "limits-changed" }
   | { type: "team-changed" }
+  | { type: "insight-changed"; projectId: string }
   | { type: "presence" };
 
 /** Messages sent from UI to server over the WebSocket. */

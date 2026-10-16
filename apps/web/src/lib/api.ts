@@ -3,6 +3,8 @@ import type {
   AiTool,
   Approval,
   AskAnswer,
+  Category,
+  CategoryDetail,
   ChatInfo,
   ChatMode,
   Checkpoint,
@@ -16,6 +18,7 @@ import type {
   Idea,
   IdeaStatus,
   IndexStatus,
+  InsightScan,
   LimitsOverview,
   MemorySection,
   Presence,
@@ -190,6 +193,19 @@ export const api = {
   }) => request<EnhanceResult & { id: string }>("/api/enhance", { method: "POST", body: JSON.stringify(body) }),
   enhanceUsed: (id: string, choice: "enhanced" | "edited" | "original", final?: string) =>
     request<{ ok: boolean }>(`/api/enhance/${id}/used`, { method: "POST", body: JSON.stringify({ choice, final }) }),
+  insight: (projectId: string) =>
+    request<
+      (InsightScan & { scanning: boolean; trend: { at: number; overall: number }[] }) | { scanning: boolean; trend: [] }
+    >(`/api/projects/${projectId}/insight`),
+  insightScan: (projectId: string) =>
+    request<InsightScan>(`/api/projects/${projectId}/insight/scan`, { method: "POST" }),
+  insightCategory: (projectId: string, category: Category) =>
+    request<CategoryDetail>(`/api/projects/${projectId}/insight/${category}`),
+  insightExplain: (projectId: string, category: Category, force = false) =>
+    request<CategoryDetail>(`/api/projects/${projectId}/insight/${category}/explain`, {
+      method: "POST",
+      body: JSON.stringify({ force }),
+    }),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

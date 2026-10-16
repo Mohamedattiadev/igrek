@@ -173,7 +173,8 @@
     "renameHint": "Only changes the name shown in God Eye.",
     "save": "Save",
     "commitBy": "{{author}} committed",
-    "sessionsAndCommits": "{{sessions}} sessions · {{commits}} commits"
+    "sessionsAndCommits": "{{sessions}} sessions · {{commits}} commits",
+    "sections": "Sections"
   },
   "memory": {
     "title": "Project memory",
@@ -711,5 +712,278 @@
     "sendOriginalTip": "Send exactly what you wrote",
     "send": "Send enhanced",
     "dialogPlaceholder": "Write it the lazy way, e.g. \"login is broken, fix it\""
+  },
+  "insight": {
+    "scoreLabel": "Score {{score}} of 100, grade {{grade}}",
+    "scoreTip": "{{score}}/100 · grade {{grade}}. Computed from the checks below; every point has evidence.",
+    "trend": "Over time",
+    "trendEmpty": "The trend appears after the next scan.",
+    "trendLabel": "Score went from {{from}} to {{to}}",
+    "diagramFailed": "The diagram couldn't be drawn.",
+    "allSections": "All sections",
+    "fileCount_one": "{{count}} file",
+    "fileCount_other": "{{count}} files",
+    "howItWorks": "How does it work?",
+    "reexplain": "Explain again",
+    "reexplainTip": "Write a fresh explanation (uses the small model)",
+    "explaining": "Reading this part of the project…",
+    "diagramArch": "How the parts connect",
+    "diagramArchHint": "Arrows: who imports whom, with the number of imports.",
+    "diagramDb": "Tables",
+    "diagramDbHint": "From the migrations and schema files in the code.",
+    "toImprove_one": "{{count}} thing to improve",
+    "toImprove_other": "{{count}} things to improve",
+    "allGood": "Nothing to fix here",
+    "passed_one": "{{count}} check passed",
+    "passed_other": "{{count}} checks passed",
+    "showEvidence_one": "Show where ({{count}})",
+    "showEvidence_other": "Show where ({{count}})",
+    "hideEvidence": "Hide",
+    "openFile": "Open in the code editor",
+    "gainTip": "Fixing this raises the score by about {{points}} points",
+    "fix": "Fix",
+    "fixTip": "Open a chat with a ready prompt for this. Nothing is sent until you press Send.",
+    "fixDone": "God Eye's check \"{{check}}\" passes",
+    "fixTests": "Existing tests still pass",
+    "fixFocus": "Change only what this needs",
+    "sessions": "Sessions that worked here",
+    "files_one": "{{count}} file in this part",
+    "files_other": "{{count}} files in this part",
+    "askPlaceholder": "Ask or ask for something about {{section}}…",
+    "unavailable": "Can't score this project",
+    "scanning": "Scanning…",
+    "noScan": "Not scanned yet",
+    "noScanBody": "God Eye reads the code (nothing is run or sent anywhere) and scores each part with evidence.",
+    "scan": "Scan now",
+    "scanTip": "Re-read the code and score again. Free: no AI is used for scores.",
+    "overall": "Project health",
+    "overallHint": "The average of the sections below; security and tests count a bit more.",
+    "lastScan": "Scanned {{when}} · {{files}} files",
+    "check": {
+      "arch": {
+        "readme": {
+          "title": "README at the top of the project",
+          "fix": "Add a README.md at the project root that says what the project is and how to run it."
+        },
+        "bigFiles": {
+          "title": "Very long files: {{metric}}",
+          "fix": "Split the longest files (over 600 lines) into smaller modules with one clear job each, without changing behaviour."
+        },
+        "todo": {
+          "title": "TODO / FIXME notes: {{metric}}",
+          "fix": "Go through the TODO and FIXME comments: do the quick ones, turn the rest into tracked tasks, and remove stale ones."
+        },
+        "types": {
+          "title": "Typed code: {{metric}}",
+          "fix": "Convert the remaining JavaScript files to TypeScript, starting with the most used ones."
+        },
+        "lint": {
+          "title": "Linter / formatter set up",
+          "fix": "Set up a linter and formatter (for example Biome or ESLint + Prettier, or Ruff for Python) with a config file in the repo."
+        }
+      },
+      "fe": {
+        "strict": {
+          "title": "TypeScript strict mode",
+          "fix": "Turn on \"strict\": true in tsconfig.json and fix the type errors it reveals."
+        },
+        "bigComponents": {
+          "title": "Very large UI components: {{metric}}",
+          "fix": "Break the largest UI components (over 400 lines) into smaller components and hooks, keeping the UI identical."
+        },
+        "any": {
+          "title": "Uses of \"any\": {{metric}}",
+          "fix": "Replace \"any\" types with real types (or \"unknown\" plus a check) in the listed places."
+        },
+        "errorBoundary": {
+          "title": "Error screen instead of a blank page",
+          "fix": "Add an error boundary (or the router's errorElement) so a crash shows a friendly error screen instead of a blank page."
+        },
+        "i18n": {
+          "title": "Ready for other languages",
+          "fix": "Move the UI texts into translation files with an i18n library so the app can be translated."
+        }
+      },
+      "ux": {
+        "dark": {
+          "title": "Dark mode",
+          "fix": "Add a dark theme that follows the system setting (prefers-color-scheme) using shared color variables."
+        },
+        "responsive": {
+          "title": "Works on small screens",
+          "fix": "Make the layout responsive with breakpoints so it works on phones and narrow windows."
+        },
+        "alt": {
+          "title": "Images without alt text: {{metric}}",
+          "fix": "Add meaningful alt text to the listed images (alt=\"\" for purely decorative ones)."
+        },
+        "focus": {
+          "title": "Visible keyboard focus",
+          "fix": "Add clear :focus-visible styles so keyboard users can see where they are."
+        }
+      },
+      "be": {
+        "validation": {
+          "title": "Input validation",
+          "fix": "Validate request bodies and parameters with a schema library (for example zod or valibot; pydantic in Python) at the API boundary."
+        },
+        "rateLimit": {
+          "title": "Rate limiting",
+          "fix": "Add rate limiting to login and other expensive or public endpoints."
+        },
+        "emptyCatch": {
+          "title": "Errors silently swallowed: {{metric}}",
+          "fix": "In the listed places, handle or log the error instead of ignoring it with an empty catch."
+        }
+      },
+      "db": {
+        "migrations": {
+          "title": "Database migrations",
+          "fix": "Manage schema changes with versioned migrations instead of changing tables by hand."
+        },
+        "injection": {
+          "title": "Queries built from strings: {{metric}}",
+          "fix": "In the listed queries, pass values as bound parameters instead of inserting them with ${...} (SQL injection risk)."
+        }
+      },
+      "ops": {
+        "ci": {
+          "title": "Automatic checks on every push (CI)",
+          "fix": "Add a CI workflow (for example GitHub Actions) that installs, lints, type-checks and runs the tests on every push."
+        },
+        "dockerUser": {
+          "title": "Containers don't run as root",
+          "fix": "Add a non-root USER to the listed Dockerfiles."
+        },
+        "dockerignore": {
+          "title": ".dockerignore present",
+          "fix": "Add a .dockerignore that leaves out node_modules, .git, build output and .env files."
+        },
+        "healthcheck": {
+          "title": "Health check",
+          "fix": "Add a HEALTHCHECK to the Dockerfile (or healthcheck in compose) so broken containers are noticed."
+        },
+        "pinned": {
+          "title": "Base images without a fixed version: {{metric}}",
+          "fix": "Pin the listed base images to a specific version instead of :latest or no tag."
+        }
+      },
+      "sec": {
+        "envTracked": {
+          "title": ".env files kept out of git",
+          "fix": "Remove the listed .env files from git (git rm --cached), add .env to .gitignore, and change every secret that was in them."
+        },
+        "secrets": {
+          "title": "Keys or passwords in the code: {{metric}}",
+          "fix": "Move the secrets found in the listed lines to environment variables, and change (rotate) those keys, since they were committed."
+        },
+        "publicKeys": {
+          "title": "Public client keys to restrict: {{metric}}",
+          "fix": "These Google/Firebase client keys are public by design; make sure each one is restricted (app, website and API restrictions) in Google Cloud Console."
+        },
+        "gitignoreEnv": {
+          "title": ".env is in .gitignore",
+          "fix": "Add .env (and .env.*, except examples) to .gitignore."
+        },
+        "dangerous": {
+          "title": "Risky code patterns: {{metric}}",
+          "fix": "Review the listed eval, innerHTML, shell commands built from strings and similar: replace them with safe alternatives or sanitize the input."
+        }
+      },
+      "test": {
+        "exists": {
+          "title": "Tests: {{metric}} files",
+          "fix": "Add tests for the most important behaviour, starting with the code that breaks most often."
+        },
+        "ratio": {
+          "title": "Test files per code file: {{metric}}",
+          "fix": "Add tests for the main modules that have none yet (aim for about one test file per three code files)."
+        },
+        "script": {
+          "title": "One command runs the tests",
+          "fix": "Add a \"test\" script (or pytest config) so the whole suite runs with one command."
+        },
+        "ci": {
+          "title": "CI runs the tests",
+          "fix": "Make the CI workflow run the test suite, not just the build."
+        }
+      },
+      "perf": {
+        "assets": {
+          "title": "Heavy files in the repo: {{metric}}",
+          "fix": "Compress or resize the listed assets (WebP/AVIF for images), or load them from a CDN."
+        },
+        "lazy": {
+          "title": "Pages load only what they need",
+          "fix": "Load rarely used pages and heavy components on demand (React.lazy / dynamic import)."
+        }
+      },
+      "docs": {
+        "readme": {
+          "title": "README length: {{metric}} characters",
+          "fix": "Expand the README: what the project does, how to install and run it, and how it's organised."
+        },
+        "install": {
+          "title": "README explains how to start",
+          "fix": "Add an \"Install\" and \"Usage\" section to the README with the exact commands."
+        },
+        "license": {
+          "title": "License",
+          "fix": "Add a LICENSE file so others know how they may use the code."
+        },
+        "envExample": {
+          "title": ".env.example for settings",
+          "fix": "Add a .env.example listing every environment variable the code reads, with empty or sample values."
+        },
+        "any": {
+          "title": "Any documentation",
+          "fix": "Add at least a README describing the project."
+        }
+      },
+      "deps": {
+        "lockfile": {
+          "title": "Exact versions locked (lockfile)",
+          "fix": "Commit the lockfile so everyone installs the same versions."
+        },
+        "loose": {
+          "title": "Unbounded versions: {{metric}}",
+          "fix": "Replace \"*\", \"latest\" and open-ended \">=\" versions with normal ranges (for example ^1.2.3)."
+        },
+        "mixedLocks": {
+          "title": "One package manager",
+          "fix": "Keep a single package manager: remove the extra lockfiles in the listed folders."
+        },
+        "deprecated": {
+          "title": "Deprecated packages: {{metric}}",
+          "fix": "Replace the listed deprecated packages with their maintained alternatives."
+        }
+      }
+    },
+    "cat": {
+      "architecture": "Architecture",
+      "frontend": "Frontend",
+      "uiux": "UI / UX",
+      "backend": "Backend",
+      "database": "Database",
+      "devops": "DevOps",
+      "security": "Security",
+      "testing": "Tests",
+      "performance": "Performance",
+      "docs": "Docs",
+      "dependencies": "Dependencies"
+    },
+    "catHint": {
+      "architecture": "How the project is put together: its parts and how they depend on each other.",
+      "frontend": "The code that runs in the browser or app: screens and components.",
+      "uiux": "How it looks and feels: themes, small screens, accessibility.",
+      "backend": "The server side: APIs, business rules and how requests are handled.",
+      "database": "Where data is stored: tables, migrations and queries.",
+      "devops": "Building, shipping and running it: Docker, CI and deployment.",
+      "security": "Secrets, risky code and what could leak.",
+      "testing": "How well the code is checked automatically.",
+      "performance": "How fast it loads: heavy files and loading only what's needed.",
+      "docs": "How easy it is for someone new to understand and start.",
+      "dependencies": "The outside packages it relies on and how safely they're pinned."
+    }
   }
 }

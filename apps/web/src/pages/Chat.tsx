@@ -25,7 +25,7 @@ import {
 import { marked } from "marked";
 import { type ClipboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel } from "../components/Enhance";
 import { PromptPicker } from "../components/PromptPicker";
@@ -255,7 +255,13 @@ export function ChatPage() {
   const navigate = useNavigate();
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
-  const [text, setText] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  // A prompt prepared elsewhere (a "Fix" button) waits in the box; nothing is sent until the user does.
+  const [text, setText] = useState(() => searchParams.get("draft") ?? "");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: drop the draft from the URL once it's in the box
+  useEffect(() => {
+    if (searchParams.has("draft")) setSearchParams({}, { replace: true });
+  }, []);
   const { settings } = useSettings();
   /** The text the enhancer was opened with; undefined while closed. */
   const [enhancing, setEnhancing] = useState<string>();

@@ -725,25 +725,25 @@ god-eye/
 **Hedef:** Projenin her bölümünü anlaşılır şekilde anlatmak ve iyi mi kötü mü kanıtla göstermek.
 
 #### 5.1 Kategori tespiti
-- [ ] Repoyu tarayıp kategorileri otomatik tespit et: Mimari, UI/UX, Frontend, Backend, Veritabanı, DevOps, Güvenlik, Test, Performans, Dokümantasyon, Bağımlılıklar
-- [ ] Her dosya, session ve commit ilgili kategoriye bağlanır
-- [ ] Projede olmayan kategori gösterilmez (ör. DB yoksa DB sayfası da yok)
+- [x] Repoyu tarayıp kategorileri otomatik tespit et: Mimari, UI/UX, Frontend, Backend, Veritabanı, DevOps, Güvenlik, Test, Performans, Dokümantasyon, Bağımlılıklar — *JS/TS, Python, Go, Rust, Ruby manifest'lerinden ve dosya yapısından*
+- [x] Her dosya, session ve commit ilgili kategoriye bağlanır — *dosyalar ve session'lar bağlı; commit'lerde dosya listesi tutulmadığı için commit bağlantısı sonra*
+- [x] Projede olmayan kategori gösterilmez (ör. DB yoksa DB sayfası da yok)
 
 #### 5.2 Kategori sayfası
-- [ ] **Sade anlatım:** "Bu bölüm nasıl çalışıyor?" (TR/EN)
-- [ ] **Otomatik diyagram:** mimari, DB şeması, API akışı, deploy akışı (Mermaid)
-- [ ] **İlgili her şey:** dosyalar, session'lar, kararlar, açık sorunlar, fazlar, görevler
-- [ ] **Puan halkası (0–100) + not (A–F):** neden bu puan, ne düzelirse kaç puan artar
-- [ ] **Trend grafiği:** puan zaman içinde nasıl değişti
-- [ ] **"Düzelt" butonları:** her sorunun yanında, tek tıkla ilgili personaya görev olarak gider
-- [ ] Sayfa altında bağlama duyarlı prompt kutusu
+- [x] **Sade anlatım:** "Bu bölüm nasıl çalışıyor?" (TR/EN) — *Haiku ile, dosyalar değişene kadar önbellekte*
+- [x] **Otomatik diyagram:** mimari, DB şeması, API akışı, deploy akışı (Mermaid) — *mimari (import grafiği) ve DB şeması var; API ve deploy akışı API Haritası ile gelecek*
+- [ ] **İlgili her şey:** dosyalar, session'lar, kararlar, açık sorunlar, fazlar, görevler — *dosyalar, session'lar ve sorunlar var; kararlar/görevler bağlantısı sonra*
+- [x] **Puan halkası (0–100) + not (A–F):** neden bu puan, ne düzelirse kaç puan artar
+- [x] **Trend grafiği:** puan zaman içinde nasıl değişti
+- [x] **"Düzelt" butonları:** her sorunun yanında, tek tıkla ilgili personaya görev olarak gider — *şimdilik hazır prompt'la chat açar (gönderilmez); personalar Faz 6'da*
+- [x] Sayfa altında bağlama duyarlı prompt kutusu
 
 #### 5.3 Kanıta dayalı puanlama
-- [ ] Önce deterministik araçlar: `tsc`, eslint/biome, testler + coverage, `npm audit` / `osv-scanner`, semgrep, gitleaks, bundle size, Lighthouse
-- [ ] LLM bu çıktıları ve kodu rubriğe göre yorumlar; her puanın yanında kanıt linki zorunlu
+- [ ] Önce deterministik araçlar: `tsc`, eslint/biome, testler + coverage, `npm audit` / `osv-scanner`, semgrep, gitleaks, bundle size, Lighthouse — *şimdilik kodu çalıştırmayan 44 statik kontrol (sır tarama, SQL injection kalıbı, Docker, CI, testler, tipler…); dış araçları onaylı çalıştırma sonra*
+- [ ] LLM bu çıktıları ve kodu rubriğe göre yorumlar; her puanın yanında kanıt linki zorunlu — *her bulgu dosya:satır kanıtıyla, tıklayınca Kod sekmesinde açılıyor; LLM sadece açıklamayı yazıyor, puanı değil*
 - [ ] Açık rubrik dosyaları (`rubrics/*.md`), düzenlenebilir
-- [ ] Genel sağlık puanı = kategori ağırlıklı ortalaması (ağırlıklar ayarlanabilir)
-- [ ] Puanlama otomatik tetiklenir (session bitince, commit sonrası), zorunlu olmadıkça pahalı model kullanılmaz
+- [x] Genel sağlık puanı = kategori ağırlıklı ortalaması (ağırlıklar ayarlanabilir) — *güvenlik ×1.5, test ×1.2; ayar ekranı sonra*
+- [ ] Puanlama otomatik tetiklenir (session bitince, commit sonrası), zorunlu olmadıkça pahalı model kullanılmaz — *proje açılınca 30 dk'dan eskiyse arka planda (worker) yeniden taranır; puanlar için AI hiç kullanılmaz*
 
 #### 5.4 Mevcut projeyi içeri alma
 - [ ] "Projeyi Tara" → geçmiş session'lar okunur, ilk hafıza, kategori sayfaları ve puanlar üretilir
