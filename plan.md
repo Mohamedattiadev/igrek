@@ -435,14 +435,14 @@ god-eye/
 - [x] Session'ı kopyalama (fork) ve devam ettirme (resume) — *session sayfasında: devam et, kopyala ve devam et, özetle temiz başla*
 
 #### 2.2 Chat görünümü (rahat arayüz)
-- [ ] ⭐ `claude -p --output-format stream-json` ve `codex exec --json` üzerinden zengin chat
-- [ ] ⭐ İzin onayları butonla: "Bu dosyayı düzenleyebilir mi?" ✅ ❌ "Hep izin ver"
-- [ ] Araç kullanımları katlanabilir kartlar halinde (okunan dosya, çalıştırılan komut)
-- [ ] Değişiklikler diff görünümünde, dosya bazında kabul veya red
-- [ ] Resim ve ekran görüntüsü yapıştırma, dosya sürükle bırak
-- [ ] Mesaj kutusunun altında araç, hesap, model ve persona seçici
-- [ ] Slash komutları için otomatik tamamlama
-- [ ] **Mod seçici:** Normal (her şeye onay) · Düzenlemeleri kabul et · **Auto** (izole worktree'de otomatik, sonunda özet ve onay)
+- [x] ⭐ `claude -p --output-format stream-json` ve `codex exec --json` üzerinden zengin chat — *Claude için uzun ömürlü stream-json süreci, canlı yazma; Codex chat'i kalan iş (Codex terminalde tam çalışıyor)*
+- [x] ⭐ İzin onayları butonla: "Bu dosyayı düzenleyebilir mi?" ✅ ❌ "Hep izin ver" — *İzin ver · Hep izin ver · Reddet; Claude Code'un stdio izin protokolüyle*
+- [x] Araç kullanımları katlanabilir kartlar halinde (okunan dosya, çalıştırılan komut) — *Bash, Read, Edit, Write, Grep, WebFetch, TodoWrite (yapılacaklar listesi olarak)*
+- [x] Değişiklikler diff görünümünde, dosya bazında kabul veya red — *izin kartında ve araç kartında satır diff'i; dosya bazında red = izni reddetmek*
+- [x] Resim ve ekran görüntüsü yapıştırma, dosya sürükle bırak — *yapıştırma veya seçme; dosya sürükle bırak kalan iş*
+- [ ] Mesaj kutusunun altında araç, hesap, model ve persona seçici — *model seçici hazır (değiştirince aynı session devam eder); hesap Faz 3, persona Faz 6*
+- [ ] Slash komutları için otomatik tamamlama — *prompt kütüphanesi butonu hazır; slash komutları terminalde tam çalışıyor*
+- [x] **Mod seçici:** Normal (her şeye onay) · Düzenlemeleri kabul et · **Auto** (izole worktree'de otomatik, sonunda özet ve onay) — *Bana sor · Düzenlemeleri kabul et · Otomatik · Sadece plan; izole worktree Faz 8*
 
 #### 2.3 Kod görünümü (VS Code gibi)
 - [x] ⭐ Dosya ağacı + Monaco editör: sekmeler, sözdizimi renklendirme, arama, mini harita — *Monaco lokal paketli (CDN yok); sekmeler, Ctrl+S, "diskte değişti" koruması*

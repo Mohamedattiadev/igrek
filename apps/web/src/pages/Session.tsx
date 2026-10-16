@@ -120,12 +120,29 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
       </Button>
       <Button
         size="sm"
-        variant="primary"
+        variant="ghost"
         icon={Play}
         onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id }))}
       >
-        {t("term.resume")}
+        <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>
       </Button>
+      {session.tool === "claude" && (
+        <Button
+          size="sm"
+          variant="primary"
+          icon={MessageSquare}
+          onClick={async () => {
+            setError(undefined);
+            try {
+              navigate(`/c/${(await api.startChat({ projectId, resume: session.id })).id}`);
+            } catch (err) {
+              setError((err as Error).message);
+            }
+          }}
+        >
+          {t("chat.continueInChat")}
+        </Button>
+      )}
     </div>
   );
 }

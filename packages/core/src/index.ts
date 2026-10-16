@@ -363,6 +363,57 @@ export interface Approval {
   requestedAt: number;
 }
 
+export type ChatMode = "normal" | "acceptEdits" | "auto" | "plan";
+export type ChatStatus = "idle" | "working" | "waiting" | "exited";
+
+/** Limit usage as Claude reports it (0–1), with reset times. */
+export interface RateLimitInfo {
+  fiveHour?: number;
+  fiveHourResetsAt?: number;
+  week?: number;
+  weekResetsAt?: number;
+  at: number;
+}
+
+export interface ChatInfo {
+  id: string;
+  projectId: string;
+  cwd: string;
+  title: string;
+  model?: string;
+  mode: ChatMode;
+  status: ChatStatus;
+  startedAt: number;
+  sessionId?: string;
+  exitCode?: number;
+  rateLimit?: RateLimitInfo;
+}
+
+export type ChatEvent =
+  | { kind: "user"; id: string; at: number; text: string; images: number }
+  | { kind: "text"; id: string; at: number; text: string }
+  | {
+      kind: "tool";
+      id: string;
+      at: number;
+      name: string;
+      input: unknown;
+      status: "running" | "done" | "error";
+      result?: string;
+    }
+  | {
+      kind: "permission";
+      id: string;
+      requestId: string;
+      at: number;
+      toolName: string;
+      input: unknown;
+      description?: string;
+      status: "pending" | "allowed" | "denied";
+    }
+  | { kind: "result"; id: string; at: number; durationMs?: number; isError: boolean; text?: string }
+  | { kind: "notice"; id: string; at: number; text: string; tone: "danger" | "neutral" };
+
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =
   | { type: "hello"; version: string }
@@ -373,7 +424,8 @@ export type ServerMessage =
   | { type: "sessions-changed"; projectIds: string[]; sessionIds: string[] }
   | { type: "terminals"; terminals: TerminalInfo[] }
   | { type: "approvals"; approvals: Approval[] }
-  | { type: "servers-changed" };
+  | { type: "servers-changed" }
+  | { type: "chats"; chats: ChatInfo[] };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };

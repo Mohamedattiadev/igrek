@@ -1,5 +1,5 @@
 import type { TerminalTool } from "@godeye/core";
-import { ChevronDown, Plus, SquareTerminal } from "lucide-react";
+import { ChevronDown, MessageSquare, Plus, SquareTerminal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -33,6 +33,17 @@ export function NewSession({ projectId }: { projectId: string }) {
     return () => window.removeEventListener("mousedown", close);
   }, [open]);
 
+  const startChat = async () => {
+    setOpen(false);
+    setError(undefined);
+    try {
+      const chat = await api.startChat({ projectId });
+      navigate(`/c/${chat.id}`);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+
   const start = async (tool: TerminalTool) => {
     setOpen(false);
     setError(undefined);
@@ -47,8 +58,8 @@ export function NewSession({ projectId }: { projectId: string }) {
   return (
     <div ref={ref} className="relative">
       <div className="flex">
-        <Button variant="primary" size="sm" icon={Plus} onClick={() => start("claude")} className="rounded-e-none">
-          {t("term.new")}
+        <Button variant="primary" size="sm" icon={Plus} onClick={startChat} className="rounded-e-none">
+          {t("chat.new")}
         </Button>
         <Button
           variant="primary"
@@ -61,7 +72,16 @@ export function NewSession({ projectId }: { projectId: string }) {
         </Button>
       </div>
       {open && (
-        <div className="absolute end-0 top-full z-20 mt-1 w-48 rounded-ui border border-border bg-bg p-1 shadow-ui">
+        <div className="absolute end-0 top-full z-20 mt-1 w-52 rounded-ui border border-border bg-bg p-1 shadow-ui">
+          <button
+            type="button"
+            onClick={startChat}
+            className="flex h-8 w-full items-center gap-2 rounded-md px-2 text-start text-[13px] hover:bg-bg-hover"
+          >
+            <MessageSquare size={14} className="text-accent" />
+            <span className="flex-1">{t("chat.new")}</span>
+          </button>
+          <div className="my-1 border-t border-border" />
           {TOOLS.map((tool) => {
             const ok = tool === "shell" || installed[tool] !== false;
             return (

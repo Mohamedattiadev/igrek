@@ -1,6 +1,8 @@
 import type {
   Approval,
   AskAnswer,
+  ChatInfo,
+  ChatMode,
   CommandRisk,
   Digest,
   FileContent,
@@ -134,6 +136,12 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ approve }),
     }),
+  chats: () => request<ChatInfo[]>("/api/chats"),
+  startChat: (body: { projectId: string; resume?: string; model?: string; mode?: ChatMode }) =>
+    request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
+  chatModel: (id: string, model: string) =>
+    request<ChatInfo>(`/api/chats/${id}/model`, { method: "POST", body: JSON.stringify({ model }) }),
+  closeChat: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}`, { method: "DELETE" }),
   inbox: () => request<{ conflicts: { projectId: string; projectName: string; count: number }[] }>("/api/inbox"),
   terminals: () => request<TerminalInfo[]>("/api/terminals"),
   startTerminal: (body: { projectId: string; tool: TerminalTool; resume?: string; fork?: boolean }) =>

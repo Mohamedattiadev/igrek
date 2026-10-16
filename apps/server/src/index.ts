@@ -6,6 +6,8 @@ import { createApp } from "./app";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
 import { Bus, StopRegistry } from "./bus";
+import { handleChatMessage, registerChatRoutes } from "./chat-routes";
+import { Chats } from "./chats";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
 import { registerFileRoutes } from "./file-routes";
@@ -48,6 +50,7 @@ const hookScript = writeHookScript(config.dataDir, config.publicPort);
 const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
 const servers = new Servers(sqlite, bus, stops);
+const chats = new Chats(bus, stops);
 const assist = new Assist(sqlite, store, stops, () => readSettings(db), join(config.dataDir, "runner"));
 const files = new Files(
   () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],
@@ -63,6 +66,7 @@ const app = createApp({
   extraRoutes: (hono) => {
     registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers });
     registerServerRoutes(hono, servers);
+    registerChatRoutes(hono, { chats, store });
     registerFileRoutes(hono, { files, store });
     registerAssistRoutes(hono, assist);
   },
@@ -83,7 +87,7 @@ jobs.start();
 setTimeout(() => void servers.checkAll(), 15_000);
 setInterval(() => void servers.checkAll(), 5 * 60_000);
 
-type SocketData = { unsubscribe?: () => void; terminal?: string };
+type SocketData = { unsubscribe?: () => void; terminal?: string; chat?: string };
 
 function cookieFrom(req: Request): string | undefined {
   // Same parser Hono's getCookie uses, so WebSocket and HTTP auth agree.
@@ -97,7 +101,7 @@ const server = Bun.serve<SocketData>({
   idleTimeout: 180,
   fetch(req, srv) {
     const path = new URL(req.url).pathname;
-    if (path === "/ws" || path.startsWith("/ws/term/")) {
+    if (path === "/ws" || path.startsWith("/ws/term/") || path.startsWith("/ws/chat/")) {
       const ok =
         isAllowedHost(config, req.headers.get("host")) &&
         isAllowedOrigin(config, req.headers.get("origin")) &&
@@ -105,12 +109,24 @@ const server = Bun.serve<SocketData>({
       if (!ok) return new Response("Forbidden", { status: 403 });
       const terminal = path.startsWith("/ws/term/") ? path.slice("/ws/term/".length) : undefined;
       if (terminal && !terminals.get(terminal)) return new Response("No such terminal", { status: 404 });
-      return srv.upgrade(req, { data: { terminal } }) ? undefined : new Response("Upgrade failed", { status: 400 });
+      const chat = path.startsWith("/ws/chat/") ? path.slice("/ws/chat/".length) : undefined;
+      if (chat && !chats.get(chat)) return new Response("No such chat", { status: 404 });
+      return srv.upgrade(req, { data: { terminal, chat } })
+        ? undefined
+        : new Response("Upgrade failed", { status: 400 });
     }
     return app.fetch(req, srv);
   },
   websocket: {
     open(ws: ServerWebSocket<SocketData>) {
+      if (ws.data.chat) {
+        const attached = chats.attach(ws.data.chat, (op) => ws.send(JSON.stringify(op)));
+        if (attached) {
+          ws.send(JSON.stringify({ op: "init", info: attached.info, events: attached.events }));
+          ws.data.unsubscribe = attached.detach;
+        }
+        return;
+      }
       if (ws.data.terminal) {
         // Terminal sockets carry raw output to the browser and keystrokes back.
         ws.data.unsubscribe = terminals.attach(ws.data.terminal, (data) => ws.send(data));
@@ -121,6 +137,11 @@ const server = Bun.serve<SocketData>({
       ws.data.unsubscribe = bus.subscribe(send);
     },
     message(ws, raw) {
+      if (ws.data.chat) {
+        const error = handleChatMessage(chats, ws.data.chat, String(raw));
+        if (error) ws.send(JSON.stringify({ op: "error", error }));
+        return;
+      }
       if (ws.data.terminal) {
         try {
           const msg = JSON.parse(String(raw)) as { t: "i"; d: string } | { t: "r"; c: number; r: number };
@@ -153,6 +174,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     summarizer.stop();
     jobs.stop();
     terminals.stopAll();
+    chats.stopAll();
     await stops.stopAll();
     server.stop();
     process.exit(0);

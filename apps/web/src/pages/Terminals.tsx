@@ -1,5 +1,5 @@
 import type { TerminalInfo } from "@godeye/core";
-import { ArrowLeft, SquareTerminal, X } from "lucide-react";
+import { ArrowLeft, MessageSquare, SquareTerminal, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { PromptPicker } from "../components/PromptPicker";
@@ -8,7 +8,7 @@ import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
-import { useTerminals } from "../lib/live";
+import { useChats, useTerminals } from "../lib/live";
 
 const TONE = { running: "success", idle: "neutral", attention: "warning", exited: "neutral" } as const;
 
@@ -63,10 +63,36 @@ function Tabs({ terminals, active }: { terminals: TerminalInfo[]; active?: strin
 export function TerminalsPage() {
   const { t } = useTranslation();
   const terminals = useTerminals();
+  const chats = useChats();
   return (
     <>
       <PageHeader title={t("term.title")} />
-      {terminals.length === 0 ? (
+      {chats.length > 0 && (
+        <div className="px-6 pt-6">
+          <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("chat.chats")}</h2>
+          <Card>
+            <div className="divide-y divide-border">
+              {chats.map((chat) => (
+                <Link
+                  key={chat.id}
+                  to={`/c/${chat.id}`}
+                  data-nav-item
+                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
+                >
+                  <MessageSquare size={15} className="text-accent" />
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{chat.title}</span>
+                  <StatusDot
+                    tone={chat.status === "working" ? "success" : chat.status === "waiting" ? "warning" : "neutral"}
+                    pulse={chat.status === "working" || chat.status === "waiting"}
+                  />
+                  <span className="text-[11px] text-fg-subtle">{t(`chat.${chat.status}`)}</span>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+      {terminals.length === 0 && chats.length === 0 ? (
         <EmptyState icon={SquareTerminal} title={t("term.empty")} body={t("term.emptyBody")} />
       ) : (
         <div className="p-6">

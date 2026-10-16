@@ -29,7 +29,7 @@ export function compactNumber(value: number): string {
 
 /** "claude-sonnet-5-20260101" → "Sonnet 5" */
 export function modelName(model: string): string {
-  const match = model.match(/claude-([a-z]+)-([\d-]+)/);
+  const match = model.match(/claude-([a-z]+)(?:-([\d-]+))?/);
   if (!match) return model;
   const family = (match[1] ?? "").replace(/^./, (c) => c.toUpperCase());
   const version = (match[2] ?? "")

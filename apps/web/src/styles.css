@@ -226,3 +226,21 @@
     margin-inline-end: 0.4em;
   }
 }
+
+@layer components {
+  .prose-chat {
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  .prose-chat > :first-child {
+    margin-top: 0;
+  }
+  .prose-chat > :last-child {
+    margin-bottom: 0;
+  }
+  .prose-chat :where(h1, h2, h3) {
+    margin-top: 1em;
+    font-size: 1.05em;
+    border: 0;
+  }
+}

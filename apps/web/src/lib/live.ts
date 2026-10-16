@@ -1,4 +1,4 @@
-import type { Approval, IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
+import type { Approval, ChatInfo, IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
 import { type DependencyList, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 
@@ -86,4 +86,17 @@ export function useApprovals(): Approval[] {
   }, []);
   useServerEvent("approvals", (message) => setApprovals(message.approvals));
   return approvals;
+}
+
+/** Open chats, kept current by the server's "chats" events. */
+export function useChats(): ChatInfo[] {
+  const [chats, setChats] = useState<ChatInfo[]>([]);
+  useEffect(() => {
+    api
+      .chats()
+      .then(setChats)
+      .catch(() => undefined);
+  }, []);
+  useServerEvent("chats", (message) => setChats(message.chats));
+  return chats;
 }

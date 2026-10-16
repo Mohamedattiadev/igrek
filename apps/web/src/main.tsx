@@ -6,6 +6,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { Shell } from "./components/Shell";
 import "./lib/i18n";
 import { SettingsProvider, useSettings } from "./lib/settings";
+import { ChatPage } from "./pages/Chat";
 import { DesignPage } from "./pages/Design";
 import { FilesPage } from "./pages/Files";
 import { IdeasPage } from "./pages/Ideas";
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: "p/:projectId", element: <ProjectPage /> },
       { path: "p/:projectId/s/:sessionId", element: <SessionPage /> },
       { path: "terminals", element: <TerminalsPage /> },
+      { path: "c/:chatId", element: <ChatPage /> },
       { path: "files", element: <FilesPage /> },
       { path: "ideas", element: <IdeasPage /> },
       { path: "servers", element: <ServersPage /> },
