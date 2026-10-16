@@ -43,10 +43,15 @@ describe("chat", () => {
   test("streams text, asks permission in the UI, and finishes the turn", async () => {
     const bin = fakeClaude();
     const snapshots: string[] = [];
-    const chats = new Chats(new Bus(), new StopRegistry(), () => join(bin, "claude"), (_cwd, label) => {
-      snapshots.push(label);
-      return "abc123";
-    });
+    const chats = new Chats(
+      new Bus(),
+      new StopRegistry(),
+      () => join(bin, "claude"),
+      (_cwd, label) => {
+        snapshots.push(label);
+        return "abc123";
+      },
+    );
     const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal" });
 
     const events = new Map<string, ChatEvent>();
