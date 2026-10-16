@@ -22,7 +22,7 @@
 9. [Açık Sorular ve Riskler](#9-açık-sorular-ve-riskler)
 10. [Sonraki Planlar (şimdilik değil)](#10-sonraki-planlar-şimdilik-değil)
 
-**Faz özeti:** 0 Kurulum · 1 Göz (takip + hafıza) · 2 Çalışma Alanı + Sunucular · 3 Hesaplar ve Limitler · 4 Takım Senkronu · 5 Kategori Sayfaları · 6 Personalar · 7 Kütüphane ve Öğrenme · 8 Takım Akışları · 9 Zamanlanmış İşler · 10 Canlı Önizleme · 11 Ekstralar · 12 Tam Suit Araçları · 13 İleri Seviye Öneriler
+**Faz özeti:** 0 Kurulum · 1 Göz (takip + hafıza) · 2 Çalışma Alanı + Sunucular · 3 Hesaplar ve Limitler · 4 Takım Senkronu · 4.5 Prompt Güçlendirici · 5 Kategori Sayfaları · 6 Personalar · 7 Kütüphane ve Öğrenme · 8 Takım Akışları · 9 Zamanlanmış İşler · 10 Canlı Önizleme · 11 Ekstralar · 12 Tam Suit Araçları · 13 İleri Seviye Öneriler
 
 ---
 
@@ -664,6 +664,58 @@ god-eye/
 - [x] **AI hesapları:** asla paylaşılmaz, herkes kendi hesabını kullanır
 
 **Bitti sayılır:** Ben bir prompt yazdığımda arkadaşım 1 saniye içinde görüyor; ikimiz aynı hafızayı aynı anda düzenleyince hiçbir şey kaybolmuyor; Hub'ın veritabanı açıldığında içerik okunamıyor; VPS'te Hub'ın RAM kullanımı 100 MB'ın altında.
+
+---
+
+### Faz 4.5 — ✨ Prompt Güçlendirici ("doğrusunu yap" → profesyonel prompt)
+
+**Hedef:** Üşendiğimde *"şunu düzelt"*, *"doğrusunu yap"*, *"bu çalışmıyor bak"* gibi kısa ve zayıf bir prompt yazayım. God Eye bunu, projeyi bilen birinin yazacağı **net ve eksiksiz bir prompt'a** çevirsin. Ben sadece bakıp onaylayayım.
+
+> Örnek:
+> **Benim yazdığım:** `login bozuk düzelt`
+> **God Eye'ın hazırladığı:**
+> *Hedef:* `/login` sayfasında doğru şifreyle giriş yapılınca 401 hatası dönüyor, bunu düzelt.
+> *Bağlam:* Son session'da `auth.ts` içinde token süresi değiştirildi (commit `a1b2c3`). Son test çıktısında `auth.test.ts › refresh token` başarısız. Proje kararı: "Session cookie HttpOnly kalacak".
+> *Kısıtlar:* Sadece auth akışına dokun, cookie ayarlarını değiştirme, yeni paket ekleme.
+> *Bitti sayılır:* Testler geçiyor, elle giriş çalışıyor, ne değiştiğini kısaca anlat.
+> *Varsayımlar (silinebilir):* Sorun sadece web girişinde, mobil etkilenmiyor.
+
+#### 4.5.1 Temel güçlendirme (ilk sürüm) ⭐
+- [ ] ⭐ Chat, terminal ve Hızlı Soru giriş kutularında **"✨ Güçlendir"** butonu + kısayol (`Ctrl+Shift+Enter`)
+- [ ] ⭐ Sonuç yan yana gösterilir: **benim yazdığım ↔ güçlendirilmiş hali**. Üç seçenek: *Güçlendirilmişi gönder* · *Düzenle* · *Orijinali gönder*
+- [ ] ⭐ Sabit, okunaklı yapı: **Hedef · Bağlam · Kısıtlar · Bitti sayılır · Varsayımlar**. Gereksiz uzunluk yok, küçük işler için kısa kalır
+- [ ] ⭐ **Ücretsiz:** kendi Claude girişimle Haiku kullanılır (`claude -p`, özetlerdeki gibi). Limit dolarsa AI'sız şablon moduna düşer (bağlamı ekler, yapıyı kurar)
+- [ ] ⭐ **Uydurmaz:** sadece God Eye'ın gerçekten bildiği bilgileri ekler (hafıza, git, loglar). Tahmin ettiği her şey **"Varsayımlar"** bölümüne yazılır, tek tıkla silinebilir
+- [ ] ⭐ **Kapsamı büyütmez:** "login'i düzelt" dediysem prompt'a "ayrıca testleri yeniden yaz" gibi istemediğim işler eklenmez
+- [ ] Çok belirsizse (bağlam da yoksa) tahmin etmek yerine **1–3 kısa soru** sorar, cevaplar tıklanabilir seçenek olarak gelir: *"Hangi login? Web · Mobil · Admin paneli"*
+- [ ] Dil: ben Türkçe (veya herhangi bir dilde) yazarım. Prompt AI için en iyi sonucu veren dilde hazırlanır (ayarlanabilir: benim dilim / İngilizce). Açıklamayı her zaman kendi dilimde görürüm
+- [ ] 🔒 Sır temizleyici burada da çalışır. `.env` değerleri ve anahtarlar prompt'a asla eklenmez
+
+#### 4.5.2 Bağlamı otomatik toplama
+- [ ] ⭐ **Proje hafızası:** ilgili kararlar, kurallar ve "denendi, işe yaramadı" notları eklenir. Böylece AI eski hatayı tekrarlamaz
+- [ ] ⭐ **Aktif session:** son mesajlar, son hata, değişen dosyalar. *"bu çalışmıyor"* derken "bu"nun ne olduğu buradan anlaşılır
+- [ ] ⭐ **Git:** branch, commit edilmemiş değişiklikler, son commit'ler
+- [ ] Kod sekmesinde açık dosya ve seçili satırlar ("burayı düzelt" → hangi dosya, hangi satırlar)
+- [ ] Son test ve log çıktıları (sunucular, önizleme logları), çalışmayan komutun hata mesajı
+- [ ] Takım (Faz 4): arkadaşım aynı dosyada çalışıyorsa prompt'a not düşülür: *"Kerim de `auth.ts` üzerinde çalışıyor, onun değişikliklerini bozma"*
+- [ ] Hangi bağlamın eklendiği küçük etiketlerle gösterilir (🧠 hafıza · 🌿 git · 📄 dosya · ❌ hata). Her biri tek tıkla çıkarılabilir
+- [ ] Bağlam boyutu sınırı: context'i şişirmez, sadece ilgili parçalar eklenir (session sağlığı ile uyumlu)
+
+#### 4.5.3 Akıllı davranışlar
+- [ ] **Zayıf prompt tespiti:** prompt çok kısa veya belirsizse gönderirken nazikçe *"✨ Güçlendireyim mi?"* önerisi (zorla değil)
+- [ ] Mod ayarı: **Kapalı · Öner · Otomatik** (otomatikte bile göndermeden önce kısa önizleme)
+- [ ] **İş büyüklüğü tahmini:** büyük işlerde *"Bu iş büyük, önce Plan modunda başlayalım mı?"* veya *"Bunu 3 adıma bölelim mi?"*
+- [ ] Araca göre ayar: Claude ve Codex için en iyi çalışan biçim (ör. Codex'e daha net dosya listesi)
+- [ ] Hazır niyet kalıpları: *düzelt · ekle · yeniden düzenle · açıkla · test yaz · gözden geçir · deploy'a hazırla*. Her biri kendi "Bitti sayılır" maddeleriyle gelir
+- [ ] Personalar (Faz 6) gelince: prompt seçilen personaya göre hazırlanır (ör. "Güvenlik uzmanı" için risk kontrolü maddeleri)
+
+#### 4.5.4 Benden öğrenme
+- [ ] Hangi güçlendirilmiş prompt'ların iyi sonuç verdiğini takip eder (az hata, az tekrar deneme, session sağlığı iyi, kabul edildi)
+- [ ] Benim yazma tarzımı ve sık kullandığım kısaltmaları öğrenir (*"dyy" = "doğrusunu yap"* gibi)
+- [ ] Sonuç alan prompt'lar tek tıkla **Prompt kütüphanesine** (2.7) kaydedilir
+- [ ] Haftalık küçük not: *"Bu hafta 14 prompt'u güçlendirdin; en çok eksik kalan şey 'bitti sayılır' maddesiydi"*
+
+**Bitti sayılır:** `login bozuk düzelt` yazıp `Ctrl+Shift+Enter`'a bastığımda 3 saniye içinde projemin gerçek bağlamıyla dolu, uydurma bilgi içermeyen bir prompt görüyorum; tek tıkla gönderiyorum ve AI ilk denemede doğru işe odaklanıyor.
 
 ---
 
