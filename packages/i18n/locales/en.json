@@ -40,8 +40,22 @@
   "projects": {
     "title": "Projects",
     "emptyTitle": "No projects yet",
-    "emptyBody": "Soon God Eye will find your projects automatically from your AI sessions. For now, everything is ready and waiting.",
-    "emptyAction": "Open settings"
+    "emptyBody": "God Eye finds your projects automatically from your Claude Code sessions. Start a session in any project and it appears here.",
+    "emptyAction": "Open settings",
+    "filter": "Filter projects…",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "active_one": "{{count}} working now",
+    "active_other": "{{count}} working now",
+    "hidden": "Hidden",
+    "showHidden": "Show hidden",
+    "noGit": "Not a git repo",
+    "changes_one": "{{count}} uncommitted change",
+    "changes_other": "{{count}} uncommitted changes",
+    "ahead": "{{count}} ahead",
+    "behind": "{{count}} behind",
+    "lastActive": "Last active {{when}}",
+    "indexing": "Reading your sessions… {{done}}/{{total}}"
   },
   "inbox": {
     "title": "Inbox",
@@ -78,7 +92,11 @@
     "found": "Found",
     "missing": "Not found",
     "optional": "optional",
-    "dataDir": "Your data is stored in"
+    "dataDir": "Your data is stored in",
+    "autoSummarize": "Automatic summaries",
+    "autoSummarizeHint": "Finished sessions are summarized in plain words with a small, cheap model on your own account.",
+    "on": "On",
+    "off": "Off"
   },
   "onboarding": {
     "welcome": "Welcome to God Eye",
@@ -91,5 +109,91 @@
   },
   "help": {
     "what": "What is this?"
+  },
+  "project": {
+    "overview": "Overview",
+    "sessions": "Sessions",
+    "memory": "Memory",
+    "setup": "Setup",
+    "latest": "Latest session",
+    "noSummary": "No summary yet.",
+    "recent": "Recent sessions",
+    "allSessions": "All sessions",
+    "path": "Folder",
+    "branch": "Branch",
+    "lastCommit": "Last commit",
+    "hide": "Hide project",
+    "unhide": "Show project",
+    "notFound": "Project not found"
+  },
+  "memory": {
+    "title": "Project memory",
+    "hint": "What God Eye remembers about this project. It is given to every new AI session, so the AI starts from the facts instead of guessing.",
+    "empty": "Nothing remembered yet. Memory fills in as sessions get summarized.",
+    "status": "Where it stands",
+    "decision": "Decisions",
+    "convention": "Rules",
+    "failed": "Tried and failed",
+    "issue": "Open problems",
+    "delete": "Forget",
+    "fromSession": "From a session",
+    "preview": "See what the AI receives"
+  },
+  "setup": {
+    "hooksTitle": "Give new sessions the project memory",
+    "hooksBody": "Adds a small hook to this project's local Claude Code settings. Every new session then starts with the memory above. Your repo is not changed: the file stays out of git.",
+    "install": "Turn on",
+    "uninstall": "Turn off",
+    "on": "On",
+    "off": "Off",
+    "file": "Written to"
+  },
+  "session": {
+    "summary": "Summary",
+    "did": "What was done",
+    "why": "Goal",
+    "left": "Still open",
+    "risks": "Check this",
+    "summarize": "Summarize",
+    "summarizing": "Summarizing…",
+    "resummarize": "Summarize again",
+    "noSummaryBody": "This session has no summary yet. God Eye can write one in plain words.",
+    "transcript": "Conversation",
+    "showTools": "Show tool steps",
+    "you": "You",
+    "ai": "AI",
+    "started": "Started",
+    "updated": "Last activity",
+    "messages": "Prompts",
+    "toolCalls": "Steps",
+    "model": "Model",
+    "tokens": "Tokens",
+    "files": "Files edited",
+    "missing": "Edited files that no longer exist",
+    "missingHint": "The AI changed these files, but they are not on disk anymore. They may have been moved or deleted.",
+    "older": "Only the latest messages are shown.",
+    "active": "Working now",
+    "notFound": "Session not found"
+  },
+  "health": {
+    "title": "Session health",
+    "good": "Fresh",
+    "warn": "Getting tired",
+    "bad": "Tired",
+    "context": "Memory used",
+    "contextHint": "How full the AI's working memory is. Above 80% it starts to forget earlier details.",
+    "context-high": "Working memory almost full",
+    "context-mid": "Working memory half full",
+    "long": "Very long conversation",
+    "errors": "Many failed steps recently",
+    "compacted": "Already compressed several times",
+    "fresh": "This session is tired. Starting a new one with a summary will give better, more reliable answers."
+  },
+  "search": {
+    "results": "In your sessions",
+    "none": "No matches in your sessions."
+  },
+  "time": {
+    "justNow": "just now"
   }
 }

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet } from "react-router";
 import { cn } from "../lib/cn";
+import { dispatchServerMessage, useIndexStatus } from "../lib/live";
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
@@ -93,6 +94,7 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
 function StatusBar({ status }: { status: SocketStatus }) {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const index = useIndexStatus();
   const tone = status === "connected" ? "success" : status === "connecting" ? "warning" : "danger";
   return (
     <footer className="flex h-6 shrink-0 items-center gap-4 border-t border-border bg-bg-subtle px-3 text-[11px] text-fg-subtle">
@@ -101,6 +103,12 @@ function StatusBar({ status }: { status: SocketStatus }) {
         {t(`status.${status}`)}
       </span>
       {status === "connected" && <span className="hidden sm:inline">{t("status.allSaved")}</span>}
+      {index?.running && (
+        <span className="text-accent">
+          {t("projects.indexing", { done: index.filesDone, total: index.filesTotal })}
+        </span>
+      )}
+      {index?.summarizing && <span className="animate-pulse text-accent">{t("session.summarizing")}</span>}
       <div className="flex-1" />
       {settings.keymap === "vim" && <span className="font-mono font-semibold text-accent">VIM</span>}
       <span>God Eye {APP_VERSION}</span>
@@ -116,6 +124,7 @@ export function Shell() {
   const onMessage = useCallback(
     (message: ServerMessage) => {
       if (message.type === "settings") receive(message.settings);
+      dispatchServerMessage(message);
     },
     [receive],
   );

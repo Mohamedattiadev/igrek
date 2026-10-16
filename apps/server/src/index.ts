@@ -5,17 +5,47 @@ import { createApp } from "./app";
 import { Bus, StopRegistry } from "./bus";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
+import { writeHookScript } from "./hooks";
+import { Indexer } from "./indexer";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
+import { readSettings } from "./settings";
+import { Store } from "./store";
+import { Summarizer } from "./summarizer";
 
 // Everything God Eye writes (database, keys) is readable only by you.
 process.umask(0o077);
 
 const config = loadConfig();
-const { db } = openDb(config.dataDir);
+const { db, sqlite } = openDb(config.dataDir);
 const token = loadSessionToken(config.dataDir);
 const bus = new Bus();
 const stops = new StopRegistry();
-const app = createApp({ config, db, token, bus, stops, startedAt: Date.now() });
+const store = new Store(sqlite);
+const indexer = new Indexer(store, bus);
+const summarizer = new Summarizer(
+  store,
+  bus,
+  stops,
+  () => readSettings(db),
+  config.dataDir,
+  (summarizing, error) => {
+    indexer.status.summarizing = summarizing;
+    if (error) indexer.status.lastError = error;
+    bus.publish({ type: "index", status: { ...indexer.status } });
+  },
+);
+const hookScript = writeHookScript(config.dataDir, config.publicPort);
+const app = createApp({
+  config,
+  db,
+  token,
+  bus,
+  stops,
+  startedAt: Date.now(),
+  work: { store, indexer, summarizer, hookScript },
+});
+indexer.start();
+summarizer.start();
 
 type SocketData = { unsubscribe?: () => void };
 
@@ -27,6 +57,8 @@ function cookieFrom(req: Request): string | undefined {
 const server = Bun.serve<SocketData>({
   hostname: config.host,
   port: config.port,
+  // Summaries wait on the model for a while; Bun's 10 s default would cut them off.
+  idleTimeout: 180,
   fetch(req, srv) {
     if (new URL(req.url).pathname === "/ws") {
       const ok =
@@ -63,6 +95,8 @@ console.log(`👁️  God Eye ${APP_VERSION} → http://localhost:${server.port}
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, async () => {
+    indexer.stop();
+    summarizer.stop();
     await stops.stopAll();
     server.stop();
     process.exit(0);

@@ -6,6 +6,8 @@ import { DEFAULT_PORT } from "@godeye/core";
 export interface Config {
   host: string;
   port: number;
+  /** Port reachable from the host (differs from `port` when Docker remaps it). */
+  publicPort: number;
   dataDir: string;
   /** Host headers we answer to. Anything else is rejected (DNS rebinding protection). */
   allowedHosts: Set<string>;
@@ -33,6 +35,7 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     // Inside Docker this is 0.0.0.0, but compose only publishes the port on 127.0.0.1.
     host: env.GODEYE_HOST ?? "127.0.0.1",
     port,
+    publicPort: Number(env.GODEYE_PUBLIC_PORT ?? port),
     dataDir,
     allowedHosts: new Set(hosts),
     allowedOrigins: new Set(origins),

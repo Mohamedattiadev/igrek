@@ -1,0 +1,146 @@
+import type { IndexStatus } from "@godeye/core";
+import {
+  applyLine,
+  CLAUDE_PROJECTS_DIR,
+  listSessionFiles,
+  type ParsedMessage,
+  type SessionFile,
+} from "./adapters/claude";
+import type { Bus } from "./bus";
+import type { Store } from "./store";
+
+const CHUNK_BYTES = 8 * 1024 * 1024;
+const POLL_MS = 3000;
+const NEWLINE = 10;
+
+/**
+ * Watches Claude Code transcripts and folds new lines into the database.
+ * Each file is read from where we stopped last time, so a 50 MB transcript is
+ * parsed once and afterwards only its new lines are.
+ */
+export class Indexer {
+  readonly status: IndexStatus = { running: false, filesTotal: 0, filesDone: 0, sessions: 0, projects: 0 };
+  private timer?: ReturnType<typeof setTimeout>;
+  private scanning = false;
+  private lastBroadcast = 0;
+
+  constructor(
+    private readonly store: Store,
+    private readonly bus: Bus,
+    private readonly root = CLAUDE_PROJECTS_DIR,
+  ) {}
+
+  start(): void {
+    const loop = async () => {
+      await this.scan().catch((err: Error) => {
+        this.status.lastError = err.message;
+      });
+      this.timer = setTimeout(loop, POLL_MS);
+    };
+    void loop();
+  }
+
+  stop(): void {
+    clearTimeout(this.timer);
+  }
+
+  /** Re-reads one transcript right away (used by the session-end hook). */
+  async touch(sessionId: string): Promise<void> {
+    const file = listSessionFiles(this.root).find((f) => f.sessionId === sessionId);
+    const result = file && (await this.processFile(file));
+    if (result) this.announce([result]);
+  }
+
+  async scan(): Promise<void> {
+    if (this.scanning) return;
+    this.scanning = true;
+    try {
+      const files = listSessionFiles(this.root)
+        .filter((file) => {
+          const known = this.store.fileOffset(file.path);
+          return !known || known.size !== file.size || known.mtime !== file.mtime;
+        })
+        // Newest first, so today's work shows up before last month's.
+        .sort((a, b) => b.mtime - a.mtime);
+      if (files.length === 0) return;
+
+      const big = files.length > 5;
+      Object.assign(this.status, { running: big, filesTotal: files.length, filesDone: 0 });
+      const changed: { projectId: string | null; sessionId: string }[] = [];
+      for (const file of files) {
+        const result = await this.processFile(file);
+        if (result) changed.push(result);
+        this.status.filesDone++;
+        if (big) {
+          this.broadcastStatus();
+          await Bun.sleep(0);
+        }
+      }
+      this.status.running = false;
+      this.broadcastStatus(true);
+      this.announce(changed);
+    } finally {
+      this.scanning = false;
+    }
+  }
+
+  private announce(changed: { projectId: string | null; sessionId: string }[]): void {
+    if (changed.length === 0) return;
+    this.bus.publish({
+      type: "sessions-changed",
+      projectIds: [...new Set(changed.map((c) => c.projectId).filter((id): id is string => !!id))],
+      sessionIds: changed.map((c) => c.sessionId),
+    });
+  }
+
+  private broadcastStatus(force = false): void {
+    const now = Date.now();
+    if (!force && now - this.lastBroadcast < 500) return;
+    this.lastBroadcast = now;
+    Object.assign(this.status, this.store.counts());
+    this.bus.publish({ type: "index", status: { ...this.status } });
+  }
+
+  private async processFile(file: SessionFile): Promise<{ projectId: string | null; sessionId: string } | undefined> {
+    let offset = this.store.fileOffset(file.path)?.offset ?? 0;
+    if (file.size < offset) {
+      // Transcript got shorter: it was rewritten, start over.
+      this.store.resetSession(file.sessionId, file.path);
+      offset = 0;
+    }
+    const state = this.store.loadState(file.sessionId);
+    const blob = Bun.file(file.path);
+    const decoder = new TextDecoder();
+    let projectId: string | null = null;
+    let progressed = false;
+    let chunk = CHUNK_BYTES;
+
+    while (offset < file.size) {
+      const bytes = new Uint8Array(await blob.slice(offset, Math.min(file.size, offset + chunk)).arrayBuffer());
+      const usable = bytes.lastIndexOf(NEWLINE) + 1;
+      if (usable === 0) {
+        // No complete line yet: either a huge line (read more) or one still being written.
+        if (offset + chunk >= file.size) break;
+        chunk *= 2;
+        continue;
+      }
+      chunk = CHUNK_BYTES;
+      const messages: ParsedMessage[] = [];
+      let lineNo = 0;
+      for (const line of decoder.decode(bytes.subarray(0, usable)).split("\n")) {
+        lineNo++;
+        if (line) messages.push(...applyLine(state, line, `${file.sessionId}:${offset}:${lineNo}`));
+      }
+      offset += usable;
+      projectId = this.store.saveChunk({
+        sessionId: file.sessionId,
+        tool: "claude",
+        file: { path: file.path, offset, size: file.size, mtime: file.mtime },
+        state,
+        messages,
+      });
+      progressed = true;
+    }
+    return progressed ? { projectId, sessionId: file.sessionId } : undefined;
+  }
+}

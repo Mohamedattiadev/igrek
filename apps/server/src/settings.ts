@@ -36,9 +36,11 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
       Object.assign(patch, { [key]: body[key] });
     }
   }
-  if ("onboarded" in body) {
-    if (typeof body.onboarded !== "boolean") return { error: "Invalid onboarded" };
-    patch.onboarded = body.onboarded;
+  for (const key of ["onboarded", "autoSummarize"] as const) {
+    if (key in body) {
+      if (typeof body[key] !== "boolean") return { error: `Invalid ${key}` };
+      patch[key] = body[key] as boolean;
+    }
   }
   return { patch };
 }

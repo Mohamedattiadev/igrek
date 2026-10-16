@@ -16,6 +16,7 @@ services:
     environment:
       HOME: ${HOME}
       GODEYE_HOME: ${HOME}/.godeye
+      GODEYE_PUBLIC_PORT: ${GODEYE_PORT:-7777}
       # The browser talks to the published port, so accept that Host header.
       GODEYE_ALLOWED_HOSTS: localhost:${GODEYE_PORT:-7777},127.0.0.1:${GODEYE_PORT:-7777}
     volumes:

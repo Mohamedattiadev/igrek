@@ -106,6 +106,16 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Section title={t("settings.autoSummarize")} hint={t("settings.autoSummarizeHint")}>
+          <Segmented
+            value={settings.autoSummarize ? "on" : "off"}
+            onChange={(value) => update({ autoSummarize: value === "on" })}
+            options={[
+              { value: "on", label: t("settings.on") },
+              { value: "off", label: t("settings.off") },
+            ]}
+          />
+        </Section>
         <Section title={t("settings.system")} hint={t("settings.systemHint")}>
           <SystemCheck />
         </Section>

@@ -6,6 +6,7 @@ import { Hono } from "hono";
 import type { Bus, StopRegistry } from "./bus";
 import type { Config } from "./config";
 import type { Db } from "./db";
+import { registerWorkRoutes, type WorkDeps } from "./routes";
 import { securityMiddleware } from "./security";
 import { readSettings, validatePatch, writeSettings } from "./settings";
 import { checkTools } from "./system";
@@ -17,9 +18,11 @@ export interface AppDeps {
   bus: Bus;
   stops: StopRegistry;
   startedAt: number;
+  /** Projects, sessions and memory; left out in tests that only cover the shell. */
+  work?: WorkDeps;
 }
 
-export function createApp({ config, db, token, bus, stops, startedAt }: AppDeps) {
+export function createApp({ config, db, token, bus, stops, startedAt, work }: AppDeps) {
   const app = new Hono();
 
   app.use("*", async (c, next) => {
@@ -60,6 +63,8 @@ export function createApp({ config, db, token, bus, stops, startedAt }: AppDeps)
     bus.publish({ type: "emergency-stop", stoppedAt, stopped });
     return c.json({ stopped, stoppedAt });
   });
+
+  if (work) registerWorkRoutes(app, work);
 
   app.all("/api/*", (c) => c.json({ error: "Not found" }, 404));
 

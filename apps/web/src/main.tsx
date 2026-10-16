@@ -10,7 +10,9 @@ import { DesignPage } from "./pages/Design";
 import { InboxPage } from "./pages/Inbox";
 import { Onboarding } from "./pages/Onboarding";
 import { PlaceholderPage } from "./pages/Placeholder";
+import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
+import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
 import "./styles.css";
 
@@ -20,6 +22,8 @@ const router = createBrowserRouter([
     element: <Shell />,
     children: [
       { index: true, element: <ProjectsPage /> },
+      { path: "p/:projectId", element: <ProjectPage /> },
+      { path: "p/:projectId/s/:sessionId", element: <SessionPage /> },
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <PlaceholderPage title="nav.limits" icon={Gauge} /> },
       { path: "team", element: <PlaceholderPage title="nav.team" icon={Users} /> },

@@ -301,7 +301,7 @@ god-eye/
 - [ ] 🔒 **Sandbox:** auto moddaki agent'lar izole bir ortamda çalışır (worktree + kısıtlı dosya ve ağ erişimi) — *agent çalıştırma gelince (Faz 2) yapılacak*
 - [x] 🛑 **Acil Durdur butonu:** tüm çalışan agent'ları, zamanlanmış işleri ve uzak komutları tek tıkla durdurur (üst barda her zaman görünür) — buton + durdurma kaydı hazır; çalışan her yeni iş buna kaydolacak
 - [x] `godeye doctor`: kurulum sorunlarını sade dille anlatır ve çözüm önerir
-- [ ] CI: GitHub Actions ile lint + test + Docker build — *workflow yazıldı, repo GitHub'a push edilince doğrulanacak*
+- [x] CI: GitHub Actions ile lint + test + Docker build
 
 **Bitti sayılır:** Temiz bir makinede tek komutla açılıyor, dil değişiyor, koyu ve açık tema çalışıyor, imaj < 400 MB.
 
@@ -312,18 +312,18 @@ god-eye/
 **Hedef:** Tüm AI çalışmalarını görmek ve her şeyi otomatik hatırlamak.
 
 #### 1.1 Adaptörler (araçtan bağımsız toplama)
-- [ ] ⭐ Ortak adaptör arayüzü (`packages/adapters/types.ts`)
-- [ ] ⭐ **Claude Code:** `~/.claude/projects/*/*.jsonl` watcher + parser (mesajlar, araç kullanımları, token'lar)
-- [ ] ⭐ **Git:** commit ve diff izleyici. Hangi araç kullanılırsa kullanılsın değişiklikler yakalanır
+- [ ] ⭐ Ortak adaptör arayüzü (`packages/adapters/types.ts`) — *Claude adaptörü yazıldı; ortak arayüz Codex eklenirken çıkarılacak*
+- [x] ⭐ **Claude Code:** `~/.claude/projects/*/*.jsonl` watcher + parser (mesajlar, araç kullanımları, token'lar) — *artımlı okuma: sadece yeni satırlar işlenir; alt-agent kayıtları şimdilik atlanıyor*
+- [ ] ⭐ **Git:** commit ve diff izleyici. Hangi araç kullanılırsa kullanılsın değişiklikler yakalanır — *branch, önde/geride, değişiklik sayısı ve son commit hazır; commit akışı izleyici kalan iş*
 - [ ] **Codex:** `~/.codex/sessions` watcher + parser
 - [ ] **Gemini CLI** ve **Antigravity** adaptörleri (format araştırması: bkz. Açık Sorular)
 - [ ] Ortak `event` formatına dönüştürme + tekrar eden kayıtları ayıklama
 
 #### 1.2 Projeler
-- [ ] ⭐ Proje keşfi: session'lardan ve seçilen klasörlerden otomatik bulma
-- [ ] ⭐ Proje ekleme, çıkarma, yeniden adlandırma, gizleme
-- [ ] Proje kartı: sağlık puanı, son aktivite, aktif session sayısı, dil ve framework rozetleri
-- [ ] Her projenin **kendine ait** hafızası, session'ları, dersleri ve puanları vardır. Projeler birbirine karışmaz
+- [x] ⭐ Proje keşfi: session'lardan ve seçilen klasörlerden otomatik bulma
+- [ ] ⭐ Proje ekleme, çıkarma, yeniden adlandırma, gizleme — *gizleme hazır; elle ekleme ve yeniden adlandırma kalan iş*
+- [x] Proje kartı: sağlık puanı, son aktivite, aktif session sayısı, dil ve framework rozetleri
+- [x] Her projenin **kendine ait** hafızası, session'ları, dersleri ve puanları vardır. Projeler birbirine karışmaz
 
 #### 1.2b 🗂️ Çalışma Alanları ve Ortamlar (Lokal / Sunucu / Takım)
 
@@ -348,7 +348,7 @@ god-eye/
 > **God Eye bu akışı değiştirmez ve bozmaz.** Kod her zaman git ile taşınır. God Eye kodu kopyalamaz, senkron etmez, kendiliğinden push etmez.
 > Yaptığı tek şey bu akışı **görünür ve güvenli** yapmak.
 
-- [ ] ⭐ **Proje kimliği = git remote adresi** (ör. `github.com/ben/poultrycare`). Benim PC'mdeki, arkadaşımın PC'sindeki ve VPS'teki kopya otomatik olarak **aynı proje** olarak tanınır. Hafıza, session'lar ve kararlar tek projede birleşir; her kopya ayrı bir **ortam/konum** olarak görünür
+- [x] ⭐ **Proje kimliği = git remote adresi** (ör. `github.com/ben/poultrycare`). Benim PC'mdeki, arkadaşımın PC'sindeki ve VPS'teki kopya otomatik olarak **aynı proje** olarak tanınır. Hafıza, session'lar ve kararlar tek projede birleşir; her kopya ayrı bir **ortam/konum** olarak görünür — *SSH ve HTTPS adresleri aynı kimliğe dönüşüyor*
 - [ ] ⭐ **Akış görünümü (pipeline):**
   ```
   💻 Mohamed PC ──push──▶ 🐙 GitHub main ──pull──▶ 💻 Kerim PC
@@ -371,23 +371,23 @@ god-eye/
 - [ ] 🔒 **AI agent'ları asla kendiliğinden `push` etmez veya deploy etmez.** Agent'lar izole worktree/branch'te çalışır, birleştirme ve push her zaman onaylıdır
 
 #### 1.3 Otomatik hook'lar
-- [ ] ⭐ Proje eklenince hook'lar otomatik kurulur. **Repoya commit edilmeyen** dosyalara yazılır (`.claude/settings.local.json`, Codex eşdeğeri) → arkadaşının reposu ve VPS etkilenmez
-- [ ] ⭐ God Eye repoya hiçbir dosya eklemez. Gerekirse `.git/info/exclude` kullanılır, `.gitignore` bile değişmez
-- [ ] ⭐ `SessionStart`: proje hafızasının kısa özetini yeni session'a enjekte eder (≤ 1.5k token)
-- [ ] ⭐ `Stop` / `SessionEnd`: özet üretme + hafıza güncelleme + puan yeniden hesaplama tetiklenir
+- [ ] ⭐ Proje eklenince hook'lar otomatik kurulur. **Repoya commit edilmeyen** dosyalara yazılır (`.claude/settings.local.json`, Codex eşdeğeri) → arkadaşının reposu ve VPS etkilenmez — *şimdilik proje başına tek tıkla (Kurulum sekmesi), kullanıcı onayıyla*
+- [x] ⭐ God Eye repoya hiçbir dosya eklemez. Gerekirse `.git/info/exclude` kullanılır, `.gitignore` bile değişmez
+- [x] ⭐ `SessionStart`: proje hafızasının kısa özetini yeni session'a enjekte eder (≤ 1.5k token)
+- [x] ⭐ `Stop` / `SessionEnd`: özet üretme + hafıza güncelleme + puan yeniden hesaplama tetiklenir — *SessionEnd ile; watcher zaten yeni satırları 3 sn içinde alıyor*
 - [ ] `PostToolUse`: değişen dosyaları ilgili kategoriye işaretler
-- [ ] Hook'lar devre dışı kalırsa watcher yedek olarak aynı işi yapar
+- [x] Hook'lar devre dışı kalırsa watcher yedek olarak aynı işi yapar
 
 #### 1.4 Proje hafızası
-- [ ] ⭐ Bölümler: **Kararlar · Fazlar/Durum · Denenip Olmayanlar · Konvansiyonlar · Açık Sorunlar**
-- [ ] ⭐ Her session sonunda otomatik güncelleme (ucuz model)
-- [ ] Her hafıza maddesi kaynağına bağlı ("bu karar şu session'da, şu mesajda alındı")
+- [x] ⭐ Bölümler: **Kararlar · Fazlar/Durum · Denenip Olmayanlar · Konvansiyonlar · Açık Sorunlar**
+- [x] ⭐ Her session sonunda otomatik güncelleme (ucuz model) — *Haiku ile, kullanıcının login'i; ayarlardan kapatılabilir*
+- [x] Her hafıza maddesi kaynağına bağlı ("bu karar şu session'da, şu mesajda alındı")
 - [ ] Çelişki tespiti: yeni bilgi eskisiyle çelişirse kullanıcıya sorulur
-- [ ] Hafıza düzenleme arayüzü (elle düzeltme ve silme)
+- [ ] Hafıza düzenleme arayüzü (elle düzeltme ve silme) — *silme (unut) hazır; düzenleme kalan iş*
 - [ ] MCP aracı: `memory_get(proje, bölüm)`, `memory_search(soru)`
 
 #### 1.5 İnsan dilinde özetler
-- [ ] ⭐ Session özeti TR + EN: **Ne yapıldı · Neden · Ne kaldı · Risk var mı**
+- [x] ⭐ Session özeti TR + EN: **Ne yapıldı · Neden · Ne kaldı · Risk var mı** — *kullanıcının dili + İngilizce*
 - [ ] Günlük ve haftalık proje özeti
 - [ ] Zaman tüneli: projenin baştan bugüne hikâyesi, tıklanabilir
 - [ ] Özet tonu ayarı: "Teknik" / "Sade"
@@ -398,21 +398,21 @@ god-eye/
 - [ ] Kullanıcı her zaman elle değiştirebilir
 
 #### 1.7 Arama
-- [ ] ⭐ Global arama (`Ctrl+K`): session'lar, kararlar, dosyalar, dersler
+- [x] ⭐ Global arama (`Ctrl+K`): session'lar, kararlar, dosyalar, dersler — *SQLite FTS5; prompt'lar, cevaplar ve araç adımları*
 - [ ] Doğal dilde arama: "giriş sayfasını hangi gün yapmıştık?"
 
 #### 1.8 🩺 Session Sağlığı (halüsinasyonun kök sebebine karşı)
 
 > Çok uzun session'lar halüsinasyonun ve unutmanın en büyük sebebidir. Sistem bunu ölçer ve önler.
 
-- [ ] ⭐ **Bağlam doluluk göstergesi:** her session'da context penceresinin ne kadar dolu olduğu (🟢 %0–50 · 🟡 %50–80 · 🔴 %80+)
-- [ ] ⭐ **Sağlık puanı:** uzunluk, tekrarlanan hatalar, kendisiyle çelişme, aynı dosyayı tekrar tekrar bozma, "unuttum" belirtileri
-- [ ] ⭐ **"Temiz sayfa" önerisi:** sağlık düşünce *"Bu session yoruldu. Özetleyip yeni bir session'da devam edeyim mi?"* → tek tıkla devir özeti + yeni session (hafıza ile birlikte)
+- [x] ⭐ **Bağlam doluluk göstergesi:** her session'da context penceresinin ne kadar dolu olduğu (🟢 %0–50 · 🟡 %50–80 · 🔴 %80+)
+- [x] ⭐ **Sağlık puanı:** uzunluk, tekrarlanan hatalar, kendisiyle çelişme, aynı dosyayı tekrar tekrar bozma, "unuttum" belirtileri
+- [ ] ⭐ **"Temiz sayfa" önerisi:** sağlık düşünce *"Bu session yoruldu. Özetleyip yeni bir session'da devam edeyim mi?"* → tek tıkla devir özeti + yeni session (hafıza ile birlikte) — *uyarı hazır; tek tıkla devir özeti + yeni session Faz 2'de (web terminali ile)*
 - [ ] Otomatik sıkıştırma (compact) önerisi, ne zaman gerektiğinin açıklamasıyla
 - [ ] Session'da hangi dosyaların ve kararların bağlamda olduğunu gösteren "AI şu an neyi biliyor" paneli
 
 #### 1.9 🔎 Halüsinasyon Dedektörü
-- [ ] ⭐ AI'ın bahsettiği **dosya, fonksiyon, değişken ve komutlar gerçekten var mı?** Otomatik kontrol edilir, yoksa uyarı verilir
+- [ ] ⭐ AI'ın bahsettiği **dosya, fonksiyon, değişken ve komutlar gerçekten var mı?** Otomatik kontrol edilir, yoksa uyarı verilir — *düzenlenen dosyaların diskte olup olmadığı kontrol ediliyor; fonksiyon ve komut kontrolü kalan iş*
 - [ ] ⭐ **Paket kontrolü:** AI'ın önerdiği npm/pip paketleri gerçekten var mı, popüler mi, yeni açılmış şüpheli bir paket mi? (uydurma paket adlarıyla yapılan saldırılara, yani "slopsquatting"e karşı)
 - [ ] "Testler geçti" ve "build başarılı" gibi iddialar gerçek çıktı ile karşılaştırılır
 - [ ] API ve kütüphane kullanımı, kurulu sürümün dokümanıyla karşılaştırılır ("bu fonksiyon v5'te kaldırıldı")

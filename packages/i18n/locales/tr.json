@@ -40,8 +40,22 @@
   "projects": {
     "title": "Projeler",
     "emptyTitle": "Henüz proje yok",
-    "emptyBody": "Yakında God Eye projelerini AI session'larından otomatik olarak bulacak. Şimdilik her şey hazır ve bekliyor.",
-    "emptyAction": "Ayarları aç"
+    "emptyBody": "God Eye projelerini Claude Code session'larından otomatik bulur. Herhangi bir projede bir session başlattığında burada görünür.",
+    "emptyAction": "Ayarları aç",
+    "filter": "Projelerde ara…",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} session",
+    "active_one": "{{count}} tanesi şu an çalışıyor",
+    "active_other": "{{count}} tanesi şu an çalışıyor",
+    "hidden": "Gizli",
+    "showHidden": "Gizlileri göster",
+    "noGit": "Git reposu değil",
+    "changes_one": "{{count}} commit edilmemiş değişiklik",
+    "changes_other": "{{count}} commit edilmemiş değişiklik",
+    "ahead": "{{count}} önde",
+    "behind": "{{count}} geride",
+    "lastActive": "Son aktivite {{when}}",
+    "indexing": "Session'ların okunuyor… {{done}}/{{total}}"
   },
   "inbox": {
     "title": "Gelen Kutusu",
@@ -78,7 +92,11 @@
     "found": "Bulundu",
     "missing": "Bulunamadı",
     "optional": "opsiyonel",
-    "dataDir": "Verilerin şurada saklanıyor"
+    "dataDir": "Verilerin şurada saklanıyor",
+    "autoSummarize": "Otomatik özetler",
+    "autoSummarizeHint": "Biten session'lar kendi hesabınla, küçük ve ucuz bir modelle sade bir dille özetlenir.",
+    "on": "Açık",
+    "off": "Kapalı"
   },
   "onboarding": {
     "welcome": "God Eye'a hoş geldin",
@@ -91,5 +109,91 @@
   },
   "help": {
     "what": "Bu nedir?"
+  },
+  "project": {
+    "overview": "Genel Bakış",
+    "sessions": "Session'lar",
+    "memory": "Hafıza",
+    "setup": "Kurulum",
+    "latest": "Son session",
+    "noSummary": "Henüz özet yok.",
+    "recent": "Son session'lar",
+    "allSessions": "Tüm session'lar",
+    "path": "Klasör",
+    "branch": "Branch",
+    "lastCommit": "Son commit",
+    "hide": "Projeyi gizle",
+    "unhide": "Projeyi göster",
+    "notFound": "Proje bulunamadı"
+  },
+  "memory": {
+    "title": "Proje hafızası",
+    "hint": "God Eye'ın bu proje hakkında hatırladıkları. Her yeni AI session'ına verilir; böylece AI tahmin etmek yerine gerçeklerden başlar.",
+    "empty": "Henüz hatırlanan bir şey yok. Session'lar özetlendikçe hafıza dolacak.",
+    "status": "Durum",
+    "decision": "Kararlar",
+    "convention": "Kurallar",
+    "failed": "Denenip olmayanlar",
+    "issue": "Açık sorunlar",
+    "delete": "Unut",
+    "fromSession": "Bir session'dan",
+    "preview": "AI'a ne gittiğini gör"
+  },
+  "setup": {
+    "hooksTitle": "Yeni session'lara proje hafızasını ver",
+    "hooksBody": "Bu projenin lokal Claude Code ayarlarına küçük bir hook ekler. Her yeni session yukarıdaki hafızayla başlar. Reponda bir şey değişmez: dosya git'in dışında kalır.",
+    "install": "Aç",
+    "uninstall": "Kapat",
+    "on": "Açık",
+    "off": "Kapalı",
+    "file": "Yazıldığı yer"
+  },
+  "session": {
+    "summary": "Özet",
+    "did": "Ne yapıldı",
+    "why": "Amaç",
+    "left": "Kalanlar",
+    "risks": "Kontrol et",
+    "summarize": "Özetle",
+    "summarizing": "Özetleniyor…",
+    "resummarize": "Yeniden özetle",
+    "noSummaryBody": "Bu session'ın henüz özeti yok. God Eye sade bir dille yazabilir.",
+    "transcript": "Konuşma",
+    "showTools": "Araç adımlarını göster",
+    "you": "Sen",
+    "ai": "AI",
+    "started": "Başladı",
+    "updated": "Son aktivite",
+    "messages": "Prompt",
+    "toolCalls": "Adım",
+    "model": "Model",
+    "tokens": "Token",
+    "files": "Düzenlenen dosyalar",
+    "missing": "Artık var olmayan düzenlenmiş dosyalar",
+    "missingHint": "AI bu dosyaları değiştirmiş ama artık diskte yoklar. Taşınmış ya da silinmiş olabilirler.",
+    "older": "Sadece son mesajlar gösteriliyor.",
+    "active": "Şu an çalışıyor",
+    "notFound": "Session bulunamadı"
+  },
+  "health": {
+    "title": "Session sağlığı",
+    "good": "Dinç",
+    "warn": "Yoruluyor",
+    "bad": "Yorgun",
+    "context": "Kullanılan hafıza",
+    "contextHint": "AI'ın çalışma hafızasının ne kadar dolu olduğu. %80'in üstünde önceki detayları unutmaya başlar.",
+    "context-high": "Çalışma hafızası neredeyse dolu",
+    "context-mid": "Çalışma hafızası yarı dolu",
+    "long": "Çok uzun konuşma",
+    "errors": "Son zamanlarda çok sayıda başarısız adım",
+    "compacted": "Birkaç kez sıkıştırılmış",
+    "fresh": "Bu session yorulmuş. Özetle birlikte yeni bir session açmak daha iyi ve güvenilir cevaplar verir."
+  },
+  "search": {
+    "results": "Session'larında",
+    "none": "Session'larında eşleşme yok."
+  },
+  "time": {
+    "justNow": "az önce"
   }
 }

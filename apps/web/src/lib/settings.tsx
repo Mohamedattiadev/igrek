@@ -34,7 +34,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     api
-      .session()
+      .bootstrap()
       .then(api.settings)
       .then((value) => {
         setSettings(value);

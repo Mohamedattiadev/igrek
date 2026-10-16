@@ -9,15 +9,6 @@ export const settingsTable = sqliteTable("settings", {
   updatedAt: integer("updated_at").notNull(),
 });
 
-export const projectsTable = sqliteTable("projects", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  path: text("path").notNull().unique(),
-  gitRemote: text("git_remote"),
-  workspace: text("workspace").notNull().default("local"),
-  createdAt: integer("created_at").notNull(),
-});
-
 /**
  * Ordered schema migrations. Each entry runs once; the index is stored in
  * PRAGMA user_version. Never edit an entry after it ships — append a new one.
@@ -36,6 +27,79 @@ const migrations: string[] = [
      workspace TEXT NOT NULL DEFAULT 'local',
      created_at INTEGER NOT NULL
    );`,
+  // Faz 1: sessions, messages, full-text search and project memory.
+  `ALTER TABLE projects ADD COLUMN identity TEXT;
+   ALTER TABLE projects ADD COLUMN hidden INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE projects ADD COLUMN last_activity INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE projects ADD COLUMN hooks_installed INTEGER NOT NULL DEFAULT 0;
+
+   CREATE TABLE source_files (
+     path TEXT PRIMARY KEY,
+     session_id TEXT NOT NULL,
+     offset INTEGER NOT NULL DEFAULT 0,
+     size INTEGER NOT NULL DEFAULT 0,
+     mtime INTEGER NOT NULL DEFAULT 0
+   );
+
+   CREATE TABLE sessions (
+     id TEXT PRIMARY KEY,
+     project_id TEXT REFERENCES projects(id) ON DELETE SET NULL,
+     tool TEXT NOT NULL,
+     cwd TEXT,
+     git_branch TEXT,
+     title TEXT,
+     first_prompt TEXT,
+     started_at INTEGER,
+     updated_at INTEGER,
+     user_messages INTEGER NOT NULL DEFAULT 0,
+     assistant_messages INTEGER NOT NULL DEFAULT 0,
+     tool_calls INTEGER NOT NULL DEFAULT 0,
+     tool_errors INTEGER NOT NULL DEFAULT 0,
+     recent_errors TEXT NOT NULL DEFAULT '[]',
+     compactions INTEGER NOT NULL DEFAULT 0,
+     tokens_in INTEGER NOT NULL DEFAULT 0,
+     tokens_out INTEGER NOT NULL DEFAULT 0,
+     tokens_cache_read INTEGER NOT NULL DEFAULT 0,
+     tokens_cache_write INTEGER NOT NULL DEFAULT 0,
+     context_tokens INTEGER NOT NULL DEFAULT 0,
+     models TEXT NOT NULL DEFAULT '{}',
+     files_touched TEXT NOT NULL DEFAULT '[]',
+     summary TEXT,
+     summary_at INTEGER,
+     summary_messages INTEGER NOT NULL DEFAULT 0,
+     last_message_id TEXT
+   );
+   CREATE INDEX sessions_project ON sessions(project_id, updated_at DESC);
+
+   CREATE TABLE messages (
+     id TEXT PRIMARY KEY,
+     session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+     ts INTEGER,
+     role TEXT NOT NULL,
+     kind TEXT NOT NULL,
+     tool_name TEXT,
+     text TEXT NOT NULL
+   );
+   CREATE INDEX messages_session ON messages(session_id, ts);
+
+   CREATE VIRTUAL TABLE messages_fts USING fts5(text, content='messages', content_rowid='rowid');
+   CREATE TRIGGER messages_ai AFTER INSERT ON messages BEGIN
+     INSERT INTO messages_fts(rowid, text) VALUES (new.rowid, new.text);
+   END;
+   CREATE TRIGGER messages_ad AFTER DELETE ON messages BEGIN
+     INSERT INTO messages_fts(messages_fts, rowid, text) VALUES ('delete', old.rowid, old.text);
+   END;
+
+   CREATE TABLE memory_items (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     section TEXT NOT NULL,
+     text TEXT NOT NULL,
+     source_session TEXT,
+     created_at INTEGER NOT NULL,
+     status TEXT NOT NULL DEFAULT 'active'
+   );
+   CREATE INDEX memory_project ON memory_items(project_id, section);`,
 ];
 
 export function migrate(sqlite: Database): number {

@@ -33,7 +33,7 @@ export function Button({
   );
 }
 
-export function Card({ className, children }: { className?: string; children: ReactNode }) {
+export function Card({ className, children }: { className?: string; children?: ReactNode }) {
   return <div className={cn("rounded-ui border border-border bg-bg", className)}>{children}</div>;
 }
 
