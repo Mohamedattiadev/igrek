@@ -14,6 +14,7 @@ import type {
   SessionDetail,
   SessionListItem,
   SessionSummaryData,
+  ShareLevel,
   TimelineEntry,
   TranscriptMessage,
 } from "@godeye/core";
@@ -53,6 +54,7 @@ interface SessionRow {
   packages: string;
   last_tool_failed: number;
   account_id: string | null;
+  author_name?: string | null;
 }
 
 interface ProjectRow {
@@ -63,6 +65,8 @@ interface ProjectRow {
   hidden: number;
   last_activity: number;
   hooks_installed: number;
+  workspace?: string | null;
+  share?: string | null;
 }
 
 function rowToState(row: SessionRow): SessionState {
@@ -167,7 +171,8 @@ export class Store {
       id: row.id,
       name: row.name,
       path: row.path,
-      workspace: "local",
+      workspace: row.workspace === "team" ? "team" : "local",
+      share: (row.share as ShareLevel | null) ?? "off",
       sessionCount: sessions.length,
       activeSessions: sessions.filter((s) => isActive(s.updated_at ?? 0, now)).length,
       lastActivity: row.last_activity,
@@ -321,6 +326,7 @@ export class Store {
       gitBranch: row.git_branch ?? undefined,
       active: isActive(row.updated_at ?? 0),
       health: this.health(row),
+      author: row.author_name ?? undefined,
       summary: row.summary ? JSON.parse(row.summary) : undefined,
       models: JSON.parse(row.models),
       tokens: {
@@ -471,14 +477,20 @@ export class Store {
     if (!row) return;
     this.db.transaction(() => {
       if (keep === "old") {
-        this.db.query("UPDATE memory_items SET status = 'deleted' WHERE id = ?").run(id);
+        this.db
+          .query("UPDATE memory_items SET status = 'deleted', updated_at = ?, dirty = 1 WHERE id = ?")
+          .run(Date.now(), id);
         return;
       }
       this.db
-        .query("UPDATE memory_items SET status = 'active', conflict_with = NULL, conflict_reason = NULL WHERE id = ?")
-        .run(id);
+        .query(
+          "UPDATE memory_items SET status = 'active', conflict_with = NULL, conflict_reason = NULL, updated_at = ?, dirty = 1 WHERE id = ?",
+        )
+        .run(Date.now(), id);
       if (keep === "new" && row.conflict_with) {
-        this.db.query("UPDATE memory_items SET status = 'deleted' WHERE id = ?").run(row.conflict_with);
+        this.db
+          .query("UPDATE memory_items SET status = 'deleted', updated_at = ?, dirty = 1 WHERE id = ?")
+          .run(Date.now(), row.conflict_with);
       }
     })();
   }
@@ -494,7 +506,7 @@ export class Store {
   }
 
   updateMemory(id: string, text: string): void {
-    this.db.query("UPDATE memory_items SET text = ?, updated_at = ? WHERE id = ?").run(text, Date.now(), id);
+    this.db.query("UPDATE memory_items SET text = ?, updated_at = ?, dirty = 1 WHERE id = ?").run(text, Date.now(), id);
   }
 
   /** Active memory with ids, so the model can say which old fact a new one contradicts. */
@@ -512,7 +524,7 @@ export class Store {
     const rows = this.db
       .query(
         `SELECT m.id, m.section, m.text, m.source_session, m.created_at, m.conflict_with, m.conflict_reason,
-                o.text AS conflict_text
+                m.author_name, o.text AS conflict_text
          FROM memory_items m LEFT JOIN memory_items o ON o.id = m.conflict_with
          WHERE m.project_id = ? AND m.status IN ${statuses} ORDER BY m.created_at DESC`,
       )
@@ -525,6 +537,7 @@ export class Store {
       conflict_with: string | null;
       conflict_reason: string | null;
       conflict_text: string | null;
+      author_name: string | null;
     }[];
     return rows.map((m) => ({
       id: m.id,
@@ -532,6 +545,7 @@ export class Store {
       text: m.text,
       sourceSession: m.source_session ?? undefined,
       createdAt: m.created_at,
+      author: m.author_name ?? undefined,
       conflict: m.conflict_with
         ? { withId: m.conflict_with, withText: m.conflict_text ?? "", reason: m.conflict_reason ?? "" }
         : undefined,
@@ -539,7 +553,9 @@ export class Store {
   }
 
   deleteMemory(id: string): void {
-    this.db.query("UPDATE memory_items SET status = 'deleted' WHERE id = ?").run(id);
+    this.db
+      .query("UPDATE memory_items SET status = 'deleted', updated_at = ?, dirty = 1 WHERE id = ?")
+      .run(Date.now(), id);
   }
 
   // ---- search ----------------------------------------------------------------

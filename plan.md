@@ -575,57 +575,57 @@ god-eye/
 | Basit ayarlar (proje adı, etiketler) | **Son yazan kazanır** (hybrid logical clock ile) | Nadiren değişir; değişiklik geçmişi tutulur |
 | **Kodun kendisi** | **Git** (GitHub/Gitea) | Hub kod taşımaz. Git zaten doğru araç. God Eye çakışmaları **önceden** haber verir (bkz. 4.4) |
 
-- [ ] ⭐ Event log replikasyonu: "şu imleçten sonrakileri ver" protokolü, toplu gönderim, sıkıştırma
-- [ ] ⭐ Yjs entegrasyonu: ortak dokümanlar için senkron + offline düzenleme
-- [ ] Çevrimdışı kuyruk + yeniden bağlanınca otomatik eşitleme
+- [x] ⭐ Event log replikasyonu: "şu imleçten sonrakileri ver" protokolü, toplu gönderim, sıkıştırma — *imleç + toplu gönderim var; sıkıştırma sonra*
+- [ ] ⭐ Yjs entegrasyonu: ortak dokümanlar için senkron + offline düzenleme — *şimdilik hafızada "son yazan kazanır"; plan/görev panosu gelince Yjs*
+- [x] Çevrimdışı kuyruk + yeniden bağlanınca otomatik eşitleme
 - [ ] Bütünlük kontrolü: hash zinciri ile eksik veya bozuk event tespiti ve otomatik onarım
 - [ ] Senkron durumu göstergesi: ✅ güncel · 🔄 eşitleniyor · ⚠️ çevrimdışı (bekleyen: 12)
 
 #### 4.2 🔒 Sızıntısız güvenlik
-- [ ] ⭐ **Uçtan uca şifreleme:** veri bilgisayardan şifreli çıkar. Hub ele geçirilse bile içerik okunamaz
-- [ ] ⭐ Takım anahtarı her üyenin cihaz anahtarıyla sarılarak dağıtılır. Üye çıkarılınca anahtar yenilenir (rotation)
-- [ ] ⭐ **Asla senkron edilmeyenler:** AI hesap bilgileri (Claude/Codex login'leri), SSH anahtarları, `.env` dosyaları, izinli olmayan klasörler
-- [ ] ⭐ **Sır temizleyici:** event çıkmadan önce API key, token, şifre ve özel anahtar desenleri (gitleaks kuralları) otomatik maskelenir: `sk-ant-••••`
-- [ ] Proje bazında paylaşım seviyesi: **Kapalı** (hiç paylaşılmaz) · **Özet** (sadece özetler, hafıza ve kararlar) · **Tam** (tüm session'lar canlı)
+- [x] ⭐ **Uçtan uca şifreleme:** veri bilgisayardan şifreli çıkar. Hub ele geçirilse bile içerik okunamaz — *AES-GCM (WebCrypto), proje başına anahtar; testte hub DB'sinde düz metin olmadığı doğrulandı*
+- [ ] ⭐ Takım anahtarı her üyenin cihaz anahtarıyla sarılarak dağıtılır. Üye çıkarılınca anahtar yenilenir (rotation) — *şimdilik anahtar davet koduyla gider; rotation sonra*
+- [x] ⭐ **Asla senkron edilmeyenler:** AI hesap bilgileri (Claude/Codex login'leri), SSH anahtarları, `.env` dosyaları, izinli olmayan klasörler
+- [x] ⭐ **Sır temizleyici:** event çıkmadan önce API key, token, şifre ve özel anahtar desenleri (gitleaks kuralları) otomatik maskelenir: `sk-ant-••••`
+- [x] Proje bazında paylaşım seviyesi: **Kapalı** (hiç paylaşılmaz) · **Özet** (sadece özetler, hafıza ve kararlar) · **Tam** (tüm session'lar canlı)
 - [ ] Session bazında "Bu session gizli" anahtarı
 - [ ] "Ne paylaşılıyor?" önizlemesi: dışarı giden veriyi görebilme
-- [ ] TLS (Caddy ile otomatik HTTPS), argon2id parola, opsiyonel 2FA, oturum ve cihaz listesi, uzaktan cihaz iptali
+- [x] TLS (Caddy ile otomatik HTTPS), argon2id parola, opsiyonel 2FA, oturum ve cihaz listesi, uzaktan cihaz iptali — *2FA sonra*
 - [ ] Hub erişim logları ve şüpheli giriş uyarısı
-- [ ] Kurtarma anahtarı: tüm cihazlar kaybolursa veriye erişim için (kullanıcı saklar)
+- [x] Kurtarma anahtarı: tüm cihazlar kaybolursa veriye erişim için (kullanıcı saklar)
 
 #### 4.3 👤 Kullanıcılar ve yetkiler
-- [ ] ⭐ Hub yöneticisi kullanıcıları oluşturur: kullanıcı adı + şifre (sen belirlersin), veya **davet linki** (e-posta veya mesajla gönderilir, süreli, tek kullanımlık)
+- [x] ⭐ Hub yöneticisi kullanıcıları oluşturur: kullanıcı adı + şifre (sen belirlersin), veya **davet linki** (e-posta veya mesajla gönderilir, süreli, tek kullanımlık) — *tek kopyala-yapıştır davet kodu (hub + kullanıcı + geçici şifre + takım anahtarı); ilk girişte şifre değişir*
 - [ ] ⭐ Davet ederken rol ve projeler seçilir: "Kerim → PoultryCare (Üye), Ayşe → PoultryCare (İzleyici)"
 - [ ] ⭐ **İki tür üye:**
   - 💻 **God Eye kurulu üye:** kendi bilgisayarında çalışır, paylaşır, her şeyi yapar
   - 🌐 **Web üyesi (kurulumsuz):** tarayıcıdan Hub adresine girer. **Arayüz birebir aynıdır** (projeler, session'lar, kategori sayfaları, kim online), sadece AI çalıştırma ve kod düzenleme yoktur. Yorum yazabilir, öneri ve görev bırakabilir
 - [ ] 🔒 Web üyesinde de uçtan uca şifreleme korunur: şifre çözme **tarayıcıda** yapılır (WebCrypto). Hub yine hiçbir şey okuyamaz
-- [ ] Takım boyutu: 1 kişiden (tek başına) 10 kişiye kadar sorunsuz; daha fazlası için de ölçeklenebilir
+- [x] Takım boyutu: 1 kişiden (tek başına) 10 kişiye kadar sorunsuz; daha fazlası için de ölçeklenebilir
 - [ ] Roller (proje bazında): **Sahip · Yönetici · Üye · İzleyici**
 - [ ] İzleyici sadece görür; Üye kendi bilgisayarında çalışır ve paylaşır; Yönetici kullanıcı ve ayar yönetir
 - [ ] Profil: isim, avatar, dil (herkes kendi dilinde görür)
 
 #### 4.3b 👑 Süper Admin Paneli
-- [ ] ⭐ Hub ilk kurulduğunda süper admin hesabı oluşturulur (kurulum sihirbazında e-posta + güçlü şifre + 2FA önerisi)
-- [ ] ⭐ **Kullanıcı yönetimi:** kullanıcı ekleme ve silme, **e-posta ve şifre belirleme/değiştirme**, şifre sıfırlama, geçici dondurma, rol değiştirme
-- [ ] ⭐ İlk girişte şifre değiştirme zorunluluğu (opsiyonel, admin seçer)
+- [x] ⭐ Hub ilk kurulduğunda süper admin hesabı oluşturulur (kurulum sihirbazında e-posta + güçlü şifre + 2FA önerisi) — *VPS'te CLI ile (`create-admin`); ağ üzerinden kimse boş bir hub'ı sahiplenemez*
+- [x] ⭐ **Kullanıcı yönetimi:** kullanıcı ekleme ve silme, **e-posta ve şifre belirleme/değiştirme**, şifre sıfırlama, geçici dondurma, rol değiştirme — *e-posta yerine kullanıcı adı*
+- [x] ⭐ İlk girişte şifre değiştirme zorunluluğu (opsiyonel, admin seçer) — *davetle gelen herkes için zorunlu*
 - [ ] Proje erişimi: hangi kullanıcı hangi projeyi hangi rolle görür (tablo görünümü, tek tıkla değiştirme)
-- [ ] Cihaz yönetimi: her kullanıcının cihazları, son görülme zamanı, uzaktan çıkış yaptırma ve iptal
+- [x] Cihaz yönetimi: her kullanıcının cihazları, son görülme zamanı, uzaktan çıkış yaptırma ve iptal
 - [ ] Oturumlar: aktif oturumlar, IP, konum, "hepsini kapat"
 - [ ] Güvenlik politikaları: minimum şifre uzunluğu, 2FA zorunluluğu, oturum süresi, IP kısıtlaması (opsiyonel)
-- [ ] Denetim kaydı (audit log): kim, ne zaman, ne yaptı (giriş, rol değişikliği, silme, deploy, `.env` değişikliği)
-- [ ] Hub sağlığı: RAM, CPU, disk, bağlı kullanıcılar, senkron kuyruğu
+- [x] Denetim kaydı (audit log): kim, ne zaman, ne yaptı (giriş, rol değişikliği, silme, deploy, `.env` değişikliği) — *hub tarafı: giriş, kullanıcı ve şifre işlemleri*
+- [x] Hub sağlığı: RAM, CPU, disk, bağlı kullanıcılar, senkron kuyruğu — *RAM, depolama, çevrimiçi sayısı, event sayısı*
 - [ ] Yedek ve geri yükleme, saklama süresi ayarları
 - [ ] **E-posta (ücretsiz):** davet ve şifre sıfırlama mailleri için kendi SMTP'n (ör. Gmail uygulama şifresi). SMTP yoksa admin linki kopyalayıp WhatsApp vb. ile gönderir
-- [ ] Admin devri ve ikinci admin ekleme (tek kişiye bağımlı kalmamak için)
+- [x] Admin devri ve ikinci admin ekleme (tek kişiye bağımlı kalmamak için) — *son admin silinemez/düşürülemez*
 - [ ] 🔒 Şifre sıfırlama girişi açar ama şifreli veriye erişim için kullanıcının yeni cihazı admin veya mevcut bir cihazı tarafından onaylanır (uçtan uca şifreleme korunur)
-- [ ] 🔒 Admin bile kullanıcıların şifrelerini **göremez** (sadece yenisini belirleyebilir); şifreler argon2id ile saklanır
+- [x] 🔒 Admin bile kullanıcıların şifrelerini **göremez** (sadece yenisini belirleyebilir); şifreler argon2id ile saklanır
 
 #### 4.4 Canlı birlikte çalışma (halüsinasyonu ve çakışmayı bitiren kısım)
-- [ ] ⭐ **Canlı session izleme:** arkadaşımın session'ını gerçek zamanlı görürüm (prompt'lar, agent cevapları, değişen dosyalar)
-- [ ] ⭐ **Ortak hafıza:** biri karar alınca herkesin yeni session'ına bu karar otomatik enjekte edilir. Herkesin AI'ı aynı gerçeği bilir
-- [ ] ⭐ **Kim ne yapıyor (presence):** proje ve kategori sayfalarında "🟢 Ali şu an Backend → auth modülünde" rozeti
-- [ ] ⭐ **Erken çakışma uyarısı:** aynı dosya veya modülde çalışmaya başlarsam *"Ali 10 dk önce `auth.ts`'i değiştirdi, henüz push etmedi"* uyarısı + AI'a da bu bilgi verilir
+- [x] ⭐ **Canlı session izleme:** arkadaşımın session'ını gerçek zamanlı görürüm (prompt'lar, agent cevapları, değişen dosyalar) — *"Tam" paylaşımda ~3 sn gecikmeyle*
+- [x] ⭐ **Ortak hafıza:** biri karar alınca herkesin yeni session'ına bu karar otomatik enjekte edilir. Herkesin AI'ı aynı gerçeği bilir — *hafıza öğeleri senkron, son yazan kazanır; mevcut hook bağlamı bunları içerir*
+- [x] ⭐ **Kim ne yapıyor (presence):** proje ve kategori sayfalarında "🟢 Ali şu an Backend → auth modülünde" rozeti — *proje sayfası ve Takım sayfası; kategori sayfaları Faz 5'te*
+- [x] ⭐ **Erken çakışma uyarısı:** aynı dosya veya modülde çalışmaya başlarsam *"Ali 10 dk önce `auth.ts`'i değiştirdi, henüz push etmedi"* uyarısı + AI'a da bu bilgi verilir — *aynı dosyalarda çalışınca sarı rozet; AI'a iletme sonra*
 - [ ] Görev sahiplenme (claim): "Bu işi ben alıyorum". Diğerleri görür, aynı iş iki kez yapılmaz
 - [ ] **Prompt önerme:** arkadaşımın session'ına prompt veya not gönderebilirim. Onun ekranında öneri olarak çıkar, kabul ederse session'ına eklenir. Kimsenin session'ı izinsiz değiştirilmez
 - [ ] **Session devralma:** "Bu işi sen devam ettir". Özet ve bağlam karşı tarafa geçer, iş kendi bilgisayarında devam eder
@@ -636,18 +636,18 @@ god-eye/
 - [ ] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir
 
 #### 4.5 Hub (VPS tarafı)
-- [ ] ⭐ Tek küçük binary / Docker imajı (< 80 MB), `docker compose up -d` ile kurulum
-- [ ] ⭐ İşleri sadece şunlar: giriş, yetki, şifreli event saklama, canlı iletme, presence. **AI çalıştırmaz, kod çalıştırmaz, şifre çözmez**
+- [ ] ⭐ Tek küçük binary / Docker imajı (< 80 MB), `docker compose up -d` ile kurulum — *compose ile kurulum hazır; imaj şu an 260 MB (bun tabanı), küçültme sonra*
+- [x] ⭐ İşleri sadece şunlar: giriş, yetki, şifreli event saklama, canlı iletme, presence. **AI çalıştırmaz, kod çalıştırmaz, şifre çözmez**
 - [ ] Hedef kaynak kullanımı: boştayken ~50 MB RAM, ~%0 CPU; 10 kullanıcıda bile birkaç %
 - [ ] Depolama: SQLite (şifreli bloblar); eski event'ler için sıkıştırma ve saklama süresi ayarı
 - [ ] Otomatik yedek (şifreli halde, örneğin S3 uyumlu bir depoya)
-- [ ] Aynı VPS'te yayındaki projelerinle yan yana sorunsuz çalışır (port ve kaynak sınırları, `mem_limit`)
-- [ ] Hub yönetim paneli (kullanıcılar, cihazlar, depolama kullanımı)
-- [ ] Hub opsiyoneldir: tek başına kullanan biri hiç kurmaz
+- [x] Aynı VPS'te yayındaki projelerinle yan yana sorunsuz çalışır (port ve kaynak sınırları, `mem_limit`) — *`docker/hub-compose.yml`: sadece 127.0.0.1, 256 MB, salt okunur, root değil*
+- [x] Hub yönetim paneli (kullanıcılar, cihazlar, depolama kullanımı) — *God Eye'ın Takım sayfasında*
+- [x] Hub opsiyoneldir: tek başına kullanan biri hiç kurmaz
 
 #### 4.6 👤 "Kim yaptı, kim yapıyor" (her yerde isim)
 - [ ] ⭐ Canlı durum rozetleri: **"🟢 Mohamed şu an çalışıyor: Backend → ödeme modülü"**, "🟡 Kerim beklemede", "⚪ Ayşe çevrimdışı (2 saat önce)"
-- [ ] ⭐ Her kayıtta yapan kişi: **"Kerim yaptı · Claude ile · 14:32"**. Session'larda, commit'lerde, kararlarda, görevlerde, sunucu komutlarında ve dosya değişikliklerinde
+- [x] ⭐ Her kayıtta yapan kişi: **"Kerim yaptı · Claude ile · 14:32"**. Session'larda, commit'lerde, kararlarda, görevlerde, sunucu komutlarında ve dosya değişikliklerinde — *şimdilik session'lar ve hafıza*
 - [ ] İnsan + agent birlikte gösterilir: "Mohamed → 🤖 Backend Senior persona → `payment.ts` değiştirildi"
 - [ ] Kod görünümünde satır bazında: "Bu satırı Kerim, 3 gün önce, Codex ile, şu session'da yazdı"
 - [ ] Proje kartında üye avatarları ve kimin aktif olduğu
@@ -655,13 +655,13 @@ god-eye/
 - [ ] Bildirim: "Mohamed, senin çalıştığın `auth.ts` dosyasını değiştirdi"
 
 #### 4.7 ✅ Alınan kararlar (önerilen varsayılanlar)
-- [ ] **Uçtan uca şifreleme: AÇIK** (kapatılamaz). Güvenliğin temeli
+- [x] **Uçtan uca şifreleme: AÇIK** (kapatılamaz). Güvenliğin temeli
 - [ ] **Kurtarma anahtarı:** onboarding'de gösterilir, kaydetmek zorunludur (indir veya yazdır). Ayrıca yönetici, üyenin erişimini yeni bir cihaza tekrar verebilir (yeni cihaz, mevcut cihazlardan biri tarafından onaylanır)
 - [ ] **Paylaşım varsayılanları:**
   - 💻 Lokal projeler → **Kapalı** (hiçbir şey çıkmaz)
   - 🤝 Takım projeleri → **Tam** (session'lar canlı paylaşılır; sır temizleyici her zaman çalışır). Takımın birbirini görmesi bu sistemin asıl amacı
   - Session bazında "🔒 Gizli" anahtarı her zaman mevcuttur
-- [ ] **AI hesapları:** asla paylaşılmaz, herkes kendi hesabını kullanır
+- [x] **AI hesapları:** asla paylaşılmaz, herkes kendi hesabını kullanır
 
 **Bitti sayılır:** Ben bir prompt yazdığımda arkadaşım 1 saniye içinde görüyor; ikimiz aynı hafızayı aynı anda düzenleyince hiçbir şey kaybolmuyor; Hub'ın veritabanı açıldığında içerik okunamıyor; VPS'te Hub'ın RAM kullanımı 100 MB'ın altında.
 

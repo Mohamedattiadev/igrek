@@ -1,0 +1,155 @@
+import { Database } from "bun:sqlite";
+import { afterAll, describe, expect, test } from "bun:test";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { Hub } from "../../../hub/src/hub";
+import { createHubServer } from "../../../hub/src/server";
+import { Bus } from "../bus";
+import { migrate } from "../db";
+import { Sync } from "./client";
+
+const dir = mkdtempSync(join(tmpdir(), "godeye-sync-"));
+const hub = new Hub(join(dir, "hub.db"));
+const handler = createHubServer(hub);
+const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: handler.fetch, websocket: handler.websocket });
+const hubUrl = `http://127.0.0.1:${server.port}`;
+afterAll(() => server.stop(true));
+
+function device(name: string) {
+  const db = new Database(":memory:");
+  migrate(db);
+  const sync = new Sync(db, new Bus(), join(dir, `${name}.json`), () => name);
+  return { db, sync };
+}
+
+async function until(check: () => boolean, ms = 8000): Promise<void> {
+  const end = Date.now() + ms;
+  while (!check()) {
+    if (Date.now() > end) throw new Error("timed out");
+    await Bun.sleep(50);
+  }
+}
+
+describe("team sync", () => {
+  const a = device("mohamed");
+  const b = device("kerim");
+  let invite = "";
+
+  test("admin connects, creates the team key and invites a member", async () => {
+    await hub.createUser({ username: "mohamed", password: "first-password-1", role: "admin", mustChange: false });
+    const { status, recoveryKey } = await a.sync.connect({
+      hub: hubUrl,
+      username: "mohamed",
+      password: "first-password-1",
+    });
+    expect(recoveryKey).toBeTruthy();
+    expect(status.user?.role).toBe("admin");
+    expect(hub.keyCheck()).toMatch(/^[0-9a-f]{64}$/);
+    await until(() => a.sync.status().connected);
+
+    const user = await a.sync.admin<{ username: string }>("/users", {
+      method: "POST",
+      body: JSON.stringify({ username: "kerim", displayName: "Kerim", password: "temporary-pass-1" }),
+    });
+    expect(user.username).toBe("kerim");
+    const { encodeInvite } = await import("./crypto");
+    invite = encodeInvite({
+      hub: hubUrl,
+      username: "kerim",
+      password: "temporary-pass-1",
+      key: a.sync.teamKey() ?? "",
+    });
+  });
+
+  test("the member must pick a new password, then joins with the team key", async () => {
+    await expect(b.sync.connect({ invite })).rejects.toThrow(/new password/);
+    const { status, recoveryKey } = await b.sync.connect({ invite, newPassword: "kerims-own-pass" });
+    expect(recoveryKey).toBeUndefined();
+    expect(status.user?.username).toBe("kerim");
+    await until(() => b.sync.status().connected);
+  });
+
+  test("a wrong team key is refused", async () => {
+    const c = device("mallory");
+    const { decodeInvite, encodeInvite, generateTeamKey } = await import("./crypto");
+    const forged = encodeInvite({ ...decodeInvite(invite), password: "kerims-own-pass", key: generateTeamKey() });
+    await expect(c.sync.connect({ invite: forged })).rejects.toThrow(/doesn't match/);
+  });
+
+  test("shared sessions, messages and memory reach the teammate, scrubbed and attributed", async () => {
+    const now = Date.now();
+    a.db
+      .query(
+        "INSERT INTO projects (id, name, path, identity, created_at, share) VALUES ('p1', 'God Eye', '/home/m/godeye', 'github.com/m/godeye', ?, 'full')",
+      )
+      .run(now);
+    a.db
+      .query(
+        "INSERT INTO sessions (id, project_id, tool, title, started_at, updated_at, user_messages) VALUES ('s1', 'p1', 'claude', 'Add login', ?, ?, 2)",
+      )
+      .run(now - 1000, now);
+    a.db
+      .query("INSERT INTO messages (id, session_id, ts, role, kind, text) VALUES ('m1', 's1', ?, 'user', 'text', ?)")
+      .run(now, "deploy with ANTHROPIC_API_KEY=sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789");
+    a.db
+      .query(
+        "INSERT INTO memory_items (id, project_id, section, text, created_at, updated_at) VALUES ('k1', 'p1', 'decision', 'Use Postgres', ?, ?)",
+      )
+      .run(now, now);
+    // Kerim has the same repo cloned elsewhere, not shared yet.
+    b.db
+      .query(
+        "INSERT INTO projects (id, name, path, identity, created_at) VALUES ('local-p', 'godeye', '/home/k/code/godeye', 'github.com/m/godeye', ?)",
+      )
+      .run(now);
+
+    await a.sync.flush();
+    await until(() => !!b.db.query("SELECT 1 FROM memory_items WHERE id = 'k1'").get());
+
+    const session = b.db.query("SELECT project_id, title, author_name FROM sessions WHERE id = 's1'").get() as Record<
+      string,
+      string
+    >;
+    expect(session).toEqual({ project_id: "local-p", title: "Add login", author_name: "mohamed" });
+    const message = b.db.query("SELECT text FROM messages WHERE id = 'm1'").get() as { text: string };
+    expect(message.text).not.toContain("sk-ant-api03");
+    // Receiving a shared project doesn't start sharing Kerim's own work.
+    expect((b.db.query("SELECT share FROM projects WHERE id = 'local-p'").get() as { share: string }).share).toBe(
+      "summary",
+    );
+    expect((b.db.query("SELECT dirty FROM memory_items WHERE id = 'k1'").get() as { dirty: number }).dirty).toBe(0);
+  });
+
+  test("teammates' rows are never sent back, and edits flow both ways with last-writer-wins", async () => {
+    const before = hub.stats().events;
+    await b.sync.flush();
+    expect(hub.stats().events).toBe(before);
+
+    b.db
+      .query("UPDATE memory_items SET text = 'Use SQLite', updated_at = ?, dirty = 1 WHERE id = 'k1'")
+      .run(Date.now() + 5);
+    await b.sync.flush();
+    await until(
+      () =>
+        (a.db.query("SELECT text FROM memory_items WHERE id = 'k1'").get() as { text: string }).text === "Use SQLite",
+    );
+  });
+
+  test("the hub only ever sees ciphertext", () => {
+    const raw = new Database(join(dir, "hub.db"), { readonly: true });
+    const rows = raw.query("SELECT data FROM events").all() as { data: string }[];
+    raw.close();
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row.data).not.toContain("Add login");
+      expect(row.data).not.toContain("Postgres");
+    }
+  });
+
+  test("disconnect forgets the hub and the key", async () => {
+    b.sync.disconnect();
+    expect(b.sync.status()).toMatchObject({ configured: false, connected: false });
+    expect(b.sync.teamKey()).toBeUndefined();
+  });
+});

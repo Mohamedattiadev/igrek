@@ -1,0 +1,6 @@
+# HTTPS for the hub (Caddy gets the certificate by itself).
+# Point a DNS record like hub.example.com at the VPS first.
+hub.example.com {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:7700
+}

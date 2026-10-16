@@ -8,6 +8,17 @@
         "@biomejs/biome": "^2.5.15",
       },
     },
+    "apps/hub": {
+      "name": "@godeye/hub",
+      "version": "0.1.0",
+      "dependencies": {
+        "hono": "^4.13.13",
+      },
+      "devDependencies": {
+        "@types/bun": "^1.4.3",
+        "typescript": "^7.0.2",
+      },
+    },
     "apps/server": {
       "name": "@godeye/server",
       "version": "0.1.0",
@@ -93,6 +104,8 @@
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.5.15", "", { "os": "win32", "cpu": "x64" }, "sha512-yAzh4UqEImV6Hcy0zjUqNfJAsUhoD64FBQCdTG8Md/Z2wQeVP/ZmJ3XRYAs1g8J9fjTFyl2fCtc5FB5til47+g=="],
 
     "@godeye/core": ["@godeye/core@workspace:packages/core"],
+
+    "@godeye/hub": ["@godeye/hub@workspace:apps/hub"],
 
     "@godeye/i18n": ["@godeye/i18n@workspace:packages/i18n"],
 

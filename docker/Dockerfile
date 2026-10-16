@@ -7,6 +7,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
+COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 RUN bun install --frozen-lockfile
@@ -19,6 +20,7 @@ WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
+COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 RUN bun install --frozen-lockfile --production --filter '@godeye/server'

@@ -1,0 +1,31 @@
+# God Eye Hub on your VPS, next to your other services.
+#
+#   docker compose -f docker/hub-compose.yml up -d --build
+#   docker compose -f docker/hub-compose.yml exec hub bun src/cli.ts create-admin <username>
+#
+# Put it behind HTTPS (see docker/Caddyfile.example); the port below only
+# listens on the VPS itself, so nothing is exposed without the proxy.
+services:
+  hub:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.hub
+    image: god-eye-hub:local
+    container_name: god-eye-hub
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${HUB_PORT:-7700}:7700"
+    environment:
+      # Caddy sets X-Forwarded-For; trust it only because the port is local-only.
+      HUB_TRUST_PROXY: "1"
+    volumes:
+      - hub-data:/data
+    mem_limit: 256m
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  hub-data:

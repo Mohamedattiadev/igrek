@@ -26,6 +26,8 @@ import { Servers } from "./servers";
 import { readSettings } from "./settings";
 import { Store } from "./store";
 import { claudeAccount, Summarizer } from "./summarizer";
+import { Sync } from "./sync/client";
+import { registerTeamRoutes } from "./team-routes";
 import { registerTerminalRoutes } from "./terminal-routes";
 import { Terminals } from "./terminals";
 
@@ -84,6 +86,8 @@ const files = new Files(
   () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],
   join(config.dataDir, "trash"),
 );
+// Team hub: only active once the user connects from the Team page.
+const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
 const app = createApp({
   config,
   db,
@@ -98,6 +102,7 @@ const app = createApp({
     registerChatRoutes(hono, { chats, store, accounts });
     registerFileRoutes(hono, { files, store });
     registerAssistRoutes(hono, assist);
+    registerTeamRoutes(hono, sync);
   },
   work: {
     store,
@@ -110,6 +115,7 @@ const app = createApp({
   },
 });
 indexer.start();
+void sync.start();
 summarizer.start();
 jobs.start();
 // Who is logged in where: at start and every 30 minutes.

@@ -108,6 +108,8 @@ export interface SessionListItem {
   gitBranch?: string;
   active: boolean;
   health: SessionHealth;
+  /** Teammate who ran it; empty for your own. */
+  author?: string;
   summary?: SessionSummaryData;
   models: Record<string, number>;
   tokens: { input: number; output: number; cacheRead: number; cacheWrite: number };
@@ -158,6 +160,8 @@ export interface MemoryItem {
   text: string;
   sourceSession?: string;
   createdAt: number;
+  /** Teammate who wrote it; empty for your own. */
+  author?: string;
   /** Set when this item contradicts an older one; the user decides which stays. */
   conflict?: { withId: string; withText: string; reason: string };
 }
@@ -193,7 +197,9 @@ export interface ProjectListItem {
   id: string;
   name: string;
   path: string;
-  workspace: "local";
+  workspace: "local" | "team";
+  /** How much of this project goes to the team hub. */
+  share: ShareLevel;
   sessionCount: number;
   activeSessions: number;
   lastActivity: number;
@@ -465,6 +471,68 @@ export interface LimitsOverview {
   total: number;
 }
 
+export type ShareLevel = "off" | "summary" | "full";
+
+export interface TeamMember {
+  id: string;
+  username: string;
+  displayName: string;
+  role: "admin" | "member" | "viewer";
+  online?: boolean;
+}
+
+export interface TeamStatus {
+  configured: boolean;
+  connected: boolean;
+  hub?: string;
+  user?: { id: string; username: string; displayName: string; role: "admin" | "member" | "viewer" };
+  keyMismatch: boolean;
+  /** The hub no longer accepts this device (password reset or removed): join again with a new invite. */
+  signedOut: boolean;
+  members: TeamMember[];
+}
+
+export interface TeamUser extends TeamMember {
+  disabled: boolean;
+  mustChangePassword: boolean;
+  createdAt: number;
+}
+
+export interface TeamDevice {
+  id: string;
+  userId: string;
+  name: string;
+  createdAt: number;
+  lastSeen: number;
+  ip?: string;
+}
+
+export interface TeamAuditEntry {
+  at: number;
+  userId?: string;
+  action: string;
+  detail?: string;
+  ip?: string;
+}
+
+export interface TeamInvite {
+  user: { id: string; username: string };
+  invite: string;
+}
+
+/** "Kerim is working on …" */
+export interface Presence {
+  userId: string;
+  name: string;
+  projectId: string;
+  title?: string;
+  tool?: string;
+  files: string[];
+  /** Files they are touching that your own recent session touched too. */
+  overlap?: string[];
+  at: number;
+}
+
 /** Messages pushed from server to UI over the WebSocket. */
 export type ServerMessage =
   | { type: "hello"; version: string }
@@ -478,7 +546,9 @@ export type ServerMessage =
   | { type: "servers-changed" }
   | { type: "chats"; chats: ChatInfo[] }
   | { type: "accounts-changed" }
-  | { type: "limits-changed" };
+  | { type: "limits-changed" }
+  | { type: "team-changed" }
+  | { type: "presence" };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };

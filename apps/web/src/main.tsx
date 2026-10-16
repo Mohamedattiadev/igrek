@@ -1,4 +1,3 @@
-import { Users } from "lucide-react";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
@@ -13,13 +12,13 @@ import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
 import { LimitsPage } from "./pages/Limits";
 import { Onboarding } from "./pages/Onboarding";
-import { PlaceholderPage } from "./pages/Placeholder";
 import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
 import { PromptsPage } from "./pages/Prompts";
 import { ServerPage, ServersPage } from "./pages/Servers";
 import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
+import { TeamPage } from "./pages/Team";
 import { TerminalPage, TerminalsPage } from "./pages/Terminals";
 import "./styles.css";
 
@@ -41,7 +40,7 @@ const router = createBrowserRouter([
       { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <LimitsPage /> },
-      { path: "team", element: <PlaceholderPage title="nav.team" icon={Users} /> },
+      { path: "team", element: <TeamPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "design", element: <DesignPage /> },
       { path: "*", element: <ProjectsPage /> },

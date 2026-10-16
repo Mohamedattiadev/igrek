@@ -14,7 +14,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 import { NewSession } from "../components/NewSession";
-import { Badge, Button, Card, EmptyState, Section } from "../components/ui";
+import { TeamPresence } from "../components/TeamPresence";
+import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
 import { ActiveDot, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -228,6 +229,16 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
           {t("setup.file")} <code className="font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
       </Section>
+      <Section title={t("team.sharing")} hint={t("team.shareHint")}>
+        <Segmented
+          value={project.share}
+          onChange={async (share) => {
+            await api.setShare(project.id, share);
+            onChange();
+          }}
+          options={(["off", "summary", "full"] as const).map((s) => ({ value: s, label: t(`team.share_${s}`) }))}
+        />
+      </Section>
       <Section title={t("accounts.forProject")} hint={t("accounts.noSwitch")}>
         <select
           defaultValue={project.accountId ?? ""}
@@ -308,6 +319,7 @@ export function ProjectPage() {
           {project && <ActiveDot active={project.activeSessions > 0} />}
           <h1 className="text-[15px] font-semibold">{project?.name ?? "…"}</h1>
           {project?.health && <HealthBadge health={project.health} />}
+          {project && project.share !== "off" && <TeamPresence projectId={project.id} />}
           <div className="flex-1" />
           {project && <NewSession projectId={project.id} />}
         </div>

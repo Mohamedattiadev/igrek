@@ -17,6 +17,7 @@ import type {
   IndexStatus,
   LimitsOverview,
   MemorySection,
+  Presence,
   ProjectDetail,
   ProjectListItem,
   QuickAnswer,
@@ -29,7 +30,13 @@ import type {
   SessionListItem,
   SessionSummaryData,
   Settings,
+  ShareLevel,
   SystemStatus,
+  TeamAuditEntry,
+  TeamDevice,
+  TeamInvite,
+  TeamStatus,
+  TeamUser,
   TerminalInfo,
   TerminalTool,
   TimelineEntry,
@@ -170,6 +177,30 @@ export const api = {
   handoff: (sessionId: string, tool?: TerminalTool) =>
     request<TerminalInfo>(`/api/sessions/${sessionId}/handoff`, { method: "POST", body: JSON.stringify({ tool }) }),
   closeTerminal: (id: string) => request<{ ok: boolean }>(`/api/terminals/${id}`, { method: "DELETE" }),
+  team: () => request<TeamStatus>("/api/team"),
+  teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
+    request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  teamDisconnect: () => request<{ ok: boolean }>("/api/team/disconnect", { method: "POST" }),
+  teamRecoveryKey: () => request<{ key: string }>("/api/team/recovery-key"),
+  teamInvite: (body: { username: string; displayName?: string; role: string }) =>
+    request<TeamInvite>("/api/team/invite", { method: "POST", body: JSON.stringify(body) }),
+  teamPresence: (projectId?: string) =>
+    request<Presence[]>(`/api/team/presence${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`),
+  teamUsers: () => request<TeamUser[]>("/api/team/admin/users"),
+  teamDevices: () => request<TeamDevice[]>("/api/team/admin/devices"),
+  teamAudit: () => request<TeamAuditEntry[]>("/api/team/admin/audit"),
+  teamStats: () =>
+    request<{ users: number; events: number; bytes: number; online: number; rssMb: number }>("/api/team/admin/stats"),
+  teamUpdateUser: (id: string, patch: { role?: string; disabled?: boolean; displayName?: string }) =>
+    request<TeamUser>(`/api/team/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  teamResetUser: (id: string) => request<TeamInvite>(`/api/team/admin/users/${id}/reset`, { method: "POST" }),
+  teamDeleteUser: (id: string) => request<{ ok: boolean }>(`/api/team/admin/users/${id}`, { method: "DELETE" }),
+  teamRevokeDevice: (id: string) => request<{ ok: boolean }>(`/api/team/admin/devices/${id}`, { method: "DELETE" }),
+  setShare: (projectId: string, share: ShareLevel) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/share`, { method: "PUT", body: JSON.stringify({ share }) }),
 };
 
 export const fs = {

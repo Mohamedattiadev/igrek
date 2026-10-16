@@ -18,6 +18,7 @@ export function SessionRow({ session, projectId }: { session: SessionListItem; p
         <p className="truncate text-[13px] font-medium">{session.summary?.title || session.title}</p>
         <p className="truncate text-xs text-fg-subtle">{summary?.did[0] ?? session.title}</p>
       </div>
+      {session.author && <Badge tone="accent">{session.author}</Badge>}
       {session.tool !== "claude" && <Badge>{session.tool}</Badge>}
       {model && <span className="hidden font-mono text-[11px] text-fg-subtle md:inline">{modelName(model)}</span>}
       <HealthBadge health={session.health} />

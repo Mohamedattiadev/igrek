@@ -80,7 +80,10 @@ function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId:
   }
   return (
     <li data-nav-item tabIndex={-1} className="group flex items-start gap-3 px-pad py-2.5">
-      <p className="flex-1 text-[13px] leading-relaxed">{item.text}</p>
+      <p className="flex-1 text-[13px] leading-relaxed">
+        {item.text}
+        {item.author && <span className="ms-2 text-[11px] text-fg-subtle">— {item.author}</span>}
+      </p>
       {item.sourceSession && (
         <Link
           to={`/p/${projectId}/s/${item.sourceSession}`}

@@ -204,6 +204,19 @@ const migrations: string[] = [
      recent_errors = '[]', compactions = 0, tokens_in = 0, tokens_out = 0, tokens_cache_read = 0,
      tokens_cache_write = 0, context_tokens = 0, models = '{}', files_touched = '[]', last_message_id = NULL,
      unverified_claims = '[]', packages = '[]', last_tool_failed = 0, first_prompt = NULL;`,
+  // Faz 4: team sync. Rows that came from teammates carry their author; own rows have none.
+  `ALTER TABLE projects ADD COLUMN share TEXT NOT NULL DEFAULT 'off';
+   ALTER TABLE sessions ADD COLUMN author_id TEXT;
+   ALTER TABLE sessions ADD COLUMN author_name TEXT;
+   ALTER TABLE memory_items ADD COLUMN author_id TEXT;
+   ALTER TABLE memory_items ADD COLUMN author_name TEXT;
+   ALTER TABLE memory_items ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;
+   CREATE TABLE sync_cursors (
+     scope TEXT NOT NULL,
+     key TEXT NOT NULL,
+     value INTEGER NOT NULL,
+     PRIMARY KEY (scope, key)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

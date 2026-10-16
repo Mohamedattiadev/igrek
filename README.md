@@ -67,6 +67,22 @@ docker compose down          # kapat
 git pull && docker compose up -d --build   # güncelle
 ```
 
+### Takımla kullanmak (isteğe bağlı)
+
+Tek başına kullanıyorsan bunu atla. Takım için küçük bir **Hub** sunucusu kurulur (kendi VPS'inde, ücretsiz):
+
+```bash
+# VPS'te, repo klasöründe
+docker compose -f docker/hub-compose.yml up -d --build
+docker compose -f docker/hub-compose.yml exec hub bun src/cli.ts create-admin <kullanici-adin>
+```
+
+HTTPS için önüne Caddy koy (`docker/Caddyfile.example`). Sonra God Eye → **Takım** → *Admin girişi*. İlk girişte **kurtarma anahtarı** gösterilir, bir şifre yöneticisinde sakla. Arkadaşlarını oradan davet edersin: her biri için tek bir davet kodu çıkar, kodu özelden gönderirsin.
+
+- Hub verileri **okuyamaz**: her şey bilgisayarından şifreli çıkar.
+- Bir projeyi paylaşmadıkça hiçbir şeyi gitmez. Sırlar (API anahtarları, şifreler) her zaman silinir.
+- AI hesapların, SSH anahtarların ve `.env` dosyaların asla gönderilmez.
+
 ### Sık sorulan sorular
 
 **Kodlama bilmem gerekiyor mu?**
@@ -138,6 +154,22 @@ bun run doctor     # check your setup
 docker compose down          # stop
 git pull && docker compose up -d --build   # update
 ```
+
+### Use it with a team (optional)
+
+Skip this if you work alone. A team runs a small **Hub** server (on your own VPS, free):
+
+```bash
+# On the VPS, in the repo folder
+docker compose -f docker/hub-compose.yml up -d --build
+docker compose -f docker/hub-compose.yml exec hub bun src/cli.ts create-admin <your-username>
+```
+
+Put Caddy in front for HTTPS (`docker/Caddyfile.example`). Then God Eye → **Team** → *Admin sign-in*. The first time, you get a **recovery key**. Keep it in a password manager. Invite teammates from there: each one gets a single invite code, which you send them privately.
+
+- The hub **can't read** your data: everything is encrypted before it leaves your computer.
+- Nothing is sent until you share a project. Secrets (API keys, passwords) are always removed.
+- Your AI accounts, SSH keys and `.env` files are never sent.
 
 ### FAQ
 
