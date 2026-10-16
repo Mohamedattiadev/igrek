@@ -38,7 +38,14 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
       Object.assign(patch, { [key]: body[key] });
     }
   }
-  for (const key of ["onboarded", "autoSummarize"] as const) {
+  if ("allowedFolders" in body) {
+    const folders = body.allowedFolders;
+    if (!Array.isArray(folders) || !folders.every((f) => typeof f === "string" && f.startsWith("/"))) {
+      return { error: "Folders must be full paths" };
+    }
+    patch.allowedFolders = [...new Set(folders.map((f) => f.replace(/\/+$/, "") || "/"))].slice(0, 50);
+  }
+  for (const key of ["onboarded", "autoSummarize", "editorVim"] as const) {
     if (key in body) {
       if (typeof body[key] !== "boolean") return { error: `Invalid ${key}` };
       patch[key] = body[key] as boolean;

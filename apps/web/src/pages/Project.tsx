@@ -20,11 +20,12 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useLiveData } from "../lib/live";
+import { CodeTab } from "./project/Code";
 import { MemoryTab } from "./project/Memory";
 import { SessionRow } from "./project/SessionRow";
 import { ReportsCard, TimelineTab } from "./project/Timeline";
 
-const TABS = ["overview", "timeline", "sessions", "memory", "setup"] as const;
+const TABS = ["overview", "timeline", "sessions", "code", "memory", "setup"] as const;
 type Tab = (typeof TABS)[number];
 
 /** Plain-language warnings about where the code stands vs. the remote (plan.md 1.2c). */
@@ -302,7 +303,7 @@ export function ProjectPage() {
                 tab === name ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
               )}
             >
-              {t(`project.${name}`)}
+              {name === "code" ? t("code.tab") : t(`project.${name}`)}
               {name === "sessions" && project && <span className="ms-1.5 text-fg-subtle">{project.sessionCount}</span>}
               {name === "memory" && project && (
                 <span
@@ -315,13 +316,15 @@ export function ProjectPage() {
           ))}
         </nav>
       </header>
-      <div className="mx-auto w-full max-w-6xl p-6">
+      <div className={tab === "code" ? "flex min-h-0 flex-1" : "mx-auto w-full max-w-6xl p-6"}>
         {!project ? (
           <div className="h-64 animate-pulse rounded-ui bg-bg-subtle" />
         ) : tab === "overview" ? (
           <Overview project={project} />
         ) : tab === "timeline" ? (
           <TimelineTab projectId={project.id} />
+        ) : tab === "code" ? (
+          <CodeTab project={project} />
         ) : tab === "sessions" ? (
           <Sessions projectId={project.id} />
         ) : tab === "memory" ? (

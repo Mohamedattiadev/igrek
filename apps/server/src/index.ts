@@ -1,3 +1,4 @@
+import { join } from "node:path";
 import { APP_VERSION, type ClientMessage, type ServerMessage } from "@godeye/core";
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
@@ -5,6 +6,8 @@ import { createApp } from "./app";
 import { Bus, StopRegistry } from "./bus";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
+import { registerFileRoutes } from "./file-routes";
+import { Files } from "./files";
 import { writeHookScript } from "./hooks";
 import { Indexer } from "./indexer";
 import { Jobs } from "./jobs";
@@ -40,6 +43,10 @@ const summarizer = new Summarizer(
 const hookScript = writeHookScript(config.dataDir, config.publicPort);
 const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
+const files = new Files(
+  () => [...store.allProjectRows().map((p) => p.path), ...readSettings(db).allowedFolders],
+  join(config.dataDir, "trash"),
+);
 const app = createApp({
   config,
   db,
@@ -47,7 +54,10 @@ const app = createApp({
   bus,
   stops,
   startedAt: Date.now(),
-  extraRoutes: (hono) => registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language }),
+  extraRoutes: (hono) => {
+    registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language });
+    registerFileRoutes(hono, { files, store });
+  },
   work: {
     store,
     indexer,

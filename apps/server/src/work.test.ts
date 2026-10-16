@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { applyLine, claudeAdapter } from "./adapters/claude";
 import { applyCodexLine } from "./adapters/codex";
-import { normalizeRemote } from "./adapters/git";
+import { gitChanges, normalizeRemote } from "./adapters/git";
 import { checkClaim, emptyState, notePackages } from "./adapters/types";
 import { Bus } from "./bus";
 import { migrate } from "./db";
@@ -407,5 +407,25 @@ describe("what the AI sees", () => {
     const store = new Store(sqlite);
     await new Indexer(store, new Bus(), [claudeAdapter(root)]).scan();
     expect(store.sessionDetail("s9")?.mentionedMissing).toEqual(["src/ghost.ts"]);
+  });
+});
+
+describe("git changes", () => {
+  test("keeps the first file's path intact (status codes start with a space)", () => {
+    const repo = mkdtempSync(join(tmpdir(), "godeye-git-"));
+    const run = (...args: string[]) =>
+      Bun.spawnSync(["git", "-C", repo, ...args], { stdout: "ignore", stderr: "ignore" });
+    run("init", "-q");
+    run("config", "user.email", "t@t");
+    run("config", "user.name", "t");
+    writeFileSync(join(repo, "a.txt"), "1");
+    run("add", ".");
+    run("commit", "-qm", "init");
+    writeFileSync(join(repo, "a.txt"), "2");
+    writeFileSync(join(repo, "new.txt"), "x");
+    expect(gitChanges(repo)).toEqual([
+      { path: "a.txt", code: " M", staged: false },
+      { path: "new.txt", code: "??", staged: false },
+    ]);
   });
 });

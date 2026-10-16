@@ -7,6 +7,7 @@ import { Shell } from "./components/Shell";
 import "./lib/i18n";
 import { SettingsProvider, useSettings } from "./lib/settings";
 import { DesignPage } from "./pages/Design";
+import { FilesPage } from "./pages/Files";
 import { InboxPage } from "./pages/Inbox";
 import { Onboarding } from "./pages/Onboarding";
 import { PlaceholderPage } from "./pages/Placeholder";
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "p/:projectId", element: <ProjectPage /> },
       { path: "p/:projectId/s/:sessionId", element: <SessionPage /> },
       { path: "terminals", element: <TerminalsPage /> },
+      { path: "files", element: <FilesPage /> },
       { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <PlaceholderPage title="nav.limits" icon={Gauge} /> },

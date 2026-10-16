@@ -10,7 +10,8 @@
     "team": "Takım",
     "settings": "Ayarlar",
     "design": "Tasarım sistemi",
-    "terminals": "Terminaller"
+    "terminals": "Terminaller",
+    "files": "Dosyalar"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -294,5 +295,60 @@
     "fresh": "Özetle temiz başla",
     "freshHint": "Ne yapıldığını ve ne kaldığını zaten bilen yeni bir session açar.",
     "notInstalled": "kurulu değil"
+  },
+  "code": {
+    "tab": "Kod",
+    "files": "Dosyalar",
+    "changes": "Değişiklikler",
+    "noChanges": "Commit edilmemiş değişiklik yok.",
+    "save": "Kaydet",
+    "saved": "Kaydedildi",
+    "unsaved": "Kaydedilmemiş değişiklik",
+    "conflict": "Sen düzenlerken bu dosya diskte değişti. Yeni hâlini görmek için yeniden yükle.",
+    "reload": "Yeniden yükle",
+    "pickFile": "Soldan bir dosya seç",
+    "binary": "Bu dosya metin olarak gösterilemiyor.",
+    "download": "İndir",
+    "commit": "Commit",
+    "commitPlaceholder": "Ne değiştirdin?",
+    "committed": "Commit atıldı",
+    "diff": "Değişiklikler",
+    "edit": "Düzenle",
+    "preview": "Önizle",
+    "search": "Dosyalarda ara…",
+    "vim": "Vim",
+    "explain": "Bu dosyayı açıkla",
+    "closeTab": "Kapat"
+  },
+  "files": {
+    "title": "Dosyalar",
+    "roots": "Yerler",
+    "newFolder": "Yeni klasör",
+    "upload": "Yükle",
+    "rename": "Yeniden adlandır",
+    "delete": "Çöp kutusuna taşı",
+    "copyPath": "Yolu kopyala",
+    "trash": "Çöp kutusu",
+    "restore": "Geri yükle",
+    "emptyTrash": "Çöp kutusu boş.",
+    "empty": "Bu klasör boş.",
+    "name": "Ad",
+    "size": "Boyut",
+    "modified": "Değişiklik",
+    "usage": "Disk kullanımı",
+    "addFolder": "Başka bir klasöre izin ver",
+    "addFolderHint": "God Eye'ın açabileceği klasörün tam yolu",
+    "search": "İsimlerde ara…",
+    "grid": "Izgara",
+    "list": "Liste",
+    "hidden": "Gizlileri göster",
+    "dropHere": "Yüklemek için dosyaları bırak",
+    "folderName": "Klasör adı",
+    "newName": "Yeni ad",
+    "protected": "~/.ssh gibi korumalı klasörler asla gösterilmez."
+  },
+  "preview": {
+    "rows": "{{count}} satır",
+    "truncated": "İlk {{count}} satır gösteriliyor."
   }
 }

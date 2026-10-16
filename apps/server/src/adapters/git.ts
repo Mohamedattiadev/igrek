@@ -1,4 +1,4 @@
-import type { CommitItem, GitInfo } from "@godeye/core";
+import type { CommitItem, GitChange, GitInfo } from "@godeye/core";
 
 function git(cwd: string, args: string[]): string | undefined {
   try {
@@ -93,4 +93,43 @@ export function gitFetch(root: string): boolean {
   });
   infoCache.delete(root);
   return proc.exitCode === 0;
+}
+
+/** Changed files in the working tree (git status). */
+export function gitChanges(root: string): GitChange[] {
+  // Not trimmed: the first entry's leading space is part of its status code.
+  const proc = Bun.spawnSync(["git", "-C", root, "status", "--porcelain=v1", "-z", "--untracked-files=all"], {
+    stdout: "pipe",
+    stderr: "ignore",
+  });
+  if (proc.exitCode !== 0) return [];
+  const out = proc.stdout.toString();
+  const parts = out.split("\0").filter(Boolean);
+  const changes: GitChange[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    const entry = parts[i] ?? "";
+    const code = entry.slice(0, 2);
+    const path = entry.slice(3);
+    // Renames carry the old path as the next entry.
+    if (code.startsWith("R") || code.startsWith("C")) i++;
+    changes.push({ path, code, staged: code[0] !== " " && code[0] !== "?" });
+  }
+  return changes;
+}
+
+/** The committed version of a file, for side-by-side diffs (empty for new files). */
+export function gitShowHead(root: string, path: string): string {
+  return git(root, ["show", `HEAD:${path}`]) ?? "";
+}
+
+/** Commits the given files (or everything changed) with a message. Local only, never pushes. */
+export function gitCommit(root: string, message: string, files?: string[]): { ok: boolean; output: string } {
+  const add = Bun.spawnSync(["git", "-C", root, "add", "--", ...(files?.length ? files : ["."])], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  if (add.exitCode !== 0) return { ok: false, output: add.stderr.toString() };
+  const commit = Bun.spawnSync(["git", "-C", root, "commit", "-m", message], { stdout: "pipe", stderr: "pipe" });
+  infoCache.delete(root);
+  return { ok: commit.exitCode === 0, output: `${commit.stdout}${commit.stderr}`.trim() };
 }

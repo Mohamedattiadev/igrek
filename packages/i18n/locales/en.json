@@ -10,7 +10,8 @@
     "team": "Team",
     "settings": "Settings",
     "design": "Design system",
-    "terminals": "Terminals"
+    "terminals": "Terminals",
+    "files": "Files"
   },
   "workspace": {
     "local": "My computer",
@@ -294,5 +295,60 @@
     "fresh": "Start fresh with a summary",
     "freshHint": "Opens a new session that already knows what was done and what is left.",
     "notInstalled": "not installed"
+  },
+  "code": {
+    "tab": "Code",
+    "files": "Files",
+    "changes": "Changes",
+    "noChanges": "No uncommitted changes.",
+    "save": "Save",
+    "saved": "Saved",
+    "unsaved": "Unsaved changes",
+    "conflict": "This file changed on disk while you were editing. Reload to see the new version.",
+    "reload": "Reload",
+    "pickFile": "Pick a file on the left",
+    "binary": "This file can't be shown as text.",
+    "download": "Download",
+    "commit": "Commit",
+    "commitPlaceholder": "What did you change?",
+    "committed": "Committed",
+    "diff": "Changes",
+    "edit": "Edit",
+    "preview": "Preview",
+    "search": "Search in files…",
+    "vim": "Vim",
+    "explain": "Explain this file",
+    "closeTab": "Close"
+  },
+  "files": {
+    "title": "Files",
+    "roots": "Places",
+    "newFolder": "New folder",
+    "upload": "Upload",
+    "rename": "Rename",
+    "delete": "Move to trash",
+    "copyPath": "Copy path",
+    "trash": "Trash",
+    "restore": "Restore",
+    "emptyTrash": "Trash is empty.",
+    "empty": "This folder is empty.",
+    "name": "Name",
+    "size": "Size",
+    "modified": "Modified",
+    "usage": "Disk usage",
+    "addFolder": "Allow another folder",
+    "addFolderHint": "Full path of a folder God Eye may open",
+    "search": "Search names…",
+    "grid": "Grid",
+    "list": "List",
+    "hidden": "Show hidden",
+    "dropHere": "Drop files to upload",
+    "folderName": "Folder name",
+    "newName": "New name",
+    "protected": "Protected folders like ~/.ssh are never shown."
+  },
+  "preview": {
+    "rows": "{{count}} rows",
+    "truncated": "Showing the first {{count}} rows."
   }
 }

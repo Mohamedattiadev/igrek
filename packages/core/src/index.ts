@@ -18,6 +18,10 @@ export interface Settings {
   autoSummarize: boolean;
   /** How summaries are written: for anyone, or with technical detail. */
   summaryTone: "plain" | "technical";
+  /** Extra folders (besides projects) God Eye may open in the file manager. */
+  allowedFolders: string[];
+  /** Vim keys inside the code editor (independent of list navigation). */
+  editorVim: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -29,6 +33,8 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   autoSummarize: true,
   summaryTone: "plain",
+  allowedFolders: [],
+  editorVim: false,
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */
@@ -239,6 +245,35 @@ export interface TerminalInfo {
   status: TerminalStatus;
   exitCode?: number;
   exitedAt?: number;
+}
+
+export interface FileEntry {
+  name: string;
+  path: string;
+  type: "file" | "dir";
+  size: number;
+  mtime: number;
+}
+
+export interface FileContent {
+  path: string;
+  size: number;
+  mtime: number;
+  kind: "text" | "binary";
+  content?: string;
+}
+
+export interface TrashItem {
+  id: string;
+  path: string;
+  deletedAt: number;
+}
+
+export interface GitChange {
+  path: string;
+  /** Two-letter porcelain code, e.g. " M", "??", "A ". */
+  code: string;
+  staged: boolean;
 }
 
 /** Messages pushed from server to UI over the WebSocket. */

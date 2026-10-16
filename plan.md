@@ -445,19 +445,19 @@ god-eye/
 - [ ] **Mod seçici:** Normal (her şeye onay) · Düzenlemeleri kabul et · **Auto** (izole worktree'de otomatik, sonunda özet ve onay)
 
 #### 2.3 Kod görünümü (VS Code gibi)
-- [ ] ⭐ Dosya ağacı + Monaco editör: sekmeler, sözdizimi renklendirme, arama, mini harita
-- [ ] ⭐ **Vim modu** (ayarlardan aç/kapat): normal, insert ve visual modlar, `:w`, `:q`, `/arama`, makrolar, register'lar, `.vimrc` benzeri özel tuş eşlemeleri, durum çubuğunda mod göstergesi
-- [ ] Vim tarzı gezinme uygulamanın geneline de yayılır (opsiyonel): listelerde `j/k`, `gg/G`, `/` ile arama, `Esc` ile geri
+- [x] ⭐ Dosya ağacı + Monaco editör: sekmeler, sözdizimi renklendirme, arama, mini harita — *Monaco lokal paketli (CDN yok); sekmeler, Ctrl+S, "diskte değişti" koruması*
+- [x] ⭐ **Vim modu** (ayarlardan aç/kapat): normal, insert ve visual modlar, `:w`, `:q`, `/arama`, makrolar, register'lar, `.vimrc` benzeri özel tuş eşlemeleri, durum çubuğunda mod göstergesi — *monaco-vim; durum çubuğunda mod göstergesi; özel tuş eşlemeleri kalan iş*
+- [x] Vim tarzı gezinme uygulamanın geneline de yayılır (opsiyonel): listelerde `j/k`, `gg/G`, `/` ile arama, `Esc` ile geri — *j/k, gg/G, /*
 - [ ] Hazır tuş düzenleri: VS Code, JetBrains, Vim, Emacs
 - [ ] Dosyada "Bunu AI'a sor" ve "Bunu açıkla" sağ tık menüsü
-- [ ] Dosya içinde ve projede arama/değiştirme
-- [ ] Git paneli: değişiklikler, diff, commit, branch, worktree listesi
+- [ ] Dosya içinde ve projede arama/değiştirme — *projede içerik arama (ripgrep / git grep) ve satıra gitme hazır; toplu değiştirme kalan iş*
+- [ ] Git paneli: değişiklikler, diff, commit, branch, worktree listesi — *değişiklikler, yan yana diff ve commit hazır; branch/worktree listesi Faz 8 agent işleriyle*
 - [ ] Git checkpoint: her AI işinden önce otomatik kayıt, tek tıkla geri alma
 - [ ] Hangi satırı hangi session'ın değiştirdiğini gösterme ("AI blame")
 
 #### 2.4 Bilgisayar ve internet erişimi
-- [ ] 🔒 Dosya erişimi izinli klasörlerle sınırlı (ayarlardan eklenir); Docker'da volume olarak bağlanır
-- [ ] ⭐ **📂 Dosya Yöneticisi** (izinli klasörler içinde, Finder/Dolphin gibi):
+- [x] 🔒 Dosya erişimi izinli klasörlerle sınırlı (ayarlardan eklenir); Docker'da volume olarak bağlanır — *projeler + Ayarlar/Dosyalar'dan eklenen klasörler; symlink ve ../ ile dışarı çıkılamaz*
+- [x] ⭐ **📂 Dosya Yöneticisi** (izinli klasörler içinde, Finder/Dolphin gibi): — *liste/ızgara, yeni klasör, yeniden adlandırma, çöp kutusu + geri yükleme, yükleme (sürükle bırak), indirme, isim arama, disk kullanımı, önizleme ve düzenleme; çift panel ve sunucu (SFTP) kalan iş*
   - Liste, ızgara ve ağaç görünümü; çift panel modu (iki klasör yan yana; biri sunucu olabilir)
   - Kopyala, taşı, yeniden adlandır, yeni klasör/dosya, sürükle bırak
   - Silinenler önce **God Eye çöp kutusuna** gider (geri alınabilir)
@@ -469,7 +469,7 @@ god-eye/
   - Disk kullanımı görünümü: hangi klasör ne kadar yer kaplıyor
   - Vim tuşlarıyla gezinme (`j/k`, `h/l`, `/`)
 - [ ] Agent'lar için web arama ve web sayfası okuma araçları (MCP üzerinden)
-- [ ] 🔒 Hassas klasörlerin **dosya olarak okunması** varsayılan olarak yasak (`~/.ssh` içindeki anahtarlar, tarayıcı profilleri vb.). Bu, SSH ile bağlanmayı engellemez (bkz. 2.5)
+- [x] 🔒 Hassas klasörlerin **dosya olarak okunması** varsayılan olarak yasak (`~/.ssh` içindeki anahtarlar, tarayıcı profilleri vb.). Bu, SSH ile bağlanmayı engellemez (bkz. 2.5)
 
 #### 2.5 🖧 Sunucular (SSH ile uzaktaki makinelerde iş yapma)
 - [ ] ⭐ Doğal dille komut: *"195.2.x.x'e gir, disk doluluğuna bak ve nginx'i yeniden başlat"* → agent SSH ile bağlanıp yapar
@@ -516,11 +516,11 @@ god-eye/
 - [ ] Devir özeti otomatik hazırlanır: ne yapıldı, nerede kalındı, sıradaki adım
 
 #### 2.9 📄 Dosya önizleyici (her şeyi uygulama içinde aç)
-- [ ] PDF görüntüleyici: sayfa küçük resimleri, arama, yakınlaştırma, "bu sayfayı AI'a sor"
-- [ ] Markdown: canlı önizleme + düzenleme (Mermaid diyagramları, tablolar, kod blokları dahil)
-- [ ] Resim (PNG, JPG, SVG, WebP), video ve ses
-- [ ] CSV ve Excel → tablo görünümü (sıralama, filtre)
-- [ ] JSON, YAML ve TOML → ağaç görünümü
+- [ ] PDF görüntüleyici: sayfa küçük resimleri, arama, yakınlaştırma, "bu sayfayı AI'a sor" — *PDF tarayıcı görüntüleyicisinde açılıyor; sayfa küçük resimleri ve "AI'a sor" kalan iş*
+- [x] Markdown: canlı önizleme + düzenleme (Mermaid diyagramları, tablolar, kod blokları dahil)
+- [x] Resim (PNG, JPG, SVG, WebP), video ve ses — *güvenlik için sandbox içinde sunuluyor*
+- [ ] CSV ve Excel → tablo görünümü (sıralama, filtre) — *CSV/TSV tablo hazır; Excel kalan iş*
+- [ ] JSON, YAML ve TOML → ağaç görünümü — *JSON biçimli görünüm hazır; ağaç ve YAML/TOML kalan iş*
 - [ ] Word ve PowerPoint → salt okunur önizleme
 - [ ] Log dosyaları → renkli, filtrelenebilir, canlı takip (`tail -f` gibi)
 - [ ] Her önizlemede "Bunu açıkla" ve "Bunu özetle" butonları

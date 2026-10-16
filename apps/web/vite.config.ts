@@ -18,6 +18,12 @@ const asServerOrigin = {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: [
+      // monaco-vim still imports Monaco's pre-0.50 file layout.
+      { find: /^monaco-editor\/esm\/vs\/(.*)$/, replacement: "monaco-editor/$1" },
+    ],
+  },
   server: {
     port: 5173,
     proxy: {
