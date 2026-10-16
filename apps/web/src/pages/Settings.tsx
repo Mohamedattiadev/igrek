@@ -171,6 +171,30 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Section title={t("settings.enhance")} hint={t("settings.enhanceHint")}>
+          <div className="space-y-3">
+            <Segmented
+              value={settings.enhanceMode}
+              onChange={(enhanceMode) => update({ enhanceMode })}
+              options={(["off", "suggest", "auto"] as const).map((m) => ({
+                value: m,
+                label: t(`settings.enhance_${m}`),
+                tip: t(`settings.enhanceTip_${m}`),
+              }))}
+            />
+            <div className="flex items-center gap-3 text-xs text-fg-muted">
+              <span>{t("settings.enhanceLanguage")}</span>
+              <Segmented
+                value={settings.enhanceLanguage}
+                onChange={(enhanceLanguage) => update({ enhanceLanguage })}
+                options={[
+                  { value: "en", label: "English", tip: t("settings.enhanceLangTip_en") },
+                  { value: "user", label: t("settings.enhanceLang_user"), tip: t("settings.enhanceLangTip_user") },
+                ]}
+              />
+            </div>
+          </div>
+        </Section>
         <Section title={t("mcp.title")} hint={t("mcp.hint")}>
           <McpSetup />
         </Section>

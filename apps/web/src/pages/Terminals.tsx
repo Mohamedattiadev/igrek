@@ -1,7 +1,9 @@
 import type { TerminalInfo } from "@godeye/core";
 import { ArrowLeft, MessageSquare, SquareTerminal, X } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
 import { PromptPicker } from "../components/PromptPicker";
 import { TerminalView } from "../components/TerminalView";
 import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui";
@@ -128,6 +130,8 @@ export function TerminalPage() {
   const { termId = "" } = useParams();
   const terminals = useTerminals();
   const term = terminals.find((x) => x.id === termId);
+  const [enhancing, setEnhancing] = useState(false);
+  const aiTerminal = term && (term.tool === "claude" || term.tool === "codex");
   return (
     <div className="flex h-full min-h-0 flex-col">
       <Tabs terminals={terminals} active={termId} />
@@ -148,11 +152,20 @@ export function TerminalPage() {
           <ArrowLeft size={15} className="rtl:rotate-180" />
         </Link>
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{term?.title ?? "…"}</h1>
+        {term && term.status !== "exited" && aiTerminal && <EnhanceButton onClick={() => setEnhancing(true)} />}
         {term && term.status !== "exited" && <PromptPicker onUse={(text) => api.terminalInput(term.id, text)} />}
         {term && <Badge>{t(`term.${term.tool}`)}</Badge>}
         {term && <TerminalStatus term={term} />}
       </header>
       <div className="min-h-0 flex-1">{termId && <TerminalView key={termId} id={termId} />}</div>
+      {term && aiTerminal && (
+        <EnhanceDialog
+          open={enhancing}
+          onClose={() => setEnhancing(false)}
+          target={{ projectId: term.projectId, tool: term.tool === "codex" ? "codex" : "claude" }}
+          onUse={(prompt) => void api.terminalInput(term.id, prompt, true)}
+        />
+      )}
     </div>
   );
 }

@@ -238,6 +238,7 @@ god-eye/
 - [ ] "Zen modu": tek tıkla tüm paneller gizlenir, sadece içerik kalır
 - [ ] Hazır temalar: Açık, Koyu, JetBrains Darcula benzeri, Notion benzeri açık tema
 - [ ] Kural: bir ekranda aynı anda en fazla bir ana aksiyon butonu
+- [x] ⭐ **Her yerde ipucu (tooltip):** her ikon butonun ve her seçeneğin üzerine gelince ne işe yaradığı sade dille yazar, varsa kısayolu da gösterir. Klavyeyle odaklanınca da çıkar, Esc ya da herhangi bir tuş kapatır — *tek global katman: `data-tip`, `title` ve ikon butonlardaki `aria-label` otomatik ipucuna dönüşür*
 
 ### 7.1 Tasarım sistemi
 - [ ] ⭐ Renk token'ları (açık ve koyu tema), tipografi (Inter + JetBrains Mono), boşluk ölçeği, köşe yarıçapları, gölgeler
@@ -681,36 +682,36 @@ god-eye/
 > *Varsayımlar (silinebilir):* Sorun sadece web girişinde, mobil etkilenmiyor.
 
 #### 4.5.1 Temel güçlendirme (ilk sürüm) ⭐
-- [ ] ⭐ Chat, terminal ve Hızlı Soru giriş kutularında **"✨ Güçlendir"** butonu + kısayol (`Ctrl+Shift+Enter`)
-- [ ] ⭐ Sonuç yan yana gösterilir: **benim yazdığım ↔ güçlendirilmiş hali**. Üç seçenek: *Güçlendirilmişi gönder* · *Düzenle* · *Orijinali gönder*
-- [ ] ⭐ Sabit, okunaklı yapı: **Hedef · Bağlam · Kısıtlar · Bitti sayılır · Varsayımlar**. Gereksiz uzunluk yok, küçük işler için kısa kalır
-- [ ] ⭐ **Ücretsiz:** kendi Claude girişimle Haiku kullanılır (`claude -p`, özetlerdeki gibi). Limit dolarsa AI'sız şablon moduna düşer (bağlamı ekler, yapıyı kurar)
-- [ ] ⭐ **Uydurmaz:** sadece God Eye'ın gerçekten bildiği bilgileri ekler (hafıza, git, loglar). Tahmin ettiği her şey **"Varsayımlar"** bölümüne yazılır, tek tıkla silinebilir
-- [ ] ⭐ **Kapsamı büyütmez:** "login'i düzelt" dediysem prompt'a "ayrıca testleri yeniden yaz" gibi istemediğim işler eklenmez
-- [ ] Çok belirsizse (bağlam da yoksa) tahmin etmek yerine **1–3 kısa soru** sorar, cevaplar tıklanabilir seçenek olarak gelir: *"Hangi login? Web · Mobil · Admin paneli"*
-- [ ] Dil: ben Türkçe (veya herhangi bir dilde) yazarım. Prompt AI için en iyi sonucu veren dilde hazırlanır (ayarlanabilir: benim dilim / İngilizce). Açıklamayı her zaman kendi dilimde görürüm
-- [ ] 🔒 Sır temizleyici burada da çalışır. `.env` değerleri ve anahtarlar prompt'a asla eklenmez
+- [x] ⭐ Chat, terminal ve Hızlı Soru giriş kutularında **"✨ Güçlendir"** butonu + kısayol (`Ctrl+Shift+Enter`) — *chat ve terminal (terminalde çok satırlı yapıştırma, Enter'ı sen basarsın); Hızlı Soru sonra*
+- [x] ⭐ Sonuç yan yana gösterilir: **benim yazdığım ↔ güçlendirilmiş hali**. Üç seçenek: *Güçlendirilmişi gönder* · *Düzenle* · *Orijinali gönder* — *düzenleme doğrudan güçlendirilmiş metin kutusunda*
+- [x] ⭐ Sabit, okunaklı yapı: **Hedef · Bağlam · Kısıtlar · Bitti sayılır · Varsayımlar**. Gereksiz uzunluk yok, küçük işler için kısa kalır
+- [x] ⭐ **Ücretsiz:** kendi Claude girişimle Haiku kullanılır (`claude -p`, özetlerdeki gibi). Limit dolarsa AI'sız şablon moduna düşer (bağlamı ekler, yapıyı kurar) — *şu an ~10 sn sürüyor; 3 sn hedefi için önce anında şablon gösterip AI ile iyileştirmek sonra*
+- [x] ⭐ **Uydurmaz:** sadece God Eye'ın gerçekten bildiği bilgileri ekler (hafıza, git, loglar). Tahmin ettiği her şey **"Varsayımlar"** bölümüne yazılır, tek tıkla silinebilir — *ayrıca AI işleri artık üstteki git reposunu göremiyor (GIT_CEILING_DIRECTORIES); boş projede bağlam boş geliyor*
+- [x] ⭐ **Kapsamı büyütmez:** "login'i düzelt" dediysem prompt'a "ayrıca testleri yeniden yaz" gibi istemediğim işler eklenmez
+- [x] Çok belirsizse (bağlam da yoksa) tahmin etmek yerine **1–3 kısa soru** sorar, cevaplar tıklanabilir seçenek olarak gelir: *"Hangi login? Web · Mobil · Admin paneli"* — *"Diğer…" ile serbest cevap ve "Sorusuz devam et" de var*
+- [x] Dil: ben Türkçe (veya herhangi bir dilde) yazarım. Prompt AI için en iyi sonucu veren dilde hazırlanır (ayarlanabilir: benim dilim / İngilizce). Açıklamayı her zaman kendi dilimde görürüm
+- [x] 🔒 Sır temizleyici burada da çalışır. `.env` değerleri ve anahtarlar prompt'a asla eklenmez
 
 #### 4.5.2 Bağlamı otomatik toplama
-- [ ] ⭐ **Proje hafızası:** ilgili kararlar, kurallar ve "denendi, işe yaramadı" notları eklenir. Böylece AI eski hatayı tekrarlamaz
-- [ ] ⭐ **Aktif session:** son mesajlar, son hata, değişen dosyalar. *"bu çalışmıyor"* derken "bu"nun ne olduğu buradan anlaşılır
-- [ ] ⭐ **Git:** branch, commit edilmemiş değişiklikler, son commit'ler
-- [ ] Kod sekmesinde açık dosya ve seçili satırlar ("burayı düzelt" → hangi dosya, hangi satırlar)
+- [x] ⭐ **Proje hafızası:** ilgili kararlar, kurallar ve "denendi, işe yaramadı" notları eklenir. Böylece AI eski hatayı tekrarlamaz
+- [x] ⭐ **Aktif session:** son mesajlar, son hata, değişen dosyalar. *"bu çalışmıyor"* derken "bu"nun ne olduğu buradan anlaşılır — *gerçek testte "bunu hallet" son hatayı doğru buldu*
+- [x] ⭐ **Git:** branch, commit edilmemiş değişiklikler, son commit'ler
+- [ ] Kod sekmesinde açık dosya ve seçili satırlar ("burayı düzelt" → hangi dosya, hangi satırlar) — *sunucu tarafı hazır; Kod sekmesine buton sonra*
 - [ ] Son test ve log çıktıları (sunucular, önizleme logları), çalışmayan komutun hata mesajı
-- [ ] Takım (Faz 4): arkadaşım aynı dosyada çalışıyorsa prompt'a not düşülür: *"Kerim de `auth.ts` üzerinde çalışıyor, onun değişikliklerini bozma"*
-- [ ] Hangi bağlamın eklendiği küçük etiketlerle gösterilir (🧠 hafıza · 🌿 git · 📄 dosya · ❌ hata). Her biri tek tıkla çıkarılabilir
-- [ ] Bağlam boyutu sınırı: context'i şişirmez, sadece ilgili parçalar eklenir (session sağlığı ile uyumlu)
+- [x] Takım (Faz 4): arkadaşım aynı dosyada çalışıyorsa prompt'a not düşülür: *"Kerim de `auth.ts` üzerinde çalışıyor, onun değişikliklerini bozma"*
+- [x] Hangi bağlamın eklendiği küçük etiketlerle gösterilir (🧠 hafıza · 🌿 git · 📄 dosya · ❌ hata). Her biri tek tıkla çıkarılabilir
+- [x] Bağlam boyutu sınırı: context'i şişirmez, sadece ilgili parçalar eklenir (session sağlığı ile uyumlu)
 
 #### 4.5.3 Akıllı davranışlar
-- [ ] **Zayıf prompt tespiti:** prompt çok kısa veya belirsizse gönderirken nazikçe *"✨ Güçlendireyim mi?"* önerisi (zorla değil)
-- [ ] Mod ayarı: **Kapalı · Öner · Otomatik** (otomatikte bile göndermeden önce kısa önizleme)
-- [ ] **İş büyüklüğü tahmini:** büyük işlerde *"Bu iş büyük, önce Plan modunda başlayalım mı?"* veya *"Bunu 3 adıma bölelim mi?"*
+- [x] **Zayıf prompt tespiti:** prompt çok kısa veya belirsizse gönderirken nazikçe *"✨ Güçlendireyim mi?"* önerisi (zorla değil)
+- [x] Mod ayarı: **Kapalı · Öner · Otomatik** (otomatikte bile göndermeden önce kısa önizleme)
+- [x] **İş büyüklüğü tahmini:** büyük işlerde *"Bu iş büyük, önce Plan modunda başlayalım mı?"* veya *"Bunu 3 adıma bölelim mi?"* — *Plan moduna geçiş butonu var; adımlara bölme sonra*
 - [ ] Araca göre ayar: Claude ve Codex için en iyi çalışan biçim (ör. Codex'e daha net dosya listesi)
-- [ ] Hazır niyet kalıpları: *düzelt · ekle · yeniden düzenle · açıkla · test yaz · gözden geçir · deploy'a hazırla*. Her biri kendi "Bitti sayılır" maddeleriyle gelir
+- [x] Hazır niyet kalıpları: *düzelt · ekle · yeniden düzenle · açıkla · test yaz · gözden geçir · deploy'a hazırla*. Her biri kendi "Bitti sayılır" maddeleriyle gelir
 - [ ] Personalar (Faz 6) gelince: prompt seçilen personaya göre hazırlanır (ör. "Güvenlik uzmanı" için risk kontrolü maddeleri)
 
 #### 4.5.4 Benden öğrenme
-- [ ] Hangi güçlendirilmiş prompt'ların iyi sonuç verdiğini takip eder (az hata, az tekrar deneme, session sağlığı iyi, kabul edildi)
+- [ ] Hangi güçlendirilmiş prompt'ların iyi sonuç verdiğini takip eder (az hata, az tekrar deneme, session sağlığı iyi, kabul edildi) — *ne gönderildiği (güçlendirilmiş / düzenlenmiş / orijinal) kaydediliyor; sonuçla eşleştirme sonra*
 - [ ] Benim yazma tarzımı ve sık kullandığım kısaltmaları öğrenir (*"dyy" = "doğrusunu yap"* gibi)
 - [ ] Sonuç alan prompt'lar tek tıkla **Prompt kütüphanesine** (2.7) kaydedilir
 - [ ] Haftalık küçük not: *"Bu hafta 14 prompt'u güçlendirdin; en çok eksik kalan şey 'bitti sayılır' maddesiydi"*

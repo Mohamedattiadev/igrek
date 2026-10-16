@@ -8,6 +8,7 @@ import type {
   Checkpoint,
   CommandRisk,
   Digest,
+  EnhanceResult,
   FileContent,
   FileEntry,
   GitChange,
@@ -110,8 +111,8 @@ export const api = {
     history?: { q: string; a: string }[];
     attachment?: { name: string; text: string };
   }) => request<QuickAnswer>("/api/quick-ask", { method: "POST", body: JSON.stringify(body) }),
-  terminalInput: (id: string, text: string) =>
-    request<{ ok: boolean }>(`/api/terminals/${id}/input`, { method: "POST", body: JSON.stringify({ text }) }),
+  terminalInput: (id: string, text: string, paste = false) =>
+    request<{ ok: boolean }>(`/api/terminals/${id}/input`, { method: "POST", body: JSON.stringify({ text, paste }) }),
   ideas: () => request<Idea[]>("/api/ideas"),
   addIdea: (text: string, projectId?: string) =>
     request<Idea>("/api/ideas", { method: "POST", body: JSON.stringify({ text, projectId }) }),
@@ -177,6 +178,18 @@ export const api = {
   handoff: (sessionId: string, tool?: TerminalTool) =>
     request<TerminalInfo>(`/api/sessions/${sessionId}/handoff`, { method: "POST", body: JSON.stringify({ tool }) }),
   closeTerminal: (id: string) => request<{ ok: boolean }>(`/api/terminals/${id}`, { method: "DELETE" }),
+  enhance: (body: {
+    text: string;
+    projectId?: string;
+    sessionId?: string;
+    tool?: string;
+    file?: { path: string; selection?: string; startLine?: number; endLine?: number };
+    answers?: { question: string; answer: string }[];
+    exclude?: string[];
+    template?: boolean;
+  }) => request<EnhanceResult & { id: string }>("/api/enhance", { method: "POST", body: JSON.stringify(body) }),
+  enhanceUsed: (id: string, choice: "enhanced" | "edited" | "original", final?: string) =>
+    request<{ ok: boolean }>(`/api/enhance/${id}/used`, { method: "POST", body: JSON.stringify({ choice, final }) }),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

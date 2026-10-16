@@ -239,7 +239,7 @@ function Sharing() {
               onChange={(share) => {
                 void api.setShare(p.id, share).then(load);
               }}
-              options={SHARES.map((s) => ({ value: s, label: t(`team.share_${s}`) }))}
+              options={SHARES.map((s) => ({ value: s, label: t(`team.share_${s}`), tip: t(`team.shareTip_${s}`) }))}
             />
           </div>
         ))}

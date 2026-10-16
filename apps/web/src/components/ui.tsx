@@ -120,7 +120,8 @@ export function Segmented<T extends string>({
   label,
 }: {
   value: T;
-  options: { value: T; label: string }[];
+  /** `tip`: a one-line explanation shown on hover. */
+  options: { value: T; label: string; tip?: string }[];
   onChange: (value: T) => void;
   label?: string;
 }) {
@@ -130,6 +131,7 @@ export function Segmented<T extends string>({
       {options.map((option) => (
         <label
           key={option.value}
+          data-tip={option.tip}
           className={cn(
             "flex h-7 cursor-pointer items-center rounded-[6px] px-3 text-[13px] transition-colors",
             "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
@@ -165,11 +167,13 @@ export function Dialog({
   onClose,
   children,
   label,
+  wide,
 }: {
   open: boolean;
   onClose: () => void;
   children: ReactNode;
   label: string;
+  wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -185,7 +189,10 @@ export function Dialog({
       aria-label={label}
       onClose={onClose}
       onClick={(event) => event.target === ref.current && onClose()}
-      className="m-auto w-[min(420px,calc(100vw-32px))] rounded-xl border border-border bg-bg p-0 text-fg shadow-ui backdrop:bg-black/30"
+      className={cn(
+        "m-auto rounded-xl border border-border bg-bg p-0 text-fg shadow-ui backdrop:bg-black/30",
+        wide ? "w-[min(860px,calc(100vw-32px))]" : "w-[min(420px,calc(100vw-32px))]",
+      )}
     >
       {open && children}
     </dialog>

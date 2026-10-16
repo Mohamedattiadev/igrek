@@ -1,0 +1,106 @@
+import { Database } from "bun:sqlite";
+import { describe, expect, test } from "bun:test";
+import { detectIntent, isWeakPrompt, promptWeakness, renderEnhanced } from "@godeye/core";
+import { StopRegistry } from "./bus";
+import { migrate } from "./db";
+import { Enhancer, parseEnhanceReply, sizeOf } from "./enhance";
+import { Store } from "./store";
+
+describe("weak prompt detection", () => {
+  test("lazy requests are weak, specific ones are not", () => {
+    for (const lazy of ["doğrusunu yap", "login bozuk düzelt", "fix it", "bunu hallet", "bak şuna"])
+      expect(isWeakPrompt(lazy)).toBe(true);
+    for (const clear of [
+      "In apps/web/src/pages/Team.tsx the invite dialog doesn't reset its form after closing; reset it in close()",
+      "/compact",
+      "rename getUser() to fetchUser() everywhere in src/api.ts and update the callers",
+    ])
+      expect(isWeakPrompt(clear)).toBe(false);
+    expect(promptWeakness("")).toBe(0);
+  });
+
+  test("intent comes from TR and EN words", () => {
+    expect(detectIntent("login bozuk düzelt")).toBe("fix");
+    expect(detectIntent("bu fonksiyonu açıkla")).toBe("explain");
+    expect(detectIntent("add dark mode")).toBe("add");
+    expect(detectIntent("şu dosyayı toparla")).toBe("refactor");
+    expect(detectIntent("hmm")).toBe("other");
+    expect(sizeOf("tüm projeyi sıfırdan yaz", "add")).toBe("large");
+  });
+});
+
+describe("model reply", () => {
+  test("reads parts, questions, and rejects junk", () => {
+    const parts = parseEnhanceReply(
+      'Sure! {"goal":"Fix login","context":["Decision: cookie stays HttpOnly"],"constraints":[],"done":["Tests pass"],"assumptions":["web only"],"size":"small","explanation":"Ekledim"}',
+    );
+    expect(parts?.parts?.goal).toBe("Fix login");
+    expect(parts?.size).toBe("small");
+    const questions = parseEnhanceReply(
+      '{"questions":[{"question":"Hangi login?","options":["Web","Mobil"]},{"question":"bad","options":["one"]}]}',
+    );
+    expect(questions?.questions).toEqual([{ question: "Hangi login?", options: ["Web", "Mobil"] }]);
+    expect(parseEnhanceReply("no json here")).toBeUndefined();
+    expect(parseEnhanceReply('{"goal":""}')).toBeUndefined();
+  });
+
+  test("render skips empty sections and dropped assumptions", () => {
+    const text = renderEnhanced(
+      { goal: "Fix login", context: ["a"], constraints: [], done: ["b"], assumptions: ["x", "y"] },
+      [0],
+    );
+    expect(text).toContain("## Goal\nFix login");
+    expect(text).not.toContain("## Constraints");
+    expect(text).toContain("- y");
+    expect(text).not.toContain("- x");
+  });
+});
+
+describe("enhancer", () => {
+  const db = new Database(":memory:");
+  migrate(db);
+  const store = new Store(db);
+  db.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p1', 'Demo', '/nonexistent/demo', 0)").run();
+  db.query(
+    "INSERT INTO memory_items (id, project_id, section, text, created_at) VALUES ('m1', 'p1', 'decision', 'Session cookie stays HttpOnly; token sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123', 1)",
+  ).run();
+  db.query(
+    "INSERT INTO memory_items (id, project_id, section, text, created_at) VALUES ('m2', 'p1', 'failed', 'localStorage tokens were tried and dropped', 2)",
+  ).run();
+  const enhancer = new Enhancer(
+    db,
+    store,
+    new StopRegistry(),
+    () => ({ language: "tr", enhanceLanguage: "en" }) as never,
+    "/tmp",
+    () => [{ userId: "u2", name: "Kerim", projectId: "p1", files: ["src/auth.ts"], overlap: ["src/auth.ts"], at: 0 }],
+  );
+
+  test("gathers only real facts, scrubbed, and honours exclusions", () => {
+    const all = enhancer.gather({
+      text: "login bozuk",
+      projectId: "p1",
+      file: { path: "/nonexistent/demo/src/auth.ts", startLine: 10, endLine: 20, selection: "const x = 1" },
+    });
+    expect(all.map((g) => g.kind)).toEqual(["memory", "file", "team"]);
+    expect(all[0]?.lines.join()).not.toContain("sk-ant-api03");
+    expect(all[1]?.label).toBe("auth.ts:10-20");
+    expect(all[2]?.lines[0]).toContain("Kerim");
+    expect(enhancer.gather({ text: "x", projectId: "p1", exclude: ["memory", "team"] }).map((g) => g.kind)).toEqual([]);
+  });
+
+  test("template mode works without AI and is logged", async () => {
+    const result = await enhancer.enhance({ text: "login bozuk düzelt", projectId: "p1", template: true });
+    expect(result.mode).toBe("template");
+    expect(result.intent).toBe("fix");
+    expect(result.parts?.goal).toBe("login bozuk düzelt");
+    expect(result.parts?.context.some((c) => c.includes("HttpOnly"))).toBe(true);
+    expect(result.parts?.done.length).toBeGreaterThan(0);
+    expect(result.parts?.assumptions).toEqual([]);
+    enhancer.record(result.id, "enhanced", "final text");
+    expect(db.query("SELECT choice, final FROM enhancements WHERE id = ?").get(result.id)).toEqual({
+      choice: "enhanced",
+      final: "final text",
+    });
+  });
+});

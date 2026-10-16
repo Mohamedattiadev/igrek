@@ -236,7 +236,11 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
             await api.setShare(project.id, share);
             onChange();
           }}
-          options={(["off", "summary", "full"] as const).map((s) => ({ value: s, label: t(`team.share_${s}`) }))}
+          options={(["off", "summary", "full"] as const).map((s) => ({
+            value: s,
+            label: t(`team.share_${s}`),
+            tip: t(`team.shareTip_${s}`),
+          }))}
         />
       </Section>
       <Section title={t("accounts.forProject")} hint={t("accounts.noSwitch")}>

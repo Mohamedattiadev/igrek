@@ -217,6 +217,18 @@ const migrations: string[] = [
      value INTEGER NOT NULL,
      PRIMARY KEY (scope, key)
    );`,
+  // Faz 4.5: prompt enhancer. What was sent (original or enhanced), to learn what works.
+  `CREATE TABLE enhancements (
+     id TEXT PRIMARY KEY,
+     at INTEGER NOT NULL,
+     project_id TEXT,
+     intent TEXT NOT NULL,
+     mode TEXT NOT NULL,
+     original TEXT NOT NULL,
+     final TEXT,
+     choice TEXT NOT NULL DEFAULT 'pending'
+   );
+   CREATE INDEX enhancements_at ON enhancements(at);`,
 ];
 
 export function migrate(sqlite: Database): number {

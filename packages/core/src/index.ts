@@ -1,3 +1,5 @@
+export * from "./prompt";
+
 export const APP_NAME = "God Eye";
 export const APP_VERSION = "0.1.0";
 export const DEFAULT_PORT = 7777;
@@ -22,6 +24,10 @@ export interface Settings {
   allowedFolders: string[];
   /** Vim keys inside the code editor (independent of list navigation). */
   editorVim: boolean;
+  /** Prompt enhancer: never, offer it on weak prompts, or open it on every weak prompt. */
+  enhanceMode: "off" | "suggest" | "auto";
+  /** Language of the enhanced prompt: English (AI tools follow it best) or the user's own. */
+  enhanceLanguage: "en" | "user";
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,6 +41,8 @@ export const DEFAULT_SETTINGS: Settings = {
   summaryTone: "plain",
   allowedFolders: [],
   editorVim: false,
+  enhanceMode: "suggest",
+  enhanceLanguage: "en",
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */

@@ -1,4 +1,4 @@
-import type { ChatEvent, ChatMode } from "@godeye/core";
+import { type ChatEvent, type ChatMode, isWeakPrompt } from "@godeye/core";
 import DOMPurify from "dompurify";
 import {
   ArrowLeft,
@@ -27,12 +27,14 @@ import { type ClipboardEvent, useEffect, useMemo, useRef, useState } from "react
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { CheckpointRestore } from "../components/CheckpointRestore";
+import { EnhanceButton, EnhanceHint, EnhancePanel } from "../components/Enhance";
 import { PromptPicker } from "../components/PromptPicker";
 import { Badge, Button, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
 import { cn } from "../lib/cn";
 import { modelName } from "../lib/format";
+import { useSettings } from "../lib/settings";
 
 type Json = Record<string, unknown>;
 
@@ -254,6 +256,9 @@ export function ChatPage() {
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
   const [text, setText] = useState("");
+  const { settings } = useSettings();
+  /** The text the enhancer was opened with; undefined while closed. */
+  const [enhancing, setEnhancing] = useState<string>();
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
   const list = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -264,10 +269,18 @@ export function ChatPage() {
     list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" });
   }, [chat.events]);
 
-  const send = () => {
-    if (!text.trim() && images.length === 0) return;
+  const openEnhancer = () => text.trim() && setEnhancing(text.trim());
+  const send = (override?: string) => {
+    const value = override ?? text.trim();
+    if (!value && images.length === 0) return;
+    // "auto": a weak prompt opens the enhancer first instead of going out as is.
+    if (override === undefined && settings.enhanceMode === "auto" && isWeakPrompt(value)) {
+      setEnhancing(value);
+      return;
+    }
+    setEnhancing(undefined);
     chat.send(
-      text.trim(),
+      value,
       images.map(({ mediaType, data }) => ({ mediaType, data })),
     );
     setText("");
@@ -438,12 +451,34 @@ export function ChatPage() {
               ))}
             </div>
           )}
+          {enhancing !== undefined && info && (
+            <div className="mb-2">
+              <EnhancePanel
+                key={enhancing}
+                text={enhancing}
+                target={{ projectId: info.projectId, sessionId: info.sessionId, tool: "claude" }}
+                onClose={() => setEnhancing(undefined)}
+                onUse={(prompt) => send(prompt)}
+                onPlanMode={info.mode === "plan" ? undefined : () => chat.setMode("plan")}
+              />
+            </div>
+          )}
+          {enhancing === undefined && text.trim() && (
+            <div className="mb-1.5">
+              <EnhanceHint text={text} onEnhance={openEnhancer} />
+            </div>
+          )}
           <div className="rounded-ui border border-border bg-bg p-1.5 focus-within:border-accent">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               onPaste={onPaste}
               onKeyDown={(e) => {
+                if (e.key === "Enter" && e.shiftKey && (e.ctrlKey || e.metaKey)) {
+                  e.preventDefault();
+                  openEnhancer();
+                  return;
+                }
                 if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
                   e.preventDefault();
                   send();
@@ -476,6 +511,7 @@ export function ChatPage() {
                 }}
               />
               <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
+              {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
               <div className="flex-1" />
               <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)}>
                 <Segmented
@@ -493,7 +529,7 @@ export function ChatPage() {
                   size="sm"
                   variant="primary"
                   icon={Send}
-                  onClick={send}
+                  onClick={() => send()}
                   disabled={!text.trim() && images.length === 0}
                 >
                   {t("chat.send")}

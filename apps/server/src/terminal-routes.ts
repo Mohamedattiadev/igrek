@@ -132,9 +132,16 @@ export function registerTerminalRoutes(
 
   // Types text into a terminal without pressing Enter (e.g. a note from a quick question).
   app.post("/api/terminals/:id/input", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };
+    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown; paste?: unknown };
     if (typeof body.text !== "string" || !terminals.get(c.req.param("id"))) return c.json({ error: "Not found" }, 404);
-    terminals.input(c.req.param("id"), body.text.replace(/\r?\n/g, " "));
+    // Multi-line text goes in as a bracketed paste: the AI tool keeps the newlines and waits for Enter.
+    // Escape characters are stripped so the text can't end the paste early or send key sequences.
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: removing control characters is the point
+    const clean = body.text.replace(/[\x00-\x08\x0b-\x1f\x7f]/g, "");
+    terminals.input(
+      c.req.param("id"),
+      body.paste === true ? `\x1b[200~${clean}\x1b[201~` : clean.replace(/\r?\n/g, " "),
+    );
     return c.json({ ok: true });
   });
 

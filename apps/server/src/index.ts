@@ -15,6 +15,8 @@ import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
+import { Enhancer } from "./enhance";
+import { registerEnhanceRoutes } from "./enhance-routes";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { writeHookScript } from "./hooks";
@@ -88,6 +90,14 @@ const files = new Files(
 );
 // Team hub: only active once the user connects from the Team page.
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
+const enhancer = new Enhancer(
+  sqlite,
+  store,
+  stops,
+  () => readSettings(db),
+  join(config.dataDir, "runner"),
+  (id) => sync.presenceList(id),
+);
 const app = createApp({
   config,
   db,
@@ -103,6 +113,7 @@ const app = createApp({
     registerFileRoutes(hono, { files, store });
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync);
+    registerEnhanceRoutes(hono, enhancer);
   },
   work: {
     store,

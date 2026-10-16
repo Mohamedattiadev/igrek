@@ -15,6 +15,7 @@ import { IdeaCapture } from "./IdeaCapture";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
+import { TooltipLayer } from "./Tooltip";
 import { Kbd, StatusDot } from "./ui";
 
 function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
@@ -23,7 +24,8 @@ function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
     <NavLink
       to={item.to}
       end={item.to === "/"}
-      title={t(item.label)}
+      data-tip={t(item.label)}
+      data-tip-side="right"
       aria-label={t(item.label)}
       className={({ isActive }) =>
         cn(
@@ -173,6 +175,7 @@ export function Shell() {
       </div>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <QuickAsk />
+      <TooltipLayer />
       <IdeaCapture onSaved={setToast} />
       {toast && (
         <div

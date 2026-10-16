@@ -1,5 +1,5 @@
 import { mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import type {
   AskAnswer,
   Digest,
@@ -132,6 +132,10 @@ export async function runClaude(
   accountId?: string,
 ): Promise<string> {
   const account = claudeAccount.env(accountId);
+  // Our own small jobs run in an empty folder. Stop git from finding a repo above it (a dev
+  // checkout, a dotfiles home), or Claude would add that repo's status to the prompt.
+  // Forks of a real session keep their project folder.
+  const isolated = !extraArgs.includes("--resume");
   const proc = Bun.spawn(
     [
       "claude",
@@ -150,7 +154,11 @@ export async function runClaude(
       stdin: new Blob([prompt]),
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ ...account.env, GODEYE_INTERNAL: "1" }),
+      env: cleanEnv({
+        ...account.env,
+        GODEYE_INTERNAL: "1",
+        ...(isolated ? { GIT_CEILING_DIRECTORIES: dirname(cwd) } : {}),
+      }),
     },
   );
   const unregister = register.register(`claude-${proc.pid}`, { label: "summary", stop: () => proc.kill() });
