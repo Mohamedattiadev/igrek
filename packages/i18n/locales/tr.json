@@ -576,7 +576,7 @@
     "mode_plan": "Sadece plan",
     "modeHint_normal": "Bir şeyi değiştiren her adım senin onayını bekler.",
     "modeHint_acceptEdits": "Dosya düzenlemeleri geçer; komutlar yine sorar.",
-    "modeHint_auto": "Claude neyin güvenli olduğuna karar verir; riskli adımlar yine sorar.",
+    "modeHint_auto": "Claude neyin güvenli olduğuna kendisi karar verir ve reponun ayrı bir kopyasında çalışır. Push, birleştirme ve deploy yine her zaman sorulur.",
     "modeHint_plan": "Claude sadece plan yapar; hiçbir şey değişmez.",
     "model": "Model",
     "modelDefault": "Varsayılan",
@@ -603,7 +603,10 @@
     "newIn": "{{account}} hesabında yeni sohbet",
     "suggestModel": "Bunun için {{model}} kullanılsın mı?",
     "suggestTip_opus": "Bu zor veya geniş bir iş gibi görünüyor; en güçlü model burada daha az hata yapar (limitinden daha çok harcar).",
-    "suggestTip_haiku": "Kısa bir soru: küçük model hızlı cevap verir ve limitini korur."
+    "suggestTip_haiku": "Kısa bir soru: küçük model hızlı cevap verir ve limitini korur.",
+    "guard_ship": "Bu işini dışarı gönderir (push, merge, yayınlama ya da deploy). AI bunu asla kendi başına yapmaz; her seferinde sorar.",
+    "guard_external": "Bu sohbet internetten içerik okudu. Oradaki metin AI'ı yönlendirmeye çalışabilir; riskli adımlar her seferinde sorulur.",
+    "notice_external": "Bu sohbet internetten içerik okudu. O içerik talimat değil bilgi olarak ele alınır: sohbet her adımdan önce sormaya döndü ve \"her zaman izin ver\" artık riskli araçları kapsamaz."
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -1783,5 +1786,19 @@
   "panel": {
     "resize": "Paneli boyutlandır",
     "resizeTip": "Boyutlandırmak için sürükle ya da ok tuşlarını kullan. Boyut hatırlanır."
+  },
+  "copy": {
+    "banner": "{{branch}} dalında ayrı bir kopyada çalışıyor ({{base}}'den). Birleştirene kadar senin klasörüne dokunulmaz.",
+    "changes": "Değişiklikler",
+    "changesTitle_one": "{{count}} dosya değişti",
+    "changesTitle_other": "{{count}} dosya değişti",
+    "merge": "Birleştir",
+    "mergeTip": "Bu değişiklikleri kendi dalına al. Hiçbir şey push edilmez.",
+    "mergeConfirm": "Bu kopyadaki değişiklikler bilgisayarındaki {{branch}} dalına birleştirilsin mi? Hiçbir şey push edilmez.",
+    "merged": "{{branch}} dalına birleştirildi. Hazır olunca push'u kendin yap.",
+    "discard": "Bu kopyayı at",
+    "discardConfirm": "Sohbet durdurulup kopyası ve dalı silinsin mi? Birleştirilmemiş değişiklikler kaybolur.",
+    "sandboxOn": "Kabuk komutları ayrıca sandbox'ta çalışır (dosya ve ağ erişimi sınırlı).",
+    "sandboxOff": "Tam sandbox için (dosya ve ağ erişimi sınırlı) bubblewrap ve socat kur."
   }
 }

@@ -17,6 +17,7 @@ import {
   ListTodo,
   Search,
   Send,
+  ShieldAlert,
   ShieldQuestion,
   Square,
   SquareTerminal,
@@ -29,6 +30,7 @@ import { marked } from "marked";
 import { type ClipboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel } from "../components/Enhance";
 import { PromptPicker } from "../components/PromptPicker";
@@ -223,14 +225,22 @@ function PermissionCard({
         {event.description && <span className="min-w-0 truncate text-fg-muted">{event.description}</span>}
       </p>
       <ToolPreview name={event.toolName} input={input} />
+      {event.guard && (
+        <p className="flex items-start gap-1.5 text-xs text-warning">
+          <ShieldAlert size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+          {t(`chat.guard_${event.guard}`)}
+        </p>
+      )}
       {pending ? (
         <div className="flex gap-2">
           <Button size="sm" variant="primary" onClick={() => onAnswer("allow")} autoFocus>
             {t("chat.allow")}
           </Button>
-          <Button size="sm" onClick={() => onAnswer("always")}>
-            {t("chat.always")}
-          </Button>
+          {!event.guard && (
+            <Button size="sm" onClick={() => onAnswer("always")}>
+              {t("chat.always")}
+            </Button>
+          )}
           <Button size="sm" variant="ghost" onClick={() => onAnswer("deny")}>
             {t("chat.deny")}
           </Button>
@@ -260,6 +270,7 @@ export function ChatPage() {
   const navigate = useNavigate();
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
+  const info = chat.info;
   const [searchParams, setSearchParams] = useSearchParams();
   // A prompt prepared elsewhere (a "Fix" button) waits in the box; nothing is sent until the user does.
   const [text, setText] = useState(() => searchParams.get("draft") ?? "");
@@ -290,6 +301,23 @@ export function ChatPage() {
       navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
     }
   };
+  /**
+   * Auto mode belongs in a separate copy. A fresh chat moves into one; a chat that already has
+   * a conversation keeps its folder (shipping still always asks).
+   */
+  const changeMode = async (mode: ChatMode) => {
+    if (mode === "auto" && info && !info.worktree && !info.sessionId) {
+      const next = await api
+        .startChat({ projectId: info.projectId, model: info.model, mode: "auto" })
+        .catch(() => undefined);
+      if (next) {
+        void api.closeChat(info.id).catch(() => undefined);
+        navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
+        return;
+      }
+    }
+    chat.setMode(mode);
+  };
   /** A message held back because it seems to contain a secret. */
   const [guarded, setGuarded] = useState<string>();
   /** The text the enhancer was opened with; undefined while closed. */
@@ -297,7 +325,6 @@ export function ChatPage() {
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
   const list = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
-  const info = chat.info;
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every new event
   useEffect(() => {
@@ -386,6 +413,7 @@ export function ChatPage() {
           </Button>
         )}
       </header>
+      {info?.worktree && <ChatCopy info={info} />}
 
       <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto max-w-3xl space-y-3 px-4 py-5">
@@ -449,6 +477,16 @@ export function ChatPage() {
                   </div>
                 );
               case "notice":
+                if (event.code)
+                  return (
+                    <p
+                      key={event.id}
+                      className="ms-9 flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                    >
+                      <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                      {t(`chat.notice_${event.code}`)}
+                    </p>
+                  );
                 return (
                   <pre
                     key={event.id}
@@ -601,7 +639,7 @@ export function ChatPage() {
               <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)}>
                 <Segmented
                   value={info?.mode ?? "normal"}
-                  onChange={chat.setMode}
+                  onChange={(mode) => void changeMode(mode)}
                   options={MODES.map((mode) => ({ value: mode, label: t(`chat.mode_${mode}`) }))}
                 />
               </span>

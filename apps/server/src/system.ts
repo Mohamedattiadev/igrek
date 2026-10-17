@@ -7,7 +7,16 @@ const TOOLS: { id: ToolCheck["id"]; bin: string; args: string[]; required: boole
   { id: "gemini", bin: "gemini", args: ["--version"], required: false },
   { id: "ssh", bin: "ssh", args: ["-V"], required: false },
   { id: "docker", bin: "docker", args: ["--version"], required: false },
+  // Claude Code's sandbox for auto mode (Linux): limits files and network for shell commands.
+  { id: "bwrap", bin: "bwrap", args: ["--version"], required: false },
+  { id: "socat", bin: "socat", args: ["-V"], required: false },
 ];
+
+/** Both tools the auto-mode sandbox needs on Linux (macOS has its own built in). */
+export function sandboxAvailable(): boolean {
+  if (process.platform === "darwin") return true;
+  return process.platform === "linux" && !!Bun.which("bwrap") && !!Bun.which("socat");
+}
 
 async function check(tool: (typeof TOOLS)[number]): Promise<ToolCheck> {
   const path = Bun.which(tool.bin);

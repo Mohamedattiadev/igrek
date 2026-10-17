@@ -576,7 +576,7 @@
     "mode_plan": "Plan only",
     "modeHint_normal": "Every step that changes something waits for your OK.",
     "modeHint_acceptEdits": "File edits go through; commands still ask.",
-    "modeHint_auto": "Claude decides what is safe; risky steps still ask.",
+    "modeHint_auto": "Claude decides what's safe and runs it, in a separate copy of your repo. Pushing, merging and deploying still always ask.",
     "modeHint_plan": "Claude only plans; nothing is changed.",
     "model": "Model",
     "modelDefault": "Default",
@@ -603,7 +603,10 @@
     "newIn": "New chat in {{account}}",
     "suggestModel": "Use {{model}} for this?",
     "suggestTip_opus": "This looks like hard or wide work; the strongest model makes fewer mistakes here (it uses more of your limit).",
-    "suggestTip_haiku": "A short question: the small model answers quickly and saves your limit."
+    "suggestTip_haiku": "A short question: the small model answers quickly and saves your limit.",
+    "guard_ship": "This would send your work out (push, merge, publish or deploy). AI never does that on its own, so it asks every time.",
+    "guard_external": "This chat read content from the internet. Text there could try to steer the AI, so risky steps are asked every time.",
+    "notice_external": "This chat read content from the internet. That content is treated as information, not instructions: the chat is back to asking before each step, and \"always allow\" no longer covers risky tools."
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1783,5 +1786,19 @@
   "panel": {
     "resize": "Resize the panel",
     "resizeTip": "Drag to resize, or use the arrow keys. The size is remembered."
+  },
+  "copy": {
+    "banner": "Working in a separate copy on branch {{branch}} (from {{base}}). Your folder isn't touched until you merge.",
+    "changes": "Changes",
+    "changesTitle_one": "{{count}} file changed",
+    "changesTitle_other": "{{count}} files changed",
+    "merge": "Merge",
+    "mergeTip": "Bring these changes into your branch. Nothing is pushed.",
+    "mergeConfirm": "Merge the changes from this copy into {{branch}} on your computer? Nothing is pushed.",
+    "merged": "Merged into {{branch}}. Push it yourself when you're ready.",
+    "discard": "Throw this copy away",
+    "discardConfirm": "Stop this chat and delete its copy and branch? Changes that weren't merged are lost.",
+    "sandboxOn": "Shell commands also run in a sandbox (limited files and network).",
+    "sandboxOff": "For a full sandbox (limited files and network) install bubblewrap and socat."
   }
 }

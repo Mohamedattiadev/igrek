@@ -299,8 +299,8 @@ god-eye/
 - [ ] Docker'sız alternatif: `bunx god-eye` (Docker kurmak istemeyenler için)
 - [x] 🔒 Sunucu sadece `127.0.0.1`'e bağlanır; oturum token'ı; Origin ve Host kontrolü (DNS rebinding koruması)
 - [x] 🔒 **Prompt güvenlik duvarı:** kullanıcının yazdığı prompt'ta şifre, API key veya kişisel veri varsa AI'a gitmeden önce uyarır ve maskeler — *chat ve Hızlı Soru'da; güçlendirici ve senkron zaten temizler*
-- [ ] 🔒 **Prompt injection koruması:** web sayfaları, dokümanlar, issue'lar ve loglar gibi dışarıdan okunan içerik **veri** olarak işaretlenir, talimat olarak uygulanmaz. Dışarıdan içerik okuyan agent'ların tehlikeli araçları kapalıdır — *agent çalıştırma gelince (Faz 2) yapılacak*
-- [ ] 🔒 **Sandbox:** auto moddaki agent'lar izole bir ortamda çalışır (worktree + kısıtlı dosya ve ağ erişimi) — *agent çalıştırma gelince (Faz 2) yapılacak*
+- [x] 🔒 **Prompt injection koruması:** web sayfaları, dokümanlar, issue'lar ve loglar gibi dışarıdan okunan içerik **veri** olarak işaretlenir, talimat olarak uygulanmaz. Dışarıdan içerik okuyan agent'ların tehlikeli araçları kapalıdır **Yapıldı:** God Eye'ın kendi AI işleri hiç araçsız çalışır (`--tools ""`), okudukları metin bir şey yaptıramaz. Sohbet internetten içerik okuyunca (WebFetch/WebSearch/tarayıcı MCP) soran moda döner, riskli araçlar her seferinde sorulur ve "her zaman izin ver" onları kapsamaz.
+- [x] 🔒 **Sandbox:** auto moddaki agent'lar izole bir ortamda çalışır (worktree + kısıtlı dosya ve ağ erişimi) **Yapıldı:** auto modda sohbet reponun ayrı bir worktree kopyasında, kendi dalında çalışır; değişiklikler incelenip tıklayarak birleştirilir ya da atılır. bubblewrap + socat kuruluysa Claude Code sandbox'ı da açılır (dosya ve ağ sınırı); bu bilgisayarda socat yok, o yüzden ağ sınırı burada test edilemedi. Docker içinde bubblewrap ayrıcalık istediği için imaja eklenmedi.
 - [x] 🛑 **Acil Durdur butonu:** tüm çalışan agent'ları, zamanlanmış işleri ve uzak komutları tek tıkla durdurur (üst barda her zaman görünür) — buton + durdurma kaydı hazır; çalışan her yeni iş buna kaydolacak
 - [x] `godeye doctor`: kurulum sorunlarını sade dille anlatır ve çözüm önerir
 - [x] CI: GitHub Actions ile lint + test + Docker build
@@ -370,7 +370,7 @@ god-eye/
 - [x] Deploy geçmişi: kim, ne zaman, hangi commit, sonuç
 - [x] Önerilen git düzeni (ayarlanabilir): herkes kendi branch'inde çalışır → PR → `main` → sadece `main` deploy edilir. Sunucuda doğrudan düzenleme yapılmaz (acil durum hariç) — *açıkken main'e doğrudan commit öncesi sorulur*
 - [x] (Opsiyonel) GitHub Actions ile otomatik deploy kurulumu: God Eye workflow dosyasını hazırlar
-- [ ] 🔒 **AI agent'ları asla kendiliğinden `push` etmez veya deploy etmez.** Agent'lar izole worktree/branch'te çalışır, birleştirme ve push her zaman onaylıdır — *agent çalıştırma ile (Faz 2/8)*
+- [x] 🔒 **AI agent'ları asla kendiliğinden `push` etmez veya deploy etmez.** Agent'lar izole worktree/branch'te çalışır, birleştirme ve push her zaman onaylıdır **Yapıldı:** push, merge, publish ve deploy komutları (git, gh, npm/bun, docker, vercel, fly, kubectl, terraform, rsync/scp ile sunucuya…) her modda her seferinde sorulur; "her zaman izin ver" bunları kapsamaz; Claude Code'a da "ask" kuralı olarak verilir.
 
 #### 1.3 Otomatik hook'lar
 - [x] ⭐ Proje eklenince hook'lar otomatik kurulur. **Repoya commit edilmeyen** dosyalara yazılır (`.claude/settings.local.json`, Codex eşdeğeri) → arkadaşının reposu ve VPS etkilenmez — *karar: güvenlik için proje başına tek tık + onay (Kurulum sekmesi)*

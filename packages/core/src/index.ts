@@ -61,7 +61,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const RTL_LANGUAGES = new Set(["ar", "fa", "he", "ur", "ps", "sd", "ug", "yi"]);
 
 export interface ToolCheck {
-  id: "git" | "claude" | "codex" | "gemini" | "ssh" | "docker";
+  id: "git" | "claude" | "codex" | "gemini" | "ssh" | "docker" | "bwrap" | "socat";
   found: boolean;
   version?: string;
   required: boolean;
@@ -427,6 +427,10 @@ export interface ChatInfo {
   exitCode?: number;
   rateLimit?: RateLimitInfo;
   accountId?: string;
+  /** Auto mode works in its own copy of the repo, on its own branch (plan.md 0, sandbox). */
+  worktree?: { path: string; branch: string; base: string; baseBranch?: string; sub: string };
+  /** Shell commands run in Claude Code's sandbox (files and network limited). */
+  sandboxed?: boolean;
 }
 
 export type ChatEvent =
@@ -449,10 +453,12 @@ export type ChatEvent =
       toolName: string;
       input: unknown;
       description?: string;
+      /** Why a person must look: it ships work (push, deploy…), or the chat read outside content. */
+      guard?: "ship" | "external";
       status: "pending" | "allowed" | "denied";
     }
   | { kind: "result"; id: string; at: number; durationMs?: number; isError: boolean; text?: string }
-  | { kind: "notice"; id: string; at: number; text: string; tone: "danger" | "neutral" }
+  | { kind: "notice"; id: string; at: number; text: string; tone: "danger" | "neutral"; code?: "external" }
   | { kind: "checkpoint"; id: string; at: number; checkpointId: string; projectId: string };
 
 export interface Checkpoint {

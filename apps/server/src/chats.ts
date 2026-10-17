@@ -2,6 +2,9 @@ import { existsSync } from "node:fs";
 import type { ChatEvent, ChatInfo, ChatMode, RateLimitInfo } from "@godeye/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
+import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
+import { sandboxAvailable } from "./system";
+import type { Worktree } from "./worktrees";
 
 /** UI modes → Claude Code permission modes. */
 const PERMISSION_MODE: Record<ChatMode, string> = {
@@ -25,6 +28,8 @@ interface Chat {
   kill: () => void;
   /** Tools the user said "always allow" for in this chat. */
   alwaysAllow: Set<string>;
+  /** The chat has read content from outside (web), so its requests get a closer look. */
+  tainted?: boolean;
   /** Streaming state: which assistant message/block deltas belong to. */
   streaming?: { messageId: string; blocks: Map<number, string> };
 }
@@ -41,6 +46,7 @@ export interface ChatStart {
   /** Account the chat runs as (its folder goes in env). */
   accountId?: string;
   env?: Record<string, string>;
+  worktree?: Worktree;
 }
 
 function clip(text: string, max: number): string {
@@ -89,6 +95,7 @@ export class Chats {
     if (!claude) throw new Error("Claude Code is not installed on this computer");
     const id = crypto.randomUUID().slice(0, 8);
     const mode = options.mode ?? "normal";
+    const sandboxed = mode === "auto" && sandboxAvailable();
     const args = [
       claude,
       "-p",
@@ -102,6 +109,13 @@ export class Chats {
       "stdio",
       "--permission-mode",
       PERMISSION_MODE[mode],
+      // Shipping work (push, merge, publish, deploy) always asks, whatever the mode.
+      // Auto mode also gets Claude Code's sandbox when this computer has what it needs.
+      "--settings",
+      JSON.stringify({
+        permissions: { ask: SHIP_ASK_RULES },
+        ...(sandboxed ? { sandbox: { enabled: true, autoAllowBashIfSandboxed: false } } : {}),
+      }),
       ...(options.model ? ["--model", options.model] : []),
       ...(options.resume ? ["--resume", options.resume] : []),
     ];
@@ -124,6 +138,8 @@ export class Chats {
         startedAt: Date.now(),
         sessionId: options.resume,
         accountId: options.accountId,
+        worktree: options.worktree,
+        sandboxed,
       },
       events: [],
       index: new Map(),
@@ -199,6 +215,13 @@ export class Chats {
     this.changed();
   }
 
+  /** Outside content came in: back to asking, and say why. */
+  private taint(chat: Chat, now: number): void {
+    chat.tainted = true;
+    if (chat.info.mode === "auto" || chat.info.mode === "acceptEdits") this.setMode(chat.info.id, "normal");
+    this.upsert(chat, { kind: "notice", id: `taint-${now}`, at: now, text: "", tone: "neutral", code: "external" });
+  }
+
   /** Answers a permission prompt. "always" also allows this tool for the rest of the chat. */
   answer(id: string, requestId: string, decision: "allow" | "deny" | "always", message?: string): void {
     const chat = this.chats.get(id);
@@ -206,7 +229,8 @@ export class Chats {
     if (!chat || index === undefined) return;
     const event = chat.events[index];
     if (event?.kind !== "permission" || event.status !== "pending") return;
-    if (decision === "always") chat.alwaysAllow.add(event.toolName);
+    // "Always" never covers shipping or post-web requests: those are asked each time.
+    if (decision === "always" && !event.guard) chat.alwaysAllow.add(event.toolName);
     this.respond(chat, requestId, decision !== "deny", event.input, message);
     this.upsert(chat, { ...event, status: decision === "deny" ? "denied" : "allowed" });
     chat.info.status = "working";
@@ -337,6 +361,7 @@ export class Chats {
                 : `t-${messageId}-${i}`;
             this.upsert(chat, { kind: "text", id, at: now, text: block.text });
           } else if (block.type === "tool_use") {
+            if (!chat.tainted && readsOutside(String(block.name ?? ""))) this.taint(chat, now);
             this.upsert(chat, {
               kind: "tool",
               id: String(block.id),
@@ -370,7 +395,8 @@ export class Chats {
         if (request?.subtype !== "can_use_tool") return;
         const requestId = String(msg.request_id);
         const toolName = String(request.tool_name ?? "tool");
-        if (chat.alwaysAllow.has(toolName)) {
+        const guard = guardFor(toolName, request.input, !!chat.tainted);
+        if (chat.alwaysAllow.has(toolName) && !guard) {
           this.respond(chat, requestId, true, request.input);
           return;
         }
@@ -382,6 +408,7 @@ export class Chats {
           toolName,
           input: request.input,
           description: typeof request.description === "string" ? request.description : undefined,
+          guard,
           status: "pending",
         });
         chat.info.status = "waiting";

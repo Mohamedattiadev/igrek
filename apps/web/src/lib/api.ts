@@ -236,8 +236,19 @@ export const api = {
       body: JSON.stringify({ approve }),
     }),
   chats: () => request<ChatInfo[]>("/api/chats"),
-  startChat: (body: { projectId: string; resume?: string; model?: string; mode?: ChatMode; accountId?: string }) =>
-    request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
+  startChat: (body: {
+    projectId: string;
+    resume?: string;
+    model?: string;
+    mode?: ChatMode;
+    accountId?: string;
+    isolate?: boolean;
+  }) => request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
+  chatCopy: (id: string) =>
+    request<{ files: { path: string; added: number; removed: number }[]; patch: string }>(`/api/chats/${id}/worktree`),
+  chatCopyMerge: (id: string) =>
+    request<{ merged: boolean; message: string }>(`/api/chats/${id}/worktree/merge`, { method: "POST" }),
+  chatCopyDiscard: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}/worktree`, { method: "DELETE" }),
   chatModel: (id: string, model: string) =>
     request<ChatInfo>(`/api/chats/${id}/model`, { method: "POST", body: JSON.stringify({ model }) }),
   closeChat: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}`, { method: "DELETE" }),

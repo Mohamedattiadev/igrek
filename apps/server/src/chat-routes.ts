@@ -6,12 +6,13 @@ import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Chats } from "./chats";
 import type { Store } from "./store";
+import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
 
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 
 export function registerChatRoutes(
   app: Hono,
-  { chats, store, accounts }: { chats: Chats; store: Store; accounts: Accounts },
+  { chats, store, accounts, worktreeDir }: { chats: Chats; store: Store; accounts: Accounts; worktreeDir: string },
 ): void {
   const account = (projectId: string, sessionAccount?: string | null) =>
     (sessionAccount && accounts.get(sessionAccount)) || accounts.forProject("claude", projectId);
@@ -25,21 +26,32 @@ export function registerChatRoutes(
       mode?: string;
       /** For a new chat only: a resumed session must stay in the account that holds it. */
       accountId?: string;
+      /** Work in a separate copy (default for auto mode). */
+      isolate?: boolean;
     };
     const project = body.projectId ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
     const session = body.resume ? store.sessionRow(body.resume) : undefined;
     if (body.resume && session?.tool !== "claude")
       return c.json({ error: "Only Claude sessions can be continued in chat" }, 400);
+    const mode = MODES.find((m) => m === body.mode);
+    let worktree: Worktree | undefined;
+    try {
+      if (!body.resume && (body.isolate ?? mode === "auto"))
+        worktree = createWorktree(project.path, crypto.randomUUID().slice(0, 8), worktreeDir);
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
     try {
       return c.json(
         chats.start({
           projectId: project.id,
-          cwd: session?.cwd ?? project.path,
+          cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
+          worktree,
           title: session?.title ?? undefined,
           resume: body.resume,
           model: typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : undefined,
-          mode: MODES.find((m) => m === body.mode),
+          mode,
           ...(() => {
             const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
             const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
@@ -50,6 +62,30 @@ export function registerChatRoutes(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
+  });
+
+  // The auto-mode copy: see what changed, bring it in (you approve by clicking), or throw it away.
+  const withCopy = (id: string) => {
+    const info = chats.get(id);
+    const project = info ? store.projectRow(info.projectId) : undefined;
+    return info?.worktree && project ? { info, wt: info.worktree, project } : undefined;
+  };
+  app.get("/api/chats/:id/worktree", (c) => {
+    const found = withCopy(c.req.param("id"));
+    return found ? c.json(worktreeDiff(found.wt)) : c.json({ error: "Not found" }, 404);
+  });
+  app.post("/api/chats/:id/worktree/merge", (c) => {
+    const found = withCopy(c.req.param("id"));
+    if (!found) return c.json({ error: "Not found" }, 404);
+    const result = mergeWorktree(found.project.path, found.wt, found.info.title);
+    return result.merged ? c.json(result) : c.json({ error: result.message }, 409);
+  });
+  app.delete("/api/chats/:id/worktree", (c) => {
+    const found = withCopy(c.req.param("id"));
+    if (!found) return c.json({ error: "Not found" }, 404);
+    chats.close(found.info.id);
+    removeWorktree(found.project.path, found.wt);
+    return c.json({ ok: true });
   });
 
   // Custom slash commands: the project's .claude/commands and each Claude account's own (for the "/" menu).

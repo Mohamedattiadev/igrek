@@ -131,7 +131,7 @@ const app = createApp({
     registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers, accounts });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);
-    registerChatRoutes(hono, { chats, store, accounts });
+    registerChatRoutes(hono, { chats, store, accounts, worktreeDir: join(config.dataDir, "worktrees") });
     registerFileRoutes(hono, { files, store, db: sqlite });
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync, store, {
