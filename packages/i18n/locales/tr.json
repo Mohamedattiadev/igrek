@@ -148,7 +148,15 @@
     "enhanceLanguage": "Güçlendirilmiş prompt dili",
     "enhanceLang_user": "Benim dilim",
     "enhanceLangTip_en": "AI araçları İngilizce prompt'lara en iyi uyar; açıklamaları yine kendi dilinde görürsün",
-    "enhanceLangTip_user": "Prompt kendi dilinde kalsın"
+    "enhanceLangTip_user": "Prompt kendi dilinde kalsın",
+    "themeDarculaTip": "Klasik JetBrains koyu teması",
+    "themeNotion": "Yumuşak açık",
+    "themeNotionTip": "Notion gibi sıcak, sakin bir açık tema",
+    "textSize": "Yazı boyutu",
+    "textSizeHint": "Her şeyi büyütür: yazılar, ikonlar ve boşluklar.",
+    "textNormal": "Normal",
+    "textLarge": "Büyük",
+    "textLarger": "Daha büyük"
   },
   "onboarding": {
     "welcome": "God Eye'a hoş geldin",
@@ -1569,5 +1577,10 @@
     "send": "Gönder",
     "sent": "{{name}} kişisine gönderildi",
     "handedOff": "{{name}} kişisine devredildi"
+  },
+  "zen": {
+    "toggle": "Zen modu: sadece içerik",
+    "exit": "Zen modundan çık",
+    "exitTip": "Yan çubuğu, üst çubuğu ve durum çubuğunu geri getir (Ctrl+Alt+Z)"
   }
 }

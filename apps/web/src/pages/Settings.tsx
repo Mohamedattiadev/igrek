@@ -116,6 +116,19 @@ export function SettingsPage() {
               { value: "system", label: t("settings.themeSystem") },
               { value: "light", label: t("settings.themeLight") },
               { value: "dark", label: t("settings.themeDark") },
+              { value: "darcula", label: "Darcula", tip: t("settings.themeDarculaTip") },
+              { value: "notion", label: t("settings.themeNotion"), tip: t("settings.themeNotionTip") },
+            ]}
+          />
+        </Section>
+        <Section title={t("settings.textSize")} hint={t("settings.textSizeHint")}>
+          <Segmented
+            value={settings.textSize ?? "normal"}
+            onChange={(textSize) => update({ textSize })}
+            options={[
+              { value: "normal", label: t("settings.textNormal") },
+              { value: "large", label: t("settings.textLarge") },
+              { value: "larger", label: t("settings.textLarger") },
             ]}
           />
         </Section>

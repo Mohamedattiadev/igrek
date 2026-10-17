@@ -21,6 +21,8 @@ import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
 import { TeamPage } from "./pages/Team";
 import { TerminalPage, TerminalsPage } from "./pages/Terminals";
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/jetbrains-mono/wght.css";
 import "./styles.css";
 
 const router = createBrowserRouter([

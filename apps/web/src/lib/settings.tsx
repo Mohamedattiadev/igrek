@@ -15,6 +15,8 @@ interface SettingsContextValue {
 const SettingsContext = createContext<SettingsContextValue | null>(null);
 
 function resolveTheme(theme: Settings["theme"]): "light" | "dark" {
+  if (theme === "darcula") return "dark";
+  if (theme === "notion") return "light";
   if (theme !== "system") return theme;
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
@@ -23,6 +25,9 @@ function applyToDocument(settings: Settings): void {
   const root = document.documentElement;
   root.dataset.theme = resolveTheme(settings.theme);
   root.dataset.density = settings.density;
+  root.dataset.text = settings.textSize ?? "normal";
+  if (settings.theme === "darcula" || settings.theme === "notion") root.dataset.palette = settings.theme;
+  else delete root.dataset.palette;
   root.dataset.mode = settings.mode;
   applyLanguage(settings.language);
 }

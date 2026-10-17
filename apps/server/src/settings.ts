@@ -1,7 +1,7 @@
 import { DEFAULT_SETTINGS, type Settings } from "@godeye/core";
 import { type Db, settingsTable } from "./db";
 
-const THEMES = ["system", "light", "dark"];
+const THEMES = ["system", "light", "dark", "darcula", "notion"];
 const DENSITIES = ["comfortable", "compact"];
 const MODES = ["simple", "pro"];
 const KEYMAPS = ["default", "vim"];
@@ -28,6 +28,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
   const enums: [keyof Settings, string[]][] = [
     ["theme", THEMES],
     ["density", DENSITIES],
+    ["textSize", ["normal", "large", "larger"]],
     ["mode", MODES],
     ["keymap", KEYMAPS],
     ["summaryTone", TONES],

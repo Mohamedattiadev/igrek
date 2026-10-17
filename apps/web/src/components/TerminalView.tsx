@@ -45,7 +45,7 @@ export function TerminalView({ id, onExit }: { id: string; onExit?: () => void }
     const el = host.current;
     if (!el) return;
     const term = new Terminal({
-      fontFamily: '"JetBrains Mono", ui-monospace, Menlo, monospace',
+      fontFamily: '"JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Menlo, monospace',
       fontSize: 13,
       lineHeight: 1.2,
       cursorBlink: true,

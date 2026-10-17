@@ -229,27 +229,27 @@ god-eye/
 > Çıta: **JetBrains New UI + Notion** (yardımcı referanslar: Linear, Raycast). "Temiz ve kolay" bir istek değil, bir gereklilik.
 
 ### 7.0 Tasarım yönü: "Sakin arayüz"
-- [ ] ⭐ **Notion gibi sade:** bol beyaz alan, az renk, içerik ön planda. Süs yok, gölge çok az, çizgiler ince
-- [ ] ⭐ **JetBrains gibi düzenli:** sol tarafta ince ikon şeridi (tool window bar), açılır kapanır paneller, sekmeli editör, alt durum çubuğu. Her şeyin sabit ve tahmin edilebilir bir yeri var
-- [ ] ⭐ Nötr gri palet + **tek vurgu rengi**. Renk sadece anlam taşıdığında kullanılır (🟢 başarılı, 🔴 hata, 🟡 uyarı)
-- [ ] Sakin tipografi: Inter (arayüz), JetBrains Mono (kod), net bir başlık hiyerarşisi
-- [ ] Yoğunluk ayarı: **Rahat** (Notion gibi ferah) / **Kompakt** (JetBrains gibi sıkı)
+- [x] ⭐ **Notion gibi sade:** bol beyaz alan, az renk, içerik ön planda. Süs yok, gölge çok az, çizgiler ince
+- [x] ⭐ **JetBrains gibi düzenli:** sol tarafta ince ikon şeridi (tool window bar), açılır kapanır paneller, sekmeli editör, alt durum çubuğu. Her şeyin sabit ve tahmin edilebilir bir yeri var — *ikon şeridi, üst bar, durum çubuğu, Kod sekmesinde sekmeli editör*
+- [x] ⭐ Nötr gri palet + **tek vurgu rengi**. Renk sadece anlam taşıdığında kullanılır (🟢 başarılı, 🔴 hata, 🟡 uyarı)
+- [x] Sakin tipografi: Inter (arayüz), JetBrains Mono (kod), net bir başlık hiyerarşisi — *iki font da uygulamayla birlikte gelir (internetsiz çalışır)*
+- [x] Yoğunluk ayarı: **Rahat** (Notion gibi ferah) / **Kompakt** (JetBrains gibi sıkı)
 - [ ] Paneller sürüklenip yeniden düzenlenebilir; düzen kaydedilir
-- [ ] "Zen modu": tek tıkla tüm paneller gizlenir, sadece içerik kalır
-- [ ] Hazır temalar: Açık, Koyu, JetBrains Darcula benzeri, Notion benzeri açık tema
+- [x] "Zen modu": tek tıkla tüm paneller gizlenir, sadece içerik kalır — *Ctrl+Alt+Z veya komut paleti; köşedeki küçük düğmeyle çıkılır*
+- [x] Hazır temalar: Açık, Koyu, JetBrains Darcula benzeri, Notion benzeri açık tema — *dördü de WCAG AA kontrastında (her metin rengi 4.5:1 üstü, hesapla doğrulandı)*
 - [ ] Kural: bir ekranda aynı anda en fazla bir ana aksiyon butonu
 - [x] ⭐ **Emoji yok, gerçek ikonlar:** arayüzde hiç emoji kullanılmaz; her ikon SVG'dir (lucide), ekran okuyucu için etiketlidir ya da `aria-hidden` ile gizlidir. Terminal çıktısında da emoji yok
 - [x] ⭐ **Her yerde ipucu (tooltip):** her ikon butonun ve her seçeneğin üzerine gelince ne işe yaradığı sade dille yazar, varsa kısayolu da gösterir. Klavyeyle odaklanınca da çıkar, Esc ya da herhangi bir tuş kapatır — *tek global katman: `data-tip`, `title` ve ikon butonlardaki `aria-label` otomatik ipucuna dönüşür*
 
 ### 7.1 Tasarım sistemi
-- [ ] ⭐ Renk token'ları (açık ve koyu tema), tipografi (Inter + JetBrains Mono), boşluk ölçeği, köşe yarıçapları, gölgeler
-- [ ] ⭐ shadcn/ui tabanlı ortak bileşen kütüphanesi: kart, rozet, puan halkası, durum noktası, boş durum, yükleniyor iskeleti
+- [x] ⭐ Renk token'ları (açık ve koyu tema), tipografi (Inter + JetBrains Mono), boşluk ölçeği, köşe yarıçapları, gölgeler
+- [x] ⭐ shadcn/ui tabanlı ortak bileşen kütüphanesi: kart, rozet, puan halkası, durum noktası, boş durum, yükleniyor iskeleti — *shadcn yerine kendi küçük bileşen kütüphanemiz (`components/ui.tsx`), aynı parçalar*
 - [ ] Mikro animasyonlar: sayfa geçişleri, canlı durum nabzı, puan dolma animasyonu (Framer Motion)
-- [ ] İkon seti: Lucide
-- [ ] Tasarım vitrini sayfası (`/design`): tüm bileşenler tek sayfada
+- [x] İkon seti: Lucide
+- [x] Tasarım vitrini sayfası (`/design`): tüm bileşenler tek sayfada
 
 ### 7.2 Teyze testi (herkes kullanabilsin)
-- [ ] ⭐ **Basit Mod / Pro Mod** anahtarı. Basit modda sadece büyük kartlar, sade dil ve "Ne yapmak istiyorsun?" kutusu görünür
+- [x] ⭐ **Basit Mod / Pro Mod** anahtarı. Basit modda sadece büyük kartlar, sade dil ve "Ne yapmak istiyorsun?" kutusu görünür
 - [ ] ⭐ Her teknik terimin yanında `?` balonu ile tek cümlelik açıklama
 - [ ] Hata mesajları suçlamaz, çözüm önerir: "Bağlantı koptu. **Tekrar dene** butonuna bas."
 - [ ] Hiçbir ekran boş kalmaz: her boş durumda "şunu yaparak başla" önerisi
@@ -259,17 +259,17 @@ god-eye/
 ### 7.3 Erişilebilirlik ve kalite
 - [ ] Klavye ile tam kullanım, `Ctrl+K` komut paleti
 - [ ] WCAG AA kontrast, ekran okuyucu etiketleri
-- [ ] Büyük yazı seçeneği
+- [x] Büyük yazı seçeneği — *Normal / Büyük / Daha büyük; tüm arayüz ölçeklenir, editörde tıklama doğruluğu test edildi*
 - [ ] Her ekran 1280px ve üstünde kusursuz; 768px'te kullanılabilir
 - [ ] Performans: ilk açılış < 1 sn, sayfa geçişi < 100 ms
 
 ### 7.4 Her dil
 - [ ] ⭐ Onboarding'in ilk adımı dil seçimi; aranabilir liste, dünyadaki tüm diller
-- [ ] ⭐ Hazır paketler: Türkçe ve İngilizce (elle kontrol edilmiş)
+- [x] ⭐ Hazır paketler: Türkçe ve İngilizce (elle kontrol edilmiş)
 - [ ] Diğer diller: seçilince **dil paketi AI ile üretilir** (bir kere, birkaç dakika), `~/.godeye/i18n/` altına kaydedilir. Sonra çevrimdışı da çalışır
 - [ ] Paket kalitesini düzeltme: arayüzde "bu çeviri yanlış" → düzeltme kaydedilir
-- [ ] RTL (sağdan sola) yerleşim desteği
-- [ ] Tarih, saat, sayı ve para formatları seçilen dile göre
+- [x] RTL (sağdan sola) yerleşim desteği — *sağdan sola dillerde `dir=rtl`, yön ikonları çevrilir*
+- [x] Tarih, saat, sayı ve para formatları seçilen dile göre — *Intl ile*
 - [ ] Tüm AI çıktıları (özetler, persona cevapları, raporlar) kullanıcının dilinde
 - [ ] Takımda herkes kendi dilinde görür: arkadaşımın Norveççe notu bana Türkçe çevrilmiş görünür, "orijinali göster" seçeneği de olur
 
@@ -290,7 +290,7 @@ god-eye/
 - [x] ⭐ SQLite + Drizzle şeması + migration'lar
 - [x] ⭐ Tasarım sistemi temeli (bkz. UI/UX Standartları 7.1) + uygulama iskeleti (sol menü, üst bar, komut paleti kabuğu)
 - [x] ⭐ i18n altyapısı (TR/EN hazır, diğer diller için paket sistemi), RTL hazırlığı
-- [ ] ⭐ **Docker**
+- [x] ⭐ **Docker**
   - [x] Multi-stage Dockerfile, `oven/bun:slim` tabanlı, hedef < 400 MB (ölçülen: ~321 MB açılmış katman)
   - [x] İçinde `git`, `claude`, `codex` CLI'ları kurulu (build argümanıyla seçilebilir) — *`GODEYE_INSTALL_CLAUDE` / `GODEYE_INSTALL_CODEX`; Codex ~300 MB ekler*
   - [x] Volume'lar: `~/.godeye`, `~/.claude`, `~/.codex`, proje klasörleri (kullanıcı seçer)

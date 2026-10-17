@@ -44,7 +44,7 @@ export default function CodeEditor({
     applyMonacoTheme();
     const editor = monaco.editor.create(host.current, {
       automaticLayout: true,
-      fontFamily: '"JetBrains Mono", ui-monospace, Menlo, monospace',
+      fontFamily: '"JetBrains Mono Variable", "JetBrains Mono", ui-monospace, Menlo, monospace',
       fontSize: 13,
       lineHeight: 20,
       minimap: { enabled: true, renderCharacters: false },

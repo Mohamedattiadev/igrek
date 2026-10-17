@@ -148,7 +148,15 @@
     "enhanceLanguage": "Write enhanced prompts in",
     "enhanceLang_user": "My language",
     "enhanceLangTip_en": "AI tools follow English prompts best; you still see explanations in your language",
-    "enhanceLangTip_user": "Keep the prompt in your own language"
+    "enhanceLangTip_user": "Keep the prompt in your own language",
+    "themeDarculaTip": "The classic JetBrains dark theme",
+    "themeNotion": "Soft light",
+    "themeNotionTip": "A warm, quiet light theme like Notion",
+    "textSize": "Text size",
+    "textSizeHint": "Makes everything bigger, including icons and spacing.",
+    "textNormal": "Normal",
+    "textLarge": "Large",
+    "textLarger": "Larger"
   },
   "onboarding": {
     "welcome": "Welcome to God Eye",
@@ -1569,5 +1577,10 @@
     "send": "Send",
     "sent": "Sent to {{name}}",
     "handedOff": "Handed off to {{name}}"
+  },
+  "zen": {
+    "toggle": "Zen mode: only the content",
+    "exit": "Leave zen mode",
+    "exitTip": "Bring back the side bar, top bar and status bar (Ctrl+Alt+Z)"
   }
 }

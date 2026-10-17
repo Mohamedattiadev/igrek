@@ -1,13 +1,14 @@
 import type { AskAnswer, ProjectListItem, SearchHit } from "@godeye/core";
 import { Command } from "cmdk";
 import type { LucideIcon } from "lucide-react";
-import { Contrast, FolderKanban, MessageSquare, Rows3, Sparkles } from "lucide-react";
+import { Contrast, FolderKanban, Maximize2, MessageSquare, Rows3, Sparkles } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useSettings } from "../lib/settings";
+import { toggleZen } from "../lib/zen";
 import { NAV_ITEMS } from "./nav";
 import { Kbd } from "./ui";
 
@@ -217,6 +218,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
               })
             }
           />
+          <Item icon={Maximize2} label={t("zen.toggle")} onSelect={() => run(toggleZen)} />
           <Item
             icon={Rows3}
             label={t("palette.toggleDensity")}

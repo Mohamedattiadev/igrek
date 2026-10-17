@@ -1,6 +1,6 @@
 import type { ServerMessage } from "@godeye/core";
 import { APP_VERSION } from "@godeye/core";
-import { Search } from "lucide-react";
+import { Minimize2, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet } from "react-router";
@@ -9,6 +9,7 @@ import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } fro
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
+import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CommandPalette } from "./CommandPalette";
 import { IdeaCapture } from "./IdeaCapture";
@@ -127,8 +128,29 @@ function StatusBar({ status }: { status: SocketStatus }) {
 
 export function Shell() {
   const { settings, receive } = useSettings();
+  const { t } = useTranslation();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [toast, setToast] = useState<string>();
+  const [zen, setZen] = useState(readZen);
+  useEffect(() => {
+    const flip = () =>
+      setZen((on) => {
+        saveZen(!on);
+        return !on;
+      });
+    const onKey = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.altKey && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        flip();
+      }
+    };
+    window.addEventListener("godeye:zen", flip);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("godeye:zen", flip);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, []);
 
   const onMessage = useCallback(
     (message: ServerMessage) => {
@@ -160,14 +182,25 @@ export function Shell() {
 
   return (
     <div className="flex h-full">
-      <ToolStrip />
+      {!zen && <ToolStrip />}
       <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onSearch={openPalette} onToast={setToast} />
+        {!zen && <TopBar onSearch={openPalette} onToast={setToast} />}
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           <Outlet />
         </main>
-        <StatusBar status={status} />
+        {!zen && <StatusBar status={status} />}
       </div>
+      {zen && (
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("godeye:zen"))}
+          aria-label={t("zen.exit")}
+          data-tip={t("zen.exitTip")}
+          className="fixed bottom-3 end-3 z-40 flex size-7 items-center justify-center rounded-ui border border-border bg-bg text-fg-subtle opacity-60 shadow-ui hover:text-fg hover:opacity-100"
+        >
+          <Minimize2 size={14} aria-hidden="true" />
+        </button>
+      )}
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <QuickAsk />
       <TooltipLayer />
