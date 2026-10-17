@@ -747,6 +747,13 @@ const migrations: string[] = [
   // Faz 13: project status (archived projects use no background resources) and milestone done flags.
   `ALTER TABLE projects ADD COLUMN status TEXT NOT NULL DEFAULT 'active';
    ALTER TABLE calendar_events ADD COLUMN done INTEGER NOT NULL DEFAULT 0;`,
+  // Faz 13: the evening recap of each day ("what did we do today").
+  `CREATE TABLE day_recaps (
+     day TEXT PRIMARY KEY,
+     text TEXT NOT NULL,
+     stats TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

@@ -527,6 +527,22 @@ export function registerWriteupRoutes(
       headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="adr.zip"' },
     });
   });
+  app.get("/api/recaps", (c) => c.json(writeups.recapDays()));
+  app.get("/api/recap", (c) => {
+    const day = c.req.query("day") ?? "";
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return c.json({ error: "Bad day" }, 400);
+    return c.json({ recap: writeups.cachedRecap(day) ?? null, stats: writeups.dayStats(day) });
+  });
+  app.post("/api/recap", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { day?: string; language?: string };
+    const day = String(body.day ?? "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) return c.json({ error: "Bad day" }, 400);
+    try {
+      return c.json(await writeups.recap(day, String(body.language ?? "en")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
   app.post("/api/dayend", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { language?: string };
     try {

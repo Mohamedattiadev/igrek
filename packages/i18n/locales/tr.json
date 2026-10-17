@@ -3291,5 +3291,19 @@
     "st_merged": "birleştirildi",
     "st_failed": "başarısız",
     "st_needs_you": "seni bekliyor"
+  },
+  "recap": {
+    "title": "Gün sonu: naptık ne ettik",
+    "numbers": "{{projects}} proje · {{commits}} commit · {{time}}",
+    "day": "Gün",
+    "today": "Bugün",
+    "commits_one": "1 commit",
+    "commits_other": "{{count}} commit",
+    "merged_one": "1 birleştirildi",
+    "merged_other": "{{count}} birleştirildi",
+    "written": "{{when}} yazıldı",
+    "notYet": "Saat 21:00'den sonra kendiliğinden yazılır (arka plan özetleri açıksa), ya da şimdi düğmeyle.",
+    "notWritten": "Bu gün için henüz yazılmadı.",
+    "quiet": "O gün projelerinde bir şey olmadı."
   }
 }

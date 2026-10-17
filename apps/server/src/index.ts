@@ -295,6 +295,17 @@ localModel.pick = (limited) => {
   if (s.localModel === "off" || !s.localModelName) return undefined;
   return s.localModel === "always" || limited ? { url: s.localModelUrl, model: s.localModelName } : undefined;
 };
+const writeups = new Writeups(sqlite, store, flows, (prompt) =>
+  runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
+);
+// The evening recap ("what did we do today") is written by itself after 21:00 when the day had work in it.
+setInterval(() => {
+  const now = new Date();
+  if (now.getHours() < 21 || !readSettings(db).autoSummarize) return;
+  const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  if (writeups.cachedRecap(day) || !writeups.dayStats(day).projects.length) return;
+  void writeups.recap(day, readSettings(db).language).catch(() => undefined);
+}, 15 * 60_000);
 const monitors = new Monitors(sqlite, store, bus);
 monitors.start();
 const docker = new Docker(servers);
@@ -423,9 +434,7 @@ const app = createApp({
     registerMcpRoutes(hono, mcpServers);
     registerTimeRoutes(hono, store);
     registerWriteupRoutes(hono, {
-      writeups: new Writeups(sqlite, store, flows, (prompt) =>
-        runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
-      ),
+      writeups,
       store,
       team: sync,
     });

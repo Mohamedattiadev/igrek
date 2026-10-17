@@ -1,10 +1,12 @@
 import type { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import type { DayRecap } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import JSZip from "jszip";
 import type { Flows } from "./flows";
 import type { Store } from "./store";
+import { timeReport } from "./timetrack";
 
 type Ask = (prompt: string) => Promise<string>;
 
@@ -188,5 +190,96 @@ export class Writeups {
         ].join("\n"),
       ),
     ).trim();
+  }
+
+  /** Local day boundaries for "2026-10-17". */
+  private dayRange(day: string): [number, number] {
+    const start = new Date(`${day}T00:00:00`).getTime();
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return [start, end.getTime() - 1];
+  }
+
+  /** The numbers of a day per project: commits, sessions, minutes with the AI, team runs. */
+  dayStats(day: string): DayRecap["stats"] {
+    const [from, to] = this.dayRange(day);
+    const time = timeReport(this.store, from, to);
+    const projects: DayRecap["stats"]["projects"] = [];
+    for (const p of this.store.listProjects().filter((x) => !x.hidden && x.status !== "archived")) {
+      const commits = this.store.commitsBetween(p.id, from, to).length;
+      const sessions = this.store.sessionsBetween(p.id, from, to).length;
+      const minutes = time.totals.find((x) => x.projectId === p.id)?.minutes ?? 0;
+      const runs = this.flows.list(p.id).filter((r) => r.updatedAt >= from && r.updatedAt <= to);
+      const merged = runs.filter((r) => r.status === "merged").length;
+      const failed = runs.filter((r) => r.status === "failed").length;
+      if (commits || sessions || minutes || runs.length)
+        projects.push({ projectId: p.id, name: p.name, commits, sessions, minutes, merged, failed });
+    }
+    projects.sort((a, b) => b.minutes - a.minutes || b.commits - a.commits);
+    return {
+      projects,
+      commits: projects.reduce((n, p) => n + p.commits, 0),
+      sessions: projects.reduce((n, p) => n + p.sessions, 0),
+      minutes: projects.reduce((n, p) => n + p.minutes, 0),
+    };
+  }
+
+  /** A day's recap, written once and kept; today's can be written again as the day goes on. */
+  cachedRecap(day: string): DayRecap | undefined {
+    const row = this.db.query("SELECT * FROM day_recaps WHERE day = ?").get(day) as {
+      day: string;
+      text: string;
+      stats: string;
+      at: number;
+    } | null;
+    return row ? { day: row.day, text: row.text, stats: JSON.parse(row.stats), at: row.at } : undefined;
+  }
+
+  recapDays(limit = 30): string[] {
+    return (this.db.query("SELECT day FROM day_recaps ORDER BY day DESC LIMIT ?").all(limit) as { day: string }[]).map(
+      (r) => r.day,
+    );
+  }
+
+  /**
+   * "What did we do today": per project what got done and what is left half way, written plainly
+   * from the day's commits, session summaries and team runs, with the numbers next to it.
+   */
+  async recap(day: string, language: string): Promise<DayRecap> {
+    const stats = this.dayStats(day);
+    if (!stats.projects.length) throw new Error("Nothing happened in your projects that day");
+    const [from, to] = this.dayRange(day);
+    const lines: string[] = [];
+    for (const p of stats.projects) {
+      lines.push(`Project ${p.name} (${p.minutes} min with the AI, ${p.commits} commits, ${p.sessions} sessions):`);
+      for (const c of this.store.commitsBetween(p.projectId, from, to).slice(0, 25))
+        lines.push(`- commit: ${c.subject}`);
+      for (const s of this.store.sessionsBetween(p.projectId, from, to).slice(0, 12)) {
+        const text = s.summary?.texts[language] ?? s.summary?.texts.en;
+        lines.push(
+          `- session: ${s.summary?.title ?? s.title ?? ""}${text?.did.length ? ` (did: ${text.did.slice(0, 4).join("; ")})` : ""}${text?.left.length ? ` (left: ${text.left.slice(0, 3).join("; ")})` : ""}`,
+        );
+      }
+      for (const r of this.flows
+        .list(p.projectId)
+        .filter((x) => x.updatedAt >= from && x.updatedAt <= to)
+        .slice(0, 10))
+        lines.push(`- team run, ${r.status}: ${r.request.split("\n")[0]}`);
+    }
+    const text = unfence(
+      await this.ask(
+        [
+          `Write a short evening recap of my day in ${languageName(language)}, in a warm, plain, conversational tone ("what did we do today"). Start with one or two sentences about the day as a whole. Then, for each project, a heading with its name and two parts: what got done (bullet points, the things that matter, merged into a few), and what is left half way (only if the data shows it). End with one sentence on where to pick up tomorrow. Only what the data supports; no numbers (they are shown next to it). Plain Markdown, no code fence.`,
+          ...lines,
+        ].join("\n"),
+      ),
+    );
+    const recap: DayRecap = { day, text, stats, at: Date.now() };
+    this.db
+      .query(
+        "INSERT INTO day_recaps (day, text, stats, at) VALUES (?, ?, ?, ?) ON CONFLICT(day) DO UPDATE SET text = excluded.text, stats = excluded.stats, at = excluded.at",
+      )
+      .run(day, text, JSON.stringify(stats), recap.at);
+    return recap;
   }
 }

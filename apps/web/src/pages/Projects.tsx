@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router";
 import { BriefingCard } from "../components/BriefingCard";
 import { FocusBanner } from "../components/FocusBanner";
 import { LoadError } from "../components/LoadError";
+import { RecapCard } from "../components/RecapCard";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
@@ -353,6 +354,7 @@ export function ProjectsPage() {
         <div className="p-6">
           <div className="mb-4 space-y-3">
             <BriefingCard />
+            <RecapCard />
             <TodayStrip />
             {projects && <FocusBanner projects={projects} onChange={reload} />}
             {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (

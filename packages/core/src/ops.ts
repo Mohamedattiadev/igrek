@@ -584,3 +584,25 @@ export function workBlocks(times: number[], gap = IDLE_GAP_MS): { start: number;
   }
   return out.map((b) => ({ start: b.start, end: Math.max(b.end, b.start + 2 * 60_000) }));
 }
+
+/** The evening recap of one day (plan.md 13.2 "Gün sonu özeti"): what got done, in numbers and words. */
+export interface DayRecap {
+  /** "2026-10-17", local day. */
+  day: string;
+  text: string;
+  stats: {
+    projects: {
+      projectId: string;
+      name: string;
+      commits: number;
+      sessions: number;
+      minutes: number;
+      merged: number;
+      failed: number;
+    }[];
+    commits: number;
+    sessions: number;
+    minutes: number;
+  };
+  at: number;
+}

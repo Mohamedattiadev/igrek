@@ -1038,6 +1038,7 @@ god-eye/
 - [x] 📚 **ADR (mimari karar kayıtları):** kararları standart formatta dışa aktarma — *Hafıza'da "ADR olarak dışa aktar": kararlar Nygard formatında (bağlam ve sonuçlar küçük modelle, bilinmeyen uydurulmaz), docs/adr .zip ya da wiki sayfası*
 - [x] 💤 Proje durumları: Aktif · Beklemede · Arşiv (arşivlenen proje kaynak tüketmez) — *Aktif/Beklemede/Arşiv; arşivdekiler sır taraması, bağımlılık, commit eşitleme, günlük rapor ve brifinge girmez; hiçbir şey silinmez*
 - [x] ☀️ **Gün sonu devri:** çevrimdışı olurken "bugün ne yaptım, yarın ne var" notu otomatik olarak takıma paylaşılır — *"Günü kapat": bugünkü işten Bugün/Yarın/Takıldığım notu, düzenlenip takıma (şifreli takım mesajı) paylaşılır. Otomatik zamanlı gönderim yok, elle tetiklenir*
+- [x] 🌙 **Gün sonu özeti ("naptık ne ettik"):** her akşam o günün özeti kendiliğinden hazır olur: hangi projede ne yapıldı, kaç commit/session, ne kadar zaman, neler bitti, neler yarım kaldı; geçmiş günlere geri bakılabilir — *Projeler sayfasında "Gün sonu: naptık ne ettik" kartı: proje başına süre, commit ve birleştirilen iş sayıları; altında sohbet diliyle ne bitti / ne yarım kaldı / yarın nereden devam. 21:00'den sonra kendiliğinden yazılır (arka plan özetleri açıksa), istenirse elle; her gün saklanır, eski günler seçilip okunur. Bugünün gerçek verisiyle denendi (~30 sn)*
 
 #### 13.3 Takım
 - [ ] 💬 **Takım sohbeti:** proje bazında kanallar (WhatsApp'a gerek kalmaz). AI ile "bu kanalda dün ne konuşuldu" özeti

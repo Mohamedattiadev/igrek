@@ -3291,5 +3291,19 @@
     "st_merged": "merged",
     "st_failed": "failed",
     "st_needs_you": "waiting for you"
+  },
+  "recap": {
+    "title": "End of day: what did we do",
+    "numbers": "{{projects}} projects · {{commits}} commits · {{time}}",
+    "day": "Day",
+    "today": "Today",
+    "commits_one": "1 commit",
+    "commits_other": "{{count}} commits",
+    "merged_one": "1 merged",
+    "merged_other": "{{count}} merged",
+    "written": "written {{when}}",
+    "notYet": "Written by itself after 21:00 (with background summaries on), or now with the button.",
+    "notWritten": "Not written for this day yet.",
+    "quiet": "Nothing happened in your projects that day."
   }
 }

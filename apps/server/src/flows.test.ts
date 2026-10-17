@@ -206,3 +206,28 @@ describe("model arena", () => {
     expect(() => arena.pick(match.id, "haiku")).toThrow();
   });
 });
+
+describe("evening recap", () => {
+  test("numbers per project for a day, the text written once and kept", async () => {
+    const { Writeups } = await import("./writeups");
+    const agent: AgentRun = async () => "ok";
+    const { flows, projectId, sqlite } = setup(agent, async () => [pass("test")]);
+    const store = new Store(sqlite);
+    const now = new Date();
+    const day = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    store.saveCommits(projectId, [{ hash: "abc1234", author: "a", subject: "Add login", at: Date.now(), files: 2 }]);
+    let asked = "";
+    const w = new Writeups(sqlite, store, flows, async (prompt) => {
+      asked = prompt;
+      return "```markdown\n## Bugün\n- Giriş eklendi\n```";
+    });
+    expect(w.dayStats(day).commits).toBe(1);
+    const recap = await w.recap(day, "tr");
+    expect(recap.text).toBe("## Bugün\n- Giriş eklendi");
+    expect(asked).toContain("commit: Add login");
+    expect(asked).toContain("Turkish");
+    expect(w.cachedRecap(day)?.text).toBe(recap.text);
+    expect(w.recapDays()).toEqual([day]);
+    await expect(w.recap("2001-01-01", "tr")).rejects.toThrow("Nothing happened");
+  });
+});
