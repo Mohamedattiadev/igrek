@@ -1,6 +1,6 @@
 import type { ServerMessage } from "@godeye/core";
 import { APP_VERSION } from "@godeye/core";
-import { ChevronDown, Laptop, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet } from "react-router";
@@ -17,6 +17,7 @@ import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
 import { TooltipLayer } from "./Tooltip";
 import { Kbd, StatusDot } from "./ui";
+import { WorkspacePicker } from "./WorkspacePicker";
 
 function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
   const { t } = useTranslation();
@@ -79,15 +80,7 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
   const { t } = useTranslation();
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-border bg-bg px-3">
-      <button
-        type="button"
-        title={t("workspace.localHint")}
-        className="flex h-7 items-center gap-2 rounded-ui px-2 text-[13px] font-medium hover:bg-bg-hover"
-      >
-        <Laptop size={15} strokeWidth={1.75} className="text-fg-muted" />
-        {t("workspace.local")}
-        <ChevronDown size={13} className="text-fg-subtle" />
-      </button>
+      <WorkspacePicker />
       <div className="flex-1" />
       <button
         type="button"

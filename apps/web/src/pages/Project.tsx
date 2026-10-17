@@ -22,12 +22,13 @@ import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
 import { CodeTab } from "./project/Code";
+import { EnvironmentsTab } from "./project/Environments";
 import { MemoryTab } from "./project/Memory";
 import { SectionsTab } from "./project/Sections";
 import { SessionRow } from "./project/SessionRow";
 import { ReportsCard, TimelineTab } from "./project/Timeline";
 
-const TABS = ["overview", "sections", "timeline", "sessions", "code", "memory", "setup"] as const;
+const TABS = ["overview", "sections", "timeline", "sessions", "code", "memory", "environments", "setup"] as const;
 type Tab = (typeof TABS)[number];
 
 /** Plain-language warnings about where the code stands vs. the remote (plan.md 1.2c). */
@@ -230,6 +231,19 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
           {t("setup.file")} <code className="font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
       </Section>
+      <Section title={t("project.gitFlow")} hint={t("project.gitFlowHint")}>
+        <Segmented
+          value={project.gitFlow ? "on" : "off"}
+          onChange={async (v) => {
+            await api.setGitFlow(project.id, v === "on");
+            onChange();
+          }}
+          options={[
+            { value: "on", label: t("settings.on") },
+            { value: "off", label: t("settings.off") },
+          ]}
+        />
+      </Section>
       <Section title={t("team.sharing")} hint={t("team.shareHint")}>
         <Segmented
           value={project.share}
@@ -359,6 +373,8 @@ export function ProjectPage() {
           <Overview project={project} />
         ) : tab === "sections" ? (
           <SectionsTab project={project} />
+        ) : tab === "environments" ? (
+          <EnvironmentsTab project={project} />
         ) : tab === "timeline" ? (
           <TimelineTab projectId={project.id} />
         ) : tab === "code" ? (

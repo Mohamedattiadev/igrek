@@ -279,6 +279,31 @@ const migrations: string[] = [
      at INTEGER NOT NULL
    );
    CREATE INDEX env_changes_project ON env_changes(project_id, at);`,
+  // Faz 1.2b / 1.2c: a project's environments on servers and the deploys made to them.
+  `CREATE TABLE project_envs (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     name TEXT NOT NULL,
+     server_id TEXT NOT NULL,
+     path TEXT NOT NULL,
+     branch TEXT NOT NULL DEFAULT 'main',
+     deploy_command TEXT NOT NULL DEFAULT '',
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE deploys (
+     id TEXT PRIMARY KEY,
+     env_id TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     from_head TEXT NOT NULL,
+     to_head TEXT NOT NULL,
+     command TEXT NOT NULL,
+     exit_code INTEGER NOT NULL,
+     output TEXT NOT NULL,
+     ms INTEGER NOT NULL
+   );
+   CREATE INDEX deploys_project ON deploys(project_id, at);
+   ALTER TABLE projects ADD COLUMN git_flow INTEGER NOT NULL DEFAULT 1;`,
 ];
 
 export function migrate(sqlite: Database): number {

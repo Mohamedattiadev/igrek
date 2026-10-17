@@ -68,9 +68,10 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   });
 
   app.patch("/api/projects/:id", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { hidden?: unknown; name?: unknown };
+    const body = (await c.req.json().catch(() => ({}))) as { hidden?: unknown; name?: unknown; gitFlow?: unknown };
     const id = c.req.param("id");
-    if (typeof body.hidden === "boolean") store.setProjectHidden(id, body.hidden);
+    if (typeof body.gitFlow === "boolean") store.setGitFlow(id, body.gitFlow);
+    else if (typeof body.hidden === "boolean") store.setProjectHidden(id, body.hidden);
     else if (typeof body.name === "string" && body.name.trim()) store.renameProject(id, body.name.trim().slice(0, 80));
     else return c.json({ error: "Nothing to change" }, 400);
     return c.json({ ok: true });
@@ -172,6 +173,10 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   });
 
   app.get("/api/inbox", (c) => c.json({ conflicts: store.openConflicts() }));
+  app.get("/api/today", (c) => {
+    const since = Number(c.req.query("since")) || new Date().setHours(0, 0, 0, 0);
+    return c.json(store.today(since));
+  });
 
   app.get("/api/search", (c) => {
     const cwd = c.req.query("cwd");

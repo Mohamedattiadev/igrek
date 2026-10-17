@@ -127,6 +127,14 @@ function ChangesPanel({ project, onOpenDiff }: { project: ProjectDetail; onOpenD
 
   const commit = async () => {
     setStatus(undefined);
+    // Recommended flow: work on a branch, merge to main, deploy only main.
+    const branch = project.git?.branch;
+    if (
+      project.gitFlow &&
+      (branch === "main" || branch === "master") &&
+      !window.confirm(t("code.mainWarning", { branch }))
+    )
+      return;
     try {
       await fs.commit(project.id, message.trim());
       setMessage("");

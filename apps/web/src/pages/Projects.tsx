@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
+import { useWorkspace } from "../components/WorkspacePicker";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
@@ -110,6 +111,40 @@ function AddProject() {
   );
 }
 
+/** One line: what happened today in every workspace. */
+function TodayStrip() {
+  const { t } = useTranslation();
+  const { data } = useLiveData(() => api.today(), []);
+  if (!data || data.sessions + data.teamSessions + data.commits + data.deploys === 0) return null;
+  const parts = [
+    t("today.sessions", { count: data.sessions }),
+    data.teamSessions ? t("today.team", { count: data.teamSessions }) : "",
+    t("today.commits", { count: data.commits }),
+    data.deploys
+      ? t("today.deploys", { count: data.deploys }) +
+        (data.failedDeploys ? ` (${t("today.failed", { count: data.failedDeploys })})` : "")
+      : "",
+  ].filter(Boolean);
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-ui border border-border bg-bg-subtle px-3 py-2 text-xs">
+      <span className="font-semibold">{t("today.title")}</span>
+      <span className="text-fg-muted">{parts.join(" · ")}</span>
+      <span className="flex-1" />
+      {data.projects.map((p) => (
+        <Link
+          key={p.id}
+          to={`/p/${p.id}?tab=timeline`}
+          className="rounded-full border border-border bg-bg px-2 py-0.5 hover:border-accent"
+          data-tip={t("today.projectTip", { sessions: p.sessions, commits: p.commits })}
+        >
+          {p.name}
+          {p.team && <span className="ms-1 text-fg-subtle">·{t("workspace.team")}</span>}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -118,12 +153,16 @@ export function ProjectsPage() {
   const { data: projects } = useLiveData(() => api.projects(), []);
   const status = useIndexStatus();
 
+  const workspace = useWorkspace();
   const shown = useMemo(() => {
     const q = filter.trim().toLowerCase();
     return (projects ?? []).filter(
-      (p) => (showHidden || !p.hidden) && (!q || `${p.name} ${p.path}`.toLowerCase().includes(q)),
+      (p) =>
+        (workspace === "all" || p.workspace === workspace) &&
+        (showHidden || !p.hidden) &&
+        (!q || `${p.name} ${p.path}`.toLowerCase().includes(q)),
     );
-  }, [projects, filter, showHidden]);
+  }, [projects, filter, showHidden, workspace]);
   const hiddenCount = (projects ?? []).filter((p) => p.hidden).length;
 
   return (
@@ -167,6 +206,9 @@ export function ProjectsPage() {
         />
       ) : (
         <div className="p-6">
+          <div className="mb-4">
+            <TodayStrip />
+          </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
             {projects
               ? shown.map((project) => <ProjectCard key={project.id} project={project} />)

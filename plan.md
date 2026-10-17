@@ -331,18 +331,18 @@ god-eye/
 
 > Örnek: Bilgisayarımda 9 proje var, her birinin kendi session'ları ve hafızası var. Bir VPS'te yayında 2 proje var ve arkadaşım da onlara bağlı. Bunların hepsi tek uygulamada ama **birbirinden bağımsız** görünmeli.
 
-- [ ] ⭐ Sol üstte **çalışma alanı seçici:** — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [x] ⭐ Sol üstte **çalışma alanı seçici:** — *Tüm alanlar · Bilgisayarım · Takım · her sunucu*
   - 💻 **Bilgisayarım (Lokal):** sadece benim bilgisayarımdaki projeler. Varsayılan olarak **özel**, kimseyle paylaşılmaz
   - 🖧 **Sunucu: `prod-vps-1`:** o sunucudaki projeler (SSH ile bağlı), sunucunun sağlık durumu, kim bağlı
   - 🤝 **Takım: `Ekip Adı`:** Hub üzerinden paylaşılan projeler, üyeler ve kim online
-- [ ] ⭐ Her proje tek bir çalışma alanına aittir. Lokal projeler, sunucu ve takım projelerinden tamamen bağımsızdır. Biri bozulsa diğeri etkilenmez — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
-- [ ] ⭐ **Ortamlar (proje içinde):** bir projenin birden fazla ortamı olabilir: **Local · Staging · Prod** — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [x] ⭐ Her proje tek bir çalışma alanına aittir. Lokal projeler, sunucu ve takım projelerinden tamamen bağımsızdır. Biri bozulsa diğeri etkilenmez
+- [x] ⭐ **Ortamlar (proje içinde):** bir projenin birden fazla ortamı olabilir: **Local · Staging · Prod** — *Ortamlar sekmesi: sunucu, klasör, branch, commit, son deploy, .env (Bölümler → .env)*
   - Ortam sekmesinde her ortamın adresi, sunucusu, son deploy'u, çalışan sürümü, sağlığı ve `.env`'i ayrı görünür
   - "Local'de çalışan sürüm ile Prod'daki sürüm arasındaki fark" (commit farkı, `.env` anahtar farkı)
-- [ ] **Bağlama (opsiyonel):** aynı projenin lokal kopyası ile sunucudaki kopyası aynı git reposundan geliyorsa God Eye bunu fark eder ve "Bunlar aynı proje, ortamları bağlayayım mı?" diye sorar. Bağlanınca tek proje + iki ortam olur, hafıza ortak kalır. Bağlanmazsa ikisi tamamen ayrı kalır — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
-- [ ] Sunucudaki projelerde kodun asıl kaynağı git'tir. Önerilen akış: lokalde geliştir → test → deploy. Acil durumda doğrudan sunucuda düzeltme (SSH, onaylı, kayıtlı, önce yedek alınır) — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
-- [ ] **Sunucu CPU'su harcanmaz:** AI agent'ı her zaman kendi bilgisayarında çalışır, sunucuya sadece SSH komutları gider — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
-- [ ] Çalışma alanları arası genel bakış: "Tüm alanlarda bugün ne oldu" ekranı — *sunucular (Faz 2.5) ve takım (Faz 4) ile gelecek; şimdilik sadece "Bilgisayarım"*
+- [x] **Bağlama (opsiyonel):** aynı projenin lokal kopyası ile sunucudaki kopyası aynı git reposundan geliyorsa God Eye bunu fark eder ve "Bunlar aynı proje, ortamları bağlayayım mı?" diye sorar. Bağlanınca tek proje + iki ortam olur, hafıza ortak kalır. Bağlanmazsa ikisi tamamen ayrı kalır — *sunucudaki klasör ortam olarak eklenir; commit'leri lokal repoyla karşılaştırılır*
+- [x] Sunucudaki projelerde kodun asıl kaynağı git'tir. Önerilen akış: lokalde geliştir → test → deploy. Acil durumda doğrudan sunucuda düzeltme (SSH, onaylı, kayıtlı, önce yedek alınır) — *sunucu dosya gezgini: kaydetmeden önce yedek; sunucuda git dışı değişiklik deploy'u durdurur*
+- [x] **Sunucu CPU'su harcanmaz:** AI agent'ı her zaman kendi bilgisayarında çalışır, sunucuya sadece SSH komutları gider
+- [x] Çalışma alanları arası genel bakış: "Tüm alanlarda bugün ne oldu" ekranı — *Projeler sayfasında "Bugün" satırı*
 
 #### 1.2c 🔀 Proje Kimliği, Git ve Deploy Akışı
 
@@ -351,7 +351,7 @@ god-eye/
 > Yaptığı tek şey bu akışı **görünür ve güvenli** yapmak.
 
 - [x] ⭐ **Proje kimliği = git remote adresi** (ör. `github.com/ben/poultrycare`). Benim PC'mdeki, arkadaşımın PC'sindeki ve VPS'teki kopya otomatik olarak **aynı proje** olarak tanınır. Hafıza, session'lar ve kararlar tek projede birleşir; her kopya ayrı bir **ortam/konum** olarak görünür — *SSH ve HTTPS adresleri aynı kimliğe dönüşüyor*
-- [ ] ⭐ **Akış görünümü (pipeline):** — *çok konumlu görünüm sunucu/takım ile gelecek; lokal ↔ uzak repo durumu hazır*
+- [x] ⭐ **Akış görünümü (pipeline):** — *Ortamlar: bu bilgisayar (commit edilmemiş/push edilmemiş) → her sunucu (commit, geride/ileride, git dışı değişiklik)*
   ```
   💻 Mohamed PC ──push──▶ 🐙 GitHub main ──pull──▶ 💻 Kerim PC
      a1b2c3 (2 commit önde)    d4e5f6                   d4e5f6 ✅
@@ -360,16 +360,16 @@ god-eye/
                                                      c7d8e9 ⚠️ 3 commit geride
   ```
   Her konumun hangi commit'te olduğu, kimin önde veya geride olduğu, commit edilmemiş değişiklikler
-- [ ] ⭐ **Erken uyarılar:** — *"geridesin, önce pull", "commit edilmemiş", "push edilmemiş" uyarıları ve uzak repo kontrolü hazır; sunucu drift ve migration uyarıları Faz 2.5*
+- [x] ⭐ **Erken uyarılar:** — *geride/commit/push uyarıları + sunucuda git dışı değişiklik, farklı branch, gelecek migration'lar, sunucu .env'inde eksik anahtarlar*
   - "Kerim 3 commit push etti, sen geridesin. Önce pull yap" (çakışmayı başlamadan önler)
   - "Kerim'in de değiştirdiği `auth.ts` dosyasını değiştiriyorsun" (pull öncesi çakışma tahmini)
   - "VPS'te commit edilmemiş değişiklik var (biri sunucuda doğrudan düzenleme yapmış). Pull bunu bozabilir" (**drift tespiti**)
   - "Bu commit'lerde veritabanı migration'ı var, deploy sırasında dikkat"
   - "Testler bu commit'te başarısız, deploy etme"
-- [ ] **Güvenli Deploy butonu:** ön kontroller (testler geçti mi, VPS temiz mi, migration var mı, `.env`'de yeni anahtar gerekiyor mu) → onay → SSH ile `git pull` + build + restart → sağlık kontrolü → sorun varsa **tek tıkla önceki commit'e geri dönme** — *SSH/sunucularla (Faz 2.5)*
-- [ ] Deploy geçmişi: kim, ne zaman, hangi commit, sonuç — *SSH/sunucularla (Faz 2.5)*
-- [ ] Önerilen git düzeni (ayarlanabilir): herkes kendi branch'inde çalışır → PR → `main` → sadece `main` deploy edilir. Sunucuda doğrudan düzenleme yapılmaz (acil durum hariç ve kayıtlı) — *SSH/sunucularla (Faz 2.5)*
-- [ ] (Opsiyonel) GitHub Actions ile otomatik deploy kurulumu: God Eye workflow dosyasını hazırlar — *SSH/sunucularla (Faz 2.5)*
+- [x] **Güvenli Deploy butonu:** ön kontroller (testler geçti mi, VPS temiz mi, migration var mı, `.env`'de yeni anahtar gerekiyor mu) → onay → SSH ile `git pull` + build/yeniden başlatma — *prod'da ortam adını yazarak onay*
+- [x] Deploy geçmişi: kim, ne zaman, hangi commit, sonuç
+- [x] Önerilen git düzeni (ayarlanabilir): herkes kendi branch'inde çalışır → PR → `main` → sadece `main` deploy edilir. Sunucuda doğrudan düzenleme yapılmaz (acil durum hariç) — *açıkken main'e doğrudan commit öncesi sorulur*
+- [x] (Opsiyonel) GitHub Actions ile otomatik deploy kurulumu: God Eye workflow dosyasını hazırlar
 - [ ] 🔒 **AI agent'ları asla kendiliğinden `push` etmez veya deploy etmez.** Agent'lar izole worktree/branch'te çalışır, birleştirme ve push her zaman onaylıdır — *agent çalıştırma ile (Faz 2/8)*
 
 #### 1.3 Otomatik hook'lar
@@ -482,9 +482,9 @@ god-eye/
 - [x] 🔒 Prod etiketli sunucularda her değiştiren komut önce "Ne yapacağım ve neden" açıklamasıyla gösterilir, sonra çalıştırılır — *onay penceresinde komut, risk ve "canlı sunucu" uyarısı; agent istekleri gerekçesiyle gelir*
 - [x] Denetim kaydı: her uzak komut, kimin hangi persona ile çalıştırdığı, çıktısı ve zamanıyla kaydedilir (takımla paylaşılır) — *kim (sen / AI), komut, risk, çıktı, süre; takımla paylaşım Faz 4*
 - [x] Hafif izleme (sunucuya hiçbir şey kurmadan): belirli aralıklarla SSH üzerinden uptime, disk, RAM, `docker ps`, son hatalar — *5 dakikada bir, sadece okuyan tek komut*
-- [ ] Sunucu kartı: sağlık durumu, son deploy, son hatalar, "DevOps'a sor" butonu — *sağlık hazır; son deploy ve "DevOps'a sor" Faz 6/8*
-- [ ] Sunucudaki bir projeyi God Eye projesine bağlama: kod git'ten gelir, canlı ortam SSH ile izlenir — *Faz 4 ortamlar ile*
-- [ ] Sunucu dosyalarını görüntüleme ve düzenleme (SFTP), değişiklikten önce otomatik yedek
+- [x] Sunucu kartı: sağlık durumu, son deploy, son hatalar, "DevOps'a sor" butonu — *sağlık + son deploy'lar; "DevOps'a sor" Faz 6*
+- [x] Sunucudaki bir projeyi God Eye projesine bağlama: kod git'ten gelir, canlı ortam SSH ile izlenir
+- [x] Sunucu dosyalarını görüntüleme ve düzenleme (SFTP), değişiklikten önce otomatik yedek — *SSH üzerinden; anahtar ve kimlik klasörleri hiç açılmaz*
 
 #### 2.6 ⚡ Hızlı Soru (btw)
 - [x] ⭐ Her ekranda `Ctrl+Space` ile açılan yan panel — *editörde Ctrl+Shift+Space (orada Ctrl+Space otomatik tamamlama)*

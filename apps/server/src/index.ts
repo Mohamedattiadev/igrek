@@ -16,10 +16,12 @@ import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
+import { registerDeployRoutes } from "./deploy-routes";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
 import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
+import { Environments } from "./environments";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { writeHookScript } from "./hooks";
@@ -126,6 +128,23 @@ const app = createApp({
     registerTeamRoutes(hono, sync);
     registerEnhanceRoutes(hono, enhancer);
     registerHttpRoutes(hono, store);
+    registerDeployRoutes(hono, {
+      servers,
+      envs: new Environments(
+        sqlite,
+        store,
+        servers,
+        bus,
+        (id) => {
+          const latest = insight.latest(id);
+          return "apis" in latest && latest.apis ? latest.apis.env : [];
+        },
+        (id) => {
+          const test = insight.toolResults(id).find((r) => r.kind === "test");
+          return test ? { ok: test.ok, at: test.at } : undefined;
+        },
+      ),
+    });
     registerInsightRoutes(hono, insight, new HistoryImport(sqlite, bus, summarizer, insight));
     registerEnvRoutes(hono, {
       env: new EnvFiles(join(config.dataDir, "env-backups")),

@@ -9,11 +9,15 @@ import type {
   ChatMode,
   Checkpoint,
   CommandRisk,
+  DeployCheck,
+  DeployRecord,
   Digest,
   EnhanceResult,
   EnhanceStats,
   EnvBackup,
   EnvChange,
+  EnvironmentInfo,
+  EnvironmentState,
   EnvOverview,
   FileContent,
   FileEntry,
@@ -35,6 +39,7 @@ import type {
   ProjectDetail,
   ProjectListItem,
   QuickAnswer,
+  RemoteEntry,
   RemoteRun,
   SavedPrompt,
   SearchHit,
@@ -54,6 +59,7 @@ import type {
   TerminalInfo,
   TerminalTool,
   TimelineEntry,
+  TodaySummary,
   ToolKind,
   ToolPlan,
   ToolResult,
@@ -103,6 +109,8 @@ export const api = {
   indexStatus: () => request<IndexStatus>("/api/index/status"),
   projects: () => request<ProjectListItem[]>("/api/projects"),
   project: (id: string) => request<ProjectDetail>(`/api/projects/${id}`),
+  setGitFlow: (id: string, gitFlow: boolean) =>
+    request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ gitFlow }) }),
   setProjectHidden: (id: string, hidden: boolean) =>
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ hidden }) }),
   projectSessions: (id: string) => request<SessionListItem[]>(`/api/projects/${id}/sessions`),
@@ -325,8 +333,43 @@ export const api = {
       apply?: boolean;
     },
   ) => request<unknown>(`/api/projects/${projectId}/replace`, { method: "POST", body: JSON.stringify(body) }),
+  today: () => request<TodaySummary>(`/api/today?since=${new Date().setHours(0, 0, 0, 0)}`),
   inboxNotices: () => request<InboxNotice[]>("/api/inbox/notices"),
   limitsMonthly: () => request<MonthlyReport[]>("/api/limits/monthly"),
+  environments: (projectId: string) => request<EnvironmentInfo[]>(`/api/projects/${projectId}/environments`),
+  addEnvironment: (
+    projectId: string,
+    body: { name: string; serverId: string; path: string; branch: string; deployCommand: string },
+  ) =>
+    request<EnvironmentInfo>(`/api/projects/${projectId}/environments`, { method: "POST", body: JSON.stringify(body) }),
+  updateEnvironment: (id: string, patch: { deployCommand?: string; branch?: string; name?: string }) =>
+    request<{ ok: boolean }>(`/api/environments/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  removeEnvironment: (id: string) => request<{ ok: boolean }>(`/api/environments/${id}`, { method: "DELETE" }),
+  envChecks: (id: string) =>
+    request<{ state: EnvironmentState; checks: DeployCheck[] }>(`/api/environments/${id}/checks`),
+  envState: (id: string) =>
+    request<{ state: EnvironmentState; checks: DeployCheck[] }>(`/api/environments/${id}/checks`),
+  deploy: (id: string, confirmations: number) =>
+    request<DeployRecord>(`/api/environments/${id}/deploy`, {
+      method: "POST",
+      body: JSON.stringify({ confirmations }),
+    }),
+  envWorkflow: (id: string) =>
+    request<{ path: string; content: string; exists: boolean }>(`/api/environments/${id}/workflow`),
+  writeEnvWorkflow: (id: string) => request<{ path: string }>(`/api/environments/${id}/workflow`, { method: "POST" }),
+  projectDeploys: (projectId: string) => request<DeployRecord[]>(`/api/projects/${projectId}/deploys`),
+  serverDeploys: (serverId: string) => request<DeployRecord[]>(`/api/servers/${serverId}/deploys`),
+  serverFiles: (serverId: string, path: string) =>
+    request<{ path: string; entries: RemoteEntry[] }>(
+      `/api/servers/${serverId}/files?path=${encodeURIComponent(path)}`,
+    ),
+  serverFile: (serverId: string, path: string) =>
+    request<{ text: string }>(`/api/servers/${serverId}/file?path=${encodeURIComponent(path)}`),
+  saveServerFile: (serverId: string, path: string, text: string) =>
+    request<{ backup: string }>(`/api/servers/${serverId}/file`, {
+      method: "PUT",
+      body: JSON.stringify({ path, text }),
+    }),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

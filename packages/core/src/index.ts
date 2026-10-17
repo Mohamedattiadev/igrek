@@ -216,6 +216,8 @@ export interface ProjectListItem {
   workspace: "local" | "team";
   /** How much of this project goes to the team hub. */
   share: ShareLevel;
+  /** Recommended flow (branches → main → deploy): warn before committing straight to main. */
+  gitFlow: boolean;
   sessionCount: number;
   activeSessions: number;
   lastActivity: number;
@@ -566,6 +568,7 @@ export type ServerMessage =
   | { type: "team-changed" }
   | { type: "insight-changed"; projectId: string }
   | { type: "import-progress"; projectId: string }
+  | { type: "deploys-changed"; projectId: string }
   | { type: "presence" };
 
 /** Messages sent from UI to server over the WebSocket. */
@@ -582,4 +585,72 @@ export interface MonthlyReport {
   sessions: number;
   models: Record<string, number>;
   projects: { id: string; name: string; tokens: number }[];
+}
+
+/** The same project on a server, as Staging or Prod (plan.md 1.2b). */
+export interface EnvironmentInfo {
+  id: string;
+  projectId: string;
+  name: string;
+  serverId: string;
+  serverName: string;
+  path: string;
+  branch: string;
+  deployCommand: string;
+}
+
+export interface EnvironmentState {
+  reachable: boolean;
+  error?: string;
+  head?: string;
+  branch?: string;
+  /** Files changed on the server outside git (someone edited there). */
+  dirty?: number;
+  lastCommitAt?: number;
+  lastSubject?: string;
+  localHead?: string;
+  /** Commits this computer has that the server doesn't. */
+  ahead?: number;
+  /** Commits on the server that this computer doesn't have. */
+  behind?: number;
+  knownLocally?: boolean;
+  checkedAt: number;
+}
+
+export interface DeployCheck {
+  id: string;
+  level: "block" | "warn" | "info";
+  detail?: string;
+}
+
+export interface DeployRecord {
+  id: string;
+  envId: string;
+  projectId: string;
+  at: number;
+  fromHead: string;
+  toHead: string;
+  command: string;
+  exitCode: number;
+  output: string;
+  ms: number;
+}
+
+/** An entry in a folder on a server (plan.md 2.5). */
+export interface RemoteEntry {
+  name: string;
+  dir: boolean;
+  link: boolean;
+  size: number;
+  mtime: number;
+}
+
+/** Today across every workspace (plan.md 1.2b). */
+export interface TodaySummary {
+  sessions: number;
+  teamSessions: number;
+  commits: number;
+  deploys: number;
+  failedDeploys: number;
+  projects: { id: string; name: string; team: boolean; sessions: number; commits: number }[];
 }

@@ -16,6 +16,7 @@ import type {
   SessionSummaryData,
   ShareLevel,
   TimelineEntry,
+  TodaySummary,
   TranscriptMessage,
 } from "@godeye/core";
 import { gitRemote, gitRoot } from "./adapters/git";
@@ -67,6 +68,7 @@ interface ProjectRow {
   hooks_installed: number;
   workspace?: string | null;
   share?: string | null;
+  git_flow?: number | null;
 }
 
 function rowToState(row: SessionRow): SessionState {
@@ -142,6 +144,42 @@ export class Store {
     return id;
   }
 
+  /** "What happened today, everywhere" (plan.md 1.2b): sessions, commits and deploys since midnight. */
+  today(since: number): TodaySummary {
+    const n = (sql: string, ...args: (string | number)[]) => (this.db.query(sql).get(...args) as { n: number }).n;
+    const projects = this.db
+      .query(
+        `SELECT p.id, p.name, p.workspace,
+           (SELECT COUNT(*) FROM sessions s WHERE s.project_id = p.id AND s.updated_at >= ?) AS sessions,
+           (SELECT COUNT(*) FROM commits c WHERE c.project_id = p.id AND c.at >= ?) AS commits
+         FROM projects p WHERE p.hidden = 0`,
+      )
+      .all(since, since) as { id: string; name: string; workspace: string; sessions: number; commits: number }[];
+    return {
+      sessions: n("SELECT COUNT(*) AS n FROM sessions WHERE updated_at >= ? AND author_id IS NULL", since),
+      teamSessions: n("SELECT COUNT(*) AS n FROM sessions WHERE updated_at >= ? AND author_id IS NOT NULL", since),
+      commits: n("SELECT COUNT(*) AS n FROM commits WHERE at >= ?", since),
+      deploys: n("SELECT COUNT(*) AS n FROM deploys WHERE at >= ?", since),
+      failedDeploys: n("SELECT COUNT(*) AS n FROM deploys WHERE at >= ? AND exit_code != 0", since),
+      projects: projects
+        .filter((p) => p.sessions || p.commits)
+        .sort((a, b) => b.sessions + b.commits - (a.sessions + a.commits))
+        .slice(0, 6)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          team: p.workspace === "team",
+          sessions: p.sessions,
+          commits: p.commits,
+        })),
+    };
+  }
+
+  /** "Work on branches, deploy only main": warn before committing straight to main. */
+  setGitFlow(id: string, on: boolean): void {
+    this.db.query("UPDATE projects SET git_flow = ? WHERE id = ?").run(on ? 1 : 0, id);
+  }
+
   setProjectHidden(id: string, hidden: boolean): void {
     this.db.query("UPDATE projects SET hidden = ? WHERE id = ?").run(hidden ? 1 : 0, id);
   }
@@ -173,6 +211,7 @@ export class Store {
       path: row.path,
       workspace: row.workspace === "team" ? "team" : "local",
       share: (row.share as ShareLevel | null) ?? "off",
+      gitFlow: row.git_flow !== 0,
       sessionCount: sessions.length,
       activeSessions: sessions.filter((s) => isActive(s.updated_at ?? 0, now)).length,
       lastActivity: row.last_activity,

@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Approval, CommandRisk, RemoteRun, ServerHealth, ServerInfo, ServerTag } from "@godeye/core";
+import type { Approval, CommandRisk, RemoteEntry, RemoteRun, ServerHealth, ServerInfo, ServerTag } from "@godeye/core";
 import type { Bus, StopRegistry } from "./bus";
 import { classifyCommand } from "./commands";
 import { cleanEnv } from "./env";
@@ -233,6 +233,88 @@ export class Servers {
     this.db.query("UPDATE servers SET health = ? WHERE id = ?").run(JSON.stringify(health), id);
     this.bus.publish({ type: "servers-changed" });
     return health;
+  }
+
+  /**
+   * A fixed, read-only command built by God Eye itself (git status of an
+   * environment, a directory listing). Never user text. Still in the audit log.
+   */
+  async inspect(id: string, command: string, reason: string): Promise<{ code: number; output: string }> {
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const result = await this.exec(server, command, 30_000);
+    this.logRemote(id, reason, "read", result);
+    return result;
+  }
+
+  // ---- files on the server (plan.md 2.5) ----------------------------------------------------
+
+  /** Any plain path, but never keys: the same "never read" rule as on this computer. */
+  private remotePath(path: string): string {
+    const clean = path.trim() || "~";
+    if (!/^(\/|~)[^'\0\n\r]*$/.test(clean)) throw new Error("Use a full path, e.g. /srv/app");
+    if (
+      /(^|\/)\.ssh(\/|$)|(^|\/)(id_(rsa|ed25519|ecdsa)[^/]*|[^/]*\.(pem|key|p12|pfx))$|(^|\/)\.(gnupg|aws|docker\/config\.json)/i.test(
+        clean,
+      )
+    )
+      throw new Error("God Eye never opens keys or credential folders");
+    return clean;
+  }
+
+  async listFiles(id: string, path: string): Promise<{ path: string; entries: RemoteEntry[] }> {
+    const dir = this.remotePath(path);
+    const target = dir === "~" ? "~" : dir.startsWith("~/") ? `~/'${dir.slice(2)}'` : `'${dir}'`;
+    // One line per entry: type, size, mtime, name — easy to parse, no ls column guessing.
+    const result = await this.inspect(
+      id,
+      `cd ${target} && pwd && find . -mindepth 1 -maxdepth 1 -printf '%y\\t%s\\t%T@\\t%f\\n' | head -2000`,
+      `list ${dir}`,
+    );
+    if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not list the folder");
+    const [cwd = dir, ...lines] = result.output.trim().split("\n");
+    const entries = lines
+      .map((line) => {
+        const [type, size, mtime, ...name] = line.split("\t");
+        return {
+          name: name.join("\t"),
+          dir: type === "d",
+          link: type === "l",
+          size: Number(size) || 0,
+          mtime: Math.round(Number(mtime) * 1000) || 0,
+        };
+      })
+      .filter((e) => e.name)
+      .sort((a, b) => Number(b.dir) - Number(a.dir) || a.name.localeCompare(b.name));
+    return { path: cwd, entries };
+  }
+
+  async readFile(id: string, path: string): Promise<string> {
+    const file = this.remotePath(path);
+    const q = file.startsWith("~/") ? `~/'${file.slice(2)}'` : `'${file}'`;
+    const result = await this.inspect(
+      id,
+      `f=${q}; s=$(stat -c %s -- "$f") || exit 1; [ "$s" -le 524288 ] || { echo "TOO_BIG $s" >&2; exit 3; }; cat -- "$f"`,
+      `read ${file}`,
+    );
+    if (result.code === 3) throw new Error("This file is larger than 512 KB; open it on the server");
+    if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not read the file");
+    if (result.output.includes("\0")) throw new Error("This looks like a binary file");
+    return result.output;
+  }
+
+  /** Saves a text file with a dated backup next to it, replaced atomically. */
+  async writeFile(id: string, path: string, text: string): Promise<{ backup: string }> {
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const file = this.remotePath(path);
+    const qq = (p: string) => (p.startsWith("~/") ? `~/'${p.slice(2)}'` : `'${p}'`);
+    const backup = `${file}.godeye-bak-${Date.now()}`;
+    const command = `set -e; [ -f ${qq(file)} ] && cp -p -- ${qq(file)} ${qq(backup)}; cat > ${qq(`${file}.godeye-tmp`)}; [ -f ${qq(backup)} ] && chmod --reference=${qq(backup)} ${qq(`${file}.godeye-tmp`)} || true; mv -f -- ${qq(`${file}.godeye-tmp`)} ${qq(file)}`;
+    const result = await this.exec(server, command, 20_000, text);
+    this.logRemote(id, `write ${file} (backup ${backup.split("/").pop()})`, "change", result);
+    if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not save the file");
+    return { backup };
   }
 
   // ---- env files on the server (plan.md 5.6) -------------------------------------------

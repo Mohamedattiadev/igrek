@@ -1,8 +1,9 @@
-import type { CommandRisk, RemoteRun, ServerInfo, ServerTag } from "@godeye/core";
-import { ArrowLeft, Bot, Download, Plus, RefreshCw, Server, SquareTerminal, Trash2, User } from "lucide-react";
+import type { CommandRisk, DeployRecord, RemoteRun, ServerInfo, ServerTag } from "@godeye/core";
+import { ArrowLeft, Bot, Download, Plus, RefreshCw, Rocket, Server, SquareTerminal, Trash2, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { RemoteFiles } from "../components/RemoteFiles";
 import { RiskBadge } from "../components/RiskBadge";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
@@ -298,6 +299,37 @@ function RunBox({ server, onRan }: { server: ServerInfo; onRan: (run: RemoteRun)
   );
 }
 
+/** Last deploys that went to this server (plan.md 2.5). */
+function ServerDeploys({ serverId }: { serverId: string }) {
+  const { t } = useTranslation();
+  const [deploys, setDeploys] = useState<DeployRecord[]>([]);
+  useEffect(() => {
+    api
+      .serverDeploys(serverId)
+      .then(setDeploys)
+      .catch(() => undefined);
+  }, [serverId]);
+  if (!deploys.length) return null;
+  return (
+    <Card className="p-pad">
+      <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+        <Rocket size={12} aria-hidden="true" /> {t("deploy.lastDeploys")}
+      </h3>
+      <ul className="space-y-1">
+        {deploys.slice(0, 5).map((d) => (
+          <li key={d.id} className="flex items-center gap-2 text-xs">
+            <StatusDot tone={d.exitCode === 0 ? "success" : "danger"} />
+            <Link to={`/p/${d.projectId}?tab=environments`} className="font-mono hover:text-accent">
+              {d.fromHead} → {d.toHead}
+            </Link>
+            <span className="ms-auto text-[11px] text-fg-subtle">{relativeTime(d.at)}</span>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 export function ServerPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -373,6 +405,7 @@ export function ServerPage() {
               </pre>
             </Card>
           )}
+          <RemoteFiles serverId={server.id} />
           <Card>
             <h3 className="border-b border-border px-pad py-2.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
               {t("servers.audit")}
@@ -404,6 +437,7 @@ export function ServerPage() {
           </Card>
         </div>
         <div className="space-y-4">
+          <ServerDeploys serverId={server.id} />
           <Card className="space-y-3 p-pad text-[13px]">
             {health?.ok ? (
               <>
