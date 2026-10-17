@@ -1,0 +1,2776 @@
+id: svelte
+title: Svelte
+summary:
+  en: "From an empty computer to your own Svelte app on the internet. You build a real reading list with Svelte 5 and SvelteKit step by step: components, runes, forms, a database, tests and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Svelte uygulamana. Svelte 5 ve SvelteKit ile adım adım gerçek bir okuma listesi yazarsın: component'ler, rune'lar, form'lar, veritabanı, testler ve ücretsiz deploy."
+teacher: frontend
+project:
+  en: 'A reading list: add books, move them between "Want to read", "Reading" and "Finished", delete them and filter the list. The list lives in a database, only the owner (with a password) can change it, and the app is tested and published for free on Render with a Turso database.'
+  tr: 'Bir okuma listesi: kitap ekleme, kitapları "Okumak istiyorum", "Okuyorum" ve "Bitirdim" arasında taşıma, silme ve listeyi süzme. Liste bir veritabanında durur, sadece sahibi (parolayla) değiştirebilir; uygulamanın testleri yazılmıştır ve Render''da, Turso veritabanıyla ücretsiz yayındadır.'
+detect:
+  npm: [svelte, "@sveltejs/kit"]
+version: "5.57"
+latest: npm:svelte
+checked: 2026-10
+after: [web]
+sheets: [javascript, typescript, svelte, sql, git, http]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Node.js, an editor and Git"
+      tr: "Node.js, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "Svelte apps are built with tools that run on Node.js. An editor makes writing code comfortable, and Git keeps every version of your work so you can never really lose it."
+      tr: "Svelte uygulamaları Node.js üzerinde çalışan araçlarla hazırlanır. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar; böylece hiçbir şeyi gerçekten kaybetmezsin."
+    learn:
+      en: |
+        - What Node.js and npm are, and why a web app needs them while you build it
+        - How to open a terminal and check that a program is installed
+        - Which Node.js version to pick: SvelteKit 3 needs Node.js 22.17 or newer, so take the current LTS
+        - What a `.svelte` file looks like and why the editor needs the Svelte extension
+      tr: |
+        - Node.js ve npm'in ne olduğu, uygulamayı hazırlarken neden gerektiği
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - Hangi Node.js sürümünü seçmen gerektiği: SvelteKit 3 için Node.js 22.17 ya da daha yenisi gerekir, o yüzden güncel LTS sürümünü al
+        - `.svelte` dosyasının neye benzediği ve editörün neden Svelte eklentisine ihtiyaç duyduğu
+    do:
+      en: |
+        1. Download **Node.js LTS** from nodejs.org and install it. LTS means "long-term support": it gets fixes for years, so tutorials and tools work with it.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor. Open its Extensions panel, search for **Svelte for VS Code** (published by Svelte) and install it. It colors `.svelte` files and shows type errors.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number. `node --version` must print 22.17 or higher.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+      tr: |
+        1. nodejs.org'dan **Node.js LTS** sürümünü indirip kur. LTS "uzun süreli destek" demek: yıllarca düzeltme alır, eğitimler ve araçlar onunla çalışır.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com). Extensions panelini aç, **Svelte for VS Code** eklentisini (yayıncısı Svelte) ara ve kur. `.svelte` dosyalarını renklendirir ve tip hatalarını gösterir.
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı. `node --version` 22.17 ya da daha yüksek bir sürüm yazmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          npm --version
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Node.js is older than 22.17, so the SvelteKit tools refuse to run."
+          tr: "Node.js 22.17'den eski olduğu için SvelteKit araçları çalışmayı reddediyor."
+        fix:
+          en: "Install the current LTS from nodejs.org over the old one, reopen the terminal and check `node --version` again."
+          tr: "nodejs.org'dan güncel LTS sürümünü eskisinin üstüne kur, terminali yeniden aç ve `node --version`'ı tekrar kontrol et."
+    quiz:
+      - q:
+          en: "Why pick the LTS version of Node.js?"
+          tr: "Node.js'in neden LTS sürümünü seçiyoruz?"
+        options:
+          en:
+            - It is the fastest
+            - It gets fixes for a long time and tools expect it
+            - It is the only free one
+          tr:
+            - En hızlısı o
+            - Uzun süre düzeltme alır ve araçlar onu bekler
+            - Tek ücretsiz sürüm o
+        answer: 1
+        why:
+          en: "Every Node.js version is free; LTS lines are supported for years, so they are the safe default."
+          tr: "Bütün Node.js sürümleri ücretsiz; LTS sürümleri yıllarca desteklenir, bu yüzden güvenli varsayılan odur."
+    sources:
+      - title: Node.js downloads
+        url: https://nodejs.org/en/download
+      - title: Svelte for VS Code
+        url: https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first SvelteKit app"
+      tr: "İlk SvelteKit uygulamanı oluşturma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "A SvelteKit app needs a router, a build tool and a lot of small files before the first line shows up in the browser. The official `sv` tool creates all of it in seconds, and the development server reloads the page every time you save, so you see each change at once."
+      tr: "Bir SvelteKit uygulamasının tarayıcıda ilk satırı göstermesi için bir router, bir build aracı ve bir sürü küçük dosya gerekir. Resmî `sv` aracı bunların hepsini saniyeler içinde kurar, geliştirme sunucusu da her kaydettiğinde sayfayı yeniler; her değişikliği hemen görürsün."
+    learn:
+      en: |
+        - What SvelteKit is: Svelte (the component language) plus routing, server code and a build
+        - What is in a new project: `src/routes`, `src/lib`, `package.json`, `vite.config.ts`. In SvelteKit 3 the settings live in `vite.config.ts`; there is no `svelte.config.js`
+        - What an adapter is: the piece that turns your app into something a server can run. We choose `adapter-node` now
+        - How saving a file updates the page by itself
+      tr: |
+        - SvelteKit'in ne olduğu: Svelte (component dili) artı routing, sunucu kodu ve bir build
+        - Yeni projede neler olduğu: `src/routes`, `src/lib`, `package.json`, `vite.config.ts`. SvelteKit 3'te ayarlar `vite.config.ts` içinde durur; `svelte.config.js` yoktur
+        - Adapter'ın ne olduğu: uygulamanı bir sunucunun çalıştırabileceği şeye çeviren parça. Şimdiden `adapter-node`'u seçiyoruz
+        - Bir dosyayı kaydetmenin sayfayı kendiliğinden nasıl güncellediği
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects and run the first command below. It creates a folder called `reading-list` with a minimal TypeScript project, adds the Vitest test tool and the Node adapter, and installs the packages. (If your shell complains about the quotes, run `npx sv create reading-list` instead and choose: minimal template, TypeScript, then add the `vitest` (unit tests only) and `sveltekit-adapter` (Node) add-ons.)
+        2. Go into the folder and start the development server.
+        3. Open the address it prints (usually http://localhost:5173).
+        4. Open `vite.config.ts` and look at it: the `sveltekit()` plugin takes the adapter. Open `package.json` and find `"imports"`: it declares the `#lib` shortcut for the `src/lib` folder. You will import your own code with it.
+        5. Replace everything in `src/routes/+page.svelte` with the code below and save. The page changes at once.
+        6. Save this first version with Git: `git init`, `git add .`, `git commit -m "Start the reading list"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git ve aşağıdaki ilk komutu çalıştır. `reading-list` adında bir klasör oluşturur: minimal bir TypeScript projesi, Vitest test aracı ve Node adapter'ı ekler, paketleri kurar. (Kabuğun tırnaklardan şikâyet ederse onun yerine `npx sv create reading-list` çalıştır ve şunları seç: minimal şablon, TypeScript, sonra `vitest` (sadece unit test) ve `sveltekit-adapter` (Node) eklentilerini ekle.)
+        2. Klasöre gir ve geliştirme sunucusunu başlat.
+        3. Yazdığı adresi aç (genelde http://localhost:5173).
+        4. `vite.config.ts`'i aç ve bak: `sveltekit()` eklentisi adapter'ı alır. `package.json`'u aç ve `"imports"` kısmını bul: `src/lib` klasörü için `#lib` kısayolunu tanımlar. Kendi kodunu onunla import edeceksin.
+        5. `src/routes/+page.svelte` içindeki her şeyi aşağıdaki kodla değiştir ve kaydet. Sayfa hemen değişir.
+        6. Bu ilk sürümü Git ile kaydet: `git init`, `git add .`, `git commit -m "Start the reading list"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx sv create reading-list --template minimal --types ts --add vitest="usages:unit" sveltekit-adapter="adapter:node" --install npm
+          cd reading-list
+          npm run dev
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <h1>My reading list</h1>
+          <p>Hello from SvelteKit.</p>
+    mistakes:
+      - problem:
+          en: "The page is blank or shows an error overlay after editing."
+          tr: "Düzenledikten sonra sayfa bomboş ya da bir hata ekranı gösteriyor."
+        fix:
+          en: "Look at the terminal and the error overlay. Usually a typo; the message names the file and line."
+          tr: "Terminale ve hata ekranına bak. Genelde bir yazım hatasıdır; mesaj dosyayı ve satırı söyler."
+      - problem:
+          en: "Creating the file as `page.svelte` or `Page.svelte` and seeing no change."
+          tr: "Dosyayı `page.svelte` ya da `Page.svelte` adıyla oluşturup hiçbir değişiklik görmemek."
+        fix:
+          en: "The name must be exactly `+page.svelte`, with the plus sign. SvelteKit reads the special names with a plus."
+          tr: "Ad tam olarak `+page.svelte` olmalı, artı işaretiyle. SvelteKit artılı özel adları okur."
+    quiz:
+      - q:
+          en: "What is `vite.config.ts` used for in SvelteKit 3?"
+          tr: "SvelteKit 3'te `vite.config.ts` ne için kullanılır?"
+        options:
+          en:
+            - Only for the test settings
+            - For the build tool and for the SvelteKit settings such as the adapter
+            - It is not used; svelte.config.js holds everything
+          tr:
+            - Sadece test ayarları için
+            - Build aracı ve adapter gibi SvelteKit ayarları için
+            - Kullanılmaz; her şey svelte.config.js'te durur
+        answer: 1
+        why:
+          en: "SvelteKit 3 no longer reads svelte.config.js. Its options go to the sveltekit() plugin inside vite.config.ts."
+          tr: "SvelteKit 3 artık svelte.config.js okumaz. Seçenekleri vite.config.ts içindeki sveltekit() eklentisine verilir."
+    sources:
+      - title: SvelteKit, creating a project
+        url: https://svelte.dev/docs/kit/creating-a-project
+      - title: SvelteKit, project structure
+        url: https://svelte.dev/docs/kit/project-structure
+      - title: SvelteKit, migrating to SvelteKit 3
+        url: https://svelte.dev/docs/kit/migrating-to-sveltekit-3
+
+  - id: components-runes
+    stage: basics
+    title:
+      en: "Components and runes: $props, $state, $derived, $effect"
+      tr: "Component'ler ve rune'lar: $props, $state, $derived, $effect"
+    minutes: 60
+    needs: [first-app]
+    why:
+      en: "A Svelte app is made of small components. Runes are the special words that make them alive: they hold state, calculate values from it and react to changes. Everything else in this roadmap builds on these four."
+      tr: "Bir Svelte uygulaması küçük component'lerden oluşur. Rune'lar onları canlandıran özel kelimelerdir: state tutar, ondan değer hesaplar ve değişikliklere tepki verirler. Bu roadmap'te geri kalan her şey bu dördü üzerine kurulur."
+    learn:
+      en: |
+        - A `.svelte` file holds a script, markup and styles; styles are scoped to that component
+        - `$props()` gives a component what its parent passed in, and a callback prop (`onnext`) lets the child tell the parent something happened
+        - `$state` makes a value reactive: when it changes the page updates. Objects and arrays inside it are tracked deeply
+        - `$derived` is a value computed from other values and recalculated by itself; use it instead of copying values around
+        - `$effect` runs code after the page updates, for things outside Svelte such as `document.title`. It runs only in the browser
+        - `{#each ... (key)}` repeats markup for a list, and the key keeps rows stable
+      tr: |
+        - `.svelte` dosyası bir script, markup ve stiller tutar; stiller o component ile sınırlıdır
+        - `$props()` bir component'e parent'ının verdiklerini getirir; callback prop (`onnext`) child'ın parent'a bir şey olduğunu söylemesini sağlar
+        - `$state` bir değeri reaktif yapar: değişince sayfa güncellenir. İçindeki obje ve diziler derinlemesine izlenir
+        - `$derived` başka değerlerden hesaplanan ve kendiliğinden yeniden hesaplanan bir değerdir; değerleri bir yerden bir yere kopyalamak yerine onu kullan
+        - `$effect` sayfa güncellendikten sonra Svelte dışındaki şeyler için kod çalıştırır, örneğin `document.title`. Sadece tarayıcıda çalışır
+        - `{#each ... (key)}` bir liste için markup'ı tekrar eder; key satırları sabit tutar
+    do:
+      en: |
+        1. Create `src/lib/books.ts` with the types below. Every other file will import them.
+        2. Create the folder `src/lib/components` and the file `BookCard.svelte` in it. It receives a `book` and an `onnext` callback as props.
+        3. Replace `src/routes/+page.svelte` with the page below. The `books` list is `$state`, `finished` is `$derived`, and the `$effect` writes the count into the browser tab title.
+        4. Click a status badge: it changes from "Want to read" to "Reading" to "Finished", the count above the list updates and so does the tab title.
+        5. Run `npm run check` in a second terminal. It type-checks your code and should end with `0 ERRORS`.
+        6. Commit: `git add .` and `git commit -m "Book card and runes"`.
+      tr: |
+        1. Aşağıdaki tiplerle `src/lib/books.ts` dosyasını oluştur. Diğer her dosya bunları import edecek.
+        2. `src/lib/components` klasörünü ve içinde `BookCard.svelte` dosyasını oluştur. Prop olarak bir `book` ve bir `onnext` callback'i alır.
+        3. `src/routes/+page.svelte` dosyasını aşağıdaki sayfayla değiştir. `books` listesi `$state`, `finished` `$derived`, `$effect` ise sayıyı tarayıcı sekmesinin başlığına yazar.
+        4. Bir durum rozetine tıkla: "Want to read"den "Reading"e, oradan "Finished"a geçer; listenin üstündeki sayı ve sekme başlığı güncellenir.
+        5. İkinci bir terminalde `npm run check` çalıştır. Kodunun tiplerini kontrol eder ve `0 ERRORS` ile bitmeli.
+        6. Commit'le: `git add .` ve `git commit -m "Book card and runes"`.
+    code:
+      - file: src/lib/books.ts
+        lang: ts
+        text: |
+          export type Status = 'want' | 'reading' | 'done';
+
+          export const STATUSES: Status[] = ['want', 'reading', 'done'];
+
+          export const STATUS_LABEL: Record<Status, string> = {
+          	want: 'Want to read',
+          	reading: 'Reading',
+          	done: 'Finished'
+          };
+
+          export interface Book {
+          	id: number;
+          	title: string;
+          	author: string;
+          	status: Status;
+          }
+      - file: src/lib/components/BookCard.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { STATUS_LABEL, type Book } from '#lib/books.js';
+
+          	interface Props {
+          		book: Book;
+          		onnext?: (book: Book) => void;
+          	}
+
+          	let { book, onnext }: Props = $props();
+          </script>
+
+          <li class="card">
+          	<div>
+          		<strong>{book.title}</strong>
+          		<span class="author">by {book.author}</span>
+          	</div>
+          	<button type="button" class="badge {book.status}" onclick={() => onnext?.(book)}>
+          		{STATUS_LABEL[book.status]}
+          	</button>
+          </li>
+
+          <style>
+          	.card {
+          		display: flex;
+          		justify-content: space-between;
+          		align-items: center;
+          		gap: 1rem;
+          		padding: 0.75rem 1rem;
+          		border: 1px solid #d0d7de;
+          		border-radius: 8px;
+          		list-style: none;
+          	}
+          	.author {
+          		color: #57606a;
+          		margin-left: 0.5rem;
+          	}
+          	.badge {
+          		border: 0;
+          		border-radius: 999px;
+          		padding: 0.25rem 0.75rem;
+          		cursor: pointer;
+          		background: #eaeef2;
+          	}
+          	.reading {
+          		background: #fff1c2;
+          	}
+          	.done {
+          		background: #c9f2d3;
+          	}
+          </style>
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import BookCard from '#lib/components/BookCard.svelte';
+          	import { STATUSES, type Book } from '#lib/books.js';
+
+          	let books = $state<Book[]>([
+          		{ id: 1, title: 'The Pragmatic Programmer', author: 'Hunt and Thomas', status: 'reading' },
+          		{ id: 2, title: 'Eloquent JavaScript', author: 'Marijn Haverbeke', status: 'want' },
+          		{ id: 3, title: 'Refactoring', author: 'Martin Fowler', status: 'done' }
+          	]);
+
+          	let finished = $derived(books.filter((b) => b.status === 'done').length);
+
+          	function next(book: Book) {
+          		book.status = STATUSES[(STATUSES.indexOf(book.status) + 1) % STATUSES.length];
+          	}
+
+          	$effect(() => {
+          		document.title = `Reading list (${finished}/${books.length} finished)`;
+          	});
+          </script>
+
+          <h1>Reading list</h1>
+          <p>{finished} of {books.length} finished</p>
+
+          <ul>
+          	{#each books as book (book.id)}
+          		<BookCard {book} onnext={next} />
+          	{/each}
+          </ul>
+    mistakes:
+      - problem:
+          en: "Using `$effect` to copy a value into another variable, for example setting `finished` inside an effect."
+          tr: "Bir değeri başka bir değişkene kopyalamak için `$effect` kullanmak, örneğin `finished`'i bir effect içinde atamak."
+        fix:
+          en: "Use `$derived`. It is shorter and never shows an old value. Effects are for talking to things outside Svelte."
+          tr: "`$derived` kullan. Daha kısadır ve eski değeri asla göstermez. Effect'ler Svelte dışındaki şeylerle konuşmak içindir."
+      - problem:
+          en: "Writing `onclick={onnext(book)}` and watching the function run while the page draws."
+          tr: "`onclick={onnext(book)}` yazıp fonksiyonun sayfa çizilirken çalıştığını görmek."
+        fix:
+          en: "Pass a function, not its result: `onclick={() => onnext?.(book)}`."
+          tr: "Sonucu değil bir fonksiyon ver: `onclick={() => onnext?.(book)}`."
+      - problem:
+          en: "A plain `let books = [...]` that does not update the page when it changes."
+          tr: "Değişince sayfayı güncellemeyen düz bir `let books = [...]`."
+        fix:
+          en: "In Svelte 5 only values created with `$state` are reactive. Wrap the initial value: `let books = $state([...])`."
+          tr: "Svelte 5'te sadece `$state` ile oluşturulan değerler reaktiftir. Başlangıç değerini sar: `let books = $state([...])`."
+    quiz:
+      - q:
+          en: "You need `finished`, the number of finished books, which changes whenever the list changes. What do you use?"
+          tr: "`finished` değerine, yani bitmiş kitap sayısına ihtiyacın var ve liste değiştikçe o da değişiyor. Ne kullanırsın?"
+        options:
+          en:
+            - $effect that sets a variable
+            - $derived
+            - A normal let that you update by hand everywhere
+          tr:
+            - Bir değişkeni atayan $effect
+            - $derived
+            - Her yerde elle güncellediğin normal bir let
+        answer: 1
+        why:
+          en: "$derived recalculates from the state it reads. An effect would run later and leave a moment where the value is wrong."
+          tr: "$derived okuduğu state'ten yeniden hesaplanır. Effect daha sonra çalışır ve değerin yanlış olduğu bir an bırakır."
+    sources:
+      - title: Svelte, $state
+        url: https://svelte.dev/docs/svelte/$state
+      - title: Svelte, $derived
+        url: https://svelte.dev/docs/svelte/$derived
+      - title: Svelte, $effect
+        url: https://svelte.dev/docs/svelte/$effect
+
+  - id: routes-layout
+    stage: basics
+    title:
+      en: "Routes, a layout and the current page"
+      tr: "Route'lar, bir layout ve geçerli sayfa"
+    minutes: 30
+    needs: [components-runes]
+    why:
+      en: "Real apps have more than one page and a menu on all of them. In SvelteKit the folders in `src/routes` are the URLs, and a layout wraps every page once, so the menu is written in one place."
+      tr: "Gerçek uygulamaların birden fazla sayfası ve hepsinde bir menüsü olur. SvelteKit'te `src/routes` içindeki klasörler URL'dir; layout her sayfayı bir kez sarar, böylece menü tek yerde yazılır."
+    learn:
+      en: |
+        - A folder in `src/routes` is a URL: `src/routes/about/+page.svelte` is `/about`
+        - `+layout.svelte` wraps the pages below it and shows them with `{@render children()}`
+        - `page` from `$app/state` is a reactive object with the current URL. In SvelteKit 3 this replaces the old `$app/stores`
+        - Global styles go in a CSS file that the layout imports; component styles stay inside the component
+        - Links are plain `<a href>`: SvelteKit takes over the click and switches pages without a full reload
+      tr: |
+        - `src/routes` içindeki klasör bir URL'dir: `src/routes/about/+page.svelte` `/about`'tur
+        - `+layout.svelte` altındaki sayfaları sarar ve `{@render children()}` ile gösterir
+        - `$app/state` içindeki `page`, geçerli URL'yi taşıyan reaktif bir objedir. SvelteKit 3'te eski `$app/stores`'un yerini alır
+        - Global stiller layout'un import ettiği bir CSS dosyasına girer; component stilleri component'in içinde kalır
+        - Link'ler düz `<a href>`'tir: SvelteKit tıklamayı devralır ve sayfayı tam yenileme olmadan değiştirir
+    do:
+      en: |
+        1. Create `src/lib/app.css` with the code below.
+        2. Replace `src/routes/+layout.svelte`. It imports the CSS, keeps the favicon the template made, shows a menu and renders the page inside `<main>`.
+        3. Create `src/routes/about/+page.svelte`.
+        4. Click between "Books" and "About". The page changes without reloading and the current link is bold.
+        5. Run `npm run check`, then commit: `git add .` and `git commit -m "Layout and about page"`.
+      tr: |
+        1. Aşağıdaki kodla `src/lib/app.css` oluştur.
+        2. `src/routes/+layout.svelte` dosyasını değiştir. CSS'i import eder, şablonun yaptığı favicon'u korur, bir menü gösterir ve sayfayı `<main>` içinde çizer.
+        3. `src/routes/about/+page.svelte` dosyasını oluştur.
+        4. "Books" ile "About" arasında tıkla. Sayfa yenilenmeden değişir ve geçerli link kalın görünür.
+        5. `npm run check` çalıştır, sonra commit'le: `git add .` ve `git commit -m "Layout and about page"`.
+    code:
+      - file: src/lib/app.css
+        lang: css
+        text: |
+          :root {
+          	font-family: system-ui, sans-serif;
+          	line-height: 1.5;
+          }
+          body {
+          	margin: 0;
+          }
+          main {
+          	max-width: 40rem;
+          	margin: 0 auto;
+          	padding: 1rem;
+          }
+          nav {
+          	display: flex;
+          	gap: 1rem;
+          	padding: 1rem;
+          	border-bottom: 1px solid #d0d7de;
+          }
+          nav a[aria-current='page'] {
+          	font-weight: bold;
+          }
+          ul {
+          	display: grid;
+          	gap: 0.5rem;
+          	padding: 0;
+          }
+      - file: src/routes/+layout.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import '#lib/app.css';
+          	import favicon from '#lib/assets/favicon.svg';
+          	import { page } from '$app/state';
+          	import type { LayoutProps } from './$types';
+
+          	let { children }: LayoutProps = $props();
+          </script>
+
+          <svelte:head>
+          	<link rel="icon" href={favicon} />
+          </svelte:head>
+
+          <nav>
+          	<a href="/" aria-current={page.url.pathname === '/' ? 'page' : undefined}>Books</a>
+          	<a href="/about" aria-current={page.url.pathname === '/about' ? 'page' : undefined}>About</a>
+          </nav>
+
+          <main>
+          	{@render children()}
+          </main>
+      - file: src/routes/about/+page.svelte
+        lang: svelte
+        text: |
+          <svelte:head>
+          	<title>About - Reading list</title>
+          </svelte:head>
+
+          <h1>About</h1>
+          <p>A small reading list built with SvelteKit while learning with God Eye.</p>
+    mistakes:
+      - problem:
+          en: "Forgetting `{@render children()}` in the layout, so the pages never appear."
+          tr: "Layout'ta `{@render children()}` yazmayı unutmak; sayfalar hiç görünmez."
+        fix:
+          en: "Receive `children` from `$props()` and render it where the page should go."
+          tr: "`children`'ı `$props()`'tan al ve sayfanın gireceği yerde çiz."
+      - problem:
+          en: "Importing `$page` from `$app/stores`, which gives an error in SvelteKit 3."
+          tr: "SvelteKit 3'te hata veren `$app/stores`'tan `$page` import etmek."
+        fix:
+          en: "Use `import { page } from '$app/state'` and read `page.url.pathname` without a dollar sign."
+          tr: "`import { page } from '$app/state'` kullan ve `page.url.pathname`'i dolar işareti olmadan oku."
+      - problem:
+          en: "Leaving out the extension in a `#lib` import, like `#lib/books`."
+          tr: "`#lib` import'unda uzantıyı yazmamak, örneğin `#lib/books`."
+        fix:
+          en: "With the `#lib` alias you write the file extension: `#lib/books.js` (it finds `books.ts` too)."
+          tr: "`#lib` alias'ıyla dosya uzantısını yazarsın: `#lib/books.js` (`books.ts`'i de bulur)."
+    quiz:
+      - q:
+          en: "Which file makes the address `/about` work?"
+          tr: "`/about` adresini hangi dosya çalıştırır?"
+        options:
+          en:
+            - src/routes/about.svelte
+            - src/routes/about/+page.svelte
+            - src/lib/about/+page.svelte
+          tr:
+            - src/routes/about.svelte
+            - src/routes/about/+page.svelte
+            - src/lib/about/+page.svelte
+        answer: 1
+        why:
+          en: "Routes are folders inside src/routes, and the page itself is the special file +page.svelte."
+          tr: "Route'lar src/routes içindeki klasörlerdir; sayfanın kendisi +page.svelte özel dosyasıdır."
+    sources:
+      - title: SvelteKit, routing
+        url: https://svelte.dev/docs/kit/routing
+      - title: SvelteKit, $app/state
+        url: https://svelte.dev/docs/kit/$app-state
+      - title: SvelteKit, migrating to SvelteKit 3 ($lib is now #lib)
+        url: https://svelte.dev/docs/kit/migrating-to-sveltekit-3
+
+  - id: reading-pages
+    stage: first-project
+    title:
+      en: "The reading list: filter and add books"
+      tr: "Okuma listesi: süzme ve kitap ekleme"
+    minutes: 60
+    needs: [routes-layout]
+    why:
+      en: "Now you put the pieces together into the first real version of the app. It still keeps the books in the browser's memory, which lets you practice forms and bindings before a database enters the picture."
+      tr: "Şimdi parçaları birleştirip uygulamanın ilk gerçek sürümünü yapıyorsun. Kitapları hâlâ tarayıcının belleğinde tutar; bu sayede veritabanı devreye girmeden önce form'ları ve bağlamayı çalışırsın."
+    learn:
+      en: |
+        - `bind:value` keeps an input and a variable in sync in both directions
+        - `$bindable` lets a parent bind to a child's prop (`bind:value={filter}`), so the child can change the parent's state
+        - `onsubmit` with `event.preventDefault()` stops the browser from reloading the page
+        - Splitting a page into small components (`AddBookForm`, `StatusFilter`, `BookCard`) keeps each file easy to read
+        - `{:else}` inside `{#each}` shows something when the list is empty
+      tr: |
+        - `bind:value` bir input ile bir değişkeni iki yönde senkron tutar
+        - `$bindable` parent'ın child'ın prop'una bağlanmasını sağlar (`bind:value={filter}`); böylece child parent'ın state'ini değiştirebilir
+        - `event.preventDefault()` ile `onsubmit`, tarayıcının sayfayı yenilemesini durdurur
+        - Sayfayı küçük component'lere bölmek (`AddBookForm`, `StatusFilter`, `BookCard`) her dosyayı okunur tutar
+        - `{#each}` içindeki `{:else}` liste boşken bir şey gösterir
+    do:
+      en: |
+        1. Move the three sample books out of the page: create `src/lib/sample.ts` with the code below.
+        2. Create `src/lib/components/StatusFilter.svelte`. Its `value` prop is `$bindable`, so the page can write `bind:value={filter}`.
+        3. Create `src/lib/components/AddBookForm.svelte`. It keeps the typed text in its own `$state` and calls `onadd` when the form is sent.
+        4. Replace `src/routes/+page.svelte`: the filter chooses which books are `visible` (a `$derived`), and `add` pushes a new book into the `$state` array.
+        5. Try it: add a book, click the filter buttons, add a book with an empty title (nothing happens). Reload the page and see the new books vanish: they only lived in memory. The next steps fix that.
+        6. Run `npm run check` and commit: `git add .` and `git commit -m "Filter and add books"`.
+      tr: |
+        1. Üç örnek kitabı sayfadan çıkar: aşağıdaki kodla `src/lib/sample.ts` oluştur.
+        2. `src/lib/components/StatusFilter.svelte` oluştur. `value` prop'u `$bindable`'dır; sayfa `bind:value={filter}` yazabilir.
+        3. `src/lib/components/AddBookForm.svelte` oluştur. Yazılan metni kendi `$state`'inde tutar ve form gönderilince `onadd`'i çağırır.
+        4. `src/routes/+page.svelte` dosyasını değiştir: filtre hangi kitapların `visible` (bir `$derived`) olacağını seçer, `add` ise `$state` dizisine yeni bir kitap ekler.
+        5. Dene: bir kitap ekle, filtre düğmelerine tıkla, boş başlıkla kitap eklemeyi dene (hiçbir şey olmaz). Sayfayı yenile ve yeni kitapların kaybolduğunu gör: sadece bellekte duruyorlardı. Sonraki adımlar bunu düzeltir.
+        6. `npm run check` çalıştır ve commit'le: `git add .` ve `git commit -m "Filter and add books"`.
+    code:
+      - file: src/lib/sample.ts
+        lang: ts
+        text: |
+          import type { Book } from './books.js';
+
+          export const sampleBooks: Book[] = [
+          	{ id: 1, title: 'The Pragmatic Programmer', author: 'Hunt and Thomas', status: 'reading' },
+          	{ id: 2, title: 'Eloquent JavaScript', author: 'Marijn Haverbeke', status: 'want' },
+          	{ id: 3, title: 'Refactoring', author: 'Martin Fowler', status: 'done' }
+          ];
+      - file: src/lib/components/StatusFilter.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { STATUSES, STATUS_LABEL, type Status } from '#lib/books.js';
+
+          	let { value = $bindable('all') }: { value?: Status | 'all' } = $props();
+          </script>
+
+          <div class="filter" role="group" aria-label="Filter by status">
+          	<button type="button" aria-pressed={value === 'all'} onclick={() => (value = 'all')}>All</button>
+          	{#each STATUSES as status (status)}
+          		<button type="button" aria-pressed={value === status} onclick={() => (value = status)}>
+          			{STATUS_LABEL[status]}
+          		</button>
+          	{/each}
+          </div>
+
+          <style>
+          	.filter {
+          		display: flex;
+          		flex-wrap: wrap;
+          		gap: 0.5rem;
+          		margin: 1rem 0;
+          	}
+          	button[aria-pressed='true'] {
+          		background: #0969da;
+          		color: white;
+          	}
+          </style>
+      - file: src/lib/components/AddBookForm.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	let { onadd }: { onadd: (title: string, author: string) => void } = $props();
+
+          	let title = $state('');
+          	let author = $state('');
+
+          	function submit(event: SubmitEvent) {
+          		event.preventDefault();
+          		if (!title.trim() || !author.trim()) return;
+          		onadd(title.trim(), author.trim());
+          		title = '';
+          		author = '';
+          	}
+          </script>
+
+          <form onsubmit={submit}>
+          	<input bind:value={title} placeholder="Title" aria-label="Title" />
+          	<input bind:value={author} placeholder="Author" aria-label="Author" />
+          	<button>Add</button>
+          </form>
+
+          <style>
+          	form {
+          		display: flex;
+          		flex-wrap: wrap;
+          		gap: 0.5rem;
+          	}
+          </style>
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import AddBookForm from '#lib/components/AddBookForm.svelte';
+          	import BookCard from '#lib/components/BookCard.svelte';
+          	import StatusFilter from '#lib/components/StatusFilter.svelte';
+          	import { STATUSES, type Book, type Status } from '#lib/books.js';
+          	import { sampleBooks } from '#lib/sample.js';
+
+          	let books = $state<Book[]>(sampleBooks);
+          	let filter = $state<Status | 'all'>('all');
+
+          	let visible = $derived(filter === 'all' ? books : books.filter((b) => b.status === filter));
+          	let finished = $derived(books.filter((b) => b.status === 'done').length);
+
+          	function next(book: Book) {
+          		book.status = STATUSES[(STATUSES.indexOf(book.status) + 1) % STATUSES.length];
+          	}
+
+          	function add(title: string, author: string) {
+          		const id = Math.max(0, ...books.map((b) => b.id)) + 1;
+          		books.push({ id, title, author, status: 'want' });
+          	}
+
+          	$effect(() => {
+          		document.title = `Reading list (${finished}/${books.length} finished)`;
+          	});
+          </script>
+
+          <h1>Reading list</h1>
+          <p>{finished} of {books.length} finished</p>
+
+          <AddBookForm onadd={add} />
+          <StatusFilter bind:value={filter} />
+
+          <ul>
+          	{#each visible as book (book.id)}
+          		<BookCard {book} onnext={next} />
+          	{:else}
+          		<li>No books here yet.</li>
+          	{/each}
+          </ul>
+    mistakes:
+      - problem:
+          en: "The page reloads and the typed book disappears when you press Add."
+          tr: "Add'e basınca sayfa yenileniyor ve yazılan kitap kayboluyor."
+        fix:
+          en: "The submit handler must call `event.preventDefault()` first. Without it the browser sends the form and reloads."
+          tr: "Submit handler'ı önce `event.preventDefault()` çağırmalı. Çağırmazsa tarayıcı formu gönderir ve sayfayı yeniler."
+      - problem:
+          en: "Using the list index as the key, `{#each visible as book, i (i)}`."
+          tr: "Liste index'ini key olarak kullanmak: `{#each visible as book, i (i)}`."
+        fix:
+          en: "Use a stable id: `(book.id)`. With the index, rows get mixed up when the list is filtered."
+          tr: "Sabit bir id kullan: `(book.id)`. Index'le liste süzüldüğünde satırlar birbirine karışır."
+      - problem:
+          en: "Writing `let { value } = $props()` and then changing `value` in the child, but the parent never sees it."
+          tr: "`let { value } = $props()` yazıp child'da `value`'yu değiştirmek ama parent'ın bunu hiç görmemesi."
+        fix:
+          en: "Mark the prop `$bindable()` and let the parent write `bind:value={...}`, or pass a callback instead."
+          tr: "Prop'u `$bindable()` ile işaretle ve parent `bind:value={...}` yazsın, ya da onun yerine bir callback ver."
+    quiz:
+      - q:
+          en: "What does `$bindable` allow?"
+          tr: "`$bindable` neye izin verir?"
+        options:
+          en:
+            - The parent can use bind - on the child's prop and receive its changes
+            - The prop becomes read-only
+            - The prop is saved in the database
+          tr:
+            - Parent child'ın prop'una bind ile bağlanıp değişiklikleri alabilir
+            - Prop salt okunur olur
+            - Prop veritabanına kaydedilir
+        answer: 0
+        why:
+          en: "A normal prop flows one way, from parent to child. $bindable opens the way back when the parent asks for it with bind:."
+          tr: "Normal prop tek yönde, parent'tan child'a akar. $bindable, parent bind: ile isteyince geri yolu açar."
+    sources:
+      - title: Svelte, bind
+        url: https://svelte.dev/docs/svelte/bind
+      - title: Svelte, $bindable
+        url: https://svelte.dev/docs/svelte/$bindable
+      - title: Svelte, each blocks
+        url: https://svelte.dev/docs/svelte/each
+
+  - id: database
+    stage: data-api
+    title:
+      en: "A database and load functions"
+      tr: "Bir veritabanı ve load fonksiyonları"
+    minutes: 75
+    needs: [reading-pages]
+    why:
+      en: "Data in memory vanishes when you reload. A database keeps it. We use SQLite through `@libsql/client`: on your computer it is a plain file, and on the internet the very same code talks to Turso, a free hosted SQLite. A `load` function fetches the data on the server and hands it to the page."
+      tr: "Bellekteki veri sayfayı yenileyince kaybolur. Veritabanı onu saklar. SQLite'ı `@libsql/client` üzerinden kullanıyoruz: bilgisayarında düz bir dosyadır, internette ise aynı kod Turso'yla, ücretsiz barındırılan bir SQLite'la konuşur. `load` fonksiyonu veriyi sunucuda alır ve sayfaya verir."
+    learn:
+      en: |
+        - Files in `src/lib/server` can only run on the server; SvelteKit refuses to bundle them into the browser, so secrets and database code are safe there
+        - A `+page.server.ts` `load` runs on the server before the page is shown, and its result arrives in the page as `data`
+        - Environment variables are listed in `src/env.ts` with `defineEnvVars` and imported from `$app/env/private` (server only). The defaults go in a `schema` function
+        - The `init` hook in `src/hooks.server.ts` runs once when the server starts: a good place to create the table
+        - SQL with `?` placeholders keeps user text out of the query text (more on this in the security step)
+      tr: |
+        - `src/lib/server` içindeki dosyalar sadece sunucuda çalışabilir; SvelteKit onları tarayıcı bundle'ına koymayı reddeder, bu yüzden secret'lar ve veritabanı kodu orada güvendedir
+        - `+page.server.ts` içindeki `load`, sayfa gösterilmeden önce sunucuda çalışır ve sonucu sayfaya `data` olarak gelir
+        - Ortam değişkenleri `src/env.ts` içinde `defineEnvVars` ile listelenir ve `$app/env/private`'ten (sadece sunucu) import edilir. Varsayılanlar `schema` fonksiyonuna yazılır
+        - `src/hooks.server.ts` içindeki `init` hook'u sunucu başlarken bir kez çalışır: tabloyu oluşturmak için iyi bir yer
+        - `?` yer tutuculu SQL, kullanıcı metnini sorgu metninin dışında tutar (güvenlik adımında daha fazlası)
+    do:
+      en: |
+        1. Install the database client. It is a normal dependency, because the server needs it at run time.
+        2. Add `local.db*` to `.gitignore` so the database file is never committed.
+        3. Create `src/env.ts`. `DATABASE_URL` falls back to the file `file:local.db`; `DATABASE_AUTH_TOKEN` is only needed for Turso.
+        4. Create `src/lib/server/db.ts` (the connection) and `src/lib/server/store.ts` (every question the app asks the database). `migrate` creates the table and puts three starter books in an empty one.
+        5. Create `src/hooks.server.ts` so the table exists before the first request.
+        6. Create `src/routes/+page.server.ts` with a `load` function and delete `src/lib/sample.ts`.
+        7. Replace `BookCard.svelte` (the status is plain text for now, the buttons come back in the next step) and `src/routes/+page.svelte`, which now reads `data.books`. The add form is gone for a moment: the next step brings it back as a real form.
+        8. Restart `npm run dev`. The three books come from a file called `local.db`. Stop the server, start it again: they are still there.
+        9. Run `npm run check` and commit (the database file is ignored by Git).
+      tr: |
+        1. Veritabanı istemcisini kur. Normal bir bağımlılıktır, çünkü sunucu çalışırken ona ihtiyaç duyar.
+        2. Veritabanı dosyası asla commit'lenmesin diye `.gitignore`'a `local.db*` ekle.
+        3. `src/env.ts` oluştur. `DATABASE_URL` yoksa `file:local.db` dosyasına döner; `DATABASE_AUTH_TOKEN` sadece Turso için gerekir.
+        4. `src/lib/server/db.ts` (bağlantı) ve `src/lib/server/store.ts` (uygulamanın veritabanına sorduğu her soru) oluştur. `migrate` tabloyu oluşturur ve boş bir tabloya üç başlangıç kitabı koyar.
+        5. İlk istekten önce tablo hazır olsun diye `src/hooks.server.ts` oluştur.
+        6. `load` fonksiyonlu `src/routes/+page.server.ts` oluştur ve `src/lib/sample.ts`'i sil.
+        7. `BookCard.svelte`'i (durum şimdilik düz metin, düğmeler sonraki adımda geri gelir) ve artık `data.books` okuyan `src/routes/+page.svelte`'i değiştir. Ekleme formu bir süreliğine yok: sonraki adım onu gerçek bir form olarak geri getirir.
+        8. `npm run dev`'i yeniden başlat. Üç kitap `local.db` adlı bir dosyadan geliyor. Sunucuyu durdurup yeniden başlat: hâlâ oradalar.
+        9. `npm run check` çalıştır ve commit'le (veritabanı dosyasını Git yok sayar).
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install @libsql/client
+          printf '\n# Local database\nlocal.db*\n' >> .gitignore
+          rm src/lib/sample.ts
+      - file: src/env.ts
+        lang: ts
+        text: |
+          import { defineEnvVars } from '@sveltejs/kit/env';
+
+          export const variables = defineEnvVars({
+          	DATABASE_URL: {
+          		description: 'file:local.db on your computer, the libsql:// address of a Turso database live',
+          		schema: (value) => value || 'file:local.db'
+          	},
+          	DATABASE_AUTH_TOKEN: {
+          		description: 'Only needed for a hosted database (Turso)',
+          		schema: (value) => value || undefined
+          	}
+          });
+      - file: src/lib/server/db.ts
+        lang: ts
+        text: |
+          import { createClient } from '@libsql/client';
+          import { DATABASE_URL, DATABASE_AUTH_TOKEN } from '$app/env/private';
+
+          export const db = createClient({ url: DATABASE_URL, authToken: DATABASE_AUTH_TOKEN });
+      - file: src/lib/server/store.ts
+        lang: ts
+        text: |
+          import type { Client } from '@libsql/client';
+          import type { Book, Status } from '../books.js';
+
+          const SEED: Omit<Book, 'id'>[] = [
+          	{ title: 'The Pragmatic Programmer', author: 'Hunt and Thomas', status: 'reading' },
+          	{ title: 'Eloquent JavaScript', author: 'Marijn Haverbeke', status: 'want' },
+          	{ title: 'Refactoring', author: 'Martin Fowler', status: 'done' }
+          ];
+
+          /** Creates the table if it is missing and puts three starter books in an empty one. */
+          export async function migrate(db: Client) {
+          	await db.execute(`
+          		CREATE TABLE IF NOT EXISTS books (
+          			id INTEGER PRIMARY KEY AUTOINCREMENT,
+          			title TEXT NOT NULL,
+          			author TEXT NOT NULL,
+          			status TEXT NOT NULL DEFAULT 'want' CHECK (status IN ('want', 'reading', 'done'))
+          		)
+          	`);
+          	const { rows } = await db.execute('SELECT COUNT(*) AS n FROM books');
+          	if (Number(rows[0].n) === 0) {
+          		for (const b of SEED) await addBook(db, b);
+          	}
+          }
+
+          export async function listBooks(db: Client): Promise<Book[]> {
+          	const { rows } = await db.execute('SELECT id, title, author, status FROM books ORDER BY id DESC');
+          	return rows.map((r) => ({
+          		id: Number(r.id),
+          		title: String(r.title),
+          		author: String(r.author),
+          		status: r.status as Status
+          	}));
+          }
+
+          export async function addBook(db: Client, book: { title: string; author: string; status?: Status }) {
+          	await db.execute({
+          		sql: 'INSERT INTO books (title, author, status) VALUES (?, ?, ?)',
+          		args: [book.title, book.author, book.status ?? 'want']
+          	});
+          }
+
+          export async function setStatus(db: Client, id: number, status: Status) {
+          	await db.execute({ sql: 'UPDATE books SET status = ? WHERE id = ?', args: [status, id] });
+          }
+
+          export async function removeBook(db: Client, id: number) {
+          	await db.execute({ sql: 'DELETE FROM books WHERE id = ?', args: [id] });
+          }
+
+          export async function getBook(db: Client, id: number): Promise<Book | undefined> {
+          	const { rows } = await db.execute({
+          		sql: 'SELECT id, title, author, status FROM books WHERE id = ?',
+          		args: [id]
+          	});
+          	const r = rows[0];
+          	return r && { id: Number(r.id), title: String(r.title), author: String(r.author), status: r.status as Status };
+          }
+      - file: src/hooks.server.ts
+        lang: ts
+        text: |
+          import type { ServerInit } from '@sveltejs/kit/hooks';
+          import { db } from '#lib/server/db.js';
+          import { migrate } from '#lib/server/store.js';
+
+          export const init: ServerInit = async () => {
+          	await migrate(db);
+          };
+      - file: src/routes/+page.server.ts
+        lang: ts
+        text: |
+          import { db } from '#lib/server/db.js';
+          import { listBooks } from '#lib/server/store.js';
+          import type { PageServerLoad } from './$types';
+
+          export const load: PageServerLoad = async () => {
+          	return { books: await listBooks(db) };
+          };
+      - file: src/lib/components/BookCard.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { STATUS_LABEL, type Book } from '#lib/books.js';
+
+          	let { book }: { book: Book } = $props();
+          </script>
+
+          <li class="card">
+          	<div>
+          		<strong>{book.title}</strong>
+          		<span class="author">by {book.author}</span>
+          	</div>
+          	<span class="badge {book.status}">{STATUS_LABEL[book.status]}</span>
+          </li>
+
+          <style>
+          	.card {
+          		display: flex;
+          		justify-content: space-between;
+          		align-items: center;
+          		gap: 1rem;
+          		padding: 0.75rem 1rem;
+          		border: 1px solid #d0d7de;
+          		border-radius: 8px;
+          		list-style: none;
+          	}
+          	.author {
+          		color: #57606a;
+          		margin-left: 0.5rem;
+          	}
+          	.badge {
+          		border-radius: 999px;
+          		padding: 0.25rem 0.75rem;
+          		background: #eaeef2;
+          	}
+          	.reading {
+          		background: #fff1c2;
+          	}
+          	.done {
+          		background: #c9f2d3;
+          	}
+          </style>
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import BookCard from '#lib/components/BookCard.svelte';
+          	import StatusFilter from '#lib/components/StatusFilter.svelte';
+          	import type { Status } from '#lib/books.js';
+          	import type { PageProps } from './$types';
+
+          	let { data }: PageProps = $props();
+
+          	let filter = $state<Status | 'all'>('all');
+
+          	let visible = $derived(
+          		filter === 'all' ? data.books : data.books.filter((b) => b.status === filter)
+          	);
+          	let finished = $derived(data.books.filter((b) => b.status === 'done').length);
+
+          	$effect(() => {
+          		document.title = `Reading list (${finished}/${data.books.length} finished)`;
+          	});
+          </script>
+
+          <h1>Reading list</h1>
+          <p>{finished} of {data.books.length} finished</p>
+
+          <StatusFilter bind:value={filter} />
+
+          <ul>
+          	{#each visible as book (book.id)}
+          		<BookCard {book} />
+          	{:else}
+          		<li>No books here yet.</li>
+          	{/each}
+          </ul>
+    mistakes:
+      - problem:
+          en: "\"Cannot import $app/env/private into client-side code\", or a similar server-only error."
+          tr: "\"Cannot import $app/env/private into client-side code\" ya da benzer bir sadece-sunucu hatası."
+        fix:
+          en: "Database code and private variables may only be imported from `+page.server.ts`, `+server.ts`, `hooks.server.ts` or files in `src/lib/server`. Never import them in a `.svelte` file or in `+page.ts`."
+          tr: "Veritabanı kodu ve private değişkenler sadece `+page.server.ts`, `+server.ts`, `hooks.server.ts` ya da `src/lib/server` içindeki dosyalardan import edilebilir. Onları asla `.svelte` dosyasında ya da `+page.ts`'te import etme."
+      - problem:
+          en: "Building the SQL by gluing text together, like `` `... WHERE id = ${id}` ``."
+          tr: "SQL'i metin yapıştırarak kurmak, örneğin `` `... WHERE id = ${id}` ``."
+        fix:
+          en: "Use `?` placeholders and pass the values in `args`, as `getBook` does. Otherwise a visitor can change what your query means (SQL injection)."
+          tr: "`?` yer tutucularını kullan ve değerleri `args` içinde ver, `getBook`'un yaptığı gibi. Yoksa ziyaretçi sorgunun anlamını değiştirebilir (SQL injection)."
+      - problem:
+          en: "Committing `local.db`."
+          tr: "`local.db`'yi commit'lemek."
+        fix:
+          en: "Keep `local.db*` in `.gitignore`. If it was committed already: `git rm --cached local.db` and commit again."
+          tr: "`local.db*`'yi `.gitignore`'da tut. Zaten commit'lendiyse: `git rm --cached local.db` ve yeniden commit'le."
+    quiz:
+      - q:
+          en: "Where may you import `db` from `src/lib/server/db.ts`?"
+          tr: "`src/lib/server/db.ts` içindeki `db`'yi nerelerden import edebilirsin?"
+        options:
+          en:
+            - In any .svelte file
+            - Only in server code such as +page.server.ts and hooks.server.ts
+            - Only in tests
+          tr:
+            - Herhangi bir .svelte dosyasında
+            - Sadece +page.server.ts ve hooks.server.ts gibi sunucu kodunda
+            - Sadece testlerde
+        answer: 1
+        why:
+          en: "The folder name src/lib/server marks the code as server-only. SvelteKit stops the build if browser code imports it."
+          tr: "src/lib/server klasör adı kodu sadece sunucu olarak işaretler. Tarayıcı kodu onu import ederse SvelteKit build'i durdurur."
+    sources:
+      - title: SvelteKit, loading data
+        url: https://svelte.dev/docs/kit/load
+      - title: SvelteKit, environment variables
+        url: https://svelte.dev/docs/kit/environment-variables
+      - title: Turso, TypeScript SDK
+        url: https://docs.turso.tech/sdk/ts/quickstart
+
+  - id: form-actions
+    stage: data-api
+    title:
+      en: "Forms that work: form actions and use:enhance"
+      tr: "Çalışan form'lar: form action'ları ve use:enhance"
+    minutes: 75
+    needs: [database]
+    why:
+      en: "A form is the oldest and most reliable way for a web page to send data. SvelteKit form actions receive the posted form on the server and can return errors to show. With `use:enhance` the same form also works without a page reload, and it still works if JavaScript fails to load. This is called progressive enhancement."
+      tr: "Form, bir web sayfasının veri göndermesinin en eski ve en güvenilir yoludur. SvelteKit form action'ları gönderilen formu sunucuda alır ve gösterilecek hataları döndürebilir. `use:enhance` ile aynı form sayfa yenilenmeden de çalışır ve JavaScript yüklenemese bile çalışmaya devam eder. Buna progressive enhancement denir."
+    learn:
+      en: |
+        - A `<form method="POST" action="?/add">` posts to the action named `add` in `+page.server.ts`
+        - An action reads `await request.formData()`, validates, and either changes data or returns `fail(400, {...})` with the values to show again
+        - The page gets the result as the `form` prop. After a successful action SvelteKit reruns `load`, so the list updates by itself
+        - `use:enhance` sends the form with `fetch` and updates the page in place; remove it and the form still works with a full page load
+        - Never trust the browser's input: always validate on the server (the `required` attribute is only a courtesy)
+      tr: |
+        - `<form method="POST" action="?/add">`, `+page.server.ts` içindeki `add` adlı action'a POST eder
+        - Action `await request.formData()` okur, doğrular ve ya veriyi değiştirir ya da tekrar gösterilecek değerlerle `fail(400, {...})` döndürür
+        - Sayfa sonucu `form` prop'u olarak alır. Başarılı bir action'dan sonra SvelteKit `load`'u yeniden çalıştırır; liste kendiliğinden güncellenir
+        - `use:enhance` formu `fetch` ile gönderir ve sayfayı yerinde günceller; onu kaldırsan da form tam sayfa yüklemesiyle çalışır
+        - Tarayıcıdan gelen girdiye asla güvenme: her zaman sunucuda doğrula (`required` özelliği sadece bir nezakettir)
+    do:
+      en: |
+        1. Add the helpers at the end of `src/lib/books.ts`: `nextStatus`, `isStatus` and `validateBook`. They are plain functions, so they are easy to test in the next step.
+        2. Replace `src/routes/+page.server.ts`. It keeps `load` and adds three actions: `add`, `next` (moves a book to its next status) and `remove`.
+        3. Replace `AddBookForm.svelte` with a real form. It shows the error text and keeps what the visitor typed when validation fails.
+        4. Replace `BookCard.svelte`: the status badge and a Delete button are now small forms.
+        5. Replace `src/routes/+page.svelte`: it passes `form` to the add form.
+        6. Run `npm run dev`. Add a book, change its status, delete it, add one with an empty title. Reload: everything stays.
+        7. Prove the progressive enhancement: in your browser's developer tools turn JavaScript off (Chrome: DevTools, Ctrl+Shift+P, "Disable JavaScript") and use the forms again. They still work, with a page reload each time. Turn JavaScript back on.
+        8. Commit: `git add .` and `git commit -m "Form actions"`.
+      tr: |
+        1. `src/lib/books.ts` dosyasının sonuna yardımcıları ekle: `nextStatus`, `isStatus` ve `validateBook`. Düz fonksiyonlardır; bu yüzden sonraki adımda test etmesi kolaydır.
+        2. `src/routes/+page.server.ts` dosyasını değiştir. `load`'u korur ve üç action ekler: `add`, `next` (kitabı sonraki duruma taşır) ve `remove`.
+        3. `AddBookForm.svelte`'i gerçek bir formla değiştir. Hata metnini gösterir ve doğrulama başarısız olunca ziyaretçinin yazdığını korur.
+        4. `BookCard.svelte`'i değiştir: durum rozeti ve Delete düğmesi artık küçük form'lardır.
+        5. `src/routes/+page.svelte`'i değiştir: `form`'u ekleme formuna verir.
+        6. `npm run dev` çalıştır. Kitap ekle, durumunu değiştir, sil, boş başlıkla eklemeyi dene. Yenile: her şey durur.
+        7. Progressive enhancement'ı kanıtla: tarayıcının geliştirici araçlarında JavaScript'i kapat (Chrome: DevTools, Ctrl+Shift+P, "Disable JavaScript") ve form'ları yeniden kullan. Her seferinde sayfa yenilenerek de olsa çalışmaya devam ederler. JavaScript'i yeniden aç.
+        8. Commit'le: `git add .` ve `git commit -m "Form actions"`.
+    code:
+      - file: src/lib/books.ts
+        lang: ts
+        text: |
+          // add at the end of the file
+
+          export function nextStatus(status: Status): Status {
+          	return STATUSES[(STATUSES.indexOf(status) + 1) % STATUSES.length];
+          }
+
+          export function isStatus(value: unknown): value is Status {
+          	return typeof value === 'string' && (STATUSES as string[]).includes(value);
+          }
+
+          export type BookErrors = { title?: string; author?: string };
+
+          /** Checks what a visitor typed. Returns the cleaned values or a message per field. */
+          export function validateBook(
+          	title: unknown,
+          	author: unknown
+          ): { ok: true; value: { title: string; author: string } } | { ok: false; errors: BookErrors } {
+          	const t = typeof title === 'string' ? title.trim() : '';
+          	const a = typeof author === 'string' ? author.trim() : '';
+          	const errors: BookErrors = {};
+          	if (!t) errors.title = 'Title is required';
+          	if (!a) errors.author = 'Author is required';
+          	if (errors.title || errors.author) return { ok: false, errors };
+          	return { ok: true, value: { title: t, author: a } };
+          }
+      - file: src/routes/+page.server.ts
+        lang: ts
+        text: |
+          import { fail } from '@sveltejs/kit';
+          import { db } from '#lib/server/db.js';
+          import { addBook, getBook, listBooks, removeBook, setStatus } from '#lib/server/store.js';
+          import { nextStatus, validateBook } from '#lib/books.js';
+          import type { Actions, PageServerLoad } from './$types';
+
+          export const load: PageServerLoad = async () => {
+          	return { books: await listBooks(db) };
+          };
+
+          export const actions = {
+          	add: async ({ request }) => {
+          		const form = await request.formData();
+          		const title = form.get('title');
+          		const author = form.get('author');
+          		const result = validateBook(title, author);
+          		if (!result.ok) {
+          			return fail(400, {
+          				errors: result.errors,
+          				title: String(title ?? ''),
+          				author: String(author ?? '')
+          			});
+          		}
+          		await addBook(db, result.value);
+          		return { added: true };
+          	},
+
+          	next: async ({ request }) => {
+          		const id = Number((await request.formData()).get('id'));
+          		const book = Number.isInteger(id) ? await getBook(db, id) : undefined;
+          		if (!book) return fail(404, { message: 'Book not found' });
+          		await setStatus(db, id, nextStatus(book.status));
+          	},
+
+          	remove: async ({ request }) => {
+          		const id = Number((await request.formData()).get('id'));
+          		if (!Number.isInteger(id)) return fail(400, { message: 'Bad id' });
+          		await removeBook(db, id);
+          	}
+          } satisfies Actions;
+      - file: src/lib/components/AddBookForm.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { enhance } from '$app/forms';
+          	import type { BookErrors } from '#lib/books.js';
+
+          	interface Props {
+          		errors?: BookErrors;
+          		title?: string;
+          		author?: string;
+          	}
+
+          	let { errors, title = '', author = '' }: Props = $props();
+          </script>
+
+          <form method="POST" action="?/add" use:enhance>
+          	<label>
+          		Title
+          		<input name="title" value={title} aria-invalid={errors?.title ? 'true' : undefined} />
+          		{#if errors?.title}<span class="error">{errors.title}</span>{/if}
+          	</label>
+          	<label>
+          		Author
+          		<input name="author" value={author} aria-invalid={errors?.author ? 'true' : undefined} />
+          		{#if errors?.author}<span class="error">{errors.author}</span>{/if}
+          	</label>
+          	<button>Add</button>
+          </form>
+
+          <style>
+          	form {
+          		display: flex;
+          		flex-wrap: wrap;
+          		align-items: end;
+          		gap: 0.5rem;
+          	}
+          	label {
+          		display: grid;
+          	}
+          	.error {
+          		color: #cf222e;
+          		font-size: 0.875rem;
+          	}
+          </style>
+      - file: src/lib/components/BookCard.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { enhance } from '$app/forms';
+          	import { STATUS_LABEL, type Book } from '#lib/books.js';
+
+          	let { book }: { book: Book } = $props();
+          </script>
+
+          <li class="card">
+          	<div>
+          		<strong>{book.title}</strong>
+          		<span class="author">by {book.author}</span>
+          	</div>
+          	<div class="actions">
+          		<form method="POST" action="?/next" use:enhance>
+          			<input type="hidden" name="id" value={book.id} />
+          			<button class="badge {book.status}" title="Move to the next status">
+          				{STATUS_LABEL[book.status]}
+          			</button>
+          		</form>
+          		<form method="POST" action="?/remove" use:enhance>
+          			<input type="hidden" name="id" value={book.id} />
+          			<button aria-label="Delete {book.title}">Delete</button>
+          		</form>
+          	</div>
+          </li>
+
+          <style>
+          	.card {
+          		display: flex;
+          		justify-content: space-between;
+          		align-items: center;
+          		gap: 1rem;
+          		padding: 0.75rem 1rem;
+          		border: 1px solid #d0d7de;
+          		border-radius: 8px;
+          		list-style: none;
+          	}
+          	.author {
+          		color: #57606a;
+          		margin-left: 0.5rem;
+          	}
+          	.actions {
+          		display: flex;
+          		gap: 0.5rem;
+          	}
+          	.badge {
+          		border: 0;
+          		border-radius: 999px;
+          		padding: 0.25rem 0.75rem;
+          		cursor: pointer;
+          		background: #eaeef2;
+          	}
+          	.reading {
+          		background: #fff1c2;
+          	}
+          	.done {
+          		background: #c9f2d3;
+          	}
+          </style>
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import AddBookForm from '#lib/components/AddBookForm.svelte';
+          	import BookCard from '#lib/components/BookCard.svelte';
+          	import StatusFilter from '#lib/components/StatusFilter.svelte';
+          	import type { Status } from '#lib/books.js';
+          	import type { PageProps } from './$types';
+
+          	let { data, form }: PageProps = $props();
+
+          	let filter = $state<Status | 'all'>('all');
+
+          	let visible = $derived(
+          		filter === 'all' ? data.books : data.books.filter((b) => b.status === filter)
+          	);
+          	let finished = $derived(data.books.filter((b) => b.status === 'done').length);
+
+          	$effect(() => {
+          		document.title = `Reading list (${finished}/${data.books.length} finished)`;
+          	});
+          </script>
+
+          <h1>Reading list</h1>
+          <p>{finished} of {data.books.length} finished</p>
+
+          <AddBookForm errors={form?.errors} title={form?.title} author={form?.author} />
+          <StatusFilter bind:value={filter} />
+
+          <ul>
+          	{#each visible as book (book.id)}
+          		<BookCard {book} />
+          	{:else}
+          		<li>No books here yet.</li>
+          	{/each}
+          </ul>
+    mistakes:
+      - problem:
+          en: "Nothing happens on submit, or the URL just gets `?title=...` added."
+          tr: "Gönderince hiçbir şey olmuyor ya da URL'ye sadece `?title=...` ekleniyor."
+        fix:
+          en: "The form needs `method=\"POST\"`. Without it the browser sends a GET and no action runs. `use:enhance` does not replace it."
+          tr: "Form'un `method=\"POST\"` olması gerekir. Olmazsa tarayıcı GET gönderir ve hiçbir action çalışmaz. `use:enhance` onun yerini tutmaz."
+      - problem:
+          en: "Returning errors with `return { errors }` and the page still shows a success state."
+          tr: "Hataları `return { errors }` ile döndürmek ve sayfanın hâlâ başarı durumunu göstermesi."
+        fix:
+          en: "Use `fail(400, { errors })`. It sets the HTTP status to 400, so the form keeps what was typed and tools know the request failed."
+          tr: "`fail(400, { errors })` kullan. HTTP durumunu 400 yapar; böylece form yazılanı korur ve araçlar isteğin başarısız olduğunu bilir."
+      - problem:
+          en: "A form action that works with JavaScript on but not off, because it relies on client code."
+          tr: "Sadece JavaScript açıkken çalışan, kapalıyken çalışmayan bir form action'ı; çünkü istemci koduna güveniyor."
+        fix:
+          en: "Do the real work in the action on the server and treat `use:enhance` as a bonus. Test once with JavaScript turned off."
+          tr: "Asıl işi sunucudaki action'da yap ve `use:enhance`'ı bir bonus say. Bir kere JavaScript kapalıyken test et."
+    quiz:
+      - q:
+          en: "A validation error happens in an action. What should it return?"
+          tr: "Bir action'da doğrulama hatası oldu. Ne döndürmeli?"
+        options:
+          en:
+            - throw new Error
+            - fail(400, { errors, ...the typed values })
+            - redirect(303, '/')
+          tr:
+            - throw new Error
+            - fail(400, { errors, ...yazılan değerler })
+            - redirect(303, '/')
+        answer: 1
+        why:
+          en: "fail() answers with a 400 status and the data the page needs to show the errors and keep the input."
+          tr: "fail() 400 durumuyla ve sayfanın hataları gösterip girdiyi korumak için ihtiyaç duyduğu veriyle cevap verir."
+    sources:
+      - title: SvelteKit, form actions
+        url: https://svelte.dev/docs/kit/form-actions
+      - title: SvelteKit, $app/forms (enhance)
+        url: https://svelte.dev/docs/kit/$app-forms
+      - title: MDN, the form element
+        url: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/form
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Tests with Vitest and Testing Library"
+      tr: "Vitest ve Testing Library ile testler"
+    minutes: 60
+    needs: [form-actions]
+    why:
+      en: "A test is a small program that checks your program. You run them in seconds before every commit, so a change in one corner cannot silently break another. We test three kinds of code: plain functions, the database layer and Svelte components."
+      tr: "Test, programını kontrol eden küçük bir programdır. Her commit'ten önce saniyeler içinde çalıştırırsın; böylece bir köşedeki değişiklik başka bir köşeyi sessizce bozamaz. Üç tür kodu test ediyoruz: düz fonksiyonlar, veritabanı katmanı ve Svelte component'leri."
+    learn:
+      en: |
+        - Vitest runs `*.test.ts` files; `describe`, `it` and `expect` describe what should be true
+        - The database layer takes the client as an argument, so a test can pass a throwaway in-memory database (`:memory:`) and never touch `local.db`
+        - Testing Library renders a component in a fake browser (`jsdom`) and finds elements the way a person does: by role and name, not by CSS class
+        - Two Vitest projects: `server` (Node) for plain tests, `client` (jsdom) for files named `*.svelte.test.ts`
+      tr: |
+        - Vitest `*.test.ts` dosyalarını çalıştırır; `describe`, `it` ve `expect` neyin doğru olması gerektiğini anlatır
+        - Veritabanı katmanı istemciyi argüman olarak alır; böylece test, geçici bir bellek içi veritabanı (`:memory:`) verebilir ve `local.db`'ye hiç dokunmaz
+        - Testing Library bir component'i sahte bir tarayıcıda (`jsdom`) çizer ve elementleri bir insan gibi bulur: CSS class'ıyla değil, rol ve adla
+        - İki Vitest projesi: düz testler için `server` (Node), `*.svelte.test.ts` adlı dosyalar için `client` (jsdom)
+    do:
+      en: |
+        1. Install the test helpers as development dependencies.
+        2. Delete the example the template made: `src/lib/vitest-examples`.
+        3. Replace `vite.config.ts` with the version below. The `svelteTesting()` plugin makes Svelte load its browser build in tests, and the `test` section defines the two projects.
+        4. Write the tests: `books.test.ts` (plain functions), `server/store.test.ts` (database) and the two component tests.
+        5. Run `npm test`. All tests should pass. Then break something on purpose, for example change `nextStatus` to return `'done'` always, run the tests again and read the failure message. Undo the change.
+        6. Commit: `git add .` and `git commit -m "Tests"`.
+      tr: |
+        1. Test yardımcılarını geliştirme bağımlılığı olarak kur.
+        2. Şablonun yaptığı örneği sil: `src/lib/vitest-examples`.
+        3. `vite.config.ts` dosyasını aşağıdaki sürümle değiştir. `svelteTesting()` eklentisi Svelte'in testlerde tarayıcı sürümünü yüklemesini sağlar; `test` bölümü iki projeyi tanımlar.
+        4. Testleri yaz: `books.test.ts` (düz fonksiyonlar), `server/store.test.ts` (veritabanı) ve iki component testi.
+        5. `npm test` çalıştır. Tüm testler geçmeli. Sonra bilerek bir şeyi boz, örneğin `nextStatus`'ı hep `'done'` döndürecek şekilde değiştir, testleri yeniden çalıştır ve hata mesajını oku. Değişikliği geri al.
+        6. Commit'le: `git add .` ve `git commit -m "Tests"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install -D @testing-library/svelte @testing-library/user-event jsdom
+          rm -r src/lib/vitest-examples
+          npm test
+      - file: vite.config.ts
+        lang: ts
+        text: |
+          import { defineConfig } from 'vitest/config';
+          import adapter from '@sveltejs/adapter-node';
+          import { sveltekit } from '@sveltejs/kit/vite';
+          import { svelteTesting } from '@testing-library/svelte/vite';
+
+          export default defineConfig({
+          	plugins: [
+          		sveltekit({
+          			compilerOptions: {
+          				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
+          				runes: ({ filename }) =>
+          					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
+          			},
+          			adapter: adapter()
+          		})
+          	],
+          	test: {
+          		expect: { requireAssertions: true },
+          		projects: [
+          			{
+          				extends: './vite.config.ts',
+          				plugins: [svelteTesting()],
+          				test: {
+          					name: 'client',
+          					environment: 'jsdom',
+          					include: ['src/**/*.svelte.{test,spec}.{js,ts}']
+          				}
+          			},
+          			{
+          				extends: './vite.config.ts',
+          				test: {
+          					name: 'server',
+          					environment: 'node',
+          					include: ['src/**/*.{test,spec}.{js,ts}'],
+          					exclude: ['src/**/*.svelte.{test,spec}.{js,ts}']
+          				}
+          			}
+          		]
+          	}
+          });
+      - file: src/lib/books.test.ts
+        lang: ts
+        text: |
+          import { describe, expect, it } from 'vitest';
+          import { nextStatus, validateBook } from './books.js';
+
+          describe('nextStatus', () => {
+          	it('goes want, reading, done and then around again', () => {
+          		expect(nextStatus('want')).toBe('reading');
+          		expect(nextStatus('reading')).toBe('done');
+          		expect(nextStatus('done')).toBe('want');
+          	});
+          });
+
+          describe('validateBook', () => {
+          	it('trims the values', () => {
+          		expect(validateBook('  Dune ', ' Frank Herbert ')).toEqual({
+          			ok: true,
+          			value: { title: 'Dune', author: 'Frank Herbert' }
+          		});
+          	});
+
+          	it('asks for a title and an author', () => {
+          		expect(validateBook('', '   ')).toEqual({
+          			ok: false,
+          			errors: { title: 'Title is required', author: 'Author is required' }
+          		});
+          	});
+
+          	it('rejects values that are not text', () => {
+          		expect(validateBook(null, 42).ok).toBe(false);
+          	});
+          });
+      - file: src/lib/server/store.test.ts
+        lang: ts
+        text: |
+          import { createClient } from '@libsql/client';
+          import { beforeEach, describe, expect, it } from 'vitest';
+          import { addBook, getBook, listBooks, migrate, removeBook, setStatus } from './store.js';
+
+          let db = createClient({ url: ':memory:' });
+
+          beforeEach(async () => {
+          	db = createClient({ url: ':memory:' });
+          	await migrate(db);
+          });
+
+          describe('store', () => {
+          	it('starts with three starter books', async () => {
+          		expect(await listBooks(db)).toHaveLength(3);
+          	});
+
+          	it('does not add the starter books twice', async () => {
+          		await migrate(db);
+          		expect(await listBooks(db)).toHaveLength(3);
+          	});
+
+          	it('adds a book with the status want', async () => {
+          		await addBook(db, { title: 'Dune', author: 'Frank Herbert' });
+          		const [newest] = await listBooks(db);
+          		expect(newest).toMatchObject({ title: 'Dune', author: 'Frank Herbert', status: 'want' });
+          	});
+
+          	it('changes a status and deletes a book', async () => {
+          		await addBook(db, { title: 'Dune', author: 'Frank Herbert' });
+          		const [{ id }] = await listBooks(db);
+          		await setStatus(db, id, 'done');
+          		expect((await getBook(db, id))?.status).toBe('done');
+          		await removeBook(db, id);
+          		expect(await getBook(db, id)).toBeUndefined();
+          	});
+
+          	it('refuses an unknown status', async () => {
+          		await expect(
+          			db.execute("INSERT INTO books (title, author, status) VALUES ('x', 'y', 'lost')")
+          		).rejects.toThrow();
+          	});
+          });
+      - file: src/lib/components/StatusFilter.svelte.test.ts
+        lang: ts
+        text: |
+          import { render, screen } from '@testing-library/svelte';
+          import userEvent from '@testing-library/user-event';
+          import { describe, expect, it } from 'vitest';
+          import StatusFilter from './StatusFilter.svelte';
+
+          describe('StatusFilter', () => {
+          	it('marks All as pressed at first', () => {
+          		render(StatusFilter);
+          		expect(screen.getByRole('button', { name: 'All' }).getAttribute('aria-pressed')).toBe('true');
+          	});
+
+          	it('presses the button that was clicked', async () => {
+          		const user = userEvent.setup();
+          		render(StatusFilter);
+          		await user.click(screen.getByRole('button', { name: 'Reading' }));
+          		expect(screen.getByRole('button', { name: 'Reading' }).getAttribute('aria-pressed')).toBe('true');
+          		expect(screen.getByRole('button', { name: 'All' }).getAttribute('aria-pressed')).toBe('false');
+          	});
+          });
+      - file: src/lib/components/BookCard.svelte.test.ts
+        lang: ts
+        text: |
+          import { render, screen } from '@testing-library/svelte';
+          import { describe, expect, it } from 'vitest';
+          import BookCard from './BookCard.svelte';
+
+          describe('BookCard', () => {
+          	it('shows the title, the author and the status', () => {
+          		render(BookCard, { book: { id: 1, title: 'Dune', author: 'Frank Herbert', status: 'reading' } });
+          		expect(screen.getByText('Dune')).toBeTruthy();
+          		expect(screen.getByText('by Frank Herbert')).toBeTruthy();
+          		expect(screen.getByRole('button', { name: 'Reading' })).toBeTruthy();
+          	});
+          });
+    mistakes:
+      - problem:
+          en: "A component test fails with \"mount(...) is not available on the server\" or a similar error."
+          tr: "Bir component testi \"mount(...) is not available on the server\" ya da benzer bir hatayla başarısız oluyor."
+        fix:
+          en: "The file must be named `*.svelte.test.ts` so it runs in the `client` project, and the config needs the `svelteTesting()` plugin there."
+          tr: "Dosyanın adı `*.svelte.test.ts` olmalı ki `client` projesinde çalışsın ve config'te orada `svelteTesting()` eklentisi olmalı."
+      - problem:
+          en: "Tests that share one database and fail in a different order each time."
+          tr: "Tek bir veritabanını paylaşan ve her seferinde farklı sırayla başarısız olan testler."
+        fix:
+          en: "Create a fresh `:memory:` database in `beforeEach`, as the store tests do. Each test then starts from the same state."
+          tr: "`beforeEach` içinde, store testlerinin yaptığı gibi yepyeni bir `:memory:` veritabanı oluştur. Böylece her test aynı durumdan başlar."
+      - problem:
+          en: "Finding elements by CSS class in component tests, which break when the style changes."
+          tr: "Component testlerinde elementleri CSS class'ıyla bulmak; stil değişince testler bozulur."
+        fix:
+          en: "Use `getByRole` and `getByText`, the way a visitor or a screen reader finds things. Those tests also push you to write accessible markup."
+          tr: "Ziyaretçinin ya da ekran okuyucunun bir şeyi bulduğu gibi `getByRole` ve `getByText` kullan. Bu testler seni erişilebilir markup yazmaya da iter."
+    quiz:
+      - q:
+          en: "Why do the store functions receive the database client as a parameter instead of importing it?"
+          tr: "Store fonksiyonları veritabanı istemcisini import etmek yerine neden parametre olarak alıyor?"
+        options:
+          en:
+            - It runs faster
+            - A test can give them a throwaway in-memory database
+            - SvelteKit forbids imports in that folder
+          tr:
+            - Daha hızlı çalışır
+            - Test onlara geçici bir bellek içi veritabanı verebilir
+            - SvelteKit o klasörde import'u yasaklar
+        answer: 1
+        why:
+          en: "Passing the dependency in lets tests use :memory: and keeps local.db and the live database untouched."
+          tr: "Bağımlılığı dışarıdan vermek testlerin :memory: kullanmasını sağlar ve local.db ile canlı veritabanına dokunmaz."
+    sources:
+      - title: Svelte, testing
+        url: https://svelte.dev/docs/svelte/testing
+      - title: Testing Library, Svelte setup
+        url: https://testing-library.com/docs/svelte-testing-library/setup
+      - title: Vitest, getting started
+        url: https://vitest.dev/guide/
+
+  - id: security
+    stage: security
+    title:
+      en: "Security: a password, validation, CSRF and headers"
+      tr: "Güvenlik: parola, doğrulama, CSRF ve header'lar"
+    minutes: 90
+    needs: [tests]
+    why:
+      en: "The moment the app is on the internet, strangers can use every form. Right now anyone could delete all your books. In this step only the owner can change the list, long input is refused, and the browser gets instructions that make attacks harder."
+      tr: "Uygulama internete çıktığı anda yabancılar her form'u kullanabilir. Şu an herkes bütün kitaplarını silebilir. Bu adımda listeyi sadece sahibi değiştirebilir, çok uzun girdi reddedilir ve tarayıcı saldırıları zorlaştıran talimatlar alır."
+    learn:
+      en: |
+        - **Never trust input**: the server checks every value again (type, length, allowed set). Browser attributes like `maxlength` only help honest visitors
+        - **Authentication with a cookie**: the login action checks a password and sets an `httpOnly` cookie (JavaScript cannot read it) with `sameSite: 'lax'`. SvelteKit sets `secure` for you on https
+        - **`handle` hook**: runs for every request, here to turn the cookie into `event.locals.canEdit`. Every action then asks `locals.canEdit` itself; hiding a button is not security
+        - **Constant-time comparison**: `timingSafeEqual` compares secrets without leaking, through timing, how many characters were right
+        - **CSRF**: another site could try to post a form to yours while you are logged in. SvelteKit refuses cross-origin form posts in production by default (`csrf.trustedOrigins` lists exceptions)
+        - **Content Security Policy (CSP)** limits where scripts may come from; SvelteKit adds the nonces it needs. **XSS**: Svelte escapes `{text}` for you, so avoid `{@html}` with anything a visitor typed
+        - **Secrets** live in `.env` (ignored by Git) and in the host's settings, never in the code
+      tr: |
+        - **Girdiye asla güvenme**: sunucu her değeri yeniden kontrol eder (tip, uzunluk, izin verilen küme). `maxlength` gibi tarayıcı özellikleri sadece dürüst ziyaretçilere yardım eder
+        - **Cookie ile kimlik doğrulama**: login action'ı parolayı kontrol eder ve `sameSite: 'lax'` ile bir `httpOnly` cookie koyar (JavaScript onu okuyamaz). `secure`'u https'te SvelteKit senin için ayarlar
+        - **`handle` hook'u**: her istekte çalışır; burada cookie'yi `event.locals.canEdit`'e çevirmek için. Her action sonra `locals.canEdit`'i kendisi sorar; bir düğmeyi gizlemek güvenlik değildir
+        - **Sabit zamanlı karşılaştırma**: `timingSafeEqual` secret'ları, kaç karakterin doğru olduğunu süre üzerinden sızdırmadan karşılaştırır
+        - **CSRF**: sen giriş yapmışken başka bir site senin sitene bir form POST etmeye çalışabilir. SvelteKit production'da başka origin'den gelen form gönderimlerini varsayılan olarak reddeder (`csrf.trustedOrigins` istisnaları listeler)
+        - **Content Security Policy (CSP)** script'lerin nereden gelebileceğini sınırlar; gereken nonce'ları SvelteKit ekler. **XSS**: Svelte `{text}`'i senin için escape eder; bu yüzden ziyaretçinin yazdığı bir şeyle `{@html}` kullanmaktan kaçın
+        - **Secret'lar** `.env` içinde (Git yok sayar) ve host'un ayarlarında durur, asla kodda değil
+    do:
+      en: |
+        1. Tighten validation in `src/lib/books.ts`: add the two length limits and use them in `validateBook` (replace the function and add the constants above `BookErrors`).
+        2. Replace `src/env.ts`: add `EDIT_PASSWORD`. The app refuses to start without a password of at least 8 characters (while building it may be missing, hence `building`).
+        3. Create `.env` with a password for yourself and `.env.example` as a template for others. `.env` is already ignored by Git; `.env.example` is meant to be committed and holds no real secret.
+        4. Create `src/lib/server/auth.ts`, replace `src/hooks.server.ts` and `src/app.d.ts`, and create the login page (`src/routes/login/+page.server.ts` and `+page.svelte`).
+        5. Make the actions check `locals.canEdit` (the lines marked below) and send `canEdit` from `load`.
+        6. Replace `BookCard.svelte` and `AddBookForm.svelte` (the card shows buttons only to the owner; the inputs get `maxlength`), and change `src/routes/+page.svelte` as shown: forms only when `data.canEdit`, otherwise a link to log in.
+        7. Add the CSP settings to the `sveltekit()` options in `vite.config.ts`.
+        8. Update the tests: a new `validateBook` test for long titles and a new `BookCard` test file (it now shows buttons only when `editable`). Run `npm test`.
+        9. Check it for real. Run `npm run build` and `npm run preview`, open the address, log in and out. Look at the response headers of the page in the browser's *Network* tab: `content-security-policy`, `x-content-type-options` and `referrer-policy` are there. Then try the CSRF protection from a second terminal (the third command below): it must answer `403`.
+        10. Commit: `git add .` and `git commit -m "Password, validation and security headers"`. Check with `git status` that `.env` is not in the list.
+      tr: |
+        1. `src/lib/books.ts` içindeki doğrulamayı sıkılaştır: iki uzunluk sınırını ekle ve `validateBook`'ta kullan (fonksiyonu değiştir ve sabitleri `BookErrors`'ın üstüne ekle).
+        2. `src/env.ts` dosyasını değiştir: `EDIT_PASSWORD`'u ekle. Uygulama en az 8 karakterlik bir parola olmadan başlamayı reddeder (build sırasında eksik olabilir; `building` bunun için).
+        3. Kendin için bir parolayla `.env` oluştur ve başkaları için şablon olarak `.env.example` oluştur. `.env`'yi Git zaten yok sayar; `.env.example` commit'lenmek içindir ve gerçek bir secret taşımaz.
+        4. `src/lib/server/auth.ts` oluştur, `src/hooks.server.ts` ve `src/app.d.ts` dosyalarını değiştir ve login sayfasını oluştur (`src/routes/login/+page.server.ts` ve `+page.svelte`).
+        5. Action'lar `locals.canEdit`'i kontrol etsin (aşağıda işaretli satırlar) ve `load` `canEdit`'i göndersin.
+        6. `BookCard.svelte` ve `AddBookForm.svelte`'i değiştir (kart düğmeleri sadece sahibine gösterir; input'lar `maxlength` alır) ve `src/routes/+page.svelte`'i gösterildiği gibi değiştir: form'lar sadece `data.canEdit` ise, değilse giriş yapmak için bir link.
+        7. CSP ayarlarını `vite.config.ts` içindeki `sveltekit()` seçeneklerine ekle.
+        8. Testleri güncelle: uzun başlıklar için yeni bir `validateBook` testi ve yeni bir `BookCard` test dosyası (artık düğmeleri sadece `editable` iken gösterir). `npm test` çalıştır.
+        9. Gerçekten kontrol et. `npm run build` ve `npm run preview` çalıştır, adresi aç, giriş yap ve çık. Tarayıcının *Network* sekmesinde sayfanın cevap header'larına bak: `content-security-policy`, `x-content-type-options` ve `referrer-policy` orada. Sonra CSRF korumasını ikinci bir terminalden dene (aşağıdaki üçüncü komut): `403` cevap vermeli.
+        10. Commit'le: `git add .` ve `git commit -m "Password, validation and security headers"`. `git status` ile `.env`'nin listede olmadığını kontrol et.
+    code:
+      - file: src/lib/books.ts
+        lang: ts
+        text: |
+          // above BookErrors
+          export const MAX_TITLE = 200;
+          export const MAX_AUTHOR = 100;
+
+          // replace validateBook with
+          export function validateBook(
+          	title: unknown,
+          	author: unknown
+          ): { ok: true; value: { title: string; author: string } } | { ok: false; errors: BookErrors } {
+          	const t = typeof title === 'string' ? title.trim() : '';
+          	const a = typeof author === 'string' ? author.trim() : '';
+          	const errors: BookErrors = {};
+          	if (!t) errors.title = 'Title is required';
+          	else if (t.length > MAX_TITLE) errors.title = `Title is at most ${MAX_TITLE} characters`;
+          	if (!a) errors.author = 'Author is required';
+          	else if (a.length > MAX_AUTHOR) errors.author = `Author is at most ${MAX_AUTHOR} characters`;
+          	if (errors.title || errors.author) return { ok: false, errors };
+          	return { ok: true, value: { title: t, author: a } };
+          }
+      - file: src/env.ts
+        lang: ts
+        text: |
+          import { defineEnvVars } from '@sveltejs/kit/env';
+          import { building } from '$app/env';
+
+          export const variables = defineEnvVars({
+          	DATABASE_URL: {
+          		description: 'file:local.db on your computer, the libsql:// address of a Turso database live',
+          		schema: (value) => value || 'file:local.db'
+          	},
+          	DATABASE_AUTH_TOKEN: {
+          		description: 'Only needed for a hosted database (Turso)',
+          		schema: (value) => value || undefined
+          	},
+          	EDIT_PASSWORD: {
+          		description: 'The password that unlocks adding, changing and deleting books',
+          		schema: (value) => {
+          			if (building) return value ?? '';
+          			if (!value || value.length < 8) throw new Error('EDIT_PASSWORD must be at least 8 characters');
+          			return value;
+          		}
+          	}
+          });
+      - file: .env
+        lang: sh
+        text: |
+          EDIT_PASSWORD=local-password-123
+      - file: .env.example
+        lang: sh
+        text: |
+          # Copy to .env for local work. Never commit .env.
+          EDIT_PASSWORD=choose-a-long-password
+          # Optional: a hosted database (Turso). Without them the app uses file:local.db
+          # DATABASE_URL=libsql://your-database.turso.io
+          # DATABASE_AUTH_TOKEN=your-token
+      - file: src/lib/server/auth.ts
+        lang: ts
+        text: |
+          import { createHmac, timingSafeEqual } from 'node:crypto';
+          import { EDIT_PASSWORD } from '$app/env/private';
+
+          export const COOKIE = 'editor';
+
+          function sign(text: string) {
+          	return createHmac('sha256', EDIT_PASSWORD).update(text).digest();
+          }
+
+          /** The value of the cookie that proves someone typed the password. */
+          export function sessionToken() {
+          	return sign('reading-list-editor').toString('hex');
+          }
+
+          export function passwordIsRight(input: unknown) {
+          	if (typeof input !== 'string') return false;
+          	// Compare fixed-length digests in constant time, so the timing leaks nothing
+          	return timingSafeEqual(sign(input), sign(EDIT_PASSWORD));
+          }
+
+          export function isEditor(cookie: string | undefined) {
+          	if (!cookie) return false;
+          	const a = Buffer.from(cookie);
+          	const b = Buffer.from(sessionToken());
+          	return a.length === b.length && timingSafeEqual(a, b);
+          }
+      - file: src/hooks.server.ts
+        lang: ts
+        text: |
+          import type { Handle, ServerInit } from '@sveltejs/kit/hooks';
+          import { db } from '#lib/server/db.js';
+          import { COOKIE, isEditor } from '#lib/server/auth.js';
+          import { migrate } from '#lib/server/store.js';
+
+          export const init: ServerInit = async () => {
+          	await migrate(db);
+          };
+
+          export const handle: Handle = async ({ event, resolve }) => {
+          	event.locals.canEdit = isEditor(event.cookies.get(COOKIE));
+
+          	const response = await resolve(event);
+          	response.headers.set('X-Content-Type-Options', 'nosniff');
+          	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+          	return response;
+          };
+      - file: src/app.d.ts
+        lang: ts
+        text: |
+          // See https://svelte.dev/docs/kit/types#app.d.ts
+          // for information about these interfaces
+          declare global {
+          	namespace App {
+          		interface Locals {
+          			canEdit: boolean;
+          		}
+          	}
+          }
+
+          export {};
+      - file: src/routes/login/+page.server.ts
+        lang: ts
+        text: |
+          import { fail, redirect } from '@sveltejs/kit';
+          import { COOKIE, passwordIsRight, sessionToken } from '#lib/server/auth.js';
+          import type { Actions } from './$types';
+
+          export const actions = {
+          	login: async ({ request, cookies }) => {
+          		const password = (await request.formData()).get('password');
+          		if (!passwordIsRight(password)) return fail(400, { wrong: true });
+          		cookies.set(COOKIE, sessionToken(), {
+          			path: '/',
+          			httpOnly: true,
+          			sameSite: 'lax',
+          			maxAge: 60 * 60 * 24 * 30
+          		});
+          		redirect(303, '/');
+          	},
+
+          	logout: async ({ cookies }) => {
+          		cookies.delete(COOKIE, { path: '/' });
+          		redirect(303, '/');
+          	}
+          } satisfies Actions;
+      - file: src/routes/login/+page.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { enhance } from '$app/forms';
+          	import type { PageProps } from './$types';
+
+          	let { form }: PageProps = $props();
+          </script>
+
+          <svelte:head>
+          	<title>Log in - Reading list</title>
+          </svelte:head>
+
+          <h1>Log in</h1>
+          <p>Only the owner of this list can add, change and delete books.</p>
+
+          <form method="POST" action="?/login" use:enhance>
+          	<label>
+          		Password
+          		<input type="password" name="password" autocomplete="current-password" required />
+          	</label>
+          	{#if form?.wrong}<p class="error">Wrong password</p>{/if}
+          	<button>Log in</button>
+          </form>
+
+          <style>
+          	.error {
+          		color: #cf222e;
+          	}
+          </style>
+      - file: src/routes/+page.server.ts
+        lang: ts
+        text: |
+          // load: take locals and send canEdit
+          export const load: PageServerLoad = async ({ locals }) => {
+          	return { books: await listBooks(db), canEdit: locals.canEdit };
+          };
+
+          // first line of each of the three actions (add, next, remove);
+          // add `locals` next to `request`, for example: add: async ({ request, locals }) => {
+          if (!locals.canEdit) return fail(403, { message: 'Log in to edit' });
+      - file: src/lib/components/BookCard.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { enhance } from '$app/forms';
+          	import { STATUS_LABEL, type Book } from '#lib/books.js';
+
+          	let { book, editable = false }: { book: Book; editable?: boolean } = $props();
+          </script>
+
+          <li class="card">
+          	<div>
+          		<strong>{book.title}</strong>
+          		<span class="author">by {book.author}</span>
+          	</div>
+          	{#if editable}
+          		<div class="actions">
+          			<form method="POST" action="?/next" use:enhance>
+          				<input type="hidden" name="id" value={book.id} />
+          				<button class="badge {book.status}" title="Move to the next status">
+          					{STATUS_LABEL[book.status]}
+          				</button>
+          			</form>
+          			<form method="POST" action="?/remove" use:enhance>
+          				<input type="hidden" name="id" value={book.id} />
+          				<button aria-label="Delete {book.title}">Delete</button>
+          			</form>
+          		</div>
+          	{:else}
+          		<span class="badge {book.status}">{STATUS_LABEL[book.status]}</span>
+          	{/if}
+          </li>
+
+          <style>
+          	.card {
+          		display: flex;
+          		justify-content: space-between;
+          		align-items: center;
+          		gap: 1rem;
+          		padding: 0.75rem 1rem;
+          		border: 1px solid #d0d7de;
+          		border-radius: 8px;
+          		list-style: none;
+          	}
+          	.author {
+          		color: #57606a;
+          		margin-left: 0.5rem;
+          	}
+          	.actions {
+          		display: flex;
+          		gap: 0.5rem;
+          	}
+          	.badge {
+          		border: 0;
+          		border-radius: 999px;
+          		padding: 0.25rem 0.75rem;
+          		cursor: pointer;
+          		background: #eaeef2;
+          	}
+          	.reading {
+          		background: #fff1c2;
+          	}
+          	.done {
+          		background: #c9f2d3;
+          	}
+          </style>
+      - file: src/lib/components/AddBookForm.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { enhance } from '$app/forms';
+          	import { MAX_AUTHOR, MAX_TITLE, type BookErrors } from '#lib/books.js';
+
+          	interface Props {
+          		errors?: BookErrors;
+          		title?: string;
+          		author?: string;
+          	}
+
+          	let { errors, title = '', author = '' }: Props = $props();
+          </script>
+
+          <form method="POST" action="?/add" use:enhance>
+          	<label>
+          		Title
+          		<input name="title" value={title} maxlength={MAX_TITLE} aria-invalid={errors?.title ? 'true' : undefined} />
+          		{#if errors?.title}<span class="error">{errors.title}</span>{/if}
+          	</label>
+          	<label>
+          		Author
+          		<input name="author" value={author} maxlength={MAX_AUTHOR} aria-invalid={errors?.author ? 'true' : undefined} />
+          		{#if errors?.author}<span class="error">{errors.author}</span>{/if}
+          	</label>
+          	<button>Add</button>
+          </form>
+
+          <style>
+          	form {
+          		display: flex;
+          		flex-wrap: wrap;
+          		align-items: end;
+          		gap: 0.5rem;
+          	}
+          	label {
+          		display: grid;
+          	}
+          	.error {
+          		color: #cf222e;
+          		font-size: 0.875rem;
+          	}
+          </style>
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <!-- replace <AddBookForm ... /> and <BookCard {book} /> in the markup with: -->
+          {#if data.canEdit}
+          	<AddBookForm errors={form?.errors} title={form?.title} author={form?.author} />
+          	<form method="POST" action="/login?/logout">
+          		<button>Log out</button>
+          	</form>
+          {:else}
+          	<p><a href="/login">Log in</a> to add or change books.</p>
+          {/if}
+
+          <!-- and inside the each block: -->
+          <BookCard {book} editable={data.canEdit} />
+      - file: vite.config.ts
+        lang: ts
+        text: |
+          // inside sveltekit({ ... }), after adapter: adapter(),
+          csp: {
+          	directives: {
+          		'script-src': ['self'],
+          		'object-src': ['none'],
+          		'base-uri': ['self'],
+          		'frame-ancestors': ['none']
+          	}
+          }
+      - file: src/lib/books.test.ts
+        lang: ts
+        text: |
+          // import { MAX_TITLE, nextStatus, validateBook } from './books.js';
+          // and inside describe('validateBook', ...):
+          it('refuses a very long title', () => {
+          	const result = validateBook('x'.repeat(MAX_TITLE + 1), 'Someone');
+          	expect(result).toEqual({
+          		ok: false,
+          		errors: { title: `Title is at most ${MAX_TITLE} characters` }
+          	});
+          });
+      - file: src/lib/components/BookCard.svelte.test.ts
+        lang: ts
+        text: |
+          import { render, screen } from '@testing-library/svelte';
+          import { describe, expect, it } from 'vitest';
+          import BookCard from './BookCard.svelte';
+
+          const book = { id: 1, title: 'Dune', author: 'Frank Herbert', status: 'reading' } as const;
+
+          describe('BookCard', () => {
+          	it('shows the title, the author and the status', () => {
+          		render(BookCard, { book });
+          		expect(screen.getByText('Dune')).toBeTruthy();
+          		expect(screen.getByText('by Frank Herbert')).toBeTruthy();
+          		expect(screen.getByText('Reading')).toBeTruthy();
+          	});
+
+          	it('has no buttons for a visitor', () => {
+          		render(BookCard, { book });
+          		expect(screen.queryAllByRole('button')).toHaveLength(0);
+          	});
+
+          	it('has a status and a delete button for the owner', () => {
+          		render(BookCard, { book, editable: true });
+          		expect(screen.getByRole('button', { name: 'Reading' })).toBeTruthy();
+          		expect(screen.getByRole('button', { name: 'Delete Dune' })).toBeTruthy();
+          	});
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm test
+          npm run build && npm run preview
+          # in a second terminal: a form post that claims to come from another site is refused
+          curl -i -X POST -H 'Origin: http://evil.example' -d 'password=x' 'http://localhost:4173/login?/login'
+    mistakes:
+      - problem:
+          en: "Hiding the Delete button from visitors and thinking the app is protected."
+          tr: "Delete düğmesini ziyaretçilerden gizleyip uygulamanın korunduğunu sanmak."
+        fix:
+          en: "Anyone can send a POST by hand. The check that matters is `if (!locals.canEdit)` inside every action, on the server."
+          tr: "Herkes elle POST gönderebilir. Önemli olan kontrol, sunucuda her action'ın içindeki `if (!locals.canEdit)`'tir."
+      - problem:
+          en: "Putting the password or a token in the code, in `.env.example` or in a commit."
+          tr: "Parolayı ya da bir token'ı koda, `.env.example`'a ya da bir commit'e koymak."
+        fix:
+          en: "Real values only in `.env` and in the host's settings. If a secret was committed, change it now: deleting the file later does not remove it from the history."
+          tr: "Gerçek değerler sadece `.env`'de ve host'un ayarlarında. Bir secret commit'lendiyse hemen değiştir: dosyayı sonradan silmek onu geçmişten kaldırmaz."
+      - problem:
+          en: "Using `{@html}` to show a book title, because a title with `<b>` looked wrong."
+          tr: "İçinde `<b>` olan bir başlık yanlış göründüğü için kitap başlığını `{@html}` ile göstermek."
+        fix:
+          en: "Keep `{book.title}`. Svelte shows the text as text, so a title like `<script>` is harmless. `{@html}` with visitor input opens the page to XSS."
+          tr: "`{book.title}`'ı koru. Svelte metni metin olarak gösterir; `<script>` gibi bir başlık zararsızdır. Ziyaretçi girdisiyle `{@html}` sayfayı XSS'e açar."
+    quiz:
+      - q:
+          en: "Where must the check that decides who may delete a book be?"
+          tr: "Kimin kitap silebileceğine karar veren kontrol nerede olmalı?"
+        options:
+          en:
+            - Only in the Svelte component that shows the button
+            - In the server action, on every request
+            - In the CSS
+          tr:
+            - Sadece düğmeyi gösteren Svelte component'inde
+            - Sunucudaki action'da, her istekte
+            - CSS'te
+        answer: 1
+        why:
+          en: "The browser is under the visitor's control. Only code that runs on your server can enforce a rule."
+          tr: "Tarayıcı ziyaretçinin kontrolündedir. Bir kuralı sadece senin sunucunda çalışan kod uygulatabilir."
+      - q:
+          en: "What does an httpOnly cookie protect against?"
+          tr: "httpOnly cookie neye karşı korur?"
+        options:
+          en:
+            - JavaScript on the page reading the cookie
+            - Forgetting the password
+            - Slow pages
+          tr:
+            - Sayfadaki JavaScript'in cookie'yi okumasına
+            - Parolanın unutulmasına
+            - Yavaş sayfalara
+        answer: 0
+        why:
+          en: "The browser hides httpOnly cookies from scripts, so an XSS bug cannot simply copy the session."
+          tr: "Tarayıcı httpOnly cookie'leri script'lerden saklar; böylece bir XSS açığı oturumu öylece kopyalayamaz."
+    sources:
+      - title: SvelteKit, hooks (handle)
+        url: https://svelte.dev/docs/kit/hooks
+      - title: SvelteKit, configuration (csp and csrf)
+        url: https://svelte.dev/docs/kit/@sveltejs-kit-vite
+      - title: MDN, Content Security Policy
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Performance: prerender, indexes and measuring"
+      tr: "Performans: prerender, index'ler ve ölçme"
+    minutes: 45
+    needs: [security]
+    why:
+      en: "A fast page keeps visitors, and fast pages cost a free server less work. The biggest wins are cheap: do work once at build time instead of on every visit, make the database find rows without reading all of them, and measure before you guess."
+      tr: "Hızlı sayfa ziyaretçiyi tutar, hızlı sayfalar da ücretsiz bir sunucuya daha az iş yükler. En büyük kazançlar ucuzdur: işi her ziyarette değil build sırasında bir kez yap, veritabanının tüm satırları okumadan satır bulmasını sağla ve tahmin etmeden önce ölç."
+    learn:
+      en: |
+        - `export const prerender = true` makes a page static HTML built once, which is perfect for pages that are the same for everybody (like About)
+        - SvelteKit already splits code per page, adds hashed file names for long caching and, with `adapter-node`, ships compressed (`.br`, `.gz`) copies of the assets
+        - `data-sveltekit-preload-data="hover"` (already in `src/app.html`) starts loading a page when the pointer is over its link
+        - An index lets SQLite jump to rows with a given value instead of scanning the whole table. On Turso's free plan reads are also counted, so fewer rows read is more headroom
+        - `LIMIT` stops a list from growing without end
+        - Measure: Lighthouse in Chrome DevTools, and the sizes `npm run build` prints
+      tr: |
+        - `export const prerender = true` sayfayı build sırasında bir kez üretilen statik HTML yapar; herkes için aynı olan sayfalara (About gibi) birebirdir
+        - SvelteKit kodu zaten sayfa sayfa böler, uzun süre cache'lenebilsin diye hash'li dosya adları ekler ve `adapter-node` ile asset'lerin sıkıştırılmış (`.br`, `.gz`) kopyalarını da sunar
+        - `data-sveltekit-preload-data="hover"` (zaten `src/app.html` içinde) fare link'in üstüne gelince sayfayı yüklemeye başlar
+        - Index, SQLite'ın tüm tabloyu taramak yerine belirli değere sahip satırlara atlamasını sağlar. Turso'nun ücretsiz planında okumalar sayılır da; daha az satır okumak daha çok pay demektir
+        - `LIMIT` bir listenin sonsuza kadar büyümesini engeller
+        - Ölç: Chrome DevTools'ta Lighthouse ve `npm run build`'in yazdığı boyutlar
+    do:
+      en: |
+        1. Create `src/routes/about/+page.ts` with the one line below. The About page is now built as a file at build time.
+        2. In `src/lib/server/store.ts` add the index line to `migrate` (right after the `CREATE TABLE`), and add `LIMIT 100` to the query in `listBooks`.
+        3. Build and look: `npm run build`. The output lists the client files with their sizes (a few kilobytes each). In the `build` folder find `prerendered/about.html`.
+        4. Measure the page's weight: start `node --env-file=.env build` and run the `curl` command below. It prints the bytes sent when the browser asks for compressed content. Stop the server with Ctrl+C.
+        5. Run Lighthouse: open the app (`npm run preview`) in Chrome, open DevTools, the *Lighthouse* tab, choose *Navigation* and run it. Read the scores for Performance, Accessibility and Best Practices and the list of suggestions. A page this small should score high; the value is learning to read the report.
+        6. Run `npm test` and commit: `git add .` and `git commit -m "Prerender, index and limit"`.
+      tr: |
+        1. Aşağıdaki tek satırla `src/routes/about/+page.ts` oluştur. About sayfası artık build sırasında bir dosya olarak üretilir.
+        2. `src/lib/server/store.ts` içinde `migrate`'e index satırını ekle (`CREATE TABLE`'ın hemen sonrasına) ve `listBooks`'taki sorguya `LIMIT 100` ekle.
+        3. Build edip bak: `npm run build`. Çıktı istemci dosyalarını boyutlarıyla listeler (her biri birkaç kilobayt). `build` klasöründe `prerendered/about.html`'i bul.
+        4. Sayfanın ağırlığını ölç: `node --env-file=.env build` başlat ve aşağıdaki `curl` komutunu çalıştır. Tarayıcı sıkıştırılmış içerik isteyince gönderilen bayt sayısını yazar. Sunucuyu Ctrl+C ile durdur.
+        5. Lighthouse çalıştır: uygulamayı (`npm run preview`) Chrome'da aç, DevTools'u, *Lighthouse* sekmesini aç, *Navigation*'ı seç ve çalıştır. Performance, Accessibility ve Best Practices puanlarını ve öneri listesini oku. Bu kadar küçük bir sayfa yüksek puan almalı; asıl değer raporu okumayı öğrenmek.
+        6. `npm test` çalıştır ve commit'le: `git add .` ve `git commit -m "Prerender, index and limit"`.
+    code:
+      - file: src/routes/about/+page.ts
+        lang: ts
+        text: |
+          export const prerender = true;
+      - file: src/lib/server/store.ts
+        lang: ts
+        text: |
+          // in migrate(), right after the CREATE TABLE statement
+          await db.execute('CREATE INDEX IF NOT EXISTS books_status ON books (status)');
+
+          // in listBooks(), the query becomes
+          const { rows } = await db.execute(
+          	'SELECT id, title, author, status FROM books ORDER BY id DESC LIMIT 100'
+          );
+      - file: terminal
+        lang: sh
+        text: |
+          curl -s -H 'accept-encoding: br' -o /dev/null -w '%{size_download} bytes\n' http://localhost:3000/
+    mistakes:
+      - problem:
+          en: "Prerendering a page that shows different content per visitor, like the home page with the owner's buttons."
+          tr: "Ziyaretçiye göre farklı içerik gösteren bir sayfayı prerender etmek, örneğin sahibinin düğmelerini gösteren ana sayfa."
+        fix:
+          en: "Prerender only pages that are the same for everyone. The home page reads the cookie and the database on each request, so it stays dynamic."
+          tr: "Sadece herkes için aynı olan sayfaları prerender et. Ana sayfa her istekte cookie'yi ve veritabanını okur; bu yüzden dinamik kalır."
+      - problem:
+          en: "Optimizing without measuring, for example rewriting components to save a few bytes."
+          tr: "Ölçmeden optimize etmek, örneğin birkaç bayt kazanmak için component'leri yeniden yazmak."
+        fix:
+          en: "Run Lighthouse first and fix what the report says matters most. Often it is an image or a slow query, not the framework."
+          tr: "Önce Lighthouse çalıştır ve raporun en önemli dediğini düzelt. Çoğu zaman sorun framework değil, bir görsel ya da yavaş bir sorgudur."
+    quiz:
+      - q:
+          en: "Which page is a good candidate for `prerender = true`?"
+          tr: "Hangi sayfa `prerender = true` için iyi bir adaydır?"
+        options:
+          en:
+            - A page that shows the logged-in user's private data
+            - The About page, the same for everyone
+            - The page that handles a form post
+          tr:
+            - Giriş yapmış kullanıcının özel verisini gösteren sayfa
+            - Herkes için aynı olan About sayfası
+            - Form gönderimini işleyen sayfa
+        answer: 1
+        why:
+          en: "Prerendering saves one HTML file at build time, so it only fits pages whose content never depends on the visitor."
+          tr: "Prerender, build sırasında tek bir HTML dosyası kaydeder; bu yüzden sadece içeriği ziyaretçiye hiç bağlı olmayan sayfalara uyar."
+    sources:
+      - title: SvelteKit, page options (prerender)
+        url: https://svelte.dev/docs/kit/page-options
+      - title: SvelteKit, performance
+        url: https://svelte.dev/docs/kit/performance
+      - title: SQLite, CREATE INDEX
+        url: https://www.sqlite.org/lang_createindex.html
+
+  - id: build
+    stage: packaging
+    title:
+      en: "Choose an adapter and build for production"
+      tr: "Adapter seçme ve production için build"
+    minutes: 30
+    needs: [performance]
+    why:
+      en: "`npm run dev` is for you. A host needs a built, optimized app it can start with one command. The adapter decides what that build looks like, so the choice depends on where the app will run."
+      tr: "`npm run dev` senin için. Bir host'un tek komutla başlatabileceği, build edilmiş ve optimize edilmiş bir uygulamaya ihtiyacı var. Build'in neye benzeyeceğine adapter karar verir; yani seçim uygulamanın nerede çalışacağına bağlıdır."
+    learn:
+      en: |
+        - **`adapter-node`**: a plain Node server (`node build`). Works on any host that runs Node: Render, Railway, Fly.io, a VPS, Docker. Our choice, because the app has server code (actions and a database)
+        - **`adapter-static`**: only files, for hosts like GitHub Pages. It cannot run form actions or server `load`, so it does not fit this app. It is right for a fully static site
+        - **`adapter-vercel`**, **`adapter-netlify`**, **`adapter-cloudflare`**: bundles for those platforms; `adapter-auto` picks one by itself when it detects one of them, which is why it is a poor fit for a server you run yourself
+        - In production `.env` is not read automatically: run `node --env-file=.env build`, or set real environment variables on the host
+        - The server listens on `PORT` (default 3000) and `HOST` (default 0.0.0.0)
+        - `adapter-node` assumes https unless told otherwise. Over plain http, form posts are refused as "cross-site". In SvelteKit 3 the old `ORIGIN` variable of the server is gone: the public address is the `paths.origin` option, which you can fill from an environment variable in `vite.config.ts`. It is read at build time, so set it when you run `npm run build`
+      tr: |
+        - **`adapter-node`**: düz bir Node sunucusu (`node build`). Node çalıştıran her host'ta çalışır: Render, Railway, Fly.io, bir VPS, Docker. Bizim seçimimiz, çünkü uygulamanın sunucu kodu (action'lar ve veritabanı) var
+        - **`adapter-static`**: sadece dosyalar, GitHub Pages gibi host'lar için. Form action'larını ya da sunucu `load`'unu çalıştıramaz; bu yüzden bu uygulamaya uymaz. Tamamen statik bir site için doğrusudur
+        - **`adapter-vercel`**, **`adapter-netlify`**, **`adapter-cloudflare`**: o platformlar için paketler; `adapter-auto` bunlardan birini algılarsa kendisi seçer, bu yüzden kendi çalıştırdığın bir sunucu için zayıf bir seçimdir
+        - Production'da `.env` otomatik okunmaz: `node --env-file=.env build` çalıştır ya da host'ta gerçek ortam değişkenleri ayarla
+        - Sunucu `PORT` (varsayılan 3000) ve `HOST` (varsayılan 0.0.0.0) üzerinde dinler
+        - `adapter-node` aksi söylenmedikçe https varsayar. Düz http üzerinde form gönderimleri "cross-site" diye reddedilir. SvelteKit 3'te sunucunun eski `ORIGIN` değişkeni yok: herkese açık adres `paths.origin` seçeneğidir ve onu `vite.config.ts` içinde bir ortam değişkeninden doldurabilirsin. Build sırasında okunur; bu yüzden `npm run build` çalıştırırken ayarla
+    do:
+      en: |
+        1. Check that `vite.config.ts` uses `adapter-node` (the template put it there). Open `.gitignore` and see that `/build` and `.svelte-kit` are listed: build output is never committed.
+        2. Run the three checks that every deploy should pass: `npm run check`, `npm test` and `npm run build`.
+        3. Start the built app: `node --env-file=.env build`. Open http://localhost:3000. The pages load, the books are there. Stop it with Ctrl+C.
+        4. Try another port: `PORT=4000 node --env-file=.env build`. (Windows PowerShell: set `$env:PORT=4000` on its own line first.)
+        5. See the https assumption: while `node build` runs, try to log in on http://localhost:3000. The browser shows "Cross-site POST form submissions are forbidden". Stop the server. In `vite.config.ts` add `paths: { origin: process.env.ORIGIN }` to the `sveltekit()` options (snippet below), rebuild with `ORIGIN=http://localhost:3000 npm run build` (Windows PowerShell: `$env:ORIGIN="http://localhost:3000"` on its own line first) and start `node --env-file=.env build` again. Logging in works now. On a real host you do not need this: it serves https and passes the `Host` header, so the address is worked out by itself. Setting `ORIGIN` to the real URL is only the fix when a proxy hides it.
+        6. Commit: `git add .` and `git commit -m "Production build"`.
+      tr: |
+        1. `vite.config.ts`'in `adapter-node` kullandığını kontrol et (şablon onu koydu). `.gitignore`'u aç ve `/build` ile `.svelte-kit`'in listede olduğunu gör: build çıktısı asla commit'lenmez.
+        2. Her deploy'un geçmesi gereken üç kontrolü çalıştır: `npm run check`, `npm test` ve `npm run build`.
+        3. Build edilen uygulamayı başlat: `node --env-file=.env build`. http://localhost:3000 adresini aç. Sayfalar yüklenir, kitaplar orada. Ctrl+C ile durdur.
+        4. Başka bir port dene: `PORT=4000 node --env-file=.env build`. (Windows PowerShell: önce ayrı bir satırda `$env:PORT=4000` yaz.)
+        5. https varsayımını gör: `node build` çalışırken http://localhost:3000 adresinde giriş yapmayı dene. Tarayıcı "Cross-site POST form submissions are forbidden" gösterir. Sunucuyu durdur. `vite.config.ts` içinde `sveltekit()` seçeneklerine `paths: { origin: process.env.ORIGIN }` ekle (aşağıdaki kod), `ORIGIN=http://localhost:3000 npm run build` ile yeniden build et (Windows PowerShell: önce ayrı satırda `$env:ORIGIN="http://localhost:3000"`) ve `node --env-file=.env build`'i yeniden başlat. Artık giriş çalışır. Gerçek bir host'ta buna gerek yok: https sunar ve `Host` header'ını iletir; adres kendiliğinden çıkarılır. `ORIGIN`'i gerçek URL'ye ayarlamak sadece bir proxy onu saklıyorsa çözümdür.
+        6. Commit'le: `git add .` ve `git commit -m "Production build"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm run check
+          npm test
+          npm run build
+          node --env-file=.env build
+      - file: vite.config.ts
+        lang: ts
+        text: |
+          // the adapter lives in the sveltekit() options
+          import adapter from '@sveltejs/adapter-node';
+
+          sveltekit({
+          	adapter: adapter(),
+          	// the public address, used for the form (CSRF) check; read at build time
+          	paths: { origin: process.env.ORIGIN }
+          	// ...
+          });
+    mistakes:
+      - problem:
+          en: "`node build` starts and then stops with \"env_invalid\" and EDIT_PASSWORD."
+          tr: "`node build` başlıyor ve sonra \"env_invalid\" ve EDIT_PASSWORD ile duruyor."
+        fix:
+          en: "The built server does not read `.env` by itself. Start it with `node --env-file=.env build`, or set `EDIT_PASSWORD` in the environment."
+          tr: "Build edilen sunucu `.env`'i kendiliğinden okumaz. `node --env-file=.env build` ile başlat ya da ortamda `EDIT_PASSWORD` ayarla."
+      - problem:
+          en: "\"Cross-site POST form submissions are forbidden\" on a live site."
+          tr: "Canlı sitede \"Cross-site POST form submissions are forbidden\"."
+        fix:
+          en: "The server could not work out the public address. Render passes the `Host` header and serves https, so it normally works. If a proxy hides the real host, or you run over http, set `paths.origin` (the `ORIGIN` line in `vite.config.ts`) and set the `ORIGIN` environment variable to the exact public URL, for example `https://reading-list-abc.onrender.com`, on Render too. It is read at build time, so redeploy after adding it. The server's own `ORIGIN` variable of older SvelteKit versions no longer does anything."
+          tr: "Sunucu herkese açık adresi çıkaramadı. Render `Host` header'ını iletir ve https sunar; bu yüzden normalde çalışır. Bir proxy gerçek host'u saklıyorsa ya da http üzerinde çalışıyorsan `paths.origin`'i (`vite.config.ts` içindeki `ORIGIN` satırı) ayarla ve `ORIGIN` ortam değişkenini tam herkese açık URL'ye ayarla, örneğin `https://reading-list-abc.onrender.com`; Render'da da. Build sırasında okunur; bu yüzden ekledikten sonra yeniden deploy et. Eski SvelteKit sürümlerindeki sunucunun kendi `ORIGIN` değişkeni artık bir şey yapmaz."
+      - problem:
+          en: "Choosing `adapter-static` for an app with forms and a database."
+          tr: "Form'ları ve veritabanı olan bir uygulama için `adapter-static` seçmek."
+        fix:
+          en: "Static files cannot run server code. Use `adapter-node` (or a platform adapter) for apps with actions and databases."
+          tr: "Statik dosyalar sunucu kodu çalıştıramaz. Action'ları ve veritabanı olan uygulamalar için `adapter-node` (ya da bir platform adapter'ı) kullan."
+    quiz:
+      - q:
+          en: "Which adapter fits an app that has form actions and a database, and runs on a host that offers Node.js?"
+          tr: "Form action'ları ve veritabanı olan, Node.js sunan bir host'ta çalışan uygulamaya hangi adapter uyar?"
+        options:
+          en:
+            - adapter-static
+            - adapter-node
+            - No adapter is needed
+          tr:
+            - adapter-static
+            - adapter-node
+            - Adapter gerekmez
+        answer: 1
+        why:
+          en: "adapter-node builds a server that runs your server code. adapter-static only makes files."
+          tr: "adapter-node, sunucu kodunu çalıştıran bir sunucu üretir. adapter-static sadece dosya üretir."
+    sources:
+      - title: SvelteKit, adapters
+        url: https://svelte.dev/docs/kit/adapters
+      - title: SvelteKit, adapter-node
+        url: https://svelte.dev/docs/kit/adapter-node
+      - title: SvelteKit, adapter-static
+        url: https://svelte.dev/docs/kit/adapter-static
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on Render with a Turso database"
+      tr: "Turso veritabanıyla Render'da ücretsiz deploy"
+    minutes: 90
+    needs: [build]
+    why:
+      en: "Deploying puts your app on the internet. Render runs a Node web service on its free instance type. Its disk is thrown away whenever the service restarts, redeploys or sleeps, so a `local.db` file would lose your books. The live site therefore uses Turso, a free hosted SQLite that your code already speaks."
+      tr: "Deploy uygulamanı internete koyar. Render, ücretsiz instance türünde bir Node web servisi çalıştırır. Disk servis yeniden başladığında, yeniden deploy edildiğinde ya da uyuduğunda atılır; bu yüzden bir `local.db` dosyası kitaplarını kaybederdi. Canlı site bu yüzden, kodunun zaten konuştuğu ücretsiz barındırılan bir SQLite olan Turso'yu kullanır."
+    learn:
+      en: |
+        - Why a host with a throwaway disk needs a hosted database, and how the same code uses `file:local.db` on your computer and a `libsql://` address live (only `DATABASE_URL` changes)
+        - Environment variables on the host: the secrets you put in `.env` locally go into Render's settings
+        - The deploy flow: push to GitHub, Render builds (`npm ci && npm run build`) and starts (`node build`); every push to `main` deploys again
+        - **Render free web services** (Render docs, "Deploy for Free"): they spin down after 15 minutes without traffic and take about a minute to start again; the filesystem is ephemeral; a workspace gets 750 free instance hours per month, and outbound bandwidth and build minutes are limited; Render says free instances are not for production use. Read the current page before you rely on it
+        - **Turso free plan** (turso.tech/pricing): at the time of writing 100 databases, 5 GB of storage, 500 million rows read and 10 million rows written per month, no credit card. Plans change, so check the page
+        - Other free-tier hosts work with the same `adapter-node` app or with their own adapter (for example Vercel, Netlify or Cloudflare); read their limits the same way
+      tr: |
+        - Atılan diskli bir host'un neden barındırılan bir veritabanına ihtiyaç duyduğu ve aynı kodun bilgisayarında `file:local.db`'yi, canlıda `libsql://` adresini nasıl kullandığı (sadece `DATABASE_URL` değişir)
+        - Host üzerindeki ortam değişkenleri: yerelde `.env`'ye koyduğun secret'lar Render'ın ayarlarına girer
+        - Deploy akışı: GitHub'a push et, Render build eder (`npm ci && npm run build`) ve başlatır (`node build`); `main`'e her push yeniden deploy eder
+        - **Render ücretsiz web servisleri** (Render dokümanı, "Deploy for Free"): 15 dakika trafik almazsa uyurlar ve yeniden başlamaları yaklaşık bir dakika sürer; dosya sistemi geçicidir; bir workspace aylık 750 ücretsiz instance saati alır, giden bant genişliği ve build dakikaları sınırlıdır; Render ücretsiz instance'ların production için olmadığını söyler. Güvenmeden önce güncel sayfayı oku
+        - **Turso ücretsiz plan** (turso.tech/pricing): yazıldığı sırada 100 veritabanı, 5 GB depolama, ayda 500 milyon satır okuma ve 10 milyon satır yazma, kredi kartı yok. Planlar değişir; sayfaya bak
+        - Diğer ücretsiz katmanlı host'lar aynı `adapter-node` uygulamasıyla ya da kendi adapter'larıyla çalışır (örneğin Vercel, Netlify veya Cloudflare); limitlerini aynı şekilde oku
+    do:
+      en: |
+        1. Put the code on GitHub. On github.com create a new empty repository named `reading-list` (private is fine), then run the commands the page shows, like the first block below. Check that `.env` and `local.db` were not committed.
+        2. Install the Turso CLI (macOS: `brew install tursodatabase/tap/turso`; Linux and WSL: the `curl` line below), sign up, and create a database. Run the commands in the second block. Copy the address (`libsql://...`) and the token somewhere safe.
+        3. Sign up at render.com with your GitHub account. Choose *New → Web Service* and connect the `reading-list` repository.
+        4. Fill in the form: *Language* Node, *Build Command* `npm ci && npm run build`, *Start Command* `node build`, *Instance Type* **Free**.
+        5. Add four environment variables: `DATABASE_URL` (the libsql address), `DATABASE_AUTH_TOKEN` (the token), `EDIT_PASSWORD` (a new, long password; do not reuse the local one) and `NODE_VERSION` set to `24`. Press *Deploy Web Service* and wait for the log to say the service is live.
+        6. Open the `onrender.com` address Render shows. The first request after a sleep takes about a minute. The three starter books appear, because the app created the table in Turso when it started. Log in, add a book, change its status, delete it.
+        7. From now on, `git push` to `main` deploys a new version by itself. Test it: change the About text, commit, push and watch the deploy.
+      tr: |
+        1. Kodu GitHub'a koy. github.com'da `reading-list` adında yeni boş bir repository oluştur (private olabilir), sonra sayfanın gösterdiği komutları çalıştır; aşağıdaki ilk blok gibi. `.env` ve `local.db`'nin commit'lenmediğini kontrol et.
+        2. Turso CLI'ı kur (macOS: `brew install tursodatabase/tap/turso`; Linux ve WSL: aşağıdaki `curl` satırı), kayıt ol ve bir veritabanı oluştur. İkinci bloktaki komutları çalıştır. Adresi (`libsql://...`) ve token'ı güvenli bir yere kopyala.
+        3. render.com'a GitHub hesabınla kayıt ol. *New → Web Service* seç ve `reading-list` repository'sini bağla.
+        4. Formu doldur: *Language* Node, *Build Command* `npm ci && npm run build`, *Start Command* `node build`, *Instance Type* **Free**.
+        5. Dört ortam değişkeni ekle: `DATABASE_URL` (libsql adresi), `DATABASE_AUTH_TOKEN` (token), `EDIT_PASSWORD` (yeni, uzun bir parola; yereldekini kullanma) ve `24` değerli `NODE_VERSION`. *Deploy Web Service*'e bas ve log servisin canlı olduğunu söyleyene kadar bekle.
+        6. Render'ın gösterdiği `onrender.com` adresini aç. Uykudan sonraki ilk istek yaklaşık bir dakika sürer. Üç başlangıç kitabı görünür; çünkü uygulama başlarken Turso'da tabloyu oluşturdu. Giriş yap, kitap ekle, durumunu değiştir, sil.
+        7. Bundan sonra `main`'e her `git push` yeni bir sürümü kendiliğinden deploy eder. Dene: About metnini değiştir, commit'le, push et ve deploy'u izle.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git remote add origin https://github.com/YOUR-NAME/reading-list.git
+          git branch -M main
+          git push -u origin main
+      - file: terminal
+        lang: sh
+        text: |
+          curl -sSfL https://get.tur.so/install.sh | bash
+          turso auth signup
+          turso db create reading-list
+          turso db show reading-list --url
+          turso db tokens create reading-list
+      - file: terminal
+        lang: sh
+        text: |
+          # Render settings, as typed in the form
+          # Build Command:  npm ci && npm run build
+          # Start Command:  node build
+          # Environment:    DATABASE_URL, DATABASE_AUTH_TOKEN, EDIT_PASSWORD, NODE_VERSION=24
+    mistakes:
+      - problem:
+          en: "The first visit after a quiet period shows a loading page for about a minute."
+          tr: "Sessiz bir dönemden sonraki ilk ziyaret yaklaşık bir dakika boyunca bir yükleniyor sayfası gösteriyor."
+        fix:
+          en: "That is the free instance waking up. It is the price of the free tier. A health check from an uptime service keeps it awake but also uses your 750 monthly hours, so decide on purpose."
+          tr: "Bu, ücretsiz instance'ın uyanmasıdır. Ücretsiz katmanın bedelidir. Bir uptime servisinin sağlık kontrolü onu uyanık tutar ama aylık 750 saatini de harcar; bilerek karar ver."
+      - problem:
+          en: "The deploy fails with \"env_invalid\" or the app crashes at start."
+          tr: "Deploy \"env_invalid\" ile başarısız oluyor ya da uygulama başlarken çöküyor."
+        fix:
+          en: "Check the variable names and values in Render's *Environment* tab: `EDIT_PASSWORD` (at least 8 characters), `DATABASE_URL` starting with `libsql://` and the token without spaces or quotes."
+          tr: "Render'ın *Environment* sekmesindeki değişken adlarını ve değerlerini kontrol et: `EDIT_PASSWORD` (en az 8 karakter), `libsql://` ile başlayan `DATABASE_URL` ve boşluk ya da tırnak içermeyen token."
+      - problem:
+          en: "Pasting the real token or password into a file that is committed."
+          tr: "Gerçek token'ı ya da parolayı commit'lenen bir dosyaya yapıştırmak."
+        fix:
+          en: "Keep them only in `.env` (ignored by Git) and in Render's settings. If one leaks, create a new token (`turso db tokens create reading-list`) or a new password and update Render."
+          tr: "Onları sadece `.env`'de (Git yok sayar) ve Render ayarlarında tut. Biri sızarsa yeni bir token (`turso db tokens create reading-list`) ya da yeni bir parola üret ve Render'ı güncelle."
+    quiz:
+      - q:
+          en: "Why does the live site use Turso instead of the local.db file?"
+          tr: "Canlı site neden local.db dosyası yerine Turso kullanıyor?"
+        options:
+          en:
+            - SQLite is not allowed on the internet
+            - A free Render instance loses its files when it restarts, redeploys or sleeps
+            - Render blocks all databases
+          tr:
+            - SQLite internette yasak
+            - Ücretsiz bir Render instance'ı yeniden başladığında, yeniden deploy edildiğinde ya da uyuduğunda dosyalarını kaybeder
+            - Render bütün veritabanlarını engeller
+        answer: 1
+        why:
+          en: "The filesystem of a free web service is ephemeral, so data must live in a database outside it, such as Turso."
+          tr: "Ücretsiz bir web servisinin dosya sistemi geçicidir; bu yüzden veri Turso gibi onun dışındaki bir veritabanında durmalı."
+    sources:
+      - title: Render, deploy for free
+        url: https://render.com/docs/free
+      - title: Render, setting your Node.js version
+        url: https://render.com/docs/node-version
+      - title: Turso, pricing
+        url: https://turso.tech/pricing
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Error pages, logs and a health check"
+      tr: "Hata sayfaları, log'lar ve bir sağlık kontrolü"
+    minutes: 45
+    needs: [deploy]
+    why:
+      en: "Once real people use the site you cannot see their screens. An error page shows a friendly message instead of a blank page, the error hook writes every unexpected server error to the logs, and a health check lets a free monitor tell you when the site or the database is down."
+      tr: "Gerçek insanlar siteyi kullanmaya başlayınca onların ekranını göremezsin. Hata sayfası boş sayfa yerine dostça bir mesaj gösterir, error hook'u her beklenmeyen sunucu hatasını log'a yazar, sağlık kontrolü de site ya da veritabanı çöktüğünde ücretsiz bir izleyicinin sana haber vermesini sağlar."
+    learn:
+      en: |
+        - `+error.svelte` is the page shown for errors in that route and below; `page.status` and `page.error` from `$app/state` hold the details
+        - The server `handleError` hook in `hooks.server.ts` receives every error; its `kind` tells where it came from (`app`, `framework` such as a 404, `unknown` for bugs). In SvelteKit 3 it also receives the expected ones, so log only `unknown`. Whatever it returns is what visitors may see: never send the real message or stack trace
+        - An `errorId` in the log line and on the error page lets you find the log of a problem a visitor reports
+        - One JSON line per event with `console.error` makes logs searchable; on Render they appear in the service's *Logs* tab
+        - A `/health` endpoint that really asks the database answers 200 only when the app works; Render can use it as its health check, and an uptime service (UptimeRobot and similar have free plans) can call it every few minutes and email you when it fails
+        - Keep dependencies current: `npm outdated`, then update, test and deploy
+      tr: |
+        - `+error.svelte` o route'ta ve altında hata olunca gösterilen sayfadır; `$app/state` içindeki `page.status` ve `page.error` ayrıntıları taşır
+        - `hooks.server.ts` içindeki sunucu `handleError` hook'u her hatayı alır; `kind` hatanın nereden geldiğini söyler (`app`, 404 gibi `framework`, hatalar için `unknown`). SvelteKit 3'te beklenen hataları da alır; bu yüzden sadece `unknown`'ı logla. Döndürdüğü şeyi ziyaretçiler görebilir: gerçek mesajı ya da stack trace'i asla gönderme
+        - Log satırında ve hata sayfasında bir `errorId` olması, bir ziyaretçinin bildirdiği sorunun log'unu bulmanı sağlar
+        - `console.error` ile olay başına bir JSON satırı yazmak log'ları aranabilir yapar; Render'da servisin *Logs* sekmesinde görünür
+        - Veritabanına gerçekten soran bir `/health` endpoint'i sadece uygulama çalışıyorsa 200 döner; Render onu sağlık kontrolü olarak kullanabilir, bir uptime servisi (UptimeRobot ve benzerlerinin ücretsiz planı var) onu birkaç dakikada bir çağırıp bozulunca sana e-posta atabilir
+        - Bağımlılıkları güncel tut: `npm outdated`, sonra güncelle, test et ve deploy et
+    do:
+      en: |
+        1. Replace `src/app.d.ts` so the error object can carry an `errorId`.
+        2. Replace `src/hooks.server.ts`: it keeps `init` and `handle` and gets `handleError`.
+        3. Create `src/routes/+error.svelte`.
+        4. Create `src/routes/health/+server.ts`.
+        5. Locally, run `npm run dev` and open http://localhost:5173/nope: the friendly 404 page appears and the terminal shows no error log (a 404 is not an incident). Open http://localhost:5173/health: it answers `{"ok":true}`.
+        6. Run `npm run check`, `npm test`, commit and push: `git add .`, `git commit -m "Error page, logs and health check"`, `git push`. Wait for Render to deploy.
+        7. In Render open the service's *Logs* tab and watch the lines of the deploy and of the server. Open `/health` on the live address.
+        8. In Render's *Settings* set *Health Check Path* to `/health`. Render then calls it regularly and restarts an instance that does not answer.
+        9. Optional: create a free account at an uptime service such as UptimeRobot, add an HTTP monitor for `https://YOUR-SERVICE.onrender.com/health` every 5 minutes and set e-mail alerts. Remember that keeping a free Render instance awake uses its 750 monthly hours.
+      tr: |
+        1. Hata objesi bir `errorId` taşıyabilsin diye `src/app.d.ts` dosyasını değiştir.
+        2. `src/hooks.server.ts` dosyasını değiştir: `init` ve `handle`'ı korur, `handleError`'ı alır.
+        3. `src/routes/+error.svelte` oluştur.
+        4. `src/routes/health/+server.ts` oluştur.
+        5. Yerelde `npm run dev` çalıştır ve http://localhost:5173/nope adresini aç: dostça 404 sayfası görünür ve terminal hata log'u göstermez (404 bir olay değildir). http://localhost:5173/health adresini aç: `{"ok":true}` cevap verir.
+        6. `npm run check`, `npm test` çalıştır, commit'le ve push et: `git add .`, `git commit -m "Error page, logs and health check"`, `git push`. Render'ın deploy etmesini bekle.
+        7. Render'da servisin *Logs* sekmesini aç ve deploy'un ve sunucunun satırlarını izle. Canlı adreste `/health`'i aç.
+        8. Render'ın *Settings* kısmında *Health Check Path*'i `/health` yap. Render onu düzenli çağırır ve cevap vermeyen instance'ı yeniden başlatır.
+        9. İsteğe bağlı: UptimeRobot gibi bir uptime servisinde ücretsiz hesap aç, `https://SENIN-SERVISIN.onrender.com/health` için 5 dakikada bir çalışan bir HTTP monitor ekle ve e-posta uyarılarını aç. Ücretsiz bir Render instance'ını uyanık tutmanın aylık 750 saatini harcadığını unutma.
+    code:
+      - file: src/app.d.ts
+        lang: ts
+        text: |
+          // See https://svelte.dev/docs/kit/types#app.d.ts
+          // for information about these interfaces
+          declare global {
+          	namespace App {
+          		interface Error {
+          			errorId?: string;
+          		}
+          		interface Locals {
+          			canEdit: boolean;
+          		}
+          	}
+          }
+
+          export {};
+      - file: src/hooks.server.ts
+        lang: ts
+        text: |
+          import type { Handle, HandleServerError, ServerInit } from '@sveltejs/kit/hooks';
+          import { db } from '#lib/server/db.js';
+          import { COOKIE, isEditor } from '#lib/server/auth.js';
+          import { migrate } from '#lib/server/store.js';
+
+          export const init: ServerInit = async () => {
+          	await migrate(db);
+          };
+
+          export const handle: Handle = async ({ event, resolve }) => {
+          	event.locals.canEdit = isEditor(event.cookies.get(COOKIE));
+
+          	const response = await resolve(event);
+          	response.headers.set('X-Content-Type-Options', 'nosniff');
+          	response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+          	return response;
+          };
+
+          export const handleError: HandleServerError = ({ kind, error, event }) => {
+          	const errorId = crypto.randomUUID();
+
+          	// A missing page (404) is not an incident. Log only unexpected failures, as one JSON line each.
+          	if (kind === 'unknown') {
+          		console.error(
+          			JSON.stringify({
+          				level: 'error',
+          				errorId,
+          				kind,
+          				method: event.request.method,
+          				path: event.url.pathname,
+          				message: error instanceof Error ? error.message : String(error)
+          			})
+          		);
+          	}
+
+          	return { errorId };
+          };
+      - file: src/routes/+error.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { page } from '$app/state';
+          </script>
+
+          <svelte:head>
+          	<title>{page.status} - Reading list</title>
+          </svelte:head>
+
+          <h1>{page.status}</h1>
+          <p>{page.error?.message}</p>
+          {#if page.error?.errorId}
+          	<p>Quote this code if you report the problem: <code>{page.error.errorId}</code></p>
+          {/if}
+          <p><a href="/">Back to the list</a></p>
+      - file: src/routes/health/+server.ts
+        lang: ts
+        text: |
+          import { db } from '#lib/server/db.js';
+          import type { RequestHandler } from './$types';
+
+          export const GET: RequestHandler = async () => {
+          	try {
+          		await db.execute('SELECT 1');
+          		return Response.json({ ok: true });
+          	} catch (error) {
+          		console.error(JSON.stringify({ level: 'error', message: 'health check failed', error: String(error) }));
+          		return Response.json({ ok: false }, { status: 503 });
+          	}
+          };
+    mistakes:
+      - problem:
+          en: "Showing `error.message` or the stack trace of an unknown error to visitors."
+          tr: "Bilinmeyen bir hatanın `error.message`'ını ya da stack trace'ini ziyaretçilere göstermek."
+        fix:
+          en: "It can contain table names, paths or secrets. Log the details on the server and return only a safe message and the `errorId`, as `handleError` does."
+          tr: "Tablo adları, yollar ya da secret'lar içerebilir. Ayrıntıyı sunucuda logla ve `handleError`'ın yaptığı gibi sadece güvenli bir mesaj ve `errorId` döndür."
+      - problem:
+          en: "A health endpoint that always answers 200 without touching the database."
+          tr: "Veritabanına hiç dokunmadan hep 200 cevap veren bir sağlık endpoint'i."
+        fix:
+          en: "Run a cheap query such as `SELECT 1` and answer 503 if it fails, so the monitor sees the real state."
+          tr: "`SELECT 1` gibi ucuz bir sorgu çalıştır ve başarısız olursa 503 cevap ver; böylece izleyici gerçek durumu görür."
+      - problem:
+          en: "Logging every 404, so real errors drown in noise."
+          tr: "Her 404'ü loglamak; gerçek hatalar gürültüde kaybolur."
+        fix:
+          en: "Log only `kind === 'unknown'` (bugs and failures). Missing pages are normal on the internet."
+          tr: "Sadece `kind === 'unknown'` (hatalar ve arızalar) logla. Olmayan sayfalar internette normaldir."
+    quiz:
+      - q:
+          en: "What should `handleError` return for an unexpected error?"
+          tr: "Beklenmeyen bir hata için `handleError` ne döndürmeli?"
+        options:
+          en:
+            - The full error message and the stack trace
+            - A safe object, such as an errorId, while the details go to the log
+            - Nothing, and never log
+          tr:
+            - Tam hata mesajı ve stack trace
+            - Ayrıntı log'a giderken errorId gibi güvenli bir obje
+            - Hiçbir şey ve asla loglama
+        answer: 1
+        why:
+          en: "Visitors see what the hook returns, so it must be safe. The details belong in your logs, tied together by the errorId."
+          tr: "Ziyaretçiler hook'un döndürdüğünü görür; bu yüzden güvenli olmalı. Ayrıntı log'larına aittir ve errorId ile bağlanır."
+    sources:
+      - title: SvelteKit, errors
+        url: https://svelte.dev/docs/kit/errors
+      - title: SvelteKit, hooks (handleError)
+        url: https://svelte.dev/docs/kit/hooks
+      - title: Render, health checks
+        url: https://render.com/docs/health-checks
+
+  - id: search-url
+    stage: advanced
+    title:
+      en: "Filters in the URL and what to learn next"
+      tr: "URL'deki filtreler ve sonra ne öğrenmeli"
+    minutes: 45
+    needs: [monitoring]
+    why:
+      en: "A filter that lives in the URL can be bookmarked, shared and works without JavaScript. It also moves the work to the database, which is where it belongs once the list grows. This is the SvelteKit way of thinking: the URL is state."
+      tr: "URL'de yaşayan bir filtre yer imine eklenebilir, paylaşılabilir ve JavaScript olmadan çalışır. Ayrıca işi, liste büyüdükçe ait olduğu yere, veritabanına taşır. Bu SvelteKit'in düşünme biçimi: URL bir state'tir."
+    learn:
+      en: |
+        - `url.searchParams` in `load` reads `?status=reading`; always check the value (`isStatus`) before using it
+        - A normal `<a href="?status=done">` link changes the URL, and `load` runs again with the new value
+        - SQL can filter and count: `WHERE (?1 IS NULL OR status = ?1)` and `GROUP BY status` use the index from the performance step
+        - What to learn next: remote functions (an experimental SvelteKit feature for calling server code from components), end-to-end tests with Playwright (`npx sv add playwright`), passwords and sessions with a library such as Better Auth (`npx sv add better-auth`), and the Svelte documentation tutorial
+      tr: |
+        - `load` içindeki `url.searchParams` `?status=reading`'i okur; kullanmadan önce değeri her zaman kontrol et (`isStatus`)
+        - Normal bir `<a href="?status=done">` link'i URL'yi değiştirir ve `load` yeni değerle yeniden çalışır
+        - SQL süzebilir ve sayabilir: `WHERE (?1 IS NULL OR status = ?1)` ve `GROUP BY status` performans adımındaki index'i kullanır
+        - Sonra ne öğrenmeli: remote function'lar (component'lerden sunucu kodu çağırmak için deneysel bir SvelteKit özelliği), Playwright ile uçtan uca testler (`npx sv add playwright`), Better Auth gibi bir kütüphaneyle parolalar ve oturumlar (`npx sv add better-auth`) ve Svelte dokümanındaki tutorial
+    do:
+      en: |
+        1. In `src/lib/server/store.ts` replace `listBooks` with the version that takes `status` and `limit` options, and add `countBooks` (shown below).
+        2. Replace `src/routes/+page.server.ts` with the final version: `load` reads `?status=`, returns the books, the counts and the chosen status.
+        3. Replace `StatusFilter.svelte` with links instead of buttons (it no longer needs `$bindable`), and replace `src/routes/+page.svelte`: the counts come from the database, so the numbers stay right while the list is filtered.
+        4. Replace `StatusFilter.svelte.test.ts` and extend `store.test.ts` with the two tests shown. Run `npm test` and `npm run check`.
+        5. Try it in `npm run dev`: click the filters, copy the URL, open it in another tab, reload, press Back. Turn JavaScript off and use the filters: they still work, because they are plain links.
+        6. Commit, push and see the new version go live: `git add .`, `git commit -m "Filters in the URL"`, `git push`.
+        7. You now have a tested, secured, monitored app on the internet. Pick one item from "What to learn next" and add it to your project.
+      tr: |
+        1. `src/lib/server/store.ts` içinde `listBooks`'u `status` ve `limit` seçeneklerini alan sürümle değiştir ve `countBooks`'u ekle (aşağıda).
+        2. `src/routes/+page.server.ts` dosyasını son sürümle değiştir: `load` `?status=`'ü okur; kitapları, sayıları ve seçilen durumu döndürür.
+        3. `StatusFilter.svelte`'i düğmeler yerine link'lerle değiştir (artık `$bindable`'a gerek yok) ve `src/routes/+page.svelte`'i değiştir: sayılar veritabanından gelir; bu yüzden liste süzülürken rakamlar doğru kalır.
+        4. `StatusFilter.svelte.test.ts` dosyasını değiştir ve `store.test.ts`'i gösterilen iki testle genişlet. `npm test` ve `npm run check` çalıştır.
+        5. `npm run dev`'de dene: filtrelere tıkla, URL'yi kopyala, başka bir sekmede aç, yenile, Geri'ye bas. JavaScript'i kapat ve filtreleri kullan: düz link oldukları için çalışmaya devam ederler.
+        6. Commit'le, push et ve yeni sürümün canlıya çıktığını gör: `git add .`, `git commit -m "Filters in the URL"`, `git push`.
+        7. Artık internette testli, güvenli ve izlenen bir uygulaman var. "Sonra ne öğrenmeli" listesinden birini seç ve projene ekle.
+    code:
+      - file: src/lib/server/store.ts
+        lang: ts
+        text: |
+          // replace listBooks, and add countBooks below it
+          export async function listBooks(
+          	db: Client,
+          	options: { status?: Status; limit?: number } = {}
+          ): Promise<Book[]> {
+          	const { status, limit = 100 } = options;
+          	const { rows } = await db.execute({
+          		sql: `SELECT id, title, author, status FROM books
+          			WHERE (?1 IS NULL OR status = ?1)
+          			ORDER BY id DESC LIMIT ?2`,
+          		args: [status ?? null, limit]
+          	});
+          	return rows.map((r) => ({
+          		id: Number(r.id),
+          		title: String(r.title),
+          		author: String(r.author),
+          		status: r.status as Status
+          	}));
+          }
+
+          /** How many books there are per status. */
+          export async function countBooks(db: Client): Promise<Record<Status, number>> {
+          	const counts: Record<Status, number> = { want: 0, reading: 0, done: 0 };
+          	const { rows } = await db.execute('SELECT status, COUNT(*) AS n FROM books GROUP BY status');
+          	for (const r of rows) counts[r.status as Status] = Number(r.n);
+          	return counts;
+          }
+      - file: src/routes/+page.server.ts
+        lang: ts
+        text: |
+          import { fail } from '@sveltejs/kit';
+          import { db } from '#lib/server/db.js';
+          import { addBook, countBooks, getBook, listBooks, removeBook, setStatus } from '#lib/server/store.js';
+          import { isStatus, nextStatus, validateBook } from '#lib/books.js';
+          import type { Actions, PageServerLoad } from './$types';
+
+          export const load: PageServerLoad = async ({ locals, url }) => {
+          	const param = url.searchParams.get('status');
+          	const status = isStatus(param) ? param : undefined;
+          	return {
+          		books: await listBooks(db, { status }),
+          		counts: await countBooks(db),
+          		status: status ?? ('all' as const),
+          		canEdit: locals.canEdit
+          	};
+          };
+
+          export const actions = {
+          	add: async ({ request, locals }) => {
+          		if (!locals.canEdit) return fail(403, { message: 'Log in to edit' });
+          		const form = await request.formData();
+          		const title = form.get('title');
+          		const author = form.get('author');
+          		const result = validateBook(title, author);
+          		if (!result.ok) {
+          			return fail(400, {
+          				errors: result.errors,
+          				title: String(title ?? ''),
+          				author: String(author ?? '')
+          			});
+          		}
+          		await addBook(db, result.value);
+          		return { added: true };
+          	},
+
+          	next: async ({ request, locals }) => {
+          		if (!locals.canEdit) return fail(403, { message: 'Log in to edit' });
+          		const id = Number((await request.formData()).get('id'));
+          		const book = Number.isInteger(id) ? await getBook(db, id) : undefined;
+          		if (!book) return fail(404, { message: 'Book not found' });
+          		await setStatus(db, id, nextStatus(book.status));
+          	},
+
+          	remove: async ({ request, locals }) => {
+          		if (!locals.canEdit) return fail(403, { message: 'Log in to edit' });
+          		const id = Number((await request.formData()).get('id'));
+          		if (!Number.isInteger(id)) return fail(400, { message: 'Bad id' });
+          		await removeBook(db, id);
+          	}
+          } satisfies Actions;
+      - file: src/lib/components/StatusFilter.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import { STATUSES, STATUS_LABEL, type Status } from '#lib/books.js';
+
+          	let { value = 'all' }: { value?: Status | 'all' } = $props();
+          </script>
+
+          <div class="filter" role="group" aria-label="Filter by status">
+          	<a href="/" aria-current={value === 'all' ? 'true' : undefined}>All</a>
+          	{#each STATUSES as status (status)}
+          		<a href="?status={status}" aria-current={value === status ? 'true' : undefined}>
+          			{STATUS_LABEL[status]}
+          		</a>
+          	{/each}
+          </div>
+
+          <style>
+          	.filter {
+          		display: flex;
+          		flex-wrap: wrap;
+          		gap: 0.5rem;
+          		margin: 1rem 0;
+          	}
+          	a {
+          		padding: 0.25rem 0.75rem;
+          		border-radius: 999px;
+          		background: #eaeef2;
+          		color: inherit;
+          		text-decoration: none;
+          	}
+          	a[aria-current='true'] {
+          		background: #0969da;
+          		color: white;
+          	}
+          </style>
+      - file: src/routes/+page.svelte
+        lang: svelte
+        text: |
+          <script lang="ts">
+          	import AddBookForm from '#lib/components/AddBookForm.svelte';
+          	import BookCard from '#lib/components/BookCard.svelte';
+          	import StatusFilter from '#lib/components/StatusFilter.svelte';
+          	import type { PageProps } from './$types';
+
+          	let { data, form }: PageProps = $props();
+
+          	let total = $derived(data.counts.want + data.counts.reading + data.counts.done);
+          	let finished = $derived(data.counts.done);
+
+          	$effect(() => {
+          		document.title = `Reading list (${finished}/${total} finished)`;
+          	});
+          </script>
+
+          <h1>Reading list</h1>
+          <p>{finished} of {total} finished</p>
+
+          {#if data.canEdit}
+          	<AddBookForm errors={form?.errors} title={form?.title} author={form?.author} />
+          	<form method="POST" action="/login?/logout">
+          		<button>Log out</button>
+          	</form>
+          {:else}
+          	<p><a href="/login">Log in</a> to add or change books.</p>
+          {/if}
+          <StatusFilter value={data.status} />
+
+          <ul>
+          	{#each data.books as book (book.id)}
+          		<BookCard {book} editable={data.canEdit} />
+          	{:else}
+          		<li>No books here yet.</li>
+          	{/each}
+          </ul>
+      - file: src/lib/components/StatusFilter.svelte.test.ts
+        lang: ts
+        text: |
+          import { render, screen } from '@testing-library/svelte';
+          import { describe, expect, it } from 'vitest';
+          import StatusFilter from './StatusFilter.svelte';
+
+          describe('StatusFilter', () => {
+          	it('marks All as current by default', () => {
+          		render(StatusFilter);
+          		expect(screen.getByRole('link', { name: 'All' }).getAttribute('aria-current')).toBe('true');
+          	});
+
+          	it('marks the chosen status and links to it', () => {
+          		render(StatusFilter, { value: 'reading' });
+          		const reading = screen.getByRole('link', { name: 'Reading' });
+          		expect(reading.getAttribute('aria-current')).toBe('true');
+          		expect(reading.getAttribute('href')).toBe('?status=reading');
+          		expect(screen.getByRole('link', { name: 'All' }).getAttribute('aria-current')).toBeNull();
+          	});
+          });
+      - file: src/lib/server/store.test.ts
+        lang: ts
+        text: |
+          // change the first import to: import { addBook, countBooks, getBook, listBooks, migrate, removeBook, setStatus } from './store.js';
+          // and add inside describe('store', ...):
+          it('lists only one status and respects the limit', async () => {
+          	expect(await listBooks(db, { status: 'done' })).toHaveLength(1);
+          	expect(await listBooks(db, { limit: 2 })).toHaveLength(2);
+          });
+
+          it('counts the books per status', async () => {
+          	expect(await countBooks(db)).toEqual({ want: 1, reading: 1, done: 1 });
+          });
+    mistakes:
+      - problem:
+          en: "Using the `status` from the URL in SQL or in a type without checking it."
+          tr: "URL'deki `status`'u kontrol etmeden SQL'de ya da bir tipte kullanmak."
+        fix:
+          en: "The URL is visitor input. Check it with `isStatus` and ignore anything else, as `load` does."
+          tr: "URL ziyaretçi girdisidir. `load`'un yaptığı gibi `isStatus` ile kontrol et ve gerisini yok say."
+      - problem:
+          en: "Counting `data.books.length` for the total while the list is filtered, so the total changes."
+          tr: "Liste süzülüyken toplamı `data.books.length` ile saymak; toplam değişir."
+        fix:
+          en: "Ask the database for the counts (`countBooks`) and show those. The list and the totals are different questions."
+          tr: "Sayıları veritabanından iste (`countBooks`) ve onları göster. Liste ve toplamlar farklı sorulardır."
+    quiz:
+      - q:
+          en: "Why put the filter in the URL (`?status=done`) instead of in `$state`?"
+          tr: "Filtreyi neden `$state` yerine URL'ye (`?status=done`) koyuyoruz?"
+        options:
+          en:
+            - It can be bookmarked and shared, and works without JavaScript
+            - $state cannot hold a string
+            - URLs are faster than state
+          tr:
+            - Yer imine eklenebilir, paylaşılabilir ve JavaScript olmadan çalışır
+            - $state bir string tutamaz
+            - URL'ler state'ten hızlıdır
+        answer: 0
+        why:
+          en: "A URL survives reloads and can be sent to someone. A plain link also works before any JavaScript has loaded."
+          tr: "URL yenilemelerden sağ çıkar ve birine gönderilebilir. Düz bir link, hiç JavaScript yüklenmeden de çalışır."
+    sources:
+      - title: SvelteKit, loading data (using URL data)
+        url: https://svelte.dev/docs/kit/load
+      - title: MDN, URLSearchParams
+        url: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+      - title: Svelte, tutorial
+        url: https://svelte.dev/tutorial/svelte/welcome-to-svelte
