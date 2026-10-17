@@ -1,6 +1,7 @@
+import type { Database } from "bun:sqlite";
 import { basename, extname, join } from "node:path";
 import type { Hono } from "hono";
-import { gitChanges, gitCommit, gitShowHead } from "./adapters/git";
+import { gitBlame, gitBranches, gitChanges, gitCommit, gitShowHead, gitSwitch, gitWorktrees } from "./adapters/git";
 import { checkpointChanges, createCheckpoint, listCheckpoints, restoreCheckpoint } from "./checkpoints";
 import { FileAccessError, type Files } from "./files";
 import type { Store } from "./store";
@@ -39,7 +40,10 @@ async function guard(c: Ctx, run: () => unknown | Promise<unknown>): Promise<Res
 }
 
 /** File manager, code editor and previewer API (plan.md 2.3, 2.4, 2.9). */
-export function registerFileRoutes(app: Hono, { files, store }: { files: Files; store: Store }): void {
+export function registerFileRoutes(
+  app: Hono,
+  { files, store, db }: { files: Files; store: Store; db: Database },
+): void {
   app.get("/api/fs/list", (c) => guard(c, () => files.list(c.req.query("path") ?? "", c.req.query("hidden") === "1")));
   app.get("/api/fs/read", (c) => guard(c, () => files.read(c.req.query("path") ?? "")));
   // The end of a (possibly huge) log file, for live following.
@@ -158,6 +162,138 @@ export function registerFileRoutes(app: Hono, { files, store }: { files: Files; 
     if (!row) return c.json({ error: "Project not found" }, 404);
     const result = restoreCheckpoint(row.path, c.req.param("cid"));
     return result.ok ? c.json(result) : c.json({ error: result.error }, 409);
+  });
+
+  app.get("/api/projects/:id/git/branches", (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    return row
+      ? c.json({ branches: gitBranches(row.path), worktrees: gitWorktrees(row.path) })
+      : c.json({ error: "Project not found" }, 404);
+  });
+  app.post("/api/projects/:id/git/switch", async (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    if (!row) return c.json({ error: "Project not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { branch?: string; create?: boolean };
+    const result = gitSwitch(row.path, (body.branch ?? "").trim(), body.create === true);
+    return result.ok ? c.json(result) : c.json({ error: result.output }, 409);
+  });
+
+  /**
+   * "AI blame" (plan.md 2.3): git blame per line, plus the session that most
+   * likely wrote it — one that edited this file around the commit's time.
+   */
+  app.get("/api/projects/:id/git/blame", (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    const path = c.req.query("path") ?? "";
+    if (!row || !path || path.includes("..")) return c.json({ error: "Not found" }, 404);
+    const rel = path.startsWith(`${row.path}/`) ? path.slice(row.path.length + 1) : path;
+    const full = join(row.path, rel);
+    const sessions = (
+      db
+        .query(
+          "SELECT id, title, tool, started_at, updated_at, files_touched, author_name FROM sessions WHERE project_id = ? AND files_touched LIKE ?",
+        )
+        .all(row.id, `%${rel.split("/").pop()}%`) as {
+        id: string;
+        title: string | null;
+        tool: string;
+        started_at: number;
+        updated_at: number;
+        files_touched: string;
+        author_name: string | null;
+      }[]
+    ).filter((s) => (JSON.parse(s.files_touched) as string[]).some((f) => f === full || f.endsWith(`/${rel}`)));
+    const sessionFor = (at: number, uncommitted: boolean) =>
+      sessions
+        .filter((s) => (uncommitted ? true : s.started_at <= at + 10 * 60_000 && s.updated_at >= at - 6 * 3600_000))
+        .sort((a, b) => Math.abs(a.updated_at - at) - Math.abs(b.updated_at - at))[0];
+    const lines = gitBlame(row.path, rel).map((l) => {
+      const uncommitted = /^0+$/.test(l.hash);
+      const s = sessionFor(uncommitted ? Date.now() : l.at, uncommitted);
+      return {
+        line: l.line,
+        hash: uncommitted ? "" : l.hash.slice(0, 7),
+        author: uncommitted ? "" : l.author,
+        at: l.at,
+        summary: l.summary,
+        session: s
+          ? { id: s.id, title: s.title ?? s.id.slice(0, 8), tool: s.tool, author: s.author_name ?? undefined }
+          : undefined,
+      };
+    });
+    return c.json(lines);
+  });
+
+  /** Find and replace across the project: preview first, then apply after a snapshot (so it can be undone). */
+  app.post("/api/projects/:id/replace", async (c) => {
+    const row = store.projectRow(c.req.param("id"));
+    if (!row) return c.json({ error: "Project not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as {
+      find?: string;
+      replace?: string;
+      regex?: boolean;
+      caseSensitive?: boolean;
+      paths?: string[];
+      apply?: boolean;
+    };
+    if (!body.find) return c.json({ error: "Type what to find" }, 400);
+    let pattern: RegExp;
+    try {
+      pattern = new RegExp(
+        body.regex ? body.find : body.find.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        body.caseSensitive ? "g" : "gi",
+      );
+    } catch {
+      return c.json({ error: "That isn't a valid regular expression" }, 400);
+    }
+    const listed = Bun.spawnSync(
+      ["git", "-C", row.path, "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+      { stdout: "pipe" },
+    );
+    const candidates = listed.exitCode === 0 ? listed.stdout.toString().split("\0").filter(Boolean) : [];
+    const chosen = body.paths?.length ? candidates.filter((p) => body.paths?.includes(p)) : candidates;
+    const results: { path: string; count: number; samples: { line: number; before: string; after: string }[] }[] = [];
+    for (const rel of chosen.slice(0, 5000)) {
+      if (/(^|\/)\.env(\.|$)|\.(pem|key|lock|lockb|png|jpe?g|gif|webp|ico|pdf|zip|gz|woff2?)$/i.test(rel)) continue;
+      const full = join(row.path, rel);
+      let text: string;
+      try {
+        const file = Bun.file(full);
+        if (file.size > 2_000_000) continue;
+        text = await file.text();
+      } catch {
+        continue;
+      }
+      if (text.includes("\0")) continue;
+      pattern.lastIndex = 0;
+      const count = text.match(pattern)?.length ?? 0;
+      if (!count) continue;
+      const samples: { line: number; before: string; after: string }[] = [];
+      text.split("\n").forEach((line, i) => {
+        if (samples.length < 3 && new RegExp(pattern.source, pattern.flags.replace("g", "")).test(line))
+          samples.push({
+            line: i + 1,
+            before: line.trim().slice(0, 160),
+            after: line
+              .replace(pattern, body.replace ?? "")
+              .trim()
+              .slice(0, 160),
+          });
+      });
+      results.push({ path: rel, count, samples });
+    }
+    if (!body.apply) return c.json({ files: results.slice(0, 300), total: results.reduce((n, r) => n + r.count, 0) });
+    const checkpoint = createCheckpoint(row.path, `before replace "${body.find.slice(0, 40)}"`);
+    for (const r of results) {
+      const full = join(row.path, r.path);
+      const text = await Bun.file(full).text();
+      await Bun.write(full, text.replace(pattern, body.replace ?? ""));
+    }
+    return c.json({
+      files: results.length,
+      total: results.reduce((n, r) => n + r.count, 0),
+      checkpoint: checkpoint?.id,
+    });
   });
 
   app.post("/api/projects/:id/git/commit", async (c) => {

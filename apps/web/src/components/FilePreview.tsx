@@ -1,7 +1,7 @@
 import DOMPurify from "dompurify";
 import { Download } from "lucide-react";
 import { marked } from "marked";
-import { useMemo } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { fs } from "../lib/api";
 import type { PreviewKind } from "../lib/files";
@@ -9,6 +9,12 @@ import { LogView } from "./LogView";
 import { Button } from "./ui";
 
 const MAX_ROWS = 500;
+
+const PdfView = lazy(() => import("./RichPreviews").then((m) => ({ default: m.PdfView })));
+const DataTree = lazy(() => import("./RichPreviews").then((m) => ({ default: m.DataTree })));
+const SheetView = lazy(() => import("./RichPreviews").then((m) => ({ default: m.SheetView })));
+const DocxView = lazy(() => import("./RichPreviews").then((m) => ({ default: m.DocxView })));
+const PptxView = lazy(() => import("./RichPreviews").then((m) => ({ default: m.PptxView })));
 
 function parseCsv(text: string, separator: string): string[][] {
   const rows: string[][] = [];
@@ -85,7 +91,35 @@ export function FilePreview({ path, kind, text }: { path: string; kind: PreviewK
         </div>
       );
     case "pdf":
-      return <iframe title={path} src={url} className="h-full w-full border-0" />;
+      return (
+        <Suspense fallback={null}>
+          <PdfView path={path} />
+        </Suspense>
+      );
+    case "tree":
+      return text === undefined ? null : (
+        <Suspense fallback={null}>
+          <DataTree path={path} text={text} />
+        </Suspense>
+      );
+    case "sheet":
+      return (
+        <Suspense fallback={null}>
+          <SheetView path={path} />
+        </Suspense>
+      );
+    case "doc":
+      return (
+        <Suspense fallback={null}>
+          <DocxView path={path} />
+        </Suspense>
+      );
+    case "slides":
+      return (
+        <Suspense fallback={null}>
+          <PptxView path={path} />
+        </Suspense>
+      );
     case "markdown":
       return (
         <article

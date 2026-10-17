@@ -119,7 +119,7 @@ const app = createApp({
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);
     registerChatRoutes(hono, { chats, store, accounts });
-    registerFileRoutes(hono, { files, store });
+    registerFileRoutes(hono, { files, store, db: sqlite });
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync);
     registerEnhanceRoutes(hono, enhancer);

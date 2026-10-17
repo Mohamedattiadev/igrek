@@ -133,3 +133,85 @@ export function gitCommit(root: string, message: string, files?: string[]): { ok
   infoCache.delete(root);
   return { ok: commit.exitCode === 0, output: `${commit.stdout}${commit.stderr}`.trim() };
 }
+
+export interface GitBranch {
+  name: string;
+  current: boolean;
+  upstream?: string;
+  at: number;
+  subject: string;
+}
+
+export function gitBranches(root: string): GitBranch[] {
+  const out = git(root, [
+    "for-each-ref",
+    "--sort=-committerdate",
+    "--format=%(HEAD)\t%(refname:short)\t%(upstream:short)\t%(committerdate:unix)\t%(subject)",
+    "refs/heads",
+  ]);
+  return (out ?? "")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => {
+      const [head, name, upstream, at, subject] = line.split("\t");
+      return {
+        name: name ?? "",
+        current: head === "*",
+        upstream: upstream || undefined,
+        at: Number(at) * 1000,
+        subject: subject ?? "",
+      };
+    });
+}
+
+export function gitWorktrees(root: string): { path: string; branch?: string; head: string }[] {
+  const out = git(root, ["worktree", "list", "--porcelain"]) ?? "";
+  return out
+    .split("\n\n")
+    .filter(Boolean)
+    .map((block) => ({
+      path: block.match(/^worktree (.+)$/m)?.[1] ?? "",
+      branch: block.match(/^branch refs\/heads\/(.+)$/m)?.[1],
+      head: (block.match(/^HEAD (\w+)$/m)?.[1] ?? "").slice(0, 7),
+    }));
+}
+
+/** Switches branch (or creates one). Refuses when there are uncommitted changes, so nothing is lost or mixed. */
+export function gitSwitch(root: string, branch: string, create: boolean): { ok: boolean; output: string } {
+  if (!/^[\w./-]{1,100}$/.test(branch) || branch.startsWith("-") || branch.includes(".."))
+    return { ok: false, output: "Invalid branch name" };
+  if (gitChanges(root).some((c) => c.code !== "??"))
+    return { ok: false, output: "Commit or save a snapshot of your changes first" };
+  const proc = Bun.spawnSync(["git", "-C", root, "switch", ...(create ? ["-c"] : []), branch], {
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  return { ok: proc.exitCode === 0, output: `${proc.stdout}${proc.stderr}`.trim() };
+}
+
+/** Per-line authorship: commit, author and time for each line of a file. */
+export function gitBlame(
+  root: string,
+  path: string,
+): { line: number; hash: string; author: string; at: number; summary: string }[] {
+  const out = git(root, ["blame", "--line-porcelain", "--", path]);
+  if (!out) return [];
+  const lines: { line: number; hash: string; author: string; at: number; summary: string }[] = [];
+  let current: { line: number; hash: string; author: string; at: number; summary: string } | undefined;
+  for (const raw of out.split("\n")) {
+    const head = raw.match(/^([0-9a-f]{40}) \d+ (\d+)/);
+    if (head) {
+      current = { line: Number(head[2]), hash: head[1] as string, author: "", at: 0, summary: "" };
+      continue;
+    }
+    if (!current) continue;
+    if (raw.startsWith("author ")) current.author = raw.slice(7);
+    else if (raw.startsWith("author-time ")) current.at = Number(raw.slice(12)) * 1000;
+    else if (raw.startsWith("summary ")) current.summary = raw.slice(8);
+    else if (raw.startsWith("\t")) {
+      lines.push(current);
+      current = undefined;
+    }
+  }
+  return lines;
+}

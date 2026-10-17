@@ -1,4 +1,18 @@
-export type PreviewKind = "image" | "video" | "audio" | "pdf" | "markdown" | "csv" | "json" | "log" | "text" | "binary";
+export type PreviewKind =
+  | "image"
+  | "video"
+  | "audio"
+  | "pdf"
+  | "markdown"
+  | "csv"
+  | "json"
+  | "tree"
+  | "sheet"
+  | "doc"
+  | "slides"
+  | "log"
+  | "text"
+  | "binary";
 
 const BY_EXT: Record<string, PreviewKind> = {
   png: "image",
@@ -20,7 +34,13 @@ const BY_EXT: Record<string, PreviewKind> = {
   mdx: "markdown",
   csv: "csv",
   tsv: "csv",
-  json: "json",
+  json: "tree",
+  yaml: "tree",
+  yml: "tree",
+  toml: "tree",
+  xlsx: "sheet",
+  docx: "doc",
+  pptx: "slides",
   log: "log",
 };
 

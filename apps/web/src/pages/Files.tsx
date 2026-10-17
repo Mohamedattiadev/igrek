@@ -102,7 +102,7 @@ function Viewer({ entry }: { entry: FileEntry }) {
     setText(undefined);
     setDraft(undefined);
     setStatus(undefined);
-    if (kind && !["markdown", "csv", "json"].includes(kind)) return;
+    if (kind && !["markdown", "csv", "json", "tree"].includes(kind)) return;
     fs.read(entry.path)
       .then((f) => setText({ content: f.content ?? "", mtime: f.mtime, binary: f.kind === "binary" }))
       .catch((err: Error) => setStatus(err.message));
@@ -164,7 +164,7 @@ function Viewer({ entry }: { entry: FileEntry }) {
         </a>
       </div>
       <div className="min-h-0 flex-1">
-        {kind && !["markdown", "csv", "json"].includes(kind) ? (
+        {kind && !["markdown", "csv", "json", "tree"].includes(kind) ? (
           <FilePreview path={entry.path} kind={kind} />
         ) : !text ? null : text.binary ? (
           <FilePreview path={entry.path} kind="binary" />

@@ -59,6 +59,23 @@ import type {
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
 
+export interface GitBranchInfo {
+  name: string;
+  current: boolean;
+  upstream?: string;
+  at: number;
+  subject: string;
+}
+
+export interface BlameLine {
+  line: number;
+  hash: string;
+  author: string;
+  at: number;
+  summary: string;
+  session?: { id: string; title: string; tool: string; author?: string };
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
     credentials: "same-origin",
@@ -284,6 +301,28 @@ export const api = {
       body: JSON.stringify({ serverId, path }),
     }),
   envChanges: (projectId: string) => request<EnvChange[]>(`/api/projects/${projectId}/env/changes`),
+  gitBranches: (projectId: string) =>
+    request<{ branches: GitBranchInfo[]; worktrees: { path: string; branch?: string; head: string }[] }>(
+      `/api/projects/${projectId}/git/branches`,
+    ),
+  gitSwitch: (projectId: string, branch: string, create = false) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/git/switch`, {
+      method: "POST",
+      body: JSON.stringify({ branch, create }),
+    }),
+  gitBlame: (projectId: string, path: string) =>
+    request<BlameLine[]>(`/api/projects/${projectId}/git/blame?path=${encodeURIComponent(path)}`),
+  replaceInProject: (
+    projectId: string,
+    body: {
+      find: string;
+      replace: string;
+      regex?: boolean;
+      caseSensitive?: boolean;
+      paths?: string[];
+      apply?: boolean;
+    },
+  ) => request<unknown>(`/api/projects/${projectId}/replace`, { method: "POST", body: JSON.stringify(body) }),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

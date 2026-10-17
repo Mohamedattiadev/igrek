@@ -6,13 +6,17 @@ import {
   File,
   FileDiff,
   Folder,
+  GitBranch,
   GitCommitHorizontal,
   History,
   Pencil,
+  Plus,
   RefreshCw,
+  Replace,
   Save,
   Search,
   Sparkles,
+  UserSearch,
   X,
 } from "lucide-react";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
@@ -23,6 +27,7 @@ import { EnhanceDialog } from "../../components/Enhance";
 import { FilePreview } from "../../components/FilePreview";
 import { Button } from "../../components/ui";
 import { actions, type EnhanceCodeRequest } from "../../lib/actions";
+import type { GitBranchInfo } from "../../lib/api";
 import { api, fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { nameOf, previewKind } from "../../lib/files";
@@ -235,9 +240,113 @@ function SnapshotsPanel({ projectId }: { projectId: string }) {
   );
 }
 
-function SearchPanel({ root, onOpen }: { root: string; onOpen: (path: string, line?: number) => void }) {
+/** Branches and worktrees (plan.md 2.3); switching refuses when there are uncommitted changes. */
+function BranchesPanel({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [data, setData] = useState<{
+    branches: GitBranchInfo[];
+    worktrees: { path: string; branch?: string; head: string }[];
+  }>();
+  const [error, setError] = useState<string>();
+  const [name, setName] = useState("");
+  const load = () => {
+    api
+      .gitBranches(projectId)
+      .then(setData)
+      .catch((err: Error) => setError(err.message));
+  };
+  useEffect(load, [projectId]);
+  const sw = (branch: string, create = false) => {
+    setError(undefined);
+    api
+      .gitSwitch(projectId, branch, create)
+      .then(() => {
+        setName("");
+        load();
+      })
+      .catch((err: Error) => setError(err.message));
+  };
+  return (
+    <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
+      {error && <p className="text-[11px] text-danger">{error}</p>}
+      <div className="flex gap-1">
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value.replace(/\s+/g, "-"))}
+          placeholder={t("code.newBranch")}
+          aria-label={t("code.newBranch")}
+          className="h-7 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 font-mono text-[11px] outline-none focus:border-accent"
+        />
+        <Button
+          size="sm"
+          icon={Plus}
+          disabled={!name}
+          onClick={() => sw(name, true)}
+          aria-label={t("code.createBranch")}
+        />
+      </div>
+      <ul>
+        {data?.branches.map((b) => (
+          <li key={b.name}>
+            <button
+              type="button"
+              disabled={b.current}
+              onClick={() => window.confirm(t("code.switchConfirm", { branch: b.name })) && sw(b.name)}
+              className="flex w-full items-center gap-1.5 rounded px-1.5 py-1 text-start hover:bg-bg-hover disabled:cursor-default"
+              data-tip={b.subject}
+            >
+              <GitBranch size={12} className={b.current ? "text-accent" : "text-fg-subtle"} aria-hidden="true" />
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate font-mono text-[11.5px]",
+                  b.current && "font-semibold text-accent",
+                )}
+              >
+                {b.name}
+              </span>
+              <span className="text-[10px] text-fg-subtle">{relativeTime(b.at)}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+      {data && data.worktrees.length > 1 && (
+        <div>
+          <p className="px-1.5 text-[10.5px] font-medium text-fg-subtle uppercase">{t("code.worktrees")}</p>
+          {data.worktrees.map((w) => (
+            <p key={w.path} className="truncate px-1.5 py-0.5 font-mono text-[11px] text-fg-muted" data-tip={w.path}>
+              {w.branch ?? w.head} · {w.path.split("/").pop()}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SearchPanel({
+  root,
+  projectId,
+  onOpen,
+}: {
+  root: string;
+  projectId: string;
+  onOpen: (path: string, line?: number) => void;
+}) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
+  const [replacing, setReplacing] = useState(false);
+  const [replacement, setReplacement] = useState("");
+  const [opts, setOpts] = useState({ regex: false, caseSensitive: false });
+  const [preview, setPreview] = useState<{
+    files: { path: string; count: number; samples: { line: number; before: string; after: string }[] }[];
+    total: number;
+  }>();
+  const [note, setNote] = useState<string>();
+  const previewReplace = () =>
+    api
+      .replaceInProject(projectId, { find: query, replace: replacement, ...opts })
+      .then((r) => setPreview(r as typeof preview))
+      .catch((err: Error) => setNote(err.message));
   const [hits, setHits] = useState<{ path: string; line?: number; text?: string }[]>([]);
   useEffect(() => {
     if (query.trim().length < 2) {
@@ -253,16 +362,108 @@ function SearchPanel({ root, onOpen }: { root: string; onOpen: (path: string, li
   }, [query, root]);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <label className="m-2 flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2">
-        <Search size={12} className="text-fg-subtle" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t("code.search")}
-          className="min-w-0 flex-1 bg-transparent text-[12px] outline-none placeholder:text-fg-subtle"
-        />
-      </label>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="m-2 space-y-1">
+        <label className="flex h-7 items-center gap-1.5 rounded-md border border-border bg-bg px-2">
+          <Search size={12} className="text-fg-subtle" />
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setPreview(undefined);
+            }}
+            placeholder={t("code.search")}
+            className="min-w-0 flex-1 bg-transparent text-[12px] outline-none placeholder:text-fg-subtle"
+          />
+          <button
+            type="button"
+            aria-label={t("code.replaceToggle")}
+            onClick={() => setReplacing(!replacing)}
+            className={cn("rounded p-0.5", replacing ? "text-accent" : "text-fg-subtle hover:text-fg")}
+          >
+            <Replace size={12} />
+          </button>
+        </label>
+        {replacing && (
+          <>
+            <input
+              value={replacement}
+              onChange={(e) => {
+                setReplacement(e.target.value);
+                setPreview(undefined);
+              }}
+              placeholder={t("code.replaceWith")}
+              aria-label={t("code.replaceWith")}
+              className="h-7 w-full rounded-md border border-border bg-bg px-2 text-[12px] outline-none focus:border-accent"
+            />
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-fg-muted">
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={opts.regex}
+                  onChange={(e) => setOpts({ ...opts, regex: e.target.checked })}
+                />{" "}
+                .*
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={opts.caseSensitive}
+                  onChange={(e) => setOpts({ ...opts, caseSensitive: e.target.checked })}
+                />{" "}
+                Aa
+              </label>
+              <div className="flex-1" />
+              <Button size="sm" disabled={!query} onClick={() => void previewReplace()}>
+                {t("code.replacePreview")}
+              </Button>
+            </div>
+            {preview && (
+              <div className="space-y-1 rounded-md border border-border bg-bg p-2 text-[11px]">
+                <p>{t("code.replaceSummary", { total: preview.total, files: preview.files.length })}</p>
+                <Button
+                  size="sm"
+                  variant="danger"
+                  disabled={!preview.total}
+                  onClick={() =>
+                    window.confirm(t("code.replaceConfirm", { total: preview.total, files: preview.files.length })) &&
+                    void api
+                      .replaceInProject(projectId, { find: query, replace: replacement, ...opts, apply: true })
+                      .then(() => {
+                        setNote(t("code.replaced", { total: preview.total }));
+                        setPreview(undefined);
+                      })
+                  }
+                >
+                  {t("code.replaceAll")}
+                </Button>
+              </div>
+            )}
+            {note && <p className="text-[11px] text-fg-muted">{note}</p>}
+          </>
+        )}
+      </div>
+      {preview && (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {preview.files.map((f) => (
+            <div key={f.path} className="px-2 py-1">
+              <button
+                type="button"
+                onClick={() => onOpen(`${root}/${f.path}`)}
+                className="truncate text-[12px] font-medium hover:text-accent"
+              >
+                {f.path} <span className="text-fg-subtle">({f.count})</span>
+              </button>
+              {f.samples.map((s) => (
+                <p key={s.line} className="truncate font-mono text-[10.5px]">
+                  <span className="text-danger line-through">{s.before}</span>{" "}
+                  <span className="text-success">{s.after}</span>
+                </p>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className={cn("min-h-0 flex-1 overflow-y-auto", preview && "hidden")}>
         {hits.map((hit) => (
           <button
             key={`${hit.path}:${hit.line}`}
@@ -316,12 +517,16 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
   // Older settings only had a Vim switch.
   const keymap: EditorKeymap =
     settings.editorKeymap === "vscode" && settings.editorVim ? "vim" : (settings.editorKeymap ?? "vscode");
-  const [panel, setPanel] = useState<"files" | "changes" | "snapshots" | "search">("files");
+  const [panel, setPanel] = useState<"files" | "changes" | "branches" | "snapshots" | "search">("files");
   const [root, setRoot] = useState<FileEntry[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [active, setActive] = useState<Tab>();
   const [buffers, setBuffers] = useState<Record<string, Buffer>>({});
   const [diffs, setDiffs] = useState<Record<string, { original: string; modified: string }>>({});
+  /** "Who wrote this" notes for the open file, when switched on. */
+  const [blame, setBlame] = useState<{ line: number; text: string; hover?: string }[]>();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: notes belong to one file
+  useEffect(() => setBlame(undefined), [active?.path]);
   const [showPreview, setShowPreview] = useState(true);
   const [error, setError] = useState<string>();
 
@@ -416,7 +621,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
   };
 
   const kind = active ? previewKind(active.path) : undefined;
-  const textual = kind === "markdown" || kind === "csv" || kind === "json" || kind === undefined;
+  const textual = kind === "markdown" || kind === "csv" || kind === "json" || kind === "tree" || kind === undefined;
   const editorEl = useMemo(() => {
     if (!active) return null;
     if (active.mode === "diff") {
@@ -433,20 +638,21 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
         value={buffer.saved}
         line={active.line}
         keymap={keymap}
+        annotations={blame}
         onChange={(value) =>
           setBuffers((all) => ({ ...all, [active.path]: { ...(all[active.path] as Buffer), content: value } }))
         }
         onSave={save}
       />
     );
-  }, [active, buffer, diffs, kind, textual, showPreview, keymap, save]);
+  }, [active, buffer, diffs, kind, textual, showPreview, keymap, save, blame]);
 
   return (
     <div className="flex min-h-96 min-w-0 flex-1">
       <CodeEnhance projectId={project.id} />
       <aside className="flex w-64 shrink-0 flex-col border-e border-border bg-bg-subtle">
         <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1">
-          {(["files", "changes", "snapshots", "search"] as const).map((name) => (
+          {(["files", "changes", "branches", "snapshots", "search"] as const).map((name) => (
             <button
               key={name}
               type="button"
@@ -460,6 +666,8 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
                 t("code.files")
               ) : name === "changes" ? (
                 t("code.changes")
+              ) : name === "branches" ? (
+                <GitBranch size={12} aria-label={t("code.branches")} />
               ) : name === "snapshots" ? (
                 <History size={12} aria-label={t("checkpoint.title")} />
               ) : (
@@ -476,10 +684,12 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
           </div>
         ) : panel === "changes" ? (
           <ChangesPanel project={project} onOpenDiff={openDiff} />
+        ) : panel === "branches" ? (
+          <BranchesPanel projectId={project.id} />
         ) : panel === "snapshots" ? (
           <SnapshotsPanel projectId={project.id} />
         ) : (
-          <SearchPanel root={project.path} onOpen={openFile} />
+          <SearchPanel root={project.path} projectId={project.id} onOpen={openFile} />
         )}
       </aside>
 
@@ -514,7 +724,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
             );
           })}
           <div className="flex-1" />
-          {active?.mode === "file" && (kind === "markdown" || kind === "csv" || kind === "json") && (
+          {active?.mode === "file" && (kind === "markdown" || kind === "csv" || kind === "json" || kind === "tree") && (
             <button
               type="button"
               onClick={() => setShowPreview((v) => !v)}
@@ -522,6 +732,41 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
             >
               {showPreview ? <Pencil size={12} /> : <Eye size={12} />}
               {showPreview ? t("code.edit") : t("code.preview")}
+            </button>
+          )}
+          {active?.mode === "file" && buffer && !buffer.binary && (
+            <button
+              type="button"
+              onClick={() => {
+                if (blame) return setBlame(undefined);
+                void api.gitBlame(project.id, active.path).then((lines) => {
+                  // One note per block of lines from the same change.
+                  const notes: { line: number; text: string; hover?: string }[] = [];
+                  let last = "";
+                  for (const l of lines) {
+                    const key = `${l.hash}|${l.session?.id ?? ""}`;
+                    if (key === last) continue;
+                    last = key;
+                    const who = l.session
+                      ? `${l.session.author ?? t("team.you")} · ${l.session.tool} · ${l.session.title}`
+                      : l.author || t("code.notCommitted");
+                    notes.push({
+                      line: l.line,
+                      text: `${who}${l.at ? ` · ${relativeTime(l.at)}` : ""}`,
+                      hover: l.hash ? `${l.hash} ${l.summary}` : t("code.notCommitted"),
+                    });
+                  }
+                  setBlame(notes);
+                });
+              }}
+              className={cn(
+                "flex items-center gap-1 px-2 text-[11.5px] hover:text-accent",
+                blame ? "text-accent" : "text-fg-muted",
+              )}
+              data-tip={t("code.blameTip")}
+            >
+              <UserSearch size={12} aria-hidden="true" />
+              {t("code.blame")}
             </button>
           )}
           {active?.mode === "file" && buffer && !buffer.binary && (

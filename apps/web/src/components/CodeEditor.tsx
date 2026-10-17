@@ -14,6 +14,8 @@ export interface CodeEditorProps {
   readOnly?: boolean;
   /** Line to reveal on open (from search results). */
   line?: number;
+  /** Quiet notes at the end of lines ("who wrote this"), with more on hover. */
+  annotations?: { line: number; text: string; hover?: string }[];
 }
 
 /**
@@ -28,6 +30,7 @@ export default function CodeEditor({
   keymap = "vscode",
   readOnly,
   line,
+  annotations,
 }: CodeEditorProps) {
   const vim = keymap === "vim";
   const host = useRef<HTMLDivElement>(null);
@@ -120,6 +123,23 @@ export default function CodeEditor({
   useEffect(() => {
     editorRef.current?.updateOptions({ readOnly: !!readOnly });
   }, [readOnly]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: redraw when the file or the notes change
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !annotations?.length) return;
+    const collection = editor.createDecorationsCollection(
+      annotations.map((a) => ({
+        range: new monaco.Range(a.line, 1, a.line, 1),
+        options: {
+          isWholeLine: true,
+          after: { content: `    ${a.text}`, inlineClassName: "godeye-annotation" },
+          hoverMessage: a.hover ? { value: a.hover } : undefined,
+        },
+      })),
+    );
+    return () => collection.clear();
+  }, [annotations, path]);
 
   useEffect(() => {
     const editor = editorRef.current;

@@ -443,19 +443,19 @@ god-eye/
 - [x] Değişiklikler diff görünümünde, dosya bazında kabul veya red — *izin kartında ve araç kartında satır diff'i; dosya bazında red = izni reddetmek*
 - [x] Resim ve ekran görüntüsü yapıştırma, dosya sürükle bırak — *yapıştırma veya seçme; dosya sürükle bırak kalan iş*
 - [ ] Mesaj kutusunun altında araç, hesap, model ve persona seçici — *model seçici hazır (değiştirince aynı session devam eder); hesap Faz 3, persona Faz 6*
-- [ ] Slash komutları için otomatik tamamlama — *prompt kütüphanesi butonu hazır; slash komutları terminalde tam çalışıyor*
+- [x] Slash komutları için otomatik tamamlama — *chat'te `/`: projenin ve kullanıcının Claude komutları + kayıtlı prompt'lar*
 - [x] **Mod seçici:** Normal (her şeye onay) · Düzenlemeleri kabul et · **Auto** (izole worktree'de otomatik, sonunda özet ve onay) — *Bana sor · Düzenlemeleri kabul et · Otomatik · Sadece plan; izole worktree Faz 8*
 
 #### 2.3 Kod görünümü (VS Code gibi)
 - [x] ⭐ Dosya ağacı + Monaco editör: sekmeler, sözdizimi renklendirme, arama, mini harita — *Monaco lokal paketli (CDN yok); sekmeler, Ctrl+S, "diskte değişti" koruması*
 - [x] ⭐ **Vim modu** (ayarlardan aç/kapat): normal, insert ve visual modlar, `:w`, `:q`, `/arama`, makrolar, register'lar, `.vimrc` benzeri özel tuş eşlemeleri, durum çubuğunda mod göstergesi — *monaco-vim; durum çubuğunda mod göstergesi; özel tuş eşlemeleri kalan iş*
 - [x] Vim tarzı gezinme uygulamanın geneline de yayılır (opsiyonel): listelerde `j/k`, `gg/G`, `/` ile arama, `Esc` ile geri — *j/k, gg/G, /*
-- [ ] Hazır tuş düzenleri: VS Code, JetBrains, Vim, Emacs
+- [x] Hazır tuş düzenleri: VS Code, JetBrains, Vim, Emacs
 - [x] Dosyada "Bunu AI'a sor" ve "Bunu açıkla" sağ tık menüsü — *editörde sağ tık → "Bunu AI'a sor" (seçim ya da satır)*
-- [ ] Dosya içinde ve projede arama/değiştirme — *projede içerik arama (ripgrep / git grep) ve satıra gitme hazır; toplu değiştirme kalan iş*
-- [ ] Git paneli: değişiklikler, diff, commit, branch, worktree listesi — *değişiklikler, yan yana diff ve commit hazır; branch/worktree listesi Faz 8 agent işleriyle*
+- [x] Dosya içinde ve projede arama/değiştirme — *projede bul-değiştir: önizleme, regex/büyük-küçük harf, uygulamadan önce otomatik anlık görüntü*
+- [x] Git paneli: değişiklikler, diff, commit, branch, worktree listesi — *branch oluşturma/geçiş (commit edilmemiş değişiklik varsa durur)*
 - [x] Git checkpoint: her AI işinden önce otomatik kayıt, tek tıkla geri alma — *chat'te her turdan önce ve AI terminali açılırken; gizli git ref'lerinde, branch/index/geçmişe dokunmadan; geri yüklemenin kendisi de geri alınabilir*
-- [ ] Hangi satırı hangi session'ın değiştirdiğini gösterme ("AI blame")
+- [x] Hangi satırı hangi session'ın değiştirdiğini gösterme ("AI blame") — *git blame + o dosyayı o saatlerde değiştiren session; satır sonunda not*
 
 #### 2.4 Bilgisayar ve internet erişimi
 - [x] 🔒 Dosya erişimi izinli klasörlerle sınırlı (ayarlardan eklenir); Docker'da volume olarak bağlanır — *projeler + Ayarlar/Dosyalar'dan eklenen klasörler; symlink ve ../ ile dışarı çıkılamaz*
@@ -509,7 +509,7 @@ god-eye/
 
 #### 2.7 Prompt kütüphanesi
 - [x] Prompt kaydetme, etiketleme, değişkenli şablonlar (`{dosya}`, `{proje}`)
-- [ ] Chat'te `/` ile hızlı çağırma — *terminal sayfasındaki "Prompt'lar" butonuyla seçip doldurma hazır; `/` chat görünümüyle*
+- [x] Chat'te `/` ile hızlı çağırma
 - [ ] Personalar da bu kütüphaneyi kullanabilir — *Faz 6*
 - [x] En çok işe yarayan prompt'ları otomatik öne çıkarma — *kullanım sayısına göre*
 
@@ -518,12 +518,12 @@ god-eye/
 - [x] Devir özeti otomatik hazırlanır: ne yapıldı, nerede kalındı, sıradaki adım
 
 #### 2.9 📄 Dosya önizleyici (her şeyi uygulama içinde aç)
-- [ ] PDF görüntüleyici: sayfa küçük resimleri, arama, yakınlaştırma, "bu sayfayı AI'a sor" — *PDF tarayıcı görüntüleyicisinde açılıyor; sayfa küçük resimleri ve "AI'a sor" kalan iş*
+- [x] PDF görüntüleyici: sayfa küçük resimleri, arama, yakınlaştırma, "bu sayfayı AI'a sor"
 - [x] Markdown: canlı önizleme + düzenleme (Mermaid diyagramları, tablolar, kod blokları dahil)
 - [x] Resim (PNG, JPG, SVG, WebP), video ve ses — *güvenlik için sandbox içinde sunuluyor*
-- [ ] CSV ve Excel → tablo görünümü (sıralama, filtre) — *CSV/TSV tablo hazır; Excel kalan iş*
-- [ ] JSON, YAML ve TOML → ağaç görünümü — *JSON biçimli görünüm hazır; ağaç ve YAML/TOML kalan iş*
-- [ ] Word ve PowerPoint → salt okunur önizleme
+- [x] CSV ve Excel → tablo görünümü (sıralama, filtre) — *CSV/TSV ve .xlsx (sayfa seçimi); sıralama/filtre sonra*
+- [x] JSON, YAML ve TOML → ağaç görünümü
+- [x] Word ve PowerPoint → salt okunur önizleme — *.docx biçimli, .pptx slayt metinleri*
 - [x] Log dosyaları → renkli, filtrelenebilir, canlı takip (`tail -f` gibi) — *seviye renkleri, filtre, sadece hatalar, canlı takip*
 - [x] Her önizlemede "Bunu açıkla" ve "Bunu özetle" butonları — *dosya yöneticisinde ve kod görünümünde*
 

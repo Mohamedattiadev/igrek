@@ -260,3 +260,10 @@
     border: 0;
   }
 }
+
+/* "Who wrote this" notes at the end of lines in the code editor. */
+.godeye-annotation {
+  color: var(--fg-subtle);
+  font-style: italic;
+  opacity: 0.8;
+}
