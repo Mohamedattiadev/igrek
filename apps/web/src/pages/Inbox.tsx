@@ -253,7 +253,12 @@ export function InboxPage() {
                                   ? BookOpen
                                   : n.kind === "update"
                                     ? PackageIcon
-                                    : KeyRound;
+                                    : n.kind === "schedule" ||
+                                        n.kind === "scheduleFailed" ||
+                                        n.kind === "missed" ||
+                                        n.kind === "proposed"
+                                      ? AlarmClock
+                                      : KeyRound;
                     return (
                       <Link
                         key={n.id}

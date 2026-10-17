@@ -23,6 +23,7 @@ import { PersonasPage } from "./pages/Personas";
 import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
 import { PromptsPage } from "./pages/Prompts";
+import { SchedulesPage } from "./pages/SchedulesPage";
 import { ServerPage, ServersPage } from "./pages/Servers";
 import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
@@ -60,6 +61,7 @@ const router = createBrowserRouter([
       { path: "meetings/:meetingId", element: <MeetingPage /> },
       { path: "test-runs/:runId", element: <TestRunPage /> },
       { path: "runs/:runId", element: <FlowRunPage /> },
+      { path: "schedules", element: <SchedulesPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

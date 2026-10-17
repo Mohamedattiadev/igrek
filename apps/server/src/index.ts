@@ -288,6 +288,26 @@ const app = createApp({
       accounts,
       worktreeDir: join(config.dataDir, "worktrees"),
       persona: personaChat,
+      godeyeMcp: {
+        config: JSON.stringify({
+          mcpServers: {
+            godeye: {
+              command: process.execPath,
+              args: [join(import.meta.dir, "mcp.ts")],
+              env: { GODEYE_PORT: String(config.publicPort), GODEYE_HOME: config.dataDir },
+            },
+          },
+        }),
+        // Reading God Eye and proposing a schedule need no prompt; a proposal still waits for the user's OK in God Eye.
+        allow: [
+          "mcp__godeye__godeye_project_memory",
+          "mcp__godeye__godeye_search",
+          "mcp__godeye__godeye_recent_sessions",
+          "mcp__godeye__library_search",
+          "mcp__godeye__godeye_lessons",
+          "mcp__godeye__godeye_schedule",
+        ],
+      },
     });
     registerTesterRoutes(hono, testers);
     registerLibraryRoutes(hono, { library, embedder });

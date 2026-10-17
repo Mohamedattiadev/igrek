@@ -252,6 +252,7 @@ export interface InboxNotice {
     | "update"
     | "schedule"
     | "missed"
+    | "scheduleFailed"
     | "proposed";
   projectId: string;
   projectName: string;

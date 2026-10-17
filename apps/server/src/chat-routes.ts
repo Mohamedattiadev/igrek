@@ -18,6 +18,7 @@ export function registerChatRoutes(
     accounts,
     worktreeDir,
     persona,
+    godeyeMcp,
   }: {
     chats: Chats;
     store: Store;
@@ -28,6 +29,8 @@ export function registerChatRoutes(
       personaId: string,
       projectId: string,
     ) => { start: NonNullable<ChatStart["persona"]>; model: string } | undefined;
+    /** God Eye's MCP server, given to every chat. */
+    godeyeMcp?: ChatStart["godeyeMcp"];
   },
 ): void {
   const account = (projectId: string, sessionAccount?: string | null) =>
@@ -77,6 +80,7 @@ export function registerChatRoutes(
             typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
           mode,
           persona: as?.start,
+          godeyeMcp,
           ...(() => {
             const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
             const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
@@ -173,6 +177,7 @@ export function registerChatRoutes(
         model: body.model,
         mode: info.mode,
         persona: info.persona && persona ? persona(info.persona.id, info.projectId)?.start : undefined,
+        godeyeMcp,
         accountId: info.accountId,
         env: accounts.env(info.accountId ? accounts.get(info.accountId) : undefined),
       }),

@@ -59,6 +59,8 @@ import type {
   RemoteEntry,
   RemoteRun,
   SavedPrompt,
+  Schedule,
+  ScheduleWhen,
   SearchHit,
   ServerHealth,
   ServerInfo,
@@ -247,6 +249,22 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  schedules: () => request<Schedule[]>("/api/schedules"),
+  scheduleRuns: (id: string) => request<FlowRun[]>(`/api/schedules/${id}/runs`),
+  proposeSchedule: (sentence: string, projectId: string) =>
+    request<Schedule>("/api/schedules/propose", { method: "POST", body: JSON.stringify({ sentence, projectId }) }),
+  scheduleFromTemplate: (projectId: string, template: string, title: string, text: string) =>
+    request<Schedule>("/api/schedules", {
+      method: "POST",
+      body: JSON.stringify({ projectId, template, title, request: text }),
+    }),
+  updateSchedule: (
+    id: string,
+    patch: { title?: string; request?: string; when?: ScheduleWhen; maxMinutes?: number; maxTurns?: number },
+  ) => request<Schedule>(`/api/schedules/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  scheduleAction: (id: string, action: "activate" | "pause" | "run" | "skip") =>
+    request<Schedule | FlowRun>(`/api/schedules/${id}/${action}`, { method: "POST" }),
+  removeSchedule: (id: string) => request<{ ok: boolean }>(`/api/schedules/${id}`, { method: "DELETE" }),
   projectFlows: (projectId: string) =>
     request<{
       flows: {

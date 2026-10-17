@@ -551,7 +551,7 @@ god-eye/
 - [x] Günlük, haftalık ve aylık raporlar — *aylık tablo + CSV indirme*
 - [x] Tahmin: "Bu hızla limit saat 16:40'ta dolar" — *son ölçümlerden saatlik hız; sıfırlanmadan önce dolacaksa saatini söyler*
 - [x] Uyarılar: limitin %80 ve %95'inde bildirim + "şu hesaba geç" önerisi — *%80 ve üstü Gelen Kutusu'nda acil + üst bar renk değişimi + "başka hesaba geç / Codex'e devret" önerisi; masaüstü bildirimi Faz 11*
-- [ ] Bütçe kuralları: persona veya zamanlanmış iş başına üst sınır — *zamanlanmış işler (Faz 9) ve personalar (Faz 6) ile*
+- [x] Bütçe kuralları: persona veya zamanlanmış iş başına üst sınır — *persona başına adım sınırı (Faz 6), zamanlanmış iş başına süre ve adım sınırı (Faz 9)*
 
 **Bitti sayılır:** Hesaplar arasında tek tıkla geçiyorum, hangi projenin limitimi ne zaman yediğini grafikte görüyorum.
 
@@ -858,7 +858,7 @@ god-eye/
 - [x] **Paralel test:** tek tıkla 10–50 test kullanıcısı aynı anda (her biri ayrı tarayıcı oturumunda) — *bir testte en fazla 50 kişi (profil × kopya), aynı anda en fazla 10; her biri ayrı izole tarayıcı. Bu bilgisayarda 3'ü aynı anda denendi; 10'u aynı anda CPU ve Claude limitine bağlı*
 - [x] Rapor: nerede takıldılar, ne kadar sürede başardılar, nerede vazgeçtiler, ekran kayıtları, en sık şikâyetler, "teyze puanı" — *sonuç, kolaylık, süre, takıldıkları yerler, sesli düşünme adımları, ekran görüntüleri, sorunlar, şikâyetler, teyze puanı. Video kaydı yok: Playwright MCP bu sürümde video seçeneği sunmuyor; takıldıkları anlarda ekran görüntüsü alınıyor*
 - [x] Bulunan sorunlar tek tıkla UI/UX veya Frontend personasına görev olarak gider — *sorunun yanında "UI/UX'e / Frontend'e gönder": o personayla sohbet açılır, sorun taslakta bekler (görev panosu Faz 8)*
-- [ ] Her önemli değişiklikten sonra otomatik tekrar test (regresyon) — *"Tekrar test et": aynı kişiler, aynı görev; teyze puanı ve her kişinin kolaylığı öncekiyle karşılaştırılır (gerçek denemede 20 → 60). Değişiklikten sonra kendiliğinden başlatmak zamanlanmış işlerle (Faz 9)*
+- [ ] Her önemli değişiklikten sonra otomatik tekrar test (regresyon) — *"Tekrar test et": aynı kişiler, aynı görev; teyze puanı ve her kişinin kolaylığı öncekiyle karşılaştırılır (gerçek denemede 20 → 60). Değişiklikten sonra kendiliğinden başlatma henüz yok (zamanlanmış işler test kullanıcılarını henüz çalıştırmıyor)*
 
 #### 6.1c 🧪 Uzman Test Takımı
 - [x] Birim test yazarı, entegrasyon testçisi, uçtan uca (E2E) testçisi — *Personalar → Test grubu; aynı profil standardı (geçmiş, alan tarihi, kitaplar, kontrol listesi), dosya düzenleyebilirler, push/deploy yine sorulur*
@@ -949,15 +949,15 @@ god-eye/
 
 **Hedef:** Chat'te söylediğim işi zamanı gelince kendi kendine yapsın.
 
-- [ ] Doğal dilden zamanlama: *"Bu projede cuma sabahı bağımlılıkları güncelle"* → sistem anlar, özetler ("Her cuma 09:00, Proje X, Görev: …") ve onay ister
-- [ ] Tek seferlik ("yarın 15:00'te") ve tekrarlı ("her gece") işler
-- [ ] Çalışma her zaman auto modda ve izole worktree'de olur; sonuç raporu + onay bekleyen değişiklikler
-- [ ] Hazır şablonlar: gece test ve güvenlik taraması, haftalık bağımlılık güncellemesi, günlük özet
-- [ ] Zamanlanmış işler sayfası: liste, sonraki çalışma zamanı, geçmiş çalışmalar ve sonuçları, duraklat ve sil
-- [ ] Bilgisayar kapalıyken kaçırılan işler: açılınca "kaçırılanları çalıştırayım mı?" diye sorar
-- [ ] Bütçe sınırı: iş başına maksimum token/süre
+- [x] Doğal dilden zamanlama: *"Bu projede cuma sabahı bağımlılıkları güncelle"* → sistem anlar, özetler ("Her cuma 09:00, Proje X, Görev: …") ve onay ister — *Zamanlanmış sayfasında cümleyle ya da sohbette: her sohbete verilen God Eye MCP aracı `godeye_schedule` öneri oluşturur; onaylanana kadar hiçbir şey çalışmaz*
+- [x] Tek seferlik ("yarın 15:00'te") ve tekrarlı ("her gece") işler — *bir kez, saatlik, günlük, hafta içi, haftalık, aylık*
+- [x] Çalışma her zaman auto modda ve izole worktree'de olur; sonuç raporu + onay bekleyen değişiklikler — *Faz 8 akış motoruyla (tek iş, gece kontrolü, bağımlılık, rapor, düzeltme, özellik); değişiklik varsa onay ekranı, yoksa rapor olarak biter*
+- [x] Hazır şablonlar: gece test ve güvenlik taraması, haftalık bağımlılık güncellemesi, günlük özet
+- [x] Zamanlanmış işler sayfası: liste, sonraki çalışma zamanı, geçmiş çalışmalar ve sonuçları, duraklat ve sil
+- [x] Bilgisayar kapalıyken kaçırılan işler: açılınca "kaçırılanları çalıştırayım mı?" diye sorar — *15 dakikadan geç kalan çalışma kendiliğinden başlamaz; sayfada ve Gelen Kutusu'nda "şimdi çalıştır / atla"*
+- [x] Bütçe sınırı: iş başına maksimum token/süre — *süre (dakika, aşılınca durur) ve AI adımı başına en fazla adım; Claude CLI token sınırı vermediği için doğrudan token sınırı yok, adım sınırı onun yerine*
 
-**Bitti sayılır:** Chat'e cümleyle bir iş yazıyorum, zamanı gelince yapılıyor, raporu sabah önümde.
+**Bitti sayılır:** Chat'e cümleyle bir iş yazıyorum, zamanı gelince yapılıyor, raporu sabah önümde. — *Gerçek denemede sohbette "bugün 14:26'da testleri çalıştırıp rapor yaz" dedim; Claude öneriyi kendisi oluşturdu, onaylayınca zamanında çalıştı, sonuç Gelen Kutusu'na düştü*
 
 ---
 

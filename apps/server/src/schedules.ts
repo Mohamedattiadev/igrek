@@ -302,10 +302,10 @@ Reply with JSON only:
       const s = this.get(run.scheduleId);
       out.push({
         id: `schedule-run:${run.id}:${run.status}`,
-        kind: "schedule",
+        kind: run.status === "failed" || run.status === "stopped" ? "scheduleFailed" : "schedule",
         projectId: run.projectId,
         projectName: name(run.projectId),
-        detail: `${s?.title ?? run.flow} · ${run.status}`,
+        detail: s?.title ?? run.flow,
         at: run.updatedAt,
         link: `/runs/${run.id}`,
       });

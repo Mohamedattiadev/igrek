@@ -16,7 +16,8 @@
     "prompts": "Prompt'lar",
     "servers": "Sunucular",
     "personas": "Personalar",
-    "library": "Kütüphane"
+    "library": "Kütüphane",
+    "schedules": "Zamanlanmış"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -101,7 +102,11 @@
     "notice_mention": "senden bahsetti",
     "notice_lesson": "Bir ders tekrar ediyor: kurala dönüştürelim mi?",
     "notice_opinion": "Yeni kanıtla fikrini değiştirdi",
-    "notice_update": "Kullandığın bir paketin yeni ana sürümü çıktı"
+    "notice_update": "Kullandığın bir paketin yeni ana sürümü çıktı",
+    "notice_schedule": "Zamanlanmış iş bitti: sonuç hazır",
+    "notice_missed": "Bilgisayar kapalıyken kaçırıldı: şimdi çalıştırayım mı?",
+    "notice_proposed": "Onayını bekleyen zamanlanmış iş",
+    "notice_scheduleFailed": "Zamanlanmış iş bir sorunda durdu"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -2400,6 +2405,54 @@
     "discard": "At",
     "merge": "Onayla ve {{branch}} dalına birleştir",
     "mergeNote": "Birleştirme sadece bu bilgisayarda olur. Push etmek sana kalmış.",
-    "mergedNote": "Bu bilgisayarda {{branch}} dalına birleştirildi. Hazır olunca push edebilirsin."
+    "mergedNote": "Bu bilgisayarda {{branch}} dalına birleştirildi. Hazır olunca push edebilirsin.",
+    "name_task": "Tek iş",
+    "name_check": "Gece kontrolü",
+    "name_deps": "Bağımlılık güncelleme",
+    "name_report": "Rapor",
+    "desc_task": "Tek bir AI adımı işi yapar; kod değiştiyse kontroller geçmeli.",
+    "desc_check": "Build ve testler, bir de güvenlik incelemesi.",
+    "desc_deps": "Yama ve küçük sürüm güncellemeleri, testler çalışır; büyük sürümler sadece listelenir.",
+    "desc_report": "Kısa, sadece okuyan bir rapor."
+  },
+  "schedules": {
+    "title": "Zamanlanmış işler",
+    "intro": "Ne zaman ne olacağını bir cümleyle yaz. God Eye bunu onaylayacağın bir zamanlamaya çevirir. Zamanı gelince reponun kendi kopyasında, süre ve adım sınırları içinde bir takım akışı olarak çalışır; sonuç kendi sayfasında bekler, değişiklikler senin onayını ister.",
+    "sentence": "Ne zaman ne olsun",
+    "sentenceHint": "Örnek: her cuma sabahı bağımlılıkları güncelle",
+    "propose": "Zamanla",
+    "templates": "Ya da şuradan başla:",
+    "tpl_nightly-check": "Gece test ve güvenlik",
+    "tpl_weekly-deps": "Haftalık bağımlılık güncelleme",
+    "tpl_daily-report": "Günlük rapor",
+    "tplReq_nightly-check": "Build ve testleri çalıştır, kodu güvenlik sorunlarına karşı kontrol et.",
+    "tplReq_weekly-deps": "Bağımlılıkları güncelle (yama ve küçük sürümler) ve testleri çalıştır.",
+    "tplReq_daily-report": "Dün neyin değiştiğini ve neyin ilgi beklediğini raporla.",
+    "safety": "Hiçbir çalışma push ya da deploy etmez. Bu bilgisayar kapalıyken kaçırılan işler kendiliğinden çalışmaz: sana sorulur.",
+    "empty": "Henüz zamanlanmış iş yok.",
+    "status_proposed": "Onayını bekliyor",
+    "status_active": "Açık",
+    "status_paused": "Duraklatıldı",
+    "status_done": "Bitti",
+    "confirm": "Doğru mu? Sen onaylamadan hiçbir şey çalışmaz.",
+    "approve": "Onayla",
+    "missed": "{{at}} zamanında çalışmalıydı, bu bilgisayar kapalıydı.",
+    "runMissed": "Şimdi çalıştır",
+    "skip": "Atla",
+    "next": "Sonraki: {{when}}",
+    "last": "Son çalışma {{when}}",
+    "maxMinutes": "En fazla dakika",
+    "maxTurns": "En fazla adım",
+    "pause": "Duraklat",
+    "resume": "Aç",
+    "runNow": "Şimdi çalıştır",
+    "history": "Geçmiş çalışmalar",
+    "noRuns": "Henüz çalışmadı.",
+    "once": "Bir kez, {{at}}",
+    "every_hour": "Her saat :{{minute}}",
+    "every_day": "Her gün {{time}}",
+    "every_weekday": "Hafta içi her gün {{time}}",
+    "every_week": "Her {{day}} {{time}}",
+    "every_month": "Her ayın {{day}}. günü, {{time}}"
   }
 }

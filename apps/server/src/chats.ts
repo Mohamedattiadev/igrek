@@ -47,6 +47,8 @@ export interface ChatStart {
   accountId?: string;
   env?: Record<string, string>;
   worktree?: Worktree;
+  /** God Eye's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
+  godeyeMcp?: { config: string; allow: string[] };
   /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
   persona?: {
     id: string;
@@ -149,7 +151,9 @@ export class Chats {
             ...(options.persona.mcpConfig ? ["--mcp-config", options.persona.mcpConfig] : []),
             ...(options.persona.allowTools?.length ? ["--allowedTools", ...options.persona.allowTools] : []),
           ]
-        : []),
+        : options.godeyeMcp
+          ? ["--mcp-config", options.godeyeMcp.config, "--allowedTools", ...options.godeyeMcp.allow]
+          : []),
     ];
     const proc = Bun.spawn(args, {
       cwd: options.cwd,

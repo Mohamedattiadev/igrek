@@ -16,7 +16,8 @@
     "prompts": "Prompts",
     "servers": "Servers",
     "personas": "Personas",
-    "library": "Library"
+    "library": "Library",
+    "schedules": "Scheduled"
   },
   "workspace": {
     "local": "My computer",
@@ -101,7 +102,11 @@
     "notice_mention": "mentioned you",
     "notice_lesson": "A lesson keeps coming back: make it a rule?",
     "notice_opinion": "Changed its mind after new evidence",
-    "notice_update": "New major version of a package you use"
+    "notice_update": "New major version of a package you use",
+    "notice_schedule": "Scheduled work finished: the result is ready",
+    "notice_missed": "Missed while the computer was off: run it now?",
+    "notice_proposed": "Scheduled work waiting for your OK",
+    "notice_scheduleFailed": "Scheduled work stopped on a problem"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -2400,6 +2405,54 @@
     "discard": "Throw away",
     "merge": "Approve and merge into {{branch}}",
     "mergeNote": "Merging happens on this computer only. Pushing is up to you.",
-    "mergedNote": "Merged into {{branch}} on this computer. Push when you're ready."
+    "mergedNote": "Merged into {{branch}} on this computer. Push when you're ready.",
+    "name_task": "One job",
+    "name_check": "Night check",
+    "name_deps": "Dependency update",
+    "name_report": "Report",
+    "desc_task": "One AI step does the job; if code changed, the checks must pass.",
+    "desc_check": "Build and tests, and a security review.",
+    "desc_deps": "Patch and minor updates, tests run; majors only listed.",
+    "desc_report": "A short read-only report."
+  },
+  "schedules": {
+    "title": "Scheduled work",
+    "intro": "Write what should happen and when, in a sentence. God Eye turns it into a schedule you confirm. At its time it runs as a team flow in its own copy of the repo, within its time and step limits; the result waits on its run page and changes need your OK.",
+    "sentence": "What should happen and when",
+    "sentenceHint": "For example: every Friday morning update the dependencies",
+    "propose": "Make a schedule",
+    "templates": "Or start from:",
+    "tpl_nightly-check": "Night tests and security",
+    "tpl_weekly-deps": "Weekly dependency update",
+    "tpl_daily-report": "Daily report",
+    "tplReq_nightly-check": "Run the build and tests, and check the code for security problems.",
+    "tplReq_weekly-deps": "Update the dependencies (patch and minor) and run the tests.",
+    "tplReq_daily-report": "Report what changed yesterday and what needs attention.",
+    "safety": "Runs never push or deploy. Times missed while this computer was off are not run on their own: you are asked.",
+    "empty": "Nothing scheduled yet.",
+    "status_proposed": "Waiting for your OK",
+    "status_active": "On",
+    "status_paused": "Paused",
+    "status_done": "Done",
+    "confirm": "Is this right? Nothing runs before you approve.",
+    "approve": "Approve",
+    "missed": "It should have run at {{at}}, while this computer was off.",
+    "runMissed": "Run it now",
+    "skip": "Skip",
+    "next": "Next: {{when}}",
+    "last": "Last run {{when}}",
+    "maxMinutes": "Max minutes",
+    "maxTurns": "Max steps",
+    "pause": "Pause",
+    "resume": "Turn on",
+    "runNow": "Run now",
+    "history": "Past runs",
+    "noRuns": "Not run yet.",
+    "once": "Once, {{at}}",
+    "every_hour": "Every hour at :{{minute}}",
+    "every_day": "Every day {{time}}",
+    "every_weekday": "Weekdays {{time}}",
+    "every_week": "Every {{day}} {{time}}",
+    "every_month": "Day {{day}} of every month, {{time}}"
   }
 }

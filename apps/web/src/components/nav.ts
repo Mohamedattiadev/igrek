@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   BookMarked,
+  CalendarClock,
   FolderKanban,
   FolderOpen,
   Gauge,
@@ -30,6 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/files", label: "nav.files", icon: FolderOpen },
   { to: "/servers", label: "nav.servers", icon: Server },
   { to: "/inbox", label: "nav.inbox", icon: Inbox },
+  { to: "/schedules", label: "nav.schedules", icon: CalendarClock },
   { to: "/ideas", label: "nav.ideas", icon: Lightbulb },
   { to: "/prompts", label: "nav.prompts", icon: BookMarked },
   { to: "/limits", label: "nav.limits", icon: Gauge },
