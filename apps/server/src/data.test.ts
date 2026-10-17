@@ -286,7 +286,12 @@ describe("feedback box", () => {
     const errors = new AppErrors(sqlite, store, new Bus());
     const key = errors.key(projectId);
     const cards: { title: string; origin?: string }[] = [];
-    const board = { add: (c: { title: string; origin?: string }) => (cards.push(c), { id: "card1" }) };
+    const board = {
+      add: (c: { title: string; origin?: string }) => {
+        cards.push(c);
+        return { id: "card1" };
+      },
+    };
     const bug = '{"kind":"bug","summary":"Export to PDF crashes","sentiment":"negative"}';
     const praise = '{"kind":"praise","summary":"Loves the search","sentiment":"positive"}';
     // Feedback is sorted in batches; answer for what is in each one.
