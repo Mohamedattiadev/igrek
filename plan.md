@@ -1004,7 +1004,13 @@ god-eye/
 - [ ] 💾 **Yedekleme yöneticisi:** veritabanı ve dosya yedekleri, zamanlama, geri yükleme testi
 - [ ] 💸 **Maliyet paneli:** sunucu, AI, API ve SaaS abonelikleri, aylık toplam ve trend
 - [ ] 📝 **Proje wiki'si ve notlar:** her projeye doküman alanı (Markdown + diyagram); hafıza ile bağlantılı
-- [ ] 🧭 **Beyaz tahta:** mimari çizimleri ve fikir haritaları (Excalidraw benzeri)
+- [ ] 🧭 **AI'ın anladığı beyaz tahta (Excalidraw tabanlı, MIT, ücretsiz):** mimari çizimleri, akışlar, fikir haritaları, el çizimi kutu ve oklar
+  - [ ] Çizim hem **yapı** (kutular, oklar, yazılar, gruplar, bağlantılar = JSON) hem **resim** (PNG) olarak AI'a verilir; AI ikisini birlikte okur, "bu çizimde ne var" sorusuna doğru cevap verir
+  - [ ] "Bunu açıkla", "eksik ne var", "bunu koda dök" (ör. çizilen mimariden klasör yapısı, API listesi, DB şeması) butonları
+  - [ ] Ters yön: AI projenin mimarisini, DB şemasını, akışlarını tahtaya **düzenlenebilir** çizim olarak koyar (Mermaid → Excalidraw)
+  - [ ] El yazısı ve serbest çizim de anlaşılır (resim olarak); AI anlamını kutu/yazı olarak düzenli hale getirebilir
+  - [ ] Her proje ve kategori sayfasına bağlı tahtalar; hafızaya ve kararlara bağlantı; takımla senkron (uçtan uca şifreli)
+  - [ ] Sürüm geçmişi, PNG/SVG/`.excalidraw` dışa aktarma, sohbete sürükle-bırak
 - [ ] 🐙 **GitHub/GitLab entegrasyonu:** issue'lar, PR'lar, CI durumu; issue'dan tek tıkla persona görevi
 - [ ] 📅 **Takvim görünümü:** zamanlanmış işler, fazlar, son tarihler, deploy'lar
 - [ ] 🔐 **Sır kasası:** tüm projelerin anahtarları tek yerde, şifreli, rotasyon hatırlatıcısı
@@ -1060,6 +1066,34 @@ god-eye/
 - [ ] 🕵️ **Sıfır telemetri:** hiçbir kullanım verisi dışarı gönderilmez
 - [ ] 🐶 **Dogfooding:** God Eye, God Eye ile geliştirilir. Her eksik ilk önce bizim tarafımızdan hissedilir
 - [ ] ⚙️ Hafiflik hedefi: boşta lokal RAM kullanımı < 300 MB
+
+### Faz 14 — 📚 Öğrenme Merkezi: Kopya Kâğıtları ve Yol Haritaları
+
+**Hedef:** Kodla ilgili her şey için tek yerde, doğru, güncel ve sade bir başvuru kaynağı. Hiç kod yazmamış biri sıfırdan başlayıp deploy edilmiş bir uygulamaya kadar adım adım gidebilsin.
+
+#### 14.1 🧾 Kopya kâğıtları (cheatsheet) — her şey için
+- [ ] ⭐ Tek aranabilir merkez (Ctrl+K'den de): diller (JS/TS, Python, Go, Rust, Java, C#, PHP, SQL, Bash…), framework'ler, araçlar (Git, Docker, Kubernetes, Linux komutları, SSH, Nginx, regex, HTTP durum kodları, cron, Vim, tmux…), kavramlar (Big-O, tasarım desenleri, SOLID, REST/GraphQL, OAuth/JWT, CORS, caching)
+- [ ] Her madde: ne işe yarar (bir cümle) → en çok kullanılan biçim → kısa örnek → sık hata → "ne zaman kullanılmaz"; kopyala butonu
+- [ ] **Seviyeler:** temel / orta / ileri; Basit modda sade dil
+- [ ] **Projeye bağlı:** projede kullanılan teknolojilerin kopya kâğıtları öne çıkar, kurulu **sürüme** göre (ör. React 19, Next 16, Python 3.13); eski sürüm farkları işaretlenir
+- [ ] Doğruluk: içerik resmi dokümanlardan üretilir, her maddede kaynak bağlantısı; Bilgi Motoru (7.1b) ile yeni sürüm çıkınca güncellenir; kullanıcı "yanlış" diye işaretleyebilir
+- [ ] Kendi notlarını ekleme, favoriler, yazdırılabilir/PDF tek sayfa sürüm; TR/EN ve diğer diller (dil paketleri gibi AI ile)
+- [ ] Kod editöründe seçili koda "bu nedir?" → ilgili kopya kâğıdı maddesi açılır
+
+#### 14.2 🗺️ Yol haritaları — sıfırdan deploy'a
+- [ ] ⭐ En çok kullanılan teknolojiler için tam yol haritası: Web temelleri (HTML/CSS/JS), TypeScript, React, Next.js, Vue/Nuxt, Svelte, Angular, Node/Express/Hono/NestJS, Bun, Python (Django, FastAPI, Flask), Go, Rust, Java/Spring, .NET, PHP/Laravel, React Native, Flutter, Swift/iOS, Kotlin/Android, SQL/PostgreSQL, MongoDB, Redis, Docker, Kubernetes, CI/CD (GitHub Actions), Linux sunucu, AWS/GCP/Azure temelleri, AI/LLM uygulamaları (RAG, agent'lar, MCP)
+- [ ] Her yol haritası aynı iskelet: **0. Bilgisayarı hazırlama → 1. İlk satır kod → 2. Temel kavramlar → 3. İlk küçük proje → 4. Veri ve API → 5. Test → 6. Güvenlik → 7. Performans → 8. Paketleme → 9. Deploy → 10. İzleme ve bakım → 11. İleri konular**
+- [ ] ⭐ Her adımda **tam açıklama:** neden gerekli, ne öğreneceksin, adım adım ne yapacaksın, çalışan örnek kod, sık hatalar ve çözümleri, "anladım mı?" mini testi, tahmini süre
+- [ ] Adımlar arasında ön koşul bağlantıları (grafik görünümü); ilerleme takibi (bitirdiğin adımlar işaretlenir)
+- [ ] **Uygulamalı:** her yol haritası gerçek bir örnek projeyle ilerler; "bu adımı bana yaptır" → God Eye ayrı bir kopyada (worktree) örnek projeyi kurar, sen adım adım takip edersin
+- [ ] Kendi projene uyarlama: "Bu proje hangi adımda?" → eksik adımlar (test yok, izleme yok…) Kategori Sayfaları ve puanlamaya bağlanır
+- [ ] İlgili persona her yol haritasının "öğretmeni" olur (ör. Frontend Senior React yolunu anlatır, sorulara cevap verir)
+- [ ] İçerik doğruluğu: resmi dokümanlara dayanır, kaynak gösterilir, sürüm etiketi taşır; Bilgi Motoru ile güncel tutulur; yanlış/eskimiş adım bildirilebilir
+- [ ] Tüm diller desteklenir (TR/EN elle kontrol edilmiş, diğerleri dil paketi gibi)
+
+**Bitti sayılır:** Hiç kod bilmeyen biri React yol haritasını takip ederek kendi küçük uygulamasını yazıp internete deploy ediyor; her adımda neden yaptığını anlıyor.
+
+---
 
 ---
 
