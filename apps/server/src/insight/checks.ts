@@ -13,7 +13,7 @@ import { isEnvExample, type RepoFile, SENSITIVE, type Snapshot } from "./snapsho
 
 // ---- what is what --------------------------------------------------------------------
 
-const CODE =
+export const CODE =
   /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts|vue|svelte|astro|py|go|rs|rb|java|kt|swift|php|cs|c|cpp|scala|ex|exs|dart)$/i;
 const JS_TS = /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts)$/i;
 const UI_FILE = /\.(tsx|jsx|vue|svelte|astro|html?)$/i;
@@ -171,7 +171,7 @@ const LOCAL_CREDENTIAL_URL =
 /** Generated code isn't written by hand, so its size says nothing about the design. */
 const GENERATED =
   /(^|\/)(generated|__generated__|gen|l10n|i18n\/generated)\/|\.(g|freezed|pb|gen)\.[a-z]+$|generated\.[a-z]+$|_pb2\.py$|app_localizations[^/]*\.dart$/i;
-const isGenerated = (f: RepoFile) =>
+export const isGenerated = (f: RepoFile) =>
   GENERATED.test(f.path) || /^.{0,300}(@generated|DO NOT EDIT|auto-?generated)/is.test(f.text ?? "");
 
 // ---- helpers -------------------------------------------------------------------------

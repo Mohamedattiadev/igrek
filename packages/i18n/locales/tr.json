@@ -2016,7 +2016,39 @@
     "review": "Bu bölümü incele",
     "reviewTip": "{{name}} bu bölüme bakar ve en önemli olanları söyler",
     "reviewDraft": "Bu projenin {{section}} bölümünü incele. Önce açık kontrollerle başla, sonra kendi kontrol listeni kullan. Bulguları önem sırasıyla, dosya ve satırıyla yaz; önce neyin düzeltilmesi gerektiğini söyle ve her birine bir güven seviyesi ver.",
-    "tab_testers": "Test kullanıcıları"
+    "tab_testers": "Test kullanıcıları",
+    "unit-tester": {
+      "name": "Birim Test Yazarı",
+      "role": "Her parça için küçük, hızlı testler"
+    },
+    "integration-tester": {
+      "name": "Entegrasyon Testçisi",
+      "role": "Parçaların birlikte çalıştığını kontrol eder"
+    },
+    "e2e-tester": {
+      "name": "Uçtan Uca Testçi",
+      "role": "Önemli kullanıcı yolları gerçek tarayıcıda"
+    },
+    "load-tester": {
+      "name": "Yük Testçisi",
+      "role": "1000 kişi aynı anda girerse ne olur"
+    },
+    "pentester": {
+      "name": "Güvenlik Testçisi",
+      "role": "OWASP Top 10, sadece kendi uygulaman, lokal ya da staging"
+    },
+    "a11y-tester": {
+      "name": "Erişilebilirlik Testçisi",
+      "role": "WCAG, klavye ve ekran okuyucular"
+    },
+    "cross-browser-tester": {
+      "name": "Tarayıcı ve Cihaz Testçisi",
+      "role": "Chromium, Firefox, Safari; telefondan masaüstüne"
+    },
+    "chaos-tester": {
+      "name": "Kaos Testçisi",
+      "role": "Veritabanı giderse, internet koparsa ne olur"
+    }
   },
   "meeting": {
     "title": "Takım toplantısı",
@@ -2156,5 +2188,16 @@
         "who": "33, yazılımcı, kısayol arar"
       }
     }
+  },
+  "coverage": {
+    "title": "Test kapsamı haritası",
+    "make": "Haritayı çıkar",
+    "again": "Yenile",
+    "hint": "Hangi klasörlerin testi var, hangi büyük dosyaların hiç yok. Varsa kapsam raporunu (coverage/lcov.info) kullanır.",
+    "fromReport": "Satırların %{{percent}}'i kapsanıyor, kaynak: {{report}}.",
+    "static": "{{files}} kod dosyasının {{tested}} tanesini içe aktaran ya da adını taşıyan bir test var.",
+    "untested": "Testi olmayan en büyük dosyalar",
+    "lines": "{{n}} satır",
+    "staticNote": "Kapsam raporu yoksa bu sadece bir testin dosyaya dokunup dokunmadığını söyler, ne kadarına dokunduğunu değil. Kesin sayı için testleri kapsamla çalıştır (örneğin bun test --coverage --coverage-reporter=lcov)."
   }
 }

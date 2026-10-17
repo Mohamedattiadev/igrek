@@ -9,6 +9,7 @@ import {
   type CategoryDetail,
   type CategoryExplanation,
   type CategoryScore,
+  type CoverageMap,
   type DiagramSet,
   gradeOf,
   type InboxNotice,
@@ -24,7 +25,8 @@ import type { Bus, StopRegistry } from "../bus";
 import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
 import { scrub } from "../sync/scrub";
-import { SENSITIVE } from "./snapshot";
+import { coverageMap } from "./coverage";
+import { SENSITIVE, takeSnapshot } from "./snapshot";
 import { planTools, runTool } from "./tools";
 
 const STALE = 30 * 60_000;
@@ -84,6 +86,12 @@ export class Insight {
   private rootOf(projectId: string): string | undefined {
     const project = this.store.projectRow(projectId);
     return project && !project.path.startsWith("team:") && existsSync(project.path) ? project.path : undefined;
+  }
+
+  /** Which code has tests (plan.md 6.1c); computed when asked. */
+  coverage(projectId: string): CoverageMap | undefined {
+    const root = this.rootOf(projectId);
+    return root ? coverageMap(takeSnapshot(root)) : undefined;
   }
 
   /** Scans now (one scan per project at a time). */

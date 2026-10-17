@@ -248,3 +248,19 @@ export interface InboxNotice {
   at: number;
   link: string;
 }
+
+/** Which parts of the code have tests (plan.md 6.1c "test kapsamı haritası"). */
+export interface CoverageMap {
+  /** "report": read from the project's own coverage report; "static": tests that import or are named after a file. */
+  source: "report" | "static";
+  /** The coverage file used, relative to the project. */
+  report?: string;
+  files: number;
+  tested: number;
+  /** Line coverage 0–100 (report only). */
+  percent?: number;
+  folders: { path: string; files: number; tested: number; percent?: number }[];
+  /** The biggest files without any test. */
+  untested: { path: string; lines: number }[];
+  at: number;
+}

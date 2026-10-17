@@ -2016,7 +2016,39 @@
     "review": "Review this part",
     "reviewTip": "{{name}} looks at this part and reports what matters most",
     "reviewDraft": "Review the {{section}} part of this project. Start with the open checks, then use your own checklist. List findings by importance with the file and line, say what to fix first, and give a confidence for each.",
-    "tab_testers": "Test users"
+    "tab_testers": "Test users",
+    "unit-tester": {
+      "name": "Unit Test Writer",
+      "role": "Small, fast tests for each piece"
+    },
+    "integration-tester": {
+      "name": "Integration Tester",
+      "role": "Checks that the parts work together"
+    },
+    "e2e-tester": {
+      "name": "End-to-End Tester",
+      "role": "The key user journeys in a real browser"
+    },
+    "load-tester": {
+      "name": "Load Tester",
+      "role": "What happens when 1000 people come at once"
+    },
+    "pentester": {
+      "name": "Security Tester",
+      "role": "OWASP Top 10, only your own app, local or staging"
+    },
+    "a11y-tester": {
+      "name": "Accessibility Tester",
+      "role": "WCAG, keyboard and screen readers"
+    },
+    "cross-browser-tester": {
+      "name": "Browser and Device Tester",
+      "role": "Chromium, Firefox, Safari; phone to desktop"
+    },
+    "chaos-tester": {
+      "name": "Chaos Tester",
+      "role": "What if the database goes away or the network drops"
+    }
   },
   "meeting": {
     "title": "Team meeting",
@@ -2156,5 +2188,16 @@
         "who": "33, developer, wants shortcuts"
       }
     }
+  },
+  "coverage": {
+    "title": "Test coverage map",
+    "make": "Make the map",
+    "again": "Again",
+    "hint": "Which folders have tests and which big files have none. Uses your coverage report (coverage/lcov.info) when there is one.",
+    "fromReport": "{{percent}}% of lines are covered, from {{report}}.",
+    "static": "{{tested}} of {{files}} code files have a test that imports them or is named after them.",
+    "untested": "Biggest files without a test",
+    "lines": "{{n}} lines",
+    "staticNote": "Without a coverage report this only says whether a test touches a file, not how much of it. For exact numbers, run your tests with coverage (for example bun test --coverage --coverage-reporter=lcov)."
   }
 }

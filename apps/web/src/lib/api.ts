@@ -9,6 +9,7 @@ import type {
   ChatMode,
   Checkpoint,
   CommandRisk,
+  CoverageMap,
   DeployCheck,
   DeployRecord,
   Digest,
@@ -236,6 +237,7 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  coverageMap: (projectId: string) => request<CoverageMap>(`/api/projects/${projectId}/coverage-map`),
   testerStatus: () => request<{ browser: boolean; mcp: boolean; runtime: string }>("/api/testers/status"),
   testerProfiles: () => request<TesterProfile[]>("/api/testers/profiles"),
   saveTesterProfile: (profile: Partial<TesterProfile>) =>

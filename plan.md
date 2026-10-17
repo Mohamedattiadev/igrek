@@ -861,13 +861,13 @@ god-eye/
 - [ ] Her önemli değişiklikten sonra otomatik tekrar test (regresyon) — *"Tekrar test et": aynı kişiler, aynı görev; teyze puanı ve her kişinin kolaylığı öncekiyle karşılaştırılır (gerçek denemede 20 → 60). Değişiklikten sonra kendiliğinden başlatmak zamanlanmış işlerle (Faz 9)*
 
 #### 6.1c 🧪 Uzman Test Takımı
-- [ ] Birim test yazarı, entegrasyon testçisi, uçtan uca (E2E) testçisi
-- [ ] Yük testçisi: "1000 kişi aynı anda girerse ne olur?"
-- [ ] Güvenlik testçisi (pentest): OWASP Top 10 kontrolleri, sadece kendi projelerinde ve lokal/staging ortamında
-- [ ] Erişilebilirlik testçisi (WCAG)
-- [ ] Çapraz tarayıcı ve cihaz testçisi
-- [ ] Kaos testçisi: "veritabanı giderse, internet koparsa ne olur?"
-- [ ] Test kapsamı haritası: hangi kısım test edilmiş, hangisi edilmemiş
+- [x] Birim test yazarı, entegrasyon testçisi, uçtan uca (E2E) testçisi — *Personalar → Test grubu; aynı profil standardı (geçmiş, alan tarihi, kitaplar, kontrol listesi), dosya düzenleyebilirler, push/deploy yine sorulur*
+- [x] Yük testçisi: "1000 kişi aynı anda girerse ne olur?" — *kuralı: sadece bu bilgisayar ya da staging, her çalıştırmadan önce sorar*
+- [x] Güvenlik testçisi (pentest): OWASP Top 10 kontrolleri, sadece kendi projelerinde ve lokal/staging ortamında — *bu sınır prompt kuralı olarak var ve komutlar "Bana sor" modunda tek tek onay bekler; adresin gerçekten lokal olduğu teknik olarak zorlanmıyor*
+- [x] Erişilebilirlik testçisi (WCAG)
+- [x] Çapraz tarayıcı ve cihaz testçisi
+- [x] Kaos testçisi: "veritabanı giderse, internet koparsa ne olur?"
+- [x] Test kapsamı haritası: hangi kısım test edilmiş, hangisi edilmemiş — *Bölümler → Testler: klasör başına çubuk, testi olmayan en büyük dosyalar. Projenin kapsam raporu (coverage/lcov.info, coverage-summary.json) varsa satır kapsamı; yoksa "bir test bu dosyayı içe aktarıyor ya da adını taşıyor mu". Statik harita paket adıyla yapılan içe aktarmaları (ör. `@godeye/core`) izlemez*
 
 #### 6.2 Altyapı
 - [x] Persona tanımı: karakter, uzmanlık, kurallar, izinli araçlar, model, kütüphane, rubrik — *`packages/core/src/personas.ts`; araç izni (okur / düzenler / internet), model, adım sınırı ve insight bölümleri (rubrikler bölüm başına) var; kütüphane Faz 7*

@@ -1,10 +1,13 @@
 import type { Persona } from "@godeye/core";
 import type { LucideIcon } from "lucide-react";
 import {
+  Accessibility,
+  Activity,
   Binoculars,
   Bot,
   Brain,
   Briefcase,
+  Bug,
   ClipboardList,
   Code,
   Cog,
@@ -18,14 +21,19 @@ import {
   Landmark,
   Microscope,
   Monitor,
+  MonitorSmartphone,
+  MousePointerClick,
   Package,
   Palette,
   PenLine,
+  Plug,
   Rocket,
   Scale,
   ShieldCheck,
   Smartphone,
   Swords,
+  TestTube,
+  Tornado,
   TrendingUp,
   UserRound,
   Wallet,
@@ -40,6 +48,14 @@ import { useServerEvent } from "./live";
 
 /** Icons a persona can have; anything else shows the default. */
 export const PERSONA_ICONS: Record<string, LucideIcon> = {
+  Tornado,
+  MonitorSmartphone,
+  Accessibility,
+  Bug,
+  Activity,
+  MousePointerClick,
+  Plug,
+  TestTube,
   Binoculars,
   Bot,
   Brain,

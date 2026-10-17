@@ -1,6 +1,7 @@
 import {
   type Category,
   type CategoryDetail,
+  type CoverageMap,
   type Finding,
   type InsightScan,
   type ProjectDetail,
@@ -107,6 +108,83 @@ function useFix(projectId: string) {
     const chat = await api.startChat({ projectId, personaId: owner?.id });
     navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
   };
+}
+
+/** Which folders have tests and which big files have none (plan.md 6.1c). */
+function CoverageCard({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [map, setMap] = useState<CoverageMap>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  const load = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      setMap(await api.coverageMap(projectId));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const share = (tested: number, files: number, percent?: number) =>
+    percent ?? (files ? Math.round((tested / files) * 100) : 0);
+  return (
+    <Card className="space-y-3 p-pad">
+      <div className="flex items-center gap-2">
+        <h3 className="text-[13px] font-semibold">{t("coverage.title")}</h3>
+        <div className="flex-1" />
+        <Button size="sm" variant="ghost" icon={RefreshCw} disabled={busy} onClick={() => void load()}>
+          {map ? t("coverage.again") : t("coverage.make")}
+        </Button>
+      </div>
+      {error && <p className="text-xs text-danger">{error}</p>}
+      {!map && !error && <p className="text-xs text-fg-muted">{t("coverage.hint")}</p>}
+      {map && (
+        <>
+          <p className="text-[13px]">
+            {map.source === "report"
+              ? t("coverage.fromReport", { percent: map.percent ?? 0, report: map.report })
+              : t("coverage.static", { tested: map.tested, files: map.files })}
+          </p>
+          <ul className="space-y-1">
+            {map.folders.map((f) => {
+              const pct = share(f.tested, f.files, f.percent);
+              return (
+                <li key={f.path} className="grid grid-cols-[minmax(0,1fr)_120px_48px] items-center gap-2 text-[12px]">
+                  <span className="truncate font-mono text-[11.5px]">{f.path}</span>
+                  <span className="h-1.5 overflow-hidden rounded-full bg-bg-muted">
+                    <span
+                      className={cn(
+                        "block h-full rounded-full",
+                        pct >= 70 ? "bg-success" : pct >= 40 ? "bg-warning" : "bg-danger",
+                      )}
+                      style={{ width: `${Math.max(2, pct)}%` }}
+                    />
+                  </span>
+                  <span className="text-end tabular-nums text-fg-muted">{pct}%</span>
+                </li>
+              );
+            })}
+          </ul>
+          {map.untested.length > 0 && (
+            <details>
+              <summary className="cursor-pointer text-xs text-fg-muted">{t("coverage.untested")}</summary>
+              <ul className="mt-1 space-y-0.5">
+                {map.untested.map((f) => (
+                  <li key={f.path} className="flex gap-2 font-mono text-[11.5px]">
+                    <span className="min-w-0 flex-1 truncate">{f.path}</span>
+                    <span className="text-fg-subtle">{t("coverage.lines", { n: f.lines })}</span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          {map.source === "static" && <p className="text-[11px] text-fg-subtle">{t("coverage.staticNote")}</p>}
+        </>
+      )}
+    </Card>
+  );
 }
 
 function StatusIcon({ status }: { status: Finding["status"] }) {
@@ -272,6 +350,8 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
           </div>
         )}
       </Card>
+
+      {category === "testing" && <CoverageCard projectId={project.id} />}
 
       <Card className="space-y-3 p-pad">
         <div className="flex items-center gap-2">
