@@ -56,6 +56,7 @@ interface SessionRow {
   last_tool_failed: number;
   account_id: string | null;
   author_name?: string | null;
+  private?: number;
 }
 
 interface ProjectRow {
@@ -173,6 +174,17 @@ export class Store {
           commits: p.commits,
         })),
     };
+  }
+
+  setSessionPrivate(id: string, value: boolean): string | null {
+    this.db.query("UPDATE sessions SET private = ? WHERE id = ? AND author_id IS NULL").run(value ? 1 : 0, id);
+    return (
+      (
+        this.db.query("SELECT project_id FROM sessions WHERE id = ?").get(id) as
+          | { project_id: string | null }
+          | undefined
+      )?.project_id ?? null
+    );
   }
 
   /** "Work on branches, deploy only main": warn before committing straight to main. */
@@ -366,6 +378,7 @@ export class Store {
       active: isActive(row.updated_at ?? 0),
       health: this.health(row),
       author: row.author_name ?? undefined,
+      private: !!row.private,
       summary: row.summary ? JSON.parse(row.summary) : undefined,
       models: JSON.parse(row.models),
       tokens: {

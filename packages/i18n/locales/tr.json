@@ -726,7 +726,22 @@
     "overlap": "{{name}} da {{files}} dosyasında çalışıyor",
     "shareTip_off": "Bu projeden hiçbir şey bilgisayarından çıkmaz",
     "shareTip_summary": "Session başlıkları, özetler, istatistikler ve proje hafızası; konuşmalar değil",
-    "shareTip_full": "Konuşmalar dahil her şey, canlı. Sırlar her zaman silinir"
+    "shareTip_full": "Konuşmalar dahil her şey, canlı. Sırlar her zaman silinir",
+    "privateOn": "Sadece sende: takımla paylaşılmıyor.",
+    "privateOff": "Bu projenin geri kalanı gibi takımla paylaşılıyor.",
+    "privateTip": "Gizli bir session, paylaşılan bir projede bile hub'a gitmez. Gizli yapmak, takım arkadaşlarının uygulamasından da kopyayı silmesini ister.",
+    "privateHide": "Gizli tut",
+    "privateShare": "Tekrar paylaş",
+    "preview": "Ne paylaşılıyor?",
+    "previewTip": "Bu proje için bir sonraki senkronun ne göndereceğini gör (sırlar silinmiş halde)",
+    "previewTitle": "{{name}} neler paylaşıyor",
+    "previewHint": "Bu proje için bu bilgisayardan (şifreli olarak) çıkan şey bu. Sırlar zaten maskelenmiş.",
+    "previewMemory": "Proje hafızası",
+    "previewMessages_one": "Ayrıca {{count}} konuşma mesajı.",
+    "previewMessages_other": "Ayrıca {{count}} konuşma mesajı.",
+    "previewNoMessages": "Bu seviyede konuşmalar paylaşılmaz.",
+    "previewPrivate_one": "{{count}} gizli session burada kalıyor",
+    "previewPrivate_other": "{{count}} gizli session burada kalıyor"
   },
   "enhance": {
     "button": "Prompt'u güçlendir",
@@ -1406,5 +1421,13 @@
     "up": "Bir üst klasör",
     "saveConfirm": "{{path}} sunucuda kaydedilsin mi? Yanında tarihli bir yedek tutulur.",
     "saved": "Kaydedildi. Yedek: {{backup}}"
+  },
+  "sync": {
+    "upToDate": "Güncel",
+    "syncing_one": "{{count}} eşitleniyor",
+    "syncing_other": "{{count}} eşitleniyor",
+    "offline_one": "Çevrimdışı · {{count}} bekliyor",
+    "offline_other": "Çevrimdışı · {{count}} bekliyor",
+    "lastTip": "Son senkron {{when}}"
   }
 }

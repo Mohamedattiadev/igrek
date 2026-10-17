@@ -4,6 +4,8 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   Bot,
+  Eye,
+  EyeOff,
   FileWarning,
   GitFork,
   MessageSquare,
@@ -295,6 +297,26 @@ export function SessionPage() {
 
           <div className="space-y-4">
             <HealthCard session={session} />
+            {!session.author && (
+              <Card className="flex items-center gap-3 p-pad">
+                {session.private ? (
+                  <EyeOff size={15} className="text-fg-muted" aria-hidden="true" />
+                ) : (
+                  <Eye size={15} className="text-fg-muted" aria-hidden="true" />
+                )}
+                <span className="min-w-0 flex-1 text-xs text-fg-muted">
+                  {session.private ? t("team.privateOn") : t("team.privateOff")}
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => void api.setSessionPrivate(session.id, !session.private).then(reload)}
+                  data-tip={t("team.privateTip")}
+                >
+                  {session.private ? t("team.privateShare") : t("team.privateHide")}
+                </Button>
+              </Card>
+            )}
             <Card className="grid grid-cols-2 gap-3 p-pad">
               <Stat label={t("session.started")} value={dateTime(session.startedAt)} />
               <Stat label={t("session.updated")} value={relativeTime(session.updatedAt)} />

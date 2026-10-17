@@ -15,6 +15,7 @@ import { IdeaCapture } from "./IdeaCapture";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
+import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
 import { Kbd, StatusDot } from "./ui";
 import { WorkspacePicker } from "./WorkspacePicker";
@@ -92,6 +93,7 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
         <Kbd>Ctrl K</Kbd>
       </button>
       <div className="flex-1" />
+      <SyncChip />
       <AccountChip />
       <StopButton onStopped={onToast} />
     </header>

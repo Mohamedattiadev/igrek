@@ -1,13 +1,14 @@
 import { randomBytes } from "node:crypto";
 import type { ShareLevel } from "@godeye/core";
 import type { Hono } from "hono";
+import type { Store } from "./store";
 import type { Sync } from "./sync/client";
 import { encodeInvite } from "./sync/crypto";
 
 const fail = (err: unknown) => ({ error: (err as Error).message });
 
 /** Team page (plan.md Faz 4): connect, invite, admin panel, sharing, presence. */
-export function registerTeamRoutes(app: Hono, sync: Sync): void {
+export function registerTeamRoutes(app: Hono, sync: Sync, store: Store): void {
   app.get("/api/team", (c) => c.json(sync.status()));
 
   app.post("/api/team/connect", async (c) => {
@@ -110,6 +111,15 @@ export function registerTeamRoutes(app: Hono, sync: Sync): void {
       return c.json(fail(err), 400);
     }
   });
+
+  app.patch("/api/sessions/:id/private", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { private?: boolean };
+    const projectId = store.setSessionPrivate(c.req.param("id"), body.private === true);
+    if (projectId && body.private) await sync.forgetSession(projectId, c.req.param("id"));
+    return c.json({ ok: true });
+  });
+
+  app.get("/api/projects/:id/share-preview", (c) => c.json(sync.preview(c.req.param("id"))));
 
   app.get("/api/team/presence", (c) => c.json(sync.presenceList(c.req.query("project") || undefined)));
 

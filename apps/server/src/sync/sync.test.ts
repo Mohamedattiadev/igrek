@@ -165,6 +165,22 @@ describe("team sync", () => {
     });
   });
 
+  test("a private session never goes out, and taking one back removes the teammate's copy", async () => {
+    const now = Date.now();
+    a.db
+      .query(
+        "INSERT INTO sessions (id, project_id, tool, title, started_at, updated_at, user_messages, private) VALUES ('s-private', 'p1', 'claude', 'Secret plan', ?, ?, 2, 1)",
+      )
+      .run(now, now + 10);
+    const before = hub.stats().events;
+    await a.sync.flush();
+    expect(hub.stats().events).toBe(before);
+    expect(a.sync.preview("p1").privateSessions).toBe(1);
+    expect(b.db.query("SELECT 1 FROM sessions WHERE id = 's1'").get()).toBeTruthy();
+    await a.sync.forgetSession("p1", "s1");
+    await until(() => !b.db.query("SELECT 1 FROM sessions WHERE id = 's1'").get());
+  });
+
   test("disconnect forgets the hub and the key", async () => {
     b.sync.disconnect();
     expect(b.sync.status()).toMatchObject({ configured: false, connected: false });

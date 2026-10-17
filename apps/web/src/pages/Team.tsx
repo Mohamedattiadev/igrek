@@ -2,6 +2,7 @@ import type {
   Presence,
   ProjectListItem,
   ShareLevel,
+  SharePreview,
   TeamAuditEntry,
   TeamDevice,
   TeamInvite,
@@ -11,6 +12,7 @@ import type {
 import {
   Copy,
   Eraser,
+  Eye,
   EyeOff,
   KeyRound,
   Lock,
@@ -236,6 +238,7 @@ function Members({ status, presence }: { status: TeamStatus; presence: Presence[
 
 function Sharing() {
   const { t } = useTranslation();
+  const [preview, setPreview] = useState<{ name: string; data: SharePreview }>();
   const [projects, setProjects] = useState<ProjectListItem[]>();
   const load = () => {
     api
@@ -255,6 +258,17 @@ function Sharing() {
               {p.name}
               {p.workspace === "team" && <span className="ms-2 text-[11px] text-fg-subtle">{t("team.fromTeam")}</span>}
             </span>
+            {p.share !== "off" && (
+              <Button
+                size="sm"
+                variant="ghost"
+                icon={Eye}
+                onClick={() => void api.sharePreview(p.id).then((r) => setPreview({ name: p.name, data: r }))}
+                data-tip={t("team.previewTip")}
+              >
+                {t("team.preview")}
+              </Button>
+            )}
             <Segmented
               value={p.share}
               onChange={(share) => {
@@ -265,6 +279,47 @@ function Sharing() {
           </div>
         ))}
       <p className="pt-1 text-[11px] leading-relaxed text-fg-subtle">{t("team.shareHint")}</p>
+      <Dialog open={!!preview} onClose={() => setPreview(undefined)} label={t("team.preview")} wide>
+        {preview && (
+          <div className="space-y-3 p-5">
+            <h2 className="text-[14px] font-semibold">{t("team.previewTitle", { name: preview.name })}</h2>
+            <p className="text-xs text-fg-muted">{t("team.previewHint")}</p>
+            <div className="max-h-[60vh] space-y-3 overflow-auto">
+              {preview.data.sessions.map((s) => (
+                <div key={s.id} className="rounded-ui border border-border p-2 text-xs">
+                  <p className="font-medium">{s.title}</p>
+                  {s.summary.map((line) => (
+                    <p key={line} className="text-fg-muted">
+                      · {line}
+                    </p>
+                  ))}
+                  {s.firstPrompt && <p className="mt-1 font-mono text-[11px] text-fg-subtle">{s.firstPrompt}</p>}
+                  {s.files.length > 0 && (
+                    <p className="mt-1 font-mono text-[11px] text-fg-subtle">{s.files.join(", ")}</p>
+                  )}
+                </div>
+              ))}
+              {preview.data.memory.length > 0 && (
+                <div className="space-y-1 text-xs">
+                  <p className="font-medium">{t("team.previewMemory")}</p>
+                  {preview.data.memory.map((m) => (
+                    <p key={m.text} className="text-fg-muted">
+                      · {m.text}
+                    </p>
+                  ))}
+                </div>
+              )}
+              <p className="text-[11px] text-fg-subtle">
+                {preview.data.share === "full"
+                  ? t("team.previewMessages", { count: preview.data.messages })
+                  : t("team.previewNoMessages")}
+                {preview.data.privateSessions > 0 &&
+                  ` · ${t("team.previewPrivate", { count: preview.data.privateSessions })}`}
+              </p>
+            </div>
+          </div>
+        )}
+      </Dialog>
     </div>
   );
 }

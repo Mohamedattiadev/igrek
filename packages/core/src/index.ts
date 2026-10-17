@@ -126,6 +126,8 @@ export interface SessionListItem {
   health: SessionHealth;
   /** Teammate who ran it; empty for your own. */
   author?: string;
+  /** Kept to yourself even when the project is shared. */
+  private?: boolean;
   summary?: SessionSummaryData;
   models: Record<string, number>;
   tokens: { input: number; output: number; cacheRead: number; cacheWrite: number };
@@ -507,6 +509,9 @@ export interface TeamStatus {
   keyMismatch: boolean;
   /** The hub no longer accepts this device (password reset or removed): join again with a new invite. */
   signedOut: boolean;
+  /** Changes waiting to go out (sessions, memory). */
+  pending: number;
+  lastSyncAt?: number;
   members: TeamMember[];
 }
 
@@ -653,4 +658,21 @@ export interface TodaySummary {
   deploys: number;
   failedDeploys: number;
   projects: { id: string; name: string; team: boolean; sessions: number; commits: number }[];
+}
+
+/** What the next sync would send for a project, secrets already removed (plan.md 4.2). */
+export interface SharePreview {
+  share: ShareLevel;
+  sessions: {
+    id: string;
+    title: string;
+    summary: string[];
+    firstPrompt?: string;
+    files: string[];
+    updatedAt: number;
+  }[];
+  /** Conversation messages included ("full" sharing only). */
+  messages: number;
+  memory: { section: string; text: string }[];
+  privateSessions: number;
 }

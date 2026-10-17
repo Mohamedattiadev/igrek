@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { hostname } from "node:os";
-import type { Presence, ShareLevel, TeamMember, TeamStatus } from "@godeye/core";
+import type { Presence, ShareLevel, SharePreview, TeamMember, TeamStatus } from "@godeye/core";
 import type { Bus } from "../bus";
 import {
   decodeInvite,
@@ -186,7 +186,98 @@ export class Sync {
       user: this.config?.user,
       keyMismatch: this.keyMismatch,
       signedOut: this.signedOut,
+      pending: this.pendingCount(),
+      lastSyncAt: this.lastSyncAt,
       members: [...this.members.values()].map((m) => ({ ...m, online: this.online.has(m.id) })),
+    };
+  }
+
+  private lastSyncAt?: number;
+
+  /** How many things are waiting to go out (shown as "offline, 12 waiting"). */
+  pendingCount(): number {
+    let n = 0;
+    for (const project of this.sharedProjects()) {
+      n += (
+        this.db
+          .query(
+            "SELECT COUNT(*) AS n FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0 AND MAX(COALESCE(updated_at, 0), COALESCE(summary_at, 0)) > ?",
+          )
+          .get(project.id, this.cursor("sessions", project.id)) as { n: number }
+      ).n;
+      n += (
+        this.db.query("SELECT COUNT(*) AS n FROM memory_items WHERE project_id = ? AND dirty = 1").get(project.id) as {
+          n: number;
+        }
+      ).n;
+    }
+    return n;
+  }
+
+  /**
+   * "What is being shared?" (plan.md 4.2): what the next sync would send for a
+   * project, after secrets are removed — before it's encrypted.
+   */
+  preview(projectId: string): SharePreview {
+    const project = this.db.query("SELECT id, share FROM projects WHERE id = ?").get(projectId) as
+      | { id: string; share: ShareLevel }
+      | undefined;
+    if (!project || project.share === "off")
+      return { share: project?.share ?? "off", sessions: [], messages: 0, memory: [], privateSessions: 0 };
+    const sessions = this.db
+      .query(
+        "SELECT id, title, summary, first_prompt, files_touched, updated_at FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0 ORDER BY updated_at DESC LIMIT 5",
+      )
+      .all(projectId) as {
+      id: string;
+      title: string | null;
+      summary: string | null;
+      first_prompt: string | null;
+      files_touched: string;
+      updated_at: number;
+    }[];
+    const full = project.share === "full";
+    return {
+      share: project.share,
+      sessions: sessions.map((s) => {
+        const summary = s.summary
+          ? (JSON.parse(s.summary) as { title?: string; texts?: Record<string, { did?: string[] }> })
+          : undefined;
+        return scrubDeep({
+          id: s.id,
+          title: s.title ?? "",
+          summary: summary
+            ? (summary.texts?.en?.did ?? Object.values(summary.texts ?? {})[0]?.did ?? []).slice(0, 3)
+            : [],
+          firstPrompt: full ? (s.first_prompt ?? "").slice(0, 300) : undefined,
+          files: full ? (JSON.parse(s.files_touched) as string[]).slice(-5) : [],
+          updatedAt: s.updated_at,
+        });
+      }),
+      messages: full
+        ? (
+            this.db
+              .query(
+                "SELECT COUNT(*) AS n FROM messages m JOIN sessions s ON s.id = m.session_id WHERE s.project_id = ? AND s.author_id IS NULL AND s.private = 0",
+              )
+              .get(projectId) as { n: number }
+          ).n
+        : 0,
+      memory: (
+        this.db
+          .query(
+            "SELECT section, text FROM memory_items WHERE project_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 5",
+          )
+          .all(projectId) as {
+          section: string;
+          text: string;
+        }[]
+      ).map((m) => scrubDeep(m)),
+      privateSessions: (
+        this.db.query("SELECT COUNT(*) AS n FROM sessions WHERE project_id = ? AND private = 1").get(projectId) as {
+          n: number;
+        }
+      ).n,
     };
   }
 
@@ -388,7 +479,7 @@ export class Sync {
         const sessionCursor = this.cursor("sessions", project.id);
         const sessions = this.db
           .query(
-            `SELECT * FROM sessions WHERE project_id = ? AND author_id IS NULL
+            `SELECT * FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0
                AND MAX(COALESCE(updated_at, 0), COALESCE(summary_at, 0)) > ?
              ORDER BY updated_at LIMIT 50`,
           )
@@ -426,7 +517,7 @@ export class Sync {
             .query(
               `SELECT m.rowid AS rid, m.id, m.session_id, m.ts, m.role, m.kind, m.tool_name, m.text FROM messages m
                JOIN sessions s ON s.id = m.session_id
-               WHERE s.project_id = ? AND s.author_id IS NULL AND m.rowid > ? ORDER BY m.rowid LIMIT 300`,
+               WHERE s.project_id = ? AND s.author_id IS NULL AND s.private = 0 AND m.rowid > ? ORDER BY m.rowid LIMIT 300`,
             )
             .all(project.id, messageCursor) as {
             rid: number;
@@ -466,9 +557,19 @@ export class Sync {
           if (ok) this.db.query("UPDATE memory_items SET dirty = 0 WHERE id = ?").run(String(item.id));
         }
       }
+      this.lastSyncAt = Date.now();
     } finally {
       this.flushing = false;
     }
+  }
+
+  /** A session made private after it was shared: ask teammates to drop their copy. */
+  async forgetSession(projectId: string, sessionId: string): Promise<void> {
+    if (!this.connected || !this.key) return;
+    const project = this.sharedProjects().find((p) => p.id === projectId);
+    if (!project) return;
+    const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
+    await this.publish(key, "forget", `forget-${sessionId}-${Date.now()}`, { id: sessionId });
   }
 
   /** A setting was added/changed/removed: teammates see the name, who and when — never the value. */
@@ -494,7 +595,7 @@ export class Sync {
       const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
       const session = this.db
         .query(
-          "SELECT title, tool, files_touched, updated_at FROM sessions WHERE project_id = ? AND author_id IS NULL ORDER BY updated_at DESC LIMIT 1",
+          "SELECT title, tool, files_touched, updated_at FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0 ORDER BY updated_at DESC LIMIT 1",
         )
         .get(project.id) as
         | { title: string | null; tool: string; files_touched: string; updated_at: number }
@@ -599,6 +700,11 @@ export class Sync {
         if (event.kind === "session") this.applySession(projectId, value, author);
         else if (event.kind === "messages") this.applyMessages(value);
         else if (event.kind === "memory") this.applyMemory(projectId, value, author);
+        else if (event.kind === "forget")
+          // Only the session's own author can take it back.
+          this.db
+            .query("DELETE FROM sessions WHERE id = ? AND author_id = ?")
+            .run(String(value.id ?? ""), event.author);
         else if (event.kind === "env")
           this.db
             .query(

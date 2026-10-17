@@ -581,7 +581,7 @@ god-eye/
 - [ ] ⭐ Yjs entegrasyonu: ortak dokümanlar için senkron + offline düzenleme — *şimdilik hafızada "son yazan kazanır"; plan/görev panosu gelince Yjs*
 - [x] Çevrimdışı kuyruk + yeniden bağlanınca otomatik eşitleme
 - [ ] Bütünlük kontrolü: hash zinciri ile eksik veya bozuk event tespiti ve otomatik onarım
-- [ ] Senkron durumu göstergesi: ✅ güncel · 🔄 eşitleniyor · ⚠️ çevrimdışı (bekleyen: 12)
+- [x] Senkron durumu göstergesi: güncel · eşitleniyor · çevrimdışı (bekleyen: 12) — *üst barda*
 
 #### 4.2 🔒 Sızıntısız güvenlik
 - [x] ⭐ **Uçtan uca şifreleme:** veri bilgisayardan şifreli çıkar. Hub ele geçirilse bile içerik okunamaz — *AES-GCM (WebCrypto), proje başına anahtar; testte hub DB'sinde düz metin olmadığı doğrulandı*
@@ -589,8 +589,8 @@ god-eye/
 - [x] ⭐ **Asla senkron edilmeyenler:** AI hesap bilgileri (Claude/Codex login'leri), SSH anahtarları, `.env` dosyaları, izinli olmayan klasörler
 - [x] ⭐ **Sır temizleyici:** event çıkmadan önce API key, token, şifre ve özel anahtar desenleri (gitleaks kuralları) otomatik maskelenir: `sk-ant-••••`
 - [x] Proje bazında paylaşım seviyesi: **Kapalı** (hiç paylaşılmaz) · **Özet** (sadece özetler, hafıza ve kararlar) · **Tam** (tüm session'lar canlı)
-- [ ] Session bazında "Bu session gizli" anahtarı
-- [ ] "Ne paylaşılıyor?" önizlemesi: dışarı giden veriyi görebilme
+- [x] Session bazında "Bu session gizli" anahtarı — *gizli yapınca takım arkadaşlarının kopyası da silinir*
+- [x] "Ne paylaşılıyor?" önizlemesi: dışarı giden veriyi görebilme
 - [x] TLS (Caddy ile otomatik HTTPS), argon2id parola, opsiyonel 2FA, oturum ve cihaz listesi, uzaktan cihaz iptali — *2FA sonra*
 - [ ] Hub erişim logları ve şüpheli giriş uyarısı
 - [x] Kurtarma anahtarı: tüm cihazlar kaybolursa veriye erişim için (kullanıcı saklar)

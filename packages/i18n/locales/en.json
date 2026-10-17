@@ -726,7 +726,22 @@
     "overlap": "{{name}} is editing {{files}} too",
     "shareTip_off": "Nothing from this project leaves your computer",
     "shareTip_summary": "Session titles, summaries, stats and project memory — not the conversations",
-    "shareTip_full": "Everything, including the conversations, live. Secrets are always removed"
+    "shareTip_full": "Everything, including the conversations, live. Secrets are always removed",
+    "privateOn": "Kept to yourself: not shared with the team.",
+    "privateOff": "Shared with the team like the rest of this project.",
+    "privateTip": "A private session never goes to the hub, even in a shared project. Making it private also asks teammates' apps to remove their copy.",
+    "privateHide": "Keep private",
+    "privateShare": "Share again",
+    "preview": "What's shared?",
+    "previewTip": "See what the next sync sends for this project, after secrets are removed",
+    "previewTitle": "What {{name}} shares",
+    "previewHint": "This is what leaves this computer (encrypted) for this project. Secrets are already masked.",
+    "previewMemory": "Project memory",
+    "previewMessages_one": "Plus {{count}} conversation message.",
+    "previewMessages_other": "Plus {{count}} conversation messages.",
+    "previewNoMessages": "Conversations are not shared at this level.",
+    "previewPrivate_one": "{{count}} private session stays here",
+    "previewPrivate_other": "{{count}} private sessions stay here"
   },
   "enhance": {
     "button": "Enhance prompt",
@@ -1406,5 +1421,13 @@
     "up": "Up one folder",
     "saveConfirm": "Save {{path}} on the server? A dated backup is kept next to it.",
     "saved": "Saved. Backup: {{backup}}"
+  },
+  "sync": {
+    "upToDate": "Synced",
+    "syncing_one": "Syncing {{count}}",
+    "syncing_other": "Syncing {{count}}",
+    "offline_one": "Offline · {{count}} waiting",
+    "offline_other": "Offline · {{count}} waiting",
+    "lastTip": "Last synced {{when}}"
   }
 }

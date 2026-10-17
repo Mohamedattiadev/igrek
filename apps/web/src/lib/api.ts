@@ -50,6 +50,7 @@ import type {
   SessionSummaryData,
   Settings,
   ShareLevel,
+  SharePreview,
   SystemStatus,
   TeamAuditEntry,
   TeamDevice,
@@ -334,6 +335,12 @@ export const api = {
     },
   ) => request<unknown>(`/api/projects/${projectId}/replace`, { method: "POST", body: JSON.stringify(body) }),
   today: () => request<TodaySummary>(`/api/today?since=${new Date().setHours(0, 0, 0, 0)}`),
+  setSessionPrivate: (id: string, value: boolean) =>
+    request<{ ok: boolean }>(`/api/sessions/${id}/private`, {
+      method: "PATCH",
+      body: JSON.stringify({ private: value }),
+    }),
+  sharePreview: (projectId: string) => request<SharePreview>(`/api/projects/${projectId}/share-preview`),
   inboxNotices: () => request<InboxNotice[]>("/api/inbox/notices"),
   limitsMonthly: () => request<MonthlyReport[]>("/api/limits/monthly"),
   environments: (projectId: string) => request<EnvironmentInfo[]>(`/api/projects/${projectId}/environments`),

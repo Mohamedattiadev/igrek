@@ -304,6 +304,8 @@ const migrations: string[] = [
    );
    CREATE INDEX deploys_project ON deploys(project_id, at);
    ALTER TABLE projects ADD COLUMN git_flow INTEGER NOT NULL DEFAULT 1;`,
+  // Faz 4.2: a session kept to yourself even in a shared project.
+  `ALTER TABLE sessions ADD COLUMN private INTEGER NOT NULL DEFAULT 0;`,
 ];
 
 export function migrate(sqlite: Database): number {
