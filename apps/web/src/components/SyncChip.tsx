@@ -17,6 +17,7 @@ export function SyncChip() {
       .then(setStatus)
       .catch(() => undefined);
   };
+  // biome-ignore lint/correctness/useExhaustiveDependencies: poll once per mount
   useEffect(() => {
     load();
     const timer = setInterval(load, 10_000);
