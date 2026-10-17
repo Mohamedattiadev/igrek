@@ -5,7 +5,7 @@ const waiting = new Map();
 const hello = new Promise((resolve) => {
   addEventListener("message", (event) => {
     const m = event.data;
-    if (!m || m.godeye !== 1) return;
+    if (m?.godeye !== 1) return;
     if (m.type === "hello") {
       document.documentElement.dataset.theme = m.theme;
       resolve(m);
