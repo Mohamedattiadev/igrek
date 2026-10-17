@@ -27,6 +27,8 @@
   --warning-soft: #fdf3e1;
   --danger: #c93228;
   --danger-soft: #fdecea;
+  /* Text on solid danger/warning fills (white in light themes, dark in dark ones). */
+  --on-strong: #ffffff;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.06);
 
   /* Chart series (validated categorical order) and "Other". */
@@ -68,6 +70,7 @@
   --accent-soft: #25324d;
   /* Dark text on the light blue: white on it would be under 3:1. */
   --accent-fg: #0f1726;
+  --on-strong: #1a1012;
   --success: #5fba73;
   --success-soft: #253a2b;
   --warning: #e0a63b;
@@ -97,6 +100,7 @@
   --accent-hover: #93c0fa;
   --accent-soft: #2c3a4f;
   --accent-fg: #0f1726;
+  --on-strong: #1a1012;
   --success: #86bf8d;
   --success-soft: #2c3a2e;
   --warning: #d9ae55;
@@ -166,6 +170,7 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-on-strong: var(--on-strong);
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono Variable", "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --radius-ui: var(--radius);

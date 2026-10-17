@@ -431,7 +431,10 @@ export function FilesPage() {
                 ))}
               </div>
             ) : shown.length === 0 ? (
-              <p className="p-6 text-center text-[13px] text-fg-subtle">{t("files.empty")}</p>
+              <div className="space-y-1 p-6 text-center text-[13px]">
+                <p className="text-fg-subtle">{t("files.empty")}</p>
+                <p className="text-xs text-fg-subtle">{t("files.emptyHint")}</p>
+              </div>
             ) : view === "list" ? (
               <table className="w-full text-[12.5px]">
                 <thead className="sticky top-0 bg-bg text-[11px] text-fg-subtle">

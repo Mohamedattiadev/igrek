@@ -9,6 +9,19 @@ import { useServerEvent } from "../lib/live";
 export type PersonState = "working" | "idle" | "offline";
 
 /** Team members, what they're doing, and their state: working (green), idle (yellow), offline (grey). */
+/** Black or white initials, whichever reads better on the member's colour (WCAG contrast). */
+function readableOn(hex: string): string {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return "#ffffff";
+  const n = Number.parseInt(m[1] as string, 16);
+  const lin = (c: number) => {
+    const v = c / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  const l = 0.2126 * lin((n >> 16) & 255) + 0.7152 * lin((n >> 8) & 255) + 0.0722 * lin(n & 255);
+  return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? "#ffffff" : "#111111";
+}
+
 export function useTeamPeople(): {
   status?: TeamStatus;
   presence: Presence[];
@@ -78,8 +91,14 @@ export function TeamAvatar({
         <img src={image} alt="" className="rounded-full object-cover" style={{ width: size, height: size }} />
       ) : (
         <span
-          className="inline-flex items-center justify-center rounded-full font-semibold text-white"
-          style={{ width: size, height: size, background: color, fontSize: Math.round(size * 0.4) }}
+          className="inline-flex items-center justify-center rounded-full font-semibold"
+          style={{
+            width: size,
+            height: size,
+            background: color,
+            color: readableOn(color),
+            fontSize: Math.round(size * 0.4),
+          }}
         >
           {initials}
         </span>

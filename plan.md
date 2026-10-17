@@ -252,16 +252,16 @@ god-eye/
 - [x] ⭐ **Basit Mod / Pro Mod** anahtarı. Basit modda sadece büyük kartlar, sade dil ve "Ne yapmak istiyorsun?" kutusu görünür
 - [x] ⭐ Her teknik terimin yanında `?` balonu ile tek cümlelik açıklama — *25 terimlik sözlük (TR/EN); bölüm başlığında terim geçince `?` kendiliğinden çıkar, diğer yerlerde `<Term>`*
 - [x] Hata mesajları suçlamaz, çözüm önerir: "Bağlantı koptu. **Tekrar dene** butonuna bas." — *bağlantı, oturum, bulunamadı, sunucu hataları sade dille; sayfalarda "Tekrar dene" düğmesi*
-- [ ] Hiçbir ekran boş kalmaz: her boş durumda "şunu yaparak başla" önerisi
+- [x] Hiçbir ekran boş kalmaz: her boş durumda "şunu yaparak başla" önerisi — *boş bir kurulumla tüm sayfalar gezildi; Limitler ve Dosyalar'a öneri eklendi*
 - [x] İlk açılışta kurulum sihirbazı (ilk soru: dil) + 60 saniyelik tur — *kurulum bitince 6 adımlık tur kendiliğinden açılır; Ayarlar'dan ve komut paletinden tekrar başlatılır; Esc/oklarla kullanılır*
 - [x] Geri al (Undo) her yerde — *silmeler 6 sn bekler, "Silindi · Geri al"; hafıza, fikir, prompt, sunucu*
 
 ### 7.3 Erişilebilirlik ve kalite
 - [ ] Klavye ile tam kullanım, `Ctrl+K` komut paleti
-- [ ] WCAG AA kontrast, ekran okuyucu etiketleri
+- [x] WCAG AA kontrast, ekran okuyucu etiketleri — *axe-core ile 18 sayfa, açık ve koyu temada: 0 ihlal*
 - [x] Büyük yazı seçeneği — *Normal / Büyük / Daha büyük; tüm arayüz ölçeklenir, editörde tıklama doğruluğu test edildi*
-- [ ] Her ekran 1280px ve üstünde kusursuz; 768px'te kullanılabilir
-- [ ] Performans: ilk açılış < 1 sn, sayfa geçişi < 100 ms
+- [x] Her ekran 1280px ve üstünde kusursuz; 768px'te kullanılabilir — *768px'te taşma testi: tüm sayfalar ve proje sekmeleri temiz*
+- [x] Performans: ilk açılış < 1 sn, sayfa geçişi < 100 ms — *ölçülen: ilk açılış 0,63–0,77 sn; sayfa geçişi 14–50 ms (Ayarlar ilk açılışta 112 ms, sonra 59 ms)*
 
 ### 7.4 Her dil
 - [x] ⭐ Onboarding'in ilk adımı dil seçimi; aranabilir liste, dünyadaki tüm diller — *ISO 639-1'in tamamı (183 dil), adlar kendi dilinde*

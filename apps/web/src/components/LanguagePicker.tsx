@@ -10,6 +10,12 @@ export function LanguagePicker({ value, onChange }: { value: string; onChange: (
   const { t } = useTranslation();
   const [all, setAll] = useState<LanguageOption[]>(fallbackLanguages);
   const [query, setQuery] = useState("");
+  // The first screenful right away, the rest of the ~180 languages a moment later (keeps opening Settings fast).
+  const [full, setFull] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setFull(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     api
@@ -36,7 +42,7 @@ export function LanguagePicker({ value, onChange }: { value: string; onChange: (
         />
       </label>
       <ul className="max-h-72 overflow-y-auto p-1" aria-label={t("settings.language")}>
-        {shown.map((language) => (
+        {(full || query ? shown : shown.slice(0, 30)).map((language) => (
           <li key={language.code}>
             <button
               type="button"

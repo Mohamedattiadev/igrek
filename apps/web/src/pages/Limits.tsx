@@ -1,10 +1,10 @@
 import type { Account, AiTool, LimitsOverview, MonthlyReport, RateLimitInfo, UsageBucket } from "@godeye/core";
-import { AlertTriangle, CheckCircle2, Download, LogIn, Plus, RefreshCw, Trash2, User } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, Gauge, LogIn, Plus, RefreshCw, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { Term } from "../components/Term";
-import { Badge, Button, Card, Dialog, PageHeader, Section, Segmented } from "../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, modelName, relativeTime } from "../lib/format";
@@ -526,7 +526,10 @@ export function LimitsPage() {
               <AccountLimits key={account.id} account={account} />
             ))}
         </div>
-        {data && (
+        {data && data.total === 0 && (
+          <EmptyState icon={Gauge} title={t("limits.emptyTitle")} body={t("limits.emptyBody")} />
+        )}
+        {data && data.total > 0 && (
           <>
             <Card className="space-y-3 p-pad">
               <div className="flex flex-wrap items-baseline justify-between gap-2">

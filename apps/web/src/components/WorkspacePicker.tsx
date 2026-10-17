@@ -98,7 +98,7 @@ export function WorkspacePicker() {
         type="button"
         onClick={() => setOpen(!open)}
         data-tip={t("workspace.pickerTip")}
-        className="flex h-7 items-center gap-2 rounded-ui px-2 text-[13px] font-medium hover:bg-bg-hover"
+        className="flex h-7 items-center gap-2 whitespace-nowrap rounded-ui px-2 text-[13px] font-medium hover:bg-bg-hover"
       >
         <Icon size={15} strokeWidth={1.75} className="text-fg-muted" aria-hidden="true" />
         {t(`workspace.${ws}`)}

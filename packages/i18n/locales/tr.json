@@ -422,7 +422,8 @@
     "dropHere": "Yüklemek için dosyaları bırak",
     "folderName": "Klasör adı",
     "newName": "Yeni ad",
-    "protected": "~/.ssh gibi korumalı klasörler asla gösterilmez."
+    "protected": "~/.ssh gibi korumalı klasörler asla gösterilmez.",
+    "emptyHint": "Dosyaları buraya bırak ya da Yükle'yi kullan. Başka klasörleri Ayarlar'dan izin verdikten sonra açabilirsin."
   },
   "preview": {
     "rows": "{{count}} satır",
@@ -642,7 +643,9 @@
     "sessionCount": "Session",
     "topModel": "En çok kullanılan model",
     "topProjects": "En yoğun projeler",
-    "tokensCol": "Token"
+    "tokensCol": "Token",
+    "emptyTitle": "Henüz kullanım yok",
+    "emptyBody": "Herhangi bir projede Claude Code ya da Codex oturumu başlat. Ne kadar kullandığın ve sınırlara ne kadar yaklaştığın burada görünür."
   },
   "accounts": {
     "title": "Hesaplar",

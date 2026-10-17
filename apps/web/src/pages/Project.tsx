@@ -47,7 +47,7 @@ function Overview({ project }: { project: ProjectDetail }) {
   const latest = project.recentSessions.find((s) => s.summary);
   const status = project.memory.filter((m) => m.section === "status").slice(0, 2);
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-4">
         <Card className="p-pad">
           <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("project.latest")}</h3>

@@ -23,7 +23,7 @@ export function Button({
         variant === "primary" && "bg-accent text-accent-fg hover:bg-accent-hover",
         variant === "secondary" && "border border-border bg-bg text-fg hover:bg-bg-hover",
         variant === "ghost" && "text-fg-muted hover:bg-bg-hover hover:text-fg",
-        variant === "danger" && "bg-danger text-white hover:opacity-90",
+        variant === "danger" && "bg-danger text-on-strong hover:opacity-90",
         className,
       )}
       {...props}

@@ -372,7 +372,7 @@ export function SessionPage() {
       {!session ? (
         <div className="m-6 h-64 animate-pulse rounded-ui bg-bg-subtle" />
       ) : (
-        <div className="mx-auto grid w-full max-w-6xl gap-4 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="mx-auto grid w-full max-w-6xl grid-cols-[minmax(0,1fr)] gap-4 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="min-w-0 space-y-4">
             <Card className="p-pad">
               <div className="mb-3 flex items-center justify-between">

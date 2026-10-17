@@ -422,7 +422,8 @@
     "dropHere": "Drop files to upload",
     "folderName": "Folder name",
     "newName": "New name",
-    "protected": "Protected folders like ~/.ssh are never shown."
+    "protected": "Protected folders like ~/.ssh are never shown.",
+    "emptyHint": "Drop files here or use Upload. Other folders can be opened after you allow them in Settings."
   },
   "preview": {
     "rows": "{{count}} rows",
@@ -642,7 +643,9 @@
     "sessionCount": "Sessions",
     "topModel": "Most used model",
     "topProjects": "Busiest projects",
-    "tokensCol": "Tokens"
+    "tokensCol": "Tokens",
+    "emptyTitle": "No usage yet",
+    "emptyBody": "Start a Claude Code or Codex session in any project. How much you use, and how close you are to your limits, shows up here."
   },
   "accounts": {
     "title": "Accounts",

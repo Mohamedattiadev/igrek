@@ -664,6 +664,15 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
             <button
               key={name}
               type="button"
+              aria-label={
+                name === "branches"
+                  ? t("code.branches")
+                  : name === "snapshots"
+                    ? t("checkpoint.title")
+                    : name === "search"
+                      ? t("code.search")
+                      : undefined
+              }
               onClick={() => setPanel(name)}
               className={cn(
                 "h-6 rounded px-2 text-[11.5px]",

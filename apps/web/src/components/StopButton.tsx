@@ -27,10 +27,11 @@ export function StopButton({ onStopped }: { onStopped: (message: string) => void
         type="button"
         onClick={() => setOpen(true)}
         title={t("stop.title")}
-        className="flex h-7 items-center gap-1.5 rounded-ui px-2 text-xs font-medium text-danger hover:bg-danger-soft"
+        aria-label={t("stop.title")}
+        className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-ui px-2 text-xs font-medium text-danger hover:bg-danger-soft"
       >
         <OctagonX size={14} strokeWidth={2} />
-        <span className="hidden sm:inline">{t("stop.button")}</span>
+        <span className="hidden lg:inline">{t("stop.button")}</span>
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("stop.title")}>
         <div className="p-5">
