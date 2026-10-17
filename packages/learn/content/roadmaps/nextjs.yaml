@@ -1,0 +1,2703 @@
+id: nextjs
+title: Next.js
+summary:
+  en: "From an empty computer to your own Next.js app on the internet. You build a small bookmarks site with the App Router: pages, server components, a database, forms, sign-in, tests, and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Next.js uygulamana. App Router ile küçük bir yer imi sitesi yazarsın: sayfalar, server component'ler, veritabanı, formlar, giriş yapma, testler ve ücretsiz deploy."
+teacher: frontend
+project:
+  en: 'A bookmarks site: everyone can read and search the saved links, signed-in people can add and delete their own links. It has a SQLite database, sign-in with email and password, unit and browser tests, search-engine metadata, and it is live on Vercel Hobby with a free Turso database.'
+  tr: 'Bir yer imi sitesi: kayıtlı linkleri herkes okuyup arayabilir, giriş yapan kişiler kendi linklerini ekleyip silebilir. SQLite veritabanı, e-posta ve parola ile giriş, unit ve tarayıcı testleri, arama motoru metadata''sı var ve ücretsiz Turso veritabanıyla Vercel Hobby''de yayında.'
+detect:
+  npm: [next]
+version: "16.4"
+latest: npm:next
+checked: 2026-10
+after: [react]
+sheets: [nextjs, react, typescript, tailwindcss, sql, auth, caching, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Node.js, an editor and Git"
+      tr: "Node.js, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "Next.js runs on Node.js: the development server, the build and your server code all need it. An editor makes writing code comfortable, and Git keeps every version of your work. You will also need a free GitHub account at the deploy step."
+      tr: "Next.js, Node.js üzerinde çalışır: geliştirme sunucusu, build ve senin server kodun hep ona ihtiyaç duyar. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar. Deploy adımında ücretsiz bir GitHub hesabına da ihtiyacın olacak."
+    learn:
+      en: |
+        - Which Node.js version Next.js 16 needs: 20.9 or newer, and the LTS release is the safe choice
+        - How to open a terminal and check that a program is installed
+        - What a GitHub account is for (a copy of your code online, which Vercel reads when it deploys)
+      tr: |
+        - Next.js 16'nın hangi Node.js sürümünü istediği: 20.9 ya da yenisi; LTS sürümü güvenli seçimdir
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - GitHub hesabının ne işe yaradığı (kodunun internette bir kopyası; Vercel deploy ederken onu okur)
+    do:
+      en: |
+        1. Download **Node.js LTS** from nodejs.org and install it. LTS means "long-term support": it gets fixes for years.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number. Node must be 20.9 or newer.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        6. Create a free account at github.com. You will use it in the deploy step.
+      tr: |
+        1. nodejs.org'dan **Node.js LTS** sürümünü indirip kur. LTS "uzun süreli destek" demek: yıllarca düzeltme alır.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı. Node 20.9 ya da daha yeni olmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        6. github.com'da ücretsiz bir hesap aç. Deploy adımında kullanacaksın.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          npm --version
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Node.js is older than 20.9 (for example an old version your system installed earlier)."
+          tr: "Node.js 20.9'dan eski (örneğin sisteminde eskiden kurulu kalmış bir sürüm)."
+        fix:
+          en: "Next.js 16 refuses to start on it. Install the current LTS from nodejs.org and run node --version again."
+          tr: "Next.js 16 onunla başlamaz. nodejs.org'dan güncel LTS'i kur ve node --version komutunu tekrar çalıştır."
+    quiz:
+      - q:
+          en: "Why do we install Node.js to build a Next.js app?"
+          tr: "Next.js uygulaması yapmak için neden Node.js kuruyoruz?"
+        options:
+          en: [Because the browser needs it to show pages, Because the dev server and the build run on it, Because Git needs it]
+          tr: [Tarayıcı sayfaları göstermek için ona ihtiyaç duyar, Geliştirme sunucusu ve build onun üzerinde çalışır, Git ona ihtiyaç duyar]
+        answer: 1
+        why:
+          en: "Next.js is a Node.js program: it runs the development server, the production build, and your server code."
+          tr: "Next.js bir Node.js programıdır: geliştirme sunucusunu, production build'i ve senin server kodunu o çalıştırır."
+    sources:
+      - title: Node.js downloads
+        url: https://nodejs.org/en/download
+      - title: Next.js installation and system requirements
+        url: https://nextjs.org/docs/app/getting-started/installation
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first Next.js app"
+      tr: "İlk Next.js uygulamanı oluşturma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "A Next.js app needs a router, a compiler, TypeScript and styling set up before the first line shows in the browser. create-next-app does all of it in a minute, and you see every change as soon as you save."
+      tr: "Bir Next.js uygulamasının tarayıcıda ilk satırı göstermesi için router, derleyici, TypeScript ve stil ayarlarının kurulu olması gerekir. create-next-app hepsini bir dakikada yapar; kaydettiğin anda her değişikliği görürsün."
+    learn:
+      en: |
+        - What `create-next-app` creates: the `app` folder, `public`, `next.config.ts`, `package.json`
+        - What the App Router is: every folder inside `app` is a part of the URL
+        - The code is TypeScript (`.tsx` files): it is JavaScript plus types written after a colon, like `name: string`. If that is new, the TypeScript cheatsheet helps, but you can follow along without it
+        - What `npm run dev`, `npm run build` and `npm run start` do
+      tr: |
+        - `create-next-app`'in ne oluşturduğu: `app` klasörü, `public`, `next.config.ts`, `package.json`
+        - App Router'ın ne olduğu: `app` içindeki her klasör URL'nin bir parçasıdır
+        - Kod TypeScript (`.tsx` dosyaları): JavaScript artı iki noktadan sonra yazılan tipler, mesela `name: string`. Yeniyse TypeScript kopya kâğıdı yardımcı olur ama onsuz da devam edebilirsin
+        - `npm run dev`, `npm run build` ve `npm run start` komutlarının ne yaptığı
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects and run the first command below. `--yes` accepts the recommended answers (TypeScript, ESLint, Tailwind CSS, the App Router, no `src` folder). It creates a folder called `bookmarks` and installs the packages; this takes a few minutes.
+        2. Go into the folder and start the development server.
+        3. Open http://localhost:3000. Replace everything in `app/page.tsx` with the code below and save. The page changes at once.
+        4. Look around: `app/layout.tsx` wraps every page, `app/globals.css` holds the styles, and `next.config.ts` has the settings. In it you will see `cacheComponents: true`: new apps start with Next.js's current caching model, which later steps explain. `AGENTS.md` is a note for AI coding tools; you can leave it.
+        5. create-next-app usually creates the Git repository and the first commit for you. Run `git status`; if it says "not a git repository", run `git init`, `git add .` and `git commit -m "Start the bookmarks app"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git ve aşağıdaki ilk komutu çalıştır. `--yes` önerilen cevapları kabul eder (TypeScript, ESLint, Tailwind CSS, App Router, `src` klasörü yok). `bookmarks` adında bir klasör oluşturur ve paketleri kurar; birkaç dakika sürer.
+        2. Klasöre gir ve geliştirme sunucusunu başlat.
+        3. http://localhost:3000 adresini aç. `app/page.tsx` içindeki her şeyi aşağıdaki kodla değiştir ve kaydet. Sayfa hemen değişir.
+        4. Etrafa bak: `app/layout.tsx` her sayfayı sarar, `app/globals.css` stilleri tutar, `next.config.ts` ayarları barındırır. İçinde `cacheComponents: true` göreceksin: yeni uygulamalar Next.js'in güncel cache modeliyle başlar; sonraki adımlar bunu açıklıyor. `AGENTS.md` yapay zekâ kodlama araçları için bir nottur; bırakabilirsin.
+        5. create-next-app genelde Git deposunu ve ilk commit'i senin için oluşturur. `git status` çalıştır; "not a git repository" derse `git init`, `git add .` ve `git commit -m "Start the bookmarks app"` çalıştır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx create-next-app@latest bookmarks --yes
+          cd bookmarks
+          npm run dev
+      - file: app/page.tsx
+        lang: tsx
+        text: |
+          export default function HomePage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">Bookmarks</h1>
+                <p className="mt-2">A small place to keep the links you want to find again.</p>
+              </main>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Port 3000 is already in use."
+          tr: "3000 numaralı port zaten kullanımda."
+        fix:
+          en: "Another program (often an earlier dev server) holds it. Stop that one with Ctrl+C in its terminal, or run npm run dev -- -p 3001 and open that address."
+          tr: "Başka bir program (çoğu zaman önceki bir dev sunucusu) onu tutuyor. Onu kendi terminalinde Ctrl+C ile durdur ya da npm run dev -- -p 3001 çalıştırıp o adresi aç."
+      - problem:
+          en: "Putting new code in a pages folder, as older tutorials do."
+          tr: "Eski eğitimlerdeki gibi yeni kodu pages klasörüne yazmak."
+        fix:
+          en: "That is the older Pages Router. In this roadmap and in new Next.js projects, pages live in the app folder."
+          tr: "O eski Pages Router'dır. Bu yol haritasında ve yeni Next.js projelerinde sayfalar app klasöründe durur."
+    quiz:
+      - q:
+          en: "Which file holds the content you see at http://localhost:3000?"
+          tr: "http://localhost:3000 adresinde gördüğün içerik hangi dosyada?"
+        options:
+          en: [app/page.tsx, next.config.ts, public/index.html]
+          tr: [app/page.tsx, next.config.ts, public/index.html]
+        answer: 0
+        why:
+          en: "In the App Router, page.tsx inside a folder is the page for that URL; the one directly in app is the home page."
+          tr: "App Router'da bir klasörün içindeki page.tsx o URL'nin sayfasıdır; doğrudan app içindeki ana sayfadır."
+    sources:
+      - title: Next.js, installation
+        url: https://nextjs.org/docs/app/getting-started/installation
+      - title: Next.js, project structure
+        url: https://nextjs.org/docs/app/getting-started/project-structure
+
+  - id: pages-layouts
+    stage: basics
+    title:
+      en: "Pages, layouts and links"
+      tr: "Sayfalar, layout'lar ve linkler"
+    minutes: 45
+    needs: [first-app]
+    why:
+      en: "Routing is the heart of Next.js: folders become URLs, a layout shares the page frame (like the menu), and Link moves between pages without reloading the whole site."
+      tr: "Routing Next.js'in kalbidir: klasörler URL olur, layout ortak sayfa çerçevesini (menü gibi) paylaşır, Link de bütün siteyi yeniden yüklemeden sayfalar arasında geçer."
+    learn:
+      en: |
+        - A folder in `app` is a URL part; the `page.tsx` inside makes it visible
+        - `layout.tsx` wraps all pages below it, and the root layout must contain `<html>` and `<body>`
+        - `Link` from `next/link` for moving between pages, and why a plain `<a>` is worse
+        - `LayoutProps` and `PageProps`: types Next.js generates for you
+      tr: |
+        - `app` içindeki bir klasör URL'nin bir parçasıdır; içindeki `page.tsx` onu görünür yapar
+        - `layout.tsx` altındaki bütün sayfaları sarar ve root layout `<html>` ile `<body>` içermek zorundadır
+        - Sayfalar arası geçiş için `next/link`'ten `Link` ve düz `<a>`'nın neden daha kötü olduğu
+        - `LayoutProps` ve `PageProps`: Next.js'in senin için ürettiği tipler
+    do:
+      en: |
+        1. Replace `app/layout.tsx` with the code below. It keeps the fonts that create-next-app set up and adds a menu with three links.
+        2. Create the file `app/about/page.tsx` with the code below. The folder name `about` makes the URL `/about`.
+        3. Click the links in the menu. The page changes without a full reload, and the menu stays where it is, because it lives in the layout.
+        4. Create `app/bookmarks/page.tsx` containing only `export default function Page() { return <h1>Links</h1>; }` so the "All links" link works. You will fill it in two steps from now.
+        5. Commit: `git add .` and `git commit -m "Pages and layout"`.
+      tr: |
+        1. `app/layout.tsx` dosyasını aşağıdaki kodla değiştir. create-next-app'in kurduğu fontları korur ve üç linkli bir menü ekler.
+        2. Aşağıdaki kodla `app/about/page.tsx` dosyasını oluştur. `about` klasör adı URL'yi `/about` yapar.
+        3. Menüdeki linklere tıkla. Sayfa baştan yüklenmeden değişir ve menü yerinde kalır, çünkü layout'ta durur.
+        4. "All links" linki çalışsın diye içinde sadece `export default function Page() { return <h1>Links</h1>; }` olan `app/bookmarks/page.tsx` dosyasını oluştur. İki adım sonra dolduracaksın.
+        5. Commit'le: `git add .` ve `git commit -m "Pages and layout"`.
+    code:
+      - file: app/layout.tsx
+        lang: tsx
+        text: |
+          import type { Metadata } from "next";
+          import Link from "next/link";
+          import { Geist, Geist_Mono } from "next/font/google";
+          import "./globals.css";
+
+          const geistSans = Geist({
+            variable: "--font-geist-sans",
+            subsets: ["latin"],
+          });
+
+          const geistMono = Geist_Mono({
+            variable: "--font-geist-mono",
+            subsets: ["latin"],
+          });
+
+          export const metadata: Metadata = {
+            title: "Bookmarks",
+            description: "A small place to keep the links you want to find again.",
+          };
+
+          export default function RootLayout({ children }: LayoutProps<"/">) {
+            return (
+              <html
+                lang="en"
+                className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+              >
+                <body className="min-h-full flex flex-col">
+                  <header className="border-b border-gray-300 p-4">
+                    <nav className="mx-auto flex max-w-2xl gap-4">
+                      <Link href="/" className="font-bold">Bookmarks</Link>
+                      <Link href="/bookmarks">All links</Link>
+                      <Link href="/about">About</Link>
+                    </nav>
+                  </header>
+                  {children}
+                </body>
+              </html>
+            );
+          }
+      - file: app/about/page.tsx
+        lang: tsx
+        text: |
+          export default function AboutPage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">About</h1>
+                <p className="mt-2">This app is built with Next.js, step by step.</p>
+              </main>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "The editor underlines LayoutProps or PageProps as unknown."
+          tr: "Editör LayoutProps ya da PageProps'u tanımsız diye altını çiziyor."
+        fix:
+          en: "Next.js generates these types when you run dev or build. Run npx next typegen once, or just start npm run dev."
+          tr: "Next.js bu tipleri dev ya da build çalışınca üretir. Bir kez npx next typegen çalıştır ya da sadece npm run dev başlat."
+      - problem:
+          en: "Using a plain <a href> for links inside the app."
+          tr: "Uygulama içi linkler için düz <a href> kullanmak."
+        fix:
+          en: "A plain <a> reloads the whole page and loses client state. Use Link from next/link; it also prefetches pages so clicks feel instant."
+          tr: "Düz <a> bütün sayfayı yeniden yükler ve client state'i kaybettirir. next/link'ten Link kullan; sayfaları önceden de getirir, tıklamalar anında olur."
+    quiz:
+      - q:
+          en: "You create app/pricing/page.tsx. At which URL does the page appear?"
+          tr: "app/pricing/page.tsx dosyasını oluşturdun. Sayfa hangi URL'de görünür?"
+        options:
+          en: [/, /pricing, /app/pricing]
+          tr: [/, /pricing, /app/pricing]
+        answer: 1
+        why:
+          en: "The app folder itself is the root; each folder below it adds one URL part, and page.tsx makes it a page."
+          tr: "app klasörünün kendisi köktür; altındaki her klasör URL'ye bir parça ekler, page.tsx de onu sayfa yapar."
+    sources:
+      - title: Next.js, layouts and pages
+        url: https://nextjs.org/docs/app/getting-started/layouts-and-pages
+      - title: Next.js, linking and navigating
+        url: https://nextjs.org/docs/app/getting-started/linking-and-navigating
+      - title: Next.js, layout.js reference
+        url: https://nextjs.org/docs/app/api-reference/file-conventions/layout
+
+  - id: components
+    stage: basics
+    title:
+      en: "Server components and client components"
+      tr: "Server component'ler ve client component'ler"
+    minutes: 45
+    needs: [pages-layouts]
+    why:
+      en: "In the App Router every component runs on the server by default, and the browser only gets the result. That makes pages fast and keeps secrets safe. When you need clicks, state or browser features, you mark a component as a client component. Knowing which is which is the key idea of modern Next.js."
+      tr: "App Router'da her component varsayılan olarak server'da çalışır, tarayıcıya sadece sonuç gider. Bu sayfaları hızlı yapar ve sırları güvende tutar. Tıklama, state ya da tarayıcı özellikleri gerektiğinde bir component'i client component olarak işaretlersin. Hangisinin hangisi olduğunu bilmek modern Next.js'in ana fikridir."
+    learn:
+      en: |
+        - Server component: the default; can read a database or secrets, cannot use `useState`, `useEffect` or `onClick`
+        - Client component: starts with `"use client"`; can use state and events, and is also rendered once on the server for the first HTML
+        - Keep `"use client"` on small leaf components so most of the page stays on the server
+        - A server component may import a client component, and pass it data as props (the props must be plain values)
+      tr: |
+        - Server component: varsayılan olan; veritabanı ya da sır okuyabilir, `useState`, `useEffect` ya da `onClick` kullanamaz
+        - Client component: `"use client"` ile başlar; state ve event kullanabilir, ilk HTML için bir kez de server'da çizilir
+        - `"use client"`'ı küçük yaprak component'lerde tut ki sayfanın çoğu server'da kalsın
+        - Bir server component bir client component'i import edip ona veriyi props olarak geçirebilir (props düz değerler olmalı)
+    do:
+      en: |
+        1. Create `app/components/CopyButton.tsx`, a button that copies a text to the clipboard. It needs a click and state, so it is a client component.
+        2. Use it in `app/about/page.tsx` as below. The page itself stays a server component.
+        3. Open /about and click the button: it says "Copied" for a moment.
+        4. Experiment: delete the `"use client"` line and save. Next.js shows an error that `useState` only works in a client component. Put the line back.
+      tr: |
+        1. Bir metni panoya kopyalayan bir buton olan `app/components/CopyButton.tsx` dosyasını oluştur. Tıklama ve state gerektiriyor, yani client component.
+        2. Onu `app/about/page.tsx` içinde aşağıdaki gibi kullan. Sayfanın kendisi server component olarak kalır.
+        3. /about sayfasını aç ve butona tıkla: kısa süre "Copied" yazar.
+        4. Deney: `"use client"` satırını sil ve kaydet. Next.js `useState`'in sadece client component'te çalıştığını söyleyen bir hata gösterir. Satırı geri koy.
+    code:
+      - file: app/components/CopyButton.tsx
+        lang: tsx
+        text: |
+          "use client";
+
+          import { useState } from "react";
+
+          export default function CopyButton({ text }: { text: string }) {
+            const [copied, setCopied] = useState(false);
+
+            async function copy() {
+              await navigator.clipboard.writeText(text);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1500);
+            }
+
+            return (
+              <button type="button" onClick={copy} className="rounded border px-2 py-1 text-sm">
+                {copied ? "Copied" : "Copy link"}
+              </button>
+            );
+          }
+      - file: app/about/page.tsx
+        lang: tsx
+        text: |
+          import CopyButton from "@/app/components/CopyButton";
+
+          export default function AboutPage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">About</h1>
+                <p className="mt-2">This app is built with Next.js, step by step.</p>
+                <p className="mt-4 flex items-center gap-3">
+                  https://nextjs.org/docs
+                  <CopyButton text="https://nextjs.org/docs" />
+                </p>
+              </main>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Adding \"use client\" to the whole page \"to be safe\"."
+          tr: "\"Garanti olsun\" diye bütün sayfaya \"use client\" eklemek."
+        fix:
+          en: "Then the whole page and everything it imports is sent to the browser as JavaScript. Keep pages on the server and move only the interactive part into a small client component."
+          tr: "O zaman bütün sayfa ve import ettiği her şey JavaScript olarak tarayıcıya gönderilir. Sayfaları server'da tut, sadece etkileşimli kısmı küçük bir client component'e taşı."
+      - problem:
+          en: "Importing a database or a secret into a client component."
+          tr: "Bir client component'e veritabanı ya da sır import etmek."
+        fix:
+          en: "Client component code is sent to every visitor. Do data and secrets work in server components or server actions and pass only the result down as props."
+          tr: "Client component kodu her ziyaretçiye gönderilir. Veri ve sır işlerini server component'lerde ya da server action'larda yap, aşağıya sadece sonucu props olarak geçir."
+    quiz:
+      - q:
+          en: "A component shows a counter with a button. Where does it need to run?"
+          tr: "Bir component butonlu bir sayaç gösteriyor. Nerede çalışması gerekir?"
+        options:
+          en: [As a server component, As a client component with "use client", It does not matter]
+          tr: [Server component olarak, '"use client" ile client component olarak', Fark etmez]
+        answer: 1
+        why:
+          en: "A click handler and state live in the browser, so the component must be a client component."
+          tr: "Tıklama yakalayıcısı ve state tarayıcıda yaşar, bu yüzden component client component olmalı."
+    sources:
+      - title: Next.js, server and client components
+        url: https://nextjs.org/docs/app/getting-started/server-and-client-components
+      - title: React, use client
+        url: https://react.dev/reference/rsc/use-client
+
+  - id: bookmarks-pages
+    stage: first-project
+    title:
+      en: "The bookmarks list and a page for each link"
+      tr: "Yer imi listesi ve her link için bir sayfa"
+    minutes: 90
+    needs: [components]
+    why:
+      en: "Now the real app starts. You show a list of links and a detail page for each one at /bookmarks/1, /bookmarks/2 and so on. The data is a plain array for now; the next step swaps it for a database without touching the pages."
+      tr: "Şimdi asıl uygulama başlıyor. Bir link listesi ve her biri için /bookmarks/1, /bookmarks/2 gibi bir detay sayfası gösteriyorsun. Veri şimdilik düz bir array; sonraki adım sayfalara dokunmadan onu veritabanıyla değiştirecek."
+    learn:
+      en: |
+        - A dynamic route: the folder `[id]` matches any value, and the page reads it from `params`
+        - `params` is a Promise in Next.js 16: you must `await` it (old tutorials read `params.id` directly, which no longer works)
+        - Why a page that reads `params` goes inside `<Suspense>`: with Cache Components, request data is only known at request time, so the page sends a ready shell first and streams the rest
+        - `notFound()` for ids that do not exist
+        - Reading the route table that `next build` prints: `○` static, `◐` partial prerender
+      tr: |
+        - Dinamik route: `[id]` klasörü her değerle eşleşir ve sayfa değeri `params`'tan okur
+        - Next.js 16'da `params` bir Promise'tir: `await` etmen gerekir (eski eğitimler `params.id`'yi doğrudan okur, bu artık çalışmaz)
+        - `params` okuyan bir sayfanın neden `<Suspense>` içine konduğu: Cache Components ile istek verisi ancak istek anında bilinir; bu yüzden sayfa önce hazır bir kabuk gönderir, kalanını akıtır
+        - Var olmayan id'ler için `notFound()`
+        - `next build`'in yazdığı route tablosunu okumak: `○` statik, `◐` kısmi prerender
+    do:
+      en: |
+        1. Create `lib/bookmarks.ts` with the three starter links.
+        2. Replace `app/bookmarks/page.tsx` with the list page.
+        3. Create `app/bookmarks/[id]/page.tsx`. Type the folder name with the square brackets exactly.
+        4. Open /bookmarks, click a link, and open /bookmarks/99 to see the not-found page.
+        5. Stop the dev server (Ctrl+C), run `npm run build` and read the table at the end. Then start dev again with `npm run dev`.
+        6. Commit your work.
+      tr: |
+        1. Üç başlangıç linkiyle `lib/bookmarks.ts` dosyasını oluştur.
+        2. `app/bookmarks/page.tsx` dosyasını liste sayfasıyla değiştir.
+        3. `app/bookmarks/[id]/page.tsx` dosyasını oluştur. Klasör adını köşeli parantezlerle aynen yaz.
+        4. /bookmarks sayfasını aç, bir linke tıkla ve not-found sayfasını görmek için /bookmarks/99 adresini aç.
+        5. Dev sunucusunu durdur (Ctrl+C), `npm run build` çalıştır ve sonundaki tabloyu oku. Sonra `npm run dev` ile tekrar başlat.
+        6. Çalışmanı commit'le.
+    code:
+      - file: lib/bookmarks.ts
+        lang: ts
+        text: |
+          export type Bookmark = {
+            id: number;
+            title: string;
+            url: string;
+            note: string;
+          };
+
+          const bookmarks: Bookmark[] = [
+            { id: 1, title: "Next.js documentation", url: "https://nextjs.org/docs", note: "The official docs." },
+            { id: 2, title: "MDN Web Docs", url: "https://developer.mozilla.org", note: "Everything about the web platform." },
+            { id: 3, title: "React documentation", url: "https://react.dev", note: "Components, state and hooks." },
+          ];
+
+          export async function getBookmarks(): Promise<Bookmark[]> {
+            return bookmarks;
+          }
+
+          export async function getBookmark(id: number): Promise<Bookmark | undefined> {
+            return bookmarks.find((b) => b.id === id);
+          }
+      - file: app/bookmarks/page.tsx
+        lang: tsx
+        text: |
+          import Link from "next/link";
+          import { getBookmarks } from "@/lib/bookmarks";
+
+          export default async function BookmarksPage() {
+            const bookmarks = await getBookmarks();
+
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">All links</h1>
+                <ul className="mt-4 space-y-3">
+                  {bookmarks.map((b) => (
+                    <li key={b.id}>
+                      <Link href={`/bookmarks/${b.id}`} className="font-semibold underline">
+                        {b.title}
+                      </Link>
+                      <p className="text-sm text-gray-600">{b.url}</p>
+                    </li>
+                  ))}
+                </ul>
+              </main>
+            );
+          }
+      - file: app/bookmarks/[id]/page.tsx
+        lang: tsx
+        text: |
+          import { Suspense } from "react";
+          import { notFound } from "next/navigation";
+          import CopyButton from "@/app/components/CopyButton";
+          import { getBookmark } from "@/lib/bookmarks";
+
+          export default function BookmarkPage(props: PageProps<"/bookmarks/[id]">) {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <Suspense fallback={<p>Loading...</p>}>
+                  <BookmarkDetails params={props.params} />
+                </Suspense>
+              </main>
+            );
+          }
+
+          async function BookmarkDetails({
+            params,
+          }: {
+            params: PageProps<"/bookmarks/[id]">["params"];
+          }) {
+            const { id } = await params;
+            const bookmark = await getBookmark(Number(id));
+            if (!bookmark) notFound();
+
+            return (
+              <article>
+                <h1 className="text-3xl font-bold">{bookmark.title}</h1>
+                <p className="mt-2">{bookmark.note}</p>
+                <p className="mt-4 flex items-center gap-3">
+                  <a href={bookmark.url} className="underline" rel="noopener noreferrer" target="_blank">
+                    {bookmark.url}
+                  </a>
+                  <CopyButton text={bookmark.url} />
+                </p>
+              </article>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Reading params.id without await, as older tutorials show."
+          tr: "Eski eğitimlerdeki gibi params.id'yi await etmeden okumak."
+        fix:
+          en: "In Next.js 16 params is a Promise. Write const { id } = await params. TypeScript will warn you if you forget."
+          tr: "Next.js 16'da params bir Promise'tir. const { id } = await params yaz. Unutursan TypeScript seni uyarır."
+      - problem:
+          en: "The build fails with \"Next.js encountered uncached or runtime data during prerendering\"."
+          tr: "Build \"Next.js encountered uncached or runtime data during prerendering\" hatasıyla bozuluyor."
+        fix:
+          en: "Something that only exists at request time (params, searchParams, cookies, headers, an uncached database query) is outside Suspense. Move it into a child component and wrap that in <Suspense fallback={...}>, as the detail page does."
+          tr: "Sadece istek anında var olan bir şey (params, searchParams, cookies, headers, cache'siz bir veritabanı sorgusu) Suspense'in dışında. Onu bir alt component'e taşı ve detay sayfasında olduğu gibi <Suspense fallback={...}> ile sar."
+    quiz:
+      - q:
+          en: "What is the type of params in a Next.js 16 page?"
+          tr: "Next.js 16 sayfasında params'ın tipi nedir?"
+        options:
+          en: [A plain object, A Promise you must await, A string]
+          tr: [Düz bir object, Await etmen gereken bir Promise, Bir string]
+        answer: 1
+        why:
+          en: "Since 15 it is a Promise and 16 removed the temporary synchronous access, so you always await it."
+          tr: "15'ten beri bir Promise'tir ve 16 geçici senkron erişimi kaldırdı; yani her zaman await edersin."
+    sources:
+      - title: Next.js, dynamic routes
+        url: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes
+      - title: Next.js, page.js reference (params and PageProps)
+        url: https://nextjs.org/docs/app/api-reference/file-conventions/page
+      - title: Next.js, caching and prerendering
+        url: https://nextjs.org/docs/app/getting-started/caching
+
+  - id: database
+    stage: data-api
+    title:
+      en: "A SQLite database with Drizzle and data caching"
+      tr: "Drizzle ile SQLite veritabanı ve veri cache'i"
+    minutes: 90
+    needs: [bookmarks-pages]
+    why:
+      en: "A real site keeps its data in a database. SQLite is a database in one file, so you need no server to install. Drizzle is a light ORM (a library that lets you write queries in TypeScript). The same code later talks to Turso, a free hosted SQLite, so your deployed site can use it too."
+      tr: "Gerçek bir site verisini veritabanında tutar. SQLite tek bir dosyada duran bir veritabanıdır, kurulacak bir sunucu gerekmez. Drizzle hafif bir ORM'dir (sorguları TypeScript'le yazmanı sağlayan kütüphane). Aynı kod sonra ücretsiz barındırılan bir SQLite olan Turso ile konuşur; yani yayındaki siten de onu kullanabilir."
+    learn:
+      en: |
+        - A schema describes your tables in code; `drizzle-kit push` creates them in the database
+        - `libSQL` is Turso's version of SQLite. `@libsql/client` opens a local file (`file:local.db`) or a remote database with the same code
+        - Fetching data in a server component: just call `await getBookmarks()`, no `useEffect`, no API needed
+        - `"use cache"` stores the result of an async function. `cacheLife("hours")` says how long it stays fresh and `cacheTag("bookmarks")` gives it a name, so a form can expire it later
+        - Without `"use cache"` a database query is not cached, so it has to run at request time and belongs inside `<Suspense>`, like `params`. A local SQLite file may seem to work either way, but with a hosted database an uncached query outside Suspense fails the build
+      tr: |
+        - Schema tablolarını kodla tanımlar; `drizzle-kit push` onları veritabanında oluşturur
+        - `libSQL`, Turso'nun SQLite sürümüdür. `@libsql/client` aynı kodla yerel bir dosyayı (`file:local.db`) ya da uzak bir veritabanını açar
+        - Server component'te veri getirmek: sadece `await getBookmarks()` çağır; `useEffect` yok, API gerekmez
+        - `"use cache"` bir async fonksiyonun sonucunu saklar. `cacheLife("hours")` ne kadar taze kalacağını söyler, `cacheTag("bookmarks")` ona bir ad verir; böylece bir form onu sonra geçersiz kılabilir
+        - `"use cache"` olmadan veritabanı sorgusu cache'lenmez; istek anında çalışması gerekir ve `params` gibi `<Suspense>` içinde durmalıdır. Yerel bir SQLite dosyası her iki şekilde de çalışıyor gibi görünebilir ama barındırılan bir veritabanında Suspense dışındaki cache'siz sorgu build'i bozar
+    do:
+      en: |
+        1. Stop the dev server and install Drizzle, the libSQL client, the Drizzle command-line tool and `tsx` (it runs TypeScript scripts).
+        2. Create `lib/db/schema.ts`, `lib/db/index.ts` and `drizzle.config.ts`. With no settings, the database is the file `local.db` in the project folder.
+        3. Add the three scripts to `package.json`, and add the line `local.db*` to `.gitignore` so the database file is not committed.
+        4. Create the table and the starter rows: `npm run db:push`, then `npm run db:seed`. (Run the seed once; running it again does nothing.)
+        5. Replace `lib/bookmarks.ts` with the database version. The pages do not change, because the function names are the same.
+        6. Start `npm run dev` and open /bookmarks: the same three links, now from the database. Optional: `npm run db:studio` opens a page where you can see the table.
+        7. Commit.
+      tr: |
+        1. Dev sunucusunu durdur ve Drizzle'ı, libSQL client'ını, Drizzle komut satırı aracını ve `tsx`'i (TypeScript script'leri çalıştırır) kur.
+        2. `lib/db/schema.ts`, `lib/db/index.ts` ve `drizzle.config.ts` dosyalarını oluştur. Hiçbir ayar yokken veritabanı, proje klasöründeki `local.db` dosyasıdır.
+        3. Üç script'i `package.json`'a ekle ve veritabanı dosyası commit'lenmesin diye `.gitignore`'a `local.db*` satırını ekle.
+        4. Tabloyu ve başlangıç satırlarını oluştur: `npm run db:push`, sonra `npm run db:seed`. (Seed'i bir kez çalıştır; tekrar çalıştırırsan bir şey yapmaz.)
+        5. `lib/bookmarks.ts` dosyasını veritabanı sürümüyle değiştir. Fonksiyon adları aynı olduğu için sayfalar değişmez.
+        6. `npm run dev` başlat ve /bookmarks sayfasını aç: aynı üç link, bu sefer veritabanından. İsteğe bağlı: `npm run db:studio` tabloyu görebileceğin bir sayfa açar.
+        7. Commit'le.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install drizzle-orm @libsql/client
+          npm install -D drizzle-kit tsx
+      - file: lib/db/schema.ts
+        lang: ts
+        text: |
+          import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+
+          export const bookmarks = sqliteTable("bookmarks", {
+            id: integer("id").primaryKey({ autoIncrement: true }),
+            title: text("title").notNull(),
+            url: text("url").notNull(),
+            note: text("note").notNull().default(""),
+            createdAt: integer("created_at", { mode: "timestamp" })
+              .notNull()
+              .$defaultFn(() => new Date()),
+          });
+      - file: lib/db/index.ts
+        lang: ts
+        text: |
+          import { drizzle } from "drizzle-orm/libsql";
+          import * as schema from "./schema";
+
+          export const db = drizzle({
+            connection: {
+              url: process.env.DATABASE_URL ?? "file:local.db",
+              authToken: process.env.DATABASE_AUTH_TOKEN,
+            },
+            schema,
+          });
+      - file: drizzle.config.ts
+        lang: ts
+        text: |
+          import { defineConfig } from "drizzle-kit";
+
+          export default defineConfig({
+            dialect: "turso",
+            schema: "./lib/db/schema.ts",
+            dbCredentials: {
+              url: process.env.DATABASE_URL ?? "file:local.db",
+              authToken: process.env.DATABASE_AUTH_TOKEN,
+            },
+          });
+      - file: scripts/seed.ts
+        lang: ts
+        text: |
+          import { count } from "drizzle-orm";
+          import { db } from "../lib/db";
+          import { bookmarks } from "../lib/db/schema";
+
+          async function main() {
+            const [{ total }] = await db.select({ total: count() }).from(bookmarks);
+            if (total > 0) {
+              console.log(`Already ${total} bookmarks, nothing to do.`);
+              return;
+            }
+            await db.insert(bookmarks).values([
+              { title: "Next.js documentation", url: "https://nextjs.org/docs", note: "The official docs." },
+              { title: "MDN Web Docs", url: "https://developer.mozilla.org", note: "Everything about the web platform." },
+              { title: "React documentation", url: "https://react.dev", note: "Components, state and hooks." },
+            ]);
+            console.log("Added 3 bookmarks.");
+          }
+
+          main();
+      - file: package.json
+        lang: json
+        text: |
+          "scripts": {
+            "dev": "next dev",
+            "build": "next build",
+            "start": "next start",
+            "lint": "eslint",
+            "db:push": "drizzle-kit push",
+            "db:seed": "tsx scripts/seed.ts",
+            "db:studio": "drizzle-kit studio"
+          }
+      - file: lib/bookmarks.ts
+        lang: ts
+        text: |
+          import { desc, eq } from "drizzle-orm";
+          import { cacheLife, cacheTag } from "next/cache";
+          import { db } from "@/lib/db";
+          import { bookmarks } from "@/lib/db/schema";
+
+          export type Bookmark = typeof bookmarks.$inferSelect;
+
+          export async function getBookmarks(): Promise<Bookmark[]> {
+            "use cache";
+            cacheLife("hours");
+            cacheTag("bookmarks");
+            return db.select().from(bookmarks).orderBy(desc(bookmarks.createdAt), desc(bookmarks.id));
+          }
+
+          export async function getBookmark(id: number): Promise<Bookmark | undefined> {
+            "use cache";
+            cacheLife("hours");
+            cacheTag("bookmarks");
+            const rows = await db.select().from(bookmarks).where(eq(bookmarks.id, id)).limit(1);
+            return rows[0];
+          }
+    mistakes:
+      - problem:
+          en: "\"no such table: bookmarks\" in the browser or the terminal."
+          tr: "Tarayıcıda ya da terminalde \"no such table: bookmarks\" hatası."
+        fix:
+          en: "The table does not exist yet. Run npm run db:push. You must run it again after every change to a schema file."
+          tr: "Tablo henüz yok. npm run db:push çalıştır. Schema dosyalarında her değişiklikten sonra tekrar çalıştırman gerekir."
+      - problem:
+          en: "Reading cookies() or headers() inside a function that has \"use cache\"."
+          tr: "\"use cache\" olan bir fonksiyonun içinde cookies() ya da headers() okumak."
+        fix:
+          en: "A cached function must give the same answer to everyone. Read the cookie outside, and pass the value in as an argument, which also becomes part of the cache key."
+          tr: "Cache'li bir fonksiyon herkese aynı cevabı vermeli. Cookie'yi dışarıda oku ve değeri argüman olarak geçir; argüman cache anahtarının da parçası olur."
+      - problem:
+          en: "Committing local.db to Git."
+          tr: "local.db dosyasını Git'e commit'lemek."
+        fix:
+          en: "The file holds data and changes all the time. Keep local.db* in .gitignore; if it was committed already, run git rm --cached local.db."
+          tr: "Dosya veri tutar ve sürekli değişir. local.db*'i .gitignore'da tut; zaten commit'lendiyse git rm --cached local.db çalıştır."
+    quiz:
+      - q:
+          en: "What does cacheTag(\"bookmarks\") give you?"
+          tr: "cacheTag(\"bookmarks\") sana ne sağlar?"
+        options:
+          en: [A faster database, A name you can use to expire this cached data on demand, A new table]
+          tr: [Daha hızlı bir veritabanı, Bu cache'li veriyi istediğinde geçersiz kılmak için kullanabileceğin bir ad, Yeni bir tablo]
+        answer: 1
+        why:
+          en: "A tag labels the cache entry. After a form changes the data, updateTag(\"bookmarks\") throws the old entry away."
+          tr: "Tag, cache kaydına bir etiket koyar. Bir form veriyi değiştirdikten sonra updateTag(\"bookmarks\") eski kaydı atar."
+    sources:
+      - title: Next.js, the use cache directive
+        url: https://nextjs.org/docs/app/api-reference/directives/use-cache
+      - title: Next.js, fetching data
+        url: https://nextjs.org/docs/app/getting-started/fetching-data
+      - title: Drizzle ORM, get started with SQLite
+        url: https://orm.drizzle.team/docs/get-started-sqlite
+      - title: Turso, libSQL and Drizzle
+        url: https://docs.turso.tech/sdk/ts/orm/drizzle
+
+  - id: server-actions
+    stage: data-api
+    title:
+      en: "A form that saves data with a server action"
+      tr: "Server action ile veri kaydeden bir form"
+    minutes: 90
+    needs: [database]
+    why:
+      en: "Reading data is only half of an app. A server action is a function that runs on the server and that a form can call directly, so you save data without writing an API. The form even works before JavaScript has loaded."
+      tr: "Veri okumak bir uygulamanın sadece yarısıdır. Server action, server'da çalışan ve bir formun doğrudan çağırabildiği bir fonksiyondur; böylece API yazmadan veri kaydedersin. Form JavaScript yüklenmeden bile çalışır."
+    learn:
+      en: |
+        - `"use server"` marks async functions the browser may call; they are public endpoints in disguise, so treat their input as untrusted
+        - `<form action={fn}>` and `FormData`
+        - `useActionState` to show validation errors and a pending state
+        - Validating on the server (the browser checks can be skipped by anyone)
+        - `updateTag("bookmarks")` expires the cached list so the user sees the new link right away; `redirect()` sends the user to another page
+      tr: |
+        - `"use server"` tarayıcının çağırabileceği async fonksiyonları işaretler; kılık değiştirmiş açık endpoint'lerdir, bu yüzden girdilerine güvenme
+        - `<form action={fn}>` ve `FormData`
+        - Doğrulama hatalarını ve bekleme durumunu göstermek için `useActionState`
+        - Server'da doğrulama (tarayıcı kontrollerini herkes atlayabilir)
+        - `updateTag("bookmarks")` cache'li listeyi geçersiz kılar, kullanıcı yeni linki hemen görür; `redirect()` kullanıcıyı başka sayfaya gönderir
+    do:
+      en: |
+        1. Create `lib/validation.ts`. It checks the fields and only allows `http` and `https` links. It is plain TypeScript, which makes it easy to test later.
+        2. Create `app/actions.ts` with the two server actions.
+        3. Create the form component `app/new/BookmarkForm.tsx` (a client component, because it uses `useActionState`) and the page `app/new/page.tsx`.
+        4. Add the "Add" link to the menu in `app/layout.tsx`.
+        5. Replace `app/bookmarks/[id]/page.tsx` so it has a Delete button.
+        6. Try it: add a bookmark, then try an empty title and the link `nothing`. Delete a bookmark. For now everyone can add and delete; the sign-in step fixes that.
+        7. Commit.
+      tr: |
+        1. `lib/validation.ts` dosyasını oluştur. Alanları kontrol eder ve sadece `http` ve `https` linklerine izin verir. Düz TypeScript'tir, bu yüzden sonra test etmesi kolay.
+        2. İki server action'lı `app/actions.ts` dosyasını oluştur.
+        3. Form component'i `app/new/BookmarkForm.tsx` (`useActionState` kullandığı için client component) ve `app/new/page.tsx` sayfasını oluştur.
+        4. `app/layout.tsx` içindeki menüye "Add" linkini ekle.
+        5. `app/bookmarks/[id]/page.tsx` dosyasını Delete butonu olacak şekilde değiştir.
+        6. Dene: bir yer imi ekle, sonra boş başlık ve `nothing` linkini dene. Bir yer imini sil. Şimdilik herkes ekleyip silebiliyor; giriş adımı bunu düzeltecek.
+        7. Commit'le.
+    code:
+      - file: lib/validation.ts
+        lang: ts
+        text: |
+          export type BookmarkInput = { title: string; url: string; note: string };
+          export type BookmarkErrors = Partial<Record<keyof BookmarkInput, string>>;
+          export type FormState = { errors: BookmarkErrors; values: BookmarkInput } | null;
+
+          export function isHttpUrl(value: string): boolean {
+            try {
+              const url = new URL(value);
+              return url.protocol === "http:" || url.protocol === "https:";
+            } catch {
+              return false;
+            }
+          }
+
+          function field(form: FormData, key: string): string {
+            const value = form.get(key);
+            return typeof value === "string" ? value.trim() : "";
+          }
+
+          export function parseBookmark(
+            form: FormData,
+          ): { ok: true; data: BookmarkInput } | { ok: false; errors: BookmarkErrors; values: BookmarkInput } {
+            const values = { title: field(form, "title"), url: field(form, "url"), note: field(form, "note") };
+            const errors: BookmarkErrors = {};
+
+            if (!values.title) errors.title = "Title is required.";
+            else if (values.title.length > 120) errors.title = "Title can be at most 120 characters.";
+
+            if (!isHttpUrl(values.url)) errors.url = "Enter a full link that starts with http:// or https://";
+            if (values.note.length > 500) errors.note = "Note can be at most 500 characters.";
+
+            return Object.keys(errors).length > 0 ? { ok: false, errors, values } : { ok: true, data: values };
+          }
+      - file: app/actions.ts
+        lang: ts
+        text: |
+          "use server";
+
+          import { eq } from "drizzle-orm";
+          import { updateTag } from "next/cache";
+          import { redirect } from "next/navigation";
+          import { db } from "@/lib/db";
+          import { bookmarks } from "@/lib/db/schema";
+          import { parseBookmark, type FormState } from "@/lib/validation";
+
+          export async function addBookmark(_prev: FormState, formData: FormData): Promise<FormState> {
+            const parsed = parseBookmark(formData);
+            if (!parsed.ok) return { errors: parsed.errors, values: parsed.values };
+
+            await db.insert(bookmarks).values(parsed.data);
+            updateTag("bookmarks");
+            redirect("/bookmarks");
+          }
+
+          export async function deleteBookmark(id: number) {
+            await db.delete(bookmarks).where(eq(bookmarks.id, id));
+            updateTag("bookmarks");
+            redirect("/bookmarks");
+          }
+      - file: app/new/BookmarkForm.tsx
+        lang: tsx
+        text: |
+          "use client";
+
+          import { useActionState } from "react";
+          import { addBookmark } from "@/app/actions";
+          import type { FormState } from "@/lib/validation";
+
+          export default function BookmarkForm() {
+            const [state, formAction, pending] = useActionState<FormState, FormData>(addBookmark, null);
+
+            return (
+              <form action={formAction} className="mt-4 space-y-4">
+                <label className="block">
+                  <span className="font-semibold">Title</span>
+                  <input name="title" defaultValue={state?.values.title} required className="mt-1 w-full rounded border p-2" />
+                  {state?.errors.title && <span role="alert" className="text-sm text-red-600">{state.errors.title}</span>}
+                </label>
+                <label className="block">
+                  <span className="font-semibold">Link</span>
+                  <input name="url" type="url" defaultValue={state?.values.url} required className="mt-1 w-full rounded border p-2" />
+                  {state?.errors.url && <span role="alert" className="text-sm text-red-600">{state.errors.url}</span>}
+                </label>
+                <label className="block">
+                  <span className="font-semibold">Note (optional)</span>
+                  <textarea name="note" defaultValue={state?.values.note} className="mt-1 w-full rounded border p-2" />
+                  {state?.errors.note && <span role="alert" className="text-sm text-red-600">{state.errors.note}</span>}
+                </label>
+                <button type="submit" disabled={pending} className="rounded bg-black px-4 py-2 text-white disabled:opacity-50">
+                  {pending ? "Saving..." : "Save bookmark"}
+                </button>
+              </form>
+            );
+          }
+      - file: app/new/page.tsx
+        lang: tsx
+        text: |
+          import BookmarkForm from "./BookmarkForm";
+
+          export default function NewBookmarkPage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">Add a bookmark</h1>
+                <BookmarkForm />
+              </main>
+            );
+          }
+      - file: app/layout.tsx
+        lang: tsx
+        text: |
+          // inside <nav>, between "All links" and "About":
+          <Link href="/new">Add</Link>
+      - file: app/bookmarks/[id]/page.tsx
+        lang: tsx
+        text: |
+          import { Suspense } from "react";
+          import { notFound } from "next/navigation";
+          import CopyButton from "@/app/components/CopyButton";
+          import { deleteBookmark } from "@/app/actions";
+          import { getBookmark } from "@/lib/bookmarks";
+
+          export default function BookmarkPage(props: PageProps<"/bookmarks/[id]">) {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <Suspense fallback={<p>Loading...</p>}>
+                  <BookmarkDetails params={props.params} />
+                </Suspense>
+              </main>
+            );
+          }
+
+          async function BookmarkDetails({
+            params,
+          }: {
+            params: PageProps<"/bookmarks/[id]">["params"];
+          }) {
+            const { id } = await params;
+            const bookmark = await getBookmark(Number(id));
+            if (!bookmark) notFound();
+
+            return (
+              <article>
+                <h1 className="text-3xl font-bold">{bookmark.title}</h1>
+                <p className="mt-2">{bookmark.note}</p>
+                <p className="mt-4 flex items-center gap-3">
+                  <a href={bookmark.url} className="underline" rel="noopener noreferrer" target="_blank">
+                    {bookmark.url}
+                  </a>
+                  <CopyButton text={bookmark.url} />
+                </p>
+                <form action={deleteBookmark.bind(null, bookmark.id)} className="mt-6">
+                  <button type="submit" className="rounded border border-red-600 px-3 py-1 text-red-600">
+                    Delete
+                  </button>
+                </form>
+              </article>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "The new bookmark does not show in the list after saving."
+          tr: "Kaydettikten sonra yeni yer imi listede görünmüyor."
+        fix:
+          en: "The list is cached for an hour. Call updateTag(\"bookmarks\") after changing data, with the same tag name as in cacheTag."
+          tr: "Liste bir saat cache'lenir. Veriyi değiştirdikten sonra cacheTag'dekiyle aynı tag adıyla updateTag(\"bookmarks\") çağır."
+      - problem:
+          en: "Calling redirect() inside try/catch."
+          tr: "redirect()'i try/catch içinde çağırmak."
+        fix:
+          en: "redirect works by throwing a special error, and your catch swallows it. Call redirect after the try/catch block, or rethrow errors you do not recognise."
+          tr: "redirect özel bir hata fırlatarak çalışır ve catch'in onu yutar. redirect'i try/catch bloğundan sonra çağır ya da tanımadığın hataları tekrar fırlat."
+      - problem:
+          en: "Trusting the browser checks (required, type=\"url\") and skipping validation in the action."
+          tr: "Tarayıcı kontrollerine (required, type=\"url\") güvenip action'da doğrulamayı atlamak."
+        fix:
+          en: "Anyone can send a request without your form. Always validate again on the server, as parseBookmark does."
+          tr: "Herkes formun olmadan istek gönderebilir. parseBookmark'ın yaptığı gibi her zaman server'da tekrar doğrula."
+    quiz:
+      - q:
+          en: "Why do we validate the form again in the server action?"
+          tr: "Formu server action'da neden tekrar doğruluyoruz?"
+        options:
+          en: [Because browsers cannot validate, Because anyone can call the action without using your form, Because it makes the page faster]
+          tr: [Çünkü tarayıcılar doğrulama yapamaz, Çünkü herkes formunu kullanmadan action'ı çağırabilir, Çünkü sayfayı hızlandırır]
+        answer: 1
+        why:
+          en: "A server action is reachable by a normal HTTP request, so the server must never trust the input."
+          tr: "Server action'a normal bir HTTP isteğiyle ulaşılabilir; bu yüzden server girdiye asla güvenmemeli."
+    sources:
+      - title: Next.js, mutating data (server actions)
+        url: https://nextjs.org/docs/app/getting-started/mutating-data
+      - title: Next.js, updateTag
+        url: https://nextjs.org/docs/app/api-reference/functions/updateTag
+      - title: React, useActionState
+        url: https://react.dev/reference/react/useActionState
+
+  - id: route-handler
+    stage: data-api
+    title:
+      en: "A JSON API with a route handler"
+      tr: "Route handler ile JSON API"
+    minutes: 30
+    needs: [database]
+    why:
+      en: "Sometimes something other than your own pages needs your data: a phone app, a script, another website. A route handler is a file that answers HTTP requests with JSON, like an API endpoint."
+      tr: "Bazen kendi sayfaların dışında bir şeyin verine ihtiyacı olur: bir telefon uygulaması, bir script, başka bir site. Route handler, HTTP isteklerine JSON ile cevap veren bir dosyadır; bir API endpoint'i gibi."
+    learn:
+      en: |
+        - `route.ts` with an exported `GET` function (also `POST`, `DELETE` and so on)
+        - `Response.json(...)` and reading the query string from `request.url`
+        - A route and a page cannot live in the same folder
+        - With Cache Components a `GET` handler follows the page rules: it is prerendered when it only uses cached data, and runs per request when it reads the request, as here
+        - Use route handlers for outside callers; for your own pages, call the data function directly
+      tr: |
+        - Dışa aktarılmış bir `GET` fonksiyonu olan `route.ts` (ayrıca `POST`, `DELETE` vb.)
+        - `Response.json(...)` ve query string'i `request.url`'den okumak
+        - Bir route ile bir page aynı klasörde duramaz
+        - Cache Components ile `GET` handler sayfa kurallarını izler: sadece cache'li veri kullanıyorsa prerender edilir, burada olduğu gibi isteği okuyorsa her istekte çalışır
+        - Route handler'ları dışarıdan gelenler için kullan; kendi sayfaların için veri fonksiyonunu doğrudan çağır
+    do:
+      en: |
+        1. Create `lib/search.ts`, a small function that filters bookmarks by a search word. It is used here and again later.
+        2. Create `app/api/bookmarks/route.ts`.
+        3. With the dev server running, open http://localhost:3000/api/bookmarks in the browser, then http://localhost:3000/api/bookmarks?q=react. Or use curl in a second terminal.
+        4. Commit.
+      tr: |
+        1. Yer imlerini bir arama kelimesine göre süzen küçük bir fonksiyon olan `lib/search.ts` dosyasını oluştur. Burada ve daha sonra tekrar kullanılacak.
+        2. `app/api/bookmarks/route.ts` dosyasını oluştur.
+        3. Dev sunucusu açıkken tarayıcıda http://localhost:3000/api/bookmarks adresini, sonra http://localhost:3000/api/bookmarks?q=react adresini aç. Ya da ikinci bir terminalde curl kullan.
+        4. Commit'le.
+    code:
+      - file: lib/search.ts
+        lang: ts
+        text: |
+          type Searchable = { title: string; url: string; note: string };
+
+          export function filterBookmarks<T extends Searchable>(list: T[], query: string | null | undefined): T[] {
+            const q = query?.trim().toLowerCase();
+            if (!q) return list;
+            return list.filter((b) => `${b.title} ${b.url} ${b.note}`.toLowerCase().includes(q));
+          }
+      - file: app/api/bookmarks/route.ts
+        lang: ts
+        text: |
+          import { getBookmarks } from "@/lib/bookmarks";
+          import { filterBookmarks } from "@/lib/search";
+
+          export async function GET(request: Request) {
+            const q = new URL(request.url).searchParams.get("q");
+            const found = filterBookmarks(await getBookmarks(), q);
+            return Response.json(found);
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          curl "http://localhost:3000/api/bookmarks?q=react"
+    mistakes:
+      - problem:
+          en: "Putting route.ts and page.tsx in the same folder."
+          tr: "route.ts ile page.tsx'i aynı klasöre koymak."
+        fix:
+          en: "Both would answer the same URL, so Next.js refuses. Keep APIs under app/api/..., away from pages."
+          tr: "İkisi de aynı URL'ye cevap verir, bu yüzden Next.js kabul etmez. API'leri sayfalardan uzakta app/api/... altında tut."
+      - problem:
+          en: "Calling your own API from a server component with fetch(\"http://localhost:3000/api/...\")."
+          tr: "Bir server component'ten kendi API'ni fetch(\"http://localhost:3000/api/...\") ile çağırmak."
+        fix:
+          en: "It is an extra network trip and breaks at build time. Import and call the function (getBookmarks) directly."
+          tr: "Fazladan bir ağ yolculuğudur ve build sırasında bozulur. Fonksiyonu (getBookmarks) import edip doğrudan çağır."
+    quiz:
+      - q:
+          en: "When is a route handler the right tool?"
+          tr: "Route handler ne zaman doğru araçtır?"
+        options:
+          en: [To show data on your own pages, When something outside your pages needs your data as JSON, To style the page]
+          tr: [Kendi sayfalarında veri göstermek için, Sayfalarının dışındaki bir şeyin verini JSON olarak istediğinde, Sayfayı stillemek için]
+        answer: 1
+        why:
+          en: "Your own server components can read data directly; route handlers are for outside callers such as apps, scripts and webhooks."
+          tr: "Kendi server component'lerin veriyi doğrudan okuyabilir; route handler'lar uygulama, script ve webhook gibi dışarıdan gelenler içindir."
+    sources:
+      - title: Next.js, route handlers
+        url: https://nextjs.org/docs/app/getting-started/route-handlers
+      - title: Next.js, route.js reference
+        url: https://nextjs.org/docs/app/api-reference/file-conventions/route
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Unit tests with Vitest and a browser test with Playwright"
+      tr: "Vitest ile unit testler ve Playwright ile tarayıcı testi"
+    minutes: 60
+    needs: [route-handler]
+    why:
+      en: "Tests tell you in seconds that a change did not break something. Unit tests check small pure functions. A browser test clicks through the real site like a user and catches what unit tests cannot, such as a form that no longer saves."
+      tr: "Testler bir değişikliğin bir şeyi bozmadığını saniyeler içinde söyler. Unit testler küçük saf fonksiyonları kontrol eder. Tarayıcı testi gerçek siteyi bir kullanıcı gibi tıklayarak gezer ve unit testlerin yakalayamadığını, mesela artık kaydetmeyen bir formu yakalar."
+    learn:
+      en: |
+        - Vitest: `describe`, `it` and `expect`, and why we test `parseBookmark` and `filterBookmarks` (pure functions, no server needed)
+        - Server components that await data are better covered by browser tests than by unit tests
+        - Playwright: opens a real browser, fills the form, adds a bookmark and deletes it again
+        - Browser tests are slower, so keep them few and for the main paths
+      tr: |
+        - Vitest: `describe`, `it` ve `expect` ve `parseBookmark` ile `filterBookmarks`'i neden test ettiğimiz (saf fonksiyonlar, server gerekmez)
+        - Veri `await` eden server component'ler unit testten çok tarayıcı testiyle kapsanır
+        - Playwright: gerçek bir tarayıcı açar, formu doldurur, bir yer imi ekler ve tekrar siler
+        - Tarayıcı testleri yavaştır, bu yüzden az tut ve ana yollar için yaz
+    do:
+      en: |
+        1. Install Vitest. The `@types/node@24` part matters: create-next-app installs an older `@types/node` that Vitest refuses, and npm stops with an `ERESOLVE` error without it.
+        2. Create `vitest.config.mts` (the `@` alias works in tests as in the app), `lib/validation.test.ts` and `lib/search.test.ts`.
+        3. Add `"test": "vitest run"` to `scripts` in `package.json` and run `npm test`. All tests should pass.
+        4. Break something on purpose, for example delete the `|| url.protocol === "https:"` part in `isHttpUrl` in `lib/validation.ts`, run `npm test` and read the failure. Undo it.
+        5. Install Playwright, then download its test browser (about a few hundred MB; on Linux you may also need `npx playwright install-deps`, which asks for admin rights). Add `"test:e2e": "playwright test"` to `scripts`.
+        6. Create `playwright.config.ts` and `tests/e2e/bookmarks.spec.ts`. Add `test-results/` and `playwright-report/` to `.gitignore`.
+        7. Run `npm run test:e2e`. It builds the app, starts it, and runs the browser test once. Stop any `npm run dev` first (or the test uses it).
+        8. Commit.
+      tr: |
+        1. Vitest'i kur. `@types/node@24` kısmı önemli: create-next-app daha eski bir `@types/node` kurar, Vitest onu kabul etmez ve npm onsuz `ERESOLVE` hatasıyla durur.
+        2. `vitest.config.mts` (`@` takma adı testlerde de uygulamadaki gibi çalışır), `lib/validation.test.ts` ve `lib/search.test.ts` dosyalarını oluştur.
+        3. `package.json`'daki `scripts` içine `"test": "vitest run"` ekle ve `npm test` çalıştır. Bütün testler geçmeli.
+        4. Bilerek bir şeyi boz, mesela `lib/validation.ts` içindeki `isHttpUrl` fonksiyonunda `|| url.protocol === "https:"` kısmını sil, `npm test` çalıştır ve hatayı oku. Geri al.
+        5. Playwright'ı kur, sonra test tarayıcısını indir (birkaç yüz MB; Linux'ta ayrıca yönetici hakkı isteyen `npx playwright install-deps` gerekebilir). `scripts` içine `"test:e2e": "playwright test"` ekle.
+        6. `playwright.config.ts` ve `tests/e2e/bookmarks.spec.ts` dosyalarını oluştur. `.gitignore`'a `test-results/` ve `playwright-report/` ekle.
+        7. `npm run test:e2e` çalıştır. Uygulamayı build eder, başlatır ve tarayıcı testini bir kez çalıştırır. Önce açık bir `npm run dev` varsa durdur (yoksa test onu kullanır).
+        8. Commit'le.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install -D vitest @types/node@24
+      - file: vitest.config.mts
+        lang: ts
+        text: |
+          import { fileURLToPath } from "node:url";
+          import { defineConfig } from "vitest/config";
+
+          export default defineConfig({
+            resolve: {
+              alias: { "@": fileURLToPath(new URL(".", import.meta.url)) },
+            },
+            test: {
+              include: ["lib/**/*.test.ts"],
+            },
+          });
+      - file: lib/validation.test.ts
+        lang: ts
+        text: |
+          import { describe, expect, it } from "vitest";
+          import { isHttpUrl, parseBookmark } from "./validation";
+
+          function form(values: Record<string, string>) {
+            const data = new FormData();
+            for (const [key, value] of Object.entries(values)) data.set(key, value);
+            return data;
+          }
+
+          describe("isHttpUrl", () => {
+            it("accepts http and https links", () => {
+              expect(isHttpUrl("https://nextjs.org/docs")).toBe(true);
+              expect(isHttpUrl("http://localhost:3000")).toBe(true);
+            });
+
+            it("rejects other schemes and plain text", () => {
+              expect(isHttpUrl("javascript:alert(1)")).toBe(false);
+              expect(isHttpUrl("nextjs.org")).toBe(false);
+              expect(isHttpUrl("")).toBe(false);
+            });
+          });
+
+          describe("parseBookmark", () => {
+            it("returns trimmed data when everything is valid", () => {
+              const result = parseBookmark(form({ title: "  Docs ", url: "https://nextjs.org", note: "" }));
+              expect(result).toEqual({ ok: true, data: { title: "Docs", url: "https://nextjs.org", note: "" } });
+            });
+
+            it("reports an error for each wrong field and keeps the typed values", () => {
+              const result = parseBookmark(form({ title: "", url: "oops", note: "x" }));
+              expect(result.ok).toBe(false);
+              if (!result.ok) {
+                expect(result.errors.title).toBeDefined();
+                expect(result.errors.url).toBeDefined();
+                expect(result.errors.note).toBeUndefined();
+                expect(result.values.url).toBe("oops");
+              }
+            });
+          });
+      - file: lib/search.test.ts
+        lang: ts
+        text: |
+          import { describe, expect, it } from "vitest";
+          import { filterBookmarks } from "./search";
+
+          const list = [
+            { title: "Next.js docs", url: "https://nextjs.org", note: "framework" },
+            { title: "MDN", url: "https://developer.mozilla.org", note: "web platform" },
+          ];
+
+          describe("filterBookmarks", () => {
+            it("returns everything for an empty query", () => {
+              expect(filterBookmarks(list, "")).toHaveLength(2);
+              expect(filterBookmarks(list, null)).toHaveLength(2);
+            });
+
+            it("matches title, url or note and ignores case", () => {
+              expect(filterBookmarks(list, "NEXT")).toEqual([list[0]]);
+              expect(filterBookmarks(list, "mozilla")).toEqual([list[1]]);
+              expect(filterBookmarks(list, "platform")).toEqual([list[1]]);
+            });
+
+            it("returns an empty list when nothing matches", () => {
+              expect(filterBookmarks(list, "zzz")).toEqual([]);
+            });
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm test
+          npm install -D @playwright/test
+          npx playwright install chromium
+      - file: playwright.config.ts
+        lang: ts
+        text: |
+          import { defineConfig } from "@playwright/test";
+
+          export default defineConfig({
+            testDir: "./tests/e2e",
+            use: { baseURL: "http://localhost:3000" },
+            webServer: {
+              command: "npm run build && npm run start",
+              url: "http://localhost:3000",
+              reuseExistingServer: true,
+              timeout: 180_000,
+            },
+          });
+      - file: tests/e2e/bookmarks.spec.ts
+        lang: ts
+        text: |
+          import { expect, test } from "@playwright/test";
+
+          test("add a bookmark, see it in the list, delete it", async ({ page }) => {
+            await page.goto("/new");
+            await page.getByLabel("Title").fill("Playwright docs");
+            await page.getByLabel("Link").fill("https://playwright.dev");
+            await page.getByRole("button", { name: "Save bookmark" }).click();
+
+            await expect(page).toHaveURL(/\/bookmarks$/);
+            await page.getByRole("link", { name: "Playwright docs" }).click();
+            await page.getByRole("button", { name: "Delete" }).click();
+
+            await expect(page).toHaveURL(/\/bookmarks$/);
+            await expect(page.getByRole("link", { name: "Playwright docs" })).toHaveCount(0);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm run test:e2e
+    mistakes:
+      - problem:
+          en: "npm install -D vitest stops with ERESOLVE and mentions @types/node."
+          tr: "npm install -D vitest ERESOLVE ile duruyor ve @types/node'dan bahsediyor."
+        fix:
+          en: "Install a matching version at the same time: npm install -D vitest @types/node@24."
+          tr: "Uyumlu sürümü aynı anda kur: npm install -D vitest @types/node@24."
+      - problem:
+          en: "The browser test cannot find the page or times out."
+          tr: "Tarayıcı testi sayfayı bulamıyor ya da zaman aşımına uğruyor."
+        fix:
+          en: "Check that nothing else uses port 3000, and that you ran npm run db:push first so the tables exist. The first run also builds the app, which takes a while."
+          tr: "3000 portunu başka bir şeyin kullanmadığını ve tabloların var olması için önce npm run db:push çalıştırdığını kontrol et. İlk çalıştırma ayrıca uygulamayı build eder, bu biraz sürer."
+      - problem:
+          en: "Writing unit tests for a server component that reads the database."
+          tr: "Veritabanı okuyan bir server component için unit test yazmaya çalışmak."
+        fix:
+          en: "Pull the logic into a plain function and unit test that (as with parseBookmark). Cover the whole page flow with the browser test."
+          tr: "Mantığı düz bir fonksiyona çıkar ve onu unit test et (parseBookmark'ta olduğu gibi). Sayfanın bütün akışını tarayıcı testiyle kapsa."
+    quiz:
+      - q:
+          en: "Which kind of test would you write for parseBookmark?"
+          tr: "parseBookmark için hangi tür testi yazarsın?"
+        options:
+          en: [A browser test, A unit test, No test is possible]
+          tr: [Tarayıcı testi, Unit test, Test yazmak mümkün değil]
+        answer: 1
+        why:
+          en: "It is a pure function: input in, result out. A unit test runs in milliseconds with no server."
+          tr: "Saf bir fonksiyon: girdi girer, sonuç çıkar. Unit test server olmadan milisaniyelerde çalışır."
+    sources:
+      - title: Next.js, testing with Vitest
+        url: https://nextjs.org/docs/app/guides/testing/vitest
+      - title: Next.js, testing with Playwright
+        url: https://nextjs.org/docs/app/guides/testing/playwright
+      - title: Vitest, getting started
+        url: https://vitest.dev/guide/
+      - title: Playwright, installation
+        url: https://playwright.dev/docs/intro
+
+  - id: auth
+    stage: security
+    title:
+      en: "Sign-in with Better Auth, and who may do what"
+      tr: "Better Auth ile giriş ve kim neyi yapabilir"
+    minutes: 120
+    needs: [tests]
+    why:
+      en: "Right now anyone on the internet can add and delete links. You need accounts: people sign up, sign in, and only the owner can delete a link. Writing password handling yourself is risky, so you use a free, well-tested library: Better Auth."
+      tr: "Şu an internetteki herkes link ekleyip silebiliyor. Hesaplar gerekiyor: insanlar kayıt olur, giriş yapar ve bir linki sadece sahibi silebilir. Parola işini kendin yazmak riskli, o yüzden ücretsiz ve iyi test edilmiş bir kütüphane kullanıyorsun: Better Auth."
+    learn:
+      en: |
+        - Authentication means who you are (sign-in); authorization means what you may do (only the owner deletes)
+        - The library stores a password hash, never the password, and keeps you signed in with an httpOnly cookie that JavaScript cannot read
+        - Better Auth keeps its users and sessions in your own database, through the Drizzle adapter
+        - `proxy.ts` (called `middleware.ts` before Next.js 16) runs before a request is handled; here it sends visitors without a session cookie to the sign-in page. It only checks that a cookie exists, so it is a convenience, not security
+        - The real checks live where the data changes: in every server action (`requireUser()`), because actions can be called without your pages
+      tr: |
+        - Authentication kim olduğunu (giriş), authorization neyi yapabileceğini (sadece sahibi siler) anlatır
+        - Kütüphane parolayı değil parolanın hash'ini saklar ve seni JavaScript'in okuyamadığı bir httpOnly cookie ile giriş yapmış tutar
+        - Better Auth kullanıcılarını ve oturumlarını Drizzle adapter'ı ile senin kendi veritabanında tutar
+        - `proxy.ts` (Next.js 16'dan önce `middleware.ts` adını taşırdı) bir istek işlenmeden önce çalışır; burada oturum cookie'si olmayan ziyaretçileri giriş sayfasına yollar. Sadece cookie'nin var olduğuna bakar, yani bir kolaylıktır, güvenlik değil
+        - Asıl kontroller verinin değiştiği yerde durur: her server action'da (`requireUser()`), çünkü action'lar sayfalarına uğramadan da çağrılabilir
+    do:
+      en: |
+        1. Stop the dev server and install Better Auth.
+        2. Create `lib/auth.ts`. Put `nextCookies()` last in `plugins`: it lets server actions set the session cookie.
+        3. Create `.env.local` in the project root with the two lines below. Generate the secret with the node command; it is a long random string that signs your cookies. `.env.local` is already ignored by Git; never commit it.
+        4. Let Better Auth write the tables it needs. It creates `lib/db/auth-schema.ts`. Say yes if it asks to overwrite; a message about missing tables is expected. The result should look like the file below.
+        5. Replace `lib/db/schema.ts`: it re-exports the auth tables and adds `userId` to bookmarks (empty for the starter links, which nobody can delete). Then run `npm run db:push` again.
+        6. Create the auth files: the API route, `lib/session.ts`, `app/auth-actions.ts`, `app/components/AuthForm.tsx`, the two pages, and `app/components/UserMenu.tsx`.
+        7. Replace `app/layout.tsx` (menu with the user menu inside `<Suspense>`, because reading the session reads cookies), `app/actions.ts` (now requires a user), `app/bookmarks/[id]/page.tsx` (Delete only for the owner) and `app/api/bookmarks/route.ts` (never sends `userId`).
+        8. Create `proxy.ts` next to `package.json`, not inside `app`.
+        9. Start `npm run dev`. Open /new while signed out: you land on the sign-in page. Sign up, add a link, open it, delete it. Sign out and check that Delete is gone.
+        10. Run `npm run test:e2e` (with no dev server running). It fails now, because adding a link needs sign-in: the tests did their job. Replace `tests/e2e/bookmarks.spec.ts` with the version below, which signs up first, and run it again.
+        11. Commit.
+      tr: |
+        1. Dev sunucusunu durdur ve Better Auth'u kur.
+        2. `lib/auth.ts` dosyasını oluştur. `nextCookies()`'i `plugins` içinde en sona koy: server action'ların oturum cookie'sini koymasını sağlar.
+        3. Proje kökünde aşağıdaki iki satırla `.env.local` oluştur. Secret'ı node komutuyla üret; cookie'lerini imzalayan uzun rastgele bir metindir. `.env.local` Git tarafından zaten yok sayılıyor; asla commit'leme.
+        4. Better Auth'a ihtiyaç duyduğu tabloları yazdır. `lib/db/auth-schema.ts` dosyasını oluşturur. Üzerine yazmayı sorarsa evet de; eksik tablolar hakkında bir mesaj görmen normal. Sonuç aşağıdaki dosyaya benzemeli.
+        5. `lib/db/schema.ts` dosyasını değiştir: auth tablolarını yeniden dışa aktarır ve bookmarks'a `userId` ekler (başlangıç linklerinde boş; onları kimse silemez). Sonra `npm run db:push` komutunu tekrar çalıştır.
+        6. Auth dosyalarını oluştur: API route, `lib/session.ts`, `app/auth-actions.ts`, `app/components/AuthForm.tsx`, iki sayfa ve `app/components/UserMenu.tsx`.
+        7. `app/layout.tsx` (kullanıcı menüsü `<Suspense>` içinde, çünkü oturumu okumak cookie okumaktır), `app/actions.ts` (artık kullanıcı ister), `app/bookmarks/[id]/page.tsx` (Delete sadece sahibine) ve `app/api/bookmarks/route.ts` (`userId`'yi asla göndermez) dosyalarını değiştir.
+        8. `proxy.ts` dosyasını `package.json`'ın yanına oluştur, `app` içine değil.
+        9. `npm run dev` başlat. Çıkış yapmışken /new sayfasını aç: giriş sayfasına düşersin. Kayıt ol, bir link ekle, aç, sil. Çıkış yap ve Delete butonunun gittiğini kontrol et.
+        10. `npm run test:e2e` çalıştır (dev sunucusu kapalıyken). Şimdi başarısız olur, çünkü link eklemek giriş ister: testler işini yaptı. `tests/e2e/bookmarks.spec.ts` dosyasını önce kayıt olan aşağıdaki sürümle değiştir ve tekrar çalıştır.
+        11. Commit'le.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install better-auth
+      - file: lib/auth.ts
+        lang: ts
+        text: |
+          import { betterAuth } from "better-auth";
+          import { drizzleAdapter } from "better-auth/adapters/drizzle";
+          import { nextCookies } from "better-auth/next-js";
+          import { db } from "@/lib/db";
+          import * as schema from "@/lib/db/schema";
+
+          export const auth = betterAuth({
+            database: drizzleAdapter(db, { provider: "sqlite", schema }),
+            emailAndPassword: { enabled: true },
+            plugins: [nextCookies()],
+          });
+      - file: .env.local
+        lang: sh
+        text: |
+          BETTER_AUTH_SECRET=paste-the-generated-secret-here
+          BETTER_AUTH_URL=http://localhost:3000
+      - file: terminal
+        lang: sh
+        text: |
+          node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+          npx auth@latest generate --config lib/auth.ts --output lib/db/auth-schema.ts
+      - file: lib/db/auth-schema.ts
+        lang: ts
+        text: |
+          import { relations, sql } from "drizzle-orm";
+          import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+
+          export const user = sqliteTable("user", {
+            id: text("id").primaryKey(),
+            name: text("name").notNull(),
+            email: text("email").notNull().unique(),
+            emailVerified: integer("email_verified", { mode: "boolean" })
+              .default(false)
+              .notNull(),
+            image: text("image"),
+            createdAt: integer("created_at", { mode: "timestamp_ms" })
+              .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+              .notNull(),
+            updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+              .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+              .$onUpdate(() => /* @__PURE__ */ new Date())
+              .notNull(),
+          });
+
+          export const session = sqliteTable(
+            "session",
+            {
+              id: text("id").primaryKey(),
+              expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+              token: text("token").notNull().unique(),
+              createdAt: integer("created_at", { mode: "timestamp_ms" })
+                .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+                .notNull(),
+              updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+                .$onUpdate(() => /* @__PURE__ */ new Date())
+                .notNull(),
+              ipAddress: text("ip_address"),
+              userAgent: text("user_agent"),
+              userId: text("user_id")
+                .notNull()
+                .references(() => user.id, { onDelete: "cascade" }),
+            },
+            (table) => [index("session_userId_idx").on(table.userId)],
+          );
+
+          export const account = sqliteTable(
+            "account",
+            {
+              id: text("id").primaryKey(),
+              accountId: text("account_id").notNull(),
+              providerId: text("provider_id").notNull(),
+              userId: text("user_id")
+                .notNull()
+                .references(() => user.id, { onDelete: "cascade" }),
+              accessToken: text("access_token"),
+              refreshToken: text("refresh_token"),
+              idToken: text("id_token"),
+              accessTokenExpiresAt: integer("access_token_expires_at", {
+                mode: "timestamp_ms",
+              }),
+              refreshTokenExpiresAt: integer("refresh_token_expires_at", {
+                mode: "timestamp_ms",
+              }),
+              scope: text("scope"),
+              password: text("password"),
+              createdAt: integer("created_at", { mode: "timestamp_ms" })
+                .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+                .notNull(),
+              updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+                .$onUpdate(() => /* @__PURE__ */ new Date())
+                .notNull(),
+            },
+            (table) => [index("account_userId_idx").on(table.userId)],
+          );
+
+          export const verification = sqliteTable(
+            "verification",
+            {
+              id: text("id").primaryKey(),
+              identifier: text("identifier").notNull(),
+              value: text("value").notNull(),
+              expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+              createdAt: integer("created_at", { mode: "timestamp_ms" })
+                .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+                .notNull(),
+              updatedAt: integer("updated_at", { mode: "timestamp_ms" })
+                .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+                .$onUpdate(() => /* @__PURE__ */ new Date())
+                .notNull(),
+            },
+            (table) => [index("verification_identifier_idx").on(table.identifier)],
+          );
+
+          export const userRelations = relations(user, ({ many }) => ({
+            sessions: many(session),
+            accounts: many(account),
+          }));
+
+          export const sessionRelations = relations(session, ({ one }) => ({
+            user: one(user, {
+              fields: [session.userId],
+              references: [user.id],
+            }),
+          }));
+
+          export const accountRelations = relations(account, ({ one }) => ({
+            user: one(user, {
+              fields: [account.userId],
+              references: [user.id],
+            }),
+          }));
+      - file: lib/db/schema.ts
+        lang: ts
+        text: |
+          import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+          import { user } from "./auth-schema";
+
+          export * from "./auth-schema";
+
+          export const bookmarks = sqliteTable("bookmarks", {
+            id: integer("id").primaryKey({ autoIncrement: true }),
+            title: text("title").notNull(),
+            url: text("url").notNull(),
+            note: text("note").notNull().default(""),
+            createdAt: integer("created_at", { mode: "timestamp" })
+              .notNull()
+              .$defaultFn(() => new Date()),
+            userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm run db:push
+      - file: app/api/auth/[...all]/route.ts
+        lang: ts
+        text: |
+          import { toNextJsHandler } from "better-auth/next-js";
+          import { auth } from "@/lib/auth";
+
+          export const { GET, POST } = toNextJsHandler(auth);
+      - file: lib/session.ts
+        lang: ts
+        text: |
+          import { headers } from "next/headers";
+          import { redirect } from "next/navigation";
+          import { auth } from "@/lib/auth";
+
+          export async function getSession() {
+            return auth.api.getSession({ headers: await headers() });
+          }
+
+          export async function requireUser() {
+            const session = await getSession();
+            if (!session) redirect("/sign-in");
+            return session.user;
+          }
+      - file: app/auth-actions.ts
+        lang: ts
+        text: |
+          "use server";
+
+          import { APIError } from "better-auth/api";
+          import { headers } from "next/headers";
+          import { redirect } from "next/navigation";
+          import { auth } from "@/lib/auth";
+
+          export type AuthState = { error: string } | null;
+
+          function field(form: FormData, key: string): string {
+            const value = form.get(key);
+            return typeof value === "string" ? value.trim() : "";
+          }
+
+          export async function signUp(_prev: AuthState, form: FormData): Promise<AuthState> {
+            try {
+              await auth.api.signUpEmail({
+                body: { name: field(form, "name"), email: field(form, "email"), password: field(form, "password") },
+              });
+            } catch (error) {
+              if (error instanceof APIError) return { error: error.message };
+              throw error;
+            }
+            redirect("/");
+          }
+
+          export async function signIn(_prev: AuthState, form: FormData): Promise<AuthState> {
+            try {
+              await auth.api.signInEmail({
+                body: { email: field(form, "email"), password: field(form, "password") },
+              });
+            } catch (error) {
+              if (error instanceof APIError) return { error: error.message };
+              throw error;
+            }
+            redirect("/");
+          }
+
+          export async function signOut() {
+            await auth.api.signOut({ headers: await headers() });
+            redirect("/");
+          }
+      - file: app/components/AuthForm.tsx
+        lang: tsx
+        text: |
+          "use client";
+
+          import { useActionState } from "react";
+          import type { AuthState } from "@/app/auth-actions";
+
+          type Props = {
+            action: (prev: AuthState, form: FormData) => Promise<AuthState>;
+            withName?: boolean;
+            button: string;
+          };
+
+          export default function AuthForm({ action, withName = false, button }: Props) {
+            const [state, formAction, pending] = useActionState<AuthState, FormData>(action, null);
+
+            return (
+              <form action={formAction} className="mt-4 space-y-4">
+                {withName && (
+                  <label className="block">
+                    <span className="font-semibold">Name</span>
+                    <input name="name" required className="mt-1 w-full rounded border p-2" />
+                  </label>
+                )}
+                <label className="block">
+                  <span className="font-semibold">Email</span>
+                  <input name="email" type="email" required autoComplete="email" className="mt-1 w-full rounded border p-2" />
+                </label>
+                <label className="block">
+                  <span className="font-semibold">Password (at least 8 characters)</span>
+                  <input
+                    name="password"
+                    type="password"
+                    required
+                    minLength={8}
+                    autoComplete={withName ? "new-password" : "current-password"}
+                    className="mt-1 w-full rounded border p-2"
+                  />
+                </label>
+                {state?.error && <p role="alert" className="text-sm text-red-600">{state.error}</p>}
+                <button type="submit" disabled={pending} className="rounded bg-black px-4 py-2 text-white disabled:opacity-50">
+                  {pending ? "Please wait..." : button}
+                </button>
+              </form>
+            );
+          }
+      - file: app/sign-in/page.tsx
+        lang: tsx
+        text: |
+          import Link from "next/link";
+          import { signIn } from "@/app/auth-actions";
+          import AuthForm from "@/app/components/AuthForm";
+
+          export default function SignInPage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">Sign in</h1>
+                <AuthForm action={signIn} button="Sign in" />
+                <p className="mt-4 text-sm">
+                  No account yet? <Link href="/sign-up" className="underline">Sign up</Link>
+                </p>
+              </main>
+            );
+          }
+      - file: app/sign-up/page.tsx
+        lang: tsx
+        text: |
+          import Link from "next/link";
+          import { signUp } from "@/app/auth-actions";
+          import AuthForm from "@/app/components/AuthForm";
+
+          export default function SignUpPage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">Sign up</h1>
+                <AuthForm action={signUp} withName button="Create account" />
+                <p className="mt-4 text-sm">
+                  Already have an account? <Link href="/sign-in" className="underline">Sign in</Link>
+                </p>
+              </main>
+            );
+          }
+      - file: app/components/UserMenu.tsx
+        lang: tsx
+        text: |
+          import Link from "next/link";
+          import { signOut } from "@/app/auth-actions";
+          import { getSession } from "@/lib/session";
+
+          export default async function UserMenu() {
+            const session = await getSession();
+
+            if (!session) {
+              return <Link href="/sign-in">Sign in</Link>;
+            }
+
+            return (
+              <form action={signOut} className="flex items-center gap-3">
+                <span className="text-sm">{session.user.name}</span>
+                <button type="submit" className="underline">Sign out</button>
+              </form>
+            );
+          }
+      - file: app/layout.tsx
+        lang: tsx
+        text: |
+          import type { Metadata } from "next";
+          import Link from "next/link";
+          import { Suspense } from "react";
+          import { Geist, Geist_Mono } from "next/font/google";
+          import "./globals.css";
+          import UserMenu from "./components/UserMenu";
+
+          const geistSans = Geist({
+            variable: "--font-geist-sans",
+            subsets: ["latin"],
+          });
+
+          const geistMono = Geist_Mono({
+            variable: "--font-geist-mono",
+            subsets: ["latin"],
+          });
+
+          export const metadata: Metadata = {
+            title: "Bookmarks",
+            description: "A small place to keep the links you want to find again.",
+          };
+
+          export default function RootLayout({ children }: LayoutProps<"/">) {
+            return (
+              <html
+                lang="en"
+                className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+              >
+                <body className="min-h-full flex flex-col">
+                  <header className="border-b border-gray-300 p-4">
+                    <nav className="mx-auto flex max-w-2xl gap-4">
+                      <Link href="/" className="font-bold">Bookmarks</Link>
+                      <Link href="/bookmarks">All links</Link>
+                      <Link href="/new">Add</Link>
+                      <Link href="/about">About</Link>
+                      <span className="ml-auto">
+                        <Suspense fallback={null}>
+                          <UserMenu />
+                        </Suspense>
+                      </span>
+                    </nav>
+                  </header>
+                  {children}
+                </body>
+              </html>
+            );
+          }
+      - file: app/actions.ts
+        lang: ts
+        text: |
+          "use server";
+
+          import { and, eq } from "drizzle-orm";
+          import { updateTag } from "next/cache";
+          import { redirect } from "next/navigation";
+          import { db } from "@/lib/db";
+          import { bookmarks } from "@/lib/db/schema";
+          import { requireUser } from "@/lib/session";
+          import { parseBookmark, type FormState } from "@/lib/validation";
+
+          export async function addBookmark(_prev: FormState, formData: FormData): Promise<FormState> {
+            const user = await requireUser();
+            const parsed = parseBookmark(formData);
+            if (!parsed.ok) return { errors: parsed.errors, values: parsed.values };
+
+            await db.insert(bookmarks).values({ ...parsed.data, userId: user.id });
+            updateTag("bookmarks");
+            redirect("/bookmarks");
+          }
+
+          export async function deleteBookmark(id: number) {
+            const user = await requireUser();
+            await db.delete(bookmarks).where(and(eq(bookmarks.id, id), eq(bookmarks.userId, user.id)));
+            updateTag("bookmarks");
+            redirect("/bookmarks");
+          }
+      - file: app/bookmarks/[id]/page.tsx
+        lang: tsx
+        text: |
+          import { Suspense } from "react";
+          import { notFound } from "next/navigation";
+          import CopyButton from "@/app/components/CopyButton";
+          import { deleteBookmark } from "@/app/actions";
+          import { getBookmark } from "@/lib/bookmarks";
+          import { getSession } from "@/lib/session";
+
+          export default function BookmarkPage(props: PageProps<"/bookmarks/[id]">) {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <Suspense fallback={<p>Loading...</p>}>
+                  <BookmarkDetails params={props.params} />
+                </Suspense>
+              </main>
+            );
+          }
+
+          async function BookmarkDetails({
+            params,
+          }: {
+            params: PageProps<"/bookmarks/[id]">["params"];
+          }) {
+            const { id } = await params;
+            const bookmark = await getBookmark(Number(id));
+            if (!bookmark) notFound();
+            const session = await getSession();
+            const isOwner = session?.user.id === bookmark.userId;
+
+            return (
+              <article>
+                <h1 className="text-3xl font-bold">{bookmark.title}</h1>
+                <p className="mt-2">{bookmark.note}</p>
+                <p className="mt-4 flex items-center gap-3">
+                  <a href={bookmark.url} className="underline" rel="noopener noreferrer" target="_blank">
+                    {bookmark.url}
+                  </a>
+                  <CopyButton text={bookmark.url} />
+                </p>
+                {isOwner && (
+                  <form action={deleteBookmark.bind(null, bookmark.id)} className="mt-6">
+                    <button type="submit" className="rounded border border-red-600 px-3 py-1 text-red-600">
+                      Delete
+                    </button>
+                  </form>
+                )}
+              </article>
+            );
+          }
+      - file: app/api/bookmarks/route.ts
+        lang: ts
+        text: |
+          import { getBookmarks } from "@/lib/bookmarks";
+          import { filterBookmarks } from "@/lib/search";
+
+          export async function GET(request: Request) {
+            const q = new URL(request.url).searchParams.get("q");
+            const found = filterBookmarks(await getBookmarks(), q);
+            // Send only public fields, never userId.
+            return Response.json(
+              found.map(({ id, title, url, note, createdAt }) => ({ id, title, url, note, createdAt })),
+            );
+          }
+      - file: proxy.ts
+        lang: ts
+        text: |
+          import { getSessionCookie } from "better-auth/cookies";
+          import { NextResponse, type NextRequest } from "next/server";
+
+          // A quick, optimistic check: no session cookie, no page. The real check is in the actions.
+          export function proxy(request: NextRequest) {
+            if (!getSessionCookie(request)) {
+              return NextResponse.redirect(new URL("/sign-in", request.url));
+            }
+            return NextResponse.next();
+          }
+
+          export const config = {
+            matcher: ["/new"],
+          };
+      - file: tests/e2e/bookmarks.spec.ts
+        lang: ts
+        text: |
+          import { expect, test } from "@playwright/test";
+
+          test("sign up, add a bookmark, see it, delete it", async ({ page }) => {
+            const email = `test-${Date.now()}@example.com`;
+
+            await page.goto("/new");
+            await expect(page).toHaveURL(/\/sign-in/);
+
+            await page.goto("/sign-up");
+            await page.getByLabel("Name").fill("Test User");
+            await page.getByLabel("Email").fill(email);
+            await page.getByLabel(/Password/).fill("a-long-password");
+            await page.getByRole("button", { name: "Create account" }).click();
+            await expect(page.getByText("Test User")).toBeVisible();
+
+            await page.getByRole("link", { name: "Add" }).click();
+            await page.getByLabel("Title").fill("Playwright docs");
+            await page.getByLabel("Link").fill("https://playwright.dev");
+            await page.getByRole("button", { name: "Save bookmark" }).click();
+
+            await expect(page).toHaveURL(/\/bookmarks$/);
+            await page.getByRole("link", { name: "Playwright docs" }).click();
+            await page.getByRole("button", { name: "Delete" }).click();
+
+            await expect(page).toHaveURL(/\/bookmarks$/);
+            await expect(page.getByRole("link", { name: "Playwright docs" })).toHaveCount(0);
+          });
+    mistakes:
+      - problem:
+          en: "Sign-in seems to work but you are still signed out."
+          tr: "Giriş çalışıyor gibi görünüyor ama hâlâ çıkış yapmış durumdasın."
+        fix:
+          en: "The nextCookies() plugin is missing or not the last plugin in lib/auth.ts. Server actions need it to set the session cookie."
+          tr: "nextCookies() plugin'i eksik ya da lib/auth.ts içinde son plugin değil. Server action'ların oturum cookie'sini koyması için ona ihtiyaç var."
+      - problem:
+          en: "Protecting the app only with proxy.ts."
+          tr: "Uygulamayı sadece proxy.ts ile korumak."
+        fix:
+          en: "proxy only checks that a cookie exists, and server actions can be called directly. Always call requireUser() and check ownership inside every action that changes data, as app/actions.ts does."
+          tr: "proxy sadece cookie'nin var olduğuna bakar ve server action'lar doğrudan çağrılabilir. Veriyi değiştiren her action'ın içinde requireUser() çağır ve sahipliği kontrol et; app/actions.ts bunu yapıyor."
+      - problem:
+          en: "A middleware.ts file from an older tutorial does nothing, or logs a deprecation warning."
+          tr: "Eski bir eğitimden kalma middleware.ts dosyası bir şey yapmıyor ya da deprecation uyarısı veriyor."
+        fix:
+          en: "Since Next.js 16 the file is called proxy.ts and the exported function proxy. The codemod npx @next/codemod@canary middleware-to-proxy . renames it."
+          tr: "Next.js 16'dan beri dosyanın adı proxy.ts ve dışa aktarılan fonksiyonun adı proxy. npx @next/codemod@canary middleware-to-proxy . komutu yeniden adlandırır."
+    quiz:
+      - q:
+          en: "Where must the check \"is this the owner of the link?\" happen?"
+          tr: "\"Bu linkin sahibi mi?\" kontrolü nerede yapılmalı?"
+        options:
+          en: [Only in proxy.ts, In the server action that deletes the link, Only in the browser]
+          tr: [Sadece proxy.ts içinde, Linki silen server action'ın içinde, Sadece tarayıcıda]
+        answer: 1
+        why:
+          en: "The action is the place where data changes, and it can be called without your pages. Checks in the browser or only before the page are not enough."
+          tr: "Action verinin değiştiği yerdir ve sayfalarına uğramadan çağrılabilir. Tarayıcıdaki ya da sadece sayfadan önceki kontroller yetmez."
+    sources:
+      - title: Better Auth, installation
+        url: https://www.better-auth.com/docs/installation
+      - title: Better Auth, Next.js integration
+        url: https://www.better-auth.com/docs/integrations/next
+      - title: Next.js, proxy.ts
+        url: https://nextjs.org/docs/app/getting-started/proxy
+      - title: Next.js, authentication guide
+        url: https://nextjs.org/docs/app/guides/authentication
+
+  - id: images-streaming
+    stage: performance
+    title:
+      en: "Fast pages: images, fonts and streaming"
+      tr: "Hızlı sayfalar: görseller, fontlar ve streaming"
+    minutes: 60
+    needs: [auth]
+    why:
+      en: "Big images and slow data are the two usual reasons a site feels slow. Next.js resizes images for you, loads fonts without layout jumps, and with streaming the visitor sees the page frame at once while the slow part loads."
+      tr: "Büyük görseller ve yavaş veri, bir sitenin yavaş hissettirmesinin iki olağan sebebidir. Next.js görselleri senin için küçültür, fontları yerleşim kayması olmadan yükler ve streaming ile ziyaretçi yavaş kısım yüklenirken sayfa çerçevesini hemen görür."
+    learn:
+      en: |
+        - `next/image`: resizes, serves modern formats, lazy loads, and reserves space so the page does not jump. `sizes` tells the browser how wide the image will be on screen
+        - An image at the top of the page should load at once: `loading="eager"`. (The old `priority` prop is deprecated in Next.js 16)
+        - Images from other websites must be allowed in `next.config.ts` under `images.remotePatterns`
+        - `next/font` downloads Google fonts at build time and serves them from your own site (already set up in the layout)
+        - Streaming: the heading and the search box are in the first HTML, the list streams in behind `<Suspense>` because it reads `searchParams`
+        - Measure with Lighthouse (Chrome DevTools) on the production build, not on `npm run dev`
+      tr: |
+        - `next/image`: küçültür, modern formatlarda sunar, tembel (lazy) yükler ve sayfa zıplamasın diye yer ayırır. `sizes` tarayıcıya görselin ekranda ne kadar geniş olacağını söyler
+        - Sayfanın en üstündeki görsel hemen yüklenmeli: `loading="eager"`. (Eski `priority` prop'u Next.js 16'da deprecated)
+        - Başka sitelerdeki görsellere `next.config.ts` içinde `images.remotePatterns` ile izin verilmelidir
+        - `next/font` Google fontlarını build sırasında indirir ve kendi siteninden sunar (layout'ta zaten kurulu)
+        - Streaming: başlık ve arama kutusu ilk HTML'de gelir, liste `searchParams` okuduğu için `<Suspense>` arkasında akar
+        - Lighthouse (Chrome DevTools) ile `npm run dev`'de değil, production build'de ölç
+    do:
+      en: |
+        1. Save any wide picture as `public/hero.jpg` (about 1600 by 600 pixels works well).
+        2. Replace `app/page.tsx` so the home page shows it with `next/image`. A static import (`import hero from "@/public/hero.jpg"`) gives Next.js the width and height.
+        3. Replace `app/bookmarks/page.tsx` with the version that has a search box. The form uses the normal browser GET: submitting it opens `/bookmarks?q=react`, with no JavaScript needed.
+        4. Try the search, also with a word that matches nothing.
+        5. Run `npm run build` and `npm run start`, open the site in Chrome, open DevTools, choose the *Lighthouse* tab and run a report for mobile. Read the performance score and the hints.
+        6. Commit.
+      tr: |
+        1. Geniş bir resmi `public/hero.jpg` olarak kaydet (yaklaşık 1600'e 600 piksel iyi olur).
+        2. Ana sayfa onu `next/image` ile göstersin diye `app/page.tsx` dosyasını değiştir. Statik import (`import hero from "@/public/hero.jpg"`) Next.js'e genişlik ve yüksekliği verir.
+        3. `app/bookmarks/page.tsx` dosyasını arama kutulu sürümle değiştir. Form normal tarayıcı GET'ini kullanır: gönderince `/bookmarks?q=react` açılır, JavaScript gerekmez.
+        4. Aramayı dene, hiçbir şeyle eşleşmeyen bir kelimeyle de.
+        5. `npm run build` ve `npm run start` çalıştır, siteyi Chrome'da aç, DevTools'u aç, *Lighthouse* sekmesini seç ve mobil için bir rapor çalıştır. Performans puanını ve önerileri oku.
+        6. Commit'le.
+    code:
+      - file: app/page.tsx
+        lang: tsx
+        text: |
+          import Image from "next/image";
+          import hero from "@/public/hero.jpg";
+
+          export default function HomePage() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <Image
+                  src={hero}
+                  alt="A blue gradient banner"
+                  loading="eager"
+                  sizes="(min-width: 42rem) 42rem, 100vw"
+                  className="h-auto w-full rounded"
+                />
+                <h1 className="mt-6 text-3xl font-bold">Bookmarks</h1>
+                <p className="mt-2">A small place to keep the links you want to find again.</p>
+              </main>
+            );
+          }
+      - file: app/bookmarks/page.tsx
+        lang: tsx
+        text: |
+          import Link from "next/link";
+          import { Suspense } from "react";
+          import { getBookmarks } from "@/lib/bookmarks";
+          import { filterBookmarks } from "@/lib/search";
+
+          export default function BookmarksPage(props: PageProps<"/bookmarks">) {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-3xl font-bold">All links</h1>
+                <form action="/bookmarks" className="mt-4 flex gap-2">
+                  <input name="q" type="search" placeholder="Search" aria-label="Search" className="w-full rounded border p-2" />
+                  <button type="submit" className="rounded border px-3">Search</button>
+                </form>
+                <Suspense fallback={<p className="mt-4">Loading...</p>}>
+                  <BookmarkList searchParams={props.searchParams} />
+                </Suspense>
+              </main>
+            );
+          }
+
+          async function BookmarkList({
+            searchParams,
+          }: {
+            searchParams: PageProps<"/bookmarks">["searchParams"];
+          }) {
+            const { q } = await searchParams;
+            const bookmarks = filterBookmarks(await getBookmarks(), typeof q === "string" ? q : "");
+
+            if (bookmarks.length === 0) return <p className="mt-4">Nothing found.</p>;
+
+            return (
+              <ul className="mt-4 space-y-3">
+                {bookmarks.map((b) => (
+                  <li key={b.id}>
+                    <Link href={`/bookmarks/${b.id}`} className="font-semibold underline">
+                      {b.title}
+                    </Link>
+                    <p className="text-sm text-gray-600">{b.url}</p>
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "A plain <img> for big pictures."
+          tr: "Büyük resimler için düz <img> kullanmak."
+        fix:
+          en: "The browser downloads the full-size file. Use next/image with a sensible sizes value so phones get a small version."
+          tr: "Tarayıcı tam boyutlu dosyayı indirir. Telefonlar küçük sürümü alsın diye makul bir sizes değeriyle next/image kullan."
+      - problem:
+          en: "An image from another site fails with \"hostname is not configured under images\"."
+          tr: "Başka bir siteden gelen görsel \"hostname is not configured under images\" hatası veriyor."
+        fix:
+          en: "Add that exact host to images.remotePatterns in next.config.ts. The list exists so strangers cannot use your server to resize any image."
+          tr: "O host'u aynen next.config.ts içindeki images.remotePatterns'e ekle. Liste, yabancıların senin server'ını herhangi bir görseli küçültmek için kullanamaması için var."
+      - problem:
+          en: "Measuring speed with npm run dev."
+          tr: "Hızı npm run dev ile ölçmek."
+        fix:
+          en: "The dev server compiles on demand and is much slower than production. Measure with npm run build and npm run start."
+          tr: "Dev sunucusu isteğe göre derler ve production'dan çok daha yavaştır. npm run build ve npm run start ile ölç."
+    quiz:
+      - q:
+          en: "Why is the list on /bookmarks inside <Suspense>?"
+          tr: "/bookmarks üzerindeki liste neden <Suspense> içinde?"
+        options:
+          en: [Because it reads searchParams that exist only at request time, Because lists are always slow, Because Suspense makes images smaller]
+          tr: [Çünkü sadece istek anında var olan searchParams'ı okuyor, Çünkü listeler her zaman yavaştır, Çünkü Suspense görselleri küçültür]
+        answer: 0
+        why:
+          en: "The page frame can be prepared ahead and sent at once; the part that needs the request streams in after it."
+          tr: "Sayfa çerçevesi önceden hazırlanıp hemen gönderilebilir; isteğe ihtiyaç duyan kısım ondan sonra akar."
+    sources:
+      - title: Next.js, optimizing images
+        url: https://nextjs.org/docs/app/getting-started/images
+      - title: Next.js, Image component reference
+        url: https://nextjs.org/docs/app/api-reference/components/image
+      - title: Next.js, optimizing fonts
+        url: https://nextjs.org/docs/app/getting-started/fonts
+
+  - id: seo
+    stage: performance
+    title:
+      en: "Metadata and SEO: titles, sitemap and share images"
+      tr: "Metadata ve SEO: başlıklar, sitemap ve paylaşım görseli"
+    minutes: 45
+    needs: [images-streaming]
+    why:
+      en: "Search engines and chat apps read your page title, description and share image. Good metadata decides how your links look in search results and when someone shares them."
+      tr: "Arama motorları ve sohbet uygulamaları sayfanın başlığını, açıklamasını ve paylaşım görselini okur. İyi metadata, linklerinin arama sonuçlarında ve biri paylaştığında nasıl göründüğünü belirler."
+    learn:
+      en: |
+        - `metadata` for fixed values and `generateMetadata` when the title depends on the page, such as a bookmark's title
+        - `metadataBase`: the base address that makes relative URLs in metadata absolute
+        - A title template (`%s | Bookmarks`) gives every page a consistent title
+        - Special files: `sitemap.ts`, `robots.ts` and `opengraph-image.tsx` become `/sitemap.xml`, `/robots.txt` and the share image
+        - The site address comes from `BETTER_AUTH_URL`, which you set to the live address when you deploy
+      tr: |
+        - Sabit değerler için `metadata`, başlık sayfaya göre değişiyorsa (bir yer iminin başlığı gibi) `generateMetadata`
+        - `metadataBase`: metadata'daki göreli URL'leri mutlak yapan temel adres
+        - Başlık şablonu (`%s | Bookmarks`) her sayfaya tutarlı bir başlık verir
+        - Özel dosyalar: `sitemap.ts`, `robots.ts` ve `opengraph-image.tsx` sırasıyla `/sitemap.xml`, `/robots.txt` ve paylaşım görseli olur
+        - Site adresi, deploy ederken canlı adrese ayarlayacağın `BETTER_AUTH_URL`'den gelir
+    do:
+      en: |
+        1. Create `lib/site.ts` with the site address.
+        2. Replace `app/layout.tsx` with the final version: `metadataBase` and a title template are added.
+        3. Replace `app/bookmarks/[id]/page.tsx`: it now exports `generateMetadata`, so every link gets its own title and description.
+        4. Create `app/sitemap.ts`, `app/robots.ts` and `app/opengraph-image.tsx`.
+        5. Run the app and check: the browser tab shows "MDN Web Docs | Bookmarks" on a link page, and http://localhost:3000/sitemap.xml, /robots.txt and /opengraph-image work. Right-click a page and choose "View page source" to find the `<title>` and `<meta name="description">`.
+        6. Commit.
+      tr: |
+        1. Site adresiyle `lib/site.ts` dosyasını oluştur.
+        2. `app/layout.tsx` dosyasını son sürümle değiştir: `metadataBase` ve bir başlık şablonu eklenir.
+        3. `app/bookmarks/[id]/page.tsx` dosyasını değiştir: artık `generateMetadata` dışa aktarır, böylece her linkin kendi başlığı ve açıklaması olur.
+        4. `app/sitemap.ts`, `app/robots.ts` ve `app/opengraph-image.tsx` dosyalarını oluştur.
+        5. Uygulamayı çalıştır ve kontrol et: bir link sayfasında tarayıcı sekmesi "MDN Web Docs | Bookmarks" gösterir; http://localhost:3000/sitemap.xml, /robots.txt ve /opengraph-image çalışır. Bir sayfaya sağ tıklayıp "View page source" seçerek `<title>` ve `<meta name="description">`'ı bul.
+        6. Commit'le.
+    code:
+      - file: lib/site.ts
+        lang: ts
+        text: |
+          export const siteUrl = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+      - file: app/layout.tsx
+        lang: tsx
+        text: |
+          import type { Metadata } from "next";
+          import Link from "next/link";
+          import { Suspense } from "react";
+          import { Geist, Geist_Mono } from "next/font/google";
+          import "./globals.css";
+          import UserMenu from "./components/UserMenu";
+          import { siteUrl } from "@/lib/site";
+
+          const geistSans = Geist({
+            variable: "--font-geist-sans",
+            subsets: ["latin"],
+          });
+
+          const geistMono = Geist_Mono({
+            variable: "--font-geist-mono",
+            subsets: ["latin"],
+          });
+
+          export const metadata: Metadata = {
+            metadataBase: new URL(siteUrl),
+            title: { default: "Bookmarks", template: "%s | Bookmarks" },
+            description: "A small place to keep the links you want to find again.",
+          };
+
+          export default function RootLayout({ children }: LayoutProps<"/">) {
+            return (
+              <html
+                lang="en"
+                className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+              >
+                <body className="min-h-full flex flex-col">
+                  <header className="border-b border-gray-300 p-4">
+                    <nav className="mx-auto flex max-w-2xl gap-4">
+                      <Link href="/" className="font-bold">Bookmarks</Link>
+                      <Link href="/bookmarks">All links</Link>
+                      <Link href="/new">Add</Link>
+                      <Link href="/about">About</Link>
+                      <span className="ml-auto">
+                        <Suspense fallback={null}>
+                          <UserMenu />
+                        </Suspense>
+                      </span>
+                    </nav>
+                  </header>
+                  {children}
+                </body>
+              </html>
+            );
+          }
+      - file: app/bookmarks/[id]/page.tsx
+        lang: tsx
+        text: |
+          import type { Metadata } from "next";
+          import { Suspense } from "react";
+          import { notFound } from "next/navigation";
+          import CopyButton from "@/app/components/CopyButton";
+          import { deleteBookmark } from "@/app/actions";
+          import { getBookmark } from "@/lib/bookmarks";
+          import { getSession } from "@/lib/session";
+
+          export async function generateMetadata(props: PageProps<"/bookmarks/[id]">): Promise<Metadata> {
+            const { id } = await props.params;
+            const bookmark = await getBookmark(Number(id));
+            if (!bookmark) return { title: "Not found" };
+            return { title: bookmark.title, description: bookmark.note || bookmark.url };
+          }
+
+          export default function BookmarkPage(props: PageProps<"/bookmarks/[id]">) {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <Suspense fallback={<p>Loading...</p>}>
+                  <BookmarkDetails params={props.params} />
+                </Suspense>
+              </main>
+            );
+          }
+
+          async function BookmarkDetails({
+            params,
+          }: {
+            params: PageProps<"/bookmarks/[id]">["params"];
+          }) {
+            const { id } = await params;
+            const bookmark = await getBookmark(Number(id));
+            if (!bookmark) notFound();
+            const session = await getSession();
+            const isOwner = session?.user.id === bookmark.userId;
+
+            return (
+              <article>
+                <h1 className="text-3xl font-bold">{bookmark.title}</h1>
+                <p className="mt-2">{bookmark.note}</p>
+                <p className="mt-4 flex items-center gap-3">
+                  <a href={bookmark.url} className="underline" rel="noopener noreferrer" target="_blank">
+                    {bookmark.url}
+                  </a>
+                  <CopyButton text={bookmark.url} />
+                </p>
+                {isOwner && (
+                  <form action={deleteBookmark.bind(null, bookmark.id)} className="mt-6">
+                    <button type="submit" className="rounded border border-red-600 px-3 py-1 text-red-600">
+                      Delete
+                    </button>
+                  </form>
+                )}
+              </article>
+            );
+          }
+      - file: app/sitemap.ts
+        lang: ts
+        text: |
+          import type { MetadataRoute } from "next";
+          import { getBookmarks } from "@/lib/bookmarks";
+          import { siteUrl } from "@/lib/site";
+
+          export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+            const bookmarks = await getBookmarks();
+            return [
+              { url: siteUrl },
+              { url: `${siteUrl}/bookmarks` },
+              ...bookmarks.map((b) => ({
+                url: `${siteUrl}/bookmarks/${b.id}`,
+                lastModified: b.createdAt,
+              })),
+            ];
+          }
+      - file: app/robots.ts
+        lang: ts
+        text: |
+          import type { MetadataRoute } from "next";
+          import { siteUrl } from "@/lib/site";
+
+          export default function robots(): MetadataRoute.Robots {
+            return {
+              rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/new"] },
+              sitemap: `${siteUrl}/sitemap.xml`,
+            };
+          }
+      - file: app/opengraph-image.tsx
+        lang: tsx
+        text: |
+          import { ImageResponse } from "next/og";
+
+          export const alt = "Bookmarks";
+          export const size = { width: 1200, height: 630 };
+          export const contentType = "image/png";
+
+          export default function OpengraphImage() {
+            return new ImageResponse(
+              (
+                <div
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#0f172a",
+                    color: "white",
+                    fontSize: 96,
+                  }}
+                >
+                  Bookmarks
+                </div>
+              ),
+              size,
+            );
+          }
+    mistakes:
+      - problem:
+          en: "The build says a relative metadata URL needs metadataBase."
+          tr: "Build, göreli bir metadata URL'si için metadataBase gerektiğini söylüyor."
+        fix:
+          en: "Set metadataBase in the root layout, as in the code above, so Next.js can make the address absolute."
+          tr: "Next.js adresi mutlak yapabilsin diye yukarıdaki kodda olduğu gibi root layout'ta metadataBase ayarla."
+      - problem:
+          en: "The sitemap on the live site lists localhost addresses."
+          tr: "Canlı sitedeki sitemap localhost adreslerini listeliyor."
+        fix:
+          en: "BETTER_AUTH_URL is not set in the host's environment variables. The deploy step sets it to the live address."
+          tr: "BETTER_AUTH_URL hosting'in ortam değişkenlerinde ayarlı değil. Deploy adımı onu canlı adrese ayarlıyor."
+    quiz:
+      - q:
+          en: "A page's title depends on data from the database. Which one do you export?"
+          tr: "Bir sayfanın başlığı veritabanındaki veriye bağlı. Hangisini dışa aktarırsın?"
+        options:
+          en: [const metadata, generateMetadata, A title in globals.css]
+          tr: [const metadata, generateMetadata, globals.css içinde bir başlık]
+        answer: 1
+        why:
+          en: "metadata is a fixed object. generateMetadata is a function that can read params and data to build the title."
+          tr: "metadata sabit bir object'tir. generateMetadata, başlığı oluşturmak için params ve veri okuyabilen bir fonksiyondur."
+    sources:
+      - title: Next.js, metadata and OG images
+        url: https://nextjs.org/docs/app/getting-started/metadata-and-og-images
+      - title: Next.js, generateMetadata reference
+        url: https://nextjs.org/docs/app/api-reference/functions/generate-metadata
+      - title: Next.js, sitemap.xml file convention
+        url: https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
+
+  - id: build
+    stage: packaging
+    title:
+      en: "The production build and the settings your app needs"
+      tr: "Production build ve uygulamanın ihtiyaç duyduğu ayarlar"
+    minutes: 30
+    needs: [seo]
+    why:
+      en: "What runs on the internet is not the dev server but the production build: compiled, checked and prerendered. Building it yourself first shows problems early, and listing the settings the app needs makes the deploy simple."
+      tr: "İnternette çalışan şey dev sunucusu değil, production build'dir: derlenmiş, kontrol edilmiş ve prerender edilmiş. Önce kendin build etmek sorunları erken gösterir; uygulamanın ihtiyaç duyduğu ayarları listelemek de deploy'u kolaylaştırır."
+    learn:
+      en: |
+        - `next build` compiles with Turbopack, checks the TypeScript types and prerenders what it can. Linting is separate: run `npm run lint`
+        - Reading the route table: `○` static, `◐` partial prerender (a ready shell plus streamed parts), `ƒ` rendered on every request
+        - Your app needs four environment variables in production: `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`. They hold secrets, so they never go into Git
+        - Pages that read the database are prerendered during the build, so the build needs access to the database too
+        - Hosts that run containers can use `output: "standalone"` in `next.config.ts` for a small self-contained server (Vercel does not need it)
+      tr: |
+        - `next build` Turbopack ile derler, TypeScript tiplerini kontrol eder ve yapabildiğini prerender eder. Lint ayrıdır: `npm run lint` çalıştır
+        - Route tablosunu okumak: `○` statik, `◐` kısmi prerender (hazır bir kabuk artı akan parçalar), `ƒ` her istekte çizilir
+        - Uygulaman production'da dört ortam değişkenine ihtiyaç duyar: `DATABASE_URL`, `DATABASE_AUTH_TOKEN`, `BETTER_AUTH_SECRET` ve `BETTER_AUTH_URL`. Sır tutarlar, bu yüzden asla Git'e girmezler
+        - Veritabanı okuyan sayfalar build sırasında prerender edilir, yani build'in de veritabanına erişmesi gerekir
+        - Container çalıştıran hosting'ler küçük ve kendi başına yeten bir server için `next.config.ts` içinde `output: "standalone"` kullanabilir (Vercel'e gerekmez)
+    do:
+      en: |
+        1. Run the checks below one by one. Fix anything they report.
+        2. Run `npm run start` and open http://localhost:3000. Sign up, add a link, and delete it: it must behave as in development.
+        3. Open http://localhost:3000/api/health in the browser. We add this endpoint in the monitoring step; skip this check for now.
+        4. Make sure no secret is in Git: `git status` must not list `.env.local` or `local.db`, and `git log` must not contain them.
+        5. Commit.
+      tr: |
+        1. Aşağıdaki kontrolleri tek tek çalıştır. Bildirdiği her şeyi düzelt.
+        2. `npm run start` çalıştır ve http://localhost:3000 adresini aç. Kayıt ol, bir link ekle ve sil: geliştirmedeki gibi davranmalı.
+        3. Tarayıcıda http://localhost:3000/api/health adresini aç. Bu endpoint'i izleme adımında ekliyoruz; şimdilik bu kontrolü atla.
+        4. Hiçbir sırrın Git'te olmadığından emin ol: `git status` `.env.local` ya da `local.db` göstermemeli, `git log` onları içermemeli.
+        5. Commit'le.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm run lint
+          npx tsc --noEmit
+          npm test
+          npm run build
+          npm run start
+    mistakes:
+      - problem:
+          en: "The build fails with \"no such table\" or cannot open the database."
+          tr: "Build \"no such table\" hatasıyla bozuluyor ya da veritabanını açamıyor."
+        fix:
+          en: "Pages that read data are prerendered during the build. Create the tables first (npm run db:push) and make sure DATABASE_URL points to a database that exists."
+          tr: "Veri okuyan sayfalar build sırasında prerender edilir. Önce tabloları oluştur (npm run db:push) ve DATABASE_URL'nin var olan bir veritabanını gösterdiğinden emin ol."
+      - problem:
+          en: "Everything works with npm run dev but breaks after npm run build."
+          tr: "Her şey npm run dev ile çalışıyor ama npm run build sonrası bozuluyor."
+        fix:
+          en: "The dev server is forgiving. Read the build error: it usually names the file, and often is a runtime-data read outside Suspense or a missing environment variable."
+          tr: "Dev sunucusu hoşgörülüdür. Build hatasını oku: genelde dosyayı söyler; çoğu zaman Suspense dışında bir istek verisi okuması ya da eksik bir ortam değişkenidir."
+    quiz:
+      - q:
+          en: "Which files must never be committed to Git?"
+          tr: "Hangi dosyalar asla Git'e commit'lenmemeli?"
+        options:
+          en: [package.json and app/page.tsx, .env.local and local.db, vitest.config.mts]
+          tr: [package.json ve app/page.tsx, .env.local ve local.db, vitest.config.mts]
+        answer: 1
+        why:
+          en: ".env.local holds secrets and local.db holds data. Code is committed; secrets and data are not."
+          tr: ".env.local sırları, local.db veriyi tutar. Kod commit'lenir; sırlar ve veri commit'lenmez."
+    sources:
+      - title: Next.js, deploying
+        url: https://nextjs.org/docs/app/getting-started/deploying
+      - title: Next.js, environment variables
+        url: https://nextjs.org/docs/app/guides/environment-variables
+      - title: Next.js, next build reference
+        url: https://nextjs.org/docs/app/api-reference/cli/next
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on Vercel with a Turso database"
+      tr: "Turso veritabanıyla Vercel'de ücretsiz deploy"
+    minutes: 75
+    needs: [build]
+    why:
+      en: "Deploying puts your app on the internet. Vercel (made by the team behind Next.js) runs it for free on the Hobby plan, for personal projects. A file database like local.db cannot live on Vercel, because its servers do not keep files between requests, so the live site uses Turso, a free hosted SQLite that your code already speaks."
+      tr: "Deploy uygulamanı internete koyar. Vercel (Next.js'in arkasındaki ekip) Hobby planında kişisel projeler için onu ücretsiz çalıştırır. local.db gibi dosya tabanlı bir veritabanı Vercel'de duramaz, çünkü server'ları istekler arasında dosya saklamaz; bu yüzden canlı site, kodunun zaten konuştuğu ücretsiz barındırılan bir SQLite olan Turso'yu kullanır."
+    learn:
+      en: |
+        - Why serverless hosting needs a hosted database
+        - Environment variables on the host: how the same code uses `local.db` on your computer and Turso live
+        - The deploy flow: push to GitHub, Vercel builds the project and publishes it; every push to `main` deploys again
+        - The Hobby plan is free for personal, non-commercial use and has usage limits; read them on vercel.com/docs/plans/hobby. Turso's free plan has a generous allowance and needs no credit card
+      tr: |
+        - Serverless hosting'in neden barındırılan bir veritabanına ihtiyaç duyduğu
+        - Host üzerindeki ortam değişkenleri: aynı kodun bilgisayarında `local.db`'yi, canlıda Turso'yu nasıl kullandığı
+        - Deploy akışı: GitHub'a push et, Vercel projeyi build edip yayınlar; `main`'e her push yeniden deploy eder
+        - Hobby planı kişisel, ticari olmayan kullanım için ücretsizdir ve kullanım limitleri vardır; vercel.com/docs/plans/hobby sayfasında oku. Turso'nun ücretsiz planının cömert bir hakkı var ve kredi kartı istemez
+    do:
+      en: |
+        1. Put the code on GitHub. On github.com create a new empty repository named `bookmarks` (private is fine), then run the commands the page shows, like the first block below.
+        2. Install the Turso CLI (macOS: `brew install tursodatabase/tap/turso`; Linux and WSL: the `curl` line below), sign up, and create a database. Then print its address and make an access token. Copy both somewhere safe for the next steps.
+        3. Create the tables and the starter links in the live database. The values are put in front of the command only for this one run. (In Windows PowerShell write `$env:DATABASE_URL="..."` and `$env:DATABASE_AUTH_TOKEN="..."` on their own lines first.)
+        4. Sign up at vercel.com with your GitHub account. Choose *Add New → Project*, import the `bookmarks` repository. Vercel detects Next.js by itself.
+        5. Before pressing Deploy, open *Environment Variables* and add four: `DATABASE_URL` (the libsql:// address), `DATABASE_AUTH_TOKEN` (the token), `BETTER_AUTH_SECRET` (a new secret from the node command in the auth step; do not reuse the local one) and `BETTER_AUTH_URL` (put `https://example.vercel.app` for now). Press Deploy.
+        6. When it finishes, open the project's *Domains* settings and copy the production address (like `https://bookmarks-abc.vercel.app`). Change `BETTER_AUTH_URL` to that address. Environment variable changes only apply to new deployments, so go to *Deployments*, open the menu of the latest one and choose *Redeploy*.
+        7. Open the live address. Sign up, add a link, open it, delete it. Open `/sitemap.xml` and check that it shows the live address, not localhost.
+        8. From now on, `git push` to `main` deploys a new version by itself.
+      tr: |
+        1. Kodu GitHub'a koy. github.com'da `bookmarks` adında yeni boş bir repository oluştur (private olabilir), sonra sayfanın gösterdiği komutları çalıştır; aşağıdaki ilk blok gibi.
+        2. Turso CLI'ı kur (macOS: `brew install tursodatabase/tap/turso`; Linux ve WSL: aşağıdaki `curl` satırı), kayıt ol ve bir veritabanı oluştur. Sonra adresini yazdır ve bir erişim token'ı üret. İkisini de sonraki adımlar için güvenli bir yere kopyala.
+        3. Canlı veritabanında tabloları ve başlangıç linklerini oluştur. Değerler komutun önüne sadece bu tek çalıştırma için konur. (Windows PowerShell'de önce ayrı satırlarda `$env:DATABASE_URL="..."` ve `$env:DATABASE_AUTH_TOKEN="..."` yaz.)
+        4. vercel.com'a GitHub hesabınla kayıt ol. *Add New → Project* seç, `bookmarks` repository'sini import et. Vercel Next.js'i kendisi tanır.
+        5. Deploy'a basmadan önce *Environment Variables* kısmını aç ve dört tane ekle: `DATABASE_URL` (libsql:// adresi), `DATABASE_AUTH_TOKEN` (token), `BETTER_AUTH_SECRET` (auth adımındaki node komutuyla ürettiğin yeni bir secret; yereldekini kullanma) ve `BETTER_AUTH_URL` (şimdilik `https://example.vercel.app` yaz). Deploy'a bas.
+        6. Bitince projenin *Domains* ayarlarını aç ve production adresini kopyala (`https://bookmarks-abc.vercel.app` gibi). `BETTER_AUTH_URL`'yi o adresle değiştir. Ortam değişkeni değişiklikleri sadece yeni deployment'lara uygulanır, bu yüzden *Deployments*'a git, en son olanın menüsünü aç ve *Redeploy* seç.
+        7. Canlı adresi aç. Kayıt ol, bir link ekle, aç, sil. `/sitemap.xml` sayfasını aç ve localhost değil canlı adresi gösterdiğini kontrol et.
+        8. Bundan sonra `main`'e her `git push` yeni bir sürümü kendiliğinden deploy eder.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git remote add origin https://github.com/YOUR-NAME/bookmarks.git
+          git branch -M main
+          git push -u origin main
+      - file: terminal
+        lang: sh
+        text: |
+          curl -sSfL https://get.tur.so/install.sh | bash
+          turso auth signup
+          turso db create bookmarks
+          turso db show bookmarks --url
+          turso db tokens create bookmarks
+      - file: terminal
+        lang: sh
+        text: |
+          env DATABASE_URL="libsql://YOUR-DATABASE-ADDRESS" DATABASE_AUTH_TOKEN="YOUR-TOKEN" npm run db:push
+          env DATABASE_URL="libsql://YOUR-DATABASE-ADDRESS" DATABASE_AUTH_TOKEN="YOUR-TOKEN" npm run db:seed
+    mistakes:
+      - problem:
+          en: "The Vercel build fails because the database is not reachable or has no tables."
+          tr: "Vercel build'i veritabanına ulaşılamadığı ya da tabloların olmadığı için bozuluyor."
+        fix:
+          en: "Pages read the database during the build. Check that the three database variables are set for the Production environment, and that you ran db:push against Turso before deploying."
+          tr: "Sayfalar build sırasında veritabanını okur. Veritabanı değişkenlerinin Production ortamı için ayarlı olduğunu ve deploy etmeden önce Turso'ya db:push çalıştırdığını kontrol et."
+      - problem:
+          en: "Sign-in fails on the live site, or on a preview address Vercel makes for a branch."
+          tr: "Canlı sitede ya da Vercel'in bir branch için yaptığı preview adresinde giriş başarısız oluyor."
+        fix:
+          en: "BETTER_AUTH_URL must be the exact address people use, and it names only the production address. Fix the variable and redeploy; test sign-in on the production address."
+          tr: "BETTER_AUTH_URL insanların kullandığı adresin aynısı olmalı ve sadece production adresini söyler. Değişkeni düzelt ve yeniden deploy et; girişi production adresinde test et."
+      - problem:
+          en: "Pasting the real token or secret into a file that is committed."
+          tr: "Gerçek token'ı ya da secret'ı commit'lenen bir dosyaya yapıştırmak."
+        fix:
+          en: "Keep them only in .env.local (ignored by Git) and in Vercel's settings. If one leaks, create a new token (turso db tokens create) or a new secret and update Vercel."
+          tr: "Onları sadece .env.local'da (Git yok sayar) ve Vercel ayarlarında tut. Biri sızarsa yeni bir token (turso db tokens create) ya da yeni bir secret üret ve Vercel'i güncelle."
+    quiz:
+      - q:
+          en: "Why can the live site not use the local.db file?"
+          tr: "Canlı site neden local.db dosyasını kullanamaz?"
+        options:
+          en: [SQLite is not allowed on the internet, Serverless servers do not keep files between requests, Vercel blocks all databases]
+          tr: [SQLite internette yasak, Serverless server'lar istekler arasında dosya saklamaz, Vercel bütün veritabanlarını engeller]
+        answer: 1
+        why:
+          en: "Each request may run on a fresh machine with no memory of earlier writes, so data must live in a hosted database such as Turso."
+          tr: "Her istek, önceki yazılanları hatırlamayan yeni bir makinede çalışabilir; bu yüzden veri Turso gibi barındırılan bir veritabanında durmalı."
+    sources:
+      - title: Vercel, Next.js on Vercel
+        url: https://vercel.com/docs/frameworks/full-stack/nextjs
+      - title: Vercel, Hobby plan
+        url: https://vercel.com/docs/plans/hobby
+      - title: Vercel, environment variables
+        url: https://vercel.com/docs/environment-variables
+      - title: Turso, quickstart
+        url: https://docs.turso.tech/quickstart
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Error pages, logs and a health check"
+      tr: "Hata sayfaları, log'lar ve bir sağlık kontrolü"
+    minutes: 45
+    needs: [deploy]
+    why:
+      en: "Once real people use the site you cannot see their screens. An error page shows a friendly message instead of a blank page, the error hook writes every server error to the logs, and a health check lets a free monitor tell you when the site or the database is down."
+      tr: "Gerçek insanlar siteyi kullanmaya başlayınca onların ekranını göremezsin. Hata sayfası boş sayfa yerine dostça bir mesaj gösterir, error hook'u her server hatasını log'a yazar, sağlık kontrolü de site ya da veritabanı çöktüğünde ücretsiz bir izleyicinin sana haber vermesini sağlar."
+    learn:
+      en: |
+        - `error.tsx` catches errors in a part of the app and shows a fallback; it receives `retry`, which tries to render the segment again. `global-error.tsx` is the last resort for errors in the root layout
+        - `not-found.tsx` is the page for unknown addresses
+        - `instrumentation.ts` with `onRequestError` runs on the server for every error Next.js catches; the error `digest` matches the short id users see
+        - Writing one JSON line per error with `console.error` makes logs easy to search; on Vercel see them under the project's *Logs* (Hobby keeps them for a short time)
+        - A health endpoint returns 200 only if the database answers. `await connection()` at its start makes it run on every request instead of being prerendered at build time; an uptime service (UptimeRobot and similar have free plans) calls it every few minutes and emails you on failure
+        - Keep dependencies current: `npm outdated`, then update, test and deploy
+      tr: |
+        - `error.tsx` uygulamanın bir kısmındaki hataları yakalar ve yedek bir arayüz gösterir; segment'i yeniden çizmeyi deneyen `retry`'ı alır. `global-error.tsx` root layout'taki hatalar için son çaredir
+        - `not-found.tsx` bilinmeyen adresler için sayfadır
+        - `onRequestError` içeren `instrumentation.ts`, Next.js'in yakaladığı her hata için server'da çalışır; hatanın `digest`'i kullanıcıların gördüğü kısa id ile eşleşir
+        - `console.error` ile hata başına bir JSON satırı yazmak log'ları aranabilir yapar; Vercel'de projenin *Logs* kısmında görürsün (Hobby onları kısa süre tutar)
+        - Sağlık endpoint'i sadece veritabanı cevap verirse 200 döner. Başındaki `await connection()` onu build sırasında prerender etmek yerine her istekte çalıştırır; bir uptime servisi (UptimeRobot ve benzerlerinin ücretsiz planı var) onu birkaç dakikada bir çağırır ve bozulunca sana e-posta atar
+        - Bağımlılıkları güncel tut: `npm outdated`, sonra güncelle, test et ve deploy et
+    do:
+      en: |
+        1. Create `app/error.tsx`, `app/global-error.tsx`, `app/not-found.tsx`, `instrumentation.ts` and `app/api/health/route.ts`.
+        2. Test the error hook: create a temporary file `app/api/boom/route.ts` (below), run `npm run build` and `npm run start`, open /api/boom, and look at the terminal: one JSON line with the message. Delete the file afterwards.
+        3. Open an address that does not exist, like /nothing: you see your not-found page. Open /api/health: `{"status":"ok"}`.
+        4. Commit and push; Vercel deploys it. Open `https://YOUR-ADDRESS/api/health` on the live site.
+        5. Create a free account at an uptime service (for example uptimerobot.com), add an HTTP monitor for that health address and your email as the alert contact.
+        6. Look at the live logs in the Vercel project (*Logs*) after you visit a few pages.
+      tr: |
+        1. `app/error.tsx`, `app/global-error.tsx`, `app/not-found.tsx`, `instrumentation.ts` ve `app/api/health/route.ts` dosyalarını oluştur.
+        2. Error hook'u test et: geçici bir `app/api/boom/route.ts` dosyası oluştur (aşağıda), `npm run build` ve `npm run start` çalıştır, /api/boom adresini aç ve terminale bak: mesajlı bir JSON satırı. Sonra dosyayı sil.
+        3. /nothing gibi olmayan bir adres aç: not-found sayfanı görürsün. /api/health adresini aç: `{"status":"ok"}`.
+        4. Commit'le ve push et; Vercel deploy eder. Canlı sitede `https://SENIN-ADRESIN/api/health` adresini aç.
+        5. Bir uptime servisinde (örneğin uptimerobot.com) ücretsiz hesap aç, o sağlık adresi için bir HTTP monitor ekle ve uyarı e-postası olarak kendi adresini ver.
+        6. Birkaç sayfa gezdikten sonra Vercel projesindeki canlı log'lara (*Logs*) bak.
+    code:
+      - file: app/error.tsx
+        lang: tsx
+        text: |
+          "use client";
+
+          import { useEffect } from "react";
+
+          export default function Error({ error, retry }: { error: unknown; retry: () => void }) {
+            useEffect(() => {
+              console.error(error);
+            }, [error]);
+
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-2xl font-bold">Something went wrong</h1>
+                <p className="mt-2">We could not show this page. Please try again.</p>
+                <button type="button" onClick={() => retry()} className="mt-4 rounded border px-3 py-1">
+                  Try again
+                </button>
+              </main>
+            );
+          }
+      - file: app/global-error.tsx
+        lang: tsx
+        text: |
+          "use client";
+
+          export default function GlobalError({ retry }: { error: unknown; retry: () => void }) {
+            return (
+              <html lang="en">
+                <body>
+                  <h1>Something went wrong</h1>
+                  <button type="button" onClick={() => retry()}>
+                    Try again
+                  </button>
+                </body>
+              </html>
+            );
+          }
+      - file: app/not-found.tsx
+        lang: tsx
+        text: |
+          import Link from "next/link";
+
+          export default function NotFound() {
+            return (
+              <main className="mx-auto max-w-2xl p-6">
+                <h1 className="text-2xl font-bold">Page not found</h1>
+                <p className="mt-2">
+                  There is nothing here. <Link href="/bookmarks" className="underline">See all links</Link>
+                </p>
+              </main>
+            );
+          }
+      - file: instrumentation.ts
+        lang: ts
+        text: |
+          import type { Instrumentation } from "next";
+
+          // Runs on the server for every error Next.js catches. Logs go to your host's log viewer.
+          export const onRequestError: Instrumentation.onRequestError = async (error, request, context) => {
+            console.error(
+              JSON.stringify({
+                level: "error",
+                message: error instanceof Error ? error.message : String(error),
+                digest:
+                  typeof error === "object" && error !== null && "digest" in error
+                    ? String(error.digest)
+                    : undefined,
+                path: request.path,
+                method: request.method,
+                routePath: context.routePath,
+                routeType: context.routeType,
+              }),
+            );
+          };
+      - file: app/api/health/route.ts
+        lang: ts
+        text: |
+          import { sql } from "drizzle-orm";
+          import { connection } from "next/server";
+          import { db } from "@/lib/db";
+
+          export async function GET() {
+            // Always run at request time, never during the build.
+            await connection();
+            try {
+              await db.run(sql`select 1`);
+              return Response.json({ status: "ok" });
+            } catch {
+              return Response.json({ status: "database unreachable" }, { status: 503 });
+            }
+          }
+      - file: app/api/boom/route.ts
+        lang: ts
+        text: |
+          // Temporary: delete this file after the test.
+          export async function GET(request: Request) {
+            void request.url;
+            throw new Error("test boom");
+          }
+    mistakes:
+      - problem:
+          en: "error.tsx does not show up for errors in the root layout."
+          tr: "error.tsx root layout'taki hatalar için görünmüyor."
+        fix:
+          en: "An error.tsx wraps the page below its layout, not the layout itself. Errors in the root layout need app/global-error.tsx, which must render its own <html> and <body>."
+          tr: "error.tsx kendi layout'unun altındaki sayfayı sarar, layout'un kendisini değil. Root layout'taki hatalar için app/global-error.tsx gerekir; o kendi <html> ve <body>'sini çizmelidir."
+      - problem:
+          en: "Using reset in error.tsx from older tutorials."
+          tr: "Eski eğitimlerdeki gibi error.tsx içinde reset kullanmak."
+        fix:
+          en: "In the current Next.js the prop to try again is retry; it re-fetches and re-renders the segment. reset only clears the error without fetching again."
+          tr: "Güncel Next.js'te tekrar denemek için prop retry'dır; segment'i yeniden getirir ve çizer. reset sadece hatayı temizler, yeniden getirmez."
+      - problem:
+          en: "A health check that always says ok."
+          tr: "Her zaman ok diyen bir sağlık kontrolü."
+        fix:
+          en: "A check that does not touch the database, or that was prerendered during the build, cannot notice an outage. Call await connection() first, run a real query like select 1, and return an error status when it fails."
+          tr: "Veritabanına dokunmayan ya da build sırasında prerender edilmiş bir kontrol kesintiyi fark edemez. Önce await connection() çağır, select 1 gibi gerçek bir sorgu çalıştır ve başarısız olursa hata durumu döndür."
+    quiz:
+      - q:
+          en: "An error happens in app/layout.tsx. Which file catches it?"
+          tr: "app/layout.tsx içinde bir hata oluşuyor. Hangi dosya yakalar?"
+        options:
+          en: [app/error.tsx, app/global-error.tsx, app/not-found.tsx]
+          tr: [app/error.tsx, app/global-error.tsx, app/not-found.tsx]
+        answer: 1
+        why:
+          en: "error.tsx sits inside the layout. Only global-error.tsx can replace the root layout when it fails."
+          tr: "error.tsx layout'un içinde durur. Root layout bozulunca onun yerine sadece global-error.tsx geçebilir."
+    sources:
+      - title: Next.js, error handling
+        url: https://nextjs.org/docs/app/getting-started/error-handling
+      - title: Next.js, instrumentation.js (onRequestError)
+        url: https://nextjs.org/docs/app/api-reference/file-conventions/instrumentation
+      - title: Vercel, runtime logs
+        url: https://vercel.com/docs/logs/runtime
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Where to go next"
+      tr: "Bundan sonra nereye"
+    minutes: 60
+    needs: [monitoring]
+    why:
+      en: "You have a tested, monitored app on the internet. The next topics are what real projects add as they grow. Pick the one your next project needs instead of learning all of them at once."
+      tr: "İnternette yayında, testli ve izlenen bir uygulaman var. Sıradaki konular, gerçek projelerin büyüdükçe eklediği şeyler. Hepsini birden öğrenmek yerine bir sonraki projenin ihtiyaç duyduğunu seç."
+    learn:
+      en: |
+        - **Caching in depth**: `cacheLife` profiles, `revalidateTag`, and `"use cache: private"` for per-user data
+        - **Instant feel**: `useOptimistic` so a new link appears before the server answers
+        - **More sign-in options**: email verification, password reset and GitHub or Google sign-in in Better Auth
+        - **A bigger database**: Postgres (for example a free Neon database) with Drizzle migrations instead of `push`
+        - **CI**: a GitHub Actions workflow that runs lint, tests and the build on every pull request
+        - **Protecting your server actions**: rate limiting and bot protection (Vercel Firewall includes some rules on the free plan)
+        - **Other hosts**: a Docker image with `output: "standalone"` on any server
+      tr: |
+        - **Cache'i derinlemesine**: `cacheLife` profilleri, `revalidateTag` ve kullanıcıya özel veri için `"use cache: private"`
+        - **Anlık his**: sunucu cevap vermeden yeni linkin görünmesi için `useOptimistic`
+        - **Daha fazla giriş seçeneği**: e-posta doğrulama, parola sıfırlama ve Better Auth'ta GitHub ya da Google ile giriş
+        - **Daha büyük bir veritabanı**: `push` yerine Drizzle migration'larıyla Postgres (örneğin ücretsiz bir Neon veritabanı)
+        - **CI**: her pull request'te lint, test ve build çalıştıran bir GitHub Actions workflow'u
+        - **Server action'larını korumak**: rate limiting ve bot koruması (Vercel Firewall'un ücretsiz planda da bazı kuralları var)
+        - **Başka hosting'ler**: herhangi bir server'da `output: "standalone"` ile bir Docker image'ı
+    do:
+      en: |
+        1. Pick one topic from the list and add it to the bookmarks app. A good first one: allow editing a bookmark (a new action, a form, `updateTag`, a test).
+        2. Read the Next.js upgrade guides when a new major version comes out: `npx @next/codemod@canary upgrade latest` does most of the work, then run your tests.
+        3. Skim the Next.js docs site, the Caching and Revalidating pages first, once a few months from now: the framework moves quickly.
+      tr: |
+        1. Listeden bir konu seç ve bookmarks uygulamasına ekle. İyi bir ilk seçim: yer imi düzenlemeye izin vermek (yeni bir action, bir form, `updateTag`, bir test).
+        2. Yeni bir major sürüm çıkınca Next.js upgrade rehberlerini oku: `npx @next/codemod@canary upgrade latest` işin çoğunu yapar, sonra testlerini çalıştır.
+        3. Birkaç ay sonra Next.js dokümantasyonuna, önce Caching ve Revalidating sayfalarına bir kez daha göz at: framework hızlı ilerliyor.
+    mistakes:
+      - problem:
+          en: "Learning every topic before building anything."
+          tr: "Bir şey yapmadan önce her konuyu öğrenmeye çalışmak."
+        fix:
+          en: "Build a small feature with one new idea at a time. Each project teaches more than a list of topics."
+          tr: "Her seferinde tek bir yeni fikirle küçük bir özellik yap. Her proje bir konu listesinden daha çok öğretir."
+      - problem:
+          en: "Copying Next.js code from articles written for version 13 or 14."
+          tr: "Next.js 13 ya da 14 için yazılmış makalelerden kod kopyalamak."
+        fix:
+          en: "Caching, params, middleware and error.tsx changed a lot. Check the date and the Next.js version, and prefer nextjs.org/docs, which matches the current version."
+          tr: "Caching, params, middleware ve error.tsx çok değişti. Tarihe ve Next.js sürümüne bak ve güncel sürümle uyumlu olan nextjs.org/docs'u tercih et."
+    quiz:
+      - q:
+          en: "A tutorial reads params.slug without await and uses middleware.ts. What do you do?"
+          tr: "Bir eğitim params.slug'ı await etmeden okuyor ve middleware.ts kullanıyor. Ne yaparsın?"
+        options:
+          en: [Copy it exactly, Check the Next.js version it was written for and use the current docs, Downgrade Node.js]
+          tr: [Aynen kopyalarım, Hangi Next.js sürümü için yazıldığına bakar ve güncel dokümanı kullanırım, Node.js'i düşürürüm]
+        answer: 1
+        why:
+          en: "Both are from older versions: Next.js 16 needs await params and renamed middleware to proxy."
+          tr: "İkisi de eski sürümlerden: Next.js 16 await params ister ve middleware'in adını proxy yaptı."
+    sources:
+      - title: Next.js documentation
+        url: https://nextjs.org/docs/app
+      - title: Next.js, upgrading to version 16
+        url: https://nextjs.org/docs/app/guides/upgrading/version-16
+      - title: Next.js, revalidating
+        url: https://nextjs.org/docs/app/getting-started/revalidating
+
