@@ -172,6 +172,16 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
     ),
   );
 
+  /** Repairs a gap: one device's events, by chain position (plan.md 4.1). */
+  app.get("/api/chain/:project", (c) => {
+    const project = c.req.param("project");
+    if (!/^[0-9a-f]{64}$/.test(project) || !hub.roleIn(c.get("auth").user, project))
+      return c.json({ error: "Not found" }, 404);
+    const from = Math.max(1, Number(c.req.query("from")) || 1);
+    const to = Math.min(from + 499, Number(c.req.query("to")) || from);
+    return c.json(hub.chain(project, String(c.req.query("device") ?? ""), from, to));
+  });
+
   // ---- admin -------------------------------------------------------------------------
   app.get("/api/admin/users", (c) => adminOnly(c) ?? c.json(hub.users()));
   app.post("/api/admin/users", async (c) => {
@@ -417,6 +427,10 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
           }
           const epoch = Number(msg.epoch ?? 0);
           if (!Number.isInteger(epoch) || epoch < 0 || epoch > hub.keyEpoch()) return;
+          const n = msg.n === undefined ? null : Number(msg.n);
+          const prev = msg.prev === undefined ? null : String(msg.prev);
+          if ((n !== null && (!Number.isInteger(n) || n < 1)) || (prev !== null && !/^[0-9a-f]{0,64}$/.test(prev)))
+            return;
           const event = hub.append({
             project,
             kind: String(msg.kind ?? "event").slice(0, 32),
@@ -427,6 +441,8 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
             nonce: String(msg.nonce ?? "").slice(0, 64),
             data,
             epoch,
+            n,
+            prev,
           });
           ws.send(JSON.stringify({ op: "ack", id: msg.id, seq: event?.seq ?? null }));
           if (event) broadcast(project, { op: "events", project, events: [event] }, ws);

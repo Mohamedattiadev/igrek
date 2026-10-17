@@ -26,23 +26,37 @@ export function SyncChip() {
   useServerEvent("team-changed", load);
   if (!status?.configured) return null;
   const offline = !status.connected;
-  const Icon = offline ? CloudOff : status.pending ? RefreshCw : CloudCheck;
+  const Icon = offline ? CloudOff : status.pending || status.integrity?.missing ? RefreshCw : CloudCheck;
+  const missing = status.integrity?.missing ?? 0;
   const label = offline
     ? t("sync.offline", { count: status.pending })
     : status.pending
       ? t("sync.syncing", { count: status.pending })
-      : t("sync.upToDate");
+      : missing
+        ? t("sync.repairing", { count: missing })
+        : t("sync.upToDate");
+  const tip = [
+    status.lastSyncAt ? t("sync.lastTip", { when: relativeTime(status.lastSyncAt) }) : label,
+    missing ? t("sync.repairTip", { count: missing }) : "",
+    status.integrity?.broken ? t("sync.brokenTip", { count: status.integrity.broken }) : "",
+  ]
+    .filter(Boolean)
+    .join(" · ");
   return (
     <Link
       to="/team"
-      data-tip={status.lastSyncAt ? t("sync.lastTip", { when: relativeTime(status.lastSyncAt) }) : label}
+      data-tip={tip}
       className={
         offline
           ? "flex items-center gap-1 text-[12px] text-warning"
           : "flex items-center gap-1 text-[12px] text-fg-muted hover:text-fg"
       }
     >
-      <Icon size={14} className={!offline && status.pending ? "animate-spin" : undefined} aria-hidden="true" />
+      <Icon
+        size={14}
+        className={!offline && (status.pending || missing) ? "animate-spin" : undefined}
+        aria-hidden="true"
+      />
       <span className="hidden md:inline">{label}</span>
     </Link>
   );

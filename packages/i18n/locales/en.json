@@ -1448,7 +1448,13 @@
     "syncing_other": "Syncing {{count}}",
     "offline_one": "Offline · {{count}} waiting",
     "offline_other": "Offline · {{count}} waiting",
-    "lastTip": "Last synced {{when}}"
+    "lastTip": "Last synced {{when}}",
+    "repairing_one": "Repairing {{count}}",
+    "repairing_other": "Repairing {{count}}",
+    "repairTip_one": "{{count}} event from a teammate is missing; fetching it again",
+    "repairTip_other": "{{count}} events from teammates are missing; fetching them again",
+    "brokenTip_one": "{{count}} event didn't link to the one before it",
+    "brokenTip_other": "{{count}} events didn't link to the ones before them"
   },
   "keys": {
     "waiting": "You're in. An admin now needs to approve this computer before it can read the team's work; this happens on their God Eye, usually within minutes.",

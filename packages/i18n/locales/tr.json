@@ -1448,7 +1448,13 @@
     "syncing_other": "{{count}} eşitleniyor",
     "offline_one": "Çevrimdışı · {{count}} bekliyor",
     "offline_other": "Çevrimdışı · {{count}} bekliyor",
-    "lastTip": "Son senkron {{when}}"
+    "lastTip": "Son senkron {{when}}",
+    "repairing_one": "{{count}} onarılıyor",
+    "repairing_other": "{{count}} onarılıyor",
+    "repairTip_one": "Takımdan {{count}} kayıt eksik; yeniden alınıyor",
+    "repairTip_other": "Takımdan {{count}} kayıt eksik; yeniden alınıyor",
+    "brokenTip_one": "{{count}} kayıt öncekiyle eşleşmedi",
+    "brokenTip_other": "{{count}} kayıt öncekilerle eşleşmedi"
   },
   "keys": {
     "waiting": "Girdin. Takımın işini okuyabilmesi için bu bilgisayarı bir adminin onaylaması gerekiyor; bu onun God Eye'ında olur, genelde birkaç dakika içinde.",

@@ -580,7 +580,7 @@ god-eye/
 - [x] ⭐ Event log replikasyonu: "şu imleçten sonrakileri ver" protokolü, toplu gönderim, sıkıştırma — *imleç + toplu gönderim var; sıkıştırma sonra*
 - [ ] ⭐ Yjs entegrasyonu: ortak dokümanlar için senkron + offline düzenleme — *şimdilik hafızada "son yazan kazanır"; plan/görev panosu gelince Yjs*
 - [x] Çevrimdışı kuyruk + yeniden bağlanınca otomatik eşitleme
-- [ ] Bütünlük kontrolü: hash zinciri ile eksik veya bozuk event tespiti ve otomatik onarım
+- [x] Bütünlük kontrolü: hash zinciri ile eksik veya bozuk event tespiti ve otomatik onarım — *her cihaz event'lerini proje başına numaralar ve bir öncekinin hash'ine bağlar (şifrelemenin içine mühürlü); boşluk önce hub'dan tekrar alınır, hub'da da yoksa gönderen cihaz durumunu yeniden gönderir*
 - [x] Senkron durumu göstergesi: güncel · eşitleniyor · çevrimdışı (bekleyen: 12) — *üst barda*
 
 #### 4.2 🔒 Sızıntısız güvenlik

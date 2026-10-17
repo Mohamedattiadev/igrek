@@ -336,6 +336,23 @@ const migrations: string[] = [
      outgoing INTEGER NOT NULL DEFAULT 0,
      sent INTEGER NOT NULL DEFAULT 0
    );`,
+  // Faz 4.1 integrity: the last event seen from each device (and our own), and the holes found in between.
+  `CREATE TABLE sync_chain (
+     project TEXT NOT NULL,
+     device TEXT NOT NULL,
+     n INTEGER NOT NULL,
+     hash TEXT NOT NULL,
+     PRIMARY KEY (project, device)
+   );
+   CREATE TABLE sync_gaps (
+     project TEXT NOT NULL,
+     device TEXT NOT NULL,
+     from_n INTEGER NOT NULL,
+     to_n INTEGER NOT NULL,
+     found_at INTEGER NOT NULL,
+     asked_at INTEGER,
+     PRIMARY KEY (project, device, from_n)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

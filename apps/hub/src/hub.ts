@@ -45,6 +45,9 @@ export interface StoredEvent {
   data: string;
   /** Which team key encrypted it (keys are replaced when a member leaves). */
   epoch: number;
+  /** Position in the sending device's chain for this project, and the hash of the event before it. */
+  n?: number | null;
+  prev?: string | null;
 }
 
 const MIGRATIONS = [
@@ -108,6 +111,10 @@ const MIGRATIONS = [
      PRIMARY KEY (project, user_id)
    );
    CREATE INDEX audit_at ON audit(at);`,
+  // Integrity (plan.md 4.1): each device numbers its events per project and links each to the one before.
+  `ALTER TABLE events ADD COLUMN n INTEGER;
+   ALTER TABLE events ADD COLUMN prev TEXT;
+   CREATE INDEX events_chain ON events(project, device, n);`,
 ];
 
 export interface Policies {
@@ -677,7 +684,7 @@ export class Hub {
   append(event: Omit<StoredEvent, "seq">): StoredEvent | undefined {
     const result = this.db
       .query(
-        "INSERT OR IGNORE INTO events (project, kind, author, device, id, at, nonce, data, epoch) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT OR IGNORE INTO events (project, kind, author, device, id, at, nonce, data, epoch, n, prev) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
       )
       .run(
         event.project,
@@ -689,6 +696,8 @@ export class Hub {
         event.nonce,
         event.data,
         event.epoch,
+        event.n ?? null,
+        event.prev ?? null,
       );
     if (result.changes === 0) return undefined;
     return { ...event, seq: Number(result.lastInsertRowid) };
@@ -698,6 +707,13 @@ export class Hub {
     return this.db
       .query("SELECT * FROM events WHERE project = ? AND seq > ? ORDER BY seq LIMIT ?")
       .all(project, seq, limit) as StoredEvent[];
+  }
+
+  /** One device's events in a part of its chain, to fill a gap a member noticed. */
+  chain(project: string, device: string, from: number, to: number): StoredEvent[] {
+    return this.db
+      .query("SELECT * FROM events WHERE project = ? AND device = ? AND n BETWEEN ? AND ? ORDER BY n LIMIT 500")
+      .all(project, device, from, to) as StoredEvent[];
   }
 
   stats(): { users: number; events: number; bytes: number } {

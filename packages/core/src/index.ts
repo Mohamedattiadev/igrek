@@ -521,6 +521,8 @@ export interface TeamStatus {
   /** Signed in, but an admin hasn't approved this device yet (no team key). */
   waitingForKey: boolean;
   keyEpoch: number;
+  /** Events missing from teammates' chains (being repaired) and links that didn't match (plan.md 4.1). */
+  integrity?: { missing: number; broken: number };
   lastSyncAt?: number;
   members: TeamMember[];
 }

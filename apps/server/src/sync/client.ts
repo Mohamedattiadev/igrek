@@ -71,10 +71,22 @@ interface WireEvent {
   at: number;
   nonce: string;
   data: string;
+  n?: number | null;
+  prev?: string | null;
 }
 
 const SHARE_LEVELS: ShareLevel[] = ["off", "summary", "full"];
 const PRESENCE_TTL = 60_000;
+
+/** Each device links its events per project: n counts up, prev is the hash of the one before (plan.md 4.1). */
+export function chainHash(prev: string, n: number, nonce: string, data: string): string {
+  return createHash("sha256").update(`${prev}|${n}|${nonce}|${data}`).digest("hex").slice(0, 32);
+}
+
+/** The chain position is sealed into the encryption, so the hub can't renumber or relink events. */
+function aadFor(project: string, kind: string, n?: number | null, prev?: string | null): string {
+  return n ? `${project}:${kind}:${n}:${prev ?? ""}` : `${project}:${kind}`;
+}
 
 function deviceOf(token: string): string {
   return createHash("sha256").update(token).digest("hex").slice(0, 16);
@@ -579,6 +591,7 @@ export class Sync {
       keyEpoch: this.epoch,
       pending: this.pendingCount(),
       lastSyncAt: this.lastSyncAt,
+      integrity: this.config ? this.integrity() : undefined,
       members: [...this.members.values()].map((m) => ({ ...m, online: this.online.has(m.id) })),
     };
   }
@@ -742,6 +755,7 @@ export class Sync {
     this.loops.push(setInterval(() => void this.flush(), 3000));
     this.loops.push(setInterval(() => void this.sendPresence(), 15_000));
     this.loops.push(setInterval(() => void this.loadMembers(), 5 * 60_000));
+    this.loops.push(setInterval(() => void this.repair(), 10 * 60_000));
   }
 
   /** Reconnect, unless the hub no longer accepts our token. */
@@ -841,10 +855,182 @@ export class Sync {
 
   // ---- outgoing ----------------------------------------------------------------------
 
-  private async publish(project: string, kind: string, id: string, value: unknown): Promise<boolean> {
-    if (!this.idKey) return false;
-    const sealed = await encrypt(this.currentKey(), `${project}:${kind}`, scrubDeep(value));
-    return this.send({ op: "pub", project, kind, id, epoch: this.epoch, ...sealed });
+  private publishing: Promise<unknown> = Promise.resolve();
+
+  /** One at a time, so every event gets the next number in this device's chain. */
+  private publish(project: string, kind: string, id: string, value: unknown): Promise<boolean> {
+    const run = this.publishing.then(() => this.publishNow(project, kind, id, value));
+    this.publishing = run.catch(() => false);
+    return run;
+  }
+
+  private async publishNow(project: string, kind: string, id: string, value: unknown): Promise<boolean> {
+    if (!this.idKey || !this.config) return false;
+    const mine = deviceOf(this.config.token);
+    const head = this.chainHead(project, mine);
+    const n = (head?.n ?? 0) + 1;
+    const prev = head?.hash ?? "";
+    const sealed = await encrypt(this.currentKey(), aadFor(project, kind, n, prev), scrubDeep(value));
+    const hash = chainHash(prev, n, sealed.nonce, sealed.data);
+    // The hash makes the id unique, so a resend is never mistaken for an old copy.
+    const ok = this.send({
+      op: "pub",
+      project,
+      kind,
+      id: `${id.slice(0, 40)}.${hash.slice(0, 16)}`,
+      epoch: this.epoch,
+      n,
+      prev,
+      ...sealed,
+    });
+    if (ok) this.setChainHead(project, mine, n, hash);
+    return ok;
+  }
+
+  // ---- integrity: spot missing or broken events and repair them (plan.md 4.1) ----------------
+
+  private chainHead(project: string, device: string): { n: number; hash: string } | undefined {
+    return (
+      (this.db.query("SELECT n, hash FROM sync_chain WHERE project = ? AND device = ?").get(project, device) as {
+        n: number;
+        hash: string;
+      } | null) ?? undefined
+    );
+  }
+
+  private setChainHead(project: string, device: string, n: number, hash: string): void {
+    this.db
+      .query(
+        "INSERT INTO sync_chain (project, device, n, hash) VALUES (?, ?, ?, ?) ON CONFLICT(project, device) DO UPDATE SET n = excluded.n, hash = excluded.hash",
+      )
+      .run(project, device, n, hash);
+  }
+
+  /**
+   * Where an incoming event sits in its device's chain: "next" (in order), "fill" (closes a hole),
+   * or "seen" (a copy we already have). A jump forward records the hole for repair; a wrong link is counted as broken.
+   */
+  private track(project: string, event: WireEvent): "next" | "fill" | "seen" {
+    if (!event.n) return "next"; // from a version without chains
+    const hash = chainHash(event.prev ?? "", event.n, event.nonce, event.data);
+    const head = this.chainHead(project, event.device);
+    if (!head) {
+      // First event seen from this device (older ones may have been pruned by the hub's retention).
+      this.setChainHead(project, event.device, event.n, hash);
+      return "next";
+    }
+    if (event.n > head.n) {
+      if (event.n === head.n + 1 && (event.prev ?? "") !== head.hash) this.countBroken();
+      if (event.n > head.n + 1)
+        this.db
+          .query("INSERT OR IGNORE INTO sync_gaps (project, device, from_n, to_n, found_at) VALUES (?, ?, ?, ?, ?)")
+          .run(project, event.device, head.n + 1, event.n - 1, Date.now());
+      this.setChainHead(project, event.device, event.n, hash);
+      return "next";
+    }
+    const gap = this.db
+      .query("SELECT from_n, to_n FROM sync_gaps WHERE project = ? AND device = ? AND ? BETWEEN from_n AND to_n")
+      .get(project, event.device, event.n) as { from_n: number; to_n: number } | null;
+    if (!gap) return "seen";
+    // Split the hole around the event that just arrived.
+    this.db
+      .query("DELETE FROM sync_gaps WHERE project = ? AND device = ? AND from_n = ?")
+      .run(project, event.device, gap.from_n);
+    const add = this.db.query(
+      "INSERT OR IGNORE INTO sync_gaps (project, device, from_n, to_n, found_at) VALUES (?, ?, ?, ?, ?)",
+    );
+    if (gap.from_n < event.n) add.run(project, event.device, gap.from_n, event.n - 1, Date.now());
+    if (event.n < gap.to_n) add.run(project, event.device, event.n + 1, gap.to_n, Date.now());
+    return "fill";
+  }
+
+  private countBroken(): void {
+    this.setCursor("integrity", "broken", this.cursor("integrity", "broken") + 1);
+  }
+
+  private repairing = false;
+
+  /**
+   * Fills holes from the hub; what the hub doesn't have (lost, or pruned) is asked from the device that sent it,
+   * which sends its current state again. Asks at most once an hour per hole.
+   */
+  async repair(): Promise<{ filled: number; asked: number }> {
+    if (this.repairing || !this.config) return { filled: 0, asked: 0 };
+    this.repairing = true;
+    let filled = 0;
+    let asked = 0;
+    try {
+      const gaps = this.db.query("SELECT * FROM sync_gaps ORDER BY found_at LIMIT 50").all() as {
+        project: string;
+        device: string;
+        from_n: number;
+        to_n: number;
+        asked_at: number | null;
+      }[];
+      for (const gap of gaps) {
+        const events = await this.hubRequest<WireEvent[]>(
+          `/api/chain/${gap.project}?device=${gap.device}&from=${gap.from_n}&to=${gap.to_n}`,
+        ).catch(() => [] as WireEvent[]);
+        if (events.length) {
+          const before = this.openGaps();
+          await this.applyEvents(gap.project, events, { repair: true });
+          filled += Math.max(0, before - this.openGaps());
+        }
+        const left = this.db
+          .query(
+            "SELECT from_n, to_n, asked_at FROM sync_gaps WHERE project = ? AND device = ? AND from_n >= ? AND to_n <= ?",
+          )
+          .all(gap.project, gap.device, gap.from_n, gap.to_n) as {
+          from_n: number;
+          to_n: number;
+          asked_at: number | null;
+        }[];
+        for (const hole of left) {
+          if (hole.asked_at && Date.now() - hole.asked_at < 3_600_000) continue;
+          await this.publish(gap.project, "resend", `resend-${gap.device}-${hole.from_n}`, {
+            device: gap.device,
+            from: hole.from_n,
+            to: hole.to_n,
+          });
+          this.db
+            .query("UPDATE sync_gaps SET asked_at = ? WHERE project = ? AND device = ? AND from_n = ?")
+            .run(Date.now(), gap.project, gap.device, hole.from_n);
+          asked++;
+        }
+      }
+    } finally {
+      this.repairing = false;
+    }
+    if (filled || asked) this.bus.publish({ type: "team-changed" });
+    return { filled, asked };
+  }
+
+  private openGaps(): number {
+    return (this.db.query("SELECT COALESCE(SUM(to_n - from_n + 1), 0) AS n FROM sync_gaps").get() as { n: number }).n;
+  }
+
+  /** A teammate is missing some of our events: send this project's current state again, then say so. */
+  private async resendProject(projectKeyHex: string): Promise<void> {
+    const projectId = this.keyToProject.get(projectKeyHex);
+    if (!projectId) return;
+    this.setCursor("sessions", projectId, 0);
+    this.setCursor("messages", projectId, 0);
+    this.db.query("UPDATE comments SET sent = 0 WHERE project_id = ? AND author_id IS NULL").run(projectId);
+    this.db.query("UPDATE memory_items SET dirty = 1 WHERE project_id = ? AND author_id IS NULL").run(projectId);
+    // Drain everything (flush sends in batches), then mark the old holes as replaced.
+    for (let i = 0; i < 20; i++) {
+      while (this.flushing) await Bun.sleep(50);
+      const before = this.chainHead(projectKeyHex, deviceOf(this.config?.token ?? ""))?.n ?? 0;
+      await this.flush();
+      if ((this.chainHead(projectKeyHex, deviceOf(this.config?.token ?? ""))?.n ?? 0) === before) break;
+    }
+    const upTo = this.chainHead(projectKeyHex, deviceOf(this.config?.token ?? ""))?.n ?? 0;
+    await this.publish(projectKeyHex, "resent", `resent-${upTo}`, { upTo: upTo + 1 });
+  }
+
+  /** What the integrity check found, for the status line. */
+  integrity(): { missing: number; broken: number } {
+    return { missing: this.openGaps(), broken: this.cursor("integrity", "broken") };
   }
 
   /** Ships whatever changed locally in shared projects since the last run. */
@@ -1098,7 +1284,7 @@ export class Sync {
     }
   }
 
-  async applyEvents(projectKeyHex: string, events: WireEvent[]): Promise<void> {
+  async applyEvents(projectKeyHex: string, events: WireEvent[], options: { repair?: boolean } = {}): Promise<void> {
     if (!this.idKey || !this.config) return;
     const mine = deviceOf(this.config.token);
     const changed = new Set<string>();
@@ -1115,11 +1301,11 @@ export class Sync {
           if (event.kind === "project") {
             const value = await decrypt<{ identity: string; name: string; key: string }>(
               key,
-              `${projectKeyHex}:project`,
+              aadFor(projectKeyHex, "project", event.n, event.prev),
               event.nonce,
               event.data,
             );
-            await this.adoptProject(value.identity, value.name);
+            if (this.track(projectKeyHex, event) !== "seen") await this.adoptProject(value.identity, value.name);
           }
           continue;
         }
@@ -1127,11 +1313,23 @@ export class Sync {
         if (!projectId) continue;
         const value = await decrypt<Record<string, unknown>>(
           key,
-          `${projectKeyHex}:${event.kind}`,
+          aadFor(projectKeyHex, event.kind, event.n, event.prev),
           event.nonce,
           event.data,
         );
+        if (this.track(projectKeyHex, event) === "seen") continue;
         const author = { id: event.author, name: this.authorName(event.author) };
+        if (event.kind === "resend") {
+          if (value.device === mine) await this.resendProject(projectKeyHex);
+          continue;
+        }
+        if (event.kind === "resent") {
+          // The sender sent its current state again: the holes before this point are covered.
+          this.db
+            .query("DELETE FROM sync_gaps WHERE project = ? AND device = ? AND to_n < ?")
+            .run(projectKeyHex, event.device, Number(value.upTo ?? 0));
+          continue;
+        }
         if (event.kind === "session") this.applySession(projectId, value, author);
         else if (event.kind === "messages") this.applyMessages(value);
         else if (event.kind === "memory") this.applyMemory(projectId, value, author);
@@ -1193,10 +1391,12 @@ export class Sync {
       } catch {
         // A tampered or foreign event fails authentication and is skipped.
       } finally {
-        this.setCursor("seq", projectKeyHex, Math.max(this.cursor("seq", projectKeyHex), event.seq));
+        if (!options.repair)
+          this.setCursor("seq", projectKeyHex, Math.max(this.cursor("seq", projectKeyHex), event.seq));
       }
     }
     if (changed.size) this.bus.publish({ type: "sessions-changed", projectIds: [...changed], sessionIds: [] });
+    if (!options.repair && this.openGaps() > 0) void this.repair();
   }
 
   /** A teammate shared a project: link it to the local copy of the same repo, or add it as a team project. */
