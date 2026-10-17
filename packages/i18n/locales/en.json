@@ -1604,5 +1604,144 @@
     "tip": "Translated automatically from your teammate's language",
     "showOriginal": "original",
     "showTranslated": "translated"
+  },
+  "undo": {
+    "deleted": "Deleted: {{what}}",
+    "undo": "Undo"
+  },
+  "errors": {
+    "offline": "Can't reach God Eye on this computer. Check that it's still running, then press Try again.",
+    "signedOut": "Your session here ended. Reload the page to continue.",
+    "notFound": "This isn't here anymore. It may have been deleted or moved.",
+    "tooMany": "Too many tries in a short time. Wait a minute and try again.",
+    "server": "Something went wrong on our side. Press Try again; if it keeps happening, restart God Eye.",
+    "retry": "Try again"
+  },
+  "glossary": {
+    "session": {
+      "word": "Session",
+      "text": "A conversation with an AI coding tool, from your first message to the last.",
+      "match": "session|sessions"
+    },
+    "token": {
+      "word": "Token",
+      "text": "A small piece of text, about ¾ of a word. AI tools count what they read and write in tokens.",
+      "match": "token|tokens"
+    },
+    "context": {
+      "word": "Context",
+      "text": "Everything the AI is keeping in mind right now. When it gets full, the AI starts forgetting earlier parts.",
+      "match": "context|memory used"
+    },
+    "compaction": {
+      "word": "Compaction",
+      "text": "When the context is full, the tool shortens the conversation to keep going; details can get lost.",
+      "match": "compact|compaction|compacted"
+    },
+    "hub": {
+      "word": "Hub",
+      "text": "A small server your team runs. It passes encrypted updates between you and can't read them.",
+      "match": "hub"
+    },
+    "e2e": {
+      "word": "End-to-end encryption",
+      "text": "Data is locked on your computer and only unlocked on your teammates' computers. Nobody in between can read it.",
+      "match": "encrypt|encrypted|encryption"
+    },
+    "recoveryKey": {
+      "word": "Recovery key",
+      "text": "A long code that unlocks your team's data if every device is lost. Keep it in a password manager.",
+      "match": "recovery key"
+    },
+    "twoFactor": {
+      "word": "Two-step sign-in (2FA)",
+      "text": "Besides your password, a 6-digit code from an app on your phone.",
+      "match": "2fa|two-step|authenticator"
+    },
+    "commit": {
+      "word": "Commit",
+      "text": "A saved snapshot of your code changes, with a short note about what changed.",
+      "match": "commit|commits"
+    },
+    "branch": {
+      "word": "Branch",
+      "text": "A separate line of work in Git, so changes don't touch the main code until you merge them.",
+      "match": "branch|branches"
+    },
+    "push": {
+      "word": "Push",
+      "text": "Sending your saved changes (commits) to GitHub or another shared place.",
+      "match": "push"
+    },
+    "deploy": {
+      "word": "Deploy",
+      "text": "Putting a new version of your app on the server where people use it.",
+      "match": "deploy|deploys"
+    },
+    "staging": {
+      "word": "Staging / Prod",
+      "text": "Staging is a test copy of your live app; Prod is the real one people use.",
+      "match": "staging|prod|production"
+    },
+    "ssh": {
+      "word": "SSH",
+      "text": "A secure way to run commands on another computer, such as your server.",
+      "match": "ssh"
+    },
+    "env": {
+      "word": ".env file",
+      "text": "A file with settings and secrets (passwords, keys) for your app. It must never be shared.",
+      "match": ".env|environment variables|secret"
+    },
+    "worktree": {
+      "word": "Worktree",
+      "text": "A second working copy of the same repo, so an agent can work without touching your files.",
+      "match": "worktree"
+    },
+    "mcp": {
+      "word": "MCP",
+      "text": "A standard way for AI tools to use other programs. God Eye offers one so Claude can read your project memory.",
+      "match": "mcp"
+    },
+    "diff": {
+      "word": "Diff",
+      "text": "The exact lines that were added or removed in a change.",
+      "match": "diff"
+    },
+    "blame": {
+      "word": "Who wrote it (blame)",
+      "text": "Shows, line by line, who last changed the code and when.",
+      "match": "blame|who wrote"
+    },
+    "hook": {
+      "word": "Hook",
+      "text": "A small script a tool runs at certain moments, for example when a session starts.",
+      "match": "hook|hooks"
+    },
+    "endpoint": {
+      "word": "Endpoint",
+      "text": "One address of your API, like GET /users.",
+      "match": "endpoint|endpoints"
+    },
+    "api": {
+      "word": "API",
+      "text": "How programs talk to each other: one asks, the other answers with data.",
+      "match": "api|apis"
+    },
+    "ci": {
+      "word": "CI",
+      "text": "Checks that run automatically on every push, such as tests and lint.",
+      "match": "ci|pipeline|workflow"
+    },
+    "rateLimit": {
+      "word": "Usage limit",
+      "text": "How much you can use an AI tool in a time window (for example 5 hours or a week).",
+      "match": "limit|limits"
+    },
+    "persona": {
+      "word": "Persona",
+      "text": "An AI teammate with a role, such as \"Security expert\", with its own rules and focus.",
+      "match": "persona|personas"
+    }
   }
 }

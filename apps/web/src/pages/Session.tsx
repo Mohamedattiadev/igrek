@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Package,
   Play,
+  RefreshCw,
   RotateCcw,
   Sparkles,
   User,
@@ -25,6 +26,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { Comments } from "../components/Comments";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { TeamText } from "../components/TeamText";
+import { Term } from "../components/Term";
 import { Badge, Button, Card, EmptyState } from "../components/ui";
 import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
@@ -170,7 +172,10 @@ function HealthCard({ session }: { session: SessionDetail }) {
   return (
     <Card className="space-y-3 p-pad">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("health.title")}</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+          {t("health.title")}
+          <Term k="context" />
+        </h3>
         <HealthBadge health={health} />
       </div>
       <div title={t("health.contextHint")}>
@@ -316,7 +321,19 @@ export function SessionPage() {
     (_, sessionIds) => sessionIds.includes(sessionId),
   );
 
-  if (error && !session) return <EmptyState icon={MessageSquare} title={t("session.notFound")} body={error} />;
+  if (error && !session)
+    return (
+      <EmptyState
+        icon={MessageSquare}
+        title={t("session.notFound")}
+        body={error}
+        action={
+          <Button icon={RefreshCw} onClick={reload}>
+            {t("errors.retry")}
+          </Button>
+        }
+      />
+    );
 
   const summarize = async () => {
     setBusy(true);

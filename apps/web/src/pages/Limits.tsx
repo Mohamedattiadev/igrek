@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Download, LogIn, Plus, RefreshCw, Trash2, 
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
+import { Term } from "../components/Term";
 import { Badge, Button, Card, Dialog, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -448,7 +449,10 @@ function MonthlyCard() {
   return (
     <Card className="space-y-3 p-pad">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.monthly")}</h3>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+          {t("limits.monthly")}
+          <Term k="token" />
+        </h3>
         <Button size="sm" variant="ghost" icon={Download} onClick={csv} data-tip={t("limits.csvTip")}>
           CSV
         </Button>

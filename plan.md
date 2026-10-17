@@ -250,11 +250,11 @@ god-eye/
 
 ### 7.2 Teyze testi (herkes kullanabilsin)
 - [x] ⭐ **Basit Mod / Pro Mod** anahtarı. Basit modda sadece büyük kartlar, sade dil ve "Ne yapmak istiyorsun?" kutusu görünür
-- [ ] ⭐ Her teknik terimin yanında `?` balonu ile tek cümlelik açıklama
-- [ ] Hata mesajları suçlamaz, çözüm önerir: "Bağlantı koptu. **Tekrar dene** butonuna bas."
+- [x] ⭐ Her teknik terimin yanında `?` balonu ile tek cümlelik açıklama — *25 terimlik sözlük (TR/EN); bölüm başlığında terim geçince `?` kendiliğinden çıkar, diğer yerlerde `<Term>`*
+- [x] Hata mesajları suçlamaz, çözüm önerir: "Bağlantı koptu. **Tekrar dene** butonuna bas." — *bağlantı, oturum, bulunamadı, sunucu hataları sade dille; sayfalarda "Tekrar dene" düğmesi*
 - [ ] Hiçbir ekran boş kalmaz: her boş durumda "şunu yaparak başla" önerisi
 - [ ] İlk açılışta kurulum sihirbazı (ilk soru: dil) + 60 saniyelik tur
-- [ ] Geri al (Undo) her yerde
+- [x] Geri al (Undo) her yerde — *silmeler 6 sn bekler, "Silindi · Geri al"; hafıza, fikir, prompt, sunucu*
 
 ### 7.3 Erişilebilirlik ve kalite
 - [ ] Klavye ile tam kullanım, `Ctrl+K` komut paleti

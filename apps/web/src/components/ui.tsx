@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef } from "react";
 import { cn } from "../lib/cn";
+import { Term, useTermIn } from "./Term";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
@@ -38,10 +39,14 @@ export function Card({ className, children }: { className?: string; children?: R
 }
 
 export function Section({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
+  const term = useTermIn(title, hint);
   return (
     <section className="grid gap-3 border-b border-border py-6 last:border-b-0 md:grid-cols-[220px_1fr] md:gap-8">
       <div>
-        <h3 className="text-[13px] font-semibold text-fg">{title}</h3>
+        <h3 className="text-[13px] font-semibold text-fg">
+          {title}
+          {term && <Term k={term} />}
+        </h3>
         {hint && <p className="mt-1 text-xs leading-relaxed text-fg-subtle">{hint}</p>}
       </div>
       <div className="min-w-0">{children}</div>

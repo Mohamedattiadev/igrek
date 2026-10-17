@@ -10,6 +10,7 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
+import { deferDelete, usePendingDeletes } from "../lib/undo";
 
 const TAGS: ServerTag[] = ["prod", "staging", "test", "other"];
 
@@ -187,6 +188,7 @@ function AddServer({ onDone }: { onDone: () => void }) {
 
 export function ServersPage() {
   const { t } = useTranslation();
+  const { isPending } = usePendingDeletes();
   const servers = useServers();
   return (
     <>
@@ -195,9 +197,11 @@ export function ServersPage() {
         <EmptyState icon={Server} title={t("servers.empty")} body={t("servers.emptyBody")} />
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3 p-6">
-          {servers?.map((server) => (
-            <ServerCard key={server.id} server={server} />
-          ))}
+          {servers
+            ?.filter((s) => !isPending(`server-${s.id}`))
+            .map((server) => (
+              <ServerCard key={server.id} server={server} />
+            ))}
         </div>
       )}
     </>
@@ -492,8 +496,8 @@ export function ServerPage() {
           <Button
             variant="ghost"
             icon={Trash2}
-            onClick={async () => {
-              await api.removeServer(server.id);
+            onClick={() => {
+              deferDelete(`server-${server.id}`, server.name, () => api.removeServer(server.id));
               navigate("/servers");
             }}
           >

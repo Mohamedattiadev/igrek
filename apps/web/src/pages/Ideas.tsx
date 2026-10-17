@@ -7,6 +7,7 @@ import { actions } from "../lib/actions";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
+import { deferDelete, usePendingDeletes } from "../lib/undo";
 
 const STATUSES: IdeaStatus[] = ["new", "accepted", "later", "dropped"];
 const VALUE_TONE = { low: "neutral", medium: "accent", high: "success" } as const;
@@ -53,7 +54,8 @@ export function IdeasPage() {
     load();
   };
   const name = (id: string | null) => projects.find((p) => p.id === id)?.name;
-  const shown = ideas.filter((i) => i.status === filter);
+  const { isPending } = usePendingDeletes();
+  const shown = ideas.filter((i) => i.status === filter && !isPending(`idea-${i.id}`));
 
   return (
     <>
@@ -119,11 +121,10 @@ export function IdeasPage() {
                     ))}
                     <button
                       type="button"
-                      aria-label="Delete"
-                      onClick={async () => {
-                        await api.deleteIdea(idea.id);
-                        load();
-                      }}
+                      aria-label={t("memory.delete")}
+                      onClick={() =>
+                        deferDelete(`idea-${idea.id}`, idea.text.slice(0, 60), () => api.deleteIdea(idea.id), load)
+                      }
                       className="p-1 text-fg-subtle opacity-0 hover:text-danger group-hover:opacity-100"
                     >
                       <Trash2 size={13} />

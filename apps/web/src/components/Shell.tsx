@@ -19,6 +19,7 @@ import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
+import { UndoToast } from "./UndoToast";
 import { Kbd, StatusDot } from "./ui";
 import { WorkspacePicker } from "./WorkspacePicker";
 
@@ -206,6 +207,7 @@ export function Shell() {
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <QuickAsk />
       <TooltipLayer />
+      <UndoToast />
       <IdeaCapture onSaved={setToast} />
       {toast && (
         <div

@@ -1604,5 +1604,144 @@
     "tip": "Takım arkadaşının dilinden otomatik çevrildi",
     "showOriginal": "orijinali",
     "showTranslated": "çeviri"
+  },
+  "undo": {
+    "deleted": "Silindi: {{what}}",
+    "undo": "Geri al"
+  },
+  "errors": {
+    "offline": "Bu bilgisayardaki God Eye'a ulaşılamıyor. Çalıştığından emin ol, sonra Tekrar dene'ye bas.",
+    "signedOut": "Buradaki oturumun sona erdi. Devam etmek için sayfayı yenile.",
+    "notFound": "Bu artık burada değil. Silinmiş ya da taşınmış olabilir.",
+    "tooMany": "Kısa sürede çok fazla deneme oldu. Bir dakika bekleyip tekrar dene.",
+    "server": "Bizim tarafta bir sorun oldu. Tekrar dene'ye bas; devam ederse God Eye'ı yeniden başlat.",
+    "retry": "Tekrar dene"
+  },
+  "glossary": {
+    "session": {
+      "word": "Oturum (session)",
+      "text": "Bir AI kodlama aracıyla yaptığın konuşma; ilk mesajından sonuncusuna kadar.",
+      "match": "oturum|session"
+    },
+    "token": {
+      "word": "Token",
+      "text": "Küçük bir metin parçası, yaklaşık ¾ kelime. AI araçları okuduklarını ve yazdıklarını token ile sayar.",
+      "match": "token"
+    },
+    "context": {
+      "word": "Bağlam (context)",
+      "text": "AI'ın şu an aklında tuttuğu her şey. Dolunca önceki kısımları unutmaya başlar.",
+      "match": "bağlam|context|kullanılan hafıza"
+    },
+    "compaction": {
+      "word": "Sıkıştırma",
+      "text": "Bağlam dolunca araç devam edebilmek için konuşmayı kısaltır; ayrıntılar kaybolabilir.",
+      "match": "sıkıştır"
+    },
+    "hub": {
+      "word": "Hub",
+      "text": "Takımının çalıştırdığı küçük sunucu. Şifreli güncellemeleri aranızda taşır, okuyamaz.",
+      "match": "hub"
+    },
+    "e2e": {
+      "word": "Uçtan uca şifreleme",
+      "text": "Veri senin bilgisayarında kilitlenir, sadece takım arkadaşlarının bilgisayarında açılır. Aradaki kimse okuyamaz.",
+      "match": "şifreli|şifrele"
+    },
+    "recoveryKey": {
+      "word": "Kurtarma anahtarı",
+      "text": "Tüm cihazlar kaybolursa takım verisini açan uzun kod. Bir şifre yöneticisinde sakla.",
+      "match": "kurtarma anahtar"
+    },
+    "twoFactor": {
+      "word": "İki adımlı giriş (2FA)",
+      "text": "Şifrene ek olarak telefonundaki uygulamadan 6 haneli bir kod.",
+      "match": "2fa|iki adımlı|doğrulama uygulama"
+    },
+    "commit": {
+      "word": "Commit",
+      "text": "Kod değişikliklerinin kısa bir notla kaydedilmiş hali.",
+      "match": "commit"
+    },
+    "branch": {
+      "word": "Dal (branch)",
+      "text": "Git'te ayrı bir çalışma hattı; birleştirene kadar ana koda dokunmaz.",
+      "match": "dal|branch"
+    },
+    "push": {
+      "word": "Push",
+      "text": "Kaydettiğin değişiklikleri (commit) GitHub gibi ortak bir yere göndermek.",
+      "match": "push"
+    },
+    "deploy": {
+      "word": "Yayınlama (deploy)",
+      "text": "Uygulamanın yeni sürümünü insanların kullandığı sunucuya koymak.",
+      "match": "deploy|yayınla"
+    },
+    "staging": {
+      "word": "Staging / Prod",
+      "text": "Staging canlı uygulamanın deneme kopyasıdır; Prod insanların kullandığı gerçek olan.",
+      "match": "staging|prod"
+    },
+    "ssh": {
+      "word": "SSH",
+      "text": "Başka bir bilgisayarda (ör. sunucunda) güvenli şekilde komut çalıştırma yolu.",
+      "match": "ssh"
+    },
+    "env": {
+      "word": ".env dosyası",
+      "text": "Uygulamanın ayarlarını ve sırlarını (şifre, anahtar) tutan dosya. Asla paylaşılmamalı.",
+      "match": ".env|ortam değişken|sır"
+    },
+    "worktree": {
+      "word": "Worktree",
+      "text": "Aynı reponun ikinci bir çalışma kopyası; agent senin dosyalarına dokunmadan çalışır.",
+      "match": "worktree"
+    },
+    "mcp": {
+      "word": "MCP",
+      "text": "AI araçlarının başka programları kullanmasının standart yolu. God Eye, Claude proje hafızasını okuyabilsin diye bir tane sunar.",
+      "match": "mcp"
+    },
+    "diff": {
+      "word": "Fark (diff)",
+      "text": "Bir değişiklikte eklenen ya da silinen satırlar.",
+      "match": "diff"
+    },
+    "blame": {
+      "word": "Kim yazdı (blame)",
+      "text": "Her satırı en son kimin, ne zaman değiştirdiğini gösterir.",
+      "match": "blame|kim yazdı"
+    },
+    "hook": {
+      "word": "Kanca (hook)",
+      "text": "Bir aracın belirli anlarda çalıştırdığı küçük betik; ör. oturum başlarken.",
+      "match": "hook|kanca"
+    },
+    "endpoint": {
+      "word": "Uç nokta (endpoint)",
+      "text": "API'nin tek bir adresi, ör. GET /users.",
+      "match": "endpoint|uç nokta"
+    },
+    "api": {
+      "word": "API",
+      "text": "Programların konuşma şekli: biri sorar, diğeri veriyle cevap verir.",
+      "match": "api"
+    },
+    "ci": {
+      "word": "CI",
+      "text": "Her push'ta otomatik çalışan kontroller: testler, lint gibi.",
+      "match": "ci|workflow"
+    },
+    "rateLimit": {
+      "word": "Kullanım sınırı",
+      "text": "Bir AI aracını belli bir süre içinde ne kadar kullanabileceğin (ör. 5 saat ya da bir hafta).",
+      "match": "limit|sınır"
+    },
+    "persona": {
+      "word": "Persona",
+      "text": "Rolü olan bir AI takım arkadaşı, ör. \"Güvenlik uzmanı\"; kendi kuralları ve odağı var.",
+      "match": "persona"
+    }
   }
 }

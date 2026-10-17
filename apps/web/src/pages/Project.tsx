@@ -327,7 +327,18 @@ export function ProjectPage() {
   );
 
   if (error && !project) {
-    return <EmptyState icon={Brain} title={t("project.notFound")} body={error} />;
+    return (
+      <EmptyState
+        icon={Brain}
+        title={t("project.notFound")}
+        body={error}
+        action={
+          <Button icon={RefreshCw} onClick={reload}>
+            {t("errors.retry")}
+          </Button>
+        }
+      />
+    );
   }
   return (
     <>

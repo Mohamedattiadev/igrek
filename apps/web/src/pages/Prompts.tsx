@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { variables } from "../components/PromptPicker";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
+import { deferDelete, usePendingDeletes } from "../lib/undo";
 
 function Editor({ prompt, onClose }: { prompt?: Partial<SavedPrompt>; onClose: (saved: boolean) => void }) {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ function Editor({ prompt, onClose }: { prompt?: Partial<SavedPrompt>; onClose: (
 /** Saved prompts library (plan.md 2.7). Most used rise to the top. */
 export function PromptsPage() {
   const { t } = useTranslation();
+  const { isPending } = usePendingDeletes();
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
   const [editing, setEditing] = useState<Partial<SavedPrompt>>();
   const load = () => {
@@ -79,44 +81,46 @@ export function PromptsPage() {
         ) : (
           <Card>
             <ul className="divide-y divide-border">
-              {prompts.map((prompt) => (
-                <li key={prompt.id} data-nav-item tabIndex={-1} className="group space-y-1 px-pad py-3">
-                  <div className="flex items-center gap-2">
-                    <p className="flex-1 text-[13.5px] font-medium">{prompt.title}</p>
-                    {prompt.tags.map((tag) => (
-                      <Badge key={tag}>{tag}</Badge>
-                    ))}
-                    <span className="text-[11px] text-fg-subtle">{t("prompts.uses", { count: prompt.uses })}</span>
-                  </div>
-                  <p className="line-clamp-3 whitespace-pre-wrap font-mono text-xs text-fg-muted">{prompt.body}</p>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                    {variables(prompt.body).map((v) => (
-                      <Badge key={v} tone="accent">{`{${v}}`}</Badge>
-                    ))}
-                    <div className="flex-1" />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      icon={Copy}
-                      onClick={() => navigator.clipboard?.writeText(prompt.body)}
-                    >
-                      {t("prompts.copy")}
-                    </Button>
-                    <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setEditing(prompt)}>
-                      {t("memory.edit")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      icon={Trash2}
-                      onClick={async () => {
-                        await api.deletePrompt(prompt.id);
-                        load();
-                      }}
-                    />
-                  </div>
-                </li>
-              ))}
+              {prompts
+                .filter((p) => !isPending(`prompt-${p.id}`))
+                .map((prompt) => (
+                  <li key={prompt.id} data-nav-item tabIndex={-1} className="group space-y-1 px-pad py-3">
+                    <div className="flex items-center gap-2">
+                      <p className="flex-1 text-[13.5px] font-medium">{prompt.title}</p>
+                      {prompt.tags.map((tag) => (
+                        <Badge key={tag}>{tag}</Badge>
+                      ))}
+                      <span className="text-[11px] text-fg-subtle">{t("prompts.uses", { count: prompt.uses })}</span>
+                    </div>
+                    <p className="line-clamp-3 whitespace-pre-wrap font-mono text-xs text-fg-muted">{prompt.body}</p>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      {variables(prompt.body).map((v) => (
+                        <Badge key={v} tone="accent">{`{${v}}`}</Badge>
+                      ))}
+                      <div className="flex-1" />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={Copy}
+                        onClick={() => navigator.clipboard?.writeText(prompt.body)}
+                      >
+                        {t("prompts.copy")}
+                      </Button>
+                      <Button size="sm" variant="ghost" icon={Pencil} onClick={() => setEditing(prompt)}>
+                        {t("memory.edit")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        icon={Trash2}
+                        aria-label={t("memory.delete")}
+                        onClick={() =>
+                          deferDelete(`prompt-${prompt.id}`, prompt.title, () => api.deletePrompt(prompt.id), load)
+                        }
+                      />
+                    </div>
+                  </li>
+                ))}
             </ul>
           </Card>
         )}

@@ -9,6 +9,7 @@ import { TeamText } from "../../components/TeamText";
 import { Button, Card, EmptyState } from "../../components/ui";
 import { api } from "../../lib/api";
 import { relativeTime } from "../../lib/format";
+import { deferDelete, usePendingDeletes } from "../../lib/undo";
 
 const SECTIONS: MemorySection[] = ["status", "decision", "convention", "failed", "issue"];
 
@@ -132,10 +133,9 @@ function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId:
             type="button"
             title={t("memory.delete")}
             aria-label={t("memory.delete")}
-            onClick={async () => {
-              await api.forget(item.id);
-              onChange();
-            }}
+            onClick={() =>
+              deferDelete(`memory-${item.id}`, item.text.slice(0, 60), () => api.forget(item.id), onChange)
+            }
             className="text-fg-subtle hover:text-danger"
           >
             <Trash2 size={13} />
@@ -192,8 +192,9 @@ function AddFact({ projectId, onChange }: { projectId: string; onChange: () => v
 export function MemoryTab({ project, onChange }: { project: ProjectDetail; onChange: () => void }) {
   const { t } = useTranslation();
   const [context, setContext] = useState<string>();
+  const { isPending } = usePendingDeletes();
   const conflicts = project.memory.filter((m) => m.conflict);
-  const active = project.memory.filter((m) => !m.conflict);
+  const active = project.memory.filter((m) => !m.conflict && !isPending(`memory-${m.id}`));
 
   return (
     <div className="space-y-4">

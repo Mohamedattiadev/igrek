@@ -70,6 +70,7 @@ import type {
   TrashItem,
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
+import i18n from "./i18n";
 
 export interface PackStatus {
   code: string;
@@ -97,15 +98,31 @@ export interface BlameLine {
   session?: { id: string; title: string; tool: string; author?: string };
 }
 
+/** Errors that don't blame, and say what to do (plan.md 7.0). Specific server messages pass through. */
+function friendly(status: number | undefined, message?: string): string {
+  const t = i18n.t.bind(i18n);
+  if (status === undefined) return t("errors.offline");
+  if (status === 401) return t("errors.signedOut");
+  if (status === 404 && (!message || /^not found$/i.test(message))) return t("errors.notFound");
+  if (status === 429) return t("errors.tooMany");
+  if (status >= 500 && !message) return t("errors.server");
+  return message ?? t("errors.server");
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(path, {
-    credentials: "same-origin",
-    ...init,
-    headers: { "content-type": "application/json", ...init?.headers },
-  });
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      credentials: "same-origin",
+      ...init,
+      headers: { "content-type": "application/json", ...init?.headers },
+    });
+  } catch {
+    throw new Error(friendly(undefined));
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error ?? `Request failed (${res.status})`);
+    throw new Error(friendly(res.status, body.error));
   }
   return res.json() as Promise<T>;
 }

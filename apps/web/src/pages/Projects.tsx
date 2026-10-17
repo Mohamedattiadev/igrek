@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, FolderKanban, FolderPlus, GitBranch, Search, Settin
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
+import { LoadError } from "../components/LoadError";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
@@ -177,7 +178,7 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showHidden, setShowHidden] = useState(false);
-  const { data: projects } = useLiveData(() => api.projects(), []);
+  const { data: projects, error, reload } = useLiveData(() => api.projects(), []);
   const status = useIndexStatus();
 
   const workspace = useWorkspace();
@@ -216,6 +217,7 @@ export function ProjectsPage() {
           )
         }
       />
+      {!projects && <LoadError error={error} onRetry={reload} />}
       {status?.running && (
         <div className="border-b border-border bg-accent-soft px-6 py-2 text-xs text-accent">
           {t("projects.indexing", { done: status.filesDone, total: status.filesTotal })}
