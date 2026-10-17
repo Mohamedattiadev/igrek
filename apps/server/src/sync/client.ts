@@ -1441,7 +1441,8 @@ export class Sync {
            assistant_messages = excluded.assistant_messages, tool_calls = excluded.tool_calls, tool_errors = excluded.tool_errors,
            compactions = excluded.compactions, context_tokens = excluded.context_tokens, models = excluded.models,
            files_touched = excluded.files_touched, summary = COALESCE(excluded.summary, sessions.summary),
-           summary_at = COALESCE(excluded.summary_at, sessions.summary_at), author_name = excluded.author_name`,
+           summary_at = COALESCE(excluded.summary_at, sessions.summary_at), author_name = excluded.author_name
+         WHERE COALESCE(excluded.updated_at, 0) >= COALESCE(sessions.updated_at, 0)`,
       )
       .run(
         String(s.id),
