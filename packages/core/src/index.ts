@@ -5,6 +5,7 @@ export * from "./lessons";
 export * from "./library";
 export * from "./persona";
 export * from "./personas";
+export * from "./preview";
 export * from "./prompt";
 export * from "./schedules";
 export * from "./scrub";
@@ -640,6 +641,7 @@ export type ServerMessage =
   | { type: "flows-changed"; runId?: string }
   | { type: "board-changed"; projectId: string }
   | { type: "schedules-changed" }
+  | { type: "devservers-changed"; projectId: string }
   | { type: "i18n-progress"; code: string };
 
 /** Messages sent from UI to server over the WebSocket. */

@@ -49,6 +49,8 @@ import { registerLibraryRoutes } from "./library-routes";
 import { Meetings } from "./meetings";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
+import { DevServers } from "./preview/devservers";
+import { registerPreviewRoutes } from "./preview-routes";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
@@ -225,6 +227,7 @@ const enhancer = new Enhancer(
 );
 const flows = new Flows(sqlite, store, bus, stops, personas, join(config.dataDir, "worktrees"));
 const board = new Board(sqlite, bus, flows);
+const devServers = new DevServers(store, bus, stops, personas, join(config.dataDir, "preview"));
 flows.onChange = (run) => board.followRun(run);
 flows.recover();
 const schedules = new Schedules(
@@ -314,6 +317,7 @@ const app = createApp({
     registerKnowledgeRoutes(hono, knowledge);
     registerFlowRoutes(hono, { flows, board, store });
     registerScheduleRoutes(hono, { schedules, store });
+    registerPreviewRoutes(hono, { devServers, stops });
     registerPersonaRoutes(hono, {
       personas,
       meetings,
@@ -481,6 +485,7 @@ for (const signal of ["SIGINT", "SIGTERM"] as const) {
     jobs.stop();
     terminals.stopAll();
     chats.stopAll();
+    devServers.stopAll();
     await stops.stopAll();
     server.stop();
     process.exit(0);

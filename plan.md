@@ -965,18 +965,18 @@ god-eye/
 
 **Hedef:** Uygulamayı canlı görmek, bir yere tıklamak, ne istediğini yazmak ve anında değişmesi.
 
-- [ ] Dev sunucuyu otomatik başlatma (`package.json` script tespiti, boş port bulma, log paneli)
-- [ ] Önizleme paneli: proxy + iframe; sayfaya seçici script enjekte edilir
-- [ ] Element seçimi: hover'da vurgulama, tıklayınca seçme, üst/alt elemente geçme
-- [ ] Seçilen elementin yorumlanması: hangi component, **hangi dosya:satır**, stiller, prop'lar, ekran görüntüsü
-- [ ] Kaynak eşleme plugin'i: Vite ve Next için `data-source` ekleyen dev plugin'i (React; sonra Vue ve Svelte)
-- [ ] Prompt kutusu + persona seçimi: "Frontend, bunu düzelt" / "Security, bu form güvenli mi?"
-- [ ] Değişiklik sonrası otomatik yenileme + önce/sonra karşılaştırması
-- [ ] Cihaz boyutları: masaüstü, tablet, mobil
-- [ ] Görsel regresyon kontrolü (Playwright ekran görüntüleri)
-- [ ] Konsol ve ağ hatalarını yakalayıp "bunu düzelt" önerisi
+- [x] Dev sunucuyu otomatik başlatma (`package.json` script tespiti, boş port bulma, log paneli) — *proje sayfasında Önizleme sekmesi; dev/start/serve, paket yöneticisi kilit dosyasından; zaten çalışan bir uygulamanın adresi de verilebilir*
+- [x] Önizleme paneli: proxy + iframe; sayfaya seçici script enjekte edilir — *127.0.0.1'de küçük bir vekil, sadece projenin kendi dev sunucusuna gider; HMR WebSocket'leri de geçer*
+- [x] Element seçimi: hover'da vurgulama, tıklayınca seçme, üst/alt elemente geçme
+- [x] Seçilen elementin yorumlanması: hangi component, **hangi dosya:satır**, stiller, prop'lar, ekran görüntüsü — *dosya:satır:sütun, etiket, sınıflar, metin, hesaplanan stiller, HTML ve ekran görüntüsü; component adı ve prop'lar henüz yok*
+- [x] Kaynak eşleme plugin'i: Vite ve Next için `data-source` ekleyen dev plugin'i (React; sonra Vue ve Svelte) — *Vite + JSX için: God Eye kendi config sarmalayıcısıyla ekler, projenin vite config'ine dokunmaz (gerçek Vite 8 + React 19 ile denendi). Next.js, Vue ve Svelte için eklenti yok: oralarda AI dosyayı metin ve sınıflardan arayarak bulur*
+- [x] Prompt kutusu + persona seçimi: "Frontend, bunu düzelt" / "Security, bu form güvenli mi?" — *Frontend, UI/UX, Erişilebilirlik, Güvenlik; değişiklikten önce kayıt noktası alınır, tek tıkla geri alınır*
+- [x] Değişiklik sonrası otomatik yenileme + önce/sonra karşılaştırması — *dev sunucunun kendi sıcak yenilemesi; elemanın önce/sonra görüntüsü*
+- [x] Cihaz boyutları: masaüstü, tablet, mobil
+- [x] Görsel regresyon kontrolü (Playwright ekran görüntüleri) — *üç boyutta taban kaydı ve piksel karşılaştırması, değişen yerler kırmızı (başlık değişikliğinde %0,2–0,5 değişim yakalandı)*
+- [x] Konsol ve ağ hatalarını yakalayıp "bunu düzelt" önerisi — *console.error, yakalanmamış hatalar, promise'ler, 400+ fetch/XHR; "Bunu düzelt" Frontend personasıyla sohbet açar*
 
-**Bitti sayılır:** Önizlemede bir butona tıklayıp "yeşil yap" yazıyorum, 10 saniye içinde değişmiş görüyorum.
+**Bitti sayılır:** Önizlemede bir butona tıklayıp "yeşil yap" yazıyorum, 10 saniye içinde değişmiş görüyorum. — *Gerçek denemede değişiklik önizlemede 5,8–7,3 saniyede göründü (Haiku, doğru dosya ve satır)*
 
 ---
 

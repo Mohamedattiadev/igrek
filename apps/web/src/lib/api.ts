@@ -13,6 +13,7 @@ import type {
   CoverageMap,
   DeployCheck,
   DeployRecord,
+  DevServerInfo,
   Digest,
   EmbedderStatus,
   EnhanceResult,
@@ -52,10 +53,12 @@ import type {
   Persona,
   PersonaOpinion,
   PersonaScore,
+  PickedElement,
   Presence,
   ProjectDetail,
   ProjectListItem,
   QuickAnswer,
+  QuickEdit,
   RemoteEntry,
   RemoteRun,
   SavedPrompt,
@@ -88,6 +91,7 @@ import type {
   ToolPlan,
   ToolResult,
   TrashItem,
+  VisualCheck,
   WeakPoint,
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
@@ -249,6 +253,27 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  preview: (projectId: string) =>
+    request<{ server: DevServerInfo | null; plan: { script: string; framework: string; vite: boolean } | null }>(
+      `/api/projects/${projectId}/preview`,
+    ),
+  previewLogs: (projectId: string) => request<string[]>(`/api/projects/${projectId}/preview/logs`),
+  startPreview: (projectId: string, url?: string) =>
+    request<DevServerInfo>(`/api/projects/${projectId}/preview/start`, {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    }),
+  stopPreview: (projectId: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/preview/stop`, { method: "POST" }),
+  previewEdit: (
+    projectId: string,
+    body: { instruction: string; element: PickedElement; personaId?: string; model?: string },
+  ) => request<QuickEdit>(`/api/projects/${projectId}/preview/edit`, { method: "POST", body: JSON.stringify(body) }),
+  previewVisual: (projectId: string, path: string, action: "baseline" | "compare") =>
+    request<VisualCheck>(`/api/projects/${projectId}/preview/visual`, {
+      method: "POST",
+      body: JSON.stringify({ path, action }),
+    }),
   schedules: () => request<Schedule[]>("/api/schedules"),
   scheduleRuns: (id: string) => request<FlowRun[]>(`/api/schedules/${id}/runs`),
   proposeSchedule: (sentence: string, projectId: string) =>

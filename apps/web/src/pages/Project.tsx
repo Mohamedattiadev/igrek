@@ -26,6 +26,7 @@ import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
 import { EnvironmentsTab } from "./project/Environments";
 import { MemoryTab } from "./project/Memory";
+import { PreviewTab } from "./project/Preview";
 import { SectionsTab } from "./project/Sections";
 import { SessionRow } from "./project/SessionRow";
 import { ReportsCard, TimelineTab } from "./project/Timeline";
@@ -33,6 +34,7 @@ import { ReportsCard, TimelineTab } from "./project/Timeline";
 const TABS = [
   "overview",
   "board",
+  "preview",
   "sections",
   "timeline",
   "sessions",
@@ -409,6 +411,8 @@ export function ProjectPage() {
           <Overview project={project} />
         ) : tab === "board" ? (
           <BoardTab project={project} />
+        ) : tab === "preview" ? (
+          <PreviewTab project={project} />
         ) : tab === "sections" ? (
           <SectionsTab project={project} />
         ) : tab === "environments" ? (
