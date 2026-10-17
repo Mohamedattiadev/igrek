@@ -681,3 +681,84 @@ export function registerIncidentRoutes(
     }
   });
 }
+
+export function registerFeedbackRoutes(app: Hono, feedback: import("./feedback").FeedbackBox): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.options("/ingest/feedback/:key", (c) =>
+    c.body(null, 204, {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "POST",
+      "access-control-allow-headers": "content-type",
+    }),
+  );
+  app.post("/ingest/feedback/:key", async (c) => {
+    const headers = { "access-control-allow-origin": "*" };
+    const text = await c.req.text();
+    if (text.length > 16_000) return c.json({ error: "Too big" }, 413, headers);
+    let body: unknown;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return c.json({ error: "Not JSON" }, 400, headers);
+    }
+    const ok = feedback.ingest(c.req.param("key"), body);
+    return c.json({ ok }, ok ? 202 : 404, headers);
+  });
+  app.get("/api/projects/:id/feedback", (c) => c.json(feedback.list(c.req.param("id"))));
+  app.post("/api/projects/:id/feedback/sort", (c) => c.json({ queued: feedback.resort(c.req.param("id")) }));
+  app.post("/api/feedback/:id/status", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { status?: string };
+    try {
+      feedback.setStatus(c.req.param("id"), body.status as "new");
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/feedback/:id/task", (c) => {
+    try {
+      return c.json(feedback.toTask(c.req.param("id")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+}
+
+export function registerProductRoutes(app: Hono, product: import("./product").Product, language: () => string): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.post("/api/projects/:id/docs-site", async (c) => {
+    try {
+      const zip = await product.docsSite(c.req.param("id"), language());
+      return new Response(new Blob([zip as BlobPart]), {
+        headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="docs-site.zip"' },
+      });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/projects/:id/launch", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { url?: string };
+    try {
+      return c.json(await product.launchKit(c.req.param("id"), language(), body.url || undefined));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.get("/api/launch-shots/:name", (c) => {
+    const file = product.shotFile(c.req.param("name"));
+    return file
+      ? new Response(Bun.file(file), { headers: { "content-type": "image/png" } })
+      : c.json({ error: "Not found" }, 404);
+  });
+  app.get("/api/weekly", (c) => {
+    const week = c.req.query("week");
+    return c.json({ weeks: product.weeks(), report: week ? (product.weekly(week) ?? null) : null });
+  });
+  app.post("/api/weekly", async (c) => {
+    try {
+      return c.json(await product.writeWeekly(language()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+}

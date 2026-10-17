@@ -779,6 +779,20 @@ const migrations: string[] = [
      data TEXT NOT NULL,
      started_at INTEGER NOT NULL
    );`,
+  // Faz 13: feedback from the product's own users.
+  `CREATE TABLE feedback (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     data TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );
+   CREATE INDEX feedback_project ON feedback(project_id, at);`,
+  // Faz 13: the weekly CEO report.
+  `CREATE TABLE weekly_reports (
+     week TEXT PRIMARY KEY,
+     text TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

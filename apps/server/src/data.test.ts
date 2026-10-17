@@ -276,3 +276,43 @@ describe("performance", () => {
     });
   });
 });
+
+describe("feedback box", () => {
+  test("feedback is sorted by the small model; a bug becomes a board card", async () => {
+    const { FeedbackBox } = await import("./feedback");
+    const { AppErrors } = await import("./apperrors");
+    const { sqlite, store } = setup();
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-fb-")));
+    const errors = new AppErrors(sqlite, store, new Bus());
+    const key = errors.key(projectId);
+    const cards: { title: string; origin?: string }[] = [];
+    const board = { add: (c: { title: string; origin?: string }) => (cards.push(c), { id: "card1" }) };
+    const bug = '{"kind":"bug","summary":"Export to PDF crashes","sentiment":"negative"}';
+    const praise = '{"kind":"praise","summary":"Loves the search","sentiment":"positive"}';
+    // Feedback is sorted in batches; answer for what is in each one.
+    const box = new FeedbackBox(
+      sqlite,
+      errors,
+      board as never,
+      new Bus(),
+      async (prompt) =>
+        `[${[prompt.includes("PDF") ? bug : "", prompt.includes("Search") ? praise : ""].filter(Boolean).join(",")}]`,
+    );
+    expect(box.ingest(key, { text: "PDF export crashes every time", page: "/reports?id=3", contact: "a@b.c" })).toBe(
+      true,
+    );
+    expect(box.ingest(key, { text: "Search is great" })).toBe(true);
+    expect(box.ingest("nope", { text: "x" })).toBe(false);
+    for (let i = 0; i < 50 && box.list(projectId).some((f) => !f.kind); i++) await Bun.sleep(10);
+    const [second, first] = box.list(projectId);
+    expect(first).toMatchObject({
+      kind: "bug",
+      summary: "Export to PDF crashes",
+      sentiment: "negative",
+      page: "/reports",
+    });
+    expect(second?.kind).toBe("praise");
+    expect(box.toTask(first?.id ?? "")).toMatchObject({ status: "planned", taskId: "card1" });
+    expect(cards[0]).toMatchObject({ title: "Export to PDF crashes", origin: "feedback" });
+  });
+});

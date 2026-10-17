@@ -43,6 +43,7 @@ import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
 import { syncExamples } from "./examples";
 import { registerExtrasRoutes } from "./extras-routes";
+import { FeedbackBox } from "./feedback";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { registerArenaRoutes, registerFlowRoutes } from "./flow-routes";
@@ -74,11 +75,13 @@ import {
   registerCalendarRoutes,
   registerCodeHostRoutes,
   registerCostRoutes,
+  registerFeedbackRoutes,
   registerIncidentRoutes,
   registerMcpRoutes,
   registerOpsRoutes,
   registerPerfRoutes,
   registerPluginRoutes,
+  registerProductRoutes,
   registerTimeRoutes,
   registerVaultRoutes,
   registerWriteupRoutes,
@@ -89,6 +92,7 @@ import { Personas } from "./personas";
 import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
 import { registerPreviewRoutes } from "./preview-routes";
+import { isoWeek, Product } from "./product";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
 import { Sealer } from "./seal";
@@ -394,6 +398,33 @@ const docs = new Docs(
   () => sync.identity().name,
 );
 sync.docs = docs;
+const product = new Product(
+  sqlite,
+  store,
+  docs,
+  flows,
+  writeups,
+  (prompt, system) =>
+    runClaude(
+      prompt,
+      join(config.dataDir, "runner"),
+      stops,
+      "sonnet",
+      system ? ["--append-system-prompt", system] : [],
+    ),
+  join(config.dataDir, "launch-shots"),
+  (id, projectId) => {
+    const persona = personas.get(id);
+    return persona ? personas.systemPrompt(persona, projectId, { notebook: false }) : undefined;
+  },
+);
+// The weekly CEO report is written by itself on Monday mornings (with background summaries on).
+setInterval(() => {
+  const now = new Date();
+  if (now.getDay() !== 1 || now.getHours() < 8 || !readSettings(db).autoSummarize) return;
+  if (product.weekly(isoWeek(now.getTime() - 86_400_000))) return;
+  void product.writeWeekly(readSettings(db).language, now.getTime() - 3_600_000).catch(() => undefined);
+}, 30 * 60_000);
 const briefings = new Briefings(
   sqlite,
   store,
@@ -500,6 +531,13 @@ const app = createApp({
     registerMcpRoutes(hono, mcpServers);
     registerBridgeRoutes(hono, bridges, () => readSettings(db).language);
     registerPerfRoutes(hono, new Perf(sqlite, appErrors));
+    registerProductRoutes(hono, product, () => readSettings(db).language);
+    registerFeedbackRoutes(
+      hono,
+      new FeedbackBox(sqlite, appErrors, board, bus, (prompt) =>
+        runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
+      ),
+    );
     registerIncidentRoutes(
       hono,
       new Incidents(sqlite, store, bus, { monitors, errors: appErrors, logs, docs, personas }, (prompt, system) =>

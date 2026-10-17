@@ -3409,5 +3409,39 @@
     "timeline": "Zaman çizelgesi",
     "note": "Ne buldun ya da ne yaptın…",
     "add": "Ekle"
+  },
+  "feedback": {
+    "title": "Kullanıcı geri bildirimi",
+    "empty": "Henüz geri bildirim yok: Uygulamayı bağla altındaki kodda kendi geri bildirim kutun için godeyeFeedback(metin, iletişim) var.",
+    "sort_one": "Bekleyen 1 taneyi sınıflandır",
+    "sort_other": "Bekleyen {{count}} taneyi sınıflandır",
+    "all": "Hepsi {{count}}",
+    "kind_bug": "Hata",
+    "kind_feature": "İstek",
+    "kind_praise": "Övgü",
+    "kind_question": "Soru",
+    "kind_other": "Diğer",
+    "mood_positive": "memnun",
+    "mood_neutral": "nötr",
+    "mood_negative": "memnuniyetsiz",
+    "onBoard": "Panoda",
+    "done": "Tamamlandı",
+    "dismiss": "Yok say"
+  },
+  "product": {
+    "site": "Doküman sitesi",
+    "siteTip": "README ve wiki sayfalarından aramalı statik bir site, herhangi bir statik barındırma için zip olarak.",
+    "launch": "Lansman materyalleri",
+    "launchHint": "Growth personası README, wiki ve son sürüm notlarından tanıtım sayfası metni, duyuru ve kısa paylaşımlar yazar, wiki'ye kaydeder. Adres verirsen ekran görüntüleri (masaüstü ve telefon) eklenir.",
+    "url": "Ekran görüntüsü adresi (isteğe bağlı): http://localhost:3000",
+    "write": "Yaz"
+  },
+  "weekly": {
+    "title": "Haftalık rapor",
+    "week": "Hafta",
+    "write": "Bu haftanınkini yaz",
+    "intro": "CEO için tek sayfa: her projenin durumu, riskler, alınan kararlar ve gelecek hafta ne yapılmalı. Pazartesi sabahları kendiliğinden yazılır (arka plan özetleri açıksa).",
+    "emptyTitle": "Henüz haftalık rapor yok",
+    "emptyBody": "Şimdi bir tane yaz ya da pazartesi sabahını bekle."
   }
 }

@@ -1,5 +1,15 @@
 import type { ProjectListItem } from "@godeye/core";
-import { ArrowDown, ArrowUp, FolderKanban, FolderPlus, GitBranch, Search, Settings, Sparkles } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Briefcase,
+  FolderKanban,
+  FolderPlus,
+  GitBranch,
+  Search,
+  Settings,
+  Sparkles,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -315,6 +325,9 @@ export function ProjectsPage() {
         actions={
           projects && projects.length > 0 ? (
             <div className="flex items-center gap-2">
+              <Button size="sm" variant="ghost" icon={Briefcase} onClick={() => navigate("/weekly")}>
+                {t("weekly.title")}
+              </Button>
               <DayEndButton />
               <NewProject />
               <AddProject />

@@ -685,3 +685,20 @@ export interface Incident {
   analyzing?: boolean;
   postmortem?: string;
 }
+
+/** What a user of your product wrote in its feedback box (plan.md 13.5). */
+export interface Feedback {
+  id: string;
+  projectId: string;
+  text: string;
+  /** Optional, if the user left it. */
+  contact?: string;
+  page?: string;
+  at: number;
+  /** Sorted by the PM persona (small model). */
+  kind?: "bug" | "feature" | "praise" | "question" | "other";
+  summary?: string;
+  sentiment?: "positive" | "neutral" | "negative";
+  status: "new" | "planned" | "done" | "dismissed";
+  taskId?: string;
+}

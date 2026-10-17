@@ -240,6 +240,11 @@ export class AppErrors {
   }
   addEventListener("error", function (e) { send(e.message, e.error && e.error.stack); });
   addEventListener("unhandledrejection", function (e) { var r = e.reason; send((r && r.message) || r, r && r.stack); });
+  // Feedback box: godeyeFeedback("text", "email (optional)"), or call it from your own form.
+  var feedbackUrl = "${base}/ingest/feedback/${this.key(projectId)}";
+  window.godeyeFeedback = function (text, contact) {
+    return fetch(feedbackUrl, { method: "POST", body: JSON.stringify({ text: text, contact: contact, page: location.pathname }), mode: "no-cors" });
+  };
   // Product analytics: godeyeTrack("export_pdf", user.id). The id is hashed before it is stored.
   var events = "${base}/ingest/events/${this.key(projectId)}";
   window.godeyeTrack = function (event, user) {

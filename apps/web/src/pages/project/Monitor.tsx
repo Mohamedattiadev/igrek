@@ -10,6 +10,7 @@ import { opsApi } from "../../lib/ops-api";
 import { IncidentButton } from "../Incident";
 import { LogsPanel } from "../tools/Logs";
 import { AnalyticsPanel } from "./Analytics";
+import { FeedbackPanel } from "./FeedbackPanel";
 import { PerfPanel } from "./Perf";
 
 function Snippet({ projectId, open, onClose }: { projectId: string; open: boolean; onClose: () => void }) {
@@ -159,6 +160,7 @@ export function MonitorTab({ project }: { project: ProjectDetail }) {
     <div className="space-y-8">
       <IncidentButton projectId={project.id} />
       <AnalyticsPanel projectId={project.id} />
+      <FeedbackPanel projectId={project.id} />
       <PerfPanel projectId={project.id} />
       <section className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">

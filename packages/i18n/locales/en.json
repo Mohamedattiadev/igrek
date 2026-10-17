@@ -3409,5 +3409,39 @@
     "timeline": "Timeline",
     "note": "What you found or did…",
     "add": "Add"
+  },
+  "feedback": {
+    "title": "User feedback",
+    "empty": "No feedback yet: the code under Connect the app has godeyeFeedback(text, contact) for your own feedback box.",
+    "sort_one": "Sort 1 waiting",
+    "sort_other": "Sort {{count}} waiting",
+    "all": "All {{count}}",
+    "kind_bug": "Bug",
+    "kind_feature": "Wish",
+    "kind_praise": "Praise",
+    "kind_question": "Question",
+    "kind_other": "Other",
+    "mood_positive": "happy",
+    "mood_neutral": "neutral",
+    "mood_negative": "unhappy",
+    "onBoard": "On the board",
+    "done": "Done",
+    "dismiss": "Dismiss"
+  },
+  "product": {
+    "site": "Docs site",
+    "siteTip": "A static site from the README and the wiki pages, with search, as a zip for any static host.",
+    "launch": "Launch materials",
+    "launchHint": "The Growth persona writes landing page copy, an announcement and short posts from the README, the wiki and the latest release notes, and saves them to the wiki. With an address, screenshots (desktop and phone) are added.",
+    "url": "Address for screenshots (optional): http://localhost:3000",
+    "write": "Write"
+  },
+  "weekly": {
+    "title": "Weekly report",
+    "week": "Week",
+    "write": "Write this week's",
+    "intro": "One page for the CEO: every project's state, risks, decisions made, and what to do next week. Written by itself on Monday mornings (with background summaries on).",
+    "emptyTitle": "No weekly report yet",
+    "emptyBody": "Write one now, or wait for Monday morning."
   }
 }

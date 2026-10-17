@@ -1,4 +1,4 @@
-import { FileClock, Moon, ScrollText } from "lucide-react";
+import { FileClock, Globe, Megaphone, Moon, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
@@ -212,6 +212,102 @@ export function DayEndButton() {
             </>
           )}
         </div>
+      </Dialog>
+    </>
+  );
+}
+
+/** A static documentation site from the wiki and README, as a zip (plan.md 13.5). */
+export function DocsSiteButton({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <>
+      <Button
+        size="sm"
+        variant="ghost"
+        icon={Globe}
+        disabled={busy}
+        data-tip={error ?? t("product.siteTip")}
+        onClick={async () => {
+          setBusy(true);
+          setError(undefined);
+          try {
+            const res = await fetch(`/api/projects/${projectId}/docs-site`, {
+              method: "POST",
+              credentials: "same-origin",
+            });
+            if (!res.ok)
+              throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? res.statusText);
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(await res.blob());
+            a.download = "docs-site.zip";
+            a.click();
+            URL.revokeObjectURL(a.href);
+          } catch (err) {
+            setError((err as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {t("product.site")}
+      </Button>
+      {error && <span className="text-[11px] text-danger">{error}</span>}
+    </>
+  );
+}
+
+/** Landing page copy, announcement, posts and screenshots, written by the Growth persona (plan.md 13.5). */
+export function LaunchKitButton({ projectId, onSaved }: { projectId: string; onSaved: () => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [url, setUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <>
+      <Button size="sm" variant="ghost" icon={Megaphone} onClick={() => setOpen(true)}>
+        {t("product.launch")}
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} label={t("product.launch")}>
+        <form
+          className="space-y-3 p-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setBusy(true);
+            setError(undefined);
+            try {
+              await post(`/api/projects/${projectId}/launch`, { url: url.trim() || undefined });
+              setOpen(false);
+              onSaved();
+            } catch (err) {
+              setError((err as Error).message);
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <h2 className="text-[15px] font-semibold">{t("product.launch")}</h2>
+          <p className="text-xs text-fg-muted">{t("product.launchHint")}</p>
+          <input
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder={t("product.url")}
+            aria-label={t("product.url")}
+            className="h-8 w-full rounded-ui border border-border bg-bg px-2.5 font-mono text-[13px] outline-none focus:border-accent"
+          />
+          {error && <p className="text-xs text-danger">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              {t("memory.cancel")}
+            </Button>
+            <Button type="submit" variant="primary" disabled={busy}>
+              {busy ? t("writeups.writing") : t("product.write")}
+            </Button>
+          </div>
+        </form>
       </Dialog>
     </>
   );

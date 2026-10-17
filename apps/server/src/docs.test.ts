@@ -221,3 +221,38 @@ describe("incident mode", () => {
     expect(docs.pages(projectId)[0]?.title).toStartWith("Postmortem: Cart is broken");
   });
 });
+
+describe("docs site", () => {
+  test("README as the home page, one page per wiki page, links between them, internal pages left out", async () => {
+    const { Product } = await import("./product");
+    const JSZip = (await import("jszip")).default;
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    const dir = mkdtempSync(join(tmpdir(), "godeye-site-"));
+    await Bun.write(join(dir, "README.md"), "# Shop\n\nSee [[Setup]].");
+    const projectId = store.addProject(dir);
+    const docs = new Docs(sqlite, store, new Bus(), { list: () => [] } as unknown as Databases, async () => "");
+    docs.savePage(projectId, { title: "Setup", body: "Run `bun dev`. Back to [[Missing page]]." });
+    docs.savePage(projectId, { title: "Postmortem: outage", body: "internal" });
+    const product = new Product(
+      sqlite,
+      store,
+      docs,
+      {} as never,
+      {} as never,
+      async () => "",
+      mkdtempSync(join(tmpdir(), "godeye-shots-")),
+      () => undefined,
+    );
+    const zip = await JSZip.loadAsync(await product.docsSite(projectId, "en"));
+    expect(Object.keys(zip.files).sort()).toEqual(["index.html", "search.js", "setup.html", "style.css"]);
+    const index = await zip.file("index.html")?.async("string");
+    expect(index).toContain('<a href="setup.html">Setup</a>');
+    const setup = await zip.file("setup.html")?.async("string");
+    expect(setup).toContain("<code>bun dev</code>");
+    expect(setup).toContain("Back to Missing page.");
+    const { isoWeek } = await import("./product");
+    expect(isoWeek(new Date(2026, 9, 17).getTime())).toBe("2026-W42");
+    expect(isoWeek(new Date(2026, 0, 1).getTime())).toBe("2026-W01");
+  });
+});

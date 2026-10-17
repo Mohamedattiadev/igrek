@@ -1053,10 +1053,10 @@ god-eye/
 - [x] 📉 Basit performans izleme: yanıt süreleri, yavaş endpoint'ler — *Uygulamanın sunucusuna birkaç satırlık timing() ara katmanı (Uygulamayı bağla); uç nokta başına (id'ler katlanır) günlük histogram; İzleme sekmesinde istek sayısı, p50, p95 (önceki haftaya göre yavaşladı/hızlandı), 5xx sayısı; en yavaş önce. Birim testli; gerçek bir uygulamadan gelen trafikle denenmedi*
 
 #### 13.5 İş ve ürün (CEO tarafı)
-- [ ] 📮 **Kullanıcı geri bildirim kutusu:** ürünlerinin kullanıcılarından gelen geri bildirimleri toplama; PM personası sınıflandırır
-- [ ] 🌍 Ürün dokümantasyon sitesi üretme
-- [ ] 📣 Lansman materyalleri: landing page metni, duyuru yazısı, ekran görüntüleri
-- [ ] 📊 Haftalık CEO raporu: tüm projelerin durumu, riskler, kararlar, öneriler (tek sayfa)
+- [x] 📮 **Kullanıcı geri bildirim kutusu:** ürünlerinin kullanıcılarından gelen geri bildirimleri toplama; PM personası sınıflandırır — *Uygulamayı bağla kodunda godeyeFeedback(metin, iletişim); gelenler İzleme sekmesinde, PM'in küçük modeli hata/istek/övgü/soru/diğer + tek satır özet + memnuniyet olarak sınıflar (metin sır temizleyiciden geçer, iletişim bilgisi modele gitmez); hata ve istek tek tıkla panoya. Sahte modelle test edildi; gerçek bir ürünün kutusundan denenmedi*
+- [x] 🌍 Ürün dokümantasyon sitesi üretme — *Wiki'de "Doküman sitesi": README giriş sayfası + her wiki sayfası bir HTML, [[bağlantılar]], aramalı, açık/koyu tema, Mermaid diyagramları; iç sayfalar (postmortem, lansman taslakları) dışarıda; her statik barındırmaya konacak zip. Mermaid için jsDelivr'den sabit sürüm yüklenir. notes-app'te üretilip tarayıcıda açıldı*
+- [x] 📣 Lansman materyalleri: landing page metni, duyuru yazısı, ekran görüntüleri — *Wiki'de "Lansman materyalleri": Growth personası README, wiki ve son sürüm notlarından tanıtım sayfası metni (başlık, 3 fayda, çağrı, SSS), duyuru yazısı, kısa paylaşım ve slogan yazar; adres verilirse masaüstü ve telefon ekran görüntüleri eklenir; hepsi wiki sayfası olur. notes-app'te gerçek denendi (~54 sn)*
+- [x] 📊 Haftalık CEO raporu: tüm projelerin durumu, riskler, kararlar, öneriler (tek sayfa) — *Projeler > Haftalık rapor: son 7 günün tüm projeleri (yeşil/sarı/kırmızı ve nedeni), riskler, alınan kararlar, gelecek hafta için en fazla 5 adım; CEO koçu personasıyla; pazartesi sabahı kendiliğinden yazılır, eski haftalar saklanır. Gerçek veriyle denendi (~44 sn)*
 
 #### 13.6 God Eye'ın kendisi
 - [ ] 🧭 **Uygulama içi rehber:** "God Eye'ı nasıl kullanırım?" sorularına cevap veren yardımcı + etkileşimli turlar
