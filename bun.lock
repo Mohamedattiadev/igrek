@@ -33,6 +33,7 @@
         "hono": "^4.13.13",
         "jszip": "3.10.2",
         "mongodb": "7.7.0",
+        "nodemailer": "10.0.14",
         "onnxruntime-node": "1.30.0",
         "pdfjs-dist": "6.4.299",
         "playwright-core": "1.63.0",
@@ -41,6 +42,7 @@
       },
       "devDependencies": {
         "@types/bun": "^1.4.3",
+        "@types/nodemailer": "8.0.2",
         "typescript": "^7.0.2",
       },
     },

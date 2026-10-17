@@ -33,6 +33,8 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { TeamAvatar } from "../components/TeamAvatar";
+import { TeamBoard } from "../components/TeamBoard";
+import { TeamChat } from "../components/TeamChat";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -980,12 +982,18 @@ export function TeamPage() {
           />
         ) : (
           <div className="mx-auto max-w-5xl px-6">
+            <Section title={t("chatTeam.title")} hint={t("chatTeam.hint")}>
+              <TeamChat />
+            </Section>
             <Section title={t("team.members")} hint={t("team.membersHint")}>
               {status.members.length ? (
                 <Members status={status} presence={presence} />
               ) : (
                 <EmptyState icon={Users} title={t("team.noMembers")} body={t("team.noMembersBody")} />
               )}
+            </Section>
+            <Section title={t("teamBoard.title")} hint={t("teamBoard.hint")}>
+              <TeamBoard />
             </Section>
             <Section title={t("person.today")} hint={t("person.todayHint")}>
               <TodayInTeam />

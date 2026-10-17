@@ -24,7 +24,7 @@ export function Comments({
   id,
 }: {
   projectId: string;
-  kind: "session" | "memory" | "section";
+  kind: "session" | "memory" | "section" | "channel";
   id: string;
 }) {
   const { t } = useTranslation();
@@ -40,6 +40,7 @@ export function Comments({
   };
   useEffect(load, [kind, id]);
   useServerEvent("sessions-changed", load);
+  useServerEvent("team-changed", load);
   if (!people.status?.configured) return null;
   const mention = text.match(/@([\w.-]*)$/)?.[1];
   const matches =
@@ -60,15 +61,17 @@ export function Comments({
       <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
         <MessageSquare size={12} aria-hidden="true" /> {t("comments.title")}
       </h3>
-      {rows.map((r) => (
-        <div key={r.id} className="text-[13px]">
-          <span className="font-medium">{r.mine ? t("team.you") : r.author}</span>
-          <span className="ms-2 text-[11px] text-fg-subtle">{relativeTime(r.at)}</span>
-          <p className="whitespace-pre-wrap text-fg-muted">
-            <TeamText text={r.text} authorId={r.authorId} />
-          </p>
-        </div>
-      ))}
+      <div className={kind === "channel" ? "max-h-[50vh] space-y-2 overflow-auto" : "space-y-2"}>
+        {rows.map((r) => (
+          <div key={r.id} className="text-[13px]">
+            <span className="font-medium">{r.mine ? t("team.you") : r.author}</span>
+            <span className="ms-2 text-[11px] text-fg-subtle">{relativeTime(r.at)}</span>
+            <p className="whitespace-pre-wrap text-fg-muted">
+              <TeamText text={r.text} authorId={r.authorId} />
+            </p>
+          </div>
+        ))}
+      </div>
       {matches.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {matches.map((m) => (

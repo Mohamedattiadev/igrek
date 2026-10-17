@@ -232,6 +232,25 @@ describe("team sync", () => {
     expect(message).toEqual({ kind: "suggestion", text: "Add a rate limit to login", from_name: "mohamed" });
   });
 
+  test("a team chat message reaches the teammate's channel, unread until opened", async () => {
+    a.db
+      .query(
+        "INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read) VALUES ('ch1', 'p1', 'channel', 'p1:general', NULL, 'mohamed', 'Deploy at 5?', '[]', ?, 1)",
+      )
+      .run(Date.now());
+    await a.sync.flush();
+    await until(() => !!b.db.query("SELECT 1 FROM comments WHERE id = 'ch1'").get());
+    expect(
+      b.db.query("SELECT target_kind, target_id, author_name, text, read FROM comments WHERE id = 'ch1'").get(),
+    ).toEqual({
+      target_kind: "channel",
+      target_id: "p1:general",
+      author_name: "mohamed",
+      text: "Deploy at 5?",
+      read: 0,
+    });
+  });
+
   test("disconnect forgets the hub and the key", async () => {
     b.sync.disconnect();
     expect(b.sync.status()).toMatchObject({ configured: false, connected: false });

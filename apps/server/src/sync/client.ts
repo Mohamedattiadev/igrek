@@ -377,7 +377,9 @@ export class Sync {
             ? `/p/${r.project_id}/s/${r.target_id}`
             : r.target_kind === "section"
               ? `/p/${r.project_id}?tab=sections&cat=${r.target_id}`
-              : `/p/${r.project_id}?tab=memory`,
+              : r.target_kind === "channel"
+                ? `/team?channel=${encodeURIComponent(r.target_id)}`
+                : `/p/${r.project_id}?tab=memory`,
       }));
   }
 

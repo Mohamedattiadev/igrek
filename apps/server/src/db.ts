@@ -754,6 +754,13 @@ const migrations: string[] = [
      stats TEXT NOT NULL,
      at INTEGER NOT NULL
    );`,
+  // Faz 13: notification bridges (Telegram, Discord, your own SMTP); their secrets are encrypted.
+  `CREATE TABLE bridges (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     secret TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

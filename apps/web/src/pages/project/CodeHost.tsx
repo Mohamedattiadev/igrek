@@ -1,5 +1,5 @@
 import type { CodeHostInfo, HostIssue, HostPull, HostRun } from "@godeye/core";
-import { CircleCheck, CircleDot, CircleX, ExternalLink, GitPullRequest, Loader, Play, Plus } from "lucide-react";
+import { CircleCheck, CircleDot, CircleX, ExternalLink, Eye, GitPullRequest, Loader, Play, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -108,8 +108,90 @@ function Checks({ c }: { c: HostPull["checks"] }) {
   );
 }
 
+function Review({ projectId, number }: { projectId: string; number: number }) {
+  const { t } = useTranslation();
+  const [patch, setPatch] = useState<string>();
+  const [text, setText] = useState("");
+  const [note, setNote] = useState<string>();
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  useEffect(() => {
+    hostApi
+      .prDiff(projectId, number)
+      .then(setPatch)
+      .catch((e: Error) => setError(e.message));
+  }, [projectId, number]);
+  const send = async (action: "approve" | "changes" | "comment") => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      await hostApi.review(projectId, number, action, text);
+      setNote(t(`host.sent_${action}`));
+      setText("");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="basis-full space-y-2 pt-1">
+      {patch === undefined && !error && <p className="text-xs text-fg-subtle">{t("persona.loading")}</p>}
+      {patch !== undefined && (
+        <pre className="max-h-[50vh] overflow-auto rounded-ui border border-border bg-bg-subtle p-2 font-mono text-[11px] leading-relaxed">
+          {patch
+            .split("\n")
+            .slice(0, 3000)
+            .map((line, i) => (
+              <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: lines of one fixed patch
+                key={i}
+                className={
+                  line.startsWith("+") && !line.startsWith("+++")
+                    ? "block text-success"
+                    : line.startsWith("-") && !line.startsWith("---")
+                      ? "block text-danger"
+                      : line.startsWith("@@")
+                        ? "block text-accent"
+                        : line.startsWith("diff ")
+                          ? "mt-2 block font-semibold text-fg"
+                          : "block"
+                }
+              >
+                {line || " "}
+              </span>
+            ))}
+        </pre>
+      )}
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        placeholder={t("host.reviewPlaceholder")}
+        aria-label={t("host.reviewPlaceholder")}
+        className="w-full rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="primary" disabled={busy} onClick={() => void send("approve")}>
+          {t("host.approve")}
+        </Button>
+        <Button size="sm" disabled={busy || !text.trim()} onClick={() => void send("changes")}>
+          {t("host.requestChanges")}
+        </Button>
+        <Button size="sm" variant="ghost" disabled={busy || !text.trim()} onClick={() => void send("comment")}>
+          {t("host.comment")}
+        </Button>
+        <span className="text-[11px] text-fg-subtle">{t("host.reviewNote")}</span>
+      </div>
+      {note && <p className="text-xs text-success">{note}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
 function Pulls({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState<number>();
   const { data, error } = useList(hostApi.pulls, projectId);
   return (
     <section className="space-y-2">
@@ -137,6 +219,14 @@ function Pulls({ projectId }: { projectId: string }) {
                     {relativeTime(Date.parse(p.updatedAt))}
                   </p>
                 </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  icon={Eye}
+                  onClick={() => setOpen(open === p.number ? undefined : p.number)}
+                >
+                  {t("host.reviewIt")}
+                </Button>
                 {p.draft && <Badge>{t("host.draft")}</Badge>}
                 {p.review && (
                   <Badge
@@ -146,6 +236,7 @@ function Pulls({ projectId }: { projectId: string }) {
                   </Badge>
                 )}
                 <Checks c={p.checks} />
+                {open === p.number && <Review projectId={projectId} number={p.number} />}
               </li>
             ))}
           </ul>

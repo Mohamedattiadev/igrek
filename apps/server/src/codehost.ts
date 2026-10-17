@@ -371,6 +371,52 @@ export class CodeHost {
     }));
   }
 
+  /** The changes of a pull/merge request, as a unified diff. */
+  async prDiff(projectId: string, number: number): Promise<string> {
+    const { cli, repo } = await this.ready(projectId);
+    const r = await this.runner(
+      cli === "gh"
+        ? ["gh", "pr", "diff", String(number), "-R", repo]
+        : ["glab", "mr", "diff", String(number), "-R", repo],
+    );
+    if (r.code !== 0) throw new Error((r.err || r.out).trim().slice(0, 300));
+    return r.out.slice(0, 2_000_000);
+  }
+
+  /**
+   * A review written by you (plan.md 13.3), sent with your own login when you click: approve,
+   * request changes, or just comment. God Eye never reviews or comments on its own.
+   */
+  async review(
+    projectId: string,
+    number: number,
+    action: "approve" | "changes" | "comment",
+    body: string,
+  ): Promise<void> {
+    const { cli, repo } = await this.ready(projectId);
+    const text = body.trim().slice(0, 20_000);
+    if (action !== "approve" && !text) throw new Error("Write what to change");
+    const cmd =
+      cli === "gh"
+        ? [
+            "gh",
+            "pr",
+            "review",
+            String(number),
+            "-R",
+            repo,
+            action === "approve" ? "--approve" : action === "changes" ? "--request-changes" : "--comment",
+            ...(text ? ["--body", text] : []),
+          ]
+        : action === "approve"
+          ? ["glab", "mr", "approve", String(number), "-R", repo]
+          : ["glab", "mr", "note", String(number), "-R", repo, "--message", text];
+    const r = await this.runner(cmd);
+    if (r.code !== 0) throw new Error((r.err || r.out).trim().slice(0, 300));
+    if (cli === "glab" && action === "approve" && text)
+      await this.runner(["glab", "mr", "note", String(number), "-R", repo, "--message", text]);
+  }
+
   /** "Give it to the team": the issue becomes a board card; with `start`, the team begins right away. */
   async issueToTask(projectId: string, number: number, start: boolean): Promise<{ taskId: string; runId?: string }> {
     const issue = await this.issue(projectId, number);

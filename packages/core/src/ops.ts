@@ -606,3 +606,20 @@ export interface DayRecap {
   };
   at: number;
 }
+
+/** Where God Eye can send a short notice outside the app (plan.md 13.3 "bildirim köprüleri"). */
+export type BridgeKind = "telegram" | "discord" | "email";
+export const BRIDGE_EVENTS = ["down", "up", "appError", "backupFailed", "approval", "run"] as const;
+export type BridgeEvent = (typeof BRIDGE_EVENTS)[number];
+
+export interface Bridge {
+  id: string;
+  kind: BridgeKind;
+  name: string;
+  events: BridgeEvent[];
+  enabled: boolean;
+  /** Where it goes, without secrets: "chat 12345", "#alerts webhook", "me@example.com". */
+  target: string;
+  lastSentAt?: number;
+  lastError?: string;
+}

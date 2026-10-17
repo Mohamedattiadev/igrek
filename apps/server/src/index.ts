@@ -17,6 +17,7 @@ import { registerAssistRoutes } from "./assist-routes";
 import { Backups } from "./backup";
 import { BackupJobs } from "./backup-jobs";
 import { Board } from "./board";
+import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
 import { Calendar } from "./calendar";
@@ -68,6 +69,7 @@ import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
 import {
   registerAnalyticsRoutes,
+  registerBridgeRoutes,
   registerCalendarRoutes,
   registerCodeHostRoutes,
   registerCostRoutes,
@@ -316,6 +318,30 @@ const envFiles = new EnvFiles(join(config.dataDir, "env-backups"));
 const databases = new Databases(sqlite, store, sealer, envFiles);
 const vault = new Vault(sqlite, store, envFiles, sealer);
 const mcpServers = new McpServers(sqlite, sealer);
+const bridges = new Bridges(sqlite, sealer, fetch, `http://localhost:${config.publicPort}`);
+void bridges.load().catch(() => undefined);
+// What goes out over the bridges (plan.md 13.3): short notices only, never code or secrets.
+const runStatus = new Map<string, string>();
+let pendingApprovals = 0;
+bus.subscribe((m) => {
+  if (m.type === "alert") void bridges.send({ event: m.kind, title: m.title, link: m.link });
+  else if (m.type === "approvals") {
+    if (m.approvals.length > pendingApprovals)
+      void bridges.send({ event: "approval", title: m.approvals[0]?.command.slice(0, 120) ?? "", link: "/inbox" });
+    pendingApprovals = m.approvals.length;
+  } else if (m.type === "flows-changed" && m.runId) {
+    const run = flows.get(m.runId);
+    if (!run) return;
+    const before = runStatus.get(run.id);
+    runStatus.set(run.id, run.status);
+    if (before && before !== run.status && ["needs_you", "ready", "failed"].includes(run.status))
+      void bridges.send({
+        event: "run",
+        title: `${run.status === "failed" ? "Failed" : run.status === "ready" ? "Ready for your OK" : "Waiting for you"}: ${run.request.split("\n")[0]?.slice(0, 100)}`,
+        link: `/runs/${run.id}`,
+      });
+  }
+});
 void mcpServers.load().catch(() => undefined);
 const backupJobs = new BackupJobs(sqlite, store, bus, databases, servers, join(config.dataDir, "backups"));
 setInterval(() => void backupJobs.tick(), 60_000);
@@ -432,6 +458,7 @@ const app = createApp({
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerMcpRoutes(hono, mcpServers);
+    registerBridgeRoutes(hono, bridges, () => readSettings(db).language);
     registerTimeRoutes(hono, store);
     registerWriteupRoutes(hono, {
       writeups,

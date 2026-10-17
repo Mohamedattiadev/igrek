@@ -1041,10 +1041,10 @@ god-eye/
 - [x] 🌙 **Gün sonu özeti ("naptık ne ettik"):** her akşam o günün özeti kendiliğinden hazır olur: hangi projede ne yapıldı, kaç commit/session, ne kadar zaman, neler bitti, neler yarım kaldı; geçmiş günlere geri bakılabilir — *Projeler sayfasında "Gün sonu: naptık ne ettik" kartı: proje başına süre, commit ve birleştirilen iş sayıları; altında sohbet diliyle ne bitti / ne yarım kaldı / yarın nereden devam. 21:00'den sonra kendiliğinden yazılır (arka plan özetleri açıksa), istenirse elle; her gün saklanır, eski günler seçilip okunur. Bugünün gerçek verisiyle denendi (~30 sn)*
 
 #### 13.3 Takım
-- [ ] 💬 **Takım sohbeti:** proje bazında kanallar (WhatsApp'a gerek kalmaz). AI ile "bu kanalda dün ne konuşuldu" özeti
-- [ ] 👀 **İnsanlar arası kod review:** PR'ları uygulama içinde inceleme, yorum ve onay
-- [ ] 🔔 Ücretsiz bildirim köprüleri: Telegram, Discord, e-posta (kendi SMTP'n)
-- [ ] 🏆 Takım panosu: kim neye katkı verdi (suçlamak için değil, görünürlük için)
+- [x] 💬 **Takım sohbeti:** proje bazında kanallar (WhatsApp'a gerek kalmaz). AI ile "bu kanalda dün ne konuşuldu" özeti — *Takım sayfasında Takım sohbeti: paylaşılan her projenin #general kanalı + yeni kanallar; takım yorumlarıyla aynı uçtan uca şifreli kanaldan gider, okunmamış sayısı, @ad bildirimi; "Ne konuştuk" dünden beri olanı küçük modelle özetler. İki cihaz arası iletim senkron testinde doğrulandı; gerçek bir takımla denenmedi*
+- [x] 👀 **İnsanlar arası kod review:** PR'ları uygulama içinde inceleme, yorum ve onay — *Proje > Issue'lar ve PR'lar > İncele: PR diff'i uygulamada, yorumla Onayla / Değişiklik iste / Yorum; sadece sen tıklayınca kendi gh/glab girişinle gider. Komutlar sahte gh ile test edildi; bu repoda açık PR olmadığı için gerçek PR'da denenmedi. Satır bazlı yorum yok*
+- [x] 🔔 Ücretsiz bildirim köprüleri: Telegram, Discord, e-posta (kendi SMTP'n) — *Ayarlar > Bildirim köprüleri: Telegram (kendi botun), Discord webhook, kendi SMTP'n (nodemailer); olay seçimi (site kapandı, uygulama hatası, yedekleme, onay, takım seni bekliyor), deneme gönderimi; token/şifre şifreli; giden metin sır temizleyiciden geçer, sadece başlık. Telegram/Discord sahte uçlarla, e-posta yerel sahte SMTP sunucusuyla test edildi; gerçek hesaplarla denenmedi*
+- [x] 🏆 Takım panosu: kim neye katkı verdi (suçlamak için değil, görünürlük için) — *Takım sayfasında Takım panosu: paylaşılan projelerde kişi başına commit (git yazar adı üyeyle eşleştirilir), AI session, yorum, hafıza katkısı; 7/30/90 gün. Gerçek bir takımla denenmedi*
 
 #### 13.4 Operasyon (prod)
 - [ ] 🚨 **Olay modu (incident):** site çökünce tek tıkla "savaş odası" açılır. SRE personası logları ve son deploy'ları toplar, zaman çizelgesi çıkarır, çözüm önerir. Sonunda otomatik postmortem raporu hazırlanır

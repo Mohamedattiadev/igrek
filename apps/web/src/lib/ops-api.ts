@@ -175,6 +175,13 @@ export const hostApi = {
   issues: (projectId: string) => request<HostIssue[]>(`/api/projects/${projectId}/host/issues`),
   pulls: (projectId: string) => request<HostPull[]>(`/api/projects/${projectId}/host/pulls`),
   runs: (projectId: string) => request<HostRun[]>(`/api/projects/${projectId}/host/runs`),
+  prDiff: async (projectId: string, number: number) => {
+    const res = await fetch(`/api/projects/${projectId}/host/pulls/${number}/diff`, { credentials: "same-origin" });
+    if (!res.ok) throw new Error(((await res.json().catch(() => ({}))) as { error?: string }).error ?? res.statusText);
+    return res.text();
+  },
+  review: (projectId: string, number: number, action: "approve" | "changes" | "comment", body: string) =>
+    post<{ ok: boolean }>(`/api/projects/${projectId}/host/pulls/${number}/review`, { action, body }),
   toTask: (projectId: string, number: number, start: boolean) =>
     post<{ taskId: string; runId?: string }>(`/api/projects/${projectId}/host/issues/${number}/task`, { start }),
 };

@@ -1,4 +1,4 @@
-import type { McpCatalogEntry, McpServerEntry } from "@godeye/core";
+import { BRIDGE_EVENTS, type Bridge, type BridgeKind, type McpCatalogEntry, type McpServerEntry } from "@godeye/core";
 import { Download, RefreshCw, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -397,6 +397,166 @@ export function McpServersPanel() {
       </form>
       {error && <p className="text-xs text-danger">{error}</p>}
       <p className="text-xs text-fg-subtle">{t("mcpServers.note")}</p>
+    </div>
+  );
+}
+
+const BRIDGE_FIELDS: Record<BridgeKind, { key: string; secret?: boolean; placeholder: string }[]> = {
+  telegram: [
+    { key: "token", secret: true, placeholder: "123456789:AA…" },
+    { key: "chatId", placeholder: "123456789" },
+  ],
+  discord: [{ key: "webhook", secret: true, placeholder: "https://discord.com/api/webhooks/…" }],
+  email: [
+    { key: "host", placeholder: "smtp.example.com" },
+    { key: "port", placeholder: "587" },
+    { key: "user", placeholder: "me@example.com" },
+    { key: "password", secret: true, placeholder: "••••••" },
+    { key: "to", placeholder: "me@example.com" },
+  ],
+};
+
+/** Notices to Telegram, Discord or your own e-mail (plan.md 13.3). */
+export function BridgesPanel() {
+  const { t } = useTranslation();
+  const [list, setList] = useState<Bridge[]>([]);
+  const [kind, setKind] = useState<BridgeKind>("telegram");
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState<string>();
+  const load = useCallback(
+    () =>
+      void request<Bridge[]>("/api/bridges")
+        .then(setList)
+        .catch(() => undefined),
+    [],
+  );
+  useEffect(load, [load]);
+  const call = async (key: string, fn: () => Promise<unknown>) => {
+    setBusy(key);
+    setError(undefined);
+    try {
+      await fn();
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(undefined);
+    }
+  };
+  const patch = (id: string, body: object) =>
+    request(`/api/bridges/${id}`, { method: "PATCH", body: JSON.stringify(body) });
+  return (
+    <div className="space-y-3 text-[13px]">
+      {list.length > 0 && (
+        <ul className="divide-y divide-border rounded-ui border border-border">
+          {list.map((b) => (
+            <li key={b.id} className="space-y-1.5 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="min-w-0 flex-1 truncate font-medium">
+                  {t(`bridges.kind_${b.kind}`)} <span className="text-xs font-normal text-fg-subtle">· {b.target}</span>
+                </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={busy === `t${b.id}`}
+                  onClick={() =>
+                    void call(`t${b.id}`, () => request(`/api/bridges/${b.id}/test`, { method: "POST", body: "{}" }))
+                  }
+                >
+                  {busy === `t${b.id}` ? t("mcpServers.testing") : t("bridges.test")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={b.enabled ? "ghost" : "primary"}
+                  onClick={() => void call(`e${b.id}`, () => patch(b.id, { enabled: !b.enabled }))}
+                >
+                  {b.enabled ? t("plugins.turnOff") : t("plugins.turnOn")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => void call(`d${b.id}`, () => request(`/api/bridges/${b.id}`, { method: "DELETE" }))}
+                >
+                  {t("plugins.remove")}
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {BRIDGE_EVENTS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() =>
+                      void call(`v${b.id}`, () =>
+                        patch(b.id, {
+                          events: b.events.includes(e) ? b.events.filter((x) => x !== e) : [...b.events, e],
+                        }),
+                      )
+                    }
+                    className={cn(
+                      "rounded-full border px-2 py-0.5 text-[11px]",
+                      b.events.includes(e)
+                        ? "border-accent bg-accent-soft text-accent"
+                        : "border-border text-fg-subtle",
+                    )}
+                  >
+                    {t(`bridges.ev_${e}`)}
+                  </button>
+                ))}
+              </div>
+              {b.lastError ? (
+                <p className="text-xs text-danger">{b.lastError}</p>
+              ) : b.lastSentAt ? (
+                <p className="text-xs text-fg-subtle">
+                  {t("bridges.last", { when: new Date(b.lastSentAt).toLocaleString() })}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      <form
+        className="flex flex-wrap items-center gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void call("add", () =>
+            request("/api/bridges", { method: "POST", body: JSON.stringify({ kind, secrets: values }) }),
+          ).then(() => setValues({}));
+        }}
+      >
+        <select
+          value={kind}
+          onChange={(e) => {
+            setKind(e.target.value as BridgeKind);
+            setValues({});
+          }}
+          className={field}
+          aria-label={t("bridges.kind")}
+        >
+          {(["telegram", "discord", "email"] as const).map((k) => (
+            <option key={k} value={k}>
+              {t(`bridges.kind_${k}`)}
+            </option>
+          ))}
+        </select>
+        {BRIDGE_FIELDS[kind].map((f) => (
+          <input
+            key={f.key}
+            type={f.secret ? "password" : "text"}
+            autoComplete="off"
+            value={values[f.key] ?? ""}
+            onChange={(e) => setValues({ ...values, [f.key]: e.target.value })}
+            placeholder={`${t(`bridges.f_${f.key}`)}: ${f.placeholder}`}
+            aria-label={t(`bridges.f_${f.key}`)}
+            className={cn(field, "min-w-0 flex-1 basis-40")}
+          />
+        ))}
+        <Button type="submit" disabled={busy === "add"}>
+          {t("bridges.add")}
+        </Button>
+      </form>
+      <p className="text-xs text-fg-subtle">{t(`bridges.how_${kind}`)}</p>
+      {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
 }

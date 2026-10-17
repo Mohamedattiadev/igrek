@@ -402,3 +402,29 @@ describe("write-ups", () => {
     expect(unfence("## Plain")).toBe("## Plain");
   });
 });
+
+describe("pull request review", () => {
+  test("your review goes out with gh only as you wrote it; changes need a text", async () => {
+    const { CodeHost } = await import("./codehost");
+    const dir = mkdtempSync(join(tmpdir(), "godeye-pr-"));
+    Bun.spawnSync(["git", "init", "-q", dir]);
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    const projectId = store.addProject(dir);
+    const calls: string[][] = [];
+    const runner = async (cmd: string[]) => {
+      calls.push(cmd);
+      if (cmd[0] === "git") return { code: 0, out: "https://github.com/me/app.git", err: "" };
+      return { code: 0, out: cmd[2] === "diff" ? "+added line" : "", err: "" };
+    };
+    const host = new CodeHost(store, {} as never, runner);
+    expect(await host.prDiff(projectId, 5)).toBe("+added line");
+    await host.review(projectId, 5, "approve", "");
+    await host.review(projectId, 5, "changes", "Please add a test");
+    await expect(host.review(projectId, 5, "comment", "  ")).rejects.toThrow();
+    expect(calls.filter((c) => c[1] === "pr" && c[2] === "review").map((c) => c.slice(3).join(" "))).toEqual([
+      "5 -R me/app --approve",
+      "5 -R me/app --request-changes --body Please add a test",
+    ]);
+  });
+});

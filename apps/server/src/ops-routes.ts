@@ -213,6 +213,18 @@ export function registerCodeHostRoutes(app: Hono, host: import("./codehost").Cod
       const r = await guard(() => host[kind](c.req.param("id")));
       return r.ok ? c.json(r.value) : c.json({ error: r.error }, 400);
     });
+  app.get("/api/projects/:id/host/pulls/:number/diff", async (c) => {
+    const r = await guard(() => host.prDiff(c.req.param("id"), Number(c.req.param("number"))));
+    return r.ok ? c.text(String(r.value)) : c.json({ error: r.error }, 400);
+  });
+  app.post("/api/projects/:id/host/pulls/:number/review", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { action?: string; body?: string };
+    const action = body.action === "approve" || body.action === "changes" ? body.action : "comment";
+    const r = await guard(() =>
+      host.review(c.req.param("id"), Number(c.req.param("number")), action, String(body.body ?? "")),
+    );
+    return r.ok ? c.json({ ok: true }) : c.json({ error: r.error }, 400);
+  });
   app.post("/api/projects/:id/host/issues/:number/task", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { start?: boolean };
     const r = await guard(() =>
@@ -570,5 +582,36 @@ export function registerWriteupRoutes(
       insert.run(crypto.randomUUID(), projectId, p.id, new Date().toISOString().slice(0, 10), text, Date.now());
     void team.flush();
     return c.json({ sent: people.length });
+  });
+}
+
+export function registerBridgeRoutes(app: Hono, bridges: import("./bridges").Bridges, language: () => string): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.get("/api/bridges", (c) => c.json(bridges.list()));
+  app.post("/api/bridges", async (c) => {
+    try {
+      return c.json(await bridges.add(await c.req.json()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.patch("/api/bridges/:id", async (c) => {
+    try {
+      bridges.update(c.req.param("id"), await c.req.json());
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/bridges/:id/test", async (c) => {
+    try {
+      return c.json(await bridges.test(c.req.param("id"), language()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/bridges/:id", (c) => {
+    bridges.remove(c.req.param("id"));
+    return c.json({ ok: true });
   });
 }

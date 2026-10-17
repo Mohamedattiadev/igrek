@@ -253,6 +253,160 @@ export function registerTeamRoutes(
       })),
     );
   });
+  // ---- team board (plan.md 13.3): who did what, for visibility, not to blame ----
+  app.get("/api/team/board", (c) => {
+    const days = Math.min(90, Math.max(1, Number(c.req.query("days")) || 30));
+    const since = Date.now() - days * 86_400_000;
+    const me = sync.identity();
+    const people = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        me: boolean;
+        commits: number;
+        sessions: number;
+        comments: number;
+        memory: number;
+        projects: Set<string>;
+      }
+    >();
+    const person = (id: string, name: string, mine: boolean) => {
+      const p = people.get(id) ?? {
+        id,
+        name,
+        me: mine,
+        commits: 0,
+        sessions: 0,
+        comments: 0,
+        memory: 0,
+        projects: new Set<string>(),
+      };
+      people.set(id, p);
+      return p;
+    };
+    const members = sync.memberList();
+    for (const m of members) person(m.id, m.displayName || m.username, m.id === me.id);
+    // Commits are matched by the git author name to a member's name or username.
+    const byName = (author: string) => {
+      const a = author.toLowerCase();
+      return members.find(
+        (m) =>
+          m.displayName.toLowerCase() === a || m.username.toLowerCase() === a || a.includes(m.username.toLowerCase()),
+      );
+    };
+    const shared = new Set(sync.sharedProjectIds());
+    for (const r of store.db
+      .query("SELECT project_id, author, COUNT(*) AS n FROM commits WHERE at >= ? GROUP BY project_id, author")
+      .all(since) as { project_id: string; author: string; n: number }[]) {
+      if (!shared.has(r.project_id)) continue;
+      const m = byName(r.author);
+      const p = m
+        ? person(m.id, m.displayName || m.username, m.id === me.id)
+        : person(`git:${r.author}`, r.author, false);
+      p.commits += r.n;
+      p.projects.add(r.project_id);
+    }
+    for (const r of store.db
+      .query(
+        "SELECT project_id, author_id, COUNT(*) AS n FROM sessions WHERE COALESCE(updated_at, started_at) >= ? GROUP BY project_id, author_id",
+      )
+      .all(since) as { project_id: string | null; author_id: string | null; n: number }[]) {
+      if (!r.project_id || !shared.has(r.project_id)) continue;
+      const id = r.author_id ?? me.id;
+      if (!id) continue;
+      const p = person(
+        id,
+        r.author_id ? (members.find((m) => m.id === id)?.displayName ?? "?") : (me.name ?? "me"),
+        id === me.id,
+      );
+      p.sessions += r.n;
+      p.projects.add(r.project_id);
+    }
+    for (const [table, key] of [
+      ["comments", "comments"],
+      ["memory_items", "memory"],
+    ] as const)
+      for (const r of store.db
+        .query(
+          `SELECT project_id, author_id, COUNT(*) AS n FROM ${table} WHERE ${table === "comments" ? "at" : "created_at"} >= ? GROUP BY project_id, author_id`,
+        )
+        .all(since) as { project_id: string; author_id: string | null; n: number }[]) {
+        if (!shared.has(r.project_id)) continue;
+        const id = r.author_id ?? me.id;
+        if (!id) continue;
+        const p = person(id, members.find((m) => m.id === id)?.displayName ?? me.name ?? "?", id === me.id);
+        p[key] += r.n;
+      }
+    return c.json(
+      [...people.values()]
+        .map((p) => ({ ...p, projects: p.projects.size }))
+        .filter((p) => p.commits + p.sessions + p.comments + p.memory > 0 || !p.id.startsWith("git:"))
+        .sort((a, b) => b.commits + b.sessions - (a.commits + a.sessions)),
+    );
+  });
+
+  // ---- team chat (plan.md 13.3): channels per project, carried by the same encrypted comments ----
+  /** Channels are "<projectId>:<name>"; every shared project has a "general" one. */
+  app.get("/api/channels", (c) => {
+    const projects = new Map(store.listProjects().map((p) => [p.id, p]));
+    const ids = new Set<string>([...sync.sharedProjectIds()].map((id) => `${id}:general`));
+    const rows = store.db
+      .query(
+        `SELECT target_id, project_id, MAX(at) AS last, SUM(CASE WHEN read = 0 THEN 1 ELSE 0 END) AS unread, COUNT(*) AS n
+         FROM comments WHERE target_kind = 'channel' GROUP BY target_id`,
+      )
+      .all() as { target_id: string; project_id: string; last: number; unread: number; n: number }[];
+    for (const r of rows) ids.add(r.target_id);
+    return c.json(
+      [...ids]
+        .map((id) => {
+          const [projectId = "", name = "general"] = id.split(":");
+          const r = rows.find((x) => x.target_id === id);
+          return {
+            id,
+            projectId,
+            project: projects.get(projectId)?.name ?? "",
+            name,
+            last: r?.last ?? 0,
+            unread: r?.unread ?? 0,
+            messages: r?.n ?? 0,
+          };
+        })
+        .filter((ch) => ch.project)
+        .sort((a, b) => b.last - a.last || a.project.localeCompare(b.project)),
+    );
+  });
+  /** "What did we talk about": a short summary of a channel since a time (yesterday by default). */
+  app.post("/api/channels/:id/summary", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { since?: number };
+    const start = new Date();
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+    const since = Number(body.since) || start.getTime();
+    const rows = store.db
+      .query(
+        "SELECT author_name, text, at FROM comments WHERE target_kind = 'channel' AND target_id = ? AND at >= ? ORDER BY at",
+      )
+      .all(c.req.param("id"), since) as { author_name: string | null; text: string; at: number }[];
+    if (!rows.length) return c.json({ error: "No messages in this channel since then" }, 400);
+    try {
+      const summary = await runClaude(
+        [
+          `Summarize this team chat in ${languageName(language())}: what was discussed, what was decided, who will do what, and open questions. Short bullet points, names as written. Only what the messages say.`,
+          ...rows
+            .slice(-400)
+            .map((r) => `[${new Date(r.at).toISOString().slice(0, 16)}] ${r.author_name ?? "me"}: ${r.text}`),
+        ].join("\n"),
+        runnerDir,
+        stops,
+        "haiku",
+      );
+      return c.json({ summary: summary.trim(), messages: rows.length });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
   app.post("/api/comments", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as {
       projectId?: string;
@@ -261,7 +415,12 @@ export function registerTeamRoutes(
       text?: string;
     };
     const text = (body.text ?? "").trim().slice(0, 4000);
-    if (!text || !body.projectId || !body.targetId || !["session", "memory", "section"].includes(body.targetKind ?? ""))
+    if (
+      !text ||
+      !body.projectId ||
+      !body.targetId ||
+      !["session", "memory", "section", "channel"].includes(body.targetKind ?? "")
+    )
       return c.json({ error: "Write something" }, 400);
     const id = crypto.randomUUID();
     const mentions = await sync.mentionsIn(text);
