@@ -780,7 +780,9 @@
     "emailed": "Emailed to {{to}}",
     "emailFailed": "The email didn't go out ({{error}}). Copy the code and send it another way.",
     "editEmail": "Email address for invites and password resets",
-    "addEmail": "add email"
+    "addEmail": "add email",
+    "linkedBanner": "Your team shares this repo: you see their sessions and decisions here. Yours stay on this computer until you share them.",
+    "linkedShare": "Share mine too"
   },
   "enhance": {
     "button": "Enhance prompt",

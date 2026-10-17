@@ -115,9 +115,10 @@ describe("team sync", () => {
     const message = b.db.query("SELECT text FROM messages WHERE id = 'm1'").get() as { text: string };
     expect(message.text).not.toContain("sk-ant-api03");
     // Receiving a shared project doesn't start sharing Kerim's own work.
-    expect((b.db.query("SELECT share FROM projects WHERE id = 'local-p'").get() as { share: string }).share).toBe(
-      "summary",
-    );
+    expect(b.db.query("SELECT share, team_linked FROM projects WHERE id = 'local-p'").get()).toEqual({
+      share: "off",
+      team_linked: 1,
+    });
     expect((b.db.query("SELECT dirty FROM memory_items WHERE id = 'k1'").get() as { dirty: number }).dirty).toBe(0);
   });
 
@@ -181,6 +182,29 @@ describe("team sync", () => {
     await until(() => !b.db.query("SELECT 1 FROM sessions WHERE id = 's1'").get());
   });
 
+  test("a project you only receive sends your comments, never your own sessions", async () => {
+    const now = Date.now();
+    b.db
+      .query(
+        "INSERT INTO sessions (id, project_id, tool, title, started_at, updated_at, user_messages) VALUES ('kerim-own', 'local-p', 'claude', 'Kerim private work', ?, ?, 3)",
+      )
+      .run(now - 500, now);
+    b.db
+      .query(
+        "INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read) VALUES ('kc1', 'local-p', 'session', 's1', NULL, 'kerim', 'Nice, ship it', '[]', ?, 1)",
+      )
+      .run(now);
+    const sessionsBefore = (
+      hub.db.query("SELECT COUNT(*) AS n FROM events WHERE kind = 'session'").get() as { n: number }
+    ).n;
+    await b.sync.flush();
+    await until(() => !!a.db.query("SELECT 1 FROM comments WHERE id = 'kc1'").get());
+    expect((hub.db.query("SELECT COUNT(*) AS n FROM events WHERE kind = 'session'").get() as { n: number }).n).toBe(
+      sessionsBefore,
+    );
+    expect(a.db.query("SELECT 1 FROM sessions WHERE id = 'kerim-own'").get()).toBeNull();
+  });
+
   test("comments with @mentions and a prompt suggestion reach the teammate", async () => {
     const now = Date.now();
     const kerim = hub.users().find((u) => u.username === "kerim");
@@ -202,7 +226,8 @@ describe("team sync", () => {
     const got = b.db.query("SELECT author_name, text FROM comments WHERE target_id = 'security'").get();
     expect(got).toEqual({ author_name: "mohamed", text: "Can you look at this @kerim?" });
     expect(b.sync.mentionNotices().length).toBe(1);
-    expect(a.sync.mentionNotices().length).toBe(0);
+    // Your own comment never notifies you; Kerim's comment on your session (earlier test) does.
+    expect(a.sync.mentionNotices().map((n) => n.id)).toEqual(["comment-kc1"]);
     const message = b.db.query("SELECT kind, text, from_name FROM team_messages WHERE outgoing = 0").get();
     expect(message).toEqual({ kind: "suggestion", text: "Add a rate limit to login", from_name: "mohamed" });
   });

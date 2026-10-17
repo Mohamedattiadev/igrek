@@ -220,6 +220,8 @@ export interface ProjectListItem {
   workspace: "local" | "team";
   /** How much of this project goes to the team hub. */
   share: ShareLevel;
+  /** A teammate shares the same repo: their work shows here even while yours isn't shared. */
+  teamLinked: boolean;
   /** Recommended flow (branches → main → deploy): warn before committing straight to main. */
   gitFlow: boolean;
   /** Teammates who worked here in the last two weeks (hub user ids). */

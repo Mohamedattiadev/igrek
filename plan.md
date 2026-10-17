@@ -659,7 +659,7 @@ god-eye/
 #### 4.7 ✅ Alınan kararlar (önerilen varsayılanlar)
 - [x] **Uçtan uca şifreleme: AÇIK** (kapatılamaz). Güvenliğin temeli
 - [x] **Kurtarma anahtarı:** onboarding'de gösterilir, kaydetmek zorunludur (indir veya yazdır). Ayrıca yönetici, üyenin erişimini yeni bir cihaza tekrar verebilir (yeni cihaz, mevcut cihazlardan biri tarafından onaylanır) — *kopyalamadan/indirmeden kapanmaz; tüm anahtar sürümlerini içerir*
-- [ ] **Paylaşım varsayılanları:**
+- [x] **Paylaşım varsayılanları:** — *takım arkadaşının paylaştığı bir repo sende de varsa onların işi gelir ama seninkiler sen "paylaş" diyene kadar gitmez (yorum ve önerilerin gider)*
   - 💻 Lokal projeler → **Kapalı** (hiçbir şey çıkmaz)
   - 🤝 Takım projeleri → **Tam** (session'lar canlı paylaşılır; sır temizleyici her zaman çalışır). Takımın birbirini görmesi bu sistemin asıl amacı
   - Session bazında "🔒 Gizli" anahtarı her zaman mevcuttur

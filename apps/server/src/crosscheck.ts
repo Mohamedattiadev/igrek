@@ -60,9 +60,12 @@ export class CrossCheck {
     if (!other) return false;
     this.db
       .query(
-        "UPDATE memory_items SET status = 'conflict', conflict_with = ?, conflict_reason = ?, updated_at = ?, dirty = 1 WHERE id = ? AND status = 'active'",
+        // If you don't share this project, your decision isn't on their side: keep the warning to yourself.
+        `UPDATE memory_items SET status = 'conflict', conflict_with = ?, conflict_reason = ?, updated_at = ?,
+           dirty = CASE WHEN (SELECT share FROM projects WHERE id = ?) = 'off' THEN 0 ELSE 1 END
+         WHERE id = ? AND status = 'active'`,
       )
-      .run(other.id, (parsed?.reason ?? "").trim().slice(0, 300), Date.now(), item.id);
+      .run(other.id, (parsed?.reason ?? "").trim().slice(0, 300), Date.now(), projectId, item.id);
     this.bus.publish({ type: "sessions-changed", projectIds: [projectId], sessionIds: [] });
     return true;
   }

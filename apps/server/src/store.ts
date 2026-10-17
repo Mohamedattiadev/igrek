@@ -71,6 +71,7 @@ interface ProjectRow {
   workspace?: string | null;
   share?: string | null;
   git_flow?: number | null;
+  team_linked?: number | null;
 }
 
 function rowToState(row: SessionRow): SessionState {
@@ -224,6 +225,7 @@ export class Store {
       path: row.path,
       workspace: row.workspace === "team" ? "team" : "local",
       share: (row.share as ShareLevel | null) ?? "off",
+      teamLinked: !!row.team_linked,
       gitFlow: row.git_flow !== 0,
       teamAuthors: (
         this.db

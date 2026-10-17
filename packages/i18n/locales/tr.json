@@ -780,7 +780,9 @@
     "emailed": "{{to}} adresine gönderildi",
     "emailFailed": "E-posta gitmedi ({{error}}). Kodu kopyalayıp başka yolla gönder.",
     "editEmail": "Davet ve şifre sıfırlama için e-posta adresi",
-    "addEmail": "e-posta ekle"
+    "addEmail": "e-posta ekle",
+    "linkedBanner": "Takımın bu repoyu paylaşıyor: onların oturumlarını ve kararlarını burada görüyorsun. Seninkiler paylaşmayı açana kadar bu bilgisayarda kalır.",
+    "linkedShare": "Benimkileri de paylaş"
   },
   "enhance": {
     "button": "Prompt'u güçlendir",

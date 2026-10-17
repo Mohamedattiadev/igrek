@@ -9,6 +9,7 @@ import {
   GitCommitHorizontal,
   Plug,
   RefreshCw,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -338,7 +339,7 @@ export function ProjectPage() {
           {project && <ActiveDot active={project.activeSessions > 0} />}
           <h1 className="text-[15px] font-semibold">{project?.name ?? "…"}</h1>
           {project?.health && <HealthBadge health={project.health} />}
-          {project && project.share !== "off" && <TeamPresence projectId={project.id} />}
+          {project && (project.share !== "off" || project.teamLinked) && <TeamPresence projectId={project.id} />}
           <div className="flex-1" />
           {project && <NewSession projectId={project.id} />}
         </div>
@@ -366,6 +367,19 @@ export function ProjectPage() {
           ))}
         </nav>
       </header>
+      {project?.teamLinked && project.share === "off" && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-border bg-accent-soft px-6 py-2 text-xs">
+          <Users size={13} className="text-accent" aria-hidden="true" />
+          <span className="text-fg-muted">{t("team.linkedBanner")}</span>
+          <Button
+            size="sm"
+            onClick={() => void api.setShare(project.id, "full").then(reload)}
+            data-tip={t("team.shareTip_full")}
+          >
+            {t("team.linkedShare")}
+          </Button>
+        </div>
+      )}
       <div className={tab === "code" ? "flex min-h-0 flex-1" : "mx-auto w-full max-w-6xl p-6"}>
         {!project ? (
           <div className="h-64 animate-pulse rounded-ui bg-bg-subtle" />

@@ -9,7 +9,9 @@ function setup(reply: string, autoSummarize = true) {
   const db = new Database(":memory:");
   migrate(db);
   const now = Date.now();
-  db.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p', 'Shop', '/a/shop', ?)").run(now);
+  db.query("INSERT INTO projects (id, name, path, created_at, share) VALUES ('p', 'Shop', '/a/shop', ?, 'full')").run(
+    now,
+  );
   const add = db.query(
     "INSERT INTO memory_items (id, project_id, section, text, created_at, author_id, author_name) VALUES (?, 'p', 'decision', ?, ?, ?, ?)",
   );

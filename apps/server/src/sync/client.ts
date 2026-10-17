@@ -474,7 +474,7 @@ export class Sync {
   async projectKeys(): Promise<{ projectId: string; name: string; key: string }[]> {
     if (!this.idKey) return [];
     const out = [];
-    for (const p of this.sharedProjects())
+    for (const p of this.linkedProjects())
       out.push({ projectId: p.id, name: p.name, key: await projectKey(this.idKey, p.identity ?? `path:${p.path}`) });
     return out;
   }
@@ -841,10 +841,17 @@ export class Sync {
     }[];
   }
 
+  /** Shared projects, plus local ones a teammate shares that we only receive. */
+  private linkedProjects(): { id: string; name: string; identity: string | null; path: string; share: ShareLevel }[] {
+    return this.db
+      .query("SELECT id, name, identity, path, share FROM projects WHERE share != 'off' OR team_linked = 1")
+      .all() as { id: string; name: string; identity: string | null; path: string; share: ShareLevel }[];
+  }
+
   private async subscribeAll(): Promise<void> {
     if (!this.idKey || !this.indexKey) return;
     const keys = [this.indexKey];
-    for (const project of this.sharedProjects()) {
+    for (const project of this.linkedProjects()) {
       const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
       this.keyToProject.set(key, project.id);
       keys.push(key);
@@ -1039,12 +1046,14 @@ export class Sync {
     if (this.config?.user.role === "viewer") return;
     this.flushing = true;
     try {
-      for (const project of this.sharedProjects()) {
+      for (const project of this.linkedProjects()) {
         const identity = project.identity ?? `path:${project.path}`;
         const key = await projectKey(this.idKey as TeamKey, identity);
         this.keyToProject.set(key, project.id);
+        // Receive-only: just what you send on purpose (comments, suggestions) and edits to teammates' items.
+        const sharing = project.share !== "off";
 
-        if (!this.cursor("announce", project.id)) {
+        if (sharing && !this.cursor("announce", project.id)) {
           await this.publish(this.indexKey, "project", `announce-${key.slice(0, 16)}-${Date.now()}`, {
             identity,
             name: project.name,
@@ -1056,13 +1065,15 @@ export class Sync {
 
         // Own sessions (teammates' rows have an author and are never re-sent).
         const sessionCursor = this.cursor("sessions", project.id);
-        const sessions = this.db
-          .query(
-            `SELECT * FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0
-               AND MAX(COALESCE(updated_at, 0), COALESCE(summary_at, 0)) > ?
-             ORDER BY updated_at LIMIT 50`,
-          )
-          .all(project.id, sessionCursor) as Record<string, unknown>[];
+        const sessions = sharing
+          ? (this.db
+              .query(
+                `SELECT * FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0
+                   AND MAX(COALESCE(updated_at, 0), COALESCE(summary_at, 0)) > ?
+                 ORDER BY updated_at LIMIT 50`,
+              )
+              .all(project.id, sessionCursor) as Record<string, unknown>[])
+          : [];
         let maxSession = sessionCursor;
         for (const s of sessions) {
           const payload = {
@@ -1090,7 +1101,7 @@ export class Sync {
         if (maxSession > sessionCursor) this.setCursor("sessions", project.id, maxSession);
 
         // Full sharing: the conversation itself, in batches.
-        if (project.share === "full") {
+        if (sharing && project.share === "full") {
           const messageCursor = this.cursor("messages", project.id);
           const rows = this.db
             .query(
@@ -1148,7 +1159,9 @@ export class Sync {
 
         // Memory: any change made here (including edits to a teammate's item).
         const memory = this.db
-          .query("SELECT * FROM memory_items WHERE project_id = ? AND dirty = 1 LIMIT 100")
+          .query(
+            `SELECT * FROM memory_items WHERE project_id = ? AND dirty = 1 ${sharing ? "" : "AND author_id IS NOT NULL"} LIMIT 100`,
+          )
           .all(project.id) as Record<string, unknown>[];
         for (const item of memory) {
           const ok = await this.publish(key, "memory", `mem-${item.id}-${item.updated_at ?? item.created_at}`, {
@@ -1415,7 +1428,7 @@ export class Sync {
         .run(id, name, `team:${identity}`, identity, Date.now());
     } else if (local?.share === "off") {
       // Same repo exists here but isn't shared yet: receive the team's work for it, send nothing until the user decides.
-      this.db.query("UPDATE projects SET share = 'summary' WHERE id = ? AND share = 'off'").run(id);
+      this.db.query("UPDATE projects SET team_linked = 1 WHERE id = ?").run(id);
     }
     const key = await projectKey(this.idKey as TeamKey, identity);
     if (!this.keyToProject.has(key)) {

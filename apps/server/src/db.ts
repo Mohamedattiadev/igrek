@@ -353,6 +353,8 @@ const migrations: string[] = [
      asked_at INTEGER,
      PRIMARY KEY (project, device, from_n)
    );`,
+  // A local project a teammate also shares: receive their work, send nothing of yours until you choose to.
+  `ALTER TABLE projects ADD COLUMN team_linked INTEGER NOT NULL DEFAULT 0;`,
 ];
 
 export function migrate(sqlite: Database): number {
