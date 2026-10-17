@@ -19,6 +19,7 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { ApprovalCard } from "../components/ApprovalCard";
+import { TeamText } from "../components/TeamText";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
@@ -198,7 +199,9 @@ export function InboxPage() {
                             {t(m.kind === "handoff" ? "inbox.handoffFrom" : "inbox.suggestionFrom")}
                             {m.title && <span className="ms-1 text-fg-subtle">· {m.title}</span>}
                           </p>
-                          <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-fg-muted">{m.text}</p>
+                          <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-fg-muted">
+                            <TeamText text={m.text} authorId={m.fromId} />
+                          </p>
                         </div>
                         <span className="text-[11px] text-fg-subtle">{relativeTime(m.at)}</span>
                         <Button

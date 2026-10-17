@@ -71,6 +71,15 @@ import type {
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
 
+export interface PackStatus {
+  code: string;
+  bundled: boolean;
+  state: "bundled" | "none" | "ready" | "partial" | "generating" | "failed";
+  done: number;
+  total: number;
+  error?: string;
+}
+
 export interface GitBranchInfo {
   name: string;
   current: boolean;
@@ -108,6 +117,18 @@ export const api = {
   updateSettings: (patch: Partial<Settings>) =>
     request<Settings>("/api/settings", { method: "PATCH", body: JSON.stringify(patch) }),
   languages: () => request<LanguageOption[]>("/api/languages"),
+  translate: (texts: string[], force = false) =>
+    request<{ to: string; texts: (string | undefined)[] }>("/api/translate", {
+      method: "POST",
+      body: JSON.stringify({ texts, force }),
+    }),
+  languagePack: (code: string) =>
+    request<{ status: PackStatus; messages: Record<string, unknown> }>(`/api/i18n/${code}`),
+  generatePack: (code: string) => request<PackStatus>(`/api/i18n/${code}/generate`, { method: "POST" }),
+  packRows: (code: string) =>
+    request<{ key: string; en: string; text: string; corrected: boolean }[]>(`/api/i18n/${code}/rows`),
+  fixTranslation: (code: string, key: string, text: string | null) =>
+    request<{ ok: boolean }>(`/api/i18n/${code}/override`, { method: "PUT", body: JSON.stringify({ key, text }) }),
   system: () => request<SystemStatus>("/api/system"),
   emergencyStop: () => request<{ stopped: number; stoppedAt: string }>("/api/emergency-stop", { method: "POST" }),
   indexStatus: () => request<IndexStatus>("/api/index/status"),
@@ -404,7 +425,7 @@ export const api = {
   teamActivitySummary: (user: string) =>
     request<{ text: string }>("/api/team/activity/summary", { method: "POST", body: JSON.stringify({ user }) }),
   comments: (kind: string, id: string) =>
-    request<{ id: string; author?: string; mine: boolean; text: string; at: number }[]>(
+    request<{ id: string; author?: string; authorId?: string; mine: boolean; text: string; at: number }[]>(
       `/api/comments?kind=${kind}&id=${encodeURIComponent(id)}`,
     ),
   addComment: (body: { projectId: string; targetKind: string; targetId: string; text: string }) =>
@@ -416,6 +437,7 @@ export const api = {
         kind: "suggestion" | "handoff";
         projectId: string;
         from?: string;
+        fromId?: string;
         sessionId?: string;
         title?: string;
         text: string;

@@ -13,6 +13,7 @@ import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CommandPalette } from "./CommandPalette";
 import { IdeaCapture } from "./IdeaCapture";
+import { useLanguagePackSync } from "./LanguagePack";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
@@ -162,6 +163,7 @@ export function Shell() {
   const status = useServerSocket(onMessage);
   const openPalette = useCallback(() => setPaletteOpen(true), []);
   useVimNavigation(settings.keymap === "vim", openPalette);
+  useLanguagePackSync(settings.language);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {

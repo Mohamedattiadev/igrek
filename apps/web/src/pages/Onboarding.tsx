@@ -1,8 +1,10 @@
 import { ArrowRight, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { Button } from "../components/ui";
+import { isBundled } from "../lib/i18n";
 import { useSettings } from "../lib/settings";
 
 /**
@@ -27,7 +29,8 @@ export function Onboarding() {
           <>
             <h1 className="text-[18px] font-semibold">{t("onboarding.welcome")}</h1>
             <p className="mt-1 mb-4 text-[13px] text-fg-muted">{t("onboarding.pickLanguage")}</p>
-            <LanguagePicker value={settings.language} onChange={(language) => update({ language })} />
+            <LanguagePicker value={settings.language} onChange={(language) => chooseLanguage(language, update)} />
+            {!isBundled(settings.language) && <LanguagePackPanel code={settings.language} />}
             <div className="mt-5 flex justify-end">
               <Button variant="primary" onClick={() => setStep(1)}>
                 {t("onboarding.continue")}

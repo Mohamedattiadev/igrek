@@ -24,6 +24,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { Comments } from "../components/Comments";
 import { useTeamPeople } from "../components/TeamAvatar";
+import { TeamText } from "../components/TeamText";
 import { Badge, Button, Card, EmptyState } from "../components/ui";
 import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
@@ -342,7 +343,11 @@ export function SessionPage() {
         </Link>
         {session && <ActiveDot active={session.active} />}
         <h1 className="min-w-0 flex-1 truncate text-[14px] font-semibold">
-          {session?.summary?.title || session?.title || "…"}
+          {session?.authorId ? (
+            <TeamText text={session.summary?.title || session.title || "…"} authorId={session.authorId} />
+          ) : (
+            session?.summary?.title || session?.title || "…"
+          )}
         </h1>
         {session?.active && <Badge tone="success">{t("session.active")}</Badge>}
         {session?.projectId && <ResumeButtons session={session} />}
@@ -364,7 +369,7 @@ export function SessionPage() {
                 </Button>
               </div>
               {session.summary ? (
-                <SummaryView summary={session.summary} />
+                <SummaryView summary={session.summary} authorId={session.authorId} />
               ) : (
                 <p className="text-[13px] text-fg-muted">{t("session.noSummaryBody")}</p>
               )}

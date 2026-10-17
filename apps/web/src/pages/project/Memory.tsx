@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Comments } from "../../components/Comments";
 import { useTeamPeople } from "../../components/TeamAvatar";
+import { TeamText } from "../../components/TeamText";
 import { Button, Card, EmptyState } from "../../components/ui";
 import { api } from "../../lib/api";
 import { relativeTime } from "../../lib/format";
@@ -94,7 +95,7 @@ function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId:
     <li data-nav-item tabIndex={-1} className="group px-pad py-2.5">
       <div className="flex items-start gap-3">
         <p className="flex-1 text-[13px] leading-relaxed">
-          {item.text}
+          <TeamText text={item.text} authorId={item.authorId} />
           {item.author && <span className="ms-2 text-[11px] text-fg-subtle">— {item.author}</span>}
         </p>
         {item.sourceSession && (

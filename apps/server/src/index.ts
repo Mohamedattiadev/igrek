@@ -27,11 +27,13 @@ import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
+import { registerI18nRoutes } from "./i18n-routes";
 import { Indexer } from "./indexer";
 import { Insight } from "./insight";
 import { HistoryImport } from "./insight/history";
 import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
+import { LanguagePacks } from "./langpacks";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
@@ -42,6 +44,7 @@ import { Sync } from "./sync/client";
 import { registerTeamRoutes } from "./team-routes";
 import { registerTerminalRoutes } from "./terminal-routes";
 import { Terminals } from "./terminals";
+import { Translator } from "./translator";
 
 // Everything God Eye writes (database, keys) is readable only by you.
 process.umask(0o077);
@@ -101,6 +104,8 @@ const files = new Files(
 );
 // Team hub: only active once the user connects from the Team page.
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
+const translator = new Translator(sqlite, () => readSettings(db), join(config.dataDir, "runner"));
+const languagePacks = new LanguagePacks(join(config.dataDir, "i18n"), bus, join(config.dataDir, "runner"));
 const crossCheck = new CrossCheck(sqlite, bus, () => readSettings(db), join(config.dataDir, "runner"));
 sync.onTeammateDecision = (projectId, itemId) => crossCheck.add(projectId, itemId);
 const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
@@ -136,6 +141,7 @@ const app = createApp({
     });
     registerEnhanceRoutes(hono, enhancer);
     registerHttpRoutes(hono, store);
+    registerI18nRoutes(hono, languagePacks, translator, () => readSettings(db).language);
     registerDeployRoutes(hono, {
       servers,
       envs: new Environments(

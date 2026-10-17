@@ -3,6 +3,7 @@ import { CheckCircle2, Circle, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
+import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
@@ -106,7 +107,8 @@ export function SettingsPage() {
       <PageHeader title={t("settings.title")} />
       <div className="mx-auto w-full max-w-4xl px-6">
         <Section title={t("settings.language")} hint={t("settings.languageHint")}>
-          <LanguagePicker value={settings.language} onChange={(language) => update({ language })} />
+          <LanguagePicker value={settings.language} onChange={(language) => chooseLanguage(language, update)} />
+          <LanguagePackPanel code={settings.language} />
         </Section>
         <Section title={t("settings.theme")}>
           <Segmented

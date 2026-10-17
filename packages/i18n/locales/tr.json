@@ -106,7 +106,7 @@
     "title": "Ayarlar",
     "language": "Dil",
     "languageHint": "Türkçe ve İngilizce hazır. Diğer diller, ilk seçtiğinde senin için hazırlanacak.",
-    "languageSoon": "hazırlanacak",
+    "languageSoon": "AI ile hazırlanır",
     "theme": "Tema",
     "themeSystem": "Sisteme uy",
     "themeLight": "Açık",
@@ -1582,5 +1582,27 @@
     "toggle": "Zen modu: sadece içerik",
     "exit": "Zen modundan çık",
     "exitTip": "Yan çubuğu, üst çubuğu ve durum çubuğunu geri getir (Ctrl+Alt+Z)"
+  },
+  "langpack": {
+    "generating": "Dil paketi Claude girişinle hazırlanıyor: %{{percent}}…",
+    "ready": "Dil paketi hazır. İnternetsiz de çalışır.",
+    "none": "Henüz dil paketi yok. Hazırlanana kadar metinler İngilizce görünür.",
+    "partial_one": "{{count}} metin henüz çevrilmedi (İngilizce görünür).",
+    "partial_other": "{{count}} metin henüz çevrilmedi (İngilizce görünür).",
+    "progress": "Dil paketi ilerlemesi",
+    "make": "Dil paketini hazırla",
+    "update": "Kalanları çevir",
+    "makeTip": "Kendi girişinle Claude Haiku bir kere çevirir (birkaç dakika), sonra bu bilgisayarda saklanır",
+    "fix": "Bir çeviriyi düzelt",
+    "fixHint": "Düzeltmek için bir metne tıkla. Düzeltmelerin bu bilgisayarda saklanır ve paketin önüne geçer.",
+    "search": "Metinlerde ara",
+    "undo": "Düzeltmemi geri al",
+    "undoTip": "Asıl çeviriye dön"
+  },
+  "translate": {
+    "do": "Çevir",
+    "tip": "Takım arkadaşının dilinden otomatik çevrildi",
+    "showOriginal": "orijinali",
+    "showTranslated": "çeviri"
   }
 }

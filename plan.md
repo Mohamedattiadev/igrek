@@ -264,14 +264,14 @@ god-eye/
 - [ ] Performans: ilk açılış < 1 sn, sayfa geçişi < 100 ms
 
 ### 7.4 Her dil
-- [ ] ⭐ Onboarding'in ilk adımı dil seçimi; aranabilir liste, dünyadaki tüm diller
+- [x] ⭐ Onboarding'in ilk adımı dil seçimi; aranabilir liste, dünyadaki tüm diller — *ISO 639-1'in tamamı (183 dil), adlar kendi dilinde*
 - [x] ⭐ Hazır paketler: Türkçe ve İngilizce (elle kontrol edilmiş)
-- [ ] Diğer diller: seçilince **dil paketi AI ile üretilir** (bir kere, birkaç dakika), `~/.godeye/i18n/` altına kaydedilir. Sonra çevrimdışı da çalışır
-- [ ] Paket kalitesini düzeltme: arayüzde "bu çeviri yanlış" → düzeltme kaydedilir
+- [x] Diğer diller: seçilince **dil paketi AI ile üretilir** (bir kere, birkaç dakika), `~/.godeye/i18n/` altına kaydedilir. Sonra çevrimdışı da çalışır — *Haiku ile parça parça (3 paralel), {{yer tutucular}} ve çoğul biçimler (ör. Rusça few/many) kontrol edilir; yeni metinler eklenince sadece eksikler çevrilir*
+- [x] Paket kalitesini düzeltme: arayüzde "bu çeviri yanlış" → düzeltme kaydedilir — *Ayarlar → Dil → "Bir çeviriyi düzelt"; Türkçe/İngilizce için de çalışır, anında uygulanır*
 - [x] RTL (sağdan sola) yerleşim desteği — *sağdan sola dillerde `dir=rtl`, yön ikonları çevrilir*
 - [x] Tarih, saat, sayı ve para formatları seçilen dile göre — *Intl ile*
-- [ ] Tüm AI çıktıları (özetler, persona cevapları, raporlar) kullanıcının dilinde
-- [ ] Takımda herkes kendi dilinde görür: arkadaşımın Norveççe notu bana Türkçe çevrilmiş görünür, "orijinali göster" seçeneği de olur
+- [x] Tüm AI çıktıları (özetler, persona cevapları, raporlar) kullanıcının dilinde — *özetler, sorular, prompt güçlendirici ve raporlar kullanıcının dilinde; personalar Faz 6'da aynı kuralla*
+- [x] Takımda herkes kendi dilinde görür: arkadaşımın Norveççe notu bana Türkçe çevrilmiş görünür, "orijinali göster" seçeneği de olur — *takım arkadaşının profil dili seninkinden farklıysa yorum, karar, öneri, oturum başlığı ve özet otomatik çevrilir (bir kere, önbellekte); "orijinali" bağlantısı; arka plan AI kapalıysa "Çevir" düğmesi*
 
 ---
 

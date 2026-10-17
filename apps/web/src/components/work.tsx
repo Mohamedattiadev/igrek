@@ -2,6 +2,7 @@ import type { SessionHealth, SessionSummaryData } from "@godeye/core";
 import { HeartPulse } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
+import { TeamText } from "./TeamText";
 import { Badge, StatusDot } from "./ui";
 
 const LEVEL_TONE = { good: "success", warn: "warning", bad: "danger" } as const;
@@ -45,10 +46,13 @@ export function useSummaryText(summary?: SessionSummaryData) {
   return summary.texts[i18n.language] ?? summary.texts.en ?? Object.values(summary.texts)[0];
 }
 
-export function SummaryView({ summary }: { summary: SessionSummaryData }) {
-  const { t } = useTranslation();
+/** A teammate's summary without your language is translated (plan.md 7.4); `authorId` marks it as theirs. */
+export function SummaryView({ summary, authorId }: { summary: SessionSummaryData; authorId?: string }) {
+  const { t, i18n } = useTranslation();
   const text = useSummaryText(summary);
   if (!text) return null;
+  const theirs = authorId && !summary.texts[i18n.language] ? authorId : undefined;
+  const show = (value: string) => (theirs ? <TeamText text={value} authorId={theirs} /> : value);
   const block = (title: string, items: string[], tone?: "warning") =>
     items.length > 0 && (
       <div>
@@ -59,7 +63,7 @@ export function SummaryView({ summary }: { summary: SessionSummaryData }) {
           {items.map((item) => (
             <li key={item} className="flex gap-2 text-[13px] leading-relaxed">
               <span className="mt-2 size-1 shrink-0 rounded-full bg-fg-subtle" />
-              {item}
+              <span>{show(item)}</span>
             </li>
           ))}
         </ul>
@@ -70,7 +74,7 @@ export function SummaryView({ summary }: { summary: SessionSummaryData }) {
       {text.why && (
         <p className="text-[13px] leading-relaxed text-fg-muted">
           <span className="font-semibold text-fg">{t("session.why")}: </span>
-          {text.why}
+          {show(text.why)}
         </p>
       )}
       {block(t("session.did"), text.did)}

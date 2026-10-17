@@ -185,6 +185,7 @@ export interface MemoryItem {
   createdAt: number;
   /** Teammate who wrote it; empty for your own. */
   author?: string;
+  authorId?: string;
   /** Set when this item contradicts an older one; the user decides which stays. */
   /** withAuthor: the teammate who wrote the other item (none when it is yours). */
   conflict?: { withId: string; withText: string; withAuthor?: string; reason: string };
@@ -598,7 +599,8 @@ export type ServerMessage =
   | { type: "insight-changed"; projectId: string }
   | { type: "import-progress"; projectId: string }
   | { type: "deploys-changed"; projectId: string }
-  | { type: "presence" };
+  | { type: "presence" }
+  | { type: "i18n-progress"; code: string };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };

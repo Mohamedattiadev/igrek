@@ -246,6 +246,7 @@ export function registerTeamRoutes(
       rows.map((r) => ({
         id: r.id,
         author: r.author_name ?? undefined,
+        authorId: r.author_id ?? undefined,
         mine: r.author_id === null,
         text: r.text,
         at: r.at,
@@ -294,6 +295,7 @@ export function registerTeamRoutes(
         kind: m.kind,
         projectId: m.project_id,
         from: m.from_name,
+        fromId: m.from_id,
         sessionId: m.session_id,
         title: m.title,
         text: m.text,

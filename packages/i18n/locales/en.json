@@ -106,7 +106,7 @@
     "title": "Settings",
     "language": "Language",
     "languageHint": "Turkish and English are ready. Other languages will be prepared for you the first time you pick them.",
-    "languageSoon": "will be prepared",
+    "languageSoon": "made with AI",
     "theme": "Theme",
     "themeSystem": "Follow system",
     "themeLight": "Light",
@@ -1582,5 +1582,27 @@
     "toggle": "Zen mode: only the content",
     "exit": "Leave zen mode",
     "exitTip": "Bring back the side bar, top bar and status bar (Ctrl+Alt+Z)"
+  },
+  "langpack": {
+    "generating": "Making the language pack with your Claude login: {{percent}}%",
+    "ready": "Language pack ready. It works offline.",
+    "none": "No language pack yet. Texts show in English until it's made.",
+    "partial_one": "{{count}} text isn't translated yet (shown in English).",
+    "partial_other": "{{count}} texts aren't translated yet (shown in English).",
+    "progress": "Language pack progress",
+    "make": "Make the language pack",
+    "update": "Translate the rest",
+    "makeTip": "Translated once by Claude Haiku with your own login (a few minutes), then saved on this computer",
+    "fix": "Fix a translation",
+    "fixHint": "Click a text to correct it. Your corrections are kept on this computer and win over the pack.",
+    "search": "Search texts",
+    "undo": "Undo my fix",
+    "undoTip": "Go back to the original translation"
+  },
+  "translate": {
+    "do": "Translate",
+    "tip": "Translated automatically from your teammate's language",
+    "showOriginal": "original",
+    "showTranslated": "translated"
   }
 }

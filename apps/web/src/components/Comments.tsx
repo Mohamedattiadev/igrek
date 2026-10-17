@@ -5,11 +5,13 @@ import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { useTeamPeople } from "./TeamAvatar";
+import { TeamText } from "./TeamText";
 import { Button, Card } from "./ui";
 
 interface CommentRow {
   id: string;
   author?: string;
+  authorId?: string;
   mine: boolean;
   text: string;
   at: number;
@@ -62,7 +64,9 @@ export function Comments({
         <div key={r.id} className="text-[13px]">
           <span className="font-medium">{r.mine ? t("team.you") : r.author}</span>
           <span className="ms-2 text-[11px] text-fg-subtle">{relativeTime(r.at)}</span>
-          <p className="whitespace-pre-wrap text-fg-muted">{r.text}</p>
+          <p className="whitespace-pre-wrap text-fg-muted">
+            <TeamText text={r.text} authorId={r.authorId} />
+          </p>
         </div>
       ))}
       {matches.length > 0 && (

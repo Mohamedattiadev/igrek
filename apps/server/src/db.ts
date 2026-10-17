@@ -355,6 +355,14 @@ const migrations: string[] = [
    );`,
   // A local project a teammate also shares: receive their work, send nothing of yours until you choose to.
   `ALTER TABLE projects ADD COLUMN team_linked INTEGER NOT NULL DEFAULT 0;`,
+  // Teammates' notes in your language (plan.md 7.4), translated once and kept.
+  `CREATE TABLE translations (
+     hash TEXT NOT NULL,
+     lang TEXT NOT NULL,
+     text TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     PRIMARY KEY (hash, lang)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {
