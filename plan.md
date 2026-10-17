@@ -618,7 +618,7 @@ god-eye/
 - [x] Denetim kaydı (audit log): kim, ne zaman, ne yaptı (giriş, rol değişikliği, silme, deploy, `.env` değişikliği) — *hub tarafı: giriş, kullanıcı ve şifre işlemleri*
 - [x] Hub sağlığı: RAM, CPU, disk, bağlı kullanıcılar, senkron kuyruğu — *RAM, depolama, çevrimiçi sayısı, event sayısı*
 - [x] Yedek ve geri yükleme, saklama süresi ayarları — *günlük şifreli yedek (HUB_BACKUP_KEY), CLI ile geri yükleme, saklama süresi politikası*
-- [ ] **E-posta (ücretsiz):** davet ve şifre sıfırlama mailleri için kendi SMTP'n (ör. Gmail uygulama şifresi). SMTP yoksa admin linki kopyalayıp WhatsApp vb. ile gönderir
+- [x] **E-posta (ücretsiz):** davet ve şifre sıfırlama mailleri için kendi SMTP'n (ör. Gmail uygulama şifresi). SMTP yoksa admin linki kopyalayıp WhatsApp vb. ile gönderir — *`SMTP_*` ortam değişkenleri; davet ve sıfırlama kodu e-postayla gider, "şifremi unuttum" 30 dk geçerli tek kullanımlık kod gönderir; e-posta adresleri takım arkadaşlarına gösterilmez*
 - [x] Admin devri ve ikinci admin ekleme (tek kişiye bağımlı kalmamak için) — *son admin silinemez/düşürülemez*
 - [x] 🔒 Şifre sıfırlama girişi açar ama şifreli veriye erişim için kullanıcının yeni cihazı admin veya mevcut bir cihazı tarafından onaylanır (uçtan uca şifreleme korunur)
 - [x] 🔒 Admin bile kullanıcıların şifrelerini **göremez** (sadece yenisini belirleyebilir); şifreler argon2id ile saklanır
@@ -638,9 +638,9 @@ god-eye/
 - [ ] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir
 
 #### 4.5 Hub (VPS tarafı)
-- [ ] ⭐ Tek küçük binary / Docker imajı (< 80 MB), `docker compose up -d` ile kurulum — *compose ile kurulum hazır; imaj şu an 260 MB (bun tabanı), küçültme sonra*
+- [x] ⭐ Tek küçük binary / Docker imajı (< 80 MB), `docker compose up -d` ile kurulum — *tek dosyalık binary (`bun build --compile`) + distroless taban: 52 MB indirme (eskisi 260 MB). Diskte açılmış hali ~115 MB, çünkü Bun çalışma zamanı tek başına ~90 MB; kabuk ve paket yöneticisi yok*
 - [x] ⭐ İşleri sadece şunlar: giriş, yetki, şifreli event saklama, canlı iletme, presence. **AI çalıştırmaz, kod çalıştırmaz, şifre çözmez**
-- [ ] Hedef kaynak kullanımı: boştayken ~50 MB RAM, ~%0 CPU; 10 kullanıcıda bile birkaç %
+- [x] Hedef kaynak kullanımı: boştayken ~50 MB RAM, ~%0 CPU; 10 kullanıcıda bile birkaç % — *ölçülen: boşta 14 MB (konteyner) / 42 MB RSS; 10 kullanıcı yük testi henüz yapılmadı*
 - [x] Depolama: SQLite (şifreli bloblar); eski event'ler için sıkıştırma ve saklama süresi ayarı — *1 KB üstü içerik şifrelemeden önce gzip'lenir*
 - [x] Otomatik yedek (şifreli halde, örneğin S3 uyumlu bir depoya) — *AWS S3 / R2 / MinIO / Backblaze (SigV4)*
 - [x] Aynı VPS'te yayındaki projelerinle yan yana sorunsuz çalışır (port ve kaynak sınırları, `mem_limit`) — *`docker/hub-compose.yml`: sadece 127.0.0.1, 256 MB, salt okunur, root değil*

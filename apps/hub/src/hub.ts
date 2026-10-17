@@ -1,5 +1,6 @@
 import { Database } from "bun:sqlite";
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { EMAIL_RE } from "./mail";
 import { ipAllowed, newTotpSecret, otpauthUri, verifyTotp } from "./security";
 
 /**
@@ -23,6 +24,8 @@ export interface HubUser {
   twoFactor: boolean;
   language?: string;
   avatar?: string;
+  /** Only for invites and password resets; teammates never see it. */
+  email?: string;
 }
 
 export interface HubAlert {
@@ -115,6 +118,14 @@ const MIGRATIONS = [
   `ALTER TABLE events ADD COLUMN n INTEGER;
    ALTER TABLE events ADD COLUMN prev TEXT;
    CREATE INDEX events_chain ON events(project, device, n);`,
+  // Email (optional, for invites and password resets through your own SMTP).
+  `ALTER TABLE users ADD COLUMN email TEXT;
+   CREATE TABLE password_resets (
+     user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+     code_hash TEXT NOT NULL,
+     expires INTEGER NOT NULL,
+     tries INTEGER NOT NULL DEFAULT 0
+   );`,
 ];
 
 export interface Policies {
@@ -172,8 +183,10 @@ export class Hub {
     totp_secret?: string | null;
     language?: string | null;
     avatar?: string | null;
+    email?: string | null;
   }): HubUser {
     return {
+      email: row.email ?? undefined,
       twoFactor: !!row.totp_secret,
       language: row.language ?? undefined,
       avatar: row.avatar ?? undefined,
@@ -204,6 +217,7 @@ export class Hub {
     displayName?: string;
     role: Role;
     mustChange?: boolean;
+    email?: string;
   }): Promise<HubUser> {
     const username = input.username.trim();
     if (!/^[a-zA-Z0-9._-]{2,32}$/.test(username)) throw new Error("Username: 2-32 letters, numbers, . _ -");
@@ -224,7 +238,52 @@ export class Hub {
         input.mustChange === false ? 0 : 1,
         Date.now(),
       );
+    if (input.email) this.setEmail(id, input.email);
     return this.user(id) as HubUser;
+  }
+
+  /** Empty clears it. */
+  setEmail(id: string, email: string): void {
+    const value = email.trim();
+    if (value && !EMAIL_RE.test(value)) throw new Error("That email address doesn't look right");
+    this.db.query("UPDATE users SET email = ? WHERE id = ?").run(value || null, id);
+  }
+
+  // ---- password reset by email: a short code, valid 30 minutes, 5 tries ---------------------
+
+  async startReset(login: string): Promise<{ user: HubUser; code: string } | undefined> {
+    const row = this.db
+      .query("SELECT id FROM users WHERE (lower(username) = lower(?) OR lower(email) = lower(?)) AND disabled = 0")
+      .get(login.trim(), login.trim()) as { id: string } | null;
+    const user = row ? this.user(row.id) : undefined;
+    if (!user?.email) return undefined;
+    const code = Array.from(randomBytes(8), (b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32]).join("");
+    this.db
+      .query(
+        "INSERT INTO password_resets (user_id, code_hash, expires) VALUES (?, ?, ?) ON CONFLICT(user_id) DO UPDATE SET code_hash = excluded.code_hash, expires = excluded.expires, tries = 0",
+      )
+      .run(user.id, await Bun.password.hash(code, { algorithm: "argon2id" }), Date.now() + 30 * 60_000);
+    return { user, code };
+  }
+
+  /** Sets the new password and signs every device out; reading team data still needs a device approval. */
+  async finishReset(login: string, code: string, password: string): Promise<HubUser | undefined> {
+    const row = this.db
+      .query(
+        `SELECT r.user_id, r.code_hash, r.expires, r.tries FROM password_resets r JOIN users u ON u.id = r.user_id
+         WHERE (lower(u.username) = lower(?) OR lower(u.email) = lower(?)) AND u.disabled = 0`,
+      )
+      .get(login.trim(), login.trim()) as { user_id: string; code_hash: string; expires: number; tries: number } | null;
+    if (!row || row.expires < Date.now() || row.tries >= 5) return undefined;
+    const clean = code.replace(/[\s-]/g, "").toUpperCase();
+    if (!(await Bun.password.verify(clean, row.code_hash))) {
+      this.db.query("UPDATE password_resets SET tries = tries + 1 WHERE user_id = ?").run(row.user_id);
+      return undefined;
+    }
+    this.checkPassword(password);
+    await this.setPassword(row.user_id, password, false);
+    this.db.query("DELETE FROM password_resets WHERE user_id = ?").run(row.user_id);
+    return this.user(row.user_id);
   }
 
   /** A new password signs every other device out (`keepDevice` is the one making the change). */
@@ -237,7 +296,8 @@ export class Hub {
     this.db.query("DELETE FROM devices WHERE user_id = ? AND token_hash != ?").run(id, keepDevice ?? "");
   }
 
-  updateUser(id: string, patch: { role?: unknown; disabled?: unknown; displayName?: unknown }): void {
+  updateUser(id: string, patch: { role?: unknown; disabled?: unknown; displayName?: unknown; email?: unknown }): void {
+    if (typeof patch.email === "string") this.setEmail(id, patch.email);
     if (typeof patch.role === "string" && ROLES.includes(patch.role as Role)) {
       this.db.query("UPDATE users SET role = ? WHERE id = ?").run(patch.role, id);
     }
@@ -404,8 +464,9 @@ export class Hub {
 
   updateProfile(
     id: string,
-    patch: { displayName?: unknown; language?: unknown; avatar?: unknown },
+    patch: { displayName?: unknown; language?: unknown; avatar?: unknown; email?: unknown },
   ): HubUser | undefined {
+    if (typeof patch.email === "string") this.setEmail(id, patch.email);
     if (typeof patch.displayName === "string" && patch.displayName.trim())
       this.db.query("UPDATE users SET display_name = ? WHERE id = ?").run(patch.displayName.trim().slice(0, 40), id);
     if (typeof patch.language === "string" && /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/.test(patch.language))

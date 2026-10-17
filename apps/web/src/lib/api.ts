@@ -458,7 +458,18 @@ export const api = {
   teamClear2fa: (id: string) => request<{ ok: boolean }>(`/api/team/admin/users/${id}/2fa`, { method: "DELETE" }),
   teamDisconnect: () => request<{ ok: boolean }>("/api/team/disconnect", { method: "POST" }),
   teamRecoveryKey: () => request<{ key: string }>("/api/team/recovery-key"),
-  teamInvite: (body: { username: string; displayName?: string; role: string }) =>
+  teamMail: () => request<{ configured: boolean; from?: string }>("/api/team/admin/mail"),
+  teamPasswordReset: (body: { hub: string; login: string }) =>
+    request<{ ok: boolean; email: boolean }>("/api/team/password-reset", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  teamPasswordResetConfirm: (body: { hub: string; login: string; code: string; password: string }) =>
+    request<{ ok: boolean; username: string }>("/api/team/password-reset/confirm", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  teamInvite: (body: { username: string; displayName?: string; role: string; email?: string; sendEmail?: boolean }) =>
     request<TeamInvite>("/api/team/invite", { method: "POST", body: JSON.stringify(body) }),
   teamPresence: (projectId?: string) =>
     request<Presence[]>(`/api/team/presence${projectId ? `?project=${encodeURIComponent(projectId)}` : ""}`),
@@ -467,9 +478,10 @@ export const api = {
   teamAudit: () => request<TeamAuditEntry[]>("/api/team/admin/audit"),
   teamStats: () =>
     request<{ users: number; events: number; bytes: number; online: number; rssMb: number }>("/api/team/admin/stats"),
-  teamUpdateUser: (id: string, patch: { role?: string; disabled?: boolean; displayName?: string }) =>
+  teamUpdateUser: (id: string, patch: { role?: string; disabled?: boolean; displayName?: string; email?: string }) =>
     request<TeamUser>(`/api/team/admin/users/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
-  teamResetUser: (id: string) => request<TeamInvite>(`/api/team/admin/users/${id}/reset`, { method: "POST" }),
+  teamResetUser: (id: string, sendEmail = false) =>
+    request<TeamInvite>(`/api/team/admin/users/${id}/reset`, { method: "POST", body: JSON.stringify({ sendEmail }) }),
   teamDeleteUser: (id: string) => request<{ ok: boolean }>(`/api/team/admin/users/${id}`, { method: "DELETE" }),
   teamRevokeDevice: (id: string) => request<{ ok: boolean }>(`/api/team/admin/devices/${id}`, { method: "DELETE" }),
   setShare: (projectId: string, share: ShareLevel) =>

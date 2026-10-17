@@ -1,7 +1,7 @@
 # God Eye Hub on your VPS, next to your other services.
 #
 #   docker compose -f docker/hub-compose.yml up -d --build
-#   docker compose -f docker/hub-compose.yml exec hub bun src/cli.ts create-admin <username>
+#   docker compose -f docker/hub-compose.yml exec hub god-eye-hub create-admin <username>
 #
 # Put it behind HTTPS (see docker/Caddyfile.example); the port below only
 # listens on the VPS itself, so nothing is exposed without the proxy.
@@ -18,6 +18,19 @@ services:
     environment:
       # Caddy sets X-Forwarded-For; trust it only because the port is local-only.
       HUB_TRUST_PROXY: "1"
+      # Optional, all free. Put real values in docker/hub.env (not in git), see below.
+      #
+      # Daily encrypted backup (32 bytes in base64: openssl rand -base64 32). Keep a copy somewhere safe.
+      #   HUB_BACKUP_KEY
+      # ...and send it to any S3-compatible store (AWS S3, Cloudflare R2, Backblaze B2, MinIO):
+      #   HUB_S3_ENDPOINT, HUB_S3_BUCKET, HUB_S3_REGION, HUB_S3_ACCESS_KEY, HUB_S3_SECRET_KEY
+      #
+      # Email for invites and "forgot password", through your own account
+      # (e.g. Gmail: smtp.gmail.com, port 465, an app password):
+      #   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_FROM
+    env_file:
+      - path: hub.env
+        required: false
     volumes:
       - hub-data:/data
     mem_limit: 256m

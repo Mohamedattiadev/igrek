@@ -1,6 +1,7 @@
 import type { ServerWebSocket } from "bun";
 import { Hono } from "hono";
 import { type Hub, type HubUser, type ProjectRole, ROLES, type Role } from "./hub";
+import { mailText, type SendMail } from "./mail";
 
 const MAX_EVENT_BYTES = 512 * 1024;
 
@@ -33,7 +34,7 @@ class RateLimiter {
 
 type BunServer = { requestIP?: (r: Request) => { address: string } | null };
 
-export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}) {
+export function createHubServer(hub: Hub, options: { trustProxy?: boolean; mail?: SendMail; mailFrom?: string } = {}) {
   const app = new Hono<{ Variables: { auth: Ctx }; Bindings: BunServer }>();
   const logins = new RateLimiter(8, 60_000);
   const sockets = new Set<ServerWebSocket<SocketData>>();
@@ -80,6 +81,40 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
     });
   });
 
+  // Forgotten password: a code goes to the email on file. The answer is the same either way,
+  // so nobody can probe which usernames exist.
+  const resets = new RateLimiter(5, 15 * 60_000);
+  app.post("/api/password-reset", async (c) => {
+    if (!resets.allow(ip(c.req.raw, c.env))) return c.json({ error: "Too many attempts, wait a few minutes" }, 429);
+    const body = (await c.req.json().catch(() => ({}))) as { login?: string };
+    if (options.mail && body.login) {
+      const started = await hub.startReset(body.login);
+      if (started?.user.email) {
+        const { subject, text } = mailText("code", started.user.language, {
+          name: started.user.displayName,
+          code: started.code,
+        });
+        await options.mail(started.user.email, subject, text).catch(() => undefined);
+        hub.audit(started.user.id, "password-reset-requested", ip(c.req.raw, c.env));
+      }
+    }
+    return c.json({ ok: true, email: !!options.mail });
+  });
+  app.post("/api/password-reset/confirm", async (c) => {
+    const addr = ip(c.req.raw, c.env);
+    if (!logins.allow(addr)) return c.json({ error: "Too many attempts, wait a minute" }, 429);
+    const body = (await c.req.json().catch(() => ({}))) as { login?: string; code?: string; password?: string };
+    try {
+      const user = await hub.finishReset(body.login ?? "", body.code ?? "", body.password ?? "");
+      if (!user) return c.json({ error: "That code is wrong or has expired" }, 400);
+      hub.audit(user.id, "password-reset", addr);
+      for (const ws of sockets) if (ws.data.user.id === user.id) ws.close(4001, "signed out");
+      return c.json({ ok: true, username: user.username });
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+
   // Everything below needs a device token.
   app.use("/api/*", async (c, next) => {
     const auth = hub.authenticate(c.req.header("authorization")?.replace(/^Bearer /, ""), ip(c.req.raw, c.env));
@@ -100,9 +135,15 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
       minPassword: hub.policies().minPassword,
     }),
   );
-  app.patch("/api/me", async (c) =>
-    c.json(hub.updateProfile(c.get("auth").user.id, (await c.req.json().catch(() => ({}))) as Record<string, unknown>)),
-  );
+  app.patch("/api/me", async (c) => {
+    try {
+      return c.json(
+        hub.updateProfile(c.get("auth").user.id, (await c.req.json().catch(() => ({}))) as Record<string, unknown>),
+      );
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
 
   // Two-factor sign-in (TOTP).
   app.post("/api/2fa/start", (c) => c.json(hub.startTwoFactor(c.get("auth").user.id)));
@@ -192,12 +233,14 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
       password?: string;
       displayName?: string;
       role?: string;
+      email?: string;
     };
     try {
       const user = await hub.createUser({
         username: body.username ?? "",
         password: body.password ?? "",
         displayName: body.displayName,
+        email: body.email,
         role: (ROLES.includes(body.role as Role) ? body.role : "member") as Role,
       });
       hub.audit(c.get("auth").user.id, "user-created", user.username);
@@ -216,6 +259,7 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
       disabled?: boolean;
       displayName?: string;
       password?: string;
+      email?: string;
     };
     // Never leave the hub without an active admin.
     const target = hub.user(id);
@@ -247,6 +291,32 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
     hub.audit(c.get("auth").user.id, "user-deleted", target?.username);
     for (const ws of sockets) if (ws.data.user.id === id) ws.close(4001, "removed");
     return c.json({ ok: true });
+  });
+  app.get("/api/admin/mail", (c) => adminOnly(c) ?? c.json({ configured: !!options.mail, from: options.mailFrom }));
+  /** Sends an invite or a new sign-in code the admin's God Eye made (the hub only delivers it). */
+  app.post("/api/admin/users/:id/email", async (c) => {
+    const denied = adminOnly(c);
+    if (denied) return denied;
+    if (!options.mail) return c.json({ error: "Email isn't set up on this hub (SMTP_HOST)" }, 400);
+    const target = hub.user(c.req.param("id"));
+    if (!target?.email) return c.json({ error: "This person has no email address" }, 400);
+    const body = (await c.req.json().catch(() => ({}))) as { kind?: string; code?: string; team?: string };
+    const kind = body.kind === "reset" ? "reset" : "invite";
+    const code = String(body.code ?? "");
+    if (!/^[A-Za-z0-9_-]{20,4000}$/.test(code)) return c.json({ error: "Invalid code" }, 400);
+    const { subject, text } = mailText(kind, target.language, {
+      name: target.displayName,
+      from: c.get("auth").user.displayName,
+      team: String(body.team ?? "").slice(0, 60),
+      code,
+    });
+    try {
+      await options.mail(target.email, subject, text);
+    } catch (err) {
+      return c.json({ error: `Couldn't send the email: ${(err as Error).message}` }, 502);
+    }
+    hub.audit(c.get("auth").user.id, `email-${kind}`, target.username);
+    return c.json({ ok: true, to: target.email });
   });
   app.get("/api/admin/devices", (c) => adminOnly(c) ?? c.json(hub.devices()));
   app.delete("/api/admin/devices/:id", (c) => {

@@ -75,10 +75,12 @@ Tek başına kullanıyorsan bunu atla. Takım için küçük bir **Hub** sunucus
 ```bash
 # VPS'te, repo klasöründe
 docker compose -f docker/hub-compose.yml up -d --build
-docker compose -f docker/hub-compose.yml exec hub bun src/cli.ts create-admin <kullanici-adin>
+docker compose -f docker/hub-compose.yml exec hub god-eye-hub create-admin <kullanici-adin>
 ```
 
-HTTPS için önüne Caddy koy (`docker/Caddyfile.example`). Sonra God Eye → **Takım** → *Admin girişi*. İlk girişte **kurtarma anahtarı** gösterilir, bir şifre yöneticisinde sakla. Arkadaşlarını oradan davet edersin: her biri için tek bir davet kodu çıkar, kodu özelden gönderirsin.
+HTTPS için önüne Caddy koy (`docker/Caddyfile.example`). Sonra God Eye → **Takım** → *Kullanıcı adıyla giriş*. İlk girişte **kurtarma anahtarı** gösterilir, bir şifre yöneticisinde sakla. Arkadaşlarını oradan davet edersin: her biri için tek bir davet kodu çıkar, kodu özelden gönderirsin.
+
+İstersen hub davet kodunu ve "şifremi unuttum" kodlarını **e-postayla** da gönderebilir (ücretsiz, kendi hesabınla; ör. Gmail uygulama şifresi). `docker/hub.env` dosyasına `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` yaz; yedekleme ayarları da aynı dosyaya gider (bkz. `docker/hub-compose.yml`).
 
 - Hub verileri **okuyamaz**: her şey bilgisayarından şifreli çıkar.
 - Bir projeyi paylaşmadıkça hiçbir şeyi gitmez. Sırlar (API anahtarları, şifreler) her zaman silinir.
@@ -165,10 +167,12 @@ Skip this if you work alone. A team runs a small **Hub** server (on your own VPS
 ```bash
 # On the VPS, in the repo folder
 docker compose -f docker/hub-compose.yml up -d --build
-docker compose -f docker/hub-compose.yml exec hub bun src/cli.ts create-admin <your-username>
+docker compose -f docker/hub-compose.yml exec hub god-eye-hub create-admin <your-username>
 ```
 
-Put Caddy in front for HTTPS (`docker/Caddyfile.example`). Then God Eye → **Team** → *Admin sign-in*. The first time, you get a **recovery key**. Keep it in a password manager. Invite teammates from there: each one gets a single invite code, which you send them privately.
+Put Caddy in front for HTTPS (`docker/Caddyfile.example`). Then God Eye → **Team** → *Sign in with username*. The first time, you get a **recovery key**. Keep it in a password manager. Invite teammates from there: each one gets a single invite code, which you send them privately.
+
+If you like, the hub can also **email** invite codes and "forgot password" codes (free, through your own account, e.g. a Gmail app password). Put `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` and `SMTP_PASS` in `docker/hub.env`; backup settings go in the same file (see `docker/hub-compose.yml`).
 
 - The hub **can't read** your data: everything is encrypted before it leaves your computer.
 - Nothing is sent until you share a project. Secrets (API keys, passwords) are always removed.

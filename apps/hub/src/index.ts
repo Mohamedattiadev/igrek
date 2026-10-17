@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { backupKey, runBackup, s3FromEnv } from "./backup";
 import { Hub } from "./hub";
+import { mailFromEnv, smtpSender } from "./mail";
 import { createHubServer } from "./server";
 
 const dataDir = process.env.HUB_DATA ?? "/data";
@@ -9,7 +10,12 @@ mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 process.umask(0o077);
 
 const hub = new Hub(join(dataDir, "hub.db"));
-const handler = createHubServer(hub, { trustProxy: process.env.HUB_TRUST_PROXY === "1" });
+const mail = mailFromEnv();
+const handler = createHubServer(hub, {
+  trustProxy: process.env.HUB_TRUST_PROXY === "1",
+  mail: mail ? smtpSender(mail) : undefined,
+  mailFrom: mail?.from,
+});
 const server = Bun.serve({
   hostname: process.env.HUB_HOST ?? "0.0.0.0",
   port: Number(process.env.HUB_PORT ?? 7700),

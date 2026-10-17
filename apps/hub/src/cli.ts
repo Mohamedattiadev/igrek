@@ -7,8 +7,8 @@ import { Hub } from "./hub";
  * Admin tasks on the VPS. The first admin is only ever created here (never
  * over the network), so nobody can claim an empty hub.
  *
- *   bun src/cli.ts create-admin mohamed
- *   bun src/cli.ts reset-password mohamed
+ *   god-eye-hub create-admin mohamed      (or: bun src/cli.ts create-admin mohamed)
+ *   god-eye-hub reset-password mohamed
  */
 const [command, username] = process.argv.slice(2);
 const hub = new Hub(join(process.env.HUB_DATA ?? "/data", "hub.db"));
@@ -59,7 +59,7 @@ if (command === "create-admin" && username) {
   console.log(`Restored ${username} → ${target}. Start the hub again.`);
 } else {
   console.log(
-    "Usage: bun src/cli.ts create-admin <username> | reset-password <username> | backup [folder] | restore <file.geb>",
+    "Usage: god-eye-hub create-admin <username> | reset-password <username> | backup [folder] | restore <file.geb>",
   );
   process.exit(command ? 1 : 0);
 }

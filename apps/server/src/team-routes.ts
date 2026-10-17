@@ -58,6 +58,8 @@ export function registerTeamRoutes(
       displayName?: string;
       role?: string;
       password?: string;
+      email?: string;
+      sendEmail?: boolean;
     };
     const status = sync.status();
     const key = sync.teamKey();
@@ -66,10 +68,83 @@ export function registerTeamRoutes(
     try {
       const user = await sync.admin<{ id: string; username: string }>("/users", {
         method: "POST",
-        body: JSON.stringify({ username: body.username, displayName: body.displayName, role: body.role, password }),
+        body: JSON.stringify({
+          username: body.username,
+          displayName: body.displayName,
+          role: body.role,
+          password,
+          email: body.email?.trim() || undefined,
+        }),
       });
       // No team key inside: the new device gets it once an admin approves it.
-      return c.json({ user, invite: encodeInvite({ hub: status.hub, username: user.username, password }) });
+      const invite = encodeInvite({ hub: status.hub, username: user.username, password });
+      const mail = body.sendEmail && body.email ? await emailCode(user.id, "invite", invite) : {};
+      return c.json({ user, invite, ...mail });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+
+  /** The hub delivers the code by email (the admin still sees it, to send another way if mail fails). */
+  const emailCode = async (userId: string, kind: "invite" | "reset", code: string) => {
+    try {
+      const { to } = await sync.admin<{ to: string }>(`/users/${encodeURIComponent(userId)}/email`, {
+        method: "POST",
+        body: JSON.stringify({ kind, code }),
+      });
+      return { emailed: to };
+    } catch (err) {
+      return { emailError: (err as Error).message };
+    }
+  };
+
+  app.get("/api/team/admin/mail", async (c) => {
+    try {
+      return c.json(await sync.admin<{ configured: boolean; from?: string }>("/mail"));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+
+  // Forgot password, before signing in: the hub emails a code, then the code sets a new password.
+  const hubFetch = async (hub: unknown, path: string, body: unknown) => {
+    const base = String(hub ?? "")
+      .trim()
+      .replace(/\/+$/, "");
+    if (!/^https?:\/\/[^\s]+$/.test(base)) throw new Error("Hub address must start with https://");
+    const res = await fetch(`${base}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(20_000),
+    });
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    if (!res.ok) throw new Error(data.error ?? "The hub didn't answer");
+    return data;
+  };
+  app.post("/api/team/password-reset", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { hub?: string; login?: string };
+    try {
+      return c.json(await hubFetch(body.hub, "/api/password-reset", { login: body.login }));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/team/password-reset/confirm", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      hub?: string;
+      login?: string;
+      code?: string;
+      password?: string;
+    };
+    try {
+      return c.json(
+        await hubFetch(body.hub, "/api/password-reset/confirm", {
+          login: body.login,
+          code: body.code,
+          password: body.password,
+        }),
+      );
     } catch (err) {
       return c.json(fail(err), 400);
     }
@@ -89,7 +164,10 @@ export function registerTeamRoutes(
           body: JSON.stringify({ password }),
         },
       );
-      return c.json({ user, invite: encodeInvite({ hub: status.hub, username: user.username, password }) });
+      const invite = encodeInvite({ hub: status.hub, username: user.username, password });
+      const body = (await c.req.json().catch(() => ({}))) as { sendEmail?: boolean };
+      const mail = body.sendEmail ? await emailCode(user.id, "reset", invite) : {};
+      return c.json({ user, invite, ...mail });
     } catch (err) {
       return c.json(fail(err), 400);
     }

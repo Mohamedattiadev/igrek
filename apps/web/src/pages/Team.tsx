@@ -18,6 +18,9 @@ import {
   KeyRound,
   Lock,
   LogOut,
+  Mail,
+  MailCheck,
+  MailX,
   Plus,
   RefreshCw,
   ShieldCheck,
@@ -192,6 +195,11 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
             <p className="text-[11px] text-fg-subtle">{t("team.adminHint")}</p>
+            <ForgotPassword
+              hub={form.hub}
+              login={form.username}
+              onDone={(username, password) => setForm({ ...form, username, password })}
+            />
             <details className="text-xs">
               <summary className="cursor-pointer text-fg-muted">{t("team.haveRecovery")}</summary>
               <textarea
@@ -240,6 +248,118 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
       </ul>
     </div>
   );
+}
+
+/** Forgot password: the hub emails a code; the code sets a new password. Team data still needs a device approval. */
+function ForgotPassword({
+  hub,
+  login,
+  onDone,
+}: {
+  hub: string;
+  login: string;
+  onDone: (username: string, password: string) => void;
+}) {
+  const { t } = useTranslation();
+  const [step, setStep] = useState<"closed" | "ask" | "code" | "done">("closed");
+  const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const [note, setNote] = useState<string>();
+  const [error, setError] = useState<string>();
+  const run = (work: Promise<void>) => {
+    setError(undefined);
+    work.catch((err: Error) => setError(err.message));
+  };
+  if (step === "closed")
+    return (
+      <button type="button" onClick={() => setStep("ask")} className="text-xs text-fg-muted hover:text-fg">
+        {t("team.forgot")}
+      </button>
+    );
+  return (
+    <fieldset className="space-y-2 rounded-ui border border-border p-3">
+      <legend className="flex items-center gap-1.5 px-1 text-xs font-medium">
+        <Mail size={12} aria-hidden="true" /> {t("team.forgot")}
+      </legend>
+      {step === "done" ? (
+        <p className="text-xs text-success">{t("team.forgotDone")}</p>
+      ) : (
+        <>
+          <p className="text-[11px] text-fg-subtle">{t("team.forgotHint")}</p>
+          {step === "ask" ? (
+            <Button
+              size="sm"
+              disabled={!login.trim() || !/^https?:\/\/./.test(hub)}
+              onClick={() =>
+                run(
+                  api.teamPasswordReset({ hub, login }).then((r) => {
+                    setNote(r.email ? t("team.forgotSent") : t("team.forgotNoMail"));
+                    if (r.email) setStep("code");
+                  }),
+                )
+              }
+            >
+              {t("team.forgotSend")}
+            </Button>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <input
+                className={cn(field, "w-36 font-mono uppercase tracking-widest")}
+                autoComplete="one-time-code"
+                placeholder="ABCD2345"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                aria-label={t("team.forgotCode")}
+              />
+              <input
+                className={cn(field, "min-w-40 flex-1")}
+                type="password"
+                autoComplete="new-password"
+                placeholder={t("team.newPassword")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button
+                size="sm"
+                variant="primary"
+                disabled={!code.trim() || !password}
+                onClick={() =>
+                  run(
+                    api.teamPasswordResetConfirm({ hub, login, code, password }).then((r) => {
+                      setStep("done");
+                      onDone(r.username, password);
+                    }),
+                  )
+                }
+              >
+                {t("team.forgotSet")}
+              </Button>
+            </div>
+          )}
+          {note && <p className="text-[11px] text-fg-muted">{note}</p>}
+        </>
+      )}
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </fieldset>
+  );
+}
+
+/** "Sent to ali@… by email", or why it wasn't, under an invite or reset code. */
+function EmailOutcome({ result }: { result: TeamInvite }) {
+  const { t } = useTranslation();
+  if (result.emailed)
+    return (
+      <p className="flex items-center gap-1.5 text-xs text-success">
+        <MailCheck size={13} aria-hidden="true" /> {t("team.emailed", { to: result.emailed })}
+      </p>
+    );
+  if (result.emailError)
+    return (
+      <p className="flex items-center gap-1.5 text-xs text-warning">
+        <MailX size={13} aria-hidden="true" /> {t("team.emailFailed", { error: result.emailError })}
+      </p>
+    );
+  return null;
 }
 
 // ---- connected -------------------------------------------------------------------------
@@ -392,13 +512,22 @@ function Sharing() {
 
 function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
-  const [form, setForm] = useState({ username: "", displayName: "", role: "member" as string });
+  const empty = { username: "", displayName: "", role: "member" as string, email: "", sendEmail: true };
+  const [form, setForm] = useState(empty);
   const [result, setResult] = useState<TeamInvite>();
   const [error, setError] = useState<string>();
+  const [mail, setMail] = useState<{ configured: boolean; from?: string }>();
+  useEffect(() => {
+    if (open)
+      api
+        .teamMail()
+        .then(setMail)
+        .catch(() => setMail({ configured: false }));
+  }, [open]);
   const close = () => {
     setResult(undefined);
     setError(undefined);
-    setForm({ username: "", displayName: "", role: "member" });
+    setForm(empty);
     onClose();
   };
   return (
@@ -408,6 +537,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
         {result ? (
           <>
             <p className="text-xs text-fg-muted">{t("team.inviteReady", { name: result.user.username })}</p>
+            <EmailOutcome result={result} />
             <CopyBox value={result.invite} secret />
             <p className="text-[11px] text-fg-muted">{t("team.inviteNoKey")}</p>
             <div className="flex justify-end">
@@ -430,6 +560,29 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
               value={form.displayName}
               onChange={(e) => setForm({ ...form, displayName: e.target.value })}
             />
+            <input
+              className={field}
+              type="email"
+              autoComplete="off"
+              placeholder={t("team.emailOptional")}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+            />
+            {form.email.trim() && (
+              <label
+                className="flex items-center gap-2 text-xs"
+                data-tip={mail?.configured ? t("team.mailFrom", { from: mail.from }) : t("team.mailOff")}
+              >
+                <input
+                  type="checkbox"
+                  disabled={!mail?.configured}
+                  checked={!!mail?.configured && form.sendEmail}
+                  onChange={(e) => setForm({ ...form, sendEmail: e.target.checked })}
+                />
+                {t("team.sendByEmail")}
+                {!mail?.configured && <span className="text-fg-subtle">· {t("team.mailOffShort")}</span>}
+              </label>
+            )}
             <Segmented
               value={form.role}
               onChange={(role) => setForm({ ...form, role })}
@@ -447,7 +600,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
                 onClick={() => {
                   setError(undefined);
                   api
-                    .teamInvite(form)
+                    .teamInvite({ ...form, sendEmail: !!mail?.configured && form.sendEmail })
                     .then(setResult)
                     .catch((err: Error) => setError(err.message));
                 }}
@@ -471,6 +624,13 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
   const [inviting, setInviting] = useState(false);
   const [reset, setReset] = useState<TeamInvite>();
   const [recovery, setRecovery] = useState<string>();
+  const [mail, setMail] = useState<{ configured: boolean; from?: string }>();
+  useEffect(() => {
+    api
+      .teamMail()
+      .then(setMail)
+      .catch(() => setMail({ configured: false }));
+  }, []);
   const [error, setError] = useState<string>();
 
   const load = () => {
@@ -513,6 +673,15 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
             {t("team.showRecovery")}
           </Button>
           <Button variant="ghost" icon={RefreshCw} onClick={load} aria-label={t("team.refresh")} />
+          {mail && (
+            <span
+              className="ms-auto flex items-center gap-1.5 self-center text-[11px] text-fg-subtle"
+              data-tip={mail.configured ? t("team.mailFrom", { from: mail.from }) : t("team.mailOff")}
+            >
+              {mail.configured ? <MailCheck size={12} aria-hidden="true" /> : <MailX size={12} aria-hidden="true" />}
+              {mail.configured ? t("team.mailOnShort") : t("team.mailOffShort")}
+            </span>
+          )}
         </div>
         {error && <p className="mb-2 text-xs text-danger">{error}</p>}
         <div className="divide-y divide-border rounded-ui border border-border">
@@ -524,6 +693,17 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
                 </div>
                 <div className="font-mono text-[11px] text-fg-subtle">
                   @{u.username}
+                  <button
+                    type="button"
+                    className="ms-2 text-fg-subtle hover:text-fg"
+                    data-tip={t("team.editEmail")}
+                    onClick={() => {
+                      const email = window.prompt(t("team.editEmail"), u.email ?? "");
+                      if (email !== null) act(api.teamUpdateUser(u.id, { email }));
+                    }}
+                  >
+                    {u.email ?? t("team.addEmail")}
+                  </button>
                   {u.mustChangePassword && <span className="ms-2 text-warning">{t("team.pendingJoin")}</span>}
                   {u.twoFactor && <span className="ms-2 text-success">2FA</span>}
                 </div>
@@ -571,7 +751,7 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
                     icon={KeyRound}
                     onClick={() =>
                       api
-                        .teamResetUser(u.id)
+                        .teamResetUser(u.id, !!u.email && !!mail?.configured)
                         .then(setReset)
                         .catch((e: Error) => setError(e.message))
                     }
@@ -673,6 +853,7 @@ function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) 
           <div className="space-y-3 p-5">
             <h2 className="text-[14px] font-semibold">{t("team.resetPassword")}</h2>
             <p className="text-xs text-fg-muted">{t("team.resetReady", { name: reset.user.username })}</p>
+            <EmailOutcome result={reset} />
             <CopyBox value={reset.invite} secret />
             <div className="flex justify-end">
               <Button variant="primary" onClick={() => setReset(undefined)}>

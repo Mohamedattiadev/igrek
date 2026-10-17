@@ -529,6 +529,7 @@ export interface TeamStatus {
 }
 
 export interface TeamUser extends TeamMember {
+  email?: string;
   disabled: boolean;
   mustChangePassword: boolean;
   twoFactor?: boolean;
@@ -555,6 +556,9 @@ export interface TeamAuditEntry {
 export interface TeamInvite {
   user: { id: string; username: string };
   invite: string;
+  /** Where the hub emailed it, or why it couldn't. */
+  emailed?: string;
+  emailError?: string;
 }
 
 /** "Kerim is working on …" */

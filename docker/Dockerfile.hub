@@ -1,9 +1,12 @@
 # syntax=docker/dockerfile:1
 # God Eye Hub: the small team server. It relays and stores end-to-end
 # encrypted updates; it never sees project contents or the team key.
+#
+# One self-contained binary (bun build --compile) on a minimal base image with
+# no shell or package manager: ~45 MB to download, ~40 MB RAM when idle.
 ARG BUN_VERSION=1.4.3
 
-FROM oven/bun:${BUN_VERSION}-slim AS deps
+FROM oven/bun:${BUN_VERSION}-slim AS build
 WORKDIR /app
 COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
@@ -12,26 +15,19 @@ COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 RUN bun install --frozen-lockfile --production --filter '@godeye/hub'
-
-FROM oven/bun:${BUN_VERSION}-slim AS runtime
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/hub/node_modules ./apps/hub/node_modules
-COPY apps/hub/package.json apps/hub/
 COPY apps/hub/src apps/hub/src
-WORKDIR /app/apps/hub
+RUN bun build apps/hub/src/main.ts --compile --minify --outfile /out/god-eye-hub \
+ && mkdir -p /out/data
 
+# glibc + libstdc++ only, runs as an unprivileged user (uid 65532).
+FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
+COPY --from=build /out/god-eye-hub /usr/local/bin/god-eye-hub
+COPY --from=build --chown=65532:65532 /out/data /data
 ENV NODE_ENV=production \
     HUB_DATA=/data \
     HUB_PORT=7700 \
     HUB_HOST=0.0.0.0
-
-# The bun image's unprivileged user; /data is its own volume.
-RUN mkdir -p /data && chown bun:bun /data
-USER bun
 VOLUME /data
 EXPOSE 7700
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD bun -e "fetch('http://127.0.0.1:7700/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-
-CMD ["bun", "src/index.ts"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["god-eye-hub", "health"]
+ENTRYPOINT ["god-eye-hub"]
