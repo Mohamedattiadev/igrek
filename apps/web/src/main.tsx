@@ -10,6 +10,8 @@ import { DesignPage } from "./pages/Design";
 import { FilesPage } from "./pages/Files";
 import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
+import { LessonsPage } from "./pages/LessonsPage";
+import { LibraryPage } from "./pages/LibraryPage";
 import { LimitsPage } from "./pages/Limits";
 import { MeetingPage } from "./pages/Meeting";
 import { Onboarding } from "./pages/Onboarding";
@@ -48,6 +50,8 @@ const router = createBrowserRouter([
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <LimitsPage /> },
       { path: "personas", element: <PersonasPage /> },
+      { path: "library", element: <LibraryPage /> },
+      { path: "lessons", element: <LessonsPage /> },
       { path: "personas/new", element: <NewPersonaPage /> },
       { path: "personas/:personaId", element: <PersonaPage /> },
       { path: "meetings/:meetingId", element: <MeetingPage /> },

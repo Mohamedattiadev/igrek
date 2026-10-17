@@ -179,6 +179,8 @@ export function connectPersonaChats(
   chats: Chats,
   personas: Personas,
   linkSession: (sessionId: string, personaId: string) => void,
+  /** How to start God Eye's MCP server (library_search); none in tests. */
+  mcp?: { command: string; args: string[]; env: Record<string, string> },
 ) {
   chats.onSession = (info) => {
     if (info.persona && info.sessionId) linkSession(info.sessionId, info.persona.id);
@@ -200,9 +202,15 @@ export function connectPersonaChats(
         name: persona.builtin ? undefined : name,
         tools: persona.tools,
         // The persona reads memory, its notebook and its own parts of the project before it starts.
-        systemPrompt: personas.systemPrompt(persona, projectId, { notebook: true }),
+        systemPrompt: personas.systemPrompt(persona, projectId, { notebook: true, libraryTool: !!mcp }),
         toolList: personaToolList(persona),
         maxTurns: persona.maxTurns,
+        ...(mcp
+          ? {
+              mcpConfig: JSON.stringify({ mcpServers: { godeye: mcp } }),
+              allowTools: ["mcp__godeye__library_search", "mcp__godeye__godeye_project_memory"],
+            }
+          : {}),
       },
     };
   };

@@ -42,7 +42,18 @@ async function guard(c: Ctx, run: () => unknown | Promise<unknown>): Promise<Res
 /** File manager, code editor and previewer API (plan.md 2.3, 2.4, 2.9). */
 export function registerFileRoutes(
   app: Hono,
-  { files, store, db }: { files: Files; store: Store; db: Database },
+  {
+    files,
+    store,
+    db,
+    onRestore,
+  }: {
+    files: Files;
+    store: Store;
+    db: Database;
+    /** A checkpoint was restored: the AI's work since then was undone (a lesson candidate). */
+    onRestore?: (projectId: string, checkpointId: string, files: string[]) => void;
+  },
 ): void {
   app.get("/api/fs/list", (c) => guard(c, () => files.list(c.req.query("path") ?? "", c.req.query("hidden") === "1")));
   app.get("/api/fs/read", (c) => guard(c, () => files.read(c.req.query("path") ?? "")));
@@ -160,7 +171,15 @@ export function registerFileRoutes(
   app.post("/api/projects/:id/checkpoints/:cid/restore", (c) => {
     const row = store.projectRow(c.req.param("id"));
     if (!row) return c.json({ error: "Project not found" }, 404);
+    const changed = (() => {
+      try {
+        return checkpointChanges(row.path, c.req.param("cid"));
+      } catch {
+        return [];
+      }
+    })();
     const result = restoreCheckpoint(row.path, c.req.param("cid"));
+    if (result.ok) onRestore?.(row.id, c.req.param("cid"), changed);
     return result.ok ? c.json(result) : c.json({ error: result.error }, 409);
   });
 

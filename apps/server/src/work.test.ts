@@ -377,6 +377,8 @@ describe("MCP server", () => {
       "godeye_search",
       "godeye_servers",
       "godeye_server_run",
+      "library_search",
+      "godeye_lessons",
       "godeye_recent_sessions",
     ]);
   });

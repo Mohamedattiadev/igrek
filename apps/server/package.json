@@ -15,8 +15,13 @@
   "dependencies": {
     "@godeye/core": "workspace:*",
     "@godeye/i18n": "workspace:*",
+    "@huggingface/tokenizers": "0.2.0",
     "@playwright/mcp": "0.0.83",
     "drizzle-orm": "^0.45.4",
-    "hono": "^4.13.13"
+    "hono": "^4.13.13",
+    "jszip": "3.10.2",
+    "onnxruntime-node": "1.30.0",
+    "pdfjs-dist": "6.4.299",
+    "sqlite-vec": "0.1.9"
   }
 }

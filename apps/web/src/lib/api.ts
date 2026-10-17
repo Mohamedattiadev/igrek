@@ -13,6 +13,7 @@ import type {
   DeployCheck,
   DeployRecord,
   Digest,
+  EmbedderStatus,
   EnhanceResult,
   EnhanceStats,
   EnvBackup,
@@ -36,6 +37,9 @@ import type {
   InsightConfig,
   InsightScan,
   KeyRequest,
+  Lesson,
+  LibraryHit,
+  LibraryItem,
   LimitsOverview,
   Meeting,
   MemorySection,
@@ -237,6 +241,54 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  lessons: (opts: { projectId?: string; q?: string } = {}) =>
+    request<Lesson[]>(
+      `/api/lessons?${new URLSearchParams(Object.entries(opts).filter(([, v]) => v) as [string, string][])}`,
+    ),
+  addLesson: (lesson: {
+    title: string;
+    prevent: string;
+    what?: string;
+    why?: string;
+    fix?: string;
+    projectId?: string;
+  }) => request<Lesson>("/api/lessons", { method: "POST", body: JSON.stringify(lesson) }),
+  updateLesson: (id: string, patch: Partial<Pick<Lesson, "title" | "what" | "why" | "fix" | "prevent" | "status">>) =>
+    request<Lesson>(`/api/lessons/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  removeLesson: (id: string) => request<{ ok: boolean }>(`/api/lessons/${id}`, { method: "DELETE" }),
+  lessonRule: (id: string, target: string) =>
+    request<Lesson>(`/api/lessons/${id}/rule`, { method: "POST", body: JSON.stringify({ target }) }),
+  scanLessons: () => request<{ written: number }>("/api/lessons/scan", { method: "POST" }),
+  retrospective: (projectId: string) =>
+    request<{ id: string }>(`/api/projects/${projectId}/retrospective`, { method: "POST" }),
+  library: (persona?: string) => request<LibraryItem[]>(`/api/library${persona ? `?persona=${persona}` : ""}`),
+  libraryStatus: () => request<EmbedderStatus>("/api/library/status"),
+  downloadLibraryModel: () => request<EmbedderStatus>("/api/library/model", { method: "POST" }),
+  addLibraryFile: async (file: File, opts: { personaIds?: string[]; title?: string; author?: string }) => {
+    const form = new FormData();
+    form.set("file", file);
+    if (opts.personaIds) form.set("personaIds", JSON.stringify(opts.personaIds));
+    if (opts.title) form.set("title", opts.title);
+    if (opts.author) form.set("author", opts.author);
+    const res = await fetch("/api/library/files", { method: "POST", body: form, credentials: "same-origin" }).catch(
+      () => {
+        throw new Error(friendly(undefined));
+      },
+    );
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(friendly(res.status, body.error));
+    return body as LibraryItem;
+  },
+  addLibraryUrl: (url: string, personaIds?: string[]) =>
+    request<LibraryItem>("/api/library/url", { method: "POST", body: JSON.stringify({ url, personaIds }) }),
+  addLibraryNote: (title: string, text: string, personaIds?: string[]) =>
+    request<LibraryItem>("/api/library/notes", { method: "POST", body: JSON.stringify({ title, text, personaIds }) }),
+  updateLibraryItem: (id: string, patch: { personaIds?: string[]; title?: string; author?: string }) =>
+    request<LibraryItem>(`/api/library/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  removeLibraryItem: (id: string) => request<{ ok: boolean }>(`/api/library/${id}`, { method: "DELETE" }),
+  reindexLibraryItem: (id: string) => request<{ ok: boolean }>(`/api/library/${id}/reindex`, { method: "POST" }),
+  searchLibrary: (q: string, persona?: string) =>
+    request<LibraryHit[]>(`/api/library/search?${new URLSearchParams({ q, ...(persona ? { persona } : {}) })}`),
   coverageMap: (projectId: string) => request<CoverageMap>(`/api/projects/${projectId}/coverage-map`),
   testerStatus: () => request<{ browser: boolean; mcp: boolean; runtime: string }>("/api/testers/status"),
   testerProfiles: () => request<TesterProfile[]>("/api/testers/profiles"),

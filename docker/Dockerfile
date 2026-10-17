@@ -23,7 +23,18 @@ COPY apps/web/package.json apps/web/
 COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
-RUN bun install --frozen-lockfile --production --filter '@godeye/server'
+RUN bun install --frozen-lockfile --production --filter '@godeye/server' \
+ # The search model runtime ships binaries for every OS; keep only this one's (about 250 MB less).
+ && ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') \
+ && for napi in $(find node_modules -type d -path '*onnxruntime-node/bin/napi-v*' -name 'napi-v*'); do \
+      for os in "$napi"/*; do [ "$(basename "$os")" = linux ] || rm -rf "$os"; done; \
+      for arch in "$napi"/linux/*; do [ "$(basename "$arch")" = "$ARCH" ] || rm -rf "$arch"; done; \
+    done \
+ # Only text is read from PDFs: no page drawing (canvas), viewer, source maps or the non-legacy build.
+ && rm -rf node_modules/.bun/@napi-rs+canvas* node_modules/.bun/bun-types@* node_modules/.bun/@types+* \
+ && find node_modules -type d -path '*pdfjs-dist/*' \( -name web -o -name image_decoders -o -name types \) -prune -exec rm -rf {} + \
+ && find node_modules -type d -path '*node_modules/pdfjs-dist/build' -prune -exec rm -rf {} + \
+ && find node_modules -name '*.map' -type f -delete
 
 # ---- 3. Codex (optional): its npm package carries a native binary; keep only that ----
 FROM oven/bun:${BUN_VERSION}-slim AS codex

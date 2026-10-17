@@ -56,6 +56,9 @@ export interface ChatStart {
     /** --tools list; undefined keeps Claude Code's normal set. */
     toolList?: string[];
     maxTurns: number;
+    /** God Eye's MCP server (library search) and its tools that need no prompt. */
+    mcpConfig?: string;
+    allowTools?: string[];
   };
 }
 
@@ -141,8 +144,10 @@ export class Chats {
             options.persona.systemPrompt,
             "--max-turns",
             String(options.persona.maxTurns),
-            // A read-only persona gets only the reading tools and no MCP servers.
+            // A read-only persona gets only the reading tools and no MCP servers but God Eye's own.
             ...(options.persona.toolList ? ["--tools", options.persona.toolList.join(","), "--strict-mcp-config"] : []),
+            ...(options.persona.mcpConfig ? ["--mcp-config", options.persona.mcpConfig] : []),
+            ...(options.persona.allowTools?.length ? ["--allowedTools", ...options.persona.allowTools] : []),
           ]
         : []),
     ];

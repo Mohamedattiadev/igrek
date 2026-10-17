@@ -88,6 +88,9 @@ export class Insight {
     return project && !project.path.startsWith("team:") && existsSync(project.path) ? project.path : undefined;
   }
 
+  /** A project check failed (plan.md 7.2: lessons are caught from it). */
+  onToolFailed: (projectId: string, result: ToolResult) => void = () => undefined;
+
   /** Which code has tests (plan.md 6.1c); computed when asked. */
   coverage(projectId: string): CoverageMap | undefined {
     const root = this.rootOf(projectId);
@@ -523,6 +526,7 @@ ${heads.join("\n\n") || "(none)"}`;
             "INSERT INTO insight_tools (project_id, kind, result, at) VALUES (?, ?, ?, ?) ON CONFLICT(project_id, kind) DO UPDATE SET result = excluded.result, at = excluded.at",
           )
           .run(projectId, plan.kind, JSON.stringify(result), result.at);
+        if (!result.ok) this.onToolFailed(projectId, result);
         this.bus.publish({ type: "insight-changed", projectId });
       }
     } finally {

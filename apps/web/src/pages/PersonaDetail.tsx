@@ -1,6 +1,7 @@
 import {
   CATEGORIES,
   type Category,
+  type LibraryItem,
   type Persona,
   type PersonaGroup,
   type PersonaModel,
@@ -423,9 +424,28 @@ function List({ items }: { items: string[] }) {
   );
 }
 
+/** Loose title match: "Accelerate" matches "Accelerate: The Science of Lean Software". */
+function sameBook(have: string, want: string): boolean {
+  const norm = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, " ")
+      .trim();
+  const a = norm(have);
+  const b = norm(want);
+  return !!a && !!b && (a.includes(b) || b.includes(a));
+}
+
 function Profile({ persona }: { persona: Persona }) {
   const { t } = useTranslation();
   const p = persona.profile;
+  const [shelf, setShelf] = useState<LibraryItem[]>([]);
+  useEffect(() => {
+    api
+      .library(persona.id)
+      .then(setShelf)
+      .catch(() => undefined);
+  }, [persona.id]);
   const [prompt, setPrompt] = useState<string>();
   return (
     <div>
@@ -466,16 +486,28 @@ function Profile({ persona }: { persona: Persona }) {
       {p.reading.length > 0 && (
         <Section title={t("persona.s_reading")} hint={t("persona.readingLibrary")}>
           <ul className="space-y-1 text-[13px]">
-            {p.reading.map((r) => (
-              <li key={r.title}>
-                <span className="font-medium">{r.title}</span>
-                <span className="text-fg-muted">
-                  {" "}
-                  · {r.author}
-                  {r.year ? ` (${r.year})` : ""}
-                </span>
-              </li>
-            ))}
+            {p.reading.map((r) => {
+              const have = shelf.some((item) => sameBook(item.title, r.title));
+              return (
+                <li key={r.title} className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-medium">{r.title}</span>
+                  <span className="text-fg-muted">
+                    · {r.author}
+                    {r.year ? ` (${r.year})` : ""}
+                  </span>
+                  {have ? (
+                    <Badge tone="success">{t("persona.inLibrary")}</Badge>
+                  ) : (
+                    <Link
+                      to={`/library?${new URLSearchParams({ persona: persona.id, title: r.title })}`}
+                      className="text-[11px] text-accent hover:underline"
+                    >
+                      {t("persona.addBook")}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </Section>
       )}

@@ -57,7 +57,11 @@ function excludeFromGit(projectPath: string): void {
 const EVENTS: [event: string, arg: string][] = [
   ["SessionStart", "session-start"],
   ["SessionEnd", "session-end"],
+  // Lessons from earlier mistakes that fit what the user just asked (plan.md 7.2).
+  ["UserPromptSubmit", "prompt"],
 ];
+/** Installed means the session hooks are there; the prompt hook is added to older installs on start. */
+const REQUIRED = EVENTS.slice(0, 2);
 
 export function installHooks(projectPath: string, script: string): void {
   const path = settingsPath(projectPath);
@@ -97,7 +101,7 @@ export function uninstallHooks(projectPath: string): void {
 export function hooksInstalled(projectPath: string): boolean {
   try {
     const settings = readSettingsFile(settingsPath(projectPath));
-    return EVENTS.every(([event]) =>
+    return REQUIRED.every(([event]) =>
       settings.hooks?.[event]?.some((e) => e.hooks?.some((h) => h.command.includes(MARKER))),
     );
   } catch {

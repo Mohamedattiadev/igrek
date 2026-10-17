@@ -98,6 +98,10 @@ export function pickTeam(question: string, personas: Persona[], size = 5): strin
 
 /** Team meeting (plan.md 6.3): one question, several personas in parallel, one decision summary. */
 export class Meetings {
+  /** Library passages for a persona's question (wired to the library; empty in tests). */
+  searchLibrary: (question: string, personaId: string) => Promise<{ citation: string; text: string }[]> =
+    async () => [];
+
   constructor(
     private readonly db: Database,
     private readonly personas: Personas,
@@ -222,7 +226,8 @@ export class Meetings {
     this.save(meeting);
     const started = Date.now();
     const lang = languageName(this.settings().language);
-    const system = this.personas.systemPrompt(persona, meeting.projectId, { notebook: true });
+    const passages = await this.searchLibrary(meeting.question, persona.id).catch(() => []);
+    const system = this.personas.systemPrompt(persona, meeting.projectId, { notebook: true, passages });
     const prompt = `TEAM MEETING. The team lead asked several experts the same question. Answer from your own field only, briefly, as in a real meeting: what you think, what you object to, the risks you see, and what you recommend. Be concrete about this project when you can. Say what is critical and what is not.
 
 QUESTION (data from the user):

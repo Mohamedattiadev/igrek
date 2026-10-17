@@ -414,6 +414,70 @@ const migrations: string[] = [
      updated_at INTEGER NOT NULL
    );
    CREATE INDEX tester_runs_project ON tester_runs(project_id, created_at);`,
+  // Faz 7.1: the library: items, their parts (with meaning vectors) and a word index.
+  `CREATE TABLE library_items (
+     id TEXT PRIMARY KEY,
+     kind TEXT NOT NULL,
+     title TEXT NOT NULL,
+     author TEXT,
+     source TEXT NOT NULL,
+     url TEXT,
+     persona_ids TEXT NOT NULL DEFAULT '[]',
+     status TEXT NOT NULL,
+     progress REAL NOT NULL DEFAULT 0,
+     chunks INTEGER NOT NULL DEFAULT 0,
+     embedded INTEGER NOT NULL DEFAULT 0,
+     error TEXT,
+     size INTEGER,
+     hash TEXT,
+     file TEXT,
+     uses INTEGER NOT NULL DEFAULT 0,
+     added_at INTEGER NOT NULL,
+     published_at INTEGER
+   );
+   CREATE TABLE library_chunks (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     item_id TEXT NOT NULL REFERENCES library_items(id) ON DELETE CASCADE,
+     ord INTEGER NOT NULL,
+     location TEXT,
+     text TEXT NOT NULL,
+     embedding BLOB
+   );
+   CREATE INDEX library_chunks_item ON library_chunks(item_id, ord);
+   CREATE VIRTUAL TABLE library_fts USING fts5(text, tokenize = 'unicode61 remove_diacritics 2');`,
+  // Faz 7.2: the lessons book, the mistakes waiting to be written up, and where the scan stopped.
+  `CREATE TABLE lessons (
+     id TEXT PRIMARY KEY,
+     project_id TEXT,
+     kind TEXT NOT NULL,
+     title TEXT NOT NULL,
+     what TEXT NOT NULL,
+     why TEXT NOT NULL,
+     fix TEXT NOT NULL,
+     prevent TEXT NOT NULL,
+     source TEXT,
+     repeats INTEGER NOT NULL DEFAULT 1,
+     uses INTEGER NOT NULL DEFAULT 0,
+     status TEXT NOT NULL DEFAULT 'active',
+     rule_target TEXT,
+     vector BLOB,
+     created_at INTEGER NOT NULL,
+     last_seen INTEGER NOT NULL,
+     last_used INTEGER
+   );
+   CREATE INDEX lessons_project ON lessons(project_id, status);
+   CREATE TABLE lesson_candidates (
+     source TEXT PRIMARY KEY,
+     project_id TEXT,
+     kind TEXT NOT NULL,
+     detail TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     done INTEGER NOT NULL DEFAULT 0
+   );
+   CREATE TABLE lesson_state (
+     key TEXT PRIMARY KEY,
+     value TEXT NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

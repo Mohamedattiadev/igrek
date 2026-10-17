@@ -18,6 +18,9 @@ export interface WorkDeps {
   dataDir: string;
   /** Re-reads git history right away (after a manual project add or fetch). */
   syncCommits: () => void;
+  /** Lessons for the start of a session, and those that fit a prompt (plan.md 7.2). */
+  lessonsAtStart?: (projectId: string) => string | undefined;
+  lessonsForPrompt?: (prompt: string, projectId: string) => Promise<string | undefined>;
 }
 
 const SECTIONS: MemorySection[] = ["status", "decision", "convention", "failed", "issue"];
@@ -239,9 +242,20 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   app.post("/api/hooks/session-start", async (c) => {
     const payload = (await c.req.json().catch(() => ({}))) as { cwd?: string };
     const projectId = payload.cwd ? store.projectForCwd(payload.cwd) : undefined;
-    const context = projectId ? buildContext(store, projectId) : undefined;
+    const memory = projectId ? buildContext(store, projectId) : undefined;
+    const lessons = projectId ? deps.lessonsAtStart?.(projectId) : undefined;
+    const context = [memory, lessons].filter(Boolean).join("\n\n");
     if (!context) return c.json({});
     return c.json({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: context } });
+  });
+
+  app.post("/api/hooks/prompt", async (c) => {
+    const payload = (await c.req.json().catch(() => ({}))) as { cwd?: string; prompt?: string };
+    const projectId = payload.cwd ? store.projectForCwd(payload.cwd) : undefined;
+    if (!projectId || typeof payload.prompt !== "string") return c.json({});
+    const context = await deps.lessonsForPrompt?.(payload.prompt, projectId).catch(() => undefined);
+    if (!context) return c.json({});
+    return c.json({ hookSpecificOutput: { hookEventName: "UserPromptSubmit", additionalContext: context } });
   });
 
   app.post("/api/hooks/session-end", async (c) => {

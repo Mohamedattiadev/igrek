@@ -1,4 +1,6 @@
 export * from "./insight";
+export * from "./lessons";
+export * from "./library";
 export * from "./persona";
 export * from "./personas";
 export * from "./prompt";
@@ -626,6 +628,8 @@ export type ServerMessage =
   | { type: "personas-changed" }
   | { type: "meetings-changed"; meetingId: string }
   | { type: "testers-changed"; runId: string }
+  | { type: "library-changed" }
+  | { type: "lessons-changed" }
   | { type: "i18n-progress"; code: string };
 
 /** Messages sent from UI to server over the WebSocket. */

@@ -129,6 +129,9 @@ export function sanitizePersona(input: unknown, base?: Persona): Persona {
  * notebook that only changes with new evidence.
  */
 export class Personas {
+  /** The project's lessons book, read before starting (plan.md 6.2). */
+  lessonsFor: (projectId: string) => string | undefined = () => undefined;
+
   constructor(
     private readonly db: Database,
     private readonly store: Store,
@@ -293,10 +296,22 @@ export class Personas {
    * Everything the persona reads before it starts (plan.md 6.2): its profile and rules, its
    * notebook, the project memory and its own parts of the project.
    */
-  systemPrompt(persona: Persona, projectId: string | null, opts: { notebook?: boolean; withMemory?: boolean } = {}) {
+  systemPrompt(
+    persona: Persona,
+    projectId: string | null,
+    opts: {
+      notebook?: boolean;
+      withMemory?: boolean;
+      libraryTool?: boolean;
+      passages?: { citation: string; text: string }[];
+    } = {},
+  ) {
     const { name, role } = personaLabel(persona);
     const project = projectId ? this.store.projectRow(projectId) : undefined;
-    const memory = project && opts.withMemory !== false ? buildContext(this.store, project.id) : undefined;
+    const memory =
+      project && opts.withMemory !== false
+        ? [buildContext(this.store, project.id), this.lessonsFor(project.id)].filter(Boolean).join("\n\n") || undefined
+        : undefined;
     return personaPrompt(persona, {
       language: languageName(this.settings().language),
       displayName: name,
@@ -306,6 +321,8 @@ export class Personas {
       categories:
         project && persona.categories.length ? this.categorySummary(project.id, persona.categories) : undefined,
       notebook: opts.notebook ?? true,
+      libraryTool: opts.libraryTool,
+      passages: opts.passages?.map((p) => ({ citation: p.citation, text: scrub(p.text).slice(0, 1500) })),
     });
   }
 

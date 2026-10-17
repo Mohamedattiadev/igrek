@@ -1,5 +1,6 @@
+import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { APP_VERSION, type ClientMessage, type ServerMessage } from "@godeye/core";
+import { APP_VERSION, type ClientMessage, citation, lessonLines, type ServerMessage } from "@godeye/core";
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
 import { Accounts } from "./accounts";
@@ -18,14 +19,16 @@ import { loadConfig } from "./config";
 import { CrossCheck } from "./crosscheck";
 import { openDb } from "./db";
 import { registerDeployRoutes } from "./deploy-routes";
+import { Embedder } from "./embedder";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
 import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
+import { syncExamples } from "./examples";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
-import { writeHookScript } from "./hooks";
+import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
 import { Indexer } from "./indexer";
@@ -34,6 +37,10 @@ import { HistoryImport } from "./insight/history";
 import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
 import { LanguagePacks } from "./langpacks";
+import { registerLessonRoutes } from "./lesson-routes";
+import { Lessons } from "./lessons";
+import { Library } from "./library";
+import { registerLibraryRoutes } from "./library-routes";
 import { Meetings } from "./meetings";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
@@ -94,6 +101,14 @@ const summarizer = new Summarizer(
   },
 );
 const hookScript = writeHookScript(config.dataDir, config.publicPort);
+// Projects that already have God Eye's hooks get the newer ones too (the prompt hook for lessons).
+for (const project of store.allProjectRows())
+  if (project.hooks_installed && existsSync(project.path))
+    try {
+      installHooks(project.path, hookScript);
+    } catch {
+      // unreadable settings file: left as it is
+    }
 const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
 const servers = new Servers(sqlite, bus, stops);
@@ -115,6 +130,35 @@ const crossCheck = new CrossCheck(sqlite, bus, () => readSettings(db), join(conf
 sync.onTeammateDecision = (projectId, itemId) => crossCheck.add(projectId, itemId);
 const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
 insight.watch();
+insight.onToolFailed = (projectId, result) =>
+  lessons.toolFailed(projectId, result.kind, result.command, result.output, result.at);
+const embedder = new Embedder(join(config.dataDir, "models", "multilingual-e5-small"), () =>
+  bus.publish({ type: "library-changed" }),
+);
+const library = new Library(sqlite, bus, join(config.dataDir, "library"), embedder);
+library.resume();
+// Projects as examples for the personas: shortly after start, then once a day.
+setTimeout(() => syncExamples(store, library), 90_000);
+setInterval(() => syncExamples(store, library), 24 * 60 * 60_000);
+const lessons = new Lessons(
+  sqlite,
+  store,
+  bus,
+  stops,
+  () => readSettings(db),
+  join(config.dataDir, "runner"),
+  library,
+  embedder,
+);
+/** Looks for new mistakes and writes them up (background AI must be on: it uses the small model). */
+const scanLessons = async () => {
+  lessons.scanSessions();
+  lessons.scanCommits();
+  return lessons.processCandidates(5);
+};
+setInterval(() => {
+  if (readSettings(db).autoSummarize) void scanLessons().catch(() => undefined);
+}, 10 * 60_000);
 const personas = new Personas(
   sqlite,
   store,
@@ -144,8 +188,24 @@ const testers = new Testers(
   join(config.dataDir, "runner"),
 );
 testers.recover();
-const personaChat = connectPersonaChats(chats, personas, (sessionId, personaId) =>
-  personas.linkSession(sessionId, personaId),
+personas.lessonsFor = (projectId) => {
+  const top = lessons.forContext(projectId, 6);
+  return top.length ? `Lessons learned in this project (avoid repeating these):\n${lessonLines(top)}` : undefined;
+};
+meetings.searchLibrary = async (question, personaId) =>
+  (await library.search(question, { personaId, limit: 4, markUsed: true })).map((h) => ({
+    citation: citation(h),
+    text: h.text,
+  }));
+const personaChat = connectPersonaChats(
+  chats,
+  personas,
+  (sessionId, personaId) => personas.linkSession(sessionId, personaId),
+  {
+    command: process.execPath,
+    args: [join(import.meta.dir, "mcp.ts")],
+    env: { GODEYE_PORT: String(config.publicPort), GODEYE_HOME: config.dataDir },
+  },
 );
 const enhancer = new Enhancer(
   sqlite,
@@ -176,6 +236,7 @@ const app = createApp({
       persona: personaChat,
     });
     registerTesterRoutes(hono, testers);
+    registerLibraryRoutes(hono, { library, embedder });
     registerPersonaRoutes(hono, {
       personas,
       meetings,
@@ -185,7 +246,14 @@ const app = createApp({
         projects: new Map(store.listProjects().map((p) => [p.id, p.name])),
       }),
     });
-    registerFileRoutes(hono, { files, store, db: sqlite });
+    registerFileRoutes(hono, {
+      files,
+      store,
+      db: sqlite,
+      onRestore: (projectId, checkpointId, changed) =>
+        lessons.checkpointRestored(projectId, checkpointId, "an AI turn", changed),
+    });
+    registerLessonRoutes(hono, { lessons, personas, store, scan: scanLessons });
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync, store, {
       language: () => readSettings(db).language,
@@ -230,6 +298,11 @@ const app = createApp({
     publicPort: config.publicPort,
     dataDir: config.dataDir,
     syncCommits: () => jobs.syncCommits(),
+    lessonsAtStart: (projectId) => {
+      const top = lessons.forContext(projectId, 6);
+      return top.length ? `## Lessons learned (God Eye lessons book)\n${lessonLines(top)}` : undefined;
+    },
+    lessonsForPrompt: (prompt, projectId) => lessons.promptContext(prompt, projectId),
   },
 });
 indexer.start();
