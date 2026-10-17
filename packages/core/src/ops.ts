@@ -409,3 +409,26 @@ export function costInMonth(
   if (item.period === "once") return item.startsAt >= start && item.startsAt <= end ? item.amount : 0;
   return item.period === "year" ? item.amount / 12 : item.amount;
 }
+
+/** Where sign-ups are counted from: a table in the project's database (plan.md 12 "Ürün analitiği"). */
+export interface AnalyticsSource {
+  connectionId: string;
+  table: string;
+  /** The column with the sign-up time. */
+  createdColumn: string;
+}
+
+export interface AnalyticsSummary {
+  /** From the database, when a source is set. */
+  users?: {
+    total: number;
+    last7: number;
+    previous7: number;
+    weekly: { week: string; count: number }[];
+    error?: string;
+  };
+  /** From events the app sends. */
+  active?: { day: number; week: number; month: number; daily: { day: string; users: number }[] };
+  events: { event: string; last7: number; previous7: number }[];
+  source?: AnalyticsSource;
+}

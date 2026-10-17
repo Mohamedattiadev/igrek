@@ -225,7 +225,7 @@
     "environments": "Ortamlar",
     "board": "Pano",
     "preview": "Önizleme",
-    "monitor": "Hatalar ve loglar",
+    "monitor": "İzleme",
     "docs": "Wiki ve tahtalar",
     "host": "Issue'lar ve PR'lar"
   },
@@ -2729,7 +2729,7 @@
   "apperrors": {
     "title": "Uygulamandan gelen hatalar",
     "setup": "Uygulamayı bağla",
-    "setupBody": "Bunu uygulamana yapıştır. Hatalar sadece bu bilgisayardaki God Eye'a gider: mesajı, stack'i, sayfası ve sürümü; başka hiçbir şey.",
+    "setupBody": "Bunu uygulamana yapıştır. Hatalar (mesaj, stack, sayfa, sürüm) ve takip ettiğin olaylar sadece bu bilgisayardaki God Eye'a gider; kullanıcı kimlikleri hash'lenir.",
     "setupNote": "Bir hatanın hangi commit'lerden sonra başladığını görmek için release'i build'in commit'i yap. Yoksa God Eye projenin o anki commit'ini kullanır. Başka bir bilgisayardaki uygulamalar God Eye'ın lokal adresine ulaşamaz.",
     "browser": "Tarayıcı",
     "server": "Node / Bun",
@@ -3057,5 +3057,27 @@
     "suggested": "God Eye bunların olduğunu biliyor; ne kadar tuttuklarını ekle",
     "emptyTitle": "Henüz maliyet yok",
     "emptyBody": "Projelerinin her ay neye mal olduğunu görmek için sunucularını, AI planlarını ve aboneliklerini ekle."
+  },
+  "analytics": {
+    "title": "Ürün rakamları",
+    "signups": "Kayıt kaynağı",
+    "signupsHint": "Tabloyu ve kayıt zamanının olduğu sütunu seç; God Eye sadece satır sayar (salt okunur).",
+    "emptyBody": "Kayıtları projenin veritabanındaki bir tablodan say ya da uygulamadan olay gönder (aşağıda Uygulamayı bağla: godeyeTrack(\"özellik\", kullanıcıId)). Kullanıcı kimlikleri saklanmadan önce hash'lenir.",
+    "noDb": "Kayıtları saymak için projenin veritabanını Araçlar > Veritabanları'ndan bağla.",
+    "db": "Veritabanı",
+    "table": "Tablo",
+    "column": "Oluşturma sütunu",
+    "useIt": "Kullan",
+    "users": "Kullanıcılar",
+    "new7": "7 günde {{count}} yeni",
+    "active": "Aktif kullanıcılar",
+    "week": "son 7 günde",
+    "dayMonth": "bugün {{day}} · 30 gün {{month}}",
+    "features": "En çok kullanılan (7 gün)",
+    "noEvents": "Uygulamadan henüz olay gelmedi: aşağıdan bağla ve önemli yerlerde godeyeTrack(\"özellik\") çağır.",
+    "ask": "PM'e sor",
+    "askTip": "Product Manager personasıyla sadece bu rakamlarla (kullanıcı verisi olmadan) bir sohbet açar.",
+    "askDraft": "Bu rakamlar ne söylüyor, sırada ne yapmalıyız? Hangi özellik geliştirilmeli, hangisi bırakılmalı?",
+    "isNew": "yeni"
   }
 }

@@ -1,4 +1,6 @@
 import type {
+  AnalyticsSource,
+  AnalyticsSummary,
   AppErrorGroup,
   BackupJob,
   BackupRun,
@@ -200,4 +202,13 @@ export const costApi = {
   update: (id: string, item: Partial<CostItem>) =>
     request<CostItem>(`/api/costs/${id}`, { method: "PUT", body: JSON.stringify(item) }),
   remove: (id: string) => del(`/api/costs/${id}`),
+};
+
+export const analyticsApi = {
+  summary: (projectId: string) => request<AnalyticsSummary & { draft: string }>(`/api/projects/${projectId}/analytics`),
+  setSource: (projectId: string, source: AnalyticsSource | null) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/analytics/source`, {
+      method: "PUT",
+      body: JSON.stringify(source),
+    }),
 };

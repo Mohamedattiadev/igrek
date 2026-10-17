@@ -225,7 +225,7 @@
     "environments": "Environments",
     "board": "Board",
     "preview": "Preview",
-    "monitor": "Errors & logs",
+    "monitor": "Monitoring",
     "docs": "Wiki & boards",
     "host": "Issues & PRs"
   },
@@ -2729,7 +2729,7 @@
   "apperrors": {
     "title": "Errors from your app",
     "setup": "Connect the app",
-    "setupBody": "Paste this into your app. Errors are sent only to God Eye on this computer, with their message, stack, page and release; nothing else.",
+    "setupBody": "Paste this into your app. Errors (message, stack, page, release) and the events you track go only to God Eye on this computer; user ids are hashed.",
     "setupNote": "Set release to the commit of the build to see which commits an error started after. Without it, God Eye uses the commit the project is on. Apps on another computer can't reach God Eye's local address.",
     "browser": "Browser",
     "server": "Node / Bun",
@@ -3057,5 +3057,27 @@
     "suggested": "God Eye knows you have these; add what they cost",
     "emptyTitle": "No costs yet",
     "emptyBody": "Add your servers, AI plans and subscriptions to see what your projects cost each month."
+  },
+  "analytics": {
+    "title": "Product numbers",
+    "signups": "Sign-ups source",
+    "signupsHint": "Pick the table and the column with the sign-up time; God Eye only counts rows (read-only).",
+    "emptyBody": "Count sign-ups from a table in the project's database, or send events from the app (Connect the app below: godeyeTrack(\"feature\", userId)). User ids are hashed before they are stored.",
+    "noDb": "Connect the project's database on Tools > Databases to count sign-ups.",
+    "db": "Database",
+    "table": "Table",
+    "column": "Created column",
+    "useIt": "Use it",
+    "users": "Users",
+    "new7": "{{count}} new in 7 days",
+    "active": "Active users",
+    "week": "in the last 7 days",
+    "dayMonth": "today {{day}} · 30 days {{month}}",
+    "features": "Most used (7 days)",
+    "noEvents": "No events from the app yet: connect it below and call godeyeTrack(\"feature\") where it matters.",
+    "ask": "Ask the PM",
+    "askTip": "Opens a chat with the Product Manager persona with these numbers only (no user data).",
+    "askDraft": "What do these numbers say, and what should we do next? Which feature to improve, which to drop?",
+    "isNew": "new"
   }
 }

@@ -706,6 +706,24 @@ const migrations: string[] = [
      data TEXT NOT NULL,
      created_at INTEGER NOT NULL
    );`,
+  // Faz 12: product analytics from the app's own events (user ids hashed) and its database.
+  `CREATE TABLE app_events_daily (
+     project_id TEXT NOT NULL,
+     day TEXT NOT NULL,
+     event TEXT NOT NULL,
+     count INTEGER NOT NULL,
+     PRIMARY KEY (project_id, day, event)
+   );
+   CREATE TABLE app_users_daily (
+     project_id TEXT NOT NULL,
+     day TEXT NOT NULL,
+     user_hash TEXT NOT NULL,
+     PRIMARY KEY (project_id, day, user_hash)
+   );
+   CREATE TABLE analytics_sources (
+     project_id TEXT PRIMARY KEY,
+     data TEXT NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

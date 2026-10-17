@@ -319,3 +319,43 @@ export function registerCostRoutes(app: Hono, costs: import("./costs").Costs): v
     return c.json({ ok: true });
   });
 }
+
+export function registerAnalyticsRoutes(
+  app: Hono,
+  { analytics, store }: { analytics: import("./analytics").Analytics; store: import("./store").Store },
+): void {
+  app.options("/ingest/events/:key", (c) =>
+    c.body(null, 204, {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "POST",
+      "access-control-allow-headers": "content-type",
+      "access-control-max-age": "86400",
+    }),
+  );
+  app.post("/ingest/events/:key", async (c) => {
+    const headers = { "access-control-allow-origin": "*" };
+    const text = await c.req.text();
+    if (text.length > 64_000) return c.json({ error: "Too big" }, 413, headers);
+    let body: unknown;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return c.json({ error: "Not JSON" }, 400, headers);
+    }
+    const ok = analytics.ingest(c.req.param("key"), body);
+    return c.json({ ok }, ok ? 202 : 404, headers);
+  });
+  app.get("/api/projects/:id/analytics", async (c) => {
+    const summary = await analytics.summary(c.req.param("id"));
+    return c.json({ ...summary, draft: analytics.draft(summary, store.projectRow(c.req.param("id"))?.name ?? "") });
+  });
+  app.put("/api/projects/:id/analytics/source", async (c) => {
+    const body = (await c.req.json().catch(() => null)) as import("@godeye/core").AnalyticsSource | null;
+    try {
+      analytics.setSource(c.req.param("id"), body);
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+}

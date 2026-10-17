@@ -8,6 +8,7 @@ import { registerAccountRoutes } from "./accounts-routes";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
 import { geminiAdapter } from "./adapters/gemini";
+import { Analytics } from "./analytics";
 import { createApp } from "./app";
 import { AppErrors } from "./apperrors";
 import { Assist } from "./assist";
@@ -63,6 +64,7 @@ import { Logs } from "./logs";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
 import {
+  registerAnalyticsRoutes,
   registerCalendarRoutes,
   registerCodeHostRoutes,
   registerCostRoutes,
@@ -394,6 +396,7 @@ const app = createApp({
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
+    registerAnalyticsRoutes(hono, { analytics: new Analytics(sqlite, appErrors, databases), store });
     registerCostRoutes(hono, new Costs(sqlite, { accounts, servers, monitors }));
     registerCalendarRoutes(hono, new Calendar(sqlite, schedules, backupJobs, monitors));
     registerDocsRoutes(hono, docs, (cwd) => store.projectForCwd(cwd) ?? undefined);

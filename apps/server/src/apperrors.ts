@@ -240,6 +240,13 @@ export class AppErrors {
   }
   addEventListener("error", function (e) { send(e.message, e.error && e.error.stack); });
   addEventListener("unhandledrejection", function (e) { var r = e.reason; send((r && r.message) || r, r && r.stack); });
+  // Product analytics: godeyeTrack("export_pdf", user.id). The id is hashed before it is stored.
+  var events = "${base}/ingest/events/${this.key(projectId)}";
+  window.godeyeTrack = function (event, user) {
+    var body = JSON.stringify({ event: event, user: user });
+    if (navigator.sendBeacon) navigator.sendBeacon(events, body);
+    else fetch(events, { method: "POST", body: body, keepalive: true, mode: "no-cors" });
+  };
 })();
 </script>`;
     const server = `// Node or Bun: send uncaught errors to God Eye (does not change how the app crashes).
@@ -250,7 +257,11 @@ const report = (err) =>
     body: JSON.stringify({ message: String(err?.message ?? err), stack: err?.stack, release: process.env.GIT_COMMIT, userAgent: "node" }),
   }).catch(() => {});
 process.on("uncaughtException", (err) => { report(err).finally(() => process.exit(1)); });
-process.on("unhandledRejection", (err) => { report(err); });`;
+process.on("unhandledRejection", (err) => { report(err); });
+
+// Product analytics: track("signup", user.id). The id is hashed before it is stored.
+export const track = (event, user) =>
+  fetch("${base}/ingest/events/${this.key(projectId)}", { method: "POST", body: JSON.stringify({ event, user }) }).catch(() => {});`;
     return { browser, server };
   }
 

@@ -195,3 +195,50 @@ describe("backup manager", () => {
     expect(jobs.notices().map((n) => n.kind)).toEqual(["backup"]);
   });
 });
+
+describe("product analytics", () => {
+  test("events counted per day, user ids only as hashes, sign-ups from a table with numeric times", async () => {
+    const { Analytics } = await import("./analytics");
+    const { AppErrors } = await import("./apperrors");
+    const { sqlite, store, databases, dir } = setup();
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-an-")));
+    const errors = new AppErrors(sqlite, store, new Bus());
+    const key = errors.key(projectId);
+    const now = Date.now();
+    const analytics = new Analytics(sqlite, errors, databases, () => now);
+    expect(analytics.ingest("nope", { event: "x" })).toBe(false);
+    expect(
+      analytics.ingest(key, {
+        events: [
+          { event: "export_pdf", user: "ada@x.test" },
+          { event: "export_pdf", user: "ada@x.test" },
+          { event: "search", user: 42 },
+          { event: "<script>" },
+        ],
+      }),
+    ).toBe(true);
+    const hashes = sqlite.query("SELECT user_hash FROM app_users_daily").all() as { user_hash: string }[];
+    expect(hashes).toHaveLength(2);
+    expect(JSON.stringify(hashes)).not.toContain("ada");
+    // Sign-ups stored as epoch milliseconds (as Prisma does on SQLite).
+    const file = join(dir, "app.db");
+    const app = new Sqlite(file);
+    app.run("CREATE TABLE users (id INTEGER PRIMARY KEY, createdAt INTEGER)");
+    for (const daysAgo of [1, 2, 3, 9, 10, 30])
+      app.query("INSERT INTO users (createdAt) VALUES (?)").run(now - daysAgo * 86_400_000);
+    app.close();
+    const conn = await databases.add({ address: file, projectId });
+    analytics.setSource(projectId, { connectionId: conn.id, table: "users", createdColumn: "createdAt" });
+    const s = await analytics.summary(projectId);
+    expect(s.users).toMatchObject({ total: 6, last7: 3, previous7: 2 });
+    expect(s.active).toMatchObject({ day: 2, week: 2 });
+    expect(s.events).toEqual([
+      { event: "export_pdf", last7: 2, previous7: 0 },
+      { event: "search", last7: 1, previous7: 0 },
+    ]);
+    expect(analytics.draft(s, "Shop")).toContain("new in the last 7 days: 3");
+    expect(() =>
+      analytics.setSource(projectId, { connectionId: conn.id, table: "users; drop", createdColumn: "x" }),
+    ).toThrow();
+  });
+});
