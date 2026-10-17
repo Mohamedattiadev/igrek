@@ -708,7 +708,6 @@ function RecoveryBody({ value, onClose }: { value: string; onClose: () => void }
         <ShieldCheck size={16} /> {t("team.recoveryTitle")}
       </h2>
       <p className="text-xs leading-relaxed text-fg-muted">{t("team.recoveryBody")}</p>
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: only watches the copy button inside */}
       <div
         onCopy={() => setKept(true)}
         onClickCapture={(e) => (e.target as HTMLElement).closest("button") && setKept(true)}

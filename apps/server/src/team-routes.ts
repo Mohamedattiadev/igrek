@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import type { ShareLevel } from "@godeye/core";
+import type { SessionSummaryData, ShareLevel } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import type { Hono } from "hono";
 import type { StopRegistry } from "./bus";
@@ -7,6 +7,7 @@ import type { Store } from "./store";
 import { runClaude } from "./summarizer";
 import type { Sync } from "./sync/client";
 import { encodeInvite } from "./sync/crypto";
+import { handoffPrompt } from "./terminal-routes";
 
 const fail = (err: unknown) => ({ error: (err as Error).message });
 const languageName = (code: string) => languages.find((l) => l.code === code)?.english ?? code;
@@ -146,6 +147,135 @@ export function registerTeamRoutes(
       return c.json(fail(err), 502);
     }
   });
+  // ---- comments with @mentions (plan.md 4.4) ----------------------------------------------
+  app.get("/api/comments", (c) => {
+    const kind = c.req.query("kind") ?? "";
+    const id = c.req.query("id") ?? "";
+    const rows = store.db
+      .query(
+        "SELECT id, author_id, author_name, text, mentions, at FROM comments WHERE target_kind = ? AND target_id = ? ORDER BY at",
+      )
+      .all(kind, id) as {
+      id: string;
+      author_id: string | null;
+      author_name: string | null;
+      text: string;
+      mentions: string;
+      at: number;
+    }[];
+    store.db.query("UPDATE comments SET read = 1 WHERE target_kind = ? AND target_id = ?").run(kind, id);
+    return c.json(
+      rows.map((r) => ({
+        id: r.id,
+        author: r.author_name ?? undefined,
+        mine: r.author_id === null,
+        text: r.text,
+        at: r.at,
+      })),
+    );
+  });
+  app.post("/api/comments", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      projectId?: string;
+      targetKind?: string;
+      targetId?: string;
+      text?: string;
+    };
+    const text = (body.text ?? "").trim().slice(0, 4000);
+    if (!text || !body.projectId || !body.targetId || !["session", "memory", "section"].includes(body.targetKind ?? ""))
+      return c.json({ error: "Write something" }, 400);
+    const id = crypto.randomUUID();
+    const mentions = await sync.mentionsIn(text);
+    store.db
+      .query(
+        "INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read) VALUES (?, ?, ?, ?, NULL, ?, ?, ?, ?, 1)",
+      )
+      .run(
+        id,
+        body.projectId,
+        body.targetKind ?? "",
+        body.targetId,
+        sync.identity().name ?? null,
+        text,
+        JSON.stringify(mentions),
+        Date.now(),
+      );
+    void sync.flush();
+    return c.json({ ok: true, id });
+  });
+
+  // ---- messages to one teammate: prompt suggestions and handoffs ------------------------------
+  app.get("/api/team/messages", (c) =>
+    c.json(
+      (
+        store.db
+          .query("SELECT * FROM team_messages WHERE outgoing = 0 AND status = 'new' ORDER BY at DESC LIMIT 50")
+          .all() as Record<string, unknown>[]
+      ).map((m) => ({
+        id: m.id,
+        kind: m.kind,
+        projectId: m.project_id,
+        from: m.from_name,
+        sessionId: m.session_id,
+        title: m.title,
+        text: m.text,
+        at: m.at,
+      })),
+    ),
+  );
+  app.post("/api/team/messages", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      projectId?: string;
+      toId?: string;
+      sessionId?: string;
+      text?: string;
+    };
+    const text = (body.text ?? "").trim().slice(0, 8000);
+    if (!text || !body.projectId || !body.toId) return c.json({ error: "Choose who and write the suggestion" }, 400);
+    store.db
+      .query(
+        "INSERT INTO team_messages (id, kind, project_id, to_id, session_id, text, at, outgoing) VALUES (?, 'suggestion', ?, ?, ?, ?, ?, 1)",
+      )
+      .run(crypto.randomUUID(), body.projectId, body.toId, body.sessionId ?? null, text, Date.now());
+    void sync.flush();
+    return c.json({ ok: true });
+  });
+  app.patch("/api/team/messages/:id", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { status?: string };
+    if (body.status !== "accepted" && body.status !== "dismissed") return c.json({ error: "Unknown status" }, 400);
+    store.db.query("UPDATE team_messages SET status = ? WHERE id = ?").run(body.status, c.req.param("id"));
+    return c.json({ ok: true });
+  });
+  /** "You carry on with this": the summary and next steps go to a teammate, who continues on their own computer. */
+  app.post("/api/sessions/:id/handoff-to", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { toId?: string };
+    const session = store.sessionRow(c.req.param("id"));
+    if (!session?.project_id || !body.toId) return c.json({ error: "Not found" }, 404);
+    const to = sync.memberList().find((m) => m.id === body.toId);
+    const summary = session.summary ? (JSON.parse(session.summary) as SessionSummaryData) : undefined;
+    const prompt = handoffPrompt(
+      session.title ?? "",
+      summary,
+      to?.language ?? language(),
+      `that ${sync.identity().name ?? "a teammate"} handed over to you`,
+    );
+    store.db
+      .query(
+        "INSERT INTO team_messages (id, kind, project_id, to_id, session_id, title, text, at, outgoing) VALUES (?, 'handoff', ?, ?, ?, ?, ?, ?, 1)",
+      )
+      .run(
+        crypto.randomUUID(),
+        session.project_id,
+        body.toId,
+        session.id,
+        summary?.title || session.title || null,
+        prompt,
+        Date.now(),
+      );
+    void sync.flush();
+    return c.json({ ok: true });
+  });
+
   app.get("/api/team/projects", async (c) => c.json(await sync.projectKeys()));
 
   // Own account on the hub: profile, two-factor sign-in, signing out other devices.

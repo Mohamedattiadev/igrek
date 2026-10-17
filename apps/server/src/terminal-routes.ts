@@ -13,10 +13,15 @@ const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "shell"];
  * Opening prompt for a fresh session that continues a tired one (plan.md 1.8 / 2.8):
  * what was done, what is open, so the new session starts informed instead of guessing.
  */
-export function handoffPrompt(title: string, summary: SessionSummaryData | undefined, language: string): string {
+export function handoffPrompt(
+  title: string,
+  summary: SessionSummaryData | undefined,
+  language: string,
+  reason = "that got too long",
+): string {
   const text = summary?.texts[language] ?? summary?.texts.en ?? Object.values(summary?.texts ?? {})[0];
   const lines = [
-    `We are continuing work from a previous session ("${summary?.title || title}") that got too long.`,
+    `We are continuing work from a previous session ("${summary?.title || title}") ${reason}.`,
     text?.why ? `Goal: ${text.why}` : "",
     text?.did.length ? `Already done:\n${text.did.map((d) => `- ${d}`).join("\n")}` : "",
     text?.left.length ? `Still open:\n${text.left.map((d) => `- ${d}`).join("\n")}` : "",

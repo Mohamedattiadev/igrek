@@ -26,6 +26,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
+import { Comments } from "../../components/Comments";
 import { Diagram, ScoreRing, Trend } from "../../components/insight";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { api } from "../../lib/api";
@@ -354,6 +355,8 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
           </ul>
         </details>
       </Card>
+
+      <Comments projectId={project.id} kind="section" id={category} />
 
       {/* Context-aware prompt box: opens a chat about this part with the question waiting. */}
       <Card className="flex items-center gap-2 p-2">

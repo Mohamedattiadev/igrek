@@ -128,6 +128,7 @@ export interface SessionListItem {
   author?: string;
   /** Kept to yourself even when the project is shared. */
   private?: boolean;
+  authorId?: string;
   summary?: SessionSummaryData;
   models: Record<string, number>;
   tokens: { input: number; output: number; cacheRead: number; cacheWrite: number };

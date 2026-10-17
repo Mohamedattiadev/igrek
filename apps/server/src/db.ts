@@ -306,6 +306,36 @@ const migrations: string[] = [
    ALTER TABLE projects ADD COLUMN git_flow INTEGER NOT NULL DEFAULT 1;`,
   // Faz 4.2: a session kept to yourself even in a shared project.
   `ALTER TABLE sessions ADD COLUMN private INTEGER NOT NULL DEFAULT 0;`,
+  // Faz 4.4: comments with @mentions, and messages to one teammate (prompt suggestions, handoffs).
+  `CREATE TABLE comments (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     target_kind TEXT NOT NULL,
+     target_id TEXT NOT NULL,
+     author_id TEXT,
+     author_name TEXT,
+     text TEXT NOT NULL,
+     mentions TEXT NOT NULL DEFAULT '[]',
+     at INTEGER NOT NULL,
+     sent INTEGER NOT NULL DEFAULT 0,
+     read INTEGER NOT NULL DEFAULT 0
+   );
+   CREATE INDEX comments_target ON comments(target_kind, target_id);
+   CREATE TABLE team_messages (
+     id TEXT PRIMARY KEY,
+     kind TEXT NOT NULL,
+     project_id TEXT NOT NULL,
+     from_id TEXT,
+     from_name TEXT,
+     to_id TEXT NOT NULL,
+     session_id TEXT,
+     title TEXT,
+     text TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     status TEXT NOT NULL DEFAULT 'new',
+     outgoing INTEGER NOT NULL DEFAULT 0,
+     sent INTEGER NOT NULL DEFAULT 0
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

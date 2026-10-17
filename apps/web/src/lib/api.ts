@@ -403,6 +403,34 @@ export const api = {
     request<TeamActivity[]>(`/api/team/activity?since=${since}${user ? `&user=${encodeURIComponent(user)}` : ""}`),
   teamActivitySummary: (user: string) =>
     request<{ text: string }>("/api/team/activity/summary", { method: "POST", body: JSON.stringify({ user }) }),
+  comments: (kind: string, id: string) =>
+    request<{ id: string; author?: string; mine: boolean; text: string; at: number }[]>(
+      `/api/comments?kind=${kind}&id=${encodeURIComponent(id)}`,
+    ),
+  addComment: (body: { projectId: string; targetKind: string; targetId: string; text: string }) =>
+    request<{ ok: boolean }>("/api/comments", { method: "POST", body: JSON.stringify(body) }),
+  teamMessages: () =>
+    request<
+      {
+        id: string;
+        kind: "suggestion" | "handoff";
+        projectId: string;
+        from?: string;
+        sessionId?: string;
+        title?: string;
+        text: string;
+        at: number;
+      }[]
+    >("/api/team/messages"),
+  teamSuggest: (body: { projectId: string; toId: string; sessionId?: string; text: string }) =>
+    request<{ ok: boolean }>("/api/team/messages", { method: "POST", body: JSON.stringify(body) }),
+  teamMessageDone: (id: string, status: "accepted" | "dismissed") =>
+    request<{ ok: boolean }>(`/api/team/messages/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
+  handoffTo: (sessionId: string, toId: string) =>
+    request<{ ok: boolean }>(`/api/sessions/${sessionId}/handoff-to`, {
+      method: "POST",
+      body: JSON.stringify({ toId }),
+    }),
   teamProjects: () => request<{ projectId: string; name: string; key: string }[]>("/api/team/projects"),
   teamAccess: () => request<{ project: string; userId: string; role: string }[]>("/api/team/admin/access"),
   teamSetAccess: (project: string, userId: string, role: string | null) =>

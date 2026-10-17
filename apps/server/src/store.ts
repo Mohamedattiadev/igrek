@@ -56,6 +56,7 @@ interface SessionRow {
   last_tool_failed: number;
   account_id: string | null;
   author_name?: string | null;
+  author_id?: string | null;
   private?: number;
 }
 
@@ -109,7 +110,7 @@ function fallbackTitle(row: Pick<SessionRow, "title" | "first_prompt">): string 
 }
 
 export class Store {
-  constructor(private readonly db: Database) {}
+  constructor(readonly db: Database) {}
 
   // ---- source files (incremental parsing) ------------------------------------
 
@@ -385,6 +386,7 @@ export class Store {
       active: isActive(row.updated_at ?? 0),
       health: this.health(row),
       author: row.author_name ?? undefined,
+      authorId: row.author_id ?? undefined,
       private: !!row.private,
       summary: row.summary ? JSON.parse(row.summary) : undefined,
       models: JSON.parse(row.models),

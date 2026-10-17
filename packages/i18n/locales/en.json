@@ -89,7 +89,14 @@
     "notice_tool": "a project check failed",
     "notice_score": "health score dropped",
     "notice_env": "a teammate changed a setting",
-    "notice_overlap": "a teammate is in the same files"
+    "notice_overlap": "a teammate is in the same files",
+    "fromTeam": "From the team",
+    "handoffFrom": "handed you a session",
+    "suggestionFrom": "suggested a prompt",
+    "use": "Use",
+    "useTip": "Open a new chat with this text ready to send",
+    "dismiss": "Dismiss",
+    "notice_mention": "mentioned you"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -1518,5 +1525,21 @@
     "today": "Today in the team",
     "todayHint": "What teammates did today in shared projects.",
     "todayNone": "Nothing from teammates yet today."
+  },
+  "comments": {
+    "title": "Comments",
+    "placeholder": "Write a comment, @ to mention someone",
+    "send": "Send comment"
+  },
+  "teamwork": {
+    "suggest": "Suggest a prompt",
+    "suggestTip": "Send {{name}} a prompt idea for this session",
+    "suggestPlaceholder": "What should they try next?",
+    "handoff": "Hand off to a teammate",
+    "handoffTip": "Give this session to a teammate with a ready summary to continue from",
+    "handoffTo": "Choose a teammate",
+    "send": "Send",
+    "sent": "Sent to {{name}}",
+    "handedOff": "Handed off to {{name}}"
   }
 }

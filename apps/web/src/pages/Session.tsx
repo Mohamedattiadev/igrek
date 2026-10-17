@@ -7,7 +7,9 @@ import {
   Eye,
   EyeOff,
   FileWarning,
+  Forward,
   GitFork,
+  Lightbulb,
   MessageSquare,
   Package,
   Play,
@@ -20,6 +22,8 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { Comments } from "../components/Comments";
+import { useTeamPeople } from "../components/TeamAvatar";
 import { Badge, Button, Card, EmptyState } from "../components/ui";
 import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/work";
 import { api } from "../lib/api";
@@ -202,6 +206,99 @@ function HealthCard({ session }: { session: SessionDetail }) {
   );
 }
 
+/** Team actions on a session: suggest a prompt to its author, or hand your own session to a teammate. */
+function TeamActions({ session }: { session: SessionDetail }) {
+  const { t } = useTranslation();
+  const people = useTeamPeople();
+  const [open, setOpen] = useState<"suggest" | "handoff">();
+  const [text, setText] = useState("");
+  const [to, setTo] = useState("");
+  const [done, setDone] = useState<string>();
+  if (!people.status?.configured || !session.projectId) return null;
+  const others = (people.status.members ?? []).filter((m) => m.id !== people.status?.user?.id);
+  if (!others.length) return null;
+  const projectId = session.projectId;
+  return (
+    <Card className="space-y-2 p-pad">
+      <div className="flex flex-wrap gap-2">
+        {session.authorId ? (
+          <Button
+            size="sm"
+            icon={Lightbulb}
+            onClick={() => setOpen("suggest")}
+            data-tip={t("teamwork.suggestTip", { name: session.author })}
+          >
+            {t("teamwork.suggest")}
+          </Button>
+        ) : (
+          <Button size="sm" icon={Forward} onClick={() => setOpen("handoff")} data-tip={t("teamwork.handoffTip")}>
+            {t("teamwork.handoff")}
+          </Button>
+        )}
+      </div>
+      {done && <p className="text-xs text-success">{done}</p>}
+      {open === "suggest" && (
+        <div className="space-y-2">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={3}
+            placeholder={t("teamwork.suggestPlaceholder")}
+            aria-label={t("teamwork.suggest")}
+            className="w-full rounded-ui border border-border bg-bg p-2 text-[13px] outline-none focus:border-accent"
+          />
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={!text.trim()}
+            onClick={() =>
+              void api
+                .teamSuggest({ projectId, toId: session.authorId ?? "", sessionId: session.id, text })
+                .then(() => {
+                  setOpen(undefined);
+                  setText("");
+                  setDone(t("teamwork.sent", { name: session.author }));
+                })
+            }
+          >
+            {t("teamwork.send")}
+          </Button>
+        </div>
+      )}
+      {open === "handoff" && (
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={to}
+            onChange={(e) => setTo(e.target.value)}
+            aria-label={t("teamwork.handoffTo")}
+            className="h-8 rounded-ui border border-border bg-bg px-2 text-[13px]"
+          >
+            <option value="">{t("teamwork.handoffTo")}</option>
+            {others.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.displayName}
+              </option>
+            ))}
+          </select>
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={!to}
+            onClick={() =>
+              void api.handoffTo(session.id, to).then(() => {
+                setOpen(undefined);
+                setDone(t("teamwork.handedOff", { name: others.find((m) => m.id === to)?.displayName }));
+              })
+            }
+          >
+            {t("teamwork.send")}
+          </Button>
+        </div>
+      )}
+    </Card>
+  );
+}
+
 export function SessionPage() {
   const { t } = useTranslation();
   const { projectId = "", sessionId = "" } = useParams();
@@ -274,6 +371,7 @@ export function SessionPage() {
               {summaryError && <p className="mt-2 text-xs text-danger">{summaryError}</p>}
             </Card>
 
+            {session.projectId && <Comments projectId={session.projectId} kind="session" id={session.id} />}
             <Card>
               <div className="flex items-center justify-between border-b border-border px-pad py-2.5">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">
@@ -297,6 +395,7 @@ export function SessionPage() {
 
           <div className="space-y-4">
             <HealthCard session={session} />
+            <TeamActions session={session} />
             {!session.author && (
               <Card className="flex items-center gap-3 p-pad">
                 {session.private ? (

@@ -111,7 +111,7 @@ const enhancer = new Enhancer(
   (id) => sync.presenceList(id),
   (id) => terminals.recentErrors(id),
 );
-insight.extraNotices = () => sync.overlapNotices();
+insight.extraNotices = () => [...sync.overlapNotices(), ...sync.mentionNotices()];
 const app = createApp({
   config,
   db,

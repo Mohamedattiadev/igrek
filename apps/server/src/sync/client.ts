@@ -328,6 +328,47 @@ export class Sync {
     return out;
   }
 
+  /** @mentions of me, and new comments on my sessions, that I haven't opened yet. */
+  mentionNotices(): InboxNotice[] {
+    const me = this.config?.user.id;
+    if (!me) return [];
+    const rows = this.db
+      .query(
+        `SELECT c.id, c.project_id, p.name AS project, c.target_kind, c.target_id, c.author_name, c.text, c.mentions, c.at,
+                (SELECT 1 FROM sessions s WHERE s.id = c.target_id AND s.author_id IS NULL) AS on_mine
+         FROM comments c LEFT JOIN projects p ON p.id = c.project_id
+         WHERE c.author_id IS NOT NULL AND c.read = 0 ORDER BY c.at DESC LIMIT 30`,
+      )
+      .all() as {
+      id: string;
+      project_id: string;
+      project: string | null;
+      target_kind: string;
+      target_id: string;
+      author_name: string | null;
+      text: string;
+      mentions: string;
+      at: number;
+      on_mine: number | null;
+    }[];
+    return rows
+      .filter((r) => (JSON.parse(r.mentions) as string[]).includes(me) || (r.target_kind === "session" && r.on_mine))
+      .map((r) => ({
+        id: `comment-${r.id}`,
+        kind: "mention" as const,
+        projectId: r.project_id,
+        projectName: r.project ?? "",
+        detail: `${r.author_name ?? "?"}: ${r.text.slice(0, 80)}`,
+        at: r.at,
+        link:
+          r.target_kind === "session"
+            ? `/p/${r.project_id}/s/${r.target_id}`
+            : r.target_kind === "section"
+              ? `/p/${r.project_id}?tab=sections&cat=${r.target_id}`
+              : `/p/${r.project_id}?tab=memory`,
+      }));
+  }
+
   /** Teammates' work since a time, per person (plan.md 4.4 "today in the team", 4.6 person page). */
   activity(since: number, language: string, userId?: string): TeamActivity[] {
     const rows = this.db
@@ -396,6 +437,25 @@ export class Sync {
       people.set(m.author_id, person);
     }
     return [...people.values()];
+  }
+
+  // ---- comments and messages (plan.md 4.4) ---------------------------------------------------
+
+  /** "@kerim" in a comment becomes a mention of that member. */
+  /** Teammate ids named with @username. Someone who joined a minute ago is found too: unknown names reload the list. */
+  async mentionsIn(text: string): Promise<string[]> {
+    const names = new Set([...text.matchAll(/@([\w.-]{2,32})/g)].map((m) => (m[1] ?? "").toLowerCase()));
+    const known = () => [...this.members.values()].filter((m) => names.has(m.username.toLowerCase()));
+    if (known().length < names.size) await this.loadMembers();
+    return known().map((m) => m.id);
+  }
+
+  identity(): { id?: string; name?: string } {
+    return { id: this.config?.user.id, name: this.config?.user.displayName };
+  }
+
+  memberList(): TeamMember[] {
+    return [...this.members.values()];
   }
 
   /** Shared projects with their opaque hub ids (only this computer can tell which is which). */
@@ -871,6 +931,35 @@ export class Sync {
           }
         }
 
+        // Comments written here, and messages to one teammate.
+        for (const cm of this.db
+          .query("SELECT * FROM comments WHERE project_id = ? AND author_id IS NULL AND sent = 0 LIMIT 50")
+          .all(project.id) as Record<string, unknown>[]) {
+          const ok = await this.publish(key, "comment", `c-${cm.id}`, {
+            id: cm.id,
+            targetKind: cm.target_kind,
+            targetId: cm.target_id,
+            text: cm.text,
+            mentions: JSON.parse(String(cm.mentions)),
+            at: cm.at,
+          });
+          if (ok) this.db.query("UPDATE comments SET sent = 1 WHERE id = ?").run(String(cm.id));
+        }
+        for (const msg of this.db
+          .query("SELECT * FROM team_messages WHERE project_id = ? AND outgoing = 1 AND sent = 0 LIMIT 20")
+          .all(project.id) as Record<string, unknown>[]) {
+          const ok = await this.publish(key, "message", `msg-${msg.id}`, {
+            id: msg.id,
+            kind: msg.kind,
+            to: msg.to_id,
+            sessionId: msg.session_id,
+            title: msg.title,
+            text: msg.text,
+            at: msg.at,
+          });
+          if (ok) this.db.query("UPDATE team_messages SET sent = 1 WHERE id = ?").run(String(msg.id));
+        }
+
         // Memory: any change made here (including edits to a teammate's item).
         const memory = this.db
           .query("SELECT * FROM memory_items WHERE project_id = ? AND dirty = 1 LIMIT 100")
@@ -1051,7 +1140,42 @@ export class Sync {
           this.db
             .query("DELETE FROM sessions WHERE id = ? AND author_id = ?")
             .run(String(value.id ?? ""), event.author);
-        else if (event.kind === "env")
+        else if (event.kind === "comment")
+          this.db
+            .query(
+              "INSERT OR IGNORE INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, sent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)",
+            )
+            .run(
+              String(value.id),
+              projectId,
+              String(value.targetKind),
+              String(value.targetId),
+              author.id,
+              author.name,
+              String(value.text ?? "").slice(0, 4000),
+              JSON.stringify(value.mentions ?? []),
+              Number(value.at ?? event.at),
+            );
+        else if (event.kind === "message") {
+          // Only the person it's addressed to keeps it.
+          if (value.to === this.config?.user.id)
+            this.db
+              .query(
+                "INSERT OR IGNORE INTO team_messages (id, kind, project_id, from_id, from_name, to_id, session_id, title, text, at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+              )
+              .run(
+                String(value.id),
+                String(value.kind),
+                projectId,
+                author.id,
+                author.name,
+                String(value.to),
+                (value.sessionId as string | null) ?? null,
+                (value.title as string | null) ?? null,
+                String(value.text ?? "").slice(0, 20_000),
+                Number(value.at ?? event.at),
+              );
+        } else if (event.kind === "env")
           this.db
             .query(
               "INSERT INTO env_changes (project_id, file, key, action, author_id, author_name, at) VALUES (?, ?, ?, ?, ?, ?, ?)",

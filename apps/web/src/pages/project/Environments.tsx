@@ -327,7 +327,6 @@ export function EnvironmentsTab({ project }: { project: ProjectDetail }) {
     void api.environments(project.id).then(setEnvs);
     void api.projectDeploys(project.id).then(setDeploys);
   };
-  // biome-ignore lint/correctness/useExhaustiveDependencies: load per project
   useEffect(load, [project.id]);
   useEffect(() => {
     api

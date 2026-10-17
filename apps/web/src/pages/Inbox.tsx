@@ -1,20 +1,25 @@
 import {
   AlarmClock,
+  AtSign,
   Brain,
+  Check,
   CircleX,
+  Forward,
   Gauge,
   Inbox,
   KeyRound,
+  Lightbulb,
   MessageSquare,
   SquareTerminal,
   TrendingDown,
   Users,
+  X,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ApprovalCard } from "../components/ApprovalCard";
-import { Badge, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useApprovals, useChats, useLiveData, useTerminals } from "../lib/live";
@@ -71,8 +76,23 @@ export function InboxPage() {
   const limitAlerts = (alerts ?? []).filter((a) => !isSnoozed(`limit-${a.accountId}-${a.window}-${a.resetsAt}`));
   const { data: noticeData } = useLiveData(() => api.inboxNotices(), []);
   const notices = (noticeData ?? []).filter((n) => !isSnoozed(n.id));
+  const navigate = useNavigate();
+  const { data: messageData, reload: reloadMessages } = useLiveData(() => api.teamMessages(), []);
+  const messages = messageData ?? [];
+  const acceptMessage = async (m: (typeof messages)[number]) => {
+    await api.teamMessageDone(m.id, "accepted");
+    const chat = await api.startChat({ projectId: m.projectId });
+    navigate(`/c/${chat.id}?draft=${encodeURIComponent(m.text)}`);
+  };
   const empty =
-    approvals.length + terminals.length + chats.length + conflicts.length + limitAlerts.length + notices.length === 0;
+    approvals.length +
+      terminals.length +
+      chats.length +
+      conflicts.length +
+      limitAlerts.length +
+      notices.length +
+      messages.length ===
+    0;
 
   return (
     <>
@@ -162,6 +182,48 @@ export function InboxPage() {
             </section>
           )}
 
+          {messages.length > 0 && (
+            <section>
+              <Heading dot="bg-accent">{t("inbox.fromTeam")}</Heading>
+              <Card>
+                <div className="divide-y divide-border">
+                  {messages.map((m) => {
+                    const Icon = m.kind === "handoff" ? Forward : Lightbulb;
+                    return (
+                      <div key={m.id} className="flex items-start gap-3 px-3 py-2.5">
+                        <Icon size={15} className="mt-0.5 text-accent" aria-hidden="true" />
+                        <div className="min-w-0 flex-1 text-[13px]">
+                          <p>
+                            <span className="font-medium">{m.from}</span> ·{" "}
+                            {t(m.kind === "handoff" ? "inbox.handoffFrom" : "inbox.suggestionFrom")}
+                            {m.title && <span className="ms-1 text-fg-subtle">· {m.title}</span>}
+                          </p>
+                          <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-fg-muted">{m.text}</p>
+                        </div>
+                        <span className="text-[11px] text-fg-subtle">{relativeTime(m.at)}</span>
+                        <Button
+                          size="sm"
+                          icon={Check}
+                          onClick={() => void acceptMessage(m)}
+                          data-tip={t("inbox.useTip")}
+                        >
+                          {t("inbox.use")}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          icon={X}
+                          aria-label={t("inbox.dismiss")}
+                          onClick={() => void api.teamMessageDone(m.id, "dismissed").then(reloadMessages)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            </section>
+          )}
+
           {notices.length > 0 && (
             <section>
               <Heading dot="bg-fg-subtle">
@@ -177,7 +239,9 @@ export function InboxPage() {
                           ? TrendingDown
                           : n.kind === "overlap"
                             ? Users
-                            : KeyRound;
+                            : n.kind === "mention"
+                              ? AtSign
+                              : KeyRound;
                     return (
                       <Link
                         key={n.id}

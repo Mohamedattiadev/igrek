@@ -89,7 +89,14 @@
     "notice_tool": "bir proje kontrolü başarısız",
     "notice_score": "sağlık puanı düştü",
     "notice_env": "bir takım arkadaşı bir ayarı değiştirdi",
-    "notice_overlap": "bir takım arkadaşı aynı dosyalarda"
+    "notice_overlap": "bir takım arkadaşı aynı dosyalarda",
+    "fromTeam": "Takımdan",
+    "handoffFrom": "sana bir oturum devretti",
+    "suggestionFrom": "bir prompt önerdi",
+    "use": "Kullan",
+    "useTip": "Bu metin hazır olarak yeni bir sohbet aç",
+    "dismiss": "Kapat",
+    "notice_mention": "senden bahsetti"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -1518,5 +1525,21 @@
     "today": "Bugün takımda",
     "todayHint": "Takım arkadaşlarının bugün paylaşılan projelerde yaptıkları.",
     "todayNone": "Bugün takımdan henüz bir şey yok."
+  },
+  "comments": {
+    "title": "Yorumlar",
+    "placeholder": "Yorum yaz, birini anmak için @",
+    "send": "Yorumu gönder"
+  },
+  "teamwork": {
+    "suggest": "Prompt öner",
+    "suggestTip": "{{name}} kişisine bu oturum için prompt fikri gönder",
+    "suggestPlaceholder": "Sıradaki adımda ne denemeli?",
+    "handoff": "Takım arkadaşına devret",
+    "handoffTip": "Bu oturumu hazır bir özetle takım arkadaşına ver, oradan devam etsin",
+    "handoffTo": "Takım arkadaşı seç",
+    "send": "Gönder",
+    "sent": "{{name}} kişisine gönderildi",
+    "handedOff": "{{name}} kişisine devredildi"
   }
 }

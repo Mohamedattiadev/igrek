@@ -181,6 +181,32 @@ describe("team sync", () => {
     await until(() => !b.db.query("SELECT 1 FROM sessions WHERE id = 's1'").get());
   });
 
+  test("comments with @mentions and a prompt suggestion reach the teammate", async () => {
+    const now = Date.now();
+    const kerim = hub.users().find((u) => u.username === "kerim");
+    const mentions = await a.sync.mentionsIn("Can you look at this @kerim?");
+    expect(mentions).toEqual([kerim?.id ?? ""]);
+    a.db
+      .query(
+        "INSERT INTO comments (id, project_id, target_kind, target_id, author_id, author_name, text, mentions, at, read) VALUES ('c1', 'p1', 'section', 'security', NULL, 'mohamed', 'Can you look at this @kerim?', ?, ?, 1)",
+      )
+      .run(JSON.stringify(mentions), now);
+    a.db
+      .query(
+        "INSERT INTO team_messages (id, kind, project_id, to_id, text, at, outgoing) VALUES ('t1', 'suggestion', 'p1', ?, 'Add a rate limit to login', ?, 1)",
+      )
+      .run(kerim?.id ?? "", now);
+    await a.sync.flush();
+    await until(() => !!b.db.query("SELECT 1 FROM comments WHERE target_id = 'security'").get());
+    await until(() => !!b.db.query("SELECT 1 FROM team_messages WHERE outgoing = 0").get());
+    const got = b.db.query("SELECT author_name, text FROM comments WHERE target_id = 'security'").get();
+    expect(got).toEqual({ author_name: "mohamed", text: "Can you look at this @kerim?" });
+    expect(b.sync.mentionNotices().length).toBe(1);
+    expect(a.sync.mentionNotices().length).toBe(0);
+    const message = b.db.query("SELECT kind, text, from_name FROM team_messages WHERE outgoing = 0").get();
+    expect(message).toEqual({ kind: "suggestion", text: "Add a rate limit to login", from_name: "mohamed" });
+  });
+
   test("disconnect forgets the hub and the key", async () => {
     b.sync.disconnect();
     expect(b.sync.status()).toMatchObject({ configured: false, connected: false });

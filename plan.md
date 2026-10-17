@@ -629,10 +629,10 @@ god-eye/
 - [x] ⭐ **Kim ne yapıyor (presence):** proje ve kategori sayfalarında "🟢 Ali şu an Backend → auth modülünde" rozeti — *proje sayfası ve Takım sayfası; kategori sayfaları Faz 5'te*
 - [x] ⭐ **Erken çakışma uyarısı:** aynı dosya veya modülde çalışmaya başlarsam *"Ali 10 dk önce `auth.ts`'i değiştirdi, henüz push etmedi"* uyarısı + AI'a da bu bilgi verilir — *aynı dosyalarda çalışınca sarı rozet; AI'a iletme sonra*
 - [ ] Görev sahiplenme (claim): "Bu işi ben alıyorum". Diğerleri görür, aynı iş iki kez yapılmaz
-- [ ] **Prompt önerme:** arkadaşımın session'ına prompt veya not gönderebilirim. Onun ekranında öneri olarak çıkar, kabul ederse session'ına eklenir. Kimsenin session'ı izinsiz değiştirilmez
-- [ ] **Session devralma:** "Bu işi sen devam ettir". Özet ve bağlam karşı tarafa geçer, iş kendi bilgisayarında devam eder
+- [x] **Prompt önerme:** arkadaşımın session'ına prompt veya not gönderebilirim. Onun ekranında öneri olarak çıkar, kabul ederse session'ına eklenir. Kimsenin session'ı izinsiz değiştirilmez
+- [x] **Session devralma:** "Bu işi sen devam ettir". Özet ve bağlam karşı tarafa geçer, iş kendi bilgisayarında devam eder
 - [ ] Çapraz çelişki tespiti: iki kişinin aldığı kararlar çelişirse ikisine de haber verilir
-- [ ] Yorumlar ve @bahsetme: session'lara, kararlara ve kategori sayfalarına
+- [x] Yorumlar ve @bahsetme: session'lara, kararlara ve kategori sayfalarına — *@ yazınca isim önerisi çıkar; bahsedilen kişinin Gelen kutusuna düşer*
 - [ ] Ortak görev panosu: görev bir insana veya bir personaya atanabilir
 - [x] Takım aktivite akışı: "Bugün takımda ne oldu" (her kullanıcının kendi dilinde)
 - [ ] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir

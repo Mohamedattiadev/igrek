@@ -1,8 +1,10 @@
 import type { MemoryItem, MemorySection, ProjectDetail } from "@godeye/core";
-import { AlertTriangle, Brain, Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { AlertTriangle, Brain, Check, MessageSquare, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { Comments } from "../../components/Comments";
+import { useTeamPeople } from "../../components/TeamAvatar";
 import { Button, Card, EmptyState } from "../../components/ui";
 import { api } from "../../lib/api";
 import { relativeTime } from "../../lib/format";
@@ -51,6 +53,8 @@ function ConflictCard({ item, onDone }: { item: MemoryItem; onDone: () => void }
 function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId: string; onChange: () => void }) {
   const { t } = useTranslation();
   const [draft, setDraft] = useState<string>();
+  const [talk, setTalk] = useState(false);
+  const team = useTeamPeople().status?.configured;
   const save = async () => {
     if (draft?.trim()) await api.editMemory(item.id, draft.trim());
     setDraft(undefined);
@@ -79,42 +83,61 @@ function MemoryRow({ item, projectId, onChange }: { item: MemoryItem; projectId:
     );
   }
   return (
-    <li data-nav-item tabIndex={-1} className="group flex items-start gap-3 px-pad py-2.5">
-      <p className="flex-1 text-[13px] leading-relaxed">
-        {item.text}
-        {item.author && <span className="ms-2 text-[11px] text-fg-subtle">— {item.author}</span>}
-      </p>
-      {item.sourceSession && (
-        <Link
-          to={`/p/${projectId}/s/${item.sourceSession}`}
-          className="shrink-0 text-[11px] text-fg-subtle hover:text-accent"
-        >
-          {relativeTime(item.createdAt)}
-        </Link>
+    <li data-nav-item tabIndex={-1} className="group px-pad py-2.5">
+      <div className="flex items-start gap-3">
+        <p className="flex-1 text-[13px] leading-relaxed">
+          {item.text}
+          {item.author && <span className="ms-2 text-[11px] text-fg-subtle">— {item.author}</span>}
+        </p>
+        {item.sourceSession && (
+          <Link
+            to={`/p/${projectId}/s/${item.sourceSession}`}
+            className="shrink-0 text-[11px] text-fg-subtle hover:text-accent"
+          >
+            {relativeTime(item.createdAt)}
+          </Link>
+        )}
+        <span className="flex shrink-0 gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
+          {team && (
+            <button
+              type="button"
+              title={t("comments.title")}
+              aria-label={t("comments.title")}
+              aria-expanded={talk}
+              onClick={() => setTalk((v) => !v)}
+              className="text-fg-subtle hover:text-fg"
+            >
+              <MessageSquare size={13} aria-hidden="true" />
+            </button>
+          )}
+          <button
+            type="button"
+            title={t("memory.edit")}
+            aria-label={t("memory.edit")}
+            onClick={() => setDraft(item.text)}
+            className="text-fg-subtle hover:text-fg"
+          >
+            <Pencil size={13} />
+          </button>
+          <button
+            type="button"
+            title={t("memory.delete")}
+            aria-label={t("memory.delete")}
+            onClick={async () => {
+              await api.forget(item.id);
+              onChange();
+            }}
+            className="text-fg-subtle hover:text-danger"
+          >
+            <Trash2 size={13} />
+          </button>
+        </span>
+      </div>
+      {talk && (
+        <div className="mt-2">
+          <Comments projectId={projectId} kind="memory" id={item.id} />
+        </div>
       )}
-      <span className="flex shrink-0 gap-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
-        <button
-          type="button"
-          title={t("memory.edit")}
-          aria-label={t("memory.edit")}
-          onClick={() => setDraft(item.text)}
-          className="text-fg-subtle hover:text-fg"
-        >
-          <Pencil size={13} />
-        </button>
-        <button
-          type="button"
-          title={t("memory.delete")}
-          aria-label={t("memory.delete")}
-          onClick={async () => {
-            await api.forget(item.id);
-            onChange();
-          }}
-          className="text-fg-subtle hover:text-danger"
-        >
-          <Trash2 size={13} />
-        </button>
-      </span>
     </li>
   );
 }
