@@ -328,3 +328,29 @@ describe("code host", () => {
     expect(calls.some((c) => c.includes("issue view 7 -R me/app"))).toBe(true);
   });
 });
+
+describe("costs", () => {
+  test("yearly spread over months, cancelled ones stop, currencies converted with ECB rates", async () => {
+    const { Costs } = await import("./costs");
+    const { costInMonth } = await import("@godeye/core");
+    const jan = new Date(2026, 0, 1).getTime();
+    expect(costInMonth({ amount: 120, period: "year", startsAt: jan }, 2026, 5)).toBe(10);
+    expect(costInMonth({ amount: 50, period: "once", startsAt: jan }, 2026, 1)).toBe(0);
+    expect(
+      costInMonth({ amount: 9, period: "month", startsAt: jan, endsAt: new Date(2026, 2, 1).getTime() }, 2026, 3),
+    ).toBe(0);
+    const { sqlite } = openDb(":memory:");
+    const fetcher = (async () =>
+      Response.json({ date: "2026-10-16", rates: { USD: 1.125, TRY: 55.7 } })) as unknown as typeof fetch;
+    const costs = new Costs(sqlite, {}, fetcher);
+    costs.add({ name: "VPS", amount: 10, currency: "EUR", period: "month", category: "server", startsAt: jan });
+    costs.add({ name: "API", amount: 557, currency: "TRY", period: "month", category: "api", startsAt: jan });
+    costs.add({ name: "Odd", amount: 5, currency: "XYZ", period: "month", startsAt: jan });
+    expect(() => costs.add({ name: "", amount: 1 })).toThrow();
+    const s = await costs.summary("USD", new Date(2026, 9, 17));
+    expect(s.month).toBe(22.5); // 10 EUR = 11.25 USD, 557 TRY = 10 EUR = 11.25 USD
+    expect(s.unconverted).toEqual(["XYZ"]);
+    expect(s.byCategory.map((c) => c.category)).toEqual(["server", "api"]);
+    expect(s.trend).toHaveLength(12);
+  });
+});

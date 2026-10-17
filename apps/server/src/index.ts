@@ -23,6 +23,7 @@ import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { CodeHost } from "./codehost";
 import { loadConfig } from "./config";
+import { Costs } from "./costs";
 import { CrossCheck } from "./crosscheck";
 import { registerDataRoutes } from "./data-routes";
 import { Databases } from "./databases";
@@ -61,7 +62,13 @@ import { registerLibraryRoutes } from "./library-routes";
 import { Logs } from "./logs";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
-import { registerCalendarRoutes, registerCodeHostRoutes, registerOpsRoutes, registerVaultRoutes } from "./ops-routes";
+import {
+  registerCalendarRoutes,
+  registerCodeHostRoutes,
+  registerCostRoutes,
+  registerOpsRoutes,
+  registerVaultRoutes,
+} from "./ops-routes";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
 import { DevServers } from "./preview/devservers";
@@ -387,6 +394,7 @@ const app = createApp({
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
+    registerCostRoutes(hono, new Costs(sqlite, { accounts, servers, monitors }));
     registerCalendarRoutes(hono, new Calendar(sqlite, schedules, backupJobs, monitors));
     registerDocsRoutes(hono, docs, (cwd) => store.projectForCwd(cwd) ?? undefined);
     registerDataRoutes(hono, { databases, backups: backupJobs });

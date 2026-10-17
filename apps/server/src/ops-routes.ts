@@ -294,3 +294,28 @@ export function registerVaultRoutes(app: Hono, vault: import("./vault").Vault): 
     }
   });
 }
+
+export function registerCostRoutes(app: Hono, costs: import("./costs").Costs): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.get("/api/costs", (c) => c.json(costs.list()));
+  app.get("/api/costs/summary", async (c) => c.json(await costs.summary(c.req.query("currency") || "USD")));
+  app.get("/api/costs/suggestions", (c) => c.json(costs.suggestions()));
+  app.post("/api/costs", async (c) => {
+    try {
+      return c.json(costs.add(await c.req.json()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.put("/api/costs/:id", async (c) => {
+    try {
+      return c.json(costs.update(c.req.param("id"), await c.req.json()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/costs/:id", (c) => {
+    costs.remove(c.req.param("id"));
+    return c.json({ ok: true });
+  });
+}

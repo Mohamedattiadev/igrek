@@ -2635,7 +2635,8 @@
     "databases": "Veritabanları",
     "backups": "Yedekler",
     "calendar": "Takvim",
-    "vault": "Kasa"
+    "vault": "Kasa",
+    "costs": "Maliyet"
   },
   "uptime": {
     "intro": "God Eye bu adresleri kendi aralığında bu bilgisayardan açar. Arka arkaya iki başarısız kontrol kapalı sayılır; Gelen Kutusu'na düşer ve masaüstü bildirimi gelir.",
@@ -3018,5 +3019,43 @@
     "save": "Kaydet",
     "emptyTitle": "Anahtar bulunamadı",
     "emptyBody": "Anahtarlar projelerin .env dosyalarından buraya gelir; ya da elle bir sır ekle."
+  },
+  "costs": {
+    "intro": "Sunucular, AI planları, API'ler ve abonelikler: bir kez gir, aylık toplamı tek para biriminde gör. Döviz kurları Avrupa Merkez Bankası'nın (frankfurter.dev, ücretsiz).",
+    "currency": "Para birimi",
+    "add": "Maliyet ekle",
+    "edit": "Düzenle",
+    "item": "Maliyet",
+    "remove": "Kaldır",
+    "name": "Ad (Hetzner CX22, Claude Max, Vercel Pro…)",
+    "amount": "Tutar",
+    "period": "Ne sıklıkla",
+    "period_month": "Aylık",
+    "period_year": "Yıllık",
+    "period_once": "Tek sefer",
+    "per_month": "ay",
+    "per_year": "yıl",
+    "per_once": "tek sefer",
+    "category": "Tür",
+    "cat_server": "Sunucular",
+    "cat_ai": "AI",
+    "cat_api": "API'ler",
+    "cat_saas": "SaaS",
+    "cat_domain": "Alan adları",
+    "cat_other": "Diğer",
+    "starts": "Başlangıç",
+    "ends": "Bitiş (iptal)",
+    "allProjects": "Tüm projeler (ortak)",
+    "save": "Kaydet",
+    "thisMonth": "Bu ay",
+    "nextYear": "Önümüzdeki 12 ayda {{amount}}",
+    "trend": "Son 12 ay",
+    "rates": "{{date}} kurları",
+    "noRates": "Kur yok (çevrimdışı): sadece bu para birimindeki maliyetler toplanır",
+    "unconverted": "çevrilemeyen: {{list}}",
+    "endedAt": "{{month}} ayına kadar",
+    "suggested": "God Eye bunların olduğunu biliyor; ne kadar tuttuklarını ekle",
+    "emptyTitle": "Henüz maliyet yok",
+    "emptyBody": "Projelerinin her ay neye mal olduğunu görmek için sunucularını, AI planlarını ve aboneliklerini ekle."
   }
 }

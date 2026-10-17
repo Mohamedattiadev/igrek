@@ -6,6 +6,8 @@ import type {
   BoardVersion,
   CalendarItem,
   CodeHostInfo,
+  CostItem,
+  CostSummary,
   DbConnection,
   DbResult,
   DbSuggestion,
@@ -187,4 +189,15 @@ export const vaultApi = {
   rotation: (ref: string, days: number) => post("/api/vault/rotation", { ref, days }),
   rotated: (ref: string) => post("/api/vault/rotation", { ref, rotated: true }),
   reveal: (ref: string) => post<{ value: string }>("/api/vault/reveal", { ref }),
+};
+
+export const costApi = {
+  list: () => request<CostItem[]>("/api/costs"),
+  summary: (currency: string) => request<CostSummary>(`/api/costs/summary?currency=${currency}`),
+  suggestions: () =>
+    request<{ name: string; category: CostItem["category"]; period: CostItem["period"] }[]>("/api/costs/suggestions"),
+  add: (item: Partial<CostItem>) => post<CostItem>("/api/costs", item),
+  update: (id: string, item: Partial<CostItem>) =>
+    request<CostItem>(`/api/costs/${id}`, { method: "PUT", body: JSON.stringify(item) }),
+  remove: (id: string) => del(`/api/costs/${id}`),
 };

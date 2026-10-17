@@ -2635,7 +2635,8 @@
     "databases": "Databases",
     "backups": "Backups",
     "calendar": "Calendar",
-    "vault": "Vault"
+    "vault": "Vault",
+    "costs": "Costs"
   },
   "uptime": {
     "intro": "God Eye opens these addresses on their own schedule from this computer. Two failed checks in a row count as down; you get an inbox item and a desktop notification.",
@@ -3018,5 +3019,43 @@
     "save": "Save",
     "emptyTitle": "No keys found",
     "emptyBody": "Keys appear here from your projects' .env files, or add a secret by hand."
+  },
+  "costs": {
+    "intro": "Servers, AI plans, APIs and subscriptions: enter them once and see the monthly total in one currency. Exchange rates are the European Central Bank's (frankfurter.dev, free).",
+    "currency": "Currency",
+    "add": "Add a cost",
+    "edit": "Edit",
+    "item": "Cost",
+    "remove": "Remove",
+    "name": "Name (Hetzner CX22, Claude Max, Vercel Pro…)",
+    "amount": "Amount",
+    "period": "How often",
+    "period_month": "Monthly",
+    "period_year": "Yearly",
+    "period_once": "One time",
+    "per_month": "month",
+    "per_year": "year",
+    "per_once": "once",
+    "category": "Kind",
+    "cat_server": "Servers",
+    "cat_ai": "AI",
+    "cat_api": "APIs",
+    "cat_saas": "SaaS",
+    "cat_domain": "Domains",
+    "cat_other": "Other",
+    "starts": "From",
+    "ends": "Until (cancelled)",
+    "allProjects": "All projects (shared)",
+    "save": "Save",
+    "thisMonth": "This month",
+    "nextYear": "{{amount}} over the next 12 months",
+    "trend": "Last 12 months",
+    "rates": "Rates of {{date}}",
+    "noRates": "No exchange rates (offline): only costs in this currency are added",
+    "unconverted": "not converted: {{list}}",
+    "endedAt": "until {{month}}",
+    "suggested": "God Eye knows you have these; add what they cost",
+    "emptyTitle": "No costs yet",
+    "emptyBody": "Add your servers, AI plans and subscriptions to see what your projects cost each month."
   }
 }

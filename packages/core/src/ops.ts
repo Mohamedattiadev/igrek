@@ -364,3 +364,48 @@ export interface VaultEntry {
   /** Other places with exactly the same value (compared by hash on this computer). */
   sameAs: number;
 }
+
+/** A recurring cost (plan.md 12 "Maliyet paneli"). */
+export interface CostItem {
+  id: string;
+  name: string;
+  category: "server" | "ai" | "api" | "saas" | "domain" | "other";
+  amount: number;
+  /** ISO code: USD, EUR, TRY… */
+  currency: string;
+  period: "month" | "year" | "once";
+  /** First month it counts (ms). */
+  startsAt: number;
+  /** Cancelled: last month it counts. */
+  endsAt?: number;
+  projectId?: string;
+  note?: string;
+}
+
+export interface CostSummary {
+  currency: string;
+  /** This month, in the chosen currency. */
+  month: number;
+  /** The next 12 months if nothing changes. */
+  year: number;
+  byCategory: { category: CostItem["category"]; amount: number }[];
+  byProject: { projectId?: string; amount: number }[];
+  /** Last 12 months, oldest first: "2026-10" and the total. */
+  trend: { month: string; amount: number }[];
+  /** Exchange rates date (ECB), or missing when an item's currency could not be converted. */
+  ratesDate?: string;
+  unconverted: string[];
+}
+
+/** The amount an item adds to one calendar month (yearly costs spread evenly). */
+export function costInMonth(
+  item: Pick<CostItem, "amount" | "period" | "startsAt" | "endsAt">,
+  year: number,
+  month: number,
+): number {
+  const start = new Date(year, month, 1).getTime();
+  const end = new Date(year, month + 1, 1).getTime() - 1;
+  if (item.startsAt > end || (item.endsAt !== undefined && item.endsAt < start)) return 0;
+  if (item.period === "once") return item.startsAt >= start && item.startsAt <= end ? item.amount : 0;
+  return item.period === "year" ? item.amount / 12 : item.amount;
+}

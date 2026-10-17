@@ -700,6 +700,12 @@ const migrations: string[] = [
      last_hash TEXT,
      changed_at INTEGER
    );`,
+  // Faz 12: the cost panel.
+  `CREATE TABLE cost_items (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

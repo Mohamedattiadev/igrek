@@ -1,11 +1,22 @@
 import type { LucideIcon } from "lucide-react";
-import { CalendarDays, Container, Database, Globe, HardDriveDownload, KeyRound, Radio, ScrollText } from "lucide-react";
+import {
+  CalendarDays,
+  CircleDollarSign,
+  Container,
+  Database,
+  Globe,
+  HardDriveDownload,
+  KeyRound,
+  Radio,
+  ScrollText,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { PageHeader } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { BackupsTab } from "./Backups";
 import { CalendarTab } from "./Calendar";
+import { CostsTab } from "./Costs";
 import { DatabasesTab } from "./Databases";
 import { DockerTab } from "./Docker";
 import { LogsPanel } from "./Logs";
@@ -21,6 +32,7 @@ export const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
   { key: "backups", icon: HardDriveDownload },
   { key: "calendar", icon: CalendarDays },
   { key: "vault", icon: KeyRound },
+  { key: "costs", icon: CircleDollarSign },
 ];
 
 /** The suite's tools in one place (plan.md 12): nothing else to open for running your projects. */
@@ -62,6 +74,8 @@ export function ToolsPage() {
           <CalendarTab />
         ) : tab === "vault" ? (
           <VaultTab />
+        ) : tab === "costs" ? (
+          <CostsTab />
         ) : (
           <LogsPanel />
         )}
