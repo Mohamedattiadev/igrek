@@ -386,7 +386,8 @@
     "blame": "Kim yazdı",
     "blameTip": "Bu dosyanın her bölümünü en son hangi session'ın (veya commit'in) değiştirdiğini göster",
     "notCommitted": "henüz commit edilmedi",
-    "mainWarning": "{{branch}} üzerindesin. Önerilen düzen bir branch'te çalışıp {{branch}}'e PR ile birleştirmek. Yine de {{branch}}'e commit edilsin mi?"
+    "mainWarning": "{{branch}} üzerindesin. Önerilen düzen bir branch'te çalışıp {{branch}}'e PR ile birleştirmek. Yine de {{branch}}'e commit edilsin mi?",
+    "openSession": "Bunu yazan oturumu aç"
   },
   "files": {
     "title": "Dosyalar",

@@ -761,7 +761,14 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
                     notes.push({
                       line: l.line,
                       text: `${who}${l.at ? ` · ${relativeTime(l.at)}` : ""}`,
-                      hover: l.hash ? `${l.hash} ${l.summary}` : t("code.notCommitted"),
+                      hover: [
+                        l.hash ? `${l.hash} ${l.summary}` : t("code.notCommitted"),
+                        l.session
+                          ? `[${t("code.openSession")}](${location.origin}/p/${project.id}/s/${l.session.id})`
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join("\n\n"),
                     });
                   }
                   setBlame(notes);

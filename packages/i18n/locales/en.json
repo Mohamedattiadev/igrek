@@ -386,7 +386,8 @@
     "blame": "Who wrote it",
     "blameTip": "Show which session (or commit) last changed each part of this file",
     "notCommitted": "not committed yet",
-    "mainWarning": "You're on {{branch}}. The recommended flow is to work on a branch and merge into {{branch}} with a PR. Commit to {{branch}} anyway?"
+    "mainWarning": "You're on {{branch}}. The recommended flow is to work on a branch and merge into {{branch}} with a PR. Commit to {{branch}} anyway?",
+    "openSession": "Open the session that wrote this"
   },
   "files": {
     "title": "Files",
