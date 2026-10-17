@@ -279,3 +279,53 @@ export function errorFingerprint(event: Pick<AppErrorEvent, "message" | "stack">
     .map((l) => l.replace(/[?#][^\s):]*/g, "").replace(/:\d+(:\d+)?/g, ""));
   return fingerprint(`${event.message.split("\n")[0]}|${frames.join("|")}`);
 }
+
+/** Where a project's code is hosted (plan.md 12 "GitHub/GitLab entegrasyonu"). */
+export interface CodeHostInfo {
+  host: "github" | "gitlab" | "other" | "none";
+  /** owner/repo */
+  repo?: string;
+  url?: string;
+  /** The CLI God Eye uses with your own login (gh, glab). */
+  cli?: "gh" | "glab";
+  cliInstalled: boolean;
+  signedIn: boolean;
+  error?: string;
+}
+
+export interface HostIssue {
+  number: number;
+  title: string;
+  author: string;
+  labels: string[];
+  url: string;
+  updatedAt: string;
+  comments: number;
+  body?: string;
+}
+
+export interface HostPull {
+  number: number;
+  title: string;
+  author: string;
+  branch: string;
+  state: string;
+  draft: boolean;
+  /** APPROVED, CHANGES_REQUESTED, REVIEW_REQUIRED or empty. */
+  review: string;
+  checks: { passed: number; failed: number; pending: number };
+  url: string;
+  updatedAt: string;
+}
+
+export interface HostRun {
+  id: number;
+  title: string;
+  workflow: string;
+  branch: string;
+  status: string;
+  /** success, failure, cancelled… when finished. */
+  conclusion: string;
+  url: string;
+  createdAt: string;
+}

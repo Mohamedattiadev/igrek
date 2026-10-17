@@ -263,3 +263,68 @@ describe("app errors", () => {
     expect(browserName("Mozilla/5.0 Chrome/130 Safari/537 Edg/130")).toBe("Edge");
   });
 });
+
+describe("code host", () => {
+  test("remotes in https and ssh form", async () => {
+    const { parseRemote } = await import("./codehost");
+    expect(parseRemote("git@github.com:me/app.git")).toEqual({
+      host: "github",
+      repo: "me/app",
+      web: "https://github.com/me/app",
+    });
+    expect(parseRemote("https://token@gitlab.example.com/group/sub/app")).toMatchObject({
+      host: "gitlab",
+      repo: "group/sub/app",
+    });
+    expect(parseRemote("ssh://git@bitbucket.org/me/app.git").host).toBe("other");
+    expect(parseRemote("").host).toBe("none");
+  });
+
+  test("an issue becomes a board card; a bug label starts the fix flow", async () => {
+    const { CodeHost } = await import("./codehost");
+    const dir = mkdtempSync(join(tmpdir(), "godeye-host-"));
+    Bun.spawnSync(["git", "init", "-q", dir]);
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    const projectId = store.addProject(dir);
+    const added: { title: string; description?: string; origin?: string }[] = [];
+    const moved: string[] = [];
+    const board = {
+      add: (a: { title: string; description?: string; origin?: string }) => {
+        added.push(a);
+        return { id: "card1" };
+      },
+      move: (_id: string, _status: string, _order: unknown, flow: string) => {
+        moved.push(flow);
+        return { runId: "run1" };
+      },
+    };
+    const calls: string[] = [];
+    const runner = async (cmd: string[]) => {
+      calls.push(cmd.join(" "));
+      if (cmd[0] === "git") return { code: 0, out: "git@github.com:me/app.git\n", err: "" };
+      if (cmd[1] === "auth") return { code: 0, out: "", err: "" };
+      return {
+        code: 0,
+        out: JSON.stringify({
+          number: 7,
+          title: "Login breaks",
+          body: "Steps…",
+          author: { login: "ada" },
+          labels: [{ name: "bug" }],
+          url: "u",
+          updatedAt: "2026-10-01",
+          comments: [],
+        }),
+        err: "",
+      };
+    };
+    const host = new CodeHost(store, board as never, runner);
+    expect(await host.info(projectId)).toMatchObject({ host: "github", repo: "me/app", signedIn: true });
+    expect(await host.issueToTask(projectId, 7, true)).toEqual({ taskId: "card1", runId: "run1" });
+    expect(added[0]).toMatchObject({ title: "Login breaks", origin: "issue #7" });
+    expect(added[0]?.description).toContain("Fixes #7");
+    expect(moved).toEqual(["fix"]);
+    expect(calls.some((c) => c.includes("issue view 7 -R me/app"))).toBe(true);
+  });
+});

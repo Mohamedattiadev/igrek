@@ -4,12 +4,16 @@ import type {
   BackupRun,
   Board,
   BoardVersion,
+  CodeHostInfo,
   DbConnection,
   DbResult,
   DbSuggestion,
   DbTable,
   DockerContainer,
   DomainWatch,
+  HostIssue,
+  HostPull,
+  HostRun,
   LogGroup,
   LogLine,
   LogSource,
@@ -153,4 +157,14 @@ export const docsApi = {
     projectId: string,
     body: { what: "schema" | "architecture" | "flow"; connectionId?: string; prompt?: string; language: string },
   ) => post<{ mermaid: string }>(`/api/projects/${projectId}/draw`, body),
+};
+
+/** GitHub / GitLab of a project (plan.md 12). */
+export const hostApi = {
+  info: (projectId: string) => request<CodeHostInfo>(`/api/projects/${projectId}/host`),
+  issues: (projectId: string) => request<HostIssue[]>(`/api/projects/${projectId}/host/issues`),
+  pulls: (projectId: string) => request<HostPull[]>(`/api/projects/${projectId}/host/pulls`),
+  runs: (projectId: string) => request<HostRun[]>(`/api/projects/${projectId}/host/runs`),
+  toTask: (projectId: string, number: number, start: boolean) =>
+    post<{ taskId: string; runId?: string }>(`/api/projects/${projectId}/host/issues/${number}/task`, { start }),
 };

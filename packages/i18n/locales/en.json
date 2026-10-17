@@ -226,7 +226,8 @@
     "board": "Board",
     "preview": "Preview",
     "monitor": "Errors & logs",
-    "docs": "Wiki & boards"
+    "docs": "Wiki & boards",
+    "host": "Issues & PRs"
   },
   "memory": {
     "title": "Project memory",
@@ -2923,5 +2924,39 @@
     "emptyTitle": "No boards yet",
     "emptyBody": "Draw the architecture, a flow or an idea. The AI reads it as boxes and arrows, not just pixels.",
     "emptyBoard": "The board is empty: draw something first."
+  },
+  "host": {
+    "issues_one": "1 open issue",
+    "issues_other": "{{count}} open issues",
+    "pulls_one": "1 open pull request",
+    "pulls_other": "{{count}} open pull requests",
+    "runs": "CI runs",
+    "noIssues": "No open issues.",
+    "noPulls": "No open pull requests.",
+    "noRuns": "No CI runs yet.",
+    "comments_one": "1 comment",
+    "comments_other": "{{count}} comments",
+    "toBoard": "To the board",
+    "toTeam": "Give to the team",
+    "toTeamTip": "The issue becomes a card and the persona team starts on it in its own copy. You approve before anything is merged; nothing is pushed or commented on GitHub.",
+    "addedToBoard": "Issue #{{number}} is on the board.",
+    "draft": "Draft",
+    "review_APPROVED": "Approved",
+    "review_CHANGES_REQUESTED": "Changes requested",
+    "review_REVIEW_REQUIRED": "Review needed",
+    "checksPassed": "Checks passed",
+    "checksFailed_one": "1 check failed",
+    "checksFailed_other": "{{count}} checks failed",
+    "checksPending_one": "1 check running",
+    "checksPending_other": "{{count}} checks running",
+    "readOnly": "Read with your own login; God Eye doesn't write to it.",
+    "noRemoteTitle": "No GitHub or GitLab remote",
+    "noRemoteBody": "This project has no remote named origin on GitHub or GitLab.",
+    "otherHost": "The remote ({{repo}}) is not on GitHub or GitLab.",
+    "installTitle": "{{cli}} is not installed",
+    "install_gh": "Install the GitHub CLI (cli.github.com), then run gh auth login in a terminal.",
+    "install_glab": "Install the GitLab CLI (gitlab.com/gitlab-org/cli), then run glab auth login in a terminal.",
+    "signInTitle": "Sign in to {{cli}}",
+    "signInBody": "Run {{cli}} auth login in a terminal (God Eye never signs in for you)."
   }
 }

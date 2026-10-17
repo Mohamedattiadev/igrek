@@ -226,7 +226,8 @@
     "board": "Pano",
     "preview": "Önizleme",
     "monitor": "Hatalar ve loglar",
-    "docs": "Wiki ve tahtalar"
+    "docs": "Wiki ve tahtalar",
+    "host": "Issue'lar ve PR'lar"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -2923,5 +2924,39 @@
     "emptyTitle": "Henüz tahta yok",
     "emptyBody": "Mimariyi, bir akışı ya da bir fikri çiz. AI onu sadece piksel olarak değil, kutular ve oklar olarak okur.",
     "emptyBoard": "Tahta boş: önce bir şey çiz."
+  },
+  "host": {
+    "issues_one": "1 açık issue",
+    "issues_other": "{{count}} açık issue",
+    "pulls_one": "1 açık pull request",
+    "pulls_other": "{{count}} açık pull request",
+    "runs": "CI çalışmaları",
+    "noIssues": "Açık issue yok.",
+    "noPulls": "Açık pull request yok.",
+    "noRuns": "Henüz CI çalışması yok.",
+    "comments_one": "1 yorum",
+    "comments_other": "{{count}} yorum",
+    "toBoard": "Panoya ekle",
+    "toTeam": "Takıma ver",
+    "toTeamTip": "Issue bir kart olur ve persona takımı kendi kopyasında işe başlar. Birleştirmeden önce sen onaylarsın; GitHub'a hiçbir şey push edilmez, yorum yazılmaz.",
+    "addedToBoard": "#{{number}} panoya eklendi.",
+    "draft": "Taslak",
+    "review_APPROVED": "Onaylandı",
+    "review_CHANGES_REQUESTED": "Değişiklik istendi",
+    "review_REVIEW_REQUIRED": "İnceleme bekliyor",
+    "checksPassed": "Kontroller geçti",
+    "checksFailed_one": "1 kontrol başarısız",
+    "checksFailed_other": "{{count}} kontrol başarısız",
+    "checksPending_one": "1 kontrol çalışıyor",
+    "checksPending_other": "{{count}} kontrol çalışıyor",
+    "readOnly": "Kendi girişinle okunur; God Eye oraya yazmaz.",
+    "noRemoteTitle": "GitHub ya da GitLab remote'u yok",
+    "noRemoteBody": "Bu projenin GitHub veya GitLab'da origin adlı bir remote'u yok.",
+    "otherHost": "Remote ({{repo}}) GitHub ya da GitLab'da değil.",
+    "installTitle": "{{cli}} kurulu değil",
+    "install_gh": "GitHub CLI'yi kur (cli.github.com), sonra terminalde gh auth login çalıştır.",
+    "install_glab": "GitLab CLI'yi kur (gitlab.com/gitlab-org/cli), sonra terminalde glab auth login çalıştır.",
+    "signInTitle": "{{cli}} ile giriş yap",
+    "signInBody": "Terminalde {{cli}} auth login çalıştır (God Eye senin yerine asla giriş yapmaz)."
   }
 }

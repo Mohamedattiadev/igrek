@@ -24,6 +24,7 @@ import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
 import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
+import { CodeHostTab } from "./project/CodeHost";
 import { DocsTab } from "./project/Docs";
 import { EnvironmentsTab } from "./project/Environments";
 import { MemoryTab } from "./project/Memory";
@@ -43,6 +44,7 @@ const TABS = [
   "code",
   "memory",
   "docs",
+  "host",
   "environments",
   "monitor",
   "setup",
@@ -371,14 +373,14 @@ export function ProjectPage() {
           <div className="flex-1" />
           {project && <NewSession projectId={project.id} />}
         </div>
-        <nav className="mt-2 flex gap-1">
+        <nav className="-mx-6 mt-2 flex gap-1 overflow-x-auto px-6 [scrollbar-width:none]">
           {TABS.map((name) => (
             <button
               key={name}
               type="button"
               onClick={() => setParams(name === "overview" ? {} : { tab: name })}
               className={cn(
-                "-mb-px border-b-2 px-3 py-2 text-[13px] transition-colors",
+                "-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors",
                 tab === name ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
               )}
             >
@@ -427,6 +429,8 @@ export function ProjectPage() {
           <CodeTab project={project} />
         ) : tab === "sessions" ? (
           <Sessions projectId={project.id} />
+        ) : tab === "host" ? (
+          <CodeHostTab projectId={project.id} />
         ) : tab === "docs" ? (
           <DocsTab projectId={project.id} />
         ) : tab === "monitor" ? (

@@ -198,3 +198,26 @@ export function registerOpsRoutes(
     return c.json({ runId: run.id });
   });
 }
+
+export function registerCodeHostRoutes(app: Hono, host: import("./codehost").CodeHost): void {
+  const guard = async (fn: () => Promise<unknown>) => {
+    try {
+      return { ok: true as const, value: await fn() };
+    } catch (err) {
+      return { ok: false as const, error: (err as Error).message };
+    }
+  };
+  app.get("/api/projects/:id/host", async (c) => c.json(await host.info(c.req.param("id"))));
+  for (const kind of ["issues", "pulls", "runs"] as const)
+    app.get(`/api/projects/:id/host/${kind}`, async (c) => {
+      const r = await guard(() => host[kind](c.req.param("id")));
+      return r.ok ? c.json(r.value) : c.json({ error: r.error }, 400);
+    });
+  app.post("/api/projects/:id/host/issues/:number/task", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { start?: boolean };
+    const r = await guard(() =>
+      host.issueToTask(c.req.param("id"), Number(c.req.param("number")), body.start === true),
+    );
+    return r.ok ? c.json(r.value) : c.json({ error: r.error }, 400);
+  });
+}
