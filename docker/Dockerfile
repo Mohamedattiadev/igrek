@@ -10,6 +10,7 @@ COPY apps/web/package.json apps/web/
 COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
+COPY packages/learn/package.json packages/learn/
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build
@@ -23,6 +24,7 @@ COPY apps/web/package.json apps/web/
 COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
+COPY packages/learn/package.json packages/learn/
 RUN bun install --frozen-lockfile --production --filter '@godeye/server' \
  # The search model runtime ships binaries for every OS; keep only this one's (about 250 MB less).
  && ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') \
@@ -70,6 +72,7 @@ COPY apps/server/package.json apps/server/
 COPY apps/server/src apps/server/src
 COPY packages/core packages/core
 COPY packages/i18n packages/i18n
+COPY packages/learn packages/learn
 COPY --from=build /app/apps/web/dist apps/web/dist
 
 ENV NODE_ENV=production \
