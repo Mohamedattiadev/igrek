@@ -417,7 +417,7 @@ god-eye/
 - [x] ⭐ AI'ın bahsettiği **dosya, fonksiyon, değişken ve komutlar gerçekten var mı?** Otomatik kontrol edilir, yoksa uyarı verilir — *düzenlenen ve cevaplarda bahsedilen dosyalar diskte kontrol ediliyor; fonksiyon düzeyi kontrol Faz 5 kod analizi ile*
 - [x] ⭐ **Paket kontrolü:** AI'ın önerdiği npm/pip paketleri gerçekten var mı, popüler mi, yeni açılmış şüpheli bir paket mi? (uydurma paket adlarıyla yapılan saldırılara, yani "slopsquatting"e karşı) — *npm ve PyPI; olmayan ve az kullanılan paketler işaretlenir*
 - [x] "Testler geçti" ve "build başarılı" gibi iddialar gerçek çıktı ile karşılaştırılır — *başarısız adımdan hemen sonra gelen "çalıştı/geçti" iddiaları işaretlenir*
-- [ ] API ve kütüphane kullanımı, kurulu sürümün dokümanıyla karşılaştırılır ("bu fonksiyon v5'te kaldırıldı") — *kütüphane/dokümanlar ile (Faz 7)*
+- [ ] API ve kütüphane kullanımı, kurulu sürümün dokümanıyla karşılaştırılır ("bu fonksiyon v5'te kaldırıldı") — *kütüphaneye doküman eklenebiliyor; kurulu sürümle otomatik karşılaştırma henüz yok*
 - [x] Proje hafızasıyla çelişen ifadeler işaretlenir ("hafızaya göre DB PostgreSQL, AI MySQL diyor") — *özetin "Kontrol et" kısmında ⚠ ile*
 - [x] Her session'ın sonunda "Doğrulanmamış iddialar" listesi
 
@@ -790,7 +790,7 @@ god-eye/
 **Persona profil standardı (her persona için):**
 - [x] Biyografi: "30+ yıl deneyim, şu dönemleri yaşadı, şu tip sistemleri kurdu"
 - [x] Alan tarihi zaman çizelgesi (ilk günden bugüne kilometre taşları) — *sadece belgelenmiş olaylar; yılı belirsiz olan yazılmadı*
-- [x] Temel okuma listesi + kütüphane bağlantısı (Faz 7) — *gerçek kitaplar, yazar ve yılıyla; kütüphane bağlantısı Faz 7'de*
+- [x] Temel okuma listesi + kütüphane bağlantısı (Faz 7) — *gerçek kitaplar, yazar ve yılıyla; kütüphanede olanlar işaretli, olmayanlar tek tıkla eklenir*
 - [x] Düşünme tarzı ve kontrol listesi (review yaparken neye bakar)
 - [x] Bilinen tuzaklar ve anti-pattern'ler
 - [ ] Güncel kalma: kendi alanındaki yeni gelişmeleri otomatik takip eder (bkz. 7.3 Bilgi Motoru)
@@ -873,7 +873,7 @@ god-eye/
 - [x] Persona tanımı: karakter, uzmanlık, kurallar, izinli araçlar, model, kütüphane, rubrik — *`packages/core/src/personas.ts`; araç izni (okur / düzenler / internet), model, adım sınırı ve insight bölümleri (rubrikler bölüm başına) var; kütüphane Faz 7*
 - [x] Tanımlardan `.claude/agents/*.md` ve Codex eşdeğerinin otomatik üretilmesi ve senkronlanması — *"Dışa aktar" ile: projeye `.claude/agents/<id>.md` (araçlar ve model ön bilgide) ya da Codex hesabına `prompts/<id>.md`; tekrar dışa aktarınca güncellenir. Kendiliğinden yazmaz; Codex dosyası bu bilgisayarda Codex olmadığı için Codex'te denenmedi*
 - [x] Persona düzenleme arayüzü + sıfırdan persona oluşturma sihirbazı — */personas: düzenleyici (yerleşikler de değiştirilip sıfırlanabilir), "bir cümleyle tarif et" → AI taslağı → kontrol et ve kaydet*
-- [x] Her persona işe başlamadan hafızayı, ders defterini ve kendi kategori sayfasını okur; bitirince günceller (otomatik) — *hafıza, kendi bölümlerinin puanı/açık kontrolleri/açıklaması ve kendi defteri prompt'a girer; bitince defter güncellenir, oturum özeti hafızaya her zamanki gibi akar. Ders defteri Faz 7*
+- [x] Her persona işe başlamadan hafızayı, ders defterini ve kendi kategori sayfasını okur; bitirince günceller (otomatik) — *hafıza, kendi bölümlerinin puanı/açık kontrolleri/açıklaması ve kendi defteri prompt'a girer; bitince defter güncellenir, oturum özeti hafızaya her zamanki gibi akar; ders defteri de prompt'a girer*
 - [x] 🔒 İzin sınırları: Security sadece okur; DevOps onaysız deploy edemez; kimse onaysız `git push` yapamaz — *sadece okuyan personalar `--tools Read,Grep,Glob` ve MCP'siz çalışır; push/merge/deploy her modda ve "hep izin ver"e rağmen sorulur (testli)*
 
 #### 6.3 Etkileşim
@@ -894,13 +894,13 @@ god-eye/
 **Hedef:** Personalar en iyi kitaplardan ve kendi hatalarından öğrensin.
 
 #### 7.1 Kütüphane (RAG)
-- [ ] Persona başına kütüphane: kitap (PDF/EPUB), doküman, makale, web sayfası, GitHub repo
-- [ ] Sürükle bırak ile ekleme; GitHub URL'si ile repo ekleme
-- [ ] Parçalama + lokal embedding + sqlite-vec indeksi; arka planda, ilerleme çubuklu
-- [ ] MCP aracı: `library_search(persona, soru)` → kaynaklı en iyi 3–5 parça
-- [ ] Cevaplarda kaynak gösterme zorunlu: "Accelerate, Bölüm 4"
-- [ ] Önerilen başlangıç kütüphaneleri (persona başına okuma listesi; kitapları kullanıcı kendisi ekler)
-- [ ] Kullanıcının eski projeleri otomatik olarak "örnek proje" kütüphanesine eklenir
+- [x] Persona başına kütüphane: kitap (PDF/EPUB), doküman, makale, web sayfası, GitHub repo — *Kütüphane sayfası; her kayıt bütün personalara ya da seçilen birine; X gönderisi ücretsiz oEmbed ile. Taranmış (resim) PDF'ler OCR olmadan okunamaz*
+- [x] Sürükle bırak ile ekleme; GitHub URL'si ile repo ekleme — *repo sığ klonlanır, .env ve anahtar dosyaları hiç okunmaz*
+- [x] Parçalama + lokal embedding + sqlite-vec indeksi; arka planda, ilerleme çubuklu — *kelime (FTS5) + anlam (multilingual-e5-small, ONNX, bu bilgisayarda; 118 MB bir kez indirilir) birleşik arama. Model dil yanlılığı gösteriyor; kelime ağırlığı ve dolgu kelime filtresiyle Türkçe soru İngilizce kitabın doğru bölümünü buldu. sqlite-vec yüklenemezse vektörler bellekte taranır. Docker imajı budamayla 389 MB*
+- [x] MCP aracı: `library_search(persona, soru)` → kaynaklı en iyi 3–5 parça — *persona sohbetlerine God Eye MCP'si otomatik verilir; toplantılarda ilgili pasajlar doğrudan prompt'a girer*
+- [x] Cevaplarda kaynak gösterme zorunlu: "Accelerate, Bölüm 4" — *uzman kuralı; gerçek denemede DevOps personası aracı kendisi çağırdı ve "(Google SRE, The Four Golden Signals)" diye kaynak gösterdi, kaynakta olmayanı kendi pratiği olarak ayırdı. Her cevapta uyulduğu otomatik doğrulanamaz*
+- [x] Önerilen başlangıç kütüphaneleri (persona başına okuma listesi; kitapları kullanıcı kendisi ekler) — *persona sayfasında her kitabın yanında "Kütüphanede" ya da "Ekle"*
+- [x] Kullanıcının eski projeleri otomatik olarak "örnek proje" kütüphanesine eklenir — *her lokal proje: README, kararlar, başarısız denemeler, son işler; günde bir güncellenir, sırlar temizlenir*
 
 #### 7.1b 📰 Bilgi Motoru (personalar her zaman güncel)
 - [ ] ⭐ Persona başına otomatik bilgi kaynakları:
@@ -917,12 +917,12 @@ god-eye/
 - [ ] Karşılaştırma: "React mi Svelte mi?" gibi sorularda güncel verilerle tablo (benimseme, performans, topluluk, trend)
 
 #### 7.2 📒 Ders Defteri (kendini geliştiren sistem)
-- [ ] Her hata otomatik yakalanır: başarısız test, build hatası, geri alınan değişiklik, kullanıcının "yanlış" dediği cevap
-- [ ] Kayıt: **Ne oldu → Neden oldu → Nasıl çözüldü → Bir daha nasıl önlenir**
-- [ ] Benzer bir iş başladığında ilgili dersler otomatik olarak bağlama eklenir
-- [ ] Tekrar eden dersler kurala dönüşür ve proje konvansiyonlarına veya persona kurallarına eklenir (kullanıcı onayıyla)
-- [ ] Proje sonu retrospektifi: personalar "ne öğrendik" notu yazar ve bu not kütüphaneye eklenir
-- [ ] Ders defteri sayfası: arama, filtre, "bu ders kaç kez işe yaradı"
+- [x] Her hata otomatik yakalanır: başarısız test, build hatası, geri alınan değişiklik, kullanıcının "yanlış" dediği cevap — *oturumlardaki test/build hataları, "yanlış/olmadı" diyen mesajlar, Revert commit'leri, geri yüklenen kayıt noktaları, başarısız proje kontrolleri; 10 dakikada bir (arka plan AI açıkken) küçük modelle yazılır, önemsizler atlanır*
+- [x] Kayıt: **Ne oldu → Neden oldu → Nasıl çözüldü → Bir daha nasıl önlenir**
+- [x] Benzer bir iş başladığında ilgili dersler otomatik olarak bağlama eklenir — *yeni `UserPromptSubmit` hook'u isteğe uyan dersleri ekler (anlam + ortak terim), oturum başında en önemli dersler, personalar başlamadan okur, MCP aracı `godeye_lessons`. Gerçek denemede ders olmadan `grid-cols-2`, dersle `minmax(0,1fr)` yazıldı*
+- [x] Tekrar eden dersler kurala dönüşür ve proje konvansiyonlarına veya persona kurallarına eklenir (kullanıcı onayıyla) — *aynı hata tekrar yazılınca ilk derse sayılır; tekrar edenler "kurala dönüştür" diye öne çıkar*
+- [x] Proje sonu retrospektifi: personalar "ne öğrendik" notu yazar ve bu not kütüphaneye eklenir — *Ders defterinde proje seçip "Retrospektif yaz"; dersler, kararlar ve son işlerden tek bir not (küçük model) — birden çok personanın ayrı ayrı yazması değil*
+- [x] Ders defteri sayfası: arama, filtre, "bu ders kaç kez işe yaradı"
 
 **Bitti sayılır:** Aynı hata ikinci kez yapılmıyor; bir persona cevabında kitaptan kaynak gösteriyor.
 
