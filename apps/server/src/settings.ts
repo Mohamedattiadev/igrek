@@ -53,6 +53,11 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
       .map(([k, v]) => [k.trim().toLowerCase(), String(v).trim().slice(0, 200)]);
     patch.enhanceShortcuts = Object.fromEntries(entries);
   }
+  if ("transcriptDays" in body) {
+    const days = Number(body.transcriptDays);
+    if (![0, 30, 90, 180, 365].includes(days)) return { error: "Invalid transcriptDays" };
+    patch.transcriptDays = days;
+  }
   if ("localModelName" in body) {
     if (typeof body.localModelName !== "string" || !/^[\w.:/-]{0,80}$/.test(body.localModelName))
       return { error: "Invalid localModelName" };

@@ -8,8 +8,10 @@ import { LanguagePicker } from "../components/LanguagePicker";
 import {
   BackupPanel,
   BridgesPanel,
+  DiskPanel,
   LocalModelPanel,
   McpServersPanel,
+  NetworkPanel,
   UpdatePanel,
 } from "../components/MaintenancePanels";
 import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
@@ -253,6 +255,12 @@ export function SettingsPage() {
         </Section>
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />
+        </Section>
+        <Section title={t("disk.title")} hint={t("disk.hint")}>
+          <DiskPanel />
+        </Section>
+        <Section title={t("network.title")} hint={t("network.hint")}>
+          <NetworkPanel />
         </Section>
         <Section title={t("update.title")} hint={t("update.hint")}>
           <UpdatePanel />

@@ -62,6 +62,11 @@ export interface Settings {
   localModelName: string;
   /** Where Ollama listens. */
   localModelUrl: string;
+  /**
+   * Days God Eye keeps its own copy of session transcripts (plan.md 13.6); 0 keeps them forever.
+   * Summaries, numbers and your AI tools' own files are never removed.
+   */
+  transcriptDays: number;
 }
 
 /** The morning briefing (plan.md 11): yesterday, today, where things are stuck. */
@@ -96,6 +101,7 @@ export const DEFAULT_SETTINGS: Settings = {
   localModel: "off",
   localModelName: "",
   localModelUrl: "http://localhost:11434",
+  transcriptDays: 0,
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */

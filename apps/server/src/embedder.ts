@@ -34,6 +34,9 @@ export class Embedder implements Embed {
   private error?: string;
   private downloading?: Promise<void>;
   private loaded?: Promise<{ session: Session; tokenizer: TokenizerLike; ort: typeof import("onnxruntime-node") }>;
+  /** The model is let go after a few idle minutes: it is ~300 MB in memory (plan.md 13.6 "Hafiflik"). */
+  private idleTimer?: ReturnType<typeof setTimeout>;
+  private busy = 0;
 
   constructor(
     private readonly dir: string,
@@ -142,7 +145,90 @@ export class Embedder implements Embed {
   }
 
   /** e5 models expect "query: " for questions and "passage: " for stored text. Vectors are normalized. */
+  /** Frees the model's memory; the next search loads it again (about a second). */
+  async unload(): Promise<void> {
+    if (this.worker && !this.busy) {
+      this.worker.kill();
+      this.worker = undefined;
+    }
+    const loaded = this.loaded;
+    if (!loaded || this.busy) return;
+    this.loaded = undefined;
+    const { session } = await loaded.catch(() => ({ session: undefined }));
+    await (session as { release?: () => Promise<void> } | undefined)?.release?.().catch(() => undefined);
+    Bun.gc(true);
+  }
+
   async embed(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]> {
+    this.busy++;
+    clearTimeout(this.idleTimer);
+    try {
+      return await this.embedNow(texts, kind);
+    } finally {
+      this.busy--;
+      this.idleTimer = setTimeout(() => void this.unload(), Number(process.env.GODEYE_EMBED_IDLE_MS) || 3 * 60_000);
+      this.idleTimer.unref?.();
+    }
+  }
+
+  /**
+   * The model runs in a child process that stops after a few idle minutes: ONNX Runtime keeps its
+   * memory (~350 MB) until the process ends, and God Eye should stay light when idle (plan.md 13.6).
+   */
+  private async embedNow(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]> {
+    if (process.env.GODEYE_EMBED_WORKER === "1") return this.embedHere(texts, kind);
+    if (!this.ready()) throw new Error("The search model is not downloaded");
+    const worker = this.startWorker();
+    const id = ++this.nextId;
+    const answer = new Promise<Float32Array[]>((resolve, reject) => this.waiting.set(id, { resolve, reject }));
+    worker.stdin.write(`${JSON.stringify({ id, texts, kind })}\n`);
+    worker.stdin.flush();
+    return answer;
+  }
+
+  private worker?: Bun.Subprocess<"pipe", "pipe", "inherit">;
+  private nextId = 0;
+  private waiting = new Map<number, { resolve: (v: Float32Array[]) => void; reject: (e: Error) => void }>();
+
+  private startWorker(): Bun.Subprocess<"pipe", "pipe", "inherit"> {
+    if (this.worker && !this.worker.killed && this.worker.exitCode === null) return this.worker;
+    const proc = Bun.spawn([process.execPath, join(import.meta.dir, "embed-worker.ts"), this.dir], {
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "inherit",
+      env: { ...process.env, GODEYE_EMBED_WORKER: "1" },
+    });
+    this.worker = proc;
+    void (async () => {
+      const decoder = new TextDecoder();
+      let buffer = "";
+      for await (const chunk of proc.stdout) {
+        buffer += decoder.decode(chunk, { stream: true });
+        for (let i = buffer.indexOf("\n"); i >= 0; i = buffer.indexOf("\n")) {
+          const line = buffer.slice(0, i);
+          buffer = buffer.slice(i + 1);
+          try {
+            const msg = JSON.parse(line) as { id: number; vectors?: string[]; error?: string };
+            const w = this.waiting.get(msg.id);
+            if (!w) continue;
+            this.waiting.delete(msg.id);
+            if (msg.error) w.reject(new Error(msg.error));
+            else
+              w.resolve(
+                (msg.vectors ?? []).map((b) => new Float32Array(new Uint8Array(Buffer.from(b, "base64")).buffer)),
+              );
+          } catch {
+            // Not a message line.
+          }
+        }
+      }
+      for (const w of this.waiting.values()) w.reject(new Error("The search model stopped"));
+      this.waiting.clear();
+    })();
+    return proc;
+  }
+
+  async embedHere(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]> {
     if (!this.ready()) throw new Error("The search model is not downloaded");
     const { session, tokenizer, ort } = await this.load();
     const out: Float32Array[] = [];

@@ -1063,10 +1063,10 @@ god-eye/
 - [ ] 🧪 **Demo proje:** ilk kurulumda güvenle denemek için hazır bir örnek proje
 - [ ] 🔧 Yerel API ve `godeye` CLI: her şey script ile de yapılabilsin
 - [ ] 📦 Diğer araçlardan içe aktarma: Linear, Jira, Trello, Notion, GitHub Projects
-- [ ] 🧹 Veri saklama politikası: eski session'ların sıkıştırılması, disk kullanım paneli
-- [ ] 🕵️ **Sıfır telemetri:** hiçbir kullanım verisi dışarı gönderilmez
+- [x] 🧹 Veri saklama politikası: eski session'ların sıkıştırılması, disk kullanım paneli — *Ayarlar > Disk ve saklama: God Eye'ın diskteki parçaları (veritabanı, arama modeli, çalışma kopyaları, yedekler…), session/mesaj sayısı; konuşma kopyalarını 30/90/180/365 gün ya da her zaman saklama; temizlik özeti olan eski konuşma kopyalarını, biten çalışmaların kopyalarını ve 30 günden eski ekran görüntülerini siler, sonra VACUUM; seçiliyse günde bir kez kendiliğinden. Özetler ve AI araçlarının kendi dosyaları silinmez*
+- [x] 🕵️ **Sıfır telemetri:** hiçbir kullanım verisi dışarı gönderilmez — *Hiçbir kullanım verisi gönderilmiyor; Ayarlar > Ağ bunu gösterir: sunucunun başladığından beri açtığı her internet adresi, kaç kez ve ne için (arama modeli, açık veritabanı, paket sürümleri, RDAP, kurlar, haberler, köprüler); sorgu dizeleri ve token'lar kaydedilmez. claude/git/gh/ssh gibi araçların kendi trafiği kapsam dışı (kendi girişlerinle kendi servislerine)*
 - [ ] 🐶 **Dogfooding:** God Eye, God Eye ile geliştirilir. Her eksik ilk önce bizim tarafımızdan hissedilir
-- [ ] ⚙️ Hafiflik hedefi: boşta lokal RAM kullanımı < 300 MB
+- [x] ⚙️ Hafiflik hedefi: boşta lokal RAM kullanımı < 300 MB — *Ölçüldü: boşta sunucu ~85 MB (sayfalar gezildikten sonra da ~86 MB). Arama modeli artık ayrı bir alt süreçte çalışır (çalışırken ~400 MB) ve 3 dakika boşta kalınca kapanır; önce ana süreçte yüklenince 467 MB'ta kalıyordu*
 
 ### Faz 14 — 📚 Öğrenme Merkezi: Kopya Kâğıtları ve Yol Haritaları
 

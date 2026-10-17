@@ -560,3 +560,145 @@ export function BridgesPanel() {
     </div>
   );
 }
+
+const bytes = (n: number) =>
+  n >= 1024 ** 3
+    ? `${(n / 1024 ** 3).toFixed(1)} GB`
+    : n >= 1024 ** 2
+      ? `${(n / 1024 ** 2).toFixed(0)} MB`
+      : `${Math.max(1, Math.round(n / 1024))} KB`;
+
+/** What God Eye keeps on disk, and keeping it small (plan.md 13.6). */
+export function DiskPanel() {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  const [usage, setUsage] = useState<{
+    total: number;
+    parts: { key: string; bytes: number }[];
+    sessions: number;
+    messages: number;
+    prunable: number;
+  }>();
+  const [note, setNote] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const load = useCallback(
+    () =>
+      void request<typeof usage>("/api/disk")
+        .then(setUsage)
+        .catch(() => undefined),
+    [],
+  );
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reload when the keep period changes
+  useEffect(load, [load, settings.transcriptDays]);
+  return (
+    <div className="space-y-2 text-[13px]">
+      {usage && (
+        <>
+          <p>
+            {t("disk.total", { size: bytes(usage.total) })}{" "}
+            <span className="text-xs text-fg-muted">
+              · {t("disk.counts", { sessions: usage.sessions, messages: usage.messages })}
+            </span>
+          </p>
+          <ul className="space-y-0.5 text-xs">
+            {usage.parts.map((p) => (
+              <li key={p.key} className="flex items-center gap-2">
+                <span className="w-40 text-fg-muted">
+                  {t(`disk.part_${p.key.replace(/[^a-z]/g, "")}`, { defaultValue: p.key })}
+                </span>
+                <span
+                  className="h-1.5 rounded-full bg-accent/60"
+                  style={{ width: `${Math.max(2, (p.bytes / usage.total) * 200)}px` }}
+                />
+                <span>{bytes(p.bytes)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      <label className="flex flex-wrap items-center gap-2">
+        {t("disk.keep")}
+        <select
+          value={settings.transcriptDays}
+          onChange={(e) => void update({ transcriptDays: Number(e.target.value) })}
+          className={field}
+        >
+          {[0, 30, 90, 180, 365].map((d) => (
+            <option key={d} value={d}>
+              {d ? t("disk.days", { count: d }) : t("disk.forever")}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          size="sm"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              const r = await request<{ sessions: number; worktrees: number; shots: number; freed: number }>(
+                "/api/disk/prune",
+                { method: "POST", body: "{}" },
+              );
+              setNote(
+                t("disk.cleaned", {
+                  sessions: r.sessions,
+                  worktrees: r.worktrees,
+                  shots: r.shots,
+                  size: bytes(r.freed),
+                }),
+              );
+              load();
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {busy ? t("disk.cleaning") : t("disk.clean")}
+        </Button>
+        {usage && usage.prunable > 0 && (
+          <span className="text-xs text-fg-muted">{t("disk.prunable", { count: usage.prunable })}</span>
+        )}
+      </div>
+      {note && <p className="text-xs text-success">{note}</p>}
+      <p className="text-xs text-fg-subtle">{t("disk.note")}</p>
+    </div>
+  );
+}
+
+/** Every address God Eye's server opened on the internet since it started (plan.md 13.6). */
+export function NetworkPanel() {
+  const { t } = useTranslation();
+  const [data, setData] = useState<{
+    since: number;
+    hosts: { host: string; count: number; last: number; paths: string[]; purpose?: string }[];
+  }>();
+  useEffect(() => {
+    request<typeof data>("/api/network")
+      .then(setData)
+      .catch(() => undefined);
+  }, []);
+  if (!data) return null;
+  return (
+    <div className="space-y-2 text-[13px]">
+      <p className="text-xs text-fg-muted">{t("network.since", { when: new Date(data.since).toLocaleString() })}</p>
+      {data.hosts.length ? (
+        <ul className="divide-y divide-border rounded-ui border border-border text-xs">
+          {data.hosts.map((h) => (
+            <li key={h.host} className="flex flex-wrap items-center gap-2 px-3 py-1.5">
+              <span className="font-mono">{h.host}</span>
+              {h.purpose && <span className="text-fg-muted">· {t(`network.p_${h.purpose}`)}</span>}
+              <span className="ms-auto text-fg-subtle" title={h.paths.join("\n")}>
+                {t("network.times", { count: h.count })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-xs text-fg-subtle">{t("network.none")}</p>
+      )}
+      <p className="text-xs text-fg-subtle">{t("network.note")}</p>
+    </div>
+  );
+}

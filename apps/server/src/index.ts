@@ -69,6 +69,7 @@ import { Logs } from "./logs";
 import { McpServers } from "./mcpservers";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
+import { HOST_PURPOSE, netLog, watchFetch } from "./netlog";
 import {
   registerAnalyticsRoutes,
   registerBridgeRoutes,
@@ -93,6 +94,7 @@ import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
 import { registerPreviewRoutes } from "./preview-routes";
 import { isoWeek, Product } from "./product";
+import { Retention } from "./retention";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
 import { Sealer } from "./seal";
@@ -118,6 +120,9 @@ import { Writeups } from "./writeups";
 // Everything God Eye writes (database, keys) is readable only by you.
 process.umask(0o077);
 
+// Every address the server opens on the internet is listed in Settings (plan.md 13.6).
+watchFetch();
+const startedAt = Date.now();
 const config = loadConfig();
 const { db, sqlite } = openDb(config.dataDir);
 const token = loadSessionToken(config.dataDir);
@@ -330,6 +335,15 @@ const environments = new Environments(
     return test ? { ok: test.ok, at: test.at } : undefined;
   },
 );
+const retention = new Retention(sqlite, config.dataDir, flows);
+// Old transcript copies and leftovers are cleaned once a day when a keep period is set (plan.md 13.6).
+setInterval(
+  () => {
+    const days = readSettings(db).transcriptDays;
+    if (days > 0) retention.prune(days);
+  },
+  24 * 60 * 60_000,
+);
 const monitors = new Monitors(sqlite, store, bus);
 monitors.start();
 const docker = new Docker(servers);
@@ -529,6 +543,16 @@ const app = createApp({
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerMcpRoutes(hono, mcpServers);
+    hono.get("/api/disk", (c) => c.json(retention.usage(readSettings(db).transcriptDays)));
+    hono.post("/api/disk/prune", (c) => c.json(retention.prune(readSettings(db).transcriptDays)));
+    hono.get("/api/network", (c) =>
+      c.json({
+        since: startedAt,
+        hosts: [...netLog.values()]
+          .sort((a, b) => b.count - a.count)
+          .map((e) => ({ ...e, purpose: HOST_PURPOSE[e.host] })),
+      }),
+    );
     registerBridgeRoutes(hono, bridges, () => readSettings(db).language);
     registerPerfRoutes(hono, new Perf(sqlite, appErrors));
     registerProductRoutes(hono, product, () => readSettings(db).language);
