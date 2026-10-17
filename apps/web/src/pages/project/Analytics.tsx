@@ -191,7 +191,7 @@ export function AnalyticsPanel({ projectId }: { projectId: string }) {
                         data-tip={`${w.week}: ${w.count}`}
                         className="flex-1 rounded-t bg-accent/60"
                         style={{
-                          height: `${Math.max(6, (w.count / Math.max(1, ...s.users!.weekly.map((x) => x.count))) * 100)}%`,
+                          height: `${Math.max(6, (w.count / Math.max(1, ...(s.users?.weekly ?? []).map((x) => x.count))) * 100)}%`,
                         }}
                       />
                     ))}
