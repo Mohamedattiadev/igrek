@@ -68,6 +68,15 @@ export function worktreeDiff(wt: Worktree): {
 }
 
 /** Brings the agent's work into the branch you're on. Your folder must have no unsaved changes in the same files. */
+/** The user's own git identity when set; otherwise a stand-in so the commit doesn't fail. */
+function identity(cwd: string): string[] {
+  const has = (key: string) => run(cwd, ["config", key]).out.trim() !== "";
+  return [
+    ...(has("user.name") ? [] : ["-c", "user.name=God Eye"]),
+    ...(has("user.email") ? [] : ["-c", "user.email=god-eye@localhost"]),
+  ];
+}
+
 export function mergeWorktree(projectPath: string, wt: Worktree, title: string): { merged: boolean; message: string } {
   const root = run(projectPath, ["rev-parse", "--show-toplevel"]).out || projectPath;
   run(wt.path, ["add", "-A"]);
@@ -86,7 +95,7 @@ export function mergeWorktree(projectPath: string, wt: Worktree, title: string):
   }
   if (!run(root, ["rev-list", "--count", `${wt.base}..${wt.branch}`]).out.match(/^[1-9]/))
     return { merged: false, message: "Nothing to merge" };
-  const merge = run(root, ["merge", "--no-ff", "--no-edit", wt.branch]);
+  const merge = run(root, [...identity(root), "merge", "--no-ff", "--no-edit", wt.branch]);
   if (!merge.ok) {
     run(root, ["merge", "--abort"]);
     return { merged: false, message: merge.err || merge.out };
