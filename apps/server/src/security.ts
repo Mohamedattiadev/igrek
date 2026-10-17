@@ -49,10 +49,12 @@ export function securityMiddleware(config: Config, token: string): MiddlewareHan
     if (!isAllowedHost(config, c.req.header("host"))) {
       return c.text("Forbidden host", 403);
     }
+    const path = c.req.path;
+    // Your apps send their errors here from their own origin; the key in the path allows only that.
+    if (path.startsWith("/ingest/")) return next();
     if (!isAllowedOrigin(config, c.req.header("origin"))) {
       return c.text("Forbidden origin", 403);
     }
-    const path = c.req.path;
     const isApi = path.startsWith("/api/");
 
     if (!isApi || path === "/api/session") {

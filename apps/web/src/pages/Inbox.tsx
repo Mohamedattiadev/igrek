@@ -1,18 +1,26 @@
+import type { InboxNotice } from "@godeye/core";
 import {
   AlarmClock,
   AtSign,
   BookOpen,
   Brain,
+  Bug,
   Check,
   CircleX,
   Forward,
   Gauge,
+  Globe,
+  HardDriveDownload,
   Inbox,
   KeyRound,
   Lightbulb,
+  type LucideIcon,
   MessageSquare,
   NotebookPen,
   Package as PackageIcon,
+  RadioTower,
+  RefreshCcw,
+  ShieldAlert,
   SquareTerminal,
   TrendingDown,
   Users,
@@ -29,6 +37,27 @@ import { relativeTime } from "../lib/format";
 import { useApprovals, useChats, useLiveData, useTerminals } from "../lib/live";
 import { isSnoozed, snooze } from "../lib/snooze";
 import { TerminalStatus } from "./Terminals";
+
+const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
+  tool: CircleX,
+  score: TrendingDown,
+  overlap: Users,
+  mention: AtSign,
+  lesson: NotebookPen,
+  opinion: BookOpen,
+  update: PackageIcon,
+  schedule: AlarmClock,
+  scheduleFailed: AlarmClock,
+  missed: AlarmClock,
+  proposed: AlarmClock,
+  vuln: PackageIcon,
+  down: RadioTower,
+  cert: ShieldAlert,
+  domain: Globe,
+  appError: Bug,
+  backup: HardDriveDownload,
+  rotate: RefreshCcw,
+};
 
 function Heading({ dot, children }: { dot: string; children: ReactNode }) {
   return (
@@ -238,29 +267,7 @@ export function InboxPage() {
               <Card>
                 <div className="divide-y divide-border">
                   {notices.map((n) => {
-                    const Icon =
-                      n.kind === "tool"
-                        ? CircleX
-                        : n.kind === "score"
-                          ? TrendingDown
-                          : n.kind === "overlap"
-                            ? Users
-                            : n.kind === "mention"
-                              ? AtSign
-                              : n.kind === "lesson"
-                                ? NotebookPen
-                                : n.kind === "opinion"
-                                  ? BookOpen
-                                  : n.kind === "update"
-                                    ? PackageIcon
-                                    : n.kind === "schedule" ||
-                                        n.kind === "scheduleFailed" ||
-                                        n.kind === "missed" ||
-                                        n.kind === "proposed"
-                                      ? AlarmClock
-                                      : n.kind === "vuln"
-                                        ? PackageIcon
-                                        : KeyRound;
+                    const Icon = NOTICE_ICON[n.kind] ?? KeyRound;
                     return (
                       <Link
                         key={n.id}

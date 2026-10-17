@@ -9,6 +9,7 @@ import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
 import { geminiAdapter } from "./adapters/gemini";
 import { createApp } from "./app";
+import { AppErrors } from "./apperrors";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
 import { Backups } from "./backup";
@@ -22,6 +23,7 @@ import { loadConfig } from "./config";
 import { CrossCheck } from "./crosscheck";
 import { openDb } from "./db";
 import { registerDeployRoutes } from "./deploy-routes";
+import { Docker } from "./docker";
 import { Embedder } from "./embedder";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
@@ -49,7 +51,10 @@ import { registerLessonRoutes } from "./lesson-routes";
 import { Lessons } from "./lessons";
 import { Library } from "./library";
 import { registerLibraryRoutes } from "./library-routes";
+import { Logs } from "./logs";
 import { Meetings } from "./meetings";
+import { Monitors } from "./monitors";
+import { registerOpsRoutes } from "./ops-routes";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
 import { DevServers } from "./preview/devservers";
@@ -255,6 +260,11 @@ const updater = new Updater();
 // New versions of God Eye: checked shortly after start, then every 6 hours (git fetch with your own credentials).
 setTimeout(() => updater.check(), 2 * 60_000);
 setInterval(() => updater.check(), 6 * 60 * 60_000);
+const monitors = new Monitors(sqlite, store, bus);
+monitors.start();
+const docker = new Docker(servers);
+const logs = new Logs(sqlite, store, files, docker, servers);
+const appErrors = new AppErrors(sqlite, store, bus);
 const briefings = new Briefings(
   sqlite,
   store,
@@ -287,6 +297,8 @@ insight.extraNotices = () => [
   ...schedules.notices(),
   ...secretScanner.notices(),
   ...depWatcher.notices(),
+  ...monitors.notices(),
+  ...appErrors.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
     .list()
@@ -347,6 +359,7 @@ const app = createApp({
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
+    registerOpsRoutes(hono, { monitors, docker, logs, errors: appErrors, flows, port: config.publicPort });
     registerWatcherRoutes(hono, {
       secrets: secretScanner,
       deps: depWatcher,

@@ -30,6 +30,7 @@ import { SettingsPage } from "./pages/Settings";
 import { TeamPage } from "./pages/Team";
 import { TerminalPage, TerminalsPage } from "./pages/Terminals";
 import { TestRunPage } from "./pages/Testers";
+import { ToolsPage } from "./pages/tools/ToolsPage";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/jetbrains-mono/wght.css";
 import "./styles.css";
@@ -62,6 +63,7 @@ const router = createBrowserRouter([
       { path: "test-runs/:runId", element: <TestRunPage /> },
       { path: "runs/:runId", element: <FlowRunPage /> },
       { path: "schedules", element: <SchedulesPage /> },
+      { path: "tools", element: <ToolsPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

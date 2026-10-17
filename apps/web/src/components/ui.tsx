@@ -1,5 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef } from "react";
+import { Check, Copy, type LucideIcon } from "lucide-react";
+import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
 import { Term, useTermIn } from "./Term";
 
@@ -201,5 +202,25 @@ export function Dialog({
     >
       {open && children}
     </dialog>
+  );
+}
+
+/** Copies text to the clipboard and says so for a moment. */
+export function CopyButton({ text, label }: { text: string; label?: string }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  return (
+    <Button
+      size="sm"
+      icon={copied ? Check : Copy}
+      onClick={() =>
+        void navigator.clipboard.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        })
+      }
+    >
+      {copied ? t("team.copied") : (label ?? t("team.copy"))}
+    </Button>
   );
 }

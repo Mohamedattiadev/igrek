@@ -996,11 +996,11 @@ god-eye/
 ### Faz 12 — 🧰 Tam Suit Araçları (başka uygulamaya gerek kalmasın)
 
 - [ ] 🗄️ **Veritabanı gezgini:** tablolar, satırlar, şema diyagramı, sorgu editörü (PostgreSQL, MySQL, SQLite, MongoDB); prod'da varsayılan olarak salt okunur, sorgular "DB Uzmanı'na açıklat"
-- [ ] 🐳 **Docker yöneticisi:** container'lar, loglar, yeniden başlatma, kaynak kullanımı (lokal ve SSH)
-- [ ] 📜 **Log merkezi:** lokal ve sunucu logları tek yerde, arama, hata gruplama, "bu hatayı düzelt" butonu
-- [ ] 🚨 **Hata takibi:** uygulamanın hatalarını yakalama (Sentry benzeri, hafif), hangi commit'ten sonra başladı
-- [ ] 📡 **Uptime izleme:** sitelerin açık mı, ne kadar hızlı; kapanınca bildirim
-- [ ] 🌐 **Domain ve SSL takibi:** süresi dolacak alan adları ve sertifikalar için uyarı, DNS kayıtları
+- [x] 🐳 **Docker yöneticisi:** container'lar, loglar, yeniden başlatma, kaynak kullanımı (lokal ve SSH) — *Araçlar > Docker: compose projesi, durum/sağlık, CPU/bellek, loglar; yeniden başlat/durdur/başlat bir kez onay ister, sunucuda denetim kaydına yazılır. Lokalde gerçek container'larla denendi; SSH yolu sahte sunucuyla test edildi, gerçek sunucuda denenmedi*
+- [x] 📜 **Log merkezi:** lokal ve sunucu logları tek yerde, arama, hata gruplama, "bu hatayı düzelt" butonu — *Kaynaklar: .log dosyaları (proje ve /var/log), Docker container'ları, systemd servisleri (lokal veya SSH). Sayı/id/zaman ayıklanarak gruplama; "Bunu düzelt" fix akışını projenin kendi kopyasında başlatır. Projenin .log dosyaları ve compose container'ları öneri olarak çıkar*
+- [x] 🚨 **Hata takibi:** uygulamanın hatalarını yakalama (Sentry benzeri, hafif), hangi commit'ten sonra başladı — *Proje > Hatalar ve loglar: tarayıcı ve Node/Bun için birkaç satırlık kod, proje anahtarıyla; mesaj+stack ile gruplama, release (commit) yoksa projenin o anki commit'i; önceki release ile arasındaki commit'ler şüpheli olarak listelenir; çözülen hata dönerse tekrar açılır. Başka porttaki gerçek bir sayfadan uçtan uca denendi. Sınır: sadece God Eye'a ulaşabilen (lokal) uygulamalar gönderebilir*
+- [x] 📡 **Uptime izleme:** sitelerin açık mı, ne kadar hızlı; kapanınca bildirim — *1/5/15/60 dk aralık; iki ardışık hata = kapalı, Gelen Kutusu + masaüstü bildirimi; 24 saatlik oran, ortanca süre, çubuk grafik. Kontroller bu bilgisayardan yapılır: God Eye kapalıyken izleme yok*
+- [x] 🌐 **Domain ve SSL takibi:** süresi dolacak alan adları ve sertifikalar için uyarı, DNS kayıtları — *Günde bir: 443'teki sertifika (veren, kapsadığı adlar, ad uyuşmazlığı), RDAP ile alan adı bitişi ve kayıt firması, A/AAAA/CNAME/MX/NS/TXT. 30/14/7/1 gün kala uyarı. github.com ve süresi geçmiş expired.badssl.com ile denendi. Bazı ülke uzantılarında RDAP yok, "bilinmiyor" görünür*
 - [ ] 💾 **Yedekleme yöneticisi:** veritabanı ve dosya yedekleri, zamanlama, geri yükleme testi
 - [ ] 💸 **Maliyet paneli:** sunucu, AI, API ve SaaS abonelikleri, aylık toplam ve trend
 - [ ] 📝 **Proje wiki'si ve notlar:** her projeye doküman alanı (Markdown + diyagram); hafıza ile bağlantılı

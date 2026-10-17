@@ -3,6 +3,7 @@ export * from "./insight";
 export * from "./knowledge";
 export * from "./lessons";
 export * from "./library";
+export * from "./ops";
 export * from "./persona";
 export * from "./personas";
 export * from "./preview";
@@ -656,7 +657,11 @@ export type ServerMessage =
   | { type: "board-changed"; projectId: string }
   | { type: "schedules-changed" }
   | { type: "devservers-changed"; projectId: string }
-  | { type: "i18n-progress"; code: string };
+  | { type: "i18n-progress"; code: string }
+  | { type: "monitors-changed" }
+  | { type: "ops-changed"; what: string }
+  /** Something that needs a desktop notification right away (a site went down, a new app error). */
+  | { type: "alert"; kind: "down" | "up" | "appError" | "backupFailed"; title: string; link: string };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };

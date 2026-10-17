@@ -14,6 +14,7 @@ import {
   SquareTerminal,
   Users,
   UsersRound,
+  Wrench,
 } from "lucide-react";
 
 export interface NavItem {
@@ -30,6 +31,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/terminals", label: "nav.terminals", icon: SquareTerminal },
   { to: "/files", label: "nav.files", icon: FolderOpen },
   { to: "/servers", label: "nav.servers", icon: Server },
+  { to: "/tools", label: "nav.tools", icon: Wrench },
   { to: "/inbox", label: "nav.inbox", icon: Inbox },
   { to: "/schedules", label: "nav.schedules", icon: CalendarClock },
   { to: "/ideas", label: "nav.ideas", icon: Lightbulb },

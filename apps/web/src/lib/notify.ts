@@ -87,6 +87,7 @@ export function useDesktopNotifications(): void {
       })
       .catch(() => undefined);
   });
+  useServerEvent("alert", (m) => show(t(`notify.alert_${m.kind}`), m.title, m.link));
   useServerEvent("insight-changed", (m) => {
     void api
       .insight(m.projectId)

@@ -559,6 +559,65 @@ const migrations: string[] = [
      dismissed INTEGER NOT NULL DEFAULT 0,
      PRIMARY KEY (project_id, hash, file, line)
    );`,
+  // Faz 12: uptime monitors, domains and certificates.
+  `CREATE TABLE uptime_monitors (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL,
+     url TEXT NOT NULL,
+     project_id TEXT,
+     interval_sec INTEGER NOT NULL DEFAULT 300,
+     state TEXT,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE uptime_checks (
+     monitor_id TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     up INTEGER NOT NULL,
+     status INTEGER,
+     ms INTEGER,
+     error TEXT
+   );
+   CREATE INDEX uptime_checks_at ON uptime_checks(monitor_id, at);
+   CREATE TABLE domain_watches (
+     id TEXT PRIMARY KEY,
+     host TEXT NOT NULL UNIQUE,
+     project_id TEXT,
+     state TEXT,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE log_sources (
+     id TEXT PRIMARY KEY,
+     project_id TEXT,
+     source TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE app_error_keys (
+     project_id TEXT PRIMARY KEY,
+     key TEXT NOT NULL UNIQUE
+   );
+   CREATE TABLE app_error_releases (
+     project_id TEXT NOT NULL,
+     release TEXT NOT NULL,
+     first_at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, release)
+   );
+   CREATE TABLE app_error_groups (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     fingerprint TEXT NOT NULL,
+     message TEXT NOT NULL,
+     stack TEXT,
+     count INTEGER NOT NULL,
+     first_at INTEGER NOT NULL,
+     last_at INTEGER NOT NULL,
+     first_release TEXT,
+     last_release TEXT,
+     suspects TEXT,
+     urls TEXT NOT NULL,
+     browsers TEXT NOT NULL,
+     status TEXT NOT NULL,
+     UNIQUE (project_id, fingerprint)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

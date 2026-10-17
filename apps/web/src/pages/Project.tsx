@@ -26,6 +26,7 @@ import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
 import { EnvironmentsTab } from "./project/Environments";
 import { MemoryTab } from "./project/Memory";
+import { MonitorTab } from "./project/Monitor";
 import { PreviewTab } from "./project/Preview";
 import { SectionsTab } from "./project/Sections";
 import { SessionRow } from "./project/SessionRow";
@@ -41,6 +42,7 @@ const TABS = [
   "code",
   "memory",
   "environments",
+  "monitor",
   "setup",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -423,6 +425,8 @@ export function ProjectPage() {
           <CodeTab project={project} />
         ) : tab === "sessions" ? (
           <Sessions projectId={project.id} />
+        ) : tab === "monitor" ? (
+          <MonitorTab project={project} />
         ) : tab === "memory" ? (
           <MemoryTab project={project} onChange={reload} />
         ) : (
