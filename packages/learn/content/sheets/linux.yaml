@@ -1,0 +1,789 @@
+id: linux
+title: Linux commands
+category: tool
+summary:
+  en: The everyday commands for files, permissions, processes, disks, network, packages and services on a Linux machine.
+  tr: Bir Linux makinesinde dosyalar, izinler, process'ler, diskler, ağ, paketler ve servisler için günlük komutlar.
+aliases: [linux, terminal, command line, cli, ubuntu, debian, fedora, arch, systemd, systemctl, journalctl, komut satırı, sunucu]
+checked: 2026-10
+sources:
+  - title: Linux man pages (man7.org)
+    url: https://man7.org/linux/man-pages/index.html
+  - title: GNU Coreutils manual
+    url: https://www.gnu.org/software/coreutils/manual/coreutils.html
+roadmap: linux-server
+sections:
+  - id: files
+    title: { en: Files and folders, tr: Dosyalar ve klasörler }
+    items:
+      - id: ls
+        level: basic
+        title: { en: List a folder, tr: Klasörü listeleme }
+        what:
+          en: Shows the files in a folder; -l adds details, -a shows hidden files, -h shows readable sizes.
+          tr: Klasördeki dosyaları gösterir; -l ayrıntı ekler, -a gizli dosyaları gösterir, -h boyutları okunur yapar.
+        lang: sh
+        form: ls -lah [folder]
+        example: |
+          touch notes.txt .env
+          mkdir src
+          ls
+          ls -A
+        output: |
+          notes.txt
+          src
+          .env
+          notes.txt
+          src
+        check: sh
+        mistake:
+          en: Thinking a file is missing because plain ls hides names that start with a dot (.env, .git).
+          tr: Düz ls nokta ile başlayan adları (.env, .git) gizlediği için dosyanın olmadığını sanmak.
+        source: https://man7.org/linux/man-pages/man1/ls.1.html
+      - id: cd-pwd
+        level: basic
+        title: { en: Move between folders, tr: Klasörler arasında gezinme }
+        what:
+          en: cd changes the current folder and pwd prints where you are; cd - goes back to the previous one.
+          tr: cd bulunduğun klasörü değiştirir, pwd nerede olduğunu yazdırır; cd - bir önceki klasöre döner.
+        lang: sh
+        form: cd <folder>
+        example: |
+          mkdir -p projects/app
+          cd projects/app
+          basename "$(pwd)"
+          cd ..
+          basename "$PWD"
+        output: |
+          app
+          projects
+        check: sh
+        mistake:
+          en: Forgetting that cd with no argument goes to your home folder, not to the folder you started in.
+          tr: Argümansız cd'nin başladığın klasöre değil, ev klasörüne gittiğini unutmak.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-cd
+      - id: mkdir-touch
+        level: basic
+        title: { en: Create folders and files, tr: Klasör ve dosya oluşturma }
+        what:
+          en: mkdir -p creates a folder with all missing parents; touch creates an empty file.
+          tr: mkdir -p eksik üst klasörlerle birlikte klasör oluşturur; touch boş bir dosya oluşturur.
+        lang: sh
+        form: mkdir -p a/b/c
+        example: |
+          mkdir -p app/src/utils
+          touch app/src/index.ts
+          find app | sort
+        output: |
+          app
+          app/src
+          app/src/index.ts
+          app/src/utils
+        check: sh
+        source: https://man7.org/linux/man-pages/man1/mkdir.1.html
+      - id: cp-mv-rm
+        level: basic
+        title: { en: Copy, move and delete, tr: Kopyalama, taşıma ve silme }
+        what:
+          en: cp copies, mv moves or renames and rm deletes; folders need -r for cp and rm.
+          tr: cp kopyalar, mv taşır ya da yeniden adlandırır, rm siler; klasörler için cp ve rm'de -r gerekir.
+        lang: sh
+        form: cp -r src dest; mv old new; rm -r folder
+        example: |
+          mkdir site && echo hi > site/index.html
+          cp -r site backup
+          mv backup/index.html backup/old.html
+          rm -r site
+          ls backup
+        output: |
+          old.html
+        check: sh
+        mistake:
+          en: Running rm -rf with a variable that may be empty (rm -rf "$DIR/"*); there is no trash bin, files are gone.
+          tr: Boş olabilecek bir değişkenle rm -rf çalıştırmak (rm -rf "$DIR/"*); çöp kutusu yoktur, dosyalar gider.
+        avoid:
+          en: To copy large folders or to another machine; rsync can resume and copies only what changed.
+          tr: Büyük klasörleri ya da başka makineye kopyalamak için; rsync kaldığı yerden devam eder ve sadece değişeni kopyalar.
+        source: https://man7.org/linux/man-pages/man1/cp.1.html
+      - id: ln-symlink
+        level: intermediate
+        title: { en: Symbolic links, tr: Sembolik linkler }
+        what:
+          en: ln -s makes a shortcut that points to another file or folder.
+          tr: ln -s başka bir dosyayı ya da klasörü gösteren bir kısayol oluşturur.
+        lang: sh
+        form: ln -s <target> <link-name>
+        example: |
+          echo v2 > app-2.0
+          ln -s app-2.0 current
+          readlink current
+          cat current
+        output: |
+          app-2.0
+          v2
+        check: sh
+        mistake:
+          en: Swapping the arguments; the target comes first and the new link name second.
+          tr: Argümanların yerini karıştırmak; önce hedef, sonra yeni link'in adı gelir.
+        source: https://man7.org/linux/man-pages/man1/ln.1.html
+      - id: find
+        level: intermediate
+        title: { en: Find files, tr: Dosya bulma }
+        what:
+          en: find walks through folders and lists files that match a name, type, size or age.
+          tr: find klasörlerin içinde dolaşır ve ada, türe, boyuta ya da yaşa uyan dosyaları listeler.
+        lang: sh
+        form: find <folder> -name '*.log' -type f
+        example: |
+          mkdir -p logs/old
+          touch logs/app.log logs/old/app.1.log logs/readme.txt
+          find logs -type f -name '*.log' | sort
+          # find /var/log -type f -mtime +30 -size +10M   (older than 30 days, over 10 MB)
+        output: |
+          logs/app.log
+          logs/old/app.1.log
+        check: sh
+        mistake:
+          en: Leaving the pattern unquoted (-name *.log); the shell expands it first and find gets the wrong arguments.
+          tr: Deseni tırnaksız bırakmak (-name *.log); shell onu önce açar ve find'a yanlış argümanlar gider.
+        source: https://man7.org/linux/man-pages/man1/find.1.html
+  - id: text
+    title: { en: Reading and changing text, tr: Metin okuma ve değiştirme }
+    items:
+      - id: cat-less-head-tail
+        level: basic
+        title: { en: Look inside a file, tr: Dosyanın içine bakma }
+        what:
+          en: cat prints a file, less lets you scroll it, head and tail show the start or end, and tail -f follows new lines.
+          tr: cat dosyayı yazdırır, less kaydırarak okutur, head ve tail başını ya da sonunu gösterir, tail -f yeni satırları takip eder.
+        lang: sh
+        form: tail -f /var/log/syslog
+        example: |
+          seq 1 10 > numbers.txt
+          head -n 2 numbers.txt
+          tail -n 1 numbers.txt
+        output: |
+          1
+          2
+          10
+        check: sh
+        mistake:
+          en: Opening a huge log with cat; use less (q quits, / searches) or tail.
+          tr: Dev bir log'u cat ile açmak; less (q çıkar, / arar) ya da tail kullan.
+        source: https://man7.org/linux/man-pages/man1/tail.1.html
+      - id: grep
+        level: basic
+        title: { en: Search inside files, tr: Dosyaların içinde arama }
+        what:
+          en: grep prints the lines that contain a pattern; -i ignores case, -n shows line numbers, -r searches folders.
+          tr: grep bir deseni içeren satırları yazdırır; -i büyük/küçük harfi önemsemez, -n satır numarası gösterir, -r klasörlerde arar.
+        lang: sh
+        form: grep -rn "pattern" <folder>
+        example: |
+          printf 'error: disk full\nok\nERROR: no network\n' > app.log
+          grep -in error app.log
+          grep -c ok app.log
+        output: |
+          1:error: disk full
+          3:ERROR: no network
+          1
+        check: sh
+        mistake:
+          en: Forgetting that the pattern is a regular expression; . matches any character. Use -F for plain text.
+          tr: Desenin bir regex olduğunu unutmak; . herhangi bir karakterle eşleşir. Düz metin için -F kullan.
+        source: https://man7.org/linux/man-pages/man1/grep.1.html
+      - id: sed
+        level: intermediate
+        title: { en: Replace text in a file, tr: Dosyada metin değiştirme }
+        what:
+          en: sed edits text line by line; s/old/new/g replaces, and -i writes the change back into the file.
+          tr: sed metni satır satır düzenler; s/eski/yeni/g değiştirir, -i değişikliği dosyanın kendisine yazar.
+        lang: sh
+        form: sed -i 's/old/new/g' file
+        example: |
+          printf 'port=80\nhost=localhost\n' > app.conf
+          sed -i 's/port=80/port=8080/' app.conf
+          sed -n '1p' app.conf
+        output: |
+          port=8080
+        check: sh
+        mistake:
+          en: Copying sed -i from Linux to macOS; BSD sed needs sed -i '' there.
+          tr: sed -i komutunu Linux'tan macOS'a aynen almak; oradaki BSD sed sed -i '' ister.
+        source: https://www.gnu.org/software/sed/manual/sed.html#The-_0022s_0022-Command
+      - id: awk
+        level: intermediate
+        title: { en: Work with columns, tr: Sütunlarla çalışma }
+        what:
+          en: awk splits each line into fields ($1, $2 ...) so you can print, filter or add them up.
+          tr: awk her satırı alanlara ($1, $2 ...) böler; böylece onları yazdırabilir, süzebilir ya da toplayabilirsin.
+        lang: sh
+        form: "awk -F: '{ print $1 }' file"
+        example: |
+          printf 'alice 30\nbob 25\ncarol 41\n' > ages.txt
+          awk '$2 > 28 { print $1 }' ages.txt
+          awk '{ sum += $2 } END { print sum / NR }' ages.txt
+        output: |
+          alice
+          carol
+          32
+        check: sh
+        mistake:
+          en: Using double quotes around the program; the shell then replaces $1 before awk sees it.
+          tr: Programı çift tırnağa almak; shell $1'i awk görmeden önce değiştirir.
+        source: https://www.gnu.org/software/gawk/manual/html_node/Getting-Started.html
+      - id: sort-uniq-wc
+        level: basic
+        title: { en: Sort, count and remove duplicates, tr: Sıralama, sayma ve tekrarları atma }
+        what:
+          en: sort orders lines, uniq -c counts repeats next to each other and wc -l counts lines.
+          tr: sort satırları sıralar, uniq -c yan yana tekrarları sayar, wc -l satırları sayar.
+        lang: sh
+        form: sort file | uniq -c | sort -rn
+        example: |
+          printf 'b,2\na,10\nc,1\n' > data.csv
+          sort -t, -k2 -n data.csv
+          wc -l < data.csv
+        output: |
+          c,1
+          b,2
+          a,10
+          3
+        check: sh
+        mistake:
+          en: Running uniq without sort first; it only removes duplicates that are next to each other.
+          tr: Önce sort yapmadan uniq çalıştırmak; sadece yan yana duran tekrarları siler.
+        source: https://man7.org/linux/man-pages/man1/sort.1.html
+      - id: cut-tr
+        level: intermediate
+        title: { en: Take one column, tr: Tek bir sütunu alma }
+        what:
+          en: cut takes chosen fields from each line using a separator; tr swaps or deletes characters.
+          tr: cut bir ayırıcıya göre her satırdan seçilen alanları alır; tr karakterleri değiştirir ya da siler.
+        lang: sh
+        form: "cut -d: -f1 /etc/passwd"
+        example: |
+          echo "root:x:0:0" | cut -d: -f1,3
+          echo "Hello World" | tr ' ' '_'
+        output: |
+          root:0
+          Hello_World
+        check: sh
+        avoid:
+          en: When columns are split by a varying number of spaces; awk handles that, cut does not.
+          tr: Sütunlar değişken sayıda boşlukla ayrılmışsa; awk bunu halleder, cut halletmez.
+        source: https://man7.org/linux/man-pages/man1/cut.1.html
+      - id: xargs
+        level: advanced
+        title: { en: Turn lines into arguments, tr: Satırları argümana çevirme }
+        what:
+          en: xargs reads names from its input and passes them as arguments to another command.
+          tr: xargs girdisinden adları okur ve onları başka bir komuta argüman olarak verir.
+        lang: sh
+        form: find . -name '*.tmp' -print0 | xargs -0 rm
+        example: |
+          touch 'a b.tmp' c.tmp keep.txt
+          find . -name '*.tmp' -print0 | xargs -0 rm
+          ls
+        output: |
+          keep.txt
+        check: sh
+        mistake:
+          en: Using plain xargs with file names that contain spaces; they split. Pair find -print0 with xargs -0.
+          tr: Boşluk içeren dosya adlarıyla düz xargs kullanmak; adlar bölünür. find -print0 ile xargs -0'ı birlikte kullan.
+        source: https://man7.org/linux/man-pages/man1/xargs.1.html
+  - id: permissions
+    title: { en: Users and permissions, tr: Kullanıcılar ve izinler }
+    items:
+      - id: chmod
+        level: basic
+        title: { en: Change permissions, tr: İzinleri değiştirme }
+        what:
+          en: chmod sets who may read (r=4), write (w=2) and run (x=1) a file, for the owner, the group and others.
+          tr: chmod dosyayı kimin okuyabileceğini (r=4), yazabileceğini (w=2) ve çalıştırabileceğini (x=1) sahip, grup ve diğerleri için ayarlar.
+        lang: sh
+        form: chmod 755 file; chmod u+x file
+        example: |
+          touch deploy.sh secret.key
+          chmod 755 deploy.sh
+          chmod u=rw,go= secret.key
+          stat -c '%a %A %n' deploy.sh secret.key
+        output: |
+          755 -rwxr-xr-x deploy.sh
+          600 -rw------- secret.key
+        check: sh
+        mistake:
+          en: Using chmod -R 777 to fix an error; everyone can then change your files. Give only the rights that are needed.
+          tr: Bir hatayı çözmek için chmod -R 777 kullanmak; herkes dosyalarını değiştirebilir hale gelir. Sadece gereken izni ver.
+        source: https://man7.org/linux/man-pages/man1/chmod.1.html
+      - id: chown
+        level: intermediate
+        title: { en: Change the owner, tr: Sahibi değiştirme }
+        what:
+          en: chown gives a file a new owner and group; changing the owner needs root.
+          tr: chown dosyaya yeni bir sahip ve grup verir; sahibi değiştirmek root yetkisi ister.
+        lang: sh
+        form: sudo chown user:group file
+        example: |
+          sudo chown -R www-data:www-data /var/www/site
+        mistake:
+          en: Running chown -R on the wrong path (like / or /usr); it is hard to undo.
+          tr: chown -R'yi yanlış yolda (/ ya da /usr gibi) çalıştırmak; geri almak zordur.
+        source: https://man7.org/linux/man-pages/man1/chown.1.html
+      - id: sudo
+        level: basic
+        title: { en: Run as administrator, tr: Yönetici olarak çalıştırma }
+        what:
+          en: sudo runs one command as root (or another user) after asking for your own password.
+          tr: sudo kendi şifreni sorduktan sonra tek bir komutu root (ya da başka bir kullanıcı) olarak çalıştırır.
+        lang: sh
+        form: sudo <command>
+        example: |
+          sudo systemctl restart nginx
+          sudo -u postgres psql   # as another user
+          sudo -i                 # a root shell
+        mistake:
+          en: Writing sudo echo text > /etc/file; the > runs as you, not as root. Use echo text | sudo tee /etc/file.
+          tr: sudo echo metin > /etc/dosya yazmak; > root olarak değil senin kullanıcınla çalışır. echo metin | sudo tee /etc/dosya kullan.
+        avoid:
+          en: Do not use it for everyday work like npm install or editing your own files; it leaves root-owned files behind.
+          tr: npm install ya da kendi dosyalarını düzenlemek gibi günlük işler için kullanma; geride root'a ait dosyalar bırakır.
+        source: https://www.sudo.ws/docs/man/sudo.man/
+      - id: users-groups
+        level: intermediate
+        title: { en: Users and groups, tr: Kullanıcılar ve gruplar }
+        what:
+          en: id shows who you are and your groups; usermod -aG adds a user to a group.
+          tr: id kim olduğunu ve gruplarını gösterir; usermod -aG bir kullanıcıyı bir gruba ekler.
+        lang: sh
+        form: sudo usermod -aG <group> <user>
+        example: |
+          id
+          sudo useradd -m -s /bin/bash deploy
+          sudo usermod -aG docker deploy
+        mistake:
+          en: Leaving out -a; usermod -G then removes the user from every group not in the list.
+          tr: -a'yı unutmak; usermod -G bu durumda kullanıcıyı listede olmayan bütün gruplardan çıkarır.
+        avoid:
+          en: The new group is not active in sessions that were already open; log out and in again (or run newgrp).
+          tr: Yeni grup zaten açık olan oturumlarda etkin olmaz; çıkış yapıp tekrar gir (ya da newgrp çalıştır).
+        source: https://man7.org/linux/man-pages/man8/usermod.8.html
+      - id: env-path
+        level: intermediate
+        title: { en: Environment variables and PATH, tr: Ortam değişkenleri ve PATH }
+        what:
+          en: export makes a variable visible to programs you start; PATH lists the folders searched for commands.
+          tr: export bir değişkeni başlattığın programlara görünür yapar; PATH komutların arandığı klasörleri listeler.
+        lang: sh
+        form: export PATH="$HOME/.local/bin:$PATH"
+        example: |
+          LOCAL=one
+          export SHARED=two
+          bash -c 'echo "LOCAL=${LOCAL:-unset} SHARED=$SHARED"'
+        output: |
+          LOCAL=unset SHARED=two
+        check: sh
+        mistake:
+          en: Writing export PATH=~/bin without $PATH; every other command stops being found in that shell.
+          tr: $PATH olmadan export PATH=~/bin yazmak; o shell'de diğer bütün komutlar bulunamaz olur.
+        avoid:
+          en: To make it permanent, put the line in ~/.bashrc (or ~/.profile), not just in the terminal.
+          tr: Kalıcı yapmak için satırı sadece terminale değil ~/.bashrc'ye (ya da ~/.profile'a) yaz.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-export
+  - id: processes
+    title: { en: Processes, tr: Process'ler }
+    items:
+      - id: ps-pgrep
+        level: basic
+        title: { en: See running programs, tr: Çalışan programları görme }
+        what:
+          en: ps lists processes with their ID (PID); pgrep finds the PIDs of programs by name.
+          tr: ps process'leri kimlik numaralarıyla (PID) listeler; pgrep programların PID'lerini adına göre bulur.
+        lang: sh
+        form: ps aux | grep <name>
+        example: |
+          ps aux --sort=-%mem | head -5   # top memory users
+          pgrep -a node
+        mistake:
+          en: Seeing the grep itself in ps aux | grep node and thinking it is your program; pgrep avoids that.
+          tr: ps aux | grep node çıktısında grep'in kendisini görüp programın çalıştığını sanmak; pgrep bu sorunu yaşatmaz.
+        source: https://man7.org/linux/man-pages/man1/pgrep.1.html
+      - id: top
+        level: intermediate
+        title: { en: Live CPU and memory view, tr: Canlı CPU ve bellek görünümü }
+        what:
+          en: top shows processes sorted by CPU use and updates every few seconds; press q to quit.
+          tr: top process'leri CPU kullanımına göre sıralı gösterir ve birkaç saniyede bir yeniler; q ile çıkılır.
+        lang: sh
+        form: top
+        example: |
+          top          # M sorts by memory, P by CPU, k kills
+          top -u www-data
+        source: https://man7.org/linux/man-pages/man1/top.1.html
+      - id: kill
+        level: intermediate
+        title: { en: Stop a process, tr: Bir process'i durdurma }
+        what:
+          en: kill sends a signal; the default TERM asks the program to stop, KILL (-9) forces it.
+          tr: kill bir sinyal gönderir; varsayılan TERM programdan durmasını ister, KILL (-9) zorla durdurur.
+        lang: sh
+        form: kill <pid>; pkill <name>
+        example: |
+          sleep 30 &
+          pid=$!
+          kill "$pid"
+          wait "$pid" || echo "exit code $?"
+        output: |
+          exit code 143
+        check: sh
+        mistake:
+          en: Reaching for kill -9 first; the program cannot clean up (temp files, open connections). Try plain kill first.
+          tr: İlk iş kill -9 kullanmak; program temizlik yapamaz (geçici dosyalar, açık bağlantılar). Önce düz kill dene.
+        source: https://man7.org/linux/man-pages/man1/kill.1.html
+      - id: nice
+        level: advanced
+        title: { en: Run a heavy job at low priority, tr: Ağır bir işi düşük öncelikle çalıştırma }
+        what:
+          en: nice lowers a command's CPU priority (19 is the lowest) and ionice -c3 lets it use the disk only when nothing else needs it.
+          tr: nice bir komutun CPU önceliğini düşürür (19 en düşüğüdür), ionice -c3 diski sadece başka kimse kullanmıyorken kullanmasına izin verir.
+        lang: sh
+        form: nice -n 19 ionice -c3 <command>
+        example: |
+          nice -n 5 nice   # nice with no command prints the current niceness
+          # nice -n 19 ionice -c3 tar -czf /backup/srv.tar.gz /srv
+          # renice -n 10 -p 1234   # change a running process
+        output: |
+          5
+        check: sh
+        mistake:
+          en: Trying a negative value (higher priority) as a normal user; only root may raise priority.
+          tr: Normal kullanıcıyla negatif değer (daha yüksek öncelik) denemek; önceliği sadece root yükseltebilir.
+        source: https://man7.org/linux/man-pages/man1/nice.1.html
+      - id: jobs-nohup
+        level: intermediate
+        title: { en: Keep a command running after you log out, tr: Çıkış yaptıktan sonra komutu çalışır tutma }
+        what:
+          en: Ctrl+Z pauses a command, bg continues it in the background, and nohup keeps it alive after the terminal closes.
+          tr: Ctrl+Z bir komutu duraklatır, bg arka planda devam ettirir, nohup terminal kapanınca da yaşamasını sağlar.
+        lang: sh
+        form: nohup <command> > out.log 2>&1 &
+        example: |
+          nohup ./backup.sh > backup.log 2>&1 &
+          jobs      # list background jobs of this shell
+          fg %1     # bring job 1 back
+        avoid:
+          en: For services that must survive reboots; write a systemd unit. For interactive work use tmux.
+          tr: Yeniden başlatmada da çalışması gereken servisler için; bir systemd unit'i yaz. Etkileşimli iş için tmux kullan.
+        source: https://www.gnu.org/software/bash/manual/html_node/Job-Control-Basics.html
+  - id: disk
+    title: { en: Disk and archives, tr: Disk ve arşivler }
+    items:
+      - id: df-du
+        level: basic
+        title: { en: What fills the disk, tr: Diski ne dolduruyor }
+        what:
+          en: df -h shows free space per disk; du -sh shows how big a folder is.
+          tr: df -h disk başına boş alanı gösterir; du -sh bir klasörün ne kadar büyük olduğunu gösterir.
+        lang: sh
+        form: df -h; du -sh *
+        example: |
+          df -h /
+          du -sh /var/* 2>/dev/null | sort -h | tail -5
+        mistake:
+          en: Deleting a big log that a program still has open; the space is only freed when the program closes it or restarts.
+          tr: Bir programın hâlâ açık tuttuğu büyük bir log'u silmek; alan ancak program dosyayı kapatınca ya da yeniden başlayınca boşalır.
+        source: https://man7.org/linux/man-pages/man1/du.1.html
+      - id: lsblk-free
+        level: intermediate
+        title: { en: Disks and memory, tr: Diskler ve bellek }
+        what:
+          en: lsblk lists disks and partitions; free -h shows used and available memory.
+          tr: lsblk diskleri ve bölümleri listeler; free -h kullanılan ve kullanılabilir belleği gösterir.
+        lang: sh
+        form: lsblk -f; free -h
+        example: |
+          lsblk -o NAME,SIZE,TYPE,MOUNTPOINTS
+          free -h
+        mistake:
+          en: Panicking at a small "free" number; Linux uses spare memory as cache. Look at the "available" column.
+          tr: '"free" sütununda küçük bir sayı görünce paniğe kapılmak; Linux boş belleği önbellek olarak kullanır. "available" sütununa bak.'
+        source: https://man7.org/linux/man-pages/man1/free.1.html
+      - id: lsof
+        level: advanced
+        title: { en: Which program has a file or port open, tr: Bir dosyayı ya da portu hangi program açık tutuyor }
+        what:
+          en: lsof lists open files, and on Linux network sockets count as files too.
+          tr: lsof açık dosyaları listeler; Linux'ta ağ soketleri de dosya sayılır.
+        lang: sh
+        form: sudo lsof -i :<port>
+        example: |
+          sudo lsof -i :3000          # who uses port 3000
+          sudo lsof +L1               # deleted files that still take disk space
+          lsof /var/log/app.log
+        mistake:
+          en: Not using sudo; you then only see your own processes and miss the one you are looking for.
+          tr: sudo kullanmamak; sadece kendi process'lerini görürsün ve aradığını kaçırırsın.
+        source: https://man7.org/linux/man-pages/man8/lsof.8.html
+      - id: tar
+        level: basic
+        title: { en: Pack and unpack archives, tr: Arşiv oluşturma ve açma }
+        what:
+          en: tar -czf packs a folder into a .tar.gz file and tar -xzf unpacks it; -t lists what is inside.
+          tr: tar -czf bir klasörü .tar.gz dosyasına paketler, tar -xzf açar; -t içinde ne olduğunu listeler.
+        lang: sh
+        form: tar -czf archive.tar.gz folder/
+        example: |
+          mkdir site && echo hi > site/index.html
+          tar -czf site.tar.gz site
+          rm -r site
+          tar -tzf site.tar.gz
+          tar -xzf site.tar.gz && cat site/index.html
+        output: |
+          site/
+          site/index.html
+          hi
+        check: sh
+        mistake:
+          en: Putting the archive name in the wrong place; the name must come right after -f.
+          tr: Arşiv adını yanlış yere yazmak; ad -f'den hemen sonra gelmelidir.
+        source: https://man7.org/linux/man-pages/man1/tar.1.html
+  - id: network
+    title: { en: Network, tr: Ağ }
+    items:
+      - id: ip-addr
+        level: intermediate
+        title: { en: Your IP addresses, tr: IP adreslerin }
+        what:
+          en: ip addr lists network interfaces and their addresses; ip route shows where traffic goes.
+          tr: ip addr ağ arayüzlerini ve adreslerini listeler; ip route trafiğin nereye gittiğini gösterir.
+        lang: sh
+        form: ip -br addr
+        example: |
+          ip -br addr
+          ip route
+        avoid:
+          en: ifconfig and netstat come from the old net-tools package, which many distributions no longer install; use ip and ss.
+          tr: ifconfig ve netstat eski net-tools paketinden gelir ve birçok dağıtım artık onu kurmaz; ip ve ss kullan.
+        source: https://man7.org/linux/man-pages/man8/ip-address.8.html
+      - id: ss
+        level: intermediate
+        title: { en: What listens on a port, tr: Bir portu ne dinliyor }
+        what:
+          en: ss lists network connections; -tlnp shows TCP ports that are open for connections and which program has them.
+          tr: ss ağ bağlantılarını listeler; -tlnp bağlantı bekleyen TCP portlarını ve onları hangi programın tuttuğunu gösterir.
+        lang: sh
+        form: sudo ss -tlnp
+        example: |
+          sudo ss -tlnp
+          ss -tn state established
+        mistake:
+          en: Running it without sudo and wondering why the program column is empty for other users' processes.
+          tr: sudo olmadan çalıştırıp başka kullanıcıların process'leri için program sütununun neden boş olduğunu merak etmek.
+        source: https://man7.org/linux/man-pages/man8/ss.8.html
+      - id: curl
+        level: basic
+        title: { en: Make an HTTP request, tr: HTTP isteği yapma }
+        what:
+          en: curl talks to a URL from the terminal; it is the quickest way to test an endpoint.
+          tr: curl terminalden bir URL ile konuşur; bir endpoint'i test etmenin en hızlı yoludur.
+        lang: sh
+        form: curl -fsSL <url>
+        example: |
+          curl -I https://example.com                 # headers only
+          curl -fsS http://localhost:3000/health
+          curl -X POST -H 'Content-Type: application/json' -d '{"name":"ada"}' http://localhost:3000/users
+        mistake:
+          en: Piping curl into a shell (curl ... | sh) without -f; an HTML error page is then run as a script.
+          tr: curl'ü -f olmadan bir shell'e pipe etmek (curl ... | sh); HTML hata sayfası script olarak çalıştırılır.
+        source: https://curl.se/docs/manpage.html
+      - id: ping
+        level: intermediate
+        title: { en: Is the host reachable, tr: Makineye ulaşılıyor mu }
+        what:
+          en: ping sends small packets to a host and shows whether and how fast they come back.
+          tr: ping bir makineye küçük paketler gönderir ve geri gelip gelmediklerini, ne kadar hızlı geldiklerini gösterir.
+        lang: sh
+        form: ping -c 4 <host>
+        example: |
+          ping -c 4 1.1.1.1
+        mistake:
+          en: Deciding a server is down because ping fails; many firewalls block ping. Test the real port with curl or nc.
+          tr: ping başarısız diye sunucunun kapalı olduğuna karar vermek; birçok firewall ping'i engeller. Asıl portu curl ya da nc ile dene.
+        source: https://man7.org/linux/man-pages/man8/ping.8.html
+  - id: packages
+    title: { en: Installing software, tr: Yazılım kurma }
+    items:
+      - id: apt
+        level: basic
+        title: { en: Debian and Ubuntu (apt), tr: Debian ve Ubuntu (apt) }
+        what:
+          en: apt installs, updates and removes packages; apt update first refreshes the list of what is available.
+          tr: apt paketleri kurar, günceller ve kaldırır; önce apt update ile mevcut paket listesi yenilenir.
+        lang: sh
+        form: sudo apt update && sudo apt install <package>
+        example: |
+          sudo apt update
+          sudo apt install nginx
+          sudo apt upgrade
+          apt search redis
+          sudo apt remove nginx    # purge also removes its config files
+        mistake:
+          en: Running apt install without apt update on a fresh server; old package lists give "Unable to locate package" or 404 errors.
+          tr: Yeni bir sunucuda apt update yapmadan apt install çalıştırmak; eski paket listesi "Unable to locate package" ya da 404 hatası verir.
+        avoid:
+          en: In scripts apt warns that its command line is not stable; use apt-get there.
+          tr: Script'lerde apt, komut satırı arayüzünün kararlı olmadığı uyarısı verir; orada apt-get kullan.
+        source: https://manpages.debian.org/stable/apt/apt.8.en.html
+      - id: dnf
+        level: basic
+        title: { en: Fedora and RHEL (dnf), tr: Fedora ve RHEL (dnf) }
+        what:
+          en: dnf installs, upgrades and removes packages on Fedora, RHEL, Rocky and Alma Linux.
+          tr: dnf; Fedora, RHEL, Rocky ve Alma Linux'ta paketleri kurar, yükseltir ve kaldırır.
+        lang: sh
+        form: sudo dnf install <package>
+        example: |
+          sudo dnf install nginx
+          sudo dnf upgrade
+          dnf search redis
+          dnf provides /usr/bin/dig   # which package has this file
+          sudo dnf remove nginx
+        mistake:
+          en: Expecting the service to run after install; Fedora does not start or enable it. Run systemctl enable --now.
+          tr: Kurulumdan sonra servisin çalışacağını sanmak; Fedora onu başlatmaz ve etkinleştirmez. systemctl enable --now çalıştır.
+        source: https://dnf5.readthedocs.io/en/latest/commands/index.html
+      - id: pacman
+        level: basic
+        title: { en: Arch Linux (pacman), tr: Arch Linux (pacman) }
+        what:
+          en: pacman -Syu updates the whole system, -S installs, -Rns removes a package with its unused dependencies.
+          tr: pacman -Syu bütün sistemi günceller, -S kurar, -Rns bir paketi kullanılmayan bağımlılıklarıyla birlikte kaldırır.
+        lang: sh
+        form: sudo pacman -Syu <package>
+        example: |
+          sudo pacman -Syu           # full upgrade
+          sudo pacman -S nginx
+          pacman -Ss redis           # search
+          pacman -Qo /usr/bin/dig    # which package owns a file
+          sudo pacman -Rns nginx
+        mistake:
+          en: Running pacman -Sy <package> without the u; that partial upgrade is not supported and can break the system.
+          tr: u olmadan pacman -Sy <paket> çalıştırmak; bu kısmi güncelleme desteklenmez ve sistemi bozabilir.
+        source: https://archlinux.org/pacman/pacman.8.html
+  - id: systemd
+    title: { en: Services and logs (systemd), tr: Servisler ve log'lar (systemd) }
+    items:
+      - id: systemctl
+        level: basic
+        title: { en: Start, stop and check a service, tr: Servisi başlatma, durdurma ve kontrol etme }
+        what:
+          en: systemctl controls services; status shows whether one is running and its last log lines.
+          tr: systemctl servisleri yönetir; status bir servisin çalışıp çalışmadığını ve son log satırlarını gösterir.
+        lang: sh
+        form: sudo systemctl start|stop|restart|status <unit>
+        example: |
+          systemctl status nginx
+          sudo systemctl restart nginx
+          sudo systemctl reload nginx   # re-read config without dropping connections
+          systemctl --failed
+        mistake:
+          en: Using restart when reload is enough; restart drops open connections.
+          tr: reload yeterliyken restart kullanmak; restart açık bağlantıları koparır.
+        source: https://man7.org/linux/man-pages/man1/systemctl.1.html
+      - id: enable
+        level: basic
+        title: { en: Start at boot, tr: Açılışta başlatma }
+        what:
+          en: enable makes a service start at boot; --now also starts it right away.
+          tr: enable bir servisin açılışta başlamasını sağlar; --now onu hemen de başlatır.
+        lang: sh
+        form: sudo systemctl enable --now <unit>
+        example: |
+          sudo systemctl enable --now nginx
+          systemctl is-enabled nginx
+          sudo systemctl disable --now nginx
+        mistake:
+          en: Thinking start keeps it on after a reboot; start is only for now, enable is for boot.
+          tr: start'ın yeniden başlatmadan sonra da çalışır tutacağını sanmak; start sadece şimdilik, enable açılış içindir.
+        source: https://man7.org/linux/man-pages/man1/systemctl.1.html
+      - id: journalctl
+        level: basic
+        title: { en: Read service logs, tr: Servis log'larını okuma }
+        what:
+          en: journalctl reads the system log; -u picks one service, -f follows new lines, -b limits it to this boot.
+          tr: journalctl sistem log'unu okur; -u tek bir servisi seçer, -f yeni satırları takip eder, -b bu açılışla sınırlar.
+        lang: sh
+        form: journalctl -u <unit> -f
+        example: |
+          journalctl -u nginx -f
+          journalctl -u nginx --since "1 hour ago"
+          journalctl -b -p err        # errors since boot
+          journalctl -n 50 --no-pager
+        mistake:
+          en: Getting few or no lines as a normal user; you may need sudo or membership in the systemd-journal (or adm) group.
+          tr: Normal kullanıcıyla az ya da hiç satır görmemek; sudo ya da systemd-journal (veya adm) grubuna üyelik gerekebilir.
+        source: https://man7.org/linux/man-pages/man1/journalctl.1.html
+      - id: journal-size
+        level: advanced
+        title: { en: Keep logs from filling the disk, tr: Log'ların diski doldurmasını önleme }
+        what:
+          en: --disk-usage shows how much space the journal takes and --vacuum-size deletes old entries down to a limit.
+          tr: --disk-usage journal'ın ne kadar yer kapladığını gösterir, --vacuum-size eski kayıtları bir sınıra kadar siler.
+        lang: sh
+        form: sudo journalctl --vacuum-size=500M
+        example: |
+          journalctl --disk-usage
+          sudo journalctl --vacuum-time=14d
+        avoid:
+          en: For a permanent limit set SystemMaxUse= in /etc/systemd/journald.conf instead of vacuuming by hand.
+          tr: Kalıcı bir sınır için elle temizlemek yerine /etc/systemd/journald.conf içinde SystemMaxUse= ayarla.
+        source: https://man7.org/linux/man-pages/man1/journalctl.1.html
+      - id: unit-file
+        level: advanced
+        title: { en: Run your app as a service, tr: Uygulamanı servis olarak çalıştırma }
+        what:
+          en: A .service file tells systemd how to start your program, as which user, and to restart it when it crashes.
+          tr: Bir .service dosyası systemd'ye programını nasıl başlatacağını, hangi kullanıcıyla çalıştıracağını ve çökünce yeniden başlatmasını söyler.
+        lang: text
+        form: /etc/systemd/system/<name>.service
+        example: |
+          # /etc/systemd/system/myapp.service
+          [Unit]
+          Description=My web app
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          User=myapp
+          WorkingDirectory=/srv/myapp
+          Environment=PORT=3000
+          ExecStart=/usr/bin/node server.js
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+        mistake:
+          en: Editing the file and restarting without sudo systemctl daemon-reload; systemd keeps using the old version.
+          tr: Dosyayı düzenleyip sudo systemctl daemon-reload yapmadan yeniden başlatmak; systemd eski sürümü kullanmaya devam eder.
+        avoid:
+          en: To change a unit that came with a package, use sudo systemctl edit <unit>; package updates overwrite files in /usr/lib/systemd.
+          tr: Bir paketle gelen unit'i değiştirmek için sudo systemctl edit <unit> kullan; paket güncellemeleri /usr/lib/systemd içindeki dosyaların üstüne yazar.
+        source: https://man7.org/linux/man-pages/man5/systemd.service.5.html
+      - id: systemctl-edit
+        level: advanced
+        title: { en: Change a packaged service safely, tr: Paketle gelen servisi güvenle değiştirme }
+        what:
+          en: systemctl edit opens an override file whose settings are added on top of the original unit and survive package updates.
+          tr: systemctl edit, ayarları orijinal unit'in üstüne eklenen ve paket güncellemelerinden etkilenmeyen bir override dosyası açar.
+        lang: sh
+        form: sudo systemctl edit <unit>
+        example: |
+          sudo systemctl edit nginx
+          # in the editor:
+          # [Service]
+          # LimitNOFILE=65536
+          systemctl cat nginx    # the unit with all overrides
+        mistake:
+          en: Overriding ExecStart= with one line; first write an empty ExecStart= to clear the old value, then the new one.
+          tr: ExecStart='ı tek satırla değiştirmeye çalışmak; önce eski değeri silmek için boş bir ExecStart= yaz, sonra yenisini.
+        source: https://man7.org/linux/man-pages/man1/systemctl.1.html

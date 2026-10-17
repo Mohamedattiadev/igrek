@@ -1,0 +1,2323 @@
+id: django
+title: Django
+summary:
+  en: "From an empty computer to your own Django website on the internet. You build a real recipe site with an admin panel, forms, user accounts and tests, and put it online for free."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Django sitene. Admin paneli, formlar, kullanıcı hesapları ve testleri olan gerçek bir tarif sitesi yazar ve ücretsiz yayına alırsın."
+teacher: backend
+project:
+  en: 'Recipe Box, a small recipe site: anyone can read recipes, people sign up and log in to add and edit their own, you manage everything in Django''s admin panel, it has tests, and it runs for free on PythonAnywhere.'
+  tr: 'Recipe Box, küçük bir tarif sitesi: herkes tarifleri okuyabilir, kullanıcılar kayıt olup giriş yaparak kendi tariflerini ekler ve düzenler, her şeyi Django''nun admin panelinden yönetirsin; testleri vardır ve PythonAnywhere''de ücretsiz çalışır.'
+detect:
+  pip: [django]
+version: "6.1"
+latest: eol:django
+checked: 2026-10
+after: [python]
+sheets: [python, django, git, sql, http]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Python, an editor and Git"
+      tr: "Python, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "Django is a Python library, so everything starts with Python. Django 6.1 needs Python 3.12 or newer. An editor makes writing code comfortable, and Git keeps every version of your work so you can never really lose it."
+      tr: "Django bir Python kütüphanesi, o yüzden her şey Python ile başlar. Django 6.1 için Python 3.12 ya da daha yenisi gerekir. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar; böylece hiçbir şeyi gerçekten kaybetmezsin."
+    learn:
+      en: |
+        - What a terminal is and how to check that a program is installed
+        - Why Django needs Python 3.12 or newer
+        - What Git is for
+      tr: |
+        - Terminalin ne olduğu ve bir programın kurulu olup olmadığını nasıl kontrol edeceğin
+        - Django'nun neden Python 3.12 ya da daha yenisini istediği
+        - Git'in ne işe yaradığı
+    do:
+      en: |
+        1. Download the newest **Python 3** from python.org and install it. You need 3.12 or newer. On Windows, tick **Add python.exe to PATH** on the first screen of the installer.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number. On Windows use `python` instead of `python3`.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+      tr: |
+        1. python.org'dan en yeni **Python 3** sürümünü indirip kur. 3.12 ya da daha yenisi gerekir. Windows'ta kurucunun ilk ekranında **Add python.exe to PATH** kutusunu işaretle.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı. Windows'ta `python3` yerine `python` yaz.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          python3 --version
+          git --version
+    mistakes:
+      - problem:
+          en: "Python is older than 3.12 (for example 3.10 from the system)."
+          tr: "Python 3.12'den eski (örneğin sistemden gelen 3.10)."
+        fix:
+          en: "Install a new Python from python.org. Django 6.1 refuses to install on older Python versions."
+          tr: "python.org'dan yeni bir Python kur. Django 6.1 eski Python sürümlerine kurulmaz."
+      - problem:
+          en: "\"command not found\" or \"python is not recognized\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" ya da \"python is not recognized\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, reinstall and tick Add python.exe to PATH."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta Python'u yeniden kur ve Add python.exe to PATH kutusunu işaretle."
+    quiz:
+      - q:
+          en: "Which Python version does Django 6.1 need?"
+          tr: "Django 6.1 hangi Python sürümünü ister?"
+        options:
+          en:
+            - "Python 2.7 or newer"
+            - "Python 3.12 or newer"
+            - "Only Python 3.14"
+          tr:
+            - "Python 2.7 ya da yenisi"
+            - "Python 3.12 ya da yenisi"
+            - "Sadece Python 3.14"
+        answer: 1
+        why:
+          en: "Django 6.1 supports Python 3.12, 3.13 and 3.14."
+          tr: "Django 6.1; Python 3.12, 3.13 ve 3.14'ü destekler."
+    sources:
+      - title: Django 6.1 release notes, Python compatibility
+        url: https://docs.djangoproject.com/en/6.1/releases/6.1/#python-compatibility
+      - title: How to install Django
+        url: https://docs.djangoproject.com/en/6.1/intro/install/
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: first-site
+    stage: first-code
+    title:
+      en: "Create your first Django project"
+      tr: "İlk Django projeni oluşturma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "A Django site needs many files before the first page works: settings, a main URL file, a server entry point. Django creates all of them with one command, and its built-in server shows you a working page in a minute."
+      tr: "Bir Django sitesinde ilk sayfanın çalışması için ayarlar, ana URL dosyası, sunucu giriş noktası gibi birçok dosya gerekir. Django hepsini tek komutla oluşturur ve yerleşik sunucusu bir dakika içinde çalışan bir sayfa gösterir."
+    learn:
+      en: |
+        - What a virtual environment is: a private folder of packages for one project
+        - What `django-admin startproject` creates, and what `manage.py` is
+        - What a migration is, and why `migrate` runs before anything else
+        - How to start the development server and stop it again
+      tr: |
+        - Sanal ortamın (virtual environment) ne olduğu: tek bir projeye ait özel bir paket klasörü
+        - `django-admin startproject` komutunun ne oluşturduğu ve `manage.py` dosyasının ne olduğu
+        - Migration'ın ne olduğu ve `migrate` komutunun neden en başta çalıştığı
+        - Geliştirme sunucusunu nasıl başlatıp durduracağın
+    do:
+      en: |
+        1. Make a folder for the project and go into it. The folder is called `recipebox`. On Windows write `python` instead of `python3`.
+        2. Create a virtual environment and switch it on. On Linux and macOS use the first activation line. On Windows PowerShell use `.venv\Scripts\Activate.ps1`. You should see `(.venv)` at the start of the prompt. Do this again every time you open a new terminal.
+        3. Install Django with pip, Python's package installer.
+        4. Create the project. **Do not forget the dot at the end**: it puts the files in the current folder.
+        5. Run `migrate`. It creates the database file `db.sqlite3` and the tables Django itself needs (users, sessions and so on).
+        6. Start the server and open http://127.0.0.1:8000. You see Django's welcome page with a rocket. Stop the server with `Ctrl+C`.
+        7. Save this first version with Git: `git init`, then `git add .`, then `git commit -m "Start Recipe Box"`. Do not worry about `.venv` and `db.sqlite3` now; the packaging step adds a `.gitignore` file.
+      tr: |
+        1. Proje için bir klasör oluştur ve içine gir. Klasörün adı `recipebox`. Windows'ta `python3` yerine `python` yaz.
+        2. Bir sanal ortam oluştur ve etkinleştir. Linux ve macOS'ta ilk etkinleştirme satırını kullan. Windows PowerShell'de `.venv\Scripts\Activate.ps1` yaz. İstemin (prompt) başında `(.venv)` görmelisin. Yeni bir terminal her açtığında bunu yeniden yap.
+        3. Django'yu Python'un paket kurucusu pip ile kur.
+        4. Projeyi oluştur. **Sondaki noktayı unutma**: dosyaları bulunduğun klasöre koyar.
+        5. `migrate` çalıştır. `db.sqlite3` veritabanı dosyasını ve Django'nun kendisinin ihtiyaç duyduğu tabloları (kullanıcılar, oturumlar vb.) oluşturur.
+        6. Sunucuyu başlat ve http://127.0.0.1:8000 adresini aç. Roket çizimli Django karşılama sayfasını görürsün. Sunucuyu `Ctrl+C` ile durdur.
+        7. Bu ilk sürümü Git ile kaydet: `git init`, sonra `git add .`, sonra `git commit -m "Start Recipe Box"`. `.venv` ve `db.sqlite3` şimdilik dert değil; paketleme adımında bir `.gitignore` dosyası ekleyeceğiz.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir recipebox
+          cd recipebox
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python -m pip install django
+          django-admin startproject mysite .
+          python manage.py migrate
+          python manage.py runserver
+    mistakes:
+      - problem:
+          en: "Leaving out the final dot in `startproject`."
+          tr: "`startproject` komutunda sondaki noktayı unutmak."
+        fix:
+          en: "Without the dot you get an extra nested folder `recipebox/mysite/manage.py`. Delete the project folder and start again with the dot."
+          tr: "Nokta olmazsa fazladan iç içe bir klasör oluşur: `recipebox/mysite/manage.py`. Proje klasörünü silip noktayla yeniden başla."
+      - problem:
+          en: "\"django-admin: command not found\" or \"No module named django\"."
+          tr: "\"django-admin: command not found\" ya da \"No module named django\" hatası."
+        fix:
+          en: "The virtual environment is not switched on in this terminal. Run the activation line again, then `python -m pip install django`."
+          tr: "Sanal ortam bu terminalde etkin değil. Etkinleştirme satırını yeniden çalıştır, sonra `python -m pip install django` yaz."
+    quiz:
+      - q:
+          en: "What does `python manage.py runserver` do?"
+          tr: "`python manage.py runserver` ne yapar?"
+        options:
+          en:
+            - "Starts a local development server that reloads when you save code"
+            - "Publishes your site on the internet"
+            - "Installs Django"
+          tr:
+            - "Kodu kaydettikçe kendini yenileyen yerel bir geliştirme sunucusu başlatır"
+            - "Siteni internette yayınlar"
+            - "Django'yu kurar"
+        answer: 0
+        why:
+          en: "It is only for your own computer while you build. A real server for the internet comes in the deploy step."
+          tr: "Sadece sen yazarken kendi bilgisayarın içindir. İnternet için gerçek sunucu deploy adımında gelecek."
+    sources:
+      - title: "Writing your first Django app, part 1"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial01/
+      - title: Python venv, creating virtual environments
+        url: https://docs.python.org/3/library/venv.html
+      - title: "django-admin and manage.py"
+        url: https://docs.djangoproject.com/en/6.1/ref/django-admin/
+
+  - id: first-view
+    stage: first-code
+    title:
+      en: "Your first page: an app, a view and a URL"
+      tr: "İlk sayfan: bir app, bir view ve bir URL"
+    minutes: 25
+    needs: [first-site]
+    why:
+      en: "Every page in Django comes from the same chain: a URL is matched to a view, and the view returns a response. If you understand this chain once, the rest of Django is just more of it."
+      tr: "Django'daki her sayfa aynı zincirden çıkar: URL bir view ile eşleşir, view de bir yanıt (response) döndürür. Bu zinciri bir kere anlarsan Django'nun geri kalanı bunun devamıdır."
+    learn:
+      en: |
+        - A project is the whole site; an app is one part of it (here: recipes)
+        - A view is a Python function that takes a request and returns a response
+        - `path()` connects a URL to a view, and `include()` hands a group of URLs to an app
+        - Why `INSTALLED_APPS` must list your app
+      tr: |
+        - Proje tüm sitedir; app ise onun bir parçasıdır (burada: tarifler)
+        - View, bir istek (request) alıp yanıt döndüren Python fonksiyonudur
+        - `path()` bir URL'yi view'a bağlar, `include()` bir URL grubunu app'e devreder
+        - `INSTALLED_APPS` listesinin neden app'ini içermesi gerektiği
+    do:
+      en: |
+        1. Create the app with the first command below. It makes a `recipes` folder.
+        2. Open `mysite/settings.py` and add `'recipes',` as the last line inside the `INSTALLED_APPS` list.
+        3. Replace the content of `recipes/views.py` with the first file below.
+        4. Create the new file `recipes/urls.py` with the second file below.
+        5. Replace the content of `mysite/urls.py` with the third file below. The `admin/` line is already part of the project; you add the `include`.
+        6. Run the server (`python manage.py runserver`) and open http://127.0.0.1:8000. You see the text from the view instead of the rocket.
+        7. Commit: `git add .` then `git commit -m "First view"`.
+      tr: |
+        1. Aşağıdaki ilk komutla app'i oluştur. Bir `recipes` klasörü çıkar.
+        2. `mysite/settings.py` dosyasını aç ve `INSTALLED_APPS` listesinin içine son satır olarak `'recipes',` ekle.
+        3. `recipes/views.py` içeriğini aşağıdaki ilk dosyayla değiştir.
+        4. Aşağıdaki ikinci dosyayla yeni `recipes/urls.py` dosyasını oluştur.
+        5. `mysite/urls.py` içeriğini aşağıdaki üçüncü dosyayla değiştir. `admin/` satırı zaten projede var; sen `include` satırını eklersin.
+        6. Sunucuyu çalıştır (`python manage.py runserver`) ve http://127.0.0.1:8000 adresini aç. Roket yerine view'daki yazıyı görürsün.
+        7. Commit'le: `git add .` sonra `git commit -m "First view"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          python manage.py startapp recipes
+      - file: "mysite/settings.py (change)"
+        lang: py
+        text: |
+          INSTALLED_APPS = [
+              'django.contrib.admin',
+              'django.contrib.auth',
+              'django.contrib.contenttypes',
+              'django.contrib.sessions',
+              'django.contrib.messages',
+              'django.contrib.staticfiles',
+              'recipes',
+          ]
+      - file: recipes/views.py
+        lang: py
+        text: |
+          from django.http import HttpResponse
+
+
+          def home(request):
+              return HttpResponse("Recipe Box is alive.")
+      - file: recipes/urls.py
+        lang: py
+        text: |
+          from django.urls import path
+
+          from . import views
+
+          app_name = "recipes"
+          urlpatterns = [
+              path("", views.home, name="home"),
+          ]
+      - file: mysite/urls.py
+        lang: py
+        text: |
+          from django.contrib import admin
+          from django.urls import include, path
+
+          urlpatterns = [
+              path("admin/", admin.site.urls),
+              path("", include("recipes.urls")),
+          ]
+    mistakes:
+      - problem:
+          en: "Forgetting to add the app to `INSTALLED_APPS`."
+          tr: "App'i `INSTALLED_APPS`'e eklemeyi unutmak."
+        fix:
+          en: "The page may still work, but later the model gets no migration and the templates are not found. Add `'recipes',` now."
+          tr: "Sayfa yine çalışabilir ama sonra modele migration oluşmaz ve template'ler bulunmaz. `'recipes',` satırını şimdi ekle."
+      - problem:
+          en: "\"ModuleNotFoundError: No module named 'recipes.urls'\"."
+          tr: "\"ModuleNotFoundError: No module named 'recipes.urls'\" hatası."
+        fix:
+          en: "You did not create `recipes/urls.py` yet (it is not made by `startapp`). Create it with the content above."
+          tr: "`recipes/urls.py` dosyasını henüz oluşturmadın (`startapp` bunu yapmaz). Yukarıdaki içerikle oluştur."
+    quiz:
+      - q:
+          en: "What does a view return?"
+          tr: "View ne döndürür?"
+        options:
+          en:
+            - "A response, such as a page or JSON"
+            - "A database table"
+            - "A URL pattern"
+          tr:
+            - "Bir yanıt (response), örneğin bir sayfa ya da JSON"
+            - "Bir veritabanı tablosu"
+            - "Bir URL kalıbı"
+        answer: 0
+        why:
+          en: "A view takes the request and returns a response; the URL file only decides which view runs."
+          tr: "View isteği alır ve yanıt döndürür; URL dosyası yalnızca hangi view'ın çalışacağına karar verir."
+    sources:
+      - title: "Writing your first Django app, part 1: views and URLs"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial01/#write-your-first-view
+      - title: URL dispatcher
+        url: https://docs.djangoproject.com/en/6.1/topics/http/urls/
+      - title: Applications
+        url: https://docs.djangoproject.com/en/6.1/ref/applications/
+
+  - id: models
+    stage: basics
+    title:
+      en: "Store recipes: a model and a migration"
+      tr: "Tarifleri saklama: bir model ve bir migration"
+    minutes: 35
+    needs: [first-view]
+    why:
+      en: "A site that forgets everything when you restart it is not useful. A model describes the data you keep, and Django turns it into a database table for you, so you do not write SQL by hand."
+      tr: "Yeniden başlatınca her şeyi unutan bir site işe yaramaz. Model, sakladığın veriyi tanımlar; Django bunu senin için bir veritabanı tablosuna çevirir, yani elle SQL yazmazsın."
+    learn:
+      en: |
+        - A model is a Python class; each field becomes a column
+        - `ForeignKey` links a recipe to its author (a user)
+        - `makemigrations` writes a migration file; `migrate` applies it to the database
+        - The Django shell: Python with your project loaded, to try queries
+      tr: |
+        - Model bir Python sınıfıdır; her alan (field) bir sütun olur
+        - `ForeignKey` bir tarifi yazarına (bir kullanıcıya) bağlar
+        - `makemigrations` bir migration dosyası yazar; `migrate` onu veritabanına uygular
+        - Django shell: projen yüklenmiş Python; sorguları denemek için
+    do:
+      en: |
+        1. Replace the content of `recipes/models.py` with the file below.
+        2. Run `makemigrations`. Django reads your model and writes `recipes/migrations/0001_initial.py`. Open that file and read it: it is plain Python.
+        3. Run `migrate` to create the table.
+        4. Open the Django shell and try the commands. The shell has already imported your models and `User`. Leave it with `exit()`.
+        5. Commit: `git add .` then `git commit -m "Recipe model"`.
+      tr: |
+        1. `recipes/models.py` içeriğini aşağıdaki dosyayla değiştir.
+        2. `makemigrations` çalıştır. Django modelini okur ve `recipes/migrations/0001_initial.py` dosyasını yazar. O dosyayı aç ve oku: düz Python.
+        3. Tabloyu oluşturmak için `migrate` çalıştır.
+        4. Django shell'i aç ve komutları dene. Shell modellerini ve `User`'ı kendisi import etmiş olur. `exit()` ile çık.
+        5. Commit'le: `git add .` sonra `git commit -m "Recipe model"`.
+    code:
+      - file: recipes/models.py
+        lang: py
+        text: |
+          from django.conf import settings
+          from django.db import models
+
+
+          class Recipe(models.Model):
+              title = models.CharField(max_length=120)
+              ingredients = models.TextField(help_text="One ingredient per line.")
+              steps = models.TextField()
+              author = models.ForeignKey(
+                  settings.AUTH_USER_MODEL,
+                  on_delete=models.CASCADE,
+                  related_name="recipes",
+              )
+              created = models.DateTimeField(auto_now_add=True)
+
+              class Meta:
+                  ordering = ["-created"]
+
+              def __str__(self):
+                  return self.title
+      - file: terminal
+        lang: sh
+        text: |
+          python manage.py makemigrations
+          python manage.py migrate
+          python manage.py shell
+      - file: terminal (in the shell)
+        lang: py
+        text: |
+          >>> cook = User.objects.create_user("cook")
+          >>> Recipe.objects.create(title="Pancakes", ingredients="200 g flour\n300 ml milk\n2 eggs", steps="Whisk everything.\nFry in a hot pan.", author=cook)
+          <Recipe: Pancakes>
+          >>> Recipe.objects.count()
+          1
+          >>> Recipe.objects.filter(title__contains="Pan").first().author
+          <User: cook>
+    mistakes:
+      - problem:
+          en: "Changing a model and forgetting `makemigrations` and `migrate`."
+          tr: "Modeli değiştirip `makemigrations` ve `migrate` çalıştırmayı unutmak."
+        fix:
+          en: "The database does not change by itself. After every model change run both commands, in that order. The error \"no such column\" means you skipped one."
+          tr: "Veritabanı kendiliğinden değişmez. Her model değişikliğinden sonra iki komutu bu sırayla çalıştır. \"no such column\" hatası birini atladığın anlamına gelir."
+      - problem:
+          en: "\"No changes detected\" after `makemigrations`."
+          tr: "`makemigrations` sonrası \"No changes detected\" mesajı."
+        fix:
+          en: "The app is probably missing from `INSTALLED_APPS`, or you did not save `models.py`."
+          tr: "App büyük ihtimalle `INSTALLED_APPS`'te yok ya da `models.py` dosyasını kaydetmedin."
+    quiz:
+      - q:
+          en: "What does `python manage.py migrate` do?"
+          tr: "`python manage.py migrate` ne yapar?"
+        options:
+          en:
+            - "Applies migration files to the database"
+            - "Writes the migration files from your models"
+            - "Copies the database to the server"
+          tr:
+            - "Migration dosyalarını veritabanına uygular"
+            - "Modellerinden migration dosyalarını yazar"
+            - "Veritabanını sunucuya kopyalar"
+        answer: 0
+        why:
+          en: "`makemigrations` writes the files, `migrate` runs them against the database."
+          tr: "`makemigrations` dosyaları yazar, `migrate` onları veritabanına uygular."
+    sources:
+      - title: "Writing your first Django app, part 2: models and the database"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial02/
+      - title: Model field reference
+        url: https://docs.djangoproject.com/en/6.1/ref/models/fields/
+      - title: Migrations
+        url: https://docs.djangoproject.com/en/6.1/topics/migrations/
+
+  - id: admin
+    stage: basics
+    title:
+      en: "Manage data with the admin panel"
+      tr: "Admin paneliyle veri yönetme"
+    minutes: 25
+    needs: [models]
+    why:
+      en: "Django ships a full admin panel that reads your models and gives you forms to add, edit, search and delete rows. It saves you from writing a management screen, and you can use it for the whole life of the site."
+      tr: "Django, modellerini okuyup satır ekleme, düzenleme, arama ve silme formları sunan eksiksiz bir admin paneliyle gelir. Bir yönetim ekranı yazmaktan kurtarır ve sitenin bütün ömrü boyunca kullanabilirsin."
+    learn:
+      en: |
+        - A superuser is an account that may do everything in the admin
+        - `admin.py` tells the admin which models to show and how
+        - `list_display`, `search_fields` and `list_filter` shape the list page
+      tr: |
+        - Superuser, admin içinde her şeyi yapabilen hesaptır
+        - `admin.py` admin'e hangi modelleri nasıl göstereceğini söyler
+        - `list_display`, `search_fields` ve `list_filter` liste sayfasını şekillendirir
+    do:
+      en: |
+        1. Create the new file `recipes/admin.py` content below (replace what is there).
+        2. Create a superuser with `createsuperuser`. Pick a username, an email (you may leave it empty) and a password. The password is not shown while you type; that is normal.
+        3. Start the server and open http://127.0.0.1:8000/admin/. Log in.
+        4. Click **Recipes** → **Add recipe**. Fill the form, choose yourself as the author, and save. Add two or three recipes.
+        5. Use the search box and the filter on the list page.
+        6. Commit: `git add .` then `git commit -m "Admin for recipes"`.
+      tr: |
+        1. `recipes/admin.py` içeriğini aşağıdaki gibi yap (içindekini değiştir).
+        2. `createsuperuser` ile bir superuser oluştur. Bir kullanıcı adı, bir e-posta (boş bırakabilirsin) ve bir parola seç. Yazarken parola görünmez; bu normal.
+        3. Sunucuyu başlat ve http://127.0.0.1:8000/admin/ adresini aç. Giriş yap.
+        4. **Recipes** → **Add recipe** üzerine tıkla. Formu doldur, yazar olarak kendini seç ve kaydet. İki üç tarif ekle.
+        5. Liste sayfasındaki arama kutusunu ve süzgeci dene.
+        6. Commit'le: `git add .` sonra `git commit -m "Admin for recipes"`.
+    code:
+      - file: recipes/admin.py
+        lang: py
+        text: |
+          from django.contrib import admin
+
+          from .models import Recipe
+
+
+          @admin.register(Recipe)
+          class RecipeAdmin(admin.ModelAdmin):
+              list_display = ["title", "author", "created"]
+              search_fields = ["title", "ingredients"]
+              list_filter = ["created"]
+      - file: terminal
+        lang: sh
+        text: |
+          python manage.py createsuperuser
+          python manage.py runserver
+    mistakes:
+      - problem:
+          en: "The model does not appear in the admin."
+          tr: "Model admin'de görünmüyor."
+        fix:
+          en: "It has to be registered in `admin.py`, and the app has to be in `INSTALLED_APPS`. Restart the server if you just created `admin.py`."
+          tr: "`admin.py` içinde kayıtlı olmalı ve app `INSTALLED_APPS`'te olmalı. `admin.py`'yi yeni oluşturduysan sunucuyu yeniden başlat."
+      - problem:
+          en: "Forgetting the superuser password."
+          tr: "Superuser parolasını unutmak."
+        fix:
+          en: "Run `python manage.py changepassword <username>` and set a new one."
+          tr: "`python manage.py changepassword <kullanıcı adı>` çalıştırıp yenisini belirle."
+    quiz:
+      - q:
+          en: "What must you do for a model to show up in the admin?"
+          tr: "Bir modelin admin'de görünmesi için ne yapmalısın?"
+        options:
+          en:
+            - "Register it in admin.py"
+            - "Nothing, all models always show up"
+            - "Run collectstatic"
+          tr:
+            - "admin.py içinde kaydetmelisin"
+            - "Hiçbir şey, bütün modeller kendiliğinden görünür"
+            - "collectstatic çalıştırmalısın"
+        answer: 0
+        why:
+          en: "Django's own models (users, groups) are registered for you; your models are not until you register them."
+          tr: "Django'nun kendi modelleri (kullanıcı, grup) senin için kayıtlıdır; seninkiler sen kaydedene kadar kayıtlı değildir."
+    sources:
+      - title: "Writing your first Django app, part 2: the admin"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial02/#introducing-the-django-admin
+      - title: The Django admin site
+        url: https://docs.djangoproject.com/en/6.1/ref/contrib/admin/
+
+  - id: templates
+    stage: basics
+    title:
+      en: "Show recipes: templates, a list page and CSS"
+      tr: "Tarifleri gösterme: template'ler, bir liste sayfası ve CSS"
+    minutes: 40
+    needs: [admin]
+    why:
+      en: "A view that builds HTML in Python strings turns messy fast. Templates keep the HTML in its own files and let you fill in the data. Template inheritance lets every page share one layout."
+      tr: "HTML'i Python metinleriyle üreten bir view çabuk karmaşıklaşır. Template'ler HTML'i kendi dosyalarında tutar ve veriyi içine koymana izin verir. Template kalıtımı (inheritance) bütün sayfaların tek bir düzeni paylaşmasını sağlar."
+    learn:
+      en: |
+        - `render()` fills a template with data (the context)
+        - `{{ value }}` prints data and `{% for %}` loops; Django escapes HTML for you
+        - `{% extends %}` and `{% block %}` share one layout between pages
+        - Template partials (new in Django 6.0): `{% partialdef %}` defines a reusable piece and `{% partial %}` renders it
+        - Static files such as CSS and the `{% static %}` tag
+      tr: |
+        - `render()` bir template'i veriyle (context) doldurur
+        - `{{ value }}` veriyi yazdırır, `{% for %}` döngü kurar; Django HTML'i senin için kaçırır (escape)
+        - `{% extends %}` ve `{% block %}` sayfalar arasında tek bir düzeni paylaştırır
+        - Template partial'ları (Django 6.0 ile geldi): `{% partialdef %}` yeniden kullanılabilir bir parça tanımlar, `{% partial %}` onu çizer
+        - CSS gibi statik dosyalar ve `{% static %}` etiketi
+    do:
+      en: |
+        1. Replace `recipes/views.py` with the first file below. The old `home` view is gone; the new one is `recipe_list`.
+        2. Replace `recipes/urls.py` with the second file below.
+        3. Create the folders `recipes/templates/recipes/` and `recipes/static/recipes/` (the app name appears twice on purpose: it stops two apps from clashing on a file name).
+        4. Create `base.html`, `list.html` and `style.css` with the files below.
+        5. Reload http://127.0.0.1:8000. You see your recipes with their authors. Change a title in the admin and reload to see it change.
+        6. Open `list.html` and read how the `card` partial is defined once and used inside the loop.
+        7. Commit: `git add .` then `git commit -m "Recipe list page"`.
+      tr: |
+        1. `recipes/views.py` dosyasını aşağıdaki ilk dosyayla değiştir. Eski `home` view'ı gitti; yenisi `recipe_list`.
+        2. `recipes/urls.py` dosyasını aşağıdaki ikinci dosyayla değiştir.
+        3. `recipes/templates/recipes/` ve `recipes/static/recipes/` klasörlerini oluştur (app adı bilerek iki kez geçiyor: iki app'in dosya adında çakışmasını önler).
+        4. Aşağıdaki dosyalarla `base.html`, `list.html` ve `style.css` dosyalarını oluştur.
+        5. http://127.0.0.1:8000 adresini yenile. Tariflerini yazarlarıyla birlikte görürsün. Admin'de bir başlığı değiştirip yenileyerek değişimi gör.
+        6. `list.html` dosyasını aç ve `card` partial'ının bir kere tanımlanıp döngü içinde nasıl kullanıldığını oku.
+        7. Commit'le: `git add .` sonra `git commit -m "Recipe list page"`.
+    code:
+      - file: recipes/views.py
+        lang: py
+        text: |
+          from django.shortcuts import render
+
+          from .models import Recipe
+
+
+          def recipe_list(request):
+              recipes = Recipe.objects.all()
+              return render(request, "recipes/list.html", {"recipes": recipes})
+      - file: recipes/urls.py
+        lang: py
+        text: |
+          from django.urls import path
+
+          from . import views
+
+          app_name = "recipes"
+          urlpatterns = [
+              path("", views.recipe_list, name="list"),
+          ]
+      - file: recipes/templates/recipes/base.html
+        lang: html
+        text: |
+          {% load static %}<!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>{% block title %}Recipe Box{% endblock %}</title>
+              <link rel="stylesheet" href="{% static 'recipes/style.css' %}">
+            </head>
+            <body>
+              <header class="top">
+                <a class="brand" href="{% url 'recipes:list' %}">Recipe Box</a>
+              </header>
+              <main>
+                {% block content %}{% endblock %}
+              </main>
+            </body>
+          </html>
+      - file: recipes/templates/recipes/list.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}All recipes - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>Recipes</h1>
+
+            {% partialdef card %}
+              <article class="card">
+                <h2>{{ recipe.title }}</h2>
+                <p class="meta">by {{ recipe.author.username }}</p>
+              </article>
+            {% endpartialdef %}
+
+            {% for recipe in recipes %}
+              {% partial card %}
+            {% empty %}
+              <p>No recipes yet.</p>
+            {% endfor %}
+          {% endblock %}
+      - file: recipes/static/recipes/style.css
+        lang: css
+        text: |
+          body {
+            font-family: system-ui, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            color: #222;
+            background: #faf7f2;
+          }
+          .top {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: #7a2e0e;
+          }
+          .top a, .top button {
+            color: #fff;
+            text-decoration: none;
+          }
+          .top form {
+            display: inline;
+          }
+          .top button {
+            background: none;
+            border: 0;
+            font: inherit;
+            cursor: pointer;
+            padding: 0;
+          }
+          .brand {
+            font-weight: 700;
+            margin-right: auto;
+          }
+          main {
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 1rem;
+          }
+          .card {
+            background: #fff;
+            border: 1px solid #e4dccd;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
+          }
+          .card h2 {
+            margin: 0.25rem 0;
+            font-size: 1.2rem;
+          }
+          .meta {
+            color: #6b6258;
+            margin: 0 0 0.5rem;
+          }
+          label {
+            display: block;
+            margin-top: 0.75rem;
+            font-weight: 600;
+          }
+          input[type=text], input[type=password], textarea {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 0.4rem;
+            font: inherit;
+          }
+          .helptext, .errorlist {
+            font-size: 0.9rem;
+            color: #6b6258;
+          }
+          .errorlist {
+            color: #b00020;
+            list-style: none;
+            padding: 0;
+          }
+          .pages {
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+          }
+    mistakes:
+      - problem:
+          en: "\"TemplateDoesNotExist: recipes/list.html\"."
+          tr: "\"TemplateDoesNotExist: recipes/list.html\" hatası."
+        fix:
+          en: "The path must be exactly `recipes/templates/recipes/list.html` (two `recipes`), and `recipes` must be in `INSTALLED_APPS`."
+          tr: "Yol tam olarak `recipes/templates/recipes/list.html` olmalı (iki kez `recipes`) ve `recipes` `INSTALLED_APPS`'te olmalı."
+      - problem:
+          en: "The page has no style, or the CSS file is not found."
+          tr: "Sayfada stil yok ya da CSS dosyası bulunamıyor."
+        fix:
+          en: "Put the file in `recipes/static/recipes/style.css`, start the template with `{% load static %}`, and restart the server after creating the static folder for the first time."
+          tr: "Dosyayı `recipes/static/recipes/style.css` yoluna koy, template'e `{% load static %}` ile başla ve static klasörünü ilk kez oluşturduysan sunucuyu yeniden başlat."
+    quiz:
+      - q:
+          en: "What does {% extends \"recipes/base.html\" %} do?"
+          tr: "{% extends \"recipes/base.html\" %} ne yapar?"
+        options:
+          en:
+            - "Makes the page reuse the layout of base.html and fill its blocks"
+            - "Installs a new app"
+            - "Copies base.html into the database"
+          tr:
+            - "Sayfanın base.html düzenini kullanıp bloklarını doldurmasını sağlar"
+            - "Yeni bir app kurar"
+            - "base.html dosyasını veritabanına kopyalar"
+        answer: 0
+        why:
+          en: "The child template only writes the blocks it wants to change; the rest comes from the parent."
+          tr: "Alt template yalnızca değiştirmek istediği blokları yazar; geri kalanı üst template'ten gelir."
+    sources:
+      - title: "Writing your first Django app, part 3: templates"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial03/#use-the-template-system
+      - title: "Template partials, partialdef and partial"
+        url: https://docs.djangoproject.com/en/6.1/ref/templates/builtins/#partial
+      - title: "Writing your first Django app, part 6: static files"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial06/
+
+  - id: recipe-site
+    stage: first-project
+    title:
+      en: "Finish the reading side: detail pages and 404"
+      tr: "Okuma tarafını bitirme: detay sayfaları ve 404"
+    minutes: 35
+    needs: [templates]
+    why:
+      en: "Now the site becomes a real site: every recipe gets its own page and its own address you can share. You also learn what to do when someone asks for a recipe that does not exist."
+      tr: "Site artık gerçek bir siteye dönüşüyor: her tarifin kendi sayfası ve paylaşabileceğin kendi adresi olur. Olmayan bir tarif istendiğinde ne yapılacağını da öğrenirsin."
+    learn:
+      en: |
+        - A URL with a variable part: `<int:pk>`
+        - `get_object_or_404()` returns the row or a clean 404 page
+        - `get_absolute_url()` gives a model one place that knows its own address
+        - A custom `404.html` template
+      tr: |
+        - Değişken parçalı bir URL: `<int:pk>`
+        - `get_object_or_404()` satırı ya da temiz bir 404 sayfası döndürür
+        - `get_absolute_url()` modelin kendi adresini bilen tek bir yer verir
+        - Özel bir `404.html` template'i
+    do:
+      en: |
+        1. Replace `recipes/models.py` with the first file below. It adds `get_absolute_url()` and a helper that splits the ingredients into lines. The database does not change, so no migration is needed (run `python manage.py makemigrations --check` to see "No changes detected").
+        2. Replace `recipes/views.py` and `recipes/urls.py` with the next two files.
+        3. Create `detail.html` and `404.html` in `recipes/templates/recipes/` and `recipes/templates/` as shown, and replace `list.html` so the title becomes a link.
+        4. Open a recipe from the list. Then open http://127.0.0.1:8000/9999/ . While `DEBUG` is on you see Django's technical 404 page. You will see your own `404.html` after the security step turns debug off.
+        5. Commit: `git add .` then `git commit -m "Recipe detail page"`.
+      tr: |
+        1. `recipes/models.py` dosyasını aşağıdaki ilk dosyayla değiştir. `get_absolute_url()` ve malzemeleri satırlara ayıran bir yardımcı ekler. Veritabanı değişmez, migration gerekmez (`python manage.py makemigrations --check` ile "No changes detected" gör).
+        2. `recipes/views.py` ve `recipes/urls.py` dosyalarını sonraki iki dosyayla değiştir.
+        3. `detail.html` ve `404.html` dosyalarını gösterilen yerlerde (`recipes/templates/recipes/` ve `recipes/templates/`) oluştur, `list.html` dosyasını da başlık bağlantı olacak şekilde değiştir.
+        4. Listeden bir tarif aç. Sonra http://127.0.0.1:8000/9999/ adresini aç. `DEBUG` açıkken Django'nun teknik 404 sayfasını görürsün. Kendi `404.html` sayfanı, güvenlik adımı debug'ı kapatınca göreceksin.
+        5. Commit'le: `git add .` sonra `git commit -m "Recipe detail page"`.
+    code:
+      - file: recipes/models.py
+        lang: py
+        text: |
+          from django.conf import settings
+          from django.db import models
+          from django.urls import reverse
+
+
+          class Recipe(models.Model):
+              title = models.CharField(max_length=120)
+              ingredients = models.TextField(help_text="One ingredient per line.")
+              steps = models.TextField()
+              author = models.ForeignKey(
+                  settings.AUTH_USER_MODEL,
+                  on_delete=models.CASCADE,
+                  related_name="recipes",
+              )
+              created = models.DateTimeField(auto_now_add=True)
+
+              class Meta:
+                  ordering = ["-created"]
+
+              def __str__(self):
+                  return self.title
+
+              def get_absolute_url(self):
+                  return reverse("recipes:detail", kwargs={"pk": self.pk})
+
+              def ingredient_list(self):
+                  return [line.strip() for line in self.ingredients.splitlines() if line.strip()]
+      - file: recipes/views.py
+        lang: py
+        text: |
+          from django.shortcuts import get_object_or_404, render
+
+          from .models import Recipe
+
+
+          def recipe_list(request):
+              recipes = Recipe.objects.all()
+              return render(request, "recipes/list.html", {"recipes": recipes})
+
+
+          def recipe_detail(request, pk):
+              recipe = get_object_or_404(Recipe, pk=pk)
+              return render(request, "recipes/detail.html", {"recipe": recipe})
+      - file: recipes/urls.py
+        lang: py
+        text: |
+          from django.urls import path
+
+          from . import views
+
+          app_name = "recipes"
+          urlpatterns = [
+              path("", views.recipe_list, name="list"),
+              path("<int:pk>/", views.recipe_detail, name="detail"),
+          ]
+      - file: recipes/templates/recipes/list.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}All recipes - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>Recipes</h1>
+
+            {% partialdef card %}
+              <article class="card">
+                <h2><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+                <p class="meta">by {{ recipe.author.username }}</p>
+              </article>
+            {% endpartialdef %}
+
+            {% for recipe in recipes %}
+              {% partial card %}
+            {% empty %}
+              <p>No recipes yet.</p>
+            {% endfor %}
+          {% endblock %}
+      - file: recipes/templates/recipes/detail.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}{{ recipe.title }} - Recipe Box{% endblock %}
+
+          {% block content %}
+            <article>
+              <h1>{{ recipe.title }}</h1>
+              <p class="meta">by {{ recipe.author.username }} on {{ recipe.created|date:"j F Y" }}</p>
+
+              <h2>Ingredients</h2>
+              <ul>
+                {% for item in recipe.ingredient_list %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+
+              <h2>Steps</h2>
+              {{ recipe.steps|linebreaks }}
+            </article>
+            <p><a href="{% url 'recipes:list' %}">All recipes</a></p>
+          {% endblock %}
+      - file: recipes/templates/404.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}Not found - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>Not found</h1>
+            <p>This page does not exist. <a href="{% url 'recipes:list' %}">Back to all recipes</a>.</p>
+          {% endblock %}
+    mistakes:
+      - problem:
+          en: "\"NoReverseMatch: Reverse for 'detail' not found\"."
+          tr: "\"NoReverseMatch: Reverse for 'detail' not found\" hatası."
+        fix:
+          en: "The name must match in both places: `name=\"detail\"` in `urls.py` and `recipes:detail` in the template (`recipes` is the `app_name`)."
+          tr: "Ad iki yerde de aynı olmalı: `urls.py` içinde `name=\"detail\"` ve template'te `recipes:detail` (`recipes`, `app_name` değeridir)."
+      - problem:
+          en: "Using `Recipe.objects.get(pk=pk)` in a view."
+          tr: "View'da `Recipe.objects.get(pk=pk)` kullanmak."
+        fix:
+          en: "A missing row raises `DoesNotExist` and the visitor gets a 500 error. `get_object_or_404()` returns a proper 404."
+          tr: "Olmayan satır `DoesNotExist` fırlatır ve ziyaretçi 500 hatası görür. `get_object_or_404()` düzgün bir 404 döndürür."
+    quiz:
+      - q:
+          en: "Why use get_object_or_404 instead of Recipe.objects.get?"
+          tr: "Neden Recipe.objects.get yerine get_object_or_404 kullanılır?"
+        options:
+          en:
+            - "A missing recipe becomes a clean 404 page instead of a 500 error"
+            - "It is faster"
+            - "It also creates the recipe"
+          tr:
+            - "Olmayan tarif 500 hatası yerine temiz bir 404 sayfası olur"
+            - "Daha hızlıdır"
+            - "Tarifi ayrıca oluşturur"
+        answer: 0
+        why:
+          en: "404 means \"no such page\", which is the true answer; 500 means your code is broken."
+          tr: "404 \"böyle bir sayfa yok\" demektir ve doğru cevap odur; 500 ise kodunun bozuk olduğunu söyler."
+    sources:
+      - title: "Writing your first Django app, part 3: raising 404"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial03/#raising-a-404-error
+      - title: "Model.get_absolute_url()"
+        url: https://docs.djangoproject.com/en/6.1/ref/models/instances/#get-absolute-url
+      - title: "Customizing error views"
+        url: https://docs.djangoproject.com/en/6.1/topics/http/views/#customizing-error-views
+
+  - id: forms
+    stage: data-api
+    title:
+      en: "Let people add recipes with a form"
+      tr: "Formla tarif eklemeyi sağlama"
+    minutes: 40
+    needs: [recipe-site]
+    why:
+      en: "Until now only you could add recipes, through the admin. A form lets visitors send data to your site. Django forms check the data and show errors, so you never trust what a browser sends."
+      tr: "Şimdiye kadar tarifleri sadece sen, admin üzerinden ekleyebiliyordun. Form, ziyaretçilerin siteye veri göndermesini sağlar. Django formları veriyi doğrular ve hata gösterir; tarayıcının gönderdiğine asla körü körüne güvenmezsin."
+    learn:
+      en: |
+        - A `ModelForm` builds a form (and its checks) from a model
+        - GET shows the form, POST receives it; after a successful POST you redirect
+        - `{% csrf_token %}` protects the form from forged requests
+        - `@login_required` keeps a view for logged-in users
+        - `save(commit=False)` lets you set `author` yourself before saving
+      tr: |
+        - `ModelForm` bir modelden form (ve kontrollerini) üretir
+        - GET formu gösterir, POST formu alır; başarılı bir POST'tan sonra yönlendirirsin (redirect)
+        - `{% csrf_token %}` formu sahte isteklere karşı korur
+        - `@login_required` bir view'ı yalnızca giriş yapmış kullanıcılara açar
+        - `save(commit=False)` kaydetmeden önce `author` alanını kendin vermeni sağlar
+    do:
+      en: |
+        1. Create `recipes/forms.py` with the first file below. The author is not in the form on purpose: people must not choose who wrote a recipe.
+        2. Replace `recipes/views.py`, `recipes/urls.py` with the next files and create `recipes/templates/recipes/form.html`.
+        3. Log in at http://127.0.0.1:8000/admin/ first (the site and the admin share the same login session). Then open http://127.0.0.1:8000/new/ , add a recipe, and see the redirect to its page.
+        4. Submit the form with the title empty. Django shows an error and keeps what you typed.
+        5. Log out of the admin, open `/new/` again. You are sent to `/accounts/login/`, which does not exist yet; the next step builds it.
+        6. Commit: `git add .` then `git commit -m "Add recipe form"`.
+      tr: |
+        1. `recipes/forms.py` dosyasını aşağıdaki ilk dosyayla oluştur. Yazar bilerek formda yok: insanlar bir tarifi kimin yazdığını seçememeli.
+        2. `recipes/views.py` ve `recipes/urls.py` dosyalarını sonraki dosyalarla değiştir, `recipes/templates/recipes/form.html` dosyasını oluştur.
+        3. Önce http://127.0.0.1:8000/admin/ adresinde giriş yap (site ve admin aynı oturumu paylaşır). Sonra http://127.0.0.1:8000/new/ adresini aç, bir tarif ekle ve tarifin sayfasına yönlendirildiğini gör.
+        4. Formu başlık boşken gönder. Django bir hata gösterir ve yazdıklarını korur.
+        5. Admin'den çıkış yap ve `/new/` adresini yeniden aç. Henüz var olmayan `/accounts/login/` adresine yönlendirilirsin; sonraki adım onu yapacak.
+        6. Commit'le: `git add .` sonra `git commit -m "Add recipe form"`.
+    code:
+      - file: recipes/forms.py
+        lang: py
+        text: |
+          from django import forms
+
+          from .models import Recipe
+
+
+          class RecipeForm(forms.ModelForm):
+              class Meta:
+                  model = Recipe
+                  fields = ["title", "ingredients", "steps"]
+      - file: recipes/views.py
+        lang: py
+        text: |
+          from django.contrib.auth.decorators import login_required
+          from django.shortcuts import get_object_or_404, redirect, render
+
+          from .forms import RecipeForm
+          from .models import Recipe
+
+
+          def recipe_list(request):
+              recipes = Recipe.objects.all()
+              return render(request, "recipes/list.html", {"recipes": recipes})
+
+
+          def recipe_detail(request, pk):
+              recipe = get_object_or_404(Recipe, pk=pk)
+              return render(request, "recipes/detail.html", {"recipe": recipe})
+
+
+          @login_required
+          def recipe_create(request):
+              if request.method == "POST":
+                  form = RecipeForm(request.POST)
+                  if form.is_valid():
+                      recipe = form.save(commit=False)
+                      recipe.author = request.user
+                      recipe.save()
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm()
+              return render(request, "recipes/form.html", {"form": form, "heading": "New recipe"})
+      - file: recipes/urls.py
+        lang: py
+        text: |
+          from django.urls import path
+
+          from . import views
+
+          app_name = "recipes"
+          urlpatterns = [
+              path("", views.recipe_list, name="list"),
+              path("new/", views.recipe_create, name="new"),
+              path("<int:pk>/", views.recipe_detail, name="detail"),
+          ]
+      - file: recipes/templates/recipes/form.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}{{ heading }} - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>{{ heading }}</h1>
+            <form method="post">
+              {% csrf_token %}
+              {{ form }}
+              <p><button type="submit">Save</button></p>
+            </form>
+          {% endblock %}
+    mistakes:
+      - problem:
+          en: "\"CSRF verification failed\" (403) when you submit."
+          tr: "Gönderince \"CSRF verification failed\" (403) hatası."
+        fix:
+          en: "Every `<form method=\"post\">` needs `{% csrf_token %}` inside it."
+          tr: "Her `<form method=\"post\">` içinde `{% csrf_token %}` olmalı."
+      - problem:
+          en: "Returning a page after a successful POST instead of redirecting."
+          tr: "Başarılı bir POST'tan sonra yönlendirme yerine sayfa döndürmek."
+        fix:
+          en: "If the user presses reload, the browser sends the form again and you get a duplicate recipe. Always `redirect()` after a successful POST."
+          tr: "Kullanıcı yenile tuşuna basarsa tarayıcı formu yeniden gönderir ve tarif ikilenir. Başarılı POST'tan sonra her zaman `redirect()` kullan."
+    quiz:
+      - q:
+          en: "Why is `author` left out of RecipeForm?"
+          tr: "`author` neden RecipeForm'da yok?"
+        options:
+          en:
+            - "The server sets it from request.user, so nobody can post as someone else"
+            - "Forms cannot show foreign keys"
+            - "It is optional in the database"
+          tr:
+            - "Sunucu onu request.user'dan verir, böylece kimse başkası adına tarif ekleyemez"
+            - "Formlar foreign key gösteremez"
+            - "Veritabanında zorunlu değil"
+        answer: 0
+        why:
+          en: "Anything in the form can be changed by the visitor. Facts about who is logged in must come from the server."
+          tr: "Formdaki her şeyi ziyaretçi değiştirebilir. Kimin giriş yaptığı bilgisi sunucudan gelmeli."
+    sources:
+      - title: "Writing your first Django app, part 4: forms"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial04/
+      - title: "Creating forms from models"
+        url: https://docs.djangoproject.com/en/6.1/topics/forms/modelforms/
+      - title: "Cross Site Request Forgery protection"
+        url: https://docs.djangoproject.com/en/6.1/howto/csrf/
+
+  - id: accounts
+    stage: data-api
+    title:
+      en: "User accounts: sign up, log in, log out, edit your own"
+      tr: "Kullanıcı hesapları: kayıt, giriş, çıkış, kendi tarifini düzenleme"
+    minutes: 50
+    needs: [forms]
+    why:
+      en: "A recipe site needs to know who is who. Django has a complete login system built in; you only add pages. The rule that only the author may edit a recipe is a good first example of permission checks."
+      tr: "Bir tarif sitesinin kimin kim olduğunu bilmesi gerekir. Django'da eksiksiz bir giriş sistemi hazırdır; sen sadece sayfaları eklersin. Bir tarifi yalnızca yazarının düzenleyebilmesi kuralı, yetki kontrolünün güzel bir ilk örneğidir."
+    learn:
+      en: |
+        - `django.contrib.auth.urls` gives you login, logout and password views
+        - `UserCreationForm` makes sign-up easy, and passwords are hashed for you
+        - `request.user` and `user.is_authenticated`
+        - Logout is a POST request (a link is not enough)
+        - Settings `LOGIN_REDIRECT_URL` and `LOGOUT_REDIRECT_URL`
+        - Filtering with `author=request.user` so a stranger gets a 404
+      tr: |
+        - `django.contrib.auth.urls` sana giriş, çıkış ve parola view'larını verir
+        - `UserCreationForm` kaydı kolaylaştırır ve parolalar senin için hash'lenir
+        - `request.user` ve `user.is_authenticated`
+        - Çıkış bir POST isteğidir (bağlantı yetmez)
+        - `LOGIN_REDIRECT_URL` ve `LOGOUT_REDIRECT_URL` ayarları
+        - Yabancı biri 404 alsın diye `author=request.user` ile süzme
+    do:
+      en: |
+        1. Open `mysite/settings.py` and add the three lines below at the very end of the file.
+        2. Replace `mysite/urls.py` so it includes `django.contrib.auth.urls` under `accounts/`.
+        3. Replace `recipes/views.py` and `recipes/urls.py` with the next files. They add `signup` and `recipe_edit`.
+        4. Create the two templates in `recipes/templates/registration/` (the folder name `registration` is what Django's login view looks for).
+        5. Replace `base.html` (navigation with login state) and `detail.html` (an Edit link only for the author).
+        6. Try it: sign up with a new name, add a recipe, log out, log in again. Then log in as someone else and open `/<id>/edit/` of the first user's recipe: you get a 404.
+        7. Commit: `git add .` then `git commit -m "Accounts and editing"`.
+      tr: |
+        1. `mysite/settings.py` dosyasını aç ve aşağıdaki üç satırı dosyanın en sonuna ekle.
+        2. `mysite/urls.py` dosyasını `accounts/` altında `django.contrib.auth.urls` dosyasını içerecek şekilde değiştir.
+        3. `recipes/views.py` ve `recipes/urls.py` dosyalarını sonraki dosyalarla değiştir. `signup` ve `recipe_edit` eklenir.
+        4. `recipes/templates/registration/` içinde iki template oluştur (Django'nun giriş view'ı `registration` klasör adını arar).
+        5. `base.html` (giriş durumuna göre menü) ve `detail.html` (yalnızca yazar için Düzenle bağlantısı) dosyalarını değiştir.
+        6. Dene: yeni bir adla kayıt ol, tarif ekle, çıkış yap, tekrar giriş yap. Sonra başka biri olarak giriş yapıp ilk kullanıcının tarifinin `/<id>/edit/` adresini aç: 404 alırsın.
+        7. Commit'le: `git add .` sonra `git commit -m "Accounts and editing"`.
+    code:
+      - file: "mysite/settings.py (add at the end)"
+        lang: py
+        text: |
+          LOGIN_REDIRECT_URL = 'recipes:list'
+          LOGOUT_REDIRECT_URL = 'recipes:list'
+      - file: mysite/urls.py
+        lang: py
+        text: |
+          from django.contrib import admin
+          from django.urls import include, path
+
+          urlpatterns = [
+              path("admin/", admin.site.urls),
+              path("accounts/", include("django.contrib.auth.urls")),
+              path("", include("recipes.urls")),
+          ]
+      - file: recipes/views.py
+        lang: py
+        text: |
+          from django.contrib.auth import login
+          from django.contrib.auth.decorators import login_required
+          from django.contrib.auth.forms import UserCreationForm
+          from django.shortcuts import get_object_or_404, redirect, render
+
+          from .forms import RecipeForm
+          from .models import Recipe
+
+
+          def recipe_list(request):
+              recipes = Recipe.objects.all()
+              return render(request, "recipes/list.html", {"recipes": recipes})
+
+
+          def recipe_detail(request, pk):
+              recipe = get_object_or_404(Recipe, pk=pk)
+              return render(request, "recipes/detail.html", {"recipe": recipe})
+
+
+          @login_required
+          def recipe_create(request):
+              if request.method == "POST":
+                  form = RecipeForm(request.POST)
+                  if form.is_valid():
+                      recipe = form.save(commit=False)
+                      recipe.author = request.user
+                      recipe.save()
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm()
+              return render(request, "recipes/form.html", {"form": form, "heading": "New recipe"})
+
+
+          @login_required
+          def recipe_edit(request, pk):
+              recipe = get_object_or_404(Recipe, pk=pk, author=request.user)
+              if request.method == "POST":
+                  form = RecipeForm(request.POST, instance=recipe)
+                  if form.is_valid():
+                      form.save()
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm(instance=recipe)
+              return render(request, "recipes/form.html", {"form": form, "heading": "Edit recipe"})
+
+
+          def signup(request):
+              if request.method == "POST":
+                  form = UserCreationForm(request.POST)
+                  if form.is_valid():
+                      user = form.save()
+                      login(request, user)
+                      return redirect("recipes:list")
+              else:
+                  form = UserCreationForm()
+              return render(request, "registration/signup.html", {"form": form})
+      - file: recipes/urls.py
+        lang: py
+        text: |
+          from django.urls import path
+
+          from . import views
+
+          app_name = "recipes"
+          urlpatterns = [
+              path("", views.recipe_list, name="list"),
+              path("new/", views.recipe_create, name="new"),
+              path("signup/", views.signup, name="signup"),
+              path("<int:pk>/", views.recipe_detail, name="detail"),
+              path("<int:pk>/edit/", views.recipe_edit, name="edit"),
+          ]
+      - file: recipes/templates/registration/login.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}Log in - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>Log in</h1>
+            <form method="post">
+              {% csrf_token %}
+              {{ form }}
+              <input type="hidden" name="next" value="{{ next }}">
+              <p><button type="submit">Log in</button></p>
+            </form>
+            <p>No account yet? <a href="{% url 'recipes:signup' %}">Sign up</a>.</p>
+          {% endblock %}
+      - file: recipes/templates/registration/signup.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}Sign up - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>Sign up</h1>
+            <form method="post">
+              {% csrf_token %}
+              {{ form }}
+              <p><button type="submit">Create account</button></p>
+            </form>
+          {% endblock %}
+      - file: recipes/templates/recipes/base.html
+        lang: html
+        text: |
+          {% load static %}<!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>{% block title %}Recipe Box{% endblock %}</title>
+              <link rel="stylesheet" href="{% static 'recipes/style.css' %}">
+            </head>
+            <body>
+              <header class="top">
+                <a class="brand" href="{% url 'recipes:list' %}">Recipe Box</a>
+                {% if user.is_authenticated %}
+                  <a href="{% url 'recipes:new' %}">New recipe</a>
+                  <span>{{ user.username }}</span>
+                  <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Log out</button>
+                  </form>
+                {% else %}
+                  <a href="{% url 'login' %}">Log in</a>
+                  <a href="{% url 'recipes:signup' %}">Sign up</a>
+                {% endif %}
+              </header>
+              <main>
+                {% block content %}{% endblock %}
+              </main>
+            </body>
+          </html>
+      - file: recipes/templates/recipes/detail.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}{{ recipe.title }} - Recipe Box{% endblock %}
+
+          {% block content %}
+            <article>
+              <h1>{{ recipe.title }}</h1>
+              <p class="meta">by {{ recipe.author.username }} on {{ recipe.created|date:"j F Y" }}</p>
+
+              <h2>Ingredients</h2>
+              <ul>
+                {% for item in recipe.ingredient_list %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+
+              <h2>Steps</h2>
+              {{ recipe.steps|linebreaks }}
+            </article>
+            {% if user == recipe.author %}
+              <p><a href="{% url 'recipes:edit' recipe.pk %}">Edit this recipe</a></p>
+            {% endif %}
+            <p><a href="{% url 'recipes:list' %}">All recipes</a></p>
+          {% endblock %}
+    mistakes:
+      - problem:
+          en: "Logging in sends you to `/accounts/profile/` and shows a 404."
+          tr: "Giriş yapınca `/accounts/profile/` adresine gidip 404 görüyorsun."
+        fix:
+          en: "That is Django's default. Set `LOGIN_REDIRECT_URL` as shown above."
+          tr: "Bu Django'nun varsayılanı. Yukarıdaki gibi `LOGIN_REDIRECT_URL` ayarını yap."
+      - problem:
+          en: "Logout as a plain link gives \"405 Method Not Allowed\"."
+          tr: "Çıkışı düz bir bağlantı yapınca \"405 Method Not Allowed\" alıyorsun."
+        fix:
+          en: "Since Django 5.0 logout only accepts POST, so one click cannot log you out from another site. Use a small form with `{% csrf_token %}` and a button, as in `base.html`."
+          tr: "Django 5.0'dan beri çıkış yalnızca POST kabul eder; böylece başka bir site tek tıkla seni çıkaramaz. `base.html` içindeki gibi `{% csrf_token %}` ve bir düğme olan küçük bir form kullan."
+      - problem:
+          en: "Checking ownership with `if recipe.author == request.user` and forgetting it in some other view."
+          tr: "Sahipliği `if recipe.author == request.user` ile kontrol edip başka bir view'da unutmak."
+        fix:
+          en: "Filter in the query, `get_object_or_404(Recipe, pk=pk, author=request.user)`, so the safe version is the only version."
+          tr: "Sorguda süz: `get_object_or_404(Recipe, pk=pk, author=request.user)`. Böylece güvenli sürüm tek sürüm olur."
+    quiz:
+      - q:
+          en: "Why does recipe_edit use get_object_or_404(Recipe, pk=pk, author=request.user)?"
+          tr: "recipe_edit neden get_object_or_404(Recipe, pk=pk, author=request.user) kullanır?"
+        options:
+          en:
+            - "Only the author can find the recipe to edit; anyone else gets a 404"
+            - "It makes the query faster"
+            - "It logs the user in"
+          tr:
+            - "Düzenlenecek tarifi yalnızca yazarı bulabilir; başkası 404 alır"
+            - "Sorguyu hızlandırır"
+            - "Kullanıcıyı giriş yaptırır"
+        answer: 0
+        why:
+          en: "The check is part of the lookup itself, so there is no way to forget it."
+          tr: "Kontrol sorgunun kendisinin parçası, bu yüzden unutmanın yolu yok."
+    sources:
+      - title: "Using the Django authentication system"
+        url: https://docs.djangoproject.com/en/6.1/topics/auth/default/
+      - title: "Authentication views"
+        url: https://docs.djangoproject.com/en/6.1/topics/auth/default/#module-django.contrib.auth.views
+      - title: "Password management in Django"
+        url: https://docs.djangoproject.com/en/6.1/topics/auth/passwords/
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the site with Django's test runner"
+      tr: "Siteyi Django'nun test çalıştırıcısıyla test etme"
+    minutes: 40
+    needs: [accounts]
+    why:
+      en: "Tests check the site for you in seconds. When you change something later, they tell you at once if you broke login or editing. Django's test runner needs no extra install, and it builds a fresh empty database for every run, so your real recipes are never touched."
+      tr: "Testler siteyi senin yerine saniyeler içinde kontrol eder. Sonra bir şeyi değiştirdiğinde giriş ya da düzenlemeyi bozup bozmadığını hemen söylerler. Django'nun test çalıştırıcısı ek kurulum istemez ve her çalışmada boş bir veritabanı kurar; gerçek tariflerine asla dokunmaz."
+    learn:
+      en: |
+        - A test is a method whose name starts with `test_` inside a `TestCase` class
+        - `self.client` acts like a browser: it can GET, POST and log in with `force_login`
+        - `setUpTestData` creates data once for the whole class
+        - Asserts such as `assertContains`, `assertRedirects` and `assertEqual`
+        - Run all tests with `python manage.py test`
+      tr: |
+        - Test, bir `TestCase` sınıfının içinde adı `test_` ile başlayan bir metottur
+        - `self.client` tarayıcı gibi davranır: GET, POST yapar ve `force_login` ile giriş yapar
+        - `setUpTestData` tüm sınıf için veriyi bir kere oluşturur
+        - `assertContains`, `assertRedirects` ve `assertEqual` gibi kontroller
+        - Bütün testleri `python manage.py test` ile çalıştır
+    do:
+      en: |
+        1. Replace the content of `recipes/tests.py` with the file below.
+        2. Run `python manage.py test`. Every test should print as OK (a dot) and the last line should say `OK`.
+        3. Break something on purpose: in `recipe_edit` remove `author=request.user`. Run the tests again. One test fails and tells you exactly what. Put the line back.
+        4. Commit: `git add .` then `git commit -m "Tests"`.
+      tr: |
+        1. `recipes/tests.py` içeriğini aşağıdaki dosyayla değiştir.
+        2. `python manage.py test` çalıştır. Her test OK (bir nokta) yazmalı ve son satır `OK` demeli.
+        3. Bilerek bozup dene: `recipe_edit` içinden `author=request.user` kısmını sil. Testleri yeniden çalıştır. Bir test başarısız olur ve tam olarak neyin bozulduğunu söyler. Satırı geri koy.
+        4. Commit'le: `git add .` sonra `git commit -m "Tests"`.
+    code:
+      - file: recipes/tests.py
+        lang: py
+        text: |
+          from django.contrib.auth import get_user_model
+          from django.test import TestCase
+          from django.urls import reverse
+
+          from .models import Recipe
+
+          User = get_user_model()
+
+
+          class RecipeTests(TestCase):
+              @classmethod
+              def setUpTestData(cls):
+                  cls.cook = User.objects.create_user("cook")
+                  cls.other = User.objects.create_user("other")
+                  cls.recipe = Recipe.objects.create(
+                      title="Pancakes",
+                      ingredients="200 g flour\n300 ml milk\n\n2 eggs",
+                      steps="Whisk everything.\nFry in a hot pan.",
+                      author=cls.cook,
+                  )
+
+              def test_list_shows_recipes(self):
+                  response = self.client.get(reverse("recipes:list"))
+                  self.assertContains(response, "Pancakes")
+
+              def test_detail_shows_ingredients(self):
+                  response = self.client.get(self.recipe.get_absolute_url())
+                  self.assertContains(response, "<li>200 g flour</li>", html=True)
+
+              def test_ingredient_list_skips_empty_lines(self):
+                  self.assertEqual(self.recipe.ingredient_list(), ["200 g flour", "300 ml milk", "2 eggs"])
+
+              def test_missing_recipe_is_404(self):
+                  response = self.client.get(reverse("recipes:detail", args=[9999]))
+                  self.assertEqual(response.status_code, 404)
+
+              def test_new_requires_login(self):
+                  url = reverse("recipes:new")
+                  response = self.client.get(url)
+                  self.assertRedirects(response, f"/accounts/login/?next={url}")
+
+              def test_create_sets_author_from_logged_in_user(self):
+                  self.client.force_login(self.other)
+                  data = {"title": "Soup", "ingredients": "water\nsalt", "steps": "Boil."}
+                  response = self.client.post(reverse("recipes:new"), data)
+                  soup = Recipe.objects.get(title="Soup")
+                  self.assertRedirects(response, soup.get_absolute_url())
+                  self.assertEqual(soup.author, self.other)
+
+              def test_invalid_form_shows_error_and_saves_nothing(self):
+                  self.client.force_login(self.other)
+                  response = self.client.post(reverse("recipes:new"), {"title": ""})
+                  self.assertContains(response, "This field is required")
+                  self.assertEqual(Recipe.objects.count(), 1)
+
+              def test_author_can_edit(self):
+                  self.client.force_login(self.cook)
+                  data = {"title": "Better pancakes", "ingredients": "flour", "steps": "Fry."}
+                  self.client.post(reverse("recipes:edit", args=[self.recipe.pk]), data)
+                  self.recipe.refresh_from_db()
+                  self.assertEqual(self.recipe.title, "Better pancakes")
+
+              def test_only_author_can_edit(self):
+                  self.client.force_login(self.other)
+                  response = self.client.get(reverse("recipes:edit", args=[self.recipe.pk]))
+                  self.assertEqual(response.status_code, 404)
+
+              def test_signup_creates_user_and_logs_in(self):
+                  data = {
+                      "username": "newcook",
+                      "password1": "a-long-unusual-password-42",
+                      "password2": "a-long-unusual-password-42",
+                  }
+                  response = self.client.post(reverse("recipes:signup"), data)
+                  self.assertRedirects(response, reverse("recipes:list"))
+                  self.assertTrue(User.objects.filter(username="newcook").exists())
+                  self.assertContains(self.client.get(reverse("recipes:list")), "Log out")
+    mistakes:
+      - problem:
+          en: "\"Found 0 test(s)\"."
+          tr: "\"Found 0 test(s)\" mesajı."
+        fix:
+          en: "Test methods must start with `test_`, the class must extend `TestCase`, and the file must be named `tests.py` or `test*.py`."
+          tr: "Test metotlarının adı `test_` ile başlamalı, sınıf `TestCase`'ten türemeli ve dosyanın adı `tests.py` ya da `test*.py` olmalı."
+      - problem:
+          en: "Testing with your real data and expecting it to be there."
+          tr: "Gerçek verinle test edip onun orada olmasını beklemek."
+        fix:
+          en: "Tests run on an empty temporary database. Create everything a test needs inside the test or in `setUpTestData`."
+          tr: "Testler boş, geçici bir veritabanında çalışır. Bir testin ihtiyacı olan her şeyi testin içinde ya da `setUpTestData` içinde oluştur."
+    quiz:
+      - q:
+          en: "Does `python manage.py test` change your real recipes?"
+          tr: "`python manage.py test` gerçek tariflerini değiştirir mi?"
+        options:
+          en:
+            - "No, it uses a separate temporary test database"
+            - "Yes, it deletes them and recreates them"
+            - "Yes, it adds test recipes to them"
+          tr:
+            - "Hayır, ayrı bir geçici test veritabanı kullanır"
+            - "Evet, onları silip yeniden oluşturur"
+            - "Evet, onlara test tarifleri ekler"
+        answer: 0
+        why:
+          en: "Django creates a new database for the run and deletes it at the end."
+          tr: "Django çalışma için yeni bir veritabanı kurar ve sonunda siler."
+    sources:
+      - title: "Writing your first Django app, part 5: testing"
+        url: https://docs.djangoproject.com/en/6.1/intro/tutorial05/
+      - title: "Testing in Django"
+        url: https://docs.djangoproject.com/en/6.1/topics/testing/overview/
+      - title: "Django testing tools: the test client and assertions"
+        url: https://docs.djangoproject.com/en/6.1/topics/testing/tools/
+
+  - id: security
+    stage: security
+    title:
+      en: "Make it safe: secrets, DEBUG and a deployment check"
+      tr: "Güvenli hale getirme: gizli anahtarlar, DEBUG ve deploy kontrolü"
+    minutes: 35
+    needs: [tests]
+    why:
+      en: "The settings file Django creates is made for your own computer. On the internet, `DEBUG = True` shows your code and settings on every error page, and a public `SECRET_KEY` lets attackers forge login sessions. Django has most protections on by default (CSRF, HTML escaping, password hashing); this step switches on the rest."
+      tr: "Django'nun oluşturduğu ayar dosyası senin bilgisayarın için hazırlanmıştır. İnternette `DEBUG = True` her hata sayfasında kodunu ve ayarlarını gösterir; herkese açık bir `SECRET_KEY` saldırganların oturum sahtesi üretmesine izin verir. Django'da korumaların çoğu varsayılan olarak açıktır (CSRF, HTML kaçırma, parola hash'leme); bu adım geri kalanını açar."
+    learn:
+      en: |
+        - Secrets live in environment variables, never in git
+        - What `DEBUG`, `SECRET_KEY` and `ALLOWED_HOSTS` do
+        - Cookies marked secure only travel over HTTPS
+        - `manage.py check --deploy` lists the weak spots of your settings, including a development-only email setup
+        - Content Security Policy (built in since Django 6.0): a header that tells the browser which scripts and styles it may load, tried first in report-only mode
+      tr: |
+        - Gizli bilgiler ortam değişkenlerinde (environment variables) durur, asla git'te değil
+        - `DEBUG`, `SECRET_KEY` ve `ALLOWED_HOSTS` ayarlarının ne yaptığı
+        - Secure işaretli cookie'ler yalnızca HTTPS üzerinden gider
+        - `manage.py check --deploy` ayarlarındaki zayıf noktaları, geliştirmeye özel e-posta ayarı dahil, listeler
+        - Content Security Policy (Django 6.0'dan beri yerleşik): tarayıcıya hangi script ve stilleri yükleyebileceğini söyleyen bir header; önce yalnızca rapor modunda denenir
+    do:
+      en: |
+        1. Open `mysite/settings.py`. Add `import os` below the line `from pathlib import Path`.
+        2. Find the three lines `SECRET_KEY = ...`, `DEBUG = True` and `ALLOWED_HOSTS = []`. Delete them (and the comment lines above them) and paste the first block below where `SECRET_KEY` was.
+        3. In the `MIDDLEWARE` list add `'django.middleware.csp.ContentSecurityPolicyMiddleware',` right after the `SecurityMiddleware` line. At the end of the file add the second block below.
+        4. Near the bottom of `settings.py` find the `MAILERS = {...}` block Django generated and replace it with the third block below. The generated one prints emails to the terminal, which is perfect for your own computer but would silently lose emails on a server, so `check --deploy` calls it an error.
+        5. Create `recipes/test_security.py` with the fourth file below.
+        6. Run `python manage.py test`. Everything passes. The site still runs locally as before, because `DJANGO_DEBUG` defaults to on on your own computer.
+        7. Now check it as a server would see it. On Linux and macOS run the last command below. On Windows PowerShell set the three variables with `$env:DJANGO_DEBUG="0"` and so on, then run `python manage.py check --deploy`.
+        8. Read the output. Only two warnings remain, on purpose: `security.W004` (HSTS) and `security.W008` (SSL redirect). The host you will use switches HTTPS on for you (see the deploy step), and HSTS is a choice you can make later when you are sure about HTTPS.
+        9. Commit: `git add .` then `git commit -m "Safer settings"`.
+      tr: |
+        1. `mysite/settings.py` dosyasını aç. `from pathlib import Path` satırının altına `import os` ekle.
+        2. `SECRET_KEY = ...`, `DEBUG = True` ve `ALLOWED_HOSTS = []` satırlarını bul. Onları (ve üstlerindeki yorum satırlarını) sil, aşağıdaki ilk bloğu `SECRET_KEY`'in olduğu yere yapıştır.
+        3. `MIDDLEWARE` listesinde `SecurityMiddleware` satırından hemen sonra `'django.middleware.csp.ContentSecurityPolicyMiddleware',` satırını ekle. Dosyanın sonuna aşağıdaki ikinci bloğu ekle.
+        4. `settings.py` dosyasının altlarında Django'nun oluşturduğu `MAILERS = {...}` bloğunu bul ve aşağıdaki üçüncü blokla değiştir. Oluşturulan blok e-postaları terminale yazar; kendi bilgisayarında harika ama sunucuda e-postaları sessizce kaybeder, bu yüzden `check --deploy` bunu hata sayar.
+        5. Aşağıdaki dördüncü dosyayla `recipes/test_security.py` dosyasını oluştur.
+        6. `python manage.py test` çalıştır. Hepsi geçer. Site yerelde eskisi gibi çalışmaya devam eder, çünkü kendi bilgisayarında `DJANGO_DEBUG` varsayılan olarak açıktır.
+        7. Şimdi bir sunucunun göreceği gibi kontrol et. Linux ve macOS'ta aşağıdaki son komutu çalıştır. Windows PowerShell'de üç değişkeni `$env:DJANGO_DEBUG="0"` gibi ayarla, sonra `python manage.py check --deploy` çalıştır.
+        8. Çıktıyı oku. Bilerek yalnızca iki uyarı kalır: `security.W004` (HSTS) ve `security.W008` (SSL yönlendirmesi). Kullanacağın host HTTPS'i senin için açar (deploy adımına bak), HSTS ise HTTPS'ten emin olduktan sonra verebileceğin bir karardır.
+        9. Commit'le: `git add .` sonra `git commit -m "Safer settings"`.
+    code:
+      - file: "mysite/settings.py (replace SECRET_KEY, DEBUG and ALLOWED_HOSTS)"
+        lang: py
+        text: |
+          DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
+
+          if DEBUG:
+              SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-only-for-my-own-computer')
+          else:
+              SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
+
+          ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h]
+
+          if not DEBUG:
+              SESSION_COOKIE_SECURE = True
+              CSRF_COOKIE_SECURE = True
+      - file: "mysite/settings.py (add at the end)"
+        lang: py
+        text: |
+          from django.utils.csp import CSP
+
+          SECURE_CSP_REPORT_ONLY = {
+              'default-src': [CSP.SELF],
+          }
+      - file: "mysite/settings.py (replace the MAILERS block)"
+        lang: py
+        text: |
+          MAILERS = {
+              'default': {
+                  'BACKEND': (
+                      'django.core.mail.backends.console.EmailBackend'
+                      if DEBUG
+                      else 'django.core.mail.backends.smtp.EmailBackend'
+                  ),
+              },
+          }
+      - file: recipes/test_security.py
+        lang: py
+        text: |
+          from django.contrib.auth import get_user_model
+          from django.test import Client, TestCase
+          from django.urls import reverse
+
+          from .models import Recipe
+
+          User = get_user_model()
+
+
+          class SecurityTests(TestCase):
+              def test_post_without_csrf_token_is_rejected(self):
+                  cook = User.objects.create_user("cook")
+                  client = Client(enforce_csrf_checks=True)
+                  client.force_login(cook)
+                  data = {"title": "x", "ingredients": "y", "steps": "z"}
+                  response = client.post(reverse("recipes:new"), data)
+                  self.assertEqual(response.status_code, 403)
+                  self.assertEqual(Recipe.objects.count(), 0)
+
+              def test_html_in_a_title_is_escaped(self):
+                  cook = User.objects.create_user("cook")
+                  Recipe.objects.create(title="<script>alert(1)</script>", ingredients="a", steps="b", author=cook)
+                  response = self.client.get(reverse("recipes:list"))
+                  self.assertNotContains(response, "<script>alert(1)</script>")
+                  self.assertContains(response, "&lt;script&gt;alert(1)&lt;/script&gt;")
+
+              def test_csp_header_is_sent(self):
+                  response = self.client.get(reverse("recipes:list"))
+                  self.assertIn("Content-Security-Policy-Report-Only", response.headers)
+      - file: terminal
+        lang: sh
+        text: |
+          DJANGO_DEBUG=0 DJANGO_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" DJANGO_ALLOWED_HOSTS=example.com python manage.py check --deploy
+    mistakes:
+      - problem:
+          en: "Committing the real `SECRET_KEY` to a public GitHub repository."
+          tr: "Gerçek `SECRET_KEY`'i herkese açık bir GitHub deposuna commit'lemek."
+        fix:
+          en: "Anyone can read it. If it happened, make a new key and treat the old one as burned. That is why the key now comes from an environment variable."
+          tr: "Herkes okuyabilir. Olduysa yeni bir anahtar üret ve eskisini yanmış say. Bu yüzden anahtar artık bir ortam değişkeninden geliyor."
+      - problem:
+          en: "\"DisallowedHost: Invalid HTTP_HOST header\" after turning DEBUG off."
+          tr: "DEBUG kapatınca \"DisallowedHost: Invalid HTTP_HOST header\" hatası."
+        fix:
+          en: "With `DEBUG` off Django only answers for names in `ALLOWED_HOSTS`. Put your site's domain in `DJANGO_ALLOWED_HOSTS` (comma separated)."
+          tr: "`DEBUG` kapalıyken Django yalnızca `ALLOWED_HOSTS` içindeki adlara yanıt verir. Sitenin alan adını `DJANGO_ALLOWED_HOSTS` içine yaz (virgülle ayırarak)."
+    quiz:
+      - q:
+          en: "Why must DEBUG be off on a public site?"
+          tr: "Herkese açık bir sitede DEBUG neden kapalı olmalı?"
+        options:
+          en:
+            - "Error pages would show your code, settings and queries to everyone"
+            - "The site would be slower to start"
+            - "CSS would stop loading"
+          tr:
+            - "Hata sayfaları kodunu, ayarlarını ve sorgularını herkese gösterirdi"
+            - "Site daha geç açılırdı"
+            - "CSS yüklenmezdi"
+        answer: 0
+        why:
+          en: "The debug page is a gift to attackers. With DEBUG off, visitors see only a plain error page."
+          tr: "Debug sayfası saldırganlara hediyedir. DEBUG kapalıyken ziyaretçi sadece sade bir hata sayfası görür."
+    sources:
+      - title: "Deployment checklist"
+        url: https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+      - title: "Security in Django"
+        url: https://docs.djangoproject.com/en/6.1/topics/security/
+      - title: "Content Security Policy"
+        url: https://docs.djangoproject.com/en/6.1/ref/csp/
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Make it fast: the N+1 query problem and pagination"
+      tr: "Hızlandırma: N+1 sorgu sorunu ve sayfalama"
+    minutes: 35
+    needs: [security]
+    why:
+      en: "Your list page asks the database for the recipes, then once more for the author of each recipe. With 100 recipes that is 101 queries for one page. This is the most common slowdown in Django sites, and it is easy to find and fix once you measure it."
+      tr: "Liste sayfan veritabanından tarifleri ister, sonra her tarifin yazarı için bir kez daha sorar. 100 tarifte bir sayfa için 101 sorgu eder. Bu, Django sitelerinde en yaygın yavaşlık nedenidir ve ölçtüğünde bulması ve düzeltmesi kolaydır."
+    learn:
+      en: |
+        - The N+1 problem: one query for the list plus one per row
+        - `select_related()` joins the related row into the same query
+        - `assertNumQueries()` turns a performance rule into a test
+        - Django 6.1 can fix many N+1 cases for you with fetch modes (`FETCH_PEERS`)
+        - `Paginator` cuts a long list into pages
+      tr: |
+        - N+1 sorunu: liste için bir sorgu, her satır için bir sorgu daha
+        - `select_related()` ilişkili satırı aynı sorguya katar
+        - `assertNumQueries()` performans kuralını teste çevirir
+        - Django 6.1, fetch mode'larla (`FETCH_PEERS`) birçok N+1 durumunu senin için çözebilir
+        - `Paginator` uzun bir listeyi sayfalara böler
+    do:
+      en: |
+        1. Create `recipes/test_queries.py` with the first file below.
+        2. Run `python manage.py test recipes.test_queries`. It **fails**: Django reports 6 queries instead of 2: one for the recipes and one more for each of the 5 authors. That is the N+1 problem, found by a test.
+        3. Replace `recipes/views.py` with the second file (this also adds pages of 6 recipes), and replace `list.html` with the third file so it has "Newer" and "Older" links.
+        4. Run the tests again. All pass: one query counts the recipes, one fetches the page with authors joined in.
+        5. To see more than 6 recipes in the browser, add a few in the admin and use the page links.
+        6. Commit: `git add .` then `git commit -m "Fix N+1 queries, add pagination"`.
+      tr: |
+        1. Aşağıdaki ilk dosyayla `recipes/test_queries.py` dosyasını oluştur.
+        2. `python manage.py test recipes.test_queries` çalıştır. **Başarısız olur**: Django 2 yerine 6 sorgu bildirir: tarifler için bir sorgu ve 5 yazarın her biri için bir sorgu daha. Bu N+1 sorunudur ve bir test onu buldu.
+        3. `recipes/views.py` dosyasını ikinci dosyayla değiştir (bu, 6'şar tariflik sayfalamayı da ekler) ve `list.html` dosyasını "Newer" ve "Older" bağlantıları olacak şekilde üçüncü dosyayla değiştir.
+        4. Testleri yeniden çalıştır. Hepsi geçer: bir sorgu tarifleri sayar, bir sorgu yazarlar birleştirilmiş olarak sayfayı getirir.
+        5. Tarayıcıda 6'dan fazla tarif görmek için admin'den birkaç tarif ekle ve sayfa bağlantılarını kullan.
+        6. Commit'le: `git add .` sonra `git commit -m "Fix N+1 queries, add pagination"`.
+    code:
+      - file: recipes/test_queries.py
+        lang: py
+        text: |
+          from django.contrib.auth import get_user_model
+          from django.test import TestCase
+          from django.urls import reverse
+
+          from .models import Recipe
+
+          User = get_user_model()
+
+
+          class QueryCountTests(TestCase):
+              @classmethod
+              def setUpTestData(cls):
+                  cook = User.objects.create_user("cook")
+                  for i in range(5):
+                      Recipe.objects.create(title=f"Recipe {i}", ingredients="a", steps="b", author=cook)
+
+              def test_list_page_uses_two_queries(self):
+                  with self.assertNumQueries(2):
+                      self.client.get(reverse("recipes:list"))
+      - file: recipes/views.py
+        lang: py
+        text: |
+          from django.contrib.auth import login
+          from django.contrib.auth.decorators import login_required
+          from django.contrib.auth.forms import UserCreationForm
+          from django.core.paginator import Paginator
+          from django.shortcuts import get_object_or_404, redirect, render
+
+          from .forms import RecipeForm
+          from .models import Recipe
+
+
+          def recipe_list(request):
+              recipes = Recipe.objects.select_related("author")
+              page = Paginator(recipes, 6).get_page(request.GET.get("page"))
+              return render(request, "recipes/list.html", {"page": page})
+
+
+          def recipe_detail(request, pk):
+              recipe = get_object_or_404(Recipe.objects.select_related("author"), pk=pk)
+              return render(request, "recipes/detail.html", {"recipe": recipe})
+
+
+          @login_required
+          def recipe_create(request):
+              if request.method == "POST":
+                  form = RecipeForm(request.POST)
+                  if form.is_valid():
+                      recipe = form.save(commit=False)
+                      recipe.author = request.user
+                      recipe.save()
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm()
+              return render(request, "recipes/form.html", {"form": form, "heading": "New recipe"})
+
+
+          @login_required
+          def recipe_edit(request, pk):
+              recipe = get_object_or_404(Recipe, pk=pk, author=request.user)
+              if request.method == "POST":
+                  form = RecipeForm(request.POST, instance=recipe)
+                  if form.is_valid():
+                      form.save()
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm(instance=recipe)
+              return render(request, "recipes/form.html", {"form": form, "heading": "Edit recipe"})
+
+
+          def signup(request):
+              if request.method == "POST":
+                  form = UserCreationForm(request.POST)
+                  if form.is_valid():
+                      user = form.save()
+                      login(request, user)
+                      return redirect("recipes:list")
+              else:
+                  form = UserCreationForm()
+              return render(request, "registration/signup.html", {"form": form})
+      - file: recipes/templates/recipes/list.html
+        lang: html
+        text: |
+          {% extends "recipes/base.html" %}
+
+          {% block title %}All recipes - Recipe Box{% endblock %}
+
+          {% block content %}
+            <h1>Recipes</h1>
+
+            {% partialdef card %}
+              <article class="card">
+                <h2><a href="{{ recipe.get_absolute_url }}">{{ recipe.title }}</a></h2>
+                <p class="meta">by {{ recipe.author.username }}</p>
+              </article>
+            {% endpartialdef %}
+
+            {% for recipe in page %}
+              {% partial card %}
+            {% empty %}
+              <p>No recipes yet.</p>
+            {% endfor %}
+
+            {% if page.has_other_pages %}
+              <nav class="pages">
+                {% if page.has_previous %}
+                  <a href="?page={{ page.previous_page_number }}">Newer</a>
+                {% endif %}
+                <span>Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+                {% if page.has_next %}
+                  <a href="?page={{ page.next_page_number }}">Older</a>
+                {% endif %}
+              </nav>
+            {% endif %}
+          {% endblock %}
+    mistakes:
+      - problem:
+          en: "Guessing what is slow instead of measuring."
+          tr: "Neyin yavaş olduğunu ölçmek yerine tahmin etmek."
+        fix:
+          en: "Count the queries first (`assertNumQueries`, or the debug toolbar in a bigger project), fix the biggest cost, count again."
+          tr: "Önce sorguları say (`assertNumQueries` ya da daha büyük projede debug toolbar), en büyük maliyeti düzelt, yeniden say."
+      - problem:
+          en: "Paginating a queryset that has no order."
+          tr: "Sırası olmayan bir queryset'i sayfalamak."
+        fix:
+          en: "Pages can then repeat or skip rows. The `Meta: ordering` on `Recipe` already gives a fixed order, so keep it."
+          tr: "O zaman sayfalar satır tekrar eder ya da atlar. `Recipe` üzerindeki `Meta: ordering` zaten sabit bir sıra verir, onu koru."
+    quiz:
+      - q:
+          en: "What does select_related(\"author\") do?"
+          tr: "select_related(\"author\") ne yapar?"
+        options:
+          en:
+            - "Loads the author in the same query as the recipes"
+            - "Hides the author field"
+            - "Sorts recipes by author"
+          tr:
+            - "Yazarı tariflerle aynı sorguda yükler"
+            - "Yazar alanını gizler"
+            - "Tarifleri yazara göre sıralar"
+        answer: 0
+        why:
+          en: "It joins the author table, so reading recipe.author later costs no extra query."
+          tr: "Yazar tablosunu birleştirir; böylece recipe.author'ı okumak sonradan ek sorgu gerektirmez."
+    sources:
+      - title: "Database access optimization"
+        url: https://docs.djangoproject.com/en/6.1/topics/db/optimization/
+      - title: "QuerySet.select_related()"
+        url: https://docs.djangoproject.com/en/6.1/ref/models/querysets/#select-related
+      - title: "Model field fetch modes"
+        url: https://docs.djangoproject.com/en/6.1/topics/db/fetch-modes/
+
+  - id: packaging
+    stage: packaging
+    title:
+      en: "Get it ready to ship: requirements, static files and GitHub"
+      tr: "Yayına hazırlama: requirements, statik dosyalar ve GitHub"
+    minutes: 30
+    needs: [performance]
+    why:
+      en: "A server starts with nothing. It must know which packages to install (`requirements.txt`), where to collect the CSS (`STATIC_ROOT`), and where to get your code (GitHub). Keeping secrets and local files out of git matters just as much."
+      tr: "Sunucu hiçbir şeyi olmadan başlar. Hangi paketleri kuracağını (`requirements.txt`), CSS'leri nereye toplayacağını (`STATIC_ROOT`) ve kodunu nereden alacağını (GitHub) bilmesi gerekir. Gizli ve yerel dosyaları git'ten uzak tutmak da en az o kadar önemlidir."
+    learn:
+      en: |
+        - What `requirements.txt` is, and why versions are given as a range
+        - In development Django serves static files itself; in production `collectstatic` gathers them into one folder that the web server serves
+        - What belongs in `.gitignore`
+        - Pushing a project to GitHub
+      tr: |
+        - `requirements.txt` dosyasının ne olduğu ve sürümlerin neden aralık olarak yazıldığı
+        - Geliştirmede statik dosyaları Django kendisi sunar; production'da `collectstatic` onları web sunucusunun sunacağı tek bir klasörde toplar
+        - `.gitignore` içine nelerin girmesi gerektiği
+        - Bir projeyi GitHub'a göndermek
+    do:
+      en: |
+        1. Create `requirements.txt` and `.gitignore` with the files below. `python-dotenv` is there because the host loads your secrets from a `.env` file with it.
+        2. At the end of `mysite/settings.py` add the `STATIC_ROOT` line.
+        3. Run `python manage.py collectstatic`. Django copies the admin's CSS and JS and your `style.css` into the new `staticfiles` folder (it is in `.gitignore`: the server makes its own).
+        4. Run the tests once more: `python manage.py test`.
+        5. Keep `db.sqlite3` and `.venv` out of git: if you committed them before, run `git rm -r --cached .venv db.sqlite3` once (it keeps the files on your disk).
+        6. On github.com create a new **public** repository called `recipebox` (no README, no .gitignore). Public makes it easy for the free host to download it. Never put secrets in it.
+        7. Commit and push with the commands below. The first push asks you to sign in; GitHub no longer accepts your account password on the command line, so use the browser sign-in that Git offers, or `gh auth login` if you use the GitHub CLI.
+      tr: |
+        1. Aşağıdaki dosyalarla `requirements.txt` ve `.gitignore` dosyalarını oluştur. `python-dotenv` orada, çünkü host gizli bilgilerini bir `.env` dosyasından onunla yükler.
+        2. `mysite/settings.py` dosyasının sonuna `STATIC_ROOT` satırını ekle.
+        3. `python manage.py collectstatic` çalıştır. Django admin'in CSS ve JS dosyalarını ve senin `style.css` dosyanı yeni `staticfiles` klasörüne kopyalar (o klasör `.gitignore` içinde: sunucu kendi klasörünü üretir).
+        4. Testleri bir kez daha çalıştır: `python manage.py test`.
+        5. `db.sqlite3` ve `.venv` dosyalarını git'ten uzak tut: daha önce commit'lediysen bir kez `git rm -r --cached .venv db.sqlite3` çalıştır (dosyalar diskinde kalır).
+        6. github.com'da `recipebox` adında yeni bir **herkese açık (public)** depo oluştur (README ve .gitignore ekleme). Public olması ücretsiz hostun indirmesini kolaylaştırır. İçine asla gizli bilgi koyma.
+        7. Aşağıdaki komutlarla commit'le ve gönder. İlk gönderimde giriş yapman istenir; GitHub komut satırında hesap parolanı artık kabul etmez, Git'in sunduğu tarayıcıyla girişi kullan ya da GitHub CLI kullanıyorsan `gh auth login` yaz.
+    code:
+      - file: requirements.txt
+        lang: text
+        text: |
+          Django>=6.1,<6.2
+          python-dotenv>=1.0
+      - file: .gitignore
+        lang: text
+        text: |
+          .venv/
+          __pycache__/
+          *.pyc
+          db.sqlite3
+          staticfiles/
+          .env
+      - file: "mysite/settings.py (add at the end)"
+        lang: py
+        text: |
+          STATIC_ROOT = BASE_DIR / 'staticfiles'
+      - file: terminal
+        lang: sh
+        text: |
+          python manage.py collectstatic
+          python manage.py test
+          git add .
+          git commit -m "Ready to deploy"
+          git branch -M main
+          git remote add origin https://github.com/<your-user>/recipebox.git
+          git push -u origin main
+    mistakes:
+      - problem:
+          en: "Pushing `db.sqlite3`, `.venv` or `.env` to GitHub."
+          tr: "`db.sqlite3`, `.venv` ya da `.env` dosyasını GitHub'a göndermek."
+        fix:
+          en: "Add them to `.gitignore` before the first commit. If already pushed, `git rm --cached` them and, for anything secret, change the secret."
+          tr: "İlk commit'ten önce `.gitignore` içine ekle. Zaten gittiyse `git rm --cached` yap ve gizli olan bir şeyse o gizli bilgiyi değiştir."
+      - problem:
+          en: "\"ImproperlyConfigured: You're using the staticfiles app without having set the STATIC_ROOT\"."
+          tr: "\"ImproperlyConfigured: You're using the staticfiles app without having set the STATIC_ROOT\" hatası."
+        fix:
+          en: "`collectstatic` needs `STATIC_ROOT`. Add the line to `settings.py`."
+          tr: "`collectstatic` için `STATIC_ROOT` gerekir. Satırı `settings.py` dosyasına ekle."
+    quiz:
+      - q:
+          en: "Why does production need `collectstatic`?"
+          tr: "Production neden `collectstatic` ister?"
+        options:
+          en:
+            - "The web server serves static files from one folder, and the command gathers them there"
+            - "It compiles Python to machine code"
+            - "It uploads the database"
+          tr:
+            - "Web sunucusu statik dosyaları tek bir klasörden sunar ve komut onları oraya toplar"
+            - "Python'u makine koduna derler"
+            - "Veritabanını yükler"
+        answer: 0
+        why:
+          en: "The development server finds static files inside each app, but a production web server needs them all in one place."
+          tr: "Geliştirme sunucusu statik dosyaları her app'in içinde bulur ama production web sunucusunun hepsinin tek yerde olması gerekir."
+    sources:
+      - title: "How to manage static files"
+        url: https://docs.djangoproject.com/en/6.1/howto/static-files/
+      - title: "Deploying static files"
+        url: https://docs.djangoproject.com/en/6.1/howto/static-files/deployment/
+      - title: "Adding locally hosted code to GitHub"
+        url: https://docs.github.com/en/migrations/importing-source-code/using-the-command-line-to-import-source-code/adding-locally-hosted-code-to-github
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Put it online for free on PythonAnywhere"
+      tr: "PythonAnywhere'de ücretsiz yayına alma"
+    minutes: 60
+    needs: [packaging]
+    why:
+      en: "Until now the site lives on your computer. PythonAnywhere is a host built for Python; its free Beginner account needs no credit card and keeps your SQLite database file, so a recipe site works there as it is. (The other free options have a catch for Django: for example Render deletes local files like SQLite whenever a free service restarts, and its free Postgres database expires after 30 days.)"
+      tr: "Şimdiye kadar site senin bilgisayarında yaşadı. PythonAnywhere, Python için yapılmış bir host; ücretsiz Beginner hesabı kredi kartı istemez ve SQLite veritabanı dosyanı saklar, bu yüzden tarif sitesi orada olduğu gibi çalışır. (Diğer ücretsiz seçeneklerin Django için bir tuzağı var: örneğin Render, ücretsiz bir servis her yeniden başladığında SQLite gibi yerel dosyaları siler ve ücretsiz Postgres veritabanı 30 gün sonra sona erer.)"
+    learn:
+      en: |
+        - What a WSGI file is: the door between a web server and your Django app
+        - Environment variables on the server (`.env` file loaded with python-dotenv)
+        - The free account limits: one web app on `yourname.pythonanywhere.com`, 512 MiB disk, and a web app that expires after one month unless you extend it
+        - The update routine: pull, migrate, collectstatic, reload
+      tr: |
+        - WSGI dosyasının ne olduğu: web sunucusu ile Django uygulaman arasındaki kapı
+        - Sunucuda ortam değişkenleri (python-dotenv ile yüklenen `.env` dosyası)
+        - Ücretsiz hesap sınırları: `kullaniciadin.pythonanywhere.com` adresinde tek web uygulaması, 512 MiB disk ve her ay uzatmazsan sona eren web uygulaması
+        - Güncelleme rutini: pull, migrate, collectstatic, reload
+    do:
+      en: |
+        1. Sign up at pythonanywhere.com and create a free **Beginner** account. Your username becomes your address: `yourname.pythonanywhere.com`. Check the limits on their "Free Accounts Features" help page: 100 CPU seconds a day, 512 MiB of disk, one web app, no MySQL or scheduled tasks for new accounts. SQLite is fine for this project.
+        2. Open a **Bash** console (Consoles tab) and run the first block below. It downloads your code, makes a virtual environment with a new Python (Django 6.1 needs 3.12 or newer, so use `python3.13`, or `python3.12` if 3.13 is not there), and installs the packages.
+        3. In the same console, create your `.env` file with the second block. It sets debug off, the allowed address, and a new secret key made on the spot. Replace `yourname` with your PythonAnywhere username. Then load it, create the tables and your admin user, and collect the static files.
+        4. Open the **Web** tab → *Add a new web app* → **Manual configuration** (not the "Django" option, which is for new projects) → pick the same Python version as in step 2.
+        5. On the Web tab fill in: *Source code* and *Working directory* = `/home/yourname/recipebox`; *Virtualenv* = `recipebox-venv`.
+        6. Under *Static files* add: URL `/static/`, Directory `/home/yourname/recipebox/staticfiles`.
+        7. Click the WSGI configuration file link on the Web tab. Delete everything in it and paste the third block below (with your username). Save.
+        8. Click the green **Reload** button. Open `https://yourname.pythonanywhere.com`. Log in to `/admin/` with the user you created, and add a recipe. Then, on the Web tab, switch on the **Force HTTPS** slider and press Reload again, so every visit uses `https://`.
+        9. The free web app **expires after one month**. The Web tab shows the date and a button to extend it; press it once a month (put a reminder in your calendar).
+        10. Later, to publish a change: push it from your computer, then run the fourth block in the Bash console and press Reload.
+      tr: |
+        1. pythonanywhere.com'da kaydol ve ücretsiz bir **Beginner** hesabı aç. Kullanıcı adın adresin olur: `kullaniciadin.pythonanywhere.com`. Sınırları "Free Accounts Features" yardım sayfasından kontrol et: günde 100 CPU saniyesi, 512 MiB disk, tek web uygulaması, yeni hesaplarda MySQL ve zamanlanmış görev yok. Bu proje için SQLite yeterli.
+        2. Bir **Bash** konsolu aç (Consoles sekmesi) ve aşağıdaki ilk bloğu çalıştır. Kodunu indirir, yeni bir Python ile sanal ortam oluşturur (Django 6.1 için 3.12 ya da yenisi gerekir, bu yüzden `python3.13` kullan; 3.13 yoksa `python3.12`) ve paketleri kurar.
+        3. Aynı konsolda ikinci blokla `.env` dosyanı oluştur. Debug'ı kapatır, izin verilen adresi yazar ve o anda yeni bir gizli anahtar üretir. `yourname` yerine PythonAnywhere kullanıcı adını yaz. Sonra dosyayı yükle, tabloları ve admin kullanıcını oluştur, statik dosyaları topla.
+        4. **Web** sekmesini aç → *Add a new web app* → **Manual configuration** ("Django" seçeneğini değil; o yeni projeler için) → 2. adımdaki Python sürümünün aynısını seç.
+        5. Web sekmesinde şunları doldur: *Source code* ve *Working directory* = `/home/yourname/recipebox`; *Virtualenv* = `recipebox-venv`.
+        6. *Static files* altına ekle: URL `/static/`, Directory `/home/yourname/recipebox/staticfiles`.
+        7. Web sekmesindeki WSGI configuration file bağlantısına tıkla. İçindeki her şeyi sil ve aşağıdaki üçüncü bloğu (kendi kullanıcı adınla) yapıştır. Kaydet.
+        8. Yeşil **Reload** düğmesine bas. `https://yourname.pythonanywhere.com` adresini aç. Oluşturduğun kullanıcıyla `/admin/` içine gir ve bir tarif ekle. Sonra Web sekmesinde **Force HTTPS** düğmesini aç ve yeniden Reload'a bas; böylece her ziyaret `https://` kullanır.
+        9. Ücretsiz web uygulaması **bir ay sonra sona erer**. Web sekmesi tarihi ve uzatmak için bir düğme gösterir; ayda bir bas (takvimine hatırlatıcı koy).
+        10. Sonra bir değişikliği yayınlamak için: bilgisayarından push'la, sonra Bash konsolunda dördüncü bloğu çalıştır ve Reload'a bas.
+    code:
+      - file: "terminal (PythonAnywhere Bash console)"
+        lang: sh
+        text: |
+          git clone https://github.com/<your-user>/recipebox.git
+          mkvirtualenv recipebox-venv --python=python3.13
+          cd ~/recipebox
+          pip install -r requirements.txt
+      - file: "terminal (PythonAnywhere Bash console)"
+        lang: sh
+        text: |
+          cd ~/recipebox
+          echo "export DJANGO_DEBUG=0" >> .env
+          echo "export DJANGO_ALLOWED_HOSTS=yourname.pythonanywhere.com" >> .env
+          echo "export DJANGO_SECRET_KEY=$(python -c 'import secrets; print(secrets.token_urlsafe(50))')" >> .env
+          set -a; source .env; set +a
+          python manage.py migrate
+          python manage.py createsuperuser
+          python manage.py collectstatic
+      - file: "/var/www/yourname_pythonanywhere_com_wsgi.py"
+        lang: py
+        text: |
+          import os
+          import sys
+
+          from dotenv import load_dotenv
+
+          path = "/home/yourname/recipebox"
+          if path not in sys.path:
+              sys.path.insert(0, path)
+
+          load_dotenv(os.path.join(path, ".env"))
+          os.environ["DJANGO_SETTINGS_MODULE"] = "mysite.settings"
+
+          from django.core.wsgi import get_wsgi_application
+
+          application = get_wsgi_application()
+      - file: "terminal (PythonAnywhere Bash console, to update)"
+        lang: sh
+        text: |
+          cd ~/recipebox
+          git pull
+          set -a; source .env; set +a
+          pip install -r requirements.txt
+          python manage.py migrate
+          python manage.py collectstatic --noinput
+    mistakes:
+      - problem:
+          en: "The site shows \"Something went wrong\" or an import error."
+          tr: "Site \"Something went wrong\" ya da bir import hatası gösteriyor."
+        fix:
+          en: "Open the **Error log** link on the Web tab and read the last lines. The usual causes: a wrong path in the WSGI file, the virtualenv name missing on the Web tab, or the packages not installed in that virtualenv."
+          tr: "Web sekmesindeki **Error log** bağlantısını aç ve son satırları oku. Olağan nedenler: WSGI dosyasında yanlış yol, Web sekmesinde sanal ortam adının eksik olması ya da paketlerin o sanal ortama kurulmamış olması."
+      - problem:
+          en: "Login does not work when you open the site with `http://`."
+          tr: "Siteyi `http://` ile açınca giriş çalışmıyor."
+        fix:
+          en: "Production cookies are marked secure (security step), so the browser only sends them over HTTPS. Always use `https://yourname.pythonanywhere.com`."
+          tr: "Production'da cookie'ler secure işaretli (güvenlik adımı), bu yüzden tarayıcı onları yalnızca HTTPS ile gönderir. Her zaman `https://kullaniciadin.pythonanywhere.com` kullan."
+      - problem:
+          en: "The page works but has no style (even the admin is plain)."
+          tr: "Sayfa çalışıyor ama stil yok (admin bile sade)."
+        fix:
+          en: "The Static files entry is missing or wrong. URL `/static/` must point to the full path of the `staticfiles` folder, and you must have run `collectstatic` on the server. Then Reload."
+          tr: "Static files kaydı eksik ya da yanlış. URL `/static/`, `staticfiles` klasörünün tam yolunu göstermeli ve sunucuda `collectstatic` çalıştırmış olmalısın. Sonra Reload."
+    quiz:
+      - q:
+          en: "Which file does PythonAnywhere read to start your Django app?"
+          tr: "PythonAnywhere Django uygulamanı başlatmak için hangi dosyayı okur?"
+        options:
+          en:
+            - "The WSGI file linked on the Web tab, not the wsgi.py in your project"
+            - "manage.py"
+            - "requirements.txt"
+          tr:
+            - "Web sekmesindeki bağlantıdan açılan WSGI dosyası, projendeki wsgi.py değil"
+            - "manage.py"
+            - "requirements.txt"
+        answer: 0
+        why:
+          en: "PythonAnywhere ignores your project's wsgi.py. Its own WSGI file imports your project."
+          tr: "PythonAnywhere projendeki wsgi.py dosyasını yok sayar. Kendi WSGI dosyası projeni import eder."
+    sources:
+      - title: "PythonAnywhere: deploying an existing Django project"
+        url: https://help.pythonanywhere.com/pages/DeployExistingDjangoProject/
+      - title: "PythonAnywhere: environment variables for web apps"
+        url: https://help.pythonanywhere.com/pages/EnvironmentVariables
+      - title: "PythonAnywhere: free account features"
+        url: https://help.pythonanywhere.com/pages/FreeAccountsFeatures/
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "See what happens: logging and the server logs"
+      tr: "Neler olduğunu görme: logging ve sunucu logları"
+    minutes: 30
+    needs: [deploy]
+    why:
+      en: "When something breaks on the internet you are not there to see it. Logs are the only witness. Setting up logging now means that when a visitor reports a problem, you can read what happened."
+      tr: "İnternette bir şey bozulduğunda onu görmek için orada değilsin. Loglar tek tanıktır. Logging'i şimdiden kurarsan bir ziyaretçi sorun bildirdiğinde ne olduğunu okuyabilirsin."
+    learn:
+      en: |
+        - Python's `logging` module: a logger, a level and a handler
+        - Levels: DEBUG, INFO, WARNING, ERROR; choose what to keep
+        - On PythonAnywhere the Web tab links the error log, the server log and the access log
+        - Never log passwords or secrets
+      tr: |
+        - Python'un `logging` modülü: bir logger, bir seviye ve bir handler
+        - Seviyeler: DEBUG, INFO, WARNING, ERROR; neyi tutacağını seç
+        - PythonAnywhere'de Web sekmesi error log, server log ve access log bağlantılarını verir
+        - Parolaları ya da gizli bilgileri asla loglama
+    do:
+      en: |
+        1. Add the `LOGGING` block below to the end of `mysite/settings.py`. It sends messages to the console (standard error), where the host collects them.
+        2. In `recipes/views.py` add `import logging` and the line `logger = logging.getLogger(__name__)` near the top, and in `recipe_create` add the `logger.info(...)` line below, right after `recipe.save()`. The complete file is shown below.
+        3. Run `python manage.py runserver`, add a recipe, and see the log line in the terminal. (The tests print it too when they create a recipe.)
+        4. Run the tests and commit and push: `python manage.py test`, `git add .`, `git commit -m "Logging"`, `git push`.
+        5. On PythonAnywhere run the update routine from the deploy step, press Reload, add a recipe on the live site, then open the **Error log** link on the Web tab. Messages your app writes show up there. Also open the **Access log** to see each visit.
+        6. Visit `https://yourname.pythonanywhere.com/9999/` (a page that does not exist) and find that request in the access log with status 404.
+        7. Optional: a free uptime monitor can ping your site and email you if it goes down. For bigger projects, look at error-tracking services; both are outside this roadmap.
+      tr: |
+        1. Aşağıdaki `LOGGING` bloğunu `mysite/settings.py` dosyasının sonuna ekle. Mesajları, host'un topladığı konsola (standard error) gönderir.
+        2. `recipes/views.py` dosyasında en üste `import logging` ve `logger = logging.getLogger(__name__)` satırını ekle; `recipe_create` içinde `recipe.save()` satırından hemen sonra aşağıdaki `logger.info(...)` satırını ekle. Dosyanın tamamı aşağıda.
+        3. `python manage.py runserver` çalıştır, bir tarif ekle ve log satırını terminalde gör. (Testler de tarif oluştururken aynı satırı yazar.)
+        4. Testleri çalıştır, commit'le ve push'la: `python manage.py test`, `git add .`, `git commit -m "Logging"`, `git push`.
+        5. PythonAnywhere'de deploy adımındaki güncelleme rutinini çalıştır, Reload'a bas, canlı sitede bir tarif ekle, sonra Web sekmesindeki **Error log** bağlantısını aç. Uygulamanın yazdığı mesajlar orada görünür. **Access log** bağlantısını da aç ve her ziyareti gör.
+        6. `https://yourname.pythonanywhere.com/9999/` adresini aç (olmayan bir sayfa) ve o isteği access log içinde 404 durumuyla bul.
+        7. İsteğe bağlı: ücretsiz bir uptime izleyici sitene düzenli istek atıp site kapanırsa sana e-posta gönderebilir. Daha büyük projelerde hata takip servislerine bak; ikisi de bu yol haritasının dışında.
+    code:
+      - file: "mysite/settings.py (add at the end)"
+        lang: py
+        text: |
+          LOGGING = {
+              'version': 1,
+              'disable_existing_loggers': False,
+              'formatters': {
+                  'plain': {'format': '{asctime} {levelname} {name} {message}', 'style': '{'},
+              },
+              'handlers': {
+                  'console': {'class': 'logging.StreamHandler', 'formatter': 'plain'},
+              },
+              'loggers': {
+                  'recipes': {'handlers': ['console'], 'level': 'INFO'},
+              },
+          }
+      - file: recipes/views.py
+        lang: py
+        text: |
+          import logging
+
+          from django.contrib.auth import login
+          from django.contrib.auth.decorators import login_required
+          from django.contrib.auth.forms import UserCreationForm
+          from django.core.paginator import Paginator
+          from django.shortcuts import get_object_or_404, redirect, render
+
+          from .forms import RecipeForm
+          from .models import Recipe
+
+          logger = logging.getLogger(__name__)
+
+
+          def recipe_list(request):
+              recipes = Recipe.objects.select_related("author")
+              page = Paginator(recipes, 6).get_page(request.GET.get("page"))
+              return render(request, "recipes/list.html", {"page": page})
+
+
+          def recipe_detail(request, pk):
+              recipe = get_object_or_404(Recipe.objects.select_related("author"), pk=pk)
+              return render(request, "recipes/detail.html", {"recipe": recipe})
+
+
+          @login_required
+          def recipe_create(request):
+              if request.method == "POST":
+                  form = RecipeForm(request.POST)
+                  if form.is_valid():
+                      recipe = form.save(commit=False)
+                      recipe.author = request.user
+                      recipe.save()
+                      logger.info("recipe created id=%s author=%s", recipe.pk, request.user.pk)
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm()
+              return render(request, "recipes/form.html", {"form": form, "heading": "New recipe"})
+
+
+          @login_required
+          def recipe_edit(request, pk):
+              recipe = get_object_or_404(Recipe, pk=pk, author=request.user)
+              if request.method == "POST":
+                  form = RecipeForm(request.POST, instance=recipe)
+                  if form.is_valid():
+                      form.save()
+                      return redirect(recipe)
+              else:
+                  form = RecipeForm(instance=recipe)
+              return render(request, "recipes/form.html", {"form": form, "heading": "Edit recipe"})
+
+
+          def signup(request):
+              if request.method == "POST":
+                  form = UserCreationForm(request.POST)
+                  if form.is_valid():
+                      user = form.save()
+                      login(request, user)
+                      return redirect("recipes:list")
+              else:
+                  form = UserCreationForm()
+              return render(request, "registration/signup.html", {"form": form})
+    mistakes:
+      - problem:
+          en: "Using `print()` for diagnostics."
+          tr: "Tanı için `print()` kullanmak."
+        fix:
+          en: "`print` has no level, no time and no name, and is easy to forget in the code. Use a logger."
+          tr: "`print`'in seviyesi, zamanı ve adı yok; koda unutulması da kolay. Logger kullan."
+      - problem:
+          en: "Logging personal data, passwords or the secret key."
+          tr: "Kişisel veriyi, parolayı ya da gizli anahtarı loglamak."
+        fix:
+          en: "Logs are copied, shared and kept for a long time. Log ids and events (\"recipe created id=7\"), not secrets."
+          tr: "Loglar kopyalanır, paylaşılır ve uzun süre saklanır. Gizli bilgiyi değil, kimlik ve olayları logla (\"recipe created id=7\")."
+    quiz:
+      - q:
+          en: "Which is better to log when a user signs up?"
+          tr: "Bir kullanıcı kayıt olduğunda hangisini loglamak daha iyi?"
+        options:
+          en:
+            - "\"user created id=12\""
+            - "The username and the password"
+            - "Nothing, logs are useless"
+          tr:
+            - "\"user created id=12\""
+            - "Kullanıcı adı ve parola"
+            - "Hiçbir şey, loglar işe yaramaz"
+        answer: 0
+        why:
+          en: "An id is enough to find the event later, and it keeps secrets out of the logs."
+          tr: "Olayı sonra bulmak için bir kimlik yeter ve gizli bilgiyi loglardan uzak tutar."
+    sources:
+      - title: "Logging in Django"
+        url: https://docs.djangoproject.com/en/6.1/topics/logging/
+      - title: "Python logging HOWTO"
+        url: https://docs.python.org/3/howto/logging.html
+
+  - id: next
+    stage: advanced
+    title:
+      en: "What next: background tasks and where to go from here"
+      tr: "Sırada ne var: arka plan görevleri ve buradan nereye"
+    minutes: 20
+    needs: [monitoring]
+    why:
+      en: "Your site is live. Real sites soon need work that must not slow down a page, such as sending an email. Django 6.0 added a built-in tasks framework for that. Here you try it, and you get a map of the topics that come next."
+      tr: "Siten yayında. Gerçek siteler çok geçmeden bir sayfayı yavaşlatmaması gereken işlere ihtiyaç duyar, örneğin e-posta göndermek. Django 6.0 bunun için yerleşik bir görev (task) altyapısı ekledi. Burada onu deneyeceksin ve sıradaki konuların bir haritasını alacaksın."
+    learn:
+      en: |
+        - `@task` defines a function that can run outside the request; `.enqueue()` queues it
+        - Django creates and queues tasks, but a worker process you provide runs them; the built-in backend used here runs a task right away and is meant for development and tests
+        - Next topics: PostgreSQL, Django REST framework for JSON APIs, class-based views, enforcing the CSP header, caching, Docker
+      tr: |
+        - `@task` istek dışında çalışabilen bir fonksiyon tanımlar; `.enqueue()` onu kuyruğa koyar
+        - Django görevleri oluşturur ve kuyruğa alır ama onları çalıştıracak worker sürecini sen sağlarsın; burada kullanılan yerleşik backend görevi hemen çalıştırır ve geliştirme ile testler içindir
+        - Sıradaki konular: PostgreSQL, JSON API'leri için Django REST framework, class-based view'lar, CSP header'ını zorunlu hale getirme, cache, Docker
+    do:
+      en: |
+        1. Create `recipes/tasks.py` with the file below.
+        2. Open the Django shell and run the lines shown. The task runs at once and you can read its result. Django also prints a few log lines about the task; that is normal.
+        3. Read the "Tasks" page in the docs and find which backends exist. Decide when you would need a real worker (for example: send a welcome email after sign-up without making the visitor wait).
+        4. Read the CSP page again. Your report-only policy sends no reports yet; once the browser console shows no complaints on your pages, rename `SECURE_CSP_REPORT_ONLY` to `SECURE_CSP` to enforce it.
+        5. Pick the next project: add comments to recipes, search, or image upload, and use the same loop you used here: model, admin, view, template, test, deploy.
+      tr: |
+        1. Aşağıdaki dosyayla `recipes/tasks.py` dosyasını oluştur.
+        2. Django shell'i aç ve gösterilen satırları çalıştır. Görev hemen çalışır ve sonucunu okuyabilirsin. Django görevle ilgili birkaç log satırı da yazar; bu normal.
+        3. Dokümandaki "Tasks" sayfasını oku ve hangi backend'lerin olduğunu bul. Gerçek bir worker'a ne zaman ihtiyaç duyacağına karar ver (örneğin: kayıttan sonra ziyaretçiyi bekletmeden hoş geldin e-postası göndermek).
+        4. CSP sayfasını yeniden oku. Rapor modundaki politikan henüz rapor göndermiyor; tarayıcı konsolu sayfalarında şikâyet göstermemeye başlayınca `SECURE_CSP_REPORT_ONLY` adını `SECURE_CSP` yaparak politikayı zorunlu kıl.
+        5. Sıradaki projeni seç: tariflere yorum, arama ya da resim yükleme ekle ve burada kullandığın döngüyü sürdür: model, admin, view, template, test, deploy.
+    code:
+      - file: recipes/tasks.py
+        lang: py
+        text: |
+          import logging
+
+          from django.tasks import task
+
+          logger = logging.getLogger(__name__)
+
+
+          @task
+          def announce_recipe(recipe_id):
+              logger.info("announce recipe id=%s", recipe_id)
+              return f"announced {recipe_id}"
+      - file: terminal (in the shell)
+        lang: py
+        text: |
+          >>> from recipes.tasks import announce_recipe
+          >>> result = announce_recipe.enqueue(1)
+          >>> result.status
+          TaskResultStatus.SUCCESSFUL
+          >>> result.return_value
+          'announced 1'
+    mistakes:
+      - problem:
+          en: "Expecting `enqueue()` to run the task in the background on a real server."
+          tr: "`enqueue()` komutunun gerçek bir sunucuda görevi arka planda çalıştırmasını beklemek."
+        fix:
+          en: "Django only queues the task. A separate worker process, with a backend that stores tasks, has to run it. The default backend runs it immediately, inside the request."
+          tr: "Django görevi yalnızca kuyruğa alır. Görevi, görevleri saklayan bir backend ile ayrı bir worker süreci çalıştırmalıdır. Varsayılan backend görevi hemen, istek içinde çalıştırır."
+      - problem:
+          en: "Starting the next project from zero knowledge of what you already know."
+          tr: "Sonraki projeye, zaten bildiklerini yokmuş gibi sıfırdan başlamak."
+        fix:
+          en: "Copy the structure of Recipe Box: virtualenv, project, app, model, admin, tests, settings from the environment, deploy. It is the same every time."
+          tr: "Recipe Box'ın yapısını kopyala: sanal ortam, proje, app, model, admin, test, ortamdan okunan ayarlar, deploy. Her seferinde aynı."
+    quiz:
+      - q:
+          en: "Does Django 6.1 include a worker that runs queued tasks in production?"
+          tr: "Django 6.1, kuyruktaki görevleri production'da çalıştıran bir worker içerir mi?"
+        options:
+          en:
+            - "No, it defines and queues tasks; you provide the worker"
+            - "Yes, runserver does it"
+            - "Yes, a built-in scheduler runs them every minute"
+          tr:
+            - "Hayır, görevleri tanımlar ve kuyruğa alır; worker'ı sen sağlarsın"
+            - "Evet, runserver yapar"
+            - "Evet, yerleşik bir zamanlayıcı her dakika çalıştırır"
+        answer: 0
+        why:
+          en: "The docs say Django handles task creation and queuing, while running them is left to external infrastructure."
+          tr: "Dokümana göre Django görev oluşturma ve kuyruğa almayı yapar; çalıştırmayı dış altyapıya bırakır."
+    sources:
+      - title: "Django's Tasks framework"
+        url: https://docs.djangoproject.com/en/6.1/topics/tasks/
+      - title: "Django 6.1 release notes"
+        url: https://docs.djangoproject.com/en/6.1/releases/6.1/
+      - title: "Django documentation index"
+        url: https://docs.djangoproject.com/en/6.1/

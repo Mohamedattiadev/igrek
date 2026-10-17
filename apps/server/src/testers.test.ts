@@ -138,3 +138,49 @@ describe("test users without a report", () => {
     expect(asked).toContain("I saved it in the end");
   });
 });
+
+describe("test users after each commit", () => {
+  test("a marked test runs again on a new commit and a worse result reaches the inbox", async () => {
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    const path = mkdtempSync(join(tmpdir(), "godeye-regress-"));
+    const git = (...args: string[]) =>
+      Bun.spawnSync(["git", "-C", path, "-c", "user.name=T", "-c", "user.email=t@example.com", ...args]);
+    git("init", "-q");
+    git("commit", "-q", "--allow-empty", "-m", "one");
+    const projectId = store.addProject(path);
+    let ease = 8;
+    const testers = new Testers(
+      sqlite,
+      store,
+      new Bus(),
+      new StopRegistry(),
+      () => DEFAULT_SETTINGS,
+      mkdtempSync(join(tmpdir(), "godeye-testers-")),
+      tmpdir(),
+      async () => `<report>{"outcome":"success","ease":${ease},"complaints":[],"issues":[],"quote":"ok"}</report>`,
+      () => ({ browser: "/usr/bin/chromium", runtime: "node", mcp: "/x/cli.js" }),
+    );
+    const settle = async (id: string) => {
+      for (let i = 0; i < 100 && testers.get(id)?.status === "running"; i++) await Bun.sleep(5);
+    };
+    const first = testers.start({ url: "http://localhost:3000", task: "Sign up", profileIds: ["aunt"], projectId });
+    await settle(first.id);
+    testers.setAutoRepeat(first.id, true);
+    const later = Date.now() + 3 * 60 * 60_000;
+    expect(testers.tick(later)).toEqual([]);
+
+    git("commit", "-q", "--allow-empty", "-m", "two");
+    expect(testers.tick(Date.now())).toEqual([]);
+    ease = 3;
+    const [id] = testers.tick(later);
+    expect(id).toBeDefined();
+    await settle(id as string);
+    const second = testers.get(id as string);
+    expect(second).toMatchObject({ previousId: first.id, autoRepeat: true, status: "done" });
+    expect(second?.autoFrom).toBe(second?.commit);
+    expect(testers.get(first.id)?.autoRepeat).toBeUndefined();
+    expect(testers.notices().map((n) => n.kind)).toEqual(["regression"]);
+    expect(testers.tick(later + 60_000)).toEqual([]);
+  });
+});

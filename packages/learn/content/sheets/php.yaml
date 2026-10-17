@@ -1,0 +1,928 @@
+id: php
+title: PHP
+category: language
+summary:
+  en: A language made for the web; runs on the server, builds pages and APIs, and powers WordPress and Laravel.
+  tr: Web için yapılmış bir dil; sunucuda çalışır, sayfa ve API üretir, WordPress ve Laravel'in altında o vardır.
+aliases: [php8, php 8, composer, phpstorm, sunucu tarafı, backend]
+detect:
+  files: [composer.json]
+version: "8.5"
+latest: eol:php
+checked: 2026-10
+sources:
+  - title: PHP Manual
+    url: https://www.php.net/manual/en/
+  - title: PHP 8.5 release notes
+    url: https://www.php.net/releases/8.5/en.php
+  - title: Migrating to PHP 8.5
+    url: https://www.php.net/manual/en/migration85.php
+roadmap: laravel
+sections:
+  - id: basics
+    title: { en: Basics, tr: Temeller }
+    items:
+      - id: hello
+        level: basic
+        title: { en: Print text, tr: Ekrana yazdırma }
+        what:
+          en: PHP code lives between <?php tags, and echo prints text.
+          tr: PHP kodu <?php etiketinden sonra yazılır; echo ekrana metin basar.
+        lang: php
+        form: <?php echo "Hello";
+        example: |
+          <?php
+          echo "Hello, ", "world", "\n";
+          print "Bye\n";
+        output: |
+          Hello, world
+          Bye
+        check: php
+        mistake:
+          en: Adding a closing ?> at the end of a PHP-only file; a space or newline after it gets sent to the browser and can break headers.
+          tr: Sadece PHP olan bir dosyanın sonuna ?> koymak; arkasında kalan bir boşluk ya da satır sonu tarayıcıya gider ve header'ları bozabilir.
+        source: https://www.php.net/manual/en/function.echo.php
+      - id: variables
+        level: basic
+        title: { en: Variables and types, tr: Değişkenler ve tipler }
+        what:
+          en: Variables start with $ and take the type of the value you put in them.
+          tr: Değişkenler $ ile başlar ve içine koyduğun değerin tipini alır.
+        lang: php
+        form: $name = "Ada";
+        example: |
+          <?php
+          $name = "Ada";
+          $age = 36;
+          $price = 9.5;
+          $active = true;
+          echo get_debug_type($name), " ", get_debug_type($age), " ",
+               get_debug_type($price), " ", get_debug_type($active), "\n";
+        output: |
+          string int float bool
+        check: php
+        mistake:
+          en: Mistyping a variable name; PHP gives only a warning and uses null, so the bug goes unnoticed.
+          tr: Değişken adını yanlış yazmak; PHP sadece uyarı verip null kullanır, hata gözden kaçar.
+        source: https://www.php.net/manual/en/language.variables.basics.php
+      - id: strings
+        level: basic
+        title: { en: Strings and interpolation, tr: String ve değişken yerleştirme }
+        what:
+          en: Double quotes put variable values into the text; single quotes keep the text exactly as written.
+          tr: Çift tırnak değişkenlerin değerini metne yerleştirir; tek tırnak metni yazıldığı gibi bırakır.
+        lang: php
+        form: "\"Hi {$user['name']}\""
+        example: |
+          <?php
+          $name = "Ada";
+          $user = ['city' => 'London'];
+          echo "Hi $name from {$user['city']}\n";
+          echo 'Hi $name' . "\n";
+          echo "Total: " . 3 * 2 . "\n";
+        output: |
+          Hi Ada from London
+          Hi $name
+          Total: 6
+        check: php
+        mistake:
+          en: Using + to join strings; in PHP the join operator is the dot (.), and + tries to add numbers.
+          tr: String birleştirmek için + kullanmak; PHP'de birleştirme operatörü noktadır (.), + sayı toplamaya çalışır.
+        source: https://www.php.net/manual/en/language.types.string.php#language.types.string.parsing
+      - id: arrays
+        level: basic
+        title: { en: Arrays, tr: Array'ler }
+        what:
+          en: One array type serves as both a list and a key-value map.
+          tr: Tek bir array tipi hem liste hem anahtar-değer haritası olarak kullanılır.
+        lang: php
+        form: "$user = ['name' => 'Ada', 'age' => 36];"
+        example: |
+          <?php
+          $langs = ['php', 'go'];
+          $langs[] = 'rust';
+          $user = ['name' => 'Ada', 'age' => 36];
+          echo count($langs), " ", $langs[2], " ", $user['name'], "\n";
+          echo isset($user['email']) ? 'yes' : 'no', "\n";
+        output: |
+          3 rust Ada
+          no
+        check: php
+        mistake:
+          en: Reading a key that may not exist without isset() or ??; it raises an "Undefined array key" warning.
+          tr: Olmayabilecek bir anahtarı isset() ya da ?? olmadan okumak; "Undefined array key" uyarısı verir.
+        source: https://www.php.net/manual/en/language.types.array.php
+      - id: foreach
+        level: basic
+        title: { en: Loop over an array, tr: Array üzerinde döngü }
+        what:
+          en: foreach visits every element, with or without its key.
+          tr: foreach her elemanı, istersen anahtarıyla birlikte, tek tek gezer.
+        lang: php
+        form: foreach ($items as $key => $value) { ... }
+        example: |
+          <?php
+          $stock = ['apple' => 3, 'pear' => 0];
+          foreach ($stock as $fruit => $count) {
+              echo "$fruit: $count\n";
+          }
+        output: |
+          apple: 3
+          pear: 0
+        check: php
+        mistake:
+          en: Looping by reference (as &$v) and reusing $v later; it still points to the last element and silently overwrites it.
+          tr: Referansla dönüp (as &$v) sonra $v'yi tekrar kullanmak; hâlâ son elemanı gösterir ve onu sessizce değiştirir.
+        source: https://www.php.net/manual/en/control-structures.foreach.php
+      - id: strict-compare
+        level: basic
+        title: { en: Compare with ===, tr: === ile karşılaştırma }
+        what:
+          en: === checks value and type; == converts types first and can surprise you.
+          tr: === hem değeri hem tipi kontrol eder; == önce tip çevirir ve sürpriz yapabilir.
+        lang: php
+        form: if ($a === $b) { ... }
+        example: |
+          <?php
+          var_dump("1" == "01");
+          var_dump("1" === "01");
+          var_dump(0 == "a");
+        output: |
+          bool(true)
+          bool(false)
+          bool(false)
+        check: php
+        mistake:
+          en: Checking strpos() with == false; position 0 is also falsy, so a match at the start looks like no match. Use str_contains() or === false.
+          tr: strpos() sonucunu == false ile kontrol etmek; 0. konum da false sayılır, baştaki eşleşme yok gibi görünür. str_contains() ya da === false kullan.
+        source: https://www.php.net/manual/en/language.operators.comparison.php
+      - id: null-coalescing
+        level: basic
+        title: { en: "Default values with ??", tr: "?? ile varsayılan değer" }
+        what:
+          en: "?? gives the left side if it exists and is not null, otherwise the right side, without a warning."
+          tr: "?? sol taraf varsa ve null değilse onu, yoksa sağ tarafı verir; uyarı da çıkmaz."
+        lang: php
+        form: $page = $_GET['page'] ?? 1;
+        example: |
+          <?php
+          $query = ['q' => 'php'];
+          $page = $query['page'] ?? 1;
+          $query['sort'] ??= 'new';
+          echo $page, " ", $query['sort'], "\n";
+        output: |
+          1 new
+        check: php
+        mistake:
+          en: 'Using ?: instead; it also replaces 0, "" and "0", and it warns when the key is missing.'
+          tr: 'Yerine ?: kullanmak; o 0, "" ve "0" değerlerini de değiştirir ve anahtar yoksa uyarı verir.'
+        source: https://www.php.net/manual/en/language.operators.comparison.php#language.operators.comparison.coalesce
+      - id: match
+        level: basic
+        title: { en: match expression, tr: match ifadesi }
+        what:
+          en: match picks a value by comparing with ===; it returns a result and needs no break.
+          tr: match, === ile karşılaştırıp bir değer seçer; sonuç döndürür ve break gerekmez.
+        lang: php
+        form: "$label = match ($code) { 200 => 'OK', default => 'Other' };"
+        example: |
+          <?php
+          $code = 404;
+          echo match ($code) {
+              200, 201 => 'OK',
+              404 => 'Not found',
+              default => 'Error',
+          }, "\n";
+        output: |
+          Not found
+        check: php
+        mistake:
+          en: Leaving out default; an unmatched value throws an UnhandledMatchError.
+          tr: default'u unutmak; eşleşmeyen bir değer UnhandledMatchError fırlatır.
+        since: "8.0"
+        older:
+          en: Before 8.0 use switch, which compares with == and needs break in each case.
+          tr: 8.0'dan önce switch kullanılır; == ile karşılaştırır ve her case'te break ister.
+        source: https://www.php.net/manual/en/control-structures.match.php
+  - id: functions
+    title: { en: Functions, tr: Fonksiyonlar }
+    items:
+      - id: typed-function
+        level: basic
+        title: { en: Functions with types, tr: Tipli fonksiyonlar }
+        what:
+          en: Parameter and return types tell PHP what goes in and out, and it stops wrong values.
+          tr: Parametre ve dönüş tipleri neyin girip çıkacağını PHP'ye söyler, yanlış değeri durdurur.
+        lang: php
+        form: "function name(int $a, ?string $b = null): string { ... }"
+        example: |
+          <?php
+          function greet(string $name, string $greeting = "Hello"): string {
+              return "$greeting, $name!";
+          }
+          echo greet("Ada"), "\n";
+          echo greet("Linus", "Hi"), "\n";
+        output: |
+          Hello, Ada!
+          Hi, Linus!
+        check: php
+        mistake:
+          en: Writing ?string without a default and expecting the argument to be optional; nullable is not the same as optional.
+          tr: ?string yazıp varsayılan vermeden parametrenin isteğe bağlı olmasını beklemek; null olabilir demek isteğe bağlı demek değildir.
+        source: https://www.php.net/manual/en/language.types.declarations.php
+      - id: strict-types
+        level: intermediate
+        title: { en: Strict types, tr: Katı tip modu }
+        what:
+          en: With strict_types on, PHP stops quietly turning "5" into 5 when calling typed functions.
+          tr: strict_types açıkken PHP, tipli fonksiyon çağrılarında "5"i sessizce 5'e çevirmeyi bırakır.
+        lang: php
+        form: declare(strict_types=1);
+        example: |
+          <?php
+          declare(strict_types=1);
+          function double(int $n): int { return $n * 2; }
+          try {
+              echo double("5");
+          } catch (TypeError $e) {
+              echo "TypeError\n";
+          }
+        output: |
+          TypeError
+        check: php
+        mistake:
+          en: Putting it anywhere but the very first statement of the file; it must come first and only affects calls made from that file.
+          tr: Dosyanın ilk ifadesi dışında bir yere koymak; en başta olmalı ve sadece o dosyadan yapılan çağrıları etkiler.
+        source: https://www.php.net/manual/en/language.types.declarations.php#language.types.declarations.strict
+      - id: named-arguments
+        level: intermediate
+        title: { en: Named arguments, tr: İsimli argümanlar }
+        what:
+          en: Pass arguments by parameter name, so you can skip optional ones and the call reads clearly.
+          tr: Argümanları parametre adıyla verirsin; isteğe bağlı olanları atlayabilir, çağrıyı okunur yaparsın.
+        lang: php
+        form: "func(name: $value)"
+        example: |
+          <?php
+          echo htmlspecialchars("<a href='x'>", double_encode: false), "\n";
+          echo str_pad("7", 3, pad_type: STR_PAD_LEFT, pad_string: "0"), "\n";
+        output: |
+          &lt;a href=&#039;x&#039;&gt;
+          007
+        check: php
+        mistake:
+          en: Relying on parameter names of libraries that do not promise to keep them; a rename breaks your call.
+          tr: Parametre adlarını korumayı garanti etmeyen kütüphanelerde bu adlara güvenmek; ad değişince çağrın kırılır.
+        since: "8.0"
+        source: https://www.php.net/manual/en/functions.arguments.php#functions.named-arguments
+      - id: closures
+        level: intermediate
+        title: { en: Closures and arrow functions, tr: Closure ve arrow function }
+        what:
+          en: Unnamed functions you can store or pass; fn() reads outer variables by itself, function() needs use.
+          tr: Saklayabildiğin ya da başka fonksiyona verebildiğin isimsiz fonksiyonlar; fn() dış değişkenleri kendisi görür, function() için use gerekir.
+        lang: php
+        form: $add = fn($x) => $x + $n;
+        example: |
+          <?php
+          $tax = 0.2;
+          $withTax = fn(float $p): float => $p * (1 + $tax);
+          $log = function (string $m) use ($tax): string {
+              return "$m (tax $tax)";
+          };
+          echo $withTax(100), " ", $log("ok"), "\n";
+        output: |
+          120 ok (tax 0.2)
+        check: php
+        mistake:
+          en: Changing an outer variable inside fn() and expecting it to change outside; fn() captures by value.
+          tr: fn() içinde dış değişkeni değiştirip dışarıda da değişmesini beklemek; fn() değeri kopyalayarak alır.
+        source: https://www.php.net/manual/en/functions.arrow.php
+      - id: spread-destructure
+        level: intermediate
+        title: { en: Spread and destructuring, tr: Spread ve parçalama }
+        what:
+          en: "... unpacks an array into arguments or another array; [$a, $b] = takes values out of an array."
+          tr: "... bir array'i argümanlara ya da başka bir array'e açar; [$a, $b] = array'den değerleri çıkarır."
+        lang: php
+        form: "[$first, $second] = $pair;"
+        example: |
+          <?php
+          function sum(int ...$nums): int { return array_sum($nums); }
+          $parts = [1, 2];
+          $all = [...$parts, 3];
+          echo sum(...$all), "\n";
+          ['x' => $x, 'y' => $y] = ['x' => 4, 'y' => 5];
+          echo "$x,$y\n";
+        output: |
+          6
+          4,5
+        check: php
+        mistake:
+          en: Passing a normal argument after ...$args in a call; that is a fatal error. Put the spread last.
+          tr: Bir çağrıda ...$args'tan sonra normal argüman vermek; fatal error verir. Spread'i en sona koy.
+        source: https://www.php.net/manual/en/functions.arguments.php#functions.variable-arg-list
+      - id: first-class-callable
+        level: advanced
+        title: { en: First-class callables, tr: Fonksiyonu değer olarak alma }
+        what:
+          en: name(...) turns any function or method into a Closure object you can pass around.
+          tr: name(...) yazımı her fonksiyonu ya da metodu, başka yere verebileceğin bir Closure nesnesine çevirir.
+        lang: php
+        form: $f = strtoupper(...);
+        example: |
+          <?php
+          $upper = strtoupper(...);
+          echo implode(",", array_map($upper, ['a', 'b'])), "\n";
+        output: |
+          A,B
+        check: php
+        since: "8.1"
+        older:
+          en: Before 8.1 use strings like 'strtoupper' or Closure::fromCallable().
+          tr: 8.1'den önce 'strtoupper' gibi string'ler ya da Closure::fromCallable() kullanılır.
+        source: https://www.php.net/manual/en/functions.first_class_callable_syntax.php
+      - id: pipe-operator
+        level: advanced
+        title: { en: Pipe operator, tr: Pipe operatörü }
+        what:
+          en: "|> passes the value on its left into the callable on its right, so steps read from left to right."
+          tr: "|> solundaki değeri sağındaki callable'a verir; adımlar soldan sağa okunur."
+        lang: php
+        form: $result = $value |> trim(...) |> strtolower(...);
+        example: |
+          <?php
+          $slug = ' PHP 8.5 Released '
+              |> trim(...)
+              |> (fn($s) => str_replace(' ', '-', $s))
+              |> strtolower(...);
+          echo $slug; // php-8.5-released
+        mistake:
+          en: Leaving out the parentheses around an arrow function in the chain; it is a syntax error.
+          tr: Zincirdeki arrow function'ı paranteze almamak; syntax hatası verir.
+        avoid:
+          en: Functions that need more than one argument; each step gets exactly one value.
+          tr: Birden fazla argüman isteyen fonksiyonlar; her adım tam olarak tek bir değer alır.
+        since: "8.5"
+        source: https://www.php.net/manual/en/language.operators.functional.php
+  - id: built-ins
+    title: { en: "Strings, arrays and JSON", tr: "String, array ve JSON" }
+    items:
+      - id: string-functions
+        level: basic
+        title: { en: Common string functions, tr: Sık kullanılan string fonksiyonları }
+        what:
+          en: Search, split, join and format text with the built-in functions.
+          tr: Hazır fonksiyonlarla metni ara, böl, birleştir ve biçimlendir.
+        lang: php
+        form: str_contains($text, "php")
+        example: |
+          <?php
+          $csv = "red,green,blue";
+          $parts = explode(",", $csv);
+          echo implode(" | ", $parts), "\n";
+          var_dump(str_contains($csv, "green"), str_starts_with($csv, "red"));
+          printf("%05.2f %s\n", 3.14159, strtoupper("ok"));
+          echo mb_strlen("çay"), " ", strlen("çay"), "\n";
+        output: |
+          red | green | blue
+          bool(true)
+          bool(true)
+          03.14 OK
+          3 4
+        check: php
+        mistake:
+          en: Using strlen() or substr() on Turkish or other non-ASCII text; they count bytes. Use mb_strlen() and mb_substr().
+          tr: Türkçe gibi ASCII dışı metinde strlen() ya da substr() kullanmak; bunlar byte sayar. mb_strlen() ve mb_substr() kullan.
+        source: https://www.php.net/manual/en/ref.strings.php
+      - id: map-filter
+        level: basic
+        title: { en: Map and filter arrays, tr: Array'i dönüştürme ve süzme }
+        what:
+          en: array_map changes every element, array_filter keeps the ones that pass a test.
+          tr: array_map her elemanı değiştirir, array_filter testi geçenleri tutar.
+        lang: php
+        form: array_filter($items, fn($x) => $x > 0)
+        example: |
+          <?php
+          $nums = [1, 2, 3, 4];
+          $even = array_filter($nums, fn($n) => $n % 2 === 0);
+          print_r($even);
+          print_r(array_values(array_map(fn($n) => $n * 10, $even)));
+        output: |
+          Array
+          (
+              [1] => 2
+              [3] => 4
+          )
+          Array
+          (
+              [0] => 20
+              [1] => 40
+          )
+        check: php
+        mistake:
+          en: Forgetting that array_filter keeps the original keys; json_encode then gives an object instead of a list. Wrap it in array_values().
+          tr: array_filter'ın orijinal anahtarları koruduğunu unutmak; json_encode liste yerine nesne üretir. array_values() ile sar.
+        source: https://www.php.net/manual/en/function.array-filter.php
+      - id: sorting
+        level: intermediate
+        title: { en: Sort with the spaceship operator, tr: Spaceship operatörüyle sıralama }
+        what:
+          en: usort sorts with your own compare function, and <=> returns -1, 0 or 1 for you.
+          tr: usort kendi karşılaştırma fonksiyonunla sıralar; <=> senin için -1, 0 ya da 1 döndürür.
+        lang: php
+        form: usort($rows, fn($a, $b) => $a['age'] <=> $b['age']);
+        example: |
+          <?php
+          $people = [['n' => 'Ada', 'age' => 36], ['n' => 'Bo', 'age' => 20]];
+          usort($people, fn($a, $b) => $a['age'] <=> $b['age']);
+          echo implode(",", array_column($people, 'n')), "\n";
+          $scores = ['x' => 2, 'y' => 9];
+          arsort($scores);
+          echo array_key_first($scores), "\n";
+        output: |
+          Bo,Ada
+          y
+        check: php
+        mistake:
+          en: Writing $x = sort($arr); sort functions change the array in place and return true.
+          tr: $x = sort($arr) yazmak; sıralama fonksiyonları array'i yerinde değiştirir ve true döndürür.
+        source: https://www.php.net/manual/en/array.sorting.php
+      - id: json
+        level: basic
+        title: { en: JSON, tr: JSON }
+        what:
+          en: json_encode turns PHP values into JSON text and json_decode reads it back.
+          tr: json_encode PHP değerlerini JSON metnine çevirir, json_decode geri okur.
+        lang: php
+        form: "json_decode($text, true, flags: JSON_THROW_ON_ERROR)"
+        example: |
+          <?php
+          echo json_encode(['name' => 'Ayşe', 'tags' => ['a']], JSON_UNESCAPED_UNICODE), "\n";
+          $data = json_decode('{"id": 7}', true, flags: JSON_THROW_ON_ERROR);
+          echo $data['id'], "\n";
+        output: |
+          {"name":"Ayşe","tags":["a"]}
+          7
+        check: php
+        mistake:
+          en: Not checking for errors; by default bad JSON just returns null. Pass JSON_THROW_ON_ERROR.
+          tr: Hataları kontrol etmemek; varsayılan olarak bozuk JSON sadece null döndürür. JSON_THROW_ON_ERROR ver.
+        source: https://www.php.net/manual/en/function.json-decode.php
+      - id: array-first-last
+        level: intermediate
+        title: { en: First and last element, tr: İlk ve son eleman }
+        what:
+          en: array_first() and array_last() return the first or last value, or null for an empty array.
+          tr: array_first() ve array_last() ilk ya da son değeri, boş array'de null döndürür.
+        lang: php
+        form: $last = array_last($events);
+        example: |
+          <?php
+          $events = ['b' => 'login', 'a' => 'logout'];
+          echo array_first($events); // login
+          echo array_last([]) ?? 'none'; // none
+        since: "8.5"
+        older:
+          en: Before 8.5 use $arr[array_key_first($arr)] (7.3+) or reset() and end().
+          tr: 8.5'ten önce $arr[array_key_first($arr)] (7.3+) ya da reset() ve end() kullanılır.
+        source: https://www.php.net/manual/en/function.array-first.php
+  - id: oop
+    title: { en: Classes and objects, tr: Sınıflar ve nesneler }
+    items:
+      - id: class-promotion
+        level: basic
+        title: { en: Class with constructor promotion, tr: Constructor promotion ile sınıf }
+        what:
+          en: Writing visibility in front of constructor parameters creates and fills the properties in one step.
+          tr: Constructor parametrelerinin önüne görünürlük yazmak, property'leri tek adımda hem tanımlar hem doldurur.
+        lang: php
+        form: "public function __construct(private string $name) {}"
+        example: |
+          <?php
+          class User {
+              public function __construct(
+                  public string $name,
+                  private int $age = 0,
+              ) {}
+              public function isAdult(): bool { return $this->age >= 18; }
+          }
+          $u = new User("Ada", 36);
+          echo $u->name, " ", $u->isAdult() ? "adult" : "minor", "\n";
+        output: |
+          Ada adult
+        check: php
+        since: "8.0"
+        source: https://www.php.net/manual/en/language.oop5.decon.php#language.oop5.decon.constructor.promotion
+      - id: readonly
+        level: intermediate
+        title: { en: Readonly properties, tr: Readonly property'ler }
+        what:
+          en: A readonly property can be set once, inside the class, and never changed after.
+          tr: readonly property sınıfın içinde bir kez atanır, sonra hiç değiştirilemez.
+        lang: php
+        form: "final readonly class Money { public function __construct(public int $cents) {} }"
+        example: |
+          <?php
+          final readonly class Money {
+              public function __construct(public int $cents) {}
+          }
+          $m = new Money(500);
+          try {
+              $m->cents = 1;
+          } catch (Error $e) {
+              echo $e->getMessage(), "\n";
+          }
+        output: |
+          Cannot modify readonly property Money::$cents
+        check: php
+        mistake:
+          en: Expecting readonly to make nested objects immutable; only the property itself is locked, the object inside can still change.
+          tr: readonly'nin içteki nesneleri de değişmez yaptığını sanmak; sadece property kilitlenir, içindeki nesne yine değişebilir.
+        since: "8.1"
+        older:
+          en: readonly properties came in 8.1, readonly classes in 8.2.
+          tr: readonly property 8.1'de, readonly class 8.2'de geldi.
+        source: https://www.php.net/manual/en/language.oop5.properties.php#language.oop5.properties.readonly-properties
+      - id: enums
+        level: intermediate
+        title: { en: Enums, tr: Enum'lar }
+        what:
+          en: An enum lists the only allowed values of a type; backed enums also carry a string or int.
+          tr: Enum bir tipin alabileceği değerleri listeler; backed enum'lar ayrıca bir string ya da int taşır.
+        lang: php
+        form: "enum Status: string { case Active = 'active'; }"
+        example: |
+          <?php
+          enum Status: string {
+              case Active = 'active';
+              case Banned = 'banned';
+              public function label(): string {
+                  return ucfirst($this->value);
+              }
+          }
+          $s = Status::from('banned');
+          echo $s->name, " ", $s->label(), "\n";
+          var_dump(Status::tryFrom('x'));
+        output: |
+          Banned Banned
+          NULL
+        check: php
+        mistake:
+          en: Using from() on user input; an unknown value throws ValueError. Use tryFrom() and handle null.
+          tr: Kullanıcı girdisinde from() kullanmak; bilinmeyen değer ValueError fırlatır. tryFrom() kullanıp null'ı ele al.
+        since: "8.1"
+        source: https://www.php.net/manual/en/language.enumerations.backed.php
+      - id: interfaces
+        level: intermediate
+        title: { en: Interfaces and abstract classes, tr: Interface ve abstract sınıflar }
+        what:
+          en: An interface lists methods a class promises to have, so code can work with any class that keeps the promise.
+          tr: Interface bir sınıfın sahip olacağı metotları listeler; kod bu sözü tutan her sınıfla çalışabilir.
+        lang: php
+        form: class FileLog implements Logger { ... }
+        example: |
+          <?php
+          interface Shape { public function area(): float; }
+          final class Square implements Shape {
+              public function __construct(private float $side) {}
+              public function area(): float { return $this->side ** 2; }
+          }
+          function show(Shape $s): void { echo $s->area(), "\n"; }
+          show(new Square(3));
+        output: |
+          9
+        check: php
+        source: https://www.php.net/manual/en/language.oop5.interfaces.php
+      - id: traits
+        level: intermediate
+        title: { en: Traits, tr: Trait'ler }
+        what:
+          en: A trait is a set of methods you copy into several classes with use.
+          tr: Trait, use ile birden fazla sınıfa kopyaladığın bir metot grubudur.
+        lang: php
+        form: "class Post { use HasSlug; }"
+        example: |
+          <?php
+          trait HasSlug {
+              public function slug(): string {
+                  return strtolower(str_replace(' ', '-', $this->title));
+              }
+          }
+          class Post {
+              use HasSlug;
+              public function __construct(public string $title) {}
+          }
+          echo (new Post("Hello World"))->slug(), "\n";
+        output: |
+          hello-world
+        check: php
+        avoid:
+          en: Sharing behavior that needs its own state or a clear type; an injected service object is easier to test.
+          tr: Kendi durumu ya da net bir tipi olması gereken davranışlar; enjekte edilen bir servis nesnesi daha kolay test edilir.
+        source: https://www.php.net/manual/en/language.oop5.traits.php
+      - id: static-members
+        level: intermediate
+        title: { en: Static members and constants, tr: Static üyeler ve sabitler }
+        what:
+          en: "Static methods and class constants belong to the class, not to one object; call them with ::."
+          tr: "Static metotlar ve sınıf sabitleri tek bir nesneye değil sınıfa aittir; :: ile çağrılır."
+        lang: php
+        form: "Config::VERSION, self::create()"
+        example: |
+          <?php
+          class Temp {
+              public const string UNIT = 'C';
+              public static function fromF(float $f): string {
+                  return round(($f - 32) / 1.8) . self::UNIT;
+              }
+          }
+          echo Temp::fromF(212), " ", Temp::UNIT, "\n";
+        output: |
+          100C C
+        check: php
+        since: "8.3"
+        older:
+          en: Typed class constants (const string) came in 8.3; before that write const UNIT = 'C'.
+          tr: Tipli sınıf sabitleri (const string) 8.3'te geldi; öncesinde const UNIT = 'C' yazılır.
+        source: https://www.php.net/manual/en/language.oop5.constants.php
+      - id: property-hooks
+        level: advanced
+        title: { en: Property hooks, tr: Property hook'ları }
+        what:
+          en: get and set hooks run your code when a property is read or written, with no separate getter methods.
+          tr: get ve set hook'ları bir property okunurken ya da yazılırken kodunu çalıştırır; ayrı getter metotlarına gerek kalmaz.
+        lang: php
+        form: "public string $name { set => trim($value); }"
+        example: |
+          <?php
+          class Person {
+              public string $name {
+                  set => ucfirst(trim($value));
+              }
+              public string $greeting {
+                  get => "Hi, {$this->name}";
+              }
+          }
+          $p = new Person();
+          $p->name = "  ada ";
+          echo $p->greeting, "\n";
+        output: |
+          Hi, Ada
+        check: php
+        since: "8.4"
+        source: https://www.php.net/manual/en/language.oop5.property-hooks.php
+      - id: asymmetric-visibility
+        level: advanced
+        title: { en: Asymmetric visibility, tr: Asimetrik görünürlük }
+        what:
+          en: A property can be public to read but private to write, so no getter is needed.
+          tr: Bir property okumaya açık ama yazmaya kapalı olabilir; getter yazmana gerek kalmaz.
+        lang: php
+        form: public private(set) int $count = 0;
+        example: |
+          <?php
+          class Counter {
+              public private(set) int $count = 0;
+              public function add(): void { $this->count++; }
+          }
+          $c = new Counter();
+          $c->add();
+          echo $c->count, "\n";
+          try { $c->count = 5; } catch (Error $e) { echo "read only outside\n"; }
+        output: |
+          1
+          read only outside
+        check: php
+        since: "8.4"
+        source: https://www.php.net/manual/en/language.oop5.visibility.php#language.oop5.visibility-members-aviz
+      - id: clone-with
+        level: advanced
+        title: { en: Clone with new values, tr: Yeni değerlerle kopyalama }
+        what:
+          en: clone() can take an array of property changes, which makes "with" methods on readonly classes short.
+          tr: clone() değişecek property'lerin array'ini alabilir; readonly sınıflarda "with" metotlarını kısaltır.
+        lang: php
+        form: "return clone($this, ['alpha' => $alpha]);"
+        example: |
+          <?php
+          readonly class Color {
+              public function __construct(public int $red, public int $alpha = 255) {}
+              public function withAlpha(int $alpha): static {
+                  return clone($this, ['alpha' => $alpha]);
+              }
+          }
+          echo (new Color(79))->withAlpha(128)->alpha; // 128
+        since: "8.5"
+        older:
+          en: Before 8.5 a readonly class needs a new object built through the constructor for each change.
+          tr: 8.5'ten önce readonly bir sınıfta her değişiklik için constructor ile yeni nesne kurmak gerekir.
+        source: https://www.php.net/manual/en/language.oop5.cloning.php
+  - id: errors-runtime
+    title: { en: Errors and generators, tr: Hatalar ve generator'lar }
+    items:
+      - id: exceptions
+        level: basic
+        title: { en: "try, catch and finally", tr: "try, catch ve finally" }
+        what:
+          en: throw stops normal flow with an error object; catch handles it, finally always runs.
+          tr: throw normal akışı bir hata nesnesiyle durdurur; catch onu yakalar, finally her durumda çalışır.
+        lang: php
+        form: try { ... } catch (Exception $e) { ... } finally { ... }
+        example: |
+          <?php
+          final class NotFound extends RuntimeException {}
+          function find(int $id): string {
+              return $id === 1 ? "Ada" : throw new NotFound("User $id not found");
+          }
+          try {
+              echo find(2), "\n";
+          } catch (NotFound $e) {
+              echo $e->getMessage(), "\n";
+          } finally {
+              echo "done\n";
+          }
+        output: |
+          User 2 not found
+          done
+        check: php
+        mistake:
+          en: Catching Exception and expecting TypeError or other engine errors; those are Error, so catch Throwable for both.
+          tr: Exception yakalayıp TypeError gibi motor hatalarını da beklemek; onlar Error'dur, ikisi için Throwable yakala.
+        source: https://www.php.net/manual/en/language.error-handling.php
+      - id: generators
+        level: advanced
+        title: { en: Generators, tr: Generator'lar }
+        what:
+          en: A function with yield gives values one at a time, so big data does not fill memory.
+          tr: yield kullanan fonksiyon değerleri tek tek verir; büyük veri belleği doldurmaz.
+        lang: php
+        form: "function lines() { yield $line; }"
+        example: |
+          <?php
+          function countdown(int $from): Generator {
+              for ($i = $from; $i > 0; $i--) {
+                  yield $i;
+              }
+          }
+          foreach (countdown(3) as $n) echo $n, " ";
+          echo "\n";
+        output: |
+          3 2 1
+        check: php
+        mistake:
+          en: Looping over the same generator twice; it cannot be rewound after it started, so call the function again.
+          tr: Aynı generator üzerinde iki kez dönmek; başladıktan sonra başa sarılamaz, fonksiyonu yeniden çağır.
+        source: https://www.php.net/manual/en/language.generators.syntax.php
+      - id: override-attribute
+        level: advanced
+        title: { en: "#[\\Override] attribute", tr: "#[\\Override] attribute'u" }
+        what:
+          en: Marks a method that must override a parent method; PHP fails if the parent method does not exist.
+          tr: Bir metodun üst sınıftaki bir metodu ezdiğini işaretler; üstte öyle bir metot yoksa PHP hata verir.
+        lang: php
+        form: "#[\\Override] public function handle(): void"
+        example: |
+          <?php
+          class Base { public function run(): string { return "base"; } }
+          class Child extends Base {
+              #[\Override]
+              public function run(): string { return "child"; }
+          }
+          echo (new Child())->run(), "\n";
+        output: |
+          child
+        check: php
+        since: "8.3"
+        source: https://www.php.net/manual/en/class.override.php
+  - id: web
+    title: { en: "Web, database and tools", tr: "Web, veritabanı ve araçlar" }
+    items:
+      - id: request-input
+        level: basic
+        title: { en: Read request input safely, tr: İstek verisini güvenle okuma }
+        what:
+          en: $_GET and $_POST hold the request data; escape it with htmlspecialchars() before printing it in HTML.
+          tr: $_GET ve $_POST istek verisini tutar; HTML'e basmadan önce htmlspecialchars() ile kaçışla.
+        lang: php
+        form: echo htmlspecialchars($_GET['q'] ?? '');
+        example: |
+          <?php
+          $_GET = ['q' => '<script>alert(1)</script>'];
+          $q = $_GET['q'] ?? '';
+          echo htmlspecialchars($q), "\n";
+        output: |
+          &lt;script&gt;alert(1)&lt;/script&gt;
+        check: php
+        mistake:
+          en: Echoing user input directly into a page; that is how XSS attacks happen.
+          tr: Kullanıcı girdisini doğrudan sayfaya basmak; XSS saldırıları tam olarak böyle olur.
+        source: https://www.php.net/manual/en/function.htmlspecialchars.php
+      - id: pdo
+        level: intermediate
+        title: { en: Database with PDO, tr: PDO ile veritabanı }
+        what:
+          en: PDO talks to MySQL, PostgreSQL, SQLite and more; prepared statements keep user input out of the SQL.
+          tr: PDO MySQL, PostgreSQL, SQLite ve daha fazlasıyla konuşur; prepared statement kullanıcı girdisini SQL'den ayrı tutar.
+        lang: php
+        form: $stmt = $pdo->prepare('SELECT * FROM users WHERE id = ?'); $stmt->execute([$id]);
+        example: |
+          <?php
+          $pdo = new PDO('sqlite::memory:', options: [
+              PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+              PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+          ]);
+          $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)');
+          $pdo->prepare('INSERT INTO users (name) VALUES (?)')->execute(["O'Brien"]);
+          $stmt = $pdo->prepare('SELECT id, name FROM users WHERE name = :name');
+          $stmt->execute(['name' => "O'Brien"]);
+          print_r($stmt->fetch());
+        output: |
+          Array
+          (
+              [id] => 1
+              [name] => O'Brien
+          )
+        check: php
+        mistake:
+          en: Building SQL with string concatenation like "WHERE id = $id"; that opens the door to SQL injection.
+          tr: SQL'i "WHERE id = $id" gibi string birleştirerek kurmak; SQL injection'a kapı açar.
+        source: https://www.php.net/manual/en/pdo.prepared-statements.php
+      - id: password-hash
+        level: intermediate
+        title: { en: Hash passwords, tr: Parolaları hash'leme }
+        what:
+          en: password_hash() stores a password safely with a random salt, and password_verify() checks it.
+          tr: password_hash() parolayı rastgele bir salt ile güvenli saklar, password_verify() kontrol eder.
+        lang: php
+        form: password_hash($password, PASSWORD_DEFAULT)
+        example: |
+          <?php
+          $hash = password_hash("s3cret", PASSWORD_DEFAULT);
+          var_dump(password_verify("s3cret", $hash));
+          var_dump(password_verify("wrong", $hash));
+        output: |
+          bool(true)
+          bool(false)
+        check: php
+        mistake:
+          en: Using md5() or sha1() for passwords, or storing the hash in a column too short; leave room (255 characters) for future algorithms.
+          tr: Parolalar için md5() ya da sha1() kullanmak veya hash'i çok kısa bir kolonda saklamak; ileride gelecek algoritmalar için 255 karakter yer bırak.
+        source: https://www.php.net/manual/en/function.password-hash.php
+      - id: composer
+        level: basic
+        title: { en: Composer packages and autoload, tr: Composer paketleri ve autoload }
+        what:
+          en: Composer installs packages into vendor/ and loads classes for you through vendor/autoload.php.
+          tr: Composer paketleri vendor/ klasörüne kurar ve sınıfları vendor/autoload.php ile senin yerine yükler.
+        lang: sh
+        form: composer require vendor/package
+        example: |
+          composer init
+          composer require guzzlehttp/guzzle
+          composer install --no-dev --optimize-autoloader   # on the server
+        mistake:
+          en: Committing vendor/ or leaving composer.lock out of Git; commit the lock file so everyone gets the same versions.
+          tr: vendor/ klasörünü commit etmek ya da composer.lock'u Git'e koymamak; herkes aynı sürümleri alsın diye lock dosyasını commit et.
+        source: https://getcomposer.org/doc/01-basic-usage.md
+      - id: namespaces
+        level: intermediate
+        title: { en: Namespaces and use, tr: Namespace ve use }
+        what:
+          en: Namespaces group classes so names do not clash; use imports a class under a short name.
+          tr: Namespace'ler sınıfları gruplar, isimler çakışmaz; use bir sınıfı kısa adıyla içeri alır.
+        lang: php
+        form: namespace App\Models; use App\Services\Mailer;
+        example: |
+          <?php
+          namespace App\Models;
+
+          final class User {}
+
+          echo User::class, "\n";
+          echo \strlen("abc"), "\n";
+        output: |
+          App\Models\User
+          3
+        check: php
+        mistake:
+          en: Folder and namespace not matching (PSR-4); Composer's autoloader then cannot find the class.
+          tr: Klasör ve namespace'in uyuşmaması (PSR-4); Composer'ın autoloader'ı sınıfı bulamaz.
+        source: https://www.php.net/manual/en/language.namespaces.php
+      - id: cli-server
+        level: basic
+        title: { en: Run PHP from the terminal, tr: PHP'yi terminalden çalıştırma }
+        what:
+          en: The php command runs scripts, checks syntax and starts a small web server for development.
+          tr: php komutu script çalıştırır, sözdizimini kontrol eder ve geliştirme için küçük bir web sunucusu açar.
+        lang: sh
+        form: php -S localhost:8000 -t public
+        example: |
+          php -v                      # version
+          php -l src/User.php         # syntax check
+          php -S localhost:8000 -t public
+        mistake:
+          en: Using the built-in server in production; it is made for development only.
+          tr: Dahili sunucuyu production'da kullanmak; sadece geliştirme için yapılmıştır.
+        source: https://www.php.net/manual/en/features.commandline.webserver.php

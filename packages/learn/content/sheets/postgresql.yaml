@@ -1,0 +1,760 @@
+id: postgresql
+title: PostgreSQL
+category: tool
+summary:
+  en: A free, reliable relational database with strong SQL, JSONB, rich indexes and roles; psql is its command line client.
+  tr: Güçlü SQL, JSONB, zengin index türleri ve rolleri olan ücretsiz, güvenilir bir ilişkisel veritabanı; psql onun komut satırı istemcisidir.
+aliases: [postgres, pg, psql, pgsql, jsonb, veritabanı, database, pg_dump]
+detect:
+  npm: [pg, postgres]
+  pip: [psycopg, psycopg2, psycopg2-binary, asyncpg]
+  cargo: [tokio-postgres, sqlx]
+  composer: [doctrine/dbal]
+  nuget: [Npgsql]
+version: "18"
+latest: eol:postgresql
+checked: 2026-10
+sources:
+  - title: PostgreSQL documentation
+    url: https://www.postgresql.org/docs/current/
+  - title: PostgreSQL 18 release notes
+    url: https://www.postgresql.org/docs/release/18.0/
+  - title: psql reference
+    url: https://www.postgresql.org/docs/current/app-psql.html
+roadmap: postgresql
+sections:
+  - id: psql
+    title: { en: psql client, tr: psql istemcisi }
+    items:
+      - id: connect
+        level: basic
+        title: { en: Connect with psql, tr: psql ile bağlanma }
+        what:
+          en: psql opens an interactive SQL session on a database, using a connection URL or separate options.
+          tr: psql bir veritabanında etkileşimli SQL oturumu açar; bağlantı URL'si ya da ayrı seçenekler kullanır.
+        lang: sh
+        form: psql "postgresql://user:password@host:5432/dbname"
+        example: |
+          psql -h localhost -p 5432 -U app -d shop
+          psql "postgresql://app@localhost/shop?sslmode=require"
+          psql -d shop -c "SELECT count(*) FROM orders"   # one command, then exit
+          psql -d shop -f schema.sql                        # run a file
+        mistake:
+          en: Putting the password in the URL in scripts and shell history; use a ~/.pgpass file or the PGPASSWORD variable instead.
+          tr: Script'lerde ve shell geçmişinde parolayı URL'ye yazmak; onun yerine ~/.pgpass dosyası ya da PGPASSWORD değişkeni kullan.
+        source: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+      - id: meta-commands
+        level: basic
+        title: { en: psql backslash commands, tr: psql ters bölü komutları }
+        what:
+          en: Commands that start with \ are handled by psql itself, to list and describe things.
+          tr: \ ile başlayan komutları psql kendisi işler; nesneleri listelemek ve tanımlamak için.
+        lang: text
+        form: \d table_name
+        example: |
+          \l              list databases
+          \c shop         connect to database shop
+          \dt             list tables
+          \d orders       columns, indexes and keys of a table
+          \du             list roles
+          \x auto         wide rows shown vertically
+          \timing on      show how long each query takes
+          \e              edit the last query in your editor
+          \q              quit
+        mistake:
+          en: Ending a backslash command with a semicolon or forgetting the semicolon after SQL; SQL waits for ; but backslash commands do not need it.
+          tr: Ters bölü komutunu noktalı virgülle bitirmek ya da SQL'den sonra noktalı virgülü unutmak; SQL ; bekler, ters bölü komutları beklemez.
+        source: https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS
+      - id: copy
+        level: intermediate
+        title: { en: Import and export CSV, tr: CSV içe ve dışa aktarma }
+        what:
+          en: \copy moves CSV data between a file on your computer and a table.
+          tr: \copy, CSV verisini bilgisayarındaki bir dosya ile bir tablo arasında taşır.
+        lang: text
+        form: \copy table FROM 'file.csv' WITH (FORMAT csv, HEADER)
+        example: |
+          \copy products FROM 'products.csv' WITH (FORMAT csv, HEADER)
+          \copy (SELECT * FROM orders WHERE total > 100) TO 'big.csv' WITH (FORMAT csv, HEADER)
+        mistake:
+          en: Using COPY (without the backslash) for a file on your laptop; COPY reads files on the database server and needs extra rights.
+          tr: Laptop'undaki bir dosya için COPY (ters bölü olmadan) kullanmak; COPY dosyayı veritabanı sunucusunda okur ve ek yetki ister.
+        source: https://www.postgresql.org/docs/current/app-psql.html#APP-PSQL-META-COMMANDS-COPY
+  - id: types
+    title: { en: Types and tables, tr: Tipler ve tablolar }
+    items:
+      - id: identity
+        level: basic
+        title: { en: Auto-increment ids, tr: Otomatik artan id'ler }
+        what:
+          en: An identity column fills itself with 1, 2, 3... for every new row.
+          tr: Identity kolonu her yeni satır için kendini 1, 2, 3... diye doldurur.
+        lang: sql
+        form: id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+        example: |
+          CREATE TABLE users (
+            id    bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            email text NOT NULL UNIQUE
+          );
+          INSERT INTO users (email) VALUES ('ada@example.com'), ('bo@example.com');
+          SELECT id, email FROM users ORDER BY id;
+        output: |
+          1|ada@example.com
+          2|bo@example.com
+        check: sql
+        mistake:
+          en: Using int for ids of a fast growing table; it stops at about 2.1 billion. bigint costs little more.
+          tr: Hızlı büyüyen bir tablonun id'si için int kullanmak; yaklaşık 2,1 milyarda durur. bigint çok az daha fazla yer tutar.
+        avoid:
+          en: serial is the old way; prefer identity columns in new tables.
+          tr: serial eski yöntemdir; yeni tablolarda identity kolonlarını tercih et.
+        source: https://www.postgresql.org/docs/current/ddl-identity-columns.html
+      - id: text-numeric
+        level: basic
+        title: { en: Text and exact numbers, tr: Metin ve kesin sayılar }
+        what:
+          en: text holds strings of any length; numeric holds exact decimals, right for money.
+          tr: text her uzunlukta string tutar; numeric kesin ondalıklı sayı tutar, para için doğru tiptir.
+        lang: sql
+        form: price numeric(10, 2) NOT NULL
+        example: |
+          SELECT 0.1::float8 + 0.2::float8 = 0.3 AS float_ok,
+                 0.1::numeric + 0.2::numeric = 0.3 AS numeric_ok,
+                 round(10::numeric / 3, 2) AS third;
+        output: |
+          f|t|3.33
+        check: sql
+        mistake:
+          en: Storing money in real or double precision; rounding errors appear in totals.
+          tr: Parayı real ya da double precision ile saklamak; toplamlarda yuvarlama hataları çıkar.
+        source: https://www.postgresql.org/docs/current/datatype-numeric.html
+      - id: timestamptz
+        level: basic
+        title: { en: Dates with time zones, tr: Saat dilimli tarihler }
+        what:
+          en: timestamptz stores an exact moment and shows it in the session's time zone.
+          tr: timestamptz kesin bir anı saklar ve oturumun saat diliminde gösterir.
+        lang: sql
+        form: created_at timestamptz NOT NULL DEFAULT now()
+        example: |
+          SET timezone = 'UTC';
+          SELECT '2026-10-17 12:00+03'::timestamptz;
+          SELECT date_trunc('month', '2026-10-17 12:00+00'::timestamptz);
+          SELECT '2026-10-17'::date + interval '1 month';
+        output: |
+          2026-10-17 09:00:00+00
+          2026-10-01 00:00:00+00
+          2026-11-17 00:00:00
+        check: sql
+        mistake:
+          en: Using timestamp (without time zone) for events; it forgets which zone the time was in.
+          tr: Olaylar için timestamp (saat dilimsiz) kullanmak; zamanın hangi dilimde olduğunu unutur.
+        source: https://www.postgresql.org/docs/current/datatype-datetime.html
+      - id: uuid
+        level: intermediate
+        title: { en: UUID keys, tr: UUID anahtarlar }
+        what:
+          en: gen_random_uuid() makes random ids that are safe to create anywhere and hard to guess.
+          tr: gen_random_uuid() her yerde güvenle üretilebilen ve tahmin edilmesi zor rastgele id'ler üretir.
+        lang: sql
+        form: id uuid PRIMARY KEY DEFAULT gen_random_uuid()
+        example: |
+          CREATE TABLE sessions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id bigint);
+          INSERT INTO sessions (user_id) VALUES (1);
+          SELECT length(id::text) FROM sessions;
+        output: |
+          36
+        check: sql
+        mistake:
+          en: Storing UUIDs in a text column; the uuid type takes 16 bytes instead of 36 and compares faster.
+          tr: UUID'leri text kolonda saklamak; uuid tipi 36 yerine 16 byte tutar ve daha hızlı karşılaştırılır.
+        since: "13"
+        older:
+          en: Before 13, gen_random_uuid() needed the pgcrypto extension.
+          tr: 13'ten önce gen_random_uuid() için pgcrypto eklentisi gerekirdi.
+        source: https://www.postgresql.org/docs/current/functions-uuid.html
+      - id: uuidv7
+        level: advanced
+        title: { en: Time-ordered UUIDs, tr: Zamana göre sıralı UUID'ler }
+        what:
+          en: uuidv7() makes UUIDs that start with the time, so new rows land at the end of the index.
+          tr: uuidv7() zamanla başlayan UUID'ler üretir; yeni satırlar index'in sonuna eklenir.
+        lang: sql
+        form: id uuid PRIMARY KEY DEFAULT uuidv7()
+        example: |
+          CREATE TABLE events (id uuid PRIMARY KEY DEFAULT uuidv7(), name text);
+          SELECT uuid_extract_version(uuidv7());       -- 7
+          SELECT uuid_extract_timestamp(uuidv7());     -- the creation time
+        avoid:
+          en: Ids shown to users where the creation time must stay secret; the time can be read from a v7 UUID.
+          tr: Oluşturma zamanının gizli kalması gereken, kullanıcıya gösterilen id'ler; v7 UUID'den zaman okunabilir.
+        since: "18"
+        older:
+          en: Before 18 use gen_random_uuid() (version 4, random order) or generate v7 ids in the application.
+          tr: 18'den önce gen_random_uuid() (versiyon 4, rastgele sıra) kullan ya da v7 id'leri uygulamada üret.
+        source: https://www.postgresql.org/docs/current/functions-uuid.html
+      - id: arrays
+        level: intermediate
+        title: { en: Arrays, tr: Array'ler }
+        what:
+          en: A column can hold a list of values, and ANY or @> search inside it.
+          tr: Bir kolon değer listesi tutabilir; ANY ya da @> onun içinde arar.
+        lang: sql
+        form: tags text[] NOT NULL DEFAULT '{}'
+        example: |
+          CREATE TABLE posts (title text, tags text[]);
+          INSERT INTO posts VALUES ('a', ARRAY['sql', 'pg']), ('b', '{web}');
+          SELECT title FROM posts WHERE 'pg' = ANY (tags);
+          SELECT title, array_length(tags, 1), tags[1] FROM posts ORDER BY title;
+        output: |
+          a
+          a|2|sql
+          b|1|web
+        check: sql
+        mistake:
+          en: Expecting arrays to start at 0; PostgreSQL arrays start at index 1.
+          tr: Array'lerin 0'dan başladığını sanmak; PostgreSQL array'leri 1. indeksten başlar.
+        avoid:
+          en: Lists you join or change often, like a post's comments; a separate table with a foreign key fits better.
+          tr: Sık join'lediğin ya da değiştirdiğin listeler (bir yazının yorumları gibi); foreign key'li ayrı bir tablo daha uygun.
+        source: https://www.postgresql.org/docs/current/arrays.html
+      - id: enum
+        level: intermediate
+        title: { en: Enum types, tr: Enum tipleri }
+        what:
+          en: An enum type allows only a fixed list of values, stored compactly.
+          tr: Enum tipi sadece sabit bir değer listesine izin verir ve yer kaplamadan saklanır.
+        lang: sql
+        form: CREATE TYPE status AS ENUM ('draft', 'published');
+        example: |
+          CREATE TYPE status AS ENUM ('draft', 'review', 'published');
+          CREATE TABLE docs (title text, st status NOT NULL DEFAULT 'draft');
+          INSERT INTO docs (title) VALUES ('a');
+          ALTER TYPE status ADD VALUE 'archived';
+          SELECT title, st FROM docs;
+        output: |
+          a|draft
+        check: sql
+        mistake:
+          en: Planning to remove an enum value later; PostgreSQL cannot drop a value from an enum. Use a text column with a CHECK if the list changes often.
+          tr: Enum'dan ileride değer silmeyi planlamak; PostgreSQL enum'dan değer silemez. Liste sık değişiyorsa CHECK'li bir text kolon kullan.
+        source: https://www.postgresql.org/docs/current/datatype-enum.html
+      - id: generated-columns
+        level: advanced
+        title: { en: Generated columns, tr: Hesaplanan kolonlar }
+        what:
+          en: A generated column always equals an expression of other columns; you never write it yourself.
+          tr: Hesaplanan kolon her zaman diğer kolonlardan bir ifadeye eşittir; onu sen hiç yazmazsın.
+        lang: sql
+        form: total numeric GENERATED ALWAYS AS (price * qty) STORED
+        example: |
+          CREATE TABLE lines (
+            price numeric NOT NULL,
+            qty   int NOT NULL,
+            total numeric GENERATED ALWAYS AS (price * qty) STORED
+          );
+          INSERT INTO lines (price, qty) VALUES (2.50, 4);
+          SELECT total FROM lines;
+        output: |
+          10.00
+        check: sql
+        since: "12"
+        older:
+          en: Up to 17 every generated column must say STORED. Since 18 leaving it out makes a VIRTUAL column, computed when read.
+          tr: 17'ye kadar her hesaplanan kolona STORED yazmak zorunlu. 18'den beri yazmazsan okunurken hesaplanan VIRTUAL kolon olur.
+        source: https://www.postgresql.org/docs/current/ddl-generated-columns.html
+  - id: jsonb
+    title: { en: JSONB, tr: JSONB }
+    items:
+      - id: jsonb-read
+        level: basic
+        title: { en: Read JSONB fields, tr: JSONB alanlarını okuma }
+        what:
+          en: jsonb stores JSON in a binary form you can query; -> returns JSON, ->> returns text.
+          tr: jsonb JSON'u sorgulanabilir ikili bir biçimde saklar; -> JSON, ->> text döndürür.
+        lang: sql
+        form: SELECT data ->> 'name' FROM events;
+        example: |
+          CREATE TABLE events (data jsonb);
+          INSERT INTO events VALUES ('{"type": "click", "user": {"id": 7}, "tags": ["a", "b"]}');
+          SELECT data ->> 'type', data -> 'user' ->> 'id', data #>> '{tags,1}' FROM events;
+          SELECT (data -> 'user' ->> 'id')::int + 1 FROM events;
+        output: |
+          click|7|b
+          8
+        check: sql
+        mistake:
+          en: Comparing ->> results as numbers without a cast; ->> gives text, so '10' < '9' is true.
+          tr: ->> sonucunu cast etmeden sayı gibi karşılaştırmak; ->> text verir, '10' < '9' doğru çıkar.
+        avoid:
+          en: Fields you filter, join or require in every row; give them their own columns.
+          tr: Her satırda süzdüğün, join'lediğin ya da zorunlu olan alanlar; onlara ayrı kolon ver.
+        source: https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSON-PROCESSING
+      - id: jsonb-contains
+        level: intermediate
+        title: { en: Search JSONB with @> and a GIN index, tr: "@> ve GIN index ile JSONB arama" }
+        what:
+          en: "@> checks if a JSONB value contains another one, and a GIN index makes that search fast."
+          tr: "@> bir JSONB değerinin başka birini içerip içermediğine bakar; GIN index bu aramayı hızlandırır."
+        lang: sql
+        form: "CREATE INDEX ON events USING gin (data); SELECT * FROM events WHERE data @> '{\"type\": \"click\"}';"
+        example: |
+          CREATE TABLE events (id int, data jsonb);
+          INSERT INTO events VALUES (1, '{"type": "click", "x": 3}'), (2, '{"type": "view"}');
+          CREATE INDEX events_data_gin ON events USING gin (data jsonb_path_ops);
+          SELECT id FROM events WHERE data @> '{"type": "click"}';
+          SELECT id FROM events WHERE data ? 'x';
+        output: |
+          1
+          1
+        check: sql
+        mistake:
+          en: Building the index with jsonb_path_ops and then using ? (key exists); that operator class only serves @> and path operators. Use the default GIN class for ?.
+          tr: Index'i jsonb_path_ops ile kurup sonra ? (anahtar var mı) kullanmak; bu operator class sadece @> ve path operatörlerine hizmet eder. ? için varsayılan GIN class'ını kullan.
+        source: https://www.postgresql.org/docs/current/datatype-json.html#JSON-INDEXING
+      - id: jsonb-update
+        level: intermediate
+        title: { en: Change JSONB values, tr: JSONB değerlerini değiştirme }
+        what:
+          en: jsonb_set replaces one path, || merges objects, and - removes a key.
+          tr: jsonb_set tek bir yolu değiştirir, || nesneleri birleştirir, - bir anahtarı siler.
+        lang: sql
+        form: "UPDATE t SET data = jsonb_set(data, '{user,name}', '\"Ada\"');"
+        example: |
+          SELECT jsonb_set('{"a": 1, "b": {"c": 2}}', '{b,c}', '5');
+          SELECT '{"a": 1}'::jsonb || '{"b": 2}';
+          SELECT '{"a": 1, "secret": "x"}'::jsonb - 'secret';
+        output: |
+          {"a": 1, "b": {"c": 5}}
+          {"a": 1, "b": 2}
+          {"a": 1}
+        check: sql
+        source: https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-JSONB-OP-TABLE
+      - id: json-table
+        level: advanced
+        title: { en: Turn JSON into rows, tr: JSON'u satırlara çevirme }
+        what:
+          en: JSON_TABLE turns a JSON array into a normal table you can select from and join.
+          tr: JSON_TABLE bir JSON array'ini SELECT ve join yapabileceğin normal bir tabloya çevirir.
+        lang: sql
+        form: "SELECT * FROM JSON_TABLE(doc, '$.items[*]' COLUMNS (name text PATH '$.name'))"
+        example: |
+          SELECT jt.*
+          FROM JSON_TABLE(
+            '{"items": [{"name": "pen", "qty": 2}, {"name": "cup", "qty": 1}]}'::jsonb,
+            '$.items[*]'
+            COLUMNS (name text PATH '$.name', qty int PATH '$.qty')
+          ) AS jt;
+          -- pen | 2
+          -- cup | 1
+        since: "17"
+        older:
+          en: Before 17 use jsonb_array_elements() with ->> for each field.
+          tr: 17'den önce her alan için ->> ile jsonb_array_elements() kullan.
+        source: https://www.postgresql.org/docs/current/functions-json.html#FUNCTIONS-SQLJSON-TABLE
+  - id: queries
+    title: { en: PostgreSQL query features, tr: PostgreSQL sorgu özellikleri }
+    items:
+      - id: ilike
+        level: basic
+        title: { en: Case-insensitive search, tr: Büyük-küçük harf duyarsız arama }
+        what:
+          en: ILIKE is LIKE that ignores upper and lower case; ~* does the same with regular expressions.
+          tr: ILIKE büyük-küçük harfi yok sayan LIKE'tır; ~* aynısını regular expression ile yapar.
+        lang: sql
+        form: SELECT * FROM users WHERE email ILIKE '%@example.com';
+        example: |
+          CREATE TABLE users (email text);
+          INSERT INTO users VALUES ('Ada@Example.com'), ('bo@test.org');
+          SELECT email FROM users WHERE email ILIKE '%@example.com';
+          SELECT email FROM users WHERE email ~* '^bo@';
+        output: |
+          Ada@Example.com
+          bo@test.org
+        check: sql
+        mistake:
+          en: Expecting a normal index on email to speed up ILIKE; index lower(email) and query with lower(), or use the pg_trgm extension.
+          tr: email üzerindeki normal bir index'in ILIKE'ı hızlandırmasını beklemek; lower(email) üzerine index kur ve lower() ile sorgula ya da pg_trgm eklentisini kullan.
+        source: https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE
+      - id: aggregates-filter
+        level: intermediate
+        title: { en: string_agg, array_agg and FILTER, tr: "string_agg, array_agg ve FILTER" }
+        what:
+          en: Join group values into one text or array, and count only some rows of a group with FILTER.
+          tr: Grup değerlerini tek bir text ya da array'de birleştir; FILTER ile grubun sadece bazı satırlarını say.
+        lang: sql
+        form: SELECT count(*) FILTER (WHERE paid) FROM orders;
+        example: |
+          CREATE TABLE orders (customer text, item text, paid boolean);
+          INSERT INTO orders VALUES ('ada', 'pen', true), ('ada', 'cup', false), ('bo', 'lamp', true);
+          SELECT customer,
+                 string_agg(item, ', ' ORDER BY item),
+                 count(*) FILTER (WHERE paid) AS paid_count
+          FROM orders GROUP BY customer ORDER BY customer;
+          SELECT array_agg(item ORDER BY item) FROM orders;
+        output: |
+          ada|cup, pen|1
+          bo|lamp|1
+          {cup,lamp,pen}
+        check: sql
+        source: https://www.postgresql.org/docs/current/sql-expressions.html#SYNTAX-AGGREGATES
+      - id: distinct-on
+        level: intermediate
+        title: { en: DISTINCT ON, tr: DISTINCT ON }
+        what:
+          en: DISTINCT ON keeps the first row of each group, for example the latest order of every customer.
+          tr: DISTINCT ON her grubun ilk satırını tutar; örneğin her müşterinin son siparişi.
+        lang: sql
+        form: SELECT DISTINCT ON (user_id) * FROM orders ORDER BY user_id, created_at DESC;
+        example: |
+          CREATE TABLE orders (user_id int, total int, created date);
+          INSERT INTO orders VALUES (1, 10, '2026-01-01'), (1, 50, '2026-03-01'), (2, 7, '2026-02-01');
+          SELECT DISTINCT ON (user_id) user_id, total
+          FROM orders
+          ORDER BY user_id, created DESC;
+        output: |
+          1|50
+          2|7
+        check: sql
+        mistake:
+          en: Leaving the DISTINCT ON columns out of the start of ORDER BY; PostgreSQL rejects it, and without the extra sort you get a random row.
+          tr: DISTINCT ON kolonlarını ORDER BY'ın başına koymamak; PostgreSQL reddeder, ek sıralama olmadan da rastgele bir satır alırsın.
+        source: https://www.postgresql.org/docs/current/sql-select.html#SQL-DISTINCT
+      - id: generate-series
+        level: intermediate
+        title: { en: generate_series, tr: generate_series }
+        what:
+          en: generate_series makes a list of numbers or dates, handy for test data and filling gaps in reports.
+          tr: generate_series sayı ya da tarih listesi üretir; test verisi ve raporlardaki boşlukları doldurmak için kullanışlı.
+        lang: sql
+        form: SELECT generate_series(1, 10);
+        example: |
+          SELECT n FROM generate_series(1, 3) AS n;
+          SELECT d::date FROM generate_series('2026-10-01'::date, '2026-10-03', interval '1 day') AS d;
+        output: |
+          1
+          2
+          3
+          2026-10-01
+          2026-10-02
+          2026-10-03
+        check: sql
+        source: https://www.postgresql.org/docs/current/functions-srf.html
+      - id: upsert
+        level: intermediate
+        title: { en: Upsert with ON CONFLICT, tr: ON CONFLICT ile upsert }
+        what:
+          en: ON CONFLICT updates the existing row, or does nothing, when an insert hits a unique key.
+          tr: Bir insert unique anahtara çarptığında ON CONFLICT var olan satırı günceller ya da hiçbir şey yapmaz.
+        lang: sql
+        form: INSERT ... ON CONFLICT (key) DO UPDATE SET col = EXCLUDED.col;
+        example: |
+          CREATE TABLE stock (sku text PRIMARY KEY, qty int NOT NULL);
+          INSERT INTO stock VALUES ('pen', 5);
+          INSERT INTO stock VALUES ('pen', 3), ('cup', 1)
+            ON CONFLICT (sku) DO UPDATE SET qty = stock.qty + EXCLUDED.qty
+            RETURNING sku, qty;
+          INSERT INTO stock VALUES ('cup', 99) ON CONFLICT DO NOTHING;
+          SELECT qty FROM stock WHERE sku = 'cup';
+        output: |
+          pen|8
+          cup|1
+          1
+        check: sql
+        mistake:
+          en: Upserting the same key twice in one statement; it fails with "cannot affect row a second time". Remove duplicates first.
+          tr: Tek bir ifadede aynı anahtarı iki kez upsert etmek; "cannot affect row a second time" hatası verir. Önce tekrarları temizle.
+        source: https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT
+      - id: returning-old-new
+        level: advanced
+        title: { en: RETURNING old and new values, tr: RETURNING ile eski ve yeni değerler }
+        what:
+          en: In RETURNING, old.col and new.col give the value before and after an UPDATE.
+          tr: RETURNING'de old.col ve new.col bir UPDATE'ten önceki ve sonraki değeri verir.
+        lang: sql
+        form: UPDATE ... RETURNING old.price, new.price;
+        example: |
+          UPDATE products SET price = price * 1.10
+          WHERE id = 7
+          RETURNING old.price AS before, new.price AS after;
+        since: "18"
+        older:
+          en: Before 18, RETURNING in UPDATE shows only the new values; read the old row first in the same transaction.
+          tr: 18'den önce UPDATE'teki RETURNING sadece yeni değerleri gösterir; eski satırı aynı transaction içinde önceden oku.
+        source: https://www.postgresql.org/docs/current/dml-returning.html
+      - id: merge
+        level: advanced
+        title: { en: MERGE, tr: MERGE }
+        what:
+          en: MERGE compares a source with a table and inserts, updates or deletes rows in one statement.
+          tr: MERGE bir kaynağı tabloyla karşılaştırır; tek ifadede satır ekler, günceller ya da siler.
+        lang: sql
+        form: MERGE INTO target t USING source s ON t.id = s.id WHEN MATCHED THEN UPDATE ... WHEN NOT MATCHED THEN INSERT ...
+        example: |
+          CREATE TABLE prices (sku text PRIMARY KEY, price int);
+          CREATE TABLE feed (sku text, price int);
+          INSERT INTO prices VALUES ('pen', 2), ('old', 9);
+          INSERT INTO feed VALUES ('pen', 3), ('cup', 5);
+          MERGE INTO prices p USING feed f ON p.sku = f.sku
+            WHEN MATCHED THEN UPDATE SET price = f.price
+            WHEN NOT MATCHED THEN INSERT VALUES (f.sku, f.price);
+          SELECT sku, price FROM prices ORDER BY sku;
+        output: |
+          cup|5
+          old|9
+          pen|3
+        check: sql
+        avoid:
+          en: Simple "insert or update one row" cases; INSERT ... ON CONFLICT is shorter and safe under concurrent inserts.
+          tr: Basit "tek satırı ekle ya da güncelle" durumları; INSERT ... ON CONFLICT daha kısadır ve eşzamanlı insert'lerde güvenlidir.
+        since: "15"
+        source: https://www.postgresql.org/docs/current/sql-merge.html
+      - id: lateral
+        level: advanced
+        title: { en: LATERAL joins, tr: LATERAL join'ler }
+        what:
+          en: LATERAL lets a subquery in FROM use columns of the tables before it, like "top 2 orders per user".
+          tr: LATERAL, FROM'daki bir alt sorgunun kendinden önceki tabloların kolonlarını kullanmasını sağlar; "kullanıcı başına en büyük 2 sipariş" gibi.
+        lang: sql
+        form: SELECT * FROM users u CROSS JOIN LATERAL (SELECT ... WHERE o.user_id = u.id LIMIT 2) o;
+        example: |
+          CREATE TABLE users (id int, name text);
+          CREATE TABLE orders (user_id int, total int);
+          INSERT INTO users VALUES (1, 'ada'), (2, 'bo');
+          INSERT INTO orders VALUES (1, 5), (1, 50), (1, 20), (2, 7);
+          SELECT u.name, o.total FROM users u
+          CROSS JOIN LATERAL (
+            SELECT total FROM orders WHERE user_id = u.id ORDER BY total DESC LIMIT 2
+          ) o
+          ORDER BY u.name, o.total DESC;
+        output: |
+          ada|50
+          ada|20
+          bo|7
+        check: sql
+        source: https://www.postgresql.org/docs/current/queries-table-expressions.html#QUERIES-LATERAL
+  - id: performance
+    title: { en: Indexes and performance, tr: Index'ler ve performans }
+    items:
+      - id: explain
+        level: basic
+        title: { en: Read a query plan, tr: Sorgu planını okuma }
+        what:
+          en: EXPLAIN shows how PostgreSQL will run a query; EXPLAIN ANALYZE runs it and shows real times and row counts.
+          tr: EXPLAIN PostgreSQL'in bir sorguyu nasıl çalıştıracağını gösterir; EXPLAIN ANALYZE onu çalıştırıp gerçek süreleri ve satır sayılarını gösterir.
+        lang: sql
+        form: EXPLAIN (ANALYZE, BUFFERS) SELECT ...;
+        example: |
+          EXPLAIN (ANALYZE, BUFFERS)
+          SELECT * FROM orders WHERE user_id = 42;
+          -- Index Scan using orders_user_id_idx on orders (... rows=12 ...)
+          --   Index Cond: (user_id = 42)
+          -- Seq Scan on a big table here usually means a missing index
+        mistake:
+          en: Running EXPLAIN ANALYZE on an UPDATE or DELETE you did not mean to apply; it really runs. Wrap it in BEGIN; ... ROLLBACK;.
+          tr: Uygulamak istemediğin bir UPDATE ya da DELETE'te EXPLAIN ANALYZE çalıştırmak; sorgu gerçekten çalışır. BEGIN; ... ROLLBACK; içine al.
+        source: https://www.postgresql.org/docs/current/using-explain.html
+      - id: btree-index
+        level: basic
+        title: { en: Create an index, tr: Index oluşturma }
+        what:
+          en: A B-tree index (the default) speeds up =, <, > and ORDER BY on its columns.
+          tr: B-tree index (varsayılan) kolonlarındaki =, <, > ve ORDER BY işlemlerini hızlandırır.
+        lang: sql
+        form: CREATE INDEX orders_user_id_idx ON orders (user_id);
+        example: |
+          CREATE TABLE orders (id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY, user_id bigint, total int);
+          CREATE INDEX orders_user_id_idx ON orders (user_id);
+          SET enable_seqscan = off;   -- only so this tiny demo table uses the index
+          EXPLAIN (COSTS OFF) SELECT * FROM orders WHERE user_id = 42;
+        output: |
+          Bitmap Heap Scan on orders
+            Recheck Cond: (user_id = 42)
+            ->  Bitmap Index Scan on orders_user_id_idx
+                  Index Cond: (user_id = 42)
+        check: sql
+        mistake:
+          en: Forgetting to index foreign key columns; PostgreSQL indexes primary keys and unique columns, but not the referencing side.
+          tr: Foreign key kolonlarına index koymayı unutmak; PostgreSQL primary key ve unique kolonlara index koyar ama referans veren tarafa koymaz.
+        source: https://www.postgresql.org/docs/current/indexes-types.html#INDEXES-TYPES-BTREE
+      - id: partial-expression-index
+        level: intermediate
+        title: { en: Partial and expression indexes, tr: Kısmi ve ifade index'leri }
+        what:
+          en: A partial index covers only rows that match a WHERE; an expression index covers a computed value like lower(email).
+          tr: Kısmi index sadece bir WHERE'e uyan satırları kapsar; ifade index'i lower(email) gibi hesaplanan bir değeri kapsar.
+        lang: sql
+        form: CREATE INDEX ON orders (created_at) WHERE status = 'pending';
+        example: |
+          CREATE TABLE users (email text, deleted_at timestamptz);
+          CREATE UNIQUE INDEX users_email_live ON users (lower(email)) WHERE deleted_at IS NULL;
+          INSERT INTO users VALUES ('Ada@x.com', now()), ('ada@x.com', NULL);
+          SET enable_seqscan = off;
+          EXPLAIN (COSTS OFF) SELECT * FROM users WHERE lower(email) = 'ada@x.com' AND deleted_at IS NULL;
+        output: |
+          Index Scan using users_email_live on users
+            Index Cond: (lower(email) = 'ada@x.com'::text)
+        check: sql
+        mistake:
+          en: Querying with a different expression than the index (email = ... instead of lower(email) = ...); the index is then not used.
+          tr: Index'tekinden farklı bir ifadeyle sorgulamak (lower(email) = ... yerine email = ...); o zaman index kullanılmaz.
+        source: https://www.postgresql.org/docs/current/indexes-partial.html
+      - id: create-index-concurrently
+        level: advanced
+        title: { en: Add an index without blocking writes, tr: Yazmaları durdurmadan index ekleme }
+        what:
+          en: CONCURRENTLY builds an index while the table keeps taking inserts and updates.
+          tr: CONCURRENTLY, tablo insert ve update almaya devam ederken index kurar.
+        lang: sql
+        form: CREATE INDEX CONCURRENTLY idx ON orders (user_id);
+        example: |
+          CREATE INDEX CONCURRENTLY orders_created_idx ON orders (created_at);
+          -- if it failed, an INVALID index is left behind:
+          DROP INDEX CONCURRENTLY IF EXISTS orders_created_idx;
+        mistake:
+          en: Running it inside a transaction (many migration tools wrap one); it is not allowed there. Turn the wrapping off for that migration.
+          tr: Bunu bir transaction içinde çalıştırmak (birçok migration aracı sarar); orada izin verilmez. O migration için sarmalamayı kapat.
+        source: https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY
+      - id: vacuum-analyze
+        level: advanced
+        title: { en: VACUUM and ANALYZE, tr: VACUUM ve ANALYZE }
+        what:
+          en: VACUUM frees space from deleted row versions; ANALYZE refreshes the statistics the planner uses.
+          tr: VACUUM silinen satır sürümlerinin yerini açar; ANALYZE planlayıcının kullandığı istatistikleri yeniler.
+        lang: sql
+        form: VACUUM (ANALYZE) orders;
+        example: |
+          ANALYZE orders;                 -- after a big import
+          VACUUM (VERBOSE, ANALYZE) orders;
+          SELECT relname, last_autovacuum, n_dead_tup
+          FROM pg_stat_user_tables ORDER BY n_dead_tup DESC LIMIT 5;
+        mistake:
+          en: Turning autovacuum off to "save resources"; tables then bloat and queries get slow. Tune it instead.
+          tr: '"Kaynak kazanmak" için autovacuum''u kapatmak; tablolar şişer ve sorgular yavaşlar. Kapatma, ayarla.'
+        avoid:
+          en: VACUUM FULL on a live table; it locks the whole table while it rewrites it.
+          tr: Canlı bir tabloda VACUUM FULL; tabloyu yeniden yazarken tamamen kilitler.
+        source: https://www.postgresql.org/docs/current/routine-vacuuming.html
+      - id: activity
+        level: intermediate
+        title: { en: See and stop running queries, tr: Çalışan sorguları görme ve durdurma }
+        what:
+          en: pg_stat_activity lists open connections and their queries; pg_cancel_backend stops one query.
+          tr: pg_stat_activity açık bağlantıları ve sorgularını listeler; pg_cancel_backend tek bir sorguyu durdurur.
+        lang: sql
+        form: SELECT pid, state, query FROM pg_stat_activity;
+        example: |
+          SELECT pid, now() - query_start AS running_for, state, left(query, 60)
+          FROM pg_stat_activity
+          WHERE state <> 'idle' ORDER BY running_for DESC;
+
+          SELECT pg_cancel_backend(12345);     -- stop the query
+          SELECT pg_terminate_backend(12345);  -- close the whole connection
+        mistake:
+          en: Starting with pg_terminate_backend; try pg_cancel_backend first, it keeps the connection alive.
+          tr: Doğrudan pg_terminate_backend ile başlamak; önce pg_cancel_backend dene, bağlantıyı açık tutar.
+        source: https://www.postgresql.org/docs/current/monitoring-stats.html#MONITORING-PG-STAT-ACTIVITY-VIEW
+  - id: security-ops
+    title: { en: Roles, security and backups, tr: Roller, güvenlik ve yedekler }
+    items:
+      - id: roles
+        level: basic
+        title: { en: Roles and privileges, tr: Roller ve yetkiler }
+        what:
+          en: A role is a user or a group; GRANT gives it rights on databases, schemas and tables.
+          tr: Rol bir kullanıcı ya da gruptur; GRANT ona veritabanı, şema ve tablolarda yetki verir.
+        lang: sql
+        form: GRANT SELECT, INSERT ON ALL TABLES IN SCHEMA public TO app;
+        example: |
+          CREATE ROLE readonly_demo NOLOGIN;
+          CREATE TABLE reports (id int);
+          GRANT SELECT ON reports TO readonly_demo;
+          SELECT has_table_privilege('readonly_demo', 'reports', 'SELECT'),
+                 has_table_privilege('readonly_demo', 'reports', 'DELETE');
+        output: |
+          t|f
+        check: sql
+        mistake:
+          en: Letting the application connect as the postgres superuser; create a separate role with only the rights it needs.
+          tr: Uygulamanın postgres süper kullanıcısıyla bağlanmasına izin vermek; sadece gereken yetkileri olan ayrı bir rol oluştur.
+        source: https://www.postgresql.org/docs/current/sql-grant.html
+      - id: login-role
+        level: intermediate
+        title: { en: Create an app user, tr: Uygulama kullanıcısı oluşturma }
+        what:
+          en: A role with LOGIN and a password can connect; default privileges cover tables created later.
+          tr: LOGIN ve parolası olan bir rol bağlanabilir; default privileges sonradan oluşturulan tabloları da kapsar.
+        lang: sql
+        form: CREATE ROLE app LOGIN PASSWORD '...';
+        example: |
+          CREATE ROLE app LOGIN PASSWORD 'change-me';
+          GRANT CONNECT ON DATABASE shop TO app;
+          GRANT USAGE ON SCHEMA public TO app;
+          GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public
+            GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app;
+        mistake:
+          en: Granting on ALL TABLES and expecting new tables to be included; that grant only covers tables that exist now. Add ALTER DEFAULT PRIVILEGES.
+          tr: ALL TABLES'a yetki verip yeni tabloların da dahil olmasını beklemek; bu yetki sadece şu an var olan tabloları kapsar. ALTER DEFAULT PRIVILEGES ekle.
+        source: https://www.postgresql.org/docs/current/sql-alterdefaultprivileges.html
+      - id: row-level-security
+        level: advanced
+        title: { en: Row level security, tr: Satır düzeyinde güvenlik }
+        what:
+          en: Policies limit which rows a role can see or change, enforced by the database itself.
+          tr: Policy'ler bir rolün hangi satırları görebileceğini ya da değiştirebileceğini sınırlar; bunu veritabanı kendisi uygular.
+        lang: sql
+        form: CREATE POLICY p ON t USING (owner = current_user);
+        example: |
+          CREATE TABLE notes (owner text, body text);
+          INSERT INTO notes VALUES ('rls_ada', 'ada note'), ('rls_bo', 'bo note');
+          ALTER TABLE notes ENABLE ROW LEVEL SECURITY;
+          CREATE POLICY own_notes ON notes USING (owner = current_user);
+          CREATE ROLE rls_ada;
+          GRANT SELECT ON notes TO rls_ada;
+          SET ROLE rls_ada;
+          SELECT body FROM notes;
+        output: |
+          ada note
+        check: sql
+        mistake:
+          en: Testing as the table owner or a superuser; they skip the policies unless you use FORCE ROW LEVEL SECURITY.
+          tr: Tablo sahibi ya da süper kullanıcı olarak test etmek; FORCE ROW LEVEL SECURITY kullanmazsan policy'leri atlarlar.
+        source: https://www.postgresql.org/docs/current/ddl-rowsecurity.html
+      - id: pg-dump
+        level: basic
+        title: { en: Back up and restore, tr: Yedekleme ve geri yükleme }
+        what:
+          en: pg_dump saves one database to a file; pg_restore loads it back.
+          tr: pg_dump tek bir veritabanını dosyaya kaydeder; pg_restore geri yükler.
+        lang: sh
+        form: pg_dump -Fc -d shop -f shop.dump
+        example: |
+          pg_dump -Fc -d shop -f shop.dump               # custom format, compressed
+          pg_restore -d shop_copy --no-owner shop.dump   # into an existing empty database
+          pg_dump -d shop --schema-only > schema.sql     # plain SQL, structure only
+          pg_dumpall --globals-only > roles.sql          # roles are not in pg_dump
+        mistake:
+          en: Never testing a restore; a backup you have not restored once is not a backup.
+          tr: Geri yüklemeyi hiç denememek; bir kez bile geri yüklemediğin yedek, yedek değildir.
+        avoid:
+          en: Very large databases that need point-in-time recovery; use pg_basebackup with WAL archiving.
+          tr: Belirli bir ana geri dönme (point-in-time recovery) gereken çok büyük veritabanları; WAL arşivleme ile pg_basebackup kullan.
+        source: https://www.postgresql.org/docs/current/app-pgdump.html
+      - id: table-size
+        level: intermediate
+        title: { en: Database and table sizes, tr: Veritabanı ve tablo boyutları }
+        what:
+          en: Size functions show how much disk a database, table or index uses.
+          tr: Boyut fonksiyonları bir veritabanının, tablonun ya da index'in ne kadar disk kullandığını gösterir.
+        lang: sql
+        form: SELECT pg_size_pretty(pg_total_relation_size('orders'));
+        example: |
+          SELECT pg_size_pretty(pg_database_size(current_database()));
+          SELECT relname, pg_size_pretty(pg_total_relation_size(relid)) AS total
+          FROM pg_statio_user_tables
+          ORDER BY pg_total_relation_size(relid) DESC LIMIT 10;
+        mistake:
+          en: Using pg_relation_size to judge a table; it leaves out indexes and TOAST data. pg_total_relation_size includes them.
+          tr: Bir tabloyu pg_relation_size ile değerlendirmek; index'leri ve TOAST verisini dışarıda bırakır. pg_total_relation_size bunları da sayar.
+        source: https://www.postgresql.org/docs/current/functions-admin.html#FUNCTIONS-ADMIN-DBSIZE

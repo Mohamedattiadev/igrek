@@ -1,0 +1,1346 @@
+id: react
+title: React
+summary:
+  en: "From an empty computer to your own React app on the internet. You build a real todo app step by step and understand why each step is there."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi React uygulamana. Adım adım gerçek bir yapılacaklar uygulaması yazarsın ve her adımın neden orada olduğunu anlarsın."
+teacher: frontend
+project:
+  en: 'A todo app: add, tick off, delete and filter todos, keep them after a page reload, load ideas from a public API, tested and published on GitHub Pages.'
+  tr: 'Bir yapılacaklar uygulaması: iş ekleme, tamamlandı işaretleme, silme ve süzme; sayfa yenilenince kaybolmaması, herkese açık bir API''den fikir yükleme; testleri yazılmış ve GitHub Pages''te yayında.'
+detect:
+  npm: [react]
+version: "19.3"
+latest: npm:react
+checked: 2026-10
+sheets: [javascript, react, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Node.js, an editor and Git"
+      tr: "Node.js, bir editör ve Git kurma"
+    minutes: 45
+    why:
+      en: "React apps are built with tools that run on Node.js. An editor makes writing code comfortable, and Git keeps every version of your work so you can never really lose it."
+      tr: "React uygulamaları Node.js üzerinde çalışan araçlarla hazırlanır. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar; böylece hiçbir şeyi gerçekten kaybetmezsin."
+    learn:
+      en: |
+        - What Node.js and npm are, and why a web app needs them while you build it
+        - How to open a terminal and check that a program is installed
+        - Which Node.js version to pick (the LTS one)
+      tr: |
+        - Node.js ve npm'in ne olduğu, uygulamayı hazırlarken neden gerektiği
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - Hangi Node.js sürümünü seçmen gerektiği (LTS olanı)
+    do:
+      en: |
+        1. Download **Node.js LTS** from nodejs.org and install it. LTS means "long-term support": it gets fixes for years, so tutorials and tools work with it.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+      tr: |
+        1. nodejs.org'dan **Node.js LTS** sürümünü indirip kur. LTS "uzun süreli destek" demek: yıllarca düzeltme alır, eğitimler ve araçlar onunla çalışır.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          npm --version
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Installing the newest \"Current\" Node.js instead of LTS."
+          tr: "LTS yerine en yeni \"Current\" Node.js sürümünü kurmak."
+        fix:
+          en: "Current works too, but LTS is what hosting services and most guides expect. Prefer LTS while learning."
+          tr: "Current da çalışır ama barındırma servisleri ve çoğu rehber LTS bekler. Öğrenirken LTS'i seç."
+    quiz:
+      - q:
+          en: "Why pick the LTS version of Node.js?"
+          tr: "Node.js'in neden LTS sürümünü seçiyoruz?"
+        options:
+          en: [It is the fastest, It gets fixes for a long time and tools expect it, It is the only free one]
+          tr: [En hızlısı o, Uzun süre düzeltme alır ve araçlar onu bekler, Tek ücretsiz sürüm o]
+        answer: 1
+        why:
+          en: "Every Node.js version is free; LTS lines are supported for years, so they are the safe default."
+          tr: "Bütün Node.js sürümleri ücretsiz; LTS sürümleri yıllarca desteklenir, bu yüzden güvenli varsayılan odur."
+    sources:
+      - title: Node.js downloads
+        url: https://nodejs.org/en/download
+      - title: Node.js release schedule
+        url: https://nodejs.org/en/about/previous-releases
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first React app"
+      tr: "İlk React uygulamanı oluşturma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "A React app needs a few files and a build tool before the first line shows up in the browser. Vite creates all of it in seconds and reloads the page every time you save, so you see each change at once."
+      tr: "Bir React uygulamasının tarayıcıda ilk satırı göstermesi için birkaç dosya ve bir build aracı gerekir. Vite bunların hepsini saniyeler içinde kurar ve her kaydettiğinde sayfayı yeniler; her değişikliği hemen görürsün."
+    learn:
+      en: |
+        - What Vite does: a development server and a build tool
+        - What is in a new project: `index.html`, `src/main.jsx`, `src/App.jsx`, `package.json`
+        - How saving a file updates the page by itself
+      tr: |
+        - Vite'ın ne yaptığı: bir geliştirme sunucusu ve bir build aracı
+        - Yeni projede neler olduğu: `index.html`, `src/main.jsx`, `src/App.jsx`, `package.json`
+        - Bir dosyayı kaydetmenin sayfayı kendiliğinden nasıl güncellediği
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects and run the first command below. It creates a folder called `todo`.
+        2. Go into it, install the packages and start the development server.
+        3. Open the address it prints (usually http://localhost:5173).
+        4. Replace everything in `src/App.jsx` with the code below and save. The page changes at once.
+        5. Save this first version with Git: `git init`, `git add .`, `git commit -m "Start the todo app"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git ve aşağıdaki ilk komutu çalıştır. `todo` adında bir klasör oluşturur.
+        2. İçine gir, paketleri kur ve geliştirme sunucusunu başlat.
+        3. Yazdığı adresi aç (genelde http://localhost:5173).
+        4. `src/App.jsx` içindeki her şeyi aşağıdaki kodla değiştir ve kaydet. Sayfa hemen değişir.
+        5. Bu ilk sürümü Git ile kaydet: `git init`, `git add .`, `git commit -m "Start the todo app"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm create vite@latest todo -- --template react
+          cd todo
+          npm install
+          npm run dev
+      - file: src/App.jsx
+        lang: jsx
+        text: |
+          export default function App() {
+            return <h1>Hello, my todo app</h1>;
+          }
+    mistakes:
+      - problem:
+          en: "The page is blank after editing App.jsx."
+          tr: "App.jsx'i değiştirdikten sonra sayfa bomboş."
+        fix:
+          en: "Look at the terminal and the browser console (F12). Usually a typo; the error names the file and line."
+          tr: "Terminale ve tarayıcı konsoluna (F12) bak. Genelde bir yazım hatasıdır; hata dosyayı ve satırı söyler."
+      - problem:
+          en: "\"npm run dev\" says it cannot find package.json."
+          tr: "\"npm run dev\" package.json bulamadığını söylüyor."
+        fix:
+          en: "You are in the wrong folder. Run cd todo first."
+          tr: "Yanlış klasördesin. Önce cd todo çalıştır."
+    quiz:
+      - q:
+          en: "Which file holds the component you see on the page right now?"
+          tr: "Şu an sayfada gördüğün bileşen hangi dosyada?"
+        options:
+          en: [index.html, src/App.jsx, package.json]
+          tr: [index.html, src/App.jsx, package.json]
+        answer: 1
+        why:
+          en: "index.html only has an empty root element; src/main.jsx puts the App component from src/App.jsx into it."
+          tr: "index.html'de sadece boş bir kök eleman var; src/main.jsx, src/App.jsx'teki App bileşenini oraya yerleştirir."
+    sources:
+      - title: Vite, getting started
+        url: https://vite.dev/guide/
+      - title: React, creating a React app
+        url: https://react.dev/learn/creating-a-react-app
+
+  - id: components
+    stage: basics
+    title:
+      en: "Components, JSX and props"
+      tr: "Bileşenler, JSX ve props"
+    minutes: 60
+    needs: [first-app]
+    why:
+      en: "React apps are made of components, small pieces you can reuse like building blocks. Props are how a parent gives a component its data, so one component can show many different things."
+      tr: "React uygulamaları bileşenlerden oluşur; yapı taşları gibi tekrar kullanılabilen küçük parçalar. Props, bir üst bileşenin alt bileşene veri vermesinin yoludur; böylece tek bir bileşen birçok farklı şey gösterebilir."
+    learn:
+      en: |
+        - A component is a function that returns JSX
+        - JSX looks like HTML but is JavaScript: `className` instead of `class`, `{}` for values
+        - Props: passing data down, and why a component must not change its props
+        - Component names start with a capital letter
+      tr: |
+        - Bileşen, JSX döndüren bir fonksiyondur
+        - JSX HTML'e benzer ama JavaScript'tir: `class` yerine `className`, değerler için `{}`
+        - Props: veriyi aşağıya geçirmek ve bir bileşenin kendi props'unu neden değiştirmemesi gerektiği
+        - Bileşen adları büyük harfle başlar
+    do:
+      en: |
+        1. Create `src/Greeting.jsx` with the component below.
+        2. Use it in `App.jsx` twice with different names.
+        3. Change a name and watch the page update. Then try `{name.toUpperCase()}` inside the JSX: any JavaScript expression works between `{}`.
+      tr: |
+        1. Aşağıdaki bileşenle `src/Greeting.jsx` dosyasını oluştur.
+        2. `App.jsx` içinde farklı isimlerle iki kez kullan.
+        3. Bir ismi değiştir ve sayfanın güncellenmesini izle. Sonra JSX içinde `{name.toUpperCase()}` dene: `{}` arasında her JavaScript ifadesi çalışır.
+    code:
+      - file: src/Greeting.jsx
+        lang: jsx
+        text: |
+          export default function Greeting({ name }) {
+            return <p className="greeting">Hello, {name}!</p>;
+          }
+      - file: src/App.jsx
+        lang: jsx
+        text: |
+          import Greeting from "./Greeting.jsx";
+
+          export default function App() {
+            return (
+              <main>
+                <h1>My todo app</h1>
+                <Greeting name="Ada" />
+                <Greeting name="Linus" />
+              </main>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "\"Adjacent JSX elements must be wrapped in an enclosing tag\"."
+          tr: "\"Adjacent JSX elements must be wrapped in an enclosing tag\" hatası."
+        fix:
+          en: "A component returns one element. Wrap siblings in a parent such as <main> or an empty fragment <>...</>."
+          tr: "Bir bileşen tek bir eleman döndürür. Kardeş elemanları <main> gibi bir üst elemana ya da boş bir fragment'e (<>...</>) sar."
+      - problem:
+          en: "Naming a component \"greeting\" in lower case, and it does not show up."
+          tr: "Bileşene küçük harfle \"greeting\" demek ve görünmemesi."
+        fix:
+          en: "React treats lower-case tags as HTML elements. Component names must start with a capital letter."
+          tr: "React küçük harfli etiketleri HTML elemanı sayar. Bileşen adları büyük harfle başlamalı."
+    quiz:
+      - q:
+          en: "How does App give the name to Greeting?"
+          tr: "App, ismi Greeting'e nasıl veriyor?"
+        options:
+          en: [With a global variable, As a prop, Greeting reads it from the page]
+          tr: [Global bir değişkenle, Bir prop olarak, Greeting onu sayfadan okuyor]
+        answer: 1
+        why:
+          en: "<Greeting name=\"Ada\" /> passes name as a prop; Greeting receives it as { name }."
+          tr: "<Greeting name=\"Ada\" /> name değerini prop olarak geçirir; Greeting onu { name } olarak alır."
+    sources:
+      - title: Your first component
+        url: https://react.dev/learn/your-first-component
+      - title: Writing markup with JSX
+        url: https://react.dev/learn/writing-markup-with-jsx
+      - title: Passing props to a component
+        url: https://react.dev/learn/passing-props-to-a-component
+
+  - id: state
+    stage: basics
+    title:
+      en: "State and events"
+      tr: "State ve olaylar"
+    minutes: 60
+    needs: [components]
+    why:
+      en: "Props come from outside; state is the component's own memory. When state changes, React draws the component again with the new value. This is how a page reacts to clicks and typing."
+      tr: "Props dışarıdan gelir; state ise bileşenin kendi hafızasıdır. State değişince React bileşeni yeni değerle yeniden çizer. Bir sayfa tıklamalara ve yazmaya böyle tepki verir."
+    learn:
+      en: |
+        - `useState`: a value and a function to change it
+        - Handling clicks and typing with `onClick` and `onChange`
+        - Controlled inputs: the input shows what is in state
+        - Why you replace state instead of changing it in place
+      tr: |
+        - `useState`: bir değer ve onu değiştiren bir fonksiyon
+        - `onClick` ve `onChange` ile tıklama ve yazmayı yakalamak
+        - Kontrollü input'lar: input, state'te ne varsa onu gösterir
+        - State'i yerinde değiştirmek yerine neden yenisiyle değiştirdiğimiz
+    do:
+      en: |
+        1. Create `src/Counter.jsx` below and show it in `App.jsx`.
+        2. Click the button. Then add a second button that goes down by one.
+        3. Add an input whose text is kept in state and shown under it as you type.
+      tr: |
+        1. Aşağıdaki `src/Counter.jsx` dosyasını oluştur ve `App.jsx` içinde göster.
+        2. Düğmeye tıkla. Sonra bir azaltan ikinci bir düğme ekle.
+        3. Metni state'te tutulan ve yazdıkça altında görünen bir input ekle.
+    code:
+      - file: src/Counter.jsx
+        lang: jsx
+        text: |
+          import { useState } from "react";
+
+          export default function Counter() {
+            const [count, setCount] = useState(0);
+            const [text, setText] = useState("");
+            return (
+              <div>
+                <button type="button" onClick={() => setCount(count + 1)}>
+                  Clicked {count} times
+                </button>
+                <input value={text} onChange={(event) => setText(event.target.value)} />
+                <p>You typed: {text}</p>
+              </div>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Writing count = count + 1 and the page does not change."
+          tr: "count = count + 1 yazmak ve sayfanın değişmemesi."
+        fix:
+          en: "Only the setter (setCount) tells React to draw again. Never assign to state directly."
+          tr: "React'e yeniden çizmesini sadece setter (setCount) söyler. State'e asla doğrudan atama yapma."
+      - problem:
+          en: "onClick={setCount(count + 1)} runs on every render and loops forever."
+          tr: "onClick={setCount(count + 1)} her çizimde çalışır ve sonsuz döngüye girer."
+        fix:
+          en: "Pass a function: onClick={() => setCount(count + 1)}."
+          tr: "Bir fonksiyon ver: onClick={() => setCount(count + 1)}."
+      - problem:
+          en: "Pushing into an array in state (todos.push) and nothing updates."
+          tr: "State'teki diziye eleman eklemek (todos.push) ve hiçbir şeyin güncellenmemesi."
+        fix:
+          en: "Make a new array: setTodos([...todos, newTodo]). React compares references; the same array looks unchanged."
+          tr: "Yeni bir dizi oluştur: setTodos([...todos, newTodo]). React referansları karşılaştırır; aynı dizi değişmemiş görünür."
+    quiz:
+      - q:
+          en: "What happens when you call setCount(5)?"
+          tr: "setCount(5) çağırınca ne olur?"
+        options:
+          en: [count becomes 5 on the next line at once, React draws the component again with count 5, Nothing until the page reloads]
+          tr: [count bir sonraki satırda hemen 5 olur, React bileşeni count 5 olacak şekilde yeniden çizer, Sayfa yenilenene kadar hiçbir şey]
+        answer: 1
+        why:
+          en: "State updates are applied on the next render; the count variable in the current function call keeps its old value."
+          tr: "State güncellemesi bir sonraki çizimde uygulanır; o anki fonksiyon çağrısındaki count değişkeni eski değerini korur."
+    sources:
+      - title: 'State: a component''s memory'
+        url: https://react.dev/learn/state-a-components-memory
+      - title: Responding to events
+        url: https://react.dev/learn/responding-to-events
+      - title: Updating arrays in state
+        url: https://react.dev/learn/updating-arrays-in-state
+
+  - id: lists
+    stage: basics
+    title:
+      en: "Lists, keys and showing things conditionally"
+      tr: "Listeler, key'ler ve koşullu gösterme"
+    minutes: 45
+    needs: [state]
+    why:
+      en: "Most apps show lists (messages, products, todos) and hide or show parts depending on the data. React does both with plain JavaScript, map and if, plus a key that lets it track each item."
+      tr: "Çoğu uygulama listeler gösterir (mesajlar, ürünler, yapılacaklar) ve veriye göre bazı parçaları gizler ya da gösterir. React ikisini de düz JavaScript ile, map ve if ile yapar; her öğeyi takip etmesini sağlayan bir de key kullanır."
+    learn:
+      en: |
+        - Turning an array into elements with `map`
+        - Why each item needs a stable, unique `key`
+        - Showing something only when a condition is true: `if`, `&&` and `? :`
+      tr: |
+        - `map` ile bir diziyi elemanlara çevirmek
+        - Her öğenin neden sabit ve benzersiz bir `key`'e ihtiyacı olduğu
+        - Bir şeyi sadece koşul doğruysa göstermek: `if`, `&&` ve `? :`
+    do:
+      en: |
+        1. Put the list component below in `src/TodoList.jsx`, and in `App.jsx` render it with two sample todos like `{ id: "1", title: "Buy milk", done: false }`.
+        2. Empty the sample array and check that "Nothing here yet." appears.
+        3. Look at the browser console when you remove `key`: React warns you.
+      tr: |
+        1. Aşağıdaki liste bileşenini `src/TodoList.jsx` dosyasına koy; `App.jsx` içinde `{ id: "1", title: "Buy milk", done: false }` gibi iki örnek yapılacakla göster.
+        2. Örnek diziyi boşalt ve "Nothing here yet." yazısının çıktığını gör.
+        3. `key`'i kaldırınca tarayıcı konsoluna bak: React uyarır.
+    code:
+      - file: src/TodoList.jsx
+        lang: jsx
+        text: |
+          export default function TodoList({ todos, onToggle, onDelete }) {
+            if (todos.length === 0) return <p>Nothing here yet.</p>;
+            return (
+              <ul>
+                {todos.map((todo) => (
+                  <li key={todo.id}>
+                    <label>
+                      <input type="checkbox" checked={todo.done} onChange={() => onToggle(todo.id)} />
+                      <span style={{ textDecoration: todo.done ? "line-through" : "none" }}>{todo.title}</span>
+                    </label>
+                    <button type="button" onClick={() => onDelete(todo.id)} aria-label={`Delete ${todo.title}`}>
+                      Delete
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Using the array index as the key and items swap their checkboxes after a delete."
+          tr: "Key olarak dizi indeksini kullanmak ve silmeden sonra öğelerin onay kutularının karışması."
+        fix:
+          en: "Use an id that belongs to the item and never changes, like one from crypto.randomUUID()."
+          tr: "Öğeye ait ve hiç değişmeyen bir id kullan; örneğin crypto.randomUUID() ile üretilen."
+      - problem:
+          en: "{count && <p>...</p>} shows a stray 0 when count is 0."
+          tr: "{count && <p>...</p>} count 0 iken ekranda tek başına 0 gösterir."
+        fix:
+          en: "Use a real true/false on the left: {count > 0 && <p>...</p>}."
+          tr: "Solda gerçek bir true/false kullan: {count > 0 && <p>...</p>}."
+    quiz:
+      - q:
+          en: "What makes a good key?"
+          tr: "İyi bir key nasıl olur?"
+        options:
+          en: [Math.random(), The position in the array, An id that belongs to the item and never changes]
+          tr: [Math.random(), Dizideki sıra numarası, Öğeye ait ve hiç değişmeyen bir id]
+        answer: 2
+        why:
+          en: "Random keys change every render and positions change when items move; both confuse React."
+          tr: "Rastgele key'ler her çizimde değişir, sıra numaraları da öğeler yer değiştirince değişir; ikisi de React'in kafasını karıştırır."
+    sources:
+      - title: Rendering lists
+        url: https://react.dev/learn/rendering-lists
+      - title: Conditional rendering
+        url: https://react.dev/learn/conditional-rendering
+
+  - id: todo-app
+    stage: first-project
+    title:
+      en: "Build the todo app"
+      tr: "Yapılacaklar uygulamasını yazma"
+    minutes: 120
+    needs: [lists]
+    why:
+      en: "Now the pieces come together in a real app. You learn where state should live (in the closest common parent) and how children change it through functions passed as props."
+      tr: "Şimdi parçalar gerçek bir uygulamada birleşiyor. State'in nerede durması gerektiğini (en yakın ortak üst bileşende) ve alt bileşenlerin onu props ile verilen fonksiyonlar üzerinden nasıl değiştirdiğini öğrenirsin."
+    learn:
+      en: |
+        - Lifting state up: App owns the list, children get data and callbacks
+        - Handling a form submit and clearing the input
+        - Computing values from state (the filtered list, how many are left) instead of storing them twice
+      tr: |
+        - State'i yukarı taşımak: listeyi App tutar, alt bileşenler veri ve fonksiyon alır
+        - Form gönderimini yakalamak ve input'u temizlemek
+        - Değerleri iki kez saklamak yerine state'ten hesaplamak (süzülmüş liste, kaç tane kaldığı)
+    do:
+      en: |
+        1. Create `src/TodoForm.jsx` and replace `src/App.jsx` with the code below (keep `TodoList.jsx` from the last step).
+        2. Add, tick off and delete a few todos. Try each filter button.
+        3. Commit: `git add . && git commit -m "Todo app: add, toggle, delete, filter"`.
+      tr: |
+        1. `src/TodoForm.jsx` dosyasını oluştur ve `src/App.jsx` içeriğini aşağıdaki kodla değiştir (`TodoList.jsx` önceki adımdaki gibi kalsın).
+        2. Birkaç iş ekle, işaretle ve sil. Her süzme düğmesini dene.
+        3. Commit et: `git add . && git commit -m "Todo app: add, toggle, delete, filter"`.
+    code:
+      - file: src/TodoForm.jsx
+        lang: jsx
+        text: |
+          import { useState } from "react";
+
+          export default function TodoForm({ onAdd }) {
+            const [title, setTitle] = useState("");
+
+            function handleSubmit(event) {
+              event.preventDefault(); // stop the browser from reloading the page
+              const clean = title.trim();
+              if (!clean) return;
+              onAdd(clean);
+              setTitle("");
+            }
+
+            return (
+              <form onSubmit={handleSubmit}>
+                <input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  placeholder="What needs doing?"
+                  aria-label="New todo"
+                />
+                <button type="submit">Add</button>
+              </form>
+            );
+          }
+      - file: src/App.jsx
+        lang: jsx
+        text: |
+          import { useState } from "react";
+          import TodoForm from "./TodoForm.jsx";
+          import TodoList from "./TodoList.jsx";
+
+          export default function App() {
+            const [todos, setTodos] = useState([]);
+            const [filter, setFilter] = useState("all");
+
+            function addTodo(title) {
+              setTodos([...todos, { id: crypto.randomUUID(), title, done: false }]);
+            }
+
+            function toggleTodo(id) {
+              setTodos(todos.map((todo) => (todo.id === id ? { ...todo, done: !todo.done } : todo)));
+            }
+
+            function deleteTodo(id) {
+              setTodos(todos.filter((todo) => todo.id !== id));
+            }
+
+            // Computed from state on every render, never stored separately.
+            const visible = todos.filter((todo) => {
+              if (filter === "open") return !todo.done;
+              if (filter === "done") return todo.done;
+              return true;
+            });
+            const left = todos.filter((todo) => !todo.done).length;
+
+            return (
+              <main>
+                <h1>My todos</h1>
+                <TodoForm onAdd={addTodo} />
+                <p>
+                  {["all", "open", "done"].map((name) => (
+                    <button key={name} type="button" onClick={() => setFilter(name)} disabled={filter === name}>
+                      {name}
+                    </button>
+                  ))}
+                </p>
+                <TodoList todos={visible} onToggle={toggleTodo} onDelete={deleteTodo} />
+                <p>{left} left</p>
+              </main>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "The page reloads and the todo disappears when you press Enter."
+          tr: "Enter'a basınca sayfa yenileniyor ve yapılacak kayboluyor."
+        fix:
+          en: "Call event.preventDefault() in the submit handler; a form's default is to reload the page."
+          tr: "Gönderim fonksiyonunda event.preventDefault() çağır; formun varsayılan davranışı sayfayı yenilemektir."
+      - problem:
+          en: "Keeping a second state for the filtered list that gets out of sync."
+          tr: "Süzülmüş liste için ikinci bir state tutmak ve onun asıl listeyle uyumsuz kalması."
+        fix:
+          en: "Compute it from todos and filter on each render, as above. Store the least state you can."
+          tr: "Yukarıdaki gibi her çizimde todos ve filter'dan hesapla. Olabildiğince az state sakla."
+    quiz:
+      - q:
+          en: "Why does App hold the todos and not TodoList?"
+          tr: "Yapılacakları neden TodoList değil de App tutuyor?"
+        options:
+          en: ["App is the closest component that both the form and the list are inside", "TodoList cannot use state", "It makes the app faster"]
+          tr: ["App, hem formun hem listenin içinde olduğu en yakın bileşen", "TodoList state kullanamaz", "Uygulamayı hızlandırır"]
+        answer: 0
+        why:
+          en: "The form adds and the list shows; the state goes to their closest common parent so both can use it."
+          tr: "Form ekliyor, liste gösteriyor; ikisi de kullanabilsin diye state en yakın ortak üst bileşene konur."
+    sources:
+      - title: Sharing state between components
+        url: https://react.dev/learn/sharing-state-between-components
+      - title: Choosing the state structure
+        url: https://react.dev/learn/choosing-the-state-structure
+
+  - id: persist
+    stage: data-api
+    title:
+      en: "Keep the todos after a reload"
+      tr: "Sayfa yenilenince yapılacakları koruma"
+    minutes: 45
+    needs: [todo-app]
+    why:
+      en: "Right now a reload empties the list. Saving it in the browser's localStorage keeps it on this computer. You also meet useEffect, React's way to keep something outside React in sync with your state."
+      tr: "Şu an sayfa yenilenince liste boşalıyor. Onu tarayıcının localStorage'ında saklamak bu bilgisayarda korur. React dışındaki bir şeyi state ile uyumlu tutmanın React yolu olan useEffect ile de tanışırsın."
+    learn:
+      en: |
+        - `localStorage` keeps text per site in the browser; objects go in as JSON
+        - `useEffect(fn, [todos])` runs after the screen updates, whenever todos changed
+        - Starting state from a function so the saved list is read only once
+      tr: |
+        - `localStorage` tarayıcıda site başına metin saklar; nesneler JSON olarak girer
+        - `useEffect(fn, [todos])` ekran güncellendikten sonra, todos her değiştiğinde çalışır
+        - Kayıtlı listenin sadece bir kez okunması için state'i bir fonksiyonla başlatmak
+    do:
+      en: |
+        1. In `App.jsx`, add the `loadTodos` function and the effect below, and start the state with `useState(loadTodos)`.
+        2. Add a few todos and reload the page: they stay.
+        3. In the browser's developer tools (F12 → Application → Local Storage) you can see the saved JSON.
+      tr: |
+        1. `App.jsx` içine aşağıdaki `loadTodos` fonksiyonunu ve effect'i ekle, state'i `useState(loadTodos)` ile başlat.
+        2. Birkaç iş ekle ve sayfayı yenile: kaybolmazlar.
+        3. Tarayıcının geliştirici araçlarında (F12 → Application → Local Storage) kayıtlı JSON'u görebilirsin.
+    code:
+      - file: src/App.jsx (top)
+        lang: jsx
+        text: |
+          import { useEffect, useState } from "react";
+          import TodoForm from "./TodoForm.jsx";
+          import TodoList from "./TodoList.jsx";
+
+          const STORAGE_KEY = "todos";
+
+          // Read the saved list once, when the app starts. Broken or missing data means an empty list.
+          function loadTodos() {
+            try {
+              return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
+            } catch {
+              return [];
+            }
+          }
+
+          export default function App() {
+            const [todos, setTodos] = useState(loadTodos);
+            const [filter, setFilter] = useState("all");
+
+            // Save the list every time it changes.
+            useEffect(() => {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+            }, [todos]);
+
+            // ... addTodo, toggleTodo, deleteTodo and the JSX stay as they were
+    mistakes:
+      - problem:
+          en: "useState(loadTodos()) reads localStorage on every render."
+          tr: "useState(loadTodos()) her çizimde localStorage okur."
+        fix:
+          en: "Pass the function itself, useState(loadTodos); React calls it only for the first render."
+          tr: "Fonksiyonun kendisini ver, useState(loadTodos); React onu sadece ilk çizimde çağırır."
+      - problem:
+          en: "Storing passwords or tokens in localStorage."
+          tr: "Şifreleri ya da token'ları localStorage'da saklamak."
+        fix:
+          en: "Any script on the page can read localStorage. Keep only harmless data there."
+          tr: "Sayfadaki her script localStorage'ı okuyabilir. Orada sadece zararsız veriler tut."
+    quiz:
+      - q:
+          en: "When does the effect with [todos] run?"
+          tr: "[todos] bağımlılıklı effect ne zaman çalışır?"
+        options:
+          en: [Only once, After the first render and after every render where todos changed, Before every render]
+          tr: [Sadece bir kez, İlk çizimden sonra ve todos'un değiştiği her çizimden sonra, Her çizimden önce]
+        answer: 1
+        why:
+          en: "Effects run after React updates the screen, and again only when a value in the list changed."
+          tr: "Effect'ler React ekranı güncelledikten sonra çalışır, sonra sadece listedeki bir değer değişince tekrar çalışır."
+    sources:
+      - title: Synchronizing with effects
+        url: https://react.dev/learn/synchronizing-with-effects
+      - title: Avoiding recreating the initial state
+        url: https://react.dev/reference/react/useState#avoiding-recreating-the-initial-state
+      - title: Window.localStorage (MDN)
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
+
+  - id: fetch
+    stage: data-api
+    title:
+      en: "Load data from an API"
+      tr: "Bir API'den veri yükleme"
+    minutes: 60
+    needs: [persist]
+    why:
+      en: "Real apps get their data from servers. Fetching means waiting, and the request can fail, so every screen that loads data has three states to show: loading, error and ready."
+      tr: "Gerçek uygulamalar verilerini sunuculardan alır. Veri çekmek beklemek demek ve istek başarısız olabilir; bu yüzden veri yükleyen her ekranın göstereceği üç durum vardır: yükleniyor, hata ve hazır."
+    learn:
+      en: |
+        - `fetch` and JSON
+        - Showing loading and error states
+        - Cancelling a request when the component goes away (AbortController and the effect's cleanup)
+        - Why bigger apps use a data library or a framework for this
+      tr: |
+        - `fetch` ve JSON
+        - Yükleniyor ve hata durumlarını göstermek
+        - Bileşen kaybolunca isteği iptal etmek (AbortController ve effect'in temizlik fonksiyonu)
+        - Büyük uygulamaların bunun için neden bir veri kütüphanesi ya da framework kullandığı
+    do:
+      en: |
+        1. Create `src/Suggestions.jsx` below. It loads five sample todos from JSONPlaceholder, a free practice API.
+        2. Show it in `App.jsx` under the form: `<Suggestions onPick={addTodo} />`. Clicking an idea adds it.
+        3. Turn off your internet (or change the URL) and reload to see the error state.
+      tr: |
+        1. Aşağıdaki `src/Suggestions.jsx` dosyasını oluştur. Ücretsiz bir deneme API'si olan JSONPlaceholder'dan beş örnek yapılacak yükler.
+        2. `App.jsx` içinde formun altında göster: `<Suggestions onPick={addTodo} />`. Bir fikre tıklayınca listeye eklenir.
+        3. İnterneti kapat (ya da adresi değiştir) ve sayfayı yenileyip hata durumunu gör.
+    code:
+      - file: src/Suggestions.jsx
+        lang: jsx
+        text: |
+          import { useEffect, useState } from "react";
+
+          const URL = "https://jsonplaceholder.typicode.com/todos?_limit=5";
+
+          export default function Suggestions({ onPick }) {
+            const [items, setItems] = useState([]);
+            const [status, setStatus] = useState("loading");
+
+            useEffect(() => {
+              const controller = new AbortController();
+              fetch(URL, { signal: controller.signal })
+                .then((response) => {
+                  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                  return response.json();
+                })
+                .then((data) => {
+                  setItems(data);
+                  setStatus("ready");
+                })
+                .catch((error) => {
+                  if (error.name !== "AbortError") setStatus("error");
+                });
+              // If the component goes away before the answer comes, cancel the request.
+              return () => controller.abort();
+            }, []);
+
+            if (status === "loading") return <p>Loading ideas...</p>;
+            if (status === "error") return <p>Could not load ideas. Check your connection.</p>;
+            return (
+              <ul>
+                {items.map((item) => (
+                  <li key={item.id}>
+                    <button type="button" onClick={() => onPick(item.title)}>
+                      + {item.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "The request is sent twice while developing."
+          tr: "Geliştirirken istek iki kez gidiyor."
+        fix:
+          en: "StrictMode runs effects twice in development on purpose, to find missing cleanups. With the abort cleanup above it is harmless, and production runs it once."
+          tr: "StrictMode, eksik temizlik fonksiyonlarını bulmak için geliştirme sırasında effect'leri bilerek iki kez çalıştırır. Yukarıdaki abort temizliğiyle zararsızdır; production'da bir kez çalışır."
+      - problem:
+          en: "fetch does not throw on a 404 or 500 and broken data is shown."
+          tr: "fetch 404 ya da 500'de hata fırlatmaz ve bozuk veri gösterilir."
+        fix:
+          en: "Check response.ok yourself, as the code above does."
+          tr: "Yukarıdaki kodda olduğu gibi response.ok'u kendin kontrol et."
+    quiz:
+      - q:
+          en: "Why does the effect return controller.abort?"
+          tr: "Effect neden controller.abort döndürüyor?"
+        options:
+          en: [To make fetch faster, To cancel the request if the component goes away before it finishes, Because fetch requires it]
+          tr: [fetch'i hızlandırmak için, Bileşen istek bitmeden kaybolursa isteği iptal etmek için, Çünkü fetch bunu zorunlu tutuyor]
+        answer: 1
+        why:
+          en: "The function an effect returns is its cleanup; React calls it when the component is removed or before the effect runs again."
+          tr: "Effect'in döndürdüğü fonksiyon onun temizlik fonksiyonudur; React onu bileşen kaldırılınca ya da effect yeniden çalışmadan önce çağırır."
+    sources:
+      - title: Fetching data with effects
+        url: https://react.dev/learn/synchronizing-with-effects#fetching-data
+      - title: Using the Fetch API (MDN)
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+      - title: JSONPlaceholder
+        url: https://jsonplaceholder.typicode.com/
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the app like a user"
+      tr: "Uygulamayı bir kullanıcı gibi test etme"
+    minutes: 75
+    needs: [todo-app]
+    why:
+      en: "Every change can break something you are not looking at. Tests click and type like a user and check the result in seconds, so you can change code without fear."
+      tr: "Her değişiklik bakmadığın bir yeri bozabilir. Testler bir kullanıcı gibi tıklar, yazar ve sonucu saniyeler içinde kontrol eder; böylece kodu korkmadan değiştirebilirsin."
+    learn:
+      en: |
+        - Vitest, the test runner that uses your Vite setup
+        - Testing Library: finding elements the way a user sees them (label, role, text)
+        - `user-event` for real typing and clicking
+      tr: |
+        - Vite ayarlarını kullanan test çalıştırıcısı Vitest
+        - Testing Library: elemanları kullanıcının gördüğü gibi bulmak (etiket, rol, metin)
+        - Gerçek yazma ve tıklama için `user-event`
+    do:
+      en: |
+        1. Install the test tools (first command below).
+        2. Add the `test` part to `vite.config.js` and a `"test": "vitest"` script in `package.json`.
+        3. Create `src/App.test.jsx` and run `npm test`. Both tests should pass.
+        4. Break the app on purpose (for example remove `setTitle("")`) and see which test fails, then fix it.
+      tr: |
+        1. Test araçlarını kur (aşağıdaki ilk komut).
+        2. `vite.config.js` dosyasına `test` kısmını, `package.json` dosyasına `"test": "vitest"` script'ini ekle.
+        3. `src/App.test.jsx` dosyasını oluştur ve `npm test` çalıştır. İki test de geçmeli.
+        4. Uygulamayı bilerek boz (örneğin `setTitle("")` satırını sil) ve hangi testin kırıldığını gör, sonra düzelt.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install -D vitest @testing-library/react @testing-library/user-event jsdom
+      - file: vite.config.js
+        lang: js
+        text: |
+          import react from "@vitejs/plugin-react";
+          import { defineConfig } from "vite";
+
+          export default defineConfig({
+            plugins: [react()],
+            test: {
+              environment: "jsdom", // a fake browser for the tests
+              globals: true, // lets Testing Library clean the page after each test
+            },
+          });
+      - file: src/App.test.jsx
+        lang: jsx
+        text: |
+          import { render, screen } from "@testing-library/react";
+          import userEvent from "@testing-library/user-event";
+          import { beforeEach, expect, test } from "vitest";
+          import App from "./App.jsx";
+
+          beforeEach(() => localStorage.clear());
+
+          test("adds a todo", async () => {
+            const user = userEvent.setup();
+            render(<App />);
+            await user.type(screen.getByLabelText("New todo"), "Buy milk");
+            await user.click(screen.getByRole("button", { name: "Add" }));
+            expect(screen.getByText("Buy milk")).toBeTruthy();
+            expect(screen.getByText("1 left")).toBeTruthy();
+          });
+
+          test("marks a todo as done", async () => {
+            const user = userEvent.setup();
+            render(<App />);
+            await user.type(screen.getByLabelText("New todo"), "Walk the dog");
+            await user.click(screen.getByRole("button", { name: "Add" }));
+            await user.click(screen.getByRole("checkbox"));
+            expect(screen.getByText("0 left")).toBeTruthy();
+          });
+    mistakes:
+      - problem:
+          en: "\"Found multiple elements\" in the second test."
+          tr: "İkinci testte \"Found multiple elements\" hatası."
+        fix:
+          en: "The first test's page was not cleaned up. Testing Library cleans up by itself only when globals is true (or call cleanup() in afterEach)."
+          tr: "İlk testin sayfası temizlenmemiş. Testing Library sadece globals true ise kendiliğinden temizler (ya da afterEach içinde cleanup() çağır)."
+      - problem:
+          en: "Tests pass alone but fail together because of saved todos."
+          tr: "Testler tek tek geçiyor ama birlikte çalışınca kayıtlı yapılacaklar yüzünden kırılıyor."
+        fix:
+          en: "Clear localStorage before each test, as beforeEach does above."
+          tr: "Yukarıdaki beforeEach gibi her testten önce localStorage'ı temizle."
+      - problem:
+          en: "Testing internals (state values, CSS classes) so tests break on every refactor."
+          tr: "İç detayları test etmek (state değerleri, CSS sınıfları); testler her düzenlemede kırılır."
+        fix:
+          en: "Test what the user sees and does. Find elements by label, role and text."
+          tr: "Kullanıcının gördüğünü ve yaptığını test et. Elemanları etiket, rol ve metinle bul."
+    quiz:
+      - q:
+          en: "Why find the input by its label instead of a CSS class?"
+          tr: "Input'u neden CSS sınıfıyla değil de etiketiyle buluyoruz?"
+        options:
+          en: ["It is faster", "A user (and a screen reader) finds it the same way, so the test checks what matters", "CSS classes do not work in tests"]
+          tr: ["Daha hızlı", "Kullanıcı (ve ekran okuyucu) onu aynı yolla bulur; test önemli olanı kontrol eder", "CSS sınıfları testlerde çalışmaz"]
+        answer: 1
+        why:
+          en: "Testing Library's guiding idea is that tests should resemble how the software is used."
+          tr: "Testing Library'nin temel fikri, testlerin yazılımın kullanılma şekline benzemesi gerektiğidir."
+    sources:
+      - title: Vitest, getting started
+        url: https://vitest.dev/guide/
+      - title: React Testing Library
+        url: https://testing-library.com/docs/react-testing-library/intro/
+      - title: Testing Library, which query to use
+        url: https://testing-library.com/docs/queries/about/#priority
+
+  - id: security
+    stage: security
+    title:
+      en: "Keep the app and its users safe"
+      tr: "Uygulamayı ve kullanıcılarını güvende tutma"
+    minutes: 45
+    needs: [fetch]
+    why:
+      en: "Everything in a front-end app is sent to the browser, where anyone can read it. Knowing what React protects you from, and what it does not, avoids the most common leaks and attacks."
+      tr: "Front-end uygulamasındaki her şey tarayıcıya gönderilir ve orada herkes okuyabilir. React'in seni neye karşı koruduğunu ve neye karşı korumadığını bilmek en sık görülen sızıntıları ve saldırıları önler."
+    learn:
+      en: |
+        - React escapes text in `{}`, which blocks most cross-site scripting (XSS)
+        - `dangerouslySetInnerHTML` turns that protection off
+        - Variables starting with `VITE_` end up in the built JavaScript: never put secrets there
+        - Checking your packages for known problems with `npm audit`
+      tr: |
+        - React `{}` içindeki metni kaçışlar (escape); bu, siteler arası script saldırılarının (XSS) çoğunu engeller
+        - `dangerouslySetInnerHTML` bu korumayı kapatır
+        - `VITE_` ile başlayan değişkenler build edilen JavaScript'e girer: oraya asla sır koyma
+        - Paketlerini bilinen sorunlara karşı `npm audit` ile kontrol etmek
+    do:
+      en: |
+        1. Add a todo called `<img src=x onerror=alert(1)>`. It shows as plain text: React escaped it.
+        2. Run `npm audit` and read what it reports. Update with `npm update` and run the tests again.
+        3. If you ever need an API key, keep it on a server (a small backend or serverless function) that calls the API for you. The browser must never receive it.
+      tr: |
+        1. `<img src=x onerror=alert(1)>` adında bir yapılacak ekle. Düz metin olarak görünür: React onu kaçışladı.
+        2. `npm audit` çalıştır ve ne bildirdiğini oku. `npm update` ile güncelle ve testleri tekrar çalıştır.
+        3. Bir gün API anahtarı gerekirse onu, API'yi senin yerine çağıran bir sunucuda (küçük bir backend ya da serverless fonksiyon) tut. Tarayıcı onu asla almamalı.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm audit
+          npm update
+          npm test
+    mistakes:
+      - problem:
+          en: "Putting an API secret in .env as VITE_API_KEY because \"it is in .env so it is private\"."
+          tr: "\"Nasılsa .env'de, gizlidir\" diye bir API sırrını .env içine VITE_API_KEY olarak koymak."
+        fix:
+          en: "Vite puts every VITE_ variable into the code sent to browsers. Anyone can read it with F12. Keep secrets on a server."
+          tr: "Vite her VITE_ değişkenini tarayıcıya giden koda koyar. Herkes F12 ile okuyabilir. Sırları sunucuda tut."
+      - problem:
+          en: "Showing HTML from users or an API with dangerouslySetInnerHTML."
+          tr: "Kullanıcılardan ya da bir API'den gelen HTML'i dangerouslySetInnerHTML ile göstermek."
+        fix:
+          en: "Avoid it. If you really must show HTML, clean it first with a sanitizer such as DOMPurify."
+          tr: "Kaçın. Gerçekten HTML göstermen gerekiyorsa önce DOMPurify gibi bir temizleyiciden geçir."
+    quiz:
+      - q:
+          en: "Is VITE_API_KEY in .env safe from visitors?"
+          tr: ".env içindeki VITE_API_KEY ziyaretçilerden güvende mi?"
+        options:
+          en: ["Yes, .env files are never sent", "No, it is built into the JavaScript the browser downloads", "Only in production"]
+          tr: ["Evet, .env dosyaları hiç gönderilmez", "Hayır, tarayıcının indirdiği JavaScript'e gömülür", "Sadece production'da"]
+        answer: 1
+        why:
+          en: "Vite replaces import.meta.env.VITE_* with its value at build time, so it is in the public files."
+          tr: "Vite build sırasında import.meta.env.VITE_* yerine değerini yazar; yani herkese açık dosyalarda durur."
+    sources:
+      - title: Vite, env variables
+        url: https://vite.dev/guide/env-and-mode
+      - title: React, dangerouslySetInnerHTML
+        url: https://react.dev/reference/react-dom/components/common#dangerously-setting-the-inner-html
+      - title: OWASP, cross-site scripting prevention
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html
+      - title: npm audit
+        url: https://docs.npmjs.com/cli/commands/npm-audit
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Measure before you optimize"
+      tr: "Hızlandırmadan önce ölç"
+    minutes: 60
+    needs: [tests]
+    why:
+      en: "Most React apps are fast enough without tricks. When something is slow, measuring shows the real cause; guessing usually adds complexity without making anything faster."
+      tr: "Çoğu React uygulaması hile yapmadan yeterince hızlıdır. Bir şey yavaş olduğunda ölçmek gerçek sebebi gösterir; tahmin etmek genelde hiçbir şeyi hızlandırmadan karmaşıklık ekler."
+    learn:
+      en: |
+        - React Developer Tools and its Profiler: which component rendered and how long it took
+        - Lighthouse in Chrome for load speed
+        - `memo`, `useMemo` and `useCallback`: what they do and when they are worth it
+        - React Compiler, which adds this memoization for you
+        - Loading parts of the app only when needed with `lazy`
+      tr: |
+        - React Developer Tools ve Profiler'ı: hangi bileşen çizildi, ne kadar sürdü
+        - Yüklenme hızı için Chrome'daki Lighthouse
+        - `memo`, `useMemo` ve `useCallback`: ne yaptıkları ve ne zaman değdikleri
+        - Bu ezberlemeyi (memoization) senin yerine ekleyen React Compiler
+        - Uygulamanın parçalarını `lazy` ile sadece gerektiğinde yüklemek
+    do:
+      en: |
+        1. Install the React Developer Tools browser extension, open the Profiler tab, record while you add a todo, and look at which components rendered.
+        2. Run `npm run build` and `npm run preview`, then run Lighthouse (Chrome DevTools → Lighthouse) on the preview address. Development mode is slower on purpose, so always measure a build.
+        3. Only if the profiler shows a slow component, read the memo and useMemo pages and try them there.
+      tr: |
+        1. React Developer Tools tarayıcı eklentisini kur, Profiler sekmesini aç, bir yapılacak eklerken kayıt al ve hangi bileşenlerin çizildiğine bak.
+        2. `npm run build` ve `npm run preview` çalıştır, sonra önizleme adresinde Lighthouse'u çalıştır (Chrome DevTools → Lighthouse). Geliştirme modu bilerek yavaştır; her zaman build'i ölç.
+        3. Sadece profiler yavaş bir bileşen gösterirse memo ve useMemo sayfalarını oku ve orada dene.
+    code:
+      - file: src/main.jsx (loading a heavy part later)
+        lang: jsx
+        text: |
+          import { lazy, Suspense } from "react";
+
+          // The chart's code is downloaded only when it is first shown.
+          const Stats = lazy(() => import("./Stats.jsx"));
+
+          export function StatsPanel() {
+            return (
+              <Suspense fallback={<p>Loading...</p>}>
+                <Stats />
+              </Suspense>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Wrapping everything in useMemo and useCallback \"to be fast\"."
+          tr: "\"Hızlı olsun\" diye her şeyi useMemo ve useCallback içine sarmak."
+        fix:
+          en: "They have a cost and make code harder to read. Use them where the profiler shows a real problem, or let React Compiler handle it."
+          tr: "Bir maliyetleri var ve kodu okumayı zorlaştırırlar. Profiler'ın gerçek bir sorun gösterdiği yerde kullan ya da işi React Compiler'a bırak."
+      - problem:
+          en: "Measuring speed with npm run dev."
+          tr: "Hızı npm run dev ile ölçmek."
+        fix:
+          en: "Development mode adds extra checks. Measure the result of npm run build."
+          tr: "Geliştirme modu ek kontroller yapar. npm run build sonucunu ölç."
+    quiz:
+      - q:
+          en: "When should you add useMemo?"
+          tr: "useMemo ne zaman eklenmeli?"
+        options:
+          en: [To every computed value, When measuring shows a slow calculation that runs too often, Never]
+          tr: [Hesaplanan her değere, Ölçüm sık çalışan yavaş bir hesaplama gösterdiğinde, Asla]
+        answer: 1
+        why:
+          en: "useMemo skips a calculation when its inputs did not change. It only pays off for calculations that are really slow."
+          tr: "useMemo, girdileri değişmediğinde bir hesaplamayı atlar. Sadece gerçekten yavaş hesaplamalarda işe yarar."
+    sources:
+      - title: React Developer Tools
+        url: https://react.dev/learn/react-developer-tools
+      - title: useMemo
+        url: https://react.dev/reference/react/useMemo
+      - title: React Compiler
+        url: https://react.dev/learn/react-compiler
+      - title: lazy
+        url: https://react.dev/reference/react/lazy
+      - title: Lighthouse
+        url: https://developer.chrome.com/docs/lighthouse/overview
+
+  - id: build
+    stage: packaging
+    title:
+      en: "Build the app for the internet"
+      tr: "Uygulamayı internet için build etme"
+    minutes: 30
+    needs: [tests]
+    why:
+      en: "The development server is only for you. A build turns your code into a few small, fast files that any web server can send, with no Node.js needed on the server."
+      tr: "Geliştirme sunucusu sadece senin için. Build, kodunu herhangi bir web sunucusunun gönderebileceği birkaç küçük ve hızlı dosyaya çevirir; sunucuda Node.js gerekmez."
+    learn:
+      en: |
+        - What `npm run build` makes: the `dist` folder with HTML, JavaScript and CSS
+        - Trying the build on your computer with `npm run preview`
+        - The `base` setting when the app lives in a sub-folder of a site
+      tr: |
+        - `npm run build`'in ne ürettiği: HTML, JavaScript ve CSS içeren `dist` klasörü
+        - Build'i kendi bilgisayarında `npm run preview` ile denemek
+        - Uygulama bir sitenin alt klasöründe duracaksa `base` ayarı
+    do:
+      en: |
+        1. Run `npm run build` and look at the `dist` folder and the sizes it prints.
+        2. Run `npm run preview` and open the address. This is exactly what visitors will get.
+        3. `dist` is generated: check that `.gitignore` lists it so it is never committed.
+      tr: |
+        1. `npm run build` çalıştır, `dist` klasörüne ve yazdığı boyutlara bak.
+        2. `npm run preview` çalıştır ve adresi aç. Ziyaretçilerin alacağı tam olarak budur.
+        3. `dist` üretilmiş bir klasör: hiç commit edilmesin diye `.gitignore`'da yazılı olduğunu kontrol et.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm run build
+          npm run preview
+    mistakes:
+      - problem:
+          en: "Opening dist/index.html directly from the file manager shows a blank page."
+          tr: "dist/index.html'i dosya yöneticisinden doğrudan açınca sayfa boş görünüyor."
+        fix:
+          en: "Built files must be served over HTTP. Use npm run preview or a real web server."
+          tr: "Build edilmiş dosyalar HTTP üzerinden sunulmalı. npm run preview ya da gerçek bir web sunucusu kullan."
+    quiz:
+      - q:
+          en: "Does the server need Node.js to host this build?"
+          tr: "Bu build'i barındırmak için sunucuda Node.js gerekir mi?"
+        options:
+          en: ["Yes", "No, it is plain static files", "Only for the JavaScript"]
+          tr: ["Evet", "Hayır, düz statik dosyalar", "Sadece JavaScript için"]
+        answer: 1
+        why:
+          en: "A Vite React build is static HTML, CSS and JavaScript; any static host can serve it."
+          tr: "Vite ile build edilen bir React uygulaması statik HTML, CSS ve JavaScript'tir; herhangi bir statik barındırma servisi sunabilir."
+    sources:
+      - title: Vite, building for production
+        url: https://vite.dev/guide/build
+      - title: Vite, base option
+        url: https://vite.dev/config/shared-options#base
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Publish on GitHub Pages"
+      tr: "GitHub Pages'te yayınlama"
+    minutes: 60
+    needs: [build]
+    why:
+      en: "Publishing makes your app reachable by anyone with the link. With GitHub Actions every push to main builds and publishes the app by itself, for free."
+      tr: "Yayınlamak uygulamanı bağlantıya sahip herkesin erişebileceği hale getirir. GitHub Actions ile main'e her push'ta uygulama kendiliğinden build edilir ve ücretsiz yayınlanır."
+    learn:
+      en: |
+        - Putting your project on GitHub
+        - A GitHub Actions workflow that builds and deploys
+        - Setting `base` for a project site at `https://<user>.github.io/<repo>/`
+      tr: |
+        - Projeni GitHub'a koymak
+        - Build edip yayınlayan bir GitHub Actions workflow'u
+        - `https://<kullanıcı>.github.io/<repo>/` adresindeki bir proje sitesi için `base` ayarı
+    do:
+      en: |
+        1. Create an empty repository named `todo` on github.com, then connect and push (first commands below).
+        2. In `vite.config.js` add `base: "/todo/"` (your repository's name between slashes).
+        3. Create `.github/workflows/deploy.yml` with the content below, commit and push.
+        4. On GitHub: *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+        5. Open the *Actions* tab and wait for the green check. Your app is at `https://<your-user>.github.io/todo/`.
+      tr: |
+        1. github.com'da `todo` adında boş bir repo oluştur, sonra bağla ve push et (aşağıdaki ilk komutlar).
+        2. `vite.config.js` dosyasına `base: "/todo/"` ekle (repo adın, iki eğik çizgi arasında).
+        3. Aşağıdaki içerikle `.github/workflows/deploy.yml` dosyasını oluştur, commit ve push et.
+        4. GitHub'da: *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+        5. *Actions* sekmesini aç ve yeşil onayı bekle. Uygulaman `https://<kullanıcı-adın>.github.io/todo/` adresinde.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git remote add origin https://github.com/<your-user>/todo.git
+          git push -u origin main
+      - file: .github/workflows/deploy.yml
+        lang: yaml
+        text: |
+          name: Deploy to GitHub Pages
+
+          on:
+            push:
+              branches: [main]
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+          concurrency:
+            group: pages
+            cancel-in-progress: true
+
+          jobs:
+            deploy:
+              environment:
+                name: github-pages
+                url: ${{ steps.deployment.outputs.page_url }}
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: lts/*
+                    cache: npm
+                - run: npm ci
+                - run: npm test -- --run
+                - run: npm run build
+                - uses: actions/configure-pages@v6
+                - uses: actions/upload-pages-artifact@v5
+                  with:
+                    path: ./dist
+                - id: deployment
+                  uses: actions/deploy-pages@v5
+    mistakes:
+      - problem:
+          en: "The published page is blank and the console shows 404 for the JavaScript files."
+          tr: "Yayınlanan sayfa boş ve konsolda JavaScript dosyaları için 404 görünüyor."
+        fix:
+          en: "base is missing or wrong. For https://user.github.io/todo/ it must be \"/todo/\", with both slashes."
+          tr: "base eksik ya da yanlış. https://user.github.io/todo/ için iki eğik çizgisiyle \"/todo/\" olmalı."
+      - problem:
+          en: "The workflow fails at npm ci."
+          tr: "Workflow npm ci adımında başarısız oluyor."
+        fix:
+          en: "package-lock.json must be committed. npm ci installs exactly what it lists."
+          tr: "package-lock.json commit edilmiş olmalı. npm ci tam olarak onda yazanları kurar."
+    quiz:
+      - q:
+          en: "Why does the workflow run the tests before building?"
+          tr: "Workflow neden build'den önce testleri çalıştırıyor?"
+        options:
+          en: [GitHub requires it, So a broken version is never published, To make the build smaller]
+          tr: [GitHub zorunlu tutuyor, Bozuk bir sürüm asla yayınlanmasın diye, Build'i küçültmek için]
+        answer: 1
+        why:
+          en: "If a test fails the job stops and the last good version stays online."
+          tr: "Bir test başarısız olursa iş durur ve son sağlam sürüm yayında kalır."
+    sources:
+      - title: Vite, deploying to GitHub Pages
+        url: https://vite.dev/guide/static-deploy#github-pages
+      - title: GitHub Pages with a custom workflow
+        url: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+      - title: Pushing to a remote (Git)
+        url: https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Know when it breaks"
+      tr: "Bozulduğunda haberin olsun"
+    minutes: 45
+    needs: [deploy]
+    why:
+      en: "Once real people use the app you will not see their screens. An error boundary shows a friendly message instead of a blank page, error reporting tells you what broke, and an uptime check tells you when the site is down."
+      tr: "Uygulamayı gerçek insanlar kullanmaya başlayınca onların ekranını göremezsin. Error boundary boş sayfa yerine dostça bir mesaj gösterir, hata raporlama neyin bozulduğunu söyler, uptime kontrolü de site çöktüğünde haber verir."
+    learn:
+      en: |
+        - Error boundaries: catching a crash in part of the page
+        - React 19's `onUncaughtError` and `onCaughtError` root options for reporting errors
+        - Uptime checks and keeping packages up to date
+      tr: |
+        - Error boundary'ler: sayfanın bir kısmındaki çökmeyi yakalamak
+        - Hataları raporlamak için React 19'un kök seçenekleri `onUncaughtError` ve `onCaughtError`
+        - Uptime kontrolleri ve paketleri güncel tutmak
+    do:
+      en: |
+        1. Create `src/ErrorBoundary.jsx` below and wrap `<App />` with it in `main.jsx`.
+        2. Pass `onUncaughtError` and `onCaughtError` to `createRoot`, as below, and send the error wherever you collect them. In God Eye: the project's *Monitoring* tab gives you a snippet that sends errors to God Eye.
+        3. Add your site's address as an uptime check (God Eye *Tools → Uptime*).
+        4. Once a month: `npm outdated`, update, run the tests, deploy.
+      tr: |
+        1. Aşağıdaki `src/ErrorBoundary.jsx` dosyasını oluştur ve `main.jsx` içinde `<App />`'i onunla sar.
+        2. Aşağıdaki gibi `createRoot`'a `onUncaughtError` ve `onCaughtError` ver ve hatayı topladığın yere gönder. God Eye'da: projenin *İzleme* sekmesi hataları God Eye'a gönderen bir kod parçası verir.
+        3. Sitenin adresini uptime kontrolü olarak ekle (God Eye *Araçlar → Uptime*).
+        4. Ayda bir: `npm outdated`, güncelle, testleri çalıştır, deploy et.
+    code:
+      - file: src/ErrorBoundary.jsx
+        lang: jsx
+        text: |
+          import { Component } from "react";
+
+          // Error boundaries are still class components in React 19.
+          export default class ErrorBoundary extends Component {
+            state = { failed: false };
+
+            static getDerivedStateFromError() {
+              return { failed: true };
+            }
+
+            render() {
+              if (this.state.failed) return <p>Something went wrong. Reload the page to try again.</p>;
+              return this.props.children;
+            }
+          }
+      - file: src/main.jsx
+        lang: jsx
+        text: |
+          import { StrictMode } from "react";
+          import { createRoot } from "react-dom/client";
+          import App from "./App.jsx";
+          import ErrorBoundary from "./ErrorBoundary.jsx";
+          import "./index.css";
+
+          function report(error, info) {
+            // Send it to your error service here; the console is the start.
+            console.error("App error", error, info?.componentStack);
+          }
+
+          createRoot(document.getElementById("root"), {
+            onUncaughtError: report,
+            onCaughtError: report,
+          }).render(
+            <StrictMode>
+              <ErrorBoundary>
+                <App />
+              </ErrorBoundary>
+            </StrictMode>,
+          );
+    mistakes:
+      - problem:
+          en: "Expecting an error boundary to catch errors in click handlers or fetch callbacks."
+          tr: "Error boundary'nin tıklama fonksiyonlarındaki ya da fetch callback'lerindeki hataları da yakalamasını beklemek."
+        fix:
+          en: "Boundaries catch errors while rendering. Handle errors in event handlers and async code with try/catch or .catch."
+          tr: "Boundary'ler çizim sırasındaki hataları yakalar. Olay fonksiyonlarındaki ve asenkron koddaki hataları try/catch ya da .catch ile yakala."
+    quiz:
+      - q:
+          en: "What does an error boundary do when a child crashes while rendering?"
+          tr: "Bir alt bileşen çizilirken çökerse error boundary ne yapar?"
+        options:
+          en: [Reloads the page, Shows its fallback instead of a blank page, Fixes the error]
+          tr: [Sayfayı yeniler, Boş sayfa yerine kendi yedek görüntüsünü gösterir, Hatayı düzeltir]
+        answer: 1
+        why:
+          en: "Without a boundary React removes the whole tree; with one only that part is replaced by the fallback."
+          tr: "Boundary yoksa React bütün ağacı kaldırır; varsa sadece o kısım yedek görüntüyle değiştirilir."
+    sources:
+      - title: Catching rendering errors with an error boundary
+        url: https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
+      - title: createRoot options
+        url: https://react.dev/reference/react-dom/client/createRoot#parameters
+      - title: npm outdated
+        url: https://docs.npmjs.com/cli/commands/npm-outdated
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Where to go next"
+      tr: "Bundan sonra nereye"
+    minutes: 120
+    needs: [deploy]
+    why:
+      en: "You have a tested app on the internet. The next topics are what real projects add as they grow; pick the one your next project needs instead of learning all of them at once."
+      tr: "İnternette yayında, testleri yazılmış bir uygulaman var. Sıradaki konular, gerçek projelerin büyüdükçe eklediği şeyler; hepsini birden öğrenmek yerine bir sonraki projenin ihtiyaç duyduğunu seç."
+    learn:
+      en: |
+        - **TypeScript**: types catch mistakes while you type (`npm create vite@latest -- --template react-ts`)
+        - **Routing**: several pages with React Router
+        - **A framework**: Next.js or React Router's framework mode for server rendering, data loading and a backend in one place
+        - **Data libraries**: TanStack Query for caching server data
+        - **Forms and Actions**: React 19's form actions and `useActionState`
+        - **Accessibility**: keyboard use and screen readers
+      tr: |
+        - **TypeScript**: tipler hataları sen yazarken yakalar (`npm create vite@latest -- --template react-ts`)
+        - **Routing**: React Router ile birden fazla sayfa
+        - **Bir framework**: sunucuda çizim, veri yükleme ve backend'i tek yerde toplamak için Next.js ya da React Router'ın framework modu
+        - **Veri kütüphaneleri**: sunucu verisini önbelleğe almak için TanStack Query
+        - **Formlar ve Action'lar**: React 19'un form action'ları ve `useActionState`
+        - **Erişilebilirlik**: klavyeyle kullanım ve ekran okuyucular
+    do:
+      en: |
+        1. Rewrite the todo app in TypeScript: rename files to `.tsx` and add types for a todo.
+        2. Or add a second page (an "About" page) with React Router.
+        3. Then start the Next.js or TypeScript roadmap in the learning center.
+      tr: |
+        1. Yapılacaklar uygulamasını TypeScript ile yeniden yaz: dosyaları `.tsx` yap ve bir yapılacak için tip ekle.
+        2. Ya da React Router ile ikinci bir sayfa ("Hakkında" sayfası) ekle.
+        3. Sonra öğrenme merkezindeki Next.js ya da TypeScript yol haritasına başla.
+    code:
+      - file: src/types.ts
+        lang: ts
+        text: |
+          export interface Todo {
+            id: string;
+            title: string;
+            done: boolean;
+          }
+    mistakes:
+      - problem:
+          en: "Learning every library at once and never finishing a project."
+          tr: "Her kütüphaneyi aynı anda öğrenmeye çalışıp hiçbir projeyi bitirememek."
+        fix:
+          en: "Add one thing at a time, only when your app needs it."
+          tr: "Her seferinde tek bir şey ekle, sadece uygulaman ona ihtiyaç duyduğunda."
+    quiz:
+      - q:
+          en: "Your app now needs several pages. What do you add?"
+          tr: "Uygulaman artık birden fazla sayfaya ihtiyaç duyuyor. Ne eklersin?"
+        options:
+          en: [A router such as React Router, A second index.html, Nothing; React does it by itself]
+          tr: [React Router gibi bir router, İkinci bir index.html, Hiçbir şey; React bunu kendisi yapar]
+        answer: 0
+        why:
+          en: "React draws components; a router decides which ones to draw for each address."
+          tr: "React bileşenleri çizer; router da her adres için hangilerinin çizileceğine karar verir."
+    sources:
+      - title: React, build a React app from scratch
+        url: https://react.dev/learn/build-a-react-app-from-scratch
+      - title: Using TypeScript with React
+        url: https://react.dev/learn/typescript
+      - title: React Router
+        url: https://reactrouter.com/home
+      - title: useActionState
+        url: https://react.dev/reference/react/useActionState

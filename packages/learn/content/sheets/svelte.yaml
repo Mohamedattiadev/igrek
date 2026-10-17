@@ -1,0 +1,1304 @@
+id: svelte
+title: Svelte
+category: framework
+summary:
+  en: "A framework that compiles components into small, fast JavaScript. Svelte 5 uses runes for reactivity; SvelteKit adds routing, data loading and server code."
+  tr: "Component'leri küçük ve hızlı JavaScript'e derleyen bir framework. Svelte 5 reaktiflik için rune'ları kullanır; SvelteKit routing, veri yükleme ve sunucu kodunu ekler."
+aliases: [svelte 5, runes, sveltekit, svelte kit, $state, $derived, $effect, snippet, sv create, rune, reaktiflik]
+detect:
+  npm: [svelte, "@sveltejs/kit"]
+version: "5.57"
+latest: npm:svelte
+checked: 2026-10
+sources:
+  - title: Svelte documentation
+    url: https://svelte.dev/docs/svelte/overview
+  - title: SvelteKit documentation
+    url: https://svelte.dev/docs/kit/introduction
+roadmap: svelte
+sections:
+  - id: markup
+    title:
+      en: "Components and markup"
+      tr: "Component'ler ve markup"
+    items:
+      - id: component-file
+        level: basic
+        title:
+          en: "A component file"
+          tr: "Component dosyası"
+        what:
+          en: "A .svelte file holds a script, the markup and the styles of one component."
+          tr: ".svelte dosyası tek bir component'in script'ini, markup'ını ve stillerini tutar."
+        lang: html
+        form: |
+          <script>
+            // logic
+          </script>
+
+          <!-- markup -->
+
+          <style>
+            /* styles, scoped to this component */
+          </style>
+        example: |
+          <script>
+            let name = 'world';
+          </script>
+
+          <h1>Hello {name}!</h1>
+
+          <style>
+            h1 { color: tomato; }
+          </style>
+        mistake:
+          en: "Expecting the styles to affect other components. They are scoped: they only change the elements in this file."
+          tr: "Stillerin başka component'leri de etkilemesini beklemek. Stiller bu dosyayla sınırlıdır; sadece bu dosyadaki elementleri değiştirir."
+        source: https://svelte.dev/docs/svelte/svelte-files
+      - id: expressions
+        level: basic
+        title:
+          en: "Show values with curly braces"
+          tr: "Süslü parantezle değer gösterme"
+        what:
+          en: "Curly braces put a JavaScript expression into text or into an attribute."
+          tr: "Süslü parantezler bir JavaScript ifadesini metne ya da attribute'a koyar."
+        lang: html
+        form: |
+          <p>{expression}</p>
+          <img src={url} alt={description} />
+          <Widget {name} />
+        example: |
+          <script>
+            let src = '/logo.png';
+            let name = 'Ada';
+          </script>
+
+          <img {src} alt="Logo of {name}" />
+        mistake:
+          en: "Writing the attribute value in quotes with only a brace (src=\"{url}\"). Use src={url} so the value keeps its type."
+          tr: "Attribute değerini sadece süslü parantezi tırnağa alarak yazmak (src=\"{url}\"). Değerin tipi korunsun diye src={url} yaz."
+        source: https://svelte.dev/docs/svelte/basic-markup
+      - id: if-block
+        level: basic
+        title:
+          en: "Show something only if"
+          tr: "Koşula göre gösterme"
+        what:
+          en: "An if block renders its content only when the condition is true."
+          tr: "if bloğu içeriğini sadece koşul doğruysa çizer."
+        lang: html
+        form: |
+          {#if condition}
+            ...
+          {:else if other}
+            ...
+          {:else}
+            ...
+          {/if}
+        example: |
+          {#if user}
+            <p>Welcome, {user.name}</p>
+          {:else}
+            <a href="/login">Log in</a>
+          {/if}
+        mistake:
+          en: "Writing {else} or {elseif}. The right forms are {:else} and {:else if ...}."
+          tr: "{else} ya da {elseif} yazmak. Doğrusu {:else} ve {:else if ...} biçimidir."
+        source: https://svelte.dev/docs/svelte/if
+      - id: each-block
+        level: basic
+        title:
+          en: "Repeat a list"
+          tr: "Listeyi tekrar etme"
+        what:
+          en: "An each block renders its content once for every item of an array."
+          tr: "each bloğu içeriğini dizideki her eleman için bir kez çizer."
+        lang: html
+        form: |
+          {#each items as item, index (item.id)}
+            ...
+          {:else}
+            nothing here
+          {/each}
+        example: |
+          <ul>
+            {#each todos as todo (todo.id)}
+              <li>{todo.text}</li>
+            {:else}
+              <li>No todos yet</li>
+            {/each}
+          </ul>
+        mistake:
+          en: "Leaving out the key (item.id) when the list can be reordered or filtered. State and focus then stick to the wrong row."
+          tr: "Liste yeniden sıralanabiliyor ya da filtrelenebiliyorsa key'i (item.id) yazmamak. Durum ve odak yanlış satırda kalır."
+        avoid:
+          en: "Never use the index as the key for a list that changes; use a stable id."
+          tr: "Değişen bir listede index'i key olarak kullanma; sabit bir id kullan."
+        source: https://svelte.dev/docs/svelte/each
+      - id: await-block
+        level: intermediate
+        title:
+          en: "Show a promise in the markup"
+          tr: "Promise'i markup'ta gösterme"
+        what:
+          en: "An await block shows one thing while a promise is pending, another when it resolves and another when it fails."
+          tr: "await bloğu bir promise beklerken, tamamlanınca ve hata verince ayrı ayrı şey gösterir."
+        lang: html
+        form: |
+          {#await promise}
+            loading
+          {:then value}
+            {value}
+          {:catch error}
+            {error.message}
+          {/await}
+        example: |
+          {#await fetch('/api/users').then((r) => r.json())}
+            <p>Loading...</p>
+          {:then users}
+            <p>{users.length} users</p>
+          {:catch error}
+            <p>Failed: {error.message}</p>
+          {/await}
+        mistake:
+          en: "Creating the promise inside the block expression on every re-render. Keep the promise in a variable or $derived so it is not started again."
+          tr: "Promise'i her yeniden çizimde blok ifadesinin içinde yeniden oluşturmak. Tekrar başlamasın diye promise'i bir değişkende ya da $derived içinde tut."
+        source: https://svelte.dev/docs/svelte/await
+      - id: events
+        level: basic
+        title:
+          en: "React to events"
+          tr: "Olaylara tepki verme"
+        what:
+          en: "Event attributes like onclick take a function that runs when the event happens."
+          tr: "onclick gibi event attribute'ları, olay olunca çalışacak bir fonksiyon alır."
+        lang: html
+        form: <button onclick={handler}>Click</button>
+        example: |
+          <script>
+            let count = $state(0);
+          </script>
+
+          <button onclick={() => count++}>
+            Clicked {count} times
+          </button>
+        since: "5.0"
+        older:
+          en: "Svelte 4 used the on: directive (on:click={handler}). It still works in Svelte 5 but is deprecated."
+          tr: "Svelte 4 on: direktifini kullanırdı (on:click={handler}). Svelte 5'te hâlâ çalışır ama eskidir."
+        mistake:
+          en: "Writing onclick={handler()}. That calls the function while rendering. Pass the function itself: onclick={handler}."
+          tr: "onclick={handler()} yazmak. Bu, fonksiyonu çizim sırasında çağırır. Fonksiyonun kendisini ver: onclick={handler}."
+        source: https://svelte.dev/docs/svelte/basic-markup
+      - id: bind
+        level: basic
+        title:
+          en: "Two-way binding"
+          tr: "İki yönlü bağlama"
+        what:
+          en: "bind: keeps a variable and a form element in sync in both directions."
+          tr: "bind: bir değişkenle form elementini iki yönde senkron tutar."
+        lang: html
+        form: |
+          <input bind:value={name} />
+          <input type="checkbox" bind:checked={done} />
+          <input type="radio" bind:group={choice} value="a" />
+        example: |
+          <script>
+            let name = $state('');
+          </script>
+
+          <input bind:value={name} placeholder="Your name" />
+          <p>Hello {name}</p>
+        mistake:
+          en: "Binding to a variable that is not $state. The input changes but nothing else updates."
+          tr: "$state olmayan bir değişkene bağlamak. Input değişir ama başka hiçbir şey güncellenmez."
+        source: https://svelte.dev/docs/svelte/bind
+      - id: class-attr
+        level: intermediate
+        title:
+          en: "Set classes from objects and arrays"
+          tr: "Class'ları obje ve dizi ile verme"
+        what:
+          en: "The class attribute accepts an object or an array, and Svelte turns it into a class string."
+          tr: "class attribute'u obje ya da dizi kabul eder ve Svelte bunu class metnine çevirir."
+        lang: html
+        form: |
+          <div class={['card', { active, big: size > 10 }]}>
+        example: |
+          <script>
+            let active = $state(true);
+          </script>
+
+          <button class={['btn', { active }]} onclick={() => (active = !active)}>
+            Toggle
+          </button>
+        since: "5.16"
+        older:
+          en: "Before 5.16 the class:name={condition} directive was the way to switch a class. It still works."
+          tr: "5.16'dan önce class'ı açıp kapamak için class:name={condition} direktifi kullanılırdı. Hâlâ çalışır."
+        source: https://svelte.dev/docs/svelte/class
+      - id: html-tag
+        level: intermediate
+        title:
+          en: "Insert raw HTML"
+          tr: "Ham HTML ekleme"
+        what:
+          en: "The {@html} tag puts a string into the page as real HTML instead of text."
+          tr: "{@html} etiketi bir metni yazı olarak değil, gerçek HTML olarak sayfaya koyar."
+        lang: html
+        form: "{@html content}"
+        example: |
+          <article>
+            {@html post.bodyHtml}
+          </article>
+        mistake:
+          en: "Rendering HTML that a user wrote without cleaning it first. That opens the page to XSS attacks."
+          tr: "Kullanıcının yazdığı HTML'i temizlemeden çizmek. Bu, sayfayı XSS saldırılarına açar."
+        avoid:
+          en: "For plain text, use {text}. Svelte already escapes it."
+          tr: "Düz metin için {text} kullan. Svelte onu zaten kaçışlar (escape eder)."
+        source: https://svelte.dev/docs/svelte/@html
+
+  - id: runes
+    title:
+      en: "Runes: state and effects"
+      tr: "Rune'lar: state ve effect"
+    items:
+      - id: state
+        level: basic
+        title:
+          en: "Reactive state"
+          tr: "Reaktif state"
+        what:
+          en: "$state makes a variable reactive: when it changes, everything that uses it updates."
+          tr: "$state bir değişkeni reaktif yapar: değişince onu kullanan her şey güncellenir."
+        lang: html
+        form: let value = $state(initial);
+        example: |
+          <script>
+            let count = $state(0);
+            let todos = $state([{ text: 'Learn Svelte', done: false }]);
+          </script>
+
+          <button onclick={() => count++}>{count}</button>
+          <button onclick={() => todos.push({ text: 'New', done: false })}>Add</button>
+        since: "5.0"
+        older:
+          en: "In Svelte 4 any top-level let was reactive and you wrote $: for derived values. In Svelte 5 you opt in with $state."
+          tr: "Svelte 4'te en üstteki her let reaktifti ve türetilmiş değerler için $: yazılırdı. Svelte 5'te $state ile açıkça seçersin."
+        mistake:
+          en: "Destructuring a state object (let { a } = obj). That copies the value, so a will not update later. Read obj.a instead."
+          tr: "State objesini parçalamak (let { a } = obj). Bu değeri kopyalar, a sonradan güncellenmez. Onun yerine obj.a oku."
+        source: https://svelte.dev/docs/svelte/$state
+      - id: derived
+        level: basic
+        title:
+          en: "Values computed from other values"
+          tr: "Başka değerlerden hesaplanan değerler"
+        what:
+          en: "$derived is a value that is recalculated automatically when the state it reads changes."
+          tr: "$derived, okuduğu state değişince kendiliğinden yeniden hesaplanan bir değerdir."
+        lang: html
+        form: let value = $derived(expression);
+        example: |
+          <script>
+            let count = $state(2);
+            let doubled = $derived(count * 2);
+          </script>
+
+          <p>{count} doubled is {doubled}</p>
+        since: "5.0"
+        older:
+          en: "Svelte 4 used reactive statements: $: doubled = count * 2."
+          tr: "Svelte 4 reaktif ifadeler kullanırdı: $: doubled = count * 2."
+        mistake:
+          en: "Using $effect to copy one value into another variable. Use $derived; it is simpler and has no extra update."
+          tr: "Bir değeri başka bir değişkene kopyalamak için $effect kullanmak. $derived kullan; daha basittir ve fazladan güncelleme olmaz."
+        source: https://svelte.dev/docs/svelte/$derived
+      - id: derived-by
+        level: intermediate
+        title:
+          en: "Derived value with several lines"
+          tr: "Birkaç satırlık türetilmiş değer"
+        what:
+          en: "$derived.by takes a function, for derived values that need more than one expression."
+          tr: "$derived.by bir fonksiyon alır; tek ifadeye sığmayan türetilmiş değerler içindir."
+        lang: html
+        form: let value = $derived.by(() => { ...; return result; });
+        example: |
+          <script>
+            let items = $state([1, 2, 3]);
+            let total = $derived.by(() => {
+              let sum = 0;
+              for (const n of items) sum += n;
+              return sum;
+            });
+          </script>
+
+          <p>Total: {total}</p>
+        mistake:
+          en: "Changing state inside the function. A derived value must only calculate and return a result."
+          tr: "Fonksiyonun içinde state'i değiştirmek. Türetilmiş değer sadece hesaplayıp sonuç döndürmeli."
+        source: https://svelte.dev/docs/svelte/$derived
+      - id: effect
+        level: intermediate
+        title:
+          en: "Run code when state changes"
+          tr: "State değişince kod çalıştırma"
+        what:
+          en: "$effect runs a function after the page updates, and again when the state it read changes."
+          tr: "$effect, sayfa güncellendikten sonra bir fonksiyon çalıştırır ve okuduğu state değişince tekrar çalıştırır."
+        lang: html
+        form: |
+          $effect(() => {
+            // runs in the browser, after the DOM is updated
+            return () => { /* cleanup */ };
+          });
+        example: |
+          <script>
+            let size = $state(10);
+            let canvas;
+
+            $effect(() => {
+              const ctx = canvas.getContext('2d');
+              ctx.clearRect(0, 0, 300, 300);
+              ctx.fillRect(0, 0, size, size);
+            });
+          </script>
+
+          <canvas bind:this={canvas} width="300" height="300"></canvas>
+        mistake:
+          en: "Reading state after an await or inside setTimeout. Only what is read while the function runs synchronously is tracked."
+          tr: "State'i await'ten sonra ya da setTimeout içinde okumak. Sadece fonksiyon eş zamanlı çalışırken okunanlar izlenir."
+        avoid:
+          en: "To compute a value from other state (use $derived) or to react to a click (use an event handler). Effects are for talking to things outside Svelte: canvas, timers, third-party libraries."
+          tr: "Başka state'ten değer hesaplamak (onun için $derived) ya da tıklamaya tepki vermek (onun için event handler) için kullanma. Effect'ler Svelte dışındaki şeylerle konuşmak içindir: canvas, zamanlayıcı, üçüncü parti kütüphane."
+        source: https://svelte.dev/docs/svelte/$effect
+      - id: props
+        level: basic
+        title:
+          en: "Receive props"
+          tr: "Prop alma"
+        what:
+          en: "$props gives a component the values its parent passed in."
+          tr: "$props, bir component'e parent'ının verdiği değerleri getirir."
+        lang: html
+        form: let { name, count = 0, ...rest } = $props();
+        example: |
+          <!-- Greeting.svelte -->
+          <script>
+            let { name, punctuation = '!' } = $props();
+          </script>
+
+          <p>Hello {name}{punctuation}</p>
+
+          <!-- usage -->
+          <Greeting name="Ada" />
+        since: "5.0"
+        older:
+          en: "Svelte 4 declared each prop with export let name;."
+          tr: "Svelte 4 her prop'u export let name; ile tanımlardı."
+        mistake:
+          en: "Assigning to a prop that the parent did not bind. The change is local and the parent never sees it. Use a callback prop or $bindable."
+          tr: "Parent'ın bağlamadığı bir prop'a atama yapmak. Değişiklik yereldir, parent görmez. Callback prop ya da $bindable kullan."
+        source: https://svelte.dev/docs/svelte/$props
+      - id: bindable
+        level: intermediate
+        title:
+          en: "Let the parent bind to a prop"
+          tr: "Parent'ın prop'a bağlanmasına izin verme"
+        what:
+          en: "$bindable marks a prop so the parent can use bind: on it and receive changes made inside the child."
+          tr: "$bindable bir prop'u işaretler; böylece parent ona bind: uygulayıp child'ın içinde yapılan değişiklikleri alabilir."
+        lang: html
+        form: let { value = $bindable() } = $props();
+        example: |
+          <!-- FancyInput.svelte -->
+          <script>
+            let { value = $bindable('') } = $props();
+          </script>
+
+          <input bind:value />
+
+          <!-- parent -->
+          <FancyInput bind:value={name} />
+        avoid:
+          en: "When a callback prop (onchange) is enough. Plain props and callbacks make data flow easier to follow."
+          tr: "Callback prop (onchange) yetiyorsa kullanma. Düz prop ve callback'ler veri akışını takip etmeyi kolaylaştırır."
+        source: https://svelte.dev/docs/svelte/$bindable
+      - id: state-raw
+        level: advanced
+        title:
+          en: "State without deep tracking"
+          tr: "Derin izleme olmayan state"
+        what:
+          en: "$state.raw only reacts when you assign a new value; changes inside objects and arrays are not tracked."
+          tr: "$state.raw sadece yeni bir değer atadığında tepki verir; obje ve dizilerin içindeki değişiklikler izlenmez."
+        lang: html
+        form: let value = $state.raw(initial);
+        example: |
+          <script>
+            let rows = $state.raw([]);
+
+            async function load() {
+              rows = await (await fetch('/api/rows')).json();
+            }
+          </script>
+        mistake:
+          en: "Calling rows.push(...) on raw state. Nothing updates; assign a new array instead: rows = [...rows, row]."
+          tr: "Raw state üzerinde rows.push(...) çağırmak. Hiçbir şey güncellenmez; yeni dizi ata: rows = [...rows, row]."
+        avoid:
+          en: "For small objects you change in place. The default deep $state is simpler."
+          tr: "Yerinde değiştirdiğin küçük objelerde kullanma. Varsayılan derin $state daha basittir."
+        source: https://svelte.dev/docs/svelte/$state
+      - id: state-snapshot
+        level: advanced
+        title:
+          en: "Plain copy of state"
+          tr: "State'in düz kopyası"
+        what:
+          en: "$state.snapshot turns a reactive state object into a plain object, for libraries and logging."
+          tr: "$state.snapshot reaktif bir state objesini düz objeye çevirir; kütüphaneler ve loglama içindir."
+        lang: html
+        form: $state.snapshot(value)
+        example: |
+          <script>
+            let form = $state({ name: 'Ada', tags: ['a'] });
+
+            function save() {
+              const data = structuredClone($state.snapshot(form));
+              console.log(data);
+            }
+          </script>
+        mistake:
+          en: "Passing a $state object straight to structuredClone or a library. It is a proxy and can throw or behave oddly."
+          tr: "$state objesini doğrudan structuredClone'a ya da bir kütüphaneye vermek. O bir proxy'dir; hata verebilir ya da garip davranabilir."
+        source: https://svelte.dev/docs/svelte/$state
+      - id: shared-state
+        level: intermediate
+        title:
+          en: "Share state between components"
+          tr: "Component'ler arası state paylaşma"
+        what:
+          en: "Runes work in .svelte.js and .svelte.ts files, so one object can hold state that many components use."
+          tr: "Rune'lar .svelte.js ve .svelte.ts dosyalarında da çalışır; böylece tek bir obje birçok component'in kullandığı state'i tutabilir."
+        lang: ts
+        form: |
+          // counter.svelte.ts
+          export const counter = $state({ count: 0 });
+        example: |
+          // cart.svelte.ts
+          class Cart {
+            items = $state<string[]>([]);
+            total = $derived(this.items.length);
+            add(name: string) {
+              this.items.push(name);
+            }
+          }
+
+          export const cart = new Cart();
+        mistake:
+          en: "Exporting a state variable and then reassigning it (count = 1). That is not allowed. Export an object and change its properties instead."
+          tr: "Bir state değişkenini export edip sonra yeniden atamak (count = 1). Buna izin yok. Bir obje export edip özelliklerini değiştir."
+        source: https://svelte.dev/docs/svelte/svelte-js-files
+      - id: reactive-collections
+        level: intermediate
+        title:
+          en: "Reactive Map and Set"
+          tr: "Reaktif Map ve Set"
+        what:
+          en: "SvelteMap, SvelteSet and similar classes are Map and Set that update the page when they change."
+          tr: "SvelteMap, SvelteSet ve benzerleri, değişince sayfayı güncelleyen Map ve Set'tir."
+        lang: html
+        form: |
+          import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+        example: |
+          <script>
+            import { SvelteSet } from 'svelte/reactivity';
+
+            const selected = new SvelteSet();
+          </script>
+
+          <button onclick={() => selected.add(selected.size)}>
+            {selected.size} selected
+          </button>
+        mistake:
+          en: "Putting a normal Set or Map inside $state. $state only makes plain objects and arrays reactive, not Set or Map."
+          tr: "Normal Set ya da Map'i $state içine koymak. $state sadece düz obje ve dizileri reaktif yapar, Set ve Map'i yapmaz."
+        source: https://svelte.dev/docs/svelte/svelte-reactivity
+      - id: on-mount
+        level: basic
+        title:
+          en: "Run code when the component appears"
+          tr: "Component görününce kod çalıştırma"
+        what:
+          en: "onMount runs once in the browser after the component is on the page, and its returned function runs when the component is removed."
+          tr: "onMount, component sayfaya girdikten sonra tarayıcıda bir kez çalışır; döndürdüğü fonksiyon component kaldırılınca çalışır."
+        lang: html
+        form: |
+          import { onMount } from 'svelte';
+
+          onMount(() => {
+            return () => { /* cleanup */ };
+          });
+        example: |
+          <script>
+            import { onMount } from 'svelte';
+
+            let now = $state(new Date());
+
+            onMount(() => {
+              const id = setInterval(() => (now = new Date()), 1000);
+              return () => clearInterval(id);
+            });
+          </script>
+
+          <p>{now.toLocaleTimeString()}</p>
+        mistake:
+          en: "Expecting it to run during server rendering. It only runs in the browser."
+          tr: "Sunucuda render sırasında çalışmasını beklemek. Sadece tarayıcıda çalışır."
+        source: https://svelte.dev/docs/svelte/lifecycle-hooks
+
+  - id: composition
+    title:
+      en: "Composing components"
+      tr: "Component'leri birleştirme"
+    items:
+      - id: children
+        level: basic
+        title:
+          en: "Content inside a component"
+          tr: "Component'in içindeki içerik"
+        what:
+          en: "Anything written between a component's tags arrives as the children prop, and {@render} puts it on the page."
+          tr: "Bir component'in etiketleri arasına yazılan her şey children prop'u olarak gelir; {@render} onu sayfaya koyar."
+        lang: html
+        form: |
+          let { children } = $props();
+          {@render children?.()}
+        example: |
+          <!-- Card.svelte -->
+          <script>
+            let { children } = $props();
+          </script>
+
+          <div class="card">{@render children?.()}</div>
+
+          <!-- usage -->
+          <Card><p>Inside the card</p></Card>
+        older:
+          en: "Svelte 4 used <slot />. It still works but is deprecated."
+          tr: "Svelte 4 <slot /> kullanırdı. Hâlâ çalışır ama eskidir."
+        since: "5.0"
+        source: https://svelte.dev/docs/svelte/snippet
+      - id: snippets
+        level: intermediate
+        title:
+          en: "Reusable pieces of markup"
+          tr: "Tekrar kullanılabilir markup parçaları"
+        what:
+          en: "A snippet is a named piece of markup with parameters that you can render in many places or pass to a component."
+          tr: "Snippet, parametreleri olan ve birçok yerde çizebildiğin ya da component'e verebildiğin isimli bir markup parçasıdır."
+        lang: html
+        form: |
+          {#snippet name(param)}
+            ...
+          {/snippet}
+
+          {@render name(value)}
+        example: |
+          {#snippet row(todo)}
+            <li class:done={todo.done}>{todo.text}</li>
+          {/snippet}
+
+          <ul>
+            {#each todos as todo (todo.id)}
+              {@render row(todo)}
+            {/each}
+          </ul>
+        older:
+          en: "Svelte 4 used named slots (<slot name=\"x\">) for the same job."
+          tr: "Svelte 4 aynı iş için isimli slot'lar (<slot name=\"x\">) kullanırdı."
+        since: "5.0"
+        mistake:
+          en: "Calling a snippet without {@render}. Writing {row(todo)} prints the function instead of rendering it."
+          tr: "Snippet'i {@render} olmadan çağırmak. {row(todo)} yazmak onu çizmez, fonksiyonu yazdırır."
+        source: https://svelte.dev/docs/svelte/snippet
+      - id: transitions
+        level: intermediate
+        title:
+          en: "Animate elements in and out"
+          tr: "Elementleri animasyonla girip çıkarma"
+        what:
+          en: "transition: plays an animation when an element is added to or removed from the page."
+          tr: "transition: bir element sayfaya eklenirken ya da kaldırılırken animasyon oynatır."
+        lang: html
+        form: |
+          import { fade, fly, slide } from 'svelte/transition';
+          <div transition:fade={{ duration: 200 }}>
+        example: |
+          <script>
+            import { fly } from 'svelte/transition';
+            let open = $state(false);
+          </script>
+
+          <button onclick={() => (open = !open)}>Toggle</button>
+
+          {#if open}
+            <p transition:fly={{ y: 20 }}>Hello</p>
+          {/if}
+        mistake:
+          en: "Putting transition: on an element that is always on the page. It plays only when its if or each block adds or removes it."
+          tr: "transition:'ı hep sayfada duran bir elemente koymak. Sadece onu ekleyen ya da kaldıran if ya da each bloğu devreye girince oynar."
+        source: https://svelte.dev/docs/svelte/transition
+      - id: context
+        level: intermediate
+        title:
+          en: "Pass data down without props"
+          tr: "Prop kullanmadan aşağıya veri geçirme"
+        what:
+          en: "Context lets a parent share a value with all its descendants without passing props through every layer."
+          tr: "Context, parent'ın bir değeri tüm alt component'lerle araya prop geçirmeden paylaşmasını sağlar."
+        lang: ts
+        form: |
+          import { createContext } from 'svelte';
+
+          export const [getUser, setUser] = createContext<User>();
+        example: |
+          // user-context.ts
+          import { createContext } from 'svelte';
+          export const [getUser, setUser] = createContext<{ name: string }>();
+
+          // Parent.svelte, in the script
+          setUser({ name: 'Ada' });
+
+          // Child.svelte, any depth below
+          const user = getUser();
+        since: "5.40"
+        older:
+          en: "Before 5.40 you used setContext(key, value) and getContext(key) with your own key. They still work."
+          tr: "5.40'tan önce kendi key'inle setContext(key, value) ve getContext(key) kullanılırdı. Hâlâ çalışırlar."
+        mistake:
+          en: "Calling getContext/get later, in an event handler or after an await. It only works while the component is first being set up."
+          tr: "getContext/get'i sonradan, bir event handler'da ya da await'ten sonra çağırmak. Sadece component ilk kurulurken çalışır."
+        source: https://svelte.dev/docs/svelte/context
+      - id: stores
+        level: intermediate
+        title:
+          en: "Stores (the older shared state)"
+          tr: "Store'lar (eski paylaşımlı state)"
+        what:
+          en: "A store is an object with subscribe that a component can read as $name; it was the way to share state before runes."
+          tr: "Store, subscribe'ı olan bir objedir ve component'te $name olarak okunur; rune'lardan önce state paylaşmanın yoluydu."
+        lang: html
+        form: |
+          import { writable } from 'svelte/store';
+
+          export const count = writable(0);
+        example: |
+          <script>
+            import { count } from './stores.js';
+          </script>
+
+          <button onclick={() => count.update((n) => n + 1)}>{$count}</button>
+        avoid:
+          en: "In new code use $state in a .svelte.js file. Stores are still fine for streams of values, like data from RxJS."
+          tr: "Yeni kodda .svelte.js dosyasında $state kullan. Store'lar, RxJS gibi değer akışları için hâlâ uygundur."
+        source: https://svelte.dev/docs/svelte/stores
+      - id: attach
+        level: advanced
+        title:
+          en: "Run code on an element"
+          tr: "Element üzerinde kod çalıştırma"
+        what:
+          en: "{@attach} runs a function with the DOM element when it is created, and again when the state it reads changes."
+          tr: "{@attach}, DOM elementi oluşunca ona bir fonksiyon uygular; okuduğu state değişince fonksiyonu yeniden çalıştırır."
+        lang: html
+        form: |
+          <div {@attach fn}>
+        example: |
+          <script>
+            function focusOnMount(node) {
+              node.focus();
+            }
+          </script>
+
+          <input {@attach focusOnMount} />
+        since: "5.29"
+        older:
+          en: "Before 5.29 this was done with actions (use:action). Actions still work."
+          tr: "5.29'dan önce bu iş action'larla (use:action) yapılırdı. Action'lar hâlâ çalışır."
+        mistake:
+          en: "Forgetting to return a cleanup function when the attachment adds a listener or timer."
+          tr: "Attachment bir listener ya da zamanlayıcı eklediğinde temizlik fonksiyonunu döndürmeyi unutmak."
+        source: https://svelte.dev/docs/svelte/@attach
+      - id: boundary
+        level: advanced
+        title:
+          en: "Catch errors in part of the page"
+          tr: "Sayfanın bir kısmındaki hataları yakalama"
+        what:
+          en: "svelte:boundary shows a fallback when a component inside it throws an error, instead of breaking the whole page."
+          tr: "svelte:boundary, içindeki bir component hata verince tüm sayfayı bozmak yerine bir yedek arayüz gösterir."
+        lang: html
+        form: |
+          <svelte:boundary onerror={handler}>
+            ...
+            {#snippet failed(error, reset)}...{/snippet}
+          </svelte:boundary>
+        example: |
+          <svelte:boundary onerror={(e) => console.error(e)}>
+            <Chart {data} />
+
+            {#snippet failed(error, reset)}
+              <p>The chart failed.</p>
+              <button onclick={reset}>Try again</button>
+            {/snippet}
+          </svelte:boundary>
+        since: "5.3"
+        mistake:
+          en: "Expecting it to catch errors in event handlers. It catches errors during rendering and in effects only."
+          tr: "Event handler'lardaki hataları yakalamasını beklemek. Sadece render sırasındaki ve effect'lerdeki hataları yakalar."
+        source: https://svelte.dev/docs/svelte/svelte-boundary
+      - id: await-expressions
+        level: advanced
+        title:
+          en: "await inside components (experimental)"
+          tr: "Component içinde await (deneysel)"
+        what:
+          en: "With the experimental async option you can write await directly in the script, in $derived and in the markup."
+          tr: "Deneysel async seçeneğiyle script'te, $derived içinde ve markup'ta doğrudan await yazabilirsin."
+        lang: html
+        form: |
+          // svelte.config.js (plain Svelte)
+          export default {
+            compilerOptions: { experimental: { async: true } }
+          };
+
+          // SvelteKit 3: vite.config.ts
+          // sveltekit({ compilerOptions: { experimental: { async: true } } })
+        example: |
+          <script>
+            let id = $state(1);
+            let user = $derived(await fetch(`/api/users/${id}`).then((r) => r.json()));
+          </script>
+
+          <svelte:boundary>
+            <p>{user.name}</p>
+
+            {#snippet pending()}
+              <p>Loading...</p>
+            {/snippet}
+          </svelte:boundary>
+        since: "5.36"
+        mistake:
+          en: "Using it without the option, or treating it as stable. It is still experimental and its details can change before Svelte 6."
+          tr: "Seçeneği açmadan kullanmak ya da kararlı sanmak. Hâlâ deneysel; ayrıntıları Svelte 6'dan önce değişebilir."
+        source: https://svelte.dev/docs/svelte/await-expressions
+
+  - id: kit-routing
+    title:
+      en: "SvelteKit: routes and data"
+      tr: "SvelteKit: route'lar ve veri"
+    items:
+      - id: kit-create
+        level: basic
+        title:
+          en: "Start a SvelteKit project"
+          tr: "SvelteKit projesi başlatma"
+        what:
+          en: "The sv tool creates a new project from a template and asks which extras you want."
+          tr: "sv aracı bir şablondan yeni proje oluşturur ve hangi ekstraları istediğini sorar."
+        lang: sh
+        form: |
+          npx sv create my-app
+          cd my-app
+          npm run dev
+        example: |
+          npx sv create my-app
+          cd my-app
+          npm install
+          npm run dev
+        mistake:
+          en: "Starting the dev server before installing the packages. Run your package manager's install first."
+          tr: "Paketleri kurmadan geliştirme sunucusunu başlatmak. Önce paket yöneticinin install komutunu çalıştır."
+        source: https://svelte.dev/docs/kit/creating-a-project
+      - id: kit-routes
+        level: basic
+        title:
+          en: "Files make routes"
+          tr: "Dosyalar route oluşturur"
+        what:
+          en: "Every folder in src/routes is a URL, and the special files inside it say what that URL does."
+          tr: "src/routes içindeki her klasör bir URL'dir; içindeki özel dosyalar o URL'nin ne yaptığını söyler."
+        lang: text
+        form: |
+          src/routes/+page.svelte             /
+          src/routes/about/+page.svelte       /about
+          src/routes/blog/[slug]/+page.svelte /blog/hello
+          +page.ts / +page.server.ts          load data and actions
+          +layout.svelte                      shared wrapper
+          +server.ts                          API endpoint
+          +error.svelte                       error page
+        example: |
+          src/routes/
+            +layout.svelte
+            +page.svelte
+            todos/
+              +page.svelte
+              +page.server.ts
+        mistake:
+          en: "Naming the file page.svelte or Page.svelte. The plus sign is required: +page.svelte."
+          tr: "Dosyaya page.svelte ya da Page.svelte adını vermek. Artı işareti şart: +page.svelte."
+        source: https://svelte.dev/docs/kit/routing
+      - id: kit-layout
+        level: basic
+        title:
+          en: "A layout around pages"
+          tr: "Sayfaları saran layout"
+        what:
+          en: "+layout.svelte wraps every page below it, so navigation and footers are written once."
+          tr: "+layout.svelte altındaki her sayfayı sarar; böylece menü ve footer bir kez yazılır."
+        lang: html
+        form: |
+          <script>
+            let { children } = $props();
+          </script>
+
+          {@render children()}
+        example: |
+          <!-- src/routes/+layout.svelte -->
+          <script>
+            let { children } = $props();
+          </script>
+
+          <nav><a href="/">Home</a> <a href="/about">About</a></nav>
+
+          {@render children()}
+        mistake:
+          en: "Forgetting {@render children()}. The pages then never show up inside the layout."
+          tr: "{@render children()} yazmayı unutmak. O zaman sayfalar layout'un içinde görünmez."
+        source: https://svelte.dev/docs/kit/routing
+      - id: kit-params
+        level: basic
+        title:
+          en: "Dynamic route parameters"
+          tr: "Dinamik route parametreleri"
+        what:
+          en: "A folder name in square brackets matches any value and gives it to your code as a parameter."
+          tr: "Köşeli parantezli klasör adı her değeri eşleştirir ve kodunun parametre olarak almasını sağlar."
+        lang: ts
+        form: |
+          src/routes/blog/[slug]/+page.ts
+
+          export const load = ({ params }) => ({ slug: params.slug });
+        example: |
+          // src/routes/blog/[slug]/+page.ts
+          import type { PageLoad } from './$types';
+
+          export const load: PageLoad = ({ params }) => {
+            return { title: `Post: ${params.slug}` };
+          };
+        mistake:
+          en: "Expecting [id] to match numbers only. It matches any text; check the value or use a param matcher."
+          tr: "[id]'nin sadece sayıları eşleştireceğini sanmak. Her metni eşleştirir; değeri kontrol et ya da param matcher kullan."
+        source: https://svelte.dev/docs/kit/routing
+      - id: kit-load
+        level: basic
+        title:
+          en: "Load data for a page"
+          tr: "Sayfa için veri yükleme"
+        what:
+          en: "A load function runs before the page is shown and returns the data the page needs."
+          tr: "load fonksiyonu sayfa gösterilmeden önce çalışır ve sayfanın ihtiyaç duyduğu veriyi döndürür."
+        lang: html
+        form: |
+          // +page.ts
+          export const load = async ({ fetch, params }) => ({ ... });
+
+          // +page.svelte
+          let { data } = $props();
+        example: |
+          // src/routes/posts/+page.ts
+          import type { PageLoad } from './$types';
+
+          export const load: PageLoad = async ({ fetch }) => {
+            const res = await fetch('/api/posts');
+            return { posts: await res.json() };
+          };
+
+          <!-- src/routes/posts/+page.svelte -->
+          <script lang="ts">
+            import type { PageProps } from './$types';
+            let { data }: PageProps = $props();
+          </script>
+
+          {#each data.posts as post (post.id)}
+            <h2>{post.title}</h2>
+          {/each}
+        since: "2.16"
+        older:
+          en: "PageProps came in SvelteKit 2.16. Before it you typed data with PageData: let { data } = $props() with { data: PageData }."
+          tr: "PageProps SvelteKit 2.16 ile geldi. Öncesinde data, PageData ile tiplenirdi."
+        mistake:
+          en: "Using the global fetch inside load. Use the fetch passed to load: it works on the server, keeps cookies and avoids a second request on the client."
+          tr: "load içinde global fetch kullanmak. load'a verilen fetch'i kullan: sunucuda çalışır, cookie'leri korur ve istemcide ikinci bir isteği önler."
+        source: https://svelte.dev/docs/kit/load
+      - id: kit-server-load
+        level: intermediate
+        title:
+          en: "Load data on the server only"
+          tr: "Veriyi sadece sunucuda yükleme"
+        what:
+          en: "A load in +page.server.ts runs only on the server, so it can use the database, secrets and cookies."
+          tr: "+page.server.ts içindeki load sadece sunucuda çalışır; bu yüzden veritabanını, secret'ları ve cookie'leri kullanabilir."
+        lang: ts
+        form: |
+          // +page.server.ts
+          import type { PageServerLoad } from './$types';
+
+          export const load: PageServerLoad = async ({ cookies, locals }) => { ... };
+        example: |
+          // src/routes/dashboard/+page.server.ts
+          import type { PageServerLoad } from './$types';
+          import { redirect } from '@sveltejs/kit';
+
+          export const load: PageServerLoad = async ({ locals }) => {
+            if (!locals.user) redirect(303, '/login');
+            return { name: locals.user.name };
+          };
+        mistake:
+          en: "Returning something that cannot be turned into data, such as a class instance or a function. Return plain objects, arrays, dates and similar values."
+          tr: "Veriye çevrilemeyen bir şey döndürmek, örneğin class örneği ya da fonksiyon. Düz obje, dizi, tarih gibi değerler döndür."
+        source: https://svelte.dev/docs/kit/load
+      - id: kit-actions
+        level: intermediate
+        title:
+          en: "Handle form submissions"
+          tr: "Form gönderimlerini işleme"
+        what:
+          en: "Actions in +page.server.ts receive a POSTed form, and can return errors to show on the page."
+          tr: "+page.server.ts içindeki action'lar POST edilen formu alır ve sayfada gösterilecek hataları döndürebilir."
+        lang: ts
+        form: |
+          // +page.server.ts
+          export const actions = {
+            default: async ({ request }) => { ... },
+            other: async (event) => { ... }
+          } satisfies Actions;
+        example: |
+          // src/routes/login/+page.server.ts
+          import { fail } from '@sveltejs/kit';
+          import type { Actions } from './$types';
+
+          export const actions = {
+            default: async ({ request }) => {
+              const data = await request.formData();
+              const email = data.get('email');
+              if (!email) return fail(400, { email, missing: true });
+              return { success: true };
+            }
+          } satisfies Actions;
+
+          <!-- +page.svelte -->
+          <script>
+            let { form } = $props();
+          </script>
+
+          <form method="POST">
+            <input name="email" type="email" />
+            {#if form?.missing}<p>Email is required</p>{/if}
+            <button>Log in</button>
+          </form>
+        mistake:
+          en: "Forgetting method=\"POST\" on the form. Without it the browser sends a GET and the action never runs."
+          tr: "Form'a method=\"POST\" yazmayı unutmak. Yazılmazsa tarayıcı GET gönderir ve action hiç çalışmaz."
+        source: https://svelte.dev/docs/kit/form-actions
+      - id: kit-enhance
+        level: intermediate
+        title:
+          en: "Forms without a page reload"
+          tr: "Sayfa yenilenmeden form"
+        what:
+          en: "use:enhance sends a form with JavaScript and updates the page in place, and the form still works without JavaScript."
+          tr: "use:enhance formu JavaScript ile gönderir ve sayfayı yerinde günceller; form JavaScript olmadan da çalışmaya devam eder."
+        lang: html
+        form: |
+          import { enhance } from '$app/forms';
+
+          <form method="POST" use:enhance>
+        example: |
+          <script>
+            import { enhance } from '$app/forms';
+            let { form } = $props();
+          </script>
+
+          <form method="POST" action="?/register" use:enhance>
+            <input name="email" type="email" />
+            <button>Register</button>
+          </form>
+        mistake:
+          en: "Adding use:enhance to a form that has no method=\"POST\". Enhanced forms still need it."
+          tr: "method=\"POST\" olmayan bir forma use:enhance eklemek. Geliştirilmiş formlarda da bu gerekir."
+        source: https://svelte.dev/docs/kit/form-actions
+      - id: kit-endpoint
+        level: intermediate
+        title:
+          en: "An API endpoint"
+          tr: "API endpoint'i"
+        what:
+          en: "A +server.ts file exports functions named after HTTP methods and returns a Response."
+          tr: "+server.ts dosyası HTTP metot adlarıyla fonksiyonlar export eder ve bir Response döndürür."
+        lang: ts
+        form: |
+          // src/routes/api/hello/+server.ts
+          export function GET({ url }) {
+            return Response.json({ hello: 'world' });
+          }
+        example: |
+          // src/routes/api/add/+server.ts
+          import type { RequestHandler } from './$types';
+
+          export const GET: RequestHandler = ({ url }) => {
+            const a = Number(url.searchParams.get('a') ?? 0);
+            const b = Number(url.searchParams.get('b') ?? 0);
+            return Response.json({ sum: a + b });
+          };
+        older:
+          en: "SvelteKit 2 also had a json() helper from @sveltejs/kit. In SvelteKit 3 it is deprecated; use Response.json()."
+          tr: "SvelteKit 2'de @sveltejs/kit içinde json() yardımcısı da vardı. SvelteKit 3'te eskidir; Response.json() kullan."
+        since: "3.0"
+        mistake:
+          en: "Putting +server.ts and +page.svelte in the same folder and expecting both to answer GET. The page wins for browser page requests."
+          tr: "+server.ts ile +page.svelte'i aynı klasöre koyup ikisinin de GET'e cevap vermesini beklemek. Tarayıcının sayfa isteklerinde sayfa kazanır."
+        source: https://svelte.dev/docs/kit/routing
+      - id: kit-errors
+        level: intermediate
+        title:
+          en: "Errors and redirects"
+          tr: "Hatalar ve yönlendirmeler"
+        what:
+          en: "error() stops with an HTTP error page and redirect() sends the user to another URL."
+          tr: "error() bir HTTP hata sayfasıyla durur, redirect() kullanıcıyı başka bir URL'ye gönderir."
+        lang: ts
+        form: |
+          import { error, redirect } from '@sveltejs/kit';
+
+          error(404, 'Not found');
+          redirect(303, '/login');
+        example: |
+          import { error, redirect } from '@sveltejs/kit';
+          import type { PageServerLoad } from './$types';
+
+          export const load: PageServerLoad = async ({ params, locals }) => {
+            if (!locals.user) redirect(303, '/login');
+            const post = await locals.db.getPost(params.slug);
+            if (!post) error(404, 'Post not found');
+            return { post };
+          };
+        mistake:
+          en: "Wrapping error() or redirect() in try/catch. They work by throwing, so a catch block can swallow them."
+          tr: "error() ya da redirect()'i try/catch içine almak. İkisi de fırlatarak çalışır; catch bloğu onları yutabilir."
+        source: https://svelte.dev/docs/kit/load
+      - id: kit-page-state
+        level: basic
+        title:
+          en: "Read the current page"
+          tr: "Geçerli sayfayı okuma"
+        what:
+          en: "The page object from $app/state gives the current URL, route parameters and loaded data, and it is reactive."
+          tr: "$app/state içindeki page objesi geçerli URL'yi, route parametrelerini ve yüklenen veriyi verir; ve reaktiftir."
+        lang: html
+        form: |
+          import { page } from '$app/state';
+
+          page.url.pathname
+          page.params.slug
+        example: |
+          <script>
+            import { page } from '$app/state';
+          </script>
+
+          <a href="/about" aria-current={page.url.pathname === '/about' ? 'page' : undefined}>
+            About
+          </a>
+        older:
+          en: "The $app/stores module ($page) is the older way. SvelteKit 3 removed it; use $app/state without the dollar sign."
+          tr: "$app/stores modülü ($page) eski yoldur. SvelteKit 3 onu kaldırdı; $app/state kullan ve başına dolar koyma."
+        since: "2.12"
+        source: https://svelte.dev/docs/kit/$app-state
+      - id: kit-navigation
+        level: intermediate
+        title:
+          en: "Navigate and reload data from code"
+          tr: "Koddan gezinme ve veriyi yenileme"
+        what:
+          en: "goto() changes the page from code, and invalidate() makes load functions run again."
+          tr: "goto() sayfayı koddan değiştirir, invalidate() load fonksiyonlarının yeniden çalışmasını sağlar."
+        lang: ts
+        form: |
+          import { goto, invalidate } from '$app/navigation';
+
+          await goto('/dashboard');
+          await invalidate('app:todos');
+        example: |
+          // +page.ts
+          export const load = async ({ fetch, depends }) => {
+            depends('app:todos');
+            return { todos: await (await fetch('/api/todos')).json() };
+          };
+
+          // after saving, in a component
+          await invalidate('app:todos');
+        mistake:
+          en: "Using window.location for in-app navigation. It reloads the whole app; goto() keeps the client-side router."
+          tr: "Uygulama içi gezinme için window.location kullanmak. Tüm uygulamayı yeniden yükler; goto() istemci tarafı router'ı korur."
+        source: https://svelte.dev/docs/kit/$app-navigation
+      - id: kit-page-options
+        level: intermediate
+        title:
+          en: "Prerender, server render or client only"
+          tr: "Prerender, sunucuda render ya da sadece istemci"
+        what:
+          en: "Page options decide per page or layout whether it is built ahead of time, rendered on the server, and run in the browser."
+          tr: "Sayfa seçenekleri, bir sayfa ya da layout için önceden üretilip üretilmeyeceğini, sunucuda render edilip edilmeyeceğini ve tarayıcıda çalışıp çalışmayacağını belirler."
+        lang: ts
+        form: |
+          export const prerender = true;
+          export const ssr = false;
+          export const csr = false;
+        example: |
+          // src/routes/about/+page.ts
+          export const prerender = true;
+        mistake:
+          en: "Prerendering a page that shows different content per user. The saved HTML is the same for everyone."
+          tr: "Kullanıcıya göre farklı içerik gösteren bir sayfayı prerender etmek. Kaydedilen HTML herkes için aynıdır."
+        source: https://svelte.dev/docs/kit/page-options
+
+  - id: kit-app
+    title:
+      en: "SvelteKit: app setup"
+      tr: "SvelteKit: uygulama kurulumu"
+    items:
+      - id: kit-lib-alias
+        level: basic
+        title:
+          en: "Import shared code with #lib"
+          tr: "Ortak kodu #lib ile import etme"
+        what:
+          en: "In SvelteKit 3 you declare the #lib alias for src/lib in package.json, then import from it."
+          tr: "SvelteKit 3'te src/lib için #lib alias'ını package.json'da tanımlarsın, sonra ondan import edersin."
+        lang: json
+        form: |
+          {
+            "imports": {
+              "#lib": "./src/lib/index.js",
+              "#lib/*": "./src/lib/*"
+            }
+          }
+        example: |
+          // package.json "imports" as above, then:
+          import { formatDate } from '#lib/format.js';
+        since: "3.0"
+        older:
+          en: "SvelteKit 2 generated a $lib alias by itself (import { x } from '$lib/x'). In 3 it is no longer generated."
+          tr: "SvelteKit 2 $lib alias'ını kendisi üretirdi (import { x } from '$lib/x'). 3'te artık üretilmiyor."
+        mistake:
+          en: "Leaving out the file extension. With #lib imports you write the extension: '#lib/format.js'."
+          tr: "Dosya uzantısını yazmamak. #lib import'larında uzantıyı yazarsın: '#lib/format.js'."
+        source: https://svelte.dev/docs/kit/migrating-to-sveltekit-3
+      - id: kit-hooks
+        level: advanced
+        title:
+          en: "Hooks: code for every request"
+          tr: "Hook'lar: her istek için kod"
+        what:
+          en: "src/hooks.server.ts exports handle, which runs for every request, for example to read the session into event.locals."
+          tr: "src/hooks.server.ts, her istekte çalışan handle'ı export eder; örneğin oturumu event.locals içine okumak için."
+        lang: ts
+        form: |
+          // src/hooks.server.ts
+          import type { Handle } from '@sveltejs/kit/hooks';
+
+          export const handle: Handle = async ({ event, resolve }) => {
+            return resolve(event);
+          };
+        example: |
+          import type { Handle } from '@sveltejs/kit/hooks';
+
+          export const handle: Handle = async ({ event, resolve }) => {
+            const session = event.cookies.get('session');
+            event.locals.user = session ? await getUser(session) : null;
+            return resolve(event);
+          };
+        older:
+          en: "In SvelteKit 2 the Handle type came from '@sveltejs/kit'. In 3 it is in '@sveltejs/kit/hooks'."
+          tr: "SvelteKit 2'de Handle tipi '@sveltejs/kit' içinden gelirdi. 3'te '@sveltejs/kit/hooks' içinde."
+        since: "3.0"
+        mistake:
+          en: "Forgetting to return resolve(event). The request then gets no response."
+          tr: "resolve(event)'i döndürmeyi unutmak. İstek cevapsız kalır."
+        source: https://svelte.dev/docs/kit/hooks
+      - id: kit-env
+        level: advanced
+        title:
+          en: "Environment variables"
+          tr: "Ortam değişkenleri"
+        what:
+          en: "You list your variables in src/env.ts, then import private ones on the server and public ones anywhere."
+          tr: "Değişkenlerini src/env.ts içinde listelersin; private olanları sunucuda, public olanları her yerde import edersin."
+        lang: ts
+        form: |
+          // src/env.ts
+          import { defineEnvVars } from '@sveltejs/kit/env';
+
+          export const variables = defineEnvVars({
+            API_KEY: {},
+            SITE_NAME: { public: true }
+          });
+
+          import { API_KEY } from '$app/env/private';
+          import { SITE_NAME } from '$app/env/public';
+        example: |
+          // .env.local
+          // API_KEY=abc123
+
+          // +page.server.ts
+          import { API_KEY } from '$app/env/private';
+          const res = await fetch(url, { headers: { authorization: API_KEY } });
+        mistake:
+          en: "Marking a secret as public. Public variables are put in the browser bundle. Variables are private unless you write public: true. The older $env/static/private modules still exist but are deprecated in SvelteKit 3."
+          tr: "Bir secret'ı public yapmak. Public değişkenler tarayıcı bundle'ına girer. public: true yazmazsan değişken private kalır. Eski $env/static/private modülleri durur ama SvelteKit 3'te eskidir."
+        source: https://svelte.dev/docs/kit/environment-variables
+      - id: kit-adapter
+        level: advanced
+        title:
+          en: "Pick an adapter to deploy"
+          tr: "Deploy için adapter seçme"
+        what:
+          en: "An adapter turns your built app into something a host can run: a Node server, static files, or a platform bundle."
+          tr: "Adapter, build edilen uygulamanı bir host'un çalıştırabileceği şeye çevirir: Node sunucusu, statik dosyalar ya da platform paketi."
+        lang: ts
+        form: |
+          // vite.config.ts
+          import { sveltekit } from '@sveltejs/kit/vite';
+          import adapter from '@sveltejs/adapter-node';
+          import { defineConfig } from 'vite';
+
+          export default defineConfig({
+            plugins: [sveltekit({ adapter: adapter() })]
+          });
+        example: |
+          npm install -D @sveltejs/adapter-node
+          npm run build
+          node build
+        older:
+          en: "SvelteKit 2 read the config from svelte.config.js (kit: { adapter }). SvelteKit 3 no longer supports that file; options go to the sveltekit() plugin."
+          tr: "SvelteKit 2 ayarı svelte.config.js'ten okurdu (kit: { adapter }). SvelteKit 3 bu dosyayı artık desteklemiyor; seçenekler sveltekit() eklentisine verilir."
+        since: "3.0"
+        mistake:
+          en: "Keeping adapter-auto for a self-hosted server. It only picks a platform it detects while building; choose the adapter you really deploy with."
+          tr: "Kendi sunucunda adapter-auto kullanmaya devam etmek. O sadece build sırasında algıladığı platformu seçer; gerçekten kullandığın adapter'ı seç."
+        source: https://svelte.dev/docs/kit/adapters

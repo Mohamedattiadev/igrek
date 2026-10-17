@@ -1,0 +1,703 @@
+id: http
+title: HTTP
+category: concept
+summary:
+  en: The request and response protocol of the web. Methods, status codes, headers, caching and cookies as defined in RFC 9110 and RFC 9111.
+  tr: Web'in istek-yanıt protokolü. RFC 9110 ve RFC 9111'de tanımlandığı haliyle metotlar, status kodları, header'lar, cache ve cookie'ler.
+aliases: [http, https, status code, durum kodu, http header, başlık, request, response, istek, yanıt, rest, cookie, çerez, cache-control, 404, 500]
+checked: 2026-10
+sources:
+  - title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110.html
+  - title: RFC 9111 HTTP Caching
+    url: https://www.rfc-editor.org/rfc/rfc9111.html
+  - title: MDN HTTP
+    url: https://developer.mozilla.org/en-US/docs/Web/HTTP
+roadmap: web
+sections:
+  - id: methods
+    title: { en: Methods, tr: Metotlar }
+    items:
+      - id: get
+        level: basic
+        title: { en: GET reads, tr: GET okur }
+        what:
+          en: GET asks for a resource and must not change anything on the server.
+          tr: GET bir kaynağı ister ve sunucuda hiçbir şeyi değiştirmemelidir.
+        lang: sh
+        form: curl https://api.example.com/users/42
+        example: |
+          curl -i "https://api.example.com/users?page=2"
+        mistake:
+          en: Changing data in a GET handler (like /delete?id=1); crawlers, prefetching and caches will call it.
+          tr: GET handler'ında veri değiştirmek (/delete?id=1 gibi); crawler'lar, prefetch ve cache'ler onu çağırır.
+        avoid:
+          en: Do not send a body with GET; it has no defined meaning and many servers and proxies drop or reject it.
+          tr: GET ile body gönderme; tanımlı bir anlamı yoktur ve birçok sunucu ya da proxy onu atar veya reddeder.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-get
+      - id: post
+        level: basic
+        title: { en: POST creates or processes, tr: POST oluşturur ya da işler }
+        what:
+          en: POST sends data for the server to process, most often to create a new resource.
+          tr: POST, sunucunun işlemesi için veri gönderir; çoğunlukla yeni bir kaynak oluşturmak için.
+        lang: sh
+        form: 'curl -X POST -H "Content-Type: application/json" -d ''{...}'' <url>'
+        example: |
+          curl -i -X POST https://api.example.com/users \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Ada"}'
+        mistake:
+          en: Retrying a failed POST automatically; it is not idempotent, so the retry can create a second order. Use an idempotency key.
+          tr: Başarısız bir POST'u otomatik tekrar denemek; idempotent değildir, tekrar ikinci bir sipariş oluşturabilir. Idempotency key kullan.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-post
+      - id: put
+        level: basic
+        title: { en: PUT replaces, tr: PUT yerine koyar }
+        what:
+          en: PUT stores the full representation you send at that URL, replacing what was there or creating it.
+          tr: PUT, gönderdiğin tam temsili o URL'ye kaydeder; oradakinin yerine koyar ya da oluşturur.
+        lang: sh
+        form: curl -X PUT -d @user.json <url>/users/42
+        example: |
+          curl -X PUT https://api.example.com/users/42 \
+            -H "Content-Type: application/json" \
+            -d '{"name":"Ada","email":"ada@example.com"}'
+        mistake:
+          en: Sending only the changed fields with PUT; fields you left out should be treated as removed. Use PATCH for partial changes.
+          tr: PUT ile sadece değişen alanları göndermek; göndermediğin alanlar silinmiş sayılmalı. Kısmi değişiklik için PATCH kullan.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-put
+      - id: patch
+        level: basic
+        title: { en: PATCH changes part, tr: PATCH bir kısmını değiştirir }
+        what:
+          en: PATCH applies a partial change; the body says what to change, for example as a JSON Merge Patch.
+          tr: PATCH kısmi bir değişiklik uygular; body neyin değişeceğini söyler, örneğin JSON Merge Patch olarak.
+        lang: sh
+        form: 'curl -X PATCH -H "Content-Type: application/merge-patch+json" -d ''{...}'' <url>'
+        example: |
+          curl -X PATCH https://api.example.com/users/42 \
+            -H "Content-Type: application/merge-patch+json" \
+            -d '{"email":"new@example.com"}'
+        mistake:
+          en: Assuming PATCH is safe to retry; it is not idempotent in general (think "add 1 to the counter").
+          tr: PATCH'in tekrar denemeye güvenli olduğunu sanmak; genel olarak idempotent değildir ("sayaca 1 ekle" gibi).
+        source: https://www.rfc-editor.org/rfc/rfc5789.html#section-2
+      - id: delete
+        level: basic
+        title: { en: DELETE removes, tr: DELETE siler }
+        what:
+          en: DELETE asks the server to remove the resource; the answer is usually 204, or 202 if it happens later.
+          tr: DELETE sunucudan kaynağı silmesini ister; yanıt genelde 204, iş sonra yapılacaksa 202 olur.
+        lang: sh
+        form: curl -X DELETE <url>/users/42
+        example: |
+          curl -i -X DELETE https://api.example.com/users/42
+        mistake:
+          en: Returning 404 on a second DELETE and treating it as an error in the client; the goal (gone) is reached either way.
+          tr: İkinci DELETE'te 404 dönünce bunu istemcide hata saymak; amaç (kaynak yok) her iki durumda da sağlanmış.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-delete
+      - id: head-options
+        level: intermediate
+        title: { en: HEAD and OPTIONS, tr: HEAD ve OPTIONS }
+        what:
+          en: HEAD returns only the headers GET would send; OPTIONS asks which methods are allowed and is used by CORS preflight.
+          tr: HEAD, GET'in göndereceği header'ları body olmadan döner; OPTIONS hangi metotlara izin verildiğini sorar ve CORS preflight'ta kullanılır.
+        lang: sh
+        form: curl -I <url>
+        example: |
+          curl -I https://example.com/big-file.zip     # size and type without downloading
+          curl -i -X OPTIONS https://api.example.com/users
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-head
+      - id: safe-idempotent
+        level: intermediate
+        title: { en: Safe and idempotent, tr: Safe ve idempotent }
+        what:
+          en: Safe methods (GET, HEAD, OPTIONS, TRACE) do not change state; idempotent ones (those plus PUT and DELETE) give the same result when repeated.
+          tr: Safe metotlar (GET, HEAD, OPTIONS, TRACE) durumu değiştirmez; idempotent olanlar (bunlar artı PUT ve DELETE) tekrarlandığında aynı sonucu verir.
+        lang: text
+        form: 'safe: GET HEAD OPTIONS TRACE   idempotent: + PUT DELETE   neither: POST PATCH'
+        example: |
+          PUT /users/42 {"name":"Ada"}   twice -> same state
+          POST /orders  {"item":7}       twice -> two orders
+        mistake:
+          en: Thinking idempotent means "same response"; a second DELETE may return 404, but the server state is the same.
+          tr: Idempotent'in "aynı yanıt" demek olduğunu sanmak; ikinci DELETE 404 dönebilir ama sunucudaki durum aynıdır.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-common-method-properties
+  - id: success
+    title: { en: 2xx and 3xx status codes, tr: 2xx ve 3xx status kodları }
+    items:
+      - id: status-classes
+        level: basic
+        title: { en: The five classes, tr: Beş sınıf }
+        what:
+          en: The first digit tells the class; 1xx info, 2xx success, 3xx redirect, 4xx client error, 5xx server error.
+          tr: İlk rakam sınıfı söyler; 1xx bilgi, 2xx başarı, 3xx yönlendirme, 4xx istemci hatası, 5xx sunucu hatası.
+        lang: js
+        form: response.ok   // true for 200-299
+        example: |
+          for (const status of [200, 204, 304, 404, 503]) {
+            console.log(status, new Response(null, { status }).ok);
+          }
+        output: |
+          200 true
+          204 true
+          304 false
+          404 false
+          503 false
+        check: js
+        mistake:
+          en: Assuming fetch throws on 404 or 500; it only throws on network errors, so check response.ok.
+          tr: fetch'in 404 ya da 500'de hata fırlattığını sanmak; sadece ağ hatalarında fırlatır, response.ok'u kontrol et.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-overview-of-status-codes
+      - id: s200-201
+        level: basic
+        title: { en: 200 OK and 201 Created, tr: 200 OK ve 201 Created }
+        what:
+          en: 200 means it worked and the body has the result; 201 means something new was created, with its URL in Location.
+          tr: 200 işin yapıldığını ve sonucun body'de olduğunu söyler; 201 yeni bir şey oluşturulduğunu söyler, URL'si Location'dadır.
+        lang: js
+        form: 'res.writeHead(201, { Location: "/users/43" })'
+        example: |
+          import { createServer } from "node:http";
+          const server = createServer((req, res) => {
+            res.writeHead(201, { Location: "/users/43", "Content-Type": "application/json" });
+            res.end(JSON.stringify({ id: 43, name: "Ada" }));
+          });
+          server.listen(0);
+          const url = `http://localhost:${server.address().port}/users`;
+          const res = await fetch(url, { method: "POST", body: '{"name":"Ada"}' });
+          console.log(res.status, res.headers.get("location"), await res.json());
+          server.close();
+        output: |
+          201 /users/43 { id: 43, name: 'Ada' }
+        check: js
+        mistake:
+          en: Answering every create with 200 and no Location; clients then have to guess where the new resource lives.
+          tr: Her oluşturmaya Location olmadan 200 dönmek; istemci yeni kaynağın nerede olduğunu tahmin etmek zorunda kalır.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-201-created
+      - id: s202-204
+        level: basic
+        title: { en: 202 Accepted and 204 No Content, tr: 202 Accepted ve 204 No Content }
+        what:
+          en: 202 means the work was accepted but will finish later; 204 means it worked and there is no body.
+          tr: 202 işin kabul edildiğini ama sonra biteceğini söyler; 204 işin yapıldığını ve body olmadığını söyler.
+        lang: js
+        form: res.writeHead(204).end()
+        example: |
+          const res = new Response(null, { status: 204 });
+          console.log(res.status, res.ok, await res.text() === "");
+        output: |
+          204 true true
+        check: js
+        mistake:
+          en: Calling response.json() on a 204; there is no body, so it throws.
+          tr: 204 yanıtında response.json() çağırmak; body olmadığı için hata fırlatır.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-204-no-content
+      - id: redirects
+        level: intermediate
+        title: { en: "Redirects: 301, 302, 303, 307, 308", tr: "Yönlendirmeler: 301, 302, 303, 307, 308" }
+        what:
+          en: 301 and 308 are permanent, 302 and 307 temporary; 307 and 308 keep the method and body, 303 always turns it into GET.
+          tr: 301 ve 308 kalıcı, 302 ve 307 geçicidir; 307 ve 308 metodu ve body'yi korur, 303 her zaman GET'e çevirir.
+        lang: js
+        form: Response.redirect(url, 308)
+        example: |
+          for (const s of [301, 302, 303, 307, 308]) {
+            const r = Response.redirect("https://example.com/new", s);
+            console.log(r.status, r.headers.get("location"));
+          }
+        output: |
+          301 https://example.com/new
+          302 https://example.com/new
+          303 https://example.com/new
+          307 https://example.com/new
+          308 https://example.com/new
+        check: js
+        mistake:
+          en: Redirecting a POST with 301 or 302; browsers turn it into a GET and the body is lost. Use 307 or 308, or 303 after a form post.
+          tr: Bir POST'u 301 ya da 302 ile yönlendirmek; tarayıcılar onu GET'e çevirir ve body kaybolur. 307 ya da 308 kullan, form gönderiminden sonra 303.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-redirection-3xx
+      - id: s304
+        level: intermediate
+        title: { en: 304 Not Modified, tr: 304 Not Modified }
+        what:
+          en: The answer to a conditional request when the client's cached copy is still current; it has no body.
+          tr: İstemcinin cache'teki kopyası hâlâ güncelse koşullu isteğe verilen yanıttır; body'si yoktur.
+        lang: js
+        form: 'If-None-Match: "v1"  ->  304'
+        example: |
+          import { createServer } from "node:http";
+          const server = createServer((req, res) => {
+            if (req.headers["if-none-match"] === '"v1"') return res.writeHead(304).end();
+            res.writeHead(200, { ETag: '"v1"' }).end("hello");
+          });
+          server.listen(0);
+          const url = `http://localhost:${server.address().port}/`;
+          const first = await fetch(url);
+          console.log(first.status, first.headers.get("etag"));
+          const again = await fetch(url, { headers: { "If-None-Match": '"v1"' } });
+          console.log(again.status);
+          server.close();
+        output: |
+          200 "v1"
+          304
+        check: js
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-304-not-modified
+      - id: s206
+        level: advanced
+        title: { en: 206 Partial Content, tr: 206 Partial Content }
+        what:
+          en: When the client sends Range, the server can return only those bytes with 206; this powers resumable downloads and video seeking.
+          tr: İstemci Range gönderdiğinde sunucu sadece o byte'ları 206 ile dönebilir; yarım kalan indirmeler ve videoda ileri sarma böyle çalışır.
+        lang: sh
+        form: 'curl -H "Range: bytes=0-99" <url>'
+        example: |
+          curl -s -o part.bin -w "%{http_code}\n" -H "Range: bytes=0-1023" https://example.com/video.mp4
+        mistake:
+          en: Forgetting Accept-Ranges and Content-Range on the server, so players cannot seek.
+          tr: Sunucuda Accept-Ranges ve Content-Range'i unutmak; oynatıcılar ileri saramaz.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-206-partial-content
+  - id: errors
+    title: { en: 4xx and 5xx status codes, tr: 4xx ve 5xx status kodları }
+    items:
+      - id: s400-422
+        level: basic
+        title: { en: 400 Bad Request and 422 Unprocessable Content, tr: 400 Bad Request ve 422 Unprocessable Content }
+        what:
+          en: 400 means the request is broken (bad JSON, missing parameter); 422 means it is well-formed but the data is not valid (email taken, date in the past).
+          tr: 400 isteğin bozuk olduğunu söyler (hatalı JSON, eksik parametre); 422 biçimin doğru ama verinin geçersiz olduğunu söyler (e-posta alınmış, tarih geçmişte).
+        lang: py
+        form: 'return 422, {"errors": {...}}'
+        example: |
+          from http import HTTPStatus
+          for code in (400, 422):
+              print(code, HTTPStatus(code).phrase)
+        output: |
+          400 Bad Request
+          422 Unprocessable Content
+        check: py
+        mistake:
+          en: Returning 200 with {"error":...} in the body; clients, caches and monitoring then all think it worked.
+          tr: Body'de {"error":...} ile 200 dönmek; istemciler, cache'ler ve izleme araçları işin yapıldığını sanır.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-422-unprocessable-content
+      - id: s401-403
+        level: basic
+        title: { en: 401 Unauthorized vs 403 Forbidden, tr: 401 Unauthorized ile 403 Forbidden farkı }
+        what:
+          en: 401 means "who are you?" (no or bad credentials) and must carry WWW-Authenticate; 403 means "I know who you are, and no".
+          tr: 401 "sen kimsin?" demektir (kimlik bilgisi yok ya da hatalı) ve WWW-Authenticate taşımalıdır; 403 "kim olduğunu biliyorum, ama hayır" demektir.
+        lang: text
+        form: 'HTTP/1.1 401 Unauthorized + WWW-Authenticate: Bearer'
+        example: |
+          HTTP/1.1 401 Unauthorized
+          WWW-Authenticate: Bearer realm="api", error="invalid_token"
+        mistake:
+          en: Sending 401 when a logged-in user lacks permission; the client then logs out or retries login for nothing. That is 403.
+          tr: Giriş yapmış ama yetkisi olmayan kullanıcıya 401 dönmek; istemci boşuna çıkış yapar ya da tekrar giriş dener. Bu durum 403'tür.
+        avoid:
+          en: If even saying the resource exists is a leak, answer 404 instead of 403.
+          tr: Kaynağın var olduğunu söylemek bile bilgi sızdırıyorsa 403 yerine 404 dön.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-401-unauthorized
+      - id: s404-410
+        level: basic
+        title: { en: 404 Not Found and 410 Gone, tr: 404 Not Found ve 410 Gone }
+        what:
+          en: 404 means nothing is at this URL (maybe never was); 410 means it was here and was removed on purpose, for good.
+          tr: 404 bu URL'de bir şey olmadığını söyler (belki hiç olmadı); 410 burada olduğunu ve bilerek kalıcı olarak kaldırıldığını söyler.
+        lang: py
+        form: return 404
+        example: |
+          from http import HTTPStatus
+          print(HTTPStatus.NOT_FOUND.value, HTTPStatus.GONE.value, HTTPStatus(410).phrase)
+        output: |
+          404 410 Gone
+        check: py
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-404-not-found
+      - id: s405-415
+        level: intermediate
+        title: { en: 405 Method Not Allowed and 415 Unsupported Media Type, tr: 405 Method Not Allowed ve 415 Unsupported Media Type }
+        what:
+          en: 405 means the URL exists but not for this method, and must list the allowed ones in Allow; 415 means the body format (Content-Type) is not accepted.
+          tr: 405 URL'nin var olduğunu ama bu metotla olmadığını söyler ve izin verilenleri Allow'da listelemelidir; 415 body biçiminin (Content-Type) kabul edilmediğini söyler.
+        lang: js
+        form: 'res.writeHead(405, { Allow: "GET, HEAD" })'
+        example: |
+          import { createServer } from "node:http";
+          const server = createServer((req, res) => {
+            if (req.method !== "GET" && req.method !== "HEAD") return res.writeHead(405, { Allow: "GET, HEAD" }).end();
+            res.end("ok");
+          });
+          server.listen(0);
+          const res = await fetch(`http://localhost:${server.address().port}/`, { method: "DELETE" });
+          console.log(res.status, res.headers.get("allow"));
+          server.close();
+        output: |
+          405 GET, HEAD
+        check: js
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-405-method-not-allowed
+      - id: s409-412
+        level: intermediate
+        title: { en: 409 Conflict and 412 Precondition Failed, tr: 409 Conflict ve 412 Precondition Failed }
+        what:
+          en: 409 means the request clashes with the current state (duplicate, wrong state); 412 means an If-Match condition failed, so someone else changed it first.
+          tr: 409 isteğin mevcut durumla çatıştığını söyler (tekrar kayıt, yanlış durum); 412 If-Match koşulunun tutmadığını, yani önce başkasının değiştirdiğini söyler.
+        lang: text
+        form: 'PUT + If-Match: "v7"  ->  412 if the ETag is no longer "v7"'
+        example: |
+          PUT /docs/9 HTTP/1.1
+          If-Match: "v7"
+
+          HTTP/1.1 412 Precondition Failed
+        mistake:
+          en: Letting the last writer silently win; two users edit the same record and one loses work. Send If-Match with the ETag.
+          tr: Son yazanın sessizce kazanmasına izin vermek; iki kullanıcı aynı kaydı düzenler ve biri emeğini kaybeder. ETag ile If-Match gönder.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-412-precondition-failed
+      - id: s429
+        level: intermediate
+        title: { en: 429 Too Many Requests, tr: 429 Too Many Requests }
+        what:
+          en: The client hit a rate limit; Retry-After can say how many seconds to wait.
+          tr: İstemci hız limitine takıldı; Retry-After kaç saniye beklemesi gerektiğini söyleyebilir.
+        lang: py
+        form: '429 + Retry-After: 30'
+        example: |
+          from http import HTTPStatus
+          s = HTTPStatus.TOO_MANY_REQUESTS
+          print(s.value, s.phrase, s.is_client_error)
+        output: |
+          429 Too Many Requests True
+        check: py
+        mistake:
+          en: Retrying at once in a tight loop; wait for Retry-After or back off with growing delays plus jitter.
+          tr: Hemen sıkı bir döngüde tekrar denemek; Retry-After kadar bekle ya da artan gecikme ve rastgelelik (jitter) ile geri çekil.
+        source: https://www.rfc-editor.org/rfc/rfc6585.html#section-4
+      - id: s500-503
+        level: basic
+        title: { en: "500, 502, 503, 504", tr: "500, 502, 503, 504" }
+        what:
+          en: 500 is a bug or crash on the server; 502 and 504 mean a proxy got a bad answer or no answer in time from the app behind it; 503 means overloaded or in maintenance.
+          tr: 500 sunucudaki bir hata ya da çökmedir; 502 ve 504, bir proxy'nin arkasındaki uygulamadan bozuk yanıt ya da zamanında hiç yanıt alamadığını söyler; 503 aşırı yük ya da bakım demektir.
+        lang: py
+        form: 'return 503, {"Retry-After": "120"}'
+        example: |
+          from http import HTTPStatus
+          for code in (500, 502, 503, 504):
+              print(code, HTTPStatus(code).phrase)
+        output: |
+          500 Internal Server Error
+          502 Bad Gateway
+          503 Service Unavailable
+          504 Gateway Timeout
+        check: py
+        mistake:
+          en: Answering bad user input with 500; that is a 4xx. A 500 should always mean "our bug".
+          tr: Hatalı kullanıcı girdisine 500 dönmek; o bir 4xx'tir. 500 her zaman "bizim hatamız" anlamına gelmeli.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-server-error-5xx
+  - id: headers
+    title: { en: Headers, tr: Header'lar }
+    items:
+      - id: header-case
+        level: basic
+        title: { en: Header names ignore case, tr: Header adları büyük/küçük harfe bakmaz }
+        what:
+          en: Content-Type and content-type are the same header; HTTP/2 and HTTP/3 send all names in lower case.
+          tr: Content-Type ve content-type aynı header'dır; HTTP/2 ve HTTP/3 tüm adları küçük harfle gönderir.
+        lang: js
+        form: headers.get("content-type")
+        example: |
+          const h = new Headers({ "Content-Type": "application/json" });
+          console.log(h.get("content-type"), h.has("CONTENT-TYPE"));
+        output: |
+          application/json true
+        check: js
+        mistake:
+          en: Reading req.headers["Content-Type"] in Node; Node stores them in lower case, so it is undefined.
+          tr: Node'da req.headers["Content-Type"] okumak; Node onları küçük harfle saklar, sonuç undefined olur.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-field-names
+      - id: content-type
+        level: basic
+        title: { en: Content-Type, tr: Content-Type }
+        what:
+          en: Says what format the body is in, such as application/json or text/html; charset=utf-8.
+          tr: Body'nin hangi biçimde olduğunu söyler; application/json ya da text/html; charset=utf-8 gibi.
+        lang: js
+        form: 'Content-Type: application/json'
+        example: |
+          const res = Response.json({ ok: true });
+          console.log(res.headers.get("content-type"));
+          console.log(await res.text());
+        output: |
+          application/json
+          {"ok":true}
+        check: js
+        mistake:
+          en: Posting JSON without Content-Type; many frameworks then do not parse the body and you get an empty object.
+          tr: Content-Type olmadan JSON göndermek; birçok framework body'yi ayrıştırmaz ve boş bir nesne alırsın.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-content-type
+      - id: accept
+        level: intermediate
+        title: { en: Content negotiation, tr: İçerik pazarlığı }
+        what:
+          en: The client lists what it can take (Accept, Accept-Language, Accept-Encoding) and the server picks one, saying so in Content-Type, Content-Language, Content-Encoding.
+          tr: İstemci kabul edebildiklerini listeler (Accept, Accept-Language, Accept-Encoding), sunucu birini seçer ve bunu Content-Type, Content-Language, Content-Encoding ile bildirir.
+        lang: sh
+        form: 'curl -H "Accept: application/json" <url>'
+        example: |
+          curl -H "Accept: application/json" \
+               -H "Accept-Language: tr, en;q=0.8" \
+               --compressed https://api.example.com/items
+        mistake:
+          en: Picking the answer by a request header but forgetting Vary; a cache then serves the Turkish page to English users.
+          tr: Yanıtı bir istek header'ına göre seçip Vary'yi unutmak; cache Türkçe sayfayı İngilizce kullanıcılara verir.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-content-negotiation
+      - id: authorization
+        level: basic
+        title: { en: Authorization, tr: Authorization }
+        what:
+          en: Carries the client's credentials, most often a token as "Bearer <token>".
+          tr: İstemcinin kimlik bilgisini taşır; çoğunlukla "Bearer <token>" biçiminde bir token.
+        lang: sh
+        form: 'Authorization: Bearer <token>'
+        example: |
+          curl -H "Authorization: Bearer $API_TOKEN" https://api.example.com/me
+        mistake:
+          en: Putting the token in the URL (?token=...); it ends up in logs, browser history and Referer headers.
+          tr: Token'ı URL'ye koymak (?token=...); log'lara, tarayıcı geçmişine ve Referer header'larına düşer.
+        source: https://www.rfc-editor.org/rfc/rfc6750.html#section-2.1
+      - id: location-retry-after
+        level: intermediate
+        title: { en: Location and Retry-After, tr: Location ve Retry-After }
+        what:
+          en: Location points to a new resource or a redirect target; Retry-After says when to try again after a 503 or 429.
+          tr: Location yeni bir kaynağı ya da yönlendirme hedefini gösterir; Retry-After 503 ya da 429'dan sonra ne zaman tekrar deneneceğini söyler.
+        lang: text
+        form: 'Location: /orders/17   Retry-After: 120'
+        example: |
+          HTTP/1.1 503 Service Unavailable
+          Retry-After: 120
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-retry-after
+      - id: custom-headers
+        level: intermediate
+        title: { en: Your own headers, tr: Kendi header'ların }
+        what:
+          en: You may add your own header names; the old X- prefix is no longer recommended.
+          tr: Kendi header adlarını ekleyebilirsin; eski X- ön eki artık önerilmiyor.
+        lang: text
+        form: 'Request-Id: 7f3c...'
+        example: |
+          Idempotency-Key: 4c1e8a62-0d6b-4b8e-9a0c-2f6c1b9b3d11
+          Request-Id: 7f3c2a10
+        mistake:
+          en: Reading custom headers in browser JavaScript from another origin without Access-Control-Expose-Headers; they are hidden.
+          tr: Başka bir origin'den gelen özel header'ları Access-Control-Expose-Headers olmadan tarayıcı JavaScript'inde okumaya çalışmak; gizli kalırlar.
+        source: https://www.rfc-editor.org/rfc/rfc6648.html
+      - id: versions
+        level: advanced
+        title: { en: "HTTP/1.1, HTTP/2, HTTP/3", tr: "HTTP/1.1, HTTP/2, HTTP/3" }
+        what:
+          en: All three carry the same methods, status codes and headers; HTTP/2 multiplexes many requests on one connection and HTTP/3 does that over QUIC (UDP).
+          tr: Üçü de aynı metotları, status kodlarını ve header'ları taşır; HTTP/2 tek bağlantıda çok sayıda isteği paralel taşır, HTTP/3 bunu QUIC (UDP) üzerinden yapar.
+        lang: sh
+        form: curl --http2 -I <url>
+        example: |
+          curl -sI --http2 https://example.com -o /dev/null -w "%{http_version}\n"
+        mistake:
+          en: Keeping HTTP/1.1 tricks like domain sharding and sprite sheets on HTTP/2; they now cost more than they save.
+          tr: HTTP/2'de domain sharding ve sprite sheet gibi HTTP/1.1 numaralarını sürdürmek; artık kazandırdığından çok maliyet getirir.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-protocol-version
+  - id: caching-headers
+    title: { en: Caching headers, tr: Cache header'ları }
+    items:
+      - id: cache-control-max-age
+        level: basic
+        title: { en: "Cache-Control: max-age", tr: "Cache-Control: max-age" }
+        what:
+          en: Says how many seconds a response stays fresh, so caches can reuse it without asking the server.
+          tr: Bir yanıtın kaç saniye taze kalacağını söyler; cache'ler onu sunucuya sormadan tekrar kullanabilir.
+        lang: text
+        form: 'Cache-Control: max-age=3600'
+        example: |
+          Cache-Control: public, max-age=31536000, immutable   # /assets/app.3f9a1c.js
+          Cache-Control: no-cache                                # /index.html
+        mistake:
+          en: Sending no Cache-Control at all; caches may then pick a freshness time themselves (heuristic caching), often from Last-Modified.
+          tr: Hiç Cache-Control göndermemek; cache'ler o zaman tazelik süresini kendileri seçebilir (sezgisel cache), çoğunlukla Last-Modified'dan.
+        source: https://www.rfc-editor.org/rfc/rfc9111.html#name-max-age-2
+      - id: no-cache-no-store
+        level: basic
+        title: { en: no-cache vs no-store, tr: no-cache ile no-store farkı }
+        what:
+          en: no-cache allows storing but forces a check with the server before every use; no-store forbids storing at all.
+          tr: no-cache saklamaya izin verir ama her kullanımdan önce sunucuya sormayı zorunlu kılar; no-store saklamayı tamamen yasaklar.
+        lang: text
+        form: 'Cache-Control: no-store'
+        example: |
+          Cache-Control: no-cache    # HTML shell: revalidate with ETag each time
+          Cache-Control: no-store    # bank statement, personal data
+        mistake:
+          en: Using no-cache for sensitive data, thinking it means "do not cache"; that is no-store.
+          tr: Hassas veri için "cache'leme" anlamına geldiğini düşünerek no-cache kullanmak; o anlam no-store'dur.
+        source: https://www.rfc-editor.org/rfc/rfc9111.html#name-no-cache-2
+      - id: private-public
+        level: intermediate
+        title: { en: "private, public, s-maxage", tr: "private, public, s-maxage" }
+        what:
+          en: private lets only the browser store it; public allows shared caches (CDN, proxy); s-maxage sets a different lifetime just for shared caches.
+          tr: private sadece tarayıcının saklamasına izin verir; public paylaşılan cache'lere (CDN, proxy) izin verir; s-maxage sadece paylaşılan cache'ler için ayrı süre koyar.
+        lang: text
+        form: 'Cache-Control: public, max-age=60, s-maxage=600'
+        example: |
+          Cache-Control: private, max-age=60          # /api/me
+          Cache-Control: public, max-age=60, s-maxage=600
+        mistake:
+          en: Letting a CDN cache a page that shows the logged-in user's name; the next visitor sees someone else's data. Mark it private.
+          tr: Giriş yapmış kullanıcının adını gösteren bir sayfayı CDN'in cache'lemesine izin vermek; sonraki ziyaretçi başkasının verisini görür. private yap.
+        source: https://www.rfc-editor.org/rfc/rfc9111.html#name-private
+      - id: etag
+        level: intermediate
+        title: { en: ETag and If-None-Match, tr: ETag ve If-None-Match }
+        what:
+          en: ETag is a version label for a response; the client sends it back in If-None-Match and gets a body-less 304 if nothing changed.
+          tr: ETag bir yanıtın sürüm etiketidir; istemci onu If-None-Match ile geri gönderir, değişiklik yoksa body'siz bir 304 alır.
+        lang: text
+        form: 'ETag: "33a64df5"  ->  If-None-Match: "33a64df5"'
+        example: |
+          GET /api/items HTTP/1.1
+          If-None-Match: "33a64df5"
+
+          HTTP/1.1 304 Not Modified
+          ETag: "33a64df5"
+        mistake:
+          en: Building ETags from the file's inode or server-specific data; behind a load balancer every server then gives a different tag.
+          tr: ETag'i dosyanın inode'u gibi sunucuya özgü veriden üretmek; load balancer arkasında her sunucu farklı etiket verir.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-etag
+      - id: last-modified
+        level: intermediate
+        title: { en: Last-Modified and If-Modified-Since, tr: Last-Modified ve If-Modified-Since }
+        what:
+          en: The date version of ETag; the client asks "changed since this date?" and gets 304 if not.
+          tr: ETag'in tarihli halidir; istemci "bu tarihten beri değişti mi?" diye sorar, değişmediyse 304 alır.
+        lang: text
+        form: 'Last-Modified: Tue, 15 Oct 2026 08:12:31 GMT'
+        example: |
+          GET /report.pdf HTTP/1.1
+          If-Modified-Since: Tue, 15 Oct 2026 08:12:31 GMT
+        mistake:
+          en: Relying only on Last-Modified for things that change more than once a second; it has one-second precision. Prefer ETag.
+          tr: Saniyede birden çok değişen şeyler için sadece Last-Modified'a güvenmek; hassasiyeti bir saniyedir. ETag'i tercih et.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-last-modified
+      - id: vary
+        level: advanced
+        title: { en: Vary, tr: Vary }
+        what:
+          en: Lists the request headers the response depends on, so caches keep a separate copy for each value.
+          tr: Yanıtın hangi istek header'larına bağlı olduğunu listeler; cache'ler her değer için ayrı kopya tutar.
+        lang: text
+        form: 'Vary: Accept-Encoding, Accept-Language'
+        example: |
+          Content-Encoding: br
+          Vary: Accept-Encoding
+        mistake:
+          en: Vary on User-Agent or Cookie; there are thousands of values, so the cache almost never hits.
+          tr: User-Agent ya da Cookie'ye göre Vary; binlerce farklı değer vardır, cache neredeyse hiç isabet etmez.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-vary
+      - id: immutable-swr
+        level: advanced
+        title: { en: immutable and stale-while-revalidate, tr: immutable ve stale-while-revalidate }
+        what:
+          en: immutable says the file will never change during its lifetime; stale-while-revalidate lets a cache serve an old copy for a while as it refreshes in the background.
+          tr: immutable dosyanın ömrü boyunca hiç değişmeyeceğini söyler; stale-while-revalidate, cache'in arka planda yenilerken bir süre eski kopyayı vermesine izin verir.
+        lang: text
+        form: 'Cache-Control: max-age=60, stale-while-revalidate=300'
+        example: |
+          Cache-Control: public, max-age=31536000, immutable        # hashed file name
+          Cache-Control: max-age=60, stale-while-revalidate=300     # news list
+        mistake:
+          en: Using immutable on a file name that does not change (app.js); users keep the old version for a year.
+          tr: Değişmeyen bir dosya adında (app.js) immutable kullanmak; kullanıcılar eski sürümü bir yıl tutar.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control
+  - id: cookies
+    title: { en: Cookies, tr: Cookie'ler }
+    items:
+      - id: set-cookie
+        level: basic
+        title: { en: Set and send a cookie, tr: Cookie koymak ve göndermek }
+        what:
+          en: The server sends Set-Cookie; the browser stores it and sends it back in the Cookie header on later requests to that site.
+          tr: Sunucu Set-Cookie gönderir; tarayıcı onu saklar ve o siteye sonraki isteklerde Cookie header'ında geri yollar.
+        lang: py
+        form: 'Set-Cookie: sid=abc123; Path=/; HttpOnly; Secure; SameSite=Lax'
+        example: |
+          from http.cookies import SimpleCookie
+          c = SimpleCookie()
+          c["sid"] = "abc123"
+          c["sid"].update({"path": "/", "max-age": 3600, "httponly": True, "secure": True, "samesite": "Lax"})
+          print(c.output())
+          print(SimpleCookie("sid=abc123; theme=dark")["theme"].value)
+        output: |
+          Set-Cookie: sid=abc123; HttpOnly; Max-Age=3600; Path=/; SameSite=Lax; Secure
+          dark
+        check: py
+        mistake:
+          en: Storing data in a cookie that the user must not change, without signing it; cookies are fully under the user's control.
+          tr: Kullanıcının değiştirmemesi gereken bir veriyi imzalamadan cookie'de tutmak; cookie'ler tamamen kullanıcının elindedir.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies
+      - id: httponly-secure
+        level: basic
+        title: { en: HttpOnly and Secure, tr: HttpOnly ve Secure }
+        what:
+          en: HttpOnly hides the cookie from JavaScript (document.cookie); Secure sends it only over HTTPS.
+          tr: HttpOnly cookie'yi JavaScript'ten (document.cookie) gizler; Secure onu sadece HTTPS üzerinden gönderir.
+        lang: text
+        form: 'Set-Cookie: sid=...; HttpOnly; Secure'
+        example: |
+          Set-Cookie: sid=9f2c...; Path=/; HttpOnly; Secure; SameSite=Lax
+        mistake:
+          en: Leaving HttpOnly off a session cookie; any XSS bug can then read and steal the session.
+          tr: Oturum cookie'sinde HttpOnly'yi unutmak; herhangi bir XSS açığı oturumu okuyup çalabilir.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#httponly
+      - id: samesite
+        level: intermediate
+        title: { en: SameSite, tr: SameSite }
+        what:
+          en: Controls whether the cookie is sent on requests started by other sites; Strict never, Lax only on top-level link navigation, None always (needs Secure).
+          tr: Cookie'nin başka sitelerin başlattığı isteklerde gönderilip gönderilmeyeceğini belirler; Strict hiçbir zaman, Lax sadece üst düzey link gezintisinde, None her zaman (Secure ister).
+        lang: text
+        form: 'Set-Cookie: sid=...; SameSite=Lax'
+        example: |
+          Set-Cookie: sid=...; Secure; HttpOnly; SameSite=Lax
+          Set-Cookie: widget=...; Secure; SameSite=None   # embedded on other sites
+        mistake:
+          en: Leaving SameSite out and relying on the browser default; Chrome and Edge treat it as Lax, other browsers may not. Always set it.
+          tr: SameSite'ı yazmayıp tarayıcı varsayılanına güvenmek; Chrome ve Edge onu Lax sayar, diğer tarayıcılar saymayabilir. Her zaman yaz.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#samesitesamesite-value
+      - id: cookie-lifetime
+        level: intermediate
+        title: { en: "Lifetime, Domain and Path", tr: "Ömür, Domain ve Path" }
+        what:
+          en: Max-Age (seconds) or Expires (a date) makes the cookie outlive the browser session; Domain widens it to subdomains, Path limits it to a URL prefix.
+          tr: Max-Age (saniye) ya da Expires (tarih) cookie'nin tarayıcı oturumundan uzun yaşamasını sağlar; Domain onu alt alan adlarına genişletir, Path bir URL ön ekiyle sınırlar.
+        lang: text
+        form: 'Set-Cookie: theme=dark; Max-Age=31536000; Path=/'
+        example: |
+          Set-Cookie: theme=dark; Max-Age=31536000; Path=/
+          Set-Cookie: sid=; Max-Age=0; Path=/      # delete
+        mistake:
+          en: Setting Domain=example.com "to be safe"; it makes the cookie visible to every subdomain. Leave Domain out for a host-only cookie.
+          tr: '"Garanti olsun" diye Domain=example.com yazmak; cookie her alt alan adına görünür olur. Sadece o host için Domain''i hiç yazma.'
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#max-agenumber
+      - id: cookie-prefix
+        level: advanced
+        title: { en: __Host- and __Secure- prefixes, tr: __Host- ve __Secure- ön ekleri }
+        what:
+          en: A cookie named __Host-... is only accepted with Secure, Path=/ and no Domain, so a subdomain cannot overwrite it.
+          tr: __Host-... adlı bir cookie sadece Secure, Path=/ ve Domain olmadan kabul edilir; böylece bir alt alan adı onun üstüne yazamaz.
+        lang: text
+        form: 'Set-Cookie: __Host-sid=...; Secure; Path=/'
+        example: |
+          Set-Cookie: __Host-sid=9f2c...; Secure; HttpOnly; Path=/; SameSite=Lax
+        mistake:
+          en: Adding Domain to a __Host- cookie; the browser silently rejects it and login stops working.
+          tr: __Host- cookie'sine Domain eklemek; tarayıcı onu sessizce reddeder ve giriş çalışmaz.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Set-Cookie#cookie_prefixes

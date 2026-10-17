@@ -62,6 +62,8 @@ import { Jobs } from "./jobs";
 import { Knowledge } from "./knowledge";
 import { registerKnowledgeRoutes } from "./knowledge-routes";
 import { LanguagePacks } from "./langpacks";
+import { Learn } from "./learn";
+import { registerLearnRoutes } from "./learn-routes";
 import { registerLessonRoutes } from "./lesson-routes";
 import { Lessons } from "./lessons";
 import { Library } from "./library";
@@ -252,6 +254,7 @@ const testers = new Testers(
   join(config.dataDir, "runner"),
 );
 testers.recover();
+setInterval(() => testers.tick(), 60_000);
 personas.lessonsFor = (projectId) => {
   const top = lessons.forContext(projectId, 6);
   return top.length ? `Lessons learned in this project (avoid repeating these):\n${lessonLines(top)}` : undefined;
@@ -351,6 +354,10 @@ monitors.start();
 const docker = new Docker(servers);
 const logs = new Logs(sqlite, store, files, docker, servers);
 const appErrors = new AppErrors(sqlite, store, bus);
+const learn = new Learn(sqlite, (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"));
+// Newest versions of the technologies the cheatsheets cover, once a day.
+setTimeout(() => void learn.checkLatest().catch(() => undefined), 90_000);
+setInterval(() => void learn.checkLatest().catch(() => undefined), 6 * 3_600_000);
 const sealer = new Sealer(config.dataDir);
 const envFiles = new EnvFiles(join(config.dataDir, "env-backups"));
 const databases = new Databases(sqlite, store, sealer, envFiles);
@@ -476,6 +483,7 @@ insight.extraNotices = () => [
   ...monitors.notices(),
   ...appErrors.notices(),
   ...backupJobs.notices(),
+  ...testers.notices(),
   ...vault.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
@@ -634,6 +642,16 @@ const app = createApp({
       () => readSettings(db).language,
     );
     registerTimeRoutes(hono, store);
+    registerLearnRoutes(hono, {
+      learn,
+      store,
+      insight,
+      environments,
+      monitors,
+      errors: appErrors,
+      flows,
+      language: () => readSettings(db).language,
+    });
     registerWriteupRoutes(hono, {
       writeups,
       store,

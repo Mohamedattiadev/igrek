@@ -1,0 +1,660 @@
+id: tmux
+title: tmux
+category: tool
+summary:
+  en: Keeps terminal sessions alive on a server and lets you split one terminal into many windows and panes; your work survives a dropped SSH connection.
+  tr: Terminal oturumlarını sunucuda canlı tutar ve tek terminali birçok window ve pane'e böler; SSH bağlantısı kopsa bile işin kaybolmaz.
+aliases: [tmux, terminal multiplexer, multiplexer, screen, session, pane, window, oturum, terminal çoğullayıcı, ssh kopunca, detach, attach]
+detect:
+  files: [.tmux.conf, tmux.conf]
+version: "3.8"
+checked: 2026-10
+sources:
+  - title: tmux manual (OpenBSD)
+    url: https://man.openbsd.org/tmux
+  - title: tmux wiki
+    url: https://github.com/tmux/tmux/wiki
+roadmap: linux-server
+sections:
+  - id: sessions
+    title: { en: Sessions, tr: Session'lar }
+    items:
+      - id: start
+        level: basic
+        title: { en: Start a session, tr: Session başlatma }
+        what:
+          en: A session is a set of windows that keeps running on the server even when you are not connected.
+          tr: Session, sen bağlı olmasan bile sunucuda çalışmaya devam eden window'lar topluluğudur.
+        lang: sh
+        form: |
+          tmux                    new session with a number as its name
+          tmux new -s work        new session named work
+          tmux new -s work -n editor    also name the first window
+        example: |
+          tmux new -s work
+        mistake:
+          en: Starting tmux without a name; later you have sessions called 0, 1, 2 and cannot tell them apart.
+          tr: tmux'u isimsiz başlatmak; sonra 0, 1, 2 adında session'larınız olur ve hangisinin ne olduğunu ayıramazsın.
+        source: https://man.openbsd.org/tmux#new-session
+      - id: prefix
+        level: basic
+        title: { en: The prefix key, tr: Prefix tuşu }
+        what:
+          en: Most tmux keys start with a prefix, Ctrl-b by default; press the prefix, release it, then press the command key.
+          tr: tmux tuşlarının çoğu bir prefix ile başlar, varsayılan Ctrl-b; prefix'e bas, bırak, sonra komut tuşuna bas.
+        lang: text
+        form: |
+          Ctrl-b  then  c     create a window
+          Ctrl-b  then  ?     list all key bindings
+          written in docs as  C-b c
+        mistake:
+          en: Holding Ctrl-b and the next key together; release Ctrl-b first. For Ctrl-b then Ctrl-Up you keep Ctrl held for the second key.
+          tr: Ctrl-b ile sonraki tuşa birlikte basmak; önce Ctrl-b'yi bırak. Ctrl-b sonra Ctrl-Yukarı için ikinci tuşta Ctrl basılı tutulur.
+        source: https://man.openbsd.org/tmux#DEFAULT_KEY_BINDINGS
+      - id: detach-attach
+        level: basic
+        title: { en: Detach and attach, tr: Detach ve attach }
+        what:
+          en: Detach leaves the session running in the background; attach brings it back to your screen, even from another SSH login.
+          tr: Detach session'ı arka planda çalışır halde bırakır; attach onu, başka bir SSH girişinden bile olsa ekranına geri getirir.
+        lang: sh
+        form: |
+          Ctrl-b d                detach
+          tmux ls                 list sessions
+          tmux attach -t work     attach (short: tmux a -t work)
+          tmux a                  attach to the most recent session
+        example: |
+          tmux -L ex1 -f /dev/null new-session -d -s work
+          tmux -L ex1 list-sessions -F '#{session_name}: #{session_windows} window'
+          tmux -L ex1 kill-server
+        output: |
+          work: 1 window
+        check: sh
+        mistake:
+          en: Closing the terminal window and thinking the work is lost; the session is still alive, run tmux attach.
+          tr: Terminal penceresini kapatıp işin kaybolduğunu sanmak; session hâlâ yaşıyor, tmux attach çalıştır.
+        source: https://man.openbsd.org/tmux#attach-session
+      - id: new-or-attach
+        level: basic
+        title: { en: Attach or create in one command, tr: Tek komutla attach veya oluşturma }
+        what:
+          en: new -A attaches to the session if it exists and creates it if not, so one command always gets you to your session.
+          tr: new -A, session varsa ona attach olur, yoksa oluşturur; böylece tek komut seni her zaman session'ına götürür.
+        lang: sh
+        form: tmux new -As work
+        example: |
+          alias t='tmux new -As main'
+          ssh myserver -t 'tmux new -As main'
+        avoid:
+          en: When you want a second, separate session with the same name; session names must be unique.
+          tr: Aynı isimle ikinci, ayrı bir session istiyorsan; session isimleri benzersiz olmalıdır.
+        source: https://man.openbsd.org/tmux#new-session
+      - id: manage-sessions
+        level: basic
+        title: { en: Switch, rename and kill sessions, tr: Session değiştirme, yeniden adlandırma ve kapatma }
+        what:
+          en: Move between sessions, rename the current one and remove the ones you no longer need.
+          tr: Session'lar arasında geçiş yapar, geçerli olanı yeniden adlandırır ve artık gerekmeyenleri siler.
+        lang: sh
+        form: |
+          Ctrl-b s        choose a session from a list
+          Ctrl-b ( / )    previous / next session
+          Ctrl-b $        rename the session
+          tmux kill-session -t work
+          tmux kill-server           kill every session and the server
+        mistake:
+          en: Using kill-server to remove one session; it ends all of them, and everything running inside.
+          tr: Tek bir session'ı silmek için kill-server kullanmak; hepsini ve içinde çalışan her şeyi sonlandırır.
+        source: https://man.openbsd.org/tmux#kill-session
+      - id: ssh-persist
+        level: intermediate
+        title: { en: Survive a dropped SSH connection, tr: Kopan SSH bağlantısından etkilenmeme }
+        what:
+          en: Run long jobs inside tmux on the server; if the connection drops, the job keeps running and you attach again later.
+          tr: Uzun işleri sunucuda tmux içinde çalıştır; bağlantı koparsa iş devam eder ve sonra tekrar attach olursun.
+        lang: sh
+        form: |
+          ssh myserver
+          tmux new -As build
+          ./long-job.sh          (connection drops, job continues)
+          ssh myserver; tmux attach -t build
+        avoid:
+          en: For jobs that must start by themselves and survive reboots; use a systemd service or a cron job instead, tmux dies with the server.
+          tr: Kendiliğinden başlaması ve reboot sonrası ayakta kalması gereken işler için; systemd servisi veya cron kullan, tmux sunucuyla birlikte kapanır.
+        source: https://github.com/tmux/tmux/wiki/Getting-Started
+  - id: windows
+    title: { en: Windows, tr: Window'lar }
+    items:
+      - id: window-keys
+        level: basic
+        title: { en: Windows like tabs, tr: Sekme gibi window'lar }
+        what:
+          en: A window fills the whole screen like a tab; one session can hold many.
+          tr: Window, sekme gibi tüm ekranı kaplar; bir session birçoğunu tutabilir.
+        lang: text
+        form: |
+          Ctrl-b c     new window            Ctrl-b ,   rename it
+          Ctrl-b n/p   next / previous       Ctrl-b 0-9 go to window by number
+          Ctrl-b w     pick from a list      Ctrl-b l   last window
+          Ctrl-b &     close the window (asks first)
+        source: https://man.openbsd.org/tmux#DEFAULT_KEY_BINDINGS
+      - id: window-commands
+        level: intermediate
+        title: { en: Window commands, tr: Window komutları }
+        what:
+          en: The same operations as commands, which you can script or type after Ctrl-b :.
+          tr: "Aynı işlemlerin komut halidir; script'e yazabilir ya da Ctrl-b : sonrası yazabilirsin."
+        lang: sh
+        form: |
+          tmux new-window -n logs -c ~/app
+          tmux select-window -t work:logs
+          tmux rename-window -t work:logs server
+          tmux list-windows
+        example: |
+          tmux -L ex2 -f /dev/null new-session -d -s work -n editor
+          tmux -L ex2 new-window -d -n logs
+          tmux -L ex2 list-windows -F '#{window_index} #{window_name}'
+          tmux -L ex2 kill-server
+        output: |
+          0 editor
+          1 logs
+        check: sh
+        mistake:
+          en: Leaving automatic-rename on and wondering why your window name keeps changing; naming a window with rename-window (or -n) turns automatic renaming off for it.
+          tr: automatic-rename açıkken window adının neden sürekli değiştiğini merak etmek; rename-window (veya -n) ile verdiğin ad o window için otomatik yeniden adlandırmayı kapatır.
+        source: https://man.openbsd.org/tmux#new-window
+      - id: choose-tree
+        level: intermediate
+        title: { en: Tree view of everything, tr: Her şeyin ağaç görünümü }
+        what:
+          en: Shows all sessions, windows and panes in one list with a live preview, so you can jump to any of them.
+          tr: Tüm session, window ve pane'leri canlı önizlemeyle tek listede gösterir; hangisine istersen atlayabilirsin.
+        lang: text
+        form: |
+          Ctrl-b s     sessions (expanded tree)
+          Ctrl-b w     windows (expanded tree)
+          in the tree:  Enter = go there,  x = kill,  q = leave
+        source: https://man.openbsd.org/tmux#choose-tree
+  - id: panes
+    title: { en: Panes, tr: Pane'ler }
+    items:
+      - id: split-keys
+        level: basic
+        title: { en: Split into panes, tr: Pane'lere bölme }
+        what:
+          en: Splits the current window into several terminals that you see at the same time.
+          tr: Geçerli window'u aynı anda gördüğün birkaç terminale böler.
+        lang: text
+        form: |
+          Ctrl-b %        split left / right
+          Ctrl-b "        split top / bottom
+          Ctrl-b arrow    move to the pane in that direction
+          Ctrl-b o        next pane       Ctrl-b ;  last pane
+          Ctrl-b x        close the pane (asks first)
+        mistake:
+          en: Mixing up the two splits; the symbol is the line you get, % draws a vertical line (panes side by side), " draws a horizontal line (panes stacked).
+          tr: İki bölmeyi karıştırmak; sembol çizilen çizgiyi gösterir, % dikey çizgi çizer (pane'ler yan yana), " yatay çizgi çizer (pane'ler alt alta).
+        source: https://man.openbsd.org/tmux#DEFAULT_KEY_BINDINGS
+      - id: zoom
+        level: basic
+        title: { en: Zoom a pane, tr: Pane'i büyütme }
+        what:
+          en: Makes one pane fill the whole window, and brings the other panes back when you press it again.
+          tr: Bir pane'i tüm window'u kaplayacak şekilde büyütür; tekrar basınca diğer pane'ler geri gelir.
+        lang: text
+        form: Ctrl-b z
+        mistake:
+          en: Forgetting a pane is zoomed and thinking the others are gone; the window name shows a Z flag while zoomed.
+          tr: Bir pane'in zoom'lu olduğunu unutup diğerlerinin kaybolduğunu sanmak; zoom'lu iken window adının yanında Z işareti görünür.
+        source: https://man.openbsd.org/tmux#resize-pane
+      - id: split-window
+        level: basic
+        title: { en: split-window command, tr: split-window komutu }
+        what:
+          en: Splits a pane from a command, with a size, a start folder or a command to run in the new pane.
+          tr: Pane'i komutla böler; boyut, başlangıç klasörü veya yeni pane'de çalışacak komut verebilirsin.
+        lang: sh
+        form: |
+          tmux split-window -h                    side by side
+          tmux split-window -v                    stacked
+          tmux split-window -h -l 30%             new pane takes 30%
+          tmux split-window -c "#{pane_current_path}"   start in the same folder
+        example: |
+          tmux -L ex3 -f /dev/null new-session -d -s work
+          tmux -L ex3 split-window -h -t work
+          tmux -L ex3 split-window -v -t work
+          tmux -L ex3 list-panes -t work -F '#{pane_index}' | wc -l | tr -d ' '
+          tmux -L ex3 kill-server
+        output: |
+          3
+        check: sh
+        since: "3.1"
+        older:
+          en: Percentage sizes with -l (for example -l 30%) came in 3.1; older versions used -p 30.
+          tr: -l ile yüzde boyutu (örneğin -l 30%) 3.1 ile geldi; eski sürümlerde -p 30 kullanılırdı.
+        mistake:
+          en: Mixing up the flags; -h puts the panes side by side (a horizontal layout), -v stacks them, the opposite of what many expect.
+          tr: Flag'leri karıştırmak; -h pane'leri yan yana koyar (yatay düzen), -v alt alta koyar; birçok kişinin beklediğinin tersi.
+        source: https://man.openbsd.org/tmux#split-window
+      - id: new-pane-cwd
+        level: intermediate
+        title: { en: New panes in the current folder, tr: Geçerli klasörde yeni pane }
+        what:
+          en: New windows and splits open in the folder where tmux was started unless you bind them to keep the current path.
+          tr: Yeni window ve bölmeler, mevcut yolu korumaları için bind etmediğin sürece tmux'un başlatıldığı klasörde açılır.
+        lang: text
+        form: |
+          bind c new-window -c "#{pane_current_path}"
+          bind % split-window -h -c "#{pane_current_path}"
+          bind '"' split-window -v -c "#{pane_current_path}"
+        mistake:
+          en: Writing the binding for " without quoting it; in the config file the key must be written '"' (single quotes around it).
+          tr: Bind'ında " tuşunu tırnaksız yazmak; config dosyasında tuş '"' şeklinde (etrafında tek tırnakla) yazılmalıdır.
+        source: https://man.openbsd.org/tmux#FORMATS
+      - id: resize
+        level: intermediate
+        title: { en: Resize and arrange panes, tr: Pane'leri boyutlandırma ve düzenleme }
+        what:
+          en: Change pane sizes with the keyboard or jump to a ready-made layout.
+          tr: Pane boyutlarını klavyeyle değiştirir ya da hazır bir düzene geçer.
+        lang: text
+        form: |
+          Ctrl-b Ctrl-arrow    resize by 1 cell (hold Ctrl)
+          Ctrl-b Alt-arrow     resize by 5 cells
+          Ctrl-b Space         next preset layout
+          Ctrl-b Alt-1 .. Alt-7  preset layouts (even-horizontal, even-vertical, main-horizontal ...)
+          tmux resize-pane -R 10
+        source: https://man.openbsd.org/tmux#resize-pane
+      - id: move-panes
+        level: intermediate
+        title: { en: Swap, move and break out panes, tr: Pane takas etme, taşıma ve ayırma }
+        what:
+          en: Reorder panes, turn a pane into its own window, or join a pane into another window.
+          tr: Pane'lerin sırasını değiştirir, bir pane'i kendi window'una çevirir ya da başka bir window'a katar.
+        lang: sh
+        form: |
+          Ctrl-b {  /  }     swap with previous / next pane
+          Ctrl-b Ctrl-o      rotate all panes
+          Ctrl-b !           break the pane out into its own window
+          tmux join-pane -s logs -t editor      move a pane (or window) logs into window editor
+        source: https://man.openbsd.org/tmux#join-pane
+      - id: sync-panes
+        level: advanced
+        title: { en: Type in all panes at once, tr: Tüm pane'lere aynı anda yazma }
+        what:
+          en: With synchronize-panes on, everything you type goes to every pane of the window, handy for running the same command on several servers.
+          tr: synchronize-panes açıkken yazdığın her şey window'daki tüm pane'lere gider; aynı komutu birkaç sunucuda çalıştırmak için kullanışlıdır.
+        lang: text
+        form: |
+          Ctrl-b :setw synchronize-panes on
+          Ctrl-b :setw synchronize-panes off
+          bind S setw synchronize-panes      toggle with Ctrl-b S (config file)
+        mistake:
+          en: Leaving it on and typing a destructive command into every pane. Turn it off as soon as you are done.
+          tr: Açık bırakıp yıkıcı bir komutu her pane'e yazmak. İşin biter bitmez kapat.
+        source: https://man.openbsd.org/tmux#synchronize-panes
+  - id: copy
+    title: { en: Copy mode and scrollback, tr: Copy mode ve geçmiş }
+    items:
+      - id: scroll
+        level: basic
+        title: { en: Scroll back, tr: Geriye kaydırma }
+        what:
+          en: Normal terminal scrolling does not work inside tmux; copy mode lets you scroll through the pane's history.
+          tr: tmux içinde normal terminal kaydırması çalışmaz; copy mode pane'in geçmişinde gezinmeni sağlar.
+        lang: text
+        form: |
+          Ctrl-b [       enter copy mode
+          arrows, PageUp / PageDown    scroll
+          q              leave copy mode
+          Ctrl-b PageUp  enter copy mode and go up one page
+        mistake:
+          en: Typing while in copy mode; the keys are commands there, not input. Press q first.
+          tr: Copy mode içindeyken yazmak; oradaki tuşlar girdi değil komuttur. Önce q'ya bas.
+        source: https://man.openbsd.org/tmux#WINDOWS_AND_PANES
+      - id: copy-select
+        level: basic
+        title: { en: Select and copy text, tr: Metin seçme ve kopyalama }
+        what:
+          en: Select text with the keyboard in copy mode, copy it into a tmux buffer and paste it later.
+          tr: Copy mode'da metni klavyeyle seçer, tmux buffer'ına kopyalar ve sonra yapıştırırsın.
+        lang: text
+        form: |
+          emacs keys (default):  Ctrl-Space start,  Alt-w copy
+          vi keys:               Space start,  Enter copy
+          Ctrl-b ]               paste the latest buffer
+        mistake:
+          en: Looking for the vi keys while the default is emacs keys; tmux uses vi keys by default only if your EDITOR or VISUAL variable contains "vi". Set mode-keys vi to be sure.
+          tr: Varsayılan emacs tuşlarıyken vi tuşlarını aramak; tmux, EDITOR veya VISUAL değişkeninde "vi" geçmedikçe varsayılan olarak vi tuşlarını kullanmaz. Emin olmak için mode-keys vi ayarla.
+        source: https://man.openbsd.org/tmux#mode-keys
+      - id: copy-search
+        level: intermediate
+        title: { en: Search in the scrollback, tr: Geçmişte arama }
+        what:
+          en: Search the pane's history for text and jump between the matches.
+          tr: Pane'in geçmişinde metin arar ve eşleşmeler arasında atlar.
+        lang: text
+        form: |
+          vi keys:    /text  search down    ?text  search up    n / N  next / previous match
+          emacs keys: Ctrl-s down   Ctrl-r up   n  next match
+          Ctrl-b f    search the text of all windows
+        source: https://man.openbsd.org/tmux#search-forward
+      - id: mode-keys-vi
+        level: intermediate
+        title: { en: vi keys in copy mode, tr: Copy mode'da vi tuşları }
+        what:
+          en: Switches copy mode to vi keys, and makes v and y work like in Vim.
+          tr: Copy mode'u vi tuşlarına geçirir ve v ile y'yi Vim'deki gibi çalıştırır.
+        lang: text
+        form: |
+          set -g mode-keys vi
+          bind -T copy-mode-vi v send -X begin-selection
+          bind -T copy-mode-vi y send -X copy-selection-and-cancel
+        mistake:
+          en: Binding v to begin-selection and losing the default, where v toggles a rectangular selection.
+          tr: v'yi begin-selection'a bağlayıp varsayılanı kaybetmek; varsayılanda v dikdörtgen seçimi açıp kapatır.
+        source: https://man.openbsd.org/tmux#copy-mode
+      - id: buffers
+        level: intermediate
+        title: { en: Paste buffers, tr: Paste buffer'ları }
+        what:
+          en: Every copy goes into a numbered tmux buffer; you can list, show, save and paste them from commands.
+          tr: Her kopyalama numaralı bir tmux buffer'ına gider; bunları komutlarla listeleyebilir, gösterebilir, kaydedebilir ve yapıştırabilirsin.
+        lang: sh
+        form: |
+          tmux set-buffer "text"       put text into a buffer
+          tmux show-buffer             print the latest buffer
+          tmux list-buffers            list them (Ctrl-b #)
+          tmux save-buffer out.txt     write the latest buffer to a file
+          Ctrl-b =                     choose a buffer to paste
+        example: |
+          tmux -L ex4 -f /dev/null new-session -d 'sleep 30'
+          tmux -L ex4 set-buffer 'hello from tmux'
+          tmux -L ex4 show-buffer
+          tmux -L ex4 kill-server
+        output: |
+          hello from tmux
+        check: sh
+        source: https://man.openbsd.org/tmux#BUFFERS
+      - id: clipboard
+        level: intermediate
+        title: { en: Copy to the system clipboard, tr: Sistem panosuna kopyalama }
+        what:
+          en: By default text copied in tmux stays in tmux; ask tmux to also send it to your terminal's clipboard, or pipe it to a clipboard program.
+          tr: Varsayılan olarak tmux'ta kopyalanan metin tmux'ta kalır; tmux'a metni terminalinin panosuna da göndermesini söyleyebilir ya da bir pano programına pipe edebilirsin.
+        lang: text
+        form: |
+          set -s set-clipboard on
+          bind -T copy-mode-vi y send -X copy-pipe-and-cancel "wl-copy"
+          bind -T copy-mode-vi y send -X copy-pipe-and-cancel "xclip -selection clipboard -in"
+        mistake:
+          en: Expecting the copy to reach your laptop clipboard over SSH when the terminal does not support the OSC 52 escape sequence; check that your terminal allows it.
+          tr: Terminal OSC 52 escape dizisini desteklemiyorken, SSH üzerinden kopyalamanın laptop panosuna ulaşmasını beklemek; terminalinin buna izin verdiğini kontrol et.
+        source: https://man.openbsd.org/tmux#set-clipboard
+      - id: mouse
+        level: basic
+        title: { en: Mouse support, tr: Mouse desteği }
+        what:
+          en: Lets you click a pane, drag borders to resize, and scroll with the wheel.
+          tr: Pane'e tıklamayı, kenarları sürükleyerek boyutlandırmayı ve tekerlekle kaydırmayı sağlar.
+        lang: text
+        form: set -g mouse on
+        mistake:
+          en: Being unable to select text with the mouse after turning it on; tmux now handles the mouse, so hold Shift (in most terminals) to select as usual.
+          tr: Mouse açıldıktan sonra metni mouse ile seçememek; mouse'u artık tmux yönetiyor, her zamanki gibi seçmek için (çoğu terminalde) Shift'e basılı tut.
+        source: https://man.openbsd.org/tmux#mouse
+      - id: capture-pane
+        level: intermediate
+        title: { en: Save a pane's output, tr: Pane çıktısını kaydetme }
+        what:
+          en: Prints or saves the text of a pane, including its history, for logs or scripts.
+          tr: Bir pane'in metnini geçmişi dahil yazdırır veya kaydeder; log ve script'ler için kullanışlıdır.
+        lang: sh
+        form: |
+          tmux capture-pane -p                   print the visible text
+          tmux capture-pane -p -S -              print the whole history
+          tmux capture-pane -p -S -200 > out.txt last 200 lines to a file
+        mistake:
+          en: Forgetting -p; without it the text goes into a tmux buffer and nothing is printed.
+          tr: -p'yi unutmak; onsuz metin bir tmux buffer'ına gider ve hiçbir şey yazdırılmaz.
+        source: https://man.openbsd.org/tmux#capture-pane
+  - id: config
+    title: { en: Configuration, tr: Yapılandırma }
+    items:
+      - id: config-file
+        level: basic
+        title: { en: The config file and reload, tr: Config dosyası ve yeniden yükleme }
+        what:
+          en: tmux reads a file at startup; after editing it you reload it without closing tmux.
+          tr: tmux açılışta bir dosya okur; düzenledikten sonra tmux'u kapatmadan yeniden yüklersin.
+        lang: text
+        form: |
+          ~/.tmux.conf    or    ~/.config/tmux/tmux.conf
+          tmux source-file ~/.tmux.conf
+          bind r source-file ~/.tmux.conf \; display "Reloaded"
+        mistake:
+          en: Editing the file and expecting a running server to notice; the file is read once when the server starts. Reload it, or kill the server.
+          tr: Dosyayı düzenleyip çalışan sunucunun fark etmesini beklemek; dosya sunucu başlarken bir kez okunur. Yeniden yükle ya da sunucuyu kapat.
+        since: "3.1"
+        older:
+          en: ~/.config/tmux/tmux.conf is only searched from 3.1 on; older versions read only ~/.tmux.conf.
+          tr: ~/.config/tmux/tmux.conf 3.1'den itibaren aranır; daha eski sürümler sadece ~/.tmux.conf okur.
+        source: https://man.openbsd.org/tmux#FILES
+      - id: options
+        level: basic
+        title: { en: Common options, tr: Sık kullanılan option'lar }
+        what:
+          en: The few settings most configs start with.
+          tr: Çoğu config'in başladığı birkaç ayar.
+        lang: sh
+        form: |
+          set -g base-index 1              number windows from 1
+          setw -g pane-base-index 1        number panes from 1
+          set -g renumber-windows on       close the gap when a window closes
+          set -g history-limit 50000       lines of scrollback
+          set -sg escape-time 10           no delay on Esc (Vim users)
+          set -g mouse on
+        example: |
+          printf 'set -g base-index 1\n' > t.conf
+          tmux -L ex5 -f t.conf new-session -d -s work
+          tmux -L ex5 new-window -d
+          tmux -L ex5 list-windows -F '#{window_index}'
+          tmux -L ex5 kill-server
+        output: |
+          1
+          2
+        check: sh
+        mistake:
+          en: Raising history-limit and seeing no change; it only applies to panes created afterwards.
+          tr: history-limit'i artırıp değişiklik görmemek; sadece sonradan oluşturulan pane'lere uygulanır.
+        source: https://man.openbsd.org/tmux#base-index
+      - id: option-scopes
+        level: advanced
+        title: { en: Option scopes and set flags, tr: Option kapsamları ve set flag'leri }
+        what:
+          en: Options live at different levels (server, session, window, pane); the flag chooses the level and -g makes it global.
+          tr: Option'lar farklı seviyelerde durur (server, session, window, pane); flag seviyeyi seçer, -g onu global yapar.
+        lang: sh
+        form: |
+          set -g  status-interval 5      session option, global default
+          setw -g mode-keys vi           window option
+          set -s  escape-time 10         server option
+          set -p  remain-on-exit on      pane option
+          tmux show -g                   show all global session options
+          tmux show -gv history-limit    show one value
+        example: |
+          tmux -L ex6 -f /dev/null new-session -d
+          tmux -L ex6 show-options -gv history-limit
+          tmux -L ex6 kill-server
+        output: |
+          2000
+        check: sh
+        mistake:
+          en: Setting a server option with plain set -g and seeing an error or no effect; use set -s for server options such as escape-time and set-clipboard.
+          tr: Server option'ını düz set -g ile ayarlayıp hata görmek ya da etki görmemek; escape-time ve set-clipboard gibi server option'ları için set -s kullan.
+        source: https://man.openbsd.org/tmux#OPTIONS
+      - id: prefix-change
+        level: intermediate
+        title: { en: Change the prefix key, tr: Prefix tuşunu değiştirme }
+        what:
+          en: Many people use Ctrl-a instead of Ctrl-b because it is easier to reach.
+          tr: Birçok kişi ulaşması daha kolay olduğu için Ctrl-b yerine Ctrl-a kullanır.
+        lang: text
+        form: |
+          unbind C-b
+          set -g prefix C-a
+          bind C-a send-prefix
+        mistake:
+          en: Using Ctrl-a and then not being able to jump to the start of the line in the shell; press Ctrl-a twice (with the send-prefix binding) to send it to the program.
+          tr: Ctrl-a kullanınca shell'de satır başına gidememek; programa göndermek için (send-prefix bind'ı ile) Ctrl-a'ya iki kez bas.
+        source: https://man.openbsd.org/tmux#prefix
+      - id: bind-keys
+        level: intermediate
+        title: { en: Key bindings, tr: Tuş bind'ları }
+        what:
+          en: Bind your own keys to tmux commands; bindings live in key tables such as prefix, root and copy-mode-vi.
+          tr: Kendi tuşlarını tmux komutlarına bağlarsın; bind'lar prefix, root ve copy-mode-vi gibi key table'larda durur.
+        lang: sh
+        form: |
+          bind | split-window -h        Ctrl-b | (after the prefix)
+          bind -n M-Left select-pane -L   no prefix needed (root table)
+          bind -r H resize-pane -L 5     repeatable: Ctrl-b H H H
+          unbind '"'                     remove a binding
+          tmux list-keys -T prefix       list a table
+        example: |
+          printf 'bind r display-message hi\n' > t.conf
+          tmux -L ex7 -f t.conf new-session -d
+          tmux -L ex7 list-keys r | grep prefix | tr -s ' '
+          tmux -L ex7 kill-server
+        output: |
+          bind-key -T prefix r display-message hi
+        check: sh
+        mistake:
+          en: Binding a key without a prefix (-n) and losing that key in every program, for example M-Left in your editor or shell.
+          tr: Bir tuşu prefix'siz (-n) bağlayıp o tuşu her programda kaybetmek, örneğin editör veya shell'deki M-Left.
+        source: https://man.openbsd.org/tmux#bind-key
+      - id: status-bar
+        level: intermediate
+        title: { en: The status bar, tr: Durum çubuğu }
+        what:
+          en: The bar at the bottom shows session, windows and time; you can change what it shows with formats.
+          tr: Alttaki çubuk session, window'ları ve saati gösterir; formatlarla gösterdiğini değiştirebilirsin.
+        lang: text
+        form: |
+          set -g status-interval 5
+          set -g status-left  "#S "
+          set -g status-right "#{pane_current_path} %H:%M"
+          set -g status-position top
+          #S session name   #I window index   #W window name   %H:%M time
+        mistake:
+          en: "Putting a slow command in status-right with #(...); it runs every status-interval seconds and can make tmux feel slow."
+          tr: "status-right içine #(...) ile yavaş bir komut koymak; her status-interval saniyede çalışır ve tmux'u yavaşlatabilir."
+        source: https://man.openbsd.org/tmux#status-left
+      - id: command-prompt
+        level: basic
+        title: { en: The command prompt, tr: Komut satırı }
+        what:
+          en: Run any tmux command from inside tmux; the same commands you would type in the shell after "tmux".
+          tr: tmux içinden herhangi bir tmux komutunu çalıştırırsın; shell'de "tmux" sonrasına yazacağın komutlarla aynıdır.
+        lang: text
+        form: |
+          Ctrl-b :
+          :new-window -n logs
+          :kill-pane
+          :setw synchronize-panes on
+        source: https://man.openbsd.org/tmux#COMMAND_PARSING_AND_EXECUTION
+      - id: popup
+        level: advanced
+        title: { en: Popup windows, tr: Popup pencereler }
+        what:
+          en: Opens a command in a floating popup over your panes and closes it when the command ends, for quick tools such as a file browser or git UI.
+          tr: Bir komutu pane'lerinin üstünde yüzen bir popup'ta açar ve komut bitince kapatır; dosya gezgini veya git arayüzü gibi hızlı araçlar için uygundur.
+        lang: text
+        form: |
+          display-popup -E "htop"
+          bind g display-popup -E -w 80% -h 80% -d "#{pane_current_path}" "lazygit"
+        since: "3.2"
+        older:
+          en: display-popup was added in 3.2; older versions do not have it.
+          tr: display-popup 3.2'de eklendi; eski sürümlerde yoktur.
+        source: https://man.openbsd.org/tmux
+  - id: scripting
+    title: { en: Scripting tmux, tr: tmux'u script'leme }
+    items:
+      - id: targets
+        level: advanced
+        title:
+          en: "Targets: session:window.pane"
+          tr: "Hedefler: session:window.pane"
+        what:
+          en: Commands that act on a session, window or pane take -t with a target written as session:window.pane.
+          tr: Session, window veya pane üzerinde çalışan komutlar -t ile session:window.pane biçiminde yazılan bir hedef alır.
+        lang: sh
+        form: |
+          -t work             session work
+          -t work:2           window 2 of work
+          -t work:logs.1      pane 1 of window logs
+          -t :                 the current session and window
+        example: |
+          tmux -L ex8 -f /dev/null new-session -d -s work -n logs
+          tmux -L ex8 split-window -t work:logs
+          tmux -L ex8 list-panes -t work:logs -F 'pane #{pane_index}'
+          tmux -L ex8 kill-server
+        output: |
+          pane 0
+          pane 1
+        check: sh
+        source: https://man.openbsd.org/tmux#COMMANDS
+      - id: send-keys
+        level: advanced
+        title: { en: Send keys to a pane, tr: Pane'e tuş gönderme }
+        what:
+          en: Types text into a pane from a script, so you can start programs and set up your workspace automatically.
+          tr: Bir script'ten pane'e metin yazar; böylece programları başlatıp çalışma alanını otomatik kurabilirsin.
+        lang: sh
+        form: tmux send-keys -t work:0.0 'npm run dev' Enter
+        example: |
+          tmux -L ex9 -f /dev/null new-session -d -s work -x 40 -y 5 cat
+          tmux -L ex9 send-keys -t work 'hi there' Enter
+          sleep 0.5
+          tmux -L ex9 capture-pane -p -t work | grep -c 'hi there'
+          tmux -L ex9 kill-server
+        output: |
+          2
+        check: sh
+        mistake:
+          en: Forgetting Enter at the end; the text is typed but never run.
+          tr: Sonda Enter yazmayı unutmak; metin yazılır ama hiç çalıştırılmaz.
+        source: https://man.openbsd.org/tmux#send-keys
+      - id: dev-layout
+        level: advanced
+        title: { en: A script for your workspace, tr: Çalışma alanı için script }
+        what:
+          en: Build the same layout every time with a shell script that creates the session only if it does not exist yet.
+          tr: Session yoksa oluşturan bir shell script ile her seferinde aynı düzeni kur.
+        lang: sh
+        form: |
+          #!/bin/sh
+          S=dev
+          if ! tmux has-session -t "$S" 2>/dev/null; then
+            tmux new-session -d -s "$S" -n code
+            tmux send-keys -t "$S:code" 'nvim .' Enter
+            tmux split-window -h -t "$S:code"
+            tmux new-window -t "$S" -n server
+            tmux send-keys -t "$S:server" 'npm run dev' Enter
+          fi
+          tmux attach -t "$S"
+        source: https://man.openbsd.org/tmux#has-session
+      - id: nested
+        level: advanced
+        title: { en: tmux inside tmux, tr: tmux içinde tmux }
+        what:
+          en: When you ssh from a tmux pane into a server that also runs tmux, the outer tmux catches the prefix; press it twice to reach the inner one.
+          tr: tmux pane'inden, içinde yine tmux çalışan bir sunucuya ssh yapınca prefix'i dış tmux yakalar; içtekine ulaşmak için iki kez bas.
+        lang: text
+        form: |
+          Ctrl-b Ctrl-b c     new window in the inner tmux
+        mistake:
+          en: Pressing the prefix once and wondering why the new window appears in the wrong tmux. The default Ctrl-b Ctrl-b binding sends the prefix through to the program inside.
+          tr: Prefix'e bir kez basıp yeni window'un neden yanlış tmux'ta açıldığını merak etmek. Varsayılan Ctrl-b Ctrl-b bind'ı prefix'i içerideki programa gönderir.
+        source: https://man.openbsd.org/tmux#send-prefix

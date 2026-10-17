@@ -793,6 +793,29 @@ const migrations: string[] = [
      text TEXT NOT NULL,
      at INTEGER NOT NULL
    );`,
+  // Faz 14: the learning center: the user's favorites, notes, reports and finished steps; the
+  // newest versions of the technologies; translations of sheets and roadmaps into other languages.
+  `CREATE TABLE learn_marks (
+     key TEXT NOT NULL,
+     kind TEXT NOT NULL,
+     value TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     PRIMARY KEY (key, kind)
+   );
+   CREATE TABLE learn_latest (
+     sheet TEXT PRIMARY KEY,
+     latest TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );
+   CREATE TABLE learn_translations (
+     kind TEXT NOT NULL,
+     id TEXT NOT NULL,
+     lang TEXT NOT NULL,
+     version TEXT NOT NULL,
+     data TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     PRIMARY KEY (kind, id, lang)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

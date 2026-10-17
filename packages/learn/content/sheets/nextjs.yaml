@@ -1,0 +1,809 @@
+id: nextjs
+title: Next.js
+category: framework
+summary:
+  en: A React framework with file-based routing, server rendering, data loading and caching built in (App Router).
+  tr: Dosya tabanlı routing, sunucuda render, veri yükleme ve cache'i hazır getiren bir React framework'ü (App Router).
+aliases: [next, next.js, app router, ssr, server components, server actions, react framework]
+detect:
+  npm: [next]
+version: "16.4"
+latest: npm:next
+checked: 2026-10
+sources:
+  - title: Next.js documentation (App Router)
+    url: https://nextjs.org/docs/app
+  - title: Next.js API reference
+    url: https://nextjs.org/docs/app/api-reference
+  - title: Upgrading to version 16
+    url: https://nextjs.org/docs/app/guides/upgrading/version-16
+roadmap: nextjs
+sections:
+  - id: routing
+    title: { en: Pages and routing, tr: Sayfalar ve routing }
+    items:
+      - id: create-app
+        level: basic
+        title: { en: Start a new project, tr: Yeni proje başlatma }
+        what:
+          en: Creates a Next.js app with TypeScript, the app folder and the recommended settings.
+          tr: TypeScript, app klasörü ve önerilen ayarlarla bir Next.js uygulaması oluşturur.
+        lang: sh
+        form: |
+          npx create-next-app@latest my-app
+        example: |
+          npx create-next-app@latest my-app --yes
+          cd my-app
+          npm run dev
+        mistake:
+          en: Mixing up the pages folder (old Pages Router) and the app folder; new code goes in app.
+          tr: pages klasörünü (eski Pages Router) app klasörüyle karıştırmak; yeni kod app'e yazılır.
+        source: https://nextjs.org/docs/app/getting-started/installation
+      - id: page
+        level: basic
+        title: { en: A page is a folder with page.tsx, tr: "Sayfa, içinde page.tsx olan bir klasördür" }
+        what:
+          en: Each folder in app is a URL segment; a page.tsx file inside makes it a visible page.
+          tr: app içindeki her klasör bir URL parçasıdır; içindeki page.tsx dosyası onu görünen bir sayfa yapar.
+        lang: ts
+        form: |
+          // app/about/page.tsx  ->  /about
+          export default function Page() { return <h1>About</h1>; }
+        example: |
+          // app/page.tsx         -> /
+          // app/blog/page.tsx    -> /blog
+          export default function BlogPage() {
+            return <h1>Blog</h1>;
+          }
+        mistake:
+          en: Expecting every file in the folder to be public; only page.tsx and route.ts create routes, so you can keep components next to them.
+          tr: Klasördeki her dosyanın açık bir adres olacağını sanmak; sadece page.tsx ve route.ts route oluşturur, component'leri yanlarında tutabilirsin.
+        source: https://nextjs.org/docs/app/getting-started/layouts-and-pages
+      - id: layout
+        level: basic
+        title: { en: Shared layout, tr: Ortak layout }
+        what:
+          en: A layout.tsx wraps all pages below it and keeps its state while you move between them.
+          tr: layout.tsx altındaki bütün sayfaları sarar ve sayfalar arasında gezerken state'ini korur.
+        lang: ts
+        form: |
+          export default function RootLayout({ children }: { children: React.ReactNode }) { ... }
+        example: |
+          // app/layout.tsx
+          export default function RootLayout({ children }: { children: React.ReactNode }) {
+            return (
+              <html lang="en">
+                <body>
+                  <nav>...</nav>
+                  {children}
+                </body>
+              </html>
+            );
+          }
+        mistake:
+          en: Leaving out <html> and <body> in the root layout; the root layout must render them.
+          tr: Root layout'ta <html> ve <body>'yi unutmak; root layout bunları çizmek zorunda.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/layout
+      - id: link
+        level: basic
+        title: { en: Link between pages, tr: Sayfalar arası link }
+        what:
+          en: Link moves to another page without a full reload and prefetches it.
+          tr: Link, sayfayı baştan yüklemeden başka bir sayfaya geçer ve onu önceden getirir (prefetch).
+        lang: ts
+        form: |
+          <Link href="/dashboard">Dashboard</Link>
+        example: |
+          import Link from "next/link";
+
+          export function Nav() {
+            return (
+              <nav>
+                <Link href="/">Home</Link>
+                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+              </nav>
+            );
+          }
+        mistake:
+          en: Using a plain <a> for internal links; the whole app reloads and client state is lost.
+          tr: İç linkler için düz <a> kullanmak; bütün uygulama yeniden yüklenir ve client state kaybolur.
+        source: https://nextjs.org/docs/app/api-reference/components/link
+      - id: dynamic-route
+        level: basic
+        title: { en: Dynamic route with params, tr: params ile dinamik route }
+        what:
+          en: A folder in square brackets like [slug] matches any value, which you read from params.
+          tr: "[slug] gibi köşeli parantezli bir klasör her değerle eşleşir; değeri params'tan okursun."
+        lang: ts
+        form: |
+          export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+            const { slug } = await params;
+          }
+        example: |
+          // app/blog/[slug]/page.tsx
+          export default async function Page(props: PageProps<"/blog/[slug]">) {
+            const { slug } = await props.params;
+            return <h1>Post: {slug}</h1>;
+          }
+        since: "15"
+        older:
+          en: Up to Next.js 14 params was a plain object (params.slug). 15 made it a Promise with a temporary sync fallback; 16 removed the fallback.
+          tr: Next.js 14'e kadar params düz bir object'ti (params.slug). 15 onu Promise yaptı ve geçici senkron destek bıraktı; 16 bu desteği kaldırdı.
+        mistake:
+          en: Reading params.slug without await; in Next.js 16 that is undefined.
+          tr: params.slug'ı await etmeden okumak; Next.js 16'da bu undefined olur.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes
+      - id: search-params
+        level: intermediate
+        title: { en: Read the query string, tr: Query string okuma }
+        what:
+          en: A page gets the ?key=value part of the URL as the searchParams prop, a Promise.
+          tr: Sayfa, URL'deki ?anahtar=değer kısmını searchParams prop'u olarak alır; bu bir Promise'tir.
+        lang: ts
+        form: |
+          const { q } = await searchParams;
+        example: |
+          // app/search/page.tsx  ->  /search?q=shoes
+          export default async function Page({
+            searchParams,
+          }: {
+            searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+          }) {
+            const { q } = await searchParams;
+            return <p>Results for {q}</p>;
+          }
+        since: "15"
+        mistake:
+          en: Expecting a single string; a key that appears twice (?tag=a&tag=b) comes as an array.
+          tr: Hep tek bir string beklemek; iki kez geçen bir anahtar (?tag=a&tag=b) array olarak gelir.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/page
+      - id: special-files
+        level: intermediate
+        title: { en: Loading and not-found screens, tr: Yükleniyor ve bulunamadı ekranları }
+        what:
+          en: loading.tsx shows while a page loads, not-found.tsx shows when you call notFound().
+          tr: loading.tsx sayfa yüklenirken görünür, not-found.tsx ise notFound() çağırınca görünür.
+        lang: ts
+        form: |
+          // app/blog/[slug]/loading.tsx, app/blog/[slug]/not-found.tsx
+        example: |
+          // app/blog/[slug]/page.tsx
+          import { notFound } from "next/navigation";
+
+          export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
+            const post = await getPost((await params).slug);
+            if (!post) notFound();
+            return <article>{post.title}</article>;
+          }
+
+          // app/blog/[slug]/loading.tsx
+          export default function Loading() {
+            return <p>Loading...</p>;
+          }
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/loading
+      - id: error-file
+        level: intermediate
+        title: { en: Error screen for a segment, tr: Bir bölüm için hata ekranı }
+        what:
+          en: error.tsx catches errors in its folder and shows a fallback with a button to try again.
+          tr: error.tsx kendi klasöründeki hataları yakalar ve tekrar denemek için butonlu bir yedek ekran gösterir.
+        lang: ts
+        form: |
+          'use client';
+          export default function Error({ error, retry }) { ... }
+        example: |
+          // app/dashboard/error.tsx
+          'use client';
+
+          export default function Error({ error, retry }: { error: unknown; retry: () => void }) {
+            return (
+              <div>
+                <h2>Something went wrong</h2>
+                <button onClick={() => retry()}>Try again</button>
+              </div>
+            );
+          }
+        since: "16.3"
+        older:
+          en: Before 16.3 the prop to use was reset() (unstable_retry in 16.2); reset still exists but does not re-fetch data.
+          tr: 16.3'ten önce kullanılan prop reset()'ti (16.2'de unstable_retry); reset hâlâ var ama veriyi yeniden çekmez.
+        mistake:
+          en: Forgetting 'use client' at the top; error files must be Client Components.
+          tr: En üste 'use client' yazmayı unutmak; error dosyaları Client Component olmak zorunda.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/error
+      - id: route-groups
+        level: intermediate
+        title: { en: Group routes without changing the URL, tr: URL'yi değiştirmeden route gruplama }
+        what:
+          en: A folder in parentheses like (marketing) organizes files and can have its own layout, but is left out of the URL.
+          tr: (marketing) gibi parantezli bir klasör dosyaları düzenler ve kendi layout'u olabilir, ama URL'ye girmez.
+        lang: text
+        form: |
+          app/(marketing)/about/page.tsx  ->  /about
+        example: |
+          app/
+            (marketing)/
+              layout.tsx        # layout for marketing pages
+              about/page.tsx    # /about
+            (shop)/
+              layout.tsx
+              cart/page.tsx     # /cart
+            _components/        # private folder, never a route
+        mistake:
+          en: Two groups with the same path inside (both with about/page.tsx); that is a build error.
+          tr: İki grubun içinde aynı yolu kullanmak (ikisinde de about/page.tsx); bu bir build hatasıdır.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/route-groups
+  - id: data
+    title: { en: Server and data, tr: Sunucu ve veri }
+    items:
+      - id: server-component-fetch
+        level: basic
+        title: { en: Load data in a Server Component, tr: Server Component'te veri yükleme }
+        what:
+          en: Components in app run on the server by default, so they can be async and read data directly.
+          tr: app içindeki component'ler varsayılan olarak sunucuda çalışır; async olup veriyi doğrudan okuyabilirler.
+        lang: ts
+        form: |
+          export default async function Page() { const data = await getData(); ... }
+        example: |
+          export default async function Page() {
+            const res = await fetch("https://api.example.com/posts");
+            const posts: { id: number; title: string }[] = await res.json();
+            return (
+              <ul>
+                {posts.map((p) => <li key={p.id}>{p.title}</li>)}
+              </ul>
+            );
+          }
+        mistake:
+          en: Fetching your own route handler (/api/...) from a Server Component; call the database or the function directly.
+          tr: Server Component'ten kendi route handler'ını (/api/...) fetch etmek; veritabanını ya da fonksiyonu doğrudan çağır.
+        source: https://nextjs.org/docs/app/getting-started/fetching-data
+      - id: use-client
+        level: basic
+        title: { en: Client Components for interactivity, tr: Etkileşim için Client Component }
+        what:
+          en: "'use client' at the top of a file lets its components use state, effects and browser events."
+          tr: "Dosyanın en üstüne yazılan 'use client', içindeki component'lerin state, effect ve tarayıcı olaylarını kullanmasını sağlar."
+        lang: ts
+        form: |
+          'use client';
+        example: |
+          // app/ui/counter.tsx
+          'use client';
+          import { useState } from "react";
+
+          export function Counter() {
+            const [n, setN] = useState(0);
+            return <button onClick={() => setN(n + 1)}>{n}</button>;
+          }
+        mistake:
+          en: Putting 'use client' on a whole page or layout; everything it imports ships to the browser. Keep it on small interactive parts.
+          tr: "'use client'ı bütün bir sayfaya ya da layout'a koymak; import ettiği her şey tarayıcıya gider. Küçük etkileşimli parçalarda tut."
+        source: https://nextjs.org/docs/app/getting-started/server-and-client-components
+      - id: env
+        level: basic
+        title: { en: Environment variables, tr: Ortam değişkenleri }
+        what:
+          en: Values in .env files are read on the server; only names starting with NEXT_PUBLIC_ reach the browser.
+          tr: .env dosyalarındaki değerler sunucuda okunur; sadece NEXT_PUBLIC_ ile başlayanlar tarayıcıya ulaşır.
+        lang: sh
+        form: |
+          NEXT_PUBLIC_API_URL=https://api.example.com
+        example: |
+          # .env.local (never commit it)
+          DATABASE_URL=postgres://user:pass@localhost/app
+          NEXT_PUBLIC_SITE_NAME=My Shop
+        mistake:
+          en: Adding NEXT_PUBLIC_ to a secret to make it work in a Client Component; the secret then ships in the JavaScript to everyone.
+          tr: Client Component'te çalışsın diye bir sırrın başına NEXT_PUBLIC_ eklemek; sır JavaScript'in içinde herkese gider.
+        source: https://nextjs.org/docs/app/guides/environment-variables
+      - id: route-handler
+        level: basic
+        title: { en: API endpoint with route.ts, tr: route.ts ile API endpoint }
+        what:
+          en: A route.ts file exports functions named after HTTP methods and returns a Response.
+          tr: route.ts dosyası HTTP metodlarının adını taşıyan fonksiyonlar export eder ve bir Response döndürür.
+        lang: ts
+        form: |
+          export async function GET(request: Request) { return Response.json(data); }
+        example: |
+          // app/api/todos/route.ts
+          export async function GET() {
+            const todos = await db.todo.findMany();
+            return Response.json(todos);
+          }
+
+          export async function POST(request: Request) {
+            const body = await request.json();
+            const todo = await db.todo.create({ data: body });
+            return Response.json(todo, { status: 201 });
+          }
+        mistake:
+          en: Putting route.ts and page.tsx in the same folder; a segment can have only one of them.
+          tr: route.ts ile page.tsx'i aynı klasöre koymak; bir bölümde ikisinden sadece biri olabilir.
+        avoid:
+          en: For form submits from your own pages; a Server Action is shorter.
+          tr: Kendi sayfalarındaki form gönderimleri için; Server Action daha kısadır.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/route
+      - id: cookies-headers
+        level: intermediate
+        title: { en: Read cookies and headers, tr: Cookie ve header okuma }
+        what:
+          en: cookies() and headers() from next/headers give you the current request's data; both must be awaited.
+          tr: next/headers'tan gelen cookies() ve headers() o anki isteğin verisini verir; ikisi de await edilmeli.
+        lang: ts
+        form: |
+          const cookieStore = await cookies();
+        example: |
+          import { cookies, headers } from "next/headers";
+
+          export default async function Page() {
+            const cookieStore = await cookies();
+            const theme = cookieStore.get("theme")?.value ?? "light";
+            const agent = (await headers()).get("user-agent");
+            return <p>{theme} - {agent}</p>;
+          }
+        since: "15"
+        older:
+          en: Up to 14 they were synchronous; 16 removed the sync fallback.
+          tr: 14'e kadar senkrondu; 16 senkron desteği tamamen kaldırdı.
+        mistake:
+          en: Setting a cookie while rendering a page; cookies().set only works in a Server Action or route handler.
+          tr: Sayfa render edilirken cookie set etmek; cookies().set sadece Server Action ya da route handler içinde çalışır.
+        source: https://nextjs.org/docs/app/api-reference/functions/cookies
+      - id: static-params
+        level: intermediate
+        title: { en: Prerender dynamic pages at build time, tr: Dinamik sayfaları build sırasında üretme }
+        what:
+          en: generateStaticParams lists the values of a dynamic segment so those pages are built ahead of time.
+          tr: generateStaticParams dinamik bir bölümün değerlerini listeler; böylece o sayfalar önceden üretilir.
+        lang: ts
+        form: |
+          export async function generateStaticParams() { return [{ slug: "a" }]; }
+        example: |
+          // app/blog/[slug]/page.tsx
+          export async function generateStaticParams() {
+            const posts = await getPosts();
+            return posts.map((post) => ({ slug: post.slug }));
+          }
+        mistake:
+          en: Returning the values as plain strings; each entry must be an object with the segment name as key.
+          tr: Değerleri düz string olarak döndürmek; her eleman, anahtarı bölüm adı olan bir object olmalı.
+        source: https://nextjs.org/docs/app/api-reference/functions/generate-static-params
+      - id: client-hooks
+        level: intermediate
+        title: { en: Router hooks in Client Components, tr: Client Component'te router hook'ları }
+        what:
+          en: useRouter, usePathname and useSearchParams from next/navigation read or change the URL in the browser.
+          tr: next/navigation'daki useRouter, usePathname ve useSearchParams tarayıcıda URL'yi okur ya da değiştirir.
+        lang: ts
+        form: |
+          const router = useRouter(); router.push("/done");
+        example: |
+          'use client';
+          import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+          export function Filters() {
+            const router = useRouter();
+            const pathname = usePathname();
+            const params = useSearchParams();
+            function setTag(tag: string) {
+              const next = new URLSearchParams(params);
+              next.set("tag", tag);
+              router.push(`${pathname}?${next}`);
+            }
+            return <button onClick={() => setTag("new")}>New</button>;
+          }
+        mistake:
+          en: Importing useRouter from next/router; that is the Pages Router version and does not work in app.
+          tr: useRouter'ı next/router'dan import etmek; bu Pages Router sürümüdür ve app içinde çalışmaz.
+        source: https://nextjs.org/docs/app/api-reference/functions/use-router
+  - id: mutations
+    title: { en: Forms and Server Actions, tr: Formlar ve Server Action'lar }
+    items:
+      - id: server-action
+        level: basic
+        title: { en: Save a form with a Server Action, tr: Formu Server Action ile kaydetme }
+        what:
+          en: An async function marked 'use server' runs on the server when the form is submitted, even before JavaScript loads.
+          tr: "'use server' ile işaretli async bir fonksiyon form gönderilince sunucuda çalışır; JavaScript yüklenmeden bile."
+        lang: ts
+        form: |
+          <form action={createPost}>...</form>
+        example: |
+          // app/actions.ts
+          'use server';
+          import { revalidatePath } from "next/cache";
+          import { redirect } from "next/navigation";
+
+          export async function createPost(formData: FormData) {
+            const title = String(formData.get("title") ?? "");
+            await db.post.create({ data: { title } });
+            revalidatePath("/posts");
+            redirect("/posts");
+          }
+
+          // app/posts/new/page.tsx
+          import { createPost } from "../../actions";
+          export default function Page() {
+            return (
+              <form action={createPost}>
+                <input name="title" />
+                <button type="submit">Create</button>
+              </form>
+            );
+          }
+        mistake:
+          en: Not checking who the user is inside the action; anyone can send a POST to it. Check auth and validate input in every action.
+          tr: Action içinde kullanıcının kim olduğunu kontrol etmemek; herkes ona POST gönderebilir. Her action'da yetkiyi kontrol et ve girdiyi doğrula.
+        source: https://nextjs.org/docs/app/getting-started/mutating-data
+      - id: action-state
+        level: intermediate
+        title: { en: Show errors and pending state, tr: Hataları ve bekleme durumunu gösterme }
+        what:
+          en: React's useActionState gives a form the action's last return value and a pending flag.
+          tr: React'in useActionState hook'u forma action'ın son döndürdüğü değeri ve bir bekleme bayrağı verir.
+        lang: ts
+        form: |
+          const [state, formAction, pending] = useActionState(createUser, initialState);
+        example: |
+          'use client';
+          import { useActionState } from "react";
+          import { signup } from "./actions"; // (prev, formData) => { error?: string }
+
+          export function SignupForm() {
+            const [state, formAction, pending] = useActionState(signup, { error: "" });
+            return (
+              <form action={formAction}>
+                <input name="email" type="email" />
+                {state.error && <p>{state.error}</p>}
+                <button disabled={pending}>Sign up</button>
+              </form>
+            );
+          }
+        mistake:
+          en: Keeping the old action signature; with useActionState the action gets the previous state first and formData second.
+          tr: Action'ın eski imzasını korumak; useActionState ile action önce önceki state'i, sonra formData'yı alır.
+        source: https://nextjs.org/docs/app/guides/forms
+      - id: revalidate-path
+        level: intermediate
+        title: { en: Refresh a page after a change, tr: Değişiklikten sonra sayfayı tazeleme }
+        what:
+          en: revalidatePath marks the cached data of a path as old, so the next visit shows fresh data.
+          tr: revalidatePath bir yolun cache'teki verisini eski olarak işaretler; bir sonraki ziyarette taze veri görünür.
+        lang: ts
+        form: |
+          revalidatePath("/posts");
+        example: |
+          'use server';
+          import { revalidatePath } from "next/cache";
+
+          export async function deletePost(id: string) {
+            await db.post.delete({ where: { id } });
+            revalidatePath("/posts");
+          }
+        mistake:
+          en: Calling redirect() before revalidatePath(); redirect throws, so code after it never runs.
+          tr: redirect()'i revalidatePath()'ten önce çağırmak; redirect hata fırlatarak çalışır, sonrasındaki kod hiç çalışmaz.
+        source: https://nextjs.org/docs/app/api-reference/functions/revalidatePath
+      - id: update-tag
+        level: advanced
+        title: { en: Show the user their own change at once, tr: Kullanıcıya kendi değişikliğini hemen gösterme }
+        what:
+          en: updateTag expires cached data with a tag and refetches it in the same request, so the user sees the new value right away.
+          tr: updateTag bir tag'e sahip cache'li veriyi geçersiz kılar ve aynı istekte yeniden getirir; kullanıcı yeni değeri hemen görür.
+        lang: ts
+        form: |
+          updateTag(`user-${id}`);
+        example: |
+          'use server';
+          import { updateTag } from "next/cache";
+
+          export async function saveProfile(userId: string, name: string) {
+            await db.user.update({ where: { id: userId }, data: { name } });
+            updateTag(`user-${userId}`);
+          }
+        since: "16"
+        api: ["updateTag("]
+        mistake:
+          en: Calling it from a route handler; updateTag only works in Server Actions. Use revalidateTag there.
+          tr: Route handler'dan çağırmak; updateTag sadece Server Action'larda çalışır. Orada revalidateTag kullan.
+        source: https://nextjs.org/docs/app/api-reference/functions/updateTag
+      - id: revalidate-tag
+        level: advanced
+        title: { en: Mark tagged data as stale, tr: Tag'li veriyi eskimiş olarak işaretleme }
+        what:
+          en: revalidateTag marks data with a tag as stale; visitors get the old copy while a fresh one is made in the background.
+          tr: revalidateTag bir tag'e sahip veriyi eskimiş işaretler; arka planda yenisi hazırlanırken ziyaretçiler eski kopyayı alır.
+        lang: ts
+        form: |
+          revalidateTag("posts", "max");
+        example: |
+          // app/api/webhook/route.ts
+          import { revalidateTag } from "next/cache";
+
+          export async function POST() {
+            revalidateTag("posts", "max");
+            return Response.json({ ok: true });
+          }
+        since: "16"
+        older:
+          en: Before 16 it took only the tag (revalidateTag("posts")); that form is now deprecated.
+          tr: 16'dan önce sadece tag alırdı (revalidateTag("posts")); bu kullanım artık deprecated.
+        source: https://nextjs.org/docs/app/api-reference/functions/revalidateTag
+      - id: redirect
+        level: basic
+        title: { en: Send the user to another page, tr: Kullanıcıyı başka sayfaya gönderme }
+        what:
+          en: redirect() from next/navigation stops the current render or action and goes to another URL.
+          tr: next/navigation'daki redirect(), o anki render'ı ya da action'ı durdurup başka bir URL'ye gider.
+        lang: ts
+        form: |
+          redirect("/login");
+        example: |
+          import { redirect } from "next/navigation";
+
+          export default async function Page() {
+            const user = await getUser();
+            if (!user) redirect("/login");
+            return <p>Hello {user.name}</p>;
+          }
+        mistake:
+          en: Calling redirect inside try/catch; it works by throwing, so your catch swallows it. Call it after the try block.
+          tr: redirect'i try/catch içinde çağırmak; hata fırlatarak çalıştığı için catch onu yutar. try bloğundan sonra çağır.
+        source: https://nextjs.org/docs/app/api-reference/functions/redirect
+  - id: caching
+    title: { en: Cache Components, tr: Cache Components }
+    items:
+      - id: cache-components
+        level: advanced
+        title: { en: Turn on Cache Components, tr: Cache Components'i açma }
+        what:
+          en: A setting that makes pages dynamic by default and lets you choose what to cache with 'use cache'.
+          tr: Sayfaları varsayılan olarak dinamik yapan ve neyin cache'leneceğini 'use cache' ile seçmeni sağlayan bir ayar.
+        lang: ts
+        form: |
+          const nextConfig: NextConfig = { cacheComponents: true };
+        example: |
+          // next.config.ts
+          import type { NextConfig } from "next";
+
+          const nextConfig: NextConfig = {
+            cacheComponents: true,
+          };
+
+          export default nextConfig;
+        since: "16"
+        api: ["cacheComponents"]
+        older:
+          en: In 15 this was experimental (experimental.dynamicIO, experimental.ppr). Since 16.4, create-next-app turns it on for new apps.
+          tr: 15'te deneyseldi (experimental.dynamicIO, experimental.ppr). 16.4'ten beri create-next-app yeni uygulamalarda bunu açık getirir.
+        mistake:
+          en: Turning it on in an existing app as a quick switch; data read outside Suspense or 'use cache' then fails the build. Follow the migration guide.
+          tr: Var olan bir uygulamada hızlıca açıp geçmek; Suspense ya da 'use cache' dışında okunan veri build'i kırar. Geçiş rehberini izle.
+        source: https://nextjs.org/docs/app/api-reference/config/next-config-js/cacheComponents
+      - id: use-cache
+        level: advanced
+        title: { en: Cache a function or component, tr: Bir fonksiyonu ya da component'i cache'leme }
+        what:
+          en: "'use cache' at the top of an async function or component stores its result; cacheLife sets how long."
+          tr: "Async bir fonksiyonun ya da component'in başına yazılan 'use cache' sonucunu saklar; ne kadar süreceğini cacheLife belirler."
+        lang: ts
+        form: |
+          async function getPosts() { 'use cache'; cacheLife('hours'); ... }
+        example: |
+          import { cacheLife, cacheTag } from "next/cache";
+
+          export async function getProducts() {
+            'use cache';
+            cacheLife("hours");
+            cacheTag("products");
+            return db.product.findMany();
+          }
+        since: "16"
+        api: ["'use cache'", "\"use cache\"", "cacheLife("]
+        mistake:
+          en: Calling cookies() or headers() inside a cached function; it errors. Read them outside and pass the values as arguments.
+          tr: Cache'li bir fonksiyonun içinde cookies() ya da headers() çağırmak; hata verir. Dışarıda okuyup değerleri argüman olarak ver.
+        source: https://nextjs.org/docs/app/api-reference/directives/use-cache
+      - id: suspense-dynamic
+        level: advanced
+        title: { en: Stream request-time parts with Suspense, tr: İsteğe özel kısımları Suspense ile akıtma }
+        what:
+          en: With Cache Components, parts that read request data (cookies, uncached fetch) go inside Suspense so the rest of the page can be sent at once.
+          tr: Cache Components ile istek verisi okuyan kısımlar (cookie, cache'siz fetch) Suspense içine konur; böylece sayfanın geri kalanı hemen gönderilir.
+        lang: ts
+        form: |
+          <Suspense fallback={<Skeleton />}><UserMenu /></Suspense>
+        example: |
+          import { Suspense } from "react";
+          import { cookies } from "next/headers";
+
+          export default function Page() {
+            return (
+              <>
+                <h1>Store</h1>
+                <Suspense fallback={<p>Loading cart...</p>}>
+                  <Cart />
+                </Suspense>
+              </>
+            );
+          }
+
+          async function Cart() {
+            const id = (await cookies()).get("cart")?.value;
+            const cart = await getCart(id);
+            return <p>{cart.items.length} items</p>;
+          }
+        since: "16"
+        mistake:
+          en: Awaiting request data at the top of the page; the whole page then waits, and with Cache Components the build reports an error.
+          tr: İstek verisini sayfanın en üstünde await etmek; bütün sayfa bekler ve Cache Components açıkken build hata verir.
+        source: https://nextjs.org/docs/app/getting-started/caching
+  - id: config
+    title: { en: "Config, assets and deploy", tr: "Ayarlar, dosyalar ve deploy" }
+    items:
+      - id: metadata
+        level: basic
+        title: { en: Page title and SEO tags, tr: Sayfa başlığı ve SEO etiketleri }
+        what:
+          en: Export metadata (or generateMetadata for dynamic values) from a page or layout to set the title and meta tags.
+          tr: Başlık ve meta etiketlerini ayarlamak için bir sayfadan ya da layout'tan metadata (dinamik değerler için generateMetadata) export et.
+        lang: ts
+        form: |
+          export const metadata: Metadata = { title: "About" };
+        example: |
+          import type { Metadata } from "next";
+
+          export async function generateMetadata(props: PageProps<"/blog/[slug]">): Promise<Metadata> {
+            const { slug } = await props.params;
+            const post = await getPost(slug);
+            return { title: post.title, description: post.summary };
+          }
+        mistake:
+          en: Exporting metadata from a 'use client' file; it only works in Server Components.
+          tr: Metadata'yı 'use client' dosyasından export etmek; sadece Server Component'lerde çalışır.
+        source: https://nextjs.org/docs/app/api-reference/functions/generate-metadata
+      - id: image
+        level: basic
+        title: { en: Optimized images, tr: Optimize edilmiş görseller }
+        what:
+          en: The Image component resizes, compresses and lazy-loads images and keeps space for them so the page does not jump.
+          tr: Image component'i görselleri boyutlandırır, sıkıştırır, geç yükler ve yerlerini ayırır; sayfa zıplamaz.
+        lang: ts
+        form: |
+          <Image src="/hero.png" alt="Hero" width={1200} height={600} />
+        example: |
+          import Image from "next/image";
+
+          <Image
+            src="https://images.example.com/cat.jpg"
+            alt="A cat"
+            width={800}
+            height={600}
+            priority
+          />
+          // next.config.ts: images: { remotePatterns: [{ protocol: "https", hostname: "images.example.com" }] }
+        mistake:
+          en: Using a remote URL without listing its host in images.remotePatterns; the image fails to load. (images.domains is deprecated.)
+          tr: Uzak bir URL'yi host'unu images.remotePatterns'e eklemeden kullanmak; görsel yüklenmez. (images.domains deprecated.)
+        source: https://nextjs.org/docs/app/api-reference/components/image
+      - id: font
+        level: intermediate
+        title: { en: Load fonts without layout shift, tr: Kayma olmadan font yükleme }
+        what:
+          en: next/font downloads Google or local fonts at build time and serves them from your own site.
+          tr: next/font, Google ya da yerel fontları build sırasında indirip kendi sitenden sunar.
+        lang: ts
+        form: |
+          const inter = Inter({ subsets: ["latin"] });
+        example: |
+          import { Inter } from "next/font/google";
+
+          const inter = Inter({ subsets: ["latin"] });
+
+          export default function RootLayout({ children }: { children: React.ReactNode }) {
+            return (
+              <html lang="en" className={inter.className}>
+                <body>{children}</body>
+              </html>
+            );
+          }
+        mistake:
+          en: Calling the font function inside a component; call it once at module level, or a new font is made each render.
+          tr: Font fonksiyonunu component içinde çağırmak; modül seviyesinde bir kez çağır, yoksa her render'da yeni font oluşur.
+        source: https://nextjs.org/docs/app/api-reference/components/font
+      - id: proxy
+        level: advanced
+        title: { en: Run code before a request (proxy), tr: İstekten önce kod çalıştırma (proxy) }
+        what:
+          en: A proxy.ts file in the project root runs before matching routes and can redirect, rewrite or set headers.
+          tr: Proje kökündeki proxy.ts dosyası eşleşen route'lardan önce çalışır; yönlendirebilir, rewrite edebilir ya da header ekleyebilir.
+        lang: ts
+        form: |
+          export function proxy(request: NextRequest) { ... }
+          export const config = { matcher: "/dashboard/:path*" };
+        example: |
+          // proxy.ts
+          import { NextResponse, type NextRequest } from "next/server";
+
+          export function proxy(request: NextRequest) {
+            if (!request.cookies.has("session")) {
+              return NextResponse.redirect(new URL("/login", request.url));
+            }
+          }
+
+          export const config = { matcher: ["/dashboard/:path*"] };
+        since: "16"
+        api: ["export function proxy(", "export default function proxy("]
+        older:
+          en: Before 16 the file was middleware.ts with export function middleware; that name is deprecated but still works, and it is the only way to keep the edge runtime.
+          tr: 16'dan önce dosya middleware.ts, fonksiyon da middleware idi; bu ad deprecated ama hâlâ çalışır ve edge runtime'da kalmanın tek yolu.
+        mistake:
+          en: Relying on proxy alone for auth; Server Actions on excluded paths skip it. Check the user inside each action and data function too.
+          tr: Yetki kontrolünü sadece proxy'ye bırakmak; hariç tutulan yollardaki Server Action'lar onu atlar. Kullanıcıyı her action'da ve veri fonksiyonunda da kontrol et.
+        source: https://nextjs.org/docs/app/api-reference/file-conventions/proxy
+      - id: cli
+        level: basic
+        title: { en: "Dev, build and start", tr: "Dev, build ve start" }
+        what:
+          en: next dev runs the dev server, next build makes a production build, next start serves it.
+          tr: next dev geliştirme sunucusunu çalıştırır, next build production build'i hazırlar, next start onu sunar.
+        lang: sh
+        form: |
+          next dev | next build | next start
+        example: |
+          npm run dev      # next dev, http://localhost:3000
+          npm run build    # next build
+          npm run start    # next start
+          next build --webpack   # opt out of Turbopack
+        since: "16"
+        older:
+          en: Before 16 Turbopack needed --turbopack; now it is the default for dev and build. next lint was removed in 16; run ESLint or Biome directly.
+          tr: 16'dan önce Turbopack için --turbopack gerekiyordu; artık dev ve build için varsayılan. next lint 16'da kaldırıldı; ESLint ya da Biome'u doğrudan çalıştır.
+        mistake:
+          en: Running next start without next build first; there is nothing to serve.
+          tr: Önce next build yapmadan next start çalıştırmak; sunulacak bir şey yoktur.
+        source: https://nextjs.org/docs/app/api-reference/cli/next
+      - id: next-config
+        level: intermediate
+        title: { en: Project settings in next.config.ts, tr: next.config.ts ile proje ayarları }
+        what:
+          en: One typed file for redirects, images, React Compiler and other build settings.
+          tr: Yönlendirmeler, görseller, React Compiler ve diğer build ayarları için tek, tipli bir dosya.
+        lang: ts
+        form: |
+          const nextConfig: NextConfig = { ... }; export default nextConfig;
+        example: |
+          import type { NextConfig } from "next";
+
+          const nextConfig: NextConfig = {
+            reactCompiler: true,
+            async redirects() {
+              return [{ source: "/old-blog/:slug", destination: "/blog/:slug", permanent: true }];
+            },
+          };
+
+          export default nextConfig;
+        mistake:
+          en: Keeping serverRuntimeConfig or publicRuntimeConfig; they were removed in 16. Use environment variables.
+          tr: serverRuntimeConfig ya da publicRuntimeConfig kullanmaya devam etmek; 16'da kaldırıldılar. Ortam değişkenlerini kullan.
+        source: https://nextjs.org/docs/app/api-reference/config/next-config-js
+      - id: upgrade
+        level: intermediate
+        title: { en: Upgrade to a new version, tr: Yeni sürüme yükseltme }
+        what:
+          en: The upgrade codemod updates packages and rewrites code that changed between versions.
+          tr: upgrade codemod'u paketleri günceller ve sürümler arasında değişen kodu yeniden yazar.
+        lang: sh
+        form: |
+          npx @next/codemod@canary upgrade latest
+        example: |
+          npx @next/codemod@canary upgrade latest
+          # still have sync params/cookies from 15?
+          npx @next/codemod@canary next-async-request-api .
+        mistake:
+          en: Skipping the breaking-changes list after the codemod; it does not migrate everything (for example parallel routes now need default.tsx).
+          tr: Codemod'dan sonra breaking change listesini atlamak; her şeyi taşımaz (örneğin parallel route'lar artık default.tsx ister).
+        source: https://nextjs.org/docs/app/guides/upgrading/version-16

@@ -3,6 +3,9 @@ import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Shell } from "./components/Shell";
+import { LearnPage } from "./pages/learn/Learn";
+import { RoadmapPage } from "./pages/learn/RoadmapPage";
+import { SheetPage } from "./pages/learn/SheetPage";
 import "./lib/i18n";
 import { SettingsProvider, useSettings } from "./lib/settings";
 import { ChatPage } from "./pages/Chat";
@@ -68,6 +71,9 @@ const router = createBrowserRouter([
       { path: "tools", element: <ToolsPage /> },
       { path: "incidents/:incidentId", element: <IncidentPage /> },
       { path: "weekly", element: <WeeklyPage /> },
+      { path: "learn", element: <LearnPage /> },
+      { path: "learn/s/:sheetId", element: <SheetPage /> },
+      { path: "learn/r/:roadmapId", element: <RoadmapPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

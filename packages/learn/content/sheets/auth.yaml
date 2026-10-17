@@ -1,0 +1,634 @@
+id: auth
+title: Authentication and authorization
+category: concept
+summary:
+  en: Logging users in and deciding what they may do; sessions and tokens, OAuth 2.0 and OpenID Connect with PKCE, JWT, and storing passwords safely.
+  tr: Kullanıcıları içeri almak ve neler yapabileceklerine karar vermek; session ve token'lar, PKCE ile OAuth 2.0 ve OpenID Connect, JWT ve şifreleri güvenle saklamak.
+aliases: [auth, oauth, oauth2, jwt, oidc, openid connect, pkce, login, giriş, oturum, session, token, kimlik doğrulama, yetkilendirme, şifre, password hashing, sso, mfa, 2fa]
+checked: 2026-10
+sources:
+  - title: RFC 9700 OAuth 2.0 Security Best Current Practice
+    url: https://www.rfc-editor.org/rfc/rfc9700.html
+  - title: RFC 7519 JSON Web Token
+    url: https://www.rfc-editor.org/rfc/rfc7519.html
+  - title: OWASP Cheat Sheet Series
+    url: https://cheatsheetseries.owasp.org/
+roadmap: web
+sections:
+  - id: basics
+    title: { en: Sessions and tokens, tr: Session'lar ve token'lar }
+    items:
+      - id: authn-authz
+        level: basic
+        title: { en: Authentication vs authorization, tr: Kimlik doğrulama ile yetkilendirme farkı }
+        what:
+          en: Authentication checks who you are (login); authorization checks what you are allowed to do (permissions).
+          tr: Kimlik doğrulama (authentication) kim olduğunu kontrol eder (giriş); yetkilendirme (authorization) neye iznin olduğunu kontrol eder.
+        lang: text
+        form: 'authn: who are you? -> 401   authz: may you do this? -> 403'
+        example: |
+          No or bad token                    -> 401 Unauthorized
+          Valid token, not the owner         -> 403 Forbidden
+        mistake:
+          en: Checking login on every route but not who owns the record; any logged-in user can then read /invoices/123 of someone else.
+          tr: Her route'ta girişi kontrol edip kaydın kime ait olduğunu kontrol etmemek; giriş yapmış herkes başkasının /invoices/123 kaydını okuyabilir.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html
+      - id: session-cookie
+        level: basic
+        title: { en: Server sessions, tr: Sunucu session'ı }
+        what:
+          en: After login the server stores the session and gives the browser only a long random id in a cookie.
+          tr: Girişten sonra sunucu session'ı kendisi saklar ve tarayıcıya cookie içinde sadece uzun, rastgele bir id verir.
+        lang: js
+        form: 'Set-Cookie: __Host-sid=<random>; Secure; HttpOnly; Path=/; SameSite=Lax'
+        example: |
+          import { randomBytes } from "node:crypto";
+          const sid = randomBytes(32).toString("base64url");
+          console.log(sid.length, /^[A-Za-z0-9_-]+$/.test(sid));
+        output: |
+          43 true
+        check: js
+        mistake:
+          en: Making session ids from Math.random(), a counter or the user id; they can be guessed. Use a cryptographic random source with at least 64 bits of entropy.
+          tr: Session id'yi Math.random(), bir sayaç ya da kullanıcı id'sinden üretmek; tahmin edilebilir. En az 64 bit entropili kriptografik rastgele kaynak kullan.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#session-id-entropy
+      - id: session-fixation
+        level: intermediate
+        title: { en: New session id at login, tr: Girişte yeni session id }
+        what:
+          en: Give the user a fresh session id when they log in or gain privileges, and delete it on the server at logout.
+          tr: Kullanıcı giriş yaptığında ya da yetkisi arttığında ona yeni bir session id ver; çıkışta da sunucuda sil.
+        lang: js
+        form: req.session.regenerate(cb)
+        example: |
+          // express-session
+          app.post("/login", (req, res, next) => {
+            req.session.regenerate((err) => {
+              if (err) return next(err);
+              req.session.userId = user.id;
+              res.redirect(303, "/");
+            });
+          });
+        mistake:
+          en: Keeping the same id from before login; an attacker who planted that id is now logged in as the victim (session fixation).
+          tr: Girişten önceki id'yi korumak; o id'yi önceden yerleştiren saldırgan artık kurban olarak giriş yapmış olur (session fixation).
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html#renew-the-session-id-after-any-privilege-level-change
+      - id: bearer-token
+        level: basic
+        title: { en: Bearer tokens, tr: Bearer token'lar }
+        what:
+          en: A bearer token is sent in the Authorization header, and whoever holds it is let in, like cash.
+          tr: Bearer token Authorization header'ında gönderilir; nakit para gibi, elinde tutan herkes içeri alınır.
+        lang: sh
+        form: 'Authorization: Bearer <token>'
+        example: |
+          curl -H "Authorization: Bearer $ACCESS_TOKEN" https://api.example.com/me
+        mistake:
+          en: Logging full request headers; every token ends up in your log system. Redact Authorization and Cookie.
+          tr: İstek header'larını olduğu gibi log'lamak; tüm token'lar log sistemine düşer. Authorization ve Cookie'yi maskele.
+        source: https://www.rfc-editor.org/rfc/rfc6750.html#section-2.1
+      - id: sessions-vs-tokens
+        level: intermediate
+        title: { en: "Sessions or tokens?", tr: "Session mı token mı?" }
+        what:
+          en: For your own web app, an HttpOnly session cookie is simplest and easy to revoke; tokens fit APIs called by mobile apps, other services or third parties.
+          tr: Kendi web uygulaman için HttpOnly session cookie'si en basitidir ve kolayca iptal edilir; token'lar mobil uygulamaların, başka servislerin ya da üçüncü tarafların çağırdığı API'lere uyar.
+        lang: text
+        form: 'browser app -> session cookie   mobile / service / partner -> access token'
+        example: |
+          Same-site web app                   -> session cookie (HttpOnly, Secure, SameSite)
+          SPA + third-party API               -> backend keeps tokens (BFF), browser gets a cookie
+          Service to service                  -> OAuth client credentials token
+        mistake:
+          en: Keeping access tokens in localStorage; any XSS can read and send them away. HttpOnly cookies cannot be read by script.
+          tr: Access token'ları localStorage'da tutmak; herhangi bir XSS onları okuyup dışarı gönderebilir. HttpOnly cookie'leri script okuyamaz.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html#local-storage
+      - id: basic-auth
+        level: basic
+        title: { en: HTTP Basic auth, tr: HTTP Basic auth }
+        what:
+          en: Basic auth sends "user:password" base64-encoded in every request; it is encoding, not encryption.
+          tr: Basic auth her istekte "kullanıcı:şifre"yi base64 ile kodlanmış olarak gönderir; bu şifreleme değil, kodlamadır.
+        lang: js
+        form: 'Authorization: Basic base64(user:password)'
+        example: |
+          const header = "Basic " + Buffer.from("ada:s3cret").toString("base64");
+          console.log(header);
+          console.log(Buffer.from(header.slice(6), "base64").toString());
+        output: |
+          Basic YWRhOnMzY3JldA==
+          ada:s3cret
+        check: js
+        mistake:
+          en: Using it over plain HTTP; anyone on the network can decode the password.
+          tr: Düz HTTP üzerinden kullanmak; ağdaki herkes şifreyi çözebilir.
+        avoid:
+          en: For end-user logins in a browser; use it only for simple internal tools or machine access over HTTPS.
+          tr: Tarayıcıdaki son kullanıcı girişleri için; sadece HTTPS üzerinden basit iç araçlarda ya da makine erişiminde kullan.
+        source: https://www.rfc-editor.org/rfc/rfc7617.html#section-2
+  - id: passwords
+    title: { en: Passwords and login, tr: Şifreler ve giriş }
+    items:
+      - id: hash-passwords
+        level: basic
+        title: { en: "Hash passwords, never encrypt them", tr: "Şifreleri hash'le, asla şifreleme" }
+        what:
+          en: Store only a slow, salted hash of the password (Argon2id, scrypt, bcrypt); at login, hash the input again and compare.
+          tr: Şifrenin sadece yavaş ve salt'lı bir hash'ini sakla (Argon2id, scrypt, bcrypt); girişte girileni tekrar hash'leyip karşılaştır.
+        lang: js
+        form: 'scrypt(password, salt, 64, { N: 2 ** 17, r: 8, p: 1 })'
+        example: |
+          import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+          const opts = { N: 2 ** 17, r: 8, p: 1, maxmem: 256 * 1024 * 1024 };
+          const salt = randomBytes(16);
+          const stored = scryptSync("correct horse", salt, 32, opts);
+          const check = (pw) => timingSafeEqual(stored, scryptSync(pw, salt, 32, opts));
+          console.log(check("correct horse"), check("wrong"));
+        output: |
+          true false
+        check: js
+        mistake:
+          en: Using a fast hash such as SHA-256 or MD5; attackers try billions of guesses per second on a stolen database.
+          tr: SHA-256 ya da MD5 gibi hızlı bir hash kullanmak; çalınan veritabanında saldırganlar saniyede milyarlarca tahmin dener.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+      - id: argon2id
+        level: intermediate
+        title: { en: Argon2id settings, tr: Argon2id ayarları }
+        what:
+          en: OWASP's first choice; at least 19 MiB of memory, 2 iterations and parallelism 1.
+          tr: OWASP'ın ilk tercihi; en az 19 MiB bellek, 2 iterasyon ve 1 paralellik.
+        lang: js
+        form: 'argon2id: memory 19456 KiB, passes 2, parallelism 1'
+        example: |
+          import { argon2Sync, randomBytes } from "node:crypto";
+          const hash = argon2Sync("argon2id", {
+            message: "correct horse",
+            nonce: randomBytes(16),
+            memory: 19456,
+            passes: 2,
+            parallelism: 1,
+            tagLength: 32,
+          });
+          console.log(hash.length);
+        output: |
+          32
+        check: js
+        mistake:
+          en: Storing the hash without its salt and settings; you can neither verify it later nor raise the cost over time. Store them together (the usual $argon2id$... string does this).
+          tr: Hash'i salt'ı ve ayarları olmadan saklamak; sonra ne doğrulayabilirsin ne de maliyeti zamanla artırabilirsin. Hepsini birlikte sakla (alışılmış $argon2id$... string'i bunu yapar).
+        since: Node 24.7
+        older:
+          en: Before Node 24.7 Node had no built-in Argon2; use the argon2 npm package or scrypt.
+          tr: Node 24.7'den önce Node'da yerleşik Argon2 yoktu; argon2 npm paketini ya da scrypt'i kullan.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
+      - id: bcrypt-limit
+        level: intermediate
+        title: { en: bcrypt and its 72-byte limit, tr: bcrypt ve 72 byte sınırı }
+        what:
+          en: bcrypt is fine for existing systems with cost 10 or more, but most implementations only use the first 72 bytes of the password.
+          tr: bcrypt mevcut sistemler için 10 ya da daha yüksek cost ile uygundur; ama çoğu uygulama şifrenin sadece ilk 72 byte'ını kullanır.
+        lang: js
+        form: await bcrypt.hash(password, 12)
+        example: |
+          import bcrypt from "bcrypt";
+          const hash = await bcrypt.hash(password, 12);
+          const ok = await bcrypt.compare(input, hash);
+        mistake:
+          en: Allowing long passphrases with bcrypt without a limit; two passwords that share the first 72 bytes then both work. Enforce a 72-byte maximum or choose Argon2id.
+          tr: bcrypt ile sınırsız uzun parola cümlelerine izin vermek; ilk 72 byte'ı aynı olan iki şifre de çalışır. 72 byte üst sınırı koy ya da Argon2id seç.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#bcrypt
+      - id: timing-safe
+        level: intermediate
+        title: { en: Compare secrets in constant time, tr: Sırları sabit sürede karşılaştırmak }
+        what:
+          en: Compare tokens, signatures and hashes with a constant-time function, so the time taken does not reveal how many characters matched.
+          tr: Token, imza ve hash'leri sabit süreli bir fonksiyonla karşılaştır; geçen süre kaç karakterin tuttuğunu ele vermesin.
+        lang: py
+        form: hmac.compare_digest(a, b)
+        example: |
+          import hmac
+          print(hmac.compare_digest("tok_abc123", "tok_abc123"), hmac.compare_digest("tok_abc123", "tok_abc999"))
+        output: |
+          True False
+        check: py
+        mistake:
+          en: Using == for API keys or webhook signatures. In Node use crypto.timingSafeEqual on equal-length buffers.
+          tr: API anahtarları ya da webhook imzaları için == kullanmak. Node'da eşit uzunlukta buffer'larla crypto.timingSafeEqual kullan.
+        source: https://docs.python.org/3/library/hmac.html#hmac.compare_digest
+      - id: login-errors
+        level: basic
+        title: { en: Same message for every login failure, tr: Her başarısız girişte aynı mesaj }
+        what:
+          en: Say "invalid email or password" whether the account exists or not, and slow down repeated attempts.
+          tr: Hesap olsa da olmasa da "e-posta ya da şifre hatalı" de; tekrarlanan denemeleri de yavaşlat.
+        lang: text
+        form: '"Invalid email or password."'
+        example: |
+          Bad:  "No user with that email."  /  "Wrong password."
+          Good: "Invalid email or password."   + throttle after 5 failures
+        mistake:
+          en: Leaking which emails are registered through the error text, the reset page or a faster response time.
+          tr: Hangi e-postaların kayıtlı olduğunu hata metniyle, şifre sıfırlama sayfasıyla ya da daha hızlı yanıt süresiyle sızdırmak.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html#authentication-and-error-messages
+      - id: totp
+        level: advanced
+        title: { en: One-time codes (TOTP), tr: Tek kullanımlık kodlar (TOTP) }
+        what:
+          en: An authenticator app and the server share a secret and both compute a short code from it and the current 30-second time step.
+          tr: Authenticator uygulaması ve sunucu bir sırrı paylaşır; ikisi de ondan ve o anki 30 saniyelik zaman diliminden kısa bir kod hesaplar.
+        lang: js
+        form: HOTP(secret, floor(unixTime / 30))
+        example: |
+          import { createHmac } from "node:crypto";
+          function totp(secret, unixSeconds, digits = 8) {
+            const counter = Buffer.alloc(8);
+            counter.writeBigUInt64BE(BigInt(Math.floor(unixSeconds / 30)));
+            const h = createHmac("sha1", secret).update(counter).digest();
+            const o = h[h.length - 1] & 0xf;
+            const n = (h.readUInt32BE(o) & 0x7fffffff) % 10 ** digits;
+            return String(n).padStart(digits, "0");
+          }
+          console.log(totp("12345678901234567890", 59)); // RFC 6238 test vector
+        output: |
+          94287082
+        check: js
+        mistake:
+          en: Accepting the same code twice or not rate-limiting tries; six digits are only a million options.
+          tr: Aynı kodu iki kez kabul etmek ya da denemeleri sınırlamamak; altı hane sadece bir milyon seçenektir.
+        source: https://www.rfc-editor.org/rfc/rfc6238.html#section-4
+      - id: passkeys
+        level: advanced
+        title: { en: Passkeys (WebAuthn), tr: Passkey'ler (WebAuthn) }
+        what:
+          en: The device keeps a private key and signs a server challenge, so there is no password to steal or phish.
+          tr: Cihaz özel bir anahtar saklar ve sunucunun gönderdiği challenge'ı imzalar; çalınacak ya da oltalanacak bir şifre yoktur.
+        lang: js
+        form: 'navigator.credentials.create({ publicKey: {...} })'
+        example: |
+          const cred = await navigator.credentials.get({
+            publicKey: { challenge: challengeFromServer, rpId: "example.com" },
+          });
+          await fetch("/login/passkey", { method: "POST", body: JSON.stringify(serialize(cred)) });
+        mistake:
+          en: Reusing a challenge or generating it in the browser; the server must create a fresh random one for every attempt and check it.
+          tr: Challenge'ı tekrar kullanmak ya da tarayıcıda üretmek; sunucu her deneme için yeni ve rastgele bir tane üretmeli ve kontrol etmeli.
+        source: https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API
+  - id: jwt
+    title: { en: JWT, tr: JWT }
+    items:
+      - id: jwt-structure
+        level: basic
+        title: { en: Three parts with dots, tr: Noktalarla ayrılmış üç parça }
+        what:
+          en: A JWT is header.payload.signature, each part base64url; anyone can read the payload, only the signature proves it was not changed.
+          tr: JWT header.payload.signature biçimindedir, her parça base64url'dir; payload'u herkes okuyabilir, değiştirilmediğini sadece imza kanıtlar.
+        lang: js
+        form: header.payload.signature
+        example: |
+          import { createHmac } from "node:crypto";
+          const part = (obj) => Buffer.from(JSON.stringify(obj)).toString("base64url");
+          const data = `${part({ alg: "HS256", typ: "JWT" })}.${part({ sub: "42", exp: 1800000000 })}`;
+          const token = `${data}.${createHmac("sha256", "dev-only-secret").update(data).digest("base64url")}`;
+          const [header, payload] = token.split(".");
+          console.log(header);
+          console.log(JSON.parse(Buffer.from(payload, "base64url")));
+        output: |
+          eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+          { sub: '42', exp: 1800000000 }
+        check: js
+        mistake:
+          en: Putting secrets or personal data in the payload; it is only encoded, not encrypted.
+          tr: Payload'a sır ya da kişisel veri koymak; sadece kodlanmıştır, şifrelenmemiştir.
+        source: https://www.rfc-editor.org/rfc/rfc7519.html#section-3
+      - id: jwt-claims
+        level: basic
+        title: { en: Standard claims, tr: Standart claim'ler }
+        what:
+          en: iss is who issued it, sub the user, aud who it is for, exp when it expires, nbf when it starts, iat when it was made, jti a unique id; times are Unix seconds.
+          tr: iss kimin verdiği, sub kullanıcı, aud kimin için olduğu, exp ne zaman biteceği, nbf ne zaman başlayacağı, iat ne zaman üretildiği, jti benzersiz id'dir; zamanlar Unix saniyesidir.
+        lang: json
+        form: '{ "iss": "...", "sub": "...", "aud": "...", "exp": 1800000000 }'
+        example: |
+          {
+            "iss": "https://auth.example.com",
+            "sub": "user_42",
+            "aud": "https://api.example.com",
+            "exp": 1800000900,
+            "iat": 1800000000
+          }
+        mistake:
+          en: Setting exp in milliseconds (Date.now()); the token then only expires tens of thousands of years later.
+          tr: exp'i milisaniye olarak yazmak (Date.now()); token ancak on binlerce yıl sonra biter.
+        source: https://www.rfc-editor.org/rfc/rfc7519.html#section-4.1
+      - id: jwt-verify
+        level: intermediate
+        title: { en: Verify before you trust, tr: Güvenmeden önce doğrula }
+        what:
+          en: Check the signature with the expected algorithm and key, then exp, nbf, iss and aud; only then use the claims.
+          tr: İmzayı beklenen algoritma ve anahtarla kontrol et, sonra exp, nbf, iss ve aud'u; claim'leri ancak bundan sonra kullan.
+        lang: js
+        form: 'jwtVerify(token, key, { algorithms: ["RS256"], issuer, audience })'
+        example: |
+          import { createHmac, timingSafeEqual } from "node:crypto";
+          const key = "dev-only-secret";
+          const sign = (data) => createHmac("sha256", key).update(data).digest();
+          function verify(token, now) {
+            const [h, p, s] = token.split(".");
+            const header = JSON.parse(Buffer.from(h, "base64url"));
+            if (header.alg !== "HS256") return "bad alg";
+            const sig = Buffer.from(s, "base64url");
+            const good = sign(`${h}.${p}`);
+            if (sig.length !== good.length || !timingSafeEqual(sig, good)) return "bad signature";
+            const claims = JSON.parse(Buffer.from(p, "base64url"));
+            return claims.exp > now ? "ok" : "expired";
+          }
+          const part = (o) => Buffer.from(JSON.stringify(o)).toString("base64url");
+          const data = `${part({ alg: "HS256" })}.${part({ sub: "42", exp: 1000 })}`;
+          const token = `${data}.${sign(data).toString("base64url")}`;
+          console.log(verify(token, 999), verify(token, 1001), verify(token.slice(0, -2) + "xx", 999));
+          console.log(verify(`${part({ alg: "none" })}.${part({ sub: "1", exp: 9e9 })}.`, 999));
+        output: |
+          ok expired bad signature
+          bad alg
+        check: js
+        mistake:
+          en: Calling jwt.decode() and using the result; decode does not check the signature, so anyone can forge the token.
+          tr: jwt.decode() çağırıp sonucu kullanmak; decode imzayı kontrol etmez, herkes token'ı sahte üretebilir.
+        avoid:
+          en: Do not write your own verifier in production; use a maintained library such as jose and pin the algorithms.
+          tr: Üretimde kendi doğrulayıcını yazma; jose gibi bakımı yapılan bir kütüphane kullan ve algoritmaları sabitle.
+        source: https://www.rfc-editor.org/rfc/rfc8725.html#name-perform-algorithm-verificat
+      - id: jwt-alg-attacks
+        level: advanced
+        title: { en: alg none and algorithm confusion, tr: alg none ve algoritma karışıklığı }
+        what:
+          en: Never let the token's own header pick the algorithm; "none" or switching RS256 to HS256 with the public key as secret lets attackers forge tokens.
+          tr: Algoritmayı asla token'ın kendi header'ı seçmesin; "none" ya da RS256'yı HS256'ya çevirip açık anahtarı sır olarak kullanmak saldırganın sahte token üretmesini sağlar.
+        lang: js
+        form: 'algorithms: ["RS256"]   // an allow-list, never from the token'
+        example: |
+          import { jwtVerify, createRemoteJWKSet } from "jose";
+          const JWKS = createRemoteJWKSet(new URL("https://auth.example.com/.well-known/jwks.json"));
+          const { payload } = await jwtVerify(token, JWKS, {
+            algorithms: ["RS256"],
+            issuer: "https://auth.example.com",
+            audience: "https://api.example.com",
+          });
+        source: https://www.rfc-editor.org/rfc/rfc8725.html#name-use-appropriate-algorithms
+      - id: jwt-lifetime
+        level: intermediate
+        title: { en: "Short access tokens, refresh tokens", tr: "Kısa ömürlü access token, refresh token" }
+        what:
+          en: A JWT cannot easily be revoked before exp, so keep access tokens short (minutes) and use a refresh token to get new ones.
+          tr: Bir JWT exp'ten önce kolayca iptal edilemez; access token'ları kısa (dakikalar) tut ve yenilerini almak için refresh token kullan.
+        lang: text
+        form: 'access token: 5-15 min   refresh token: days, rotated'
+        example: |
+          POST /token
+          grant_type=refresh_token&refresh_token=...&client_id=web
+        mistake:
+          en: Using JWTs as long-lived sessions and then building a server blocklist to log users out; at that point a normal session is simpler.
+          tr: JWT'yi uzun ömürlü session olarak kullanıp kullanıcıları çıkarmak için sunucuda kara liste kurmak; o noktada normal bir session daha basittir.
+        source: https://www.rfc-editor.org/rfc/rfc6749.html#section-1.5
+  - id: oauth
+    title: { en: OAuth 2.0, tr: OAuth 2.0 }
+    items:
+      - id: oauth-roles
+        level: basic
+        title: { en: What OAuth is for, tr: OAuth ne işe yarar }
+        what:
+          en: OAuth lets an app (client) get a limited access token for a user's data from an authorization server, without ever seeing the user's password.
+          tr: OAuth, bir uygulamanın (client) kullanıcının şifresini hiç görmeden, bir authorization server'dan o kullanıcının verisi için sınırlı bir access token almasını sağlar.
+        lang: text
+        form: resource owner -> client -> authorization server -> access token -> resource server
+        example: |
+          User (resource owner) allows "Photo Printer" (client)
+          Google login (authorization server) issues a token
+          Google Photos API (resource server) accepts it
+        mistake:
+          en: Treating an OAuth access token as proof of who the user is in your own app; that is what OpenID Connect's ID token is for.
+          tr: OAuth access token'ı kendi uygulamanda kullanıcının kim olduğunun kanıtı saymak; bunun için OpenID Connect'in ID token'ı var.
+        source: https://www.rfc-editor.org/rfc/rfc6749.html#section-1.1
+      - id: auth-code-pkce
+        level: intermediate
+        title: { en: Authorization code flow with PKCE, tr: PKCE ile authorization code akışı }
+        what:
+          en: The app sends the user to the login page with a hashed random secret (code_challenge), gets a code back, and trades the code plus the original secret (code_verifier) for tokens.
+          tr: Uygulama kullanıcıyı hash'lenmiş rastgele bir sırla (code_challenge) giriş sayfasına yollar, geri bir code alır, sonra code'u ve asıl sırrı (code_verifier) token'larla değiştirir.
+        lang: js
+        form: code_challenge = BASE64URL(SHA256(code_verifier))
+        example: |
+          import { createHash } from "node:crypto";
+          const verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"; // from RFC 7636; make yours with randomBytes(32)
+          const challenge = createHash("sha256").update(verifier).digest("base64url");
+          console.log(challenge);
+        output: |
+          E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+        check: js
+        mistake:
+          en: Using code_challenge_method=plain; it sends the verifier itself. Always use S256.
+          tr: code_challenge_method=plain kullanmak; verifier'ın kendisini gönderir. Her zaman S256 kullan.
+        source: https://www.rfc-editor.org/rfc/rfc7636.html#section-4.2
+      - id: pkce-everyone
+        level: intermediate
+        title: { en: PKCE for every client, tr: Her client için PKCE }
+        what:
+          en: RFC 9700 says public clients (SPAs, mobile apps) must use PKCE and confidential clients (with a secret) should use it too.
+          tr: RFC 9700, public client'ların (SPA, mobil uygulama) PKCE kullanması gerektiğini, secret'ı olan confidential client'ların da kullanmasının önerildiğini söyler.
+        lang: text
+        form: '/authorize?response_type=code&code_challenge=...&code_challenge_method=S256'
+        example: |
+          GET /authorize?response_type=code
+            &client_id=web
+            &redirect_uri=https%3A%2F%2Fapp.example.com%2Fcallback
+            &scope=openid%20profile
+            &state=af0ifjsldkj
+            &code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM
+            &code_challenge_method=S256
+        mistake:
+          en: Thinking a client secret makes PKCE unnecessary; PKCE also stops stolen or injected authorization codes.
+          tr: Client secret'ın PKCE'yi gereksiz kıldığını sanmak; PKCE çalınan ya da araya sokulan authorization code'ları da durdurur.
+        source: https://www.rfc-editor.org/rfc/rfc9700.html#name-authorization-code-grant
+      - id: state
+        level: intermediate
+        title: { en: The state parameter, tr: state parametresi }
+        what:
+          en: A random value the app sends to the login page and checks again on the callback, so an attacker cannot push their own login response into your session.
+          tr: Uygulamanın giriş sayfasına gönderip callback'te tekrar kontrol ettiği rastgele bir değer; böylece saldırgan kendi giriş yanıtını senin oturumuna sokamaz.
+        lang: js
+        form: if (params.get("state") !== savedState) reject()
+        example: |
+          import { randomBytes } from "node:crypto";
+          const saved = randomBytes(16).toString("base64url");
+          const callback = new URL(`https://app.example.com/callback?code=abc&state=${saved}`);
+          console.log(callback.searchParams.get("state") === saved);
+          console.log(new URL("https://app.example.com/callback?code=abc&state=evil").searchParams.get("state") === saved);
+        output: |
+          true
+          false
+        check: js
+        mistake:
+          en: Sending a fixed state such as "xyz" or not checking it; it then protects nothing.
+          tr: '"xyz" gibi sabit bir state göndermek ya da onu kontrol etmemek; o zaman hiçbir şeyi korumaz.'
+        source: https://www.rfc-editor.org/rfc/rfc6749.html#section-10.12
+      - id: redirect-uri
+        level: intermediate
+        title: { en: Exact redirect URIs, tr: Birebir redirect URI }
+        what:
+          en: Register the full callback URLs; the authorization server must compare them by exact string match.
+          tr: Callback URL'lerinin tamamını kaydet; authorization server onları birebir string eşleşmesiyle karşılaştırmalıdır.
+        lang: text
+        form: https://app.example.com/oauth/callback
+        example: |
+          Registered: https://app.example.com/oauth/callback
+          Accepted:   https://app.example.com/oauth/callback
+          Rejected:   https://app.example.com/oauth/callback/../open-redirect?to=evil
+        mistake:
+          en: Registering wildcards like https://*.example.com; one forgotten subdomain or open redirect leaks codes to an attacker.
+          tr: https://*.example.com gibi joker karakterli kayıt yapmak; unutulmuş tek bir alt alan adı ya da open redirect code'ları saldırgana sızdırır.
+        source: https://www.rfc-editor.org/rfc/rfc9700.html#name-protecting-redirect-based-f
+      - id: client-credentials
+        level: intermediate
+        title: { en: Machine-to-machine, tr: Makineden makineye }
+        what:
+          en: With the client credentials grant a backend service gets a token for itself with its own id and secret; no user is involved.
+          tr: Client credentials grant ile bir backend servisi kendi id ve secret'ıyla kendisi için token alır; işin içinde kullanıcı yoktur.
+        lang: sh
+        form: grant_type=client_credentials
+        example: |
+          curl -X POST https://auth.example.com/oauth/token \
+            -u "$CLIENT_ID:$CLIENT_SECRET" \
+            -d grant_type=client_credentials \
+            -d scope=reports.read
+        mistake:
+          en: Shipping the client secret inside a mobile app or SPA; anything in the client can be extracted.
+          tr: Client secret'ı mobil uygulamanın ya da SPA'nın içine koymak; istemcideki her şey çıkarılabilir.
+        source: https://www.rfc-editor.org/rfc/rfc6749.html#section-4.4
+      - id: device-flow
+        level: advanced
+        title: { en: Device flow (TVs and CLIs), tr: Cihaz akışı (TV'ler ve CLI'lar) }
+        what:
+          en: A device without a good browser shows a short code and a URL; the user approves on their phone while the device polls for the token.
+          tr: İyi bir tarayıcısı olmayan cihaz kısa bir kod ve URL gösterir; kullanıcı telefonundan onaylarken cihaz token için tekrar tekrar sorar.
+        lang: text
+        form: grant_type=urn:ietf:params:oauth:grant-type:device_code
+        example: |
+          Visit https://example.com/device and enter: WDJB-MJHT
+          (CLI polls POST /token every 5 seconds until approved)
+        source: https://www.rfc-editor.org/rfc/rfc8628.html#section-3
+      - id: deprecated-grants
+        level: intermediate
+        title: { en: Grants not to use, tr: Kullanılmaması gereken grant'lar }
+        what:
+          en: RFC 9700 says the password grant must not be used and the implicit grant (tokens in the URL) should not be used; use authorization code with PKCE.
+          tr: RFC 9700, password grant'ın kullanılmaması gerektiğini, implicit grant'ın da (URL'de token) kullanılmamasını söyler; PKCE ile authorization code kullan.
+        lang: text
+        form: 'response_type=token  ->  response_type=code + PKCE'
+        example: |
+          Old: /authorize?response_type=token          (implicit)
+          Old: grant_type=password&username=...        (password grant)
+          New: /authorize?response_type=code&code_challenge=...&code_challenge_method=S256
+        mistake:
+          en: Following an old tutorial for SPAs that still uses the implicit flow.
+          tr: SPA'lar için hâlâ implicit akışı kullanan eski bir eğitimi takip etmek.
+        source: https://www.rfc-editor.org/rfc/rfc9700.html#name-implicit-grant
+      - id: refresh-rotation
+        level: advanced
+        title: { en: Refresh token rotation, tr: Refresh token rotasyonu }
+        what:
+          en: Each refresh returns a new refresh token and the old one stops working; if an old one is used again, the server can revoke the whole chain.
+          tr: Her yenilemede yeni bir refresh token döner ve eskisi çalışmaz olur; eski biri tekrar kullanılırsa sunucu bütün zinciri iptal edebilir.
+        lang: text
+        form: refresh_token R1 -> (access A2, refresh R2); R1 is now invalid
+        example: |
+          POST /token grant_type=refresh_token&refresh_token=R1  -> A2, R2
+          POST /token grant_type=refresh_token&refresh_token=R1  -> invalid_grant, R2 revoked too
+        mistake:
+          en: Giving SPAs and mobile apps long-lived refresh tokens that never rotate; RFC 9700 requires rotation or sender-constrained tokens for public clients.
+          tr: SPA'lara ve mobil uygulamalara hiç dönmeyen uzun ömürlü refresh token vermek; RFC 9700 public client'lar için rotasyon ya da göndericiye bağlı token ister.
+        source: https://www.rfc-editor.org/rfc/rfc9700.html#name-refresh-token-protection
+      - id: scopes
+        level: basic
+        title: { en: Scopes, tr: Scope'lar }
+        what:
+          en: Scopes name what the token may do (read:orders, email); ask only for what you need and check them in the API.
+          tr: Scope'lar token'ın neler yapabileceğini adlandırır (read:orders, email); sadece ihtiyacın olanı iste ve API'de kontrol et.
+        lang: text
+        form: scope=openid email orders.read
+        example: |
+          scope=openid email orders.read
+          API: if (!token.scope.split(" ").includes("orders.read")) return 403
+        mistake:
+          en: Requesting every scope "just in case"; users refuse the consent screen and a leaked token can do everything.
+          tr: '"Belki lazım olur" diye her scope''u istemek; kullanıcılar onay ekranını reddeder ve sızan bir token her şeyi yapabilir.'
+        source: https://www.rfc-editor.org/rfc/rfc6749.html#section-3.3
+  - id: oidc
+    title: { en: OpenID Connect, tr: OpenID Connect }
+    items:
+      - id: id-token
+        level: basic
+        title: { en: ID token vs access token, tr: ID token ile access token farkı }
+        what:
+          en: OpenID Connect adds login on top of OAuth; the ID token (a JWT) tells your app who signed in, the access token is for calling APIs.
+          tr: OpenID Connect, OAuth'un üstüne giriş ekler; ID token (bir JWT) uygulamana kimin giriş yaptığını söyler, access token API çağırmak içindir.
+        lang: text
+        form: scope=openid  ->  id_token + access_token
+        example: |
+          id_token     -> for the client: sub, email, name, nonce, aud = your client_id
+          access_token -> for the API: send as Authorization: Bearer
+        mistake:
+          en: Sending the ID token to your API as a bearer token; its audience is the client, not the API.
+          tr: ID token'ı API'ye bearer token olarak göndermek; onun hedef kitlesi (aud) API değil, client'tır.
+        source: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
+      - id: id-token-validation
+        level: intermediate
+        title: { en: Validate the ID token, tr: ID token'ı doğrulamak }
+        what:
+          en: Check the signature, that iss is your provider, aud contains your client_id, exp is in the future and nonce equals the one you sent.
+          tr: İmzayı, iss'in senin sağlayıcın olduğunu, aud'un client_id'ni içerdiğini, exp'in gelecekte olduğunu ve nonce'un gönderdiğinle aynı olduğunu kontrol et.
+        lang: js
+        form: claims.iss === ISSUER && [claims.aud].flat().includes(CLIENT_ID) && claims.nonce === saved
+        example: |
+          const claims = { iss: "https://accounts.example.com", aud: "web-app", exp: 2000, nonce: "n-0S6_WzA2Mj" };
+          const ok = (c, now, nonce) =>
+            c.iss === "https://accounts.example.com" && [c.aud].flat().includes("web-app") && c.exp > now && c.nonce === nonce;
+          console.log(ok(claims, 1000, "n-0S6_WzA2Mj"), ok(claims, 1000, "other"), ok(claims, 3000, "n-0S6_WzA2Mj"));
+        output: |
+          true false false
+        check: js
+        mistake:
+          en: Skipping the aud check; an ID token issued to another app on the same provider is then accepted by yours.
+          tr: aud kontrolünü atlamak; aynı sağlayıcıda başka bir uygulamaya verilmiş bir ID token seninkinde de kabul edilir.
+        source: https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
+      - id: discovery
+        level: intermediate
+        title: { en: Discovery document, tr: Discovery dokümanı }
+        what:
+          en: Every OIDC provider publishes its endpoints and signing keys at /.well-known/openid-configuration.
+          tr: Her OIDC sağlayıcısı endpoint'lerini ve imza anahtarlarını /.well-known/openid-configuration adresinde yayınlar.
+        lang: sh
+        form: curl <issuer>/.well-known/openid-configuration
+        example: |
+          curl -s https://accounts.google.com/.well-known/openid-configuration | jq '.authorization_endpoint, .token_endpoint, .jwks_uri'
+        mistake:
+          en: Hard-coding signing keys; providers rotate them. Read jwks_uri and cache the keys.
+          tr: İmza anahtarlarını koda gömmek; sağlayıcılar onları değiştirir. jwks_uri'yi okuyup anahtarları cache'le.
+        source: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderConfig
+      - id: csrf
+        level: intermediate
+        title: { en: CSRF with cookie logins, tr: Cookie ile girişte CSRF }
+        what:
+          en: When the login is a cookie, another site can make the browser send requests with it; SameSite cookies plus a CSRF token or an Origin check stop that.
+          tr: Giriş bir cookie ise başka bir site tarayıcıya onunla istek attırabilir; SameSite cookie artı CSRF token ya da Origin kontrolü bunu durdurur.
+        lang: js
+        form: if (req.headers.origin !== "https://app.example.com") return res.status(403)
+        example: |
+          app.use((req, res, next) => {
+            if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
+            if (req.get("origin") !== "https://app.example.com") return res.sendStatus(403);
+            next();
+          });
+        mistake:
+          en: Changing state with GET requests; SameSite=Lax still sends cookies on top-level GET navigations.
+          tr: GET istekleriyle durum değiştirmek; SameSite=Lax, üst düzey GET gezintilerinde cookie'yi yine de gönderir.
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html

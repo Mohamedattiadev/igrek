@@ -1,0 +1,947 @@
+id: bun
+title: Bun
+category: tool
+summary:
+  en: "A fast JavaScript and TypeScript runtime that also is a package manager, test runner and bundler in one program."
+  tr: "Hızlı bir JavaScript ve TypeScript çalışma ortamı; aynı zamanda paket yöneticisi, test çalıştırıcı ve bundler olarak tek programda gelir."
+aliases: [bun.sh, bunx, bun test, bun install, bun.lock, bunfig, javascript runtime, çalışma ortamı, paket yöneticisi, node alternatifi]
+detect:
+  npm: [bun, "@types/bun", bun-types]
+  files: [bun.lock, bun.lockb, bunfig.toml]
+version: "1.4"
+latest: eol:bun
+checked: 2026-10
+sources:
+  - title: Bun documentation
+    url: https://bun.com/docs
+  - title: Bun runtime
+    url: https://bun.com/docs/runtime
+  - title: Bun package manager
+    url: https://bun.com/docs/pm/cli/install
+roadmap: bun
+sections:
+  - id: start
+    title:
+      en: "Start and run"
+      tr: "Başlama ve çalıştırma"
+    items:
+      - id: install
+        level: basic
+        title:
+          en: "Install Bun"
+          tr: "Bun kurma"
+        what:
+          en: "Puts the single bun program on your machine."
+          tr: "Tek parça olan bun programını bilgisayarına kurar."
+        lang: sh
+        form: "curl -fsSL https://bun.com/install | bash"
+        example: |
+          curl -fsSL https://bun.com/install | bash
+          bun --version
+        mistake:
+          en: "Installing it and forgetting to open a new terminal, so the shell cannot find bun yet."
+          tr: "Kurup yeni bir terminal açmayı unutmak; kabuk bun'ı henüz bulamaz."
+        avoid:
+          en: "In a team project, pin the version your CI uses instead of relying on whatever is latest."
+          tr: "Takım projesinde, en son sürüme güvenmek yerine CI'nin kullandığı sürümü sabitle."
+        source: https://bun.com/docs/installation
+      - id: init
+        level: basic
+        title:
+          en: "Create a new project"
+          tr: "Yeni proje oluşturma"
+        what:
+          en: "Makes package.json, tsconfig.json and a first file in an empty folder."
+          tr: "Boş bir klasörde package.json, tsconfig.json ve ilk dosyayı oluşturur."
+        lang: sh
+        form: "bun init"
+        example: |
+          mkdir my-app && cd my-app
+          bun init -y >/dev/null 2>&1
+          test -f package.json && test -f tsconfig.json && echo ok
+        output: |
+          ok
+        check: sh
+        mistake:
+          en: "Running it in a folder that already has a project and expecting it to merge; it is meant for new, empty folders."
+          tr: "İçinde proje olan bir klasörde çalıştırıp birleştirmesini beklemek; yeni ve boş klasörler için tasarlanmıştır."
+        avoid:
+          en: "When you want a ready template (React, Next.js); use bun create instead."
+          tr: "Hazır bir şablon istiyorsan (React, Next.js); onun yerine bun create kullan."
+        source: https://bun.com/docs/runtime/templating/init
+      - id: run-file
+        level: basic
+        title:
+          en: "Run a TypeScript file"
+          tr: "TypeScript dosyası çalıştırma"
+        what:
+          en: "Runs .ts, .tsx, .js and .jsx files directly, with no build step."
+          tr: ".ts, .tsx, .js ve .jsx dosyalarını derleme adımı olmadan doğrudan çalıştırır."
+        lang: ts
+        form: "bun run index.ts"
+        example: |
+          // main.ts  ->  bun run main.ts   (or just: bun main.ts)
+          const greet = (name: string): string => `Hello, ${name}`;
+          console.log(greet("Bun"));
+        output: |
+          Hello, Bun
+        check: ts
+        mistake:
+          en: "Thinking Bun checks your types. It only strips them; run bun check to type-check."
+          tr: "Bun'ın tipleri kontrol ettiğini sanmak. Sadece tipleri siler; tip kontrolü için bun check çalıştır."
+        source: https://bun.com/docs/runtime
+      - id: run-script
+        level: basic
+        title:
+          en: "Run a package.json script"
+          tr: "package.json script'i çalıştırma"
+        what:
+          en: "Runs a command from the scripts section of package.json."
+          tr: "package.json içindeki scripts bölümünden bir komutu çalıştırır."
+        lang: sh
+        form: "bun run <script>"
+        example: |
+          echo '{"scripts":{"hello":"echo hi from script"}}' > package.json
+          bun run hello 2>/dev/null
+        output: |
+          hi from script
+        check: sh
+        mistake:
+          en: "Naming a script like a Bun command (for example test or build) and being surprised which one runs; bun run <name> always runs your script."
+          tr: "Script'e bir Bun komutunun adını (test, build gibi) verip hangisinin çalıştığına şaşırmak; bun run <ad> her zaman senin script'ini çalıştırır."
+        source: https://bun.com/docs/runtime
+      - id: watch-hot
+        level: basic
+        title:
+          en: "Restart or reload on save"
+          tr: "Kaydedince yeniden başlatma veya yenileme"
+        what:
+          en: "--watch restarts the process on every change; --hot reloads the code and keeps the process alive."
+          tr: "--watch her değişiklikte süreci yeniden başlatır; --hot kodu yeniler ama süreci canlı tutar."
+        lang: sh
+        form: "bun --watch index.ts"
+        example: |
+          bun --watch index.ts
+          bun --hot server.ts
+        mistake:
+          en: "Using --hot and expecting global state to reset; it is kept, only modules are re-evaluated."
+          tr: "--hot kullanıp global durumun sıfırlanmasını beklemek; durum korunur, sadece modüller yeniden çalıştırılır."
+        source: https://bun.com/docs/runtime/watch-mode
+      - id: check
+        level: intermediate
+        title:
+          en: "Type-check the project"
+          tr: "Projenin tiplerini kontrol etme"
+        what:
+          en: "Reads tsconfig.json and reports type errors, like tsc, without writing any files."
+          tr: "tsconfig.json'u okur ve tsc gibi tip hatalarını raporlar; hiçbir dosya yazmaz."
+        lang: sh
+        form: "bun check"
+        example: |
+          bun check
+          bun --check src/index.ts   # type-check, then run
+        mistake:
+          en: "Skipping it in CI because the code already runs. Bun runs TypeScript without looking at types."
+          tr: "Kod zaten çalışıyor diye CI'da atlamak. Bun TypeScript'i tiplere bakmadan çalıştırır."
+        source: https://bun.com/docs/runtime/check
+      - id: eval-flag
+        level: basic
+        title:
+          en: "Run a quick one-liner"
+          tr: "Hızlı tek satır kod çalıştırma"
+        what:
+          en: "Runs a piece of code from the command line without a file."
+          tr: "Dosya açmadan komut satırından bir kod parçası çalıştırır."
+        lang: sh
+        form: "bun -e '<code>'"
+        example: |
+          bun -e 'console.log([1, 2, 3].map(n => n * 2))'
+        output: |
+          [ 2, 4, 6 ]
+        check: sh
+        mistake:
+          en: "Using double quotes in the shell so $ and backticks in your code get expanded by the shell."
+          tr: "Kabukta çift tırnak kullanıp koddaki $ ve backtick işaretlerinin kabuk tarafından açılmasına yol açmak."
+        source: https://bun.com/docs/runtime
+      - id: bunx
+        level: basic
+        title:
+          en: "Run a package without installing it"
+          tr: "Paketi kurmadan çalıştırma"
+        what:
+          en: "Downloads a package's command and runs it once, like npx."
+          tr: "Bir paketin komutunu indirir ve npx gibi bir kez çalıştırır."
+        lang: sh
+        form: "bunx <package> [args]"
+        example: |
+          bunx cowsay "hello"
+          bunx prettier --check .
+        mistake:
+          en: "Expecting the tool to run on Bun. By default bunx honours the #!/usr/bin/env node line, so it runs on Node; add --bun to force Bun."
+          tr: "Aracın Bun üzerinde çalışmasını beklemek. bunx varsayılan olarak #!/usr/bin/env node satırına uyar ve Node ile çalışır; Bun'a zorlamak için --bun ekle."
+        source: https://bun.com/docs/pm/bunx
+  - id: packages
+    title:
+      en: "Packages"
+      tr: "Paketler"
+    items:
+      - id: install-deps
+        level: basic
+        title:
+          en: "Install all dependencies"
+          tr: "Tüm bağımlılıkları kurma"
+        what:
+          en: "Reads package.json, downloads everything into node_modules and writes the lockfile."
+          tr: "package.json'u okur, her şeyi node_modules'a indirir ve lockfile'ı yazar."
+        lang: sh
+        form: "bun install"
+        example: |
+          bun install
+        mistake:
+          en: "Committing node_modules. Commit bun.lock instead, and add node_modules to .gitignore."
+          tr: "node_modules'ı commit etmek. Onun yerine bun.lock'u commit et, node_modules'ı .gitignore'a yaz."
+        source: https://bun.com/docs/pm/cli/install
+      - id: add
+        level: basic
+        title:
+          en: "Add a package"
+          tr: "Paket ekleme"
+        what:
+          en: "Installs a package and writes it into package.json."
+          tr: "Bir paketi kurar ve package.json'a yazar."
+        lang: sh
+        form: "bun add <package>"
+        example: |
+          bun add hono
+          bun add -d typescript   # dev dependency
+          bun add zod@3           # a specific major version
+        mistake:
+          en: "Forgetting -d for tools used only while developing, so they end up in your production dependencies."
+          tr: "Sadece geliştirmede kullanılan araçlar için -d'yi unutmak; araçlar production bağımlılıklarına girer."
+        source: https://bun.com/docs/pm/cli/add
+      - id: remove
+        level: basic
+        title:
+          en: "Remove a package"
+          tr: "Paket kaldırma"
+        what:
+          en: "Deletes a package from package.json and node_modules."
+          tr: "Bir paketi package.json'dan ve node_modules'tan siler."
+        lang: sh
+        form: "bun remove <package>"
+        example: |
+          bun remove hono
+        mistake:
+          en: "Deleting the line in package.json by hand and not running install, so the lockfile stays out of date."
+          tr: "package.json'daki satırı elle silip install çalıştırmamak; lockfile eski kalır."
+        source: https://bun.com/docs/pm/cli/remove
+      - id: lockfile
+        level: basic
+        title:
+          en: "The lockfile (bun.lock)"
+          tr: "Lockfile (bun.lock)"
+        what:
+          en: "A text file that records the exact versions installed, so everyone gets the same ones."
+          tr: "Kurulan tam sürümleri kaydeden metin dosyasıdır; herkes aynı sürümleri alır."
+        lang: sh
+        form: "bun.lock"
+        example: |
+          # text lockfile, readable in a code review
+          git add bun.lock
+        mistake:
+          en: "Keeping several lockfiles (bun.lock and package-lock.json) in one project."
+          tr: "Bir projede birden çok lockfile (bun.lock ve package-lock.json) tutmak."
+        since: "1.2"
+        older:
+          en: "Before 1.2 the lockfile was a binary file called bun.lockb. Bun 1.2 made the text bun.lock the default."
+          tr: "1.2'den önce lockfile bun.lockb adlı ikili bir dosyaydı. Bun 1.2 metin tabanlı bun.lock'u varsayılan yaptı."
+        source: https://bun.com/docs/pm/lockfile
+      - id: frozen
+        level: intermediate
+        title:
+          en: "Install exactly what the lockfile says (CI)"
+          tr: "Lockfile'daki sürümleri aynen kurma (CI)"
+        what:
+          en: "Fails instead of changing the lockfile, so CI builds are repeatable."
+          tr: "Lockfile'ı değiştirmek yerine hata verir; böylece CI derlemeleri tekrarlanabilir olur."
+        lang: sh
+        form: "bun install --frozen-lockfile"
+        example: |
+          bun install --frozen-lockfile
+          bun install --production   # skip devDependencies
+        mistake:
+          en: "Changing package.json without running bun install locally, then wondering why CI fails with this flag."
+          tr: "package.json'u değiştirip yerelde bun install çalıştırmamak, sonra CI'nin neden hata verdiğine şaşırmak."
+        source: https://bun.com/docs/pm/cli/install
+      - id: outdated-update
+        level: intermediate
+        title:
+          en: "See and update old packages"
+          tr: "Eski paketleri görme ve güncelleme"
+        what:
+          en: "outdated lists packages with newer versions; update moves them forward."
+          tr: "outdated yeni sürümü olan paketleri listeler; update onları ilerletir."
+        lang: sh
+        form: "bun outdated"
+        example: |
+          bun outdated
+          bun update
+          bun update --latest   # also cross major versions
+        mistake:
+          en: "Running bun update --latest and shipping, without reading what jumped a major version."
+          tr: "bun update --latest çalıştırıp, hangi paketin ana sürüm atladığına bakmadan yayına çıkmak."
+        source: https://bun.com/docs/pm/cli/update
+      - id: why
+        level: intermediate
+        title:
+          en: "Find out why a package is installed"
+          tr: "Paketin neden kurulu olduğunu bulma"
+        what:
+          en: "Shows which dependency pulled a package in."
+          tr: "Bir paketi hangi bağımlılığın getirdiğini gösterir."
+        lang: sh
+        form: "bun why <package>"
+        example: |
+          bun why typescript
+        source: https://bun.com/docs/pm/cli/why
+      - id: workspaces
+        level: intermediate
+        title:
+          en: "Workspaces (monorepo)"
+          tr: "Workspaces (monorepo)"
+        what:
+          en: "Keeps several packages in one repository that share one install."
+          tr: "Tek repoda, tek kurulumu paylaşan birden çok paketi tutar."
+        lang: json
+        form: '"workspaces": ["packages/*"]'
+        example: |
+          {
+            "name": "my-monorepo",
+            "workspaces": ["packages/*", "apps/*"]
+          }
+        mistake:
+          en: "Writing a dependency version for a sibling package instead of workspace:*, so it is downloaded from the registry."
+          tr: "Kardeş paket için workspace:* yerine sürüm yazmak; paket registry'den indirilir."
+        source: https://bun.com/docs/pm/workspaces
+      - id: filter
+        level: intermediate
+        title:
+          en: "Run a script in several workspaces"
+          tr: "Birden çok workspace'te script çalıştırma"
+        what:
+          en: "Runs a script in the packages that match a name or path pattern."
+          tr: "Bir script'i ad veya yol desenine uyan paketlerde çalıştırır."
+        lang: sh
+        form: "bun run --filter '<pattern>' <script>"
+        example: |
+          bun run --filter '*' build
+          bun run --filter './packages/*' test
+        mistake:
+          en: "Leaving the pattern unquoted, so the shell expands the star before Bun sees it."
+          tr: "Deseni tırnaksız yazmak; yıldızı Bun görmeden kabuk açar."
+        source: https://bun.com/docs/pm/filter
+      - id: trusted
+        level: advanced
+        title:
+          en: "Install scripts of dependencies"
+          tr: "Bağımlılıkların install script'leri"
+        what:
+          en: "Bun does not run a dependency's postinstall scripts unless you list the package in trustedDependencies."
+          tr: "Bun, paketi trustedDependencies'e yazmadıkça bağımlılığın postinstall script'lerini çalıştırmaz."
+        lang: json
+        form: '"trustedDependencies": ["<package>"]'
+        example: |
+          {
+            "trustedDependencies": ["sharp"]
+          }
+        mistake:
+          en: "Trusting a package just to make an error go away, without checking what its script does."
+          tr: "Bir hata gitsin diye paketi script'ine bakmadan güvenilir listesine eklemek."
+        source: https://bun.com/docs/pm/lifecycle
+  - id: runtime
+    title:
+      en: "Running code"
+      tr: "Kod çalıştırma"
+    items:
+      - id: env
+        level: basic
+        title:
+          en: "Environment variables"
+          tr: "Ortam değişkenleri"
+        what:
+          en: "Bun loads .env files by itself, so you read values with no extra package."
+          tr: "Bun .env dosyalarını kendisi yükler; değerleri ek paket olmadan okursun."
+        lang: ts
+        form: "Bun.env.NAME  // same as process.env.NAME"
+        example: |
+          process.env.GREETING = "hi";
+          console.log(Bun.env.GREETING);
+        output: |
+          hi
+        check: ts
+        mistake:
+          en: "Committing .env with real secrets. Keep it out of Git and commit a .env.example instead."
+          tr: "Gerçek sırlar içeren .env'i commit etmek. Onu Git dışında tut, yerine .env.example commit et."
+        source: https://bun.com/docs/runtime/environment-variables
+      - id: import-meta
+        level: basic
+        title:
+          en: "Where is this file?"
+          tr: "Bu dosya nerede?"
+        what:
+          en: "import.meta.dir is the folder of the current file; import.meta.main is true only when this file was started directly."
+          tr: "import.meta.dir geçerli dosyanın klasörüdür; import.meta.main sadece dosya doğrudan başlatıldıysa true olur."
+        lang: ts
+        form: "import.meta.dir / import.meta.file / import.meta.main"
+        example: |
+          console.log(import.meta.file);
+          console.log(import.meta.main);
+        output: |
+          main.ts
+          true
+        check: ts
+        mistake:
+          en: "Using process.cwd() to find files next to your code; it is the folder you started in, not the file's folder."
+          tr: "Kodun yanındaki dosyaları bulmak için process.cwd() kullanmak; bu, dosyanın değil komutu çalıştırdığın klasördür."
+        source: https://bun.com/docs/runtime/module-resolution
+      - id: top-level-await
+        level: basic
+        title:
+          en: "await at the top of a file"
+          tr: "Dosyanın en üstünde await"
+        what:
+          en: "ES modules can use await without wrapping it in an async function."
+          tr: "ES modüllerinde await'i async fonksiyona sarmadan kullanabilirsin."
+        lang: ts
+        form: "const x = await promise;"
+        example: |
+          const wait = (ms: number) => new Promise<string>(r => setTimeout(() => r("done"), ms));
+          console.log(await wait(10));
+        output: |
+          done
+        check: ts
+        mistake:
+          en: "Using it in a CommonJS (.cjs) file, where it is a syntax error."
+          tr: "CommonJS (.cjs) dosyada kullanmak; orada sözdizimi hatasıdır."
+        source: https://bun.com/docs/runtime/module-resolution
+      - id: bunfig
+        level: intermediate
+        title:
+          en: "Configure Bun (bunfig.toml)"
+          tr: "Bun'ı yapılandırma (bunfig.toml)"
+        what:
+          en: "An optional config file for install, test and runtime settings."
+          tr: "Kurulum, test ve çalışma ortamı ayarları için isteğe bağlı yapılandırma dosyasıdır."
+        lang: text
+        form: "bunfig.toml"
+        example: |
+          [install]
+          exact = true          # save exact versions, no ^
+
+          [test]
+          coverage = true
+        mistake:
+          en: "Putting TypeScript settings here. Those stay in tsconfig.json."
+          tr: "TypeScript ayarlarını buraya yazmak. Onlar tsconfig.json'da kalır."
+        source: https://bun.com/docs/runtime/bunfig
+      - id: spawn
+        level: intermediate
+        title:
+          en: "Run another program"
+          tr: "Başka bir program çalıştırma"
+        what:
+          en: "Starts a child process and lets you read its output."
+          tr: "Bir alt süreç başlatır ve çıktısını okumana izin verir."
+        lang: ts
+        form: "Bun.spawn([cmd, ...args])"
+        example: |
+          const proc = Bun.spawn(["echo", "from child"]);
+          console.log((await new Response(proc.stdout).text()).trim());
+        output: |
+          from child
+        check: ts
+        mistake:
+          en: "Passing one string with spaces as the command. Pass an array: the program first, then each argument."
+          tr: "Komut olarak boşluklu tek bir string vermek. Dizi ver: önce program, sonra her argüman."
+        avoid:
+          en: "For simple scripts that call several commands, the Bun shell ($) is shorter."
+          tr: "Birkaç komut çağıran basit script'lerde Bun shell ($) daha kısadır."
+        source: https://bun.com/docs/runtime/child-process
+      - id: shell
+        level: intermediate
+        title:
+          en: "Shell scripts in JavaScript"
+          tr: "JavaScript içinde shell script"
+        what:
+          en: "Runs shell commands from code, with the same behaviour on every operating system."
+          tr: "Kod içinden shell komutları çalıştırır; her işletim sisteminde aynı davranır."
+        lang: ts
+        form: "await $`command`.text()"
+        example: |
+          import { $ } from "bun";
+          const word = "world";
+          console.log(await $`echo hello ${word}`.text());
+        output: |
+          hello world
+        check: ts
+        mistake:
+          en: "Building a command by joining strings. Use ${value}; Bun escapes it, so user input cannot inject commands."
+          tr: "Komutu string birleştirerek kurmak. ${değer} kullan; Bun kaçış yapar, kullanıcı girdisi komut enjekte edemez."
+        source: https://bun.com/docs/runtime/shell
+  - id: apis
+    title:
+      en: "Built-in APIs"
+      tr: "Hazır API'ler"
+    items:
+      - id: file-read
+        level: basic
+        title:
+          en: "Read a file"
+          tr: "Dosya okuma"
+        what:
+          en: "Bun.file() points at a file; you read it as text, JSON or bytes."
+          tr: "Bun.file() bir dosyayı işaret eder; onu metin, JSON ya da bayt olarak okursun."
+        lang: ts
+        form: "await Bun.file(path).text()"
+        example: |
+          await Bun.write("note.txt", "hello file");
+          const f = Bun.file("note.txt");
+          console.log(await f.exists(), f.size);
+          console.log(await f.text());
+        output: |
+          true 10
+          hello file
+        check: ts
+        mistake:
+          en: "Expecting Bun.file() to read right away. It is lazy; nothing is read until you call text(), json() and so on."
+          tr: "Bun.file()'ın hemen okuduğunu sanmak. Tembeldir; text(), json() gibi bir şey çağırana kadar okumaz."
+        source: https://bun.com/docs/runtime/file-io
+      - id: file-write
+        level: basic
+        title:
+          en: "Write a file"
+          tr: "Dosya yazma"
+        what:
+          en: "Bun.write() saves a string, bytes, a Response or another file to a path."
+          tr: "Bun.write() bir string'i, baytları, bir Response'u ya da başka bir dosyayı yola kaydeder."
+        lang: ts
+        form: "await Bun.write(path, data)"
+        example: |
+          const bytes = await Bun.write("out.json", JSON.stringify({ a: 1 }));
+          console.log(bytes);
+        output: |
+          7
+        check: ts
+        mistake:
+          en: "Forgetting await, then reading the file before it is written."
+          tr: "await'i unutmak; dosya yazılmadan okumaya çalışmak."
+        source: https://bun.com/docs/runtime/file-io
+      - id: serve
+        level: basic
+        title:
+          en: "A tiny web server"
+          tr: "Küçük bir web sunucusu"
+        what:
+          en: "Bun.serve() starts an HTTP server; fetch gets a Request and returns a Response."
+          tr: "Bun.serve() bir HTTP sunucusu başlatır; fetch bir Request alır ve Response döndürür."
+        lang: ts
+        form: "Bun.serve({ port, fetch(req) { return new Response(...) } })"
+        example: |
+          const server = Bun.serve({
+            port: 0,   // 0 = pick a free port (default is 3000)
+            fetch(req) {
+              return new Response("hello web");
+            },
+          });
+          const res = await fetch(server.url);
+          console.log(await res.text());
+          server.stop();
+        output: |
+          hello web
+        check: ts
+        mistake:
+          en: "Forgetting that a port in use throws an error at start; pick another port or stop the old process."
+          tr: "Kullanımdaki bir portun başlangıçta hata fırlattığını unutmak; başka port seç ya da eski süreci durdur."
+        source: https://bun.com/docs/runtime/http/server
+      - id: routes
+        level: intermediate
+        title:
+          en: "Routes and URL parameters"
+          tr: "Route'lar ve URL parametreleri"
+        what:
+          en: "The routes option maps paths to handlers, with :name parts available in req.params."
+          tr: "routes seçeneği yolları işleyicilere bağlar; :ad kısımları req.params içinde gelir."
+        lang: ts
+        form: 'routes: { "/users/:id": (req) => Response.json(...) }'
+        example: |
+          const server = Bun.serve({
+            port: 0,
+            routes: {
+              "/users/:id": req => Response.json({ id: req.params.id }),
+            },
+            fetch() {
+              return new Response("not found", { status: 404 });
+            },
+          });
+          const res = await fetch(new URL("/users/42", server.url));
+          console.log(await res.json());
+          server.stop();
+        output: |
+          {
+            id: "42",
+          }
+        check: ts
+        since: "1.2.3"
+        older:
+          en: "Before 1.2.3 there was no routes option; you matched the path yourself inside fetch."
+          tr: "1.2.3'ten önce routes seçeneği yoktu; yolu fetch içinde kendin eşleştirirdin."
+        mistake:
+          en: "Leaving out the fetch fallback, so unknown paths do not get a proper 404 you control."
+          tr: "fetch yedeğini yazmamak; bilinmeyen yollar için kontrol ettiğin bir 404 olmaz."
+        source: https://bun.com/docs/runtime/http/routing
+      - id: sqlite
+        level: intermediate
+        title:
+          en: "SQLite built in"
+          tr: "Hazır gelen SQLite"
+        what:
+          en: "bun:sqlite gives you a fast SQLite database with no package to install."
+          tr: "bun:sqlite, kurulacak paket olmadan hızlı bir SQLite veritabanı verir."
+        lang: ts
+        form: 'import { Database } from "bun:sqlite"'
+        example: |
+          import { Database } from "bun:sqlite";
+          const db = new Database(":memory:");
+          db.run("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT)");
+          db.query("INSERT INTO users (name) VALUES (?)").run("Ada");
+          console.log(db.query("SELECT * FROM users WHERE name = ?").get("Ada"));
+        output: |
+          {
+            id: 1,
+            name: "Ada",
+          }
+        check: ts
+        mistake:
+          en: "Putting values into the SQL string. Use ? placeholders so input cannot change the query."
+          tr: "Değerleri SQL string'inin içine yazmak. Girdi sorguyu değiştiremesin diye ? yer tutucuları kullan."
+        source: https://bun.com/docs/runtime/sqlite
+      - id: sql
+        level: advanced
+        title:
+          en: "PostgreSQL client built in"
+          tr: "Hazır gelen PostgreSQL istemcisi"
+        what:
+          en: "The sql tag runs queries against Postgres; values in the template become safe parameters."
+          tr: "sql etiketi Postgres'e sorgu çalıştırır; şablondaki değerler güvenli parametre olur."
+        lang: ts
+        form: "await sql`SELECT ... WHERE id = ${id}`"
+        example: |
+          import { sql } from "bun";   // reads DATABASE_URL
+          const id = 1;
+          const rows = await sql`SELECT * FROM users WHERE id = ${id}`;
+        since: "1.2"
+        mistake:
+          en: "Building the query with normal string concatenation, which throws away the protection of the template."
+          tr: "Sorguyu normal string birleştirmeyle kurmak; şablonun sağladığı korumayı yok eder."
+        source: https://bun.com/docs/runtime/sql
+      - id: password
+        level: intermediate
+        title:
+          en: "Hash a password"
+          tr: "Parola hash'leme"
+        what:
+          en: "Bun.password hashes and checks passwords with a safe algorithm (argon2id by default)."
+          tr: "Bun.password parolaları güvenli bir algoritmayla (varsayılan argon2id) hash'ler ve doğrular."
+        lang: ts
+        form: "await Bun.password.hash(pw) / await Bun.password.verify(pw, hash)"
+        example: |
+          const hash = await Bun.password.hash("s3cret");
+          console.log(await Bun.password.verify("s3cret", hash));
+          console.log(await Bun.password.verify("wrong", hash));
+        output: |
+          true
+          false
+        check: ts
+        mistake:
+          en: "Comparing hashes with ===. Always call verify; every hash includes its own random salt."
+          tr: "Hash'leri === ile karşılaştırmak. Her zaman verify çağır; her hash kendi rastgele tuzunu taşır."
+        source: https://bun.com/docs/runtime/hashing
+      - id: sleep
+        level: basic
+        title:
+          en: "Wait for a while"
+          tr: "Bir süre bekleme"
+        what:
+          en: "Bun.sleep() returns a promise that finishes after some milliseconds."
+          tr: "Bun.sleep() birkaç milisaniye sonra biten bir promise döndürür."
+        lang: ts
+        form: "await Bun.sleep(ms)"
+        example: |
+          const t = performance.now();
+          await Bun.sleep(50);
+          console.log(performance.now() - t >= 45);
+        output: |
+          true
+        check: ts
+        source: https://bun.com/docs/runtime/utils
+      - id: glob
+        level: intermediate
+        title:
+          en: "Find files by pattern"
+          tr: "Dosyaları desenle bulma"
+        what:
+          en: "Bun.Glob matches file paths like **/*.ts against a folder."
+          tr: "Bun.Glob, **/*.ts gibi desenleri bir klasördeki dosya yollarıyla eşleştirir."
+        lang: ts
+        form: 'new Bun.Glob("**/*.ts").scan(dir)'
+        example: |
+          await Bun.write("src/a.ts", "");
+          await Bun.write("src/b.js", "");
+          const found: string[] = [];
+          for await (const f of new Bun.Glob("**/*.ts").scan("src")) found.push(f);
+          console.log(found);
+        output: |
+          [ "a.ts" ]
+        check: ts
+        mistake:
+          en: "Forgetting that scan() is async and returns paths relative to the folder you give it."
+          tr: "scan()'in asenkron olduğunu ve yolları verdiğin klasöre göre göreli döndürdüğünü unutmak."
+        source: https://bun.com/docs/runtime/glob
+      - id: websocket
+        level: advanced
+        title:
+          en: "WebSockets"
+          tr: "WebSocket"
+        what:
+          en: "Bun.serve() can upgrade a request to a WebSocket and calls handlers you give it."
+          tr: "Bun.serve() bir isteği WebSocket'e yükseltebilir ve verdiğin işleyicileri çağırır."
+        lang: ts
+        form: "Bun.serve({ fetch(req, server) { server.upgrade(req) }, websocket: { message() {} } })"
+        example: |
+          Bun.serve({
+            fetch(req, server) {
+              if (server.upgrade(req)) return;   // switched to WebSocket
+              return new Response("use a WebSocket", { status: 426 });
+            },
+            websocket: {
+              message(ws, message) {
+                ws.send(`echo: ${message}`);
+              },
+            },
+          });
+        mistake:
+          en: "Returning a Response after a successful upgrade. Return nothing once server.upgrade(req) is true."
+          tr: "Yükseltme başarılı olduktan sonra Response döndürmek. server.upgrade(req) true olunca hiçbir şey döndürme."
+        source: https://bun.com/docs/runtime/http/websockets
+  - id: test
+    title:
+      en: "Testing"
+      tr: "Test"
+    items:
+      - id: test-basic
+        level: basic
+        title:
+          en: "Write and run a test"
+          tr: "Test yazma ve çalıştırma"
+        what:
+          en: "bun test finds files ending in .test.ts (and similar) and runs them with a Jest-style API."
+          tr: "bun test, .test.ts ile biten (ve benzer) dosyaları bulur ve Jest benzeri bir API ile çalıştırır."
+        lang: ts
+        form: 'import { test, expect } from "bun:test"'
+        example: |
+          cat > add.test.ts <<'EOT'
+          import { test, expect } from "bun:test";
+          test("adds numbers", () => {
+            expect(1 + 2).toBe(3);
+          });
+          EOT
+          bun test 2>&1 | grep -E "^ *[0-9]+ (pass|fail)" | tr -d ' '
+        output: |
+          1pass
+          0fail
+        check: sh
+        mistake:
+          en: "Naming the file add.ts. It must match a test pattern such as *.test.ts, *_test.ts or *.spec.ts."
+          tr: "Dosyaya add.ts adını vermek. *.test.ts, *_test.ts veya *.spec.ts gibi bir test desenine uymalı."
+        source: https://bun.com/docs/test
+      - id: test-describe
+        level: basic
+        title:
+          en: "Group tests and share setup"
+          tr: "Testleri gruplama ve ortak hazırlık"
+        what:
+          en: "describe groups tests; beforeEach and afterEach run around every test."
+          tr: "describe testleri gruplar; beforeEach ve afterEach her testin etrafında çalışır."
+        lang: ts
+        form: "describe(name, () => { beforeEach(() => {...}); test(...) })"
+        example: |
+          import { describe, test, expect, beforeEach } from "bun:test";
+
+          describe("cart", () => {
+            let items: string[];
+            beforeEach(() => { items = []; });
+
+            test("starts empty", () => {
+              expect(items).toHaveLength(0);
+            });
+          });
+        mistake:
+          en: "Sharing a mutable variable between tests without resetting it, so tests depend on their order."
+          tr: "Değişebilen bir değişkeni sıfırlamadan testler arasında paylaşmak; testler sıraya bağımlı olur."
+        source: https://bun.com/docs/test/lifecycle
+      - id: test-filter
+        level: intermediate
+        title:
+          en: "Run only some tests"
+          tr: "Sadece bazı testleri çalıştırma"
+        what:
+          en: "Pass a file path to pick files, or -t to pick tests by name."
+          tr: "Dosya seçmek için yol ver, teste ada göre seçmek için -t kullan."
+        lang: sh
+        form: 'bun test <path> -t "<name regex>"'
+        example: |
+          bun test src/cart.test.ts
+          bun test -t "adds numbers"
+          bun test --bail            # stop after the first failure
+        mistake:
+          en: "Forgetting that -t takes a regular expression, so special characters in a name need escaping."
+          tr: "-t'nin düzenli ifade aldığını unutmak; addaki özel karakterlerin kaçışlanması gerekir."
+        source: https://bun.com/docs/test
+      - id: test-mock
+        level: intermediate
+        title:
+          en: "Mock and spy on functions"
+          tr: "Fonksiyonları mock'lama ve izleme"
+        what:
+          en: "mock() makes a fake function that records how it was called."
+          tr: "mock() nasıl çağrıldığını kaydeden sahte bir fonksiyon üretir."
+        lang: ts
+        form: "const fn = mock(() => value)"
+        example: |
+          import { test, expect, mock } from "bun:test";
+
+          test("calls the callback", () => {
+            const cb = mock((n: number) => n * 2);
+            [1, 2].forEach(n => cb(n));
+            expect(cb).toHaveBeenCalledTimes(2);
+            expect(cb).toHaveBeenCalledWith(2);
+          });
+        mistake:
+          en: "Mocking too much, so the test only proves that your mocks work."
+          tr: "Çok fazla mock kullanmak; test sadece mock'ların çalıştığını kanıtlar."
+        source: https://bun.com/docs/test/mocks
+      - id: test-snapshot
+        level: intermediate
+        title:
+          en: "Snapshot tests"
+          tr: "Snapshot testleri"
+        what:
+          en: "Saves a value the first time and fails later if the value changes."
+          tr: "Bir değeri ilk seferde kaydeder, değer sonradan değişirse testi başarısız yapar."
+        lang: ts
+        form: "expect(value).toMatchSnapshot()"
+        example: |
+          import { test, expect } from "bun:test";
+
+          test("shape", () => {
+            expect({ id: 1, tags: ["a"] }).toMatchSnapshot();
+          });
+          // accept a changed result on purpose:  bun test --update-snapshots
+        mistake:
+          en: "Updating snapshots without reading the diff, which hides real bugs."
+          tr: "Farkı okumadan snapshot'ı güncellemek; gerçek hataları gizler."
+        source: https://bun.com/docs/test/snapshots
+      - id: test-coverage
+        level: advanced
+        title:
+          en: "Code coverage"
+          tr: "Kod kapsamı (coverage)"
+        what:
+          en: "Shows which lines your tests ran."
+          tr: "Testlerinin hangi satırları çalıştırdığını gösterir."
+        lang: sh
+        form: "bun test --coverage"
+        example: |
+          bun test --coverage
+          bun test --coverage --coverage-reporter=lcov
+        mistake:
+          en: "Chasing 100 percent. High coverage with weak assertions still lets bugs through."
+          tr: "Yüzde 100'ün peşinden koşmak. Zayıf assertion'larla yüksek kapsam da hataları geçirir."
+        source: https://bun.com/docs/test/coverage
+  - id: build
+    title:
+      en: "Build and ship"
+      tr: "Derleme ve yayınlama"
+    items:
+      - id: build-cli
+        level: intermediate
+        title:
+          en: "Bundle your code"
+          tr: "Kodu paketleme (bundle)"
+        what:
+          en: "Combines your files and imports into a few output files, ready to deploy."
+          tr: "Dosyalarını ve import'larını yayına hazır birkaç çıktı dosyasında birleştirir."
+        lang: sh
+        form: "bun build <entry> --outdir <dir>"
+        example: |
+          bun build ./src/index.ts --outdir ./dist --minify
+          bun build ./src/index.ts --outdir ./dist --target=node
+        mistake:
+          en: "Leaving out --target when the code runs in the browser or in Node. The default target is the browser."
+          tr: "Kod tarayıcıda ya da Node'da çalışacakken --target yazmamak. Varsayılan hedef tarayıcıdır."
+        source: https://bun.com/docs/bundler
+      - id: build-api
+        level: intermediate
+        title:
+          en: "Bundle from code"
+          tr: "Kod içinden paketleme"
+        what:
+          en: "Bun.build() does the same as bun build and returns the result as an object."
+          tr: "Bun.build(), bun build ile aynı işi yapar ve sonucu nesne olarak döndürür."
+        lang: ts
+        form: "await Bun.build({ entrypoints, outdir })"
+        example: |
+          await Bun.write("entry.ts", "export const x: number = 1 + 1; console.log(x);");
+          const result = await Bun.build({ entrypoints: ["./entry.ts"], outdir: "./dist" });
+          console.log(result.success, result.outputs.length);
+        output: |
+          true 1
+        check: ts
+        mistake:
+          en: "Ignoring result.success. A failed build does not throw by default; check success and read result.logs."
+          tr: "result.success'i yoksaymak. Başarısız derleme varsayılan olarak hata fırlatmaz; success'e bak ve result.logs'u oku."
+        source: https://bun.com/docs/bundler
+      - id: compile
+        level: advanced
+        title:
+          en: "One executable file"
+          tr: "Tek çalıştırılabilir dosya"
+        what:
+          en: "Packs your program and the Bun runtime into one file you can run on a machine without Bun."
+          tr: "Programını ve Bun çalışma ortamını, Bun olmayan makinede de çalışan tek dosyada toplar."
+        lang: sh
+        form: "bun build --compile <entry> --outfile <name>"
+        example: |
+          bun build --compile ./cli.ts --outfile mycli
+          ./mycli
+        mistake:
+          en: "Building on Linux and sending the file to macOS. Use --target (for example bun-darwin-arm64) for the other system."
+          tr: "Linux'ta derleyip dosyayı macOS'a göndermek. Diğer sistem için --target kullan (örneğin bun-darwin-arm64)."
+        source: https://bun.com/docs/bundler/executables
+      - id: html-dev
+        level: advanced
+        title:
+          en: "Dev server for a frontend"
+          tr: "Frontend için geliştirme sunucusu"
+        what:
+          en: "Give Bun an HTML file; it bundles the scripts and styles it links and serves them with reloading."
+          tr: "Bun'a bir HTML dosyası ver; bağladığı script ve stilleri paketler ve yeniden yükleme ile sunar."
+        lang: sh
+        form: "bun ./index.html"
+        example: |
+          bun ./index.html
+        since: "1.2.3"
+        mistake:
+          en: "Treating this as the production build. Run bun build to make files you deploy."
+          tr: "Bunu production derlemesi sanmak. Yayınlanacak dosyaları üretmek için bun build çalıştır."
+        source: https://bun.com/docs/bundler/html-static

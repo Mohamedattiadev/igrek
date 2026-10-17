@@ -1,0 +1,3224 @@
+id: python
+title: Python
+summary:
+  en: "From an empty computer to your own Python program on the internet. You build tally, a habit and expense tracker, step by step: it starts as a small command-line tool, grows a SQLite database and a tiny web API, gets tests, and is published for free. You understand why each step is there."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Python programına. Tally adlı bir alışkanlık ve harcama takipçisini adım adım yazarsın: küçük bir komut satırı aracı olarak başlar, SQLite veritabanı ve minik bir web API'si kazanır, testleri yazılır ve ücretsiz yayınlanır. Her adımın neden orada olduğunu anlarsın."
+teacher: backend
+project:
+  en: 'Tally: a command-line habit and expense tracker in plain Python. It saves data to a JSON file first and then to SQLite (sqlite3), has a tiny Flask web page and JSON API, is tested with pytest, packaged with pyproject.toml and published to TestPyPI for free.'
+  tr: 'Tally: düz Python ile yazılmış, komut satırından çalışan bir alışkanlık ve harcama takipçisi. Veriyi önce bir JSON dosyasına, sonra SQLite''a (sqlite3) kaydeder; minik bir Flask web sayfası ve JSON API''si vardır, pytest ile test edilir, pyproject.toml ile paketlenir ve ücretsiz olarak TestPyPI''da yayınlanır.'
+detect:
+  files: [pyproject.toml, requirements.txt, uv.lock]
+version: "3.15"
+latest: eol:python
+checked: 2026-10
+sheets: [python, flask, sql, http, rest-graphql, auth, github-actions, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install uv, Python, an editor and Git"
+      tr: "uv, Python, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "Python programs need Python itself plus a private folder of packages for each project. uv installs Python for you, keeps every project's packages apart so projects cannot break each other, and runs your commands. An editor makes writing code comfortable, and Git keeps every version of your work so you can never really lose it."
+      tr: "Python programlarının Python'un kendisine ve her proje için ayrı bir paket klasörüne ihtiyacı vardır. uv, Python'u senin için kurar, her projenin paketlerini ayrı tutar (projeler birbirini bozmaz) ve komutlarını çalıştırır. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar; böylece hiçbir şeyi gerçekten kaybetmezsin."
+    learn:
+      en: |
+        - What a terminal is and how to check that a program is installed
+        - What a **virtual environment** (venv) is: a private folder of packages for one project
+        - What **uv** does: it installs Python, creates the virtual environment for you and runs commands inside it
+        - Which Python version to use: the current stable release is 3.15 (October 2026)
+      tr: |
+        - Terminalin ne olduğu ve bir programın kurulu olup olmadığını nasıl kontrol edeceğin
+        - **Sanal ortam** (virtual environment, venv) nedir: tek bir projeye ait özel paket klasörü
+        - **uv**'nin ne yaptığı: Python'u kurar, sanal ortamı senin için oluşturur ve komutları onun içinde çalıştırır
+        - Hangi Python sürümünü kullanacağın: güncel kararlı sürüm 3.15 (Ekim 2026)
+    do:
+      en: |
+        1. Install **uv**. On macOS or Linux open a terminal and run the first command below. On Windows open PowerShell and run the second one. Then close the terminal and open a new one, so it sees the new program.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor, and its Python extension (search "Python" in the Extensions panel).
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the check commands below. Each should print a version number.
+        5. Ask uv to install Python 3.15 and check it. If uv says it does not know 3.15, run `uv self update` and try again.
+        6. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        7. Optional: if you prefer plain `venv` and `pip`, which Python's own docs also describe, the last block shows the same jobs. This roadmap uses uv because it needs fewer commands, and every uv command here has a pip equivalent.
+      tr: |
+        1. **uv**'yi kur. macOS veya Linux'ta bir terminal açıp aşağıdaki ilk komutu çalıştır. Windows'ta PowerShell açıp ikinci komutu çalıştır. Sonra terminali kapatıp yenisini aç ki yeni programı görsün.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u (code.visualstudio.com) ve Python eklentisini kur (Extensions panelinde "Python" ara).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki kontrol komutlarını çalıştır. Her biri bir sürüm numarası yazmalı.
+        5. uv'ye Python 3.15'i kurmasını söyle ve kontrol et. uv 3.15'i bilmediğini söylerse `uv self update` çalıştırıp tekrar dene.
+        6. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        7. İsteğe bağlı: Python'un kendi dokümanlarının da anlattığı düz `venv` ve `pip`'i tercih edersen son blokta aynı işler var. Bu yol haritası daha az komut gerektirdiği için uv kullanır; buradaki her uv komutunun pip karşılığı vardır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          # macOS and Linux
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - file: terminal
+        lang: powershell
+        text: |
+          # Windows (PowerShell)
+          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+      - file: terminal
+        lang: sh
+        text: |
+          uv --version
+          git --version
+          uv python install 3.15
+          uv run --python 3.15 python --version
+      - file: terminal
+        lang: sh
+        text: |
+          # The same jobs with venv and pip (optional)
+          python3 -m venv .venv
+          source .venv/bin/activate        # Windows: .venv\Scripts\activate
+          python -m pip install pytest
+    mistakes:
+      - problem:
+          en: "\"command not found: uv\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found: uv\" hatası."
+        fix:
+          en: "Close the terminal and open a new one so it reloads its list of programs. On Windows, restart the computer if it still fails."
+          tr: "Terminali kapatıp yenisini aç ki program listesini yeniden yüklesin. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "pip says \"externally-managed-environment\", or typing python on Windows opens the Microsoft Store."
+          tr: "pip \"externally-managed-environment\" diyor ya da Windows'ta python yazınca Microsoft Store açılıyor."
+        fix:
+          en: "Do not install packages into the Python that came with the system. Let uv or a virtual environment do it, and start programs with `uv run`. Then the system Python never matters."
+          tr: "Paketleri sistemle gelen Python'a kurma. Bunu uv ya da bir sanal ortam yapsın ve programları `uv run` ile başlat. Böylece sistem Python'unun önemi kalmaz."
+    quiz:
+      - q:
+          en: "Why does each project get its own virtual environment?"
+          tr: "Her proje neden kendi sanal ortamını alır?"
+        options:
+          en: [It makes Python run faster, Projects with different package versions cannot break each other, It is required to write any Python code]
+          tr: [Python'u hızlandırır, Farklı paket sürümleri kullanan projeler birbirini bozmaz, Python kodu yazmak için zorunludur]
+        answer: 1
+        why:
+          en: "One project may need version 1 of a package and another version 2. Separate folders let both live on one computer."
+          tr: "Bir proje bir paketin 1. sürümünü, başkası 2. sürümünü isteyebilir. Ayrı klasörler ikisinin de aynı bilgisayarda yaşamasını sağlar."
+    sources:
+      - title: uv installation
+        url: https://docs.astral.sh/uv/getting-started/installation/
+      - title: "Python tutorial: virtual environments and packages"
+        url: https://docs.python.org/3/tutorial/venv.html
+      - title: Installing packages using pip and virtual environments
+        url: https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
+
+  - id: hello
+    stage: first-code
+    title:
+      en: "Create the tally project and run it"
+      tr: "Tally projesini oluşturma ve çalıştırma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "A real program is more than one file: it has a name, a Python version, a list of packages and a place for its code. `uv init` creates all of that, so from the first minute your project looks like the ones you will meet at work, and anybody can run it with one command."
+      tr: "Gerçek bir program tek dosyadan fazlasıdır: bir adı, bir Python sürümü, bir paket listesi ve kodu için bir yeri vardır. `uv init` bunların hepsini oluşturur; böylece ilk dakikadan itibaren projen işte karşılaşacağın projelere benzer ve herkes onu tek komutla çalıştırabilir."
+    learn:
+      en: |
+        - What `uv init --package` creates: `pyproject.toml` (the project's settings), `.python-version`, `src/tally/` (your code) and a Git repository
+        - What the `main` function is and how `uv run tally` finds it through `[project.scripts]`
+        - `input()` reads a line from the keyboard, and an f-string (`f"Hello {name}"`) puts a value inside text
+      tr: |
+        - `uv init --package` neyi oluşturur: `pyproject.toml` (projenin ayarları), `.python-version`, `src/tally/` (senin kodun) ve bir Git deposu
+        - `main` fonksiyonunun ne olduğu ve `uv run tally`'nin onu `[project.scripts]` üzerinden nasıl bulduğu
+        - `input()` klavyeden bir satır okur, f-string (`f"Hello {name}"`) ise bir değeri metnin içine koyar
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects and run the first command below. It creates a folder called `tally` and starts a Git repository in it.
+        2. Go into the folder with `cd tally` and run `uv run tally`. The first time, uv creates the virtual environment (a `.venv` folder), then prints "Hello from tally!".
+        3. Open the folder in VS Code (`code .`) and read `pyproject.toml`. Find the line `tally = "tally:main"` under `[project.scripts]`: it says the command `tally` runs the function `main` of the package `tally`.
+        4. Replace everything in `src/tally/__init__.py` with the code below and run `uv run tally` again. Type your name and press Enter.
+        5. Save this first version with Git: `git add .` then `git commit -m "Start tally"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git ve aşağıdaki ilk komutu çalıştır. `tally` adında bir klasör oluşturur ve içinde bir Git deposu başlatır.
+        2. `cd tally` ile klasöre gir ve `uv run tally` çalıştır. İlk seferde uv sanal ortamı (bir `.venv` klasörü) oluşturur, sonra "Hello from tally!" yazar.
+        3. Klasörü VS Code'da aç (`code .`) ve `pyproject.toml` dosyasını oku. `[project.scripts]` altındaki `tally = "tally:main"` satırını bul: `tally` komutunun, `tally` paketindeki `main` fonksiyonunu çalıştırdığını söyler.
+        4. `src/tally/__init__.py` içindeki her şeyi aşağıdaki kodla değiştir ve `uv run tally`'yi tekrar çalıştır. Adını yaz ve Enter'a bas.
+        5. Bu ilk sürümü Git ile kaydet: `git add .` sonra `git commit -m "Start tally"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv init --package --python 3.15 tally
+          cd tally
+          uv run tally
+      - file: src/tally/__init__.py
+        lang: python
+        text: |
+          def main() -> None:
+              name = input("What is your name? ")
+              print(f"Hello, {name}! Welcome to tally.")
+    mistakes:
+      - problem:
+          en: "\"uv run tally\" says no such command or file."
+          tr: "\"uv run tally\" böyle bir komut ya da dosya olmadığını söylüyor."
+        fix:
+          en: "You are probably in the wrong folder. Run `cd tally` first. The folder you are in must contain `pyproject.toml`."
+          tr: "Büyük ihtimalle yanlış klasördesin. Önce `cd tally` çalıştır. İçinde bulunduğun klasörde `pyproject.toml` olmalı."
+      - problem:
+          en: "Indentation errors: \"IndentationError: expected an indented block\"."
+          tr: "Girinti hataları: \"IndentationError: expected an indented block\"."
+        fix:
+          en: "Python uses the spaces at the start of a line to know what belongs inside the function. Indent the body of `def main()` by four spaces, and do not mix tabs and spaces."
+          tr: "Python, bir satırın başındaki boşluklarla neyin fonksiyonun içinde olduğunu anlar. `def main()` gövdesini dört boşlukla gir ve tab ile boşluğu karıştırma."
+    quiz:
+      - q:
+          en: "What does the line tally = \"tally:main\" in pyproject.toml do?"
+          tr: "pyproject.toml içindeki tally = \"tally:main\" satırı ne yapar?"
+        options:
+          en: [It installs a package called tally, It makes the command tally run the function main in the package tally, It renames the project]
+          tr: [tally adlı bir paket kurar, tally komutunun tally paketindeki main fonksiyonunu çalıştırmasını sağlar, Projeyi yeniden adlandırır]
+        answer: 1
+        why:
+          en: "Entries under [project.scripts] map a command name to a function, written as package:function."
+          tr: "[project.scripts] altındaki girdiler bir komut adını bir fonksiyona bağlar; paket:fonksiyon biçiminde yazılır."
+    sources:
+      - title: "uv: creating projects"
+        url: https://docs.astral.sh/uv/concepts/projects/init/
+      - title: "uv: running commands in a project"
+        url: https://docs.astral.sh/uv/concepts/projects/run/
+      - title: "Python tutorial: formatted string literals"
+        url: https://docs.python.org/3/tutorial/inputoutput.html#formatted-string-literals
+
+  - id: money
+    stage: basics
+    title:
+      en: "Model an expense: a dataclass and exact money"
+      tr: "Bir harcamayı modelleme: dataclass ve tam para hesabı"
+    minutes: 50
+    needs: [hello]
+    why:
+      en: "Before you store anything you need to say what an expense is. A small class gives the data a shape, and keeping money as whole cents avoids the classic bug where 0.1 + 0.2 is not 0.3. Bad input must become a clear message, not a crash, so you also learn your own exception."
+      tr: "Bir şeyi kaydetmeden önce harcamanın ne olduğunu tanımlaman gerekir. Küçük bir sınıf veriye şekil verir; parayı tam kuruş olarak tutmak da 0.1 + 0.2'nin 0.3 etmediği klasik hatayı önler. Hatalı girdi çökme değil, anlaşılır bir mesaj olmalı; bu yüzden kendi exception'ını da öğrenirsin."
+    learn:
+      en: |
+        - `@dataclass` writes `__init__`, `__repr__` and `__eq__` for you; `frozen=True` makes objects read-only
+        - Why money is stored as an integer number of cents, and what `Decimal` is for
+        - `try` / `except` and your own error class (`TallyError`)
+        - A list comprehension or generator with `sum(...)` adds up values
+        - Type hints (`str`, `int`, `date`) document the code; Python does not enforce them
+      tr: |
+        - `@dataclass` senin için `__init__`, `__repr__` ve `__eq__` yazar; `frozen=True` nesneleri salt okunur yapar
+        - Paranın neden tam sayı kuruş olarak tutulduğu ve `Decimal`'in ne işe yaradığı
+        - `try` / `except` ve kendi hata sınıfın (`TallyError`)
+        - `sum(...)` ile bir liste ya da generator içindeki değerleri toplamak
+        - Tip ipuçları (`str`, `int`, `date`) kodu belgeler; Python bunları zorlamaz
+    do:
+      en: |
+        1. Create the file `src/tally/models.py` with the code below.
+        2. Create `try_it.py` in the project folder (next to `pyproject.toml`) with the second code block. It is only a scratch file to play with.
+        3. Run it with `uv run python try_it.py`. You should see `0.30000000000000004` (the float problem), the cents `450 450 1200`, an `Expense(...)` line, `16.50` and `error: not a number: 'abc'`.
+        4. Change the amounts in `try_it.py` and run it again. Try `parse_amount("1.234")` and `parse_amount("-5")` and read the messages.
+        5. Delete `try_it.py` when you are done and commit: `git add .` then `git commit -m "Add the expense model"`.
+      tr: |
+        1. `src/tally/models.py` dosyasını aşağıdaki kodla oluştur.
+        2. Proje klasöründe (`pyproject.toml`'un yanında) ikinci kod bloğuyla `try_it.py` oluştur. Sadece denemeler için bir karalama dosyası.
+        3. `uv run python try_it.py` ile çalıştır. `0.30000000000000004` (float sorunu), `450 450 1200` kuruşları, bir `Expense(...)` satırı, `16.50` ve `error: not a number: 'abc'` görmelisin.
+        4. `try_it.py` içindeki tutarları değiştirip tekrar çalıştır. `parse_amount("1.234")` ve `parse_amount("-5")` dene, mesajları oku.
+        5. İşin bitince `try_it.py`'yi sil ve commit et: `git add .` sonra `git commit -m "Add the expense model"`.
+    code:
+      - file: src/tally/models.py
+        lang: python
+        text: |
+          from dataclasses import dataclass
+          from datetime import date
+          from decimal import Decimal, InvalidOperation
+
+
+          class TallyError(Exception):
+              """An error with a message that is safe to show to the user."""
+
+
+          @dataclass(frozen=True)
+          class Expense:
+              day: date
+              cents: int
+              category: str
+              note: str = ""
+              id: int = 0
+
+
+          def parse_amount(text: str) -> int:
+              """Turn "4.50" into 450 cents. Money is kept in whole cents, never in floats."""
+              try:
+                  value = Decimal(text.strip().replace(",", "."))
+              except InvalidOperation:
+                  raise TallyError(f"not a number: {text!r}") from None
+              if not value.is_finite() or value <= 0:
+                  raise TallyError("the amount must be more than zero")
+              if value > 1_000_000:
+                  raise TallyError("the amount is too large")
+              cents = value * 100
+              if cents != cents.to_integral_value():
+                  raise TallyError("use at most two decimals")
+              return int(cents)
+
+
+          def format_cents(cents: int) -> str:
+              return f"{cents // 100}.{cents % 100:02d}"
+      - file: try_it.py
+        lang: python
+        text: |
+          from datetime import date
+
+          from tally.models import Expense, TallyError, format_cents, parse_amount
+
+          print(0.1 + 0.2)
+          print(parse_amount("4.50"), parse_amount("4,5"), parse_amount("12"))
+
+          expenses = [
+              Expense(date(2026, 10, 17), parse_amount("4.50"), "coffee"),
+              Expense(date(2026, 10, 17), parse_amount("12"), "food", "lunch"),
+          ]
+          print(expenses[0])
+          print(format_cents(sum(e.cents for e in expenses)))
+
+          try:
+              parse_amount("abc")
+          except TallyError as err:
+              print("error:", err)
+      - file: terminal
+        lang: sh
+        text: |
+          uv run python try_it.py
+    mistakes:
+      - problem:
+          en: "Storing money as a float (4.5 * 3 looks fine, but 0.1 + 0.2 is 0.30000000000000004)."
+          tr: "Parayı float olarak tutmak (4.5 * 3 iyi görünür ama 0.1 + 0.2 sonucu 0.30000000000000004 çıkar)."
+        fix:
+          en: "Keep whole cents in an `int` and only format them as 4.50 when you print. Parse user text with `Decimal`, not `float`."
+          tr: "Tam kuruşu bir `int` içinde tut ve sadece yazdırırken 4.50 biçimine çevir. Kullanıcının yazdığı metni `float` ile değil `Decimal` ile çöz."
+      - problem:
+          en: "\"ModuleNotFoundError: No module named 'tally'\" when you run python try_it.py."
+          tr: "python try_it.py çalıştırınca \"ModuleNotFoundError: No module named 'tally'\" hatası."
+        fix:
+          en: "Plain `python` does not know your project's environment. Start it with `uv run python try_it.py`."
+          tr: "Düz `python` projenin ortamını bilmez. `uv run python try_it.py` ile başlat."
+    quiz:
+      - q:
+          en: "Why does tally keep an amount of 4.50 as the integer 450?"
+          tr: "Tally neden 4.50 tutarını 450 tam sayısı olarak tutar?"
+        options:
+          en: [Integers use less memory, Floats cannot store every decimal exactly so sums can drift, Python cannot print decimals]
+          tr: [Tam sayılar daha az bellek kullanır, Float her ondalığı tam saklayamaz ve toplamlar kayabilir, Python ondalık yazdıramaz]
+        answer: 1
+        why:
+          en: "Floats are binary approximations (0.1 + 0.2 is not exactly 0.3). Whole cents add up exactly."
+          tr: "Float'lar ikilik yaklaşık değerlerdir (0.1 + 0.2 tam olarak 0.3 değildir). Tam kuruşlar kesin toplanır."
+    sources:
+      - title: "dataclasses: Data Classes"
+        url: https://docs.python.org/3/library/dataclasses.html
+      - title: "decimal: Decimal fixed-point and floating-point arithmetic"
+        url: https://docs.python.org/3/library/decimal.html
+      - title: "Python tutorial: user-defined exceptions"
+        url: https://docs.python.org/3/tutorial/errors.html#user-defined-exceptions
+
+  - id: json-cli
+    stage: first-project
+    title:
+      en: "A command-line tool that saves to a JSON file"
+      tr: "JSON dosyasına kaydeden bir komut satırı aracı"
+    minutes: 75
+    needs: [money]
+    why:
+      en: "A program that forgets everything when it stops is only a toy. A JSON file is the simplest place to keep data, and a command line (`tally add 4.50 coffee`) is the simplest user interface: no screens, just text in and text out. Together they make tally a real tool you can use today."
+      tr: "Durduğunda her şeyi unutan bir program oyuncaktan öte değildir. JSON dosyası veriyi tutmanın en basit yeridir, komut satırı da (`tally add 4.50 coffee`) en basit arayüzdür: ekran yok, sadece metin girer, metin çıkar. İkisi birlikte tally'yi bugün kullanabileceğin gerçek bir araç yapar."
+    learn:
+      en: |
+        - `json.load` and `json.dump`, and why `ensure_ascii=False` keeps letters like ş and İ readable
+        - `pathlib.Path`: build paths with `/`, check `exists()`, create folders with `mkdir(parents=True, exist_ok=True)`
+        - Writing a file safely: write to a temporary file, then `replace` the real one, so a crash cannot leave half a file
+        - `argparse` with sub-commands (`add`, `list`, `total`), and why `main()` returns an exit code (0 means success)
+      tr: |
+        - `json.load` ve `json.dump`; `ensure_ascii=False` ş ve İ gibi harflerin okunur kalmasını neden sağlar
+        - `pathlib.Path`: `/` ile yol birleştirme, `exists()` kontrolü, `mkdir(parents=True, exist_ok=True)` ile klasör oluşturma
+        - Bir dosyayı güvenli yazmak: önce geçici dosyaya yaz, sonra gerçeğinin yerine `replace` et; böylece çökme yarım dosya bırakamaz
+        - Alt komutlu `argparse` (`add`, `list`, `total`) ve `main()` neden bir çıkış kodu döndürür (0 başarı demek)
+    do:
+      en: |
+        1. Create `src/tally/jsonstore.py` with the first code block. It reads and writes one JSON file.
+        2. Create `src/tally/cli.py` with the second block. `build_parser` describes the commands, `run` does the work and `main` ties them together.
+        3. Replace `src/tally/__init__.py` with the third block, and create `src/tally/__main__.py` with the fourth. The last one lets you also start the tool with `python -m tally`.
+        4. Try it. Use `--data demo.json` so your experiments go into a throw-away file: run the commands in the terminal block and open `demo.json` to see the data.
+        5. Run `uv run tally --help` and `uv run tally add --help` to see the help text argparse wrote for you.
+        6. Commit: `git add .` then `git commit -m "Save expenses to a JSON file"`.
+      tr: |
+        1. İlk kod bloğuyla `src/tally/jsonstore.py` dosyasını oluştur. Tek bir JSON dosyasını okur ve yazar.
+        2. İkinci blokla `src/tally/cli.py` dosyasını oluştur. `build_parser` komutları tanımlar, `run` işi yapar, `main` ikisini birbirine bağlar.
+        3. `src/tally/__init__.py` dosyasını üçüncü blokla değiştir, dördüncü blokla da `src/tally/__main__.py` oluştur. Sonuncusu aracı `python -m tally` ile de başlatmanı sağlar.
+        4. Dene. Denemelerin atılabilir bir dosyaya gitsin diye `--data demo.json` kullan: terminal bloğundaki komutları çalıştır ve verinin nasıl göründüğünü görmek için `demo.json` dosyasını aç.
+        5. argparse'ın senin için yazdığı yardım metnini görmek için `uv run tally --help` ve `uv run tally add --help` çalıştır.
+        6. Commit et: `git add .` sonra `git commit -m "Save expenses to a JSON file"`.
+    code:
+      - file: src/tally/jsonstore.py
+        lang: python
+        text: |
+          import json
+          from datetime import date
+          from pathlib import Path
+
+          from .models import Expense
+
+
+          class JsonStore:
+              """Keeps everything in one JSON file. Simple, but it rewrites the whole file on every change."""
+
+              def __init__(self, path: Path):
+                  self.path = path
+
+              def _load(self) -> dict:
+                  if not self.path.exists():
+                      return {"expenses": [], "checkins": []}
+                  with self.path.open(encoding="utf-8") as f:
+                      return json.load(f)
+
+              def _save(self, data: dict) -> None:
+                  self.path.parent.mkdir(parents=True, exist_ok=True)
+                  tmp = self.path.with_name(self.path.name + ".tmp")
+                  with tmp.open("w", encoding="utf-8") as f:
+                      json.dump(data, f, ensure_ascii=False, indent=2)
+                  tmp.replace(self.path)  # swap in the finished file in one step
+
+              def add_expense(self, day: date, cents: int, category: str, note: str = "") -> Expense:
+                  data = self._load()
+                  new_id = max((e["id"] for e in data["expenses"]), default=0) + 1
+                  data["expenses"].append(
+                      {"id": new_id, "day": day.isoformat(), "cents": cents, "category": category, "note": note}
+                  )
+                  self._save(data)
+                  return Expense(day, cents, category, note, new_id)
+
+              def list_expenses(self, category: str | None = None, limit: int | None = None) -> list[Expense]:
+                  rows = [
+                      Expense(date.fromisoformat(e["day"]), e["cents"], e["category"], e["note"], e["id"])
+                      for e in self._load()["expenses"]
+                      if category is None or e["category"] == category
+                  ]
+                  rows.sort(key=lambda e: (e.day, e.id), reverse=True)  # newest first
+                  return rows[:limit]
+
+              def totals_by_category(self) -> dict[str, int]:
+                  totals: dict[str, int] = {}
+                  for e in self.list_expenses():
+                      totals[e.category] = totals.get(e.category, 0) + e.cents
+                  return totals
+      - file: src/tally/cli.py
+        lang: python
+        text: |
+          import argparse
+          import os
+          import sys
+          from datetime import date
+          from pathlib import Path
+
+          from .jsonstore import JsonStore
+          from .models import TallyError, format_cents, parse_amount
+
+
+          def default_path() -> Path:
+              return Path(os.environ.get("TALLY_DATA", Path.home() / ".tally" / "data.json"))
+
+
+          def build_parser() -> argparse.ArgumentParser:
+              parser = argparse.ArgumentParser(prog="tally", description="Track your expenses and habits.")
+              parser.add_argument("--data", type=Path, help="data file (default: ~/.tally/data.json)")
+              sub = parser.add_subparsers(dest="command", required=True)
+
+              add = sub.add_parser("add", help="record an expense")
+              add.add_argument("amount", help="for example 4.50")
+              add.add_argument("category", help="for example coffee")
+              add.add_argument("note", nargs="?", default="")
+              add.add_argument("--date", type=date.fromisoformat, help="YYYY-MM-DD (default: today)")
+
+              ls = sub.add_parser("list", help="show expenses, newest first")
+              ls.add_argument("--category")
+
+              sub.add_parser("total", help="show the total for each category")
+              return parser
+
+
+          def run(args: argparse.Namespace, store: JsonStore, today: date) -> None:
+              if args.command == "add":
+                  e = store.add_expense(args.date or today, parse_amount(args.amount), args.category, args.note)
+                  print(f"added #{e.id}: {format_cents(e.cents)} {e.category}")
+              elif args.command == "list":
+                  for e in store.list_expenses(args.category):
+                      print(f"{e.id:>3}  {e.day}  {format_cents(e.cents):>9}  {e.category:<12} {e.note}")
+              elif args.command == "total":
+                  totals = store.totals_by_category()
+                  for category, cents in sorted(totals.items()):
+                      print(f"{category:<12} {format_cents(cents):>9}")
+                  print(f"{'all':<12} {format_cents(sum(totals.values())):>9}")
+
+
+          def main(argv: list[str] | None = None) -> int:
+              args = build_parser().parse_args(argv)
+              try:
+                  run(args, JsonStore(args.data or default_path()), date.today())
+              except TallyError as err:
+                  print(f"error: {err}", file=sys.stderr)
+                  return 1
+              return 0
+      - file: src/tally/__init__.py
+        lang: python
+        text: |
+          from .cli import main
+
+          __all__ = ["main"]
+      - file: src/tally/__main__.py
+        lang: python
+        text: |
+          import sys
+
+          from . import main
+
+          sys.exit(main())
+      - file: terminal
+        lang: sh
+        text: |
+          uv run tally --data demo.json add 4.50 coffee "flat white"
+          uv run tally --data demo.json add 12 food lunch --date 2026-10-16
+          uv run tally --data demo.json add 3,20 coffee
+          uv run tally --data demo.json list
+          uv run tally --data demo.json total
+          uv run tally --data demo.json add abc coffee
+    mistakes:
+      - problem:
+          en: "Opening the data file without `encoding=\"utf-8\"`, so Turkish letters turn into garbage on some systems."
+          tr: "Veri dosyasını `encoding=\"utf-8\"` olmadan açmak; bazı sistemlerde Türkçe harfler bozulur."
+        fix:
+          en: "Always pass `encoding=\"utf-8\"` to `open()` and `Path.open()`. Python 3.15 made UTF-8 the default, but older versions still guess from the system, and being explicit costs nothing."
+          tr: "`open()` ve `Path.open()` çağrılarına her zaman `encoding=\"utf-8\"` ver. Python 3.15 UTF-8'i varsayılan yaptı ama eski sürümler hâlâ sisteme göre tahmin eder; açıkça yazmanın maliyeti yok."
+      - problem:
+          en: "Writing straight into data.json and losing everything when the program stops in the middle of the write."
+          tr: "Doğrudan data.json'a yazıp yazma ortasında program durunca her şeyi kaybetmek."
+        fix:
+          en: "Write to `data.json.tmp` and then call `tmp.replace(path)`, as `_save` does. The swap is one step, so the file is always either the old or the new one."
+          tr: "`_save` gibi önce `data.json.tmp` dosyasına yaz, sonra `tmp.replace(path)` çağır. Değiştirme tek adımdır; dosya her zaman ya eskidir ya yenidir."
+    quiz:
+      - q:
+          en: "Why does main() return 0 or 1 instead of printing 'ok' or 'failed'?"
+          tr: "main() neden 'ok' ya da 'failed' yazdırmak yerine 0 veya 1 döndürür?"
+        options:
+          en: [Python requires it, Other programs and scripts read the exit code to know if the command worked, It makes the program faster]
+          tr: [Python bunu zorunlu tutar, Başka programlar ve script'ler komutun çalışıp çalışmadığını çıkış kodundan anlar, Programı hızlandırır]
+        answer: 1
+        why:
+          en: "Exit code 0 means success and anything else means failure. Shells, CI and scripts depend on it."
+          tr: "Çıkış kodu 0 başarı, diğerleri hata demektir. Shell'ler, CI ve script'ler buna güvenir."
+    sources:
+      - title: "argparse: sub-commands"
+        url: https://docs.python.org/3/library/argparse.html#sub-commands
+      - title: "json: JSON encoder and decoder"
+        url: https://docs.python.org/3/library/json.html
+      - title: "pathlib: object-oriented filesystem paths"
+        url: https://docs.python.org/3/library/pathlib.html
+
+  - id: habits
+    stage: first-project
+    title:
+      en: "Add habits and streaks"
+      tr: "Alışkanlıklar ve seri (streak) ekleme"
+    minutes: 45
+    needs: [json-cli]
+    why:
+      en: "Tally tracks habits as well as money. Habits add a second kind of data and a bit of real logic: counting the days in a row. It also shows you how to keep logic in a small function with no file or database in it, which makes it easy to test later."
+      tr: "Tally paranın yanında alışkanlıkları da takip eder. Alışkanlıklar ikinci bir veri türü ve biraz gerçek mantık getirir: üst üste gelen günleri saymak. Ayrıca mantığı dosya ya da veritabanı olmayan küçük bir fonksiyonda tutmayı gösterir; bu da sonra test etmeyi kolaylaştırır."
+    learn:
+      en: |
+        - `datetime.date` and `timedelta`: today, yesterday, one day earlier
+        - A `set` keeps unique values, and `in` on a set is fast
+        - A `while` loop that counts until a condition fails
+        - A pure function (same input, same output, no side effects) is easy to test
+      tr: |
+        - `datetime.date` ve `timedelta`: bugün, dün, bir gün önce
+        - `set` benzersiz değerleri tutar ve set üzerinde `in` hızlıdır
+        - Bir koşul bozulana kadar sayan `while` döngüsü
+        - Saf fonksiyon (aynı girdi, aynı çıktı, yan etki yok) test etmesi kolaydır
+    do:
+      en: |
+        1. Create `src/tally/habits.py` with the first block. A streak is the number of days in a row that end today. If you have not checked in yet today, the streak still counts up to yesterday, because the day is not over.
+        2. Open `src/tally/jsonstore.py` and paste the second block at the bottom of the file, inside the `JsonStore` class (keep the four spaces of indentation). It adds `check_in` and `habit_days`.
+        3. Replace `src/tally/cli.py` with the third block. It adds the commands `done` and `streaks`.
+        4. Try the commands in the terminal block, then run `uv run tally --data demo.json done run` a second time. It should say "already done today".
+        5. Commit: `git add .` then `git commit -m "Add habits and streaks"`.
+      tr: |
+        1. İlk blokla `src/tally/habits.py` dosyasını oluştur. Seri, bugün biten üst üste gün sayısıdır. Bugün henüz check-in yapmadıysan seri yine de dünü sayar, çünkü gün bitmedi.
+        2. `src/tally/jsonstore.py` dosyasını aç ve ikinci bloğu dosyanın sonuna, `JsonStore` sınıfının içine yapıştır (dört boşluk girintiyi koru). `check_in` ve `habit_days` ekler.
+        3. `src/tally/cli.py` dosyasını üçüncü blokla değiştir. `done` ve `streaks` komutlarını ekler.
+        4. Terminal bloğundaki komutları dene, sonra `uv run tally --data demo.json done run` komutunu ikinci kez çalıştır. "already done today" demeli.
+        5. Commit et: `git add .` sonra `git commit -m "Add habits and streaks"`.
+    code:
+      - file: src/tally/habits.py
+        lang: python
+        text: |
+          from datetime import date, timedelta
+
+
+          def current_streak(days: set[date], today: date) -> int:
+              """Count the days in a row up to today. If today is not checked yet, count up to yesterday."""
+              day = today if today in days else today - timedelta(days=1)
+              streak = 0
+              while day in days:
+                  streak += 1
+                  day -= timedelta(days=1)
+              return streak
+      - file: src/tally/jsonstore.py
+        lang: python
+        text: |
+              def check_in(self, habit: str, day: date) -> bool:
+                  """Mark a habit done on a day. Returns False if it was already marked."""
+                  data = self._load()
+                  entry = {"habit": habit, "day": day.isoformat()}
+                  if entry in data["checkins"]:
+                      return False
+                  data["checkins"].append(entry)
+                  self._save(data)
+                  return True
+
+              def habit_days(self) -> dict[str, set[date]]:
+                  habits: dict[str, set[date]] = {}
+                  for c in self._load()["checkins"]:
+                      habits.setdefault(c["habit"], set()).add(date.fromisoformat(c["day"]))
+                  return habits
+      - file: src/tally/cli.py
+        lang: python
+        text: |
+          import argparse
+          import os
+          import sys
+          from datetime import date
+          from pathlib import Path
+
+          from .habits import current_streak
+          from .jsonstore import JsonStore
+          from .models import TallyError, format_cents, parse_amount
+
+
+          def default_path() -> Path:
+              return Path(os.environ.get("TALLY_DATA", Path.home() / ".tally" / "data.json"))
+
+
+          def build_parser() -> argparse.ArgumentParser:
+              parser = argparse.ArgumentParser(prog="tally", description="Track your expenses and habits.")
+              parser.add_argument("--data", type=Path, help="data file (default: ~/.tally/data.json)")
+              sub = parser.add_subparsers(dest="command", required=True)
+
+              add = sub.add_parser("add", help="record an expense")
+              add.add_argument("amount", help="for example 4.50")
+              add.add_argument("category", help="for example coffee")
+              add.add_argument("note", nargs="?", default="")
+              add.add_argument("--date", type=date.fromisoformat, help="YYYY-MM-DD (default: today)")
+
+              ls = sub.add_parser("list", help="show expenses, newest first")
+              ls.add_argument("--category")
+
+              sub.add_parser("total", help="show the total for each category")
+
+              done = sub.add_parser("done", help="check in a habit for today")
+              done.add_argument("habit")
+
+              sub.add_parser("streaks", help="show your habit streaks")
+              return parser
+
+
+          def run(args: argparse.Namespace, store: JsonStore, today: date) -> None:
+              if args.command == "add":
+                  e = store.add_expense(args.date or today, parse_amount(args.amount), args.category, args.note)
+                  print(f"added #{e.id}: {format_cents(e.cents)} {e.category}")
+              elif args.command == "list":
+                  for e in store.list_expenses(args.category):
+                      print(f"{e.id:>3}  {e.day}  {format_cents(e.cents):>9}  {e.category:<12} {e.note}")
+              elif args.command == "total":
+                  totals = store.totals_by_category()
+                  for category, cents in sorted(totals.items()):
+                      print(f"{category:<12} {format_cents(cents):>9}")
+                  print(f"{'all':<12} {format_cents(sum(totals.values())):>9}")
+              elif args.command == "done":
+                  if store.check_in(args.habit, today):
+                      print(f"{args.habit}: done for {today}")
+                  else:
+                      print(f"{args.habit}: already done today")
+              elif args.command == "streaks":
+                  for habit, days in sorted(store.habit_days().items()):
+                      print(f"{habit:<12} {current_streak(days, today)} day(s)")
+
+
+          def main(argv: list[str] | None = None) -> int:
+              args = build_parser().parse_args(argv)
+              try:
+                  run(args, JsonStore(args.data or default_path()), date.today())
+              except TallyError as err:
+                  print(f"error: {err}", file=sys.stderr)
+                  return 1
+              return 0
+      - file: terminal
+        lang: sh
+        text: |
+          uv run tally --data demo.json done run
+          uv run tally --data demo.json done run
+          uv run tally --data demo.json done read
+          uv run tally --data demo.json streaks
+    mistakes:
+      - problem:
+          en: "Pasting the new methods outside the class, so you get \"AttributeError: 'JsonStore' object has no attribute 'check_in'\"."
+          tr: "Yeni metotları sınıfın dışına yapıştırmak; \"AttributeError: 'JsonStore' object has no attribute 'check_in'\" hatası alırsın."
+        fix:
+          en: "Methods must be indented four spaces, directly under the other `def` lines of the class. Check that `def check_in` lines up with `def habit_days`."
+          tr: "Metotlar dört boşluk girintili olmalı ve sınıfın diğer `def` satırlarının hemen altında durmalı. `def check_in` satırının `def habit_days` ile hizalı olduğunu kontrol et."
+      - problem:
+          en: "Using `datetime.now()` to get today's date and comparing it with a date."
+          tr: "Bugünün tarihini `datetime.now()` ile alıp bir `date` ile karşılaştırmak."
+        fix:
+          en: "A `datetime` has a time of day and never equals a `date`. Use `date.today()` for days, as tally does."
+          tr: "`datetime` bir gün saatine sahiptir ve hiçbir zaman bir `date`'e eşit olmaz. Günler için tally gibi `date.today()` kullan."
+    quiz:
+      - q:
+          en: "Why is current_streak a separate function that takes the days and today as arguments?"
+          tr: "current_streak neden günleri ve bugünü argüman olarak alan ayrı bir fonksiyon?"
+        options:
+          en: [Python forbids logic inside classes, It can be tested without any file or real clock, It runs faster that way]
+          tr: [Python sınıf içinde mantığı yasaklar, Dosya ya da gerçek saat olmadan test edilebilir, Bu şekilde daha hızlı çalışır]
+        answer: 1
+        why:
+          en: "Passing `today` in means a test can choose any date. A function that reads the clock itself is hard to test."
+          tr: "`today`'i dışarıdan vermek, testin istediği tarihi seçmesini sağlar. Saati kendisi okuyan fonksiyonu test etmek zordur."
+    sources:
+      - title: "datetime: date and timedelta objects"
+        url: https://docs.python.org/3/library/datetime.html#timedelta-objects
+      - title: "Python tutorial: sets"
+        url: https://docs.python.org/3/tutorial/datastructures.html#sets
+
+  - id: sqlite
+    stage: data-api
+    title:
+      en: "Move the data to SQLite"
+      tr: "Veriyi SQLite'a taşıma"
+    minutes: 70
+    needs: [habits]
+    why:
+      en: "A JSON file is rewritten completely on every change, and two programs writing at the same time can damage it. SQLite is a real database that lives in one file, ships inside Python (the `sqlite3` module) and handles saving safely, searching and adding up for you. You will use SQL, the language almost every database speaks."
+      tr: "JSON dosyası her değişiklikte baştan yazılır ve aynı anda yazan iki program onu bozabilir. SQLite tek bir dosyada yaşayan gerçek bir veritabanıdır, Python'un içinde gelir (`sqlite3` modülü) ve güvenli kaydetmeyi, aramayı, toplamayı senin yerine yapar. Hemen hemen her veritabanının konuştuğu dil olan SQL'i kullanacaksın."
+    learn:
+      en: |
+        - Tables, columns and rows; `CREATE TABLE`, `INSERT`, `SELECT ... WHERE ... ORDER BY ... LIMIT`, `GROUP BY` with `SUM`
+        - Constraints (`NOT NULL`, `CHECK`, `PRIMARY KEY`) make the database refuse bad data
+        - **Placeholders** (`?`) pass values separately from the SQL text, which stops SQL injection
+        - `with connection:` commits a transaction when the block ends and rolls back on an error
+        - A class with `__enter__` and `__exit__` works in a `with` block, so the connection is always closed
+      tr: |
+        - Tablo, sütun ve satır; `CREATE TABLE`, `INSERT`, `SELECT ... WHERE ... ORDER BY ... LIMIT`, `SUM` ile `GROUP BY`
+        - Kısıtlar (`NOT NULL`, `CHECK`, `PRIMARY KEY`) veritabanının hatalı veriyi reddetmesini sağlar
+        - **Placeholder**'lar (`?`) değerleri SQL metninden ayrı gönderir ve SQL injection'ı engeller
+        - `with connection:` blok bitince bir transaction'ı commit eder, hata olursa geri alır (rollback)
+        - `__enter__` ve `__exit__` olan bir sınıf `with` bloğunda çalışır; böylece bağlantı hep kapanır
+    do:
+      en: |
+        1. Create `src/tally/sqlstore.py` with the first block. It has the same methods as `JsonStore`, so the rest of the program does not care which one it talks to.
+        2. Replace `src/tally/cli.py` with the second block. It now opens the SQLite store, and it has a new command, `import-json`, that copies an old JSON file into the database.
+        3. Move the data you made earlier: run the commands in the terminal block. The database is created at `.tally/tally.db` in your home folder.
+        4. Add an expense that looks like an attack, as the last command does. It is saved as plain text and nothing is deleted. This is what placeholders are for.
+        5. Commit: `git add .` then `git commit -m "Move the data to SQLite"`.
+      tr: |
+        1. İlk blokla `src/tally/sqlstore.py` dosyasını oluştur. `JsonStore` ile aynı metotlara sahip; yani programın geri kalanı hangisiyle konuştuğunu umursamaz.
+        2. `src/tally/cli.py` dosyasını ikinci blokla değiştir. Artık SQLite deposunu açıyor ve yeni bir komutu var: `import-json`, eski bir JSON dosyasını veritabanına kopyalar.
+        3. Daha önce oluşturduğun veriyi taşı: terminal bloğundaki komutları çalıştır. Veritabanı ev klasöründeki `.tally/tally.db` yerinde oluşur.
+        4. Son komuttaki gibi saldırıya benzeyen bir harcama ekle. Düz metin olarak kaydedilir ve hiçbir şey silinmez. Placeholder'lar bunun için var.
+        5. Commit et: `git add .` sonra `git commit -m "Move the data to SQLite"`.
+    code:
+      - file: src/tally/sqlstore.py
+        lang: python
+        text: |
+          import os
+          import sqlite3
+          from datetime import date
+          from pathlib import Path
+
+          from .models import Expense
+
+          SCHEMA = """
+          CREATE TABLE IF NOT EXISTS expenses (
+              id INTEGER PRIMARY KEY,
+              day TEXT NOT NULL,
+              cents INTEGER NOT NULL CHECK (cents > 0),
+              category TEXT NOT NULL,
+              note TEXT NOT NULL DEFAULT ''
+          );
+          CREATE TABLE IF NOT EXISTS checkins (
+              habit TEXT NOT NULL,
+              day TEXT NOT NULL,
+              PRIMARY KEY (habit, day)
+          );
+          """
+
+
+          def default_db_path() -> Path:
+              return Path(os.environ.get("TALLY_DB", Path.home() / ".tally" / "tally.db"))
+
+
+          class SqliteStore:
+              """The same methods as JsonStore, but the data lives in a SQLite database file."""
+
+              def __init__(self, path: Path | str):
+                  if str(path) != ":memory:":
+                      Path(path).parent.mkdir(parents=True, exist_ok=True)
+                  self.db = sqlite3.connect(path)
+                  self.db.row_factory = sqlite3.Row
+                  self.db.executescript(SCHEMA)
+
+              def close(self) -> None:
+                  self.db.close()
+
+              def __enter__(self) -> "SqliteStore":
+                  return self
+
+              def __exit__(self, *exc_info) -> None:
+                  self.close()
+
+              def add_expense(self, day: date, cents: int, category: str, note: str = "") -> Expense:
+                  with self.db:  # commits when the block ends, rolls back on an error
+                      cur = self.db.execute(
+                          "INSERT INTO expenses (day, cents, category, note) VALUES (?, ?, ?, ?)",
+                          (day.isoformat(), cents, category, note),
+                      )
+                  return Expense(day, cents, category, note, cur.lastrowid)
+
+              def list_expenses(self, category: str | None = None, limit: int | None = None) -> list[Expense]:
+                  sql = "SELECT id, day, cents, category, note FROM expenses"
+                  params: list = []
+                  if category is not None:
+                      sql += " WHERE category = ?"
+                      params.append(category)
+                  sql += " ORDER BY day DESC, id DESC"
+                  if limit is not None:
+                      sql += " LIMIT ?"
+                      params.append(limit)
+                  rows = self.db.execute(sql, params).fetchall()
+                  return [Expense(date.fromisoformat(r["day"]), r["cents"], r["category"], r["note"], r["id"]) for r in rows]
+
+              def totals_by_category(self) -> dict[str, int]:
+                  rows = self.db.execute("SELECT category, SUM(cents) AS cents FROM expenses GROUP BY category")
+                  return {r["category"]: r["cents"] for r in rows}
+
+              def check_in(self, habit: str, day: date) -> bool:
+                  with self.db:
+                      cur = self.db.execute(
+                          "INSERT OR IGNORE INTO checkins (habit, day) VALUES (?, ?)", (habit, day.isoformat())
+                      )
+                  return cur.rowcount == 1
+
+              def habit_days(self) -> dict[str, set[date]]:
+                  habits: dict[str, set[date]] = {}
+                  for r in self.db.execute("SELECT habit, day FROM checkins"):
+                      habits.setdefault(r["habit"], set()).add(date.fromisoformat(r["day"]))
+                  return habits
+      - file: src/tally/cli.py
+        lang: python
+        text: |
+          import argparse
+          import sys
+          from datetime import date
+          from pathlib import Path
+
+          from .habits import current_streak
+          from .jsonstore import JsonStore
+          from .models import TallyError, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+
+
+          def db_path(option: Path | None) -> Path:
+              return option or default_db_path()
+
+
+          def build_parser() -> argparse.ArgumentParser:
+              parser = argparse.ArgumentParser(prog="tally", description="Track your expenses and habits.")
+              parser.add_argument("--db", type=Path, help="database file (default: ~/.tally/tally.db)")
+              sub = parser.add_subparsers(dest="command", required=True)
+
+              add = sub.add_parser("add", help="record an expense")
+              add.add_argument("amount", help="for example 4.50")
+              add.add_argument("category", help="for example coffee")
+              add.add_argument("note", nargs="?", default="")
+              add.add_argument("--date", type=date.fromisoformat, help="YYYY-MM-DD (default: today)")
+
+              ls = sub.add_parser("list", help="show expenses, newest first")
+              ls.add_argument("--category")
+
+              sub.add_parser("total", help="show the total for each category")
+
+              done = sub.add_parser("done", help="check in a habit for today")
+              done.add_argument("habit")
+
+              sub.add_parser("streaks", help="show your habit streaks")
+
+              imp = sub.add_parser("import-json", help="copy the data of an old JSON file into the database")
+              imp.add_argument("file", type=Path)
+              return parser
+
+
+          def run(args: argparse.Namespace, store: SqliteStore, today: date) -> None:
+              if args.command == "add":
+                  e = store.add_expense(args.date or today, parse_amount(args.amount), args.category, args.note)
+                  print(f"added #{e.id}: {format_cents(e.cents)} {e.category}")
+              elif args.command == "list":
+                  for e in store.list_expenses(args.category):
+                      print(f"{e.id:>3}  {e.day}  {format_cents(e.cents):>9}  {e.category:<12} {e.note}")
+              elif args.command == "total":
+                  totals = store.totals_by_category()
+                  for category, cents in sorted(totals.items()):
+                      print(f"{category:<12} {format_cents(cents):>9}")
+                  print(f"{'all':<12} {format_cents(sum(totals.values())):>9}")
+              elif args.command == "done":
+                  if store.check_in(args.habit, today):
+                      print(f"{args.habit}: done for {today}")
+                  else:
+                      print(f"{args.habit}: already done today")
+              elif args.command == "streaks":
+                  for habit, days in sorted(store.habit_days().items()):
+                      print(f"{habit:<12} {current_streak(days, today)} day(s)")
+              elif args.command == "import-json":
+                  old = JsonStore(args.file)
+                  for e in reversed(old.list_expenses()):  # oldest first
+                      store.add_expense(e.day, e.cents, e.category, e.note)
+                  for habit, days in old.habit_days().items():
+                      for day in sorted(days):
+                          store.check_in(habit, day)
+                  print(f"imported from {args.file}")
+
+
+          def main(argv: list[str] | None = None) -> int:
+              args = build_parser().parse_args(argv)
+              try:
+                  with SqliteStore(db_path(args.db)) as store:
+                      run(args, store, date.today())
+              except TallyError as err:
+                  print(f"error: {err}", file=sys.stderr)
+                  return 1
+              return 0
+      - file: terminal
+        lang: sh
+        text: |
+          uv run tally import-json demo.json
+          uv run tally list
+          uv run tally total
+          uv run tally streaks
+          uv run tally add 5 "x'; DROP TABLE expenses;--"
+          uv run tally list
+    mistakes:
+      - problem:
+          en: "Building SQL with an f-string: f\"... WHERE category = '{category}'\". Anyone can type text that changes the query (SQL injection)."
+          tr: "SQL'i f-string ile kurmak: f\"... WHERE category = '{category}'\". Herkes sorguyu değiştiren bir metin yazabilir (SQL injection)."
+        fix:
+          en: "Never put values into the SQL text. Write `?` in the SQL and pass the values as the second argument: `db.execute(\"... WHERE category = ?\", (category,))`."
+          tr: "Değerleri asla SQL metnine koyma. SQL'de `?` yaz ve değerleri ikinci argüman olarak ver: `db.execute(\"... WHERE category = ?\", (category,))`."
+      - problem:
+          en: "Running `import-json` twice, so every expense is in the database twice."
+          tr: "`import-json`'u iki kez çalıştırmak; her harcama veritabanına iki kez girer."
+        fix:
+          en: "Run it once. If you ran it twice, delete the database file (`~/.tally/tally.db`) and import again. A real tool would remember what it imported."
+          tr: "Bir kez çalıştır. İki kez çalıştırdıysan veritabanı dosyasını (`~/.tally/tally.db`) sil ve tekrar içe aktar. Gerçek bir araç neyi içe aktardığını hatırlardı."
+      - problem:
+          en: "\"sqlite3.OperationalError: database is locked\" or changes that never show up."
+          tr: "\"sqlite3.OperationalError: database is locked\" ya da hiç görünmeyen değişiklikler."
+        fix:
+          en: "Changes only become permanent after a commit. Wrap writes in `with self.db:` as the code does, and close connections when you are done."
+          tr: "Değişiklikler ancak commit'ten sonra kalıcı olur. Kodda olduğu gibi yazmaları `with self.db:` içine al ve işin bitince bağlantıları kapat."
+    quiz:
+      - q:
+          en: "What does the ? in \"WHERE category = ?\" protect you from?"
+          tr: "\"WHERE category = ?\" içindeki ? seni neyden korur?"
+        options:
+          en: [Slow queries, SQL injection, Running out of disk space]
+          tr: [Yavaş sorgulardan, SQL injection'dan, Disk dolmasından]
+        answer: 1
+        why:
+          en: "The database receives the SQL and the values separately, so a value can never be read as part of the SQL."
+          tr: "Veritabanı SQL'i ve değerleri ayrı alır; bu yüzden bir değer asla SQL'in parçası gibi okunamaz."
+    sources:
+      - title: "sqlite3: DB-API 2.0 interface for SQLite databases"
+        url: https://docs.python.org/3/library/sqlite3.html
+      - title: "sqlite3: using placeholders to bind values in SQL queries"
+        url: https://docs.python.org/3/library/sqlite3.html#sqlite3-placeholders
+      - title: "SQLite: SQL syntax"
+        url: https://www.sqlite.org/lang.html
+
+  - id: web
+    stage: data-api
+    title:
+      en: "A tiny web page and JSON API with Flask"
+      tr: "Flask ile minik bir web sayfası ve JSON API"
+    minutes: 70
+    needs: [sqlite]
+    why:
+      en: "A command line is only for you, on your computer. A web page and an API let other programs and people reach the same data over HTTP. Flask is a small framework that does exactly this and little else, so you can see every moving part."
+      tr: "Komut satırı sadece senin içindir ve senin bilgisayarında çalışır. Web sayfası ve API, başka programların ve insanların aynı veriye HTTP üzerinden ulaşmasını sağlar. Flask tam olarak bunu yapan ve fazlasını yapmayan küçük bir framework'tür; her parçayı görebilirsin."
+    learn:
+      en: |
+        - What HTTP is: a request (method, path, body) and a response (status code, body); `GET` reads, `POST` creates
+        - Status codes: `200` ok, `201` created, `400` your input is wrong, `404` not found
+        - A Flask route is a function with a decorator: `@app.get("/api/totals")`
+        - The **app factory** pattern: `create_app()` builds the app, so tests can build their own
+        - Optional dependencies: `tally` works without Flask, and `pip install "tally[web]"` adds it
+        - `render_template_string` escapes values, so `<script>` typed by a user shows as text
+      tr: |
+        - HTTP nedir: bir istek (method, path, body) ve bir yanıt (durum kodu, body); `GET` okur, `POST` oluşturur
+        - Durum kodları: `200` tamam, `201` oluşturuldu, `400` girdin yanlış, `404` bulunamadı
+        - Flask route'u bir decorator'lı fonksiyondur: `@app.get("/api/totals")`
+        - **App factory** kalıbı: `create_app()` uygulamayı kurar, böylece testler kendi uygulamasını kurabilir
+        - Opsiyonel bağımlılıklar: `tally` Flask olmadan çalışır, `pip install "tally[web]"` onu ekler
+        - `render_template_string` değerleri kaçışlar; kullanıcının yazdığı `<script>` metin olarak görünür
+    do:
+      en: |
+        1. Add Flask as an optional dependency with the first command below. It writes a `web = [...]` list under `[project.optional-dependencies]` in `pyproject.toml`.
+        2. Create `src/tally/web.py` with the code below. Read it from the top: the page template, `expense_json`, then `create_app` with its routes.
+        3. Start the server with the second command. Open http://127.0.0.1:5001 in the browser. You see the totals and the latest expenses from the same database the command line uses.
+        4. Open a second terminal (keep the server running in the first). Try the `curl` lines. On Windows use *Git Bash*, which comes with Git, for them. Look at the status codes: `-i` prints them.
+        5. Press Ctrl+C in the first terminal to stop the server.
+        6. Commit: `git add .` then `git commit -m "Add a tiny web page and API"`.
+      tr: |
+        1. Aşağıdaki ilk komutla Flask'ı opsiyonel bağımlılık olarak ekle. `pyproject.toml` içinde `[project.optional-dependencies]` altına bir `web = [...]` listesi yazar.
+        2. Aşağıdaki kodla `src/tally/web.py` dosyasını oluştur. Baştan oku: sayfa şablonu, `expense_json`, sonra route'larıyla `create_app`.
+        3. İkinci komutla sunucuyu başlat. Tarayıcıda http://127.0.0.1:5001 adresini aç. Komut satırının kullandığı veritabanındaki toplamları ve son harcamaları görürsün.
+        4. İkinci bir terminal aç (sunucu birincide çalışmaya devam etsin). `curl` satırlarını dene. Windows'ta bunlar için Git ile gelen *Git Bash*'i kullan. Durum kodlarına bak: `-i` onları yazdırır.
+        5. Sunucuyu durdurmak için birinci terminalde Ctrl+C'ye bas.
+        6. Commit et: `git add .` sonra `git commit -m "Add a tiny web page and API"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add --optional web "flask>=3.1"
+      - file: src/tally/web.py
+        lang: python
+        text: |
+          from datetime import date
+          from pathlib import Path
+
+          from flask import Flask, g, jsonify, render_template_string, request
+
+          from .models import Expense, TallyError, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+
+          PAGE = """<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Tally</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+              td, th { padding: 0.25rem 0.75rem; text-align: left; }
+            </style>
+          </head>
+          <body>
+            <h1>Tally</h1>
+            <h2>Totals</h2>
+            <table>
+              {% for category, amount in totals %}
+              <tr><td>{{ category }}</td><td>{{ amount }}</td></tr>
+              {% else %}
+              <tr><td>No expenses yet.</td></tr>
+              {% endfor %}
+            </table>
+            <h2>Latest</h2>
+            <table>
+              {% for e in latest %}
+              <tr><td>{{ e.date }}</td><td>{{ e.amount }}</td><td>{{ e.category }}</td><td>{{ e.note }}</td></tr>
+              {% endfor %}
+            </table>
+          </body>
+          </html>
+          """
+
+
+          def expense_json(e: Expense) -> dict:
+              return {
+                  "id": e.id,
+                  "date": e.day.isoformat(),
+                  "amount": format_cents(e.cents),
+                  "category": e.category,
+                  "note": e.note,
+              }
+
+
+          def create_app(db_path: Path | None = None) -> Flask:
+              app = Flask(__name__)
+              app.config["DB_PATH"] = db_path or default_db_path()
+
+              def store() -> SqliteStore:
+                  if "store" not in g:  # one connection per request
+                      g.store = SqliteStore(app.config["DB_PATH"])
+                  return g.store
+
+              @app.teardown_appcontext
+              def close_store(_error) -> None:
+                  s = g.pop("store", None)
+                  if s is not None:
+                      s.close()
+
+              @app.errorhandler(TallyError)
+              def bad_input(err: TallyError):
+                  return jsonify(error=str(err)), 400
+
+              @app.get("/")
+              def index():
+                  totals = [(c, format_cents(v)) for c, v in sorted(store().totals_by_category().items())]
+                  latest = [expense_json(e) for e in store().list_expenses(limit=10)]
+                  return render_template_string(PAGE, totals=totals, latest=latest)
+
+              @app.get("/api/expenses")
+              def list_expenses():
+                  rows = store().list_expenses(request.args.get("category"), limit=100)
+                  return jsonify([expense_json(e) for e in rows])
+
+              @app.post("/api/expenses")
+              def add_expense():
+                  body = request.get_json(silent=True)
+                  if not isinstance(body, dict):
+                      raise TallyError("send a JSON object")
+                  if not body.get("category"):
+                      raise TallyError("category is required")
+                  try:
+                      day = date.fromisoformat(body["date"]) if "date" in body else date.today()
+                  except (TypeError, ValueError):
+                      raise TallyError("date must look like 2026-10-17") from None
+                  e = store().add_expense(
+                      day,
+                      parse_amount(str(body.get("amount", ""))),
+                      str(body["category"]),
+                      str(body.get("note", "")),
+                  )
+                  return jsonify(expense_json(e)), 201
+
+              @app.get("/api/totals")
+              def totals():
+                  return jsonify({c: format_cents(v) for c, v in sorted(store().totals_by_category().items())})
+
+              return app
+      - file: terminal
+        lang: sh
+        text: |
+          uv run --extra web flask --app tally.web:create_app run --port 5001
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i http://127.0.0.1:5001/api/totals
+          curl -i -X POST http://127.0.0.1:5001/api/expenses -H "Content-Type: application/json" -d '{"amount": "7.25", "category": "food", "note": "lunch"}'
+          curl -i -X POST http://127.0.0.1:5001/api/expenses -H "Content-Type: application/json" -d '{"amount": "-1", "category": "food"}'
+          curl http://127.0.0.1:5001/api/expenses
+    mistakes:
+      - problem:
+          en: "\"ModuleNotFoundError: No module named 'flask'\"."
+          tr: "\"ModuleNotFoundError: No module named 'flask'\"."
+        fix:
+          en: "Flask is an optional extra. Start with `uv run --extra web ...` or install every extra once with `uv sync --all-extras`."
+          tr: "Flask opsiyonel bir ek. `uv run --extra web ...` ile başlat ya da bütün ekleri bir kez `uv sync --all-extras` ile kur."
+      - problem:
+          en: "\"Address already in use\" when the server starts."
+          tr: "Sunucu başlarken \"Address already in use\" hatası."
+        fix:
+          en: "Another program uses that port, or an old server is still running. Stop the old one with Ctrl+C or pick another port with `--port 5002`."
+          tr: "O portu başka bir program kullanıyor ya da eski sunucu hâlâ çalışıyor. Eskisini Ctrl+C ile durdur ya da `--port 5002` ile başka bir port seç."
+      - problem:
+          en: "Using one SQLite connection for the whole server. Flask handles requests in different threads, and a connection may only be used in the thread that made it."
+          tr: "Bütün sunucu için tek bir SQLite bağlantısı kullanmak. Flask istekleri farklı thread'lerde işler ve bir bağlantı sadece onu açan thread'de kullanılabilir."
+        fix:
+          en: "Open one connection per request and close it afterwards, as `store()` and `close_store` do with Flask's `g` object."
+          tr: "`store()` ve `close_store`'un Flask'ın `g` nesnesiyle yaptığı gibi, her istek için bir bağlantı aç ve sonunda kapat."
+    quiz:
+      - q:
+          en: "Which status code should the API answer when someone posts an amount of -1?"
+          tr: "Biri -1 tutarı gönderdiğinde API hangi durum kodunu döndürmeli?"
+        options:
+          en: ["200, because the server worked", "400, because the input is wrong", "500, because something broke"]
+          tr: ["200, çünkü sunucu çalıştı", "400, çünkü girdi yanlış", "500, çünkü bir şey bozuldu"]
+        answer: 1
+        why:
+          en: "4xx codes mean the caller made a mistake. 5xx means the server has a bug. Bad input is the caller's mistake."
+          tr: "4xx kodları çağıranın hata yaptığı anlamına gelir. 5xx sunucuda bug olduğunu söyler. Hatalı girdi çağıranın hatasıdır."
+    sources:
+      - title: "Flask: quickstart"
+        url: https://flask.palletsprojects.com/en/stable/quickstart/
+      - title: "Flask: application factories"
+        url: https://flask.palletsprojects.com/en/stable/patterns/appfactories/
+      - title: "uv: optional dependencies"
+        url: https://docs.astral.sh/uv/concepts/projects/dependencies/#optional-dependencies
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test everything with pytest"
+      tr: "Her şeyi pytest ile test etme"
+    minutes: 75
+    needs: [web]
+    why:
+      en: "Tests are small programs that check your program, and they run in a second. Without them every change is a gamble: you fix the web page and quietly break the command line. With them you change code and know within a second if something broke."
+      tr: "Testler programını kontrol eden küçük programlardır ve bir saniyede çalışırlar. Onlar olmadan her değişiklik bir kumardır: web sayfasını düzeltirsin, komut satırını sessizce bozarsın. Onlarla kodu değiştirir ve bir şey bozulduysa bir saniye içinde anlarsın."
+    learn:
+      en: |
+        - A test is a function named `test_...` with plain `assert` statements; pytest finds and runs them
+        - **Fixtures** prepare things for tests; the built-in `tmp_path` gives each test its own empty folder
+        - `@pytest.mark.parametrize` runs one test with many inputs
+        - `pytest.raises` checks that the right error happens
+        - Run the same tests against two stores (JSON and SQLite) to prove they behave the same
+        - Flask's `test_client()` calls your app without starting a server
+      tr: |
+        - Test, adı `test_...` olan ve düz `assert` ifadeleri içeren bir fonksiyondur; pytest onları bulur ve çalıştırır
+        - **Fixture**'lar testler için hazırlık yapar; hazır `tmp_path` her teste kendi boş klasörünü verir
+        - `@pytest.mark.parametrize` bir testi birçok girdiyle çalıştırır
+        - `pytest.raises` doğru hatanın oluştuğunu kontrol eder
+        - Aynı testleri iki depoya (JSON ve SQLite) karşı çalıştırmak, ikisinin aynı davrandığını kanıtlar
+        - Flask'ın `test_client()` metodu sunucu başlatmadan uygulamanı çağırır
+    do:
+      en: |
+        1. Add pytest as a development tool: `uv add --dev pytest`. It goes into a `[dependency-groups]` list that is only for developers, not for the people who install your program.
+        2. Install the optional extras too, so the web tests can import Flask: `uv sync --all-extras`.
+        3. Create the folder `tests` and the four files below.
+        4. Run `uv run pytest`. All 35 tests should pass (shown as dots).
+        5. Break something on purpose: change `format_cents` in `models.py` to return `"x"`. Run the tests again, read the failure message, then undo the change.
+        6. Commit: `git add .` then `git commit -m "Add tests"`.
+      tr: |
+        1. pytest'i geliştirme aracı olarak ekle: `uv add --dev pytest`. Sadece geliştiriciler için olan bir `[dependency-groups]` listesine girer; programını kuran insanlar için değil.
+        2. Web testleri Flask'ı import edebilsin diye opsiyonel ekleri de kur: `uv sync --all-extras`.
+        3. `tests` klasörünü ve aşağıdaki dört dosyayı oluştur.
+        4. `uv run pytest` çalıştır. 35 testin hepsi geçmeli (noktalar olarak görünür).
+        5. Bilerek bir şey boz: `models.py` içindeki `format_cents` fonksiyonunu `"x"` döndürecek şekilde değiştir. Testleri tekrar çalıştır, hata mesajını oku, sonra değişikliği geri al.
+        6. Commit et: `git add .` sonra `git commit -m "Add tests"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add --dev pytest
+          uv sync --all-extras
+          uv run pytest
+      - file: tests/test_models.py
+        lang: python
+        text: |
+          from datetime import date
+
+          import pytest
+
+          from tally.habits import current_streak
+          from tally.models import TallyError, format_cents, parse_amount
+
+
+          @pytest.mark.parametrize(
+              ("text", "cents"),
+              [("4.50", 450), ("4,5", 450), ("12", 1200), (" 0.01 ", 1)],
+          )
+          def test_parse_amount(text, cents):
+              assert parse_amount(text) == cents
+
+
+          @pytest.mark.parametrize("text", ["", "abc", "0", "-3", "1.234", "NaN", "1e9", "99999999"])
+          def test_parse_amount_rejects_bad_input(text):
+              with pytest.raises(TallyError):
+                  parse_amount(text)
+
+
+          def test_format_cents():
+              assert format_cents(450) == "4.50"
+              assert format_cents(5) == "0.05"
+
+
+          def test_streak_counts_days_in_a_row():
+              today = date(2026, 10, 17)
+              days = {date(2026, 10, 17), date(2026, 10, 16), date(2026, 10, 15), date(2026, 10, 12)}
+              assert current_streak(days, today) == 3
+
+
+          def test_streak_survives_until_the_day_is_over():
+              today = date(2026, 10, 17)
+              assert current_streak({date(2026, 10, 16)}, today) == 1
+              assert current_streak({date(2026, 10, 15)}, today) == 0
+      - file: tests/test_store.py
+        lang: python
+        text: |
+          from datetime import date
+
+          import pytest
+
+          from tally.jsonstore import JsonStore
+          from tally.sqlstore import SqliteStore
+
+
+          @pytest.fixture(params=["json", "sqlite"])
+          def store(request, tmp_path):
+              """Run every test against both stores: they must behave the same."""
+              if request.param == "json":
+                  yield JsonStore(tmp_path / "data.json")
+              else:
+                  with SqliteStore(tmp_path / "data.db") as s:
+                      yield s
+
+
+          def test_add_and_list_newest_first(store):
+              store.add_expense(date(2026, 10, 15), 450, "coffee", "flat white")
+              store.add_expense(date(2026, 10, 16), 1200, "food")
+              assert [e.cents for e in store.list_expenses()] == [1200, 450]
+              assert [e.id for e in store.list_expenses()] == [2, 1]
+
+
+          def test_filter_and_limit(store):
+              store.add_expense(date(2026, 10, 15), 100, "a")
+              store.add_expense(date(2026, 10, 16), 200, "b")
+              store.add_expense(date(2026, 10, 17), 300, "a")
+              assert [e.cents for e in store.list_expenses("a")] == [300, 100]
+              assert [e.cents for e in store.list_expenses(limit=1)] == [300]
+
+
+          def test_totals(store):
+              store.add_expense(date(2026, 10, 15), 450, "coffee")
+              store.add_expense(date(2026, 10, 16), 320, "coffee")
+              store.add_expense(date(2026, 10, 16), 1200, "food")
+              assert store.totals_by_category() == {"coffee": 770, "food": 1200}
+
+
+          def test_check_in_twice_is_ignored(store):
+              assert store.check_in("run", date(2026, 10, 17)) is True
+              assert store.check_in("run", date(2026, 10, 17)) is False
+              assert store.habit_days() == {"run": {date(2026, 10, 17)}}
+
+
+          def test_unicode_survives(store):
+              store.add_expense(date(2026, 10, 17), 100, "çay", "İstanbul şeker")
+              assert store.list_expenses()[0].note == "İstanbul şeker"
+
+
+          def test_sql_injection_text_is_just_text(tmp_path):
+              evil = "x'); DROP TABLE expenses;--"
+              with SqliteStore(tmp_path / "data.db") as s:
+                  s.add_expense(date(2026, 10, 17), 100, evil)
+                  assert s.list_expenses()[0].category == evil
+      - file: tests/test_cli.py
+        lang: python
+        text: |
+          from tally.cli import main
+
+
+          def run(tmp_path, *args):
+              return main(["--db", str(tmp_path / "t.db"), *args])
+
+
+          def test_add_list_total(tmp_path, capsys):
+              assert run(tmp_path, "add", "4.50", "coffee", "flat white", "--date", "2026-10-17") == 0
+              assert run(tmp_path, "add", "12", "food", "--date", "2026-10-16") == 0
+              capsys.readouterr()
+
+              assert run(tmp_path, "list") == 0
+              out = capsys.readouterr().out
+              assert out.index("coffee") < out.index("food")  # newest first
+              assert "flat white" in out
+
+              assert run(tmp_path, "total") == 0
+              assert capsys.readouterr().out.splitlines()[-1].endswith("16.50")
+
+
+          def test_bad_amount_is_an_error_not_a_crash(tmp_path, capsys):
+              assert run(tmp_path, "add", "abc", "coffee") == 1
+              assert "not a number" in capsys.readouterr().err
+
+
+          def test_done_twice(tmp_path, capsys):
+              run(tmp_path, "done", "run")
+              capsys.readouterr()
+              run(tmp_path, "done", "run")
+              assert "already done" in capsys.readouterr().out
+      - file: tests/test_web.py
+        lang: python
+        text: |
+          import pytest
+
+          from tally.web import create_app
+
+
+          @pytest.fixture
+          def client(tmp_path):
+              return create_app(tmp_path / "web.db").test_client()
+
+
+          def test_add_and_read_back(client):
+              r = client.post("/api/expenses", json={"amount": "4.50", "category": "coffee"})
+              assert r.status_code == 201
+              assert r.get_json()["amount"] == "4.50"
+              assert client.get("/api/expenses").get_json()[0]["category"] == "coffee"
+              assert client.get("/api/totals").get_json() == {"coffee": "4.50"}
+
+
+          @pytest.mark.parametrize(
+              "body",
+              [{"amount": "0", "category": "x"}, {"amount": "abc", "category": "x"}, {"amount": "1"}, {"amount": "1", "category": "x", "date": "tomorrow"}],
+          )
+          def test_bad_input_is_400(client, body):
+              r = client.post("/api/expenses", json=body)
+              assert r.status_code == 400
+              assert "error" in r.get_json()
+
+
+          def test_page_escapes_html(client):
+              client.post("/api/expenses", json={"amount": "1", "category": "<script>alert(1)</script>"})
+              html = client.get("/").text
+              assert "<script>alert(1)</script>" not in html
+              assert "&lt;script&gt;" in html
+    mistakes:
+      - problem:
+          en: "pytest finds no tests (\"collected 0 items\")."
+          tr: "pytest hiç test bulamıyor (\"collected 0 items\")."
+        fix:
+          en: "Files must be named `test_*.py` and functions `test_*`. A test named `check_total` is silently ignored."
+          tr: "Dosyaların adı `test_*.py`, fonksiyonların adı `test_*` olmalı. `check_total` adlı bir test sessizce yok sayılır."
+      - problem:
+          en: "Tests that write to your real `~/.tally` folder, or that depend on each other's order."
+          tr: "Gerçek `~/.tally` klasörüne yazan ya da birbirinin sırasına bağlı testler."
+        fix:
+          en: "Give every test its own temporary folder with the `tmp_path` fixture, as these tests do, and never share state between tests."
+          tr: "Bu testlerde olduğu gibi her teste `tmp_path` fixture'ıyla kendi geçici klasörünü ver ve testler arasında durum paylaşma."
+      - problem:
+          en: "Writing `assert x == 0.3` for float math."
+          tr: "Float hesabı için `assert x == 0.3` yazmak."
+        fix:
+          en: "Floats are approximate. Compare cents as integers, as tally does, or use `pytest.approx(0.3)`."
+          tr: "Float'lar yaklaşıktır. Tally gibi kuruşları tam sayı olarak karşılaştır ya da `pytest.approx(0.3)` kullan."
+    quiz:
+      - q:
+          en: "What does the tmp_path fixture give a test?"
+          tr: "tmp_path fixture'ı teste ne verir?"
+        options:
+          en: [The path of your project, A new empty temporary folder for that test, The path of the database in your home folder]
+          tr: [Projenin yolunu, O test için yeni boş bir geçici klasör, Ev klasöründeki veritabanının yolunu]
+        answer: 1
+        why:
+          en: "Each test gets a fresh folder that pytest cleans up later, so tests cannot affect your real data or each other."
+          tr: "Her test, pytest'in sonra temizlediği yepyeni bir klasör alır; böylece testler gerçek verini ya da birbirini etkileyemez."
+    sources:
+      - title: "pytest: getting started"
+        url: https://docs.pytest.org/en/stable/getting-started.html
+      - title: "pytest: temporary directories and files"
+        url: https://docs.pytest.org/en/stable/how-to/tmp_path.html
+      - title: "Flask: testing Flask applications"
+        url: https://flask.palletsprojects.com/en/stable/testing/
+
+  - id: secure
+    stage: security
+    title:
+      en: "Validate input, protect writes with a token, keep secrets out of Git"
+      tr: "Girdiyi doğrulama, yazmayı token ile koruma, sırları Git dışında tutma"
+    minutes: 70
+    needs: [tests]
+    why:
+      en: "As soon as the API is on the internet, anybody can send it anything. Three habits cover most problems: never trust input, make writing need a secret, and never put the secret in your code or in Git. Tests make sure each protection really works."
+      tr: "API internete açıldığı anda herkes ona her şeyi gönderebilir. Üç alışkanlık sorunların çoğunu kapatır: girdiye asla güvenme, yazmayı bir sırra bağla ve sırrı asla kodda ya da Git'te tutma. Testler her korumanın gerçekten çalıştığından emin olmanı sağlar."
+    learn:
+      en: |
+        - **Validate** input at the edge: length limits, no control characters, only positive amounts
+        - A **bearer token** is a secret string the caller sends in the `Authorization` header; the server compares it in constant time with `hmac.compare_digest`
+        - **Secure by default**: when no token is set, writing is switched off instead of open to everyone
+        - Limit the request size (`MAX_CONTENT_LENGTH`) and never run Flask in debug mode on a public server
+        - Secrets live in environment variables, not in code, and files like `.env` and `*.db` are listed in `.gitignore`
+        - `uv audit` checks your packages against lists of known vulnerabilities
+      tr: |
+        - Girdiyi sınırda **doğrula**: uzunluk sınırı, kontrol karakteri yok, sadece pozitif tutar
+        - **Bearer token**, çağıranın `Authorization` header'ında gönderdiği gizli bir metindir; sunucu onu `hmac.compare_digest` ile sabit sürede karşılaştırır
+        - **Varsayılan olarak güvenli**: token ayarlanmamışsa yazma herkese açık olmaz, kapatılır
+        - İstek boyutunu sınırla (`MAX_CONTENT_LENGTH`) ve herkese açık sunucuda Flask'ı asla debug modunda çalıştırma
+        - Sırlar kodda değil ortam değişkenlerinde (environment variable) durur; `.env` ve `*.db` gibi dosyalar `.gitignore`'a yazılır
+        - `uv audit`, paketlerini bilinen güvenlik açıkları listelerine karşı kontrol eder
+    do:
+      en: |
+        1. Replace `src/tally/models.py` with the first block. It adds `check_text` and `clean_expense_text`.
+        2. Replace `src/tally/cli.py` and `src/tally/web.py` with the next two blocks. The command line and the API now both clean the text, and the API needs a token for writing.
+        3. Replace `tests/test_cli.py` and `tests/test_web.py` with the last two blocks, then run `uv run pytest`. All 41 tests should pass.
+        4. Make a token and start the server with it. The first command prints a random token; copy it. Then set it in the terminal (macOS and Linux: `export TALLY_TOKEN=...`, Windows PowerShell: `$env:TALLY_TOKEN="..."`) and start the server as before.
+        5. In a second terminal try a write without the token and with it (the curl lines). The first must answer `401`, the second `201`.
+        6. Add the lines of the `.gitignore` block to the end of your `.gitignore`.
+        7. Run `uv audit`. It is still marked experimental, so its output may change; it should find no known vulnerabilities.
+        8. Commit: `git add .` then `git commit -m "Validate input and protect writes"`.
+      tr: |
+        1. `src/tally/models.py` dosyasını ilk blokla değiştir. `check_text` ve `clean_expense_text` ekler.
+        2. `src/tally/cli.py` ve `src/tally/web.py` dosyalarını sonraki iki blokla değiştir. Komut satırı ve API artık metni temizliyor, API de yazmak için token istiyor.
+        3. `tests/test_cli.py` ve `tests/test_web.py` dosyalarını son iki blokla değiştir, sonra `uv run pytest` çalıştır. 41 testin hepsi geçmeli.
+        4. Bir token üret ve sunucuyu onunla başlat. İlk komut rastgele bir token yazdırır; kopyala. Sonra terminalde ayarla (macOS ve Linux: `export TALLY_TOKEN=...`, Windows PowerShell: `$env:TALLY_TOKEN="..."`) ve sunucuyu eskisi gibi başlat.
+        5. İkinci bir terminalde token olmadan ve token ile yazmayı dene (curl satırları). İlki `401`, ikincisi `201` dönmeli.
+        6. `.gitignore` bloğundaki satırları kendi `.gitignore` dosyanın sonuna ekle.
+        7. `uv audit` çalıştır. Hâlâ deneysel işaretli, yani çıktısı değişebilir; bilinen bir güvenlik açığı bulmamalı.
+        8. Commit et: `git add .` sonra `git commit -m "Validate input and protect writes"`.
+    code:
+      - file: src/tally/models.py
+        lang: python
+        text: |
+          from dataclasses import dataclass
+          from datetime import date
+          from decimal import Decimal, InvalidOperation
+
+
+          class TallyError(Exception):
+              """An error with a message that is safe to show to the user."""
+
+
+          @dataclass(frozen=True)
+          class Expense:
+              day: date
+              cents: int
+              category: str
+              note: str = ""
+              id: int = 0
+
+
+          def parse_amount(text: str) -> int:
+              """Turn "4.50" into 450 cents. Money is kept in whole cents, never in floats."""
+              try:
+                  value = Decimal(text.strip().replace(",", "."))
+              except InvalidOperation:
+                  raise TallyError(f"not a number: {text!r}") from None
+              if not value.is_finite() or value <= 0:
+                  raise TallyError("the amount must be more than zero")
+              if value > 1_000_000:
+                  raise TallyError("the amount is too large")
+              cents = value * 100
+              if cents != cents.to_integral_value():
+                  raise TallyError("use at most two decimals")
+              return int(cents)
+
+
+          def format_cents(cents: int) -> str:
+              return f"{cents // 100}.{cents % 100:02d}"
+
+
+          def check_text(value: str, name: str, max_length: int, required: bool = False) -> str:
+              """Trim a piece of text and refuse it if it is empty, too long or has line breaks."""
+              value = value.strip()
+              if required and not value:
+                  raise TallyError(f"{name} is required")
+              if len(value) > max_length:
+                  raise TallyError(f"{name} is too long (at most {max_length} characters)")
+              if not value.isprintable():
+                  raise TallyError(f"{name} cannot contain line breaks or control characters")
+              return value
+
+
+          def clean_expense_text(category: str, note: str) -> tuple[str, str]:
+              return check_text(category, "category", 40, required=True), check_text(note, "note", 200)
+      - file: src/tally/cli.py
+        lang: python
+        text: |
+          import argparse
+          import sys
+          from datetime import date
+          from pathlib import Path
+
+          from .habits import current_streak
+          from .jsonstore import JsonStore
+          from .models import TallyError, clean_expense_text, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+
+
+          def db_path(option: Path | None) -> Path:
+              return option or default_db_path()
+
+
+          def build_parser() -> argparse.ArgumentParser:
+              parser = argparse.ArgumentParser(prog="tally", description="Track your expenses and habits.")
+              parser.add_argument("--db", type=Path, help="database file (default: ~/.tally/tally.db)")
+              sub = parser.add_subparsers(dest="command", required=True)
+
+              add = sub.add_parser("add", help="record an expense")
+              add.add_argument("amount", help="for example 4.50")
+              add.add_argument("category", help="for example coffee")
+              add.add_argument("note", nargs="?", default="")
+              add.add_argument("--date", type=date.fromisoformat, help="YYYY-MM-DD (default: today)")
+
+              ls = sub.add_parser("list", help="show expenses, newest first")
+              ls.add_argument("--category")
+
+              sub.add_parser("total", help="show the total for each category")
+
+              done = sub.add_parser("done", help="check in a habit for today")
+              done.add_argument("habit")
+
+              sub.add_parser("streaks", help="show your habit streaks")
+
+              imp = sub.add_parser("import-json", help="copy the data of an old JSON file into the database")
+              imp.add_argument("file", type=Path)
+              return parser
+
+
+          def run(args: argparse.Namespace, store: SqliteStore, today: date) -> None:
+              if args.command == "add":
+                  category, note = clean_expense_text(args.category, args.note)
+                  e = store.add_expense(args.date or today, parse_amount(args.amount), category, note)
+                  print(f"added #{e.id}: {format_cents(e.cents)} {e.category}")
+              elif args.command == "list":
+                  for e in store.list_expenses(args.category):
+                      print(f"{e.id:>3}  {e.day}  {format_cents(e.cents):>9}  {e.category:<12} {e.note}")
+              elif args.command == "total":
+                  totals = store.totals_by_category()
+                  for category, cents in sorted(totals.items()):
+                      print(f"{category:<12} {format_cents(cents):>9}")
+                  print(f"{'all':<12} {format_cents(sum(totals.values())):>9}")
+              elif args.command == "done":
+                  if store.check_in(args.habit, today):
+                      print(f"{args.habit}: done for {today}")
+                  else:
+                      print(f"{args.habit}: already done today")
+              elif args.command == "streaks":
+                  for habit, days in sorted(store.habit_days().items()):
+                      print(f"{habit:<12} {current_streak(days, today)} day(s)")
+              elif args.command == "import-json":
+                  old = JsonStore(args.file)
+                  for e in reversed(old.list_expenses()):  # oldest first
+                      store.add_expense(e.day, e.cents, e.category, e.note)
+                  for habit, days in old.habit_days().items():
+                      for day in sorted(days):
+                          store.check_in(habit, day)
+                  print(f"imported from {args.file}")
+
+
+          def main(argv: list[str] | None = None) -> int:
+              args = build_parser().parse_args(argv)
+              try:
+                  with SqliteStore(db_path(args.db)) as store:
+                      run(args, store, date.today())
+              except TallyError as err:
+                  print(f"error: {err}", file=sys.stderr)
+                  return 1
+              return 0
+      - file: src/tally/web.py
+        lang: python
+        text: |
+          import hmac
+          import os
+          from datetime import date
+          from pathlib import Path
+
+          from flask import Flask, abort, g, jsonify, make_response, render_template_string, request
+
+          from .models import Expense, TallyError, clean_expense_text, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+
+          PAGE = """<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Tally</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+              td, th { padding: 0.25rem 0.75rem; text-align: left; }
+            </style>
+          </head>
+          <body>
+            <h1>Tally</h1>
+            <h2>Totals</h2>
+            <table>
+              {% for category, amount in totals %}
+              <tr><td>{{ category }}</td><td>{{ amount }}</td></tr>
+              {% else %}
+              <tr><td>No expenses yet.</td></tr>
+              {% endfor %}
+            </table>
+            <h2>Latest</h2>
+            <table>
+              {% for e in latest %}
+              <tr><td>{{ e.date }}</td><td>{{ e.amount }}</td><td>{{ e.category }}</td><td>{{ e.note }}</td></tr>
+              {% endfor %}
+            </table>
+          </body>
+          </html>
+          """
+
+
+          def expense_json(e: Expense) -> dict:
+              return {
+                  "id": e.id,
+                  "date": e.day.isoformat(),
+                  "amount": format_cents(e.cents),
+                  "category": e.category,
+                  "note": e.note,
+              }
+
+
+          def create_app(db_path: Path | None = None, token: str | None = None) -> Flask:
+              app = Flask(__name__)
+              app.config["DB_PATH"] = db_path or default_db_path()
+              app.config["TOKEN"] = os.environ.get("TALLY_TOKEN", "") if token is None else token
+              app.config["MAX_CONTENT_LENGTH"] = 16_000  # refuse bigger request bodies
+
+              def store() -> SqliteStore:
+                  if "store" not in g:  # one connection per request
+                      g.store = SqliteStore(app.config["DB_PATH"])
+                  return g.store
+
+              @app.teardown_appcontext
+              def close_store(_error) -> None:
+                  s = g.pop("store", None)
+                  if s is not None:
+                      s.close()
+
+              def require_token() -> None:
+                  expected = app.config["TOKEN"]
+                  if not expected:  # no token set: nobody may write
+                      abort(make_response(jsonify(error="writing is off: set the TALLY_TOKEN variable"), 403))
+                  given = request.headers.get("Authorization", "")
+                  if not hmac.compare_digest(given.encode(), f"Bearer {expected}".encode()):
+                      abort(make_response(jsonify(error="missing or wrong token"), 401))
+
+              @app.errorhandler(413)
+              def too_big(_err):
+                  return jsonify(error="request is too large"), 413
+
+              @app.errorhandler(TallyError)
+              def bad_input(err: TallyError):
+                  return jsonify(error=str(err)), 400
+
+              @app.get("/")
+              def index():
+                  totals = [(c, format_cents(v)) for c, v in sorted(store().totals_by_category().items())]
+                  latest = [expense_json(e) for e in store().list_expenses(limit=10)]
+                  return render_template_string(PAGE, totals=totals, latest=latest)
+
+              @app.get("/api/expenses")
+              def list_expenses():
+                  rows = store().list_expenses(request.args.get("category"), limit=100)
+                  return jsonify([expense_json(e) for e in rows])
+
+              @app.post("/api/expenses")
+              def add_expense():
+                  require_token()
+                  body = request.get_json(silent=True)
+                  if not isinstance(body, dict):
+                      raise TallyError("send a JSON object")
+                  category, note = clean_expense_text(str(body.get("category", "")), str(body.get("note", "")))
+                  try:
+                      day = date.fromisoformat(body["date"]) if "date" in body else date.today()
+                  except (TypeError, ValueError):
+                      raise TallyError("date must look like 2026-10-17") from None
+                  e = store().add_expense(
+                      day,
+                      parse_amount(str(body.get("amount", ""))),
+                      category,
+                      note,
+                  )
+                  return jsonify(expense_json(e)), 201
+
+              @app.get("/api/totals")
+              def totals():
+                  return jsonify({c: format_cents(v) for c, v in sorted(store().totals_by_category().items())})
+
+              return app
+      - file: tests/test_cli.py
+        lang: python
+        text: |
+          from tally.cli import main
+
+
+          def run(tmp_path, *args):
+              return main(["--db", str(tmp_path / "t.db"), *args])
+
+
+          def test_add_list_total(tmp_path, capsys):
+              assert run(tmp_path, "add", "4.50", "coffee", "flat white", "--date", "2026-10-17") == 0
+              assert run(tmp_path, "add", "12", "food", "--date", "2026-10-16") == 0
+              capsys.readouterr()
+
+              assert run(tmp_path, "list") == 0
+              out = capsys.readouterr().out
+              assert out.index("coffee") < out.index("food")  # newest first
+              assert "flat white" in out
+
+              assert run(tmp_path, "total") == 0
+              assert capsys.readouterr().out.splitlines()[-1].endswith("16.50")
+
+
+          def test_bad_amount_is_an_error_not_a_crash(tmp_path, capsys):
+              assert run(tmp_path, "add", "abc", "coffee") == 1
+              assert "not a number" in capsys.readouterr().err
+
+
+          def test_done_twice(tmp_path, capsys):
+              run(tmp_path, "done", "run")
+              capsys.readouterr()
+              run(tmp_path, "done", "run")
+              assert "already done" in capsys.readouterr().out
+
+
+          def test_too_long_category_is_refused(tmp_path, capsys):
+              assert run(tmp_path, "add", "1", "x" * 41) == 1
+              assert "too long" in capsys.readouterr().err
+      - file: tests/test_web.py
+        lang: python
+        text: |
+          import pytest
+
+          from tally.web import create_app
+
+
+          AUTH = {"Authorization": "Bearer secret"}
+
+
+          @pytest.fixture
+          def client(tmp_path):
+              return create_app(tmp_path / "web.db", token="secret").test_client()
+
+
+          def test_add_and_read_back(client):
+              r = client.post("/api/expenses", json={"amount": "4.50", "category": "coffee"}, headers=AUTH)
+              assert r.status_code == 201
+              assert r.get_json()["amount"] == "4.50"
+              assert client.get("/api/expenses").get_json()[0]["category"] == "coffee"
+              assert client.get("/api/totals").get_json() == {"coffee": "4.50"}
+
+
+          @pytest.mark.parametrize(
+              "body",
+              [{"amount": "0", "category": "x"}, {"amount": "abc", "category": "x"}, {"amount": "1"}, {"amount": "1", "category": "x", "date": "tomorrow"},
+               {"amount": "1", "category": "x" * 41}, {"amount": "1", "category": "x", "note": "a\nb"}],
+          )
+          def test_bad_input_is_400(client, body):
+              r = client.post("/api/expenses", json=body, headers=AUTH)
+              assert r.status_code == 400
+              assert "error" in r.get_json()
+
+
+          def test_page_escapes_html(client):
+              client.post("/api/expenses", json={"amount": "1", "category": "<script>alert(1)</script>"}, headers=AUTH)
+              html = client.get("/").text
+              assert "<script>alert(1)</script>" not in html
+              assert "&lt;script&gt;" in html
+
+
+          def test_writing_needs_the_right_token(client, tmp_path):
+              body = {"amount": "1", "category": "x"}
+              assert client.post("/api/expenses", json=body).status_code == 401
+              assert client.post("/api/expenses", json=body, headers={"Authorization": "Bearer nope"}).status_code == 401
+              assert client.get("/api/expenses").status_code == 200  # reading stays open
+
+
+          def test_writing_is_off_without_a_token(tmp_path):
+              client = create_app(tmp_path / "web.db", token="").test_client()
+              r = client.post("/api/expenses", json={"amount": "1", "category": "x"}, headers=AUTH)
+              assert r.status_code == 403
+
+
+          def test_huge_body_is_refused(client):
+              r = client.post("/api/expenses", data="x" * 20_000, headers=AUTH, content_type="application/json")
+              assert r.status_code == 413
+      - file: terminal
+        lang: sh
+        text: |
+          uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
+          export TALLY_TOKEN=paste-the-token-here
+          uv run --extra web flask --app tally.web:create_app run --port 5001
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i -X POST http://127.0.0.1:5001/api/expenses -H "Content-Type: application/json" -d '{"amount": "2", "category": "tea"}'
+          curl -i -X POST http://127.0.0.1:5001/api/expenses -H "Authorization: Bearer paste-the-token-here" -H "Content-Type: application/json" -d '{"amount": "2", "category": "tea"}'
+          uv audit
+      - file: .gitignore
+        lang: text
+        text: |
+          # Secrets and local data
+          .env
+          *.db
+          demo.json
+    mistakes:
+      - problem:
+          en: "Writing the token into the code (TOKEN = \"abc123\") and committing it."
+          tr: "Token'ı koda yazıp (TOKEN = \"abc123\") commit etmek."
+        fix:
+          en: "Read it from the environment, as `create_app` does with `TALLY_TOKEN`. If a secret ever reached Git, treat it as public: make a new one, because deleting the commit does not delete the history copies others may hold."
+          tr: "`create_app`'in `TALLY_TOKEN` ile yaptığı gibi ortamdan oku. Bir sır Git'e girdiyse onu herkese açık say: yenisini üret, çünkü commit'i silmek başkalarının elindeki geçmiş kopyalarını silmez."
+      - problem:
+          en: "Comparing tokens with `==`. The comparison stops at the first different character, and the time it takes can leak information."
+          tr: "Token'ları `==` ile karşılaştırmak. Karşılaştırma ilk farklı karakterde durur ve süresi bilgi sızdırabilir."
+        fix:
+          en: "Use `hmac.compare_digest`, which always takes the same time."
+          tr: "Her zaman aynı sürede çalışan `hmac.compare_digest` kullan."
+      - problem:
+          en: "Starting Flask with `debug=True` or `FLASK_DEBUG=1` on a server. The debugger lets visitors run code."
+          tr: "Sunucuda Flask'ı `debug=True` ya da `FLASK_DEBUG=1` ile başlatmak. Debugger ziyaretçilerin kod çalıştırmasına izin verir."
+        fix:
+          en: "Debug mode is for your own computer only. On a server use a production server such as gunicorn (see the deploy step)."
+          tr: "Debug modu sadece kendi bilgisayarın içindir. Sunucuda gunicorn gibi bir production sunucusu kullan (deploy adımına bak)."
+    quiz:
+      - q:
+          en: "No TALLY_TOKEN is set and someone calls POST /api/expenses. What should happen?"
+          tr: "TALLY_TOKEN ayarlı değil ve biri POST /api/expenses çağırıyor. Ne olmalı?"
+        options:
+          en: [The expense is saved because there is nothing to check, The request is refused (403) because writing is off without a token, The server crashes]
+          tr: [Kontrol edecek bir şey olmadığı için harcama kaydedilir, Token yokken yazma kapalı olduğu için istek reddedilir (403), Sunucu çöker]
+        answer: 1
+        why:
+          en: "Secure by default: a missing setting must close the door, not open it."
+          tr: "Varsayılan olarak güvenli: eksik bir ayar kapıyı açmamalı, kapatmalı."
+    sources:
+      - title: "Flask: security considerations"
+        url: https://flask.palletsprojects.com/en/stable/web-security/
+      - title: "hmac.compare_digest"
+        url: https://docs.python.org/3/library/hmac.html#hmac.compare_digest
+      - title: "uv: auditing a project's dependencies"
+        url: https://docs.astral.sh/uv/reference/cli/#uv-audit
+
+  - id: faster
+    stage: performance
+    title:
+      en: "Measure first, then speed up: indexes and bulk inserts"
+      tr: "Önce ölç, sonra hızlandır: index ve toplu ekleme"
+    minutes: 55
+    needs: [secure]
+    why:
+      en: "Programs that feel fine with ten rows can crawl with a million. The rule is: measure, change one thing, measure again. Two changes fix most database slowness: an index for the columns you search, and one transaction for many inserts."
+      tr: "On satırla iyi hissettiren programlar bir milyon satırla yavaşlayabilir. Kural şu: ölç, tek şeyi değiştir, tekrar ölç. İki değişiklik veritabanı yavaşlığının çoğunu çözer: arama yaptığın sütunlar için bir index ve çok sayıda ekleme için tek bir transaction."
+    learn:
+      en: |
+        - `time.perf_counter()` measures how long code takes; a benchmark script makes the numbers repeatable
+        - An **index** is a sorted lookup table. Without one SQLite reads every row (`SCAN`), with one it jumps to the rows it needs (`SEARCH`)
+        - `EXPLAIN QUERY PLAN` shows how SQLite will run a query
+        - Every commit waits for the disk, so `executemany` inside one transaction beats many separate inserts
+        - Let the database add things up (`SUM ... GROUP BY`) instead of loading every row into Python
+        - A profiler shows where time goes. Python 3.15 includes a sampling profiler: `python -m profiling.sampling run script.py`
+      tr: |
+        - `time.perf_counter()` kodun ne kadar sürdüğünü ölçer; bir benchmark script'i sayıları tekrarlanabilir yapar
+        - **Index**, sıralı bir arama tablosudur. Index yokken SQLite her satırı okur (`SCAN`), varken ihtiyacı olan satırlara atlar (`SEARCH`)
+        - `EXPLAIN QUERY PLAN` SQLite'ın bir sorguyu nasıl çalıştıracağını gösterir
+        - Her commit diskin işini bitirmesini bekler; bu yüzden tek transaction içinde `executemany`, birçok ayrı eklemeden hızlıdır
+        - Toplamayı veritabanına yaptır (`SUM ... GROUP BY`), her satırı Python'a yüklemek yerine
+        - Profiler zamanın nereye gittiğini gösterir. Python 3.15'te örnekleme yapan bir profiler var: `python -m profiling.sampling run script.py`
+    do:
+      en: |
+        1. Replace `src/tally/sqlstore.py` with the first block. It adds two indexes to the schema and a new `add_many` method.
+        2. Create `bench.py` in the project folder (next to `pyproject.toml`) with the second block.
+        3. Run `uv run python bench.py`. It builds a database with 200,000 expenses in a temporary folder, so it needs a few seconds and it does not touch your data.
+        4. Read the numbers. Your computer will give other numbers, but the order should be the same: `add_many` is far faster per row than one-by-one inserts, SQL totals beat Python totals, and a query with an index takes a fraction of a millisecond while the plan changes from `SCAN` to `SEARCH`.
+        5. Optional: run `uv run python -m profiling.sampling run bench.py` to see which function the time went into. This profiler needs Python 3.15.
+        6. Replace `tests/test_store.py` with the third block, run `uv run pytest` (42 pass, 1 is skipped on purpose), and commit: `git add .` then `git commit -m "Add indexes and bulk insert"`.
+      tr: |
+        1. `src/tally/sqlstore.py` dosyasını ilk blokla değiştir. Şemaya iki index ve yeni bir `add_many` metodu ekler.
+        2. Proje klasöründe (`pyproject.toml`'un yanında) ikinci blokla `bench.py` oluştur.
+        3. `uv run python bench.py` çalıştır. Geçici bir klasörde 200.000 harcamalı bir veritabanı kurar; birkaç saniye sürer ve verine dokunmaz.
+        4. Sayıları oku. Bilgisayarın başka sayılar verecek ama sıralama aynı olmalı: `add_many` satır başına tek tek eklemeden çok daha hızlı, SQL toplamı Python toplamını yener ve index'li sorgu milisaniyenin çok küçük bir kısmında biter; plan `SCAN`'den `SEARCH`'e döner.
+        5. İsteğe bağlı: zamanın hangi fonksiyona gittiğini görmek için `uv run python -m profiling.sampling run bench.py` çalıştır. Bu profiler Python 3.15 ister.
+        6. `tests/test_store.py` dosyasını üçüncü blokla değiştir, `uv run pytest` çalıştır (42 geçer, 1 bilerek atlanır) ve commit et: `git add .` sonra `git commit -m "Add indexes and bulk insert"`.
+    code:
+      - file: src/tally/sqlstore.py
+        lang: python
+        text: |
+          import os
+          import sqlite3
+          from datetime import date
+          from pathlib import Path
+
+          from .models import Expense
+
+          SCHEMA = """
+          CREATE TABLE IF NOT EXISTS expenses (
+              id INTEGER PRIMARY KEY,
+              day TEXT NOT NULL,
+              cents INTEGER NOT NULL CHECK (cents > 0),
+              category TEXT NOT NULL,
+              note TEXT NOT NULL DEFAULT ''
+          );
+          CREATE INDEX IF NOT EXISTS expenses_category ON expenses (category);
+          CREATE INDEX IF NOT EXISTS expenses_day ON expenses (day, id);
+          CREATE TABLE IF NOT EXISTS checkins (
+              habit TEXT NOT NULL,
+              day TEXT NOT NULL,
+              PRIMARY KEY (habit, day)
+          );
+          """
+
+
+          def default_db_path() -> Path:
+              return Path(os.environ.get("TALLY_DB", Path.home() / ".tally" / "tally.db"))
+
+
+          class SqliteStore:
+              """The same methods as JsonStore, but the data lives in a SQLite database file."""
+
+              def __init__(self, path: Path | str):
+                  if str(path) != ":memory:":
+                      Path(path).parent.mkdir(parents=True, exist_ok=True)
+                  self.db = sqlite3.connect(path)
+                  self.db.row_factory = sqlite3.Row
+                  self.db.executescript(SCHEMA)
+
+              def close(self) -> None:
+                  self.db.close()
+
+              def __enter__(self) -> "SqliteStore":
+                  return self
+
+              def __exit__(self, *exc_info) -> None:
+                  self.close()
+
+              def add_expense(self, day: date, cents: int, category: str, note: str = "") -> Expense:
+                  with self.db:  # commits when the block ends, rolls back on an error
+                      cur = self.db.execute(
+                          "INSERT INTO expenses (day, cents, category, note) VALUES (?, ?, ?, ?)",
+                          (day.isoformat(), cents, category, note),
+                      )
+                  return Expense(day, cents, category, note, cur.lastrowid)
+
+              def add_many(self, rows: list[tuple[date, int, str, str]]) -> None:
+                  """Insert many expenses in one transaction. Much faster than calling add_expense in a loop."""
+                  with self.db:
+                      self.db.executemany(
+                          "INSERT INTO expenses (day, cents, category, note) VALUES (?, ?, ?, ?)",
+                          [(d.isoformat(), cents, category, note) for d, cents, category, note in rows],
+                      )
+
+              def list_expenses(self, category: str | None = None, limit: int | None = None) -> list[Expense]:
+                  sql = "SELECT id, day, cents, category, note FROM expenses"
+                  params: list = []
+                  if category is not None:
+                      sql += " WHERE category = ?"
+                      params.append(category)
+                  sql += " ORDER BY day DESC, id DESC"
+                  if limit is not None:
+                      sql += " LIMIT ?"
+                      params.append(limit)
+                  rows = self.db.execute(sql, params).fetchall()
+                  return [Expense(date.fromisoformat(r["day"]), r["cents"], r["category"], r["note"], r["id"]) for r in rows]
+
+              def totals_by_category(self) -> dict[str, int]:
+                  rows = self.db.execute("SELECT category, SUM(cents) AS cents FROM expenses GROUP BY category")
+                  return {r["category"]: r["cents"] for r in rows}
+
+              def check_in(self, habit: str, day: date) -> bool:
+                  with self.db:
+                      cur = self.db.execute(
+                          "INSERT OR IGNORE INTO checkins (habit, day) VALUES (?, ?)", (habit, day.isoformat())
+                      )
+                  return cur.rowcount == 1
+
+              def habit_days(self) -> dict[str, set[date]]:
+                  habits: dict[str, set[date]] = {}
+                  for r in self.db.execute("SELECT habit, day FROM checkins"):
+                      habits.setdefault(r["habit"], set()).add(date.fromisoformat(r["day"]))
+                  return habits
+      - file: bench.py
+        lang: python
+        text: |
+          """Measure how fast the store is. Run with: uv run python bench.py"""
+          import tempfile
+          import time
+          from datetime import date, timedelta
+          from pathlib import Path
+
+          from tally.sqlstore import SqliteStore
+
+
+          def timed(label, func):
+              start = time.perf_counter()
+              result = func()
+              print(f"{label:<28} {(time.perf_counter() - start) * 1000:8.1f} ms")
+              return result
+
+
+          with tempfile.TemporaryDirectory() as tmp, SqliteStore(Path(tmp) / "bench.db") as store:
+              first = date(2020, 1, 1)
+              rows = [(first + timedelta(days=i % 2000), 100 + i % 900, f"cat{i % 500}", "") for i in range(200_000)]
+              timed("insert 300 (one by one)", lambda: [store.add_expense(*r) for r in rows[:300]])
+              timed("insert 199700 (add_many)", lambda: store.add_many(rows[300:]))
+              timed("totals in SQL", store.totals_by_category)
+              timed("totals in Python", lambda: sum(e.cents for e in store.list_expenses()))
+
+              query = "SELECT COUNT(*) FROM expenses WHERE category = ?"
+
+              def count_one_category():
+                  return store.db.execute(query, ("cat42",)).fetchone()[0]
+
+              def plan():
+                  return store.db.execute("EXPLAIN QUERY PLAN " + query, ("cat42",)).fetchone()["detail"]
+
+              store.db.execute("DROP INDEX expenses_category")
+              timed("count a category, no index", count_one_category)
+              print("  plan:", plan())
+              store.db.execute("CREATE INDEX expenses_category ON expenses (category)")
+              timed("count a category, index", count_one_category)
+              print("  plan:", plan())
+      - file: tests/test_store.py
+        lang: python
+        text: |
+          from datetime import date
+
+          import pytest
+
+          from tally.jsonstore import JsonStore
+          from tally.sqlstore import SqliteStore
+
+
+          @pytest.fixture(params=["json", "sqlite"])
+          def store(request, tmp_path):
+              """Run every test against both stores: they must behave the same."""
+              if request.param == "json":
+                  yield JsonStore(tmp_path / "data.json")
+              else:
+                  with SqliteStore(tmp_path / "data.db") as s:
+                      yield s
+
+
+          def test_add_and_list_newest_first(store):
+              store.add_expense(date(2026, 10, 15), 450, "coffee", "flat white")
+              store.add_expense(date(2026, 10, 16), 1200, "food")
+              assert [e.cents for e in store.list_expenses()] == [1200, 450]
+              assert [e.id for e in store.list_expenses()] == [2, 1]
+
+
+          def test_filter_and_limit(store):
+              store.add_expense(date(2026, 10, 15), 100, "a")
+              store.add_expense(date(2026, 10, 16), 200, "b")
+              store.add_expense(date(2026, 10, 17), 300, "a")
+              assert [e.cents for e in store.list_expenses("a")] == [300, 100]
+              assert [e.cents for e in store.list_expenses(limit=1)] == [300]
+
+
+          def test_totals(store):
+              store.add_expense(date(2026, 10, 15), 450, "coffee")
+              store.add_expense(date(2026, 10, 16), 320, "coffee")
+              store.add_expense(date(2026, 10, 16), 1200, "food")
+              assert store.totals_by_category() == {"coffee": 770, "food": 1200}
+
+
+          def test_check_in_twice_is_ignored(store):
+              assert store.check_in("run", date(2026, 10, 17)) is True
+              assert store.check_in("run", date(2026, 10, 17)) is False
+              assert store.habit_days() == {"run": {date(2026, 10, 17)}}
+
+
+          def test_unicode_survives(store):
+              store.add_expense(date(2026, 10, 17), 100, "çay", "İstanbul şeker")
+              assert store.list_expenses()[0].note == "İstanbul şeker"
+
+
+          def test_sql_injection_text_is_just_text(tmp_path):
+              evil = "x'); DROP TABLE expenses;--"
+              with SqliteStore(tmp_path / "data.db") as s:
+                  s.add_expense(date(2026, 10, 17), 100, evil)
+                  assert s.list_expenses()[0].category == evil
+
+
+          def test_add_many(store):
+              if not hasattr(store, "add_many"):
+                  pytest.skip("only the SQLite store has add_many")
+              store.add_many([(date(2026, 10, 1), 100, "a", ""), (date(2026, 10, 2), 200, "a", "x")])
+              assert store.totals_by_category() == {"a": 300}
+      - file: terminal
+        lang: sh
+        text: |
+          uv run python bench.py
+          uv run python -m profiling.sampling run bench.py
+    mistakes:
+      - problem:
+          en: "Optimizing by guessing. Rewriting code that was never the slow part."
+          tr: "Tahminle optimize etmek. Hiç yavaş olmayan kısmı yeniden yazmak."
+        fix:
+          en: "Measure first. A benchmark or profiler shows the real slow spot, and it is often one query or one loop."
+          tr: "Önce ölç. Bir benchmark ya da profiler gerçek yavaş noktayı gösterir; çoğu zaman tek bir sorgu ya da döngüdür."
+      - problem:
+          en: "Adding an index on every column."
+          tr: "Her sütuna index eklemek."
+        fix:
+          en: "Each index makes writes slower and the file bigger. Index only the columns you filter or sort by often. Check the plan with `EXPLAIN QUERY PLAN`."
+          tr: "Her index yazmayı yavaşlatır ve dosyayı büyütür. Sadece sık süzdüğün ya da sıraladığın sütunlara index koy. Planı `EXPLAIN QUERY PLAN` ile kontrol et."
+    quiz:
+      - q:
+          en: "Why is add_many so much faster than calling add_expense in a loop?"
+          tr: "add_many neden döngüde add_expense çağırmaktan çok daha hızlı?"
+        options:
+          en: [It uses a faster programming language, It saves everything in one transaction so the disk is waited for once, It skips the CHECK rule]
+          tr: [Daha hızlı bir programlama dili kullanır, Hepsini tek transaction'da kaydeder ve disk için bir kez beklenir, CHECK kuralını atlar]
+        answer: 1
+        why:
+          en: "Each commit waits until the data is safely on the disk. One commit for 200,000 rows costs far less than 200,000 commits."
+          tr: "Her commit verinin diskte güvenle durmasını bekler. 200.000 satır için tek commit, 200.000 commit'ten çok daha ucuzdur."
+    sources:
+      - title: "SQLite: query planning and EXPLAIN QUERY PLAN"
+        url: https://www.sqlite.org/eqp.html
+      - title: "SQLite: query optimizer overview"
+        url: https://www.sqlite.org/optoverview.html
+      - title: "profiling.sampling: statistical sampling profiler"
+        url: https://docs.python.org/3/library/profiling.sampling.html
+
+  - id: package
+    stage: packaging
+    title:
+      en: "Package tally with pyproject.toml"
+      tr: "Tally'yi pyproject.toml ile paketleme"
+    minutes: 50
+    needs: [faster]
+    why:
+      en: "Right now tally only runs inside your project folder. Packaging turns it into a file anyone can install with one command (`pip install`, `uv tool install`). `pyproject.toml` is the single file that describes the name, version, Python versions, dependencies and commands of your package."
+      tr: "Şu an tally sadece proje klasörünün içinde çalışıyor. Paketleme onu herkesin tek komutla (`pip install`, `uv tool install`) kurabileceği bir dosyaya çevirir. `pyproject.toml`, paketinin adını, sürümünü, Python sürümlerini, bağımlılıklarını ve komutlarını anlatan tek dosyadır."
+    learn:
+      en: |
+        - The difference between the **distribution name** (what you `pip install`) and the **import name** (what you `import`): here `tally-tracker-demo` and `tally`
+        - `requires-python = ">=3.12"` says which Pythons can run the package. Pinning your own development Python to 3.15 in `.python-version` is separate
+        - `[project.optional-dependencies]` are extras (`pip install "tally-tracker-demo[web]"`); `[dependency-groups]` are only for developers
+        - A **wheel** (`.whl`) is the ready-to-install file, an **sdist** (`.tar.gz`) is the source
+        - `uv.lock` pins every package version exactly, so everyone gets the same setup
+      tr: |
+        - **Dağıtım adı** (`pip install` yazdığın) ile **import adı** (`import` yazdığın) arasındaki fark: burada `tally-tracker-demo` ve `tally`
+        - `requires-python = ">=3.12"` paketi hangi Python'ların çalıştırabileceğini söyler. Kendi geliştirme Python'unu `.python-version` ile 3.15'e sabitlemek ayrı bir şeydir
+        - `[project.optional-dependencies]` ek paketlerdir (`pip install "tally-tracker-demo[web]"`); `[dependency-groups]` sadece geliştiriciler içindir
+        - **Wheel** (`.whl`) kurmaya hazır dosyadır, **sdist** (`.tar.gz`) kaynak koddur
+        - `uv.lock` her paketin sürümünü tam olarak sabitler; böylece herkes aynı kurulumu alır
+    do:
+      en: |
+        1. Replace `pyproject.toml` with the first block. Put your own name and e-mail in `authors`. It sets a new distribution name, lowers `requires-python` to 3.12 and points the build at the `tally` folder with `module-name`.
+        2. Create `README.md` with the second block. It becomes the description page of the package.
+        3. Run `uv lock` and then `uv build`. A `dist` folder appears with a `.whl` and a `.tar.gz` file. (`dist/` is already in `.gitignore`.)
+        4. Look inside the wheel with the zipfile command. You should see the files of the `tally` package and an entry-points file, but no tests and no `.venv`.
+        5. Test the built file as a stranger would: run `tally` from the wheel in a throw-away environment with `uvx`. It prints the help text.
+        6. Optional: check that the tests also pass on the oldest Python you claim to support. `uv run --python 3.12 --all-extras pytest` rebuilds `.venv` for 3.12; run a plain `uv run pytest` afterwards to go back to 3.15.
+        7. Commit, including `uv.lock`: `git add .` then `git commit -m "Package tally"`.
+      tr: |
+        1. `pyproject.toml` dosyasını ilk blokla değiştir. `authors` kısmına kendi adını ve e-postanı yaz. Yeni bir dağıtım adı verir, `requires-python`'ı 3.12'ye indirir ve `module-name` ile build'i `tally` klasörüne yönlendirir.
+        2. İkinci blokla `README.md` oluştur. Paketin açıklama sayfası olur.
+        3. `uv lock` sonra `uv build` çalıştır. `dist` klasöründe bir `.whl` ve bir `.tar.gz` dosyası belirir. (`dist/` zaten `.gitignore` içinde.)
+        4. Wheel'in içine zipfile komutuyla bak. `tally` paketinin dosyalarını ve bir entry-points dosyasını görmelisin; testler ve `.venv` olmamalı.
+        5. Oluşan dosyayı bir yabancı gibi dene: `uvx` ile wheel içindeki `tally`'yi atılabilir bir ortamda çalıştır. Yardım metnini yazar.
+        6. İsteğe bağlı: testlerin desteklediğini söylediğin en eski Python'da da geçtiğini kontrol et. `uv run --python 3.12 --all-extras pytest` `.venv`'i 3.12 için yeniden kurar; sonra 3.15'e dönmek için düz `uv run pytest` çalıştır.
+        7. `uv.lock` dahil commit et: `git add .` sonra `git commit -m "Package tally"`.
+    code:
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          [project]
+          name = "tally-tracker-demo"
+          version = "0.1.0"
+          description = "Track your expenses and habits from the command line."
+          readme = "README.md"
+          license = "MIT"
+          authors = [{ name = "Your Name", email = "you@example.com" }]
+          requires-python = ">=3.12"
+          keywords = ["expenses", "habits", "cli"]
+          classifiers = [
+              "Environment :: Console",
+              "Programming Language :: Python :: 3",
+          ]
+          dependencies = []
+
+          [project.optional-dependencies]
+          web = ["flask>=3.1"]
+
+          [project.scripts]
+          tally = "tally:main"
+
+          [build-system]
+          requires = ["uv_build>=0.12.3,<0.13.0"]
+          build-backend = "uv_build"
+
+          [tool.uv.build-backend]
+          module-name = "tally"
+
+          [dependency-groups]
+          dev = ["pytest>=9.1.1"]
+      - file: README.md
+        lang: markdown
+        text: |
+          # Tally
+
+          Track your expenses and habits from the command line.
+
+          ```
+          tally add 4.50 coffee "flat white"
+          tally list
+          tally total
+          tally done run
+          tally streaks
+          ```
+
+          Install the tiny web page and API too: `pip install "tally-tracker-demo[web]"`.
+      - file: terminal
+        lang: sh
+        text: |
+          uv lock
+          uv build
+          uv run python -m zipfile -l dist/tally_tracker_demo-0.1.0-py3-none-any.whl
+          uvx --from dist/tally_tracker_demo-0.1.0-py3-none-any.whl tally --help
+    mistakes:
+      - problem:
+          en: "The build fails or the wheel is empty because the folder name does not match the package name."
+          tr: "Klasör adı paket adıyla uyuşmadığı için build başarısız oluyor ya da wheel boş çıkıyor."
+        fix:
+          en: "uv's build tool looks for a folder named like the distribution name. Because the name is `tally-tracker-demo` but the folder is `src/tally`, the line `module-name = \"tally\"` under `[tool.uv.build-backend]` is needed."
+          tr: "uv'nin build aracı dağıtım adına benzer adlı bir klasör arar. Ad `tally-tracker-demo` ama klasör `src/tally` olduğu için `[tool.uv.build-backend]` altındaki `module-name = \"tally\"` satırı gerekli."
+      - problem:
+          en: "Setting `requires-python` to the newest Python only because that is what you use."
+          tr: "`requires-python`'ı sadece sen onu kullanıyorsun diye en yeni Python'a ayarlamak."
+        fix:
+          en: "Set the oldest version your code really works on and test it. tally uses nothing newer than 3.12, so `>=3.12` lets many more people install it."
+          tr: "Kodunun gerçekten çalıştığı en eski sürümü yaz ve onu test et. Tally 3.12'den yeni bir şey kullanmıyor; `>=3.12` yazmak çok daha fazla kişinin kurmasını sağlar."
+      - problem:
+          en: "Forgetting to commit `uv.lock`."
+          tr: "`uv.lock` dosyasını commit etmeyi unutmak."
+        fix:
+          en: "Commit it. Without it every machine may resolve slightly different package versions, and a bug appears only on one of them."
+          tr: "Commit et. Olmazsa her makine biraz farklı paket sürümleri seçebilir ve bir bug sadece birinde çıkar."
+    quiz:
+      - q:
+          en: "For tally-tracker-demo, what do you type after pip install and what do you type after import?"
+          tr: "tally-tracker-demo için pip install'dan sonra ne yazarsın, import'tan sonra ne?"
+        options:
+          en: ["tally-tracker-demo and then tally", "tally and then tally-tracker-demo", "tally-tracker-demo both times"]
+          tr: ["tally-tracker-demo ve sonra tally", "tally ve sonra tally-tracker-demo", "İkisinde de tally-tracker-demo"]
+        answer: 0
+        why:
+          en: "The distribution name (on the package index) and the import name (the folder of Python code) are two different names. Hyphens are not allowed in an import name."
+          tr: "Dağıtım adı (paket indeksinde) ile import adı (Python kod klasörü) iki ayrı addır. Import adında tire kullanılamaz."
+    sources:
+      - title: "Writing your pyproject.toml"
+        url: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+      - title: "uv: build backend"
+        url: https://docs.astral.sh/uv/concepts/build-backend/
+      - title: "uv: building and publishing a package"
+        url: https://docs.astral.sh/uv/guides/package/
+
+  - id: publish
+    stage: deploy
+    title:
+      en: "Share tally for free: GitHub and TestPyPI"
+      tr: "Tally'yi ücretsiz paylaşma: GitHub ve TestPyPI"
+    minutes: 60
+    needs: [package]
+    why:
+      en: "Code on your laptop helps nobody. Pushing it to GitHub gives you a backup and a history others can read. Publishing the package to TestPyPI, the practice copy of the Python Package Index, lets you do the full release flow for free and without risk, so the first real release is no surprise."
+      tr: "Dizüstü bilgisayarındaki kod kimseye yardım etmez. GitHub'a göndermek sana bir yedek ve başkalarının okuyabileceği bir geçmiş verir. Paketi Python Package Index'in deneme kopyası olan TestPyPI'da yayınlamak, tam sürüm çıkarma akışını ücretsiz ve risksiz yapmanı sağlar; böylece ilk gerçek sürüm sürpriz olmaz."
+    learn:
+      en: |
+        - A Git **remote** is a copy of your repository on a server; `git push` sends your commits there
+        - **TestPyPI** (test.pypi.org) is a separate practice index with its own accounts. Its data may be wiped from time to time
+        - An **API token** is a password that can only upload packages. Keep it in an environment variable, never in a file you commit
+        - A version number can be uploaded only once. To fix something you publish a new version (`0.1.1`)
+        - Optional free hosting: a web service such as Render can run the Flask part with `gunicorn`
+      tr: |
+        - Git **remote**, deponun sunucudaki bir kopyasıdır; `git push` commit'lerini oraya gönderir
+        - **TestPyPI** (test.pypi.org) kendi hesapları olan ayrı bir deneme indeksidir. Verisi zaman zaman silinebilir
+        - **API token**, sadece paket yükleyebilen bir paroladır. Onu ortam değişkeninde tut, commit ettiğin bir dosyada asla
+        - Bir sürüm numarası sadece bir kez yüklenebilir. Bir şeyi düzeltmek için yeni sürüm (`0.1.1`) yayınlarsın
+        - İsteğe bağlı ücretsiz hosting: Render gibi bir web servisi Flask kısmını `gunicorn` ile çalıştırabilir
+    do:
+      en: |
+        1. On github.com create an account and a new **empty** repository called `tally` (no README, no license, because you already have files). Then connect and push, using the commands in the first block with your own user name.
+        2. Create an account on https://test.pypi.org/account/register/. It is separate from the real PyPI. Turn on two-factor authentication in the account settings, because uploads require it.
+        3. In *Account settings → API tokens* create a token. For the very first upload choose the scope "Entire account" (a project-only token is possible after the project exists). Copy it now, it is shown once.
+        4. Choose a name nobody uses yet: in `pyproject.toml` change `name = "tally-tracker-demo"` to `tally-tracker-` plus your user name (lowercase letters, digits and hyphens). Keep `module-name = "tally"`. Fix the same name in the install line of `README.md`.
+        5. Add the index block (second code block) to the end of `pyproject.toml`. It gives TestPyPI the short name `testpypi`.
+        6. Build and publish. Put the token in an environment variable so it never lands in your shell history or files, then run the commands in the third block (macOS and Linux shown; in PowerShell use `$env:UV_PUBLISH_TOKEN="..."`).
+        7. Open https://test.pypi.org/project/ plus your package name. Wait a minute if it is not there yet.
+        8. Install it as a stranger would, in an empty environment (fourth block, with your own package name). Then add an expense with the installed `tally`.
+        9. To publish a fix later: `uv version --bump patch`, delete the old files in `dist/` (publishing uploads everything in that folder), build again and publish again.
+        10. Optional free host for the web part (not needed for this step): see the last block.
+      tr: |
+        1. github.com'da bir hesap aç ve `tally` adında yeni, **boş** bir depo oluştur (README yok, lisans yok; çünkü dosyaların zaten var). Sonra ilk bloktaki komutlarla kendi kullanıcı adınla bağla ve gönder (push).
+        2. https://test.pypi.org/account/register/ adresinde bir hesap aç. Gerçek PyPI'dan ayrıdır. Yüklemeler için gerekli olduğundan hesap ayarlarında iki adımlı doğrulamayı aç.
+        3. *Account settings → API tokens* bölümünde bir token oluştur. İlk yükleme için "Entire account" kapsamını seç (proje oluştuktan sonra sadece projeye özel token mümkün). Şimdi kopyala, bir kez gösterilir.
+        4. Kimsenin kullanmadığı bir ad seç: `pyproject.toml` içinde `name = "tally-tracker-demo"` satırını `tally-tracker-` ve kullanıcı adın olacak şekilde değiştir (küçük harf, rakam ve tire). `module-name = "tally"` kalsın. `README.md` içindeki kurulum satırındaki adı da düzelt.
+        5. İndeks bloğunu (ikinci kod bloğu) `pyproject.toml` sonuna ekle. TestPyPI'a `testpypi` kısa adını verir.
+        6. Build et ve yayınla. Token shell geçmişine ya da dosyalara düşmesin diye bir ortam değişkenine koy, sonra üçüncü bloktaki komutları çalıştır (macOS ve Linux gösterildi; PowerShell'de `$env:UV_PUBLISH_TOKEN="..."` kullan).
+        7. https://test.pypi.org/project/ adresine paket adını ekleyerek aç. Henüz yoksa bir dakika bekle.
+        8. Bir yabancı gibi boş bir ortamda kur (dördüncü blok, kendi paket adınla). Sonra kurduğun `tally` ile bir harcama ekle.
+        9. Sonra bir düzeltme yayınlamak için: `uv version --bump patch`, `dist/` içindeki eski dosyaları sil (yayınlama o klasördeki her şeyi yükler), tekrar build et ve tekrar yayınla.
+        10. Web kısmı için isteğe bağlı ücretsiz host (bu adım için gerekmez): son bloğa bak.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git branch -M main
+          git remote add origin https://github.com/YOUR-USER/tally.git
+          git push -u origin main
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          [[tool.uv.index]]
+          name = "testpypi"
+          url = "https://test.pypi.org/simple/"
+          publish-url = "https://test.pypi.org/legacy/"
+          explicit = true
+      - file: terminal
+        lang: sh
+        text: |
+          export UV_PUBLISH_TOKEN=paste-your-testpypi-token-here
+          uv build --no-sources
+          uv publish --index testpypi
+      - file: terminal
+        lang: sh
+        text: |
+          python3 -m venv /tmp/try-tally
+          /tmp/try-tally/bin/python -m pip install --index-url https://test.pypi.org/simple/ tally-tracker-YOUR-USER
+          /tmp/try-tally/bin/tally add 3 tea
+          /tmp/try-tally/bin/tally list
+      - file: terminal
+        lang: sh
+        text: |
+          # Optional: run the web part on a free host such as Render.
+          # 1) Add the production server to the web extra:
+          uv add --optional web gunicorn
+          # 2) Try it locally first:
+          TALLY_TOKEN=secret uv run --extra web gunicorn "tally.web:create_app()"
+          # 3) On Render create a Web Service from your GitHub repo with:
+          #    Build command:  pip install ".[web]"
+          #    Start command:  gunicorn "tally.web:create_app()"
+          #    Environment:    TALLY_TOKEN (a long random value) and TALLY_DB=/tmp/tally.db
+          # The free plan wipes local files on every restart, so treat the data as a demo.
+    mistakes:
+      - problem:
+          en: "\"403 Invalid or non-existent authentication information\" when publishing."
+          tr: "Yayınlarken \"403 Invalid or non-existent authentication information\" hatası."
+        fix:
+          en: "The token is for the wrong site or was copied wrongly. A TestPyPI token only works on test.pypi.org. Make sure `UV_PUBLISH_TOKEN` holds the whole token, including the `pypi-` start, and that you used `--index testpypi`."
+          tr: "Token yanlış site için ya da yanlış kopyalanmış. TestPyPI token'ı sadece test.pypi.org'da çalışır. `UV_PUBLISH_TOKEN` içinde token'ın tamamının, `pypi-` başlangıcı dahil, olduğundan ve `--index testpypi` kullandığından emin ol."
+      - problem:
+          en: "\"File already exists\" or \"name is already taken\"."
+          tr: "\"File already exists\" ya da \"name is already taken\"."
+        fix:
+          en: "A version can be uploaded only once, and a name belongs to its first owner. Bump the version for a fix, or choose a more unique name."
+          tr: "Bir sürüm sadece bir kez yüklenebilir ve bir ad ilk sahibine aittir. Düzeltme için sürümü artır ya da daha benzersiz bir ad seç."
+      - problem:
+          en: "Committing the token, or pasting it into the code to \"make it easier\"."
+          tr: "Token'ı commit etmek ya da \"kolay olsun\" diye koda yapıştırmak."
+        fix:
+          en: "Keep it in an environment variable only. If it leaks, delete it in the account settings and create a new one right away."
+          tr: "Sadece ortam değişkeninde tut. Sızarsa hesap ayarlarından sil ve hemen yenisini oluştur."
+    quiz:
+      - q:
+          en: "You published version 0.1.0 and found a typo in the README. What do you do?"
+          tr: "0.1.0 sürümünü yayınladın ve README'de bir yazım hatası buldun. Ne yaparsın?"
+        options:
+          en: [Upload 0.1.0 again with the fix, Bump the version to 0.1.1 and publish that, Delete the whole GitHub repository]
+          tr: [Düzeltmeyle 0.1.0'ı tekrar yüklerim, Sürümü 0.1.1'e çıkarıp onu yayınlarım, GitHub deposunun tamamını silerim]
+        answer: 1
+        why:
+          en: "Package indexes never allow the same version twice, so everybody who installed 0.1.0 still gets exactly the same files."
+          tr: "Paket indeksleri aynı sürümü ikinci kez kabul etmez; böylece 0.1.0'ı kuran herkes hep aynı dosyaları alır."
+    sources:
+      - title: "Using TestPyPI"
+        url: https://packaging.python.org/en/latest/guides/using-testpypi/
+      - title: "uv: publishing your package"
+        url: https://docs.astral.sh/uv/guides/package/#publishing-your-package
+      - title: "Render: deploy a Flask app"
+        url: https://render.com/docs/deploy-flask
+
+  - id: watch
+    stage: monitoring
+    title:
+      en: "Logging, a health check and error handling"
+      tr: "Loglama, health check ve hata yönetimi"
+    minutes: 55
+    needs: [publish]
+    why:
+      en: "When a program runs where you cannot watch it, the logs are your eyes. A health endpoint lets a service (or you) ask 'are you alive?', and a clean error handler makes sure a crash writes the details into the log while the visitor only sees a short message."
+      tr: "Bir program onu izleyemediğin yerde çalışırken loglar senin gözlerindir. Health endpoint'i bir servisin (ya da senin) 'yaşıyor musun?' diye sormasını sağlar; düzgün bir hata yakalayıcı da çökme olduğunda ayrıntıları loga yazar, ziyaretçiye sadece kısa bir mesaj gösterir."
+    learn:
+      en: |
+        - The `logging` module: levels (`DEBUG`, `INFO`, `WARNING`, `ERROR`), one logger per module (`logging.getLogger(__name__)`), and a format with time and level
+        - Why `log.info("expense added: id=%s", e.id)` uses `%s` instead of an f-string
+        - `log.exception(...)` inside an `except` writes the full traceback
+        - A health endpoint: it checks the one thing that must work (the database) and answers `200` or `503`
+        - Never show internal error details to visitors, and never write secrets (tokens) to the log
+        - Environment variable `TALLY_LOG_LEVEL` changes how talkative the program is without changing code
+      tr: |
+        - `logging` modülü: seviyeler (`DEBUG`, `INFO`, `WARNING`, `ERROR`), modül başına bir logger (`logging.getLogger(__name__)`), zaman ve seviye içeren bir format
+        - `log.info("expense added: id=%s", e.id)` neden f-string yerine `%s` kullanır
+        - Bir `except` içindeki `log.exception(...)` tam traceback'i yazar
+        - Health endpoint: çalışması gereken tek şeyi (veritabanını) kontrol eder ve `200` ya da `503` döner
+        - Ziyaretçilere asla iç hata ayrıntılarını gösterme ve loga asla sırları (token) yazma
+        - `TALLY_LOG_LEVEL` ortam değişkeni, kodu değiştirmeden programın ne kadar konuşkan olacağını belirler
+    do:
+      en: |
+        1. Create `src/tally/log.py` with the first block. One function sets the format and the level for the whole program.
+        2. Replace `src/tally/cli.py` and `src/tally/web.py` with the next blocks. The command line gets `-v` for debug messages. The web app logs added expenses and slow requests, answers `/health`, and turns unexpected crashes into a short JSON error while the traceback goes to the log.
+        3. Replace `tests/test_web.py` with the last block and run `uv run pytest`. All 46 tests pass (1 is skipped on purpose).
+        4. Try `uv run tally -v list` and read the debug line on stderr.
+        5. Start the web server (as in the web step), call `curl -i http://127.0.0.1:5001/health`, then add an expense with your token and watch the log line appear in the server terminal.
+        6. Commit: `git add .` then `git commit -m "Add logging and a health check"`.
+        7. Free uptime checks: a monitoring service can call `/health` every few minutes and e-mail you when it fails. This is optional and not needed to follow along.
+      tr: |
+        1. İlk blokla `src/tally/log.py` dosyasını oluştur. Tek bir fonksiyon bütün program için formatı ve seviyeyi ayarlar.
+        2. `src/tally/cli.py` ve `src/tally/web.py` dosyalarını sonraki bloklarla değiştir. Komut satırı debug mesajları için `-v` kazanır. Web uygulaması eklenen harcamaları ve yavaş istekleri loglar, `/health` yanıtlar ve beklenmeyen çökmeleri kısa bir JSON hatasına çevirir; traceback loga gider.
+        3. `tests/test_web.py` dosyasını son blokla değiştir ve `uv run pytest` çalıştır. 46 testin hepsi geçer (1 tanesi bilerek atlanır).
+        4. `uv run tally -v list` dene ve stderr'deki debug satırını oku.
+        5. Web sunucusunu başlat (web adımındaki gibi), `curl -i http://127.0.0.1:5001/health` çağır, sonra token'ınla bir harcama ekle ve sunucu terminalinde log satırının belirmesini izle.
+        6. Commit et: `git add .` sonra `git commit -m "Add logging and a health check"`.
+        7. Ücretsiz uptime kontrolleri: bir izleme servisi `/health`'i birkaç dakikada bir çağırıp hata verince sana e-posta atabilir. İsteğe bağlı; takip etmek için gerekmez.
+    code:
+      - file: src/tally/log.py
+        lang: python
+        text: |
+          import logging
+          import os
+          import sys
+
+
+          def setup_logging(level: int | str | None = None) -> None:
+              """Send log lines to stderr. The level can be set with TALLY_LOG_LEVEL (DEBUG, INFO, WARNING, ERROR)."""
+              level = level or os.environ.get("TALLY_LOG_LEVEL", "WARNING")
+              logging.basicConfig(
+                  level=level,
+                  stream=sys.stderr,
+                  format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+              )
+      - file: src/tally/cli.py
+        lang: python
+        text: |
+          import argparse
+          import logging
+          import sys
+          from datetime import date
+          from pathlib import Path
+
+          from .habits import current_streak
+          from .jsonstore import JsonStore
+          from .log import setup_logging
+          from .models import TallyError, clean_expense_text, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+
+          log = logging.getLogger(__name__)
+
+
+          def db_path(option: Path | None) -> Path:
+              return option or default_db_path()
+
+
+          def build_parser() -> argparse.ArgumentParser:
+              parser = argparse.ArgumentParser(prog="tally", description="Track your expenses and habits.")
+              parser.add_argument("--db", type=Path, help="database file (default: ~/.tally/tally.db)")
+              parser.add_argument("-v", "--verbose", action="store_true", help="print debug messages to stderr")
+              sub = parser.add_subparsers(dest="command", required=True)
+
+              add = sub.add_parser("add", help="record an expense")
+              add.add_argument("amount", help="for example 4.50")
+              add.add_argument("category", help="for example coffee")
+              add.add_argument("note", nargs="?", default="")
+              add.add_argument("--date", type=date.fromisoformat, help="YYYY-MM-DD (default: today)")
+
+              ls = sub.add_parser("list", help="show expenses, newest first")
+              ls.add_argument("--category")
+
+              sub.add_parser("total", help="show the total for each category")
+
+              done = sub.add_parser("done", help="check in a habit for today")
+              done.add_argument("habit")
+
+              sub.add_parser("streaks", help="show your habit streaks")
+
+              imp = sub.add_parser("import-json", help="copy the data of an old JSON file into the database")
+              imp.add_argument("file", type=Path)
+              return parser
+
+
+          def run(args: argparse.Namespace, store: SqliteStore, today: date) -> None:
+              if args.command == "add":
+                  category, note = clean_expense_text(args.category, args.note)
+                  e = store.add_expense(args.date or today, parse_amount(args.amount), category, note)
+                  print(f"added #{e.id}: {format_cents(e.cents)} {e.category}")
+              elif args.command == "list":
+                  for e in store.list_expenses(args.category):
+                      print(f"{e.id:>3}  {e.day}  {format_cents(e.cents):>9}  {e.category:<12} {e.note}")
+              elif args.command == "total":
+                  totals = store.totals_by_category()
+                  for category, cents in sorted(totals.items()):
+                      print(f"{category:<12} {format_cents(cents):>9}")
+                  print(f"{'all':<12} {format_cents(sum(totals.values())):>9}")
+              elif args.command == "done":
+                  if store.check_in(args.habit, today):
+                      print(f"{args.habit}: done for {today}")
+                  else:
+                      print(f"{args.habit}: already done today")
+              elif args.command == "streaks":
+                  for habit, days in sorted(store.habit_days().items()):
+                      print(f"{habit:<12} {current_streak(days, today)} day(s)")
+              elif args.command == "import-json":
+                  old = JsonStore(args.file)
+                  for e in reversed(old.list_expenses()):  # oldest first
+                      store.add_expense(e.day, e.cents, e.category, e.note)
+                  for habit, days in old.habit_days().items():
+                      for day in sorted(days):
+                          store.check_in(habit, day)
+                  print(f"imported from {args.file}")
+
+
+          def main(argv: list[str] | None = None) -> int:
+              args = build_parser().parse_args(argv)
+              setup_logging("DEBUG" if args.verbose else None)
+              try:
+                  log.debug("using database %s", db_path(args.db))
+                  with SqliteStore(db_path(args.db)) as store:
+                      run(args, store, date.today())
+              except TallyError as err:
+                  print(f"error: {err}", file=sys.stderr)
+                  return 1
+              return 0
+      - file: src/tally/web.py
+        lang: python
+        text: |
+          import hmac
+          import logging
+          import os
+          import time
+          from datetime import date
+          from pathlib import Path
+
+          from flask import Flask, abort, g, jsonify, make_response, render_template_string, request
+          from werkzeug.exceptions import HTTPException
+
+          from .log import setup_logging
+          from .models import Expense, TallyError, clean_expense_text, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+          log = logging.getLogger(__name__)
+
+          PAGE = """<!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Tally</title>
+            <style>
+              body { font-family: system-ui, sans-serif; max-width: 40rem; margin: 2rem auto; padding: 0 1rem; }
+              td, th { padding: 0.25rem 0.75rem; text-align: left; }
+            </style>
+          </head>
+          <body>
+            <h1>Tally</h1>
+            <h2>Totals</h2>
+            <table>
+              {% for category, amount in totals %}
+              <tr><td>{{ category }}</td><td>{{ amount }}</td></tr>
+              {% else %}
+              <tr><td>No expenses yet.</td></tr>
+              {% endfor %}
+            </table>
+            <h2>Latest</h2>
+            <table>
+              {% for e in latest %}
+              <tr><td>{{ e.date }}</td><td>{{ e.amount }}</td><td>{{ e.category }}</td><td>{{ e.note }}</td></tr>
+              {% endfor %}
+            </table>
+          </body>
+          </html>
+          """
+
+
+          def expense_json(e: Expense) -> dict:
+              return {
+                  "id": e.id,
+                  "date": e.day.isoformat(),
+                  "amount": format_cents(e.cents),
+                  "category": e.category,
+                  "note": e.note,
+              }
+
+
+          def create_app(db_path: Path | None = None, token: str | None = None) -> Flask:
+              setup_logging(os.environ.get("TALLY_LOG_LEVEL", "INFO"))
+              app = Flask(__name__)
+              app.config["SLOW_MS"] = 500
+              app.config["DB_PATH"] = db_path or default_db_path()
+              app.config["TOKEN"] = os.environ.get("TALLY_TOKEN", "") if token is None else token
+              app.config["MAX_CONTENT_LENGTH"] = 16_000  # refuse bigger request bodies
+
+              def store() -> SqliteStore:
+                  if "store" not in g:  # one connection per request
+                      g.store = SqliteStore(app.config["DB_PATH"])
+                  return g.store
+
+              @app.teardown_appcontext
+              def close_store(_error) -> None:
+                  s = g.pop("store", None)
+                  if s is not None:
+                      s.close()
+
+              def require_token() -> None:
+                  expected = app.config["TOKEN"]
+                  if not expected:  # no token set: nobody may write
+                      abort(make_response(jsonify(error="writing is off: set the TALLY_TOKEN variable"), 403))
+                  given = request.headers.get("Authorization", "")
+                  if not hmac.compare_digest(given.encode(), f"Bearer {expected}".encode()):
+                      abort(make_response(jsonify(error="missing or wrong token"), 401))
+
+              @app.before_request
+              def start_timer() -> None:
+                  g.started = time.perf_counter()
+
+              @app.after_request
+              def log_slow_requests(response):
+                  ms = (time.perf_counter() - g.get("started", time.perf_counter())) * 1000
+                  if ms >= app.config["SLOW_MS"]:
+                      log.warning("slow request: %s %s took %.0f ms", request.method, request.path, ms)
+                  return response
+
+              @app.errorhandler(Exception)
+              def crash(err: Exception):
+                  if isinstance(err, HTTPException):  # 404, 413 ... keep their normal answer
+                      return err
+                  log.exception("unhandled error on %s %s", request.method, request.path)
+                  return jsonify(error="internal error"), 500
+
+              @app.get("/health")
+              def health():
+                  try:
+                      store().db.execute("SELECT 1").fetchone()
+                  except Exception:
+                      log.exception("health check failed")
+                      return jsonify(status="down"), 503
+                  return jsonify(status="ok")
+
+              @app.errorhandler(413)
+              def too_big(_err):
+                  return jsonify(error="request is too large"), 413
+
+              @app.errorhandler(TallyError)
+              def bad_input(err: TallyError):
+                  return jsonify(error=str(err)), 400
+
+              @app.get("/")
+              def index():
+                  totals = [(c, format_cents(v)) for c, v in sorted(store().totals_by_category().items())]
+                  latest = [expense_json(e) for e in store().list_expenses(limit=10)]
+                  return render_template_string(PAGE, totals=totals, latest=latest)
+
+              @app.get("/api/expenses")
+              def list_expenses():
+                  rows = store().list_expenses(request.args.get("category"), limit=100)
+                  return jsonify([expense_json(e) for e in rows])
+
+              @app.post("/api/expenses")
+              def add_expense():
+                  require_token()
+                  body = request.get_json(silent=True)
+                  if not isinstance(body, dict):
+                      raise TallyError("send a JSON object")
+                  category, note = clean_expense_text(str(body.get("category", "")), str(body.get("note", "")))
+                  try:
+                      day = date.fromisoformat(body["date"]) if "date" in body else date.today()
+                  except (TypeError, ValueError):
+                      raise TallyError("date must look like 2026-10-17") from None
+                  e = store().add_expense(
+                      day,
+                      parse_amount(str(body.get("amount", ""))),
+                      category,
+                      note,
+                  )
+                  log.info("expense added: id=%s category=%s", e.id, e.category)
+                  return jsonify(expense_json(e)), 201
+
+              @app.get("/api/totals")
+              def totals():
+                  return jsonify({c: format_cents(v) for c, v in sorted(store().totals_by_category().items())})
+
+              return app
+      - file: tests/test_web.py
+        lang: python
+        text: |
+          import pytest
+
+          from tally.web import create_app
+
+
+          AUTH = {"Authorization": "Bearer secret"}
+
+
+          @pytest.fixture
+          def client(tmp_path):
+              return create_app(tmp_path / "web.db", token="secret").test_client()
+
+
+          def test_add_and_read_back(client):
+              r = client.post("/api/expenses", json={"amount": "4.50", "category": "coffee"}, headers=AUTH)
+              assert r.status_code == 201
+              assert r.get_json()["amount"] == "4.50"
+              assert client.get("/api/expenses").get_json()[0]["category"] == "coffee"
+              assert client.get("/api/totals").get_json() == {"coffee": "4.50"}
+
+
+          @pytest.mark.parametrize(
+              "body",
+              [{"amount": "0", "category": "x"}, {"amount": "abc", "category": "x"}, {"amount": "1"}, {"amount": "1", "category": "x", "date": "tomorrow"},
+               {"amount": "1", "category": "x" * 41}, {"amount": "1", "category": "x", "note": "a\nb"}],
+          )
+          def test_bad_input_is_400(client, body):
+              r = client.post("/api/expenses", json=body, headers=AUTH)
+              assert r.status_code == 400
+              assert "error" in r.get_json()
+
+
+          def test_page_escapes_html(client):
+              client.post("/api/expenses", json={"amount": "1", "category": "<script>alert(1)</script>"}, headers=AUTH)
+              html = client.get("/").text
+              assert "<script>alert(1)</script>" not in html
+              assert "&lt;script&gt;" in html
+
+
+          def test_writing_needs_the_right_token(client, tmp_path):
+              body = {"amount": "1", "category": "x"}
+              assert client.post("/api/expenses", json=body).status_code == 401
+              assert client.post("/api/expenses", json=body, headers={"Authorization": "Bearer nope"}).status_code == 401
+              assert client.get("/api/expenses").status_code == 200  # reading stays open
+
+
+          def test_writing_is_off_without_a_token(tmp_path):
+              client = create_app(tmp_path / "web.db", token="").test_client()
+              r = client.post("/api/expenses", json={"amount": "1", "category": "x"}, headers=AUTH)
+              assert r.status_code == 403
+
+
+          def test_huge_body_is_refused(client):
+              r = client.post("/api/expenses", data="x" * 20_000, headers=AUTH, content_type="application/json")
+              assert r.status_code == 413
+
+
+          def test_health(client):
+              assert client.get("/health").get_json() == {"status": "ok"}
+
+
+          def test_health_is_503_when_the_database_is_broken(tmp_path):
+              bad = tmp_path / "missing-dir" / "x" / "web.db"
+              bad.parent.parent.write_text("a file, not a folder")  # the database cannot be created here
+              client = create_app(bad, token="secret").test_client()
+              assert client.get("/health").status_code == 503
+
+
+          def test_logs_a_slow_request(client, caplog):
+              client.application.config["SLOW_MS"] = 0
+              with caplog.at_level("WARNING", logger="tally.web"):
+                  client.get("/api/totals")
+              assert "slow request: GET /api/totals" in caplog.text
+
+
+          def test_unexpected_error_is_logged_and_hidden(client, caplog, monkeypatch):
+              def boom(*args, **kwargs):
+                  raise RuntimeError("secret details")
+
+              monkeypatch.setattr("tally.web.SqliteStore.totals_by_category", boom)
+              r = client.get("/api/totals")
+              assert r.status_code == 500
+              assert r.get_json() == {"error": "internal error"}
+              assert "secret details" in caplog.text  # in the log, not in the answer
+      - file: terminal
+        lang: sh
+        text: |
+          uv run pytest
+          uv run tally -v list
+          uv run --extra web flask --app tally.web:create_app run --port 5001
+          curl -i http://127.0.0.1:5001/health
+    mistakes:
+      - problem:
+          en: "Using `print()` in the web app instead of logging."
+          tr: "Web uygulamasında loglama yerine `print()` kullanmak."
+        fix:
+          en: "print has no level, no time and cannot be turned off. Use `log = logging.getLogger(__name__)` and `log.info(...)`."
+          tr: "print'in seviyesi ve zamanı yoktur, kapatılamaz. `log = logging.getLogger(__name__)` ve `log.info(...)` kullan."
+      - problem:
+          en: "Logging the Authorization header, passwords or whole request bodies."
+          tr: "Authorization header'ını, parolaları ya da tüm istek body'lerini loglamak."
+        fix:
+          en: "Logs are copied, searched and shared. Log ids and counts (`id=7`), never secrets."
+          tr: "Loglar kopyalanır, aranır ve paylaşılır. Sırları değil, id ve sayıları logla (`id=7`)."
+      - problem:
+          en: "A health check that always answers `ok` without checking anything."
+          tr: "Hiçbir şeyi kontrol etmeden hep `ok` dönen bir health check."
+        fix:
+          en: "Make it touch what matters. `/health` runs `SELECT 1` on the database, so a broken database gives `503`."
+          tr: "Önemli olan şeye dokunsun. `/health` veritabanında `SELECT 1` çalıştırır; veritabanı bozuksa `503` döner."
+    quiz:
+      - q:
+          en: "A visitor triggers a bug. What should they see, and what should the log contain?"
+          tr: "Bir ziyaretçi bir bug tetikliyor. O ne görmeli, log ne içermeli?"
+        options:
+          en: [The full traceback in both places, A short 'internal error' message while the log has the full traceback, Nothing in either place]
+          tr: [İki yerde de tam traceback, Kısa bir 'internal error' mesajı; log'da tam traceback, İki yerde de hiçbir şey]
+        answer: 1
+        why:
+          en: "The visitor must not learn how the program is built, but you need every detail to fix the bug."
+          tr: "Ziyaretçi programın nasıl yapıldığını öğrenmemeli, ama bug'ı düzeltmek için senin her ayrıntıya ihtiyacın var."
+    sources:
+      - title: "Logging HOWTO"
+        url: https://docs.python.org/3/howto/logging.html
+      - title: "Flask: logging"
+        url: https://flask.palletsprojects.com/en/stable/logging/
+      - title: "Flask: handling application errors"
+        url: https://flask.palletsprojects.com/en/stable/errorhandling/
+
+  - id: polish
+    stage: advanced
+    title:
+      en: "CSV export, a linter, type checks and CI"
+      tr: "CSV dışa aktarma, linter, tip kontrolü ve CI"
+    minutes: 60
+    needs: [watch]
+    why:
+      en: "The last step makes the project easy to keep alive. A linter and a formatter keep the code tidy without arguments, a type checker finds mistakes before you run the code, and CI (continuous integration) runs all your checks on every push, so a broken change cannot sneak in."
+      tr: "Son adım projeyi ayakta tutmayı kolaylaştırır. Linter ve formatter kodu tartışmasız düzenli tutar, tip denetleyicisi hataları kodu çalıştırmadan bulur, CI (sürekli entegrasyon) her push'ta bütün kontrollerini çalıştırır; böylece bozuk bir değişiklik içeri sızamaz."
+    learn:
+      en: |
+        - **ruff** is a very fast linter (finds mistakes and unused code) and formatter (one code style for everybody)
+        - **mypy** reads your type hints and reports places where the types do not fit
+        - The `csv` module writes correct CSV, including quotes around commas
+        - **CI** with GitHub Actions: a YAML file in `.github/workflows/` that runs your commands on a fresh machine
+        - `uv sync --locked` fails if `uv.lock` is out of date, which keeps CI honest
+        - What is next: Python 3.15 adds `lazy import`, which delays loading a module until first use and can speed up the start of command-line tools. Tally supports Python 3.12 and newer, so it cannot use that syntax yet
+      tr: |
+        - **ruff** çok hızlı bir linter (hataları ve kullanılmayan kodu bulur) ve formatter'dır (herkes için tek kod stili)
+        - **mypy** tip ipuçlarını okur ve tiplerin uymadığı yerleri bildirir
+        - `csv` modülü virgülleri tırnağa alarak doğru CSV yazar
+        - GitHub Actions ile **CI**: `.github/workflows/` içinde, komutlarını temiz bir makinede çalıştıran bir YAML dosyası
+        - `uv sync --locked`, `uv.lock` eskiyse hata verir; bu da CI'ı dürüst tutar
+        - Sırada ne var: Python 3.15 `lazy import` getirdi; bir modülün yüklenmesini ilk kullanıma kadar erteler ve komut satırı araçlarının başlangıcını hızlandırabilir. Tally Python 3.12 ve üstünü desteklediği için bu söz dizimini henüz kullanamaz
+    do:
+      en: |
+        1. Add the tools: `uv add --dev ruff mypy`.
+        2. Add the settings (first code block) to the end of `pyproject.toml`.
+        3. Replace `src/tally/sqlstore.py` and `src/tally/cli.py` with the next two blocks. The store now checks that SQLite really returned an id (mypy asks for it), and the command line has a new `export` command that prints all expenses as CSV.
+        4. Replace `tests/test_cli.py` with the next block, which tests the export.
+        5. Run the checks one by one: `uv run ruff check --fix .` (also sorts imports), `uv run ruff format .` (this one rewrites files into the standard style), `uv run mypy src` and `uv run pytest`. Everything should be green; 47 tests pass and 1 is skipped.
+        6. Try the export: `uv run tally export > expenses.csv` and open the file in a spreadsheet.
+        7. Create `.github/workflows/test.yml` with the last block. The `uses:` lines are pinned to exact versions the way the uv docs show. Check the uv GitHub Actions page for newer ones from time to time.
+        8. Commit and push: `git add .`, `git commit -m "Add export, linting, type checks and CI"`, `git push`. On GitHub open the *Actions* tab and watch the checks run.
+      tr: |
+        1. Araçları ekle: `uv add --dev ruff mypy`.
+        2. Ayarları (ilk kod bloğu) `pyproject.toml` sonuna ekle.
+        3. `src/tally/sqlstore.py` ve `src/tally/cli.py` dosyalarını sonraki iki blokla değiştir. Depo artık SQLite'ın gerçekten bir id döndürdüğünü kontrol ediyor (mypy bunu istiyor) ve komut satırında bütün harcamaları CSV olarak yazan yeni bir `export` komutu var.
+        4. `tests/test_cli.py` dosyasını export'u test eden sonraki blokla değiştir.
+        5. Kontrolleri tek tek çalıştır: `uv run ruff check --fix .` (import'ları da sıralar), `uv run ruff format .` (bu dosyaları standart stile yeniden yazar), `uv run mypy src` ve `uv run pytest`. Hepsi yeşil olmalı; 47 test geçer, 1 atlanır.
+        6. Export'u dene: `uv run tally export > expenses.csv` ve dosyayı bir hesap tablosunda aç.
+        7. Son blokla `.github/workflows/test.yml` dosyasını oluştur. `uses:` satırları uv dokümanlarının gösterdiği gibi tam sürümlere sabitlenmiş. Zaman zaman uv'nin GitHub Actions sayfasından daha yenilerine bak.
+        8. Commit et ve gönder: `git add .`, `git commit -m "Add export, linting, type checks and CI"`, `git push`. GitHub'da *Actions* sekmesini aç ve kontrollerin çalışmasını izle.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add --dev ruff mypy
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          [tool.ruff]
+          line-length = 100
+
+          [tool.ruff.lint]
+          select = ["F", "I", "B", "UP"]
+
+          [tool.mypy]
+          check_untyped_defs = true
+      - file: src/tally/sqlstore.py
+        lang: python
+        text: |
+          import os
+          import sqlite3
+          from datetime import date
+          from pathlib import Path
+
+          from .models import Expense
+
+          SCHEMA = """
+          CREATE TABLE IF NOT EXISTS expenses (
+              id INTEGER PRIMARY KEY,
+              day TEXT NOT NULL,
+              cents INTEGER NOT NULL CHECK (cents > 0),
+              category TEXT NOT NULL,
+              note TEXT NOT NULL DEFAULT ''
+          );
+          CREATE INDEX IF NOT EXISTS expenses_category ON expenses (category);
+          CREATE INDEX IF NOT EXISTS expenses_day ON expenses (day, id);
+          CREATE TABLE IF NOT EXISTS checkins (
+              habit TEXT NOT NULL,
+              day TEXT NOT NULL,
+              PRIMARY KEY (habit, day)
+          );
+          """
+
+
+          def default_db_path() -> Path:
+              return Path(os.environ.get("TALLY_DB", Path.home() / ".tally" / "tally.db"))
+
+
+          class SqliteStore:
+              """The same methods as JsonStore, but the data lives in a SQLite database file."""
+
+              def __init__(self, path: Path | str):
+                  if str(path) != ":memory:":
+                      Path(path).parent.mkdir(parents=True, exist_ok=True)
+                  self.db = sqlite3.connect(path)
+                  self.db.row_factory = sqlite3.Row
+                  self.db.executescript(SCHEMA)
+
+              def close(self) -> None:
+                  self.db.close()
+
+              def __enter__(self) -> "SqliteStore":
+                  return self
+
+              def __exit__(self, *exc_info) -> None:
+                  self.close()
+
+              def add_expense(self, day: date, cents: int, category: str, note: str = "") -> Expense:
+                  with self.db:  # commits when the block ends, rolls back on an error
+                      cur = self.db.execute(
+                          "INSERT INTO expenses (day, cents, category, note) VALUES (?, ?, ?, ?)",
+                          (day.isoformat(), cents, category, note),
+                      )
+                  if cur.lastrowid is None:
+                      raise RuntimeError("SQLite did not return the new id")
+                  return Expense(day, cents, category, note, cur.lastrowid)
+
+              def add_many(self, rows: list[tuple[date, int, str, str]]) -> None:
+                  """Insert many expenses in one transaction. Much faster than calling add_expense in a loop."""
+                  with self.db:
+                      self.db.executemany(
+                          "INSERT INTO expenses (day, cents, category, note) VALUES (?, ?, ?, ?)",
+                          [(d.isoformat(), cents, category, note) for d, cents, category, note in rows],
+                      )
+
+              def list_expenses(self, category: str | None = None, limit: int | None = None) -> list[Expense]:
+                  sql = "SELECT id, day, cents, category, note FROM expenses"
+                  params: list = []
+                  if category is not None:
+                      sql += " WHERE category = ?"
+                      params.append(category)
+                  sql += " ORDER BY day DESC, id DESC"
+                  if limit is not None:
+                      sql += " LIMIT ?"
+                      params.append(limit)
+                  rows = self.db.execute(sql, params).fetchall()
+                  return [
+                      Expense(date.fromisoformat(r["day"]), r["cents"], r["category"], r["note"], r["id"])
+                      for r in rows
+                  ]
+
+              def totals_by_category(self) -> dict[str, int]:
+                  rows = self.db.execute(
+                      "SELECT category, SUM(cents) AS cents FROM expenses GROUP BY category"
+                  )
+                  return {r["category"]: r["cents"] for r in rows}
+
+              def check_in(self, habit: str, day: date) -> bool:
+                  with self.db:
+                      cur = self.db.execute(
+                          "INSERT OR IGNORE INTO checkins (habit, day) VALUES (?, ?)",
+                          (habit, day.isoformat()),
+                      )
+                  return cur.rowcount == 1
+
+              def habit_days(self) -> dict[str, set[date]]:
+                  habits: dict[str, set[date]] = {}
+                  for r in self.db.execute("SELECT habit, day FROM checkins"):
+                      habits.setdefault(r["habit"], set()).add(date.fromisoformat(r["day"]))
+                  return habits
+      - file: src/tally/cli.py
+        lang: python
+        text: |
+          import argparse
+          import csv
+          import logging
+          import sys
+          from datetime import date
+          from pathlib import Path
+
+          from .habits import current_streak
+          from .jsonstore import JsonStore
+          from .log import setup_logging
+          from .models import TallyError, clean_expense_text, format_cents, parse_amount
+          from .sqlstore import SqliteStore, default_db_path
+
+          log = logging.getLogger(__name__)
+
+
+          def db_path(option: Path | None) -> Path:
+              return option or default_db_path()
+
+
+          def build_parser() -> argparse.ArgumentParser:
+              parser = argparse.ArgumentParser(prog="tally", description="Track your expenses and habits.")
+              parser.add_argument("--db", type=Path, help="database file (default: ~/.tally/tally.db)")
+              parser.add_argument(
+                  "-v", "--verbose", action="store_true", help="print debug messages to stderr"
+              )
+              sub = parser.add_subparsers(dest="command", required=True)
+
+              add = sub.add_parser("add", help="record an expense")
+              add.add_argument("amount", help="for example 4.50")
+              add.add_argument("category", help="for example coffee")
+              add.add_argument("note", nargs="?", default="")
+              add.add_argument("--date", type=date.fromisoformat, help="YYYY-MM-DD (default: today)")
+
+              ls = sub.add_parser("list", help="show expenses, newest first")
+              ls.add_argument("--category")
+
+              sub.add_parser("total", help="show the total for each category")
+
+              done = sub.add_parser("done", help="check in a habit for today")
+              done.add_argument("habit")
+
+              sub.add_parser("streaks", help="show your habit streaks")
+
+              sub.add_parser("export", help="print all expenses as CSV")
+
+              imp = sub.add_parser("import-json", help="copy the data of an old JSON file into the database")
+              imp.add_argument("file", type=Path)
+              return parser
+
+
+          def run(args: argparse.Namespace, store: SqliteStore, today: date) -> None:
+              if args.command == "add":
+                  category, note = clean_expense_text(args.category, args.note)
+                  e = store.add_expense(args.date or today, parse_amount(args.amount), category, note)
+                  print(f"added #{e.id}: {format_cents(e.cents)} {e.category}")
+              elif args.command == "list":
+                  for e in store.list_expenses(args.category):
+                      print(f"{e.id:>3}  {e.day}  {format_cents(e.cents):>9}  {e.category:<12} {e.note}")
+              elif args.command == "total":
+                  totals = store.totals_by_category()
+                  for category, cents in sorted(totals.items()):
+                      print(f"{category:<12} {format_cents(cents):>9}")
+                  print(f"{'all':<12} {format_cents(sum(totals.values())):>9}")
+              elif args.command == "done":
+                  if store.check_in(args.habit, today):
+                      print(f"{args.habit}: done for {today}")
+                  else:
+                      print(f"{args.habit}: already done today")
+              elif args.command == "streaks":
+                  for habit, days in sorted(store.habit_days().items()):
+                      print(f"{habit:<12} {current_streak(days, today)} day(s)")
+              elif args.command == "export":
+                  writer = csv.writer(sys.stdout)
+                  writer.writerow(["id", "date", "amount", "category", "note"])
+                  for e in reversed(store.list_expenses()):
+                      writer.writerow([e.id, e.day.isoformat(), format_cents(e.cents), e.category, e.note])
+              elif args.command == "import-json":
+                  old = JsonStore(args.file)
+                  for e in reversed(old.list_expenses()):  # oldest first
+                      store.add_expense(e.day, e.cents, e.category, e.note)
+                  for habit, days in old.habit_days().items():
+                      for day in sorted(days):
+                          store.check_in(habit, day)
+                  print(f"imported from {args.file}")
+
+
+          def main(argv: list[str] | None = None) -> int:
+              args = build_parser().parse_args(argv)
+              setup_logging("DEBUG" if args.verbose else None)
+              try:
+                  log.debug("using database %s", db_path(args.db))
+                  with SqliteStore(db_path(args.db)) as store:
+                      run(args, store, date.today())
+              except TallyError as err:
+                  print(f"error: {err}", file=sys.stderr)
+                  return 1
+              return 0
+      - file: tests/test_cli.py
+        lang: python
+        text: |
+          from tally.cli import main
+
+
+          def run(tmp_path, *args):
+              return main(["--db", str(tmp_path / "t.db"), *args])
+
+
+          def test_add_list_total(tmp_path, capsys):
+              assert run(tmp_path, "add", "4.50", "coffee", "flat white", "--date", "2026-10-17") == 0
+              assert run(tmp_path, "add", "12", "food", "--date", "2026-10-16") == 0
+              capsys.readouterr()
+
+              assert run(tmp_path, "list") == 0
+              out = capsys.readouterr().out
+              assert out.index("coffee") < out.index("food")  # newest first
+              assert "flat white" in out
+
+              assert run(tmp_path, "total") == 0
+              assert capsys.readouterr().out.splitlines()[-1].endswith("16.50")
+
+
+          def test_bad_amount_is_an_error_not_a_crash(tmp_path, capsys):
+              assert run(tmp_path, "add", "abc", "coffee") == 1
+              assert "not a number" in capsys.readouterr().err
+
+
+          def test_done_twice(tmp_path, capsys):
+              run(tmp_path, "done", "run")
+              capsys.readouterr()
+              run(tmp_path, "done", "run")
+              assert "already done" in capsys.readouterr().out
+
+
+          def test_too_long_category_is_refused(tmp_path, capsys):
+              assert run(tmp_path, "add", "1", "x" * 41) == 1
+              assert "too long" in capsys.readouterr().err
+
+
+          def test_export_csv(tmp_path, capsys):
+              run(tmp_path, "add", "4.50", "coffee", "a, b", "--date", "2026-10-17")
+              capsys.readouterr()
+              assert run(tmp_path, "export") == 0
+              lines = capsys.readouterr().out.splitlines()
+              assert lines[0] == "id,date,amount,category,note"
+              assert lines[1] == '1,2026-10-17,4.50,coffee,"a, b"'
+      - file: terminal
+        lang: sh
+        text: |
+          uv run ruff check --fix .
+          uv run ruff format .
+          uv run mypy src
+          uv run pytest
+          uv run tally export > expenses.csv
+      - file: .github/workflows/test.yml
+        lang: yaml
+        text: |
+          name: Tests
+
+          on:
+            push:
+            pull_request:
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+                - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+                - run: uv sync --all-extras --locked
+                - run: uv run ruff check .
+                - run: uv run ruff format --check .
+                - run: uv run mypy src
+                - run: uv run pytest
+    mistakes:
+      - problem:
+          en: "Fighting the formatter by hand-formatting code."
+          tr: "Kodu elle biçimlendirip formatter ile uğraşmak."
+        fix:
+          en: "Do not. Run `uv run ruff format .` and accept the result. Style arguments end when a tool decides."
+          tr: "Yapma. `uv run ruff format .` çalıştır ve sonucu kabul et. Stil tartışmaları bir araç karar verince biter."
+      - problem:
+          en: "Silencing mypy with `# type: ignore` everywhere."
+          tr: "mypy'ı her yerde `# type: ignore` ile susturmak."
+        fix:
+          en: "Fix the cause. mypy told you that `lastrowid` can be `None`; the honest answer is to handle that case, as `add_expense` now does."
+          tr: "Sebebi düzelt. mypy `lastrowid`'in `None` olabileceğini söyledi; dürüst cevap, `add_expense`'in şimdi yaptığı gibi bu durumu ele almaktır."
+      - problem:
+          en: "CI fails with \"The lockfile at `uv.lock` needs to be updated\"."
+          tr: "CI \"The lockfile at `uv.lock` needs to be updated\" hatasıyla başarısız oluyor."
+        fix:
+          en: "You changed dependencies without committing the new lock file. Run `uv lock` locally and commit `uv.lock`."
+          tr: "Bağımlılıkları değiştirdin ama yeni lock dosyasını commit etmedin. Yerelde `uv lock` çalıştır ve `uv.lock`'u commit et."
+    quiz:
+      - q:
+          en: "What is the job of CI in this project?"
+          tr: "Bu projede CI'ın işi nedir?"
+        options:
+          en: [To publish every commit to TestPyPI, To run lint, types and tests on a clean machine at every push, To replace writing tests]
+          tr: [Her commit'i TestPyPI'da yayınlamak, Her push'ta temiz bir makinede lint, tip ve testleri çalıştırmak, Test yazmanın yerini almak]
+        answer: 1
+        why:
+          en: "CI does not replace tests, it runs them every time, on a machine that is not yours, so 'works on my computer' stops being an excuse."
+          tr: "CI testlerin yerini almaz, onları her seferinde senin olmayan bir makinede çalıştırır; böylece 'bende çalışıyor' bahanesi biter."
+    sources:
+      - title: "Ruff documentation"
+        url: https://docs.astral.sh/ruff/
+      - title: "mypy: getting started"
+        url: https://mypy.readthedocs.io/en/stable/getting_started.html
+      - title: "uv: using uv in GitHub Actions"
+        url: https://docs.astral.sh/uv/guides/integration/github/

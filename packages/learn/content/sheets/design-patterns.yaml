@@ -1,0 +1,675 @@
+id: design-patterns
+title: Design patterns
+category: concept
+summary:
+  en: Named, reusable solutions to problems that keep coming up in code, with when each one helps and when it is overkill.
+  tr: Kodda tekrar tekrar çıkan sorunlara verilen, adı konmuş ve tekrar kullanılabilir çözümler; her birinin ne zaman işe yaradığı ve ne zaman gereksiz olduğu.
+aliases: [patterns, gof, gang of four, tasarım kalıpları, tasarım desenleri, singleton, factory, strategy, observer, decorator, dependency injection]
+checked: 2026-10
+sources:
+  - title: Software design pattern (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Software_design_pattern
+  - title: Design Patterns, the Gang of Four book (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Design_Patterns
+  - title: Catalog of Patterns of Enterprise Application Architecture (Martin Fowler)
+    url: https://martinfowler.com/eaaCatalog/
+sections:
+  - id: idea
+    title: { en: The idea, tr: Temel fikir }
+    items:
+      - id: what-is-a-pattern
+        level: basic
+        title: { en: What a pattern is, tr: Kalıp nedir }
+        what:
+          en: A pattern is a proven shape of code for a common problem, with a name so a team can talk about it quickly.
+          tr: Kalıp, yaygın bir soruna verilmiş, denenmiş bir kod biçimidir; adı sayesinde ekip onun hakkında hızlıca konuşabilir.
+        lang: text
+        form: name + problem + solution + trade-offs
+        example: |
+          creational   how objects are made       factory, builder, singleton
+          structural   how objects fit together   adapter, decorator, facade, proxy
+          behavioral   how objects talk           strategy, observer, command, state
+        mistake:
+          en: Starting from the pattern and looking for a place to use it. Start from the problem.
+          tr: Kalıptan başlayıp onu kullanacak bir yer aramak. Sorundan başla.
+        source: https://en.wikipedia.org/wiki/Software_design_pattern
+      - id: functions-first
+        level: basic
+        title: { en: In modern code, often just a function, tr: Modern kodda çoğu zaman sadece bir fonksiyon }
+        what:
+          en: Many classic patterns were written for languages without first-class functions; in TS or Python a function or closure is often enough.
+          tr: Klasik kalıpların çoğu fonksiyonların değer olarak geçilemediği diller için yazıldı; TS ya da Python'da çoğu zaman bir fonksiyon ya da closure yeter.
+        lang: ts
+        form: pass a function instead of an object with one method
+        example: |
+          // strategy, command and callback in one line each
+          const byPrice = (a: { price: number }, b: { price: number }) => a.price - b.price;
+          const items = [{ price: 30 }, { price: 10 }];
+          console.log(items.sort(byPrice).map((i) => i.price));
+        output: |
+          [ 10, 30 ]
+        check: ts
+        source: https://en.wikipedia.org/wiki/First-class_function
+      - id: composition-over-inheritance
+        level: intermediate
+        title: { en: Composition over inheritance, tr: Kalıtım yerine bileşim }
+        what:
+          en: Build behavior by holding other objects instead of extending a base class; most patterns rely on this.
+          tr: Davranışı bir taban sınıftan türeterek değil, başka nesneleri içinde tutarak kur; kalıpların çoğu buna dayanır.
+        lang: ts
+        form: "class A { constructor(private b: B) {} }"
+        example: |
+          interface Logger { log(msg: string): void }
+          const consoleLogger: Logger = { log: (m) => console.log(m) };
+
+          class OrderService {
+            constructor(private logger: Logger) {}
+            place(id: string) { this.logger.log(`order ${id} placed`); }
+          }
+
+          new OrderService(consoleLogger).place("42");
+        output: |
+          order 42 placed
+        check: ts
+        mistake:
+          en: Deep class trees (Animal -> Pet -> Dog -> SmallDog) where a change at the top breaks everything below.
+          tr: Derin sınıf ağaçları (Animal -> Pet -> Dog -> SmallDog); tepedeki bir değişiklik alttaki her şeyi bozar.
+        source: https://en.wikipedia.org/wiki/Composition_over_inheritance
+  - id: creational
+    title: { en: Creating objects, tr: Nesne oluşturma }
+    items:
+      - id: factory
+        level: basic
+        title: { en: Factory, tr: Factory }
+        what:
+          en: A function or method that decides which object to create, so callers do not use new with a concrete class.
+          tr: Hangi nesnenin oluşturulacağına karar veren bir fonksiyon ya da metot; çağıran taraf somut bir sınıfla new kullanmaz.
+        lang: ts
+        form: "function createX(kind): X { ... }"
+        example: |
+          interface Notifier { send(to: string): string }
+          class Email implements Notifier { send(to: string) { return `email to ${to}`; } }
+          class Sms implements Notifier { send(to: string) { return `sms to ${to}`; } }
+
+          function createNotifier(kind: "email" | "sms"): Notifier {
+            return kind === "email" ? new Email() : new Sms();
+          }
+
+          console.log(createNotifier("sms").send("ada"));
+        output: |
+          sms to ada
+        check: ts
+        avoid:
+          en: When there is only one class and no choice to make; just call new.
+          tr: Tek bir sınıf varsa ve seçilecek bir şey yoksa; doğrudan new çağır.
+        source: https://en.wikipedia.org/wiki/Factory_method_pattern
+      - id: builder
+        level: intermediate
+        title: { en: Builder, tr: Builder }
+        what:
+          en: Builds a complex object step by step with readable chained calls instead of a constructor with many arguments.
+          tr: Çok argümanlı bir constructor yerine karmaşık bir nesneyi okunur zincirleme çağrılarla adım adım kurar.
+        lang: ts
+        form: new XBuilder().a(1).b(2).build()
+        example: |
+          class QueryBuilder {
+            private parts: string[] = [];
+            constructor(table: string) { this.parts.push(`SELECT * FROM ${table}`); }
+            where(cond: string) { this.parts.push(`WHERE ${cond}`); return this; }
+            limit(n: number) { this.parts.push(`LIMIT ${n}`); return this; }
+            build() { return this.parts.join(" "); }
+          }
+
+          console.log(new QueryBuilder("users").where("age > 18").limit(10).build());
+        output: |
+          SELECT * FROM users WHERE age > 18 LIMIT 10
+        check: ts
+        avoid:
+          en: For a few optional settings; an options object ({ timeout, retries }) with defaults is simpler in TS and Python.
+          tr: Birkaç isteğe bağlı ayar için; TS ve Python'da varsayılan değerli bir seçenek nesnesi ({ timeout, retries }) daha basit.
+        source: https://en.wikipedia.org/wiki/Builder_pattern
+      - id: singleton
+        level: basic
+        title: { en: Singleton, tr: Singleton }
+        what:
+          en: Makes sure there is only one instance of something, like a database pool, and gives one place to get it.
+          tr: Bir şeyden (bir veritabanı havuzu gibi) yalnızca tek örnek olmasını sağlar ve ona ulaşmak için tek bir yer verir.
+        lang: ts
+        form: export const db = createPool()   // module = one instance
+        example: |
+          class Config {
+            private static instance?: Config;
+            readonly env = "production";
+            private constructor() {}
+            static get() { return (this.instance ??= new Config()); }
+          }
+
+          console.log(Config.get() === Config.get(), Config.get().env);
+        output: |
+          true production
+        check: ts
+        mistake:
+          en: Using it as hidden global state; tests then share it and leak into each other.
+          tr: Onu gizli global durum olarak kullanmak; testler onu paylaşır ve birbirini etkiler.
+        avoid:
+          en: Usually. In TS and Python a module is loaded once, so an exported instance already is a singleton; pass it in where you can.
+          tr: Çoğu zaman. TS ve Python'da bir modül bir kez yüklenir, yani export edilen örnek zaten singleton'dır; mümkünse onu parametre olarak geçir.
+        source: https://en.wikipedia.org/wiki/Singleton_pattern
+      - id: dependency-injection
+        level: intermediate
+        title: { en: Dependency injection, tr: Dependency injection }
+        what:
+          en: A class gets the things it needs (database, clock, mailer) from outside instead of creating them, so they are easy to swap in tests.
+          tr: Bir sınıf ihtiyaç duyduğu şeyleri (veritabanı, saat, mail gönderici) kendisi oluşturmaz, dışarıdan alır; böylece testte kolayca değiştirilir.
+        lang: ts
+        form: "constructor(private repo: Repo) {}"
+        example: |
+          interface Clock { now(): Date }
+
+          class Greeter {
+            constructor(private clock: Clock) {}
+            greet() { return this.clock.now().getUTCHours() < 12 ? "Good morning" : "Good afternoon"; }
+          }
+
+          const fixedClock: Clock = { now: () => new Date("2026-01-01T09:00:00Z") };
+          console.log(new Greeter(fixedClock).greet());
+        output: |
+          Good morning
+        check: ts
+        avoid:
+          en: A DI container or framework is overkill for a small app; passing arguments by hand is dependency injection too.
+          tr: Küçük bir uygulama için DI container ya da framework gereksiz; argümanları elle geçirmek de dependency injection'dır.
+        source: https://martinfowler.com/articles/injection.html
+  - id: structural
+    title: { en: Fitting things together, tr: Parçaları birleştirme }
+    items:
+      - id: adapter
+        level: basic
+        title: { en: Adapter, tr: Adapter }
+        what:
+          en: Wraps an object with the wrong interface so it looks like the one your code expects, like a travel plug adapter.
+          tr: Yanlış arayüzlü bir nesneyi sarar ve kodunun beklediği arayüz gibi görünmesini sağlar; seyahat priz adaptörü gibi.
+        lang: ts
+        form: "class XAdapter implements Wanted { constructor(private x: X) {} }"
+        example: |
+          interface Payment { pay(cents: number): string }
+
+          // third-party SDK with a different shape
+          const stripeLike = { charge: (o: { amount: number; currency: string }) => `charged ${o.amount} ${o.currency}` };
+
+          const stripeAdapter: Payment = {
+            pay: (cents) => stripeLike.charge({ amount: cents, currency: "usd" }),
+          };
+
+          console.log(stripeAdapter.pay(500));
+        output: |
+          charged 500 usd
+        check: ts
+        avoid:
+          en: When you own both sides; change one of them to match instead.
+          tr: İki tarafın da sahibi sensen; adapter yerine birini diğerine uyacak şekilde değiştir.
+        source: https://en.wikipedia.org/wiki/Adapter_pattern
+      - id: decorator
+        level: basic
+        title: { en: Decorator, tr: Decorator }
+        what:
+          en: Wraps a function or object to add behavior (logging, caching, retry) without changing the original.
+          tr: Bir fonksiyonu ya da nesneyi sararak ona davranış ekler (loglama, önbellek, yeniden deneme); orijinali değiştirmez.
+        lang: py
+        form: "@decorator above a function"
+        example: |
+          import functools
+
+          def logged(fn):
+              @functools.wraps(fn)
+              def wrapper(*args):
+                  result = fn(*args)
+                  print(f"{fn.__name__}{args} -> {result}")
+                  return result
+              return wrapper
+
+          @logged
+          def add(a, b):
+              return a + b
+
+          add(2, 3)
+        output: |
+          add(2, 3) -> 5
+        check: py
+        mistake:
+          en: Forgetting functools.wraps, so the wrapped function loses its name and docstring.
+          tr: functools.wraps'i unutmak; sarılan fonksiyon adını ve docstring'ini kaybeder.
+        avoid:
+          en: When stacking many wrappers makes it hard to see what a call really does; one plain function can be clearer.
+          tr: Üst üste çok sarmalayıcı, bir çağrının gerçekte ne yaptığını görmeyi zorlaştırıyorsa; düz bir fonksiyon daha açık olabilir.
+        source: https://en.wikipedia.org/wiki/Decorator_pattern
+      - id: facade
+        level: basic
+        title: { en: Facade, tr: Facade }
+        what:
+          en: Gives one simple function or class in front of a complicated set of parts.
+          tr: Karmaşık bir parça grubunun önüne tek, basit bir fonksiyon ya da sınıf koyar.
+        lang: ts
+        form: "export function doTheThing() { a(); b(); c(); }"
+        example: |
+          const inventory = { reserve: (id: string) => `reserved ${id}` };
+          const payments = { charge: (cents: number) => `charged ${cents}` };
+          const mailer = { send: (to: string) => `mailed ${to}` };
+
+          // one call for the controller instead of three
+          function checkout(id: string, cents: number, email: string) {
+            return [inventory.reserve(id), payments.charge(cents), mailer.send(email)].join(", ");
+          }
+
+          console.log(checkout("sku-1", 999, "ada@example.com"));
+        output: |
+          reserved sku-1, charged 999, mailed ada@example.com
+        check: ts
+        avoid:
+          en: When it only forwards one call to one object; that layer adds nothing.
+          tr: Tek bir nesneye tek bir çağrıyı aktarmaktan başka bir şey yapmıyorsa; o katman hiçbir şey katmaz.
+        source: https://en.wikipedia.org/wiki/Facade_pattern
+      - id: proxy
+        level: intermediate
+        title: { en: Proxy, tr: Proxy }
+        what:
+          en: Stands in front of an object with the same interface and controls access to it (lazy loading, caching, checks).
+          tr: Aynı arayüzle bir nesnenin önünde durur ve ona erişimi kontrol eder (geç yükleme, önbellek, denetim).
+        lang: js
+        form: new Proxy(target, { get, set })
+        example: |
+          const user = { name: "Ada", age: 36 };
+          const readOnly = new Proxy(user, {
+            set() { throw new Error("read only"); },
+          });
+          try { readOnly.age = 1; } catch (e) { console.log(e.message); }
+          console.log(readOnly.name);
+        output: |
+          read only
+          Ada
+        check: js
+        avoid:
+          en: In hot paths; JavaScript Proxy objects are slower than plain objects. Object.freeze covers simple read-only cases.
+          tr: Çok sık çalışan kodda; JavaScript Proxy nesneleri düz nesnelerden yavaştır. Basit salt okunur durumlar için Object.freeze yeter.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
+      - id: composite
+        level: intermediate
+        title: { en: Composite, tr: Composite }
+        what:
+          en: Treats a single item and a group of items the same way, like files and folders.
+          tr: Tek bir elemanı ve eleman grubunu aynı şekilde ele alır; dosyalar ve klasörler gibi.
+        lang: ts
+        form: "type Node = Leaf | { children: Node[] }"
+        example: |
+          type Entry = { name: string; size: number } | { name: string; children: Entry[] };
+
+          const size = (e: Entry): number =>
+            "children" in e ? e.children.reduce((s, c) => s + size(c), 0) : e.size;
+
+          const root: Entry = {
+            name: "src",
+            children: [{ name: "a.ts", size: 10 }, { name: "lib", children: [{ name: "b.ts", size: 5 }] }],
+          };
+          console.log(size(root));
+        output: |
+          15
+        check: ts
+        source: https://en.wikipedia.org/wiki/Composite_pattern
+  - id: behavioral
+    title: { en: How parts talk, tr: Parçalar nasıl konuşur }
+    items:
+      - id: strategy
+        level: basic
+        title: { en: Strategy, tr: Strategy }
+        what:
+          en: Puts interchangeable algorithms behind one interface so you can pick one at run time instead of a long if/else.
+          tr: Birbirinin yerine geçebilen algoritmaları tek bir arayüzün arkasına koyar; uzun if/else yerine çalışırken birini seçersin.
+        lang: ts
+        form: "const strategies: Record<Kind, (x) => y> = { ... }"
+        example: |
+          type Shipping = (kg: number) => number;
+          const shipping: Record<string, Shipping> = {
+            standard: (kg) => 5 + kg,
+            express: (kg) => 15 + kg * 2,
+          };
+
+          console.log(shipping.standard(3), shipping.express(3));
+        output: |
+          8 21
+        check: ts
+        avoid:
+          en: For two cases that rarely change; a plain if is easier to read.
+          tr: Nadiren değişen iki durum için; düz bir if daha okunur.
+        source: https://en.wikipedia.org/wiki/Strategy_pattern
+      - id: observer
+        level: basic
+        title: { en: Observer (events), tr: Observer (olaylar) }
+        what:
+          en: Lets many listeners subscribe to an object and get told when something happens, without the object knowing who they are.
+          tr: Birçok dinleyicinin bir nesneye abone olmasını ve bir şey olduğunda haber almasını sağlar; nesne onların kim olduğunu bilmez.
+        lang: js
+        form: target.addEventListener(type, fn) / emitter.on(event, fn)
+        example: |
+          import { EventEmitter } from "node:events";
+
+          const orders = new EventEmitter();
+          orders.on("placed", (id) => console.log(`email for ${id}`));
+          orders.on("placed", (id) => console.log(`stock for ${id}`));
+          orders.emit("placed", 42);
+        output: |
+          email for 42
+          stock for 42
+        check: js
+        mistake:
+          en: Never removing listeners; they keep objects alive and cause memory leaks. Call off or removeEventListener.
+          tr: Dinleyicileri hiç kaldırmamak; nesneleri canlı tutar ve bellek sızıntısına yol açar. off ya da removeEventListener çağır.
+        avoid:
+          en: When the order and result of each step matter; plain function calls are easier to follow and debug.
+          tr: Her adımın sırası ve sonucu önemliyse; düz fonksiyon çağrılarını takip etmek ve debug etmek daha kolaydır.
+        source: https://en.wikipedia.org/wiki/Observer_pattern
+      - id: iterator
+        level: basic
+        title: { en: Iterator, tr: Iterator }
+        what:
+          en: Walks through a collection one item at a time without exposing how it is stored; generators make one in a few lines.
+          tr: Bir koleksiyonun nasıl saklandığını göstermeden elemanlarını tek tek dolaşır; generator'lar bunu birkaç satırda yapar.
+        lang: py
+        form: "def items(): yield ..."
+        example: |
+          def pages(total, size):
+              for start in range(0, total, size):
+                  yield (start, min(start + size, total))
+
+          for page in pages(25, 10):
+              print(page)
+        output: |
+          (0, 10)
+          (10, 20)
+          (20, 25)
+        check: py
+        source: https://docs.python.org/3/glossary.html#term-generator
+      - id: command
+        level: intermediate
+        title: { en: Command, tr: Command }
+        what:
+          en: Turns an action into an object you can store, queue, log or undo.
+          tr: Bir eylemi saklanabilen, kuyruğa alınabilen, loglanabilen ya da geri alınabilen bir nesneye çevirir.
+        lang: ts
+        form: "{ do(): void; undo(): void }"
+        example: |
+          interface Command { do(): void; undo(): void }
+          const text: string[] = [];
+          const history: Command[] = [];
+
+          function type(word: string) {
+            const cmd: Command = { do: () => text.push(word), undo: () => text.pop() };
+            cmd.do();
+            history.push(cmd);
+          }
+
+          type("hello"); type("world");
+          history.pop()?.undo();
+          console.log(text.join(" "));
+        output: |
+          hello
+        check: ts
+        avoid:
+          en: When you do not need undo, queues or history; call the function directly.
+          tr: Geri alma, kuyruk ya da geçmiş gerekmiyorsa; fonksiyonu doğrudan çağır.
+        source: https://en.wikipedia.org/wiki/Command_pattern
+      - id: state
+        level: intermediate
+        title: { en: State machine, tr: Durum makinesi }
+        what:
+          en: Lists the allowed states and moves between them, so invalid changes (shipping an unpaid order) are impossible.
+          tr: İzin verilen durumları ve aralarındaki geçişleri listeler; böylece geçersiz değişiklikler (ödenmemiş siparişi kargolamak) imkansız olur.
+        lang: ts
+        form: "const transitions: Record<State, State[]> = { ... }"
+        example: |
+          type State = "new" | "paid" | "shipped";
+          const next: Record<State, State[]> = { new: ["paid"], paid: ["shipped"], shipped: [] };
+
+          function move(from: State, to: State): State {
+            if (!next[from].includes(to)) throw new Error(`${from} -> ${to} not allowed`);
+            return to;
+          }
+
+          console.log(move("new", "paid"));
+          try { move("new", "shipped"); } catch (e) { console.log((e as Error).message); }
+        output: |
+          paid
+          new -> shipped not allowed
+        check: ts
+        mistake:
+          en: Tracking state with several booleans (isPaid, isShipped) that can end up in combinations that make no sense.
+          tr: Durumu birkaç boolean ile (isPaid, isShipped) tutmak; anlamsız kombinasyonlara düşebilirler.
+        source: https://en.wikipedia.org/wiki/State_pattern
+      - id: template-method
+        level: intermediate
+        title: { en: Template method, tr: Template method }
+        what:
+          en: A base defines the fixed steps of a job and lets subclasses fill in some of them.
+          tr: Bir taban sınıf işin sabit adımlarını tanımlar, bazılarını alt sınıfların doldurmasına bırakır.
+        lang: ts
+        form: abstract class with one abstract step
+        example: |
+          abstract class Report {
+            render() { return [this.header(), this.body(), "-- end"].join("\n"); }
+            header() { return "REPORT"; }
+            abstract body(): string;
+          }
+
+          class SalesReport extends Report { body() { return "sales: 120"; } }
+          console.log(new SalesReport().render());
+        output: |
+          REPORT
+          sales: 120
+          -- end
+        check: ts
+        avoid:
+          en: When the varying step can be a function argument; passing a function avoids inheritance entirely.
+          tr: Değişen adım bir fonksiyon argümanı olabiliyorsa; fonksiyon geçirmek kalıtımı tamamen ortadan kaldırır.
+        source: https://en.wikipedia.org/wiki/Template_method_pattern
+      - id: chain-of-responsibility
+        level: advanced
+        title: { en: Chain of responsibility (middleware), tr: Chain of responsibility (middleware) }
+        what:
+          en: Passes a request through a line of handlers, each of which can act, pass it on or stop it; web middleware works this way.
+          tr: Bir isteği sıradaki işleyicilerden geçirir; her biri bir şey yapabilir, ileri aktarabilir ya da durdurabilir. Web middleware'i böyle çalışır.
+        lang: ts
+        form: "(req, next) => { ...; return next() }"
+        example: |
+          type Req = { user?: string; path: string };
+          type Handler = (req: Req, next: () => string) => string;
+
+          const auth: Handler = (req, next) => (req.user ? next() : "401");
+          const log: Handler = (req, next) => `${req.path} ${next()}`;
+          const app = () => "200";
+
+          const run = (hs: Handler[], req: Req): string =>
+            hs.length ? hs[0](req, () => run(hs.slice(1), req)) : app();
+
+          console.log(run([log, auth], { path: "/me" }));
+          console.log(run([log, auth], { path: "/me", user: "ada" }));
+        output: |
+          /me 401
+          /me 200
+        check: ts
+        mistake:
+          en: Getting the order wrong, for example putting a body parser after the handler that reads the body.
+          tr: Sırayı yanlış kurmak; örneğin body'yi okuyan handler'dan sonra body parser koymak.
+        source: https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern
+  - id: application
+    title: { en: Application patterns, tr: Uygulama kalıpları }
+    items:
+      - id: repository
+        level: intermediate
+        title: { en: Repository, tr: Repository }
+        what:
+          en: Hides how data is stored behind collection-like methods (findById, save), so business code does not write SQL.
+          tr: Verinin nasıl saklandığını koleksiyon benzeri metotların (findById, save) arkasına gizler; iş kodu SQL yazmaz.
+        lang: ts
+        form: "interface UserRepo { findById(id): User | undefined; save(u: User): void }"
+        example: |
+          type User = { id: string; name: string };
+          interface UserRepo { findById(id: string): User | undefined; save(u: User): void }
+
+          class InMemoryUserRepo implements UserRepo {
+            private rows = new Map<string, User>();
+            findById(id: string) { return this.rows.get(id); }
+            save(u: User) { this.rows.set(u.id, u); }
+          }
+
+          const repo: UserRepo = new InMemoryUserRepo();   // tests; PostgresUserRepo in prod
+          repo.save({ id: "1", name: "Ada" });
+          console.log(repo.findById("1")?.name);
+        output: |
+          Ada
+        check: ts
+        avoid:
+          en: On top of an ORM that already gives you the same methods; a second layer that only forwards calls adds code, not value.
+          tr: Aynı metotları zaten veren bir ORM'in üstünde; sadece çağrıları aktaran ikinci bir katman değer değil kod ekler.
+        source: https://martinfowler.com/eaaCatalog/repository.html
+      - id: memoization
+        level: intermediate
+        title: { en: Memoization (cache), tr: Memoization (önbellek) }
+        what:
+          en: Remembers the result of a pure function for each input so the same call is not computed twice.
+          tr: Saf bir fonksiyonun her girdi için sonucunu hatırlar; aynı çağrı iki kez hesaplanmaz.
+        lang: py
+        form: "@functools.cache"
+        example: |
+          import functools
+
+          calls = 0
+
+          @functools.cache
+          def price_with_tax(cents):
+              global calls
+              calls += 1
+              return round(cents * 1.2)
+
+          price_with_tax(100); price_with_tax(100); price_with_tax(250)
+          print(calls)
+        output: |
+          2
+        check: py
+        mistake:
+          en: Caching a function whose result depends on time or the database; it returns stale answers forever.
+          tr: Sonucu saate ya da veritabanına bağlı bir fonksiyonu önbelleğe almak; sonsuza kadar eski cevap döner.
+        avoid:
+          en: For unbounded inputs in a long-running server; use lru_cache(maxsize=...) so memory does not grow forever.
+          tr: Uzun çalışan bir sunucuda sınırsız girdiler için; bellek sonsuza kadar büyümesin diye lru_cache(maxsize=...) kullan.
+        source: https://docs.python.org/3/library/functools.html#functools.cache
+      - id: context-manager
+        level: intermediate
+        title: { en: Context manager (cleanup guaranteed), tr: Context manager (garantili temizlik) }
+        what:
+          en: Wraps a resource so it is always released (file closed, lock freed, transaction ended), even when an error is raised.
+          tr: Bir kaynağı sarar ve hata çıksa bile her zaman serbest bırakılmasını sağlar (dosya kapanır, kilit açılır, transaction biter).
+        lang: py
+        form: "with open(path) as f: ..."
+        example: |
+          from contextlib import contextmanager
+
+          @contextmanager
+          def step(name):
+              print(f"start {name}")
+              try:
+                  yield
+              finally:
+                  print(f"end {name}")
+
+          try:
+              with step("import"):
+                  raise ValueError("bad row")
+          except ValueError as e:
+              print(e)
+        output: |
+          start import
+          end import
+          bad row
+        check: py
+        mistake:
+          en: Opening files or connections without with (or try/finally); an exception skips the close and the resource leaks.
+          tr: Dosya ya da bağlantıları with (ya da try/finally) olmadan açmak; bir hata close'u atlar ve kaynak sızar.
+        source: https://docs.python.org/3/library/contextlib.html#contextlib.contextmanager
+      - id: unit-of-work
+        level: advanced
+        title: { en: Unit of work, tr: Unit of work }
+        what:
+          en: Collects every change made during one business operation and writes them together at the end, usually in one transaction.
+          tr: Tek bir iş işlemi sırasında yapılan bütün değişiklikleri toplar ve sonunda, genelde tek bir transaction içinde, birlikte yazar.
+        lang: ts
+        form: uow.register(change); await uow.commit()
+        example: |
+          class UnitOfWork {
+            private changes: string[] = [];
+            register(sql: string) { this.changes.push(sql); }
+            commit() { return ["BEGIN", ...this.changes, "COMMIT"].join("; "); }
+          }
+
+          const uow = new UnitOfWork();
+          uow.register("UPDATE accounts SET balance = balance - 50 WHERE id = 1");
+          uow.register("UPDATE accounts SET balance = balance + 50 WHERE id = 2");
+          console.log(uow.commit().split("; ").length);
+        output: |
+          4
+        check: ts
+        avoid:
+          en: Most ORMs already do this (a session or DbContext with save/commit); do not build your own on top.
+          tr: Çoğu ORM bunu zaten yapar (save/commit'li bir session ya da DbContext); üstüne kendininkini kurma.
+        source: https://martinfowler.com/eaaCatalog/unitOfWork.html
+      - id: mvc
+        level: basic
+        title: { en: MVC and layers, tr: MVC ve katmanlar }
+        what:
+          en: Splits an app into data and rules (model), what the user sees (view) and the code that connects input to them (controller).
+          tr: Uygulamayı veri ve kurallar (model), kullanıcının gördüğü kısım (view) ve girdiyi bunlara bağlayan kod (controller) olarak ayırır.
+        lang: text
+        form: request -> controller -> service/model -> view/JSON
+        example: |
+          routes/users.ts      controller: read request, call service, send response
+          services/users.ts    business rules
+          repos/users.ts       database access
+          views/ or JSON       what goes back to the client
+        mistake:
+          en: Fat controllers that hold business rules and SQL; they cannot be reused or tested without HTTP.
+          tr: İş kurallarını ve SQL'i içinde tutan şişman controller'lar; HTTP olmadan tekrar kullanılamaz ve test edilemezler.
+        avoid:
+          en: Four layers for a 200-line script or a tiny service; start simple and split when it grows.
+          tr: 200 satırlık bir script ya da minik bir servis için dört katman; basit başla, büyüdükçe böl.
+        source: https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller
+      - id: pubsub-queue
+        level: advanced
+        title: { en: Publish/subscribe across services, tr: Servisler arası publish/subscribe }
+        what:
+          en: Services publish events to a broker (Kafka, RabbitMQ, Redis) and others subscribe, so they do not call each other directly.
+          tr: Servisler olayları bir aracıya (Kafka, RabbitMQ, Redis) yayınlar, diğerleri abone olur; birbirlerini doğrudan çağırmazlar.
+        lang: text
+        form: producer -> topic/channel -> consumers
+        example: |
+          order-service    publishes  order.placed {id: 42}
+          email-service    subscribes -> sends receipt
+          stock-service    subscribes -> reserves items
+        mistake:
+          en: Assuming each event arrives exactly once and in order; most brokers deliver at least once, so make handlers idempotent.
+          tr: Her olayın tam bir kez ve sırayla geleceğini sanmak; çoğu aracı en az bir kez teslim eder, bu yüzden handler'ları idempotent yaz.
+        avoid:
+          en: In one small app; a function call or an in-process event emitter is enough and far easier to debug.
+          tr: Tek ve küçük bir uygulamada; bir fonksiyon çağrısı ya da süreç içi bir event emitter yeter ve debug etmesi çok daha kolaydır.
+        source: https://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern
+      - id: anti-patterns
+        level: advanced
+        title: { en: When patterns hurt, tr: Kalıplar ne zaman zarar verir }
+        what:
+          en: Extra layers cost reading time; add a pattern only when a real second case or a real pain shows up.
+          tr: Ek katmanlar okuma zamanına mal olur; bir kalıbı ancak gerçek bir ikinci durum ya da gerçek bir sıkıntı çıkınca ekle.
+        lang: text
+        form: "YAGNI: you aren't gonna need it"
+        example: |
+          smells
+          AbstractUserServiceFactoryProvider     names made of pattern names
+          interface with exactly one class, forever
+          a change touches 6 files for one field
+        source: https://martinfowler.com/bliki/Yagni.html

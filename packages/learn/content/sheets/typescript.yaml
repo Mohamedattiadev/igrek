@@ -1,0 +1,805 @@
+id: typescript
+title: TypeScript
+category: language
+summary:
+  en: JavaScript with types; the compiler finds mistakes before the code runs and your editor can help much more.
+  tr: Tipli JavaScript; derleyici hataları kod çalışmadan önce bulur, editörün de çok daha fazla yardım eder.
+aliases: [ts, tsc, tsconfig, types, tipler, generics, tip güvenliği, typescript 7, tsgo]
+detect:
+  npm: [typescript]
+version: "7.0"
+latest: npm:typescript
+checked: 2026-10
+sources:
+  - title: TypeScript handbook
+    url: https://www.typescriptlang.org/docs/handbook/intro.html
+  - title: TSConfig reference
+    url: https://www.typescriptlang.org/tsconfig/
+  - title: Announcing TypeScript 7.0
+    url: https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/
+roadmap: typescript
+sections:
+  - id: basics
+    title: { en: Basic types, tr: Temel tipler }
+    items:
+      - id: annotations
+        level: basic
+        title: { en: Give a variable a type, tr: Değişkene tip verme }
+        what:
+          en: 'Write ": type" after a name to say what it may hold; the compiler then rejects anything else.'
+          tr: 'Bir ismin ne tutabileceğini söylemek için arkasına ": tip" yaz; derleyici başka her şeyi reddeder.'
+        lang: ts
+        form: 'let name: string = "Ada";'
+        example: |
+          let title: string = "Fix login";
+          let points: number = 3;
+          let done: boolean = false;
+          // points = "three"; // error: Type 'string' is not assignable to type 'number'
+          console.log(title, points, done);
+        output: |
+          Fix login 3 false
+        check: ts
+        mistake:
+          en: Writing types everywhere; TypeScript infers most of them. Annotate function parameters and public APIs.
+          tr: Her yere tip yazmak; TypeScript çoğunu kendisi çıkarır. Fonksiyon parametrelerine ve dışa açık API'lere tip yaz.
+        source: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+      - id: inference
+        level: basic
+        title: { en: Let TypeScript infer, tr: Tipi TypeScript'e bırakma }
+        what:
+          en: When you give a value, TypeScript works out the type itself; hover the name in your editor to see it.
+          tr: Bir değer verdiğinde TypeScript tipi kendisi bulur; görmek için editörde ismin üzerine gel.
+        lang: ts
+        form: const count = 0; // number
+        example: |
+          const tags = ["bug", "ui"];          // string[]
+          const user = { id: 1, name: "Ada" }; // { id: number; name: string }
+          const total = tags.length + user.id; // number
+          console.log(total);
+        output: |
+          3
+        check: ts
+        mistake:
+          en: 'Starting with an empty array (const list = []) and expecting a good type; write const list: string[] = [].'
+          tr: 'Boş array ile başlayıp (const list = []) iyi bir tip beklemek; const list: string[] = [] yaz.'
+        source: https://www.typescriptlang.org/docs/handbook/type-inference.html
+      - id: arrays-tuples
+        level: basic
+        title: { en: Arrays and tuples, tr: Array'ler ve tuple'lar }
+        what:
+          en: T[] is a list of any length; a tuple like [string, number] has a fixed length and a type for each place.
+          tr: T[] her uzunlukta bir listedir; [string, number] gibi bir tuple'ın uzunluğu sabittir ve her yerin tipi bellidir.
+        lang: ts
+        form: 'const ids: number[] = [1, 2]; const pair: [string, number] = ["a", 1];'
+        example: |
+          const scores: number[] = [90, 75];
+          const entry: [name: string, age: number] = ["Ada", 36];
+          const [name, age] = entry;
+          console.log(scores.length, name.toUpperCase(), age + 1);
+        output: |
+          2 ADA 37
+        check: ts
+        mistake:
+          en: Assuming arr[0] always exists; turn on noUncheckedIndexedAccess so it is typed as T | undefined.
+          tr: arr[0]'ın hep var olduğunu sanmak; noUncheckedIndexedAccess'i aç, böylece tipi T | undefined olur.
+        source: https://www.typescriptlang.org/docs/handbook/2/objects.html#tuple-types
+      - id: object-types
+        level: basic
+        title: { en: Describe an object, tr: Bir nesneyi tanımlama }
+        what:
+          en: An interface or type alias names the shape of an object; ? marks optional fields, readonly blocks changes.
+          tr: interface ya da type alias bir nesnenin şeklini adlandırır; ? isteğe bağlı alanları, readonly değişikliği engeller.
+        lang: ts
+        form: 'interface User { readonly id: number; name: string; email?: string }'
+        example: |
+          interface Task {
+            readonly id: number;
+            title: string;
+            assignee?: string;
+          }
+          const t: Task = { id: 1, title: "Write docs" };
+          // t.id = 2; // error: Cannot assign to 'id' because it is a read-only property
+          console.log(t.assignee ?? "nobody");
+        output: |
+          nobody
+        check: ts
+        mistake:
+          en: Reading an optional field as if it were always there; handle undefined with ?? or a check first.
+          tr: İsteğe bağlı bir alanı hep varmış gibi okumak; önce ?? ya da bir kontrolle undefined durumunu ele al.
+        source: https://www.typescriptlang.org/docs/handbook/2/objects.html
+      - id: type-vs-interface
+        level: intermediate
+        title: { en: type or interface, tr: type mı interface mi }
+        what:
+          en: Both describe objects; only type can name unions and other combinations, only interface can be reopened and merged.
+          tr: İkisi de nesne tanımlar; birleşimleri ve diğer kombinasyonları sadece type adlandırır, sadece interface yeniden açılıp birleştirilebilir.
+        lang: ts
+        form: 'type Id = string | number; interface Point { x: number; y: number }'
+        example: |
+          type Status = "todo" | "doing" | "done";
+          interface Base { id: number }
+          interface Issue extends Base { status: Status }
+          type Bug = Issue & { severity: 1 | 2 | 3 };
+          const b: Bug = { id: 7, status: "todo", severity: 2 };
+          console.log(b.status, b.severity);
+        output: |
+          todo 2
+        check: ts
+        mistake:
+          en: Spending time choosing; pick one style per project. Many teams use interface for objects and type for the rest.
+          tr: Seçmeye çok vakit harcamak; proje başına bir stil seç. Birçok ekip nesneler için interface, gerisi için type kullanır.
+        source: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#differences-between-type-aliases-and-interfaces
+      - id: unions-literals
+        level: basic
+        title: { en: One of several types, tr: Birkaç tipten biri }
+        what:
+          en: A union (A | B) means the value is one of them; literal types limit it to exact values like "asc" | "desc".
+          tr: Birleşim (A | B) değerin bunlardan biri olduğunu söyler; literal tipler onu "asc" | "desc" gibi kesin değerlerle sınırlar.
+        lang: ts
+        form: 'type Sort = "asc" | "desc";'
+        example: |
+          type Sort = "asc" | "desc";
+          function order(nums: number[], dir: Sort = "asc"): number[] {
+            return nums.toSorted((a, b) => (dir === "asc" ? a - b : b - a));
+          }
+          console.log(order([3, 1, 2], "desc"));
+          // order([1], "up"); // error: '"up"' is not assignable to type 'Sort'
+        output: |
+          [ 3, 2, 1 ]
+        check: ts
+        mistake:
+          en: Using plain string where only a few values are valid; a literal union catches typos at compile time.
+          tr: Sadece birkaç değerin geçerli olduğu yerde düz string kullanmak; literal birleşim yazım hatalarını derlemede yakalar.
+        source: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#union-types
+      - id: function-types
+        level: basic
+        title: { en: Type a function, tr: Fonksiyona tip verme }
+        what:
+          en: Give each parameter a type; the return type is inferred, but writing it keeps the contract clear.
+          tr: Her parametreye tip ver; dönüş tipi çıkarılır ama yazmak sözleşmeyi net tutar.
+        lang: ts
+        form: 'function add(a: number, b: number): number { return a + b; }'
+        example: |
+          function greet(name: string, greeting = "Hello", punct?: string): string {
+            return `${greeting} ${name}${punct ?? ""}`;
+          }
+          const onDone: (id: number) => void = (id) => console.log("done", id);
+          console.log(greet("Ada", "Hi", "!"));
+          onDone(3);
+        output: |
+          Hi Ada!
+          done 3
+        check: ts
+        mistake:
+          en: Leaving parameters without types; with strict on (the default since 6.0) that is error TS7006, implicit any.
+          tr: Parametreleri tipsiz bırakmak; strict açıkken (6.0'dan beri varsayılan) bu TS7006, örtük any hatasıdır.
+        source: https://www.typescriptlang.org/docs/handbook/2/functions.html
+      - id: any-unknown
+        level: intermediate
+        title: { en: any versus unknown, tr: any ve unknown farkı }
+        what:
+          en: any turns type checking off; unknown accepts anything but makes you check the type before using it.
+          tr: any tip kontrolünü kapatır; unknown her şeyi kabul eder ama kullanmadan önce tipi kontrol etmeni ister.
+        lang: ts
+        form: 'function handle(input: unknown) { if (typeof input === "string") { } }'
+        example: |
+          function size(input: unknown): number {
+            if (typeof input === "string") return input.length;
+            if (Array.isArray(input)) return input.length;
+            return 0;
+          }
+          const data: unknown = JSON.parse('["a","b"]');
+          console.log(size(data), size(42));
+        output: |
+          2 0
+        check: ts
+        mistake:
+          en: Using any to silence an error; the bug is still there, only hidden. Use unknown and narrow it.
+          tr: Bir hatayı susturmak için any kullanmak; hata hâlâ orada, sadece gizlendi. unknown kullan ve daralt.
+        source: https://www.typescriptlang.org/docs/handbook/2/functions.html#unknown
+      - id: null-undefined
+        level: basic
+        title: { en: null and undefined, tr: null ve undefined }
+        what:
+          en: With strict on, null and undefined are separate types, so you must handle them before using a value.
+          tr: strict açıkken null ve undefined ayrı tiplerdir; bir değeri kullanmadan önce onları ele alman gerekir.
+        lang: ts
+        form: 'function find(id: number): User | undefined'
+        example: |
+          function findName(id: number): string | undefined {
+            return id === 1 ? "Ada" : undefined;
+          }
+          const name = findName(2);
+          // name.toUpperCase(); // error: 'name' is possibly 'undefined'
+          console.log(name?.toUpperCase() ?? "not found");
+        output: |
+          not found
+        check: ts
+        mistake:
+          en: Silencing "possibly undefined" with ! everywhere; handle the missing case instead.
+          tr: '"possibly undefined" hatasını her yerde ! ile susturmak; bunun yerine eksik durumu ele al.'
+        source: https://www.typescriptlang.org/tsconfig/#strictNullChecks
+      - id: async-types
+        level: basic
+        title: { en: Type async functions, tr: Async fonksiyonlara tip verme }
+        what:
+          en: An async function always returns a Promise, so its return type is Promise<T>.
+          tr: Async bir fonksiyon her zaman Promise döndürür; bu yüzden dönüş tipi Promise<T> olur.
+        lang: ts
+        form: 'async function load(): Promise<User> { ... }'
+        example: |
+          interface Todo { id: number; title: string }
+          async function loadTodos(): Promise<Todo[]> {
+            return [{ id: 1, title: "Write tests" }];
+          }
+          const todos = await loadTodos();
+          console.log(todos[0]?.title);
+        output: |
+          Write tests
+        check: ts
+        mistake:
+          en: 'Typing fetch results with res.json() as Todo[] and trusting it; the server can send anything, check it at the edge.'
+          tr: 'fetch sonucunu res.json() as Todo[] ile tiplendirip ona güvenmek; sunucu her şeyi gönderebilir, veriyi girişte kontrol et.'
+        source: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#functions-which-return-promises
+      - id: classes
+        level: basic
+        title: { en: Classes with types, tr: Tipli class'lar }
+        what:
+          en: Class fields get types; implements makes the compiler check that a class has everything an interface asks for.
+          tr: Class alanları tip alır; implements, class'ın bir interface'in istediği her şeye sahip olduğunu derleyiciye kontrol ettirir.
+        lang: ts
+        form: 'class Repo implements Store { private items: Item[] = []; }'
+        example: |
+          interface Store { add(item: string): void; count(): number }
+          class MemoryStore implements Store {
+            #items: string[] = [];
+            add(item: string): void { this.#items.push(item); }
+            count(): number { return this.#items.length; }
+          }
+          const store = new MemoryStore();
+          store.add("a");
+          console.log(store.count());
+        output: |
+          1
+        check: ts
+        mistake:
+          en: 'Thinking the private keyword hides a field at run time; it is only checked by the compiler. Use #field for real privacy.'
+          tr: 'private anahtar kelimesinin alanı çalışma anında gizlediğini sanmak; sadece derleyici kontrol eder. Gerçek gizlilik için #alan kullan.'
+        source: https://www.typescriptlang.org/docs/handbook/2/classes.html
+  - id: narrowing
+    title: { en: Narrowing, tr: Tip daraltma }
+    items:
+      - id: typeof-narrowing
+        level: basic
+        title: { en: Narrow with checks, tr: Kontrollerle daraltma }
+        what:
+          en: After a check like typeof, in or instanceof, TypeScript knows the more exact type inside that branch.
+          tr: typeof, in ya da instanceof gibi bir kontrolden sonra TypeScript o dalın içinde daha kesin tipi bilir.
+        lang: ts
+        form: if (typeof x === "string") { /* x is string here */ }
+        example: |
+          function format(v: string | number | Date): string {
+            if (typeof v === "string") return v.trim();
+            if (v instanceof Date) return v.toISOString().slice(0, 10);
+            return v.toFixed(1);
+          }
+          console.log(format(" hi "), format(2), format(new Date(0)));
+        output: |
+          hi 2.0 1970-01-01
+        check: ts
+        mistake:
+          en: Checking typeof v === "object" to rule out null; null is also "object", check v !== null too.
+          tr: null'ı elemek için typeof v === "object" kontrol etmek; null da "object"tir, v !== null da kontrol et.
+        source: https://www.typescriptlang.org/docs/handbook/2/narrowing.html
+      - id: discriminated-unions
+        level: intermediate
+        title: { en: Tagged unions, tr: Etiketli birleşimler }
+        what:
+          en: Give each variant a common literal field (kind, type, status); checking it narrows to the right variant.
+          tr: Her türe ortak bir literal alan ver (kind, type, status); onu kontrol etmek doğru türe daraltır.
+        lang: ts
+        form: 'type Result = { ok: true; value: T } | { ok: false; error: string };'
+        example: |
+          type Result = { ok: true; value: number } | { ok: false; error: string };
+          function show(r: Result): string {
+            return r.ok ? `value ${r.value}` : `error ${r.error}`;
+          }
+          console.log(show({ ok: true, value: 5 }), "/", show({ ok: false, error: "timeout" }));
+        output: |
+          value 5 / error timeout
+        check: ts
+        mistake:
+          en: Making every field optional in one big type instead; then nothing tells you which fields go together.
+          tr: Bunun yerine tek büyük tipte her alanı isteğe bağlı yapmak; o zaman hangi alanların birlikte geldiğini hiçbir şey söylemez.
+        source: https://www.typescriptlang.org/docs/handbook/2/narrowing.html#discriminated-unions
+      - id: exhaustive-never
+        level: intermediate
+        title: { en: Handle every case, tr: Her durumu ele alma }
+        what:
+          en: Assigning to never in the default branch makes the compiler fail when someone adds a new variant.
+          tr: default dalında never'a atama yapmak, biri yeni bir tür eklediğinde derleyicinin hata vermesini sağlar.
+        lang: ts
+        form: 'default: const unreachable: never = value;'
+        example: |
+          type Shape = { kind: "circle"; r: number } | { kind: "square"; side: number };
+          function area(s: Shape): number {
+            switch (s.kind) {
+              case "circle": return Math.PI * s.r ** 2;
+              case "square": return s.side ** 2;
+              default: {
+                const unreachable: never = s;
+                throw new Error(`unknown shape ${JSON.stringify(unreachable)}`);
+              }
+            }
+          }
+          console.log(area({ kind: "square", side: 3 }));
+        output: |
+          9
+        check: ts
+        source: https://www.typescriptlang.org/docs/handbook/2/narrowing.html#exhaustiveness-checking
+      - id: type-predicates
+        level: intermediate
+        title: { en: Your own type checks, tr: Kendi tip kontrolün }
+        what:
+          en: A function returning "x is T" tells TypeScript that a true result means x has type T.
+          tr: '"x is T" döndüren bir fonksiyon, sonuç true ise x''in tipinin T olduğunu TypeScript''e söyler.'
+        lang: ts
+        form: 'function isUser(x: unknown): x is User { ... }'
+        example: |
+          interface User { name: string }
+          function isUser(x: unknown): x is User {
+            return typeof x === "object" && x !== null && typeof (x as User).name === "string";
+          }
+          const items: unknown[] = [{ name: "Ada" }, 42, { title: "x" }];
+          console.log(items.filter(isUser).map((u) => u.name));
+        output: |
+          [ "Ada" ]
+        check: ts
+        mistake:
+          en: Writing a predicate that does not really check; TypeScript trusts it, so a wrong one creates hidden bugs.
+          tr: Gerçekten kontrol etmeyen bir predicate yazmak; TypeScript ona güvenir, yanlış olanı gizli hatalar doğurur.
+        avoid:
+          en: For complex outside data (API bodies); a schema library such as Zod checks and types it in one place.
+          tr: Karmaşık dış veriler (API gövdeleri) için; Zod gibi bir şema kütüphanesi kontrolü ve tipi tek yerde yapar.
+        source: https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
+      - id: satisfies
+        level: intermediate
+        title: { en: Check without widening, tr: Genişletmeden kontrol etme }
+        what:
+          en: satisfies checks a value against a type but keeps the more exact type TypeScript inferred.
+          tr: satisfies bir değeri bir tipe göre kontrol eder ama TypeScript'in çıkardığı daha kesin tipi korur.
+        lang: ts
+        form: const config = { ... } satisfies Config;
+        example: |
+          type Routes = Record<string, { path: string; auth?: boolean }>;
+          const routes = {
+            home: { path: "/" },
+            admin: { path: "/admin", auth: true },
+          } satisfies Routes;
+          console.log(routes.admin.path); // routes.nope would be an error
+        output: |
+          /admin
+        check: ts
+        mistake:
+          en: 'Writing const routes: Routes = {...}; then any key is allowed and you lose autocomplete for the real keys.'
+          tr: 'const routes: Routes = {...} yazmak; o zaman her anahtara izin verilir ve gerçek anahtarlar için otomatik tamamlamayı kaybedersin.'
+        since: "4.9"
+        api: [" satisfies "]
+        source: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html
+      - id: as-const
+        level: intermediate
+        title: { en: Keep exact values, tr: Kesin değerleri koruma }
+        what:
+          en: as const makes a value deeply readonly and keeps literal types, so you can build a union from it.
+          tr: as const bir değeri derinlemesine readonly yapar ve literal tipleri korur; ondan bir birleşim tipi üretebilirsin.
+        lang: ts
+        form: const ROLES = ["admin", "user"] as const;
+        example: |
+          const ROLES = ["admin", "editor", "viewer"] as const;
+          type Role = (typeof ROLES)[number]; // "admin" | "editor" | "viewer"
+          const isRole = (s: string): s is Role => (ROLES as readonly string[]).includes(s);
+          console.log(isRole("editor"), isRole("root"));
+        output: |
+          true false
+        check: ts
+        source: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-3-4.html#const-assertions
+      - id: assertions
+        level: intermediate
+        title: { en: Type assertions and !, tr: Tip iddiaları ve ! }
+        what:
+          en: as T and the postfix ! tell the compiler "trust me"; nothing is checked when the code runs.
+          tr: as T ve sondaki ! derleyiciye "bana güven" der; kod çalışırken hiçbir şey kontrol edilmez.
+        lang: ts
+        form: const el = document.getElementById("app")!;
+        example: |
+          const raw = '{"id":1}';
+          const data = JSON.parse(raw) as { id: number };
+          const map = new Map([["a", 1]]);
+          const a = map.get("a")!; // number, not number | undefined
+          console.log(data.id + a);
+        output: |
+          2
+        check: ts
+        mistake:
+          en: Using as on API responses; if the server sends something else, the program fails later in a confusing place.
+          tr: API yanıtlarında as kullanmak; sunucu başka bir şey gönderirse program sonra kafa karıştırıcı bir yerde patlar.
+        avoid:
+          en: Whenever a real check (if, a type predicate, a schema) is possible.
+          tr: Gerçek bir kontrolün (if, type predicate, şema) mümkün olduğu her yerde.
+        source: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#type-assertions
+  - id: generics
+    title: { en: Generics and utility types, tr: Generic'ler ve yardımcı tipler }
+    items:
+      - id: generic-functions
+        level: intermediate
+        title: { en: Generic functions, tr: Generic fonksiyonlar }
+        what:
+          en: A type parameter <T> lets one function work with many types and still keep the exact type.
+          tr: <T> tip parametresi tek bir fonksiyonun birçok tiple çalışmasını ve kesin tipi korumasını sağlar.
+        lang: ts
+        form: 'function first<T>(items: T[]): T | undefined { return items[0]; }'
+        example: |
+          function first<T>(items: T[]): T | undefined {
+            return items[0];
+          }
+          const n = first([10, 20]);      // number | undefined
+          const s = first(["a", "b"]);    // string | undefined
+          console.log(n, s?.toUpperCase());
+        output: |
+          10 A
+        check: ts
+        mistake:
+          en: Adding a type parameter that is used only once; then it does nothing, use the plain type.
+          tr: Sadece bir kez kullanılan bir tip parametresi eklemek; hiçbir işe yaramaz, düz tipi kullan.
+        source: https://www.typescriptlang.org/docs/handbook/2/generics.html
+      - id: constraints-keyof
+        level: intermediate
+        title: { en: Limit generics with extends and keyof, tr: Generic'i extends ve keyof ile sınırlama }
+        what:
+          en: extends limits what T can be; keyof T is the union of T's keys, and T[K] is the type at key K.
+          tr: extends T'nin ne olabileceğini sınırlar; keyof T, T'nin anahtarlarının birleşimidir, T[K] ise K anahtarındaki tiptir.
+        lang: ts
+        form: 'function get<T, K extends keyof T>(obj: T, key: K): T[K]'
+        example: |
+          function pluck<T, K extends keyof T>(items: T[], key: K): T[K][] {
+            return items.map((item) => item[key]);
+          }
+          const users = [{ id: 1, name: "Ada" }, { id: 2, name: "Linus" }];
+          console.log(pluck(users, "name"));
+          // pluck(users, "age"); // error: '"age"' is not assignable to '"id" | "name"'
+        output: |
+          [ "Ada", "Linus" ]
+        check: ts
+        source: https://www.typescriptlang.org/docs/handbook/2/keyof-types.html
+      - id: utility-types
+        level: basic
+        title: { en: Built-in utility types, tr: Hazır yardımcı tipler }
+        what:
+          en: Partial, Required, Readonly, Pick, Omit and Record build new types from existing ones.
+          tr: Partial, Required, Readonly, Pick, Omit ve Record mevcut tiplerden yeni tipler üretir.
+        lang: ts
+        form: type Patch = Partial<User>; type Public = Omit<User, "password">;
+        example: |
+          interface User { id: number; name: string; password: string }
+          type PublicUser = Omit<User, "password">;
+          type UserPatch = Partial<Pick<User, "name" | "password">>;
+          const counts: Record<"open" | "closed", number> = { open: 3, closed: 5 };
+          const u: PublicUser = { id: 1, name: "Ada" };
+          const patch: UserPatch = { name: "Grace" };
+          console.log(u.name, patch.name, counts.open);
+        output: |
+          Ada Grace 3
+        check: ts
+        mistake:
+          en: Thinking Omit removes the field at run time; types disappear when the code runs, so the password is still in the object.
+          tr: Omit'in alanı çalışma anında sildiğini sanmak; tipler kod çalışırken yok olur, şifre hâlâ nesnenin içindedir.
+        source: https://www.typescriptlang.org/docs/handbook/utility-types.html
+      - id: return-type
+        level: intermediate
+        title: { en: Types from functions, tr: Fonksiyonlardan tip alma }
+        what:
+          en: typeof gives the type of a value; ReturnType, Parameters and Awaited pull types out of functions and promises.
+          tr: typeof bir değerin tipini verir; ReturnType, Parameters ve Awaited fonksiyonlardan ve promise'lerden tip çıkarır.
+        lang: ts
+        form: type Data = Awaited<ReturnType<typeof load>>;
+        example: |
+          async function loadUser(id: number) {
+            return { id, name: "Ada", roles: ["admin"] };
+          }
+          type User = Awaited<ReturnType<typeof loadUser>>;
+          type Args = Parameters<typeof loadUser>; // [id: number]
+          const args: Args = [1];
+          const u: User = await loadUser(...args);
+          console.log(u.roles[0]);
+        output: |
+          admin
+        check: ts
+        source: https://www.typescriptlang.org/docs/handbook/utility-types.html#returntypetype
+  - id: advanced-types
+    title: { en: Advanced types, tr: İleri seviye tipler }
+    items:
+      - id: mapped-types
+        level: advanced
+        title: { en: Mapped types, tr: Mapped type'lar }
+        what:
+          en: A mapped type builds a new object type by going over the keys of another one.
+          tr: Mapped type, başka bir tipin anahtarlarının üzerinden geçerek yeni bir nesne tipi oluşturur.
+        lang: ts
+        form: 'type Flags<T> = { [K in keyof T]: boolean };'
+        example: |
+          type Getters<T> = {
+            [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
+          };
+          interface Person { name: string; age: number }
+          const p: Getters<Person> = { getName: () => "Ada", getAge: () => 36 };
+          console.log(p.getName(), p.getAge());
+        output: |
+          Ada 36
+        check: ts
+        source: https://www.typescriptlang.org/docs/handbook/2/mapped-types.html
+      - id: conditional-types
+        level: advanced
+        title: { en: Conditional types and infer, tr: Koşullu tipler ve infer }
+        what:
+          en: 'T extends U ? X : Y picks a type by a condition; infer captures a part of a type inside it.'
+          tr: 'T extends U ? X : Y bir koşula göre tip seçer; infer bir tipin içinden bir parçayı yakalar.'
+        lang: ts
+        form: 'type ElementOf<T> = T extends (infer E)[] ? E : never;'
+        example: |
+          type ElementOf<T> = T extends readonly (infer E)[] ? E : never;
+          type A = ElementOf<string[]>;          // string
+          type B = ElementOf<number>;            // never
+          type IsString<T> = T extends string ? "yes" : "no";
+          const answer: IsString<"hi"> = "yes";
+          const el: A = "ok";
+          console.log(answer, el);
+        output: |
+          yes ok
+        check: ts
+        mistake:
+          en: Being surprised that a union is split; T extends ... runs once per union member. Wrap it as [T] extends [...] to stop that.
+          tr: Birleşimin parçalanmasına şaşırmak; T extends ... birleşimin her üyesi için ayrı çalışır. Bunu durdurmak için [T] extends [...] yaz.
+        avoid:
+          en: In everyday app code; a few clear interfaces are easier to read than clever type logic.
+          tr: Günlük uygulama kodunda; birkaç net interface, zekice tip mantığından daha kolay okunur.
+        source: https://www.typescriptlang.org/docs/handbook/2/conditional-types.html
+      - id: template-literal-types
+        level: advanced
+        title: { en: Template literal types, tr: Template literal tipleri }
+        what:
+          en: Builds string types from other string types, the way template strings build strings.
+          tr: Template string'lerin string ürettiği gibi, başka string tiplerinden string tipleri üretir.
+        lang: ts
+        form: type EventName = `on${Capitalize<"click" | "focus">}`;
+        example: |
+          type Entity = "user" | "task";
+          type Action = "created" | "deleted";
+          type EventName = `${Entity}.${Action}`;
+          const e: EventName = "task.created";
+          // const bad: EventName = "task.moved"; // error
+          console.log(e);
+        output: |
+          task.created
+        check: ts
+        source: https://www.typescriptlang.org/docs/handbook/2/template-literal-types.html
+      - id: overloads
+        level: advanced
+        title: { en: Function overloads, tr: Fonksiyon overload'ları }
+        what:
+          en: Several signatures over one body let the return type depend on which arguments were passed.
+          tr: Tek gövde üzerindeki birkaç imza, dönüş tipinin verilen argümanlara göre değişmesini sağlar.
+        lang: ts
+        form: 'function f(x: string): string; function f(x: number): number; function f(x: any) { ... }'
+        example: |
+          function parse(v: string): number;
+          function parse(v: string[]): number[];
+          function parse(v: string | string[]): number | number[] {
+            return Array.isArray(v) ? v.map(Number) : Number(v);
+          }
+          const one = parse("4");       // number
+          const many = parse(["1", "2"]); // number[]
+          console.log(one + 1, many);
+        output: |
+          5 [ 1, 2 ]
+        check: ts
+        avoid:
+          en: When a union parameter or a generic gives the same result; overloads are harder to maintain.
+          tr: Birleşim tipli bir parametre ya da generic aynı sonucu veriyorsa; overload'ların bakımı daha zordur.
+        source: https://www.typescriptlang.org/docs/handbook/2/functions.html#function-overloads
+      - id: const-type-params
+        level: advanced
+        title: { en: const type parameters, tr: const tip parametreleri }
+        what:
+          en: Writing <const T> makes TypeScript infer exact literal types from the arguments, as if you wrote as const.
+          tr: <const T> yazmak, TypeScript'in argümanlardan as const yazmışsın gibi kesin literal tipler çıkarmasını sağlar.
+        lang: ts
+        form: 'function routes<const T extends readonly string[]>(paths: T): T'
+        example: |
+          function enumOf<const T extends readonly string[]>(values: T): T {
+            return values;
+          }
+          const sizes = enumOf(["s", "m", "l"]); // readonly ["s", "m", "l"]
+          type Size = (typeof sizes)[number];
+          const pick: Size = "m";
+          console.log(pick, sizes.length);
+        output: |
+          m 3
+        check: ts
+        since: "5.0"
+        source: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-5-0.html#const-type-parameters
+  - id: project
+    title: { en: Project setup, tr: Proje kurulumu }
+    items:
+      - id: install-tsc
+        level: basic
+        title: { en: Install and type check, tr: Kurma ve tip kontrolü }
+        what:
+          en: Install typescript in the project and run tsc; --noEmit only checks types and writes no files.
+          tr: typescript'i projeye kur ve tsc çalıştır; --noEmit sadece tipleri kontrol eder, dosya yazmaz.
+        lang: sh
+        form: npx tsc --noEmit
+        example: |
+          npm install -D typescript
+          npx tsc --init        # writes a tsconfig.json with good defaults
+          npx tsc --noEmit      # check the whole project
+        mistake:
+          en: Running tsc file.ts while a tsconfig.json is there; since 6.0 that is error TS5112. Run plain tsc, or add --ignoreConfig.
+          tr: tsconfig.json varken tsc dosya.ts çalıştırmak; 6.0'dan beri bu TS5112 hatasıdır. Düz tsc çalıştır ya da --ignoreConfig ekle.
+        since: "7.0"
+        older:
+          en: TypeScript 7 is the native (Go) compiler and is several times faster. Until 6.0 it was written in TypeScript; @typescript/typescript6 gives tsc6 for tools that still need the old API.
+          tr: TypeScript 7 yerel (Go ile yazılmış) derleyicidir ve birkaç kat daha hızlıdır. 6.0'a kadar TypeScript ile yazılmıştı; eski API'ye ihtiyaç duyan araçlar için @typescript/typescript6 tsc6'yı verir.
+        source: https://www.typescriptlang.org/docs/handbook/compiler-options.html
+      - id: tsconfig-strict
+        level: basic
+        title: { en: tsconfig.json basics, tr: tsconfig.json temelleri }
+        what:
+          en: tsconfig.json sets which files are checked and how strict the compiler is.
+          tr: tsconfig.json hangi dosyaların kontrol edileceğini ve derleyicinin ne kadar katı olacağını belirler.
+        lang: json
+        form: '{ "compilerOptions": { "strict": true }, "include": ["src"] }'
+        example: |
+          {
+            "compilerOptions": {
+              "target": "es2024",
+              "module": "nodenext",
+              "outDir": "dist",
+              "rootDir": "src",
+              "strict": true,
+              "noUncheckedIndexedAccess": true,
+              "skipLibCheck": true
+            },
+            "include": ["src"]
+          }
+        mistake:
+          en: Turning strict off to make errors go away; most of TypeScript's value comes from strict checks.
+          tr: Hatalardan kurtulmak için strict'i kapatmak; TypeScript'in değerinin çoğu katı kontrollerden gelir.
+        since: "6.0"
+        older:
+          en: Since 6.0 strict is on by default, module defaults to esnext, target to the latest ES version and rootDir to the folder of tsconfig.json. Before, strict was off unless you set it.
+          tr: 6.0'dan beri strict varsayılan olarak açık, module varsayılanı esnext, target en yeni ES sürümü, rootDir ise tsconfig.json'ın klasörü. Önceden strict'i açmazsan kapalıydı.
+        source: https://www.typescriptlang.org/tsconfig/#strict
+      - id: types-option
+        level: intermediate
+        title: { en: Global types like node or bun, tr: node ya da bun gibi global tipler }
+        what:
+          en: The types option lists which @types packages add globals such as process, Bun or describe.
+          tr: types seçeneği process, Bun ya da describe gibi global'leri hangi @types paketlerinin ekleyeceğini listeler.
+        lang: json
+        form: '"types": ["node"]'
+        example: |
+          {
+            "compilerOptions": {
+              "types": ["node", "jest"]
+            }
+          }
+        mistake:
+          en: "After upgrading, seeing Cannot find name 'process' even though @types/node is installed; list it in types."
+          tr: "Yükselttikten sonra @types/node kurulu olduğu halde Cannot find name 'process' görmek; onu types içine yaz."
+        since: "6.0"
+        older:
+          en: Before 6.0 every package in node_modules/@types was loaded automatically; now types defaults to []. ["*"] brings the old behavior back.
+          tr: 6.0'dan önce node_modules/@types içindeki her paket otomatik yüklenirdi; artık types varsayılanı []. ["*"] eski davranışı geri getirir.
+        source: https://www.typescriptlang.org/tsconfig/#types
+      - id: module-resolution
+        level: intermediate
+        title: { en: How imports are found, tr: Import'lar nasıl bulunur }
+        what:
+          en: moduleResolution tells TypeScript how to find imported files; use bundler with Vite and similar tools, nodenext for code Node.js runs directly.
+          tr: moduleResolution, TypeScript'e import edilen dosyaları nasıl bulacağını söyler; Vite gibi araçlarla bundler, Node.js'in doğrudan çalıştırdığı kodda nodenext kullan.
+        lang: json
+        form: '"module": "nodenext"'
+        example: |
+          {
+            "compilerOptions": {
+              "module": "preserve",
+              "moduleResolution": "bundler",
+              "paths": { "@/*": ["./src/*"] }
+            }
+          }
+        mistake:
+          en: 'Keeping "baseUrl" or "moduleResolution": "node" from an old config; both are errors in 7.0. Start each paths entry with ./ instead of baseUrl.'
+          tr: 'Eski bir config''ten "baseUrl" ya da "moduleResolution": "node" bırakmak; ikisi de 7.0''da hata. baseUrl yerine her paths girdisini ./ ile başlat.'
+        since: "7.0"
+        older:
+          en: node (node10) and classic resolution, baseUrl, target es5 and module amd/umd/system were deprecated in 6.0 and removed in 7.0.
+          tr: node (node10) ve classic çözümleme, baseUrl, target es5 ve module amd/umd/system 6.0'da kullanımdan kaldırıldı, 7.0'da tamamen silindi.
+        source: https://www.typescriptlang.org/docs/handbook/modules/reference.html
+      - id: import-type
+        level: intermediate
+        title: { en: Type-only imports, tr: Sadece tip import'u }
+        what:
+          en: import type brings in only types, so the import is removed from the JavaScript output.
+          tr: import type sadece tipleri getirir; bu yüzden import JavaScript çıktısından silinir.
+        lang: ts
+        form: import type { User } from "./types.ts";
+        example: |
+          import { readFile } from "node:fs/promises";
+          import type { Stats } from "node:fs";
+          import { type Dirent, existsSync } from "node:fs";
+        mistake:
+          en: With verbatimModuleSyntax on, importing a type without the type keyword is an error; add type.
+          tr: verbatimModuleSyntax açıkken bir tipi type anahtar kelimesi olmadan import etmek hatadır; type ekle.
+        since: "5.0"
+        older:
+          en: verbatimModuleSyntax came in 5.0 and replaced importsNotUsedAsValues and preserveValueImports.
+          tr: verbatimModuleSyntax 5.0'da geldi ve importsNotUsedAsValues ile preserveValueImports'un yerini aldı.
+        source: https://www.typescriptlang.org/tsconfig/#verbatimModuleSyntax
+      - id: erasable-syntax
+        level: advanced
+        title: { en: Code that runs without compiling, tr: Derlemeden çalışan kod }
+        what:
+          en: erasableSyntaxOnly allows only TypeScript syntax that can simply be deleted, which is what Node.js type stripping runs.
+          tr: erasableSyntaxOnly sadece silinip atılabilen TypeScript sözdizimine izin verir; Node.js'in type stripping ile çalıştırdığı da budur.
+        lang: ts
+        form: '"erasableSyntaxOnly": true'
+        example: |
+          // not erasable: enum Color { Red, Green }
+          const Color = { Red: "red", Green: "green" } as const;
+          type Color = (typeof Color)[keyof typeof Color];
+          const c: Color = Color.Green;
+          console.log(c);
+        output: |
+          green
+        check: ts
+        mistake:
+          en: Using enum, namespaces with code or constructor parameter properties in files Node.js runs directly; they need a real compile step.
+          tr: Node.js'in doğrudan çalıştırdığı dosyalarda enum, kod içeren namespace ya da constructor parameter property kullanmak; bunlar gerçek bir derleme adımı ister.
+        since: "5.8"
+        api: ["erasableSyntaxOnly"]
+        source: https://www.typescriptlang.org/tsconfig/#erasableSyntaxOnly
+      - id: declaration-files
+        level: advanced
+        title: { en: Types for untyped code, tr: Tipsiz kod için tipler }
+        what:
+          en: A .d.ts file only describes types; declare module gives types to a package or file kind that has none.
+          tr: .d.ts dosyası sadece tipleri tanımlar; declare module, tipi olmayan bir pakete ya da dosya türüne tip verir.
+        lang: ts
+        form: 'declare module "untyped-lib" { export function run(): void; }'
+        example: |
+          // src/types/assets.d.ts
+          declare module "*.svg" {
+            const url: string;
+            export default url;
+          }
+          declare module "*.css";
+        mistake:
+          en: Writing the types yourself before checking npm; many packages ship them or have @types/<name>.
+          tr: npm'e bakmadan tipleri kendin yazmak; birçok paket tiplerini içinde getirir ya da @types/<isim> paketi vardır.
+        source: https://www.typescriptlang.org/docs/handbook/declaration-files/introduction.html
+      - id: run-ts
+        level: basic
+        title: { en: Run a .ts file, tr: Bir .ts dosyasını çalıştırma }
+        what:
+          en: Node.js and Bun run .ts files directly by removing the types; they do not check them, so still run tsc.
+          tr: Node.js ve Bun .ts dosyalarını tipleri silerek doğrudan çalıştırır; tipleri kontrol etmezler, tsc'yi yine çalıştır.
+        lang: sh
+        form: node app.ts
+        example: |
+          node src/index.ts      # Node.js 22.18+ / 23.6+
+          bun src/index.ts
+          npx tsc --noEmit       # the actual type check
+        mistake:
+          en: Thinking a file that runs is type-correct; type errors are ignored at run time.
+          tr: Çalışan bir dosyanın tip olarak doğru olduğunu sanmak; tip hataları çalışma anında yok sayılır.
+        source: https://nodejs.org/api/typescript.html

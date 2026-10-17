@@ -1,0 +1,1147 @@
+id: go
+title: Go
+category: language
+summary:
+  en: A simple, fast compiled language with built-in concurrency, popular for servers, CLIs and cloud tools.
+  tr: Yerleşik eşzamanlılığı olan sade ve hızlı derlenen bir dil; sunucular, CLI'lar ve bulut araçları için çok kullanılır.
+aliases: [golang, go dili, goroutine, gorutin, go mod]
+detect:
+  files: [go.mod]
+version: "1.27"
+latest: eol:go
+checked: 2026-10
+sources:
+  - title: Go documentation
+    url: https://go.dev/doc/
+  - title: The Go Programming Language Specification
+    url: https://go.dev/ref/spec
+  - title: Effective Go
+    url: https://go.dev/doc/effective_go
+roadmap: go
+sections:
+  - id: start
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: mod-init
+        level: basic
+        title: { en: Start a module, tr: Modül başlatma }
+        what:
+          en: Creates a go.mod file that names your module and records its Go version and dependencies.
+          tr: Modülünün adını, Go sürümünü ve bağımlılıklarını tutan go.mod dosyasını oluşturur.
+        lang: sh
+        form: go mod init <module-path>
+        example: |
+          mkdir hello && cd hello
+          go mod init example.com/hello
+          # Go 1.26+ writes the previous Go version into go.mod (1.27 writes go 1.26.0)
+          go get go@1.27   # raise it when you need newer features
+        mistake:
+          en: Using a short name like "hello" for code you will publish; others import it by the full path, such as github.com/you/hello.
+          tr: Yayınlayacağın kod için "hello" gibi kısa bir ad vermek; başkaları onu github.com/sen/hello gibi tam yoluyla import eder.
+        source: https://go.dev/ref/mod#go-mod-init
+      - id: hello
+        level: basic
+        title: { en: A program that runs, tr: Çalışan bir program }
+        what:
+          en: A runnable program is package main with a func main; go run compiles and runs it in one step.
+          tr: Çalıştırılabilir bir program, func main içeren package main'dir; go run onu tek adımda derleyip çalıştırır.
+        lang: go
+        form: go run .
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              fmt.Println("Hello, Go")
+              fmt.Printf("%s is %d years old\n", "Ada", 36)
+          }
+        output: |
+          Hello, Go
+          Ada is 36 years old
+        check: go
+        mistake:
+          en: Importing a package and not using it; Go refuses to compile unused imports and unused local variables.
+          tr: Bir paketi import edip kullanmamak; Go kullanılmayan import'ları ve yerel değişkenleri derlemez.
+        source: https://go.dev/doc/tutorial/getting-started
+      - id: build
+        level: basic
+        title: { en: Build a binary, tr: Binary oluşturma }
+        what:
+          en: Compiles your program into one executable file you can copy to another machine and run.
+          tr: Programını başka bir makineye kopyalayıp çalıştırabileceğin tek bir çalıştırılabilir dosyaya derler.
+        lang: sh
+        form: go build -o app .
+        example: |
+          go build -o app .
+          GOOS=linux GOARCH=arm64 go build -o app-arm .   # build for another system
+        mistake:
+          en: Expecting a fully static binary when the program uses cgo; set CGO_ENABLED=0 for a pure Go build.
+          tr: Program cgo kullanırken tamamen statik bir binary beklemek; saf Go derlemesi için CGO_ENABLED=0 ver.
+        source: https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
+      - id: variables
+        level: basic
+        title: { en: Variables, tr: Değişkenler }
+        what:
+          en: ":= declares and sets a variable inside a function; var works everywhere and gives the zero value when you set nothing."
+          tr: ":= bir fonksiyonun içinde değişkeni hem tanımlar hem değer verir; var her yerde çalışır ve değer vermezsen sıfır değerini verir."
+        lang: go
+        form: "name := value"
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              count := 3
+              var name string // zero value: ""
+              var ratio float64 = 0.5
+              fmt.Println(count, name == "", ratio)
+          }
+        output: |
+          3 true 0.5
+        check: go
+        mistake:
+          en: Writing := inside an if or for block and shadowing an outer variable, so the outer one never changes.
+          tr: if ya da for bloğunun içinde := yazıp dıştaki değişkeni gölgelemek; dıştaki değişken hiç değişmez.
+        source: https://go.dev/ref/spec#Short_variable_declarations
+      - id: const-iota
+        level: basic
+        title: { en: Constants and iota, tr: Sabitler ve iota }
+        what:
+          en: const values never change; iota counts 0, 1, 2 inside a const block, handy for enums.
+          tr: const değerler hiç değişmez; iota bir const bloğunun içinde 0, 1, 2 diye sayar, enum'lar için kullanışlıdır.
+        lang: go
+        form: const ( A = iota; B; C )
+        example: |
+          package main
+
+          import "fmt"
+
+          type Weekday int
+
+          const (
+              Sunday Weekday = iota
+              Monday
+              Tuesday
+          )
+
+          func main() {
+              fmt.Println(Sunday, Monday, Tuesday)
+          }
+        output: |
+          0 1 2
+        check: go
+        source: https://go.dev/ref/spec#Iota
+  - id: basics
+    title: { en: Everyday code, tr: Günlük kod }
+    items:
+      - id: for
+        level: basic
+        title: { en: Loops, tr: Döngüler }
+        what:
+          en: for is the only loop; with range it walks over slices, maps, strings, channels and integers.
+          tr: for tek döngüdür; range ile slice, map, string, channel ve tam sayılar üzerinde gezer.
+        lang: go
+        form: for i, v := range items { }
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              for i := range 3 {
+                  fmt.Print(i, " ")
+              }
+              fmt.Println()
+              for i, name := range []string{"a", "b"} {
+                  fmt.Println(i, name)
+              }
+          }
+        output: |
+          0 1 2
+          0 a
+          1 b
+        check: go
+        mistake:
+          en: Changing v inside a range loop and expecting the slice to change; v is a copy, write items[i] instead.
+          tr: range döngüsünde v'yi değiştirip slice'ın da değişmesini beklemek; v bir kopyadır, items[i] yaz.
+        since: "1.22"
+        older:
+          en: Range over an integer came in 1.22, and since 1.22 each loop turn gets its own copy of the loop variables. Before, all turns shared one variable, a classic bug with goroutines and closures.
+          tr: Tam sayı üzerinde range 1.22'de geldi; 1.22'den beri döngünün her turu döngü değişkenlerinin kendi kopyasını alır. Önceden bütün turlar tek değişkeni paylaşırdı; goroutine ve closure'larda klasik bir hataydı.
+        source: https://go.dev/ref/spec#For_range
+      - id: switch
+        level: basic
+        title: { en: switch, tr: switch }
+        what:
+          en: Picks the first matching case; there is no fall-through, so no break is needed.
+          tr: Eşleşen ilk case'i seçer; alttakine geçme yoktur, bu yüzden break gerekmez.
+        lang: go
+        form: 'switch x { case 1, 2: ... default: ... }'
+        example: |
+          package main
+
+          import "fmt"
+
+          func grade(score int) string {
+              switch {
+              case score >= 90:
+                  return "A"
+              case score >= 70:
+                  return "B"
+              default:
+                  return "C"
+              }
+          }
+
+          func main() {
+              fmt.Println(grade(95), grade(75), grade(10))
+          }
+        output: |
+          A B C
+        check: go
+        mistake:
+          en: Adding break out of habit from C or Java; it is not needed. Use fallthrough if you really want the next case to run.
+          tr: C ya da Java alışkanlığıyla break eklemek; gerek yok. Sonraki case'in de çalışmasını gerçekten istiyorsan fallthrough kullan.
+        source: https://go.dev/ref/spec#Switch_statements
+      - id: functions
+        level: basic
+        title: { en: Functions with several results, tr: Birden çok sonuç dönen fonksiyonlar }
+        what:
+          en: A function can return more than one value; the last one is often an error.
+          tr: Bir fonksiyon birden fazla değer dönebilir; sonuncusu çoğu zaman bir error'dur.
+        lang: go
+        form: func name(a int, b string) (int, error) { }
+        example: |
+          package main
+
+          import "fmt"
+
+          func divide(a, b int) (int, int) {
+              return a / b, a % b
+          }
+
+          func main() {
+              q, r := divide(17, 5)
+              fmt.Println(q, r)
+              _, r2 := divide(9, 4) // _ ignores a result
+              fmt.Println(r2)
+          }
+        output: |
+          3 2
+          1
+        check: go
+        source: https://go.dev/doc/effective_go#multiple-returns
+      - id: slices
+        level: basic
+        title: { en: Slices, tr: Slice'lar }
+        what:
+          en: A slice is a growable list; append adds items and returns the new slice.
+          tr: Slice büyüyebilen bir listedir; append eleman ekler ve yeni slice'ı döner.
+        lang: go
+        form: s = append(s, x)
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              nums := []int{1, 2, 3}
+              nums = append(nums, 4, 5)
+              fmt.Println(nums, len(nums))
+              fmt.Println(nums[1:3]) // from index 1 up to, not including, 3
+          }
+        output: |
+          [1 2 3 4 5] 5
+          [2 3]
+        check: go
+        mistake:
+          en: Calling append without using its result, or changing a sub-slice and surprising the original; they can share the same memory.
+          tr: append'in sonucunu kullanmamak ya da alt slice'ı değiştirip orijinali de değiştirmek; ikisi aynı belleği paylaşabilir.
+        source: https://go.dev/blog/slices-intro
+      - id: maps
+        level: basic
+        title: { en: Maps, tr: Map'ler }
+        what:
+          en: A map stores values by key; the "comma ok" form tells you whether a key exists.
+          tr: Map, değerleri anahtara göre saklar; "comma ok" biçimi bir anahtarın olup olmadığını söyler.
+        lang: go
+        form: v, ok := m[key]
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              ages := map[string]int{"ada": 36}
+              ages["alan"] = 41
+              if age, ok := ages["bob"]; !ok {
+                  fmt.Println("no bob, got zero value", age)
+              }
+              delete(ages, "alan")
+              fmt.Println(ages, len(ages))
+          }
+        output: |
+          no bob, got zero value 0
+          map[ada:36] 1
+        check: go
+        mistake:
+          en: Writing to a nil map (var m map[string]int) panics; create it with make or a literal first. Also, range over a map has no fixed order.
+          tr: nil bir map'e yazmak (var m map[string]int) panic verir; önce make ya da literal ile oluştur. Ayrıca map üzerinde range'in sırası sabit değildir.
+        source: https://go.dev/blog/maps
+      - id: strings-runes
+        level: intermediate
+        title: { en: Strings, bytes and runes, tr: String, byte ve rune }
+        what:
+          en: A string is UTF-8 bytes; len counts bytes, and range walks over runes (Unicode characters).
+          tr: String UTF-8 byte'lardan oluşur; len byte sayar, range ise rune'lar (Unicode karakterler) üzerinde gezer.
+        lang: go
+        form: for i, r := range s { }
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "strings"
+              "unicode/utf8"
+          )
+
+          func main() {
+              s := "çay"
+              fmt.Println(len(s), utf8.RuneCountInString(s))
+              fmt.Println(strings.ToUpper(s), strings.Contains(s, "ay"))
+              fmt.Println(strings.Split("a,b,c", ","))
+          }
+        output: |
+          4 3
+          ÇAY true
+          [a b c]
+        check: go
+        mistake:
+          en: Using s[i] to get the i-th letter; it gives a byte, which breaks on letters like ç or ş.
+          tr: i'nci harfi almak için s[i] kullanmak; bu bir byte verir ve ç, ş gibi harflerde bozulur.
+        avoid:
+          en: Building a long string with + in a loop; use strings.Builder.
+          tr: Döngüde + ile uzun string oluşturmak; strings.Builder kullan.
+        source: https://go.dev/blog/strings
+      - id: defer
+        level: basic
+        title: { en: Run something at the end, tr: Sonda bir şey çalıştırma }
+        what:
+          en: defer runs a call when the function returns, in reverse order; used to close files and unlock.
+          tr: defer bir çağrıyı fonksiyon dönerken ters sırayla çalıştırır; dosya kapatmak ve kilidi açmak için kullanılır.
+        lang: go
+        form: defer f.Close()
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              defer fmt.Println("last")
+              defer fmt.Println("second")
+              fmt.Println("first")
+          }
+        output: |
+          first
+          second
+          last
+        check: go
+        mistake:
+          en: Deferring inside a long loop; nothing runs until the function ends, so files stay open. Move the loop body into its own function.
+          tr: Uzun bir döngünün içinde defer kullanmak; fonksiyon bitene kadar hiçbiri çalışmaz ve dosyalar açık kalır. Döngü gövdesini ayrı bir fonksiyona taşı.
+        source: https://go.dev/ref/spec#Defer_statements
+  - id: types
+    title: { en: Types, methods and interfaces, tr: Tipler, metotlar ve interface'ler }
+    items:
+      - id: structs-methods
+        level: basic
+        title: { en: Structs and methods, tr: Struct'lar ve metotlar }
+        what:
+          en: A struct groups fields; a method is a function attached to a type through a receiver.
+          tr: Struct alanları bir araya toplar; metot, receiver ile bir tipe bağlanmış fonksiyondur.
+        lang: go
+        form: func (u *User) Rename(n string) { }
+        example: |
+          package main
+
+          import "fmt"
+
+          type User struct {
+              Name string
+              Age  int
+          }
+
+          func (u User) Hello() string { return "hi " + u.Name }
+          func (u *User) Birthday()     { u.Age++ }
+
+          func main() {
+              u := User{Name: "Ada", Age: 36}
+              u.Birthday()
+              fmt.Println(u.Hello(), u.Age)
+          }
+        output: |
+          hi Ada 37
+        check: go
+        mistake:
+          en: Using a value receiver for a method that changes the struct; it changes a copy. Use a pointer receiver (*User).
+          tr: Struct'ı değiştiren bir metotta value receiver kullanmak; kopyayı değiştirir. Pointer receiver (*User) kullan.
+        source: https://go.dev/doc/effective_go#methods
+      - id: exported
+        level: basic
+        title: { en: Public and private names, tr: Dışa açık ve gizli adlar }
+        what:
+          en: A name that starts with a capital letter is visible to other packages; lowercase stays inside the package.
+          tr: Büyük harfle başlayan ad diğer paketlerden görünür; küçük harfle başlayan paketin içinde kalır.
+        lang: go
+        form: func Exported() {} / func internal() {}
+        example: |
+          package store
+
+          type Item struct {
+              Name  string // other packages can read it
+              price int    // only package store can
+          }
+        mistake:
+          en: Lowercase struct fields and then wondering why encoding/json leaves them out; it only sees exported fields.
+          tr: Struct alanlarını küçük harfle yazıp encoding/json'un neden onları atladığını merak etmek; sadece dışa açık alanları görür.
+        source: https://go.dev/ref/spec#Exported_identifiers
+      - id: interfaces
+        level: intermediate
+        title: { en: Interfaces, tr: Interface'ler }
+        what:
+          en: An interface lists methods; any type that has those methods satisfies it, with no "implements" keyword.
+          tr: Interface metotları listeler; bu metotlara sahip her tip onu karşılar, "implements" anahtar kelimesi yoktur.
+        lang: go
+        form: type Shape interface { Area() float64 }
+        example: |
+          package main
+
+          import "fmt"
+
+          type Shape interface{ Area() float64 }
+
+          type Rect struct{ W, H float64 }
+
+          func (r Rect) Area() float64 { return r.W * r.H }
+
+          func main() {
+              var s Shape = Rect{W: 2, H: 3}
+              fmt.Println(s.Area())
+              if r, ok := s.(Rect); ok { // type assertion
+                  fmt.Println("width", r.W)
+              }
+          }
+        output: |
+          6
+          width 2
+        check: go
+        mistake:
+          en: Defining big interfaces next to the type; Go style is small interfaces (often one method) defined where they are used.
+          tr: Tipin yanında büyük interface'ler tanımlamak; Go tarzı, kullanıldığı yerde tanımlanan küçük (çoğu zaman tek metotlu) interface'lerdir.
+        source: https://go.dev/doc/effective_go#interfaces
+      - id: type-switch
+        level: intermediate
+        title: { en: Type switch, tr: Tip switch'i }
+        what:
+          en: Checks which concrete type is stored in an interface value and branches on it.
+          tr: Bir interface değerinin içinde hangi somut tipin olduğuna bakar ve ona göre dallanır.
+        lang: go
+        form: 'switch v := x.(type) { case int: ... }'
+        example: |
+          package main
+
+          import "fmt"
+
+          func describe(x any) string {
+              switch v := x.(type) {
+              case int:
+                  return fmt.Sprint("int ", v*2)
+              case string:
+                  return "string " + v
+              default:
+                  return fmt.Sprintf("other %T", v)
+              }
+          }
+
+          func main() {
+              fmt.Println(describe(21))
+              fmt.Println(describe("go"))
+              fmt.Println(describe(1.5))
+          }
+        output: |
+          int 42
+          string go
+          other float64
+        check: go
+        source: https://go.dev/ref/spec#Type_switches
+      - id: embedding
+        level: intermediate
+        title: { en: Embedding, tr: Gömme (embedding) }
+        what:
+          en: Putting a type inside a struct without a field name makes its fields and methods usable directly.
+          tr: Bir tipi struct'a alan adı vermeden koymak, onun alanlarını ve metotlarını doğrudan kullanılabilir yapar.
+        lang: go
+        form: type Admin struct { User; Level int }
+        example: |
+          package main
+
+          import "fmt"
+
+          type User struct{ Name string }
+
+          func (u User) Hello() string { return "hi " + u.Name }
+
+          type Admin struct {
+              User
+              Level int
+          }
+
+          func main() {
+              a := Admin{User: User{Name: "Ada"}, Level: 1}
+              fmt.Println(a.Hello(), a.Name)
+          }
+        output: |
+          hi Ada Ada
+        check: go
+        mistake:
+          en: Treating it as inheritance; an Admin is not a User and cannot be passed where a User is expected.
+          tr: Bunu kalıtım sanmak; Admin bir User değildir ve User beklenen yere verilemez.
+        source: https://go.dev/doc/effective_go#embedding
+      - id: generics
+        level: intermediate
+        title: { en: Generics, tr: Generic'ler }
+        what:
+          en: Type parameters let one function or type work with many types, limited by a constraint.
+          tr: Tip parametreleri tek bir fonksiyonun ya da tipin bir kısıtla sınırlanan birçok tiple çalışmasını sağlar.
+        lang: go
+        form: func Map[T, U any](s []T, f func(T) U) []U
+        example: |
+          package main
+
+          import (
+              "cmp"
+              "fmt"
+          )
+
+          func Largest[T cmp.Ordered](items []T) T {
+              best := items[0]
+              for _, v := range items[1:] {
+                  if v > best {
+                      best = v
+                  }
+              }
+              return best
+          }
+
+          func main() {
+              fmt.Println(Largest([]int{3, 9, 4}))
+              fmt.Println(Largest([]string{"go", "rust", "c"}))
+          }
+        output: |
+          9
+          rust
+        check: go
+        avoid:
+          en: When an interface or a plain function for one type does the job; generics add complexity.
+          tr: Bir interface ya da tek tip için yazılmış düz bir fonksiyon işi görüyorsa; generic'ler karmaşıklık ekler.
+        since: "1.18"
+        source: https://go.dev/doc/tutorial/generics
+      - id: generic-methods
+        level: advanced
+        title: { en: Generic methods, tr: Generic metotlar }
+        what:
+          en: A method can declare its own type parameters, in addition to those of its type.
+          tr: Bir metot, tipinin tip parametrelerine ek olarak kendi tip parametrelerini tanımlayabilir.
+        lang: go
+        form: func (l List[E]) Apply[F any](f func(E) F) List[F]
+        example: |
+          type List[E any] []E
+
+          func (l List[E]) Apply[F any](f func(E) F) List[F] {
+              r := make(List[F], len(l))
+              for i, x := range l {
+                  r[i] = f(x)
+              }
+              return r
+          }
+        mistake:
+          en: Expecting a generic method to satisfy an interface; interface methods cannot have type parameters, so generic methods never implement them.
+          tr: Generic bir metodun bir interface'i karşılamasını beklemek; interface metotları tip parametresi alamaz, bu yüzden generic metotlar onları hiç karşılamaz.
+        since: "1.27"
+        older:
+          en: Before 1.27, only functions and types could have type parameters; write a top-level generic function instead.
+          tr: 1.27'den önce sadece fonksiyonlar ve tipler tip parametresi alabilirdi; onun yerine üst düzey generic bir fonksiyon yaz.
+        source: https://go.dev/ref/spec#Method_declarations
+      - id: new-expr
+        level: advanced
+        title: { en: Pointer to a value in one step, tr: Bir değere tek adımda pointer }
+        what:
+          en: new can take a value, so new(42) gives a pointer to an int holding 42; handy for optional fields.
+          tr: new bir değer alabilir; new(42), 42 tutan bir int'e pointer verir. Opsiyonel alanlar için kullanışlıdır.
+        lang: go
+        form: p := new(expr)
+        example: |
+          type Config struct {
+              Timeout *int // nil means "not set"
+          }
+
+          cfg := Config{Timeout: new(30)}
+        since: "1.26"
+        older:
+          en: Before 1.26, new only took a type; you wrote v := 30 then &v, or a small helper function.
+          tr: 1.26'dan önce new sadece tip alırdı; v := 30 yazıp &v alırdın ya da küçük bir yardımcı fonksiyon yazardın.
+        source: https://go.dev/ref/spec#Allocation
+  - id: errors
+    title: { en: Errors, tr: Hatalar }
+    items:
+      - id: error-check
+        level: basic
+        title: { en: Check every error, tr: Her hatayı kontrol etme }
+        what:
+          en: Functions return an error value; you check it right away with if err != nil.
+          tr: Fonksiyonlar bir error değeri döner; onu hemen if err != nil ile kontrol edersin.
+        lang: go
+        form: if err != nil { return err }
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "strconv"
+          )
+
+          func main() {
+              n, err := strconv.Atoi("42x")
+              if err != nil {
+                  fmt.Println("error:", err)
+                  return
+              }
+              fmt.Println(n)
+          }
+        output: |
+          error: strconv.Atoi: parsing "42x": invalid syntax
+        check: go
+        mistake:
+          en: Ignoring the error with _ ; when it fails, the other result is usually a zero value and the bug shows up far away.
+          tr: Hatayı _ ile yok saymak; başarısız olunca diğer sonuç genelde sıfır değeridir ve hata çok uzakta ortaya çıkar.
+        source: https://go.dev/blog/error-handling-and-go
+      - id: wrap-errors
+        level: intermediate
+        title: { en: Wrap and test errors, tr: Hataları sarmalama ve test etme }
+        what:
+          en: fmt.Errorf with %w adds context but keeps the original error, which errors.Is can still find.
+          tr: "%w ile fmt.Errorf bağlam ekler ama asıl hatayı korur; errors.Is onu yine bulabilir."
+        lang: go
+        form: 'return fmt.Errorf("load config: %w", err)'
+        example: |
+          package main
+
+          import (
+              "errors"
+              "fmt"
+              "io/fs"
+              "os"
+          )
+
+          func load() error {
+              _, err := os.Open("missing.txt")
+              if err != nil {
+                  return fmt.Errorf("load: %w", err)
+              }
+              return nil
+          }
+
+          func main() {
+              err := load()
+              fmt.Println(errors.Is(err, fs.ErrNotExist))
+          }
+        output: |
+          true
+        check: go
+        mistake:
+          en: Comparing errors with == or by their message text; wrapped errors only match with errors.Is.
+          tr: Hataları == ile ya da mesaj metniyle karşılaştırmak; sarmalanmış hatalar sadece errors.Is ile eşleşir.
+        since: "1.13"
+        source: https://pkg.go.dev/errors
+      - id: errors-as
+        level: intermediate
+        title: { en: Get a specific error type, tr: Belirli bir hata tipini alma }
+        what:
+          en: errors.As finds an error of a given type anywhere in the wrapped chain so you can read its fields.
+          tr: errors.As sarmalanmış zincirin herhangi bir yerinde belirli tipte bir hatayı bulur; böylece alanlarını okuyabilirsin.
+        lang: go
+        form: var pe *fs.PathError; errors.As(err, &pe)
+        example: |
+          package main
+
+          import (
+              "errors"
+              "fmt"
+              "io/fs"
+              "os"
+          )
+
+          func main() {
+              _, err := os.Open("missing.txt")
+              err = fmt.Errorf("start: %w", err)
+              var pe *fs.PathError
+              if errors.As(err, &pe) {
+                  fmt.Println("path:", pe.Path)
+              }
+          }
+        output: |
+          path: missing.txt
+        check: go
+        avoid:
+          en: On Go 1.26 and newer, the generic errors.AsType is shorter and faster - pe, ok := errors.AsType[*fs.PathError](err).
+          tr: Go 1.26 ve sonrasında generic errors.AsType daha kısa ve hızlıdır - pe, ok := errors.AsType[*fs.PathError](err).
+        source: https://pkg.go.dev/errors#As
+      - id: panic-recover
+        level: advanced
+        title: { en: panic and recover, tr: panic ve recover }
+        what:
+          en: panic stops normal flow for bugs that should never happen; recover in a deferred function can catch it.
+          tr: panic, hiç olmaması gereken hatalarda normal akışı durdurur; defer edilmiş bir fonksiyondaki recover onu yakalayabilir.
+        lang: go
+        form: defer func() { if r := recover(); r != nil { } }()
+        example: |
+          package main
+
+          import "fmt"
+
+          func safe() {
+              defer func() {
+                  if r := recover(); r != nil {
+                      fmt.Println("recovered:", r)
+                  }
+              }()
+              var items []int
+              _ = items[3]
+          }
+
+          func main() {
+              safe()
+              fmt.Println("still running")
+          }
+        output: |
+          recovered: runtime error: index out of range [3] with length 0
+          still running
+        check: go
+        avoid:
+          en: For normal failures like a missing file or bad input; return an error.
+          tr: Eksik dosya ya da hatalı girdi gibi olağan hatalarda; error dön.
+        source: https://go.dev/ref/spec#Handling_panics
+  - id: concurrency
+    title: { en: Concurrency, tr: Eşzamanlılık }
+    items:
+      - id: goroutines
+        level: intermediate
+        title: { en: Goroutines and WaitGroup, tr: Goroutine'ler ve WaitGroup }
+        what:
+          en: go f() runs f at the same time as the rest of the program; a WaitGroup waits until they all finish.
+          tr: go f(), f'yi programın geri kalanıyla aynı anda çalıştırır; WaitGroup hepsi bitene kadar bekler.
+        lang: go
+        form: wg.Go(func() { ... }); wg.Wait()
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "sync"
+          )
+
+          func main() {
+              results := make([]int, 3)
+              var wg sync.WaitGroup
+              for i := range 3 {
+                  wg.Go(func() {
+                      results[i] = i * i
+                  })
+              }
+              wg.Wait()
+              fmt.Println(results)
+          }
+        output: |
+          [0 1 4]
+        check: go
+        mistake:
+          en: Letting main return before the goroutines finish; the program exits and their work is lost.
+          tr: Goroutine'ler bitmeden main'in dönmesine izin vermek; program kapanır ve yaptıkları iş kaybolur.
+        since: "1.25"
+        older:
+          en: Before 1.25 there is no wg.Go; call wg.Add(1) before go func() and defer wg.Done() inside it.
+          tr: 1.25'ten önce wg.Go yoktur; go func()'tan önce wg.Add(1) çağır, içinde defer wg.Done() yaz.
+        source: https://pkg.go.dev/sync#WaitGroup.Go
+      - id: channels
+        level: intermediate
+        title: { en: Channels, tr: Channel'lar }
+        what:
+          en: A channel passes values between goroutines; sending and receiving wait for each other.
+          tr: Channel goroutine'ler arasında değer taşır; gönderme ve alma birbirini bekler.
+        lang: go
+        form: ch := make(chan int); ch <- v; v := <-ch
+        example: |
+          package main
+
+          import "fmt"
+
+          func main() {
+              ch := make(chan int)
+              go func() {
+                  for i := 1; i <= 3; i++ {
+                      ch <- i * 10
+                  }
+                  close(ch)
+              }()
+              for v := range ch {
+                  fmt.Println(v)
+              }
+          }
+        output: |
+          10
+          20
+          30
+        check: go
+        mistake:
+          en: Forgetting to close the channel, so range waits forever ("all goroutines are asleep - deadlock!"). Only the sender should close.
+          tr: Channel'ı kapatmayı unutmak; range sonsuza kadar bekler ("all goroutines are asleep - deadlock!"). Sadece gönderen taraf kapatmalı.
+        source: https://go.dev/ref/spec#Channel_types
+      - id: select
+        level: intermediate
+        title: { en: Wait on several channels, tr: Birden çok channel'ı bekleme }
+        what:
+          en: select waits until one of several channel operations can go ahead, for example a result or a timeout.
+          tr: select, birkaç channel işleminden biri yapılabilene kadar bekler; örneğin bir sonuç ya da zaman aşımı.
+        lang: go
+        form: 'select { case v := <-ch: ... case <-time.After(d): ... }'
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "time"
+          )
+
+          func main() {
+              slow := make(chan string)
+              go func() {
+                  time.Sleep(time.Second)
+                  slow <- "done"
+              }()
+              select {
+              case v := <-slow:
+                  fmt.Println(v)
+              case <-time.After(50 * time.Millisecond):
+                  fmt.Println("timeout")
+              }
+          }
+        output: |
+          timeout
+        check: go
+        source: https://go.dev/ref/spec#Select_statements
+      - id: mutex
+        level: intermediate
+        title: { en: Protect shared data, tr: Paylaşılan veriyi koruma }
+        what:
+          en: A sync.Mutex lets only one goroutine at a time touch shared data.
+          tr: sync.Mutex paylaşılan veriye aynı anda sadece bir goroutine'in dokunmasına izin verir.
+        lang: go
+        form: mu.Lock(); defer mu.Unlock()
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "sync"
+          )
+
+          type Counter struct {
+              mu sync.Mutex
+              n  int
+          }
+
+          func (c *Counter) Inc() {
+              c.mu.Lock()
+              defer c.mu.Unlock()
+              c.n++
+          }
+
+          func main() {
+              var c Counter
+              var wg sync.WaitGroup
+              for range 100 {
+                  wg.Go(c.Inc)
+              }
+              wg.Wait()
+              fmt.Println(c.n)
+          }
+        output: |
+          100
+        check: go
+        mistake:
+          en: Copying a struct that holds a mutex (value receiver); each copy has its own lock and protects nothing. go vet warns about it.
+          tr: Mutex tutan bir struct'ı kopyalamak (value receiver); her kopyanın kendi kilidi olur ve hiçbir şeyi korumaz. go vet bunu uyarır.
+        avoid:
+          en: Find data races with go test -race or go run -race.
+          tr: Veri yarışlarını (data race) go test -race ya da go run -race ile bul.
+        source: https://pkg.go.dev/sync#Mutex
+      - id: context
+        level: advanced
+        title: { en: Cancel and time out with context, tr: context ile iptal ve zaman aşımı }
+        what:
+          en: A context carries a deadline or a cancel signal through calls, so slow work can stop early.
+          tr: context bir son tarihi ya da iptal sinyalini çağrılar boyunca taşır; böylece yavaş iş erkenden durabilir.
+        lang: go
+        form: ctx, cancel := context.WithTimeout(ctx, 2*time.Second); defer cancel()
+        example: |
+          package main
+
+          import (
+              "context"
+              "fmt"
+              "time"
+          )
+
+          func work(ctx context.Context) error {
+              select {
+              case <-time.After(time.Second):
+                  return nil
+              case <-ctx.Done():
+                  return ctx.Err()
+              }
+          }
+
+          func main() {
+              ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+              defer cancel()
+              fmt.Println(work(ctx))
+          }
+        output: |
+          context deadline exceeded
+        check: go
+        mistake:
+          en: Not calling cancel; the context's resources leak until the timeout. Always defer cancel().
+          tr: cancel'ı çağırmamak; context'in kaynakları zaman aşımına kadar sızar. Her zaman defer cancel() yaz.
+        avoid:
+          en: Do not store a context in a struct; pass it as the first parameter, named ctx.
+          tr: context'i struct içinde saklama; ctx adıyla ilk parametre olarak geçir.
+        source: https://pkg.go.dev/context
+  - id: tools
+    title: { en: Tools and standard library, tr: Araçlar ve standart kütüphane }
+    items:
+      - id: get-tidy
+        level: basic
+        title: { en: Add and clean dependencies, tr: Bağımlılık ekleme ve temizleme }
+        what:
+          en: go get adds or upgrades a module; go mod tidy adds what is missing and removes what is unused.
+          tr: go get bir modülü ekler ya da yükseltir; go mod tidy eksikleri ekler, kullanılmayanları siler.
+        lang: sh
+        form: go get <module>@<version>
+        example: |
+          go get github.com/google/uuid@latest
+          go mod tidy
+          go get -u ./...   # upgrade all dependencies
+        mistake:
+          en: Editing go.sum by hand or leaving it out of the commit; commit go.mod and go.sum together.
+          tr: go.sum'ı elle düzenlemek ya da commit'e eklememek; go.mod ile go.sum'ı birlikte commit'le.
+        source: https://go.dev/ref/mod#go-get
+      - id: test
+        level: basic
+        title: { en: Write tests, tr: Test yazma }
+        what:
+          en: Functions named TestXxx in *_test.go files are run by go test.
+          tr: "*_test.go dosyalarındaki TestXxx adlı fonksiyonları go test çalıştırır."
+        lang: go
+        form: func TestAdd(t *testing.T) { }
+        example: |
+          // add_test.go
+          package calc
+
+          import "testing"
+
+          func TestAdd(t *testing.T) {
+              tests := []struct{ a, b, want int }{{1, 2, 3}, {-1, 1, 0}}
+              for _, tc := range tests {
+                  if got := Add(tc.a, tc.b); got != tc.want {
+                      t.Errorf("Add(%d, %d) = %d, want %d", tc.a, tc.b, got, tc.want)
+                  }
+              }
+          }
+          // run: go test ./...
+        mistake:
+          en: Using t.Fatal where t.Error is enough; Fatal stops the test, so you see only the first failure.
+          tr: t.Error yeterken t.Fatal kullanmak; Fatal testi durdurur, sadece ilk hatayı görürsün.
+        source: https://pkg.go.dev/testing
+      - id: fmt-vet
+        level: basic
+        title: { en: Format and check code, tr: Kodu biçimlendirme ve kontrol etme }
+        what:
+          en: gofmt (go fmt) formats code the one standard way; go vet finds likely bugs the compiler misses.
+          tr: gofmt (go fmt) kodu tek standart biçimde düzenler; go vet derleyicinin kaçırdığı olası hataları bulur.
+        lang: sh
+        form: go fmt ./... && go vet ./...
+        example: |
+          go fmt ./...
+          go vet ./...
+        source: https://pkg.go.dev/cmd/vet
+      - id: go-fix
+        level: advanced
+        title: { en: Modernize old code, tr: Eski kodu modernleştirme }
+        what:
+          en: go fix runs "modernizers" that rewrite code to newer language features and library calls without changing behavior.
+          tr: go fix, kodu davranışını değiştirmeden yeni dil özelliklerine ve kütüphane çağrılarına çeviren "modernizer"ları çalıştırır.
+        lang: sh
+        form: go fix ./...
+        example: |
+          go fix -diff ./...   # show the changes first
+          go fix ./...
+        mistake:
+          en: Running it on a dirty working tree; commit first so you can review the rewrite as one diff.
+          tr: Commit edilmemiş değişiklikler varken çalıştırmak; önce commit'le ki yeniden yazımı tek bir diff olarak inceleyebilesin.
+        since: "1.26"
+        older:
+          en: Before 1.26, go fix only had a few old historical fixers; the modernizers lived in gopls.
+          tr: 1.26'dan önce go fix'te sadece birkaç eski düzeltici vardı; modernizer'lar gopls içindeydi.
+        source: https://go.dev/doc/go1.26#go-command
+      - id: json
+        level: intermediate
+        title: { en: JSON, tr: JSON }
+        what:
+          en: encoding/json turns structs into JSON and back; struct tags set the field names.
+          tr: encoding/json struct'ları JSON'a ve geri çevirir; struct tag'leri alan adlarını belirler.
+        lang: go
+        form: 'json.Marshal(v) / json.Unmarshal(data, &v)'
+        example: |
+          package main
+
+          import (
+              "encoding/json"
+              "fmt"
+          )
+
+          type User struct {
+              Name  string `json:"name"`
+              Email string `json:"email,omitempty"`
+          }
+
+          func main() {
+              b, _ := json.Marshal(User{Name: "Ada"})
+              fmt.Println(string(b))
+              var u User
+              _ = json.Unmarshal([]byte(`{"name":"Alan"}`), &u)
+              fmt.Println(u.Name)
+          }
+        output: |
+          {"name":"Ada"}
+          Alan
+        check: go
+        mistake:
+          en: Passing the struct instead of a pointer to Unmarshal; it needs &u to fill it.
+          tr: Unmarshal'a pointer yerine struct'ın kendisini vermek; doldurabilmesi için &u gerekir.
+        source: https://pkg.go.dev/encoding/json
+      - id: slices-maps-pkg
+        level: intermediate
+        title: { en: slices and maps helpers, tr: slices ve maps yardımcıları }
+        what:
+          en: The slices and maps packages give ready generic helpers like Sort, Contains, Index and Keys.
+          tr: slices ve maps paketleri Sort, Contains, Index ve Keys gibi hazır generic yardımcılar verir.
+        lang: go
+        form: slices.Sort(s); slices.Contains(s, x)
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "maps"
+              "slices"
+          )
+
+          func main() {
+              s := []int{3, 1, 2}
+              slices.Sort(s)
+              fmt.Println(s, slices.Contains(s, 2), slices.Index(s, 3))
+              m := map[string]int{"b": 2, "a": 1}
+              fmt.Println(slices.Sorted(maps.Keys(m)))
+          }
+        output: |
+          [1 2 3] true 2
+          [a b]
+        check: go
+        since: "1.21"
+        older:
+          en: slices and maps arrived in 1.21; maps.Keys returning an iterator and slices.Sorted came in 1.23.
+          tr: slices ve maps 1.21'de geldi; iterator dönen maps.Keys ve slices.Sorted 1.23'te geldi.
+        source: https://pkg.go.dev/slices
+      - id: iterators
+        level: advanced
+        title: { en: Your own iterators, tr: Kendi iterator'larını yazma }
+        what:
+          en: A function of type iter.Seq can be used with for range; it calls yield for each value.
+          tr: iter.Seq tipindeki bir fonksiyon for range ile kullanılabilir; her değer için yield'i çağırır.
+        lang: go
+        form: func All() iter.Seq[T] { return func(yield func(T) bool) { } }
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "iter"
+          )
+
+          func Countdown(n int) iter.Seq[int] {
+              return func(yield func(int) bool) {
+                  for i := n; i > 0; i-- {
+                      if !yield(i) {
+                          return
+                      }
+                  }
+              }
+          }
+
+          func main() {
+              for v := range Countdown(3) {
+                  fmt.Println(v)
+              }
+          }
+        output: |
+          3
+          2
+          1
+        check: go
+        mistake:
+          en: Ignoring yield's result; when the loop does break, yield returns false and you must stop, or the program panics.
+          tr: yield'in sonucunu yok saymak; döngüde break olunca yield false döner ve durman gerekir, yoksa program panic verir.
+        since: "1.23"
+        source: https://go.dev/ref/spec#For_range
+      - id: http-server
+        level: intermediate
+        title: { en: A small HTTP server, tr: Küçük bir HTTP sunucusu }
+        what:
+          en: net/http serves web requests without a framework; patterns can hold the method and path wildcards.
+          tr: net/http, framework olmadan web isteklerine cevap verir; kalıplar method ve yol joker'leri içerebilir.
+        lang: go
+        form: http.HandleFunc("GET /items/{id}", handler)
+        example: |
+          package main
+
+          import (
+              "fmt"
+              "net/http"
+          )
+
+          func main() {
+              http.HandleFunc("GET /hello/{name}", func(w http.ResponseWriter, r *http.Request) {
+                  fmt.Fprintf(w, "hello %s\n", r.PathValue("name"))
+              })
+              http.ListenAndServe(":8080", nil)
+          }
+        mistake:
+          en: Ignoring the error from ListenAndServe; if the port is taken, the program just exits silently. Wrap it in log.Fatal.
+          tr: ListenAndServe'ün hatasını yok saymak; port doluysa program sessizce kapanır. log.Fatal içine al.
+        since: "1.22"
+        older:
+          en: Before 1.22, patterns had no method or {name} wildcards; you checked r.Method yourself or used a router library.
+          tr: 1.22'den önce kalıplarda method ve {ad} jokerleri yoktu; r.Method'u kendin kontrol eder ya da bir router kütüphanesi kullanırdın.
+        source: https://pkg.go.dev/net/http#ServeMux

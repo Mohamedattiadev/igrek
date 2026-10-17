@@ -1,0 +1,950 @@
+id: react
+title: React
+category: framework
+summary:
+  en: A JavaScript library for building user interfaces out of small, reusable components.
+  tr: Kullanıcı arayüzlerini küçük, tekrar kullanılabilir component'lerden kurmaya yarayan bir JavaScript kütüphanesi.
+aliases: [reactjs, react.js, jsx, hooks, component, bileşen, arayüz]
+detect:
+  npm: [react, react-dom]
+version: "19.3"
+latest: npm:react
+checked: 2026-10
+sources:
+  - title: React documentation
+    url: https://react.dev/learn
+  - title: React API reference
+    url: https://react.dev/reference/react
+  - title: React blog
+    url: https://react.dev/blog
+roadmap: react
+sections:
+  - id: basics
+    title: { en: Components and JSX, tr: Component'ler ve JSX }
+    items:
+      - id: new-project
+        level: basic
+        title: { en: Start a new project, tr: Yeni proje başlatma }
+        what:
+          en: Creates a ready React app with a dev server, using Vite.
+          tr: Vite ile, geliştirme sunucusu hazır bir React uygulaması oluşturur.
+        lang: sh
+        form: |
+          npm create vite@latest my-app -- --template react-ts
+        example: |
+          npm create vite@latest my-app -- --template react-ts
+          cd my-app
+          npm install
+          npm run dev
+        mistake:
+          en: Starting with Create React App; it is deprecated and no longer maintained.
+          tr: Create React App ile başlamak; kullanımdan kaldırıldı ve artık bakımı yapılmıyor.
+        avoid:
+          en: When you need routing, server rendering and data loading from day one; start with a framework like Next.js or React Router instead.
+          tr: İlk günden routing, sunucuda render ve veri yükleme gerekiyorsa; onun yerine Next.js ya da React Router gibi bir framework ile başla.
+        source: https://react.dev/learn/build-a-react-app-from-scratch
+      - id: component
+        level: basic
+        title: { en: A component, tr: Component }
+        what:
+          en: A component is a function whose name starts with a capital letter and returns markup.
+          tr: Component, adı büyük harfle başlayan ve ekrana çizilecek markup'ı döndüren bir fonksiyondur.
+        lang: ts
+        form: |
+          function Greeting() {
+            return <h1>Hello</h1>;
+          }
+        example: |
+          export default function App() {
+            return (
+              <main>
+                <Greeting />
+                <Greeting />
+              </main>
+            );
+          }
+        mistake:
+          en: Naming it with a lowercase letter (greeting); React then treats <greeting /> as an HTML tag.
+          tr: Adı küçük harfle yazmak (greeting); React <greeting /> etiketini HTML etiketi sanar.
+        source: https://react.dev/learn/your-first-component
+      - id: jsx
+        level: basic
+        title: { en: JSX and curly braces, tr: JSX ve süslü parantez }
+        what:
+          en: JSX looks like HTML inside JavaScript; curly braces put a JavaScript value into it.
+          tr: JSX, JavaScript içinde HTML'e benzeyen bir yazımdır; süslü parantez içine JavaScript değeri koyar.
+        lang: ts
+        form: |
+          <img src={user.avatarUrl} alt={user.name} className="avatar" />
+        example: |
+          const name = "Ada";
+          return (
+            <>
+              <h1>Hello, {name.toUpperCase()}</h1>
+              <p style={{ color: "gray" }}>Today is {new Date().toDateString()}</p>
+            </>
+          );
+        mistake:
+          en: Writing class and for like in HTML; in JSX they are className and htmlFor. Also returning two elements side by side without a wrapper or <>...</>.
+          tr: HTML'deki gibi class ve for yazmak; JSX'te bunlar className ve htmlFor. Bir de iki elemanı sarmalayıcı ya da <>...</> olmadan yan yana döndürmek.
+        source: https://react.dev/learn/javascript-in-jsx-with-curly-braces
+      - id: props
+        level: basic
+        title: { en: Pass data with props, tr: Props ile veri geçme }
+        what:
+          en: Props are the inputs a parent gives to a child component, like function arguments.
+          tr: Props, üst component'in alt component'e verdiği girdilerdir; fonksiyon argümanları gibi.
+        lang: ts
+        form: |
+          function Avatar({ name, size = 48 }: { name: string; size?: number }) { ... }
+        example: |
+          function Avatar({ name, size = 48 }: { name: string; size?: number }) {
+            return <img src={`/avatars/${name}.png`} width={size} alt={name} />;
+          }
+
+          <Avatar name="ada" size={64} />
+        mistake:
+          en: Changing a prop inside the child. Props are read-only; keep changing values in state.
+          tr: Alt component içinde bir prop'u değiştirmek. Props salt okunurdur; değişen değerleri state'te tut.
+        source: https://react.dev/learn/passing-props-to-a-component
+      - id: children
+        level: basic
+        title: { en: Nest content with children, tr: children ile içerik sarma }
+        what:
+          en: Whatever you put between a component's opening and closing tags arrives as the children prop.
+          tr: Bir component'in açılış ve kapanış etiketleri arasına koyduğun her şey children prop'u olarak gelir.
+        lang: ts
+        form: |
+          function Card({ children }: { children: React.ReactNode }) { ... }
+        example: |
+          function Card({ children }: { children: React.ReactNode }) {
+            return <div className="card">{children}</div>;
+          }
+
+          <Card>
+            <h2>Title</h2>
+            <p>Body text</p>
+          </Card>
+        source: https://react.dev/learn/passing-props-to-a-component#passing-jsx-as-children
+      - id: conditional
+        level: basic
+        title: { en: Show something only sometimes, tr: Bir şeyi koşula göre gösterme }
+        what:
+          en: Use if, the ? operator or && to choose what to render.
+          tr: Neyin çizileceğini seçmek için if, ? operatörü ya da && kullan.
+        lang: ts
+        form: "{isLoggedIn ? <Dashboard /> : <Login />}"
+        example: |
+          return (
+            <div>
+              {error && <p className="error">{error}</p>}
+              {items.length > 0 ? <List items={items} /> : <p>Nothing yet</p>}
+            </div>
+          );
+        mistake:
+          en: "Writing {count && <Badge />} with a number; when count is 0, React prints the 0 on the page. Use {count > 0 && <Badge />}."
+          tr: "Sayıyla {count && <Badge />} yazmak; count 0 olunca React sayfaya 0 basar. {count > 0 && <Badge />} kullan."
+        source: https://react.dev/learn/conditional-rendering
+      - id: lists-keys
+        level: basic
+        title: { en: Render a list with keys, tr: Listeyi key ile çizme }
+        what:
+          en: Turn an array into elements with map; each one needs a stable, unique key.
+          tr: Bir array'i map ile elemanlara çevirirsin; her birinin sabit ve benzersiz bir key'i olmalı.
+        lang: ts
+        form: "{items.map((item) => <li key={item.id}>{item.name}</li>)}"
+        example: |
+          <ul>
+            {todos.map((todo) => (
+              <li key={todo.id}>{todo.text}</li>
+            ))}
+          </ul>
+        mistake:
+          en: Using the array index as key when items can be added, removed or reordered; state ends up on the wrong row.
+          tr: Elemanlar eklenip silinebilir ya da sırası değişebilirken array index'ini key yapmak; state yanlış satıra kayar.
+        source: https://react.dev/learn/rendering-lists
+      - id: events
+        level: basic
+        title: { en: Handle a click, tr: Tıklamayı yakalama }
+        what:
+          en: Pass a function to onClick, onChange or onSubmit; React calls it when the event happens.
+          tr: onClick, onChange ya da onSubmit'e bir fonksiyon verirsin; olay olduğunda React onu çağırır.
+        lang: ts
+        form: |
+          <button onClick={() => setOpen(true)}>Open</button>
+        example: |
+          function SaveButton({ onSave }: { onSave: () => void }) {
+            return <button onClick={onSave}>Save</button>;
+          }
+        mistake:
+          en: Writing onClick={save()} which calls the function during render. Pass it, do not call it - onClick={save}.
+          tr: onClick={save()} yazmak; fonksiyon render sırasında çağrılır. Fonksiyonu çağırma, ver - onClick={save}.
+        source: https://react.dev/learn/responding-to-events
+  - id: state
+    title: { en: State, tr: State }
+    items:
+      - id: use-state
+        level: basic
+        title: { en: Remember a value with useState, tr: useState ile değer hatırlama }
+        what:
+          en: Gives a component a value that survives re-renders, and a function that changes it and redraws the screen.
+          tr: Component'e her render'da korunan bir değer ve bu değeri değiştirip ekranı yeniden çizen bir fonksiyon verir.
+        lang: ts
+        form: |
+          const [count, setCount] = useState(0);
+        example: |
+          import { useState } from "react";
+
+          function Counter() {
+            const [count, setCount] = useState(0);
+            return <button onClick={() => setCount(count + 1)}>Clicked {count} times</button>;
+          }
+        mistake:
+          en: Reading the state right after setting it and expecting the new value; the new value only shows in the next render.
+          tr: State'i set ettikten hemen sonra okuyup yeni değeri beklemek; yeni değer ancak bir sonraki render'da görünür.
+        source: https://react.dev/reference/react/useState
+      - id: updater
+        level: basic
+        title: { en: Update from the previous value, tr: Önceki değerden güncelleme }
+        what:
+          en: Pass a function to the setter when the new state depends on the old one.
+          tr: Yeni state eskisine bağlıysa setter'a bir fonksiyon ver.
+        lang: ts
+        form: |
+          setCount((c) => c + 1);
+        example: |
+          function addThree() {
+            setCount((c) => c + 1);
+            setCount((c) => c + 1);
+            setCount((c) => c + 1); // +3, not +1
+          }
+        mistake:
+          en: Calling setCount(count + 1) three times in a row and getting +1, because count is the same old value in all three.
+          tr: setCount(count + 1)'i art arda üç kez çağırıp +1 almak; üçünde de count aynı eski değerdir.
+        source: https://react.dev/learn/queueing-a-series-of-state-updates
+      - id: immutable
+        level: basic
+        title: { en: Update objects and arrays without mutating, tr: Object ve array'i değiştirmeden güncelleme }
+        what:
+          en: Make a new object or array with the change instead of editing the old one, so React sees it changed.
+          tr: Eskisini düzenlemek yerine değişikliği içeren yeni bir object ya da array oluştur; böylece React değiştiğini görür.
+        lang: js
+        form: |
+          setUser({ ...user, name: "Ada" });
+        example: |
+          const todos = [{ id: 1, done: false }, { id: 2, done: false }];
+          const added = [...todos, { id: 3, done: false }];
+          const toggled = todos.map((t) => (t.id === 2 ? { ...t, done: true } : t));
+          const removed = todos.filter((t) => t.id !== 1);
+          console.log(added.length, toggled[1].done, removed.length, todos[1].done);
+        output: |
+          3 true 1 false
+        check: js
+        mistake:
+          en: Using push, splice or user.name = ... on state; the object is the same, so the screen does not update.
+          tr: State üzerinde push, splice ya da user.name = ... kullanmak; object aynı kaldığı için ekran güncellenmez.
+        source: https://react.dev/learn/updating-arrays-in-state
+      - id: use-reducer
+        level: intermediate
+        title: { en: Many updates in one place with useReducer, tr: useReducer ile güncellemeleri tek yerde toplama }
+        what:
+          en: Moves all the ways state can change into one pure function that takes the state and an action.
+          tr: State'in değişebileceği bütün yolları, state ve bir action alan tek bir saf fonksiyonda toplar.
+        lang: js
+        form: |
+          const [state, dispatch] = useReducer(reducer, initialState);
+        example: |
+          function reducer(state, action) {
+            switch (action.type) {
+              case "added":
+                return [...state, { id: action.id, text: action.text }];
+              case "deleted":
+                return state.filter((t) => t.id !== action.id);
+              default:
+                throw new Error("Unknown action: " + action.type);
+            }
+          }
+          let s = reducer([], { type: "added", id: 1, text: "Buy milk" });
+          s = reducer(s, { type: "added", id: 2, text: "Walk" });
+          s = reducer(s, { type: "deleted", id: 1 });
+          console.log(JSON.stringify(s));
+        output: |
+          [{"id":2,"text":"Walk"}]
+        check: js
+        mistake:
+          en: Changing state inside the reducer or doing side effects there (fetch, timers). A reducer must only compute the next state.
+          tr: Reducer içinde state'i değiştirmek ya da yan etki yapmak (fetch, timer). Reducer sadece bir sonraki state'i hesaplamalı.
+        avoid:
+          en: For one or two simple values; useState is shorter.
+          tr: Bir iki basit değer için; useState daha kısa.
+        source: https://react.dev/reference/react/useReducer
+      - id: lift-state
+        level: intermediate
+        title: { en: Share state between siblings, tr: Kardeş component'ler arasında state paylaşma }
+        what:
+          en: Move the state up to the closest common parent and pass it down with props.
+          tr: State'i en yakın ortak üst component'e taşı ve props ile aşağı ver.
+        lang: ts
+        form: |
+          <Panel isActive={active === 0} onShow={() => setActive(0)} />
+        example: |
+          function Accordion() {
+            const [active, setActive] = useState(0);
+            return (
+              <>
+                <Panel title="About" isActive={active === 0} onShow={() => setActive(0)} />
+                <Panel title="Contact" isActive={active === 1} onShow={() => setActive(1)} />
+              </>
+            );
+          }
+        mistake:
+          en: Copying a prop into state (useState(props.value)); the copy does not follow later changes of the prop.
+          tr: Bir prop'u state'e kopyalamak (useState(props.value)); kopya, prop'un sonraki değişikliklerini izlemez.
+        source: https://react.dev/learn/sharing-state-between-components
+      - id: context
+        level: intermediate
+        title: { en: Pass data deep with context, tr: Context ile veriyi derine geçme }
+        what:
+          en: Makes a value available to every component below, without passing it through each level.
+          tr: Bir değeri, her seviyeden tek tek geçirmeden alttaki bütün component'lere ulaştırır.
+        lang: ts
+        form: |
+          const ThemeContext = createContext("light");
+          <ThemeContext value="dark">...</ThemeContext>
+          const theme = useContext(ThemeContext);
+        example: |
+          import { createContext, useContext } from "react";
+
+          const ThemeContext = createContext("light");
+
+          function App() {
+            return (
+              <ThemeContext value="dark">
+                <Toolbar />
+              </ThemeContext>
+            );
+          }
+
+          function Toolbar() {
+            const theme = useContext(ThemeContext);
+            return <div className={theme}>...</div>;
+          }
+        since: "19"
+        older:
+          en: Before React 19 you wrote <ThemeContext.Provider value="dark">; it still works.
+          tr: React 19'dan önce <ThemeContext.Provider value="dark"> yazılırdı; hâlâ çalışır.
+        avoid:
+          en: Just to skip passing props two levels down; plain props are clearer.
+          tr: Sadece props'u iki seviye aşağı geçirmemek için; düz props daha anlaşılır.
+        source: https://react.dev/reference/react/useContext
+  - id: effects
+    title: { en: Effects and refs, tr: Effect'ler ve ref'ler }
+    items:
+      - id: use-effect
+        level: basic
+        title: { en: Sync with the outside world, tr: Dış dünyayla senkron olma }
+        what:
+          en: Runs code after render to connect to something outside React, like a socket, a timer or a browser API.
+          tr: React dışındaki bir şeye (socket, timer, tarayıcı API'si) bağlanmak için render'dan sonra kod çalıştırır.
+        lang: ts
+        form: |
+          useEffect(() => {
+            // connect
+            return () => { /* disconnect */ };
+          }, [deps]);
+        example: |
+          useEffect(() => {
+            const connection = createConnection(roomId);
+            connection.connect();
+            return () => connection.disconnect();
+          }, [roomId]);
+        mistake:
+          en: Leaving out a value the effect uses from the dependency array, so it keeps using an old value. Let the linter list them.
+          tr: Effect'in kullandığı bir değeri dependency array'den çıkarmak; effect eski değeri kullanmaya devam eder. Listeyi linter'a bırak.
+        avoid:
+          en: To compute a value from props or state, or to react to a click; do that during render or in the event handler.
+          tr: Props ya da state'ten bir değer hesaplamak veya bir tıklamaya tepki vermek için; bunu render sırasında ya da event handler'da yap.
+        source: https://react.dev/reference/react/useEffect
+      - id: no-effect
+        level: intermediate
+        title: { en: You might not need an effect, tr: Belki effect'e gerek yoktur }
+        what:
+          en: A value that can be computed from props or state should be computed during render, not stored with an effect.
+          tr: Props ya da state'ten hesaplanabilen bir değer effect ile saklanmamalı, render sırasında hesaplanmalı.
+        lang: ts
+        form: |
+          const fullName = first + " " + last;
+        example: |
+          // Wrong: extra state and an extra render
+          // const [visible, setVisible] = useState([]);
+          // useEffect(() => setVisible(todos.filter(t => !t.done)), [todos]);
+
+          // Right
+          const visible = todos.filter((t) => !t.done);
+        mistake:
+          en: Chains of effects that set state that triggers another effect; the screen flickers and bugs hide in the chain.
+          tr: Birbirini tetikleyen ve state set eden effect zincirleri; ekran titrer ve hatalar zincirin içinde kaybolur.
+        source: https://react.dev/learn/you-might-not-need-an-effect
+      - id: use-effect-event
+        level: advanced
+        title: { en: Read latest values in an effect without re-running it, tr: Effect'i yeniden çalıştırmadan son değeri okuma }
+        what:
+          en: Wraps logic that should see the latest props and state but should not make the effect run again.
+          tr: Son props ve state'i görmesi gereken ama effect'i yeniden çalıştırmaması gereken mantığı sarar.
+        lang: ts
+        form: |
+          const onConnected = useEffectEvent(() => { ... });
+        example: |
+          import { useEffect, useEffectEvent } from "react";
+
+          function ChatRoom({ roomId, theme }) {
+            const onConnected = useEffectEvent(() => {
+              showNotification("Connected!", theme);
+            });
+
+            useEffect(() => {
+              const connection = createConnection(roomId);
+              connection.on("connected", () => onConnected());
+              connection.connect();
+              return () => connection.disconnect();
+            }, [roomId]); // theme is not needed here
+          }
+        since: "19.2"
+        api: ["useEffectEvent("]
+        mistake:
+          en: Calling the effect event from an event handler or during render; it is only for use inside effects.
+          tr: Effect event'i bir event handler'dan ya da render sırasında çağırmak; sadece effect'lerin içinde kullanılır.
+        source: https://react.dev/reference/react/useEffectEvent
+      - id: use-ref
+        level: basic
+        title: { en: Keep a value or a DOM node with useRef, tr: useRef ile değer ya da DOM elemanı tutma }
+        what:
+          en: Holds a value that does not trigger a re-render when it changes; often used to reach a DOM element.
+          tr: Değiştiğinde yeniden render tetiklemeyen bir değer tutar; çoğunlukla bir DOM elemanına ulaşmak için kullanılır.
+        lang: ts
+        form: |
+          const inputRef = useRef<HTMLInputElement>(null);
+        example: |
+          function Search() {
+            const inputRef = useRef<HTMLInputElement>(null);
+            return (
+              <>
+                <input ref={inputRef} />
+                <button onClick={() => inputRef.current?.focus()}>Focus</button>
+              </>
+            );
+          }
+        mistake:
+          en: Reading or writing ref.current during render; do it in event handlers or effects.
+          tr: ref.current'ı render sırasında okumak ya da yazmak; bunu event handler'larda ya da effect'lerde yap.
+        avoid:
+          en: For values shown on screen; those belong in state.
+          tr: Ekranda gösterilen değerler için; onlar state'e aittir.
+        source: https://react.dev/reference/react/useRef
+      - id: ref-prop
+        level: intermediate
+        title: { en: Pass a ref to your own component, tr: Kendi component'ine ref verme }
+        what:
+          en: A function component can take ref as a normal prop and put it on an inner element.
+          tr: Bir function component ref'i normal bir prop gibi alıp içteki bir elemana koyabilir.
+        lang: ts
+        form: |
+          function MyInput({ ref, ...props }) { return <input ref={ref} {...props} />; }
+        example: |
+          function MyInput({ ref, ...props }: React.ComponentProps<"input">) {
+            return <input ref={ref} {...props} />;
+          }
+
+          <MyInput ref={inputRef} placeholder="Name" />
+        since: "19"
+        older:
+          en: Before React 19 a component needed forwardRef to receive a ref; forwardRef is no longer needed.
+          tr: React 19'dan önce bir component'in ref alabilmesi için forwardRef gerekiyordu; artık gerek yok.
+        source: https://react.dev/reference/react-dom/components/common#ref
+      - id: custom-hook
+        level: intermediate
+        title: { en: Write your own hook, tr: Kendi hook'unu yazma }
+        what:
+          en: A function whose name starts with use and that calls other hooks, to reuse stateful logic.
+          tr: Adı use ile başlayan ve başka hook'ları çağıran bir fonksiyon; state'li mantığı tekrar kullanmak için.
+        lang: ts
+        form: |
+          function useOnlineStatus() { ... }
+        example: |
+          function useOnlineStatus() {
+            const [online, setOnline] = useState(navigator.onLine);
+            useEffect(() => {
+              const on = () => setOnline(true);
+              const off = () => setOnline(false);
+              window.addEventListener("online", on);
+              window.addEventListener("offline", off);
+              return () => {
+                window.removeEventListener("online", on);
+                window.removeEventListener("offline", off);
+              };
+            }, []);
+            return online;
+          }
+        mistake:
+          en: Expecting two components using the same hook to share state; each call has its own state.
+          tr: Aynı hook'u kullanan iki component'in state'i paylaşacağını sanmak; her çağrının kendi state'i vardır.
+        source: https://react.dev/learn/reusing-logic-with-custom-hooks
+      - id: rules-of-hooks
+        level: basic
+        title: { en: Rules of hooks, tr: Hook kuralları }
+        what:
+          en: Call hooks only at the top level of a component or custom hook, never inside if, loops or nested functions.
+          tr: Hook'ları sadece component'in ya da custom hook'un en üst seviyesinde çağır; if, döngü ya da iç fonksiyon içinde asla.
+        lang: ts
+        form: |
+          const [x, setX] = useState(0); // top level, same order every render
+        example: |
+          function Profile({ id }: { id?: string }) {
+            const [user, setUser] = useState(null); // OK
+            if (!id) return null; // early return after hooks is OK
+            // if (id) { useEffect(...) }  // Wrong: hook inside a condition
+            return <p>{id}</p>;
+          }
+        mistake:
+          en: Putting a hook after an early return; it runs on some renders and not others, and React mixes up the state.
+          tr: Bir hook'u erken return'den sonra koymak; bazı render'larda çalışır bazılarında çalışmaz, React state'leri karıştırır.
+        source: https://react.dev/reference/rules/rules-of-hooks
+  - id: react-19
+    title: { en: "Actions, forms and server", tr: "Action'lar, formlar ve sunucu" }
+    items:
+      - id: form-action
+        level: intermediate
+        title: { en: Submit a form with an action, tr: Formu action ile gönderme }
+        what:
+          en: Give a function to the form's action prop; React calls it with the form data and resets the form after.
+          tr: Formun action prop'una bir fonksiyon verirsin; React onu form verisiyle çağırır ve sonra formu sıfırlar.
+        lang: ts
+        form: |
+          <form action={save}>...</form>
+        example: |
+          function NewTodo() {
+            async function save(formData: FormData) {
+              await fetch("/api/todos", { method: "POST", body: formData });
+            }
+            return (
+              <form action={save}>
+                <input name="text" />
+                <button type="submit">Add</button>
+              </form>
+            );
+          }
+        since: "19"
+        older:
+          en: Before React 19 you used onSubmit, called event.preventDefault() and read the inputs yourself.
+          tr: React 19'dan önce onSubmit kullanılır, event.preventDefault() çağrılır ve input'lar elle okunurdu.
+        source: https://react.dev/reference/react-dom/components/form
+      - id: use-action-state
+        level: intermediate
+        title: { en: Result and pending state of an action, tr: Action'ın sonucu ve bekleme durumu }
+        what:
+          en: Wraps an action and gives you its last result and whether it is still running.
+          tr: Bir action'ı sarar; son sonucunu ve hâlâ çalışıp çalışmadığını verir.
+        lang: ts
+        form: |
+          const [state, formAction, isPending] = useActionState(action, initialState);
+        example: |
+          import { useActionState } from "react";
+
+          async function subscribe(prev: string | null, formData: FormData) {
+            const res = await fetch("/api/subscribe", { method: "POST", body: formData });
+            return res.ok ? "Thanks!" : "Something went wrong";
+          }
+
+          function Newsletter() {
+            const [message, formAction, isPending] = useActionState(subscribe, null);
+            return (
+              <form action={formAction}>
+                <input name="email" type="email" />
+                <button disabled={isPending}>Subscribe</button>
+                {message && <p>{message}</p>}
+              </form>
+            );
+          }
+        since: "19"
+        api: ["useActionState("]
+        mistake:
+          en: Forgetting that the action now gets the previous state as its first argument and the form data second.
+          tr: Action'ın artık ilk argüman olarak önceki state'i, ikinci olarak form verisini aldığını unutmak.
+        source: https://react.dev/reference/react/useActionState
+      - id: use-form-status
+        level: intermediate
+        title: { en: Pending state inside a form, tr: Form içinde bekleme durumu }
+        what:
+          en: Lets a component inside a form know whether that form is being submitted.
+          tr: Form içindeki bir component'in o formun gönderilip gönderilmediğini bilmesini sağlar.
+        lang: ts
+        form: |
+          const { pending } = useFormStatus();
+        example: |
+          import { useFormStatus } from "react-dom";
+
+          function SubmitButton() {
+            const { pending } = useFormStatus();
+            return <button disabled={pending}>{pending ? "Saving..." : "Save"}</button>;
+          }
+        since: "19"
+        api: ["useFormStatus("]
+        mistake:
+          en: Calling it in the same component that renders the <form>; it only works in a component rendered inside the form.
+          tr: <form>'u çizen component'in kendisinde çağırmak; sadece formun içinde çizilen bir component'te çalışır.
+        source: https://react.dev/reference/react-dom/hooks/useFormStatus
+      - id: use-optimistic
+        level: advanced
+        title: { en: Show the result before the server answers, tr: Sunucu cevap vermeden sonucu gösterme }
+        what:
+          en: Shows a temporary value while an action runs, and falls back to the real state when it ends.
+          tr: Action çalışırken geçici bir değer gösterir, bitince gerçek state'e döner.
+        lang: ts
+        form: |
+          const [optimistic, addOptimistic] = useOptimistic(state, (current, value) => next);
+        example: |
+          const [optimisticTodos, addOptimistic] = useOptimistic(
+            todos,
+            (current, text: string) => [...current, { id: "temp", text, sending: true }],
+          );
+
+          async function add(formData: FormData) {
+            const text = String(formData.get("text"));
+            addOptimistic(text);
+            await saveTodo(text);
+          }
+        since: "19"
+        api: ["useOptimistic("]
+        mistake:
+          en: Calling the optimistic setter outside an action or transition; React warns and the value does not show.
+          tr: Optimistic setter'ı bir action ya da transition dışında çağırmak; React uyarır ve değer görünmez.
+        source: https://react.dev/reference/react/useOptimistic
+      - id: use
+        level: advanced
+        title: { en: Read a promise or context with use, tr: use ile promise ya da context okuma }
+        what:
+          en: Reads the value of a promise (suspending until it resolves) or a context, and can be called inside if.
+          tr: Bir promise'in değerini (çözülene kadar bekleterek) ya da bir context'i okur; if içinde de çağrılabilir.
+        lang: ts
+        form: |
+          const data = use(promise);
+        example: |
+          import { use, Suspense } from "react";
+
+          function Comments({ commentsPromise }: { commentsPromise: Promise<string[]> }) {
+            const comments = use(commentsPromise);
+            return comments.map((c) => <p key={c}>{c}</p>);
+          }
+
+          <Suspense fallback={<p>Loading...</p>}>
+            <Comments commentsPromise={commentsPromise} />
+          </Suspense>
+        since: "19"
+        mistake:
+          en: Creating the promise inside the same client component during render; a new promise each render suspends forever. Create it in a Server Component or cache it.
+          tr: Promise'i aynı client component içinde render sırasında oluşturmak; her render'da yeni promise sonsuza kadar bekletir. Server Component'te oluştur ya da cache'le.
+        source: https://react.dev/reference/react/use
+      - id: server-components
+        level: advanced
+        title: { en: Server and Client Components, tr: Server ve Client Component'ler }
+        what:
+          en: In a framework like Next.js, components run on the server by default; 'use client' marks the ones that need the browser.
+          tr: Next.js gibi bir framework'te component'ler varsayılan olarak sunucuda çalışır; 'use client' tarayıcı gerektirenleri işaretler.
+        lang: ts
+        form: |
+          'use client';
+        example: |
+          // LikeButton.tsx - runs in the browser too
+          'use client';
+          import { useState } from "react";
+          export function LikeButton() {
+            const [liked, setLiked] = useState(false);
+            return <button onClick={() => setLiked(!liked)}>{liked ? "Liked" : "Like"}</button>;
+          }
+
+          // page.tsx - Server Component, can await data
+          export default async function Page() {
+            const post = await db.post.find(1);
+            return <article>{post.title} <LikeButton /></article>;
+          }
+        since: "19"
+        mistake:
+          en: Thinking 'use client' is needed for every component, or putting it on a file with secrets; only the interactive leaves need it.
+          tr: Her component'e 'use client' gerektiğini sanmak ya da onu sır içeren bir dosyaya koymak; sadece etkileşimli uç component'lerde gerekir.
+        avoid:
+          en: In a plain Vite app without a framework that supports Server Components; there everything is a client component.
+          tr: Server Components desteklemeyen, framework'süz düz bir Vite uygulamasında; orada her şey client component'tir.
+        source: https://react.dev/reference/rsc/server-components
+      - id: server-functions
+        level: advanced
+        title: { en: Call server code from the client, tr: Client'tan sunucu kodu çağırma }
+        what:
+          en: "'use server' marks an async function that runs on the server but can be called from the client, for example as a form action."
+          tr: "'use server', sunucuda çalışan ama client'tan (örneğin form action olarak) çağrılabilen bir async fonksiyonu işaretler."
+        lang: ts
+        form: |
+          'use server';
+          export async function createNote(formData: FormData) { ... }
+        example: |
+          // actions.ts
+          'use server';
+          export async function createNote(formData: FormData) {
+            await db.notes.create({ text: String(formData.get("text")) });
+          }
+
+          // NoteForm.tsx
+          import { createNote } from "./actions";
+          <form action={createNote}><input name="text" /><button>Save</button></form>
+        since: "19"
+        mistake:
+          en: Trusting the arguments. Anyone can call a server function with any data, so check the input and the user's rights inside it.
+          tr: Argümanlara güvenmek. Herkes bir server function'ı istediği veriyle çağırabilir; içinde girdiyi ve kullanıcının yetkisini kontrol et.
+        source: https://react.dev/reference/rsc/server-functions
+      - id: metadata
+        level: basic
+        title: { en: Page title and meta tags, tr: Sayfa başlığı ve meta etiketleri }
+        what:
+          en: A <title> or <meta> rendered anywhere in a component is moved into the document head by React.
+          tr: Bir component içinde herhangi bir yerde çizilen <title> ya da <meta>, React tarafından sayfanın head kısmına taşınır.
+        lang: ts
+        form: |
+          <title>{post.title}</title>
+        example: |
+          function BlogPost({ post }) {
+            return (
+              <article>
+                <title>{post.title}</title>
+                <meta name="description" content={post.summary} />
+                <h1>{post.title}</h1>
+              </article>
+            );
+          }
+        since: "19"
+        older:
+          en: Before React 19 you needed a library such as react-helmet for this.
+          tr: React 19'dan önce bunun için react-helmet gibi bir kütüphane gerekiyordu.
+        source: https://react.dev/reference/react-dom/components/title
+  - id: performance
+    title: { en: Performance and loading, tr: Performans ve yükleme }
+    items:
+      - id: use-memo
+        level: intermediate
+        title: { en: Cache a slow calculation, tr: Yavaş bir hesabı önbellekleme }
+        what:
+          en: Remembers the result of a calculation and redoes it only when its inputs change.
+          tr: Bir hesabın sonucunu hatırlar; sadece girdileri değişince yeniden hesaplar.
+        lang: ts
+        form: |
+          const visible = useMemo(() => filterTodos(todos, tab), [todos, tab]);
+        example: |
+          const sorted = useMemo(
+            () => [...products].sort((a, b) => a.price - b.price),
+            [products],
+          );
+        mistake:
+          en: Wrapping every small calculation; it adds code and costs more than it saves. Measure first.
+          tr: Her küçük hesabı sarmak; kodu kalabalıklaştırır ve kazandırdığından fazlasına mal olur. Önce ölç.
+        avoid:
+          en: When the React Compiler is on; it memoizes for you.
+          tr: React Compiler açıksa; memoization'ı senin yerine yapar.
+        source: https://react.dev/reference/react/useMemo
+      - id: memo-callback
+        level: advanced
+        title: { en: Skip re-rendering a child, tr: Alt component'in yeniden render'ını atlama }
+        what:
+          en: memo skips re-rendering a component when its props did not change; useCallback keeps a function prop the same between renders.
+          tr: memo, props değişmediyse component'in yeniden render'ını atlar; useCallback bir fonksiyon prop'unu render'lar arasında aynı tutar.
+        lang: ts
+        form: |
+          const List = memo(function List({ items, onSelect }) { ... });
+          const onSelect = useCallback((id) => setSelected(id), []);
+        example: |
+          const Row = memo(function Row({ item, onSelect }) {
+            return <li onClick={() => onSelect(item.id)}>{item.name}</li>;
+          });
+
+          function Table({ items }) {
+            const [selected, setSelected] = useState(null);
+            const onSelect = useCallback((id) => setSelected(id), []);
+            return <ul>{items.map((i) => <Row key={i.id} item={i} onSelect={onSelect} />)}</ul>;
+          }
+        mistake:
+          en: Using memo but passing a new object or arrow function as a prop every render, so it never skips.
+          tr: memo kullanıp her render'da yeni bir object ya da arrow function'ı prop olarak vermek; memo hiçbir zaman atlamaz.
+        avoid:
+          en: When the React Compiler is on, or the component is cheap to render.
+          tr: React Compiler açıksa ya da component'in render'ı zaten ucuzsa.
+        source: https://react.dev/reference/react/memo
+      - id: react-compiler
+        level: advanced
+        title: { en: Automatic memoization with React Compiler, tr: React Compiler ile otomatik memoization }
+        what:
+          en: A build-time tool that adds memoization for you, so you rarely need useMemo, useCallback or memo.
+          tr: Memoization'ı senin yerine ekleyen bir build aracı; böylece useMemo, useCallback ya da memo'ya nadiren ihtiyaç duyarsın.
+        lang: sh
+        form: |
+          npm install -D babel-plugin-react-compiler
+        example: |
+          npm install -D babel-plugin-react-compiler
+          # Next.js 16+: set reactCompiler: true in next.config.ts
+        mistake:
+          en: Code that breaks the rules of React (mutating props or state, side effects in render) is skipped or behaves differently; fix the lint errors first.
+          tr: React kurallarını çiğneyen kod (props ya da state'i değiştirmek, render'da yan etki) atlanır ya da farklı davranır; önce lint hatalarını düzelt.
+        source: https://react.dev/learn/react-compiler/installation
+      - id: use-transition
+        level: advanced
+        title: { en: Keep the UI responsive during a slow update, tr: Yavaş bir güncellemede arayüzü akıcı tutma }
+        what:
+          en: Marks a state update as non-urgent, so typing and clicks stay fast while it renders.
+          tr: Bir state güncellemesini acil olmayan olarak işaretler; o render edilirken yazma ve tıklamalar hızlı kalır.
+        lang: ts
+        form: |
+          const [isPending, startTransition] = useTransition();
+        example: |
+          const [isPending, startTransition] = useTransition();
+
+          function selectTab(next: string) {
+            startTransition(() => {
+              setTab(next);
+            });
+          }
+        mistake:
+          en: Wrapping the state of a text input in a transition; the input then lags. Keep input state urgent.
+          tr: Bir text input'un state'ini transition'a sarmak; input gecikir. Input state'ini acil bırak.
+        source: https://react.dev/reference/react/useTransition
+      - id: suspense-lazy
+        level: intermediate
+        title: { en: Load code and data with Suspense, tr: Suspense ile kod ve veri yükleme }
+        what:
+          en: Shows a fallback while something inside is still loading, such as a lazy component or data.
+          tr: İçerideki bir şey (lazy component ya da veri) hâlâ yüklenirken bir yedek görüntü gösterir.
+        lang: ts
+        form: |
+          <Suspense fallback={<Spinner />}>...</Suspense>
+        example: |
+          import { lazy, Suspense } from "react";
+
+          const Chart = lazy(() => import("./Chart"));
+
+          <Suspense fallback={<p>Loading chart...</p>}>
+            <Chart />
+          </Suspense>
+        mistake:
+          en: Calling lazy() inside a component; it creates a new component each render and resets its state. Call it at the top of the file.
+          tr: lazy()'yi component içinde çağırmak; her render'da yeni component oluşur ve state'i sıfırlanır. Dosyanın en üstünde çağır.
+        source: https://react.dev/reference/react/Suspense
+      - id: activity
+        level: advanced
+        title: { en: Hide a part of the UI but keep its state, tr: Arayüzün bir kısmını gizleyip state'ini koruma }
+        what:
+          en: Hides its children without unmounting them, so state like scroll position or typed text is kept.
+          tr: Alt elemanları unmount etmeden gizler; scroll konumu ya da yazılan metin gibi state korunur.
+        lang: ts
+        form: |
+          <Activity mode={visible ? "visible" : "hidden"}>...</Activity>
+        example: |
+          import { Activity } from "react";
+
+          <Activity mode={tab === "settings" ? "visible" : "hidden"}>
+            <Settings />
+          </Activity>
+        since: "19.2"
+        api: ["<Activity "]
+        older:
+          en: Before 19.2 you used {visible && <Settings />}, which threw the state away when hidden.
+          tr: 19.2'den önce {visible && <Settings />} kullanılırdı; gizlenince state kaybolurdu.
+        source: https://react.dev/reference/react/Activity
+      - id: view-transition
+        level: advanced
+        title: { en: Animate between screens, tr: Ekranlar arasında animasyon }
+        what:
+          en: Animates its children with the browser's View Transitions when they change inside a transition.
+          tr: İçindeki elemanlar bir transition içinde değiştiğinde, tarayıcının View Transitions özelliğiyle onları canlandırır.
+        lang: ts
+        form: |
+          <ViewTransition>...</ViewTransition>
+        example: |
+          import { ViewTransition, startTransition } from "react";
+
+          function next() {
+            startTransition(() => setSlide((s) => s + 1));
+          }
+
+          <ViewTransition>
+            <Slide index={slide} />
+          </ViewTransition>
+        since: "19.3"
+        api: ["<ViewTransition"]
+        mistake:
+          en: Expecting it to animate a normal setState; only updates in startTransition, Suspense reveals or useDeferredValue animate.
+          tr: Normal bir setState'te animasyon beklemek; sadece startTransition, Suspense açılması ya da useDeferredValue güncellemeleri canlanır.
+        source: https://react.dev/reference/react/ViewTransition
+  - id: safety
+    title: { en: Debugging and errors, tr: Hata ayıklama ve hatalar }
+    items:
+      - id: strict-mode
+        level: basic
+        title: { en: Find bugs early with StrictMode, tr: StrictMode ile hataları erken bulma }
+        what:
+          en: In development, renders components and runs effects twice to expose impure code and missing cleanups.
+          tr: Geliştirme sırasında saf olmayan kodu ve eksik cleanup'ları ortaya çıkarmak için component'leri iki kez render eder, effect'leri iki kez çalıştırır.
+        lang: ts
+        form: |
+          <StrictMode><App /></StrictMode>
+        example: |
+          import { StrictMode } from "react";
+          import { createRoot } from "react-dom/client";
+
+          createRoot(document.getElementById("root")!).render(
+            <StrictMode>
+              <App />
+            </StrictMode>,
+          );
+        mistake:
+          en: Removing StrictMode because a fetch runs twice; the double run shows a missing cleanup, and it never happens in production.
+          tr: Bir fetch iki kez çalıştı diye StrictMode'u kaldırmak; çift çalışma eksik bir cleanup'ı gösterir ve production'da hiç olmaz.
+        source: https://react.dev/reference/react/StrictMode
+      - id: error-boundary
+        level: intermediate
+        title: { en: Catch rendering errors, tr: Render hatalarını yakalama }
+        what:
+          en: An error boundary shows a fallback instead of a blank page when a component below it throws while rendering.
+          tr: Error boundary, altındaki bir component render sırasında hata fırlatınca boş sayfa yerine yedek bir görüntü gösterir.
+        lang: ts
+        form: |
+          class ErrorBoundary extends React.Component { static getDerivedStateFromError() {...} }
+        example: |
+          class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+            state = { failed: false };
+            static getDerivedStateFromError() {
+              return { failed: true };
+            }
+            componentDidCatch(error: Error) {
+              console.error(error);
+            }
+            render() {
+              return this.state.failed ? <p>Something went wrong.</p> : this.props.children;
+            }
+          }
+        mistake:
+          en: Expecting it to catch errors in event handlers or async code; it only catches errors thrown while rendering.
+          tr: Event handler'lardaki ya da async koddaki hataları da yakalamasını beklemek; sadece render sırasında fırlatılan hataları yakalar.
+        avoid:
+          en: Writing your own when a framework gives one (Next.js error.tsx) or when the react-error-boundary package fits.
+          tr: Framework zaten veriyorsa (Next.js error.tsx) ya da react-error-boundary paketi işini görüyorsa kendininkini yazmak.
+        source: https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary
+      - id: devtools
+        level: basic
+        title: { en: Inspect components in the browser, tr: Component'leri tarayıcıda inceleme }
+        what:
+          en: The React Developer Tools browser extension shows the component tree with each one's props, state and hooks.
+          tr: React Developer Tools tarayıcı eklentisi component ağacını, her birinin props, state ve hook'larıyla gösterir.
+        lang: sh
+        form: |
+          npm install -g react-devtools
+        example: |
+          # Chrome, Firefox or Edge: install the "React Developer Tools" extension
+          # Other environments (Safari, React Native):
+          npm install -g react-devtools
+          react-devtools
+        source: https://react.dev/learn/react-developer-tools

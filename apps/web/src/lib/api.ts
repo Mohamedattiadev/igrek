@@ -469,6 +469,8 @@ export const api = {
     model?: string;
   }) => request<TesterRun>("/api/testers/runs", { method: "POST", body: JSON.stringify(body) }),
   repeatTesterRun: (id: string) => request<TesterRun>(`/api/testers/runs/${id}/repeat`, { method: "POST" }),
+  autoRepeatTesterRun: (id: string, on: boolean) =>
+    request<TesterRun>(`/api/testers/runs/${id}/auto`, { method: "POST", body: JSON.stringify({ on }) }),
   stopTesterRun: (id: string) => request<{ ok: boolean }>(`/api/testers/runs/${id}/stop`, { method: "POST" }),
   deleteTesterRun: (id: string) => request<{ ok: boolean }>(`/api/testers/runs/${id}`, { method: "DELETE" }),
   reviewIdeas: () => request<IdeaReview>("/api/ideas/review", { method: "POST" }),

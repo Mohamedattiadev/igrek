@@ -1,0 +1,574 @@
+id: rest-graphql
+title: REST and GraphQL
+category: concept
+summary:
+  en: How to design a clean REST API on top of HTTP, the basics of GraphQL, and how to choose between them.
+  tr: HTTP üzerinde temiz bir REST API nasıl tasarlanır, GraphQL'in temelleri ve ikisi arasında nasıl seçim yapılır.
+aliases: [rest, restful, graphql, api, api design, api tasarımı, endpoint, openapi, swagger, query, mutation, pagination, sayfalama]
+checked: 2026-10
+sources:
+  - title: RFC 9110 HTTP Semantics
+    url: https://www.rfc-editor.org/rfc/rfc9110.html
+  - title: Learn GraphQL
+    url: https://graphql.org/learn/
+  - title: GraphQL specification
+    url: https://spec.graphql.org/
+roadmap: web
+sections:
+  - id: rest-resources
+    title: { en: REST resources and URLs, tr: REST kaynakları ve URL'ler }
+    items:
+      - id: resource-urls
+        level: basic
+        title: { en: "URLs name things, methods say what to do", tr: "URL şeyi adlandırır, metot ne yapılacağını söyler" }
+        what:
+          en: In REST each URL is a resource (a noun, usually plural) and the HTTP method is the action on it.
+          tr: REST'te her URL bir kaynaktır (bir isim, çoğunlukla çoğul) ve HTTP metodu onun üzerindeki eylemdir.
+        lang: text
+        form: GET /users   POST /users   GET /users/42   PATCH /users/42   DELETE /users/42
+        example: |
+          GET    /orders          list orders
+          POST   /orders          create an order
+          GET    /orders/17       read one
+          PATCH  /orders/17       change part of it
+          DELETE /orders/17       remove it
+        mistake:
+          en: Putting verbs in URLs (/getUser, /createOrder, /deleteOrder?id=17); the method already says that.
+          tr: URL'lere fiil koymak (/getUser, /createOrder, /deleteOrder?id=17); bunu metot zaten söylüyor.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-resources
+      - id: nesting
+        level: basic
+        title: { en: Nested resources, tr: İç içe kaynaklar }
+        what:
+          en: A child that belongs to a parent can live under it, like /users/42/orders; keep it to one level.
+          tr: Bir üst kaynağa ait alt kaynak onun altında durabilir, /users/42/orders gibi; tek seviyede tut.
+        lang: text
+        form: GET /users/42/orders
+        example: |
+          GET /users/42/orders        orders of user 42
+          GET /orders/17              one order, by its own id
+        mistake:
+          en: Building deep paths like /users/42/orders/17/items/3/notes; give each resource its own short URL once it has an id.
+          tr: /users/42/orders/17/items/3/notes gibi derin yollar kurmak; kimliği olan her kaynağa kendi kısa URL'sini ver.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-identifiers-in-http
+      - id: actions
+        level: intermediate
+        title: { en: Actions that are not CRUD, tr: CRUD olmayan eylemler }
+        what:
+          en: For an action like "cancel" or "send", either change a field (PATCH status) or POST to a sub-resource such as /orders/17/cancellation.
+          tr: '"İptal" ya da "gönder" gibi bir eylem için ya bir alanı değiştir (PATCH status) ya da /orders/17/cancellation gibi bir alt kaynağa POST yap.'
+        lang: text
+        form: POST /orders/17/cancellation
+        example: |
+          PATCH /orders/17   {"status": "cancelled"}
+          POST  /orders/17/cancellation   {"reason": "duplicate"}
+        avoid:
+          en: Do not force everything into CRUD when it makes the API confusing; a clear POST /orders/17/refund is fine.
+          tr: API'yi karıştıracaksa her şeyi CRUD'a zorlama; açık bir POST /orders/17/refund gayet uygundur.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-post
+      - id: status-choice
+        level: basic
+        title: { en: Answer with the right status, tr: Doğru status ile yanıt ver }
+        what:
+          en: Use 201 + Location on create, 204 on delete, 400/422 for bad input, 404 for missing, 409 for conflicts.
+          tr: Oluşturmada 201 + Location, silmede 204, hatalı girdide 400/422, olmayan kaynakta 404, çakışmada 409 kullan.
+        lang: text
+        form: 201 Created | 204 No Content | 422 | 404 | 409
+        example: |
+          POST   /users      -> 201 Created, Location: /users/43
+          DELETE /users/43   -> 204 No Content
+          POST   /users      -> 409 Conflict (email already used)
+        mistake:
+          en: Returning 200 for everything and putting "success":false in the body.
+          tr: Her şey için 200 dönüp body'ye "success":false koymak.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-status-codes
+      - id: query-params
+        level: basic
+        title: { en: "Filter, sort, choose fields", tr: "Filtreleme, sıralama, alan seçme" }
+        what:
+          en: Use query parameters on the collection URL to filter, sort and search, and keep the names the same across the API.
+          tr: Filtrelemek, sıralamak ve aramak için koleksiyon URL'sinde query parametreleri kullan; adları tüm API'de aynı tut.
+        lang: js
+        form: GET /orders?status=open&sort=-created_at
+        example: |
+          const params = new URLSearchParams({ status: "open", sort: "-created_at", q: "çay & kahve" });
+          console.log(`/orders?${params}`);
+        output: |
+          /orders?status=open&sort=-created_at&q=%C3%A7ay+%26+kahve
+        check: js
+        mistake:
+          en: 'Building query strings by string concatenation; a value with & or # breaks the URL. Let URLSearchParams encode it.'
+          tr: '''Query string''''i string birleştirerek kurmak; & ya da # içeren bir değer URL''''yi bozar. Kodlamayı URLSearchParams''''a bırak.'''
+        source: https://developer.mozilla.org/en-US/docs/Web/API/URLSearchParams
+      - id: json-shape
+        level: basic
+        title: { en: Consistent JSON, tr: Tutarlı JSON }
+        what:
+          en: Pick one naming style (camelCase or snake_case), ISO 8601 dates in UTC and string ids, and use them everywhere.
+          tr: Tek bir adlandırma stili (camelCase ya da snake_case), UTC'de ISO 8601 tarih ve string id seç, her yerde onları kullan.
+        lang: js
+        form: '{ "id": "42", "createdAt": "2026-10-17T09:30:00.000Z" }'
+        example: |
+          const order = { id: "42", total: 1999, currency: "TRY", createdAt: new Date(Date.UTC(2026, 9, 17, 9, 30)) };
+          console.log(JSON.stringify(order));
+        output: |
+          {"id":"42","total":1999,"currency":"TRY","createdAt":"2026-10-17T09:30:00.000Z"}
+        check: js
+        mistake:
+          en: Sending money as a float (19.99); rounding errors appear. Send the smallest unit as an integer (1999) or a decimal string.
+          tr: Parayı float olarak göndermek (19.99); yuvarlama hataları çıkar. En küçük birimi tam sayı (1999) ya da ondalık string olarak gönder.
+        source: https://www.rfc-editor.org/rfc/rfc8259.html
+  - id: rest-practice
+    title: { en: REST in practice, tr: Pratikte REST }
+    items:
+      - id: pagination
+        level: intermediate
+        title: { en: "Pagination: offset or cursor", tr: "Sayfalama: offset ya da cursor" }
+        what:
+          en: Offset (?page=3) is simple but skips or repeats rows when data changes; a cursor (?after=<last id>) stays correct and fast on big tables.
+          tr: Offset (?page=3) basittir ama veri değişince satır atlar ya da tekrarlar; cursor (?after=<son id>) büyük tablolarda doğru ve hızlı kalır.
+        lang: js
+        form: GET /orders?limit=20&after=<cursor>
+        example: |
+          const rows = [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }];
+          const page = (after, limit) => rows.filter((r) => r.id > after).slice(0, limit);
+          const first = page(0, 2);
+          const next = page(first.at(-1).id, 2);
+          console.log(first.map((r) => r.id), next.map((r) => r.id));
+        output: |
+          [ 1, 2 ] [ 3, 4 ]
+        check: js
+        mistake:
+          en: Returning a whole table with no limit; the first big customer takes the API down. Always cap the page size.
+          tr: Limitsiz olarak bütün tabloyu dönmek; ilk büyük müşteri API'yi çökertir. Sayfa boyutuna her zaman üst sınır koy.
+        source: https://graphql.org/learn/pagination/
+      - id: problem-details
+        level: intermediate
+        title: { en: "Errors: Problem Details", tr: "Hatalar: Problem Details" }
+        what:
+          en: RFC 9457 gives a standard JSON error body with type, title, status and detail, served as application/problem+json.
+          tr: RFC 9457, type, title, status ve detail alanlarıyla standart bir JSON hata gövdesi tanımlar; application/problem+json olarak sunulur.
+        lang: js
+        form: 'Content-Type: application/problem+json'
+        example: |
+          const problem = {
+            type: "https://example.com/probs/out-of-credit",
+            title: "You do not have enough credit.",
+            status: 403,
+            detail: "Your balance is 30, but that costs 50.",
+          };
+          const res = Response.json(problem, { status: 403, headers: { "Content-Type": "application/problem+json" } });
+          console.log(res.status, res.headers.get("content-type"), (await res.json()).title);
+        output: |
+          403 application/problem+json You do not have enough credit.
+        check: js
+        mistake:
+          en: Sending stack traces or SQL errors to the client in detail; they help attackers. Log them, send a short message.
+          tr: detail içinde stack trace ya da SQL hatası göndermek; saldırganlara yardım eder. Onları log'a yaz, istemciye kısa bir mesaj gönder.
+        source: https://www.rfc-editor.org/rfc/rfc9457.html#name-members-of-a-problem-detail
+      - id: merge-patch
+        level: intermediate
+        title: { en: JSON Merge Patch, tr: JSON Merge Patch }
+        what:
+          en: With application/merge-patch+json the PATCH body has only the fields to change, and null means "remove this field".
+          tr: application/merge-patch+json ile PATCH gövdesi sadece değişecek alanları içerir; null "bu alanı sil" demektir.
+        lang: js
+        form: 'PATCH /users/42  {"email": "new@example.com", "phone": null}'
+        example: |
+          function mergePatch(target, patch) {
+            if (patch === null || typeof patch !== "object" || Array.isArray(patch)) return patch;
+            const out = target && typeof target === "object" && !Array.isArray(target) ? { ...target } : {};
+            for (const [k, v] of Object.entries(patch)) {
+              if (v === null) delete out[k];
+              else out[k] = mergePatch(out[k], v);
+            }
+            return out;
+          }
+          console.log(mergePatch({ name: "Ada", phone: "555", tags: ["a"] }, { phone: null, tags: ["b"] }));
+        output: |
+          { name: 'Ada', tags: [ 'b' ] }
+        check: js
+        mistake:
+          en: Expecting to change one element of an array with merge patch; arrays are always replaced whole. Use JSON Patch (RFC 6902) for that.
+          tr: Merge patch ile bir dizinin tek elemanını değiştirmeyi beklemek; diziler her zaman bütün olarak değişir. Bunun için JSON Patch (RFC 6902) kullan.
+        source: https://www.rfc-editor.org/rfc/rfc7396.html#section-2
+      - id: idempotency-key
+        level: advanced
+        title: { en: Safe retries with an idempotency key, tr: Idempotency key ile güvenli tekrar }
+        what:
+          en: The client sends a unique key with a POST; the server stores the first result for that key and returns it again on a retry instead of doing the work twice.
+          tr: İstemci bir POST ile benzersiz bir anahtar gönderir; sunucu o anahtarın ilk sonucunu saklar ve tekrar denemede işi iki kez yapmak yerine aynı sonucu döner.
+        lang: js
+        form: 'Idempotency-Key: <uuid>'
+        example: |
+          const done = new Map();
+          let charges = 0;
+          function charge(key, amount) {
+            if (done.has(key)) return done.get(key);
+            const result = { id: ++charges, amount };
+            done.set(key, result);
+            return result;
+          }
+          const key = "9b1d2c4e-retry-safe";
+          console.log(charge(key, 50), charge(key, 50), charges);
+        output: |
+          { id: 1, amount: 50 } { id: 1, amount: 50 } 1
+        check: js
+        mistake:
+          en: Keeping the keys only in one server's memory; behind a load balancer the retry lands on another server. Store them in the database or Redis with an expiry.
+          tr: Anahtarları tek bir sunucunun belleğinde tutmak; load balancer arkasında tekrar deneme başka sunucuya düşer. Onları süreli olarak veritabanında ya da Redis'te sakla.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-idempotent-methods
+      - id: async-202
+        level: advanced
+        title: { en: Long jobs with 202, tr: 202 ile uzun işler }
+        what:
+          en: For work that takes long, answer 202 Accepted with a status URL the client can poll, instead of keeping the request open.
+          tr: Uzun süren işlerde isteği açık tutmak yerine, istemcinin sorgulayabileceği bir durum URL'siyle 202 Accepted dön.
+        lang: js
+        form: '202 Accepted + Location: /jobs/91'
+        example: |
+          import { createServer } from "node:http";
+          const server = createServer((req, res) => {
+            if (req.method === "POST") return res.writeHead(202, { Location: "/jobs/91" }).end();
+            res.writeHead(200, { "Content-Type": "application/json" }).end('{"state":"running"}');
+          });
+          server.listen(0);
+          const base = `http://localhost:${server.address().port}`;
+          const started = await fetch(`${base}/exports`, { method: "POST" });
+          const job = started.headers.get("location");
+          console.log(started.status, job, (await (await fetch(base + job)).json()).state);
+          server.close();
+        output: |
+          202 /jobs/91 running
+        check: js
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-202-accepted
+      - id: versioning
+        level: intermediate
+        title: { en: Versioning, tr: Sürümleme }
+        what:
+          en: Add fields freely, but put breaking changes (removed or renamed fields) behind a new version, often in the path like /v2.
+          tr: Alanları rahatça ekle; ama kırıcı değişiklikleri (silinen ya da adı değişen alanlar) /v2 gibi yolda belirtilen yeni bir sürümün arkasına koy.
+        lang: text
+        form: /v1/orders  ->  /v2/orders
+        example: |
+          GET /v1/orders/17   {"total": 1999}
+          GET /v2/orders/17   {"total": {"amount": 1999, "currency": "TRY"}}
+        mistake:
+          en: Removing or renaming a field without a new version; old mobile apps that nobody updates break at once.
+          tr: Yeni sürüm açmadan bir alanı silmek ya da adını değiştirmek; kimsenin güncellemediği eski mobil uygulamalar anında bozulur.
+        source: https://spec.openapis.org/oas/latest.html#info-object
+      - id: openapi
+        level: intermediate
+        title: { en: Describe the API with OpenAPI, tr: API'yi OpenAPI ile tanımlamak }
+        what:
+          en: An OpenAPI file lists every path, parameter and schema in YAML or JSON; tools turn it into docs, clients and tests.
+          tr: Bir OpenAPI dosyası her yolu, parametreyi ve şemayı YAML ya da JSON olarak listeler; araçlar onu dokümana, istemciye ve teste çevirir.
+        lang: yaml
+        form: 'openapi: 3.2.0'
+        example: |
+          openapi: 3.2.0
+          info: { title: Orders API, version: 1.0.0 }
+          paths:
+            /orders/{id}:
+              get:
+                parameters:
+                  - { name: id, in: path, required: true, schema: { type: string } }
+                responses:
+                  "200": { description: The order }
+                  "404": { description: Not found }
+        mistake:
+          en: Writing the spec once and never updating it; generate it from code or check it in CI so it matches what the API really does.
+          tr: Spec'i bir kez yazıp hiç güncellememek; koddan üret ya da CI'da kontrol et ki API'nin gerçekte yaptığıyla aynı kalsın.
+        source: https://spec.openapis.org/oas/latest.html
+  - id: graphql-basics
+    title: { en: GraphQL basics, tr: GraphQL temelleri }
+    items:
+      - id: gql-schema
+        level: basic
+        title: { en: The schema, tr: Şema }
+        what:
+          en: A GraphQL API is described by typed schema; ! means the field is never null and [Type] is a list.
+          tr: Bir GraphQL API'si tipli bir şemayla tanımlanır; ! alanın asla null olmadığını, [Tip] bir liste olduğunu gösterir.
+        lang: text
+        form: 'type User { id: ID!  name: String!  posts: [Post!]! }'
+        example: |
+          type User {
+            id: ID!
+            name: String!
+            email: String
+            posts(first: Int = 10): [Post!]!
+          }
+          type Query {
+            user(id: ID!): User
+          }
+        mistake:
+          en: Marking everything non-null (!); one failing field then turns its whole parent into null. Use ! only where null is truly impossible.
+          tr: Her şeyi non-null (!) yapmak; tek bir alan hata verince bütün üst nesne null olur. ! işaretini sadece null'ın gerçekten imkânsız olduğu yerde kullan.
+        source: https://graphql.org/learn/schema/
+      - id: gql-query
+        level: basic
+        title: { en: Ask for exactly the fields you need, tr: Tam ihtiyacın olan alanları istemek }
+        what:
+          en: A query lists the fields to return, and the response has the same shape, nothing more.
+          tr: Sorgu dönecek alanları listeler; yanıt da aynı şekle sahiptir, fazlası yoktur.
+        lang: text
+        form: 'query { user(id: "42") { name posts { title } } }'
+        example: |
+          query {
+            user(id: "42") {
+              name
+              posts(first: 3) { title }
+            }
+          }
+        source: https://graphql.org/learn/queries/
+      - id: gql-variables
+        level: basic
+        title: { en: Variables, tr: Değişkenler }
+        what:
+          en: Pass dynamic values as variables in a separate JSON object instead of pasting them into the query text.
+          tr: Dinamik değerleri sorgu metnine yapıştırmak yerine ayrı bir JSON nesnesinde değişken olarak gönder.
+        lang: js
+        form: '{ "query": "query ($id: ID!) { ... }", "variables": { "id": "42" } }'
+        example: |
+          const body = {
+            query: "query User($id: ID!) { user(id: $id) { name } }",
+            variables: { id: "42" },
+          };
+          console.log(JSON.stringify(body));
+        output: |
+          {"query":"query User($id: ID!) { user(id: $id) { name } }","variables":{"id":"42"}}
+        check: js
+        mistake:
+          en: Building the query with template strings from user input; it breaks on quotes and opens injection. Use variables.
+          tr: Sorguyu kullanıcı girdisinden template string ile kurmak; tırnakta bozulur ve enjeksiyona kapı açar. Değişken kullan.
+        source: https://graphql.org/learn/queries/#variables
+      - id: gql-mutation
+        level: basic
+        title: { en: Mutations change data, tr: Mutation'lar veriyi değiştirir }
+        what:
+          en: A mutation is an operation that writes data and can return fields of the changed object.
+          tr: Mutation, veri yazan bir işlemdir ve değişen nesnenin alanlarını dönebilir.
+        lang: text
+        form: 'mutation { createPost(input: {...}) { id } }'
+        example: |
+          mutation CreatePost($input: CreatePostInput!) {
+            createPost(input: $input) {
+              id
+              title
+            }
+          }
+        mistake:
+          en: Changing data inside a query resolver; queries may run in parallel and be cached, mutations are the place for writes.
+          tr: Bir query resolver'ında veri değiştirmek; query'ler paralel çalışabilir ve cache'lenebilir, yazma işleri mutation'larda yapılır.
+        source: https://graphql.org/learn/mutations/
+      - id: gql-fragments
+        level: intermediate
+        title: { en: Fragments and aliases, tr: Fragment'lar ve alias'lar }
+        what:
+          en: A fragment is a reusable set of fields; an alias renames a field in the result so you can ask for the same field twice.
+          tr: Fragment tekrar kullanılabilir bir alan kümesidir; alias sonuçtaki bir alanı yeniden adlandırır, böylece aynı alanı iki kez isteyebilirsin.
+        lang: text
+        form: 'fragment UserCard on User { name avatar }'
+        example: |
+          query {
+            me: user(id: "1") { ...UserCard }
+            boss: user(id: "7") { ...UserCard }
+          }
+          fragment UserCard on User { name avatarUrl }
+        source: https://graphql.org/learn/queries/#fragments
+      - id: gql-response
+        level: intermediate
+        title: { en: Response with data and errors, tr: data ve errors içeren yanıt }
+        what:
+          en: The response is JSON with data and, when something failed, an errors list; it can hold partial data and errors together.
+          tr: Yanıt data'yı ve bir şey başarısız olduysa errors listesini içeren bir JSON'dur; kısmi veriyle hataları birlikte taşıyabilir.
+        lang: js
+        form: '{ "data": {...}, "errors": [...] }'
+        example: |
+          const body = {
+            data: { user: { name: "Ada", bankAccount: null } },
+            errors: [{ message: "Not allowed", path: ["user", "bankAccount"] }],
+          };
+          for (const e of body.errors ?? []) console.log(e.path.join("."), "->", e.message);
+          console.log(body.data.user.name);
+        output: |
+          user.bankAccount -> Not allowed
+          Ada
+        check: js
+        mistake:
+          en: Checking only the HTTP status in the client; with application/json many servers send 200 even with errors, so always read the errors field.
+          tr: İstemcide sadece HTTP status'a bakmak; application/json ile birçok sunucu hata olsa bile 200 gönderir, errors alanını her zaman oku.
+        source: https://graphql.org/learn/response/
+      - id: gql-over-http
+        level: intermediate
+        title: { en: GraphQL over HTTP, tr: HTTP üzerinde GraphQL }
+        what:
+          en: One endpoint (usually /graphql) takes POST with a JSON body for every operation; GET may be allowed for queries only.
+          tr: Tek bir endpoint (genelde /graphql) her işlem için JSON gövdeli POST alır; GET sadece query'ler için kabul edilebilir.
+        lang: sh
+        form: '''curl -X POST <url>/graphql -H "Content-Type: application/json" -d ''''{"query":"..."}'''''''
+        example: |
+          curl https://api.example.com/graphql \
+            -H "Content-Type: application/json" \
+            -H "Accept: application/graphql-response+json, application/json" \
+            -d '{"query":"{ me { name } }"}'
+        mistake:
+          en: Sending a mutation with GET; it must use POST.
+          tr: Bir mutation'ı GET ile göndermek; POST kullanmak zorundadır.
+        source: https://graphql.org/learn/serving-over-http/
+      - id: gql-subscriptions
+        level: advanced
+        title: { en: Subscriptions, tr: Subscription'lar }
+        what:
+          en: A subscription keeps a connection open (usually WebSocket or server-sent events) and pushes new results when an event happens.
+          tr: Subscription bir bağlantıyı açık tutar (çoğunlukla WebSocket ya da server-sent events) ve bir olay olduğunda yeni sonuçları gönderir.
+        lang: text
+        form: 'subscription { messageAdded(room: "1") { text } }'
+        example: |
+          subscription OnMessage($room: ID!) {
+            messageAdded(room: $room) { id text author { name } }
+          }
+        avoid:
+          en: For data that changes rarely; polling a query every minute is simpler to run and scale.
+          tr: Nadiren değişen veriler için; bir query'yi dakikada bir sorgulamak çalıştırması ve ölçeklemesi daha basittir.
+        source: https://graphql.org/learn/subscriptions/
+      - id: gql-introspection
+        level: advanced
+        title: { en: Introspection, tr: Introspection }
+        what:
+          en: A GraphQL server can describe its own schema through queries on __schema and __type, which powers IDEs and code generators.
+          tr: Bir GraphQL sunucusu __schema ve __type üzerinden kendi şemasını anlatabilir; IDE'ler ve kod üreticiler bununla çalışır.
+        lang: text
+        form: '{ __schema { types { name } } }'
+        example: |
+          {
+            __type(name: "User") {
+              fields { name type { name kind } }
+            }
+          }
+        mistake:
+          en: Leaving introspection open on a private API in production; it hands anyone a full map of it.
+          tr: Özel bir API'de üretimde introspection'ı açık bırakmak; herkese API'nin tam haritasını verir.
+        source: https://graphql.org/learn/introspection/
+  - id: graphql-production
+    title: { en: GraphQL in production, tr: Üretimde GraphQL }
+    items:
+      - id: n-plus-one
+        level: intermediate
+        title: { en: The N+1 problem and DataLoader, tr: N+1 sorunu ve DataLoader }
+        what:
+          en: Resolving a field per item runs one database query per item; a DataLoader collects the ids and loads them in one batch.
+          tr: Bir alanı her öğe için ayrı çözmek, öğe başına bir veritabanı sorgusu çalıştırır; DataLoader id'leri toplar ve tek seferde yükler.
+        lang: js
+        form: const authorLoader = new DataLoader((ids) => db.usersByIds(ids))
+        example: |
+          const calls = [];
+          const loadMany = (ids) => { calls.push(ids); return ids.map((id) => ({ id, name: `user${id}` })); };
+          const posts = [{ author: 1 }, { author: 2 }, { author: 1 }];
+          const ids = [...new Set(posts.map((p) => p.author))];
+          const users = new Map(loadMany(ids).map((u) => [u.id, u]));
+          console.log(posts.map((p) => users.get(p.author).name), calls.length);
+        output: |
+          [ 'user1', 'user2', 'user1' ] 1
+        check: js
+        mistake:
+          en: Creating one DataLoader for the whole server; its cache then leaks data between users. Make a new one per request.
+          tr: Tüm sunucu için tek bir DataLoader oluşturmak; cache'i kullanıcılar arasında veri sızdırır. Her istek için yenisini oluştur.
+        source: https://graphql.org/learn/performance/
+      - id: gql-pagination
+        level: intermediate
+        title: { en: Connections (cursor pagination), tr: Connection'lar (cursor ile sayfalama) }
+        what:
+          en: The common GraphQL list pattern returns edges with a cursor each and pageInfo with hasNextPage and endCursor.
+          tr: Yaygın GraphQL liste deseni, her biri cursor taşıyan edge'ler ve hasNextPage ile endCursor içeren pageInfo döner.
+        lang: text
+        form: 'friends(first: 10, after: $cursor) { edges { cursor node { name } } pageInfo { hasNextPage endCursor } }'
+        example: |
+          query ($after: String) {
+            user(id: "42") {
+              friendsConnection(first: 10, after: $after) {
+                edges { cursor node { name } }
+                pageInfo { hasNextPage endCursor }
+              }
+            }
+          }
+        source: https://graphql.org/learn/pagination/
+      - id: gql-limits
+        level: advanced
+        title: { en: Limit what a query may cost, tr: Bir sorgunun maliyetini sınırlamak }
+        what:
+          en: Clients can write very deep or wide queries, so servers cap depth, page sizes and query cost, add rate limits, or only allow known (trusted) documents.
+          tr: İstemciler çok derin ya da geniş sorgular yazabilir; bu yüzden sunucular derinliği, sayfa boyutunu ve sorgu maliyetini sınırlar, hız limiti koyar ya da sadece bilinen (trusted) dokümanlara izin verir.
+        lang: text
+        form: 'maxDepth: 10, max page size: 100'
+        example: |
+          # a hostile query that grows fast without a depth limit
+          { user(id: "1") { friends { friends { friends { friends { name } } } } } }
+        mistake:
+          en: Rate-limiting by request count only; one GraphQL request can cost as much as thousands. Limit by query cost.
+          tr: Sadece istek sayısına göre hız limiti koymak; tek bir GraphQL isteği binlerce isteğe bedel olabilir. Sorgu maliyetine göre sınırla.
+        source: https://graphql.org/learn/security/
+      - id: gql-caching
+        level: advanced
+        title: { en: Caching GraphQL, tr: GraphQL'i cache'lemek }
+        what:
+          en: POST to one URL is not cached by HTTP caches, so clients cache by object id, and queries can be sent with GET or as persisted documents to use a CDN.
+          tr: Tek URL'ye yapılan POST HTTP cache'lerinde cache'lenmez; bu yüzden istemciler nesne id'sine göre cache'ler, CDN kullanmak için sorgular GET ile ya da persisted document olarak gönderilebilir.
+        lang: text
+        form: 'type User { id: ID! ... }   # stable, unique ids'
+        example: |
+          GET /graphql?query={me{name}}       # cacheable by a CDN
+          GET /graphql?documentId=sha256:ab12 # persisted document, short URL
+        mistake:
+          en: Leaving out id fields in queries; client caches like Apollo or Relay then cannot merge and update objects.
+          tr: Sorgularda id alanlarını istememek; Apollo ya da Relay gibi istemci cache'leri nesneleri birleştirip güncelleyemez.
+        source: https://graphql.org/learn/caching/
+  - id: choosing
+    title: { en: Which one to choose, tr: Hangisini seçmeli }
+    items:
+      - id: when-rest
+        level: basic
+        title: { en: When REST fits, tr: REST ne zaman uygun }
+        what:
+          en: REST fits public APIs, simple CRUD, file downloads and anything that gains from plain HTTP caching and CDNs.
+          tr: REST herkese açık API'lere, basit CRUD'a, dosya indirmeye ve düz HTTP cache ile CDN'den kazanç sağlayan her şeye uyar.
+        lang: text
+        form: GET /products/42  ->  Cache-Control, ETag, CDN
+        example: |
+          Public API used by many unknown clients   -> REST + OpenAPI
+          Images, files, webhooks                   -> REST
+        avoid:
+          en: When many screens each need a different mix of nested data and you end up with many round trips or custom endpoints per screen.
+          tr: Her ekranın farklı bir iç içe veri karışımına ihtiyaç duyduğu ve ekran başına çok sayıda istek ya da özel endpoint yazdığın durumlarda.
+        source: https://www.rfc-editor.org/rfc/rfc9110.html#name-introduction
+      - id: when-graphql
+        level: basic
+        title: { en: When GraphQL fits, tr: GraphQL ne zaman uygun }
+        what:
+          en: GraphQL fits apps with many different screens over connected data, where each client should fetch exactly what it needs in one request.
+          tr: GraphQL, bağlantılı veri üzerinde birçok farklı ekranı olan ve her istemcinin tam ihtiyacını tek istekte alması gereken uygulamalara uyar.
+        lang: text
+        form: one /graphql endpoint, typed schema, client picks the fields
+        example: |
+          Mobile + web apps sharing one backend          -> GraphQL
+          Dashboard joining users, orders, invoices      -> GraphQL
+        avoid:
+          en: For a small API with a few endpoints; the schema, resolvers, cost limits and caching add more work than they save.
+          tr: Birkaç endpoint'lik küçük bir API için; şema, resolver'lar, maliyet limitleri ve cache kazandırdığından fazla iş getirir.
+        source: https://graphql.org/learn/
+      - id: over-under-fetching
+        level: intermediate
+        title: { en: Over-fetching and under-fetching, tr: Fazla ve eksik veri çekme }
+        what:
+          en: REST endpoints often return more fields than a screen needs or too few, needing extra calls; GraphQL lets the client choose fields and nest them in one call.
+          tr: REST endpoint'leri çoğu zaman ekranın ihtiyacından fazla alan döner ya da eksik döner ve ek çağrı gerektirir; GraphQL istemcinin alanları seçip tek çağrıda iç içe almasını sağlar.
+        lang: text
+        form: 'REST: GET /users/42 + GET /users/42/posts   GraphQL: one query'
+        example: |
+          REST:    GET /users/42          (30 fields, you need 2)
+                   GET /users/42/posts    (second round trip)
+          GraphQL: { user(id: "42") { name posts { title } } }
+        mistake:
+          en: Choosing GraphQL only for this; a REST endpoint with ?fields= and ?include= often solves it with less machinery.
+          tr: GraphQL'i sadece bunun için seçmek; ?fields= ve ?include= destekleyen bir REST endpoint'i bunu çoğu zaman daha az altyapıyla çözer.
+        source: https://graphql.org/learn/queries/

@@ -1,0 +1,583 @@
+id: nginx
+title: nginx
+category: tool
+summary:
+  en: A fast web server that serves static files, sits in front of your app as a reverse proxy and handles HTTPS.
+  tr: Statik dosyaları sunan, uygulamanın önünde reverse proxy olarak duran ve HTTPS'i yöneten hızlı bir web sunucusu.
+aliases: [engine x, web server, web sunucusu, reverse proxy, ters vekil, proxy_pass, https, ssl, tls]
+detect:
+  files: [nginx.conf]
+version: "1.30"
+latest: eol:nginx
+checked: 2026-10
+sources:
+  - title: nginx documentation
+    url: https://nginx.org/en/docs/
+  - title: Beginner's guide
+    url: https://nginx.org/en/docs/beginners_guide.html
+  - title: Core module directives
+    url: https://nginx.org/en/docs/http/ngx_http_core_module.html
+roadmap: linux-server
+sections:
+  - id: basics
+    title: { en: Run and reload, tr: Çalıştırma ve yeniden yükleme }
+    items:
+      - id: test-reload
+        level: basic
+        title: { en: Test and reload the config, tr: Yapılandırmayı test edip yeniden yükleme }
+        what:
+          en: nginx -t checks the config for errors; nginx -s reload applies it without dropping connections.
+          tr: nginx -t yapılandırmada hata olup olmadığına bakar; nginx -s reload onu bağlantıları kesmeden uygular.
+        lang: sh
+        form: sudo nginx -t && sudo nginx -s reload
+        example: |
+          sudo nginx -t
+          sudo nginx -s reload
+          sudo systemctl reload nginx   # the same on systemd servers
+        mistake:
+          en: Restarting without nginx -t; one typo and the site is down until you fix it.
+          tr: nginx -t yapmadan yeniden başlatmak; tek bir yazım hatası ve sen düzeltene kadar site kapalı kalır.
+        source: https://nginx.org/en/docs/switches.html
+      - id: dump-config
+        level: intermediate
+        title: { en: See the whole config, tr: Bütün yapılandırmayı görme }
+        what:
+          en: nginx -T prints the full config with every included file, so you see what nginx really loads.
+          tr: nginx -T, eklenen bütün dosyalarla birlikte tam yapılandırmayı yazar; nginx'in gerçekte neyi yüklediğini görürsün.
+        lang: sh
+        form: sudo nginx -T
+        example: |
+          sudo nginx -T | grep -n server_name
+          nginx -V   # version and build options
+        source: https://nginx.org/en/docs/switches.html
+      - id: structure
+        level: basic
+        title: { en: How the config is built, tr: Yapılandırma nasıl kurulur }
+        what:
+          en: Directives end with a semicolon and live in blocks; http holds server blocks, and server blocks hold location blocks.
+          tr: Direktifler noktalı virgülle biter ve bloklar içinde durur; http server bloklarını, server blokları da location bloklarını içerir.
+        lang: nginx
+        form: "http { server { location / { ... } } }"
+        example: |
+          http {
+              include /etc/nginx/mime.types;
+              include /etc/nginx/conf.d/*.conf;
+
+              server {
+                  listen 80;
+                  server_name example.com;
+
+                  location / {
+                      root /var/www/example;
+                  }
+              }
+          }
+        mistake:
+          en: Forgetting a semicolon at the end of a line; nginx -t reports an error on the next line, not the one you broke.
+          tr: Satır sonundaki noktalı virgülü unutmak; nginx -t hatayı bozduğun satırda değil, bir sonrakinde gösterir.
+        source: https://nginx.org/en/docs/beginners_guide.html#conf_structure
+      - id: logs
+        level: basic
+        title: { en: Access and error logs, tr: Erişim ve hata logları }
+        what:
+          en: access_log records every request, error_log records problems; the error log is the first place to look.
+          tr: access_log her isteği, error_log sorunları kaydeder; ilk bakılacak yer error log'dur.
+        lang: nginx
+        form: error_log /var/log/nginx/error.log warn;
+        example: |
+          server {
+              access_log /var/log/nginx/example.access.log;
+              error_log  /var/log/nginx/example.error.log warn;
+
+              location = /health {
+                  access_log off;
+                  return 200 "ok\n";
+              }
+          }
+        source: https://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
+  - id: static
+    title: { en: Static sites, tr: Statik siteler }
+    items:
+      - id: server-block
+        level: basic
+        title: { en: Serve a static site, tr: Statik site sunma }
+        what:
+          en: A server block answers for a domain and serves files from the folder in root.
+          tr: Server bloğu bir domain'e cevap verir ve root'taki klasörden dosya sunar.
+        lang: nginx
+        form: "server { listen 80; server_name <domain>; root <folder>; }"
+        example: |
+          server {
+              listen 80;
+              server_name example.com www.example.com;
+              root /var/www/example;
+              index index.html;
+          }
+        mistake:
+          en: Files the nginx user cannot read (for example in /root or your home folder); you get 403 Forbidden.
+          tr: nginx kullanıcısının okuyamadığı dosyalar (örneğin /root ya da ev klasörün içinde); 403 Forbidden alırsın.
+        source: https://nginx.org/en/docs/http/ngx_http_core_module.html#root
+      - id: location-match
+        level: basic
+        title: { en: How location is chosen, tr: location nasıl seçilir }
+        what:
+          en: An exact match (=) wins; otherwise the first matching regex (~, ~*) in file order wins, and only if none matches, or the longest prefix has ^~, is the longest prefix used.
+          tr: Tam eşleşme (=) kazanır; yoksa dosyadaki sıraya göre eşleşen ilk regex (~, ~*) kazanır; hiçbiri eşleşmezse ya da en uzun prefix'te ^~ varsa en uzun prefix kullanılır.
+        lang: nginx
+        form: location [ = | ~ | ~* | ^~ ] <uri> { ... }
+        example: |
+          location = / { }               # only "/"
+          location /images/ { }          # starts with /images/
+          location ^~ /static/ { }       # prefix, skip the regex checks
+          location ~* \.(png|jpg)$ { }   # regex, case-insensitive
+        mistake:
+          en: Expecting the longest prefix to beat a regex; a matching regex wins unless the prefix has ^~.
+          tr: En uzun prefix'in regex'i yeneceğini sanmak; prefix'te ^~ yoksa eşleşen regex kazanır.
+        source: https://nginx.org/en/docs/http/ngx_http_core_module.html#location
+      - id: try-files-spa
+        level: basic
+        title: { en: Single-page app fallback, tr: Tek sayfalık uygulama yedeği }
+        what:
+          en: try_files serves the file if it exists, otherwise falls back to index.html so the client-side router can handle the URL.
+          tr: try_files dosya varsa onu sunar, yoksa index.html'e düşer; böylece URL'i tarayıcıdaki router işler.
+        lang: nginx
+        form: try_files $uri $uri/ /index.html;
+        example: |
+          server {
+              listen 80;
+              server_name app.example.com;
+              root /var/www/app/dist;
+
+              location / {
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+        mistake:
+          en: Leaving out try_files; refreshing a page like /settings returns 404 because there is no such file.
+          tr: try_files'ı unutmak; /settings gibi bir sayfayı yenileyince 404 alırsın çünkü öyle bir dosya yoktur.
+        source: https://nginx.org/en/docs/http/ngx_http_core_module.html#try_files
+      - id: root-alias
+        level: intermediate
+        title: { en: root and alias, tr: root ve alias }
+        what:
+          en: root adds the whole URI to the folder; alias replaces the location part of the URI with the folder.
+          tr: root bütün URI'yi klasöre ekler; alias URI'nin location kısmını klasörle değiştirir.
+        lang: nginx
+        form: alias <folder>/;
+        example: |
+          location /static/ {
+              root /var/www;           # /static/a.css -> /var/www/static/a.css
+          }
+          location /media/ {
+              alias /data/uploads/;    # /media/a.png -> /data/uploads/a.png
+          }
+        mistake:
+          en: A location and an alias that do not both end in /; the paths are joined wrongly and files outside the folder can even become reachable.
+          tr: Location ve alias'ın ikisinin birden / ile bitmemesi; yollar yanlış birleşir, hatta klasörün dışındaki dosyalara erişilebilir hale gelebilir.
+        source: https://nginx.org/en/docs/http/ngx_http_core_module.html#alias
+      - id: cache-headers
+        level: intermediate
+        title: { en: Cache static files in the browser, tr: Statik dosyaları tarayıcıda cache'leme }
+        what:
+          en: expires sets Expires and Cache-Control headers so browsers keep files instead of downloading them again.
+          tr: expires, Expires ve Cache-Control header'larını ayarlar; tarayıcılar dosyaları yeniden indirmek yerine saklar.
+        lang: nginx
+        form: expires <time>;
+        example: |
+          location /assets/ {
+              expires 1y;
+              add_header Cache-Control "public, immutable";
+          }
+          location = /index.html {
+              expires -1;   # always check for a new version
+          }
+        mistake:
+          en: Long cache times for files whose names do not change (app.js); users keep the old version. Use hashed file names.
+          tr: Adı değişmeyen dosyalar (app.js) için uzun cache süresi; kullanıcılar eski sürümde kalır. Hash'li dosya adları kullan.
+        source: https://nginx.org/en/docs/http/ngx_http_headers_module.html#expires
+      - id: gzip
+        level: intermediate
+        title: { en: Compress responses, tr: Yanıtları sıkıştırma }
+        what:
+          en: gzip compresses text responses, so pages load faster over slow networks.
+          tr: gzip metin yanıtlarını sıkıştırır; sayfalar yavaş ağlarda daha hızlı yüklenir.
+        lang: nginx
+        form: gzip on;
+        example: |
+          gzip on;
+          gzip_types text/css application/javascript application/json image/svg+xml;
+          gzip_min_length 1024;
+        mistake:
+          en: Turning gzip on without gzip_types; by default only text/html is compressed.
+          tr: gzip_types olmadan gzip'i açmak; varsayılan olarak sadece text/html sıkıştırılır.
+        source: https://nginx.org/en/docs/http/ngx_http_gzip_module.html
+      - id: error-page
+        level: intermediate
+        title: { en: Custom error pages, tr: Özel hata sayfaları }
+        what:
+          en: error_page shows your own page for an error code instead of the nginx default.
+          tr: error_page bir hata kodu için nginx'in varsayılan sayfası yerine kendi sayfanı gösterir.
+        lang: nginx
+        form: error_page <code> <uri>;
+        example: |
+          error_page 404 /404.html;
+          error_page 500 502 503 504 /50x.html;
+          location = /50x.html {
+              root /usr/share/nginx/html;
+              internal;
+          }
+        source: https://nginx.org/en/docs/http/ngx_http_core_module.html#error_page
+  - id: proxy
+    title: { en: Reverse proxy, tr: Reverse proxy }
+    items:
+      - id: proxy-pass
+        level: basic
+        title: { en: Put nginx in front of your app, tr: nginx'i uygulamanın önüne koyma }
+        what:
+          en: proxy_pass sends the request to your app (Node, Python, Go) and returns its answer to the client.
+          tr: proxy_pass isteği uygulamana (Node, Python, Go) gönderir ve cevabını istemciye döner.
+        lang: nginx
+        form: proxy_pass http://127.0.0.1:<port>;
+        example: |
+          server {
+              listen 80;
+              server_name api.example.com;
+
+              location / {
+                  proxy_pass http://127.0.0.1:3000;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+        mistake:
+          en: Not passing Host and X-Forwarded-Proto; the app builds links with the wrong domain or with http instead of https.
+          tr: Host ve X-Forwarded-Proto'yu iletmemek; uygulama linkleri yanlış domain'le ya da https yerine http ile üretir.
+        source: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass
+      - id: proxy-pass-slash
+        level: intermediate
+        title: { en: The trailing slash in proxy_pass, tr: proxy_pass'teki sondaki slash }
+        what:
+          en: With a path in proxy_pass (even just /), nginx replaces the matched location part; without one, it sends the URI unchanged.
+          tr: proxy_pass'te bir path varsa (sadece / bile olsa) nginx eşleşen location kısmını değiştirir; yoksa URI'yi olduğu gibi gönderir.
+        lang: nginx
+        form: proxy_pass http://<backend>/;
+        example: |
+          location /api/ {
+              proxy_pass http://127.0.0.1:3000/;   # /api/users -> /users
+          }
+          location /v2/ {
+              proxy_pass http://127.0.0.1:4000;    # /v2/users -> /v2/users
+          }
+        mistake:
+          en: Adding or dropping that one slash by accident; the app suddenly gets /api/users instead of /users and answers 404.
+          tr: O tek slash'ı yanlışlıkla ekleyip ya da silmek; uygulama birden /users yerine /api/users alır ve 404 döner.
+        source: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_pass
+      - id: upstream
+        level: intermediate
+        title: { en: Spread load over several servers, tr: Yükü birkaç sunucuya dağıtma }
+        what:
+          en: An upstream block names a group of servers; nginx spreads requests over them (round-robin by default).
+          tr: upstream bloğu bir sunucu grubuna ad verir; nginx istekleri onlara dağıtır (varsayılan olarak sırayla).
+        lang: nginx
+        form: "upstream <name> { server <host:port>; }"
+        example: |
+          upstream app {
+              least_conn;
+              server 10.0.0.11:3000;
+              server 10.0.0.12:3000;
+              server 10.0.0.13:3000 backup;
+          }
+          server {
+              listen 80;
+              location / {
+                  proxy_pass http://app;
+              }
+          }
+        source: https://nginx.org/en/docs/http/load_balancing.html
+      - id: websocket
+        level: intermediate
+        title: { en: Proxy WebSockets, tr: WebSocket'leri proxy'leme }
+        what:
+          en: WebSockets need the Upgrade and Connection headers passed on by hand, because nginx does not forward them.
+          tr: WebSocket'ler için Upgrade ve Connection header'larını elle iletmek gerekir, çünkü nginx onları kendisi iletmez.
+        lang: nginx
+        form: proxy_set_header Upgrade $http_upgrade;
+        example: |
+          map $http_upgrade $connection_upgrade {
+              default upgrade;
+              ''      close;
+          }
+          server {
+              location /ws/ {
+                  proxy_pass http://127.0.0.1:3000;
+                  proxy_http_version 1.1;   # needed before 1.29.7
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection $connection_upgrade;
+                  proxy_read_timeout 1h;
+              }
+          }
+        mistake:
+          en: Keeping the default 60 second proxy_read_timeout; quiet WebSocket connections are closed after a minute.
+          tr: Varsayılan 60 saniyelik proxy_read_timeout'u bırakmak; sessiz WebSocket bağlantıları bir dakika sonra kapanır.
+        source: https://nginx.org/en/docs/http/websocket.html
+      - id: proxy-http-version
+        level: advanced
+        title: { en: HTTP/1.1 and keepalive to the backend, tr: Backend'e HTTP/1.1 ve keepalive }
+        what:
+          en: Since 1.29.7 nginx talks HTTP/1.1 to backends and reuses connections by default, which saves a new TCP connection per request.
+          tr: 1.29.7'den beri nginx backend'lerle varsayılan olarak HTTP/1.1 konuşur ve bağlantıları tekrar kullanır; her istekte yeni TCP bağlantısı açmaz.
+        lang: nginx
+        form: proxy_http_version 1.1;
+        example: |
+          upstream app {
+              server 127.0.0.1:3000;
+              keepalive 32;
+          }
+          location / {
+              proxy_pass http://app;
+              proxy_http_version 1.1;
+              proxy_set_header Connection "";
+          }
+        since: "1.29.7"
+        older:
+          en: Before 1.29.7 the default was HTTP/1.0 without keepalive; you needed keepalive in upstream, proxy_http_version 1.1 and an empty Connection header, as in the example. Many Linux distributions still ship older versions.
+          tr: 1.29.7'den önce varsayılan keepalive'sız HTTP/1.0 idi; örnekteki gibi upstream'de keepalive, proxy_http_version 1.1 ve boş Connection header'ı gerekirdi. Birçok Linux dağıtımı hâlâ eski sürümleri kuruyor.
+        source: https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_http_version
+      - id: body-size
+        level: basic
+        title: { en: Allow bigger uploads, tr: Daha büyük yüklemelere izin verme }
+        what:
+          en: client_max_body_size sets the largest request body; the default is 1 MB.
+          tr: client_max_body_size en büyük istek gövdesini belirler; varsayılan 1 MB'dir.
+        lang: nginx
+        form: client_max_body_size <size>;
+        example: |
+          server {
+              client_max_body_size 50m;
+          }
+        mistake:
+          en: Looking for the bug in the app when uploads fail with 413 Request Entity Too Large; nginx refused the request.
+          tr: Yüklemeler 413 Request Entity Too Large ile başarısız olunca hatayı uygulamada aramak; isteği nginx reddetti.
+        source: https://nginx.org/en/docs/http/ngx_http_core_module.html#client_max_body_size
+      - id: real-ip
+        level: advanced
+        title: { en: The real client IP behind a load balancer, tr: Load balancer arkasında gerçek istemci IP'si }
+        what:
+          en: real_ip takes the client address from a header set by a trusted proxy, so logs and limits use the real IP.
+          tr: real_ip istemci adresini güvenilen bir proxy'nin koyduğu header'dan alır; böylece loglar ve limitler gerçek IP'yi kullanır.
+        lang: nginx
+        form: set_real_ip_from <cidr>; real_ip_header X-Forwarded-For;
+        example: |
+          set_real_ip_from 10.0.0.0/8;
+          real_ip_header X-Forwarded-For;
+          real_ip_recursive on;
+        mistake:
+          en: Trusting X-Forwarded-For from everyone (set_real_ip_from 0.0.0.0/0); any client can fake its IP.
+          tr: X-Forwarded-For'a herkesten güvenmek (set_real_ip_from 0.0.0.0/0); her istemci IP'sini taklit edebilir.
+        source: https://nginx.org/en/docs/http/ngx_http_realip_module.html
+  - id: https
+    title: { en: HTTPS and redirects, tr: HTTPS ve yönlendirmeler }
+    items:
+      - id: tls
+        level: basic
+        title: { en: Turn on HTTPS, tr: HTTPS'i açma }
+        what:
+          en: listen 443 ssl with a certificate and key serves the site over HTTPS; http2 on adds HTTP/2.
+          tr: Sertifika ve anahtarla birlikte listen 443 ssl siteyi HTTPS üzerinden sunar; http2 on HTTP/2 ekler.
+        lang: nginx
+        form: listen 443 ssl;
+        example: |
+          server {
+              listen 443 ssl;
+              http2 on;
+              server_name example.com;
+
+              ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+
+              root /var/www/example;
+          }
+        mistake:
+          en: Using cert.pem instead of fullchain.pem; browsers may accept it but many clients (curl, phones) fail with an unknown issuer.
+          tr: fullchain.pem yerine cert.pem kullanmak; tarayıcılar kabul edebilir ama birçok istemci (curl, telefonlar) bilinmeyen sağlayıcı hatası verir.
+        since: "1.25.1"
+        older:
+          en: Before 1.25.1 HTTP/2 was turned on with listen 443 ssl http2; that parameter is deprecated now.
+          tr: 1.25.1'den önce HTTP/2, listen 443 ssl http2 ile açılırdı; o parametre artık kullanımdan kalktı.
+        source: https://nginx.org/en/docs/http/configuring_https_servers.html
+      - id: http-to-https
+        level: basic
+        title: { en: Send HTTP to HTTPS, tr: HTTP'yi HTTPS'e yönlendirme }
+        what:
+          en: A small server on port 80 that answers every request with a permanent redirect to the https address.
+          tr: Port 80'de, her isteğe https adresine kalıcı yönlendirmeyle cevap veren küçük bir server.
+        lang: nginx
+        form: return 301 https://$host$request_uri;
+        example: |
+          server {
+              listen 80;
+              server_name example.com www.example.com;
+              return 301 https://$host$request_uri;
+          }
+        mistake:
+          en: Writing the redirect with rewrite and a regex; return is simpler and faster.
+          tr: Yönlendirmeyi rewrite ve regex ile yazmak; return daha basit ve daha hızlı.
+        source: https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return
+      - id: www-redirect
+        level: intermediate
+        title: { en: One main domain, tr: Tek bir ana domain }
+        what:
+          en: Redirects www.example.com to example.com (or the other way), so every page has one address.
+          tr: www.example.com'u example.com'a (ya da tersine) yönlendirir; böylece her sayfanın tek bir adresi olur.
+        lang: nginx
+        form: return 301 https://example.com$request_uri;
+        example: |
+          server {
+              listen 443 ssl;
+              server_name www.example.com;
+              ssl_certificate     /etc/letsencrypt/live/example.com/fullchain.pem;
+              ssl_certificate_key /etc/letsencrypt/live/example.com/privkey.pem;
+              return 301 https://example.com$request_uri;
+          }
+        mistake:
+          en: A certificate that does not cover www; the browser shows a warning before your redirect can run.
+          tr: www'yi kapsamayan bir sertifika; yönlendirmen çalışmadan önce tarayıcı uyarı gösterir.
+        source: https://nginx.org/en/docs/http/server_names.html
+      - id: rewrite
+        level: intermediate
+        title: { en: Move old URLs, tr: Eski URL'leri taşıma }
+        what:
+          en: rewrite changes the URI with a regex; with permanent it sends a 301 redirect to the new address.
+          tr: rewrite URI'yi bir regex ile değiştirir; permanent ile yeni adrese 301 yönlendirmesi gönderir.
+        lang: nginx
+        form: rewrite <regex> <replacement> [permanent];
+        example: |
+          rewrite ^/blog/(\d+)/(.*)$ /posts/$2 permanent;
+          location = /old-page { return 301 /new-page; }
+        avoid:
+          en: For a single fixed URL; location = with return is clearer.
+          tr: Tek ve sabit bir URL için; location = ile return daha anlaşılır.
+        source: https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#rewrite
+      - id: hsts
+        level: advanced
+        title: { en: Tell browsers to always use HTTPS, tr: Tarayıcılara hep HTTPS kullanmalarını söyleme }
+        what:
+          en: The Strict-Transport-Security header makes browsers go straight to HTTPS for the time you set.
+          tr: Strict-Transport-Security header'ı, tarayıcıların belirlediğin süre boyunca doğrudan HTTPS'e gitmesini sağlar.
+        lang: nginx
+        form: add_header Strict-Transport-Security "max-age=31536000" always;
+        example: |
+          server {
+              listen 443 ssl;
+              add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+          }
+        mistake:
+          en: Turning on includeSubDomains before every subdomain has HTTPS; those subdomains stop working in browsers that saw the header.
+          tr: Her subdomain HTTPS'e geçmeden includeSubDomains'i açmak; header'ı görmüş tarayıcılarda o subdomain'ler çalışmaz.
+        source: https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header
+      - id: default-server
+        level: advanced
+        title: { en: Catch unknown host names, tr: Bilinmeyen host adlarını yakalama }
+        what:
+          en: The default_server answers requests whose Host matches no server_name; you can close those connections.
+          tr: default_server, Host'u hiçbir server_name ile eşleşmeyen isteklere cevap verir; o bağlantıları kapatabilirsin.
+        lang: nginx
+        form: listen 80 default_server;
+        example: |
+          server {
+              listen 80 default_server;
+              server_name _;
+              return 444;   # close the connection without an answer
+          }
+        mistake:
+          en: Having no default server; nginx then uses the first server in the config, so your site answers for any domain pointed at your IP.
+          tr: Hiç default server olmaması; nginx o zaman yapılandırmadaki ilk server'ı kullanır, IP'ne yönlendirilen her domain'e senin siten cevap verir.
+        source: https://nginx.org/en/docs/http/request_processing.html
+  - id: protect
+    title: { en: Headers, limits and access, tr: Header'lar, limitler ve erişim }
+    items:
+      - id: add-header-inherit
+        level: advanced
+        title: { en: Why your headers disappear, tr: Header'ların neden kaybolduğu }
+        what:
+          en: add_header in a location replaces all add_header lines from the server level; add_header_inherit merge keeps both.
+          tr: Bir location'daki add_header, server seviyesindeki bütün add_header satırlarını geçersiz kılar; add_header_inherit merge ikisini de korur.
+        lang: nginx
+        form: add_header_inherit merge;
+        example: |
+          server {
+              add_header X-Frame-Options DENY;
+              add_header_inherit merge;
+
+              location /assets/ {
+                  add_header Cache-Control "public, max-age=31536000";
+                  # X-Frame-Options is still sent here
+              }
+          }
+        since: "1.29.3"
+        older:
+          en: Before 1.29.3 there is no add_header_inherit; repeat the server-level add_header lines in every location that has its own.
+          tr: 1.29.3'ten önce add_header_inherit yok; kendi add_header'ı olan her location'da server seviyesindeki satırları tekrar yaz.
+        source: https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header_inherit
+      - id: limit-req
+        level: advanced
+        title: { en: Rate limiting, tr: İstek hızı sınırlama }
+        what:
+          en: limit_req lets each client IP make only a set number of requests per second, which slows down brute-force attacks.
+          tr: limit_req her istemci IP'sinin saniyede belli sayıda istek yapmasına izin verir; kaba kuvvet saldırılarını yavaşlatır.
+        lang: nginx
+        form: limit_req zone=<name> burst=<n>;
+        example: |
+          http {
+              limit_req_zone $binary_remote_addr zone=login:10m rate=5r/s;
+
+              server {
+                  location /login {
+                      limit_req zone=login burst=10 nodelay;
+                      proxy_pass http://127.0.0.1:3000;
+                  }
+              }
+          }
+        mistake:
+          en: Rate limiting behind a load balancer without real_ip; every request seems to come from the load balancer and all users share one limit.
+          tr: real_ip olmadan bir load balancer arkasında hız sınırlamak; her istek load balancer'dan geliyor gibi görünür ve bütün kullanıcılar tek limiti paylaşır.
+        source: https://nginx.org/en/docs/http/ngx_http_limit_req_module.html
+      - id: allow-deny
+        level: intermediate
+        title: { en: Allow only some IPs, tr: Sadece bazı IP'lere izin verme }
+        what:
+          en: allow and deny are checked in order; the first rule that matches decides.
+          tr: allow ve deny sırayla kontrol edilir; eşleşen ilk kural karar verir.
+        lang: nginx
+        form: allow <ip>; deny all;
+        example: |
+          location /admin/ {
+              allow 203.0.113.10;
+              allow 10.0.0.0/8;
+              deny  all;
+              proxy_pass http://127.0.0.1:3000;
+          }
+        mistake:
+          en: Putting deny all first; it matches everyone and the allow lines after it never run.
+          tr: deny all'ı başa koymak; herkesle eşleşir ve sonraki allow satırları hiç çalışmaz.
+        source: https://nginx.org/en/docs/http/ngx_http_access_module.html
+      - id: basic-auth
+        level: intermediate
+        title: { en: Password-protect a page, tr: Bir sayfayı şifreyle koruma }
+        what:
+          en: auth_basic asks for a user name and password stored in a file.
+          tr: auth_basic bir dosyada saklanan kullanıcı adı ve şifreyi ister.
+        lang: nginx
+        form: auth_basic "<realm>"; auth_basic_user_file <file>;
+        example: |
+          # create the file: htpasswd -c /etc/nginx/.htpasswd admin
+          location /staging/ {
+              auth_basic "Staging";
+              auth_basic_user_file /etc/nginx/.htpasswd;
+          }
+        mistake:
+          en: Using it over plain HTTP; basic auth sends the password in every request, readable without TLS.
+          tr: Düz HTTP üzerinde kullanmak; basic auth şifreyi her istekte gönderir, TLS olmadan okunabilir.
+        source: https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html

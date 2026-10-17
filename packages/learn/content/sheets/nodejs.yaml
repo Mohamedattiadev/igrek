@@ -1,0 +1,837 @@
+id: nodejs
+title: Node.js
+category: framework
+summary:
+  en: Runs JavaScript outside the browser, with built-in modules for files, HTTP, processes and tests, and npm for packages.
+  tr: JavaScript'i tarayıcı dışında çalıştırır; dosya, HTTP, process ve test için hazır modülleri, paketler için de npm'i vardır.
+aliases: [node, node js, npm, npx, package.json, nodejs runtime, sunucu javascript, backend javascript]
+detect:
+  files: [package.json, .nvmrc, .node-version]
+version: "26"
+latest: eol:nodejs
+checked: 2026-10
+sources:
+  - title: Node.js API documentation
+    url: https://nodejs.org/docs/latest/api/
+  - title: Node.js Learn
+    url: https://nodejs.org/en/learn
+  - title: npm CLI documentation
+    url: https://docs.npmjs.com/cli/v12
+roadmap: node
+sections:
+  - id: run
+    title: { en: Run code, tr: Kod çalıştırma }
+    items:
+      - id: run-file
+        level: basic
+        title: { en: Run a file, tr: Bir dosyayı çalıştırma }
+        what:
+          en: node followed by a file name runs that file; -e runs a short piece of code.
+          tr: node ve arkasından dosya adı o dosyayı çalıştırır; -e kısa bir kod parçasını çalıştırır.
+        lang: sh
+        form: node app.js
+        example: |
+          echo 'console.log("Hello from", process.version.split(".")[0])' > app.mjs
+          node app.mjs
+          node -e 'console.log(1 + 2)'
+        output: |
+          Hello from v26
+          3
+        check: sh
+        mistake:
+          en: Running an old system Node.js by accident; check node --version and use a version manager such as nvm or fnm.
+          tr: Yanlışlıkla eski bir sistem Node.js'ini çalıştırmak; node --version ile kontrol et, nvm ya da fnm gibi bir sürüm yöneticisi kullan.
+        source: https://nodejs.org/docs/latest/api/cli.html
+      - id: watch
+        level: basic
+        title: { en: Restart on change, tr: Değişiklikte yeniden başlatma }
+        what:
+          en: '--watch restarts your program every time a file it imports changes.'
+          tr: '--watch, import ettiği bir dosya her değiştiğinde programını yeniden başlatır.'
+        lang: sh
+        form: node --watch app.js
+        example: |
+          node --watch server.js
+          node --watch-path=./src --watch-path=./config server.js
+        mistake:
+          en: Expecting changes in files that are not imported (like .env or templates) to restart it; add them with --watch-path.
+          tr: Import edilmeyen dosyalardaki (.env ya da şablonlar gibi) değişikliklerin yeniden başlatacağını sanmak; onları --watch-path ile ekle.
+        avoid:
+          en: In production; use a process manager or systemd to restart on crashes.
+          tr: Production'da; çökmede yeniden başlatmak için bir process yöneticisi ya da systemd kullan.
+        since: "22.0"
+        older:
+          en: Watch mode came in 18.11 as experimental and became stable in 22.0 and 20.13; before that people used nodemon.
+          tr: Watch modu 18.11'de deneysel olarak geldi, 22.0 ve 20.13'te kararlı oldu; önceden nodemon kullanılırdı.
+        source: https://nodejs.org/docs/latest/api/cli.html#--watch
+      - id: node-run
+        level: intermediate
+        title: { en: Run a package.json script fast, tr: package.json script'ini hızlı çalıştırma }
+        what:
+          en: node --run runs a script from package.json without starting npm, so it starts faster.
+          tr: node --run package.json'daki bir script'i npm'i başlatmadan çalıştırır, bu yüzden daha hızlı başlar.
+        lang: sh
+        form: node --run <script>
+        example: |
+          echo '{ "scripts": { "hello": "echo hi from node --run" } }' > package.json
+          node --run hello
+        output: |
+          hi from node --run
+        check: sh
+        mistake:
+          en: Expecting pre and post scripts (pretest, posttest) to run; node --run skips them on purpose. Use npm run for those.
+          tr: pre ve post script'lerinin (pretest, posttest) çalışmasını beklemek; node --run bunları bilerek atlar. Onlar için npm run kullan.
+        since: "22.0"
+        source: https://nodejs.org/docs/latest/api/cli.html#--run
+      - id: env-file
+        level: basic
+        title: { en: Load a .env file, tr: .env dosyası yükleme }
+        what:
+          en: '--env-file reads KEY=value lines from a file into process.env, no dotenv package needed.'
+          tr: '--env-file bir dosyadaki KEY=değer satırlarını process.env''e okur; dotenv paketine gerek kalmaz.'
+        lang: sh
+        form: node --env-file=.env app.js
+        example: |
+          printf 'PORT=8080\nGREETING="hi there"\n' > .env
+          node --env-file=.env -e 'console.log(process.env.PORT, process.env.GREETING)'
+        output: |
+          8080 hi there
+        check: sh
+        mistake:
+          en: Committing .env to Git; put it in .gitignore and commit a .env.example without real secrets.
+          tr: .env'i Git'e commit etmek; onu .gitignore'a ekle, gerçek sırlar olmadan bir .env.example commit et.
+        avoid:
+          en: When the file may be missing (CI, production); use --env-file-if-exists, --env-file throws if the file is not there.
+          tr: Dosya olmayabilecekse (CI, production); --env-file-if-exists kullan, --env-file dosya yoksa hata verir.
+        since: "20.6"
+        older:
+          en: It was experimental until 24.10 and 22.21. Variables already set in the environment win over the file.
+          tr: 24.10 ve 22.21'e kadar deneyseldi. Ortamda zaten tanımlı değişkenler dosyadakilere üstün gelir.
+        source: https://nodejs.org/docs/latest/api/cli.html#--env-filefile
+      - id: process-env-argv
+        level: basic
+        title: { en: Arguments, environment and exit code, tr: Argümanlar, ortam ve çıkış kodu }
+        what:
+          en: process.argv holds the command line words, process.env the environment variables and process.exitCode the result code.
+          tr: process.argv komut satırındaki kelimeleri, process.env ortam değişkenlerini, process.exitCode sonuç kodunu tutar.
+        lang: sh
+        form: const [, , ...args] = process.argv;
+        example: |
+          cat > cli.mjs <<'EOF'
+          const args = process.argv.slice(2);
+          const mode = process.env.MODE ?? "dev";
+          console.log(args, mode);
+          if (args.length === 0) process.exitCode = 1;
+          EOF
+          MODE=prod node cli.mjs build fast
+        output: |
+          [ 'build', 'fast' ] prod
+        check: sh
+        mistake:
+          en: Calling process.exit() right after writing output; pending writes can be cut off. Set process.exitCode and let the program end.
+          tr: Çıktı yazdıktan hemen sonra process.exit() çağırmak; bekleyen yazmalar kesilebilir. process.exitCode ata ve programın kendiliğinden bitmesine izin ver.
+        source: https://nodejs.org/docs/latest/api/process.html#processargv
+      - id: parse-args
+        level: intermediate
+        title: { en: Parse command line flags, tr: Komut satırı bayraklarını okuma }
+        what:
+          en: util.parseArgs turns flags like --port 3000 -v into an object without a third-party package.
+          tr: util.parseArgs --port 3000 -v gibi bayrakları üçüncü parti paket olmadan bir nesneye çevirir.
+        lang: js
+        form: 'parseArgs({ args, options: { port: { type: "string" } } })'
+        example: |
+          import { parseArgs } from "node:util";
+          const { values, positionals } = parseArgs({
+            args: ["--port", "3000", "-v", "serve"],
+            options: {
+              port: { type: "string", default: "8080" },
+              verbose: { type: "boolean", short: "v" },
+            },
+            allowPositionals: true,
+          });
+          console.log(values.port, values.verbose, positionals);
+        output: |
+          3000 true [ 'serve' ]
+        check: js
+        mistake:
+          en: Expecting a number; every value comes back as a string, convert it with Number().
+          tr: Sayı beklemek; her değer string olarak gelir, Number() ile çevir.
+        since: "18.3"
+        source: https://nodejs.org/docs/latest/api/util.html#utilparseargsconfig
+      - id: type-stripping
+        level: intermediate
+        title: { en: Run TypeScript directly, tr: TypeScript'i doğrudan çalıştırma }
+        what:
+          en: Node.js runs .ts files by deleting the type annotations; it does not check the types.
+          tr: Node.js .ts dosyalarını tip bilgilerini silerek çalıştırır; tipleri kontrol etmez.
+        lang: sh
+        form: node app.ts
+        example: |
+          echo 'const n: number = 41; console.log(n + 1);' > app.ts
+          node app.ts
+        output: |
+          42
+        check: sh
+        mistake:
+          en: Using enum, namespaces with code or parameter properties; they are not just types and fail with ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX.
+          tr: enum, kod içeren namespace ya da parameter property kullanmak; bunlar sadece tip değildir ve ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX ile hata verir.
+        avoid:
+          en: When you need tsconfig paths or decorators; Node.js ignores tsconfig.json, so use a build step or tsx.
+          tr: tsconfig paths ya da decorator gerekiyorsa; Node.js tsconfig.json'ı yok sayar, bir build adımı ya da tsx kullan.
+        since: "23.6"
+        older:
+          en: On by default since 23.6 and 22.18, stable since 25.2 and 24.12. Imports must include the .ts extension.
+          tr: 23.6 ve 22.18'den beri varsayılan olarak açık, 25.2 ve 24.12'den beri kararlı. Import'larda .ts uzantısı yazılmalı.
+        source: https://nodejs.org/docs/latest/api/typescript.html
+  - id: modules
+    title: { en: Modules, tr: Modüller }
+    items:
+      - id: esm-cjs
+        level: basic
+        title: { en: ES modules or CommonJS, tr: ES modülleri mi CommonJS mi }
+        what:
+          en: '"type": "module" in package.json makes .js files ES modules (import); without it they are CommonJS (require).'
+          tr: 'package.json''daki "type": "module", .js dosyalarını ES modülü (import) yapar; yoksa CommonJS (require) olurlar.'
+        lang: sh
+        form: npm pkg set type=module
+        example: |
+          echo '{ "type": "module" }' > package.json
+          echo 'export const hi = () => "hi from ESM";' > lib.js
+          echo 'import { hi } from "./lib.js"; console.log(hi());' > main.js
+          node main.js
+        output: |
+          hi from ESM
+        check: sh
+        mistake:
+          en: Mixing require and import in one file; in an ES module require is not defined. .mjs is always ESM and .cjs always CommonJS.
+          tr: Aynı dosyada require ve import karıştırmak; ES modülünde require tanımlı değildir. .mjs her zaman ESM, .cjs her zaman CommonJS'tir.
+        source: https://nodejs.org/docs/latest/api/packages.html#type
+      - id: node-prefix
+        level: basic
+        title: { en: Import built-in modules, tr: Hazır modülleri import etme }
+        what:
+          en: Built-in modules are imported with the node prefix, like node:fs or node:path, so no npm package can take their name.
+          tr: 'Hazır modüller node: önekiyle import edilir (node:fs, node:path gibi); böylece hiçbir npm paketi onların adını alamaz.'
+        lang: js
+        form: import { readFile } from "node:fs/promises";
+        example: |
+          import os from "node:os";
+          import { builtinModules } from "node:module";
+          console.log(typeof os.cpus().length, builtinModules.includes("fs"));
+        output: |
+          number true
+        check: js
+        source: https://nodejs.org/docs/latest/api/modules.html#built-in-modules
+      - id: import-meta-dirname
+        level: intermediate
+        title: { en: The current file's folder, tr: Mevcut dosyanın klasörü }
+        what:
+          en: In ES modules import.meta.dirname and import.meta.filename replace __dirname and __filename.
+          tr: ES modüllerinde import.meta.dirname ve import.meta.filename, __dirname ve __filename'in yerini alır.
+        lang: js
+        form: path.join(import.meta.dirname, "data.json")
+        example: |
+          import { basename, join } from "node:path";
+          console.log(basename(import.meta.filename));
+          console.log(join(import.meta.dirname, "data.json").endsWith("/data.json"));
+        output: |
+          main.mjs
+          true
+        check: js
+        mistake:
+          en: Using __dirname in an ES module; it is not defined there and throws a ReferenceError.
+          tr: ES modülünde __dirname kullanmak; orada tanımlı değildir ve ReferenceError fırlatır.
+        since: "20.11"
+        older:
+          en: Before 20.11 use fileURLToPath(new URL(".", import.meta.url)).
+          tr: 20.11'den önce fileURLToPath(new URL(".", import.meta.url)) kullan.
+        source: https://nodejs.org/docs/latest/api/esm.html#importmetadirname
+      - id: require-esm
+        level: advanced
+        title: { en: require() an ES module, tr: ES modülünü require() ile yükleme }
+        what:
+          en: CommonJS code can require() an ES module, as long as that module has no top-level await.
+          tr: CommonJS kodu bir ES modülünü require() ile yükleyebilir; yeter ki o modülde en üst seviyede await olmasın.
+        lang: sh
+        form: const { x } = require("./lib.mjs");
+        example: |
+          echo 'export const add = (a, b) => a + b;' > math.mjs
+          echo 'const { add } = require("./math.mjs"); console.log(add(2, 3));' > main.cjs
+          node main.cjs
+        output: |
+          5
+        check: sh
+        mistake:
+          en: Requiring a module that uses top-level await; it throws ERR_REQUIRE_ASYNC_MODULE. Use await import() there.
+          tr: En üst seviyede await kullanan bir modülü require etmek; ERR_REQUIRE_ASYNC_MODULE fırlatır. Orada await import() kullan.
+        since: "22.12"
+        older:
+          en: Unflagged in 23.0, 22.12 and 20.19, no longer experimental since 25.4. Older versions throw ERR_REQUIRE_ESM.
+          tr: 23.0, 22.12 ve 20.19'da bayraksız oldu, 25.4'ten beri deneysel değil. Eski sürümler ERR_REQUIRE_ESM fırlatır.
+        source: https://nodejs.org/docs/latest/api/modules.html#loading-ecmascript-modules-using-require
+  - id: files
+    title: { en: Files and paths, tr: Dosyalar ve yollar }
+    items:
+      - id: fs-read-write
+        level: basic
+        title: { en: Read and write files, tr: Dosya okuma ve yazma }
+        what:
+          en: fs/promises has async readFile and writeFile that return Promises, so you can await them.
+          tr: fs/promises, Promise döndüren asenkron readFile ve writeFile sunar; onları await ile bekleyebilirsin.
+        lang: js
+        form: const text = await readFile("file.txt", "utf8");
+        example: |
+          import { readFile, writeFile, appendFile } from "node:fs/promises";
+          await writeFile("notes.txt", "first\n");
+          await appendFile("notes.txt", "second\n");
+          const text = await readFile("notes.txt", "utf8");
+          console.log(text.trim().split("\n"));
+        output: |
+          [ 'first', 'second' ]
+        check: js
+        mistake:
+          en: Forgetting "utf8"; without it readFile returns a Buffer, not a string.
+          tr: '"utf8"''i unutmak; o olmadan readFile string değil Buffer döndürür.'
+        avoid:
+          en: For very large files; read them piece by piece with a stream instead of loading all into memory.
+          tr: Çok büyük dosyalar için; hepsini belleğe almak yerine stream ile parça parça oku.
+        source: https://nodejs.org/docs/latest/api/fs.html#fspromisesreadfilepath-options
+      - id: fs-mkdir-rm
+        level: basic
+        title: { en: Create and delete folders, tr: Klasör oluşturma ve silme }
+        what:
+          en: mkdir with recursive creates all missing parent folders; rm with recursive deletes a folder and everything in it.
+          tr: recursive ile mkdir eksik tüm üst klasörleri oluşturur; recursive ile rm bir klasörü içindekilerle birlikte siler.
+        lang: js
+        form: 'await mkdir("a/b/c", { recursive: true });'
+        example: |
+          import { mkdir, rm, readdir, writeFile } from "node:fs/promises";
+          import { existsSync } from "node:fs";
+          await mkdir("out/logs", { recursive: true });
+          await writeFile("out/logs/app.log", "ok");
+          console.log(await readdir("out", { recursive: true }));
+          await rm("out", { recursive: true, force: true });
+          console.log(existsSync("out"));
+        output: |
+          [ 'logs', 'logs/app.log' ]
+          false
+        check: js
+        mistake:
+          en: Building the path for rm from user input; one wrong value can delete the wrong folder. Check it is inside your folder first.
+          tr: rm için yolu kullanıcı girdisinden oluşturmak; tek yanlış değer yanlış klasörü silebilir. Önce kendi klasörünün içinde olduğunu kontrol et.
+        source: https://nodejs.org/docs/latest/api/fs.html#fspromisesmkdirpath-options
+      - id: path
+        level: basic
+        title: { en: Work with paths, tr: Yollarla çalışma }
+        what:
+          en: path.join glues path parts with the right separator; path.resolve makes an absolute path.
+          tr: path.join yol parçalarını doğru ayırıcıyla birleştirir; path.resolve tam (mutlak) bir yol oluşturur.
+        lang: js
+        form: path.join(dir, "file.txt")
+        example: |
+          import path from "node:path";
+          console.log(path.join("/srv", "app", "../data", "users.json"));
+          console.log(path.extname("photo.final.png"), path.basename("/a/b/report.pdf", ".pdf"));
+          console.log(path.parse("/home/ada/notes.md").name);
+        output: |
+          /srv/data/users.json
+          .png report
+          notes
+        check: js
+        mistake:
+          en: Building paths with + and "/"; it breaks on Windows and with double slashes. Use path.join.
+          tr: Yolları + ve "/" ile oluşturmak; Windows'ta ve çift eğik çizgide bozulur. path.join kullan.
+        source: https://nodejs.org/docs/latest/api/path.html
+      - id: glob
+        level: intermediate
+        title: { en: Find files by pattern, tr: Desene göre dosya bulma }
+        what:
+          en: fs.glob finds files that match a pattern such as src/**/*.ts.
+          tr: fs.glob src/**/*.ts gibi bir desene uyan dosyaları bulur.
+        lang: js
+        form: for await (const file of glob("src/**/*.ts")) { }
+        example: |
+          import { glob, mkdir, writeFile } from "node:fs/promises";
+          await mkdir("src/lib", { recursive: true });
+          for (const f of ["src/a.ts", "src/lib/b.ts", "src/c.js"]) await writeFile(f, "");
+          const files = await Array.fromAsync(glob("src/**/*.ts"));
+          console.log(files.sort());
+        output: |
+          [ 'src/a.ts', 'src/lib/b.ts' ]
+        check: js
+        mistake:
+          en: Expecting the results in a fixed order; sort them if order matters.
+          tr: Sonuçların sabit bir sırayla gelmesini beklemek; sıra önemliyse sırala.
+        since: "22.0"
+        older:
+          en: Stable since 24.0 and 22.17; before 22 use a package like fast-glob.
+          tr: 24.0 ve 22.17'den beri kararlı; 22'den önce fast-glob gibi bir paket kullan.
+        source: https://nodejs.org/docs/latest/api/fs.html#fspromisesglobpattern-options
+      - id: streams
+        level: advanced
+        title: { en: Process big data in pieces, tr: Büyük veriyi parça parça işleme }
+        what:
+          en: Streams move data piece by piece; pipeline connects them and cleans up when one fails.
+          tr: Stream'ler veriyi parça parça taşır; pipeline onları birbirine bağlar ve biri hata verince temizlik yapar.
+        lang: js
+        form: await pipeline(source, transform, destination);
+        example: |
+          import { createReadStream, createWriteStream } from "node:fs";
+          import { writeFile, stat } from "node:fs/promises";
+          import { pipeline } from "node:stream/promises";
+          import { createGzip } from "node:zlib";
+          await writeFile("big.log", "line\n".repeat(10000));
+          await pipeline(createReadStream("big.log"), createGzip(), createWriteStream("big.log.gz"));
+          console.log((await stat("big.log.gz")).size < 50000);
+        output: |
+          true
+        check: js
+        mistake:
+          en: Chaining with .pipe() and no error handling; a failed stream leaves files open. Use pipeline from node:stream/promises.
+          tr: Hata yönetimi olmadan .pipe() ile zincirlemek; başarısız olan stream dosyaları açık bırakır. node:stream/promises'tan pipeline kullan.
+        source: https://nodejs.org/docs/latest/api/stream.html#streampipelinesource-transforms-destination-options
+  - id: network
+    title: { en: HTTP and networking, tr: HTTP ve ağ }
+    items:
+      - id: http-server
+        level: basic
+        title: { en: A small HTTP server, tr: Küçük bir HTTP sunucusu }
+        what:
+          en: http.createServer calls your function for every request; you write the status, headers and body.
+          tr: http.createServer her istek için senin fonksiyonunu çağırır; durum kodunu, header'ları ve gövdeyi sen yazarsın.
+        lang: js
+        form: http.createServer((req, res) => { res.end("ok"); }).listen(3000);
+        example: |
+          import http from "node:http";
+          const server = http.createServer((req, res) => {
+            res.writeHead(200, { "content-type": "application/json" });
+            res.end(JSON.stringify({ path: req.url }));
+          });
+          server.listen(0, async () => {
+            const { port } = server.address();
+            const res = await fetch(`http://127.0.0.1:${port}/health`);
+            console.log(res.status, await res.json());
+            server.close();
+          });
+        output: |
+          200 { path: '/health' }
+        check: js
+        mistake:
+          en: Forgetting res.end(); the client waits until it times out.
+          tr: res.end()'i unutmak; istemci zaman aşımına kadar bekler.
+        avoid:
+          en: For a real API with routing and validation; a framework such as Fastify, Hono or Express saves a lot of code.
+          tr: Yönlendirme ve doğrulama içeren gerçek bir API için; Fastify, Hono ya da Express gibi bir framework çok kod kazandırır.
+        source: https://nodejs.org/docs/latest/api/http.html#httpcreateserveroptions-requestlistener
+      - id: fetch
+        level: basic
+        title: { en: Make HTTP requests, tr: HTTP isteği gönderme }
+        what:
+          en: fetch is built in, the same API as in browsers, so you do not need axios or node-fetch.
+          tr: fetch hazır gelir, tarayıcılardakiyle aynı API'dir; axios ya da node-fetch gerekmez.
+        lang: js
+        form: 'const res = await fetch(url, { method: "POST", body });'
+        example: |
+          const res = await fetch("https://api.example.com/tasks", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ title: "Write docs" }),
+            signal: AbortSignal.timeout(10_000),
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          console.log(await res.json());
+        mistake:
+          en: Not setting a timeout; a hanging server can keep your request waiting for a long time. Pass AbortSignal.timeout.
+          tr: Zaman aşımı koymamak; takılan bir sunucu isteğini uzun süre bekletebilir. AbortSignal.timeout ver.
+        source: https://nodejs.org/docs/latest/api/globals.html#fetch
+      - id: url
+        level: intermediate
+        title: { en: Parse URLs and query strings, tr: URL ve query string ayrıştırma }
+        what:
+          en: The URL class splits a link into parts; searchParams reads and builds the query string safely.
+          tr: URL sınıfı bir bağlantıyı parçalarına ayırır; searchParams query string'i güvenle okur ve oluşturur.
+        lang: js
+        form: new URL(req.url, "http://localhost").searchParams.get("q")
+        example: |
+          const u = new URL("/search?q=node js&page=2", "https://example.com");
+          console.log(u.pathname, u.searchParams.get("q"), Number(u.searchParams.get("page")));
+          u.searchParams.set("sort", "new & hot");
+          console.log(u.search);
+        output: |
+          /search node js 2
+          ?q=node+js&page=2&sort=new+%26+hot
+        check: js
+        mistake:
+          en: Using the old url.parse(); it is deprecated and has security problems. Use new URL().
+          tr: Eski url.parse()'ı kullanmak; kullanımdan kaldırıldı ve güvenlik sorunları var. new URL() kullan.
+        source: https://nodejs.org/docs/latest/api/url.html#the-whatwg-url-api
+  - id: process-tools
+    title: { en: Events, processes and tools, tr: Olaylar, process'ler ve araçlar }
+    items:
+      - id: event-emitter
+        level: intermediate
+        title: { en: Events, tr: Olaylar (event'ler) }
+        what:
+          en: An EventEmitter lets one part of the code announce something and others react to it.
+          tr: EventEmitter kodun bir kısmının bir şeyi duyurmasını, diğerlerinin de ona tepki vermesini sağlar.
+        lang: js
+        form: emitter.on("event", handler); emitter.emit("event", data);
+        example: |
+          import { EventEmitter, once } from "node:events";
+          const jobs = new EventEmitter();
+          jobs.on("done", (id) => console.log("done", id));
+          setTimeout(() => jobs.emit("done", 7), 10);
+          const [id] = await once(jobs, "done");
+          console.log("awaited", id);
+        output: |
+          done 7
+          awaited 7
+        check: js
+        mistake:
+          en: Emitting "error" with no listener; Node.js then throws and the process can crash. Always listen for "error".
+          tr: Dinleyicisi olmadan "error" yaymak; Node.js hata fırlatır ve process çökebilir. "error"u her zaman dinle.
+        source: https://nodejs.org/docs/latest/api/events.html
+      - id: child-process
+        level: intermediate
+        title: { en: Run other programs, tr: Başka programları çalıştırma }
+        what:
+          en: execFile runs a program with a list of arguments and gives you its output.
+          tr: execFile bir programı argüman listesiyle çalıştırır ve çıktısını sana verir.
+        lang: js
+        form: 'await execFileAsync("git", ["status", "--short"]);'
+        example: |
+          import { execFile } from "node:child_process";
+          import { promisify } from "node:util";
+          const run = promisify(execFile);
+          const { stdout } = await run(process.execPath, ["-e", "console.log(6 * 7)"]);
+          console.log(stdout.trim());
+        output: |
+          42
+        check: js
+        mistake:
+          en: Using exec with a command string built from user input; the shell runs whatever is inside. Use execFile or spawn with an argument array.
+          tr: Kullanıcı girdisinden oluşturulmuş komut string'iyle exec kullanmak; shell içindeki her şeyi çalıştırır. Argüman dizisiyle execFile ya da spawn kullan.
+        source: https://nodejs.org/docs/latest/api/child_process.html#child_processexecfilefile-args-options-callback
+      - id: crypto
+        level: intermediate
+        title: { en: IDs, hashes and random values, tr: ID, hash ve rastgele değerler }
+        what:
+          en: crypto makes random UUIDs, secure random bytes and hashes such as SHA-256.
+          tr: crypto rastgele UUID'ler, güvenli rastgele byte'lar ve SHA-256 gibi hash'ler üretir.
+        lang: js
+        form: crypto.randomUUID()
+        example: |
+          import { createHash, randomUUID, randomBytes } from "node:crypto";
+          console.log(createHash("sha256").update("hello").digest("hex"));
+          console.log(randomUUID().length, randomBytes(16).toString("hex").length);
+        output: |
+          2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824
+          36 32
+        check: js
+        mistake:
+          en: Storing passwords as a plain SHA-256 hash; use a slow password hash such as scrypt (crypto.scrypt) or argon2.
+          tr: Şifreleri düz SHA-256 hash olarak saklamak; scrypt (crypto.scrypt) ya da argon2 gibi yavaş bir şifre hash'i kullan.
+        avoid:
+          en: Do not use Math.random() for tokens or IDs that must be hard to guess.
+          tr: Tahmin edilmesi zor olması gereken token ya da ID'ler için Math.random() kullanma.
+        source: https://nodejs.org/docs/latest/api/crypto.html#cryptorandomuuidoptions
+      - id: timers-promises
+        level: intermediate
+        title: { en: Wait without callbacks, tr: Callback'siz bekleme }
+        what:
+          en: node:timers/promises gives a setTimeout you can await.
+          tr: node:timers/promises, await ile beklenebilen bir setTimeout verir.
+        lang: js
+        form: await setTimeout(1000);
+        example: |
+          import { setTimeout as sleep } from "node:timers/promises";
+          const start = Date.now();
+          await sleep(50);
+          console.log(Date.now() - start >= 45);
+        output: |
+          true
+        check: js
+        mistake:
+          en: Passing a callback as with the global setTimeout; this version takes (delay, value) and returns a Promise.
+          tr: Global setTimeout'taki gibi callback vermek; bu sürüm (süre, değer) alır ve Promise döndürür.
+        source: https://nodejs.org/docs/latest/api/timers.html#timerspromisessettimeoutdelay-value-options
+      - id: worker-threads
+        level: advanced
+        title: { en: Heavy work on another thread, tr: Ağır işi başka bir thread'de yapma }
+        what:
+          en: A Worker runs JavaScript on a separate thread so long calculations do not block your server.
+          tr: Worker JavaScript'i ayrı bir thread'de çalıştırır; uzun hesaplamalar sunucunu kilitlemez.
+        lang: js
+        form: new Worker(new URL("./worker.js", import.meta.url))
+        example: |
+          import { Worker } from "node:worker_threads";
+          const code = `
+            const { parentPort, workerData } = require("node:worker_threads");
+            let sum = 0;
+            for (let i = 1; i <= workerData; i++) sum += i;
+            parentPort.postMessage(sum);
+          `;
+          const worker = new Worker(code, { eval: true, workerData: 1_000_000 });
+          worker.on("message", (sum) => console.log(sum));
+        output: |
+          500000500000
+        check: js
+        avoid:
+          en: For waiting on I/O (files, network, database); Node.js already does that without blocking.
+          tr: I/O beklemek için (dosya, ağ, veritabanı); Node.js bunu zaten kilitlemeden yapar.
+        source: https://nodejs.org/docs/latest/api/worker_threads.html
+      - id: node-test
+        level: basic
+        title: { en: Built-in test runner, tr: Hazır test çalıştırıcı }
+        what:
+          en: node:test and node:assert let you write and run tests without installing Jest or Vitest.
+          tr: node:test ve node:assert, Jest ya da Vitest kurmadan test yazmanı ve çalıştırmanı sağlar.
+        lang: sh
+        form: node --test
+        example: |
+          cat > sum.test.mjs <<'EOF'
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          const sum = (a, b) => a + b;
+          test("adds numbers", () => {
+            assert.equal(sum(2, 3), 5);
+            assert.deepEqual([sum(1, 1)], [2]);
+          });
+          EOF
+          node --test --test-reporter=dot
+        output: |
+          .
+        check: sh
+        mistake:
+          en: Importing node:assert instead of node:assert/strict; the loose version uses == and lets wrong values pass.
+          tr: node:assert/strict yerine node:assert import etmek; gevşek sürüm == kullanır ve yanlış değerleri geçirir.
+        since: "20.0"
+        older:
+          en: Added in 18.0 as experimental, stable since 20.0. Coverage is --experimental-test-coverage.
+          tr: 18.0'da deneysel olarak geldi, 20.0'dan beri kararlı. Kapsam (coverage) için --experimental-test-coverage.
+        source: https://nodejs.org/docs/latest/api/test.html
+      - id: debug-inspect
+        level: intermediate
+        title: { en: Debug with breakpoints, tr: Breakpoint ile debug }
+        what:
+          en: '--inspect opens a debugger port so Chrome DevTools or VS Code can pause your code at breakpoints.'
+          tr: '--inspect bir debugger portu açar; Chrome DevTools ya da VS Code kodunu breakpoint''lerde durdurabilir.'
+        lang: sh
+        form: node --inspect app.js
+        example: |
+          node --inspect-brk app.js   # stop on the first line
+          # then open chrome://inspect in Chrome
+        mistake:
+          en: Running --inspect=0.0.0.0 on a server; anyone who reaches the port can run code. Keep it on 127.0.0.1.
+          tr: Sunucuda --inspect=0.0.0.0 çalıştırmak; porta ulaşan herkes kod çalıştırabilir. 127.0.0.1'de tut.
+        source: https://nodejs.org/en/learn/getting-started/debugging
+      - id: sqlite
+        level: advanced
+        title: { en: Built-in SQLite, tr: Hazır SQLite }
+        what:
+          en: node:sqlite opens a SQLite database without any npm package.
+          tr: node:sqlite hiçbir npm paketi olmadan bir SQLite veritabanı açar.
+        lang: js
+        form: const db = new DatabaseSync("app.db");
+        example: |
+          import { DatabaseSync } from "node:sqlite";
+          const db = new DatabaseSync(":memory:");
+          db.exec("CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT)");
+          const insert = db.prepare("INSERT INTO tasks (title) VALUES (?)");
+          insert.run("Write docs");
+          insert.run("Ship");
+          console.log(db.prepare("SELECT title FROM tasks WHERE id = ?").get(2).title);
+        output: |
+          Ship
+        check: js
+        mistake:
+          en: Putting values into the SQL string; use ? placeholders so input cannot change the query.
+          tr: Değerleri SQL string'inin içine yazmak; girdinin sorguyu değiştirememesi için ? yer tutucularını kullan.
+        avoid:
+          en: For APIs you must keep stable for years; node:sqlite is still a release candidate (stability 1.2).
+          tr: Yıllarca sabit kalması gereken API'ler için; node:sqlite hâlâ sürüm adayı (stability 1.2).
+        source: https://nodejs.org/docs/latest/api/sqlite.html
+      - id: permission-model
+        level: advanced
+        title: { en: Limit what a program may do, tr: Programın yapabileceklerini sınırlama }
+        what:
+          en: '--permission blocks file system, child process, worker and native addon access unless you allow it with --allow-* flags.'
+          tr: '--permission, --allow-* bayraklarıyla izin vermediğin sürece dosya sistemi, child process, worker ve native addon erişimini engeller.'
+        lang: sh
+        form: node --permission --allow-fs-read=./data app.js
+        example: |
+          echo 'require("node:fs").writeFileSync("x.txt", "hi")' > w.cjs
+          node --permission w.cjs 2>&1 | grep -o ERR_ACCESS_DENIED | head -1
+        output: |
+          ERR_ACCESS_DENIED
+        check: sh
+        mistake:
+          en: Treating it as a sandbox for untrusted code; the docs say it does not protect against malicious code.
+          tr: Güvenilmeyen kod için bir sandbox sanmak; dokümantasyon kötü niyetli koda karşı koruma sağlamadığını söyler.
+        since: "23.5"
+        older:
+          en: Added in 20.0 as experimental (--experimental-permission), stable since 23.5 and 22.13.
+          tr: 20.0'da deneysel olarak geldi (--experimental-permission), 23.5 ve 22.13'ten beri kararlı.
+        source: https://nodejs.org/docs/latest/api/permissions.html
+  - id: npm
+    title: { en: npm basics, tr: npm temelleri }
+    items:
+      - id: npm-init
+        level: basic
+        title: { en: Start a project, tr: Proje başlatma }
+        what:
+          en: npm init -y creates a package.json, the file that lists your project's name, scripts and dependencies.
+          tr: npm init -y bir package.json oluşturur; bu dosya projenin adını, script'lerini ve bağımlılıklarını listeler.
+        lang: sh
+        form: npm init -y
+        example: |
+          mkdir my-app && cd my-app
+          npm init -y > /dev/null
+          npm pkg set type=module
+          npm pkg get name type
+        output: |
+          name = 'my-app'
+          type = 'module'
+        check: sh
+        mistake:
+          en: Writing package.json by hand and breaking the JSON; npm pkg set edits it safely.
+          tr: package.json'ı elle yazıp JSON'u bozmak; npm pkg set onu güvenle düzenler.
+        source: https://docs.npmjs.com/cli/v12/commands/npm-init
+      - id: npm-install
+        level: basic
+        title: { en: Add packages, tr: Paket ekleme }
+        what:
+          en: npm install adds a package to dependencies; -D adds it to devDependencies for tools only needed while developing.
+          tr: npm install bir paketi dependencies'e ekler; -D sadece geliştirirken gereken araçlar için devDependencies'e ekler.
+        lang: sh
+        form: npm install <package>
+        example: |
+          npm install express
+          npm install -D typescript @types/node
+          npm uninstall express
+        mistake:
+          en: Installing build tools and test libraries as normal dependencies; they then ship to production too.
+          tr: Build araçlarını ve test kütüphanelerini normal bağımlılık olarak kurmak; o zaman production'a da giderler.
+        source: https://docs.npmjs.com/cli/v12/commands/npm-install
+      - id: npm-ci
+        level: intermediate
+        title: { en: Exact installs in CI, tr: CI'da birebir kurulum }
+        what:
+          en: npm ci installs exactly what package-lock.json says and fails if it does not match package.json.
+          tr: npm ci tam olarak package-lock.json'da yazanı kurar; package.json ile uyuşmazsa hata verir.
+        lang: sh
+        form: npm ci
+        example: |
+          npm ci
+          npm ci --omit=dev   # production image without devDependencies
+        mistake:
+          en: Leaving package-lock.json out of Git; then every machine can get different versions. Always commit it.
+          tr: package-lock.json'ı Git dışında bırakmak; o zaman her makine farklı sürümler alabilir. Her zaman commit et.
+        source: https://docs.npmjs.com/cli/v12/commands/npm-ci
+      - id: semver
+        level: basic
+        title: { en: Version ranges, tr: Sürüm aralıkları }
+        what:
+          en: ^1.2.3 allows updates that keep the first number (1.x.x); ~1.2.3 allows only patch updates (1.2.x).
+          tr: ^1.2.3 ilk sayıyı koruyan güncellemelere izin verir (1.x.x); ~1.2.3 sadece patch güncellemelerine izin verir (1.2.x).
+        lang: json
+        form: '"dependencies": { "express": "^5.1.0" }'
+        example: |
+          {
+            "dependencies": {
+              "express": "^5.1.0",
+              "zod": "~4.1.0",
+              "left-pad": "1.3.0"
+            }
+          }
+        mistake:
+          en: Expecting ^0.4.0 to allow 0.5.0; for 0.x versions ^ only allows patch updates.
+          tr: ^0.4.0'ın 0.5.0'a izin vermesini beklemek; 0.x sürümlerde ^ sadece patch güncellemelerine izin verir.
+        source: https://docs.npmjs.com/about-semantic-versioning
+      - id: npm-scripts
+        level: basic
+        title: { en: Project scripts, tr: Proje script'leri }
+        what:
+          en: The scripts field holds commands like dev, build and test; npm run <name> runs them with node_modules/.bin on the PATH.
+          tr: scripts alanı dev, build ve test gibi komutları tutar; npm run <isim> onları node_modules/.bin PATH'teyken çalıştırır.
+        lang: sh
+        form: npm run <script>
+        example: |
+          npm init -y > /dev/null
+          npm pkg set scripts.greet="echo hello from npm"
+          npm run -s greet
+        output: |
+          hello from npm
+        check: sh
+        mistake:
+          en: Passing flags without --; write npm run test -- --watch so the flag reaches the script.
+          tr: Bayrakları -- olmadan vermek; bayrağın script'e ulaşması için npm run test -- --watch yaz.
+        source: https://docs.npmjs.com/cli/v12/using-npm/scripts
+      - id: npx
+        level: basic
+        title: { en: Run a package's command, tr: Bir paketin komutunu çalıştırma }
+        what:
+          en: npx runs a command from a package, from node_modules/.bin or downloaded for one run.
+          tr: npx bir paketin komutunu çalıştırır; node_modules/.bin'den ya da tek seferlik indirerek.
+        lang: sh
+        form: npx <command>
+        example: |
+          npx tsc --noEmit
+          npx create-vite@latest my-app
+        mistake:
+          en: Running a misspelled package name; npx may download and run a different, possibly malicious package. Check the name.
+          tr: Yanlış yazılmış bir paket adı çalıştırmak; npx farklı, belki kötü niyetli bir paketi indirip çalıştırabilir. Adı kontrol et.
+        source: https://docs.npmjs.com/cli/v12/commands/npx
+      - id: npm-audit-outdated
+        level: intermediate
+        title: { en: Find old and unsafe packages, tr: Eski ve güvensiz paketleri bulma }
+        what:
+          en: npm outdated lists packages with newer versions; npm audit lists known security problems.
+          tr: npm outdated yeni sürümü olan paketleri, npm audit bilinen güvenlik sorunlarını listeler.
+        lang: sh
+        form: npm audit
+        example: |
+          npm outdated
+          npm audit
+          npm audit fix   # only updates within your allowed ranges
+        mistake:
+          en: Running npm audit fix --force without reading; it can jump major versions and break your app.
+          tr: Okumadan npm audit fix --force çalıştırmak; major sürüm atlayıp uygulamanı bozabilir.
+        source: https://docs.npmjs.com/cli/v12/commands/npm-audit
+      - id: install-scripts
+        level: advanced
+        title: { en: Allow install scripts, tr: Kurulum script'lerine izin verme }
+        what:
+          en: npm 12 does not run dependencies' install scripts until you approve them, which blocks a common way malware spreads.
+          tr: npm 12, sen onaylayana kadar bağımlılıkların kurulum script'lerini çalıştırmaz; bu kötü amaçlı yazılımın yaygın bir yayılma yolunu kapatır.
+        lang: sh
+        form: npm install-scripts approve <pkg>
+        example: |
+          npm install-scripts ls          # packages that want to run scripts
+          npm install-scripts approve esbuild
+          npm rebuild esbuild
+        mistake:
+          en: Running approve --all to make a warning go away; approve only packages you trust and need, such as native builds.
+          tr: Bir uyarıdan kurtulmak için approve --all çalıştırmak; sadece güvendiğin ve gerçekten gereken paketleri (native build gibi) onayla.
+        since: npm 12
+        older:
+          en: npm 11 and older run every dependency's install scripts automatically unless you pass --ignore-scripts.
+          tr: npm 11 ve öncesi, --ignore-scripts vermezsen her bağımlılığın kurulum script'ini otomatik çalıştırır.
+        source: https://docs.npmjs.com/cli/v12/commands/npm-install-scripts
+      - id: workspaces
+        level: advanced
+        title: { en: Several packages in one repo, tr: Tek repoda birden fazla paket }
+        what:
+          en: Workspaces link the packages of a monorepo together and install them with one npm install.
+          tr: Workspace'ler bir monorepo'daki paketleri birbirine bağlar ve hepsini tek npm install ile kurar.
+        lang: sh
+        form: '"workspaces": ["packages/*"]'
+        example: |
+          npm pkg set 'workspaces[0]=packages/*'
+          npm init -y -w packages/api
+          npm run test --workspaces --if-present
+          npm install zod -w packages/api
+        mistake:
+          en: Running npm install inside one package folder; run it at the root so there is one lockfile.
+          tr: npm install'u bir paket klasörünün içinde çalıştırmak; tek bir lockfile olması için kökte çalıştır.
+        source: https://docs.npmjs.com/cli/v12/using-npm/workspaces

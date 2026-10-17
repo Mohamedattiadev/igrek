@@ -12,6 +12,13 @@ export interface EnhanceCodeRequest {
   endLine?: number;
 }
 
+/** "What is this?" on selected code: the matching cheatsheet items. */
+export interface WhatIsRequest {
+  code: string;
+  /** Monaco's language id of the file. */
+  fileLang?: string;
+}
+
 const target = new EventTarget();
 
 export const actions = {
@@ -28,6 +35,14 @@ export const actions = {
     const listener = (event: Event) => handler((event as CustomEvent).detail);
     target.addEventListener("enhance-code", listener);
     return () => target.removeEventListener("enhance-code", listener);
+  },
+  whatIs(request: WhatIsRequest): void {
+    target.dispatchEvent(new CustomEvent("what-is", { detail: request }));
+  },
+  onWhatIs(handler: (detail: WhatIsRequest) => void): () => void {
+    const listener = (event: Event) => handler((event as CustomEvent).detail);
+    target.addEventListener("what-is", listener);
+    return () => target.removeEventListener("what-is", listener);
   },
   on(type: "quick-ask" | "capture-idea", handler: (detail: QuickAskRequest) => void): () => void {
     const listener = (event: Event) => handler((event as CustomEvent).detail ?? {});

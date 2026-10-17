@@ -532,7 +532,23 @@ export function TestRunPage() {
           {previous && (
             <p className="mt-1 text-xs text-fg-muted">
               {t("testers.comparing", { when: relativeTime(previous.createdAt) })}
+              {run.autoFrom && ` · ${t("testers.autoFrom", { commit: run.autoFrom.slice(0, 7) })}`}
             </p>
+          )}
+          {run.projectId && (
+            <label className="mt-2 flex items-center gap-1.5 text-xs text-fg-muted" data-tip={t("testers.autoTip")}>
+              <input
+                type="checkbox"
+                checked={!!run.autoRepeat}
+                onChange={(e) =>
+                  void api
+                    .autoRepeatTesterRun(run.id, e.target.checked)
+                    .then(setRun)
+                    .catch((err: Error) => setError(err.message))
+                }
+              />
+              {t("testers.auto")}
+            </label>
           )}
         </div>
         {error && <p className="text-xs text-danger">{error}</p>}

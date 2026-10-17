@@ -1,0 +1,809 @@
+id: regex
+title: Regular expressions
+category: tool
+summary:
+  en: A small pattern language for finding, checking and replacing text. Examples use JavaScript; notes show where Python, PCRE and POSIX tools (grep, sed) differ.
+  tr: Metin bulmak, doğrulamak ve değiştirmek için küçük bir desen dili. Örnekler JavaScript ile; Python, PCRE ve POSIX araçlarının (grep, sed) farklı olduğu yerler not edildi.
+aliases: [regex, regexp, regular expression, düzenli ifade, düzenli ifadeler, pattern, desen, re, pcre, grep]
+checked: 2026-10
+sources:
+  - title: MDN regular expressions guide
+    url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+  - title: Python re module
+    url: https://docs.python.org/3/library/re.html
+  - title: PCRE2 pattern syntax
+    url: https://www.pcre.org/current/doc/html/pcre2pattern.html
+sections:
+  - id: basics
+    title: { en: The building blocks, tr: Temel parçalar }
+    items:
+      - id: test
+        level: basic
+        title: { en: "Does the text match?", tr: "Metin desene uyuyor mu?" }
+        what:
+          en: A regex literal goes between slashes; test() returns true when the pattern is found anywhere in the text.
+          tr: Regex literal iki eğik çizgi arasına yazılır; test(), desen metnin herhangi bir yerinde bulunursa true döner.
+        lang: js
+        form: /pattern/flags.test(text)
+        example: |
+          console.log(/cat/.test("concatenate"));
+          console.log(/cat/.test("dog"));
+        output: |
+          true
+          false
+        check: js
+        mistake:
+          en: Forgetting that a match anywhere counts; /cat/ also matches "concatenate". Add ^ and $ to match the whole text.
+          tr: Herhangi bir yerdeki eşleşmenin de sayıldığını unutmak; /cat/ "concatenate" ile de eşleşir. Tüm metin için ^ ve $ ekle.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
+      - id: character-class
+        level: basic
+        title: { en: One of these characters, tr: Bu karakterlerden biri }
+        what:
+          en: Square brackets match exactly one character from the set; a dash makes a range and ^ at the start means "not these".
+          tr: Köşeli parantez, kümedeki tek bir karakterle eşleşir; tire aralık yapar, baştaki ^ "bunlar hariç" demektir.
+        lang: js
+        form: '[abc]  [a-z0-9]  [^0-9]'
+        example: |
+          console.log("gray grey".match(/gr[ae]y/g));
+          console.log("a1b2".replace(/[^0-9]/g, ""));
+        output: |
+          [ 'gray', 'grey' ]
+          12
+        check: js
+        mistake:
+          en: Putting a dash in the middle by accident; [a-z_-0] is an error or a strange range. Put a literal dash first or last.
+          tr: Tireyi yanlışlıkla ortaya koymak; [a-z_-0] hata verir ya da tuhaf bir aralık olur. Düz tireyi en başa ya da en sona koy.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_class
+      - id: shorthand-classes
+        level: basic
+        title: { en: "Digits, word characters, spaces", tr: "Rakam, kelime karakteri, boşluk" }
+        what:
+          en: \d is a digit, \w a letter, digit or underscore, \s any whitespace; the capital letters mean the opposite.
+          tr: \d rakam, \w harf, rakam ya da alt çizgi, \s her türlü boşluktur; büyük harfli halleri tersini ifade eder.
+        lang: js
+        form: '\d  \w  \s  \D  \W  \S'
+        example: |
+          console.log("Order 42, row 7".match(/\d+/g));
+          console.log("a  b\tc".split(/\s+/));
+        output: |
+          [ '42', '7' ]
+          [ 'a', 'b', 'c' ]
+        check: js
+        mistake:
+          en: Expecting \w to match letters like é or ş in JavaScript; it is ASCII only there. Python 3 str patterns match all Unicode letters and digits.
+          tr: JavaScript'te \w'nin é ya da ş gibi harfleri yakalamasını beklemek; orada sadece ASCII'dir. Python 3'te str desenleri tüm Unicode harf ve rakamları yakalar.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Character_class_escape
+      - id: dot
+        level: basic
+        title: { en: Any character, tr: Herhangi bir karakter }
+        what:
+          en: The dot matches any single character except a line break; the s flag makes it match line breaks too.
+          tr: Nokta, satır sonu hariç herhangi tek bir karakterle eşleşir; s flag'i satır sonlarını da dahil eder.
+        lang: js
+        form: /a.c/  /a.c/s
+        example: |
+          console.log(/a.c/.test("abc"), /a.c/.test("a\nc"), /a.c/s.test("a\nc"));
+          console.log(/1\.5/.test("105"), /1.5/.test("105"));
+        output: |
+          true false true
+          false true
+        check: js
+        mistake:
+          en: Writing an unescaped dot for a real dot, as in 1.5 or example.com; escape it as \. .
+          tr: Gerçek nokta için kaçışsız nokta yazmak, 1.5 ya da example.com gibi; \. diye kaçır.
+        since: ES2018
+        older:
+          en: The s (dotAll) flag came in ES2018; before it people wrote [\s\S] to match any character.
+          tr: s (dotAll) flag'i ES2018'de geldi; öncesinde her karakter için [\s\S] yazılırdı.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Wildcard
+      - id: quantifiers
+        level: basic
+        title: { en: How many times, tr: Kaç kez }
+        what:
+          en: A quantifier repeats the thing before it; * is zero or more, + one or more, ? zero or one, {2,4} two to four.
+          tr: Niceleyici kendinden önceki parçayı tekrarlar; * sıfır ya da daha çok, + bir ya da daha çok, ? sıfır ya da bir, {2,4} ikiden dörde kadar.
+        lang: js
+        form: 'x*  x+  x?  x{3}  x{2,}  x{2,4}'
+        example: |
+          console.log(/^colou?r$/.test("color"), /^colou?r$/.test("colour"));
+          console.log("2026-10-17".match(/\d{4}/)[0]);
+        output: |
+          true true
+          2026
+        check: js
+        mistake:
+          en: Putting a space inside braces, {2, 4}; it is then not a quantifier but literal text.
+          tr: Süslü parantez içine boşluk koymak, {2, 4}; o zaman niceleyici olmaz, düz metin olur.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Quantifier
+      - id: anchors
+        level: basic
+        title: { en: Start and end, tr: Başlangıç ve son }
+        what:
+          en: ^ matches at the start of the text and $ at the end, so ^...$ checks the whole text.
+          tr: ^ metnin başında, $ sonunda eşleşir; böylece ^...$ metnin tamamını kontrol eder.
+        lang: js
+        form: /^\d+$/
+        example: |
+          const onlyDigits = /^\d+$/;
+          console.log(onlyDigits.test("12345"), onlyDigits.test("123a5"));
+        output: |
+          true false
+        check: js
+        mistake:
+          en: Validating input without anchors; /\d+/ accepts "abc1" because it only needs one digit somewhere.
+          tr: Girdiyi çapa olmadan doğrulamak; /\d+/ "abc1"i kabul eder, çünkü bir yerde bir rakam yeter.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Input_boundary_assertion
+      - id: alternation
+        level: basic
+        title: { en: This or that, tr: Bu ya da şu }
+        what:
+          en: The | sign matches either the left side or the right side; group it to limit how far it reaches.
+          tr: '| işareti ya sol tarafla ya sağ tarafla eşleşir; ne kadar uzağa etki edeceğini sınırlamak için grupla.'
+        lang: js
+        form: /^(?:jpg|png|gif)$/
+        example: |
+          console.log(/^jpg|png$/.test("xpng"));
+          console.log(/^(?:jpg|png)$/.test("xpng"));
+        output: |
+          true
+          false
+        check: js
+        mistake:
+          en: Writing ^a|b$ and expecting it to mean ^(a|b)$; it means "starts with a" or "ends with b".
+          tr: ^a|b$ yazıp ^(a|b)$ anlamına gelmesini beklemek; aslında "a ile başlar" ya da "b ile biter" demektir.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Disjunction
+      - id: escape
+        level: basic
+        title: { en: Match special characters literally, tr: Özel karakterleri olduğu gibi aramak }
+        what:
+          en: Characters like . * + ? ( ) [ ] { } ^ $ | \ / have meaning; put a backslash before them, or let RegExp.escape do it for user input.
+          tr: . * + ? ( ) [ ] { } ^ $ | \ / gibi karakterlerin anlamı vardır; önlerine ters eğik çizgi koy ya da kullanıcı girdisi için bunu RegExp.escape'e bırak.
+        lang: js
+        form: new RegExp(RegExp.escape(userText))
+        example: |
+          const price = "$5.00";
+          console.log(RegExp.escape(price));
+          console.log(new RegExp(RegExp.escape(price)).test("costs $5.00"));
+        output: |
+          \$5\.00
+          true
+        check: js
+        mistake:
+          en: Building a RegExp from user input without escaping; "a+b" or "(" then breaks the pattern or changes its meaning.
+          tr: Kullanıcı girdisinden kaçış yapmadan RegExp kurmak; "a+b" ya da "(" deseni bozar veya anlamını değiştirir.
+        since: ES2025
+        older:
+          en: RegExp.escape is new (ES2025, Node 24+); before it, use str.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&"). In Python use re.escape().
+          tr: RegExp.escape yeni (ES2025, Node 24+); öncesinde str.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&") kullan. Python'da re.escape() var.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/escape
+  - id: groups
+    title: { en: Groups and replacing, tr: Gruplar ve değiştirme }
+    items:
+      - id: capture-group
+        level: basic
+        title: { en: Take out parts of a match, tr: Eşleşmenin parçalarını almak }
+        what:
+          en: Parentheses capture what they match; the parts come back as numbered entries of the match.
+          tr: Parantezler eşleşen kısmı yakalar; parçalar eşleşmenin numaralı elemanları olarak döner.
+        lang: js
+        form: const [, a, b] = text.match(/(..)-(..)/)
+        example: |
+          const m = "2026-10-17".match(/(\d{4})-(\d{2})-(\d{2})/);
+          console.log(m[0], m[1], m[2], m[3]);
+        output: |
+          2026-10-17 2026 10 17
+        check: js
+        mistake:
+          en: Forgetting that match() returns null when nothing matches; m[1] then throws. Check the result first.
+          tr: Eşleşme yoksa match()'in null döndüğünü unutmak; o zaman m[1] hata fırlatır. Önce sonucu kontrol et.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Capturing_group
+      - id: named-group
+        level: basic
+        title: { en: Named groups, tr: İsimli gruplar }
+        what:
+          en: (?<name>...) gives a group a name, so you read it as groups.name instead of counting parentheses.
+          tr: (?<ad>...) gruba bir ad verir; parantez saymak yerine onu groups.ad diye okursun.
+        lang: js
+        form: /(?<year>\d{4})/
+        example: |
+          const { groups } = /(?<year>\d{4})-(?<month>\d{2})/.exec("2026-10");
+          console.log(groups.year, groups.month);
+        output: |
+          2026 10
+        check: js
+        mistake:
+          en: Using the Python spelling (?P<name>...) in JavaScript; JS only accepts (?<name>...). Python needs (?P<name>...).
+          tr: JavaScript'te Python yazımını (?P<ad>...) kullanmak; JS sadece (?<ad>...) kabul eder. Python ise (?P<ad>...) ister.
+        since: ES2018
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Named_capturing_group
+      - id: non-capturing
+        level: intermediate
+        title: { en: Group without capturing, tr: Yakalamadan gruplamak }
+        what:
+          en: (?:...) groups a part for | or a quantifier but does not create a numbered capture.
+          tr: (?:...) bir parçayı | ya da niceleyici için gruplar ama numaralı bir yakalama oluşturmaz.
+        lang: js
+        form: /(?:ab)+/
+        example: |
+          console.log("ababx".match(/(?:ab)+(x)/).slice(1));
+        output: |
+          [ 'x' ]
+        check: js
+        avoid:
+          en: When you need the value of the group later; use a normal or named group then.
+          tr: Grubun değerine sonra ihtiyacın varsa; o zaman normal ya da isimli grup kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Non-capturing_group
+      - id: backreference
+        level: intermediate
+        title: { en: Match the same text again, tr: Aynı metni tekrar yakalamak }
+        what:
+          en: \1 or \k<name> inside the pattern matches exactly the text that group already matched.
+          tr: Desenin içindeki \1 ya da \k<ad>, o grubun daha önce yakaladığı metnin aynısıyla eşleşir.
+        lang: js
+        form: /(\w+) \1/
+        example: |
+          console.log("this is is a test".match(/\b(\w+) \1\b/)[0]);
+          console.log(/(?<q>["']).*?\k<q>/.exec(`say 'hi' now`)[0]);
+        output: |
+          is is
+          'hi'
+        check: js
+        mistake:
+          en: Expecting \1 to repeat the pattern; it repeats the matched text. To repeat the pattern, write it again or use a quantifier.
+          tr: \1'in deseni tekrarlamasını beklemek; yakalanan metni tekrarlar. Deseni tekrarlamak için onu yeniden yaz ya da niceleyici kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Backreference
+      - id: replace-groups
+        level: basic
+        title: { en: Reuse groups in the replacement, tr: Değiştirmede grupları kullanmak }
+        what:
+          en: In the replacement text, $1 or $<name> puts back what a group matched; $& is the whole match.
+          tr: Değiştirme metninde $1 ya da $<ad>, grubun yakaladığını geri koyar; $& eşleşmenin tamamıdır.
+        lang: js
+        form: text.replace(/(\w+) (\w+)/, "$2 $1")
+        example: |
+          console.log("Lovelace Ada".replace(/(\w+) (\w+)/, "$2 $1"));
+          console.log("2026-10-17".replace(/(?<y>\d+)-(?<m>\d+)-(?<d>\d+)/, "$<d>.$<m>.$<y>"));
+        output: |
+          Ada Lovelace
+          17.10.2026
+        check: js
+        mistake:
+          en: Using Python's \1 or \g<name> syntax in JavaScript, or $1 in Python; each language has its own.
+          tr: JavaScript'te Python'un \1 ya da \g<ad> yazımını, Python'da da $1'i kullanmak; her dilin kendi yazımı var.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#specifying_a_string_as_the_replacement
+      - id: replace-function
+        level: intermediate
+        title: { en: Compute the replacement, tr: Değiştirilecek metni hesaplamak }
+        what:
+          en: Pass a function instead of a string; it gets the match and its groups and returns the new text.
+          tr: String yerine bir fonksiyon ver; fonksiyon eşleşmeyi ve gruplarını alır, yeni metni döner.
+        lang: js
+        form: text.replace(/re/g, (match, g1) => ...)
+        example: |
+          const out = "3 apples, 10 pears".replace(/\d+/g, (n) => String(n * 2));
+          console.log(out);
+        output: |
+          6 apples, 20 pears
+        check: js
+        mistake:
+          en: Leaving out the g flag and wondering why only the first match changed.
+          tr: g flag'ini unutup neden sadece ilk eşleşmenin değiştiğine şaşırmak.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace#specifying_a_function_as_the_replacement
+      - id: duplicate-names
+        level: advanced
+        title: { en: Same group name in two branches, tr: İki dalda aynı grup adı }
+        what:
+          en: Two alternatives may use the same group name, so one name works for several formats.
+          tr: İki alternatif aynı grup adını kullanabilir; böylece tek ad birden çok biçim için çalışır.
+        lang: js
+        form: /(?<y>\d{4})-\d\d|\d\d\/(?<y>\d{4})/
+        example: |
+          const re = /(?<y>\d{4})-\d\d|\d\d\/(?<y>\d{4})/;
+          console.log(re.exec("2026-10").groups.y, re.exec("10/2026").groups.y);
+        output: |
+          2026 2026
+        check: js
+        mistake:
+          en: Using the same name twice in one branch; that is still a syntax error.
+          tr: Aynı adı aynı dalda iki kez kullanmak; bu hâlâ söz dizimi hatasıdır.
+        since: ES2025
+        older:
+          en: Before ES2025 every group name had to be unique in the whole pattern.
+          tr: ES2025'ten önce her grup adı tüm desende tek olmak zorundaydı.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Named_capturing_group
+  - id: flags
+    title: { en: Flags, tr: Flag'ler }
+    items:
+      - id: flag-g
+        level: basic
+        title: { en: All matches, tr: Tüm eşleşmeler }
+        what:
+          en: The g (global) flag finds every match instead of only the first.
+          tr: g (global) flag'i sadece ilkini değil, her eşleşmeyi bulur.
+        lang: js
+        form: text.match(/re/g)
+        example: |
+          console.log("a1b22c333".match(/\d+/g));
+          console.log("a1b22c333".match(/\d+/)[0]);
+        output: |
+          [ '1', '22', '333' ]
+          1
+        check: js
+        mistake:
+          en: Calling test() or exec() again and again on the same /g regex; it remembers lastIndex and the next call starts from there.
+          tr: Aynı /g regex'inde test() ya da exec()'i tekrar tekrar çağırmak; lastIndex'i hatırlar ve sonraki çağrı oradan başlar.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
+      - id: lastindex-trap
+        level: intermediate
+        title: { en: The lastIndex trap, tr: lastIndex tuzağı }
+        what:
+          en: A regex with g or y keeps its position in lastIndex, so the same test() can give different answers.
+          tr: g ya da y flag'li bir regex konumunu lastIndex'te tutar; bu yüzden aynı test() farklı cevaplar verebilir.
+        lang: js
+        form: re.lastIndex = 0
+        example: |
+          const re = /a/g;
+          console.log(re.test("a"), re.test("a"), re.test("a"));
+        output: |
+          true false true
+        check: js
+        mistake:
+          en: Keeping a shared /g regex in a module constant and using it for validation; drop g for test().
+          tr: Paylaşılan bir /g regex'ini modül sabitinde tutup doğrulama için kullanmak; test() için g'yi kaldır.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/lastIndex
+      - id: flag-i-m
+        level: basic
+        title: { en: "Ignore case, many lines", tr: "Büyük/küçük harf, çok satır" }
+        what:
+          en: i ignores upper and lower case; m makes ^ and $ match at the start and end of every line.
+          tr: i büyük-küçük harf farkını yok sayar; m, ^ ve $'ı her satırın başında ve sonunda eşleştirir.
+        lang: js
+        form: /^todo:/im
+        example: |
+          const text = "done: a\nTODO: b\ntodo: c";
+          console.log(text.match(/^todo:.*$/gim));
+        output: |
+          [ 'TODO: b', 'todo: c' ]
+        check: js
+        mistake:
+          en: Expecting ^ to match after every line break without the m flag.
+          tr: m flag'i olmadan ^'ın her satır sonundan sonra eşleşmesini beklemek.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
+      - id: flag-u-v
+        level: intermediate
+        title: { en: Unicode mode, tr: Unicode modu }
+        what:
+          en: The u flag treats emoji and other characters outside the basic range as one character and enables \p{...}; v is a stricter u with set operations.
+          tr: u flag'i temel aralık dışındaki karakterleri (emoji gibi) tek karakter sayar ve \p{...}'yi açar; v ise küme işlemleri olan daha sıkı bir u'dur.
+        lang: js
+        form: /\p{L}+/u  /[\p{L}--[a-z]]/v
+        example: |
+          console.log("😀".match(/./g).length, "😀".match(/./gu).length);
+          console.log(/^[\p{L}--[a-z]]+$/v.test("ÇĞŞ"), /^[\p{L}--[a-z]]+$/v.test("abc"));
+        output: |
+          2 1
+          true false
+        check: js
+        mistake:
+          en: Using u and v together; that is a syntax error. Pick v for new code if your runtimes support it.
+          tr: u ve v'yi birlikte kullanmak; söz dizimi hatasıdır. Çalıştığın ortamlar destekliyorsa yeni kodda v'yi seç.
+        since: ES2024
+        older:
+          en: The v flag is ES2024; u has existed since ES2015 and \p{...} since ES2018.
+          tr: v flag'i ES2024'te geldi; u ES2015'ten, \p{...} ise ES2018'den beri var.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicodeSets
+      - id: flag-d
+        level: advanced
+        title: { en: Where each group starts and ends, tr: Her grubun nerede başlayıp bittiği }
+        what:
+          en: The d flag adds an indices array to the match with the start and end position of each group.
+          tr: d flag'i eşleşmeye, her grubun başlangıç ve bitiş konumunu veren bir indices dizisi ekler.
+        lang: js
+        form: /re/d.exec(text).indices
+        example: |
+          const m = /b(c)/d.exec("abcd");
+          console.log(m.indices[0], m.indices[1]);
+        output: |
+          [ 1, 3 ] [ 2, 3 ]
+        check: js
+        avoid:
+          en: When you do not need positions; it makes matching a bit slower.
+          tr: Konumlara ihtiyacın yoksa; eşleştirmeyi biraz yavaşlatır.
+        since: ES2022
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/hasIndices
+      - id: inline-modifiers
+        level: advanced
+        title: { en: Flags for one part only, tr: Sadece bir parça için flag }
+        what:
+          en: (?i:...) turns a flag on only inside the group; (?-i:...) turns it off. Works for i, m and s.
+          tr: (?i:...) bir flag'i sadece grubun içinde açar; (?-i:...) kapatır. i, m ve s için çalışır.
+        lang: js
+        form: /(?i:abc)def/
+        example: |
+          console.log(/(?i:hello) World/.test("HELLO World"), /(?i:hello) World/.test("HELLO WORLD"));
+        output: |
+          true false
+        check: js
+        mistake:
+          en: Writing a global inline flag like (?i) at the start, as in Python or PCRE; JavaScript only accepts the group form (?i:...).
+          tr: Python ya da PCRE'deki gibi başa genel bir (?i) yazmak; JavaScript sadece grup biçimini (?i:...) kabul eder.
+        since: ES2025
+        older:
+          en: Before ES2025 JavaScript had no inline flags; you had to split the pattern or spell out [hH][eE]...
+          tr: ES2025'ten önce JavaScript'te satır içi flag yoktu; deseni bölmen ya da [hH][eE]... diye yazman gerekirdi.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Modifier
+  - id: lookaround
+    title: { en: "Greedy, lazy and lookaround", tr: "Açgözlü, tembel ve lookaround" }
+    items:
+      - id: greedy-lazy
+        level: intermediate
+        title: { en: Take as little as possible, tr: Olabildiğince az almak }
+        what:
+          en: Quantifiers are greedy and take as much as they can; a ? after them (*?, +?) makes them take as little as possible.
+          tr: Niceleyiciler açgözlüdür, alabildiği kadar alır; arkalarına ? koymak (*?, +?) olabildiğince az almalarını sağlar.
+        lang: js
+        form: /<.+?>/
+        example: |
+          const html = "<b>bold</b>";
+          console.log(html.match(/<.+>/)[0]);
+          console.log(html.match(/<.+?>/)[0]);
+        output: |
+          <b>bold</b>
+          <b>
+        check: js
+        mistake:
+          en: Using .* between two markers and grabbing everything up to the last marker on the line.
+          tr: İki işaret arasında .* kullanıp satırdaki son işarete kadar her şeyi almak.
+        avoid:
+          en: For parsing HTML or JSON; use a real parser (DOMParser, JSON.parse).
+          tr: HTML ya da JSON ayrıştırmak için; gerçek bir parser kullan (DOMParser, JSON.parse).
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Quantifier
+      - id: word-boundary
+        level: intermediate
+        title: { en: Whole words only, tr: Sadece tam kelimeler }
+        what:
+          en: \b matches the edge between a word character and a non-word character, so \bcat\b skips "concatenate".
+          tr: \b kelime karakteri ile kelime olmayan karakter arasındaki sınırla eşleşir; \bcat\b "concatenate"i atlar.
+        lang: js
+        form: /\bword\b/
+        example: |
+          console.log("cat concatenate cat.".match(/\bcat\b/g).length);
+        output: |
+          2
+        check: js
+        mistake:
+          en: Using \b with Turkish or accented words in JavaScript; \b is ASCII based, so "çay" has a boundary inside before "ay". Use lookarounds with \p{L} and the u flag.
+          tr: JavaScript'te Türkçe ya da aksanlı kelimelerle \b kullanmak; \b ASCII'ye göre çalışır, "çay" içinde "ay"dan önce sınır görür. u flag'iyle \p{L} ve lookaround kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Word_boundary_assertion
+      - id: lookahead
+        level: intermediate
+        title: { en: Check what comes next, tr: Sonra ne geldiğine bakmak }
+        what:
+          en: (?=...) requires the text after this point to match, without taking it into the match; (?!...) requires it not to.
+          tr: (?=...) bu noktadan sonraki metnin eşleşmesini ister ama onu eşleşmeye katmaz; (?!...) eşleşmemesini ister.
+        lang: js
+        form: /\d+(?=px)/  /^(?!.*admin)/
+        example: |
+          console.log("10px 20em 30px".match(/\d+(?=px)/g));
+          const strong = /^(?=.*\d)(?=.*[a-z]).{8,}$/;
+          console.log(strong.test("abcdefg1"), strong.test("abcdefgh"));
+        output: |
+          [ '10', '30' ]
+          true false
+        check: js
+        mistake:
+          en: Stacking many lookaheads into one unreadable password rule; a few simple checks in code are easier to maintain.
+          tr: Okunmaz bir şifre kuralı için çok sayıda lookahead'i üst üste koymak; kodda birkaç basit kontrol daha kolay bakılır.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Lookahead_assertion
+      - id: lookbehind
+        level: advanced
+        title: { en: Check what came before, tr: Önce ne geldiğine bakmak }
+        what:
+          en: (?<=...) requires the text before this point to match; (?<!...) requires it not to.
+          tr: (?<=...) bu noktadan önceki metnin eşleşmesini ister; (?<!...) eşleşmemesini ister.
+        lang: js
+        form: /(?<=\$)\d+/
+        example: |
+          console.log("$10 and €20 and $30".match(/(?<=\$)\d+/g));
+        output: |
+          [ '10', '30' ]
+        check: js
+        mistake:
+          en: Porting a JS lookbehind like (?<=\w+) to Python; Python's re only allows fixed-length lookbehind and raises an error.
+          tr: (?<=\w+) gibi bir JS lookbehind'ını Python'a taşımak; Python re sadece sabit uzunlukta lookbehind kabul eder ve hata verir.
+        since: ES2018
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Lookbehind_assertion
+      - id: redos
+        level: advanced
+        title: { en: Catastrophic backtracking (ReDoS), tr: Felaket geri izleme (ReDoS) }
+        what:
+          en: Nested quantifiers like (a+)+ can try an exponential number of paths on input that almost matches and freeze the process.
+          tr: (a+)+ gibi iç içe niceleyiciler, neredeyse eşleşen bir girdide üstel sayıda yol deneyip süreci kilitleyebilir.
+        lang: js
+        form: 'bad: /^(a+)+$/   good: /^a+$/'
+        example: |
+          // On "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!" the first pattern runs for a very long time.
+          const bad = /^(a+)+$/;
+          const good = /^a+$/;
+        mistake:
+          en: Running user-supplied text through a pattern with nested or overlapping repetition on a server; one request can block the event loop.
+          tr: Sunucuda kullanıcı metnini iç içe ya da çakışan tekrarlı bir desenden geçirmek; tek bir istek event loop'u kilitleyebilir.
+        avoid:
+          en: Never accept regex patterns from users on a server unless you use a linear-time engine such as RE2.
+          tr: RE2 gibi doğrusal zamanlı bir motor kullanmıyorsan sunucuda kullanıcıdan regex deseni kabul etme.
+        source: https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS
+  - id: js-api
+    title: { en: JavaScript string methods, tr: JavaScript string metotları }
+    items:
+      - id: match-all
+        level: intermediate
+        title: { en: Every match with its groups, tr: Her eşleşme gruplarıyla birlikte }
+        what:
+          en: matchAll() returns an iterator of full match objects, so you get the groups of every match; the regex must have g.
+          tr: matchAll(), tam eşleşme nesnelerinden bir iterator döner; böylece her eşleşmenin gruplarını alırsın. Regex'te g olmalı.
+        lang: js
+        form: for (const m of text.matchAll(/re/g)) { ... }
+        example: |
+          const text = "a=1, b=2";
+          for (const m of text.matchAll(/(\w)=(\d)/g)) console.log(m[1], m[2], m.index);
+        output: |
+          a 1 0
+          b 2 5
+        check: js
+        mistake:
+          en: Using match(/.../g) and expecting groups; with g, match() returns only the matched strings.
+          tr: match(/.../g) kullanıp grupları beklemek; g ile match() sadece eşleşen string'leri döner.
+        since: ES2020
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/matchAll
+      - id: replace-all
+        level: basic
+        title: { en: Replace every occurrence, tr: Her geçişi değiştirmek }
+        what:
+          en: replaceAll() changes every occurrence of a plain string; with a regex it needs the g flag.
+          tr: replaceAll() düz bir string'in her geçişini değiştirir; regex ile kullanılırsa g flag'i gerekir.
+        lang: js
+        form: text.replaceAll("old", "new")
+        example: |
+          console.log("a.b.c".replaceAll(".", "/"));
+          console.log("a.b.c".replace(".", "/"));
+        output: |
+          a/b/c
+          a/b.c
+        check: js
+        mistake:
+          en: Calling replace() with a string and expecting every occurrence to change; only the first does.
+          tr: replace()'i string ile çağırıp tüm geçişlerin değişmesini beklemek; sadece ilki değişir.
+        since: ES2021
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replaceAll
+      - id: split
+        level: basic
+        title: { en: Split on a pattern, tr: Desene göre bölmek }
+        what:
+          en: split() with a regex cuts the text wherever the pattern matches.
+          tr: Regex ile split(), metni desenin eşleştiği her yerden keser.
+        lang: js
+        form: text.split(/\s*,\s*/)
+        example: |
+          console.log("a , b,c ,  d".split(/\s*,\s*/));
+          console.log("1+2-3".split(/([+-])/));
+        output: |
+          [ 'a', 'b', 'c', 'd' ]
+          [ '1', '+', '2', '-', '3' ]
+        check: js
+        mistake:
+          en: Putting a capturing group in the split pattern by accident; the separators then appear in the result.
+          tr: Bölme desenine yanlışlıkla yakalayan grup koymak; ayraçlar da sonuca girer.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/split
+      - id: new-regexp
+        level: intermediate
+        title: { en: Build a pattern from a string, tr: String'den desen kurmak }
+        what:
+          en: new RegExp(string, flags) builds a pattern at run time; backslashes must be doubled in the string.
+          tr: new RegExp(string, flags) deseni çalışma anında kurar; string içinde ters eğik çizgiler iki kez yazılmalı.
+        lang: js
+        form: new RegExp("\\d+", "g")
+        example: |
+          const field = "id";
+          const re = new RegExp(`${field}=(\\d+)`);
+          console.log("name=x id=42".match(re)[1]);
+        output: |
+          42
+        check: js
+        mistake:
+          en: Writing "\d" in a normal string; JavaScript turns it into "d" before RegExp sees it.
+          tr: Normal bir string'de "\d" yazmak; JavaScript onu RegExp görmeden "d"ye çevirir.
+        avoid:
+          en: When the pattern is fixed; a /literal/ is clearer and checked when the code loads.
+          tr: Desen sabitse; /literal/ daha okunaklıdır ve kod yüklenirken kontrol edilir.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/RegExp
+      - id: sticky
+        level: advanced
+        title: { en: Match exactly here (tokenizers), tr: Tam burada eşleşmek (tokenizer) }
+        what:
+          en: The y (sticky) flag only matches at lastIndex, which is what a simple tokenizer needs.
+          tr: y (sticky) flag'i sadece lastIndex konumunda eşleşir; basit bir tokenizer'ın ihtiyacı budur.
+        lang: js
+        form: const re = /\d+/y; re.lastIndex = pos;
+        example: |
+          const re = /\d+/y;
+          re.lastIndex = 3;
+          console.log(re.exec("ab 12 34")?.[0]);
+          re.lastIndex = 2;
+          console.log(re.exec("ab 12 34"));
+        output: |
+          12
+          null
+        check: js
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
+  - id: other-flavors
+    title: { en: "Python, PCRE and POSIX", tr: "Python, PCRE ve POSIX" }
+    items:
+      - id: py-raw-string
+        level: basic
+        title: { en: Raw strings in Python, tr: Python'da raw string }
+        what:
+          en: Write Python patterns as r"..." so backslashes reach the regex engine unchanged.
+          tr: Python desenlerini r"..." diye yaz; böylece ters eğik çizgiler regex motoruna değişmeden ulaşır.
+        lang: py
+        form: re.findall(r"\d+", text)
+        example: |
+          import re
+          print(re.findall(r"\d+", "a1b22c333"))
+          print(re.sub(r"(\w+) (\w+)", r"\2 \1", "Lovelace Ada"))
+        output: |
+          ['1', '22', '333']
+          Ada Lovelace
+        check: py
+        mistake:
+          en: Writing "\b" without r; in a normal Python string it is a backspace character, so the word boundary silently never matches.
+          tr: r olmadan "\b" yazmak; normal Python string'inde bu bir backspace karakteridir ve kelime sınırı sessizce hiç eşleşmez.
+        source: https://docs.python.org/3/library/re.html#raw-string-notation
+      - id: py-search-match
+        level: basic
+        title: { en: "search, match and fullmatch", tr: "search, match ve fullmatch" }
+        what:
+          en: In Python, search() looks anywhere, match() only at the start, fullmatch() requires the whole string.
+          tr: Python'da search() her yerde arar, match() sadece başta, fullmatch() ise tüm string'in eşleşmesini ister.
+        lang: py
+        form: re.fullmatch(r"\d+", text)
+        example: |
+          import re
+          s = "abc123"
+          print(bool(re.search(r"\d+", s)), bool(re.match(r"\d+", s)), bool(re.fullmatch(r"\d+", s)))
+        output: |
+          True False False
+        check: py
+        mistake:
+          en: Using match() for validation; it accepts "123abc" because it only checks the start. Use fullmatch(). Python 3.15 adds prefixmatch() as a clearer name for match().
+          tr: Doğrulama için match() kullanmak; sadece başa baktığı için "123abc"yi kabul eder. fullmatch() kullan. Python 3.15, match() için daha açık bir ad olarak prefixmatch()'i ekledi.
+        source: https://docs.python.org/3/library/re.html#re.fullmatch
+      - id: py-named-groups
+        level: intermediate
+        title: { en: Named groups and flags in Python, tr: Python'da isimli gruplar ve flag'ler }
+        what:
+          en: Python names a group with (?P<name>...), reads it with m["name"], and takes flags like re.I | re.M as an argument.
+          tr: Python grubu (?P<ad>...) ile adlandırır, m["ad"] ile okur; re.I | re.M gibi flag'leri argüman olarak alır.
+        lang: py
+        form: re.search(r"(?P<year>\d{4})", text, re.I)
+        example: |
+          import re
+          m = re.search(r"(?P<key>\w+)\s*=\s*(?P<val>\w+)", "  Port = 8080", re.I)
+          print(m["key"], m["val"], m.groupdict())
+        output: |
+          Port 8080 {'key': 'Port', 'val': '8080'}
+        check: py
+        mistake:
+          en: Expecting re.findall to return match objects; with groups it returns tuples of the groups, so use finditer for full matches.
+          tr: re.findall'un eşleşme nesneleri döndürmesini beklemek; grup varsa grupların tuple'larını döner, tam eşleşme için finditer kullan.
+        source: https://docs.python.org/3/library/re.html#regular-expression-syntax
+      - id: py-verbose
+        level: intermediate
+        title: { en: "Readable patterns with comments", tr: "Yorumlu, okunaklı desenler" }
+        what:
+          en: 'Python''s re.X (VERBOSE) flag ignores spaces in the pattern and allows # comments, so long patterns stay readable.'
+          tr: 'Python''un re.X (VERBOSE) flag''i desendeki boşlukları yok sayar ve # yorumlarına izin verir; uzun desenler okunur kalır.'
+        lang: py
+        form: re.compile(r"""...""", re.X)
+        example: |
+          import re
+          date = re.compile(r"""
+              (\d{4})  # year
+              -(\d{2}) # month
+          """, re.X)
+          print(date.search("on 2026-10").groups())
+        output: |
+          ('2026', '10')
+        check: py
+        mistake:
+          en: Forgetting that a real space must be written as \  or [ ] in verbose mode.
+          tr: Verbose modda gerçek bir boşluğun \  ya da [ ] diye yazılması gerektiğini unutmak.
+        source: https://docs.python.org/3/library/re.html#re.VERBOSE
+      - id: atomic-possessive
+        level: advanced
+        title: { en: Atomic groups and possessive quantifiers, tr: Atomik gruplar ve sahiplenici niceleyiciler }
+        what:
+          en: (?>...) and a++ never give back what they matched, which stops useless backtracking; Python 3.11+ and PCRE have them, JavaScript does not.
+          tr: (?>...) ve a++ yakaladığını asla geri vermez, gereksiz geri izlemeyi durdurur; Python 3.11+ ve PCRE'de var, JavaScript'te yok.
+        lang: py
+        form: r"(?>\w+):"  r"\w++:"
+        example: |
+          import re
+          print(re.fullmatch(r"a+a", "aaa") is not None)
+          print(re.fullmatch(r"a++a", "aaa") is not None)
+        output: |
+          True
+          False
+        check: py
+        mistake:
+          en: Making a part possessive that needs to give a character back for the rest of the pattern, so it never matches.
+          tr: Desenin geri kalanı için bir karakteri geri vermesi gereken bir parçayı sahiplenici yapmak; desen hiç eşleşmez.
+        since: Python 3.11
+        source: https://docs.python.org/3/library/re.html#regular-expression-syntax
+      - id: grep-ere
+        level: basic
+        title: { en: grep and sed (POSIX), tr: grep ve sed (POSIX) }
+        what:
+          en: grep -E and sed -E use POSIX extended syntax; there is no \d there, use [0-9] or [[:digit:]].
+          tr: grep -E ve sed -E POSIX genişletilmiş söz dizimini kullanır; orada \d yoktur, [0-9] ya da [[:digit:]] kullan.
+        lang: sh
+        form: grep -E '[0-9]{3}' file
+        example: |
+          printf 'id=12\nname=ada\nid=345\n' > data.txt
+          grep -E '^id=[[:digit:]]+$' data.txt
+          sed -E 's/^([a-z]+)=(.*)$/\2:\1/' data.txt
+        output: |
+          id=12
+          id=345
+          12:id
+          ada:name
+          345:id
+        check: sh
+        mistake:
+          en: Using plain grep without -E and wondering why + and {3} do nothing; basic syntax needs \+ and \{3\}.
+          tr: '-E olmadan düz grep kullanıp + ve {3}''ün neden çalışmadığına şaşırmak; temel söz diziminde \+ ve \{3\} gerekir.'
+        avoid:
+          en: For lookaround or \d in grep, use grep -P (PCRE) where your grep supports it, or ripgrep.
+          tr: grep'te lookaround ya da \d için, grep'in destekliyorsa grep -P (PCRE) ya da ripgrep kullan.
+        source: https://www.gnu.org/software/grep/manual/grep.html#Character-Classes-and-Bracket-Expressions
+      - id: unicode-property
+        level: advanced
+        title: { en: Letters of any language, tr: Her dilin harfleri }
+        what:
+          en: \p{L} matches a letter in any script and \p{Lu} an upper-case letter; JS needs the u or v flag, PCRE has it, Python re does not.
+          tr: \p{L} her yazı sistemindeki bir harfle, \p{Lu} büyük harfle eşleşir; JS'te u ya da v flag'i gerekir, PCRE'de var, Python re'de yok.
+        lang: js
+        form: /\p{L}+/gu
+        example: |
+          console.log("Şule, Ömer and José".match(/\p{L}+/gu));
+          console.log("Şule".match(/\w+/g));
+        output: |
+          [ 'Şule', 'Ömer', 'and', 'José' ]
+          [ 'ule' ]
+        check: js
+        mistake:
+          en: Using [a-zA-Z] for names; it rejects ç, ş, ğ, é and every non-Latin name.
+          tr: İsimler için [a-zA-Z] kullanmak; ç, ş, ğ, é harflerini ve Latin olmayan her ismi reddeder.
+        since: ES2018
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Regular_expressions/Unicode_character_class_escape
+      - id: email-validation
+        level: intermediate
+        title: { en: Do not over-validate emails, tr: E-postayı aşırı doğrulama }
+        what:
+          en: A simple check (something@something.something) is enough; the real test is sending a confirmation email.
+          tr: Basit bir kontrol (bir_şey@bir_şey.bir_şey) yeterlidir; asıl test bir onay e-postası göndermektir.
+        lang: js
+        form: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        example: |
+          const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          console.log(email.test("ada+news@example.co.uk"), email.test("ada@localhost"), email.test("a b@x.io"));
+        output: |
+          true false false
+        check: js
+        mistake:
+          en: Copying a giant "RFC-compliant" pattern that still rejects valid addresses such as ones with + or new TLDs.
+          tr: Hâlâ + içeren ya da yeni uzantılı geçerli adresleri reddeden devasa bir "RFC uyumlu" deseni kopyalamak.
+        avoid:
+          en: In an HTML form, input type="email" already does a sensible check.
+          tr: HTML formunda input type="email" zaten makul bir kontrol yapar.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/email#validation

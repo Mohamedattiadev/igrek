@@ -1,0 +1,689 @@
+id: sql
+title: SQL
+category: language
+summary:
+  en: The language for asking and changing data in relational databases; the core works the same in SQLite, PostgreSQL and MySQL.
+  tr: İlişkisel veritabanlarında veriyi sorgulama ve değiştirme dili; temel kısmı SQLite, PostgreSQL ve MySQL'de aynı çalışır.
+aliases: [sql, sorgu, query, select, join, veritabanı, database, sqlite, mysql, mariadb]
+checked: 2026-10
+sources:
+  - title: SQLite SQL language reference
+    url: https://www.sqlite.org/lang.html
+  - title: PostgreSQL SQL language
+    url: https://www.postgresql.org/docs/current/sql.html
+  - title: MySQL SQL statements
+    url: https://dev.mysql.com/doc/refman/8.4/en/sql-statements.html
+roadmap: postgresql
+sections:
+  - id: basics
+    title: { en: Read and write rows, tr: Satır okuma ve yazma }
+    items:
+      - id: create-table
+        level: basic
+        title: { en: Create a table, tr: Tablo oluşturma }
+        what:
+          en: A table has named columns, each with a type and optional rules.
+          tr: Tablonun isimli kolonları vardır; her birinin bir tipi ve isteğe bağlı kuralları olur.
+        lang: sql
+        form: CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL);
+        example: |
+          CREATE TABLE users (
+            id    INTEGER PRIMARY KEY,
+            email TEXT NOT NULL UNIQUE,
+            name  TEXT NOT NULL,
+            age   INTEGER CHECK (age >= 0)
+          );
+          INSERT INTO users (email, name, age) VALUES ('ada@example.com', 'Ada', 36);
+          SELECT id, name FROM users;
+        output: |
+          1|Ada
+        check: sql
+        mistake:
+          en: Expecting the same auto-increment syntax everywhere; SQLite uses INTEGER PRIMARY KEY, PostgreSQL GENERATED ALWAYS AS IDENTITY, MySQL AUTO_INCREMENT.
+          tr: Otomatik artan id'nin her yerde aynı yazıldığını sanmak; SQLite INTEGER PRIMARY KEY, PostgreSQL GENERATED ALWAYS AS IDENTITY, MySQL AUTO_INCREMENT kullanır.
+        source: https://www.sqlite.org/lang_createtable.html
+      - id: insert
+        level: basic
+        title: { en: Insert rows, tr: Satır ekleme }
+        what:
+          en: INSERT adds one or more rows; name the columns so the order is clear.
+          tr: INSERT bir ya da daha fazla satır ekler; sıra net olsun diye kolonları adlarıyla yaz.
+        lang: sql
+        form: INSERT INTO t (a, b) VALUES (1, 'x'), (2, 'y');
+        example: |
+          CREATE TABLE tags (id INTEGER PRIMARY KEY, name TEXT);
+          INSERT INTO tags (name) VALUES ('sql'), ('db'), ('web');
+          SELECT count(*) FROM tags;
+        output: |
+          3
+        check: sql
+        mistake:
+          en: Writing INSERT INTO t VALUES (...) without column names; adding a column later breaks it.
+          tr: Kolon adı vermeden INSERT INTO t VALUES (...) yazmak; sonra bir kolon eklenince bozulur.
+        source: https://www.sqlite.org/lang_insert.html
+      - id: select-where
+        level: basic
+        title: { en: Select and filter, tr: Seçme ve süzme }
+        what:
+          en: SELECT picks columns, WHERE keeps only the rows that match a condition.
+          tr: SELECT kolonları seçer, WHERE sadece koşula uyan satırları tutar.
+        lang: sql
+        form: SELECT name, price FROM products WHERE price > 10;
+        example: |
+          CREATE TABLE products (name TEXT, price REAL, stock INTEGER);
+          INSERT INTO products VALUES ('pen', 2.5, 10), ('lamp', 30, 0), ('desk', 120, 3);
+          SELECT name FROM products WHERE price > 10 AND stock > 0;
+          SELECT name FROM products WHERE name IN ('pen', 'cup');
+          SELECT name FROM products WHERE price BETWEEN 2 AND 30 ORDER BY name;
+        output: |
+          desk
+          pen
+          lamp
+          pen
+        check: sql
+        mistake:
+          en: Mixing AND and OR without parentheses; AND binds first, so a OR b AND c means a OR (b AND c).
+          tr: AND ve OR'u parantezsiz karıştırmak; AND önce bağlanır, a OR b AND c aslında a OR (b AND c) demektir.
+        source: https://www.sqlite.org/lang_select.html
+      - id: order-limit
+        level: basic
+        title: { en: Sort and limit, tr: Sıralama ve sınırlama }
+        what:
+          en: ORDER BY sorts the result, LIMIT and OFFSET return only one slice of it.
+          tr: ORDER BY sonucu sıralar, LIMIT ve OFFSET sadece bir dilimini döndürür.
+        lang: sql
+        form: SELECT * FROM posts ORDER BY created_at DESC LIMIT 10 OFFSET 20;
+        example: |
+          CREATE TABLE scores (player TEXT, points INTEGER);
+          INSERT INTO scores VALUES ('a', 50), ('b', 90), ('c', 70), ('d', 90);
+          SELECT player, points FROM scores ORDER BY points DESC, player LIMIT 2 OFFSET 1;
+        output: |
+          d|90
+          c|70
+        check: sql
+        mistake:
+          en: Using LIMIT without ORDER BY; without a sort the database may return any rows in any order.
+          tr: ORDER BY olmadan LIMIT kullanmak; sıralama yoksa veritabanı herhangi satırları herhangi sırayla döndürebilir.
+        avoid:
+          en: Deep pages on big tables; OFFSET still reads every skipped row. Use keyset paging (WHERE id > last_id).
+          tr: Büyük tablolarda derin sayfalar; OFFSET atlanan her satırı yine okur. Keyset sayfalama kullan (WHERE id > last_id).
+        source: https://www.sqlite.org/lang_select.html#the_order_by_clause
+      - id: update-delete
+        level: basic
+        title: { en: Update and delete, tr: Güncelleme ve silme }
+        what:
+          en: UPDATE changes and DELETE removes the rows that WHERE matches.
+          tr: UPDATE, WHERE'in eşleştiği satırları değiştirir; DELETE onları siler.
+        lang: sql
+        form: UPDATE users SET name = 'Bo' WHERE id = 2;
+        example: |
+          CREATE TABLE tasks (id INTEGER PRIMARY KEY, title TEXT, done INTEGER DEFAULT 0);
+          INSERT INTO tasks (title) VALUES ('write'), ('test'), ('ship');
+          UPDATE tasks SET done = 1 WHERE title IN ('write', 'test');
+          DELETE FROM tasks WHERE done = 1 AND title = 'write';
+          SELECT title, done FROM tasks;
+        output: |
+          test|1
+          ship|0
+        check: sql
+        mistake:
+          en: Forgetting WHERE; every row in the table is changed or deleted. Run the same WHERE with SELECT first.
+          tr: WHERE'i unutmak; tablodaki her satır değişir ya da silinir. Önce aynı WHERE'i SELECT ile çalıştır.
+        source: https://www.sqlite.org/lang_update.html
+      - id: null-values
+        level: basic
+        title: { en: Work with NULL, tr: NULL ile çalışma }
+        what:
+          en: NULL means "unknown"; test it with IS NULL and replace it with COALESCE.
+          tr: NULL "bilinmiyor" demektir; IS NULL ile test edilir, COALESCE ile yerine değer konur.
+        lang: sql
+        form: SELECT COALESCE(phone, '-') FROM users WHERE email IS NOT NULL;
+        example: |
+          CREATE TABLE people (name TEXT, phone TEXT);
+          INSERT INTO people VALUES ('Ada', NULL), ('Bo', '555');
+          SELECT count(*) FROM people WHERE phone = NULL;
+          SELECT count(*) FROM people WHERE phone IS NULL;
+          SELECT name || ': ' || COALESCE(phone, 'none') FROM people;
+        output: |
+          0
+          1
+          Ada: none
+          Bo: 555
+        check: sql
+        mistake:
+          en: Writing = NULL or <> NULL; any comparison with NULL is unknown, so no row matches.
+          tr: = NULL ya da <> NULL yazmak; NULL ile her karşılaştırma bilinmeyen döner, hiçbir satır eşleşmez.
+        source: https://www.sqlite.org/nulls.html
+      - id: like
+        level: basic
+        title: { en: Pattern search with LIKE, tr: LIKE ile desen arama }
+        what:
+          en: LIKE matches text patterns; % means any characters, _ means exactly one.
+          tr: LIKE metin desenlerini eşleştirir; % herhangi karakterler, _ tam olarak bir karakter demektir.
+        lang: sql
+        form: SELECT * FROM users WHERE email LIKE '%@gmail.com';
+        example: |
+          CREATE TABLE files (name TEXT);
+          INSERT INTO files VALUES ('report.pdf'), ('photo.png'), ('r1.pdf');
+          SELECT name FROM files WHERE name LIKE '%.pdf' ORDER BY name;
+          SELECT name FROM files WHERE name LIKE 'r_.pdf';
+        output: |
+          r1.pdf
+          report.pdf
+          r1.pdf
+        check: sql
+        mistake:
+          en: Expecting the same case rules everywhere; LIKE ignores ASCII case in SQLite and in MySQL's default collations, but is case-sensitive in PostgreSQL (use ILIKE there).
+          tr: Büyük-küçük harf kuralının her yerde aynı olduğunu sanmak; LIKE SQLite'ta ve MySQL'in varsayılan collation'larında ASCII harf farkını yok sayar, PostgreSQL'de ise ayırır (orada ILIKE kullan).
+        avoid:
+          en: Searching inside big text columns with '%word%'; a normal index cannot help. Use full-text search.
+          tr: Büyük metin kolonlarında '%kelime%' ile aramak; normal index yardım edemez. Full-text search kullan.
+        source: https://www.sqlite.org/lang_expr.html#the_like_glob_regexp_match_and_extract_operators
+      - id: case
+        level: intermediate
+        title: { en: CASE expressions, tr: CASE ifadeleri }
+        what:
+          en: CASE returns a different value depending on conditions, like if/else inside a query.
+          tr: CASE koşullara göre farklı bir değer döndürür; sorgunun içindeki if/else gibidir.
+        lang: sql
+        form: CASE WHEN x > 0 THEN 'pos' ELSE 'neg' END
+        example: |
+          CREATE TABLE orders (id INTEGER, total INTEGER);
+          INSERT INTO orders VALUES (1, 20), (2, 150), (3, 600);
+          SELECT id,
+                 CASE WHEN total >= 500 THEN 'big'
+                      WHEN total >= 100 THEN 'medium'
+                      ELSE 'small' END AS size
+          FROM orders;
+        output: |
+          1|small
+          2|medium
+          3|big
+        check: sql
+        source: https://www.sqlite.org/lang_expr.html#the_case_expression
+  - id: aggregate
+    title: { en: Group and summarize, tr: Gruplama ve özetleme }
+    items:
+      - id: aggregates
+        level: basic
+        title: { en: "count, sum, avg, min, max", tr: "count, sum, avg, min, max" }
+        what:
+          en: Aggregate functions turn many rows into one number.
+          tr: Aggregate fonksiyonları birçok satırı tek bir sayıya çevirir.
+        lang: sql
+        form: SELECT count(*), sum(total), avg(total) FROM orders;
+        example: |
+          CREATE TABLE orders (total INTEGER, coupon TEXT);
+          INSERT INTO orders VALUES (10, NULL), (20, 'A'), (30, 'B');
+          SELECT count(*), count(coupon), sum(total), avg(total), max(total) FROM orders;
+        output: |
+          3|2|60|20.0|30
+        check: sql
+        mistake:
+          en: Expecting count(column) to count all rows; it skips NULLs. Use count(*) for every row.
+          tr: count(kolon)'un bütün satırları saydığını sanmak; NULL'ları atlar. Her satır için count(*) kullan.
+        source: https://www.sqlite.org/lang_aggfunc.html
+      - id: group-by
+        level: basic
+        title: { en: GROUP BY and HAVING, tr: GROUP BY ve HAVING }
+        what:
+          en: GROUP BY makes one result row per group; HAVING filters the groups after they are counted.
+          tr: GROUP BY her grup için bir sonuç satırı üretir; HAVING grupları sayıldıktan sonra süzer.
+        lang: sql
+        form: SELECT city, count(*) FROM users GROUP BY city HAVING count(*) > 1;
+        example: |
+          CREATE TABLE users (name TEXT, city TEXT);
+          INSERT INTO users VALUES ('a','Ankara'), ('b','Izmir'), ('c','Ankara'), ('d','Bursa'), ('e','Izmir'), ('f','Ankara');
+          SELECT city, count(*) AS n FROM users
+          GROUP BY city
+          HAVING count(*) > 1
+          ORDER BY n DESC;
+        output: |
+          Ankara|3
+          Izmir|2
+        check: sql
+        mistake:
+          en: Selecting a column that is neither grouped nor aggregated; PostgreSQL and MySQL (ONLY_FULL_GROUP_BY) reject it, SQLite quietly picks a value from some row.
+          tr: Ne gruplanan ne de aggregate edilen bir kolonu seçmek; PostgreSQL ve MySQL (ONLY_FULL_GROUP_BY) reddeder, SQLite sessizce bir satırdan değer seçer.
+        source: https://www.sqlite.org/lang_select.html#resultset
+      - id: inner-join
+        level: basic
+        title: { en: Join tables, tr: Tabloları birleştirme }
+        what:
+          en: JOIN puts rows of two tables side by side where a condition matches, usually a foreign key.
+          tr: JOIN iki tablonun satırlarını bir koşulun (genelde foreign key) eşleştiği yerde yan yana koyar.
+        lang: sql
+        form: SELECT * FROM orders o JOIN users u ON u.id = o.user_id;
+        example: |
+          CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+          CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, total INTEGER);
+          INSERT INTO users VALUES (1, 'Ada'), (2, 'Bo');
+          INSERT INTO orders VALUES (10, 1, 30), (11, 1, 20);
+          SELECT u.name, o.total FROM orders o JOIN users u ON u.id = o.user_id ORDER BY o.id;
+        output: |
+          Ada|30
+          Ada|20
+        check: sql
+        mistake:
+          en: Forgetting the ON condition; every row is paired with every other row (a cross join) and the result explodes.
+          tr: ON koşulunu unutmak; her satır diğer her satırla eşleşir (cross join) ve sonuç patlar.
+        source: https://www.sqlite.org/lang_select.html#determination_of_input_data_from_clause_processing_
+      - id: left-join
+        level: intermediate
+        title: { en: LEFT JOIN, tr: LEFT JOIN }
+        what:
+          en: LEFT JOIN keeps every row of the left table, with NULLs where the right table has no match.
+          tr: LEFT JOIN sol tablonun her satırını tutar; sağ tabloda eşleşme yoksa NULL koyar.
+        lang: sql
+        form: SELECT u.name, o.id FROM users u LEFT JOIN orders o ON o.user_id = u.id;
+        example: |
+          CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+          CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER);
+          INSERT INTO users VALUES (1, 'Ada'), (2, 'Bo');
+          INSERT INTO orders VALUES (10, 1), (11, 1);
+          SELECT u.name, count(o.id) FROM users u
+          LEFT JOIN orders o ON o.user_id = u.id
+          GROUP BY u.id ORDER BY u.id;
+        output: |
+          Ada|2
+          Bo|0
+        check: sql
+        mistake:
+          en: Filtering the right table in WHERE (WHERE o.status = 'paid'); rows without a match are dropped and it becomes an inner join. Put it in ON.
+          tr: Sağ tabloyu WHERE'de süzmek (WHERE o.status = 'paid'); eşleşmeyen satırlar düşer ve inner join'e dönüşür. Koşulu ON'a koy.
+        source: https://www.sqlite.org/lang_select.html#determination_of_input_data_from_clause_processing_
+      - id: subquery-exists
+        level: intermediate
+        title: { en: Subqueries and EXISTS, tr: Alt sorgular ve EXISTS }
+        what:
+          en: A query inside another query; EXISTS checks whether any matching row is there.
+          tr: Başka bir sorgunun içindeki sorgu; EXISTS eşleşen bir satır olup olmadığını kontrol eder.
+        lang: sql
+        form: SELECT * FROM users u WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);
+        example: |
+          CREATE TABLE users (id INTEGER, name TEXT);
+          CREATE TABLE orders (user_id INTEGER, total INTEGER);
+          INSERT INTO users VALUES (1, 'Ada'), (2, 'Bo'), (3, 'Cy');
+          INSERT INTO orders VALUES (1, 50), (3, 500);
+          SELECT name FROM users u WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id);
+          SELECT name FROM users WHERE id IN (SELECT user_id FROM orders WHERE total > (SELECT avg(total) FROM orders));
+        output: |
+          Ada
+          Cy
+          Cy
+        check: sql
+        mistake:
+          en: Using NOT IN with a subquery that can return NULL; then no row matches at all. Use NOT EXISTS.
+          tr: NULL döndürebilen bir alt sorguyla NOT IN kullanmak; o zaman hiçbir satır eşleşmez. NOT EXISTS kullan.
+        source: https://www.sqlite.org/lang_expr.html#the_exists_operator
+      - id: union
+        level: intermediate
+        title: { en: UNION, tr: UNION }
+        what:
+          en: UNION stacks the results of two queries; UNION ALL keeps duplicates and is faster.
+          tr: UNION iki sorgunun sonuçlarını alt alta koyar; UNION ALL tekrarları tutar ve daha hızlıdır.
+        lang: sql
+        form: SELECT email FROM users UNION SELECT email FROM leads;
+        example: |
+          CREATE TABLE a (x INTEGER);
+          CREATE TABLE b (x INTEGER);
+          INSERT INTO a VALUES (1), (2);
+          INSERT INTO b VALUES (2), (3);
+          SELECT x FROM a UNION SELECT x FROM b ORDER BY x;
+          SELECT count(*) FROM (SELECT x FROM a UNION ALL SELECT x FROM b);
+        output: |
+          1
+          2
+          3
+          4
+        check: sql
+        source: https://www.sqlite.org/lang_select.html#compound_select_statements
+      - id: cte
+        level: intermediate
+        title: { en: WITH (common table expressions), tr: WITH (common table expression) }
+        what:
+          en: WITH names a subquery so the main query reads top to bottom.
+          tr: WITH bir alt sorguya isim verir; ana sorgu yukarıdan aşağı okunur.
+        lang: sql
+        form: WITH totals AS (SELECT ...) SELECT * FROM totals;
+        example: |
+          CREATE TABLE sales (region TEXT, amount INTEGER);
+          INSERT INTO sales VALUES ('north', 10), ('north', 30), ('south', 5);
+          WITH totals AS (
+            SELECT region, sum(amount) AS total FROM sales GROUP BY region
+          )
+          SELECT region FROM totals WHERE total > 20;
+        output: |
+          north
+        check: sql
+        source: https://www.sqlite.org/lang_with.html
+      - id: recursive-cte
+        level: advanced
+        title: { en: Recursive queries, tr: Özyinelemeli sorgular }
+        what:
+          en: WITH RECURSIVE repeats a query on its own result, for trees like categories or org charts.
+          tr: WITH RECURSIVE bir sorguyu kendi sonucu üzerinde tekrarlar; kategori ya da organizasyon şeması gibi ağaçlar için.
+        lang: sql
+        form: WITH RECURSIVE t AS (base UNION ALL step) SELECT * FROM t;
+        example: |
+          CREATE TABLE staff (id INTEGER, name TEXT, boss_id INTEGER);
+          INSERT INTO staff VALUES (1, 'CEO', NULL), (2, 'CTO', 1), (3, 'Dev', 2);
+          WITH RECURSIVE chain(id, name, depth) AS (
+            SELECT id, name, 0 FROM staff WHERE boss_id IS NULL
+            UNION ALL
+            SELECT s.id, s.name, c.depth + 1 FROM staff s JOIN chain c ON s.boss_id = c.id
+          )
+          SELECT name, depth FROM chain ORDER BY depth;
+        output: |
+          CEO|0
+          CTO|1
+          Dev|2
+        check: sql
+        mistake:
+          en: A loop in the data (A is boss of B, B of A) makes the query run forever; add a depth limit in the step.
+          tr: Veride döngü (A, B'nin; B, A'nın patronu) sorguyu sonsuza kadar çalıştırır; adıma bir derinlik sınırı ekle.
+        source: https://www.sqlite.org/lang_with.html#recursive_common_table_expressions
+      - id: window-functions
+        level: advanced
+        title: { en: Window functions, tr: Window fonksiyonları }
+        what:
+          en: Window functions compute over related rows (rank, running total) without merging them into one row.
+          tr: Window fonksiyonları ilişkili satırlar üzerinde hesap yapar (sıra, kümülatif toplam) ama onları tek satıra indirmez.
+        lang: sql
+        form: SELECT name, row_number() OVER (PARTITION BY team ORDER BY score DESC) FROM players;
+        example: |
+          CREATE TABLE players (team TEXT, name TEXT, score INTEGER);
+          INSERT INTO players VALUES ('red','a',10), ('red','b',30), ('blue','c',20), ('blue','d',5);
+          SELECT team, name,
+                 row_number() OVER (PARTITION BY team ORDER BY score DESC) AS rnk,
+                 sum(score) OVER (ORDER BY score) AS running
+          FROM players ORDER BY team, rnk;
+        output: |
+          blue|c|1|35
+          blue|d|2|5
+          red|b|1|65
+          red|a|2|15
+        check: sql
+        mistake:
+          en: Filtering on a window result in WHERE; WHERE runs before windows. Wrap the query in a subquery or CTE and filter outside.
+          tr: Window sonucunu WHERE'de süzmek; WHERE window'lardan önce çalışır. Sorguyu alt sorgu ya da CTE'ye sarıp dışarıda süz.
+        source: https://www.sqlite.org/windowfunctions.html
+  - id: schema
+    title: { en: Schema and rules, tr: Şema ve kurallar }
+    items:
+      - id: foreign-key
+        level: intermediate
+        title: { en: Foreign keys, tr: Foreign key'ler }
+        what:
+          en: A foreign key makes sure a row only points to a row that really exists in another table.
+          tr: Foreign key, bir satırın sadece başka tabloda gerçekten var olan bir satırı göstermesini sağlar.
+        lang: sql
+        form: user_id INTEGER REFERENCES users(id) ON DELETE CASCADE
+        example: |
+          PRAGMA foreign_keys = ON;
+          CREATE TABLE users (id INTEGER PRIMARY KEY);
+          CREATE TABLE posts (id INTEGER PRIMARY KEY,
+                              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE);
+          INSERT INTO users VALUES (1);
+          INSERT INTO posts VALUES (1, 1), (2, 1);
+          DELETE FROM users WHERE id = 1;
+          SELECT count(*) FROM posts;
+        output: |
+          0
+        check: sql
+        mistake:
+          en: Forgetting that SQLite does not check foreign keys unless each connection runs PRAGMA foreign_keys = ON; PostgreSQL and MySQL (InnoDB) always check.
+          tr: SQLite'ın her bağlantı PRAGMA foreign_keys = ON çalıştırmadıkça foreign key kontrol etmediğini unutmak; PostgreSQL ve MySQL (InnoDB) her zaman kontrol eder.
+        source: https://www.sqlite.org/foreignkeys.html
+      - id: alter-table
+        level: intermediate
+        title: { en: Change a table, tr: Tabloyu değiştirme }
+        what:
+          en: ALTER TABLE adds, renames or drops columns of an existing table.
+          tr: ALTER TABLE var olan bir tablonun kolonlarını ekler, yeniden adlandırır ya da siler.
+        lang: sql
+        form: ALTER TABLE users ADD COLUMN phone TEXT;
+        example: |
+          CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+          INSERT INTO users (name) VALUES ('Ada');
+          ALTER TABLE users ADD COLUMN active INTEGER NOT NULL DEFAULT 1;
+          ALTER TABLE users RENAME COLUMN name TO full_name;
+          SELECT full_name, active FROM users;
+        output: |
+          Ada|1
+        check: sql
+        mistake:
+          en: Adding a NOT NULL column without a DEFAULT to a table that has rows; the existing rows have no value, so it fails.
+          tr: Satırları olan bir tabloya DEFAULT vermeden NOT NULL kolon eklemek; mevcut satırların değeri olmadığı için hata verir.
+        avoid:
+          en: SQLite cannot change a column's type or add constraints with ALTER; you build a new table and copy the data.
+          tr: SQLite, ALTER ile kolon tipini değiştiremez ya da kısıt ekleyemez; yeni tablo kurup veriyi kopyalarsın.
+        source: https://www.sqlite.org/lang_altertable.html
+      - id: index
+        level: intermediate
+        title: { en: Indexes, tr: Index'ler }
+        what:
+          en: An index lets the database find rows by a column fast, without reading the whole table.
+          tr: Index, veritabanının bir kolona göre satırları tüm tabloyu okumadan hızlıca bulmasını sağlar.
+        lang: sql
+        form: CREATE INDEX idx_orders_user ON orders (user_id);
+        example: |
+          CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, created_at TEXT, total INTEGER);
+          CREATE INDEX idx_orders_user_date ON orders (user_id, created_at);
+          EXPLAIN QUERY PLAN SELECT * FROM orders WHERE user_id = 5 ORDER BY created_at;
+        output: |
+          QUERY PLAN
+          `--SEARCH orders USING INDEX idx_orders_user_date (user_id=?)
+        check: sql
+        mistake:
+          en: Putting the columns of a multi-column index in the wrong order; (user_id, created_at) helps WHERE user_id = ?, but not WHERE created_at = ? alone.
+          tr: Çok kolonlu index'te kolon sırasını yanlış koymak; (user_id, created_at) WHERE user_id = ? için işe yarar, tek başına WHERE created_at = ? için yaramaz.
+        avoid:
+          en: Indexing every column; each index slows down writes and uses disk. Add them for real slow queries.
+          tr: Her kolona index koymak; her index yazmayı yavaşlatır ve disk harcar. Gerçekten yavaş sorgular için ekle.
+        source: https://www.sqlite.org/lang_createindex.html
+      - id: views
+        level: intermediate
+        title: { en: Views, tr: View'lar }
+        what:
+          en: A view is a saved query you can select from like a table.
+          tr: View, tablo gibi SELECT yapabildiğin kaydedilmiş bir sorgudur.
+        lang: sql
+        form: CREATE VIEW active_users AS SELECT * FROM users WHERE active = 1;
+        example: |
+          CREATE TABLE users (name TEXT, active INTEGER);
+          INSERT INTO users VALUES ('Ada', 1), ('Bo', 0);
+          CREATE VIEW active_users AS SELECT name FROM users WHERE active = 1;
+          SELECT * FROM active_users;
+        output: |
+          Ada
+        check: sql
+        source: https://www.sqlite.org/lang_createview.html
+  - id: changes
+    title: { en: Safe changes, tr: Güvenli değişiklikler }
+    items:
+      - id: transactions
+        level: basic
+        title: { en: Transactions, tr: Transaction'lar }
+        what:
+          en: A transaction groups changes so that either all of them are saved (COMMIT) or none (ROLLBACK).
+          tr: Transaction değişiklikleri gruplar; ya hepsi kaydedilir (COMMIT) ya da hiçbiri (ROLLBACK).
+        lang: sql
+        form: BEGIN; ...; COMMIT;
+        example: |
+          CREATE TABLE accounts (name TEXT, balance INTEGER);
+          INSERT INTO accounts VALUES ('a', 100), ('b', 0);
+          BEGIN;
+          UPDATE accounts SET balance = balance - 70 WHERE name = 'a';
+          UPDATE accounts SET balance = balance + 70 WHERE name = 'b';
+          ROLLBACK;
+          SELECT name, balance FROM accounts;
+        output: |
+          a|100
+          b|0
+        check: sql
+        mistake:
+          en: Keeping a transaction open while waiting for a user or a network call; it holds locks and blocks others.
+          tr: Kullanıcıyı ya da bir ağ çağrısını beklerken transaction'ı açık tutmak; kilitleri tutar ve başkalarını bekletir.
+        source: https://www.sqlite.org/lang_transaction.html
+      - id: upsert
+        level: intermediate
+        title: { en: Insert or update (upsert), tr: Ekle ya da güncelle (upsert) }
+        what:
+          en: ON CONFLICT turns an insert that would break a unique rule into an update.
+          tr: ON CONFLICT, unique kuralını bozacak bir insert'i update'e çevirir.
+        lang: sql
+        form: INSERT ... ON CONFLICT (key) DO UPDATE SET n = excluded.n;
+        example: |
+          CREATE TABLE counters (name TEXT PRIMARY KEY, hits INTEGER);
+          INSERT INTO counters VALUES ('home', 1);
+          INSERT INTO counters VALUES ('home', 1)
+            ON CONFLICT (name) DO UPDATE SET hits = hits + excluded.hits;
+          SELECT * FROM counters;
+        output: |
+          home|2
+        check: sql
+        mistake:
+          en: Using this syntax on MySQL; there it is INSERT ... ON DUPLICATE KEY UPDATE hits = hits + 1. SQLite and PostgreSQL share ON CONFLICT.
+          tr: Bu yazımı MySQL'de kullanmak; orada INSERT ... ON DUPLICATE KEY UPDATE hits = hits + 1 yazılır. SQLite ve PostgreSQL ON CONFLICT'i ortak kullanır.
+        source: https://www.sqlite.org/lang_upsert.html
+      - id: returning
+        level: intermediate
+        title: { en: RETURNING, tr: RETURNING }
+        what:
+          en: RETURNING gives back the inserted, updated or deleted rows, so you skip an extra SELECT.
+          tr: RETURNING eklenen, güncellenen ya da silinen satırları geri verir; ek bir SELECT yapmazsın.
+        lang: sql
+        form: INSERT INTO users (name) VALUES ('Ada') RETURNING id;
+        example: |
+          CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT);
+          INSERT INTO users (name) VALUES ('Ada'), ('Bo') RETURNING id, name;
+          DELETE FROM users WHERE name = 'Bo' RETURNING id;
+        output: |
+          1|Ada
+          2|Bo
+          2
+        check: sql
+        mistake:
+          en: Expecting it on MySQL; MySQL has no RETURNING (use LAST_INSERT_ID()). MariaDB supports it on INSERT and DELETE.
+          tr: Bunu MySQL'de beklemek; MySQL'de RETURNING yoktur (LAST_INSERT_ID() kullan). MariaDB INSERT ve DELETE'te destekler.
+        source: https://www.sqlite.org/lang_returning.html
+      - id: parameters
+        level: basic
+        title: { en: Query parameters, tr: Sorgu parametreleri }
+        what:
+          en: Send user values as parameters, never glued into the SQL text; that stops SQL injection.
+          tr: Kullanıcı değerlerini SQL metnine yapıştırmadan parametre olarak gönder; SQL injection'ı bu durdurur.
+        lang: text
+        form: SELECT * FROM users WHERE email = ?
+        example: |
+          SQLite / MySQL:  SELECT * FROM users WHERE email = ? AND active = ?
+          PostgreSQL:      SELECT * FROM users WHERE email = $1 AND active = $2
+          Never:           "SELECT * FROM users WHERE email = '" + input + "'"
+        mistake:
+          en: Trying to pass a table or column name as a parameter; parameters only work for values. Check names against an allow list.
+          tr: Tablo ya da kolon adını parametreyle vermeye çalışmak; parametreler sadece değerler için çalışır. İsimleri izin verilen bir listeyle kontrol et.
+        source: https://www.sqlite.org/lang_expr.html#varparam
+  - id: dialects
+    title: { en: Where databases differ, tr: Veritabanlarının ayrıldığı yerler }
+    items:
+      - id: integer-division
+        level: intermediate
+        title: { en: Integer division, tr: Tam sayı bölmesi }
+        what:
+          en: Dividing two integers drops the fraction in SQLite and PostgreSQL; MySQL returns a decimal.
+          tr: İki tam sayıyı bölmek SQLite ve PostgreSQL'de küsuratı atar; MySQL ondalıklı sonuç döndürür.
+        lang: sql
+        form: SELECT 7 / 2, 7 / 2.0, CAST(7 AS REAL) / 2;
+        example: |
+          SELECT 7 / 2, 7 / 2.0, 7 % 2;
+        output: |
+          3|3.5|1
+        check: sql
+        mistake:
+          en: Computing a percentage as part / total * 100 with integers; the result is 0. Multiply by 100.0 first.
+          tr: Yüzdeyi tam sayılarla part / total * 100 diye hesaplamak; sonuç 0 çıkar. Önce 100.0 ile çarp.
+        source: https://www.sqlite.org/lang_expr.html#operators_and_parse_affecting_attributes
+      - id: string-concat
+        level: basic
+        title: { en: Join strings, tr: String birleştirme }
+        what:
+          en: "|| joins text in SQLite and PostgreSQL; in MySQL use CONCAT(), which also works in PostgreSQL."
+          tr: "|| SQLite ve PostgreSQL'de metin birleştirir; MySQL'de CONCAT() kullan, o PostgreSQL'de de çalışır."
+        lang: sql
+        form: SELECT first || ' ' || last FROM users;
+        example: |
+          SELECT 'Ada' || ' ' || 'Lovelace', upper('sql'), length('hello'), substr('database', 1, 4);
+        output: |
+          Ada Lovelace|SQL|5|data
+        check: sql
+        mistake:
+          en: Using || in MySQL; by default it means OR there, so 'a' || 'b' gives 0.
+          tr: MySQL'de || kullanmak; orada varsayılan olarak OR demektir, 'a' || 'b' 0 verir.
+        source: https://www.sqlite.org/lang_expr.html#operators_and_parse_affecting_attributes
+      - id: dates
+        level: intermediate
+        title: { en: Dates and times, tr: Tarih ve saat }
+        what:
+          en: Date functions differ the most; SQLite stores dates as text and uses date() and strftime().
+          tr: En çok farklılaşan şey tarih fonksiyonlarıdır; SQLite tarihleri metin olarak saklar, date() ve strftime() kullanır.
+        lang: sql
+        form: SELECT date('2026-01-31', '+1 month');
+        example: |
+          SELECT date('2026-10-17', '+7 days'),
+                 strftime('%Y', '2026-10-17'),
+                 julianday('2026-10-17') - julianday('2026-10-01');
+        output: |
+          2026-10-24|2026|16.0
+        check: sql
+        mistake:
+          en: Copying date code between databases; PostgreSQL writes now() + interval '7 days', MySQL DATE_ADD(NOW(), INTERVAL 7 DAY).
+          tr: Tarih kodunu veritabanları arasında kopyalamak; PostgreSQL now() + interval '7 days', MySQL DATE_ADD(NOW(), INTERVAL 7 DAY) yazar.
+        avoid:
+          en: Storing dates in local time without a zone; store UTC (or timestamptz in PostgreSQL).
+          tr: Tarihleri saat dilimi olmadan yerel saatle saklamak; UTC sakla (PostgreSQL'de timestamptz).
+        source: https://www.sqlite.org/lang_datefunc.html
+      - id: types
+        level: advanced
+        title: { en: Type checking, tr: Tip kontrolü }
+        what:
+          en: SQLite lets most columns hold any type unless the table is STRICT; PostgreSQL and MySQL check types.
+          tr: Tablo STRICT değilse SQLite çoğu kolonda her tipi kabul eder; PostgreSQL ve MySQL tipleri kontrol eder.
+        lang: sql
+        form: CREATE TABLE t (n INTEGER) STRICT;
+        example: |
+          CREATE TABLE loose (n INTEGER);
+          INSERT INTO loose VALUES ('abc');
+          SELECT n, typeof(n) FROM loose;
+          CREATE TABLE strict_t (n INTEGER) STRICT;
+          INSERT INTO strict_t VALUES ('abc');
+          -- Error: cannot store TEXT value in INTEGER column strict_t.n
+        output: |
+          abc|text
+        mistake:
+          en: Testing on SQLite and deploying on PostgreSQL; wrong types that SQLite accepted fail in production.
+          tr: SQLite'ta test edip PostgreSQL'e deploy etmek; SQLite'ın kabul ettiği yanlış tipler production'da hata verir.
+        source: https://www.sqlite.org/stricttables.html
+      - id: json
+        level: advanced
+        title: { en: JSON values, tr: JSON değerleri }
+        what:
+          en: All three can read JSON stored in a column; ->> takes out a field as plain text or number.
+          tr: Üçü de bir kolonda saklanan JSON'u okuyabilir; ->> bir alanı düz metin ya da sayı olarak çıkarır.
+        lang: sql
+        form: SELECT data ->> '$.name' FROM events;
+        example: |
+          CREATE TABLE events (data TEXT);
+          INSERT INTO events VALUES ('{"type":"click","user":{"id":7}}');
+          SELECT data ->> '$.type', data ->> '$.user.id', json_extract(data, '$.user.id') + 1 FROM events;
+        output: |
+          click|7|8
+        check: sql
+        mistake:
+          en: Using the same path everywhere; SQLite and MySQL take '$.user.id', PostgreSQL takes keys (data -> 'user' ->> 'id') on jsonb.
+          tr: Her yerde aynı yolu kullanmak; SQLite ve MySQL '$.user.id' alır, PostgreSQL jsonb'de anahtarlarla gider (data -> 'user' ->> 'id').
+        since: "3.38"
+        older:
+          en: SQLite added -> and ->> in 3.38.0; older versions use json_extract().
+          tr: SQLite -> ve ->> operatörlerini 3.38.0'da ekledi; eski sürümler json_extract() kullanır.
+        source: https://www.sqlite.org/json1.html#jptr

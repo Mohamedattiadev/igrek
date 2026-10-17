@@ -1,0 +1,548 @@
+id: git
+title: Git
+category: tool
+summary:
+  en: Keeps every version of your code, lets you work on branches and share work with others.
+  tr: Kodunun her sürümünü saklar, dallarda çalışmanı ve işi başkalarıyla paylaşmanı sağlar.
+aliases: [version control, vcs, sürüm kontrolü, commit, branch]
+detect:
+  files: [.git]
+version: "2.55"
+checked: 2026-10
+sources:
+  - title: Git reference
+    url: https://git-scm.com/docs
+  - title: Pro Git book
+    url: https://git-scm.com/book/en/v2
+sections:
+  - id: start
+    title: { en: Start and save, tr: Başlama ve kaydetme }
+    items:
+      - id: config-identity
+        level: basic
+        title: { en: Set your name and email, tr: Adını ve e-postanı ayarlama }
+        what:
+          en: Tells Git who you are; every commit carries this name and email.
+          tr: Git'e kim olduğunu söyler; her commit bu adı ve e-postayı taşır.
+        lang: sh
+        form: git config --global user.name "Your Name"
+        example: |
+          git config --global user.name "Ada Lovelace"
+          git config --global user.email "ada@example.com"
+          git config --global user.name
+        output: |
+          Ada Lovelace
+        mistake:
+          en: Using a different email than your GitHub account, so your commits are not linked to your profile.
+          tr: GitHub hesabından farklı bir e-posta kullanmak; commit'lerin profiline bağlanmaz.
+        avoid:
+          en: For a single repository with a different identity (work vs personal), drop --global and run it inside that repository.
+          tr: Tek bir repoda farklı kimlik gerekiyorsa (iş ve kişisel gibi) --global'i kaldırıp komutu o reponun içinde çalıştır.
+        source: https://git-scm.com/docs/git-config
+      - id: init
+        level: basic
+        title: { en: Start a repository, tr: Repo başlatma }
+        what:
+          en: Turns the current folder into a Git repository so its history can be recorded.
+          tr: Bulunduğun klasörü, geçmişi kaydedilebilen bir Git reposuna çevirir.
+        lang: sh
+        form: git init
+        example: |
+          git init -b main my-app
+        mistake:
+          en: Running it in your home folder by accident, which makes everything inside it part of one repository.
+          tr: Yanlışlıkla ana klasöründe çalıştırmak; içindeki her şey tek bir reponun parçası olur.
+        avoid:
+          en: When the project already exists on GitHub; use git clone instead.
+          tr: Proje zaten GitHub'daysa; onun yerine git clone kullan.
+        since: "2.28"
+        older:
+          en: The -b option (and the init.defaultBranch setting) came in 2.28; older versions always start on "master".
+          tr: -b seçeneği (ve init.defaultBranch ayarı) 2.28'de geldi; eski sürümler her zaman "master" ile başlar.
+        source: https://git-scm.com/docs/git-init
+      - id: clone
+        level: basic
+        title: { en: Copy a repository, tr: Repoyu kopyalama }
+        what:
+          en: Downloads a repository with its whole history and remembers where it came from as "origin".
+          tr: Bir repoyu tüm geçmişiyle indirir ve nereden geldiğini "origin" adıyla hatırlar.
+        lang: sh
+        form: git clone <url> [folder]
+        example: |
+          git clone https://github.com/git/git.git
+        mistake:
+          en: Cloning inside another repository, which nests one project in another.
+          tr: Başka bir reponun içine clone etmek; bir proje diğerinin içine girer.
+        avoid:
+          en: For a very large repository you only need the latest files of, add --depth 1.
+          tr: Sadece son dosyalarına ihtiyacın olan çok büyük bir repoda --depth 1 ekle.
+        source: https://git-scm.com/docs/git-clone
+      - id: status
+        level: basic
+        title: { en: See what changed, tr: Neyin değiştiğini görme }
+        what:
+          en: Shows changed, staged and new files and the branch you are on.
+          tr: Değişen, commit'e hazırlanan ve yeni dosyaları, bir de hangi dalda olduğunu gösterir.
+        lang: sh
+        form: git status
+        example: |
+          git init -q -b main demo && cd demo
+          echo hi > a.txt
+          git status --short
+        output: |
+          ?? a.txt
+        check: sh
+        mistake:
+          en: Committing without looking first and adding files you did not mean to (build output, .env).
+          tr: Önce bakmadan commit edip istemediğin dosyaları da eklemek (build çıktısı, .env).
+        source: https://git-scm.com/docs/git-status
+      - id: add
+        level: basic
+        title: { en: Choose what goes into the commit, tr: Commit'e girecekleri seçme }
+        what:
+          en: Puts changes into the staging area; only staged changes go into the next commit.
+          tr: Değişiklikleri hazırlık alanına koyar; sadece hazırlanan değişiklikler bir sonraki commit'e girer.
+        lang: sh
+        form: git add <file>
+        example: |
+          git add src/app.ts
+          git add -p   # pick parts of files, hunk by hunk
+        mistake:
+          en: "Using git add . out of habit and committing secrets or large generated files."
+          tr: "Alışkanlıkla git add . kullanıp sırları ya da büyük üretilmiş dosyaları commit etmek."
+        avoid:
+          en: Files that should never be tracked; list them in .gitignore instead.
+          tr: Hiç takip edilmemesi gereken dosyalar; onları .gitignore'a yaz.
+        source: https://git-scm.com/docs/git-add
+      - id: commit
+        level: basic
+        title: { en: Save a version, tr: Bir sürüm kaydetme }
+        what:
+          en: Records the staged changes as a new version with a message.
+          tr: Hazırlanan değişiklikleri bir mesajla yeni bir sürüm olarak kaydeder.
+        lang: sh
+        form: git commit -m "message"
+        example: |
+          git init -q -b main demo && cd demo
+          echo hi > a.txt && git add a.txt
+          git commit -q -m "Add greeting"
+          git log --format=%s
+        output: |
+          Add greeting
+        check: sh
+        mistake:
+          en: Messages like "fix" or "wip" that say nothing a month later. Write what changed and why.
+          tr: '"fix" ya da "wip" gibi bir ay sonra hiçbir şey anlatmayan mesajlar. Neyin neden değiştiğini yaz.'
+        avoid:
+          en: Half-finished work you want to put aside for a moment; git stash fits that better.
+          tr: Kısa süre kenara koymak istediğin yarım iş; buna git stash daha uygun.
+        source: https://git-scm.com/docs/git-commit
+      - id: gitignore
+        level: basic
+        title: { en: Ignore files, tr: Dosyaları yok sayma }
+        what:
+          en: A .gitignore file lists files and folders Git should not track.
+          tr: .gitignore dosyası, Git'in takip etmemesi gereken dosya ve klasörleri listeler.
+        lang: sh
+        form: echo "node_modules/" >> .gitignore
+        example: |
+          git init -q -b main demo && cd demo
+          printf 'node_modules/\n.env\n' > .gitignore
+          mkdir node_modules && touch node_modules/x .env app.js
+          git status --short --untracked-files=all
+        output: |
+          ?? .gitignore
+          ?? app.js
+        check: sh
+        mistake:
+          en: Adding a file to .gitignore after it was committed; Git keeps tracking it until you run git rm --cached <file>.
+          tr: Commit edildikten sonra .gitignore'a eklemek; git rm --cached <dosya> çalıştırana kadar Git onu takip etmeye devam eder.
+        source: https://git-scm.com/docs/gitignore
+  - id: history
+    title: { en: History and differences, tr: Geçmiş ve farklar }
+    items:
+      - id: log
+        level: basic
+        title: { en: Read the history, tr: Geçmişi okuma }
+        what:
+          en: Lists commits, newest first.
+          tr: Commit'leri en yeniden başlayarak listeler.
+        lang: sh
+        form: git log --oneline
+        example: |
+          git log --oneline --graph --all -20
+          git log -p -- src/app.ts   # every change to one file
+        avoid:
+          en: To find who last changed a given line, git blame is faster.
+          tr: Belli bir satırı en son kimin değiştirdiğini bulmak için git blame daha hızlı.
+        source: https://git-scm.com/docs/git-log
+      - id: diff
+        level: basic
+        title: { en: See the exact changes, tr: Değişikliğin kendisini görme }
+        what:
+          en: Shows line by line what changed; without options, the changes that are not staged yet.
+          tr: Neyin değiştiğini satır satır gösterir; seçenek yoksa henüz hazırlanmamış değişiklikleri.
+        lang: sh
+        form: git diff [--staged]
+        example: |
+          git diff            # not staged yet
+          git diff --staged   # what the next commit will contain
+          git diff main..feature
+        mistake:
+          en: Running plain git diff after git add and seeing nothing; staged changes need --staged.
+          tr: git add'den sonra düz git diff çalıştırıp hiçbir şey görmemek; hazırlanmış değişiklikler için --staged gerekir.
+        source: https://git-scm.com/docs/git-diff
+      - id: blame
+        level: intermediate
+        title: { en: Who changed this line, tr: Bu satırı kim değiştirdi }
+        what:
+          en: Shows, for each line of a file, the last commit and author that changed it.
+          tr: Dosyanın her satırı için onu en son değiştiren commit'i ve kişiyi gösterir.
+        lang: sh
+        form: git blame <file>
+        example: |
+          git blame -L 10,20 src/app.ts
+        avoid:
+          en: Not for blaming people; use it to find the commit message that explains why a line is the way it is.
+          tr: İnsanları suçlamak için değil; bir satırın neden öyle olduğunu anlatan commit mesajını bulmak için kullan.
+        source: https://git-scm.com/docs/git-blame
+      - id: show
+        level: intermediate
+        title: { en: Look at one commit, tr: Tek bir commit'e bakma }
+        what:
+          en: Shows a commit's message and its changes.
+          tr: Bir commit'in mesajını ve değişikliklerini gösterir.
+        lang: sh
+        form: git show <commit>
+        example: |
+          git show HEAD~1
+          git show main:package.json   # a file as it is on a branch
+        source: https://git-scm.com/docs/git-show
+  - id: branches
+    title: { en: Branches, tr: Dallar }
+    items:
+      - id: switch
+        level: basic
+        title: { en: Create and change branches, tr: Dal oluşturma ve değiştirme }
+        what:
+          en: A branch is a separate line of work; switch moves you between them, -c creates a new one.
+          tr: Dal, ayrı bir çalışma hattıdır; switch dallar arasında geçirir, -c yeni dal açar.
+        lang: sh
+        form: git switch -c <new-branch>
+        example: |
+          git init -q -b main demo && cd demo
+          git commit -q --allow-empty -m start
+          git switch -q -c feature
+          git branch --show-current
+        output: |
+          feature
+        check: sh
+        mistake:
+          en: Switching with unsaved changes that conflict; commit or stash them first.
+          tr: Çakışan kaydedilmemiş değişikliklerle dal değiştirmeye çalışmak; önce commit'le ya da stash'le.
+        since: "2.23"
+        older:
+          en: Before 2.23 the same is git checkout -b <branch>, which still works.
+          tr: 2.23'ten önce aynı iş git checkout -b <dal> ile yapılır; o da hâlâ çalışır.
+        source: https://git-scm.com/docs/git-switch
+      - id: merge
+        level: basic
+        title: { en: Bring a branch in, tr: Bir dalı birleştirme }
+        what:
+          en: Joins another branch's commits into the branch you are on.
+          tr: Başka bir dalın commit'lerini bulunduğun dala katar.
+        lang: sh
+        form: git merge <branch>
+        example: |
+          git init -q -b main demo && cd demo
+          git commit -q --allow-empty -m start
+          git switch -q -c feature
+          echo new > f.txt && git add f.txt && git commit -q -m "Add f"
+          git switch -q main
+          git merge -q feature
+          git log --format=%s
+        output: |
+          Add f
+          start
+        check: sh
+        mistake:
+          en: Panicking at a conflict. Open the files, keep the right lines, remove the <<<<<<< ======= >>>>>>> markers, then git add and git commit.
+          tr: Çakışmada paniğe kapılmak. Dosyaları aç, doğru satırları bırak, <<<<<<< ======= >>>>>>> işaretlerini sil, sonra git add ve git commit.
+        source: https://git-scm.com/docs/git-merge
+      - id: rebase
+        level: intermediate
+        title: { en: Move your work on top of another branch, tr: İşini başka bir dalın üstüne taşıma }
+        what:
+          en: Replays your commits on top of another branch, giving a straight history without merge commits.
+          tr: Commit'lerini başka bir dalın üstünde yeniden uygular; merge commit'i olmayan düz bir geçmiş verir.
+        lang: sh
+        form: git rebase <branch>
+        example: |
+          git switch feature
+          git rebase main
+        mistake:
+          en: Rebasing commits that others already pulled; it rewrites them and their copies stop matching yours.
+          tr: Başkalarının çoktan çektiği commit'leri rebase etmek; commit'ler yeniden yazılır ve onların kopyası seninkiyle uyuşmaz.
+        avoid:
+          en: On shared branches like main; merge there.
+          tr: main gibi ortak dallarda; orada merge kullan.
+        source: https://git-scm.com/docs/git-rebase
+      - id: branch-delete
+        level: basic
+        title: { en: List and delete branches, tr: Dalları listeleme ve silme }
+        what:
+          en: Lists branches; -d deletes a branch that is already merged.
+          tr: Dalları listeler; -d zaten birleştirilmiş bir dalı siler.
+        lang: sh
+        form: git branch -d <branch>
+        example: |
+          git branch            # local branches
+          git branch -a         # with remote ones
+          git branch -d feature
+        mistake:
+          en: Using -D (force) out of habit and losing commits that were never merged.
+          tr: Alışkanlıkla -D (zorla) kullanıp hiç birleştirilmemiş commit'leri kaybetmek.
+        source: https://git-scm.com/docs/git-branch
+  - id: remote
+    title: { en: Working with others, tr: Başkalarıyla çalışma }
+    items:
+      - id: push
+        level: basic
+        title: { en: Send your commits, tr: Commit'leri gönderme }
+        what:
+          en: Uploads your branch's commits to the remote repository.
+          tr: Dalındaki commit'leri uzak repoya yükler.
+        lang: sh
+        form: git push -u origin <branch>
+        example: |
+          git push -u origin feature   # first time: also remember the link
+          git push                     # after that
+        mistake:
+          en: git push --force on a shared branch, which deletes other people's commits there. If you must, use --force-with-lease.
+          tr: Ortak bir dalda git push --force; oradaki başkalarının commit'lerini siler. Gerekirse --force-with-lease kullan.
+        source: https://git-scm.com/docs/git-push
+      - id: pull
+        level: basic
+        title: { en: Get others' commits, tr: Başkalarının commit'lerini alma }
+        what:
+          en: Downloads new commits from the remote and joins them into your branch (fetch + merge, or rebase).
+          tr: Uzak repodaki yeni commit'leri indirir ve dalına katar (fetch + merge ya da rebase).
+        lang: sh
+        form: git pull
+        example: |
+          git pull --rebase
+        mistake:
+          en: Pulling with uncommitted changes in the same files; commit or stash first.
+          tr: Aynı dosyalarda commit edilmemiş değişiklik varken pull etmek; önce commit'le ya da stash'le.
+        avoid:
+          en: When you only want to see what is new without changing your branch; use git fetch.
+          tr: Dalını değiştirmeden sadece neyin yeni olduğunu görmek istiyorsan; git fetch kullan.
+        source: https://git-scm.com/docs/git-pull
+      - id: fetch
+        level: intermediate
+        title: { en: Download without changing anything, tr: Hiçbir şeyi değiştirmeden indirme }
+        what:
+          en: Updates your copy of the remote branches (origin/main) but leaves your own branches alone.
+          tr: Uzak dalların kopyasını (origin/main) günceller ama kendi dallarına dokunmaz.
+        lang: sh
+        form: git fetch
+        example: |
+          git fetch
+          git log --oneline main..origin/main   # what is new on the remote
+        source: https://git-scm.com/docs/git-fetch
+      - id: remote-add
+        level: basic
+        title: { en: Connect to GitHub, tr: GitHub'a bağlama }
+        what:
+          en: Gives a remote repository a short name so you can push and pull with it.
+          tr: Uzak bir repoya kısa bir ad verir; böylece ona push ve pull yapabilirsin.
+        lang: sh
+        form: git remote add origin <url>
+        example: |
+          git remote add origin git@github.com:you/my-app.git
+          git remote -v
+        source: https://git-scm.com/docs/git-remote
+  - id: undo
+    title: { en: Undo, tr: Geri alma }
+    items:
+      - id: restore
+        level: basic
+        title: { en: Throw away changes in a file, tr: Bir dosyadaki değişiklikleri atma }
+        what:
+          en: Puts a file back to its last committed state; --staged only takes it out of the staging area.
+          tr: Dosyayı son commit'teki haline döndürür; --staged sadece hazırlık alanından çıkarır.
+        lang: sh
+        form: git restore <file>
+        example: |
+          git init -q -b main demo && cd demo
+          echo one > a.txt && git add a.txt && git commit -q -m one
+          echo two > a.txt
+          git restore a.txt
+          cat a.txt
+        output: |
+          one
+        check: sh
+        mistake:
+          en: Forgetting that changes thrown away with restore are gone for good; they were never committed.
+          tr: restore ile atılan değişikliklerin geri gelmediğini unutmak; hiç commit edilmemişlerdi.
+        since: "2.23"
+        older:
+          en: Before 2.23 this is git checkout -- <file>; unstaging is git reset HEAD <file>.
+          tr: 2.23'ten önce bu git checkout -- <dosya>; hazırlıktan çıkarma git reset HEAD <dosya>.
+        source: https://git-scm.com/docs/git-restore
+      - id: commit-amend
+        level: intermediate
+        title: { en: Fix the last commit, tr: Son commit'i düzeltme }
+        what:
+          en: Replaces the last commit with a new one that has your staged changes and, optionally, a new message.
+          tr: Son commit'i, hazırlanan değişikliklerini ve istersen yeni bir mesajı içeren yeni bir commit'le değiştirir.
+        lang: sh
+        form: git commit --amend
+        example: |
+          git add forgotten-file.ts
+          git commit --amend --no-edit
+        mistake:
+          en: Amending a commit you already pushed; the remote then needs a force push.
+          tr: Zaten push ettiğin bir commit'i amend etmek; uzak repo için zorla push gerekir.
+        source: https://git-scm.com/docs/git-commit#Documentation/git-commit.txt---amend
+      - id: revert
+        level: intermediate
+        title: { en: Undo a pushed commit safely, tr: Push edilmiş bir commit'i güvenle geri alma }
+        what:
+          en: Makes a new commit that does the opposite of an old one; history is kept.
+          tr: Eski bir commit'in tam tersini yapan yeni bir commit oluşturur; geçmiş korunur.
+        lang: sh
+        form: git revert <commit>
+        example: |
+          git init -q -b main demo && cd demo
+          echo one > a.txt && git add a.txt && git commit -q -m one
+          echo two > a.txt && git commit -q -am two
+          git revert --no-edit HEAD >/dev/null
+          cat a.txt
+        output: |
+          one
+        check: sh
+        avoid:
+          en: For commits that only exist on your machine; git reset is simpler there.
+          tr: Sadece senin bilgisayarında olan commit'ler için; orada git reset daha basit.
+        source: https://git-scm.com/docs/git-revert
+      - id: reset
+        level: intermediate
+        title: { en: Move the branch back, tr: Dalı geri alma }
+        what:
+          en: Moves the branch to an older commit; --soft keeps the changes staged, --hard throws them away.
+          tr: Dalı daha eski bir commit'e taşır; --soft değişiklikleri hazır bırakır, --hard onları atar.
+        lang: sh
+        form: git reset --soft HEAD~1
+        example: |
+          git reset --soft HEAD~1   # undo the last commit, keep its changes
+          git reset --hard HEAD~1   # undo it and throw the changes away
+        mistake:
+          en: Using --hard with uncommitted work you wanted; it is not in the reflog because it was never committed.
+          tr: İstediğin commit edilmemiş iş varken --hard kullanmak; hiç commit edilmediği için reflog'da da yoktur.
+        avoid:
+          en: On commits you already pushed; use git revert.
+          tr: Push ettiğin commit'lerde; git revert kullan.
+        source: https://git-scm.com/docs/git-reset
+      - id: reflog
+        level: advanced
+        title: { en: Find "lost" commits, tr: '"Kaybolan" commit''leri bulma' }
+        what:
+          en: Lists every place HEAD has been, so you can get back commits after a bad reset or rebase.
+          tr: HEAD'in bulunduğu her yeri listeler; kötü bir reset ya da rebase'ten sonra commit'leri geri getirebilirsin.
+        lang: sh
+        form: git reflog
+        example: |
+          git reflog -10
+          git reset --hard HEAD@{2}
+        mistake:
+          en: Waiting too long; unreachable entries are pruned after about 30 days by default (gc.reflogExpireUnreachable).
+          tr: Çok beklemek; erişilemeyen kayıtlar varsayılan olarak yaklaşık 30 gün sonra temizlenir (gc.reflogExpireUnreachable).
+        source: https://git-scm.com/docs/git-reflog
+      - id: stash
+        level: intermediate
+        title: { en: Put work aside, tr: İşi kenara koyma }
+        what:
+          en: Saves your uncommitted changes and gives you a clean working folder; pop brings them back.
+          tr: Commit edilmemiş değişikliklerini saklar ve temiz bir çalışma klasörü verir; pop geri getirir.
+        lang: sh
+        form: git stash
+        example: |
+          git init -q -b main demo && cd demo
+          echo one > a.txt && git add a.txt && git commit -q -m one
+          echo two > a.txt
+          git stash -q
+          cat a.txt
+          git stash pop -q
+          cat a.txt
+        output: |
+          one
+          two
+        check: sh
+        mistake:
+          en: New files are not stashed unless you add -u.
+          tr: Yeni dosyalar -u eklemezsen stash'lenmez.
+        avoid:
+          en: For work you will leave for days; commit it on a branch instead, stashes are easy to forget.
+          tr: Günlerce bırakacağın iş için; onu bir dalda commit'le, stash'ler kolay unutulur.
+        source: https://git-scm.com/docs/git-stash
+  - id: advanced
+    title: { en: More tools, tr: Diğer araçlar }
+    items:
+      - id: cherry-pick
+        level: advanced
+        title: { en: Copy one commit, tr: Tek bir commit'i kopyalama }
+        what:
+          en: Applies the changes of one commit from another branch onto yours.
+          tr: Başka bir daldaki tek bir commit'in değişikliklerini kendi dalına uygular.
+        lang: sh
+        form: git cherry-pick <commit>
+        example: |
+          git cherry-pick a1b2c3d
+        avoid:
+          en: To bring over a whole branch; merge or rebase instead, or you get duplicate commits.
+          tr: Bütün bir dalı almak için; merge ya da rebase kullan, yoksa aynı commit iki kez olur.
+        source: https://git-scm.com/docs/git-cherry-pick
+      - id: bisect
+        level: advanced
+        title: { en: Find the commit that broke it, tr: Bozan commit'i bulma }
+        what:
+          en: Binary-searches the history; you mark commits good or bad until the first bad one is found.
+          tr: Geçmişte ikili arama yapar; ilk kötü commit bulunana kadar commit'leri iyi ya da kötü diye işaretlersin.
+        lang: sh
+        form: git bisect start <bad> <good>
+        example: |
+          git bisect start HEAD v1.2.0
+          git bisect run bun test   # marks each commit by the test result
+          git bisect reset
+        source: https://git-scm.com/docs/git-bisect
+      - id: worktree
+        level: advanced
+        title: { en: Two branches open at once, tr: Aynı anda iki dal açık }
+        what:
+          en: Checks out another branch in a second folder that shares the same repository.
+          tr: Başka bir dalı, aynı repoyu paylaşan ikinci bir klasörde açar.
+        lang: sh
+        form: git worktree add <path> <branch>
+        example: |
+          git worktree add ../app-hotfix hotfix
+          git worktree remove ../app-hotfix
+        mistake:
+          en: Trying to check out the same branch in two worktrees; Git refuses unless you force it.
+          tr: Aynı dalı iki worktree'de açmaya çalışmak; zorlamazsan Git izin vermez.
+        source: https://git-scm.com/docs/git-worktree
+      - id: tag
+        level: intermediate
+        title: { en: Mark a release, tr: Bir sürümü işaretleme }
+        what:
+          en: Gives a commit a permanent name such as v1.0.0.
+          tr: Bir commit'e v1.0.0 gibi kalıcı bir ad verir.
+        lang: sh
+        form: git tag -a v1.0.0 -m "First release"
+        example: |
+          git tag -a v1.0.0 -m "First release"
+          git push origin v1.0.0
+        mistake:
+          en: Expecting git push to send tags; it does not, push them by name or with --tags.
+          tr: git push'un tag'leri de göndereceğini sanmak; göndermez, adıyla ya da --tags ile push et.
+        source: https://git-scm.com/docs/git-tag

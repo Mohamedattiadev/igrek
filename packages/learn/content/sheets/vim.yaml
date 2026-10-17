@@ -1,0 +1,798 @@
+id: vim
+title: Vim / Neovim
+category: tool
+summary:
+  en: The keyboard-driven editor found on almost every server; learn its modes, motions and operators and you can edit text very fast.
+  tr: Hemen her sunucuda bulunan, klavyeyle kullanılan editör; modları, motion'ları ve operator'leri öğrenince metni çok hızlı düzenlersin.
+aliases: [vim, neovim, nvim, vi, editor, text editor, editör, metin düzenleyici, modal editing, hjkl, esc, wq, nasıl çıkılır, how to exit vim]
+detect:
+  files: [.vimrc, init.vim, init.lua]
+version: "9.2"
+checked: 2026-10
+sources:
+  - title: Vim documentation (vimhelp.org)
+    url: https://vimhelp.org/
+  - title: Neovim documentation
+    url: https://neovim.io/doc/user/
+roadmap: linux-server
+sections:
+  - id: start
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: modes
+        level: basic
+        title: { en: The modes, tr: Modlar }
+        what:
+          en: Vim has modes; the same key does different things in Normal mode (commands), Insert mode (typing), Visual mode (selecting) and Command-line mode.
+          tr: Vim'in modları vardır; aynı tuş Normal modda (komutlar), Insert modda (yazma), Visual modda (seçme) ve Command-line modda farklı iş yapar.
+        lang: text
+        form: |
+          Esc   back to Normal mode
+          i     Insert mode
+          v     Visual mode (V = lines, Ctrl-v = block)
+          :     Command-line mode
+        example: |
+          vim notes.txt     # starts in Normal mode
+          i                 # now you can type text
+          Esc               # back to Normal mode
+        mistake:
+          en: Typing text while still in Normal mode; every letter is a command, so the file changes in strange ways. Press Esc, then u to undo.
+          tr: Hâlâ Normal moddayken metin yazmak; her harf bir komuttur, dosya garip şekilde değişir. Esc'e bas, sonra u ile geri al.
+        source: https://vimhelp.org/intro.txt.html#vim-modes
+      - id: quit-save
+        level: basic
+        title: { en: Save and quit, tr: Kaydetme ve çıkış }
+        what:
+          en: Writes the file to disk and leaves the editor, or leaves and throws your changes away.
+          tr: Dosyayı diske yazar ve editörden çıkar; ya da değişiklikleri atıp çıkar.
+        lang: vim
+        form: |
+          :w        save
+          :q        quit (refuses if unsaved)
+          :wq       save and quit (also ZZ)
+          :q!       quit and discard changes (also ZQ)
+        example: |
+          :w
+          :wq
+        mistake:
+          en: Typing :wq while in Insert mode, where it is just text. Press Esc first.
+          tr: Insert modundayken :wq yazmak; bu sadece metin olur. Önce Esc'e bas.
+        source: https://vimhelp.org/editing.txt.html#%3Awq
+      - id: insert-keys
+        level: basic
+        title: { en: Ways to start typing, tr: Yazmaya başlama yolları }
+        what:
+          en: Different keys enter Insert mode at different places so you do not have to move the cursor first.
+          tr: Farklı tuşlar Insert moda farklı yerlerde girer, böylece önce imleci taşımana gerek kalmaz.
+        lang: text
+        form: |
+          i  before the cursor      a  after the cursor
+          I  start of line          A  end of line
+          o  new line below         O  new line above
+        example: |
+          A;<Esc>     add a semicolon at the end of the line
+        source: https://vimhelp.org/insert.txt.html#insert
+      - id: undo-redo
+        level: basic
+        title: { en: Undo and redo, tr: Geri alma ve yineleme }
+        what:
+          en: Goes back or forward through your changes, one change at a time.
+          tr: Değişikliklerin içinde teker teker geri veya ileri gider.
+        lang: text
+        form: |
+          u        undo
+          Ctrl-r   redo
+          U        undo all changes on the last changed line
+        mistake:
+          en: Pressing u inside Insert mode, which only types the letter u. Leave Insert mode first.
+          tr: Insert modunda u'ya basmak; sadece u harfi yazılır. Önce Insert modundan çık.
+        source: https://vimhelp.org/undo.txt.html#undo-redo
+      - id: help
+        level: basic
+        title: { en: Built-in help, tr: Yerleşik yardım }
+        what:
+          en: The manual is inside the editor; jump to a topic, follow links, and come back.
+          tr: Kılavuz editörün içindedir; bir konuya git, bağlantıları takip et ve geri dön.
+        lang: vim
+        form: |
+          :help {topic}
+          Ctrl-]   follow the link under the cursor
+          Ctrl-o   go back
+          :q       close the help window
+        example: |
+          :help text-objects
+          :help :substitute
+          :help 'shiftwidth'
+        source: https://vimhelp.org/helphelp.txt.html#%3Ahelp
+      - id: set-options
+        level: basic
+        title: { en: Common settings, tr: Sık kullanılan ayarlar }
+        what:
+          en: ":set changes how the editor behaves, such as line numbers and tab width; put the lines in your config file to keep them."
+          tr: ":set editörün davranışını değiştirir, örneğin satır numaraları ve tab genişliği; kalıcı olması için satırları config dosyana yaz."
+        lang: vim
+        form: |
+          :set number relativenumber
+          :set expandtab shiftwidth=2 tabstop=2
+          :set ignorecase smartcase
+          :set number?        show the current value
+          :set nonumber       turn off
+        example: |
+          set number
+          set expandtab
+          set shiftwidth=2
+        mistake:
+          en: Changing only tabstop and wondering why indenting still looks wrong; shiftwidth sets the width of >> and auto-indent, expandtab inserts spaces instead of tab characters.
+          tr: Sadece tabstop'u değiştirip girintinin neden hâlâ yanlış göründüğünü merak etmek; >> ve otomatik girintinin genişliğini shiftwidth belirler, expandtab ise tab karakteri yerine boşluk koyar.
+        source: https://vimhelp.org/options.txt.html#%27shiftwidth%27
+      - id: config-file
+        level: basic
+        title: { en: The config file, tr: Config dosyası }
+        what:
+          en: A file Vim reads at startup, where your settings and mappings live.
+          tr: Vim'in açılışta okuduğu, ayarlarının ve mapping'lerinin durduğu dosya.
+        lang: text
+        form: |
+          Vim:     ~/.vimrc
+          Neovim:  ~/.config/nvim/init.lua  (or init.vim)
+          :echo $MYVIMRC     print the path in use
+        example: |
+          :edit $MYVIMRC
+          :source %          run the file you are editing
+        source: https://vimhelp.org/starting.txt.html#vimrc
+  - id: motions
+    title: { en: Moving around, tr: Gezinme }
+    items:
+      - id: hjkl-words
+        level: basic
+        title: { en: Basic movement and words, tr: Temel hareket ve kelimeler }
+        what:
+          en: Move with h j k l, and jump by word with w, b and e instead of holding arrow keys.
+          tr: h j k l ile hareket et, ok tuşuna basılı tutmak yerine w, b ve e ile kelime kelime atla.
+        lang: text
+        form: |
+          h left   j down   k up   l right
+          w next word start   b previous word start   e word end
+          W B E   the same but words are separated only by spaces
+        mistake:
+          en: Using w on a path or a-b-c and expecting one jump; punctuation splits words. W jumps over the whole space-separated chunk.
+          tr: Path ya da a-b-c üzerinde w ile tek atlama beklemek; noktalama kelimeyi böler. W boşlukla ayrılmış tüm parçayı atlar.
+        source: https://vimhelp.org/motion.txt.html#word-motions
+      - id: line-motions
+        level: basic
+        title: { en: Start and end of a line, tr: Satır başı ve sonu }
+        what:
+          en: Jump to the start or end of the current line.
+          tr: Geçerli satırın başına veya sonuna atlar.
+        lang: text
+        form: |
+          0   column 1        ^   first non-blank character
+          $   end of line     g_  last non-blank character
+        example: |
+          d$     delete from the cursor to the end of the line
+          y^     copy back to the first word
+        source: https://vimhelp.org/motion.txt.html#left-right-motions
+      - id: file-jumps
+        level: basic
+        title: { en: Jump in the file, tr: Dosyada atlama }
+        what:
+          en: Go to the top, the bottom or a line number.
+          tr: Dosyanın başına, sonuna veya bir satır numarasına gider.
+        lang: text
+        form: |
+          gg     first line
+          G      last line
+          42G    line 42 (also :42)
+          Ctrl-d / Ctrl-u   half page down / up
+        source: https://vimhelp.org/motion.txt.html#G
+      - id: find-char
+        level: intermediate
+        title: { en: Find a character on the line, tr: Satırda karakter bulma }
+        what:
+          en: Jump to the next given character in the current line; fast with operators.
+          tr: Geçerli satırda verilen karaktere atlar; operator'lerle çok hızlıdır.
+        lang: text
+        form: |
+          f{char}  jump onto it       t{char}  jump just before it
+          F / T    the same, backwards
+          ;        repeat            ,        repeat the other way
+        example: |
+          dt)    delete up to (not including) the next )
+          cf,    change up to and including the next comma
+        mistake:
+          en: Using f when you want to stop before the character; t stops before it, so dt) keeps the ).
+          tr: Karakterden önce durmak isterken f kullanmak; t karakterin hemen önünde durur, bu yüzden dt) ")" işaretini korur.
+        source: https://vimhelp.org/motion.txt.html#f
+      - id: paragraph-bracket
+        level: intermediate
+        title: { en: Paragraphs and matching brackets, tr: Paragraflar ve eşleşen parantezler }
+        what:
+          en: "{ and } jump between blank-line separated blocks; % jumps between a bracket and its partner."
+          tr: "{ ve } boş satırla ayrılmış bloklar arasında atlar; % bir parantezden eşine atlar."
+        lang: text
+        form: |
+          }   next blank line     {   previous blank line
+          %   matching ( ) [ ] { }
+        example: |
+          d%     delete from a bracket to its match
+          y}     copy to the end of the paragraph
+        source: https://vimhelp.org/motion.txt.html#%25
+      - id: counts
+        level: basic
+        title: { en: Counts, tr: Sayılar }
+        what:
+          en: A number before a command repeats it; this works with motions, operators and edits.
+          tr: Komuttan önceki sayı onu tekrarlar; motion'larla, operator'lerle ve düzenlemelerle çalışır.
+        lang: text
+        form: |
+          5j     down 5 lines
+          3dd    delete 3 lines
+          d3w    delete 3 words
+          10i-<Esc>   type 10 dashes
+        source: https://vimhelp.org/intro.txt.html#count
+      - id: marks-jumps
+        level: intermediate
+        title: { en: Marks and the jump list, tr: Mark'lar ve jump list }
+        what:
+          en: Bookmark a place with a letter and come back later, or walk back through the places you jumped from.
+          tr: Bir yeri harfle işaretleyip sonra dönmeni, ya da atladığın yerlerin arasında geri gitmeni sağlar.
+        lang: text
+        form: |
+          ma     set mark a (lowercase = this file, uppercase = any file)
+          'a     jump to the line of mark a      `a  exact position
+          Ctrl-o  older jump       Ctrl-i  newer jump
+          ``     back to where you were before the last jump
+        mistake:
+          en: Setting an uppercase mark by accident; it is global across files and jumps you to another file.
+          tr: Yanlışlıkla büyük harfli mark koymak; dosyalar arası geçerlidir ve seni başka bir dosyaya götürür.
+        source: https://vimhelp.org/motion.txt.html#mark-motions
+  - id: editing
+    title: { en: Operators and editing, tr: Operator'ler ve düzenleme }
+    items:
+      - id: operator-motion
+        level: basic
+        title: { en: Operator plus motion, tr: Operator artı motion }
+        what:
+          en: An editing command (operator) followed by a movement acts on the text the movement covers; this is the core idea of Vim.
+          tr: Bir düzenleme komutunu (operator) bir hareket izlerse, hareketin kapsadığı metin üzerinde çalışır; Vim'in ana fikri budur.
+        lang: text
+        form: |
+          {operator}{motion}
+          d delete   c change   y yank (copy)   > indent   gU uppercase
+          dd cc yy   an operator doubled works on the whole line
+        example: |
+          dw     delete a word
+          c$     change to the end of the line
+          y2j    copy this line and the two below
+        source: https://vimhelp.org/motion.txt.html#operator
+      - id: delete-yank-put
+        level: basic
+        title:
+          en: Delete, copy, paste
+          tr: Silme, kopyalama, yapıştırma
+        what:
+          en: Deleting also copies the text into a register, so p pastes what you last deleted or yanked.
+          tr: Silme metni bir register'a da kopyalar; p en son sildiğini veya kopyaladığını yapıştırır.
+        lang: text
+        form: |
+          dd  delete line      yy  copy line
+          x   delete character
+          p   paste after      P   paste before
+        example: |
+          ddp     swap the current line with the one below
+          xp      swap two characters
+        source: https://vimhelp.org/change.txt.html#p
+      - id: change
+        level: basic
+        title: { en: Change text, tr: Metni değiştirme }
+        what:
+          en: Deletes some text and puts you in Insert mode in one step.
+          tr: Metnin bir kısmını siler ve tek adımda Insert moda geçirir.
+        lang: text
+        form: |
+          cw   change word      cc  change line
+          C    change to end of line
+          s    replace character     S  replace line
+          r{char}   replace one character, stay in Normal mode
+        mistake:
+          en: Using cw and being surprised that it stops at the end of the word; ciw changes the whole word from anywhere inside it.
+          tr: cw'nin kelime sonunda durmasına şaşırmak; ciw kelimenin içinde nerede olursan ol tüm kelimeyi değiştirir.
+        source: https://vimhelp.org/change.txt.html#c
+      - id: text-objects
+        level: intermediate
+        title: { en: Text objects, tr: Text object'ler }
+        what:
+          en: "Name a thing (word, quotes, brackets, paragraph) instead of a movement: i means inside, a means around."
+          tr: "Hareket yerine bir şeyin adını söylersin (kelime, tırnak, parantez, paragraf): i içini, a çevresiyle birlikte alır."
+        lang: sh
+        form: |
+          iw aw  word    i" a"  quotes    i( a(  parentheses (also ib)
+          i{ a{  braces  it at  HTML tag  ip ap  paragraph
+        example: |
+          # -es runs Vim without a screen, useful in scripts
+          printf 'say "hello world" now\n' > f.txt
+          vim -Nu NONE -es -c 'normal! ci"bye' -c wq f.txt
+          cat f.txt
+        output: |
+          say "bye" now
+        check: sh
+        mistake:
+          en: Using a" when you meant i"; a" also deletes the quotes.
+          tr: i" demek isterken a" kullanmak; a" tırnakları da siler.
+        source: https://vimhelp.org/motion.txt.html#text-objects
+      - id: dot-repeat
+        level: basic
+        title: { en: Repeat the last change, tr: Son değişikliği tekrarlama }
+        what:
+          en: The dot key repeats your last change at the cursor.
+          tr: Nokta tuşu son değişikliğini imlecin olduğu yerde tekrarlar.
+        lang: sh
+        form: .
+        example: |
+          printf 'a b c d\n' > f.txt
+          vim -Nu NONE -es -c 'normal! dw..' -c wq f.txt
+          cat f.txt
+        output: |
+          d
+        check: sh
+        mistake:
+          en: Doing a change with many separate commands; the dot only repeats one change, so build the change from one operator plus motion when you plan to repeat it.
+          tr: Değişikliği birçok ayrı komutla yapmak; nokta sadece tek değişikliği tekrarlar, tekrar edeceksen değişikliği tek operator artı motion ile kur.
+        source: https://vimhelp.org/repeat.txt.html#.
+      - id: visual-mode
+        level: basic
+        title: { en: Visual mode, tr: Visual mod }
+        what:
+          en: Select text first, then apply an operator to the selection.
+          tr: Önce metni seçersin, sonra seçime bir operator uygularsın.
+        lang: text
+        form: |
+          v        characters     V  whole lines     Ctrl-v  block
+          then:  d  y  c  >  <  J  gU  :
+          gv       select the last selection again
+          o        jump to the other end of the selection
+        example: |
+          Vjj>     indent three lines
+        source: https://vimhelp.org/visual.txt.html#visual-operators
+      - id: visual-block
+        level: intermediate
+        title: { en: Edit many lines at once, tr: Birçok satırı aynı anda düzenleme }
+        what:
+          en: Select a column with Ctrl-v and insert or append text on every selected line.
+          tr: Ctrl-v ile bir sütun seçip seçili her satıra metin ekleyebilirsin.
+        lang: sh
+        form: |
+          Ctrl-v {motion}  then  I{text}<Esc>   insert at block start
+                                 A{text}<Esc>   append at block end
+                                 $A{text}<Esc>  append at each line end
+        example: |
+          printf 'a\nb\nc\n' > f.txt
+          vim -Nu NONE -es -c 'execute "normal! gg\<C-v>jjI# \<Esc>"' -c wq f.txt
+          cat f.txt
+        output: |
+          # a
+          # b
+          # c
+        check: sh
+        mistake:
+          en: Expecting the text to appear while you type; it is copied to the other lines only after you press Esc.
+          tr: Yazarken metnin diğer satırlarda da görünmesini beklemek; Esc'e basınca diğer satırlara kopyalanır.
+        source: https://vimhelp.org/visual.txt.html#v_b_I
+      - id: case-indent
+        level: intermediate
+        title:
+          en: Case, indent and join
+          tr: Büyük-küçük harf, girinti ve birleştirme
+        what:
+          en: Quick commands to change letter case, shift indentation and join lines.
+          tr: Harf büyüklüğünü değiştirmek, girintiyi kaydırmak ve satırları birleştirmek için hızlı komutlar.
+        lang: sh
+        form: |
+          gUiw  uppercase word     guiw  lowercase     ~  toggle character
+          >>  <<  indent / unindent line (width = shiftwidth)
+          ==  auto-indent line     gg=G  auto-indent the file
+          J   join with next line (gJ without the space)
+        example: |
+          printf 'hello world\n' > f.txt
+          vim -Nu NONE -es -c 'normal! gUiw' -c wq f.txt
+          cat f.txt
+        output: |
+          HELLO world
+        check: sh
+        source: https://vimhelp.org/change.txt.html#gU
+      - id: increment
+        level: advanced
+        title: { en: Increment numbers, tr: Sayıları artırma }
+        what:
+          en: Adds or subtracts from the number under or after the cursor.
+          tr: İmlecin üstündeki veya sonrasındaki sayıyı artırır ya da azaltır.
+        lang: sh
+        form: |
+          Ctrl-a   add 1        5 Ctrl-a   add 5
+          Ctrl-x   subtract 1
+          g Ctrl-a in a Visual selection: 1, 2, 3, ... down the lines
+        example: |
+          printf 'item 7\n' > f.txt
+          vim -Nu NONE -es -c 'execute "normal! 5\<C-a>"' -c wq f.txt
+          cat f.txt
+        output: |
+          item 12
+        check: sh
+        mistake:
+          en: In Vim, being surprised that 007 becomes 010; a number with a leading zero is treated as octal unless nrformats is changed (:set nrformats-=octal). Neovim does not do this by default.
+          tr: Vim'de 007'nin 010 olmasına şaşırmak; baştaki sıfır sayıyı sekizlik (octal) yapar, :set nrformats-=octal bunu kapatır. Neovim varsayılan olarak böyle yapmaz.
+        source: https://vimhelp.org/change.txt.html#CTRL-A
+  - id: search
+    title: { en: Search and replace, tr: Arama ve değiştirme }
+    items:
+      - id: search-basic
+        level: basic
+        title: { en: Search, tr: Arama }
+        what:
+          en: Search forward or backward and jump between matches.
+          tr: İleri veya geri arar ve eşleşmeler arasında atlar.
+        lang: text
+        form: |
+          /pattern   search forward     ?pattern  backward
+          n          next match         N         previous match
+          *          search the word under the cursor     #  backwards
+          :noh       hide the highlight
+        mistake:
+          en: Thinking the highlight is stuck; it stays until you run :nohlsearch (:noh) or search again.
+          tr: Vurgunun takılı kaldığını sanmak; :nohlsearch (:noh) çalıştırana ya da yeniden arayana kadar kalır.
+        source: https://vimhelp.org/pattern.txt.html#search-commands
+      - id: search-case
+        level: intermediate
+        title: { en: Case and highlight settings, tr: Büyük-küçük harf ve vurgu ayarları }
+        what:
+          en: Make searching ignore case unless you type a capital letter, and show matches while you type.
+          tr: Büyük harf yazmadığın sürece aramanın harf büyüklüğünü yok saymasını sağlar ve yazarken eşleşmeleri gösterir.
+        lang: vim
+        form: |
+          :set ignorecase smartcase
+          :set incsearch hlsearch
+          /\cfoo     ignore case for this search only
+          /\Cfoo     match case for this search only
+        mistake:
+          en: Setting smartcase alone; it does nothing unless ignorecase is also on.
+          tr: Sadece smartcase'i açmak; ignorecase da açık değilse hiçbir şey yapmaz.
+        source: https://vimhelp.org/options.txt.html#%27smartcase%27
+      - id: substitute
+        level: basic
+        title: { en: Replace text, tr: Metin değiştirme }
+        what:
+          en: ":substitute replaces text that matches a pattern, on one line or in the whole file."
+          tr: ":substitute bir desene uyan metni tek satırda veya tüm dosyada değiştirir."
+        lang: sh
+        form: |
+          :s/old/new/        first match on this line
+          :s/old/new/g       every match on this line
+          :%s/old/new/g      every match in the file
+          :%s/old/new/gc     ask before each one
+        example: |
+          printf 'foo bar\nfoo baz\n' > f.txt
+          vim -Nu NONE -es -c '%s/foo/qux/g' -c wq f.txt
+          cat f.txt
+        output: |
+          qux bar
+          qux baz
+        check: sh
+        mistake:
+          en: Forgetting the % and the g; :s/a/b/ changes only the first match on the current line.
+          tr: "% ve g'yi unutmak; :s/a/b/ sadece geçerli satırdaki ilk eşleşmeyi değiştirir."
+        source: https://vimhelp.org/change.txt.html#%3Asubstitute
+      - id: substitute-words
+        level: intermediate
+        title: { en: Whole words and other delimiters, tr: Tam kelime ve başka ayraçlar }
+        what:
+          en: Use \< and \> to match whole words, and any other character as the separator when the text has slashes.
+          tr: Tam kelime eşleştirmek için \< ve \> kullan; metinde slash varsa ayraç olarak başka bir karakter seç.
+        lang: sh
+        form: |
+          :%s/\<cat\>/dog/g
+          :%s#/usr/bin#/opt/bin#g
+        example: |
+          printf 'cat concat cat\n' > f.txt
+          vim -Nu NONE -es -c '%s/\<cat\>/dog/g' -c wq f.txt
+          cat f.txt
+        output: |
+          dog concat dog
+        check: sh
+        source: https://vimhelp.org/pattern.txt.html#%2F%5C%3C
+      - id: very-magic
+        level: advanced
+        title: { en: Regex groups with \v, tr: \v ile regex grupları }
+        what:
+          en: By default Vim wants a backslash before ( ) + ? | in patterns; \v (very magic) makes them work like in most other regex flavours.
+          tr: Vim desenlerde varsayılan olarak ( ) + ? | karakterlerinden önce ters slash ister; \v (very magic) bunları diğer çoğu regex'teki gibi çalıştırır.
+        lang: sh
+        form: |
+          :%s/\v(\w+) (\w+)/\2 \1/
+          &    the whole match        \1 \2  the groups
+        example: |
+          printf 'John Smith\n' > f.txt
+          vim -Nu NONE -es -c '%s/\v(\w+) (\w+)/\2 \1/' -c wq f.txt
+          cat f.txt
+        output: |
+          Smith John
+        check: sh
+        mistake:
+          en: Writing (a|b) in a normal pattern and finding nothing; without \v you need \(a\|b\).
+          tr: Normal desende (a|b) yazıp hiçbir şey bulamamak; \v olmadan \(a\|b\) yazman gerekir.
+        source: https://vimhelp.org/pattern.txt.html#%2F%5Cv
+      - id: ranges
+        level: intermediate
+        title: { en: Line ranges, tr: Satır aralıkları }
+        what:
+          en: Put a range before a command to run it only on those lines.
+          tr: Komutun önüne aralık koyarak onu sadece o satırlarda çalıştırırsın.
+        lang: sh
+        form: |
+          :5d            line 5            :5,9d     lines 5 to 9
+          :.,$d          current line to the end
+          :%             the whole file    :'<,'>   the Visual selection
+        example: |
+          printf 'l1\nl2\nl3\nl4\n' > f.txt
+          vim -Nu NONE -es -c '2,3d' -c wq f.txt
+          cat f.txt
+        output: |
+          l1
+          l4
+        check: sh
+        mistake:
+          en: "Typing the selection range by hand; press : in Visual mode and Vim fills in '<,'> for you."
+          tr: "Seçim aralığını elle yazmak; Visual modda : tuşuna bas, Vim '<,'> kısmını kendisi yazar."
+        source: https://vimhelp.org/cmdline.txt.html#cmdline-ranges
+      - id: global
+        level: advanced
+        title: { en: Run a command on matching lines, tr: Eşleşen satırlarda komut çalıştırma }
+        what:
+          en: ":global finds every line that matches a pattern and runs a command on it; :vglobal does it for lines that do not match."
+          tr: ":global bir desene uyan her satırı bulup üzerinde komut çalıştırır; :vglobal uymayan satırlar için yapar."
+        lang: sh
+        form: |
+          :g/pattern/d                delete matching lines
+          :v/pattern/d                delete lines that do not match
+          :g/pattern/normal A;        run Normal commands on each match
+          :g/pattern/m0               move matches to the top (reverse a file with :g/^/m0)
+        example: |
+          printf 'keep\ndrop 1\nkeep\ndrop 2\n' > f.txt
+          vim -Nu NONE -es -c 'g/drop/d' -c wq f.txt
+          cat f.txt
+        output: |
+          keep
+          keep
+        check: sh
+        source: https://vimhelp.org/repeat.txt.html#%3Aglobal
+      - id: normal-cmd
+        level: advanced
+        title: { en: Normal commands on many lines, tr: Birçok satırda Normal komutlar }
+        what:
+          en: ":normal runs Normal-mode keys on each line of a range, like a quick macro."
+          tr: ":normal bir aralıktaki her satırda Normal mod tuşlarını çalıştırır, hızlı bir macro gibi."
+        lang: sh
+        form: |
+          :%normal A;          append ; to every line
+          :'<,'>normal I//     comment the selected lines
+        example: |
+          printf 'a\nb\nc\n' > f.txt
+          vim -Nu NONE -es -c '%normal A;' -c wq f.txt
+          cat f.txt
+        output: |
+          a;
+          b;
+          c;
+        check: sh
+        source: https://vimhelp.org/various.txt.html#%3Anormal
+  - id: registers-macros
+    title: { en: Registers and macros, tr: Register'lar ve macro'lar }
+    items:
+      - id: registers
+        level: intermediate
+        title: { en: Registers, tr: Register'lar }
+        what:
+          en: Named clipboards; put "x before a delete, yank or paste to use register x.
+          tr: İsimli panolar; bir silme, kopyalama veya yapıştırma komutunun önüne "x koyarak x register'ını kullanırsın.
+        lang: text
+        form: |
+          "ayy     copy line into register a
+          "ap      paste register a
+          "Ayy     append to register a (uppercase)
+          :reg     list registers
+          Ctrl-r a in Insert mode pastes register a
+        source: https://vimhelp.org/change.txt.html#registers
+      - id: yank-register
+        level: intermediate
+        title: { en: The yank and black hole registers, tr: Yank ve black hole register'ları }
+        what:
+          en: "Register 0 always holds your last yank, so a delete cannot overwrite it; register _ throws text away without touching anything."
+          tr: "0 register'ı her zaman en son kopyalamanı tutar, bu yüzden bir silme onu ezemez; _ register'ı metni hiçbir şeye dokunmadan atar."
+        lang: sh
+        form: |
+          "0p    paste the last yank
+          "_dd   delete a line without changing any register
+        example: |
+          printf 'one\ntwo\nthree\n' > f.txt
+          vim -Nu NONE -es -c 'execute "normal! ggyyjdd\"0P"' -c wq f.txt
+          cat f.txt
+        output: |
+          one
+          one
+          three
+        check: sh
+        mistake:
+          en: Yanking a line, deleting another, then pasting the deleted line instead of the yanked one. Use "0p.
+          tr: Bir satırı kopyalayıp başka bir satırı silince, kopyaladığın yerine silineni yapıştırmak. "0p kullan.
+        source: https://vimhelp.org/change.txt.html#quote0
+      - id: clipboard
+        level: intermediate
+        title: { en: System clipboard, tr: Sistem panosu }
+        what:
+          en: The + register is the system clipboard, so you can copy to and paste from other programs.
+          tr: + register'ı sistem panosudur, böylece diğer programlara kopyalayıp onlardan yapıştırabilirsin.
+        lang: vim
+        form: |
+          "+y    copy to the system clipboard
+          "+p    paste from it
+          :set clipboard=unnamedplus   make y and p use it always
+        mistake:
+          en: Using "+y in a Vim built without clipboard support (check vim --version for +clipboard) or in Neovim without a clipboard tool such as xclip or wl-clipboard; the copy does not reach the clipboard. Run :checkhealth in Neovim.
+          tr: Pano desteği olmadan derlenmiş bir Vim'de (vim --version içinde +clipboard ara) ya da xclip veya wl-clipboard gibi bir pano aracı olmayan Neovim'de "+y kullanmak; kopyalanan metin panoya ulaşmaz. Neovim'de :checkhealth çalıştır.
+        source: https://vimhelp.org/options.txt.html#%27clipboard%27
+      - id: macro-record
+        level: intermediate
+        title: { en: Record and play a macro, tr: Macro kaydetme ve oynatma }
+        what:
+          en: Records your keystrokes into a register and replays them, to repeat a multi-step edit on many lines.
+          tr: Tuş vuruşlarını bir register'a kaydedip yeniden oynatır; çok adımlı bir düzenlemeyi birçok satırda tekrarlamanı sağlar.
+        lang: sh
+        form: |
+          qa      start recording into register a
+          q       stop recording
+          @a      play it         @@  play the last one again
+          10@a    play it 10 times
+        example: |
+          printf 'a\nb\nc\n' > f.txt
+          vim -Nu NONE -es -c 'let @q="A;\<Esc>j"' -c 'normal! gg3@q' -c wq f.txt
+          cat f.txt
+        output: |
+          a;
+          b;
+          c;
+        check: sh
+        mistake:
+          en: Ending a macro on a different line than it starts, or not moving down at the end, so it is hard to repeat. Start at a known place (for example 0) and finish by moving to the next line.
+          tr: Macro'yu başladığı satırdan farklı bir yerde bitirmek ya da sonunda aşağı inmemek; tekrarlaması zorlaşır. Bilinen bir yerden başla (örneğin 0) ve sonraki satıra geçerek bitir.
+        source: https://vimhelp.org/repeat.txt.html#recording
+      - id: macro-edit
+        level: advanced
+        title: { en: Edit a macro and run it on a range, tr: Macro düzenleme ve aralıkta çalıştırma }
+        what:
+          en: A macro is just text in a register, so you can paste it, fix it and yank it back; :normal @a runs it on every line of a range.
+          tr: Macro register'daki sıradan bir metindir; yapıştırıp düzeltebilir ve geri kopyalayabilirsin; :normal @a onu bir aralığın her satırında çalıştırır.
+        lang: vim
+        form: |
+          "ap                 paste macro a as text
+          (edit the line)
+          0"ay$               yank it back into register a
+          :%normal @a         run it on every line
+          :let @a='A;'        set a register from the command line
+        source: https://vimhelp.org/eval.txt.html#%3Alet-register
+  - id: windows-buffers
+    title:
+      en: Buffers, windows and tabs
+      tr: Buffer'lar, pencereler ve sekmeler
+    items:
+      - id: buffers
+        level: basic
+        title: { en: Buffers (open files), tr: Buffer'lar (açık dosyalar) }
+        what:
+          en: Every open file is a buffer; you can open several and switch without closing anything.
+          tr: Açık her dosya bir buffer'dır; birkaçını açıp hiçbirini kapatmadan geçiş yapabilirsin.
+        lang: vim
+        form: |
+          :e file      open a file          :ls        list buffers
+          :b 2         go to buffer 2       :b name    by part of the name
+          :bn  :bp     next / previous      Ctrl-^     switch to the previous one
+          :bd          close the buffer
+        mistake:
+          en: Thinking :q closes only the window while a buffer stays hidden; with unsaved changes Vim refuses, and :q! throws them away.
+          tr: Değişiklikler kaydedilmemişken :q'nun sadece pencereyi kapatıp buffer'ı sakladığını sanmak; Vim izin vermez, :q! ise değişiklikleri atar.
+        source: https://vimhelp.org/windows.txt.html#%3Als
+      - id: splits
+        level: basic
+        title: { en: Split windows, tr: Pencereleri bölme }
+        what:
+          en: Shows several files, or two parts of one file, side by side in the same terminal.
+          tr: Aynı terminalde birkaç dosyayı ya da bir dosyanın iki yerini yan yana gösterir.
+        lang: vim
+        form: |
+          :sp [file]  or Ctrl-w s    split horizontally (stacked)
+          :vsp [file] or Ctrl-w v    split vertically (side by side)
+          Ctrl-w h/j/k/l   move between windows
+          Ctrl-w c         close this window
+          Ctrl-w o         keep only this window
+          Ctrl-w =         make all equal
+        mistake:
+          en: "Mixing up the names: :split puts windows above each other, :vsplit puts them side by side."
+          tr: "İsimleri karıştırmak: :split pencereleri alt alta, :vsplit yan yana koyar."
+        source: https://vimhelp.org/windows.txt.html#%3Asplit
+      - id: tabs
+        level: intermediate
+        title: { en: Tab pages, tr: Tab sayfaları }
+        what:
+          en: A tab page is a whole layout of windows; use it to keep separate workspaces, not one tab per file.
+          tr: Tab sayfası bir pencere düzeninin tamamıdır; dosya başına tab için değil, ayrı çalışma alanları için kullan.
+        lang: vim
+        form: |
+          :tabnew [file]    new tab        gt / gT   next / previous tab
+          :tabclose         close tab      :tabonly  keep only this tab
+        avoid:
+          en: As a replacement for buffers; most people open files as buffers and use splits.
+          tr: Buffer'ların yerine; çoğu kişi dosyaları buffer olarak açar ve split kullanır.
+        source: https://vimhelp.org/tabpage.txt.html#tab-page
+  - id: custom
+    title: { en: Mappings and Neovim, tr: Mapping'ler ve Neovim }
+    items:
+      - id: mappings
+        level: intermediate
+        title: { en: Key mappings, tr: Tuş mapping'leri }
+        what:
+          en: Bind your own key sequences to commands; always use the non-recursive noremap forms.
+          tr: Kendi tuş dizilerini komutlara bağlarsın; her zaman özyinelemesiz noremap biçimlerini kullan.
+        lang: vim
+        form: |
+          let mapleader = " "
+          nnoremap <leader>w :w<CR>
+          inoremap jk <Esc>
+          vnoremap < <gv
+        mistake:
+          en: Using nmap and friends, which follow other mappings and can loop or break; use nnoremap, inoremap, vnoremap.
+          tr: Başka mapping'leri de takip eden, döngüye girebilen veya bozulabilen nmap gibi komutları kullanmak; nnoremap, inoremap, vnoremap kullan.
+        source: https://vimhelp.org/map.txt.html#%3Anoremap
+      - id: nvim-lua
+        level: intermediate
+        title: { en: Neovim config in Lua, tr: Lua ile Neovim config }
+        what:
+          en: Neovim reads init.lua, where settings and mappings are written in Lua instead of Vimscript.
+          tr: Neovim init.lua dosyasını okur; ayarlar ve mapping'ler Vimscript yerine Lua ile yazılır.
+        lang: lua
+        form: |
+          vim.opt.number = true
+          vim.opt.shiftwidth = 2
+          vim.g.mapleader = " "
+          vim.keymap.set("n", "<leader>w", "<cmd>write<CR>")
+        avoid:
+          en: In plain Vim, which does not run Lua config; use ~/.vimrc there.
+          tr: Lua config çalıştırmayan düz Vim'de; orada ~/.vimrc kullan.
+        source: https://neovim.io/doc/user/lua-guide.html
+      - id: nvim-health
+        level: advanced
+        title: { en: Neovim health check, tr: Neovim sağlık kontrolü }
+        what:
+          en: ":checkhealth tests your setup (clipboard provider, Python, plugins) and tells you what is missing."
+          tr: ":checkhealth kurulumunu (pano provider'ı, Python, plugin'ler) test eder ve neyin eksik olduğunu söyler."
+        lang: vim
+        form: |
+          :checkhealth
+          :checkhealth vim.lsp
+        avoid:
+          en: In plain Vim; it is a Neovim command.
+          tr: Düz Vim'de; bu bir Neovim komutudur.
+        source: https://neovim.io/doc/user/health.html
+      - id: shell-filter
+        level: advanced
+        title: { en: Run a shell command and read its output, tr: Shell komutu çalıştırma ve çıktısını okuma }
+        what:
+          en: Run a shell command from the editor, insert its output, or pipe lines through a filter.
+          tr: Editörden shell komutu çalıştırır, çıktısını ekler ya da satırları bir filtreden geçirir.
+        lang: vim
+        form: |
+          :!ls                 run a command and show its output
+          :r !date             insert the output below the cursor
+          :%!sort -u           replace the buffer with the filtered text
+          :'<,'>!column -t     filter the selected lines
+        mistake:
+          en: Running a filter on the whole file by accident. Press u to undo.
+          tr: Yanlışlıkla filtreyi tüm dosyada çalıştırmak. Geri almak için u'ya bas.
+        source: https://vimhelp.org/change.txt.html#filter

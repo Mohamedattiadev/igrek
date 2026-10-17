@@ -261,7 +261,8 @@ export interface InboxNotice {
     | "domain"
     | "appError"
     | "backup"
-    | "rotate";
+    | "rotate"
+    | "regression";
   projectId: string;
   projectName: string;
   /** Short fact shown next to the title: the tool, "84 → 76", "Kerim · changed · STRIPE_KEY". */

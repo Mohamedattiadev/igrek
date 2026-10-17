@@ -1,0 +1,1281 @@
+id: angular
+title: Angular
+category: framework
+summary:
+  en: "A framework from Google for big web apps. Modern Angular uses standalone components, signals for state and built-in control flow in templates, all in TypeScript."
+  tr: "Google'ın büyük web uygulamaları için framework'ü. Modern Angular standalone component'ler, state için signal'ler ve template'te yerleşik control flow kullanır; hepsi TypeScript ile."
+aliases: [angular 22, angular cli, ng, signals, standalone, control flow, ngif, ngfor, rxjs, zoneless, signal forms, httpresource, angular.dev]
+detect:
+  npm: ["@angular/core"]
+  files: [angular.json]
+version: "22"
+latest: npm:@angular/core
+checked: 2026-10
+sources:
+  - title: Angular documentation
+    url: https://angular.dev/overview
+  - title: Angular API reference
+    url: https://angular.dev/api
+  - title: Angular CLI reference
+    url: https://angular.dev/cli
+roadmap: angular
+sections:
+  - id: cli
+    title:
+      en: "CLI and first steps"
+      tr: "CLI ve ilk adımlar"
+    items:
+      - id: cli-new
+        level: basic
+        title:
+          en: "Create and run an app"
+          tr: "Uygulama oluşturma ve çalıştırma"
+        what:
+          en: "The Angular CLI creates a new project and runs it with live reload."
+          tr: "Angular CLI yeni bir proje oluşturur ve canlı yenilemeyle çalıştırır."
+        lang: sh
+        form: |
+          npm install -g @angular/cli
+          ng new my-app
+          cd my-app
+          ng serve --open
+        example: |
+          ng new my-app
+          cd my-app
+          ng serve
+        mistake:
+          en: "Running ng serve outside the project folder. The command needs the angular.json file of the project."
+          tr: "ng serve'ü proje klasörünün dışında çalıştırmak. Komut, projenin angular.json dosyasına ihtiyaç duyar."
+        source: https://angular.dev/tools/cli/setup-local
+      - id: cli-generate
+        level: basic
+        title:
+          en: "Generate code"
+          tr: "Kod üretme"
+        what:
+          en: "ng generate creates a component, service, pipe or other file with the right boilerplate."
+          tr: "ng generate doğru iskeletle bir component, service, pipe ya da başka bir dosya oluşturur."
+        lang: sh
+        form: |
+          ng generate component user-card
+          ng generate service auth
+          ng g pipe shorten
+        example: |
+          ng generate component user-card
+          # creates user-card.ts, user-card.html, user-card.css, user-card.spec.ts
+        since: "20"
+        older:
+          en: "Before version 20 the files had a type in the name, like user-card.component.ts, and the class was UserCardComponent."
+          tr: "20'den önce dosya adında tür de olurdu, örneğin user-card.component.ts, ve class UserCardComponent olurdu."
+        mistake:
+          en: "Creating files by hand and forgetting the spec file or the imports. Let the CLI do the repeated work."
+          tr: "Dosyaları elle açıp spec dosyasını ya da import'ları unutmak. Tekrarlayan işi CLI'a bırak."
+        source: https://angular.dev/cli/generate
+      - id: cli-build-test
+        level: basic
+        title:
+          en: "Build and test"
+          tr: "Build ve test"
+        what:
+          en: "ng build makes the optimized files you deploy, and ng test runs your unit tests."
+          tr: "ng build deploy edeceğin optimize dosyaları üretir, ng test birim testlerini çalıştırır."
+        lang: sh
+        form: |
+          ng build
+          ng test
+        example: |
+          ng build
+          ng test --watch=false
+        mistake:
+          en: "Deploying the project folder. Deploy the build output (the dist folder), not the source."
+          tr: "Proje klasörünü deploy etmek. Kaynağı değil, build çıktısını (dist klasörünü) deploy et."
+        source: https://angular.dev/cli/build
+
+  - id: templates
+    title:
+      en: "Components and templates"
+      tr: "Component'ler ve template'ler"
+    items:
+      - id: component
+        level: basic
+        title:
+          en: "A component"
+          tr: "Component"
+        what:
+          en: "A component is a TypeScript class with a template, and it becomes an HTML element you can use anywhere."
+          tr: "Component, template'i olan bir TypeScript class'ıdır ve her yerde kullanabileceğin bir HTML elementine dönüşür."
+        lang: ts
+        form: |
+          @Component({
+            selector: 'app-name',
+            template: `...`,
+          })
+          export class Name {}
+        example: |
+          import { Component, signal } from '@angular/core';
+
+          @Component({
+            selector: 'app-counter',
+            template: `
+              <button (click)="count.set(count() + 1)">
+                Clicked {{ count() }} times
+              </button>
+            `,
+          })
+          export class Counter {
+            count = signal(0);
+          }
+        mistake:
+          en: "Forgetting the selector or using it in a template before adding the component to imports."
+          tr: "Selector'ü yazmamak ya da component'i imports'a eklemeden template'te kullanmak."
+        source: https://angular.dev/guide/components/anatomy-of-components
+      - id: standalone-imports
+        level: basic
+        title:
+          en: "Standalone components and imports"
+          tr: "Standalone component'ler ve imports"
+        what:
+          en: "A component lists what its template uses (other components, pipes, directives) in its own imports array."
+          tr: "Component, template'inin kullandığı şeyleri (başka component'ler, pipe'lar, direktifler) kendi imports dizisinde listeler."
+        lang: ts
+        form: |
+          @Component({
+            selector: 'app-page',
+            imports: [UserCard, DatePipe, RouterLink],
+            template: `<app-user-card />`,
+          })
+        example: |
+          import { Component } from '@angular/core';
+          import { DatePipe } from '@angular/common';
+          import { UserCard } from './user-card';
+
+          @Component({
+            selector: 'app-page',
+            imports: [UserCard, DatePipe],
+            template: `<app-user-card /> {{ today | date }}`,
+          })
+          export class Page {
+            today = new Date();
+          }
+        since: "19"
+        older:
+          en: "Before 19 you wrote standalone: true. Older apps used NgModule with declarations; today standalone: false is only for those."
+          tr: "19'dan önce standalone: true yazılırdı. Eski uygulamalar declarations'lı NgModule kullanırdı; bugün standalone: false sadece onlar içindir."
+        mistake:
+          en: "Using a component or pipe in the template without adding it to imports. You get a template error."
+          tr: "Bir component ya da pipe'ı imports'a eklemeden template'te kullanmak. Template hatası alırsın."
+        source: https://angular.dev/guide/components/anatomy-of-components
+      - id: bindings
+        level: basic
+        title:
+          en: "Bindings"
+          tr: "Bağlamalar (binding)"
+        what:
+          en: "Curly braces show a value as text, and square brackets set a property from a value."
+          tr: "Süslü parantezler bir değeri metin olarak gösterir, köşeli parantezler bir değerden property atar."
+        lang: html
+        form: |
+          {{ expression }}
+          <img [src]="url" [alt]="text" />
+          <button [disabled]="busy()">Save</button>
+        example: |
+          <h1>Hello {{ name() }}</h1>
+          <a [href]="link()" [attr.aria-label]="label()">Open</a>
+        mistake:
+          en: "Writing disabled=\"false\" for a real value. A plain attribute is just text, and the element stays disabled. Use [disabled]=\"false\"."
+          tr: "Gerçek bir değer için disabled=\"false\" yazmak. Düz attribute sadece metindir ve element yine disabled kalır. [disabled]=\"false\" yaz."
+        source: https://angular.dev/guide/templates/binding
+      - id: events
+        level: basic
+        title:
+          en: "Listen to events"
+          tr: "Olayları dinleme"
+        what:
+          en: "Round brackets run a statement when an event happens."
+          tr: "Yuvarlak parantezler bir olay olduğunda bir ifade çalıştırır."
+        lang: html
+        form: |
+          <button (click)="save()">Save</button>
+          <input (input)="onInput($event)" (keyup.enter)="submit()" />
+        example: |
+          <input #name (keyup.enter)="add(name.value)" />
+          <button (click)="add(name.value)">Add</button>
+        mistake:
+          en: "Writing (click)=\"save\" without the brackets. The function is not called."
+          tr: "(click)=\"save\" yazıp parantezleri koymamak. Fonksiyon çağrılmaz."
+        source: https://angular.dev/guide/templates/event-listeners
+      - id: class-style-binding
+        level: intermediate
+        title:
+          en: "Bind classes and styles"
+          tr: "Class ve style bağlama"
+        what:
+          en: "class. and style. bindings switch one class or set one style from a value."
+          tr: "class. ve style. bağlamaları bir değere göre tek bir class'ı açıp kapatır ya da tek bir stil atar."
+        lang: html
+        form: |
+          <div [class.active]="isActive()"></div>
+          <div [style.width.px]="width()"></div>
+          <div [class]="{ active: isActive(), big: isBig() }"></div>
+        example: |
+          <li [class.done]="todo.done" [style.opacity]="todo.done ? 0.5 : 1">
+            {{ todo.text }}
+          </li>
+        avoid:
+          en: "Do not use ngClass or ngStyle for one simple class; the bindings above are shorter."
+          tr: "Tek bir basit class için ngClass ya da ngStyle kullanma; yukarıdaki bağlamalar daha kısadır."
+        source: https://angular.dev/guide/templates/binding
+      - id: if-block
+        level: basic
+        title:
+          en: "Show something only if"
+          tr: "Koşula göre gösterme"
+        what:
+          en: "An @if block shows its content only when the condition is true."
+          tr: "@if bloğu içeriğini sadece koşul doğruysa gösterir."
+        lang: html
+        form: |
+          @if (condition) {
+            ...
+          } @else if (other) {
+            ...
+          } @else {
+            ...
+          }
+        example: |
+          @if (user(); as u) {
+            <p>Welcome, {{ u.name }}</p>
+          } @else {
+            <a routerLink="/login">Log in</a>
+          }
+        since: "17"
+        older:
+          en: "Before the blocks you wrote *ngIf=\"condition; else other\". *ngIf is deprecated since version 20 and needs CommonModule or NgIf in imports."
+          tr: "Bloklardan önce *ngIf=\"condition; else other\" yazılırdı. *ngIf 20'den beri eskidir ve imports'ta CommonModule ya da NgIf ister."
+        mistake:
+          en: "Writing @else if as @elseif. There is a space: @else if."
+          tr: "@else if'i @elseif diye yazmak. Arada boşluk var: @else if."
+        source: https://angular.dev/guide/templates/control-flow
+      - id: for-block
+        level: basic
+        title:
+          en: "Repeat a list"
+          tr: "Listeyi tekrar etme"
+        what:
+          en: "An @for block repeats its content for every item, and track tells Angular how to identify each item."
+          tr: "@for bloğu içeriğini her eleman için tekrar eder; track, Angular'a her elemanı nasıl tanıyacağını söyler."
+        lang: html
+        form: |
+          @for (item of items(); track item.id) {
+            ...
+          } @empty {
+            ...
+          }
+        example: |
+          <ul>
+            @for (todo of todos(); track todo.id; let i = $index) {
+              <li>{{ i + 1 }}. {{ todo.text }}</li>
+            } @empty {
+              <li>No todos yet</li>
+            }
+          </ul>
+        since: "17"
+        older:
+          en: "Before the blocks you wrote *ngFor=\"let item of items; trackBy: fn\". *ngFor is deprecated since version 20."
+          tr: "Bloklardan önce *ngFor=\"let item of items; trackBy: fn\" yazılırdı. *ngFor 20'den beri eskidir."
+        mistake:
+          en: "Leaving track out. It is required, and the build fails without it. Track a unique id, not the whole item, when you can."
+          tr: "track'i yazmamak. Zorunludur; yazmazsan build hata verir. Mümkünse bütün elemanı değil, benzersiz bir id'yi izle."
+        source: https://angular.dev/guide/templates/control-flow
+      - id: switch-block
+        level: intermediate
+        title:
+          en: "Choose between many cases"
+          tr: "Birçok durum arasından seçme"
+        what:
+          en: "An @switch block shows the @case whose value equals the expression."
+          tr: "@switch bloğu, değeri ifadeye eşit olan @case'i gösterir."
+        lang: html
+        form: |
+          @switch (value) {
+            @case ('a') { ... }
+            @case ('b') { ... }
+            @default { ... }
+          }
+        example: |
+          @switch (status()) {
+            @case ('loading') { <p>Loading...</p> }
+            @case ('error') { <p>Something went wrong</p> }
+            @default { <p>Done</p> }
+          }
+        mistake:
+          en: "Expecting the next case to run too, like in JavaScript. There is no fall-through and no break."
+          tr: "JavaScript'teki gibi sonraki case'in de çalışmasını beklemek. Fall-through yok, break da yok."
+        source: https://angular.dev/guide/templates/control-flow
+      - id: let-declaration
+        level: intermediate
+        title:
+          en: "A variable in the template"
+          tr: "Template içinde değişken"
+        what:
+          en: "@let stores the result of an expression in a name you can reuse in the same template."
+          tr: "@let bir ifadenin sonucunu, aynı template'te tekrar kullanabileceğin bir isimde saklar."
+        lang: html
+        form: "@let name = expression;"
+        example: |
+          @let total = price() * quantity();
+          <p>Total: {{ total | currency }}</p>
+        since: "18.1"
+        mistake:
+          en: "Trying to change the variable later. @let is read-only; it is recalculated when its inputs change."
+          tr: "Değişkeni sonradan değiştirmeye çalışmak. @let salt okunurdur; girdileri değişince yeniden hesaplanır."
+        source: https://angular.dev/guide/templates/variables
+      - id: pipes
+        level: basic
+        title:
+          en: "Pipes: format a value in the template"
+          tr: "Pipe'lar: değeri template'te biçimlendirme"
+        what:
+          en: "A pipe transforms a value for display, like a date or currency, without changing the data."
+          tr: "Pipe, veriyi değiştirmeden gösterim için dönüştürür; tarih ya da para birimi gibi."
+        lang: html
+        form: |
+          {{ value | pipeName:arg }}
+          {{ today | date:'dd/MM/yyyy' }}
+          {{ obs$ | async }}
+        example: |
+          <p>{{ name | uppercase }}</p>
+          <p>{{ price | currency:'EUR' }}</p>
+          <p>{{ created | date:'mediumDate' }}</p>
+        mistake:
+          en: "Calling a method in the template for formatting. The method runs on every change check; a pipe, a computed signal or a precomputed value is cheaper."
+          tr: "Biçimlendirme için template'te metot çağırmak. Metot her değişiklik kontrolünde çalışır; pipe, computed signal ya da önceden hesaplanmış değer daha ucuzdur."
+        source: https://angular.dev/guide/templates/pipes
+      - id: content-projection
+        level: advanced
+        title:
+          en: "Content inside a component"
+          tr: "Component'in içindeki içerik"
+        what:
+          en: "ng-content marks the place where the content written between a component's tags appears."
+          tr: "ng-content, component'in etiketleri arasına yazılan içeriğin görüneceği yeri işaretler."
+        lang: html
+        form: |
+          <ng-content />
+          <ng-content select="[header]" />
+        example: |
+          <!-- card template -->
+          <header><ng-content select="[header]" /></header>
+          <ng-content />
+
+          <!-- usage -->
+          <app-card>
+            <h2 header>Title</h2>
+            <p>Body text</p>
+          </app-card>
+        mistake:
+          en: "Expecting ng-content inside @if to be hidden and shown. The projected content is always created; use @if around the whole component instead."
+          tr: "@if içindeki ng-content'in gizlenip gösterileceğini sanmak. Yansıtılan içerik her zaman oluşturulur; bunun yerine @if'i component'in dışına koy."
+        source: https://angular.dev/guide/components/content-projection
+      - id: host-bindings
+        level: intermediate
+        title:
+          en: "Bind the component's own element"
+          tr: "Component'in kendi elementine bağlama"
+        what:
+          en: "The host property of the decorator sets classes, attributes and listeners on the component's element itself."
+          tr: "Decorator'ın host özelliği, component'in kendi elementine class, attribute ve listener koyar."
+        lang: ts
+        form: |
+          @Component({
+            selector: 'app-tile',
+            host: {
+              '[class.selected]': 'selected()',
+              '(click)': 'toggle()',
+            },
+            template: `...`,
+          })
+        example: |
+          @Component({
+            selector: 'app-tile',
+            host: { class: 'tile', '[attr.role]': '"button"', '(click)': 'toggle()' },
+            template: `<ng-content />`,
+          })
+          export class Tile {
+            selected = signal(false);
+            toggle() { this.selected.update((v) => !v); }
+          }
+        avoid:
+          en: "The @HostBinding and @HostListener decorators do the same and still work, but the host property is the recommended way."
+          tr: "@HostBinding ve @HostListener decorator'ları aynı işi yapar ve hâlâ çalışır, ama önerilen yol host özelliğidir."
+        source: https://angular.dev/guide/components/host-elements
+
+  - id: signals
+    title:
+      en: "Signals and component data"
+      tr: "Signal'ler ve component verisi"
+    items:
+      - id: signal
+        level: basic
+        title:
+          en: "A signal: state that updates the page"
+          tr: "Signal: sayfayı güncelleyen state"
+        what:
+          en: "A signal holds a value; you read it by calling it, and anything that reads it updates when it changes."
+          tr: "Signal bir değer tutar; onu çağırarak okursun ve değişince onu okuyan her şey güncellenir."
+        lang: ts
+        form: |
+          const count = signal(0);
+          count();            // read
+          count.set(5);       // replace
+          count.update((n) => n + 1);
+        example: |
+          import { signal } from '@angular/core';
+
+          const count = signal(0);
+          count.set(3);
+          count.update((n) => n + 1);
+          console.log(count());
+        mistake:
+          en: "Writing {{ count }} in the template. Without the parentheses you print the signal itself, not its value: {{ count() }}."
+          tr: "Template'te {{ count }} yazmak. Parantez olmazsa değeri değil signal'in kendisini yazdırırsın: {{ count() }}."
+        source: https://angular.dev/guide/signals/overview
+      - id: computed
+        level: basic
+        title:
+          en: "A value computed from signals"
+          tr: "Signal'lerden hesaplanan değer"
+        what:
+          en: "computed makes a read-only signal that recalculates only when the signals it reads change."
+          tr: "computed, sadece okuduğu signal'ler değişince yeniden hesaplanan salt okunur bir signal üretir."
+        lang: ts
+        form: const double = computed(() => count() * 2);
+        example: |
+          import { computed, signal } from '@angular/core';
+
+          const price = signal(10);
+          const quantity = signal(3);
+          const total = computed(() => price() * quantity());
+          console.log(total());
+        mistake:
+          en: "Trying total.set(...). A computed signal is read-only; change the signals it depends on."
+          tr: "total.set(...) yapmaya çalışmak. Computed signal salt okunurdur; bağlı olduğu signal'leri değiştir."
+        source: https://angular.dev/guide/signals/overview
+      - id: effect
+        level: intermediate
+        title:
+          en: "Run code when signals change"
+          tr: "Signal değişince kod çalıştırma"
+        what:
+          en: "An effect runs a function at least once and again whenever a signal it read changes."
+          tr: "Effect bir fonksiyonu en az bir kez çalıştırır ve okuduğu signal değişince tekrar çalıştırır."
+        lang: ts
+        form: |
+          constructor() {
+            effect(() => {
+              localStorage.setItem('theme', this.theme());
+            });
+          }
+        example: |
+          export class Settings {
+            theme = signal('light');
+
+            constructor() {
+              effect(() => {
+                localStorage.setItem('theme', this.theme());
+              });
+            }
+          }
+        since: "20"
+        mistake:
+          en: "Using an effect to copy one signal into another. Use computed or linkedSignal. Effects are for things outside Angular, like storage, logs and canvas."
+          tr: "Bir signal'i diğerine kopyalamak için effect kullanmak. computed ya da linkedSignal kullan. Effect'ler Angular dışındaki şeyler içindir: storage, log, canvas gibi."
+        avoid:
+          en: "For derived values and for reacting to a click. Use computed and event handlers."
+          tr: "Türetilmiş değerler ve tıklamaya tepki için kullanma. computed ve event handler kullan."
+        source: https://angular.dev/guide/signals/effect
+      - id: linked-signal
+        level: advanced
+        title:
+          en: "A signal that resets when another changes"
+          tr: "Başka bir signal değişince sıfırlanan signal"
+        what:
+          en: "linkedSignal is writable, but its value is recalculated from other signals whenever they change."
+          tr: "linkedSignal yazılabilir; ama bağlı olduğu signal'ler değişince değeri onlardan yeniden hesaplanır."
+        lang: ts
+        form: const selected = linkedSignal(() => options()[0]);
+        example: |
+          import { linkedSignal, signal } from '@angular/core';
+
+          const options = signal(['red', 'green']);
+          const selected = linkedSignal(() => options()[0]);
+
+          selected.set('green');
+          options.set(['blue', 'yellow']);
+          console.log(selected());
+        output: |
+          blue
+        since: "20"
+        source: https://angular.dev/guide/signals/linked-signal
+      - id: input
+        level: basic
+        title:
+          en: "Accept data from the parent"
+          tr: "Parent'tan veri alma"
+        what:
+          en: "input() declares a value that the parent sets in its template, available to the component as a signal."
+          tr: "input(), parent'ın template'inde verdiği bir değeri tanımlar; component'te signal olarak kullanılır."
+        lang: ts
+        form: |
+          name = input('');                 // optional
+          id = input.required<number>();    // must be given
+        example: |
+          @Component({
+            selector: 'app-user-card',
+            template: `<h3>{{ name() }}</h3>`,
+          })
+          export class UserCard {
+            name = input.required<string>();
+          }
+
+          // parent template
+          // <app-user-card [name]="user.name" />
+        since: "17.1"
+        older:
+          en: "Stable since 19. The @Input() decorator did the same job. It still works but input() is the modern way."
+          tr: "19'dan beri kararlı. @Input() decorator'ı aynı işi yapardı. Hâlâ çalışır ama input() modern yoldur."
+        mistake:
+          en: "Calling name.set(...). Inputs are read-only inside the component; to change one, tell the parent with output() or use model()."
+          tr: "name.set(...) çağırmak. Input'lar component içinde salt okunurdur; değiştirmek için output() ile parent'a haber ver ya da model() kullan."
+        source: https://angular.dev/guide/components/inputs
+      - id: output
+        level: basic
+        title:
+          en: "Send events to the parent"
+          tr: "Parent'a olay gönderme"
+        what:
+          en: "output() declares a custom event that the parent can listen to with parentheses."
+          tr: "output(), parent'ın yuvarlak parantezle dinleyebileceği özel bir olay tanımlar."
+        lang: ts
+        form: |
+          saved = output<string>();
+          this.saved.emit('done');
+        example: |
+          @Component({
+            selector: 'app-editor',
+            template: `<button (click)="saved.emit(text)">Save</button>`,
+          })
+          export class Editor {
+            text = 'hello';
+            saved = output<string>();
+          }
+
+          // parent template
+          // <app-editor (saved)="onSaved($event)" />
+        since: "17.3"
+        older:
+          en: "Stable since 19. The @Output() decorator with EventEmitter did the same job and still works."
+          tr: "19'dan beri kararlı. EventEmitter'lı @Output() decorator'ı aynı işi yapardı ve hâlâ çalışır."
+        source: https://angular.dev/guide/components/outputs
+      - id: model
+        level: intermediate
+        title:
+          en: "Two-way binding between components"
+          tr: "Component'ler arasında iki yönlü bağlama"
+        what:
+          en: "model() is an input the child can also change, so the parent can use [(value)] to stay in sync."
+          tr: "model(), child'ın da değiştirebildiği bir input'tur; böylece parent [(value)] ile senkron kalabilir."
+        lang: ts
+        form: |
+          value = model(0);
+          this.value.update((v) => v + 1);
+
+          <app-counter [(value)]="count" />
+        example: |
+          @Component({
+            selector: 'app-counter',
+            template: `<button (click)="value.update((v) => v + 1)">{{ value() }}</button>`,
+          })
+          export class Counter {
+            value = model(0);
+          }
+        since: "17.2"
+        source: https://angular.dev/guide/templates/two-way-binding
+      - id: view-child
+        level: intermediate
+        title:
+          en: "Get an element or child from the template"
+          tr: "Template'ten element ya da child alma"
+        what:
+          en: "viewChild() finds an element or component in the component's own template and gives it as a signal."
+          tr: "viewChild(), component'in kendi template'indeki bir elementi ya da component'i bulur ve signal olarak verir."
+        lang: ts
+        form: |
+          field = viewChild<ElementRef<HTMLInputElement>>('field');
+          // template: <input #field />
+        example: |
+          @Component({
+            selector: 'app-search',
+            template: `<input #field /> <button (click)="focus()">Focus</button>`,
+          })
+          export class Search {
+            field = viewChild<ElementRef<HTMLInputElement>>('field');
+
+            focus() {
+              this.field()?.nativeElement.focus();
+            }
+          }
+        since: "17.2"
+        older:
+          en: "Stable since 19. The @ViewChild() decorator did the same job and still works."
+          tr: "19'dan beri kararlı. @ViewChild() decorator'ı aynı işi yapardı ve hâlâ çalışır."
+        mistake:
+          en: "Reading the element in the constructor. It does not exist yet; read it in an event handler or after rendering. The value can also be undefined when the element is inside an @if that is false."
+          tr: "Elementi constructor'da okumak. Henüz yoktur; bir event handler'da ya da render'dan sonra oku. Element false olan bir @if içindeyse değer undefined da olabilir."
+        source: https://angular.dev/guide/components/queries
+      - id: resource
+        level: intermediate
+        title:
+          en: "Load async data into a signal"
+          tr: "Async veriyi signal'e yükleme"
+        what:
+          en: "resource() runs an async loader whenever its params change and exposes value, loading and error as signals."
+          tr: "resource(), params değiştikçe bir async loader çalıştırır ve value, yüklenme ve hata durumunu signal olarak sunar."
+        lang: ts
+        form: |
+          user = resource({
+            params: () => ({ id: this.userId() }),
+            loader: ({ params }) => fetchUser(params.id),
+          });
+          user.value(); user.isLoading(); user.error();
+        example: |
+          @Component({
+            selector: 'app-user',
+            template: `
+              @if (user.isLoading()) { <p>Loading...</p> }
+              @else if (user.hasValue()) { <p>{{ user.value().name }}</p> }
+            `,
+          })
+          export class User {
+            userId = input.required<number>();
+
+            user = resource({
+              params: () => ({ id: this.userId() }),
+              loader: async ({ params }) => {
+                const res = await fetch(`/api/users/${params.id}`);
+                return (await res.json()) as { name: string };
+              },
+            });
+          }
+        since: "22"
+        older:
+          en: "resource() was experimental in versions 19 to 21. It became stable in 22."
+          tr: "resource() 19 ile 21 arasında deneyseldi. 22'de kararlı oldu."
+        mistake:
+          en: "Reading value() when the request failed. It throws; check hasValue() first."
+          tr: "İstek hata verdiğinde value() okumak. Hata fırlatır; önce hasValue()'yu kontrol et."
+        source: https://angular.dev/guide/signals/resource
+      - id: rxjs-interop
+        level: intermediate
+        title:
+          en: "Signals and RxJS together"
+          tr: "Signal ve RxJS birlikte"
+        what:
+          en: "toSignal turns an observable into a signal, and toObservable turns a signal into an observable."
+          tr: "toSignal bir observable'ı signal'e, toObservable bir signal'i observable'a çevirir."
+        lang: ts
+        form: |
+          import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+
+          users = toSignal(this.http.get<User[]>('/api/users'), { initialValue: [] });
+        example: |
+          export class UserList {
+            private http = inject(HttpClient);
+            users = toSignal(this.http.get<{ name: string }[]>('/api/users'), {
+              initialValue: [],
+            });
+          }
+        since: "20"
+        mistake:
+          en: "Calling toSignal in an event handler. It must run in an injection context, like a field initializer or the constructor."
+          tr: "toSignal'i event handler içinde çağırmak. Bir injection context'te çalışmalı; field başlangıç değeri ya da constructor gibi."
+        source: https://angular.dev/ecosystem/rxjs-interop/signals-interop
+
+  - id: di
+    title:
+      en: "Services and dependency injection"
+      tr: "Service'ler ve dependency injection"
+    items:
+      - id: service-inject
+        level: basic
+        title:
+          en: "A service and inject()"
+          tr: "Service ve inject()"
+        what:
+          en: "A service is a class that holds shared logic or data, and inject() gives a component the one shared instance."
+          tr: "Service, ortak mantığı ya da veriyi tutan bir class'tır; inject() component'e paylaşılan tek örneği verir."
+        lang: ts
+        form: |
+          @Injectable({ providedIn: 'root' })
+          export class Cart { ... }
+
+          cart = inject(Cart);
+        example: |
+          import { Injectable, signal, inject, Component } from '@angular/core';
+
+          @Injectable({ providedIn: 'root' })
+          export class Cart {
+            items = signal<string[]>([]);
+            add(name: string) {
+              this.items.update((list) => [...list, name]);
+            }
+          }
+
+          @Component({
+            selector: 'app-cart-button',
+            template: `<button (click)="cart.add('book')">{{ cart.items().length }}</button>`,
+          })
+          export class CartButton {
+            cart = inject(Cart);
+          }
+        mistake:
+          en: "Calling inject() inside a method or after an await. It only works while Angular builds the class: field initializers and the constructor."
+          tr: "inject()'i bir metodun içinde ya da await'ten sonra çağırmak. Sadece Angular class'ı kurarken çalışır: field başlangıç değerleri ve constructor."
+        source: https://angular.dev/guide/di/creating-and-using-services
+      - id: service-decorator
+        level: intermediate
+        title:
+          en: "The @Service shortcut"
+          tr: "@Service kısayolu"
+        what:
+          en: "@Service() makes a class a root-level service in one word, instead of @Injectable({ providedIn: 'root' })."
+          tr: "@Service(), @Injectable({ providedIn: 'root' }) yerine bir class'ı tek kelimeyle kök seviyesinde service yapar."
+        lang: ts
+        form: |
+          @Service()
+          export class Clock { ... }
+        example: |
+          import { Service } from '@angular/core';
+
+          @Service()
+          export class Clock {
+            now() {
+              return new Date();
+            }
+          }
+        since: "22"
+        older:
+          en: "Before 22 you wrote @Injectable({ providedIn: 'root' }). It still works, and it is the one to use for constructor injection, non-root scopes or advanced providers."
+          tr: "22'den önce @Injectable({ providedIn: 'root' }) yazılırdı. Hâlâ çalışır; constructor injection, kök olmayan scope'lar ya da gelişmiş provider'lar için de o kullanılır."
+        mistake:
+          en: "Using @Service with constructor parameters. It supports only inject()."
+          tr: "@Service'i constructor parametreleriyle kullanmak. Sadece inject()'i destekler."
+        source: https://angular.dev/guide/di/creating-and-using-services
+      - id: injection-token
+        level: advanced
+        title:
+          en: "Provide values that are not classes"
+          tr: "Class olmayan değerleri sağlama"
+        what:
+          en: "An InjectionToken names a value like a config object or function so it can be injected."
+          tr: "InjectionToken, config objesi ya da fonksiyon gibi bir değere isim verir; böylece inject edilebilir."
+        lang: ts
+        form: |
+          export const API_URL = new InjectionToken<string>('API_URL', {
+            providedIn: 'root',
+            factory: () => '/api',
+          });
+          url = inject(API_URL);
+        example: |
+          export const API_URL = new InjectionToken<string>('API_URL');
+
+          // app.config.ts
+          providers: [{ provide: API_URL, useValue: 'https://example.com/api' }]
+
+          // anywhere
+          const url = inject(API_URL);
+        mistake:
+          en: "Using a string or an interface as the key. Interfaces do not exist at runtime; use a token."
+          tr: "Anahtar olarak string ya da interface kullanmak. Interface'ler çalışma zamanında yoktur; token kullan."
+        source: https://angular.dev/guide/di/defining-dependency-providers
+
+  - id: routing
+    title:
+      en: "Routing"
+      tr: "Routing"
+    items:
+      - id: routes
+        level: basic
+        title:
+          en: "Define routes"
+          tr: "Route tanımlama"
+        what:
+          en: "A routes array maps URL paths to components, and provideRouter registers it."
+          tr: "routes dizisi URL yollarını component'lere eşler; provideRouter onu kaydeder."
+        lang: ts
+        form: |
+          // app.routes.ts
+          export const routes: Routes = [
+            { path: '', component: Home },
+            { path: 'about', component: About },
+            { path: '**', component: NotFound },
+          ];
+
+          // app.config.ts
+          providers: [provideRouter(routes)]
+        example: |
+          import { Routes } from '@angular/router';
+
+          export const routes: Routes = [
+            { path: '', component: Home },
+            { path: 'users/:id', component: UserPage },
+            { path: '**', component: NotFound },
+          ];
+        mistake:
+          en: "Putting the ** route first. Routes are matched from top to bottom, so the wildcard must be last."
+          tr: "** route'unu başa koymak. Route'lar yukarıdan aşağıya eşleşir; wildcard en sonda olmalı."
+        source: https://angular.dev/guide/routing/define-routes
+      - id: router-outlet-link
+        level: basic
+        title:
+          en: "Show the page and link to it"
+          tr: "Sayfayı gösterme ve link verme"
+        what:
+          en: "router-outlet is where the matched component appears, and routerLink makes a link that does not reload the page."
+          tr: "router-outlet eşleşen component'in görüneceği yerdir; routerLink sayfayı yenilemeyen bir link yapar."
+        lang: html
+        form: |
+          <a routerLink="/about" routerLinkActive="active">About</a>
+          <router-outlet />
+        example: |
+          @Component({
+            selector: 'app-root',
+            imports: [RouterOutlet, RouterLink, RouterLinkActive],
+            template: `
+              <nav>
+                <a routerLink="/" routerLinkActive="active">Home</a>
+                <a routerLink="/about" routerLinkActive="active">About</a>
+              </nav>
+              <router-outlet />
+            `,
+          })
+          export class App {}
+        mistake:
+          en: "Using href=\"/about\". That is a normal link: it reloads the whole app. Use routerLink."
+          tr: "href=\"/about\" kullanmak. Bu normal bir linktir: tüm uygulamayı yeniden yükler. routerLink kullan."
+        source: https://angular.dev/guide/routing/show-routes-with-outlets
+      - id: route-params
+        level: intermediate
+        title:
+          en: "Read route parameters as inputs"
+          tr: "Route parametrelerini input olarak okuma"
+        what:
+          en: "With component input binding, URL parameters, query parameters and route data arrive as normal inputs."
+          tr: "Component input binding ile URL parametreleri, query parametreleri ve route verisi normal input olarak gelir."
+        lang: ts
+        form: |
+          // app.config.ts
+          provideRouter(routes, withComponentInputBinding())
+
+          // component, for the route 'users/:id'
+          id = input.required<string>();
+        example: |
+          @Component({
+            selector: 'app-user-page',
+            template: `<h1>User {{ id() }}</h1>`,
+          })
+          export class UserPage {
+            id = input.required<string>();
+          }
+        mistake:
+          en: "Forgetting withComponentInputBinding(). Without it the input stays empty."
+          tr: "withComponentInputBinding()'i unutmak. Olmadan input boş kalır."
+        source: https://angular.dev/guide/routing/read-route-state
+      - id: lazy-routes
+        level: intermediate
+        title:
+          en: "Load a page only when needed"
+          tr: "Sayfayı sadece gerektiğinde yükleme"
+        what:
+          en: "loadComponent downloads a page's code the first time the user goes there, which keeps the first load small."
+          tr: "loadComponent bir sayfanın kodunu kullanıcı oraya ilk gittiğinde indirir; ilk yüklemeyi küçük tutar."
+        lang: ts
+        form: |
+          { path: 'admin', loadComponent: () => import('./admin').then((m) => m.Admin) }
+          { path: 'shop', loadChildren: () => import('./shop.routes').then((m) => m.routes) }
+        example: |
+          export const routes: Routes = [
+            { path: '', component: Home },
+            {
+              path: 'admin',
+              loadComponent: () => import('./admin').then((m) => m.Admin),
+            },
+          ];
+        mistake:
+          en: "Also importing the lazy component at the top of the routes file. A normal import puts it back in the main bundle."
+          tr: "Lazy component'i route dosyasının üstünde de import etmek. Normal import onu tekrar ana bundle'a koyar."
+        source: https://angular.dev/guide/routing/loading-strategies
+      - id: route-guard
+        level: intermediate
+        title:
+          en: "Protect a route"
+          tr: "Route'u koruma"
+        what:
+          en: "A guard is a function that returns true to let the user in, or a redirect to send them elsewhere."
+          tr: "Guard, kullanıcıyı içeri almak için true ya da başka yere göndermek için bir yönlendirme döndüren fonksiyondur."
+        lang: ts
+        form: |
+          export const authGuard: CanActivateFn = () => {
+            return inject(Auth).loggedIn() || inject(Router).createUrlTree(['/login']);
+          };
+
+          { path: 'admin', component: Admin, canActivate: [authGuard] }
+        example: |
+          import { CanActivateFn, Router } from '@angular/router';
+          import { inject } from '@angular/core';
+
+          export const authGuard: CanActivateFn = () => {
+            const auth = inject(Auth);
+            const router = inject(Router);
+            return auth.loggedIn() ? true : router.createUrlTree(['/login']);
+          };
+        mistake:
+          en: "Trusting a guard for security. It only hides the page in the browser; always check permissions on the server too."
+          tr: "Güvenlik için guard'a güvenmek. Sadece sayfayı tarayıcıda gizler; yetkiyi sunucuda da her zaman kontrol et."
+        source: https://angular.dev/guide/routing/route-guards
+
+  - id: data-forms
+    title:
+      en: "HTTP and forms"
+      tr: "HTTP ve form"
+    items:
+      - id: http-client
+        level: basic
+        title:
+          en: "Call an API"
+          tr: "API çağırma"
+        what:
+          en: "HttpClient sends requests and returns observables of the typed response."
+          tr: "HttpClient istek gönderir ve tipli cevabın observable'ını döndürür."
+        lang: ts
+        form: |
+          http = inject(HttpClient);
+          this.http.get<User[]>('/api/users')
+          this.http.post<User>('/api/users', body)
+        example: |
+          @Injectable({ providedIn: 'root' })
+          export class UserApi {
+            private http = inject(HttpClient);
+
+            list() {
+              return this.http.get<{ id: number; name: string }[]>('/api/users');
+            }
+            create(name: string) {
+              return this.http.post('/api/users', { name });
+            }
+          }
+        since: "21"
+        older:
+          en: "Before 21 you added provideHttpClient() to the providers to use HttpClient at all. Since 21 it is available by default; add provideHttpClient(...) only to configure it, for example with interceptors."
+          tr: "21'den önce HttpClient'ı kullanmak için providers'a provideHttpClient() eklemek gerekirdi. 21'den beri varsayılan olarak vardır; provideHttpClient(...)'i sadece ayarlamak için ekle, örneğin interceptor'lar için."
+        mistake:
+          en: "Calling http.get(...) and never subscribing. An observable request does nothing until something subscribes (subscribe, async pipe or toSignal)."
+          tr: "http.get(...) çağırıp hiç subscribe olmamak. Observable istek, biri subscribe olana kadar (subscribe, async pipe ya da toSignal) hiçbir şey yapmaz."
+        source: https://angular.dev/guide/http/making-requests
+      - id: http-resource
+        level: intermediate
+        title:
+          en: "Fetch data as a signal"
+          tr: "Veriyi signal olarak çekme"
+        what:
+          en: "httpResource makes a GET request from a reactive URL and gives value, loading and error as signals."
+          tr: "httpResource reaktif bir URL'den GET isteği yapar ve value, yüklenme ve hata durumunu signal olarak verir."
+        lang: ts
+        form: |
+          user = httpResource<User>(() => `/api/users/${this.id()}`);
+          user.value(); user.isLoading(); user.error();
+        example: |
+          @Component({
+            selector: 'app-user',
+            template: `
+              @if (user.hasValue()) { <h1>{{ user.value().name }}</h1> }
+              @else if (user.isLoading()) { <p>Loading...</p> }
+            `,
+          })
+          export class User {
+            id = input.required<number>();
+            user = httpResource<{ name: string }>(() => `/api/users/${this.id()}`);
+          }
+        since: "22"
+        older:
+          en: "httpResource was experimental before 22; it is stable now."
+          tr: "httpResource 22'den önce deneyseldi; artık kararlı."
+        avoid:
+          en: "For POST, PUT and other changes. Use HttpClient for those; a resource starts its request eagerly."
+          tr: "POST, PUT ve diğer değiştiren istekler için kullanma. Onlar için HttpClient kullan; resource isteğini hemen başlatır."
+        source: https://angular.dev/guide/http/http-resource
+      - id: http-interceptor
+        level: advanced
+        title:
+          en: "Change every request"
+          tr: "Her isteği değiştirme"
+        what:
+          en: "An interceptor is a function that sees each HTTP request, for example to add an auth header."
+          tr: "Interceptor, her HTTP isteğini gören bir fonksiyondur; örneğin auth header'ı eklemek için."
+        lang: ts
+        form: |
+          export const authInterceptor: HttpInterceptorFn = (req, next) => {
+            return next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
+          };
+
+          provideHttpClient(withInterceptors([authInterceptor]))
+        example: |
+          import { HttpInterceptorFn } from '@angular/common/http';
+          import { inject } from '@angular/core';
+
+          export const authInterceptor: HttpInterceptorFn = (req, next) => {
+            const token = inject(Auth).token();
+            return next(req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }));
+          };
+        mistake:
+          en: "Changing req directly. Requests are immutable; use req.clone(...)."
+          tr: "req'i doğrudan değiştirmek. İstekler değiştirilemez; req.clone(...) kullan."
+        source: https://angular.dev/guide/http/interceptors
+      - id: reactive-forms
+        level: intermediate
+        title:
+          en: "Reactive forms"
+          tr: "Reactive form'lar"
+        what:
+          en: "A form is built in the class as a tree of controls with validators, and the template binds to it."
+          tr: "Form, class içinde validator'lı kontrollerden oluşan bir ağaç olarak kurulur ve template ona bağlanır."
+        lang: ts
+        form: |
+          form = inject(FormBuilder).nonNullable.group({
+            email: ['', [Validators.required, Validators.email]],
+          });
+
+          <form [formGroup]="form" (ngSubmit)="submit()">
+            <input formControlName="email" />
+          </form>
+        example: |
+          @Component({
+            selector: 'app-login',
+            imports: [ReactiveFormsModule],
+            template: `
+              <form [formGroup]="form" (ngSubmit)="submit()">
+                <input formControlName="email" />
+                <button [disabled]="form.invalid">Log in</button>
+              </form>
+            `,
+          })
+          export class Login {
+            form = inject(FormBuilder).nonNullable.group({
+              email: ['', [Validators.required, Validators.email]],
+            });
+
+            submit() {
+              console.log(this.form.getRawValue());
+            }
+          }
+        mistake:
+          en: "Forgetting ReactiveFormsModule in imports. The template then fails on formGroup."
+          tr: "imports'a ReactiveFormsModule eklemeyi unutmak. Template formGroup'ta hata verir."
+        source: https://angular.dev/guide/forms/reactive-forms
+      - id: signal-forms
+        level: advanced
+        title:
+          en: "Signal forms"
+          tr: "Signal form'lar"
+        what:
+          en: "A signal forms model is a signal, and form() wraps it in fields that sync with inputs and validate by rules."
+          tr: "Signal form modeli bir signal'dir; form() onu input'larla senkron çalışan ve kurallarla doğrulanan alanlara sarar."
+        lang: ts
+        form: |
+          import { form, FormField, required, email } from '@angular/forms/signals';
+
+          model = signal({ email: '' });
+          loginForm = form(this.model, (path) => {
+            required(path.email);
+            email(path.email);
+          });
+
+          <input type="email" [formField]="loginForm.email" />
+        example: |
+          @Component({
+            selector: 'app-login',
+            imports: [FormField],
+            template: `
+              <input type="email" [formField]="loginForm.email" />
+              @if (loginForm.email().invalid()) {
+                <p>Enter a valid email</p>
+              }
+            `,
+          })
+          export class Login {
+            model = signal({ email: '' });
+            loginForm = form(this.model, (path) => {
+              required(path.email);
+              email(path.email);
+            });
+          }
+        since: "22"
+        older:
+          en: "Signal forms needs version 21 or higher, and was experimental in 21. In 22 the API is public and stable. Reactive forms remain a solid choice for existing apps."
+          tr: "Signal form'lar için sürüm 21 ya da üstü gerekir ve 21'de deneyseldi. 22'de API herkese açık ve kararlı. Mevcut uygulamalar için reactive form'lar sağlam bir seçim olmaya devam eder."
+        mistake:
+          en: "Forgetting FormField in the component imports. The [formField] binding then does nothing."
+          tr: "Component imports'una FormField eklemeyi unutmak. O zaman [formField] bağlaması bir şey yapmaz."
+        source: https://angular.dev/guide/forms/signals/overview
+
+  - id: app
+    title:
+      en: "Performance, testing and delivery"
+      tr: "Performans, test ve yayın"
+    items:
+      - id: zoneless
+        level: intermediate
+        title:
+          en: "Change detection without zone.js"
+          tr: "zone.js olmadan change detection"
+        what:
+          en: "Zoneless Angular updates the page only when a signal, an event or markForCheck says something changed."
+          tr: "Zoneless Angular sayfayı sadece bir signal, bir olay ya da markForCheck bir şeyin değiştiğini söylediğinde günceller."
+        lang: ts
+        form: |
+          // Angular 20 only; in 21 and later it is the default
+          bootstrapApplication(App, {
+            providers: [provideZonelessChangeDetection()],
+          });
+        example: |
+          // app.config.ts in Angular 21 or later: no zone provider is needed.
+          // Make sure provideZoneChangeDetection is not used anywhere.
+          export const appConfig: ApplicationConfig = {
+            providers: [provideRouter(routes)],
+          };
+        since: "21"
+        older:
+          en: "In version 20 zoneless was in developer preview and you enabled it with provideZonelessChangeDetection(). Before that, zone.js decided when to check for changes."
+          tr: "20 sürümünde zoneless geliştirici önizlemesindeydi ve provideZonelessChangeDetection() ile açılırdı. Ondan önce değişiklik kontrolünün zamanına zone.js karar verirdi."
+        mistake:
+          en: "Changing a plain field (count = 5) and expecting the page to update. Put the value in a signal."
+          tr: "Düz bir field'ı değiştirip (count = 5) sayfanın güncellenmesini beklemek. Değeri bir signal'e koy."
+        source: https://angular.dev/guide/zoneless
+      - id: onpush
+        level: advanced
+        title:
+          en: "OnPush is the default"
+          tr: "OnPush varsayılan"
+        what:
+          en: "A component without a changeDetection setting is checked only when its inputs, signals or events change."
+          tr: "changeDetection ayarı olmayan bir component sadece input'ları, signal'leri ya da olayları değişince kontrol edilir."
+        lang: ts
+        form: |
+          @Component({
+            selector: 'app-legacy',
+            changeDetection: ChangeDetectionStrategy.Eager,   // the old behavior
+            template: `...`,
+          })
+        example: |
+          // Angular 22: no setting needed, this is OnPush
+          @Component({
+            selector: 'app-price',
+            template: `{{ price() }}`,
+          })
+          export class Price {
+            price = input.required<number>();
+          }
+        since: "22"
+        older:
+          en: "Before 22 the default was to check the component on every cycle, and you wrote ChangeDetectionStrategy.OnPush yourself. The 22 update migration adds Eager where the old behavior is needed."
+          tr: "22'den önce varsayılan, component'i her döngüde kontrol etmekti ve ChangeDetectionStrategy.OnPush'u kendin yazardın. 22 güncelleme migration'ı eski davranışın gerektiği yere Eager ekler."
+        mistake:
+          en: "Mutating an object that an input holds (user.name = 'x') and expecting an update. Replace the object or use signals."
+          tr: "Bir input'un tuttuğu objeyi değiştirip (user.name = 'x') güncelleme beklemek. Objeyi yenisiyle değiştir ya da signal kullan."
+        source: https://angular.dev/best-practices/runtime-performance/skipping-subtrees
+      - id: defer-block
+        level: advanced
+        title:
+          en: "Load part of a page later"
+          tr: "Sayfanın bir kısmını sonra yükleme"
+        what:
+          en: "@defer loads a component and its code only when a trigger happens, like scrolling it into view."
+          tr: "@defer bir component'i ve kodunu sadece bir tetikleyici olunca yükler; örneğin ekranda görününce."
+        lang: html
+        form: |
+          @defer (on viewport) {
+            <app-chart />
+          } @placeholder {
+            <p>Chart</p>
+          } @loading (minimum 500ms) {
+            <p>Loading...</p>
+          }
+        example: |
+          @defer (on interaction(trigger)) {
+            <app-comments />
+          } @placeholder {
+            <button #trigger>Show comments</button>
+          }
+        since: "17"
+        mistake:
+          en: "Using the same component outside the @defer block too. Then it is part of the main bundle and nothing is deferred."
+          tr: "Aynı component'i @defer bloğunun dışında da kullanmak. O zaman ana bundle'ın parçası olur ve hiçbir şey ertelenmez."
+        source: https://angular.dev/guide/templates/defer
+      - id: testing
+        level: intermediate
+        title:
+          en: "Test a component"
+          tr: "Component test etme"
+        what:
+          en: "TestBed creates the component in a test so you can click, read the DOM and check results."
+          tr: "TestBed component'i bir testte oluşturur; böylece tıklayabilir, DOM'u okuyabilir ve sonuçları kontrol edebilirsin."
+        lang: ts
+        form: |
+          const fixture = TestBed.createComponent(Counter);
+          await fixture.whenStable();
+          fixture.nativeElement.querySelector('button').click();
+        example: |
+          import { TestBed } from '@angular/core/testing';
+          import { Counter } from './counter';
+
+          describe('Counter', () => {
+            it('counts clicks', async () => {
+              const fixture = TestBed.createComponent(Counter);
+              await fixture.whenStable();
+
+              const button = fixture.nativeElement.querySelector('button');
+              button.click();
+              await fixture.whenStable();
+
+              expect(button.textContent).toContain('1');
+            });
+          });
+        avoid:
+          en: "New projects run tests with Vitest and jsdom. Older projects used Karma and Jasmine, which are still supported."
+          tr: "Yeni projeler testleri Vitest ve jsdom ile çalıştırır. Eski projeler Karma ve Jasmine kullanırdı; bunlar hâlâ desteklenir."
+        mistake:
+          en: "Checking the DOM right after a click. Wait for whenStable() first so the page can update."
+          tr: "Tıklamadan hemen sonra DOM'u kontrol etmek. Sayfa güncellensin diye önce whenStable()'ı bekle."
+        source: https://angular.dev/guide/testing/overview
+      - id: ssr
+        level: advanced
+        title:
+          en: "Server-side rendering"
+          tr: "Sunucu tarafı render (SSR)"
+        what:
+          en: "SSR renders the page on the server first, so users and search engines see content before the JavaScript loads."
+          tr: "SSR sayfayı önce sunucuda render eder; kullanıcı ve arama motorları JavaScript yüklenmeden içeriği görür."
+        lang: sh
+        form: |
+          ng new my-app --ssr
+          ng add @angular/ssr
+        example: |
+          ng add @angular/ssr
+          ng build
+        avoid:
+          en: "For an app behind a login with no public pages. A plain client-side app is simpler to run."
+          tr: "Giriş arkasında olan ve herkese açık sayfası olmayan uygulamalarda kullanma. Sadece istemci tarafı uygulama çalıştırması daha basittir."
+        mistake:
+          en: "Using window, document or localStorage directly in code that also runs on the server. They do not exist there; use afterNextRender or inject DOCUMENT."
+          tr: "Sunucuda da çalışan kodda window, document ya da localStorage'ı doğrudan kullanmak. Orada yoklar; afterNextRender kullan ya da DOCUMENT inject et."
+        source: https://angular.dev/guide/ssr

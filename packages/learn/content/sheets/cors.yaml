@@ -1,0 +1,349 @@
+id: cors
+title: CORS
+category: concept
+summary:
+  en: Why the browser blocks your fetch to another domain, how the same-origin policy and preflight requests work, and which headers the server must send.
+  tr: Tarayıcının başka bir domain'e attığın fetch'i neden engellediği, same-origin policy ve preflight isteklerinin nasıl çalıştığı ve sunucunun hangi header'ları göndermesi gerektiği.
+aliases: [cors, cross-origin, same-origin policy, aynı köken, köken, origin, preflight, access-control-allow-origin, cors hatası, cors error]
+checked: 2026-10
+sources:
+  - title: MDN Cross-Origin Resource Sharing (CORS)
+    url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
+  - title: Fetch Standard, CORS protocol
+    url: https://fetch.spec.whatwg.org/#http-cors-protocol
+roadmap: web
+sections:
+  - id: basics
+    title: { en: Origins and the same-origin policy, tr: Origin'ler ve same-origin policy }
+    items:
+      - id: origin
+        level: basic
+        title: { en: What an origin is, tr: Origin nedir }
+        what:
+          en: An origin is scheme + host + port; if any of the three differ, it is another origin.
+          tr: Origin, şema + host + port'tur; üçünden biri bile farklıysa başka bir origin'dir.
+        lang: js
+        form: new URL(url).origin
+        example: |
+          const a = new URL("https://app.example.com/page").origin;
+          for (const u of ["https://app.example.com/api", "http://app.example.com", "https://api.example.com", "https://app.example.com:8443"]) {
+            console.log(u, new URL(u).origin === a);
+          }
+        output: |
+          https://app.example.com/api true
+          http://app.example.com false
+          https://api.example.com false
+          https://app.example.com:8443 false
+        check: js
+        mistake:
+          en: Thinking api.example.com and example.com are the same origin; subdomains are different origins (though the same "site" for cookies).
+          tr: api.example.com ile example.com'un aynı origin olduğunu sanmak; alt alan adları farklı origin'dir (cookie'ler için aynı "site" sayılsa da).
+        source: https://developer.mozilla.org/en-US/docs/Glossary/Origin
+      - id: same-origin-policy
+        level: basic
+        title: { en: The same-origin policy, tr: Same-origin policy }
+        what:
+          en: Browser JavaScript may send requests to other origins, but may not read the response unless that server allows it with CORS headers.
+          tr: Tarayıcıdaki JavaScript başka origin'lere istek gönderebilir ama o sunucu CORS header'larıyla izin vermedikçe yanıtı okuyamaz.
+        lang: text
+        form: page on A + fetch to B  ->  B must answer with Access-Control-Allow-Origin
+        example: |
+          Page:     https://app.example.com
+          fetch:    https://api.example.com/items
+          Console:  Access to fetch at '...' from origin 'https://app.example.com'
+                    has been blocked by CORS policy
+        mistake:
+          en: Thinking the request was not sent; for simple requests it reaches the server and runs, the browser only hides the answer.
+          tr: İsteğin gönderilmediğini sanmak; basit isteklerde istek sunucuya ulaşır ve çalışır, tarayıcı sadece yanıtı gizler.
+        source: https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy
+      - id: browser-only
+        level: basic
+        title: { en: CORS is enforced by browsers only, tr: CORS'u sadece tarayıcılar uygular }
+        what:
+          en: curl, Postman and other servers ignore CORS completely; it protects users' browsers, not your API.
+          tr: curl, Postman ve diğer sunucular CORS'u tamamen yok sayar; CORS kullanıcıların tarayıcısını korur, API'ni değil.
+        lang: sh
+        form: curl works, the browser does not -> missing CORS headers
+        example: |
+          curl -i https://api.example.com/items     # works, no CORS involved
+        mistake:
+          en: Using CORS as access control for an API; anyone can still call it from a script or server. Use authentication.
+          tr: CORS'u API için erişim kontrolü olarak kullanmak; herkes onu bir script'ten ya da sunucudan çağırabilir. Kimlik doğrulama kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
+      - id: allow-origin
+        level: basic
+        title: { en: Access-Control-Allow-Origin, tr: Access-Control-Allow-Origin }
+        what:
+          en: The server allows one origin by sending it back exactly, or every origin with * (only without credentials).
+          tr: Sunucu bir origin'e onu aynen geri göndererek izin verir; * ile herkese izin verir (sadece credentials olmadan).
+        lang: text
+        form: 'Access-Control-Allow-Origin: https://app.example.com'
+        example: |
+          Access-Control-Allow-Origin: https://app.example.com
+          Vary: Origin
+        mistake:
+          en: Listing several origins in one header (a, b); it must be exactly one origin or *. Pick the matching one from an allowlist per request.
+          tr: Tek header'da birden çok origin yazmak (a, b); tam olarak bir origin ya da * olmalı. Her istekte izin listesinden eşleşeni seç.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin
+      - id: allowlist
+        level: intermediate
+        title: { en: Allow a list of origins, tr: Bir origin listesine izin vermek }
+        what:
+          en: Compare the request's Origin with a fixed allowlist and echo it back only on an exact match, adding Vary Origin.
+          tr: İsteğin Origin'ini sabit bir izin listesiyle karşılaştır, sadece birebir eşleşirse geri gönder ve Vary Origin ekle.
+        lang: js
+        form: if (ALLOWED.has(origin)) res.setHeader("Access-Control-Allow-Origin", origin)
+        example: |
+          const ALLOWED = new Set(["https://app.example.com", "http://localhost:5173"]);
+          const corsHeaders = (origin) =>
+            ALLOWED.has(origin) ? { "Access-Control-Allow-Origin": origin, Vary: "Origin" } : { Vary: "Origin" };
+          console.log(JSON.stringify(corsHeaders("https://app.example.com")));
+          console.log(JSON.stringify(corsHeaders("https://app.example.com.evil.io")));
+        output: |
+          {"Access-Control-Allow-Origin":"https://app.example.com","Vary":"Origin"}
+          {"Vary":"Origin"}
+        check: js
+        mistake:
+          en: Checking with origin.endsWith("example.com") or a loose regex; evilexample.com and example.com.evil.io then pass.
+          tr: origin.endsWith("example.com") ya da gevşek bir regex ile kontrol etmek; evilexample.com ve example.com.evil.io da geçer.
+        source: https://fetch.spec.whatwg.org/#example-vary-origin
+  - id: preflight
+    title: { en: Simple requests and preflight, tr: Basit istekler ve preflight }
+    items:
+      - id: simple-request
+        level: intermediate
+        title: { en: Simple requests, tr: Basit istekler }
+        what:
+          en: GET, HEAD or POST with only safelisted headers and a Content-Type of text/plain, application/x-www-form-urlencoded or multipart/form-data go out without a preflight.
+          tr: Sadece izinli header'lar içeren ve Content-Type'ı text/plain, application/x-www-form-urlencoded ya da multipart/form-data olan GET, HEAD veya POST istekleri preflight olmadan gider.
+        lang: js
+        form: fetch(url)   // simple
+        example: |
+          fetch("https://api.example.com/items");                       // simple
+          fetch(url, { method: "POST", body: new FormData(form) });     // simple
+          fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body }); // preflight
+        mistake:
+          en: Being surprised that sending JSON triggers an OPTIONS request; application/json is not a safelisted Content-Type.
+          tr: JSON göndermenin bir OPTIONS isteği tetiklemesine şaşırmak; application/json izinli bir Content-Type değildir.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#simple_requests
+      - id: preflight-request
+        level: intermediate
+        title: { en: The preflight request, tr: Preflight isteği }
+        what:
+          en: Before other requests the browser sends OPTIONS with Origin, Access-Control-Request-Method and Access-Control-Request-Headers, and waits for the server's permission.
+          tr: Diğer isteklerden önce tarayıcı Origin, Access-Control-Request-Method ve Access-Control-Request-Headers içeren bir OPTIONS gönderir ve sunucunun iznini bekler.
+        lang: js
+        form: 'OPTIONS + Access-Control-Request-Method: PUT'
+        example: |
+          import { createServer } from "node:http";
+          const server = createServer((req, res) => {
+            if (req.method === "OPTIONS") {
+              return res.writeHead(204, {
+                "Access-Control-Allow-Origin": "https://app.example.com",
+                "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
+                "Access-Control-Allow-Headers": "Content-Type, Authorization",
+                "Access-Control-Max-Age": "600",
+                Vary: "Origin",
+              }).end();
+            }
+            res.end("ok");
+          });
+          server.listen(0);
+          const res = await fetch(`http://localhost:${server.address().port}/items/1`, {
+            method: "OPTIONS",
+            headers: { Origin: "https://app.example.com", "Access-Control-Request-Method": "PUT" },
+          });
+          console.log(res.status, res.headers.get("access-control-allow-methods"));
+          server.close();
+        output: |
+          204 GET, POST, PUT, DELETE
+        check: js
+        mistake:
+          en: Putting auth middleware before the CORS handler; the preflight carries no Authorization header, gets 401 and the real request never goes out.
+          tr: Auth middleware'ini CORS handler'ından önce koymak; preflight Authorization header'ı taşımaz, 401 alır ve asıl istek hiç gitmez.
+        source: https://fetch.spec.whatwg.org/#cors-preflight-fetch
+      - id: allow-methods-headers
+        level: intermediate
+        title: { en: Allow-Methods and Allow-Headers, tr: Allow-Methods ve Allow-Headers }
+        what:
+          en: In the preflight answer, list the methods and request headers the real request may use.
+          tr: Preflight yanıtında, asıl isteğin kullanabileceği metotları ve istek header'larını listele.
+        lang: text
+        form: 'Access-Control-Allow-Headers: Content-Type, Authorization'
+        example: |
+          Access-Control-Allow-Methods: GET, POST, PATCH, DELETE
+          Access-Control-Allow-Headers: Content-Type, Authorization, Idempotency-Key
+        mistake:
+          en: Relying on Access-Control-Allow-Headers * for Authorization; the wildcard never covers Authorization, so name it.
+          tr: Authorization için Access-Control-Allow-Headers * değerine güvenmek; joker karakter Authorization'ı asla kapsamaz, adını açıkça yaz.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Headers
+      - id: max-age
+        level: advanced
+        title: { en: Cache the preflight, tr: Preflight'ı cache'lemek }
+        what:
+          en: Access-Control-Max-Age tells the browser how many seconds to reuse the preflight result; browsers cap it (Chromium 2 hours, Firefox 24 hours).
+          tr: Access-Control-Max-Age, tarayıcıya preflight sonucunu kaç saniye tekrar kullanacağını söyler; tarayıcılar bunu sınırlar (Chromium 2 saat, Firefox 24 saat).
+        lang: text
+        form: 'Access-Control-Max-Age: 600'
+        example: |
+          Access-Control-Max-Age: 7200
+        mistake:
+          en: Not setting it and paying an extra round trip before every API call (the default is 5 seconds).
+          tr: Hiç ayarlamayıp her API çağrısından önce fazladan bir gidiş-dönüş ödemek (varsayılan 5 saniyedir).
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Max-Age
+      - id: preflight-status
+        level: advanced
+        title: { en: Preflight must answer 2xx, tr: Preflight 2xx dönmeli }
+        what:
+          en: The preflight response must have an ok (2xx) status and must not redirect, or the browser fails the request.
+          tr: Preflight yanıtı ok (2xx) bir status'a sahip olmalı ve yönlendirme yapmamalıdır; yoksa tarayıcı isteği başarısız sayar.
+        lang: text
+        form: OPTIONS -> 204 No Content
+        example: |
+          OPTIONS /api/items  -> 204   works
+          OPTIONS /api/items  -> 301   "Redirect is not allowed for a preflight request"
+          OPTIONS /api/items  -> 404   blocked
+        mistake:
+          en: Calling http://... or a URL without its trailing slash, so the server redirects the preflight to https or /items/.
+          tr: http://... ya da sondaki eğik çizgisi olmayan bir URL çağırmak; sunucu preflight'ı https'e ya da /items/'a yönlendirir.
+        source: https://fetch.spec.whatwg.org/#cors-preflight-fetch
+  - id: credentials
+    title: { en: Cookies and credentials, tr: Cookie'ler ve credentials }
+    items:
+      - id: fetch-credentials
+        level: intermediate
+        title: { en: Send cookies cross-origin, tr: Başka origin'e cookie göndermek }
+        what:
+          en: fetch only sends cookies to another origin with credentials include, and the server must answer Access-Control-Allow-Credentials true.
+          tr: fetch başka bir origin'e cookie'yi sadece credentials include ile gönderir; sunucu da Access-Control-Allow-Credentials true ile yanıt vermelidir.
+        lang: js
+        form: 'fetch(url, { credentials: "include" })'
+        example: |
+          await fetch("https://api.example.com/me", { credentials: "include" });
+          // server:
+          // Access-Control-Allow-Origin: https://app.example.com
+          // Access-Control-Allow-Credentials: true
+        mistake:
+          en: Forgetting that the cookie itself must be SameSite=None; Secure when the API is on another site; otherwise the browser does not attach it.
+          tr: API başka bir sitedeyse cookie'nin kendisinin SameSite=None; Secure olması gerektiğini unutmak; yoksa tarayıcı onu eklemez.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS#requests_with_credentials
+      - id: no-wildcard-credentials
+        level: intermediate
+        title: { en: No * with credentials, tr: credentials ile * olmaz }
+        what:
+          en: With credentials, Access-Control-Allow-Origin must name the exact origin, and * in Allow-Headers, Allow-Methods and Expose-Headers is read as a literal name.
+          tr: credentials varken Access-Control-Allow-Origin tam origin'i yazmalıdır; Allow-Headers, Allow-Methods ve Expose-Headers'taki * da düz bir ad olarak okunur.
+        lang: text
+        form: 'Access-Control-Allow-Origin: https://app.example.com + Access-Control-Allow-Credentials: true'
+        example: |
+          Bad:  Access-Control-Allow-Origin: *
+                Access-Control-Allow-Credentials: true
+          Good: Access-Control-Allow-Origin: https://app.example.com
+                Access-Control-Allow-Credentials: true
+                Vary: Origin
+        mistake:
+          en: Fixing it by echoing back any Origin with credentials true; then every website can read your users' private data.
+          tr: Bunu, credentials true ile gelen her Origin'i geri yansıtarak çözmek; o zaman her web sitesi kullanıcılarının özel verisini okuyabilir.
+        source: https://fetch.spec.whatwg.org/#cors-protocol-and-credentials
+      - id: expose-headers
+        level: intermediate
+        title: { en: Read response headers, tr: Yanıt header'larını okumak }
+        what:
+          en: Cross-origin JavaScript can only read a few safe response headers (Content-Type, Content-Length, Cache-Control and a few more); others need Access-Control-Expose-Headers.
+          tr: Başka origin'den gelen yanıtta JavaScript sadece birkaç güvenli header'ı (Content-Type, Content-Length, Cache-Control ve birkaç tane daha) okuyabilir; diğerleri için Access-Control-Expose-Headers gerekir.
+        lang: text
+        form: 'Access-Control-Expose-Headers: Location, X-Total-Count'
+        example: |
+          Access-Control-Expose-Headers: Location, Retry-After, X-Total-Count
+          // client: res.headers.get("x-total-count") now works
+        mistake:
+          en: Debugging why res.headers.get("location") is null while the DevTools Network tab shows the header.
+          tr: DevTools Network sekmesi header'ı gösterirken res.headers.get("location")'ın neden null olduğunu araştırmak.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers
+      - id: cors-not-csrf
+        level: advanced
+        title: { en: CORS does not stop CSRF, tr: CORS, CSRF'i durdurmaz }
+        what:
+          en: A simple cross-site POST (like a form) still reaches the server with cookies; CORS only hides the response, so you still need SameSite cookies and CSRF checks.
+          tr: Basit bir cross-site POST (form gibi) cookie'lerle birlikte sunucuya yine ulaşır; CORS sadece yanıtı gizler, bu yüzden SameSite cookie'ye ve CSRF kontrollerine yine ihtiyacın var.
+        lang: html
+        form: <form method="post" action="https://bank.example/transfer">
+        example: |
+          <!-- on evil.example: sent with the user's cookies unless SameSite blocks them -->
+          <form method="post" action="https://bank.example/transfer">
+            <input name="to" value="attacker"><input name="amount" value="1000">
+          </form>
+        source: https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html
+  - id: debugging
+    title: { en: Fixing CORS errors, tr: CORS hatalarını çözmek }
+    items:
+      - id: read-the-error
+        level: basic
+        title: { en: Read the console message, tr: Konsol mesajını oku }
+        what:
+          en: JavaScript only sees "TypeError Failed to fetch"; the browser console says which header was missing or wrong.
+          tr: JavaScript sadece "TypeError Failed to fetch" görür; hangi header'ın eksik ya da yanlış olduğunu tarayıcı konsolu söyler.
+        lang: text
+        form: DevTools -> Console + Network (look at the OPTIONS request)
+        example: |
+          No 'Access-Control-Allow-Origin' header is present on the requested resource.
+          Request header field authorization is not allowed by Access-Control-Allow-Headers in preflight response.
+        mistake:
+          en: Fixing it on the frontend; CORS errors are fixed by changing the server's response headers.
+          tr: Sorunu frontend'de çözmeye çalışmak; CORS hataları sunucunun yanıt header'larını değiştirerek çözülür.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS/Errors
+      - id: no-cors-mode
+        level: intermediate
+        title: { en: mode no-cors is not a fix, tr: no-cors modu çözüm değildir }
+        what:
+          en: mode no-cors sends the request but gives you an opaque response with status 0 and no readable body.
+          tr: no-cors modu isteği gönderir ama sana status'u 0 olan, body'si okunamayan opak bir yanıt verir.
+        lang: js
+        form: 'fetch(url, { mode: "no-cors" })  // opaque'
+        example: |
+          const res = await fetch("https://api.example.com/items", { mode: "no-cors" });
+          console.log(res.type, res.status); // "opaque" 0
+        mistake:
+          en: Adding mode no-cors to silence the error and then wondering why the data is empty.
+          tr: Hatayı susturmak için mode no-cors ekleyip sonra verinin neden boş olduğuna şaşırmak.
+        source: https://developer.mozilla.org/en-US/docs/Web/API/RequestInit#mode
+      - id: dev-proxy
+        level: basic
+        title: { en: Use a dev proxy, tr: Geliştirmede proxy kullan }
+        what:
+          en: In development, let the dev server forward /api to the backend so the browser sees one origin and CORS never comes up.
+          tr: Geliştirmede dev sunucusunun /api'yi backend'e iletmesini sağla; tarayıcı tek origin görür ve CORS hiç gündeme gelmez.
+        lang: js
+        form: 'server: { proxy: { "/api": "http://localhost:3000" } }'
+        example: |
+          // vite.config.js
+          export default {
+            server: { proxy: { "/api": "http://localhost:3000" } },
+          };
+        avoid:
+          en: Not a production fix unless you also serve the API under the same origin (a reverse proxy in front of both).
+          tr: API'yi de aynı origin altında sunmuyorsan (ikisinin önünde bir reverse proxy) üretim için bir çözüm değildir.
+        source: https://vite.dev/config/server-options#server-proxy
+      - id: null-origin
+        level: advanced
+        title: { en: Never allow the null origin, tr: null origin'e asla izin verme }
+        what:
+          en: Sandboxed iframes, file pages and some redirects send Origin null; allowing it lets any attacker page in a sandbox through.
+          tr: Sandbox'lı iframe'ler, dosya sayfaları ve bazı yönlendirmeler Origin null gönderir; ona izin vermek sandbox'taki her saldırgan sayfayı içeri alır.
+        lang: text
+        form: 'Origin: null  ->  reject'
+        example: |
+          Bad: Access-Control-Allow-Origin: null
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin#null
+      - id: crossorigin-attr
+        level: advanced
+        title: { en: The crossorigin attribute, tr: crossorigin attribute'u }
+        what:
+          en: img, script, link and video can load cross-origin anyway, but crossorigin="anonymous" makes them use CORS, so a canvas is not tainted and script errors show details.
+          tr: img, script, link ve video zaten başka origin'den yüklenebilir; ama crossorigin="anonymous" onları CORS kullanmaya zorlar, böylece canvas kirlenmez ve script hataları detay gösterir.
+        lang: html
+        form: <img src="https://cdn.example.com/a.png" crossorigin="anonymous">
+        example: |
+          <img id="photo" src="https://cdn.example.com/a.png" crossorigin="anonymous">
+          <!-- the CDN must send Access-Control-Allow-Origin, then canvas.toDataURL() works -->
+        source: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/crossorigin

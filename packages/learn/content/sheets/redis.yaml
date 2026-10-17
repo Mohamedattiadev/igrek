@@ -1,0 +1,525 @@
+id: redis
+title: Redis
+category: tool
+summary:
+  en: An in-memory data store used as a cache, queue and message broker; its data types, commands, expiry, pub/sub, streams and persistence.
+  tr: Önbellek, kuyruk ve mesaj aracısı olarak kullanılan, veriyi bellekte tutan bir veri deposu; veri tipleri, komutlar, süre sonu, pub/sub, stream'ler ve kalıcılık.
+aliases: [redis-cli, cache, önbellek, key-value, anahtar değer, valkey, pub/sub, streams, ioredis, kuyruk, queue]
+detect:
+  npm: [redis, ioredis]
+  pip: [redis]
+version: "8.10"
+latest: eol:redis
+checked: 2026-10
+sources:
+  - title: Redis commands
+    url: https://redis.io/docs/latest/commands/
+  - title: Redis data types
+    url: https://redis.io/docs/latest/develop/data-types/
+  - title: Redis persistence
+    url: https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
+roadmap: redis
+sections:
+  - id: start
+    title: { en: Start, tr: Başlangıç }
+    items:
+      - id: docker-run
+        level: basic
+        title: { en: Run Redis locally, tr: Redis'i yerelde çalıştırma }
+        what:
+          en: Starts a Redis server in a Docker container on the default port 6379.
+          tr: Varsayılan 6379 portunda bir Redis sunucusunu Docker container'ında başlatır.
+        lang: sh
+        form: docker run -d -p 6379:6379 redis:8
+        example: |
+          docker run -d --name redis -p 6379:6379 -v redis-data:/data redis:8
+          docker exec -it redis redis-cli
+        mistake:
+          en: Exposing port 6379 to the internet without a password; open Redis servers are found and abused within hours.
+          tr: 6379 portunu şifresiz şekilde internete açmak; açık Redis sunucuları saatler içinde bulunup kötüye kullanılır.
+        source: https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/
+      - id: redis-cli
+        level: basic
+        title: { en: Connect with redis-cli, tr: redis-cli ile bağlanma }
+        what:
+          en: redis-cli is the command-line client; run it alone for a prompt or pass one command to run it once.
+          tr: redis-cli komut satırı istemcisidir; tek başına çalıştırırsan komut istemi açar, bir komut verirsen onu bir kez çalıştırır.
+        lang: sh
+        form: redis-cli -h <host> -p 6379
+        example: |
+          redis-cli PING                    # PONG
+          redis-cli -u redis://user:pass@host:6379/0 GET greeting
+          redis-cli --scan --pattern 'user:*'
+        source: https://redis.io/docs/latest/develop/tools/cli/
+      - id: valkey
+        level: basic
+        title: { en: Redis and Valkey, tr: Redis ve Valkey }
+        what:
+          en: Valkey is the open source (BSD) fork of Redis 7.2 run by the Linux Foundation; the basic commands in this sheet work on both.
+          tr: Valkey, Linux Foundation'ın yürüttüğü, Redis 7.2'nin açık kaynak (BSD) fork'udur; bu sayfadaki temel komutlar ikisinde de çalışır.
+        lang: sh
+        form: docker run -d -p 6379:6379 valkey/valkey
+        example: |
+          docker run -d --name valkey -p 6379:6379 valkey/valkey
+          valkey-cli PING                   # PONG; redis-cli works too
+        mistake:
+          en: Assuming every newer Redis feature exists in Valkey (or the other way); they split in 2024, so check each one's docs for new commands.
+          tr: Redis'in her yeni özelliğinin Valkey'de de olduğunu (ya da tersini) sanmak; 2024'te ayrıldılar, yeni komutlar için ikisinin dokümanına ayrı bak.
+        source: https://valkey.io/
+      - id: keys-naming
+        level: basic
+        title: { en: Keys and naming, tr: Anahtarlar ve adlandırma }
+        what:
+          en: Every value lives under a string key; a common style is colon-separated parts like user:42:profile.
+          tr: Her değer bir string anahtarın altında durur; yaygın stil user:42:profile gibi iki noktayla ayrılmış parçalardır.
+        lang: text
+        form: object-type:id:field
+        example: |
+          SET user:42:name "Ada"
+          EXISTS user:42:name         # (integer) 1
+          TYPE user:42:name           # string
+          DEL user:42:name            # (integer) 1
+        source: https://redis.io/docs/latest/develop/using-commands/keyspace/
+  - id: strings
+    title: { en: Strings and expiry, tr: String ve süre sonu }
+    items:
+      - id: set-get
+        level: basic
+        title: { en: SET and GET, tr: SET ve GET }
+        what:
+          en: Stores a value under a key and reads it back; the value can be text, a number or binary data up to 512 MB.
+          tr: Bir anahtarın altına değer yazar ve geri okur; değer metin, sayı ya da 512 MB'a kadar ikili veri olabilir.
+        lang: text
+        form: SET key value / GET key
+        example: |
+          SET greeting "hello"        # OK
+          GET greeting                # "hello"
+          GET missing                 # (nil)
+          MSET a 1 b 2                # OK
+          MGET a b                    # 1) "1" 2) "2"
+        mistake:
+          en: Storing a big JSON blob and rewriting all of it to change one field; a hash fits better.
+          tr: Büyük bir JSON'u saklayıp tek alanı değiştirmek için hepsini yeniden yazmak; hash daha uygun.
+        source: https://redis.io/docs/latest/commands/set/
+      - id: expire
+        level: basic
+        title: { en: Expire a key, tr: Anahtara süre verme }
+        what:
+          en: Gives a key a lifetime in seconds; Redis deletes it when the time is up, which is what makes it a cache.
+          tr: Anahtara saniye cinsinden bir ömür verir; süre dolunca Redis onu siler. Onu önbellek yapan budur.
+        lang: text
+        form: SET key value EX 60
+        example: |
+          SET session:abc "ada" EX 3600   # OK
+          TTL session:abc                 # (integer) 3600
+          EXPIRE session:abc 60           # (integer) 1
+          PERSIST session:abc             # (integer) 1, no expiry any more
+          TTL greeting                    # (integer) -1 no expiry, -2 no such key
+        mistake:
+          en: A plain SET on a key that had a TTL removes the TTL; add EX again or use KEEPTTL.
+          tr: TTL'i olan bir anahtara düz SET yapmak TTL'i kaldırır; EX'i tekrar ekle ya da KEEPTTL kullan.
+        source: https://redis.io/docs/latest/commands/expire/
+      - id: incr
+        level: basic
+        title: { en: Counters, tr: Sayaçlar }
+        what:
+          en: INCR adds one to a number atomically, so many clients can count at once without losing updates.
+          tr: INCR bir sayıya atomik olarak bir ekler; böylece birçok istemci güncelleme kaybetmeden aynı anda sayabilir.
+        lang: text
+        form: INCR key / INCRBY key n
+        example: |
+          INCR page:home:views        # (integer) 1
+          INCRBY page:home:views 10   # (integer) 11
+          DECR stock:sku-1            # (integer) -1 if it did not exist
+        mistake:
+          en: GET, add one in your code, then SET; two clients doing that at once lose a count. Use INCR.
+          tr: GET yapıp kodda bir ekleyip SET etmek; bunu aynı anda yapan iki istemci bir sayıyı kaybeder. INCR kullan.
+        source: https://redis.io/docs/latest/commands/incr/
+      - id: set-nx-lock
+        level: intermediate
+        title: { en: Set only if missing (simple lock), tr: Sadece yoksa yazma (basit kilit) }
+        what:
+          en: NX writes the key only when it does not exist yet, which gives a simple lock or "run once" flag.
+          tr: NX anahtarı sadece henüz yoksa yazar; bu basit bir kilit ya da "bir kez çalıştır" bayrağı verir.
+        lang: text
+        form: SET key value NX EX 30
+        example: |
+          SET lock:invoice:42 "worker-1" NX EX 30   # OK -> you got the lock
+          SET lock:invoice:42 "worker-2" NX EX 30   # (nil) -> someone else has it
+        mistake:
+          en: Releasing with a plain DEL; if your lock already expired you delete someone else's. Check the value first in a script.
+          tr: Kilidi düz DEL ile bırakmak; kilidinin süresi dolduysa başkasınınkini silersin. Önce değeri bir script içinde kontrol et.
+        avoid:
+          en: For locks that must never be held twice (money, inventory), use database constraints or transactions instead.
+          tr: Asla iki kez alınmaması gereken kilitler için (para, stok), onun yerine veritabanı kısıtları ya da transaction kullan.
+        source: https://redis.io/docs/latest/commands/set/
+      - id: rate-limit
+        level: intermediate
+        title: { en: Simple rate limit, tr: Basit istek sınırı }
+        what:
+          en: Count requests per user in a key that expires, and refuse when the count passes the limit.
+          tr: İstekleri kullanıcı başına süresi dolan bir anahtarda say ve sayı sınırı geçince reddet.
+        lang: text
+        form: INCR rate:<user>:<minute> + EXPIRE
+        example: |
+          INCR rate:ada:202610171205        # (integer) 1
+          EXPIRE rate:ada:202610171205 60 NX
+          # in code: if the INCR result > 100 -> answer 429
+        source: https://redis.io/docs/latest/commands/incr/#pattern-rate-limiter
+  - id: types
+    title: { en: Data types, tr: Veri tipleri }
+    items:
+      - id: hash
+        level: basic
+        title: { en: Hashes, tr: Hash }
+        what:
+          en: A hash holds field-value pairs under one key, like a small object, and lets you read or change one field.
+          tr: Hash, tek bir anahtar altında alan-değer çiftleri tutar; küçük bir nesne gibi. Tek bir alanı okuyup değiştirebilirsin.
+        lang: text
+        form: HSET key field value [field value ...]
+        example: |
+          HSET user:42 name "Ada" plan "pro" logins 0   # (integer) 3
+          HGET user:42 name                             # "Ada"
+          HINCRBY user:42 logins 1                      # (integer) 1
+          HGETALL user:42
+        source: https://redis.io/docs/latest/develop/data-types/hashes/
+      - id: hash-field-expiry
+        level: advanced
+        title: { en: Expire single hash fields, tr: Hash alanlarına ayrı süre verme }
+        what:
+          en: Since 7.4 a single field of a hash can expire on its own, without a separate key per field.
+          tr: 7.4'ten beri bir hash'in tek bir alanı kendi başına süresi dolabilir; her alan için ayrı anahtar gerekmez.
+        lang: text
+        form: HEXPIRE key seconds FIELDS n field ...
+        example: |
+          HSET user:42 otp "123456"
+          HEXPIRE user:42 300 FIELDS 1 otp          # 1) (integer) 1
+          HTTL user:42 FIELDS 1 otp                 # 1) (integer) 300
+          HSETEX user:42 EX 300 FIELDS 1 otp "654321"   # set and expire in one step (8.0+)
+        since: "7.4"
+        older:
+          en: Before 7.4 only whole keys could expire, so each expiring value needed its own key. HSETEX and HGETEX came in 8.0.
+          tr: 7.4'ten önce sadece anahtarın tamamı süreyle silinebilirdi; süresi dolan her değer için ayrı anahtar gerekirdi. HSETEX ve HGETEX 8.0'da geldi.
+        source: https://redis.io/docs/latest/commands/hexpire/
+      - id: list
+        level: basic
+        title: { en: Lists, tr: Listeler }
+        what:
+          en: An ordered list of strings with fast push and pop at both ends; good for queues and recent items.
+          tr: İki ucundan hızlı ekleyip çıkarılabilen sıralı bir string listesi; kuyruklar ve son elemanlar için iyidir.
+        lang: text
+        form: LPUSH / RPUSH / LPOP / RPOP / LRANGE
+        example: |
+          LPUSH recent:ada "post:9" "post:8"   # (integer) 2
+          LTRIM recent:ada 0 99                # keep the last 100
+          LRANGE recent:ada 0 -1               # 1) "post:8" 2) "post:9"
+          RPOP recent:ada                      # "post:9"
+        mistake:
+          en: Reading items by index from the middle of a long list (LINDEX); that is O(n). Lists are fast only at the ends.
+          tr: Uzun bir listenin ortasından index ile okumak (LINDEX); bu O(n)'dir. Listeler sadece uçlarda hızlıdır.
+        source: https://redis.io/docs/latest/develop/data-types/lists/
+      - id: blocking-queue
+        level: intermediate
+        title: { en: Blocking queue, tr: Bekleyen kuyruk }
+        what:
+          en: BLMOVE waits until an item arrives and moves it to a processing list, so a crashed worker does not lose the job.
+          tr: BLMOVE bir eleman gelene kadar bekler ve onu işlenenler listesine taşır; böylece çöken bir worker işi kaybetmez.
+        lang: text
+        form: BLMOVE source destination RIGHT LEFT timeout
+        example: |
+          LPUSH jobs "email:42"                               # producer
+          BLMOVE jobs jobs:processing RIGHT LEFT 5            # worker, waits up to 5 s
+          LREM jobs:processing 1 "email:42"                   # done
+        since: "6.2"
+        older:
+          en: Before 6.2 the same is BRPOPLPUSH source destination timeout, now deprecated.
+          tr: 6.2'den önce aynı iş BRPOPLPUSH source destination timeout ile yapılır; artık deprecated.
+        avoid:
+          en: If you need acknowledgements, retries and many consumers, Streams with consumer groups fit better.
+          tr: Onaylama, yeniden deneme ve çok tüketici gerekiyorsa consumer group'lu Stream'ler daha uygun.
+        source: https://redis.io/docs/latest/commands/blmove/
+      - id: set
+        level: basic
+        title: { en: Sets, tr: Set }
+        what:
+          en: An unordered collection of unique strings with fast membership checks and set math (intersection, union).
+          tr: Benzersiz string'lerden oluşan sırasız bir koleksiyon; üyelik kontrolü hızlıdır, kesişim ve birleşim yapabilir.
+        lang: text
+        form: SADD / SISMEMBER / SMEMBERS / SINTER
+        example: |
+          SADD post:9:likes "ada" "bob"      # (integer) 2
+          SADD post:9:likes "ada"            # (integer) 0, already there
+          SISMEMBER post:9:likes "ada"       # (integer) 1
+          SCARD post:9:likes                 # (integer) 2
+          SINTER user:ada:follows user:bob:follows
+        mistake:
+          en: Calling SMEMBERS on a set with millions of members; it blocks the server while it builds the reply. Use SSCAN.
+          tr: Milyonlarca üyesi olan bir set'te SMEMBERS çağırmak; cevabı hazırlarken sunucuyu bloklar. SSCAN kullan.
+        source: https://redis.io/docs/latest/develop/data-types/sets/
+      - id: sorted-set
+        level: intermediate
+        title: { en: Sorted sets (leaderboards), tr: Sıralı set'ler (skor tabloları) }
+        what:
+          en: Like a set, but each member has a score and the members stay sorted by it; perfect for leaderboards and time-ordered items.
+          tr: Set gibi, ama her üyenin bir skoru vardır ve üyeler ona göre sıralı kalır; skor tabloları ve zamana göre sıralı veriler için ideal.
+        lang: text
+        form: ZADD key score member / ZRANGE key 0 9 REV WITHSCORES
+        example: |
+          ZADD game:scores 120 "ada" 90 "bob" 150 "cem"
+          ZINCRBY game:scores 40 "bob"              # "130"
+          ZRANGE game:scores 0 2 REV WITHSCORES     # top 3: cem 150, bob 130, ada 120
+          ZRANK game:scores "ada"                   # (integer) 0, lowest first
+          ZRANGE events 1760000000 1760086400 BYSCORE   # by time range
+        since: "6.2"
+        older:
+          en: The REV and BYSCORE options of ZRANGE came in 6.2; before that use ZREVRANGE and ZRANGEBYSCORE.
+          tr: ZRANGE'in REV ve BYSCORE seçenekleri 6.2'de geldi; öncesinde ZREVRANGE ve ZRANGEBYSCORE kullanılır.
+        source: https://redis.io/docs/latest/develop/data-types/sorted-sets/
+      - id: json
+        level: advanced
+        title: { en: JSON documents, tr: JSON dokümanları }
+        what:
+          en: Redis 8 includes the JSON type, so you can read and change parts of a JSON document by path.
+          tr: Redis 8 JSON tipini içerir; bir JSON dokümanının parçalarını path ile okuyup değiştirebilirsin.
+        lang: text
+        form: JSON.SET key $ '<json>' / JSON.GET key $.path
+        example: |
+          JSON.SET user:42 $ '{"name":"Ada","tags":["admin"]}'
+          JSON.GET user:42 $.name                  # "[\"Ada\"]"
+          JSON.ARRAPPEND user:42 $.tags '"vip"'
+        since: "8.0"
+        older:
+          en: Before Redis 8 JSON was the separate RedisJSON module (Redis Stack). Valkey has its own valkey-json module.
+          tr: Redis 8'den önce JSON ayrı bir modüldü (RedisJSON, Redis Stack). Valkey'in kendi valkey-json modülü vardır.
+        source: https://redis.io/docs/latest/develop/data-types/json/
+  - id: keyspace
+    title: { en: Working with keys, tr: Anahtarlarla çalışma }
+    items:
+      - id: scan
+        level: intermediate
+        title: { en: Find keys with SCAN, not KEYS, tr: Anahtarları KEYS ile değil SCAN ile bulma }
+        what:
+          en: SCAN walks the keys in small batches with a cursor, while KEYS reads all of them at once and blocks the server.
+          tr: SCAN anahtarları bir cursor ile küçük gruplar halinde dolaşır; KEYS ise hepsini bir kerede okur ve sunucuyu bloklar.
+        lang: text
+        form: SCAN cursor MATCH pattern COUNT n
+        example: |
+          SCAN 0 MATCH session:* COUNT 100
+          # 1) "1792"  <- next cursor, call again with it until it is "0"
+          # 2) list of keys
+        mistake:
+          en: Running KEYS * on a production server with millions of keys; every other client waits until it finishes.
+          tr: Milyonlarca anahtarlı bir production sunucusunda KEYS * çalıştırmak; o bitene kadar diğer tüm istemciler bekler.
+        source: https://redis.io/docs/latest/commands/scan/
+      - id: unlink
+        level: intermediate
+        title: { en: Delete big keys without blocking, tr: Büyük anahtarları bloklamadan silme }
+        what:
+          en: UNLINK removes the key at once and frees its memory in the background, unlike DEL.
+          tr: UNLINK anahtarı hemen kaldırır ve belleğini arka planda boşaltır; DEL gibi beklemez.
+        lang: text
+        form: UNLINK key [key ...]
+        example: |
+          UNLINK big:list cache:report     # (integer) 2
+        source: https://redis.io/docs/latest/commands/unlink/
+      - id: eviction
+        level: advanced
+        title: { en: Memory limit and eviction, tr: Bellek sınırı ve eviction }
+        what:
+          en: maxmemory caps memory and maxmemory-policy decides which keys go when it is full; the default is to refuse writes.
+          tr: maxmemory belleği sınırlar, maxmemory-policy dolunca hangi anahtarların gideceğine karar verir; varsayılan, yazmaları reddetmektir.
+        lang: text
+        form: maxmemory 512mb + maxmemory-policy allkeys-lru
+        example: |
+          CONFIG SET maxmemory 512mb
+          CONFIG SET maxmemory-policy allkeys-lru   # pure cache: drop least recently used
+          # noeviction (default)  -> errors on write when full
+          # volatile-lru / volatile-ttl -> only keys that have a TTL
+          # allkeys-lfu  -> drop least frequently used
+        mistake:
+          en: Using Redis as a cache with the default noeviction policy; when memory fills up, writes start failing.
+          tr: Redis'i varsayılan noeviction politikasıyla önbellek olarak kullanmak; bellek dolunca yazmalar hata vermeye başlar.
+        source: https://redis.io/docs/latest/develop/reference/eviction/
+      - id: cache-aside
+        level: intermediate
+        title: { en: Cache-aside pattern, tr: Cache-aside kalıbı }
+        what:
+          en: Read from Redis first; on a miss read the database, store the result with a TTL and return it.
+          tr: Önce Redis'ten oku; yoksa veritabanından oku, sonucu bir TTL ile kaydet ve döndür.
+        lang: js
+        form: get -> miss -> db -> set EX -> return
+        example: |
+          import { createClient } from "redis";
+          const redis = await createClient().connect();
+
+          async function getUser(id) {
+            const hit = await redis.get(`user:${id}`);
+            if (hit) return JSON.parse(hit);
+            const user = await db.users.findById(id);
+            await redis.set(`user:${id}`, JSON.stringify(user), { EX: 300 });
+            return user;
+          }
+        mistake:
+          en: Updating the database and forgetting the cache; delete the cached key on every write.
+          tr: Veritabanını güncelleyip önbelleği unutmak; her yazmada önbellekteki anahtarı sil.
+        source: https://redis.io/docs/latest/develop/clients/nodejs/
+  - id: messaging
+    title: { en: Pub/sub and streams, tr: Pub/sub ve stream'ler }
+    items:
+      - id: pubsub
+        level: basic
+        title: { en: Publish and subscribe, tr: Yayınlama ve abone olma }
+        what:
+          en: Clients subscribe to a channel and get every message published to it while they are connected.
+          tr: İstemciler bir kanala abone olur ve bağlı oldukları sürece ona yayınlanan her mesajı alır.
+        lang: text
+        form: SUBSCRIBE channel / PUBLISH channel message
+        example: |
+          # terminal 1
+          SUBSCRIBE chat:room1
+          PSUBSCRIBE chat:*            # pattern
+          # terminal 2
+          PUBLISH chat:room1 "hello"   # (integer) 1 = number of receivers
+        mistake:
+          en: Expecting messages to be kept; pub/sub is fire and forget, and a subscriber that is offline misses them. Use streams for that.
+          tr: Mesajların saklanmasını beklemek; pub/sub ateşle ve unut mantığıyla çalışır, o an bağlı olmayan abone mesajları kaçırır. Bunun için stream kullan.
+        source: https://redis.io/docs/latest/develop/pubsub/
+      - id: xadd
+        level: intermediate
+        title: { en: Add to a stream, tr: Stream'e ekleme }
+        what:
+          en: A stream is an append-only log; XADD adds an entry with an automatic time-based id, and it stays until trimmed.
+          tr: Stream sadece sonuna eklenen bir kayıt defteridir; XADD zamana dayalı otomatik bir id ile kayıt ekler, kayıt kırpılana kadar kalır.
+        lang: text
+        form: XADD key [MAXLEN ~ n] * field value [field value ...]
+        example: |
+          XADD orders MAXLEN ~ 10000 * id 42 total 999   # "1760702400000-0"
+          XLEN orders                                     # (integer) 1
+          XRANGE orders - + COUNT 10                      # oldest first
+        mistake:
+          en: Never trimming the stream; it grows until Redis runs out of memory. Use MAXLEN or XTRIM.
+          tr: Stream'i hiç kırpmamak; Redis'in belleği bitene kadar büyür. MAXLEN ya da XTRIM kullan.
+        source: https://redis.io/docs/latest/commands/xadd/
+      - id: consumer-groups
+        level: advanced
+        title: { en: Consumer groups, tr: Consumer group'lar }
+        what:
+          en: A consumer group shares stream entries among workers; each entry goes to one worker and stays pending until it is acknowledged.
+          tr: Consumer group stream kayıtlarını worker'lar arasında paylaştırır; her kayıt bir worker'a gider ve onaylanana kadar bekleyen olarak kalır.
+        lang: text
+        form: XREADGROUP GROUP g consumer COUNT n BLOCK ms STREAMS key >
+        example: |
+          XGROUP CREATE orders mailers $ MKSTREAM
+          XREADGROUP GROUP mailers worker-1 COUNT 10 BLOCK 5000 STREAMS orders >
+          XACK orders mailers 1760702400000-0
+          XPENDING orders mailers                   # not acked yet
+          XAUTOCLAIM orders mailers worker-2 60000 0-0   # take over stuck ones
+        mistake:
+          en: Forgetting XACK; entries pile up in the pending list and are never cleaned.
+          tr: XACK'i unutmak; kayıtlar bekleyenler listesinde birikir ve hiç temizlenmez.
+        source: https://redis.io/docs/latest/develop/data-types/streams/
+  - id: safety
+    title: { en: Transactions and persistence, tr: Transaction ve kalıcılık }
+    items:
+      - id: multi-exec
+        level: intermediate
+        title: { en: MULTI and EXEC, tr: MULTI ve EXEC }
+        what:
+          en: Queues several commands and runs them together, with no other client's command in between.
+          tr: Birkaç komutu sıraya alır ve arada başka bir istemcinin komutu olmadan birlikte çalıştırır.
+        lang: text
+        form: MULTI ... EXEC
+        example: |
+          MULTI
+          DECRBY account:a 50
+          INCRBY account:b 50
+          EXEC        # 1) (integer) 50 2) (integer) 150
+        mistake:
+          en: Expecting a rollback; if one command fails at run time the others still apply. Redis transactions are not like SQL ones.
+          tr: Geri alma beklemek; bir komut çalışırken hata verirse diğerleri yine uygulanır. Redis transaction'ları SQL'dekiler gibi değildir.
+        source: https://redis.io/docs/latest/develop/using-commands/transactions/
+      - id: pipelining
+        level: intermediate
+        title: { en: Pipelining, tr: Pipelining }
+        what:
+          en: Sends many commands without waiting for each reply, which removes most of the network round trips.
+          tr: Her cevabı beklemeden çok sayıda komut gönderir; ağ gidiş dönüşlerinin çoğunu ortadan kaldırır.
+        lang: js
+        form: client.multi() / pipeline in your client library
+        example: |
+          import { createClient } from "redis";
+          const redis = await createClient().connect();
+          const replies = await redis.multi()
+            .set("a", "1")
+            .incr("a")
+            .get("a")
+            .execAsPipeline();   // pipeline without MULTI/EXEC
+          console.log(replies);  // [ 'OK', 2, '2' ]
+        source: https://redis.io/docs/latest/develop/using-commands/pipelining/
+      - id: lua
+        level: advanced
+        title: { en: Lua scripts, tr: Lua script'leri }
+        what:
+          en: EVAL runs a small Lua script on the server as one atomic step, for logic MULTI cannot express like check-then-set.
+          tr: EVAL küçük bir Lua script'ini sunucuda tek ve atomik bir adım olarak çalıştırır; kontrol edip yazmak gibi MULTI'nin ifade edemediği mantık için.
+        lang: text
+        form: EVAL script numkeys key [key ...] arg [arg ...]
+        example: |
+          # release a lock only if we still own it
+          EVAL "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end" 1 lock:invoice:42 worker-1
+        mistake:
+          en: Long-running scripts; the server runs nothing else meanwhile. Keep scripts short.
+          tr: Uzun süren script'ler; bu arada sunucu başka hiçbir şey çalıştırmaz. Script'leri kısa tut.
+        source: https://redis.io/docs/latest/develop/programmability/eval-intro/
+      - id: rdb
+        level: basic
+        title: { en: Snapshots (RDB), tr: Anlık görüntüler (RDB) }
+        what:
+          en: Redis keeps data in memory and, by default, writes a snapshot file (dump.rdb) to disk from time to time.
+          tr: Redis veriyi bellekte tutar ve varsayılan olarak zaman zaman diske bir anlık görüntü dosyası (dump.rdb) yazar.
+        lang: text
+        form: save <seconds> <changes>
+        example: |
+          # redis.conf; this is also the default
+          save 3600 1 300 100 60 10000
+          # by hand
+          BGSAVE
+          LASTSAVE
+        mistake:
+          en: Treating RDB alone as safe storage; writes since the last snapshot are lost if the server crashes.
+          tr: Tek başına RDB'yi güvenli depolama sanmak; sunucu çökerse son görüntüden sonraki yazmalar kaybolur.
+        source: https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
+      - id: aof
+        level: intermediate
+        title: { en: Append-only file (AOF), tr: Append-only file (AOF) }
+        what:
+          en: AOF logs every write to disk so at most about one second of data is lost on a crash; it is off by default.
+          tr: AOF her yazmayı diske kaydeder; çökmede en fazla yaklaşık bir saniyelik veri kaybolur. Varsayılan olarak kapalıdır.
+        lang: text
+        form: appendonly yes + appendfsync everysec
+        example: |
+          # redis.conf
+          appendonly yes
+          appendfsync everysec      # always = safest and slowest, no = leave it to the OS
+          # at run time
+          CONFIG SET appendonly yes
+        avoid:
+          en: For a pure cache you can rebuild from the database, persistence can stay off entirely (save "" and appendonly no).
+          tr: Veritabanından yeniden kurabileceğin saf bir önbellek için kalıcılık tamamen kapalı kalabilir (save "" ve appendonly no).
+        source: https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/#append-only-file
+      - id: acl
+        level: advanced
+        title: { en: Users and passwords (ACL), tr: Kullanıcılar ve şifreler (ACL) }
+        what:
+          en: ACL users get their own password and a list of allowed commands and key patterns.
+          tr: ACL kullanıcılarının kendi şifresi ve izin verilen komut ve anahtar desenleri listesi olur.
+        lang: text
+        form: ACL SETUSER name on >password ~pattern +@category
+        example: |
+          ACL SETUSER app on >s3cret-pass ~cache:* +@read +@write -@dangerous
+          AUTH app s3cret-pass
+          ACL WHOAMI                 # "app"
+        mistake:
+          en: Letting the app connect as the default user with all commands, including FLUSHALL and CONFIG.
+          tr: Uygulamanın, FLUSHALL ve CONFIG dahil bütün komutlara izni olan varsayılan kullanıcıyla bağlanmasına izin vermek.
+        source: https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/

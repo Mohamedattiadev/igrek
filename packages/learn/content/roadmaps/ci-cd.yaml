@@ -1,0 +1,1479 @@
+id: ci-cd
+title: CI/CD with GitHub Actions
+summary:
+  en: "Make a computer test, check and ship your code for you on every change. You add a real pipeline to a small Node.js web app: tests, lint, protected main branch, a Docker image on GitHub's registry and an automatic deploy."
+  tr: "Her değişiklikte kodunu senin yerine test eden, kontrol eden ve yayınlayan bir bilgisayar kur. Küçük bir Node.js web uygulamasına gerçek bir pipeline eklersin: testler, lint, korumalı main dalı, GitHub'ın registry'sinde bir Docker image'ı ve otomatik deploy."
+teacher: devops
+project:
+  en: "tiny-status, a small existing Node.js web app. Every push and pull request is tested on three Node versions and linted, main can only change through a green pull request, and a merge builds a Docker image, pushes it to GHCR and triggers a deploy to a free host."
+  tr: "tiny-status, küçük ve hazır bir Node.js web uygulaması. Her push ve pull request üç Node sürümünde test edilir ve lint'ten geçer; main ancak yeşil bir pull request ile değişir ve bir merge Docker image'ı üretip GHCR'ye gönderir, ardından ücretsiz bir host'a deploy tetikler."
+detect:
+  files: [.github/workflows]
+checked: 2026-10
+after: [docker]
+sheets: [github-actions, git, docker]
+steps:
+  - id: app
+    stage: setup
+    title:
+      en: "Get the app and put it on GitHub"
+      tr: "Uygulamayı hazırlama ve GitHub'a koyma"
+    minutes: 45
+    why:
+      en: "CI/CD needs something to run on. You start from a tiny web server that already has tests and a linter, and put it in a public GitHub repository, because that is where GitHub Actions lives. Public repositories also get branch rules and deploy environments for free."
+      tr: "CI/CD'nin üzerinde çalışacağı bir şey olması gerekir. Testleri ve linter'ı hazır, küçük bir web sunucusuyla başlıyorsun ve onu herkese açık bir GitHub reposuna koyuyorsun, çünkü GitHub Actions orada yaşıyor. Herkese açık repolar dal kurallarını ve deploy ortamlarını da ücretsiz alır."
+    learn:
+      en: |
+        - What CI (continuous integration: checking every change automatically) and CD (continuous delivery: shipping it automatically) mean
+        - What the app does and which commands test and check it by hand
+        - How to push a project to GitHub
+      tr: |
+        - CI'nin (sürekli entegrasyon: her değişikliği otomatik kontrol etmek) ve CD'nin (sürekli teslimat: onu otomatik yayınlamak) ne demek olduğu
+        - Uygulamanın ne yaptığı ve onu elle test edip kontrol eden komutlar
+        - Bir projeyi GitHub'a nasıl göndereceğin
+    do:
+      en: |
+        1. Install **Node.js LTS** (nodejs.org) and **Git** (git-scm.com) if you do not have them. Check with `node --version` and `git --version`.
+        2. Create a free account on github.com. Install the GitHub CLI (cli.github.com) if you like, then run `gh auth login`. Without it, Git asks you to sign in through the browser the first time you push.
+        3. Make a folder and create the files below exactly as shown. The app has no runtime dependencies. Its only development dependency is ESLint, a tool that finds mistakes in code (a linter).
+        4. Install, check and run the app by hand. `npm run lint` and `npm test` should print no errors, and `npm start` serves the app on port 3000 (stop it with Ctrl+C).
+        5. On github.com click *New repository*. Name it `tiny-status`, choose **Public**, and do not add a README or any other file.
+        6. Back in the terminal, make the first commit and push it. Replace `YOUR-NAME` with your GitHub username.
+        7. Open the repository in the browser and check that your files are there, including `package-lock.json`.
+      tr: |
+        1. Kurulu değilse **Node.js LTS** (nodejs.org) ve **Git**'i (git-scm.com) kur. `node --version` ve `git --version` ile kontrol et.
+        2. github.com'da ücretsiz bir hesap aç. İstersen GitHub CLI'ı kur (cli.github.com) ve `gh auth login` çalıştır. Kurmazsan Git ilk push'ta senden tarayıcıdan giriş yapmanı ister.
+        3. Bir klasör aç ve aşağıdaki dosyaları aynen oluştur. Uygulamanın çalışma zamanı bağımlılığı yok. Tek geliştirme bağımlılığı, koddaki hataları bulan bir araç olan ESLint (bir linter).
+        4. Uygulamayı elle kur, kontrol et ve çalıştır. `npm run lint` ve `npm test` hata yazmamalı, `npm start` uygulamayı 3000 portunda sunar (Ctrl+C ile durdur).
+        5. github.com'da *New repository*'ye tıkla. Adı `tiny-status` olsun, **Public** seç ve README ya da başka dosya ekleme.
+        6. Terminale dön, ilk commit'i yapıp push'la. `YOUR-NAME` yerine GitHub kullanıcı adını yaz.
+        7. Repoyu tarayıcıda aç ve dosyalarının, `package-lock.json` dahil, orada olduğunu kontrol et.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "tiny-status",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "engines": { "node": ">=22" },
+            "scripts": {
+              "start": "node src/server.js",
+              "test": "node --test",
+              "lint": "eslint ."
+            },
+            "devDependencies": {
+              "@eslint/js": "^10.0.1",
+              "eslint": "^10.13.0",
+              "globals": "^17.13.0"
+            }
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import { createServer } from "node:http";
+
+          export function handler(req, res) {
+            if (req.url === "/health") {
+              res.writeHead(200, { "Content-Type": "application/json" });
+              res.end(JSON.stringify({ status: "ok" }));
+              return;
+            }
+            res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+            res.end("Hello from tiny-status\n");
+          }
+
+          export function createApp() {
+            return createServer(handler);
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+
+          const port = Number(process.env.PORT) || 3000;
+
+          createApp().listen(port, () => {
+            console.log(`tiny-status is listening on port ${port}`);
+          });
+      - file: test/app.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { after, before, test } from "node:test";
+          import { createApp } from "../src/app.js";
+
+          let server;
+          let base;
+
+          before(async () => {
+            server = createApp();
+            await new Promise((resolve) => server.listen(0, resolve));
+            base = `http://127.0.0.1:${server.address().port}`;
+          });
+
+          after(() => {
+            server.close();
+          });
+
+          test("GET / says hello", async () => {
+            const res = await fetch(base + "/");
+            assert.equal(res.status, 200);
+            assert.match(await res.text(), /Hello from tiny-status/);
+          });
+
+          test("GET /health reports ok", async () => {
+            const res = await fetch(base + "/health");
+            assert.equal(res.status, 200);
+            assert.deepEqual(await res.json(), { status: "ok" });
+          });
+      - file: eslint.config.js
+        lang: js
+        text: |
+          import js from "@eslint/js";
+          import globals from "globals";
+
+          export default [
+            { ignores: ["node_modules/", "coverage/"] },
+            js.configs.recommended,
+            { languageOptions: { globals: { ...globals.node } } },
+          ];
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules/
+          coverage/
+          test-results.xml
+      - file: terminal
+        lang: sh
+        text: |
+          npm install
+          npm run lint
+          npm test
+          npm start
+
+          git init -b main
+          git add .
+          git commit -m "tiny-status: first version"
+          git remote add origin https://github.com/YOUR-NAME/tiny-status.git
+          git push -u origin main
+    mistakes:
+      - problem:
+          en: "The repository on GitHub has a README or license file, and `git push` is rejected."
+          tr: "GitHub'daki repoda README ya da lisans dosyası var ve `git push` reddediliyor."
+        fix:
+          en: "Create the repository again without any starting files, or run `git pull origin main --rebase` once and push again."
+          tr: "Repoyu hiçbir başlangıç dosyası olmadan yeniden oluştur ya da bir kez `git pull origin main --rebase` çalıştırıp tekrar push'la."
+      - problem:
+          en: "`package-lock.json` is not committed (or is in `.gitignore`)."
+          tr: "`package-lock.json` commit edilmemiş (ya da `.gitignore` içinde)."
+        fix:
+          en: "Commit it. The pipeline installs with `npm ci`, which stops with an error when the lock file is missing, and it makes every run install exactly the same versions."
+          tr: "Commit et. Pipeline `npm ci` ile kurar; lock dosyası yoksa hata verip durur ve her çalışmanın tamı tamına aynı sürümleri kurmasını sağlar."
+      - problem:
+          en: "Choosing Private for the repository."
+          tr: "Repo için Private seçmek."
+        fix:
+          en: "Branch rules and environment approvals need a paid plan for private repositories. Use Public for this roadmap, and never commit passwords or keys to it."
+          tr: "Dal kuralları ve environment onayları private repolarda ücretli plan ister. Bu roadmap için Public kullan ve içine asla şifre ya da anahtar commit etme."
+    quiz:
+      - q:
+          en: "What does CI do?"
+          tr: "CI ne yapar?"
+        options:
+          en: [Checks every change automatically so mistakes show up early, Writes the code for you, Makes the website faster]
+          tr: [Her değişikliği otomatik kontrol eder ve hatalar erken görünür, Kodu senin yerine yazar, Web sitesini hızlandırır]
+        answer: 0
+        why:
+          en: "Continuous integration runs the tests and checks on every change, so a broken change is found in minutes, not weeks later."
+          tr: "Sürekli entegrasyon testleri ve kontrolleri her değişiklikte çalıştırır; bozuk bir değişiklik haftalar sonra değil dakikalar içinde bulunur."
+    sources:
+      - title: GitHub Actions, understanding GitHub Actions
+        url: https://docs.github.com/en/actions/get-started/understand-github-actions
+      - title: Node.js test runner
+        url: https://nodejs.org/api/test.html
+      - title: Create a repository
+        url: https://docs.github.com/en/repositories/creating-and-managing-repositories/quickstart-for-repositories
+
+  - id: first-workflow
+    stage: first-code
+    title:
+      en: "Your first workflow: test on every push"
+      tr: "İlk workflow'un: her push'ta test"
+    minutes: 30
+    needs: [app]
+    why:
+      en: "Until now the tests run only when you remember them. A workflow is a recipe GitHub follows on its own machine every time something happens in your repository, so no change goes untested."
+      tr: "Şimdiye kadar testler sadece sen hatırlayınca çalıştı. Workflow, repoda bir şey olduğunda GitHub'ın kendi makinesinde kendiliğinden uyguladığı bir tariftir; böylece hiçbir değişiklik testsiz kalmaz."
+    learn:
+      en: |
+        - A workflow is a YAML file in `.github/workflows`; `on` says when it runs, `jobs` says what runs
+        - A job runs on a fresh machine (the runner); a step either uses a ready-made action or runs a shell command
+        - Why a job starts with `actions/checkout`, and why we use `npm ci` instead of `npm install`
+      tr: |
+        - Workflow, `.github/workflows` içinde bir YAML dosyasıdır; `on` ne zaman, `jobs` neyin çalışacağını söyler
+        - Bir job temiz bir makinede (runner) çalışır; bir adım ya hazır bir action kullanır ya da bir shell komutu çalıştırır
+        - Bir job'un neden `actions/checkout` ile başladığı ve neden `npm install` yerine `npm ci` kullandığımız
+    do:
+      en: |
+        1. Create the folder `.github/workflows` in your project and the file `ci.yml` inside it with the code below. Note the folder name: `workflows`, with an `s`.
+        2. Commit and push it to main: `git add . && git commit -m "Add CI workflow" && git push`.
+        3. Open your repository on GitHub and click the **Actions** tab. A run called "CI" appears. Click it, then the `test` job, and open each step to read its log.
+        4. Wait for the green check mark. The run took about 20-40 seconds on a machine you never saw.
+        5. Using Python instead of Node? The shape is the same: swap the two Node steps for `actions/setup-python@v7` (with `python-version: "3.14"` in quotes and `cache: pip`), then `pip install -r requirements.txt` and `pytest`.
+      tr: |
+        1. Projende `.github/workflows` klasörünü ve içinde `ci.yml` dosyasını aşağıdaki kodla oluştur. Klasör adına dikkat: `workflows`, sonunda `s` var.
+        2. Commit edip main'e push'la: `git add . && git commit -m "Add CI workflow" && git push`.
+        3. GitHub'da reponu aç ve **Actions** sekmesine tıkla. "CI" adında bir çalışma görünür. Ona, sonra `test` job'una tıkla ve her adımı açıp logunu oku.
+        4. Yeşil tik işaretini bekle. Çalışma, hiç görmediğin bir makinede yaklaşık 20-40 saniye sürdü.
+        5. Node yerine Python mu kullanıyorsun? Şekil aynı: iki Node adımının yerine `actions/setup-python@v7` (tırnak içinde `python-version: "3.14"` ve `cache: pip` ile), ardından `pip install -r requirements.txt` ve `pytest` koy.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: 24
+                - run: npm ci
+                - run: npm test
+    mistakes:
+      - problem:
+          en: "Nothing appears in the Actions tab."
+          tr: "Actions sekmesinde hiçbir şey görünmüyor."
+        fix:
+          en: "The file must be exactly `.github/workflows/ci.yml` (with the `s`) and pushed to GitHub. A YAML mistake such as a wrong indent shows an error on the file in the Actions tab instead of a run."
+          tr: "Dosya tam olarak `.github/workflows/ci.yml` olmalı (`s` ile) ve GitHub'a push'lanmış olmalı. Yanlış girinti gibi bir YAML hatası, çalışma yerine Actions sekmesinde dosya üzerinde bir hata gösterir."
+      - problem:
+          en: "`npm ci` fails because `package-lock.json` is missing or does not match `package.json`."
+          tr: "`npm ci`, `package-lock.json` yok ya da `package.json` ile uyuşmadığı için hata veriyor."
+        fix:
+          en: "Run `npm install` locally, commit the updated `package-lock.json`, and push again."
+          tr: "Yerelde `npm install` çalıştır, güncellenen `package-lock.json` dosyasını commit et ve tekrar push'la."
+      - problem:
+          en: "Forgetting `actions/checkout`; the job starts on an empty machine."
+          tr: "`actions/checkout`'u unutmak; job boş bir makinede başlar."
+        fix:
+          en: "Always make it the first step. Without it there is no code, so `npm ci` cannot find a `package.json`."
+          tr: "Onu her zaman ilk adım yap. O olmazsa kod yoktur ve `npm ci` bir `package.json` bulamaz."
+    quiz:
+      - q:
+          en: "Why does the job need the `actions/checkout` step?"
+          tr: "Job'un neden `actions/checkout` adımına ihtiyacı var?"
+        options:
+          en: [To log in to GitHub, To copy your repository's code onto the fresh runner, To install Node.js]
+          tr: [GitHub'a giriş yapmak için, Repodaki kodu temiz runner'a kopyalamak için, Node.js kurmak için]
+        answer: 1
+        why:
+          en: "Each job starts on an empty machine. checkout downloads your code there; setup-node installs Node."
+          tr: "Her job boş bir makinede başlar. checkout kodunu oraya indirir; Node'u setup-node kurar."
+    sources:
+      - title: Quickstart for GitHub Actions
+        url: https://docs.github.com/en/actions/get-started/quickstart
+      - title: Workflow syntax for GitHub Actions
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+      - title: actions/checkout
+        url: https://github.com/actions/checkout
+
+  - id: lint-cache
+    stage: basics
+    title:
+      en: "Lint in its own job and cache dependencies"
+      tr: "Lint'i ayrı bir job'da çalıştırma ve bağımlılıkları cache'leme"
+    minutes: 30
+    needs: [first-workflow]
+    why:
+      en: "Tests find wrong behaviour; a linter finds suspicious code (unused variables, typos in names) before it runs. Separate jobs run side by side and show separate red or green marks, so you see at a glance what broke. The cache saves the downloaded packages, so the next run does not download them again."
+      tr: "Testler yanlış davranışı bulur; linter şüpheli kodu (kullanılmayan değişkenler, isimlerdeki yazım hataları) çalışmadan önce bulur. Ayrı job'lar yan yana çalışır ve ayrı kırmızı ya da yeşil işaret gösterir; neyin bozulduğunu bir bakışta görürsün. Cache indirilen paketleri saklar, böylece sonraki çalışma onları yeniden indirmez."
+    learn:
+      en: |
+        - Jobs in one workflow run in parallel unless one `needs` another
+        - `cache: npm` on `setup-node` saves npm's download folder under a key made from `package-lock.json`
+        - What a cache hit and a cache miss look like in the log
+      tr: |
+        - Bir workflow'daki job'lar, biri diğerine `needs` demedikçe paralel çalışır
+        - `setup-node` üzerindeki `cache: npm`, npm'in indirme klasörünü `package-lock.json`'dan üretilen bir anahtarla saklar
+        - Logda cache hit ve cache miss'in nasıl göründüğü
+    do:
+      en: |
+        1. Replace `.github/workflows/ci.yml` with the code below. It has two jobs, `lint` and `test`.
+        2. Commit and push to main. Open the Actions tab: the two jobs run side by side.
+        3. Open the `setup-node` step in the log. The first run says the cache was not found (a miss) and saves one at the end.
+        4. Make a harmless change (add a blank line to the README or a comment to `src/app.js`), push again, and look at `setup-node` again. It now says "Cache restored" (a hit), and `npm ci` is faster.
+      tr: |
+        1. `.github/workflows/ci.yml` dosyasını aşağıdaki kodla değiştir. İki job'u var: `lint` ve `test`.
+        2. Commit edip main'e push'la. Actions sekmesini aç: iki job yan yana çalışır.
+        3. Logda `setup-node` adımını aç. İlk çalışma cache'in bulunamadığını (miss) söyler ve sonunda bir tane kaydeder.
+        4. Zararsız bir değişiklik yap (README'ye boş satır ya da `src/app.js`'e bir yorum ekle), tekrar push'la ve `setup-node`'a yeniden bak. Artık "Cache restored" (hit) yazar ve `npm ci` daha hızlıdır.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          jobs:
+            lint:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: 24
+                    cache: npm
+                - run: npm ci
+                - run: npm run lint
+
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: 24
+                    cache: npm
+                - run: npm ci
+                - run: npm test
+    mistakes:
+      - problem:
+          en: "Expecting a big speed-up on the very first run."
+          tr: "İlk çalışmada büyük bir hızlanma beklemek."
+        fix:
+          en: "The first run only fills the cache. The gain starts from the second run, and for a small app it is a few seconds; it grows with the number of dependencies."
+          tr: "İlk çalışma sadece cache'i doldurur. Kazanç ikinci çalışmayla başlar ve küçük bir uygulamada birkaç saniyedir; bağımlılık sayısı arttıkça büyür."
+      - problem:
+          en: "Caching `node_modules` yourself with `actions/cache`."
+          tr: "`node_modules`'u `actions/cache` ile kendin cache'lemek."
+        fix:
+          en: "Cache npm's download folder instead (what `cache: npm` does) and still run `npm ci`. A cached `node_modules` can hide a broken lock file and breaks across Node versions."
+          tr: "Bunun yerine npm'in indirme klasörünü cache'le (`cache: npm` bunu yapar) ve yine de `npm ci` çalıştır. Cache'lenmiş `node_modules` bozuk bir lock dosyasını gizleyebilir ve Node sürümleri arasında bozulur."
+    quiz:
+      - q:
+          en: "What is the cache key for `cache: npm` built from?"
+          tr: "`cache: npm` için cache anahtarı neyden üretilir?"
+        options:
+          en: [The date, The hash of package-lock.json, The name of the branch]
+          tr: [Tarih, package-lock.json dosyasının hash'i, Dalın adı]
+        answer: 1
+        why:
+          en: "When the lock file changes (new or updated packages) the key changes, so a fresh cache is made. Otherwise the old one is restored."
+          tr: "Lock dosyası değişince (yeni ya da güncellenen paketler) anahtar da değişir ve yeni bir cache oluşur. Aksi halde eskisi geri yüklenir."
+    sources:
+      - title: Dependency caching reference
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching
+      - title: actions/setup-node, caching packages
+        url: https://github.com/actions/setup-node#caching-global-packages-data
+      - title: ESLint, getting started
+        url: https://eslint.org/docs/latest/use/getting-started
+
+  - id: matrix
+    stage: basics
+    title:
+      en: "Test on several Node versions with a matrix"
+      tr: "Matrix ile birkaç Node sürümünde test"
+    minutes: 25
+    needs: [lint-cache]
+    why:
+      en: "Your users and your hosting may not run the same Node version as your laptop. A matrix runs the same job once for each value in a list, so one workflow tells you whether the app works on all of them."
+      tr: "Kullanıcıların ve barındırma servisin senin dizüstündeki Node sürümüyle çalışmıyor olabilir. Matrix aynı job'u listedeki her değer için bir kez çalıştırır; böylece tek bir workflow uygulamanın hepsinde çalışıp çalışmadığını söyler."
+    learn:
+      en: |
+        - `strategy.matrix` creates one job per value, and `${{ matrix.node }}` reads the current value
+        - Job names become `test (22)`, `test (24)` and `test (26)`
+        - Why `fail-fast: false` is useful while you are learning what breaks where
+      tr: |
+        - `strategy.matrix` her değer için bir job üretir ve `${{ matrix.node }}` o anki değeri okur
+        - Job adları `test (22)`, `test (24)` ve `test (26)` olur
+        - Neyin nerede bozulduğunu öğrenirken `fail-fast: false`'ın neden işe yaradığı
+    do:
+      en: |
+        1. In `.github/workflows/ci.yml` replace only the `test` job with the one below. Keep the `lint` job as it was.
+        2. Commit and push to main.
+        3. In the Actions tab you now see four jobs: `lint`, `test (22)`, `test (24)` and `test (26)`. Click one test job and find the Node version in the `setup-node` log.
+        4. Remember these four names. In the next step you will require them before anything can be merged. Node 22 and 24 are long-term-support lines; 26 is the newest line, so catching a problem there warns you early.
+      tr: |
+        1. `.github/workflows/ci.yml` içinde sadece `test` job'unu aşağıdakiyle değiştir. `lint` job'u olduğu gibi kalsın.
+        2. Commit edip main'e push'la.
+        3. Actions sekmesinde artık dört job görürsün: `lint`, `test (22)`, `test (24)` ve `test (26)`. Bir test job'una tıkla ve `setup-node` logunda Node sürümünü bul.
+        4. Bu dört adı aklında tut. Bir sonraki adımda, bir şey merge edilmeden önce bunları zorunlu yapacaksın. Node 22 ve 24 uzun süreli destek (LTS) sürümleridir; 26 en yeni sürümdür, orada bir sorun yakalamak seni erkenden uyarır.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          # the test job, replacing the old one (lint stays as it was)
+            test:
+              runs-on: ubuntu-latest
+              strategy:
+                fail-fast: false
+                matrix:
+                  node: [22, 24, 26]
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: ${{ matrix.node }}
+                    cache: npm
+                - run: npm ci
+                - run: npm test
+    mistakes:
+      - problem:
+          en: "Writing a version like `3.10` (Python) or `20.10` without quotes."
+          tr: "`3.10` (Python) ya da `20.10` gibi bir sürümü tırnaksız yazmak."
+        fix:
+          en: "YAML reads it as the number 3.1 or 20.1. Quote versions that have a dot: `\"3.10\"`. Whole numbers like `22` are fine."
+          tr: "YAML onu 3.1 ya da 20.1 sayısı olarak okur. Noktalı sürümleri tırnak içine al: `\"3.10\"`. `22` gibi tam sayılar sorun değildir."
+      - problem:
+          en: "Leaving `fail-fast` at its default, true."
+          tr: "`fail-fast`'i varsayılanında (true) bırakmak."
+        fix:
+          en: "One failing combination then cancels all the others, and you never learn which versions also fail. Set it to false."
+          tr: "Bu durumda tek bir başarısız birleşim diğerlerini iptal eder ve başka hangi sürümlerin de bozulduğunu hiç öğrenmezsin. false yap."
+    quiz:
+      - q:
+          en: "A matrix with `node: [22, 24, 26]` creates how many `test` jobs?"
+          tr: "`node: [22, 24, 26]` olan bir matrix kaç `test` job'u üretir?"
+        options:
+          en: [One that runs three times in a row, Three that run side by side, Only the newest one]
+          tr: [Arka arkaya üç kez çalışan bir tane, Yan yana çalışan üç tane, Sadece en yenisi]
+        answer: 1
+        why:
+          en: "One job per value, started at the same time (the runners are separate machines)."
+          tr: "Her değer için bir job, hepsi aynı anda başlar (runner'lar ayrı makinelerdir)."
+    sources:
+      - title: Running variations of jobs in a workflow
+        url: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations
+      - title: Node.js release schedule
+        url: https://nodejs.org/en/about/previous-releases
+
+  - id: required-checks
+    stage: first-project
+    title:
+      en: "Protect main: green pull requests only"
+      tr: "main'i koruma: sadece yeşil pull request'ler"
+    minutes: 35
+    needs: [matrix]
+    why:
+      en: "CI that you are free to ignore does not protect anything. A ruleset tells GitHub that main can change only through a pull request whose checks are green. From now on a broken change cannot reach main, even by accident."
+      tr: "Görmezden gelebildiğin bir CI hiçbir şeyi korumaz. Ruleset, GitHub'a main'in sadece kontrolleri yeşil olan bir pull request ile değişebileceğini söyler. Bundan sonra bozuk bir değişiklik main'e kazara bile giremez."
+    learn:
+      en: |
+        - A pull request (PR) proposes a change on a branch; checks run on it before it is merged
+        - A required status check is a job name that must be green before the merge button works
+        - The daily routine: branch, commit, push, pull request, wait for green, merge
+      tr: |
+        - Pull request (PR) bir dalda değişiklik önerir; merge edilmeden önce üzerinde kontroller çalışır
+        - Zorunlu status check, merge düğmesi çalışmadan önce yeşil olması gereken bir job adıdır
+        - Günlük rutin: dal aç, commit et, push'la, pull request aç, yeşili bekle, merge et
+    do:
+      en: |
+        1. On github.com open your repository, then **Settings**. In the left sidebar under "Code and automation" click **Rules**, then **Rulesets**, then **New ruleset** and **New branch ruleset**.
+        2. Name it `protect-main`. Change *Enforcement status* from Disabled to **Active** (the default is Disabled, and a disabled ruleset does nothing).
+        3. Under *Target branches* click *Add target* and choose **Include default branch**.
+        4. Tick **Require a pull request before merging**. Leave the number of required approvals at 0: you are the only person, and you cannot approve your own pull request.
+        5. Tick **Require status checks to pass**, click *Add checks* and add `lint`, `test (22)`, `test (24)` and `test (26)`. A check only shows up in the search after it has run in this repository, which is why we ran them first. Click **Create**.
+        6. Try it. Break the app on purpose on a new branch with the commands below, change `"Hello from tiny-status"` in `src/app.js` to `"Hi"`, then commit and push.
+        7. Open a pull request (`gh pr create --fill`, or use the link `git push` prints). Watch `test (22)` and the others turn red. The merge button is blocked.
+        8. Undo the change (`git revert HEAD --no-edit` and push), wait for green, and merge. Then `git switch main && git pull` brings main up to date.
+      tr: |
+        1. github.com'da reponu aç, sonra **Settings**'e git. Soldaki menüde "Code and automation" altında **Rules**, sonra **Rulesets**, sonra **New ruleset** ve **New branch ruleset**'e tıkla.
+        2. Adı `protect-main` olsun. *Enforcement status*'u Disabled'dan **Active**'e çevir (varsayılan Disabled'dır ve kapalı bir ruleset hiçbir şey yapmaz).
+        3. *Target branches* altında *Add target*'a tıkla ve **Include default branch** seç.
+        4. **Require a pull request before merging**'i işaretle. Gerekli onay sayısını 0 bırak: tek kişisin ve kendi pull request'ini onaylayamazsın.
+        5. **Require status checks to pass**'i işaretle, *Add checks*'e tıkla ve `lint`, `test (22)`, `test (24)` ve `test (26)`'yı ekle. Bir check, bu repoda çalıştıktan sonra aramada görünür; bu yüzden önce onları çalıştırdık. **Create**'e tıkla.
+        6. Dene. Aşağıdaki komutlarla yeni bir dalda uygulamayı bilerek boz: `src/app.js` içindeki `"Hello from tiny-status"` yazısını `"Hi"` yap, commit et ve push'la.
+        7. Bir pull request aç (`gh pr create --fill` ya da `git push`'un yazdırdığı bağlantı). `test (22)` ve diğerlerinin kırmızıya dönmesini izle. Merge düğmesi kilitlidir.
+        8. Değişikliği geri al (`git revert HEAD --no-edit` ve push), yeşili bekle ve merge et. Sonra `git switch main && git pull` main'i günceller.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git switch -c break-on-purpose
+          # edit src/app.js: "Hello from tiny-status" -> "Hi"
+          git commit -am "Shorter greeting"
+          git push -u origin break-on-purpose
+          gh pr create --fill
+
+          # after seeing it fail:
+          git revert HEAD --no-edit
+          git push
+          # wait for the green checks, merge the pull request, then:
+          git switch main
+          git pull
+    mistakes:
+      - problem:
+          en: "The check names do not show up when you add required checks."
+          tr: "Zorunlu check eklerken check adları çıkmıyor."
+        fix:
+          en: "They appear only after the workflow has run in this repository. Push the workflow first, wait for a run, then add the names exactly as the jobs are shown (`test (24)`, with a space)."
+          tr: "Sadece workflow bu repoda çalıştıktan sonra çıkarlar. Önce workflow'u push'la, bir çalışma bekle, sonra adları job'ların göründüğü gibi tam yaz (`test (24)`, boşlukla)."
+      - problem:
+          en: "Requiring a check from a workflow that skips itself (for example with a `paths:` filter)."
+          tr: "Kendini atlayan bir workflow'daki (örneğin `paths:` filtreli) bir check'i zorunlu yapmak."
+        fix:
+          en: "A skipped workflow never reports, and the pull request waits for ever. Do not put `paths:` filters on workflows whose checks are required."
+          tr: "Atlanan bir workflow hiç rapor vermez ve pull request sonsuza kadar bekler. Check'leri zorunlu olan workflow'lara `paths:` filtresi koyma."
+      - problem:
+          en: "Setting the number of required approvals to 1 on a project you work on alone."
+          tr: "Tek başına çalıştığın bir projede gerekli onay sayısını 1 yapmak."
+        fix:
+          en: "You cannot approve your own pull request, so you lock yourself out. Keep 0 until there is a second person."
+          tr: "Kendi pull request'ini onaylayamazsın ve kendini kilitlersin. İkinci bir kişi olana kadar 0 bırak."
+    quiz:
+      - q:
+          en: "What does a required status check do?"
+          tr: "Zorunlu status check ne yapar?"
+        options:
+          en: [Sends you an email when it fails, Blocks the merge until that job is green, Deletes the branch after it fails]
+          tr: [Başarısız olunca sana e-posta atar, O job yeşil olana kadar merge'ü engeller, Başarısız olunca dalı siler]
+        answer: 1
+        why:
+          en: "The merge button stays disabled until every required check has passed."
+          tr: "Gerekli her check geçene kadar merge düğmesi kapalı kalır."
+    sources:
+      - title: Creating rulesets for a repository
+        url: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/creating-rulesets-for-a-repository
+      - title: Available rules for rulesets
+        url: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/available-rules-for-rulesets
+      - title: About pull requests
+        url: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests
+
+  - id: secrets-env
+    stage: data-api
+    title:
+      en: "Secrets, variables and environments"
+      tr: "Secret'lar, değişkenler ve environment'lar"
+    minutes: 35
+    needs: [required-checks]
+    why:
+      en: "A pipeline soon needs passwords and tokens, for example the URL that triggers a deploy. They must never be written in a file in the repository. GitHub stores them as secrets, hides them in logs and hands them only to the jobs that need them. Environments such as staging and production add their own values and approval rules."
+      tr: "Bir pipeline çok yakında şifrelere ve token'lara ihtiyaç duyar; örneğin bir deploy'u tetikleyen adres. Bunlar repodaki bir dosyaya asla yazılmamalı. GitHub onları secret olarak saklar, loglarda gizler ve sadece ihtiyacı olan job'lara verir. staging ve production gibi environment'lar kendi değerlerini ve onay kurallarını ekler."
+    learn:
+      en: |
+        - Secrets (hidden) and variables (plain text) are read with `secrets.NAME` and `vars.NAME`
+        - An environment groups values and rules; a job opts in with `environment:`
+        - Secrets are masked in logs as `***`, and are not passed to pull requests from forks
+      tr: |
+        - Secret'lar (gizli) ve değişkenler (düz metin) `secrets.NAME` ve `vars.NAME` ile okunur
+        - Environment değerleri ve kuralları gruplar; bir job `environment:` ile ona katılır
+        - Secret'lar loglarda `***` olarak gizlenir ve fork'lardan gelen pull request'lere aktarılmaz
+    do:
+      en: |
+        1. In your repository open **Settings → Environments → New environment** and create `staging`. Do it again for `production`.
+        2. Open `staging`. Under *Environment variables* add `APP_NAME` with the value `tiny-status`. Under *Environment secrets* add `DEMO_SECRET` with the value `hunter2` (a fake one for practice).
+        3. On a new branch (`git switch -c check-config`) add the workflow below as `.github/workflows/check-config.yml`, push, open a pull request and merge it once green. The routine is the same as in the last step.
+        4. A `workflow_dispatch` button appears only for files on the default branch, so after merging go to **Actions → Check config → Run workflow**.
+        5. Open the run and read the log: the variable is shown in clear text, the secret is shown as `***`, and the length proves the value was there.
+        6. Delete `DEMO_SECRET` from the environment when you are done; you will add a real secret in the deploy step.
+      tr: |
+        1. Reponda **Settings → Environments → New environment** yolunu aç ve `staging` oluştur. Aynısını `production` için tekrarla.
+        2. `staging`'i aç. *Environment variables* altına değeri `tiny-status` olan `APP_NAME`'i ekle. *Environment secrets* altına değeri `hunter2` olan `DEMO_SECRET`'ı ekle (alıştırma için sahte bir değer).
+        3. Yeni bir dalda (`git switch -c check-config`) aşağıdaki workflow'u `.github/workflows/check-config.yml` olarak ekle, push'la, pull request aç ve yeşil olunca merge et. Rutin bir önceki adımdakiyle aynı.
+        4. `workflow_dispatch` butonu sadece varsayılan daldaki dosyalar için görünür; bu yüzden merge'den sonra **Actions → Check config → Run workflow** yoluna git.
+        5. Çalışmayı aç ve logu oku: değişken düz metin olarak görünür, secret `***` olarak görünür ve uzunluk değerin orada olduğunu kanıtlar.
+        6. İşin bitince `DEMO_SECRET`'ı environment'tan sil; gerçek secret'ı deploy adımında ekleyeceksin.
+    code:
+      - file: .github/workflows/check-config.yml
+        lang: yaml
+        text: |
+          name: Check config
+
+          on: workflow_dispatch
+
+          permissions: {}
+
+          jobs:
+            check:
+              runs-on: ubuntu-latest
+              environment: staging
+              steps:
+                - name: Show configuration
+                  env:
+                    APP_NAME: ${{ vars.APP_NAME }}
+                    DEMO_SECRET: ${{ secrets.DEMO_SECRET }}
+                  run: |
+                    echo "App name: $APP_NAME"
+                    echo "Secret value: $DEMO_SECRET"
+                    echo "Secret length: ${#DEMO_SECRET}"
+    mistakes:
+      - problem:
+          en: "Putting a real password in a variable or in a workflow file."
+          tr: "Gerçek bir şifreyi değişkene ya da workflow dosyasına yazmak."
+        fix:
+          en: "Variables and files are plain text for everyone who can read the repository. Passwords and tokens go into secrets only. If one leaked, revoke it at its source first, then store the new one."
+          tr: "Değişkenler ve dosyalar repoyu okuyabilen herkese düz metin görünür. Şifreler ve token'lar sadece secret'a konur. Biri sızdıysa önce kaynağında iptal et, sonra yenisini kaydet."
+      - problem:
+          en: "Expecting a secret in a pull request from a fork."
+          tr: "Fork'tan gelen bir pull request'te secret beklemek."
+        fix:
+          en: "Secrets (except the automatic `GITHUB_TOKEN`) are not passed there, so the step gets an empty value. This is a protection, not a bug."
+          tr: "Secret'lar (otomatik `GITHUB_TOKEN` hariç) oraya aktarılmaz; adım boş değer alır. Bu bir koruma, hata değil."
+      - problem:
+          en: "Printing a secret on purpose, or in a changed form (for example base64), to debug."
+          tr: "Hata ayıklamak için secret'ı bilerek ya da değiştirilmiş biçimde (örneğin base64) yazdırmak."
+        fix:
+          en: "Masking only recognises the exact value. A changed form leaks it. Print its length or whether it is empty instead."
+          tr: "Gizleme sadece tam değeri tanır; değiştirilmiş biçim sızdırır. Bunun yerine uzunluğunu ya da boş olup olmadığını yazdır."
+    quiz:
+      - q:
+          en: "Where should a deploy token be stored?"
+          tr: "Bir deploy token'ı nerede saklanmalı?"
+        options:
+          en: [In a .env file committed to the repository, In a secret in the repository or environment settings, In a variable]
+          tr: [Repoya commit edilen bir .env dosyasında, Repo ya da environment ayarlarındaki bir secret'ta, Bir değişkende]
+        answer: 1
+        why:
+          en: "Secrets are encrypted, hidden in logs and given only to the jobs that ask for them. Files and variables are readable."
+          tr: "Secret'lar şifrelidir, loglarda gizlenir ve sadece isteyen job'lara verilir. Dosyalar ve değişkenler okunabilir."
+    sources:
+      - title: Using secrets in GitHub Actions
+        url: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets
+      - title: Using variables
+        url: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables
+      - title: Managing environments for deployment
+        url: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+
+  - id: test-reports
+    stage: testing
+    title:
+      en: "Test reports and coverage"
+      tr: "Test raporları ve coverage"
+    minutes: 30
+    needs: [matrix]
+    why:
+      en: "When a test fails on a machine you cannot touch, the log is all you have. A saved report and a coverage number tell you more, and they are still there after the runner is gone."
+      tr: "Dokunamadığın bir makinede test başarısız olunca elindeki tek şey log'dur. Kaydedilmiş bir rapor ve bir coverage sayısı sana daha fazlasını söyler ve runner yok olduktan sonra da durur."
+    learn:
+      en: |
+        - Node's built-in test runner can print to the terminal and write a JUnit XML report at the same time
+        - Coverage shows which lines your tests run
+        - An artifact is a file saved from a run; `if: ${{ !cancelled() }}` uploads it even when the tests failed
+      tr: |
+        - Node'un yerleşik test çalıştırıcısı aynı anda terminale yazabilir ve JUnit XML raporu üretebilir
+        - Coverage, testlerinin hangi satırları çalıştırdığını gösterir
+        - Artifact bir çalışmadan kaydedilen dosyadır; `if: ${{ !cancelled() }}` testler başarısız olsa bile onu yükler
+    do:
+      en: |
+        1. On a new branch (`git switch -c test-reports`) add the `test:ci` script to `package.json` (the line is shown below). Run `npm run test:ci` locally: you get the test list, a coverage table and a `test-results.xml` file (already in `.gitignore`).
+        2. In `.github/workflows/ci.yml` replace the last two steps of the `test` job (`npm test` stays for local use) with the two steps below. The upload name includes the Node version, because artifact names must be unique within a run.
+        3. Push, open a pull request and merge it when green. In the run's page scroll to **Artifacts**: there is one `test-results-node-22`, `-24` and `-26` each. Download one and open the XML.
+        4. The coverage table is in the `Run tests with coverage` log. `src/server.js` is not tested; adding a test for it is a good exercise.
+      tr: |
+        1. Yeni bir dalda (`git switch -c test-reports`) `package.json`'a `test:ci` script'ini ekle (satır aşağıda). Yerelde `npm run test:ci` çalıştır: test listesini, bir coverage tablosunu ve bir `test-results.xml` dosyasını alırsın (dosya `.gitignore` içinde zaten var).
+        2. `.github/workflows/ci.yml` içinde `test` job'unun son iki adımını (`npm test` yerelde kullanım için kalır) aşağıdaki iki adımla değiştir. Yükleme adı Node sürümünü içerir, çünkü artifact adları bir çalışmada benzersiz olmalı.
+        3. Push'la, pull request aç ve yeşil olunca merge et. Çalışma sayfasında **Artifacts** bölümüne in: `test-results-node-22`, `-24` ve `-26` birer tane var. Birini indir ve XML'i aç.
+        4. Coverage tablosu `Run tests with coverage` logunda. `src/server.js` test edilmiyor; ona bir test eklemek iyi bir alıştırma.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          "scripts": {
+            "start": "node src/server.js",
+            "test": "node --test",
+            "test:ci": "node --test --experimental-test-coverage --test-reporter=spec --test-reporter-destination=stdout --test-reporter=junit --test-reporter-destination=test-results.xml",
+            "lint": "eslint ."
+          },
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          # the end of the test job: replace "- run: npm test" with these two steps
+                - name: Run tests with coverage
+                  run: npm run test:ci
+                - name: Upload test report
+                  if: ${{ !cancelled() }}
+                  uses: actions/upload-artifact@v7
+                  with:
+                    name: test-results-node-${{ matrix.node }}
+                    path: test-results.xml
+                    retention-days: 7
+    mistakes:
+      - problem:
+          en: "The report is missing exactly when a test fails."
+          tr: "Rapor tam da test başarısız olduğunda yok."
+        fix:
+          en: "Steps after a failed step are skipped by default. Add `if: ${{ !cancelled() }}` (or `always()`) to the upload step."
+          tr: "Başarısız bir adımdan sonraki adımlar varsayılan olarak atlanır. Yükleme adımına `if: ${{ !cancelled() }}` (ya da `always()`) ekle."
+      - problem:
+          en: "Uploading with the same artifact name from every matrix job."
+          tr: "Her matrix job'undan aynı artifact adıyla yükleme yapmak."
+        fix:
+          en: "Names must be unique within a run, so the second upload fails. Put `${{ matrix.node }}` in the name."
+          tr: "Adlar bir çalışmada benzersiz olmalı, bu yüzden ikinci yükleme hata verir. Ada `${{ matrix.node }}` ekle."
+      - problem:
+          en: "Chasing 100% coverage."
+          tr: "Yüzde 100 coverage'ın peşine düşmek."
+        fix:
+          en: "Coverage tells you what is not tested, not whether the tests are good. Use it to find gaps, not as a score."
+          tr: "Coverage neyin test edilmediğini söyler, testlerin iyi olup olmadığını değil. Boşlukları bulmak için kullan, puan olarak değil."
+    quiz:
+      - q:
+          en: "Why does the upload step have `if: ${{ !cancelled() }}`?"
+          tr: "Yükleme adımında neden `if: ${{ !cancelled() }}` var?"
+        options:
+          en: [To upload the report even when the tests failed, To make the upload faster, To upload only on main]
+          tr: [Testler başarısız olsa bile raporu yüklemek için, Yüklemeyi hızlandırmak için, Sadece main'de yüklemek için]
+        answer: 0
+        why:
+          en: "After a failure the remaining steps are skipped unless an `if` says otherwise, and a failure is exactly when you want the report."
+          tr: "Bir `if` aksini söylemedikçe, hatadan sonra kalan adımlar atlanır ve rapora en çok hata olunca ihtiyacın var."
+    sources:
+      - title: Node.js test runner, reporters and coverage
+        url: https://nodejs.org/api/test.html#collecting-code-coverage
+      - title: Store and share data with workflow artifacts
+        url: https://docs.github.com/en/actions/tutorials/store-and-share-data
+      - title: actions/upload-artifact
+        url: https://github.com/actions/upload-artifact
+
+  - id: permissions-pin
+    stage: security
+    title:
+      en: "Least privilege and pinned actions"
+      tr: "En az yetki ve sabitlenmiş action'lar"
+    minutes: 35
+    needs: [test-reports]
+    why:
+      en: "Every workflow runs other people's code (the actions) with a token that can write to your repository. If one action is hacked, the damage is as big as that token. You shrink the token to read-only and you pin each action to the exact code you reviewed."
+      tr: "Her workflow başkalarının kodunu (action'ları), repona yazabilen bir token ile çalıştırır. Bir action ele geçirilirse zarar o token kadar büyük olur. Token'ı salt okunur yapıp her action'ı incelediğin tam koda sabitlersin."
+    learn:
+      en: |
+        - `permissions:` limits the automatic `GITHUB_TOKEN`; whatever you do not list becomes `none`
+        - A tag like `@v7` can be moved to other code; a full 40-character commit SHA cannot
+        - `persist-credentials: false` stops checkout from leaving the token in the repository folder
+      tr: |
+        - `permissions:` otomatik `GITHUB_TOKEN`'ı sınırlar; listelemediğin her şey `none` olur
+        - `@v7` gibi bir tag başka bir koda taşınabilir; 40 karakterlik tam commit SHA'sı taşınamaz
+        - `persist-credentials: false`, checkout'un token'ı repo klasöründe bırakmasını engeller
+    do:
+      en: |
+        1. On a new branch (`git switch -c harden`) replace `ci.yml` with the code below. Compared to before: `permissions: contents: read` at the top, `persist-credentials: false`, and every action pinned to a commit SHA with the version in a comment.
+        2. To find a SHA yourself: `gh api repos/actions/checkout/commits/v7.0.1 --jq .sha` (this gives the commit the tag points to). Check that you used the official repository, not a fork.
+        3. Push, open a pull request and merge it when green.
+        4. In your repository open **Settings → Actions → General** and look at *Workflow permissions*. It should be "Read repository contents and packages permissions". Keep it, and give extra rights per job instead.
+        5. GitHub has a newer way, workflow dependency lockfiles (`gh actions-lock`, in public preview), that pins everything for you. Until you use it, SHAs are the safe default.
+      tr: |
+        1. Yeni bir dalda (`git switch -c harden`) `ci.yml` dosyasını aşağıdaki kodla değiştir. Öncekine göre: en üstte `permissions: contents: read`, `persist-credentials: false` ve her action sürümü yorumda yazan bir commit SHA'sına sabitlendi.
+        2. Bir SHA'yı kendin bulmak için: `gh api repos/actions/checkout/commits/v7.0.1 --jq .sha` (tag'in gösterdiği commit'i verir). Fork'u değil, resmi repoyu kullandığından emin ol.
+        3. Push'la, pull request aç ve yeşil olunca merge et.
+        4. Reponda **Settings → Actions → General**'ı aç ve *Workflow permissions*'a bak. "Read repository contents and packages permissions" olmalı. Öyle bırak ve fazladan yetkiyi job başına ver.
+        5. GitHub'ın daha yeni bir yolu da var: her şeyi senin yerine sabitleyen workflow dependency lockfile'lar (`gh actions-lock`, public preview). Onu kullanana kadar SHA'lar güvenli varsayılandır.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          permissions:
+            contents: read
+
+          jobs:
+            lint:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+                  with:
+                    persist-credentials: false
+                - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+                  with:
+                    node-version: 24
+                    cache: npm
+                - run: npm ci
+                - run: npm run lint
+
+            test:
+              runs-on: ubuntu-latest
+              strategy:
+                fail-fast: false
+                matrix:
+                  node: [22, 24, 26]
+              steps:
+                - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+                  with:
+                    persist-credentials: false
+                - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+                  with:
+                    node-version: ${{ matrix.node }}
+                    cache: npm
+                - run: npm ci
+                - name: Run tests with coverage
+                  run: npm run test:ci
+                - name: Upload test report
+                  if: ${{ !cancelled() }}
+                  uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+                  with:
+                    name: test-results-node-${{ matrix.node }}
+                    path: test-results.xml
+                    retention-days: 7
+    mistakes:
+      - problem:
+          en: "Pinning to a SHA copied from a fork, or from a random blog post."
+          tr: "Bir fork'tan ya da rastgele bir blog yazısından kopyalanan SHA'ya sabitlemek."
+        fix:
+          en: "Take the SHA from the official repository's releases or tags page, and keep the version in a comment so people (and Dependabot) know what it is."
+          tr: "SHA'yı resmi reponun releases ya da tags sayfasından al ve sürümü yorumda tut ki insanlar (ve Dependabot) ne olduğunu bilsin."
+      - problem:
+          en: "A step fails with \"Resource not accessible by integration\" after adding `permissions:`."
+          tr: "`permissions:` ekledikten sonra bir adım \"Resource not accessible by integration\" ile hata veriyor."
+        fix:
+          en: "The job needs a right you removed. Add only that right to only that job (for example `pull-requests: write`), not to the whole workflow."
+          tr: "Job, kaldırdığın bir yetkiye ihtiyaç duyuyor. Sadece o yetkiyi sadece o job'a ekle (örneğin `pull-requests: write`), bütün workflow'a değil."
+      - problem:
+          en: "Pinning to a SHA and never updating it."
+          tr: "SHA'ya sabitleyip onu hiç güncellememek."
+        fix:
+          en: "Old actions miss security fixes. The next step sets up Dependabot, which opens pull requests that move the SHA and its comment."
+          tr: "Eski action'lar güvenlik düzeltmelerini kaçırır. Sonraki adım, SHA'yı ve yorumunu ilerleten pull request'ler açan Dependabot'u kurar."
+    quiz:
+      - q:
+          en: "Why is a commit SHA safer than the tag `@v7`?"
+          tr: "Commit SHA'sı neden `@v7` tag'inden daha güvenli?"
+        options:
+          en: [It downloads faster, A tag can be moved to other code but a SHA always points to the same code, It lets the action run without a token]
+          tr: [Daha hızlı iner, Tag başka bir koda taşınabilir ama SHA hep aynı kodu gösterir, Action'ın token'sız çalışmasını sağlar]
+        answer: 1
+        why:
+          en: "Whoever controls the action's repository can move a tag. A commit SHA identifies exact content."
+          tr: "Action'ın reposunu kontrol eden biri tag'i taşıyabilir. Commit SHA'sı tam içeriği belirler."
+    sources:
+      - title: Secure use reference
+        url: https://docs.github.com/en/actions/reference/security/secure-use
+      - title: Use GITHUB_TOKEN for authentication in workflows
+        url: https://docs.github.com/en/actions/tutorials/authenticate-with-github_token
+      - title: Workflow syntax, permissions
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#permissions
+
+  - id: dependabot
+    stage: security
+    title:
+      en: "Keep actions and packages up to date with Dependabot"
+      tr: "Dependabot ile action'ları ve paketleri güncel tutma"
+    minutes: 25
+    needs: [permissions-pin]
+    why:
+      en: "Pinned versions are safe but they get old. Dependabot checks every week, opens a pull request for each new version, and your CI runs on it. You decide with one click, and a bad update is caught by the tests."
+      tr: "Sabitlenmiş sürümler güvenlidir ama eskir. Dependabot her hafta kontrol eder, her yeni sürüm için bir pull request açar ve CI onun üzerinde çalışır. Tek tıkla karar verirsin ve kötü bir güncellemeyi testler yakalar."
+    learn:
+      en: |
+        - `.github/dependabot.yml` lists what to watch (`package-ecosystem`), where (`directory`) and how often
+        - Dependabot understands SHA-pinned actions and updates both the SHA and the version comment
+        - Dependabot pull requests are normal pull requests: your required checks run on them
+      tr: |
+        - `.github/dependabot.yml` neyin izleneceğini (`package-ecosystem`), nerede (`directory`) ve ne sıklıkla olduğunu listeler
+        - Dependabot SHA ile sabitlenmiş action'ları anlar ve hem SHA'yı hem sürüm yorumunu günceller
+        - Dependabot pull request'leri normal pull request'lerdir: zorunlu check'lerin onların üzerinde çalışır
+    do:
+      en: |
+        1. On a new branch (`git switch -c dependabot`) create `.github/dependabot.yml` with the code below. It watches your workflows and your npm packages. The Dockerfile joins in the Docker step.
+        2. Push, open a pull request and merge it when green.
+        3. Open the **Insights → Dependency graph → Dependabot** tab of the repository to see the checks. Within a short time pull requests may appear if anything is outdated. Read one: it names the versions and links the release notes.
+        4. Merge an update only when the checks are green, and skim the release notes for breaking changes first.
+        5. Security updates (for known vulnerabilities) are separate from this file. You can turn them on in the repository's security settings.
+      tr: |
+        1. Yeni bir dalda (`git switch -c dependabot`) `.github/dependabot.yml` dosyasını aşağıdaki kodla oluştur. Workflow'larını ve npm paketlerini izler. Dockerfile, Docker adımında katılır.
+        2. Push'la, pull request aç ve yeşil olunca merge et.
+        3. Kontrolleri görmek için reponun **Insights → Dependency graph → Dependabot** sekmesini aç. Güncel olmayan bir şey varsa kısa süre içinde pull request'ler çıkabilir. Birini oku: sürümleri söyler ve sürüm notlarına bağlantı verir.
+        4. Bir güncellemeyi sadece check'ler yeşilse merge et ve önce sürüm notlarına, kırıcı değişiklik var mı diye göz at.
+        5. Güvenlik güncellemeleri (bilinen açıklar için) bu dosyadan ayrıdır. Onları reponun güvenlik ayarlarından açabilirsin.
+    code:
+      - file: .github/dependabot.yml
+        lang: yaml
+        text: |
+          version: 2
+          updates:
+            - package-ecosystem: "github-actions"
+              directory: "/"
+              schedule:
+                interval: "weekly"
+            - package-ecosystem: "npm"
+              directory: "/"
+              schedule:
+                interval: "weekly"
+    mistakes:
+      - problem:
+          en: "Merging every Dependabot pull request without reading it."
+          tr: "Her Dependabot pull request'ini okumadan merge etmek."
+        fix:
+          en: "Green checks mean the tests pass, not that nothing changed for users. Read the notes of major-version updates."
+          tr: "Yeşil check'ler testlerin geçtiği anlamına gelir, kullanıcılar için hiçbir şeyin değişmediği anlamına gelmez. Büyük sürüm güncellemelerinin notlarını oku."
+      - problem:
+          en: "A Dependabot pull request fails because a secret is empty."
+          tr: "Bir Dependabot pull request'i, bir secret boş olduğu için başarısız oluyor."
+        fix:
+          en: "Dependabot runs get their own set of secrets (Settings → Secrets and variables → Dependabot), not the Actions ones. Our CI needs no secrets, so this is only a heads-up."
+          tr: "Dependabot çalışmaları Actions secret'larını değil kendi secret setini alır (Settings → Secrets and variables → Dependabot). Bizim CI'ın secret'a ihtiyacı yok, bu sadece bir uyarı."
+    quiz:
+      - q:
+          en: "What does Dependabot do when a new version of an action you use is released?"
+          tr: "Kullandığın bir action'ın yeni sürümü çıkınca Dependabot ne yapar?"
+        options:
+          en: [Changes main directly, Opens a pull request that your CI checks, Emails you the new code]
+          tr: [Doğrudan main'i değiştirir, CI'ının kontrol ettiği bir pull request açar, Yeni kodu sana e-posta ile gönderir]
+        answer: 1
+        why:
+          en: "It never touches main. It proposes the change as a pull request, so your checks and your review come first."
+          tr: "main'e hiç dokunmaz. Değişikliği pull request olarak önerir; böylece önce check'lerin ve senin incelemen gelir."
+    sources:
+      - title: Dependabot version updates
+        url: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuring-dependabot-version-updates
+      - title: Keeping your actions up to date with Dependabot
+        url: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/keeping-your-actions-up-to-date-with-dependabot
+      - title: Dependabot options reference
+        url: https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+
+  - id: speed
+    stage: performance
+    title:
+      en: "Faster, cheaper runs: concurrency and timeouts"
+      tr: "Daha hızlı, daha ucuz çalışmalar: concurrency ve timeout"
+    minutes: 20
+    needs: [permissions-pin]
+    why:
+      en: "Public repositories run on GitHub's machines for free, but your own time is not free. If you push three times in a minute, only the last run matters. And a test that hangs should be stopped after minutes, not after the default six hours."
+      tr: "Herkese açık repolar GitHub'ın makinelerinde ücretsiz çalışır ama senin zamanın ücretsiz değil. Bir dakikada üç kez push'larsan sadece sonuncu çalışma önemlidir. Takılan bir test de varsayılan altı saat sonra değil, dakikalar içinde durdurulmalı."
+    learn:
+      en: |
+        - `concurrency` with `cancel-in-progress: true` cancels an older run of the same group when a newer one starts
+        - `timeout-minutes` stops a job that runs too long
+        - How to read the run's timing to see which step is slow
+      tr: |
+        - `cancel-in-progress: true` olan `concurrency`, aynı gruptaki eski çalışmayı yenisi başlayınca iptal eder
+        - `timeout-minutes` çok uzun süren bir job'u durdurur
+        - Hangi adımın yavaş olduğunu görmek için çalışmanın sürelerini nasıl okuyacağın
+    do:
+      en: |
+        1. On a new branch (`git switch -c faster-ci`) add the `concurrency` block after `permissions` and a `timeout-minutes` line to each job, as shown below. Everything else in `ci.yml` stays.
+        2. Push, open a pull request, then push a second tiny commit right away. The first run is cancelled and marked grey; only the newest one finishes.
+        3. Open a finished run and click the clock icon or the step names: each step shows its time. Which step is the slowest? On this app it should be `npm ci`, or the tests.
+        4. Merge when green. The group is `workflow name + branch`, so pull requests do not cancel each other and main is never cancelled by a pull request.
+      tr: |
+        1. Yeni bir dalda (`git switch -c faster-ci`) `permissions`'dan sonra `concurrency` bloğunu ve her job'a bir `timeout-minutes` satırı ekle (aşağıda gösterildiği gibi). `ci.yml`'deki geri kalan her şey kalır.
+        2. Push'la, pull request aç, hemen ardından küçük bir ikinci commit daha push'la. İlk çalışma iptal edilir ve gri işaretlenir; sadece en yenisi biter.
+        3. Biten bir çalışmayı aç ve adım adlarına bak: her adım süresini gösterir. En yavaş adım hangisi? Bu uygulamada `npm ci` ya da testler olmalı.
+        4. Yeşil olunca merge et. Grup `workflow adı + dal` olduğu için pull request'ler birbirini iptal etmez ve main'i hiçbir pull request iptal etmez.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          # after "permissions:", add:
+          concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}
+            cancel-in-progress: true
+
+          # and in each job, under runs-on, add:
+              timeout-minutes: 10
+    mistakes:
+      - problem:
+          en: "Using `cancel-in-progress` on a deploy workflow."
+          tr: "Bir deploy workflow'unda `cancel-in-progress` kullanmak."
+        fix:
+          en: "A deploy cancelled halfway can leave things broken. Leave it off for deploys, so runs wait in line (the release workflow later does this)."
+          tr: "Yarıda iptal edilen bir deploy işleri bozuk bırakabilir. Deploy'larda kapalı bırak, çalışmalar sırada beklesin (sonraki release workflow'u böyle yapar)."
+      - problem:
+          en: "A timeout shorter than a normal slow run."
+          tr: "Normal yavaş bir çalışmadan kısa timeout."
+        fix:
+          en: "Take the longest normal run, double it, and use that. A timeout that fires on a good run only adds noise."
+          tr: "En uzun normal çalışmayı al, ikiyle çarp ve onu kullan. Sağlam bir çalışmada tetiklenen timeout sadece gürültü ekler."
+    quiz:
+      - q:
+          en: "What does `cancel-in-progress: true` do in a concurrency group?"
+          tr: "Bir concurrency grubunda `cancel-in-progress: true` ne yapar?"
+        options:
+          en: [Cancels the older run of the same group when a new one starts, Cancels all workflows in the repository, Stops a run after the first failed step]
+          tr: [Yenisi başlayınca aynı gruptaki eski çalışmayı iptal eder, Repodaki bütün workflow'ları iptal eder, İlk başarısız adımdan sonra çalışmayı durdurur]
+        answer: 0
+        why:
+          en: "Only one run per group is active; the older one is cancelled in favour of the newer."
+          tr: "Grup başına sadece bir çalışma etkindir; eskisi yenisi lehine iptal edilir."
+    sources:
+      - title: Control the concurrency of workflows and jobs
+        url: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency
+      - title: Workflow syntax, timeout-minutes
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idtimeout-minutes
+
+  - id: image
+    stage: packaging
+    title:
+      en: "Build a Docker image and push it to GHCR"
+      tr: "Docker image'ı üretip GHCR'ye gönderme"
+    minutes: 40
+    needs: [speed]
+    why:
+      en: "A Docker image is the app and everything it needs in one box, so the host runs exactly what you tested. GitHub Container Registry (GHCR) stores your images next to your code, and the workflow's own token can push there, so you need no extra account or password."
+      tr: "Docker image'ı uygulamayı ve ihtiyacı olan her şeyi tek bir kutuda toplar; böylece host tam olarak test ettiğini çalıştırır. GitHub Container Registry (GHCR) image'larını kodunun yanında saklar ve workflow'un kendi token'ı oraya push yapabilir; ekstra hesap ya da şifre gerekmez."
+    learn:
+      en: |
+        - A Dockerfile lists the steps to build the image; `npm ci --omit=dev` keeps development tools out of it
+        - The `release.yml` workflow runs only on pushes to main, and only this job gets `packages: write`
+        - Tags: `latest` and `sha-<commit>` (every image can be traced back to a commit)
+      tr: |
+        - Dockerfile image'ı üretmenin adımlarını sıralar; `npm ci --omit=dev` geliştirme araçlarını image'ın dışında tutar
+        - `release.yml` workflow'u sadece main'e yapılan push'larda çalışır ve sadece bu job `packages: write` alır
+        - Etiketler: `latest` ve `sha-<commit>` (her image bir commit'e kadar izlenebilir)
+    do:
+      en: |
+        1. On a new branch (`git switch -c docker-image`) create `Dockerfile` and `.dockerignore` as shown. Test it by hand if you have Docker: `docker build -t tiny-status .`, `docker run --rm -p 3000:3000 tiny-status`, and open http://localhost:3000/health.
+        2. Create `.github/workflows/release.yml` with the code below.
+        3. Push, open a pull request and merge it. The merge is a push to main, so `Release` runs: open it in the Actions tab and follow the `image` job.
+        4. On your GitHub profile open **Packages**. `tiny-status` is there, **private** (a new package always starts private). Open it, then **Package settings → Danger Zone → Change visibility → Public**, so a host can pull it without a login.
+        5. Check it from any computer with Docker: `docker run --rm -p 3000:3000 ghcr.io/YOUR-NAME/tiny-status:latest`. Use your name in lowercase.
+        6. Let Dependabot watch the Dockerfile's base image too: add the `docker` block shown below to `.github/dependabot.yml` (in a pull request, as always).
+      tr: |
+        1. Yeni bir dalda (`git switch -c docker-image`) `Dockerfile` ve `.dockerignore` dosyalarını gösterildiği gibi oluştur. Docker'ın varsa elle dene: `docker build -t tiny-status .`, `docker run --rm -p 3000:3000 tiny-status` ve http://localhost:3000/health adresini aç.
+        2. `.github/workflows/release.yml` dosyasını aşağıdaki kodla oluştur.
+        3. Push'la, pull request aç ve merge et. Merge main'e bir push olduğu için `Release` çalışır: Actions sekmesinde onu aç ve `image` job'unu izle.
+        4. GitHub profilinde **Packages**'ı aç. `tiny-status` orada, **private** (yeni bir paket her zaman private başlar). Onu aç, sonra **Package settings → Danger Zone → Change visibility → Public** yolunu izle ki host giriş yapmadan çekebilsin.
+        5. Docker olan herhangi bir bilgisayardan dene: `docker run --rm -p 3000:3000 ghcr.io/YOUR-NAME/tiny-status:latest`. Adını küçük harfle yaz.
+        6. Dependabot Dockerfile'ın temel image'ını da izlesin: aşağıdaki `docker` bloğunu `.github/dependabot.yml` dosyasına ekle (her zamanki gibi bir pull request ile).
+    code:
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          FROM node:24-alpine
+          WORKDIR /app
+          ENV NODE_ENV=production
+          COPY package*.json ./
+          RUN npm ci --omit=dev
+          COPY src ./src
+          USER node
+          EXPOSE 3000
+          CMD ["node", "src/server.js"]
+      - file: .dockerignore
+        lang: text
+        text: |
+          node_modules
+          .git
+          .github
+          coverage
+          test
+      - file: .github/dependabot.yml
+        lang: yaml
+        text: |
+          # add to the updates: list, at the same indent as the other entries
+            - package-ecosystem: "docker"
+              directory: "/"
+              schedule:
+                interval: "weekly"
+      - file: .github/workflows/release.yml
+        lang: yaml
+        text: |
+          name: Release
+
+          on:
+            push:
+              branches: [main]
+
+          permissions:
+            contents: read
+
+          concurrency:
+            group: release
+            cancel-in-progress: false
+
+          jobs:
+            image:
+              runs-on: ubuntu-latest
+              timeout-minutes: 15
+              permissions:
+                contents: read
+                packages: write
+              steps:
+                - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+                  with:
+                    persist-credentials: false
+                - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+                - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+                  with:
+                    registry: ghcr.io
+                    username: ${{ github.actor }}
+                    password: ${{ secrets.GITHUB_TOKEN }}
+                - id: meta
+                  uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+                  with:
+                    images: ghcr.io/${{ github.repository }}
+                    tags: |
+                      type=sha
+                      type=raw,value=latest
+                - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+                  with:
+                    context: .
+                    push: true
+                    tags: ${{ steps.meta.outputs.tags }}
+                    labels: ${{ steps.meta.outputs.labels }}
+                    cache-from: type=gha
+                    cache-to: type=gha,mode=max
+    mistakes:
+      - problem:
+          en: "`denied: permission_denied` or `403` when pushing the image."
+          tr: "Image push edilirken `denied: permission_denied` ya da `403`."
+        fix:
+          en: "The job needs `packages: write`. Because the workflow's top-level `permissions` only says `contents: read`, the `image` job must set its own block as shown."
+          tr: "Job'un `packages: write` yetkisi gerekir. Workflow'un üst seviyesindeki `permissions` sadece `contents: read` dediği için `image` job'u gösterildiği gibi kendi bloğunu tanımlamalı."
+      - problem:
+          en: "The host cannot pull the image: \"unauthorized\"."
+          tr: "Host image'ı çekemiyor: \"unauthorized\"."
+        fix:
+          en: "The package is still private. Change its visibility to Public in the package settings (or give the host a token with `read:packages`)."
+          tr: "Paket hâlâ private. Paket ayarlarından görünürlüğünü Public yap (ya da host'a `read:packages` yetkili bir token ver)."
+      - problem:
+          en: "The image name has capital letters."
+          tr: "Image adında büyük harf var."
+        fix:
+          en: "Registry names must be lowercase. `metadata-action` lowercases the name for you; if you type the name by hand, write `ghcr.io/your-name/tiny-status`."
+          tr: "Registry adları küçük harf olmalı. `metadata-action` adı senin için küçültür; adı elle yazarsan `ghcr.io/your-name/tiny-status` yaz."
+    quiz:
+      - q:
+          en: "Which credential does the workflow use to push to GHCR?"
+          tr: "Workflow GHCR'ye push yapmak için hangi kimlik bilgisini kullanır?"
+        options:
+          en: [Your GitHub password, The automatic GITHUB_TOKEN with packages write permission, A Docker Hub token]
+          tr: [GitHub şifren, packages write yetkili otomatik GITHUB_TOKEN, Bir Docker Hub token'ı]
+        answer: 1
+        why:
+          en: "GitHub creates a short-lived token for every run. With `packages: write` it can publish to the repository's packages."
+          tr: "GitHub her çalışma için kısa ömürlü bir token üretir. `packages: write` ile reponun paketlerine yayın yapabilir."
+    sources:
+      - title: Publishing Docker images with GitHub Actions
+        url: https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images
+      - title: Working with the Container registry
+        url: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+      - title: docker/build-push-action
+        url: https://github.com/docker/build-push-action
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy automatically with an approval gate"
+      tr: "Onay kapılı otomatik deploy"
+    minutes: 50
+    needs: [image, secrets-env]
+    why:
+      en: "A pipeline that stops at an image still needs a person to start the deploy. Most free hosts give you a deploy hook: a secret web address that, when called, makes the host pull the newest image and restart. The workflow calls it after the image is pushed, and the `production` environment can wait for your approval."
+      tr: "Image'da duran bir pipeline'da deploy'u yine bir insanın başlatması gerekir. Çoğu ücretsiz host sana bir deploy hook verir: çağrıldığında host'un en yeni image'ı çekip yeniden başlamasını sağlayan gizli bir web adresi. Workflow image gönderildikten sonra onu çağırır ve `production` environment'ı senin onayını bekleyebilir."
+    learn:
+      en: |
+        - A deploy hook is a URL you call with `curl`; whoever knows it can trigger a deploy, so it is a secret
+        - `needs: image` runs the deploy only when the image job succeeded
+        - Required reviewers on an environment pause the job until someone clicks Approve
+      tr: |
+        - Deploy hook, `curl` ile çağırdığın bir adrestir; bilen herkes deploy tetikleyebilir, bu yüzden bir secret'tır
+        - `needs: image`, deploy'u sadece image job'u başarılıysa çalıştırır
+        - Bir environment'taki zorunlu onaylayıcılar, biri Approve'a tıklayana kadar job'u bekletir
+    do:
+      en: |
+        1. Create a free web service on a host that can run a Docker image from a registry. This roadmap uses **Render** (render.com): *New → Web Service → Existing image*, image `ghcr.io/YOUR-NAME/tiny-status:latest`, instance type **Free**. Free instances sleep after 15 minutes without traffic and wake slowly, which is fine here.
+        2. In the service's **Settings**, find **Deploy Hook** and copy the URL. Treat it like a password.
+        3. In your GitHub repository open **Settings → Environments → production**. Under *Environment secrets* add `DEPLOY_HOOK_URL` with that URL. Tick **Required reviewers** and add yourself, then save. (Free for public repositories.)
+        4. On a new branch (`git switch -c deploy`) add the `deploy` job below to the end of the `jobs:` list in `release.yml`.
+        5. Push, open a pull request and merge it. In the `Release` run the `deploy` job stops with "Waiting for review". Click **Review deployments**, tick `production`, and **Approve and deploy**.
+        6. Open your service's address (shown on Render), then `/health`. You should see `{"status":"ok"}`.
+        7. No account anywhere? Leave `DEPLOY_HOOK_URL` unset: the job prints that it skipped and stays green. Another free option for a static website is GitHub Pages with the `actions/deploy-pages` action; tiny-status is a server, so it needs a host that runs it.
+      tr: |
+        1. Bir registry'den Docker image'ı çalıştırabilen bir host'ta ücretsiz web servisi oluştur. Bu roadmap **Render**'ı (render.com) kullanır: *New → Web Service → Existing image*, image `ghcr.io/YOUR-NAME/tiny-status:latest`, instance type **Free**. Free instance'lar 15 dakika trafik almazsa uyur ve geç uyanır; burada sorun değil.
+        2. Servisin **Settings** sayfasında **Deploy Hook**'u bul ve adresi kopyala. Ona bir şifre gibi davran.
+        3. GitHub reponda **Settings → Environments → production**'ı aç. *Environment secrets* altına bu adresle `DEPLOY_HOOK_URL` ekle. **Required reviewers**'ı işaretle, kendini ekle ve kaydet. (Herkese açık repolar için ücretsiz.)
+        4. Yeni bir dalda (`git switch -c deploy`) aşağıdaki `deploy` job'unu `release.yml` içindeki `jobs:` listesinin sonuna ekle.
+        5. Push'la, pull request aç ve merge et. `Release` çalışmasında `deploy` job'u "Waiting for review" ile durur. **Review deployments**'a tıkla, `production`'ı işaretle ve **Approve and deploy**'a bas.
+        6. Servisinin adresini aç (Render'da yazar), sonra `/health`. `{"status":"ok"}` görmelisin.
+        7. Hiçbir yerde hesabın yok mu? `DEPLOY_HOOK_URL`'yi boş bırak: job atladığını yazar ve yeşil kalır. Statik bir web sitesi için başka bir ücretsiz seçenek, `actions/deploy-pages` action'lı GitHub Pages'tir; tiny-status bir sunucu olduğu için onu çalıştıracak bir host gerekir.
+    code:
+      - file: .github/workflows/release.yml
+        lang: yaml
+        text: |
+          # add at the end of the jobs: list, at the same indent as "image:"
+            deploy:
+              needs: image
+              runs-on: ubuntu-latest
+              timeout-minutes: 5
+              environment:
+                name: production
+              permissions: {}
+              steps:
+                - name: Call the deploy hook
+                  env:
+                    DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+                  run: |
+                    if [ -z "$DEPLOY_HOOK_URL" ]; then
+                      echo "DEPLOY_HOOK_URL is not set, skipping the deploy."
+                      exit 0
+                    fi
+                    curl --fail --silent --show-error "$DEPLOY_HOOK_URL"
+                    echo "Deploy requested."
+    mistakes:
+      - problem:
+          en: "The deploy job is green but the site does not change."
+          tr: "Deploy job'u yeşil ama site değişmiyor."
+        fix:
+          en: "Check that the secret really is in the `production` environment (not only in staging), and that the host pulls the `latest` tag. The hook only starts a deploy; read the host's deploy log."
+          tr: "Secret'ın gerçekten `production` environment'ında olduğunu (sadece staging'de değil) ve host'un `latest` etiketini çektiğini kontrol et. Hook sadece deploy başlatır; host'un deploy logunu oku."
+      - problem:
+          en: "The deploy hook URL is pasted into the workflow or a comment."
+          tr: "Deploy hook adresi workflow'a ya da bir yoruma yapıştırılmış."
+        fix:
+          en: "Anyone who reads the repository can trigger deploys. Put it in a secret, and if it was exposed, regenerate the hook in the host's settings."
+          tr: "Repoyu okuyan herkes deploy tetikleyebilir. Onu bir secret'a koy; açığa çıktıysa host ayarlarından hook'u yeniden oluştur."
+      - problem:
+          en: "The first request takes a minute on the free host."
+          tr: "Ücretsiz host'ta ilk istek bir dakika sürüyor."
+        fix:
+          en: "Free instances sleep when idle and wake up on the next request. It is normal on free plans and is not a pipeline problem."
+          tr: "Free instance'lar boştayken uyur ve sonraki istekte uyanır. Ücretsiz planlarda normaldir ve pipeline sorunu değildir."
+    quiz:
+      - q:
+          en: "Why is the deploy hook URL stored as a secret?"
+          tr: "Deploy hook adresi neden secret olarak saklanır?"
+        options:
+          en: [Anyone who knows it can trigger a deploy, It makes curl faster, GitHub requires it for every URL]
+          tr: [Bilen herkes deploy tetikleyebilir, curl'ü hızlandırır, GitHub her URL için bunu şart koşar]
+        answer: 0
+        why:
+          en: "The URL itself is the key. It has no other login, so keep it out of files and logs."
+          tr: "Anahtar adresin kendisidir. Başka bir giriş yoktur; onu dosyalardan ve loglardan uzak tut."
+    sources:
+      - title: Render deploy hooks
+        url: https://render.com/docs/deploy-hooks
+      - title: Render, deploy an image from a registry
+        url: https://render.com/docs/deploy-an-image
+      - title: Managing environments for deployment
+        url: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+
+  - id: badge-notify
+    stage: monitoring
+    title:
+      en: "Status badge and failure alerts"
+      tr: "Durum rozeti ve hata bildirimleri"
+    minutes: 30
+    needs: [deploy]
+    why:
+      en: "A pipeline nobody looks at fails silently. A badge in the README shows the state to everyone, and a failed release should reach you without you opening the Actions tab."
+      tr: "Kimsenin bakmadığı bir pipeline sessizce bozulur. README'deki bir rozet durumu herkese gösterir ve başarısız bir release, Actions sekmesini açmana gerek kalmadan sana ulaşmalı."
+    learn:
+      en: |
+        - The badge image is served from `.../actions/workflows/<file>/badge.svg`
+        - A job with `if: ${{ failure() }}` and `needs` runs only when a job it needs failed
+        - GitHub also emails you when a workflow you started fails; this job makes the alert visible to the whole project
+      tr: |
+        - Rozet resmi `.../actions/workflows/<dosya>/badge.svg` adresinden gelir
+        - `if: ${{ failure() }}` ve `needs` olan bir job, sadece ihtiyaç duyduğu bir job başarısız olursa çalışır
+        - GitHub, başlattığın bir workflow başarısız olunca sana e-posta da atar; bu job uyarıyı bütün projeye görünür kılar
+    do:
+      en: |
+        1. On a new branch (`git switch -c monitoring`) create `README.md` with the badges below (replace `YOUR-NAME`).
+        2. Add the `notify` job to `release.yml`, after the `deploy` job. It opens a GitHub issue with a link to the failed run.
+        3. Push, open a pull request and merge it. Look at your repository's front page: the badges show "passing".
+        4. Test the alert on a new branch: in `release.yml` temporarily change the `deploy` step's `curl` line to `false`, merge through a pull request, approve the deploy, and see the issue `Release failed on main` appear in the **Issues** tab. Then undo the change.
+        5. Close the test issue. In your account settings under **Notifications** you can also choose how GitHub tells you about Actions runs (email, web, or both).
+      tr: |
+        1. Yeni bir dalda (`git switch -c monitoring`) aşağıdaki rozetlerle `README.md` dosyasını oluştur (`YOUR-NAME`'i değiştir).
+        2. `release.yml` dosyasına, `deploy` job'undan sonra `notify` job'unu ekle. Başarısız çalışmanın bağlantısıyla bir GitHub issue açar.
+        3. Push'la, pull request aç ve merge et. Reponun ana sayfasına bak: rozetler "passing" gösterir.
+        4. Uyarıyı yeni bir dalda dene: `release.yml` içinde `deploy` adımındaki `curl` satırını geçici olarak `false` yap, pull request ile merge et, deploy'u onayla ve **Issues** sekmesinde `Release failed on main` issue'sunun açıldığını gör. Sonra değişikliği geri al.
+        5. Deneme issue'sunu kapat. Hesap ayarlarında **Notifications** altından GitHub'ın Actions çalışmalarını sana nasıl bildireceğini (e-posta, web ya da ikisi) seçebilirsin.
+    code:
+      - file: README.md
+        lang: markdown
+        text: |
+          # tiny-status
+
+          [![CI](https://github.com/YOUR-NAME/tiny-status/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR-NAME/tiny-status/actions/workflows/ci.yml)
+          [![Release](https://github.com/YOUR-NAME/tiny-status/actions/workflows/release.yml/badge.svg)](https://github.com/YOUR-NAME/tiny-status/actions/workflows/release.yml)
+
+          A tiny Node.js web server with a full CI/CD pipeline.
+      - file: .github/workflows/release.yml
+        lang: yaml
+        text: |
+          # add after the deploy job, at the same indent
+            notify:
+              needs: [image, deploy]
+              if: ${{ failure() }}
+              runs-on: ubuntu-latest
+              timeout-minutes: 5
+              permissions:
+                issues: write
+              steps:
+                - name: Open an issue about the failed run
+                  env:
+                    GH_TOKEN: ${{ github.token }}
+                    RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+                  run: |
+                    gh issue create \
+                      --repo "$GITHUB_REPOSITORY" \
+                      --title "Release failed on main" \
+                      --body "The Release workflow failed: $RUN_URL"
+    mistakes:
+      - problem:
+          en: "The badge shows \"no status\"."
+          tr: "Rozet \"no status\" gösteriyor."
+        fix:
+          en: "The workflow file name in the URL must match exactly (`ci.yml`), and the workflow must have run at least once on the default branch."
+          tr: "URL'deki workflow dosya adı tam eşleşmeli (`ci.yml`) ve workflow varsayılan dalda en az bir kez çalışmış olmalı."
+      - problem:
+          en: "The notify job never runs even though a job failed."
+          tr: "Bir job başarısız olduğu halde notify job'u hiç çalışmıyor."
+        fix:
+          en: "A job is skipped when a job it needs failed, unless its `if` contains a status function such as `failure()`. Also list every job it should watch under `needs`."
+          tr: "İhtiyaç duyduğu bir job başarısız olursa, `if`'inde `failure()` gibi bir durum fonksiyonu yoksa job atlanır. İzlemesi gereken her job'u `needs` altında da listele."
+      - problem:
+          en: "Notifying on every failure of every branch."
+          tr: "Her dalın her hatasında bildirim göndermek."
+        fix:
+          en: "Pull request failures are already shown on the pull request. Alert only for main, as this job does."
+          tr: "Pull request hataları zaten pull request'te görünür. Bu job'un yaptığı gibi sadece main için uyar."
+    quiz:
+      - q:
+          en: "Why does the `notify` job use `if: ${{ failure() }}`?"
+          tr: "`notify` job'u neden `if: ${{ failure() }}` kullanır?"
+        options:
+          en: [Without it the job would be skipped when a needed job failed, Without it the job would run twice, It makes the issue private]
+          tr: [Onsuz bu job atlanırdı çünkü ihtiyaç duyduğu job başarısız oldu, Onsuz bu job iki kez çalışırdı, Issue'yu private yapar]
+        answer: 0
+        why:
+          en: "By default a job runs only when everything it needs succeeded. `failure()` flips that, so the job runs exactly on failure."
+          tr: "Varsayılan olarak bir job sadece ihtiyaç duyduğu her şey başarılıysa çalışır. `failure()` bunu tersine çevirir ve job tam da hatada çalışır."
+    sources:
+      - title: Adding a workflow status badge
+        url: https://docs.github.com/en/actions/how-tos/monitor-workflows/add-a-status-badge
+      - title: Status check functions
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions
+      - title: Notifications for workflow runs
+        url: https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs
+
+  - id: reusable
+    stage: advanced
+    title:
+      en: "Reusable workflows: staging, then production"
+      tr: "Yeniden kullanılabilir workflow'lar: önce staging, sonra production"
+    minutes: 35
+    needs: [badge-notify]
+    why:
+      en: "Real projects deploy to more than one place, and copy-pasted jobs drift apart. A reusable workflow is written once and called like a function, with inputs. You use it to deploy to staging first and to production after it."
+      tr: "Gerçek projeler birden fazla yere deploy eder ve kopyala-yapıştır job'lar zamanla birbirinden ayrılır. Yeniden kullanılabilir workflow bir kez yazılır ve girdilerle bir fonksiyon gibi çağrılır. Onu önce staging'e, sonra production'a deploy etmek için kullanırsın."
+    learn:
+      en: |
+        - `on: workflow_call` makes a workflow callable, with `inputs` and `secrets`
+        - The caller uses `uses: ./.github/workflows/deploy.yml` on a job, and `secrets: inherit` passes its secrets on
+        - Environment secrets work inside a called workflow, as long as the job names the environment
+      tr: |
+        - `on: workflow_call` bir workflow'u çağrılabilir yapar; `inputs` ve `secrets` ile
+        - Çağıran taraf bir job'da `uses: ./.github/workflows/deploy.yml` kullanır ve `secrets: inherit` kendi secret'larını aktarır
+        - Job environment'ı adlandırdığı sürece, environment secret'ları çağrılan workflow'un içinde de çalışır
+    do:
+      en: |
+        1. On a new branch (`git switch -c reusable`) create `.github/workflows/deploy.yml` with the code below. It is the `deploy` job from before, now taking the environment name as an input.
+        2. In `release.yml` replace the whole `deploy` job with the two jobs `staging` and `production` shown below, and change the `notify` job to `needs: [image, staging, production]`.
+        3. In **Settings → Environments → staging** add the secret `DEPLOY_HOOK_URL` with the hook of a second Render service (or leave it empty to skip). `production` keeps its required reviewer, so the order is: image, staging runs on its own, then production waits for your approval.
+        4. Push, open a pull request and merge it. In the `Release` run you now see `staging / deploy` and `production / deploy`. Open the graph at the top of the run to see the chain.
+        5. You now have the complete pipeline. Your next steps: add a `workflow_dispatch` trigger with an `environment` input to redeploy by hand, or call the same `deploy.yml` from another repository using `OWNER/REPO/.github/workflows/deploy.yml@<sha>`.
+      tr: |
+        1. Yeni bir dalda (`git switch -c reusable`) `.github/workflows/deploy.yml` dosyasını aşağıdaki kodla oluştur. Bu, önceki `deploy` job'u; artık environment adını girdi olarak alıyor.
+        2. `release.yml` içinde bütün `deploy` job'unu aşağıda gösterilen `staging` ve `production` job'larıyla değiştir ve `notify` job'unu `needs: [image, staging, production]` yap.
+        3. **Settings → Environments → staging** altına ikinci bir Render servisinin hook adresiyle `DEPLOY_HOOK_URL` secret'ını ekle (ya da atlamak için boş bırak). `production` zorunlu onaylayıcısını korur, yani sıra şöyle: image, staging kendiliğinden çalışır, sonra production senin onayını bekler.
+        4. Push'la, pull request aç ve merge et. `Release` çalışmasında artık `staging / deploy` ve `production / deploy` görürsün. Zinciri görmek için çalışmanın üstündeki grafiği aç.
+        5. Artık tam pipeline'ın var. Sonraki adımların: elle yeniden deploy için `environment` girdili bir `workflow_dispatch` tetikleyicisi eklemek ya da aynı `deploy.yml`'i başka bir repodan `OWNER/REPO/.github/workflows/deploy.yml@<sha>` ile çağırmak.
+    code:
+      - file: .github/workflows/deploy.yml
+        lang: yaml
+        text: |
+          name: Deploy
+
+          on:
+            workflow_call:
+              inputs:
+                environment:
+                  description: "staging or production"
+                  type: string
+                  required: true
+
+          permissions: {}
+
+          jobs:
+            deploy:
+              runs-on: ubuntu-latest
+              timeout-minutes: 5
+              environment: ${{ inputs.environment }}
+              steps:
+                - name: Call the deploy hook
+                  env:
+                    DEPLOY_HOOK_URL: ${{ secrets.DEPLOY_HOOK_URL }}
+                  run: |
+                    if [ -z "$DEPLOY_HOOK_URL" ]; then
+                      echo "DEPLOY_HOOK_URL is not set for ${{ inputs.environment }}, skipping."
+                      exit 0
+                    fi
+                    curl --fail --silent --show-error "$DEPLOY_HOOK_URL"
+                    echo "Deploy to ${{ inputs.environment }} requested."
+      - file: .github/workflows/release.yml
+        lang: yaml
+        text: |
+          # in release.yml, instead of the old deploy job:
+            staging:
+              needs: image
+              uses: ./.github/workflows/deploy.yml
+              with:
+                environment: staging
+              secrets: inherit
+
+            production:
+              needs: staging
+              uses: ./.github/workflows/deploy.yml
+              with:
+                environment: production
+              secrets: inherit
+
+            notify:
+              needs: [image, staging, production]
+              # the rest of the notify job stays the same
+    mistakes:
+      - problem:
+          en: "The called workflow does not see the caller's secrets."
+          tr: "Çağrılan workflow, çağıranın secret'larını görmüyor."
+        fix:
+          en: "Secrets are not passed automatically. Use `secrets: inherit`, or pass them one by one under `secrets:` and declare them in the called workflow."
+          tr: "Secret'lar kendiliğinden aktarılmaz. `secrets: inherit` kullan ya da `secrets:` altında tek tek ver ve çağrılan workflow'da tanımla."
+      - problem:
+          en: "Looking for the reusable workflow's jobs under the name `deploy`."
+          tr: "Yeniden kullanılabilir workflow'un job'larını `deploy` adı altında aramak."
+        fix:
+          en: "In the run they are shown as `<caller job> / <called job>`, here `staging / deploy` and `production / deploy`."
+          tr: "Çalışmada `<çağıran job> / <çağrılan job>` olarak görünürler; burada `staging / deploy` ve `production / deploy`."
+      - problem:
+          en: "A reusable workflow has the right `on: workflow_call` but is called from another repository and fails."
+          tr: "Yeniden kullanılabilir workflow'da `on: workflow_call` doğru ama başka bir repodan çağrılınca hata veriyor."
+        fix:
+          en: "The other repository must be allowed to use it: in a private repo set Settings → Actions → General → Access. For a public one nothing is needed. Pin the call to a SHA or tag."
+          tr: "Diğer reponun onu kullanmasına izin verilmiş olmalı: private repoda Settings → Actions → General → Access'ten ayarla. Public olanda gerekmez. Çağrıyı bir SHA'ya ya da tag'e sabitle."
+    quiz:
+      - q:
+          en: "What makes a workflow callable from another workflow?"
+          tr: "Bir workflow'u başka bir workflow'dan çağrılabilir yapan nedir?"
+        options:
+          en: [The trigger on: workflow_call, A file name that starts with reusable, The permissions: write-all setting]
+          tr: [on: workflow_call tetikleyicisi, reusable ile başlayan bir dosya adı, permissions: write-all ayarı]
+        answer: 0
+        why:
+          en: "`workflow_call` is the trigger for being called. The caller then uses `uses:` on a job."
+          tr: "`workflow_call` çağrılma tetikleyicisidir. Çağıran taraf sonra bir job'da `uses:` kullanır."
+    sources:
+      - title: Reuse workflows
+        url: https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
+      - title: Workflow syntax, jobs.job_id.uses
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_iduses

@@ -1,0 +1,706 @@
+id: laravel
+title: Laravel
+category: framework
+summary:
+  en: A PHP framework with routing, a database ORM, queues, auth and testing built in, so you can ship web apps and APIs fast.
+  tr: Routing, veritabanı ORM'i, kuyruklar, kimlik doğrulama ve test araçları hazır gelen bir PHP framework'ü; web uygulaması ve API'yi hızlı çıkarırsın.
+aliases: [laravel 13, artisan, eloquent, blade, php framework, sanctum, livewire]
+detect:
+  composer: [laravel/framework]
+version: "13"
+latest: eol:laravel
+checked: 2026-10
+sources:
+  - title: Laravel documentation
+    url: https://laravel.com/framework/docs/13.x/installation
+  - title: Laravel 13 release notes
+    url: https://laravel.com/framework/docs/13.x/releases
+  - title: Upgrade guide to 13.0
+    url: https://laravel.com/framework/docs/13.x/upgrade
+roadmap: laravel
+sections:
+  - id: start
+    title: { en: Start a project, tr: Proje başlatma }
+    items:
+      - id: new-app
+        level: basic
+        title: { en: Create an app, tr: Uygulama oluşturma }
+        what:
+          en: The Laravel installer creates a ready project; by default it uses an SQLite database and runs the first migrations.
+          tr: Laravel installer hazır bir proje kurar; varsayılan olarak SQLite veritabanı kullanır ve ilk migration'ları çalıştırır.
+        lang: sh
+        form: laravel new example-app
+        example: |
+          composer global require laravel/installer
+          laravel new example-app
+          cd example-app
+          npm install && npm run build
+          composer run dev        # server, queue worker and Vite together
+        mistake:
+          en: Serving the project folder itself from the web server; only the public/ folder must be the web root, or .env can leak.
+          tr: Proje klasörünün kendisini web sunucusundan yayınlamak; web kökü sadece public/ klasörü olmalı, yoksa .env sızabilir.
+        source: https://laravel.com/framework/docs/13.x/installation#creating-an-application
+      - id: env-config
+        level: basic
+        title: { en: .env and config, tr: .env ve config }
+        what:
+          en: Secrets and per-server settings live in .env; the code reads them through config() values.
+          tr: Gizli bilgiler ve sunucuya özel ayarlar .env'de durur; kod bunları config() değerleri üzerinden okur.
+        lang: php
+        form: config('app.name')
+        example: |
+          // config/services.php
+          'stripe' => ['secret' => env('STRIPE_SECRET')],
+
+          // anywhere in the app
+          $secret = config('services.stripe.secret');
+        mistake:
+          en: Calling env() outside config files; after php artisan config:cache, .env is not loaded and env() returns null there.
+          tr: env()'i config dosyaları dışında çağırmak; php artisan config:cache sonrası .env yüklenmez ve orada env() null döner.
+        avoid:
+          en: Never commit .env to Git; commit .env.example with empty values instead.
+          tr: .env'i asla Git'e commit etme; onun yerine boş değerli .env.example'ı commit et.
+        source: https://laravel.com/framework/docs/13.x/configuration#environment-configuration
+      - id: artisan
+        level: basic
+        title: { en: Artisan commands, tr: Artisan komutları }
+        what:
+          en: Artisan is the command line tool that generates files, runs migrations and much more.
+          tr: Artisan dosya üreten, migration çalıştıran ve çok daha fazlasını yapan komut satırı aracıdır.
+        lang: sh
+        form: php artisan make:<type> Name
+        example: |
+          php artisan list                 # every command
+          php artisan make:controller PostController
+          php artisan route:list           # all routes
+          php artisan about                # versions and settings
+        source: https://laravel.com/framework/docs/13.x/artisan
+      - id: tinker
+        level: intermediate
+        title: { en: Try code with Tinker, tr: Tinker ile kod deneme }
+        what:
+          en: Tinker opens an interactive shell where you can run code against your app and database.
+          tr: Tinker, uygulaman ve veritabanın üzerinde kod çalıştırabildiğin etkileşimli bir kabuk açar.
+        lang: sh
+        form: php artisan tinker
+        example: |
+          php artisan tinker
+          > App\Models\User::count()
+          > App\Models\User::where('email', 'ada@example.com')->first()
+        mistake:
+          en: Running Tinker on production and changing data by hand without a backup.
+          tr: Production'da Tinker açıp yedek almadan verileri elle değiştirmek.
+        source: https://laravel.com/framework/docs/13.x/artisan#tinker
+  - id: routing
+    title: { en: Routes and controllers, tr: Route ve controller'lar }
+    items:
+      - id: routes
+        level: basic
+        title: { en: Define a route, tr: Route tanımlama }
+        what:
+          en: A route links a URL and HTTP method to the code that answers it; web routes go in routes/web.php.
+          tr: Route bir URL ve HTTP metodunu ona cevap veren koda bağlar; web route'ları routes/web.php'ye yazılır.
+        lang: php
+        form: "Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');"
+        example: |
+          use App\Http\Controllers\PostController;
+          use Illuminate\Support\Facades\Route;
+
+          Route::get('/', fn () => view('welcome'));
+          Route::get('/posts/{id}', [PostController::class, 'show'])
+              ->whereNumber('id')
+              ->name('posts.show');
+
+          // build the URL from the name, not by hand
+          $url = route('posts.show', ['id' => 5]);
+        mistake:
+          en: Writing URLs by hand in views; give routes names and use route(), so changing a URL does not break links.
+          tr: View'larda URL'leri elle yazmak; route'lara isim verip route() kullan, URL değişince linkler kırılmasın.
+        source: https://laravel.com/framework/docs/13.x/routing#named-routes
+      - id: route-model-binding
+        level: basic
+        title: { en: Route model binding, tr: Route model binding }
+        what:
+          en: Type-hint a model in the action and Laravel loads it from the URL, or returns 404 if it does not exist.
+          tr: Action'da bir model tipi yazarsan Laravel onu URL'den yükler; yoksa 404 döner.
+        lang: php
+        form: "Route::get('/users/{user}', fn (User $user) => $user);"
+        example: |
+          use App\Models\Post;
+
+          // /posts/42 loads Post with id 42
+          Route::get('/posts/{post}', fn (Post $post) => $post->title);
+
+          // /posts/hello-world loads by the slug column
+          Route::get('/posts/{post:slug}', fn (Post $post) => $post->title);
+        mistake:
+          en: Naming the URL part differently from the variable ({id} with $post); the binding only works when the names match.
+          tr: URL parçasını değişkenden farklı adlandırmak ({id} ile $post); binding sadece isimler aynıysa çalışır.
+        source: https://laravel.com/framework/docs/13.x/routing#route-model-binding
+      - id: resource-controller
+        level: basic
+        title: { en: Resource controllers, tr: Resource controller'lar }
+        what:
+          en: One line creates the seven CRUD routes (index, create, store, show, edit, update, destroy) for a controller.
+          tr: Tek satır bir controller için yedi CRUD route'unu (index, create, store, show, edit, update, destroy) oluşturur.
+        lang: php
+        form: "Route::resource('photos', PhotoController::class);"
+        example: |
+          // php artisan make:controller PhotoController --model=Photo --resource
+          Route::resource('photos', PhotoController::class);
+
+          // APIs: no create and edit (those only show HTML forms)
+          Route::apiResource('photos', PhotoController::class);
+        mistake:
+          en: Adding an extra route like /photos/popular after Route::resource; /photos/{photo} catches it first. Define extra routes before it.
+          tr: /photos/popular gibi ek bir route'u Route::resource'tan sonra eklemek; önce /photos/{photo} yakalar. Ek route'ları ondan önce tanımla.
+        source: https://laravel.com/framework/docs/13.x/controllers#resource-controllers
+      - id: middleware
+        level: intermediate
+        title: { en: Middleware, tr: Middleware }
+        what:
+          en: Middleware runs before or after a request, for checks like "is the user logged in".
+          tr: Middleware bir istekten önce ya da sonra çalışır; "kullanıcı giriş yaptı mı" gibi kontroller için.
+        lang: php
+        form: "Route::get('/dashboard', ...)->middleware('auth');"
+        example: |
+          // routes/web.php
+          Route::middleware(['auth', 'verified'])->group(function () {
+              Route::get('/dashboard', DashboardController::class);
+          });
+
+          // bootstrap/app.php: register your own alias
+          ->withMiddleware(function (Middleware $middleware): void {
+              $middleware->alias(['subscribed' => EnsureUserIsSubscribed::class]);
+          })
+        mistake:
+          en: Looking for app/Http/Kernel.php; apps created with Laravel 11 or later register middleware in bootstrap/app.php.
+          tr: app/Http/Kernel.php dosyasını aramak; Laravel 11 ve sonrasıyla kurulan uygulamalarda middleware bootstrap/app.php'de kaydedilir.
+        source: https://laravel.com/framework/docs/13.x/middleware#registering-middleware
+      - id: controller-attributes
+        level: advanced
+        title: { en: Middleware and authorization attributes, tr: Middleware ve yetki attribute'ları }
+        what:
+          en: "#[Middleware] and #[Authorize] put middleware and policy checks right on the controller class or method."
+          tr: "#[Middleware] ve #[Authorize], middleware ve policy kontrollerini doğrudan controller sınıfına ya da metoduna koyar."
+        lang: php
+        form: "#[Middleware('auth')]"
+        example: |
+          use Illuminate\Routing\Attributes\Controllers\Authorize;
+          use Illuminate\Routing\Attributes\Controllers\Middleware;
+
+          #[Middleware('auth')]
+          class CommentController
+          {
+              #[Authorize('create', [Comment::class, 'post'])]
+              public function store(Post $post) { /* ... */ }
+
+              #[Authorize('delete', 'comment')]
+              public function destroy(Comment $comment) { /* ... */ }
+          }
+        since: "13.0"
+        older:
+          en: In Laravel 11 and 12 implement the HasMiddleware interface with a static middleware() method, and call Gate::authorize() inside the action.
+          tr: Laravel 11 ve 12'de HasMiddleware interface'ini static middleware() metoduyla uygula, action içinde Gate::authorize() çağır.
+        source: https://laravel.com/framework/docs/13.x/controllers#middleware-attributes
+  - id: requests-views
+    title: { en: Requests, validation and views, tr: İstekler, doğrulama ve view'lar }
+    items:
+      - id: validate
+        level: basic
+        title: { en: Validate input, tr: Girdiyi doğrulama }
+        what:
+          en: validate() checks the request against rules; on failure it sends the user back with errors (or a 422 JSON reply).
+          tr: validate() isteği kurallara göre kontrol eder; hata varsa kullanıcıyı hatalarla geri yollar (ya da 422 JSON cevabı döner).
+        lang: php
+        form: "$data = $request->validate(['title' => ['required', 'max:255']]);"
+        example: |
+          public function store(Request $request): RedirectResponse
+          {
+              $data = $request->validate([
+                  'title' => ['required', 'string', 'max:255'],
+                  'email' => ['required', 'email', 'unique:users'],
+                  'tags'  => ['array'],
+              ]);
+              Post::create($data);
+              return redirect()->route('posts.index');
+          }
+        mistake:
+          en: Saving $request->all() instead of the validated data; fields you did not validate get into the database.
+          tr: Doğrulanan veri yerine $request->all() kaydetmek; doğrulamadığın alanlar da veritabanına girer.
+        source: https://laravel.com/framework/docs/13.x/validation#quick-writing-the-validation-logic
+      - id: form-request
+        level: intermediate
+        title: { en: Form requests, tr: Form request'ler }
+        what:
+          en: A form request class holds the rules and the permission check, keeping the controller short.
+          tr: Form request sınıfı kuralları ve yetki kontrolünü tutar; controller kısa kalır.
+        lang: php
+        form: php artisan make:request StorePostRequest
+        example: |
+          class StorePostRequest extends FormRequest
+          {
+              public function authorize(): bool
+              {
+                  return $this->user()->can('create', Post::class);
+              }
+              public function rules(): array
+              {
+                  return ['title' => ['required', 'max:255']];
+              }
+          }
+
+          // controller: runs before the method body
+          public function store(StorePostRequest $request) {
+              Post::create($request->validated());
+          }
+        mistake:
+          en: Leaving authorize() returning false from the stub; every request then gets 403.
+          tr: authorize()'ı şablondaki gibi false bırakmak; her istek 403 alır.
+        source: https://laravel.com/framework/docs/13.x/validation#form-request-validation
+      - id: blade
+        level: basic
+        title: { en: Blade templates, tr: Blade şablonları }
+        what:
+          en: Blade views print data with {{ }}, which escapes HTML, and have short tags for if and loops.
+          tr: Blade view'ları veriyi HTML'i kaçışlayan {{ }} ile basar; if ve döngüler için kısa etiketleri vardır.
+        lang: html
+        form: "{{ $user->name }}"
+        example: |
+          {{-- resources/views/posts/index.blade.php --}}
+          <h1>{{ $title }}</h1>
+          @forelse ($posts as $post)
+              <a href="{{ route('posts.show', $post) }}">{{ $post->title }}</a>
+          @empty
+              <p>No posts yet.</p>
+          @endforelse
+        mistake:
+          en: Using {!! !!} for user content; it prints raw HTML and opens an XSS hole.
+          tr: Kullanıcı içeriği için {!! !!} kullanmak; ham HTML basar ve XSS açığı açar.
+        source: https://laravel.com/framework/docs/13.x/blade#displaying-data
+      - id: csrf
+        level: basic
+        title: { en: CSRF in forms, tr: Formlarda CSRF }
+        what:
+          en: Every POST, PUT, PATCH or DELETE form needs @csrf, the hidden token that proves the form came from your site.
+          tr: Her POST, PUT, PATCH ya da DELETE formuna @csrf gerekir; formun senin sitenden geldiğini kanıtlayan gizli token'dır.
+        lang: html
+        form: "@csrf"
+        example: |
+          <form method="POST" action="{{ route('posts.update', $post) }}">
+              @csrf
+              @method('PUT')
+              <input name="title" value="{{ old('title', $post->title) }}">
+              @error('title') <p>{{ $message }}</p> @enderror
+              <button>Save</button>
+          </form>
+        mistake:
+          en: Forgetting @csrf and getting a 419 "Page Expired" error.
+          tr: '@csrf''i unutup 419 "Page Expired" hatası almak.'
+        source: https://laravel.com/framework/docs/13.x/blade#csrf-field
+      - id: blade-components
+        level: intermediate
+        title: { en: Blade components and layouts, tr: Blade component'leri ve layout'lar }
+        what:
+          en: Components are reusable view pieces used like HTML tags, for example a page layout with a slot.
+          tr: Component'ler HTML etiketi gibi kullanılan, tekrar kullanılabilir view parçalarıdır; örneğin slot'lu bir sayfa layout'u.
+        lang: html
+        form: <x-layout>...</x-layout>
+        example: |
+          {{-- resources/views/components/layout.blade.php --}}
+          @props(['title' => 'App'])
+          <html><body>
+              <h1>{{ $title }}</h1>
+              {{ $slot }}
+          </body></html>
+
+          {{-- any view --}}
+          <x-layout title="Posts">
+              <p>Hello</p>
+          </x-layout>
+        source: https://laravel.com/framework/docs/13.x/blade#components
+  - id: eloquent
+    title: { en: Database and Eloquent, tr: Veritabanı ve Eloquent }
+    items:
+      - id: migrations
+        level: basic
+        title: { en: Migrations, tr: Migration'lar }
+        what:
+          en: Migrations are PHP files that create and change tables, so every machine gets the same schema.
+          tr: Migration'lar tablo oluşturan ve değiştiren PHP dosyalarıdır; her makinede aynı şema olur.
+        lang: php
+        form: php artisan make:migration create_posts_table
+        example: |
+          Schema::create('posts', function (Blueprint $table) {
+              $table->id();
+              $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+              $table->string('title');
+              $table->text('body')->nullable();
+              $table->timestamps();
+          });
+          // php artisan migrate     /  php artisan migrate:rollback
+        mistake:
+          en: Editing a migration that already ran on production; write a new migration for every change instead.
+          tr: Production'da zaten çalışmış bir migration'ı düzenlemek; her değişiklik için yeni bir migration yaz.
+        avoid:
+          en: php artisan migrate:fresh drops every table; never run it on a database with real data.
+          tr: php artisan migrate:fresh bütün tabloları siler; gerçek veri olan bir veritabanında asla çalıştırma.
+        source: https://laravel.com/framework/docs/13.x/migrations#generating-migrations
+      - id: model
+        level: basic
+        title: { en: Models and mass assignment, tr: Model'ler ve toplu atama }
+        what:
+          en: A model class stands for a table; list the columns that create() and update() may fill.
+          tr: Bir model sınıfı bir tabloyu temsil eder; create() ve update()'in doldurabileceği kolonları listelersin.
+        lang: php
+        form: "#[Fillable(['title', 'body'])]"
+        example: |
+          // php artisan make:model Post -mfsc   (migration, factory, seeder, controller)
+          use Illuminate\Database\Eloquent\Attributes\Fillable;
+          use Illuminate\Database\Eloquent\Model;
+
+          #[Fillable(['title', 'body'])]
+          class Post extends Model {}
+
+          $post = Post::create(['title' => 'Hi', 'body' => '...']);
+        mistake:
+          en: Making every column fillable (Unguarded) and passing request data straight in; a user can then set columns like is_admin.
+          tr: Bütün kolonları doldurulabilir yapıp (Unguarded) istek verisini doğrudan vermek; kullanıcı is_admin gibi kolonları da ayarlayabilir.
+        since: "13.0"
+        older:
+          en: Before 13 write protected $fillable = ['title', 'body']; inside the class. The property still works.
+          tr: 13'ten önce sınıfın içine protected $fillable = ['title', 'body']; yazılır. Bu property hâlâ çalışır.
+        source: https://laravel.com/framework/docs/13.x/eloquent#mass-assignment
+      - id: queries
+        level: basic
+        title: { en: Query with Eloquent, tr: Eloquent ile sorgu }
+        what:
+          en: Chain methods like where and orderBy to build SQL, then get the results with get(), first() or find().
+          tr: SQL kurmak için where ve orderBy gibi metotları zincirle, sonuçları get(), first() ya da find() ile al.
+        lang: php
+        form: "Post::where('published', true)->latest()->get();"
+        example: |
+          $posts = Post::where('published', true)
+              ->where('views', '>', 100)
+              ->orderByDesc('created_at')
+              ->limit(10)
+              ->get();
+
+          $post = Post::findOrFail($id);          // 404 if missing
+          $user = User::firstOrCreate(['email' => $email], ['name' => $name]);
+        mistake:
+          en: Loading everything with all() and filtering in PHP; let the database filter with where.
+          tr: Her şeyi all() ile yükleyip PHP'de süzmek; süzmeyi where ile veritabanına bırak.
+        source: https://laravel.com/framework/docs/13.x/eloquent#retrieving-models
+      - id: relationships
+        level: intermediate
+        title: { en: Relationships, tr: İlişkiler }
+        what:
+          en: Methods like hasMany and belongsTo link models, so $user->posts gives a user's posts.
+          tr: hasMany ve belongsTo gibi metotlar model'leri bağlar; $user->posts bir kullanıcının yazılarını verir.
+        lang: php
+        form: "public function posts(): HasMany { return $this->hasMany(Post::class); }"
+        example: |
+          class User extends Model {
+              public function posts(): HasMany { return $this->hasMany(Post::class); }
+          }
+          class Post extends Model {
+              public function user(): BelongsTo { return $this->belongsTo(User::class); }
+          }
+
+          $user->posts()->create(['title' => 'New']);   // sets user_id
+          $count = $user->posts()->count();
+        source: https://laravel.com/framework/docs/13.x/eloquent-relationships
+      - id: eager-loading
+        level: intermediate
+        title: { en: Eager loading and the N+1 problem, tr: Eager loading ve N+1 sorunu }
+        what:
+          en: with() loads related models in one extra query, instead of one query per row.
+          tr: with() ilişkili model'leri her satır için ayrı sorgu yerine tek ek sorguyla yükler.
+        lang: php
+        form: "Post::with('user')->get();"
+        example: |
+          // 1 query for posts + 1 for all their users
+          $posts = Post::with(['user', 'comments'])->get();
+          foreach ($posts as $post) echo $post->user->name;
+
+          // AppServiceProvider::boot(): fail fast while developing
+          Model::preventLazyLoading(! $this->app->isProduction());
+        mistake:
+          en: Reading $post->user inside a loop without with(); 100 posts become 101 queries.
+          tr: Döngü içinde with() olmadan $post->user okumak; 100 yazı 101 sorgu olur.
+        source: https://laravel.com/framework/docs/13.x/eloquent-relationships#eager-loading
+      - id: casts
+        level: intermediate
+        title: { en: Attribute casts, tr: Attribute cast'leri }
+        what:
+          en: Casts turn column values into the right PHP type when read, and back when saved.
+          tr: Cast'ler kolon değerlerini okurken doğru PHP tipine, kaydederken geri çevirir.
+        lang: php
+        form: "protected function casts(): array { return ['is_admin' => 'boolean']; }"
+        example: |
+          protected function casts(): array
+          {
+              return [
+                  'email_verified_at' => 'datetime',
+                  'password' => 'hashed',
+                  'options' => 'array',          // JSON column
+                  'status' => Status::class,     // backed enum
+              ];
+          }
+        since: "11.0"
+        older:
+          en: Before 11 casts were a protected $casts array property; it still works.
+          tr: 11'den önce cast'ler protected $casts array property'siydi; hâlâ çalışır.
+        source: https://laravel.com/framework/docs/13.x/eloquent-mutators#attribute-casting
+      - id: pagination
+        level: basic
+        title: { en: Pagination, tr: Sayfalama }
+        what:
+          en: paginate() returns one page of results and reads the page number from ?page= by itself.
+          tr: paginate() sonuçların bir sayfasını döndürür ve sayfa numarasını ?page= parametresinden kendisi okur.
+        lang: php
+        form: Post::latest()->paginate(15);
+        example: |
+          $posts = Post::latest()->paginate(15);
+          // Blade: {{ $posts->links() }}
+          // JSON: return $posts;  (data plus page info)
+
+          $feed = Post::latest()->cursorPaginate(15);  // faster on big tables
+        source: https://laravel.com/framework/docs/13.x/pagination
+      - id: factories-seeders
+        level: intermediate
+        title: { en: Factories and seeders, tr: Factory ve seeder'lar }
+        what:
+          en: Factories make fake models for tests and demo data; seeders fill the database with them.
+          tr: Factory'ler test ve demo verisi için sahte model üretir; seeder'lar veritabanını bunlarla doldurur.
+        lang: php
+        form: User::factory()->count(10)->create();
+        example: |
+          // database/seeders/DatabaseSeeder.php
+          public function run(): void
+          {
+              User::factory()
+                  ->count(10)
+                  ->has(Post::factory()->count(3))
+                  ->create();
+          }
+          // php artisan db:seed   or   php artisan migrate --seed
+        source: https://laravel.com/framework/docs/13.x/eloquent-factories
+      - id: transactions
+        level: advanced
+        title: { en: Database transactions, tr: Veritabanı transaction'ları }
+        what:
+          en: DB::transaction runs several queries as one unit; if anything throws, all of them are undone.
+          tr: DB::transaction birden fazla sorguyu tek bir iş olarak çalıştırır; bir şey hata fırlatırsa hepsi geri alınır.
+        lang: php
+        form: "DB::transaction(function () { ... });"
+        example: |
+          use Illuminate\Support\Facades\DB;
+
+          DB::transaction(function () use ($from, $to, $amount) {
+              $from->decrement('balance', $amount);
+              $to->increment('balance', $amount);
+          }, attempts: 3);   // retry on deadlock
+        mistake:
+          en: Sending emails or calling other APIs inside the transaction; they cannot be rolled back. Dispatch them after commit.
+          tr: Transaction içinde e-posta göndermek ya da başka API çağırmak; bunlar geri alınamaz. Commit'ten sonra gönder.
+        source: https://laravel.com/framework/docs/13.x/database#database-transactions
+  - id: api-auth
+    title: { en: APIs and authorization, tr: API ve yetkilendirme }
+    items:
+      - id: api-resources
+        level: intermediate
+        title: { en: API resources, tr: API resource'ları }
+        what:
+          en: A resource class decides exactly which fields of a model go into the JSON response.
+          tr: Resource sınıfı bir model'in hangi alanlarının JSON cevabına gireceğine tam olarak karar verir.
+        lang: php
+        form: php artisan make:resource PostResource
+        example: |
+          class PostResource extends JsonResource
+          {
+              public function toArray(Request $request): array
+              {
+                  return [
+                      'id' => $this->id,
+                      'title' => $this->title,
+                      'author' => new UserResource($this->whenLoaded('user')),
+                  ];
+              }
+          }
+
+          return PostResource::collection(Post::with('user')->paginate());
+        mistake:
+          en: Returning models directly from APIs; new columns (even secret ones) show up in responses without anyone noticing.
+          tr: API'den model'leri doğrudan döndürmek; yeni kolonlar (gizli olanlar bile) kimse fark etmeden cevaba girer.
+        source: https://laravel.com/framework/docs/13.x/eloquent-resources
+      - id: sanctum
+        level: intermediate
+        title: { en: API tokens with Sanctum, tr: Sanctum ile API token'ları }
+        what:
+          en: install:api adds routes/api.php and Sanctum, which gives users tokens to call your API.
+          tr: install:api, routes/api.php dosyasını ve kullanıcılara API'ni çağırmaları için token veren Sanctum'u ekler.
+        lang: php
+        form: php artisan install:api
+        example: |
+          // User model: use HasApiTokens;
+          $token = $user->createToken('cli')->plainTextToken;
+
+          // routes/api.php
+          Route::get('/me', fn (Request $r) => $r->user())->middleware('auth:sanctum');
+
+          // client: Authorization: Bearer <token>
+        mistake:
+          en: Storing or logging the plain token; it is shown once, only its hash is kept in the database.
+          tr: Düz token'ı saklamak ya da loglamak; bir kez gösterilir, veritabanında sadece hash'i tutulur.
+        source: https://laravel.com/framework/docs/13.x/sanctum#api-token-authentication
+      - id: policies
+        level: intermediate
+        title: { en: Policies, tr: Policy'ler }
+        what:
+          en: A policy holds the rules for who may view, update or delete a model.
+          tr: Policy bir model'i kimin görebileceği, güncelleyebileceği ya da silebileceğinin kurallarını tutar.
+        lang: php
+        form: Gate::authorize('update', $post);
+        example: |
+          // php artisan make:policy PostPolicy --model=Post
+          class PostPolicy {
+              public function update(User $user, Post $post): bool {
+                  return $user->id === $post->user_id;
+              }
+          }
+
+          Gate::authorize('update', $post);       // 403 if not allowed
+          if ($request->user()->can('update', $post)) { /* ... */ }
+          // Blade: @can('update', $post) ... @endcan
+        mistake:
+          en: Only hiding the button in the view; always check on the server too, a request can be sent without the button.
+          tr: Sadece view'daki butonu gizlemek; sunucuda da mutlaka kontrol et, istek buton olmadan da gönderilebilir.
+        source: https://laravel.com/framework/docs/13.x/authorization#creating-policies
+  - id: background-ops
+    title: { en: Background work, tests and deploy, tr: Arka plan işleri, test ve deploy }
+    items:
+      - id: queues
+        level: intermediate
+        title: { en: Queued jobs, tr: Kuyruk işleri }
+        what:
+          en: A job runs slow work (emails, reports) in the background, so the user does not wait for it.
+          tr: Job yavaş işleri (e-posta, rapor) arka planda çalıştırır; kullanıcı onu beklemez.
+        lang: php
+        form: ProcessPodcast::dispatch($podcast);
+        example: |
+          // php artisan make:job ProcessPodcast
+          #[Tries(5)]
+          class ProcessPodcast implements ShouldQueue
+          {
+              use Queueable;
+              public function __construct(public Podcast $podcast) {}
+              public function handle(AudioProcessor $processor): void { /* ... */ }
+          }
+
+          ProcessPodcast::dispatch($podcast)->onQueue('audio');
+          // worker: php artisan queue:work --queue=audio,default
+        mistake:
+          en: Not restarting workers after a deploy; they keep running the old code. Run php artisan queue:restart.
+          tr: Deploy sonrası worker'ları yeniden başlatmamak; eski kodu çalıştırmaya devam ederler. php artisan queue:restart çalıştır.
+        source: https://laravel.com/framework/docs/13.x/queues#creating-jobs
+      - id: scheduling
+        level: intermediate
+        title: { en: Scheduled tasks, tr: Zamanlanmış görevler }
+        what:
+          en: Define recurring tasks in routes/console.php; one cron entry runs schedule:run every minute.
+          tr: Tekrarlanan görevleri routes/console.php'de tanımla; tek bir cron satırı her dakika schedule:run çalıştırır.
+        lang: php
+        form: Schedule::command('reports:send')->dailyAt('08:00');
+        example: |
+          // routes/console.php
+          use Illuminate\Support\Facades\Schedule;
+
+          Schedule::command('reports:send')->dailyAt('08:00')->withoutOverlapping();
+          Schedule::job(new PruneOldFiles)->hourly();
+
+          // server crontab:
+          // * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
+        mistake:
+          en: Defining tasks but never adding the cron entry; nothing runs. Check with php artisan schedule:list.
+          tr: Görevleri tanımlayıp cron satırını hiç eklememek; hiçbir şey çalışmaz. php artisan schedule:list ile kontrol et.
+        source: https://laravel.com/framework/docs/13.x/scheduling#running-the-scheduler
+      - id: cache
+        level: intermediate
+        title: { en: Cache, tr: Cache }
+        what:
+          en: Cache::remember returns a stored value, or runs your function once and stores the result.
+          tr: Cache::remember saklanan değeri döndürür; yoksa fonksiyonunu bir kez çalıştırıp sonucu saklar.
+        lang: php
+        form: "Cache::remember('key', $seconds, fn () => ...);"
+        example: |
+          use Illuminate\Support\Facades\Cache;
+
+          $stats = Cache::remember('dashboard.stats', 600, fn () => [
+              'users' => User::count(),
+          ]);
+          Cache::forget('dashboard.stats');   // after the data changes
+        mistake:
+          en: Caching PHP objects; new Laravel 13 apps refuse to unserialize classes not listed in serializable_classes. Cache arrays instead.
+          tr: PHP nesnelerini cache'lemek; yeni Laravel 13 uygulamaları serializable_classes'ta listelenmeyen sınıfları unserialize etmez. Onun yerine array cache'le.
+        source: https://laravel.com/framework/docs/13.x/cache#retrieving-items-from-the-cache
+      - id: feature-tests
+        level: basic
+        title: { en: Feature tests, tr: Feature testleri }
+        what:
+          en: Feature tests send fake HTTP requests to your app and check the response and the database.
+          tr: Feature testleri uygulamana sahte HTTP istekleri gönderir, cevabı ve veritabanını kontrol eder.
+        lang: php
+        form: php artisan test
+        example: |
+          // tests/Feature/PostTest.php (Pest)
+          use Illuminate\Foundation\Testing\RefreshDatabase;
+          pest()->use(RefreshDatabase::class);
+
+          test('a user can create a post', function () {
+              $user = User::factory()->create();
+              $this->actingAs($user)
+                  ->post('/posts', ['title' => 'Hi'])
+                  ->assertRedirect();
+              $this->assertDatabaseHas('posts', ['title' => 'Hi']);
+          });
+        mistake:
+          en: Running tests against your real development database; use RefreshDatabase and a separate test database (SQLite in memory works).
+          tr: Testleri gerçek geliştirme veritabanında çalıştırmak; RefreshDatabase ve ayrı bir test veritabanı kullan (bellekte SQLite olur).
+        source: https://laravel.com/framework/docs/13.x/http-tests
+      - id: deploy-optimize
+        level: advanced
+        title: { en: Optimize for production, tr: Production için optimize etme }
+        what:
+          en: php artisan optimize caches config, routes, events and views so each request starts faster.
+          tr: php artisan optimize config, route, event ve view'ları cache'ler; her istek daha hızlı başlar.
+        lang: sh
+        form: php artisan optimize
+        example: |
+          composer install --no-dev --optimize-autoloader
+          php artisan migrate --force
+          php artisan optimize
+          php artisan queue:restart
+        mistake:
+          en: Leaving APP_DEBUG=true on production; error pages then show secrets and code to anyone.
+          tr: Production'da APP_DEBUG=true bırakmak; hata sayfaları gizli bilgileri ve kodu herkese gösterir.
+        source: https://laravel.com/framework/docs/13.x/deployment#optimization
+      - id: queue-routing
+        level: advanced
+        title: { en: Route jobs to queues centrally, tr: Job'ları merkezden kuyruğa yönlendirme }
+        what:
+          en: Queue::route sets the default connection and queue for a job class in one place.
+          tr: Queue::route bir job sınıfının varsayılan bağlantısını ve kuyruğunu tek yerde belirler.
+        lang: php
+        form: "Queue::route(ProcessPodcast::class, connection: 'redis', queue: 'podcasts');"
+        example: |
+          // AppServiceProvider::boot()
+          use Illuminate\Support\Facades\Queue;
+
+          Queue::route(ProcessPodcast::class, connection: 'redis', queue: 'podcasts');
+
+          ProcessPodcast::dispatch($podcast);   // goes to redis / podcasts
+        since: "13.0"
+        api: ["Queue::route("]
+        source: https://laravel.com/framework/docs/13.x/queues#queue-routing

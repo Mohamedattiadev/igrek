@@ -58,6 +58,7 @@ const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
   appError: Bug,
   backup: HardDriveDownload,
   rotate: RefreshCcw,
+  regression: TrendingDown,
 };
 
 function Heading({ dot, children }: { dot: string; children: ReactNode }) {

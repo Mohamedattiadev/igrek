@@ -1,0 +1,989 @@
+id: rust
+title: Rust
+category: language
+summary:
+  en: A fast compiled language that checks memory safety at compile time, without a garbage collector.
+  tr: Bellek güvenliğini derleme anında kontrol eden, garbage collector'sız hızlı ve derlenen bir dil.
+aliases: [rustlang, cargo, crate, ownership, sahiplik, borrow checker, ödünç alma]
+detect:
+  files: [Cargo.toml]
+version: "1.99"
+latest: eol:rust
+checked: 2026-10
+sources:
+  - title: The Rust Programming Language (the book)
+    url: https://doc.rust-lang.org/book/
+  - title: The Rust standard library
+    url: https://doc.rust-lang.org/std/
+  - title: The Cargo Book
+    url: https://doc.rust-lang.org/cargo/
+roadmap: rust
+sections:
+  - id: start
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: cargo-new
+        level: basic
+        title: { en: Start a project, tr: Proje başlatma }
+        what:
+          en: Cargo is Rust's build tool and package manager; cargo new makes a project and cargo run builds and runs it.
+          tr: Cargo, Rust'ın build aracı ve paket yöneticisidir; cargo new proje oluşturur, cargo run derleyip çalıştırır.
+        lang: sh
+        form: cargo new <name>
+        example: |
+          cargo new hello
+          cd hello
+          cargo run
+        mistake:
+          en: Measuring speed with cargo run; that is a debug build. Use cargo run --release for real timings.
+          tr: Hızı cargo run ile ölçmek; o bir debug build'dir. Gerçek süreler için cargo run --release kullan.
+        source: https://doc.rust-lang.org/book/ch01-03-hello-cargo.html
+      - id: cargo-add
+        level: basic
+        title: { en: Add a dependency, tr: Bağımlılık ekleme }
+        what:
+          en: cargo add puts a crate (library) from crates.io into Cargo.toml.
+          tr: cargo add, crates.io'daki bir crate'i (kütüphaneyi) Cargo.toml'a ekler.
+        lang: sh
+        form: cargo add <crate>
+        example: |
+          cargo add serde --features derive
+          cargo add tokio --features full
+          cargo update   # newer compatible versions into Cargo.lock
+        mistake:
+          en: Leaving Cargo.lock out of git for an application; commit it so every build uses the same versions.
+          tr: Bir uygulamada Cargo.lock'u git dışında bırakmak; her build aynı sürümleri kullansın diye commit'le.
+        source: https://doc.rust-lang.org/cargo/commands/cargo-add.html
+      - id: println
+        level: basic
+        title: { en: Print and format, tr: Yazdırma ve biçimlendirme }
+        what:
+          en: println! prints a line; {} shows a value, {:?} shows its debug form, and names in braces are read from variables.
+          tr: println! bir satır yazdırır; {} değeri, {:?} debug halini gösterir, süslü parantez içindeki adlar değişkenlerden okunur.
+        lang: rust
+        form: println!("{name} is {}", age);
+        example: |
+          fn main() {
+              let name = "Ada";
+              let scores = vec![9, 7];
+              println!("{name} has {} scores: {scores:?}", scores.len());
+              println!("{:.2} | {:>5} |", 3.14159, "hi");
+          }
+        output: |
+          Ada has 2 scores: [9, 7]
+          3.14 |    hi |
+        check: rust
+        mistake:
+          en: 'Printing your own struct with {} and getting a compile error; add #[derive(Debug)] and use {:?}, or implement Display.'
+          tr: 'Kendi struct''ını {} ile yazdırıp derleme hatası almak; #[derive(Debug)] ekleyip {:?} kullan ya da Display yaz.'
+        source: https://doc.rust-lang.org/std/fmt/index.html
+      - id: variables
+        level: basic
+        title: { en: Variables, mut and shadowing, tr: Değişkenler, mut ve gölgeleme }
+        what:
+          en: Variables cannot change unless you write mut; let with the same name makes a new variable (shadowing).
+          tr: mut yazmazsan değişkenler değişemez; aynı adla tekrar let yazmak yeni bir değişken yapar (gölgeleme).
+        lang: rust
+        form: let mut x = 5;
+        example: |
+          fn main() {
+              let mut count = 1;
+              count += 1;
+              let text = "42";
+              let text: i32 = text.parse().unwrap(); // shadowing, new type
+              println!("{count} {}", text + 1);
+          }
+        output: |
+          2 43
+        check: rust
+        mistake:
+          en: Adding mut everywhere to silence errors; keep values immutable and add mut only where they really change.
+          tr: Hataları susturmak için her yere mut eklemek; değerleri değişmez tut, mut'u sadece gerçekten değişen yere ekle.
+        source: https://doc.rust-lang.org/book/ch03-01-variables-and-mutability.html
+      - id: functions
+        level: basic
+        title: { en: Functions and expressions, tr: Fonksiyonlar ve ifadeler }
+        what:
+          en: The last expression of a block, without a semicolon, is its value; that is how most functions return.
+          tr: Bir bloğun noktalı virgülsüz son ifadesi o bloğun değeridir; çoğu fonksiyon böyle değer döner.
+        lang: rust
+        form: 'fn add(a: i32, b: i32) -> i32 { a + b }'
+        example: |
+          fn add(a: i32, b: i32) -> i32 {
+              a + b
+          }
+
+          fn main() {
+              let sign = if add(2, 3) > 4 { "big" } else { "small" };
+              println!("{} {sign}", add(2, 3));
+          }
+        output: |
+          5 big
+        check: rust
+        mistake:
+          en: Putting a semicolon after the last expression; the block then returns () and you get "mismatched types".
+          tr: Son ifadeden sonra noktalı virgül koymak; blok () döner ve "mismatched types" hatası alırsın.
+        source: https://doc.rust-lang.org/book/ch03-03-how-functions-work.html
+      - id: loops
+        level: basic
+        title: { en: Loops, tr: Döngüler }
+        what:
+          en: for walks over a range or a collection; loop repeats until break, and break can give back a value.
+          tr: for bir aralık ya da koleksiyon üzerinde gezer; loop break'e kadar tekrar eder ve break bir değer geri verebilir.
+        lang: rust
+        form: for i in 0..n { }
+        example: |
+          fn main() {
+              for i in 1..=3 {
+                  print!("{i} ");
+              }
+              println!();
+              let mut n = 1;
+              let first_over_50 = loop {
+                  n *= 2;
+                  if n > 50 {
+                      break n;
+                  }
+              };
+              println!("{first_over_50}");
+          }
+        output: |
+          1 2 3
+          64
+        check: rust
+        mistake:
+          en: Writing 0..n and expecting n to be included; use 0..=n.
+          tr: 0..n yazıp n'in de dahil olmasını beklemek; 0..=n kullan.
+        source: https://doc.rust-lang.org/book/ch03-05-control-flow.html
+  - id: ownership
+    title: { en: Ownership and borrowing, tr: Sahiplik ve ödünç alma }
+    items:
+      - id: move
+        level: basic
+        title: { en: Ownership and move, tr: Sahiplik ve taşıma (move) }
+        what:
+          en: Every value has one owner; assigning a String to another variable moves it, and the old name can no longer be used.
+          tr: Her değerin tek bir sahibi vardır; bir String'i başka değişkene atamak onu taşır ve eski ad artık kullanılamaz.
+        lang: rust
+        form: let b = a.clone();
+        example: |
+          fn main() {
+              let a = String::from("hi");
+              let b = a.clone(); // a deep copy, a stays usable
+              let c = a;         // move: a cannot be used after this
+              println!("{b} {c}");
+              let x = 5;
+              let y = x;         // i32 is Copy, so x is still fine
+              println!("{x} {y}");
+          }
+        output: |
+          hi hi
+          5 5
+        check: rust
+        mistake:
+          en: Calling .clone() everywhere to make the borrow checker quiet; pass a reference (&) when the function only needs to read.
+          tr: Borrow checker sussun diye her yerde .clone() çağırmak; fonksiyon sadece okuyacaksa referans (&) ver.
+        source: https://doc.rust-lang.org/book/ch04-01-what-is-ownership.html
+      - id: borrow
+        level: basic
+        title: { en: References and borrowing, tr: Referanslar ve ödünç alma }
+        what:
+          en: "&x lends a value without giving it away; you can have many & readers or one &mut writer at a time."
+          tr: "&x bir değeri sahipliğini vermeden ödünç verir; aynı anda ya birçok & okuyucu ya da tek bir &mut yazıcı olabilir."
+        lang: rust
+        form: 'fn f(s: &str) / fn g(v: &mut Vec<i32>)'
+        example: |
+          fn total(v: &[i32]) -> i32 {
+              v.iter().sum()
+          }
+
+          fn add_one(v: &mut Vec<i32>) {
+              v.push(1);
+          }
+
+          fn main() {
+              let mut v = vec![2, 3];
+              add_one(&mut v);
+              println!("{} {:?}", total(&v), v);
+          }
+        output: |
+          6 [2, 3, 1]
+        check: rust
+        mistake:
+          en: Holding a reference into a Vec and pushing to it at the same time; push may move the data, so the compiler refuses.
+          tr: Bir Vec'in içine referans tutarken ona push etmek; push veriyi taşıyabilir, bu yüzden derleyici izin vermez.
+        source: https://doc.rust-lang.org/book/ch04-02-references-and-borrowing.html
+      - id: string-str
+        level: basic
+        title: { en: String and &str, tr: String ve &str }
+        what:
+          en: String owns growable text; &str is a borrowed view of text, such as a literal or part of a String.
+          tr: String büyüyebilen metnin sahibidir; &str bir literal ya da String'in bir parçası gibi ödünç alınmış bir metin görünümüdür.
+        lang: rust
+        form: 'fn greet(name: &str) -> String'
+        example: |
+          fn greet(name: &str) -> String {
+              format!("Hello, {name}")
+          }
+
+          fn main() {
+              let owned = String::from("Ada Lovelace");
+              let first: &str = &owned[..3];
+              println!("{}", greet(first));
+              println!("{}", greet("Alan"));
+          }
+        output: |
+          Hello, Ada
+          Hello, Alan
+        check: rust
+        mistake:
+          en: Slicing text by byte index on non-ASCII text (&s[0..1] on "çay") panics; use .chars() for letters.
+          tr: ASCII olmayan metni byte indeksiyle bölmek ("çay" üzerinde &s[0..1]) panic verir; harfler için .chars() kullan.
+        avoid:
+          en: Taking String as a parameter when you only read it; take &str so both kinds can be passed.
+          tr: Sadece okuyacağın bir parametreyi String olarak almak; &str al ki iki türü de verebilesin.
+        source: https://doc.rust-lang.org/book/ch08-02-strings.html
+      - id: lifetimes
+        level: advanced
+        title: { en: Lifetimes, tr: Lifetime'lar }
+        what:
+          en: A lifetime like 'a tells the compiler how long a returned reference stays valid compared to its inputs.
+          tr: "'a gibi bir lifetime, dönen bir referansın girdilerine göre ne kadar geçerli kaldığını derleyiciye söyler."
+        lang: rust
+        form: "fn longest<'a>(x: &'a str, y: &'a str) -> &'a str"
+        example: |
+          fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
+              if x.len() >= y.len() { x } else { y }
+          }
+
+          fn main() {
+              let a = String::from("borrow");
+              let result = longest(&a, "own");
+              println!("{result}");
+          }
+        output: |
+          borrow
+        check: rust
+        mistake:
+          en: Trying to return a reference to a value created inside the function; it is dropped at the end, so return the owned value.
+          tr: Fonksiyonun içinde oluşturulan bir değere referans dönmeye çalışmak; o değer sonda silinir, sahip olunan değeri dön.
+        avoid:
+          en: Most functions need no lifetime annotations; the compiler infers them (elision). Add them only when it asks.
+          tr: Çoğu fonksiyonda lifetime yazmak gerekmez; derleyici onları çıkarır (elision). Sadece istediğinde ekle.
+        source: https://doc.rust-lang.org/book/ch10-03-lifetime-syntax.html
+  - id: types
+    title: { en: Structs, enums and traits, tr: Struct'lar, enum'lar ve trait'ler }
+    items:
+      - id: struct-impl
+        level: basic
+        title: { en: Structs and methods, tr: Struct'lar ve metotlar }
+        what:
+          en: A struct groups named fields; an impl block gives it methods and constructors like new.
+          tr: Struct adlandırılmış alanları bir araya toplar; impl bloğu ona metotlar ve new gibi kurucular verir.
+        lang: rust
+        form: impl User { fn new(..) -> Self { } fn name(&self) -> &str { } }
+        example: |
+          #[derive(Debug)]
+          struct Rect {
+              w: u32,
+              h: u32,
+          }
+
+          impl Rect {
+              fn square(size: u32) -> Self {
+                  Self { w: size, h: size }
+              }
+              fn area(&self) -> u32 {
+                  self.w * self.h
+              }
+              fn grow(&mut self) {
+                  self.w += 1;
+              }
+          }
+
+          fn main() {
+              let mut r = Rect::square(3);
+              r.grow();
+              println!("{:?} {}", r, r.area());
+          }
+        output: |
+          Rect { w: 4, h: 3 } 12
+        check: rust
+        source: https://doc.rust-lang.org/book/ch05-03-method-syntax.html
+      - id: enum-match
+        level: basic
+        title: { en: Enums and match, tr: Enum'lar ve match }
+        what:
+          en: An enum is one of several variants, which can carry data; match handles each variant and must cover them all.
+          tr: Enum birkaç varyanttan biridir ve varyantlar veri taşıyabilir; match her varyantı ele alır ve hepsini kapsamak zorundadır.
+        lang: rust
+        form: match v { A => .., B(x) => .., _ => .. }
+        example: |
+          enum Shape {
+              Circle(f64),
+              Rect { w: f64, h: f64 },
+          }
+
+          fn area(s: &Shape) -> f64 {
+              match s {
+                  Shape::Circle(r) => 3.0 * r * r,
+                  Shape::Rect { w, h } => w * h,
+              }
+          }
+
+          fn main() {
+              println!("{}", area(&Shape::Circle(1.0)));
+              println!("{}", area(&Shape::Rect { w: 2.0, h: 4.5 }));
+          }
+        output: |
+          3
+          9
+        check: rust
+        mistake:
+          en: Adding _ => {} by habit; then the compiler cannot tell you about a variant you add later.
+          tr: Alışkanlıkla _ => {} eklemek; o zaman derleyici sonradan eklediğin bir varyantı sana söyleyemez.
+        source: https://doc.rust-lang.org/book/ch06-02-match.html
+      - id: option
+        level: basic
+        title: { en: Option instead of null, tr: null yerine Option }
+        what:
+          en: Rust has no null; a value that may be missing is Option<T>, either Some(value) or None.
+          tr: Rust'ta null yoktur; olmayabilecek bir değer Option<T>'dir, ya Some(değer) ya da None.
+        lang: rust
+        form: let x = opt.unwrap_or(default);
+        example: |
+          fn find(names: &[&str], wanted: &str) -> Option<usize> {
+              names.iter().position(|n| *n == wanted)
+          }
+
+          fn main() {
+              let names = ["ada", "alan"];
+              println!("{:?}", find(&names, "alan"));
+              println!("{}", find(&names, "bob").unwrap_or(99));
+              println!("{:?}", find(&names, "ada").map(|i| i + 1));
+          }
+        output: |
+          Some(1)
+          99
+          Some(1)
+        check: rust
+        mistake:
+          en: Calling .unwrap() on a value that can really be None; it panics. Use match, if let, unwrap_or or ?.
+          tr: Gerçekten None olabilen bir değerde .unwrap() çağırmak; panic verir. match, if let, unwrap_or ya da ? kullan.
+        source: https://doc.rust-lang.org/std/option/index.html
+      - id: if-let-else
+        level: intermediate
+        title: { en: if let and let else, tr: if let ve let else }
+        what:
+          en: if let runs code only when a pattern matches; let else takes the value out or leaves the function early.
+          tr: if let sadece bir kalıp eşleşince kod çalıştırır; let else değeri çıkarır ya da fonksiyondan erkenden çıkar.
+        lang: rust
+        form: let Some(x) = opt else { return; };
+        example: |
+          fn port(text: &str) -> u16 {
+              let Ok(p) = text.parse::<u16>() else {
+                  return 8080;
+              };
+              p
+          }
+
+          fn main() {
+              if let Some(first) = "ada".chars().next() {
+                  println!("{first}");
+              }
+              println!("{} {}", port("3000"), port("abc"));
+          }
+        output: |
+          a
+          3000 8080
+        check: rust
+        since: "1.65"
+        older:
+          en: let else is stable since 1.65; before that you wrote a match with an early return.
+          tr: let else 1.65'ten beri stabil; öncesinde erken return yapan bir match yazardın.
+        source: https://doc.rust-lang.org/book/ch06-03-if-let.html
+      - id: let-chains
+        level: intermediate
+        title: { en: Chain conditions with let, tr: let ile koşulları zincirleme }
+        what:
+          en: In edition 2024 you can join let patterns and normal conditions with && in one if.
+          tr: 2024 edition'da let kalıplarını ve normal koşulları tek bir if içinde && ile birleştirebilirsin.
+        lang: rust
+        form: if let Some(x) = a && x > 0 { }
+        example: |
+          fn main() {
+              let input = Some("42");
+              if let Some(text) = input
+                  && let Ok(n) = text.parse::<i32>()
+                  && n > 10
+              {
+                  println!("big number {n}");
+              }
+          }
+        output: |
+          big number 42
+        check: rust
+        since: "1.88"
+        older:
+          en: Let chains need Rust 1.88 and edition 2024; on older versions nest the if let blocks.
+          tr: Let chain'ler Rust 1.88 ve 2024 edition ister; eski sürümlerde if let bloklarını iç içe yaz.
+        source: https://doc.rust-lang.org/reference/expressions/if-expr.html
+      - id: traits
+        level: intermediate
+        title: { en: Traits, tr: Trait'ler }
+        what:
+          en: A trait lists methods that types can implement; it is Rust's way to share behavior.
+          tr: Trait, tiplerin uygulayabileceği metotları listeler; Rust'ta ortak davranış paylaşmanın yoludur.
+        lang: rust
+        form: impl Summary for Post { fn summary(&self) -> String { } }
+        example: |
+          trait Describe {
+              fn name(&self) -> String;
+              fn describe(&self) -> String {
+                  format!("this is {}", self.name()) // default method
+              }
+          }
+
+          struct Dog;
+
+          impl Describe for Dog {
+              fn name(&self) -> String {
+                  "a dog".to_string()
+              }
+          }
+
+          fn main() {
+              println!("{}", Dog.describe());
+          }
+        output: |
+          this is a dog
+        check: rust
+        mistake:
+          en: Getting "method not found" because the trait is not in scope; add use crate::module::TraitName.
+          tr: Trait kapsamda olmadığı için "method not found" almak; use crate::modul::TraitAdi ekle.
+        source: https://doc.rust-lang.org/book/ch10-02-traits.html
+      - id: generics
+        level: intermediate
+        title: { en: Generics and trait bounds, tr: Generic'ler ve trait sınırları }
+        what:
+          en: A generic function works for any type T that implements the traits you ask for.
+          tr: Generic bir fonksiyon, istediğin trait'leri uygulayan her T tipi için çalışır.
+        lang: rust
+        form: 'fn largest<T: PartialOrd + Copy>(list: &[T]) -> T'
+        example: |
+          use std::fmt::Display;
+
+          fn largest<T: PartialOrd + Copy>(list: &[T]) -> T {
+              let mut best = list[0];
+              for &item in list {
+                  if item > best {
+                      best = item;
+                  }
+              }
+              best
+          }
+
+          fn show(item: impl Display) -> String {
+              format!("[{item}]")
+          }
+
+          fn main() {
+              println!("{} {}", largest(&[3, 9, 4]), largest(&['a', 'z']));
+              println!("{}", show(5));
+          }
+        output: |
+          9 z
+          [5]
+        check: rust
+        avoid:
+          en: When you need a list of different types together; use a trait object like Vec<Box<dyn Trait>>.
+          tr: Farklı tipleri bir arada tutan bir liste gerekiyorsa; Vec<Box<dyn Trait>> gibi bir trait nesnesi kullan.
+        source: https://doc.rust-lang.org/book/ch10-01-syntax.html
+      - id: derive
+        level: basic
+        title: { en: Derive common traits, tr: Yaygın trait'leri türetme }
+        what:
+          en: "#[derive(...)] writes standard trait code for you: printing, copying, comparing and hashing."
+          tr: "#[derive(...)] standart trait kodunu senin yerine yazar: yazdırma, kopyalama, karşılaştırma ve hash."
+        lang: rust
+        form: "#[derive(Debug, Clone, PartialEq)]"
+        example: |
+          #[derive(Debug, Clone, PartialEq, Default)]
+          struct Point {
+              x: i32,
+              y: i32,
+          }
+
+          fn main() {
+              let a = Point { x: 1, y: 2 };
+              let b = a.clone();
+              println!("{:?} {} {:?}", a, a == b, Point::default());
+          }
+        output: |
+          Point { x: 1, y: 2 } true Point { x: 0, y: 0 }
+        check: rust
+        source: https://doc.rust-lang.org/book/appendix-03-derivable-traits.html
+  - id: errors
+    title: { en: Errors, tr: Hatalar }
+    items:
+      - id: result
+        level: basic
+        title: { en: "Result and the ? operator", tr: "Result ve ? operatörü" }
+        what:
+          en: A function that can fail returns Result<T, E>; ? returns the error to the caller or gives you the value.
+          tr: Başarısız olabilen bir fonksiyon Result<T, E> döner; ? hatayı çağırana geri verir ya da değeri sana verir.
+        lang: rust
+        form: let n = text.parse::<i32>()?;
+        example: |
+          use std::num::ParseIntError;
+
+          fn double(text: &str) -> Result<i32, ParseIntError> {
+              let n: i32 = text.trim().parse()?;
+              Ok(n * 2)
+          }
+
+          fn main() {
+              println!("{:?}", double(" 21 "));
+              match double("x") {
+                  Ok(v) => println!("{v}"),
+                  Err(e) => println!("error: {e}"),
+              }
+          }
+        output: |
+          Ok(42)
+          error: invalid digit found in string
+        check: rust
+        mistake:
+          en: Using ? in a function that returns () ; the function itself must return a Result (or Option).
+          tr: () dönen bir fonksiyonda ? kullanmak; fonksiyonun kendisi de Result (ya da Option) dönmeli.
+        source: https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html
+      - id: box-dyn-error
+        level: intermediate
+        title: { en: Any error in main, tr: main'de her türlü hata }
+        what:
+          en: Box<dyn Error> can hold any error type, so ? works with different errors in one function.
+          tr: Box<dyn Error> her hata tipini tutabilir; böylece ? tek bir fonksiyonda farklı hatalarla çalışır.
+        lang: rust
+        form: "fn main() -> Result<(), Box<dyn std::error::Error>>"
+        example: |
+          use std::error::Error;
+
+          fn main() -> Result<(), Box<dyn Error>> {
+              let n: i32 = "7".parse()?;
+              let text = String::from_utf8(vec![104, 105])?;
+              println!("{n} {text}");
+              Ok(())
+          }
+        output: |
+          7 hi
+        check: rust
+        avoid:
+          en: In a library, callers cannot match on Box<dyn Error>; give them your own error enum.
+          tr: Bir kütüphanede çağıranlar Box<dyn Error> üzerinde match yapamaz; onlara kendi error enum'unu ver.
+        source: https://doc.rust-lang.org/book/ch09-02-recoverable-errors-with-result.html#where-the--operator-can-be-used
+      - id: custom-error
+        level: advanced
+        title: { en: Your own error type, tr: Kendi hata tipin }
+        what:
+          en: An error enum with Display and From lets callers match on the kind of failure and still use ?.
+          tr: Display ve From uygulayan bir hata enum'u, çağıranın hata türüne göre match yapmasını ve yine ? kullanmasını sağlar.
+        lang: rust
+        form: impl From<ParseIntError> for MyError { }
+        example: |
+          use std::fmt;
+          use std::num::ParseIntError;
+
+          #[derive(Debug)]
+          enum AgeError {
+              NotANumber(ParseIntError),
+              TooOld(u32),
+          }
+
+          impl fmt::Display for AgeError {
+              fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                  match self {
+                      AgeError::NotANumber(e) => write!(f, "not a number: {e}"),
+                      AgeError::TooOld(n) => write!(f, "{n} is too old"),
+                  }
+              }
+          }
+
+          impl std::error::Error for AgeError {}
+
+          impl From<ParseIntError> for AgeError {
+              fn from(e: ParseIntError) -> Self {
+                  AgeError::NotANumber(e)
+              }
+          }
+
+          fn age(text: &str) -> Result<u32, AgeError> {
+              let n: u32 = text.parse()?; // From turns the error into AgeError
+              if n > 150 {
+                  return Err(AgeError::TooOld(n));
+              }
+              Ok(n)
+          }
+
+          fn main() {
+              println!("{}", age("200").unwrap_err());
+              println!("{}", age("x").unwrap_err());
+          }
+        output: |
+          200 is too old
+          not a number: invalid digit found in string
+        check: rust
+        avoid:
+          en: Writing this by hand in a big project; the thiserror crate generates the same code from attributes.
+          tr: Büyük bir projede bunu elle yazmak; thiserror crate'i aynı kodu attribute'lardan üretir.
+        source: https://doc.rust-lang.org/std/error/trait.Error.html
+      - id: panic
+        level: intermediate
+        title: { en: panic, unwrap and expect, tr: panic, unwrap ve expect }
+        what:
+          en: panic! stops the program for bugs; expect is unwrap with a message that says why the value must be there.
+          tr: panic! hatalarda programı durdurur; expect, değerin neden orada olması gerektiğini söyleyen mesajlı bir unwrap'tir.
+        lang: rust
+        form: let v = opt.expect("config must have a port");
+        example: |
+          let port: u16 = std::env::var("PORT")
+              .expect("PORT must be set")
+              .parse()
+              .expect("PORT must be a number");
+        avoid:
+          en: For errors the user can cause (bad input, missing file); return a Result instead.
+          tr: Kullanıcının sebep olabileceği hatalarda (hatalı girdi, eksik dosya); onun yerine Result dön.
+        source: https://doc.rust-lang.org/book/ch09-03-to-panic-or-not-to-panic.html
+  - id: collections
+    title: { en: Collections, iterators and closures, tr: Koleksiyonlar, iterator'lar ve closure'lar }
+    items:
+      - id: vec
+        level: basic
+        title: { en: Vec, tr: Vec }
+        what:
+          en: Vec<T> is a growable list; get returns an Option, while indexing panics when out of range.
+          tr: Vec<T> büyüyebilen bir listedir; get bir Option döner, indeksleme ise aralık dışındaysa panic verir.
+        lang: rust
+        form: let mut v = vec![1, 2]; v.push(3);
+        example: |
+          fn main() {
+              let mut v = vec![3, 1, 2];
+              v.push(5);
+              v.sort();
+              println!("{:?} {:?} {:?}", v, v.get(10), v.last());
+              v.retain(|&x| x % 2 == 1);
+              println!("{v:?}");
+          }
+        output: |
+          [1, 2, 3, 5] None Some(5)
+          [1, 3, 5]
+        check: rust
+        source: https://doc.rust-lang.org/std/vec/struct.Vec.html
+      - id: hashmap
+        level: basic
+        title: { en: HashMap and the entry API, tr: HashMap ve entry API }
+        what:
+          en: HashMap stores values by key; entry lets you insert or update in one step, for example to count things.
+          tr: HashMap değerleri anahtara göre saklar; entry tek adımda ekleme ya da güncelleme yapar, örneğin saymak için.
+        lang: rust
+        form: '*map.entry(key).or_insert(0) += 1;'
+        example: |
+          use std::collections::HashMap;
+
+          fn main() {
+              let mut counts: HashMap<&str, i32> = HashMap::new();
+              for word in "a b a c a".split_whitespace() {
+                  *counts.entry(word).or_insert(0) += 1;
+              }
+              println!("{:?} {:?}", counts.get("a"), counts.get("z"));
+              let mut keys: Vec<_> = counts.keys().collect();
+              keys.sort();
+              println!("{keys:?}");
+          }
+        output: |
+          Some(3) None
+          ["a", "b", "c"]
+        check: rust
+        mistake:
+          en: Expecting a fixed order when iterating; HashMap has none. Use BTreeMap for sorted keys.
+          tr: Gezinirken sabit bir sıra beklemek; HashMap'in sırası yoktur. Sıralı anahtarlar için BTreeMap kullan.
+        source: https://doc.rust-lang.org/std/collections/struct.HashMap.html
+      - id: iterators
+        level: intermediate
+        title: { en: Iterator chains, tr: Iterator zincirleri }
+        what:
+          en: Methods like map, filter and sum work on iterators lazily; collect turns the result into a collection.
+          tr: map, filter ve sum gibi metotlar iterator'lar üzerinde tembel (lazy) çalışır; collect sonucu bir koleksiyona çevirir.
+        lang: rust
+        form: v.iter().filter(..).map(..).collect::<Vec<_>>()
+        example: |
+          fn main() {
+              let nums = vec![1, 2, 3, 4, 5, 6];
+              let even_squares: Vec<i32> = nums.iter()
+                  .filter(|&&n| n % 2 == 0)
+                  .map(|n| n * n)
+                  .collect();
+              let total: i32 = nums.iter().sum();
+              println!("{even_squares:?} {total}");
+              for (i, n) in nums.iter().enumerate().take(2) {
+                  println!("{i}: {n}");
+              }
+          }
+        output: |
+          [4, 16, 36] 21
+          0: 1
+          1: 2
+        check: rust
+        mistake:
+          en: Writing .map(...) without collect or a loop; iterators are lazy, so nothing runs (the compiler warns).
+          tr: collect ya da döngü olmadan .map(...) yazmak; iterator'lar tembeldir, hiçbir şey çalışmaz (derleyici uyarır).
+        source: https://doc.rust-lang.org/book/ch13-02-iterators.html
+      - id: closures
+        level: intermediate
+        title: { en: Closures, tr: Closure'lar }
+        what:
+          en: A closure is an unnamed function that can use variables around it; move makes it take ownership of them.
+          tr: Closure, çevresindeki değişkenleri kullanabilen adsız bir fonksiyondur; move onların sahipliğini almasını sağlar.
+        lang: rust
+        form: let add = |x| x + n;
+        example: |
+          fn apply<F: Fn(i32) -> i32>(f: F, x: i32) -> i32 {
+              f(x)
+          }
+
+          fn main() {
+              let step = 10;
+              let add_step = |x| x + step;
+              let mut calls = 0;
+              let mut count = || calls += 1;
+              count();
+              count();
+              println!("{} {calls}", apply(add_step, 5));
+          }
+        output: |
+          15 2
+        check: rust
+        source: https://doc.rust-lang.org/book/ch13-01-closures.html
+  - id: advanced
+    title: { en: Concurrency and project structure, tr: Eşzamanlılık ve proje yapısı }
+    items:
+      - id: threads
+        level: intermediate
+        title: { en: Threads, tr: Thread'ler }
+        what:
+          en: thread::scope starts threads that may borrow local data and joins them all before it ends.
+          tr: thread::scope yerel veriyi ödünç alabilen thread'ler başlatır ve bitmeden önce hepsini bekler.
+        lang: rust
+        form: thread::scope(|s| { s.spawn(|| ..); });
+        example: |
+          use std::thread;
+
+          fn main() {
+              let data = vec![1, 2, 3, 4];
+              let (left, right) = data.split_at(2);
+              let (a, b) = thread::scope(|s| {
+                  let h1 = s.spawn(|| left.iter().sum::<i32>());
+                  let h2 = s.spawn(|| right.iter().sum::<i32>());
+                  (h1.join().unwrap(), h2.join().unwrap())
+              });
+              println!("{a} {b}");
+          }
+        output: |
+          3 7
+        check: rust
+        avoid:
+          en: Plain thread::spawn needs 'static data, so you must move or Arc it; scope is simpler when the threads end in the same function.
+          tr: Düz thread::spawn 'static veri ister, bu yüzden veriyi move etmen ya da Arc'a koyman gerekir; thread'ler aynı fonksiyonda bitiyorsa scope daha basittir.
+        since: "1.63"
+        source: https://doc.rust-lang.org/std/thread/fn.scope.html
+      - id: arc-mutex
+        level: advanced
+        title: { en: Share data with Arc and Mutex, tr: Arc ve Mutex ile veri paylaşma }
+        what:
+          en: Arc shares one value between threads, and Mutex lets only one thread change it at a time.
+          tr: Arc bir değeri thread'ler arasında paylaştırır, Mutex ise aynı anda sadece bir thread'in onu değiştirmesine izin verir.
+        lang: rust
+        form: let c = Arc::new(Mutex::new(0)); *c.lock().unwrap() += 1;
+        example: |
+          use std::sync::{Arc, Mutex};
+          use std::thread;
+
+          fn main() {
+              let counter = Arc::new(Mutex::new(0));
+              let mut handles = vec![];
+              for _ in 0..8 {
+                  let c = Arc::clone(&counter);
+                  handles.push(thread::spawn(move || {
+                      *c.lock().unwrap() += 1;
+                  }));
+              }
+              for h in handles {
+                  h.join().unwrap();
+              }
+              println!("{}", *counter.lock().unwrap());
+          }
+        output: |
+          8
+        check: rust
+        mistake:
+          en: Using Rc across threads; it is not thread-safe and will not compile. Use Arc.
+          tr: Rc'yi thread'ler arasında kullanmak; thread-safe değildir ve derlenmez. Arc kullan.
+        source: https://doc.rust-lang.org/book/ch16-03-shared-state.html
+      - id: channels
+        level: intermediate
+        title: { en: Channels, tr: Channel'lar }
+        what:
+          en: mpsc::channel sends values from many threads to one receiver.
+          tr: mpsc::channel birçok thread'den tek bir alıcıya değer gönderir.
+        lang: rust
+        form: let (tx, rx) = mpsc::channel();
+        example: |
+          use std::sync::mpsc;
+          use std::thread;
+
+          fn main() {
+              let (tx, rx) = mpsc::channel();
+              thread::spawn(move || {
+                  for i in 1..=3 {
+                      tx.send(i * 10).unwrap();
+                  }
+              });
+              for v in rx {
+                  println!("{v}");
+              }
+          }
+        output: |
+          10
+          20
+          30
+        check: rust
+        mistake:
+          en: Keeping a sender alive in main after cloning it; the receiver loop never ends because a sender still exists.
+          tr: Klonladıktan sonra main'de bir sender'ı canlı tutmak; hâlâ bir sender olduğu için alıcı döngüsü hiç bitmez.
+        source: https://doc.rust-lang.org/book/ch16-02-message-passing.html
+      - id: rc-refcell
+        level: advanced
+        title: { en: Rc and RefCell, tr: Rc ve RefCell }
+        what:
+          en: Rc lets several owners share a value in one thread; RefCell allows changing it through a shared reference, checked at run time.
+          tr: Rc tek thread'de birden çok sahibin bir değeri paylaşmasını sağlar; RefCell onu paylaşılan bir referans üzerinden değiştirmeye izin verir, kontrol çalışma anında yapılır.
+        lang: rust
+        form: let shared = Rc::new(RefCell::new(vec![]));
+        example: |
+          use std::cell::RefCell;
+          use std::rc::Rc;
+
+          fn main() {
+              let log = Rc::new(RefCell::new(Vec::new()));
+              let other = Rc::clone(&log);
+              other.borrow_mut().push("from other");
+              log.borrow_mut().push("from log");
+              println!("{:?} owners={}", log.borrow(), Rc::strong_count(&log));
+          }
+        output: |
+          ["from other", "from log"] owners=2
+        check: rust
+        mistake:
+          en: Calling borrow_mut while another borrow is still alive; it compiles but panics at run time.
+          tr: Başka bir borrow hâlâ canlıyken borrow_mut çağırmak; derlenir ama çalışırken panic verir.
+        avoid:
+          en: Reach for it last; plain ownership and references are simpler and checked at compile time.
+          tr: En son buna başvur; düz sahiplik ve referanslar daha basittir ve derleme anında kontrol edilir.
+        source: https://doc.rust-lang.org/book/ch15-05-interior-mutability.html
+      - id: modules
+        level: intermediate
+        title: { en: Modules and visibility, tr: Modüller ve görünürlük }
+        what:
+          en: mod splits code into modules (often one file each); items are private unless marked pub.
+          tr: mod kodu modüllere böler (çoğu zaman her biri bir dosya); pub yazılmayan her şey gizlidir.
+        lang: rust
+        form: mod store; use crate::store::Item;
+        example: |
+          // src/main.rs
+          mod store; // loads src/store.rs
+
+          use store::Item;
+
+          fn main() {
+              let item = Item::new("pen");
+              println!("{}", item.name);
+          }
+
+          // src/store.rs
+          pub struct Item {
+              pub name: String,
+          }
+
+          impl Item {
+              pub fn new(name: &str) -> Self {
+                  Item { name: name.to_string() }
+              }
+          }
+        mistake:
+          en: Making the struct pub but not its fields; other modules still cannot read or build it.
+          tr: Struct'ı pub yapıp alanlarını yapmamak; diğer modüller onu yine okuyamaz ya da oluşturamaz.
+        source: https://doc.rust-lang.org/book/ch07-02-defining-modules-to-control-scope-and-privacy.html
+      - id: tests
+        level: basic
+        title: { en: Tests, tr: Testler }
+        what:
+          en: 'Functions marked #[test] run with cargo test; assert_eq! compares two values and shows both when they differ.'
+          tr: "#[test] ile işaretlenen fonksiyonlar cargo test ile çalışır; assert_eq! iki değeri karşılaştırır, farklıysa ikisini de gösterir."
+        lang: rust
+        form: "#[test] fn it_works() { assert_eq!(add(2, 2), 4); }"
+        example: |
+          pub fn add(a: i32, b: i32) -> i32 {
+              a + b
+          }
+
+          #[cfg(test)]
+          mod tests {
+              use super::*;
+
+              #[test]
+              fn adds() {
+                  assert_eq!(add(2, 2), 4);
+              }
+          }
+          // run: cargo test
+        source: https://doc.rust-lang.org/book/ch11-01-writing-tests.html
+      - id: clippy-fmt
+        level: basic
+        title: { en: Format and lint, tr: Biçimlendirme ve lint }
+        what:
+          en: cargo fmt formats code the standard way; cargo clippy points out common mistakes and slow patterns.
+          tr: cargo fmt kodu standart biçimde düzenler; cargo clippy yaygın hataları ve yavaş kalıpları gösterir.
+        lang: sh
+        form: cargo fmt && cargo clippy
+        example: |
+          cargo fmt
+          cargo clippy -- -D warnings   # fail on any warning, good for CI
+        source: https://doc.rust-lang.org/clippy/usage.html
+      - id: async
+        level: advanced
+        title: { en: async and await, tr: async ve await }
+        what:
+          en: An async fn returns a future that does nothing until awaited; a runtime crate such as tokio runs it.
+          tr: async fn, await edilene kadar hiçbir şey yapmayan bir future döner; onu tokio gibi bir runtime crate'i çalıştırır.
+        lang: rust
+        form: async fn fetch() -> Result<String, Error> { }
+        example: |
+          // Cargo.toml: tokio = { version = "1", features = ["full"] }
+          use std::time::Duration;
+
+          async fn slow(n: u64) -> u64 {
+              tokio::time::sleep(Duration::from_millis(n)).await;
+              n
+          }
+
+          #[tokio::main]
+          async fn main() {
+              let (a, b) = tokio::join!(slow(20), slow(10)); // run both at once
+              println!("{a} {b}");
+          }
+        mistake:
+          en: Calling blocking code like std::thread::sleep inside async code; it stops the whole runtime thread. Use the async version.
+          tr: async kodun içinde std::thread::sleep gibi bloklayan kod çağırmak; bütün runtime thread'ini durdurur. async sürümünü kullan.
+        avoid:
+          en: For CPU-heavy work or simple programs; threads are simpler. async pays off with many network waits at once.
+          tr: CPU ağırlıklı iş ya da basit programlar için; thread'ler daha basittir. async aynı anda çok sayıda ağ beklemesinde işe yarar.
+        source: https://doc.rust-lang.org/book/ch17-00-async-await.html

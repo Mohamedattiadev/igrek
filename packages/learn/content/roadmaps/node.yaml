@@ -1,0 +1,2838 @@
+id: node
+title: Node.js backend
+summary:
+  en: "From an empty computer to your own REST API on the internet. You build a URL shortener with Node.js and Express step by step: validation, a SQLite database, logins, tests, security, a Docker image and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi REST API'na. Node.js ve Express ile adım adım bir URL kısaltıcı yazarsın: doğrulama, SQLite veritabanı, giriş sistemi, testler, güvenlik, Docker image'ı ve ücretsiz deploy."
+teacher: backend
+project:
+  en: "Linkly, a small URL shortener API: people register and log in, create short links for long web addresses, list and delete their own links, and anyone who opens a short link is redirected. It has input validation, a SQLite database, hashed passwords, tests, rate limiting, logs and health checks, and runs on Render's free plan."
+  tr: "Linkly, küçük bir URL kısaltıcı API'si: kişiler kayıt olup giriş yapar, uzun web adresleri için kısa bağlantılar oluşturur, kendi bağlantılarını listeler ve siler; bir kısa bağlantıyı açan herkes asıl adrese yönlendirilir. Girdi doğrulaması, SQLite veritabanı, hash'lenmiş şifreler, testler, rate limiting, loglar ve health check'leri vardır; Render'ın ücretsiz planında çalışır."
+detect:
+  npm: [express, hono]
+  files: [package.json]
+version: "26"
+latest: eol:nodejs
+checked: 2026-10
+after: [web]
+sheets: [nodejs, javascript, http, auth, rest-graphql, sql, caching, cors, docker, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Node.js, an editor, Git and curl"
+      tr: "Node.js, bir editör, Git ve curl kurma"
+    minutes: 40
+    why:
+      en: "Node.js is the program that runs your JavaScript on a server instead of in a browser. An editor makes writing code comfortable, Git keeps every version of your work, and curl lets you talk to your own API from the terminal before any website exists."
+      tr: "Node.js, JavaScript kodunu tarayıcıda değil sunucuda çalıştıran programdır. Editör kod yazmayı rahatlatır, Git işinin her sürümünü saklar, curl de daha ortada bir web sitesi yokken kendi API'nla terminalden konuşmanı sağlar."
+    learn:
+      en: |
+        - What Node.js and npm are, and what a backend is (a program that waits for requests and answers them)
+        - Which Node.js version to pick: the LTS one
+        - How to check that a program is installed
+      tr: |
+        - Node.js ve npm'in ne olduğu, backend'in ne olduğu (istekleri bekleyen ve cevaplayan bir program)
+        - Hangi Node.js sürümünü seçmen gerektiği: LTS olanı
+        - Bir programın kurulu olup olmadığını nasıl kontrol edeceğin
+    do:
+      en: |
+        1. Download **Node.js LTS** from nodejs.org and install it. LTS means long-term support: it gets fixes for years. At the time of writing the LTS line is Node.js 24, and Node.js 26 becomes LTS on 28 October 2026. Both work for this project. You need version 22.13 or newer, because the project uses the built-in `node:sqlite` module.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it. On Windows this also installs *Git Bash*; use Git Bash for the terminal commands in this guide, because they are written for it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each one should print a version number.
+        5. Tell Git who you are: `git config --global user.name "Your Name"` and `git config --global user.email "you@example.com"`.
+      tr: |
+        1. nodejs.org'dan **Node.js LTS** sürümünü indirip kur. LTS "uzun süreli destek" demek: yıllarca düzeltme alır. Bu yazı hazırlanırken LTS hattı Node.js 24, Node.js 26 ise 28 Ekim 2026'da LTS oluyor. İkisi de bu projede çalışır. 22.13 veya daha yeni bir sürüm gerekir, çünkü proje hazır gelen `node:sqlite` modülünü kullanıyor.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir. Windows'ta bu, *Git Bash*'i de kurar; bu rehberdeki terminal komutları ona göre yazıldığı için Git Bash kullan.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı.
+        5. Git'e kim olduğunu söyle: `git config --global user.name "Adın Soyadın"` ve `git config --global user.email "sen@example.com"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          npm --version
+          git --version
+          curl --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart the computer if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "`node --version` prints something older than v22.13 because an old Node.js was installed earlier."
+          tr: "Daha önce kurulmuş eski bir Node.js yüzünden `node --version` v22.13'ten eski bir sürüm yazıyor."
+        fix:
+          en: "Install the LTS version over it, or use a version manager such as nvm or fnm. Then open a new terminal and check again."
+          tr: "LTS sürümünü üstüne kur ya da nvm veya fnm gibi bir sürüm yöneticisi kullan. Sonra yeni bir terminal açıp tekrar kontrol et."
+    quiz:
+      - q:
+          en: "What does a backend program do?"
+          tr: "Bir backend programı ne yapar?"
+        options:
+          en:
+            - "It draws the page in the browser"
+            - "It waits for requests and sends back answers"
+            - "It only stores files on your computer"
+          tr:
+            - "Sayfayı tarayıcıda çizer"
+            - "İstekleri bekler ve cevap gönderir"
+            - "Sadece dosyaları bilgisayarında saklar"
+        answer: 1
+        why:
+          en: "A backend (server) program listens for requests from browsers, apps or tools like curl and answers each one, usually with data."
+          tr: "Backend (sunucu) programı, tarayıcılardan, uygulamalardan ya da curl gibi araçlardan gelen istekleri dinler ve her birine, genelde veriyle, cevap verir."
+    sources:
+      - title: Node.js downloads
+        url: https://nodejs.org/en/download
+      - title: Node.js release schedule
+        url: https://nodejs.org/en/about/previous-releases
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: hello-http
+    stage: first-code
+    title:
+      en: "Your first server with node:http"
+      tr: "node:http ile ilk sunucun"
+    minutes: 25
+    needs: [setup]
+    why:
+      en: "Every Node.js web framework is built on the same small piece: the built-in `http` module. If you write one server with it yourself, Express and the others stop being magic."
+      tr: "Her Node.js web framework'ü aynı küçük parçanın üstüne kurulur: hazır gelen `http` modülü. Onunla bir sunucuyu kendin yazarsan Express ve diğerleri sihir olmaktan çıkar."
+    learn:
+      en: |
+        - What a port is, and what `localhost` means
+        - A request comes in, a response goes out: `(req, res) => ...`
+        - What `package.json` is, and why we set `"type": "module"` (so `import` works)
+        - `node --watch` restarts the server every time you save
+      tr: |
+        - Port'un ne olduğu ve `localhost`'un ne demek olduğu
+        - Bir istek gelir, bir cevap gider: `(req, res) => ...`
+        - `package.json`'ın ne olduğu ve `"type": "module"` ayarını neden yaptığımız (`import` çalışsın diye)
+        - `node --watch`, her kaydettiğinde sunucuyu yeniden başlatır
+    do:
+      en: |
+        1. In the terminal go to the folder where you keep projects, then create the project folder and a `package.json` (first commands below).
+        2. Open the folder in VS Code (`code .`) and create `server.js` with the code below.
+        3. Start it with `node --watch server.js`. It prints the address and keeps running.
+        4. In a second terminal run `curl -i http://localhost:3000`. `-i` shows the response headers too. You can also open the address in a browser.
+        5. Change the text in `server.js`, save, and run curl again. The server restarted by itself.
+        6. Stop the server with Ctrl+C.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git, sonra proje klasörünü ve bir `package.json` oluştur (aşağıdaki ilk komutlar).
+        2. Klasörü VS Code'da aç (`code .`) ve aşağıdaki kodla `server.js` dosyasını oluştur.
+        3. `node --watch server.js` ile başlat. Adresi yazar ve çalışmaya devam eder.
+        4. İkinci bir terminalde `curl -i http://localhost:3000` çalıştır. `-i` cevabın header'larını da gösterir. Adresi tarayıcıda da açabilirsin.
+        5. `server.js` içindeki metni değiştir, kaydet ve curl'ü tekrar çalıştır. Sunucu kendiliğinden yeniden başladı.
+        6. Sunucuyu Ctrl+C ile durdur.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir linkly
+          cd linkly
+          npm init -y
+          npm pkg set type=module
+      - file: server.js
+        lang: js
+        text: |
+          import http from "node:http";
+
+          const server = http.createServer((req, res) => {
+            res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+            res.end("Hello from my first server\n");
+          });
+
+          server.listen(3000, () => {
+            console.log("Listening on http://localhost:3000");
+          });
+    mistakes:
+      - problem:
+          en: "`Error: listen EADDRINUSE: address already in use :::3000`."
+          tr: "`Error: listen EADDRINUSE: address already in use :::3000` hatası."
+        fix:
+          en: "Another program (often your own earlier server still running in another terminal) already uses port 3000. Stop it with Ctrl+C, or change the number in `server.listen`."
+          tr: "Başka bir program (çoğu zaman başka bir terminalde hâlâ çalışan eski sunucun) 3000 portunu kullanıyor. Ctrl+C ile durdur ya da `server.listen` içindeki sayıyı değiştir."
+      - problem:
+          en: "`SyntaxError: Cannot use import statement outside a module`."
+          tr: "`SyntaxError: Cannot use import statement outside a module` hatası."
+        fix:
+          en: "`package.json` is missing `\"type\": \"module\"`. Run `npm pkg set type=module` in the project folder."
+          tr: "`package.json` içinde `\"type\": \"module\"` yok. Proje klasöründe `npm pkg set type=module` çalıştır."
+    quiz:
+      - q:
+          en: "In `http.createServer((req, res) => ...)`, what is `res` for?"
+          tr: "`http.createServer((req, res) => ...)` içinde `res` ne işe yarar?"
+        options:
+          en:
+            - "It holds the request that came in"
+            - "It is used to build and send the answer"
+            - "It restarts the server"
+          tr:
+            - "Gelen isteği tutar"
+            - "Cevabı hazırlayıp göndermek için kullanılır"
+            - "Sunucuyu yeniden başlatır"
+        answer: 1
+        why:
+          en: "`req` describes the request (method, URL, headers, body); `res` is how you write the response: status, headers and body."
+          tr: "`req` isteği anlatır (method, URL, header'lar, body); `res` cevabı yazdığın yerdir: durum kodu, header'lar ve body."
+    sources:
+      - title: "Node.js http: http.createServer"
+        url: https://nodejs.org/docs/latest/api/http.html#httpcreateserveroptions-requestlistener
+      - title: "Node.js: Introduction to Node.js"
+        url: https://nodejs.org/en/learn/getting-started/introduction-to-nodejs
+
+  - id: plain-api
+    stage: basics
+    title:
+      en: "A tiny API by hand: routes, JSON and status codes"
+      tr: "Elle küçük bir API: route'lar, JSON ve durum kodları"
+    minutes: 45
+    needs: [hello-http]
+    why:
+      en: "A REST API is a set of addresses (routes) that take and return JSON, with a status code that says how it went. Writing the first two routes with plain `node:http` shows you exactly what a framework will do for you next, and why you will want one."
+      tr: "REST API, JSON alıp veren adreslerden (route'lardan) oluşur ve işin nasıl gittiğini bir durum kodu söyler. İlk iki route'u düz `node:http` ile yazmak, bir framework'ün senin için neleri yapacağını ve neden ona ihtiyaç duyacağını tam olarak gösterir."
+    learn:
+      en: |
+        - HTTP methods: `GET` reads, `POST` creates
+        - Status codes: 200 OK, 201 Created, 302 Found (redirect), 400 Bad Request, 404 Not Found
+        - Reading a JSON request body and sending a JSON response
+        - Why data kept only in memory disappears when the server restarts
+      tr: |
+        - HTTP method'ları: `GET` okur, `POST` oluşturur
+        - Durum kodları: 200 OK, 201 Created, 302 Found (yönlendirme), 400 Bad Request, 404 Not Found
+        - JSON istek gövdesini okumak ve JSON cevap göndermek
+        - Sadece bellekte tutulan verinin sunucu yeniden başlayınca neden kaybolduğu
+    do:
+      en: |
+        1. Replace everything in `server.js` with the code below. It stores links in a `Map` (a list of key and value pairs kept in memory).
+        2. Start it: `node --watch server.js`.
+        3. In a second terminal create a short link with the first curl command. The answer has a `code` like `qZ3mXw`.
+        4. Open the short link with the second command, using your code. `-i` shows the `302` status and the `location` header: that is the redirect.
+        5. Try a request with a body that is not valid JSON, and one without a `url`. Both answer `400`.
+        6. Stop the server with Ctrl+C, start it again and open the same short link: `404`. The `Map` was in memory only.
+      tr: |
+        1. `server.js` içindeki her şeyi aşağıdaki kodla değiştir. Bağlantıları bir `Map`'te (bellekte tutulan anahtar ve değer çiftleri listesi) saklar.
+        2. Başlat: `node --watch server.js`.
+        3. İkinci bir terminalde ilk curl komutuyla bir kısa bağlantı oluştur. Cevapta `qZ3mXw` gibi bir `code` var.
+        4. İkinci komutla, kendi kodunu kullanarak kısa bağlantıyı aç. `-i` `302` durumunu ve `location` header'ını gösterir: yönlendirme budur.
+        5. Geçerli JSON olmayan bir body ile ve `url` içermeyen bir istekle dene. İkisi de `400` döner.
+        6. Sunucuyu Ctrl+C ile durdur, tekrar başlat ve aynı kısa bağlantıyı aç: `404`. `Map` sadece bellekteydi.
+    code:
+      - file: server.js
+        lang: js
+        text: |
+          import http from "node:http";
+          import { randomBytes } from "node:crypto";
+
+          const links = new Map(); // code -> url
+
+          function send(res, status, body) {
+            res.writeHead(status, { "content-type": "application/json; charset=utf-8" });
+            res.end(JSON.stringify(body));
+          }
+
+          async function readJson(req) {
+            req.setEncoding("utf8");
+            let text = "";
+            for await (const chunk of req) text += chunk;
+            return JSON.parse(text);
+          }
+
+          const server = http.createServer(async (req, res) => {
+            const { pathname } = new URL(req.url, "http://localhost");
+            try {
+              if (req.method === "POST" && pathname === "/links") {
+                const body = await readJson(req);
+                if (typeof body?.url !== "string") {
+                  return send(res, 400, { error: "url is required" });
+                }
+                const code = randomBytes(4).toString("base64url");
+                links.set(code, body.url);
+                return send(res, 201, { code, url: body.url });
+              }
+
+              if (req.method === "GET" && pathname.length > 1) {
+                const url = links.get(pathname.slice(1));
+                if (!url) return send(res, 404, { error: "not found" });
+                res.writeHead(302, { location: url });
+                return res.end();
+              }
+
+              send(res, 404, { error: "not found" });
+            } catch {
+              send(res, 400, { error: "bad request" });
+            }
+          });
+
+          server.listen(3000, () => {
+            console.log("Listening on http://localhost:3000");
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i -X POST http://localhost:3000/links \
+            -H "content-type: application/json" \
+            -d '{"url":"https://nodejs.org"}'
+
+          curl -i http://localhost:3000/qZ3mXw
+    mistakes:
+      - problem:
+          en: "The request never finishes; curl just waits."
+          tr: "İstek hiç bitmiyor; curl sadece bekliyor."
+        fix:
+          en: "Some code path forgot to call `res.end()` (the helper `send` does it). Every request must end with exactly one response."
+          tr: "Bir kod yolu `res.end()` çağırmayı unutmuş (`send` yardımcısı bunu yapar). Her istek tam olarak bir cevapla bitmelidir."
+      - problem:
+          en: "On Windows the multi-line curl command fails."
+          tr: "Windows'ta çok satırlı curl komutu hata veriyor."
+        fix:
+          en: "Use Git Bash (the `\\` at the end of a line continues the command there), or put the whole command on one line. In PowerShell `curl` is a different command: use `curl.exe`."
+          tr: "Git Bash kullan (orada satır sonundaki `\\` komutu devam ettirir) ya da komutun hepsini tek satıra yaz. PowerShell'de `curl` başka bir komuttur: `curl.exe` kullan."
+      - problem:
+          en: "Expecting the links to still be there after a restart."
+          tr: "Yeniden başlatınca bağlantıların hâlâ orada olmasını beklemek."
+        fix:
+          en: "A `Map` lives in the program's memory and disappears when it stops. A database fixes this; that comes in a few steps."
+          tr: "`Map` programın belleğinde yaşar ve program durunca kaybolur. Bunu bir veritabanı çözer; birkaç adım sonra gelecek."
+    quiz:
+      - q:
+          en: "Which status code means a new thing was created?"
+          tr: "Hangi durum kodu yeni bir şeyin oluşturulduğunu söyler?"
+        options:
+          en:
+            - "200"
+            - "201"
+            - "404"
+          tr:
+            - "200"
+            - "201"
+            - "404"
+        answer: 1
+        why:
+          en: "201 Created is the answer to a `POST` that made a new resource. 200 is a plain success and 404 means not found."
+          tr: "201 Created, yeni bir kaynak oluşturan bir `POST`'un cevabıdır. 200 sade bir başarıdır, 404 ise bulunamadı demektir."
+    sources:
+      - title: "MDN: HTTP response status codes"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
+      - title: "MDN: HTTP request methods"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods
+      - title: "Node.js crypto: randomBytes"
+        url: https://nodejs.org/docs/latest/api/crypto.html#cryptorandombytessize-callback
+
+  - id: express
+    stage: first-project
+    title:
+      en: "Move to Express 5"
+      tr: "Express 5'e geçiş"
+    minutes: 40
+    needs: [plain-api]
+    why:
+      en: "Routing by hand with `if` lines does not scale. Express gives you routes, JSON body parsing and redirects in a few readable lines. We pick Express 5 because it is the version npm installs by default, its docs are the most complete, it has the biggest ecosystem of ready-made parts (middleware) and tutorials, and since version 5 it passes errors from async handlers to your error handler by itself. Hono is a great modern alternative; we meet it in the last step."
+      tr: "`if` satırlarıyla elle route yazmak büyüyünce yetmez. Express route'ları, JSON body okumayı ve yönlendirmeyi birkaç okunaklı satırda verir. Express 5'i seçiyoruz çünkü npm'in varsayılan olarak kurduğu sürüm bu, dokümantasyonu en eksiksiz olanı, hazır parça (middleware) ve eğitim ekosistemi en büyüğü, ayrıca 5. sürümden beri async handler'lardaki hataları kendiliğinden hata yakalayıcına iletiyor. Hono harika, modern bir alternatif; onu son adımda tanıyacağız."
+    learn:
+      en: |
+        - What a framework is, and what middleware is (a function that runs before your route: `express.json()` reads JSON bodies)
+        - Routes: `app.get(path, handler)`, `app.post(...)`, and `:code` parameters
+        - Why the app is built by a function `createApp()` in `src/app.js` and started in a separate `src/server.js` (so tests can use the app without opening a port)
+      tr: |
+        - Framework'ün ne olduğu ve middleware'in ne olduğu (route'undan önce çalışan bir fonksiyon: `express.json()` JSON body'leri okur)
+        - Route'lar: `app.get(yol, handler)`, `app.post(...)` ve `:code` parametreleri
+        - Uygulamanın neden `src/app.js` içindeki bir `createApp()` fonksiyonuyla kurulup ayrı bir `src/server.js` ile başlatıldığı (testler port açmadan uygulamayı kullanabilsin diye)
+    do:
+      en: |
+        1. Install Express in the project folder (first command below). npm adds it to `package.json` and creates `node_modules` and `package-lock.json`.
+        2. Create the folder `src` and the two files below.
+        3. Delete the old `server.js`: `rm server.js`.
+        4. Add two scripts to `package.json` with the second command below. Now `npm run dev` starts the server with auto-restart.
+        5. Run `npm run dev`, then repeat the curl commands from the last step: create a link and open it. `curl -i http://localhost:3000/health` should answer `{"status":"ok"}`.
+        6. Create a file named `.gitignore` containing the line `node_modules`, then save this version: `git init`, `git add .`, `git commit -m "Linkly with Express"`.
+      tr: |
+        1. Express'i proje klasöründe kur (aşağıdaki ilk komut). npm onu `package.json`'a ekler, `node_modules` ve `package-lock.json` dosyalarını oluşturur.
+        2. `src` klasörünü ve aşağıdaki iki dosyayı oluştur.
+        3. Eski `server.js` dosyasını sil: `rm server.js`.
+        4. Aşağıdaki ikinci komutla `package.json`'a iki script ekle. Artık `npm run dev` sunucuyu otomatik yeniden başlatmayla çalıştırır.
+        5. `npm run dev` çalıştır, sonra önceki adımdaki curl komutlarını tekrarla: bir bağlantı oluştur ve aç. `curl -i http://localhost:3000/health` komutu `{"status":"ok"}` cevabını vermeli.
+        6. İçinde `node_modules` satırı olan `.gitignore` adında bir dosya oluştur, sonra bu sürümü kaydet: `git init`, `git add .`, `git commit -m "Linkly with Express"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install express
+          npm pkg set scripts.dev="node --watch src/server.js" scripts.start="node src/server.js"
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { randomBytes } from "node:crypto";
+
+          export function createApp() {
+            const app = express();
+            const links = new Map(); // code -> url, still only in memory
+
+            app.use(express.json());
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.post("/links", (req, res) => {
+              const code = randomBytes(4).toString("base64url");
+              links.set(code, req.body.url);
+              res.status(201).json({ code, url: req.body.url });
+            });
+
+            app.get("/:code", (req, res) => {
+              const url = links.get(req.params.code);
+              if (!url) return res.status(404).json({ error: "not found" });
+              res.redirect(url);
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+
+          const port = Number(process.env.PORT) || 3000;
+
+          createApp().listen(port, () => {
+            console.log(`Listening on http://localhost:${port}`);
+          });
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+    mistakes:
+      - problem:
+          en: "`Cannot read properties of undefined (reading 'url')` when the request has no JSON body."
+          tr: "İstekte JSON body yokken `Cannot read properties of undefined (reading 'url')` hatası."
+        fix:
+          en: "In Express 5 `req.body` is `undefined` when nothing was parsed (for example a missing `content-type: application/json` header). Do not trust the body; the next step validates it properly."
+          tr: "Express 5'te hiçbir şey parse edilmediğinde (örneğin `content-type: application/json` header'ı yoksa) `req.body` `undefined` olur. Body'ye güvenme; sonraki adım onu düzgünce doğrular."
+      - problem:
+          en: "Following an old Express 4 tutorial and getting errors, for example with `app.get('*', ...)`."
+          tr: "Eski bir Express 4 eğitimini izleyip hata almak, örneğin `app.get('*', ...)` ile."
+        fix:
+          en: "Express 5 changed some things: a catch-all route must be named, like `/*splat`. Read the official migration guide when an old example does not work."
+          tr: "Express 5 bazı şeyleri değiştirdi: hepsini yakalayan bir route'a ad verilmesi gerekir, örneğin `/*splat`. Eski bir örnek çalışmazsa resmi geçiş rehberini oku."
+    quiz:
+      - q:
+          en: "Why does `src/app.js` export a `createApp()` function instead of starting the server itself?"
+          tr: "`src/app.js` neden sunucuyu kendisi başlatmak yerine bir `createApp()` fonksiyonu dışa aktarıyor?"
+        options:
+          en:
+            - "Express requires it"
+            - "Tests can then use the app without opening a port"
+            - "It makes the server faster"
+          tr:
+            - "Express bunu zorunlu kılıyor"
+            - "Böylece testler port açmadan uygulamayı kullanabilir"
+            - "Sunucuyu hızlandırır"
+        answer: 1
+        why:
+          en: "Separating building the app from listening on a port lets a test create fresh apps with fresh data and call them directly."
+          tr: "Uygulamayı kurmakla bir portu dinlemeyi ayırmak, bir testin temiz veriyle yeni uygulamalar oluşturup onları doğrudan çağırmasını sağlar."
+    sources:
+      - title: "Express: Installing"
+        url: https://expressjs.com/en/starter/installing.html
+      - title: "Express: Routing"
+        url: https://expressjs.com/en/guide/routing.html
+      - title: "Express: Migrating to Express 5"
+        url: https://expressjs.com/en/guide/migrating-5.html
+
+  - id: validation
+    stage: first-project
+    title:
+      en: "Validate input and handle errors"
+      tr: "Girdiyi doğrulama ve hataları yönetme"
+    minutes: 45
+    needs: [express]
+    why:
+      en: "Everything that comes from outside is untrusted: a missing field, a wrong type, a `javascript:` address. A good API checks the input at the door and answers with a clear 400, and never crashes or leaks internal details."
+      tr: "Dışarıdan gelen her şeye güvenilmez: eksik bir alan, yanlış bir tür, `javascript:` ile başlayan bir adres. İyi bir API girdiyi kapıda kontrol eder, net bir 400 ile cevap verir; asla çökmez ve iç ayrıntıları sızdırmaz."
+    learn:
+      en: |
+        - Describing the allowed shape of the data once with a schema (Zod)
+        - Throwing an `HttpError` from a route and catching it in one error handler
+        - Express 5 sends errors thrown in handlers (even async ones) to the error handler for you
+        - Error handler rules: four parameters `(err, req, res, next)`, and it comes after all routes
+        - Why a short link may only point to `http` and `https` addresses
+      tr: |
+        - Verinin izin verilen şeklini bir şemayla (Zod) bir kez tanımlamak
+        - Bir route'tan `HttpError` fırlatıp tek bir hata yakalayıcıda yakalamak
+        - Express 5, handler'larda (async olanlarda bile) fırlatılan hataları senin yerine hata yakalayıcıya yollar
+        - Hata yakalayıcı kuralları: dört parametre `(err, req, res, next)` ve tüm route'lardan sonra gelir
+        - Kısa bağlantının neden sadece `http` ve `https` adreslerine gidebileceği
+    do:
+      en: |
+        1. Install Zod: `npm install zod`.
+        2. Create `src/validate.js` with the code below. `parse` checks data against a schema and throws a 400 `HttpError` with the list of problems.
+        3. Replace `src/app.js` with the new version below. It adds the schema, a catch-all 404 and the error handler.
+        4. Try the bad requests with curl (the commands below). Each should answer 400 with a clear message and `details`.
+        5. Try a good one again to check it still works.
+      tr: |
+        1. Zod'u kur: `npm install zod`.
+        2. Aşağıdaki kodla `src/validate.js` dosyasını oluştur. `parse` veriyi bir şemaya göre kontrol eder ve sorunların listesiyle 400 `HttpError` fırlatır.
+        3. `src/app.js` dosyasını aşağıdaki yeni sürümle değiştir. Şemayı, her şeyi yakalayan bir 404'ü ve hata yakalayıcıyı ekler.
+        4. Kötü istekleri curl ile dene (aşağıdaki komutlar). Her biri net bir mesaj ve `details` ile 400 dönmeli.
+        5. Çalıştığını görmek için iyi bir istek daha dene.
+    code:
+      - file: src/validate.js
+        lang: js
+        text: |
+          export class HttpError extends Error {
+            constructor(status, message, details) {
+              super(message);
+              this.status = status;
+              this.details = details;
+            }
+          }
+
+          // Checks data against a Zod schema; returns the clean data or throws a 400.
+          export function parse(schema, data) {
+            const result = schema.safeParse(data);
+            if (!result.success) {
+              throw new HttpError(
+                400,
+                "invalid input",
+                result.error.issues.map((i) => ({ field: i.path.join("."), message: i.message })),
+              );
+            }
+            return result.data;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { randomBytes } from "node:crypto";
+          import { z } from "zod";
+          import { HttpError, parse } from "./validate.js";
+
+          const newLink = z.object({
+            url: z.url({ protocol: /^https?$/ }).max(2048),
+          });
+
+          export function createApp() {
+            const app = express();
+            const links = new Map(); // code -> url, still only in memory
+
+            app.use(express.json({ limit: "10kb" }));
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.post("/links", (req, res) => {
+              const { url } = parse(newLink, req.body);
+              const code = randomBytes(4).toString("base64url");
+              links.set(code, url);
+              res.status(201).json({ code, url });
+            });
+
+            app.get("/:code", (req, res) => {
+              const url = links.get(req.params.code);
+              if (!url) throw new HttpError(404, "not found");
+              res.redirect(url);
+            });
+
+            // Nothing matched above.
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            // Express knows this is an error handler because it has four parameters.
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                // Errors from Express itself: broken JSON, body too large.
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              console.error(err);
+              res.status(500).json({ error: "server error" });
+            });
+
+            return app;
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          # no url
+          curl -i -X POST http://localhost:3000/links -H "content-type: application/json" -d '{}'
+          # not a web address
+          curl -i -X POST http://localhost:3000/links -H "content-type: application/json" -d '{"url":"not a url"}'
+          # dangerous scheme
+          curl -i -X POST http://localhost:3000/links -H "content-type: application/json" -d '{"url":"javascript:alert(1)"}'
+          # broken JSON
+          curl -i -X POST http://localhost:3000/links -H "content-type: application/json" -d '{"url":'
+    mistakes:
+      - problem:
+          en: "Your error handler never runs and Express sends its own HTML error page."
+          tr: "Hata yakalayıcın hiç çalışmıyor ve Express kendi HTML hata sayfasını gönderiyor."
+        fix:
+          en: "Either it has only three parameters (Express needs all four: `err, req, res, next`, even if `next` is unused) or it is placed before the routes. Error handlers go last."
+          tr: "Ya sadece üç parametresi var (Express dördünü de ister: `err, req, res, next`, `next` kullanılmasa bile) ya da route'lardan önce konmuş. Hata yakalayıcılar en sona konur."
+      - problem:
+          en: "Sending `error.stack` or the database error text to the client."
+          tr: "`error.stack` ya da veritabanı hata metnini istemciye göndermek."
+        fix:
+          en: "Log the real error on the server (`console.error`) and send the client only a short, safe message. Stack traces help attackers."
+          tr: "Gerçek hatayı sunucuda logla (`console.error`) ve istemciye sadece kısa, güvenli bir mesaj gönder. Stack trace'ler saldırganlara yardım eder."
+      - problem:
+          en: "Allowing any string as the address, including `javascript:` or `file:` ones."
+          tr: "Adres olarak her string'e, `javascript:` ya da `file:` ile başlayanlara bile, izin vermek."
+        fix:
+          en: "Allow only the schemes you need. The schema above restricts to `http` and `https` with `protocol: /^https?$/`."
+          tr: "Sadece ihtiyacın olan scheme'lere izin ver. Yukarıdaki şema `protocol: /^https?$/` ile `http` ve `https` ile sınırlar."
+    quiz:
+      - q:
+          en: "Which status code fits \"the client sent data that fails validation\"?"
+          tr: "\"İstemci doğrulamadan geçmeyen veri gönderdi\" için hangi durum kodu uygun?"
+        options:
+          en:
+            - "400"
+            - "404"
+            - "500"
+          tr:
+            - "400"
+            - "404"
+            - "500"
+        answer: 0
+        why:
+          en: "4xx codes mean the client made a mistake and 400 is the general one for bad input. 500 would wrongly say the server is broken."
+          tr: "4xx kodları hatanın istemcide olduğunu söyler, 400 de kötü girdi için genel olanıdır. 500 sunucunun bozuk olduğunu yanlış biçimde söylerdi."
+    sources:
+      - title: "Zod documentation"
+        url: https://zod.dev/api
+      - title: "Express: Error handling"
+        url: https://expressjs.com/en/guide/error-handling.html
+
+  - id: sqlite
+    stage: data-api
+    title:
+      en: "Keep links in a SQLite database"
+      tr: "Bağlantıları SQLite veritabanında saklama"
+    minutes: 45
+    needs: [validation]
+    why:
+      en: "A database keeps data when the server restarts, and lets you ask questions about it. SQLite is a full SQL database in a single file, and Node.js has it built in as `node:sqlite`: nothing to install and no separate database server to run. One honest note: in Node.js 26 this module is a *release candidate* (stability 1.2), not yet fully stable, so its small details may still change. If you need a package that is stable today, `better-sqlite3` is the usual choice; it has a very similar API but needs a native install."
+      tr: "Veritabanı, sunucu yeniden başlasa da veriyi saklar ve veriye soru sormanı sağlar. SQLite tek bir dosyada tam bir SQL veritabanıdır ve Node.js onu `node:sqlite` olarak hazır getirir: kurulacak bir şey yok, ayrıca çalıştırılacak bir veritabanı sunucusu yok. Dürüst bir not: Node.js 26'da bu modül *sürüm adayı* (stability 1.2) durumunda, henüz tam kararlı değil; küçük ayrıntıları hâlâ değişebilir. Bugün kararlı bir paket istersen genelde `better-sqlite3` seçilir; API'si çok benzer ama native kurulum ister."
+    learn:
+      en: |
+        - Tables, rows and columns; `CREATE TABLE`, `INSERT`, `SELECT`, `UPDATE`
+        - Prepared statements: `db.prepare("... WHERE code = ?")` with `?` placeholders, which stop SQL injection
+        - WAL mode and `busy_timeout`, which let several readers and a writer work together; `synchronous = NORMAL` is the setting recommended with WAL: a commit no longer waits for the disk every single time (after a power cut the last few commits may be lost, but the database is not corrupted)
+        - Passing the database into `createApp(db)`, so tests can use an in-memory database
+      tr: |
+        - Tablolar, satırlar ve sütunlar; `CREATE TABLE`, `INSERT`, `SELECT`, `UPDATE`
+        - Hazır sorgular (prepared statement): `?` yer tutuculu `db.prepare("... WHERE code = ?")`, SQL injection'ı engeller
+        - WAL modu ve `busy_timeout`; birkaç okuyucunun ve bir yazıcının birlikte çalışmasını sağlar; `synchronous = NORMAL` WAL ile önerilen ayardır: her commit artık her seferinde diski beklemez (elektrik kesilirse son birkaç commit kaybolabilir ama veritabanı bozulmaz)
+        - Veritabanını `createApp(db)` içine vermek; böylece testler bellekteki bir veritabanı kullanabilir
+    do:
+      en: |
+        1. Create `src/db.js` with the code below. `openDb` opens the file (default `data.db`) and creates the `links` table if it does not exist.
+        2. Replace `src/app.js` and `src/server.js` with the versions below. Links now go into the database, and a click on a short link adds 1 to `clicks`.
+        3. Add the database files to `.gitignore`: `data.db*` (the `*` also covers the `-wal` and `-shm` files SQLite creates in WAL mode).
+        4. Run `npm run dev`, create a link, stop the server with Ctrl+C, start it again and open the short link. It still works.
+        5. Optional: look into the database with `sqlite3 data.db "select * from links"` if you have the `sqlite3` tool.
+      tr: |
+        1. Aşağıdaki kodla `src/db.js` dosyasını oluştur. `openDb` dosyayı (varsayılan `data.db`) açar ve yoksa `links` tablosunu oluşturur.
+        2. `src/app.js` ve `src/server.js` dosyalarını aşağıdaki sürümlerle değiştir. Bağlantılar artık veritabanına gidiyor ve bir kısa bağlantıya her tıklama `clicks` değerini 1 artırıyor.
+        3. Veritabanı dosyalarını `.gitignore`'a ekle: `data.db*` (`*`, SQLite'ın WAL modunda oluşturduğu `-wal` ve `-shm` dosyalarını da kapsar).
+        4. `npm run dev` çalıştır, bir bağlantı oluştur, sunucuyu Ctrl+C ile durdur, tekrar başlat ve kısa bağlantıyı aç. Hâlâ çalışıyor.
+        5. İsteğe bağlı: `sqlite3` aracın varsa veritabanının içine `sqlite3 data.db "select * from links"` ile bak.
+    code:
+      - file: src/db.js
+        lang: js
+        text: |
+          import { DatabaseSync } from "node:sqlite";
+
+          export function openDb(path = "data.db") {
+            const db = new DatabaseSync(path);
+            db.exec(`
+              PRAGMA busy_timeout = 5000;
+              PRAGMA journal_mode = WAL;
+              PRAGMA synchronous = NORMAL;
+              CREATE TABLE IF NOT EXISTS links (
+                code TEXT PRIMARY KEY,
+                url TEXT NOT NULL,
+                clicks INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              );
+            `);
+            return db;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { randomBytes } from "node:crypto";
+          import { z } from "zod";
+          import { HttpError, parse } from "./validate.js";
+
+          const newLink = z.object({
+            url: z.url({ protocol: /^https?$/ }).max(2048),
+          });
+
+          export function createApp(db) {
+            const app = express();
+            const insertLink = db.prepare("INSERT INTO links (code, url) VALUES (?, ?)");
+            const findLink = db.prepare("SELECT url FROM links WHERE code = ?");
+            const countClick = db.prepare("UPDATE links SET clicks = clicks + 1 WHERE code = ?");
+
+            app.use(express.json({ limit: "10kb" }));
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.post("/links", (req, res) => {
+              const { url } = parse(newLink, req.body);
+              const code = randomBytes(4).toString("base64url");
+              insertLink.run(code, url);
+              res.status(201).json({ code, url });
+            });
+
+            app.get("/:code", (req, res) => {
+              const link = findLink.get(req.params.code);
+              if (!link) throw new HttpError(404, "not found");
+              countClick.run(req.params.code);
+              res.redirect(link.url);
+            });
+
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              console.error(err);
+              res.status(500).json({ error: "server error" });
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+          import { openDb } from "./db.js";
+
+          const port = Number(process.env.PORT) || 3000;
+          const db = openDb(process.env.DB_PATH);
+
+          createApp(db).listen(port, () => {
+            console.log(`Listening on http://localhost:${port}`);
+          });
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          data.db*
+    mistakes:
+      - problem:
+          en: "Building SQL by joining strings, like `` `... WHERE code = '${code}'` ``."
+          tr: "SQL'i string birleştirerek kurmak, örneğin `` `... WHERE code = '${code}'` ``."
+        fix:
+          en: "This allows SQL injection: a visitor can put SQL into `code`. Always use `?` placeholders with `db.prepare(...).get(value)`; the database treats the value as data, never as SQL."
+          tr: "Bu SQL injection'a izin verir: bir ziyaretçi `code` içine SQL yazabilir. Her zaman `?` yer tutucularını ve `db.prepare(...).get(değer)` kullan; veritabanı değeri hep veri olarak görür, asla SQL olarak değil."
+      - problem:
+          en: "`No such built-in module: node:sqlite` (or an error asking for a flag) on an old Node.js."
+          tr: "Eski bir Node.js'te `No such built-in module: node:sqlite` hatası (ya da bir flag isteyen hata)."
+        fix:
+          en: "Check `node --version`. `node:sqlite` needs 22.13 or newer without any flag. Install the current LTS."
+          tr: "`node --version` ile kontrol et. `node:sqlite` hiçbir flag olmadan 22.13 veya daha yenisini ister. Güncel LTS'i kur."
+      - problem:
+          en: "Committing `data.db` to Git."
+          tr: "`data.db` dosyasını Git'e commit etmek."
+        fix:
+          en: "The database holds real data and changes all the time. Keep it out of Git with `.gitignore`; if it is already committed, remove it with `git rm --cached data.db`."
+          tr: "Veritabanı gerçek veri tutar ve sürekli değişir. `.gitignore` ile Git dışında tut; zaten commit'lendiyse `git rm --cached data.db` ile çıkar."
+    quiz:
+      - q:
+          en: "Why use `?` placeholders in `db.prepare(\"... WHERE code = ?\")`?"
+          tr: "`db.prepare(\"... WHERE code = ?\")` içinde neden `?` yer tutucuları kullanıyoruz?"
+        options:
+          en:
+            - "They make the query run faster than any other way"
+            - "The value is passed as data, so it can never be run as SQL"
+            - "SQLite requires them for every query"
+          tr:
+            - "Sorguyu her yoldan daha hızlı çalıştırırlar"
+            - "Değer veri olarak verilir, bu yüzden asla SQL olarak çalıştırılamaz"
+            - "SQLite her sorgu için bunları zorunlu kılar"
+        answer: 1
+        why:
+          en: "Placeholders keep data and SQL apart, which blocks SQL injection. Speed is a small bonus when you reuse a prepared statement."
+          tr: "Yer tutucular veriyi ve SQL'i ayrı tutar, bu da SQL injection'ı engeller. Hazır sorguyu tekrar kullanınca hız küçük bir bonustur."
+    sources:
+      - title: "Node.js: node:sqlite"
+        url: https://nodejs.org/docs/latest/api/sqlite.html
+      - title: "SQLite: Write-Ahead Logging"
+        url: https://sqlite.org/wal.html
+
+  - id: crud
+    stage: data-api
+    title:
+      en: "Complete the API: list, show and delete, in a router"
+      tr: "API'yi tamamlama: listeleme, gösterme ve silme, bir router içinde"
+    minutes: 40
+    needs: [sqlite]
+    why:
+      en: "A useful REST API lets you create, read and delete things (and update them, when that makes sense). Moving the `/links` routes into their own file with an Express `Router` keeps `app.js` short as the project grows."
+      tr: "Kullanışlı bir REST API, şeyleri oluşturmanı, okumanı ve silmeni (mantıklıysa güncellemeni de) sağlar. `/links` route'larını bir Express `Router` ile kendi dosyasına taşımak, proje büyürken `app.js`'i kısa tutar."
+    learn:
+      en: |
+        - REST naming: `GET /links` (list), `GET /links/:code` (one), `DELETE /links/:code`
+        - Status codes: 204 No Content for a successful delete, 404 when it does not exist
+        - Query strings for paging: `/links?limit=10&offset=20`, validated like any other input
+        - `Router`: a mini app you mount at a path with `app.use("/links", router)`
+      tr: |
+        - REST adlandırması: `GET /links` (liste), `GET /links/:code` (tek bir tane), `DELETE /links/:code`
+        - Durum kodları: başarılı silme için 204 No Content, yoksa 404
+        - Sayfalama için query string'ler: `/links?limit=10&offset=20`, diğer girdiler gibi doğrulanır
+        - `Router`: `app.use("/links", router)` ile bir yola bağladığın küçük bir uygulama
+    do:
+      en: |
+        1. Create `src/links.js` with the code below.
+        2. Replace `src/app.js` with the version below. It mounts the router; the redirect stays in `app.js`.
+        3. Create two or three links, then try the commands below: list, list with a limit, show one, delete one, show it again (404).
+        4. Commit: `git add .` and `git commit -m "Links router"`.
+      tr: |
+        1. Aşağıdaki kodla `src/links.js` dosyasını oluştur.
+        2. `src/app.js` dosyasını aşağıdaki sürümle değiştir. Router'ı bağlar; yönlendirme `app.js` içinde kalır.
+        3. İki üç bağlantı oluştur, sonra aşağıdaki komutları dene: listele, limitle listele, birini göster, birini sil, tekrar göster (404).
+        4. Commit'le: `git add .` ve `git commit -m "Links router"`.
+    code:
+      - file: src/links.js
+        lang: js
+        text: |
+          import { Router } from "express";
+          import { randomBytes } from "node:crypto";
+          import { z } from "zod";
+          import { HttpError, parse } from "./validate.js";
+
+          const newLink = z.object({
+            url: z.url({ protocol: /^https?$/ }).max(2048),
+          });
+
+          const listQuery = z.object({
+            limit: z.coerce.number().int().min(1).max(100).default(20),
+            offset: z.coerce.number().int().min(0).default(0),
+          });
+
+          export function linksRouter(db) {
+            const router = Router();
+            const insert = db.prepare("INSERT INTO links (code, url) VALUES (?, ?)");
+            const list = db.prepare(
+              "SELECT code, url, clicks, created_at FROM links ORDER BY rowid DESC LIMIT ? OFFSET ?",
+            );
+            const one = db.prepare("SELECT code, url, clicks, created_at FROM links WHERE code = ?");
+            const remove = db.prepare("DELETE FROM links WHERE code = ?");
+
+            router.post("/", (req, res) => {
+              const { url } = parse(newLink, req.body);
+              const code = randomBytes(4).toString("base64url");
+              insert.run(code, url);
+              res.status(201).json({ code, url });
+            });
+
+            router.get("/", (req, res) => {
+              const { limit, offset } = parse(listQuery, req.query);
+              res.json(list.all(limit, offset));
+            });
+
+            router.get("/:code", (req, res) => {
+              const link = one.get(req.params.code);
+              if (!link) throw new HttpError(404, "not found");
+              res.json(link);
+            });
+
+            router.delete("/:code", (req, res) => {
+              const { changes } = remove.run(req.params.code);
+              if (changes === 0) throw new HttpError(404, "not found");
+              res.status(204).end();
+            });
+
+            return router;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { HttpError } from "./validate.js";
+          import { linksRouter } from "./links.js";
+
+          export function createApp(db) {
+            const app = express();
+            const findLink = db.prepare("SELECT url FROM links WHERE code = ?");
+            const countClick = db.prepare("UPDATE links SET clicks = clicks + 1 WHERE code = ?");
+
+            app.use(express.json({ limit: "10kb" }));
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.use("/links", linksRouter(db));
+
+            app.get("/:code", (req, res) => {
+              const link = findLink.get(req.params.code);
+              if (!link) throw new HttpError(404, "not found");
+              countClick.run(req.params.code);
+              res.redirect(link.url);
+            });
+
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              console.error(err);
+              res.status(500).json({ error: "server error" });
+            });
+
+            return app;
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          curl http://localhost:3000/links
+          curl "http://localhost:3000/links?limit=2"
+          curl http://localhost:3000/links/<code>
+          curl -i -X DELETE http://localhost:3000/links/<code>
+          curl -i http://localhost:3000/links/<code>
+    mistakes:
+      - problem:
+          en: "`GET /links` is caught by the `/:code` route and answers 404."
+          tr: "`GET /links` `/:code` route'una takılıp 404 dönüyor."
+        fix:
+          en: "Express tries routes in the order you wrote them. Mount specific paths (`/links`, `/health`) before the catch-all `/:code`."
+          tr: "Express route'ları yazdığın sırayla dener. Belirli yolları (`/links`, `/health`) her şeyi yakalayan `/:code`'dan önce bağla."
+      - problem:
+          en: "Letting the client ask for `limit=1000000`."
+          tr: "İstemcinin `limit=1000000` istemesine izin vermek."
+        fix:
+          en: "Always cap list sizes. The schema above allows at most 100 per request."
+          tr: "Liste boyutlarına her zaman üst sınır koy. Yukarıdaki şema istek başına en fazla 100'e izin verir."
+    quiz:
+      - q:
+          en: "Which status code should a successful `DELETE` with no body return?"
+          tr: "Body'siz başarılı bir `DELETE` hangi durum kodunu döndürmeli?"
+        options:
+          en:
+            - "204"
+            - "301"
+            - "201"
+          tr:
+            - "204"
+            - "301"
+            - "201"
+        answer: 0
+        why:
+          en: "204 No Content means it worked and there is nothing to send back."
+          tr: "204 No Content, işin başarılı olduğunu ve geri gönderilecek bir şey olmadığını söyler."
+    sources:
+      - title: "Express: Router"
+        url: https://expressjs.com/en/guide/routing.html#express-router
+      - title: "MDN: DELETE"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Methods/DELETE
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Write tests with node:test and supertest"
+      tr: "node:test ve supertest ile test yazma"
+    minutes: 45
+    needs: [crud]
+    why:
+      en: "Tests are small programs that call your API and check the answers. They catch mistakes in seconds, and let you change code later without fear. Node.js has a test runner built in (`node:test`), so you need no Jest or Vitest. `supertest` calls your Express app directly, without opening a port."
+      tr: "Testler, API'nı çağırıp cevapları kontrol eden küçük programlardır. Hataları saniyeler içinde yakalar ve sonradan kodu korkmadan değiştirmeni sağlarlar. Node.js'in hazır test çalıştırıcısı var (`node:test`), yani Jest ya da Vitest'e gerek yok. `supertest` Express uygulamanı port açmadan doğrudan çağırır."
+    learn:
+      en: |
+        - `test("name", async () => { ... })` and `assert` from `node:assert/strict`
+        - Giving every test its own fresh in-memory database (`openDb(":memory:")`)
+        - `supertest`: `request(app).post("/links").send({...})`, then check `status`, `body`, `headers`
+        - The other way: start the app on a random port and call it with `fetch`
+        - What to test first: the happy path, the bad input, and the not-found cases
+      tr: |
+        - `test("ad", async () => { ... })` ve `node:assert/strict` içinden `assert`
+        - Her teste kendi temiz, bellekteki veritabanını vermek (`openDb(":memory:")`)
+        - `supertest`: `request(app).post("/links").send({...})`, sonra `status`, `body`, `headers` kontrolü
+        - Diğer yol: uygulamayı rastgele bir portta başlatıp `fetch` ile çağırmak
+        - Önce neyi test etmeli: normal akış, kötü girdi ve bulunamadı durumları
+    do:
+      en: |
+        1. Install supertest as a development dependency (it is only needed for tests): `npm install --save-dev supertest`.
+        2. Add the test script: `npm pkg set scripts.test="node --test"`. `node --test` finds files named `*.test.js` by itself.
+        3. Create `tests/links.test.js` with the code below.
+        4. Run `npm test`. You should see every test pass (a green check mark for each).
+        5. Break something on purpose, for example change `201` to `200` in `src/links.js`, run the tests again and read the failure message. Then undo the change.
+        6. Commit: `git add .` and `git commit -m "Add tests"`.
+      tr: |
+        1. supertest'i geliştirme bağımlılığı olarak kur (sadece testlerde gerekir): `npm install --save-dev supertest`.
+        2. Test script'ini ekle: `npm pkg set scripts.test="node --test"`. `node --test` `*.test.js` adlı dosyaları kendisi bulur.
+        3. Aşağıdaki kodla `tests/links.test.js` dosyasını oluştur.
+        4. `npm test` çalıştır. Bütün testlerin geçtiğini görmelisin (her biri için yeşil bir onay işareti).
+        5. Bilerek bir şeyi boz, örneğin `src/links.js` içinde `201`'i `200` yap, testleri tekrar çalıştır ve hata mesajını oku. Sonra değişikliği geri al.
+        6. Commit'le: `git add .` ve `git commit -m "Add tests"`.
+    code:
+      - file: tests/links.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { once } from "node:events";
+          import request from "supertest";
+          import { createApp } from "../src/app.js";
+          import { openDb } from "../src/db.js";
+
+          // Every test gets its own app and its own empty in-memory database.
+          const newApp = () => createApp(openDb(":memory:"));
+
+          test("creates a link and redirects to it", async () => {
+            const api = request(newApp());
+            const created = await api.post("/links").send({ url: "https://example.com/a" });
+            assert.equal(created.status, 201);
+
+            const res = await api.get(`/${created.body.code}`);
+            assert.equal(res.status, 302);
+            assert.equal(res.headers.location, "https://example.com/a");
+          });
+
+          test("counts clicks", async () => {
+            const api = request(newApp());
+            const { body } = await api.post("/links").send({ url: "https://example.com/b" });
+            await api.get(`/${body.code}`);
+            await api.get(`/${body.code}`);
+
+            const link = await api.get(`/links/${body.code}`);
+            assert.equal(link.body.clicks, 2);
+          });
+
+          test("rejects bad input with 400", async () => {
+            const api = request(newApp());
+            for (const body of [{}, { url: "nope" }, { url: "javascript:alert(1)" }]) {
+              const res = await api.post("/links").send(body);
+              assert.equal(res.status, 400);
+              assert.equal(res.body.details[0].field, "url");
+            }
+          });
+
+          test("unknown codes are 404", async () => {
+            const api = request(newApp());
+            assert.equal((await api.get("/nothing")).status, 404);
+            assert.equal((await api.get("/links/nothing")).status, 404);
+          });
+
+          test("deletes a link", async () => {
+            const api = request(newApp());
+            const { body } = await api.post("/links").send({ url: "https://example.com/c" });
+            assert.equal((await api.delete(`/links/${body.code}`)).status, 204);
+            assert.equal((await api.get(`/${body.code}`)).status, 404);
+          });
+
+          test("works over a real connection with fetch", async (t) => {
+            const server = newApp().listen(0); // port 0: the system picks a free port
+            t.after(() => {
+              server.closeAllConnections();
+              server.close();
+            });
+            await once(server, "listening");
+
+            const res = await fetch(`http://127.0.0.1:${server.address().port}/health`);
+            assert.deepEqual(await res.json(), { status: "ok" });
+          });
+    mistakes:
+      - problem:
+          en: "Tests pass alone but fail together because they share data."
+          tr: "Testler tek tek geçiyor ama veriyi paylaştıkları için birlikte çalıştırınca başarısız oluyor."
+        fix:
+          en: "Give each test its own database, as above with `openDb(\":memory:\")`. Never let one test depend on another."
+          tr: "Her teste kendi veritabanını ver, yukarıda `openDb(\":memory:\")` ile yaptığımız gibi. Hiçbir testi diğerine bağımlı yapma."
+      - problem:
+          en: "`npm test` hangs after the tests finish."
+          tr: "Testler bittikten sonra `npm test` takılıp kalıyor."
+        fix:
+          en: "A server or connection is still open. Close what you open: in the `fetch` test the server is closed in `t.after`."
+          tr: "Bir sunucu ya da bağlantı hâlâ açık. Açtığını kapat: `fetch` testinde sunucu `t.after` içinde kapatılıyor."
+      - problem:
+          en: "Testing only the happy path."
+          tr: "Sadece normal akışı test etmek."
+        fix:
+          en: "Bugs hide in bad input and edge cases. For every route also test a wrong input and a missing item, as the tests above do."
+          tr: "Hatalar kötü girdide ve uç durumlarda saklanır. Her route için bir yanlış girdiyi ve eksik bir öğeyi de test et, yukarıdaki testlerin yaptığı gibi."
+    quiz:
+      - q:
+          en: "Why does each test call `openDb(\":memory:\")`?"
+          tr: "Her test neden `openDb(\":memory:\")` çağırıyor?"
+        options:
+          en:
+            - "To keep the tests' data after they finish"
+            - "So every test starts with a fresh empty database and tests cannot affect each other"
+            - "Because SQLite cannot use files"
+          tr:
+            - "Testler bittikten sonra verilerini saklamak için"
+            - "Her test temiz boş bir veritabanıyla başlasın ve testler birbirini etkilemesin diye"
+            - "SQLite dosya kullanamadığı için"
+        answer: 1
+        why:
+          en: "An in-memory database disappears when the connection closes, so each test is isolated and leaves nothing behind."
+          tr: "Bellekteki veritabanı bağlantı kapanınca yok olur; böylece her test yalıtılmış olur ve arkasında bir şey bırakmaz."
+    sources:
+      - title: "Node.js: Test runner"
+        url: https://nodejs.org/docs/latest/api/test.html
+      - title: "supertest"
+        url: https://github.com/ladjs/supertest#readme
+
+  - id: auth
+    stage: security
+    title:
+      en: "Accounts: hashed passwords and login sessions"
+      tr: "Hesaplar: hash'lenmiş şifreler ve giriş oturumları"
+    minutes: 75
+    needs: [tests]
+    why:
+      en: "Right now anyone can create and delete anybody's links. To make links belong to people you need accounts. The two rules you must never break: never store a password (store a slow hash of it), and never trust a request just because it claims to be someone (check a secret token that only the real user received at login)."
+      tr: "Şu anda herkes herkesin bağlantısını oluşturup silebilir. Bağlantıları kişilere ait yapmak için hesaplar gerekir. Asla bozmaman gereken iki kural: şifreyi asla saklama (onun yavaş bir hash'ini sakla) ve bir isteğe sadece birisi olduğunu söylediği için güvenme (giriş sırasında sadece gerçek kullanıcıya verilen gizli bir token'ı kontrol et)."
+    learn:
+      en: |
+        - Hashing vs encrypting: a hash cannot be turned back into the password. Use a slow, salted one: scrypt, which is built into Node.js (`node:crypto`)
+        - A salt (random bytes stored with the hash) makes two equal passwords look different
+        - Sessions with tokens: login returns a long random token; the client sends it as `Authorization: Bearer <token>`; the server stores only the SHA-256 hash of the token, so a stolen database does not give working tokens
+        - Not telling attackers more than needed: same message for wrong email and wrong password, and a dummy hash so both take the same time
+        - Authorization: a user can only see and delete their own links, and other people's links answer 404
+        - Browser apps usually keep the token in an `HttpOnly` cookie instead; the server side idea is the same
+      tr: |
+        - Hash'leme ile şifrelemenin farkı: hash tekrar şifreye çevrilemez. Yavaş ve salt'lı birini kullan: Node.js'e hazır gelen scrypt (`node:crypto`)
+        - Salt (hash ile birlikte saklanan rastgele byte'lar) iki aynı şifrenin farklı görünmesini sağlar
+        - Token'lı oturumlar: giriş uzun, rastgele bir token döndürür; istemci onu `Authorization: Bearer <token>` olarak gönderir; sunucu token'ın sadece SHA-256 hash'ini saklar, böylece çalınan bir veritabanı çalışan token vermez
+        - Saldırganlara gerekenden fazlasını söylememek: yanlış e-posta ve yanlış şifre için aynı mesaj, ve ikisi de aynı sürede bitsin diye sahte bir hash
+        - Yetkilendirme: kullanıcı sadece kendi bağlantılarını görüp silebilir, başkalarının bağlantıları 404 döner
+        - Tarayıcı uygulamaları token'ı genelde bir `HttpOnly` cookie'de tutar; sunucu tarafındaki fikir aynıdır
+    do:
+      en: |
+        1. Delete your development data: `rm -f data.db*`. The tables change, and in a real project you would write a migration (an `ALTER TABLE` script); for local test data starting fresh is fine.
+        2. Replace `src/db.js` with the new version (users, sessions, and `user_id` on links).
+        3. Create `src/auth.js` (password hashing, tokens, the `requireAuth` middleware) and `src/accounts.js` (register, login, logout, me).
+        4. Replace `src/links.js` (every route now needs a login and only touches your own links) and `src/app.js` (it mounts `/auth`).
+        5. Replace `tests/links.test.js` and add `tests/helpers.js` and `tests/auth.test.js`. Run `npm test` and check everything passes.
+        6. Try it by hand with the curl commands below: register, log in (copy the token), create a link with the token, and try the same without it (401).
+        7. Commit: `git add .` and `git commit -m "Accounts and sessions"`.
+      tr: |
+        1. Geliştirme verini sil: `rm -f data.db*`. Tablolar değişiyor; gerçek bir projede bir migration (`ALTER TABLE` script'i) yazardın, yerel test verisi için baştan başlamak yeterli.
+        2. `src/db.js` dosyasını yeni sürümle değiştir (users, sessions ve links üzerinde `user_id`).
+        3. `src/auth.js` (şifre hash'leme, token'lar, `requireAuth` middleware'i) ve `src/accounts.js` (kayıt, giriş, çıkış, me) dosyalarını oluştur.
+        4. `src/links.js` (her route artık giriş ister ve sadece senin bağlantılarına dokunur) ve `src/app.js` (`/auth`'u bağlar) dosyalarını değiştir.
+        5. `tests/links.test.js` dosyasını değiştir, `tests/helpers.js` ve `tests/auth.test.js` dosyalarını ekle. `npm test` çalıştır ve hepsinin geçtiğini kontrol et.
+        6. Aşağıdaki curl komutlarıyla elle dene: kayıt ol, giriş yap (token'ı kopyala), token ile bağlantı oluştur ve aynısını token olmadan dene (401).
+        7. Commit'le: `git add .` ve `git commit -m "Accounts and sessions"`.
+    code:
+      - file: src/db.js
+        lang: js
+        text: |
+          import { DatabaseSync } from "node:sqlite";
+
+          export function openDb(path = "data.db") {
+            const db = new DatabaseSync(path);
+            db.exec(`
+              PRAGMA busy_timeout = 5000;
+              PRAGMA journal_mode = WAL;
+              PRAGMA synchronous = NORMAL;
+              PRAGMA foreign_keys = ON;
+
+              CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              );
+
+              CREATE TABLE IF NOT EXISTS sessions (
+                token_hash TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                expires_at INTEGER NOT NULL
+              );
+
+              CREATE TABLE IF NOT EXISTS links (
+                code TEXT PRIMARY KEY,
+                url TEXT NOT NULL,
+                clicks INTEGER NOT NULL DEFAULT 0,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              );
+            `);
+            return db;
+          }
+      - file: src/auth.js
+        lang: js
+        text: |
+          import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from "node:crypto";
+          import { promisify } from "node:util";
+          import { HttpError } from "./validate.js";
+
+          const scrypt = promisify(scryptCallback);
+
+          // scrypt cost: 64 MiB of memory per hash (N = 2^16, r = 8, p = 2 is one of the
+          // combinations the OWASP Password Storage Cheat Sheet lists as equally strong).
+          const COST = { N: 2 ** 16, r: 8, p: 2, maxmem: 128 * 1024 * 1024 };
+
+          export async function hashPassword(password) {
+            const salt = randomBytes(16);
+            const key = await scrypt(password, salt, 64, COST);
+            return `${salt.toString("hex")}:${key.toString("hex")}`;
+          }
+
+          export async function checkPassword(password, stored) {
+            const [saltHex, keyHex] = stored.split(":");
+            if (!saltHex || !keyHex) return false;
+            const expected = Buffer.from(keyHex, "hex");
+            const key = await scrypt(password, Buffer.from(saltHex, "hex"), expected.length, COST);
+            return timingSafeEqual(key, expected);
+          }
+
+          // The token the user receives is random; we store only its hash.
+          export const newToken = () => randomBytes(32).toString("base64url");
+          export const hashToken = (token) => createHash("sha256").update(token).digest("hex");
+
+          export function tokenFrom(req) {
+            const [scheme, token] = (req.get("authorization") ?? "").split(" ");
+            return scheme === "Bearer" && token ? token : undefined;
+          }
+
+          // Middleware: stops the request with 401 unless the token is a valid, unexpired session.
+          export function requireAuth(db) {
+            const find = db.prepare(
+              `SELECT users.id, users.email FROM sessions
+               JOIN users ON users.id = sessions.user_id
+               WHERE sessions.token_hash = ? AND sessions.expires_at > ?`,
+            );
+            return (req, res, next) => {
+              const token = tokenFrom(req);
+              const user = token ? find.get(hashToken(token), Date.now()) : undefined;
+              if (!user) throw new HttpError(401, "login required");
+              req.user = { id: user.id, email: user.email };
+              next();
+            };
+          }
+      - file: src/accounts.js
+        lang: js
+        text: |
+          import { Router } from "express";
+          import { z } from "zod";
+          import { HttpError, parse } from "./validate.js";
+          import { checkPassword, hashPassword, hashToken, newToken, requireAuth, tokenFrom } from "./auth.js";
+
+          const SESSION_MS = 7 * 24 * 60 * 60 * 1000; // a session lasts 7 days
+
+          const credentials = z.object({
+            email: z
+              .email()
+              .max(254)
+              .transform((email) => email.toLowerCase()),
+            password: z.string().min(8).max(128),
+          });
+
+          // A real hash of a throwaway password. When the email is unknown we still check against it,
+          // so "wrong email" takes as long as "wrong password" and timing gives nothing away.
+          const dummyHash = await hashPassword("not-a-real-password");
+
+          export function accountsRouter(db) {
+            const router = Router();
+            const insertUser = db.prepare(
+              "INSERT INTO users (email, password_hash) VALUES (?, ?) ON CONFLICT(email) DO NOTHING",
+            );
+            const findUser = db.prepare("SELECT id, password_hash FROM users WHERE email = ?");
+            const insertSession = db.prepare("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)");
+            const deleteExpired = db.prepare("DELETE FROM sessions WHERE expires_at <= ?");
+            const deleteSession = db.prepare("DELETE FROM sessions WHERE token_hash = ?");
+
+            router.post("/register", async (req, res) => {
+              const { email, password } = parse(credentials, req.body);
+              const { changes } = insertUser.run(email, await hashPassword(password));
+              if (changes === 0) throw new HttpError(409, "email already registered");
+              res.status(201).json({ email });
+            });
+
+            router.post("/login", async (req, res) => {
+              const { email, password } = parse(credentials, req.body);
+              const user = findUser.get(email);
+              const ok = await checkPassword(password, user?.password_hash ?? dummyHash);
+              if (!user || !ok) throw new HttpError(401, "wrong email or password");
+
+              deleteExpired.run(Date.now());
+              const token = newToken();
+              insertSession.run(hashToken(token), user.id, Date.now() + SESSION_MS);
+              res.json({ token, expiresInSeconds: SESSION_MS / 1000 });
+            });
+
+            router.post("/logout", requireAuth(db), (req, res) => {
+              deleteSession.run(hashToken(tokenFrom(req)));
+              res.status(204).end();
+            });
+
+            router.get("/me", requireAuth(db), (req, res) => {
+              res.json(req.user);
+            });
+
+            return router;
+          }
+      - file: src/links.js
+        lang: js
+        text: |
+          import { Router } from "express";
+          import { randomBytes } from "node:crypto";
+          import { z } from "zod";
+          import { requireAuth } from "./auth.js";
+          import { HttpError, parse } from "./validate.js";
+
+          const newLink = z.object({
+            url: z.url({ protocol: /^https?$/ }).max(2048),
+          });
+
+          const listQuery = z.object({
+            limit: z.coerce.number().int().min(1).max(100).default(20),
+            offset: z.coerce.number().int().min(0).default(0),
+          });
+
+          export function linksRouter(db) {
+            const router = Router();
+            const insert = db.prepare("INSERT INTO links (code, url, user_id) VALUES (?, ?, ?)");
+            const list = db.prepare(
+              "SELECT code, url, clicks, created_at FROM links WHERE user_id = ? ORDER BY rowid DESC LIMIT ? OFFSET ?",
+            );
+            const one = db.prepare("SELECT code, url, clicks, created_at FROM links WHERE code = ? AND user_id = ?");
+            const remove = db.prepare("DELETE FROM links WHERE code = ? AND user_id = ?");
+
+            router.use(requireAuth(db)); // every route below needs a login
+
+            router.post("/", (req, res) => {
+              const { url } = parse(newLink, req.body);
+              const code = randomBytes(4).toString("base64url");
+              insert.run(code, url, req.user.id);
+              res.status(201).json({ code, url });
+            });
+
+            router.get("/", (req, res) => {
+              const { limit, offset } = parse(listQuery, req.query);
+              res.json(list.all(req.user.id, limit, offset));
+            });
+
+            // Someone else's link answers 404, not 403: we do not reveal that it exists.
+            router.get("/:code", (req, res) => {
+              const link = one.get(req.params.code, req.user.id);
+              if (!link) throw new HttpError(404, "not found");
+              res.json(link);
+            });
+
+            router.delete("/:code", (req, res) => {
+              const { changes } = remove.run(req.params.code, req.user.id);
+              if (changes === 0) throw new HttpError(404, "not found");
+              res.status(204).end();
+            });
+
+            return router;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { HttpError } from "./validate.js";
+          import { accountsRouter } from "./accounts.js";
+          import { linksRouter } from "./links.js";
+
+          export function createApp(db) {
+            const app = express();
+            const findLink = db.prepare("SELECT url FROM links WHERE code = ?");
+            const countClick = db.prepare("UPDATE links SET clicks = clicks + 1 WHERE code = ?");
+
+            app.use(express.json({ limit: "10kb" }));
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.use("/auth", accountsRouter(db));
+            app.use("/links", linksRouter(db));
+
+            // Following a short link is public: no login needed.
+            app.get("/:code", (req, res) => {
+              const link = findLink.get(req.params.code);
+              if (!link) throw new HttpError(404, "not found");
+              countClick.run(req.params.code);
+              res.redirect(link.url);
+            });
+
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              console.error(err);
+              res.status(500).json({ error: "server error" });
+            });
+
+            return app;
+          }
+      - file: tests/helpers.js
+        lang: js
+        text: |
+          import request from "supertest";
+          import { createApp } from "../src/app.js";
+          import { openDb } from "../src/db.js";
+
+          // A fresh app with a fresh in-memory database.
+          export const newApi = (options) => request(createApp(openDb(":memory:"), options));
+
+          // Registers and logs in; returns the session token.
+          export async function signUp(api, email = "ada@example.com", password = "correct horse battery") {
+            await api.post("/auth/register").send({ email, password });
+            const res = await api.post("/auth/login").send({ email, password });
+            return res.body.token;
+          }
+
+          export const bearer = (token) => [token, { type: "bearer" }];
+      - file: tests/links.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { once } from "node:events";
+          import { createApp } from "../src/app.js";
+          import { openDb } from "../src/db.js";
+          import { bearer, newApi, signUp } from "./helpers.js";
+
+          test("creates a link and redirects to it, without a login", async () => {
+            const api = newApi();
+            const token = await signUp(api);
+            const created = await api.post("/links").auth(...bearer(token)).send({ url: "https://example.com/a" });
+            assert.equal(created.status, 201);
+
+            const res = await api.get(`/${created.body.code}`);
+            assert.equal(res.status, 302);
+            assert.equal(res.headers.location, "https://example.com/a");
+          });
+
+          test("counts clicks", async () => {
+            const api = newApi();
+            const token = await signUp(api);
+            const { body } = await api.post("/links").auth(...bearer(token)).send({ url: "https://example.com/b" });
+            await api.get(`/${body.code}`);
+            await api.get(`/${body.code}`);
+
+            const link = await api.get(`/links/${body.code}`).auth(...bearer(token));
+            assert.equal(link.body.clicks, 2);
+          });
+
+          test("rejects bad input with 400", async () => {
+            const api = newApi();
+            const token = await signUp(api);
+            for (const body of [{}, { url: "nope" }, { url: "javascript:alert(1)" }]) {
+              const res = await api.post("/links").auth(...bearer(token)).send(body);
+              assert.equal(res.status, 400);
+              assert.equal(res.body.details[0].field, "url");
+            }
+          });
+
+          test("needs a login to create, list or delete", async () => {
+            const api = newApi();
+            assert.equal((await api.post("/links").send({ url: "https://example.com" })).status, 401);
+            assert.equal((await api.get("/links")).status, 401);
+            assert.equal((await api.delete("/links/abc")).status, 401);
+            assert.equal((await api.get("/links").auth(...bearer("made-up-token"))).status, 401);
+          });
+
+          test("unknown codes are 404", async () => {
+            const api = newApi();
+            const token = await signUp(api);
+            assert.equal((await api.get("/nothing")).status, 404);
+            assert.equal((await api.get("/links/nothing").auth(...bearer(token))).status, 404);
+          });
+
+          test("users only see and delete their own links", async () => {
+            const api = newApi();
+            const ada = await signUp(api, "ada@example.com");
+            const bob = await signUp(api, "bob@example.com");
+            const { body } = await api.post("/links").auth(...bearer(ada)).send({ url: "https://example.com/c" });
+
+            assert.deepEqual((await api.get("/links").auth(...bearer(bob))).body, []);
+            assert.equal((await api.get(`/links/${body.code}`).auth(...bearer(bob))).status, 404);
+            assert.equal((await api.delete(`/links/${body.code}`).auth(...bearer(bob))).status, 404);
+
+            assert.equal((await api.delete(`/links/${body.code}`).auth(...bearer(ada))).status, 204);
+            assert.equal((await api.get(`/${body.code}`)).status, 404);
+          });
+
+          test("works over a real connection with fetch", async (t) => {
+            const server = createApp(openDb(":memory:")).listen(0); // port 0: the system picks a free port
+            t.after(() => {
+              server.closeAllConnections();
+              server.close();
+            });
+            await once(server, "listening");
+
+            const res = await fetch(`http://127.0.0.1:${server.address().port}/health`);
+            assert.deepEqual(await res.json(), { status: "ok" });
+          });
+      - file: tests/auth.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import request from "supertest";
+          import { createApp } from "../src/app.js";
+          import { openDb } from "../src/db.js";
+          import { bearer, newApi, signUp } from "./helpers.js";
+
+          const good = { email: "ada@example.com", password: "correct horse battery" };
+
+          test("register, login and /auth/me", async () => {
+            const api = newApi();
+            assert.equal((await api.post("/auth/register").send(good)).status, 201);
+
+            const login = await api.post("/auth/login").send(good);
+            assert.equal(login.status, 200);
+            assert.ok(login.body.token.length > 30);
+
+            const me = await api.get("/auth/me").auth(...bearer(login.body.token));
+            assert.equal(me.body.email, "ada@example.com");
+          });
+
+          test("the password is stored as a salted hash, never as text", async () => {
+            const db = openDb(":memory:");
+            const api = request(createApp(db));
+            await api.post("/auth/register").send(good);
+
+            const { password_hash } = db.prepare("SELECT password_hash FROM users").get();
+            assert.ok(!password_hash.includes(good.password));
+            assert.match(password_hash, /^[0-9a-f]{32}:[0-9a-f]{128}$/);
+          });
+
+          test("only a hash of the token is stored", async () => {
+            const db = openDb(":memory:");
+            const api = request(createApp(db));
+            const token = await signUp(api);
+            const rows = db.prepare("SELECT token_hash FROM sessions").all();
+            assert.equal(rows.length, 1);
+            assert.notEqual(rows[0].token_hash, token);
+          });
+
+          test("wrong password and unknown email give the same answer", async () => {
+            const api = newApi();
+            await api.post("/auth/register").send(good);
+            const wrongPassword = await api.post("/auth/login").send({ ...good, password: "not the password" });
+            const unknownEmail = await api.post("/auth/login").send({ ...good, email: "nobody@example.com" });
+            assert.equal(wrongPassword.status, 401);
+            assert.deepEqual(wrongPassword.body, unknownEmail.body);
+          });
+
+          test("rejects a second registration with the same email, and short passwords", async () => {
+            const api = newApi();
+            await api.post("/auth/register").send(good);
+            assert.equal((await api.post("/auth/register").send(good)).status, 409);
+            assert.equal((await api.post("/auth/register").send({ ...good, email: "x@example.com", password: "short" })).status, 400);
+          });
+
+          test("logout ends the session", async () => {
+            const api = newApi();
+            const token = await signUp(api);
+            assert.equal((await api.post("/auth/logout").auth(...bearer(token))).status, 204);
+            assert.equal((await api.get("/auth/me").auth(...bearer(token))).status, 401);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          curl -s -X POST http://localhost:3000/auth/register \
+            -H "content-type: application/json" \
+            -d '{"email":"ada@example.com","password":"correct horse battery"}'
+
+          curl -s -X POST http://localhost:3000/auth/login \
+            -H "content-type: application/json" \
+            -d '{"email":"ada@example.com","password":"correct horse battery"}'
+
+          curl -i -X POST http://localhost:3000/links \
+            -H "authorization: Bearer <paste your token>" \
+            -H "content-type: application/json" \
+            -d '{"url":"https://nodejs.org"}'
+    mistakes:
+      - problem:
+          en: "Storing passwords with a fast hash such as plain SHA-256 or MD5, or in plain text."
+          tr: "Şifreleri düz SHA-256 ya da MD5 gibi hızlı bir hash ile ya da düz metin olarak saklamak."
+        fix:
+          en: "A fast hash can be guessed billions of times per second. Use a slow, salted password hash (scrypt, argon2 or bcrypt). Never write your own scheme."
+          tr: "Hızlı bir hash saniyede milyarlarca kez tahmin edilebilir. Yavaş, salt'lı bir şifre hash'i kullan (scrypt, argon2 ya da bcrypt). Asla kendi yöntemini yazma."
+      - problem:
+          en: "Making tokens with `Math.random()` or from the user's id."
+          tr: "Token'ları `Math.random()` ile ya da kullanıcının id'sinden üretmek."
+        fix:
+          en: "Those can be guessed. Use `crypto.randomBytes` (as above): 32 random bytes cannot be guessed."
+          tr: "Bunlar tahmin edilebilir. `crypto.randomBytes` kullan (yukarıdaki gibi): 32 rastgele byte tahmin edilemez."
+      - problem:
+          en: "`SQLITE_ERROR: table links has no column named user_id` after replacing `db.js`."
+          tr: "`db.js`'i değiştirdikten sonra `SQLITE_ERROR: table links has no column named user_id` hatası."
+        fix:
+          en: "`CREATE TABLE IF NOT EXISTS` does not change a table that already exists. Delete the old development database (`rm -f data.db*`) and start again."
+          tr: "`CREATE TABLE IF NOT EXISTS` zaten var olan bir tabloyu değiştirmez. Eski geliştirme veritabanını sil (`rm -f data.db*`) ve yeniden başla."
+    quiz:
+      - q:
+          en: "Why does the server store only a hash of each session token?"
+          tr: "Sunucu neden her oturum token'ının sadece hash'ini saklıyor?"
+        options:
+          en:
+            - "To save disk space"
+            - "So a leaked database does not contain working tokens"
+            - "Because tokens must be numbers"
+          tr:
+            - "Disk alanından tasarruf için"
+            - "Sızan bir veritabanında çalışan token'lar olmasın diye"
+            - "Token'ların sayı olması gerektiği için"
+        answer: 1
+        why:
+          en: "Tokens are long and random, so a fast SHA-256 hash is enough. Someone who steals the table cannot turn the hashes back into tokens to log in."
+          tr: "Token'lar uzun ve rastgele olduğu için hızlı bir SHA-256 hash'i yeter. Tabloyu çalan biri hash'leri giriş yapmak için tekrar token'a çeviremez."
+      - q:
+          en: "Why does the login code check a dummy hash when the email is unknown?"
+          tr: "Login kodu e-posta bilinmiyorken neden sahte bir hash'i kontrol ediyor?"
+        options:
+          en:
+            - "Unknown emails would otherwise answer faster, which tells an attacker which emails have accounts"
+            - "To make the server slower on purpose for everyone"
+            - "Because scrypt cannot run without a stored hash"
+          tr:
+            - "Aksi halde bilinmeyen e-postalar daha hızlı cevaplanır ve bu, saldırgana hangi e-postaların hesabı olduğunu söyler"
+            - "Herkes için sunucuyu bilerek yavaşlatmak için"
+            - "scrypt saklanmış bir hash olmadan çalışamadığı için"
+        answer: 0
+        why:
+          en: "Equal work for both cases means equal response time, so timing leaks nothing about which emails exist."
+          tr: "İki durumda da eşit iş, eşit cevap süresi demektir; böylece süre hangi e-postaların var olduğunu sızdırmaz."
+    sources:
+      - title: "Node.js crypto: scrypt"
+        url: https://nodejs.org/docs/latest/api/crypto.html#cryptoscryptpassword-salt-keylen-options-callback
+      - title: "OWASP: Password Storage Cheat Sheet"
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+      - title: "OWASP: Session Management Cheat Sheet"
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
+
+  - id: hardening
+    stage: security
+    title:
+      en: "Security headers and rate limiting"
+      tr: "Güvenlik header'ları ve rate limiting"
+    minutes: 40
+    needs: [auth]
+    why:
+      en: "Once the API is on the internet, bots will find it within hours. Two cheap defences stop a lot: security headers that tell browsers to be careful, and a rate limit that stops someone from trying thousands of passwords or flooding you with requests."
+      tr: "API internete çıkınca botlar onu saatler içinde bulur. İki ucuz savunma çok şeyi durdurur: tarayıcılara dikkatli olmalarını söyleyen güvenlik header'ları ve birinin binlerce şifre denemesini ya da seni isteklerle boğmasını engelleyen bir rate limit."
+    learn:
+      en: |
+        - `helmet` sets a group of safe response headers (for example `X-Content-Type-Options: nosniff`) and removes `X-Powered-By`
+        - A rate limit counts requests per client address in a time window and answers 429 Too Many Requests when it is exceeded; logins get a much stricter limit
+        - Behind a proxy (Render, nginx) every request seems to come from the proxy; `trust proxy` tells Express to read the real address from `X-Forwarded-For`, and you must set it to the real number of proxies, not `true`
+        - Limits you already have: JSON body size (10 kb), list size (100), input validation
+        - CORS: a browser app on another website can call your API only if the API allows it; with the `cors` package you list the allowed origins, never `*` for APIs with logins
+      tr: |
+        - `helmet` güvenli bir grup cevap header'ı ayarlar (örneğin `X-Content-Type-Options: nosniff`) ve `X-Powered-By`'ı kaldırır
+        - Rate limit, bir zaman aralığında her istemci adresi için istekleri sayar ve aşılınca 429 Too Many Requests döner; girişlere çok daha sıkı bir limit uygulanır
+        - Bir proxy'nin (Render, nginx) arkasında her istek proxy'den geliyormuş gibi görünür; `trust proxy` Express'e gerçek adresi `X-Forwarded-For`'dan okumasını söyler ve `true` değil, gerçek proxy sayısı verilmelidir
+        - Zaten sahip olduğun sınırlar: JSON body boyutu (10 kb), liste boyutu (100), girdi doğrulaması
+        - CORS: başka bir web sitesindeki tarayıcı uygulaması API'nı ancak API izin verirse çağırabilir; `cors` paketiyle izin verilen origin'leri listelersin, girişli API'lerde asla `*` değil
+    do:
+      en: |
+        1. Install the two packages: `npm install helmet express-rate-limit`.
+        2. Replace `src/app.js` with the version below. Note the order: `helmet` first, then `/health` (health checks must not be rate limited), then the general limit, then the body parser and the routes.
+        3. Replace `src/server.js`. It now reads two optional settings from environment variables: `RATE_LIMIT` (requests per minute per address, default 300) and `TRUST_PROXY` (how many proxies are in front, default 0).
+        4. Add `tests/security.test.js`. Run `npm test`.
+        5. Look at the headers with `curl -i http://localhost:3000/health`. You should see `x-content-type-options`, `strict-transport-security` and others, and no `x-powered-by`.
+        6. Commit: `git add .` and `git commit -m "Security headers and rate limits"`.
+      tr: |
+        1. İki paketi kur: `npm install helmet express-rate-limit`.
+        2. `src/app.js` dosyasını aşağıdaki sürümle değiştir. Sıraya dikkat: önce `helmet`, sonra `/health` (health check'lere rate limit uygulanmamalı), sonra genel limit, sonra body parser ve route'lar.
+        3. `src/server.js` dosyasını değiştir. Artık ortam değişkenlerinden iki isteğe bağlı ayarı okuyor: `RATE_LIMIT` (adres başına dakikadaki istek sayısı, varsayılan 300) ve `TRUST_PROXY` (önde kaç proxy olduğu, varsayılan 0).
+        4. `tests/security.test.js` dosyasını ekle. `npm test` çalıştır.
+        5. Header'lara `curl -i http://localhost:3000/health` ile bak. `x-content-type-options`, `strict-transport-security` ve başkalarını görmelisin, `x-powered-by` olmamalı.
+        6. Commit'le: `git add .` ve `git commit -m "Security headers and rate limits"`.
+    code:
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import helmet from "helmet";
+          import { rateLimit } from "express-rate-limit";
+          import { HttpError } from "./validate.js";
+          import { accountsRouter } from "./accounts.js";
+          import { linksRouter } from "./links.js";
+
+          export function createApp(db, { requestsPerMinute = 300, authAttempts = 10, trustProxy = 0 } = {}) {
+            const app = express();
+            const findLink = db.prepare("SELECT url FROM links WHERE code = ?");
+            const countClick = db.prepare("UPDATE links SET clicks = clicks + 1 WHERE code = ?");
+
+            // How many proxies sit in front of the app (Render: 1). Never set this to `true`.
+            if (trustProxy) app.set("trust proxy", trustProxy);
+
+            app.use(helmet());
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.use(
+              rateLimit({
+                windowMs: 60 * 1000,
+                limit: requestsPerMinute,
+                standardHeaders: true,
+                legacyHeaders: false,
+                message: { error: "too many requests" },
+              }),
+            );
+
+            app.use(express.json({ limit: "10kb" }));
+
+            // Logins and registrations: much stricter, to stop password guessing.
+            const authLimit = rateLimit({
+              windowMs: 15 * 60 * 1000,
+              limit: authAttempts,
+              standardHeaders: true,
+              legacyHeaders: false,
+              message: { error: "too many attempts, try again later" },
+            });
+
+            app.use("/auth", authLimit, accountsRouter(db));
+            app.use("/links", linksRouter(db));
+
+            app.get("/:code", (req, res) => {
+              const link = findLink.get(req.params.code);
+              if (!link) throw new HttpError(404, "not found");
+              countClick.run(req.params.code);
+              res.redirect(link.url);
+            });
+
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              console.error(err);
+              res.status(500).json({ error: "server error" });
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+          import { openDb } from "./db.js";
+
+          const port = Number(process.env.PORT) || 3000;
+          const db = openDb(process.env.DB_PATH);
+
+          const app = createApp(db, {
+            requestsPerMinute: Number(process.env.RATE_LIMIT) || undefined,
+            trustProxy: Number(process.env.TRUST_PROXY) || 0,
+          });
+
+          app.listen(port, () => {
+            console.log(`Listening on http://localhost:${port} (pid ${process.pid})`);
+          });
+      - file: tests/security.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { newApi } from "./helpers.js";
+
+          test("sends security headers and hides X-Powered-By", async () => {
+            const res = await newApi().get("/health");
+            assert.equal(res.headers["x-content-type-options"], "nosniff");
+            assert.ok(res.headers["strict-transport-security"]);
+            assert.equal(res.headers["x-powered-by"], undefined);
+          });
+
+          test("too many login attempts get 429", async () => {
+            const api = newApi({ authAttempts: 3 });
+            const attempt = () => api.post("/auth/login").send({ email: "ada@example.com", password: "wrong password" });
+            for (let i = 0; i < 3; i++) assert.equal((await attempt()).status, 401);
+            const blocked = await attempt();
+            assert.equal(blocked.status, 429);
+            assert.ok(blocked.headers["retry-after"]);
+          });
+
+          test("a too large body gets 413", async () => {
+            const res = await newApi().post("/links").send({ url: "https://example.com/" + "a".repeat(20000) });
+            assert.equal(res.status, 413);
+          });
+    mistakes:
+      - problem:
+          en: "Everybody shares one rate-limit counter when the app is deployed behind a proxy."
+          tr: "Uygulama bir proxy'nin arkasına deploy edilince herkes tek bir rate-limit sayacını paylaşıyor."
+        fix:
+          en: "The app sees the proxy's address for every request. Set `TRUST_PROXY=1` on the host (one proxy in front, as on Render) so Express reads the real client address."
+          tr: "Uygulama her istek için proxy'nin adresini görüyor. Host'ta `TRUST_PROXY=1` ayarla (önde bir proxy var, Render'daki gibi) ki Express gerçek istemci adresini okusun."
+      - problem:
+          en: "Setting `trust proxy` to `true` on a server that is directly on the internet."
+          tr: "Doğrudan internete açık bir sunucuda `trust proxy`'yi `true` yapmak."
+        fix:
+          en: "Then anyone can send a fake `X-Forwarded-For` header and pretend to be any address, escaping the limit. Use the exact number of proxies, or leave it off."
+          tr: "O zaman herkes sahte bir `X-Forwarded-For` header'ı gönderip istediği adres gibi davranabilir ve limitten kaçar. Proxy sayısını tam olarak ver ya da kapalı bırak."
+      - problem:
+          en: "Thinking helmet and a rate limit make the app secure."
+          tr: "Helmet ve rate limit uygulamayı güvenli yapar sanmak."
+        fix:
+          en: "They are layers, not a guarantee. Validation, hashed passwords, ownership checks, updated dependencies (`npm audit`) and keeping secrets out of Git matter just as much."
+          tr: "Bunlar katmanlardır, garanti değil. Doğrulama, hash'lenmiş şifreler, sahiplik kontrolleri, güncel bağımlılıklar (`npm audit`) ve sırları Git'in dışında tutmak da aynı derecede önemli."
+    quiz:
+      - q:
+          en: "What does HTTP status 429 mean?"
+          tr: "HTTP 429 durum kodu ne demek?"
+        options:
+          en:
+            - "The server crashed"
+            - "The client sent too many requests"
+            - "The page moved"
+          tr:
+            - "Sunucu çöktü"
+            - "İstemci çok fazla istek gönderdi"
+            - "Sayfa taşındı"
+        answer: 1
+        why:
+          en: "429 Too Many Requests is the standard answer of a rate limiter; the `Retry-After` header says when to try again."
+          tr: "429 Too Many Requests bir rate limiter'ın standart cevabıdır; `Retry-After` header'ı ne zaman tekrar denenebileceğini söyler."
+    sources:
+      - title: "Helmet"
+        url: https://helmetjs.github.io/
+      - title: "express-rate-limit"
+        url: https://express-rate-limit.mintlify.app/overview
+      - title: "Express: Production best practices, security"
+        url: https://expressjs.com/en/advanced/best-practice-security.html
+
+  - id: cache-cluster
+    stage: performance
+    title:
+      en: "Measure first, then cache and use all CPU cores"
+      tr: "Önce ölç, sonra cache kullan ve tüm CPU çekirdeklerinden yararlan"
+    minutes: 50
+    needs: [hardening]
+    why:
+      en: "Fast enough is a number, not a feeling. First measure how many requests per second the redirect handles; then try the two classic fixes: a small in-memory cache so hot links skip the database, and a cluster of several Node.js processes so more than one CPU core is used (Node.js runs your JavaScript on one core per process)."
+      tr: "Yeterince hızlı bir his değil, bir sayıdır. Önce yönlendirmenin saniyede kaç isteği karşıladığını ölç; sonra iki klasik çözümü dene: sık kullanılan bağlantılar veritabanını atlasın diye küçük bir bellek içi cache ve birden fazla CPU çekirdeği kullanılsın diye birkaç Node.js process'inden oluşan bir cluster (Node.js JavaScript kodunu process başına tek bir çekirdekte çalıştırır)."
+    learn:
+      en: |
+        - Measure before you optimise; one number from a small benchmark beats a guess
+        - A cache with a time limit (TTL) and a size limit, and the hard part: invalidating it when the data changes (delete a link, drop it from the cache)
+        - `node:cluster`: a primary process starts workers that share one port; if one crashes, start another
+        - The honest limits: with a local SQLite file a lookup is already microseconds, so the cache helps little here (it matters when each lookup is a network call to a remote database); each worker has its own cache and its own rate-limit counters; on a 1-CPU or shared-CPU host (like Render's free plan) a cluster gives nothing
+      tr: |
+        - Optimize etmeden önce ölç; küçük bir benchmark'tan çıkan bir sayı tahminden iyidir
+        - Süre sınırlı (TTL) ve boyut sınırlı bir cache ve işin zor kısmı: veri değişince onu geçersiz kılmak (bir bağlantıyı silince cache'ten de düşürmek)
+        - `node:cluster`: bir ana process, tek bir portu paylaşan worker'lar başlatır; biri çökerse yenisini başlatır
+        - Dürüst sınırlar: yerel bir SQLite dosyasında bir sorgu zaten mikrosaniyeler sürer, bu yüzden cache burada çok az yardım eder (her sorgu uzak bir veritabanına ağ çağrısı olduğunda önemlidir); her worker'ın kendi cache'i ve kendi rate-limit sayaçları vardır; 1 CPU'lu ya da paylaşımlı CPU'lu bir host'ta (Render'ın ücretsiz planı gibi) cluster hiçbir şey kazandırmaz
+    do:
+      en: |
+        1. Create `scripts/bench.js` and `src/cache.js`, and replace `src/links.js` and `src/app.js` with the versions below. In `src/db.js` nothing changes.
+        2. Start the server with a high rate limit, so the benchmark is not blocked: `RATE_LIMIT=1000000 npm start`. In a second terminal register, log in and create a link (the curl commands from the last step) and note the code.
+        3. Measure the redirect: `node scripts/bench.js http://localhost:3000/<code>`. Write down the number.
+        4. To compare, temporarily remove the cache lines in `app.js` and measure again. Do not be surprised if the difference is small.
+        5. Add `tests/cache.test.js` and run `npm test`.
+        6. Create `src/cluster.js` and add the script: `npm pkg set scripts.cluster="node src/cluster.js"`. Run `RATE_LIMIT=1000000 WORKERS=2 npm run cluster`, and see two different `pid` values in the output. Measure again. The number may rise, stay the same or even fall: the benchmark program itself uses a CPU core, and every redirect also writes the click count to the same SQLite file, so the CPU is not the only limit. That is the real lesson: find the bottleneck before you scale.
+        7. Commit: `git add .` and `git commit -m "Cache and cluster"`.
+      tr: |
+        1. `scripts/bench.js` ve `src/cache.js` dosyalarını oluştur, `src/links.js` ve `src/app.js` dosyalarını aşağıdaki sürümlerle değiştir. `src/db.js`'de bir şey değişmez.
+        2. Sunucuyu yüksek bir rate limit ile başlat ki benchmark engellenmesin: `RATE_LIMIT=1000000 npm start`. İkinci bir terminalde kayıt ol, giriş yap ve bir bağlantı oluştur (önceki adımın curl komutları) ve code'u not al.
+        3. Yönlendirmeyi ölç: `node scripts/bench.js http://localhost:3000/<code>`. Sayıyı yaz.
+        4. Karşılaştırmak için `app.js` içindeki cache satırlarını geçici olarak kaldır ve tekrar ölç. Fark küçükse şaşırma.
+        5. `tests/cache.test.js` dosyasını ekle ve `npm test` çalıştır.
+        6. `src/cluster.js` dosyasını oluştur ve script'i ekle: `npm pkg set scripts.cluster="node src/cluster.js"`. `RATE_LIMIT=1000000 WORKERS=2 npm run cluster` çalıştır ve çıktıda iki farklı `pid` değeri gör. Tekrar ölç. Sayı artabilir, aynı kalabilir ya da düşebilir: benchmark programının kendisi bir CPU çekirdeği kullanır ve her yönlendirme tıklama sayısını aynı SQLite dosyasına yazar, yani sınır sadece CPU değil. Asıl ders bu: ölçeklemeden önce darboğazı bul.
+        7. Commit'le: `git add .` ve `git commit -m "Cache and cluster"`.
+    code:
+      - file: scripts/bench.js
+        lang: js
+        text: |
+          // A tiny benchmark: node scripts/bench.js <url>
+          const url = process.argv[2];
+          if (!url) {
+            console.error("usage: node scripts/bench.js <url>");
+            process.exit(1);
+          }
+
+          const total = 3000;
+          const concurrency = 20;
+          let started = 0;
+          let failed = 0;
+
+          async function worker() {
+            while (started < total) {
+              started++;
+              const res = await fetch(url, { redirect: "manual" });
+              if (res.status >= 400) failed++;
+              await res.body?.cancel();
+            }
+          }
+
+          const t0 = performance.now();
+          await Promise.all(Array.from({ length: concurrency }, worker));
+          const seconds = (performance.now() - t0) / 1000;
+          console.log(`${total} requests in ${seconds.toFixed(2)} s = ${Math.round(total / seconds)} per second, ${failed} failed`);
+      - file: src/cache.js
+        lang: js
+        text: |
+          // A small cache: keeps at most `max` entries, each for at most `ttlMs` milliseconds.
+          // A Map remembers insertion order, so the first key is the least recently used one.
+          export function createCache({ max = 1000, ttlMs = 60_000 } = {}) {
+            const map = new Map();
+            return {
+              get(key) {
+                const hit = map.get(key);
+                if (!hit) return undefined;
+                map.delete(key);
+                if (hit.expires <= Date.now()) return undefined;
+                map.set(key, hit); // move to the end: most recently used
+                return hit.value;
+              },
+              set(key, value) {
+                map.delete(key);
+                map.set(key, { value, expires: Date.now() + ttlMs });
+                if (map.size > max) map.delete(map.keys().next().value);
+              },
+              delete(key) {
+                map.delete(key);
+              },
+            };
+          }
+      - file: src/links.js
+        lang: js
+        text: |
+          import { Router } from "express";
+          import { randomBytes } from "node:crypto";
+          import { z } from "zod";
+          import { requireAuth } from "./auth.js";
+          import { HttpError, parse } from "./validate.js";
+
+          const newLink = z.object({
+            url: z.url({ protocol: /^https?$/ }).max(2048),
+          });
+
+          const listQuery = z.object({
+            limit: z.coerce.number().int().min(1).max(100).default(20),
+            offset: z.coerce.number().int().min(0).default(0),
+          });
+
+          export function linksRouter(db, cache) {
+            const router = Router();
+            const insert = db.prepare("INSERT INTO links (code, url, user_id) VALUES (?, ?, ?)");
+            const list = db.prepare(
+              "SELECT code, url, clicks, created_at FROM links WHERE user_id = ? ORDER BY rowid DESC LIMIT ? OFFSET ?",
+            );
+            const one = db.prepare("SELECT code, url, clicks, created_at FROM links WHERE code = ? AND user_id = ?");
+            const remove = db.prepare("DELETE FROM links WHERE code = ? AND user_id = ?");
+
+            router.use(requireAuth(db));
+
+            router.post("/", (req, res) => {
+              const { url } = parse(newLink, req.body);
+              const code = randomBytes(4).toString("base64url");
+              insert.run(code, url, req.user.id);
+              res.status(201).json({ code, url });
+            });
+
+            router.get("/", (req, res) => {
+              const { limit, offset } = parse(listQuery, req.query);
+              res.json(list.all(req.user.id, limit, offset));
+            });
+
+            router.get("/:code", (req, res) => {
+              const link = one.get(req.params.code, req.user.id);
+              if (!link) throw new HttpError(404, "not found");
+              res.json(link);
+            });
+
+            router.delete("/:code", (req, res) => {
+              const { changes } = remove.run(req.params.code, req.user.id);
+              if (changes === 0) throw new HttpError(404, "not found");
+              cache.delete(req.params.code); // the hard part of caching: forget what is no longer true
+              res.status(204).end();
+            });
+
+            return router;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import helmet from "helmet";
+          import { rateLimit } from "express-rate-limit";
+          import { HttpError } from "./validate.js";
+          import { accountsRouter } from "./accounts.js";
+          import { createCache } from "./cache.js";
+          import { linksRouter } from "./links.js";
+
+          export function createApp(db, { requestsPerMinute = 300, authAttempts = 10, trustProxy = 0 } = {}) {
+            const app = express();
+            const cache = createCache(); // code -> url, so hot links skip the database lookup
+            const findLink = db.prepare("SELECT url FROM links WHERE code = ?");
+            const countClick = db.prepare("UPDATE links SET clicks = clicks + 1 WHERE code = ?");
+
+            if (trustProxy) app.set("trust proxy", trustProxy);
+
+            app.use(helmet());
+
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            app.use(
+              rateLimit({
+                windowMs: 60 * 1000,
+                limit: requestsPerMinute,
+                standardHeaders: true,
+                legacyHeaders: false,
+                message: { error: "too many requests" },
+              }),
+            );
+
+            app.use(express.json({ limit: "10kb" }));
+
+            const authLimit = rateLimit({
+              windowMs: 15 * 60 * 1000,
+              limit: authAttempts,
+              standardHeaders: true,
+              legacyHeaders: false,
+              message: { error: "too many attempts, try again later" },
+            });
+
+            app.use("/auth", authLimit, accountsRouter(db));
+            app.use("/links", linksRouter(db, cache));
+
+            app.get("/:code", (req, res) => {
+              const { code } = req.params;
+              let url = cache.get(code);
+              if (!url) {
+                url = findLink.get(code)?.url;
+                if (!url) throw new HttpError(404, "not found");
+                cache.set(code, url);
+              }
+              countClick.run(code);
+              res.redirect(url);
+            });
+
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              console.error(err);
+              res.status(500).json({ error: "server error" });
+            });
+
+            return app;
+          }
+      - file: tests/cache.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { setTimeout as sleep } from "node:timers/promises";
+          import { createCache } from "../src/cache.js";
+          import { bearer, newApi, signUp } from "./helpers.js";
+
+          test("cache forgets the oldest entry when it is full", () => {
+            const cache = createCache({ max: 2 });
+            cache.set("a", 1);
+            cache.set("b", 2);
+            cache.get("a"); // a is now more recent than b
+            cache.set("c", 3);
+            assert.equal(cache.get("b"), undefined);
+            assert.equal(cache.get("a"), 1);
+            assert.equal(cache.get("c"), 3);
+          });
+
+          test("cache entries expire", async () => {
+            const cache = createCache({ ttlMs: 20 });
+            cache.set("a", 1);
+            assert.equal(cache.get("a"), 1);
+            await sleep(40);
+            assert.equal(cache.get("a"), undefined);
+          });
+
+          test("a deleted link stops redirecting even if it was cached", async () => {
+            const api = newApi();
+            const token = await signUp(api);
+            const { body } = await api.post("/links").auth(...bearer(token)).send({ url: "https://example.com/d" });
+            assert.equal((await api.get(`/${body.code}`)).status, 302); // now it is in the cache
+            await api.delete(`/links/${body.code}`).auth(...bearer(token));
+            assert.equal((await api.get(`/${body.code}`)).status, 404);
+          });
+      - file: src/cluster.js
+        lang: js
+        text: |
+          import cluster from "node:cluster";
+          import { availableParallelism } from "node:os";
+
+          if (cluster.isPrimary) {
+            const workers = Number(process.env.WORKERS) || availableParallelism();
+            console.log(`Primary ${process.pid} starts ${workers} workers`);
+            for (let i = 0; i < workers; i++) cluster.fork();
+
+            // If a worker dies, start another one (after a short pause, so a crash loop is not instant).
+            cluster.on("exit", (worker, code) => {
+              console.log(`Worker ${worker.process.pid} exited with code ${code}, starting another`);
+              setTimeout(() => cluster.fork(), 1000);
+            });
+          } else {
+            // Every worker runs the normal server; the workers share the same port.
+            await import("./server.js");
+          }
+    mistakes:
+      - problem:
+          en: "A deleted link still redirects for a while."
+          tr: "Silinmiş bir bağlantı bir süre daha yönlendirmeye devam ediyor."
+        fix:
+          en: "A cache keeps old answers. Delete the entry when the data changes (as `DELETE` does above). With a cluster each worker has its own cache, so another worker may still answer from its cache until the entry expires (60 seconds); use a shared cache such as Redis if that matters."
+          tr: "Cache eski cevapları tutar. Veri değişince kaydı sil (yukarıda `DELETE`'in yaptığı gibi). Cluster'da her worker'ın kendi cache'i vardır, bu yüzden başka bir worker kayıt süresi dolana kadar (60 saniye) cache'inden cevap vermeye devam edebilir; bu önemliyse Redis gibi paylaşımlı bir cache kullan."
+      - problem:
+          en: "The benchmark shows many failed requests."
+          tr: "Benchmark çok sayıda başarısız istek gösteriyor."
+        fix:
+          en: "You hit the rate limit (429). Start the server with `RATE_LIMIT=1000000` for the benchmark, and never use that value in production."
+          tr: "Rate limit'e takıldın (429). Benchmark için sunucuyu `RATE_LIMIT=1000000` ile başlat ve bu değeri production'da asla kullanma."
+      - problem:
+          en: "Adding a cache or a cluster without measuring, and then keeping it because it feels faster."
+          tr: "Ölçmeden cache ya da cluster eklemek ve sonra daha hızlı hissettirdiği için tutmak."
+        fix:
+          en: "Every optimisation adds code and new kinds of bugs. Keep it only if the number clearly improves."
+          tr: "Her optimizasyon kod ve yeni hata türleri ekler. Sadece sayı açıkça iyileşiyorsa tut."
+    quiz:
+      - q:
+          en: "Why can a single Node.js process not use all the CPU cores for your JavaScript?"
+          tr: "Tek bir Node.js process'i JavaScript kodun için neden tüm CPU çekirdeklerini kullanamaz?"
+        options:
+          en:
+            - "Your JavaScript runs on one main thread per process, so you start more processes (a cluster)"
+            - "Node.js is limited to 512 MB"
+            - "Express allows only one request at a time"
+          tr:
+            - "JavaScript kodun process başına tek bir ana thread'de çalışır, bu yüzden daha fazla process (cluster) başlatırsın"
+            - "Node.js 512 MB ile sınırlıdır"
+            - "Express aynı anda sadece bir isteğe izin verir"
+        answer: 0
+        why:
+          en: "Node.js handles many requests at once by not blocking, but the JavaScript itself runs on one thread. Several processes can run on several cores."
+          tr: "Node.js engellemeyerek aynı anda çok isteği karşılar ama JavaScript'in kendisi tek thread'de çalışır. Birkaç process birkaç çekirdekte çalışabilir."
+    sources:
+      - title: "Node.js: Cluster"
+        url: https://nodejs.org/docs/latest/api/cluster.html
+      - title: "Express: Production best practices, performance"
+        url: https://expressjs.com/en/advanced/best-practice-performance.html
+
+  - id: package
+    stage: packaging
+    title:
+      en: "Package it: scripts, settings from the environment and a Docker image"
+      tr: "Paketleme: script'ler, ortamdan gelen ayarlar ve bir Docker image'ı"
+    minutes: 50
+    needs: [cache-cluster]
+    why:
+      en: "A project is ready to ship when anyone (or any server) can install it and start it with the same two commands, and when settings that change between your laptop and a server live outside the code. A Docker image goes one step further: it carries Node.js and your code together, so it runs the same everywhere."
+      tr: "Bir proje, herkes (ya da herhangi bir sunucu) onu aynı iki komutla kurup başlatabildiğinde ve laptopunla sunucu arasında değişen ayarlar kodun dışında durduğunda yayına hazırdır. Docker image'ı bir adım daha ileri gider: Node.js'i ve kodunu birlikte taşır, böylece her yerde aynı çalışır."
+    learn:
+      en: |
+        - `package.json` scripts (`npm start`, `npm test`) and `engines` (which Node.js versions the project needs)
+        - Why you commit `package-lock.json` and install with `npm ci` (exact versions, fails if the lock file is out of date)
+        - Settings from environment variables (`PORT`, `DB_PATH`, `TRUST_PROXY`, `RATE_LIMIT`), and a `.env` file for your laptop read with `node --env-file-if-exists=.env` (no extra package needed); secrets never go into Git
+        - A `Dockerfile`: a base image, install only production dependencies, run as a normal user (not root), keep the database in a volume
+      tr: |
+        - `package.json` script'leri (`npm start`, `npm test`) ve `engines` (projenin hangi Node.js sürümlerini istediği)
+        - `package-lock.json`'ı neden commit'lediğin ve `npm ci` ile kurduğun (tam sürümler, lock dosyası güncel değilse hata verir)
+        - Ortam değişkenlerinden gelen ayarlar (`PORT`, `DB_PATH`, `TRUST_PROXY`, `RATE_LIMIT`) ve laptopun için `node --env-file-if-exists=.env` ile okunan bir `.env` dosyası (ek paket gerekmez); sırlar asla Git'e girmez
+        - Bir `Dockerfile`: bir temel image, sadece production bağımlılıklarını kurmak, normal bir kullanıcıyla (root değil) çalıştırmak, veritabanını bir volume'da tutmak
+    do:
+      en: |
+        1. Set the project info and start scripts with the first terminal block below. `dev` now reads a local `.env` file when it exists.
+        2. Create `.env` (only for your laptop) with one line, `PORT=3000`, and make sure `.gitignore` lists `.env` (replace it with the version below). Run `npm run dev` and check it still works.
+        3. Create `.node-version` (hosts use it to pick Node.js), `.dockerignore` and `Dockerfile` with the code below.
+        4. Build and run the image (second terminal block). Inside the build, `npm ci --omit=dev` installs exactly what the lock file says, without test tools. The database lives in a Docker volume named `linkly-data`, so links survive container restarts.
+        5. In another terminal run `curl -i http://localhost:3000/health`. Stop the container with Ctrl+C.
+        6. Docker is optional for the deploy that follows (the host builds from your code), but you now know how to package any Node.js service. If you do not have Docker, skip steps 4 and 5.
+        7. Commit: `git add .` and `git commit -m "Package for deploy"`.
+      tr: |
+        1. Aşağıdaki ilk terminal bloğuyla proje bilgilerini ve başlatma script'lerini ayarla. `dev` artık varsa yerel bir `.env` dosyasını okuyor.
+        2. İçinde tek satır, `PORT=3000`, olan `.env` dosyasını oluştur (sadece laptopun için) ve `.gitignore`'un `.env`'i listelediğinden emin ol (aşağıdaki sürümle değiştir). `npm run dev` çalıştır ve hâlâ çalıştığını kontrol et.
+        3. Aşağıdaki kodla `.node-version` (host'lar Node.js sürümünü seçmek için kullanır), `.dockerignore` ve `Dockerfile` dosyalarını oluştur.
+        4. Image'ı build edip çalıştır (ikinci terminal bloğu). Build sırasında `npm ci --omit=dev` lock dosyasındaki sürümlerin aynısını, test araçları olmadan kurar. Veritabanı `linkly-data` adlı bir Docker volume'unda durur, böylece bağlantılar container yeniden başlayınca kaybolmaz.
+        5. Başka bir terminalde `curl -i http://localhost:3000/health` çalıştır. Container'ı Ctrl+C ile durdur.
+        6. Sonraki deploy için Docker isteğe bağlıdır (host kodundan build eder) ama artık herhangi bir Node.js servisini nasıl paketleyeceğini biliyorsun. Docker'ın yoksa 4. ve 5. adımları atla.
+        7. Commit'le: `git add .` ve `git commit -m "Package for deploy"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm pkg set name=linkly "engines.node=>=22.13"
+          npm pkg set private=true --json
+          npm pkg set scripts.dev="node --watch --env-file-if-exists=.env src/server.js"
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          data.db*
+          .env
+      - file: .node-version
+        lang: text
+        text: |
+          24
+      - file: .dockerignore
+        lang: text
+        text: |
+          node_modules
+          data.db*
+          .env
+          .git
+          tests
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          FROM node:24-alpine
+
+          ENV NODE_ENV=production
+          ENV DB_PATH=/data/linkly.db
+
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci --omit=dev
+
+          COPY src ./src
+
+          # The database lives in /data, a folder the unprivileged user may write to.
+          RUN mkdir /data && chown node:node /data
+          USER node
+          VOLUME /data
+
+          EXPOSE 3000
+          HEALTHCHECK --interval=30s --timeout=3s CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+          CMD ["node", "src/server.js"]
+      - file: terminal
+        lang: sh
+        text: |
+          docker build -t linkly .
+          docker run --rm --name linkly --memory 512m -p 3000:3000 -v linkly-data:/data linkly
+    mistakes:
+      - problem:
+          en: "`npm ci` fails with \"package.json and package-lock.json are not in sync\"."
+          tr: "`npm ci` \"package.json and package-lock.json are not in sync\" hatası veriyor."
+        fix:
+          en: "You changed dependencies without updating the lock file. Run `npm install`, commit the updated `package-lock.json`, and try again."
+          tr: "Lock dosyasını güncellemeden bağımlılıkları değiştirmişsin. `npm install` çalıştır, güncellenen `package-lock.json`'ı commit'le ve tekrar dene."
+      - problem:
+          en: "`SQLITE_CANTOPEN: unable to open database file` inside the container."
+          tr: "Container içinde `SQLITE_CANTOPEN: unable to open database file` hatası."
+        fix:
+          en: "The user running the app may not write to the database folder. The Dockerfile creates `/data` and gives it to the `node` user, and `DB_PATH` points into it."
+          tr: "Uygulamayı çalıştıran kullanıcı veritabanı klasörüne yazamıyor olabilir. Dockerfile `/data`'yı oluşturup `node` kullanıcısına verir ve `DB_PATH` onun içini gösterir."
+      - problem:
+          en: "Committing `.env` with secrets, or copying it into the image."
+          tr: "Sırlar içeren `.env` dosyasını commit'lemek ya da image'a kopyalamak."
+        fix:
+          en: "List `.env` in both `.gitignore` and `.dockerignore`. If a secret ever reached Git, treat it as leaked and replace it; deleting the file later does not remove it from history."
+          tr: "`.env`'i hem `.gitignore` hem `.dockerignore` içinde listele. Bir sır Git'e girdiyse sızmış say ve değiştir; dosyayı sonradan silmek onu geçmişten kaldırmaz."
+    quiz:
+      - q:
+          en: "Why install with `npm ci` instead of `npm install` on a server?"
+          tr: "Bir sunucuda neden `npm install` yerine `npm ci` ile kuruyoruz?"
+        options:
+          en:
+            - "It installs exactly the versions in package-lock.json and fails if they do not match"
+            - "It installs the newest version of every package"
+            - "It is the only command that works without internet"
+          tr:
+            - "package-lock.json içindeki tam sürümleri kurar ve uyuşmazsa hata verir"
+            - "Her paketin en yeni sürümünü kurar"
+            - "İnternetsiz çalışan tek komut odur"
+        answer: 0
+        why:
+          en: "A server must run the same versions you tested. `npm ci` is repeatable; `npm install` may change the lock file."
+          tr: "Bir sunucu senin test ettiğin sürümlerle çalışmalı. `npm ci` tekrarlanabilirdir; `npm install` lock dosyasını değiştirebilir."
+    sources:
+      - title: "npm: npm ci"
+        url: https://docs.npmjs.com/cli/v12/commands/npm-ci
+      - title: "Node.js: --env-file"
+        url: https://nodejs.org/docs/latest/api/cli.html#--env-filefile
+      - title: "Docker: Dockerfile reference"
+        url: https://docs.docker.com/reference/dockerfile/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on Render"
+      tr: "Render'da ücretsiz deploy"
+    minutes: 45
+    needs: [package]
+    why:
+      en: "An API on your laptop helps nobody. Render can build a Node.js project straight from a GitHub repository and give it a public https address, with a free web service plan that is fine for learning. It is important to know exactly what \"free\" means here, so you are not surprised."
+      tr: "Laptopundaki bir API kimseye yardım etmez. Render, bir Node.js projesini doğrudan bir GitHub reposundan build edip ona herkese açık bir https adresi verebilir; öğrenmek için yeterli ücretsiz bir web servisi planı vardır. \"Ücretsiz\"in burada tam olarak ne demek olduğunu bilmek önemli, böylece şaşırmazsın."
+    learn:
+      en: |
+        - Putting the project on GitHub, and what a build command and a start command are
+        - Environment variables on the host: `TRUST_PROXY=1` (Render has one proxy in front of your app)
+        - The free plan's limits, from Render's docs: the service spins down after 15 minutes without traffic and takes about a minute to wake up on the next request; the filesystem is ephemeral, so **a SQLite file is lost on every redeploy, restart and spin-down**; a workspace gets 750 free instance hours per month; free Postgres databases expire after 30 days; and Render says free instances are not for production
+        - So the deployed Linkly is a demo: accounts and links disappear from time to time. Real data needs a database that lives outside the web service (a hosted Postgres) or a paid plan with a persistent disk
+      tr: |
+        - Projeyi GitHub'a koymak ve build komutu ile start komutunun ne olduğu
+        - Host'taki ortam değişkenleri: `TRUST_PROXY=1` (Render'da uygulamanın önünde bir proxy var)
+        - Ücretsiz planın sınırları, Render'ın dokümanından: servis 15 dakika trafik almazsa kapanır ve sonraki istekte uyanması yaklaşık bir dakika sürer; dosya sistemi geçicidir, yani **SQLite dosyası her redeploy'da, yeniden başlatmada ve kapanmada kaybolur**; bir workspace ayda 750 ücretsiz instance saati alır; ücretsiz Postgres veritabanları 30 gün sonra sona erer; ve Render ücretsiz instance'ların production için olmadığını söyler
+        - Yani deploy edilen Linkly bir demodur: hesaplar ve bağlantılar zaman zaman kaybolur. Gerçek veri için web servisinin dışında yaşayan bir veritabanı (barındırılan bir Postgres) ya da kalıcı disk veren ücretli bir plan gerekir
+    do:
+      en: |
+        1. Create an empty repository named `linkly` on github.com (no README), then push your project with the first commands below. Check with `git status` first that `node_modules`, `data.db` and `.env` are not listed as new files.
+        2. Create a free account at render.com (sign in with GitHub) and click *New → Web Service*. Connect your `linkly` repository.
+        3. Fill in the form: *Language*: Node. *Build Command*: `npm ci`. *Start Command*: `node src/server.js` (running node directly makes sure it receives the stop signal; the next step uses that). *Instance type*: **Free**.
+        4. Under *Environment Variables* add `TRUST_PROXY` = `1` and `NODE_ENV` = `production`. In *Advanced*, set *Health Check Path* to `/health`.
+        5. Click *Deploy*. Watch the logs until the service is live. Render gives you an address like `https://linkly-xxxx.onrender.com`; it already listens on the port Render sets in `PORT`.
+        6. Test it from your laptop with the curl commands below (use your own address). The first request after a quiet period is slow: that is the spin-down.
+        7. Optional: instead of the form, put the `render.yaml` below in the repository root and use *New → Blueprint*. It describes the same service as code.
+        8. From now on every `git push` to `main` deploys a new version by itself.
+      tr: |
+        1. github.com'da `linkly` adında boş bir repo oluştur (README olmasın), sonra projeni aşağıdaki ilk komutlarla push et. Önce `git status` ile `node_modules`, `data.db` ve `.env`'in yeni dosya olarak listelenmediğini kontrol et.
+        2. render.com'da ücretsiz bir hesap aç (GitHub ile giriş yap) ve *New → Web Service*'e tıkla. `linkly` reponu bağla.
+        3. Formu doldur: *Language*: Node. *Build Command*: `npm ci`. *Start Command*: `node src/server.js` (node'u doğrudan çalıştırmak durdurma sinyalini aldığından emin olur; sonraki adım bunu kullanıyor). *Instance type*: **Free**.
+        4. *Environment Variables* altına `TRUST_PROXY` = `1` ve `NODE_ENV` = `production` ekle. *Advanced* içinde *Health Check Path* alanını `/health` yap.
+        5. *Deploy*'a tıkla. Servis canlı olana kadar log'ları izle. Render sana `https://linkly-xxxx.onrender.com` gibi bir adres verir; uygulama zaten Render'ın `PORT` içinde verdiği portu dinliyor.
+        6. Aşağıdaki curl komutlarıyla laptopundan dene (kendi adresini kullan). Sessiz bir dönemden sonraki ilk istek yavaştır: kapanma budur.
+        7. İsteğe bağlı: form yerine aşağıdaki `render.yaml` dosyasını repo köküne koy ve *New → Blueprint* kullan. Aynı servisi kod olarak tanımlar.
+        8. Bundan sonra `main`'e her `git push` yeni bir sürümü kendiliğinden deploy eder.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git status
+          git remote add origin https://github.com/<your-user>/linkly.git
+          git branch -M main
+          git push -u origin main
+      - file: render.yaml
+        lang: yaml
+        text: |
+          services:
+            - type: web
+              name: linkly
+              runtime: node
+              plan: free
+              buildCommand: npm ci
+              startCommand: node src/server.js
+              healthCheckPath: /health
+              envVars:
+                - key: NODE_ENV
+                  value: production
+                - key: TRUST_PROXY
+                  value: "1"
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i https://<your-service>.onrender.com/health
+
+          curl -s -X POST https://<your-service>.onrender.com/auth/register \
+            -H "content-type: application/json" \
+            -d '{"email":"ada@example.com","password":"correct horse battery"}'
+    mistakes:
+      - problem:
+          en: "The deploy fails with `Cannot find package 'express'` or similar."
+          tr: "Deploy `Cannot find package 'express'` ya da benzeri bir hatayla başarısız oluyor."
+        fix:
+          en: "The build command did not install packages, or `package-lock.json` was not pushed. Build Command must be `npm ci` (or `npm install`) and the lock file must be in the repository."
+          tr: "Build komutu paketleri kurmadı ya da `package-lock.json` push'lanmadı. Build Command `npm ci` (ya da `npm install`) olmalı ve lock dosyası repoda olmalı."
+      - problem:
+          en: "`No open ports detected` or the service never becomes live."
+          tr: "`No open ports detected` hatası ya da servis hiç canlı olmuyor."
+        fix:
+          en: "The app must listen on the port from the `PORT` environment variable (the code does: `process.env.PORT`) and not only on `localhost`. Do not hard-code 3000."
+          tr: "Uygulama `PORT` ortam değişkenindeki portu dinlemeli (kod bunu yapıyor: `process.env.PORT`) ve sadece `localhost`'u değil. 3000'i koda gömme."
+      - problem:
+          en: "Accounts and links are gone the next morning."
+          tr: "Hesaplar ve bağlantılar ertesi sabah yok."
+        fix:
+          en: "That is the free plan: its filesystem is ephemeral, so the SQLite file is lost on spin-down and redeploy. It is a demo. For data that must stay, use a hosted Postgres, or a paid plan with a persistent disk."
+          tr: "Bu ücretsiz plan: dosya sistemi geçici, bu yüzden SQLite dosyası kapanınca ve redeploy'da kaybolur. Bu bir demo. Kalması gereken veri için barındırılan bir Postgres ya da kalıcı diskli ücretli bir plan kullan."
+    quiz:
+      - q:
+          en: "Why does the deployed Linkly lose its data from time to time?"
+          tr: "Deploy edilen Linkly neden zaman zaman verisini kaybediyor?"
+        options:
+          en:
+            - "SQLite deletes old rows by itself"
+            - "A free Render web service has an ephemeral filesystem, so the database file is lost when it restarts, redeploys or spins down"
+            - "Express clears its data every hour"
+          tr:
+            - "SQLite eski satırları kendiliğinden siler"
+            - "Ücretsiz bir Render web servisinin dosya sistemi geçicidir, bu yüzden veritabanı dosyası yeniden başlayınca, redeploy'da ya da kapanınca kaybolur"
+            - "Express verisini her saat temizler"
+        answer: 1
+        why:
+          en: "Render's docs say changes to a free service's local filesystem, such as a SQLite database, are lost on redeploy, restart and spin-down."
+          tr: "Render'ın dokümanı, ücretsiz bir servisin yerel dosya sistemindeki değişikliklerin, örneğin bir SQLite veritabanının, redeploy'da, yeniden başlatmada ve kapanmada kaybolduğunu söyler."
+    sources:
+      - title: "Render: Free instances and their limits"
+        url: https://render.com/docs/free
+      - title: "Render: Web services"
+        url: https://render.com/docs/web-services
+      - title: "Render: Node.js version"
+        url: https://render.com/docs/node-version
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Logs, health checks and a clean shutdown"
+      tr: "Log'lar, health check'ler ve düzgün kapanış"
+    minutes: 50
+    needs: [deploy]
+    why:
+      en: "When something breaks at night you only have what the app wrote down. Structured logs (one JSON line per request, with an id) let you find the failing request. A health check lets the host know when the app is really ready or broken, and a clean shutdown lets a deploy replace the old version without cutting requests in half."
+      tr: "Gece bir şey bozulduğunda elinde sadece uygulamanın yazdıkları vardır. Yapılandırılmış log'lar (istek başına bir JSON satırı, bir id ile) hatalı isteği bulmanı sağlar. Health check host'a uygulamanın gerçekten hazır mı yoksa bozuk mu olduğunu söyler, düzgün kapanış da bir deploy'un eski sürümü istekleri ortadan kesmeden değiştirmesini sağlar."
+    learn:
+      en: |
+        - Log to standard output, one JSON object per line; the host collects and shows it (in Render: the *Logs* tab)
+        - A request id on every log line and in the `X-Request-Id` response header, so a user's report can be matched to a log line
+        - Never log secrets: no passwords, no tokens, no `Authorization` header, no query strings
+        - `/health` (is the process alive?) and `/ready` (can it do its job: is the database reachable?)
+        - Graceful shutdown: on `SIGTERM` (what hosts send before stopping a service) stop accepting new connections, let running requests finish, close the database, exit
+        - Let it crash: for an unexpected error it is often safest to exit and let the host start a fresh process, but log the reason first
+      tr: |
+        - Standart çıktıya log yaz, satır başına bir JSON nesnesi; host onu toplar ve gösterir (Render'da: *Logs* sekmesi)
+        - Her log satırında ve `X-Request-Id` cevap header'ında bir istek id'si; böylece bir kullanıcının şikayeti bir log satırıyla eşleştirilebilir
+        - Sırları asla loglama: şifre yok, token yok, `Authorization` header'ı yok, query string yok
+        - `/health` (process yaşıyor mu?) ve `/ready` (işini yapabilir mi: veritabanına ulaşılabiliyor mu?)
+        - Düzgün kapanış: `SIGTERM` gelince (host'ların bir servisi durdurmadan önce gönderdiği sinyal) yeni bağlantı kabul etmeyi bırak, çalışan istekleri bitir, veritabanını kapat, çık
+        - Çökmeye izin ver: beklenmeyen bir hatada çoğu zaman çıkıp host'un yeni bir process başlatmasına izin vermek en güvenlisidir ama önce nedenini logla
+    do:
+      en: |
+        1. Create `src/logger.js` with the code below.
+        2. Replace `src/app.js` and `src/server.js`. Compare with the old `app.js`: `/ready` is new, the request logger sits right after the health routes, and the error handler logs the real error with the request id.
+        3. Replace `tests/helpers.js` (tests now turn logging off with `log: false`) and add `tests/health.test.js`. Run `npm test`.
+        4. Start the server with `npm run dev`, open a few links and watch the JSON lines. Check `curl -i localhost:3000/ready` and the `x-request-id` header.
+        5. Test the clean shutdown: start it with `npm start` and press Ctrl+C. You should see the "shutting down" line and then the command returns.
+        6. Commit and push: `git add .`, `git commit -m "Logs, readiness and graceful shutdown"`, `git push`. Render deploys it; open the *Logs* tab and find your request lines.
+      tr: |
+        1. Aşağıdaki kodla `src/logger.js` dosyasını oluştur.
+        2. `src/app.js` ve `src/server.js` dosyalarını değiştir. Eski `app.js` ile karşılaştır: `/ready` yeni, istek logger'ı health route'larının hemen arkasında ve hata yakalayıcı gerçek hatayı istek id'siyle logluyor.
+        3. `tests/helpers.js` dosyasını değiştir (testler artık `log: false` ile log'u kapatıyor) ve `tests/health.test.js` dosyasını ekle. `npm test` çalıştır.
+        4. Sunucuyu `npm run dev` ile başlat, birkaç bağlantı aç ve JSON satırlarını izle. `curl -i localhost:3000/ready` ve `x-request-id` header'ını kontrol et.
+        5. Düzgün kapanışı dene: `npm start` ile başlat ve Ctrl+C'ye bas. "shutting down" satırını görmeli, sonra komutun geri dönmesi gerekir.
+        6. Commit'le ve push'la: `git add .`, `git commit -m "Logs, readiness and graceful shutdown"`, `git push`. Render deploy eder; *Logs* sekmesini aç ve istek satırlarını bul.
+    code:
+      - file: src/logger.js
+        lang: js
+        text: |
+          import { randomUUID } from "node:crypto";
+
+          // One JSON object per line on standard output; hosts collect and search these.
+          export function logLine(level, fields) {
+            const write = level === "error" ? console.error : console.log;
+            write(JSON.stringify({ time: new Date().toISOString(), level, ...fields }));
+          }
+
+          // Middleware: gives every request an id and logs one line when the response is done.
+          // It logs the path without the query string, and never headers or bodies (they may hold secrets).
+          export function requestLogger(enabled = true) {
+            return (req, res, next) => {
+              req.id = randomUUID();
+              res.set("X-Request-Id", req.id);
+              const start = process.hrtime.bigint();
+              res.on("finish", () => {
+                if (!enabled) return;
+                logLine("info", {
+                  id: req.id,
+                  method: req.method,
+                  path: req.originalUrl.split("?")[0],
+                  status: res.statusCode,
+                  ms: Math.round(Number(process.hrtime.bigint() - start) / 1e5) / 10,
+                });
+              });
+              next();
+            };
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import helmet from "helmet";
+          import { rateLimit } from "express-rate-limit";
+          import { HttpError } from "./validate.js";
+          import { accountsRouter } from "./accounts.js";
+          import { createCache } from "./cache.js";
+          import { linksRouter } from "./links.js";
+          import { logLine, requestLogger } from "./logger.js";
+
+          export function createApp(db, { requestsPerMinute = 300, authAttempts = 10, trustProxy = 0, log = true } = {}) {
+            const app = express();
+            const cache = createCache();
+            const findLink = db.prepare("SELECT url FROM links WHERE code = ?");
+            const countClick = db.prepare("UPDATE links SET clicks = clicks + 1 WHERE code = ?");
+
+            if (trustProxy) app.set("trust proxy", trustProxy);
+
+            app.use(helmet());
+
+            // Alive: the process answers. Hosts call this; it is not rate limited and not logged.
+            app.get("/health", (req, res) => {
+              res.json({ status: "ok" });
+            });
+
+            // Ready: the app can really do its job, which needs the database.
+            app.get("/ready", (req, res) => {
+              try {
+                db.prepare("SELECT 1").get();
+                res.json({ status: "ready" });
+              } catch {
+                res.status(503).json({ status: "database unavailable" });
+              }
+            });
+
+            app.use(requestLogger(log));
+
+            app.use(
+              rateLimit({
+                windowMs: 60 * 1000,
+                limit: requestsPerMinute,
+                standardHeaders: true,
+                legacyHeaders: false,
+                message: { error: "too many requests" },
+              }),
+            );
+
+            app.use(express.json({ limit: "10kb" }));
+
+            const authLimit = rateLimit({
+              windowMs: 15 * 60 * 1000,
+              limit: authAttempts,
+              standardHeaders: true,
+              legacyHeaders: false,
+              message: { error: "too many attempts, try again later" },
+            });
+
+            app.use("/auth", authLimit, accountsRouter(db));
+            app.use("/links", linksRouter(db, cache));
+
+            app.get("/:code", (req, res) => {
+              const { code } = req.params;
+              let url = cache.get(code);
+              if (!url) {
+                url = findLink.get(code)?.url;
+                if (!url) throw new HttpError(404, "not found");
+                cache.set(code, url);
+              }
+              countClick.run(code);
+              res.redirect(url);
+            });
+
+            app.use((req, res) => {
+              res.status(404).json({ error: "not found" });
+            });
+
+            app.use((err, req, res, next) => {
+              if (err instanceof HttpError) {
+                return res.status(err.status).json({ error: err.message, details: err.details });
+              }
+              if (err.status && err.status < 500) {
+                return res.status(err.status).json({ error: err.status === 413 ? "body too large" : "bad request" });
+              }
+              // The client gets a short message; the log gets the real error and the request id.
+              if (log) logLine("error", { id: req.id, message: err.message, stack: err.stack });
+              res.status(500).json({ error: "server error", id: req.id });
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+          import { openDb } from "./db.js";
+          import { logLine } from "./logger.js";
+
+          const port = Number(process.env.PORT) || 3000;
+          const db = openDb(process.env.DB_PATH);
+
+          const app = createApp(db, {
+            requestsPerMinute: Number(process.env.RATE_LIMIT) || undefined,
+            trustProxy: Number(process.env.TRUST_PROXY) || 0,
+          });
+
+          const server = app.listen(port, () => {
+            logLine("info", { message: `listening on port ${port}`, pid: process.pid });
+          });
+
+          // Hosts send SIGTERM before they stop a service; Ctrl+C sends SIGINT.
+          function shutdown(signal) {
+            logLine("info", { message: `${signal} received, shutting down` });
+            server.close(() => {
+              // No requests are running any more.
+              db.close();
+              process.exit(0);
+            });
+            server.closeIdleConnections();
+            // If something hangs, do not wait forever.
+            setTimeout(() => process.exit(1), 10_000).unref();
+          }
+
+          process.on("SIGTERM", () => shutdown("SIGTERM"));
+          process.on("SIGINT", () => shutdown("SIGINT"));
+      - file: tests/helpers.js
+        lang: js
+        text: |
+          import request from "supertest";
+          import { createApp } from "../src/app.js";
+          import { openDb } from "../src/db.js";
+
+          // A fresh app with a fresh in-memory database; logging is off so test output stays readable.
+          export const newApi = (options) => request(createApp(openDb(":memory:"), { log: false, ...options }));
+
+          // Registers and logs in; returns the session token.
+          export async function signUp(api, email = "ada@example.com", password = "correct horse battery") {
+            await api.post("/auth/register").send({ email, password });
+            const res = await api.post("/auth/login").send({ email, password });
+            return res.body.token;
+          }
+
+          export const bearer = (token) => [token, { type: "bearer" }];
+      - file: tests/health.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import request from "supertest";
+          import { createApp } from "../src/app.js";
+          import { openDb } from "../src/db.js";
+          import { newApi } from "./helpers.js";
+
+          test("/health and /ready answer 200", async () => {
+            const api = newApi();
+            assert.equal((await api.get("/health")).status, 200);
+            const ready = await api.get("/ready");
+            assert.equal(ready.status, 200);
+            assert.deepEqual(ready.body, { status: "ready" });
+          });
+
+          test("/ready answers 503 when the database is gone", async () => {
+            const db = openDb(":memory:");
+            const api = request(createApp(db, { log: false }));
+            db.close();
+            assert.equal((await api.get("/ready")).status, 503);
+            assert.equal((await api.get("/health")).status, 200); // the process itself is still alive
+          });
+
+          test("every response has a request id", async () => {
+            const res = await newApi().get("/links");
+            assert.equal(res.status, 401);
+            assert.match(res.headers["x-request-id"], /^[0-9a-f-]{36}$/);
+          });
+
+          test("logs one JSON line per request, without secrets or query strings", async (t) => {
+            const lines = t.mock.method(console, "log", () => {});
+            const api = request(createApp(openDb(":memory:")));
+            await api.get("/links?secret=abc").set("Authorization", "Bearer super-secret-token");
+
+            const text = lines.mock.calls.map((c) => c.arguments[0]).join("\n");
+            const entry = JSON.parse(text.split("\n").at(-1));
+            assert.equal(entry.method, "GET");
+            assert.equal(entry.path, "/links");
+            assert.equal(entry.status, 401);
+            assert.ok(!text.includes("super-secret-token"));
+            assert.ok(!text.includes("secret=abc"));
+          });
+    mistakes:
+      - problem:
+          en: "Logging the whole request (headers, body) \"to be safe\"."
+          tr: "\"Garanti olsun\" diye isteğin tamamını (header'lar, body) loglamak."
+        fix:
+          en: "Logs are copied, searched and kept for a long time, often by more people than the database. Log only what you need to find problems: id, method, path, status, duration."
+          tr: "Log'lar kopyalanır, aranır ve uzun süre saklanır; çoğu zaman veritabanından daha fazla kişi tarafından. Sadece sorunları bulmak için gerekeni logla: id, method, path, status, süre."
+      - problem:
+          en: "The health check path is rate limited or needs a login, so the host thinks the app is down."
+          tr: "Health check yoluna rate limit uygulanıyor ya da giriş gerekiyor, bu yüzden host uygulamanın kapalı olduğunu sanıyor."
+        fix:
+          en: "Register `/health` before the limiter and the auth routes, as above, and keep it cheap: it must not touch the database."
+          tr: "`/health`'i yukarıdaki gibi limiter'dan ve auth route'larından önce tanımla ve ucuz tut: veritabanına dokunmamalı."
+      - problem:
+          en: "Every deploy drops a few requests with errors."
+          tr: "Her deploy birkaç isteği hatayla düşürüyor."
+        fix:
+          en: "The app is killed in the middle of requests. Handle `SIGTERM` as above, and start the service with `node src/server.js`; through some wrappers the signal never reaches your program."
+          tr: "Uygulama isteklerin ortasında öldürülüyor. `SIGTERM`'i yukarıdaki gibi işle ve servisi `node src/server.js` ile başlat; bazı sarmalayıcılarda sinyal programına hiç ulaşmaz."
+    quiz:
+      - q:
+          en: "What is the difference between `/health` and `/ready`?"
+          tr: "`/health` ile `/ready` arasındaki fark nedir?"
+        options:
+          en:
+            - "There is none; they are two names for the same thing"
+            - "`/health` says the process is alive; `/ready` also checks things it needs, like the database"
+            - "`/health` is only for browsers"
+          tr:
+            - "Fark yok; aynı şeyin iki adı"
+            - "`/health` process'in yaşadığını söyler; `/ready` veritabanı gibi ihtiyacı olan şeyleri de kontrol eder"
+            - "`/health` sadece tarayıcılar içindir"
+        answer: 1
+        why:
+          en: "A process can be alive but unable to work, for example when its database is unreachable. A readiness check tells that apart; a host restarts on failed liveness and may stop sending traffic on failed readiness."
+          tr: "Bir process yaşıyor ama çalışamıyor olabilir, örneğin veritabanına ulaşılamıyorsa. Readiness check bunu ayırt eder; host başarısız liveness'ta yeniden başlatır, başarısız readiness'ta trafik yollamayı bırakabilir."
+    sources:
+      - title: "Express: Health checks and graceful shutdown"
+        url: https://expressjs.com/en/advanced/healthcheck-graceful-shutdown.html
+      - title: "Render: Health checks"
+        url: https://render.com/docs/health-checks
+      - title: "Node.js: Signal events"
+        url: https://nodejs.org/docs/latest/api/process.html#signal-events
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Look around: Hono, NestJS and what to learn next"
+      tr: "Etrafa bak: Hono, NestJS ve sırada ne öğrenmeli"
+    minutes: 60
+    needs: [monitoring]
+    why:
+      en: "You built a real API with plain parts, so you understand what bigger frameworks do for you. Now you can choose with open eyes. Hono is a small, modern framework built on the web-standard `Request` and `Response`; NestJS is a big, opinionated one for large teams. Seeing the same API in Hono takes ten minutes and shows what stays the same and what changes."
+      tr: "Düz parçalarla gerçek bir API yazdın, bu yüzden daha büyük framework'lerin senin için ne yaptığını anlıyorsun. Artık gözün açık seçebilirsin. Hono, web standardı `Request` ve `Response` üzerine kurulu küçük, modern bir framework; NestJS ise büyük ekipler için büyük ve kuralları belli bir framework. Aynı API'yi Hono'da görmek on dakika sürer ve nelerin aynı kaldığını, nelerin değiştiğini gösterir."
+    learn:
+      en: |
+        - Hono: handlers get one context object `c` and return a `Response` (`c.json(...)`, `c.redirect(...)`); the same code runs on Node.js (with the `@hono/node-server` adapter), Bun, Deno and Cloudflare Workers; testing is `app.request("/path")` with no extra library
+        - NestJS: a TypeScript framework (it runs on top of Express or Fastify) with modules, controllers, services, decorators and dependency injection. It gives a large team one shared structure, but it has a lot to learn and needs a build step because Node.js does not run decorators natively. Do not start there; come back when a project has grown past what a few files can organise
+        - What to learn next: TypeScript (Node.js can run `.ts` files that use only erasable types), a hosted Postgres with a migration tool instead of SQLite, cookies with refresh tokens and email verification for logins, a job queue for background work, an OpenAPI description of your API, and OpenTelemetry for traces and metrics
+      tr: |
+        - Hono: handler'lar tek bir `c` context nesnesi alır ve bir `Response` döndürür (`c.json(...)`, `c.redirect(...)`); aynı kod Node.js'te (`@hono/node-server` adaptörüyle), Bun'da, Deno'da ve Cloudflare Workers'ta çalışır; test etmek ek kütüphane olmadan `app.request("/yol")`'dur
+        - NestJS: modüller, controller'lar, servisler, decorator'lar ve dependency injection içeren bir TypeScript framework'ü (Express ya da Fastify'ın üstünde çalışır). Büyük bir ekibe ortak bir yapı verir ama öğrenilecek çok şey vardır ve Node.js decorator'ları doğrudan çalıştırmadığı için bir build adımı ister. Oradan başlama; bir proje birkaç dosyanın düzenleyebileceğinden büyüyünce dön
+        - Sırada ne öğrenmeli: TypeScript (Node.js sadece silinebilir tip içeren `.ts` dosyalarını çalıştırabilir), SQLite yerine bir migration aracı olan barındırılan bir Postgres, giriş için refresh token'lı cookie'ler ve e-posta doğrulaması, arka plan işleri için bir iş kuyruğu, API'nın OpenAPI tanımı ve trace ile metrikler için OpenTelemetry
+    do:
+      en: |
+        1. Make a separate playground folder next to your project (not inside it) and install Hono there (first block below).
+        2. Create `index.js` in it (`hono-demo/index.js`) with the code below: the same three routes, in Hono, with the data in memory.
+        3. Run it with `node index.js`, then try it with the curl commands. The routes behave like the ones you built.
+        4. Compare with `src/app.js` and `src/links.js`. What got shorter? What did Express give you that you must now build yourself here (validation, rate limiting, security headers)? Hono has middleware for those too; the ideas are the same.
+        5. Read the first page of the NestJS documentation ("First steps") without installing anything. Write down in two sentences when you would choose it.
+        6. Pick one item from "What to learn next" for your own next project. A good one: move Linkly to a hosted Postgres so the data survives on Render.
+      tr: |
+        1. Projenin yanında (içinde değil) ayrı bir deneme klasörü oluştur ve Hono'yu orada kur (aşağıdaki ilk blok).
+        2. İçinde aşağıdaki kodla `index.js` dosyasını (`hono-demo/index.js`) oluştur: aynı üç route, Hono'da, veri bellekte.
+        3. `node index.js` ile çalıştır, sonra curl komutlarıyla dene. Route'lar senin yazdıklarınla aynı davranır.
+        4. `src/app.js` ve `src/links.js` ile karşılaştır. Ne kısaldı? Express'in sana verdiği, burada artık kendin kurman gereken ne var (doğrulama, rate limiting, güvenlik header'ları)? Hono'da bunlar için de middleware var; fikirler aynı.
+        5. Hiçbir şey kurmadan NestJS dokümanının ilk sayfasını ("First steps") oku. Onu ne zaman seçeceğini iki cümleyle yaz.
+        6. "Sırada ne öğrenmeli" listesinden kendi bir sonraki projen için birini seç. İyi bir seçim: Linkly'yi barındırılan bir Postgres'e taşı ki veri Render'da kalsın.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          cd ..
+          mkdir hono-demo
+          cd hono-demo
+          npm init -y
+          npm pkg set type=module
+          npm install hono @hono/node-server
+      - file: hono-demo/index.js
+        lang: js
+        text: |
+          import { Hono } from "hono";
+          import { serve } from "@hono/node-server";
+
+          const links = new Map(); // code -> url
+          const app = new Hono();
+
+          app.get("/health", (c) => c.json({ status: "ok" }));
+
+          app.post("/links", async (c) => {
+            const body = await c.req.json().catch(() => null);
+            if (typeof body?.url !== "string" || !/^https?:\/\//.test(body.url)) {
+              return c.json({ error: "a http or https url is required" }, 400);
+            }
+            const code = crypto.randomUUID().slice(0, 6);
+            links.set(code, body.url);
+            return c.json({ code, url: body.url }, 201);
+          });
+
+          app.get("/:code", (c) => {
+            const url = links.get(c.req.param("code"));
+            if (!url) return c.json({ error: "not found" }, 404);
+            return c.redirect(url);
+          });
+
+          serve({ fetch: app.fetch, port: 3001 }, (info) => {
+            console.log(`Hono listening on http://localhost:${info.port}`);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          node index.js
+
+          curl -i -X POST http://localhost:3001/links \
+            -H "content-type: application/json" \
+            -d '{"url":"https://hono.dev"}'
+          curl -i http://localhost:3001/<code>
+    mistakes:
+      - problem:
+          en: "Starting a new project with the biggest framework because it looks professional."
+          tr: "Profesyonel göründüğü için yeni bir projeye en büyük framework'le başlamak."
+        fix:
+          en: "Pick the smallest tool that fits. Express or Hono is enough for most APIs; a framework with more rules pays off only when many people work in one codebase."
+          tr: "Uyan en küçük aracı seç. Çoğu API için Express ya da Hono yeter; daha çok kural koyan bir framework ancak aynı kod tabanında çok kişi çalışınca karşılığını verir."
+      - problem:
+          en: "Copying Express middleware into Hono (or the other way round) and expecting it to work."
+          tr: "Express middleware'ini Hono'ya (ya da tersini) kopyalayıp çalışmasını beklemek."
+        fix:
+          en: "They use different request and response objects. Use packages made for the framework; for example Hono has its own middleware for security headers and CORS."
+          tr: "Farklı request ve response nesneleri kullanırlar. Framework için yazılmış paketleri kullan; örneğin Hono'nun güvenlik header'ları ve CORS için kendi middleware'i var."
+    quiz:
+      - q:
+          en: "When is NestJS a good choice?"
+          tr: "NestJS ne zaman iyi bir seçimdir?"
+        options:
+          en:
+            - "For your very first Node.js project"
+            - "For a large codebase with many developers who need one shared structure"
+            - "When you want no build step and no TypeScript"
+          tr:
+            - "İlk Node.js projen için"
+            - "Ortak bir yapıya ihtiyaç duyan çok sayıda geliştiricinin olduğu büyük bir kod tabanı için"
+            - "Build adımı ve TypeScript istemediğinde"
+        answer: 1
+        why:
+          en: "NestJS adds structure (modules, dependency injection) that pays off with big teams and big projects. For small APIs it is more than you need."
+          tr: "NestJS büyük ekiplerde ve büyük projelerde karşılığını veren bir yapı (modüller, dependency injection) ekler. Küçük API'ler için ihtiyacından fazladır."
+    sources:
+      - title: "Hono: Node.js"
+        url: https://hono.dev/docs/getting-started/nodejs
+      - title: "NestJS: First steps"
+        url: https://docs.nestjs.com/first-steps
+      - title: "Node.js: Running TypeScript natively"
+        url: https://nodejs.org/docs/latest/api/typescript.html

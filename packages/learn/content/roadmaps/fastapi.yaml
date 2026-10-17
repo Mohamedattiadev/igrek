@@ -1,0 +1,2817 @@
+id: fastapi
+title: FastAPI
+summary:
+  en: "From an empty computer to your own API on the internet. You build a notes API with FastAPI step by step: a database, users who log in, tests and a container, and you understand why each step is there."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi API'ne. FastAPI ile adım adım bir notlar API'si yazarsın: veritabanı, giriş yapan kullanıcılar, testler ve bir container; her adımın neden orada olduğunu anlarsın."
+teacher: backend
+after: [python]
+project:
+  en: 'A notes and todo REST API: users sign up and log in with a token, each user keeps private notes in a SQLite database, with search, paging, tests, a Docker image and a free deploy on Render.'
+  tr: 'Notlar ve yapılacaklar için bir REST API: kullanıcılar kayıt olup token ile giriş yapar, her kullanıcı kendi özel notlarını bir SQLite veritabanında tutar; arama, sayfalama, testler, bir Docker image''ı ve Render''da ücretsiz deploy var.'
+detect:
+  pip: [fastapi]
+version: "0.143"
+latest: pypi:fastapi
+checked: 2026-10
+sheets: [python, fastapi, http, rest-graphql, auth, cors, sql, docker, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install uv, an editor and Git"
+      tr: "uv, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "A FastAPI app is Python code plus a few packages. uv installs Python itself, keeps the packages of each project apart and runs your commands, so you do not fight with versions. An editor makes writing code comfortable, and Git keeps every version of your work."
+      tr: "Bir FastAPI uygulaması Python kodu ve birkaç pakettir. uv, Python'un kendisini kurar, her projenin paketlerini ayrı tutar ve komutlarını çalıştırır; böylece sürümlerle uğraşmazsın. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar."
+    learn:
+      en: |
+        - What a terminal is and how to check that a program is installed
+        - What **uv** does: it installs Python, creates a private folder of packages for each project (a "virtual environment") and runs commands inside it
+        - What an API is: a program that other programs talk to over HTTP, usually by sending and receiving JSON
+      tr: |
+        - Terminalin ne olduğu ve bir programın kurulu olup olmadığını nasıl kontrol edeceğin
+        - **uv**'nin ne yaptığı: Python'u kurar, her proje için paketlerin durduğu özel bir klasör ("virtual environment", sanal ortam) oluşturur ve komutları onun içinde çalıştırır
+        - API'nin ne olduğu: diğer programların HTTP üzerinden konuştuğu, genelde JSON gönderip alan bir program
+    do:
+      en: |
+        1. Install **uv**. On macOS or Linux, open a terminal and run the first command below. On Windows, open PowerShell and run the second one. Close the terminal and open a new one afterwards.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor, and its Python extension (search "Python" in the Extensions panel).
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the check commands below. Each should print a version number.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        6. You do not need to install Python yourself: uv downloads the right version when your project asks for it.
+      tr: |
+        1. **uv**'yi kur. macOS veya Linux'ta bir terminal açıp aşağıdaki ilk komutu çalıştır. Windows'ta PowerShell açıp ikinci komutu çalıştır. Sonra terminali kapatıp yenisini aç.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u (code.visualstudio.com) ve Python eklentisini kur (Extensions panelinde "Python" ara).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki kontrol komutlarını çalıştır. Her biri bir sürüm numarası yazmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        6. Python'u kendin kurmana gerek yok: projen istediğinde uv doğru sürümü indirir.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          # macOS and Linux
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - file: terminal
+        lang: powershell
+        text: |
+          # Windows (PowerShell)
+          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+      - file: terminal
+        lang: sh
+        text: |
+          uv --version
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found: uv\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found: uv\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open a new one so it sees the new program. If it still fails, restart the computer."
+          tr: "Terminali (ya da VS Code'u) kapatıp yenisini aç ki yeni programı görsün. Hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Installing Python from python.org as well and then not knowing which one runs."
+          tr: "Bir de python.org'dan Python kurup hangisinin çalıştığını bilememek."
+        fix:
+          en: "In this roadmap always start commands with `uv run`. It uses the Python of the project, whatever else is on your computer."
+          tr: "Bu yol haritasında komutlara hep `uv run` ile başla. Bilgisayarında başka ne olursa olsun projenin Python'unu kullanır."
+    quiz:
+      - q:
+          en: "What does uv do for your project?"
+          tr: "uv projen için ne yapar?"
+        options:
+          en:
+            - "It hosts your API on the internet"
+            - "It installs Python and the packages of the project and runs commands with them"
+            - "It writes the FastAPI code for you"
+          tr:
+            - "API'ni internette barındırır"
+            - "Python'u ve projenin paketlerini kurar, komutları onlarla çalıştırır"
+            - "FastAPI kodunu senin yerine yazar"
+        answer: 1
+        why:
+          en: "uv manages Python versions and the packages of each project. Hosting comes much later and the code is yours to write."
+          tr: "uv Python sürümlerini ve her projenin paketlerini yönetir. Barındırma çok sonra gelir, kodu da sen yazarsın."
+    sources:
+      - title: uv installation
+        url: https://docs.astral.sh/uv/getting-started/installation/
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: hello
+    stage: first-code
+    title:
+      en: "Your first endpoint and the automatic docs"
+      tr: "İlk endpoint ve otomatik doküman"
+    minutes: 35
+    needs: [setup]
+    why:
+      en: "Before notes, databases or users, you need one thing working end to end: a URL that answers. FastAPI also writes a page where you can try your API in the browser, which you will use all the way through this roadmap."
+      tr: "Notlardan, veritabanından ya da kullanıcılardan önce baştan sona çalışan tek bir şey lazım: cevap veren bir URL. FastAPI ayrıca API'ni tarayıcıda denemen için bir sayfa da yazar; bu yol haritası boyunca onu kullanacaksın."
+    learn:
+      en: |
+        - What a project folder looks like with uv: `pyproject.toml` (the project's settings and package list) and `uv.lock` (the exact versions)
+        - What `@app.get("/")` does: it connects the URL `/` and the HTTP method GET to a function
+        - That `fastapi dev` restarts the server by itself whenever you save a file
+        - Where the interactive docs live: `/docs`
+      tr: |
+        - uv ile bir proje klasörünün nasıl göründüğü: `pyproject.toml` (projenin ayarları ve paket listesi) ve `uv.lock` (paketlerin tam sürümleri)
+        - `@app.get("/")` ne yapar: `/` adresini ve GET HTTP metodunu bir fonksiyona bağlar
+        - `fastapi dev` bir dosyayı kaydettiğin anda sunucuyu kendiliğinden yeniden başlatır
+        - Etkileşimli dokümanın nerede durduğu: `/docs`
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects. Create the project folder, go into it and let Git watch it (first block below).
+        2. Create the project with uv and add FastAPI. The quotes around `"fastapi[standard]"` matter. `[standard]` also installs the server (Uvicorn) and the `fastapi` command.
+        3. Create a folder `app` with three files: `.gitignore` in the project folder, and `app/__init__.py` and `app/main.py` as shown. `.gitignore` lists files Git must never save: the packages, secrets and the database.
+        4. Open `pyproject.toml` and add the `[tool.fastapi]` lines at the bottom. They tell the `fastapi` command where your app is.
+        5. Start the server with `uv run fastapi dev`. Open http://127.0.0.1:8000 and then http://127.0.0.1:8000/docs.
+        6. In `/docs` click the `GET /` row, then *Try it out* and *Execute*. Change the message in `main.py`, save, and execute again.
+        7. Stop the server with Ctrl+C. Save your work: `git add .` and `git commit -m "Hello endpoint"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git. Proje klasörünü oluştur, içine gir ve Git'in izlemesini sağla (aşağıdaki ilk blok).
+        2. Projeyi uv ile oluştur ve FastAPI'yi ekle. `"fastapi[standard]"` etrafındaki tırnaklar önemli. `[standard]` sunucuyu (Uvicorn) ve `fastapi` komutunu da kurar.
+        3. `app` klasörü ve üç dosya oluştur: proje klasöründe `.gitignore`, ayrıca gösterildiği gibi `app/__init__.py` ve `app/main.py`. `.gitignore`, Git'in asla kaydetmemesi gereken dosyaları listeler: paketler, gizli bilgiler ve veritabanı.
+        4. `pyproject.toml`'u aç ve en alta `[tool.fastapi]` satırlarını ekle. `fastapi` komutuna uygulamanın nerede olduğunu söylerler.
+        5. Sunucuyu `uv run fastapi dev` ile başlat. http://127.0.0.1:8000 adresini, sonra http://127.0.0.1:8000/docs adresini aç.
+        6. `/docs` sayfasında `GET /` satırına tıkla, sonra *Try it out* ve *Execute*. `main.py` içindeki mesajı değiştir, kaydet ve tekrar çalıştır.
+        7. Sunucuyu Ctrl+C ile durdur. Çalışmanı kaydet: `git add .` ve `git commit -m "Hello endpoint"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir notes-api
+          cd notes-api
+          git init
+          uv init --bare --python 3.14
+          uv add "fastapi[standard]"
+          mkdir app
+      - file: .gitignore
+        lang: text
+        text: |
+          .venv
+          .env
+          *.db
+          __pycache__
+          .pytest_cache
+      - file: app/__init__.py
+        lang: python
+        text: |
+          # The notes API package.
+      - file: app/main.py
+        lang: python
+        text: |
+          from fastapi import FastAPI
+
+          app = FastAPI(title="Notes API")
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          # add this at the bottom of the file
+          [tool.fastapi]
+          entrypoint = "app.main:app"
+      - file: terminal
+        lang: sh
+        text: |
+          uv run fastapi dev
+    mistakes:
+      - problem:
+          en: "`uv add fastapi[standard]` without quotes fails in some shells (zsh)."
+          tr: "`uv add fastapi[standard]` komutunu tırnaksız yazmak bazı shell'lerde (zsh) hata verir."
+        fix:
+          en: "Write `uv add \"fastapi[standard]\"`. Shells treat square brackets as a pattern."
+          tr: "`uv add \"fastapi[standard]\"` diye yaz. Shell'ler köşeli parantezi kalıp sanar."
+      - problem:
+          en: "\"Error loading ASGI app\" or an import error when starting."
+          tr: "Başlarken \"Error loading ASGI app\" ya da import hatası."
+        fix:
+          en: "Check that you run the command in the project folder (the one with `pyproject.toml`), that `app/__init__.py` exists, and that the entrypoint is `app.main:app`. Never name a file `fastapi.py`: it hides the real package."
+          tr: "Komutu proje klasöründe (içinde `pyproject.toml` olan) çalıştırdığını, `app/__init__.py` dosyasının var olduğunu ve entrypoint'in `app.main:app` olduğunu kontrol et. Hiçbir dosyaya `fastapi.py` adını verme: gerçek paketi gölgeler."
+    quiz:
+      - q:
+          en: "What does `@app.get(\"/\")` do?"
+          tr: "`@app.get(\"/\")` ne yapar?"
+        options:
+          en:
+            - "It starts the server"
+            - "It creates a database table"
+            - "It connects the URL / and the GET method to the function below it"
+          tr:
+            - "Sunucuyu başlatır"
+            - "Bir veritabanı tablosu oluşturur"
+            - "/ adresini ve GET metodunu altındaki fonksiyona bağlar"
+        answer: 2
+        why:
+          en: "The decorator registers the function as the handler for that path and method."
+          tr: "Decorator, fonksiyonu o path ve metot için işleyici olarak kaydeder."
+    sources:
+      - title: FastAPI first steps
+        url: https://fastapi.tiangolo.com/tutorial/first-steps/
+      - title: FastAPI CLI (fastapi dev and the entrypoint)
+        url: https://fastapi.tiangolo.com/fastapi-cli/
+      - title: uv, creating projects
+        url: https://docs.astral.sh/uv/concepts/projects/init/
+
+  - id: params
+    stage: basics
+    title:
+      en: "Path and query parameters"
+      tr: "Path ve query parametreleri"
+    minutes: 35
+    needs: [hello]
+    why:
+      en: "An API is useful when callers can say what they want: one note by its id, only the finished ones, only titles that contain a word. FastAPI reads these from the URL, checks their types and answers with a clear error when they are wrong."
+      tr: "Bir API, çağıran ne istediğini söyleyebildiğinde işe yarar: id'siyle tek bir not, sadece bitmiş olanlar, başlığında bir kelime geçenler. FastAPI bunları URL'den okur, tiplerini kontrol eder ve yanlışsa net bir hatayla cevap verir."
+    learn:
+      en: |
+        - A path parameter is part of the path: `/notes/2`. A query parameter comes after a question mark: `/notes?done=true&q=fast`
+        - FastAPI converts and checks values by their Python type hint (`int`, `bool`)
+        - `Annotated[..., Query(max_length=50)]` adds rules and shows them in the docs
+        - Status codes tell the caller what happened: 200 worked, 404 not found, 422 your data is wrong
+      tr: |
+        - Path parametresi yolun parçasıdır: `/notes/2`. Query parametresi soru işaretinden sonra gelir: `/notes?done=true&q=fast`
+        - FastAPI değerleri Python tip ipucuna (`int`, `bool`) göre dönüştürür ve kontrol eder
+        - `Annotated[..., Query(max_length=50)]` kural ekler ve bunları dokümanda gösterir
+        - Durum kodları çağırana ne olduğunu söyler: 200 oldu, 404 bulunamadı, 422 verin yanlış
+    do:
+      en: |
+        1. Replace `app/main.py` with the code below. The `NOTES` list is a pretend database that lives in memory.
+        2. Run `uv run fastapi dev` and open http://127.0.0.1:8000/docs. Try `GET /notes` with *Try it out*.
+        3. Type in the browser bar: `/notes?done=false`, then `/notes?q=fast`, then `/notes/2`.
+        4. Break it on purpose: `/notes/abc` answers 422 (not a number) and `/notes/99` answers 404. Read the error messages.
+        5. Commit: `git add .` and `git commit -m "Path and query parameters"`.
+      tr: |
+        1. `app/main.py` dosyasını aşağıdaki kodla değiştir. `NOTES` listesi bellekte duran sahte bir veritabanıdır.
+        2. `uv run fastapi dev` çalıştır ve http://127.0.0.1:8000/docs adresini aç. *Try it out* ile `GET /notes` dene.
+        3. Tarayıcı adres çubuğuna sırayla yaz: `/notes?done=false`, sonra `/notes?q=fast`, sonra `/notes/2`.
+        4. Bilerek boz: `/notes/abc` 422 (sayı değil), `/notes/99` 404 cevabı verir. Hata mesajlarını oku.
+        5. Kaydet: `git add .` ve `git commit -m "Path and query parameters"`.
+    code:
+      - file: app/main.py
+        lang: python
+        text: |
+          from typing import Annotated
+
+          from fastapi import FastAPI, HTTPException, Query
+
+          app = FastAPI(title="Notes API")
+
+          # A fake database for now: a plain list in memory.
+          NOTES = [
+              {"id": 1, "title": "Buy milk", "done": False},
+              {"id": 2, "title": "Learn FastAPI", "done": False},
+              {"id": 3, "title": "Drink water", "done": True},
+          ]
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+
+
+          @app.get("/notes")
+          def list_notes(
+              done: bool | None = None,
+              q: Annotated[str | None, Query(max_length=50)] = None,
+          ):
+              notes = NOTES
+              if done is not None:
+                  notes = [n for n in notes if n["done"] == done]
+              if q:
+                  notes = [n for n in notes if q.lower() in n["title"].lower()]
+              return notes
+
+
+          @app.get("/notes/{note_id}")
+          def read_note(note_id: int):
+              for note in NOTES:
+                  if note["id"] == note_id:
+                      return note
+              raise HTTPException(status_code=404, detail="Note not found")
+    mistakes:
+      - problem:
+          en: "Writing `done: bool` without a default value: the parameter becomes required and a plain `GET /notes` gets 422."
+          tr: "`done: bool` diye varsayılan değer vermeden yazmak: parametre zorunlu olur ve düz `GET /notes` 422 alır."
+        fix:
+          en: "Give optional query parameters a default, like `done: bool | None = None`."
+          tr: "İsteğe bağlı query parametrelerine varsayılan ver, örneğin `done: bool | None = None`."
+      - problem:
+          en: "Returning `{\"error\": \"not found\"}` with status 200."
+          tr: "200 durumuyla `{\"error\": \"not found\"}` döndürmek."
+        fix:
+          en: "Raise `HTTPException(status_code=404, ...)`. Clients and monitoring tools read the status code, not your message."
+          tr: "`HTTPException(status_code=404, ...)` fırlat. İstemciler ve izleme araçları mesajını değil durum kodunu okur."
+    quiz:
+      - q:
+          en: "In `/notes/2?done=true`, which part is the query parameter?"
+          tr: "`/notes/2?done=true` içinde query parametresi hangisi?"
+        options:
+          en:
+            - "2"
+            - "done=true"
+            - "/notes"
+          tr:
+            - "2"
+            - "done=true"
+            - "/notes"
+        answer: 1
+        why:
+          en: "Everything after the question mark is the query string. The 2 is a path parameter."
+          tr: "Soru işaretinden sonrası query string'dir. 2 ise path parametresidir."
+    sources:
+      - title: FastAPI path parameters
+        url: https://fastapi.tiangolo.com/tutorial/path-params/
+      - title: FastAPI query parameters
+        url: https://fastapi.tiangolo.com/tutorial/query-params/
+      - title: Query parameters with validation
+        url: https://fastapi.tiangolo.com/tutorial/query-params-str-validations/
+
+  - id: notes-memory
+    stage: first-project
+    title:
+      en: "Create and delete notes with models"
+      tr: "Modellerle not oluşturma ve silme"
+    minutes: 45
+    needs: [params]
+    why:
+      en: "Real clients send data to your API, not just read from it. A Pydantic model describes exactly what a note looks like, and FastAPI rejects anything else before your code runs. Splitting the code into files now keeps it easy to grow later."
+      tr: "Gerçek istemciler API'ne sadece veri okumaz, veri de gönderir. Bir Pydantic modeli bir notun tam olarak nasıl göründüğünü tarif eder ve FastAPI geri kalanı senin kodun çalışmadan reddeder. Kodu şimdiden dosyalara bölmek ileride büyütmeyi kolaylaştırır."
+    learn:
+      en: |
+        - What a Pydantic model is: a class that lists the fields of the data and their types and rules
+        - Why there are two models: `NoteCreate` is what the client may send, `NotePublic` is what you send back (it adds the `id`)
+        - What POST, GET and DELETE mean in a REST API, and why creating answers 201 and deleting answers 204
+        - How `APIRouter` moves a group of endpoints into their own file
+      tr: |
+        - Pydantic modelinin ne olduğu: verinin alanlarını, tiplerini ve kurallarını sıralayan bir sınıf
+        - Neden iki model olduğu: `NoteCreate` istemcinin gönderebileceği, `NotePublic` senin geri göndereceğin şey (`id`'yi ekler)
+        - REST API'de POST, GET ve DELETE'in ne anlama geldiği; oluşturmanın neden 201, silmenin neden 204 döndürdüğü
+        - `APIRouter`'ın bir grup endpoint'i kendi dosyasına nasıl taşıdığı
+    do:
+      en: |
+        1. Create `app/models.py`, then the folder `app/routers` with `__init__.py` and `notes.py`, and replace `app/main.py`, all as shown below.
+        2. Start `uv run fastapi dev` and open `/docs`. There are now three endpoints under *notes*.
+        3. Open `POST /notes`, click *Try it out*, change the body to `{"title": "Buy milk"}` and *Execute*. You get 201 and a note with `id` 1. Create two more.
+        4. Run `GET /notes`, then `GET /notes/1`, then `DELETE /notes/1` (204, no body), then `GET /notes/1` again (404).
+        5. Send `{"title": ""}` to `POST /notes`: 422, because the title must have at least one character.
+        6. Stop and start the server: the notes are gone. That is expected, they live in memory only. The next step fixes it.
+        7. Commit: `git add .` and `git commit -m "Notes in memory"`.
+      tr: |
+        1. Aşağıda gösterildiği gibi `app/models.py` dosyasını, `app/routers` klasörünü (içinde `__init__.py` ve `notes.py`) oluştur ve `app/main.py`'yi değiştir.
+        2. `uv run fastapi dev` ile başlat ve `/docs` sayfasını aç. *notes* altında artık üç endpoint var.
+        3. `POST /notes` satırını aç, *Try it out*'a tıkla, body'yi `{"title": "Buy milk"}` yap ve *Execute*. 201 ve `id`'si 1 olan bir not alırsın. İki tane daha oluştur.
+        4. Sırayla `GET /notes`, `GET /notes/1`, `DELETE /notes/1` (204, body yok), sonra tekrar `GET /notes/1` (404) çalıştır.
+        5. `POST /notes`'a `{"title": ""}` gönder: 422, çünkü başlık en az bir karakter olmalı.
+        6. Sunucuyu durdurup yeniden başlat: notlar gitti. Beklenen bu, sadece bellekte duruyorlar. Bir sonraki adım bunu çözer.
+        7. Kaydet: `git add .` ve `git commit -m "Notes in memory"`.
+    code:
+      - file: app/models.py
+        lang: python
+        text: |
+          from pydantic import BaseModel, Field
+
+
+          class NoteCreate(BaseModel):
+              title: str = Field(min_length=1, max_length=100)
+              content: str = Field(default="", max_length=2000)
+              done: bool = False
+
+
+          class NotePublic(NoteCreate):
+              id: int
+      - file: app/routers/__init__.py
+        lang: python
+        text: |
+          # The route files of the API.
+      - file: app/routers/notes.py
+        lang: python
+        text: |
+          from itertools import count
+
+          from fastapi import APIRouter, HTTPException, status
+
+          from ..models import NoteCreate, NotePublic
+
+          router = APIRouter(prefix="/notes", tags=["notes"])
+
+          # Still a fake database: a dict in memory, gone when the server restarts.
+          NOTES: dict[int, NotePublic] = {}
+          ids = count(1)
+
+
+          @router.post("", status_code=status.HTTP_201_CREATED)
+          def create_note(note: NoteCreate) -> NotePublic:
+              created = NotePublic(id=next(ids), **note.model_dump())
+              NOTES[created.id] = created
+              return created
+
+
+          @router.get("")
+          def list_notes() -> list[NotePublic]:
+              return list(NOTES.values())
+
+
+          @router.get("/{note_id}")
+          def read_note(note_id: int) -> NotePublic:
+              note = NOTES.get(note_id)
+              if note is None:
+                  raise HTTPException(status_code=404, detail="Note not found")
+              return note
+
+
+          @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+          def delete_note(note_id: int) -> None:
+              if NOTES.pop(note_id, None) is None:
+                  raise HTTPException(status_code=404, detail="Note not found")
+      - file: app/main.py
+        lang: python
+        text: |
+          from fastapi import FastAPI
+
+          from .routers import notes
+
+          app = FastAPI(title="Notes API")
+          app.include_router(notes.router)
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+    mistakes:
+      - problem:
+          en: "`POST /notes` answers 422 \"Field required\" from the docs page."
+          tr: "Doküman sayfasından `POST /notes` 422 \"Field required\" cevabı veriyor."
+        fix:
+          en: "The body must be valid JSON with a `title` field, for example `{\"title\": \"Buy milk\"}`. Check the quotes and the commas."
+          tr: "Body, `title` alanı olan geçerli bir JSON olmalı, örneğin `{\"title\": \"Buy milk\"}`. Tırnakları ve virgülleri kontrol et."
+      - problem:
+          en: "Calling `note.dict()` (an old Pydantic v1 method)."
+          tr: "`note.dict()` çağırmak (eski Pydantic v1 metodu)."
+        fix:
+          en: "Pydantic v2, which FastAPI uses now, calls it `note.model_dump()`."
+          tr: "FastAPI'nin artık kullandığı Pydantic v2'de adı `note.model_dump()`."
+      - problem:
+          en: "Calling `/notes/` with a trailing slash gives a redirect (307)."
+          tr: "`/notes/` diye sonuna eğik çizgi koyunca yönlendirme (307) geliyor."
+        fix:
+          en: "The route is `/notes`. Use the exact path; FastAPI redirects the other form, but some clients lose the body when they follow a redirect."
+          tr: "Route `/notes`. Tam yolu kullan; FastAPI diğer biçimi yönlendirir ama bazı istemciler yönlendirmeyi izlerken body'yi kaybeder."
+    quiz:
+      - q:
+          en: "Why does the client send a `NoteCreate` but get back a `NotePublic`?"
+          tr: "İstemci neden `NoteCreate` gönderiyor da `NotePublic` geri alıyor?"
+        options:
+          en:
+            - "Two models are faster than one"
+            - "The client must not choose the id; the server makes it and returns it"
+            - "FastAPI requires exactly two models"
+          tr:
+            - "İki model, bir modelden daha hızlı"
+            - "İstemci id'yi seçmemeli; onu sunucu üretir ve geri döndürür"
+            - "FastAPI tam olarak iki model ister"
+        answer: 1
+        why:
+          en: "Separate input and output models give you control over what comes in and what goes out. You will rely on this again for passwords."
+          tr: "Ayrı giriş ve çıkış modelleri, içeri ne girdiğini ve dışarı ne çıktığını kontrol etmeni sağlar. Şifrelerde bunu yine kullanacaksın."
+    sources:
+      - title: Request body
+        url: https://fastapi.tiangolo.com/tutorial/body/
+      - title: Response model - return type
+        url: https://fastapi.tiangolo.com/tutorial/response-model/
+      - title: Bigger applications (APIRouter)
+        url: https://fastapi.tiangolo.com/tutorial/bigger-applications/
+
+  - id: database
+    stage: data-api
+    title:
+      en: "Save notes in SQLite with SQLModel"
+      tr: "Notları SQLModel ile SQLite'a kaydetme"
+    minutes: 45
+    needs: [notes-memory]
+    why:
+      en: "Notes in memory disappear when the server restarts. A database keeps them on disk. SQLite is a database in a single file, so there is nothing to install, and SQLModel (made by the author of FastAPI, it is what the official tutorial uses) lets one class be both a table and a Pydantic model."
+      tr: "Bellekteki notlar sunucu yeniden başlayınca kaybolur. Veritabanı onları diskte saklar. SQLite tek dosyalık bir veritabanıdır, yani kurulacak bir şey yoktur; SQLModel (FastAPI'nin yazarı yaptı, resmi eğitim de onu kullanıyor) bir sınıfın hem tablo hem Pydantic modeli olmasını sağlar."
+    learn:
+      en: |
+        - What a database table is: rows and columns, one row per note, and a primary key (`id`) that identifies each row
+        - What a **session** is: one conversation with the database; you `add`, `commit` and `refresh`
+        - How a **dependency** (`Depends`) gives every endpoint its own session and closes it afterwards
+        - Why the table model `Note` is never used as a request body: the client could choose the `id`
+        - What `lifespan` is: code that runs once when the app starts
+      tr: |
+        - Veritabanı tablosunun ne olduğu: satırlar ve sütunlar, her not için bir satır ve her satırı belirleyen bir primary key (`id`)
+        - **Session**'ın ne olduğu: veritabanıyla tek bir konuşma; `add`, `commit` ve `refresh` yaparsın
+        - Bir **dependency**'nin (`Depends`) her endpoint'e kendi session'ını verip sonra kapattığı
+        - Tablo modeli `Note`'un neden request body olarak kullanılmadığı: istemci `id`'yi seçebilirdi
+        - `lifespan`'ın ne olduğu: uygulama başlarken bir kez çalışan kod
+    do:
+      en: |
+        1. Add SQLModel: `uv add sqlmodel`.
+        2. Replace `app/models.py` and `app/routers/notes.py`, create `app/db.py`, and replace `app/main.py`, as shown below.
+        3. Start `uv run fastapi dev`. A file `notes.db` appears in the project folder: that is your database.
+        4. In `/docs` create two notes. Stop the server, start it again and call `GET /notes`: the notes are still there.
+        5. Commit: `git add .` and `git commit -m "SQLite with SQLModel"`. The `.gitignore` you made earlier keeps `notes.db` out.
+      tr: |
+        1. SQLModel'i ekle: `uv add sqlmodel`.
+        2. Aşağıda gösterildiği gibi `app/models.py` ve `app/routers/notes.py` dosyalarını değiştir, `app/db.py` dosyasını oluştur ve `app/main.py`'yi değiştir.
+        3. `uv run fastapi dev` ile başlat. Proje klasöründe `notes.db` dosyası belirir: veritabanın bu.
+        4. `/docs` sayfasında iki not oluştur. Sunucuyu durdur, yeniden başlat ve `GET /notes` çağır: notlar duruyor.
+        5. Kaydet: `git add .` ve `git commit -m "SQLite with SQLModel"`. Daha önce yazdığın `.gitignore` `notes.db`'yi dışarıda tutar.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add sqlmodel
+      - file: app/models.py
+        lang: python
+        text: |
+          from sqlmodel import Field, SQLModel
+
+
+          class NoteBase(SQLModel):
+              title: str = Field(min_length=1, max_length=100)
+              content: str = Field(default="", max_length=2000)
+              done: bool = False
+
+
+          class Note(NoteBase, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+
+
+          class NoteCreate(NoteBase):
+              pass
+
+
+          class NotePublic(NoteBase):
+              id: int
+      - file: app/db.py
+        lang: python
+        text: |
+          from collections.abc import Iterator
+          from typing import Annotated
+
+          from fastapi import Depends
+          from sqlmodel import Session, SQLModel, create_engine
+
+          engine = create_engine("sqlite:///notes.db", connect_args={"check_same_thread": False})
+
+
+          def create_db_and_tables() -> None:
+              SQLModel.metadata.create_all(engine)
+
+
+          def get_session() -> Iterator[Session]:
+              with Session(engine) as session:
+                  yield session
+
+
+          SessionDep = Annotated[Session, Depends(get_session)]
+      - file: app/routers/notes.py
+        lang: python
+        text: |
+          from fastapi import APIRouter, HTTPException, status
+          from sqlmodel import select
+
+          from ..db import SessionDep
+          from ..models import Note, NoteCreate, NotePublic
+
+          router = APIRouter(prefix="/notes", tags=["notes"])
+
+
+          @router.post("", status_code=status.HTTP_201_CREATED)
+          def create_note(note: NoteCreate, session: SessionDep) -> NotePublic:
+              db_note = Note.model_validate(note)
+              session.add(db_note)
+              session.commit()
+              session.refresh(db_note)
+              return db_note
+
+
+          @router.get("")
+          def list_notes(session: SessionDep) -> list[NotePublic]:
+              return list(session.exec(select(Note)).all())
+
+
+          @router.get("/{note_id}")
+          def read_note(note_id: int, session: SessionDep) -> NotePublic:
+              note = session.get(Note, note_id)
+              if note is None:
+                  raise HTTPException(status_code=404, detail="Note not found")
+              return note
+
+
+          @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+          def delete_note(note_id: int, session: SessionDep) -> None:
+              note = session.get(Note, note_id)
+              if note is None:
+                  raise HTTPException(status_code=404, detail="Note not found")
+              session.delete(note)
+              session.commit()
+      - file: app/main.py
+        lang: python
+        text: |
+          from contextlib import asynccontextmanager
+
+          from fastapi import FastAPI
+
+          from .db import create_db_and_tables
+          from .routers import notes
+
+
+          @asynccontextmanager
+          async def lifespan(app: FastAPI):
+              create_db_and_tables()  # runs once, before the first request
+              yield
+
+
+          app = FastAPI(title="Notes API", lifespan=lifespan)
+          app.include_router(notes.router)
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+    mistakes:
+      - problem:
+          en: "\"SQLite objects created in a thread can only be used in that same thread\"."
+          tr: "\"SQLite objects created in a thread can only be used in that same thread\" hatası."
+        fix:
+          en: "Keep `connect_args={\"check_same_thread\": False}` in `create_engine`. FastAPI runs each request in a thread pool and every request gets its own session, so this is safe for SQLite."
+          tr: "`create_engine` içindeki `connect_args={\"check_same_thread\": False}` kalsın. FastAPI her isteği bir thread havuzunda çalıştırır ve her isteğin kendi session'ı vardır; SQLite için bu güvenlidir."
+      - problem:
+          en: "\"no such table: note\"."
+          tr: "\"no such table: note\" hatası."
+        fix:
+          en: "Tables are only created for models that were imported before `create_all` runs. The router imports the models, so check that `lifespan` is passed to `FastAPI(...)`."
+          tr: "Tablolar sadece `create_all` çalışmadan önce import edilmiş modeller için oluşturulur. Router modelleri import eder; o yüzden `lifespan`'ın `FastAPI(...)`'a verildiğini kontrol et."
+      - problem:
+          en: "Using the table class `Note` as the type of the request body."
+          tr: "Tablo sınıfı `Note`'u request body tipi olarak kullanmak."
+        fix:
+          en: "Use `NoteCreate` for input. Then the client cannot set the `id` or other columns you add later."
+          tr: "Girdi için `NoteCreate` kullan. Böylece istemci `id`'yi ya da sonradan ekleyeceğin diğer sütunları ayarlayamaz."
+    quiz:
+      - q:
+          en: "Why do the endpoints get their session from `Depends(get_session)` instead of creating one themselves?"
+          tr: "Endpoint'ler session'ı neden kendileri oluşturmak yerine `Depends(get_session)` ile alıyor?"
+        options:
+          en:
+            - "It makes SQLite faster"
+            - "FastAPI cannot create sessions inside endpoints"
+            - "Each request gets a fresh session that is closed afterwards, and tests can swap it"
+          tr:
+            - "SQLite'ı hızlandırır"
+            - "FastAPI endpoint içinde session oluşturamaz"
+            - "Her istek yeni bir session alır, o kapanır ve testlerde değiştirilebilir"
+        answer: 2
+        why:
+          en: "The `yield` in `get_session` opens and closes the session around every request, and the same hook lets tests use a different database."
+          tr: "`get_session` içindeki `yield` her isteğin etrafında session'ı açıp kapatır; aynı kanca testlerin başka bir veritabanı kullanmasına da izin verir."
+    sources:
+      - title: SQL databases (SQLModel) in the FastAPI tutorial
+        url: https://fastapi.tiangolo.com/tutorial/sql-databases/
+      - title: Lifespan events
+        url: https://fastapi.tiangolo.com/advanced/events/
+      - title: SQLite, about
+        url: https://www.sqlite.org/about.html
+
+  - id: update-filter
+    stage: data-api
+    title:
+      en: "Update, search and page through notes"
+      tr: "Notları güncelleme, arama ve sayfalama"
+    minutes: 40
+    needs: [database]
+    why:
+      en: "A notes app must let you tick a note as done without sending the whole note again, find notes by a word, and not load ten thousand notes at once. These are the three things almost every list endpoint needs."
+      tr: "Bir notlar uygulaması, notun tamamını tekrar göndermeden onu bitti diye işaretlemeye, bir kelimeyle not bulmaya ve on bin notu bir anda yüklememeye izin vermeli. Neredeyse her liste endpoint'inin ihtiyacı olan üç şey bunlar."
+    learn:
+      en: |
+        - PUT replaces a whole note, **PATCH** changes only the fields you send
+        - `model_dump(exclude_unset=True)` gives only the fields the client really sent
+        - Filtering in SQL with `.where(...)` and searching text with `contains`
+        - **Paging** with `offset` and `limit`, always with an `order_by`, and a maximum `limit` so nobody can ask for a million rows
+      tr: |
+        - PUT notun tamamını değiştirir, **PATCH** sadece gönderdiğin alanları değiştirir
+        - `model_dump(exclude_unset=True)` istemcinin gerçekten gönderdiği alanları verir
+        - SQL'de `.where(...)` ile süzme ve `contains` ile metin arama
+        - `offset` ve `limit` ile **sayfalama**; her zaman bir `order_by` ile ve kimse bir milyon satır isteyemesin diye en fazla `limit` ile
+    do:
+      en: |
+        1. Replace `app/models.py` (it gets a `NoteUpdate` model) and `app/routers/notes.py` with the code below.
+        2. In `/docs` create four or five notes with different titles.
+        3. Try `GET /notes?done=false`, `GET /notes?q=milk` and `GET /notes?limit=2&offset=2`.
+        4. Try `PATCH /notes/1` with the body `{"done": true}`. Only `done` changes; the title stays.
+        5. Try `GET /notes?limit=1000`. It answers 422 because the limit is capped at 100.
+        6. Commit: `git add .` and `git commit -m "Update, search and paging"`.
+      tr: |
+        1. `app/models.py` (artık bir `NoteUpdate` modeli var) ve `app/routers/notes.py` dosyalarını aşağıdaki kodla değiştir.
+        2. `/docs` sayfasında farklı başlıklarla dört beş not oluştur.
+        3. `GET /notes?done=false`, `GET /notes?q=milk` ve `GET /notes?limit=2&offset=2` dene.
+        4. `PATCH /notes/1` isteğini `{"done": true}` body'siyle dene. Sadece `done` değişir; başlık aynı kalır.
+        5. `GET /notes?limit=1000` dene. Limit 100 ile sınırlı olduğu için 422 döner.
+        6. Kaydet: `git add .` ve `git commit -m "Update, search and paging"`.
+    code:
+      - file: app/models.py
+        lang: python
+        text: |
+          from sqlmodel import Field, SQLModel
+
+
+          class NoteBase(SQLModel):
+              title: str = Field(min_length=1, max_length=100)
+              content: str = Field(default="", max_length=2000)
+              done: bool = False
+
+
+          class Note(NoteBase, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+
+
+          class NoteCreate(NoteBase):
+              pass
+
+
+          class NoteUpdate(SQLModel):
+              title: str | None = Field(default=None, min_length=1, max_length=100)
+              content: str | None = Field(default=None, max_length=2000)
+              done: bool | None = None
+
+
+          class NotePublic(NoteBase):
+              id: int
+      - file: app/routers/notes.py
+        lang: python
+        text: |
+          from typing import Annotated
+
+          from fastapi import APIRouter, HTTPException, Query, status
+          from sqlmodel import col, select
+
+          from ..db import SessionDep
+          from ..models import Note, NoteCreate, NotePublic, NoteUpdate
+
+          router = APIRouter(prefix="/notes", tags=["notes"])
+
+
+          def get_note_or_404(session: SessionDep, note_id: int) -> Note:
+              note = session.get(Note, note_id)
+              if note is None:
+                  raise HTTPException(status_code=404, detail="Note not found")
+              return note
+
+
+          @router.post("", status_code=status.HTTP_201_CREATED)
+          def create_note(note: NoteCreate, session: SessionDep) -> NotePublic:
+              db_note = Note.model_validate(note)
+              session.add(db_note)
+              session.commit()
+              session.refresh(db_note)
+              return db_note
+
+
+          @router.get("")
+          def list_notes(
+              session: SessionDep,
+              done: bool | None = None,
+              q: Annotated[str | None, Query(max_length=50)] = None,
+              offset: Annotated[int, Query(ge=0)] = 0,
+              limit: Annotated[int, Query(ge=1, le=100)] = 20,
+          ) -> list[NotePublic]:
+              statement = select(Note)
+              if done is not None:
+                  statement = statement.where(Note.done == done)
+              if q:
+                  statement = statement.where(col(Note.title).contains(q))
+              statement = statement.order_by(col(Note.id)).offset(offset).limit(limit)
+              return list(session.exec(statement).all())
+
+
+          @router.get("/{note_id}")
+          def read_note(note_id: int, session: SessionDep) -> NotePublic:
+              return get_note_or_404(session, note_id)
+
+
+          @router.patch("/{note_id}")
+          def update_note(note_id: int, changes: NoteUpdate, session: SessionDep) -> NotePublic:
+              note = get_note_or_404(session, note_id)
+              note.sqlmodel_update(changes.model_dump(exclude_unset=True, exclude_none=True))
+              session.add(note)
+              session.commit()
+              session.refresh(note)
+              return note
+
+
+          @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+          def delete_note(note_id: int, session: SessionDep) -> None:
+              note = get_note_or_404(session, note_id)
+              session.delete(note)
+              session.commit()
+    mistakes:
+      - problem:
+          en: "A PATCH wipes fields that the client did not send."
+          tr: "PATCH, istemcinin göndermediği alanları da siliyor."
+        fix:
+          en: "Use `changes.model_dump(exclude_unset=True)`. Without `exclude_unset`, every missing field comes back as `None` and overwrites the stored value."
+          tr: "`changes.model_dump(exclude_unset=True)` kullan. `exclude_unset` olmazsa eksik her alan `None` olarak gelir ve kayıtlı değerin üstüne yazar."
+      - problem:
+          en: "Pages overlap or skip notes."
+          tr: "Sayfalarda notlar tekrar ediyor ya da atlanıyor."
+        fix:
+          en: "SQL does not promise any order unless you ask. Always add `order_by` when you use `offset` and `limit`."
+          tr: "SQL sen istemedikçe hiçbir sıra garanti etmez. `offset` ve `limit` kullanırken her zaman `order_by` ekle."
+    quiz:
+      - q:
+          en: "A client sends `PATCH /notes/1` with `{\"done\": true}`. What should happen to the title?"
+          tr: "İstemci `PATCH /notes/1` isteğini `{\"done\": true}` ile gönderiyor. Başlığa ne olmalı?"
+        options:
+          en:
+            - "It becomes empty"
+            - "It stays as it was"
+            - "The request fails with 422"
+          tr:
+            - "Boş olur"
+            - "Olduğu gibi kalır"
+            - "İstek 422 ile başarısız olur"
+        answer: 1
+        why:
+          en: "PATCH is a partial update: fields that are not sent are left alone."
+          tr: "PATCH kısmi bir güncellemedir: gönderilmeyen alanlara dokunulmaz."
+    sources:
+      - title: Body updates (PUT and PATCH)
+        url: https://fastapi.tiangolo.com/tutorial/body-updates/
+      - title: SQLModel with FastAPI, read and update
+        url: https://sqlmodel.tiangolo.com/tutorial/fastapi/update/
+      - title: SQLModel, limit and offset
+        url: https://sqlmodel.tiangolo.com/tutorial/limit-and-offset/
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the API with pytest and TestClient"
+      tr: "API'yi pytest ve TestClient ile test etme"
+    minutes: 40
+    needs: [update-filter]
+    why:
+      en: "Clicking through /docs after every change does not scale. A test calls your API in code and checks the answer in less than a second. When you change something later, the tests tell you at once if you broke something else."
+      tr: "Her değişiklikten sonra /docs'ta tıklamak ölçeklenmez. Bir test API'ni kodla çağırır ve cevabı bir saniyeden kısa sürede kontrol eder. Sonra bir şey değiştirdiğinde, başka bir şeyi bozup bozmadığını testler hemen söyler."
+    learn:
+      en: |
+        - `pytest` runs every function named `test_...` in the `tests` folder; `assert` is the check
+        - `TestClient` calls your app inside the same process, without a running server
+        - A **fixture** prepares something for tests (here a clean database), and `dependency_overrides` swaps the real session for a test one
+        - Why tests use a separate in-memory database: they must never touch real data
+      tr: |
+        - `pytest`, `tests` klasöründeki `test_...` adlı her fonksiyonu çalıştırır; `assert` kontrolün kendisidir
+        - `TestClient` uygulamanı çalışan bir sunucu olmadan aynı process içinde çağırır
+        - **Fixture** testler için bir şey hazırlar (burada temiz bir veritabanı), `dependency_overrides` ise gerçek session'ı test session'ıyla değiştirir
+        - Testlerin neden ayrı, bellekte duran bir veritabanı kullandığı: gerçek veriye asla dokunmamalılar
+    do:
+      en: |
+        1. Add the test tools as development packages: the first command below. (`httpx2` is what `TestClient` uses to make requests.)
+        2. Open `pyproject.toml` and add the `[tool.pytest.ini_options]` lines at the bottom. They let tests import your `app` package.
+        3. Create the folder `tests` with `conftest.py` and `test_notes.py`, as shown. `conftest.py` is a special file: its fixtures are available to every test file.
+        4. Run the tests with `uv run pytest`. You should see `7 passed`.
+        5. Break something on purpose, for example change `le=100` to `le=10` in `notes.py`, run the tests and read the failure. Then undo it.
+        6. Commit: `git add .` and `git commit -m "Tests"`.
+      tr: |
+        1. Test araçlarını geliştirme paketi olarak ekle: aşağıdaki ilk komut. (`httpx2`, `TestClient`'ın istek yapmak için kullandığı pakettir.)
+        2. `pyproject.toml`'u aç ve en alta `[tool.pytest.ini_options]` satırlarını ekle. Testlerin `app` paketini import etmesini sağlarlar.
+        3. Gösterildiği gibi `tests` klasörünü oluştur; içine `conftest.py` ve `test_notes.py` koy. `conftest.py` özel bir dosyadır: fixture'ları her test dosyasında kullanılabilir.
+        4. Testleri `uv run pytest` ile çalıştır. `7 passed` görmelisin.
+        5. Bilerek bir şeyi boz, örneğin `notes.py` içinde `le=100`'ü `le=10` yap, testleri çalıştır ve hatayı oku. Sonra geri al.
+        6. Kaydet: `git add .` ve `git commit -m "Tests"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add --dev pytest httpx2
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          # add this at the bottom of the file
+          [tool.pytest.ini_options]
+          pythonpath = ["."]
+          testpaths = ["tests"]
+      - file: tests/conftest.py
+        lang: python
+        text: |
+          from collections.abc import Iterator
+
+          import pytest
+          from fastapi.testclient import TestClient
+          from sqlmodel import Session, SQLModel, create_engine
+          from sqlmodel.pool import StaticPool
+
+          from app.db import get_session
+          from app.main import app
+
+
+          @pytest.fixture(name="session")
+          def session_fixture() -> Iterator[Session]:
+              # A fresh database in memory for every test: fast, and nothing is left behind.
+              engine = create_engine(
+                  "sqlite://",
+                  connect_args={"check_same_thread": False},
+                  poolclass=StaticPool,
+              )
+              SQLModel.metadata.create_all(engine)
+              with Session(engine) as session:
+                  yield session
+
+
+          @pytest.fixture(name="client")
+          def client_fixture(session: Session) -> Iterator[TestClient]:
+              app.dependency_overrides[get_session] = lambda: session
+              yield TestClient(app)
+              app.dependency_overrides.clear()
+      - file: tests/test_notes.py
+        lang: python
+        text: |
+          from fastapi.testclient import TestClient
+
+
+          def make_note(client: TestClient, **fields) -> dict:
+              body = {"title": "Buy milk", **fields}
+              response = client.post("/notes", json=body)
+              assert response.status_code == 201
+              return response.json()
+
+
+          def test_create_and_read_note(client: TestClient):
+              created = make_note(client, content="2 liters")
+              assert created["id"] == 1
+              assert created["done"] is False
+
+              response = client.get(f"/notes/{created['id']}")
+              assert response.status_code == 200
+              assert response.json()["content"] == "2 liters"
+
+
+          def test_empty_title_is_rejected(client: TestClient):
+              response = client.post("/notes", json={"title": ""})
+              assert response.status_code == 422
+
+
+          def test_missing_note_is_404(client: TestClient):
+              assert client.get("/notes/999").status_code == 404
+
+
+          def test_filter_and_search(client: TestClient):
+              make_note(client, title="Buy milk", done=True)
+              make_note(client, title="Learn FastAPI")
+
+              assert len(client.get("/notes").json()) == 2
+              assert len(client.get("/notes", params={"done": True}).json()) == 1
+              found = client.get("/notes", params={"q": "fast"}).json()
+              assert [n["title"] for n in found] == ["Learn FastAPI"]
+
+
+          def test_limit_is_capped(client: TestClient):
+              assert client.get("/notes", params={"limit": 1000}).status_code == 422
+
+
+          def test_patch_changes_only_what_is_sent(client: TestClient):
+              note = make_note(client, content="2 liters")
+              response = client.patch(f"/notes/{note['id']}", json={"done": True})
+              assert response.status_code == 200
+              assert response.json()["done"] is True
+              assert response.json()["content"] == "2 liters"
+
+
+          def test_delete_note(client: TestClient):
+              note = make_note(client)
+              assert client.delete(f"/notes/{note['id']}").status_code == 204
+              assert client.get(f"/notes/{note['id']}").status_code == 404
+      - file: terminal
+        lang: sh
+        text: |
+          uv run pytest
+    mistakes:
+      - problem:
+          en: "`ModuleNotFoundError: No module named 'app'` when running pytest."
+          tr: "pytest çalıştırırken `ModuleNotFoundError: No module named 'app'`."
+        fix:
+          en: "Add `pythonpath = [\".\"]` under `[tool.pytest.ini_options]` in `pyproject.toml` and run `uv run pytest` from the project folder."
+          tr: "`pyproject.toml` içinde `[tool.pytest.ini_options]` altına `pythonpath = [\".\"]` ekle ve `uv run pytest`'i proje klasöründen çalıştır."
+      - problem:
+          en: "Tests leave notes behind in `notes.db`, or one test sees the notes of another."
+          tr: "Testler `notes.db` içinde not bırakıyor ya da bir test başka bir testin notlarını görüyor."
+        fix:
+          en: "The session must be overridden for every test, with a new in-memory database each time, as `conftest.py` does. Never point tests at the real file."
+          tr: "Session her test için değiştirilmeli ve her seferinde yeni bir bellek veritabanı kullanılmalı, `conftest.py`'nin yaptığı gibi. Testleri asla gerçek dosyaya yöneltme."
+      - problem:
+          en: "A warning says `httpx` is deprecated for the TestClient."
+          tr: "Bir uyarı, TestClient için `httpx`'in deprecated olduğunu söylüyor."
+        fix:
+          en: "Install `httpx2` (`uv add --dev httpx2`). The tutorial still says `httpx`, which works, but Starlette now prefers `httpx2`."
+          tr: "`httpx2`'yi kur (`uv add --dev httpx2`). Eğitim hâlâ `httpx` diyor ve o da çalışıyor ama Starlette artık `httpx2`'yi tercih ediyor."
+    quiz:
+      - q:
+          en: "Why do the tests use a database in memory?"
+          tr: "Testler neden bellekte bir veritabanı kullanıyor?"
+        options:
+          en:
+            - "SQLite on disk does not work with pytest"
+            - "FastAPI forbids files in tests"
+            - "It is fast and cannot touch your real notes"
+          tr:
+            - "Diskteki SQLite pytest ile çalışmaz"
+            - "FastAPI testlerde dosyayı yasaklar"
+            - "Hızlıdır ve gerçek notlarına dokunamaz"
+        answer: 2
+        why:
+          en: "Each test starts with an empty database that disappears afterwards, so tests cannot affect each other or your data."
+          tr: "Her test boş bir veritabanıyla başlar ve sonunda o yok olur; böylece testler birbirini ya da verini etkileyemez."
+    sources:
+      - title: Testing in FastAPI
+        url: https://fastapi.tiangolo.com/tutorial/testing/
+      - title: Testing dependencies with overrides
+        url: https://fastapi.tiangolo.com/advanced/testing-dependencies/
+      - title: SQLModel, testing with FastAPI
+        url: https://sqlmodel.tiangolo.com/tutorial/fastapi/tests/
+
+  - id: users-hash
+    stage: security
+    title:
+      en: "Users and password hashing"
+      tr: "Kullanıcılar ve şifre hash'leme"
+    minutes: 40
+    needs: [tests]
+    why:
+      en: "Right now anyone can read and delete every note. To make notes private you first need users. A password must never be stored as it is: if the database leaks, everyone's password leaks. You store a hash instead, a one-way scramble that cannot be turned back."
+      tr: "Şu an herkes bütün notları okuyabilir ve silebilir. Notları özel yapmak için önce kullanıcılar lazım. Şifre asla olduğu gibi saklanmaz: veritabanı sızarsa herkesin şifresi sızar. Onun yerine hash saklarsın; geri çevrilemeyen tek yönlü bir karıştırma."
+    learn:
+      en: |
+        - What a **hash** is, and why a password hash must be slow on purpose (Argon2): so that guessing millions of passwords takes too long
+        - Why you use a tested library (`pwdlib`) and never write your own
+        - Why `UserCreate` (has a password) and `UserPublic` (has none) are different models
+        - Why email addresses are saved in lower case and why the same email gets 409 (conflict)
+      tr: |
+        - **Hash**'in ne olduğu ve şifre hash'inin neden bilerek yavaş olması gerektiği (Argon2): milyonlarca şifre denemek çok uzun sürsün diye
+        - Neden test edilmiş bir kütüphane (`pwdlib`) kullandığın ve kendi hash kodunu asla yazmadığın
+        - `UserCreate` (şifre var) ve `UserPublic`'in (şifre yok) neden farklı modeller olduğu
+        - E-postaların neden küçük harfle kaydedildiği ve aynı e-postanın neden 409 (conflict) aldığı
+    do:
+      en: |
+        1. Add the hashing library: `uv add "pwdlib[argon2]"`.
+        2. Replace `app/models.py` (it gets the `User` table and the user models) and `app/main.py`. Create `app/security.py` and `app/routers/auth.py`, all as shown.
+        3. Start the server and open `/docs`. Use `POST /auth/register` with `{"email": "ada@example.com", "password": "correct horse battery"}`. The answer has an `id` and the email, and no password.
+        4. Register the same email again: 409. Try a password with 5 characters: 422.
+        5. Add the new test file `tests/test_auth.py` and run `uv run pytest`. You should see `11 passed`.
+        6. Commit: `git add .` and `git commit -m "Users and password hashing"`.
+      tr: |
+        1. Hash kütüphanesini ekle: `uv add "pwdlib[argon2]"`.
+        2. `app/models.py` (artık `User` tablosu ve kullanıcı modelleri var) ve `app/main.py` dosyalarını değiştir. `app/security.py` ve `app/routers/auth.py` dosyalarını oluştur, hepsi gösterildiği gibi.
+        3. Sunucuyu başlat ve `/docs`'u aç. `POST /auth/register` isteğini `{"email": "ada@example.com", "password": "correct horse battery"}` ile kullan. Cevapta `id` ve e-posta var, şifre yok.
+        4. Aynı e-postayı tekrar kaydet: 409. 5 karakterlik bir şifre dene: 422.
+        5. Yeni test dosyası `tests/test_auth.py`'yi ekle ve `uv run pytest` çalıştır. `11 passed` görmelisin.
+        6. Kaydet: `git add .` ve `git commit -m "Users and password hashing"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add "pwdlib[argon2]"
+      - file: app/models.py
+        lang: python
+        text: |
+          from pydantic import EmailStr
+          from sqlmodel import Field, SQLModel
+
+
+          class NoteBase(SQLModel):
+              title: str = Field(min_length=1, max_length=100)
+              content: str = Field(default="", max_length=2000)
+              done: bool = False
+
+
+          class Note(NoteBase, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+
+
+          class NoteCreate(NoteBase):
+              pass
+
+
+          class NoteUpdate(SQLModel):
+              title: str | None = Field(default=None, min_length=1, max_length=100)
+              content: str | None = Field(default=None, max_length=2000)
+              done: bool | None = None
+
+
+          class NotePublic(NoteBase):
+              id: int
+
+
+          class User(SQLModel, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+              email: str = Field(unique=True, index=True, max_length=254)
+              hashed_password: str
+
+
+          class UserCreate(SQLModel):
+              email: EmailStr
+              password: str = Field(min_length=8, max_length=128)
+
+
+          class UserPublic(SQLModel):
+              id: int
+              email: str
+      - file: app/security.py
+        lang: python
+        text: |
+          from pwdlib import PasswordHash
+
+          # recommended() uses Argon2, a slow hash made for passwords.
+          password_hash = PasswordHash.recommended()
+
+
+          def hash_password(password: str) -> str:
+              return password_hash.hash(password)
+
+
+          def verify_password(password: str, hashed: str) -> bool:
+              return password_hash.verify(password, hashed)
+      - file: app/routers/auth.py
+        lang: python
+        text: |
+          from fastapi import APIRouter, HTTPException, status
+          from sqlmodel import select
+
+          from ..db import SessionDep
+          from ..models import User, UserCreate, UserPublic
+          from ..security import hash_password
+
+          router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+          @router.post("/register", status_code=status.HTTP_201_CREATED)
+          def register(data: UserCreate, session: SessionDep) -> UserPublic:
+              email = data.email.lower()
+              if session.exec(select(User).where(User.email == email)).first():
+                  raise HTTPException(status_code=409, detail="Email already registered")
+              user = User(email=email, hashed_password=hash_password(data.password))
+              session.add(user)
+              session.commit()
+              session.refresh(user)
+              return user
+      - file: app/main.py
+        lang: python
+        text: |
+          from contextlib import asynccontextmanager
+
+          from fastapi import FastAPI
+
+          from .db import create_db_and_tables
+          from .routers import auth, notes
+
+
+          @asynccontextmanager
+          async def lifespan(app: FastAPI):
+              create_db_and_tables()  # runs once, before the first request
+              yield
+
+
+          app = FastAPI(title="Notes API", lifespan=lifespan)
+          app.include_router(auth.router)
+          app.include_router(notes.router)
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+      - file: tests/test_auth.py
+        lang: python
+        text: |
+          from fastapi.testclient import TestClient
+          from sqlmodel import Session, select
+
+          from app.models import User
+
+          USER = {"email": "Ada@Example.com", "password": "correct horse battery"}
+
+
+          def test_register_hides_the_password(client: TestClient):
+              response = client.post("/auth/register", json=USER)
+              assert response.status_code == 201
+              assert response.json() == {"id": 1, "email": "ada@example.com"}
+
+
+          def test_password_is_stored_as_a_hash(client: TestClient, session: Session):
+              client.post("/auth/register", json=USER)
+              user = session.exec(select(User)).one()
+              assert user.hashed_password != USER["password"]
+              assert user.hashed_password.startswith("$argon2")
+
+
+          def test_same_email_twice_is_409(client: TestClient):
+              client.post("/auth/register", json=USER)
+              again = client.post("/auth/register", json={**USER, "email": "ada@example.com"})
+              assert again.status_code == 409
+
+
+          def test_short_password_is_422(client: TestClient):
+              response = client.post("/auth/register", json={**USER, "password": "short"})
+              assert response.status_code == 422
+    mistakes:
+      - problem:
+          en: "Saving the password as it is, or hashing it with a fast hash such as SHA-256."
+          tr: "Şifreyi olduğu gibi kaydetmek ya da SHA-256 gibi hızlı bir hash ile hash'lemek."
+        fix:
+          en: "Fast hashes can be guessed billions of times per second. Use a password hash from a library: `PasswordHash.recommended()` gives Argon2."
+          tr: "Hızlı hash'ler saniyede milyarlarca kez denenebilir. Kütüphaneden bir şifre hash'i kullan: `PasswordHash.recommended()` Argon2 verir."
+      - problem:
+          en: "Returning the `User` table object, so the hash goes out in the response."
+          tr: "`User` tablo nesnesini döndürüp hash'in cevapla birlikte dışarı gitmesi."
+        fix:
+          en: "Always declare the output model: `-> UserPublic`. FastAPI then sends only `id` and `email`."
+          tr: "Çıktı modelini her zaman belirt: `-> UserPublic`. FastAPI o zaman sadece `id` ve `email` gönderir."
+      - problem:
+          en: "`Ada@Example.com` and `ada@example.com` become two accounts."
+          tr: "`Ada@Example.com` ve `ada@example.com` iki ayrı hesap oluyor."
+        fix:
+          en: "Lower-case the email before you save and before you look it up, as `register` does."
+          tr: "E-postayı kaydetmeden önce ve ararken küçük harfe çevir, `register`'ın yaptığı gibi."
+    quiz:
+      - q:
+          en: "Why is a password hash made slow on purpose?"
+          tr: "Şifre hash'i neden bilerek yavaş yapılır?"
+        options:
+          en:
+            - "To save memory on the server"
+            - "So an attacker with a leaked database needs far too long to guess passwords"
+            - "To make login pages look busy"
+          tr:
+            - "Sunucuda bellek tasarrufu için"
+            - "Veritabanını ele geçiren saldırganın şifreleri tahmin etmesi çok uzun sürsün diye"
+            - "Giriş sayfaları meşgul görünsün diye"
+        answer: 1
+        why:
+          en: "One login costs you a few milliseconds, but a guesser who must try billions of passwords pays that price every time."
+          tr: "Tek bir giriş sana birkaç milisaniyeye mal olur ama milyarlarca şifre deneyen biri bu bedeli her denemede öder."
+    sources:
+      - title: OAuth2 with password hashing and JWT (pwdlib)
+        url: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+      - title: OWASP password storage cheat sheet
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+
+  - id: login-token
+    stage: security
+    title:
+      en: "Settings, login and tokens"
+      tr: "Ayarlar, giriş ve token'lar"
+    minutes: 55
+    needs: [users-hash]
+    why:
+      en: "After the login the user must not send the password with every request. Instead the server gives a signed token, and the user sends the token. Signing needs a secret key, and a secret must never live in your code or in Git, so you also learn to read settings from the environment."
+      tr: "Girişten sonra kullanıcı her istekte şifreyi göndermemeli. Bunun yerine sunucu imzalı bir token verir ve kullanıcı token'ı gönderir. İmzalamak için gizli bir anahtar gerekir ve gizli anahtar asla kodda ya da Git'te durmamalı; o yüzden ayarları ortam değişkenlerinden okumayı da öğrenirsin."
+    learn:
+      en: |
+        - What a **JWT** is: a small signed text with the user id and an expiry time. The server can check the signature but nobody can forge it without the secret key
+        - How `OAuth2PasswordBearer` makes the **Authorize** button appear in `/docs` and reads the `Authorization: Bearer ...` header
+        - What an **environment variable** is, and how `pydantic-settings` reads them (and a `.env` file) with type checks
+        - Why a wrong email and a wrong password get the same answer, and why the code hashes a dummy password for an unknown email
+        - 401 means "I do not know who you are"
+      tr: |
+        - **JWT**'nin ne olduğu: kullanıcı id'sini ve bitiş zamanını taşıyan küçük imzalı bir metin. Sunucu imzayı kontrol edebilir ama gizli anahtar olmadan kimse sahtesini üretemez
+        - `OAuth2PasswordBearer`'ın `/docs`'ta **Authorize** düğmesini nasıl çıkardığı ve `Authorization: Bearer ...` header'ını nasıl okuduğu
+        - **Ortam değişkeni**nin ne olduğu ve `pydantic-settings`'in bunları (ve bir `.env` dosyasını) tip kontrolüyle nasıl okuduğu
+        - Yanlış e-posta ile yanlış şifrenin neden aynı cevabı aldığı ve bilinmeyen e-posta için kodun neden sahte bir şifreyi hash'lediği
+        - 401 "kim olduğunu bilmiyorum" demektir
+    do:
+      en: |
+        1. Add the token library: `uv add pyjwt`.
+        2. Create `app/settings.py`. Replace `app/db.py`, `app/models.py` (it gets a `Token` model), `app/security.py` and `app/routers/auth.py`, as shown.
+        3. Make a secret key with the second command below, copy the long text it prints, and create a file `.env` in the project folder with one line: `SECRET_KEY=` followed by that text. The `.gitignore` you wrote in the first steps keeps `.env` out of Git. Never share this value.
+        4. Replace `tests/conftest.py` (it sets a test secret before the app loads) and add `tests/test_login.py`. Run `uv run pytest`. You should see `16 passed`.
+        5. Start the server. In `/docs` register a user (or reuse the one from the last step), then click **Authorize** at the top right and enter the email as *username* and the password. Then call `GET /auth/me`: it shows your user.
+        6. Stop the server, remove the `.env` file for a moment and start again: the app refuses to start and says `secret_key` is required. Put the file back. That is the point: no secret, no start.
+        7. Commit: `git add .` and `git commit -m "Login with tokens"`.
+      tr: |
+        1. Token kütüphanesini ekle: `uv add pyjwt`.
+        2. `app/settings.py` dosyasını oluştur. `app/db.py`, `app/models.py` (artık bir `Token` modeli var), `app/security.py` ve `app/routers/auth.py` dosyalarını gösterildiği gibi değiştir.
+        3. Aşağıdaki ikinci komutla bir gizli anahtar üret, yazdığı uzun metni kopyala ve proje klasöründe tek satırlık bir `.env` dosyası oluştur: `SECRET_KEY=` ve hemen ardından o metin. İlk adımlarda yazdığın `.gitignore` `.env`'i Git'in dışında tutar. Bu değeri kimseyle paylaşma.
+        4. `tests/conftest.py` dosyasını değiştir (uygulama yüklenmeden önce test için bir gizli anahtar ayarlar) ve `tests/test_login.py` dosyasını ekle. `uv run pytest` çalıştır. `16 passed` görmelisin.
+        5. Sunucuyu başlat. `/docs`'ta bir kullanıcı kaydet (ya da önceki adımdakini kullan), sonra sağ üstteki **Authorize**'a tıkla ve *username* olarak e-postayı, şifreyi gir. Sonra `GET /auth/me` çağır: kullanıcını gösterir.
+        6. Sunucuyu durdur, `.env` dosyasını bir an kaldır ve tekrar başlat: uygulama başlamayı reddeder ve `secret_key` gerekli der. Dosyayı geri koy. Mesele bu: gizli anahtar yoksa başlamaz.
+        7. Kaydet: `git add .` ve `git commit -m "Login with tokens"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add pyjwt
+      - file: terminal
+        lang: sh
+        text: |
+          uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
+      - file: app/settings.py
+        lang: python
+        text: |
+          from functools import lru_cache
+
+          from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+          class Settings(BaseSettings):
+              model_config = SettingsConfigDict(env_file=".env")
+
+              secret_key: str  # no default on purpose: the app refuses to start without it
+              database_url: str = "sqlite:///notes.db"
+              access_token_minutes: int = 60
+              cors_origins: list[str] = []
+
+
+          @lru_cache
+          def get_settings() -> Settings:
+              return Settings()
+      - file: app/db.py
+        lang: python
+        text: |
+          from collections.abc import Iterator
+          from typing import Annotated
+
+          from fastapi import Depends
+          from sqlmodel import Session, SQLModel, create_engine
+
+          from .settings import get_settings
+
+          database_url = get_settings().database_url
+          # check_same_thread is a SQLite-only option.
+          connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+          engine = create_engine(database_url, connect_args=connect_args)
+
+
+          def create_db_and_tables() -> None:
+              SQLModel.metadata.create_all(engine)
+
+
+          def get_session() -> Iterator[Session]:
+              with Session(engine) as session:
+                  yield session
+
+
+          SessionDep = Annotated[Session, Depends(get_session)]
+      - file: app/models.py
+        lang: python
+        text: |
+          from pydantic import EmailStr
+          from sqlmodel import Field, SQLModel
+
+
+          class NoteBase(SQLModel):
+              title: str = Field(min_length=1, max_length=100)
+              content: str = Field(default="", max_length=2000)
+              done: bool = False
+
+
+          class Note(NoteBase, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+
+
+          class NoteCreate(NoteBase):
+              pass
+
+
+          class NoteUpdate(SQLModel):
+              title: str | None = Field(default=None, min_length=1, max_length=100)
+              content: str | None = Field(default=None, max_length=2000)
+              done: bool | None = None
+
+
+          class NotePublic(NoteBase):
+              id: int
+
+
+          class User(SQLModel, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+              email: str = Field(unique=True, index=True, max_length=254)
+              hashed_password: str
+
+
+          class UserCreate(SQLModel):
+              email: EmailStr
+              password: str = Field(min_length=8, max_length=128)
+
+
+          class UserPublic(SQLModel):
+              id: int
+              email: str
+
+
+          class Token(SQLModel):
+              access_token: str
+              token_type: str = "bearer"
+      - file: app/security.py
+        lang: python
+        text: |
+          from datetime import datetime, timedelta, timezone
+          from typing import Annotated
+
+          import jwt
+          from fastapi import Depends, HTTPException, status
+          from fastapi.security import OAuth2PasswordBearer
+          from jwt.exceptions import InvalidTokenError
+          from pwdlib import PasswordHash
+
+          from .db import SessionDep
+          from .models import User
+          from .settings import get_settings
+
+          # recommended() uses Argon2, a slow hash made for passwords.
+          password_hash = PasswordHash.recommended()
+          # Used to spend the same time when the email is unknown (see the login route).
+          DUMMY_HASH = password_hash.hash("not-a-real-password")
+
+          ALGORITHM = "HS256"
+          oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+
+          def hash_password(password: str) -> str:
+              return password_hash.hash(password)
+
+
+          def verify_password(password: str, hashed: str) -> bool:
+              return password_hash.verify(password, hashed)
+
+
+          def create_access_token(user_id: int) -> str:
+              settings = get_settings()
+              expires = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_minutes)
+              claims = {"sub": str(user_id), "exp": expires}  # "sub" must be a string
+              return jwt.encode(claims, settings.secret_key, algorithm=ALGORITHM)
+
+
+          def get_current_user(
+              token: Annotated[str, Depends(oauth2_scheme)], session: SessionDep
+          ) -> User:
+              unauthorized = HTTPException(
+                  status_code=status.HTTP_401_UNAUTHORIZED,
+                  detail="Could not validate credentials",
+                  headers={"WWW-Authenticate": "Bearer"},
+              )
+              try:
+                  payload = jwt.decode(token, get_settings().secret_key, algorithms=[ALGORITHM])
+                  user_id = int(payload["sub"])
+              except (InvalidTokenError, KeyError, ValueError):
+                  raise unauthorized
+              user = session.get(User, user_id)
+              if user is None:
+                  raise unauthorized
+              return user
+
+
+          CurrentUser = Annotated[User, Depends(get_current_user)]
+      - file: app/routers/auth.py
+        lang: python
+        text: |
+          from typing import Annotated
+
+          from fastapi import APIRouter, Depends, HTTPException, status
+          from fastapi.security import OAuth2PasswordRequestForm
+          from sqlmodel import select
+
+          from ..db import SessionDep
+          from ..models import Token, User, UserCreate, UserPublic
+          from ..security import (
+              DUMMY_HASH,
+              CurrentUser,
+              create_access_token,
+              hash_password,
+              verify_password,
+          )
+
+          router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+          @router.post("/register", status_code=status.HTTP_201_CREATED)
+          def register(data: UserCreate, session: SessionDep) -> UserPublic:
+              email = data.email.lower()
+              if session.exec(select(User).where(User.email == email)).first():
+                  raise HTTPException(status_code=409, detail="Email already registered")
+              user = User(email=email, hashed_password=hash_password(data.password))
+              session.add(user)
+              session.commit()
+              session.refresh(user)
+              return user
+
+
+          @router.post("/token")
+          def login(
+              form: Annotated[OAuth2PasswordRequestForm, Depends()], session: SessionDep
+          ) -> Token:
+              # The form field is called "username" by the OAuth2 standard; we put the email in it.
+              user = session.exec(select(User).where(User.email == form.username.lower())).first()
+              if user is None:
+                  verify_password(form.password, DUMMY_HASH)  # same time as a wrong password
+                  valid = False
+              else:
+                  valid = verify_password(form.password, user.hashed_password)
+              if user is None or not valid:
+                  raise HTTPException(
+                      status_code=status.HTTP_401_UNAUTHORIZED,
+                      detail="Incorrect email or password",
+                      headers={"WWW-Authenticate": "Bearer"},
+                  )
+              assert user.id is not None
+              return Token(access_token=create_access_token(user.id))
+
+
+          @router.get("/me")
+          def me(user: CurrentUser) -> UserPublic:
+              return user
+      - file: tests/conftest.py
+        lang: python
+        text: |
+          import os
+          from collections.abc import Iterator
+
+          # Set the settings before the app is imported, so tests never need a real .env file.
+          os.environ["SECRET_KEY"] = "test-secret-key-only-for-tests-0123456789"
+          os.environ["DATABASE_URL"] = "sqlite://"
+
+          import pytest
+          from fastapi.testclient import TestClient
+          from sqlmodel import Session, SQLModel, create_engine
+          from sqlmodel.pool import StaticPool
+
+          from app.db import get_session
+          from app.main import app
+
+
+          @pytest.fixture(name="session")
+          def session_fixture() -> Iterator[Session]:
+              # A fresh database in memory for every test: fast, and nothing is left behind.
+              engine = create_engine(
+                  "sqlite://",
+                  connect_args={"check_same_thread": False},
+                  poolclass=StaticPool,
+              )
+              SQLModel.metadata.create_all(engine)
+              with Session(engine) as session:
+                  yield session
+
+
+          @pytest.fixture(name="client")
+          def client_fixture(session: Session) -> Iterator[TestClient]:
+              app.dependency_overrides[get_session] = lambda: session
+              yield TestClient(app)
+              app.dependency_overrides.clear()
+      - file: tests/test_login.py
+        lang: python
+        text: |
+          from fastapi.testclient import TestClient
+
+          USER = {"email": "ada@example.com", "password": "correct horse battery"}
+
+
+          def login(client: TestClient, password: str = USER["password"]):
+              # The login form is form data (not JSON) and its email field is called "username".
+              return client.post(
+                  "/auth/token", data={"username": USER["email"], "password": password}
+              )
+
+
+          def test_login_gives_a_token_that_opens_me(client: TestClient):
+              client.post("/auth/register", json=USER)
+              response = login(client)
+              assert response.status_code == 200
+              token = response.json()["access_token"]
+
+              me = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+              assert me.status_code == 200
+              assert me.json()["email"] == USER["email"]
+
+
+          def test_wrong_password_is_401(client: TestClient):
+              client.post("/auth/register", json=USER)
+              assert login(client, "wrong password").status_code == 401
+
+
+          def test_unknown_email_is_401(client: TestClient):
+              assert login(client).status_code == 401
+
+
+          def test_me_without_a_token_is_401(client: TestClient):
+              assert client.get("/auth/me").status_code == 401
+
+
+          def test_a_forged_token_is_401(client: TestClient):
+              response = client.get("/auth/me", headers={"Authorization": "Bearer not.a.token"})
+              assert response.status_code == 401
+    mistakes:
+      - problem:
+          en: "The secret key is written in the code or committed to Git."
+          tr: "Gizli anahtar kodun içine yazılmış ya da Git'e commit edilmiş."
+        fix:
+          en: "Keep it in `.env` (ignored by Git) or in the host's environment settings. If it was ever pushed, make a new one: everyone who saw the old one can forge tokens."
+          tr: "Onu `.env` dosyasında (Git yok sayar) ya da barındırıcının ortam ayarlarında tut. Bir kez bile push edildiyse yenisini üret: eskisini gören herkes token taklit edebilir."
+      - problem:
+          en: "`POST /auth/token` answers 422 when you send JSON."
+          tr: "`POST /auth/token`, JSON gönderince 422 veriyor."
+        fix:
+          en: "The OAuth2 login is a **form** (`username` and `password` fields), not JSON. Use the Authorize button in `/docs`, or send form data. The `username` field carries the email."
+          tr: "OAuth2 girişi JSON değil bir **form**dur (`username` ve `password` alanları). `/docs`'taki Authorize düğmesini kullan ya da form verisi gönder. `username` alanı e-postayı taşır."
+      - problem:
+          en: "`jwt.decode` fails with \"Subject must be a string\", or asks for `algorithms`."
+          tr: "`jwt.decode` \"Subject must be a string\" hatası veriyor ya da `algorithms` istiyor."
+        fix:
+          en: "Store the id as text (`str(user_id)`) in `sub` (a number there makes decoding fail), and always pass `algorithms=[\"HS256\"]` when you decode. Accepting any algorithm is a known attack."
+          tr: "`sub` içine id'yi metin olarak (`str(user_id)`) koy (sayı olursa decode başarısız olur) ve decode ederken her zaman `algorithms=[\"HS256\"]` ver. Her algoritmayı kabul etmek bilinen bir saldırıdır."
+    quiz:
+      - q:
+          en: "Why can a client not simply change the user id inside its token?"
+          tr: "İstemci token'ın içindeki kullanıcı id'sini neden basitçe değiştiremez?"
+        options:
+          en:
+            - "The token is encrypted with the password"
+            - "FastAPI stores all tokens in the database and compares them"
+            - "The token is signed with the secret key, so any change makes the signature invalid"
+          tr:
+            - "Token şifre ile şifrelenmiştir"
+            - "FastAPI bütün token'ları veritabanında saklayıp karşılaştırır"
+            - "Token gizli anahtarla imzalıdır; herhangi bir değişiklik imzayı geçersiz yapar"
+        answer: 2
+        why:
+          en: "A JWT is signed, not hidden: anyone can read it, but only the holder of the secret key can make a valid one."
+          tr: "JWT imzalıdır, gizli değildir: herkes okuyabilir ama geçerli birini sadece gizli anahtarın sahibi üretebilir."
+    sources:
+      - title: Simple OAuth2 with password and bearer
+        url: https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
+      - title: OAuth2 with password (and hashing), Bearer with JWT tokens
+        url: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+      - title: Settings and environment variables
+        url: https://fastapi.tiangolo.com/advanced/settings/
+
+  - id: private-notes
+    stage: security
+    title:
+      en: "Make notes private and set CORS"
+      tr: "Notları özel yapma ve CORS ayarı"
+    minutes: 45
+    needs: [login-token]
+    why:
+      en: "Users exist now, but every user still sees every note. Each note must belong to one user and every endpoint must check that. And if a web page on another address (your future frontend) calls the API, the browser blocks it unless the API allows that address."
+      tr: "Artık kullanıcılar var ama her kullanıcı hâlâ her notu görüyor. Her not bir kullanıcıya ait olmalı ve her endpoint bunu kontrol etmeli. Ayrıca başka bir adresteki bir web sayfası (ileride yazacağın frontend) API'yi çağırırsa, API o adrese izin vermedikçe tarayıcı engeller."
+    learn:
+      en: |
+        - A **foreign key** (`owner_id`) links each note to its user
+        - `CurrentUser` is a dependency: any endpoint that lists it is locked, and it gives the endpoint the logged-in user
+        - Why another user's note answers 404 and not 403: the caller should not learn that the id exists
+        - What **CORS** is: a browser rule that blocks a page from calling another address unless that address says it is allowed. It protects browsers only, not your API from other programs
+      tr: |
+        - **Foreign key** (`owner_id`) her notu kullanıcısına bağlar
+        - `CurrentUser` bir dependency'dir: onu yazan her endpoint kilitlenir ve endpoint'e giriş yapmış kullanıcıyı verir
+        - Başka kullanıcının notunun neden 403 değil 404 döndürdüğü: çağıran id'nin var olduğunu öğrenmemeli
+        - **CORS**'un ne olduğu: bir sayfanın başka bir adresi çağırmasını, o adres izin verdiğini söylemedikçe engelleyen tarayıcı kuralı. Sadece tarayıcıları korur, API'ni başka programlardan korumaz
+    do:
+      en: |
+        1. Your old `notes.db` has notes without an owner, and the new column cannot be added to an existing table by `create_all`. During development, **delete the file `notes.db`**. (A real app would use a migration tool, see the last step.)
+        2. Replace `app/models.py`, `app/routers/notes.py` and `app/main.py` with the code below.
+        3. Add a line to `.env` so your future frontend may call the API (it is a JSON list): `CORS_ORIGINS=["http://localhost:5173"]`.
+        4. Replace `tests/conftest.py` and `tests/test_notes.py`. They now log in before calling notes, and they test two users and CORS.
+        5. Run `uv run pytest`. You should see `19 passed`.
+        6. Start the server. `GET /notes` without logging in answers 401. Register and log in two users (use **Authorize**, log out between them) and check that each sees only their own notes.
+        7. Commit: `git add .` and `git commit -m "Private notes and CORS"`.
+      tr: |
+        1. Eski `notes.db` dosyanda sahibi olmayan notlar var ve `create_all` yeni sütunu var olan tabloya ekleyemez. Geliştirme sırasında **`notes.db` dosyasını sil**. (Gerçek bir uygulama migration aracı kullanır, son adıma bak.)
+        2. `app/models.py`, `app/routers/notes.py` ve `app/main.py` dosyalarını aşağıdaki kodla değiştir.
+        3. Gelecekteki frontend'in API'yi çağırabilmesi için `.env` dosyasına bir satır ekle (bu bir JSON listesi): `CORS_ORIGINS=["http://localhost:5173"]`.
+        4. `tests/conftest.py` ve `tests/test_notes.py` dosyalarını değiştir. Artık notları çağırmadan önce giriş yaparlar; iki kullanıcıyı ve CORS'u da test ederler.
+        5. `uv run pytest` çalıştır. `19 passed` görmelisin.
+        6. Sunucuyu başlat. Giriş yapmadan `GET /notes` 401 verir. İki kullanıcı kaydet ve giriş yap (**Authorize** ile, aralarda çıkış yap) ve her birinin sadece kendi notlarını gördüğünü kontrol et.
+        7. Kaydet: `git add .` ve `git commit -m "Private notes and CORS"`.
+    code:
+      - file: app/models.py
+        lang: python
+        text: |
+          from pydantic import EmailStr
+          from sqlmodel import Field, SQLModel
+
+
+          class User(SQLModel, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+              email: str = Field(unique=True, index=True, max_length=254)
+              hashed_password: str
+
+
+          class UserCreate(SQLModel):
+              email: EmailStr
+              password: str = Field(min_length=8, max_length=128)
+
+
+          class UserPublic(SQLModel):
+              id: int
+              email: str
+
+
+          class Token(SQLModel):
+              access_token: str
+              token_type: str = "bearer"
+
+
+          class NoteBase(SQLModel):
+              title: str = Field(min_length=1, max_length=100)
+              content: str = Field(default="", max_length=2000)
+              done: bool = False
+
+
+          class Note(NoteBase, table=True):
+              id: int | None = Field(default=None, primary_key=True)
+              owner_id: int = Field(foreign_key="user.id", index=True)
+
+
+          class NoteCreate(NoteBase):
+              pass
+
+
+          class NoteUpdate(SQLModel):
+              title: str | None = Field(default=None, min_length=1, max_length=100)
+              content: str | None = Field(default=None, max_length=2000)
+              done: bool | None = None
+
+
+          class NotePublic(NoteBase):
+              id: int
+      - file: app/routers/notes.py
+        lang: python
+        text: |
+          from typing import Annotated
+
+          from fastapi import APIRouter, HTTPException, Query, status
+          from sqlmodel import col, select
+
+          from ..db import SessionDep
+          from ..models import Note, NoteCreate, NotePublic, NoteUpdate, User
+          from ..security import CurrentUser
+
+          router = APIRouter(prefix="/notes", tags=["notes"])
+
+
+          def get_own_note(session: SessionDep, note_id: int, user: User) -> Note:
+              note = session.get(Note, note_id)
+              # Someone else's note gets the same 404 as a missing one, so ids are not revealed.
+              if note is None or note.owner_id != user.id:
+                  raise HTTPException(status_code=404, detail="Note not found")
+              return note
+
+
+          @router.post("", status_code=status.HTTP_201_CREATED)
+          def create_note(note: NoteCreate, session: SessionDep, user: CurrentUser) -> NotePublic:
+              db_note = Note.model_validate(note, update={"owner_id": user.id})
+              session.add(db_note)
+              session.commit()
+              session.refresh(db_note)
+              return db_note
+
+
+          @router.get("")
+          def list_notes(
+              session: SessionDep,
+              user: CurrentUser,
+              done: bool | None = None,
+              q: Annotated[str | None, Query(max_length=50)] = None,
+              offset: Annotated[int, Query(ge=0)] = 0,
+              limit: Annotated[int, Query(ge=1, le=100)] = 20,
+          ) -> list[NotePublic]:
+              statement = select(Note).where(Note.owner_id == user.id)
+              if done is not None:
+                  statement = statement.where(Note.done == done)
+              if q:
+                  statement = statement.where(col(Note.title).contains(q))
+              statement = statement.order_by(col(Note.id)).offset(offset).limit(limit)
+              return list(session.exec(statement).all())
+
+
+          @router.get("/{note_id}")
+          def read_note(note_id: int, session: SessionDep, user: CurrentUser) -> NotePublic:
+              return get_own_note(session, note_id, user)
+
+
+          @router.patch("/{note_id}")
+          def update_note(
+              note_id: int, changes: NoteUpdate, session: SessionDep, user: CurrentUser
+          ) -> NotePublic:
+              note = get_own_note(session, note_id, user)
+              note.sqlmodel_update(changes.model_dump(exclude_unset=True, exclude_none=True))
+              session.add(note)
+              session.commit()
+              session.refresh(note)
+              return note
+
+
+          @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+          def delete_note(note_id: int, session: SessionDep, user: CurrentUser) -> None:
+              note = get_own_note(session, note_id, user)
+              session.delete(note)
+              session.commit()
+      - file: app/main.py
+        lang: python
+        text: |
+          from contextlib import asynccontextmanager
+
+          from fastapi import FastAPI
+          from fastapi.middleware.cors import CORSMiddleware
+
+          from .db import create_db_and_tables
+          from .routers import auth, notes
+          from .settings import get_settings
+
+
+          @asynccontextmanager
+          async def lifespan(app: FastAPI):
+              create_db_and_tables()  # runs once, before the first request
+              yield
+
+
+          app = FastAPI(title="Notes API", lifespan=lifespan)
+
+          settings = get_settings()
+          if settings.cors_origins:
+              app.add_middleware(
+                  CORSMiddleware,
+                  allow_origins=settings.cors_origins,  # the real addresses of your frontend
+                  allow_methods=["GET", "POST", "PATCH", "DELETE"],
+                  allow_headers=["Authorization", "Content-Type"],
+              )
+
+          app.include_router(auth.router)
+          app.include_router(notes.router)
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+      - file: .env
+        lang: text
+        text: |
+          SECRET_KEY=paste-your-long-random-text-here
+          CORS_ORIGINS=["http://localhost:5173"]
+      - file: tests/conftest.py
+        lang: python
+        text: |
+          import os
+          from collections.abc import Iterator
+
+          # Set the settings before the app is imported, so tests never need a real .env file.
+          os.environ["SECRET_KEY"] = "test-secret-key-only-for-tests-0123456789"
+          os.environ["DATABASE_URL"] = "sqlite://"
+          os.environ["CORS_ORIGINS"] = '["http://localhost:5173"]'
+
+          import pytest
+          from fastapi.testclient import TestClient
+          from sqlmodel import Session, SQLModel, create_engine
+          from sqlmodel.pool import StaticPool
+
+          from app.db import get_session
+          from app.main import app
+
+
+          @pytest.fixture(name="session")
+          def session_fixture() -> Iterator[Session]:
+              # A fresh database in memory for every test: fast, and nothing is left behind.
+              engine = create_engine(
+                  "sqlite://",
+                  connect_args={"check_same_thread": False},
+                  poolclass=StaticPool,
+              )
+              SQLModel.metadata.create_all(engine)
+              with Session(engine) as session:
+                  yield session
+
+
+          @pytest.fixture(name="client")
+          def client_fixture(session: Session) -> Iterator[TestClient]:
+              app.dependency_overrides[get_session] = lambda: session
+              yield TestClient(app)
+              app.dependency_overrides.clear()
+
+
+          @pytest.fixture(name="sign_up")
+          def sign_up_fixture(client: TestClient):
+              """Returns a function: register a user, log in, give back the Authorization header."""
+
+              def sign_up(email: str) -> dict[str, str]:
+                  password = "correct horse battery"
+                  client.post("/auth/register", json={"email": email, "password": password})
+                  form = {"username": email, "password": password}
+                  response = client.post("/auth/token", data=form)
+                  return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+              return sign_up
+
+
+          @pytest.fixture(name="auth")
+          def auth_fixture(sign_up) -> dict[str, str]:
+              return sign_up("ada@example.com")
+      - file: tests/test_notes.py
+        lang: python
+        text: |
+          from fastapi.testclient import TestClient
+
+
+          def make_note(client: TestClient, auth: dict, **fields) -> dict:
+              body = {"title": "Buy milk", **fields}
+              response = client.post("/notes", json=body, headers=auth)
+              assert response.status_code == 201
+              return response.json()
+
+
+          def test_notes_need_a_token(client: TestClient):
+              assert client.get("/notes").status_code == 401
+              assert client.post("/notes", json={"title": "x"}).status_code == 401
+
+
+          def test_create_and_read_note(client: TestClient, auth: dict):
+              created = make_note(client, auth, content="2 liters")
+              assert created["id"] == 1
+              assert created["done"] is False
+              assert "owner_id" not in created
+
+              response = client.get(f"/notes/{created['id']}", headers=auth)
+              assert response.status_code == 200
+              assert response.json()["content"] == "2 liters"
+
+
+          def test_empty_title_is_rejected(client: TestClient, auth: dict):
+              response = client.post("/notes", json={"title": ""}, headers=auth)
+              assert response.status_code == 422
+
+
+          def test_missing_note_is_404(client: TestClient, auth: dict):
+              assert client.get("/notes/999", headers=auth).status_code == 404
+
+
+          def test_filter_and_search(client: TestClient, auth: dict):
+              make_note(client, auth, title="Buy milk", done=True)
+              make_note(client, auth, title="Learn FastAPI")
+
+              assert len(client.get("/notes", headers=auth).json()) == 2
+              done = client.get("/notes", params={"done": True}, headers=auth).json()
+              assert len(done) == 1
+              found = client.get("/notes", params={"q": "fast"}, headers=auth).json()
+              assert [n["title"] for n in found] == ["Learn FastAPI"]
+
+
+          def test_limit_is_capped(client: TestClient, auth: dict):
+              response = client.get("/notes", params={"limit": 1000}, headers=auth)
+              assert response.status_code == 422
+
+
+          def test_patch_changes_only_what_is_sent(client: TestClient, auth: dict):
+              note = make_note(client, auth, content="2 liters")
+              response = client.patch(f"/notes/{note['id']}", json={"done": True}, headers=auth)
+              assert response.status_code == 200
+              assert response.json()["done"] is True
+              assert response.json()["content"] == "2 liters"
+
+
+          def test_delete_note(client: TestClient, auth: dict):
+              note = make_note(client, auth)
+              assert client.delete(f"/notes/{note['id']}", headers=auth).status_code == 204
+              assert client.get(f"/notes/{note['id']}", headers=auth).status_code == 404
+
+
+          def test_users_cannot_see_each_others_notes(client: TestClient, auth: dict, sign_up):
+              note = make_note(client, auth)
+              grace = sign_up("grace@example.com")
+
+              assert client.get("/notes", headers=grace).json() == []
+              assert client.get(f"/notes/{note['id']}", headers=grace).status_code == 404
+              assert client.delete(f"/notes/{note['id']}", headers=grace).status_code == 404
+              # Ada still has her note.
+              assert client.get(f"/notes/{note['id']}", headers=auth).status_code == 200
+
+
+          def test_cors_allows_only_the_listed_origin(client: TestClient):
+              asked = {
+                  "Access-Control-Request-Method": "GET",
+                  "Access-Control-Request-Headers": "authorization",
+              }
+              good = client.options("/notes", headers={"Origin": "http://localhost:5173", **asked})
+              assert good.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+              bad = client.options("/notes", headers={"Origin": "https://evil.example", **asked})
+              assert "access-control-allow-origin" not in bad.headers
+    mistakes:
+      - problem:
+          en: "\"no such column: note.owner_id\" after the change."
+          tr: "Değişiklikten sonra \"no such column: note.owner_id\" hatası."
+        fix:
+          en: "`create_all` only creates missing tables, it never changes an existing one. Delete `notes.db` while developing. For real data use migrations (Alembic)."
+          tr: "`create_all` sadece eksik tabloları oluşturur, var olanı asla değiştirmez. Geliştirirken `notes.db`'yi sil. Gerçek veri için migration kullan (Alembic)."
+      - problem:
+          en: "Reading a note by id without checking the owner: anyone can read any note by trying ids."
+          tr: "Bir notu sahibini kontrol etmeden id ile okumak: id deneyerek herkes her notu okuyabilir."
+        fix:
+          en: "Check `note.owner_id == user.id` in one shared function (`get_own_note`) used by read, update and delete, so you cannot forget it in one of them."
+          tr: "`note.owner_id == user.id` kontrolünü okuma, güncelleme ve silmenin kullandığı tek bir ortak fonksiyonda (`get_own_note`) yap; böylece birinde unutmazsın."
+      - problem:
+          en: "Setting `allow_origins=[\"*\"]` to make a CORS error go away."
+          tr: "Bir CORS hatasını gidermek için `allow_origins=[\"*\"]` yazmak."
+        fix:
+          en: "List the exact addresses of your frontend. Also remember that CORS is only a browser rule: login and the owner checks are what protect the data."
+          tr: "Frontend'inin tam adreslerini listele. Ayrıca CORS'un sadece bir tarayıcı kuralı olduğunu unutma: veriyi koruyan şey giriş ve sahip kontrolleridir."
+    quiz:
+      - q:
+          en: "User B asks for the note of user A by its id. What should the API answer?"
+          tr: "B kullanıcısı, A kullanıcısının notunu id ile istiyor. API ne cevap vermeli?"
+        options:
+          en:
+            - "200 with the note, since the id is right"
+            - "404, the same as for a note that does not exist"
+            - "500, because something is wrong"
+          tr:
+            - "id doğru olduğu için notla birlikte 200"
+            - "404, var olmayan bir not için verilenle aynı"
+            - "Bir şey ters gittiği için 500"
+        answer: 1
+        why:
+          en: "A 404 tells nothing about whether the id exists, so the caller cannot map other users' notes."
+          tr: "404, id'nin var olup olmadığı hakkında bir şey söylemez; böylece çağıran başka kullanıcıların notlarını çıkaramaz."
+    sources:
+      - title: Get the current user
+        url: https://fastapi.tiangolo.com/tutorial/security/get-current-user/
+      - title: CORS (Cross-Origin Resource Sharing)
+        url: https://fastapi.tiangolo.com/tutorial/cors/
+      - title: MDN, Cross-Origin Resource Sharing (CORS)
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS
+
+  - id: fast-enough
+    stage: performance
+    title:
+      en: "Measure, compress and keep it fast"
+      tr: "Ölç, sıkıştır ve hızlı tut"
+    minutes: 30
+    needs: [private-notes]
+    why:
+      en: "You cannot make something faster that you cannot measure. First you make the time of every request visible. Then you do the few cheap things that help almost every API: compress big answers and never return unlimited lists."
+      tr: "Ölçemediğin şeyi hızlandıramazsın. Önce her isteğin süresini görünür yaparsın. Sonra neredeyse her API'ye yarayan birkaç ucuz şeyi yaparsın: büyük cevapları sıkıştırır ve asla sınırsız liste döndürmezsin."
+    learn:
+      en: |
+        - What **middleware** is: code that wraps every request and response
+        - How to read the `X-Process-Time` header you add, and in the browser DevTools (*Network* tab)
+        - Why plain `def` endpoints are right for a synchronous database like SQLite: FastAPI runs them in a thread pool, so one slow query does not stop the others
+        - Why `async def` is dangerous when it calls blocking code (a normal database call, `requests`, `time.sleep`): it freezes the whole server
+        - What **gzip** does to a big JSON list, and why the `limit` cap and the `owner_id` index already do most of the work
+      tr: |
+        - **Middleware**'in ne olduğu: her isteği ve cevabı saran kod
+        - Eklediğin `X-Process-Time` header'ını ve tarayıcı DevTools'unda (*Network* sekmesi) nasıl okuyacağın
+        - SQLite gibi senkron bir veritabanı için düz `def` endpoint'lerin neden doğru olduğu: FastAPI onları bir thread havuzunda çalıştırır, yani yavaş bir sorgu diğerlerini durdurmaz
+        - `async def` bloklayan kodu (normal bir veritabanı çağrısı, `requests`, `time.sleep`) çağırınca neden tehlikeli olduğu: tüm sunucuyu dondurur
+        - **gzip**'in büyük bir JSON listesine ne yaptığı ve `limit` sınırı ile `owner_id` index'inin işin çoğunu zaten neden yaptığı
+    do:
+      en: |
+        1. Replace `app/main.py` with the code below. It adds gzip compression for answers bigger than 500 bytes and the timing header.
+        2. Add `tests/test_speed.py` and run `uv run pytest`. You should see `20 passed`.
+        3. Start the server and call any endpoint with `curl -i http://127.0.0.1:8000/` (or look at the response headers in the browser DevTools, *Network* tab). Find the `x-process-time` line. A simple call should take a few milliseconds.
+        4. Look at `app/models.py`: `owner_id` has `index=True`, so listing the notes of one user does not read the whole table. Keep this in mind for every column you filter by.
+        5. Commit: `git add .` and `git commit -m "Timing and gzip"`.
+      tr: |
+        1. `app/main.py` dosyasını aşağıdaki kodla değiştir. 500 baytı geçen cevaplar için gzip sıkıştırma ve süre header'ını ekler.
+        2. `tests/test_speed.py` dosyasını ekle ve `uv run pytest` çalıştır. `20 passed` görmelisin.
+        3. Sunucuyu başlat ve herhangi bir endpoint'i `curl -i http://127.0.0.1:8000/` ile çağır (ya da tarayıcı DevTools'unda, *Network* sekmesinde cevap header'larına bak). `x-process-time` satırını bul. Basit bir çağrı birkaç milisaniye sürmeli.
+        4. `app/models.py` dosyasına bak: `owner_id` alanında `index=True` var, yani bir kullanıcının notlarını listelemek tüm tabloyu okumaz. Süzdüğün her sütun için bunu aklında tut.
+        5. Kaydet: `git add .` ve `git commit -m "Timing and gzip"`.
+    code:
+      - file: app/main.py
+        lang: python
+        text: |
+          import time
+          from contextlib import asynccontextmanager
+
+          from fastapi import FastAPI, Request
+          from fastapi.middleware.cors import CORSMiddleware
+          from fastapi.middleware.gzip import GZipMiddleware
+
+          from .db import create_db_and_tables
+          from .routers import auth, notes
+          from .settings import get_settings
+
+
+          @asynccontextmanager
+          async def lifespan(app: FastAPI):
+              create_db_and_tables()  # runs once, before the first request
+              yield
+
+
+          app = FastAPI(title="Notes API", lifespan=lifespan)
+
+          settings = get_settings()
+          if settings.cors_origins:
+              app.add_middleware(
+                  CORSMiddleware,
+                  allow_origins=settings.cors_origins,  # the real addresses of your frontend
+                  allow_methods=["GET", "POST", "PATCH", "DELETE"],
+                  allow_headers=["Authorization", "Content-Type"],
+              )
+          # Compress responses bigger than 500 bytes when the client accepts it.
+          app.add_middleware(GZipMiddleware, minimum_size=500)
+
+
+          @app.middleware("http")
+          async def add_process_time(request: Request, call_next):
+              start = time.perf_counter()
+              response = await call_next(request)
+              response.headers["X-Process-Time"] = f"{(time.perf_counter() - start) * 1000:.1f}ms"
+              return response
+
+
+          app.include_router(auth.router)
+          app.include_router(notes.router)
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+      - file: tests/test_speed.py
+        lang: python
+        text: |
+          from fastapi.testclient import TestClient
+          from sqlmodel import Session
+
+          from app.models import Note, User
+          from app.security import create_access_token
+
+
+          def test_big_lists_are_compressed_and_timed(client: TestClient, session: Session):
+              session.add(User(email="bulk@example.com", hashed_password="x"))
+              session.commit()
+              session.add_all(
+                  Note(title=f"Note number {i}", content="some text " * 5, owner_id=1)
+                  for i in range(100)
+              )
+              session.commit()
+
+              # Make a token directly, so the test does not need the password.
+              headers = {"Authorization": f"Bearer {create_access_token(1)}"}
+              response = client.get("/notes?limit=100", headers=headers)
+
+              assert response.status_code == 200
+              assert len(response.json()) == 100
+              assert response.headers["content-encoding"] == "gzip"
+              assert response.headers["x-process-time"].endswith("ms")
+    mistakes:
+      - problem:
+          en: "Writing `async def` for every endpoint, and then calling the database inside it."
+          tr: "Her endpoint'i `async def` yapıp içinde veritabanını çağırmak."
+        fix:
+          en: "Our database calls block, so keep these endpoints as plain `def`. Use `async def` only when you `await` an async library."
+          tr: "Veritabanı çağrılarımız bloklar; bu yüzden bu endpoint'leri düz `def` bırak. `async def`'i sadece async bir kütüphaneyi `await` ederken kullan."
+      - problem:
+          en: "Optimizing by guessing."
+          tr: "Tahminle optimizasyon yapmak."
+        fix:
+          en: "Measure first (the timing header, the logs, the DevTools). Fix the slowest thing, measure again. Most notes APIs are fast enough until real traffic shows otherwise."
+          tr: "Önce ölç (süre header'ı, loglar, DevTools). En yavaş şeyi düzelt, tekrar ölç. Gerçek trafik aksini göstermedikçe çoğu not API'si yeterince hızlıdır."
+    quiz:
+      - q:
+          en: "An `async def` endpoint calls `time.sleep(5)`. What happens?"
+          tr: "Bir `async def` endpoint `time.sleep(5)` çağırıyor. Ne olur?"
+        options:
+          en:
+            - "Only that request waits"
+            - "FastAPI moves it to a thread by itself"
+            - "The whole server waits for 5 seconds and other users are blocked"
+          tr:
+            - "Sadece o istek bekler"
+            - "FastAPI onu kendiliğinden bir thread'e taşır"
+            - "Tüm sunucu 5 saniye bekler, diğer kullanıcılar bloklanır"
+        answer: 2
+        why:
+          en: "An async endpoint runs on the single event loop; blocking code stops it. Plain `def` endpoints run in threads and do not have this problem."
+          tr: "Async endpoint tek olay döngüsünde çalışır; bloklayan kod onu durdurur. Düz `def` endpoint'ler thread'lerde çalışır ve bu sorun olmaz."
+    sources:
+      - title: Concurrency and async / await
+        url: https://fastapi.tiangolo.com/async/
+      - title: Advanced middleware (GZipMiddleware)
+        url: https://fastapi.tiangolo.com/advanced/middleware/
+      - title: Middleware
+        url: https://fastapi.tiangolo.com/tutorial/middleware/
+
+  - id: docker
+    stage: packaging
+    title:
+      en: "Package the API in a Docker container"
+      tr: "API'yi Docker container'ına paketleme"
+    minutes: 45
+    needs: [fast-enough]
+    why:
+      en: "\"It works on my computer\" is not enough for a server. A Docker image holds your code, Python and every package in one box that runs the same everywhere: your laptop, a friend's computer and the host you deploy to."
+      tr: "Bir sunucu için \"bende çalışıyor\" yetmez. Docker image'ı kodunu, Python'u ve bütün paketleri tek bir kutuda tutar; o kutu her yerde aynı çalışır: dizüstü bilgisayarında, arkadaşının bilgisayarında ve deploy edeceğin sunucuda."
+    learn:
+      en: |
+        - **Image** and **container**: the image is the recipe and the files, a container is one running copy
+        - What each line of the `Dockerfile` does, and why `requirements.txt` is copied and installed before the code (Docker reuses unchanged layers, so rebuilds are fast)
+        - `fastapi run` is the production command: no auto-reload, and it listens on `0.0.0.0` so it can be reached from outside the container
+        - Why secrets are passed with `-e` at run time and never built into the image
+        - Why the database file lives in `/data`, a folder you can keep with a **volume**
+      tr: |
+        - **Image** ve **container**: image tarif ve dosyalardır, container çalışan bir kopyasıdır
+        - `Dockerfile`'ın her satırının ne yaptığı ve `requirements.txt`'in neden koddan önce kopyalanıp kurulduğu (Docker değişmeyen katmanları yeniden kullanır, yani yeniden build hızlıdır)
+        - `fastapi run` production komutudur: auto-reload yok ve `0.0.0.0` üzerinde dinler, böylece container'ın dışından erişilebilir
+        - Gizli bilgilerin neden çalıştırırken `-e` ile verildiği ve image'ın içine asla konmadığı
+        - Veritabanı dosyasının neden `/data` içinde durduğu; bu klasörü bir **volume** ile saklayabilirsin
+    do:
+      en: |
+        1. Install **Docker Desktop** (docs.docker.com/get-started/get-docker/) and start it. Check with `docker --version`.
+        2. Export the exact package versions that uv locked into a `requirements.txt`, with the first command below. Run it again whenever you add a package.
+        3. Create `Dockerfile` and `.dockerignore` in the project folder. `.dockerignore` keeps your `.env`, the database and the tests out of the image.
+        4. Build the image: `docker build -t notes-api .`. The first build downloads Python and takes a few minutes.
+        5. Run it with the last command below (put your own long text from `.env` in place of the example). Open http://localhost:10000/docs. Register, log in and create a note.
+        6. Stop it with Ctrl+C, run it again with the same command: your user is still there, because the volume `notes-data` kept `/data`.
+        7. Commit: `git add .` and `git commit -m "Docker image"`.
+      tr: |
+        1. **Docker Desktop**'ı kur (docs.docker.com/get-started/get-docker/) ve başlat. `docker --version` ile kontrol et.
+        2. uv'nin kilitlediği tam paket sürümlerini ilk komutla bir `requirements.txt` dosyasına aktar. Paket eklediğinde tekrar çalıştır.
+        3. Proje klasöründe `Dockerfile` ve `.dockerignore` dosyalarını oluştur. `.dockerignore`, `.env`'ini, veritabanını ve testleri image'ın dışında tutar.
+        4. Image'ı build et: `docker build -t notes-api .`. İlk build Python'u indirir ve birkaç dakika sürer.
+        5. Son komutla çalıştır (örnekteki metnin yerine `.env` içindeki kendi uzun metnini koy). http://localhost:10000/docs adresini aç. Kayıt ol, giriş yap ve bir not oluştur.
+        6. Ctrl+C ile durdur ve aynı komutla tekrar çalıştır: kullanıcın hâlâ orada, çünkü `notes-data` volume'u `/data`'yı sakladı.
+        7. Kaydet: `git add .` ve `git commit -m "Docker image"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv export --format requirements-txt --no-dev --no-emit-project --output-file requirements.txt
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          FROM python:3.14-slim
+
+          # Run as a normal user, not as root. /data is where the SQLite file lives.
+          RUN useradd --create-home appuser && mkdir /data && chown appuser /data
+
+          WORKDIR /code
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+          COPY app ./app
+
+          ENV DATABASE_URL=sqlite:////data/notes.db
+          USER appuser
+          EXPOSE 10000
+          CMD ["fastapi", "run", "app/main.py", "--port", "10000", "--proxy-headers"]
+      - file: .dockerignore
+        lang: text
+        text: |
+          .git
+          .venv
+          .env
+          *.db
+          __pycache__
+          .pytest_cache
+          tests
+      - file: terminal
+        lang: sh
+        text: |
+          docker build -t notes-api .
+          docker run --rm -p 10000:10000 -e SECRET_KEY=paste-your-long-random-text-here -v notes-data:/data notes-api
+    mistakes:
+      - problem:
+          en: "The container starts but http://localhost:10000 does not answer."
+          tr: "Container başlıyor ama http://localhost:10000 cevap vermiyor."
+        fix:
+          en: "Use `fastapi run` (it listens on 0.0.0.0), not `fastapi dev` (only 127.0.0.1, unreachable from outside the container), and publish the port with `-p 10000:10000`."
+          tr: "`fastapi dev` değil `fastapi run` kullan (0.0.0.0'ı dinler; `dev` sadece 127.0.0.1'i dinler, container dışından erişilemez) ve portu `-p 10000:10000` ile yayınla."
+      - problem:
+          en: "The new package is missing in the container (ModuleNotFoundError)."
+          tr: "Yeni paket container'da yok (ModuleNotFoundError)."
+        fix:
+          en: "The image installs from `requirements.txt`, not from `pyproject.toml`. Run the `uv export` command again after `uv add`, then rebuild."
+          tr: "Image `pyproject.toml`'dan değil `requirements.txt`'ten kurar. `uv add`'den sonra `uv export` komutunu tekrar çalıştır, sonra yeniden build et."
+      - problem:
+          en: "`.env`, `notes.db` or the `.venv` folder ends up inside the image."
+          tr: "`.env`, `notes.db` ya da `.venv` klasörü image'ın içine giriyor."
+        fix:
+          en: "List them in `.dockerignore`. An image is easy to share, and a secret inside it is shared with it."
+          tr: "Hepsini `.dockerignore`'a yaz. Image'ı paylaşmak kolaydır ve içindeki gizli bilgi de onunla paylaşılır."
+    quiz:
+      - q:
+          en: "Why is `requirements.txt` copied and installed before the `app` folder in the Dockerfile?"
+          tr: "Dockerfile'da `requirements.txt` neden `app` klasöründen önce kopyalanıp kuruluyor?"
+        options:
+          en:
+            - "Python needs the packages before it can read any file"
+            - "Docker reuses the installed packages when only your code changed, so rebuilds are fast"
+            - "It is required by the fastapi command"
+          tr:
+            - "Python herhangi bir dosyayı okumadan önce paketlere ihtiyaç duyar"
+            - "Sadece kodun değiştiğinde Docker kurulu paketleri yeniden kullanır, yani build hızlı olur"
+            - "fastapi komutu bunu gerektirir"
+        answer: 1
+        why:
+          en: "Each Dockerfile line is a cached layer. The package layer only changes when `requirements.txt` changes, and your code changes much more often."
+          tr: "Dockerfile'ın her satırı önbelleğe alınan bir katmandır. Paket katmanı sadece `requirements.txt` değişince değişir; kodun ise çok daha sık değişir."
+    sources:
+      - title: FastAPI in containers - Docker
+        url: https://fastapi.tiangolo.com/deployment/docker/
+      - title: Get Docker
+        url: https://docs.docker.com/get-started/get-docker/
+      - title: Dockerfile reference
+        url: https://docs.docker.com/reference/dockerfile/
+
+  - id: render
+    stage: deploy
+    title:
+      en: "Put the API on the internet for free (Render)"
+      tr: "API'yi ücretsiz internete koyma (Render)"
+    minutes: 50
+    needs: [docker]
+    why:
+      en: "An API on your laptop helps nobody else. Render builds your Dockerfile from GitHub and gives it a public https address, and it has a free web service, so you can learn how deploying works without paying."
+      tr: "Dizüstü bilgisayarındaki bir API başkasına yaramaz. Render, Dockerfile'ını GitHub'dan build eder ve ona herkese açık bir https adresi verir; ücretsiz bir web service seçeneği de olduğundan para vermeden deploy etmeyi öğrenebilirsin."
+    learn:
+      en: |
+        - What **deploying** is: running your container on a computer that is always on and reachable
+        - What GitHub is for here: Render reads your repository, and every `git push` can deploy a new version
+        - **Environment variables** on the host: `SECRET_KEY` is set in Render's dashboard, never in the repository
+        - What the **free** plan means: the service sleeps after 15 minutes without requests and the first request wakes it in about a minute; and its files are temporary, so the SQLite database is wiped on every restart, redeploy or sleep
+      tr: |
+        - **Deploy**'un ne olduğu: container'ını hep açık ve erişilebilir bir bilgisayarda çalıştırmak
+        - GitHub'ın burada ne işe yaradığı: Render repository'ni okur ve her `git push` yeni bir sürümü deploy edebilir
+        - Barındırıcıdaki **ortam değişkenleri**: `SECRET_KEY` Render'ın panelinde ayarlanır, asla repository'de durmaz
+        - **Ücretsiz** planın anlamı: servis 15 dakika istek almazsa uyur ve ilk istek onu yaklaşık bir dakikada uyandırır; ayrıca dosyaları geçicidir, yani SQLite veritabanı her yeniden başlatmada, yeniden deploy'da ve uykuda silinir
+    do:
+      en: |
+        1. Make a free account on **github.com**. Create a new repository called `notes-api` (private is fine) and do not add a README there.
+        2. Push your project with the commands below (replace `YOUR-NAME`). `git status` should say the working tree is clean, because you committed after each step. Open the repository on GitHub and check that there is **no `.env` file** in it.
+        3. Make a free account on **render.com** (you can sign in with GitHub) and allow it to read your `notes-api` repository.
+        4. In the Render dashboard click *New → Web Service* and pick your repository.
+        5. Choose **Docker** as the language and **Free** as the instance type. Render finds the `Dockerfile` by itself.
+        6. Under *Environment Variables* add `SECRET_KEY` with your long random text. Use a **new** one for the internet, not the one in your `.env`. If you have a frontend, also add `CORS_ORIGINS` with a JSON list of its addresses.
+        7. Click the deploy button and watch the logs. The first build takes a few minutes. When you see `Application startup complete`, open the address Render shows (`https://notes-api-....onrender.com/docs`).
+        8. Register, log in and create a note on your live API. Wait 20 minutes, open the address again and see the one-minute wake-up. Notice that your user and notes are gone: free services have temporary files.
+        9. If Render does not work for you, see the second block of commands for a fallback.
+      tr: |
+        1. **github.com**'da ücretsiz bir hesap aç. `notes-api` adında yeni bir repository oluştur (private olabilir) ve orada README ekleme.
+        2. Projeni aşağıdaki komutlarla push et (`YOUR-NAME` yerine kendi adını yaz). Her adımdan sonra commit ettiğin için `git status` çalışma ağacının temiz olduğunu söylemeli. GitHub'da repository'yi aç ve içinde **`.env` dosyası olmadığını** kontrol et.
+        3. **render.com**'da ücretsiz bir hesap aç (GitHub ile giriş yapabilirsin) ve `notes-api` repository'ni okumasına izin ver.
+        4. Render panelinde *New → Web Service*'e tıkla ve repository'ni seç.
+        5. Dil olarak **Docker**'ı, instance tipi olarak **Free**'yi seç. Render `Dockerfile`'ı kendisi bulur.
+        6. *Environment Variables* altına uzun rastgele metninle `SECRET_KEY` ekle. İnternet için **yeni** bir tane kullan, `.env`'dekini değil. Frontend'in varsa adreslerinin JSON listesiyle `CORS_ORIGINS` de ekle.
+        7. Deploy düğmesine tıkla ve logları izle. İlk build birkaç dakika sürer. `Application startup complete` görünce Render'ın gösterdiği adresi aç (`https://notes-api-....onrender.com/docs`).
+        8. Canlı API'nde kayıt ol, giriş yap ve bir not oluştur. 20 dakika bekle, adresi tekrar aç ve bir dakikalık uyanmayı gör. Kullanıcının ve notlarının silindiğini fark et: ücretsiz servislerde dosyalar geçicidir.
+        9. Render sende çalışmazsa, yedek yol için ikinci komut bloğuna bak.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git status
+          git branch -M main
+          git remote add origin https://github.com/YOUR-NAME/notes-api.git
+          git push -u origin main
+      - file: terminal
+        lang: sh
+        text: |
+          # Fallback: FastAPI Cloud, from the makers of FastAPI (Hobby plan, check the price page)
+          uv run fastapi deploy
+          # (set the same SECRET_KEY there too, see the FastAPI Cloud docs)
+          # Last resort: run the container on a computer of yours that stays on
+          docker run -d --restart unless-stopped -p 10000:10000 -e SECRET_KEY=your-secret -v notes-data:/data notes-api
+    mistakes:
+      - problem:
+          en: "The deploy fails and the logs show `ValidationError ... secret_key Field required`."
+          tr: "Deploy başarısız oluyor ve loglarda `ValidationError ... secret_key Field required` yazıyor."
+        fix:
+          en: "The `SECRET_KEY` environment variable is missing on Render. Add it under *Environment* and redeploy. The app refuses to start without it, on purpose."
+          tr: "Render'da `SECRET_KEY` ortam değişkeni yok. *Environment* altına ekle ve yeniden deploy et. Uygulama onsuz bilerek başlamıyor."
+      - problem:
+          en: "The first request after a break takes a minute, or users and notes are gone."
+          tr: "Moladan sonraki ilk istek bir dakika sürüyor ya da kullanıcılar ve notlar kaybolmuş."
+        fix:
+          en: "That is how the free plan works, not a bug. Free web services sleep and have temporary files. For data that must stay, use a real database service (see the last step) or a paid instance with a persistent disk."
+          tr: "Ücretsiz plan böyle çalışır, bu bir hata değil. Ücretsiz web servisleri uyur ve dosyaları geçicidir. Kalması gereken veri için gerçek bir veritabanı servisi (son adıma bak) ya da kalıcı diskli ücretli bir instance kullan."
+      - problem:
+          en: "A `.env` file was pushed to GitHub."
+          tr: "GitHub'a bir `.env` dosyası push edilmiş."
+        fix:
+          en: "Treat the secret as leaked: make a new `SECRET_KEY`, set it on the host, and remove the file from the repository. Deleting the file in a new commit does not erase it from the history."
+          tr: "Gizli anahtarı sızmış say: yeni bir `SECRET_KEY` üret, barındırıcıda ayarla ve dosyayı repository'den çıkar. Dosyayı yeni bir commit'te silmek onu geçmişten silmez."
+    quiz:
+      - q:
+          en: "Why are your users gone after the free Render service sleeps?"
+          tr: "Ücretsiz Render servisi uyuyunca kullanıcıların neden kayboluyor?"
+        options:
+          en:
+            - "Render deletes accounts that are not used for 15 minutes"
+            - "FastAPI clears the database on every start"
+            - "Free services have a temporary filesystem, so the SQLite file is deleted"
+          tr:
+            - "Render 15 dakika kullanılmayan hesapları siler"
+            - "FastAPI her başlangıçta veritabanını temizler"
+            - "Ücretsiz servislerin dosya sistemi geçicidir, yani SQLite dosyası silinir"
+        answer: 2
+        why:
+          en: "The notes live in a file inside the container, and on the free plan any local file is lost when the service restarts, redeploys or spins down."
+          tr: "Notlar container içindeki bir dosyada durur ve ücretsiz planda servis yeniden başlayınca, yeniden deploy olunca ya da uyuyunca her yerel dosya kaybolur."
+    sources:
+      - title: Render, deploy for free
+        url: https://render.com/docs/free
+      - title: Render, web services (port 10000)
+        url: https://render.com/docs/web-services
+      - title: Render, Docker
+        url: https://render.com/docs/docker
+      - title: FastAPI Cloud
+        url: https://fastapi.tiangolo.com/deployment/fastapicloud/
+
+  - id: health-logs
+    stage: monitoring
+    title:
+      en: "Health check and logs"
+      tr: "Sağlık kontrolü ve loglar"
+    minutes: 30
+    needs: [render]
+    why:
+      en: "Once the API is live you are not looking at it anymore. You need a cheap address that says \"I am alive and I can reach my database\", and logs that tell you what happened when something goes wrong."
+      tr: "API canlıya çıkınca artık ona bakmıyorsun. \"Yaşıyorum ve veritabanıma ulaşabiliyorum\" diyen ucuz bir adrese ve bir şey ters gidince ne olduğunu söyleyen loglara ihtiyacın var."
+    learn:
+      en: |
+        - What a **health check** is: an endpoint the host calls every few seconds; it must answer fast, need no login and fail when something important is broken
+        - Log **levels**: `info` for normal events, `warning` for something odd (a slow request), `error` for failures
+        - Why logs must never contain passwords, tokens or other secrets (log the user id, not the email or the password)
+        - Where to read logs: your terminal locally, the *Logs* tab on Render
+      tr: |
+        - **Sağlık kontrolü**nün ne olduğu: barındırıcının birkaç saniyede bir çağırdığı endpoint; hızlı cevap vermeli, giriş istememeli ve önemli bir şey bozulunca başarısız olmalı
+        - Log **seviyeleri**: normal olaylar için `info`, tuhaf bir şey için (yavaş bir istek) `warning`, başarısızlıklar için `error`
+        - Logların neden asla şifre, token ya da başka gizli bilgi içermemesi gerektiği (e-posta ya da şifre değil, kullanıcı id'sini logla)
+        - Logları nerede okuyacağın: yerelde terminalin, Render'da *Logs* sekmesi
+    do:
+      en: |
+        1. Replace `app/main.py` and `app/routers/auth.py` with the code below. `main.py` gets the `/health` endpoint, log settings and a warning for requests slower than half a second. `auth.py` logs the id of each new user.
+        2. Add `tests/test_health.py` and run `uv run pytest`. You should see `21 passed`.
+        3. Start the server, open http://127.0.0.1:8000/health, then register a user in `/docs` and find the lines `Notes API started` and `new user registered` in the terminal.
+        4. Commit and push: `git add .`, `git commit -m "Health check and logs"`, `git push`. Render deploys the new version by itself.
+        5. In the Render dashboard open your service, go to *Settings* and scroll down to the *Health Checks* section. Click *Edit*, set the path to `/health` and click *Save Changes*. Render now calls it, waits for it to pass before it sends traffic to a new deploy, and restarts the service if it keeps failing.
+        6. Open the *Logs* tab and find your own `Notes API started` line.
+        7. Optional: a free outside service can call `/health` every few minutes and email you when it fails. Be careful: calling it all the time keeps the free service awake, and the free plan has about 750 hours per month.
+      tr: |
+        1. `app/main.py` ve `app/routers/auth.py` dosyalarını aşağıdaki kodla değiştir. `main.py`'ye `/health` endpoint'i, log ayarları ve yarım saniyeden yavaş istekler için bir uyarı gelir. `auth.py` her yeni kullanıcının id'sini loglar.
+        2. `tests/test_health.py` dosyasını ekle ve `uv run pytest` çalıştır. `21 passed` görmelisin.
+        3. Sunucuyu başlat, http://127.0.0.1:8000/health adresini aç, sonra `/docs`'ta bir kullanıcı kaydet ve terminalde `Notes API started` ve `new user registered` satırlarını bul.
+        4. Kaydet ve push et: `git add .`, `git commit -m "Health check and logs"`, `git push`. Render yeni sürümü kendiliğinden deploy eder.
+        5. Render panelinde servisini aç, *Settings*'e git ve aşağı kaydırıp *Health Checks* bölümünü bul. *Edit*'e tıkla, path olarak `/health` yaz ve *Save Changes*'e tıkla. Render artık onu çağırır, yeni bir deploy'a trafik vermeden önce geçmesini bekler ve sürekli başarısız olursa servisi yeniden başlatır.
+        6. *Logs* sekmesini aç ve kendi `Notes API started` satırını bul.
+        7. İsteğe bağlı: ücretsiz bir dış servis `/health`'i birkaç dakikada bir çağırıp başarısız olunca sana e-posta atabilir. Dikkat: sürekli çağırmak ücretsiz servisi uyanık tutar ve ücretsiz planda ayda yaklaşık 750 saat var.
+    code:
+      - file: app/main.py
+        lang: python
+        text: |
+          import logging
+          import time
+          from contextlib import asynccontextmanager
+
+          from fastapi import FastAPI, HTTPException, Request
+          from fastapi.middleware.cors import CORSMiddleware
+          from fastapi.middleware.gzip import GZipMiddleware
+          from sqlalchemy import text
+
+          from .db import SessionDep, create_db_and_tables
+          from .routers import auth, notes
+          from .settings import get_settings
+
+          logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+          logger = logging.getLogger("notes")
+
+
+          @asynccontextmanager
+          async def lifespan(app: FastAPI):
+              create_db_and_tables()  # runs once, before the first request
+              logger.info("Notes API started")
+              yield
+
+
+          app = FastAPI(title="Notes API", version="1.0.0", lifespan=lifespan)
+
+          settings = get_settings()
+          if settings.cors_origins:
+              app.add_middleware(
+                  CORSMiddleware,
+                  allow_origins=settings.cors_origins,  # the real addresses of your frontend
+                  allow_methods=["GET", "POST", "PATCH", "DELETE"],
+                  allow_headers=["Authorization", "Content-Type"],
+              )
+          # Compress responses bigger than 500 bytes when the client accepts it.
+          app.add_middleware(GZipMiddleware, minimum_size=500)
+
+
+          @app.middleware("http")
+          async def add_process_time(request: Request, call_next):
+              start = time.perf_counter()
+              response = await call_next(request)
+              ms = (time.perf_counter() - start) * 1000
+              response.headers["X-Process-Time"] = f"{ms:.1f}ms"
+              if ms > 500:  # slow requests are worth a line in the logs
+                  logger.warning("slow request: %s %s took %.0f ms", request.method, request.url.path, ms)
+              return response
+
+
+          app.include_router(auth.router)
+          app.include_router(notes.router)
+
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello, notes"}
+
+
+          @app.get("/health")
+          def health(session: SessionDep):
+              """Used by the host to check that the app is alive and can reach its database."""
+              try:
+                  session.connection().execute(text("SELECT 1"))
+              except Exception:
+                  logger.exception("health check: database is not reachable")
+                  raise HTTPException(status_code=503, detail="Database unavailable")
+              return {"status": "ok", "version": app.version}
+      - file: app/routers/auth.py
+        lang: python
+        text: |
+          import logging
+          from typing import Annotated
+
+          from fastapi import APIRouter, Depends, HTTPException, status
+          from fastapi.security import OAuth2PasswordRequestForm
+          from sqlmodel import select
+
+          from ..db import SessionDep
+          from ..models import Token, User, UserCreate, UserPublic
+          from ..security import (
+              DUMMY_HASH,
+              CurrentUser,
+              create_access_token,
+              hash_password,
+              verify_password,
+          )
+
+          logger = logging.getLogger("notes")
+          router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+          @router.post("/register", status_code=status.HTTP_201_CREATED)
+          def register(data: UserCreate, session: SessionDep) -> UserPublic:
+              email = data.email.lower()
+              if session.exec(select(User).where(User.email == email)).first():
+                  raise HTTPException(status_code=409, detail="Email already registered")
+              user = User(email=email, hashed_password=hash_password(data.password))
+              session.add(user)
+              session.commit()
+              session.refresh(user)
+              logger.info("new user registered: id=%s", user.id)  # the id, never the password
+              return user
+
+
+          @router.post("/token")
+          def login(
+              form: Annotated[OAuth2PasswordRequestForm, Depends()], session: SessionDep
+          ) -> Token:
+              # The form field is called "username" by the OAuth2 standard; we put the email in it.
+              user = session.exec(select(User).where(User.email == form.username.lower())).first()
+              if user is None:
+                  verify_password(form.password, DUMMY_HASH)  # same time as a wrong password
+                  valid = False
+              else:
+                  valid = verify_password(form.password, user.hashed_password)
+              if user is None or not valid:
+                  raise HTTPException(
+                      status_code=status.HTTP_401_UNAUTHORIZED,
+                      detail="Incorrect email or password",
+                      headers={"WWW-Authenticate": "Bearer"},
+                  )
+              assert user.id is not None
+              return Token(access_token=create_access_token(user.id))
+
+
+          @router.get("/me")
+          def me(user: CurrentUser) -> UserPublic:
+              return user
+      - file: tests/test_health.py
+        lang: python
+        text: |
+          from fastapi.testclient import TestClient
+
+
+          def test_health_is_ok_and_needs_no_login(client: TestClient):
+              response = client.get("/health")
+              assert response.status_code == 200
+              assert response.json() == {"status": "ok", "version": "1.0.0"}
+    mistakes:
+      - problem:
+          en: "A health check that always answers \"ok\" without touching the database."
+          tr: "Veritabanına hiç dokunmadan hep \"ok\" cevabı veren bir sağlık kontrolü."
+        fix:
+          en: "Do one tiny query (`SELECT 1`) and answer 503 when it fails, as `/health` does. Otherwise the host thinks a broken app is healthy."
+          tr: "Küçücük bir sorgu çalıştır (`SELECT 1`) ve başarısız olursa 503 döndür, `/health`'in yaptığı gibi. Aksi halde barındırıcı bozuk bir uygulamayı sağlıklı sanar."
+      - problem:
+          en: "The health check answers 401."
+          tr: "Sağlık kontrolü 401 cevabı veriyor."
+        fix:
+          en: "Do not add `CurrentUser` to `/health`. The host has no token, so it would think your app is down."
+          tr: "`/health`'e `CurrentUser` ekleme. Barındırıcıda token yok; uygulamanın çöktüğünü sanır."
+      - problem:
+          en: "Passwords, tokens or full emails appear in the logs."
+          tr: "Loglarda şifreler, token'lar ya da tam e-postalar görünüyor."
+        fix:
+          en: "Log ids and counts, never secrets. Logs are copied to other places and read by more people than your database."
+          tr: "Id'leri ve sayıları logla, gizli bilgileri asla. Loglar başka yerlere kopyalanır ve veritabanından daha fazla kişi tarafından okunur."
+    quiz:
+      - q:
+          en: "Why should `/health` not need a login?"
+          tr: "`/health` neden giriş istememeli?"
+        options:
+          en:
+            - "Login makes the answer slower than a second"
+            - "The host calling it has no token and must still be able to check the app"
+            - "FastAPI does not allow login on small endpoints"
+          tr:
+            - "Giriş cevabı bir saniyeden yavaşlatır"
+            - "Onu çağıran barındırıcıda token yok ve yine de uygulamayı kontrol edebilmeli"
+            - "FastAPI küçük endpoint'lerde girişe izin vermez"
+        answer: 1
+        why:
+          en: "A health check is an automatic caller. It must be public, cheap and say nothing secret: just \"ok\" and a version."
+          tr: "Sağlık kontrolünü çağıran otomatik bir istemcidir. Herkese açık, ucuz olmalı ve gizli bir şey söylememeli: sadece \"ok\" ve bir sürüm."
+    sources:
+      - title: Render, health checks
+        url: https://render.com/docs/health-checks
+      - title: Python logging HOWTO
+        url: https://docs.python.org/3/howto/logging.html
+      - title: FastAPI, handling errors
+        url: https://fastapi.tiangolo.com/tutorial/handling-errors/
+
+  - id: export-next
+    stage: advanced
+    title:
+      en: "Stream an export and plan the next steps"
+      tr: "Dışa aktarmayı akıtma ve sonraki adımları planlama"
+    minutes: 35
+    needs: [health-logs]
+    why:
+      en: "Your API is complete and live. This last step adds a feature that only newer FastAPI can do in a few lines, an export that sends notes one by one, and then shows what to learn next to make the API ready for real users."
+      tr: "API'n tamam ve canlıda. Bu son adım, sadece yeni FastAPI'nin birkaç satırda yapabildiği bir özellik ekler: notları tek tek gönderen bir dışa aktarma. Sonra API'yi gerçek kullanıcılara hazırlamak için sırada ne öğreneceğini gösterir."
+    learn:
+      en: |
+        - **Streaming**: an endpoint that gives (`yield`s) items one at a time sends them as **JSON Lines**, one JSON object per line, so a huge export never has to fit in memory (FastAPI 0.134 and newer)
+        - Why route order matters: `/notes/export` must be written before `/notes/{note_id}`, or "export" is read as a note id
+        - What to learn next: migrations with Alembic (change tables without losing data), a real database such as PostgreSQL for data that must stay, rate limiting, and a background job queue
+      tr: |
+        - **Streaming**: öğeleri tek tek veren (`yield`) bir endpoint onları **JSON Lines** olarak gönderir, satır başına bir JSON nesnesi; böylece dev bir dışa aktarma belleğe sığmak zorunda kalmaz (FastAPI 0.134 ve yeni)
+        - Route sırasının neden önemli olduğu: `/notes/export`, `/notes/{note_id}`'den önce yazılmalı, yoksa "export" bir not id'si sanılır
+        - Sırada ne öğreneceğin: Alembic ile migration (tabloları veri kaybetmeden değiştirme), kalması gereken veri için PostgreSQL gibi gerçek bir veritabanı, rate limiting ve arka plan iş kuyruğu
+    do:
+      en: |
+        1. Replace `app/routers/notes.py` with the code below. The new `export_notes` function sits above `read_note` and returns an iterator of notes.
+        2. Add `tests/test_export.py` and run `uv run pytest`. You should see `22 passed`.
+        3. Start the server, log in with **Authorize**, create a few notes and call `GET /notes/export`. Each note is its own line.
+        4. Move `export_notes` below `read_note` and call it again: it answers 422 because "export" is not a number. Put it back.
+        5. Commit and push: `git add .`, `git commit -m "Export notes as JSON Lines"`, `git push`. Render deploys it.
+        6. Plan the next steps. To keep data on the free tier, create a Render Postgres database (free ones expire after 30 days, so check the current rules) or any other hosted PostgreSQL, add `psycopg[binary]` with `uv add`, regenerate `requirements.txt`, and set the `DATABASE_URL` environment variable to its address in the form `postgresql+psycopg://...`. The code already reads `DATABASE_URL` from the settings. Add Alembic before you change tables in a real database.
+      tr: |
+        1. `app/routers/notes.py` dosyasını aşağıdaki kodla değiştir. Yeni `export_notes` fonksiyonu `read_note`'un üstünde durur ve notların bir iterator'ını döndürür.
+        2. `tests/test_export.py` dosyasını ekle ve `uv run pytest` çalıştır. `22 passed` görmelisin.
+        3. Sunucuyu başlat, **Authorize** ile giriş yap, birkaç not oluştur ve `GET /notes/export` çağır. Her not ayrı bir satırdır.
+        4. `export_notes`'u `read_note`'un altına taşı ve tekrar çağır: "export" bir sayı olmadığı için 422 verir. Geri koy.
+        5. Kaydet ve push et: `git add .`, `git commit -m "Export notes as JSON Lines"`, `git push`. Render deploy eder.
+        6. Sonraki adımları planla. Ücretsiz planda veriyi saklamak için bir Render Postgres veritabanı oluştur (ücretsiz olanlar 30 gün sonra sona erer, güncel kurallara bak) ya da başka bir barındırılan PostgreSQL kullan, `uv add` ile `psycopg[binary]` ekle, `requirements.txt`'i yeniden üret ve `DATABASE_URL` ortam değişkenini `postgresql+psycopg://...` biçimindeki adresine ayarla. Kod `DATABASE_URL`'yi zaten ayarlardan okuyor. Gerçek bir veritabanında tabloları değiştirmeden önce Alembic ekle.
+    code:
+      - file: app/routers/notes.py
+        lang: python
+        text: |
+          from collections.abc import Iterator
+          from typing import Annotated
+
+          from fastapi import APIRouter, HTTPException, Query, status
+          from sqlmodel import col, select
+
+          from ..db import SessionDep
+          from ..models import Note, NoteCreate, NotePublic, NoteUpdate, User
+          from ..security import CurrentUser
+
+          router = APIRouter(prefix="/notes", tags=["notes"])
+
+
+          def get_own_note(session: SessionDep, note_id: int, user: User) -> Note:
+              note = session.get(Note, note_id)
+              # Someone else's note gets the same 404 as a missing one, so ids are not revealed.
+              if note is None or note.owner_id != user.id:
+                  raise HTTPException(status_code=404, detail="Note not found")
+              return note
+
+
+          @router.post("", status_code=status.HTTP_201_CREATED)
+          def create_note(note: NoteCreate, session: SessionDep, user: CurrentUser) -> NotePublic:
+              db_note = Note.model_validate(note, update={"owner_id": user.id})
+              session.add(db_note)
+              session.commit()
+              session.refresh(db_note)
+              return db_note
+
+
+          @router.get("")
+          def list_notes(
+              session: SessionDep,
+              user: CurrentUser,
+              done: bool | None = None,
+              q: Annotated[str | None, Query(max_length=50)] = None,
+              offset: Annotated[int, Query(ge=0)] = 0,
+              limit: Annotated[int, Query(ge=1, le=100)] = 20,
+          ) -> list[NotePublic]:
+              statement = select(Note).where(Note.owner_id == user.id)
+              if done is not None:
+                  statement = statement.where(Note.done == done)
+              if q:
+                  statement = statement.where(col(Note.title).contains(q))
+              statement = statement.order_by(col(Note.id)).offset(offset).limit(limit)
+              return list(session.exec(statement).all())
+
+
+          # This route must come BEFORE /{note_id}, or "export" would be read as a note id.
+          @router.get("/export")
+          def export_notes(session: SessionDep, user: CurrentUser) -> Iterator[NotePublic]:
+              """Every note of the user, sent one by one as JSON Lines."""
+              statement = select(Note).where(Note.owner_id == user.id).order_by(col(Note.id))
+              for note in session.exec(statement):
+                  yield NotePublic.model_validate(note)
+
+
+          @router.get("/{note_id}")
+          def read_note(note_id: int, session: SessionDep, user: CurrentUser) -> NotePublic:
+              return get_own_note(session, note_id, user)
+
+
+          @router.patch("/{note_id}")
+          def update_note(
+              note_id: int, changes: NoteUpdate, session: SessionDep, user: CurrentUser
+          ) -> NotePublic:
+              note = get_own_note(session, note_id, user)
+              note.sqlmodel_update(changes.model_dump(exclude_unset=True, exclude_none=True))
+              session.add(note)
+              session.commit()
+              session.refresh(note)
+              return note
+
+
+          @router.delete("/{note_id}", status_code=status.HTTP_204_NO_CONTENT)
+          def delete_note(note_id: int, session: SessionDep, user: CurrentUser) -> None:
+              note = get_own_note(session, note_id, user)
+              session.delete(note)
+              session.commit()
+      - file: tests/test_export.py
+        lang: python
+        text: |
+          import json
+
+          from fastapi.testclient import TestClient
+
+
+          def test_export_streams_one_json_object_per_line(client: TestClient, auth: dict):
+              for title in ["First", "Second", "Third"]:
+                  client.post("/notes", json={"title": title}, headers=auth)
+
+              response = client.get("/notes/export", headers=auth)
+
+              assert response.status_code == 200
+              lines = response.text.splitlines()
+              assert [json.loads(line)["title"] for line in lines] == ["First", "Second", "Third"]
+    mistakes:
+      - problem:
+          en: "`GET /notes/export` answers 422 \"Input should be a valid integer\"."
+          tr: "`GET /notes/export` 422 \"Input should be a valid integer\" cevabı veriyor."
+        fix:
+          en: "The route `/notes/{note_id}` is declared first and catches \"export\". Declare fixed paths before paths with parameters."
+          tr: "`/notes/{note_id}` route'u önce tanımlanmış ve \"export\"u yakalıyor. Sabit path'leri parametreli path'lerden önce tanımla."
+      - problem:
+          en: "A client expects one JSON array but gets lines."
+          tr: "İstemci tek bir JSON dizisi bekliyor ama satırlar geliyor."
+        fix:
+          en: "JSON Lines is one JSON object per line (`application/jsonl`). Read it line by line, and use `GET /notes` when you want a normal list."
+          tr: "JSON Lines satır başına bir JSON nesnesidir (`application/jsonl`). Satır satır oku; normal liste istiyorsan `GET /notes` kullan."
+    quiz:
+      - q:
+          en: "Why is a streamed export better than returning one big list for a user with a million notes?"
+          tr: "Bir milyon notu olan kullanıcı için akıtılan dışa aktarma neden tek büyük liste döndürmekten iyi?"
+        options:
+          en:
+            - "Streaming makes the database faster"
+            - "JSON Lines is encrypted"
+            - "The server sends notes as it reads them and does not hold them all in memory"
+          tr:
+            - "Streaming veritabanını hızlandırır"
+            - "JSON Lines şifrelidir"
+            - "Sunucu notları okudukça gönderir ve hepsini bellekte tutmaz"
+        answer: 2
+        why:
+          en: "Memory use stays small and the client can start reading before the end."
+          tr: "Bellek kullanımı küçük kalır ve istemci bitmeden okumaya başlayabilir."
+    sources:
+      - title: Stream JSON Lines
+        url: https://fastapi.tiangolo.com/tutorial/stream-json-lines/
+      - title: Alembic tutorial (database migrations)
+        url: https://alembic.sqlalchemy.org/en/latest/tutorial.html
+      - title: FastAPI release notes
+        url: https://fastapi.tiangolo.com/release-notes/

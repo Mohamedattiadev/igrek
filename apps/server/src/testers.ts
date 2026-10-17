@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from "node:
 import { dirname, join } from "node:path";
 import {
   BUILTIN_TESTERS,
+  type InboxNotice,
   type Settings,
   scrub,
   summarizeRun,
@@ -49,6 +50,18 @@ const NOT_FOR_SCREEN_READER = new Set([
 const MCP_NAME = "browser";
 const MAX_COPIES = 10;
 const MAX_SESSIONS = 50;
+/** Automatic repeats wait at least this long after the last run: each run costs model time. */
+const AUTO_GAP = 2 * 60 * 60_000;
+
+function headCommit(path: string): string | undefined {
+  if (!existsSync(join(path, ".git"))) return undefined;
+  const p = Bun.spawnSync(["git", "-C", path, "rev-parse", "--short=12", "HEAD"], {
+    stdout: "pipe",
+    stderr: "ignore",
+    timeout: 10_000,
+  });
+  return p.exitCode === 0 ? p.stdout.toString().trim() || undefined : undefined;
+}
 const SESSION_TIMEOUT_MS = 12 * 60_000;
 
 const BROWSERS = [
@@ -370,6 +383,8 @@ Reply with JSON only (English):
     projectId?: string | null;
     model?: string;
     previousId?: string;
+    autoRepeat?: boolean;
+    autoFrom?: string;
   }): TesterRun {
     const tools = this.tools();
     if (!tools.mcp) throw new Error("The browser tool is missing; run bun install");
@@ -386,9 +401,11 @@ Reply with JSON only (English):
       for (let copy = 1; copy <= copies && sessions.length < MAX_SESSIONS; copy++)
         sessions.push({ profileId, copy, status: "waiting", steps: [], screenshots: [] });
     const now = Date.now();
+    const project = args.projectId ? this.store.projectRow(args.projectId) : undefined;
+    const commit = project ? headCommit(project.path) : undefined;
     const run: TesterRun = {
       id: crypto.randomUUID().slice(0, 12),
-      projectId: args.projectId && this.store.projectRow(args.projectId) ? args.projectId : null,
+      projectId: project ? project.id : null,
       url: target.url,
       task,
       profiles: ids,
@@ -396,6 +413,9 @@ Reply with JSON only (English):
       status: "running",
       sessions,
       ...(args.previousId ? { previousId: args.previousId } : {}),
+      ...(project && args.autoRepeat ? { autoRepeat: true } : {}),
+      ...(commit ? { commit } : {}),
+      ...(args.autoFrom ? { autoFrom: args.autoFrom } : {}),
       createdAt: now,
       updatedAt: now,
     };
@@ -410,14 +430,94 @@ Reply with JSON only (English):
   repeat(id: string): TesterRun {
     const old = this.get(id);
     if (!old) throw new Error("Run not found");
-    return this.start({
+    const run = this.start({
       url: old.url,
       task: old.task,
       profileIds: old.profiles,
       copies: old.copies,
       projectId: old.projectId,
       previousId: old.id,
+      autoRepeat: old.autoRepeat,
     });
+    if (old.autoRepeat) {
+      old.autoRepeat = undefined;
+      this.save(old);
+    }
+    return run;
+  }
+
+  /** Turn "test again after each new commit" on or off; only for tests that belong to a project. */
+  setAutoRepeat(id: string, on: boolean): TesterRun {
+    const run = this.get(id);
+    if (!run) throw new Error("Run not found");
+    if (on && !run.projectId) throw new Error("Only tests of a project can repeat after its commits");
+    run.autoRepeat = on || undefined;
+    if (on) run.commit ??= headCommit(this.store.projectRow(run.projectId as string)?.path ?? "");
+    this.save(run);
+    return run;
+  }
+
+  /**
+   * Called every minute (plan.md 6.1b): a test marked to repeat runs again, same people and task,
+   * once the project has a new commit. Never while another test of the project runs, and at most
+   * once every two hours, since each run costs model time. The new run carries the mark on.
+   */
+  tick(now = Date.now()): string[] {
+    const started: string[] = [];
+    const runs = this.list();
+    for (const run of runs) {
+      if (!run.autoRepeat || !run.projectId || run.status === "running") continue;
+      if (now - run.updatedAt < AUTO_GAP) continue;
+      if (runs.some((r) => r.projectId === run.projectId && r.status === "running")) continue;
+      const project = this.store.projectRow(run.projectId);
+      const head = project ? headCommit(project.path) : undefined;
+      if (!head || head === run.commit) continue;
+      try {
+        const next = this.start({
+          url: run.url,
+          task: run.task,
+          profileIds: run.profiles,
+          copies: run.copies,
+          projectId: run.projectId,
+          previousId: run.id,
+          autoRepeat: true,
+          autoFrom: head,
+        });
+        run.autoRepeat = undefined;
+        this.save(run);
+        started.push(next.id);
+      } catch (err) {
+        console.error(`tester ${run.id}: ${(err as Error).message}`);
+      }
+    }
+    return started;
+  }
+
+  /** Inbox: an automatic repeat that went worse than the run before it (last week). */
+  notices(now = Date.now()): InboxNotice[] {
+    const out: InboxNotice[] = [];
+    for (const run of this.list()) {
+      if (!run.autoFrom || !run.previousId || !run.projectId || run.status === "running") continue;
+      if (now - run.updatedAt > 7 * 24 * 60 * 60_000) continue;
+      const before = this.get(run.previousId)?.summary;
+      const after = run.summary;
+      if (!before || !after) continue;
+      const aunt = typeof before.aunt === "number" && typeof after.aunt === "number" && after.aunt < before.aunt;
+      const success = after.success < before.success;
+      if (!aunt && !success) continue;
+      out.push({
+        id: `regression:${run.id}`,
+        kind: "regression",
+        projectId: run.projectId,
+        projectName: this.store.projectRow(run.projectId)?.name ?? "",
+        detail: aunt
+          ? `${before.aunt} → ${after.aunt}`
+          : `${Math.round(before.success * 100)}% → ${Math.round(after.success * 100)}%`,
+        at: run.updatedAt,
+        link: `/test-runs/${run.id}`,
+      });
+    }
+    return out;
   }
 
   stop(id: string): void {

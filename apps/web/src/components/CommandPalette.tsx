@@ -1,15 +1,28 @@
 import type { AskAnswer, ProjectListItem, SearchHit } from "@godeye/core";
+import type { LearnHit } from "@godeye/learn";
 import { Command } from "cmdk";
 import type { LucideIcon } from "lucide-react";
-import { Compass, Contrast, FolderKanban, Maximize2, MessageSquare, Rows3, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Compass,
+  Contrast,
+  FolderKanban,
+  Map as MapIcon,
+  Maximize2,
+  MessageSquare,
+  Rows3,
+  Sparkles,
+} from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
+import { learnApi } from "../lib/learn-api";
 import { useSettings } from "../lib/settings";
 import { startTour } from "../lib/tour";
 import { toggleZen } from "../lib/zen";
+import { hitLink } from "../pages/learn/Learn";
 import { NAV_ITEMS } from "./nav";
 import { Kbd } from "./ui";
 
@@ -62,12 +75,13 @@ function Item({
 }
 
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { settings, update } = useSettings();
   const [query, setQuery] = useState("");
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [hits, setHits] = useState<SearchHit[]>([]);
+  const [learnHits, setLearnHits] = useState<LearnHit[]>([]);
   const [answer, setAnswer] = useState<AskAnswer | "loading">();
 
   const ask = async (question: string) => {
@@ -93,6 +107,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
     const q = query.trim();
     if (q.length < 2) {
       setHits([]);
+      setLearnHits([]);
       return;
     }
     const timer = setTimeout(() => {
@@ -100,9 +115,13 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         .search(q)
         .then(setHits)
         .catch(() => setHits([]));
+      learnApi
+        .search(q, i18n.language)
+        .then((list) => setLearnHits(list.slice(0, 5)))
+        .catch(() => setLearnHits([]));
     }, 150);
     return () => clearTimeout(timer);
-  }, [query]);
+  }, [query, i18n.language]);
 
   const run = (action: () => void) => {
     onOpenChange(false);
@@ -200,6 +219,20 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
                   </p>
                 </div>
               </Command.Item>
+            ))}
+          </Command.Group>
+        )}
+        {learnHits.length > 0 && (
+          <Command.Group heading={t("nav.learn")} className={GROUP}>
+            {learnHits.map((h) => (
+              <Item
+                key={`${h.kind}:${h.sheet ?? h.roadmap ?? ""}:${h.id}`}
+                icon={h.kind === "step" ? MapIcon : BookOpen}
+                label={`${h.title} · ${h.kind === "item" ? h.sheet : h.snippet}`}
+                value={`learn-${h.kind}-${h.sheet ?? h.roadmap ?? ""}-${h.id}`}
+                keywords={[query]}
+                onSelect={() => run(() => navigate(hitLink(h)))}
+              />
             ))}
           </Command.Group>
         )}

@@ -1,0 +1,607 @@
+id: ssh
+title: SSH
+category: tool
+summary:
+  en: Log in to other machines securely, use keys instead of passwords, forward ports and copy files with scp and rsync.
+  tr: Başka makinelere güvenle bağlanmak, şifre yerine anahtar kullanmak, port yönlendirmek ve scp ile rsync'le dosya kopyalamak için.
+aliases: [openssh, ssh key, ssh-keygen, scp, rsync, sftp, tunnel, port forwarding, jump host, bastion, ssh anahtarı, tünel, uzak sunucu]
+version: "10.6"
+checked: 2026-10
+sources:
+  - title: OpenSSH manual pages
+    url: https://www.openssh.com/manual.html
+  - title: OpenSSH release notes
+    url: https://www.openssh.com/releasenotes.html
+  - title: rsync manual
+    url: https://download.samba.org/pub/rsync/rsync.1
+roadmap: linux-server
+sections:
+  - id: connect
+    title: { en: Connecting, tr: Bağlanma }
+    items:
+      - id: ssh-login
+        level: basic
+        title: { en: Log in to a server, tr: Sunucuya bağlanma }
+        what:
+          en: Opens a shell on another machine over an encrypted connection.
+          tr: Şifreli bir bağlantı üzerinden başka bir makinede shell açar.
+        lang: sh
+        form: ssh user@host
+        example: |
+          ssh deploy@203.0.113.10
+          ssh -p 2222 deploy@example.com   # server listens on another port
+        mistake:
+          en: Writing the port as host:2222; ssh does not read that form. Use -p 2222 or Port in ~/.ssh/config.
+          tr: Portu host:2222 diye yazmak; ssh bu biçimi okumaz. -p 2222 ya da ~/.ssh/config içinde Port kullan.
+        source: https://man.openbsd.org/ssh
+      - id: remote-command
+        level: basic
+        title: { en: Run one command remotely, tr: Uzakta tek bir komut çalıştırma }
+        what:
+          en: Put a command after the host and ssh runs it there, prints the result and disconnects.
+          tr: Host'tan sonra bir komut yazarsan ssh onu orada çalıştırır, sonucu yazdırır ve bağlantıyı kapatır.
+        lang: sh
+        form: ssh host 'command'
+        example: |
+          ssh web 'df -h / && uptime'
+          ssh -t web 'sudo journalctl -u nginx -f'   # -t for commands that need a terminal
+        mistake:
+          en: Using double quotes around a command with $VAR; your local shell fills it in before it is sent. Use single quotes.
+          tr: $VAR içeren bir komutu çift tırnakla yazmak; yerel shell'in onu göndermeden önce doldurur. Tek tırnak kullan.
+        source: https://man.openbsd.org/ssh#t
+      - id: host-key
+        level: basic
+        title: { en: The first-connection question, tr: İlk bağlantıdaki soru }
+        what:
+          en: On the first login ssh shows the server's key fingerprint and saves it in ~/.ssh/known_hosts to spot fake servers later.
+          tr: İlk girişte ssh sunucunun anahtar parmak izini gösterir ve sahte sunucuları sonra fark etmek için ~/.ssh/known_hosts'a kaydeder.
+        lang: sh
+        form: ssh -o StrictHostKeyChecking=accept-new host
+        example: |
+          # on the server, show the real fingerprint to compare:
+          ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+        mistake:
+          en: Typing yes without comparing the fingerprint, or turning the check off with StrictHostKeyChecking=no.
+          tr: Parmak izini karşılaştırmadan yes yazmak ya da kontrolü StrictHostKeyChecking=no ile kapatmak.
+        source: https://man.openbsd.org/ssh#VERIFYING_HOST_KEYS
+      - id: known-hosts-reset
+        level: basic
+        title: { en: '"Remote host identification has changed"', tr: '"Remote host identification has changed" uyarısı' }
+        what:
+          en: When a server is reinstalled its key changes; ssh-keygen -R removes the old entry so you can accept the new one.
+          tr: Sunucu yeniden kurulunca anahtarı değişir; ssh-keygen -R eski kaydı siler, böylece yenisini kabul edebilirsin.
+        lang: sh
+        form: ssh-keygen -R <host>
+        example: |
+          echo "web.example.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" > known_hosts
+          ssh-keygen -F web.example.com -f known_hosts >/dev/null && echo "known"
+          ssh-keygen -R web.example.com -f known_hosts >/dev/null 2>&1
+          ssh-keygen -F web.example.com -f known_hosts >/dev/null || echo "removed"
+        output: |
+          known
+          removed
+        check: sh
+        mistake:
+          en: Removing the entry without asking why the key changed; if nobody reinstalled the server, this warning can mean an attack.
+          tr: Anahtarın neden değiştiğini sormadan kaydı silmek; sunucuyu kimse yeniden kurmadıysa bu uyarı bir saldırı demek olabilir.
+        source: https://man.openbsd.org/ssh-keygen#R
+      - id: escape
+        level: basic
+        title: { en: Leave a frozen session, tr: Donmuş oturumdan çıkma }
+        what:
+          en: When the connection hangs, press Enter, then ~ and . to close it from your side.
+          tr: Bağlantı donduğunda Enter'a, sonra ~ ve . tuşlarına bas; bağlantı senin tarafından kapanır.
+        lang: text
+        form: Enter ~ .
+        example: |
+          Enter ~ .    close the connection
+          Enter ~ ?    list all escape commands
+        avoid:
+          en: To stop sessions from freezing at all, set ServerAliveInterval 60 in your config.
+          tr: Oturumların hiç donmaması için config'e ServerAliveInterval 60 ekle.
+        source: https://man.openbsd.org/ssh#ESCAPE_CHARACTERS
+      - id: verbose
+        level: basic
+        title: { en: Find out why login fails, tr: Girişin neden başarısız olduğunu bulma }
+        what:
+          en: -v prints every step of the connection, such as which keys are tried and what the server answers.
+          tr: -v bağlantının her adımını yazdırır; hangi anahtarların denendiğini ve sunucunun ne cevap verdiğini görürsün.
+        lang: sh
+        form: ssh -v host
+        example: |
+          ssh -v deploy@web 2>&1 | grep -iE 'offering|authenticat'
+          ssh -vvv deploy@web    # even more detail
+        mistake:
+          en: Only looking at the client; the server side reason is in its log (journalctl -u ssh or -u sshd).
+          tr: Sadece istemciye bakmak; sunucu tarafındaki sebep onun log'undadır (journalctl -u ssh ya da -u sshd).
+        source: https://man.openbsd.org/ssh#v
+  - id: keys
+    title: { en: Keys, tr: Anahtarlar }
+    items:
+      - id: keygen
+        level: basic
+        title: { en: Create a key pair, tr: Anahtar çifti oluşturma }
+        what:
+          en: Makes a private key (keep it secret) and a .pub public key (put it on servers).
+          tr: Gizli tutacağın bir private key ve sunuculara koyacağın .pub uzantılı bir public key oluşturur.
+        lang: sh
+        form: ssh-keygen -t ed25519 -C "you@laptop"
+        example: |
+          ssh-keygen -t ed25519 -C "ada@laptop" -f ./id_ed25519 -N "" -q
+          ls
+          cut -d' ' -f1,3 id_ed25519.pub
+          stat -c '%a %n' id_ed25519 id_ed25519.pub
+        output: |
+          id_ed25519
+          id_ed25519.pub
+          ssh-ed25519 ada@laptop
+          600 id_ed25519
+          644 id_ed25519.pub
+        check: sh
+        mistake:
+          en: Leaving the passphrase empty on a laptop key; anyone who copies the file can use it. Set one and let ssh-agent remember it.
+          tr: Laptop'taki anahtarın passphrase'ini boş bırakmak; dosyayı kopyalayan herkes onu kullanabilir. Bir passphrase koy, ssh-agent hatırlasın.
+        since: "9.5"
+        older:
+          en: Since OpenSSH 9.5 plain ssh-keygen makes an Ed25519 key; older versions made RSA, so pass -t ed25519 there.
+          tr: OpenSSH 9.5'ten beri düz ssh-keygen Ed25519 anahtar üretir; eski sürümler RSA üretirdi, orada -t ed25519 ver.
+        source: https://man.openbsd.org/ssh-keygen
+      - id: copy-id
+        level: basic
+        title: { en: Put your key on a server, tr: Anahtarını sunucuya koyma }
+        what:
+          en: ssh-copy-id adds your public key to the server's ~/.ssh/authorized_keys, so the next login needs no password.
+          tr: ssh-copy-id public key'ini sunucudaki ~/.ssh/authorized_keys dosyasına ekler; sonraki girişte şifre gerekmez.
+        lang: sh
+        form: ssh-copy-id -i ~/.ssh/id_ed25519.pub user@host
+        example: |
+          ssh-copy-id -i ~/.ssh/id_ed25519.pub deploy@203.0.113.10
+          ssh deploy@203.0.113.10    # now logs in with the key
+        mistake:
+          en: Copying the private key (the file without .pub) to the server; only the .pub file ever leaves your machine.
+          tr: Private key'i (.pub olmayan dosyayı) sunucuya kopyalamak; makinenden sadece .pub dosyası çıkar.
+        source: https://man7.org/linux/man-pages/man1/ssh-copy-id.1.html
+      - id: authorized-keys
+        level: intermediate
+        title: { en: Add a key by hand, tr: Anahtarı elle ekleme }
+        what:
+          en: Each line of ~/.ssh/authorized_keys is one public key allowed to log in as that user.
+          tr: ~/.ssh/authorized_keys dosyasının her satırı, o kullanıcı olarak girmesine izin verilen bir public key'dir.
+        lang: sh
+        form: cat key.pub >> ~/.ssh/authorized_keys
+        example: |
+          ssh-keygen -t ed25519 -f ./laptop -N "" -q
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          cat laptop.pub >> ~/.ssh/authorized_keys
+          chmod 600 ~/.ssh/authorized_keys
+          stat -c '%a' ~/.ssh ~/.ssh/authorized_keys
+          wc -l < ~/.ssh/authorized_keys
+        output: |
+          700
+          600
+          1
+        check: sh
+        mistake:
+          en: Group- or world-writable ~/.ssh or authorized_keys; sshd then ignores the keys and asks for a password.
+          tr: ~/.ssh ya da authorized_keys'in gruba veya herkese yazılabilir olması; sshd anahtarları yok sayar ve şifre ister.
+        source: https://man.openbsd.org/sshd#AUTHORIZED_KEYS_FILE_FORMAT
+      - id: public-from-private
+        level: intermediate
+        title: { en: Get the public key back, tr: Public key'i geri alma }
+        what:
+          en: ssh-keygen -y prints the public key of a private key, if you lost the .pub file.
+          tr: .pub dosyasını kaybettiysen ssh-keygen -y bir private key'in public key'ini yazdırır.
+        lang: sh
+        form: ssh-keygen -y -f ~/.ssh/id_ed25519 > id_ed25519.pub
+        example: |
+          ssh-keygen -t ed25519 -f ./key -N "" -q
+          ssh-keygen -y -f ./key > again.pub
+          [ "$(cut -d' ' -f2 key.pub)" = "$(cut -d' ' -f2 again.pub)" ] && echo "same key"
+        output: |
+          same key
+        check: sh
+        source: https://man.openbsd.org/ssh-keygen#y
+      - id: passphrase
+        level: intermediate
+        title: { en: Change a key's passphrase, tr: Anahtarın passphrase'ini değiştirme }
+        what:
+          en: ssh-keygen -p sets, changes or removes the passphrase without changing the key itself.
+          tr: ssh-keygen -p anahtarın kendisini değiştirmeden passphrase'i koyar, değiştirir ya da kaldırır.
+        lang: sh
+        form: ssh-keygen -p -f ~/.ssh/id_ed25519
+        example: |
+          ssh-keygen -t ed25519 -f ./key -N "" -q
+          ssh-keygen -p -f ./key -P "" -N "new secret" >/dev/null
+          ssh-keygen -y -P "new secret" -f ./key | cut -d' ' -f1
+        output: |
+          ssh-ed25519
+        check: sh
+        source: https://man.openbsd.org/ssh-keygen#p
+      - id: fingerprint
+        level: intermediate
+        title: { en: Show a key's fingerprint, tr: Anahtarın parmak izini görme }
+        what:
+          en: ssh-keygen -l prints a short fingerprint you can compare to tell keys apart.
+          tr: ssh-keygen -l, anahtarları ayırt etmek için karşılaştırabileceğin kısa bir parmak izi yazdırır.
+        lang: sh
+        form: ssh-keygen -lf key.pub
+        example: |
+          ssh-keygen -t ed25519 -C "ada@laptop" -f ./key -N "" -q
+          ssh-keygen -lf key.pub | awk '{ print $1, $3, $4 }'
+          ssh-keygen -lf key.pub | cut -d' ' -f2 | cut -d: -f1
+        output: |
+          256 ada@laptop (ED25519)
+          SHA256
+        check: sh
+        source: https://man.openbsd.org/ssh-keygen#l
+  - id: agent
+    title: { en: ssh-agent, tr: ssh-agent }
+    items:
+      - id: ssh-add
+        level: basic
+        title: { en: Type the passphrase once, tr: Passphrase'i bir kez yazma }
+        what:
+          en: ssh-agent keeps your unlocked keys in memory; ssh-add gives it a key, ssh-add -l lists them.
+          tr: ssh-agent kilidi açılmış anahtarlarını bellekte tutar; ssh-add ona bir anahtar verir, ssh-add -l onları listeler.
+        lang: sh
+        form: eval "$(ssh-agent -s)" && ssh-add ~/.ssh/id_ed25519
+        example: |
+          ssh-keygen -t ed25519 -C "ada@laptop" -f ./key -N "" -q
+          ssh-agent -a ./agent.sock bash -c '
+            ssh-add -q ./key
+            ssh-add -l | cut -d" " -f3-
+            ssh-add -D -q
+            ssh-add -l || echo "exit $?"
+          '
+        output: |
+          ada@laptop (ED25519)
+          The agent has no identities.
+          exit 1
+        check: sh
+        mistake:
+          en: Starting a new agent in every terminal; most desktops and macOS already run one. Check with echo $SSH_AUTH_SOCK first.
+          tr: Her terminalde yeni bir agent başlatmak; çoğu masaüstü ve macOS zaten bir tane çalıştırır. Önce echo $SSH_AUTH_SOCK ile bak.
+        source: https://man.openbsd.org/ssh-add
+      - id: add-keys-to-agent
+        level: intermediate
+        title: { en: Add keys automatically, tr: Anahtarları otomatik ekleme }
+        what:
+          en: AddKeysToAgent yes in your config puts a key into the agent the first time you use it; -t sets how long it stays.
+          tr: Config'deki AddKeysToAgent yes, bir anahtarı ilk kullandığında agent'a ekler; -t ne kadar kalacağını belirler.
+        lang: text
+        form: AddKeysToAgent yes
+        example: |
+          # ~/.ssh/config
+          Host *
+            AddKeysToAgent 1h
+
+          # or by hand: keep the key for 8 hours
+          ssh-add -t 8h ~/.ssh/id_ed25519
+        source: https://man.openbsd.org/ssh_config#AddKeysToAgent
+      - id: agent-forwarding
+        level: advanced
+        title: { en: Agent forwarding, tr: Agent yönlendirme }
+        what:
+          en: -A lets the server use the keys in your local agent, for example to git pull from there.
+          tr: -A sunucunun yerel agent'ındaki anahtarları kullanmasına izin verir; örneğin oradan git pull yapmak için.
+        lang: sh
+        form: ssh -A host
+        example: |
+          ssh -A web 'git -C /srv/app pull'
+        mistake:
+          en: Turning it on for every host; anyone with root on that server can use your keys while you are connected.
+          tr: Her host için açmak; o sunucuda root olan herkes sen bağlıyken anahtarlarını kullanabilir.
+        avoid:
+          en: To reach a machine behind another one; use ProxyJump (-J), which keeps your keys on your machine.
+          tr: Başka bir makinenin arkasındaki makineye ulaşmak için; anahtarlarını kendi makinende tutan ProxyJump (-J) kullan.
+        source: https://man.openbsd.org/ssh_config#ForwardAgent
+  - id: config
+    title: { en: The config file, tr: Config dosyası }
+    items:
+      - id: host-alias
+        level: basic
+        title: { en: Short names for servers, tr: Sunuculara kısa adlar }
+        what:
+          en: A Host block in ~/.ssh/config stores the address, user, port and key, so ssh web is enough.
+          tr: ~/.ssh/config içindeki bir Host bloğu adresi, kullanıcıyı, portu ve anahtarı saklar; ssh web yazmak yeter.
+        lang: sh
+        form: ssh web
+        example: |
+          cat > config <<'EOF'
+          Host web
+            HostName 203.0.113.10
+            User deploy
+            Port 2222
+            IdentityFile ~/.ssh/id_ed25519_work
+          EOF
+          # -G prints the settings ssh would use, without connecting
+          ssh -F ./config -G web 2>/dev/null | grep -E '^(user|hostname|port) '
+        output: |
+          user deploy
+          hostname 203.0.113.10
+          port 2222
+        check: sh
+        mistake:
+          en: Making ~/.ssh/config writable by others; ssh refuses to use it ("Bad owner or permissions"). Use chmod 600.
+          tr: ~/.ssh/config'i başkalarının yazabileceği hale getirmek; ssh onu kullanmayı reddeder ("Bad owner or permissions"). chmod 600 kullan.
+        source: https://man.openbsd.org/ssh_config#Host
+      - id: first-wins
+        level: intermediate
+        title: { en: The first value wins, tr: İlk değer kazanır }
+        what:
+          en: For each setting ssh keeps the first value it finds, so specific Host blocks go first and Host * goes last.
+          tr: ssh her ayar için bulduğu ilk değeri tutar; bu yüzden özel Host blokları önce, Host * en sona yazılır.
+        lang: text
+        form: Host * at the end of the file
+        example: |
+          cat > config <<'EOF'
+          Host web
+            User deploy
+
+          Host *
+            User admin
+            ServerAliveInterval 60
+          EOF
+          ssh -F ./config -G web 2>/dev/null | grep -E '^(user|serveraliveinterval) '
+          ssh -F ./config -G other 2>/dev/null | grep -E '^user '
+        output: |
+          user deploy
+          serveraliveinterval 60
+          user admin
+        check: sh
+        mistake:
+          en: Putting Host * with User at the top; it then wins over every block below it.
+          tr: User içeren Host *'ı en üste yazmak; altındaki bütün blokların önüne geçer.
+        source: https://man.openbsd.org/ssh_config#DESCRIPTION
+      - id: identities-only
+        level: intermediate
+        title: { en: Use one key per server, tr: Her sunucu için tek anahtar }
+        what:
+          en: IdentitiesOnly yes makes ssh offer only the IdentityFile you named, not every key in the agent.
+          tr: IdentitiesOnly yes, ssh'nin agent'taki her anahtarı değil sadece belirttiğin IdentityFile'ı sunmasını sağlar.
+        lang: text
+        form: IdentitiesOnly yes
+        example: |
+          Host github-work
+            HostName github.com
+            User git
+            IdentityFile ~/.ssh/id_ed25519_work
+            IdentitiesOnly yes
+
+          # then: git clone git@github-work:company/app.git
+        mistake:
+          en: '"Too many authentication failures": the server stopped after ssh offered many wrong keys from the agent. IdentitiesOnly fixes it.'
+          tr: '"Too many authentication failures": ssh agent''tan çok sayıda yanlış anahtar sunduğu için sunucu bağlantıyı kesti. IdentitiesOnly bunu çözer.'
+        source: https://man.openbsd.org/ssh_config#IdentitiesOnly
+      - id: proxyjump
+        level: intermediate
+        title: { en: Jump through a bastion host, tr: Bastion host üzerinden geçme }
+        what:
+          en: ProxyJump (or -J) connects to a private server through a public one in a single step.
+          tr: ProxyJump (ya da -J) özel bir sunucuya, herkese açık başka bir sunucu üzerinden tek adımda bağlanır.
+        lang: sh
+        form: ssh -J bastion private-host
+        example: |
+          cat > config <<'EOF'
+          Host db
+            HostName 10.0.0.5
+            User admin
+            ProxyJump deploy@bastion.example.com
+          EOF
+          ssh -F ./config -G db 2>/dev/null | grep -E '^(hostname|proxyjump) '
+        output: |
+          hostname 10.0.0.5
+          proxyjump deploy@bastion.example.com
+        check: sh
+        since: "7.3"
+        older:
+          en: Before 7.3 the same is ProxyCommand ssh -W %h:%p bastion.
+          tr: 7.3'ten önce aynı iş ProxyCommand ssh -W %h:%p bastion ile yapılır.
+        source: https://man.openbsd.org/ssh_config#ProxyJump
+      - id: keepalive
+        level: basic
+        title: { en: Stop idle sessions from dropping, tr: Boşta kalan oturumların kopmasını önleme }
+        what:
+          en: ServerAliveInterval sends a small message every N seconds so routers do not drop a quiet connection.
+          tr: ServerAliveInterval her N saniyede küçük bir mesaj gönderir; böylece router'lar sessiz bağlantıyı koparmaz.
+        lang: text
+        form: ServerAliveInterval 60
+        example: |
+          Host *
+            ServerAliveInterval 60
+            ServerAliveCountMax 3
+        source: https://man.openbsd.org/ssh_config#ServerAliveInterval
+      - id: multiplexing
+        level: advanced
+        title: { en: Reuse one connection, tr: Tek bağlantıyı tekrar kullanma }
+        what:
+          en: ControlMaster shares one open connection between later ssh, scp and git commands, so they start instantly.
+          tr: ControlMaster açık bir bağlantıyı sonraki ssh, scp ve git komutlarıyla paylaşır; böylece hemen başlarlar.
+        lang: text
+        form: ControlMaster auto
+        example: |
+          Host *
+            ControlMaster auto
+            ControlPath ~/.ssh/cm-%C
+            ControlPersist 10m
+
+          # ssh -O check web    is the shared connection alive?
+          # ssh -O exit web     close it
+        mistake:
+          en: Changing options (like -L forwards) on a later command and seeing no effect; it reuses the old connection. Run ssh -O exit first.
+          tr: Sonraki bir komutta seçenekleri (-L gibi) değiştirip etkisini görmemek; eski bağlantı kullanılır. Önce ssh -O exit çalıştır.
+        source: https://man.openbsd.org/ssh_config#ControlMaster
+      - id: include
+        level: advanced
+        title: { en: Split the config into files, tr: Config'i dosyalara bölme }
+        what:
+          en: Include reads other config files, for example one file per client or project.
+          tr: Include başka config dosyalarını okur; örneğin her müşteri ya da proje için bir dosya.
+        lang: text
+        form: Include config.d/*
+        example: |
+          # first line of ~/.ssh/config
+          Include config.d/*
+
+          Host *
+            ServerAliveInterval 60
+        mistake:
+          en: Putting Include below a Host line; it then only applies to that host. Keep it at the top.
+          tr: Include'u bir Host satırının altına yazmak; o zaman sadece o host için geçerli olur. En üstte tut.
+        since: "7.3"
+        source: https://man.openbsd.org/ssh_config#Include
+  - id: tunnels
+    title: { en: Tunnels, tr: Tüneller }
+    items:
+      - id: local-forward
+        level: intermediate
+        title: { en: Reach a remote port locally, tr: Uzak bir porta yerelden ulaşma }
+        what:
+          en: -L opens a port on your machine that leads to a port the server can reach, like a database that is not public.
+          tr: -L senin makinende, sunucunun ulaşabildiği bir porta (dışarıya kapalı bir veritabanı gibi) giden bir port açar.
+        lang: sh
+        form: ssh -N -L <local-port>:<target>:<target-port> host
+        example: |
+          ssh -N -L 5433:localhost:5432 db-server
+          # in another terminal: the remote PostgreSQL is now at localhost:5433
+          psql -h localhost -p 5433 -U app
+        mistake:
+          en: Reading localhost in the -L part as your own machine; it is resolved on the server.
+          tr: -L kısmındaki localhost'u kendi makinen sanmak; o adres sunucu tarafında çözülür.
+        source: https://man.openbsd.org/ssh#L
+      - id: remote-forward
+        level: advanced
+        title: { en: Show a local port to the server, tr: Yerel bir portu sunucuya açma }
+        what:
+          en: -R opens a port on the server that leads back to a port on your machine, for example a dev app on :3000.
+          tr: -R sunucuda, senin makinendeki bir porta (örneğin :3000'deki geliştirme uygulamasına) geri giden bir port açar.
+        lang: sh
+        form: ssh -N -R <remote-port>:localhost:<local-port> host
+        example: |
+          ssh -N -R 8080:localhost:3000 web
+          # on web: curl http://localhost:8080 reaches your laptop's port 3000
+        mistake:
+          en: Expecting other machines to reach that port; by default it listens only on the server's loopback (see GatewayPorts in sshd_config).
+          tr: O porta başka makinelerin de ulaşmasını beklemek; varsayılan olarak sadece sunucunun loopback adresinde dinler (sshd_config'te GatewayPorts'a bak).
+        source: https://man.openbsd.org/ssh#R
+      - id: socks
+        level: advanced
+        title: { en: SOCKS proxy, tr: SOCKS proxy }
+        what:
+          en: -D starts a SOCKS proxy on your machine; traffic sent to it leaves from the server.
+          tr: -D senin makinende bir SOCKS proxy başlatır; ona gönderilen trafik sunucudan çıkar.
+        lang: sh
+        form: ssh -N -D 1080 host
+        example: |
+          ssh -N -D 1080 web
+          curl --socks5-hostname localhost:1080 https://internal.example.com
+        source: https://man.openbsd.org/ssh#D
+  - id: copy
+    title: { en: Copying files, tr: Dosya kopyalama }
+    items:
+      - id: scp
+        level: basic
+        title: { en: Copy a file with scp, tr: scp ile dosya kopyalama }
+        what:
+          en: scp copies files to or from a server using the same login as ssh.
+          tr: scp, ssh ile aynı girişi kullanarak sunucuya ya da sunucudan dosya kopyalar.
+        lang: sh
+        form: scp file user@host:/path/
+        example: |
+          scp backup.sql web:/tmp/
+          scp web:/var/log/nginx/error.log .
+          scp -r -P 2222 site/ deploy@example.com:/srv/
+        mistake:
+          en: Using -p for the port like ssh; in scp the port is capital -P and -p keeps file times.
+          tr: Port için ssh'deki gibi -p kullanmak; scp'de port büyük -P'dir, -p dosya zamanlarını korur.
+        avoid:
+          en: For big folders or repeated syncs; rsync copies only what changed and can resume.
+          tr: Büyük klasörler ya da tekrar eden senkronizasyonlar için; rsync sadece değişeni kopyalar ve kaldığı yerden devam eder.
+        since: "9.0"
+        older:
+          en: Since 9.0 scp uses the SFTP protocol underneath; -O switches back to the old SCP protocol for very old servers.
+          tr: 9.0'dan beri scp altta SFTP protokolünü kullanır; çok eski sunucular için -O eski SCP protokolüne döner.
+        source: https://man.openbsd.org/scp
+      - id: sftp
+        level: intermediate
+        title: { en: Browse and transfer with sftp, tr: sftp ile gezinme ve aktarma }
+        what:
+          en: sftp opens an interactive session where ls, cd, get and put move files.
+          tr: sftp, ls, cd, get ve put ile dosya taşıyabildiğin etkileşimli bir oturum açar.
+        lang: sh
+        form: sftp user@host
+        example: |
+          sftp web
+          # sftp> cd /var/www
+          # sftp> get index.html
+          # sftp> put logo.png
+          # sftp> bye
+        source: https://man.openbsd.org/sftp
+      - id: rsync
+        level: basic
+        title: { en: Sync folders with rsync, tr: rsync ile klasör senkronize etme }
+        what:
+          en: rsync copies only the differences, locally or over SSH; a trailing slash on the source means "the contents of".
+          tr: rsync, yerelde ya da SSH üzerinden sadece farkları kopyalar; kaynağın sonundaki eğik çizgi "içindekiler" demektir.
+        lang: sh
+        form: rsync -avz src/ user@host:/dest/
+        example: |
+          mkdir -p site && echo hi > site/index.html
+          rsync -a site backup1     # copies the folder itself
+          rsync -a site/ backup2    # copies what is inside it
+          find backup1 backup2 -type f | sort
+          # over SSH: rsync -avz --progress site/ web:/srv/site/
+        output: |
+          backup1/site/index.html
+          backup2/index.html
+        check: sh
+        mistake:
+          en: Forgetting the trailing slash and ending up with /srv/site/site.
+          tr: Sondaki eğik çizgiyi unutup /srv/site/site ile karşılaşmak.
+        source: https://download.samba.org/pub/rsync/rsync.1#USAGE
+      - id: rsync-delete
+        level: advanced
+        title: { en: Mirror exactly, with a dry run first, tr: Önce deneme yaparak birebir kopya }
+        what:
+          en: --delete removes files from the target that are gone from the source; --dry-run shows what would happen.
+          tr: --delete kaynakta artık olmayan dosyaları hedeften siler; --dry-run ne olacağını önceden gösterir.
+        lang: sh
+        form: rsync -a --delete --dry-run src/ dest/
+        example: |
+          mkdir site backup
+          echo new > site/new.html
+          echo old > backup/old.html
+          rsync -a --delete --dry-run --itemize-changes site/ backup/
+        output: |
+          *deleting   old.html
+          >f+++++++++ new.html
+        check: sh
+        mistake:
+          en: Running --delete with the folders swapped or a missing slash; it can wipe the target. Always do a --dry-run first.
+          tr: --delete'i klasörlerin yeri karışmış ya da eğik çizgi eksikken çalıştırmak; hedefi silebilir. Her zaman önce --dry-run yap.
+        source: https://download.samba.org/pub/rsync/rsync.1#opt--delete
+  - id: server
+    title: { en: The server side, tr: Sunucu tarafı }
+    items:
+      - id: sshd-hardening
+        level: advanced
+        title: { en: Turn off password logins, tr: Şifreyle girişi kapatma }
+        what:
+          en: In sshd_config, PasswordAuthentication no allows keys only; sshd -t checks the file before you reload.
+          tr: sshd_config içinde PasswordAuthentication no sadece anahtarla girişe izin verir; sshd -t yeniden yüklemeden önce dosyayı kontrol eder.
+        lang: sh
+        form: sudo sshd -t && sudo systemctl reload ssh
+        example: |
+          # /etc/ssh/sshd_config
+          #   PasswordAuthentication no
+          #   KbdInteractiveAuthentication no
+          #   PermitRootLogin no
+          sudo sshd -t
+          sudo systemctl reload ssh    # the unit is sshd on Fedora and Arch
+        mistake:
+          en: Closing your only session before trying a new login in a second terminal; one mistake and you are locked out.
+          tr: İkinci bir terminalde yeni giriş denemeden tek oturumunu kapatmak; tek bir hatada dışarıda kalırsın.
+        avoid:
+          en: Before your key login works; check with ssh -o PasswordAuthentication=no host first.
+          tr: Anahtarla girişin çalıştığından emin olmadan; önce ssh -o PasswordAuthentication=no host ile dene.
+        source: https://man.openbsd.org/sshd_config#PasswordAuthentication

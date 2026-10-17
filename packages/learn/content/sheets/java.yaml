@@ -1,0 +1,925 @@
+id: java
+title: Java
+category: language
+summary:
+  en: A typed, object-oriented language that runs on the JVM; widely used for backends, Android and big company systems.
+  tr: JVM üzerinde çalışan, tipli ve nesne yönelimli bir dil; backend'lerde, Android'de ve büyük şirket sistemlerinde çok kullanılır.
+aliases: [jdk, jvm, openjdk, maven, gradle, record, stream, lambda]
+detect:
+  files: [pom.xml, build.gradle, build.gradle.kts]
+version: "27"
+latest: eol:oracle-jdk
+checked: 2026-10
+sources:
+  - title: Java SE documentation
+    url: https://docs.oracle.com/en/java/javase/27/
+  - title: Java language updates
+    url: https://docs.oracle.com/en/java/javase/27/language/java-language-changes-summary.html
+  - title: Learn Java (dev.java)
+    url: https://dev.java/learn/
+roadmap: java
+sections:
+  - id: start
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: hello
+        level: basic
+        title: { en: A program that runs, tr: Çalışan bir program }
+        what:
+          en: A Java program starts in a main method; java Main.java compiles and runs a single file in one step.
+          tr: Bir Java programı main metodunda başlar; java Main.java tek bir dosyayı tek adımda derleyip çalıştırır.
+        lang: java
+        form: public static void main(String[] args) { }
+        example: |
+          public class Main {
+              public static void main(String[] args) {
+                  System.out.println("Hello, Java");
+                  System.out.printf("%s is %d%n", "Ada", 36);
+              }
+          }
+        output: |
+          Hello, Java
+          Ada is 36
+        check: java
+        mistake:
+          en: Naming the file differently from its public class; Main must live in Main.java.
+          tr: Dosyaya public class'ından farklı bir ad vermek; Main, Main.java içinde olmalı.
+        source: https://dev.java/learn/first-steps/first-java-code/
+      - id: compact-main
+        level: basic
+        title: { en: A program without a class, tr: Class'sız bir program }
+        what:
+          en: A file can hold just a void main() method; IO.println prints and the java.base packages are imported for you.
+          tr: Bir dosya sadece void main() metodunu içerebilir; IO.println yazdırır ve java.base paketleri senin için import edilir.
+        lang: java
+        form: void main() { IO.println("hi"); }
+        example: |
+          // Hello.java, run with: java Hello.java
+          void main() {
+              var names = List.of("Ada", "Alan");
+              for (var n : names) {
+                  IO.println("Hello, " + n);
+              }
+          }
+        avoid:
+          en: For bigger programs with several classes and packages; use normal classes there.
+          tr: Birden çok class ve paketi olan büyük programlarda; orada normal class'lar kullan.
+        since: "25"
+        older:
+          en: Before Java 25 you need a class with public static void main(String[] args) and System.out.println.
+          tr: Java 25'ten önce public static void main(String[] args) içeren bir class ve System.out.println gerekir.
+        source: https://docs.oracle.com/en/java/javase/27/language/compact-source-files-instance-main-methods.html
+      - id: javac-java
+        level: basic
+        title: { en: Compile and run, tr: Derleme ve çalıştırma }
+        what:
+          en: javac turns .java files into .class files; java runs a class, or a source file directly.
+          tr: javac .java dosyalarını .class dosyalarına çevirir; java bir class'ı ya da doğrudan bir kaynak dosyayı çalıştırır.
+        lang: sh
+        form: java Main.java
+        example: |
+          java Main.java            # one file, no separate compile step
+          javac -d out Main.java    # compile into the out folder
+          java -cp out Main
+          java -version
+        mistake:
+          en: Having an old JDK first on PATH; check java -version and javac -version match the version your project needs.
+          tr: PATH'te önce eski bir JDK olması; java -version ve javac -version'ın projenin istediği sürümle aynı olduğuna bak.
+        source: https://docs.oracle.com/en/java/javase/27/docs/specs/man/java.html
+      - id: var
+        level: basic
+        title: { en: Variables and var, tr: Değişkenler ve var }
+        what:
+          en: Every variable has a type; with var the compiler infers it from the value, for local variables only.
+          tr: Her değişkenin bir tipi vardır; var ile derleyici tipi değerden çıkarır, sadece yerel değişkenlerde.
+        lang: java
+        form: var list = new ArrayList<String>();
+        example: |
+          import java.util.ArrayList;
+
+          public class Main {
+              public static void main(String[] args) {
+                  int count = 3;
+                  final double rate = 0.5; // final: cannot be reassigned
+                  var names = new ArrayList<String>();
+                  names.add("Ada");
+                  System.out.println(count + " " + rate + " " + names);
+              }
+          }
+        output: |
+          3 0.5 [Ada]
+        check: java
+        mistake:
+          en: Comparing strings with ==; it compares references. Use a.equals(b).
+          tr: String'leri == ile karşılaştırmak; == referansları karşılaştırır. a.equals(b) kullan.
+        since: "10"
+        source: https://docs.oracle.com/en/java/javase/27/language/local-variable-type-inference.html
+      - id: strings
+        level: basic
+        title: { en: Working with strings, tr: String'lerle çalışma }
+        what:
+          en: Strings are immutable; methods like strip, split and formatted return new strings.
+          tr: String'ler değişmezdir; strip, split ve formatted gibi metotlar yeni string döner.
+        lang: java
+        form: '"%s has %d".formatted(name, n)'
+        example: |
+          public class Main {
+              public static void main(String[] args) {
+                  String s = "  Hello Java  ";
+                  System.out.println(s.strip().toUpperCase());
+                  System.out.println("%s-%03d".formatted("id", 7));
+                  System.out.println(String.join("|", "a", "b") + " " + "ab".repeat(2));
+                  System.out.println("a,b,c".split(",").length + " " + "  ".isBlank());
+              }
+          }
+        output: |
+          HELLO JAVA
+          id-007
+          a|b abab
+          3 true
+        check: java
+        mistake:
+          en: Calling s.trim() and expecting s to change; strings never change, keep the result.
+          tr: s.trim() çağırıp s'nin değişmesini beklemek; string'ler hiç değişmez, sonucu sakla.
+        avoid:
+          en: Joining strings with + inside a big loop; use StringBuilder.
+          tr: Büyük bir döngüde string'leri + ile birleştirmek; StringBuilder kullan.
+        source: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/lang/String.html
+      - id: text-blocks
+        level: intermediate
+        title: { en: Multi-line strings, tr: Çok satırlı string'ler }
+        what:
+          en: A text block between three double quotes keeps line breaks and removes the common indentation.
+          tr: Üç çift tırnak arasındaki text block satır sonlarını korur ve ortak girintiyi siler.
+        lang: java
+        form: String s = """ ... """;
+        example: |
+          public class Main {
+              public static void main(String[] args) {
+                  String json = """
+                      {
+                        "name": "%s"
+                      }""".formatted("Ada");
+                  System.out.println(json);
+              }
+          }
+        output: |
+          {
+            "name": "Ada"
+          }
+        check: java
+        mistake:
+          en: Putting text on the same line as the opening quotes; the content must start on the next line.
+          tr: Metni açılış tırnaklarıyla aynı satıra yazmak; içerik bir sonraki satırda başlamalı.
+        since: "15"
+        source: https://docs.oracle.com/en/java/javase/27/language/text-blocks.html
+  - id: basics
+    title: { en: Everyday code, tr: Günlük kod }
+    items:
+      - id: loops
+        level: basic
+        title: { en: if and loops, tr: if ve döngüler }
+        what:
+          en: for, enhanced for, while and if work as in C; the enhanced for walks over arrays and collections.
+          tr: for, gelişmiş for, while ve if C'deki gibi çalışır; gelişmiş for dizi ve koleksiyonlar üzerinde gezer.
+        lang: java
+        form: 'for (var item : items) { }'
+        example: |
+          public class Main {
+              public static void main(String[] args) {
+                  int[] nums = {4, 7, 10};
+                  int sum = 0;
+                  for (int n : nums) {
+                      if (n % 2 == 0) sum += n;
+                  }
+                  for (int i = 0; i < 3; i++) System.out.print(i + " ");
+                  System.out.println();
+                  System.out.println(sum);
+              }
+          }
+        output: |
+          0 1 2
+          14
+        check: java
+        source: https://dev.java/learn/language-basics/controlling-flow/
+      - id: switch-expr
+        level: basic
+        title: { en: switch expressions, tr: switch ifadeleri }
+        what:
+          en: With arrows, switch returns a value, has no fall-through and needs no break.
+          tr: Ok işaretiyle switch bir değer döner, alttakine geçmez ve break gerekmez.
+        lang: java
+        form: 'var x = switch (v) { case A, B -> 1; default -> 0; };'
+        example: |
+          public class Main {
+              static String kind(String day) {
+                  return switch (day) {
+                      case "SAT", "SUN" -> "weekend";
+                      default -> {
+                          String t = "week";
+                          yield t + "day";
+                      }
+                  };
+              }
+
+              public static void main(String[] args) {
+                  System.out.println(kind("SUN") + " " + kind("MON"));
+              }
+          }
+        output: |
+          weekend weekday
+        check: java
+        mistake:
+          en: Mixing the old colon form and forgetting break, so cases fall through; prefer the arrow form.
+          tr: Eski iki nokta biçimini kullanıp break'i unutmak, case'ler alttakine geçer; ok biçimini tercih et.
+        since: "14"
+        source: https://docs.oracle.com/en/java/javase/27/language/switch-expressions-statements.html
+      - id: arrays
+        level: basic
+        title: { en: Arrays, tr: Diziler }
+        what:
+          en: An array has a fixed length; java.util.Arrays sorts, prints and copies it.
+          tr: Dizinin uzunluğu sabittir; java.util.Arrays onu sıralar, yazdırır ve kopyalar.
+        lang: java
+        form: int[] a = new int[5];
+        example: |
+          import java.util.Arrays;
+
+          public class Main {
+              public static void main(String[] args) {
+                  int[] a = {5, 2, 9};
+                  Arrays.sort(a);
+                  System.out.println(Arrays.toString(a) + " " + a.length);
+                  int[] bigger = Arrays.copyOf(a, 5);
+                  System.out.println(Arrays.toString(bigger));
+              }
+          }
+        output: |
+          [2, 5, 9] 3
+          [2, 5, 9, 0, 0]
+        check: java
+        mistake:
+          en: Printing an array with System.out.println(a) and getting something like [I@1b6d3586; use Arrays.toString(a).
+          tr: Diziyi System.out.println(a) ile yazdırıp [I@1b6d3586 gibi bir şey görmek; Arrays.toString(a) kullan.
+        avoid:
+          en: When the size changes; use an ArrayList.
+          tr: Boyut değişecekse; ArrayList kullan.
+        source: https://dev.java/learn/language-basics/arrays/
+      - id: classes
+        level: basic
+        title: { en: Classes and objects, tr: Class'lar ve nesneler }
+        what:
+          en: A class has fields, a constructor and methods; private fields with public methods hide the details.
+          tr: Class'ın alanları, bir kurucusu (constructor) ve metotları vardır; private alanlar ve public metotlar ayrıntıyı gizler.
+        lang: java
+        form: class Account { private int balance; Account(int b) { this.balance = b; } }
+        example: |
+          public class Main {
+              static class Account {
+                  private int balance;
+
+                  Account(int start) {
+                      this.balance = start;
+                  }
+
+                  void deposit(int amount) {
+                      if (amount <= 0) throw new IllegalArgumentException("amount must be positive");
+                      balance += amount;
+                  }
+
+                  int balance() { return balance; }
+              }
+
+              public static void main(String[] args) {
+                  var acc = new Account(10);
+                  acc.deposit(5);
+                  System.out.println(acc.balance());
+              }
+          }
+        output: |
+          15
+        check: java
+        mistake:
+          en: Making every field public; then any code can put the object into a broken state.
+          tr: Her alanı public yapmak; o zaman her kod nesneyi bozuk bir duruma sokabilir.
+        source: https://dev.java/learn/classes-objects/
+      - id: records
+        level: basic
+        title: { en: Records, tr: Record'lar }
+        what:
+          en: A record is a short way to write an immutable data class; constructor, getters, equals, hashCode and toString come for free.
+          tr: Record, değişmez bir veri class'ı yazmanın kısa yoludur; kurucu, getter'lar, equals, hashCode ve toString hazır gelir.
+        lang: java
+        form: record Point(int x, int y) { }
+        example: |
+          public class Main {
+              record Point(int x, int y) {
+                  Point {
+                      if (x < 0) throw new IllegalArgumentException("x < 0");
+                  }
+                  double length() { return Math.sqrt(x * x + y * y); }
+              }
+
+              public static void main(String[] args) {
+                  var p = new Point(3, 4);
+                  System.out.println(p + " " + p.x() + " " + p.length());
+                  System.out.println(p.equals(new Point(3, 4)));
+              }
+          }
+        output: |
+          Point[x=3, y=4] 3 5.0
+          true
+        check: java
+        mistake:
+          en: Calling p.getX(); record getters are named after the field, p.x().
+          tr: p.getX() çağırmak; record getter'larının adı alanla aynıdır, p.x().
+        avoid:
+          en: For objects whose state must change, or JPA entities; use a normal class.
+          tr: Durumu değişmesi gereken nesnelerde ya da JPA entity'lerinde; normal bir class kullan.
+        since: "16"
+        source: https://docs.oracle.com/en/java/javase/27/language/records.html
+      - id: enums
+        level: basic
+        title: { en: Enums, tr: Enum'lar }
+        what:
+          en: An enum is a fixed set of named values, and it can have fields and methods.
+          tr: Enum sabit bir adlandırılmış değerler kümesidir; alanları ve metotları da olabilir.
+        lang: java
+        form: enum Level { LOW, HIGH }
+        example: |
+          public class Main {
+              enum Size {
+                  SMALL(1), LARGE(3);
+
+                  final int cups;
+                  Size(int cups) { this.cups = cups; }
+              }
+
+              public static void main(String[] args) {
+                  for (Size s : Size.values()) {
+                      System.out.println(s + " " + s.cups + " " + s.ordinal());
+                  }
+                  System.out.println(Size.valueOf("LARGE").cups);
+              }
+          }
+        output: |
+          SMALL 1 0
+          LARGE 3 1
+          3
+        check: java
+        mistake:
+          en: Saving ordinal() in a database; it changes when you reorder the constants. Save name() instead.
+          tr: ordinal()'ı veritabanına kaydetmek; sabitlerin sırasını değiştirince değişir. Onun yerine name() kaydet.
+        source: https://dev.java/learn/classes-objects/enums/
+      - id: interfaces
+        level: intermediate
+        title: { en: Interfaces, tr: Interface'ler }
+        what:
+          en: An interface is a contract of methods; classes implement it, and default methods give a ready body.
+          tr: Interface bir metot sözleşmesidir; class'lar onu uygular, default metotlar hazır bir gövde verir.
+        lang: java
+        form: interface Shape { double area(); }
+        example: |
+          public class Main {
+              interface Shape {
+                  double area();
+                  default String describe() { return "area " + area(); }
+              }
+
+              record Square(double side) implements Shape {
+                  public double area() { return side * side; }
+              }
+
+              public static void main(String[] args) {
+                  Shape s = new Square(3);
+                  System.out.println(s.describe());
+              }
+          }
+        output: |
+          area 9.0
+        check: java
+        source: https://dev.java/learn/interfaces/
+      - id: sealed
+        level: intermediate
+        title: { en: Sealed types, tr: Sealed tipler }
+        what:
+          en: sealed limits which classes may extend or implement a type, so the compiler knows every case.
+          tr: sealed bir tipi hangi class'ların genişletebileceğini ya da uygulayabileceğini sınırlar; böylece derleyici bütün durumları bilir.
+        lang: java
+        form: sealed interface Shape permits Circle, Square { }
+        example: |
+          public class Main {
+              sealed interface Shape permits Circle, Square {}
+              record Circle(double r) implements Shape {}
+              record Square(double side) implements Shape {}
+
+              static double area(Shape s) {
+                  if (s instanceof Circle c) return 3 * c.r() * c.r();
+                  if (s instanceof Square q) return q.side() * q.side();
+                  throw new IllegalStateException();
+              }
+
+              public static void main(String[] args) {
+                  System.out.println(area(new Circle(1)) + " " + area(new Square(2)));
+              }
+          }
+        output: |
+          3.0 4.0
+        check: java
+        since: "17"
+        source: https://docs.oracle.com/en/java/javase/27/language/sealed-classes-interfaces.html
+      - id: instanceof-pattern
+        level: intermediate
+        title: { en: instanceof with a variable, tr: Değişkenli instanceof }
+        what:
+          en: instanceof can check the type and give you a typed variable in one step, with no cast.
+          tr: instanceof tipi kontrol edip tek adımda tipli bir değişken verebilir; cast gerekmez.
+        lang: java
+        form: if (obj instanceof String s) { }
+        example: |
+          public class Main {
+              static String describe(Object o) {
+                  if (o instanceof String s && !s.isEmpty()) return "text of " + s.length();
+                  if (o instanceof Integer n) return "number " + (n + 1);
+                  return "other";
+              }
+
+              public static void main(String[] args) {
+                  System.out.println(describe("hey") + ", " + describe(41) + ", " + describe(2.5));
+              }
+          }
+        output: |
+          text of 3, number 42, other
+        check: java
+        since: "16"
+        source: https://docs.oracle.com/en/java/javase/27/language/pattern-matching-instanceof.html
+  - id: collections
+    title: { en: Collections, lambdas and streams, tr: Koleksiyonlar, lambda'lar ve stream'ler }
+    items:
+      - id: list-map
+        level: basic
+        title: { en: List and Map, tr: List ve Map }
+        what:
+          en: ArrayList is a growable list and HashMap stores values by key; List.of and Map.of make lists and maps that cannot change.
+          tr: ArrayList büyüyebilen bir liste, HashMap değerleri anahtara göre saklar; List.of ve Map.of değişmeyen liste ve map'ler oluşturur.
+        lang: java
+        form: List<String> names = new ArrayList<>();
+        example: |
+          import java.util.*;
+
+          public class Main {
+              public static void main(String[] args) {
+                  List<String> names = new ArrayList<>(List.of("Ada", "Alan"));
+                  names.add("Grace");
+                  Map<String, Integer> counts = new HashMap<>();
+                  for (String w : "a b a".split(" ")) counts.merge(w, 1, Integer::sum);
+                  System.out.println(names + " " + names.size());
+                  System.out.println(counts.get("a") + " " + counts.getOrDefault("z", 0));
+              }
+          }
+        output: |
+          [Ada, Alan, Grace] 3
+          2 0
+        check: java
+        mistake:
+          en: Calling add on List.of(...); it throws UnsupportedOperationException. Copy it into new ArrayList<>(...) first.
+          tr: List.of(...) üzerinde add çağırmak; UnsupportedOperationException fırlatır. Önce new ArrayList<>(...) içine kopyala.
+        source: https://docs.oracle.com/en/java/javase/27/core/creating-immutable-lists-sets-and-maps.html
+      - id: lambdas
+        level: intermediate
+        title: { en: Lambdas and method references, tr: Lambda'lar ve metot referansları }
+        what:
+          en: A lambda is a short function you pass as a value; a method reference like String::length is even shorter.
+          tr: Lambda, değer olarak geçirdiğin kısa bir fonksiyondur; String::length gibi bir metot referansı daha da kısadır.
+        lang: java
+        form: list.sort(Comparator.comparing(User::name));
+        example: |
+          import java.util.*;
+          import java.util.function.*;
+
+          public class Main {
+              public static void main(String[] args) {
+                  Function<Integer, Integer> twice = x -> x * 2;
+                  Predicate<String> empty = String::isEmpty;
+                  var words = new ArrayList<>(List.of("pear", "fig", "banana"));
+                  words.sort(Comparator.comparing(String::length));
+                  System.out.println(twice.apply(21) + " " + empty.test("") + " " + words);
+              }
+          }
+        output: |
+          42 true [fig, pear, banana]
+        check: java
+        mistake:
+          en: Changing a local variable inside a lambda; locals used in a lambda must be effectively final.
+          tr: Lambda içinde yerel bir değişkeni değiştirmek; lambda'da kullanılan yerel değişkenler fiilen final olmalı.
+        source: https://dev.java/learn/lambdas/
+      - id: streams
+        level: intermediate
+        title: { en: Streams, tr: Stream'ler }
+        what:
+          en: A stream runs a chain of steps like filter, map and collect over a collection.
+          tr: Stream, bir koleksiyon üzerinde filter, map ve collect gibi adımlardan oluşan bir zinciri çalıştırır.
+        lang: java
+        form: list.stream().filter(..).map(..).toList()
+        example: |
+          import java.util.*;
+          import java.util.stream.*;
+
+          public class Main {
+              public static void main(String[] args) {
+                  var nums = List.of(1, 2, 3, 4, 5, 6);
+                  var evenSquares = nums.stream().filter(n -> n % 2 == 0).map(n -> n * n).toList();
+                  int sum = nums.stream().mapToInt(Integer::intValue).sum();
+                  var byLength = Stream.of("a", "bb", "cc")
+                      .collect(Collectors.groupingBy(String::length, TreeMap::new, Collectors.toList()));
+                  System.out.println(evenSquares + " " + sum + " " + byLength);
+              }
+          }
+        output: |
+          [4, 16, 36] 21 {1=[a], 2=[bb, cc]}
+        check: java
+        mistake:
+          en: Using a stream twice; it can be used only once and throws IllegalStateException the second time.
+          tr: Bir stream'i iki kez kullanmak; sadece bir kez kullanılabilir, ikincide IllegalStateException fırlatır.
+        avoid:
+          en: For simple loops with side effects or early exits; a plain for loop is clearer.
+          tr: Yan etkisi ya da erken çıkışı olan basit döngülerde; düz bir for döngüsü daha anlaşılır.
+        source: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/util/stream/package-summary.html
+      - id: optional
+        level: intermediate
+        title: { en: Optional, tr: Optional }
+        what:
+          en: Optional is a box that may be empty, used as a return type instead of returning null.
+          tr: Optional boş olabilen bir kutudur; null dönmek yerine dönüş tipi olarak kullanılır.
+        lang: java
+        form: opt.map(..).orElse(default)
+        example: |
+          import java.util.*;
+
+          public class Main {
+              static Optional<String> find(List<String> names, String start) {
+                  return names.stream().filter(n -> n.startsWith(start)).findFirst();
+              }
+
+              public static void main(String[] args) {
+                  var names = List.of("Ada", "Alan");
+                  System.out.println(find(names, "Al").map(String::toUpperCase).orElse("none"));
+                  System.out.println(find(names, "Z").isPresent());
+              }
+          }
+        output: |
+          ALAN
+          false
+        check: java
+        mistake:
+          en: Calling get() without checking; it throws on an empty Optional. Use orElse, orElseThrow or ifPresent.
+          tr: Kontrol etmeden get() çağırmak; boş Optional'da exception fırlatır. orElse, orElseThrow ya da ifPresent kullan.
+        avoid:
+          en: As a field or method parameter type; it is meant for return values.
+          tr: Alan ya da metot parametresi tipi olarak; dönüş değerleri için düşünülmüştür.
+        source: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/util/Optional.html
+      - id: sequenced
+        level: intermediate
+        title: { en: First and last element, tr: İlk ve son eleman }
+        what:
+          en: Ordered collections such as List, Deque and LinkedHashMap share getFirst, getLast and reversed.
+          tr: List, Deque ve LinkedHashMap gibi sıralı koleksiyonlar ortak getFirst, getLast ve reversed metotlarına sahiptir.
+        lang: java
+        form: list.getLast()
+        example: |
+          var list = List.of(1, 2, 3);
+          list.getFirst();   // 1
+          list.getLast();    // 3
+          list.reversed();   // [3, 2, 1]
+        since: "21"
+        older:
+          en: Before 21, write list.get(0) and list.get(list.size() - 1).
+          tr: 21'den önce list.get(0) ve list.get(list.size() - 1) yazılır.
+        source: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/util/SequencedCollection.html
+  - id: errors
+    title: { en: Exceptions, tr: Exception'lar }
+    items:
+      - id: try-catch
+        level: basic
+        title: { en: Catch an exception, tr: Exception yakalama }
+        what:
+          en: try runs code that may fail, catch handles a given exception type, and finally always runs.
+          tr: try başarısız olabilecek kodu çalıştırır, catch belirli bir exception tipini ele alır, finally her zaman çalışır.
+        lang: java
+        form: try { } catch (IOException e) { } finally { }
+        example: |
+          public class Main {
+              public static void main(String[] args) {
+                  try {
+                      int n = Integer.parseInt("42x");
+                      System.out.println(n);
+                  } catch (NumberFormatException e) {
+                      System.out.println("bad number: " + e.getMessage());
+                  } finally {
+                      System.out.println("done");
+                  }
+              }
+          }
+        output: |
+          bad number: For input string: "42x"
+          done
+        check: java
+        mistake:
+          en: Catching Exception and doing nothing (an empty catch); the error disappears and the bug shows up later.
+          tr: Exception yakalayıp hiçbir şey yapmamak (boş catch); hata kaybolur ve sorun sonra ortaya çıkar.
+        source: https://dev.java/learn/exceptions/catching-handling/
+      - id: try-with-resources
+        level: intermediate
+        title: { en: Close resources automatically, tr: Kaynakları otomatik kapatma }
+        what:
+          en: Resources opened in try ( ) are closed at the end, even when an exception is thrown.
+          tr: try ( ) içinde açılan kaynaklar sonda kapanır; exception fırlatılsa bile.
+        lang: java
+        form: try (var in = Files.newBufferedReader(path)) { }
+        example: |
+          public class Main {
+              static class Conn implements AutoCloseable {
+                  Conn() { System.out.println("open"); }
+                  public void close() { System.out.println("closed"); }
+              }
+
+              public static void main(String[] args) {
+                  try (var c = new Conn()) {
+                      System.out.println("working");
+                      throw new IllegalStateException("boom");
+                  } catch (IllegalStateException e) {
+                      System.out.println("caught " + e.getMessage());
+                  }
+              }
+          }
+        output: |
+          open
+          working
+          closed
+          caught boom
+        check: java
+        mistake:
+          en: Closing files and connections by hand in finally and forgetting a path; let try-with-resources do it.
+          tr: Dosya ve bağlantıları finally içinde elle kapatıp bir yolu unutmak; bunu try-with-resources'a bırak.
+        source: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/lang/AutoCloseable.html
+      - id: checked-unchecked
+        level: intermediate
+        title: { en: Checked and unchecked exceptions, tr: Checked ve unchecked exception'lar }
+        what:
+          en: Checked exceptions (like IOException) must be caught or declared with throws; RuntimeException ones need not be.
+          tr: Checked exception'lar (IOException gibi) yakalanmalı ya da throws ile bildirilmeli; RuntimeException olanlar için gerekmez.
+        lang: java
+        form: void read() throws IOException { }
+        example: |
+          public class Main {
+              static class NotFound extends RuntimeException {
+                  NotFound(String id) { super("not found: " + id); }
+              }
+
+              static String user(String id) {
+                  if (!id.equals("1")) throw new NotFound(id);
+                  return "Ada";
+              }
+
+              public static void main(String[] args) {
+                  try {
+                      System.out.println(user("1"));
+                      user("2");
+                  } catch (NotFound e) {
+                      System.out.println(e.getMessage());
+                  }
+              }
+          }
+        output: |
+          Ada
+          not found: 2
+        check: java
+        mistake:
+          en: Wrapping an exception and losing the cause; pass it on, as in new MyException("msg", e).
+          tr: Bir exception'ı sarmalayıp asıl sebebi kaybetmek; new MyException("msg", e) gibi onu da geçir.
+        source: https://dev.java/learn/exceptions/unchecked-exception-controversy/
+  - id: modern
+    title: { en: Modern Java, tr: Modern Java }
+    items:
+      - id: switch-patterns
+        level: intermediate
+        title: { en: Patterns in switch, tr: switch içinde kalıplar }
+        what:
+          en: switch can match on types, with when for extra conditions; over a sealed type the compiler checks that every case is covered.
+          tr: switch tiplere göre eşleşebilir, ek koşul için when kullanılır; sealed bir tipte derleyici her durumun kapsandığını kontrol eder.
+        lang: java
+        form: 'switch (obj) { case Circle c -> ..; case Square s when s.side() > 10 -> ..; }'
+        example: |
+          sealed interface Shape permits Circle, Square {}
+          record Circle(double r) implements Shape {}
+          record Square(double side) implements Shape {}
+
+          static String describe(Shape s) {
+              return switch (s) {
+                  case Circle c -> "circle " + c.r();
+                  case Square q when q.side() > 10 -> "big square";
+                  case Square q -> "square " + q.side();
+              }; // no default needed: the compiler knows all cases
+          }
+        mistake:
+          en: Adding a default branch to a switch over a sealed type; you lose the compile error when a new subtype is added.
+          tr: Sealed bir tip üzerindeki switch'e default eklemek; yeni bir alt tip eklenince alacağın derleme hatasını kaybedersin.
+        since: "21"
+        older:
+          en: Before 21, use an if-else chain with instanceof patterns.
+          tr: 21'den önce instanceof kalıplarıyla bir if-else zinciri kullan.
+        source: https://docs.oracle.com/en/java/javase/27/language/pattern-matching-switch.html
+      - id: record-patterns
+        level: advanced
+        title: { en: Take records apart, tr: Record'ları parçalarına ayırma }
+        what:
+          en: A record pattern takes a record's fields straight into variables, even when records are nested.
+          tr: Record pattern, record'ların alanlarını iç içe olsalar bile doğrudan değişkenlere alır.
+        lang: java
+        form: if (o instanceof Point(int x, int y)) { }
+        example: |
+          record Point(int x, int y) {}
+          record Line(Point from, Point to) {}
+
+          static int length(Object o) {
+              if (o instanceof Line(Point(var x1, var y1), Point(var x2, var y2))) {
+                  return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+              }
+              return 0;
+          }
+        since: "21"
+        source: https://docs.oracle.com/en/java/javase/27/language/record-patterns.html
+      - id: unnamed
+        level: intermediate
+        title: { en: Unnamed variables, tr: Adsız değişkenler }
+        what:
+          en: An underscore _ marks a variable or pattern you must write but do not use.
+          tr: Alt çizgi _, yazman gereken ama kullanmadığın bir değişkeni ya da kalıbı işaretler.
+        lang: java
+        form: catch (NumberFormatException _) { }
+        example: |
+          try {
+              return Integer.parseInt(text);
+          } catch (NumberFormatException _) {
+              return 0;
+          }
+          // in patterns: case Point(var x, _) -> x;
+        since: "22"
+        older:
+          en: Before 22, _ is not allowed as a name; give it a name like ignored.
+          tr: 22'den önce _ ad olarak kullanılamaz; ignored gibi bir ad ver.
+        source: https://docs.oracle.com/en/java/javase/27/language/unnamed-variables-patterns.html
+      - id: virtual-threads
+        level: advanced
+        title: { en: Virtual threads, tr: Sanal thread'ler }
+        what:
+          en: Virtual threads are very cheap threads, so you can run one per request even with thousands of waiting calls.
+          tr: Sanal thread'ler çok ucuz thread'lerdir; binlerce bekleyen çağrı olsa bile her istek için bir tane çalıştırabilirsin.
+        lang: java
+        form: Executors.newVirtualThreadPerTaskExecutor()
+        example: |
+          try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+              for (int i = 0; i < 10_000; i++) {
+                  int id = i;
+                  executor.submit(() -> {
+                      Thread.sleep(Duration.ofSeconds(1)); // waiting is cheap
+                      return id;
+                  });
+              }
+          } // close() waits for all tasks
+        mistake:
+          en: Pooling virtual threads; they are meant to be created per task. Limit access to scarce resources with a Semaphore instead.
+          tr: Sanal thread'leri havuza almak; her görev için yeni oluşturulmaları düşünülmüştür. Kıt kaynaklara erişimi Semaphore ile sınırla.
+        avoid:
+          en: For CPU-heavy work; they help with waiting (network, database), not with computing faster.
+          tr: CPU ağırlıklı işlerde; bekleme (ağ, veritabanı) için faydalıdırlar, daha hızlı hesaplamak için değil.
+        since: "21"
+        source: https://docs.oracle.com/en/java/javase/27/core/virtual-threads.html
+      - id: module-import
+        level: advanced
+        title: { en: Import a whole module, tr: Bütün bir modülü import etme }
+        what:
+          en: import module imports every public type of the packages a module exports, in one line.
+          tr: import module, bir modülün dışa açtığı paketlerdeki bütün public tipleri tek satırda import eder.
+        lang: java
+        form: import module java.base;
+        example: |
+          import module java.base; // List, Map, Path, Stream ... without separate imports
+
+          void main() {
+              var files = List.of(Path.of("a.txt"));
+              IO.println(files);
+          }
+        mistake:
+          en: Getting "reference is ambiguous" when two imported packages have the same class name (like List); add a single-type import for the one you want.
+          tr: İki import edilen pakette aynı adlı class olunca (List gibi) "reference is ambiguous" hatası almak; istediğin için tek tipli bir import ekle.
+        since: "25"
+        source: https://docs.oracle.com/en/java/javase/27/language/module-import-declarations.html
+      - id: executors
+        level: advanced
+        title: { en: Run tasks in parallel, tr: Görevleri paralel çalıştırma }
+        what:
+          en: CompletableFuture runs work on other threads and lets you combine the results.
+          tr: CompletableFuture işi başka thread'lerde çalıştırır ve sonuçları birleştirmeni sağlar.
+        lang: java
+        form: CompletableFuture.supplyAsync(() -> ..).thenApply(..)
+        example: |
+          import java.util.concurrent.*;
+
+          public class Main {
+              public static void main(String[] args) throws Exception {
+                  var a = CompletableFuture.supplyAsync(() -> 20);
+                  var b = CompletableFuture.supplyAsync(() -> 22);
+                  int total = a.thenCombine(b, Integer::sum).get();
+                  System.out.println(total);
+
+                  ExecutorService pool = Executors.newFixedThreadPool(2);
+                  Future<String> f = pool.submit(() -> "done");
+                  System.out.println(f.get());
+                  pool.shutdown();
+              }
+          }
+        output: |
+          42
+          done
+        check: java
+        mistake:
+          en: Forgetting to shut down your own ExecutorService; its threads keep the program from exiting.
+          tr: Kendi ExecutorService'ini kapatmayı unutmak; thread'leri programın kapanmasını engeller.
+        source: https://docs.oracle.com/en/java/javase/27/docs/api/java.base/java/util/concurrent/CompletableFuture.html
+  - id: tools
+    title: { en: Build tools and tests, tr: Build araçları ve testler }
+    items:
+      - id: maven
+        level: basic
+        title: { en: Maven, tr: Maven }
+        what:
+          en: Maven builds the project from pom.xml, downloads dependencies and runs tests.
+          tr: Maven projeyi pom.xml'den derler, bağımlılıkları indirir ve testleri çalıştırır.
+        lang: sh
+        form: mvn package
+        example: |
+          mvn archetype:generate -DgroupId=com.example -DartifactId=app -DinteractiveMode=false
+          mvn test
+          mvn package        # builds target/app-1.0-SNAPSHOT.jar
+          ./mvnw package     # with the project's Maven wrapper
+        mistake:
+          en: Using a different Maven or JDK than your team; commit the Maven wrapper (mvnw) and set the Java release in pom.xml.
+          tr: Ekibinden farklı bir Maven ya da JDK kullanmak; Maven wrapper'ı (mvnw) commit'le ve Java sürümünü pom.xml'de belirt.
+        source: https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html
+      - id: gradle
+        level: basic
+        title: { en: Gradle, tr: Gradle }
+        what:
+          en: Gradle is the other main build tool; the wrapper script ./gradlew runs the right Gradle version for the project.
+          tr: Gradle diğer ana build aracıdır; ./gradlew wrapper script'i proje için doğru Gradle sürümünü çalıştırır.
+        lang: sh
+        form: ./gradlew build
+        example: |
+          gradle init --type java-application
+          ./gradlew build
+          ./gradlew test
+          ./gradlew run
+        source: https://docs.gradle.org/current/userguide/building_java_projects.html
+      - id: junit
+        level: intermediate
+        title: { en: Unit tests with JUnit, tr: JUnit ile unit test }
+        what:
+          en: JUnit runs methods marked @Test and fails the test when an assertion does not hold.
+          tr: JUnit @Test ile işaretlenen metotları çalıştırır ve bir assertion tutmazsa testi başarısız sayar.
+        lang: java
+        form: '@Test void adds() { assertEquals(4, add(2, 2)); }'
+        example: |
+          import static org.junit.jupiter.api.Assertions.*;
+          import org.junit.jupiter.api.Test;
+
+          class CalculatorTest {
+              @Test
+              void adds() {
+                  assertEquals(4, Calculator.add(2, 2));
+              }
+
+              @Test
+              void rejectsBadInput() {
+                  assertThrows(NumberFormatException.class, () -> Integer.parseInt("x"));
+              }
+          }
+          // run: mvn test  or  ./gradlew test
+        mistake:
+          en: Swapping the arguments of assertEquals; the expected value comes first, or failure messages read backwards.
+          tr: assertEquals'un argümanlarını ters yazmak; beklenen değer önce gelir, yoksa hata mesajları ters okunur.
+        source: https://docs.junit.org/current/user-guide/
+      - id: jshell
+        level: basic
+        title: { en: Try code quickly, tr: Kodu hızlıca deneme }
+        what:
+          en: jshell runs Java lines one by one and shows each result, without a class or main.
+          tr: jshell Java satırlarını tek tek çalıştırır ve her sonucu gösterir; class ya da main gerekmez.
+        lang: sh
+        form: jshell
+        example: |
+          $ jshell
+          jshell> "hello".toUpperCase()
+          $1 ==> "HELLO"
+          jshell> /exit
+        source: https://docs.oracle.com/en/java/javase/27/docs/specs/man/jshell.html

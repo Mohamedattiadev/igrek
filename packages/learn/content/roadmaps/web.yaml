@@ -1,0 +1,2105 @@
+id: web
+title: Web basics
+summary:
+  en: "From an empty computer to your own website on the internet. You write HTML, CSS and JavaScript by hand, with no framework and no build tool, and you understand what every line does."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi web siteni yapmaya. HTML, CSS ve JavaScript'i framework ve build aracı olmadan elle yazarsın ve her satırın ne yaptığını anlarsın."
+teacher: frontend
+project:
+  en: 'A small personal site: about page, responsive layout, dark mode that is remembered, and a projects section that loads your repositories from the GitHub API with fetch. Tested and published free on GitHub Pages.'
+  tr: 'Küçük bir kişisel site: hakkında bölümü, her ekrana uyan düzen, hatırlanan karanlık mod ve GitHub API''sinden fetch ile repolarını yükleyen bir projeler bölümü. Testleri yazılmış ve GitHub Pages''te ücretsiz yayında.'
+detect:
+  files: [index.html]
+checked: 2026-10
+sheets: [javascript, http, cors, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install an editor, a browser toolbox and Git"
+      tr: "Bir editör, tarayıcı araçları ve Git kurma"
+    minutes: 40
+    why:
+      en: "A website is just text files that a browser reads, so you only need an editor and a browser. Git keeps every version of your work. Node.js is optional, but we use it later to run small tests."
+      tr: "Bir web sitesi, tarayıcının okuduğu düz metin dosyalarından ibarettir; yani bir editör ve bir tarayıcı yeter. Git işinin her sürümünü saklar. Node.js zorunlu değil ama ileride küçük testleri çalıştırmak için kullanacağız."
+    learn:
+      en: |
+        - A website is files (`.html`, `.css`, `.js`) that a browser downloads and shows
+        - How to open a terminal and check that a program is installed
+        - How to open the browser developer tools (they are built in and free)
+      tr: |
+        - Web sitesinin, tarayıcının indirip gösterdiği dosyalar (`.html`, `.css`, `.js`) olduğu
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - Tarayıcı geliştirici araçlarını açmak (tarayıcıda hazır gelir ve ücretsizdir)
+    do:
+      en: |
+        1. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        2. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        3. Install **Node.js LTS** from nodejs.org. LTS means "long-term support": it gets fixes for years. You will not need it to write the site, only to run tests later.
+        4. Use any modern browser (Chrome, Firefox, Edge or Safari). Open any page and press **F12** (on macOS Safari: enable the Develop menu first). This opens the developer tools: you will use the *Elements*, *Console* and *Network* tabs a lot.
+        5. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number.
+        6. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+      tr: |
+        1. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        2. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        3. nodejs.org'dan **Node.js LTS** sürümünü kur. LTS "uzun süreli destek" demek: yıllarca düzeltme alır. Siteyi yazmak için gerekmez, sadece ileride testleri çalıştırmak için lazım.
+        4. Güncel bir tarayıcı kullan (Chrome, Firefox, Edge ya da Safari). Herhangi bir sayfayı aç ve **F12**'ye bas (macOS Safari'de önce Develop menüsünü açman gerekir). Geliştirici araçları açılır: *Elements*, *Console* ve *Network* sekmelerini çok kullanacaksın.
+        5. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı.
+        6. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git --version
+          node --version
+          npm --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "F12 does nothing on a laptop."
+          tr: "Dizüstü bilgisayarda F12 hiçbir şey yapmıyor."
+        fix:
+          en: "Some laptops need the Fn key too (Fn + F12). You can also right-click the page and choose *Inspect*."
+          tr: "Bazı dizüstü bilgisayarlarda Fn tuşu da gerekir (Fn + F12). Sayfaya sağ tıklayıp *Inspect* (İncele) seçeneğini de kullanabilirsin."
+    quiz:
+      - q:
+          en: "What does a browser need to show a website?"
+          tr: "Tarayıcının bir web sitesini göstermesi için neye ihtiyacı var?"
+        options:
+          en: [A special server program on your computer, The site's files (HTML, CSS and JavaScript), A framework]
+          tr: [Bilgisayarında özel bir sunucu programı, Sitenin dosyaları (HTML, CSS ve JavaScript), Bir framework]
+        answer: 1
+        why:
+          en: "A browser reads files. HTML gives the content, CSS the looks and JavaScript the behavior. Nothing else is required."
+          tr: "Tarayıcı dosyaları okur. HTML içeriği, CSS görünümü, JavaScript davranışı verir. Başka bir şey gerekmez."
+    sources:
+      - title: "MDN: Install and set up the basic software"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Getting_started/Environment_setup/Installing_software
+      - title: "MDN: What are browser developer tools?"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Tools_and_setup/What_are_browser_developer_tools
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: first-page
+    stage: first-code
+    title:
+      en: "Your first web page"
+      tr: "İlk web sayfan"
+    minutes: 25
+    needs: [setup]
+    why:
+      en: "The fastest way to learn is to see a result. One small file is already a real web page, and you can open it by double-clicking it."
+      tr: "Öğrenmenin en hızlı yolu sonucu görmek. Küçücük bir dosya bile gerçek bir web sayfasıdır ve çift tıklayarak açabilirsin."
+    learn:
+      en: |
+        - What an HTML file is: text with tags like `<h1>` that tell the browser what each part is
+        - The minimum every page needs (`<!doctype html>`, `<head>`, `<body>`)
+        - How to refresh the page after each save
+      tr: |
+        - HTML dosyasının ne olduğu: tarayıcıya her parçanın ne olduğunu söyleyen `<h1>` gibi etiketler içeren metin
+        - Her sayfanın en az neye ihtiyacı olduğu (`<!doctype html>`, `<head>`, `<body>`)
+        - Her kayıttan sonra sayfayı nasıl yenileyeceğin
+    do:
+      en: |
+        1. Create a folder called `personal-site` somewhere you can find it (for example in your Documents folder).
+        2. Open the folder in VS Code (*File → Open Folder*).
+        3. Create a new file named `index.html` and paste the code below. `index.html` is the special name a web server shows first.
+        4. Save it, then open it in your browser: double-click the file, or right-click it and choose *Open with* and your browser.
+        5. Change "Hello, web!" to something else, save, and press **F5** in the browser. The page changes.
+        6. Save this first version with Git (commands below).
+      tr: |
+        1. Bulabileceğin bir yerde (örneğin Belgeler klasöründe) `personal-site` adında bir klasör oluştur.
+        2. Klasörü VS Code'da aç (*File → Open Folder*).
+        3. `index.html` adında yeni bir dosya oluştur ve aşağıdaki kodu yapıştır. `index.html`, web sunucusunun ilk gösterdiği özel addır.
+        4. Kaydet, sonra tarayıcıda aç: dosyaya çift tıkla ya da sağ tıklayıp *Birlikte aç* ile tarayıcını seç.
+        5. "Hello, web!" yazısını değiştir, kaydet ve tarayıcıda **F5**'e bas. Sayfa değişir.
+        6. Bu ilk sürümü Git ile kaydet (aşağıdaki komutlar).
+    code:
+      - file: index.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <title>My site</title>
+            </head>
+            <body>
+              <h1>Hello, web!</h1>
+              <p>This is my first page.</p>
+            </body>
+          </html>
+      - file: terminal
+        lang: sh
+        text: |
+          git init -b main
+          git add .
+          git commit -m "First page"
+    mistakes:
+      - problem:
+          en: "The browser shows the code as plain text, or the file is called `index.html.txt`."
+          tr: "Tarayıcı kodu düz metin olarak gösteriyor ya da dosyanın adı `index.html.txt` olmuş."
+        fix:
+          en: "The name must end with `.html`. In VS Code, create the file with the right name. On Windows, enable *File name extensions* in File Explorer to see the real name."
+          tr: "Ad `.html` ile bitmeli. VS Code'da dosyayı doğru adla oluştur. Windows'ta gerçek adı görmek için Dosya Gezgini'nde *Dosya adı uzantıları*'nı aç."
+      - problem:
+          en: "Strange characters instead of letters like ü or ş."
+          tr: "ü ya da ş gibi harfler yerine garip karakterler çıkıyor."
+        fix:
+          en: "Keep `<meta charset=\"utf-8\">` in the `<head>` and save the file as UTF-8 (VS Code does this by default)."
+          tr: "`<head>` içinde `<meta charset=\"utf-8\">` satırını tut ve dosyayı UTF-8 olarak kaydet (VS Code varsayılan olarak böyle yapar)."
+    quiz:
+      - q:
+          en: "Why is the file named `index.html`?"
+          tr: "Dosyanın adı neden `index.html`?"
+        options:
+          en: [Browsers only open files with that name, A web server shows it first when someone visits a folder, It makes the page faster]
+          tr: [Tarayıcılar sadece bu adlı dosyaları açar, Biri bir klasörü ziyaret edince web sunucusu önce onu gösterir, Sayfayı hızlandırır]
+        answer: 1
+        why:
+          en: "Visiting `https://example.com/` actually serves `index.html` from the root folder. GitHub Pages does the same."
+          tr: "`https://example.com/` adresini ziyaret etmek aslında kök klasördeki `index.html` dosyasını sunar. GitHub Pages de aynısını yapar."
+    sources:
+      - title: "MDN: Basic HTML syntax"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Basic_HTML_syntax
+      - title: "MDN: HTML document structure"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Webpage_metadata
+
+  - id: html
+    stage: basics
+    title:
+      en: "Structure the content with HTML"
+      tr: "İçeriği HTML ile yapılandırma"
+    minutes: 60
+    needs: [first-page]
+    why:
+      en: "HTML says what each part of the page is: a heading, a list, a link, a navigation. Good structure helps search engines, screen readers and you, and it makes the CSS in the next step easy."
+      tr: "HTML sayfanın her parçasının ne olduğunu söyler: başlık, liste, bağlantı, gezinme. İyi yapı arama motorlarına, ekran okuyuculara ve sana yardım eder; sonraki adımdaki CSS'i de kolaylaştırır."
+    learn:
+      en: |
+        - Headings (`h1` to `h6`), paragraphs, links and lists
+        - Meaning-carrying elements: `header`, `nav`, `main`, `section`, `footer`
+        - Why the page has exactly one `h1`, and what `id` and `class` are for
+        - The `viewport` tag that makes pages work on phones
+      tr: |
+        - Başlıklar (`h1`'den `h6`'ya), paragraflar, bağlantılar ve listeler
+        - Anlam taşıyan elemanlar: `header`, `nav`, `main`, `section`, `footer`
+        - Sayfada neden tek bir `h1` olduğu, `id` ve `class`'ın ne işe yaradığı
+        - Sayfaların telefonda düzgün çalışmasını sağlayan `viewport` etiketi
+    do:
+      en: |
+        1. Replace the whole content of `index.html` with the code below. Change "Your Name" and the email to your own.
+        2. Save and refresh the browser. It looks plain: that is correct, the looks come next.
+        3. Click the links in the menu. The page jumps to the section whose `id` matches (`#about` goes to `id="about"`).
+        4. Open the developer tools, *Elements* tab. Click the little arrow icon and then an element on the page to see its HTML.
+        5. Commit: `git add .` and `git commit -m "Page structure"`.
+      tr: |
+        1. `index.html` içindeki her şeyi aşağıdaki kodla değiştir. "Your Name" ve e-postayı kendi bilgilerinle değiştir.
+        2. Kaydet ve tarayıcıyı yenile. Sade görünür: doğru, görünüm sıradaki adımda.
+        3. Menüdeki bağlantılara tıkla. Sayfa `id`'si eşleşen bölüme atlar (`#about`, `id="about"` olan yere gider).
+        4. Geliştirici araçlarını aç, *Elements* sekmesi. Küçük ok simgesine, sonra sayfadaki bir elemana tıkla; HTML'ini görürsün.
+        5. Commit et: `git add .` ve `git commit -m "Page structure"`.
+    code:
+      - file: index.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Your Name - personal site</title>
+            </head>
+            <body>
+              <a class="skip" href="#main">Skip to content</a>
+              <header class="site-header">
+                <p class="brand">Your Name</p>
+                <nav aria-label="Main">
+                  <a href="#about">About</a>
+                  <a href="#projects">Projects</a>
+                  <a href="#contact">Contact</a>
+                </nav>
+              </header>
+              <main id="main">
+                <section class="hero">
+                  <h1>Hi, I am Your Name</h1>
+                  <p>I am learning to build for the web.</p>
+                </section>
+                <section id="about">
+                  <h2>About</h2>
+                  <p>I write HTML, CSS and JavaScript by hand. This site is my practice project.</p>
+                </section>
+                <section id="projects">
+                  <h2>Projects</h2>
+                  <p id="repos-status" role="status">Projects will show up here soon.</p>
+                  <ul id="repos" class="cards"></ul>
+                </section>
+                <section id="contact">
+                  <h2>Contact</h2>
+                  <p>Write to <a href="mailto:you@example.com">you@example.com</a>.</p>
+                </section>
+              </main>
+              <footer>
+                <p>Built with HTML, CSS and JavaScript. No framework.</p>
+              </footer>
+            </body>
+          </html>
+    mistakes:
+      - problem:
+          en: "Using `<h3>` just because it looks smaller, or several `<h1>` tags."
+          tr: "Sadece daha küçük göründüğü için `<h3>` kullanmak ya da birden çok `<h1>` koymak."
+        fix:
+          en: "Headings describe the outline, not the size. One `h1`, then `h2` for sections, `h3` inside them. Change the size with CSS later."
+          tr: "Başlıklar boyutu değil, ana hatları anlatır. Bir `h1`, bölümler için `h2`, onların içinde `h3`. Boyutu sonra CSS ile değiştirirsin."
+      - problem:
+          en: "A tag is not closed (`<section>` without `</section>`) and the page looks broken far below."
+          tr: "Bir etiket kapatılmamış (`</section>` olmadan `<section>`) ve sayfa çok aşağıda bozuk görünüyor."
+        fix:
+          en: "Indent the code the same way as above. A missing closing tag then shows up as a line that is out of place."
+          tr: "Kodu yukarıdaki gibi girintili yaz. Eksik kapanış etiketi yerinde durmayan bir satır olarak göze çarpar."
+      - problem:
+          en: "Two elements with the same `id`."
+          tr: "Aynı `id`'ye sahip iki eleman."
+        fix:
+          en: "An `id` must be unique in a page. Use `class` when many elements share a style."
+          tr: "Bir sayfada `id` benzersiz olmalı. Birçok eleman aynı stili paylaşacaksa `class` kullan."
+    quiz:
+      - q:
+          en: "Why use `<nav>` and `<main>` instead of `<div>` for everything?"
+          tr: "Her şey için `<div>` yerine neden `<nav>` ve `<main>` kullanıyoruz?"
+        options:
+          en: [They have built-in colors, They tell browsers and screen readers what each part is, They run faster]
+          tr: [Hazır renkleri var, Tarayıcılara ve ekran okuyuculara her parçanın ne olduğunu söylerler, Daha hızlı çalışırlar]
+        answer: 1
+        why:
+          en: "These elements carry meaning. A screen reader user can jump straight to the main content or the navigation."
+          tr: "Bu elemanlar anlam taşır. Ekran okuyucu kullanan biri doğrudan ana içeriğe ya da menüye atlayabilir."
+    sources:
+      - title: "MDN: HTML text fundamentals"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Headings_and_paragraphs
+      - title: "MDN: Document and website structure"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Document_and_website_structure
+      - title: "MDN: HTML elements reference"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements
+
+  - id: css
+    stage: basics
+    title:
+      en: "Make it look good with CSS"
+      tr: "CSS ile güzel görünmesini sağlama"
+    minutes: 60
+    needs: [html]
+    why:
+      en: "CSS is the second layer: colors, fonts and spacing. Keeping looks in a separate file means you can change the whole site by editing one place."
+      tr: "CSS ikinci katman: renkler, yazı tipleri ve boşluklar. Görünümü ayrı bir dosyada tutmak, tüm siteyi tek yerden değiştirmeni sağlar."
+    learn:
+      en: |
+        - A CSS rule: selector, property, value
+        - Linking a stylesheet with `<link rel="stylesheet">`
+        - Custom properties (variables) such as `--accent`, used with `var(--accent)`
+        - The box model: content, padding, border, margin, and why `box-sizing: border-box` helps
+      tr: |
+        - CSS kuralı: seçici, özellik, değer
+        - `<link rel="stylesheet">` ile stil dosyası bağlamak
+        - `--accent` gibi özel özellikler (değişkenler) ve `var(--accent)` ile kullanımı
+        - Kutu modeli: içerik, padding, border, margin ve `box-sizing: border-box`'ın neden işe yaradığı
+    do:
+      en: |
+        1. Create `style.css` next to `index.html` with the code below.
+        2. In `index.html`, add the line `<link rel="stylesheet" href="style.css">` just before `</head>`.
+        3. Save both files and refresh. Colors and a readable font appear.
+        4. Change `--accent` to another color (try `#c2410c`) and refresh. Every link changes: that is the power of a variable.
+        5. In the browser's *Elements* tab, click an element and look at the *Styles* panel and the box-model picture to see which rules apply.
+        6. Commit: `git add .` and `git commit -m "Basic styles"`.
+      tr: |
+        1. `index.html`'in yanında aşağıdaki kodla `style.css` dosyasını oluştur.
+        2. `index.html` içinde `</head>` satırından hemen önce `<link rel="stylesheet" href="style.css">` satırını ekle.
+        3. İki dosyayı da kaydet ve yenile. Renkler ve okunaklı bir yazı tipi gelir.
+        4. `--accent` değerini başka bir renkle değiştir (`#c2410c` dene) ve yenile. Tüm bağlantılar değişir: değişkenin gücü bu.
+        5. Tarayıcıda *Elements* sekmesinde bir elemana tıkla; hangi kuralların uygulandığını *Styles* panelinden ve kutu modeli resminden gör.
+        6. Commit et: `git add .` ve `git commit -m "Basic styles"`.
+    code:
+      - file: style.css
+        lang: css
+        text: |
+          :root {
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --muted: #555555;
+            --accent: #0b5cad;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            line-height: 1.6;
+            background: var(--bg);
+            color: var(--text);
+          }
+
+          a {
+            color: var(--accent);
+          }
+
+          h1,
+          h2 {
+            line-height: 1.2;
+          }
+
+          footer {
+            padding: 2rem 1rem;
+            text-align: center;
+            color: var(--muted);
+          }
+    mistakes:
+      - problem:
+          en: "The styles do not apply at all."
+          tr: "Stiller hiç uygulanmıyor."
+        fix:
+          en: "Open the *Network* tab and refresh: if `style.css` is red (404), the `href` does not match the file name or folder."
+          tr: "*Network* sekmesini aç ve yenile: `style.css` kırmızıysa (404) `href`, dosya adıyla ya da klasörle uyuşmuyor."
+      - problem:
+          en: "A rule with a typo is ignored silently (for example `colour: red`)."
+          tr: "Yazım hatalı kural sessizce yok sayılıyor (örneğin `colour: red`)."
+        fix:
+          en: "CSS does not show errors. In the *Styles* panel a wrong property is shown crossed out. Check the spelling and the semicolon at the end of each line."
+          tr: "CSS hata göstermez. *Styles* panelinde yanlış özellik üstü çizili görünür. Yazımı ve her satır sonundaki noktalı virgülü kontrol et."
+    quiz:
+      - q:
+          en: "What is the benefit of `--accent` and `var(--accent)`?"
+          tr: "`--accent` ve `var(--accent)` kullanmanın faydası nedir?"
+        options:
+          en: [The color loads faster, You change a value in one place and it updates everywhere, Variables are required by CSS]
+          tr: [Renk daha hızlı yüklenir, Değeri tek yerde değiştirirsin ve her yerde güncellenir, CSS değişken kullanmayı zorunlu tutar]
+        answer: 1
+        why:
+          en: "Custom properties remove repeated values. Later they also make dark mode simple: you only swap the variables."
+          tr: "Özel özellikler tekrar eden değerleri ortadan kaldırır. İleride karanlık modu da basitleştirir: sadece değişkenleri değiştirirsin."
+    sources:
+      - title: "MDN: CSS styling basics"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics
+      - title: "MDN: Using CSS custom properties"
+        url: https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Cascading_variables/Using_custom_properties
+      - title: "MDN: The box model"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Styling_basics/Box_model
+
+  - id: layout
+    stage: basics
+    title:
+      en: "Layout that fits every screen"
+      tr: "Her ekrana uyan düzen"
+    minutes: 60
+    needs: [css]
+    why:
+      en: "Most visitors use a phone. A layout that adapts to the screen width (responsive design) is not extra work: with Flexbox and Grid it is a few lines."
+      tr: "Ziyaretçilerin çoğu telefon kullanır. Ekran genişliğine uyum sağlayan düzen (responsive tasarım) ek iş değil: Flexbox ve Grid ile birkaç satır."
+    learn:
+      en: |
+        - Flexbox for a row of items (the header) and Grid for cards
+        - `repeat(auto-fill, minmax(16rem, 1fr))`: as many columns as fit
+        - A media query for small screens, and `clamp()` for fluid text size
+        - Why the viewport meta tag from the HTML step matters
+      tr: |
+        - Bir sıra eleman için (başlık) Flexbox, kartlar için Grid
+        - `repeat(auto-fill, minmax(16rem, 1fr))`: sığdığı kadar sütun
+        - Küçük ekranlar için media query ve akışkan yazı boyutu için `clamp()`
+        - HTML adımındaki viewport meta etiketinin neden önemli olduğu
+    do:
+      en: |
+        1. Replace the whole content of `style.css` with the code below. It keeps the variables from the last step and adds the layout.
+        2. To see cards, temporarily add three `<li class="card"><h3>Project</h3><p>Description</p></li>` lines inside `<ul id="repos" class="cards">` in `index.html`. You will remove them in a later step, when JavaScript fills the list.
+        3. Refresh. Make the browser window narrow and wide: the cards reflow and the header stacks on small screens.
+        4. Open the developer tools and click the *device toolbar* icon (a phone and tablet) to test phone sizes.
+        5. Commit: `git add .` and `git commit -m "Responsive layout"`.
+      tr: |
+        1. `style.css` içindeki her şeyi aşağıdaki kodla değiştir. Önceki adımın değişkenlerini korur ve düzeni ekler.
+        2. Kartları görmek için `index.html` içinde `<ul id="repos" class="cards">` elemanının içine geçici olarak üç tane `<li class="card"><h3>Project</h3><p>Description</p></li>` satırı ekle. Sonraki bir adımda liste JavaScript ile dolacağı için bunları sileceksin.
+        3. Yenile. Tarayıcı penceresini daralt ve genişlet: kartlar yeniden dizilir, başlık küçük ekranlarda alt alta geçer.
+        4. Geliştirici araçlarında *cihaz araç çubuğu* simgesine (telefon ve tablet) tıklayıp telefon boyutlarını dene.
+        5. Commit et: `git add .` ve `git commit -m "Responsive layout"`.
+    code:
+      - file: style.css
+        lang: css
+        text: |
+          :root {
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --muted: #555555;
+            --accent: #0b5cad;
+            --card: #f3f5f8;
+            --border: #d5dae1;
+          }
+
+          * {
+            box-sizing: border-box;
+          }
+
+          body {
+            margin: 0;
+            font-family: system-ui, sans-serif;
+            line-height: 1.6;
+            background: var(--bg);
+            color: var(--text);
+          }
+
+          a {
+            color: var(--accent);
+          }
+
+          h1,
+          h2 {
+            line-height: 1.2;
+          }
+
+          .skip {
+            position: absolute;
+            left: -999px;
+            top: 0;
+            padding: 0.5rem 1rem;
+            background: var(--bg);
+          }
+
+          .skip:focus {
+            left: 0;
+          }
+
+          .site-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+          }
+
+          .site-header nav {
+            display: flex;
+            gap: 1rem;
+          }
+
+          .brand {
+            margin: 0;
+            font-weight: 700;
+          }
+
+          main {
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 0 1rem;
+          }
+
+          section {
+            padding: 2rem 0;
+          }
+
+          .hero h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            margin-bottom: 0.5rem;
+          }
+
+          .cards {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+            gap: 1rem;
+          }
+
+          .card {
+            padding: 1rem;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+          }
+
+          .card h3 {
+            margin: 0 0 0.5rem;
+          }
+
+          .card p {
+            margin: 0 0 0.5rem;
+            color: var(--muted);
+          }
+
+          button {
+            font: inherit;
+            padding: 0.4rem 0.9rem;
+            color: var(--text);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+          }
+
+          footer {
+            padding: 2rem 1rem;
+            text-align: center;
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+          }
+
+          @media (max-width: 40rem) {
+            .site-header {
+              flex-direction: column;
+              align-items: flex-start;
+            }
+          }
+    mistakes:
+      - problem:
+          en: "On a real phone the page looks tiny, like a zoomed-out desktop page."
+          tr: "Gerçek telefonda sayfa küçücük, uzaklaştırılmış bir masaüstü sayfası gibi görünüyor."
+        fix:
+          en: "The `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">` line is missing from `<head>`."
+          tr: "`<head>` içinde `<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">` satırı eksik."
+      - problem:
+          en: "Using fixed widths like `width: 800px`, so the page scrolls sideways on phones."
+          tr: "`width: 800px` gibi sabit genişlikler kullanmak; sayfa telefonda yana kayıyor."
+        fix:
+          en: "Use `max-width`, percentages, `rem` and Grid/Flex so content can shrink."
+          tr: "İçerik küçülebilsin diye `max-width`, yüzde, `rem` ve Grid/Flex kullan."
+    quiz:
+      - q:
+          en: "What does `repeat(auto-fill, minmax(16rem, 1fr))` do?"
+          tr: "`repeat(auto-fill, minmax(16rem, 1fr))` ne yapar?"
+        options:
+          en: [Makes exactly 16 columns, Fits as many columns of at least 16rem as the width allows, Hides cards that are too wide]
+          tr: [Tam 16 sütun yapar, Genişliğin izin verdiği kadar en az 16rem'lik sütun sığdırır, Fazla geniş kartları gizler]
+        answer: 1
+        why:
+          en: "Each column is at least 16rem wide and shares leftover space equally (1fr). On a phone you get one column, on a laptop three or four."
+          tr: "Her sütun en az 16rem genişliğinde olur ve artan yeri eşit paylaşır (1fr). Telefonda tek sütun, dizüstünde üç dört sütun elde edersin."
+    sources:
+      - title: "MDN: CSS grid layout"
+        url: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout
+      - title: "MDN: Flexbox"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Flexbox
+      - title: "MDN: Using media queries"
+        url: https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries
+
+  - id: dom
+    stage: first-project
+    title:
+      en: "JavaScript: a dark mode button"
+      tr: "JavaScript: karanlık mod düğmesi"
+    minutes: 75
+    needs: [layout]
+    why:
+      en: "JavaScript is the third layer: it reacts to what the visitor does. A dark mode button is small but uses the three core ideas: find an element, listen for a click, change the page."
+      tr: "JavaScript üçüncü katman: ziyaretçinin yaptıklarına tepki verir. Karanlık mod düğmesi küçük ama üç temel fikri kullanır: bir eleman bul, tıklamayı dinle, sayfayı değiştir."
+    learn:
+      en: |
+        - Loading a script with `<script type="module" src="...">` (it runs after the page is parsed)
+        - `document.querySelector` to find an element, `addEventListener` to react to a click
+        - Changing the page through an attribute (`data-theme`) that CSS reacts to
+        - Why a local web server is needed for modules (and how to start one)
+      tr: |
+        - `<script type="module" src="...">` ile script yüklemek (sayfa okunduktan sonra çalışır)
+        - Eleman bulmak için `document.querySelector`, tıklamaya tepki vermek için `addEventListener`
+        - Sayfayı, CSS'in tepki verdiği bir öznitelik (`data-theme`) üzerinden değiştirmek
+        - Modüller için neden yerel bir web sunucusu gerektiği (ve nasıl başlatılacağı)
+    do:
+      en: |
+        1. Modules do not load from a file opened by double-click (`file://`), so start a tiny local server. In the terminal, inside the `personal-site` folder, run the first command below and open the address it prints (usually http://localhost:3000). Stop it with Ctrl+C. The first run asks to install `serve`: answer yes.
+        2. Create the folder `js` and the file `js/main.js` with the code below.
+        3. Replace `index.html` with the version below: it has the new button in the header and the script tag. Remove the three temporary cards from the layout step if you added them.
+        4. Add the dark theme at the end of `style.css` (second code block).
+        5. Refresh and click "Dark mode". The page switches. Open the *Console* tab: there should be no red errors.
+        6. Commit: `git add .` and `git commit -m "Dark mode button"`.
+      tr: |
+        1. Modüller çift tıklayarak açılan (`file://`) dosyadan yüklenmez; bu yüzden küçük bir yerel sunucu başlat. Terminalde `personal-site` klasörünün içinde aşağıdaki ilk komutu çalıştır ve yazdığı adresi aç (genelde http://localhost:3000). Ctrl+C ile durdurursun. İlk çalıştırmada `serve` kurmayı sorar: evet de.
+        2. `js` klasörünü ve aşağıdaki kodla `js/main.js` dosyasını oluştur.
+        3. `index.html` dosyasını aşağıdaki sürümle değiştir: başlıkta yeni düğme ve script etiketi var. Düzen adımında eklediysen üç geçici kartı kaldır.
+        4. Karanlık temayı `style.css` dosyasının sonuna ekle (ikinci kod bloğu).
+        5. Yenile ve "Dark mode" düğmesine tıkla. Sayfa değişir. *Console* sekmesini aç: kırmızı hata olmamalı.
+        6. Commit et: `git add .` ve `git commit -m "Dark mode button"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx serve .
+      - file: js/main.js
+        lang: js
+        text: |
+          const toggle = document.querySelector("#theme-toggle");
+
+          function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            toggle.setAttribute("aria-pressed", String(theme === "dark"));
+          }
+
+          toggle.addEventListener("click", () => {
+            const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+            applyTheme(next);
+          });
+
+          const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
+          applyTheme(prefersDark ? "dark" : "light");
+      - file: index.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Your Name - personal site</title>
+              <link rel="stylesheet" href="style.css">
+              <script type="module" src="js/main.js"></script>
+            </head>
+            <body>
+              <a class="skip" href="#main">Skip to content</a>
+              <header class="site-header">
+                <p class="brand">Your Name</p>
+                <nav aria-label="Main">
+                  <a href="#about">About</a>
+                  <a href="#projects">Projects</a>
+                  <a href="#contact">Contact</a>
+                </nav>
+                <button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+              </header>
+              <main id="main">
+                <section class="hero">
+                  <h1>Hi, I am Your Name</h1>
+                  <p>I am learning to build for the web.</p>
+                </section>
+                <section id="about">
+                  <h2>About</h2>
+                  <p>I write HTML, CSS and JavaScript by hand. This site is my practice project.</p>
+                </section>
+                <section id="projects">
+                  <h2>Projects</h2>
+                  <p id="repos-status" role="status">Projects will show up here soon.</p>
+                  <ul id="repos" class="cards"></ul>
+                </section>
+                <section id="contact">
+                  <h2>Contact</h2>
+                  <p>Write to <a href="mailto:you@example.com">you@example.com</a>.</p>
+                </section>
+              </main>
+              <footer>
+                <p>Built with HTML, CSS and JavaScript. No framework.</p>
+              </footer>
+            </body>
+          </html>
+      - file: style.css
+        lang: css
+        text: |
+          /* add at the end of style.css */
+
+          /* Dark theme. The first block is used before JavaScript runs, so dark-mode users
+             do not see a white flash; the second one is the button's choice. */
+          @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+              color-scheme: dark;
+              --bg: #121417;
+              --text: #eceff3;
+              --muted: #aab2bd;
+              --accent: #6cb2ff;
+              --card: #1c2026;
+              --border: #323943;
+            }
+          }
+
+          :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #121417;
+            --text: #eceff3;
+            --muted: #aab2bd;
+            --accent: #6cb2ff;
+            --card: #1c2026;
+            --border: #323943;
+          }
+    mistakes:
+      - problem:
+          en: "The console says \"Access to script ... from origin 'null' has been blocked by CORS policy\" and nothing works."
+          tr: "Konsol \"Access to script ... from origin 'null' has been blocked by CORS policy\" diyor ve hiçbir şey çalışmıyor."
+        fix:
+          en: "You opened the page with `file://`. Start the local server (`npx serve .`) and use the `http://localhost` address."
+          tr: "Sayfayı `file://` ile açmışsın. Yerel sunucuyu başlat (`npx serve .`) ve `http://localhost` adresini kullan."
+      - problem:
+          en: "\"Cannot read properties of null (reading 'addEventListener')\"."
+          tr: "\"Cannot read properties of null (reading 'addEventListener')\" hatası."
+        fix:
+          en: "`querySelector` found nothing, so `toggle` is `null`. Check that the button has `id=\"theme-toggle\"` and the selector is `#theme-toggle` (the `#` means id)."
+          tr: "`querySelector` hiçbir şey bulamadı, yani `toggle` değeri `null`. Düğmede `id=\"theme-toggle\"` olduğunu ve seçicinin `#theme-toggle` olduğunu kontrol et (`#` id demektir)."
+      - problem:
+          en: "Calling `toggle.addEventListener(\"click\", applyTheme())` with parentheses."
+          tr: "`toggle.addEventListener(\"click\", applyTheme())` diye parantezli yazmak."
+        fix:
+          en: "Parentheses call the function right now. Pass a function, as the arrow function above does, so it runs later on click."
+          tr: "Parantez fonksiyonu hemen çağırır. Yukarıdaki ok fonksiyonu gibi bir fonksiyon ver ki tıklayınca sonradan çalışsın."
+    quiz:
+      - q:
+          en: "How does the button change the look of the whole page?"
+          tr: "Düğme tüm sayfanın görünümünü nasıl değiştiriyor?"
+        options:
+          en: [It rewrites the CSS file, It sets the data-theme attribute and CSS variables change in response, It reloads the page]
+          tr: [CSS dosyasını yeniden yazar, data-theme özniteliğini ayarlar ve CSS değişkenleri buna göre değişir, Sayfayı yeniden yükler]
+        answer: 1
+        why:
+          en: "JavaScript only flips one attribute. The CSS rule `:root[data-theme=\"dark\"]` swaps the variables, and every color follows."
+          tr: "JavaScript sadece bir özniteliği çevirir. `:root[data-theme=\"dark\"]` kuralı değişkenleri değiştirir, tüm renkler onu izler."
+    sources:
+      - title: "MDN: DOM scripting"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/DOM_scripting
+      - title: "MDN: JavaScript modules"
+        url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
+      - title: "MDN: prefers-color-scheme"
+        url: https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
+
+  - id: storage
+    stage: data-api
+    title:
+      en: "Remember the visitor's choice"
+      tr: "Ziyaretçinin seçimini hatırlama"
+    minutes: 30
+    needs: [dom]
+    why:
+      en: "Right now the page forgets the theme when it is reloaded. The browser can keep small pieces of data for your site with `localStorage`, with no server and no database."
+      tr: "Şu an sayfa yenilenince tema unutuluyor. Tarayıcı, siten için `localStorage` ile küçük veriler saklayabilir; sunucu ve veritabanı gerekmez."
+    learn:
+      en: |
+        - `localStorage.getItem` and `setItem` (they store strings only)
+        - Why storage code goes in `try`/`catch` (private windows or blocked storage can throw)
+        - Checking saved data before trusting it
+      tr: |
+        - `localStorage.getItem` ve `setItem` (sadece string saklarlar)
+        - Saklama kodunun neden `try`/`catch` içinde olduğu (gizli pencere ya da engellenmiş depolama hata fırlatabilir)
+        - Kayıtlı veriye güvenmeden önce kontrol etmek
+    do:
+      en: |
+        1. Replace `js/main.js` with the code below.
+        2. Refresh, click "Dark mode", then refresh again. The dark theme stays.
+        3. Open developer tools, *Application* tab (Firefox: *Storage*), then *Local Storage*. You see the key `theme` with the value `dark`. Delete it and refresh to see the default again.
+        4. Commit: `git add .` and `git commit -m "Remember theme"`.
+      tr: |
+        1. `js/main.js` dosyasını aşağıdaki kodla değiştir.
+        2. Yenile, "Dark mode" düğmesine tıkla, sonra tekrar yenile. Karanlık tema kalır.
+        3. Geliştirici araçlarında *Application* sekmesini (Firefox'ta *Storage*), sonra *Local Storage*'ı aç. Değeri `dark` olan `theme` anahtarını görürsün. Sil ve yenile; varsayılan hâli yeniden görürsün.
+        4. Commit et: `git add .` ve `git commit -m "Remember theme"`.
+    code:
+      - file: js/main.js
+        lang: js
+        text: |
+          const KEY = "theme";
+          const toggle = document.querySelector("#theme-toggle");
+
+          function savedTheme() {
+            try {
+              const value = localStorage.getItem(KEY);
+              return value === "dark" || value === "light" ? value : null;
+            } catch {
+              return null; // storage is blocked: just use the default
+            }
+          }
+
+          function saveTheme(theme) {
+            try {
+              localStorage.setItem(KEY, theme);
+            } catch {
+              // storage is blocked: the choice lasts until the page closes
+            }
+          }
+
+          function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            toggle.setAttribute("aria-pressed", String(theme === "dark"));
+          }
+
+          toggle.addEventListener("click", () => {
+            const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+            applyTheme(next);
+            saveTheme(next);
+          });
+
+          const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
+          applyTheme(savedTheme() ?? (prefersDark ? "dark" : "light"));
+    mistakes:
+      - problem:
+          en: "Saving an object with `setItem(\"user\", {name: \"Ada\"})` and getting \"[object Object]\" back."
+          tr: "`setItem(\"user\", {name: \"Ada\"})` ile nesne kaydedip \"[object Object]\" geri almak."
+        fix:
+          en: "`localStorage` stores only strings. Use `JSON.stringify(object)` to save and `JSON.parse(text)` to read."
+          tr: "`localStorage` sadece string saklar. Kaydederken `JSON.stringify(nesne)`, okurken `JSON.parse(metin)` kullan."
+      - problem:
+          en: "Storing passwords or private data in `localStorage`."
+          tr: "`localStorage` içinde parola ya da özel veri saklamak."
+        fix:
+          en: "Any script on your page can read it. Keep only harmless settings like a theme there."
+          tr: "Sayfandaki her script onu okuyabilir. Orada sadece tema gibi zararsız ayarları tut."
+    quiz:
+      - q:
+          en: "Why check that the saved value is \"dark\" or \"light\"?"
+          tr: "Kayıtlı değerin \"dark\" ya da \"light\" olduğu neden kontrol ediliyor?"
+        options:
+          en: [Because localStorage is slow, Because stored data can be missing or edited and should not be trusted blindly, Because the browser requires it]
+          tr: [localStorage yavaş olduğu için, Kayıtlı veri eksik olabilir ya da değiştirilmiş olabilir ve körü körüne güvenilmemeli, Tarayıcı zorunlu tuttuğu için]
+        answer: 1
+        why:
+          en: "Anyone can edit local storage in the developer tools. Always validate input, even your own saved input."
+          tr: "Local storage'ı geliştirici araçlarından herkes değiştirebilir. Girdiyi, kendi kaydettiğin girdi bile olsa, her zaman doğrula."
+    sources:
+      - title: "MDN: Using the Web Storage API"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+      - title: "MDN: Window.localStorage"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
+
+  - id: fetch
+    stage: data-api
+    title:
+      en: "Load your projects with fetch"
+      tr: "fetch ile projelerini yükleme"
+    minutes: 90
+    needs: [storage]
+    why:
+      en: "Real sites load data from other places. `fetch` asks a web API (an address that returns data) for information. GitHub has a free public API, so your Projects section can list your real repositories and never go out of date."
+      tr: "Gerçek siteler başka yerlerden veri yükler. `fetch`, bir web API'sinden (veri döndüren bir adres) bilgi ister. GitHub'ın ücretsiz, herkese açık bir API'si var; böylece Projeler bölümün gerçek repolarını listeler ve hiç eskimez."
+    learn:
+      en: |
+        - What an API and JSON are, and what `fetch` returns (a Promise)
+        - `async`/`await` and handling errors with `try`/`catch`
+        - Checking `response.ok`: `fetch` does not throw for a 404 or 403
+        - Building page elements with `createElement` and `textContent`
+        - Splitting code into modules (`import`/`export`)
+      tr: |
+        - API ve JSON'un ne olduğu, `fetch`'in ne döndürdüğü (bir Promise)
+        - `async`/`await` ve hataları `try`/`catch` ile yakalamak
+        - `response.ok` kontrolü: `fetch` 404 ya da 403 için hata fırlatmaz
+        - `createElement` ve `textContent` ile sayfa elemanları oluşturmak
+        - Kodu modüllere bölmek (`import`/`export`)
+    do:
+      en: |
+        1. Open https://api.github.com/users/octocat/repos in your browser. This is the data your page will use: a list of repositories as JSON.
+        2. Create `js/repos.js` with the first code block. It holds the data logic (no page code), which makes it easy to test later.
+        3. Replace `js/main.js` with the second code block. Change `GITHUB_USER` to your own GitHub username (you can keep `octocat` until you have repositories).
+        4. If you added temporary cards in the layout step, remove them. Refresh the page served by `npx serve .`: the Projects section fills with cards.
+        5. Test the failure path: in the *Network* tab choose *Offline* and reload. You should see the friendly message instead of an empty section.
+        6. Commit: `git add .` and `git commit -m "Load projects from GitHub"`.
+      tr: |
+        1. Tarayıcıda https://api.github.com/users/octocat/repos adresini aç. Sayfanın kullanacağı veri bu: JSON olarak bir repo listesi.
+        2. İlk kod bloğuyla `js/repos.js` dosyasını oluştur. Veri mantığını tutar (sayfa kodu yok); böylece sonra test etmesi kolay olur.
+        3. `js/main.js` dosyasını ikinci kod bloğuyla değiştir. `GITHUB_USER` değerini kendi GitHub kullanıcı adınla değiştir (repoların olana kadar `octocat` kalabilir).
+        4. Düzen adımında geçici kart eklediysen kaldır. `npx serve .` ile sunulan sayfayı yenile: Projeler bölümü kartlarla dolar.
+        5. Hata yolunu dene: *Network* sekmesinde *Offline*'ı seç ve yeniden yükle. Boş bir bölüm yerine kullanıcı dostu mesajı görmelisin.
+        6. Commit et: `git add .` ve `git commit -m "Load projects from GitHub"`.
+    code:
+      - file: js/repos.js
+        lang: js
+        text: |
+          // Turns the raw GitHub answer into the few fields the page needs.
+          export function pickRepos(list, max = 6) {
+            return list
+              .filter((repo) => !repo.fork && !repo.archived)
+              .sort(
+                (a, b) =>
+                  b.stargazers_count - a.stargazers_count ||
+                  new Date(b.pushed_at) - new Date(a.pushed_at),
+              )
+              .slice(0, max)
+              .map((repo) => ({
+                name: repo.name,
+                description: repo.description ?? "No description yet.",
+                url: repo.html_url,
+                language: repo.language,
+                stars: repo.stargazers_count,
+              }));
+          }
+
+          // Asks GitHub for the public repositories of a user.
+          // `fetchFn` is a parameter so tests can pass a fake instead of the network.
+          export async function loadRepos(user, fetchFn = fetch) {
+            const response = await fetchFn(
+              `https://api.github.com/users/${encodeURIComponent(user)}/repos?per_page=100`,
+            );
+            if (!response.ok) {
+              throw new Error(`GitHub answered ${response.status}`);
+            }
+            return pickRepos(await response.json());
+          }
+      - file: js/main.js
+        lang: js
+        text: |
+          import { loadRepos } from "./repos.js";
+
+          const GITHUB_USER = "octocat"; // put your own GitHub username here
+          const KEY = "theme";
+          const toggle = document.querySelector("#theme-toggle");
+          const list = document.querySelector("#repos");
+          const status = document.querySelector("#repos-status");
+
+          // --- theme ---
+
+          function savedTheme() {
+            try {
+              const value = localStorage.getItem(KEY);
+              return value === "dark" || value === "light" ? value : null;
+            } catch {
+              return null;
+            }
+          }
+
+          function saveTheme(theme) {
+            try {
+              localStorage.setItem(KEY, theme);
+            } catch {
+              // storage is blocked: the choice lasts until the page closes
+            }
+          }
+
+          function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            toggle.setAttribute("aria-pressed", String(theme === "dark"));
+          }
+
+          toggle.addEventListener("click", () => {
+            const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+            applyTheme(next);
+            saveTheme(next);
+          });
+
+          const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
+          applyTheme(savedTheme() ?? (prefersDark ? "dark" : "light"));
+
+          // --- projects ---
+
+          function card(repo) {
+            const item = document.createElement("li");
+            item.className = "card";
+
+            const title = document.createElement("h3");
+            const link = document.createElement("a");
+            link.href = repo.url;
+            link.textContent = repo.name;
+            title.append(link);
+
+            const description = document.createElement("p");
+            description.textContent = repo.description;
+
+            const meta = document.createElement("p");
+            meta.textContent = `${repo.language ?? "Mixed"}, ${repo.stars} stars`;
+
+            item.append(title, description, meta);
+            return item;
+          }
+
+          async function showRepos() {
+            status.textContent = "Loading projects...";
+            try {
+              const repos = await loadRepos(GITHUB_USER);
+              list.replaceChildren(...repos.map(card));
+              status.textContent = repos.length ? "" : "No public projects yet.";
+            } catch (error) {
+              console.error(error);
+              status.textContent = "Could not load projects right now. Please try again later.";
+            }
+          }
+
+          showRepos();
+    mistakes:
+      - problem:
+          en: "The page prints \"[object Promise]\" or `undefined` instead of data."
+          tr: "Sayfa veri yerine \"[object Promise]\" ya da `undefined` yazıyor."
+        fix:
+          en: "`fetch` and `response.json()` return Promises. Put `await` in front of both, inside an `async` function."
+          tr: "`fetch` ve `response.json()` Promise döndürür. İkisinin önüne de `async` fonksiyon içinde `await` koy."
+      - problem:
+          en: "Treating a 403 or 404 answer as success, then crashing on the data."
+          tr: "403 ya da 404 cevabını başarı sanıp veride hata almak."
+        fix:
+          en: "`fetch` only fails on network problems. Always check `response.ok` (as `loadRepos` does) and throw an error yourself."
+          tr: "`fetch` sadece ağ sorunlarında hata verir. Her zaman `response.ok` kontrol et (`loadRepos`'ta olduğu gibi) ve hatayı kendin fırlat."
+      - problem:
+          en: "Error 403 \"rate limit exceeded\" after many reloads."
+          tr: "Çok sayıda yenilemeden sonra 403 \"rate limit exceeded\" hatası."
+        fix:
+          en: "GitHub allows 60 requests per hour per IP address without a token. Wait, or see the performance step where we cache the answer. Never put a token in front-end code: everyone can read it."
+          tr: "GitHub, token olmadan IP adresi başına saatte 60 isteğe izin verir. Bekle ya da cevabı önbelleğe aldığımız performans adımına bak. Front-end koduna asla token koyma: herkes okuyabilir."
+    quiz:
+      - q:
+          en: "What does `fetch` do when the server answers 404?"
+          tr: "Sunucu 404 cevabı verince `fetch` ne yapar?"
+        options:
+          en: [Throws an error, Resolves normally and you must check response.ok, Retries three times]
+          tr: [Hata fırlatır, Normal şekilde tamamlanır ve response.ok değerini senin kontrol etmen gerekir, Üç kere yeniden dener]
+        answer: 1
+        why:
+          en: "`fetch` rejects only when the request cannot be made at all (no network). HTTP errors are normal responses with `ok` set to false."
+          tr: "`fetch` sadece istek hiç yapılamadığında (ağ yok) reddedilir. HTTP hataları `ok` değeri false olan normal cevaplardır."
+      - q:
+          en: "Why set `textContent` instead of building HTML strings with the repository description?"
+          tr: "Repo açıklamasıyla HTML metni oluşturmak yerine neden `textContent` kullanıyoruz?"
+        options:
+          en: [It is shorter, The text is shown as plain text and can never run as code, It works in more browsers]
+          tr: [Daha kısa, Metin düz yazı olarak gösterilir ve asla kod olarak çalışamaz, Daha çok tarayıcıda çalışır]
+        answer: 1
+        why:
+          en: "The description is written by someone else. As text it is safe; as HTML it could contain a script. The security step explains this in detail."
+          tr: "Açıklamayı başkası yazmış. Metin olarak güvenli; HTML olarak içinde script olabilir. Güvenlik adımı bunu ayrıntılı anlatıyor."
+    sources:
+      - title: "MDN: Using the Fetch API"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+      - title: "MDN: Introducing asynchronous JavaScript"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Async_JS
+      - title: "GitHub REST API: list repositories for a user"
+        url: https://docs.github.com/en/rest/repos/repos#list-repositories-for-a-user
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the code and the page"
+      tr: "Kodu ve sayfayı test etme"
+    minutes: 60
+    needs: [fetch]
+    why:
+      en: "Every change can break something you are not looking at. A test checks in a second what you would check by hand in five minutes. Node.js has a test runner built in, so you need no extra packages."
+      tr: "Her değişiklik bakmadığın bir yeri bozabilir. Bir test, elle beş dakikada kontrol edeceğin şeyi bir saniyede kontrol eder. Node.js'in test çalıştırıcısı hazır gelir; ek paket gerekmez."
+    learn:
+      en: |
+        - `node:test` (`test`) and `node:assert` (`assert.deepEqual`, `assert.rejects`)
+        - Testing pure functions with plain data, and replacing `fetch` with a fake
+        - Why `package.json` has `"type": "module"` (so Node reads `import` like the browser)
+        - Manual testing with the browser's tools: Console, Network, device toolbar
+      tr: |
+        - `node:test` (`test`) ve `node:assert` (`assert.deepEqual`, `assert.rejects`)
+        - Saf fonksiyonları düz verilerle test etmek ve `fetch`'i sahte bir fonksiyonla değiştirmek
+        - `package.json` içinde neden `"type": "module"` olduğu (Node'un `import`'u tarayıcı gibi okuması için)
+        - Tarayıcı araçlarıyla elle test: Console, Network, cihaz araç çubuğu
+    do:
+      en: |
+        1. Create `package.json` in the project folder with the code below. It installs nothing; it only tells Node to treat `.js` files as modules and adds a `test` command.
+        2. Create the folder `test` and the file `test/repos.test.js` with the code below.
+        3. Run `npm test`. You should see 5 passing tests.
+        4. Break the code on purpose: in `js/repos.js` remove `!repo.fork &&`. Run `npm test`: one test fails and shows which. Put it back.
+        5. Do the manual check once, with the page open: the Console has no red errors, the Network tab shows the call to `api.github.com` with status 200, and the device toolbar shows a good layout on a small phone.
+        6. Add a `.gitignore` file with the lines `node_modules` and `_site`, then commit: `git add .` and `git commit -m "Add tests"`.
+      tr: |
+        1. Proje klasöründe aşağıdaki kodla `package.json` oluştur. Hiçbir şey kurmaz; sadece Node'a `.js` dosyalarını modül saymasını söyler ve bir `test` komutu ekler.
+        2. `test` klasörünü ve aşağıdaki kodla `test/repos.test.js` dosyasını oluştur.
+        3. `npm test` çalıştır. 5 testin geçtiğini görmelisin.
+        4. Kodu bilerek boz: `js/repos.js` içinde `!repo.fork &&` kısmını sil. `npm test` çalıştır: bir test kırılır ve hangisi olduğunu gösterir. Geri koy.
+        5. Elle kontrolü bir kez yap, sayfa açıkken: Console'da kırmızı hata yok, Network sekmesinde `api.github.com` çağrısı 200 durumuyla görünüyor, cihaz araç çubuğunda küçük telefonda düzen iyi.
+        6. `node_modules` ve `_site` satırlarını içeren bir `.gitignore` dosyası ekle, sonra commit et: `git add .` ve `git commit -m "Add tests"`.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "personal-site",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "test": "node --test"
+            }
+          }
+      - file: test/repos.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { test } from "node:test";
+          import { loadRepos, pickRepos } from "../js/repos.js";
+
+          // A fake GitHub repository; each test changes only what it cares about.
+          const repo = (changes = {}) => ({
+            name: "site",
+            description: "A site",
+            html_url: "https://github.com/me/site",
+            language: "JavaScript",
+            stargazers_count: 0,
+            pushed_at: "2026-01-01T00:00:00Z",
+            fork: false,
+            archived: false,
+            ...changes,
+          });
+
+          test("skips forks and archived repositories", () => {
+            const list = [
+              repo({ name: "mine" }),
+              repo({ name: "copy", fork: true }),
+              repo({ name: "old", archived: true }),
+            ];
+            assert.deepEqual(pickRepos(list).map((r) => r.name), ["mine"]);
+          });
+
+          test("puts the most starred first", () => {
+            const list = [
+              repo({ name: "a", stargazers_count: 1 }),
+              repo({ name: "b", stargazers_count: 5 }),
+            ];
+            assert.deepEqual(pickRepos(list).map((r) => r.name), ["b", "a"]);
+          });
+
+          test("keeps at most six and fills a missing description", () => {
+            const list = Array.from({ length: 10 }, (_, i) =>
+              repo({ name: `r${i}`, description: null }),
+            );
+            const picked = pickRepos(list);
+            assert.equal(picked.length, 6);
+            assert.equal(picked[0].description, "No description yet.");
+          });
+
+          test("loadRepos asks the GitHub API for the user", async () => {
+            let asked = "";
+            const fake = async (address) => {
+              asked = address;
+              return { ok: true, json: async () => [repo()] };
+            };
+            const repos = await loadRepos("me", fake);
+            assert.equal(asked, "https://api.github.com/users/me/repos?per_page=100");
+            assert.equal(repos[0].name, "site");
+          });
+
+          test("loadRepos throws when GitHub says no", async () => {
+            const fake = async () => ({ ok: false, status: 403 });
+            await assert.rejects(loadRepos("me", fake), /403/);
+          });
+    mistakes:
+      - problem:
+          en: "\"Cannot use import statement outside a module\" when running `npm test`."
+          tr: "`npm test` çalıştırınca \"Cannot use import statement outside a module\" hatası."
+        fix:
+          en: "`package.json` is missing `\"type\": \"module\"`, or you run the command in the wrong folder. Run it where `package.json` is."
+          tr: "`package.json` içinde `\"type\": \"module\"` eksik ya da komutu yanlış klasörde çalıştırıyorsun. `package.json`'ın olduğu yerde çalıştır."
+      - problem:
+          en: "A test that calls the real GitHub API."
+          tr: "Gerçek GitHub API'sini çağıran bir test."
+        fix:
+          en: "It is slow, it fails without internet and it uses your rate limit. Pass a fake `fetch` function instead, as the tests above do."
+          tr: "Yavaştır, internet yokken kırılır ve istek limitini harcar. Yukarıdaki testler gibi sahte bir `fetch` fonksiyonu ver."
+      - problem:
+          en: "`assert.rejects` is used without `await` and the test passes even when the code is wrong."
+          tr: "`assert.rejects` `await` olmadan kullanılıyor ve kod yanlış olsa bile test geçiyor."
+        fix:
+          en: "It returns a Promise. Write `await assert.rejects(...)` inside an `async` test."
+          tr: "Bir Promise döndürür. `async` test içinde `await assert.rejects(...)` yaz."
+    quiz:
+      - q:
+          en: "Why do the tests pass a fake function to `loadRepos`?"
+          tr: "Testler `loadRepos`'a neden sahte bir fonksiyon veriyor?"
+        options:
+          en: [So the test is fast, works offline and does not depend on GitHub, Because fetch does not exist in Node.js, To make the code shorter]
+          tr: [Test hızlı olsun, internetsiz çalışsın ve GitHub'a bağlı olmasın, Node.js'te fetch olmadığı için, Kod kısalsın diye]
+        answer: 0
+        why:
+          en: "A good test gives the same answer every time. The real network can be slow, down or rate-limited."
+          tr: "İyi bir test her seferinde aynı cevabı verir. Gerçek ağ yavaş, kapalı ya da sınırlı olabilir."
+    sources:
+      - title: "Node.js: test runner"
+        url: https://nodejs.org/api/test.html
+      - title: "Node.js: assert"
+        url: https://nodejs.org/api/assert.html
+      - title: "MDN: Debugging HTML, CSS and JavaScript with the browser tools"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Tools_and_setup/What_are_browser_developer_tools
+
+  - id: security
+    stage: security
+    title:
+      en: "Keep the site and its visitors safe"
+      tr: "Siteyi ve ziyaretçileri güvende tutma"
+    minutes: 45
+    needs: [tests]
+    why:
+      en: "Your page shows text written by other people (repository descriptions). If that text could run as code, an attacker could steal data or trick visitors. This attack is called XSS (cross-site scripting). A static site has few risks, but these few habits close the main doors."
+      tr: "Sayfan başkalarının yazdığı metinleri gösteriyor (repo açıklamaları). Bu metin kod olarak çalışabilseydi, bir saldırgan veri çalabilir ya da ziyaretçileri kandırabilirdi. Bu saldırıya XSS (cross-site scripting) denir. Statik sitenin riski azdır ama birkaç alışkanlık ana kapıları kapatır."
+    learn:
+      en: |
+        - XSS: why `textContent` is safe and `innerHTML` with outside data is not
+        - Only linking to addresses you expect (`https://github.com/...`, never `javascript:`)
+        - A Content Security Policy (CSP) that lets the page load only from places you list
+        - Never put secrets (API tokens, passwords) in front-end code: everyone can read it
+      tr: |
+        - XSS: `textContent`'in neden güvenli, dışarıdan gelen veriyle `innerHTML`'in neden güvensiz olduğu
+        - Sadece beklediğin adreslere bağlantı vermek (`https://github.com/...`, asla `javascript:` değil)
+        - Sayfanın sadece listelediğin yerlerden yüklemesini sağlayan Content Security Policy (CSP)
+        - Gizli bilgileri (API token, parola) asla front-end koduna koymamak: herkes okuyabilir
+    do:
+      en: |
+        1. Update `js/repos.js` with the code below. The new `githubUrl` function accepts only `https://github.com/...` addresses, so a bad value like `javascript:alert(1)` never becomes a link.
+        2. Replace `test/repos.test.js` with the new version below (it adds one test) and run `npm test`. 6 tests should pass.
+        3. In `index.html`, add the Content Security Policy line (third code block) inside `<head>`, before the `<script>` line. It says: load only from this site; the page may contact only `api.github.com`.
+        4. Refresh the page served by `npx serve .`. Projects still load. In the Console, try `document.body.append(Object.assign(document.createElement("script"), { src: "https://example.com/x.js" }))`: the browser refuses to load it and reports a CSP error.
+        5. Search your project for the words `innerHTML`, `token`, `password` and `apiKey`. There should be none. Commit: `git add .` and `git commit -m "Safer links and CSP"`.
+      tr: |
+        1. `js/repos.js` dosyasını aşağıdaki kodla güncelle. Yeni `githubUrl` fonksiyonu sadece `https://github.com/...` adreslerini kabul eder; böylece `javascript:alert(1)` gibi kötü bir değer asla bağlantıya dönüşmez.
+        2. `test/repos.test.js` dosyasını aşağıdaki yeni sürümle değiştir (bir test ekler) ve `npm test` çalıştır. 6 test geçmeli.
+        3. `index.html` içinde `<head>` bölümüne, `<script>` satırından önce Content Security Policy satırını ekle (üçüncü kod bloğu). Şunu söyler: sadece bu siteden yükle; sayfa yalnızca `api.github.com` ile konuşabilir.
+        4. `npx serve .` ile sunulan sayfayı yenile. Projeler hâlâ yükleniyor. Console'da şunu dene: `document.body.append(Object.assign(document.createElement("script"), { src: "https://example.com/x.js" }))`. Tarayıcı yüklemeyi reddeder ve bir CSP hatası bildirir.
+        5. Projende `innerHTML`, `token`, `password` ve `apiKey` kelimelerini ara. Hiçbiri çıkmamalı. Commit et: `git add .` ve `git commit -m "Safer links and CSP"`.
+    code:
+      - file: js/repos.js
+        lang: js
+        text: |
+          // Returns the address only when it points to https://github.com, otherwise "".
+          export function githubUrl(value) {
+            try {
+              const url = new URL(value);
+              return url.protocol === "https:" && url.hostname === "github.com" ? url.href : "";
+            } catch {
+              return ""; // not a valid address at all
+            }
+          }
+
+          // Turns the raw GitHub answer into the few fields the page needs.
+          export function pickRepos(list, max = 6) {
+            return list
+              .filter((repo) => !repo.fork && !repo.archived && githubUrl(repo.html_url))
+              .sort(
+                (a, b) =>
+                  b.stargazers_count - a.stargazers_count ||
+                  new Date(b.pushed_at) - new Date(a.pushed_at),
+              )
+              .slice(0, max)
+              .map((repo) => ({
+                name: repo.name,
+                description: repo.description ?? "No description yet.",
+                url: githubUrl(repo.html_url),
+                language: repo.language,
+                stars: repo.stargazers_count,
+              }));
+          }
+
+          // Asks GitHub for the public repositories of a user.
+          // `fetchFn` is a parameter so tests can pass a fake instead of the network.
+          export async function loadRepos(user, fetchFn = fetch) {
+            const response = await fetchFn(
+              `https://api.github.com/users/${encodeURIComponent(user)}/repos?per_page=100`,
+            );
+            if (!response.ok) {
+              throw new Error(`GitHub answered ${response.status}`);
+            }
+            return pickRepos(await response.json());
+          }
+      - file: test/repos.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { test } from "node:test";
+          import { loadRepos, pickRepos } from "../js/repos.js";
+
+          // A fake GitHub repository; each test changes only what it cares about.
+          const repo = (changes = {}) => ({
+            name: "site",
+            description: "A site",
+            html_url: "https://github.com/me/site",
+            language: "JavaScript",
+            stargazers_count: 0,
+            pushed_at: "2026-01-01T00:00:00Z",
+            fork: false,
+            archived: false,
+            ...changes,
+          });
+
+          test("skips forks and archived repositories", () => {
+            const list = [
+              repo({ name: "mine" }),
+              repo({ name: "copy", fork: true }),
+              repo({ name: "old", archived: true }),
+            ];
+            assert.deepEqual(pickRepos(list).map((r) => r.name), ["mine"]);
+          });
+
+          test("puts the most starred first", () => {
+            const list = [
+              repo({ name: "a", stargazers_count: 1 }),
+              repo({ name: "b", stargazers_count: 5 }),
+            ];
+            assert.deepEqual(pickRepos(list).map((r) => r.name), ["b", "a"]);
+          });
+
+          test("keeps at most six and fills a missing description", () => {
+            const list = Array.from({ length: 10 }, (_, i) =>
+              repo({ name: `r${i}`, description: null }),
+            );
+            const picked = pickRepos(list);
+            assert.equal(picked.length, 6);
+            assert.equal(picked[0].description, "No description yet.");
+          });
+
+          test("drops links that do not point to github.com", () => {
+            const list = [
+              repo({ name: "script", html_url: "javascript:alert(1)" }),
+              repo({ name: "other", html_url: "https://evil.example/x" }),
+              repo({ name: "good" }),
+            ];
+            assert.deepEqual(pickRepos(list).map((r) => r.name), ["good"]);
+          });
+
+          test("loadRepos asks the GitHub API for the user", async () => {
+            let asked = "";
+            const fake = async (address) => {
+              asked = address;
+              return { ok: true, json: async () => [repo()] };
+            };
+            const repos = await loadRepos("me", fake);
+            assert.equal(asked, "https://api.github.com/users/me/repos?per_page=100");
+            assert.equal(repos[0].name, "site");
+          });
+
+          test("loadRepos throws when GitHub says no", async () => {
+            const fake = async () => ({ ok: false, status: 403 });
+            await assert.rejects(loadRepos("me", fake), /403/);
+          });
+      - file: index.html
+        lang: html
+        text: |
+          <!-- add inside <head>, before the <script> line -->
+          <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self'">
+    mistakes:
+      - problem:
+          en: "Using `element.innerHTML = description` because it is shorter."
+          tr: "Daha kısa olduğu için `element.innerHTML = description` kullanmak."
+        fix:
+          en: "Use `textContent`. `innerHTML` turns text such as `<img src=x onerror=...>` into live HTML. If you really need HTML, sanitize it first with a trusted library."
+          tr: "`textContent` kullan. `innerHTML`, `<img src=x onerror=...>` gibi metni canlı HTML'e çevirir. HTML gerçekten gerekiyorsa önce güvenilir bir kütüphaneyle temizle."
+      - problem:
+          en: "After adding the CSP, the page loads nothing or the API call is blocked."
+          tr: "CSP eklendikten sonra sayfa hiçbir şey yüklemiyor ya da API çağrısı engelleniyor."
+        fix:
+          en: "Read the Console: it names the blocked address and the rule. Add only what you really need to the policy (here `connect-src https://api.github.com`). Inline `<script>` and `style=\"...\"` attributes are blocked too, so keep code in files."
+          tr: "Console'a bak: engellenen adresi ve kuralı söyler. Politikaya sadece gerçekten ihtiyacın olanı ekle (burada `connect-src https://api.github.com`). Satır içi `<script>` ve `style=\"...\"` öznitelikleri de engellenir; kodu dosyalarda tut."
+      - problem:
+          en: "Putting a GitHub token in `main.js` to get a higher rate limit."
+          tr: "Daha yüksek istek limiti için `main.js` içine GitHub token koymak."
+        fix:
+          en: "Anyone can open the file and use your token. A public site must work without secrets. If you need a secret, call it from a server, never from the browser."
+          tr: "Dosyayı herkes açıp token'ını kullanabilir. Herkese açık site gizli bilgi olmadan çalışmalı. Gizli bilgiye ihtiyacın varsa onu sunucudan kullan, tarayıcıdan asla."
+    quiz:
+      - q:
+          en: "Which line is safe for text that comes from an API?"
+          tr: "API'den gelen metin için hangi satır güvenlidir?"
+        options:
+          en: ["el.innerHTML = text", "el.textContent = text", "el.outerHTML = text"]
+          tr: ["el.innerHTML = text", "el.textContent = text", "el.outerHTML = text"]
+        answer: 1
+        why:
+          en: "`textContent` always treats the value as plain text. The other two parse it as HTML."
+          tr: "`textContent` değeri her zaman düz metin sayar. Diğer ikisi HTML olarak çözümler."
+      - q:
+          en: "Can a Content Security Policy replace safe coding?"
+          tr: "Content Security Policy güvenli kod yazmanın yerini tutar mı?"
+        options:
+          en: [Yes it blocks everything, No it is a second safety net on top of safe code, Only on GitHub Pages]
+          tr: [Evet her şeyi engeller, Hayır güvenli kodun üstüne ikinci bir güvenlik ağıdır, Sadece GitHub Pages'te]
+        answer: 1
+        why:
+          en: "Defense in depth: safe code is the first layer and CSP limits the damage if a mistake slips through."
+          tr: "Katmanlı savunma: güvenli kod birinci katman, CSP ise bir hata kaçarsa zararı sınırlar."
+    sources:
+      - title: "MDN: Cross-site scripting (XSS)"
+        url: https://developer.mozilla.org/en-US/docs/Web/Security/Attacks/XSS
+      - title: "MDN: Content Security Policy (CSP)"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP
+      - title: "MDN: Node.textContent"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Make it fast and measure it"
+      tr: "Hızlandırma ve ölçme"
+    minutes: 50
+    needs: [security]
+    why:
+      en: "Visitors leave slow pages. A static site is already fast, so the job is to not slow it down and to measure instead of guessing. Lighthouse in your browser gives a score and concrete advice, for free."
+      tr: "Ziyaretçiler yavaş sayfaları terk eder. Statik site zaten hızlıdır; iş onu yavaşlatmamak ve tahmin yerine ölçmek. Tarayıcındaki Lighthouse ücretsiz olarak bir puan ve somut öneriler verir."
+    learn:
+      en: |
+        - Measuring first: Lighthouse and the Network tab
+        - Giving images `width` and `height` so the page does not jump while loading
+        - Do not lazy-load the first image on the page; lazy-load images further down
+        - `preconnect` to start the connection to `api.github.com` early
+        - Caching the API answer in `sessionStorage` to save requests and avoid the rate limit
+      tr: |
+        - Önce ölçmek: Lighthouse ve Network sekmesi
+        - Sayfa yüklenirken zıplamasın diye görsellere `width` ve `height` vermek
+        - Sayfadaki ilk görseli lazy-load yapma; daha aşağıdakileri yap
+        - `api.github.com` bağlantısını erken başlatmak için `preconnect`
+        - İstek sayısını azaltmak ve limite takılmamak için API cevabını `sessionStorage`'da önbelleğe almak
+    do:
+      en: |
+        1. Measure first. Open the served page in Chrome or Edge, open developer tools, go to the *Lighthouse* tab and run it for *Mobile*. Note the four scores. (Firefox has no Lighthouse; use the *Network* tab and look at the total size and time.)
+        2. Create `images/me.svg` (first code block). It is a simple placeholder; replace it later with your own photo, saved as `.jpg`, `.png` or `.webp` and no wider than about 640 pixels.
+        3. In `index.html` add the image to the hero section, and the `preconnect` line in `<head>` (second code block). Notice `width` and `height`: the browser reserves the space before the image arrives.
+        4. Add the image styles at the end of `style.css` (third code block).
+        5. Replace `js/main.js` with the cached version (fourth code block). The repository list is saved for the browser session, so reloads do not call GitHub again.
+        6. Run Lighthouse again and compare. Run `npm test` too, then commit: `git add .` and `git commit -m "Faster page"`.
+      tr: |
+        1. Önce ölç. Sunulan sayfayı Chrome ya da Edge'de aç, geliştirici araçlarında *Lighthouse* sekmesine git ve *Mobile* için çalıştır. Dört puanı not et. (Firefox'ta Lighthouse yok; *Network* sekmesinde toplam boyuta ve süreye bak.)
+        2. `images/me.svg` dosyasını oluştur (ilk kod bloğu). Basit bir yer tutucu; sonra kendi fotoğrafınla değiştir (`.jpg`, `.png` ya da `.webp` olarak kaydet, genişliği yaklaşık 640 pikseli geçmesin).
+        3. `index.html` içinde hero bölümüne görseli, `<head>` içine `preconnect` satırını ekle (ikinci kod bloğu). `width` ve `height` değerlerine dikkat: tarayıcı görsel gelmeden yerini ayırır.
+        4. Görsel stillerini `style.css` dosyasının sonuna ekle (üçüncü kod bloğu).
+        5. `js/main.js` dosyasını önbellekli sürümle değiştir (dördüncü kod bloğu). Repo listesi tarayıcı oturumu boyunca saklanır; yenilemeler GitHub'ı tekrar çağırmaz.
+        6. Lighthouse'u yeniden çalıştır ve karşılaştır. `npm test` de çalıştır, sonra commit et: `git add .` ve `git commit -m "Faster page"`.
+    code:
+      - file: images/me.svg
+        lang: svg
+        text: |
+          <svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+            <rect width="160" height="160" fill="#0b5cad"/>
+            <circle cx="80" cy="62" r="28" fill="#ffffff"/>
+            <path d="M24 148c0-30 24-48 56-48s56 18 56 48z" fill="#ffffff"/>
+          </svg>
+      - file: index.html
+        lang: html
+        text: |
+          <!-- add inside <head> -->
+          <link rel="preconnect" href="https://api.github.com" crossorigin>
+
+          <!-- add as the first line inside <section class="hero"> -->
+          <img src="images/me.svg" alt="Portrait of Your Name" width="160" height="160">
+      - file: style.css
+        lang: css
+        text: |
+          /* add at the end of style.css */
+          .hero img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 1rem;
+            border-radius: 50%;
+          }
+      - file: js/main.js
+        lang: js
+        text: |
+          import { loadRepos } from "./repos.js";
+
+          const GITHUB_USER = "octocat"; // put your own GitHub username here
+          const KEY = "theme";
+          const CACHE_KEY = "repos-v1";
+          const toggle = document.querySelector("#theme-toggle");
+          const list = document.querySelector("#repos");
+          const status = document.querySelector("#repos-status");
+
+          // --- theme ---
+
+          function savedTheme() {
+            try {
+              const value = localStorage.getItem(KEY);
+              return value === "dark" || value === "light" ? value : null;
+            } catch {
+              return null;
+            }
+          }
+
+          function saveTheme(theme) {
+            try {
+              localStorage.setItem(KEY, theme);
+            } catch {
+              // storage is blocked: the choice lasts until the page closes
+            }
+          }
+
+          function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            toggle.setAttribute("aria-pressed", String(theme === "dark"));
+          }
+
+          toggle.addEventListener("click", () => {
+            const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+            applyTheme(next);
+            saveTheme(next);
+          });
+
+          const prefersDark = matchMedia("(prefers-color-scheme: dark)").matches;
+          applyTheme(savedTheme() ?? (prefersDark ? "dark" : "light"));
+
+          // --- projects ---
+
+          // Keeps the list for this browser session so reloads do not call GitHub again.
+          async function reposWithCache() {
+            try {
+              const saved = sessionStorage.getItem(CACHE_KEY);
+              if (saved) return JSON.parse(saved);
+            } catch {
+              // no cache available: fall through and ask GitHub
+            }
+            const repos = await loadRepos(GITHUB_USER);
+            try {
+              sessionStorage.setItem(CACHE_KEY, JSON.stringify(repos));
+            } catch {
+              // storage is blocked: skip the cache
+            }
+            return repos;
+          }
+
+          function card(repo) {
+            const item = document.createElement("li");
+            item.className = "card";
+
+            const title = document.createElement("h3");
+            const link = document.createElement("a");
+            link.href = repo.url;
+            link.textContent = repo.name;
+            title.append(link);
+
+            const description = document.createElement("p");
+            description.textContent = repo.description;
+
+            const meta = document.createElement("p");
+            meta.textContent = `${repo.language ?? "Mixed"}, ${repo.stars} stars`;
+
+            item.append(title, description, meta);
+            return item;
+          }
+
+          async function showRepos() {
+            status.textContent = "Loading projects...";
+            try {
+              const repos = await reposWithCache();
+              list.replaceChildren(...repos.map(card));
+              status.textContent = repos.length ? "" : "No public projects yet.";
+            } catch (error) {
+              console.error(error);
+              status.textContent = "Could not load projects right now. Please try again later.";
+            }
+          }
+
+          showRepos();
+    mistakes:
+      - problem:
+          en: "Adding `loading=\"lazy\"` to the first image on the page."
+          tr: "Sayfadaki ilk görsele `loading=\"lazy\"` eklemek."
+        fix:
+          en: "Lazy loading delays the image until it is near the screen, which makes the visible top of the page slower. Use it only for images below the first screen."
+          tr: "Lazy loading görseli ekrana yaklaşana kadar geciktirir; sayfanın görünen üst kısmını yavaşlatır. Sadece ilk ekranın altındaki görsellerde kullan."
+      - problem:
+          en: "Putting a 4000-pixel photo from a phone straight into the site."
+          tr: "Telefondan çıkan 4000 piksellik fotoğrafı doğrudan siteye koymak."
+        fix:
+          en: "Resize it to the size it is shown at (about twice that for sharp screens) and save it as WebP or JPEG. Big images are the most common reason for slow pages."
+          tr: "Gösterildiği boyuta küçült (keskin ekranlar için yaklaşık iki katı) ve WebP ya da JPEG olarak kaydet. Büyük görseller yavaş sayfaların en yaygın nedenidir."
+      - problem:
+          en: "Optimizing without measuring."
+          tr: "Ölçmeden optimize etmek."
+        fix:
+          en: "Run Lighthouse before and after. Fix the biggest item it names first; ignore small gains."
+          tr: "Öncesinde ve sonrasında Lighthouse çalıştır. Önce söylediği en büyük sorunu düzelt; küçük kazançları boş ver."
+    quiz:
+      - q:
+          en: "Why do images get `width` and `height` attributes?"
+          tr: "Görsellere neden `width` ve `height` öznitelikleri veriliyor?"
+        options:
+          en: [To make the file smaller, So the browser reserves the space and the page does not jump when the image loads, Because HTML requires them]
+          tr: [Dosya küçülsün diye, Tarayıcı yeri ayırsın ve görsel yüklenince sayfa zıplamasın diye, HTML zorunlu tuttuğu için]
+        answer: 1
+        why:
+          en: "A jumping layout is called layout shift and it is one of the things Lighthouse measures."
+          tr: "Zıplayan düzene layout shift (düzen kayması) denir ve Lighthouse'un ölçtüğü şeylerden biridir."
+    sources:
+      - title: "Chrome for Developers: Lighthouse overview"
+        url: https://developer.chrome.com/docs/lighthouse/overview
+      - title: "MDN: Lazy loading"
+        url: https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/Lazy_loading
+      - title: "MDN: Using the Web Storage API (sessionStorage)"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+
+  - id: packaging
+    stage: packaging
+    title:
+      en: "Get the site ready to publish"
+      tr: "Siteyi yayına hazırlama"
+    minutes: 45
+    needs: [performance]
+    why:
+      en: "Without a build tool, packaging is simple: decide which files belong on the internet (the site) and which stay at home (tests, notes). A last check plus a few meta tags make the site look right in search results and when someone shares the link."
+      tr: "Build aracı olmadan paketleme basit: hangi dosyaların internete gideceğine (site) ve hangilerinin evde kalacağına (testler, notlar) karar verirsin. Son bir kontrol ve birkaç meta etiketi, siteyi arama sonuçlarında ve biri bağlantıyı paylaşınca doğru gösterir."
+    learn:
+      en: |
+        - Meta tags: `description`, `theme-color`, Open Graph (`og:`) for link previews
+        - A favicon, and a `404.html` page that GitHub Pages shows for unknown addresses
+        - A small script that copies only the site files into a `_site` folder
+        - A test that checks the page itself: every local file it uses exists and every image has an alt text
+      tr: |
+        - Meta etiketleri: `description`, `theme-color`, bağlantı önizlemeleri için Open Graph (`og:`)
+        - Bir favicon ve GitHub Pages'in bilinmeyen adreslerde gösterdiği `404.html` sayfası
+        - Sadece site dosyalarını `_site` klasörüne kopyalayan küçük bir script
+        - Sayfanın kendisini kontrol eden bir test: kullandığı her yerel dosya var mı, her görselin alt metni var mı
+    do:
+      en: |
+        1. Create `favicon.svg`, `404.html` and `scripts/package.js` with the code below. In `404.html`, replace `personal-site` in the link with your repository name (the one you will create in the next step).
+        2. Replace `package.json` with the new version (it adds the `package` command).
+        3. Replace `index.html` with the final version below: it collects everything added so far plus the new meta tags and favicon. Change the name and texts to yours.
+        4. Create `test/site.test.js` (last code block) and run `npm test`. Break it on purpose (rename `style.css` for a moment) to see the "missing file" message, then undo.
+        5. Run `npm run package`. A `_site` folder appears with only the files visitors need. Open it with `npx serve _site` to check that the packaged site works.
+        6. Commit: `git add .` and `git commit -m "Prepare for publishing"`.
+      tr: |
+        1. Aşağıdaki kodla `favicon.svg`, `404.html` ve `scripts/package.js` dosyalarını oluştur. `404.html` içindeki bağlantıda `personal-site` yerine repo adını yaz (bir sonraki adımda oluşturacağın repo).
+        2. `package.json` dosyasını yeni sürümle değiştir (`package` komutunu ekler).
+        3. `index.html` dosyasını aşağıdaki son sürümle değiştir: şimdiye kadar eklenen her şeyi ve yeni meta etiketleriyle favicon'u içerir. Ad ve metinleri kendine göre değiştir.
+        4. `test/site.test.js` dosyasını oluştur (son kod bloğu) ve `npm test` çalıştır. Bilerek boz (`style.css` adını bir an değiştir) ve "missing file" mesajını gör, sonra geri al.
+        5. `npm run package` çalıştır. Sadece ziyaretçilerin ihtiyacı olan dosyalarla bir `_site` klasörü oluşur. Paketlenmiş sitenin çalıştığını görmek için `npx serve _site` ile aç.
+        6. Commit et: `git add .` ve `git commit -m "Prepare for publishing"`.
+    code:
+      - file: favicon.svg
+        lang: svg
+        text: |
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <rect width="32" height="32" rx="6" fill="#0b5cad"/>
+            <text x="16" y="23" font-family="sans-serif" font-size="20" font-weight="700" text-anchor="middle" fill="#ffffff">Y</text>
+          </svg>
+      - file: 404.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Page not found</title>
+            </head>
+            <body>
+              <h1>Page not found</h1>
+              <p>That address does not exist. <a href="/personal-site/">Go to the home page</a>.</p>
+            </body>
+          </html>
+      - file: scripts/package.js
+        lang: js
+        text: |
+          // Copies only what visitors need into the _site folder.
+          import { cpSync, mkdirSync, rmSync } from "node:fs";
+
+          const files = ["index.html", "404.html", "style.css", "favicon.svg", "js", "images"];
+
+          rmSync("_site", { recursive: true, force: true });
+          mkdirSync("_site");
+          for (const file of files) {
+            cpSync(file, `_site/${file}`, { recursive: true });
+          }
+          console.log(`Packaged ${files.length} items into _site`);
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "personal-site",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "test": "node --test",
+              "package": "node scripts/package.js"
+            }
+          }
+      - file: index.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Your Name - personal site</title>
+              <meta name="description" content="Projects and notes from Your Name, a web developer in training.">
+              <meta name="theme-color" content="#0b5cad">
+              <meta property="og:title" content="Your Name - personal site">
+              <meta property="og:description" content="Projects and notes from Your Name, a web developer in training.">
+              <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://api.github.com; img-src 'self'">
+              <link rel="icon" href="favicon.svg" type="image/svg+xml">
+              <link rel="preconnect" href="https://api.github.com" crossorigin>
+              <link rel="stylesheet" href="style.css">
+              <script type="module" src="js/main.js"></script>
+            </head>
+            <body>
+              <a class="skip" href="#main">Skip to content</a>
+              <header class="site-header">
+                <p class="brand">Your Name</p>
+                <nav aria-label="Main">
+                  <a href="#about">About</a>
+                  <a href="#projects">Projects</a>
+                  <a href="#contact">Contact</a>
+                </nav>
+                <button id="theme-toggle" type="button" aria-pressed="false">Dark mode</button>
+              </header>
+              <main id="main">
+                <section class="hero">
+                  <img src="images/me.svg" alt="Portrait of Your Name" width="160" height="160">
+                  <h1>Hi, I am Your Name</h1>
+                  <p>I am learning to build for the web.</p>
+                </section>
+                <section id="about">
+                  <h2>About</h2>
+                  <p>I write HTML, CSS and JavaScript by hand. This site is my practice project.</p>
+                </section>
+                <section id="projects">
+                  <h2>Projects</h2>
+                  <p id="repos-status" role="status">Projects will show up here soon.</p>
+                  <ul id="repos" class="cards"></ul>
+                </section>
+                <section id="contact">
+                  <h2>Contact</h2>
+                  <p>Write to <a href="mailto:you@example.com">you@example.com</a>.</p>
+                </section>
+              </main>
+              <footer>
+                <p>Built with HTML, CSS and JavaScript. No framework.</p>
+              </footer>
+            </body>
+          </html>
+      - file: test/site.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { existsSync, readFileSync } from "node:fs";
+          import { test } from "node:test";
+
+          const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+          test("the page has a language, a title and a description", () => {
+            assert.match(html, /<html lang="[a-z-]+"/);
+            assert.match(html, /<title>[^<]+<\/title>/);
+            assert.match(html, /<meta name="description" content="[^"]+"/);
+          });
+
+          test("every local file the page uses exists", () => {
+            // Finds href="..." and src="..." that are not links to other sites, anchors or mailto.
+            const paths = [...html.matchAll(/(?:href|src)="([^"#:]+)"/g)].map((match) => match[1]);
+            assert.ok(paths.length > 0);
+            for (const path of paths) {
+              assert.ok(existsSync(new URL(`../${path}`, import.meta.url)), `missing file: ${path}`);
+            }
+          });
+
+          test("every image has an alt text", () => {
+            for (const tag of html.match(/<img\b[^>]*>/g) ?? []) {
+              assert.match(tag, /\salt="[^"]+"/);
+            }
+          });
+    mistakes:
+      - problem:
+          en: "Sharing the link and the preview shows a blank title or no description."
+          tr: "Bağlantıyı paylaşınca önizlemede başlık boş ya da açıklama yok."
+        fix:
+          en: "Add the `og:` meta tags and a `description`. Some apps cache previews, so a change can take a while to show."
+          tr: "`og:` meta etiketlerini ve `description` ekle. Bazı uygulamalar önizlemeyi önbelleğe alır; değişiklik görünmek için biraz zaman alabilir."
+      - problem:
+          en: "Publishing the whole folder, including `test/` and `package.json`."
+          tr: "Tüm klasörü, `test/` ve `package.json` dahil, yayınlamak."
+        fix:
+          en: "Visitors do not need them. Copy only the site files to `_site` and publish that folder, as `scripts/package.js` does."
+          tr: "Ziyaretçilerin bunlara ihtiyacı yok. `scripts/package.js` gibi sadece site dosyalarını `_site` içine kopyala ve o klasörü yayınla."
+      - problem:
+          en: "File names with capital letters (`Style.css`) work on your computer but give 404 online."
+          tr: "Büyük harfli dosya adları (`Style.css`) bilgisayarında çalışıyor ama internette 404 veriyor."
+        fix:
+          en: "Web servers usually treat names as case-sensitive. Use lowercase names everywhere and write them exactly in the HTML."
+          tr: "Web sunucuları genelde adları büyük/küçük harfe duyarlı kabul eder. Her yerde küçük harfli adlar kullan ve HTML'de birebir aynı yaz."
+    quiz:
+      - q:
+          en: "Why does the project copy files to `_site` instead of publishing the whole folder?"
+          tr: "Proje neden tüm klasörü yayınlamak yerine dosyaları `_site` içine kopyalıyor?"
+        options:
+          en: [GitHub Pages cannot publish the root folder, Only the files visitors need go online and nothing private or useless is published, It makes the site faster by itself]
+          tr: [GitHub Pages kök klasörü yayınlayamaz, İnternete sadece ziyaretçilerin ihtiyacı olan dosyalar gider; özel ya da gereksiz bir şey yayınlanmaz, Siteyi kendiliğinden hızlandırır]
+        answer: 1
+        why:
+          en: "What you publish is public. Choosing the files on purpose avoids leaking notes, drafts or settings by accident."
+          tr: "Yayınladığın her şey herkese açıktır. Dosyaları bilerek seçmek, not, taslak ya da ayarların yanlışlıkla sızmasını önler."
+    sources:
+      - title: "MDN: Webpage metadata"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Webpage_metadata
+      - title: "MDN: The Open Graph protocol and meta tags"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta
+      - title: "Node.js: file system (cpSync)"
+        url: https://nodejs.org/api/fs.html#fscpsyncsrc-dest-options
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Publish on GitHub Pages"
+      tr: "GitHub Pages'te yayınlama"
+    minutes: 60
+    needs: [packaging]
+    why:
+      en: "Publishing makes your site reachable by anyone with the link. With GitHub Actions, every push to main tests, packages and publishes the site by itself, for free."
+      tr: "Yayınlamak siteni bağlantıya sahip herkesin erişebileceği hale getirir. GitHub Actions ile main'e her push'ta site kendiliğinden test edilir, paketlenir ve ücretsiz yayınlanır."
+    learn:
+      en: |
+        - Putting your project on GitHub
+        - A GitHub Actions workflow that tests, packages and deploys
+        - Where the site lives: `https://<user>.github.io/<repo>/`
+      tr: |
+        - Projeni GitHub'a koymak
+        - Test eden, paketleyen ve yayınlayan bir GitHub Actions workflow'u
+        - Sitenin nerede durduğu: `https://<kullanıcı>.github.io/<repo>/`
+    do:
+      en: |
+        1. Create an empty repository named `personal-site` on github.com (no README, no .gitignore). Make it public: GitHub Pages is free for public repositories.
+        2. Connect and push (first commands below).
+        3. Create `.github/workflows/deploy.yml` with the content below, commit and push.
+        4. On GitHub: *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+        5. Open the *Actions* tab and wait for the green check (you may need to re-run the workflow after step 4: *Re-run all jobs*).
+        6. Open `https://<your-user>.github.io/personal-site/`. Your site is live. Check that the Projects section loads and the dark mode button works.
+      tr: |
+        1. github.com'da `personal-site` adında boş bir repo oluştur (README ve .gitignore olmadan). Herkese açık yap: GitHub Pages herkese açık repolar için ücretsizdir.
+        2. Bağla ve push et (aşağıdaki ilk komutlar).
+        3. Aşağıdaki içerikle `.github/workflows/deploy.yml` dosyasını oluştur, commit ve push et.
+        4. GitHub'da: *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+        5. *Actions* sekmesini aç ve yeşil onayı bekle (4. adımdan sonra workflow'u yeniden çalıştırman gerekebilir: *Re-run all jobs*).
+        6. `https://<kullanıcı-adın>.github.io/personal-site/` adresini aç. Siten yayında. Projeler bölümünün yüklendiğini ve karanlık mod düğmesinin çalıştığını kontrol et.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git remote add origin https://github.com/<your-user>/personal-site.git
+          git push -u origin main
+      - file: .github/workflows/deploy.yml
+        lang: yaml
+        text: |
+          name: Deploy to GitHub Pages
+
+          on:
+            push:
+              branches: [main]
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+          concurrency:
+            group: pages
+            cancel-in-progress: true
+
+          jobs:
+            deploy:
+              environment:
+                name: github-pages
+                url: ${{ steps.deployment.outputs.page_url }}
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: lts/*
+                - run: npm test
+                - run: npm run package
+                - uses: actions/configure-pages@v6
+                - uses: actions/upload-pages-artifact@v5
+                  with:
+                    path: ./_site
+                - id: deployment
+                  uses: actions/deploy-pages@v5
+    mistakes:
+      - problem:
+          en: "The workflow fails at the deploy step with an error about Pages not being enabled."
+          tr: "Workflow deploy adımında, Pages'in açık olmadığını söyleyen bir hatayla başarısız oluyor."
+        fix:
+          en: "Do step 4 (*Settings → Pages → Source: GitHub Actions*), then re-run the workflow."
+          tr: "4. adımı yap (*Settings → Pages → Source: GitHub Actions*), sonra workflow'u yeniden çalıştır."
+      - problem:
+          en: "The page loads but style or script is missing (404 in the Network tab)."
+          tr: "Sayfa açılıyor ama stil ya da script eksik (Network sekmesinde 404)."
+        fix:
+          en: "Use relative paths like `style.css` and `js/main.js`, not `/style.css`. A leading slash points to `github.io/` instead of `github.io/personal-site/`."
+          tr: "`/style.css` değil, `style.css` ve `js/main.js` gibi göreli yollar kullan. Baştaki eğik çizgi `github.io/personal-site/` yerine `github.io/` adresine gider."
+      - problem:
+          en: "The site shows an old version after a push."
+          tr: "Push'tan sonra site eski sürümü gösteriyor."
+        fix:
+          en: "Check the *Actions* tab: the run must be green and finished. Then hard-refresh with Ctrl+Shift+R (Cmd+Shift+R on macOS) to skip the browser cache."
+          tr: "*Actions* sekmesine bak: çalıştırma yeşil ve bitmiş olmalı. Sonra tarayıcı önbelleğini atlamak için Ctrl+Shift+R (macOS'ta Cmd+Shift+R) ile yenile."
+    quiz:
+      - q:
+          en: "Why does the workflow run `npm test` before packaging?"
+          tr: "Workflow paketlemeden önce neden `npm test` çalıştırıyor?"
+        options:
+          en: [GitHub requires it, So a broken version is never published, To make the package smaller]
+          tr: [GitHub zorunlu tutuyor, Bozuk bir sürüm asla yayınlanmasın diye, Paket küçülsün diye]
+        answer: 1
+        why:
+          en: "If a test fails the job stops and the last good version stays online."
+          tr: "Bir test başarısız olursa iş durur ve son sağlam sürüm yayında kalır."
+    sources:
+      - title: GitHub Pages with a custom workflow
+        url: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+      - title: GitHub Pages quickstart
+        url: https://docs.github.com/en/pages/quickstart
+      - title: Pushing to a remote (Git)
+        url: https://git-scm.com/book/en/v2/Git-Basics-Working-with-Remotes
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Know when the site is down or broken"
+      tr: "Sitenin ne zaman çöktüğünü ya da bozulduğunu öğrenme"
+    minutes: 40
+    needs: [deploy]
+    why:
+      en: "A site can break without you touching it: GitHub can change something, the API can start refusing requests. A daily automatic check tells you before your visitors do, and the page itself must fail politely."
+      tr: "Bir site sen dokunmadan da bozulabilir: GitHub bir şeyi değiştirebilir, API istekleri reddetmeye başlayabilir. Günlük otomatik bir kontrol, ziyaretçilerinden önce sana haber verir; sayfanın kendisi de nazikçe hata vermeli."
+    learn:
+      en: |
+        - A scheduled GitHub Actions workflow (`cron`) that opens the live site once a day
+        - How GitHub emails you when a workflow fails
+        - Reading the browser Console and Network tab when a visitor reports a problem
+        - What the page shows when the GitHub API is down (you built this in the fetch step)
+      tr: |
+        - Canlı siteyi günde bir kez açan zamanlanmış bir GitHub Actions workflow'u (`cron`)
+        - Bir workflow başarısız olunca GitHub'ın sana nasıl e-posta gönderdiği
+        - Bir ziyaretçi sorun bildirdiğinde tarayıcıda Console ve Network sekmelerini okumak
+        - GitHub API çalışmadığında sayfanın ne gösterdiği (fetch adımında yaptın)
+    do:
+      en: |
+        1. Create `.github/workflows/check-site.yml` with the content below. It downloads your live page every day and fails if the page is missing or has no `<title>`. It finds your address by itself from the repository name.
+        2. Commit and push. On GitHub open *Actions → Check site → Run workflow* to run it once now. It should turn green.
+        3. See what a failure looks like: temporarily change the address in the file to `.../does-not-exist/`, run it, and watch it turn red. GitHub sends an email to the person who last changed the schedule. Undo the change.
+        4. Practice reading problems: open your live site, press F12, and look at the Console (red errors) and Network tab (red rows, status codes). Block `api.github.com` by choosing *Offline* and reload: the page should show the "Could not load projects" message and stay usable.
+        5. Optional: a free uptime service such as UptimeRobot can ping your site every few minutes and email you.
+        6. Commit: `git add .` and `git commit -m "Daily site check"`.
+      tr: |
+        1. Aşağıdaki içerikle `.github/workflows/check-site.yml` dosyasını oluştur. Canlı sayfanı her gün indirir; sayfa yoksa ya da `<title>` içermiyorsa başarısız olur. Adresini repo adından kendisi bulur.
+        2. Commit ve push et. GitHub'da *Actions → Check site → Run workflow* ile şimdi bir kez çalıştır. Yeşil olmalı.
+        3. Başarısızlığın nasıl göründüğünü gör: dosyadaki adresi geçici olarak `.../does-not-exist/` yap, çalıştır ve kırmızıya dönmesini izle. GitHub, zamanlamayı en son değiştiren kişiye e-posta gönderir. Değişikliği geri al.
+        4. Sorun okumayı alıştır: canlı siteni aç, F12'ye bas ve Console'a (kırmızı hatalar) ve Network sekmesine (kırmızı satırlar, durum kodları) bak. *Offline*'ı seçerek `api.github.com` erişimini kes ve yenile: sayfa "Could not load projects" mesajını göstermeli ve kullanılabilir kalmalı.
+        5. İsteğe bağlı: UptimeRobot gibi ücretsiz bir uptime servisi siteni birkaç dakikada bir kontrol edip sana e-posta atabilir.
+        6. Commit et: `git add .` ve `git commit -m "Daily site check"`.
+    code:
+      - file: .github/workflows/check-site.yml
+        lang: yaml
+        text: |
+          name: Check site
+
+          on:
+            schedule:
+              - cron: "17 6 * * *" # every day at 06:17 UTC
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+
+          jobs:
+            check:
+              runs-on: ubuntu-latest
+              steps:
+                - name: Download the live page
+                  run: curl --fail --silent --show-error --location --output page.html "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+                - name: Check the page has a title
+                  run: grep -q "<title>" page.html
+    mistakes:
+      - problem:
+          en: "The scheduled workflow never runs."
+          tr: "Zamanlanmış workflow hiç çalışmıyor."
+        fix:
+          en: "Scheduled workflows run only from the default branch (`main`) and GitHub pauses them in public repositories with no activity for 60 days. Push a change or press *Enable workflow* in the Actions tab."
+          tr: "Zamanlanmış workflow'lar sadece varsayılan branch'ten (`main`) çalışır ve GitHub, 60 gün hareketsiz kalan herkese açık repolarda bunları durdurur. Bir değişiklik push et ya da Actions sekmesinde *Enable workflow*'a bas."
+      - problem:
+          en: "Only checking that the server answers, while the page itself is broken."
+          tr: "Sadece sunucunun cevap verdiğini kontrol edip sayfanın kendisinin bozuk olmasını gözden kaçırmak."
+        fix:
+          en: "Check for something the page must contain, like the `<title>` above. A blank page can still answer 200."
+          tr: "Yukarıdaki `<title>` gibi sayfanın içermesi gereken bir şeyi kontrol et. Bomboş bir sayfa da 200 cevabı verebilir."
+      - problem:
+          en: "Ignoring errors in the Console because the page \"looks fine\"."
+          tr: "Sayfa \"iyi görünüyor\" diye Console'daki hataları yok saymak."
+        fix:
+          en: "A red error often means a feature quietly does not work for some visitors. Keep the Console clean."
+          tr: "Kırmızı bir hata çoğu zaman bir özelliğin bazı ziyaretçilerde sessizce çalışmadığı anlamına gelir. Console'u temiz tut."
+    quiz:
+      - q:
+          en: "Why does the check look for `<title>` and not only for a 200 status?"
+          tr: "Kontrol neden sadece 200 durumuna değil `<title>` varlığına da bakıyor?"
+        options:
+          en: [A title is faster to download, A server can answer 200 with an empty or wrong page, 200 is not a valid status]
+          tr: [Title daha hızlı iner, Sunucu boş ya da yanlış bir sayfa için de 200 verebilir, 200 geçerli bir durum değil]
+        answer: 1
+        why:
+          en: "Status 200 means the server answered, not that the content is right. A small content check catches more problems."
+          tr: "200 durumu sunucunun cevap verdiği anlamına gelir, içeriğin doğru olduğu anlamına değil. Küçük bir içerik kontrolü daha çok sorunu yakalar."
+    sources:
+      - title: "GitHub Actions: the schedule event"
+        url: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+      - title: "GitHub Actions: notifications for workflow runs"
+        url: https://docs.github.com/en/subscriptions-and-notifications/concepts/about-notifications
+      - title: "Chrome for Developers: Network features reference"
+        url: https://developer.chrome.com/docs/devtools/network/reference
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Polish it and choose what to learn next"
+      tr: "Cilalama ve sırada ne öğreneceğini seçme"
+    minutes: 60
+    needs: [monitoring]
+    why:
+      en: "You now know the three layers of the web. Before you move on, a few small improvements make the site kinder to visitors without JavaScript or with motion sensitivity, and a plan for the next skill keeps you going."
+      tr: "Artık web'in üç katmanını biliyorsun. İlerlemeden önce birkaç küçük iyileştirme, JavaScript'siz ya da hareket hassasiyeti olan ziyaretçilere siteyi daha nazik yapar; sıradaki beceri için bir plan da seni motive tutar."
+    learn:
+      en: |
+        - `<noscript>` for visitors without JavaScript
+        - `prefers-reduced-motion`: smooth scrolling only for people who did not turn animations off
+        - Keyboard test: can you reach and use everything with Tab, Enter and Space?
+        - Your own domain name (optional, paid) and what to learn next
+      tr: |
+        - JavaScript'i olmayan ziyaretçiler için `<noscript>`
+        - `prefers-reduced-motion`: yumuşak kaydırma sadece animasyonları kapatmamış kişilere
+        - Klavye testi: Tab, Enter ve Space ile her şeye ulaşıp kullanabiliyor musun?
+        - Kendi alan adın (isteğe bağlı, ücretli) ve sırada ne öğreneceğin
+    do:
+      en: |
+        1. In `index.html` add the `<noscript>` message (first code block) inside `<section id="projects">`, below the status line, so visitors without JavaScript know why the list is empty. Run `npm test`.
+        2. Add the smooth-scroll rule at the end of `style.css` (second code block).
+        3. Test with the keyboard only: press Tab from the top. The "Skip to content" link appears first, then the menu, then the button, each with a visible focus outline. Press Enter on the button to switch the theme.
+        4. Run Lighthouse again on the live site and look at *Accessibility* and *SEO*. Fix what it names.
+        5. Commit and push. The workflow publishes the update by itself.
+        6. Where next: learn TypeScript to catch mistakes before running, then pick a framework (React, Vue or Svelte). You now understand what they build on: the DOM, events, fetch, modules and CSS. A custom domain is optional and costs money; your free `github.io` address is enough to show your work.
+      tr: |
+        1. `index.html` içinde `<noscript>` mesajını ekle (ilk kod bloğu): `<section id="projects">` içinde, durum satırının altına. JavaScript'siz ziyaretçiler listenin neden boş olduğunu anlasın. `npm test` çalıştır.
+        2. Yumuşak kaydırma kuralını `style.css` dosyasının sonuna ekle (ikinci kod bloğu).
+        3. Sadece klavyeyle test et: en üstten Tab'a bas. Önce "Skip to content" bağlantısı, sonra menü, sonra düğme gelir; hepsinde görünür bir odak çerçevesi olmalı. Temayı değiştirmek için düğmede Enter'a bas.
+        4. Canlı sitede Lighthouse'u yeniden çalıştır ve *Accessibility* ile *SEO* puanlarına bak. Söylediklerini düzelt.
+        5. Commit ve push et. Workflow güncellemeyi kendisi yayınlar.
+        6. Sırada ne var: hataları çalıştırmadan yakalamak için TypeScript öğren, sonra bir framework seç (React, Vue ya da Svelte). Artık onların üzerine kurulduğu şeyleri anlıyorsun: DOM, olaylar, fetch, modüller ve CSS. Kendi alan adı isteğe bağlı ve ücretli; işini göstermek için ücretsiz `github.io` adresin yeter.
+    code:
+      - file: index.html
+        lang: html
+        text: |
+          <!-- add inside <section id="projects">, below the status line -->
+          <noscript><p>The project list needs JavaScript. You can see all my work on GitHub.</p></noscript>
+      - file: style.css
+        lang: css
+        text: |
+          /* add at the end of style.css */
+          @media (prefers-reduced-motion: no-preference) {
+            html {
+              scroll-behavior: smooth;
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Removing the focus outline because it looks ugly (`outline: none`)."
+          tr: "Çirkin görünüyor diye odak çerçevesini kaldırmak (`outline: none`)."
+        fix:
+          en: "Keyboard users cannot see where they are. If you restyle it, replace it with something equally visible, never with nothing."
+          tr: "Klavye kullanıcıları nerede olduklarını göremez. Değiştiriyorsan aynı derecede görünür bir şeyle değiştir, asla hiçbir şeyle değil."
+      - problem:
+          en: "Starting a framework before the basics feel comfortable."
+          tr: "Temeller rahat gelmeden bir framework'e başlamak."
+        fix:
+          en: "Extend this site first: add a contact form link, a blog page, a second language. Each one practices what you learned."
+          tr: "Önce bu siteyi geliştir: bir iletişim bağlantısı, bir blog sayfası, ikinci bir dil ekle. Her biri öğrendiklerini pekiştirir."
+    quiz:
+      - q:
+          en: "Why wrap smooth scrolling in `prefers-reduced-motion: no-preference`?"
+          tr: "Yumuşak kaydırma neden `prefers-reduced-motion: no-preference` içine alınıyor?"
+        options:
+          en: [It is faster, Some people get dizzy from motion and set their system to reduce it, Older browsers need it]
+          tr: [Daha hızlı, Bazı insanlar harekette başı döner ve sistemini azaltacak şekilde ayarlar, Eski tarayıcılar gerektirir]
+        answer: 1
+        why:
+          en: "The setting is the visitor's way of asking for less motion. Respecting it is a small, real accessibility win."
+          tr: "Bu ayar ziyaretçinin daha az hareket isteme yolu. Buna saygı göstermek küçük ama gerçek bir erişilebilirlik kazancı."
+    sources:
+      - title: "MDN: prefers-reduced-motion"
+        url: https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion
+      - title: "MDN: noscript element"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/noscript
+      - title: "MDN: Accessibility, learn"
+        url: https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Accessibility

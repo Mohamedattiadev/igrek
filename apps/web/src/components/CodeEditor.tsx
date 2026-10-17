@@ -94,6 +94,21 @@ export default function CodeEditor({
         });
       },
     });
+    // Right-click → "What is this?": the cheatsheet items for the selection (or the current line).
+    editor.addAction({
+      id: "godeye.whatIs",
+      label: i18n.t("learn.whatIs"),
+      contextMenuGroupId: "navigation",
+      contextMenuOrder: 2,
+      run: (ed) => {
+        const model = ed.getModel();
+        const selection = ed.getSelection();
+        if (!model || !selection) return;
+        const line = selection.startLineNumber;
+        const range = selection.isEmpty() ? new monaco.Range(line, 1, line, model.getLineMaxColumn(line)) : selection;
+        actions.whatIs({ code: model.getValueInRange(range), fileLang: model.getLanguageId() });
+      },
+    });
     const themeWatch = new MutationObserver(applyMonacoTheme);
     themeWatch.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => {

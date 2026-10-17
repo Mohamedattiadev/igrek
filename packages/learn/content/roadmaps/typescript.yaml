@@ -1,0 +1,2365 @@
+id: typescript
+title: TypeScript
+summary:
+  en: "From an empty computer to a typed expense tracker that runs in your terminal, answers over HTTP, is tested, packaged and live on a free host. You learn TypeScript by building something real."
+  tr: "Boş bir bilgisayardan; terminalde çalışan, HTTP üzerinden cevap veren, testleri yazılmış, paketlenmiş ve ücretsiz bir sunucuda yayında olan tipli bir harcama takipçisine. TypeScript'i gerçek bir şey yaparak öğrenirsin."
+teacher: frontend
+project:
+  en: 'A small command-line expense tracker: add expenses, list them and see totals per category, saved in a JSON file. Later it also answers over a tiny HTTP API (node:http, then Hono), tested with node:test, packaged for npm (dry run) and deployed on a free host.'
+  tr: 'Küçük bir komut satırı harcama takipçisi: harcama ekle, listele ve kategoriye göre toplamları gör; hepsi bir JSON dosyasında saklanır. Sonra küçük bir HTTP API ile de cevap verir (önce node:http, sonra Hono); node:test ile test edilir, npm için paketlenir (deneme çalıştırması) ve ücretsiz bir sunucuya yüklenir.'
+detect:
+  npm: [typescript]
+version: "7.0"
+latest: npm:typescript
+checked: 2026-10
+after: [web]
+sheets: [typescript, javascript, nodejs, git, http]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Node.js, an editor and Git"
+      tr: "Node.js, bir editör ve Git kurma"
+    minutes: 45
+    why:
+      en: "TypeScript is JavaScript with types, and JavaScript outside the browser runs on Node.js. A recent Node.js can even run `.ts` files directly. An editor makes typing code comfortable, and Git keeps every version of your work."
+      tr: "TypeScript, tipleri olan JavaScript'tir; tarayıcının dışındaki JavaScript de Node.js üzerinde çalışır. Yeni bir Node.js `.ts` dosyalarını doğrudan bile çalıştırabilir. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar."
+    learn:
+      en: |
+        - What Node.js and npm are (Node runs JavaScript on your computer, npm installs packages)
+        - How to open a terminal and check that a program is installed
+        - Why we need Node.js 24.12 or newer: from that version on, running TypeScript files is a stable feature
+      tr: |
+        - Node.js ve npm'in ne olduğu (Node, JavaScript'i bilgisayarında çalıştırır; npm paket kurar)
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - Neden Node.js 24.12 ya da daha yenisi gerektiği: o sürümden itibaren TypeScript dosyalarını çalıştırmak kararlı (stable) bir özellik
+    do:
+      en: |
+        1. Open https://nodejs.org/en/download and install the version marked LTS ("long term support"). It must be 24.12 or newer.
+        2. Open a terminal (Terminal on macOS and Linux; on Windows use PowerShell, and install Git first because it brings "Git Bash", which we use for a few commands later).
+        3. Install Git from https://git-scm.com/downloads and the free editor Visual Studio Code from https://code.visualstudio.com.
+        4. Run the commands below. Each one should print a version number. Node must print `v24.12.0` or higher.
+        5. Tell Git who you are (use your own name and email).
+      tr: |
+        1. https://nodejs.org/en/download adresini aç ve LTS ("long term support", uzun süreli destek) yazan sürümü kur. 24.12 ya da daha yeni olmalı.
+        2. Bir terminal aç (macOS ve Linux'ta Terminal; Windows'ta PowerShell. Önce Git'i kur, çünkü yanında "Git Bash" gelir ve birkaç komutta onu kullanacağız).
+        3. Git'i https://git-scm.com/downloads adresinden, ücretsiz editör Visual Studio Code'u https://code.visualstudio.com adresinden kur.
+        4. Aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazdırmalı. Node `v24.12.0` ya da daha yüksek yazdırmalı.
+        5. Git'e kim olduğunu söyle (kendi adını ve e-postanı yaz).
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node -v
+          npm -v
+          git --version
+          git config --global user.name "Your Name"
+          git config --global user.email "you@example.com"
+    mistakes:
+      - problem:
+          en: "`node -v` says the command is not found right after installing."
+          tr: "Kurulumdan hemen sonra `node -v` komutun bulunamadığını söylüyor."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart the computer if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "`node -v` prints an older version such as v20 or v22."
+          tr: "`node -v` v20 ya da v22 gibi eski bir sürüm yazdırıyor."
+        fix:
+          en: "An old Node.js was installed before. Install the LTS version again from nodejs.org, reopen the terminal and check again. Versions older than 22.18 cannot run `.ts` files without special flags."
+          tr: "Daha önce eski bir Node.js kurulmuş. nodejs.org'dan LTS sürümünü yeniden kur, terminali yeniden aç ve tekrar kontrol et. 22.18'den eski sürümler `.ts` dosyalarını özel bayraklar olmadan çalıştıramaz."
+    quiz:
+      - q:
+          en: "Why do we need Node.js 24.12 or newer in this roadmap?"
+          tr: "Bu yol haritasında neden Node.js 24.12 ya da daha yenisi gerekiyor?"
+        options:
+          en: [Older versions cannot run JavaScript at all, From 24.12 on Node can run TypeScript files in a stable way, TypeScript only installs on that version]
+          tr: [Eski sürümler JavaScript'i hiç çalıştıramaz, 24.12'den itibaren Node TypeScript dosyalarını kararlı biçimde çalıştırabilir, TypeScript sadece o sürümde kurulur]
+        answer: 1
+        why:
+          en: "Node.js can strip the types from a `.ts` file and run the rest. This became stable in 24.12 (and 25.2), so we can run our files without extra tools."
+          tr: "Node.js bir `.ts` dosyasındaki tipleri silip geri kalanı çalıştırabilir. Bu özellik 24.12'de (ve 25.2'de) kararlı oldu; böylece dosyalarımızı ek bir araç olmadan çalıştırabiliriz."
+    sources:
+      - title: Node.js downloads
+        url: https://nodejs.org/en/download
+      - title: Node.js, running TypeScript natively
+        url: https://nodejs.org/api/typescript.html
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: first-code
+    stage: first-code
+    title:
+      en: "Create the project and run your first TypeScript"
+      tr: "Projeyi oluşturma ve ilk TypeScript kodunu çalıştırma"
+    minutes: 40
+    needs: [setup]
+    why:
+      en: "Every project starts with a folder, a `package.json` and a `tsconfig.json`. Once the checker (`tsc`) and the runner (`node`) both work, you can try everything in the next steps and see at once whether it is right."
+      tr: "Her proje bir klasör, bir `package.json` ve bir `tsconfig.json` ile başlar. Kontrol aracı (`tsc`) ve çalıştırıcı (`node`) çalışınca sonraki adımlardaki her şeyi deneyebilir ve doğru olup olmadığını hemen görebilirsin."
+    learn:
+      en: |
+        - `node file.ts` only removes the types and runs the code. It does not check anything.
+        - `tsc` is the TypeScript compiler. We use it as a checker: it reads your code, finds type mistakes and prints them.
+        - TypeScript 7 is a new, much faster version of `tsc` (a native program, not JavaScript). You install it with npm like before.
+        - `module: nodenext` and `target: esnext` follow Node.js rules (ES modules); `lib: esnext` means only JavaScript built-ins, no browser objects
+        - `types: ["node"]` loads the Node.js definitions (TypeScript 6 and 7 do not load any `@types` package by themselves); `strict` turns on the strict checks and is on by default since TypeScript 6
+        - `noUncheckedIndexedAccess` makes `array[0]` possibly `undefined`; `erasableSyntaxOnly` and `verbatimModuleSyntax` keep the code in the form Node can run by removing the types
+        - `rewriteRelativeImportExtensions` lets us write `./store.ts` in imports and still build to `.js` later; `noEmit` means `tsc` only checks
+      tr: |
+        - `node dosya.ts` sadece tipleri siler ve kodu çalıştırır. Hiçbir şeyi kontrol etmez.
+        - `tsc` TypeScript derleyicisidir (compiler). Biz onu kontrol aracı olarak kullanacağız: kodunu okur, tip hatalarını bulur ve yazdırır.
+        - TypeScript 7, `tsc`'nin yeni ve çok daha hızlı sürümüdür (JavaScript değil, native bir program). Eskisi gibi npm ile kurarsın.
+        - `module: nodenext` ve `target: esnext` Node.js kurallarını (ES modülleri) izler; `lib: esnext` sadece JavaScript'in kendi nesneleri demektir, tarayıcı nesneleri yok
+        - `types: ["node"]` Node.js tanımlarını yükler (TypeScript 6 ve 7 hiçbir `@types` paketini kendiliğinden yüklemez); `strict` katı kontrolleri açar ve TypeScript 6'dan beri varsayılan olarak açıktır
+        - `noUncheckedIndexedAccess`, `array[0]` değerini `undefined` olabilir yapar; `erasableSyntaxOnly` ve `verbatimModuleSyntax`, kodu tipler silinince Node'un çalıştırabileceği biçimde tutar
+        - `rewriteRelativeImportExtensions` import'larda `./store.ts` yazmamızı, sonra yine `.js`'e derlememizi sağlar; `noEmit`, `tsc`'nin sadece kontrol ettiği anlamına gelir
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects and run the first block of commands below. It creates the `spend` folder, a Git repository, a `package.json` and installs TypeScript and the Node.js type definitions (`@types/node` tells TypeScript what `console`, `process` and `node:fs` look like).
+        2. Open the folder in VS Code (`code .`). Create `.gitignore` and `tsconfig.json` with the files below. Using the options in `tsconfig.json` as given matters: later steps rely on them.
+        3. Create `src/hello.ts` with the code below and run it with `node src/hello.ts`. Then check it with `npm run check`. No output from `tsc` means no mistakes.
+        4. Break it on purpose: change the first line to `const greeting: string = 42;`. Run both commands again. Node still prints 42 (it does not check), but `npm run check` prints an error such as `error TS2322: Type 'number' is not assignable to type 'string'`. Change it back.
+        5. Save the first version: `git add .` then `git commit -m "Start the spend project"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git ve aşağıdaki ilk komut bloğunu çalıştır. `spend` klasörünü, bir Git deposunu, bir `package.json` dosyasını oluşturur ve TypeScript ile Node.js tip tanımlarını (`@types/node`, TypeScript'e `console`, `process` ve `node:fs`'in nasıl göründüğünü söyler) kurar.
+        2. Klasörü VS Code'da aç (`code .`). Aşağıdaki dosyalarla `.gitignore` ve `tsconfig.json` oluştur. `tsconfig.json` ayarlarını verildiği gibi kullanmak önemli: sonraki adımlar onlara dayanıyor.
+        3. Aşağıdaki kodla `src/hello.ts` dosyasını oluştur ve `node src/hello.ts` ile çalıştır. Sonra `npm run check` ile kontrol et. `tsc`'den çıktı gelmemesi hata olmadığı anlamına gelir.
+        4. Bilerek bozalım: ilk satırı `const greeting: string = 42;` yap. İki komutu da yeniden çalıştır. Node yine 42 yazdırır (kontrol etmez), ama `npm run check` `error TS2322: Type 'number' is not assignable to type 'string'` gibi bir hata yazdırır. Geri düzelt.
+        5. İlk sürümü kaydet: `git add .` sonra `git commit -m "Start the spend project"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir spend
+          cd spend
+          git init -b main
+          npm init -y
+          npm pkg delete main
+          npm pkg set type=module scripts.check=tsc
+          npm install -D typescript @types/node
+          mkdir src test
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          dist
+          expenses.json
+          *.tmp
+      - file: tsconfig.json
+        lang: json
+        text: |
+          {
+            "compilerOptions": {
+              "target": "esnext",
+              "module": "nodenext",
+              "lib": ["esnext"],
+              "types": ["node"],
+              "strict": true,
+              "noUncheckedIndexedAccess": true,
+              "erasableSyntaxOnly": true,
+              "verbatimModuleSyntax": true,
+              "rewriteRelativeImportExtensions": true,
+              "noEmit": true,
+              "skipLibCheck": true
+            },
+            "include": ["src", "test"]
+          }
+      - file: src/hello.ts
+        lang: ts
+        text: |
+          const greeting: string = "Hello, TypeScript!";
+          console.log(greeting);
+      - file: terminal
+        lang: sh
+        text: |
+          node src/hello.ts
+          npm run check
+    mistakes:
+      - problem:
+          en: "`npm run check` says `Cannot find name 'console'`."
+          tr: "`npm run check` `Cannot find name 'console'` diyor."
+        fix:
+          en: "TypeScript 6 and 7 do not load any `@types` packages by themselves any more (the default of `types` is empty). Make sure `tsconfig.json` has `\"types\": [\"node\"]` and that you ran `npm install -D @types/node`."
+          tr: "TypeScript 6 ve 7 artık hiçbir `@types` paketini kendiliğinden yüklemiyor (`types` varsayılanı boş). `tsconfig.json` içinde `\"types\": [\"node\"]` olduğundan ve `npm install -D @types/node` çalıştırdığından emin ol."
+      - problem:
+          en: "Believing that `node file.ts` found no mistakes because it ran."
+          tr: "`node dosya.ts` çalıştı diye hata olmadığını sanmak."
+        fix:
+          en: "Node only removes the types. Only `tsc` checks them. Run `npm run check` often; in the next steps it is your safety net."
+          tr: "Node sadece tipleri siler. Tipleri yalnızca `tsc` kontrol eder. `npm run check`'i sık çalıştır; sonraki adımlarda güvenlik ağın o olacak."
+    quiz:
+      - q:
+          en: "Which command finds the type mistakes in your code?"
+          tr: "Hangi komut kodundaki tip hatalarını bulur?"
+        options:
+          en: [node src/hello.ts, npm run check (tsc), git commit]
+          tr: [node src/hello.ts, npm run check (tsc), git commit]
+        answer: 1
+        why:
+          en: "`node` removes the types and runs the code without looking at them. `tsc` is the tool that checks them."
+          tr: "`node` tipleri silip koda bakmadan çalıştırır. Tipleri kontrol eden araç `tsc`'dir."
+    sources:
+      - title: TypeScript 7.0 announcement
+        url: https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/
+      - title: TSConfig reference
+        url: https://www.typescriptlang.org/tsconfig/
+      - title: Node.js, type stripping
+        url: https://nodejs.org/api/typescript.html#type-stripping
+
+  - id: types
+    stage: basics
+    title:
+      en: "Types: describe an expense"
+      tr: "Tipler: bir harcamayı tarif etme"
+    minutes: 60
+    needs: [first-code]
+    why:
+      en: "A type is a promise about what a value looks like. When you describe an expense once, the checker makes sure every place that uses it agrees, and your editor suggests the right fields as you type."
+      tr: "Tip, bir değerin neye benzediğine dair bir sözdür. Bir harcamayı bir kez tarif edince kontrol aracı, onu kullanan her yerin buna uyduğundan emin olur; editörün de yazarken doğru alanları önerir."
+    learn:
+      en: |
+        - Basic types: `string`, `number`, `boolean`, arrays like `number[]`
+        - An `interface` describes the shape of an object
+        - A union of string literals (`"food" | "fun"`) allows only those exact values
+        - `as const` and `typeof` turn a list of values into a type, so the list and the type never disagree
+        - `Record<Category, number>` is an object with one number for each category
+        - `readonly Expense[]` promises that a function will not change the array
+        - Why money is stored as whole cents: `0.1 + 0.2` is `0.30000000000000004` in JavaScript
+      tr: |
+        - Temel tipler: `string`, `number`, `boolean`, `number[]` gibi diziler (array)
+        - `interface` bir nesnenin şeklini tarif eder
+        - String değerlerden oluşan birleşim (`"food" | "fun"`) sadece o değerlere izin verir
+        - `as const` ve `typeof`, bir değer listesini tipe çevirir; böylece liste ile tip hiç çelişmez
+        - `Record<Category, number>`, her kategori için bir sayısı olan nesnedir
+        - `readonly Expense[]`, bir fonksiyonun diziyi değiştirmeyeceği sözünü verir
+        - Para neden tam kuruş olarak saklanır: JavaScript'te `0.1 + 0.2` sonucu `0.30000000000000004` çıkar
+    do:
+      en: |
+        1. Create `src/expense.ts` with the code below. Read it line by line: every line has a reason.
+        2. Replace the content of `src/hello.ts` with the sample code below and run `node src/hello.ts`. It should print `food: 17.00` and `transport: 20.00`.
+        3. Run `npm run check`. Then make mistakes on purpose and read the messages: change a category to `"cars"` (error TS2322, the value is not one of the allowed ones), or write `totals.travel` (error TS2339, there is no such property). Undo them.
+        4. Commit: `git add .` and `git commit -m "Describe an expense"`.
+      tr: |
+        1. Aşağıdaki kodla `src/expense.ts` dosyasını oluştur. Satır satır oku: her satırın bir nedeni var.
+        2. `src/hello.ts` içeriğini aşağıdaki örnek kodla değiştir ve `node src/hello.ts` çalıştır. `food: 17.00` ve `transport: 20.00` yazdırmalı.
+        3. `npm run check` çalıştır. Sonra bilerek hata yap ve mesajları oku: bir kategoriyi `"cars"` yap (TS2322 hatası, değer izin verilenlerden biri değil) ya da `totals.travel` yaz (TS2339 hatası, böyle bir alan yok). Geri al.
+        4. Commit at: `git add .` ve `git commit -m "Describe an expense"`.
+    code:
+      - file: src/expense.ts
+        lang: ts
+        text: |
+          export const categories = ["food", "transport", "home", "fun", "other"] as const;
+
+          export type Category = (typeof categories)[number];
+
+          export interface Expense {
+            id: string;
+            date: string; // "2026-10-17"
+            amountCents: number; // 1250 means 12.50
+            category: Category;
+            note: string;
+          }
+
+          export function formatMoney(cents: number): string {
+            return (cents / 100).toFixed(2);
+          }
+
+          export function totalsByCategory(expenses: readonly Expense[]): Record<Category, number> {
+            const totals: Record<Category, number> = { food: 0, transport: 0, home: 0, fun: 0, other: 0 };
+            for (const expense of expenses) {
+              totals[expense.category] += expense.amountCents;
+            }
+            return totals;
+          }
+      - file: src/hello.ts
+        lang: ts
+        text: |
+          import { formatMoney, totalsByCategory, type Expense } from "./expense.ts";
+
+          const sample: Expense[] = [
+            { id: "1", date: "2026-10-01", amountCents: 1250, category: "food", note: "lunch" },
+            { id: "2", date: "2026-10-02", amountCents: 2000, category: "transport", note: "bus pass" },
+            { id: "3", date: "2026-10-03", amountCents: 450, category: "food", note: "coffee" },
+          ];
+
+          const totals = totalsByCategory(sample);
+          console.log("food:", formatMoney(totals.food));
+          console.log("transport:", formatMoney(totals.transport));
+    mistakes:
+      - problem:
+          en: "Writing `import { Expense } from \"./expense.ts\"` without `type`. `npm run check` says the import must be a type-only import."
+          tr: "`import { Expense } from \"./expense.ts\"` yazıp `type` koymamak. `npm run check` bunun sadece-tip (type-only) import olması gerektiğini söylüyor."
+        fix:
+          en: "Write `import type { Expense } from ...` or `import { type Expense, ... } from ...`. Types disappear when the code runs, so Node must know that the import can be dropped."
+          tr: "`import type { Expense } from ...` ya da `import { type Expense, ... } from ...` yaz. Kod çalışırken tipler yok olur; Node'un bu import'u atabileceğini bilmesi gerekir."
+      - problem:
+          en: "Storing money as a decimal number such as `12.5`."
+          tr: "Parayı `12.5` gibi ondalıklı sayı olarak saklamak."
+        fix:
+          en: "Store whole cents (`1250`) and format only when you show the value. Whole numbers add up exactly."
+          tr: "Tam kuruşu sakla (`1250`) ve sadece göstereceğin zaman biçimlendir. Tam sayılar tam olarak toplanır."
+    quiz:
+      - q:
+          en: "What does `(typeof categories)[number]` give you for `const categories = [\"food\", \"fun\"] as const`?"
+          tr: "`const categories = [\"food\", \"fun\"] as const` için `(typeof categories)[number]` ne verir?"
+        options:
+          en: [The number 2, 'The type "food" | "fun"', 'The type string[]']
+          tr: [2 sayısı, '"food" | "fun" tipi', 'string[] tipi']
+        answer: 1
+        why:
+          en: "`as const` makes the list read-only with exact values. Indexing its type with `number` means \"any item\", which is the union of all the values."
+          tr: "`as const` listeyi kesin değerlerle salt okunur yapar. Tipini `number` ile indekslemek \"herhangi bir eleman\" demektir; bu da bütün değerlerin birleşimidir."
+    sources:
+      - title: TypeScript Handbook, Everyday Types
+        url: https://www.typescriptlang.org/docs/handbook/2/everyday-types.html
+      - title: TypeScript Handbook, Object Types
+        url: https://www.typescriptlang.org/docs/handbook/2/objects.html
+      - title: MDN, Number.prototype.toFixed()
+        url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
+
+  - id: narrowing
+    stage: basics
+    title:
+      en: "Unknown input, narrowing and errors"
+      tr: "Bilinmeyen girdi, daraltma (narrowing) ve hatalar"
+    minutes: 60
+    needs: [types]
+    why:
+      en: "Everything that comes from outside (what a user types, a file, a request) is not typed for you. The honest type for it is `unknown`. Narrowing is how you prove to the checker what a value really is before you use it."
+      tr: "Dışarıdan gelen her şey (kullanıcının yazdığı, bir dosya, bir istek) senin için tipli değildir. Bunun dürüst tipi `unknown`'dır. Daraltma (narrowing), bir değeri kullanmadan önce gerçekte ne olduğunu kontrol aracına kanıtlama yoludur."
+    learn:
+      en: |
+        - `unknown` means "could be anything, check first"; `any` switches the checker off, so avoid it
+        - Narrowing with `typeof`, `instanceof` and checks like `Array.isArray`
+        - A type predicate (`value is Category`) is a function whose `true` result narrows the type
+        - Because of `noUncheckedIndexedAccess`, `array[0]` has the type `T | undefined`; destructuring with defaults handles that
+        - Your own error class: `class ValidationError extends Error {}`
+        - Why we check dates with real `Date` parsing: `2026-02-30` looks fine but does not exist
+      tr: |
+        - `unknown` "her şey olabilir, önce kontrol et" demektir; `any` kontrol aracını kapatır, o yüzden kaçın
+        - `typeof`, `instanceof` ve `Array.isArray` gibi kontrollerle daraltma
+        - Tip yüklemi (type predicate, `value is Category`), `true` döndüğünde tipi daraltan bir fonksiyondur
+        - `noUncheckedIndexedAccess` yüzünden `array[0]` tipi `T | undefined` olur; varsayılanlı destructuring bunu çözer
+        - Kendi hata sınıfın: `class ValidationError extends Error {}`
+        - Tarihleri neden gerçek `Date` ayrıştırmasıyla kontrol ediyoruz: `2026-02-30` düzgün görünür ama böyle bir gün yok
+    do:
+      en: |
+        1. Replace the whole content of `src/expense.ts` with the code below. The old parts are still there; the new parts are `ValidationError`, `isCategory`, `parseAmount`, `isIsoDate` and `today`.
+        2. Create the scratch file `src/try.ts`, run `node src/try.ts` and read the output: `1250`, then `caught: ...`.
+        3. Open `parseAmount` and find where the checker forced you to handle `undefined` (the destructuring with `= "0"` and `= ""`). Remove one default and run `npm run check` to see the error. Put it back.
+        4. Delete `src/try.ts`, run `npm run check`, then commit: `git add .` and `git commit -m "Parse and check input"`.
+      tr: |
+        1. `src/expense.ts` dosyasının bütün içeriğini aşağıdaki kodla değiştir. Eski kısımlar duruyor; yeni kısımlar `ValidationError`, `isCategory`, `parseAmount`, `isIsoDate` ve `today`.
+        2. Deneme dosyası `src/try.ts`'i oluştur, `node src/try.ts` çalıştır ve çıktıyı oku: `1250`, sonra `caught: ...`.
+        3. `parseAmount`'u aç ve kontrol aracının `undefined`'ı ele almaya seni zorladığı yeri bul (`= "0"` ve `= ""` olan destructuring). Varsayılanlardan birini sil ve hatayı görmek için `npm run check` çalıştır. Geri koy.
+        4. `src/try.ts` dosyasını sil, `npm run check` çalıştır, sonra commit at: `git add .` ve `git commit -m "Parse and check input"`.
+    code:
+      - file: src/expense.ts
+        lang: ts
+        text: |
+          export const categories = ["food", "transport", "home", "fun", "other"] as const;
+
+          export type Category = (typeof categories)[number];
+
+          export interface Expense {
+            id: string;
+            date: string; // "2026-10-17"
+            amountCents: number; // 1250 means 12.50
+            category: Category;
+            note: string;
+          }
+
+          export function formatMoney(cents: number): string {
+            return (cents / 100).toFixed(2);
+          }
+
+          export function totalsByCategory(expenses: readonly Expense[]): Record<Category, number> {
+            const totals: Record<Category, number> = { food: 0, transport: 0, home: 0, fun: 0, other: 0 };
+            for (const expense of expenses) {
+              totals[expense.category] += expense.amountCents;
+            }
+            return totals;
+          }
+
+          export class ValidationError extends Error {}
+
+          export function isCategory(value: unknown): value is Category {
+            return typeof value === "string" && (categories as readonly string[]).includes(value);
+          }
+
+          export function parseAmount(text: string): number {
+            const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(text.trim());
+            if (!match) {
+              throw new ValidationError(`"${text}" is not an amount like 12 or 12.50`);
+            }
+            const [, whole = "0", fraction = ""] = match;
+            const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+            if (!Number.isSafeInteger(cents) || cents <= 0) {
+              throw new ValidationError("the amount must be more than 0");
+            }
+            return cents;
+          }
+
+          export function isIsoDate(text: string): boolean {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+            const date = new Date(`${text}T00:00:00Z`);
+            return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(text);
+          }
+
+          export function today(): string {
+            return new Date().toISOString().slice(0, 10);
+          }
+      - file: src/try.ts
+        lang: ts
+        text: |
+          import { parseAmount, ValidationError } from "./expense.ts";
+
+          console.log(parseAmount("12.50"));
+          try {
+            parseAmount("abc");
+          } catch (error) {
+            if (error instanceof ValidationError) console.log("caught:", error.message);
+          }
+    mistakes:
+      - problem:
+          en: "Silencing the checker with `as` or `any` (for example `JSON.parse(text) as Expense[]`) instead of checking the value."
+          tr: "Değeri kontrol etmek yerine kontrol aracını `as` ya da `any` ile susturmak (örneğin `JSON.parse(text) as Expense[]`)."
+        fix:
+          en: "`as` is a promise from you, not a check. If the data is wrong, the program still breaks later and somewhere else. Use `unknown` and check the value, like `parseAmount` does."
+          tr: "`as` bir kontrol değil, senin verdiğin bir sözdür. Veri yanlışsa program yine bozulur, hem de daha sonra ve başka bir yerde. `unknown` kullan ve değeri `parseAmount` gibi kontrol et."
+      - problem:
+          en: "Catching an error and using `error.message` directly: `'error' is of type 'unknown'`."
+          tr: "Bir hatayı yakalayıp `error.message` kullanmak: `'error' is of type 'unknown'`."
+        fix:
+          en: "In `catch`, the error can be anything. Narrow it first with `if (error instanceof ValidationError)`."
+          tr: "`catch` içinde hata her şey olabilir. Önce `if (error instanceof ValidationError)` ile daralt."
+    quiz:
+      - q:
+          en: "Why is `unknown` safer than `any` for data from outside?"
+          tr: "Dışarıdan gelen veri için `unknown` neden `any`'den daha güvenlidir?"
+        options:
+          en: [It is faster at runtime, It forces you to check the value before you use it, It converts the value to the right type]
+          tr: [Çalışırken daha hızlıdır, Kullanmadan önce değeri kontrol etmeye seni zorlar, Değeri doğru tipe çevirir]
+        answer: 1
+        why:
+          en: "With `unknown` the checker refuses to use the value until you have narrowed it. With `any` it allows everything, including mistakes."
+          tr: "`unknown` ile kontrol aracı, değeri daraltmadan kullanmana izin vermez. `any` ile her şeye, hatalara bile izin verir."
+    sources:
+      - title: TypeScript Handbook, Narrowing
+        url: https://www.typescriptlang.org/docs/handbook/2/narrowing.html
+      - title: TSConfig, noUncheckedIndexedAccess
+        url: https://www.typescriptlang.org/tsconfig/#noUncheckedIndexedAccess
+      - title: MDN, Error
+        url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+
+  - id: cli
+    stage: first-project
+    title:
+      en: "The command-line tracker"
+      tr: "Komut satırı takipçisi"
+    minutes: 90
+    needs: [narrowing]
+    why:
+      en: "This is the first time the pieces work together as a real program: you type a command, it checks your input, saves to a file and prints a result. You can use it for your own expenses already."
+      tr: "Parçalar ilk kez gerçek bir program olarak birlikte çalışıyor: bir komut yazıyorsun, girdini kontrol ediyor, bir dosyaya kaydediyor ve sonucu yazdırıyor. Kendi harcamaların için şimdiden kullanabilirsin."
+    learn:
+      en: |
+        - Command-line arguments with `process.argv` and `parseArgs` from `node:util`
+        - Reading and writing files with `node:fs/promises`; `async` and `await`
+        - An `interface` for a service (`Store`) so the rest of the code does not care how data is saved
+        - Why the logic (`commands.ts`) is separate from the thin entry file (`cli.ts`): the logic can be tested
+        - Exit codes: `process.exitCode = 1` tells the terminal that the command failed
+      tr: |
+        - `process.argv` ve `node:util` içindeki `parseArgs` ile komut satırı argümanları
+        - `node:fs/promises` ile dosya okuma ve yazma; `async` ve `await`
+        - Bir servis için `interface` (`Store`): kodun geri kalanı verinin nasıl saklandığını umursamaz
+        - Mantığın (`commands.ts`) neden ince giriş dosyasından (`cli.ts`) ayrı olduğu: mantık test edilebilir
+        - Çıkış kodları: `process.exitCode = 1` terminale komutun başarısız olduğunu söyler
+    do:
+      en: |
+        1. Create `src/store.ts`, `src/commands.ts` and `src/cli.ts` with the code below, and delete `src/hello.ts`.
+        2. Run `npm run check`. Then try the commands in the second block. Your first `add` creates `expenses.json` (it is in `.gitignore`, so your own data never goes to Git).
+        3. Open `expenses.json` in the editor and look at what was saved.
+        4. Try a mistake: `node src/cli.ts add abc food`. You should see `Error: "abc" is not an amount like 12 or 12.50` and no crash with a long stack trace.
+        5. Commit: `git add .` and `git commit -m "Add the command-line tracker"`.
+      tr: |
+        1. Aşağıdaki kodla `src/store.ts`, `src/commands.ts` ve `src/cli.ts` dosyalarını oluştur, `src/hello.ts` dosyasını sil.
+        2. `npm run check` çalıştır. Sonra ikinci bloktaki komutları dene. İlk `add` komutun `expenses.json` dosyasını oluşturur (`.gitignore` içinde, yani kendi verin Git'e hiç gitmez).
+        3. `expenses.json` dosyasını editörde aç ve nelerin kaydedildiğine bak.
+        4. Bir hata dene: `node src/cli.ts add abc food`. `Error: "abc" is not an amount like 12 or 12.50` görmelisin; uzun bir hata dökümüyle çökme olmamalı.
+        5. Commit at: `git add .` ve `git commit -m "Add the command-line tracker"`.
+    code:
+      - file: src/store.ts
+        lang: ts
+        text: |
+          import { readFile, writeFile } from "node:fs/promises";
+          import type { Expense } from "./expense.ts";
+
+          export interface Store {
+            list(): Promise<readonly Expense[]>;
+            add(expense: Expense): Promise<void>;
+          }
+
+          export const defaultFile = process.env.DATA_FILE ?? "expenses.json";
+
+          async function read(file: string): Promise<Expense[]> {
+            try {
+              return JSON.parse(await readFile(file, "utf8")) as Expense[];
+            } catch (error) {
+              if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+              throw error;
+            }
+          }
+
+          export function fileStore(file = defaultFile): Store {
+            return {
+              list: () => read(file),
+              async add(expense) {
+                const all = await read(file);
+                all.push(expense);
+                await writeFile(file, JSON.stringify(all, null, 2) + "\n");
+              },
+            };
+          }
+      - file: src/commands.ts
+        lang: ts
+        text: |
+          import { randomUUID } from "node:crypto";
+          import { parseArgs } from "node:util";
+          import {
+            categories,
+            formatMoney,
+            isCategory,
+            isIsoDate,
+            parseAmount,
+            today,
+            totalsByCategory,
+            ValidationError,
+          } from "./expense.ts";
+          import { fileStore } from "./store.ts";
+
+          export const usage = `spend: a tiny expense tracker
+
+            spend add <amount> <category> [note...] [--date 2026-10-17]
+            spend list
+            spend total
+
+          categories: ${categories.join(", ")}`;
+
+          export async function run(args: string[], file?: string): Promise<string> {
+            const { positionals, values } = parseArgs({
+              args,
+              allowPositionals: true,
+              options: { date: { type: "string" } },
+            });
+            const [command, ...rest] = positionals;
+            const store = fileStore(file);
+
+            if (command === "add") {
+              const [amountText, category, ...noteWords] = rest;
+              if (amountText === undefined || category === undefined) {
+                throw new ValidationError("add needs an amount and a category");
+              }
+              if (!isCategory(category)) {
+                throw new ValidationError(`category must be one of: ${categories.join(", ")}`);
+              }
+              const date = values.date ?? today();
+              if (!isIsoDate(date)) throw new ValidationError("--date must look like 2026-10-17");
+              const amountCents = parseAmount(amountText);
+              await store.add({ id: randomUUID(), date, amountCents, category, note: noteWords.join(" ") });
+              return `Added ${formatMoney(amountCents)} to ${category}.`;
+            }
+
+            if (command === "list") {
+              const all = await store.list();
+              if (all.length === 0) return "No expenses yet.";
+              return all
+                .map((e) => `${e.date}  ${formatMoney(e.amountCents).padStart(9)}  ${e.category.padEnd(9)}${e.note}`)
+                .join("\n");
+            }
+
+            if (command === "total") {
+              const totals = totalsByCategory(await store.list());
+              const lines = categories.map((c) => `${c.padEnd(10)}${formatMoney(totals[c]).padStart(9)}`);
+              const sum = categories.reduce((acc, c) => acc + totals[c], 0);
+              return [...lines, `${"all".padEnd(10)}${formatMoney(sum).padStart(9)}`].join("\n");
+            }
+
+            return usage;
+          }
+      - file: src/cli.ts
+        lang: ts
+        text: |
+          #!/usr/bin/env node
+          import { run } from "./commands.ts";
+          import { ValidationError } from "./expense.ts";
+
+          try {
+            console.log(await run(process.argv.slice(2)));
+          } catch (error) {
+            if (error instanceof ValidationError) {
+              console.error(`Error: ${error.message}`);
+              process.exitCode = 1;
+            } else {
+              throw error;
+            }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          node src/cli.ts
+          node src/cli.ts add 12.50 food lunch with Ali
+          node src/cli.ts add 20 transport --date 2026-10-18
+          node src/cli.ts list
+          node src/cli.ts total
+    mistakes:
+      - problem:
+          en: "`Cannot find module '.../commands'` when running `node src/cli.ts`."
+          tr: "`node src/cli.ts` çalıştırırken `Cannot find module '.../commands'` hatası."
+        fix:
+          en: "Node needs the full file name in imports: `./commands.ts`, not `./commands`. TypeScript asks for the same in this setup."
+          tr: "Node, import'larda dosyanın tam adını ister: `./commands` değil `./commands.ts`. Bu ayarla TypeScript de aynısını ister."
+      - problem:
+          en: "`ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` for an `enum`, a `namespace` or a constructor like `constructor(private x: string)`."
+          tr: "Bir `enum`, `namespace` ya da `constructor(private x: string)` gibi bir yapıcı için `ERR_UNSUPPORTED_TYPESCRIPT_SYNTAX` hatası."
+        fix:
+          en: "Node only removes types; it cannot turn these into JavaScript. Use a union of strings instead of an enum, and assign fields yourself in the constructor. `erasableSyntaxOnly` in our `tsconfig.json` makes `tsc` warn you about them early."
+          tr: "Node sadece tipleri siler; bunları JavaScript'e çeviremez. Enum yerine string birleşimi kullan, alanları yapıcıda kendin ata. `tsconfig.json`'daki `erasableSyntaxOnly`, `tsc`'nin seni bunlar için erkenden uyarmasını sağlar."
+    quiz:
+      - q:
+          en: "Why is `fileStore` returned as a `Store` (an interface) and not used directly?"
+          tr: "`fileStore` neden doğrudan kullanılmıyor da `Store` (bir interface) olarak döndürülüyor?"
+        options:
+          en: [Interfaces make code faster, The commands only depend on list and add so the storage can change later, TypeScript requires it]
+          tr: [Interface'ler kodu hızlandırır, Komutlar sadece list ve add'e bağlı olduğu için depolama sonradan değişebilir, TypeScript bunu zorunlu kılar]
+        answer: 1
+        why:
+          en: "Later we will swap the file for a cached version, and tests will use a temporary file. The commands do not need to change."
+          tr: "Sonra dosyayı önbellekli bir sürümle değiştireceğiz, testler de geçici bir dosya kullanacak. Komutların değişmesi gerekmez."
+    sources:
+      - title: Node.js, util.parseArgs
+        url: https://nodejs.org/api/util.html#utilparseargsconfig
+      - title: Node.js, fs promises API
+        url: https://nodejs.org/api/fs.html#promises-api
+      - title: TypeScript Handbook, More on Functions
+        url: https://www.typescriptlang.org/docs/handbook/2/functions.html
+
+  - id: validate-data
+    stage: data-api
+    title:
+      en: "Read the JSON file safely"
+      tr: "JSON dosyasını güvenle okuma"
+    minutes: 60
+    needs: [cli]
+    why:
+      en: "Right now `JSON.parse(...) as Expense[]` is a lie the checker believes. A file can be edited by hand, half written or from an older version. Checking the data when it enters the program keeps the rest of the code honest."
+      tr: "Şu an `JSON.parse(...) as Expense[]`, kontrol aracının inandığı bir yalan. Bir dosya elle değiştirilmiş, yarım yazılmış ya da eski bir sürümden kalmış olabilir. Veriyi programa girerken kontrol etmek, kodun geri kalanını dürüst tutar."
+    learn:
+      en: |
+        - Validate at the border: data from files and requests is `unknown` until checked
+        - One parser (`parseNewExpense`) used for files now and HTTP bodies later
+        - Missing file (`ENOENT`) is normal on the first run; other errors are not
+        - Atomic write: write a temporary file, then `rename` it over the real one, so a crash never leaves half a file
+        - `Array.prototype.map` with an index for helpful error messages
+      tr: |
+        - Sınırda doğrula: dosyalardan ve isteklerden gelen veri kontrol edilene kadar `unknown`'dır
+        - Şimdi dosyalar, sonra HTTP gövdeleri için kullanılan tek bir ayrıştırıcı (`parseNewExpense`)
+        - Dosyanın olmaması (`ENOENT`) ilk çalıştırmada normaldir; diğer hatalar normal değildir
+        - Atomik yazma: geçici bir dosyaya yaz, sonra `rename` ile gerçek dosyanın üstüne taşı; böylece bir çökme asla yarım dosya bırakmaz
+        - Anlaşılır hata mesajları için indeksli `Array.prototype.map`
+    do:
+      en: |
+        1. Replace `src/expense.ts` with the full code below (it adds `NewExpense`, `parseNewExpense` and `parseExpenses` at the end) and `src/store.ts` with the new version.
+        2. Run `npm run check` and `node src/cli.ts list`. Your earlier data still loads.
+        3. Break the data on purpose: in `expenses.json`, change `"amountCents": 1250` to `"amountCents": "lots"`. Run `node src/cli.ts list`. You get `Error: amountCents must be a whole number above 0` instead of garbage output. Fix the file again.
+        4. Commit: `git add .` and `git commit -m "Validate the data file"`.
+      tr: |
+        1. `src/expense.ts` dosyasını aşağıdaki tam kodla (sonuna `NewExpense`, `parseNewExpense` ve `parseExpenses` eklendi) ve `src/store.ts` dosyasını yeni sürümle değiştir.
+        2. `npm run check` ve `node src/cli.ts list` çalıştır. Önceki verilerin hâlâ yükleniyor.
+        3. Veriyi bilerek boz: `expenses.json` içinde `"amountCents": 1250` değerini `"amountCents": "lots"` yap. `node src/cli.ts list` çalıştır. Anlamsız çıktı yerine `Error: amountCents must be a whole number above 0` görürsün. Dosyayı yeniden düzelt.
+        4. Commit at: `git add .` ve `git commit -m "Validate the data file"`.
+    code:
+      - file: src/expense.ts
+        lang: ts
+        text: |
+          export const categories = ["food", "transport", "home", "fun", "other"] as const;
+
+          export type Category = (typeof categories)[number];
+
+          export interface Expense {
+            id: string;
+            date: string; // "2026-10-17"
+            amountCents: number; // 1250 means 12.50
+            category: Category;
+            note: string;
+          }
+
+          export function formatMoney(cents: number): string {
+            return (cents / 100).toFixed(2);
+          }
+
+          export function totalsByCategory(expenses: readonly Expense[]): Record<Category, number> {
+            const totals: Record<Category, number> = { food: 0, transport: 0, home: 0, fun: 0, other: 0 };
+            for (const expense of expenses) {
+              totals[expense.category] += expense.amountCents;
+            }
+            return totals;
+          }
+
+          export class ValidationError extends Error {}
+
+          export function isCategory(value: unknown): value is Category {
+            return typeof value === "string" && (categories as readonly string[]).includes(value);
+          }
+
+          export function parseAmount(text: string): number {
+            const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(text.trim());
+            if (!match) {
+              throw new ValidationError(`"${text}" is not an amount like 12 or 12.50`);
+            }
+            const [, whole = "0", fraction = ""] = match;
+            const cents = Number(whole) * 100 + Number(fraction.padEnd(2, "0"));
+            if (!Number.isSafeInteger(cents) || cents <= 0) {
+              throw new ValidationError("the amount must be more than 0");
+            }
+            return cents;
+          }
+
+          export function isIsoDate(text: string): boolean {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+            const date = new Date(`${text}T00:00:00Z`);
+            return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(text);
+          }
+
+          export function today(): string {
+            return new Date().toISOString().slice(0, 10);
+          }
+
+          export interface NewExpense {
+            date: string;
+            amountCents: number;
+            category: Category;
+            note: string;
+          }
+
+          function isRecord(value: unknown): value is Record<string, unknown> {
+            return typeof value === "object" && value !== null && !Array.isArray(value);
+          }
+
+          export function parseNewExpense(data: unknown): NewExpense {
+            if (!isRecord(data)) throw new ValidationError("expected a JSON object");
+            const { date, amountCents, category, note = "" } = data;
+            if (typeof date !== "string" || !isIsoDate(date)) {
+              throw new ValidationError("date must look like 2026-10-17");
+            }
+            if (typeof amountCents !== "number" || !Number.isSafeInteger(amountCents) || amountCents <= 0) {
+              throw new ValidationError("amountCents must be a whole number above 0");
+            }
+            if (!isCategory(category)) {
+              throw new ValidationError(`category must be one of: ${categories.join(", ")}`);
+            }
+            if (typeof note !== "string" || note.length > 200) {
+              throw new ValidationError("note must be text of at most 200 characters");
+            }
+            return { date, amountCents, category, note };
+          }
+
+          export function parseExpenses(data: unknown): Expense[] {
+            if (!Array.isArray(data)) {
+              throw new ValidationError("the data file must contain a JSON array");
+            }
+            return data.map((item: unknown, index) => {
+              const id = isRecord(item) ? item.id : undefined;
+              if (typeof id !== "string" || id === "") {
+                throw new ValidationError(`expense number ${index + 1} has no id`);
+              }
+              return { id, ...parseNewExpense(item) };
+            });
+          }
+      - file: src/store.ts
+        lang: ts
+        text: |
+          import { readFile, rename, writeFile } from "node:fs/promises";
+          import { parseExpenses, type Expense } from "./expense.ts";
+
+          export interface Store {
+            list(): Promise<readonly Expense[]>;
+            add(expense: Expense): Promise<void>;
+          }
+
+          export const defaultFile = process.env.DATA_FILE ?? "expenses.json";
+
+          async function read(file: string): Promise<Expense[]> {
+            let text: string;
+            try {
+              text = await readFile(file, "utf8");
+            } catch (error) {
+              if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+              throw error;
+            }
+            return parseExpenses(JSON.parse(text));
+          }
+
+          async function write(file: string, expenses: readonly Expense[]): Promise<void> {
+            const temp = `${file}.tmp`;
+            await writeFile(temp, JSON.stringify(expenses, null, 2) + "\n");
+            await rename(temp, file); // a crash in the middle never leaves a half-written file
+          }
+
+          export function fileStore(file = defaultFile): Store {
+            return {
+              list: () => read(file),
+              async add(expense) {
+                const all = await read(file);
+                await write(file, [...all, expense]);
+              },
+            };
+          }
+    mistakes:
+      - problem:
+          en: "Swallowing every error from `readFile` with an empty `catch` so a real problem looks like \"no data\"."
+          tr: "`readFile` içindeki her hatayı boş bir `catch` ile yutmak; gerçek bir sorun \"veri yok\" gibi görünür."
+        fix:
+          en: "Only treat `ENOENT` (file does not exist) as empty. Re-throw everything else, like a permission error or broken JSON."
+          tr: "Sadece `ENOENT`'i (dosya yok) boş say. Diğer her şeyi, örneğin izin hatasını ya da bozuk JSON'u, yeniden fırlat."
+      - problem:
+          en: "Writing straight to `expenses.json` with `writeFile`. A crash while writing can leave a half file and lose all data."
+          tr: "Doğrudan `expenses.json` dosyasına `writeFile` ile yazmak. Yazarken olan bir çökme yarım dosya bırakıp bütün veriyi kaybettirebilir."
+        fix:
+          en: "Write `expenses.json.tmp` first and `rename` it. Renaming a file is one step, so readers see either the old or the new file."
+          tr: "Önce `expenses.json.tmp` yaz ve `rename` et. Dosya adını değiştirmek tek adımdır; okuyanlar ya eski ya da yeni dosyayı görür."
+    quiz:
+      - q:
+          en: "Where should data from a file or a request be checked?"
+          tr: "Bir dosyadan ya da istekten gelen veri nerede kontrol edilmeli?"
+        options:
+          en: [Where it enters the program, Only when it is printed, Never; the types are enough]
+          tr: [Programa girdiği yerde, Sadece yazdırılırken, Hiçbir zaman; tipler yeterli]
+        answer: 0
+        why:
+          en: "Types only exist while you write the code. At runtime nothing checks the data unless you do, so check it once at the border and trust the types after that."
+          tr: "Tipler sadece kodu yazarken vardır. Çalışırken sen kontrol etmezsen veriyi kimse kontrol etmez; bu yüzden sınırda bir kez kontrol et, sonra tiplere güven."
+    sources:
+      - title: Node.js, fs.rename
+        url: https://nodejs.org/api/fs.html#fsrenameoldpath-newpath-callback
+      - title: Node.js, common system errors (ENOENT)
+        url: https://nodejs.org/api/errors.html#common-system-errors
+      - title: MDN, JSON.parse()
+        url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+
+  - id: http-api
+    stage: data-api
+    title:
+      en: "A tiny HTTP API with node:http"
+      tr: "node:http ile küçük bir HTTP API"
+    minutes: 75
+    needs: [validate-data]
+    why:
+      en: "A command line is for you only. An HTTP API lets other programs and web pages use the same expenses. Node has an HTTP server built in, so you do not need a framework to understand how it works."
+      tr: "Komut satırı sadece senin içindir. HTTP API, diğer programların ve web sayfalarının aynı harcamaları kullanmasını sağlar. Node'un içinde bir HTTP sunucusu var; nasıl çalıştığını anlamak için framework gerekmez."
+    learn:
+      en: |
+        - A request has a method (`GET`, `POST`), a path (`/expenses`) and sometimes a body; a response has a status code and a body
+        - Status codes you use now: `200` ok, `201` created, `400` bad request, `404` not found, `500` server error
+        - JSON as the format: `JSON.stringify` out, `JSON.parse` in
+        - Reading the request body as a stream of chunks
+        - The server file only starts the server; `createApp` builds it, so tests can start their own copy
+      tr: |
+        - Bir isteğin metodu (`GET`, `POST`), yolu (`/expenses`) ve bazen gövdesi (body) vardır; bir cevabın durum kodu ve gövdesi vardır
+        - Şimdi kullanacağın durum kodları: `200` tamam, `201` oluşturuldu, `400` hatalı istek, `404` bulunamadı, `500` sunucu hatası
+        - Biçim olarak JSON: çıkarken `JSON.stringify`, girerken `JSON.parse`
+        - İstek gövdesini parçalar (chunk) akışı olarak okuma
+        - Sunucu dosyası sadece sunucuyu başlatır; `createApp` onu kurar, böylece testler kendi kopyalarını başlatabilir
+    do:
+      en: |
+        1. Create `src/app.ts` and `src/server.ts` with the code below. Add a `dev` script that restarts the server when you save: `npm pkg set "scripts.dev=node --watch src/server.ts"`.
+        2. Run `npm run check`, then `npm run dev`. It prints `spend API listening on http://localhost:3000`.
+        3. Open http://localhost:3000/expenses in the browser: you see your expenses as JSON.
+        4. In a second terminal (on Windows use Git Bash, installed with Git) run the `curl` commands below. The first one adds an expense, the second shows the totals, the third sends a wrong category and gets a `400`.
+        5. Stop the server with Ctrl+C and commit: `git add .` and `git commit -m "Add a small HTTP API"`.
+      tr: |
+        1. Aşağıdaki kodla `src/app.ts` ve `src/server.ts` dosyalarını oluştur. Kaydettiğinde sunucuyu yeniden başlatan bir `dev` script'i ekle: `npm pkg set "scripts.dev=node --watch src/server.ts"`.
+        2. `npm run check` sonra `npm run dev` çalıştır. `spend API listening on http://localhost:3000` yazdırır.
+        3. Tarayıcıda http://localhost:3000/expenses adresini aç: harcamalarını JSON olarak görürsün.
+        4. İkinci bir terminalde (Windows'ta Git ile gelen Git Bash'i kullan) aşağıdaki `curl` komutlarını çalıştır. Birincisi harcama ekler, ikincisi toplamları gösterir, üçüncüsü yanlış kategori gönderir ve `400` alır.
+        5. Sunucuyu Ctrl+C ile durdur ve commit at: `git add .` ve `git commit -m "Add a small HTTP API"`.
+    code:
+      - file: src/app.ts
+        lang: ts
+        text: |
+          import { randomUUID } from "node:crypto";
+          import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+          import { parseNewExpense, totalsByCategory, ValidationError } from "./expense.ts";
+          import type { Store } from "./store.ts";
+
+          export interface AppOptions {
+            store: Store;
+          }
+
+          function send(res: ServerResponse, status: number, body: unknown): void {
+            const text = JSON.stringify(body);
+            res.writeHead(status, {
+              "content-type": "application/json; charset=utf-8",
+              "content-length": Buffer.byteLength(text),
+            });
+            res.end(text);
+          }
+
+          async function readJson(req: IncomingMessage): Promise<unknown> {
+            const chunks: Buffer[] = [];
+            for await (const chunk of req) chunks.push(chunk as Buffer);
+            return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+          }
+
+          export function createApp({ store }: AppOptions): Server {
+            return createServer(async (req, res) => {
+              try {
+                const { pathname } = new URL(req.url ?? "/", "http://localhost");
+
+                if (req.method === "GET" && pathname === "/expenses") {
+                  return send(res, 200, await store.list());
+                }
+                if (req.method === "GET" && pathname === "/summary") {
+                  return send(res, 200, totalsByCategory(await store.list()));
+                }
+                if (req.method === "POST" && pathname === "/expenses") {
+                  const input = parseNewExpense(await readJson(req));
+                  const expense = { id: randomUUID(), ...input };
+                  await store.add(expense);
+                  return send(res, 201, expense);
+                }
+                send(res, 404, { error: "not found" });
+              } catch (error) {
+                if (error instanceof ValidationError || error instanceof SyntaxError) {
+                  return send(res, 400, { error: error.message });
+                }
+                console.error(error);
+                send(res, 500, { error: "something went wrong" });
+              }
+            });
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import { createApp } from "./app.ts";
+          import { fileStore } from "./store.ts";
+
+          const port = Number(process.env.PORT ?? 3000);
+          const app = createApp({ store: fileStore() });
+
+          app.listen(port, () => {
+            console.log(`spend API listening on http://localhost:${port}`);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          curl -X POST localhost:3000/expenses -d '{"date":"2026-10-20","amountCents":900,"category":"fun","note":"cinema"}'
+          curl localhost:3000/summary
+          curl -X POST localhost:3000/expenses -d '{"category":"cars"}'
+    mistakes:
+      - problem:
+          en: "`Error: listen EADDRINUSE: address already in use :::3000`."
+          tr: "`Error: listen EADDRINUSE: address already in use :::3000` hatası."
+        fix:
+          en: "Another copy of the server (or another program) already uses port 3000. Stop it with Ctrl+C in its terminal, or start this one on another port: `PORT=3001 npm run dev` (in PowerShell: `$env:PORT=3001; npm run dev`)."
+          tr: "Sunucunun başka bir kopyası (ya da başka bir program) 3000 portunu kullanıyor. Kendi terminalinde Ctrl+C ile durdur ya da bunu başka bir portta başlat: `PORT=3001 npm run dev` (PowerShell'de: `$env:PORT=3001; npm run dev`)."
+      - problem:
+          en: "A request never gets an answer and the browser keeps loading."
+          tr: "Bir istek hiç cevap almıyor ve tarayıcı yüklenip duruyor."
+        fix:
+          en: "Some code path never calls `res.end` (inside `send`). Every branch in the handler must end the response, including the error branch."
+          tr: "Bir kod yolu hiç `res.end` çağırmıyor (`send` içinde). İşleyicideki (handler) her dal, hata dalı da dahil, cevabı bitirmeli."
+    quiz:
+      - q:
+          en: "Which status code should the API send when a client posts a wrong category?"
+          tr: "Bir istemci yanlış kategori gönderdiğinde API hangi durum kodunu döndürmeli?"
+        options:
+          en: ["200", "400", "500"]
+          tr: ["200", "400", "500"]
+        answer: 1
+        why:
+          en: "`400` means the request is wrong, so the client should fix it. `500` would mean the server itself failed."
+          tr: "`400` isteğin yanlış olduğu, yani istemcinin düzeltmesi gerektiği anlamına gelir. `500` sunucunun kendisinin başarısız olduğu anlamına gelirdi."
+    sources:
+      - title: Node.js, http
+        url: https://nodejs.org/api/http.html
+      - title: MDN, HTTP response status codes
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
+      - title: Node.js, --watch
+        url: https://nodejs.org/api/cli.html#--watch
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Tests with node:test"
+      tr: "node:test ile testler"
+    minutes: 75
+    needs: [http-api]
+    why:
+      en: "A test is a small program that checks your program and tells you at once when something breaks. With tests you can change code later without being afraid. Node has a test runner built in, so there is nothing to install."
+      tr: "Test, programını kontrol eden ve bir şey bozulunca hemen haber veren küçük bir programdır. Testlerle kodu sonradan korkmadan değiştirebilirsin. Node'un içinde bir test çalıştırıcı var, kurulacak bir şey yok."
+    learn:
+      en: |
+        - `test(name, fn)` defines a test; `assert.equal` and `assert.deepEqual` check results; `assert.throws` and `assert.rejects` check errors
+        - Test files end in `.test.ts`; `node --test` runs them (with the types stripped, just like our code)
+        - `before` and `after` prepare and clean up, here a temporary folder and a real server on a free port (port `0`)
+        - Tests use `fetch`, which is built into Node, to call the API like a real client
+        - Node runs tests but does not check their types: `npm run check` covers `test/` too
+      tr: |
+        - `test(ad, fn)` bir test tanımlar; `assert.equal` ve `assert.deepEqual` sonuçları, `assert.throws` ve `assert.rejects` hataları kontrol eder
+        - Test dosyalarının adı `.test.ts` ile biter; `node --test` onları çalıştırır (tipleri silerek, tıpkı kodumuz gibi)
+        - `before` ve `after` hazırlık ve temizlik yapar; burada geçici bir klasör ve boş bir portta (port `0`) gerçek bir sunucu
+        - Testler API'yi gerçek bir istemci gibi çağırmak için Node'a gömülü `fetch` kullanır
+        - Node testleri çalıştırır ama tiplerini kontrol etmez: `npm run check` `test/` klasörünü de kapsar
+    do:
+      en: |
+        1. Create the four test files below in the `test/` folder. Then open `package.json` and change the `test` line inside `scripts` to the one below.
+        2. Run `npm test`. You should see 14 passing tests and no failures.
+        3. Run `npm run check` too; it checks the test files with the same rules.
+        4. Make a test fail on purpose: in `expense.test.ts` change `1250` in the `parseAmount("12.5")` line to `1200`. Read the message: it shows the expected and the real value. Fix it again.
+        5. Commit: `git add .` and `git commit -m "Add tests"`.
+      tr: |
+        1. Aşağıdaki dört test dosyasını `test/` klasöründe oluştur. Sonra `package.json` dosyasını aç ve `scripts` içindeki `test` satırını aşağıdaki gibi değiştir.
+        2. `npm test` çalıştır. 14 geçen test görmelisin, başarısız olan olmamalı.
+        3. `npm run check`'i de çalıştır; test dosyalarını da aynı kurallarla kontrol eder.
+        4. Bilerek bir testi kırdır: `expense.test.ts` içinde `parseAmount("12.5")` satırındaki `1250` değerini `1200` yap. Mesajı oku: beklenen ve gerçek değeri gösterir. Yeniden düzelt.
+        5. Commit at: `git add .` ve `git commit -m "Add tests"`.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          "test": "node --test \"test/**/*.test.ts\"",
+      - file: test/expense.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { test } from "node:test";
+          import {
+            formatMoney,
+            isIsoDate,
+            parseAmount,
+            parseNewExpense,
+            totalsByCategory,
+            ValidationError,
+          } from "../src/expense.ts";
+
+          test("parseAmount turns text into cents", () => {
+            assert.equal(parseAmount("12"), 1200);
+            assert.equal(parseAmount("12.5"), 1250);
+            assert.equal(parseAmount("0.07"), 7);
+          });
+
+          test("parseAmount rejects things that are not money", () => {
+            for (const bad of ["", "abc", "-5", "1.234", "0", "1e3"]) {
+              assert.throws(() => parseAmount(bad), ValidationError, bad);
+            }
+          });
+
+          test("formatMoney shows two decimals", () => {
+            assert.equal(formatMoney(1250), "12.50");
+            assert.equal(formatMoney(5), "0.05");
+          });
+
+          test("isIsoDate accepts real dates only", () => {
+            assert.equal(isIsoDate("2026-10-17"), true);
+            assert.equal(isIsoDate("2026-02-30"), false);
+            assert.equal(isIsoDate("17/10/2026"), false);
+          });
+
+          test("totalsByCategory adds up each category", () => {
+            const totals = totalsByCategory([
+              { id: "1", date: "2026-10-01", amountCents: 1000, category: "food", note: "" },
+              { id: "2", date: "2026-10-02", amountCents: 250, category: "food", note: "" },
+              { id: "3", date: "2026-10-03", amountCents: 700, category: "fun", note: "" },
+            ]);
+            assert.deepEqual(totals, { food: 1250, transport: 0, home: 0, fun: 700, other: 0 });
+          });
+
+          test("parseNewExpense checks every field", () => {
+            const ok = { date: "2026-10-17", amountCents: 500, category: "food" };
+            assert.deepEqual(parseNewExpense(ok), { ...ok, note: "" });
+            assert.throws(() => parseNewExpense(null), ValidationError);
+            assert.throws(() => parseNewExpense({ ...ok, category: "cars" }), ValidationError);
+            assert.throws(() => parseNewExpense({ ...ok, amountCents: 1.5 }), ValidationError);
+            assert.throws(() => parseNewExpense({ ...ok, amountCents: "500" }), ValidationError);
+          });
+      - file: test/commands.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { mkdtemp, readFile, rm } from "node:fs/promises";
+          import { tmpdir } from "node:os";
+          import { join } from "node:path";
+          import { after, before, test } from "node:test";
+          import { run } from "../src/commands.ts";
+          import { ValidationError } from "../src/expense.ts";
+
+          let dir: string;
+          let file: string;
+
+          before(async () => {
+            dir = await mkdtemp(join(tmpdir(), "spend-"));
+            file = join(dir, "expenses.json");
+          });
+
+          after(() => rm(dir, { recursive: true, force: true }));
+
+          test("list says so when there is nothing yet", async () => {
+            assert.equal(await run(["list"], file), "No expenses yet.");
+          });
+
+          test("add saves to the JSON file and total adds it up", async () => {
+            assert.equal(
+              await run(["add", "12.50", "food", "lunch", "with", "Ali", "--date", "2026-10-17"], file),
+              "Added 12.50 to food.",
+            );
+            await run(["add", "20", "transport", "--date", "2026-10-18"], file);
+
+            const saved = JSON.parse(await readFile(file, "utf8"));
+            assert.equal(saved.length, 2);
+            assert.equal(saved[0].note, "lunch with Ali");
+
+            const total = await run(["total"], file);
+            assert.match(total, /food\s+12\.50/);
+            assert.match(total, /all\s+32\.50/);
+          });
+
+          test("bad input is a ValidationError, not a crash", async () => {
+            await assert.rejects(run(["add", "abc", "food"], file), ValidationError);
+            await assert.rejects(run(["add", "5", "cars"], file), ValidationError);
+            await assert.rejects(run(["add", "5"], file), ValidationError);
+            await assert.rejects(run(["add", "5", "food", "--date", "yesterday"], file), ValidationError);
+          });
+      - file: test/store.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { mkdtemp, rm, writeFile } from "node:fs/promises";
+          import { tmpdir } from "node:os";
+          import { join } from "node:path";
+          import { test } from "node:test";
+          import { ValidationError } from "../src/expense.ts";
+          import { fileStore } from "../src/store.ts";
+
+          test("a broken data file is reported, not trusted", async () => {
+            const dir = await mkdtemp(join(tmpdir(), "spend-"));
+            const file = join(dir, "expenses.json");
+            await writeFile(file, '[{"id":"1","amountCents":"lots"}]');
+            await assert.rejects(fileStore(file).list(), ValidationError);
+            await rm(dir, { recursive: true, force: true });
+          });
+      - file: test/app.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { mkdtemp, rm } from "node:fs/promises";
+          import type { Server } from "node:http";
+          import type { AddressInfo } from "node:net";
+          import { tmpdir } from "node:os";
+          import { join } from "node:path";
+          import { after, before, test } from "node:test";
+          import { createApp } from "../src/app.ts";
+          import { fileStore } from "../src/store.ts";
+
+          let dir: string;
+          let server: Server;
+          let base: string;
+
+          before(async () => {
+            dir = await mkdtemp(join(tmpdir(), "spend-"));
+            server = createApp({ store: fileStore(join(dir, "expenses.json")) });
+            await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+            base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+          });
+
+          after(async () => {
+            server.close();
+            await rm(dir, { recursive: true, force: true });
+          });
+
+          const lunch = { date: "2026-10-17", amountCents: 1250, category: "food", note: "lunch" };
+
+          function post(body: string) {
+            return fetch(`${base}/expenses`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body,
+            });
+          }
+
+          test("POST adds an expense and GET lists it", async () => {
+            const created = await post(JSON.stringify(lunch));
+            assert.equal(created.status, 201);
+            const expense = (await created.json()) as { id: string; amountCents: number };
+            assert.equal(expense.amountCents, 1250);
+            assert.ok(expense.id);
+
+            const listed = (await (await fetch(`${base}/expenses`)).json()) as { id: string }[];
+            assert.equal(listed.length, 1);
+            assert.equal(listed[0]?.id, expense.id);
+          });
+
+          test("GET /summary adds up per category", async () => {
+            const summary = (await (await fetch(`${base}/summary`)).json()) as { food: number; fun: number };
+            assert.equal(summary.food, 1250);
+            assert.equal(summary.fun, 0);
+          });
+
+          test("bad input gets a 400 with a reason", async () => {
+            const response = await post(JSON.stringify({ ...lunch, category: "cars" }));
+            assert.equal(response.status, 400);
+            const body = (await response.json()) as { error: string };
+            assert.match(body.error, /category/);
+          });
+
+          test("unknown paths get a 404", async () => {
+            assert.equal((await fetch(`${base}/nope`)).status, 404);
+          });
+    mistakes:
+      - problem:
+          en: "`npm test` runs 0 tests."
+          tr: "`npm test` 0 test çalıştırıyor."
+        fix:
+          en: "The files must be named `something.test.ts` and sit in `test/`. Keep the quotes around the pattern in the script so Node, not your shell, expands it."
+          tr: "Dosyaların adı `birsey.test.ts` olmalı ve `test/` içinde durmalı. Script'te desenin etrafındaki tırnakları koru ki deseni senin kabuğun (shell) değil Node açsın."
+      - problem:
+          en: "Tests that share one data file or one fixed port fail sometimes."
+          tr: "Tek bir veri dosyasını ya da sabit bir portu paylaşan testler ara sıra başarısız oluyor."
+        fix:
+          en: "Give each test run its own temporary folder (`mkdtemp`) and listen on port `0`, so the system picks a free one. Remove the folder in `after`."
+          tr: "Her test çalıştırmasına kendi geçici klasörünü ver (`mkdtemp`) ve port `0` dinle; sistem boş bir port seçsin. Klasörü `after` içinde sil."
+    quiz:
+      - q:
+          en: "Why do the API tests listen on port 0?"
+          tr: "API testleri neden port 0 dinliyor?"
+        options:
+          en: [Port 0 is faster, The system picks a free port so tests never clash with a running server, It turns the server off]
+          tr: [Port 0 daha hızlı, Sistem boş bir port seçer; böylece testler çalışan bir sunucuyla çakışmaz, Sunucuyu kapatır]
+        answer: 1
+        why:
+          en: "A fixed port can already be in use. With 0 the operating system hands out a free one, and `server.address()` tells you which."
+          tr: "Sabit bir port zaten kullanımda olabilir. 0 ile işletim sistemi boş bir port verir, `server.address()` da hangisi olduğunu söyler."
+    sources:
+      - title: Node.js, test runner
+        url: https://nodejs.org/api/test.html
+      - title: Node.js, assert
+        url: https://nodejs.org/api/assert.html
+      - title: MDN, Fetch API
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
+
+  - id: security
+    stage: security
+    title:
+      en: "Protect the API"
+      tr: "API'yi koruma"
+    minutes: 60
+    needs: [tests]
+    why:
+      en: "Once the API is on the internet, anybody can call it. Without limits, anybody can add expenses, send a huge body to fill your memory or probe for mistakes. A few simple rules close the biggest holes."
+      tr: "API internete çıkınca onu herkes çağırabilir. Sınır olmazsa herkes harcama ekleyebilir, belleğini doldurmak için dev bir gövde gönderebilir ya da hatalarını arayabilir. Birkaç basit kural en büyük açıkları kapatır."
+    learn:
+      en: |
+        - Never trust input: we already validate it; now we also limit its size (`413 Payload Too Large`)
+        - A secret token for writes (`Authorization: Bearer ...`), and `401` when it is missing or wrong
+        - Compare secrets in constant time (`timingSafeEqual`), so response time does not leak how many characters matched
+        - Secrets live in environment variables or an `.env` file that is in `.gitignore`, never in the code
+        - Do not show internal errors to clients: log them, answer with a short generic message
+        - `npm audit` lists known problems in your dependencies; fewer dependencies mean fewer problems
+      tr: |
+        - Girdiye asla güvenme: onu zaten doğruluyoruz; şimdi boyutunu da sınırlıyoruz (`413 Payload Too Large`)
+        - Yazma işlemleri için gizli bir token (`Authorization: Bearer ...`); eksik ya da yanlışsa `401`
+        - Sırları sabit sürede karşılaştır (`timingSafeEqual`); böylece cevap süresi kaç karakterin tuttuğunu sızdırmaz
+        - Sırlar ortam değişkenlerinde ya da `.gitignore` içindeki bir `.env` dosyasında durur, asla kodda değil
+        - İç hataları istemciye gösterme: logla, kısa ve genel bir mesajla cevap ver
+        - `npm audit` bağımlılıklarındaki bilinen sorunları listeler; daha az bağımlılık daha az sorun demektir
+    do:
+      en: |
+        1. Replace `src/app.ts`, `src/server.ts` and `test/app.test.ts` with the new versions below. `createApp` now needs a `token`, and the server refuses to start without one.
+        2. Generate a token and put it in a new file `.env` (add `.env` to `.gitignore` first!). Print one with `node -p "crypto.randomUUID()"`. Change the `dev` script so Node loads the file: `npm pkg set "scripts.dev=node --env-file-if-exists=.env --watch src/server.ts"`.
+        3. Run `npm run check` and `npm test`: 17 tests should pass.
+        4. Run `npm run dev` and try the `curl` commands below: without a token you get `401`, with your token `201`.
+        5. Run `npm audit`. It should say `found 0 vulnerabilities`.
+        6. Commit: `git add .` and `git commit -m "Protect the API"`. Check with `git status` that `.env` is not in the list.
+      tr: |
+        1. `src/app.ts`, `src/server.ts` ve `test/app.test.ts` dosyalarını aşağıdaki yeni sürümlerle değiştir. `createApp` artık bir `token` istiyor ve sunucu token olmadan başlamayı reddediyor.
+        2. Bir token üret ve yeni bir `.env` dosyasına koy (önce `.env`'i `.gitignore`'a ekle!). `node -p "crypto.randomUUID()"` ile bir tane yazdır. `dev` script'ini Node dosyayı yüklesin diye değiştir: `npm pkg set "scripts.dev=node --env-file-if-exists=.env --watch src/server.ts"`.
+        3. `npm run check` ve `npm test` çalıştır: 17 test geçmeli.
+        4. `npm run dev` çalıştır ve aşağıdaki `curl` komutlarını dene: token olmadan `401`, kendi token'ınla `201` alırsın.
+        5. `npm audit` çalıştır. `found 0 vulnerabilities` demeli.
+        6. Commit at: `git add .` ve `git commit -m "Protect the API"`. `git status` ile `.env` dosyasının listede olmadığını kontrol et.
+    code:
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          dist
+          expenses.json
+          *.tmp
+          .env
+      - file: .env
+        lang: text
+        text: |
+          API_TOKEN=put-your-own-random-token-here
+      - file: src/app.ts
+        lang: ts
+        text: |
+          import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+          import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+          import { parseNewExpense, totalsByCategory, ValidationError } from "./expense.ts";
+          import type { Store } from "./store.ts";
+
+          export interface AppOptions {
+            store: Store;
+            token: string; // writes need "Authorization: Bearer <token>"
+          }
+
+          const maxBodyBytes = 10_000;
+
+          class HttpError extends Error {
+            status: number;
+            constructor(status: number, message: string) {
+              super(message);
+              this.status = status;
+            }
+          }
+
+          function send(res: ServerResponse, status: number, body: unknown): void {
+            const text = JSON.stringify(body);
+            res.writeHead(status, {
+              "content-type": "application/json; charset=utf-8",
+              "content-length": Buffer.byteLength(text),
+              "x-content-type-options": "nosniff",
+            });
+            res.end(text);
+          }
+
+          async function readJson(req: IncomingMessage): Promise<unknown> {
+            const chunks: Buffer[] = [];
+            let size = 0;
+            for await (const chunk of req) {
+              size += (chunk as Buffer).length;
+              if (size > maxBodyBytes) throw new HttpError(413, "request body is too large");
+              chunks.push(chunk as Buffer);
+            }
+            try {
+              return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+            } catch {
+              throw new HttpError(400, "request body is not valid JSON");
+            }
+          }
+
+          function sameSecret(given: string, expected: string): boolean {
+            // hash first so both buffers have the same length, then compare in constant time
+            const a = createHash("sha256").update(given).digest();
+            const b = createHash("sha256").update(expected).digest();
+            return timingSafeEqual(a, b);
+          }
+
+          function requireToken(req: IncomingMessage, token: string): void {
+            const header = req.headers.authorization ?? "";
+            const given = header.startsWith("Bearer ") ? header.slice("Bearer ".length) : "";
+            if (!sameSecret(given, token)) throw new HttpError(401, "missing or wrong token");
+          }
+
+          export function createApp({ store, token }: AppOptions): Server {
+            return createServer(async (req, res) => {
+              try {
+                const { pathname } = new URL(req.url ?? "/", "http://localhost");
+
+                if (req.method === "GET" && pathname === "/expenses") {
+                  return send(res, 200, await store.list());
+                }
+                if (req.method === "GET" && pathname === "/summary") {
+                  return send(res, 200, totalsByCategory(await store.list()));
+                }
+                if (req.method === "POST" && pathname === "/expenses") {
+                  requireToken(req, token);
+                  const input = parseNewExpense(await readJson(req));
+                  const expense = { id: randomUUID(), ...input };
+                  await store.add(expense);
+                  return send(res, 201, expense);
+                }
+                throw new HttpError(404, "not found");
+              } catch (error) {
+                if (error instanceof HttpError) return send(res, error.status, { error: error.message });
+                if (error instanceof ValidationError) return send(res, 400, { error: error.message });
+                console.error(error);
+                send(res, 500, { error: "something went wrong" });
+              }
+            });
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import { createApp } from "./app.ts";
+          import { fileStore } from "./store.ts";
+
+          const token = process.env.API_TOKEN;
+          if (!token) {
+            console.error("Set API_TOKEN first, for example: API_TOKEN=dev-secret npm run dev");
+            process.exit(1);
+          }
+
+          const port = Number(process.env.PORT ?? 3000);
+          const app = createApp({ store: fileStore(), token });
+          app.requestTimeout = 10_000; // a slow client cannot hold a request open forever
+
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`spend API listening on port ${port}`);
+          });
+      - file: test/app.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { mkdtemp, rm } from "node:fs/promises";
+          import type { Server } from "node:http";
+          import type { AddressInfo } from "node:net";
+          import { tmpdir } from "node:os";
+          import { join } from "node:path";
+          import { after, before, test } from "node:test";
+          import { createApp } from "../src/app.ts";
+          import { fileStore } from "../src/store.ts";
+
+          let dir: string;
+          let server: Server;
+          let base: string;
+          const token = "test-secret";
+
+          before(async () => {
+            dir = await mkdtemp(join(tmpdir(), "spend-"));
+            server = createApp({ store: fileStore(join(dir, "expenses.json")), token });
+            await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+            base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+          });
+
+          after(async () => {
+            server.close();
+            await rm(dir, { recursive: true, force: true });
+          });
+
+          const lunch = { date: "2026-10-17", amountCents: 1250, category: "food", note: "lunch" };
+
+          function post(body: string, secret: string | undefined = token) {
+            return fetch(`${base}/expenses`, {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                ...(secret ? { authorization: `Bearer ${secret}` } : {}),
+              },
+              body,
+            });
+          }
+
+          test("POST adds an expense and GET lists it", async () => {
+            const created = await post(JSON.stringify(lunch));
+            assert.equal(created.status, 201);
+            const expense = (await created.json()) as { id: string; amountCents: number };
+            assert.equal(expense.amountCents, 1250);
+            assert.ok(expense.id);
+
+            const listed = (await (await fetch(`${base}/expenses`)).json()) as { id: string }[];
+            assert.equal(listed.length, 1);
+            assert.equal(listed[0]?.id, expense.id);
+          });
+
+          test("GET /summary adds up per category", async () => {
+            const summary = (await (await fetch(`${base}/summary`)).json()) as { food: number; fun: number };
+            assert.equal(summary.food, 1250);
+            assert.equal(summary.fun, 0);
+          });
+
+          test("bad input gets a 400 with a reason", async () => {
+            const response = await post(JSON.stringify({ ...lunch, category: "cars" }));
+            assert.equal(response.status, 400);
+            const body = (await response.json()) as { error: string };
+            assert.match(body.error, /category/);
+          });
+
+          test("unknown paths get a 404", async () => {
+            assert.equal((await fetch(`${base}/nope`)).status, 404);
+          });
+
+          test("writes need the right token", async () => {
+            assert.equal((await post(JSON.stringify(lunch), "")).status, 401);
+            assert.equal((await post(JSON.stringify(lunch), "wrong")).status, 401);
+            assert.equal((await fetch(`${base}/expenses`)).status, 200); // reading stays open
+          });
+
+          test("a body that is not JSON gets a 400", async () => {
+            assert.equal((await post("{oops")).status, 400);
+          });
+
+          test("a huge body gets a 413", async () => {
+            const response = await post(JSON.stringify({ ...lunch, note: "x".repeat(20_000) }));
+            assert.equal(response.status, 413);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          # replace put-your-own-random-token-here with the token in your .env file
+          curl -i -X POST localhost:3000/expenses -d '{"date":"2026-10-20","amountCents":900,"category":"fun"}'
+          curl -i -X POST localhost:3000/expenses -H "Authorization: Bearer put-your-own-random-token-here" -d '{"date":"2026-10-20","amountCents":900,"category":"fun"}'
+    mistakes:
+      - problem:
+          en: "Committing the `.env` file or writing the token in the code."
+          tr: "`.env` dosyasını commit etmek ya da token'ı kodun içine yazmak."
+        fix:
+          en: "Put `.env` in `.gitignore` before the first commit. If a secret was committed once, treat it as leaked: make a new one. Removing the line later does not remove it from Git history."
+          tr: "İlk commit'ten önce `.env`'i `.gitignore`'a koy. Bir sır bir kez commit edildiyse sızmış say: yenisini üret. Satırı sonradan silmek onu Git geçmişinden silmez."
+      - problem:
+          en: "Comparing tokens with `===` or sending `error.stack` to the client."
+          tr: "Token'ları `===` ile karşılaştırmak ya da `error.stack` bilgisini istemciye göndermek."
+        fix:
+          en: "Use `timingSafeEqual` on equal-length hashes, and log details on the server only. The client gets a short message such as `something went wrong`."
+          tr: "Eşit uzunluktaki hash'lerde `timingSafeEqual` kullan ve ayrıntıları sadece sunucuda logla. İstemci `something went wrong` gibi kısa bir mesaj alır."
+    quiz:
+      - q:
+          en: "A client sends a request without a token. Which answer is right?"
+          tr: "Bir istemci token olmadan istek gönderiyor. Hangi cevap doğru?"
+        options:
+          en: [201 Created, 401 Unauthorized, 404 Not Found]
+          tr: [201 Created, 401 Unauthorized, 404 Not Found]
+        answer: 1
+        why:
+          en: "`401` means the request has no valid credentials. The client may try again with the right token."
+          tr: "`401`, isteğin geçerli bir kimlik bilgisi taşımadığı anlamına gelir. İstemci doğru token ile yeniden deneyebilir."
+    sources:
+      - title: Node.js, security best practices
+        url: https://nodejs.org/en/learn/getting-started/security-best-practices
+      - title: Node.js, crypto.timingSafeEqual
+        url: https://nodejs.org/api/crypto.html#cryptotimingsafeequala-b
+      - title: npm audit
+        url: https://docs.npmjs.com/cli/v11/commands/npm-audit
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Measure, then keep the list in memory"
+      tr: "Ölç, sonra listeyi bellekte tut"
+    minutes: 45
+    needs: [security]
+    why:
+      en: "Guessing what is slow is usually wrong, so we measure first. The API currently reads and checks the whole file on every request, and two writes at the same moment can lose data. One change fixes both."
+      tr: "Neyin yavaş olduğunu tahmin etmek çoğu zaman yanlıştır, o yüzden önce ölçeriz. API şu an her istekte bütün dosyayı okuyup kontrol ediyor ve aynı anda olan iki yazma veri kaybettirebilir. Tek bir değişiklik ikisini de düzeltir."
+    learn:
+      en: |
+        - Measure with `performance.now()` before and after a change
+        - A cache keeps a result in memory so the work is done once
+        - Two requests that both read, change and write the file at the same time overwrite each other (a race condition); a queue makes writes happen one after another
+        - A cache is only correct when one process owns the data; for several servers you need a database
+        - `tsc` itself is fast: TypeScript 7 is a native program, so `npm run check` stays quick as the project grows
+      tr: |
+        - Bir değişiklikten önce ve sonra `performance.now()` ile ölç
+        - Önbellek (cache), bir sonucu bellekte tutar; iş bir kez yapılır
+        - Aynı anda dosyayı okuyup değiştirip yazan iki istek birbirinin üstüne yazar (race condition); bir kuyruk yazmaları art arda yaptırır
+        - Önbellek ancak veriyi tek bir süreç yönetiyorsa doğrudur; birden çok sunucu için veritabanı gerekir
+        - `tsc`'nin kendisi hızlı: TypeScript 7 native bir program, bu yüzden proje büyüse de `npm run check` hızlı kalır
+    do:
+      en: |
+        1. Replace `src/store.ts` with the new version (it only adds `cachedStore`). Create the temporary `src/bench.ts` and run `node src/bench.ts`.
+        2. Read the result. On my machine: `fileStore` took about 5000 ms for 100 reads of 20,000 expenses, `cachedStore` under 1 ms, and `fileStore` kept only 1 of 20 expenses added at the same moment. Your numbers differ, the pattern should be the same.
+        3. Delete `src/bench.ts` and the files it made (`bench.json`, `race.json`).
+        4. Use the cache in the server: replace `src/server.ts` and add `test/store.test.ts`, which now also tests 50 changes at once.
+        5. Run `npm run check` and `npm test` (18 tests), then commit: `git add .` and `git commit -m "Cache the list, queue the writes"`.
+      tr: |
+        1. `src/store.ts` dosyasını yeni sürümle değiştir (sadece `cachedStore` ekliyor). Geçici `src/bench.ts` dosyasını oluştur ve `node src/bench.ts` çalıştır.
+        2. Sonucu oku. Benim makinemde: `fileStore` 20.000 harcamanın 100 kez okunmasında yaklaşık 5000 ms sürdü, `cachedStore` 1 ms'den az; `fileStore` aynı anda eklenen 20 harcamanın sadece 1'ini tuttu. Senin sayıların farklı olur, ama örüntü aynı olmalı.
+        3. `src/bench.ts` dosyasını ve onun oluşturduğu dosyaları (`bench.json`, `race.json`) sil.
+        4. Önbelleği sunucuda kullan: `src/server.ts` dosyasını değiştir ve `test/store.test.ts` dosyasını güncelle; artık aynı anda 50 değişikliği de test ediyor.
+        5. `npm run check` ve `npm test` çalıştır (18 test), sonra commit at: `git add .` ve `git commit -m "Cache the list, queue the writes"`.
+    code:
+      - file: src/store.ts
+        lang: ts
+        text: |
+          import { readFile, rename, writeFile } from "node:fs/promises";
+          import { parseExpenses, type Expense } from "./expense.ts";
+
+          export interface Store {
+            list(): Promise<readonly Expense[]>;
+            add(expense: Expense): Promise<void>;
+          }
+
+          export const defaultFile = process.env.DATA_FILE ?? "expenses.json";
+
+          async function read(file: string): Promise<Expense[]> {
+            let text: string;
+            try {
+              text = await readFile(file, "utf8");
+            } catch (error) {
+              if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+              throw error;
+            }
+            return parseExpenses(JSON.parse(text));
+          }
+
+          async function write(file: string, expenses: readonly Expense[]): Promise<void> {
+            const temp = `${file}.tmp`;
+            await writeFile(temp, JSON.stringify(expenses, null, 2) + "\n");
+            await rename(temp, file); // a crash in the middle never leaves a half-written file
+          }
+
+          export function fileStore(file = defaultFile): Store {
+            return {
+              list: () => read(file),
+              async add(expense) {
+                const all = await read(file);
+                await write(file, [...all, expense]);
+              },
+            };
+          }
+
+          // Keeps the list in memory and writes one change at a time.
+          export function cachedStore(file = defaultFile): Store {
+            let cache: Promise<readonly Expense[]> | undefined;
+            let queue: Promise<unknown> = Promise.resolve();
+
+            function load(): Promise<readonly Expense[]> {
+              cache ??= read(file).catch((error: unknown) => {
+                cache = undefined; // try again next time instead of caching the failure
+                throw error;
+              });
+              return cache;
+            }
+
+            return {
+              list: load,
+              add(expense) {
+                const job = queue.then(async () => {
+                  const next = [...(await load()), expense];
+                  await write(file, next);
+                  cache = Promise.resolve(next);
+                });
+                queue = job.catch(() => {}); // the next change runs even if this one failed
+                return job;
+              },
+            };
+          }
+      - file: src/bench.ts
+        lang: ts
+        text: |
+          import { writeFile } from "node:fs/promises";
+          import type { Expense } from "./expense.ts";
+          import { cachedStore, fileStore } from "./store.ts";
+
+          // 20,000 fake expenses in a throw-away file
+          const sample: Expense = { id: "0", date: "2026-10-17", amountCents: 500, category: "food", note: "" };
+          const many = Array.from({ length: 20_000 }, (_, i) => ({ ...sample, id: String(i) }));
+          await writeFile("bench.json", JSON.stringify(many));
+
+          for (const [name, store] of [
+            ["fileStore", fileStore("bench.json")],
+            ["cachedStore", cachedStore("bench.json")],
+          ] as const) {
+            await store.list(); // warm up
+            const start = performance.now();
+            for (let i = 0; i < 100; i++) await store.list();
+            console.log(`${name}: 100 reads took ${Math.round(performance.now() - start)} ms`);
+          }
+
+          // 20 changes at the same moment, each one reads the file, adds a line and writes it back
+          await writeFile("race.json", "[]");
+          const racy = fileStore("race.json");
+          await Promise.allSettled(Array.from({ length: 20 }, (_, i) => racy.add({ ...sample, id: `new-${i}` })));
+          console.log(`fileStore kept ${(await racy.list()).length} of 20 expenses`);
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import { createApp } from "./app.ts";
+          import { cachedStore } from "./store.ts";
+
+          const token = process.env.API_TOKEN;
+          if (!token) {
+            console.error("Set API_TOKEN first, for example: API_TOKEN=dev-secret npm run dev");
+            process.exit(1);
+          }
+
+          const port = Number(process.env.PORT ?? 3000);
+          const app = createApp({ store: cachedStore(), token });
+          app.requestTimeout = 10_000; // a slow client cannot hold a request open forever
+
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`spend API listening on port ${port}`);
+          });
+      - file: test/store.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+          import { tmpdir } from "node:os";
+          import { join } from "node:path";
+          import { test } from "node:test";
+          import { ValidationError, type Expense } from "../src/expense.ts";
+          import { cachedStore, fileStore } from "../src/store.ts";
+
+          const make = (n: number): Expense => ({
+            id: String(n),
+            date: "2026-10-17",
+            amountCents: n,
+            category: "other",
+            note: "",
+          });
+
+          test("a broken data file is reported, not trusted", async () => {
+            const dir = await mkdtemp(join(tmpdir(), "spend-"));
+            const file = join(dir, "expenses.json");
+            await writeFile(file, '[{"id":"1","amountCents":"lots"}]');
+            await assert.rejects(fileStore(file).list(), ValidationError);
+            await rm(dir, { recursive: true, force: true });
+          });
+
+          test("cachedStore keeps every expense when many are added at once", async () => {
+            const dir = await mkdtemp(join(tmpdir(), "spend-"));
+            const file = join(dir, "expenses.json");
+            const store = cachedStore(file);
+            await Promise.all(Array.from({ length: 50 }, (_, i) => store.add(make(i + 1))));
+            assert.equal((await store.list()).length, 50);
+            assert.equal(JSON.parse(await readFile(file, "utf8")).length, 50);
+            await rm(dir, { recursive: true, force: true });
+          });
+    mistakes:
+      - problem:
+          en: "Adding a cache and forgetting to update it after a write, so the API shows old data."
+          tr: "Önbellek ekleyip yazmadan sonra güncellemeyi unutmak; API eski veriyi gösterir."
+        fix:
+          en: "Only one place changes data (`add`), and it replaces the cache after the file was written. Keep it that way."
+          tr: "Veriyi sadece tek bir yer değiştirir (`add`) ve dosya yazıldıktan sonra önbelleği yeniler. Böyle tut."
+      - problem:
+          en: "Optimising without measuring, for example rewriting working code to \"make it faster\"."
+          tr: "Ölçmeden hızlandırmaya çalışmak, örneğin çalışan kodu \"hızlansın\" diye yeniden yazmak."
+        fix:
+          en: "Measure first, change one thing, measure again. Keep the change only if the numbers got better."
+          tr: "Önce ölç, tek şeyi değiştir, tekrar ölç. Sayılar iyileştiyse değişikliği koru."
+    quiz:
+      - q:
+          en: "Why is the in-memory list not enough when you run three copies of the server?"
+          tr: "Sunucunun üç kopyasını çalıştırırsan bellekteki liste neden yetmez?"
+        options:
+          en: [Memory is limited to one copy, Each copy has its own list and they would overwrite each other's file, Node cannot run three copies]
+          tr: [Bellek tek kopyayla sınırlı, Her kopyanın kendi listesi olur ve birbirlerinin dosyasının üstüne yazarlar, Node üç kopya çalıştıramaz]
+        answer: 1
+        why:
+          en: "Each process caches its own copy and writes the whole file. For several servers you need one shared place for data, a database."
+          tr: "Her süreç kendi kopyasını önbelleğe alır ve bütün dosyayı yazar. Birden çok sunucu için verinin tek ortak yeri gerekir: bir veritabanı."
+    sources:
+      - title: Node.js, perf_hooks (performance.now)
+        url: https://nodejs.org/api/perf_hooks.html
+      - title: MDN, Promise
+        url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+      - title: TypeScript 7.0 announcement, performance
+        url: https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/
+
+  - id: build
+    stage: packaging
+    title:
+      en: "Build and package"
+      tr: "Derleme ve paketleme"
+    minutes: 45
+    needs: [performance]
+    why:
+      en: "Other people (and servers) should not need TypeScript to run your program. `tsc` turns `src/*.ts` into plain JavaScript in `dist/`, and `npm pack` puts exactly the files you want to ship into one package."
+      tr: "Başkalarının (ve sunucuların) programını çalıştırmak için TypeScript'e ihtiyacı olmamalı. `tsc`, `src/*.ts` dosyalarını `dist/` içinde düz JavaScript'e çevirir; `npm pack` da göndermek istediğin dosyaları tek pakete koyar."
+    learn:
+      en: |
+        - A second config file (`tsconfig.build.json`) that extends the first one but writes files into `dist/`
+        - `rewriteRelativeImportExtensions` changes `./store.ts` to `./store.js` in the output
+        - `package.json` fields: `bin` (the command name), `files` (what is published), `engines` (which Node versions), `scripts`
+        - `prepack` builds before every `npm pack` or `npm publish`
+        - `npm publish --dry-run` shows exactly what would be published, without publishing anything
+      tr: |
+        - Birincisini genişleten (`extends`) ama dosyaları `dist/` içine yazan ikinci bir ayar dosyası (`tsconfig.build.json`)
+        - `rewriteRelativeImportExtensions`, çıktıda `./store.ts` yolunu `./store.js` yapar
+        - `package.json` alanları: `bin` (komut adı), `files` (yayınlanacaklar), `engines` (hangi Node sürümleri), `scripts`
+        - `prepack`, her `npm pack` ya da `npm publish` öncesinde derleme yapar
+        - `npm publish --dry-run`, hiçbir şey yayınlamadan tam olarak neyin yayınlanacağını gösterir
+    do:
+      en: |
+        1. Create `tsconfig.build.json` and replace `package.json` with the version below. Change `@your-name` to your npm username (or any name; with a dry run nothing is checked against the registry). Keep the dependency versions that `npm install` wrote for you if they are newer.
+        2. Run `npm run build`. Look into `dist/`: plain `.js` files, and `dist/cli.js` starts with the `#!/usr/bin/env node` line.
+        3. Run the compiled program: `node dist/cli.js total`. Start the compiled server: `npm start` (it needs `API_TOKEN`; put it in the environment, or use `node --env-file=.env dist/server.js`).
+        4. See what would be shipped: `npm pack --dry-run` lists 7 files, all in `dist/` plus `package.json`. Then run `npm publish --dry-run --access public`.
+        5. A real `npm publish` needs a free npm account and `npm login`, and a published version stays public. This roadmap stops at the dry run; you can publish later with your own package name.
+        6. Commit: `git add .` and `git commit -m "Build and package"`.
+      tr: |
+        1. `tsconfig.build.json` dosyasını oluştur ve `package.json` dosyasını aşağıdaki sürümle değiştir. `@your-name` kısmını npm kullanıcı adınla değiştir (ya da herhangi bir ad; deneme çalıştırmasında kayıt defterine karşı bir şey kontrol edilmez). `npm install`'ın senin için yazdığı bağımlılık sürümleri daha yeniyse onları koru.
+        2. `npm run build` çalıştır. `dist/` içine bak: düz `.js` dosyaları var ve `dist/cli.js` `#!/usr/bin/env node` satırıyla başlıyor.
+        3. Derlenmiş programı çalıştır: `node dist/cli.js total`. Derlenmiş sunucuyu başlat: `npm start` (`API_TOKEN` ister; ortama koy ya da `node --env-file=.env dist/server.js` kullan).
+        4. Nelerin gönderileceğini gör: `npm pack --dry-run` 7 dosya listeler; hepsi `dist/` içinde, bir de `package.json`. Sonra `npm publish --dry-run --access public` çalıştır.
+        5. Gerçek bir `npm publish` için ücretsiz bir npm hesabı ve `npm login` gerekir; yayınlanan bir sürüm herkese açık kalır. Bu yol haritası deneme çalıştırmasında durur; sonra kendi paket adınla yayınlayabilirsin.
+        6. Commit at: `git add .` ve `git commit -m "Build and package"`.
+    code:
+      - file: tsconfig.build.json
+        lang: json
+        text: |
+          {
+            "extends": "./tsconfig.json",
+            "compilerOptions": {
+              "noEmit": false,
+              "rootDir": "src",
+              "outDir": "dist"
+            },
+            "include": ["src"]
+          }
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "@your-name/spend",
+            "version": "0.1.0",
+            "description": "A tiny expense tracker for the terminal, with a small HTTP API",
+            "license": "MIT",
+            "type": "module",
+            "bin": {
+              "spend": "dist/cli.js"
+            },
+            "files": ["dist"],
+            "engines": {
+              "node": ">=24.12 <27"
+            },
+            "scripts": {
+              "check": "tsc",
+              "test": "node --test \"test/**/*.test.ts\"",
+              "dev": "node --env-file-if-exists=.env --watch src/server.ts",
+              "build": "tsc -p tsconfig.build.json",
+              "prepack": "npm run build",
+              "start": "node dist/server.js"
+            },
+            "devDependencies": {
+              "@types/node": "^26.6.5",
+              "typescript": "^7.0.2"
+            }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          npm run build
+          node dist/cli.js total
+          npm pack --dry-run
+          npm publish --dry-run --access public
+    mistakes:
+      - problem:
+          en: "`dist/` contains old files or nothing happens after `npm run build`."
+          tr: "`dist/` eski dosyalar içeriyor ya da `npm run build` sonrası hiçbir şey olmuyor."
+        fix:
+          en: "Check that the script is `tsc -p tsconfig.build.json` (plain `tsc` uses `noEmit` and writes nothing). Delete `dist/` and build again."
+          tr: "Script'in `tsc -p tsconfig.build.json` olduğunu kontrol et (düz `tsc` `noEmit` kullanır ve hiçbir şey yazmaz). `dist/` klasörünü sil ve yeniden derle."
+      - problem:
+          en: "Publishing tests, `.env` or `expenses.json` by accident."
+          tr: "Testleri, `.env` ya da `expenses.json` dosyasını yanlışlıkla yayınlamak."
+        fix:
+          en: "Use the `files` list so only `dist` is included, and always read the `npm pack --dry-run` list before publishing."
+          tr: "Sadece `dist`'in dahil olması için `files` listesini kullan ve yayınlamadan önce `npm pack --dry-run` listesini her zaman oku."
+    quiz:
+      - q:
+          en: "What does `npm publish --dry-run` do?"
+          tr: "`npm publish --dry-run` ne yapar?"
+        options:
+          en: [Publishes the package privately, Shows what would be published without publishing, Builds and deploys the server]
+          tr: [Paketi gizli olarak yayınlar, Yayınlamadan neyin yayınlanacağını gösterir, Sunucuyu derler ve yayına alır]
+        answer: 1
+        why:
+          en: "It packs everything and prints the file list and details, but nothing is sent to the registry."
+          tr: "Her şeyi paketler, dosya listesini ve ayrıntıları yazdırır ama kayıt defterine hiçbir şey göndermez."
+    sources:
+      - title: TSConfig, rewriteRelativeImportExtensions
+        url: https://www.typescriptlang.org/tsconfig/#rewriteRelativeImportExtensions
+      - title: npm package.json
+        url: https://docs.npmjs.com/cli/v11/configuring-npm/package-json
+      - title: npm publish
+        url: https://docs.npmjs.com/cli/v11/commands/npm-publish
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy the API for free on Render"
+      tr: "API'yi Render'da ücretsiz yayına alma"
+    minutes: 60
+    needs: [build]
+    why:
+      en: "Until now the API only lives on your computer. A host runs it all day and gives it an address that anybody can open. Render has a free plan for small web services, and it builds your project straight from GitHub."
+      tr: "Şimdiye kadar API sadece bilgisayarında yaşadı. Bir sunucu onu gün boyu çalıştırır ve herkesin açabileceği bir adres verir. Render'ın küçük web servisleri için ücretsiz bir planı var ve projeni doğrudan GitHub'dan derler."
+    learn:
+      en: |
+        - A host needs three things from you: how to build (`npm ci --include=dev && npm run build`), how to start (`npm start`) and the secrets (environment variables)
+        - The host tells your program the port through the `PORT` variable, and it must listen on `0.0.0.0`
+        - `engines` in `package.json` tells Render which Node.js version to use
+        - Free plan limits: the service sleeps after 15 minutes without traffic and the next request takes about a minute; its files are erased on every restart or redeploy
+      tr: |
+        - Bir sunucu senden üç şey ister: nasıl derleneceği (`npm ci --include=dev && npm run build`), nasıl başlatılacağı (`npm start`) ve sırlar (ortam değişkenleri)
+        - Sunucu portu programa `PORT` değişkeniyle söyler ve program `0.0.0.0` adresini dinlemelidir
+        - `package.json` içindeki `engines`, Render'a hangi Node.js sürümünü kullanacağını söyler
+        - Ücretsiz plan sınırları: servis 15 dakika trafik almazsa uyur ve sonraki istek yaklaşık bir dakika sürer; dosyaları her yeniden başlatmada ya da yeniden dağıtımda silinir
+    do:
+      en: |
+        1. Make sure `package-lock.json` is committed (it is, if you ran `npm install` and `git add .`). Render uses it for repeatable installs.
+        2. Create a free account on https://github.com, create an empty repository called `spend` (private is fine), then connect and push your code with the commands below (use the address GitHub shows you).
+        3. Create a free account on https://render.com (you can sign in with GitHub). Click New, then Web Service, and pick your `spend` repository.
+        4. Fill the form: Language `Node`, Build Command `npm ci --include=dev && npm run build`, Start Command `npm start`, Instance Type `Free`. Under Environment Variables add `API_TOKEN` with a new random token (not the one from your `.env`).
+        5. Click Deploy. When the log says the service is live, open the address Render shows (like `https://spend-xxxx.onrender.com`) and add `/summary`. You should see the JSON totals.
+        6. Add an expense with `curl` (replace the address and token), then reload `/expenses`.
+        7. Remember: the free plan erases `expenses.json` when the service restarts or sleeps, so this demo forgets its data. A real app would keep data in a database; that is the next thing to learn.
+      tr: |
+        1. `package-lock.json` dosyasının commit edildiğinden emin ol (`npm install` çalıştırıp `git add .` yaptıysan edilmiştir). Render tekrarlanabilir kurulumlar için onu kullanır.
+        2. https://github.com adresinde ücretsiz bir hesap aç, `spend` adında boş bir repo oluştur (private olabilir), sonra aşağıdaki komutlarla kodunu bağla ve gönder (GitHub'ın sana gösterdiği adresi kullan).
+        3. https://render.com adresinde ücretsiz bir hesap aç (GitHub ile giriş yapabilirsin). New, sonra Web Service'e tıkla ve `spend` reponu seç.
+        4. Formu doldur: Language `Node`, Build Command `npm ci --include=dev && npm run build`, Start Command `npm start`, Instance Type `Free`. Environment Variables bölümüne yeni, rastgele bir token ile `API_TOKEN` ekle (`.env` dosyandakini değil).
+        5. Deploy'a tıkla. Log servisin yayında olduğunu söyleyince Render'ın gösterdiği adresi (`https://spend-xxxx.onrender.com` gibi) aç ve sonuna `/summary` ekle. JSON toplamlarını görmelisin.
+        6. `curl` ile bir harcama ekle (adresi ve token'ı değiştir), sonra `/expenses` sayfasını yenile.
+        7. Unutma: ücretsiz plan, servis yeniden başlayınca ya da uyuyunca `expenses.json` dosyasını siler; yani bu demo verisini unutur. Gerçek bir uygulama veriyi veritabanında tutar; öğrenilecek bir sonraki şey bu.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git add .
+          git commit -m "Ready to deploy"
+          git remote add origin https://github.com/YOUR-USERNAME/spend.git
+          git push -u origin main
+      - file: terminal
+        lang: sh
+        text: |
+          # after the deploy: use your own address and token
+          curl https://spend-xxxx.onrender.com/summary
+          curl -X POST https://spend-xxxx.onrender.com/expenses -H "Authorization: Bearer YOUR-TOKEN" -d '{"date":"2026-10-20","amountCents":900,"category":"fun"}'
+    mistakes:
+      - problem:
+          en: "The build fails with `tsc: not found` or `Cannot find module 'typescript'`."
+          tr: "Derleme `tsc: not found` ya da `Cannot find module 'typescript'` ile başarısız oluyor."
+        fix:
+          en: "TypeScript is a dev dependency and some hosts skip those. Use `npm ci --include=dev && npm run build` as the build command."
+          tr: "TypeScript bir geliştirme bağımlılığı (dev dependency) ve bazı sunucular onları atlar. Build komutu olarak `npm ci --include=dev && npm run build` kullan."
+      - problem:
+          en: "The deploy works but the address shows a timeout, or the log says the service did not open a port."
+          tr: "Yayın tamamlanıyor ama adres zaman aşımı veriyor ya da log servisin port açmadığını söylüyor."
+        fix:
+          en: "The server must listen on `process.env.PORT` and on `0.0.0.0`, not only on `localhost`. Our `server.ts` does both; check that you did not change it."
+          tr: "Sunucu sadece `localhost` değil, `process.env.PORT` portunu ve `0.0.0.0` adresini dinlemeli. `server.ts` ikisini de yapıyor; değiştirmediğinden emin ol."
+      - problem:
+          en: "The first request after a break takes a minute."
+          tr: "Bir moladan sonraki ilk istek bir dakika sürüyor."
+        fix:
+          en: "That is the free plan waking the service up. It is normal for a demo; a paid plan stays awake."
+          tr: "Ücretsiz planın servisi uyandırması bu. Demo için normal; ücretli plan uyanık kalır."
+    quiz:
+      - q:
+          en: "Where do you put the `API_TOKEN` for the deployed service?"
+          tr: "Yayındaki servis için `API_TOKEN` değerini nereye koyarsın?"
+        options:
+          en: [In server.ts so it is always there, In the host's environment variables, In the GitHub repository]
+          tr: [Her zaman orada olsun diye server.ts içine, Sunucunun ortam değişkenlerine, GitHub reposuna]
+        answer: 1
+        why:
+          en: "Code and repositories can be read by others. Environment variables are set on the host and never committed."
+          tr: "Kodu ve repoları başkaları okuyabilir. Ortam değişkenleri sunucuda ayarlanır ve hiç commit edilmez."
+    sources:
+      - title: Render, deploy a Node Express app
+        url: https://render.com/docs/deploy-node-express-app
+      - title: Render, free instances
+        url: https://render.com/docs/free
+      - title: Render, setting your Node.js version
+        url: https://render.com/docs/node-version
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Health check, logs and a clean shutdown"
+      tr: "Sağlık kontrolü, loglar ve düzgün kapanış"
+    minutes: 45
+    needs: [deploy]
+    why:
+      en: "When something breaks at night you want to know it before your users do, and you want clues. A health address tells a monitor that the service is alive, one JSON line per request tells you what happened, and a clean shutdown stops requests from being cut in the middle."
+      tr: "Gece bir şey bozulduğunda kullanıcılardan önce senin haberin olmalı ve elinde ipuçları olmalı. Sağlık adresi, izleyiciye servisin ayakta olduğunu söyler; istek başına bir JSON satırı ne olduğunu anlatır; düzgün kapanış isteklerin ortasında kesilmesini önler."
+    learn:
+      en: |
+        - A `/health` endpoint that is cheap, needs no token and reports the status
+        - Structured logs: one JSON object per line is easy to search and filter
+        - What to log (method, path, status, time taken) and what never to log (tokens, personal data)
+        - The host sends `SIGTERM` before it stops your service; `server.close` lets open requests finish
+        - Where to read logs: the Logs tab of your service on Render
+      tr: |
+        - Ucuz olan, token gerektirmeyen ve durumu bildiren bir `/health` endpoint'i
+        - Yapılandırılmış loglar: satır başına bir JSON nesnesi aramak ve süzmek için kolaydır
+        - Neyin loglanacağı (metot, yol, durum, süre) ve neyin asla loglanmayacağı (token'lar, kişisel veri)
+        - Sunucu servisini durdurmadan önce `SIGTERM` gönderir; `server.close` açık isteklerin bitmesine izin verir
+        - Logları nerede okuyacağın: Render'daki servisinin Logs sekmesi
+    do:
+      en: |
+        1. Replace `src/app.ts` and `src/server.ts` with the new versions and add `test/health.test.ts`.
+        2. Run `npm run check` and `npm test`: 19 tests should pass.
+        3. Run `npm run dev`, open http://localhost:3000/health and look at the terminal: every request printed one JSON line.
+        4. Commit and push: `git add .`, `git commit -m "Add health check and logs"`, `git push`. Render deploys again on its own.
+        5. In the Render dashboard open your service, Settings, and set Health Check Path to `/health`. Open the Logs tab and find your request lines.
+        6. Optional: a free uptime service such as UptimeRobot can call your `/health` address every few minutes and email you when it fails. Remember that on the free plan a sleeping service answers slowly.
+      tr: |
+        1. `src/app.ts` ve `src/server.ts` dosyalarını yeni sürümlerle değiştir ve `test/health.test.ts` dosyasını ekle.
+        2. `npm run check` ve `npm test` çalıştır: 19 test geçmeli.
+        3. `npm run dev` çalıştır, http://localhost:3000/health adresini aç ve terminale bak: her istek bir JSON satırı yazdırdı.
+        4. Commit at ve gönder: `git add .`, `git commit -m "Add health check and logs"`, `git push`. Render kendiliğinden yeniden yayınlar.
+        5. Render panelinde servisini aç, Settings'e git ve Health Check Path değerini `/health` yap. Logs sekmesini aç ve istek satırlarını bul.
+        6. İsteğe bağlı: UptimeRobot gibi ücretsiz bir uptime servisi `/health` adresini birkaç dakikada bir çağırabilir ve başarısız olunca sana e-posta atabilir. Ücretsiz planda uyuyan bir servisin yavaş cevap verdiğini unutma.
+    code:
+      - file: src/app.ts
+        lang: ts
+        text: |
+          import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+          import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+          import { parseNewExpense, totalsByCategory, ValidationError } from "./expense.ts";
+          import type { Store } from "./store.ts";
+
+          export interface AppOptions {
+            store: Store;
+            token: string; // writes need "Authorization: Bearer <token>"
+            log?: (line: string) => void;
+          }
+
+          const maxBodyBytes = 10_000;
+
+          class HttpError extends Error {
+            status: number;
+            constructor(status: number, message: string) {
+              super(message);
+              this.status = status;
+            }
+          }
+
+          function send(res: ServerResponse, status: number, body: unknown): void {
+            const text = JSON.stringify(body);
+            res.writeHead(status, {
+              "content-type": "application/json; charset=utf-8",
+              "content-length": Buffer.byteLength(text),
+              "x-content-type-options": "nosniff",
+            });
+            res.end(text);
+          }
+
+          async function readJson(req: IncomingMessage): Promise<unknown> {
+            const chunks: Buffer[] = [];
+            let size = 0;
+            for await (const chunk of req) {
+              size += (chunk as Buffer).length;
+              if (size > maxBodyBytes) throw new HttpError(413, "request body is too large");
+              chunks.push(chunk as Buffer);
+            }
+            try {
+              return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+            } catch {
+              throw new HttpError(400, "request body is not valid JSON");
+            }
+          }
+
+          function sameSecret(given: string, expected: string): boolean {
+            // hash first so both buffers have the same length, then compare in constant time
+            const a = createHash("sha256").update(given).digest();
+            const b = createHash("sha256").update(expected).digest();
+            return timingSafeEqual(a, b);
+          }
+
+          function requireToken(req: IncomingMessage, token: string): void {
+            const header = req.headers.authorization ?? "";
+            const given = header.startsWith("Bearer ") ? header.slice("Bearer ".length) : "";
+            if (!sameSecret(given, token)) throw new HttpError(401, "missing or wrong token");
+          }
+
+          export function createApp({ store, token, log = console.log }: AppOptions): Server {
+            const startedAt = Date.now();
+
+            return createServer(async (req, res) => {
+              const begin = performance.now();
+              res.on("finish", () => {
+                log(
+                  JSON.stringify({
+                    time: new Date().toISOString(),
+                    method: req.method,
+                    path: req.url,
+                    status: res.statusCode,
+                    ms: Math.round(performance.now() - begin),
+                  }),
+                );
+              });
+
+              try {
+                const { pathname } = new URL(req.url ?? "/", "http://localhost");
+
+                if (req.method === "GET" && pathname === "/health") {
+                  const expenses = await store.list();
+                  return send(res, 200, {
+                    status: "ok",
+                    uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
+                    expenses: expenses.length,
+                  });
+                }
+
+                if (req.method === "GET" && pathname === "/expenses") {
+                  return send(res, 200, await store.list());
+                }
+                if (req.method === "GET" && pathname === "/summary") {
+                  return send(res, 200, totalsByCategory(await store.list()));
+                }
+                if (req.method === "POST" && pathname === "/expenses") {
+                  requireToken(req, token);
+                  const input = parseNewExpense(await readJson(req));
+                  const expense = { id: randomUUID(), ...input };
+                  await store.add(expense);
+                  return send(res, 201, expense);
+                }
+                throw new HttpError(404, "not found");
+              } catch (error) {
+                if (error instanceof HttpError) return send(res, error.status, { error: error.message });
+                if (error instanceof ValidationError) return send(res, 400, { error: error.message });
+                console.error(error);
+                send(res, 500, { error: "something went wrong" });
+              }
+            });
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import { createApp } from "./app.ts";
+          import { cachedStore } from "./store.ts";
+
+          const token = process.env.API_TOKEN;
+          if (!token) {
+            console.error("Set API_TOKEN first, for example: API_TOKEN=dev-secret npm run dev");
+            process.exit(1);
+          }
+
+          const port = Number(process.env.PORT ?? 3000);
+          const app = createApp({ store: cachedStore(), token });
+          app.requestTimeout = 10_000; // a slow client cannot hold a request open forever
+
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`spend API listening on port ${port}`);
+          });
+
+          // Render sends SIGTERM when it stops or replaces the service: finish open requests, then exit.
+          process.on("SIGTERM", () => {
+            console.log("SIGTERM received, shutting down");
+            app.close(() => process.exit(0));
+          });
+      - file: test/health.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { mkdtemp, rm } from "node:fs/promises";
+          import type { AddressInfo } from "node:net";
+          import { tmpdir } from "node:os";
+          import { join } from "node:path";
+          import { test } from "node:test";
+          import { createApp } from "../src/app.ts";
+          import { cachedStore } from "../src/store.ts";
+
+          test("/health answers and every request is logged as one JSON line", async () => {
+            const dir = await mkdtemp(join(tmpdir(), "spend-"));
+            const lines: string[] = [];
+            const server = createApp({
+              store: cachedStore(join(dir, "expenses.json")),
+              token: "t",
+              log: (line) => lines.push(line),
+            });
+            await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+            const { port } = server.address() as AddressInfo;
+
+            const response = await fetch(`http://127.0.0.1:${port}/health`);
+            assert.equal(response.status, 200);
+            const health = (await response.json()) as { status: string; expenses: number };
+            assert.equal(health.status, "ok");
+            assert.equal(health.expenses, 0);
+
+            await new Promise((resolve) => setTimeout(resolve, 20)); // the log line is written after the response
+            const entry = JSON.parse(lines[0] ?? "{}");
+            assert.equal(entry.path, "/health");
+            assert.equal(entry.status, 200);
+
+            server.close();
+            await rm(dir, { recursive: true, force: true });
+          });
+    mistakes:
+      - problem:
+          en: "Writing the `Authorization` header or the token into the logs."
+          tr: "`Authorization` başlığını ya da token'ı loglara yazmak."
+        fix:
+          en: "Log only what you need to find a problem: method, path, status and time. Logs are read by more people than secrets should be."
+          tr: "Sadece bir sorunu bulmak için gerekeni logla: metot, yol, durum ve süre. Logları, sırların olması gerekenden çok daha fazla kişi okur."
+      - problem:
+          en: "A health check that does heavy work or needs the token, so the monitor reports failures that are not real."
+          tr: "Ağır iş yapan ya da token isteyen bir sağlık kontrolü; izleyici gerçek olmayan hatalar bildirir."
+        fix:
+          en: "Keep `/health` cheap and public. It should only prove that the process runs and can reach its data."
+          tr: "`/health` ucuz ve herkese açık olsun. Sadece sürecin çalıştığını ve verisine ulaşabildiğini kanıtlamalı."
+    quiz:
+      - q:
+          en: "Why does the server handle SIGTERM?"
+          tr: "Sunucu neden SIGTERM'i ele alıyor?"
+        options:
+          en: [To start faster, To finish open requests before it stops, To delete the logs]
+          tr: [Daha hızlı başlamak için, Durmadan önce açık istekleri bitirmek için, Logları silmek için]
+        answer: 1
+        why:
+          en: "A host sends SIGTERM when it replaces or stops the service. `server.close` stops new connections and lets running requests finish."
+          tr: "Sunucu servisi değiştirirken ya da durdururken SIGTERM gönderir. `server.close` yeni bağlantıları durdurur ve çalışan isteklerin bitmesine izin verir."
+    sources:
+      - title: Render, health checks
+        url: https://render.com/docs/health-checks
+      - title: Node.js, process signal events
+        url: https://nodejs.org/api/process.html#signal-events
+      - title: Node.js, server.close
+        url: https://nodejs.org/api/http.html#serverclosecallback
+
+  - id: hono
+    stage: advanced
+    title:
+      en: "The same API with Hono, and where to go next"
+      tr: "Aynı API'yi Hono ile yazma ve sonraki adımlar"
+    minutes: 75
+    needs: [monitoring]
+    why:
+      en: "Real projects often use a small framework instead of writing the request handling by hand. Hono is tiny, fully typed and uses the standard `Request` and `Response` objects. Rebuilding the same API shows you what a framework gives you and what stays yours: the validation, the store and the tests."
+      tr: "Gerçek projeler, istek yönetimini elle yazmak yerine çoğu zaman küçük bir framework kullanır. Hono küçüktür, tamamen tiplidir ve standart `Request` ile `Response` nesnelerini kullanır. Aynı API'yi yeniden kurmak, framework'ün sana ne verdiğini ve neyin sende kaldığını gösterir: doğrulama, store ve testler."
+    learn:
+      en: |
+        - Routes with `app.get`, `app.post` and handlers that return `c.json(...)`
+        - Middleware (`bearerAuth`, `bodyLimit`) replaces the code we wrote by hand for tokens and size limits
+        - `app.onError` is the single place that turns errors into responses
+        - Testing without a network: `app.request("/path")` calls the app directly
+        - `@hono/node-server` connects a Hono app to Node's HTTP server
+        - Your next steps: a database (PostgreSQL roadmap) instead of a JSON file, a web page for the API (React roadmap), CI that runs `npm run check` and `npm test` on every push
+      tr: |
+        - `app.get`, `app.post` ile rotalar ve `c.json(...)` döndüren işleyiciler
+        - Ara katmanlar (middleware: `bearerAuth`, `bodyLimit`), token ve boyut sınırı için elle yazdığımız kodun yerini alır
+        - `app.onError`, hataları cevaba çeviren tek yerdir
+        - Ağ olmadan test: `app.request("/path")` uygulamayı doğrudan çağırır
+        - `@hono/node-server`, bir Hono uygulamasını Node'un HTTP sunucusuna bağlar
+        - Sonraki adımların: JSON dosyası yerine bir veritabanı (PostgreSQL yol haritası), API için bir web sayfası (React yol haritası), her push'ta `npm run check` ve `npm test` çalıştıran CI
+    do:
+      en: |
+        1. Install Hono and its Node adapter: `npm install hono @hono/node-server`.
+        2. Create `src/hono-app.ts`, `src/hono-server.ts` and `test/hono.test.ts` with the code below. Notice that `expense.ts` and `store.ts` did not change at all.
+        3. Run `npm run check` and `npm test` (the new test uses an in-memory store and calls the app without a network).
+        4. Run the Hono server: `node --env-file=.env src/hono-server.ts`, then open http://localhost:3000/health.
+        5. To deploy this version, build and start `dist/hono-server.js` instead of `dist/server.js`: change the `start` script and push. Compare the two apps: what got shorter, and what would you miss from the hand-written version (for example the request log)?
+        6. Commit: `git add .` and `git commit -m "Add the Hono version"`.
+      tr: |
+        1. Hono'yu ve Node adaptörünü kur: `npm install hono @hono/node-server`.
+        2. Aşağıdaki kodla `src/hono-app.ts`, `src/hono-server.ts` ve `test/hono.test.ts` dosyalarını oluştur. `expense.ts` ve `store.ts` dosyalarının hiç değişmediğine dikkat et.
+        3. `npm run check` ve `npm test` çalıştır (yeni test bellek içi bir store kullanır ve uygulamayı ağ olmadan çağırır).
+        4. Hono sunucusunu çalıştır: `node --env-file=.env src/hono-server.ts`, sonra http://localhost:3000/health adresini aç.
+        5. Bu sürümü yayınlamak için `dist/server.js` yerine `dist/hono-server.js` dosyasını derle ve başlat: `start` script'ini değiştir ve push et. İki uygulamayı karşılaştır: ne kısaldı, elle yazılan sürümden neyi özlersin (örneğin istek logunu)?
+        6. Commit at: `git add .` ve `git commit -m "Add the Hono version"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install hono @hono/node-server
+      - file: src/hono-app.ts
+        lang: ts
+        text: |
+          import { randomUUID } from "node:crypto";
+          import { Hono } from "hono";
+          import { bearerAuth } from "hono/bearer-auth";
+          import { bodyLimit } from "hono/body-limit";
+          import { HTTPException } from "hono/http-exception";
+          import { parseNewExpense, totalsByCategory, ValidationError } from "./expense.ts";
+          import type { Store } from "./store.ts";
+
+          export function createHonoApp({ store, token }: { store: Store; token: string }) {
+            const app = new Hono();
+
+            app.get("/health", async (c) => c.json({ status: "ok", expenses: (await store.list()).length }));
+            app.get("/expenses", async (c) => c.json(await store.list()));
+            app.get("/summary", async (c) => c.json(totalsByCategory(await store.list())));
+
+            app.post(
+              "/expenses",
+              bearerAuth({ token }),
+              bodyLimit({ maxSize: 10_000, onError: (c) => c.json({ error: "request body is too large" }, 413) }),
+              async (c) => {
+                const input = parseNewExpense(await c.req.json());
+                const expense = { id: randomUUID(), ...input };
+                await store.add(expense);
+                return c.json(expense, 201);
+              },
+            );
+
+            app.onError((error, c) => {
+              if (error instanceof HTTPException) return error.getResponse(); // 401 from bearerAuth
+              if (error instanceof ValidationError || error instanceof SyntaxError) {
+                return c.json({ error: error.message }, 400);
+              }
+              console.error(error);
+              return c.json({ error: "something went wrong" }, 500);
+            });
+
+            return app;
+          }
+      - file: src/hono-server.ts
+        lang: ts
+        text: |
+          import { serve } from "@hono/node-server";
+          import { createHonoApp } from "./hono-app.ts";
+          import { cachedStore } from "./store.ts";
+
+          const token = process.env.API_TOKEN;
+          if (!token) {
+            console.error("Set API_TOKEN first, for example: API_TOKEN=dev-secret npm run dev");
+            process.exit(1);
+          }
+
+          serve({ fetch: createHonoApp({ store: cachedStore(), token }).fetch, port: Number(process.env.PORT ?? 3000) }, (info) => {
+            console.log(`spend API (Hono) listening on port ${info.port}`);
+          });
+      - file: test/hono.test.ts
+        lang: ts
+        text: |
+          import assert from "node:assert/strict";
+          import { test } from "node:test";
+          import { createHonoApp } from "../src/hono-app.ts";
+          import type { Expense } from "../src/expense.ts";
+          import type { Store } from "../src/store.ts";
+
+          function memoryStore(): Store {
+            const all: Expense[] = [];
+            return { list: async () => all, add: async (e) => void all.push(e) };
+          }
+
+          const body = JSON.stringify({ date: "2026-10-17", amountCents: 500, category: "food" });
+
+          test("Hono app: same rules as the node:http app", async () => {
+            const app = createHonoApp({ store: memoryStore(), token: "secret" });
+            assert.equal((await app.request("/expenses", { method: "POST", body })).status, 401);
+            const ok = await app.request("/expenses", { method: "POST", body, headers: { authorization: "Bearer secret" } });
+            assert.equal(ok.status, 201);
+            const bad = await app.request("/expenses", { method: "POST", body: "{", headers: { authorization: "Bearer secret" } });
+            assert.equal(bad.status, 400);
+            const summary = (await (await app.request("/summary")).json()) as { food: number };
+            assert.equal(summary.food, 500);
+          });
+    mistakes:
+      - problem:
+          en: "Every error from `bearerAuth` turns into a `500` in your `onError`."
+          tr: "`bearerAuth` kaynaklı her hata `onError` içinde `500`'e dönüşüyor."
+        fix:
+          en: "The 401 comes as an `HTTPException`. Return `error.getResponse()` for it first, as the code above does, and only then handle your own errors."
+          tr: "401, bir `HTTPException` olarak gelir. Önce onun için `error.getResponse()` döndür, yukarıdaki kodun yaptığı gibi; kendi hatalarını ondan sonra ele al."
+      - problem:
+          en: "Copying Hono code from an old tutorial that imports from `hono/dist/...` or uses another server adapter."
+          tr: "Eski bir öğreticideki, `hono/dist/...` yolundan import eden ya da başka bir sunucu adaptörü kullanan Hono kodunu kopyalamak."
+        fix:
+          en: "Use the imports in the official docs: `hono`, `hono/bearer-auth`, `hono/body-limit` and `@hono/node-server`."
+          tr: "Resmi dokümandaki import'ları kullan: `hono`, `hono/bearer-auth`, `hono/body-limit` ve `@hono/node-server`."
+    quiz:
+      - q:
+          en: "What stayed exactly the same when we moved from node:http to Hono?"
+          tr: "node:http'den Hono'ya geçerken tam olarak neler aynı kaldı?"
+        options:
+          en: [The routing and the body reading code, The validation (expense.ts) and the store (store.ts), Nothing; everything was rewritten]
+          tr: [Rotalama ve gövde okuma kodu, Doğrulama (expense.ts) ve store (store.ts), Hiçbir şey; her şey yeniden yazıldı]
+        answer: 1
+        why:
+          en: "The framework only replaces the HTTP layer. The business code stayed because we kept it separate from the start."
+          tr: "Framework sadece HTTP katmanının yerini alır. İş kodu, en başından ayrı tuttuğumuz için olduğu gibi kaldı."
+    sources:
+      - title: Hono, Node.js getting started
+        url: https://hono.dev/docs/getting-started/nodejs
+      - title: Hono, testing
+        url: https://hono.dev/docs/guides/testing
+      - title: Hono, Bearer auth middleware
+        url: https://hono.dev/docs/middleware/builtin/bearer-auth

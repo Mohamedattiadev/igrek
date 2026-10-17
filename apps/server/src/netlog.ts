@@ -58,6 +58,7 @@ export const HOST_PURPOSE: Record<string, string> = {
   "api.osv.dev": "vulns",
   "registry.npmjs.org": "packages",
   "pypi.org": "packages",
+  "endoflife.date": "packages",
   "rdap.org": "domains",
   "api.frankfurter.dev": "rates",
   "hn.algolia.com": "news",

@@ -1,0 +1,762 @@
+id: fastapi
+title: FastAPI
+category: framework
+summary:
+  en: A Python web framework for APIs that reads your type hints to validate data and write the API docs for you.
+  tr: Tip ipuçlarını okuyarak veriyi doğrulayan ve API dokümanını senin yerine yazan, API odaklı bir Python web framework'ü.
+aliases: [fast api, pydantic, uvicorn, starlette, openapi, swagger, python api, rest api]
+detect:
+  pip: [fastapi]
+version: "0.143"
+latest: pypi:fastapi
+checked: 2026-10
+sources:
+  - title: FastAPI documentation
+    url: https://fastapi.tiangolo.com/
+  - title: FastAPI tutorial - user guide
+    url: https://fastapi.tiangolo.com/tutorial/
+  - title: FastAPI release notes
+    url: https://fastapi.tiangolo.com/release-notes/
+roadmap: fastapi
+sections:
+  - id: start
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: install-run
+        level: basic
+        title: { en: Install and run, tr: Kurma ve çalıştırma }
+        what:
+          en: fastapi[standard] installs FastAPI with the server and the fastapi command; fastapi dev runs your app and reloads it on every change.
+          tr: fastapi[standard], FastAPI'yi sunucusu ve fastapi komutuyla birlikte kurar; fastapi dev uygulamanı çalıştırır ve her değişiklikte yeniden yükler.
+        lang: sh
+        form: fastapi dev
+        example: |
+          python -m venv .venv && source .venv/bin/activate
+          python -m pip install "fastapi[standard]"
+          fastapi dev main.py      # development, auto-reload, http://127.0.0.1:8000
+          fastapi run main.py      # production mode, listens on 0.0.0.0
+        mistake:
+          en: Writing pip install fastapi[standard] without quotes; shells like zsh treat the brackets as a pattern and fail.
+          tr: pip install fastapi[standard] komutunu tırnaksız yazmak; zsh gibi shell'ler köşeli parantezi kalıp sanıp hata verir.
+        source: https://fastapi.tiangolo.com/fastapi-cli/
+      - id: first-app
+        level: basic
+        title: { en: Your first endpoint, tr: İlk endpoint }
+        what:
+          en: A decorator like @app.get("/") connects a URL and HTTP method to a function; what it returns is sent as JSON.
+          tr: '@app.get("/") gibi bir decorator bir URL ve HTTP metodunu bir fonksiyona bağlar; döndürdüğü değer JSON olarak gönderilir.'
+        lang: py
+        form: '@app.get("/path")'
+        example: |
+          from fastapi import FastAPI
+
+          app = FastAPI(title="Shop API")
+
+          @app.get("/")
+          def root():
+              return {"message": "Hello"}
+
+          @app.post("/items/", status_code=201)
+          def create(): ...
+        mistake:
+          en: Naming the file fastapi.py; it hides the real package and the import fails.
+          tr: Dosyaya fastapi.py adını vermek; gerçek paketi gölgeler ve import başarısız olur.
+        source: https://fastapi.tiangolo.com/tutorial/first-steps/
+      - id: docs-ui
+        level: basic
+        title: { en: Automatic API docs, tr: Otomatik API dokümanı }
+        what:
+          en: Every app gets interactive docs at /docs, alternative docs at /redoc and the OpenAPI schema at /openapi.json.
+          tr: Her uygulamanın /docs adresinde etkileşimli dokümanı, /redoc'ta alternatif dokümanı ve /openapi.json'da OpenAPI şeması olur.
+        lang: py
+        form: http://127.0.0.1:8000/docs
+        example: |
+          app = FastAPI(
+              title="Shop API",
+              version="1.2.0",
+              docs_url="/docs",        # None turns it off
+              openapi_url="/openapi.json",
+          )
+
+          @app.get("/items/", tags=["items"], summary="List items")
+          def list_items(): ...
+        mistake:
+          en: Leaving /docs open on an internal API that should not be explored publicly; set docs_url=None and redoc_url=None, or put it behind auth.
+          tr: Herkesin incelememesi gereken bir iç API'de /docs'u açık bırakmak; docs_url=None ve redoc_url=None ver ya da kimlik doğrulamanın arkasına koy.
+        source: https://fastapi.tiangolo.com/tutorial/metadata/
+      - id: entrypoint
+        level: intermediate
+        title: { en: Tell the CLI where the app is, tr: CLI'a uygulamanın yerini söyleme }
+        what:
+          en: The entrypoint in pyproject.toml tells fastapi dev and fastapi run which module and object to import.
+          tr: pyproject.toml'daki entrypoint, fastapi dev ve fastapi run'a hangi modülü ve nesneyi import edeceğini söyler.
+        lang: text
+        form: '[tool.fastapi] entrypoint = "app.main:app"'
+        example: |
+          # pyproject.toml
+          [tool.fastapi]
+          entrypoint = "backend.main:app"
+
+          # or once on the command line:
+          # fastapi dev --entrypoint backend.main:app
+        mistake:
+          en: Passing the path every time and forgetting it in one place; editor extensions and deploy tools also read the pyproject.toml setting.
+          tr: Yolu her seferinde elle verip bir yerde unutmak; editör eklentileri ve deploy araçları da pyproject.toml ayarını okur.
+        source: https://fastapi.tiangolo.com/fastapi-cli/#configure-the-app-entrypoint-in-pyproject-toml
+  - id: params
+    title: { en: Parameters and data, tr: Parametreler ve veri }
+    items:
+      - id: path-params
+        level: basic
+        title: { en: Path parameters, tr: Path parametreleri }
+        what:
+          en: A {name} in the path becomes a function argument, converted and checked by its type.
+          tr: Path'teki {name} bir fonksiyon argümanı olur; tipine göre dönüştürülür ve kontrol edilir.
+        lang: py
+        form: '@app.get("/items/{item_id}") def read(item_id: int):'
+        example: |
+          @app.get("/items/{item_id}")
+          def read_item(item_id: int):
+              return {"item_id": item_id}
+
+          # GET /items/5    -> {"item_id": 5}
+          # GET /items/abc  -> 422 with a validation error
+        mistake:
+          en: Declaring /users/{user_id} before /users/me; the first matching route wins, so "me" goes to the wrong function. Put fixed paths first.
+          tr: /users/me'den önce /users/{user_id} tanımlamak; ilk eşleşen route kazanır, "me" yanlış fonksiyona gider. Sabit path'leri önce yaz.
+        source: https://fastapi.tiangolo.com/tutorial/path-params/
+      - id: query-params
+        level: basic
+        title: { en: Query parameters, tr: Query parametreleri }
+        what:
+          en: Function arguments that are not in the path are read from the query string (?skip=0&limit=10).
+          tr: Path'te olmayan fonksiyon argümanları query string'den (?skip=0&limit=10) okunur.
+        lang: py
+        form: 'def list_items(skip: int = 0, q: str | None = None):'
+        example: |
+          @app.get("/items/")
+          def list_items(skip: int = 0, limit: int = 10, q: str | None = None):
+              return {"skip": skip, "limit": limit, "q": q}
+
+          # GET /items/?limit=2&q=pen -> {"skip": 0, "limit": 2, "q": "pen"}
+        mistake:
+          en: Forgetting a default value; without one, the query parameter becomes required and a request without it gets 422.
+          tr: Varsayılan değer vermeyi unutmak; o zaman query parametresi zorunlu olur ve onsuz gelen istek 422 alır.
+        source: https://fastapi.tiangolo.com/tutorial/query-params/
+      - id: annotated-validation
+        level: intermediate
+        title: { en: Validate with Annotated, tr: Annotated ile doğrulama }
+        what:
+          en: Annotated with Query, Path or Header adds rules like length and ranges, and a description for the docs.
+          tr: Query, Path ya da Header ile Annotated; uzunluk ve aralık gibi kurallar, bir de dokümanda görünecek açıklama ekler.
+        lang: py
+        form: 'q: Annotated[str | None, Query(max_length=50)] = None'
+        example: |
+          from typing import Annotated
+          from fastapi import Header, Path, Query
+
+          @app.get("/items/{item_id}")
+          def read(
+              item_id: Annotated[int, Path(ge=1)],
+              q: Annotated[str | None, Query(min_length=3, max_length=50)] = None,
+              tags: Annotated[list[str], Query()] = [],
+              user_agent: Annotated[str | None, Header()] = None,
+          ):
+              return {"id": item_id, "q": q, "tags": tags, "ua": user_agent}
+        mistake:
+          en: Writing list[str] without Query(); FastAPI then expects a list in the request body instead of ?tags=a&tags=b.
+          tr: list[str] tipini Query() olmadan yazmak; FastAPI listeyi ?tags=a&tags=b yerine request body'de bekler.
+        source: https://fastapi.tiangolo.com/tutorial/query-params-str-validations/
+      - id: body
+        level: basic
+        title: { en: Request body with Pydantic, tr: Pydantic ile request body }
+        what:
+          en: A parameter typed with a Pydantic model is read from the JSON body, validated and turned into an object.
+          tr: Pydantic modeliyle tiplenen bir parametre JSON body'den okunur, doğrulanır ve nesneye çevrilir.
+        lang: py
+        form: 'class Item(BaseModel): name: str; price: float'
+        example: |
+          from pydantic import BaseModel, Field
+
+          class Item(BaseModel):
+              name: str = Field(min_length=1)
+              price: float = Field(gt=0)
+              tags: list[str] = []
+
+          @app.post("/items/", status_code=201)
+          def create_item(item: Item):
+              return {"name": item.name, "total": item.price * 1.2}
+        mistake:
+          en: Calling item.dict(); that is the old Pydantic v1 API. In Pydantic v2 use item.model_dump().
+          tr: item.dict() çağırmak; bu eski Pydantic v1 API'sidir. Pydantic v2'de item.model_dump() kullan.
+        since: "0.128"
+        older:
+          en: FastAPI 0.128 removed support for Pydantic v1 models (pydantic.v1); only Pydantic v2 works now.
+          tr: FastAPI 0.128 Pydantic v1 modelleri (pydantic.v1) desteğini kaldırdı; artık sadece Pydantic v2 çalışır.
+        source: https://fastapi.tiangolo.com/tutorial/body/
+      - id: response-model
+        level: basic
+        title: { en: Shape the response, tr: Yanıtı şekillendirme }
+        what:
+          en: The return type (or response_model) filters and validates what you send back, so fields like password never leak.
+          tr: Dönüş tipi (ya da response_model) geri gönderdiğini filtreler ve doğrular; password gibi alanlar asla dışarı sızmaz.
+        lang: py
+        form: 'def get_user() -> UserOut:'
+        example: |
+          class UserIn(BaseModel):
+              email: str
+              password: str
+
+          class UserOut(BaseModel):
+              email: str
+
+          @app.post("/users/", response_model=UserOut)
+          def create_user(user: UserIn):
+              return user          # password is dropped from the response
+
+          @app.get("/me")
+          def me() -> UserOut:
+              return UserOut(email="ada@example.com")
+        mistake:
+          en: Returning the input model with the password and no response model; everything you return goes out.
+          tr: Şifreli giriş modelini response model olmadan döndürmek; döndürdüğün her şey dışarı gider.
+        source: https://fastapi.tiangolo.com/tutorial/response-model/
+      - id: http-exception
+        level: basic
+        title: { en: Errors and status codes, tr: Hatalar ve durum kodları }
+        what:
+          en: Raise HTTPException to stop and send an error status, like 404, with a message.
+          tr: HTTPException fırlatarak işlemi durdurur ve 404 gibi bir hata durumunu mesajla gönderirsin.
+        lang: py
+        form: raise HTTPException(status_code=404, detail="Item not found")
+        example: |
+          from fastapi import HTTPException, status
+
+          items = {"pen": 1.5}
+
+          @app.get("/items/{name}")
+          def read(name: str):
+              if name not in items:
+                  raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+              return {"name": name, "price": items[name]}
+          # 404 body: {"detail": "Item not found"}
+        mistake:
+          en: 'Returning {"error": ...} with status 200; clients and monitoring then think the call worked.'
+          tr: '200 durumuyla {"error": ...} döndürmek; istemciler ve izleme araçları çağrının başarılı olduğunu sanar.'
+        source: https://fastapi.tiangolo.com/tutorial/handling-errors/
+      - id: responses
+        level: basic
+        title: { en: Other response types, tr: Diğer yanıt tipleri }
+        what:
+          en: Return an HTMLResponse, RedirectResponse, FileResponse or PlainTextResponse when the answer is not JSON.
+          tr: Cevap JSON değilse HTMLResponse, RedirectResponse, FileResponse ya da PlainTextResponse döndür.
+        lang: py
+        form: '@app.get("/", response_class=HTMLResponse)'
+        example: |
+          from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+
+          @app.get("/hello", response_class=HTMLResponse)
+          def hello():
+              return "<h1>Hello</h1>"
+
+          @app.get("/old")
+          def old():
+              return RedirectResponse("/new", status_code=301)
+
+          @app.get("/report")
+          def report():
+              return FileResponse("report.pdf", filename="report.pdf")
+        mistake:
+          en: Returning a Response object and expecting response_model filtering or validation; a Response you build is sent as it is.
+          tr: Response nesnesi döndürüp response_model filtrelemesi ya da doğrulaması beklemek; kendi oluşturduğun Response olduğu gibi gönderilir.
+        source: https://fastapi.tiangolo.com/advanced/custom-response/
+      - id: param-models
+        level: intermediate
+        title: { en: Query parameter models, tr: Query parametre modelleri }
+        what:
+          en: Group many query (or header, cookie) parameters into one Pydantic model and reuse it.
+          tr: Çok sayıda query (ya da header, cookie) parametresini tek bir Pydantic modelinde toplayıp tekrar kullan.
+        lang: py
+        form: 'filters: Annotated[Filters, Query()]'
+        example: |
+          from typing import Annotated, Literal
+          from pydantic import BaseModel, Field
+
+          class Filters(BaseModel):
+              model_config = {"extra": "forbid"}
+              limit: int = Field(100, gt=0, le=100)
+              order_by: Literal["created", "price"] = "created"
+              tags: list[str] = []
+
+          @app.get("/items/")
+          def list_items(filters: Annotated[Filters, Query()]):
+              return filters
+        mistake:
+          en: Leaving out Query(); without it FastAPI treats the model as a JSON body.
+          tr: Query()'yi yazmamak; o olmadan FastAPI modeli JSON body olarak görür.
+        since: "0.115"
+        source: https://fastapi.tiangolo.com/tutorial/query-param-models/
+      - id: form-upload
+        level: intermediate
+        title: { en: Forms and file uploads, tr: Formlar ve dosya yükleme }
+        what:
+          en: Form() reads HTML form fields and UploadFile receives uploaded files without loading them fully into memory.
+          tr: Form() HTML form alanlarını okur, UploadFile ise yüklenen dosyaları tamamen belleğe almadan alır.
+        lang: py
+        form: 'file: UploadFile, note: Annotated[str, Form()]'
+        example: |
+          from typing import Annotated
+          from fastapi import Form, UploadFile
+
+          @app.post("/upload/")
+          async def upload(file: UploadFile, note: Annotated[str, Form()] = ""):
+              data = await file.read()
+              return {"name": file.filename, "type": file.content_type, "size": len(data), "note": note}
+        mistake:
+          en: Mixing Form or File fields with a JSON body model in one endpoint; a request is either a form or JSON, not both.
+          tr: Aynı endpoint'te Form ya da File alanlarını JSON body modeliyle karıştırmak; bir istek ya form ya JSON'dur, ikisi birden olmaz.
+        source: https://fastapi.tiangolo.com/tutorial/request-files/
+  - id: deps
+    title: { en: Dependencies and security, tr: Bağımlılıklar ve güvenlik }
+    items:
+      - id: depends
+        level: basic
+        title: { en: Dependencies with Depends, tr: Depends ile bağımlılıklar }
+        what:
+          en: Depends runs a function before your endpoint and passes its result in, so shared logic is written once.
+          tr: Depends endpoint'inden önce bir fonksiyon çalıştırıp sonucunu içeri verir; ortak mantık bir kez yazılır.
+        lang: py
+        form: 'user: Annotated[User, Depends(get_current_user)]'
+        example: |
+          from typing import Annotated
+          from fastapi import Depends
+
+          def pagination(skip: int = 0, limit: int = 20):
+              return {"skip": skip, "limit": limit}
+
+          Page = Annotated[dict, Depends(pagination)]
+
+          @app.get("/items/")
+          def items(page: Page):
+              return page
+
+          @app.get("/users/")
+          def users(page: Page):
+              return page
+        mistake:
+          en: Writing Depends(pagination()) with parentheses; pass the function itself, FastAPI calls it.
+          tr: Depends(pagination()) diye parantezli yazmak; fonksiyonun kendisini ver, onu FastAPI çağırır.
+        source: https://fastapi.tiangolo.com/tutorial/dependencies/
+      - id: yield-deps
+        level: intermediate
+        title: { en: Dependencies with yield, tr: yield ile bağımlılıklar }
+        what:
+          en: A dependency with yield gives a resource (like a database session) to the endpoint and cleans it up afterwards.
+          tr: yield içeren bir bağımlılık bir kaynağı (veritabanı session'ı gibi) endpoint'e verir ve sonra temizler.
+        lang: py
+        form: 'def get_db(): db = Session(); try: yield db; finally: db.close()'
+        example: |
+          def get_db():
+              db = SessionLocal()
+              try:
+                  yield db
+              finally:
+                  db.close()
+
+          DB = Annotated[Session, Depends(get_db)]
+
+          @app.get("/users/{uid}")
+          def read_user(uid: int, db: DB):
+              return db.get(User, uid)
+        mistake:
+          en: Catching an exception with except around yield and not raising it again; the client gets a 500 and the server logs nothing about it.
+          tr: yield etrafında except ile bir hatayı yakalayıp tekrar fırlatmamak; istemci 500 alır, sunucu ise bununla ilgili hiçbir şey loglamaz.
+        source: https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/
+      - id: auth-bearer
+        level: advanced
+        title: { en: Bearer token auth, tr: Bearer token ile kimlik doğrulama }
+        what:
+          en: OAuth2PasswordBearer reads the token from the Authorization header, and a dependency turns it into the current user.
+          tr: OAuth2PasswordBearer token'ı Authorization header'ından okur, bir bağımlılık da onu mevcut kullanıcıya çevirir.
+        lang: py
+        form: oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+        example: |
+          from fastapi.security import OAuth2PasswordBearer
+
+          oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+          def current_user(token: Annotated[str, Depends(oauth2_scheme)]) -> User:
+              user = decode_token(token)       # e.g. verify a JWT with PyJWT
+              if user is None:
+                  raise HTTPException(401, "Invalid token", headers={"WWW-Authenticate": "Bearer"})
+              return user
+
+          @app.get("/me")
+          def me(user: Annotated[User, Depends(current_user)]):
+              return user
+        mistake:
+          en: Writing your own password hashing or token signing; use a tested library (pwdlib or passlib for hashing, PyJWT for tokens).
+          tr: Şifre hash'lemeyi ya da token imzalamayı kendin yazmak; test edilmiş bir kütüphane kullan (hash için pwdlib ya da passlib, token için PyJWT).
+        since: "0.122"
+        older:
+          en: Since 0.122 the security classes answer missing credentials with 401; older versions sent 403.
+          tr: 0.122'den beri güvenlik sınıfları eksik kimlik bilgisine 401 ile cevap verir; eski sürümler 403 gönderirdi.
+        source: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+      - id: cors
+        level: intermediate
+        title: { en: CORS, tr: CORS }
+        what:
+          en: CORSMiddleware lets a frontend on another domain call your API from the browser.
+          tr: CORSMiddleware, başka bir domain'deki frontend'in API'ni tarayıcıdan çağırmasına izin verir.
+        lang: py
+        form: app.add_middleware(CORSMiddleware, allow_origins=[...])
+        example: |
+          from fastapi.middleware.cors import CORSMiddleware
+
+          app.add_middleware(
+              CORSMiddleware,
+              allow_origins=["https://app.example.com", "http://localhost:5173"],
+              allow_credentials=True,
+              allow_methods=["*"],
+              allow_headers=["*"],
+          )
+        mistake:
+          en: Using allow_origins=["*"] when the frontend sends cookies or an Authorization header; the wildcard does not cover requests with credentials. List the real origins.
+          tr: Frontend cookie ya da Authorization header'ı gönderirken allow_origins=["*"] kullanmak; joker değer kimlik bilgisi taşıyan istekleri kapsamaz. Gerçek origin'leri listele.
+        source: https://fastapi.tiangolo.com/tutorial/cors/
+  - id: structure
+    title: { en: Structure a bigger app, tr: Büyük uygulamayı düzenleme }
+    items:
+      - id: apirouter
+        level: intermediate
+        title: { en: Split routes with APIRouter, tr: APIRouter ile route'ları bölme }
+        what:
+          en: An APIRouter groups related endpoints in their own file, and include_router adds them to the app with a prefix.
+          tr: APIRouter ilgili endpoint'leri kendi dosyasında toplar, include_router onları bir önekle uygulamaya ekler.
+        lang: py
+        form: app.include_router(users.router, prefix="/users", tags=["users"])
+        example: |
+          # app/routers/users.py
+          from fastapi import APIRouter
+          router = APIRouter()
+
+          @router.get("/")
+          def list_users(): ...
+
+          # app/main.py
+          from fastapi import FastAPI
+          from .routers import users
+          app = FastAPI()
+          app.include_router(users.router, prefix="/users", tags=["users"])
+        mistake:
+          en: Looping over router.routes to change routes; since 0.137 it is a tree of internal objects, not a plain list of routes.
+          tr: Route'ları değiştirmek için router.routes üzerinde dönmek; 0.137'den beri bu düz bir route listesi değil, iç nesnelerden oluşan bir ağaçtır.
+        source: https://fastapi.tiangolo.com/tutorial/bigger-applications/
+      - id: lifespan
+        level: advanced
+        title: { en: Startup and shutdown with lifespan, tr: lifespan ile açılış ve kapanış }
+        what:
+          en: The lifespan function runs code once before the app takes requests and once after it stops, for things like DB pools or ML models.
+          tr: lifespan fonksiyonu, uygulama istek almadan önce bir kez ve durduktan sonra bir kez kod çalıştırır; DB pool'ları ya da ML modelleri gibi şeyler için.
+        lang: py
+        form: 'app = FastAPI(lifespan=lifespan)'
+        example: |
+          from contextlib import asynccontextmanager
+          from fastapi import FastAPI
+
+          @asynccontextmanager
+          async def lifespan(app: FastAPI):
+              app.state.pool = await create_pool()   # startup
+              yield
+              await app.state.pool.close()           # shutdown
+
+          app = FastAPI(lifespan=lifespan)
+        mistake:
+          en: Using the old @app.on_event("startup") handlers; they are deprecated, and they do not run when you pass lifespan.
+          tr: Eski @app.on_event("startup") handler'larını kullanmak; deprecated'dırlar ve lifespan verdiğinde çalışmazlar.
+        source: https://fastapi.tiangolo.com/advanced/events/
+      - id: settings
+        level: intermediate
+        title: { en: Settings from environment variables, tr: Ortam değişkenlerinden ayarlar }
+        what:
+          en: A pydantic-settings class reads settings from environment variables or a .env file and checks their types.
+          tr: Bir pydantic-settings sınıfı ayarları ortam değişkenlerinden ya da .env dosyasından okur ve tiplerini kontrol eder.
+        lang: py
+        form: 'class Settings(BaseSettings): database_url: str'
+        example: |
+          # python -m pip install pydantic-settings
+          from functools import lru_cache
+          from pydantic_settings import BaseSettings, SettingsConfigDict
+
+          class Settings(BaseSettings):
+              model_config = SettingsConfigDict(env_file=".env")
+              database_url: str
+              debug: bool = False
+
+          @lru_cache
+          def get_settings() -> Settings:
+              return Settings()     # DATABASE_URL=... DEBUG=true
+        mistake:
+          en: Building Settings() again in every request; it reads the environment and .env each time. Cache it as above.
+          tr: Settings() nesnesini her istekte yeniden oluşturmak; ortamı ve .env'i her seferinde okur. Yukarıdaki gibi cache'le.
+        source: https://fastapi.tiangolo.com/advanced/settings/
+      - id: exception-handler
+        level: intermediate
+        title: { en: Custom exception handlers, tr: Özel hata handler'ları }
+        what:
+          en: An exception handler turns one of your own exceptions into an HTTP response, in one place for the whole app.
+          tr: Hata handler'ı, kendi hatalarından birini tüm uygulama için tek bir yerde HTTP yanıtına çevirir.
+        lang: py
+        form: '@app.exception_handler(MyError)'
+        example: |
+          from fastapi import Request
+          from fastapi.responses import JSONResponse
+
+          class OutOfStock(Exception):
+              def __init__(self, sku: str):
+                  self.sku = sku
+
+          @app.exception_handler(OutOfStock)
+          async def out_of_stock(request: Request, exc: OutOfStock):
+              return JSONResponse(status_code=409, content={"detail": f"{exc.sku} is out of stock"})
+        source: https://fastapi.tiangolo.com/tutorial/handling-errors/#install-custom-exception-handlers
+      - id: frontend
+        level: intermediate
+        title: { en: Serve a built frontend, tr: Build edilmiş frontend'i sunma }
+        what:
+          en: app.frontend() serves the files a frontend build produces (React, Vue, Svelte); your API routes are checked first.
+          tr: app.frontend(), bir frontend build'inin ürettiği dosyaları (React, Vue, Svelte) sunar; önce API route'larına bakılır.
+        lang: py
+        form: app.frontend("/", directory="dist")
+        example: |
+          from fastapi import FastAPI
+
+          app = FastAPI()
+
+          @app.get("/api/health")
+          def health():
+              return {"ok": True}
+
+          app.frontend("/", directory="dist")   # after: npm run build
+        mistake:
+          en: Deploying without running the frontend build; outside fastapi dev a missing directory raises an error when the app is created.
+          tr: Frontend build'ini çalıştırmadan deploy etmek; fastapi dev dışında klasör yoksa uygulama oluşturulurken hata verir.
+        since: "0.138"
+        older:
+          en: Before 0.138 people mounted StaticFiles(directory="dist", html=True) and wrote their own fallback to index.html.
+          tr: 0.138'den önce StaticFiles(directory="dist", html=True) mount edilir ve index.html'e geri dönüş elle yazılırdı.
+        source: https://fastapi.tiangolo.com/tutorial/frontend/
+  - id: async-stream
+    title: { en: Async, background work and streaming, tr: Async, arka plan işi ve streaming }
+    items:
+      - id: async-def
+        level: basic
+        title: { en: async def or def, tr: async def mi def mi }
+        what:
+          en: Use async def when you await async libraries, and plain def for blocking code; FastAPI runs plain def in a thread pool.
+          tr: Async kütüphaneleri await ediyorsan async def, bloklayan kod için düz def kullan; FastAPI düz def'i bir thread pool'da çalıştırır.
+        lang: py
+        form: 'async def read(): data = await client.get(...)'
+        example: |
+          import httpx
+
+          @app.get("/async")
+          async def from_api():
+              async with httpx.AsyncClient() as client:
+                  r = await client.get("https://example.com")
+              return {"status": r.status_code}
+
+          @app.get("/sync")
+          def from_db():
+              return {"rows": blocking_db_query()}
+        mistake:
+          en: Calling blocking code (requests.get, time.sleep, a sync DB driver) inside async def; it freezes the whole server for every user.
+          tr: async def içinde bloklayan kod çağırmak (requests.get, time.sleep, senkron DB sürücüsü); tüm sunucu her kullanıcı için donar.
+        source: https://fastapi.tiangolo.com/async/
+      - id: background-tasks
+        level: intermediate
+        title: { en: Background tasks, tr: Arka plan task'ları }
+        what:
+          en: BackgroundTasks runs a function after the response is sent, for small jobs like sending an email.
+          tr: BackgroundTasks bir fonksiyonu yanıt gönderildikten sonra çalıştırır; e-posta göndermek gibi küçük işler için.
+        lang: py
+        form: background_tasks.add_task(func, arg)
+        example: |
+          from fastapi import BackgroundTasks
+
+          def send_welcome(email: str):
+              ...  # talk to the mail server
+
+          @app.post("/signup")
+          def signup(email: str, background_tasks: BackgroundTasks):
+              background_tasks.add_task(send_welcome, email)
+              return {"ok": True}
+        avoid:
+          en: Long or important jobs that must survive a restart; use a real queue (Celery, RQ, arq) instead.
+          tr: Yeniden başlatmadan sonra da sürmesi gereken uzun ya da önemli işler; onun yerine gerçek bir kuyruk kullan (Celery, RQ, arq).
+        source: https://fastapi.tiangolo.com/tutorial/background-tasks/
+      - id: stream-jsonl
+        level: advanced
+        title: { en: Stream JSON Lines with yield, tr: yield ile JSON Lines akışı }
+        what:
+          en: An endpoint that yields items sends them one by one as JSON Lines, so the client starts reading before the end.
+          tr: yield eden bir endpoint öğeleri JSON Lines olarak tek tek gönderir; istemci iş bitmeden okumaya başlar.
+        lang: py
+        form: 'async def stream() -> AsyncIterable[Item]: yield item'
+        example: |
+          from collections.abc import AsyncIterable
+
+          class Item(BaseModel):
+              name: str
+
+          @app.get("/items/stream")
+          async def stream_items() -> AsyncIterable[Item]:
+              for name in ["a", "b", "c"]:
+                  yield Item(name=name)
+          # body: {"name":"a"}\n{"name":"b"}\n{"name":"c"}\n
+        mistake:
+          en: Building a huge list in memory and returning it at the end when the client could process items as they come.
+          tr: İstemci öğeleri geldikçe işleyebilecekken bellekte koca bir liste oluşturup en sonda döndürmek.
+        since: "0.134"
+        older:
+          en: Before 0.134 you returned a StreamingResponse with a generator and encoded each line yourself.
+          tr: 0.134'ten önce bir generator ile StreamingResponse döndürür ve her satırı kendin encode ederdin.
+        source: https://fastapi.tiangolo.com/tutorial/stream-json-lines/
+      - id: sse
+        level: advanced
+        title: { en: Server-Sent Events, tr: Server-Sent Events (SSE) }
+        what:
+          en: EventSourceResponse sends each yielded item as a server-sent event, which the browser reads with EventSource.
+          tr: EventSourceResponse yield edilen her öğeyi bir server-sent event olarak gönderir; tarayıcı bunu EventSource ile okur.
+        lang: py
+        form: '@app.get("/events", response_class=EventSourceResponse)'
+        example: |
+          import asyncio
+          from collections.abc import AsyncIterable
+          from fastapi.sse import EventSourceResponse
+
+          @app.get("/clock", response_class=EventSourceResponse)
+          async def clock() -> AsyncIterable[dict]:
+              for i in range(3):
+                  yield {"tick": i}
+                  await asyncio.sleep(1)
+          # browser: new EventSource("/clock").onmessage = e => console.log(e.data)
+        avoid:
+          en: When the client also needs to send messages over the same connection; use a WebSocket.
+          tr: İstemcinin de aynı bağlantı üzerinden mesaj göndermesi gerekiyorsa; WebSocket kullan.
+        since: "0.135"
+        source: https://fastapi.tiangolo.com/tutorial/server-sent-events/
+      - id: websocket
+        level: advanced
+        title: { en: WebSockets, tr: WebSocket'ler }
+        what:
+          en: A WebSocket endpoint keeps a connection open so the server and the client can send messages both ways.
+          tr: WebSocket endpoint'i bağlantıyı açık tutar; sunucu ve istemci iki yönlü mesaj gönderebilir.
+        lang: py
+        form: '@app.websocket("/ws")'
+        example: |
+          from fastapi import WebSocket, WebSocketDisconnect
+
+          @app.websocket("/ws")
+          async def ws(websocket: WebSocket):
+              await websocket.accept()
+              try:
+                  while True:
+                      text = await websocket.receive_text()
+                      await websocket.send_text(f"echo: {text}")
+              except WebSocketDisconnect:
+                  pass
+        mistake:
+          en: Keeping connected clients in a Python list and running several workers; each worker has its own list. Use Redis pub/sub or similar to share messages.
+          tr: Bağlı istemcileri bir Python listesinde tutup birden fazla worker çalıştırmak; her worker'ın kendi listesi olur. Mesajları paylaşmak için Redis pub/sub gibi bir şey kullan.
+        source: https://fastapi.tiangolo.com/advanced/websockets/
+  - id: test-deploy
+    title: { en: Testing and deploy, tr: Test ve deploy }
+    items:
+      - id: testclient
+        level: basic
+        title: { en: Test with TestClient, tr: TestClient ile test }
+        what:
+          en: TestClient calls your app in the same process, without a running server, so tests are fast.
+          tr: TestClient, uygulamanı çalışan bir sunucu olmadan aynı process içinde çağırır; testler hızlı olur.
+        lang: py
+        form: client = TestClient(app); client.get("/")
+        example: |
+          from fastapi.testclient import TestClient
+          from .main import app
+
+          client = TestClient(app)
+
+          def test_read_item():
+              r = client.get("/items/5")
+              assert r.status_code == 200
+              assert r.json() == {"item_id": 5}
+
+          def test_bad_id():
+              assert client.get("/items/abc").status_code == 422
+        mistake:
+          en: Testing lifespan code with a plain TestClient(app); the startup only runs inside "with TestClient(app) as client".
+          tr: lifespan kodunu düz TestClient(app) ile test etmek; açılış kodu sadece "with TestClient(app) as client" içinde çalışır.
+        source: https://fastapi.tiangolo.com/tutorial/testing/
+      - id: dependency-overrides
+        level: advanced
+        title: { en: Override dependencies in tests, tr: Testlerde bağımlılıkları değiştirme }
+        what:
+          en: app.dependency_overrides swaps a dependency for a fake one, for example a test database or a fixed user.
+          tr: app.dependency_overrides bir bağımlılığı sahtesiyle değiştirir; örneğin test veritabanı ya da sabit bir kullanıcı.
+        lang: py
+        form: app.dependency_overrides[get_db] = get_test_db
+        example: |
+          def fake_user():
+              return User(id=1, email="test@example.com")
+
+          def test_me():
+              app.dependency_overrides[current_user] = fake_user
+              try:
+                  assert client.get("/me").json()["email"] == "test@example.com"
+              finally:
+                  app.dependency_overrides.clear()
+        mistake:
+          en: Forgetting to clear the overrides, so a fake user leaks into the next tests.
+          tr: Override'ları temizlemeyi unutmak; sahte kullanıcı sonraki testlere de sızar.
+        source: https://fastapi.tiangolo.com/advanced/testing-dependencies/
+      - id: deploy
+        level: intermediate
+        title: { en: Run in production, tr: Production'da çalıştırma }
+        what:
+          en: fastapi run starts Uvicorn without reload on 0.0.0.0; add workers to use more CPU cores.
+          tr: fastapi run, Uvicorn'u reload olmadan 0.0.0.0 üzerinde başlatır; daha fazla CPU çekirdeği kullanmak için worker ekle.
+        lang: dockerfile
+        form: fastapi run --workers 4 app/main.py
+        example: |
+          FROM python:3.14-slim
+          WORKDIR /code
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+          COPY ./app ./app
+          CMD ["fastapi", "run", "app/main.py", "--port", "80", "--proxy-headers"]
+        mistake:
+          en: Running fastapi dev in production; auto-reload watches files and costs resources, and it only listens on 127.0.0.1.
+          tr: Production'da fastapi dev çalıştırmak; auto-reload dosyaları izler ve kaynak harcar, üstelik sadece 127.0.0.1'i dinler.
+        source: https://fastapi.tiangolo.com/deployment/docker/
+      - id: strict-content-type
+        level: advanced
+        title: { en: Strict JSON Content-Type, tr: Katı JSON Content-Type kontrolü }
+        what:
+          en: FastAPI rejects JSON bodies whose request has no valid JSON Content-Type header, unless you turn the check off.
+          tr: FastAPI, geçerli bir JSON Content-Type header'ı olmayan isteklerin JSON body'sini reddeder; kontrolü kapatmadıkça.
+        lang: py
+        form: FastAPI(strict_content_type=False)
+        example: |
+          # client must send: Content-Type: application/json
+          # for old clients that do not:
+          app = FastAPI(strict_content_type=False)
+        mistake:
+          en: Upgrading and getting 422 errors from an old client that posts JSON without a Content-Type header; fix the client, or turn the check off only if the API has authentication.
+          tr: Güncelleme sonrası JSON'u Content-Type header'ı olmadan gönderen eski bir istemciden 422 hataları almak; istemciyi düzelt ya da kontrolü sadece API'de kimlik doğrulama varsa kapat.
+        since: "0.132"
+        api: ["strict_content_type"]
+        older:
+          en: Before 0.132 FastAPI parsed a JSON body even when the Content-Type header was missing.
+          tr: 0.132'den önce FastAPI, Content-Type header'ı eksik olsa bile JSON body'yi okurdu.
+        source: https://fastapi.tiangolo.com/advanced/strict-content-type/

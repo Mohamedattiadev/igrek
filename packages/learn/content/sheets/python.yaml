@@ -1,0 +1,1190 @@
+id: python
+title: Python
+category: language
+summary:
+  en: A readable general-purpose language for scripts, web backends, data work and automation.
+  tr: Script, web backend, veri işleri ve otomasyon için okunması kolay, genel amaçlı bir dil.
+aliases: [py, python3, pip, venv, asyncio, piton, betik]
+detect:
+  files: [pyproject.toml, requirements.txt, setup.py, Pipfile]
+version: "3.15"
+latest: eol:python
+checked: 2026-10
+sources:
+  - title: Python documentation
+    url: https://docs.python.org/3/
+  - title: The Python Tutorial
+    url: https://docs.python.org/3/tutorial/index.html
+  - title: The Python Standard Library
+    url: https://docs.python.org/3/library/index.html
+roadmap: python
+sections:
+  - id: basics
+    title: { en: Basics, tr: Temeller }
+    items:
+      - id: fstring
+        level: basic
+        title: { en: Print values with f-strings, tr: f-string ile değer yazdırma }
+        what:
+          en: An f-string puts the value of any expression inside {} straight into the text.
+          tr: f-string, {} içine yazdığın ifadenin değerini doğrudan metnin içine koyar.
+        lang: py
+        form: f"Hello {name}"
+        example: |
+          name = "Ada"
+          price = 3.14159
+          print(f"Hello {name}, total {price:.2f}")
+          print(f"{price=}")
+        output: |
+          Hello Ada, total 3.14
+          price=3.14159
+        check: py
+        mistake:
+          en: Forgetting the f in front of the quotes, so {name} is printed as plain text.
+          tr: Tırnağın önündeki f'yi unutmak; {name} düz metin olarak yazılır.
+        avoid:
+          en: For log messages, pass values to the logger (log.info("user %s", name)) so the text is only built when the line is really logged.
+          tr: Log mesajlarında değerleri logger'a ver (log.info("user %s", name)); metin sadece satır gerçekten loglanınca oluşturulur.
+        source: https://docs.python.org/3/tutorial/inputoutput.html#formatted-string-literals
+      - id: strings
+        level: basic
+        title: { en: Work with strings, tr: String işlemleri }
+        what:
+          en: Strings have methods to split, join, trim, search and change case; they never change the original.
+          tr: String'lerin bölme, birleştirme, kırpma, arama ve harf değiştirme metotları var; orijinali hiç değiştirmezler.
+        lang: py
+        form: text.split(","), ", ".join(items), text.strip()
+        example: |
+          line = "  apple,banana,cherry  "
+          parts = line.strip().split(",")
+          print(parts)
+          print(" | ".join(parts).upper())
+          print("ban" in line, line.count("a"))
+        output: |
+          ['apple', 'banana', 'cherry']
+          APPLE | BANANA | CHERRY
+          True 4
+        check: py
+        mistake:
+          en: Calling text.upper() and expecting text to change; strings are immutable, so assign the result (text = text.upper()).
+          tr: text.upper() çağırıp text'in değişmesini beklemek; string'ler değiştirilemez, sonucu ata (text = text.upper()).
+        source: https://docs.python.org/3/library/stdtypes.html#string-methods
+      - id: lists
+        level: basic
+        title: { en: Lists, tr: Listeler }
+        what:
+          en: A list is an ordered, changeable collection of values.
+          tr: Liste, sıralı ve değiştirilebilir bir değerler topluluğudur.
+        lang: py
+        form: items = [1, 2, 3]; items.append(4)
+        example: |
+          nums = [3, 1, 2]
+          nums.append(5)
+          print(sorted(nums), nums)
+          nums.sort(reverse=True)
+          print(nums, len(nums), nums[-1])
+        output: |
+          [1, 2, 3, 5] [3, 1, 2, 5]
+          [5, 3, 2, 1] 4 1
+        check: py
+        mistake:
+          en: Writing nums = nums.sort(); sort() changes the list in place and returns None. Use sorted() when you want a new list.
+          tr: nums = nums.sort() yazmak; sort() listeyi yerinde değiştirir ve None döndürür. Yeni liste istiyorsan sorted() kullan.
+        source: https://docs.python.org/3/tutorial/datastructures.html#more-on-lists
+      - id: slicing
+        level: basic
+        title: { en: Slicing, tr: Dilimleme (slicing) }
+        what:
+          en: "seq[start:stop:step] takes a part of a list or string; stop is not included."
+          tr: "seq[start:stop:step] bir liste ya da string'in bir parçasını alır; stop dahil değildir."
+        lang: py
+        form: items[1:3], items[-2:], items[::-1]
+        example: |
+          s = "python"
+          print(s[0:2], s[-3:], s[::-1])
+          nums = [0, 1, 2, 3, 4, 5]
+          print(nums[::2])
+        output: |
+          py hon nohtyp
+          [0, 2, 4]
+        check: py
+        mistake:
+          en: Expecting the stop index to be included; s[0:2] gives two items, index 0 and 1.
+          tr: stop indeksinin dahil olduğunu sanmak; s[0:2] iki öğe verir, 0 ve 1 numaralı olanlar.
+        source: https://docs.python.org/3/library/stdtypes.html#common-sequence-operations
+      - id: dicts
+        level: basic
+        title: { en: Dictionaries, tr: Sözlükler (dict) }
+        what:
+          en: A dict maps keys to values and keeps the order you inserted them in.
+          tr: dict, anahtarları değerlere bağlar ve eklediğin sırayı korur.
+        lang: py
+        form: 'user = {"name": "Ada"}; user.get("age", 0)'
+        example: |
+          user = {"name": "Ada", "lang": "py"}
+          user["year"] = 1843
+          print(user.get("age", 0))
+          for key, value in user.items():
+              print(key, value)
+        output: |
+          0
+          name Ada
+          lang py
+          year 1843
+        check: py
+        mistake:
+          en: Reading user["age"] when the key may be missing, which raises KeyError; use user.get("age") or check with "age" in user.
+          tr: Anahtar olmayabilecekken user["age"] okumak KeyError fırlatır; user.get("age") kullan ya da "age" in user ile kontrol et.
+        source: https://docs.python.org/3/tutorial/datastructures.html#dictionaries
+      - id: tuples-unpacking
+        level: basic
+        title: { en: Tuples, sets and unpacking, tr: Tuple, set ve açma (unpacking) }
+        what:
+          en: A tuple is a fixed group of values, a set keeps unique values, and unpacking puts the parts into separate variables.
+          tr: Tuple sabit bir değer grubudur, set sadece benzersiz değerleri tutar, unpacking ise parçaları ayrı değişkenlere koyar.
+        lang: py
+        form: x, y = point; first, *rest = items
+        example: |
+          point = (3, 4)
+          x, y = point
+          first, *rest = [1, 2, 3, 4]
+          print(x + y, first, rest)
+          print(sorted({3, 1, 3, 2}))
+          a, b = 1, 2
+          a, b = b, a
+          print(a, b)
+        output: |
+          7 1 [2, 3, 4]
+          [1, 2, 3]
+          2 1
+        check: py
+        mistake:
+          en: Writing {} for an empty set; that is an empty dict. Use set().
+          tr: Boş set için {} yazmak; bu boş bir dict'tir. set() kullan.
+        source: https://docs.python.org/3/tutorial/datastructures.html#tuples-and-sequences
+      - id: truthiness
+        level: basic
+        title: { en: if, truthiness and comparisons, tr: if, doğruluk değeri ve karşılaştırma }
+        what:
+          en: Empty values (0, "", [], {}, None) count as false in an if; use "is" only to compare with None.
+          tr: Boş değerler (0, "", [], {}, None) if içinde false sayılır; "is" sadece None ile karşılaştırırken kullanılır.
+        lang: py
+        form: "if items: ... elif x is None: ... else: ..."
+        example: |
+          items = []
+          name = None
+          if items:
+              print("has items")
+          elif name is None:
+              print("no items, no name")
+          print(0 < 5 <= 10, bool(""), bool("0"))
+        output: |
+          no items, no name
+          True False True
+        check: py
+        mistake:
+          en: Using "is" to compare numbers or strings (x is 1000); it checks identity, not value. Use ==.
+          tr: Sayı ya da string'leri "is" ile karşılaştırmak (x is 1000); kimliğe bakar, değere değil. == kullan.
+        source: https://docs.python.org/3/library/stdtypes.html#truth-value-testing
+      - id: loops
+        level: basic
+        title: { en: Loops with range, enumerate and zip, tr: range, enumerate ve zip ile döngüler }
+        what:
+          en: A for loop walks over any collection; enumerate adds a counter and zip walks over several lists together.
+          tr: for döngüsü her koleksiyonu gezer; enumerate sayaç ekler, zip birden fazla listeyi birlikte gezer.
+        lang: py
+        form: for i, item in enumerate(items, start=1)
+        example: |
+          names = ["Ada", "Alan"]
+          scores = [90, 85]
+          for i, name in enumerate(names, start=1):
+              print(i, name)
+          for name, score in zip(names, scores, strict=True):
+              print(f"{name}: {score}")
+          print(list(range(0, 10, 3)))
+        output: |
+          1 Ada
+          2 Alan
+          Ada: 90
+          Alan: 85
+          [0, 3, 6, 9]
+        check: py
+        mistake:
+          en: Writing for i in range(len(items)) and then items[i]; enumerate gives the index and the value directly.
+          tr: for i in range(len(items)) yazıp sonra items[i] kullanmak; enumerate indeksi ve değeri doğrudan verir.
+        since: "3.10"
+        older:
+          en: zip's strict=True (error when the lengths differ) came in 3.10; before that zip silently stopped at the shortest list.
+          tr: zip'in strict=True seçeneği (uzunluklar farklıysa hata) 3.10'da geldi; öncesinde zip sessizce en kısa listede dururdu.
+        source: https://docs.python.org/3/library/functions.html#zip
+  - id: functions
+    title: { en: Functions, tr: Fonksiyonlar }
+    items:
+      - id: def
+        level: basic
+        title: { en: Define a function, tr: Fonksiyon tanımlama }
+        what:
+          en: def gives a block of code a name and parameters; return sends a value back.
+          tr: def bir kod bloğuna ad ve parametre verir; return geriye değer gönderir.
+        lang: py
+        form: 'def name(param, other=default): return value'
+        example: |
+          def greet(name, greeting="Hello"):
+              return f"{greeting}, {name}!"
+
+          print(greet("Ada"))
+          print(greet("Alan", greeting="Hi"))
+        output: |
+          Hello, Ada!
+          Hi, Alan!
+        check: py
+        mistake:
+          en: Using a mutable default like def add(item, items=[]); the same list is shared by every call. Use items=None and create the list inside.
+          tr: def add(item, items=[]) gibi değiştirilebilir bir varsayılan kullanmak; aynı liste tüm çağrılarda paylaşılır. items=None yap ve listeyi içeride oluştur.
+        source: https://docs.python.org/3/tutorial/controlflow.html#default-argument-values
+      - id: args-kwargs
+        level: intermediate
+        title: { en: "*args and **kwargs", tr: "*args ve **kwargs" }
+        what:
+          en: "*args collects extra positional arguments into a tuple, **kwargs collects extra named ones into a dict."
+          tr: "*args fazladan sıralı argümanları bir tuple'da, **kwargs fazladan isimli argümanları bir dict'te toplar."
+        lang: py
+        form: 'def f(*args, **kwargs): ...'
+        example: |
+          def report(*args, **kwargs):
+              print(args, kwargs)
+
+          report(1, 2, level="debug")
+          values = [3, 4]
+          options = {"sep": "-"}
+          print(*values, **options)
+        output: |
+          (1, 2) {'level': 'debug'}
+          3-4
+        check: py
+        mistake:
+          en: Using **kwargs everywhere so typos in argument names are silently accepted; name the parameters you expect.
+          tr: Her yerde **kwargs kullanmak; argüman adlarındaki yazım hataları sessizce kabul edilir. Beklediğin parametreleri adlarıyla yaz.
+        source: https://docs.python.org/3/tutorial/controlflow.html#arbitrary-argument-lists
+      - id: special-params
+        level: intermediate
+        title: { en: Positional-only and keyword-only parameters, tr: Sadece sıralı ve sadece isimli parametreler }
+        what:
+          en: Parameters before / can only be passed by position, parameters after * only by name.
+          tr: / işaretinden önceki parametreler sadece sırayla, * işaretinden sonrakiler sadece adıyla verilebilir.
+        lang: py
+        form: 'def f(pos, /, normal, *, kw): ...'
+        example: |
+          def connect(host, /, port=5432, *, timeout=10):
+              return f"{host}:{port} ({timeout}s)"
+
+          print(connect("db", 5433, timeout=3))
+          try:
+              connect("db", 5433, 3)
+          except TypeError as e:
+              print("TypeError")
+        output: |
+          db:5433 (3s)
+          TypeError
+        check: py
+        avoid:
+          en: Simple internal functions with one or two obvious parameters; the markers add noise there.
+          tr: Bir iki bariz parametresi olan basit iç fonksiyonlar; orada bu işaretler sadece kalabalık yapar.
+        since: "3.8"
+        older:
+          en: The / marker for positional-only parameters came in 3.8; keyword-only parameters after * work since Python 3.0.
+          tr: Sadece sıralı parametreler için / işareti 3.8'de geldi; * sonrası sadece isimli parametreler Python 3.0'dan beri var.
+        source: https://docs.python.org/3/tutorial/controlflow.html#special-parameters
+      - id: sorted-key
+        level: basic
+        title: { en: Sort with a key and lambda, tr: key ve lambda ile sıralama }
+        what:
+          en: sorted(items, key=...) sorts by what the key function returns for each item; lambda writes that small function inline.
+          tr: sorted(items, key=...) her öğe için key fonksiyonunun döndürdüğü değere göre sıralar; lambda bu küçük fonksiyonu satır içinde yazar.
+        lang: py
+        form: 'sorted(items, key=lambda x: x["age"], reverse=True)'
+        example: |
+          people = [{"name": "Ada", "age": 36}, {"name": "Alan", "age": 41}, {"name": "Grace", "age": 85}]
+          by_age = sorted(people, key=lambda p: p["age"], reverse=True)
+          print([p["name"] for p in by_age])
+          print(max(people, key=lambda p: p["age"])["name"])
+        output: |
+          ['Grace', 'Alan', 'Ada']
+          Grace
+        check: py
+        mistake:
+          en: Writing long multi-line logic in a lambda; give it a name with def instead.
+          tr: Lambda'nın içine uzun mantık sığdırmaya çalışmak; onun yerine def ile isimli bir fonksiyon yaz.
+        source: https://docs.python.org/3/howto/sorting.html#key-functions
+      - id: comprehensions
+        level: basic
+        title: { en: Comprehensions, tr: Comprehension'lar }
+        what:
+          en: A one-line way to build a list, dict or set from another collection, with an optional filter.
+          tr: Başka bir koleksiyondan, istersen filtreleyerek, tek satırda liste, dict ya da set oluşturmanın yolu.
+        lang: py
+        form: "[x * 2 for x in items if x > 0]"
+        example: |
+          nums = [1, -2, 3, 4]
+          print([n * n for n in nums if n > 0])
+          print({n: n % 2 == 0 for n in nums})
+          print(sum(n for n in nums))
+        output: |
+          [1, 9, 16]
+          {1: False, -2: True, 3: False, 4: True}
+          6
+        check: py
+        mistake:
+          en: Nesting two or three comprehensions in one line; when it is hard to read, a normal for loop is better.
+          tr: Tek satırda iki üç comprehension'ı iç içe yazmak; okuması zorlaşınca normal bir for döngüsü daha iyidir.
+        avoid:
+          en: When you only want the side effect (printing, saving); use a for loop, not a list nobody reads.
+          tr: Sadece yan etki (yazdırma, kaydetme) istiyorsan; kimsenin okumadığı bir liste değil, for döngüsü kullan.
+        source: https://docs.python.org/3/tutorial/datastructures.html#list-comprehensions
+      - id: generators
+        level: intermediate
+        title: { en: Generators and yield, tr: Generator'lar ve yield }
+        what:
+          en: A function with yield produces values one at a time, only when asked, so it does not hold everything in memory.
+          tr: yield içeren bir fonksiyon değerleri istendikçe tek tek üretir; her şeyi bellekte tutmaz.
+        lang: py
+        form: 'def gen(): yield value'
+        example: |
+          def countdown(n):
+              while n > 0:
+                  yield n
+                  n -= 1
+
+          gen = countdown(3)
+          print(next(gen))
+          print(list(gen))
+          print(list(gen))
+        output: |
+          3
+          [2, 1]
+          []
+        check: py
+        mistake:
+          en: Looping over the same generator twice; it is used up after the first pass and the second loop gets nothing.
+          tr: Aynı generator'ı iki kez döngüyle gezmek; ilk turda tükenir, ikinci döngü hiçbir şey almaz.
+        source: https://docs.python.org/3/tutorial/classes.html#generators
+      - id: decorators
+        level: advanced
+        title: { en: Decorators, tr: Decorator'lar }
+        what:
+          en: A decorator is a function that wraps another function to add behavior, written with @ above the def.
+          tr: Decorator, başka bir fonksiyonu sarıp ona davranış ekleyen bir fonksiyondur; def'in üstüne @ ile yazılır.
+        lang: py
+        form: '@decorator'
+        example: |
+          import functools
+
+          def logged(func):
+              @functools.wraps(func)
+              def wrapper(*args, **kwargs):
+                  print(f"calling {func.__name__}")
+                  return func(*args, **kwargs)
+              return wrapper
+
+          @logged
+          def add(a, b):
+              return a + b
+
+          print(add(2, 3), add.__name__)
+        output: |
+          calling add
+          5 add
+        check: py
+        mistake:
+          en: Leaving out functools.wraps, so the wrapped function loses its name and docstring (add.__name__ becomes "wrapper").
+          tr: functools.wraps'i yazmamak; sarılan fonksiyon adını ve docstring'ini kaybeder (add.__name__ "wrapper" olur).
+        source: https://docs.python.org/3/library/functools.html#functools.wraps
+      - id: cache
+        level: intermediate
+        title: { en: Cache function results, tr: Fonksiyon sonuçlarını önbellekleme }
+        what:
+          en: functools.cache remembers the result for each set of arguments and returns it without running the function again.
+          tr: functools.cache her argüman kümesi için sonucu hatırlar ve fonksiyonu tekrar çalıştırmadan döndürür.
+        lang: py
+        form: '@functools.cache'
+        example: |
+          from functools import cache
+
+          @cache
+          def fib(n):
+              return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+          print(fib(80))
+          print(fib.cache_info().currsize)
+        output: |
+          23416728348467685
+          81
+        check: py
+        mistake:
+          en: Caching a function whose arguments are lists or dicts; arguments must be hashable or you get TypeError.
+          tr: Argümanları liste ya da dict olan bir fonksiyonu cache'lemek; argümanlar hash'lenebilir olmalı, yoksa TypeError alırsın.
+        avoid:
+          en: For functions with endless different inputs, cache grows forever; use lru_cache(maxsize=...) to put a limit.
+          tr: Sonsuz farklı girdi alan fonksiyonlarda cache sürekli büyür; sınır koymak için lru_cache(maxsize=...) kullan.
+        since: "3.9"
+        older:
+          en: Before 3.9 write @lru_cache(maxsize=None) for the same effect.
+          tr: 3.9'dan önce aynı etki için @lru_cache(maxsize=None) yazılır.
+        source: https://docs.python.org/3/library/functools.html#functools.cache
+  - id: classes
+    title: { en: Classes and data, tr: Sınıflar ve veri }
+    items:
+      - id: class
+        level: basic
+        title: { en: Define a class, tr: Sınıf tanımlama }
+        what:
+          en: A class bundles data and the functions (methods) that work on it; __init__ sets up each new object.
+          tr: Sınıf, veriyi ve onunla çalışan fonksiyonları (metotları) bir araya getirir; __init__ her yeni nesneyi hazırlar.
+        lang: py
+        form: 'class Name: def __init__(self, ...): ...'
+        example: |
+          class Account:
+              def __init__(self, owner, balance=0):
+                  self.owner = owner
+                  self.balance = balance
+
+              def deposit(self, amount):
+                  self.balance += amount
+                  return self.balance
+
+          class Savings(Account):
+              def deposit(self, amount):
+                  return super().deposit(amount * 1.01)
+
+          acc = Savings("Ada")
+          print(acc.deposit(100), isinstance(acc, Account))
+        output: |
+          101.0 True
+        check: py
+        mistake:
+          en: Forgetting self as the first parameter of a method, or writing balance instead of self.balance inside it.
+          tr: Metodun ilk parametresi olan self'i unutmak ya da içeride self.balance yerine balance yazmak.
+        avoid:
+          en: When you only need a few functions with no shared state; plain functions in a module are simpler.
+          tr: Ortak durumu olmayan birkaç fonksiyon yeterliyse; bir modüldeki düz fonksiyonlar daha basit.
+        source: https://docs.python.org/3/tutorial/classes.html#a-first-look-at-classes
+      - id: dataclass
+        level: intermediate
+        title: { en: Data classes, tr: Data class'lar }
+        what:
+          en: "@dataclass writes __init__, __repr__ and __eq__ for you from the field list."
+          tr: "@dataclass, alan listesinden __init__, __repr__ ve __eq__ metotlarını senin yerine yazar."
+        lang: py
+        form: '@dataclass class Point: x: int; y: int = 0'
+        example: |
+          from dataclasses import dataclass, field
+
+          @dataclass(frozen=True)
+          class Point:
+              x: int
+              y: int = 0
+
+          @dataclass
+          class Order:
+              id: int
+              items: list[str] = field(default_factory=list)
+
+          print(Point(1, 2), Point(1, 2) == Point(1, 2))
+          print(Order(7))
+        output: |
+          Point(x=1, y=2) True
+          Order(id=7, items=[])
+        check: py
+        mistake:
+          en: 'Writing items: list = []; dataclasses refuse a mutable default and raise ValueError. Use field(default_factory=list).'
+          tr: 'items: list = [] yazmak; dataclass değiştirilebilir varsayılanı kabul etmez ve ValueError verir. field(default_factory=list) kullan.'
+        source: https://docs.python.org/3/library/dataclasses.html#dataclasses.dataclass
+      - id: property
+        level: intermediate
+        title: { en: Properties, tr: Property'ler }
+        what:
+          en: "@property lets a method be read like an attribute, so you can compute or check a value behind obj.name."
+          tr: "@property bir metodun özellik gibi okunmasını sağlar; obj.name arkasında değer hesaplayabilir ya da kontrol edebilirsin."
+        lang: py
+        form: '@property def name(self): ...'
+        example: |
+          class Temperature:
+              def __init__(self, celsius):
+                  self.celsius = celsius
+
+              @property
+              def fahrenheit(self):
+                  return self.celsius * 9 / 5 + 32
+
+          t = Temperature(100)
+          print(t.fahrenheit)
+        output: |
+          212.0
+        check: py
+        mistake:
+          en: Calling it with parentheses, t.fahrenheit(); a property is read without them.
+          tr: Parantezle çağırmak, t.fahrenheit(); property parantezsiz okunur.
+        source: https://docs.python.org/3/library/functions.html#property
+      - id: enum
+        level: intermediate
+        title: { en: Enums, tr: Enum'lar }
+        what:
+          en: An Enum is a fixed set of named values, so you write Status.DONE instead of a magic string.
+          tr: Enum, adı olan sabit değerler kümesidir; sihirli string yerine Status.DONE yazarsın.
+        lang: py
+        form: 'class Color(Enum): RED = 1'
+        example: |
+          from enum import Enum, StrEnum, auto
+
+          class Status(StrEnum):
+              TODO = auto()
+              DONE = auto()
+
+          class Color(Enum):
+              RED = 1
+              GREEN = 2
+
+          print(Status.DONE, Status.DONE == "done")
+          print(Color(2).name, [c.name for c in Color])
+        output: |
+          done True
+          GREEN ['RED', 'GREEN']
+        check: py
+        mistake:
+          en: Comparing a plain Enum member with its value (Color.RED == 1 is False); use Color.RED.value, or StrEnum/IntEnum when it must equal the raw value.
+          tr: Düz bir Enum üyesini değeriyle karşılaştırmak (Color.RED == 1 False'tur); Color.RED.value kullan ya da ham değere eşit olması gerekiyorsa StrEnum/IntEnum seç.
+        since: "3.11"
+        older:
+          en: StrEnum came in 3.11; before it people wrote class Status(str, Enum).
+          tr: StrEnum 3.11'de geldi; öncesinde class Status(str, Enum) yazılırdı.
+        source: https://docs.python.org/3/library/enum.html#enum.StrEnum
+  - id: errors-files
+    title: { en: Errors and files, tr: Hatalar ve dosyalar }
+    items:
+      - id: try-except
+        level: basic
+        title: { en: Catch errors, tr: Hataları yakalama }
+        what:
+          en: try runs code that may fail, except handles a specific error, finally always runs at the end.
+          tr: try hata verebilecek kodu çalıştırır, except belirli bir hatayı ele alır, finally en sonda her zaman çalışır.
+        lang: py
+        form: 'try: ... except ValueError as e: ... else: ... finally: ...'
+        example: |
+          for text in ["42", "abc"]:
+              try:
+                  n = int(text)
+              except ValueError as e:
+                  print("bad number:", e)
+              else:
+                  print("ok", n)
+              finally:
+                  print("done")
+        output: |
+          ok 42
+          done
+          bad number: invalid literal for int() with base 10: 'abc'
+          done
+        check: py
+        mistake:
+          en: A bare except or except Exception that hides every error, including your own bugs. Catch only the errors you expect.
+          tr: Her hatayı, kendi bug'larını bile gizleyen çıplak except ya da except Exception yazmak. Sadece beklediğin hataları yakala.
+        source: https://docs.python.org/3/tutorial/errors.html#handling-exceptions
+      - id: raise
+        level: intermediate
+        title: { en: Raise your own errors, tr: Kendi hatalarını fırlatma }
+        what:
+          en: raise stops the function with an error; your own exception classes make errors easy to catch by type.
+          tr: raise fonksiyonu bir hatayla durdurur; kendi exception sınıfların hataları türüne göre yakalamayı kolaylaştırır.
+        lang: py
+        form: raise ValueError("message") from err
+        example: |
+          class ConfigError(Exception):
+              pass
+
+          def load(text):
+              try:
+                  return int(text)
+              except ValueError as err:
+                  raise ConfigError(f"port must be a number: {text!r}") from err
+
+          try:
+              load("eighty")
+          except ConfigError as e:
+              print(e, "| cause:", type(e.__cause__).__name__)
+        output: |
+          port must be a number: 'eighty' | cause: ValueError
+        check: py
+        mistake:
+          en: Raising a new error inside except without "from err", so the traceback reads like a second, unrelated failure.
+          tr: except içinde "from err" olmadan yeni hata fırlatmak; traceback ikinci, ilgisiz bir hata gibi görünür.
+        source: https://docs.python.org/3/tutorial/errors.html#exception-chaining
+      - id: open-files
+        level: basic
+        title: { en: Read and write files, tr: Dosya okuma ve yazma }
+        what:
+          en: open() inside a with block opens a file and closes it for you, even when an error happens.
+          tr: with bloğunda open() dosyayı açar ve hata olsa bile senin yerine kapatır.
+        lang: py
+        form: with open("file.txt", encoding="utf-8") as f
+        example: |
+          with open("notes.txt", "w", encoding="utf-8") as f:
+              f.write("first\nsecond\n")
+
+          with open("notes.txt", encoding="utf-8") as f:
+              for line in f:
+                  print(line.rstrip())
+        output: |
+          first
+          second
+        check: py
+        mistake:
+          en: Leaving out encoding="utf-8"; before 3.15 the default depends on the system (often cp1252 on Windows), so Turkish letters break.
+          tr: encoding="utf-8" yazmamak; 3.15'ten önce varsayılan sisteme bağlıdır (Windows'ta çoğu zaman cp1252), Türkçe harfler bozulur.
+        source: https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files
+      - id: pathlib
+        level: intermediate
+        title: { en: Paths with pathlib, tr: pathlib ile dosya yolları }
+        what:
+          en: Path objects join, read, write and search paths in a way that works on every operating system.
+          tr: Path nesneleri dosya yollarını her işletim sisteminde çalışacak şekilde birleştirir, okur, yazar ve arar.
+        lang: py
+        form: Path("dir") / "file.txt"
+        example: |
+          from pathlib import Path
+
+          root = Path("project")
+          (root / "src").mkdir(parents=True, exist_ok=True)
+          (root / "src" / "app.py").write_text("print('hi')\n", encoding="utf-8")
+          for p in sorted(root.rglob("*.py")):
+              print(p, p.suffix, p.stem)
+        output: |
+          project/src/app.py .py app
+        check: py
+        mistake:
+          en: Building paths with "dir" + "/" + name; on Windows the separator differs. Use the / operator on Path.
+          tr: Yolları "dir" + "/" + name ile birleştirmek; Windows'ta ayraç farklıdır. Path üzerinde / operatörünü kullan.
+        source: https://docs.python.org/3/library/pathlib.html#basic-use
+      - id: json
+        level: basic
+        title: { en: JSON, tr: JSON }
+        what:
+          en: json.dumps turns Python data into a JSON string and json.loads turns it back.
+          tr: json.dumps Python verisini JSON string'e çevirir, json.loads geri çevirir.
+        lang: py
+        form: json.dumps(data, ensure_ascii=False, indent=2)
+        example: |
+          import json
+
+          data = {"city": "İstanbul", "tags": ["a", "b"], "ok": True}
+          text = json.dumps(data, ensure_ascii=False)
+          print(text)
+          print(json.loads(text)["tags"][1])
+          print(json.dumps("ş"))
+        output: |
+          {"city": "İstanbul", "tags": ["a", "b"], "ok": true}
+          b
+          "\u015f"
+        check: py
+        mistake:
+          en: Forgetting that json.dumps escapes non-ASCII letters by default ("\u015f"); pass ensure_ascii=False to keep them readable.
+          tr: json.dumps'ın ASCII dışı harfleri varsayılan olarak kaçışladığını ("\u015f") unutmak; okunur kalmaları için ensure_ascii=False ver.
+        source: https://docs.python.org/3/library/json.html#json.dumps
+  - id: stdlib
+    title: { en: Modules, packages and the standard library, tr: Modüller, paketler ve standart kütüphane }
+    items:
+      - id: venv-pip
+        level: basic
+        title: { en: Virtual environment and pip, tr: Sanal ortam (venv) ve pip }
+        what:
+          en: A venv is a private folder of packages for one project, so projects do not break each other.
+          tr: venv, bir projeye özel paket klasörüdür; projeler birbirini bozmaz.
+        lang: sh
+        form: python3 -m venv .venv
+        example: |
+          python3 -m venv .venv
+          source .venv/bin/activate        # Windows: .venv\Scripts\activate
+          python -m pip install requests
+          python -m pip freeze > requirements.txt
+        mistake:
+          en: Installing packages with the system pip (or sudo pip) instead of inside a venv; it mixes project packages with the system ones.
+          tr: Paketleri venv içine değil sistem pip'iyle (ya da sudo pip ile) kurmak; proje paketleri sistemdekilerle karışır.
+        source: https://docs.python.org/3/library/venv.html
+      - id: main-guard
+        level: basic
+        title: { en: Modules and the main guard, tr: Modüller ve main kontrolü }
+        what:
+          en: Every .py file is a module you can import; code under if __name__ == "__main__" runs only when the file is started directly.
+          tr: Her .py dosyası import edilebilen bir modüldür; if __name__ == "__main__" altındaki kod sadece dosya doğrudan çalıştırılınca çalışır.
+        lang: py
+        form: 'if __name__ == "__main__":'
+        example: |
+          import math
+          from collections import Counter as C
+
+          def main():
+              print(math.sqrt(16), C("aab")["a"])
+
+          if __name__ == "__main__":
+              main()
+        output: |
+          4.0 2
+        check: py
+        mistake:
+          en: Naming your own file like a library (random.py, json.py); your file is imported instead of the real module.
+          tr: Kendi dosyana bir kütüphanenin adını vermek (random.py, json.py); gerçek modül yerine senin dosyan import edilir.
+        source: https://docs.python.org/3/library/__main__.html#idiomatic-usage
+      - id: collections
+        level: intermediate
+        title: { en: Counter and defaultdict, tr: Counter ve defaultdict }
+        what:
+          en: Counter counts things and defaultdict creates a missing key with a starting value for you.
+          tr: Counter şeyleri sayar, defaultdict ise olmayan bir anahtarı başlangıç değeriyle senin yerine oluşturur.
+        lang: py
+        form: Counter(items).most_common(3)
+        example: |
+          from collections import Counter, defaultdict
+
+          words = "the cat and the hat and the bat".split()
+          print(Counter(words).most_common(2))
+
+          groups = defaultdict(list)
+          for w in words:
+              groups[w[0]].append(w)
+          print(dict(groups))
+        output: |
+          [('the', 3), ('and', 2)]
+          {'t': ['the', 'the', 'the'], 'c': ['cat'], 'a': ['and', 'and'], 'h': ['hat'], 'b': ['bat']}
+        check: py
+        source: https://docs.python.org/3/library/collections.html#collections.Counter
+      - id: datetime
+        level: intermediate
+        title: { en: Dates and times, tr: Tarih ve saat }
+        what:
+          en: datetime holds a date and time; give it a time zone so times from different places compare correctly.
+          tr: datetime bir tarih ve saati tutar; farklı yerlerden gelen saatler doğru karşılaştırılsın diye ona saat dilimi ver.
+        lang: py
+        form: datetime.now(timezone.utc)
+        example: |
+          from datetime import datetime, timedelta, timezone
+
+          start = datetime(2026, 10, 17, 9, 30, tzinfo=timezone.utc)
+          end = start + timedelta(days=1, hours=2)
+          print(end.isoformat())
+          print(end.strftime("%d.%m.%Y %H:%M"))
+          print(datetime.fromisoformat("2026-10-17T12:00:00+03:00") == start + timedelta(minutes=-30))
+        output: |
+          2026-10-18T11:30:00+00:00
+          18.10.2026 11:30
+          True
+        check: py
+        mistake:
+          en: Using datetime.utcnow(); it returns a time without a time zone and is deprecated since 3.12. Use datetime.now(timezone.utc).
+          tr: datetime.utcnow() kullanmak; saat dilimi olmayan bir zaman döndürür ve 3.12'den beri deprecated. datetime.now(timezone.utc) kullan.
+        source: https://docs.python.org/3/library/datetime.html#aware-and-naive-objects
+      - id: logging
+        level: intermediate
+        title: { en: Logging, tr: Loglama }
+        what:
+          en: The logging module writes messages with a level (DEBUG, INFO, WARNING, ERROR) that you can filter and format.
+          tr: logging modülü mesajları bir seviyeyle (DEBUG, INFO, WARNING, ERROR) yazar; bunları filtreleyip biçimlendirebilirsin.
+        lang: py
+        form: log = logging.getLogger(__name__)
+        example: |
+          import logging, sys
+
+          logging.basicConfig(stream=sys.stdout, level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+          log = logging.getLogger("app")
+          log.debug("hidden")
+          log.info("user %s logged in", "ada")
+        output: |
+          INFO app: user ada logged in
+        check: py
+        mistake:
+          en: Leaving print() calls in a server; they have no level, no time and cannot be turned off.
+          tr: Sunucuda print() çağrıları bırakmak; seviyeleri ve zamanı yoktur, kapatılamazlar.
+        source: https://docs.python.org/3/howto/logging.html
+      - id: argparse
+        level: intermediate
+        title: { en: Command line arguments, tr: Komut satırı argümanları }
+        what:
+          en: argparse reads the options of your script and writes the --help text for you.
+          tr: argparse script'inin seçeneklerini okur ve --help metnini senin yerine yazar.
+        lang: py
+        form: parser.add_argument("--name", default="world")
+        example: |
+          import argparse
+
+          parser = argparse.ArgumentParser(description="Greeter")
+          parser.add_argument("name")
+          parser.add_argument("-n", "--times", type=int, default=1)
+          parser.add_argument("--loud", action="store_true")
+          args = parser.parse_args(["Ada", "-n", "2", "--loud"])
+          print(args.name, args.times, args.loud)
+        output: |
+          Ada 2 True
+        check: py
+        mistake:
+          en: Reading sys.argv by hand and parsing numbers yourself; argparse already converts types and reports errors.
+          tr: sys.argv'yi elle okuyup sayıları kendin çevirmek; argparse tipleri zaten çevirir ve hataları bildirir.
+        source: https://docs.python.org/3/library/argparse.html
+      - id: subprocess
+        level: intermediate
+        title: { en: Run another program, tr: Başka bir programı çalıştırma }
+        what:
+          en: subprocess.run starts a command, waits for it and gives you its output and exit code.
+          tr: subprocess.run bir komutu başlatır, bitmesini bekler ve çıktısını ile çıkış kodunu verir.
+        lang: py
+        form: subprocess.run(["cmd", "arg"], capture_output=True, text=True, check=True)
+        example: |
+          import subprocess
+
+          result = subprocess.run(["echo", "hello"], capture_output=True, text=True, check=True)
+          print(result.returncode, result.stdout.strip())
+        output: |
+          0 hello
+        check: py
+        mistake:
+          en: Passing user input with shell=True; it allows shell injection. Pass a list of arguments instead.
+          tr: Kullanıcı girdisini shell=True ile vermek; shell injection'a kapı açar. Onun yerine argümanları liste olarak ver.
+        source: https://docs.python.org/3/library/subprocess.html#subprocess.run
+      - id: unittest
+        level: intermediate
+        title: { en: Tests with unittest, tr: unittest ile test }
+        what:
+          en: unittest is the built-in test framework; each test_ method checks one behavior with assert methods.
+          tr: unittest dilin içindeki test framework'üdür; her test_ metodu assert metotlarıyla bir davranışı kontrol eder.
+        lang: py
+        form: python -m unittest
+        example: |
+          import unittest
+
+          def slug(text):
+              return text.strip().lower().replace(" ", "-")
+
+          class SlugTest(unittest.TestCase):
+              def test_spaces(self):
+                  self.assertEqual(slug(" Hello World "), "hello-world")
+
+              def test_error(self):
+                  with self.assertRaises(AttributeError):
+                      slug(None)
+
+          if __name__ == "__main__":
+              unittest.main()
+        check: py
+        mistake:
+          en: Naming methods without the test_ prefix; unittest silently skips them.
+          tr: Metotlara test_ öneki olmadan ad vermek; unittest onları sessizce atlar.
+        avoid:
+          en: Many projects use pytest instead, which runs plain assert statements and also runs unittest tests.
+          tr: Birçok proje onun yerine pytest kullanır; pytest düz assert ifadeleriyle çalışır ve unittest testlerini de çalıştırır.
+        source: https://docs.python.org/3/library/unittest.html#basic-example
+  - id: modern
+    title: { en: Types and modern syntax, tr: Tipler ve modern söz dizimi }
+    items:
+      - id: type-hints
+        level: basic
+        title: { en: Type hints, tr: Tip ipuçları (type hints) }
+        what:
+          en: Type hints say what types a function takes and returns; Python does not enforce them, tools like mypy check them.
+          tr: Tip ipuçları bir fonksiyonun hangi tipleri alıp döndürdüğünü söyler; Python bunları zorlamaz, mypy gibi araçlar kontrol eder.
+        lang: py
+        form: 'def f(name: str, tags: list[str] | None = None) -> int:'
+        example: |
+          def total(prices: list[float], discount: float | None = None) -> float:
+              s = sum(prices)
+              return s * (1 - discount) if discount else s
+
+          print(total([10.0, 5.0], 0.1))
+          print(total.__annotations__["discount"])
+        output: |
+          13.5
+          float | None
+        check: py
+        mistake:
+          en: Thinking hints are checked when the code runs; total("abc") is not stopped by Python, only by a type checker.
+          tr: İpuçlarının çalışırken kontrol edildiğini sanmak; total("abc") çağrısını Python durdurmaz, sadece tip denetleyicisi yakalar.
+        since: "3.10"
+        older:
+          en: "The X | None form came in 3.10 and list[str] in 3.9; older code uses Optional[X] and List[str] from typing."
+          tr: "X | None biçimi 3.10'da, list[str] 3.9'da geldi; eski kod typing'den Optional[X] ve List[str] kullanır."
+        source: https://docs.python.org/3/library/typing.html
+      - id: match
+        level: intermediate
+        title: { en: match statement, tr: match ifadesi }
+        what:
+          en: match compares a value against shapes (patterns) and can pull parts out of it at the same time.
+          tr: match bir değeri şekillerle (pattern) karşılaştırır ve aynı anda içinden parçalar çıkarabilir.
+        lang: py
+        form: 'match value: case {...}: ... case _: ...'
+        example: |
+          def handle(event):
+              match event:
+                  case {"type": "click", "x": x, "y": y}:
+                      return f"click at {x},{y}"
+                  case {"type": "key", "key": "q" | "Q"}:
+                      return "quit"
+                  case [first, *_]:
+                      return f"list starting with {first}"
+                  case _:
+                      return "unknown"
+
+          print(handle({"type": "click", "x": 3, "y": 4}))
+          print(handle({"type": "key", "key": "Q"}))
+          print(handle([9, 8]))
+        output: |
+          click at 3,4
+          quit
+          list starting with 9
+        check: py
+        mistake:
+          en: Writing case STATUS to compare with a variable; a bare name captures any value. Use a dotted name like Status.DONE.
+          tr: Bir değişkenle karşılaştırmak için case STATUS yazmak; çıplak bir ad her değeri yakalar. Status.DONE gibi noktalı bir ad kullan.
+        since: "3.10"
+        source: https://docs.python.org/3/tutorial/controlflow.html#match-statements
+      - id: walrus
+        level: intermediate
+        title: { en: Assignment expression (walrus), tr: Atama ifadesi (walrus) }
+        what:
+          en: ":= assigns a value and returns it in the same expression, handy in while and if."
+          tr: ":= bir değeri atar ve aynı ifadede döndürür; while ve if içinde işe yarar."
+        lang: py
+        form: 'if (n := len(items)) > 10:'
+        example: |
+          import re
+
+          if (m := re.search(r"(\d+) items", "cart has 12 items")):
+              print(m.group(1))
+          data = [5, 0, 7]
+          while (x := data.pop()) != 0:
+              print(x)
+        output: |
+          12
+          7
+        check: py
+        avoid:
+          en: Simple assignments on their own line; plain = is easier to read.
+          tr: Kendi satırındaki basit atamalar; düz = okuması daha kolay.
+        since: "3.8"
+        source: https://docs.python.org/3/reference/expressions.html#assignment-expressions
+      - id: generics
+        level: advanced
+        title: { en: Type aliases and generics, tr: Tip takma adları ve generic'ler }
+        what:
+          en: The type statement names a type, and [T] after a function or class name makes it work with any type T.
+          tr: type ifadesi bir tipe ad verir; fonksiyon ya da sınıf adından sonraki [T] onu herhangi bir T tipiyle çalışır yapar.
+        lang: py
+        form: 'type Pair[T] = tuple[T, T]; def first[T](items: list[T]) -> T:'
+        example: |
+          type UserId = int
+          type Pair[T] = tuple[T, T]
+
+          def first[T](items: list[T]) -> T:
+              return items[0]
+
+          class Box[T]:
+              def __init__(self, value: T):
+                  self.value = value
+
+          p: Pair[str] = ("a", "b")
+          print(first([3, 2]), Box("x").value, UserId.__value__)
+        output: |
+          3 x <class 'int'>
+        check: py
+        since: "3.12"
+        older:
+          en: 'Before 3.12 you wrote T = TypeVar("T"), class Box(Generic[T]) and UserId: TypeAlias = int.'
+          tr: '3.12''den önce T = TypeVar("T"), class Box(Generic[T]) ve UserId: TypeAlias = int yazılırdı.'
+        source: https://docs.python.org/3/reference/simple_stmts.html#the-type-statement
+      - id: t-strings
+        level: advanced
+        title: { en: Template strings (t-strings), tr: Şablon string'ler (t-string) }
+        what:
+          en: A t-string looks like an f-string but gives you the text parts and the values separately, so code can escape values safely (SQL, HTML).
+          tr: t-string f-string'e benzer ama metin parçalarını ve değerleri ayrı verir; böylece kod değerleri güvenle kaçışlayabilir (SQL, HTML).
+        lang: py
+        form: t"Hello {name}"
+        example: |
+          from string.templatelib import Template
+
+          name = "<b>Ada</b>"
+          tpl = t"Hi {name}!"
+          print(isinstance(tpl, Template), tpl.strings)
+          print([i.value for i in tpl.interpolations])
+        output: |
+          True ('Hi ', '!')
+          ['<b>Ada</b>']
+        check: py
+        mistake:
+          en: Expecting a t-string to be a str; it is a Template object, and a library or your own function turns it into text.
+          tr: t-string'in str olduğunu sanmak; o bir Template nesnesidir, onu bir kütüphane ya da kendi fonksiyonun metne çevirir.
+        since: "3.14"
+        source: https://docs.python.org/3/library/string.templatelib.html
+      - id: frozendict
+        level: advanced
+        title: { en: frozendict, tr: frozendict }
+        what:
+          en: A frozendict is a dict that cannot be changed after it is made, so it can be a dict key or a set member.
+          tr: frozendict, oluşturulduktan sonra değiştirilemeyen bir dict'tir; bu yüzden dict anahtarı ya da set elemanı olabilir.
+        lang: py
+        form: frozendict(key=value)
+        example: |
+          config = frozendict(host="db", port=5432)
+          print(config["port"], hash(config) == hash(frozendict(port=5432, host="db")))
+          try:
+              config["port"] = 1
+          except TypeError:
+              print("read-only")
+        output: |
+          5432 True
+          read-only
+        mistake:
+          en: Expecting isinstance(x, dict) to be True; frozendict is not a dict subclass. Check with collections.abc.Mapping.
+          tr: isinstance(x, dict) sonucunun True olmasını beklemek; frozendict dict'in alt sınıfı değildir. collections.abc.Mapping ile kontrol et.
+        since: "3.15"
+        older:
+          en: Before 3.15 the closest built-in option is types.MappingProxyType, a read-only view of a normal dict.
+          tr: 3.15'ten önce en yakın hazır seçenek types.MappingProxyType'tır; normal bir dict'in salt okunur görünümü.
+        source: https://docs.python.org/3/whatsnew/3.15.html#pep-814-add-frozendict-built-in-type
+      - id: lazy-import
+        level: advanced
+        title: { en: Lazy imports, tr: Tembel (lazy) import }
+        what:
+          en: lazy import loads a module only when it is first used, which makes programs start faster.
+          tr: lazy import bir modülü ancak ilk kullanıldığında yükler; programlar daha hızlı başlar.
+        lang: py
+        form: lazy import json
+        example: |
+          lazy import json
+          lazy from pathlib import Path
+
+          print("started")                 # json and pathlib not loaded yet
+          print(json.dumps({"ok": True}))  # json is loaded here
+        output: |
+          started
+          {"ok": true}
+        mistake:
+          en: Writing lazy import inside a function or a try block; it is only allowed at the top level of a module.
+          tr: lazy import'u bir fonksiyonun ya da try bloğunun içine yazmak; sadece modülün en üst seviyesinde kullanılabilir.
+        since: "3.15"
+        older:
+          en: Before 3.15 the usual trick was to put the import inside the function that needs it.
+          tr: 3.15'ten önce bilinen yöntem, import'u ona ihtiyaç duyan fonksiyonun içine koymaktı.
+        source: https://docs.python.org/3/whatsnew/3.15.html#pep-810-explicit-lazy-imports
+      - id: comprehension-unpacking
+        level: advanced
+        title: { en: Unpacking in comprehensions, tr: Comprehension içinde açma }
+        what:
+          en: "* and ** inside a comprehension flatten lists or merge dicts in one step."
+          tr: "Comprehension içindeki * ve ** listeleri düzleştirir ya da dict'leri tek adımda birleştirir."
+        lang: py
+        form: "[*row for row in rows]"
+        example: |
+          rows = [[1, 2], [3], [4, 5]]
+          print([*row for row in rows])
+          layers = [{"a": 1}, {"b": 2}, {"a": 3}]
+          print({**d for d in layers})
+        output: |
+          [1, 2, 3, 4, 5]
+          {'a': 3, 'b': 2}
+        since: "3.15"
+        older:
+          en: Before 3.15 write [x for row in rows for x in row] or itertools.chain.from_iterable(rows).
+          tr: 3.15'ten önce [x for row in rows for x in row] ya da itertools.chain.from_iterable(rows) yazılır.
+        source: https://docs.python.org/3/whatsnew/3.15.html#pep-798-unpacking-in-comprehensions
+  - id: async
+    title: { en: Async and concurrency, tr: Async ve eşzamanlılık }
+    items:
+      - id: asyncio
+        level: intermediate
+        title: { en: async and await, tr: async ve await }
+        what:
+          en: async functions can pause at await while waiting for I/O, so one thread handles many waits at once.
+          tr: async fonksiyonlar I/O beklerken await noktasında durabilir; böylece tek bir thread aynı anda birçok beklemeyi yönetir.
+        lang: py
+        form: asyncio.run(main())
+        example: |
+          import asyncio
+
+          async def fetch(name, delay):
+              await asyncio.sleep(delay)
+              return f"{name} done"
+
+          async def main():
+              results = await asyncio.gather(fetch("a", 0.2), fetch("b", 0.1))
+              print(results)
+
+          asyncio.run(main())
+        output: |
+          ['a done', 'b done']
+        check: py
+        mistake:
+          en: Calling time.sleep() or a blocking library inside async code; it freezes every task. Use await asyncio.sleep() and async libraries.
+          tr: Async kodun içinde time.sleep() ya da bloklayan bir kütüphane çağırmak; tüm task'ları dondurur. await asyncio.sleep() ve async kütüphaneler kullan.
+        avoid:
+          en: CPU-heavy work (image processing, big math); async does not make it faster. Use processes for that.
+          tr: CPU'yu yoran işler (resim işleme, büyük hesaplar); async onları hızlandırmaz. Bunun için process'ler kullan.
+        source: https://docs.python.org/3/library/asyncio-task.html#coroutines
+      - id: taskgroup
+        level: advanced
+        title: { en: TaskGroup and timeouts, tr: TaskGroup ve zaman aşımı }
+        what:
+          en: A TaskGroup runs tasks together and cancels the rest if one fails; asyncio.timeout stops work that takes too long.
+          tr: TaskGroup task'ları birlikte çalıştırır ve biri hata verirse diğerlerini iptal eder; asyncio.timeout fazla süren işi durdurur.
+        lang: py
+        form: 'async with asyncio.TaskGroup() as tg: tg.create_task(job())'
+        example: |
+          import asyncio
+
+          async def job(n):
+              await asyncio.sleep(n / 10)
+              return n * 2
+
+          async def main():
+              async with asyncio.TaskGroup() as tg:
+                  tasks = [tg.create_task(job(n)) for n in (1, 2, 3)]
+              print([t.result() for t in tasks])
+              try:
+                  async with asyncio.timeout(0.05):
+                      await job(5)
+              except TimeoutError:
+                  print("too slow")
+
+          asyncio.run(main())
+        output: |
+          [2, 4, 6]
+          too slow
+        check: py
+        mistake:
+          en: Catching one exception from a TaskGroup with a plain except; errors arrive wrapped in an ExceptionGroup, so use except*.
+          tr: TaskGroup'tan gelen hatayı düz except ile yakalamak; hatalar ExceptionGroup içinde gelir, except* kullan.
+        since: "3.11"
+        older:
+          en: Before 3.11 use asyncio.gather and asyncio.wait_for.
+          tr: 3.11'den önce asyncio.gather ve asyncio.wait_for kullanılır.
+        source: https://docs.python.org/3/library/asyncio-task.html#task-groups
+      - id: thread-pool
+        level: advanced
+        title: { en: Threads and processes with concurrent.futures, tr: concurrent.futures ile thread ve process }
+        what:
+          en: An executor runs a function on many inputs in parallel threads or processes and collects the results.
+          tr: Executor bir fonksiyonu birçok girdi üzerinde paralel thread ya da process'lerde çalıştırır ve sonuçları toplar.
+        lang: py
+        form: 'with ThreadPoolExecutor(max_workers=8) as pool: pool.map(f, items)'
+        example: |
+          from concurrent.futures import ThreadPoolExecutor
+          import time
+
+          def work(n):
+              time.sleep(0.1)
+              return n * n
+
+          with ThreadPoolExecutor(max_workers=4) as pool:
+              print(list(pool.map(work, range(6))))
+        output: |
+          [0, 1, 4, 9, 16, 25]
+        check: py
+        mistake:
+          en: Using threads to speed up pure Python math on the standard build; the GIL lets one thread run Python at a time. Use ProcessPoolExecutor for that.
+          tr: Standart Python'da saf Python hesaplarını hızlandırmak için thread kullanmak; GIL aynı anda tek thread'in Python çalıştırmasına izin verir. Bunun için ProcessPoolExecutor kullan.
+        source: https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor

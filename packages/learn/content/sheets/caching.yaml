@@ -1,0 +1,699 @@
+id: caching
+title: Caching
+category: concept
+summary:
+  en: Keeping a copy of an answer so the next request is faster and cheaper; covers HTTP cache headers, CDNs, Redis and the patterns and traps of caching in your own code.
+  tr: Bir cevabın kopyasını saklayıp sonraki isteği daha hızlı ve ucuz yapmak; HTTP cache header'larını, CDN'leri, Redis'i ve kendi kodundaki cache'leme pattern'lerini ve tuzaklarını kapsar.
+aliases: [cache, caching, cache-control, etag, 304, ttl, cdn, redis cache, cache-aside, memoization, memoize, stampede, invalidation, önbellek, önbellekleme, cache invalidation]
+checked: 2026-10
+sources:
+  - title: MDN HTTP caching
+    url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching
+  - title: RFC 9111 HTTP Caching
+    url: https://www.rfc-editor.org/rfc/rfc9111
+  - title: Redis eviction and caching
+    url: https://redis.io/docs/latest/develop/reference/eviction/
+roadmap: web
+sections:
+  - id: http-headers
+    title: { en: HTTP cache headers, tr: HTTP cache header'ları }
+    items:
+      - id: why-cache
+        level: basic
+        title: { en: What caching is and where it happens, tr: Cache'leme nedir ve nerede olur }
+        what:
+          en: A cache keeps a copy of a response so that the next request does not need the slow or expensive work again.
+          tr: Cache bir cevabın kopyasını saklar; böylece sonraki istek yavaş veya pahalı işi tekrar yapmak zorunda kalmaz.
+        lang: text
+        form: |
+          browser cache  ->  CDN / proxy  ->  your app cache (Redis)  ->  database
+          each layer answers if it has a fresh copy, otherwise asks the next one
+        mistake:
+          en: Caching everything everywhere; every cache is a copy that can be stale, so cache what is slow, read often and can be a little old.
+          tr: Her şeyi her yerde cache'lemek; her cache bayatlayabilecek bir kopyadır, o yüzden yavaş, sık okunan ve biraz eski olabilen şeyi cache'le.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching
+      - id: max-age
+        level: basic
+        title: { en: Cache-Control max-age, tr: Cache-Control max-age }
+        what:
+          en: Tells caches how many seconds a response is fresh; during that time it is reused without asking the server.
+          tr: Cache'lere bir cevabın kaç saniye taze olduğunu söyler; bu sürede cevap sunucuya sorulmadan yeniden kullanılır.
+        lang: text
+        form: |
+          Cache-Control: max-age=3600
+        example: |
+          Cache-Control: public, max-age=86400     one day
+          Cache-Control: max-age=0                 stale at once, must revalidate
+        mistake:
+          en: Setting a long max-age on a URL whose content changes (like /app.js); users keep the old file until it expires and you cannot recall it.
+          tr: İçeriği değişen bir URL'ye (örneğin /app.js) uzun max-age vermek; kullanıcılar süre dolana kadar eski dosyayı kullanır ve geri çağıramazsın.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#max-age
+      - id: no-store-no-cache
+        level: basic
+        title: { en: no-store versus no-cache, tr: no-store ile no-cache farkı }
+        what:
+          en: no-store means do not keep the response at all; no-cache means you may keep it but must check with the server before each reuse.
+          tr: no-store cevabı hiç saklama demektir; no-cache saklayabilirsin ama her kullanımdan önce sunucuya sormalısın demektir.
+        lang: text
+        form: |
+          Cache-Control: no-store      never written to any cache (private data)
+          Cache-Control: no-cache      stored, but revalidate every time (ETag)
+        mistake:
+          en: Using no-cache to mean "do not cache". It still stores the response; use no-store for sensitive data such as account pages.
+          tr: no-cache'i "cache'leme" anlamında kullanmak. Cevabı yine saklar; hesap sayfaları gibi hassas veri için no-store kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#no-cache
+      - id: public-private
+        level: basic
+        title: { en: public and private, tr: public ve private }
+        what:
+          en: private lets only the user's own browser store the response; public also allows shared caches such as a CDN.
+          tr: private cevabı sadece kullanıcının kendi tarayıcısında saklanabilir yapar; public CDN gibi paylaşımlı cache'lere de izin verir.
+        lang: text
+        form: |
+          Cache-Control: private, max-age=60     per-user data
+          Cache-Control: public, max-age=3600    same for everybody
+        mistake:
+          en: Sending a personalised page without private, so a CDN may serve one user's page to another user.
+          tr: Kişiselleştirilmiş sayfayı private olmadan göndermek; CDN bir kullanıcının sayfasını başka bir kullanıcıya verebilir.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#private
+      - id: immutable-fingerprint
+        level: intermediate
+        title: { en: Long cache for fingerprinted files, tr: Parmak izli dosyalar için uzun cache }
+        what:
+          en: Put a hash in the file name (app.3f9a1c.js) and cache it for a year; a new build gets a new name, so users never see stale files.
+          tr: Dosya adına hash koy (app.3f9a1c.js) ve bir yıl cache'le; yeni build yeni ad alır, kullanıcılar bayat dosya görmez.
+        lang: text
+        form: |
+          /assets/app.3f9a1c.js
+          Cache-Control: public, max-age=31536000, immutable
+        mistake:
+          en: Giving the long cache to index.html as well; the HTML must stay short-lived (or no-cache) because it points to the new file names.
+          tr: Uzun cache'i index.html'e de vermek; HTML yeni dosya adlarına işaret ettiği için kısa ömürlü (veya no-cache) kalmalı.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#immutable
+      - id: vary
+        level: intermediate
+        title: { en: Vary, tr: Vary }
+        what:
+          en: Lists the request headers that change the response, so a cache stores one copy per value of those headers.
+          tr: Cevabı değiştiren request header'larını listeler; cache bu header değerlerinin her biri için ayrı kopya saklar.
+        lang: text
+        form: |
+          Vary: Accept-Encoding
+          Vary: Accept-Language, Cookie
+        mistake:
+          en: Varying on Cookie or User-Agent for public pages; there are almost as many copies as users, and the cache hit rate drops to nearly zero.
+          tr: Herkese açık sayfalarda Cookie veya User-Agent'a göre Vary vermek; neredeyse kullanıcı sayısı kadar kopya olur ve cache isabet oranı sıfıra yaklaşır.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Vary
+      - id: stale-while-revalidate
+        level: advanced
+        title: { en: stale-while-revalidate and stale-if-error, tr: stale-while-revalidate ve stale-if-error }
+        what:
+          en: Lets a cache serve a slightly old copy at once while it refreshes in the background, or when the origin is failing.
+          tr: Cache'in hafif eski bir kopyayı hemen sunmasına, arka planda yenilemesine veya origin hata verirken kullanmasına izin verir.
+        lang: text
+        form: |
+          Cache-Control: max-age=60, stale-while-revalidate=300, stale-if-error=86400
+        mistake:
+          en: Assuming every cache supports it; check your CDN and browser, because an unsupported directive is just ignored.
+          tr: Her cache'in bunu desteklediğini sanmak; CDN ve tarayıcını kontrol et, çünkü desteklenmeyen directive sadece yok sayılır.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#stale-while-revalidate
+      - id: freshness-age
+        level: advanced
+        title: { en: Age and heuristic freshness, tr: Age ve sezgisel tazelik }
+        what:
+          en: Age says how long a copy has been in caches; if a response has no explicit freshness but has Last-Modified, caches may guess a lifetime.
+          tr: Age bir kopyanın cache'lerde ne kadar durduğunu söyler; cevapta açık tazelik yok ama Last-Modified varsa cache'ler bir ömür tahmin edebilir.
+        lang: text
+        form: |
+          Age: 120                         this copy is 2 minutes old
+          Last-Modified: Mon, 01 Jun 2026 09:00:00 GMT   with no Cache-Control
+        mistake:
+          en: Relying on the guess. A response with only Last-Modified may be reused for a long time (often a fraction of its age); always send Cache-Control.
+          tr: Tahmine güvenmek. Sadece Last-Modified olan cevap uzun süre yeniden kullanılabilir (genelde yaşının bir kısmı kadar); her zaman Cache-Control gönder.
+        source: https://www.rfc-editor.org/rfc/rfc9111#name-calculating-heuristic-fresh
+  - id: validation
+    title:
+      en: "Validation: ETag and 304"
+      tr: "Doğrulama: ETag ve 304"
+    items:
+      - id: etag
+        level: basic
+        title: { en: ETag, tr: ETag }
+        what:
+          en: A fingerprint of a response that the server sends; the client sends it back later to ask whether the content changed.
+          tr: Sunucunun gönderdiği cevap parmak izidir; istemci içeriğin değişip değişmediğini sormak için sonra bunu geri yollar.
+        lang: text
+        form: |
+          ETag: "33a64df5"
+          ETag: W/"0815"       weak: same meaning, maybe not byte for byte
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag
+      - id: conditional-304
+        level: basic
+        title: { en: If-None-Match and 304, tr: If-None-Match ve 304 }
+        what:
+          en: The client asks "I have version X, still current?"; if yes the server answers 304 with no body, which saves the download.
+          tr: İstemci "Bende X sürümü var, hâlâ güncel mi?" diye sorar; güncelse sunucu gövdesiz 304 döner ve indirme tasarruf edilir.
+        lang: js
+        form: |
+          GET /data      ->  200, ETag: "v1"
+          GET /data      If-None-Match: "v1"   ->  304 Not Modified (no body)
+        example: |
+          import http from "node:http";
+
+          const etag = '"v1"';
+          const server = http.createServer((req, res) => {
+            if (req.headers["if-none-match"] === etag) {
+              res.writeHead(304, { ETag: etag });
+              return res.end();
+            }
+            res.writeHead(200, { ETag: etag, "Cache-Control": "no-cache" });
+            res.end("hello");
+          });
+
+          server.listen(0, "127.0.0.1", async () => {
+            const url = `http://127.0.0.1:${server.address().port}/`;
+            const first = await fetch(url);
+            console.log(first.status, first.headers.get("etag"), await first.text());
+            const second = await fetch(url, { headers: { "If-None-Match": first.headers.get("etag") } });
+            console.log(second.status, JSON.stringify(await second.text()));
+            server.close();
+          });
+        output: |
+          200 "v1" hello
+          304 ""
+        check: js
+        mistake:
+          en: Sending a 304 together with a body or without the validators; a 304 must have no body and should repeat the ETag and Cache-Control headers.
+          tr: 304'ü gövdeyle birlikte ya da validator'lar olmadan göndermek; 304'te gövde olmaz ve ETag ile Cache-Control header'ları tekrarlanmalıdır.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/304
+      - id: last-modified
+        level: intermediate
+        title: { en: Last-Modified and If-Modified-Since, tr: Last-Modified ve If-Modified-Since }
+        what:
+          en: The same idea as ETag but with a date; the client sends back the date it got and the server answers 304 if nothing changed since.
+          tr: ETag ile aynı fikir ama tarihle; istemci aldığı tarihi geri yollar, o tarihten beri değişiklik yoksa sunucu 304 döner.
+        lang: text
+        form: |
+          Last-Modified: Mon, 01 Jun 2026 09:00:00 GMT
+          If-Modified-Since: Mon, 01 Jun 2026 09:00:00 GMT
+        avoid:
+          en: When changes happen faster than once per second, or the date is not reliable; prefer an ETag, which wins if both are sent.
+          tr: Değişiklikler saniyede bir defadan sık olduğunda veya tarih güvenilir olmadığında; ETag tercih et, ikisi de gönderilirse ETag öncelikli olur.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Modified-Since
+      - id: etag-generate
+        level: advanced
+        title: { en: Strong and weak ETags, tr: Güçlü ve zayıf ETag'ler }
+        what:
+          en: A strong ETag changes whenever a single byte changes; a weak one (W/) only changes when the meaning changes, and cannot be used for byte ranges.
+          tr: Güçlü ETag tek bir byte değişince değişir; zayıf olan (W/) sadece anlam değişince değişir ve byte aralığı istekleri için kullanılamaz.
+        lang: text
+        form: |
+          ETag: "a1b2c3"      hash of the exact bytes
+          ETag: W/"v12"       version number of the content
+        mistake:
+          en: Building the ETag from something that differs per server (like an inode or timestamp), so two servers behind a load balancer never agree.
+          tr: ETag'i sunucudan sunucuya değişen bir şeyden (inode veya zaman damgası gibi) üretmek; load balancer arkasındaki iki sunucu hiç aynı değeri vermez.
+        source: https://www.rfc-editor.org/rfc/rfc9110#name-weak-versus-strong
+  - id: cdn
+    title: { en: CDN and shared caches, tr: CDN ve paylaşımlı cache'ler }
+    items:
+      - id: cdn-basics
+        level: basic
+        title: { en: What a CDN caches, tr: CDN neyi cache'ler }
+        what:
+          en: A CDN keeps copies of your responses on servers near your users, and answers from there without bothering your server.
+          tr: CDN cevaplarının kopyalarını kullanıcılarına yakın sunucularda tutar ve senin sunucunu yormadan oradan cevap verir.
+        lang: text
+        form: |
+          user -> CDN edge --hit--> response
+                      |
+                      +--miss--> your origin server -> stored at the edge
+        mistake:
+          en: Testing from one location, seeing "fast", and assuming all edges have the copy; each edge location has its own cache and its own first miss.
+          tr: Tek bir yerden test edip "hızlı" görünce tüm edge'lerde kopya olduğunu sanmak; her edge lokasyonunun kendi cache'i ve kendi ilk miss'i vardır.
+        source: https://developer.mozilla.org/en-US/docs/Glossary/CDN
+      - id: s-maxage
+        level: intermediate
+        title: { en: s-maxage for shared caches, tr: Paylaşımlı cache'ler için s-maxage }
+        what:
+          en: Sets the freshness for shared caches such as a CDN separately from the browser's max-age.
+          tr: CDN gibi paylaşımlı cache'ler için tazeliği, tarayıcının max-age değerinden ayrı belirler.
+        lang: text
+        form: |
+          Cache-Control: public, max-age=60, s-maxage=3600
+        example: |
+          browser keeps it 1 minute, the CDN keeps it 1 hour
+        avoid:
+          en: For private data. Shared caches must not keep responses marked private.
+          tr: Özel veri için. Paylaşımlı cache'ler private işaretli cevapları saklamamalıdır.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#s-maxage
+      - id: cache-key
+        level: intermediate
+        title: { en: The cache key and query strings, tr: Cache key ve query string'ler }
+        what:
+          en: A cache finds a copy by its key, usually method plus URL; two URLs that differ in any query parameter are two entries.
+          tr: Cache bir kopyayı key'i ile bulur, genelde method artı URL; query parametresi farklı iki URL iki ayrı kayıttır.
+        lang: text
+        form: |
+          /products?id=5            one entry
+          /products?id=5&utm=mail   another entry (same content, wasted)
+        mistake:
+          en: Letting tracking parameters (utm_source, fbclid) into the key; every campaign link misses. Configure the CDN to ignore them.
+          tr: Takip parametrelerinin (utm_source, fbclid) key'e girmesine izin vermek; her kampanya linki miss olur. CDN'i bunları yok sayacak şekilde ayarla.
+        source: https://www.rfc-editor.org/rfc/rfc9111#name-overview-of-cache-operation
+      - id: cdn-private-data
+        level: intermediate
+        title: { en: Cookies and logged-in pages, tr: Cookie'ler ve giriş yapılmış sayfalar }
+        what:
+          en: Responses with Set-Cookie or for logged-in users must not be shared; mark them private or no-store, or the CDN may show them to others.
+          tr: Set-Cookie içeren veya giriş yapmış kullanıcılara ait cevaplar paylaşılmamalıdır; private veya no-store işaretle, yoksa CDN başkalarına gösterebilir.
+        lang: text
+        form: |
+          Cache-Control: private, no-store
+          Set-Cookie: session=...; HttpOnly; Secure
+        mistake:
+          en: Putting a CDN in front of the app with a default "cache everything" rule and leaking one user's account page to another. Test with two different accounts.
+          tr: Uygulamanın önüne varsayılan "her şeyi cache'le" kuralıyla CDN koyup bir kullanıcının hesap sayfasını başkasına sızdırmak. İki farklı hesapla test et.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#private
+      - id: purge
+        level: intermediate
+        title: { en: Purging and versioned URLs, tr: Purge ve sürümlü URL'ler }
+        what:
+          en: To remove a bad copy early you purge it at the CDN, but the cheaper way is to change the URL so the old copy is never asked for again.
+          tr: Kötü bir kopyayı erken kaldırmak için CDN'de purge edersin, ama daha ucuz yol URL'yi değiştirmektir; eski kopya bir daha istenmez.
+        lang: text
+        form: |
+          /logo.png            purge needed after each change
+          /logo.4fa2.png       new name = new cache entry, no purge
+        mistake:
+          en: Purging the CDN and forgetting the browser caches; users who already have the file keep it until max-age ends.
+          tr: CDN'i purge edip tarayıcı cache'lerini unutmak; dosyaya zaten sahip olan kullanıcılar max-age bitene kadar onu kullanır.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching#cache_busting
+      - id: cache-status
+        level: advanced
+        title: { en: Seeing hit or miss, tr: Hit veya miss'i görme }
+        what:
+          en: Many CDNs add a response header that says whether the answer came from the cache; the standard one is Cache-Status.
+          tr: Birçok CDN cevabın cache'ten gelip gelmediğini söyleyen bir response header ekler; standart olanı Cache-Status'tür.
+        lang: sh
+        form: |
+          curl -sI https://example.com/app.js | grep -iE 'cache|age'
+          Cache-Status: ExampleCDN; hit
+          Age: 120
+        mistake:
+          en: Looking for one fixed header name. Vendors still use their own (X-Cache, CF-Cache-Status, X-Vercel-Cache); read your CDN's documentation.
+          tr: Tek ve sabit bir header adı aramak. Sağlayıcılar hâlâ kendi adlarını kullanır (X-Cache, CF-Cache-Status, X-Vercel-Cache); CDN'inin dökümanını oku.
+        source: https://www.rfc-editor.org/rfc/rfc9211
+  - id: app-cache
+    title: { en: Caching in your application, tr: Uygulamanda cache'leme }
+    items:
+      - id: cache-aside
+        level: basic
+        title: { en: Cache-aside, tr: Cache-aside }
+        what:
+          en: The code checks the cache first; on a miss it loads from the database, stores the result in the cache and returns it.
+          tr: Kod önce cache'e bakar; miss olursa veritabanından okur, sonucu cache'e yazar ve döner.
+        lang: py
+        form: |
+          value = cache.get(key)
+          if value is None:
+              value = db.load(key)
+              cache.set(key, value, ttl)
+          return value
+        example: |
+          cache = {}  # key -> (value, expires_at)
+          now = 0.0   # fake clock so the example is predictable
+          loads = 0
+
+          def load_user(user_id):
+              global loads
+              loads += 1
+              return {"id": user_id, "name": "Ada"}
+
+          def get_user(user_id, ttl=60):
+              hit = cache.get(user_id)
+              if hit and hit[1] > now:
+                  return hit[0]
+              value = load_user(user_id)
+              cache[user_id] = (value, now + ttl)
+              return value
+
+          get_user(1); get_user(1)
+          print("loads:", loads)
+          now = 61.0
+          get_user(1)
+          print("loads:", loads)
+        output: |
+          loads: 1
+          loads: 2
+        check: py
+        mistake:
+          en: Treating None as "not cached" when None is also a valid answer, so missing records hit the database every time. Store a marker for "not found" with a short TTL.
+          tr: None'ı "cache'te yok" saymak, oysa None geçerli bir cevap da olabilir; böylece olmayan kayıtlar her seferinde veritabanına gider. "Bulunamadı" için kısa TTL'li bir işaret sakla.
+        source: https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside
+      - id: ttl
+        level: basic
+        title: { en: TTL (time to live), tr: TTL (yaşam süresi) }
+        what:
+          en: A time after which a cached value expires by itself; it is your safety net against stale data when you forget to invalidate.
+          tr: Cache'teki değerin süre dolunca kendiliğinden silindiği zamandır; invalidate etmeyi unuttuğunda bayat veriye karşı güvenlik ağındır.
+        lang: text
+        form: |
+          price of a product      60 seconds
+          user profile            5-15 minutes
+          country list            1 day
+        mistake:
+          en: Choosing one TTL for everything. Pick it from how much staleness the data can bear, and always set one.
+          tr: Her şey için tek TTL seçmek. Verinin ne kadar bayatlığa dayanabildiğine göre seç ve mutlaka bir TTL ver.
+        source: https://redis.io/docs/latest/commands/expire/
+      - id: redis-cache-cmds
+        level: basic
+        title: { en: Redis as a cache, tr: Cache olarak Redis }
+        what:
+          en: Redis keeps data in memory and can expire keys by itself, which makes it the usual shared cache for web apps.
+          tr: Redis veriyi bellekte tutar ve key'leri kendiliğinden süresi dolduğunda siler; bu yüzden web uygulamaları için yaygın paylaşımlı cache'tir.
+        lang: text
+        form: |
+          SET user:42 "{...json...}" EX 300     store for 300 seconds
+          GET user:42                           value, or (nil) on a miss
+          TTL user:42                           seconds left (-2 = gone, -1 = no expiry)
+          DEL user:42                           invalidate
+        mistake:
+          en: Using SET and EXPIRE as two commands; if the app dies between them the key never expires. Use SET with EX (one atomic command).
+          tr: SET ve EXPIRE'ı iki ayrı komut olarak kullanmak; uygulama ikisi arasında ölürse key hiç silinmez. EX'li SET kullan (tek atomik komut).
+        source: https://redis.io/docs/latest/commands/set/
+      - id: memoization-py
+        level: basic
+        title: { en: Memoization in Python, tr: Python'da memoization }
+        what:
+          en: Memoization caches the result of a function by its arguments, so calling it again with the same arguments is instant.
+          tr: Memoization bir fonksiyonun sonucunu argümanlarına göre cache'ler; aynı argümanlarla tekrar çağırmak anında olur.
+        lang: py
+        form: |
+          from functools import lru_cache
+
+          @lru_cache(maxsize=1024)
+          def f(x): ...
+        example: |
+          from functools import lru_cache
+
+          @lru_cache(maxsize=None)
+          def fib(n):
+              return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+          print(fib(30))
+          print(fib.cache_info())
+        output: |
+          832040
+          CacheInfo(hits=28, misses=31, maxsize=None, currsize=31)
+        check: py
+        mistake:
+          en: Memoizing a function that reads a file, the time or a database; the cache returns the old answer forever. Only memoize pure functions, and arguments must be hashable.
+          tr: Dosya, saat veya veritabanı okuyan fonksiyonu memoize etmek; cache sonsuza kadar eski cevabı verir. Sadece saf (pure) fonksiyonları memoize et; argümanlar hashable olmalı.
+        avoid:
+          en: In a long-running server with unbounded input; maxsize=None grows without limit and eats memory. Set a maxsize.
+          tr: Sınırsız girdisi olan, uzun süre çalışan bir sunucuda; maxsize=None sınırsız büyür ve belleği yer. maxsize ver.
+        source: https://docs.python.org/3/library/functools.html#functools.lru_cache
+      - id: memoization-js
+        level: basic
+        title: { en: Memoization in JavaScript, tr: JavaScript'te memoization }
+        what:
+          en: A small wrapper that stores results in a Map under a key built from the arguments.
+          tr: Sonuçları, argümanlardan üretilen bir key ile Map içinde saklayan küçük bir sarmalayıcı.
+        lang: js
+        form: |
+          const cache = new Map();
+          if (!cache.has(key)) cache.set(key, compute());
+          return cache.get(key);
+        example: |
+          function memoize(fn) {
+            const cache = new Map();
+            return (...args) => {
+              const key = JSON.stringify(args);
+              if (!cache.has(key)) cache.set(key, fn(...args));
+              return cache.get(key);
+            };
+          }
+
+          let runs = 0;
+          const square = memoize((n) => { runs++; return n * n; });
+          console.log(square(9), square(9), square(4), "runs:", runs);
+        output: |
+          81 81 16 runs: 2
+        check: js
+        mistake:
+          en: Using the first argument only as the key, or an object as the key; two different calls share one entry, or equal objects never match. Build a string key from all the arguments.
+          tr: Key olarak sadece ilk argümanı ya da bir nesneyi kullanmak; farklı iki çağrı aynı kaydı paylaşır veya eşit nesneler hiç eşleşmez. Tüm argümanlardan bir string key üret.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+      - id: in-process-vs-shared
+        level: intermediate
+        title: { en: In-process cache or shared cache, tr: Process içi cache mı paylaşımlı cache mi }
+        what:
+          en: A cache inside your process is the fastest but each server instance has its own copy; Redis is slower but one copy is shared by all instances.
+          tr: Process içindeki cache en hızlısıdır ama her sunucu instance'ının kendi kopyası olur; Redis daha yavaştır ama tek kopya tüm instance'larca paylaşılır.
+        lang: text
+        form: |
+          in-process (Map, lru_cache)  fast, per instance, lost on restart
+          Redis / Memcached            network call, shared, survives app restarts
+        mistake:
+          en: Invalidating the in-process cache on one server and forgetting the others; users see old data depending on which server they hit.
+          tr: Process içi cache'i bir sunucuda invalidate edip diğerlerini unutmak; kullanıcılar hangi sunucuya düştüğüne göre eski veri görür.
+        source: https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching
+      - id: eviction
+        level: intermediate
+        title: { en: Eviction and LRU, tr: Eviction ve LRU }
+        what:
+          en: A cache has a size limit, so when it is full it removes entries; LRU removes the one used longest ago.
+          tr: Cache'in boyut sınırı vardır, dolunca kayıt siler; LRU en uzun süredir kullanılmayanı siler.
+        lang: py
+        form: |
+          # redis.conf
+          maxmemory 256mb
+          maxmemory-policy allkeys-lru
+        example: |
+          from collections import OrderedDict
+
+          class LRU:
+              def __init__(self, size):
+                  self.size, self.data = size, OrderedDict()
+              def get(self, key):
+                  if key not in self.data:
+                      return None
+                  self.data.move_to_end(key)
+                  return self.data[key]
+              def set(self, key, value):
+                  self.data[key] = value
+                  self.data.move_to_end(key)
+                  if len(self.data) > self.size:
+                      self.data.popitem(last=False)
+
+          c = LRU(2)
+          c.set("a", 1); c.set("b", 2)
+          c.get("a")          # a is now the most recently used
+          c.set("c", 3)       # b is evicted
+          print(list(c.data))
+        output: |
+          ['a', 'c']
+        check: py
+        mistake:
+          en: Running Redis as a cache without maxmemory; memory grows until the server runs out. The default policy (noeviction) then refuses writes instead of dropping old keys.
+          tr: Redis'i maxmemory olmadan cache olarak çalıştırmak; bellek sunucu bitene kadar büyür. Varsayılan policy (noeviction) eski key'leri silmek yerine yazmayı reddeder.
+        source: https://redis.io/docs/latest/develop/reference/eviction/
+      - id: key-design
+        level: basic
+        title: { en: Designing cache keys, tr: Cache key tasarımı }
+        what:
+          en: A key must contain everything the value depends on, such as the id, the language and a version, or two different things share one entry.
+          tr: Key, değerin bağlı olduğu her şeyi içermelidir, örneğin id, dil ve bir sürüm; yoksa iki farklı şey aynı kaydı paylaşır.
+        lang: text
+        form: |
+          user:42:profile:v3
+          product:1001:en:price
+          report:2026-10:team-7
+        mistake:
+          en: Forgetting a part that changes the answer (language, tenant, currency), so one customer sees another one's data.
+          tr: Cevabı değiştiren bir parçayı (dil, tenant, para birimi) key'e koymayı unutmak; bir müşteri başka müşterinin verisini görür.
+        source: https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching
+  - id: patterns
+    title: { en: Patterns and invalidation, tr: Pattern'ler ve invalidation }
+    items:
+      - id: invalidate-on-write
+        level: basic
+        title: { en: Invalidate on write, tr: Yazarken invalidate etme }
+        what:
+          en: When the data changes, delete the cached copy so the next read loads the fresh value.
+          tr: Veri değişince cache'teki kopyayı sil; sonraki okuma güncel değeri yükler.
+        lang: text
+        form: |
+          db.update(user)
+          cache.delete("user:42")        delete, do not try to fix the old copy
+        mistake:
+          en: Updating the cache instead of deleting it and getting the order wrong under load; two writers can leave the old value in the cache. Delete is simpler and safer.
+          tr: Cache'i silmek yerine güncellemek ve yük altında sırayı yanlış yapmak; iki yazan eski değeri cache'te bırakabilir. Silmek daha basit ve güvenlidir.
+        source: https://learn.microsoft.com/en-us/azure/architecture/patterns/cache-aside
+      - id: write-patterns
+        level: intermediate
+        title: { en: Read-through, write-through and write-behind, tr: Read-through, write-through ve write-behind }
+        what:
+          en: The cache itself can load missing data (read-through), write to the database as you write (write-through), or save later in a batch (write-behind).
+          tr: Cache eksik veriyi kendisi yükleyebilir (read-through), yazarken veritabanına da yazabilir (write-through) veya sonra toplu kaydedebilir (write-behind).
+        lang: text
+        form: |
+          read-through     cache loads the value on a miss
+          write-through    write cache + database together (slower write, always fresh)
+          write-behind     write cache now, database later (fast, but data can be lost)
+        avoid:
+          en: Write-behind for data you cannot lose, such as payments; a crash before the flush loses the writes.
+          tr: Ödemeler gibi kaybedemeyeceğin veri için write-behind; flush'tan önce çökerse yazılanlar kaybolur.
+        source: https://en.wikipedia.org/wiki/Cache_(computing)#Write_policies
+      - id: versioned-keys
+        level: advanced
+        title: { en: Invalidate by changing the key, tr: Key'i değiştirerek invalidate etme }
+        what:
+          en: Keep a version number inside the key; to invalidate a whole group, bump the version and the old entries are never read again and expire on their own.
+          tr: Key'in içinde bir sürüm numarası tut; bütün bir grubu invalidate etmek için sürümü artır, eski kayıtlar bir daha okunmaz ve kendiliğinden silinir.
+        lang: py
+        form: |
+          version = cache.get("products:version") or 1
+          key = f"products:{version}:list"
+          cache.incr("products:version")     # invalidates every products:* key at once
+        avoid:
+          en: When a single key is enough; one DEL is simpler than a version counter.
+          tr: Tek bir key yeterliyse; tek DEL, sürüm sayacından daha basittir.
+        source: https://redis.io/docs/latest/commands/incr/
+      - id: negative-cache
+        level: intermediate
+        title:
+          en: "Cache \"not found\" too"
+          tr: "\"Bulunamadı\"yı da cache'leme"
+        what:
+          en: Remember that something does not exist for a short time, so repeated requests for missing ids do not all hit the database.
+          tr: Bir şeyin olmadığını kısa süre hatırla; böylece olmayan id'ler için tekrarlanan istekler veritabanına gitmez.
+        lang: text
+        form: |
+          SET user:99999 "__none__" EX 30
+        mistake:
+          en: A long TTL for "not found"; when the record is created later, users keep getting "not found". Keep it short, or delete the key on create.
+          tr: Bulunamadı kaydı için uzun TTL; kayıt sonradan oluşturulunca kullanıcılar "bulunamadı" almaya devam eder. Kısa tut ya da oluştururken key'i sil.
+        source: https://en.wikipedia.org/wiki/Cache_(computing)
+  - id: problems
+    title: { en: Problems and how to avoid them, tr: Sorunlar ve çözümleri }
+    items:
+      - id: stale-data
+        level: basic
+        title: { en: Stale data, tr: Bayat veri }
+        what:
+          en: A cached copy that no longer matches the source; it is the main price of caching and cannot be removed, only kept small.
+          tr: Kaynakla artık uyuşmayan cache kopyası; cache'lemenin ana bedelidir, tamamen kaldırılamaz, sadece küçük tutulur.
+        lang: text
+        form: |
+          1. decide how old data may be (seconds? minutes?)
+          2. set the TTL to that
+          3. invalidate on write when freshness matters more
+        mistake:
+          en: "Debugging \"my change does not show\" in the code when the answer is in some cache layer. Check the browser, the CDN and the app cache in that order (DevTools: tick \"Disable cache\")."
+          tr: "Sorunu \"değişikliğim görünmüyor\" diye kodda aramak; oysa cevap bir cache katmanındadır. Sırayla tarayıcıya, CDN'e ve uygulama cache'ine bak (DevTools: \"Disable cache\"i işaretle)."
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching
+      - id: stampede
+        level: intermediate
+        title: { en: Cache stampede, tr: Cache stampede }
+        what:
+          en: When a popular key expires, many requests miss at the same moment and all hit the database together.
+          tr: Popüler bir key'in süresi dolunca birçok istek aynı anda miss olur ve hepsi birlikte veritabanına gider.
+        lang: text
+        form: |
+          popular key expires at 12:00:00
+          1000 requests/second -> 1000 database queries at once
+          fixes: single-flight, lock, jitter, refresh before expiry, serve stale
+        mistake:
+          en: Giving all keys created together the same TTL; they expire together too. Add random jitter.
+          tr: Birlikte oluşturulan tüm key'lere aynı TTL vermek; hepsi birlikte de dolar. Rastgele jitter ekle.
+        source: https://en.wikipedia.org/wiki/Cache_stampede
+      - id: single-flight
+        level: advanced
+        title:
+          en: "Single-flight: one loader per key"
+          tr: "Single-flight: key başına tek yükleyici"
+        what:
+          en: While one request loads a key, other requests for the same key wait for that result instead of starting their own load.
+          tr: Bir istek bir key'i yüklerken aynı key için gelen diğer istekler kendi yüklemelerini başlatmak yerine o sonucu bekler.
+        lang: js
+        form: |
+          if (!inflight.has(key)) inflight.set(key, load(key).finally(() => inflight.delete(key)));
+          return inflight.get(key);
+        example: |
+          let calls = 0;
+          const inflight = new Map();
+
+          function load(key) {
+            calls++;
+            return new Promise((resolve) => setTimeout(() => resolve(key.toUpperCase()), 20));
+          }
+
+          function singleFlight(key) {
+            if (!inflight.has(key)) {
+              const p = load(key).finally(() => inflight.delete(key));
+              inflight.set(key, p);
+            }
+            return inflight.get(key);
+          }
+
+          const results = await Promise.all([singleFlight("a"), singleFlight("a"), singleFlight("a")]);
+          console.log(results.join(","), "loads:", calls);
+        output: |
+          A,A,A loads: 1
+        check: js
+        avoid:
+          en: Across many servers; this Map protects only one process. For all of them use a lock in Redis (SET key value NX EX 10) or stale-while-revalidate.
+          tr: Birçok sunucu varken; bu Map sadece bir process'i korur. Hepsi için Redis'te lock (SET key value NX EX 10) ya da stale-while-revalidate kullan.
+        source: https://en.wikipedia.org/wiki/Cache_stampede
+      - id: ttl-jitter
+        level: intermediate
+        title: { en: TTL jitter, tr: TTL jitter }
+        what:
+          en: Add a random extra time to each TTL so keys do not all expire at the same second.
+          tr: Her TTL'e rastgele ek süre ekle; böylece key'ler aynı saniyede dolmaz.
+        lang: py
+        form: |
+          ttl = base_ttl + random.randint(0, base_ttl // 10)
+        example: |
+          import random
+
+          base_ttl = 300
+          ttl = base_ttl + random.randint(0, base_ttl // 10)
+          print(base_ttl <= ttl <= base_ttl + 30)
+        output: |
+          True
+        check: py
+        source: https://en.wikipedia.org/wiki/Cache_stampede
+      - id: hit-ratio
+        level: intermediate
+        title: { en: Measure the hit ratio, tr: Hit oranını ölçme }
+        what:
+          en: The share of requests answered from the cache; if it is low the cache costs more than it saves.
+          tr: Cache'ten cevaplanan isteklerin oranıdır; düşükse cache kazandırdığından fazlasına mal olur.
+        lang: text
+        form: |
+          redis-cli INFO stats | grep keyspace
+          keyspace_hits:9000
+          keyspace_misses:1000
+          hit ratio = hits / (hits + misses) = 90%
+        mistake:
+          en: Adding a cache without measuring. Count hits and misses from day one, and cache only what is read much more often than it changes.
+          tr: Ölçmeden cache eklemek. İlk günden hit ve miss say, sadece değişmesinden çok daha sık okunan şeyi cache'le.
+        source: https://redis.io/docs/latest/commands/info/
+      - id: dont-cache
+        level: advanced
+        title: { en: What not to cache, tr: Neyi cache'lememeli }
+        what:
+          en: Some data should not be cached, or only with great care, because a stale or shared copy does harm.
+          tr: Bazı veriler cache'lenmemeli ya da çok dikkatle cache'lenmeli, çünkü bayat veya paylaşılan kopya zarar verir.
+        lang: text
+        form: |
+          money, stock you sell, permissions    stale = wrong decision
+          per-user pages in a shared cache      leak between users
+          fast queries with good indexes        cache adds only complexity
+        avoid:
+          en: Cache after you have fixed a slow query with an index; often that is enough and has no staleness at all.
+          tr: Yavaş sorguyu index ile düzelttikten sonra cache'le; çoğu zaman o yeterlidir ve hiç bayatlık yaratmaz.
+        source: https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching

@@ -1,0 +1,704 @@
+id: vue
+title: Vue
+category: framework
+summary:
+  en: A JavaScript framework for building user interfaces with single-file components and automatic reactivity (Vue 3, Composition API).
+  tr: Tek dosyalık component'ler ve otomatik reaktiflik ile kullanıcı arayüzü kurmaya yarayan bir JavaScript framework'ü (Vue 3, Composition API).
+aliases: [vuejs, vue.js, vue 3, composition api, script setup, sfc, pinia, vue router]
+detect:
+  npm: [vue]
+version: "3.5"
+latest: npm:vue
+checked: 2026-10
+sources:
+  - title: Vue guide
+    url: https://vuejs.org/guide/introduction.html
+  - title: Vue API reference
+    url: https://vuejs.org/api/
+roadmap: vue
+sections:
+  - id: template
+    title: { en: Components and templates, tr: Component'ler ve template'ler }
+    items:
+      - id: create-vue
+        level: basic
+        title: { en: Start a new project, tr: Yeni proje başlatma }
+        what:
+          en: Creates a Vite-based Vue app and asks which extras you want (TypeScript, Router, Pinia, tests).
+          tr: Vite tabanlı bir Vue uygulaması oluşturur ve hangi ekleri istediğini sorar (TypeScript, Router, Pinia, testler).
+        lang: sh
+        form: |
+          npm create vue@latest
+        example: |
+          npm create vue@latest my-app
+          cd my-app
+          npm install
+          npm run dev
+        mistake:
+          en: Starting a new project with Vue CLI (vue create); it is in maintenance mode. Use create-vue.
+          tr: Yeni projeye Vue CLI (vue create) ile başlamak; bakım modunda. create-vue kullan.
+        source: https://vuejs.org/guide/quick-start.html
+      - id: sfc
+        level: basic
+        title: { en: Single-file component, tr: Tek dosyalık component (SFC) }
+        what:
+          en: A .vue file keeps a component's logic, markup and styles together.
+          tr: Bir .vue dosyası component'in mantığını, markup'ını ve stilini bir arada tutar.
+        lang: html
+        form: |
+          <script setup>...</script>
+          <template>...</template>
+          <style scoped>...</style>
+        example: |
+          <script setup lang="ts">
+          import { ref } from "vue";
+          const count = ref(0);
+          </script>
+
+          <template>
+            <button @click="count++">Count is {{ count }}</button>
+          </template>
+
+          <style scoped>
+          button { font-weight: bold; }
+          </style>
+        mistake:
+          en: Forgetting setup on the script tag; without it, top-level variables are not available in the template.
+          tr: script etiketine setup yazmayı unutmak; o olmadan üst seviyedeki değişkenler template'te kullanılamaz.
+        source: https://vuejs.org/api/sfc-script-setup.html
+      - id: interpolation
+        level: basic
+        title: { en: Show values in the template, tr: Template'te değer gösterme }
+        what:
+          en: Double curly braces print a JavaScript expression as text.
+          tr: Çift süslü parantez bir JavaScript ifadesini metin olarak yazar.
+        lang: html
+        form: |
+          <p>{{ message }}</p>
+        example: |
+          <p>{{ user.name.toUpperCase() }}</p>
+          <p>{{ ok ? "Yes" : "No" }}</p>
+          <div v-html="trustedHtml"></div>
+        mistake:
+          en: Using v-html with text from users; it can run injected scripts (XSS). Only use it with HTML you trust.
+          tr: v-html'i kullanıcıdan gelen metinle kullanmak; içine gömülen script'ler çalışabilir (XSS). Sadece güvendiğin HTML ile kullan.
+        source: https://vuejs.org/guide/essentials/template-syntax.html
+      - id: v-bind
+        level: basic
+        title: { en: Bind attributes, tr: Attribute bağlama }
+        what:
+          en: v-bind, written as a colon, sets an attribute or prop from a JavaScript value.
+          tr: İki nokta üst üste ile yazılan v-bind, bir attribute'u ya da prop'u JavaScript değerinden ayarlar.
+        lang: html
+        form: |
+          <img :src="imageUrl" :alt="title" />
+        example: |
+          <a :href="url">Link</a>
+          <div :class="{ active: isActive, 'text-danger': hasError }"></div>
+          <div :style="{ color: activeColor, fontSize: size + 'px' }"></div>
+          <!-- same-name shorthand: :id is :id="id" -->
+          <div :id></div>
+        mistake:
+          en: Writing src="imageUrl" without the colon; Vue then passes the literal text "imageUrl".
+          tr: İki nokta olmadan src="imageUrl" yazmak; Vue o zaman düz "imageUrl" metnini geçirir.
+        source: https://vuejs.org/guide/essentials/template-syntax.html#attribute-bindings
+      - id: v-on
+        level: basic
+        title: { en: Listen to events, tr: Olayları dinleme }
+        what:
+          en: v-on, written as @, runs code or a method when an event happens.
+          tr: "@ ile yazılan v-on, bir olay olduğunda kod ya da bir metod çalıştırır."
+        lang: html
+        form: |
+          <button @click="save">Save</button>
+        example: |
+          <button @click="count++">Add</button>
+          <form @submit.prevent="onSubmit">...</form>
+          <input @keyup.enter="search" />
+        mistake:
+          en: Calling event.preventDefault() by hand everywhere; the .prevent modifier does it in the template.
+          tr: Her yerde event.preventDefault()'u elle çağırmak; .prevent modifier'ı bunu template'te yapar.
+        source: https://vuejs.org/guide/essentials/event-handling.html
+      - id: v-if
+        level: basic
+        title: { en: Show or hide, tr: Gösterme ya da gizleme }
+        what:
+          en: v-if adds or removes the element; v-show only toggles its CSS display.
+          tr: v-if elemanı ekler ya da kaldırır; v-show sadece CSS display'ini açıp kapatır.
+        lang: html
+        form: |
+          <p v-if="ok">Yes</p><p v-else>No</p>
+        example: |
+          <div v-if="type === 'A'">A</div>
+          <div v-else-if="type === 'B'">B</div>
+          <div v-else>Not A or B</div>
+
+          <dialog v-show="isOpen">Toggled often</dialog>
+        avoid:
+          en: Use v-show instead of v-if for things toggled very often; it is cheaper to switch.
+          tr: Çok sık açılıp kapanan şeyler için v-if yerine v-show kullan; geçişi daha ucuz.
+        source: https://vuejs.org/guide/essentials/conditional.html
+      - id: v-for
+        level: basic
+        title: { en: Render a list, tr: Liste çizme }
+        what:
+          en: v-for repeats an element for each item; give each one a unique :key.
+          tr: v-for her eleman için bir elemanı tekrarlar; her birine benzersiz bir :key ver.
+        lang: html
+        form: |
+          <li v-for="item in items" :key="item.id">{{ item.name }}</li>
+        example: |
+          <ul>
+            <li v-for="(todo, index) in todos" :key="todo.id">
+              {{ index + 1 }}. {{ todo.text }}
+            </li>
+          </ul>
+        mistake:
+          en: Putting v-if and v-for on the same element; v-if runs first and cannot see the loop variable. Filter with a computed or wrap in <template v-for>.
+          tr: v-if ve v-for'u aynı elemana koymak; v-if önce çalışır ve döngü değişkenini göremez. Computed ile filtrele ya da <template v-for> ile sar.
+        source: https://vuejs.org/guide/essentials/list.html
+      - id: v-model
+        level: basic
+        title: { en: Two-way binding for inputs, tr: Input'lar için iki yönlü bağlama }
+        what:
+          en: v-model keeps an input and a ref in sync in both directions.
+          tr: v-model bir input ile bir ref'i iki yönde senkron tutar.
+        lang: html
+        form: |
+          <input v-model="name" />
+        example: |
+          <script setup>
+          import { ref } from "vue";
+          const name = ref("");
+          const agree = ref(false);
+          const age = ref(0);
+          </script>
+
+          <template>
+            <input v-model.trim="name" />
+            <input type="checkbox" v-model="agree" />
+            <input type="number" v-model.number="age" />
+          </template>
+        mistake:
+          en: Expecting a number from a text input; values are strings unless you add .number.
+          tr: Bir text input'tan sayı beklemek; .number eklemedikçe değerler string'dir.
+        source: https://vuejs.org/guide/essentials/forms.html
+  - id: reactivity
+    title: { en: Reactivity, tr: Reaktiflik }
+    items:
+      - id: ref
+        level: basic
+        title: { en: Reactive value with ref, tr: ref ile reaktif değer }
+        what:
+          en: ref holds a value in .value; when it changes, everything that uses it updates.
+          tr: ref bir değeri .value içinde tutar; değişince onu kullanan her şey güncellenir.
+        lang: ts
+        form: |
+          const count = ref(0); count.value++;
+        example: |
+          import { ref } from "vue";
+
+          const count = ref(0);
+          function increment() {
+            count.value++;
+          }
+          // in the template: {{ count }}  (no .value there)
+        mistake:
+          en: Forgetting .value in script code (count++ on the ref itself); .value is only left out in the template.
+          tr: Script içinde .value'yu unutmak (ref'in kendisine count++); .value sadece template'te yazılmaz.
+        source: https://vuejs.org/guide/essentials/reactivity-fundamentals.html
+      - id: reactive
+        level: intermediate
+        title: { en: Reactive object with reactive, tr: reactive ile reaktif object }
+        what:
+          en: reactive makes an object reactive without .value, but only works with objects, arrays and collections.
+          tr: reactive bir object'i .value olmadan reaktif yapar; ama sadece object, array ve koleksiyonlarla çalışır.
+        lang: ts
+        form: |
+          const state = reactive({ count: 0 });
+        example: |
+          import { reactive } from "vue";
+
+          const form = reactive({ email: "", remember: false });
+          form.email = "ada@example.com";
+        mistake:
+          en: Destructuring it (const { email } = form) or replacing it (form = reactive({})); both lose reactivity. Vue recommends ref as the main tool.
+          tr: Onu parçalamak (const { email } = form) ya da yerine yenisini koymak (form = reactive({})); ikisi de reaktifliği kaybettirir. Vue ana araç olarak ref'i önerir.
+        source: https://vuejs.org/guide/essentials/reactivity-fundamentals.html#reactive
+      - id: computed
+        level: basic
+        title: { en: Derived values with computed, tr: computed ile türetilmiş değer }
+        what:
+          en: computed makes a value from other reactive values and caches it until they change.
+          tr: computed diğer reaktif değerlerden bir değer üretir ve onlar değişene kadar önbellekte tutar.
+        lang: ts
+        form: |
+          const total = computed(() => items.value.length);
+        example: |
+          import { ref, computed } from "vue";
+
+          const todos = ref([{ text: "Read", done: true }, { text: "Write", done: false }]);
+          const remaining = computed(() => todos.value.filter((t) => !t.done).length);
+        mistake:
+          en: Doing side effects inside computed (fetch, changing other state); it must only return a value. Use watch for side effects.
+          tr: computed içinde yan etki yapmak (fetch, başka state'i değiştirmek); sadece değer döndürmeli. Yan etkiler için watch kullan.
+        source: https://vuejs.org/guide/essentials/computed.html
+      - id: watch
+        level: intermediate
+        title: { en: Run code when something changes, tr: Bir şey değişince kod çalıştırma }
+        what:
+          en: watch calls a function when a reactive source changes, with the new and old value.
+          tr: watch, reaktif bir kaynak değiştiğinde bir fonksiyonu yeni ve eski değerle çağırır.
+        lang: ts
+        form: |
+          watch(source, (newValue, oldValue) => { ... }, { immediate: true });
+        example: |
+          import { ref, watch } from "vue";
+
+          const query = ref("");
+          watch(query, async (q) => {
+            results.value = await search(q);
+          });
+
+          // watch a property of a reactive object with a getter
+          watch(() => form.email, (email) => validate(email));
+        mistake:
+          en: Watching form.email directly (a plain string); watch needs a ref, a reactive object or a getter function.
+          tr: form.email'i doğrudan izlemek (düz bir string); watch bir ref, reactive object ya da getter fonksiyon ister.
+        source: https://vuejs.org/guide/essentials/watchers.html
+      - id: watch-effect
+        level: intermediate
+        title: { en: Track dependencies automatically, tr: Bağımlılıkları otomatik izleme }
+        what:
+          en: watchEffect runs a function right away and again whenever any reactive value it read changes.
+          tr: watchEffect bir fonksiyonu hemen çalıştırır ve okuduğu herhangi bir reaktif değer değişince tekrar çalıştırır.
+        lang: ts
+        form: |
+          watchEffect(() => { ... });
+        example: |
+          import { ref, watchEffect, onWatcherCleanup } from "vue";
+
+          const id = ref(1);
+          watchEffect(() => {
+            const controller = new AbortController();
+            fetch(`/api/todos/${id.value}`, { signal: controller.signal });
+            onWatcherCleanup(() => controller.abort());
+          });
+        mistake:
+          en: Reading a value only after an await; watchEffect only tracks what it reads before the first await.
+          tr: Bir değeri sadece await'ten sonra okumak; watchEffect yalnızca ilk await'ten önce okunanları izler.
+        source: https://vuejs.org/guide/essentials/watchers.html#watcheffect
+      - id: next-tick
+        level: advanced
+        title: { en: Wait for the DOM to update, tr: DOM'un güncellenmesini bekleme }
+        what:
+          en: Vue updates the DOM in batches; await nextTick() to read the DOM after a change.
+          tr: Vue DOM'u toplu günceller; bir değişiklikten sonra DOM'u okumak için await nextTick() kullan.
+        lang: ts
+        form: |
+          await nextTick();
+        example: |
+          import { ref, nextTick } from "vue";
+
+          const items = ref<string[]>([]);
+          async function add(text: string) {
+            items.value.push(text);
+            await nextTick();
+            listEl.value?.lastElementChild?.scrollIntoView();
+          }
+        source: https://vuejs.org/api/general.html#nexttick
+      - id: shallow-ref
+        level: advanced
+        title: { en: Big data with shallowRef, tr: shallowRef ile büyük veri }
+        what:
+          en: shallowRef only tracks replacing .value, not changes deep inside, which is faster for large data.
+          tr: shallowRef sadece .value'nun değiştirilmesini izler, içerideki derin değişiklikleri izlemez; büyük veride daha hızlıdır.
+        lang: ts
+        form: |
+          const rows = shallowRef<Row[]>([]);
+        example: |
+          import { shallowRef } from "vue";
+
+          const rows = shallowRef<{ id: number }[]>([]);
+          // rows.value.push(x)  -> does not update the screen
+          rows.value = [...rows.value, { id: 1 }]; // updates
+        mistake:
+          en: Mutating inside a shallowRef and wondering why nothing updates; replace .value instead.
+          tr: shallowRef'in içini değiştirip neden güncellenmediğini merak etmek; bunun yerine .value'yu değiştir.
+        source: https://vuejs.org/api/reactivity-advanced.html#shallowref
+  - id: components
+    title: { en: "Props, events and slots", tr: "Props, event'ler ve slot'lar" }
+    items:
+      - id: define-props
+        level: basic
+        title: { en: Declare props, tr: Props tanımlama }
+        what:
+          en: defineProps lists the data a component accepts from its parent; with TypeScript you give it a type.
+          tr: defineProps, component'in üst component'ten aldığı verileri listeler; TypeScript ile ona bir tip verirsin.
+        lang: ts
+        form: |
+          const { title, count = 0 } = defineProps<{ title: string; count?: number }>();
+        example: |
+          <script setup lang="ts">
+          const { title, count = 0 } = defineProps<{ title: string; count?: number }>();
+          </script>
+
+          <template>
+            <h2>{{ title }} ({{ count }})</h2>
+          </template>
+        since: "3.5"
+        older:
+          en: "Before 3.5 destructured props lost reactivity; you used props.title or withDefaults(defineProps<...>(), { count: 0 })."
+          tr: "3.5'ten önce parçalanan props reaktifliğini kaybederdi; props.title ya da withDefaults(defineProps<...>(), { count: 0 }) kullanılırdı."
+        mistake:
+          en: Passing a destructured prop straight into watch(count, ...); wrap it in a getter - watch(() => count, ...).
+          tr: Parçalanmış bir prop'u doğrudan watch(count, ...)'a vermek; getter ile sar - watch(() => count, ...).
+        source: https://vuejs.org/guide/components/props.html
+      - id: define-emits
+        level: basic
+        title: { en: Send events to the parent, tr: Üst component'e event gönderme }
+        what:
+          en: defineEmits declares the events a component sends; the parent listens with @.
+          tr: defineEmits component'in gönderdiği event'leri tanımlar; üst component @ ile dinler.
+        lang: ts
+        form: |
+          const emit = defineEmits<{ save: [id: number] }>();
+        example: |
+          <script setup lang="ts">
+          const emit = defineEmits<{ save: [id: number]; cancel: [] }>();
+          </script>
+
+          <template>
+            <button @click="emit('save', 42)">Save</button>
+          </template>
+
+          <!-- parent: <EditForm @save="onSave" @cancel="close" /> -->
+        mistake:
+          en: Changing a prop in the child to tell the parent something; emit an event and let the parent change its own state.
+          tr: Üst component'e bir şey söylemek için alt component'te prop'u değiştirmek; bir event gönder, üst component kendi state'ini değiştirsin.
+        source: https://vuejs.org/guide/components/events.html
+      - id: define-model
+        level: intermediate
+        title: { en: v-model on your own component, tr: Kendi component'inde v-model }
+        what:
+          en: defineModel gives a ref that the parent binds with v-model; writing to it updates the parent.
+          tr: defineModel, üst component'in v-model ile bağladığı bir ref verir; ona yazmak üst component'i günceller.
+        lang: ts
+        form: |
+          const model = defineModel<string>();
+        example: |
+          <!-- SearchBox.vue -->
+          <script setup lang="ts">
+          const query = defineModel<string>({ default: "" });
+          </script>
+
+          <template>
+            <input v-model="query" placeholder="Search" />
+          </template>
+
+          <!-- parent: <SearchBox v-model="search" /> -->
+        since: "3.4"
+        api: ["defineModel("]
+        older:
+          en: Before 3.4 you declared a modelValue prop and emitted update:modelValue yourself.
+          tr: 3.4'ten önce bir modelValue prop'u tanımlayıp update:modelValue event'ini elle gönderirdin.
+        source: https://vuejs.org/guide/components/v-model.html
+      - id: slots
+        level: intermediate
+        title: { en: Pass markup with slots, tr: Slot'larla markup geçme }
+        what:
+          en: A slot is a place in a component where the parent puts its own content.
+          tr: Slot, component içinde üst component'in kendi içeriğini koyduğu bir yerdir.
+        lang: html
+        form: |
+          <slot /> / <slot name="footer" />
+        example: |
+          <!-- Card.vue -->
+          <template>
+            <div class="card">
+              <header><slot name="header" /></header>
+              <slot>Default content</slot>
+            </div>
+          </template>
+
+          <!-- parent -->
+          <Card>
+            <template #header>Title</template>
+            Body text
+          </Card>
+        source: https://vuejs.org/guide/components/slots.html
+      - id: provide-inject
+        level: intermediate
+        title: { en: Pass data deep with provide and inject, tr: provide ve inject ile veriyi derine geçme }
+        what:
+          en: A parent provides a value and any component below can inject it, without passing props through every level.
+          tr: Üst component bir değer sağlar (provide), altındaki her component onu alabilir (inject); props'u her seviyeden geçirmeye gerek kalmaz.
+        lang: ts
+        form: |
+          provide("theme", theme); const theme = inject("theme");
+        example: |
+          // keys.ts
+          import type { InjectionKey, Ref } from "vue";
+          export const themeKey = Symbol() as InjectionKey<Ref<string>>;
+
+          // App.vue
+          provide(themeKey, ref("dark"));
+
+          // DeepChild.vue
+          const theme = inject(themeKey); // Ref<string> | undefined
+        mistake:
+          en: Providing a plain value instead of a ref; children then never see later changes.
+          tr: ref yerine düz bir değer provide etmek; alt component'ler sonraki değişiklikleri hiç görmez.
+        source: https://vuejs.org/guide/components/provide-inject.html
+      - id: template-ref
+        level: intermediate
+        title: { en: Reach a DOM element, tr: DOM elemanına ulaşma }
+        what:
+          en: useTemplateRef gives you the element or child component that has a matching ref attribute.
+          tr: useTemplateRef, eşleşen ref attribute'una sahip elemanı ya da alt component'i verir.
+        lang: ts
+        form: |
+          const input = useTemplateRef("input");
+        example: |
+          <script setup lang="ts">
+          import { useTemplateRef, onMounted } from "vue";
+          const input = useTemplateRef<HTMLInputElement>("search");
+          onMounted(() => input.value?.focus());
+          </script>
+
+          <template>
+            <input ref="search" />
+          </template>
+        since: "3.5"
+        api: ["useTemplateRef("]
+        older:
+          en: Before 3.5 you made a ref with the same name as the ref attribute (const search = ref(null)).
+          tr: 3.5'ten önce ref attribute'uyla aynı adda bir ref oluşturulurdu (const search = ref(null)).
+        mistake:
+          en: Reading it before the component is mounted; it is null until onMounted.
+          tr: Component mount edilmeden okumak; onMounted'a kadar null'dur.
+        source: https://vuejs.org/guide/essentials/template-refs.html
+      - id: lifecycle
+        level: basic
+        title: { en: Run code when mounted, tr: Mount olunca kod çalıştırma }
+        what:
+          en: onMounted runs after the component is on the page; onUnmounted runs when it is removed.
+          tr: onMounted component sayfaya yerleşince çalışır; onUnmounted kaldırılınca çalışır.
+        lang: ts
+        form: |
+          onMounted(() => { ... });
+        example: |
+          import { onMounted, onUnmounted } from "vue";
+
+          function onResize() { /* ... */ }
+          onMounted(() => window.addEventListener("resize", onResize));
+          onUnmounted(() => window.removeEventListener("resize", onResize));
+        mistake:
+          en: Calling onMounted inside a setTimeout or after an await; lifecycle hooks must be registered synchronously during setup.
+          tr: onMounted'u setTimeout içinde ya da bir await'ten sonra çağırmak; lifecycle hook'ları setup sırasında senkron kaydedilmeli.
+        source: https://vuejs.org/guide/essentials/lifecycle.html
+  - id: reuse
+    title: { en: Reuse and built-ins, tr: Tekrar kullanım ve hazır component'ler }
+    items:
+      - id: composable
+        level: intermediate
+        title: { en: Share logic with a composable, tr: Composable ile mantık paylaşma }
+        what:
+          en: A composable is a function named useSomething that uses reactivity and returns refs, to reuse stateful logic.
+          tr: Composable, reaktifliği kullanan ve ref'ler döndüren useBirŞey adlı bir fonksiyondur; state'li mantığı tekrar kullanmaya yarar.
+        lang: ts
+        form: |
+          export function useMouse() { ...; return { x, y }; }
+        example: |
+          // useMouse.ts
+          import { ref, onMounted, onUnmounted } from "vue";
+
+          export function useMouse() {
+            const x = ref(0);
+            const y = ref(0);
+            const update = (e: MouseEvent) => { x.value = e.pageX; y.value = e.pageY; };
+            onMounted(() => window.addEventListener("mousemove", update));
+            onUnmounted(() => window.removeEventListener("mousemove", update));
+            return { x, y };
+          }
+        mistake:
+          en: Returning a reactive() object; destructuring it in the component loses reactivity. Return an object of refs.
+          tr: reactive() bir object döndürmek; component'te parçalanınca reaktiflik kaybolur. ref'lerden oluşan bir object döndür.
+        source: https://vuejs.org/guide/reusability/composables.html
+      - id: use-id
+        level: intermediate
+        title: { en: Unique ids for labels, tr: Label'lar için benzersiz id }
+        what:
+          en: useId makes an id that is unique in the app and the same on server and client.
+          tr: useId, uygulamada benzersiz ve sunucuda da client'ta da aynı olan bir id üretir.
+        lang: html
+        form: |
+          const id = useId();
+        example: |
+          <script setup>
+          import { useId } from "vue";
+          const id = useId();
+          </script>
+
+          <template>
+            <label :for="id">Email</label>
+            <input :id="id" type="email" />
+          </template>
+        since: "3.5"
+        source: https://vuejs.org/api/composition-api-helpers.html#useid
+      - id: async-component
+        level: advanced
+        title: { en: Load a component only when needed, tr: Component'i sadece gerekince yükleme }
+        what:
+          en: defineAsyncComponent loads a component's code the first time it is shown.
+          tr: defineAsyncComponent bir component'in kodunu ilk gösterildiği anda yükler.
+        lang: ts
+        form: |
+          const Chart = defineAsyncComponent(() => import("./Chart.vue"));
+        example: |
+          import { defineAsyncComponent } from "vue";
+
+          const AdminPanel = defineAsyncComponent({
+            loader: () => import("./AdminPanel.vue"),
+            loadingComponent: LoadingSpinner,
+            delay: 200,
+          });
+        source: https://vuejs.org/guide/components/async.html
+      - id: teleport
+        level: advanced
+        title: { en: Render somewhere else in the page, tr: Sayfanın başka bir yerinde çizme }
+        what:
+          en: Teleport moves its content to another place in the DOM, such as body, which is handy for modals.
+          tr: Teleport içeriğini DOM'da başka bir yere (örneğin body) taşır; modal'lar için kullanışlıdır.
+        lang: html
+        form: |
+          <Teleport to="body">...</Teleport>
+        example: |
+          <button @click="open = true">Open</button>
+          <Teleport to="body">
+            <div v-if="open" class="modal">
+              <p>Hello from the modal</p>
+              <button @click="open = false">Close</button>
+            </div>
+          </Teleport>
+        mistake:
+          en: Teleporting to a target that does not exist yet when the component mounts; the target must already be in the DOM (or use defer, since 3.5).
+          tr: Component mount olurken henüz var olmayan bir hedefe teleport etmek; hedef DOM'da zaten olmalı (ya da 3.5'ten beri defer kullan).
+        source: https://vuejs.org/guide/built-ins/teleport.html
+      - id: keep-alive
+        level: advanced
+        title: { en: Keep a component's state when switching, tr: Geçişte component'in state'ini koruma }
+        what:
+          en: KeepAlive caches components that are switched out, so their state is still there when they come back.
+          tr: KeepAlive, değiştirilen component'leri önbellekte tutar; geri geldiklerinde state'leri hâlâ yerindedir.
+        lang: html
+        form: |
+          <KeepAlive><component :is="current" /></KeepAlive>
+        example: |
+          <KeepAlive :max="5">
+            <component :is="tabs[currentTab]" />
+          </KeepAlive>
+        source: https://vuejs.org/guide/built-ins/keep-alive.html
+  - id: ecosystem
+    title: { en: Router and state, tr: Router ve state }
+    items:
+      - id: router
+        level: intermediate
+        title: { en: Pages with Vue Router, tr: Vue Router ile sayfalar }
+        what:
+          en: Vue Router maps URLs to components; RouterLink moves between them and RouterView shows the current one.
+          tr: Vue Router URL'leri component'lere eşler; RouterLink aralarında geçiş yapar, RouterView o anki sayfayı gösterir.
+        lang: ts
+        form: |
+          createRouter({ history: createWebHistory(), routes })
+        example: |
+          // router.ts
+          import { createRouter, createWebHistory } from "vue-router";
+          import Home from "./views/Home.vue";
+
+          export const router = createRouter({
+            history: createWebHistory(),
+            routes: [
+              { path: "/", component: Home },
+              { path: "/users/:id", component: () => import("./views/User.vue") },
+            ],
+          });
+
+          // main.ts: createApp(App).use(router).mount("#app")
+          // template: <RouterLink to="/users/1">User</RouterLink> <RouterView />
+        mistake:
+          en: Using createWebHistory on a static host without a fallback to index.html; refreshing a deep link gives 404.
+          tr: createWebHistory'yi index.html'e geri dönüşü olmayan statik bir sunucuda kullanmak; derin bir linkte sayfayı yenileyince 404 alırsın.
+        source: https://router.vuejs.org/guide/
+      - id: route-params
+        level: intermediate
+        title: { en: Read route params, tr: Route parametrelerini okuma }
+        what:
+          en: useRoute gives the current route (params, query); useRouter lets you navigate from code.
+          tr: useRoute o anki route'u (params, query) verir; useRouter koddan sayfa değiştirmeni sağlar.
+        lang: ts
+        form: |
+          const route = useRoute(); route.params.id
+        example: |
+          import { useRoute, useRouter } from "vue-router";
+          import { watch } from "vue";
+
+          const route = useRoute();
+          const router = useRouter();
+
+          watch(() => route.params.id, (id) => loadUser(String(id)), { immediate: true });
+
+          function goHome() {
+            router.push("/");
+          }
+        mistake:
+          en: Loading data once in onMounted; going from /users/1 to /users/2 reuses the component, so watch the param instead.
+          tr: Veriyi onMounted'da bir kez yüklemek; /users/1'den /users/2'ye geçince component tekrar kullanılır, bu yüzden parametreyi watch ile izle.
+        source: https://router.vuejs.org/guide/essentials/dynamic-matching.html
+      - id: pinia
+        level: intermediate
+        title: { en: Shared state with Pinia, tr: Pinia ile paylaşılan state }
+        what:
+          en: Pinia is the official store; a store holds state that many components share.
+          tr: Pinia resmi store kütüphanesidir; store, birçok component'in paylaştığı state'i tutar.
+        lang: ts
+        form: |
+          export const useCartStore = defineStore("cart", () => { ... });
+        example: |
+          // stores/cart.ts
+          import { defineStore } from "pinia";
+          import { ref, computed } from "vue";
+
+          export const useCartStore = defineStore("cart", () => {
+            const items = ref<string[]>([]);
+            const count = computed(() => items.value.length);
+            function add(item: string) {
+              items.value.push(item);
+            }
+            return { items, count, add };
+          });
+
+          // component
+          const cart = useCartStore();
+          const { count } = storeToRefs(cart);
+        mistake:
+          en: Destructuring state straight from the store (const { count } = cart); it loses reactivity. Use storeToRefs.
+          tr: State'i doğrudan store'dan parçalamak (const { count } = cart); reaktiflik kaybolur. storeToRefs kullan.
+        source: https://pinia.vuejs.org/core-concepts/
+      - id: typescript
+        level: advanced
+        title: { en: Type-check templates, tr: Template'lerde tip kontrolü }
+        what:
+          en: vue-tsc type-checks .vue files, including templates, which plain tsc cannot read.
+          tr: vue-tsc, düz tsc'nin okuyamadığı .vue dosyalarını template'leriyle birlikte tip kontrolünden geçirir.
+        lang: sh
+        form: |
+          vue-tsc --build
+        example: |
+          npx vue-tsc --build
+          # in package.json created by create-vue:
+          # "type-check": "vue-tsc --build"
+        mistake:
+          en: Relying on the Vite dev server for type errors; it only strips types and never checks them.
+          tr: Tip hataları için Vite dev sunucusuna güvenmek; tipleri sadece siler, hiç kontrol etmez.
+        source: https://vuejs.org/guide/typescript/overview.html

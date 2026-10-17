@@ -1,0 +1,640 @@
+id: flask
+title: Flask
+category: framework
+summary:
+  en: A small Python web framework that gives you routing, templates and a test client, and lets you pick the rest.
+  tr: Routing, template ve test client veren, gerisini senin seçmene bırakan küçük bir Python web framework'ü.
+aliases: [flask python, jinja, jinja2, werkzeug, blueprint, micro framework, mikro framework]
+detect:
+  pip: [flask]
+version: "3.1"
+latest: pypi:flask
+checked: 2026-10
+sources:
+  - title: Flask documentation
+    url: https://flask.palletsprojects.com/en/stable/
+  - title: Flask quickstart
+    url: https://flask.palletsprojects.com/en/stable/quickstart/
+  - title: Flask changes
+    url: https://flask.palletsprojects.com/en/stable/changes/
+roadmap: flask
+sections:
+  - id: start
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: install-run
+        level: basic
+        title: { en: Install and run, tr: Kurma ve çalıştırma }
+        what:
+          en: flask run starts a development server; --debug turns on auto-reload and the in-browser debugger.
+          tr: flask run bir geliştirme sunucusu başlatır; --debug otomatik yeniden yüklemeyi ve tarayıcıdaki debugger'ı açar.
+        lang: sh
+        form: flask --app app run --debug
+        example: |
+          python -m venv .venv && source .venv/bin/activate
+          python -m pip install flask
+          flask --app hello run --debug
+          flask --app hello run --host 0.0.0.0 --port 8000
+        mistake:
+          en: Leaving --debug on a server others can reach; the debugger lets anyone run Python code on your machine.
+          tr: Başkalarının erişebildiği bir sunucuda --debug'ı açık bırakmak; debugger herkesin makinende Python kodu çalıştırmasına izin verir.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#debug-mode
+      - id: minimal-app
+        level: basic
+        title: { en: A minimal app, tr: En küçük uygulama }
+        what:
+          en: Create a Flask object and connect URLs to functions with @app.route; the returned value becomes the response.
+          tr: Bir Flask nesnesi oluştur ve URL'leri @app.route ile fonksiyonlara bağla; döndürülen değer yanıt olur.
+        lang: py
+        form: app = Flask(__name__)
+        example: |
+          # hello.py
+          from flask import Flask
+
+          app = Flask(__name__)
+
+          @app.route("/")
+          def index():
+              return "<p>Hello, World!</p>"
+        mistake:
+          en: Naming the file flask.py; it hides the real package and "from flask import Flask" fails.
+          tr: Dosyaya flask.py adını vermek; gerçek paketi gölgeler ve "from flask import Flask" başarısız olur.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#a-minimal-application
+      - id: routes
+        level: basic
+        title: { en: Routes and URL variables, tr: Route'lar ve URL değişkenleri }
+        what:
+          en: "<name> in a route takes a part of the URL; a converter like <int:id> also checks and converts it."
+          tr: "Route içindeki <name> URL'nin bir parçasını alır; <int:id> gibi bir dönüştürücü onu ayrıca kontrol edip çevirir."
+        lang: py
+        form: '@app.route("/user/<int:user_id>")'
+        example: |
+          from markupsafe import escape
+
+          @app.route("/user/<username>")
+          def profile(username):
+              return f"User {escape(username)}"
+
+          @app.route("/post/<int:post_id>")
+          def show_post(post_id):
+              return f"Post {post_id}"
+
+          @app.route("/files/<path:subpath>")
+          def files(subpath):
+              return subpath
+        mistake:
+          en: Putting user input straight into returned HTML; escape it (markupsafe.escape) or use a template, which escapes for you.
+          tr: Kullanıcı girdisini doğrudan döndürülen HTML'e koymak; escape et (markupsafe.escape) ya da bunu senin yerine yapan bir template kullan.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#variable-rules
+      - id: methods
+        level: basic
+        title: { en: HTTP methods, tr: HTTP metotları }
+        what:
+          en: A route answers GET by default; @app.post, @app.put and methods=[...] let it handle other methods.
+          tr: Route varsayılan olarak GET'e cevap verir; @app.post, @app.put ve methods=[...] diğer metotları da karşılamasını sağlar.
+        lang: py
+        form: '@app.post("/login")'
+        example: |
+          @app.get("/login")
+          def login_form():
+              return render_template("login.html")
+
+          @app.post("/login")
+          def login():
+              return do_login(request.form["username"])
+
+          @app.route("/items", methods=["GET", "POST"])
+          def items(): ...
+        mistake:
+          en: Changing data in a GET route; browsers, crawlers and link previews call GET freely. Use POST, PUT or DELETE for changes.
+          tr: GET route'unda veri değiştirmek; tarayıcılar, crawler'lar ve link önizlemeleri GET'i serbestçe çağırır. Değişiklik için POST, PUT ya da DELETE kullan.
+        since: "2.0"
+        older:
+          en: The @app.get and @app.post shortcuts came in 2.0; before that you wrote @app.route(..., methods=["POST"]).
+          tr: '@app.get ve @app.post kısayolları 2.0''da geldi; öncesinde @app.route(..., methods=["POST"]) yazılırdı.'
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#http-methods
+      - id: request
+        level: basic
+        title: { en: Read the request, tr: İsteği okuma }
+        what:
+          en: request.args holds the query string, request.form the form fields, and request.get_json() the JSON body.
+          tr: request.args query string'i, request.form form alanlarını, request.get_json() de JSON body'yi tutar.
+        lang: py
+        form: request.args.get("q", ""), request.form["name"], request.get_json()
+        example: |
+          from flask import request
+
+          @app.get("/search")
+          def search():
+              q = request.args.get("q", "")
+              page = request.args.get("page", 1, type=int)
+              return {"q": q, "page": page}
+
+          @app.post("/api/items")
+          def create_item():
+              data = request.get_json()
+              return {"name": data["name"]}, 201
+        mistake:
+          en: Using request.form["x"] for an optional field; a missing key returns 400 Bad Request. Use request.form.get("x").
+          tr: İsteğe bağlı bir alan için request.form["x"] kullanmak; anahtar yoksa 400 Bad Request döner. request.form.get("x") kullan.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#accessing-request-data
+      - id: json
+        level: basic
+        title: { en: Return JSON, tr: JSON döndürme }
+        what:
+          en: Returning a dict or a list sends it as JSON; a tuple adds a status code or headers.
+          tr: Bir dict ya da liste döndürmek onu JSON olarak gönderir; tuple ile durum kodu ya da header eklenir.
+        lang: py
+        form: 'return {"ok": True}, 201'
+        example: |
+          @app.get("/api/users")
+          def users():
+              return [{"id": 1, "name": "Ada"}]
+
+          @app.post("/api/users")
+          def create():
+              return {"id": 2}, 201, {"Location": "/api/users/2"}
+        mistake:
+          en: Returning a model object (or a set) and expecting Flask to turn it into JSON; it raises TypeError, so convert it to a dict or list first.
+          tr: Bir model nesnesi (ya da set) döndürüp Flask'ın onu JSON'a çevirmesini beklemek; TypeError verir, önce dict ya da listeye çevir.
+        since: "2.2"
+        older:
+          en: Returning a dict works since 1.1 and a list since 2.2; before that you called jsonify().
+          tr: dict döndürmek 1.1'den, liste döndürmek 2.2'den beri çalışır; öncesinde jsonify() çağrılırdı.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#apis-with-json
+      - id: url-for
+        level: basic
+        title: { en: Build URLs and redirect, tr: URL oluşturma ve yönlendirme }
+        what:
+          en: url_for builds a URL from a function name, redirect sends the browser there, and abort stops with an error code.
+          tr: url_for bir fonksiyon adından URL oluşturur, redirect tarayıcıyı oraya gönderir, abort ise bir hata koduyla durdurur.
+        lang: py
+        form: return redirect(url_for("profile", username="ada"))
+        example: |
+          from flask import abort, redirect, url_for
+
+          @app.get("/me")
+          def me():
+              if not current_user():
+                  abort(401)
+              return redirect(url_for("profile", username=current_user().name))
+
+          # url_for("static", filename="style.css") -> /static/style.css
+        mistake:
+          en: Hard-coding URLs like "/user/ada"; when a route changes, every hard-coded link breaks. url_for follows the change.
+          tr: '"/user/ada" gibi URL''leri elle yazmak; route değişince elle yazılan her link bozulur. url_for değişikliği takip eder.'
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#url-building
+  - id: templates
+    title: { en: Templates and errors, tr: Template'ler ve hatalar }
+    items:
+      - id: render-template
+        level: basic
+        title: { en: Render templates, tr: Template render etme }
+        what:
+          en: render_template fills a Jinja file from the templates folder with your values; HTML is escaped automatically.
+          tr: render_template, templates klasöründeki bir Jinja dosyasını değerlerinle doldurur; HTML otomatik kaçışlanır.
+        lang: py
+        form: return render_template("hello.html", name=name)
+        example: |
+          from flask import render_template
+
+          @app.get("/hello/<name>")
+          def hello(name):
+              return render_template("hello.html", name=name, items=["a", "b"])
+
+          # templates/hello.html
+          # <h1>Hello {{ name }}</h1>
+          # {% for item in items %}<li>{{ item }}</li>{% endfor %}
+        mistake:
+          en: Putting templates next to app.py instead of in a templates/ folder, which gives TemplateNotFound.
+          tr: Template'leri templates/ klasörüne değil app.py'nin yanına koymak; TemplateNotFound hatası verir.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#rendering-templates
+      - id: template-inheritance
+        level: intermediate
+        title: { en: Template inheritance, tr: Template kalıtımı }
+        what:
+          en: A base layout defines blocks and each page extends it, so the header and footer are written once.
+          tr: Temel layout block'ları tanımlar, her sayfa onu extends eder; header ve footer bir kez yazılır.
+        lang: html
+        form: '{% extends "base.html" %}{% block content %}...{% endblock %}'
+        example: |
+          {# templates/base.html #}
+          <title>{% block title %}{% endblock %} - My app</title>
+          <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+          {% block content %}{% endblock %}
+
+          {# templates/index.html #}
+          {% extends "base.html" %}
+          {% block title %}Home{% endblock %}
+          {% block content %}<h1>Welcome</h1>{% endblock %}
+        mistake:
+          en: Writing |safe on user content to keep its formatting; it turns off escaping and allows XSS.
+          tr: Biçimlendirmesi kalsın diye kullanıcı içeriğine |safe yazmak; kaçışlamayı kapatır ve XSS'e izin verir.
+        source: https://flask.palletsprojects.com/en/stable/patterns/templateinheritance/
+      - id: error-handlers
+        level: intermediate
+        title: { en: Error pages, tr: Hata sayfaları }
+        what:
+          en: errorhandler registers a function that builds the response for an error code or exception type.
+          tr: errorhandler, bir hata kodu ya da exception tipi için yanıtı oluşturan bir fonksiyon kaydeder.
+        lang: py
+        form: '@app.errorhandler(404)'
+        example: |
+          @app.errorhandler(404)
+          def not_found(error):
+              return render_template("404.html"), 404
+
+          class OutOfStock(Exception):
+              pass
+
+          @app.errorhandler(OutOfStock)
+          def out_of_stock(error):
+              return {"error": "out of stock"}, 409
+        mistake:
+          en: Returning only the template without the status code; the error page is then sent with 200 OK.
+          tr: Template'i durum kodu olmadan döndürmek; hata sayfası 200 OK ile gönderilir.
+        source: https://flask.palletsprojects.com/en/stable/errorhandling/
+      - id: static
+        level: basic
+        title: { en: Static files, tr: Statik dosyalar }
+        what:
+          en: Files in the static/ folder are served at /static/; build their links with url_for("static", filename=...).
+          tr: static/ klasöründeki dosyalar /static/ altında sunulur; linklerini url_for("static", filename=...) ile oluştur.
+        lang: html
+        form: '{{ url_for("static", filename="style.css") }}'
+        example: |
+          <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        avoid:
+          en: Under real traffic in production, let the web server (Nginx) or a CDN serve static files.
+          tr: Production'da gerçek trafik altında statik dosyaları web sunucusu (Nginx) ya da bir CDN sunsun.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#static-files
+  - id: structure
+    title: { en: Structure a bigger app, tr: Büyük uygulamayı düzenleme }
+    items:
+      - id: app-factory
+        level: intermediate
+        title: { en: Application factory, tr: Uygulama fabrikası (factory) }
+        what:
+          en: A create_app() function builds and configures the app, so tests and production can each make their own.
+          tr: create_app() fonksiyonu uygulamayı oluşturup ayarlar; testler ve production kendi uygulamalarını yapabilir.
+        lang: py
+        form: 'def create_app(test_config=None): app = Flask(__name__); ...; return app'
+        example: |
+          # myapp/__init__.py
+          from flask import Flask
+
+          def create_app(test_config=None):
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(SECRET_KEY="dev", DATABASE="app.sqlite")
+              if test_config:
+                  app.config.update(test_config)
+              from . import auth
+              app.register_blueprint(auth.bp)
+              return app
+
+          # terminal: flask --app myapp run --debug
+        mistake:
+          en: Importing a global app object from other modules; it causes circular imports. Use current_app inside requests instead.
+          tr: Diğer modüllerden global bir app nesnesi import etmek; döngüsel import'lara yol açar. İstek içinde onun yerine current_app kullan.
+        source: https://flask.palletsprojects.com/en/stable/patterns/appfactories/
+      - id: blueprints
+        level: intermediate
+        title: { en: Blueprints, tr: Blueprint'ler }
+        what:
+          en: A Blueprint groups related routes (auth, blog) in their own module and is registered on the app with a URL prefix.
+          tr: Blueprint ilgili route'ları (auth, blog) kendi modülünde toplar ve bir URL önekiyle uygulamaya kaydedilir.
+        lang: py
+        form: bp = Blueprint("auth", __name__, url_prefix="/auth")
+        example: |
+          # myapp/auth.py
+          from flask import Blueprint, render_template
+
+          bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+          @bp.get("/login")
+          def login():
+              return render_template("auth/login.html")
+
+          # in create_app: app.register_blueprint(bp)
+          # url_for("auth.login") -> /auth/login
+        mistake:
+          en: Writing url_for("login") for a blueprint route; the endpoint name gets the blueprint prefix, so it is url_for("auth.login").
+          tr: Blueprint route'u için url_for("login") yazmak; endpoint adı blueprint önekini alır, doğrusu url_for("auth.login").
+        source: https://flask.palletsprojects.com/en/stable/blueprints/
+      - id: config
+        level: intermediate
+        title: { en: Configuration, tr: Yapılandırma }
+        what:
+          en: app.config holds settings; from_prefixed_env() reads environment variables that start with FLASK_.
+          tr: app.config ayarları tutar; from_prefixed_env() FLASK_ ile başlayan ortam değişkenlerini okur.
+        lang: py
+        form: app.config.from_prefixed_env()
+        example: |
+          app = Flask(__name__)
+          app.config.from_mapping(DATABASE_URL="sqlite:///dev.db")
+          app.config.from_prefixed_env()
+          # FLASK_SECRET_KEY=... sets app.config["SECRET_KEY"]
+          # FLASK_DATABASE_URL=... overrides DATABASE_URL
+          print(app.config["DATABASE_URL"])
+        mistake:
+          en: Writing lower-case keys in config files; Flask only loads upper-case names into app.config.
+          tr: Config dosyalarında küçük harfli anahtarlar yazmak; Flask app.config'e sadece büyük harfli adları yükler.
+        since: "2.1"
+        api: ["from_prefixed_env("]
+        source: https://flask.palletsprojects.com/en/stable/config/#configuring-from-environment-variables
+      - id: g-teardown
+        level: advanced
+        title: { en: Per-request data with g, tr: g ile istek başına veri }
+        what:
+          en: g stores data for the current request (like a database connection), and teardown_appcontext closes it at the end.
+          tr: g o anki istek için veri saklar (veritabanı bağlantısı gibi), teardown_appcontext de sonunda onu kapatır.
+        lang: py
+        form: g.db = connect(); @app.teardown_appcontext
+        example: |
+          import sqlite3
+          from flask import current_app, g
+
+          def get_db():
+              if "db" not in g:
+                  g.db = sqlite3.connect(current_app.config["DATABASE"])
+              return g.db
+
+          @app.teardown_appcontext
+          def close_db(exc):
+              db = g.pop("db", None)
+              if db is not None:
+                  db.close()
+        mistake:
+          en: Using g outside a request or app context (in a script or thread) and getting "Working outside of application context"; wrap the code in with app.app_context().
+          tr: g'yi bir istek ya da app context dışında (script ya da thread içinde) kullanıp "Working outside of application context" hatası almak; kodu with app.app_context() içine al.
+        source: https://flask.palletsprojects.com/en/stable/appcontext/
+      - id: before-request
+        level: intermediate
+        title: { en: Run code before each request, tr: Her istekten önce kod çalıştırma }
+        what:
+          en: before_request runs before every view (for example to load the user), and after_request can change every response.
+          tr: before_request her view'dan önce çalışır (örneğin kullanıcıyı yüklemek için), after_request de her yanıtı değiştirebilir.
+        lang: py
+        form: '@app.before_request'
+        example: |
+          from flask import g, session
+
+          @app.before_request
+          def load_user():
+              uid = session.get("user_id")
+              g.user = User.query.get(uid) if uid else None
+
+          @app.after_request
+          def security_headers(response):
+              response.headers["X-Content-Type-Options"] = "nosniff"
+              return response
+        mistake:
+          en: Forgetting to return the response from an after_request function; Flask then fails.
+          tr: after_request fonksiyonundan response'u döndürmeyi unutmak; Flask hata verir.
+        source: https://flask.palletsprojects.com/en/stable/api/#flask.Flask.before_request
+      - id: cli
+        level: intermediate
+        title: { en: Custom CLI commands, tr: Özel CLI komutları }
+        what:
+          en: "@app.cli.command adds your own flask subcommand, for jobs like creating tables or seeding data."
+          tr: "@app.cli.command kendi flask alt komutunu ekler; tablo oluşturma ya da örnek veri ekleme gibi işler için."
+        lang: py
+        form: '@app.cli.command("init-db")'
+        example: |
+          import click
+
+          @app.cli.command("init-db")
+          @click.option("--drop", is_flag=True)
+          def init_db(drop):
+              """Create the database tables."""
+              click.echo(f"init (drop={drop})")
+
+          # terminal: flask --app myapp init-db --drop
+          # also built in: flask routes, flask shell
+        source: https://flask.palletsprojects.com/en/stable/cli/#custom-commands
+      - id: method-view
+        level: advanced
+        title: { en: Class-based views, tr: Sınıf tabanlı view'lar }
+        what:
+          en: A MethodView class has one method per HTTP verb, handy for REST resources.
+          tr: MethodView sınıfında her HTTP metodu için bir metot olur; REST kaynakları için kullanışlı.
+        lang: py
+        form: 'class ItemAPI(MethodView): def get(self, id): ...'
+        example: |
+          from flask.views import MethodView
+
+          class ItemAPI(MethodView):
+              def get(self, item_id):
+                  return {"id": item_id}
+
+              def delete(self, item_id):
+                  return "", 204
+
+          app.add_url_rule("/items/<int:item_id>", view_func=ItemAPI.as_view("item"))
+        avoid:
+          en: Small apps with a few routes; plain functions are easier to read.
+          tr: Birkaç route'u olan küçük uygulamalar; düz fonksiyonlar daha kolay okunur.
+        source: https://flask.palletsprojects.com/en/stable/views/
+  - id: sessions-security
+    title: { en: Sessions and security, tr: Session ve güvenlik }
+    items:
+      - id: session
+        level: basic
+        title: { en: Sessions, tr: Session'lar }
+        what:
+          en: session stores small data between requests in a signed cookie; it needs a SECRET_KEY.
+          tr: session, istekler arasında küçük verileri imzalı bir cookie'de saklar; SECRET_KEY gerektirir.
+        lang: py
+        form: session["user_id"] = user.id
+        example: |
+          from flask import session
+
+          app.secret_key = os.environ["SECRET_KEY"]   # python -c "import secrets; print(secrets.token_hex())"
+
+          @app.post("/login")
+          def login():
+              session["user_id"] = check_password(request.form)
+              return redirect(url_for("index"))
+
+          @app.post("/logout")
+          def logout():
+              session.clear()
+              return redirect(url_for("index"))
+        mistake:
+          en: Putting secrets in the session; the cookie is signed, not encrypted, so the user can read everything in it.
+          tr: Session'a gizli bilgi koymak; cookie imzalıdır ama şifreli değildir, kullanıcı içindeki her şeyi okuyabilir.
+        source: https://flask.palletsprojects.com/en/stable/quickstart/#sessions
+      - id: flash
+        level: basic
+        title: { en: Flash messages, tr: Flash mesajları }
+        what:
+          en: flash() saves a one-time message that the next page shows, like "Saved".
+          tr: flash() bir sonraki sayfanın göstereceği tek seferlik bir mesaj kaydeder, "Kaydedildi" gibi.
+        lang: py
+        form: flash("Saved", "success")
+        example: |
+          from flask import flash
+
+          @app.post("/settings")
+          def save_settings():
+              save(request.form)
+              flash("Settings saved", "success")
+              return redirect(url_for("settings"))
+
+          # template:
+          # {% for category, msg in get_flashed_messages(with_categories=true) %}
+          #   <div class="{{ category }}">{{ msg }}</div>
+          # {% endfor %}
+        source: https://flask.palletsprojects.com/en/stable/patterns/flashing/
+      - id: uploads
+        level: intermediate
+        title: { en: File uploads, tr: Dosya yükleme }
+        what:
+          en: Uploaded files are in request.files; clean the name with secure_filename and set a size limit.
+          tr: Yüklenen dosyalar request.files içindedir; adını secure_filename ile temizle ve bir boyut sınırı koy.
+        lang: py
+        form: f = request.files["file"]; f.save(path / secure_filename(f.filename))
+        example: |
+          from werkzeug.utils import secure_filename
+
+          app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024   # bigger requests get 413
+
+          @app.post("/upload")
+          def upload():
+              f = request.files.get("file")
+              if not f or not f.filename.lower().endswith((".png", ".jpg")):
+                  abort(400)
+              f.save(UPLOAD_DIR / secure_filename(f.filename))
+              return {"ok": True}
+        mistake:
+          en: Saving with the name the user sent; a name like ../../app.py can overwrite files outside the upload folder.
+          tr: Dosyayı kullanıcının gönderdiği adla kaydetmek; ../../app.py gibi bir ad, yükleme klasörü dışındaki dosyaların üzerine yazabilir.
+        source: https://flask.palletsprojects.com/en/stable/patterns/fileuploads/
+      - id: key-rotation
+        level: advanced
+        title: { en: Rotate the secret key, tr: Gizli anahtarı değiştirme }
+        what:
+          en: SECRET_KEY_FALLBACKS keeps old keys valid for reading, so you can change SECRET_KEY without logging everyone out.
+          tr: SECRET_KEY_FALLBACKS eski anahtarları okuma için geçerli tutar; böylece herkesi oturumdan atmadan SECRET_KEY'i değiştirebilirsin.
+        lang: py
+        form: SECRET_KEY_FALLBACKS = ["old-key"]
+        example: |
+          app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]                # new key signs
+          app.config["SECRET_KEY_FALLBACKS"] = [os.environ["OLD_SECRET_KEY"]] # old key still verifies
+        mistake:
+          en: Keeping old keys in the list forever; remove them once the old sessions have expired.
+          tr: Eski anahtarları listede sonsuza kadar tutmak; eski session'ların süresi dolunca onları kaldır.
+        since: "3.1"
+        api: ["SECRET_KEY_FALLBACKS"]
+        older:
+          en: Before 3.1 changing SECRET_KEY made every existing session cookie invalid at once.
+          tr: 3.1'den önce SECRET_KEY'i değiştirmek mevcut tüm session cookie'lerini bir anda geçersiz yapardı.
+        source: https://flask.palletsprojects.com/en/stable/config/#SECRET_KEY_FALLBACKS
+      - id: proxy-fix
+        level: advanced
+        title: { en: Behind a reverse proxy, tr: Reverse proxy arkasında }
+        what:
+          en: ProxyFix makes Flask trust the X-Forwarded-* headers from your proxy, so the client IP and https links are right.
+          tr: ProxyFix, Flask'ın proxy'nden gelen X-Forwarded-* header'larına güvenmesini sağlar; istemci IP'si ve https linkleri doğru olur.
+        lang: py
+        form: app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+        example: |
+          from werkzeug.middleware.proxy_fix import ProxyFix
+
+          app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+        mistake:
+          en: Adding ProxyFix when there is no proxy in front; then clients can fake their IP with their own headers.
+          tr: Önünde proxy yokken ProxyFix eklemek; o zaman istemciler kendi header'larıyla IP'lerini sahte gösterebilir.
+        source: https://flask.palletsprojects.com/en/stable/deploying/proxy_fix/
+  - id: test-deploy
+    title: { en: Testing and deploy, tr: Test ve deploy }
+    items:
+      - id: test-client
+        level: basic
+        title: { en: Test with the test client, tr: Test client ile test }
+        what:
+          en: app.test_client() sends requests to your app without a server, and pytest fixtures give each test a fresh app.
+          tr: app.test_client() sunucu olmadan uygulamana istek gönderir; pytest fixture'ları her teste yeni bir uygulama verir.
+        lang: py
+        form: client = app.test_client(); client.get("/")
+        example: |
+          import pytest
+          from myapp import create_app
+
+          @pytest.fixture
+          def client():
+              app = create_app({"TESTING": True})
+              return app.test_client()
+
+          def test_index(client):
+              r = client.get("/")
+              assert r.status_code == 200
+              assert b"Hello" in r.data
+
+          def test_api(client):
+              r = client.post("/api/items", json={"name": "pen"})
+              assert r.json == {"name": "pen"}
+        mistake:
+          en: Leaving TESTING off; errors then turn into 500 responses instead of showing the real exception in the test.
+          tr: TESTING'i kapalı bırakmak; hatalar testte gerçek exception'ı göstermek yerine 500 yanıtına dönüşür.
+        source: https://flask.palletsprojects.com/en/stable/testing/
+      - id: production-server
+        level: intermediate
+        title: { en: Run in production, tr: Production'da çalıştırma }
+        what:
+          en: In production run the app with a WSGI server like Gunicorn or Waitress instead of flask run.
+          tr: Production'da uygulamayı flask run yerine Gunicorn ya da Waitress gibi bir WSGI sunucusuyla çalıştır.
+        lang: sh
+        form: gunicorn -w 4 'myapp:create_app()'
+        example: |
+          python -m pip install gunicorn
+          gunicorn -w 4 -b 0.0.0.0:8000 'myapp:create_app()'
+          # Windows: waitress-serve --call myapp:create_app
+        mistake:
+          en: Using flask run or app.run() in production; the built-in server is for development only.
+          tr: Production'da flask run ya da app.run() kullanmak; dahili sunucu sadece geliştirme içindir.
+        source: https://flask.palletsprojects.com/en/stable/deploying/gunicorn/
+      - id: async-views
+        level: advanced
+        title: { en: Async views, tr: Async view'lar }
+        what:
+          en: Views can be async def after installing flask[async], so they can await async libraries.
+          tr: flask[async] kurulduktan sonra view'lar async def olabilir ve async kütüphaneleri await edebilir.
+        lang: py
+        form: 'async def view(): data = await fetch()'
+        example: |
+          # python -m pip install "flask[async]"
+          import httpx
+
+          @app.get("/weather")
+          async def weather():
+              async with httpx.AsyncClient() as client:
+                  r = await client.get("https://api.example.com/weather")
+              return r.json()
+        mistake:
+          en: Expecting async views to handle many more requests; Flask still uses one worker per request. For that, use an ASGI framework like Quart.
+          tr: Async view'ların çok daha fazla isteği karşılamasını beklemek; Flask yine her istek için bir worker kullanır. Bunun için Quart gibi bir ASGI framework'ü kullan.
+        source: https://flask.palletsprojects.com/en/stable/async-await/
+      - id: logging
+        level: intermediate
+        title: { en: Logging, tr: Loglama }
+        what:
+          en: app.logger is a standard Python logger; configure logging before you create the app.
+          tr: app.logger standart bir Python logger'ıdır; logging'i uygulamayı oluşturmadan önce ayarla.
+        lang: py
+        form: app.logger.info("message %s", value)
+        example: |
+          import logging
+
+          logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+          app = Flask(__name__)
+
+          @app.post("/orders")
+          def create_order():
+              app.logger.info("order created by %s", session.get("user_id"))
+              return {"ok": True}, 201
+        mistake:
+          en: Logging passwords, tokens or whole request bodies; logs are read by many people and kept for a long time.
+          tr: Şifreleri, token'ları ya da tüm request body'lerini loglamak; loglar birçok kişi tarafından okunur ve uzun süre saklanır.
+        source: https://flask.palletsprojects.com/en/stable/logging/

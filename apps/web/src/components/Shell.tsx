@@ -24,6 +24,7 @@ import { TooltipLayer } from "./Tooltip";
 import { Tour } from "./Tour";
 import { UndoToast } from "./UndoToast";
 import { Kbd, StatusDot } from "./ui";
+import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
 function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
@@ -61,7 +62,7 @@ function ToolStrip() {
   return (
     <nav
       data-tour="nav"
-      className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2"
+      className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2 print:hidden"
     >
       <div className="mb-2 flex size-9 items-center justify-center" aria-hidden>
         <svg viewBox="0 0 32 32" className="size-6">
@@ -89,7 +90,7 @@ function ToolStrip() {
 function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message: string) => void }) {
   const { t } = useTranslation();
   return (
-    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-bg px-3 sm:gap-3">
+    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-bg px-3 sm:gap-3 print:hidden">
       <WorkspacePicker />
       <div className="flex-1" />
       <button
@@ -124,7 +125,7 @@ function StatusBar({ status }: { status: SocketStatus }) {
   const index = useIndexStatus();
   const tone = status === "connected" ? "success" : status === "connecting" ? "warning" : "danger";
   return (
-    <footer className="flex h-6 shrink-0 items-center gap-4 border-t border-border bg-bg-subtle px-3 text-[11px] text-fg-subtle">
+    <footer className="flex h-6 shrink-0 items-center gap-4 border-t border-border bg-bg-subtle px-3 text-[11px] text-fg-subtle print:hidden">
       <span className="flex items-center gap-1.5">
         <StatusDot tone={tone} />
         {t(`status.${status}`)}
@@ -205,7 +206,7 @@ export function Shell() {
       {!zen && <ToolStrip />}
       <div className="flex min-w-0 flex-1 flex-col">
         {!zen && <TopBar onSearch={openPalette} onToast={setToast} />}
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto print:overflow-visible">
           <div key={location.pathname} className="ge-page flex min-h-0 flex-1 flex-col">
             <Outlet />
           </div>
@@ -225,6 +226,7 @@ export function Shell() {
       )}
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
       <QuickAsk />
+      <WhatIs />
       <TooltipLayer />
       <UndoToast />
       <Tour />

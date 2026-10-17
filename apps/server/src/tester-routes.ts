@@ -77,6 +77,14 @@ export function registerTesterRoutes(app: Hono, testers: Testers): void {
       return fail(err);
     }
   });
+  app.post("/api/testers/runs/:id/auto", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { on?: unknown };
+    try {
+      return c.json(testers.setAutoRepeat(c.req.param("id"), body.on === true));
+    } catch (err) {
+      return fail(err);
+    }
+  });
   app.post("/api/testers/runs/:id/stop", (c) => {
     testers.stop(c.req.param("id"));
     return c.json({ ok: true });

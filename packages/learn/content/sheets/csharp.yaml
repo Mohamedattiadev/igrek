@@ -1,0 +1,784 @@
+id: csharp
+title: C# and .NET
+category: language
+summary:
+  en: A typed, modern language on .NET for web APIs, desktop apps, games (Unity) and cloud services; dotnet is its command-line tool.
+  tr: .NET üzerinde çalışan tipli ve modern bir dil; web API'leri, masaüstü uygulamaları, oyunlar (Unity) ve bulut servisleri için kullanılır. dotnet onun komut satırı aracıdır.
+aliases: [c#, csharp, dotnet, .net, asp.net, linq, nuget, c sharp]
+detect:
+  files: [global.json]
+version: "10"
+latest: eol:dotnet
+checked: 2026-10
+sources:
+  - title: C# documentation
+    url: https://learn.microsoft.com/en-us/dotnet/csharp/
+  - title: What's new in C# 14
+    url: https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-14
+  - title: .NET CLI overview
+    url: https://learn.microsoft.com/en-us/dotnet/core/tools/
+roadmap: dotnet
+sections:
+  - id: cli
+    title: { en: The dotnet CLI, tr: dotnet CLI }
+    items:
+      - id: new
+        level: basic
+        title: { en: Create a project, tr: Proje oluşturma }
+        what:
+          en: dotnet new makes a project from a template, such as a console app, a web API or a test project.
+          tr: dotnet new bir şablondan proje oluşturur; örneğin konsol uygulaması, web API ya da test projesi.
+        lang: sh
+        form: dotnet new <template> -o <folder>
+        example: |
+          dotnet new console -o Hello
+          dotnet new webapi -o Api
+          dotnet new list          # all installed templates
+        source: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-new
+      - id: run
+        level: basic
+        title: { en: Run a project or a single file, tr: Bir projeyi ya da tek dosyayı çalıştırma }
+        what:
+          en: dotnet run builds and runs the project in the folder; dotnet run app.cs runs one .cs file with no project file.
+          tr: dotnet run klasördeki projeyi derleyip çalıştırır; dotnet run app.cs proje dosyası olmadan tek bir .cs dosyasını çalıştırır.
+        lang: sh
+        form: dotnet run app.cs
+        example: |
+          dotnet run                 # the project in this folder
+          dotnet run app.cs          # a file-based app
+          dotnet run -- --port 5000  # arguments after -- go to your program
+        mistake:
+          en: Putting your program's arguments before --; dotnet takes them for itself.
+          tr: Programının argümanlarını --'den önce yazmak; dotnet onları kendisi için alır.
+        since: "10"
+        older:
+          en: Running a single .cs file needs the .NET 10 SDK; older SDKs always need a .csproj.
+          tr: Tek bir .cs dosyasını çalıştırmak .NET 10 SDK ister; eski SDK'lar her zaman bir .csproj ister.
+        source: https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps
+      - id: file-directives
+        level: intermediate
+        title: { en: Packages in a single-file app, tr: Tek dosyalı uygulamada paketler }
+        what:
+          en: 'Lines starting with #: at the top of a file-based app add NuGet packages, an SDK or build properties.'
+          tr: 'Dosya tabanlı bir uygulamanın en üstündeki #: ile başlayan satırlar NuGet paketi, SDK ya da build ayarları ekler.'
+        lang: cs
+        form: "#:package Name@Version"
+        example: |
+          #:package Humanizer@2.14.1
+          #:property PublishAot=false
+          using Humanizer;
+
+          Console.WriteLine(TimeSpan.FromMinutes(90).Humanize());
+          // grown too big? dotnet project convert app.cs
+        mistake:
+          en: 'Putting #: lines below code; they must be at the top of the file.'
+          tr: "#: satırlarını kodun altına yazmak; dosyanın en üstünde olmalılar."
+        since: "10"
+        source: https://learn.microsoft.com/en-us/dotnet/core/sdk/file-based-apps
+      - id: add-package
+        level: basic
+        title: { en: Add a NuGet package, tr: NuGet paketi ekleme }
+        what:
+          en: dotnet package add puts a NuGet package reference into the project file and restores it.
+          tr: dotnet package add bir NuGet paketi referansını proje dosyasına ekler ve indirir.
+        lang: sh
+        form: dotnet package add <package>
+        example: |
+          dotnet package add Serilog
+          dotnet package add Serilog --version 4.2.0
+          dotnet package list --outdated
+        since: "10"
+        older:
+          en: Before .NET 10 the command is dotnet add package <name>, which still works.
+          tr: .NET 10'dan önce komut dotnet add package <ad> şeklindedir; o da hâlâ çalışır.
+        source: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-package-add
+      - id: build-publish
+        level: intermediate
+        title: { en: Build and publish, tr: Build ve publish }
+        what:
+          en: dotnet build compiles; dotnet publish makes the files you deploy, in Release mode by default.
+          tr: dotnet build derler; dotnet publish deploy edeceğin dosyaları üretir, varsayılan olarak Release modunda.
+        lang: sh
+        form: dotnet publish -o out
+        example: |
+          dotnet build
+          dotnet publish -o out
+          dotnet publish -r linux-x64 --self-contained   # runs without .NET installed
+        mistake:
+          en: Deploying the output of dotnet build; it is a Debug build. Deploy what dotnet publish makes.
+          tr: dotnet build çıktısını deploy etmek; o bir Debug build'dir. dotnet publish'in ürettiğini deploy et.
+        source: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+      - id: watch
+        level: basic
+        title: { en: Restart on save, tr: Kaydedince yeniden başlatma }
+        what:
+          en: dotnet watch runs the app and reloads it when you save a file.
+          tr: dotnet watch uygulamayı çalıştırır ve bir dosyayı kaydettiğinde yeniden yükler.
+        lang: sh
+        form: dotnet watch
+        example: |
+          dotnet watch           # same as dotnet watch run
+          dotnet watch test
+        source: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-watch
+  - id: basics
+    title: { en: Everyday code, tr: Günlük kod }
+    items:
+      - id: top-level
+        level: basic
+        title: { en: A program that runs, tr: Çalışan bir program }
+        what:
+          en: With top-level statements, a file of plain statements is the program; no Main method or class is needed.
+          tr: Top-level statement'larla düz komutlardan oluşan bir dosya programın kendisidir; Main metodu ya da class gerekmez.
+        lang: cs
+        form: Console.WriteLine("Hello");
+        example: |
+          var name = "Ada";
+          Console.WriteLine("Hello, C#");
+          Console.WriteLine($"{name} has {name.Length} letters");
+        output: |
+          Hello, C#
+          Ada has 3 letters
+        check: cs
+        mistake:
+          en: Writing top-level statements in more than one file of a project; only one file may have them.
+          tr: Bir projede birden fazla dosyada top-level statement yazmak; sadece bir dosyada olabilir.
+        since: "9"
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/program-structure/top-level-statements
+      - id: variables
+        level: basic
+        title: { en: Variables and types, tr: Değişkenler ve tipler }
+        what:
+          en: Every variable has a type; var lets the compiler pick it from the value, and const values never change.
+          tr: Her değişkenin bir tipi vardır; var ile tipi derleyici değerden seçer, const değerler hiç değişmez.
+        lang: cs
+        form: var count = 3;
+        example: |
+          const double Rate = 0.5;
+          int count = 3;
+          var price = 9.99m;      // decimal, for money
+          string text = count.ToString();
+          Console.WriteLine($"{count} {price} {text.Length} {Rate}");
+          Console.WriteLine(int.Parse("41") + 1);
+        output: |
+          3 9.99 1 0.5
+          42
+        check: cs
+        mistake:
+          en: Using double for money; 0.1 + 0.2 is not exactly 0.3. Use decimal (the m suffix).
+          tr: Para için double kullanmak; 0.1 + 0.2 tam olarak 0.3 etmez. decimal kullan (m eki).
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/declarations
+      - id: strings
+        level: basic
+        title: { en: String interpolation and raw strings, tr: String interpolation ve raw string'ler }
+        what:
+          en: $"..." puts values into text with {}, and three double quotes make a raw string where quotes and backslashes need no escaping.
+          tr: $"..." değerleri {} ile metne yerleştirir; üç çift tırnak, tırnak ve ters bölü için kaçış gerekmeyen raw string oluşturur.
+        lang: cs
+        form: $"{name} is {age}"
+        example: |
+          var name = "Ada";
+          var total = 1234.56;
+          Console.WriteLine($"{name,-5}|{total:F2}|{total,10:N0}|");
+          var json = $$"""
+              {"name": "{{name}}"}
+              """;
+          Console.WriteLine(json);
+        output: |
+          Ada  |1234.56|     1,235|
+          {"name": "Ada"}
+        check: cs
+        mistake:
+          en: Forgetting that number formats like N0 follow the machine's culture; for files and APIs pass CultureInfo.InvariantCulture.
+          tr: N0 gibi sayı biçimlerinin makinenin kültürüne göre değiştiğini unutmak; dosya ve API'ler için CultureInfo.InvariantCulture ver.
+        since: "11"
+        older:
+          en: Raw string literals came in C# 11; before that, use verbatim strings @"..." with "" for a quote.
+          tr: Raw string literal'lar C# 11'de geldi; öncesinde tırnak için "" yazılan @"..." verbatim string'leri kullan.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/tokens/raw-string
+      - id: switch-expr
+        level: basic
+        title: { en: switch expressions, tr: switch ifadeleri }
+        what:
+          en: A switch expression picks a value by matching patterns, with _ for everything else.
+          tr: switch ifadesi kalıplara göre eşleştirerek bir değer seçer; geri kalan her şey için _ kullanılır.
+        lang: cs
+        form: 'var x = value switch { 1 => "one", _ => "many" };'
+        example: |
+          static string Grade(int score) => score switch
+          {
+              >= 90 => "A",
+              >= 70 and < 90 => "B",
+              _ => "C",
+          };
+
+          Console.WriteLine($"{Grade(95)} {Grade(75)} {Grade(10)}");
+        output: |
+          A B C
+        check: cs
+        mistake:
+          en: Leaving out _; a value that matches nothing throws at run time (the compiler warns).
+          tr: _'yi yazmamak; hiçbir şeyle eşleşmeyen değer çalışma anında exception fırlatır (derleyici uyarır).
+        since: "8"
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/switch-expression
+      - id: loops
+        level: basic
+        title: { en: Loops, tr: Döngüler }
+        what:
+          en: foreach walks over any collection; for and while work as in C.
+          tr: foreach her koleksiyon üzerinde gezer; for ve while C'deki gibi çalışır.
+        lang: cs
+        form: foreach (var item in items) { }
+        example: |
+          string[] names = ["Ada", "Alan"];
+          foreach (var n in names)
+              Console.Write(n + " ");
+          Console.WriteLine();
+          for (var i = 0; i < 3; i++)
+              Console.Write(i);
+          Console.WriteLine();
+        output: |
+          Ada Alan
+          012
+        check: cs
+        mistake:
+          en: Adding to or removing from a List inside foreach over it; it throws InvalidOperationException. Loop over a copy or use RemoveAll.
+          tr: Üzerinde foreach döndüğün bir List'e eleman ekleyip çıkarmak; InvalidOperationException fırlatır. Kopyası üzerinde dön ya da RemoveAll kullan.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/iteration-statements
+      - id: collection-expressions
+        level: intermediate
+        title: { en: Collection expressions, tr: Koleksiyon ifadeleri }
+        what:
+          en: Square brackets create arrays, lists and spans, and .. spreads another collection into it.
+          tr: Köşeli parantezler dizi, liste ve span oluşturur; .. başka bir koleksiyonu içine yayar.
+        lang: cs
+        form: List<int> xs = [1, 2, ..other];
+        example: |
+          int[] first = [1, 2];
+          List<int> all = [0, .. first, 3];
+          all.Add(4);
+          Console.WriteLine(string.Join(",", all));
+          Console.WriteLine($"{all.Count} {all[^1]}"); // ^1 is the last item
+        output: |
+          0,1,2,3,4
+          5 4
+        check: cs
+        mistake:
+          en: Using var with a collection expression; the compiler needs a target type, so write List<int> xs = [...].
+          tr: Koleksiyon ifadesiyle var kullanmak; derleyicinin hedef bir tipe ihtiyacı var, List<int> xs = [...] yaz.
+        since: "12"
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/collection-expressions
+      - id: methods
+        level: basic
+        title: { en: Methods and parameters, tr: Metotlar ve parametreler }
+        what:
+          en: Methods can have default values and named arguments; out returns an extra value.
+          tr: Metotların varsayılan değerleri ve adlandırılmış argümanları olabilir; out ek bir değer döner.
+        lang: cs
+        form: static int Add(int a, int b = 1) => a + b;
+        example: |
+          static string Greet(string name, string greeting = "Hello") => $"{greeting}, {name}";
+
+          Console.WriteLine(Greet("Ada"));
+          Console.WriteLine(Greet(greeting: "Hi", name: "Alan"));
+          if (int.TryParse("42", out var n))
+              Console.WriteLine(n + 1);
+        output: |
+          Hello, Ada
+          Hi, Alan
+          43
+        check: cs
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/local-functions
+  - id: types
+    title: { en: Classes, records and nulls, tr: Class'lar, record'lar ve null }
+    items:
+      - id: classes
+        level: basic
+        title: { en: Classes and properties, tr: Class'lar ve property'ler }
+        what:
+          en: A class has properties (get/set), a constructor and methods; required forces callers to set a property.
+          tr: Class'ın property'leri (get/set), bir kurucusu ve metotları vardır; required, çağıranı bir property'yi atamaya zorlar.
+        lang: cs
+        form: public string Name { get; set; }
+        example: |
+          var u = new User { Name = "Ada", Age = 36 };
+          u.Birthday();
+          Console.WriteLine($"{u.Name} {u.Age}");
+
+          class User
+          {
+              public required string Name { get; init; } // set only while creating
+              public int Age { get; set; }
+              public void Birthday() => Age++;
+          }
+        output: |
+          Ada 37
+        check: cs
+        mistake:
+          en: Making every property settable from outside; then any code can change the object. Prefer init or private set where you can.
+          tr: Her property'yi dışarıdan atanabilir yapmak; o zaman her kod nesneyi değiştirebilir. Mümkün olan yerde init ya da private set tercih et.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/classes-and-structs/properties
+      - id: records
+        level: basic
+        title: { en: Records, tr: Record'lar }
+        what:
+          en: A record is a short data type compared by value, with a readable ToString and with to copy it with changes.
+          tr: Record değere göre karşılaştırılan kısa bir veri tipidir; okunur bir ToString'i vardır, with ile değiştirilmiş kopyası alınır.
+        lang: cs
+        form: public record Point(int X, int Y);
+        example: |
+          var a = new Point(1, 2);
+          var b = a with { Y = 5 };
+          Console.WriteLine(a);
+          Console.WriteLine($"{b.Y} {a == new Point(1, 2)}");
+
+          record Point(int X, int Y);
+        output: |
+          Point { X = 1, Y = 2 }
+          5 True
+        check: cs
+        avoid:
+          en: For Entity Framework entities that change over time; use a class.
+          tr: Zamanla değişen Entity Framework entity'lerinde; class kullan.
+        since: "9"
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/records
+      - id: interfaces
+        level: intermediate
+        title: { en: Interfaces, tr: Interface'ler }
+        what:
+          en: An interface is a contract of members that classes and structs implement; code depends on the interface, not the class.
+          tr: Interface, class ve struct'ların uyguladığı bir üye sözleşmesidir; kod class'a değil interface'e bağımlı olur.
+        lang: cs
+        form: interface IShape { double Area(); }
+        example: |
+          IShape[] shapes = [new Square(2), new Circle(1)];
+          foreach (var s in shapes)
+              Console.WriteLine($"{s.GetType().Name} {s.Area():F1}");
+
+          interface IShape { double Area(); }
+          record Square(double Side) : IShape { public double Area() => Side * Side; }
+          record Circle(double R) : IShape { public double Area() => Math.PI * R * R; }
+        output: |
+          Square 4.0
+          Circle 3.1
+        check: cs
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/interfaces
+      - id: nullable
+        level: intermediate
+        title: { en: Nullable reference types, tr: Nullable referans tipleri }
+        what:
+          en: string? may be null and string should not; the compiler warns before a possible null error.
+          tr: string? null olabilir, string olmamalı; derleyici olası bir null hatasından önce uyarır.
+        lang: cs
+        form: string? name = null; var len = name?.Length ?? 0;
+        example: |
+          string? Find(string id) => id == "1" ? "Ada" : null;
+
+          string? name = Find("2");
+          Console.WriteLine(name?.Length ?? -1);
+          name ??= "unknown";
+          Console.WriteLine(name);
+        output: |
+          -1
+          unknown
+        check: cs
+        mistake:
+          en: Silencing warnings with ! (the null-forgiving operator) everywhere; it hides the very bugs the feature catches.
+          tr: Uyarıları her yerde ! (null-forgiving) ile susturmak; özelliğin yakaladığı hataları gizler.
+        since: "8"
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/null-safety/nullable-reference-types
+      - id: patterns
+        level: intermediate
+        title: { en: Pattern matching, tr: Pattern matching }
+        what:
+          en: is and switch can test type, properties and ranges at once and give you typed variables.
+          tr: is ve switch tipi, property'leri ve aralıkları aynı anda test edip sana tipli değişkenler verebilir.
+        lang: cs
+        form: 'if (obj is Order { Total: > 100 } o) { }'
+        example: |
+          static string Describe(object o) => o switch
+          {
+              int n when n < 0 => "negative",
+              int n => $"int {n}",
+              string { Length: 0 } => "empty text",
+              string s => $"text {s}",
+              int[] and [var first, ..] => $"array starting {first}",
+              null => "null",
+              _ => "other",
+          };
+
+          Console.WriteLine(Describe(-3));
+          Console.WriteLine(Describe("hi"));
+          Console.WriteLine(Describe(new[] { 7, 8 }));
+        output: |
+          negative
+          text hi
+          array starting 7
+        check: cs
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/patterns/pattern-matching
+      - id: primary-constructors
+        level: intermediate
+        title: { en: Primary constructors, tr: Primary constructor'lar }
+        what:
+          en: Parameters written after a class name are available in the whole class, which is handy for dependency injection.
+          tr: Class adından sonra yazılan parametreler bütün class içinde kullanılabilir; dependency injection için kullanışlıdır.
+        lang: cs
+        form: class Service(ILogger logger) { }
+        example: |
+          var c = new Counter(start: 10);
+          c.Add();
+          Console.WriteLine(c.Value);
+
+          class Counter(int start)
+          {
+              public int Value { get; private set; } = start;
+              public void Add() => Value++;
+          }
+        output: |
+          11
+        check: cs
+        mistake:
+          en: Expecting a property like in records; in a class, the parameter is not public, so expose it yourself.
+          tr: Record'daki gibi bir property beklemek; class'ta parametre public değildir, kendin dışarı aç.
+        since: "12"
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/whats-new/tutorials/primary-constructors
+      - id: field-keyword
+        level: intermediate
+        title: { en: The field keyword, tr: field anahtar kelimesi }
+        what:
+          en: Inside a property accessor, field means the hidden backing field, so you can add logic without declaring one.
+          tr: Property erişimcisinin içinde field gizli arka alanı ifade eder; ayrı bir alan tanımlamadan mantık ekleyebilirsin.
+        lang: cs
+        form: 'public string Name { get; set => field = value.Trim(); }'
+        example: |
+          var u = new User { Name = "  Ada  " };
+          Console.WriteLine($"[{u.Name}]");
+
+          class User
+          {
+              public string Name
+              {
+                  get;
+                  set => field = value.Trim();
+              } = "";
+          }
+        output: |
+          [Ada]
+        check: cs
+        mistake:
+          en: A class that already has a member named field; inside accessors the keyword wins. Rename it or write @field.
+          tr: Zaten field adlı bir üyesi olan class; erişimcilerin içinde anahtar kelime geçerli olur. Yeniden adlandır ya da @field yaz.
+        since: "14"
+        older:
+          en: Before C# 14, declare a private backing field yourself and use it in get and set.
+          tr: C# 14'ten önce özel bir arka alanı kendin tanımlayıp get ve set içinde kullan.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/field
+      - id: null-conditional-assign
+        level: intermediate
+        title: { en: Assign only when not null, tr: Sadece null değilse atama }
+        what:
+          en: a?.B = x sets B only when a is not null; otherwise the right side is not even run.
+          tr: a?.B = x, B'yi sadece a null değilse atar; değilse sağ taraf hiç çalışmaz.
+        lang: cs
+        form: customer?.Order = GetOrder();
+        example: |
+          Box? empty = null;
+          var box = new Box();
+          empty?.Value = Next();
+          box?.Value = Next();
+          Console.WriteLine(box?.Value);
+
+          static int Next() { Console.WriteLine("Next ran"); return 7; }
+          class Box { public int Value { get; set; } }
+        output: |
+          Next ran
+          7
+        check: cs
+        since: "14"
+        older:
+          en: Before C# 14, write if (a is not null) a.B = x;
+          tr: C# 14'ten önce if (a is not null) a.B = x; yaz.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/operators/member-access-operators
+      - id: extensions
+        level: advanced
+        title: { en: Extension members, tr: Extension üyeleri }
+        what:
+          en: Extensions add methods and properties to an existing type without changing it, like "text".IsBlank.
+          tr: Extension'lar var olan bir tipe onu değiştirmeden metot ve property ekler; "text".IsBlank gibi.
+        lang: cs
+        form: 'static class X { extension(string s) { public bool IsBlank => ...; } }'
+        example: |
+          Console.WriteLine("   ".IsBlank);
+          Console.WriteLine("abc".Shout());
+
+          static class TextExtensions
+          {
+              extension(string s)
+              {
+                  public bool IsBlank => string.IsNullOrWhiteSpace(s);
+                  public string Shout() => s.ToUpperInvariant() + "!";
+              }
+          }
+        output: |
+          True
+          ABC!
+        check: cs
+        avoid:
+          en: For types you own; add the member to the type itself.
+          tr: Kendi yazdığın tiplerde; üyeyi doğrudan tipin kendisine ekle.
+        since: "14"
+        older:
+          en: Before C# 14 only extension methods exist, written as static methods with this on the first parameter - static bool IsBlank(this string s).
+          tr: C# 14'ten önce sadece extension metotlar vardır; ilk parametresinde this olan static metotlar olarak yazılır - static bool IsBlank(this string s).
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/extension
+      - id: generics
+        level: intermediate
+        title: { en: Generics, tr: Generic'ler }
+        what:
+          en: A generic type or method works with any type T, and where limits which types are allowed.
+          tr: Generic bir tip ya da metot her T tipiyle çalışır; where hangi tiplere izin verildiğini sınırlar.
+        lang: cs
+        form: 'static T Max<T>(T a, T b) where T : IComparable<T>'
+        example: |
+          static T Max<T>(T a, T b) where T : IComparable<T> => a.CompareTo(b) >= 0 ? a : b;
+
+          Console.WriteLine(Max(3, 9));
+          Console.WriteLine(Max("go", "rust"));
+        output: |
+          9
+          rust
+        check: cs
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/types/generics
+  - id: collections
+    title: { en: Collections and LINQ, tr: Koleksiyonlar ve LINQ }
+    items:
+      - id: list-dictionary
+        level: basic
+        title: { en: List and Dictionary, tr: List ve Dictionary }
+        what:
+          en: List<T> is a growable list; Dictionary<K, V> stores values by key, and TryGetValue reads one safely.
+          tr: List<T> büyüyebilen bir listedir; Dictionary<K, V> değerleri anahtara göre saklar, TryGetValue birini güvenle okur.
+        lang: cs
+        form: if (dict.TryGetValue(key, out var v)) { }
+        example: |
+          var ages = new Dictionary<string, int> { ["ada"] = 36 };
+          ages["alan"] = 41;
+          if (!ages.TryGetValue("bob", out var bob))
+              Console.WriteLine($"no bob ({bob})");
+          Console.WriteLine($"{ages.Count} {ages.ContainsKey("ada")} {ages.GetValueOrDefault("zed", -1)}");
+        output: |
+          no bob (0)
+          2 True -1
+        check: cs
+        mistake:
+          en: Reading dict[key] for a key that may be missing; it throws KeyNotFoundException.
+          tr: Olmayabilecek bir anahtar için dict[key] okumak; KeyNotFoundException fırlatır.
+        source: https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.dictionary-2
+      - id: linq
+        level: intermediate
+        title: { en: LINQ, tr: LINQ }
+        what:
+          en: LINQ methods like Where, Select, OrderBy and GroupBy query any collection in a few readable steps.
+          tr: Where, Select, OrderBy ve GroupBy gibi LINQ metotları her koleksiyonu birkaç okunur adımda sorgular.
+        lang: cs
+        form: items.Where(x => ..).Select(x => ..).ToList()
+        example: |
+          int[] nums = [5, 1, 4, 2, 3];
+          var evenSquares = nums.Where(n => n % 2 == 0).Select(n => n * n).OrderBy(n => n).ToList();
+          Console.WriteLine(string.Join(",", evenSquares));
+          Console.WriteLine($"{nums.Sum()} {nums.Max()} {nums.Any(n => n > 4)} {nums.Count(n => n > 2)}");
+          foreach (var g in new[] { "ant", "bee", "cat", "ape" }.GroupBy(w => w[0]).OrderBy(g => g.Key))
+              Console.WriteLine($"{g.Key}: {string.Join(" ", g)}");
+        output: |
+          4,16
+          15 5 True 3
+          a: ant ape
+          b: bee
+          c: cat
+        check: cs
+        mistake:
+          en: Running the same query many times; LINQ is lazy and recomputes on every loop. Call ToList() once if you reuse the result.
+          tr: Aynı sorguyu defalarca çalıştırmak; LINQ tembeldir, her döngüde yeniden hesaplar. Sonucu tekrar kullanacaksan bir kez ToList() çağır.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/linq/
+  - id: errors
+    title: { en: Exceptions and resources, tr: Exception'lar ve kaynaklar }
+    items:
+      - id: try-catch
+        level: basic
+        title: { en: Catch exceptions, tr: Exception yakalama }
+        what:
+          en: try runs code that may fail, catch handles an exception type (when adds a condition), and finally always runs.
+          tr: try başarısız olabilecek kodu çalıştırır, catch bir exception tipini ele alır (when koşul ekler), finally her zaman çalışır.
+        lang: cs
+        form: try { } catch (IOException ex) when (..) { } finally { }
+        example: |
+          try
+          {
+              int.Parse("42x");
+          }
+          catch (FormatException ex) when (ex.Message.Contains("format"))
+          {
+              Console.WriteLine("bad number");
+          }
+          finally
+          {
+              Console.WriteLine("done");
+          }
+        output: |
+          bad number
+          done
+        check: cs
+        mistake:
+          en: Writing throw ex; inside catch; it resets the stack trace. Use plain throw; to rethrow.
+          tr: catch içinde throw ex; yazmak; stack trace'i sıfırlar. Yeniden fırlatmak için düz throw; kullan.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/exception-handling-statements
+      - id: using
+        level: intermediate
+        title: { en: Dispose resources, tr: Kaynakları serbest bırakma }
+        what:
+          en: using calls Dispose at the end of the scope, so files and connections are closed even after an exception.
+          tr: using, kapsamın sonunda Dispose'u çağırır; böylece dosya ve bağlantılar exception'dan sonra bile kapanır.
+        lang: cs
+        form: using var file = File.OpenRead(path);
+        example: |
+          Work();
+          Console.WriteLine("after");
+
+          static void Work()
+          {
+              using var c = new Conn();
+              Console.WriteLine("working");
+          } // c.Dispose() runs here
+
+          class Conn : IDisposable
+          {
+              public void Dispose() => Console.WriteLine("closed");
+          }
+        output: |
+          working
+          closed
+          after
+        check: cs
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/statements/using
+      - id: guard
+        level: basic
+        title: { en: Check arguments, tr: Argümanları kontrol etme }
+        what:
+          en: ThrowIfNull and similar helpers check arguments in one line and put the parameter name in the message.
+          tr: ThrowIfNull ve benzeri yardımcılar argümanları tek satırda kontrol eder ve parametre adını mesaja koyar.
+        lang: cs
+        form: ArgumentNullException.ThrowIfNull(arg);
+        example: |
+          static void Save(string? name, int count)
+          {
+              ArgumentNullException.ThrowIfNull(name);
+              ArgumentOutOfRangeException.ThrowIfNegative(count);
+          }
+
+          try { Save(null, 1); }
+          catch (ArgumentNullException ex) { Console.WriteLine(ex.ParamName); }
+        output: |
+          name
+        check: cs
+        source: https://learn.microsoft.com/en-us/dotnet/api/system.argumentnullexception.throwifnull
+  - id: async
+    title: { en: Async and web, tr: Async ve web }
+    items:
+      - id: async-await
+        level: intermediate
+        title: { en: async and await, tr: async ve await }
+        what:
+          en: An async method returns a Task; await waits for it without blocking the thread, and Task.WhenAll runs several at once.
+          tr: async metot bir Task döner; await thread'i bloklamadan onu bekler, Task.WhenAll birkaçını aynı anda çalıştırır.
+        lang: cs
+        form: var data = await GetAsync();
+        example: |
+          static async Task<int> SlowAsync(int n)
+          {
+              await Task.Delay(n * 10);
+              return n;
+          }
+
+          var results = await Task.WhenAll(SlowAsync(3), SlowAsync(1), SlowAsync(2));
+          Console.WriteLine(string.Join(",", results)); // order of the calls, not of finishing
+        output: |
+          3,1,2
+        check: cs
+        mistake:
+          en: Calling .Result or .Wait() on a task; it blocks and can deadlock. Use await all the way up.
+          tr: Bir task'ta .Result ya da .Wait() çağırmak; bloklar ve deadlock'a yol açabilir. En üste kadar await kullan.
+        avoid:
+          en: async void, except for event handlers; exceptions from it cannot be caught by the caller.
+          tr: Event handler'lar dışında async void; ondan gelen exception'ları çağıran yakalayamaz.
+        source: https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/
+      - id: cancellation
+        level: advanced
+        title: { en: Cancel long work, tr: Uzun işi iptal etme }
+        what:
+          en: A CancellationToken passed to async methods lets the caller stop them, for example after a timeout.
+          tr: async metotlara verilen CancellationToken, çağıranın onları durdurmasını sağlar; örneğin bir zaman aşımından sonra.
+        lang: cs
+        form: using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        example: |
+          using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(50));
+          try
+          {
+              await Task.Delay(TimeSpan.FromSeconds(10), cts.Token);
+          }
+          catch (OperationCanceledException)
+          {
+              Console.WriteLine("cancelled");
+          }
+        output: |
+          cancelled
+        check: cs
+        mistake:
+          en: Accepting a token but not passing it on to the calls inside; nothing is actually cancelled.
+          tr: Token'ı alıp içerideki çağrılara geçirmemek; aslında hiçbir şey iptal edilmez.
+        source: https://learn.microsoft.com/en-us/dotnet/standard/parallel-programming/task-cancellation
+      - id: minimal-api
+        level: intermediate
+        title: { en: A small web API, tr: Küçük bir web API }
+        what:
+          en: ASP.NET Core minimal APIs map a URL and HTTP method to a function in a few lines.
+          tr: ASP.NET Core minimal API'leri bir URL'yi ve HTTP metodunu birkaç satırda bir fonksiyona bağlar.
+        lang: cs
+        form: app.MapGet("/path", () => ...);
+        example: |
+          // dotnet new web -o Api
+          var builder = WebApplication.CreateBuilder(args);
+          var app = builder.Build();
+
+          app.MapGet("/hello/{name}", (string name) => new { message = $"hello {name}" });
+          app.MapPost("/items", (Item item) => Results.Created($"/items/{item.Id}", item));
+
+          app.Run();
+
+          record Item(int Id, string Name);
+        mistake:
+          en: Putting secrets like connection strings in appsettings.json in git; use user secrets locally and environment variables in production.
+          tr: Bağlantı cümlesi gibi gizli bilgileri git'teki appsettings.json'a koymak; yerelde user secrets, production'da ortam değişkenleri kullan.
+        source: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/apis
+      - id: test
+        level: basic
+        title: { en: Unit tests, tr: Unit test }
+        what:
+          en: A test project (xUnit, NUnit or MSTest) holds test methods; dotnet test builds and runs them.
+          tr: Bir test projesi (xUnit, NUnit ya da MSTest) test metotlarını tutar; dotnet test onları derleyip çalıştırır.
+        lang: cs
+        form: '[Fact] public void Adds() => Assert.Equal(4, Calc.Add(2, 2));'
+        example: |
+          // dotnet new xunit -o Tests && dotnet test
+          public class CalcTests
+          {
+              [Fact]
+              public void Adds() => Assert.Equal(4, Calc.Add(2, 2));
+
+              [Theory]
+              [InlineData(1, 2, 3)]
+              [InlineData(-1, 1, 0)]
+              public void AddsMany(int a, int b, int want) => Assert.Equal(want, Calc.Add(a, b));
+          }
+        mistake:
+          en: Swapping the arguments of Assert.Equal; expected comes first, or the failure message reads backwards.
+          tr: Assert.Equal'ın argümanlarını ters yazmak; beklenen değer önce gelir, yoksa hata mesajı ters okunur.
+        source: https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-csharp-with-xunit

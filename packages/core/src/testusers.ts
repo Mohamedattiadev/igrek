@@ -81,6 +81,12 @@ export interface TesterRun {
   summary?: TesterSummary;
   /** The run this one repeats (regression check). */
   previousId?: string;
+  /** Run again by itself after each new commit in the project (plan.md 6.1b regression). */
+  autoRepeat?: boolean;
+  /** The project's commit when this run started. */
+  commit?: string;
+  /** Started by itself because the project got this new commit. */
+  autoFrom?: string;
   createdAt: number;
   updatedAt: number;
 }

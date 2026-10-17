@@ -1,0 +1,813 @@
+id: django
+title: Django
+category: framework
+summary:
+  en: A full Python web framework with an ORM, admin panel, templates, forms and auth built in.
+  tr: ORM, admin paneli, template, form ve kimlik doğrulama hazır gelen, eksiksiz bir Python web framework'ü.
+aliases: [django orm, django admin, drf, manage.py, python web, cango, jango]
+detect:
+  pip: [django]
+version: "6.1"
+latest: eol:django
+checked: 2026-10
+sources:
+  - title: Django documentation
+    url: https://docs.djangoproject.com/en/6.1/
+  - title: Writing your first Django app
+    url: https://docs.djangoproject.com/en/6.1/intro/tutorial01/
+  - title: Django 6.1 release notes
+    url: https://docs.djangoproject.com/en/6.1/releases/6.1/
+roadmap: django
+sections:
+  - id: start
+    title: { en: Project setup, tr: Proje kurulumu }
+    items:
+      - id: startproject
+        level: basic
+        title: { en: Create a project, tr: Proje oluşturma }
+        what:
+          en: Creates the settings, the main URL file and manage.py, the script you run every Django command with.
+          tr: Ayarları, ana URL dosyasını ve her Django komutunu çalıştırdığın manage.py script'ini oluşturur.
+        lang: sh
+        form: django-admin startproject mysite .
+        example: |
+          python -m venv .venv && source .venv/bin/activate
+          python -m pip install django
+          django-admin startproject mysite .
+          python manage.py migrate
+          python manage.py runserver
+        mistake:
+          en: Leaving out the final dot, which creates an extra nested mysite/mysite folder you did not want.
+          tr: Sondaki noktayı unutmak; istemediğin iç içe bir mysite/mysite klasörü oluşur.
+        source: https://docs.djangoproject.com/en/6.1/intro/tutorial01/#creating-a-project
+      - id: startapp
+        level: basic
+        title: { en: Create an app, tr: Uygulama (app) oluşturma }
+        what:
+          en: An app is one part of the project (blog, shop) with its own models, views and templates.
+          tr: App, projenin kendi model, view ve template'leri olan bir parçasıdır (blog, mağaza gibi).
+        lang: sh
+        form: python manage.py startapp blog
+        example: |
+          python manage.py startapp blog
+          # then in mysite/settings.py:
+          # INSTALLED_APPS = [..., "blog"]
+        mistake:
+          en: Forgetting to add the app to INSTALLED_APPS; its models get no migrations and its templates are not found.
+          tr: App'i INSTALLED_APPS'e eklemeyi unutmak; modellerine migration oluşmaz, template'leri bulunmaz.
+        source: https://docs.djangoproject.com/en/6.1/ref/applications/
+      - id: runserver
+        level: basic
+        title: { en: Run the development server, tr: Geliştirme sunucusunu çalıştırma }
+        what:
+          en: Starts a local server that reloads when you change code.
+          tr: Kodu değiştirdiğinde kendini yeniden başlatan yerel bir sunucu çalıştırır.
+        lang: sh
+        form: python manage.py runserver [port]
+        example: |
+          python manage.py runserver
+          python manage.py runserver 0.0.0.0:8080
+        mistake:
+          en: Using runserver in production; it is not built for security or load. Use an app server like Gunicorn or Uvicorn.
+          tr: runserver'ı production'da kullanmak; güvenlik ve yük için yapılmamıştır. Gunicorn ya da Uvicorn gibi bir uygulama sunucusu kullan.
+        source: https://docs.djangoproject.com/en/6.1/ref/django-admin/#runserver
+      - id: settings
+        level: basic
+        title: { en: Key settings, tr: Önemli ayarlar }
+        what:
+          en: settings.py holds the configuration; DEBUG, SECRET_KEY, ALLOWED_HOSTS and DATABASES are the ones you change first.
+          tr: settings.py yapılandırmayı tutar; ilk değiştirdiklerin DEBUG, SECRET_KEY, ALLOWED_HOSTS ve DATABASES'tir.
+        lang: py
+        form: DEBUG = os.environ.get("DJANGO_DEBUG") == "1"
+        example: |
+          import os
+
+          SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+          DEBUG = os.environ.get("DJANGO_DEBUG") == "1"
+          ALLOWED_HOSTS = ["example.com", "www.example.com"]
+          DATABASES = {
+              "default": {
+                  "ENGINE": "django.db.backends.postgresql",
+                  "NAME": "app",
+                  "USER": "app",
+                  "PASSWORD": os.environ["DB_PASSWORD"],
+                  "HOST": "localhost",
+                  "PORT": "5432",
+              }
+          }
+        mistake:
+          en: Committing SECRET_KEY to git or leaving DEBUG = True in production, which shows your code and settings to anyone on an error page.
+          tr: SECRET_KEY'i git'e commit etmek ya da production'da DEBUG = True bırakmak; hata sayfasında kodun ve ayarların herkese görünür.
+        source: https://docs.djangoproject.com/en/6.1/ref/settings/#debug
+      - id: shell
+        level: intermediate
+        title: { en: The Django shell, tr: Django shell }
+        what:
+          en: Opens Python with your project loaded, so you can try queries on real data.
+          tr: Projen yüklenmiş halde Python'u açar; gerçek veri üzerinde sorgu deneyebilirsin.
+        lang: sh
+        form: python manage.py shell
+        example: |
+          python manage.py shell
+          >>> Post.objects.filter(published=True).count()
+          python manage.py shell -c "from django.conf import settings; print(settings.DEBUG)"
+        mistake:
+          en: Running delete() or update() on a production shell without filtering first; there is no undo.
+          tr: Production shell'inde önce filtrelemeden delete() ya da update() çalıştırmak; geri alma yoktur.
+        since: "5.2"
+        older:
+          en: Since 5.2 the shell imports your models automatically; before that you imported each one by hand.
+          tr: 5.2'den beri shell modellerini otomatik import eder; öncesinde her birini elle import ederdin.
+        source: https://docs.djangoproject.com/en/6.1/ref/django-admin/#shell
+  - id: urls-views
+    title: { en: URLs and views, tr: URL'ler ve view'lar }
+    items:
+      - id: path
+        level: basic
+        title: { en: Map URLs to views, tr: URL'leri view'lara bağlama }
+        what:
+          en: path() connects a URL pattern to a view; <int:pk> takes a part of the URL and passes it to the view.
+          tr: path() bir URL kalıbını bir view'a bağlar; <int:pk> URL'nin bir parçasını alıp view'a verir.
+        lang: py
+        form: path("posts/<int:pk>/", views.detail, name="post-detail")
+        example: |
+          # blog/urls.py
+          from django.urls import path
+          from . import views
+
+          app_name = "blog"
+          urlpatterns = [
+              path("", views.index, name="index"),
+              path("<int:pk>/", views.detail, name="detail"),
+          ]
+
+          # mysite/urls.py
+          from django.urls import include, path
+          urlpatterns = [path("blog/", include("blog.urls"))]
+        mistake:
+          en: Writing URLs by hand in templates and code; give each path a name and use {% url "blog:detail" post.pk %} or reverse().
+          tr: URL'leri template ve kodda elle yazmak; her path'e bir ad ver, {% url "blog:detail" post.pk %} ya da reverse() kullan.
+        source: https://docs.djangoproject.com/en/6.1/topics/http/urls/
+      - id: function-view
+        level: basic
+        title: { en: Function views, tr: Fonksiyon view'ları }
+        what:
+          en: A view takes the request and returns a response, often a rendered template.
+          tr: View, isteği (request) alır ve bir yanıt döndürür; çoğu zaman render edilmiş bir template.
+        lang: py
+        form: 'return render(request, "blog/index.html", {"posts": posts})'
+        example: |
+          from django.shortcuts import get_object_or_404, render
+          from .models import Post
+
+          def index(request):
+              posts = Post.objects.filter(published=True).order_by("-created")[:10]
+              return render(request, "blog/index.html", {"posts": posts})
+
+          def detail(request, pk):
+              post = get_object_or_404(Post, pk=pk, published=True)
+              return render(request, "blog/detail.html", {"post": post})
+        mistake:
+          en: Using Post.objects.get(pk=pk) in a view; a missing row raises DoesNotExist and returns a 500 instead of a 404.
+          tr: View'da Post.objects.get(pk=pk) kullanmak; satır yoksa DoesNotExist fırlar ve 404 yerine 500 döner.
+        source: https://docs.djangoproject.com/en/6.1/topics/http/shortcuts/#get-object-or-404
+      - id: json-response
+        level: basic
+        title: { en: Return JSON, tr: JSON döndürme }
+        what:
+          en: JsonResponse turns a dict into a JSON response with the right Content-Type.
+          tr: JsonResponse bir dict'i doğru Content-Type ile JSON yanıtına çevirir.
+        lang: py
+        form: 'return JsonResponse({"ok": True})'
+        example: |
+          from django.http import JsonResponse
+          from django.views.decorators.http import require_GET
+
+          @require_GET
+          def api_posts(request):
+              data = list(Post.objects.values("id", "title")[:20])
+              return JsonResponse({"posts": data})
+        mistake:
+          en: Passing a list directly; JsonResponse only takes a dict unless you add safe=False.
+          tr: Doğrudan liste vermek; safe=False eklemezsen JsonResponse sadece dict kabul eder.
+        avoid:
+          en: For a full REST API with auth, paging and validation, a library like Django REST Framework saves a lot of code.
+          tr: Kimlik doğrulama, sayfalama ve doğrulama içeren tam bir REST API için Django REST Framework gibi bir kütüphane çok kod kazandırır.
+        source: https://docs.djangoproject.com/en/6.1/ref/request-response/#jsonresponse-objects
+      - id: class-views
+        level: intermediate
+        title: { en: Class-based generic views, tr: Sınıf tabanlı hazır view'lar }
+        what:
+          en: Ready-made view classes like ListView and DetailView do the common list and detail pages with very little code.
+          tr: ListView ve DetailView gibi hazır view sınıfları, yaygın liste ve detay sayfalarını çok az kodla yapar.
+        lang: py
+        form: 'class PostList(ListView): model = Post'
+        example: |
+          from django.views.generic import DetailView, ListView
+          from .models import Post
+
+          class PostList(ListView):
+              model = Post
+              paginate_by = 20
+              template_name = "blog/index.html"
+
+              def get_queryset(self):
+                  return Post.objects.filter(published=True)
+
+          class PostDetail(DetailView):
+              model = Post
+
+          # urls.py: path("", PostList.as_view(), name="index")
+        mistake:
+          en: Writing path("", PostList) without .as_view(); Django needs the callable that as_view() returns.
+          tr: .as_view() olmadan path("", PostList) yazmak; Django'nun as_view()'in döndürdüğü çağrılabilir nesneye ihtiyacı var.
+        avoid:
+          en: Views with unusual logic; overriding many methods of a generic view is harder to read than a plain function.
+          tr: Alışılmadık mantığı olan view'lar; hazır bir view'ın birçok metodunu ezmek düz bir fonksiyondan daha zor okunur.
+        source: https://docs.djangoproject.com/en/6.1/topics/class-based-views/generic-display/
+      - id: login-required
+        level: intermediate
+        title: { en: Require login, tr: Giriş zorunluluğu }
+        what:
+          en: login_required sends anonymous users to the login page before they can see the view.
+          tr: login_required, giriş yapmamış kullanıcıları view'ı görmeden önce giriş sayfasına yönlendirir.
+        lang: py
+        form: '@login_required'
+        example: |
+          from django.contrib.auth.decorators import login_required, permission_required
+          from django.contrib.auth.mixins import LoginRequiredMixin
+
+          @login_required
+          def dashboard(request):
+              return render(request, "dashboard.html", {"user": request.user})
+
+          @permission_required("blog.change_post", raise_exception=True)
+          def edit(request, pk): ...
+
+          class Profile(LoginRequiredMixin, DetailView): ...
+        mistake:
+          en: Putting LoginRequiredMixin after the view class (class P(DetailView, LoginRequiredMixin)); it must come first, on the left.
+          tr: LoginRequiredMixin'i view sınıfından sonra yazmak (class P(DetailView, LoginRequiredMixin)); en başta, solda olmalı.
+        source: https://docs.djangoproject.com/en/6.1/topics/auth/default/#the-login-required-decorator
+  - id: models
+    title: { en: Models and the ORM, tr: Modeller ve ORM }
+    items:
+      - id: model
+        level: basic
+        title: { en: Define a model, tr: Model tanımlama }
+        what:
+          en: A model is a Python class that describes a database table; each field is a column.
+          tr: Model, bir veritabanı tablosunu anlatan Python sınıfıdır; her alan bir sütundur.
+        lang: py
+        form: 'class Post(models.Model): title = models.CharField(max_length=200)'
+        example: |
+          from django.conf import settings
+          from django.db import models
+
+          class Post(models.Model):
+              title = models.CharField(max_length=200)
+              slug = models.SlugField(unique=True)
+              body = models.TextField(blank=True)
+              published = models.BooleanField(default=False)
+              author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="posts")
+              created = models.DateTimeField(auto_now_add=True)
+
+              class Meta:
+                  ordering = ["-created"]
+
+              def __str__(self):
+                  return self.title
+        mistake:
+          en: Mixing up null and blank; null=True is about the database column, blank=True is about form validation.
+          tr: null ile blank'i karıştırmak; null=True veritabanı sütunuyla, blank=True form doğrulamasıyla ilgilidir.
+        source: https://docs.djangoproject.com/en/6.1/topics/db/models/
+      - id: migrations
+        level: basic
+        title: { en: Migrations, tr: Migration'lar }
+        what:
+          en: makemigrations writes your model changes into migration files, migrate applies them to the database.
+          tr: makemigrations model değişikliklerini migration dosyalarına yazar, migrate bunları veritabanına uygular.
+        lang: sh
+        form: python manage.py makemigrations && python manage.py migrate
+        example: |
+          python manage.py makemigrations blog
+          python manage.py migrate
+          python manage.py showmigrations blog
+          python manage.py sqlmigrate blog 0001
+        mistake:
+          en: Not committing the migration files, or editing a migration that already ran on other machines; teammates' databases drift apart.
+          tr: Migration dosyalarını commit etmemek ya da başka makinelerde çalışmış bir migration'ı düzenlemek; ekip arkadaşlarının veritabanları birbirinden ayrışır.
+        source: https://docs.djangoproject.com/en/6.1/topics/migrations/
+      - id: queryset
+        level: basic
+        title: { en: Query with QuerySets, tr: QuerySet ile sorgu }
+        what:
+          en: Model.objects gives you QuerySets you can filter, sort and slice; the database is only asked when you use the results.
+          tr: Model.objects filtreleyip sıralayıp dilimleyebileceğin QuerySet'ler verir; veritabanına ancak sonuçları kullandığında gidilir.
+        lang: py
+        form: Post.objects.filter(published=True).exclude(title="").order_by("-created")
+        example: |
+          Post.objects.create(title="Hello", slug="hello", author=user)
+          qs = Post.objects.filter(published=True, title__icontains="django")
+          qs = qs.exclude(author__username="bot").order_by("-created")[:5]
+          post = Post.objects.get(slug="hello")
+          Post.objects.filter(published=False).update(published=True)
+          exists = Post.objects.filter(slug="hello").exists()
+        mistake:
+          en: Using len(qs) or if qs just to check for rows, which loads every row; use qs.count() or qs.exists().
+          tr: Sadece satır var mı diye bakmak için len(qs) ya da if qs kullanmak; tüm satırlar yüklenir. qs.count() ya da qs.exists() kullan.
+        source: https://docs.djangoproject.com/en/6.1/topics/db/queries/
+      - id: related
+        level: intermediate
+        title: { en: Avoid N+1 queries, tr: N+1 sorgularından kaçınma }
+        what:
+          en: select_related joins a foreign key in the same query, prefetch_related loads many-to-many and reverse relations in one extra query.
+          tr: select_related foreign key'i aynı sorguda join eder, prefetch_related many-to-many ve ters ilişkileri tek bir ek sorguda yükler.
+        lang: py
+        form: Post.objects.select_related("author").prefetch_related("tags")
+        example: |
+          posts = Post.objects.select_related("author").prefetch_related("tags")
+          for p in posts:
+              print(p.author.username, [t.name for t in p.tags.all()])
+        mistake:
+          en: Looping over posts and reading post.author each time, which sends one query per post.
+          tr: Post'lar üzerinde dönüp her seferinde post.author okumak; her post için ayrı bir sorgu gider.
+        source: https://docs.djangoproject.com/en/6.1/ref/models/querysets/#select-related
+      - id: fetch-mode
+        level: advanced
+        title: { en: Fetch modes, tr: Fetch modları }
+        what:
+          en: fetch_mode decides what happens when you read a field that was not loaded; FETCH_PEERS loads it for all rows at once, FETCH_RAISE raises an error.
+          tr: fetch_mode, yüklenmemiş bir alanı okuduğunda ne olacağını belirler; FETCH_PEERS onu tüm satırlar için tek seferde yükler, FETCH_RAISE hata fırlatır.
+        lang: py
+        form: Book.objects.fetch_mode(models.FETCH_PEERS)
+        example: |
+          from django.db import models
+
+          books = Book.objects.fetch_mode(models.FETCH_PEERS)
+          for book in books:
+              print(book.author.name)   # two queries in total, not N+1
+
+          strict = Book.objects.fetch_mode(models.FETCH_RAISE)
+          # strict[0].author now raises FieldFetchBlocked
+        mistake:
+          en: Thinking FETCH_PEERS replaces select_related everywhere; when you know you need a relation, loading it up front is still clearer.
+          tr: FETCH_PEERS'in her yerde select_related'ın yerini tuttuğunu sanmak; bir ilişkiye ihtiyacın olduğunu biliyorsan önceden yüklemek hâlâ daha açık.
+        since: "6.1"
+        api: ["fetch_mode("]
+        older:
+          en: Before 6.1 every deferred field or relation was fetched for one object at a time (what FETCH_ONE does now).
+          tr: 6.1'den önce her ertelenmiş alan ya da ilişki tek tek, nesne başına getirilirdi (şimdi FETCH_ONE'ın yaptığı gibi).
+        source: https://docs.djangoproject.com/en/6.1/topics/db/fetch-modes/
+      - id: f-q
+        level: intermediate
+        title: { en: F and Q expressions, tr: F ve Q ifadeleri }
+        what:
+          en: F refers to a column's value inside the query, Q lets you combine conditions with OR (|), AND (&) and NOT (~).
+          tr: F sorgu içinde bir sütunun değerine başvurur, Q koşulları OR (|), AND (&) ve NOT (~) ile birleştirmeni sağlar.
+        lang: py
+        form: Post.objects.filter(Q(a=1) | Q(b=2)).update(views=F("views") + 1)
+        example: |
+          from django.db.models import F, Q
+
+          Post.objects.filter(pk=pk).update(views=F("views") + 1)
+          Post.objects.filter(Q(title__icontains="py") | Q(body__icontains="py"), ~Q(published=False))
+        mistake:
+          en: Reading a counter, adding 1 in Python and saving; two requests at once lose an update. F("views") + 1 does it in the database.
+          tr: Sayacı okuyup Python'da 1 ekleyip kaydetmek; aynı anda gelen iki istek bir güncellemeyi kaybeder. F("views") + 1 bunu veritabanında yapar.
+        source: https://docs.djangoproject.com/en/6.1/ref/models/expressions/#f-expressions
+      - id: aggregate
+        level: intermediate
+        title: { en: Count, sum and group, tr: Sayma, toplama ve gruplama }
+        what:
+          en: aggregate() returns totals for the whole QuerySet, annotate() adds a computed value to each row.
+          tr: aggregate() tüm QuerySet için toplam değerler döndürür, annotate() her satıra hesaplanmış bir değer ekler.
+        lang: py
+        form: Author.objects.annotate(n=Count("posts")).filter(n__gt=5)
+        example: |
+          from django.db.models import Avg, Count
+
+          Post.objects.aggregate(total=Count("id"), avg_views=Avg("views"))
+          # {'total': 42, 'avg_views': 17.5}
+          authors = User.objects.annotate(n=Count("posts")).filter(n__gt=5).order_by("-n")
+        source: https://docs.djangoproject.com/en/6.1/topics/db/aggregation/
+      - id: on-delete
+        level: intermediate
+        title: { en: What happens on delete, tr: Silindiğinde ne olacağı }
+        what:
+          en: on_delete says what to do with rows that point to a deleted row; the DB_ variants let the database do it.
+          tr: on_delete, silinen bir satıra bağlı satırlara ne yapılacağını söyler; DB_ ile başlayanlar bu işi veritabanına bırakır.
+        lang: py
+        form: models.ForeignKey(Post, on_delete=models.CASCADE)
+        example: |
+          class Comment(models.Model):
+              post = models.ForeignKey(Post, on_delete=models.CASCADE)
+              author = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+
+          class LogLine(models.Model):
+              job = models.ForeignKey(Job, on_delete=models.DB_CASCADE)  # ON DELETE CASCADE in SQL
+        mistake:
+          en: Using DB_CASCADE and expecting pre_delete or post_delete signals for the child rows; the database deletes them without Django seeing it.
+          tr: DB_CASCADE kullanıp alt satırlar için pre_delete ya da post_delete sinyali beklemek; veritabanı onları Django görmeden siler.
+        since: "6.1"
+        older:
+          en: Before 6.1 only the Python-side options existed (CASCADE, SET_NULL, PROTECT...), so Django loaded related rows before deleting.
+          tr: 6.1'den önce sadece Python tarafındaki seçenekler vardı (CASCADE, SET_NULL, PROTECT...); Django silmeden önce ilgili satırları yüklerdi.
+        source: https://docs.djangoproject.com/en/6.1/ref/models/fields/#django.db.models.ForeignKey.on_delete
+      - id: atomic
+        level: advanced
+        title: { en: Transactions, tr: Transaction'lar }
+        what:
+          en: transaction.atomic makes a block all-or-nothing; if an error happens inside, every change in it is undone.
+          tr: transaction.atomic bir bloğu ya hep ya hiç yapar; içinde hata olursa oradaki tüm değişiklikler geri alınır.
+        lang: py
+        form: 'with transaction.atomic(): ...'
+        example: |
+          from django.db import transaction
+
+          with transaction.atomic():
+              order = Order.objects.select_for_update().get(pk=order_id)
+              order.status = "paid"
+              order.save()
+              Payment.objects.create(order=order, amount=order.total)
+              transaction.on_commit(lambda: send_receipt.enqueue(order.pk))
+        mistake:
+          en: Sending emails or calling other services inside the block; if it rolls back, the email is already gone. Use transaction.on_commit.
+          tr: Bloğun içinde e-posta göndermek ya da başka servisleri çağırmak; geri alınırsa e-posta çoktan gitmiştir. transaction.on_commit kullan.
+        source: https://docs.djangoproject.com/en/6.1/topics/db/transactions/#controlling-transactions-explicitly
+      - id: custom-user
+        level: advanced
+        title: { en: Custom user model, tr: Özel kullanıcı modeli }
+        what:
+          en: Pointing AUTH_USER_MODEL to your own user class lets you add fields to users later without pain.
+          tr: AUTH_USER_MODEL'i kendi kullanıcı sınıfına yönlendirmek, kullanıcılara sonradan zahmetsizce alan eklemeni sağlar.
+        lang: py
+        form: AUTH_USER_MODEL = "accounts.User"
+        example: |
+          # accounts/models.py
+          from django.contrib.auth.models import AbstractUser
+
+          class User(AbstractUser):
+              pass
+
+          # settings.py
+          AUTH_USER_MODEL = "accounts.User"
+        mistake:
+          en: Switching to a custom user after the first migrate; it is hard to change later, so do it at the very start of the project.
+          tr: İlk migrate'ten sonra özel kullanıcıya geçmek; sonradan değiştirmek zordur, bu yüzden projenin en başında yap.
+        source: https://docs.djangoproject.com/en/6.1/topics/auth/customizing/#using-a-custom-user-model-when-starting-a-project
+  - id: templates-forms
+    title: { en: Templates and forms, tr: Template'ler ve formlar }
+    items:
+      - id: template-inheritance
+        level: basic
+        title: { en: Template inheritance, tr: Template kalıtımı }
+        what:
+          en: A base template defines blocks, and child templates fill them with extends and block.
+          tr: Temel template block'ları tanımlar, alt template'ler extends ve block ile onları doldurur.
+        lang: html
+        form: '{% extends "base.html" %}{% block content %}...{% endblock %}'
+        example: |
+          {# templates/base.html #}
+          <title>{% block title %}My site{% endblock %}</title>
+          <main>{% block content %}{% endblock %}</main>
+
+          {# blog/templates/blog/index.html #}
+          {% extends "base.html" %}
+          {% block content %}
+            {% for post in posts %}
+              <a href="{% url 'blog:detail' post.pk %}">{{ post.title }}</a>
+            {% empty %}
+              <p>No posts yet.</p>
+            {% endfor %}
+          {% endblock %}
+        mistake:
+          en: Putting anything before {% extends %}; it must be the first template tag in the file.
+          tr: '{% extends %} öncesine bir şey yazmak; dosyadaki ilk template etiketi olmalı.'
+        source: https://docs.djangoproject.com/en/6.1/ref/templates/language/#template-inheritance
+      - id: filters
+        level: basic
+        title: { en: Variables and filters, tr: Değişkenler ve filtreler }
+        what:
+          en: "{{ value }} prints a value, escaped for HTML; filters after | change how it looks."
+          tr: "{{ value }} bir değeri HTML için kaçışlanmış olarak yazar; | sonrasındaki filtreler görünümünü değiştirir."
+        lang: html
+        form: '{{ post.created|date:"d.m.Y" }}'
+        example: |
+          {{ post.title|title }}
+          {{ post.body|truncatewords:30 }}
+          {{ post.created|date:"d.m.Y H:i" }}
+          {{ user.first_name|default:"guest" }}
+          {{ items|length }}
+        mistake:
+          en: Adding |safe to user content to keep its HTML; that opens an XSS hole. Only mark HTML safe that you produced yourself.
+          tr: Kullanıcı içeriğinin HTML'i korunsun diye |safe eklemek; XSS açığı oluşturur. Sadece kendi ürettiğin HTML'i güvenli işaretle.
+        source: https://docs.djangoproject.com/en/6.1/ref/templates/builtins/#built-in-filter-reference
+      - id: partials
+        level: intermediate
+        title: { en: Template partials, tr: Template partial'ları }
+        what:
+          en: partialdef names a piece of a template, so you can reuse it or render only that piece (handy with htmx).
+          tr: partialdef bir template parçasına ad verir; onu tekrar kullanabilir ya da sadece o parçayı render edebilirsin (htmx ile kullanışlı).
+        lang: html
+        form: '{% partialdef card inline %}...{% endpartialdef %}'
+        example: |
+          {# blog/index.html #}
+          {% for post in posts %}
+            {% partialdef post-card inline %}
+              <article>{{ post.title }}</article>
+            {% endpartialdef %}
+          {% endfor %}
+
+          {# in a view: render only the card #}
+          {# render(request, "blog/index.html#post-card", {"post": post}) #}
+        mistake:
+          en: Leaving out inline and wondering why nothing shows; without it the partial is only defined, and you render it with {% partial post-card %}.
+          tr: inline'ı yazmayıp neden hiçbir şey görünmediğine şaşırmak; o olmadan partial sadece tanımlanır, {% partial post-card %} ile render edilir.
+        since: "6.0"
+        api: ["{% partialdef"]
+        older:
+          en: Before 6.0 this needed the third-party django-template-partials package or a separate include file.
+          tr: 6.0'dan önce bunun için üçüncü parti django-template-partials paketi ya da ayrı bir include dosyası gerekirdi.
+        source: https://docs.djangoproject.com/en/6.1/ref/templates/language/#template-partials
+      - id: modelform
+        level: basic
+        title: { en: ModelForm, tr: ModelForm }
+        what:
+          en: A ModelForm builds a form from a model, checks the input and saves it.
+          tr: ModelForm bir modelden form oluşturur, girdiyi doğrular ve kaydeder.
+        lang: py
+        form: 'class PostForm(forms.ModelForm): class Meta: model = Post; fields = [...]'
+        example: |
+          from django import forms
+          from django.shortcuts import redirect, render
+
+          class PostForm(forms.ModelForm):
+              class Meta:
+                  model = Post
+                  fields = ["title", "slug", "body"]
+
+          def create(request):
+              form = PostForm(request.POST or None)
+              if request.method == "POST" and form.is_valid():
+                  post = form.save(commit=False)
+                  post.author = request.user
+                  post.save()
+                  return redirect("blog:detail", pk=post.pk)
+              return render(request, "blog/form.html", {"form": form})
+        mistake:
+          en: Using fields = "__all__"; a new model field (like is_admin) becomes editable by users without you noticing.
+          tr: fields = "__all__" kullanmak; modele eklenen yeni bir alan (is_admin gibi) farkında olmadan kullanıcılar tarafından düzenlenebilir olur.
+        source: https://docs.djangoproject.com/en/6.1/topics/forms/modelforms/
+      - id: csrf
+        level: basic
+        title: { en: CSRF protection, tr: CSRF koruması }
+        what:
+          en: Every POST form needs {% csrf_token %} so other sites cannot submit forms in your users' name.
+          tr: Her POST formunda {% csrf_token %} olmalı; böylece başka siteler kullanıcıların adına form gönderemez.
+        lang: html
+        form: '<form method="post">{% csrf_token %}...</form>'
+        example: |
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <button type="submit">Save</button>
+          </form>
+        mistake:
+          en: Adding @csrf_exempt to make a 403 go away; fix the form or send the X-CSRFToken header from JavaScript instead.
+          tr: 403 hatası gitsin diye @csrf_exempt eklemek; onun yerine formu düzelt ya da JavaScript'ten X-CSRFToken header'ını gönder.
+        source: https://docs.djangoproject.com/en/6.1/howto/csrf/
+      - id: form-validation
+        level: intermediate
+        title: { en: Custom form validation, tr: Özel form doğrulama }
+        what:
+          en: clean_<field>() checks one field and clean() checks fields together; raise ValidationError to show an error.
+          tr: clean_<alan>() tek bir alanı, clean() alanları birlikte kontrol eder; hata göstermek için ValidationError fırlat.
+        lang: py
+        form: 'def clean_slug(self): ... raise forms.ValidationError("...")'
+        example: |
+          class SignupForm(forms.Form):
+              email = forms.EmailField()
+              password = forms.CharField(widget=forms.PasswordInput)
+              confirm = forms.CharField(widget=forms.PasswordInput)
+
+              def clean_email(self):
+                  email = self.cleaned_data["email"].lower()
+                  if User.objects.filter(email=email).exists():
+                      raise forms.ValidationError("This email is already used.")
+                  return email
+
+              def clean(self):
+                  data = super().clean()
+                  if data.get("password") != data.get("confirm"):
+                      self.add_error("confirm", "Passwords do not match.")
+                  return data
+        mistake:
+          en: Forgetting to return the value from clean_<field>(); the field then becomes None in cleaned_data.
+          tr: clean_<alan>() içinden değeri döndürmeyi unutmak; alan cleaned_data'da None olur.
+        source: https://docs.djangoproject.com/en/6.1/ref/forms/validation/
+  - id: admin-testing
+    title: { en: Admin and tests, tr: Admin ve testler }
+    items:
+      - id: admin
+        level: basic
+        title: { en: The admin panel, tr: Admin paneli }
+        what:
+          en: Registering a model gives you a ready web page to list, search, add and edit its rows.
+          tr: Bir modeli kaydetmek, satırlarını listeleyip arayabileceğin, ekleyip düzenleyebileceğin hazır bir web sayfası verir.
+        lang: py
+        form: '@admin.register(Post)'
+        example: |
+          # blog/admin.py
+          from django.contrib import admin
+          from .models import Post
+
+          @admin.register(Post)
+          class PostAdmin(admin.ModelAdmin):
+              list_display = ["title", "author", "published", "created"]
+              list_filter = ["published"]
+              search_fields = ["title", "body"]
+              prepopulated_fields = {"slug": ["title"]}
+
+          # terminal: python manage.py createsuperuser
+        mistake:
+          en: Leaving the admin at /admin/ with weak passwords on a public site; it is the first place attackers try.
+          tr: Herkese açık bir sitede admin'i /admin/ adresinde zayıf şifrelerle bırakmak; saldırganların ilk denediği yerdir.
+        avoid:
+          en: As the main interface for your customers; the admin is a tool for your own staff.
+          tr: Müşterilerinin ana arayüzü olarak; admin kendi ekibin için bir araçtır.
+        source: https://docs.djangoproject.com/en/6.1/ref/contrib/admin/
+      - id: tests
+        level: intermediate
+        title: { en: Tests and the test client, tr: Testler ve test client }
+        what:
+          en: TestCase runs each test in a transaction on a test database, and self.client sends fake requests to your views.
+          tr: TestCase her testi test veritabanında bir transaction içinde çalıştırır; self.client view'larına sahte istekler gönderir.
+        lang: py
+        form: python manage.py test
+        example: |
+          from django.test import TestCase
+          from django.urls import reverse
+
+          class PostTests(TestCase):
+              @classmethod
+              def setUpTestData(cls):
+                  cls.user = User.objects.create_user("ada", password="pw")
+                  cls.post = Post.objects.create(title="Hi", slug="hi", author=cls.user, published=True)
+
+              def test_detail(self):
+                  r = self.client.get(reverse("blog:detail", args=[self.post.pk]))
+                  self.assertContains(r, "Hi")
+
+              def test_needs_login(self):
+                  r = self.client.get(reverse("dashboard"))
+                  self.assertEqual(r.status_code, 302)
+        mistake:
+          en: Creating the same data in setUp for every test; setUpTestData creates it once per class and is much faster.
+          tr: Aynı veriyi her test için setUp içinde oluşturmak; setUpTestData onu sınıf başına bir kez oluşturur ve çok daha hızlıdır.
+        source: https://docs.djangoproject.com/en/6.1/topics/testing/tools/#testcase
+      - id: management-command
+        level: intermediate
+        title: { en: Your own manage.py command, tr: Kendi manage.py komutun }
+        what:
+          en: A file in management/commands/ becomes a command you run with manage.py, useful for cron jobs and scripts.
+          tr: management/commands/ içindeki bir dosya manage.py ile çalıştırdığın bir komut olur; cron işleri ve script'ler için kullanışlı.
+        lang: py
+        form: python manage.py <name>
+        example: |
+          # blog/management/commands/publish_due.py
+          from django.core.management.base import BaseCommand
+          from django.utils import timezone
+
+          class Command(BaseCommand):
+              help = "Publish posts whose time has come"
+
+              def add_arguments(self, parser):
+                  parser.add_argument("--dry-run", action="store_true")
+
+              def handle(self, *args, **options):
+                  qs = Post.objects.filter(published=False, publish_at__lte=timezone.now())
+                  if not options["dry_run"]:
+                      qs.update(published=True)
+                  self.stdout.write(f"{qs.count()} posts")
+        source: https://docs.djangoproject.com/en/6.1/howto/custom-management-commands/
+  - id: production
+    title: { en: Async, tasks and production, tr: Async, task'lar ve production }
+    items:
+      - id: async-views
+        level: advanced
+        title: { en: Async views and ORM, tr: Async view'lar ve ORM }
+        what:
+          en: A view written with async def can await other work, and the ORM has async versions of its methods (aget, acreate, async for).
+          tr: async def ile yazılan bir view başka işleri await edebilir; ORM'in de async metotları var (aget, acreate, async for).
+        lang: py
+        form: 'async def view(request): post = await Post.objects.aget(pk=pk)'
+        example: |
+          import httpx
+          from django.http import JsonResponse
+
+          async def weather(request, pk):
+              city = await City.objects.aget(pk=pk)
+              async with httpx.AsyncClient() as client:
+                  r = await client.get(f"https://api.example.com/w?q={city.name}")
+              names = [c.name async for c in City.objects.filter(country=city.country)]
+              return JsonResponse({"city": city.name, "weather": r.json(), "nearby": names})
+        mistake:
+          en: Running async views under WSGI (Gunicorn's default) and expecting a speed-up; use an ASGI server like Uvicorn to get the benefit.
+          tr: Async view'ları WSGI altında (Gunicorn'un varsayılanı) çalıştırıp hızlanma beklemek; faydasını görmek için Uvicorn gibi bir ASGI sunucusu kullan.
+        source: https://docs.djangoproject.com/en/6.1/topics/async/
+      - id: tasks
+        level: advanced
+        title: { en: Background tasks, tr: Arka plan task'ları }
+        what:
+          en: "@task marks a function as a background job and .enqueue() queues it, so slow work runs outside the request."
+          tr: "@task bir fonksiyonu arka plan işi olarak işaretler, .enqueue() onu kuyruğa koyar; yavaş işler isteğin dışında çalışır."
+        lang: py
+        form: '@task def job(...): ...; job.enqueue(...)'
+        example: |
+          from django.core.mail import send_mail
+          from django.tasks import task
+
+          @task
+          def email_users(emails, subject, message):
+              return send_mail(subject, message, None, emails)
+
+          result = email_users.enqueue(emails=["ada@example.com"], subject="Hi", message="Hello!")
+          print(result.status)
+        mistake:
+          en: Expecting Django to run the jobs by itself; the built-in backends are for development and tests, and a worker needs a separate backend package.
+          tr: Django'nun işleri kendi başına çalıştırmasını beklemek; hazır backend'ler geliştirme ve test içindir, worker için ayrı bir backend paketi gerekir.
+        since: "6.0"
+        older:
+          en: Before 6.0 there was no task API in Django; projects used Celery, RQ or similar directly.
+          tr: 6.0'dan önce Django'da task API yoktu; projeler doğrudan Celery, RQ ya da benzerlerini kullanırdı.
+        source: https://docs.djangoproject.com/en/6.1/topics/tasks/
+      - id: csp
+        level: advanced
+        title: { en: Content Security Policy, tr: Content Security Policy (CSP) }
+        what:
+          en: The CSP middleware sends a header that tells the browser which scripts, styles and images it may load, which blocks most XSS.
+          tr: CSP middleware'i tarayıcıya hangi script, stil ve resimleri yükleyebileceğini söyleyen bir header gönderir; bu çoğu XSS'i engeller.
+        lang: py
+        form: 'SECURE_CSP = {"default-src": [CSP.SELF]}'
+        example: |
+          from django.utils.csp import CSP
+
+          MIDDLEWARE = [..., "django.middleware.csp.ContentSecurityPolicyMiddleware"]
+          SECURE_CSP = {
+              "default-src": [CSP.SELF],
+              "script-src": [CSP.SELF, CSP.NONCE],
+              "img-src": [CSP.SELF, "https:"],
+          }
+          # template: <script nonce="{{ csp_nonce }}">...</script>
+          # (needs the django.template.context_processors.csp context processor)
+        mistake:
+          en: Turning on a strict policy straight in production; start with SECURE_CSP_REPORT_ONLY to see what would break.
+          tr: Sıkı bir politikayı doğrudan production'da açmak; neyin bozulacağını görmek için önce SECURE_CSP_REPORT_ONLY ile başla.
+        since: "6.0"
+        api: ["SECURE_CSP"]
+        older:
+          en: Before 6.0 CSP needed the third-party django-csp package.
+          tr: 6.0'dan önce CSP için üçüncü parti django-csp paketi gerekirdi.
+        source: https://docs.djangoproject.com/en/6.1/ref/csp/
+      - id: deploy-check
+        level: intermediate
+        title: { en: Deployment checklist, tr: Deploy kontrol listesi }
+        what:
+          en: check --deploy warns about unsafe production settings, and collectstatic gathers static files for the web server.
+          tr: check --deploy güvensiz production ayarları için uyarır, collectstatic statik dosyaları web sunucusu için toplar.
+        lang: sh
+        form: python manage.py check --deploy
+        example: |
+          DJANGO_DEBUG=0 python manage.py check --deploy
+          python manage.py collectstatic --noinput
+          python manage.py migrate --noinput
+          gunicorn mysite.wsgi            # or: uvicorn mysite.asgi:application
+        mistake:
+          en: Serving static files with Django in production; set STATIC_ROOT and let the web server or a tool like WhiteNoise serve them.
+          tr: Production'da statik dosyaları Django ile sunmak; STATIC_ROOT ayarla, onları web sunucusu ya da WhiteNoise gibi bir araç sunsun.
+        source: https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
+      - id: middleware
+        level: advanced
+        title: { en: Write a middleware, tr: Middleware yazma }
+        what:
+          en: A middleware wraps every request and response, for things like timing, headers or logging.
+          tr: Middleware her istek ve yanıtı sarar; süre ölçme, header ekleme ya da loglama gibi işler için.
+        lang: py
+        form: 'def mw(get_response): def middleware(request): ...; return middleware'
+        example: |
+          import time
+
+          def timing_middleware(get_response):
+              def middleware(request):
+                  start = time.perf_counter()
+                  response = get_response(request)
+                  response["Server-Timing"] = f"app;dur={(time.perf_counter() - start) * 1000:.1f}"
+                  return response
+              return middleware
+
+          # settings.py: MIDDLEWARE = [..., "mysite.middleware.timing_middleware"]
+        mistake:
+          en: Putting it in the wrong place in MIDDLEWARE; order matters, for example anything that reads request.user must come after AuthenticationMiddleware.
+          tr: MIDDLEWARE içinde yanlış yere koymak; sıra önemlidir, örneğin request.user okuyan her şey AuthenticationMiddleware'den sonra gelmeli.
+        source: https://docs.djangoproject.com/en/6.1/topics/http/middleware/#writing-your-own-middleware

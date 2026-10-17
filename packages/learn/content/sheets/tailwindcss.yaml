@@ -1,0 +1,777 @@
+id: tailwindcss
+title: Tailwind CSS
+category: framework
+summary:
+  en: "A CSS framework made of small utility classes that you combine right in your HTML to style a page."
+  tr: "Sayfayı stillemek için HTML içinde bir araya getirdiğin küçük yardımcı class'lardan oluşan bir CSS framework'ü."
+aliases: [tailwind, tw, utility-first, utility classes, css framework, "@theme", tailwind v4, stil, arayüz]
+detect:
+  npm: [tailwindcss, "@tailwindcss/vite", "@tailwindcss/postcss", "@tailwindcss/cli"]
+version: "4.3"
+latest: npm:tailwindcss
+checked: 2026-10
+sources:
+  - title: Tailwind CSS documentation
+    url: https://tailwindcss.com/docs
+  - title: Upgrade guide (v3 to v4)
+    url: https://tailwindcss.com/docs/upgrade-guide
+  - title: Theme variables
+    url: https://tailwindcss.com/docs/theme
+roadmap: web
+sections:
+  - id: setup
+    title:
+      en: "Setup (v4)"
+      tr: "Kurulum (v4)"
+    items:
+      - id: utility-first
+        level: basic
+        title:
+          en: "Utility classes"
+          tr: "Yardımcı (utility) class'lar"
+        what:
+          en: "Each class does one small thing, and you combine several on an element instead of writing CSS."
+          tr: "Her class tek bir küçük iş yapar; CSS yazmak yerine bir elemanda birkaçını birleştirirsin."
+        lang: html
+        form: '<div class="p-4 bg-white rounded-lg shadow-md">'
+        example: |
+          <button class="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white">
+            Save
+          </button>
+        mistake:
+          en: "Repeating the same long class list in many places. Make it a component (React, Vue, a template partial), not a new CSS class."
+          tr: "Aynı uzun class listesini birçok yerde tekrarlamak. Yeni bir CSS class'ı yerine bileşen (React, Vue, şablon parçası) yap."
+        source: https://tailwindcss.com/docs/styling-with-utility-classes
+      - id: install-vite
+        level: basic
+        title:
+          en: "Install with Vite"
+          tr: "Vite ile kurulum"
+        what:
+          en: "Adds Tailwind to a Vite project through its own plugin."
+          tr: "Tailwind'i kendi eklentisiyle bir Vite projesine ekler."
+        lang: ts
+        form: "npm install tailwindcss @tailwindcss/vite"
+        example: |
+          // vite.config.ts
+          import { defineConfig } from "vite";
+          import tailwindcss from "@tailwindcss/vite";
+
+          export default defineConfig({
+            plugins: [tailwindcss()],
+          });
+        mistake:
+          en: "Installing the plugin but never importing Tailwind in your CSS, so no classes work."
+          tr: "Eklentiyi kurup CSS'inde Tailwind'i hiç import etmemek; hiçbir class çalışmaz."
+        source: https://tailwindcss.com/docs/installation/using-vite
+      - id: import
+        level: basic
+        title:
+          en: "Load Tailwind in your CSS"
+          tr: "Tailwind'i CSS'ine yükleme"
+        what:
+          en: "One line in your main stylesheet turns Tailwind on."
+          tr: "Ana stil dosyandaki tek bir satır Tailwind'i açar."
+        lang: css
+        form: '@import "tailwindcss";'
+        example: |
+          /* src/index.css */
+          @import "tailwindcss";
+        mistake:
+          en: "Writing the old @tailwind base; @tailwind components; @tailwind utilities; lines. They were removed in v4."
+          tr: "Eski @tailwind base; @tailwind components; @tailwind utilities; satırlarını yazmak. v4'te kaldırıldılar."
+        since: "4.0"
+        older:
+          en: "In v3 you wrote three @tailwind directives and also had a tailwind.config.js file."
+          tr: "v3'te üç @tailwind direktifi yazar ve ayrıca bir tailwind.config.js dosyan olurdu."
+        source: https://tailwindcss.com/docs/installation/using-vite
+      - id: install-other
+        level: intermediate
+        title:
+          en: "PostCSS and the CLI"
+          tr: "PostCSS ve CLI"
+        what:
+          en: "Outside Vite, use the PostCSS plugin or the standalone CLI package."
+          tr: "Vite dışında PostCSS eklentisini ya da bağımsız CLI paketini kullan."
+        lang: sh
+        form: "npx @tailwindcss/cli -i input.css -o output.css --watch"
+        example: |
+          # CLI
+          npm install tailwindcss @tailwindcss/cli
+          npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch
+
+          # PostCSS: plugin name in postcss.config.mjs is "@tailwindcss/postcss"
+          npm install tailwindcss @tailwindcss/postcss postcss
+        mistake:
+          en: "Using npx tailwindcss or the plugin name tailwindcss in PostCSS. Both moved to separate packages in v4."
+          tr: "npx tailwindcss ya da PostCSS'te tailwindcss eklenti adını kullanmak. v4'te ikisi de ayrı paketlere taşındı."
+        since: "4.0"
+        older:
+          en: "In v3 the tailwindcss package itself was the PostCSS plugin and the CLI, and you also needed postcss-import and autoprefixer."
+          tr: "v3'te tailwindcss paketinin kendisi PostCSS eklentisi ve CLI'ydı; ayrıca postcss-import ve autoprefixer gerekirdi."
+        source: https://tailwindcss.com/docs/upgrade-guide
+      - id: upgrade-tool
+        level: intermediate
+        title:
+          en: "Upgrade from v3"
+          tr: "v3'ten yükseltme"
+        what:
+          en: "An official tool that updates dependencies, moves your config to CSS and renames classes."
+          tr: "Bağımlılıkları günceller, yapılandırmayı CSS'e taşır ve class'ları yeniden adlandıran resmi bir araç."
+        lang: sh
+        form: "npx @tailwindcss/upgrade"
+        example: |
+          git switch -c tailwind-v4
+          npx @tailwindcss/upgrade
+        mistake:
+          en: "Running it on your main branch and not reading the diff. Use a new branch and test the pages in the browser."
+          tr: "Ana branch'te çalıştırıp farkı okumamak. Yeni bir branch kullan ve sayfaları tarayıcıda dene."
+        avoid:
+          en: "If you must support browsers older than Safari 16.4, Chrome 111 or Firefox 128; v4 does not work there, so stay on v3.4."
+          tr: "Safari 16.4, Chrome 111 veya Firefox 128'den eski tarayıcıları desteklemen gerekiyorsa; v4 orada çalışmaz, v3.4'te kal."
+        source: https://tailwindcss.com/docs/upgrade-guide
+  - id: layout
+    title:
+      en: "Layout and spacing"
+      tr: "Yerleşim ve boşluk"
+    items:
+      - id: spacing
+        level: basic
+        title:
+          en: "Padding and margin"
+          tr: "Padding ve margin"
+        what:
+          en: "p-* adds space inside an element, m-* outside it; one step is a quarter of a rem (4 means 1rem)."
+          tr: "p-* eleman içine, m-* dışına boşluk ekler; bir adım rem'in dörtte biridir (4, 1rem demektir)."
+        lang: html
+        form: "p-4  px-6  py-2  m-4  mx-auto  mt-8"
+        example: |
+          <div class="mx-auto mt-8 max-w-md p-6">
+            Centered box
+          </div>
+        mistake:
+          en: "Using m-4 on a child to space siblings. Put gap on the parent flex or grid instead."
+          tr: "Kardeş elemanları aralamak için çocukta m-4 kullanmak. Bunun yerine üst elemandaki flex ya da grid'e gap koy."
+        source: https://tailwindcss.com/docs/padding
+      - id: flex
+        level: basic
+        title:
+          en: "Flexbox"
+          tr: "Flexbox"
+        what:
+          en: "Lines children up in a row or column and controls how they are spaced and aligned."
+          tr: "Çocukları bir satırda ya da sütunda dizer; aralarındaki boşluğu ve hizalamayı belirler."
+        lang: html
+        form: "flex  flex-col  items-center  justify-between  gap-4"
+        example: |
+          <nav class="flex items-center justify-between gap-4">
+            <a href="/">Logo</a>
+            <a href="/login">Log in</a>
+          </nav>
+        mistake:
+          en: "Mixing up the axes. justify-* works along the main direction (row by default), items-* across it."
+          tr: "Eksenleri karıştırmak. justify-* ana yönde (varsayılan satır), items-* ona dik yönde çalışır."
+        source: https://tailwindcss.com/docs/flex
+      - id: grid
+        level: basic
+        title:
+          en: "Grid"
+          tr: "Grid"
+        what:
+          en: "Builds a layout of rows and columns; grid-cols-3 makes three equal columns."
+          tr: "Satır ve sütunlardan oluşan bir yerleşim kurar; grid-cols-3 üç eşit sütun yapar."
+        lang: html
+        form: "grid  grid-cols-3  gap-4  col-span-2"
+        example: |
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div>One</div>
+            <div>Two</div>
+            <div class="md:col-span-1">Three</div>
+          </div>
+        mistake:
+          en: "Forgetting gap, so the cells touch each other."
+          tr: "gap'i unutmak; hücreler birbirine yapışır."
+        source: https://tailwindcss.com/docs/grid-template-columns
+      - id: size
+        level: basic
+        title:
+          en: "Width, height and size"
+          tr: "Genişlik, yükseklik ve size"
+        what:
+          en: "w-* and h-* set the width and height; size-* sets both at once."
+          tr: "w-* ve h-* genişlik ve yüksekliği belirler; size-* ikisini birden ayarlar."
+        lang: html
+        form: "w-64  h-10  size-8  w-1/2  w-full  max-w-md  min-h-screen"
+        example: |
+          <img class="size-12 rounded-full" src="/avatar.png" alt="Profile photo" />
+          <div class="w-full max-w-md">Fluid up to 28rem</div>
+        mistake:
+          en: "Using w-screen for a full-width layout, which ignores the scrollbar and can cause sideways scrolling. Use w-full."
+          tr: "Tam genişlik için w-screen kullanmak; kaydırma çubuğunu hesaba katmaz ve yatay kaydırma çıkarabilir. w-full kullan."
+        source: https://tailwindcss.com/docs/size
+      - id: container
+        level: intermediate
+        title:
+          en: "The container class"
+          tr: "container class'ı"
+        what:
+          en: "Sets max-width to the current breakpoint; it does not center or pad by itself."
+          tr: "max-width'i geçerli breakpoint'e ayarlar; kendiliğinden ortalamaz ve padding vermez."
+        lang: html
+        form: "container mx-auto px-4"
+        example: |
+          <main class="container mx-auto px-4">...</main>
+        mistake:
+          en: "Expecting container to center. Add mx-auto, or in v4 set it once with @utility container { margin-inline: auto; }."
+          tr: "container'ın ortalamasını beklemek. mx-auto ekle ya da v4'te bir kez @utility container { margin-inline: auto; } ile ayarla."
+        since: "4.0"
+        older:
+          en: "In v3 you set center and padding for container in tailwind.config.js; those options no longer exist in v4."
+          tr: "v3'te container için center ve padding'i tailwind.config.js'te ayarlardın; bu seçenekler v4'te yok."
+        source: https://tailwindcss.com/docs/upgrade-guide
+      - id: position
+        level: basic
+        title:
+          en: "Position elements"
+          tr: "Elemanları konumlandırma"
+        what:
+          en: "relative, absolute, fixed and sticky choose how an element is placed; inset-* and top-* move it."
+          tr: "relative, absolute, fixed ve sticky elemanın nasıl konumlanacağını seçer; inset-* ve top-* onu kaydırır."
+        lang: html
+        form: "relative  absolute  top-0  right-0  inset-0  z-10"
+        example: |
+          <div class="relative">
+            <span class="absolute top-0 right-0 z-10">New</span>
+          </div>
+        mistake:
+          en: "Using absolute without relative on the parent, so the element is placed against the whole page."
+          tr: "Üst elemanda relative olmadan absolute kullanmak; eleman tüm sayfaya göre konumlanır."
+        source: https://tailwindcss.com/docs/position
+  - id: style
+    title:
+      en: "Text, color and borders"
+      tr: "Yazı, renk ve kenarlıklar"
+    items:
+      - id: text
+        level: basic
+        title:
+          en: "Text size and weight"
+          tr: "Yazı boyutu ve kalınlığı"
+        what:
+          en: "text-* sets the font size, font-* the weight; text-center aligns."
+          tr: "text-* yazı boyutunu, font-* kalınlığı belirler; text-center hizalar."
+        lang: html
+        form: "text-sm  text-xl  font-bold  leading-6  tracking-tight  text-center"
+        example: |
+          <h1 class="text-3xl font-bold tracking-tight">Title</h1>
+          <p class="text-sm text-gray-600">Small gray text</p>
+        mistake:
+          en: "Expecting text-red-500 and text-xl to conflict. They set different things (color and size), so both apply."
+          tr: "text-red-500 ile text-xl'in çakışacağını sanmak. Farklı şeyleri (renk ve boyut) ayarlarlar; ikisi de uygulanır."
+        source: https://tailwindcss.com/docs/font-size
+      - id: colors
+        level: basic
+        title:
+          en: "Colors"
+          tr: "Renkler"
+        what:
+          en: "Color name plus a shade from 50 to 950, used with bg-, text-, border- and more."
+          tr: "Renk adı ve 50 ile 950 arası bir ton; bg-, text-, border- ve benzerleriyle kullanılır."
+        lang: html
+        form: "bg-blue-500  text-gray-900  border-red-300"
+        example: |
+          <p class="bg-amber-100 text-amber-900">Warning</p>
+        mistake:
+          en: "Writing arbitrary hex colors everywhere instead of defining your brand colors once in @theme."
+          tr: "Marka renklerini bir kez @theme içinde tanımlamak yerine her yere hex renk yazmak."
+        source: https://tailwindcss.com/docs/colors
+      - id: opacity-modifier
+        level: basic
+        title:
+          en: "Color opacity with /"
+          tr: "/ ile renk saydamlığı"
+        what:
+          en: "A slash and a number after a color makes only that color see-through."
+          tr: "Renkten sonra eğik çizgi ve sayı yazmak sadece o rengi saydamlaştırır."
+        lang: html
+        form: "bg-black/50  text-white/80"
+        example: |
+          <div class="bg-black/50 text-white">Dark overlay</div>
+        mistake:
+          en: "Using bg-opacity-50. Those classes were removed in v4; use bg-black/50."
+          tr: "bg-opacity-50 kullanmak. Bu class'lar v4'te kaldırıldı; bg-black/50 kullan."
+        since: "4.0"
+        older:
+          en: "In v3 you could write bg-black bg-opacity-50. In v4 only the slash form works."
+          tr: "v3'te bg-black bg-opacity-50 yazabilirdin. v4'te sadece eğik çizgili biçim çalışır."
+        source: https://tailwindcss.com/docs/upgrade-guide
+      - id: border-radius
+        level: basic
+        title:
+          en: "Borders and rounded corners"
+          tr: "Kenarlık ve yuvarlak köşeler"
+        what:
+          en: "border adds a 1px border, rounded-* rounds corners."
+          tr: "border 1px kenarlık ekler, rounded-* köşeleri yuvarlar."
+        lang: html
+        form: "border  border-gray-200  rounded-md  rounded-full"
+        example: |
+          <div class="rounded-md border border-gray-200 p-4">Card</div>
+        mistake:
+          en: "Writing border with no color. In v4 the default border color is currentColor, not light gray."
+          tr: "Renk yazmadan border kullanmak. v4'te varsayılan kenarlık rengi currentColor'dır, açık gri değil."
+        since: "4.0"
+        older:
+          en: "In v3 the default border color was gray-200. In v4 it is currentColor. Radius names also shifted: v3 rounded-sm is now rounded-xs, and v3 plain rounded is now rounded-sm."
+          tr: "v3'te varsayılan kenarlık rengi gray-200'dü. v4'te currentColor'dır. Yarıçap adları da kaydı: v3'teki rounded-sm artık rounded-xs, v3'teki sade rounded artık rounded-sm."
+        source: https://tailwindcss.com/docs/border-radius
+      - id: shadow-ring
+        level: intermediate
+        title:
+          en: "Shadows, rings and outlines"
+          tr: "Gölge, ring ve outline"
+        what:
+          en: "shadow-* adds depth, ring-* draws a ring that is often used for focus."
+          tr: "shadow-* derinlik katar, ring-* genellikle odak için kullanılan bir halka çizer."
+        lang: html
+        form: "shadow-md  ring-3 ring-blue-500  outline-hidden"
+        example: |
+          <input class="shadow-xs focus:ring-3 focus:ring-blue-500 focus:outline-hidden" />
+        mistake:
+          en: "Removing the focus outline with no replacement. Always give keyboard users a visible focus style."
+          tr: "Odak çizgisini yerine bir şey koymadan kaldırmak. Klavye kullanıcılarına her zaman görünür bir odak stili ver."
+        since: "4.0"
+        older:
+          en: "In v4 the sizes were renamed: shadow-sm is now shadow-xs, plain shadow is shadow-sm, outline-none became outline-hidden, and plain ring (3px in v3) is now 1px, so use ring-3."
+          tr: "v4'te boyutlar yeniden adlandırıldı: shadow-sm artık shadow-xs, sade shadow artık shadow-sm; outline-none, outline-hidden oldu; sade ring (v3'te 3px) artık 1px, bu yüzden ring-3 kullan."
+        source: https://tailwindcss.com/docs/box-shadow
+      - id: transition
+        level: intermediate
+        title:
+          en: "Transitions"
+          tr: "Geçişler (transition)"
+        what:
+          en: "Makes changes (such as on hover) animate smoothly instead of jumping."
+          tr: "Değişikliklerin (örneğin hover'da) sıçramak yerine yumuşakça animasyonla olmasını sağlar."
+        lang: html
+        form: "transition  duration-200  ease-out"
+        example: |
+          <button class="bg-blue-600 transition duration-200 hover:bg-blue-700">
+            Hover me
+          </button>
+        mistake:
+          en: "Putting transition only on the hover state. Put it on the base element so it also animates back."
+          tr: "transition'ı sadece hover durumuna koymak. Geri dönüşte de animasyon olması için temel elemana koy."
+        source: https://tailwindcss.com/docs/transition-property
+  - id: variants
+    title:
+      en: "States and responsive"
+      tr: "Durumlar ve responsive"
+    items:
+      - id: states
+        level: basic
+        title:
+          en: "Hover, focus and other states"
+          tr: "Hover, focus ve diğer durumlar"
+        what:
+          en: "A prefix like hover: applies the class only in that state."
+          tr: "hover: gibi bir ön ek, class'ı sadece o durumda uygular."
+        lang: html
+        form: "hover:bg-blue-700  focus:ring-3  disabled:opacity-50  active:scale-95"
+        example: |
+          <button class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50">
+            Send
+          </button>
+        mistake:
+          en: "Relying on hover for something touch users need. In v4, hover: only applies on devices that can really hover."
+          tr: "Dokunmatik kullanıcıların ihtiyaç duyduğu bir şey için hover'a güvenmek. v4'te hover: sadece gerçekten hover yapabilen cihazlarda uygulanır."
+        source: https://tailwindcss.com/docs/hover-focus-and-other-states
+      - id: responsive
+        level: basic
+        title:
+          en: "Responsive design"
+          tr: "Responsive tasarım"
+        what:
+          en: "Unprefixed classes apply to every screen; sm:, md:, lg: apply from that width upward (mobile first)."
+          tr: "Ön eksiz class'lar her ekranda geçerlidir; sm:, md:, lg: o genişlikten itibaren yukarı geçerlidir (önce mobil)."
+        lang: html
+        form: "md:flex  lg:w-1/2  max-md:hidden"
+        example: |
+          <div class="flex flex-col md:flex-row">
+            <aside class="w-full md:w-64">Menu</aside>
+            <main class="flex-1">Content</main>
+          </div>
+        mistake:
+          en: "Using sm: to mean small screens. sm: means 640px and wider; style mobile with the plain class."
+          tr: "sm:'i küçük ekran anlamında kullanmak. sm: 640px ve daha geniş demektir; mobili sade class ile stille."
+        avoid:
+          en: "When a component should react to its own space, not the screen; use container queries."
+          tr: "Bileşen ekrana değil kendi alanına göre davranmalıysa; container query kullan."
+        source: https://tailwindcss.com/docs/responsive-design
+      - id: dark
+        level: basic
+        title:
+          en: "Dark mode"
+          tr: "Karanlık mod"
+        what:
+          en: "dark: styles apply when the user's system is set to dark."
+          tr: "dark: stilleri kullanıcının sistemi karanlık moddayken uygulanır."
+        lang: html
+        form: "dark:bg-gray-900  dark:text-white"
+        example: |
+          <div class="bg-white text-gray-900 dark:bg-gray-900 dark:text-white">
+            Adapts to the system theme
+          </div>
+        mistake:
+          en: "Adding a .dark class to html and wondering why nothing changes. In v4 that needs a @custom-variant first."
+          tr: "html'e .dark class'ı ekleyip neden hiçbir şey değişmediğini merak etmek. v4'te bunun için önce bir @custom-variant gerekir."
+        source: https://tailwindcss.com/docs/dark-mode
+      - id: dark-toggle
+        level: intermediate
+        title:
+          en: "Dark mode with a toggle"
+          tr: "Düğmeyle karanlık mod"
+        what:
+          en: "Redefines the dark variant so it follows a class or attribute you control."
+          tr: "dark varyantını, senin kontrol ettiğin bir class ya da attribute'u izleyecek şekilde yeniden tanımlar."
+        lang: css
+        form: "@custom-variant dark (&:where(.dark, .dark *));"
+        example: |
+          @import "tailwindcss";
+          @custom-variant dark (&:where(.dark, .dark *));
+        mistake:
+          en: "Putting the .dark class on a deep element instead of html, so dark: styles outside it do not change."
+          tr: ".dark class'ını html yerine derindeki bir elemana koymak; dışındaki dark: stilleri değişmez."
+        since: "4.0"
+        older:
+          en: "In v3 this was darkMode: 'class' in tailwind.config.js."
+          tr: "v3'te bu, tailwind.config.js içindeki darkMode: 'class' ayarıydı."
+        source: https://tailwindcss.com/docs/dark-mode
+      - id: group-peer
+        level: intermediate
+        title:
+          en: "Style by a parent or sibling"
+          tr: "Üst veya kardeş elemana göre stilleme"
+        what:
+          en: "Mark a parent with group or a sibling with peer, then react to its state."
+          tr: "Üst elemanı group, kardeşi peer ile işaretle; sonra onun durumuna tepki ver."
+        lang: html
+        form: "group  group-hover:underline  peer  peer-checked:text-green-600"
+        example: |
+          <a class="group flex gap-2" href="#">
+            <span>Read more</span>
+            <span class="transition group-hover:translate-x-1">Go</span>
+          </a>
+        mistake:
+          en: "Putting peer on an element that comes after the one that uses peer-*. The peer must come first in the HTML."
+          tr: "peer'i, peer-* kullanan elemandan sonra gelen bir elemana koymak. peer HTML'de önce gelmeli."
+        source: https://tailwindcss.com/docs/hover-focus-and-other-states
+      - id: has-not-data
+        level: advanced
+        title:
+          en: "has-, not-, data- and aria- variants"
+          tr: "has-, not-, data- ve aria- varyantları"
+        what:
+          en: "Style an element by what it contains, what it is not, or its data and ARIA attributes."
+          tr: "Elemanı içeriğine, ne olmadığına ya da data ve ARIA attribute'larına göre stille."
+        lang: html
+        form: "has-[img]:p-0  not-first:mt-2  data-[state=open]:block  aria-expanded:rotate-180"
+        example: |
+          <button aria-expanded="true" class="aria-expanded:font-bold">Menu</button>
+          <li class="not-last:border-b">Item</li>
+        mistake:
+          en: "Using a data- variant without the attribute ever being set by your code, so it never matches."
+          tr: "Kodun attribute'u hiç ayarlamadığı halde data- varyantı kullanmak; hiçbir zaman eşleşmez."
+        source: https://tailwindcss.com/docs/hover-focus-and-other-states
+      - id: container-queries
+        level: advanced
+        title:
+          en: "Container queries"
+          tr: "Container query'ler"
+        what:
+          en: "Style children by the width of a parent marked @container, not by the screen."
+          tr: "Çocukları ekran yerine @container ile işaretlenmiş üst elemanın genişliğine göre stille."
+        lang: html
+        form: "@container  @md:flex-row  @max-md:flex-col"
+        example: |
+          <div class="@container">
+            <div class="flex flex-col @md:flex-row">
+              <div>A</div>
+              <div>B</div>
+            </div>
+          </div>
+        mistake:
+          en: "Using @md: without a parent marked @container, so there is no container to measure."
+          tr: "Üstte @container işaretli bir eleman olmadan @md: kullanmak; ölçülecek bir container yoktur."
+        since: "4.0"
+        older:
+          en: "In v3 container queries needed the @tailwindcss/container-queries plugin. In v4 they are built in."
+          tr: "v3'te container query için @tailwindcss/container-queries eklentisi gerekirdi. v4'te yerleşiktir."
+        source: https://tailwindcss.com/docs/responsive-design
+  - id: customize
+    title:
+      en: "Customize (CSS-first config)"
+      tr: "Özelleştirme (CSS ile yapılandırma)"
+    items:
+      - id: theme
+        level: intermediate
+        title:
+          en: "Define your design tokens with @theme"
+          tr: "@theme ile tasarım değerlerini tanımlama"
+        what:
+          en: "Variables inside @theme create matching utility classes and normal CSS variables."
+          tr: "@theme içindeki değişkenler hem eşleşen utility class'ları hem de normal CSS değişkenleri üretir."
+        lang: css
+        form: "@theme { --color-brand: #0ea5e9; }"
+        example: |
+          @import "tailwindcss";
+
+          @theme {
+            --color-brand: #0ea5e9;   /* bg-brand, text-brand, border-brand */
+            --font-display: "Satoshi", sans-serif;   /* font-display */
+            --breakpoint-3xl: 120rem;   /* 3xl: variant */
+          }
+        mistake:
+          en: "Naming a variable outside the theme namespaces (for example --brand), which creates no utility class. Use --color-*, --font-*, --breakpoint-* and so on."
+          tr: "Değişkene tema namespace'leri dışında bir ad vermek (örneğin --brand); utility class üretmez. --color-*, --font-*, --breakpoint-* gibi adlar kullan."
+        since: "4.0"
+        older:
+          en: "In v3 these values lived in theme.extend inside tailwind.config.js."
+          tr: "v3'te bu değerler tailwind.config.js içindeki theme.extend'de dururdu."
+        source: https://tailwindcss.com/docs/theme
+      - id: theme-reset
+        level: advanced
+        title:
+          en: "Replace a default palette"
+          tr: "Varsayılan paleti değiştirme"
+        what:
+          en: "Setting a namespace to initial removes the defaults, so only your values remain."
+          tr: "Bir namespace'i initial yapmak varsayılanları siler; sadece senin değerlerin kalır."
+        lang: css
+        form: "--color-*: initial;"
+        example: |
+          @theme {
+            --color-*: initial;
+            --color-white: #fff;
+            --color-ink: #111827;
+          }
+        mistake:
+          en: "Resetting all colors and forgetting white and black, so bg-white stops working."
+          tr: "Tüm renkleri sıfırlayıp beyaz ve siyahı unutmak; bg-white çalışmaz olur."
+        source: https://tailwindcss.com/docs/theme
+      - id: theme-inline
+        level: advanced
+        title:
+          en: "Theme values that use other variables"
+          tr: "Başka değişkenleri kullanan tema değerleri"
+        what:
+          en: "@theme inline copies the value into the utility instead of pointing at the variable."
+          tr: "@theme inline, değeri utility içine değişkene işaret etmek yerine kopyalar."
+        lang: css
+        form: "@theme inline { --font-sans: var(--font-inter); }"
+        example: |
+          @theme inline {
+            --font-sans: var(--font-inter);
+          }
+        mistake:
+          en: "Skipping inline when the value is var(...); the utility then points at the theme variable, which may not resolve to what you expect."
+          tr: "Değer var(...) iken inline kullanmamak; utility tema değişkenine işaret eder ve beklediğin değere çözülmeyebilir."
+        source: https://tailwindcss.com/docs/theme
+      - id: arbitrary
+        level: basic
+        title:
+          en: "One-off values"
+          tr: "Tek seferlik değerler"
+        what:
+          en: "Square brackets let you use any value that is not in the scale."
+          tr: "Köşeli parantez, ölçekte olmayan herhangi bir değeri kullanmanı sağlar."
+        lang: html
+        form: "w-[calc(100%-2rem)]  top-[117px]  bg-[#316ff6]  [mask-type:luminance]"
+        example: |
+          <div class="w-[calc(100%-2rem)] bg-[#316ff6]">One-off</div>
+        mistake:
+          en: "Using brackets for a value you need in many places. Add it to @theme instead."
+          tr: "Birçok yerde ihtiyaç duyduğun bir değer için köşeli parantez kullanmak. Onu @theme'e ekle."
+        source: https://tailwindcss.com/docs/adding-custom-styles
+      - id: css-variable
+        level: intermediate
+        title:
+          en: "Use a CSS variable in a class"
+          tr: "Class içinde CSS değişkeni kullanma"
+        what:
+          en: "Round brackets pass a CSS variable straight into a utility."
+          tr: "Yuvarlak parantez bir CSS değişkenini doğrudan utility'e verir."
+        lang: html
+        form: "bg-(--brand-color)"
+        example: |
+          <div class="bg-(--brand-color)"></div>
+        mistake:
+          en: "Writing bg-[--brand-color] with square brackets. That was the v3 form; v4 uses bg-(--brand-color)."
+          tr: "bg-[--brand-color] gibi köşeli parantez yazmak. Bu v3 biçimiydi; v4'te bg-(--brand-color) kullanılır."
+        since: "4.0"
+        older:
+          en: "In v3 you wrote bg-[--brand-color]."
+          tr: "v3'te bg-[--brand-color] yazardın."
+        source: https://tailwindcss.com/docs/upgrade-guide
+      - id: important
+        level: intermediate
+        title:
+          en: "Force a utility to win (important)"
+          tr: "Bir utility'i baskın yapma (important)"
+        what:
+          en: "An exclamation mark makes the declaration !important."
+          tr: "Ünlem işareti bildirimi !important yapar."
+        lang: html
+        form: "flex!  bg-red-500!  hover:bg-red-600!"
+        example: |
+          <div class="bg-red-500!">Wins over other CSS</div>
+        mistake:
+          en: "Putting the ! at the start (!flex). That old form still works but is deprecated; in v4 it goes at the end."
+          tr: "Ünlemi başa koymak (!flex). Bu eski biçim hâlâ çalışır ama kullanımdan kalktı; v4'te sona yazılır."
+        avoid:
+          en: "As a way to fix every conflict; first find why another style wins."
+          tr: "Her çakışmayı düzeltmenin yolu olarak; önce başka bir stilin neden baskın olduğunu bul."
+        source: https://tailwindcss.com/docs/upgrade-guide
+      - id: apply-layer
+        level: intermediate
+        title:
+          en: "Your own CSS and @apply"
+          tr: "Kendi CSS'in ve @apply"
+        what:
+          en: "@apply puts utility classes into your own CSS rule; @layer base sets defaults for plain elements."
+          tr: "@apply utility class'larını kendi CSS kuralına koyar; @layer base sade elemanlara varsayılan stil verir."
+        lang: css
+        form: ".btn { @apply px-4 py-2 rounded; }"
+        example: |
+          @layer base {
+            h1 {
+              @apply text-3xl font-bold;
+            }
+          }
+        mistake:
+          en: "Rebuilding a whole component library with @apply. A component in your framework is usually simpler."
+          tr: "@apply ile komple bir bileşen kütüphanesi kurmak. Framework'ündeki bir bileşen genellikle daha basittir."
+        source: https://tailwindcss.com/docs/functions-and-directives
+      - id: utility-directive
+        level: advanced
+        title:
+          en: "Add your own utility"
+          tr: "Kendi utility'ni ekleme"
+        what:
+          en: "@utility registers a class that also works with hover:, md: and every other variant."
+          tr: "@utility, hover:, md: ve diğer tüm varyantlarla da çalışan bir class kaydeder."
+        lang: css
+        form: "@utility name { property: value; }"
+        example: |
+          @utility tab-4 {
+            tab-size: 4;
+          }
+        mistake:
+          en: "Defining the class inside @layer utilities as in v3. In v4 it will not work with variants; use @utility."
+          tr: "Class'ı v3'teki gibi @layer utilities içinde tanımlamak. v4'te varyantlarla çalışmaz; @utility kullan."
+        since: "4.0"
+        older:
+          en: "In v3 custom classes in @layer utilities and @layer components were picked up as utilities."
+          tr: "v3'te @layer utilities ve @layer components içindeki özel class'lar utility olarak alınırdı."
+        source: https://tailwindcss.com/docs/adding-custom-styles
+      - id: source
+        level: advanced
+        title:
+          en: "Tell Tailwind where to look for classes"
+          tr: "Tailwind'e class'ları nerede arayacağını söyleme"
+        what:
+          en: "Tailwind scans your project by itself; @source adds folders it would skip."
+          tr: "Tailwind projeni kendisi tarar; @source onun atlayacağı klasörleri ekler."
+        lang: css
+        form: '@source "../node_modules/@my-company/ui-lib";'
+        example: |
+          @import "tailwindcss";
+          @source "../node_modules/@my-company/ui-lib";
+          @source not "../src/legacy";
+        mistake:
+          en: "Building class names in code, like bg-${color}-500. Tailwind only sees complete class names written in your files."
+          tr: "Class adlarını kodda oluşturmak (bg-${color}-500 gibi). Tailwind sadece dosyalarında tam yazılmış class adlarını görür."
+        since: "4.0"
+        older:
+          en: "In v3 you listed files in the content array of tailwind.config.js."
+          tr: "v3'te dosyaları tailwind.config.js içindeki content dizisine yazardın."
+        source: https://tailwindcss.com/docs/detecting-classes-in-source-files
+      - id: plugin
+        level: intermediate
+        title:
+          en: "Load a plugin"
+          tr: "Eklenti yükleme"
+        what:
+          en: "@plugin adds an official or third-party plugin to your CSS."
+          tr: "@plugin, resmi ya da üçüncü taraf bir eklentiyi CSS'ine ekler."
+        lang: css
+        form: '@plugin "@tailwindcss/typography";'
+        example: |
+          @import "tailwindcss";
+          @plugin "@tailwindcss/typography";
+        mistake:
+          en: "Forgetting to install the package before adding the @plugin line."
+          tr: "@plugin satırını eklemeden önce paketi kurmayı unutmak."
+        source: https://tailwindcss.com/docs/functions-and-directives
+      - id: reference
+        level: advanced
+        title:
+          en: "Use @apply inside Vue, Svelte or CSS modules"
+          tr: "Vue, Svelte veya CSS module içinde @apply kullanma"
+        what:
+          en: "@reference loads your theme for lookup only, so @apply works without copying the CSS."
+          tr: "@reference temanı sadece bakmak için yükler; böylece @apply CSS'i kopyalamadan çalışır."
+        lang: html
+        form: '@reference "../../app.css";'
+        example: |
+          <style>
+            @reference "../../app.css";
+            h1 {
+              @apply text-2xl font-bold;
+            }
+          </style>
+        mistake:
+          en: "Using @import \"tailwindcss\" in every component, which copies Tailwind's CSS again and again."
+          tr: "Her bileşende @import \"tailwindcss\" kullanmak; Tailwind CSS'ini tekrar tekrar kopyalar."
+        source: https://tailwindcss.com/docs/functions-and-directives
+      - id: legacy-config
+        level: advanced
+        title:
+          en: "Old tailwind.config.js"
+          tr: "Eski tailwind.config.js"
+        what:
+          en: "v4 does not read tailwind.config.js by itself; @config loads it if you still need it."
+          tr: "v4 tailwind.config.js'i kendiliğinden okumaz; hâlâ ihtiyacın varsa @config onu yükler."
+        lang: css
+        form: '@config "../tailwind.config.js";'
+        example: |
+          @import "tailwindcss";
+          @config "../tailwind.config.js";
+        mistake:
+          en: "Expecting corePlugins, safelist and separator to work from the old file. They are not supported; use @source inline() instead of safelist."
+          tr: "corePlugins, safelist ve separator'ın eski dosyadan çalışmasını beklemek. Desteklenmiyorlar; safelist yerine @source inline() kullan."
+        avoid:
+          en: "In new projects. Use @theme and the other CSS directives."
+          tr: "Yeni projelerde. @theme ve diğer CSS direktiflerini kullan."
+        since: "4.0"
+        older:
+          en: "In v3 the JS config file was the only way to customize Tailwind."
+          tr: "v3'te JS yapılandırma dosyası Tailwind'i özelleştirmenin tek yoluydu."
+        source: https://tailwindcss.com/docs/functions-and-directives
+      - id: prefix
+        level: advanced
+        title:
+          en: "Add a prefix to every class"
+          tr: "Tüm class'lara ön ek ekleme"
+        what:
+          en: "Avoids clashes with other CSS by writing every utility as tw:flex."
+          tr: "Her utility'i tw:flex gibi yazarak başka CSS ile çakışmayı önler."
+        lang: css
+        form: '@import "tailwindcss" prefix(tw);'
+        example: |
+          @import "tailwindcss" prefix(tw);
+          /* <div class="tw:flex tw:hover:bg-red-600"> */
+        mistake:
+          en: "Writing the prefix in v3 style (tw-flex). In v4 it is a variant-like tw: at the very start."
+          tr: "Ön eki v3 biçiminde (tw-flex) yazmak. v4'te sınıfın en başında, varyant gibi tw: olarak yazılır."
+        source: https://tailwindcss.com/docs/upgrade-guide

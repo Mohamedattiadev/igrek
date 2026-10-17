@@ -1,0 +1,1577 @@
+id: postgresql
+title: SQL and PostgreSQL
+summary:
+  en: "From an empty computer to a real PostgreSQL database online for free. You build the database of a small library app: tables and keys, queries, migrations, a Node.js script, transactions, roles, indexes, backups and monitoring."
+  tr: "Boş bir bilgisayardan internette ücretsiz yayında olan gerçek bir PostgreSQL veritabanına. Küçük bir kütüphane uygulamasının veritabanını kurarsın: tablolar ve anahtarlar, sorgular, migration'lar, bir Node.js betiği, transaction'lar, roller, index'ler, yedekler ve izleme."
+teacher: database
+project:
+  en: 'The database of a small library app: books, members and loans with keys and constraints, plain SQL migrations, a Node.js script that lends books safely, tests, least-privilege roles, indexes, backups and monitoring, running on a free hosted PostgreSQL (Neon).'
+  tr: 'Küçük bir kütüphane uygulamasının veritabanı: anahtarları ve kısıtları olan kitaplar, üyeler ve ödünç kayıtları, düz SQL migration''ları, kitapları güvenle ödünç veren bir Node.js betiği, testler, en az yetkili roller, index''ler, yedekler ve izleme; ücretsiz barındırılan bir PostgreSQL''de (Neon) çalışır.'
+detect:
+  npm: [pg, postgres]
+  pip: [psycopg, psycopg2, psycopg2-binary, asyncpg]
+version: "18"
+latest: eol:postgresql
+checked: 2026-10
+after: []
+sheets: [sql, postgresql, docker, git]
+steps:
+  - id: install
+    stage: setup
+    title:
+      en: "Install PostgreSQL and psql"
+      tr: "PostgreSQL ve psql kurma"
+    minutes: 45
+    why:
+      en: "A database is a program that stores your data safely and answers questions about it. PostgreSQL is a free, very reliable one. The quickest clean way to run it is Docker: one command, nothing mixed into your system, and you can delete it any time. psql is its command line client, the tool you will use to talk to it."
+      tr: "Veritabanı, verini güvenle saklayan ve onun hakkındaki soruları cevaplayan bir programdır. PostgreSQL ücretsiz ve çok güvenilir bir tanesidir. Çalıştırmanın en temiz ve en hızlı yolu Docker: tek komut, sistemine bir şey karışmaz ve istediğin zaman silebilirsin. psql onun komut satırı istemcisidir; onunla konuşmak için kullanacağın araç."
+    learn:
+      en: |
+        - What a database server is: a program that keeps running and that other programs connect to over the network
+        - What Docker gives you here: a ready PostgreSQL 18 in a container, with its data in a volume that survives restarts
+        - What psql is and how to check that it works
+        - The native way (an installer or package manager) for when you do not want Docker
+      tr: |
+        - Veritabanı sunucusunun ne olduğu: sürekli çalışan ve diğer programların ağ üzerinden bağlandığı bir program
+        - Docker'ın burada sana ne verdiği: hazır bir PostgreSQL 18, verisi yeniden başlatmalarda kaybolmayan bir volume içinde
+        - psql'in ne olduğu ve çalıştığını nasıl kontrol edeceğin
+        - Docker istemediğinde yerel kurulum yolu (bir yükleyici ya da paket yöneticisi)
+    do:
+      en: |
+        1. Install **Docker** (Docker Desktop on Windows and macOS, Docker Engine on Linux) from docs.docker.com/get-started/get-docker/ and check it with `docker --version`.
+        2. Start PostgreSQL 18 with the first command below. `-d` runs it in the background, `-p 5432:5432` makes it reachable on port 5432 of your computer, and `-v library-data:/var/lib/postgresql` keeps the data in a volume named `library-data`. The password `postgres` is fine for learning on your own machine and nowhere else.
+        3. Install the **psql** client on your computer. Debian and Ubuntu: `sudo apt install postgresql-client`. macOS: `brew install libpq` and add `$(brew --prefix libpq)/bin` to your PATH. Windows: the installer from postgresql.org/download/windows/ has a "Command Line Tools" option. Check with `psql --version`.
+        4. Connect with the second command. You should see the prompt `postgres=#`. Type `SELECT version();` and press Enter, then `\q` to leave.
+        5. Next time, if your computer was restarted, start the container again with `docker start library-db`. Stop it with `docker stop library-db`.
+        6. Native instead of Docker: on Windows and macOS use the installers from postgresql.org/download/, on Ubuntu follow the "apt" instructions on that site to get version 18, on macOS with Homebrew `brew install postgresql@18` then `brew services start postgresql@18`. Everything in this roadmap works the same; only the connection address may differ.
+      tr: |
+        1. docs.docker.com/get-started/get-docker/ adresinden **Docker**'ı kur (Windows ve macOS'ta Docker Desktop, Linux'ta Docker Engine) ve `docker --version` ile kontrol et.
+        2. Aşağıdaki ilk komutla PostgreSQL 18'i başlat. `-d` arka planda çalıştırır, `-p 5432:5432` bilgisayarının 5432 portundan erişilebilir yapar, `-v library-data:/var/lib/postgresql` veriyi `library-data` adlı bir volume'da saklar. `postgres` parolası kendi bilgisayarında öğrenmek için uygundur, başka hiçbir yerde kullanma.
+        3. Bilgisayarına **psql** istemcisini kur. Debian ve Ubuntu: `sudo apt install postgresql-client`. macOS: `brew install libpq` ve `$(brew --prefix libpq)/bin` klasörünü PATH'e ekle. Windows: postgresql.org/download/windows/ adresindeki yükleyicide "Command Line Tools" seçeneği var. `psql --version` ile kontrol et.
+        4. İkinci komutla bağlan. `postgres=#` satırını görmelisin. `SELECT version();` yazıp Enter'a bas, sonra çıkmak için `\q` yaz.
+        5. Bilgisayar yeniden başladıysa container'ı `docker start library-db` ile tekrar başlat. Durdurmak için `docker stop library-db`.
+        6. Docker yerine yerel kurulum: Windows ve macOS'ta postgresql.org/download/ adresindeki yükleyicileri kullan, Ubuntu'da 18 sürümünü almak için o sitedeki "apt" yönergelerini izle, macOS'ta Homebrew ile `brew install postgresql@18` ve ardından `brew services start postgresql@18`. Bu roadmap'teki her şey aynı çalışır; sadece bağlantı adresi değişebilir.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker run -d --name library-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v library-data:/var/lib/postgresql postgres:18
+          psql postgresql://postgres:postgres@localhost:5432/postgres
+    mistakes:
+      - problem:
+          en: "\"port is already allocated\" or psql connects to a different PostgreSQL than you expect."
+          tr: "\"port is already allocated\" hatası ya da psql'in beklediğinden farklı bir PostgreSQL'e bağlanması."
+        fix:
+          en: "Something else already uses port 5432 (often a native PostgreSQL). Stop it, or publish another port with `-p 5433:5432` and use `localhost:5433` in every address from now on."
+          tr: "5432 portunu başka bir şey kullanıyor (çoğu zaman yerel bir PostgreSQL). Onu durdur ya da `-p 5433:5432` ile başka bir port aç ve bundan sonra her adreste `localhost:5433` kullan."
+      - problem:
+          en: "Mounting the volume at /var/lib/postgresql/data, as older guides say, and the container refuses to start."
+          tr: "Eski rehberlerin dediği gibi volume'u /var/lib/postgresql/data yoluna bağlamak ve container'ın başlamayı reddetmesi."
+        fix:
+          en: "From PostgreSQL 18 the image keeps its data in a version folder under /var/lib/postgresql, so mount the volume at /var/lib/postgresql as in the command above."
+          tr: "PostgreSQL 18'den itibaren imaj verisini /var/lib/postgresql altında sürüme özel bir klasörde tutar; volume'u yukarıdaki komuttaki gibi /var/lib/postgresql yoluna bağla."
+      - problem:
+          en: "\"connection refused\" right after docker run."
+          tr: "docker run'dan hemen sonra \"connection refused\" hatası."
+        fix:
+          en: "The server needs a few seconds to start the first time. Wait ten seconds, or look at `docker logs library-db` for the line \"ready to accept connections\"."
+          tr: "Sunucunun ilk seferde başlaması birkaç saniye sürer. On saniye bekle ya da `docker logs library-db` çıktısında \"ready to accept connections\" satırını ara."
+    quiz:
+      - q:
+          en: "Why does the command use a volume (-v)?"
+          tr: "Komut neden bir volume (-v) kullanıyor?"
+        options:
+          en:
+            - "To make the database faster"
+            - "So the data survives when the container is removed or recreated"
+            - "Because PostgreSQL cannot run without it"
+          tr:
+            - "Veritabanını hızlandırmak için"
+            - "Container silinse ya da yeniden oluşturulsa bile veri kalsın diye"
+            - "PostgreSQL onsuz çalışamadığı için"
+        answer: 1
+        why:
+          en: "A container's own files disappear with it. A named volume lives outside it, so a new container can use the same data."
+          tr: "Container'ın kendi dosyaları onunla birlikte gider. İsimli bir volume onun dışında yaşar; yeni bir container aynı veriyi kullanabilir."
+    sources:
+      - title: PostgreSQL downloads
+        url: https://www.postgresql.org/download/
+      - title: "Docker Official Image: postgres"
+        url: https://hub.docker.com/_/postgres
+      - title: psql reference
+        url: https://www.postgresql.org/docs/18/app-psql.html
+
+  - id: psql-first
+    stage: first-code
+    title:
+      en: "Talk to the database with psql"
+      tr: "psql ile veritabanıyla konuşma"
+    minutes: 30
+    needs: [install]
+    why:
+      en: "Before you build anything, you should see that a database is just a conversation: you send a statement in SQL, it sends rows back. Here you create the library database and a throw-away table to feel how it works."
+      tr: "Bir şey kurmadan önce, veritabanının sadece bir konuşma olduğunu görmelisin: SQL ile bir ifade gönderirsin, o sana satırlar yollar. Burada kütüphane veritabanını ve işi bitince atacağın bir deneme tablosu oluşturursun."
+    learn:
+      en: |
+        - SQL is a language of statements; each one ends with a semicolon
+        - A server holds many databases, a database holds tables, a table holds rows and columns
+        - psql backslash commands (`\l`, `\c`, `\dt`, `\d`, `\q`) are for psql itself, not SQL, and need no semicolon
+        - `CREATE TABLE`, `INSERT`, `SELECT`, `DROP TABLE` in their simplest form
+      tr: |
+        - SQL ifadelerden oluşan bir dildir; her ifade noktalı virgülle biter
+        - Bir sunucu birçok veritabanı tutar, veritabanı tablolar tutar, tablo satırlar ve kolonlar tutar
+        - psql ters bölü komutları (`\l`, `\c`, `\dt`, `\d`, `\q`) SQL değil psql'in kendi komutlarıdır ve noktalı virgül istemez
+        - `CREATE TABLE`, `INSERT`, `SELECT`, `DROP TABLE` en yalın hâlleriyle
+    do:
+      en: |
+        1. Connect with `psql postgresql://postgres:postgres@localhost:5432/postgres`.
+        2. Type the statements below one at a time. After `CREATE DATABASE library;` the command `\c library` moves you into the new database.
+        3. Run `\l` to list databases and `\dt` to list tables. Run `\d hello` to see the columns of the table.
+        4. Drop the throw-away table with `DROP TABLE hello;` and leave with `\q`. The `library` database stays; you will fill it in the next steps.
+        5. From now on, put the address in a variable so you do not retype it: `export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/library` (on Windows PowerShell: `$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/library"`). Then `psql $DATABASE_URL` connects straight to the library database.
+      tr: |
+        1. `psql postgresql://postgres:postgres@localhost:5432/postgres` ile bağlan.
+        2. Aşağıdaki ifadeleri tek tek yaz. `CREATE DATABASE library;` sonrasında `\c library` komutu seni yeni veritabanına geçirir.
+        3. Veritabanlarını listelemek için `\l`, tabloları listelemek için `\dt` çalıştır. Tablonun kolonlarını görmek için `\d hello` yaz.
+        4. Deneme tablosunu `DROP TABLE hello;` ile at ve `\q` ile çık. `library` veritabanı kalır; onu sonraki adımlarda dolduracaksın.
+        5. Bundan sonra adresi bir değişkene koy ki her seferinde yazmayasın: `export DATABASE_URL=postgresql://postgres:postgres@localhost:5432/library` (Windows PowerShell'de: `$env:DATABASE_URL="postgresql://postgres:postgres@localhost:5432/library"`). Sonra `psql $DATABASE_URL` doğrudan library veritabanına bağlanır.
+    code:
+      - file: terminal
+        lang: sql
+        text: |
+          CREATE DATABASE library;
+          \c library
+          CREATE TABLE hello (id integer, message text);
+          INSERT INTO hello VALUES (1, 'Hello, database');
+          SELECT * FROM hello;
+          \d hello
+          DROP TABLE hello;
+          \q
+    mistakes:
+      - problem:
+          en: "Typing a statement without the semicolon and nothing happens; the prompt changes to `postgres-#`."
+          tr: "Noktalı virgülü unutmak ve hiçbir şey olmaması; prompt `postgres-#` olur."
+        fix:
+          en: "psql waits for the end of the statement. Type `;` and press Enter. Backslash commands like `\\dt` are the only ones without a semicolon."
+          tr: "psql ifadenin bitmesini bekler. `;` yazıp Enter'a bas. Noktalı virgül istemeyenler sadece `\\dt` gibi ters bölü komutlarıdır."
+      - problem:
+          en: "Using double quotes for text: `VALUES (1, \"Hello\")` gives \"column Hello does not exist\"."
+          tr: "Metin için çift tırnak kullanmak: `VALUES (1, \"Hello\")` \"column Hello does not exist\" hatası verir."
+        fix:
+          en: "In SQL, single quotes are for text values and double quotes are for names of tables and columns. Write 'Hello'."
+          tr: "SQL'de tek tırnak metin değerleri içindir, çift tırnak tablo ve kolon adları içindir. 'Hello' yaz."
+    quiz:
+      - q:
+          en: "Which of these is NOT SQL but a psql command?"
+          tr: "Bunlardan hangisi SQL değil, psql komutudur?"
+        options:
+          en:
+            - "SELECT * FROM hello;"
+            - "\\dt"
+            - "DROP TABLE hello;"
+          tr:
+            - "SELECT * FROM hello;"
+            - "\\dt"
+            - "DROP TABLE hello;"
+        answer: 1
+        why:
+          en: "Backslash commands are understood by psql only. The server never sees them."
+          tr: "Ters bölü komutlarını sadece psql anlar. Sunucu onları hiç görmez."
+    sources:
+      - title: "Tutorial: creating a database"
+        url: https://www.postgresql.org/docs/18/tutorial-createdb.html
+      - title: "Tutorial: accessing a database with psql"
+        url: https://www.postgresql.org/docs/18/tutorial-accessdb.html
+      - title: psql reference
+        url: https://www.postgresql.org/docs/18/app-psql.html
+
+  - id: tables-keys
+    stage: basics
+    title:
+      en: "Tables, types, keys and migrations"
+      tr: "Tablolar, tipler, anahtarlar ve migration'lar"
+    minutes: 60
+    needs: [psql-first]
+    why:
+      en: "A table is a promise about your data: this column is always text, this one is never empty, this one is unique. The database enforces the promise even when your code has a bug. And you write the tables as numbered SQL files (migrations), so you can rebuild the same database anywhere."
+      tr: "Tablo, verin hakkında verilmiş bir sözdür: bu kolon her zaman metindir, bu hiç boş olmaz, bu benzersizdir. Kodunda hata olsa bile veritabanı sözü tutar. Tabloları numaralı SQL dosyaları (migration) olarak yazarsın; böylece aynı veritabanını her yerde yeniden kurabilirsin."
+    learn:
+      en: |
+        - Types you will use most: `text`, `integer`, `bigint`, `numeric`, `boolean`, `timestamptz` (a moment in time, with time zone)
+        - `GENERATED ALWAYS AS IDENTITY` for ids that count up by themselves, and `PRIMARY KEY` for the column that names a row
+        - Constraints: `NOT NULL`, `UNIQUE`, `CHECK`, `DEFAULT`
+        - A migration is a SQL file that changes the database, applied once, in order, and never edited afterwards
+      tr: |
+        - En çok kullanacağın tipler: `text`, `integer`, `bigint`, `numeric`, `boolean`, `timestamptz` (saat dilimli bir an)
+        - Kendiliğinden artan id'ler için `GENERATED ALWAYS AS IDENTITY`, bir satırı adlandıran kolon için `PRIMARY KEY`
+        - Kısıtlar: `NOT NULL`, `UNIQUE`, `CHECK`, `DEFAULT`
+        - Migration, veritabanını değiştiren, bir kez ve sırayla uygulanan, sonra asla düzenlenmeyen bir SQL dosyasıdır
+    do:
+      en: |
+        1. Make a project folder: `mkdir library && cd library`, then `mkdir migrations`.
+        2. Create `migrations/001_books_and_members.sql` with the SQL below.
+        3. Create `migrate.sh` with the small script below and make it runnable: `chmod +x migrate.sh`. It creates a `schema_migrations` table that remembers which files ran, and applies only the new ones, each inside one transaction. On Windows run it from Git Bash or WSL.
+        4. Make sure `DATABASE_URL` is set (previous step) and run `./migrate.sh`. Run it a second time: nothing happens, because the file is already recorded.
+        5. Look at the result with `psql $DATABASE_URL -c "\d books"`.
+        6. Try to break the promises, and read the error messages. Each one names the constraint that stopped you.
+        7. Version it: `git init` and commit the folder.
+      tr: |
+        1. Bir proje klasörü aç: `mkdir library && cd library`, sonra `mkdir migrations`.
+        2. Aşağıdaki SQL ile `migrations/001_books_and_members.sql` dosyasını oluştur.
+        3. Aşağıdaki küçük betikle `migrate.sh` dosyasını oluştur ve çalıştırılabilir yap: `chmod +x migrate.sh`. Hangi dosyaların çalıştığını hatırlayan bir `schema_migrations` tablosu oluşturur ve sadece yenileri uygular; her biri tek bir transaction içinde. Windows'ta Git Bash ya da WSL'den çalıştır.
+        4. `DATABASE_URL` tanımlı olsun (önceki adım) ve `./migrate.sh` çalıştır. İkinci kez çalıştır: hiçbir şey olmaz, çünkü dosya zaten kayıtlı.
+        5. Sonucu `psql $DATABASE_URL -c "\d books"` ile gör.
+        6. Sözleri bozmayı dene ve hata mesajlarını oku. Her biri seni durduran kısıtın adını söyler.
+        7. Sürümle: `git init` ve klasörü commit et.
+    code:
+      - file: migrations/001_books_and_members.sql
+        lang: sql
+        text: |
+          CREATE TABLE books (
+            id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            isbn       text NOT NULL UNIQUE,
+            title      text NOT NULL,
+            author     text NOT NULL,
+            year       integer CHECK (year BETWEEN 1400 AND 2100),
+            copies     integer NOT NULL DEFAULT 1 CHECK (copies >= 0),
+            created_at timestamptz NOT NULL DEFAULT now()
+          );
+
+          CREATE TABLE members (
+            id         bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            name       text NOT NULL,
+            email      text NOT NULL UNIQUE,
+            joined_at  timestamptz NOT NULL DEFAULT now()
+          );
+      - file: migrate.sh
+        lang: sh
+        text: |
+          #!/bin/sh
+          # Applies every file in migrations/ that has not run yet. Usage: DATABASE_URL=... ./migrate.sh
+          set -eu
+          export PGOPTIONS="--client-min-messages=warning"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q -c "CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())"
+          for f in migrations/*.sql; do
+            name=$(basename "$f")
+            done=$(psql "$DATABASE_URL" -tAq -c "SELECT 1 FROM schema_migrations WHERE name = '$name'")
+            if [ -z "$done" ]; then
+              echo "applying $name"
+              psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -q --single-transaction -f "$f" -c "INSERT INTO schema_migrations (name) VALUES ('$name')"
+            fi
+          done
+      - file: terminal
+        lang: sh
+        text: |
+          ./migrate.sh
+          psql $DATABASE_URL -c "\d books"
+          psql $DATABASE_URL -c "INSERT INTO books (isbn, title, author, copies) VALUES ('x', 'Test', 'Nobody', -1)"
+          psql $DATABASE_URL -c "INSERT INTO books (isbn, title) VALUES ('y', 'No author')"
+    mistakes:
+      - problem:
+          en: "Editing a migration that already ran, then wondering why nothing changed."
+          tr: "Zaten çalışmış bir migration'ı düzenlemek ve neden hiçbir şeyin değişmediğini merak etmek."
+        fix:
+          en: "Applied files are never run again. Add a new file (`003_...sql`) with an `ALTER TABLE`. Only while your database is a throw-away one may you drop it and start over."
+          tr: "Uygulanmış dosyalar bir daha çalışmaz. `ALTER TABLE` içeren yeni bir dosya (`003_...sql`) ekle. Sadece veritabanın at-gitsin biriyken silip baştan başlayabilirsin."
+      - problem:
+          en: "Using `timestamp` instead of `timestamptz` for dates and times."
+          tr: "Tarih ve saatler için `timestamptz` yerine `timestamp` kullanmak."
+        fix:
+          en: "`timestamp` forgets the time zone, so the same value means different moments on different machines. Use `timestamptz` for moments in time."
+          tr: "`timestamp` saat dilimini unutur; aynı değer farklı makinelerde farklı anlara denk gelir. Zaman içindeki anlar için `timestamptz` kullan."
+      - problem:
+          en: "Saving prices as `real` or `double precision`."
+          tr: "Fiyatları `real` ya da `double precision` olarak saklamak."
+        fix:
+          en: "Those are approximate. Use `numeric(10, 2)`, or whole cents in an `integer`, for money."
+          tr: "Bunlar yaklaşık değerlerdir. Para için `numeric(10, 2)` ya da kuruşu tam sayı olarak `integer` içinde kullan."
+    quiz:
+      - q:
+          en: "A row tries to insert copies = -1. What happens?"
+          tr: "Bir satır copies = -1 ile eklenmeye çalışılıyor. Ne olur?"
+        options:
+          en:
+            - "It is saved and the app must notice"
+            - "PostgreSQL rejects it with a check constraint error"
+            - "PostgreSQL changes the value to 0"
+          tr:
+            - "Kaydedilir ve uygulamanın fark etmesi gerekir"
+            - "PostgreSQL bir check constraint hatasıyla reddeder"
+            - "PostgreSQL değeri 0'a çevirir"
+        answer: 1
+        why:
+          en: "The CHECK (copies >= 0) rule is part of the table. Wrong data never gets in, whatever code sends it."
+          tr: "CHECK (copies >= 0) kuralı tablonun parçasıdır. Hangi kod gönderirse göndersin yanlış veri içeri girmez."
+    sources:
+      - title: "Data types"
+        url: https://www.postgresql.org/docs/18/datatype.html
+      - title: "Constraints"
+        url: https://www.postgresql.org/docs/18/ddl-constraints.html
+      - title: "CREATE TABLE (identity columns)"
+        url: https://www.postgresql.org/docs/18/sql-createtable.html
+
+  - id: select-write
+    stage: basics
+    title:
+      en: "Insert, select, update and delete"
+      tr: "Ekleme, seçme, güncelleme ve silme"
+    minutes: 45
+    needs: [tables-keys]
+    why:
+      en: "Four statements do almost all the work: INSERT adds rows, SELECT reads them, UPDATE changes them, DELETE removes them. Filtering and sorting turn a table into the answer to a question."
+      tr: "İşin neredeyse tamamını dört ifade yapar: INSERT satır ekler, SELECT okur, UPDATE değiştirir, DELETE siler. Süzme ve sıralama bir tabloyu bir sorunun cevabına çevirir."
+    learn:
+      en: |
+        - `INSERT INTO ... VALUES`, with several rows at once
+        - `SELECT columns FROM table WHERE ... ORDER BY ... LIMIT`
+        - `UPDATE ... SET ... WHERE` and `DELETE FROM ... WHERE`, and why the `WHERE` matters so much
+        - `NULL` means "unknown": you test it with `IS NULL`, not `= NULL`
+        - `RETURNING` gives back the rows you just changed
+      tr: |
+        - `INSERT INTO ... VALUES`, birden çok satırı aynı anda
+        - `SELECT kolonlar FROM tablo WHERE ... ORDER BY ... LIMIT`
+        - `UPDATE ... SET ... WHERE` ve `DELETE FROM ... WHERE`, ve `WHERE`'in neden bu kadar önemli olduğu
+        - `NULL` "bilinmiyor" demektir: `= NULL` ile değil `IS NULL` ile test edilir
+        - `RETURNING` az önce değiştirdiğin satırları geri verir
+    do:
+      en: |
+        1. Create `seed.sql` below: four books and three members. Note that Design Patterns has 0 copies on purpose: its only copy will be lent out soon.
+        2. Load it with `psql $DATABASE_URL -f seed.sql`.
+        3. Run the queries below one by one and compare them with the table you expect.
+        4. Run the seed a second time and read the error: the unique constraint on `isbn` stops the duplicates, and nothing is inserted.
+        5. Wrap an `UPDATE` with `RETURNING` to see what it changed.
+      tr: |
+        1. Aşağıdaki `seed.sql` dosyasını oluştur: dört kitap ve üç üye. Design Patterns'ın kopya sayısı bilerek 0: tek kopyası yakında ödünç verilecek.
+        2. `psql $DATABASE_URL -f seed.sql` ile yükle.
+        3. Aşağıdaki sorguları tek tek çalıştır ve beklediğin tabloyla karşılaştır.
+        4. Seed'i ikinci kez çalıştır ve hatayı oku: `isbn` üzerindeki unique kısıtı kopyaları durdurur ve hiçbir şey eklenmez.
+        5. Bir `UPDATE`'i `RETURNING` ile çalıştırıp neyi değiştirdiğini gör.
+    code:
+      - file: seed.sql
+        lang: sql
+        text: |
+          INSERT INTO books (isbn, title, author, year, copies) VALUES
+            ('9780132350884', 'Clean Code', 'Robert C. Martin', 2008, 2),
+            ('9780201633610', 'Design Patterns', 'Erich Gamma', 1994, 0),
+            ('9780140449136', 'The Odyssey', 'Homer', 1996, 2),
+            ('9780451524935', 'Nineteen Eighty-Four', 'George Orwell', 1949, 2);
+
+          INSERT INTO members (name, email) VALUES
+            ('Ada', 'ada@example.com'),
+            ('Linus', 'linus@example.com'),
+            ('Grace', 'grace@example.com');
+      - file: terminal
+        lang: sql
+        text: |
+          SELECT title, year FROM books ORDER BY year;
+          SELECT title FROM books WHERE author ILIKE '%orwell%';
+          SELECT title, copies FROM books WHERE copies > 0 ORDER BY title LIMIT 2;
+          SELECT name FROM members WHERE email LIKE '%@example.com';
+          UPDATE books SET copies = copies + 1 WHERE isbn = '9780140449136' RETURNING title, copies;
+          UPDATE books SET copies = copies - 1 WHERE isbn = '9780140449136' RETURNING title, copies;
+    mistakes:
+      - problem:
+          en: "Running `UPDATE books SET copies = 0;` or `DELETE FROM books;` without WHERE."
+          tr: "`UPDATE books SET copies = 0;` ya da `DELETE FROM books;` komutunu WHERE olmadan çalıştırmak."
+        fix:
+          en: "Without WHERE the statement touches every row, and there is no undo outside a transaction. First write the same condition as a `SELECT`, check the rows, then change `SELECT` to `UPDATE` or `DELETE`. The transactions step shows a safety net."
+          tr: "WHERE yoksa ifade her satıra dokunur ve transaction dışında geri alma yoktur. Önce aynı koşulu bir `SELECT` olarak yaz, satırları kontrol et, sonra `SELECT`'i `UPDATE` ya da `DELETE` yap. Transaction adımı bir güvenlik ağı gösterir."
+      - problem:
+          en: "Writing `WHERE year = NULL` and getting no rows."
+          tr: "`WHERE year = NULL` yazmak ve hiç satır gelmemesi."
+        fix:
+          en: "NULL is never equal to anything, even to NULL. Write `WHERE year IS NULL`."
+          tr: "NULL hiçbir şeye eşit değildir, NULL'a bile. `WHERE year IS NULL` yaz."
+    quiz:
+      - q:
+          en: "Which statement lists books from newest to oldest?"
+          tr: "Hangi ifade kitapları yeniden eskiye listeler?"
+        options:
+          en:
+            - "SELECT title FROM books ORDER BY year DESC;"
+            - "SELECT title FROM books WHERE year DESC;"
+            - "SELECT title FROM books LIMIT year;"
+          tr:
+            - "SELECT title FROM books ORDER BY year DESC;"
+            - "SELECT title FROM books WHERE year DESC;"
+            - "SELECT title FROM books LIMIT year;"
+        answer: 0
+        why:
+          en: "ORDER BY sorts, and DESC reverses it. WHERE filters rows and LIMIT takes a number of rows."
+          tr: "ORDER BY sıralar, DESC tersine çevirir. WHERE satırları süzer, LIMIT belirli sayıda satır alır."
+    sources:
+      - title: "Tutorial: querying a table"
+        url: https://www.postgresql.org/docs/18/tutorial-select.html
+      - title: "Inserting, updating and deleting data"
+        url: https://www.postgresql.org/docs/18/dml.html
+      - title: "Queries"
+        url: https://www.postgresql.org/docs/18/queries.html
+
+  - id: loans-joins
+    stage: first-project
+    title:
+      en: "Loans: foreign keys, joins and aggregates"
+      tr: "Ödünç kayıtları: foreign key'ler, join'ler ve aggregate'ler"
+    minutes: 60
+    needs: [select-write]
+    why:
+      en: "Real data lives in several tables that point at each other: a loan points at one book and one member. A foreign key makes sure it never points at nothing, and a join puts the pieces back together when you ask a question."
+      tr: "Gerçek veri, birbirine işaret eden birkaç tabloda yaşar: bir ödünç kaydı bir kitaba ve bir üyeye işaret eder. Foreign key hiçbir şeye işaret etmemesini sağlar, join de soru sorduğunda parçaları yeniden birleştirir."
+    learn:
+      en: |
+        - A foreign key (`REFERENCES`) links a column to the primary key of another table and rejects unknown values
+        - `JOIN` keeps rows that match on both sides, `LEFT JOIN` keeps every row from the left table even without a match
+        - `GROUP BY` with `count`, `sum`, `avg`, `min`, `max`, and `HAVING` to filter the groups
+        - A loan is "open" while `returned_at` is `NULL`
+      tr: |
+        - Foreign key (`REFERENCES`) bir kolonu başka bir tablonun primary key'ine bağlar ve bilinmeyen değerleri reddeder
+        - `JOIN` iki tarafta da eşleşen satırları tutar, `LEFT JOIN` eşleşme olmasa bile soldaki tablonun her satırını tutar
+        - `count`, `sum`, `avg`, `min`, `max` ile `GROUP BY` ve grupları süzmek için `HAVING`
+        - `returned_at` `NULL` olduğu sürece ödünç kaydı "açık"tır
+    do:
+      en: |
+        1. Create `migrations/002_loans.sql` and apply it with `./migrate.sh`. Only the new file runs.
+        2. Create `seed_loans.sql` and load it with `psql $DATABASE_URL -f seed_loans.sql`. It assumes the books and members got ids 1 to 4 and 1 to 3 from the seed: check with `SELECT id, title FROM books;` if unsure.
+        3. Try an impossible loan to see the foreign key work: `psql $DATABASE_URL -c "INSERT INTO loans (book_id, member_id) VALUES (99, 1)"`.
+        4. Save `queries.sql` and run it: `psql $DATABASE_URL -f queries.sql`. Read each query and the result it prints: who has which book, who has never borrowed (Grace), loans per member, and what is overdue (Design Patterns, with Ada).
+        5. Commit your work.
+      tr: |
+        1. `migrations/002_loans.sql` dosyasını oluştur ve `./migrate.sh` ile uygula. Sadece yeni dosya çalışır.
+        2. `seed_loans.sql` dosyasını oluştur ve `psql $DATABASE_URL -f seed_loans.sql` ile yükle. Kitapların ve üyelerin seed'den 1-4 ve 1-3 id'lerini aldığını varsayar; emin değilsen `SELECT id, title FROM books;` ile bak.
+        3. Foreign key'in çalıştığını görmek için imkânsız bir ödünç kaydı dene: `psql $DATABASE_URL -c "INSERT INTO loans (book_id, member_id) VALUES (99, 1)"`.
+        4. `queries.sql` dosyasını kaydet ve çalıştır: `psql $DATABASE_URL -f queries.sql`. Her sorguyu ve yazdığı sonucu oku: kimde hangi kitap var, kim hiç ödünç almamış (Grace), üye başına ödünç sayısı ve neyin süresi geçmiş (Ada'daki Design Patterns).
+        5. Çalışmanı commit et.
+    code:
+      - file: migrations/002_loans.sql
+        lang: sql
+        text: |
+          CREATE TABLE loans (
+            id          bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+            book_id     bigint NOT NULL REFERENCES books (id),
+            member_id   bigint NOT NULL REFERENCES members (id),
+            borrowed_at timestamptz NOT NULL DEFAULT now(),
+            due_at      timestamptz NOT NULL DEFAULT now() + interval '14 days',
+            returned_at timestamptz
+          );
+      - file: seed_loans.sql
+        lang: sql
+        text: |
+          INSERT INTO loans (book_id, member_id, borrowed_at, due_at, returned_at) VALUES
+            (1, 1, now() - interval '30 days', now() - interval '16 days', now() - interval '20 days'),
+            (2, 1, now() - interval '20 days', now() - interval '6 days', NULL),
+            (3, 2, now() - interval '3 days', now() + interval '11 days', NULL);
+      - file: queries.sql
+        lang: sql
+        text: |
+          -- all books of one author
+          SELECT title, year FROM books WHERE author LIKE 'George%' ORDER BY year;
+
+          -- who has what, with a join
+          SELECT m.name, b.title, l.due_at::date AS due
+          FROM loans l
+          JOIN members m ON m.id = l.member_id
+          JOIN books b ON b.id = l.book_id
+          WHERE l.returned_at IS NULL
+          ORDER BY l.due_at;
+
+          -- members with no loans at all (LEFT JOIN)
+          SELECT m.name FROM members m LEFT JOIN loans l ON l.member_id = m.id WHERE l.id IS NULL;
+
+          -- how many loans per member
+          SELECT m.name, count(l.id) AS loans
+          FROM members m LEFT JOIN loans l ON l.member_id = m.id
+          GROUP BY m.name
+          HAVING count(l.id) >= 1
+          ORDER BY loans DESC, m.name;
+
+          -- overdue books
+          SELECT b.title, m.name FROM loans l JOIN books b ON b.id = l.book_id JOIN members m ON m.id = l.member_id
+          WHERE l.returned_at IS NULL AND l.due_at < now();
+    mistakes:
+      - problem:
+          en: "`count(*)` in a LEFT JOIN counts 1 for members with no loans."
+          tr: "LEFT JOIN içinde `count(*)` hiç ödünç kaydı olmayan üyeler için 1 sayar."
+        fix:
+          en: "Count a column of the right-hand table, `count(l.id)`: it skips the NULLs that the missing match produced."
+          tr: "Sağ tablonun bir kolonunu say, `count(l.id)`: eşleşme olmayınca oluşan NULL'ları atlar."
+      - problem:
+          en: "Putting a condition on the right table of a LEFT JOIN in `WHERE`, which silently turns it into an inner join."
+          tr: "LEFT JOIN'in sağ tablosuna ait bir koşulu `WHERE`'e koymak; bu sessizce onu inner join'e çevirir."
+        fix:
+          en: "Put it in the `ON` clause instead (`ON l.member_id = m.id AND l.returned_at IS NULL`). Only the check for the missing match, `WHERE l.id IS NULL`, belongs in `WHERE`."
+          tr: "Onun yerine `ON` kısmına koy (`ON l.member_id = m.id AND l.returned_at IS NULL`). Sadece eşleşme yok kontrolü olan `WHERE l.id IS NULL` `WHERE`'e aittir."
+      - problem:
+          en: "A column in `SELECT` that is not in `GROUP BY` and not inside an aggregate gives an error."
+          tr: "`SELECT` içinde olup `GROUP BY`'da ya da bir aggregate içinde olmayan bir kolon hata verir."
+        fix:
+          en: "Every selected column must be either grouped or aggregated. Add it to `GROUP BY` or wrap it in `min()`, `max()` or `count()`."
+          tr: "Seçilen her kolon ya gruplanmış ya da aggregate içinde olmalı. `GROUP BY`'a ekle ya da `min()`, `max()`, `count()` içine al."
+    quiz:
+      - q:
+          en: "Which join lists a member even if they have no loan?"
+          tr: "Hangi join, ödünç kaydı olmasa bile üyeyi listeler?"
+        options:
+          en:
+            - "JOIN (inner join)"
+            - "members LEFT JOIN loans"
+            - "loans LEFT JOIN members"
+          tr:
+            - "JOIN (inner join)"
+            - "members LEFT JOIN loans"
+            - "loans LEFT JOIN members"
+        answer: 1
+        why:
+          en: "LEFT JOIN keeps every row of the table written on its left, here members. The loans columns are NULL when nothing matches."
+          tr: "LEFT JOIN, solunda yazılan tablonun (burada members) her satırını tutar. Eşleşme yoksa loans kolonları NULL olur."
+    sources:
+      - title: "Tutorial: joins between tables"
+        url: https://www.postgresql.org/docs/18/tutorial-join.html
+      - title: "Tutorial: foreign keys"
+        url: https://www.postgresql.org/docs/18/tutorial-fk.html
+      - title: "Tutorial: aggregate functions"
+        url: https://www.postgresql.org/docs/18/tutorial-agg.html
+
+  - id: node-app
+    stage: data-api
+    title:
+      en: "Connect from a Node.js script"
+      tr: "Bir Node.js betiğinden bağlanma"
+    minutes: 45
+    needs: [loans-joins]
+    why:
+      en: "Your app talks to the database through a driver, a library that speaks PostgreSQL's protocol. The one rule you must keep from day one: never glue user input into the SQL text. Send it as a parameter, and the database treats it as data, never as code."
+      tr: "Uygulaman veritabanıyla bir driver üzerinden konuşur; PostgreSQL'in protokolünü bilen bir kütüphane. İlk günden uyman gereken tek kural: kullanıcı girdisini asla SQL metnine yapıştırma. Parametre olarak gönder; veritabanı onu hiçbir zaman kod olarak değil, veri olarak ele alır."
+    learn:
+      en: |
+        - The `pg` driver and a connection pool (a few open connections that are reused)
+        - Parameterised queries: `$1`, `$2` in the SQL and the values in an array
+        - What SQL injection is and why parameters stop it
+        - Rows come back as plain JavaScript objects; `bigint` values arrive as strings
+      tr: |
+        - `pg` driver'ı ve bağlantı havuzu (yeniden kullanılan birkaç açık bağlantı)
+        - Parametreli sorgular: SQL içinde `$1`, `$2` ve değerler bir dizide
+        - SQL injection'ın ne olduğu ve parametrelerin onu neden durdurduğu
+        - Satırlar düz JavaScript nesneleri olarak gelir; `bigint` değerler string olarak gelir
+    do:
+      en: |
+        1. You need Node.js (LTS) installed; check with `node --version`.
+        2. In the project folder, create `package.json` below (`"type": "module"` lets you use `import`), then run `npm install pg`.
+        3. Create `db.mjs` and `app.mjs` below.
+        4. Run `node app.mjs`. Your address comes from the environment: `DATABASE_URL` must still be set in this terminal. You should see the Orwell book printed as an object.
+        5. Experiment: change the search to `"homer"` and run it again.
+        6. Add `.gitignore` with the line `node_modules` and commit.
+      tr: |
+        1. Node.js (LTS) kurulu olmalı; `node --version` ile kontrol et.
+        2. Proje klasöründe aşağıdaki `package.json` dosyasını oluştur (`"type": "module"` `import` kullanmanı sağlar), sonra `npm install pg` çalıştır.
+        3. Aşağıdaki `db.mjs` ve `app.mjs` dosyalarını oluştur.
+        4. `node app.mjs` çalıştır. Adresin ortamdan gelir: `DATABASE_URL` bu terminalde hâlâ tanımlı olmalı. Orwell kitabının bir nesne olarak yazıldığını görmelisin.
+        5. Dene: aramayı `"homer"` yap ve tekrar çalıştır.
+        6. İçinde `node_modules` satırı olan bir `.gitignore` ekle ve commit et.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "library-app",
+            "private": true,
+            "type": "module"
+          }
+      - file: db.mjs
+        lang: js
+        text: |
+          import pg from "pg";
+
+          export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+          // Reading: the value goes in $1, never into the SQL text.
+          export async function findBooks(author) {
+            const { rows } = await pool.query(
+              "SELECT title, year, copies FROM books WHERE author ILIKE $1 ORDER BY year",
+              [`%${author}%`],
+            );
+            return rows;
+          }
+      - file: app.mjs
+        lang: js
+        text: |
+          import { findBooks, pool } from "./db.mjs";
+
+          console.log(await findBooks("orwell"));
+          await pool.end();
+    mistakes:
+      - problem:
+          en: "Building the SQL with a template string: `` `... WHERE author = '${author}'` ``."
+          tr: "SQL'i şablon string ile kurmak: `` `... WHERE author = '${author}'` ``."
+        fix:
+          en: "Someone can send `x' OR '1'='1` and read every row, or worse. Always use `$1` and pass the value in the array. Parameters work for values only, not for table or column names."
+          tr: "Biri `x' OR '1'='1` gönderip her satırı okuyabilir, hatta daha kötüsünü yapabilir. Her zaman `$1` kullan ve değeri dizide ver. Parametreler sadece değerler içindir, tablo ya da kolon adları için değil."
+      - problem:
+          en: "The script never ends after printing the result."
+          tr: "Betik sonucu yazdıktan sonra hiç bitmiyor."
+        fix:
+          en: "The pool keeps connections open. Call `await pool.end()` when the script is done."
+          tr: "Havuz bağlantıları açık tutar. Betik bitince `await pool.end()` çağır."
+      - problem:
+          en: "`ECONNREFUSED` or `password authentication failed`."
+          tr: "`ECONNREFUSED` ya da `password authentication failed` hatası."
+        fix:
+          en: "Check the container runs (`docker ps`) and that `DATABASE_URL` is set in this terminal (`echo $DATABASE_URL`), with the right user, password, port and database."
+          tr: "Container çalışıyor mu (`docker ps`) ve `DATABASE_URL` bu terminalde doğru kullanıcı, parola, port ve veritabanıyla tanımlı mı (`echo $DATABASE_URL`) kontrol et."
+    quiz:
+      - q:
+          en: "Why is `pool.query(\"... WHERE author ILIKE $1\", [value])` safe from SQL injection?"
+          tr: "`pool.query(\"... WHERE author ILIKE $1\", [value])` neden SQL injection'a karşı güvenli?"
+        options:
+          en:
+            - "The driver removes dangerous characters from value"
+            - "The SQL text and the value are sent separately, so the value can never become SQL"
+            - "PostgreSQL blocks all queries that contain a quote"
+          tr:
+            - "Driver value içindeki tehlikeli karakterleri siler"
+            - "SQL metni ve değer ayrı gönderilir, bu yüzden değer asla SQL olamaz"
+            - "PostgreSQL tırnak içeren tüm sorguları engeller"
+        answer: 1
+        why:
+          en: "The statement is parsed with its placeholders first; the values are only filled in afterwards as data."
+          tr: "İfade önce yer tutucularıyla ayrıştırılır; değerler sonradan sadece veri olarak doldurulur."
+    sources:
+      - title: "node-postgres: queries and parameters"
+        url: https://node-postgres.com/features/queries
+      - title: "node-postgres: pooling"
+        url: https://node-postgres.com/features/pooling
+      - title: "PostgreSQL: extended query protocol"
+        url: https://www.postgresql.org/docs/18/protocol-flow.html#PROTOCOL-FLOW-EXT-QUERY
+
+  - id: transactions
+    stage: data-api
+    title:
+      en: "Transactions: lend a book safely"
+      tr: "Transaction'lar: kitabı güvenle ödünç verme"
+    minutes: 40
+    needs: [node-app]
+    why:
+      en: "Lending a book is two changes: one copy fewer, and a new loan. If the program stops between them, you would have a book that vanished or a loan with no copy taken. A transaction makes the group all-or-nothing."
+      tr: "Kitap ödünç vermek iki değişikliktir: bir kopya eksilir ve yeni bir ödünç kaydı oluşur. Program ikisinin arasında dursa, kaybolmuş bir kitabın ya da kopyası düşmemiş bir ödünç kaydının olur. Transaction grubu ya hep ya hiç yapar."
+    learn:
+      en: |
+        - `BEGIN`, `COMMIT` and `ROLLBACK`
+        - Atomic: all changes of a transaction happen together or not at all
+        - Why `UPDATE ... WHERE copies > 0` is safe when two people lend the last copy at once: the second one waits for the first and then sees 0
+        - In Node, a transaction must use ONE connection from the pool
+      tr: |
+        - `BEGIN`, `COMMIT` ve `ROLLBACK`
+        - Atomik: bir transaction'ın tüm değişiklikleri birlikte olur ya da hiç olmaz
+        - Son kopyayı iki kişi aynı anda ödünç aldığında `UPDATE ... WHERE copies > 0` neden güvenli: ikinci kişi birincinin bitmesini bekler ve sonra 0 görür
+        - Node'da bir transaction havuzdan TEK bir bağlantı kullanmalı
+    do:
+      en: |
+        1. In psql, try the safety net first: run the four lines below. The count inside the transaction is 0, and after `ROLLBACK` all loans are back.
+        2. Replace `db.mjs` with the version below, which adds `lend`.
+        3. Replace `app.mjs` with the version below: it lends The Odyssey (id 3) to Grace (id 3) and then tries to lend the last Design Patterns copy again.
+        4. Run `node app.mjs`. The first lend prints an object with an `id` and a `due_at`; the second prints `Could not lend: No copy left`.
+        5. Check with `psql $DATABASE_URL -c "SELECT id, title, copies FROM books ORDER BY id"` that Odyssey went from 2 to 1 and Design Patterns stayed 0.
+      tr: |
+        1. Önce psql'de güvenlik ağını dene: aşağıdaki dört satırı çalıştır. Transaction içindeki sayı 0'dır ve `ROLLBACK` sonrası tüm ödünç kayıtları geri gelir.
+        2. `db.mjs` dosyasını `lend` ekleyen aşağıdaki sürümle değiştir.
+        3. `app.mjs` dosyasını aşağıdaki sürümle değiştir: The Odyssey'i (id 3) Grace'e (id 3) ödünç verir, sonra Design Patterns'ın son kopyasını tekrar ödünç vermeyi dener.
+        4. `node app.mjs` çalıştır. İlk ödünç bir `id` ve `due_at` içeren nesne yazar; ikincisi `Could not lend: No copy left` yazar.
+        5. `psql $DATABASE_URL -c "SELECT id, title, copies FROM books ORDER BY id"` ile Odyssey'in 2'den 1'e indiğini ve Design Patterns'ın 0 kaldığını kontrol et.
+    code:
+      - file: terminal
+        lang: sql
+        text: |
+          BEGIN;
+          DELETE FROM loans;
+          SELECT count(*) FROM loans;
+          ROLLBACK;
+          SELECT count(*) FROM loans;
+      - file: db.mjs
+        lang: js
+        text: |
+          import pg from "pg";
+
+          export const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+          // Reading: the value goes in $1, never into the SQL text.
+          export async function findBooks(author) {
+            const { rows } = await pool.query(
+              "SELECT title, year, copies FROM books WHERE author ILIKE $1 ORDER BY year",
+              [`%${author}%`],
+            );
+            return rows;
+          }
+
+          // Writing: lend a book. Both changes happen, or neither does.
+          export async function lend(bookId, memberId) {
+            const client = await pool.connect();
+            try {
+              await client.query("BEGIN");
+              const { rowCount } = await client.query(
+                "UPDATE books SET copies = copies - 1 WHERE id = $1 AND copies > 0",
+                [bookId],
+              );
+              if (rowCount === 0) throw new Error("No copy left");
+              const { rows } = await client.query(
+                "INSERT INTO loans (book_id, member_id) VALUES ($1, $2) RETURNING id, due_at",
+                [bookId, memberId],
+              );
+              await client.query("COMMIT");
+              return rows[0];
+            } catch (err) {
+              await client.query("ROLLBACK");
+              throw err;
+            } finally {
+              client.release();
+            }
+          }
+      - file: app.mjs
+        lang: js
+        text: |
+          import { findBooks, lend, pool } from "./db.mjs";
+
+          console.log(await findBooks("orwell"));
+          console.log(await lend(3, 3));
+          try {
+            await lend(2, 3); // the only copy of Design Patterns is with Ada
+          } catch (err) {
+            console.log("Could not lend:", err.message);
+          }
+          await pool.end();
+    mistakes:
+      - problem:
+          en: "Sending `BEGIN`, the changes and `COMMIT` with `pool.query`."
+          tr: "`BEGIN`, değişiklikleri ve `COMMIT`'i `pool.query` ile göndermek."
+        fix:
+          en: "Each `pool.query` may use a different connection, so the transaction is split and does nothing. Take one connection with `pool.connect()` and run all the statements on it."
+          tr: "Her `pool.query` farklı bir bağlantı kullanabilir; transaction bölünür ve işe yaramaz. `pool.connect()` ile tek bir bağlantı al ve tüm ifadeleri onda çalıştır."
+      - problem:
+          en: "Forgetting `client.release()`, so after a few calls the script hangs."
+          tr: "`client.release()` çağırmayı unutmak ve birkaç çağrıdan sonra betiğin takılması."
+        fix:
+          en: "Always release in `finally`, so it runs after success and after an error."
+          tr: "Her zaman `finally` içinde bırak; böylece hem başarıdan hem hatadan sonra çalışır."
+      - problem:
+          en: "Checking the copies with a `SELECT` first and then doing the `UPDATE` as a separate step."
+          tr: "Önce kopya sayısını bir `SELECT` ile kontrol edip `UPDATE`'i ayrı bir adım olarak yapmak."
+        fix:
+          en: "Two people can both see 1 copy and both lend it. Put the check into the `UPDATE` itself (`AND copies > 0`) and look at how many rows it changed."
+          tr: "İki kişi de 1 kopya görüp ikisi de ödünç alabilir. Kontrolü `UPDATE`'in içine koy (`AND copies > 0`) ve kaç satırı değiştirdiğine bak."
+    quiz:
+      - q:
+          en: "What happens to the UPDATE if the INSERT after it fails and you call ROLLBACK?"
+          tr: "Ondan sonraki INSERT başarısız olur ve ROLLBACK çağırırsan UPDATE'e ne olur?"
+        options:
+          en:
+            - "It stays, because it ran first"
+            - "It is undone together with everything else in the transaction"
+            - "It is saved after one minute"
+          tr:
+            - "Önce çalıştığı için kalır"
+            - "Transaction'daki her şeyle birlikte geri alınır"
+            - "Bir dakika sonra kaydedilir"
+        answer: 1
+        why:
+          en: "Nothing in a transaction is visible to others or permanent until COMMIT; ROLLBACK throws all of it away."
+          tr: "Bir transaction'daki hiçbir şey COMMIT'e kadar başkalarına görünmez ya da kalıcı olmaz; ROLLBACK hepsini atar."
+    sources:
+      - title: "Tutorial: transactions"
+        url: https://www.postgresql.org/docs/18/tutorial-transactions.html
+      - title: "Transaction isolation"
+        url: https://www.postgresql.org/docs/18/transaction-iso.html
+      - title: "node-postgres: transactions"
+        url: https://node-postgres.com/features/transactions
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the database code"
+      tr: "Veritabanı kodunu test etme"
+    minutes: 30
+    needs: [transactions]
+    why:
+      en: "A test that runs against a real PostgreSQL proves that your SQL, your constraints and your transaction really work together. Use a separate test database, because a test starts by deleting everything."
+      tr: "Gerçek bir PostgreSQL'e karşı çalışan test, SQL'inin, kısıtlarının ve transaction'ının gerçekten birlikte çalıştığını kanıtlar. Ayrı bir test veritabanı kullan, çünkü test her şeyi silerek başlar."
+    learn:
+      en: |
+        - Why tests use their own database and start from a known state
+        - `TRUNCATE ... RESTART IDENTITY CASCADE` to empty tables fast
+        - Node's built-in test runner (`node --test`), no extra package needed
+        - Test the failure path too: the rejected lend must change nothing
+      tr: |
+        - Testlerin neden kendi veritabanını kullandığı ve bilinen bir durumdan başladığı
+        - Tabloları hızlıca boşaltmak için `TRUNCATE ... RESTART IDENTITY CASCADE`
+        - Node'un yerleşik test çalıştırıcısı (`node --test`), ek paket gerekmez
+        - Hata yolunu da test et: reddedilen ödünç hiçbir şeyi değiştirmemeli
+    do:
+      en: |
+        1. Create the test database and give it the same tables: `psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE library_test"`, then `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/library_test ./migrate.sh`.
+        2. Create `db.test.mjs` below.
+        3. Run the tests against the test database only: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/library_test node --test`. You should see two passing tests.
+        4. Break `lend` on purpose (for example change `copies > 0` to `copies >= 0` in the `UPDATE`) and watch a test fail. Then fix it.
+      tr: |
+        1. Test veritabanını oluştur ve ona aynı tabloları ver: `psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE library_test"`, sonra `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/library_test ./migrate.sh`.
+        2. Aşağıdaki `db.test.mjs` dosyasını oluştur.
+        3. Testleri sadece test veritabanına karşı çalıştır: `DATABASE_URL=postgresql://postgres:postgres@localhost:5432/library_test node --test`. İki testin geçtiğini görmelisin.
+        4. `lend`'i bilerek boz (örneğin `copies > 0` ifadesini `copies >= 0` yap) ve bir testin kırıldığını izle. Sonra düzelt.
+    code:
+      - file: db.test.mjs
+        lang: js
+        text: |
+          import { test, beforeEach, after } from "node:test";
+          import assert from "node:assert/strict";
+          import { lend, pool } from "./db.mjs";
+
+          beforeEach(async () => {
+            await pool.query("TRUNCATE loans, books, members RESTART IDENTITY CASCADE");
+            await pool.query(
+              "INSERT INTO books (isbn, title, author, copies) VALUES ('1', 'One copy', 'A', 1), ('2', 'No copy', 'B', 0)",
+            );
+            await pool.query("INSERT INTO members (name, email) VALUES ('Ada', 'ada@example.com')");
+          });
+
+          after(() => pool.end());
+
+          test("lending takes one copy and records a loan", async () => {
+            const loan = await lend(1, 1);
+            assert.ok(loan.id);
+            const { rows } = await pool.query("SELECT copies FROM books WHERE id = 1");
+            assert.equal(rows[0].copies, 0);
+          });
+
+          test("lending a book with no copy left fails and changes nothing", async () => {
+            await assert.rejects(lend(2, 1), /No copy left/);
+            const { rows } = await pool.query("SELECT count(*)::int AS n FROM loans");
+            assert.equal(rows[0].n, 0);
+          });
+    mistakes:
+      - problem:
+          en: "Running the tests with the real `DATABASE_URL` and losing your books and loans."
+          tr: "Testleri gerçek `DATABASE_URL` ile çalıştırıp kitaplarını ve ödünç kayıtlarını kaybetmek."
+        fix:
+          en: "`TRUNCATE` empties the tables. Always put the test address in front of the command as shown, and never keep a test run pointed at real data. (If it happens, `./migrate.sh` and the seed files rebuild the demo data.)"
+          tr: "`TRUNCATE` tabloları boşaltır. Test adresini her zaman gösterildiği gibi komutun önüne yaz ve testi gerçek veriye yönlendirme. (Olursa `./migrate.sh` ve seed dosyaları demo veriyi yeniden kurar.)"
+      - problem:
+          en: "The test run never finishes."
+          tr: "Test çalıştırması hiç bitmiyor."
+        fix:
+          en: "The pool is still open. Close it in `after(() => pool.end())`."
+          tr: "Havuz hâlâ açık. Onu `after(() => pool.end())` içinde kapat."
+    quiz:
+      - q:
+          en: "Why does the second test also check the number of loans?"
+          tr: "İkinci test neden ödünç sayısını da kontrol ediyor?"
+        options:
+          en:
+            - "To prove the failed lend left nothing behind"
+            - "Because assert.rejects needs it"
+            - "To make the test slower"
+          tr:
+            - "Başarısız ödüncün geride hiçbir şey bırakmadığını kanıtlamak için"
+            - "assert.rejects bunu gerektirdiği için"
+            - "Testi yavaşlatmak için"
+        answer: 0
+        why:
+          en: "An error alone is not enough: the point of the transaction is that nothing half-done stays in the database."
+          tr: "Sadece hata yeterli değil: transaction'ın amacı, yarım kalmış hiçbir şeyin veritabanında kalmamasıdır."
+    sources:
+      - title: "Node.js test runner"
+        url: https://nodejs.org/api/test.html
+      - title: "TRUNCATE"
+        url: https://www.postgresql.org/docs/18/sql-truncate.html
+      - title: "Node.js assert"
+        url: https://nodejs.org/api/assert.html
+
+  - id: roles
+    stage: security
+    title:
+      en: "Roles and least privilege"
+      tr: "Roller ve en az yetki"
+    minutes: 40
+    needs: [tests]
+    why:
+      en: "Right now your app connects as `postgres`, the superuser who can do anything, including dropping the whole database. If your app has a bug or is attacked, whatever it can do, the attacker can do. Give it a role that can do only what the app needs."
+      tr: "Şu an uygulaman her şeyi yapabilen, tüm veritabanını silmek dahil, süper kullanıcı `postgres` olarak bağlanıyor. Uygulamanda bir hata varsa ya da saldırıya uğrarsa, onun yapabildiğini saldırgan da yapabilir. Ona sadece uygulamanın ihtiyacı olanı yapabilen bir rol ver."
+    learn:
+      en: |
+        - A role is a database account; with `LOGIN` it can connect
+        - `GRANT` gives a privilege on a table (`SELECT`, `INSERT`, `UPDATE`, `DELETE`), and what is not granted is refused
+        - Least privilege: the app role can read and write rows but cannot delete them, drop tables or change the structure; a read-only role is for reports
+        - The owner of a table (here `postgres`, who ran the migrations) is separate from the app that uses it
+        - Passwords belong in environment variables, never in Git
+      tr: |
+        - Rol bir veritabanı hesabıdır; `LOGIN` ile bağlanabilir
+        - `GRANT` bir tablo üzerinde yetki verir (`SELECT`, `INSERT`, `UPDATE`, `DELETE`); verilmeyen şey reddedilir
+        - En az yetki: uygulama rolü satır okuyup yazabilir ama silemez, tablo düşüremez, yapıyı değiştiremez; salt okunur rol raporlar içindir
+        - Bir tablonun sahibi (burada migration'ları çalıştıran `postgres`) onu kullanan uygulamadan ayrıdır
+        - Parolalar ortam değişkenlerinde durur, asla Git'te değil
+    do:
+      en: |
+        1. Create `roles.sql` below. Change the two passwords before you use this anywhere except your own computer.
+        2. Run it as the superuser: `psql postgresql://postgres:postgres@localhost:5432/library -f roles.sql`.
+        3. Start the app with the new role: `DATABASE_URL=postgresql://library_app:change-me-app@localhost:5432/library node app.mjs`. It works: reading, updating copies and inserting loans are all granted.
+        4. Try what is not granted. As the app role, `psql postgresql://library_app:change-me-app@localhost:5432/library -c "DELETE FROM books"` gives `permission denied for table books`, and `DROP TABLE books` gives `must be owner of table books`. As the read-only role, the same `node app.mjs` fails on the lend with `permission denied`.
+        5. From now on run the app with the `library_app` address and the migrations with the owner address.
+      tr: |
+        1. Aşağıdaki `roles.sql` dosyasını oluştur. Kendi bilgisayarın dışında bir yerde kullanmadan önce iki parolayı değiştir.
+        2. Süper kullanıcı olarak çalıştır: `psql postgresql://postgres:postgres@localhost:5432/library -f roles.sql`.
+        3. Uygulamayı yeni rolle başlat: `DATABASE_URL=postgresql://library_app:change-me-app@localhost:5432/library node app.mjs`. Çalışır: okuma, kopya sayısını güncelleme ve ödünç kaydı ekleme verilmiş.
+        4. Verilmeyeni dene. Uygulama rolüyle `psql postgresql://library_app:change-me-app@localhost:5432/library -c "DELETE FROM books"` `permission denied for table books` verir, `DROP TABLE books` ise `must be owner of table books` verir. Salt okunur rolle aynı `node app.mjs` ödünç aşamasında `permission denied` ile kırılır.
+        5. Bundan sonra uygulamayı `library_app` adresiyle, migration'ları sahip adresiyle çalıştır.
+    code:
+      - file: roles.sql
+        lang: sql
+        text: |
+          CREATE ROLE library_app LOGIN PASSWORD 'change-me-app';
+          CREATE ROLE library_readonly LOGIN PASSWORD 'change-me-readonly';
+
+          GRANT USAGE ON SCHEMA public TO library_app, library_readonly;
+          GRANT SELECT, INSERT, UPDATE ON books, members, loans TO library_app;
+          GRANT SELECT ON books, members, loans TO library_readonly;
+    mistakes:
+      - problem:
+          en: "Adding a new table in a migration and the app gets `permission denied` on it."
+          tr: "Bir migration'la yeni tablo eklemek ve uygulamanın ona `permission denied` alması."
+        fix:
+          en: "Grants are per table. Add a `GRANT` line to the same migration file that creates the table."
+          tr: "Yetkiler tablo başınadır. Tabloyu oluşturan migration dosyasına bir `GRANT` satırı ekle."
+      - problem:
+          en: "Using the superuser in the app \"just for now\" and shipping it."
+          tr: "Uygulamada süper kullanıcıyı \"şimdilik\" kullanıp öyle yayına almak."
+        fix:
+          en: "Create the limited role first, it takes two minutes. Keep the superuser and owner address for migrations and backups only."
+          tr: "Önce sınırlı rolü oluştur, iki dakika sürer. Süper kullanıcı ve sahip adresini sadece migration'lar ve yedekler için tut."
+      - problem:
+          en: "Committing real passwords in `roles.sql` to Git."
+          tr: "`roles.sql` içindeki gerçek parolaları Git'e commit etmek."
+        fix:
+          en: "The values here are placeholders for local use. For real systems set the password in the console or with `ALTER ROLE ... PASSWORD`, and give it to the app through an environment variable."
+          tr: "Buradaki değerler yerel kullanım için yer tutucudur. Gerçek sistemlerde parolayı konsoldan ya da `ALTER ROLE ... PASSWORD` ile belirle ve uygulamaya ortam değişkeniyle ver."
+    quiz:
+      - q:
+          en: "The app role has SELECT, INSERT and UPDATE on loans. What happens on `DELETE FROM loans`?"
+          tr: "Uygulama rolünün loans üzerinde SELECT, INSERT ve UPDATE yetkisi var. `DELETE FROM loans` ne olur?"
+        options:
+          en:
+            - "It works, because it can already change rows"
+            - "PostgreSQL refuses it with permission denied"
+            - "It deletes only rows the role inserted"
+          tr:
+            - "Çalışır, çünkü zaten satırları değiştirebiliyor"
+            - "PostgreSQL permission denied ile reddeder"
+            - "Sadece rolün eklediği satırları siler"
+        answer: 1
+        why:
+          en: "Each privilege is separate. Only what was granted is allowed."
+          tr: "Her yetki ayrıdır. Sadece verilene izin vardır."
+    sources:
+      - title: "Database roles"
+        url: https://www.postgresql.org/docs/18/user-manag.html
+      - title: "Privileges"
+        url: https://www.postgresql.org/docs/18/ddl-priv.html
+      - title: "GRANT"
+        url: https://www.postgresql.org/docs/18/sql-grant.html
+
+  - id: indexes
+    stage: performance
+    title:
+      en: "Indexes and EXPLAIN ANALYZE"
+      tr: "Index'ler ve EXPLAIN ANALYZE"
+    minutes: 45
+    needs: [roles]
+    why:
+      en: "With four books everything is fast. With a million loans, a query without an index reads every row to find a few. An index is like the index of a book: it jumps straight to the right page. EXPLAIN ANALYZE shows how PostgreSQL really ran your query, so you measure instead of guessing."
+      tr: "Dört kitapla her şey hızlıdır. Bir milyon ödünç kaydıyla, index'i olmayan bir sorgu birkaç satırı bulmak için her satırı okur. Index bir kitabın dizini gibidir: doğrudan doğru sayfaya atlar. EXPLAIN ANALYZE, PostgreSQL'in sorgunu gerçekte nasıl çalıştırdığını gösterir; tahmin etmek yerine ölçersin."
+    learn:
+      en: |
+        - What a Seq Scan (reads the whole table) and an Index or Bitmap scan are
+        - `EXPLAIN` shows the plan, `EXPLAIN ANALYZE` runs the query and adds real times
+        - `CREATE INDEX`, and the partial index (only some rows, here the open loans)
+        - Indexes cost space and make writes a little slower, so add them for real queries, not for everything
+        - Foreign key columns are not indexed automatically; index the ones you join or filter on
+      tr: |
+        - Seq Scan'in (tüm tabloyu okur) ve Index ya da Bitmap taramanın ne olduğu
+        - `EXPLAIN` planı gösterir, `EXPLAIN ANALYZE` sorguyu çalıştırır ve gerçek süreleri ekler
+        - `CREATE INDEX` ve kısmi index (sadece bazı satırlar, burada açık ödünç kayıtları)
+        - Index'ler yer kaplar ve yazmayı biraz yavaşlatır; her şey için değil, gerçek sorgular için ekle
+        - Foreign key kolonları kendiliğinden index'lenmez; join yaptığın ve süzdüğün kolonları index'le
+    do:
+      en: |
+        1. Create `bigdata.sql` below: 1000 more members and 300000 loans for the experiment. It must run as the owner: `psql postgresql://postgres:postgres@localhost:5432/library -f bigdata.sql`. It takes a few seconds. The last line, `ANALYZE`, updates PostgreSQL's statistics so it plans well.
+        2. Ask for the plan of a query for one member, as the owner: `EXPLAIN ANALYZE SELECT * FROM loans WHERE member_id = 500;`. Find `Seq Scan` and `Execution Time`. On a typical computer it takes around 10 to 30 milliseconds.
+        3. Create `migrations/003_loan_indexes.sql` below and apply it with `./migrate.sh` (use the owner address).
+        4. Run the same `EXPLAIN ANALYZE` again. Now the plan uses `loans_member_id_idx` (a Bitmap Index Scan) and the time falls to around 1 millisecond or less. Your exact numbers will differ; the shape of the plan is what matters.
+        5. Try `EXPLAIN ANALYZE SELECT * FROM loans WHERE due_at < now() AND returned_at IS NULL;`. It uses the small partial index `loans_open_idx`.
+      tr: |
+        1. Aşağıdaki `bigdata.sql` dosyasını oluştur: deney için 1000 üye ve 300000 ödünç kaydı daha. Sahip olarak çalışmalı: `psql postgresql://postgres:postgres@localhost:5432/library -f bigdata.sql`. Birkaç saniye sürer. Son satır `ANALYZE`, PostgreSQL'in istatistiklerini günceller ki iyi plan yapsın.
+        2. Sahip olarak, tek bir üye için sorgunun planını iste: `EXPLAIN ANALYZE SELECT * FROM loans WHERE member_id = 500;`. `Seq Scan` ve `Execution Time` satırlarını bul. Tipik bir bilgisayarda 10-30 milisaniye civarı sürer.
+        3. Aşağıdaki `migrations/003_loan_indexes.sql` dosyasını oluştur ve `./migrate.sh` ile uygula (sahip adresini kullan).
+        4. Aynı `EXPLAIN ANALYZE`'ı tekrar çalıştır. Artık plan `loans_member_id_idx` kullanır (Bitmap Index Scan) ve süre 1 milisaniye civarına ya da altına düşer. Senin sayıların farklı olacak; önemli olan planın şeklidir.
+        5. `EXPLAIN ANALYZE SELECT * FROM loans WHERE due_at < now() AND returned_at IS NULL;` dene. Küçük kısmi index `loans_open_idx` kullanılır.
+    code:
+      - file: bigdata.sql
+        lang: sql
+        text: |
+          INSERT INTO members (name, email)
+          SELECT 'Member ' || g, 'member' || g || '@example.com' FROM generate_series(1, 1000) g;
+
+          INSERT INTO loans (book_id, member_id, borrowed_at, due_at, returned_at)
+          SELECT 1 + (g % 4), 1 + g % 1000,
+                 now() - (g || ' minutes')::interval, now() + interval '14 days', now()
+          FROM generate_series(1, 300000) g;
+          ANALYZE;
+      - file: migrations/003_loan_indexes.sql
+        lang: sql
+        text: |
+          CREATE INDEX loans_member_id_idx ON loans (member_id);
+          CREATE INDEX loans_book_id_idx ON loans (book_id);
+          CREATE INDEX loans_open_idx ON loans (due_at) WHERE returned_at IS NULL;
+    mistakes:
+      - problem:
+          en: "Running `EXPLAIN ANALYZE` on an `UPDATE` or `DELETE` and being surprised that the data changed."
+          tr: "Bir `UPDATE` ya da `DELETE` üzerinde `EXPLAIN ANALYZE` çalıştırıp verinin değişmesine şaşırmak."
+        fix:
+          en: "`ANALYZE` really runs the statement. Wrap it: `BEGIN; EXPLAIN ANALYZE ...; ROLLBACK;`."
+          tr: "`ANALYZE` ifadeyi gerçekten çalıştırır. Sar: `BEGIN; EXPLAIN ANALYZE ...; ROLLBACK;`."
+      - problem:
+          en: "Testing an index on a tiny table, seeing a Seq Scan and deciding the index does not work."
+          tr: "Index'i küçücük bir tabloda denemek, Seq Scan görmek ve index'in çalışmadığına karar vermek."
+        fix:
+          en: "For a few rows reading the whole table is the cheapest plan, and PostgreSQL knows it. Test with realistic amounts of data, like the 300000 rows here."
+          tr: "Birkaç satırda tüm tabloyu okumak en ucuz plandır ve PostgreSQL bunu bilir. Burada olduğu gibi gerçekçi miktarda veriyle test et."
+      - problem:
+          en: "Adding an index to every column \"to be safe\"."
+          tr: "\"Garanti olsun\" diye her kolona index eklemek."
+        fix:
+          en: "Each index slows inserts and updates and uses disk. Add one when a real query is slow and `EXPLAIN ANALYZE` shows a Seq Scan on a big table, and drop the ones that are never used."
+          tr: "Her index insert ve update'leri yavaşlatır ve disk kullanır. Gerçek bir sorgu yavaşsa ve `EXPLAIN ANALYZE` büyük bir tabloda Seq Scan gösteriyorsa ekle; hiç kullanılmayanları sil."
+    quiz:
+      - q:
+          en: "What does EXPLAIN ANALYZE do that plain EXPLAIN does not?"
+          tr: "EXPLAIN ANALYZE, düz EXPLAIN'in yapmadığı neyi yapar?"
+        options:
+          en:
+            - "It really runs the query and shows real times and row counts"
+            - "It creates the best index for you"
+            - "It makes the query faster"
+          tr:
+            - "Sorguyu gerçekten çalıştırır ve gerçek süreleri ve satır sayılarını gösterir"
+            - "Senin için en iyi index'i oluşturur"
+            - "Sorguyu hızlandırır"
+        answer: 0
+        why:
+          en: "Plain EXPLAIN only shows the plan with estimates. ANALYZE executes the statement and measures it."
+          tr: "Düz EXPLAIN sadece tahminlerle planı gösterir. ANALYZE ifadeyi çalıştırır ve ölçer."
+    sources:
+      - title: "Using EXPLAIN"
+        url: https://www.postgresql.org/docs/18/using-explain.html
+      - title: "Indexes"
+        url: https://www.postgresql.org/docs/18/indexes.html
+      - title: "Partial indexes"
+        url: https://www.postgresql.org/docs/18/indexes-partial.html
+
+  - id: backup
+    stage: packaging
+    title:
+      en: "Back up and restore with pg_dump"
+      tr: "pg_dump ile yedekleme ve geri yükleme"
+    minutes: 30
+    needs: [indexes]
+    why:
+      en: "Disks fail, and so do people (one wrong DELETE). A backup is a single file that holds your whole database, and a backup you have never restored is only a hope. So you take one and prove that it comes back."
+      tr: "Diskler bozulur, insanlar da (yanlış bir DELETE). Yedek, tüm veritabanını tutan tek bir dosyadır; hiç geri yüklemediğin yedek sadece bir umuttur. Bu yüzden bir tane alırsın ve geri geldiğini kanıtlarsın."
+    learn:
+      en: |
+        - `pg_dump` writes a consistent copy of one database, even while it is in use
+        - The custom format (`--format=custom`) is compressed and restored with `pg_restore`; the plain format is a SQL file you run with `psql`
+        - `pg_restore --dbname` loads it into an empty database; `--no-owner` skips the original owner names
+        - Roles are not part of a database dump; they live in the server
+        - Restore into a NEW database first and check the numbers
+      tr: |
+        - `pg_dump` kullanımdayken bile tek bir veritabanının tutarlı bir kopyasını yazar
+        - Custom format (`--format=custom`) sıkıştırılmıştır ve `pg_restore` ile geri yüklenir; plain format `psql` ile çalıştırdığın bir SQL dosyasıdır
+        - `pg_restore --dbname` onu boş bir veritabanına yükler; `--no-owner` özgün sahip adlarını atlar
+        - Roller veritabanı yedeğinin parçası değildir; sunucuda yaşarlar
+        - Önce YENİ bir veritabanına geri yükle ve sayıları kontrol et
+    do:
+      en: |
+        1. Take a backup with the first command below. You get `library.dump`. Use the owner address.
+        2. Create an empty database and restore into it with the next two commands.
+        3. Compare: both counts must be the same.
+        4. No `pg_dump` on your computer, or its version is older than the server's? Run it inside the container instead (last command; on Windows PowerShell write the file inside the container with `--file=/tmp/library.dump` and copy it out with `docker cp library-db:/tmp/library.dump .`).
+        5. For a readable backup you can look at and edit, use `--format=plain`: it is a long SQL file. Add `library.dump` to `.gitignore`: backups hold real data and do not belong in Git.
+        6. Plan the habit: run the command from a scheduler (cron on Linux and macOS, Task Scheduler on Windows) and copy the file somewhere else than the same disk.
+      tr: |
+        1. Aşağıdaki ilk komutla yedek al. `library.dump` dosyasını elde edersin. Sahip adresini kullan.
+        2. Sonraki iki komutla boş bir veritabanı oluştur ve ona geri yükle.
+        3. Karşılaştır: iki sayı aynı olmalı.
+        4. Bilgisayarında `pg_dump` yok mu ya da sürümü sunucudan eski mi? Onu container içinde çalıştır (son komut; Windows PowerShell'de dosyayı container içinde `--file=/tmp/library.dump` ile yaz ve `docker cp library-db:/tmp/library.dump .` ile dışarı kopyala).
+        5. Bakıp düzenleyebileceğin okunur bir yedek için `--format=plain` kullan: uzun bir SQL dosyasıdır. `library.dump` dosyasını `.gitignore`'a ekle: yedekler gerçek veri taşır ve Git'e ait değildir.
+        6. Alışkanlığı planla: komutu bir zamanlayıcıdan çalıştır (Linux ve macOS'ta cron, Windows'ta Task Scheduler) ve dosyayı aynı diskten başka bir yere kopyala.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          pg_dump --format=custom --file=library.dump postgresql://postgres:postgres@localhost:5432/library
+          psql postgresql://postgres:postgres@localhost:5432/postgres -c "CREATE DATABASE library_restored"
+          pg_restore --no-owner --dbname=postgresql://postgres:postgres@localhost:5432/library_restored library.dump
+          psql postgresql://postgres:postgres@localhost:5432/library_restored -c "SELECT count(*) FROM loans"
+          docker exec library-db pg_dump -U postgres --format=custom library > library.dump
+    mistakes:
+      - problem:
+          en: "\"server version mismatch\" from pg_dump."
+          tr: "pg_dump'tan \"server version mismatch\" hatası."
+        fix:
+          en: "`pg_dump` must be the same version as the server or newer. Install the newer client, or run it inside the container with `docker exec`."
+          tr: "`pg_dump` sunucuyla aynı ya da daha yeni sürümde olmalı. Daha yeni istemciyi kur ya da `docker exec` ile container içinde çalıştır."
+      - problem:
+          en: "Restoring into the live database, so objects already exist and errors fill the screen."
+          tr: "Canlı veritabanına geri yüklemek; nesneler zaten var olduğundan ekran hatalarla dolar."
+        fix:
+          en: "Restore into a new, empty database. To replace a broken one, create a fresh database, restore, check, then switch the app over."
+          tr: "Yeni, boş bir veritabanına geri yükle. Bozuk olanı değiştirmek için taze bir veritabanı oluştur, geri yükle, kontrol et, sonra uygulamayı ona geçir."
+      - problem:
+          en: "Writing a custom-format dump with `>` in PowerShell, which corrupts the file."
+          tr: "PowerShell'de custom format yedeği `>` ile yazmak; dosyayı bozar."
+        fix:
+          en: "Use `--file=` so pg_dump writes the file itself, or run the command in Git Bash or WSL."
+          tr: "pg_dump dosyayı kendisi yazsın diye `--file=` kullan ya da komutu Git Bash ya da WSL'de çalıştır."
+    quiz:
+      - q:
+          en: "When is a backup really a backup?"
+          tr: "Yedek ne zaman gerçekten yedektir?"
+        options:
+          en:
+            - "As soon as the file exists"
+            - "After you restored it somewhere and the data was right"
+            - "When it is stored in Git"
+          tr:
+            - "Dosya oluşur oluşmaz"
+            - "Bir yere geri yükleyip verinin doğru çıktığını gördükten sonra"
+            - "Git'te saklandığında"
+        answer: 1
+        why:
+          en: "Only a restore proves that the file is complete and that you know the steps."
+          tr: "Dosyanın eksiksiz olduğunu ve adımları bildiğini sadece geri yükleme kanıtlar."
+    sources:
+      - title: "pg_dump"
+        url: https://www.postgresql.org/docs/18/app-pgdump.html
+      - title: "pg_restore"
+        url: https://www.postgresql.org/docs/18/app-pgrestore.html
+      - title: "Backup and restore"
+        url: https://www.postgresql.org/docs/18/backup.html
+
+  - id: neon
+    stage: deploy
+    title:
+      en: "Put the database online for free (Neon)"
+      tr: "Veritabanını ücretsiz yayına alma (Neon)"
+    minutes: 45
+    needs: [backup]
+    why:
+      en: "Your app has to reach its database from the internet, not only from your laptop. A hosted PostgreSQL does the running, updates and storage for you. Neon has a Free plan, so you pay nothing while you learn."
+      tr: "Uygulaman veritabanına sadece dizüstü bilgisayarından değil, internetten ulaşabilmeli. Barındırılan bir PostgreSQL çalıştırmayı, güncellemeyi ve depolamayı senin yerine yapar. Neon'un Ücretsiz planı var; öğrenirken hiçbir şey ödemezsin."
+    learn:
+      en: |
+        - What the Neon Free plan includes (checked October 2026): $0 per month, up to 100 projects, 1 GB of storage per project and 100 compute hours per project per month. The database suspends after 5 minutes without use and wakes up on the next connection, so the first query after a pause is slower. Limits can change, so read the plans page before you rely on them
+        - A connection string has the user, password, host, database and `sslmode=require` (the connection is encrypted)
+        - Direct vs pooled connections: use the direct one for migrations and `pg_dump`, the pooled one (the host contains `-pooler`) for an app with many short connections
+        - Why a secret like this string goes into an environment variable, never into Git
+        - Another free option to know: Supabase has a free plan with two projects, and it pauses projects that are not used
+      tr: |
+        - Neon Ücretsiz planının neleri içerdiği (Ekim 2026'da kontrol edildi): ayda 0 dolar, en fazla 100 proje, proje başına 1 GB depolama ve proje başına ayda 100 hesaplama saati. Veritabanı 5 dakika kullanılmazsa uyur ve bir sonraki bağlantıda uyanır; bu yüzden duraklamadan sonraki ilk sorgu daha yavaştır. Limitler değişebilir, güvenmeden önce planlar sayfasını oku
+        - Bağlantı adresi kullanıcıyı, parolayı, sunucuyu, veritabanını ve `sslmode=require` içerir (bağlantı şifrelenir)
+        - Doğrudan ve havuzlu bağlantı: migration'lar ve `pg_dump` için doğrudan olanı, çok sayıda kısa bağlantı açan uygulama için havuzlu olanı kullan (sunucu adında `-pooler` geçer)
+        - Bu adres gibi bir sırrın neden ortam değişkenine girdiği ve asla Git'e girmediği
+        - Bilmen gereken başka bir ücretsiz seçenek: Supabase'in iki projeli ücretsiz planı var ve kullanılmayan projeleri duraklatır
+    do:
+      en: |
+        1. Open neon.com, sign up and create a project named `library`. Pick the newest PostgreSQL version offered and the region closest to you.
+        2. On the project page, open **Connect**. Choose your database and the role, switch **Connection pooling** off, and copy the connection string. It looks like `postgresql://user:password@ep-something.region.aws.neon.tech/dbname?sslmode=require`.
+        3. Put it in a variable. Keep the quotes: the address contains `&` and the shell would break without them. Example: `export NEON_URL='postgresql://...'`. Put the real string in a file named `.env` that is listed in `.gitignore`, never in a file you commit.
+        4. Build the same database there: `DATABASE_URL="$NEON_URL" ./migrate.sh`, then `psql "$NEON_URL" -f seed.sql` and `psql "$NEON_URL" -f seed_loans.sql`. Do not run `bigdata.sql` here: it is only for experiments.
+        5. Run the app against it: `DATABASE_URL="$NEON_URL" node app.mjs`. The first run may take a moment if the database was asleep.
+        6. Create the limited role here as well. Use the SQL editor in the Neon console or `psql "$NEON_URL"` and run the statements of `roles.sql` with `CREATE ROLE` and `GRANT`, with real passwords. Do NOT create it with the console's Roles page: roles created there get membership in the `neon_superuser` role, which is the opposite of least privilege. Then give your app the address of the `library_app` role.
+        7. Your actual app, wherever it runs (Render's free web service, for example), only needs that address as an environment variable named `DATABASE_URL`. You can also restore a `pg_dump` file into Neon with `pg_restore` on the direct address.
+      tr: |
+        1. neon.com'u aç, kaydol ve `library` adlı bir proje oluştur. Sunulan en yeni PostgreSQL sürümünü ve sana en yakın bölgeyi seç.
+        2. Proje sayfasında **Connect**'i aç. Veritabanını ve rolü seç, **Connection pooling**'i kapat ve bağlantı adresini kopyala. `postgresql://user:password@ep-something.region.aws.neon.tech/dbname?sslmode=require` gibi görünür.
+        3. Bir değişkene koy. Tırnakları koru: adres `&` içerir ve tırnak olmazsa kabuk bozulur. Örnek: `export NEON_URL='postgresql://...'`. Gerçek adresi `.gitignore`'da yazılı bir `.env` dosyasına koy, asla commit ettiğin bir dosyaya değil.
+        4. Aynı veritabanını orada kur: `DATABASE_URL="$NEON_URL" ./migrate.sh`, sonra `psql "$NEON_URL" -f seed.sql` ve `psql "$NEON_URL" -f seed_loans.sql`. `bigdata.sql`'i burada çalıştırma: sadece deneyler içindir.
+        5. Uygulamayı ona karşı çalıştır: `DATABASE_URL="$NEON_URL" node app.mjs`. Veritabanı uyuyorsa ilk çalıştırma biraz sürebilir.
+        6. Sınırlı rolü burada da oluştur. Neon konsolundaki SQL editörünü ya da `psql "$NEON_URL"` kullan ve `roles.sql` içindeki `CREATE ROLE` ve `GRANT` ifadelerini gerçek parolalarla çalıştır. Rolü konsolun Roles sayfasından OLUŞTURMA: orada oluşturulan roller `neon_superuser` rolüne üye olur; bu en az yetkinin tam tersidir. Sonra uygulamana `library_app` rolünün adresini ver.
+        7. Gerçek uygulaman, nerede çalışırsa çalışsın (örneğin Render'ın ücretsiz web servisi), sadece bu adrese `DATABASE_URL` adlı bir ortam değişkeni olarak ihtiyaç duyar. Bir `pg_dump` dosyasını da doğrudan adres üzerinden `pg_restore` ile Neon'a geri yükleyebilirsin.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          export NEON_URL='postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require'
+          DATABASE_URL="$NEON_URL" ./migrate.sh
+          psql "$NEON_URL" -f seed.sql -f seed_loans.sql
+          DATABASE_URL="$NEON_URL" node app.mjs
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          .env
+          *.dump
+    mistakes:
+      - problem:
+          en: "The shell cuts the connection string at the `&` and the command fails or hangs."
+          tr: "Kabuk bağlantı adresini `&` yerinde keser ve komut hata verir ya da takılır."
+        fix:
+          en: "Wrap the whole address in single quotes, as in the example."
+          tr: "Örnekteki gibi adresin tamamını tek tırnak içine al."
+      - problem:
+          en: "Running migrations or `pg_dump` through the pooled address and getting strange errors."
+          tr: "Migration'ları ya da `pg_dump`'ı havuzlu adresten çalıştırıp tuhaf hatalar almak."
+        fix:
+          en: "Use the direct address (without `-pooler` in the host) for migrations, backups and long jobs. Use the pooled one only for the app."
+          tr: "Migration'lar, yedekler ve uzun işler için doğrudan adresi kullan (sunucu adında `-pooler` olmayan). Havuzlu olanı sadece uygulama için kullan."
+      - problem:
+          en: "Pasting the connection string with its password into the code or into a commit."
+          tr: "Bağlantı adresini parolasıyla koda ya da bir commit'e yapıştırmak."
+        fix:
+          en: "Treat it as a password. If it leaked, reset the role's password in the Neon console and use the new address."
+          tr: "Onu bir parola gibi ele al. Sızdıysa Neon konsolunda rolün parolasını sıfırla ve yeni adresi kullan."
+    quiz:
+      - q:
+          en: "Your database on a free hosted plan has not been used for a while. What do you expect on the next connection?"
+          tr: "Ücretsiz barındırılan veritabanın bir süredir kullanılmıyor. Bir sonraki bağlantıda ne beklersin?"
+        options:
+          en:
+            - "The data is deleted"
+            - "It wakes up, and the first query is a little slower"
+            - "You get an email asking you to pay"
+          tr:
+            - "Veri silinir"
+            - "Uyanır ve ilk sorgu biraz yavaş olur"
+            - "Ödeme isteyen bir e-posta gelir"
+        answer: 1
+        why:
+          en: "Neon suspends an idle compute and starts it again on the next connection. The data stays in storage."
+          tr: "Neon, boşta kalan hesaplamayı askıya alır ve bir sonraki bağlantıda yeniden başlatır. Veri depolamada kalır."
+    sources:
+      - title: "Neon plans (Free plan limits)"
+        url: https://neon.com/docs/introduction/plans
+      - title: "Neon: connect from any app"
+        url: https://neon.com/docs/connect/connect-from-any-app
+      - title: "Neon: connection pooling"
+        url: https://neon.com/docs/connect/connection-pooling
+      - title: "Neon: roles"
+        url: https://neon.com/docs/manage/roles
+
+  - id: stats
+    stage: monitoring
+    title:
+      en: "Watch it: pg_stat_statements and activity"
+      tr: "İzleme: pg_stat_statements ve etkinlik"
+    minutes: 30
+    needs: [neon]
+    why:
+      en: "When the app gets slow, you need to know which queries are guilty. PostgreSQL counts every query for you; you only have to ask. This turns \"it feels slow\" into a list sorted by total time."
+      tr: "Uygulama yavaşladığında hangi sorguların suçlu olduğunu bilmen gerekir. PostgreSQL her sorguyu senin için sayar; sadece sormalısın. Bu, \"yavaş gibi\" hissini toplam süreye göre sıralı bir listeye çevirir."
+    learn:
+      en: |
+        - `pg_stat_statements` is an extension that records calls, total time, mean time and rows for every kind of query
+        - It must be loaded at server start (`shared_preload_libraries`) and then enabled with `CREATE EXTENSION`
+        - `pg_stat_activity` shows who is connected and what is running right now
+        - Sorting by total time finds the queries that cost the most overall, not only the slowest single one
+        - `pg_database_size` and `pg_total_relation_size` show how big things are
+      tr: |
+        - `pg_stat_statements` her sorgu türü için çağrı sayısını, toplam süreyi, ortalama süreyi ve satır sayısını kaydeden bir eklentidir
+        - Sunucu başlarken yüklenmeli (`shared_preload_libraries`) ve sonra `CREATE EXTENSION` ile açılmalı
+        - `pg_stat_activity` kimin bağlı olduğunu ve şu an neyin çalıştığını gösterir
+        - Toplam süreye göre sıralamak sadece en yavaş tek sorguyu değil, toplamda en pahalı sorguları bulur
+        - `pg_database_size` ve `pg_total_relation_size` şeylerin ne kadar büyük olduğunu gösterir
+    do:
+      en: |
+        1. Locally with Docker, the module must be preloaded. Recreate the container with the extra option below (your data stays in the volume): `docker rm -f library-db`, then run the command below. Then enable it in the library database: `CREATE EXTENSION pg_stat_statements;` as the owner.
+        2. Run `node app.mjs` a few times and run some of the queries from earlier steps, then ask for the heaviest queries with the first SQL below.
+        3. See who is connected and what is running with the second query.
+        4. Check the sizes with the third query.
+        5. On Neon, the extension is available too: run `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` in the SQL editor and use the same queries. The console also has a Monitoring page.
+        6. Reset the counters when you start a new measurement: `SELECT pg_stat_statements_reset();`.
+      tr: |
+        1. Docker ile yerelde modülün önceden yüklenmesi gerekir. Container'ı aşağıdaki ek seçenekle yeniden oluştur (verin volume'da kalır): `docker rm -f library-db`, sonra aşağıdaki komutu çalıştır. Sonra library veritabanında sahip olarak aç: `CREATE EXTENSION pg_stat_statements;`.
+        2. `node app.mjs`'i birkaç kez çalıştır ve önceki adımlardaki sorgulardan bazılarını çalıştır, sonra aşağıdaki ilk SQL ile en ağır sorguları iste.
+        3. İkinci sorguyla kimin bağlı olduğunu ve neyin çalıştığını gör.
+        4. Üçüncü sorguyla boyutlara bak.
+        5. Neon'da eklenti de var: SQL editöründe `CREATE EXTENSION IF NOT EXISTS pg_stat_statements;` çalıştır ve aynı sorguları kullan. Konsolda ayrıca bir Monitoring sayfası var.
+        6. Yeni bir ölçüme başlarken sayaçları sıfırla: `SELECT pg_stat_statements_reset();`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker rm -f library-db
+          docker run -d --name library-db -e POSTGRES_PASSWORD=postgres -p 5432:5432 -v library-data:/var/lib/postgresql postgres:18 -c shared_preload_libraries=pg_stat_statements
+      - file: terminal
+        lang: sql
+        text: |
+          CREATE EXTENSION pg_stat_statements;
+
+          SELECT calls,
+                 round(total_exec_time::numeric, 1) AS total_ms,
+                 round(mean_exec_time::numeric, 2)  AS mean_ms,
+                 rows,
+                 left(query, 60) AS query
+          FROM pg_stat_statements
+          ORDER BY total_exec_time DESC
+          LIMIT 5;
+
+          SELECT pid, usename, state, now() - query_start AS running, left(query, 40) AS query
+          FROM pg_stat_activity
+          WHERE datname = 'library' AND pid <> pg_backend_pid();
+
+          SELECT pg_size_pretty(pg_database_size('library')) AS database,
+                 pg_size_pretty(pg_total_relation_size('loans')) AS loans_with_indexes;
+    mistakes:
+      - problem:
+          en: "`CREATE EXTENSION pg_stat_statements` works, but querying the view says it must be loaded via shared_preload_libraries."
+          tr: "`CREATE EXTENSION pg_stat_statements` çalışır ama görünümü sorgulayınca shared_preload_libraries ile yüklenmesi gerektiğini söyler."
+        fix:
+          en: "The module is not preloaded. Start the server with `-c shared_preload_libraries=pg_stat_statements` as shown (a restart is required), then query again."
+          tr: "Modül önceden yüklenmemiş. Sunucuyu gösterildiği gibi `-c shared_preload_libraries=pg_stat_statements` ile başlat (yeniden başlatma gerekir) ve tekrar sorgula."
+      - problem:
+          en: "Looking only at the slowest single query and missing a fast query that runs a million times."
+          tr: "Sadece en yavaş tek sorguya bakıp bir milyon kez çalışan hızlı bir sorguyu kaçırmak."
+        fix:
+          en: "Sort by `total_exec_time` as well. Calls multiplied by mean time is what the server really spends."
+          tr: "`total_exec_time`'a göre de sırala. Çağrı sayısı çarpı ortalama süre sunucunun gerçekte harcadığıdır."
+    quiz:
+      - q:
+          en: "Which column shows the queries that cost the server the most time overall?"
+          tr: "Hangi kolon sunucuya toplamda en çok zaman kaybettiren sorguları gösterir?"
+        options:
+          en:
+            - "mean_exec_time"
+            - "total_exec_time"
+            - "rows"
+          tr:
+            - "mean_exec_time"
+            - "total_exec_time"
+            - "rows"
+        answer: 1
+        why:
+          en: "total_exec_time adds up all the calls of a query, so a cheap query called very often shows up as it should."
+          tr: "total_exec_time bir sorgunun tüm çağrılarını toplar; çok sık çağrılan ucuz bir sorgu da olması gerektiği gibi görünür."
+    sources:
+      - title: "pg_stat_statements"
+        url: https://www.postgresql.org/docs/18/pgstatstatements.html
+      - title: "The cumulative statistics system (pg_stat_activity)"
+        url: https://www.postgresql.org/docs/18/monitoring-stats.html
+      - title: "Database object size functions"
+        url: https://www.postgresql.org/docs/18/functions-admin.html#FUNCTIONS-ADMIN-DBSIZE
+
+  - id: jsonb-search
+    stage: advanced
+    title:
+      en: "JSONB and full-text search"
+      tr: "JSONB ve tam metin arama"
+    minutes: 40
+    needs: [stats]
+    why:
+      en: "Some data has no fixed shape, like the tags and page counts of a book. JSONB stores it inside a normal column and can still be searched fast. And real search (\"design patterns\") needs words, not just LIKE: PostgreSQL has full-text search built in."
+      tr: "Bazı verinin sabit bir şekli yoktur; bir kitabın etiketleri ve sayfa sayısı gibi. JSONB onu normal bir kolonun içinde saklar ve yine de hızlı aranabilir. Gerçek arama (\"design patterns\") sadece LIKE değil kelimeler ister: PostgreSQL'de tam metin arama yerleşik gelir."
+    learn:
+      en: |
+        - `jsonb`: JSON stored in a binary form you can query with `->`, `->>` and `@>` (contains)
+        - A GIN index makes `@>` searches fast
+        - `tsvector` is a text turned into searchable words, `websearch_to_tsquery` turns what a person typed into a query, and `@@` matches them
+        - A generated column keeps the `tsvector` up to date by itself
+        - When to use JSONB and when a normal column is better: if you filter and join on it all the time, make it a column
+      tr: |
+        - `jsonb`: `->`, `->>` ve `@>` (içerir) ile sorgulayabildiğin ikili biçimde saklanan JSON
+        - GIN index `@>` aramalarını hızlandırır
+        - `tsvector` aranabilir kelimelere çevrilmiş metindir, `websearch_to_tsquery` kişinin yazdığını sorguya çevirir, `@@` ikisini eşleştirir
+        - Hesaplanan (generated) kolon `tsvector`'ü kendiliğinden güncel tutar
+        - JSONB ne zaman, normal kolon ne zaman daha iyi: sürekli süzüp join yapıyorsan kolon yap
+    do:
+      en: |
+        1. Create `migrations/004_book_details.sql` below and apply it with `./migrate.sh` as the owner. It adds a `details` column and a search column that PostgreSQL fills in by itself.
+        2. Create `details.sql` below, fill the details in with `psql $DATABASE_URL -f details.sql`.
+        3. Run the three queries: books tagged `classic` with their page count, a search for `design patterns`, and a ranked search for `odyssey or orwell`.
+        4. Remember to give the app role access to a new table if you ever add one. Columns added to an existing table are covered by the table's grant, so `library_app` can already use the new columns.
+        5. With only four books PostgreSQL will read the table instead of the index, as in the indexes step; the indexes pay off when the table grows.
+      tr: |
+        1. Aşağıdaki `migrations/004_book_details.sql` dosyasını oluştur ve sahip olarak `./migrate.sh` ile uygula. Bir `details` kolonu ve PostgreSQL'in kendi doldurduğu bir arama kolonu ekler.
+        2. Aşağıdaki `details.sql` dosyasını oluştur, `psql $DATABASE_URL -f details.sql` ile detayları doldur.
+        3. Üç sorguyu çalıştır: `classic` etiketli kitaplar ve sayfa sayıları, `design patterns` araması ve `odyssey or orwell` için sıralı bir arama.
+        4. İleride yeni bir tablo eklersen uygulama rolüne yetki vermeyi unutma. Var olan bir tabloya eklenen kolonlar tablonun yetkisi kapsamındadır; yani `library_app` yeni kolonları zaten kullanabilir.
+        5. Sadece dört kitapla PostgreSQL index yerine tabloyu okur (index adımındaki gibi); index'ler tablo büyüyünce işe yarar.
+    code:
+      - file: migrations/004_book_details.sql
+        lang: sql
+        text: |
+          ALTER TABLE books ADD COLUMN details jsonb NOT NULL DEFAULT '{}';
+          ALTER TABLE books ADD COLUMN search tsvector
+            GENERATED ALWAYS AS (to_tsvector('english', title || ' ' || author)) STORED;
+          CREATE INDEX books_details_idx ON books USING gin (details);
+          CREATE INDEX books_search_idx ON books USING gin (search);
+      - file: details.sql
+        lang: sql
+        text: |
+          UPDATE books SET details = '{"tags": ["programming", "craft"], "pages": 464}' WHERE isbn = '9780132350884';
+          UPDATE books SET details = '{"tags": ["programming", "design"], "pages": 395}' WHERE isbn = '9780201633610';
+          UPDATE books SET details = '{"tags": ["classic", "poetry"], "pages": 541}' WHERE isbn = '9780140449136';
+          UPDATE books SET details = '{"tags": ["classic", "fiction"], "pages": 328}' WHERE isbn = '9780451524935';
+      - file: terminal
+        lang: sql
+        text: |
+          SELECT title, details->>'pages' AS pages
+          FROM books WHERE details @> '{"tags": ["classic"]}' ORDER BY title;
+
+          SELECT title FROM books WHERE search @@ websearch_to_tsquery('english', 'design patterns');
+
+          SELECT title, ts_rank(search, q) AS rank
+          FROM books, websearch_to_tsquery('english', 'odyssey or orwell') q
+          WHERE search @@ q ORDER BY rank DESC, title;
+    mistakes:
+      - problem:
+          en: "Putting everything into one JSONB column to avoid designing tables."
+          tr: "Tablo tasarlamamak için her şeyi tek bir JSONB kolonuna koymak."
+        fix:
+          en: "Keep the data you filter, join and constrain in real columns (isbn, title, copies). Use JSONB for the loose extras."
+          tr: "Süzdüğün, join yaptığın ve kısıtladığın veriyi gerçek kolonlarda tut (isbn, title, copies). JSONB'yi gevşek ekstralar için kullan."
+      - problem:
+          en: "Search for a word in Turkish or another language and the matches are strange."
+          tr: "Türkçe ya da başka bir dilde kelime aramak ve eşleşmelerin tuhaf olması."
+        fix:
+          en: "The first argument, `'english'`, picks the language rules (word endings, stop words). Use the configuration that matches your text; `\\dF` in psql lists them."
+          tr: "İlk argüman `'english'` dil kurallarını (kelime ekleri, durak sözcükler) seçer. Metnine uyan yapılandırmayı kullan; psql'de `\\dF` bunları listeler."
+    quiz:
+      - q:
+          en: "Which query finds books whose details have the tag classic?"
+          tr: "Hangi sorgu detaylarında classic etiketi olan kitapları bulur?"
+        options:
+          en:
+            - "WHERE details @> '{\"tags\": [\"classic\"]}'"
+            - "WHERE details = 'classic'"
+            - "WHERE details LIKE classic"
+          tr:
+            - "WHERE details @> '{\"tags\": [\"classic\"]}'"
+            - "WHERE details = 'classic'"
+            - "WHERE details LIKE classic"
+        answer: 0
+        why:
+          en: "@> means \"contains\" for JSONB, and a GIN index can answer it fast."
+          tr: "@> JSONB için \"içerir\" demektir ve GIN index onu hızlı cevaplayabilir."
+    sources:
+      - title: "JSON types and functions"
+        url: https://www.postgresql.org/docs/18/datatype-json.html
+      - title: "Full text search"
+        url: https://www.postgresql.org/docs/18/textsearch.html
+      - title: "GIN indexes"
+        url: https://www.postgresql.org/docs/18/gin.html
+
+  - id: partitioning
+    stage: advanced
+    title:
+      en: "Partitioning a big table"
+      tr: "Büyük bir tabloyu bölümleme"
+    minutes: 30
+    needs: [jsonb-search]
+    why:
+      en: "A table that only grows, like a log of events, gets heavy: old data is rarely read, and deleting it row by row is slow. Partitioning splits one table into pieces by date. Queries read only the pieces they need, and an old month can be dropped in an instant."
+      tr: "Sadece büyüyen bir tablo, örneğin olay kaydı, ağırlaşır: eski veri nadiren okunur ve onu satır satır silmek yavaştır. Bölümleme bir tabloyu tarihe göre parçalara ayırır. Sorgular sadece ihtiyaç duydukları parçaları okur ve eski bir ay anında silinebilir."
+    learn:
+      en: |
+        - A partitioned table is a parent that holds no rows itself, plus partitions that hold them
+        - Range partitioning by a date column, one partition per month
+        - Partition pruning: PostgreSQL skips the partitions that cannot match
+        - The primary key of a partitioned table must include the partition column
+        - Rows outside every range are rejected, so create the next partitions before you need them
+        - Partition only really big tables (many millions of rows); small tables do not need it
+      tr: |
+        - Bölümlenmiş tablo, kendisi satır tutmayan bir ebeveyn ve satırları tutan bölümlerden oluşur
+        - Tarih kolonuna göre range bölümleme, ay başına bir bölüm
+        - Partition pruning: PostgreSQL eşleşemeyecek bölümleri atlar
+        - Bölümlenmiş tablonun primary key'i bölüm kolonunu içermelidir
+        - Hiçbir aralığa girmeyen satırlar reddedilir; bu yüzden sonraki bölümleri ihtiyaç duymadan önce oluştur
+        - Sadece gerçekten büyük tabloları bölümle (milyonlarca satır); küçük tablolar buna ihtiyaç duymaz
+    do:
+      en: |
+        1. Create `migrations/005_loan_events.sql` below: a log of what happened to loans, partitioned by month.
+        2. Apply it with `./migrate.sh` as the owner and insert two events in different months with the first statements in the terminal block.
+        3. Run `EXPLAIN` on a query for November and read the plan: only the partition `loan_events_2026_11` appears.
+        4. Try an event in January 2027. It is rejected, because no partition covers it: add the next month first.
+        5. See how old data goes: `DROP TABLE loan_events_2026_10;` removes a whole month in an instant (do not run it on data you want to keep). Ready to go further? Read about `DETACH PARTITION` and automating the creation of new months with a scheduled job.
+        6. Commit everything. You now have a library database with tables, keys, migrations, a safe app, tests, roles, indexes, backups, an online copy and monitoring.
+      tr: |
+        1. Aşağıdaki `migrations/005_loan_events.sql` dosyasını oluştur: ödünç kayıtlarına ne olduğunun, aya göre bölümlenmiş bir kaydı.
+        2. Sahip olarak `./migrate.sh` ile uygula ve terminal bloğundaki ilk ifadelerle farklı aylarda iki olay ekle.
+        3. Kasım için bir sorguda `EXPLAIN` çalıştır ve planı oku: sadece `loan_events_2026_11` bölümü görünür.
+        4. Ocak 2027'ye bir olay eklemeyi dene. Reddedilir, çünkü onu hiçbir bölüm kapsamaz: önce sonraki ayı ekle.
+        5. Eski verinin nasıl gittiğini gör: `DROP TABLE loan_events_2026_10;` bütün bir ayı anında kaldırır (saklamak istediğin veride çalıştırma). Daha ileri gitmek ister misin? `DETACH PARTITION` ve yeni ayların zamanlanmış bir işle otomatik oluşturulmasını oku.
+        6. Her şeyi commit et. Artık tabloları, anahtarları, migration'ları, güvenli bir uygulaması, testleri, rolleri, index'leri, yedekleri, çevrimiçi bir kopyası ve izlemesi olan bir kütüphane veritabanın var.
+    code:
+      - file: migrations/005_loan_events.sql
+        lang: sql
+        text: |
+          CREATE TABLE loan_events (
+            id          bigint GENERATED ALWAYS AS IDENTITY,
+            happened_at timestamptz NOT NULL,
+            loan_id     bigint NOT NULL,
+            kind        text NOT NULL,
+            PRIMARY KEY (id, happened_at)
+          ) PARTITION BY RANGE (happened_at);
+
+          CREATE TABLE loan_events_2026_10 PARTITION OF loan_events
+            FOR VALUES FROM ('2026-10-01') TO ('2026-11-01');
+          CREATE TABLE loan_events_2026_11 PARTITION OF loan_events
+            FOR VALUES FROM ('2026-11-01') TO ('2026-12-01');
+
+          GRANT SELECT, INSERT ON loan_events, loan_events_2026_10, loan_events_2026_11 TO library_app;
+      - file: terminal
+        lang: sql
+        text: |
+          INSERT INTO loan_events (happened_at, loan_id, kind) VALUES
+            ('2026-10-17 10:00+00', 1, 'borrowed'),
+            ('2026-11-02 10:00+00', 1, 'returned');
+
+          EXPLAIN SELECT * FROM loan_events
+          WHERE happened_at >= '2026-11-01' AND happened_at < '2026-11-15';
+
+          INSERT INTO loan_events (happened_at, loan_id, kind) VALUES ('2027-01-01+00', 1, 'borrowed');
+    mistakes:
+      - problem:
+          en: "`PRIMARY KEY (id)` on a partitioned table gives an error about the partition key."
+          tr: "Bölümlenmiş tabloda `PRIMARY KEY (id)` bölüm anahtarıyla ilgili hata verir."
+        fix:
+          en: "A unique rule must include the partition column, so use `PRIMARY KEY (id, happened_at)`."
+          tr: "Benzersizlik kuralı bölüm kolonunu içermelidir; `PRIMARY KEY (id, happened_at)` kullan."
+      - problem:
+          en: "Inserts start failing on the first day of a new month with \"no partition of relation found for row\"."
+          tr: "Yeni ayın ilk günü insert'ler \"no partition of relation found for row\" hatasıyla başarısız olmaya başlar."
+        fix:
+          en: "Create next month's partition ahead of time, with a reminder or a scheduled job."
+          tr: "Gelecek ayın bölümünü önceden oluştur; bir hatırlatıcı ya da zamanlanmış işle."
+      - problem:
+          en: "Partitioning a table with a few thousand rows \"for performance\"."
+          tr: "Birkaç bin satırlı bir tabloyu \"performans için\" bölümlemek."
+        fix:
+          en: "It only adds work. Use an index first; consider partitioning when a table is huge and old data must be dropped or archived fast."
+          tr: "Sadece iş ekler. Önce index kullan; tablo çok büyüdüğünde ve eski veri hızlıca silinmesi ya da arşivlenmesi gerektiğinde bölümlemeyi düşün."
+    quiz:
+      - q:
+          en: "A query asks only for events of November. What does partition pruning do?"
+          tr: "Bir sorgu sadece Kasım olaylarını istiyor. Partition pruning ne yapar?"
+        options:
+          en:
+            - "It reads every partition and filters afterwards"
+            - "It reads only the November partition"
+            - "It deletes the other months"
+          tr:
+            - "Her bölümü okur ve sonra süzer"
+            - "Sadece Kasım bölümünü okur"
+            - "Diğer ayları siler"
+        answer: 1
+        why:
+          en: "The planner knows each partition's range, so partitions that cannot contain matching rows are never touched."
+          tr: "Planlayıcı her bölümün aralığını bilir; eşleşen satır içeremeyecek bölümlere hiç dokunulmaz."
+    sources:
+      - title: "Table partitioning"
+        url: https://www.postgresql.org/docs/18/ddl-partitioning.html
+      - title: "Partition pruning"
+        url: https://www.postgresql.org/docs/18/ddl-partitioning.html#DDL-PARTITION-PRUNING
+      - title: "CREATE TABLE ... PARTITION OF"
+        url: https://www.postgresql.org/docs/18/sql-createtable.html

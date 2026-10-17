@@ -1,0 +1,473 @@
+id: cron
+title: cron and systemd timers
+category: tool
+summary:
+  en: Run commands on a schedule, with a crontab line or a systemd timer, and keep those jobs from failing silently.
+  tr: Komutları bir zamanlamayla çalıştırmak için crontab satırı ya da systemd timer kullanmak ve bu işlerin sessizce bozulmasını önlemek.
+aliases: [crontab, cron job, scheduled task, systemd timer, OnCalendar, zamanlanmış görev, zamanlayıcı]
+checked: 2026-10
+sources:
+  - title: crontab(5) file format
+    url: https://man7.org/linux/man-pages/man5/crontab.5.html
+  - title: systemd.timer(5)
+    url: https://man7.org/linux/man-pages/man5/systemd.timer.5.html
+  - title: systemd.time(7) calendar syntax
+    url: https://man7.org/linux/man-pages/man7/systemd.time.7.html
+roadmap: linux-server
+sections:
+  - id: crontab
+    title: { en: Crontab basics, tr: Crontab temelleri }
+    items:
+      - id: crontab-edit
+        level: basic
+        title: { en: Edit your jobs, tr: İşlerini düzenleme }
+        what:
+          en: crontab -e opens your personal job list in an editor; crontab -l prints it.
+          tr: crontab -e kişisel iş listeni bir editörde açar; crontab -l onu yazdırır.
+        lang: sh
+        form: crontab -e
+        example: |
+          crontab -e                 # edit
+          crontab -l                 # show
+          crontab -l > crontab.bak   # back it up
+          sudo crontab -u www-data -l
+        mistake:
+          en: Typing crontab -r instead of -e; -r deletes the whole list at once without asking.
+          tr: crontab -e yerine -r yazmak; -r bütün listeyi sormadan bir anda siler.
+        source: https://man7.org/linux/man-pages/man1/crontab.1.html
+      - id: five-fields
+        level: basic
+        title: { en: The five time fields, tr: Beş zaman alanı }
+        what:
+          en: "Each line is: minute, hour, day of month, month, day of week, then the command."
+          tr: "Her satır şöyledir: dakika, saat, ayın günü, ay, haftanın günü, sonra komut."
+        lang: text
+        form: m h dom mon dow command
+        example: |
+          # ┌ minute (0-59)
+          # │ ┌ hour (0-23)
+          # │ │ ┌ day of month (1-31)
+          # │ │ │ ┌ month (1-12 or jan-dec)
+          # │ │ │ │ ┌ day of week (0-7 or sun-sat, 0 and 7 are Sunday)
+          # │ │ │ │ │
+            30 2 * * * /usr/local/bin/backup.sh
+        mistake:
+          en: Writing * * * * * for a daily job; that runs every minute. A daily job needs a fixed minute and hour.
+          tr: Günlük bir iş için * * * * * yazmak; bu her dakika çalışır. Günlük iş sabit bir dakika ve saat ister.
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: steps-ranges
+        level: basic
+        title: { en: Every N minutes, ranges and lists, tr: Her N dakikada, aralıklar ve listeler }
+        what:
+          en: "*/5 means every 5, 1-5 is a range and 1,15 is a list; they work in every field."
+          tr: "*/5 her 5'te bir, 1-5 bir aralık, 1,15 bir listedir; her alanda çalışırlar."
+        lang: text
+        form: "*/5 * * * * command"
+        example: |
+          */5 * * * *   /usr/local/bin/check.sh      # every 5 minutes
+          0 9 * * 1-5   /usr/local/bin/report.sh     # 09:00 Monday to Friday
+          0 0 1,15 * *  /usr/local/bin/invoice.sh    # 1st and 15th of the month
+          0 */6 * * *   /usr/local/bin/sync.sh       # 00:00, 06:00, 12:00, 18:00
+        mistake:
+          en: Expecting */7 in the minute field to mean every 7 minutes forever; it restarts each hour (…, 49, 56, then 0).
+          tr: Dakika alanındaki */7'nin sonsuza kadar her 7 dakika demek olduğunu sanmak; her saat başı sıfırlanır (…, 49, 56, sonra 0).
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: nicknames
+        level: basic
+        title: { en: "@daily, @reboot and friends", tr: "@daily, @reboot ve diğerleri" }
+        what:
+          en: A nickname like @daily or @reboot replaces all five time fields.
+          tr: "@daily ya da @reboot gibi bir takma ad, beş zaman alanının hepsinin yerine geçer."
+        lang: text
+        form: "@daily command"
+        example: |
+          @reboot  /usr/local/bin/start-worker.sh
+          @hourly  /usr/local/bin/rotate.sh
+          @daily   /usr/local/bin/backup.sh      # same as 0 0 * * *
+          @weekly  /usr/local/bin/cleanup.sh     # same as 0 0 * * 0
+        mistake:
+          en: Using @reboot for a service that must restart when it crashes; cron starts it once and forgets it. Use a systemd service.
+          tr: Çökünce yeniden başlaması gereken bir servis için @reboot kullanmak; cron onu bir kez başlatır ve unutur. systemd servisi kullan.
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: dom-dow-or
+        level: intermediate
+        title: { en: Day of month OR day of week, tr: Ayın günü YA DA haftanın günü }
+        what:
+          en: When both day fields are set, the job runs when either one matches, not only when both do.
+          tr: İki gün alanı da doluysa iş, ikisi birden değil, herhangi biri eşleşince çalışır.
+        lang: text
+        form: 30 4 1,15 * 5 command
+        example: |
+          # runs on the 1st, the 15th AND every Friday:
+          30 4 1,15 * 5  /usr/local/bin/job.sh
+          # only on Fridays that fall on the 1st-7th (first Friday): check the date in the command
+          0 9 * * 5  [ "$(date +\%d)" -le 7 ] && /usr/local/bin/monthly.sh
+        mistake:
+          en: Writing 0 9 1-7 * 5 for "the first Friday"; it runs on days 1-7 and on every Friday.
+          tr: '"Ayın ilk cuması" için 0 9 1-7 * 5 yazmak; ayın 1-7. günlerinde ve her cuma çalışır.'
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: system-crontab
+        level: intermediate
+        title: { en: System-wide jobs, tr: Sistem genelindeki işler }
+        what:
+          en: Files in /etc/cron.d and /etc/crontab have an extra user field after the time; scripts in /etc/cron.daily run once a day.
+          tr: /etc/cron.d içindeki dosyalarda ve /etc/crontab'ta zamandan sonra ek bir kullanıcı alanı vardır; /etc/cron.daily'deki script'ler günde bir kez çalışır.
+        lang: text
+        form: m h dom mon dow user command
+        example: |
+          # /etc/cron.d/myapp
+          15 3 * * *  myapp  /srv/myapp/bin/cleanup
+
+          # or drop an executable script into /etc/cron.daily/
+          sudo install -m 755 backup /etc/cron.daily/backup
+        mistake:
+          en: Naming the script backup.sh in /etc/cron.daily on Debian or Ubuntu; run-parts skips names with a dot, so it never runs.
+          tr: Debian ya da Ubuntu'da /etc/cron.daily içindeki script'e backup.sh adını vermek; run-parts noktalı adları atlar, script hiç çalışmaz.
+        source: https://manpages.debian.org/stable/debianutils/run-parts.8.en.html
+  - id: pitfalls
+    title: { en: Why cron jobs fail, tr: Cron işleri neden bozulur }
+    items:
+      - id: path-env
+        level: basic
+        title: { en: A different environment, tr: Farklı bir ortam }
+        what:
+          en: Cron starts jobs with /bin/sh, a short PATH and none of your .bashrc, so a command that works in your terminal can fail there.
+          tr: Cron işleri /bin/sh, kısa bir PATH ve .bashrc'n olmadan başlatır; terminalde çalışan bir komut orada bozulabilir.
+        lang: text
+        form: PATH=/usr/local/bin:/usr/bin:/bin
+        example: |
+          SHELL=/bin/bash
+          PATH=/usr/local/bin:/usr/bin:/bin
+          0 2 * * *  /usr/bin/node /srv/app/scripts/nightly.js
+        mistake:
+          en: Calling node, docker or a venv's python by name only; use full paths or set PATH at the top of the crontab.
+          tr: node, docker ya da bir venv'in python'unu sadece adıyla çağırmak; tam yol kullan ya da crontab'ın başında PATH ayarla.
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: output-log
+        level: basic
+        title: { en: Keep the output, tr: Çıktıyı saklama }
+        what:
+          en: Cron mails a job's output (MAILTO) or throws it away when no mail is set up; redirect it to a log file to see errors.
+          tr: Cron bir işin çıktısını e-postayla gönderir (MAILTO) ya da e-posta kurulu değilse atar; hataları görmek için bir log dosyasına yönlendir.
+        lang: text
+        form: command >> /var/log/job.log 2>&1
+        example: |
+          MAILTO=""
+          0 2 * * *  /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1
+          # or to the journal:
+          0 3 * * *  /usr/local/bin/sync.sh 2>&1 | logger -t sync
+        mistake:
+          en: Putting 2>&1 before the >> file; errors then still do not reach the log.
+          tr: 2>&1'i >> dosya'dan önce yazmak; hatalar yine log'a ulaşmaz.
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: percent
+        level: intermediate
+        title: { en: The % sign, tr: "% işareti" }
+        what:
+          en: In a crontab line % means "new line"; write \% when you need a real percent sign, such as in date formats.
+          tr: Crontab satırında % "yeni satır" demektir; tarih formatları gibi gerçek yüzde işareti gerektiğinde \% yaz.
+        lang: text
+        form: date +\%F
+        example: |
+          0 1 * * *  pg_dump app > /backup/app-$(date +\%F).sql
+        mistake:
+          en: Copying a working command with date +%F from the terminal; cron cuts the command at the first %.
+          tr: Terminalde çalışan date +%F'li bir komutu aynen kopyalamak; cron komutu ilk %'de keser.
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: no-overlap
+        level: intermediate
+        title: { en: Do not run twice at once, tr: Aynı anda iki kez çalıştırmama }
+        what:
+          en: flock -n takes a lock file before running; if the last run still holds it, the new one quietly skips.
+          tr: flock -n çalıştırmadan önce bir kilit dosyası alır; önceki çalışma kilidi hâlâ tutuyorsa yenisi sessizce atlar.
+        lang: sh
+        form: flock -n /tmp/job.lock command
+        example: |
+          flock -n ./job.lock -c '
+            echo "first run"
+            flock -n ./job.lock -c "echo second run" || echo "second run skipped"
+          '
+        output: |
+          first run
+          second run skipped
+        check: sh
+        mistake:
+          en: Letting a 5-minute job that sometimes takes 10 minutes start again on top of itself; runs pile up.
+          tr: Bazen 10 dakika süren 5 dakikalık bir işin kendi üstüne yeniden başlamasına izin vermek; çalışmalar üst üste yığılır.
+        source: https://man7.org/linux/man-pages/man1/flock.1.html
+      - id: timezone
+        level: intermediate
+        title: { en: Which time zone, tr: Hangi saat dilimi }
+        what:
+          en: Cron uses the server's time zone, often UTC; cronie (Fedora, RHEL, Arch) also reads CRON_TZ for the whole table.
+          tr: Cron sunucunun saat dilimini kullanır, bu çoğu zaman UTC'dir; cronie (Fedora, RHEL, Arch) ayrıca bütün tablo için CRON_TZ okur.
+        lang: text
+        form: CRON_TZ=Europe/Istanbul
+        example: |
+          timedatectl            # shows the server's time zone
+          # crontab (cronie):
+          CRON_TZ=Europe/Istanbul
+          0 9 * * *  /usr/local/bin/morning.sh
+        mistake:
+          en: Scheduling 09:00 on a UTC server and getting the job at 12:00 Istanbul time.
+          tr: UTC sunucuda 09:00'a zamanlayıp işi İstanbul saatiyle 12:00'de almak.
+        avoid:
+          en: Other cron implementations may ignore CRON_TZ; check man 5 crontab on your system or use a systemd timer with a time zone.
+          tr: Diğer cron sürümleri CRON_TZ'yi yok sayabilir; sistemindeki man 5 crontab'a bak ya da saat dilimli bir systemd timer kullan.
+        source: https://man7.org/linux/man-pages/man5/crontab.5.html
+      - id: test-like-cron
+        level: intermediate
+        title: { en: Test with cron's empty environment, tr: Cron'un boş ortamıyla test etme }
+        what:
+          en: env -i starts a command with no environment, close to how cron runs it, so missing variables show up before the night run.
+          tr: env -i bir komutu hiç ortam değişkeni olmadan, cron'un çalıştırdığına yakın şekilde başlatır; eksik değişkenler gece çalışmasından önce ortaya çıkar.
+        lang: sh
+        form: env -i PATH=/usr/bin:/bin sh -c '<command>'
+        example: |
+          env -i PATH=/usr/bin:/bin sh -c 'echo "HOME=${HOME:-unset} PATH=$PATH"'
+        output: |
+          HOME=unset PATH=/usr/bin:/bin
+        check: sh
+        avoid:
+          en: It is close, not identical; cron also sets HOME, LOGNAME and SHELL from /etc/passwd.
+          tr: Yakındır ama aynısı değildir; cron ayrıca HOME, LOGNAME ve SHELL'i /etc/passwd'den ayarlar.
+        source: https://man7.org/linux/man-pages/man1/env.1.html
+      - id: cron-logs
+        level: basic
+        title: { en: Did it run, tr: Çalıştı mı }
+        what:
+          en: The cron daemon logs every job it starts; read it with journalctl for the cron service.
+          tr: Cron servisi başlattığı her işi log'a yazar; bunu cron servisi için journalctl ile oku.
+        lang: sh
+        form: journalctl -u cron
+        example: |
+          journalctl -u cron --since today     # Debian, Ubuntu
+          journalctl -u crond --since today    # Fedora, RHEL
+          journalctl -u cronie --since today   # Arch
+        mistake:
+          en: Assuming cron is installed and running; on Arch and minimal containers it often is not.
+          tr: Cron'un kurulu ve çalışır olduğunu varsaymak; Arch'ta ve minimal container'larda çoğu zaman değildir.
+        source: https://man7.org/linux/man-pages/man8/cron.8.html
+  - id: timers
+    title: { en: systemd timers, tr: systemd timer'ları }
+    items:
+      - id: timer-pair
+        level: basic
+        title: { en: A timer and its service, tr: Bir timer ve servisi }
+        what:
+          en: A .timer file says when to run and starts the .service file with the same name, which says what to run.
+          tr: .timer dosyası ne zaman çalışacağını söyler ve ne çalışacağını söyleyen aynı adlı .service dosyasını başlatır.
+        lang: text
+        form: backup.timer + backup.service
+        example: |
+          # /etc/systemd/system/backup.service
+          [Unit]
+          Description=Nightly backup
+
+          [Service]
+          Type=oneshot
+          ExecStart=/usr/local/bin/backup.sh
+
+          # /etc/systemd/system/backup.timer
+          [Unit]
+          Description=Run backup every night
+
+          [Timer]
+          OnCalendar=*-*-* 02:30
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+        mistake:
+          en: Putting [Install] in the service and enabling the service; enable the .timer instead.
+          tr: "[Install]'ı servise koyup servisi enable etmek; bunun yerine .timer'ı enable et."
+        source: https://man7.org/linux/man-pages/man5/systemd.timer.5.html
+      - id: enable-timer
+        level: basic
+        title: { en: Turn a timer on, tr: Timer'ı açma }
+        what:
+          en: Enable and start the .timer; list-timers shows when each one runs next and when it last ran.
+          tr: .timer'ı enable edip başlat; list-timers her birinin bir sonra ne zaman çalışacağını ve en son ne zaman çalıştığını gösterir.
+        lang: sh
+        form: sudo systemctl enable --now <name>.timer
+        example: |
+          sudo systemctl daemon-reload
+          sudo systemctl enable --now backup.timer
+          systemctl list-timers
+          sudo systemctl start backup.service   # run it once now, to test
+          journalctl -u backup.service          # its output
+        mistake:
+          en: Forgetting daemon-reload after creating or editing the files; systemd does not see the change.
+          tr: Dosyaları oluşturduktan ya da düzenledikten sonra daemon-reload'u unutmak; systemd değişikliği görmez.
+        source: https://man7.org/linux/man-pages/man1/systemctl.1.html
+      - id: oncalendar
+        level: basic
+        title: { en: OnCalendar times, tr: OnCalendar zamanları }
+        what:
+          en: OnCalendar takes "weekday year-month-day hour:minute:second", with * for any value; systemd-analyze calendar shows what you wrote means.
+          tr: OnCalendar "haftagünü yıl-ay-gün saat:dakika:saniye" alır, * herhangi bir değer demektir; systemd-analyze calendar yazdığının ne anlama geldiğini gösterir.
+        lang: sh
+        form: OnCalendar=Mon..Fri *-*-* 09:00
+        example: |
+          for spec in daily weekly 'Mon..Fri 09:00' '*:0/15' '*-*-01 03:30'; do
+            systemd-analyze calendar "$spec" | grep Normalized
+          done
+        output: |
+          Normalized form: *-*-* 00:00:00
+          Normalized form: Mon *-*-* 00:00:00
+          Normalized form: Mon..Fri *-*-* 09:00:00
+          Normalized form: *-*-* *:00/15:00
+          Normalized form: *-*-01 03:30:00
+        check: sh
+        mistake:
+          en: Writing OnCalendar=*/15 to mean every 15 minutes; systemd rejects it, write *:0/15. Check every expression with systemd-analyze calendar first.
+          tr: Her 15 dakika için OnCalendar=*/15 yazmak; systemd bunu kabul etmez, *:0/15 yaz. Her ifadeyi önce systemd-analyze calendar ile kontrol et.
+        source: https://man7.org/linux/man-pages/man7/systemd.time.7.html
+      - id: next-runs
+        level: intermediate
+        title: { en: See the next run times, tr: Sonraki çalışma zamanlarını görme }
+        what:
+          en: --iterations lists the next few times an expression fires, so you can check it before you deploy.
+          tr: --iterations bir ifadenin tetikleneceği sonraki birkaç zamanı listeler; deploy etmeden önce kontrol edebilirsin.
+        lang: sh
+        form: systemd-analyze calendar --iterations=3 '<spec>'
+        example: |
+          TZ=UTC systemd-analyze calendar --iterations=3 \
+            --base-time='2026-01-01 00:00:00 UTC' 'Mon..Fri 09:00' | grep -E 'Next|Iteration' | sed 's/^ *//'
+        output: |
+          Next elapse: Thu 2026-01-01 09:00:00 UTC
+          Iteration #2: Fri 2026-01-02 09:00:00 UTC
+          Iteration #3: Mon 2026-01-05 09:00:00 UTC
+        check: sh
+        source: https://man7.org/linux/man-pages/man1/systemd-analyze.1.html
+      - id: persistent
+        level: intermediate
+        title: { en: Catch up on missed runs, tr: Kaçırılan çalışmaları telafi etme }
+        what:
+          en: Persistent=true runs the job right after boot if the machine was off when it was due.
+          tr: Persistent=true, iş zamanı geldiğinde makine kapalıysa işi açılıştan hemen sonra çalıştırır.
+        lang: text
+        form: Persistent=true
+        example: |
+          [Timer]
+          OnCalendar=daily
+          Persistent=true
+        avoid:
+          en: For jobs that make no sense late (like a "good morning" message); leave it off there.
+          tr: Geç çalışınca anlamı kalmayan işler için (bir "günaydın" mesajı gibi); orada kapalı bırak.
+        source: https://man7.org/linux/man-pages/man5/systemd.timer.5.html
+      - id: monotonic
+        level: intermediate
+        title: { en: Run after boot or every N minutes, tr: Açılıştan sonra ya da her N dakikada çalıştırma }
+        what:
+          en: OnBootSec counts from boot and OnUnitActiveSec from the last run, instead of using the clock.
+          tr: OnBootSec açılıştan, OnUnitActiveSec son çalışmadan itibaren sayar; saate bakmaz.
+        lang: text
+        form: OnUnitActiveSec=15min
+        example: |
+          [Timer]
+          OnBootSec=5min
+          OnUnitActiveSec=15min
+        source: https://man7.org/linux/man-pages/man5/systemd.timer.5.html
+      - id: randomized-delay
+        level: advanced
+        title: { en: Spread the load, tr: Yükü dağıtma }
+        what:
+          en: RandomizedDelaySec adds a random wait so many servers do not all start the same job at the same second.
+          tr: RandomizedDelaySec rastgele bir bekleme ekler; böylece birçok sunucu aynı işi aynı saniyede başlatmaz.
+        lang: text
+        form: RandomizedDelaySec=30min
+        example: |
+          [Timer]
+          OnCalendar=daily
+          RandomizedDelaySec=30min
+          AccuracySec=1s
+        mistake:
+          en: Expecting a timer to fire to the second; AccuracySec is 1 minute by default, so it may start up to a minute late.
+          tr: Timer'ın saniyesi saniyesine tetiklenmesini beklemek; AccuracySec varsayılan olarak 1 dakikadır, iş bir dakikaya kadar geç başlayabilir.
+        source: https://man7.org/linux/man-pages/man5/systemd.timer.5.html
+      - id: timer-timezone
+        level: advanced
+        title: { en: A time zone per timer, tr: Her timer için ayrı saat dilimi }
+        what:
+          en: OnCalendar can end with a time zone name, so the job follows that zone even on a UTC server.
+          tr: OnCalendar bir saat dilimi adıyla bitebilir; böylece iş UTC sunucuda bile o dilime göre çalışır.
+        lang: sh
+        form: OnCalendar=*-*-* 09:00 Europe/Istanbul
+        example: |
+          systemd-analyze calendar '*-*-* 09:00 Europe/Istanbul' | grep Normalized
+        output: |
+          Normalized form: *-*-* 09:00:00 Europe/Istanbul
+        check: sh
+        source: https://man7.org/linux/man-pages/man7/systemd.time.7.html
+      - id: systemd-run
+        level: advanced
+        title: { en: A one-off timer without files, tr: Dosyasız tek seferlik timer }
+        what:
+          en: systemd-run creates a temporary timer and service from the command line.
+          tr: systemd-run komut satırından geçici bir timer ve servis oluşturur.
+        lang: sh
+        form: systemd-run --on-active=<time> <command>
+        example: |
+          sudo systemd-run --on-active=30min /usr/local/bin/cleanup.sh
+          sudo systemd-run --on-calendar='*:0/10' --unit=probe /usr/local/bin/probe.sh
+          systemctl list-timers
+        avoid:
+          en: For jobs that must survive a reboot; temporary units disappear, so write real unit files.
+          tr: Yeniden başlatmadan sonra da sürmesi gereken işler için; geçici unit'ler kaybolur, gerçek unit dosyaları yaz.
+        source: https://man7.org/linux/man-pages/man1/systemd-run.1.html
+      - id: user-timers
+        level: advanced
+        title: { en: Timers without root, tr: Root olmadan timer }
+        what:
+          en: Put the files in ~/.config/systemd/user and use systemctl --user; linger keeps them running after you log out.
+          tr: Dosyaları ~/.config/systemd/user içine koy ve systemctl --user kullan; linger, çıkış yaptıktan sonra da çalışmalarını sağlar.
+        lang: sh
+        form: systemctl --user enable --now <name>.timer
+        example: |
+          systemctl --user daemon-reload
+          systemctl --user enable --now report.timer
+          sudo loginctl enable-linger "$USER"   # keep running when logged out
+        mistake:
+          en: Setting up a user timer on a server and seeing it stop when you log out; enable linger.
+          tr: Sunucuda bir kullanıcı timer'ı kurup çıkış yapınca durduğunu görmek; linger'ı aç.
+        source: https://man7.org/linux/man-pages/man1/loginctl.1.html
+      - id: on-failure
+        level: advanced
+        title: { en: Get told when a job fails, tr: İş bozulunca haber alma }
+        what:
+          en: OnFailure= in the service starts another unit when the job fails, for example one that sends you a message.
+          tr: Servisteki OnFailure=, iş başarısız olunca başka bir unit'i başlatır; örneğin sana mesaj gönderen bir unit'i.
+        lang: text
+        form: OnFailure=<unit>
+        example: |
+          # backup.service
+          [Unit]
+          Description=Nightly backup
+          OnFailure=notify-failure@%n.service
+
+          # check the last result by hand:
+          #   systemctl status backup.service
+          #   systemctl list-units --failed
+        mistake:
+          en: Only noticing a broken backup on the day you need it; add an alert or at least check systemctl --failed.
+          tr: Bozuk bir yedeği ancak ona ihtiyaç duyduğun gün fark etmek; bir uyarı ekle ya da en azından systemctl --failed'a bak.
+        source: https://man7.org/linux/man-pages/man5/systemd.unit.5.html
+      - id: cron-or-timer
+        level: basic
+        title: { en: cron or timer, tr: cron mu timer mı }
+        what:
+          en: A crontab line is quickest; a timer gives logs in the journal, missed-run catch-up, time zones and resource limits.
+          tr: Crontab satırı en hızlısıdır; timer ise journal'da log, kaçırılan çalışmayı telafi, saat dilimi ve kaynak sınırları verir.
+        lang: text
+        form: "cron: one line; timer: two small files"
+        example: |
+          # cron
+          30 2 * * *  /usr/local/bin/backup.sh >> /var/log/backup.log 2>&1
+
+          # systemd: backup.timer with OnCalendar=*-*-* 02:30, Persistent=true
+          #          backup.service with ExecStart=/usr/local/bin/backup.sh
+        avoid:
+          en: Timers need systemd; inside most containers and on macOS there is none.
+          tr: Timer'lar systemd ister; çoğu container'ın içinde ve macOS'ta systemd yoktur.
+        source: https://man7.org/linux/man-pages/man5/systemd.timer.5.html

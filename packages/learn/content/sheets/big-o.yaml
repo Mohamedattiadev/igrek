@@ -1,0 +1,740 @@
+id: big-o
+title: Big-O
+category: concept
+summary:
+  en: How the time and memory a piece of code needs grow as its input gets bigger, and the costs of everyday data structures and sorts.
+  tr: Bir kodun ihtiyaç duyduğu süre ve belleğin girdi büyüdükçe nasıl arttığı; günlük veri yapılarının ve sıralamaların maliyetleri.
+aliases: [complexity, time complexity, space complexity, karmaşıklık, zaman karmaşıklığı, algoritma analizi, big o notation, asymptotic]
+checked: 2026-10
+sources:
+  - title: Big O notation (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Big_O_notation
+  - title: Time complexity of Python operations (Python wiki)
+    url: https://wiki.python.org/moin/TimeComplexity
+  - title: Time complexity (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Time_complexity
+sections:
+  - id: basics
+    title: { en: The idea, tr: Temel fikir }
+    items:
+      - id: what-is-big-o
+        level: basic
+        title: { en: What Big-O tells you, tr: Big-O ne söyler }
+        what:
+          en: It says how the work grows when the input size n grows, ignoring the speed of the machine.
+          tr: Girdi boyutu n büyüdükçe yapılan işin nasıl büyüdüğünü söyler; makinenin hızını hesaba katmaz.
+        lang: text
+        form: O(f(n))   n = input size
+        example: |
+          O(1)        same work for any n
+          O(log n)    n x2 -> one more step
+          O(n)        n x2 -> work x2
+          O(n log n)  a bit more than O(n)
+          O(n^2)      n x2 -> work x4
+          O(2^n)      n + 1 -> work x2
+        mistake:
+          en: Reading O(n) as an exact time. It only describes growth; an O(n) loop can be slower than an O(n^2) one for small n.
+          tr: O(n)'i kesin bir süre gibi okumak. Sadece büyümeyi anlatır; küçük n için O(n) bir döngü O(n^2) bir döngüden yavaş olabilir.
+        source: https://en.wikipedia.org/wiki/Big_O_notation
+      - id: drop-constants
+        level: basic
+        title: { en: Drop constants and small terms, tr: Sabitleri ve küçük terimleri at }
+        what:
+          en: Only the fastest-growing part counts, so 3n + 5 is O(n) and n^2 + n is O(n^2).
+          tr: Sadece en hızlı büyüyen kısım sayılır; bu yüzden 3n + 5, O(n) ve n^2 + n, O(n^2) olur.
+        lang: text
+        form: O(3n + 5) = O(n)
+        example: |
+          2n + 100        -> O(n)
+          n^2 + 50n       -> O(n^2)
+          5 log n + 7     -> O(log n)
+          n + m (2 inputs) -> O(n + m), both stay
+        mistake:
+          en: Dropping a second input. Looping over n users and m orders is O(n + m), not O(n).
+          tr: İkinci girdiyi atmak. n kullanıcı ve m sipariş üzerinde dönmek O(n + m)'dir, O(n) değil.
+        source: https://en.wikipedia.org/wiki/Big_O_notation#Properties
+      - id: worst-average-best
+        level: basic
+        title: { en: Worst, average and best case, tr: En kötü, ortalama ve en iyi durum }
+        what:
+          en: The same code can be fast on lucky input and slow on unlucky input; Big-O usually means the worst case.
+          tr: Aynı kod şanslı girdide hızlı, şanssız girdide yavaş olabilir; Big-O genelde en kötü durumu anlatır.
+        lang: py
+        form: "linear search: best O(1), worst O(n)"
+        example: |
+          def steps_to_find(items, target):
+              for i, x in enumerate(items, 1):
+                  if x == target:
+                      return i
+              return len(items)
+
+          data = list(range(1000))
+          print(steps_to_find(data, 0))    # best case
+          print(steps_to_find(data, 999))  # worst case
+        output: |
+          1
+          1000
+        check: py
+        mistake:
+          en: Quoting the average case of a hash map or quicksort as a guarantee; their worst case is much slower.
+          tr: Hash map'in ya da quicksort'un ortalama durumunu garanti gibi söylemek; en kötü durumları çok daha yavaştır.
+        source: https://en.wikipedia.org/wiki/Best,_worst_and_average_case
+      - id: time-vs-space
+        level: basic
+        title: { en: Time and space, tr: Zaman ve bellek }
+        what:
+          en: Space complexity measures extra memory the same way time complexity measures steps.
+          tr: Bellek karmaşıklığı, zaman karmaşıklığının adımları ölçtüğü gibi ek belleği ölçer.
+        lang: py
+        form: "time O(n), extra space O(1) or O(n)"
+        example: |
+          def total(nums):          # time O(n), space O(1)
+              s = 0
+              for x in nums:
+                  s += x
+              return s
+
+          def doubled(nums):        # time O(n), space O(n)
+              return [x * 2 for x in nums]
+
+          print(total([1, 2, 3]), doubled([1, 2, 3]))
+        output: |
+          6 [2, 4, 6]
+        check: py
+        avoid:
+          en: Do not trade memory for speed blindly; a cache that grows with n can run the server out of memory.
+          tr: Hız için belleği körü körüne harcama; n ile büyüyen bir önbellek sunucunun belleğini bitirebilir.
+        source: https://en.wikipedia.org/wiki/Space_complexity
+      - id: read-loops
+        level: basic
+        title: { en: Read it from the loops, tr: Döngülerden okuma }
+        what:
+          en: One loop over n is O(n), a loop inside a loop is O(n^2), loops one after another add up.
+          tr: n üzerinde bir döngü O(n), iç içe iki döngü O(n^2) eder; art arda döngüler toplanır.
+        lang: py
+        form: "nested -> multiply, sequential -> add"
+        example: |
+          n = 100
+          ops = 0
+          for i in range(n):        # O(n)
+              ops += 1
+          for i in range(n):        # O(n^2)
+              for j in range(n):
+                  ops += 1
+          print(ops)                # n + n^2 -> O(n^2)
+        output: |
+          10100
+        check: py
+        mistake:
+          en: Missing a hidden loop. x in a_list, list.index, str.replace and array.includes all walk the data.
+          tr: Gizli döngüyü kaçırmak. x in liste, list.index, str.replace ve array.includes verinin üstünden tek tek geçer.
+        source: https://en.wikipedia.org/wiki/Time_complexity
+  - id: classes
+    title: { en: Common classes, tr: Yaygın sınıflar }
+    items:
+      - id: constant
+        level: basic
+        title: { en: O(1) constant, tr: O(1) sabit }
+        what:
+          en: The work does not depend on n, like reading an array element by index.
+          tr: İş n'e bağlı değildir; dizideki bir elemanı index ile okumak gibi.
+        lang: js
+        form: arr[i], map.get(key)
+        example: |
+          const arr = Array.from({ length: 1_000_000 }, (_, i) => i);
+          const m = new Map([["a", 1]]);
+          console.log(arr[999_999], m.get("a"));
+        output: |
+          999999 1
+        check: js
+        source: https://en.wikipedia.org/wiki/Time_complexity#Constant_time
+      - id: logarithmic
+        level: basic
+        title: { en: O(log n) logarithmic, tr: O(log n) logaritmik }
+        what:
+          en: Each step throws away half of what is left, so a million items need about 20 steps.
+          tr: Her adım kalanın yarısını eler; bu yüzden bir milyon eleman yaklaşık 20 adım ister.
+        lang: py
+        form: binary search, balanced tree lookup
+        example: |
+          def binary_search(a, target):
+              lo, hi, steps = 0, len(a) - 1, 0
+              while lo <= hi:
+                  steps += 1
+                  mid = (lo + hi) // 2
+                  if a[mid] == target:
+                      return mid, steps
+                  if a[mid] < target:
+                      lo = mid + 1
+                  else:
+                      hi = mid - 1
+              return -1, steps
+
+          print(binary_search(list(range(1_000_000)), 1))
+        output: |
+          (1, 20)
+        check: py
+        mistake:
+          en: Running binary search on unsorted data; it needs sorted input and gives wrong answers otherwise.
+          tr: Sıralanmamış veride binary search çalıştırmak; sıralı girdi ister, yoksa yanlış sonuç verir.
+        source: https://en.wikipedia.org/wiki/Binary_search
+      - id: linear
+        level: basic
+        title: { en: O(n) linear, tr: O(n) doğrusal }
+        what:
+          en: The work grows in step with n, like looking at every item once.
+          tr: İş n ile aynı oranda büyür; her elemana bir kez bakmak gibi.
+        lang: js
+        form: for (const x of arr) ...
+        example: |
+          const nums = [4, 9, 2, 7];
+          let max = -Infinity;
+          for (const x of nums) if (x > max) max = x;
+          console.log(max);
+        output: |
+          9
+        check: js
+        source: https://en.wikipedia.org/wiki/Time_complexity#Linear_time
+      - id: linearithmic
+        level: basic
+        title: { en: O(n log n), tr: O(n log n) }
+        what:
+          en: The cost of good general-purpose sorting; a bit more than linear.
+          tr: İyi genel amaçlı sıralamanın maliyeti; doğrusaldan biraz fazla.
+        lang: py
+        form: sorted(items)
+        example: |
+          print(sorted([5, 3, 8, 1]))
+        output: |
+          [1, 3, 5, 8]
+        check: py
+        mistake:
+          en: Sorting inside a loop; n sorts of n items is O(n^2 log n). Sort once before the loop.
+          tr: Döngünün içinde sıralamak; n elemanı n kez sıralamak O(n^2 log n) eder. Döngüden önce bir kez sırala.
+        source: https://en.wikipedia.org/wiki/Time_complexity#Quasilinear_time
+      - id: quadratic
+        level: basic
+        title: { en: O(n^2) quadratic, tr: O(n^2) karesel }
+        what:
+          en: Comparing every item with every other item; fine for 100 items, painful for 100,000.
+          tr: Her elemanı diğer her elemanla karşılaştırmak; 100 eleman için sorun değil, 100.000 için acı verir.
+        lang: py
+        form: for a in items, for b in items
+        example: |
+          def has_duplicate(items):          # O(n^2)
+              for i in range(len(items)):
+                  for j in range(i + 1, len(items)):
+                      if items[i] == items[j]:
+                          return True
+              return False
+
+          def has_duplicate_fast(items):     # O(n) with a set
+              return len(set(items)) != len(items)
+
+          print(has_duplicate([1, 2, 3, 2]), has_duplicate_fast([1, 2, 3, 2]))
+        output: |
+          True True
+        check: py
+        mistake:
+          en: Writing it without noticing, for example calling list.remove or x in list inside a loop.
+          tr: Fark etmeden yazmak; mesela döngü içinde list.remove ya da x in liste çağırmak.
+        source: https://en.wikipedia.org/wiki/Time_complexity#Polynomial_time
+      - id: exponential
+        level: intermediate
+        title: { en: O(2^n) exponential, tr: O(2^n) üstel }
+        what:
+          en: Each extra input doubles the work, like trying every subset; unusable beyond small n.
+          tr: Her ek girdi işi iki katına çıkarır, her alt kümeyi denemek gibi; küçük n'den sonra kullanılamaz.
+        lang: py
+        form: naive recursion that branches twice
+        example: |
+          from functools import cache
+
+          calls = 0
+          def fib(n):                 # O(2^n)
+              global calls
+              calls += 1
+              return n if n < 2 else fib(n - 1) + fib(n - 2)
+
+          @cache
+          def fib_fast(n):            # O(n) with memoization
+              return n if n < 2 else fib_fast(n - 1) + fib_fast(n - 2)
+
+          print(fib(25), calls, fib_fast(25))
+        output: |
+          75025 242785 75025
+        check: py
+        avoid:
+          en: When the subproblems repeat; memoization or a bottom-up loop (dynamic programming) usually makes it polynomial.
+          tr: Alt problemler tekrar ediyorsa; memoization ya da aşağıdan yukarı bir döngü (dinamik programlama) genelde polinoma indirir.
+        source: https://en.wikipedia.org/wiki/Time_complexity#Exponential_time
+  - id: arrays
+    title: { en: Arrays and lists, tr: Array ve listeler }
+    items:
+      - id: array-access
+        level: basic
+        title: { en: Index access and append, tr: Index ile erişim ve sona ekleme }
+        what:
+          en: Reading or writing by index is O(1); adding to the end is O(1) amortized.
+          tr: Index ile okumak ya da yazmak O(1); sona eklemek amortize O(1)'dir.
+        lang: text
+        form: "a[i] O(1), a.append(x) / a.push(x) O(1) amortized"
+        example: |
+          Python list / JS array
+          a[i], a[i] = x          O(1)
+          append / push, pop()    O(1) amortized
+          len(a) / a.length       O(1)
+        source: https://wiki.python.org/moin/TimeComplexity#list
+      - id: array-insert-front
+        level: basic
+        title: { en: Insert or delete at the front, tr: Başa ekleme ve baştan silme }
+        what:
+          en: Adding or removing at the start shifts every other element, so it is O(n).
+          tr: Başa eklemek ya da baştan silmek diğer tüm elemanları kaydırır; bu yüzden O(n)'dir.
+        lang: py
+        form: a.insert(0, x), a.pop(0), arr.shift(), arr.unshift(x)
+        example: |
+          from collections import deque
+
+          q = deque([1, 2, 3])   # O(1) at both ends
+          q.appendleft(0)
+          q.popleft()
+          q.append(4)
+          print(list(q))
+        output: |
+          [1, 2, 3, 4]
+        check: py
+        mistake:
+          en: Using a list as a queue with pop(0) or shift(); with many items every dequeue walks the whole list.
+          tr: Listeyi pop(0) ya da shift() ile kuyruk olarak kullanmak; çok elemanda her çıkarma bütün listeyi dolaşır.
+        source: https://docs.python.org/3/library/collections.html#collections.deque
+      - id: array-search
+        level: basic
+        title: { en: Search in an array, tr: Array içinde arama }
+        what:
+          en: Finding a value in an unsorted array checks items one by one, which is O(n).
+          tr: Sıralanmamış bir array'de değer bulmak elemanlara tek tek bakar; bu O(n)'dir.
+        lang: js
+        form: arr.includes(x), arr.indexOf(x), arr.find(fn)
+        example: |
+          const ids = [10, 20, 30, 40];
+          const wanted = [20, 40, 50];
+          const set = new Set(ids);                 // build once: O(n)
+          console.log(wanted.map((w) => set.has(w))); // each lookup O(1) on average
+        output: |
+          [ true, true, false ]
+        check: js
+        mistake:
+          en: Calling includes inside a loop over another big array, which is O(n x m); build a Set first.
+          tr: Başka büyük bir array üzerindeki döngünün içinde includes çağırmak; bu O(n x m) eder. Önce bir Set kur.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
+      - id: array-slice
+        level: intermediate
+        title: { en: Slicing and copying, tr: Dilimleme ve kopyalama }
+        what:
+          en: A slice or copy costs as much as the number of elements copied.
+          tr: Bir dilim ya da kopya, kopyalanan eleman sayısı kadar maliyetlidir.
+        lang: text
+        form: "a[i:j] O(j - i), [...a] O(n), a + b O(n + m)"
+        example: |
+          a[1:]          O(n)  copies, does not view
+          [...a, x]      O(n)  builds a new array
+          a.concat(b)    O(n + m)
+        mistake:
+          en: Using a[1:] in recursion (head and rest), which copies on every call and turns O(n) into O(n^2).
+          tr: Recursion içinde a[1:] kullanmak (baş ve geri kalan); her çağrıda kopyalar ve O(n)'i O(n^2)'ye çevirir.
+        source: https://wiki.python.org/moin/TimeComplexity#list
+      - id: amortized
+        level: advanced
+        title: { en: Amortized O(1), tr: Amortize O(1) }
+        what:
+          en: Most appends are cheap and a rare one copies everything to a bigger block; averaged over many calls each costs O(1).
+          tr: Çoğu ekleme ucuzdur, arada bir tanesi her şeyi daha büyük bir bloğa kopyalar; çok çağrıya bölününce her biri O(1) eder.
+        lang: py
+        form: total cost of n appends is O(n)
+        example: |
+          import sys
+
+          a, sizes = [], set()
+          for i in range(1000):
+              a.append(i)
+              sizes.add(sys.getsizeof(a))
+          print(len(sizes) < 50)   # few resizes for 1000 appends
+        output: |
+          True
+        check: py
+        mistake:
+          en: Assuming one single append can never be slow; in latency-sensitive code the rare resize still happens.
+          tr: Tek bir eklemenin asla yavaş olamayacağını sanmak; gecikmeye hassas kodda seyrek boyut büyütme yine olur.
+        source: https://en.wikipedia.org/wiki/Amortized_analysis
+  - id: hash
+    title: { en: Hash maps and sets, tr: Hash map ve set }
+    items:
+      - id: hash-ops
+        level: basic
+        title: { en: Get, set and delete, tr: Okuma, yazma ve silme }
+        what:
+          en: A hash map finds a key by computing its hash, so get, set and delete are O(1) on average.
+          tr: Hash map bir anahtarı hash'ini hesaplayarak bulur; bu yüzden okuma, yazma ve silme ortalamada O(1)'dir.
+        lang: py
+        form: "d[key], d[key] = v, del d[key], key in d"
+        example: |
+          stock = {"apple": 3, "pear": 0}
+          stock["kiwi"] = 5
+          del stock["pear"]
+          print("apple" in stock, stock)
+        output: |
+          True {'apple': 3, 'kiwi': 5}
+        check: py
+        source: https://wiki.python.org/moin/TimeComplexity#dict
+      - id: hash-worst
+        level: intermediate
+        title: { en: The worst case, tr: En kötü durum }
+        what:
+          en: When many keys land in the same slot, lookups degrade to O(n); good hash functions make this rare.
+          tr: Birçok anahtar aynı yere düşerse arama O(n)'ye iner; iyi hash fonksiyonları bunu nadir kılar.
+        lang: text
+        form: "average O(1), worst O(n)"
+        example: |
+          operation     average   worst
+          get / set     O(1)      O(n)
+          delete        O(1)      O(n)
+          iterate all   O(n)      O(n)
+        mistake:
+          en: Writing your own __hash__ or hashCode that returns a constant, which puts every key in one slot.
+          tr: Sabit bir değer döndüren kendi __hash__ ya da hashCode'unu yazmak; her anahtar tek bir yere düşer.
+        source: https://en.wikipedia.org/wiki/Hash_table
+      - id: set-membership
+        level: basic
+        title: { en: 'Set for a fast "is it there?"', tr: 'Hızlı "var mı?" için set' }
+        what:
+          en: x in a_set is O(1) on average while x in a_list is O(n).
+          tr: x in bir_set ortalamada O(1), x in bir_liste ise O(n)'dir.
+        lang: py
+        form: seen = set(items)
+        example: |
+          banned = {"spam", "scam"}            # set, not list
+          words = ["hello", "spam", "world"]
+          print([w for w in words if w not in banned])
+        output: |
+          ['hello', 'world']
+        check: py
+        mistake:
+          en: Building the set inside the loop; set(items) is O(n) itself, so build it once outside.
+          tr: Set'i döngünün içinde kurmak; set(items) kendi başına O(n)'dir, bir kez dışarıda kur.
+        source: https://wiki.python.org/moin/TimeComplexity#set
+      - id: group-by
+        level: intermediate
+        title: { en: Count and group in one pass, tr: Tek geçişte sayma ve gruplama }
+        what:
+          en: A map lets you count or group n items in O(n) instead of comparing pairs in O(n^2).
+          tr: Map ile n elemanı çiftleri karşılaştırarak O(n^2) yerine O(n)'de sayar ya da gruplarsın.
+        lang: js
+        form: Map.groupBy(items, fn)
+        example: |
+          const orders = [
+            { user: "ada", total: 10 },
+            { user: "bob", total: 5 },
+            { user: "ada", total: 7 },
+          ];
+          const byUser = Map.groupBy(orders, (o) => o.user);
+          console.log(byUser.get("ada").length, byUser.size);
+        output: |
+          2 2
+        check: js
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/groupBy
+      - id: two-sum
+        level: intermediate
+        title: { en: Trade memory for time, tr: Zaman için bellek harcama }
+        what:
+          en: Remembering what you have seen in a map turns many O(n^2) pair searches into O(n) time and O(n) space.
+          tr: Gördüklerini bir map'te hatırlamak, birçok O(n^2) çift aramasını O(n) zaman ve O(n) belleğe çevirir.
+        lang: py
+        form: seen = {}; check seen before adding
+        example: |
+          def two_sum(nums, target):
+              seen = {}
+              for i, x in enumerate(nums):
+                  if target - x in seen:
+                      return seen[target - x], i
+                  seen[x] = i
+
+          print(two_sum([2, 7, 11, 15], 9))
+        output: |
+          (0, 1)
+        check: py
+        source: https://wiki.python.org/moin/TimeComplexity#dict
+  - id: trees
+    title: { en: Trees and heaps, tr: Ağaçlar ve heap'ler }
+    items:
+      - id: bst
+        level: intermediate
+        title: { en: Binary search tree, tr: İkili arama ağacı }
+        what:
+          en: Keeps keys sorted so search, insert and delete take O(log n) when the tree is balanced.
+          tr: Anahtarları sıralı tutar; ağaç dengeliyse arama, ekleme ve silme O(log n) sürer.
+        lang: text
+        form: "balanced O(log n), unbalanced worst O(n)"
+        example: |
+          operation           balanced   unbalanced
+          search              O(log n)   O(n)
+          insert / delete     O(log n)   O(n)
+          in-order walk       O(n)       O(n)
+          min / max           O(log n)   O(n)
+        mistake:
+          en: Inserting already sorted keys into a plain BST; it becomes a linked list and every operation is O(n).
+          tr: Zaten sıralı anahtarları düz bir BST'ye eklemek; ağaç bağlı listeye döner ve her işlem O(n) olur.
+        source: https://en.wikipedia.org/wiki/Binary_search_tree
+      - id: balanced-tree
+        level: advanced
+        title: { en: Self-balancing trees and B-trees, tr: Kendini dengeleyen ağaçlar ve B-tree }
+        what:
+          en: Red-black, AVL and B-trees rebalance on every change so the worst case stays O(log n); database indexes use B-trees.
+          tr: Red-black, AVL ve B-tree her değişiklikte kendini dengeler, en kötü durum O(log n) kalır; veritabanı index'leri B-tree kullanır.
+        lang: text
+        form: "search / insert / delete: O(log n) worst case"
+        example: |
+          Java TreeMap, C++ std::map   red-black tree
+          PostgreSQL / MySQL index     B-tree (B+tree)
+          range query                  O(log n + k), k = rows returned
+        source: https://en.wikipedia.org/wiki/Self-balancing_binary_search_tree
+      - id: heap
+        level: intermediate
+        title: { en: Heap (priority queue), tr: Heap (öncelik kuyruğu) }
+        what:
+          en: Always gives you the smallest (or largest) item fast; push and pop are O(log n), peek is O(1).
+          tr: En küçük (ya da en büyük) elemanı her zaman hızlı verir; push ve pop O(log n), en üste bakmak O(1)'dir.
+        lang: py
+        form: heapq.heappush(h, x); heapq.heappop(h)
+        example: |
+          import heapq
+
+          tasks = []
+          heapq.heappush(tasks, (2, "write tests"))
+          heapq.heappush(tasks, (1, "fix prod bug"))
+          heapq.heappush(tasks, (3, "refactor"))
+          print(tasks[0])              # peek O(1)
+          print(heapq.heappop(tasks))  # O(log n)
+        output: |
+          (1, 'fix prod bug')
+          (1, 'fix prod bug')
+        check: py
+        mistake:
+          en: Expecting the heap list to be fully sorted; only h[0] is guaranteed to be the smallest.
+          tr: Heap listesinin tamamen sıralı olmasını beklemek; sadece h[0]'ın en küçük olduğu garantidir.
+        source: https://docs.python.org/3/library/heapq.html
+      - id: heapify-topk
+        level: advanced
+        title: { en: Heapify and top-k, tr: Heapify ve ilk k eleman }
+        what:
+          en: Building a heap from n items is O(n), and picking the k largest is O(n log k), cheaper than a full sort.
+          tr: n elemandan heap kurmak O(n), en büyük k elemanı seçmek O(n log k)'dir; tam sıralamadan ucuz.
+        lang: py
+        form: heapq.nlargest(k, items)
+        example: |
+          import heapq
+
+          scores = [40, 95, 12, 77, 88, 63]
+          print(heapq.nlargest(3, scores))
+          h = scores[:]
+          heapq.heapify(h)   # O(n)
+          print(h[0])
+        output: |
+          [95, 88, 77]
+          12
+        check: py
+        avoid:
+          en: When k is close to n, sorted(items)[-k:] is simpler and about as fast.
+          tr: k, n'e yakınsa sorted(items)[-k:] daha basit ve hemen hemen aynı hızdadır.
+        source: https://docs.python.org/3/library/heapq.html#heapq.nlargest
+  - id: sorting
+    title: { en: Sorting, tr: Sıralama }
+    items:
+      - id: builtin-sort
+        level: basic
+        title: { en: Use the built-in sort, tr: Hazır sort'u kullan }
+        what:
+          en: Python's sort and JavaScript's Array.prototype.sort are stable and O(n log n) in practice; use them before writing your own.
+          tr: Python'un sort'u ve JavaScript'in Array.prototype.sort'u stabildir, pratikte O(n log n)'dir; kendi sıralamanı yazmadan önce bunları kullan.
+        lang: js
+        form: arr.sort((a, b) => a - b)
+        example: |
+          const nums = [10, 9, 1, 100];
+          console.log([...nums].sort());                  // compares as strings
+          console.log([...nums].sort((a, b) => a - b));
+        output: |
+          [ 1, 10, 100, 9 ]
+          [ 1, 9, 10, 100 ]
+        check: js
+        mistake:
+          en: Calling arr.sort() on numbers without a compare function; JavaScript sorts them as strings.
+          tr: Sayılarda arr.sort()'u karşılaştırma fonksiyonu olmadan çağırmak; JavaScript onları string olarak sıralar.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort
+      - id: sort-table
+        level: intermediate
+        title: { en: Common sorts compared, tr: Yaygın sıralamaların karşılaştırması }
+        what:
+          en: The time and memory of the sorts you will meet, and whether they keep equal items in order (stable).
+          tr: Karşılaşacağın sıralamaların süresi, belleği ve eşit elemanların sırasını koruyup korumadıkları (stabil).
+        lang: text
+        form: "comparison sorts cannot beat O(n log n) in the worst case"
+        example: |
+          sort        best        average     worst       space      stable
+          insertion   O(n)        O(n^2)      O(n^2)      O(1)       yes
+          merge       O(n log n)  O(n log n)  O(n log n)  O(n)       yes
+          quick       O(n log n)  O(n log n)  O(n^2)      O(log n)   no
+          heap        O(n log n)  O(n log n)  O(n log n)  O(1)       no
+          timsort     O(n)        O(n log n)  O(n log n)  O(n)       yes
+          counting    O(n + k)    O(n + k)    O(n + k)    O(n + k)   yes
+        mistake:
+          en: Believing quicksort is always O(n log n); with bad pivots it is O(n^2). Library versions guard against it.
+          tr: Quicksort'un her zaman O(n log n) olduğunu sanmak; kötü pivot'larla O(n^2) olur. Kütüphane sürümleri buna karşı önlem alır.
+        source: https://en.wikipedia.org/wiki/Sorting_algorithm#Comparison_of_algorithms
+      - id: stable-sort
+        level: intermediate
+        title: { en: Stable sort and sorting by key, tr: Stabil sıralama ve anahtara göre sıralama }
+        what:
+          en: A stable sort keeps items with equal keys in their original order, so you can sort by several keys in steps.
+          tr: Stabil sıralama, anahtarı eşit olan elemanları ilk sıralarında bırakır; böylece birkaç anahtara göre adım adım sıralayabilirsin.
+        lang: py
+        form: "sorted(items, key=lambda x: x.field)"
+        example: |
+          people = [("ada", 36), ("bob", 25), ("cem", 36)]
+          by_age = sorted(people, key=lambda p: p[1], reverse=True)
+          print(by_age)
+        output: |
+          [('ada', 36), ('cem', 36), ('bob', 25)]
+        check: py
+        source: https://docs.python.org/3/howto/sorting.html#sort-stability-and-complex-sorts
+      - id: merge-sort
+        level: intermediate
+        title: { en: Merge sort, tr: Merge sort }
+        what:
+          en: Splits the list in half, sorts both halves and merges them; always O(n log n) but needs O(n) extra memory.
+          tr: Listeyi ikiye böler, iki yarıyı sıralar ve birleştirir; her zaman O(n log n)'dir ama O(n) ek bellek ister.
+        lang: py
+        form: "split -> sort halves -> merge"
+        example: |
+          def merge_sort(a):
+              if len(a) <= 1:
+                  return a
+              mid = len(a) // 2
+              left, right = merge_sort(a[:mid]), merge_sort(a[mid:])
+              out, i, j = [], 0, 0
+              while i < len(left) and j < len(right):
+                  if left[i] <= right[j]:
+                      out.append(left[i]); i += 1
+                  else:
+                      out.append(right[j]); j += 1
+              return out + left[i:] + right[j:]
+
+          print(merge_sort([5, 2, 9, 1, 5, 6]))
+        output: |
+          [1, 2, 5, 5, 6, 9]
+        check: py
+        avoid:
+          en: In real code; call the built-in sort. Write it to learn divide and conquer.
+          tr: Gerçek kodda; hazır sort'u çağır. Böl ve yönet mantığını öğrenmek için yaz.
+        source: https://en.wikipedia.org/wiki/Merge_sort
+      - id: counting-sort
+        level: advanced
+        title: { en: Beating n log n with small keys, tr: Küçük anahtarlarla n log n'i geçmek }
+        what:
+          en: When keys are small integers in a known range k, counting them sorts in O(n + k) without comparing.
+          tr: Anahtarlar bilinen küçük bir aralıkta (k) tam sayıysa, onları saymak karşılaştırmadan O(n + k)'de sıralar.
+        lang: py
+        form: count[x] += 1, then write out in order
+        example: |
+          def counting_sort(a, k):
+              count = [0] * (k + 1)
+              for x in a:
+                  count[x] += 1
+              return [v for v in range(k + 1) for _ in range(count[v])]
+
+          print(counting_sort([3, 1, 4, 1, 5, 2], 5))
+        output: |
+          [1, 1, 2, 3, 4, 5]
+        check: py
+        avoid:
+          en: When the range k is much larger than n (like 64-bit ids); the count array becomes huge.
+          tr: k aralığı n'den çok büyükse (64-bit id'ler gibi); sayaç dizisi devasa olur.
+        source: https://en.wikipedia.org/wiki/Counting_sort
+  - id: pitfalls
+    title: { en: Beyond the basics, tr: Temellerin ötesi }
+    items:
+      - id: recursion-space
+        level: advanced
+        title: { en: Recursion uses stack space, tr: Recursion stack belleği kullanır }
+        what:
+          en: Each recursive call waits on the call stack, so recursion depth n costs O(n) memory and can overflow.
+          tr: Her recursive çağrı call stack'te bekler; n derinlikte recursion O(n) bellek harcar ve taşabilir.
+        lang: py
+        form: depth d -> O(d) extra space
+        example: |
+          import sys
+
+          def depth(n):
+              return 0 if n == 0 else 1 + depth(n - 1)
+
+          print(depth(500))
+          try:
+              depth(sys.getrecursionlimit() + 10)
+          except RecursionError:
+              print("RecursionError")
+        output: |
+          500
+          RecursionError
+        check: py
+        mistake:
+          en: Counting only the time of a recursive function and forgetting its O(depth) stack memory.
+          tr: Recursive bir fonksiyonun sadece süresini hesaplayıp O(derinlik) stack belleğini unutmak.
+        source: https://docs.python.org/3/library/sys.html#sys.setrecursionlimit
+      - id: hidden-cost
+        level: intermediate
+        title: { en: Hidden loops in one line, tr: Tek satırdaki gizli döngüler }
+        what:
+          en: A short line can hide O(n) work; inside another loop it becomes O(n^2).
+          tr: Kısa bir satır O(n) iş saklayabilir; başka bir döngünün içinde O(n^2) olur.
+        lang: js
+        form: "includes, indexOf, splice, shift, [...spread], JSON.stringify -> O(n)"
+        example: |
+          const users = Array.from({ length: 5 }, (_, i) => ({ id: i }));
+          const ids = [3, 1];
+          // O(n x m): find walks users for every id
+          const slow = ids.map((id) => users.find((u) => u.id === id));
+          // O(n + m): index once
+          const byId = new Map(users.map((u) => [u.id, u]));
+          const fast = ids.map((id) => byId.get(id));
+          console.log(slow.length === fast.length, fast[0].id);
+        output: |
+          true 3
+        check: js
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+      - id: theta-omega
+        level: advanced
+        title: { en: Big-Theta and Big-Omega, tr: Big-Theta ve Big-Omega }
+        what:
+          en: O is an upper bound, Omega a lower bound and Theta a tight bound; everyday "Big-O" usually means Theta.
+          tr: O üst sınır, Omega alt sınır, Theta sıkı sınırdır; günlük konuşmadaki "Big-O" genelde Theta anlamına gelir.
+        lang: text
+        form: "f = Θ(g) when f = O(g) and f = Ω(g)"
+        example: |
+          linear search worst case:  Θ(n)
+          it is also O(n^2)          true, but useless
+          comparison sort:           Ω(n log n) in the worst case
+        source: https://en.wikipedia.org/wiki/Big_O_notation#Family_of_Bachmann%E2%80%93Landau_notations
+      - id: measure
+        level: intermediate
+        title: { en: Measure, do not guess, tr: Tahmin etme, ölç }
+        what:
+          en: Big-O tells you how code scales; a profiler or benchmark tells you where time actually goes.
+          tr: Big-O kodun nasıl ölçeklendiğini söyler; zamanın gerçekte nereye gittiğini profiler ya da benchmark söyler.
+        lang: sh
+        form: python -m timeit "<code>"
+        example: |
+          python3 -m timeit -s "a = list(range(10_000))" "9_999 in a"
+          python3 -m timeit -s "s = set(range(10_000))" "9_999 in s"
+        avoid:
+          en: Do not optimize Big-O for data that stays tiny; clear code wins there.
+          tr: Hep küçük kalacak veri için Big-O optimize etme; orada anlaşılır kod kazanır.
+        source: https://docs.python.org/3/library/timeit.html

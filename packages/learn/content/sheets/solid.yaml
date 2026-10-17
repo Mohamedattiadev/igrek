@@ -1,0 +1,512 @@
+id: solid
+title: SOLID
+category: concept
+summary:
+  en: Five principles for object-oriented code that is easy to change, each with a bad and a good example, plus the related rules people quote with them.
+  tr: Kolay değiştirilebilen nesne yönelimli kod için beş ilke; her biri kötü ve iyi bir örnekle, yanında birlikte anılan diğer kurallar.
+aliases: [solid principles, srp, ocp, lsp, isp, dip, clean code, solid ilkeleri, temiz kod, nesne yönelimli tasarım, oop]
+checked: 2026-10
+sources:
+  - title: SOLID (Wikipedia)
+    url: https://en.wikipedia.org/wiki/SOLID
+  - title: Solid Relevance (Robert C. Martin)
+    url: https://blog.cleancoder.com/uncle-bob/2020/10/18/Solid-Relevance.html
+sections:
+  - id: idea
+    title: { en: The idea, tr: Temel fikir }
+    items:
+      - id: what-is-solid
+        level: basic
+        title: { en: What SOLID stands for, tr: SOLID neyin kısaltması }
+        what:
+          en: Five design rules collected by Robert C. Martin that keep classes small, separate and easy to replace.
+          tr: Robert C. Martin'in bir araya getirdiği beş tasarım kuralı; sınıfları küçük, birbirinden ayrı ve kolay değiştirilebilir tutar.
+        lang: text
+        form: S O L I D
+        example: |
+          S  Single responsibility   one reason to change
+          O  Open/closed             add new behavior without editing old code
+          L  Liskov substitution     a subtype must work wherever its parent works
+          I  Interface segregation   small interfaces, only what the client uses
+          D  Dependency inversion    depend on abstractions, not on details
+        mistake:
+          en: Treating them as laws. They are guidelines that pay off when code changes often; use judgement.
+          tr: Onları kanun gibi görmek. Kod sık değiştiğinde karşılığını veren yol gösterici kurallardır; muhakemeni kullan.
+        source: https://en.wikipedia.org/wiki/SOLID
+      - id: coupling-cohesion
+        level: intermediate
+        title: { en: Coupling and cohesion, tr: Bağımlılık (coupling) ve uyum (cohesion) }
+        what:
+          en: All five rules aim at the same thing; parts that change together stay together (high cohesion) and parts know little about each other (low coupling).
+          tr: Beş kuralın hepsi aynı şeyi hedefler; birlikte değişen parçalar bir arada durur (yüksek cohesion), parçalar birbiri hakkında az şey bilir (düşük coupling).
+        lang: text
+        form: high cohesion, low coupling
+        example: |
+          low coupling    change the mailer, the order code does not move
+          high cohesion   all invoice rules live in one module
+        source: https://en.wikipedia.org/wiki/Coupling_(computer_programming)
+  - id: srp
+    title: { en: S - Single responsibility, tr: S - Tek sorumluluk }
+    items:
+      - id: srp
+        level: basic
+        title: { en: Single responsibility principle, tr: Tek sorumluluk ilkesi }
+        what:
+          en: A module should have one reason to change; in Martin's words, it should be responsible to one actor (one group of people asking for changes).
+          tr: Bir modülün değişmek için tek bir sebebi olmalı; Martin'in deyişiyle tek bir aktöre (değişiklik isteyen tek bir gruba) karşı sorumlu olmalı.
+        lang: text
+        form: "who asks for changes to this code? -> one answer"
+        example: |
+          Employee.calculatePay()   asked for by accounting
+          Employee.reportHours()    asked for by HR
+          Employee.save()           asked for by the DBAs
+          -> three actors, three classes
+        mistake:
+          en: Reading it as "a class does one thing" and splitting code into dozens of one-method classes.
+          tr: Onu "bir sınıf tek bir şey yapar" diye okuyup kodu onlarca tek metotlu sınıfa bölmek.
+        source: https://blog.cleancoder.com/uncle-bob/2014/05/08/SingleReponsibilityPrinciple.html
+      - id: srp-bad
+        level: basic
+        title: { en: "SRP: bad", tr: "SRP: kötü" }
+        what:
+          en: One class formats a report and also saves it, so a change to the file format and a change to the layout touch the same code.
+          tr: Tek bir sınıf raporu hem biçimlendiriyor hem kaydediyor; dosya biçimindeki ve sayfa düzenindeki değişiklikler aynı koda dokunuyor.
+        lang: ts
+        form: "class Report { render(); save() }   // two reasons to change"
+        example: |
+          class Report {
+            constructor(private rows: number[]) {}
+            render() { return `total: ${this.rows.reduce((a, b) => a + b, 0)}`; }
+            save() { return `wrote "${this.render()}" to report.txt`; } // storage mixed in
+          }
+
+          console.log(new Report([1, 2, 3]).save());
+        output: |
+          wrote "total: 6" to report.txt
+        check: ts
+        source: https://en.wikipedia.org/wiki/Single-responsibility_principle
+      - id: srp-good
+        level: basic
+        title: { en: "SRP: good", tr: "SRP: iyi" }
+        what:
+          en: Rendering and storing live in separate parts, so each can change without touching the other.
+          tr: Biçimlendirme ve kaydetme ayrı parçalarda durur; her biri diğerine dokunmadan değişebilir.
+        lang: ts
+        form: render(data) and store(text) as separate units
+        example: |
+          const renderReport = (rows: number[]) => `total: ${rows.reduce((a, b) => a + b, 0)}`;
+
+          class FileStore {
+            save(name: string, text: string) { return `wrote "${text}" to ${name}`; }
+          }
+
+          console.log(new FileStore().save("report.txt", renderReport([1, 2, 3])));
+        output: |
+          wrote "total: 6" to report.txt
+        check: ts
+        avoid:
+          en: Do not split a small script with one owner; the extra files cost more than they save.
+          tr: Tek sahibi olan küçük bir script'i bölme; ek dosyalar kazandırdığından fazlasına mal olur.
+        source: https://en.wikipedia.org/wiki/Single-responsibility_principle
+  - id: ocp
+    title: { en: O - Open/closed, tr: O - Açık/kapalı }
+    items:
+      - id: ocp
+        level: basic
+        title: { en: Open/closed principle, tr: Açık/kapalı ilkesi }
+        what:
+          en: Code should be open for extension but closed for modification; you add a new case by adding code, not by editing what already works.
+          tr: Kod genişletmeye açık, değiştirmeye kapalı olmalı; yeni bir durumu çalışan kodu düzenleyerek değil, yeni kod ekleyerek eklersin.
+        lang: text
+        form: new case = new class/function, old code untouched
+        example: |
+          bad   add "crypto" -> edit the switch in pay()
+          good  add "crypto" -> write a new PaymentMethod and register it
+        mistake:
+          en: Adding extension points for cases nobody asked for; wait until the second or third real case.
+          tr: Kimsenin istemediği durumlar için genişletme noktaları eklemek; ikinci ya da üçüncü gerçek durumu bekle.
+        source: https://blog.cleancoder.com/uncle-bob/2014/05/12/TheOpenClosedPrinciple.html
+      - id: ocp-bad
+        level: basic
+        title: { en: "OCP: bad", tr: "OCP: kötü" }
+        what:
+          en: Every new shape means editing the same function and risking the cases that already work.
+          tr: Her yeni şekil aynı fonksiyonu düzenlemek ve zaten çalışan durumları riske atmak demek.
+        lang: ts
+        form: switch (kind) { case ... }   // grows forever
+        example: |
+          type Shape = { kind: "circle"; r: number } | { kind: "square"; side: number };
+
+          function area(s: Shape): number {
+            switch (s.kind) {
+              case "circle": return Math.PI * s.r ** 2;
+              case "square": return s.side ** 2;
+              // a triangle needs an edit here, and in every other switch on kind
+            }
+          }
+
+          console.log(area({ kind: "square", side: 3 }));
+        output: |
+          9
+        check: ts
+        avoid:
+          en: "This is not always bad: a TypeScript union with an exhaustive switch is fine when the cases are fixed and you own them all."
+          tr: "Bu her zaman kötü değil: durumlar sabitse ve hepsi senin elindeyse, eksiksiz bir switch ile TypeScript union'ı gayet iyidir."
+        source: https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle
+      - id: ocp-good
+        level: basic
+        title: { en: "OCP: good", tr: "OCP: iyi" }
+        what:
+          en: Each shape brings its own area, so a new shape is a new class and nothing old changes.
+          tr: Her şekil kendi alanını hesaplar; yeni şekil yeni bir sınıftır ve eski hiçbir şey değişmez.
+        lang: ts
+        form: "interface Shape { area(): number }"
+        example: |
+          interface Shape { area(): number }
+          class Circle implements Shape { constructor(private r: number) {} area() { return Math.PI * this.r ** 2; } }
+          class Square implements Shape { constructor(private s: number) {} area() { return this.s ** 2; } }
+          class Triangle implements Shape { constructor(private b: number, private h: number) {} area() { return (this.b * this.h) / 2; } }
+
+          const total = (shapes: Shape[]) => shapes.reduce((sum, s) => sum + s.area(), 0);
+          console.log(total([new Square(3), new Triangle(4, 2)]));
+        output: |
+          13
+        check: ts
+        source: https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle
+  - id: lsp
+    title: { en: L - Liskov substitution, tr: L - Liskov yerine geçme }
+    items:
+      - id: lsp
+        level: intermediate
+        title: { en: Liskov substitution principle, tr: Liskov yerine geçme ilkesi }
+        what:
+          en: Anywhere code uses a parent type, a subtype must work too, without surprises; named after Barbara Liskov.
+          tr: Kodun bir üst tipi kullandığı her yerde alt tip de sürpriz çıkarmadan çalışmalı; adını Barbara Liskov'dan alır.
+        lang: text
+        form: "if S extends T, every use of T must accept S"
+        example: |
+          a subtype must not
+          - throw for input the parent accepts
+          - return something the parent would never return
+          - break a rule the parent keeps (an invariant)
+        mistake:
+          en: Modelling "is a" from the real world (a square is a rectangle) instead of "behaves like" in code.
+          tr: Gerçek dünyadaki "bir ... dır" ilişkisini (kare bir dikdörtgendir) koddaki "gibi davranır" yerine modellemek.
+        source: https://en.wikipedia.org/wiki/Liskov_substitution_principle
+      - id: lsp-bad
+        level: intermediate
+        title: { en: "LSP: bad", tr: "LSP: kötü" }
+        what:
+          en: A Square that extends Rectangle changes both sides on every set, so code written for rectangles gets wrong areas.
+          tr: Rectangle'dan türeyen Square her set'te iki kenarı birden değiştirir; dikdörtgenler için yazılmış kod yanlış alan bulur.
+        lang: ts
+        form: class Square extends Rectangle   // overrides setters
+        example: |
+          class Rectangle {
+            constructor(public w: number, public h: number) {}
+            setWidth(w: number) { this.w = w; }
+            setHeight(h: number) { this.h = h; }
+            area() { return this.w * this.h; }
+          }
+          class Square extends Rectangle {
+            setWidth(w: number) { this.w = w; this.h = w; }
+            setHeight(h: number) { this.w = h; this.h = h; }
+          }
+
+          function stretch(r: Rectangle) { r.setWidth(5); r.setHeight(2); return r.area(); }
+          console.log(stretch(new Rectangle(1, 1)), stretch(new Square(1, 1)));
+        output: |
+          10 4
+        check: ts
+        source: https://en.wikipedia.org/wiki/Circle%E2%80%93ellipse_problem
+      - id: lsp-good
+        level: intermediate
+        title: { en: "LSP: good", tr: "LSP: iyi" }
+        what:
+          en: Do not make one a subclass of the other; give both a shared interface they can keep honestly.
+          tr: Birini diğerinin alt sınıfı yapma; ikisine de dürüstçe uyabilecekleri ortak bir arayüz ver.
+        lang: ts
+        form: "interface Shape { area(): number }   // no setters to break"
+        example: |
+          interface Shape { area(): number }
+          class Rectangle implements Shape { constructor(readonly w: number, readonly h: number) {} area() { return this.w * this.h; } }
+          class Square implements Shape { constructor(readonly side: number) {} area() { return this.side ** 2; } }
+
+          const shapes: Shape[] = [new Rectangle(5, 2), new Square(2)];
+          console.log(shapes.map((s) => s.area()));
+        output: |
+          [ 10, 4 ]
+        check: ts
+        source: https://en.wikipedia.org/wiki/Liskov_substitution_principle
+      - id: lsp-contracts
+        level: advanced
+        title: { en: Contracts of a subtype, tr: Alt tipin sözleşmesi }
+        what:
+          en: A subtype may accept more and promise more, but never accept less or promise less than its parent.
+          tr: Alt tip üst tipinden daha fazlasını kabul edip daha fazlasını vaat edebilir, ama asla daha azını kabul edip daha azını vaat edemez.
+        lang: text
+        form: "preconditions: not stronger. postconditions: not weaker. invariants: kept."
+        example: |
+          parent: save(any user) -> returns id
+          ok:     save(any user, also guests) -> returns id      (accepts more)
+          broken: save(admins only) -> throws for others          (accepts less)
+          broken: save(user) -> sometimes returns null            (promises less)
+        mistake:
+          en: A subclass that throws NotImplemented for a parent method; every caller of the parent can now crash.
+          tr: Üst sınıfın bir metodu için NotImplemented fırlatan bir alt sınıf; üst tipi kullanan her yer artık çökebilir.
+        source: https://en.wikipedia.org/wiki/Liskov_substitution_principle#Principle
+  - id: isp
+    title: { en: I - Interface segregation, tr: I - Arayüz ayrımı }
+    items:
+      - id: isp
+        level: basic
+        title: { en: Interface segregation principle, tr: Arayüz ayrımı ilkesi }
+        what:
+          en: No code should be forced to depend on methods it does not use, so prefer several small interfaces over one big one.
+          tr: Hiçbir kod kullanmadığı metotlara bağımlı olmaya zorlanmamalı; bu yüzden tek büyük arayüz yerine birkaç küçük arayüz tercih et.
+        lang: text
+        form: "Readable, Writable instead of one Storage with 15 methods"
+        example: |
+          bad   interface Machine { print(); scan(); fax() }
+          good  interface Printer { print() }
+                interface Scanner { scan() }
+        source: https://en.wikipedia.org/wiki/Interface_segregation_principle
+      - id: isp-bad
+        level: intermediate
+        title: { en: "ISP: bad", tr: "ISP: kötü" }
+        what:
+          en: A simple printer has to implement scan and fax only to throw errors, and its users see methods that do not work.
+          tr: Basit bir yazıcı sırf hata fırlatmak için scan ve fax'ı uygulamak zorunda kalır; kullanan taraf çalışmayan metotlar görür.
+        lang: ts
+        form: "interface Machine { print(); scan(); fax() }"
+        example: |
+          interface Machine { print(doc: string): string; scan(): string; fax(to: string): string }
+
+          class BasicPrinter implements Machine {
+            print(doc: string) { return `printed ${doc}`; }
+            scan(): string { throw new Error("cannot scan"); }
+            fax(): string { throw new Error("cannot fax"); }
+          }
+
+          const m: Machine = new BasicPrinter();
+          try { m.scan(); } catch (e) { console.log((e as Error).message); }
+        output: |
+          cannot scan
+        check: ts
+        source: https://en.wikipedia.org/wiki/Interface_segregation_principle
+      - id: isp-good
+        level: intermediate
+        title: { en: "ISP: good", tr: "ISP: iyi" }
+        what:
+          en: Small interfaces let each class promise only what it can do, and a function asks only for what it needs.
+          tr: Küçük arayüzler her sınıfın sadece yapabildiğini vaat etmesini, bir fonksiyonun da sadece ihtiyacını istemesini sağlar.
+        lang: ts
+        form: "interface Printer { print(doc): string }"
+        example: |
+          interface Printer { print(doc: string): string }
+          interface Scanner { scan(): string }
+
+          class BasicPrinter implements Printer { print(doc: string) { return `printed ${doc}`; } }
+          class OfficeMachine implements Printer, Scanner {
+            print(doc: string) { return `printed ${doc}`; }
+            scan() { return "scanned"; }
+          }
+
+          const printAll = (p: Printer, docs: string[]) => docs.map((d) => p.print(d));
+          console.log(printAll(new BasicPrinter(), ["a"]), new OfficeMachine().scan());
+        output: |
+          [ "printed a" ] scanned
+        check: ts
+        source: https://en.wikipedia.org/wiki/Interface_segregation_principle
+  - id: dip
+    title: { en: D - Dependency inversion, tr: D - Bağımlılığın tersine çevrilmesi }
+    items:
+      - id: dip
+        level: basic
+        title: { en: Dependency inversion principle, tr: Bağımlılığı tersine çevirme ilkesi }
+        what:
+          en: Business code should depend on an interface it owns, not on a concrete database or API; the details implement that interface.
+          tr: İş kodu somut bir veritabanına ya da API'ye değil, kendi tanımladığı bir arayüze bağımlı olmalı; detaylar o arayüzü uygular.
+        lang: text
+        form: high level -> interface <- low level
+        example: |
+          bad   OrderService -> PostgresClient
+          good  OrderService -> OrderRepo (interface)
+                PostgresOrderRepo implements OrderRepo
+        source: https://en.wikipedia.org/wiki/Dependency_inversion_principle
+      - id: dip-bad
+        level: basic
+        title: { en: "DIP: bad", tr: "DIP: kötü" }
+        what:
+          en: The service creates its own mailer, so tests send real email and switching provider means editing the service.
+          tr: Servis kendi mail göndericisini oluşturur; testler gerçek e-posta gönderir ve sağlayıcı değiştirmek servisi düzenlemek demektir.
+        lang: ts
+        form: "class Service { private mailer = new SmtpMailer() }"
+        example: |
+          class SmtpMailer { send(to: string) { return `SMTP mail to ${to}`; } }
+
+          class SignupService {
+            private mailer = new SmtpMailer(); // hard-wired detail
+            signup(email: string) { return this.mailer.send(email); }
+          }
+
+          console.log(new SignupService().signup("ada@example.com"));
+        output: |
+          SMTP mail to ada@example.com
+        check: ts
+        source: https://en.wikipedia.org/wiki/Dependency_inversion_principle
+      - id: dip-good
+        level: basic
+        title: { en: "DIP: good", tr: "DIP: iyi" }
+        what:
+          en: The service asks for any Mailer; production passes SMTP, tests pass a fake that just records.
+          tr: Servis herhangi bir Mailer ister; production SMTP'yi verir, testler sadece kayıt tutan sahte bir tane verir.
+        lang: ts
+        form: "constructor(private mailer: Mailer) {}"
+        example: |
+          interface Mailer { send(to: string): string }
+
+          class SignupService {
+            constructor(private mailer: Mailer) {}
+            signup(email: string) { return this.mailer.send(email); }
+          }
+
+          const sent: string[] = [];
+          const fakeMailer: Mailer = { send: (to) => { sent.push(to); return "ok"; } };
+          new SignupService(fakeMailer).signup("ada@example.com");
+          console.log(sent);
+        output: |
+          [ "ada@example.com" ]
+        check: ts
+        avoid:
+          en: Do not wrap every library in your own interface; do it for things you really swap or fake (database, email, payments, clock).
+          tr: Her kütüphaneyi kendi arayüzünle sarma; bunu gerçekten değiştirdiğin ya da taklit ettiğin şeyler için yap (veritabanı, e-posta, ödeme, saat).
+        source: https://en.wikipedia.org/wiki/Dependency_inversion_principle
+      - id: dip-vs-di
+        level: intermediate
+        title: { en: Inversion is not injection, tr: Inversion, injection değildir }
+        what:
+          en: Dependency inversion is about which way the dependency points; dependency injection is one way to hand the dependency in.
+          tr: Dependency inversion bağımlılığın hangi yöne baktığıyla ilgilidir; dependency injection ise bağımlılığı içeri vermenin bir yoludur.
+        lang: text
+        form: "DIP = design rule, DI = technique, IoC container = tool"
+        example: |
+          DIP   the interface belongs to the business layer
+          DI    pass the implementation in (constructor, argument)
+          tool  a DI container wires it up for you (optional)
+        source: https://martinfowler.com/articles/injection.html
+  - id: related
+    title: { en: Related rules, tr: İlgili kurallar }
+    items:
+      - id: dry
+        level: basic
+        title: { en: "DRY: don't repeat yourself", tr: "DRY: kendini tekrar etme" }
+        what:
+          en: Every piece of knowledge (a rule, a formula) should live in one place, so a change happens once.
+          tr: Her bilgi parçası (bir kural, bir formül) tek bir yerde durmalı; değişiklik bir kez yapılır.
+        lang: ts
+        form: "one function for one rule"
+        example: |
+          const VAT = 0.2;
+          const withVat = (cents: number) => Math.round(cents * (1 + VAT));
+          console.log(withVat(1000), withVat(250));
+        output: |
+          1200 300
+        check: ts
+        mistake:
+          en: Merging code that only looks the same but changes for different reasons; that couples two features by accident.
+          tr: Sadece benzer görünen ama farklı sebeplerle değişen kodları birleştirmek; iki özelliği kazara birbirine bağlar.
+        source: https://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+      - id: kiss
+        level: basic
+        title: { en: "KISS: keep it simple", tr: "KISS: basit tut" }
+        what:
+          en: Prefer the simplest code that solves today's problem; simple code has fewer bugs and is easier to change.
+          tr: Bugünkü sorunu çözen en basit kodu tercih et; basit kodda daha az bug olur ve değiştirmesi daha kolaydır.
+        lang: text
+        form: fewer moving parts
+        example: |
+          need: read a setting
+          too much   ConfigProviderFactory + ConfigSource interface + loader class
+          enough     const port = Number(process.env.PORT ?? 3000)
+        source: https://en.wikipedia.org/wiki/KISS_principle
+      - id: yagni
+        level: intermediate
+        title: { en: "YAGNI: you aren't gonna need it", tr: "YAGNI: ona ihtiyacın olmayacak" }
+        what:
+          en: Do not build features or extension points for a future that may never come; build them when they are needed.
+          tr: Hiç gelmeyebilecek bir gelecek için özellik ya da genişletme noktası kurma; ihtiyaç olduğunda kur.
+        lang: text
+        form: build for today's requirement
+        example: |
+          "we might support 5 databases later"  -> write for the one you use
+          "maybe plugins one day"               -> no plugin system yet
+        mistake:
+          en: Using SOLID as a reason to add interfaces with one implementation everywhere; YAGNI says wait.
+          tr: SOLID'i her yere tek uygulaması olan arayüzler eklemek için bahane etmek; YAGNI beklemeyi söyler.
+        source: https://martinfowler.com/bliki/Yagni.html
+      - id: law-of-demeter
+        level: advanced
+        title: { en: Law of Demeter, tr: Demeter yasası }
+        what:
+          en: A method should talk only to its close friends (its own fields and arguments), not reach through chains like a.b().c().d().
+          tr: Bir metot sadece yakın arkadaşlarıyla (kendi alanları ve argümanları) konuşmalı, a.b().c().d() gibi zincirlerle derinlere uzanmamalı.
+        lang: ts
+        form: order.customerCity() instead of order.customer.address.city
+        example: |
+          class Order {
+            constructor(private customer: { address: { city: string } }) {}
+            shippingCity() { return this.customer.address.city; } // one place knows the shape
+          }
+
+          console.log(new Order({ address: { city: "Izmir" } }).shippingCity());
+        output: |
+          Izmir
+        check: ts
+        avoid:
+          en: It does not apply to fluent APIs or plain data (query builders, config objects); chaining there is fine.
+          tr: Akıcı API'lere ya da düz veriye (query builder'lar, config nesneleri) uygulanmaz; oralarda zincirleme sorun değildir.
+        source: https://en.wikipedia.org/wiki/Law_of_Demeter
+      - id: tell-dont-ask
+        level: advanced
+        title: { en: Tell, don't ask, tr: Sorma, söyle }
+        what:
+          en: Tell an object what to do instead of asking for its data and deciding outside; the rule stays next to the data.
+          tr: Bir nesnenin verisini isteyip kararı dışarıda vermek yerine ona ne yapacağını söyle; kural verinin yanında kalır.
+        lang: ts
+        form: account.withdraw(50) instead of if (account.balance >= 50) account.balance -= 50
+        example: |
+          class Account {
+            constructor(private balance: number) {}
+            withdraw(cents: number) {
+              if (cents > this.balance) return "insufficient funds";
+              this.balance -= cents;
+              return `left ${this.balance}`;
+            }
+          }
+
+          const acc = new Account(100);
+          console.log(acc.withdraw(30), "|", acc.withdraw(500));
+        output: |
+          left 70 | insufficient funds
+        check: ts
+        source: https://martinfowler.com/bliki/TellDontAsk.html
+      - id: solid-today
+        level: advanced
+        title: { en: SOLID in functional and modern code, tr: Fonksiyonel ve modern kodda SOLID }
+        what:
+          en: The ideas apply to modules and functions too, not only classes; a function parameter is often the abstraction DIP and OCP ask for.
+          tr: Bu fikirler sadece sınıflara değil, modüllere ve fonksiyonlara da uygulanır; bir fonksiyon parametresi çoğu zaman DIP ve OCP'nin istediği soyutlamadır.
+        lang: ts
+        form: "function run(save: (x) => void) {}   // depends on a shape, not a class"
+        example: |
+          type Save = (row: string) => void;
+          const importCsv = (text: string, save: Save) => text.split("\n").forEach(save);
+
+          const rows: string[] = [];
+          importCsv("a,1\nb,2", (r) => rows.push(r));
+          console.log(rows.length);
+        output: |
+          2
+        check: ts
+        source: https://blog.cleancoder.com/uncle-bob/2020/10/18/Solid-Relevance.html

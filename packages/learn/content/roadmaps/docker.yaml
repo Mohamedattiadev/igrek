@@ -1,0 +1,1533 @@
+id: docker
+title: Docker
+summary:
+  en: "Take a small web app and its database and put them in containers: build an image, run both with Docker Compose, scan the image, push it to a free registry and run it on a server."
+  tr: "Küçük bir web uygulamasını ve veritabanını container'lara koy: image oluştur, ikisini Docker Compose ile çalıştır, image'ı tara, ücretsiz bir registry'ye gönder ve bir sunucuda çalıştır."
+teacher: devops
+project:
+  en: 'Notes API: a tiny Node.js API that stores notes in PostgreSQL, packed as a small non-root image, run with Docker Compose (database, volume, healthchecks, secrets in an env file), scanned with Trivy, pushed to GitHub Container Registry and deployed on a VPS.'
+  tr: 'Notes API: notları PostgreSQL''de saklayan küçük bir Node.js API''si; küçük ve root olmayan bir image olarak paketlenir, Docker Compose ile çalışır (veritabanı, volume, healthcheck, sırlar bir env dosyasında), Trivy ile taranır, GitHub Container Registry''ye gönderilir ve bir VPS''te yayına alınır.'
+detect:
+  files: [Dockerfile, compose.yaml, compose.yml, docker-compose.yml, docker-compose.yaml]
+version: "29.9"
+latest: eol:docker-engine
+checked: 2026-10
+after: [linux-server]
+sheets: [docker, postgresql, ssh, linux]
+steps:
+  - id: install
+    stage: setup
+    title:
+      en: "Install Docker and run your first container"
+      tr: "Docker'ı kurma ve ilk container'ı çalıştırma"
+    minutes: 30
+    why:
+      en: "A container is a running copy of an image: your app plus everything it needs (runtime, libraries, settings) in one package. It runs the same on your laptop and on a server, so \"it works on my machine\" stops being a problem."
+      tr: "Container, bir image'ın çalışan kopyasıdır. Image ise uygulamanı ve ihtiyacı olan her şeyi (çalışma ortamı, kütüphaneler, ayarlar) tek pakette toplar. Laptopunda ve sunucuda aynı çalışır; böylece \"bende çalışıyordu\" sorunu biter."
+    learn:
+      en: |
+        - Image, container, registry: what each word means
+        - Docker Desktop (Windows, macOS) versus Docker Engine (Linux)
+        - That `docker compose` (with a space) is built in; the old `docker-compose` is gone
+      tr: |
+        - Image, container, registry: her kelimenin ne demek olduğu
+        - Docker Desktop (Windows, macOS) ile Docker Engine (Linux) farkı
+        - `docker compose` komutunun (boşluklu) Docker ile geldiği; eski `docker-compose`'un artık kullanılmadığı
+    do:
+      en: |
+        1. Install Docker. On Windows and macOS install **Docker Desktop** from docs.docker.com/get-started/get-docker/. On Linux install **Docker Engine** by following docs.docker.com/engine/install/ for your distribution.
+        2. On Linux, run `sudo usermod -aG docker $USER`, then log out and log in again, so you can run `docker` without `sudo`.
+        3. Open a terminal and run the commands below. The first two print versions.
+        4. `docker run hello-world` downloads a tiny image from Docker Hub and runs it. If you see "Hello from Docker!", everything works.
+        5. Try a real server: run `docker run -d --name web -p 8080:80 nginx:alpine`, open http://localhost:8080, then clean up with `docker rm -f web`.
+      tr: |
+        1. Docker'ı kur. Windows ve macOS'ta docs.docker.com/get-started/get-docker/ adresinden **Docker Desktop**'ı kur. Linux'ta dağıtımın için docs.docker.com/engine/install/ sayfasındaki adımlarla **Docker Engine**'i kur.
+        2. Linux'ta `sudo usermod -aG docker $USER` çalıştır, sonra oturumu kapatıp yeniden aç; böylece `docker`'ı `sudo` olmadan çalıştırabilirsin.
+        3. Bir terminal aç ve aşağıdaki komutları çalıştır. İlk ikisi sürüm yazar.
+        4. `docker run hello-world`, Docker Hub'dan küçük bir image indirip çalıştırır. "Hello from Docker!" görürsen her şey çalışıyor demektir.
+        5. Gerçek bir sunucu dene: `docker run -d --name web -p 8080:80 nginx:alpine` çalıştır, http://localhost:8080 adresini aç, sonra `docker rm -f web` ile temizle.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker --version
+          docker compose version
+          docker run hello-world
+          docker run -d --name web -p 8080:80 nginx:alpine
+          docker rm -f web
+    mistakes:
+      - problem:
+          en: "\"permission denied while trying to connect to the Docker daemon socket\" on Linux."
+          tr: "Linux'ta \"permission denied while trying to connect to the Docker daemon socket\" hatası."
+        fix:
+          en: "Your user is not in the docker group. Run sudo usermod -aG docker $USER and log in again. Be aware that this group is as powerful as root on that machine."
+          tr: "Kullanıcın docker grubunda değil. sudo usermod -aG docker $USER çalıştır ve oturumu yeniden aç. Bu grubun o makinede root kadar yetkili olduğunu unutma."
+      - problem:
+          en: "\"Cannot connect to the Docker daemon\" on Windows or macOS."
+          tr: "Windows ya da macOS'ta \"Cannot connect to the Docker daemon\" hatası."
+        fix:
+          en: "Docker Desktop is not running. Start it and wait until it says it is running, then try again."
+          tr: "Docker Desktop çalışmıyor. Onu başlat, çalıştığını yazana kadar bekle ve tekrar dene."
+    quiz:
+      - q:
+          en: "What is the difference between an image and a container?"
+          tr: "Image ile container arasındaki fark nedir?"
+        options:
+          en:
+            - "An image is the packaged recipe; a container is a running copy of it"
+            - "A container is the file on disk; an image is the running program"
+            - "They are two names for the same thing"
+          tr:
+            - "Image paketlenmiş tariftir; container onun çalışan bir kopyasıdır"
+            - "Container diskteki dosyadır; image çalışan programdır"
+            - "İkisi aynı şeyin iki adıdır"
+        answer: 0
+        why:
+          en: "You build an image once and can start many containers from it, like many running copies of one program."
+          tr: "Image'ı bir kez oluşturursun ve ondan birçok container başlatabilirsin; tek bir programın birçok çalışan kopyası gibi."
+    sources:
+      - title: Get Docker
+        url: https://docs.docker.com/get-started/get-docker/
+      - title: Install Docker Engine
+        url: https://docs.docker.com/engine/install/
+      - title: Linux post-installation steps
+        url: https://docs.docker.com/engine/install/linux-postinstall/
+
+  - id: app
+    stage: first-code
+    title:
+      en: "Get the app and write its first Dockerfile"
+      tr: "Uygulamayı al ve ilk Dockerfile'ı yaz"
+    minutes: 45
+    needs: [install]
+    why:
+      en: "A Dockerfile is a list of steps that builds an image. Writing the first one for an app that already exists is the core skill of Docker: start from a base image, copy your files, install packages, say how to start."
+      tr: "Dockerfile, bir image'ı oluşturan adımların listesidir. Var olan bir uygulama için ilk Dockerfile'ı yazmak Docker'ın temel becerisidir: bir temel image'dan başla, dosyalarını kopyala, paketleri kur, nasıl başlayacağını söyle."
+    learn:
+      en: |
+        - What the app does: `GET /health`, `GET /notes` and `POST /notes` on port 3000, with PostgreSQL behind it
+        - `FROM`, `WORKDIR`, `COPY`, `RUN`, `EXPOSE` and `CMD`
+        - Why the app reads its settings from environment variables, not from the code
+        - `-p 3000:3000` connects a port of your machine to a port inside the container
+      tr: |
+        - Uygulamanın ne yaptığı: 3000 portunda `GET /health`, `GET /notes` ve `POST /notes`; arkasında PostgreSQL
+        - `FROM`, `WORKDIR`, `COPY`, `RUN`, `EXPOSE` ve `CMD`
+        - Uygulamanın ayarlarını koddan değil ortam değişkenlerinden neden okuduğu
+        - `-p 3000:3000`, makinenin bir portunu container içindeki bir porta bağlar
+    do:
+      en: |
+        1. Create a folder `notes-api` and put the four files below in it (`package.json`, `src/validate.js`, `src/server.js`, `test/validate.test.js`). This is our "existing app": plain Node.js with one dependency, `pg`.
+        2. Create the lockfile once. If you have Node.js installed, run `npm install` in the folder. The lockfile `package-lock.json` pins exact versions so every build installs the same packages.
+        3. Create `Dockerfile` with the last file below. Read it line by line: it starts from `node:24-alpine` (Node.js 24 on the small Alpine Linux), installs only the production packages and starts the server.
+        4. Build the image and run it. There is no database yet, so only `/health` works. That is fine for now.
+        5. Open http://localhost:3000/health or run the `curl` lines. `/notes` answers `503 database unavailable`: the container works, it just has no database.
+        6. Stop the container with `docker rm -f notes`.
+      tr: |
+        1. `notes-api` adında bir klasör oluştur ve aşağıdaki dört dosyayı içine koy (`package.json`, `src/validate.js`, `src/server.js`, `test/validate.test.js`). Bu bizim "var olan uygulamamız": tek bağımlılığı `pg` olan düz Node.js.
+        2. Lockfile'ı bir kez oluştur. Node.js kuruluysa klasörde `npm install` çalıştır. `package-lock.json` tam sürümleri sabitler; böylece her build aynı paketleri kurar.
+        3. Aşağıdaki son dosyayla `Dockerfile` oluştur. Satır satır oku: `node:24-alpine` ile başlar (küçük Alpine Linux üzerinde Node.js 24), sadece production paketlerini kurar ve sunucuyu başlatır.
+        4. Image'ı oluştur ve çalıştır. Henüz veritabanı yok, o yüzden sadece `/health` çalışır. Şimdilik sorun değil.
+        5. http://localhost:3000/health adresini aç ya da `curl` satırlarını çalıştır. `/notes` `503 database unavailable` döner: container çalışıyor, sadece veritabanı yok.
+        6. Container'ı `docker rm -f notes` ile durdur.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "notes-api",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "start": "node src/server.js",
+              "test": "node --test"
+            },
+            "dependencies": {
+              "pg": "^8.23.1"
+            }
+          }
+      - file: src/validate.js
+        lang: js
+        text: |
+          // Checks the JSON body of POST /notes and returns the clean text.
+          export function parseNote(body) {
+            const text = typeof body?.text === "string" ? body.text.trim() : "";
+            if (text === "") throw new Error("text is required");
+            if (text.length > 500) throw new Error("text is too long (500 characters at most)");
+            return text;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import http from "node:http";
+          import pg from "pg";
+          import { parseNote } from "./validate.js";
+
+          const port = Number(process.env.PORT ?? 3000);
+
+          // The connection settings come from the environment, never from the code.
+          const pool = new pg.Pool({
+            host: process.env.DB_HOST ?? "db",
+            user: process.env.POSTGRES_USER ?? "notes",
+            password: process.env.POSTGRES_PASSWORD,
+            database: process.env.POSTGRES_DB ?? "notes",
+          });
+
+          // Create the table the first time we can reach the database.
+          let schema;
+          function ensureSchema() {
+            schema ??= pool
+              .query(
+                `CREATE TABLE IF NOT EXISTS notes (
+                   id serial PRIMARY KEY,
+                   text text NOT NULL,
+                   created_at timestamptz NOT NULL DEFAULT now()
+                 )`,
+              )
+              .catch((err) => {
+                schema = undefined; // try again on the next request
+                throw err;
+              });
+            return schema;
+          }
+
+          function send(res, status, data) {
+            res.writeHead(status, { "content-type": "application/json" });
+            res.end(JSON.stringify(data));
+          }
+
+          async function readJson(req) {
+            let raw = "";
+            for await (const chunk of req) raw += chunk;
+            try {
+              return JSON.parse(raw);
+            } catch {
+              throw new Error("body must be JSON");
+            }
+          }
+
+          const server = http.createServer(async (req, res) => {
+            try {
+              if (req.method === "GET" && req.url === "/health") {
+                return send(res, 200, { status: "ok" });
+              }
+              if (req.url === "/notes") {
+                await ensureSchema();
+                if (req.method === "GET") {
+                  const { rows } = await pool.query("SELECT id, text, created_at FROM notes ORDER BY id");
+                  return send(res, 200, rows);
+                }
+                if (req.method === "POST") {
+                  let text;
+                  try {
+                    text = parseNote(await readJson(req));
+                  } catch (err) {
+                    return send(res, 400, { error: err.message });
+                  }
+                  const { rows } = await pool.query(
+                    "INSERT INTO notes (text) VALUES ($1) RETURNING id, text, created_at",
+                    [text],
+                  );
+                  return send(res, 201, rows[0]);
+                }
+              }
+              send(res, 404, { error: "not found" });
+            } catch (err) {
+              console.error(err.message);
+              send(res, 503, { error: "database unavailable" });
+            }
+          });
+
+          server.listen(port, "0.0.0.0", () => console.log(`notes-api listening on ${port}`));
+
+          // Docker stops a container with SIGTERM: finish the open requests, then exit.
+          process.on("SIGTERM", () => {
+            console.log("shutting down");
+            server.close(async () => {
+              await pool.end();
+              process.exit(0);
+            });
+          });
+      - file: test/validate.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { parseNote } from "../src/validate.js";
+
+          test("trims the text", () => {
+            assert.equal(parseNote({ text: "  buy milk " }), "buy milk");
+          });
+
+          test("rejects an empty text", () => {
+            assert.throws(() => parseNote({ text: "   " }), /required/);
+            assert.throws(() => parseNote({}), /required/);
+          });
+
+          test("rejects a very long text", () => {
+            assert.throws(() => parseNote({ text: "x".repeat(501) }), /too long/);
+          });
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          FROM node:24-alpine
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci --omit=dev
+          COPY . .
+          EXPOSE 3000
+          CMD ["node", "src/server.js"]
+      - file: terminal
+        lang: sh
+        text: |
+          npm install
+          docker build -t notes-api:1.0 .
+          docker run -d --name notes -p 3000:3000 notes-api:1.0
+          curl http://localhost:3000/health
+          curl -i http://localhost:3000/notes
+          docker rm -f notes
+    mistakes:
+      - problem:
+          en: "\"npm ci can only install with an existing package-lock.json\" during the build."
+          tr: "Build sırasında \"npm ci can only install with an existing package-lock.json\" hatası."
+        fix:
+          en: "Run npm install once in the folder so package-lock.json exists, and make sure it is not listed in .dockerignore."
+          tr: "Klasörde bir kez npm install çalıştır ki package-lock.json oluşsun ve .dockerignore içinde yazmadığından emin ol."
+      - problem:
+          en: "The app runs in the container but http://localhost:3000 does not open."
+          tr: "Uygulama container'da çalışıyor ama http://localhost:3000 açılmıyor."
+        fix:
+          en: "You forgot -p 3000:3000, or the app listens on 127.0.0.1 inside the container. Here the server listens on 0.0.0.0, which means every network interface, so the published port can reach it."
+          tr: "-p 3000:3000'i unuttun ya da uygulama container içinde 127.0.0.1'de dinliyor. Burada sunucu 0.0.0.0'da, yani bütün ağ arayüzlerinde dinliyor; bu yüzden yayınlanan port ona ulaşabilir."
+      - problem:
+          en: "\"port is already allocated\" when you run the container."
+          tr: "Container'ı çalıştırırken \"port is already allocated\" hatası."
+        fix:
+          en: "Another program or container uses port 3000. Stop it, or publish a different host port, for example -p 3100:3000."
+          tr: "Başka bir program ya da container 3000 portunu kullanıyor. Onu durdur ya da farklı bir host portu yayınla; örneğin -p 3100:3000."
+    quiz:
+      - q:
+          en: "In -p 3100:3000, which number is the port inside the container?"
+          tr: "-p 3100:3000 içinde container'ın içindeki port hangi sayıdır?"
+        options:
+          en: ["3100", "3000", "Both"]
+          tr: ["3100", "3000", "İkisi de"]
+        answer: 1
+        why:
+          en: "The format is host-port:container-port. You open localhost:3100 and Docker forwards it to port 3000 in the container."
+          tr: "Biçim host-port:container-port şeklindedir. localhost:3100'ü açarsın ve Docker onu container'daki 3000 portuna yönlendirir."
+    sources:
+      - title: Dockerfile reference
+        url: https://docs.docker.com/reference/dockerfile/
+      - title: Docker build overview
+        url: https://docs.docker.com/build/concepts/overview/
+      - title: docker container run
+        url: https://docs.docker.com/reference/cli/docker/container/run/
+
+  - id: commands
+    stage: basics
+    title:
+      en: "List, read, enter and stop containers"
+      tr: "Container'ları listeleme, okuma, içine girme ve durdurma"
+    minutes: 30
+    needs: [app]
+    why:
+      en: "Once the app runs in a container you cannot just look at a terminal window any more. These few commands are how you see what a container is doing and why it broke."
+      tr: "Uygulama bir container'da çalışmaya başlayınca artık bir terminal penceresine bakamazsın. Bu birkaç komut, bir container'ın ne yaptığını ve neden bozulduğunu görme yolundur."
+    learn:
+      en: |
+        - `docker ps` and `docker ps -a`: running and stopped containers
+        - `docker logs`: what the app wrote to stdout and stderr
+        - `docker exec`: run a command inside a running container
+        - `docker stop` sends SIGTERM first; the app should shut down cleanly
+      tr: |
+        - `docker ps` ve `docker ps -a`: çalışan ve durmuş container'lar
+        - `docker logs`: uygulamanın stdout ve stderr'e yazdıkları
+        - `docker exec`: çalışan bir container'ın içinde komut çalıştırmak
+        - `docker stop` önce SIGTERM gönderir; uygulama düzgünce kapanmalı
+    do:
+      en: |
+        1. Start the container again and list it with `docker ps`.
+        2. Read its output with `docker logs notes`. You see `notes-api listening on 3000` and, after the `/notes` request, the database error. The app writes logs to the terminal, not to a file, which is exactly what `docker logs` shows.
+        3. Run `docker exec notes id`. It prints the user inside the container. Right now it is `uid=0(root)`. We will fix that in the security step.
+        4. Run `docker exec -it notes sh` for a shell inside, look around with `ls`, then type `exit`.
+        5. Run `docker stop notes`, then `docker logs notes`: the last line is `shutting down`, because the server catches SIGTERM. Check `docker ps -a` and see the stopped container, then remove it with `docker rm notes`.
+      tr: |
+        1. Container'ı tekrar başlat ve `docker ps` ile listele.
+        2. Çıktısını `docker logs notes` ile oku. `notes-api listening on 3000` satırını ve `/notes` isteğinden sonra veritabanı hatasını görürsün. Uygulama logları dosyaya değil terminale yazar; `docker logs` tam olarak onu gösterir.
+        3. `docker exec notes id` çalıştır. Container içindeki kullanıcıyı yazar. Şu an `uid=0(root)`. Bunu güvenlik adımında düzelteceğiz.
+        4. İçeride shell için `docker exec -it notes sh` çalıştır, `ls` ile etrafa bak, sonra `exit` yaz.
+        5. `docker stop notes` çalıştır, sonra `docker logs notes`: son satır `shutting down`, çünkü sunucu SIGTERM'i yakalıyor. `docker ps -a` ile durmuş container'ı gör, sonra `docker rm notes` ile sil.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker run -d --name notes -p 3000:3000 notes-api:1.0
+          docker ps
+          curl -s http://localhost:3000/notes
+          docker logs notes
+          docker exec notes id
+          docker exec -it notes sh
+          docker stop notes
+          docker logs --tail 2 notes
+          docker ps -a
+          docker rm notes
+    mistakes:
+      - problem:
+          en: "\"The container name /notes is already in use\"."
+          tr: "\"The container name /notes is already in use\" hatası."
+        fix:
+          en: "A stopped container with that name still exists. Remove it with docker rm notes, or use docker run --rm so it is removed when it exits."
+          tr: "Bu adda durmuş bir container hâlâ duruyor. docker rm notes ile sil ya da docker run --rm kullan; çıkınca kendiliğinden silinir."
+      - problem:
+          en: "Editing a file inside the container with docker exec to fix a bug."
+          tr: "Bir hatayı düzeltmek için docker exec ile container içindeki dosyayı düzenlemek."
+        fix:
+          en: "The change is lost when the container is recreated. Change the code, rebuild the image and start a new container."
+          tr: "Container yeniden oluşturulunca değişiklik kaybolur. Kodu değiştir, image'ı yeniden oluştur ve yeni container başlat."
+    quiz:
+      - q:
+          en: "Where does docker logs read from?"
+          tr: "docker logs nereden okur?"
+        options:
+          en:
+            - "The app's stdout and stderr"
+            - "Any .log file inside the container"
+            - "The Dockerfile"
+          tr:
+            - "Uygulamanın stdout ve stderr çıktısından"
+            - "Container içindeki herhangi bir .log dosyasından"
+            - "Dockerfile'dan"
+        answer: 0
+        why:
+          en: "Docker captures what the main process prints. Files inside the container are not shown, so log to the console."
+          tr: "Docker ana sürecin yazdıklarını yakalar. Container içindeki dosyalar gösterilmez; bu yüzden konsola log yaz."
+    sources:
+      - title: docker container logs
+        url: https://docs.docker.com/reference/cli/docker/container/logs/
+      - title: docker container exec
+        url: https://docs.docker.com/reference/cli/docker/container/exec/
+      - title: docker container stop
+        url: https://docs.docker.com/reference/cli/docker/container/stop/
+
+  - id: cache
+    stage: basics
+    title:
+      en: "Keep files out of the build and use the layer cache"
+      tr: "Dosyaları build dışında tutma ve katman cache'ini kullanma"
+    minutes: 30
+    needs: [commands]
+    why:
+      en: "Every Dockerfile instruction makes a layer. Docker reuses a layer when nothing before it changed, so a good order makes rebuilds take seconds. A .dockerignore keeps junk and secrets out of the image."
+      tr: "Her Dockerfile komutu bir katman oluşturur. Docker, öncesinde hiçbir şey değişmediyse katmanı tekrar kullanır; iyi bir sıralama rebuild'i saniyelere indirir. .dockerignore ise gereksiz dosyaları ve sırları image dışında tutar."
+    learn:
+      en: |
+        - The build context: the folder Docker sends to the build
+        - `.dockerignore`: files `COPY` must never see (`node_modules`, `.git`, `.env`)
+        - Cache order: copy the lockfile and install first, copy the code last
+        - How to tell a cached step: `CACHED` in the build output
+      tr: |
+        - Build context: Docker'ın build'e gönderdiği klasör
+        - `.dockerignore`: `COPY`'nin asla görmemesi gereken dosyalar (`node_modules`, `.git`, `.env`)
+        - Cache sırası: önce lockfile'ı kopyalayıp kur, kodu en son kopyala
+        - Cache'ten gelen adımı anlamak: build çıktısındaki `CACHED`
+    do:
+      en: |
+        1. Create `.dockerignore` next to the `Dockerfile` with the file below. Without it `COPY . .` would copy your local `node_modules` (built for your own system) and, later, your `.env` file into the image.
+        2. Rebuild with `docker build -t notes-api:1.0 .`. The `npm ci` step says `CACHED` because `package.json` and the lockfile did not change.
+        3. Add a comment line to `src/server.js` and build again. Only the `COPY` step and the ones after it run; the package install stays cached. That is why the Dockerfile copies `package.json` first and the code last.
+        4. Add a dependency line to `package.json` by hand (for example change a version number) and build again: now `npm ci` runs again. Undo that change afterwards.
+      tr: |
+        1. `Dockerfile`'ın yanında aşağıdaki dosyayla `.dockerignore` oluştur. O olmazsa `COPY . .` kendi sistemin için kurulmuş yerel `node_modules`'unu ve ileride `.env` dosyanı image'a kopyalar.
+        2. `docker build -t notes-api:1.0 .` ile yeniden build al. `npm ci` adımında `CACHED` yazar, çünkü `package.json` ve lockfile değişmedi.
+        3. `src/server.js` dosyasına bir yorum satırı ekle ve tekrar build al. Sadece `COPY` adımı ve sonrakiler çalışır; paket kurulumu cache'te kalır. Dockerfile'ın önce `package.json`'ı, kodu en son kopyalamasının nedeni bu.
+        4. `package.json`'a elle bir değişiklik yap (örneğin bir sürüm numarasını değiştir) ve tekrar build al: bu sefer `npm ci` yeniden çalışır. Sonra değişikliği geri al.
+    code:
+      - file: .dockerignore
+        lang: text
+        text: |
+          node_modules
+          .git
+          .env
+          *.log
+          Dockerfile
+          compose*.yaml
+      - file: terminal
+        lang: sh
+        text: |
+          docker build -t notes-api:1.0 .
+          echo "// touched" >> src/server.js
+          docker build -t notes-api:1.0 .
+    mistakes:
+      - problem:
+          en: "Every build reinstalls all packages."
+          tr: "Her build bütün paketleri yeniden kuruyor."
+        fix:
+          en: "COPY . . comes before npm ci in the Dockerfile. Copy only package.json and the lockfile, run the install, and then copy the rest."
+          tr: "Dockerfile'da COPY . . komutu npm ci'dan önce geliyor. Önce sadece package.json ve lockfile'ı kopyala, kurulumu yap, sonra kalanını kopyala."
+      - problem:
+          en: "Putting .env in the image because there is no .dockerignore."
+          tr: ".dockerignore olmadığı için .env'yi image'ın içine koymak."
+        fix:
+          en: "List .env in .dockerignore. Anyone who can pull the image could read a file baked into it."
+          tr: ".env'yi .dockerignore'a yaz. Image'ı çekebilen herkes içine gömülmüş bir dosyayı okuyabilir."
+    quiz:
+      - q:
+          en: "You change one line of your code. Which build steps run again?"
+          tr: "Kodunda bir satırı değiştirdin. Hangi build adımları yeniden çalışır?"
+        options:
+          en:
+            - "All of them"
+            - "The COPY of the code and the steps after it"
+            - "Only the npm ci step"
+          tr:
+            - "Hepsi"
+            - "Kodun COPY adımı ve sonrakiler"
+            - "Sadece npm ci adımı"
+        answer: 1
+        why:
+          en: "A layer is rebuilt when it or anything before it changed. The install comes before the code copy, so it stays cached."
+          tr: "Bir katman, kendisi ya da öncesindeki bir şey değişince yeniden oluşur. Kurulum kod kopyalamadan önce olduğu için cache'te kalır."
+    sources:
+      - title: Build cache
+        url: https://docs.docker.com/build/cache/
+      - title: Optimize cache usage in builds
+        url: https://docs.docker.com/build/cache/optimize/
+      - title: Build context and .dockerignore
+        url: https://docs.docker.com/build/concepts/context/#dockerignore-files
+
+  - id: compose
+    stage: first-project
+    title:
+      en: "Run the app and PostgreSQL with Docker Compose"
+      tr: "Uygulamayı ve PostgreSQL'i Docker Compose ile çalıştırma"
+    minutes: 60
+    needs: [cache]
+    why:
+      en: "A real app is more than one container. Docker Compose describes all of them in one file (app, database, volume, network) and starts everything with one command, the same way on every machine."
+      tr: "Gerçek bir uygulama tek container'dan fazlasıdır. Docker Compose hepsini (uygulama, veritabanı, volume, network) tek bir dosyada anlatır ve tek komutla başlatır; her makinede aynı şekilde."
+    learn:
+      en: |
+        - A `compose.yaml` lists services; each service is one container
+        - Containers in the same Compose project reach each other by service name: the API connects to host `db`, not `localhost`
+        - A named volume keeps the database files when the container is removed
+        - `depends_on` with `condition: service_healthy` waits for the database healthcheck
+        - `env_file` reads settings from a file (next step explains why)
+      tr: |
+        - `compose.yaml` servisleri listeler; her servis bir container'dır
+        - Aynı Compose projesindeki container'lar birbirine servis adıyla ulaşır: API `localhost`'a değil `db` host'una bağlanır
+        - İsimli volume, container silinse bile veritabanı dosyalarını korur
+        - `condition: service_healthy` ile `depends_on`, veritabanının healthcheck'ini bekler
+        - `env_file` ayarları bir dosyadan okur (nedenini sonraki adım anlatır)
+    do:
+      en: |
+        1. Create `.env` next to the Dockerfile with the first file below. It holds the database name, user and password. Choose your own password.
+        2. Create `compose.yaml` with the second file below. It has two services, `api` (built from your Dockerfile) and `db` (the official `postgres:18-alpine` image), and one volume `pgdata`.
+        3. Start everything: `docker compose up -d --build`. Compose builds the image, creates a network, starts `db`, waits until `pg_isready` succeeds, and then starts `api`.
+        4. Check with `docker compose ps`. Both services should be running and `db` should say `healthy`.
+        5. Add a note and read it back with the `curl` lines. The first request creates the `notes` table by itself.
+        6. Look at the logs with `docker compose logs -f api` (press Ctrl+C to leave).
+      tr: |
+        1. Dockerfile'ın yanında aşağıdaki ilk dosyayla `.env` oluştur. Veritabanı adını, kullanıcısını ve parolasını tutar. Parolayı kendin seç.
+        2. Aşağıdaki ikinci dosyayla `compose.yaml` oluştur. İki servisi var: `api` (Dockerfile'ından build edilir) ve `db` (resmi `postgres:18-alpine` image'ı); ayrıca bir volume, `pgdata`.
+        3. Her şeyi başlat: `docker compose up -d --build`. Compose image'ı oluşturur, bir network kurar, `db`'yi başlatır, `pg_isready` başarılı olana kadar bekler ve sonra `api`'yi başlatır.
+        4. `docker compose ps` ile kontrol et. İki servis de çalışıyor olmalı ve `db` için `healthy` yazmalı.
+        5. `curl` satırlarıyla bir not ekle ve geri oku. İlk istek `notes` tablosunu kendiliğinden oluşturur.
+        6. Logları `docker compose logs -f api` ile izle (çıkmak için Ctrl+C).
+    code:
+      - file: .env
+        lang: text
+        text: |
+          POSTGRES_USER=notes
+          POSTGRES_PASSWORD=change-me-please
+          POSTGRES_DB=notes
+      - file: compose.yaml
+        lang: yaml
+        text: |
+          services:
+            api:
+              build: .
+              ports:
+                - "3000:3000"
+              env_file: .env
+              environment:
+                DB_HOST: db
+              depends_on:
+                db:
+                  condition: service_healthy
+
+            db:
+              image: postgres:18-alpine
+              env_file: .env
+              volumes:
+                - pgdata:/var/lib/postgresql
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+                interval: 5s
+                timeout: 3s
+                retries: 10
+
+          volumes:
+            pgdata:
+      - file: terminal
+        lang: sh
+        text: |
+          docker compose up -d --build
+          docker compose ps
+          curl -X POST http://localhost:3000/notes -H "content-type: application/json" -d '{"text":"hello docker"}'
+          curl http://localhost:3000/notes
+          curl -X POST http://localhost:3000/notes -H "content-type: application/json" -d '{"text":""}'
+          docker compose logs -f api
+    mistakes:
+      - problem:
+          en: "The API cannot reach the database (\"ENOTFOUND db\" or \"ECONNREFUSED 127.0.0.1\")."
+          tr: "API veritabanına ulaşamıyor (\"ENOTFOUND db\" ya da \"ECONNREFUSED 127.0.0.1\")."
+        fix:
+          en: "Inside a container localhost is the container itself. Use the service name as host (DB_HOST: db). ENOTFOUND db also appears when you run the API container alone with docker run, because there is no network with a db."
+          tr: "Container içinde localhost container'ın kendisidir. Host olarak servis adını kullan (DB_HOST: db). API container'ını tek başına docker run ile çalıştırırsan da ENOTFOUND db görürsün, çünkü db'li bir network yoktur."
+      - problem:
+          en: "The db container keeps restarting or exits with \"Database is uninitialized and superuser password is not specified\"."
+          tr: "db container'ı sürekli yeniden başlıyor ya da \"Database is uninitialized and superuser password is not specified\" ile çıkıyor."
+        fix:
+          en: "POSTGRES_PASSWORD is empty. Check that .env exists next to compose.yaml and that the line has no spaces around the equals sign."
+          tr: "POSTGRES_PASSWORD boş. .env'nin compose.yaml'ın yanında olduğunu ve satırda eşittirin etrafında boşluk olmadığını kontrol et."
+      - problem:
+          en: "Mounting the volume at /var/lib/postgresql/data like in older guides."
+          tr: "Volume'u eski rehberlerdeki gibi /var/lib/postgresql/data yoluna bağlamak."
+        fix:
+          en: "PostgreSQL 18 images keep their data in a version folder below /var/lib/postgresql, so mount the volume at /var/lib/postgresql, as in compose.yaml above."
+          tr: "PostgreSQL 18 image'ları verilerini /var/lib/postgresql altında sürüme özel bir klasörde tutar; bu yüzden volume'u yukarıdaki compose.yaml'daki gibi /var/lib/postgresql yoluna bağla."
+    quiz:
+      - q:
+          en: "Why does the API use DB_HOST: db?"
+          tr: "API neden DB_HOST: db kullanıyor?"
+        options:
+          en:
+            - "db is the service name, and Compose lets containers reach each other by it"
+            - "db is a command that finds the database"
+            - "localhost does not work on servers"
+          tr:
+            - "db servis adıdır ve Compose container'ların birbirine onunla ulaşmasını sağlar"
+            - "db, veritabanını bulan bir komuttur"
+            - "localhost sunucularda çalışmaz"
+        answer: 0
+        why:
+          en: "Compose puts the services on one network and registers each service name as a host name there."
+          tr: "Compose servisleri tek bir network'e koyar ve her servis adını orada bir host adı olarak kaydeder."
+    sources:
+      - title: Docker Compose overview
+        url: https://docs.docker.com/compose/
+      - title: Compose file, services
+        url: https://docs.docker.com/reference/compose-file/services/
+      - title: Control startup order in Compose
+        url: https://docs.docker.com/compose/how-tos/startup-order/
+
+  - id: volume
+    stage: data-api
+    title:
+      en: "Keep the data: volumes and the database"
+      tr: "Veriyi koruma: volume'lar ve veritabanı"
+    minutes: 30
+    needs: [compose]
+    why:
+      en: "A container's own files disappear when the container is removed. The note you saved must survive updates, so the database files live in a volume. You will prove it, and learn the one command that destroys it."
+      tr: "Bir container'ın kendi dosyaları container silinince kaybolur. Kaydettiğin notun güncellemelerden sağ çıkması gerekir; bu yüzden veritabanı dosyaları bir volume'da durur. Bunu kanıtlayacak ve onu yok eden tek komutu öğreneceksin."
+    learn:
+      en: |
+        - A named volume is managed by Docker and lives outside the container
+        - `docker compose down` removes containers and the network but keeps volumes
+        - `docker compose down -v` also deletes the volumes, so the data is gone
+        - `docker compose exec db psql` opens a SQL shell inside the database container
+      tr: |
+        - İsimli volume'u Docker yönetir ve container dışında durur
+        - `docker compose down` container'ları ve network'ü siler ama volume'ları korur
+        - `docker compose down -v` volume'ları da siler; veri gider
+        - `docker compose exec db psql`, veritabanı container'ında bir SQL shell açar
+    do:
+      en: |
+        1. With the stack running and one note saved, run `docker compose down`. The containers disappear.
+        2. Start again with `docker compose up -d` and read the notes: `curl http://localhost:3000/notes`. Your note is still there, because the `pgdata` volume was kept.
+        3. Open a SQL shell: `docker compose exec db psql -U notes -d notes`. Run `SELECT * FROM notes;` and then `\q` to leave.
+        4. List volumes with `docker volume ls`. The name starts with your folder name, for example `notes-api_pgdata`.
+        5. Only when you want a clean start: `docker compose down -v` deletes the volume too. Never run it on a server that holds real data without a backup.
+        6. To make a backup of the database, run the `pg_dump` line below. It writes a SQL file on your machine.
+      tr: |
+        1. Stack çalışırken ve bir not kayıtlıyken `docker compose down` çalıştır. Container'lar kaybolur.
+        2. `docker compose up -d` ile tekrar başlat ve notları oku: `curl http://localhost:3000/notes`. Notun hâlâ orada, çünkü `pgdata` volume'u korundu.
+        3. SQL shell aç: `docker compose exec db psql -U notes -d notes`. `SELECT * FROM notes;` çalıştır, çıkmak için `\q` yaz.
+        4. `docker volume ls` ile volume'ları listele. Ad, klasör adınla başlar; örneğin `notes-api_pgdata`.
+        5. Sadece temiz başlamak istediğinde: `docker compose down -v` volume'u da siler. Gerçek veri tutan bir sunucuda yedek almadan asla çalıştırma.
+        6. Veritabanının yedeğini almak için aşağıdaki `pg_dump` satırını çalıştır. Makinende bir SQL dosyası yazar.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker compose down
+          docker compose up -d
+          curl http://localhost:3000/notes
+          docker compose exec db psql -U notes -d notes -c "SELECT id, text FROM notes;"
+          docker volume ls
+          docker compose exec db pg_dump -U notes notes > backup.sql
+    mistakes:
+      - problem:
+          en: "Changing POSTGRES_PASSWORD in .env after the first start, and the database still wants the old password."
+          tr: "İlk başlatmadan sonra .env'de POSTGRES_PASSWORD'ü değiştirmek ve veritabanının hâlâ eski parolayı istemesi."
+        fix:
+          en: "The image only reads POSTGRES_PASSWORD when it creates an empty data folder. For a throwaway dev database run docker compose down -v and start again. For real data, change the password with ALTER USER inside psql."
+          tr: "Image POSTGRES_PASSWORD'ü sadece boş bir veri klasörü oluştururken okur. Atılabilir bir geliştirme veritabanı için docker compose down -v çalıştırıp yeniden başla. Gerçek veride parolayı psql içinde ALTER USER ile değiştir."
+      - problem:
+          en: "Running docker compose down -v to \"restart clean\" and losing the data."
+          tr: "\"Temiz başlamak\" için docker compose down -v çalıştırıp veriyi kaybetmek."
+        fix:
+          en: "To restart, use docker compose restart or docker compose up -d. Use -v only when you really want to delete the data."
+          tr: "Yeniden başlatmak için docker compose restart ya da docker compose up -d kullan. -v'yi sadece veriyi gerçekten silmek istediğinde kullan."
+    quiz:
+      - q:
+          en: "Which command keeps your database data?"
+          tr: "Hangi komut veritabanı verini korur?"
+        options:
+          en: ["docker compose down", "docker compose down -v", "docker volume prune"]
+          tr: ["docker compose down", "docker compose down -v", "docker volume prune"]
+        answer: 0
+        why:
+          en: "Plain down keeps named volumes. -v and volume prune delete volumes."
+          tr: "Düz down isimli volume'ları korur. -v ve volume prune volume'ları siler."
+    sources:
+      - title: Volumes
+        url: https://docs.docker.com/engine/storage/volumes/
+      - title: docker compose down
+        url: https://docs.docker.com/reference/cli/docker/compose/down/
+      - title: Compose file, volumes
+        url: https://docs.docker.com/reference/compose-file/volumes/
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test in a build stage and add healthchecks"
+      tr: "Testleri bir build aşamasında çalıştırma ve healthcheck ekleme"
+    minutes: 45
+    needs: [volume]
+    why:
+      en: "Two kinds of checking: tests that run when you build the image, and a healthcheck that Docker runs all the time on the running container. Together they catch a broken build before it ships and a stuck app after it ships."
+      tr: "İki tür kontrol var: image'ı oluştururken çalışan testler ve Docker'ın çalışan container üzerinde sürekli çalıştırdığı healthcheck. İkisi birlikte bozuk bir build'i yayından önce, takılmış bir uygulamayı yayından sonra yakalar."
+    learn:
+      en: |
+        - A multi-stage Dockerfile has several `FROM` lines; each starts a new stage
+        - `docker build --target test .` builds only up to the `test` stage and fails if the tests fail
+        - `HEALTHCHECK` runs a command; exit code 0 means healthy, 1 means unhealthy
+        - Use `127.0.0.1` in the check: `localhost` may resolve to IPv6 `::1`, where the app does not listen
+      tr: |
+        - Çok aşamalı Dockerfile'da birden çok `FROM` satırı olur; her biri yeni bir aşama başlatır
+        - `docker build --target test .` sadece `test` aşamasına kadar build alır ve testler başarısızsa hata verir
+        - `HEALTHCHECK` bir komut çalıştırır; çıkış kodu 0 healthy, 1 unhealthy demektir
+        - Kontrolde `127.0.0.1` kullan: `localhost` IPv6 `::1`'e çözülebilir ve uygulama orada dinlemez
+    do:
+      en: |
+        1. Replace the `Dockerfile` with the version below. It has three stages: `deps` installs production packages, `test` installs everything and runs `npm test`, and the last stage is the image you ship. The last stage does not depend on `test`, so a normal build skips it.
+        2. Run the tests with `docker build --target test --progress=plain .` and look for `pass 3` and `fail 0` in the output.
+        3. Break a test on purpose (for example change `"buy milk"` to `"buy bread"` in `test/validate.test.js`), run the same command and see the build fail. Undo the change.
+        4. Build the shipping image as `notes-api:1.1` and run `docker compose up -d --build`.
+        5. Wait about 15 seconds and run `docker compose ps`: the `api` service now says `healthy`. Docker runs the `wget` command every 10 seconds.
+        6. Read the check results with `docker inspect --format '{{json .State.Health}}' <container-name>` (find the name with `docker compose ps`).
+      tr: |
+        1. `Dockerfile`'ı aşağıdaki sürümle değiştir. Üç aşaması var: `deps` production paketlerini kurar, `test` her şeyi kurar ve `npm test` çalıştırır, son aşama yayınlayacağın image'dır. Son aşama `test`'e bağlı değildir; normal build onu atlar.
+        2. Testleri `docker build --target test --progress=plain .` ile çalıştır ve çıktıda `pass 3` ve `fail 0` satırlarını ara.
+        3. Bir testi bilerek boz (örneğin `test/validate.test.js` içinde `"buy milk"` yerine `"buy bread"` yaz), aynı komutu çalıştır ve build'in başarısız olduğunu gör. Değişikliği geri al.
+        4. Yayınlanacak image'ı `notes-api:1.1` olarak build et ve `docker compose up -d --build` çalıştır.
+        5. Yaklaşık 15 saniye bekle ve `docker compose ps` çalıştır: `api` servisi artık `healthy` yazar. Docker `wget` komutunu her 10 saniyede bir çalıştırır.
+        6. Kontrol sonuçlarını `docker inspect --format '{{json .State.Health}}' <container-adı>` ile oku (adı `docker compose ps` ile bul).
+    code:
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: install the production dependencies
+          FROM node:24-alpine AS deps
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci --omit=dev
+
+          # Stage 2: run the tests (docker build --target test .)
+          FROM node:24-alpine AS test
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci
+          COPY src ./src
+          COPY test ./test
+          RUN npm test
+
+          # Stage 3: the small image that runs
+          FROM node:24-alpine
+          ENV NODE_ENV=production
+          WORKDIR /app
+          COPY --from=deps /app/node_modules ./node_modules
+          COPY package.json ./
+          COPY src ./src
+          EXPOSE 3000
+          HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+            CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+          CMD ["node", "src/server.js"]
+      - file: terminal
+        lang: sh
+        text: |
+          docker build --target test --progress=plain .
+          docker build -t notes-api:1.1 .
+          docker compose up -d --build
+          docker compose ps
+    mistakes:
+      - problem:
+          en: "The container stays \"starting\" or turns \"unhealthy\" although the app works."
+          tr: "Uygulama çalıştığı halde container \"starting\" kalıyor ya da \"unhealthy\" oluyor."
+        fix:
+          en: "Run docker inspect on it and read the check output. Common causes: wget or curl is not in the image, the port is wrong, or the check uses localhost while the app listens only on IPv4. Use 127.0.0.1."
+          tr: "Üzerinde docker inspect çalıştır ve kontrol çıktısını oku. Sık nedenler: image'da wget ya da curl yok, port yanlış ya da kontrol localhost kullanıyor ama uygulama sadece IPv4'te dinliyor. 127.0.0.1 kullan."
+      - problem:
+          en: "Using curl in the healthcheck of an Alpine image and the check always fails."
+          tr: "Alpine image'ının healthcheck'inde curl kullanmak ve kontrolün hep başarısız olması."
+        fix:
+          en: "The Alpine-based Node image has wget (from BusyBox) but not curl. Use wget, or add curl with apk add in the image."
+          tr: "Alpine tabanlı Node image'ında wget (BusyBox'tan) var ama curl yok. wget kullan ya da image'a apk add ile curl ekle."
+    quiz:
+      - q:
+          en: "What does docker build --target test . do?"
+          tr: "docker build --target test . ne yapar?"
+        options:
+          en:
+            - "Builds up to the stage named test and stops there"
+            - "Sends the image to a test server"
+            - "Starts the container in test mode"
+          tr:
+            - "test adlı aşamaya kadar build alır ve orada durur"
+            - "Image'ı bir test sunucusuna gönderir"
+            - "Container'ı test modunda başlatır"
+        answer: 0
+        why:
+          en: "A failing RUN npm test in that stage makes the whole build fail, so broken code never becomes an image."
+          tr: "O aşamadaki RUN npm test başarısız olursa build baştan sona başarısız olur; bozuk kod hiçbir zaman image'a dönüşmez."
+    sources:
+      - title: Multi-stage builds
+        url: https://docs.docker.com/build/building/multi-stage/
+      - title: Dockerfile reference, HEALTHCHECK
+        url: https://docs.docker.com/reference/dockerfile/#healthcheck
+      - title: Compose file, healthcheck
+        url: https://docs.docker.com/reference/compose-file/services/#healthcheck
+
+  - id: nonroot
+    stage: security
+    title:
+      en: "Run as a non-root user and scan the image"
+      tr: "Root olmayan kullanıcıyla çalıştırma ve image'ı tarama"
+    minutes: 45
+    needs: [tests]
+    why:
+      en: "By default a container runs as root. If someone breaks into the app, a root process has far more power. A normal user costs you two lines. A scanner then tells you which known vulnerabilities your image still carries."
+      tr: "Varsayılan olarak container root olarak çalışır. Biri uygulamaya sızarsa root süreç çok daha fazla yetkiye sahip olur. Normal bir kullanıcı sana iki satıra mal olur. Tarayıcı da image'ının hâlâ hangi bilinen açıkları taşıdığını söyler."
+    learn:
+      en: |
+        - `USER node` switches to the unprivileged user that the Node.js image already has
+        - `COPY --chown=node:node` gives that user the files
+        - A vulnerability scanner compares the packages in your image with a list of known CVEs
+        - Trivy is a free scanner; `docker scout quickview` is Docker's own (needs a free Docker login)
+        - A finding with a fixed version is usually solved by rebuilding on a newer base image
+      tr: |
+        - `USER node`, Node.js image'ında hazır bulunan yetkisiz kullanıcıya geçer
+        - `COPY --chown=node:node` dosyaları o kullanıcıya verir
+        - Güvenlik açığı tarayıcısı, image'ındaki paketleri bilinen CVE listesiyle karşılaştırır
+        - Trivy ücretsiz bir tarayıcıdır; `docker scout quickview` Docker'ın kendi aracıdır (ücretsiz Docker girişi ister)
+        - Düzeltilmiş sürümü olan bir bulgu genelde daha yeni bir temel image ile yeniden build alarak çözülür
+    do:
+      en: |
+        1. Change the last stage of the `Dockerfile` as shown below: add `--chown=node:node` to the three `COPY` lines and `USER node` before `EXPOSE`. Only the last stage changes; keep the `deps` and `test` stages from the previous step.
+        2. Rebuild and restart: `docker compose up -d --build`.
+        3. Check the user: `docker compose exec api id` prints `uid=1000(node)`. Before, it printed `uid=0(root)`.
+        4. Build the image with a version tag (`docker build -t notes-api:1.2 .`) and scan it with Trivy. The first command runs Trivy from its official image and reads your local images through a mounted socket. If you prefer not to give a container access to the Docker socket, install Trivy from trivy.dev instead and run `trivy image notes-api:1.2`.
+        5. Read the table: it lists package, CVE id, severity and the fixed version. Findings in the base image (Node.js, Alpine) change every week. To fix them, rebuild with `docker build --pull` to get the newest base image and scan again.
+        6. Optional: `docker scout quickview notes-api:1.2` gives a short summary after `docker login`.
+      tr: |
+        1. `Dockerfile`'ın son aşamasını aşağıdaki gibi değiştir: üç `COPY` satırına `--chown=node:node` ekle ve `EXPOSE`'dan önce `USER node` yaz. Sadece son aşama değişir; önceki adımdaki `deps` ve `test` aşamalarını olduğu gibi tut.
+        2. Yeniden build edip başlat: `docker compose up -d --build`.
+        3. Kullanıcıyı kontrol et: `docker compose exec api id` `uid=1000(node)` yazar. Önceden `uid=0(root)` yazıyordu.
+        4. Image'ı sürüm tag'iyle oluştur (`docker build -t notes-api:1.2 .`) ve Trivy ile tara. İlk komut Trivy'yi kendi resmi image'ından çalıştırır ve yerel image'larını bağlanan bir socket üzerinden okur. Bir container'a Docker socket erişimi vermek istemezsen Trivy'yi trivy.dev'den kur ve `trivy image notes-api:1.2` çalıştır.
+        5. Tabloyu oku: paket, CVE numarası, önem derecesi ve düzeltilmiş sürümü listeler. Temel image'daki (Node.js, Alpine) bulgular her hafta değişir. Düzeltmek için `docker build --pull` ile en yeni temel image'ı alarak yeniden build et ve tekrar tara.
+        6. İsteğe bağlı: `docker login` sonrası `docker scout quickview notes-api:1.2` kısa bir özet verir.
+    code:
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: install the production dependencies
+          FROM node:24-alpine AS deps
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci --omit=dev
+
+          # Stage 2: run the tests (docker build --target test .)
+          FROM node:24-alpine AS test
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci
+          COPY src ./src
+          COPY test ./test
+          RUN npm test
+
+          # Stage 3: the small image that runs, as a normal user
+          FROM node:24-alpine
+          ENV NODE_ENV=production
+          WORKDIR /app
+          COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+          COPY --chown=node:node package.json ./
+          COPY --chown=node:node src ./src
+          USER node
+          EXPOSE 3000
+          HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
+            CMD wget -qO- http://127.0.0.1:3000/health || exit 1
+          CMD ["node", "src/server.js"]
+      - file: terminal
+        lang: sh
+        text: |
+          docker compose up -d --build
+          docker compose exec api id
+          docker build --pull -t notes-api:1.2 .
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:latest image --severity HIGH,CRITICAL --ignore-unfixed notes-api:1.2
+    mistakes:
+      - problem:
+          en: "Switching to USER node before COPY, and the app cannot write or read its files."
+          tr: "COPY'den önce USER node'a geçmek ve uygulamanın dosyalarını yazamaması ya da okuyamaması."
+        fix:
+          en: "Files copied without --chown belong to root. Use COPY --chown=node:node for files the app needs."
+          tr: "--chown olmadan kopyalanan dosyalar root'a aittir. Uygulamanın ihtiyaç duyduğu dosyalar için COPY --chown=node:node kullan."
+      - problem:
+          en: "Treating the scan as a pass/fail exam and giving up when it lists many findings."
+          tr: "Taramayı geçti/kaldı sınavı sanıp çok bulgu görünce vazgeçmek."
+        fix:
+          en: "Start with --severity HIGH,CRITICAL --ignore-unfixed. Fix what has a fixed version by updating the base image or the package, and scan again regularly because new CVEs appear every week."
+          tr: "--severity HIGH,CRITICAL --ignore-unfixed ile başla. Düzeltilmiş sürümü olanları temel image'ı ya da paketi güncelleyerek çöz ve düzenli olarak tekrar tara; çünkü her hafta yeni CVE'ler çıkar."
+    quiz:
+      - q:
+          en: "Why run the app as a non-root user?"
+          tr: "Uygulamayı neden root olmayan kullanıcıyla çalıştırırız?"
+        options:
+          en:
+            - "It makes the app faster"
+            - "If the app is attacked, the attacker has fewer rights"
+            - "Docker refuses to run root containers"
+          tr:
+            - "Uygulamayı hızlandırır"
+            - "Uygulamaya saldırılırsa saldırganın yetkisi daha az olur"
+            - "Docker root container'ları çalıştırmayı reddeder"
+        answer: 1
+        why:
+          en: "Least privilege: a process should only have the rights it needs. Docker does run root containers by default, but that is not safe."
+          tr: "En az yetki ilkesi: bir süreç sadece ihtiyacı olan yetkiye sahip olmalı. Docker varsayılan olarak root container'ları çalıştırır ama bu güvenli değildir."
+    sources:
+      - title: Dockerfile reference, USER
+        url: https://docs.docker.com/reference/dockerfile/#user
+      - title: Trivy, scanning container images
+        url: https://trivy.dev/latest/docs/target/container_image/
+      - title: Docker Scout quickview
+        url: https://docs.docker.com/reference/cli/docker/scout/quickview/
+
+  - id: secrets
+    stage: security
+    title:
+      en: "Keep secrets out of the image and out of Git"
+      tr: "Sırları image'dan ve Git'ten uzak tutma"
+    minutes: 30
+    needs: [nonroot]
+    why:
+      en: "A password written in the Dockerfile or committed to Git stays there forever, in every copy. Secrets must come in when the container starts, from a file only the server has."
+      tr: "Dockerfile'a yazılmış ya da Git'e commit edilmiş bir parola, her kopyada sonsuza kadar kalır. Sırlar container başlarken, sadece sunucuda olan bir dosyadan gelmeli."
+    learn:
+      en: |
+        - `env_file` passes the settings in a file to the container as environment variables
+        - `.env` must be in both `.gitignore` and `.dockerignore`; a committed `.env.example` shows the names without values
+        - `${VAR:?message}` in `compose.yaml` stops Compose when a value is missing
+        - `docker history` and `docker inspect` show what is baked into an image or passed to a container
+      tr: |
+        - `env_file`, bir dosyadaki ayarları container'a ortam değişkeni olarak verir
+        - `.env` hem `.gitignore` hem `.dockerignore` içinde olmalı; commit edilen bir `.env.example` değerler olmadan adları gösterir
+        - `compose.yaml` içindeki `${VAR:?mesaj}`, değer eksikse Compose'u durdurur
+        - `docker history` ve `docker inspect`, image'a neyin gömüldüğünü ya da container'a neyin verildiğini gösterir
+    do:
+      en: |
+        1. Create `.gitignore` with the file below, so `.env` and `backup.sql` never reach Git. If the folder is not a Git repository yet, run `git init`.
+        2. Create `.env.example` with the names and fake values. You commit this one; each person (and the server) creates a real `.env` from it.
+        3. Replace the password with a long random one: `openssl rand -base64 24`. Put the result in `.env` after `POSTGRES_PASSWORD=`. Use `docker compose down -v` once to start the database with the new password (this deletes dev data).
+        4. Check that nothing secret is in the image: `docker history --no-trunc notes-api:1.2 | grep -i password` prints nothing, and `docker run --rm notes-api:1.2 ls -a` shows no `.env` file.
+        5. Remember that anyone who can run `docker inspect` on the server can read the environment of a container, so keep access to the server small. For larger setups Compose also supports file based secrets, and platforms such as Docker Swarm or Kubernetes have their own secret stores.
+      tr: |
+        1. Aşağıdaki dosyayla `.gitignore` oluştur; böylece `.env` ve `backup.sql` Git'e hiç ulaşmaz. Klasör henüz bir Git deposu değilse `git init` çalıştır.
+        2. Adlar ve sahte değerlerle `.env.example` oluştur. Bunu commit edersin; her kişi (ve sunucu) ondan gerçek bir `.env` oluşturur.
+        3. Parolayı uzun ve rastgele biriyle değiştir: `openssl rand -base64 24`. Sonucu `.env` içinde `POSTGRES_PASSWORD=` sonrasına koy. Veritabanını yeni parolayla başlatmak için bir kez `docker compose down -v` çalıştır (geliştirme verisini siler).
+        4. Image'da gizli bir şey olmadığını kontrol et: `docker history --no-trunc notes-api:1.2 | grep -i password` hiçbir şey yazmaz ve `docker run --rm notes-api:1.2 ls -a` içinde `.env` dosyası görünmez.
+        5. Sunucuda `docker inspect` çalıştırabilen herkesin bir container'ın ortamını okuyabileceğini unutma; bu yüzden sunucuya erişimi dar tut. Daha büyük kurulumlarda Compose dosya tabanlı secret'ları da destekler; Docker Swarm ya da Kubernetes gibi platformların kendi secret depoları vardır.
+    code:
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          .env
+          backup.sql
+          *.log
+      - file: .env.example
+        lang: text
+        text: |
+          POSTGRES_USER=notes
+          POSTGRES_PASSWORD=
+          POSTGRES_DB=notes
+      - file: terminal
+        lang: sh
+        text: |
+          openssl rand -base64 24
+          cp .env.example .env
+          docker compose down -v
+          docker compose up -d
+          docker history --no-trunc notes-api:1.2 | grep -i password
+    mistakes:
+      - problem:
+          en: "Committing .env to Git by mistake."
+          tr: "Yanlışlıkla .env'yi Git'e commit etmek."
+        fix:
+          en: "Deleting the file in a new commit is not enough, the secret stays in the history. Treat that password as leaked: change it, and only then clean the history."
+          tr: "Dosyayı yeni bir commit'te silmek yetmez, sır geçmişte kalır. O parolayı sızmış say: değiştir ve ancak sonra geçmişi temizle."
+      - problem:
+          en: "Writing the password with ENV or ARG in the Dockerfile."
+          tr: "Parolayı Dockerfile'da ENV ya da ARG ile yazmak."
+        fix:
+          en: "Both stay visible in docker history. Pass secrets at run time with env_file or environment. For a secret needed during the build, use a secret mount (RUN --mount=type=secret)."
+          tr: "İkisi de docker history'de görünür kalır. Sırları çalışma zamanında env_file ya da environment ile ver. Build sırasında gereken sır için secret mount kullan (RUN --mount=type=secret)."
+    quiz:
+      - q:
+          en: "Where should the real database password live?"
+          tr: "Gerçek veritabanı parolası nerede durmalı?"
+        options:
+          en:
+            - "In the Dockerfile"
+            - "In a .env file that is not in Git or the image"
+            - "In README.md"
+          tr:
+            - "Dockerfile içinde"
+            - "Git'te ve image'da olmayan bir .env dosyasında"
+            - "README.md içinde"
+        answer: 1
+        why:
+          en: "The file exists only on machines that need it and is passed in when the container starts."
+          tr: "Dosya sadece ona ihtiyacı olan makinelerde bulunur ve container başlarken verilir."
+    sources:
+      - title: Set environment variables in Compose
+        url: https://docs.docker.com/compose/how-tos/environment-variables/set-environment-variables/
+      - title: Build secrets
+        url: https://docs.docker.com/build/building/secrets/
+      - title: Secrets in Compose
+        url: https://docs.docker.com/compose/how-tos/use-secrets/
+
+  - id: lean
+    stage: performance
+    title:
+      en: "Faster builds, a smaller image and memory limits"
+      tr: "Daha hızlı build, daha küçük image ve bellek sınırları"
+    minutes: 30
+    needs: [secrets]
+    why:
+      en: "Small images upload and start faster, and fast builds make you fix things sooner. A memory limit keeps one runaway container from taking down the whole server."
+      tr: "Küçük image'lar daha hızlı yüklenir ve başlar; hızlı build'ler sorunları daha çabuk düzeltmeni sağlar. Bellek sınırı, kontrolden çıkan tek bir container'ın bütün sunucuyu çökertmesini önler."
+    learn:
+      en: |
+        - Multi-stage keeps test tools and caches out of the final image
+        - A cache mount (`RUN --mount=type=cache`) keeps the npm download cache between builds without storing it in the image
+        - `docker image ls` and `docker history` show sizes
+        - `mem_limit` in Compose and `docker stats` for the real use
+      tr: |
+        - Multi-stage, test araçlarını ve cache'leri son image'ın dışında tutar
+        - Cache mount (`RUN --mount=type=cache`), npm indirme cache'ini image'a koymadan build'ler arasında saklar
+        - `docker image ls` ve `docker history` boyutları gösterir
+        - Compose'da `mem_limit` ve gerçek kullanım için `docker stats`
+    do:
+      en: |
+        1. Add the cache mount to both `npm ci` lines in the `Dockerfile`: `RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev` in `deps` and `RUN --mount=type=cache,target=/root/.npm npm ci` in `test`. Keep everything else from the last step.
+        2. Change a dependency version in `package.json` (and undo it) to force an install, and compare the time of the next build with the first one you did. Packages already downloaded are reused from the cache mount.
+        3. Look at the size: `docker image ls notes-api`. The final stage holds only Node.js, the production packages and your source (around 245 MB with Alpine and Node 24; the base image is most of it).
+        4. Add `mem_limit: 256m` to the `api` service in `compose.yaml` (the full file is below) and restart with `docker compose up -d`.
+        5. Watch the real usage with `docker stats --no-stream`. A small Node.js API like this uses far less than 256 MB; the limit is a safety net, not a target.
+      tr: |
+        1. `Dockerfile`'daki iki `npm ci` satırına cache mount ekle: `deps` içinde `RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev`, `test` içinde `RUN --mount=type=cache,target=/root/.npm npm ci`. Geri kalan her şeyi son adımdaki gibi bırak.
+        2. Kurulumu zorlamak için `package.json` içinde bir bağımlılık sürümünü değiştir (sonra geri al) ve sonraki build'in süresini ilk yaptığınla karşılaştır. Daha önce indirilen paketler cache mount'tan kullanılır.
+        3. Boyuta bak: `docker image ls notes-api`. Son aşamada sadece Node.js, production paketleri ve kaynak kodun var (Alpine ve Node 24 ile yaklaşık 245 MB; çoğu temel image'dır).
+        4. `compose.yaml` içindeki `api` servisine `mem_limit: 256m` ekle (tam dosya aşağıda) ve `docker compose up -d` ile yeniden başlat.
+        5. Gerçek kullanımı `docker stats --no-stream` ile izle. Böyle küçük bir Node.js API'si 256 MB'tan çok daha azını kullanır; sınır bir güvenlik ağıdır, hedef değildir.
+    code:
+      - file: compose.yaml
+        lang: yaml
+        text: |
+          services:
+            api:
+              build: .
+              ports:
+                - "3000:3000"
+              env_file: .env
+              environment:
+                DB_HOST: db
+              depends_on:
+                db:
+                  condition: service_healthy
+              mem_limit: 256m
+
+            db:
+              image: postgres:18-alpine
+              env_file: .env
+              volumes:
+                - pgdata:/var/lib/postgresql
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+                interval: 5s
+                timeout: 3s
+                retries: 10
+
+          volumes:
+            pgdata:
+      - file: terminal
+        lang: sh
+        text: |
+          docker build -t notes-api:1.2 .
+          docker image ls notes-api
+          docker compose up -d
+          docker stats --no-stream
+    mistakes:
+      - problem:
+          en: "The container is killed with exit code 137 after setting a small memory limit."
+          tr: "Küçük bir bellek sınırı koyduktan sonra container 137 çıkış koduyla öldürülüyor."
+        fix:
+          en: "137 means the kernel killed it for using more memory than allowed (OOMKilled). Check docker stats under normal load and set the limit with room above it."
+          tr: "137, kernel'in izin verilenden fazla bellek kullandığı için onu öldürdüğü anlamına gelir (OOMKilled). Normal yük altında docker stats'a bak ve sınırı onun üstünde pay bırakarak koy."
+      - problem:
+          en: "Choosing a tiny base image (scratch, distroless) first and being unable to debug it."
+          tr: "Önce çok küçük bir temel image (scratch, distroless) seçip hata ayıklayamamak."
+        fix:
+          en: "They have no shell and no wget. Start with Alpine, which is already small, and move to a minimal image only when you know how to debug and health check without a shell."
+          tr: "Onlarda shell ve wget yoktur. Zaten küçük olan Alpine ile başla; shell olmadan hata ayıklamayı ve health check yapmayı bildiğinde minimal bir image'a geç."
+    quiz:
+      - q:
+          en: "What does a cache mount store?"
+          tr: "Cache mount neyi saklar?"
+        options:
+          en:
+            - "The package download cache between builds, outside the image"
+            - "The final image"
+            - "The database files"
+          tr:
+            - "Paket indirme cache'ini build'ler arasında, image dışında"
+            - "Son image'ı"
+            - "Veritabanı dosyalarını"
+        answer: 0
+        why:
+          en: "The folder is kept by the builder for the next build and is not added to any layer."
+          tr: "Klasörü builder bir sonraki build için saklar ve hiçbir katmana eklenmez."
+    sources:
+      - title: Docker build best practices
+        url: https://docs.docker.com/build/building/best-practices/
+      - title: Cache mounts
+        url: https://docs.docker.com/build/cache/optimize/#use-cache-mounts
+      - title: Resource constraints
+        url: https://docs.docker.com/engine/containers/resource_constraints/
+
+  - id: push
+    stage: packaging
+    title:
+      en: "Tag the image and push it to GitHub Container Registry"
+      tr: "Image'ı tag'leme ve GitHub Container Registry'ye gönderme"
+    minutes: 40
+    needs: [lean]
+    why:
+      en: "A server cannot use an image that only exists on your laptop. A registry is a place to store images; GitHub Container Registry (ghcr.io) is free for your account and sits next to your code."
+      tr: "Bir sunucu, sadece laptopunda duran image'ı kullanamaz. Registry image'ların saklandığı yerdir; GitHub Container Registry (ghcr.io) hesabın için ücretsizdir ve kodunun yanında durur."
+    learn:
+      en: |
+        - An image name is `registry/owner/name:tag`, all lower case: `ghcr.io/your-user/notes-api:1.0`
+        - Tags are labels for versions; `latest` is only a default label, not "the newest"
+        - A personal access token (classic) with `write:packages` lets Docker log in to ghcr.io
+        - New packages are private by default; the server needs a token with `read:packages` to pull
+      tr: |
+        - Image adı `registry/sahip/ad:tag` biçimindedir ve hepsi küçük harftir: `ghcr.io/kullanici-adin/notes-api:1.0`
+        - Tag'ler sürüm etiketleridir; `latest` sadece varsayılan bir etikettir, "en yeni" demek değildir
+        - `write:packages` yetkili bir personal access token (classic), Docker'ın ghcr.io'ya giriş yapmasını sağlar
+        - Yeni paketler varsayılan olarak özeldir; sunucunun çekmesi için `read:packages` yetkili bir token gerekir
+    do:
+      en: |
+        1. On GitHub open *Settings → Developer settings → Personal access tokens → Tokens (classic)* and create a token with the `write:packages` scope. Copy it once; GitHub does not show it again.
+        2. In the terminal save it in a variable and log in (replace `YOUR_USER` with your GitHub user name). Using `--password-stdin` keeps the token out of your shell history.
+        3. Tag the image with your registry name and a version, and push both tags. Use the exact lower-case user name.
+        4. Open your GitHub profile, *Packages* tab: `notes-api` is there. It is private. Keep it private; we log in on the server instead.
+        5. From now on, use a new version tag for each release (`1.0`, `1.1`, ...). Do not push only `latest`, or you cannot tell what runs or go back.
+        6. Make a production compose file `compose.prod.yaml` (below) that pulls the image instead of building it. You will copy it to the server in the deploy step.
+      tr: |
+        1. GitHub'da *Settings → Developer settings → Personal access tokens → Tokens (classic)* sayfasını aç ve `write:packages` yetkili bir token oluştur. Bir kez kopyala; GitHub onu tekrar göstermez.
+        2. Terminalde onu bir değişkene kaydet ve giriş yap (`YOUR_USER` yerine GitHub kullanıcı adını yaz). `--password-stdin` kullanmak token'ı shell geçmişinin dışında tutar.
+        3. Image'ı registry adın ve bir sürümle tag'le ve iki tag'i de push et. Kullanıcı adını tam olarak, küçük harfle yaz.
+        4. GitHub profilinde *Packages* sekmesini aç: `notes-api` orada. Özel durumda. Özel bırak; sunucuda giriş yapacağız.
+        5. Bundan sonra her sürüm için yeni bir sürüm tag'i kullan (`1.0`, `1.1`, ...). Sadece `latest` push etme; yoksa neyin çalıştığını bilemez ve geri dönemezsin.
+        6. Image'ı build etmek yerine çeken bir production compose dosyası `compose.prod.yaml` hazırla (aşağıda). Onu deploy adımında sunucuya kopyalayacaksın.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          export CR_PAT=paste-your-token-here
+          echo $CR_PAT | docker login ghcr.io -u YOUR_USER --password-stdin
+          docker build --pull -t notes-api:1.3 .
+          docker tag notes-api:1.3 ghcr.io/your-user/notes-api:1.3
+          docker tag notes-api:1.3 ghcr.io/your-user/notes-api:latest
+          docker push ghcr.io/your-user/notes-api:1.3
+          docker push ghcr.io/your-user/notes-api:latest
+      - file: compose.prod.yaml
+        lang: yaml
+        text: |
+          services:
+            api:
+              image: ghcr.io/your-user/notes-api:${TAG:-latest}
+              ports:
+                - "3000:3000"
+              env_file: .env
+              environment:
+                DB_HOST: db
+              depends_on:
+                db:
+                  condition: service_healthy
+              restart: unless-stopped
+              mem_limit: 256m
+              logging:
+                driver: json-file
+                options:
+                  max-size: "10m"
+                  max-file: "3"
+
+            db:
+              image: postgres:18-alpine
+              env_file: .env
+              volumes:
+                - pgdata:/var/lib/postgresql
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+                interval: 5s
+                timeout: 3s
+                retries: 10
+              restart: unless-stopped
+
+          volumes:
+            pgdata:
+    mistakes:
+      - problem:
+          en: "\"denied\" or \"unauthorized\" on push."
+          tr: "Push sırasında \"denied\" ya da \"unauthorized\" hatası."
+        fix:
+          en: "Check that you logged in to ghcr.io, that the token has write:packages, and that the owner in the image name is your user name in lower case."
+          tr: "ghcr.io'ya giriş yaptığını, token'ın write:packages yetkisi olduğunu ve image adındaki sahibin küçük harfli kullanıcı adın olduğunu kontrol et."
+      - problem:
+          en: "\"invalid reference format\" when tagging."
+          tr: "Tag'lerken \"invalid reference format\" hatası."
+        fix:
+          en: "Image names must be lower case. Use ghcr.io/your-user/notes-api, never capital letters."
+          tr: "Image adları küçük harf olmalı. ghcr.io/kullanici-adin/notes-api yaz, büyük harf kullanma."
+    quiz:
+      - q:
+          en: "Why push a version tag like 1.3 and not only latest?"
+          tr: "Neden sadece latest değil 1.3 gibi bir sürüm tag'i de push ederiz?"
+        options:
+          en:
+            - "latest is not allowed on ghcr.io"
+            - "A version tag tells you what runs and lets you go back"
+            - "Version tags make the image smaller"
+          tr:
+            - "latest ghcr.io'da yasak"
+            - "Sürüm tag'i neyin çalıştığını söyler ve geri dönmeni sağlar"
+            - "Sürüm tag'leri image'ı küçültür"
+        answer: 1
+        why:
+          en: "latest moves every time you push, so it says nothing about the version. A fixed tag points to one build."
+          tr: "latest her push'ta kayar, sürüm hakkında bir şey söylemez. Sabit bir tag tek bir build'e işaret eder."
+    sources:
+      - title: Working with the GitHub Container registry
+        url: https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry
+      - title: docker image push
+        url: https://docs.docker.com/reference/cli/docker/image/push/
+      - title: docker login
+        url: https://docs.docker.com/reference/cli/docker/login/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy to a VPS"
+      tr: "Bir VPS'e deploy etme"
+    minutes: 60
+    needs: [push]
+    why:
+      en: "Your image and compose file now run on any machine with Docker. A VPS (a small rented Linux server) is the simplest place: you control everything and the steps are the same as on your laptop."
+      tr: "Image'ın ve compose dosyan artık Docker olan her makinede çalışır. VPS (kiralanan küçük bir Linux sunucu) en basit yerdir: her şeyi sen yönetirsin ve adımlar laptopundakiyle aynıdır."
+    learn:
+      en: |
+        - Install Docker on the server, copy two files and run `docker compose up -d`
+        - The server logs in to ghcr.io with a read-only token
+        - Only the API port is published; the database has no `ports:` so it is not reachable from the internet
+        - Free options: a free-tier cloud VM (for example Oracle Cloud Always Free) or a cheap VPS; some free hosts such as Render or Fly.io run a container image, but their free plans and limits change, so read their current pricing page first
+      tr: |
+        - Sunucuya Docker kur, iki dosya kopyala ve `docker compose up -d` çalıştır
+        - Sunucu ghcr.io'ya sadece okuma yetkili bir token ile giriş yapar
+        - Sadece API portu yayınlanır; veritabanında `ports:` yok, bu yüzden internetten erişilemez
+        - Ücretsiz seçenekler: ücretsiz katmanlı bir bulut VM'i (örneğin Oracle Cloud Always Free) ya da ucuz bir VPS; Render ya da Fly.io gibi bazı ücretsiz hostlar container image çalıştırır ama ücretsiz planları ve sınırları değişir, önce güncel fiyat sayfalarını oku
+    do:
+      en: |
+        1. Get a Ubuntu LTS server and connect with `ssh your-user@SERVER_IP` (see the SSH cheatsheet). Update it: `sudo apt update && sudo apt upgrade -y`.
+        2. Install Docker. The quick way is the official convenience script (`curl -fsSL https://get.docker.com | sudo sh`). For a long-lived server follow the apt repository steps in docs.docker.com/engine/install/ubuntu/ instead. Then run `sudo usermod -aG docker $USER` and log in again.
+        3. Create a second GitHub token with only `read:packages`, and log in on the server: `echo TOKEN | docker login ghcr.io -u YOUR_USER --password-stdin`.
+        4. Make a folder `~/notes-api` on the server. From your laptop copy the production compose file as `compose.yaml`: `scp compose.prod.yaml your-user@SERVER_IP:notes-api/compose.yaml`. Create the `.env` on the server itself with a strong password (do not copy your laptop's `.env` through Git).
+        5. On the server run `docker compose pull` and `docker compose up -d`. Then `docker compose ps` should show both services running and healthy.
+        6. Open the port in the firewall: `sudo ufw allow OpenSSH` first, then `sudo ufw allow 3000/tcp` and `sudo ufw enable`. Your cloud provider may have its own firewall (a security group) where port 3000 must also be allowed.
+        7. From your laptop run `curl http://SERVER_IP:3000/health`, then post and read a note. For HTTPS and a domain name, put a reverse proxy such as Caddy in front (see the nginx cheatsheet for the idea) as a next step.
+      tr: |
+        1. Bir Ubuntu LTS sunucusu al ve `ssh kullanici@SUNUCU_IP` ile bağlan (SSH kopya kâğıdına bak). Güncelle: `sudo apt update && sudo apt upgrade -y`.
+        2. Docker'ı kur. Hızlı yol resmi kolaylık betiğidir (`curl -fsSL https://get.docker.com | sudo sh`). Uzun ömürlü bir sunucu için bunun yerine docs.docker.com/engine/install/ubuntu/ içindeki apt repository adımlarını izle. Sonra `sudo usermod -aG docker $USER` çalıştır ve oturumu yeniden aç.
+        3. Sadece `read:packages` yetkili ikinci bir GitHub token'ı oluştur ve sunucuda giriş yap: `echo TOKEN | docker login ghcr.io -u KULLANICI --password-stdin`.
+        4. Sunucuda `~/notes-api` klasörü oluştur. Laptopundan production compose dosyasını `compose.yaml` adıyla kopyala: `scp compose.prod.yaml kullanici@SUNUCU_IP:notes-api/compose.yaml`. `.env` dosyasını sunucunun üzerinde güçlü bir parolayla oluştur (laptopundaki `.env`'yi Git ile taşıma).
+        5. Sunucuda `docker compose pull` ve `docker compose up -d` çalıştır. Sonra `docker compose ps` iki servisin de çalıştığını ve healthy olduğunu göstermeli.
+        6. Güvenlik duvarında portu aç: önce `sudo ufw allow OpenSSH`, sonra `sudo ufw allow 3000/tcp` ve `sudo ufw enable`. Bulut sağlayıcının kendi güvenlik duvarı (security group) varsa 3000 portuna orada da izin vermelisin.
+        7. Laptopundan `curl http://SUNUCU_IP:3000/health` çalıştır, sonra bir not ekle ve oku. HTTPS ve alan adı için bir sonraki adım olarak önüne Caddy gibi bir reverse proxy koy (fikir için nginx kopya kâğıdına bak).
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          ssh your-user@SERVER_IP
+          curl -fsSL https://get.docker.com | sudo sh
+          sudo usermod -aG docker $USER
+          echo READ_ONLY_TOKEN | docker login ghcr.io -u YOUR_USER --password-stdin
+          mkdir -p ~/notes-api
+      - file: terminal
+        lang: sh
+        text: |
+          scp compose.prod.yaml your-user@SERVER_IP:notes-api/compose.yaml
+          ssh your-user@SERVER_IP
+          cd ~/notes-api
+          nano .env
+          docker compose pull
+          docker compose up -d
+          docker compose ps
+          sudo ufw allow OpenSSH
+          sudo ufw allow 3000/tcp
+          sudo ufw enable
+    mistakes:
+      - problem:
+          en: "\"pull access denied\" or \"unauthorized\" on the server."
+          tr: "Sunucuda \"pull access denied\" ya da \"unauthorized\" hatası."
+        fix:
+          en: "The package is private and the server is not logged in. Run docker login ghcr.io with a token that has read:packages, or make the package public in its GitHub settings."
+          tr: "Paket özel ve sunucu giriş yapmamış. read:packages yetkili bir token ile docker login ghcr.io çalıştır ya da paketi GitHub ayarlarında herkese açık yap."
+      - problem:
+          en: "Port 3000 works from the internet even though ufw does not allow it."
+          tr: "ufw izin vermediği halde 3000 portuna internetten erişilebiliyor."
+        fix:
+          en: "Docker writes its own firewall rules for published ports, and they bypass ufw. Publish only what you want public, and bind private ports to localhost, for example 127.0.0.1:5432:5432."
+          tr: "Docker, yayınlanan portlar için kendi güvenlik duvarı kurallarını yazar ve bunlar ufw'yi atlar. Sadece herkese açık olmasını istediğini yayınla ve özel portları localhost'a bağla; örneğin 127.0.0.1:5432:5432."
+      - problem:
+          en: "\"exec format error\" when the container starts on the server."
+          tr: "Container sunucuda başlarken \"exec format error\" hatası."
+        fix:
+          en: "The image was built for another CPU type, for example on an ARM laptop for an x86 server. Build for the server's platform: docker build --platform linux/amd64 ... (see the last step)."
+          tr: "Image başka bir CPU türü için build edilmiş; örneğin ARM bir laptopta x86 sunucu için. Sunucunun platformu için build al: docker build --platform linux/amd64 ... (son adıma bak)."
+    quiz:
+      - q:
+          en: "Why does the db service have no ports: entry in the production file?"
+          tr: "Production dosyasında db servisinin neden ports: satırı yok?"
+        options:
+          en:
+            - "Compose forbids ports on databases"
+            - "Only the API needs it; the database stays reachable only inside the Compose network"
+            - "The database uses no network"
+          tr:
+            - "Compose veritabanlarında port yasaklar"
+            - "Sadece API'ye gerekiyor; veritabanı yalnızca Compose network'ü içinden erişilebilir kalır"
+            - "Veritabanı hiç network kullanmaz"
+        answer: 1
+        why:
+          en: "A published port is open to the world. The API reaches db by service name over the internal network, so nothing outside needs to."
+          tr: "Yayınlanan port dünyaya açıktır. API db'ye iç network üzerinden servis adıyla ulaşır; dışarıdakilerin ulaşmasına gerek yok."
+    sources:
+      - title: Install Docker Engine on Ubuntu
+        url: https://docs.docker.com/engine/install/ubuntu/
+      - title: Docker and ufw
+        url: https://docs.docker.com/engine/network/packet-filtering-firewalls/
+      - title: Use Compose in production
+        url: https://docs.docker.com/compose/how-tos/production/
+
+  - id: operate
+    stage: monitoring
+    title:
+      en: "Watch the app: logs, health and restarts"
+      tr: "Uygulamayı izleme: log, sağlık ve yeniden başlatma"
+    minutes: 30
+    needs: [deploy]
+    why:
+      en: "A deployed app needs to survive crashes and reboots, tell you when it is sick, and not fill the disk with logs. Docker has a built-in answer to each."
+      tr: "Yayındaki bir uygulamanın çökmelerden ve yeniden başlatmalardan sağ çıkması, hasta olduğunda sana söylemesi ve diski loglarla doldurmaması gerekir. Docker'ın her biri için hazır bir cevabı var."
+    learn:
+      en: |
+        - `restart: unless-stopped` starts the container again after a crash or a server reboot
+        - The healthcheck status (`healthy` or `unhealthy`) shows in `docker compose ps`; Docker does not restart an unhealthy container by itself, it only reports it
+        - `docker compose logs --since 10m api` for recent output; log rotation (`max-size`, `max-file`) limits disk use
+        - `docker stats` for CPU and memory, `docker system df` for disk
+      tr: |
+        - `restart: unless-stopped`, çökme ya da sunucu yeniden başlatmasından sonra container'ı tekrar başlatır
+        - Healthcheck durumu (`healthy` ya da `unhealthy`) `docker compose ps` içinde görünür; Docker sağlıksız container'ı kendiliğinden yeniden başlatmaz, sadece bildirir
+        - Son çıktı için `docker compose logs --since 10m api`; log rotasyonu (`max-size`, `max-file`) disk kullanımını sınırlar
+        - CPU ve bellek için `docker stats`, disk için `docker system df`
+    do:
+      en: |
+        1. The `compose.prod.yaml` from the push step already has `restart: unless-stopped` and log rotation (`json-file` with `max-size: 10m` and `max-file: 3`, so each container keeps at most 30 MB of logs).
+        2. On the server, check the state: `docker compose ps`, then recent logs: `docker compose logs --since 10m api`.
+        3. Test the restart policy: reboot the server with `sudo reboot`, log in again after a minute and run `docker compose ps`. Both services came back without you doing anything, because Docker itself starts at boot.
+        4. See the use of resources: `docker stats --no-stream` and `docker system df`.
+        5. Add a simple outside check: from your laptop (or a free uptime monitor service) call `curl -fsS http://SERVER_IP:3000/health` on a schedule. It tells you when the whole server, not just the container, is down.
+      tr: |
+        1. Push adımındaki `compose.prod.yaml` zaten `restart: unless-stopped` ve log rotasyonu içeriyor (`max-size: 10m` ve `max-file: 3` ile `json-file`; yani her container en fazla 30 MB log tutar).
+        2. Sunucuda durumu kontrol et: `docker compose ps`, sonra son loglar: `docker compose logs --since 10m api`.
+        3. Restart policy'yi test et: sunucuyu `sudo reboot` ile yeniden başlat, bir dakika sonra tekrar giriş yap ve `docker compose ps` çalıştır. İki servis de sen bir şey yapmadan geri geldi, çünkü Docker'ın kendisi açılışta başlar.
+        4. Kaynak kullanımına bak: `docker stats --no-stream` ve `docker system df`.
+        5. Basit bir dış kontrol ekle: laptopundan (ya da ücretsiz bir uptime izleme servisinden) belli aralıklarla `curl -fsS http://SUNUCU_IP:3000/health` çağır. Sadece container'ın değil, bütün sunucunun düştüğünü de sana söyler.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker compose ps
+          docker compose logs --since 10m api
+          docker stats --no-stream
+          docker system df
+          sudo reboot
+          curl -fsS http://SERVER_IP:3000/health
+    mistakes:
+      - problem:
+          en: "No log rotation, and after months the disk is full of container logs."
+          tr: "Log rotasyonu yok ve aylar sonra disk container loglarıyla doluyor."
+        fix:
+          en: "Set max-size and max-file in the logging options as in compose.prod.yaml. Check docker system df now and then."
+          tr: "compose.prod.yaml'daki gibi logging seçeneklerinde max-size ve max-file ayarla. Ara sıra docker system df'e bak."
+      - problem:
+          en: "Expecting Docker to restart an app that is running but stuck (unhealthy)."
+          tr: "Çalışan ama takılmış (unhealthy) bir uygulamayı Docker'ın yeniden başlatmasını beklemek."
+        fix:
+          en: "Plain Docker only marks it unhealthy. Restart it yourself (docker compose restart api), or use a tool that acts on the health status. Better: find why it got stuck in the logs."
+          tr: "Düz Docker sadece unhealthy olarak işaretler. Kendin yeniden başlat (docker compose restart api) ya da sağlık durumuna göre hareket eden bir araç kullan. Daha iyisi: loglardan neden takıldığını bul."
+    quiz:
+      - q:
+          en: "What does restart: unless-stopped do after a server reboot?"
+          tr: "Sunucu yeniden başlayınca restart: unless-stopped ne yapar?"
+        options:
+          en:
+            - "Starts the container again unless you stopped it yourself"
+            - "Never starts it"
+            - "Deletes the container"
+          tr:
+            - "Sen durdurmadıysan container'ı tekrar başlatır"
+            - "Hiç başlatmaz"
+            - "Container'ı siler"
+        answer: 0
+        why:
+          en: "It restarts after crashes and reboots, but respects a manual docker stop."
+          tr: "Çökme ve yeniden başlatmalardan sonra başlatır ama elle yaptığın docker stop'a saygı gösterir."
+    sources:
+      - title: Start containers automatically
+        url: https://docs.docker.com/engine/containers/start-containers-automatically/
+      - title: Logging drivers, json-file
+        url: https://docs.docker.com/engine/logging/drivers/json-file/
+      - title: docker stats
+        url: https://docs.docker.com/reference/cli/docker/container/stats/
+
+  - id: update
+    stage: advanced
+    title:
+      en: "Update, roll back and build for other CPUs"
+      tr: "Güncelleme, geri alma ve diğer CPU'lar için build"
+    minutes: 45
+    needs: [operate]
+    why:
+      en: "Shipping a new version is the thing you will do most. With version tags an update is two commands and a rollback is the same two commands with the old tag."
+      tr: "Yeni sürüm yayınlamak en çok yapacağın şeydir. Sürüm tag'leriyle güncelleme iki komuttur ve geri alma aynı iki komuttur, sadece eski tag ile."
+    learn:
+      en: |
+        - The `${TAG:-latest}` variable in `compose.prod.yaml` picks the version at run time
+        - `docker compose pull` then `docker compose up -d` replaces only the services whose image changed
+        - Old versions stay in the registry, so a rollback is just choosing an older tag
+        - `docker build --platform linux/amd64,linux/arm64 --push` makes one tag for both x86 and ARM
+        - `docker image prune` frees the disk after many updates
+      tr: |
+        - `compose.prod.yaml` içindeki `${TAG:-latest}` değişkeni sürümü çalışma zamanında seçer
+        - `docker compose pull` ve ardından `docker compose up -d` sadece image'ı değişen servisleri yeniler
+        - Eski sürümler registry'de durur; geri alma sadece eski bir tag seçmektir
+        - `docker build --platform linux/amd64,linux/arm64 --push`, hem x86 hem ARM için tek bir tag üretir
+        - `docker image prune`, çok sayıda güncellemeden sonra diski boşaltır
+    do:
+      en: |
+        1. Change something small in the app (for example the text of a 404 error), commit it and build a new version for the server's CPU: `docker build --pull --platform linux/amd64 -t ghcr.io/your-user/notes-api:1.4 .`. Push it with `docker push`.
+        2. On the server pick the new version and update. The `TAG` variable is read from the shell or from the `.env` next to the compose file (the same `.env` that holds the secrets is fine).
+        3. Check `docker compose ps` and `curl http://SERVER_IP:3000/health`. The database was not touched and its volume kept the notes.
+        4. Something is wrong? Roll back: set `TAG=1.3` and run the same `pull` and `up -d`. Because every release has its own tag, this takes a few seconds.
+        5. Free the disk of old images with `docker image prune -f` (this removes only images without a tag that nothing uses).
+        6. To make one tag that works on both x86 and ARM, use `docker buildx build --platform linux/amd64,linux/arm64 --push ...` (it builds and pushes in one step, because a multi-platform result cannot be stored in the local image list on every setup).
+      tr: |
+        1. Uygulamada küçük bir şeyi değiştir (örneğin 404 hata metni), commit et ve sunucunun CPU'su için yeni bir sürüm build et: `docker build --pull --platform linux/amd64 -t ghcr.io/your-user/notes-api:1.4 .`. `docker push` ile gönder.
+        2. Sunucuda yeni sürümü seç ve güncelle. `TAG` değişkeni shell'den ya da compose dosyasının yanındaki `.env`'den okunur (sırları tutan aynı `.env` olabilir).
+        3. `docker compose ps` ve `curl http://SUNUCU_IP:3000/health` ile kontrol et. Veritabanına dokunulmadı ve volume'u notları korudu.
+        4. Bir şey mi ters gitti? Geri al: `TAG=1.3` yap ve aynı `pull` ile `up -d` komutlarını çalıştır. Her sürümün kendi tag'i olduğu için bu birkaç saniye sürer.
+        5. Eski image'ların yerini `docker image prune -f` ile boşalt (sadece tag'i olmayan ve hiçbir şeyin kullanmadığı image'ları siler).
+        6. Hem x86 hem ARM'da çalışan tek bir tag için `docker buildx build --platform linux/amd64,linux/arm64 --push ...` kullan (build ve push'u tek adımda yapar; çünkü çok platformlu sonuç her kurulumda yerel image listesinde saklanamaz).
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker build --pull --platform linux/amd64 -t ghcr.io/your-user/notes-api:1.4 .
+          docker push ghcr.io/your-user/notes-api:1.4
+      - file: terminal
+        lang: sh
+        text: |
+          # on the server, in ~/notes-api
+          echo "TAG=1.4" >> .env
+          docker compose pull
+          docker compose up -d
+          # roll back: edit .env to TAG=1.3, then
+          docker compose pull
+          docker compose up -d
+          docker image prune -f
+      - file: terminal
+        lang: sh
+        text: |
+          docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/your-user/notes-api:1.4 --push .
+    mistakes:
+      - problem:
+          en: "Updating with only latest and not being able to say what version runs."
+          tr: "Sadece latest ile güncellemek ve hangi sürümün çalıştığını söyleyememek."
+        fix:
+          en: "Always set TAG to a real version in .env on the server, and write down which version you deployed."
+          tr: "Sunucudaki .env içinde TAG'i her zaman gerçek bir sürüme ayarla ve hangi sürümü deploy ettiğini not et."
+      - problem:
+          en: "Running a schema or data change (migration) together with the new code and having no way back."
+          tr: "Şema ya da veri değişikliğini (migration) yeni kodla birlikte yapmak ve geri dönüş yolunun olmaması."
+        fix:
+          en: "Back up first (docker compose exec db pg_dump), and make database changes that the old version can still live with, such as adding a column before using it."
+          tr: "Önce yedek al (docker compose exec db pg_dump) ve eski sürümün de yaşayabileceği veritabanı değişiklikleri yap; örneğin kullanmadan önce bir kolon eklemek gibi."
+    quiz:
+      - q:
+          en: "How do you roll back to the previous release?"
+          tr: "Önceki sürüme nasıl geri dönersin?"
+        options:
+          en:
+            - "Rebuild the old code on the server"
+            - "Set TAG to the old version, then docker compose pull and up -d"
+            - "Delete the volume"
+          tr:
+            - "Eski kodu sunucuda yeniden build et"
+            - "TAG'i eski sürüme ayarla, sonra docker compose pull ve up -d"
+            - "Volume'u sil"
+        answer: 1
+        why:
+          en: "Every release image stays in the registry under its own tag, so the server just pulls the old one."
+          tr: "Her sürümün image'ı kendi tag'iyle registry'de durur; sunucu sadece eskisini çeker."
+    sources:
+      - title: Multi-platform builds
+        url: https://docs.docker.com/build/building/multi-platform/
+      - title: docker compose pull
+        url: https://docs.docker.com/reference/cli/docker/compose/pull/
+      - title: docker image prune
+        url: https://docs.docker.com/reference/cli/docker/image/prune/

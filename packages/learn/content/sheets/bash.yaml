@@ -1,0 +1,765 @@
+id: bash
+title: Bash
+category: language
+summary:
+  en: The shell on most Linux machines; you type commands in it and write scripts that automate them.
+  tr: Çoğu Linux makinesindeki shell; içine komut yazarsın ve bu komutları otomatikleştiren script'ler yazarsın.
+aliases: [shell, sh, shell script, bash script, terminal, kabuk, betik, komut satırı]
+version: "5.3"
+checked: 2026-10
+sources:
+  - title: GNU Bash Reference Manual
+    url: https://www.gnu.org/software/bash/manual/html_node/index.html
+  - title: Bash NEWS (changes per version)
+    url: https://tiswww.case.edu/php/chet/bash/NEWS
+roadmap: linux-server
+sections:
+  - id: basics
+    title: { en: First steps, tr: İlk adımlar }
+    items:
+      - id: shebang-strict
+        level: basic
+        title: { en: Start a script safely, tr: Script'i güvenli başlatma }
+        what:
+          en: The first line picks the interpreter; set -euo pipefail stops the script at the first error instead of carrying on.
+          tr: İlk satır yorumlayıcıyı seçer; set -euo pipefail, script'i hata olunca devam ettirmek yerine ilk hatada durdurur.
+        lang: sh
+        form: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+        example: |
+          cat > hello.sh <<'EOF'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          echo "Hello from $0"
+          EOF
+          chmod +x hello.sh
+          ./hello.sh
+        output: |
+          Hello from ./hello.sh
+        check: sh
+        mistake:
+          en: Running the script with sh script.sh; on many systems sh is not Bash, so Bash features break.
+          tr: Script'i sh script.sh ile çalıştırmak; birçok sistemde sh Bash değildir, Bash özellikleri bozulur.
+        avoid:
+          en: "-e has surprising exceptions (inside if, after && or ||); still check important commands yourself."
+          tr: "-e'nin şaşırtıcı istisnaları var (if içinde, && ya da || sonrasında); önemli komutları yine kendin kontrol et."
+        source: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+      - id: variables
+        level: basic
+        title: { en: Variables, tr: Değişkenler }
+        what:
+          en: A variable stores a value with name=value and you read it back with $name.
+          tr: Değişken, name=value ile bir değer saklar; $name ile geri okursun.
+        lang: sh
+        form: name="value"; echo "$name"
+        example: |
+          city="Istanbul"
+          echo "I live in $city"
+          echo "${city}lu"
+        output: |
+          I live in Istanbul
+          Istanbullu
+        check: sh
+        mistake:
+          en: Putting spaces around = (name = value); Bash then runs a command called name.
+          tr: = işaretinin etrafına boşluk koymak (name = value); Bash bu durumda name adlı bir komutu çalıştırmaya çalışır.
+        source: https://www.gnu.org/software/bash/manual/html_node/Shell-Parameters.html
+      - id: quoting
+        level: basic
+        title: { en: Single and double quotes, tr: Tek ve çift tırnak }
+        what:
+          en: Double quotes keep spaces but still expand $variables; single quotes keep everything exactly as written.
+          tr: Çift tırnak boşlukları korur ama $değişkenleri yine açar; tek tırnak her şeyi yazıldığı gibi bırakır.
+        lang: sh
+        form: echo "$var" '$var'
+        example: |
+          name="Ada Lovelace"
+          echo "Hi $name"
+          echo 'Hi $name'
+        output: |
+          Hi Ada Lovelace
+          Hi $name
+        check: sh
+        mistake:
+          en: Leaving $var unquoted; a value with spaces or * splits into several words or turns into file names.
+          tr: $var'ı tırnaksız bırakmak; boşluk ya da * içeren değer birkaç kelimeye bölünür veya dosya adlarına dönüşür.
+        source: https://www.gnu.org/software/bash/manual/html_node/Quoting.html
+      - id: printf
+        level: basic
+        title: { en: Print text reliably, tr: Metni güvenilir şekilde yazdırma }
+        what:
+          en: printf prints using a format string, the same way on every system, unlike echo with options.
+          tr: printf bir format string'i ile yazdırır; seçenekli echo'nun aksine her sistemde aynı davranır.
+        lang: sh
+        form: printf '%s\n' "$value"
+        example: |
+          printf '%s is %d years old\n' "Ada" 36
+          printf '%-6s|%5.2f\n' cpu 3.14159
+        output: |
+          Ada is 36 years old
+          cpu   | 3.14
+        check: sh
+        mistake:
+          en: Forgetting the \n at the end; unlike echo, printf does not add a newline.
+          tr: Sondaki \n'i unutmak; echo'nun aksine printf kendisi yeni satır eklemez.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-printf
+      - id: command-substitution
+        level: basic
+        title: { en: Use a command's output, tr: Bir komutun çıktısını kullanma }
+        what:
+          en: $(command) runs the command and puts what it prints in its place.
+          tr: $(komut) komutu çalıştırır ve yazdırdığı şeyi onun yerine koyar.
+        lang: sh
+        form: result="$(command)"
+        example: |
+          mkdir -p a b c
+          count="$(ls -d */ | wc -l)"
+          echo "folders: $count"
+        output: |
+          folders: 3
+        check: sh
+        mistake:
+          en: Using old backticks `cmd`; they are hard to nest and to read. Prefer $(cmd).
+          tr: Eski ters tırnakları (`cmd`) kullanmak; iç içe kullanmak ve okumak zordur. $(cmd) tercih et.
+        source: https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html
+      - id: arithmetic
+        level: basic
+        title: { en: Math with integers, tr: Tam sayılarla hesap }
+        what:
+          en: $(( ... )) does integer math; inside it you write variable names without $.
+          tr: $(( ... )) tam sayı hesabı yapar; içinde değişken adlarını $ olmadan yazarsın.
+        lang: sh
+        form: echo $(( a + b ))
+        example: |
+          a=7 b=2
+          echo $(( a + b )) $(( a / b )) $(( a % b )) $(( a ** b ))
+          (( a > b )) && echo "a is bigger"
+        output: |
+          9 3 1 49
+          a is bigger
+        check: sh
+        mistake:
+          en: Expecting decimals; 7 / 2 is 3. For decimals use awk or bc.
+          tr: Ondalık sonuç beklemek; 7 / 2 sonucu 3'tür. Ondalık için awk ya da bc kullan.
+        source: https://www.gnu.org/software/bash/manual/html_node/Shell-Arithmetic.html
+      - id: exit-status
+        level: basic
+        title: { en: Did the command work, tr: Komut başarılı oldu mu }
+        what:
+          en: Every command ends with a number; 0 means success, anything else is an error, and $? holds the last one.
+          tr: Her komut bir sayıyla biter; 0 başarı, diğer her şey hatadır ve $? son komutunkini tutar.
+        lang: sh
+        form: command && echo ok || echo failed
+        example: |
+          grep -q root /etc/passwd && echo "found"
+          ls /no/such/dir 2>/dev/null || echo "exit code: $?"
+        output: |
+          found
+          exit code: 2
+        check: sh
+        mistake:
+          en: Reading $? after another command (even echo) ran; it already holds that command's status.
+          tr: Arada başka bir komut (echo bile) çalıştıktan sonra $?'i okumak; artık o komutun sonucunu tutar.
+        source: https://www.gnu.org/software/bash/manual/html_node/Exit-Status.html
+  - id: flow
+    title: { en: Conditions and loops, tr: Koşullar ve döngüler }
+    items:
+      - id: if-test
+        level: basic
+        title: { en: "if with [[ ]]", tr: "[[ ]] ile if" }
+        what:
+          en: "[[ ]] tests strings, numbers and files; if runs a block when the test succeeds."
+          tr: "[[ ]] string'leri, sayıları ve dosyaları test eder; if, test başarılıysa bir bloğu çalıştırır."
+        lang: sh
+        form: if [[ condition ]]; then ...; elif ...; else ...; fi
+        example: |
+          n=15
+          if [[ $n -gt 10 ]]; then
+            echo "big"
+          else
+            echo "small"
+          fi
+          [[ -d /etc && ! -f /etc ]] && echo "/etc is a folder"
+        output: |
+          big
+          /etc is a folder
+        check: sh
+        mistake:
+          en: Using > or < for numbers; inside [[ ]] they compare text. Use -gt, -lt, -eq or (( n > 10 )).
+          tr: Sayılar için > ya da < kullanmak; [[ ]] içinde bunlar metin karşılaştırır. -gt, -lt, -eq ya da (( n > 10 )) kullan.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bash-Conditional-Expressions.html
+      - id: case
+        level: basic
+        title: { en: Choose by pattern, tr: Desene göre seçme }
+        what:
+          en: case compares one value with several patterns and runs the first match.
+          tr: case bir değeri birkaç desenle karşılaştırır ve ilk eşleşeni çalıştırır.
+        lang: sh
+        form: case "$x" in pattern) ...;; *) ...;; esac
+        example: |
+          for f in photo.jpg notes.txt run.sh; do
+            case "$f" in
+              *.jpg|*.png) echo "$f: image" ;;
+              *.txt)       echo "$f: text" ;;
+              *)           echo "$f: other" ;;
+            esac
+          done
+        output: |
+          photo.jpg: image
+          notes.txt: text
+          run.sh: other
+        check: sh
+        mistake:
+          en: Forgetting ;; at the end of a branch, which is a syntax error.
+          tr: Bir dalın sonundaki ;;'yi unutmak; bu bir sözdizimi hatasıdır.
+        source: https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html
+      - id: for-loop
+        level: basic
+        title: { en: Loop over files or a list, tr: Dosyalar ya da liste üzerinde döngü }
+        what:
+          en: for runs the same commands once for every word, file or number you give it.
+          tr: for, verdiğin her kelime, dosya ya da sayı için aynı komutları bir kez çalıştırır.
+        lang: sh
+        form: for x in list; do ...; done
+        example: |
+          touch a.log b.log
+          for f in *.log; do
+            echo "rotating $f"
+          done
+          for i in {1..3}; do printf '%s ' "$i"; done; echo
+        output: |
+          rotating a.log
+          rotating b.log
+          1 2 3
+        check: sh
+        mistake:
+          en: Looping over $(ls); names with spaces split apart. Loop over the glob (*.log) directly.
+          tr: $(ls) üzerinde döngü kurmak; boşluklu adlar bölünür. Doğrudan glob üzerinde (*.log) dön.
+        source: https://www.gnu.org/software/bash/manual/html_node/Looping-Constructs.html
+      - id: while-read
+        level: basic
+        title: { en: Read a file line by line, tr: Dosyayı satır satır okuma }
+        what:
+          en: while read -r runs once per line and keeps backslashes and spaces as they are.
+          tr: while read -r her satır için bir kez çalışır; ters eğik çizgileri ve boşlukları olduğu gibi bırakır.
+        lang: sh
+        form: while IFS= read -r line; do ...; done < file
+        example: |
+          printf 'alice 30\nbob 25\n' > people.txt
+          while read -r name age; do
+            echo "$name is $age"
+          done < people.txt
+        output: |
+          alice is 30
+          bob is 25
+        check: sh
+        mistake:
+          en: Piping into while (cat f | while ...); the loop runs in a subshell, so variables set inside are lost after it.
+          tr: while'a pipe ile veri vermek (cat f | while ...); döngü bir alt shell'de çalışır, içinde atanan değişkenler sonra kaybolur.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-read
+      - id: and-or
+        level: intermediate
+        title: { en: Chain commands with && and ||, tr: "&& ve || ile komut zincirleme" }
+        what:
+          en: a && b runs b only if a succeeded; a || b runs b only if a failed.
+          tr: a && b, b'yi sadece a başarılıysa çalıştırır; a || b, b'yi sadece a başarısızsa çalıştırır.
+        lang: sh
+        form: mkdir -p build && cd build || exit 1
+        example: |
+          mkdir -p build && cd build && echo "in $(basename "$PWD")"
+          false || echo "fallback ran"
+        output: |
+          in build
+          fallback ran
+        check: sh
+        mistake:
+          en: Treating a && b || c as if-else; c also runs when b fails.
+          tr: a && b || c'yi if-else sanmak; b başarısız olursa c de çalışır.
+        source: https://www.gnu.org/software/bash/manual/html_node/Lists.html
+  - id: functions
+    title: { en: Arguments and functions, tr: Argümanlar ve fonksiyonlar }
+    items:
+      - id: positional
+        level: basic
+        title: { en: Script arguments, tr: Script argümanları }
+        what:
+          en: $1, $2 ... are the arguments, $# is how many there are and "$@" is all of them, each kept whole.
+          tr: $1, $2 ... argümanlardır, $# kaç tane olduğunu, "$@" ise hepsini, her birini bölmeden verir.
+        lang: sh
+        form: echo "$1" "$#" "$@"
+        example: |
+          set -- "first arg" second
+          echo "count: $#"
+          for a in "$@"; do echo "[$a]"; done
+        output: |
+          count: 2
+          [first arg]
+          [second]
+        check: sh
+        mistake:
+          en: Writing $@ or $* without quotes; arguments with spaces break into pieces.
+          tr: $@ ya da $*'ı tırnaksız yazmak; boşluklu argümanlar parçalara bölünür.
+        source: https://www.gnu.org/software/bash/manual/html_node/Special-Parameters.html
+      - id: functions
+        level: basic
+        title: { en: Functions and local variables, tr: Fonksiyonlar ve yerel değişkenler }
+        what:
+          en: A function groups commands under a name; it gets its own $1, $2 and local keeps variables inside it.
+          tr: Fonksiyon komutları bir ad altında toplar; kendi $1, $2'si olur ve local değişkenleri içeride tutar.
+        lang: sh
+        form: name() { local x="$1"; ...; }
+        example: |
+          greet() {
+            local who="${1:-world}"
+            echo "Hello, $who"
+          }
+          greet
+          greet Ada
+        output: |
+          Hello, world
+          Hello, Ada
+        check: sh
+        mistake:
+          en: Forgetting local; the variable then overwrites one with the same name in the rest of the script.
+          tr: local'ı unutmak; değişken script'in geri kalanındaki aynı adlı değişkenin üstüne yazar.
+        source: https://www.gnu.org/software/bash/manual/html_node/Shell-Functions.html
+      - id: return-value
+        level: intermediate
+        title: { en: Getting a result from a function, tr: Fonksiyondan sonuç alma }
+        what:
+          en: return only sets the exit status (0-255); to give back text, print it and capture it with $(...).
+          tr: return sadece çıkış kodunu (0-255) ayarlar; metin döndürmek için yazdır ve $(...) ile yakala.
+        lang: sh
+        form: result="$(func args)"
+        example: |
+          slug() { echo "$1" | tr '[:upper:] ' '[:lower:]-'; }
+          is_even() { (( $1 % 2 == 0 )); }
+          s="$(slug "Hello World")"
+          echo "$s"
+          is_even 4 && echo "4 is even"
+        output: |
+          hello-world
+          4 is even
+        check: sh
+        mistake:
+          en: Using return 300 or return "text"; the status is a number from 0 to 255.
+          tr: return 300 ya da return "metin" kullanmak; çıkış kodu 0 ile 255 arası bir sayıdır.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-return
+      - id: getopts
+        level: intermediate
+        title: { en: Parse options like -v -o file, tr: "-v -o dosya gibi seçenekleri okuma" }
+        what:
+          en: getopts reads short options one by one; a colon after a letter means it takes a value.
+          tr: getopts kısa seçenekleri tek tek okur; harften sonraki iki nokta, o seçeneğin bir değer aldığını belirtir.
+        lang: sh
+        form: while getopts "vo:" opt; do case $opt in ...; esac; done
+        example: |
+          set -- -v -o out.txt input.txt
+          verbose=0 out=""
+          while getopts "vo:" opt; do
+            case $opt in
+              v) verbose=1 ;;
+              o) out="$OPTARG" ;;
+              *) echo "usage: $0 [-v] [-o file]"; exit 2 ;;
+            esac
+          done
+          shift $((OPTIND - 1))
+          echo "verbose=$verbose out=$out rest=$*"
+        output: |
+          verbose=1 out=out.txt rest=input.txt
+        check: sh
+        mistake:
+          en: Forgetting shift $((OPTIND - 1)), so the options are still in $1, $2 after the loop.
+          tr: shift $((OPTIND - 1))'i unutmak; döngüden sonra seçenekler hâlâ $1, $2'de kalır.
+        avoid:
+          en: getopts does not support long options like --verbose; parse those with a while/case loop over "$@".
+          tr: getopts --verbose gibi uzun seçenekleri desteklemez; onları "$@" üzerinde while/case döngüsüyle oku.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-getopts
+  - id: strings
+    title: { en: Strings and arrays, tr: String'ler ve array'ler }
+    items:
+      - id: default-values
+        level: intermediate
+        title: { en: Default values, tr: Varsayılan değerler }
+        what:
+          en: ${var:-default} uses a fallback when var is empty or unset; ${var:?message} stops the script instead.
+          tr: ${var:-varsayılan}, var boşsa ya da tanımsızsa yedek değeri kullanır; ${var:?mesaj} ise script'i durdurur.
+        lang: sh
+        form: ${var:-default}
+        example: |
+          unset PORT
+          echo "port ${PORT:-8080}"
+          DIR=""
+          echo "dir ${DIR:-/tmp}"
+          (echo "${TOKEN:?TOKEN is required}") 2>&1 | sed 's/.*: //'
+        output: |
+          port 8080
+          dir /tmp
+          TOKEN is required
+        check: sh
+        mistake:
+          en: Mixing up :- and :=; := also assigns the default to the variable.
+          tr: ":- ile :='i karıştırmak; := varsayılan değeri değişkene de atar."
+        source: https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+      - id: trim-replace
+        level: intermediate
+        title: { en: Cut and replace parts of a string, tr: String'in parçalarını kesme ve değiştirme }
+        what:
+          en: "# and % remove a matching start or end, // replaces every match, and ${#var} is the length."
+          tr: "# ve % eşleşen başı ya da sonu siler, // her eşleşmeyi değiştirir, ${#var} uzunluğu verir."
+        lang: sh
+        form: ${var#prefix} ${var%suffix} ${var//old/new} ${#var}
+        example: |
+          path="/srv/app/report.tar.gz"
+          echo "${path##*/}"
+          echo "${path%/*}"
+          file="${path##*/}"
+          echo "${file%%.*}" "${file#*.}"
+          echo "${path//\//:}" "${#file}"
+        output: |
+          report.tar.gz
+          /srv/app
+          report tar.gz
+          :srv:app:report.tar.gz 13
+        check: sh
+        mistake:
+          en: "Mixing up single and double: # and % remove the shortest match, ## and %% the longest."
+          tr: "Tek ve çift olanları karıştırmak: # ve % en kısa eşleşmeyi, ## ve %% en uzununu siler."
+        source: https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+      - id: case-change
+        level: intermediate
+        title: { en: Upper and lower case, tr: Büyük ve küçük harf }
+        what:
+          en: ${var^^} makes the value upper case, ${var,,} lower case and ${var^} capitalizes the first letter.
+          tr: ${var^^} değeri büyük harfe, ${var,,} küçük harfe çevirir; ${var^} ilk harfi büyütür.
+        lang: sh
+        form: ${var^^} ${var,,}
+        example: |
+          env="Production"
+          echo "${env^^} ${env,,}"
+          name="ada"
+          echo "${name^}"
+        output: |
+          PRODUCTION production
+          Ada
+        check: sh
+        since: "4.0"
+        older:
+          en: Before Bash 4.0 (still the default /bin/bash on macOS, version 3.2) use tr '[:lower:]' '[:upper:]'.
+          tr: Bash 4.0'dan önce (macOS'taki varsayılan /bin/bash hâlâ 3.2) tr '[:lower:]' '[:upper:]' kullan.
+        source: https://www.gnu.org/software/bash/manual/html_node/Shell-Parameter-Expansion.html
+      - id: arrays
+        level: intermediate
+        title: { en: Arrays, tr: Array'ler }
+        what:
+          en: An array keeps a list of values; "${arr[@]}" gives every element, each kept whole.
+          tr: Array bir değer listesini tutar; "${arr[@]}" her elemanı bölmeden verir.
+        lang: sh
+        form: arr=(a b c); "${arr[@]}" ${#arr[@]}
+        example: |
+          files=("my report.pdf" notes.txt)
+          files+=(todo.md)
+          echo "count: ${#files[@]}, first: ${files[0]}"
+          for f in "${files[@]}"; do echo "- $f"; done
+        output: |
+          count: 3, first: my report.pdf
+          - my report.pdf
+          - notes.txt
+          - todo.md
+        check: sh
+        mistake:
+          en: Writing $arr instead of "${arr[@]}"; $arr is only the first element.
+          tr: "\"${arr[@]}\" yerine $arr yazmak; $arr sadece ilk elemandır."
+        source: https://www.gnu.org/software/bash/manual/html_node/Arrays.html
+      - id: assoc-arrays
+        level: intermediate
+        title: { en: Key-value maps, tr: Anahtar-değer tabloları }
+        what:
+          en: declare -A makes an associative array, where values are looked up by a text key.
+          tr: declare -A bir ilişkisel array oluşturur; değerlere metin anahtarıyla ulaşılır.
+        lang: sh
+        form: declare -A m=([key]=value); ${m[key]}
+        example: |
+          declare -A port=([web]=80 [db]=5432)
+          port[cache]=6379
+          echo "db: ${port[db]}"
+          for k in $(printf '%s\n' "${!port[@]}" | sort); do echo "$k=${port[$k]}"; done
+        output: |
+          db: 5432
+          cache=6379
+          db=5432
+          web=80
+        check: sh
+        mistake:
+          en: Skipping declare -A; Bash then treats it as a normal array and every key becomes index 0.
+          tr: declare -A'yı atlamak; Bash onu normal array sayar ve her anahtar 0 numaralı index olur.
+        since: "4.0"
+        source: https://www.gnu.org/software/bash/manual/html_node/Arrays.html
+      - id: mapfile
+        level: advanced
+        title: { en: Read lines into an array, tr: Satırları array'e okuma }
+        what:
+          en: mapfile (also called readarray) puts each line of input into one array element.
+          tr: mapfile (readarray olarak da geçer) girdinin her satırını bir array elemanına koyar.
+        lang: sh
+        form: mapfile -t lines < file
+        example: |
+          printf 'one\ntwo words\nthree\n' > list.txt
+          mapfile -t lines < list.txt
+          echo "${#lines[@]} lines, second: ${lines[1]}"
+        output: |
+          3 lines, second: two words
+        check: sh
+        mistake:
+          en: Forgetting -t, so every element keeps its trailing newline.
+          tr: -t'yi unutmak; her eleman sonundaki yeni satır karakterini korur.
+        since: "4.0"
+        source: https://www.gnu.org/software/bash/manual/html_node/Bash-Builtins.html#index-mapfile
+      - id: regex-match
+        level: advanced
+        title: { en: Regular expressions, tr: Düzenli ifadeler (regex) }
+        what:
+          en: "[[ $s =~ regex ]] tests an extended regular expression and stores the captured groups in BASH_REMATCH."
+          tr: "[[ $s =~ regex ]] genişletilmiş bir düzenli ifadeyi test eder ve yakalanan grupları BASH_REMATCH'e koyar."
+        lang: sh
+        form: '[[ $s =~ ^([a-z]+)-([0-9]+)$ ]]'
+        example: |
+          tag="release-42"
+          re='^([a-z]+)-([0-9]+)$'
+          if [[ $tag =~ $re ]]; then
+            echo "name=${BASH_REMATCH[1]} number=${BASH_REMATCH[2]}"
+          fi
+        output: |
+          name=release number=42
+        check: sh
+        mistake:
+          en: Putting the regex in quotes on the right side; quoted parts are matched as plain text. Keep it in a variable instead.
+          tr: Sağ taraftaki regex'i tırnak içine almak; tırnaklı kısım düz metin olarak eşleşir. Bunun yerine regex'i bir değişkende tut.
+        source: https://www.gnu.org/software/bash/manual/html_node/Conditional-Constructs.html
+  - id: io
+    title: { en: Input, output and pipes, tr: Girdi, çıktı ve pipe'lar }
+    items:
+      - id: redirect
+        level: basic
+        title: { en: Send output to a file, tr: Çıktıyı dosyaya gönderme }
+        what:
+          en: "> writes to a file, >> appends, 2> sends errors, and 2>&1 joins errors with normal output."
+          tr: "> dosyaya yazar, >> sona ekler, 2> hataları gönderir, 2>&1 hataları normal çıktıyla birleştirir."
+        lang: sh
+        form: command > out.log 2>&1
+        example: |
+          echo first > app.log
+          echo second >> app.log
+          ls /missing 2> err.log || true
+          cat app.log
+          wc -l < err.log
+        output: |
+          first
+          second
+          1
+        check: sh
+        mistake:
+          en: Writing 2>&1 > file; order matters, so errors still go to the screen. Write > file 2>&1 (or &> file).
+          tr: 2>&1 > dosya yazmak; sıra önemlidir ve hatalar yine ekrana gider. > dosya 2>&1 (ya da &> dosya) yaz.
+        source: https://www.gnu.org/software/bash/manual/html_node/Redirections.html
+      - id: heredoc
+        level: intermediate
+        title: { en: Multi-line text into a command, tr: Komuta çok satırlı metin verme }
+        what:
+          en: A here-document feeds the lines up to a marker word into a command; quoting the marker turns off $ expansion.
+          tr: Here-document, bir işaret kelimesine kadar olan satırları komuta girdi olarak verir; işareti tırnaklamak $ açılımını kapatır.
+        lang: sh
+        form: |
+          cat <<EOF > file
+          ...
+          EOF
+        example: |
+          name=web
+          cat <<EOF
+          server: $name
+          EOF
+          cat <<'EOF'
+          literal: $name
+          EOF
+          tr a-z A-Z <<< "here string"
+        output: |
+          server: web
+          literal: $name
+          HERE STRING
+        check: sh
+        mistake:
+          en: Indenting the closing EOF; it must start at the beginning of the line (or use <<- with tabs only).
+          tr: Kapanış EOF'unu girintili yazmak; satırın en başında olmalı (ya da sadece tab ile <<- kullan).
+        source: https://www.gnu.org/software/bash/manual/html_node/Redirections.html#Here-Documents
+      - id: pipes
+        level: basic
+        title: { en: Pipes, tr: Pipe'lar }
+        what:
+          en: A | sends what one command prints into the next command as its input.
+          tr: "| bir komutun yazdırdığını, girdi olarak bir sonraki komuta gönderir."
+        lang: sh
+        form: cmd1 | cmd2 | cmd3
+        example: |
+          printf 'b\na\nb\nc\nb\n' | sort | uniq -c | sort -rn | head -1
+        output: |
+          3 b
+        check: sh
+        mistake:
+          en: Thinking a pipeline fails when an early command fails; by default only the last command's status counts. Use set -o pipefail.
+          tr: Baştaki bir komut hata verince pipeline'ın da başarısız olacağını sanmak; varsayılan olarak sadece son komutun sonucu sayılır. set -o pipefail kullan.
+        source: https://www.gnu.org/software/bash/manual/html_node/Pipelines.html
+      - id: process-substitution
+        level: advanced
+        title: { en: Use output as a file, tr: Çıktıyı dosya gibi kullanma }
+        what:
+          en: <(command) gives a command's output a file name, for tools that only accept files.
+          tr: <(komut), sadece dosya kabul eden araçlar için bir komutun çıktısına bir dosya adı verir.
+        lang: sh
+        form: diff <(cmd1) <(cmd2)
+        example: |
+          printf 'a\nb\n' > old.txt
+          printf 'a\nc\n' > new.txt
+          diff <(sort old.txt) <(sort new.txt) || true
+        output: |
+          2c2
+          < b
+          ---
+          > c
+        check: sh
+        mistake:
+          en: Using it in a script run with sh; it is a Bash feature and fails in plain POSIX sh.
+          tr: sh ile çalıştırılan bir script'te kullanmak; bu Bash'e özel bir özelliktir, düz POSIX sh'ta çalışmaz.
+        source: https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html
+  - id: robust
+    title: { en: Reliable scripts, tr: Güvenilir script'ler }
+    items:
+      - id: trap-cleanup
+        level: intermediate
+        title: { en: Clean up on exit, tr: Çıkışta temizlik }
+        what:
+          en: trap runs a command when the script exits or gets a signal, so temp files are removed even after an error.
+          tr: trap, script bittiğinde ya da bir sinyal aldığında bir komut çalıştırır; geçici dosyalar hata olsa bile silinir.
+        lang: sh
+        form: trap 'rm -rf "$tmp"' EXIT
+        example: |
+          (
+            tmp="$(mktemp -d)"
+            echo "$tmp" > where.txt
+            trap 'rm -rf "$tmp"' EXIT
+            touch "$tmp/work"
+          )
+          [[ -e "$(cat where.txt)" ]] || echo "temp folder removed"
+        output: |
+          temp folder removed
+        check: sh
+        mistake:
+          en: Using double quotes in the trap ("rm -rf $tmp"); the variable is expanded at once instead of when the trap runs.
+          tr: Trap'te çift tırnak kullanmak ("rm -rf $tmp"); değişken trap çalıştığında değil hemen açılır.
+        source: https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html#index-trap
+      - id: debug-x
+        level: intermediate
+        title: { en: See each command as it runs, tr: Her komutu çalışırken görme }
+        what:
+          en: set -x prints every command, with variables filled in, before running it.
+          tr: set -x her komutu, değişkenleri doldurulmuş haliyle, çalıştırmadan önce yazdırır.
+        lang: sh
+        form: bash -x script.sh
+        example: |
+          (
+            set -x
+            name=web
+            echo "deploy $name"
+          ) 2>&1
+        output: |
+          + name=web
+          + echo 'deploy web'
+          deploy web
+        check: sh
+        mistake:
+          en: Leaving set -x in a script that handles secrets; tokens end up in the logs.
+          tr: Gizli bilgi işleyen bir script'te set -x'i açık bırakmak; token'lar log'lara düşer.
+        source: https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html
+      - id: globs
+        level: intermediate
+        title: { en: Wildcards and missing matches, tr: Joker karakterler ve eşleşme olmaması }
+        what:
+          en: "* and ? match file names; with nullglob a pattern that matches nothing disappears instead of staying as text."
+          tr: "* ve ? dosya adlarıyla eşleşir; nullglob açıkken hiçbir şeyle eşleşmeyen desen metin olarak kalmak yerine yok olur."
+        lang: sh
+        form: shopt -s nullglob globstar
+        example: |
+          for f in *.csv; do echo "got: $f"; done
+          shopt -s nullglob
+          for f in *.csv; do echo "never printed"; done
+          mkdir -p src/lib && touch src/a.ts src/lib/b.ts
+          shopt -s globstar
+          echo src/**/*.ts
+        output: |
+          got: *.csv
+          src/a.ts src/lib/b.ts
+        check: sh
+        mistake:
+          en: Not expecting the literal *.csv when no file matches; the loop then runs once with that text.
+          tr: Eşleşen dosya yokken *.csv metninin kendisini beklememek; döngü bu metinle bir kez çalışır.
+        source: https://www.gnu.org/software/bash/manual/html_node/The-Shopt-Builtin.html
+      - id: background-wait
+        level: advanced
+        title: { en: Run jobs in parallel, tr: İşleri paralel çalıştırma }
+        what:
+          en: "& starts a command in the background; wait pauses until background jobs finish."
+          tr: "& bir komutu arka planda başlatır; wait arka plandaki işler bitene kadar bekler."
+        lang: sh
+        form: cmd & pid=$!; wait "$pid"
+        example: |
+          (sleep 0.2; echo slow) &
+          (echo fast) &
+          wait
+          echo "all done"
+        output: |
+          fast
+          slow
+          all done
+        check: sh
+        mistake:
+          en: Ignoring failures of background jobs; wait with no arguments returns 0. Use wait "$pid" to get each job's exit status.
+          tr: Arka plandaki işlerin hatalarını görmezden gelmek; argümansız wait 0 döner. Her işin sonucunu almak için wait "$pid" kullan.
+        source: https://www.gnu.org/software/bash/manual/html_node/Job-Control-Builtins.html#index-wait
+      - id: shellcheck
+        level: intermediate
+        title: { en: Lint your script, tr: Script'ini lint'leme }
+        what:
+          en: ShellCheck reads a script and points out quoting bugs and other common mistakes before you run it.
+          tr: ShellCheck bir script'i okur ve çalıştırmadan önce tırnak hatalarını ve diğer yaygın hataları gösterir.
+        lang: sh
+        form: shellcheck script.sh
+        example: |
+          shellcheck deploy.sh
+          shellcheck -s bash -x deploy.sh   # follow sourced files
+        avoid:
+          en: "Do not silence a warning with a # shellcheck disable comment until you know why it fires."
+          tr: "Neden çıktığını anlamadan bir uyarıyı # shellcheck disable yorumuyla susturma."
+        source: https://www.shellcheck.net/
+      - id: nofork-subst
+        level: advanced
+        title: { en: Command substitution without a subshell, tr: Alt shell olmadan komut yerine koyma }
+        what:
+          en: ${ command; } captures output like $(...) but runs in the current shell, so variable changes inside it stay.
+          tr: ${ komut; } çıktıyı $(...) gibi yakalar ama mevcut shell'de çalışır; içindeki değişken değişiklikleri kalır.
+        lang: sh
+        form: x=${ command; }
+        example: |
+          n=1
+          out=${ n=2; echo "inside"; }
+          echo "$out n=$n"
+        output: |
+          inside n=2
+        check: sh
+        since: "5.3"
+        older:
+          en: Before 5.3 only $(...) exists; it always runs in a subshell, so changes to variables inside it are lost.
+          tr: 5.3'ten önce sadece $(...) var; her zaman alt shell'de çalışır, içindeki değişken değişiklikleri kaybolur.
+        avoid:
+          en: In scripts that must run on older Bash versions (Debian 12, Ubuntu 24.04 and macOS ship older ones).
+          tr: Eski Bash sürümlerinde de çalışması gereken script'lerde (Debian 12, Ubuntu 24.04 ve macOS daha eski sürümlerle gelir).
+        source: https://www.gnu.org/software/bash/manual/html_node/Command-Substitution.html

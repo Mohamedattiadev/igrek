@@ -1,0 +1,703 @@
+id: kubernetes
+title: Kubernetes
+category: tool
+summary:
+  en: Runs your containers on a group of machines, keeps them alive, scales them and rolls out new versions.
+  tr: Container'larını bir grup makinede çalıştırır, ayakta tutar, ölçekler ve yeni sürümleri yayına alır.
+aliases: [k8s, kubectl, kube, cluster, küme, pod, deployment, orkestrasyon, orchestration]
+version: "1.37"
+latest: eol:kubernetes
+checked: 2026-10
+sources:
+  - title: Kubernetes documentation
+    url: https://kubernetes.io/docs/home/
+  - title: kubectl quick reference
+    url: https://kubernetes.io/docs/reference/kubectl/quick-reference/
+roadmap: kubernetes
+sections:
+  - id: kubectl-basics
+    title: { en: kubectl basics, tr: kubectl temelleri }
+    items:
+      - id: get
+        level: basic
+        title: { en: List resources, tr: Kaynakları listeleme }
+        what:
+          en: Lists objects of a type (pods, deployments, services) in the current namespace.
+          tr: Bir türdeki nesneleri (pod, deployment, service) geçerli namespace'te listeler.
+        lang: sh
+        form: kubectl get <type> [-n <namespace>]
+        example: |
+          kubectl get pods
+          kubectl get pods -o wide        # node and IP too
+          kubectl get deploy,svc -n shop
+          kubectl get pods -A             # every namespace
+          kubectl get pods -w             # keep watching
+        mistake:
+          en: Seeing "No resources found" and thinking the app is gone; it is often in another namespace. Add -n or -A.
+          tr: '"No resources found" görüp uygulamanın gittiğini sanmak; çoğu zaman başka bir namespace''tedir. -n ya da -A ekle.'
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_get/
+      - id: describe
+        level: basic
+        title: { en: See why something is not working, tr: Bir şeyin neden çalışmadığını görme }
+        what:
+          en: Shows the details of an object and its recent events, such as image pull errors or failed scheduling.
+          tr: Bir nesnenin ayrıntılarını ve son olaylarını gösterir; image çekme hataları ya da yerleştirilememe gibi.
+        lang: sh
+        form: kubectl describe <type> <name>
+        example: |
+          kubectl describe pod web-7c9d8f6b5-x2k4j
+          kubectl describe node worker-1
+        mistake:
+          en: Reading only the top of the output; the Events at the bottom usually tell you what went wrong.
+          tr: Çıktının sadece üst kısmını okumak; neyin ters gittiğini genelde en alttaki Events kısmı söyler.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_describe/
+      - id: apply
+        level: basic
+        title: { en: Create or update from YAML, tr: YAML'dan oluşturma ya da güncelleme }
+        what:
+          en: Sends your YAML files to the cluster; it creates what is missing and updates what changed.
+          tr: YAML dosyalarını cluster'a gönderir; eksik olanı oluşturur, değişeni günceller.
+        lang: sh
+        form: kubectl apply -f <file-or-folder>
+        example: |
+          kubectl apply -f deployment.yaml
+          kubectl apply -f k8s/          # every file in the folder
+          kubectl diff -f k8s/           # what would change
+        mistake:
+          en: Changing objects with kubectl edit and then applying the old YAML; your manual change is overwritten.
+          tr: Nesneleri kubectl edit ile değiştirip sonra eski YAML'ı apply etmek; elle yaptığın değişiklik ezilir.
+        avoid:
+          en: For one-off experiments, kubectl create or kubectl run is faster; keep apply for files you store in Git.
+          tr: Tek seferlik denemeler için kubectl create ya da kubectl run daha hızlı; apply'ı Git'te sakladığın dosyalar için kullan.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_apply/
+      - id: logs
+        level: basic
+        title: { en: Read a pod's logs, tr: Pod loglarını okuma }
+        what:
+          en: Prints what a container in a pod wrote to stdout and stderr; -f keeps following.
+          tr: Bir pod'daki container'ın stdout ve stderr'e yazdıklarını yazdırır; -f izlemeye devam eder.
+        lang: sh
+        form: kubectl logs -f <pod>
+        example: |
+          kubectl logs -f deploy/web
+          kubectl logs web-7c9d8f6b5-x2k4j -c sidecar
+          kubectl logs web-7c9d8f6b5-x2k4j --previous   # before the last crash
+          kubectl logs -l app=web --tail 50
+        mistake:
+          en: Looking at the logs of a crash-looping pod and seeing nothing; the crash is in the previous run, add --previous.
+          tr: Sürekli çöken bir pod'un loglarına bakıp boş görmek; çökme önceki çalışmadadır, --previous ekle.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_logs/
+      - id: exec
+        level: basic
+        title: { en: Run a command in a pod, tr: Pod içinde komut çalıştırma }
+        what:
+          en: Runs a command inside a running container; -it gives an interactive shell.
+          tr: Çalışan bir container'ın içinde komut çalıştırır; -it etkileşimli bir shell verir.
+        lang: sh
+        form: kubectl exec -it <pod> -- sh
+        example: |
+          kubectl exec -it deploy/web -- sh
+          kubectl exec web-7c9d8f6b5-x2k4j -- env
+        mistake:
+          en: Forgetting the -- before the command; kubectl then reads the command's flags as its own.
+          tr: Komuttan önceki --'yi unutmak; kubectl o zaman komutun flag'lerini kendi flag'i sanar.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_exec/
+      - id: port-forward
+        level: basic
+        title: { en: Reach a pod from your machine, tr: Makinenden bir pod'a ulaşma }
+        what:
+          en: Opens a port on your machine that tunnels to a pod or service, without exposing it to the internet.
+          tr: Makinende bir pod'a ya da service'e tünel açan bir port açar; onu internete açmadan.
+        lang: sh
+        form: kubectl port-forward <pod-or-svc> <local>:<remote>
+        example: |
+          kubectl port-forward svc/web 8080:80
+          kubectl port-forward deploy/postgres 5432:5432
+        avoid:
+          en: For real users; it is a debug tunnel that stops when you close the terminal. Use a Service or Gateway.
+          tr: Gerçek kullanıcılar için; terminali kapatınca duran bir debug tünelidir. Service ya da Gateway kullan.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/
+      - id: delete
+        level: basic
+        title: { en: Delete resources, tr: Kaynakları silme }
+        what:
+          en: Removes objects by name, by file or by label.
+          tr: Nesneleri adına, dosyasına ya da label'ına göre siler.
+        lang: sh
+        form: kubectl delete <type> <name>
+        example: |
+          kubectl delete pod web-7c9d8f6b5-x2k4j   # the Deployment makes a new one
+          kubectl delete -f k8s/
+          kubectl delete pods -l app=web
+        mistake:
+          en: Deleting a namespace to clean one thing up; everything in that namespace is deleted with it.
+          tr: Tek bir şeyi temizlemek için namespace'i silmek; o namespace'teki her şey onunla birlikte silinir.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_delete/
+      - id: context-namespace
+        level: intermediate
+        title: { en: Switch cluster and namespace, tr: Cluster ve namespace değiştirme }
+        what:
+          en: A context is a cluster plus user plus namespace from your kubeconfig; use-context picks which one kubectl talks to.
+          tr: Context, kubeconfig'ndeki bir cluster, kullanıcı ve namespace üçlüsüdür; use-context kubectl'in hangisiyle konuşacağını seçer.
+        lang: sh
+        form: kubectl config use-context <context>
+        example: |
+          kubectl config get-contexts
+          kubectl config use-context staging
+          kubectl config set-context --current --namespace=shop
+        mistake:
+          en: Running a delete while still on the production context; check kubectl config current-context first.
+          tr: Hâlâ production context'indeyken delete çalıştırmak; önce kubectl config current-context ile kontrol et.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_config/kubectl_config_use-context/
+      - id: explain
+        level: intermediate
+        title: { en: Look up YAML fields, tr: YAML alanlarına bakma }
+        what:
+          en: Shows the documentation of any field of any object type, straight from your cluster's version.
+          tr: Herhangi bir nesne türünün herhangi bir alanının dokümantasyonunu, doğrudan cluster'ının sürümünden gösterir.
+        lang: sh
+        form: kubectl explain <type>.<field>
+        example: |
+          kubectl explain deployment.spec.strategy
+          kubectl explain pod.spec.containers.resources --recursive
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_explain/
+      - id: output-jsonpath
+        level: advanced
+        title: { en: Pick one value from the output, tr: Çıktıdan tek bir değer alma }
+        what:
+          en: -o jsonpath prints only the fields you ask for, handy in scripts.
+          tr: -o jsonpath sadece istediğin alanları yazar; script'lerde çok işe yarar.
+        lang: sh
+        form: kubectl get <type> <name> -o jsonpath='{<path>}'
+        example: |
+          kubectl get pod web-7c9d8f6b5-x2k4j -o jsonpath='{.status.podIP}'
+          kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+          kubectl get deploy web -o yaml     # the whole object
+        source: https://kubernetes.io/docs/reference/kubectl/jsonpath/
+      - id: kyaml
+        level: advanced
+        title: { en: KYAML output, tr: KYAML çıktısı }
+        what:
+          en: Prints objects as KYAML, a stricter form of YAML with quoted strings and braces, so indentation and type mistakes cannot happen.
+          tr: Nesneleri KYAML olarak yazar; string'leri tırnaklı ve süslü parantezli, daha katı bir YAML biçimi, böylece girinti ve tip hataları olmaz.
+        lang: sh
+        form: kubectl get <type> <name> -o kyaml
+        example: |
+          kubectl get deploy web -o kyaml > web.yaml
+        since: "1.35"
+        older:
+          en: KYAML came as alpha in 1.34 (behind KUBECTL_KYAML=true); it is on by default since 1.35 and stable in 1.37. Older kubectl has no kyaml output.
+          tr: KYAML 1.34'te alpha olarak geldi (KUBECTL_KYAML=true gerekir); 1.35'ten beri varsayılan olarak açık, 1.37'de stable. Eski kubectl'de kyaml çıktısı yok.
+        source: https://kubernetes.io/docs/reference/encodings/kyaml/
+  - id: workloads
+    title: { en: Pods and Deployments, tr: Pod'lar ve Deployment'lar }
+    items:
+      - id: pod
+        level: basic
+        title: { en: Pod, tr: Pod }
+        what:
+          en: A pod is the smallest unit Kubernetes runs; one or more containers that share a network and storage.
+          tr: Pod, Kubernetes'in çalıştırdığı en küçük birimdir; ağı ve depolamayı paylaşan bir ya da birkaç container.
+        lang: yaml
+        form: "kind: Pod"
+        example: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: hello
+          spec:
+            containers:
+              - name: app
+                image: nginx:1.30
+                ports:
+                  - containerPort: 80
+        mistake:
+          en: Creating bare pods for an app; if the pod or its node dies, nothing brings it back. Use a Deployment.
+          tr: Bir uygulama için tek başına pod oluşturmak; pod ya da node'u ölürse kimse onu geri getirmez. Deployment kullan.
+        source: https://kubernetes.io/docs/concepts/workloads/pods/
+      - id: deployment
+        level: basic
+        title: { en: Deployment, tr: Deployment }
+        what:
+          en: A Deployment keeps a number of identical pods running and replaces them step by step when you change the image.
+          tr: Deployment belli sayıda aynı pod'u çalışır tutar ve image'ı değiştirdiğinde onları adım adım yeniler.
+        lang: yaml
+        form: "kind: Deployment"
+        example: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: web
+          spec:
+            replicas: 3
+            selector:
+              matchLabels:
+                app: web
+            template:
+              metadata:
+                labels:
+                  app: web
+              spec:
+                containers:
+                  - name: web
+                    image: ghcr.io/acme/web:1.4.2
+                    ports:
+                      - containerPort: 3000
+        mistake:
+          en: A selector that does not match the template labels; the API rejects it. The selector also cannot be changed later.
+          tr: Template label'larıyla eşleşmeyen bir selector; API onu reddeder. Selector sonradan da değiştirilemez.
+        source: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+      - id: create-deployment
+        level: basic
+        title: { en: Make a Deployment from the command line, tr: Komut satırından Deployment oluşturma }
+        what:
+          en: Creates a Deployment without writing YAML; with --dry-run=client -o yaml it prints the YAML for you instead.
+          tr: YAML yazmadan Deployment oluşturur; --dry-run=client -o yaml ile bunun yerine YAML'ı senin için yazdırır.
+        lang: sh
+        form: kubectl create deployment <name> --image=<image>
+        example: |
+          kubectl create deployment web --image=nginx:1.30 --replicas=2
+          kubectl create deployment web --image=nginx:1.30 \
+            --dry-run=client -o yaml > deployment.yaml
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_deployment/
+      - id: rollout
+        level: intermediate
+        title: { en: Roll out and roll back, tr: Yayına alma ve geri alma }
+        what:
+          en: Changes the image, watches the rollout, and goes back to the previous version if it is bad.
+          tr: Image'ı değiştirir, yayına almayı izler ve kötüyse önceki sürüme geri döner.
+        lang: sh
+        form: kubectl rollout undo deployment/<name>
+        example: |
+          kubectl set image deployment/web web=ghcr.io/acme/web:1.4.3
+          kubectl rollout status deployment/web
+          kubectl rollout history deployment/web
+          kubectl rollout undo deployment/web
+          kubectl rollout restart deployment/web   # new pods, same spec
+        mistake:
+          en: Pushing a new image under the same tag and expecting pods to update; the spec did not change, so nothing rolls out.
+          tr: Yeni image'ı aynı tag ile push edip pod'ların güncellenmesini beklemek; spec değişmediği için hiçbir şey yayına alınmaz.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/kubectl_rollout_undo/
+      - id: scale
+        level: basic
+        title: { en: Change the number of pods, tr: Pod sayısını değiştirme }
+        what:
+          en: Sets how many copies of a Deployment run.
+          tr: Bir Deployment'ın kaç kopyasının çalışacağını ayarlar.
+        lang: sh
+        form: kubectl scale deployment/<name> --replicas=<n>
+        example: |
+          kubectl scale deployment/web --replicas=5
+        mistake:
+          en: Scaling by hand while an autoscaler manages the same Deployment; the autoscaler changes it back.
+          tr: Aynı Deployment'ı bir autoscaler yönetirken elle ölçeklemek; autoscaler onu geri değiştirir.
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_scale/
+      - id: resources
+        level: intermediate
+        title: { en: CPU and memory requests and limits, tr: CPU ve bellek istekleri ve sınırları }
+        what:
+          en: requests is what the scheduler reserves for a container; limits is the most it may use.
+          tr: requests, scheduler'ın bir container için ayırdığı miktardır; limits kullanabileceği en fazla miktardır.
+        lang: yaml
+        form: "resources: requests: / limits:"
+        example: |
+          containers:
+            - name: web
+              image: ghcr.io/acme/web:1.4.2
+              resources:
+                requests:
+                  cpu: 250m
+                  memory: 256Mi
+                limits:
+                  memory: 512Mi
+        mistake:
+          en: A memory limit lower than the app needs; the container is killed with OOMKilled and restarts over and over.
+          tr: Uygulamanın ihtiyacından düşük bellek sınırı; container OOMKilled ile öldürülür ve sürekli yeniden başlar.
+        source: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+      - id: probes
+        level: intermediate
+        title: { en: Readiness and liveness probes, tr: Readiness ve liveness probe'ları }
+        what:
+          en: readiness decides when a pod gets traffic; liveness restarts a container that hangs; startup gives slow apps time to boot.
+          tr: readiness bir pod'un ne zaman trafik alacağına karar verir; liveness takılan container'ı yeniden başlatır; startup yavaş açılan uygulamalara zaman tanır.
+        lang: yaml
+        form: "readinessProbe: httpGet: path: /ready"
+        example: |
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+        mistake:
+          en: A liveness probe that checks the database; when the database is slow, every pod restarts at once. Check only the process itself.
+          tr: Veritabanını kontrol eden bir liveness probe; veritabanı yavaşlayınca bütün pod'lar aynı anda yeniden başlar. Sadece sürecin kendisini kontrol et.
+        source: https://kubernetes.io/docs/concepts/workloads/pods/probes/
+      - id: debug-pod
+        level: advanced
+        title: { en: Debug a pod without a shell, tr: Shell'i olmayan bir pod'u debug etme }
+        what:
+          en: Adds a temporary debug container with your tools to a running pod.
+          tr: Çalışan bir pod'a, araçlarının olduğu geçici bir debug container ekler.
+        lang: sh
+        form: kubectl debug -it <pod> --image=busybox --target=<container>
+        example: |
+          kubectl debug -it web-7c9d8f6b5-x2k4j --image=busybox:1.37 --target=web
+        source: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_debug/
+      - id: resize
+        level: advanced
+        title: { en: Change CPU and memory without a restart, tr: Yeniden başlatmadan CPU ve bellek değiştirme }
+        what:
+          en: Updates a running pod's CPU and memory through the resize subresource, without recreating the pod.
+          tr: Çalışan bir pod'un CPU ve belleğini, pod'u yeniden oluşturmadan resize alt kaynağı üzerinden günceller.
+        lang: sh
+        form: kubectl patch pod <pod> --subresource resize --patch '<json>'
+        example: |
+          kubectl patch pod web-0 --subresource resize --patch \
+            '{"spec":{"containers":[{"name":"web","resources":{"requests":{"cpu":"800m"},"limits":{"cpu":"800m"}}}]}}'
+        avoid:
+          en: For pods owned by a Deployment that you want changed for good; change the Deployment, or the next pods come back with the old values.
+          tr: Kalıcı olarak değişmesini istediğin, bir Deployment'a ait pod'lar için; Deployment'ı değiştir, yoksa sonraki pod'lar eski değerlerle gelir.
+        since: "1.35"
+        older:
+          en: In-place resize was beta from 1.33 and alpha before that; on older clusters you change the Deployment and the pods are recreated.
+          tr: Yerinde resize 1.33'ten itibaren beta, öncesinde alpha idi; eski cluster'larda Deployment'ı değiştirirsin ve pod'lar yeniden oluşturulur.
+        source: https://kubernetes.io/docs/tasks/configure-pod-container/resize-container-resources/
+  - id: networking
+    title: { en: Services and traffic, tr: Service'ler ve trafik }
+    items:
+      - id: service
+        level: basic
+        title: { en: Service, tr: Service }
+        what:
+          en: A Service gives a set of pods (picked by label) one stable name and IP inside the cluster.
+          tr: Service, label ile seçilen bir grup pod'a cluster içinde tek ve sabit bir ad ve IP verir.
+        lang: yaml
+        form: "kind: Service"
+        example: |
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: web
+          spec:
+            selector:
+              app: web
+            ports:
+              - port: 80
+                targetPort: 3000
+          # other pods reach it at http://web or web.<namespace>.svc.cluster.local
+        mistake:
+          en: A selector that matches no pod labels; the Service exists but has no endpoints. Check kubectl get endpointslices -l kubernetes.io/service-name=web.
+          tr: Hiçbir pod label'ıyla eşleşmeyen bir selector; Service vardır ama endpoint'i yoktur. kubectl get endpointslices -l kubernetes.io/service-name=web ile kontrol et.
+        source: https://kubernetes.io/docs/concepts/services-networking/service/
+      - id: service-types
+        level: intermediate
+        title: { en: ClusterIP, NodePort, LoadBalancer, tr: ClusterIP, NodePort, LoadBalancer }
+        what:
+          en: ClusterIP (default) is reachable only inside the cluster, NodePort opens a port on every node, LoadBalancer asks the cloud for an external load balancer.
+          tr: ClusterIP (varsayılan) sadece cluster içinden erişilir, NodePort her node'da bir port açar, LoadBalancer buluttan dış bir load balancer ister.
+        lang: sh
+        form: kubectl expose deployment <name> --port=<port> --type=<type>
+        example: |
+          kubectl expose deployment web --port=80 --target-port=3000
+          kubectl expose deployment web --port=80 --target-port=3000 \
+            --type=LoadBalancer --name=web-public
+        mistake:
+          en: Making every Service a LoadBalancer; each one can cost a cloud load balancer. Put one Gateway in front instead.
+          tr: Her Service'i LoadBalancer yapmak; her biri ayrı bir bulut load balancer'ına mal olabilir. Önüne tek bir Gateway koy.
+        source: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+      - id: gateway
+        level: intermediate
+        title: { en: Gateway API for HTTP routing, tr: HTTP yönlendirme için Gateway API }
+        what:
+          en: An HTTPRoute sends requests for a host or path to a Service, through a Gateway run by a controller you install.
+          tr: HTTPRoute, bir host ya da path için gelen istekleri, kurduğun bir controller'ın çalıştırdığı Gateway üzerinden bir Service'e gönderir.
+        lang: yaml
+        form: "kind: HTTPRoute"
+        example: |
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          metadata:
+            name: web
+          spec:
+            parentRefs:
+              - name: public-gateway
+            hostnames: ["shop.example.com"]
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                backendRefs:
+                  - name: web
+                    port: 80
+        mistake:
+          en: Applying an HTTPRoute on a cluster with no Gateway controller and no Gateway API CRDs; nothing routes the traffic.
+          tr: Gateway controller'ı ve Gateway API CRD'leri olmayan bir cluster'a HTTPRoute uygulamak; trafiği yönlendiren kimse olmaz.
+        source: https://kubernetes.io/docs/concepts/services-networking/gateway/
+      - id: ingress
+        level: intermediate
+        title: { en: Ingress, tr: Ingress }
+        what:
+          en: The older way to route HTTP from outside to Services; it still works but its API is frozen.
+          tr: Dışarıdan gelen HTTP'yi Service'lere yönlendirmenin eski yolu; hâlâ çalışır ama API'si donduruldu.
+        lang: yaml
+        form: "kind: Ingress"
+        example: |
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: web
+          spec:
+            ingressClassName: traefik
+            rules:
+              - host: shop.example.com
+                http:
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: web
+                          port:
+                            number: 80
+        mistake:
+          en: Starting a new cluster on ingress-nginx; that controller was retired in March 2026 and gets no more fixes.
+          tr: Yeni bir cluster'a ingress-nginx ile başlamak; o controller Mart 2026'da emekliye ayrıldı ve artık düzeltme almıyor.
+        avoid:
+          en: For new setups; the Kubernetes project recommends Gateway API.
+          tr: Yeni kurulumlar için; Kubernetes projesi Gateway API'yi öneriyor.
+        source: https://kubernetes.io/docs/concepts/services-networking/ingress/
+  - id: config
+    title: { en: Configuration and storage, tr: Yapılandırma ve depolama }
+    items:
+      - id: configmap
+        level: basic
+        title: { en: ConfigMap, tr: ConfigMap }
+        what:
+          en: Stores non-secret settings outside the image and gives them to pods as environment variables or files.
+          tr: Gizli olmayan ayarları image dışında saklar ve pod'lara ortam değişkeni ya da dosya olarak verir.
+        lang: sh
+        form: kubectl create configmap <name> --from-literal=<key>=<value>
+        example: |
+          kubectl create configmap web-config --from-literal=LOG_LEVEL=info
+          # in the container spec:
+          #   envFrom:
+          #     - configMapRef:
+          #         name: web-config
+        mistake:
+          en: Changing a ConfigMap and expecting environment variables to update; pods read them only at start, so restart them.
+          tr: ConfigMap'i değiştirip ortam değişkenlerinin güncellenmesini beklemek; pod'lar onları sadece başlarken okur, yeniden başlat.
+        source: https://kubernetes.io/docs/concepts/configuration/configmap/
+      - id: secret
+        level: basic
+        title: { en: Secret, tr: Secret }
+        what:
+          en: Stores passwords and tokens separately from the app and limits who can read them.
+          tr: Şifreleri ve token'ları uygulamadan ayrı saklar ve kimin okuyabileceğini sınırlar.
+        lang: sh
+        form: kubectl create secret generic <name> --from-literal=<key>=<value>
+        example: |
+          kubectl create secret generic db --from-literal=password='s3cret'
+          # in the container spec:
+          #   env:
+          #     - name: DB_PASSWORD
+          #       valueFrom:
+          #         secretKeyRef: { name: db, key: password }
+        mistake:
+          en: Thinking base64 in a Secret YAML is encryption; anyone can decode it. Never commit Secret YAML to Git.
+          tr: Secret YAML'ındaki base64'ü şifreleme sanmak; herkes onu çözebilir. Secret YAML'ını asla Git'e commit etme.
+        source: https://kubernetes.io/docs/concepts/configuration/secret/
+      - id: namespace
+        level: basic
+        title: { en: Namespace, tr: Namespace }
+        what:
+          en: A namespace splits one cluster into separate areas, for example per team or per environment.
+          tr: Namespace tek bir cluster'ı ayrı alanlara böler; örneğin takım ya da ortam başına.
+        lang: sh
+        form: kubectl create namespace <name>
+        example: |
+          kubectl create namespace shop
+          kubectl apply -f k8s/ -n shop
+        source: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+      - id: labels
+        level: intermediate
+        title: { en: Labels and selectors, tr: Label'lar ve selector'lar }
+        what:
+          en: Labels are key-value tags on objects; Services, Deployments and kubectl -l pick objects by them.
+          tr: Label'lar nesnelerdeki anahtar-değer etiketleridir; Service'ler, Deployment'lar ve kubectl -l nesneleri bunlarla seçer.
+        lang: sh
+        form: kubectl get pods -l <key>=<value>
+        example: |
+          kubectl get pods -l app=web,tier=frontend
+          kubectl label pod web-7c9d8f6b5-x2k4j debug=true
+          kubectl get pods --show-labels
+        source: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+      - id: pvc
+        level: intermediate
+        title: { en: Persistent storage, tr: Kalıcı depolama }
+        what:
+          en: A PersistentVolumeClaim asks for disk space that keeps its data when the pod is replaced.
+          tr: PersistentVolumeClaim, pod değişse bile verisini koruyan bir disk alanı ister.
+        lang: yaml
+        form: "kind: PersistentVolumeClaim"
+        example: |
+          apiVersion: v1
+          kind: PersistentVolumeClaim
+          metadata:
+            name: data
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+        mistake:
+          en: Running several replicas against one ReadWriteOnce volume; it attaches to one node only, so the other pods hang.
+          tr: Tek bir ReadWriteOnce volume'a birden çok replica bağlamak; volume sadece bir node'a bağlanır, diğer pod'lar bekler.
+        source: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+      - id: kustomize
+        level: advanced
+        title: { en: One base, many environments, tr: Tek temel, birçok ortam }
+        what:
+          en: Kustomize, built into kubectl, builds YAML from a base and small per-environment changes.
+          tr: kubectl'e gömülü Kustomize, YAML'ı bir temelden ve ortama özel küçük değişikliklerden üretir.
+        lang: sh
+        form: kubectl apply -k <folder>
+        example: |
+          # overlays/prod/kustomization.yaml
+          #   resources: [../../base]
+          #   images:
+          #     - name: ghcr.io/acme/web
+          #       newTag: 1.4.2
+          kubectl kustomize overlays/prod   # print the result
+          kubectl apply -k overlays/prod
+        source: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+  - id: more-workloads
+    title: { en: More workload types, tr: Diğer iş yükü türleri }
+    items:
+      - id: job-cronjob
+        level: intermediate
+        title: { en: Job and CronJob, tr: Job ve CronJob }
+        what:
+          en: A Job runs pods until a task finishes; a CronJob creates Jobs on a schedule.
+          tr: Job bir görev bitene kadar pod çalıştırır; CronJob zamanlamaya göre Job oluşturur.
+        lang: yaml
+        form: "kind: CronJob"
+        example: |
+          apiVersion: batch/v1
+          kind: CronJob
+          metadata:
+            name: nightly-report
+          spec:
+            schedule: "0 3 * * *"
+            timeZone: "Europe/Istanbul"
+            jobTemplate:
+              spec:
+                template:
+                  spec:
+                    restartPolicy: OnFailure
+                    containers:
+                      - name: report
+                        image: ghcr.io/acme/report:1.0
+        mistake:
+          en: Leaving out restartPolicy in a Job's pod template; it must be OnFailure or Never, the default Always is rejected.
+          tr: Job'un pod template'inde restartPolicy'yi yazmamak; OnFailure ya da Never olmalı, varsayılan Always reddedilir.
+        source: https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/
+      - id: statefulset
+        level: advanced
+        title: { en: StatefulSet, tr: StatefulSet }
+        what:
+          en: Like a Deployment, but each pod keeps a fixed name (db-0, db-1) and its own volume; for databases and clusters.
+          tr: Deployment gibi, ama her pod sabit bir ad (db-0, db-1) ve kendi volume'unu korur; veritabanları ve kümeler için.
+        lang: yaml
+        form: "kind: StatefulSet"
+        example: |
+          apiVersion: apps/v1
+          kind: StatefulSet
+          metadata:
+            name: db
+          spec:
+            serviceName: db
+            replicas: 1
+            selector:
+              matchLabels: { app: db }
+            template:
+              metadata:
+                labels: { app: db }
+              spec:
+                containers:
+                  - name: postgres
+                    image: postgres:18
+                    volumeMounts:
+                      - name: data
+                        mountPath: /var/lib/postgresql
+            volumeClaimTemplates:
+              - metadata:
+                  name: data
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 10Gi
+        avoid:
+          en: For stateless web apps; a Deployment is simpler.
+          tr: Durumsuz web uygulamaları için; Deployment daha basit.
+        source: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+      - id: hpa
+        level: intermediate
+        title: { en: Scale automatically, tr: Otomatik ölçekleme }
+        what:
+          en: A HorizontalPodAutoscaler adds or removes pods based on CPU use or other metrics.
+          tr: HorizontalPodAutoscaler CPU kullanımına ya da başka metriklere göre pod ekler veya çıkarır.
+        lang: sh
+        form: kubectl autoscale deployment <name> --min=<n> --max=<n> --cpu=<n>%
+        example: |
+          kubectl autoscale deployment web --min=2 --max=10 --cpu=70%
+          kubectl get hpa
+        mistake:
+          en: No CPU requests on the pods, or no metrics-server; the autoscaler cannot compute usage and does nothing.
+          tr: Pod'larda CPU requests olmaması ya da metrics-server olmaması; autoscaler kullanımı hesaplayamaz ve hiçbir şey yapmaz.
+        source: https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
+      - id: sidecar
+        level: advanced
+        title: { en: Sidecar containers, tr: Sidecar container'lar }
+        what:
+          en: An init container with restartPolicy Always starts before the app and keeps running next to it, like a log shipper or proxy.
+          tr: restartPolicy Always verilmiş bir init container uygulamadan önce başlar ve yanında çalışmaya devam eder; log gönderici ya da proxy gibi.
+        lang: yaml
+        form: "initContainers: - restartPolicy: Always"
+        example: |
+          spec:
+            initContainers:
+              - name: log-shipper
+                image: ghcr.io/acme/log-shipper:1.0
+                restartPolicy: Always
+            containers:
+              - name: web
+                image: ghcr.io/acme/web:1.4.2
+        since: "1.33"
+        older:
+          en: Native sidecars are stable since 1.33 (beta from 1.29); before that sidecars were ordinary containers with no start or stop order.
+          tr: Yerel sidecar'lar 1.33'ten beri stable (1.29'dan itibaren beta); öncesinde sidecar'lar başlama ve durma sırası olmayan sıradan container'lardı.
+        source: https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/
+      - id: rbac
+        level: advanced
+        title: { en: Who may do what, tr: Kim neyi yapabilir }
+        what:
+          en: RBAC Roles list allowed actions; RoleBindings give a Role to a user or service account.
+          tr: RBAC Role'leri izin verilen işlemleri listeler; RoleBinding'ler bir Role'ü bir kullanıcıya ya da service account'a verir.
+        lang: sh
+        form: kubectl auth can-i <verb> <resource>
+        example: |
+          kubectl create role pod-reader --verb=get,list,watch --resource=pods -n shop
+          kubectl create rolebinding ci-reads-pods --role=pod-reader \
+            --serviceaccount=shop:ci -n shop
+          kubectl auth can-i list pods -n shop --as=system:serviceaccount:shop:ci
+        mistake:
+          en: Giving cluster-admin to a CI service account "to make it work"; a leaked token then controls the whole cluster.
+          tr: '"Çalışsın diye" bir CI service account''una cluster-admin vermek; sızan bir token o zaman bütün cluster''ı yönetir.'
+        source: https://kubernetes.io/docs/reference/access-authn-authz/rbac/

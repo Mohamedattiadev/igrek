@@ -1,0 +1,709 @@
+id: docker
+title: Docker
+category: tool
+summary:
+  en: Packs your app and everything it needs into an image and runs it the same way on any machine.
+  tr: Uygulamanı ve ihtiyaç duyduğu her şeyi bir image'a paketler ve her makinede aynı şekilde çalıştırır.
+aliases: [container, konteyner, image, imaj, dockerfile, compose, docker compose, docker-compose]
+detect:
+  files: [Dockerfile, compose.yaml, compose.yml, docker-compose.yml, docker-compose.yaml]
+version: "29.9"
+latest: eol:docker-engine
+checked: 2026-10
+sources:
+  - title: Docker CLI reference
+    url: https://docs.docker.com/reference/cli/docker/
+  - title: Dockerfile reference
+    url: https://docs.docker.com/reference/dockerfile/
+  - title: Compose file reference
+    url: https://docs.docker.com/reference/compose-file/
+roadmap: docker
+sections:
+  - id: containers
+    title: { en: Run containers, tr: Container çalıştırma }
+    items:
+      - id: run
+        level: basic
+        title: { en: Start a container, tr: Container başlatma }
+        what:
+          en: Creates a container from an image and starts it; -d runs it in the background.
+          tr: Bir image'dan container oluşturur ve başlatır; -d arka planda çalıştırır.
+        lang: sh
+        form: docker run -d --name <name> -p <host-port>:<container-port> <image>
+        example: |
+          docker run -d --name web -p 8080:80 nginx:alpine
+          # open http://localhost:8080
+        mistake:
+          en: Forgetting -p; the app runs inside the container but nothing on your machine can reach it.
+          tr: -p'yi unutmak; uygulama container içinde çalışır ama makinendeki hiçbir şey ona ulaşamaz.
+        avoid:
+          en: For an app with several services (app, database, cache); describe them in a compose.yaml instead.
+          tr: Birden çok servisli bir uygulama için (uygulama, veritabanı, cache); onları bir compose.yaml'da tanımla.
+        source: https://docs.docker.com/reference/cli/docker/container/run/
+      - id: ps
+        level: basic
+        title: { en: List containers, tr: Container'ları listeleme }
+        what:
+          en: Shows running containers; -a also shows stopped ones.
+          tr: Çalışan container'ları gösterir; -a durmuş olanları da gösterir.
+        lang: sh
+        form: docker ps [-a]
+        example: |
+          docker ps
+          docker ps -a --filter status=exited
+        mistake:
+          en: Thinking a container is gone because plain docker ps does not show it; stopped containers still exist until you remove them.
+          tr: Düz docker ps'te görünmediği için container'ın silindiğini sanmak; durmuş container'lar sen silene kadar durur.
+        source: https://docs.docker.com/reference/cli/docker/container/ls/
+      - id: logs
+        level: basic
+        title: { en: Read the output, tr: Çıktıyı okuma }
+        what:
+          en: Shows what the container wrote to stdout and stderr; -f keeps following new lines.
+          tr: Container'ın stdout ve stderr'e yazdıklarını gösterir; -f yeni satırları izlemeye devam eder.
+        lang: sh
+        form: docker logs -f <container>
+        example: |
+          docker logs -f --tail 100 web
+          docker logs --since 10m web
+        mistake:
+          en: Writing logs to a file inside the container; docker logs only sees stdout and stderr.
+          tr: Logları container içinde bir dosyaya yazmak; docker logs sadece stdout ve stderr'i görür.
+        source: https://docs.docker.com/reference/cli/docker/container/logs/
+      - id: exec
+        level: basic
+        title: { en: Open a shell inside, tr: İçeride shell açma }
+        what:
+          en: Runs a command inside a running container; -it gives you an interactive terminal.
+          tr: Çalışan bir container'ın içinde komut çalıştırır; -it etkileşimli bir terminal verir.
+        lang: sh
+        form: docker exec -it <container> sh
+        example: |
+          docker exec -it web sh
+          docker exec web cat /etc/nginx/nginx.conf
+        mistake:
+          en: Fixing things by hand inside the container; the changes are lost when it is recreated. Change the image instead.
+          tr: Container içinde elle düzeltme yapmak; container yeniden oluşturulunca değişiklikler kaybolur. Image'ı değiştir.
+        avoid:
+          en: Minimal images (distroless, scratch) have no shell; read docker logs or use a debug variant of the image there.
+          tr: Minimal image'larda (distroless, scratch) shell yoktur; orada docker logs'a bak ya da image'ın debug sürümünü kullan.
+        source: https://docs.docker.com/reference/cli/docker/container/exec/
+      - id: stop-rm
+        level: basic
+        title: { en: Stop and remove, tr: Durdurma ve silme }
+        what:
+          en: stop asks the main process to exit (SIGTERM, then SIGKILL after 10 seconds); rm deletes the stopped container.
+          tr: stop ana süreçten çıkmasını ister (önce SIGTERM, 10 saniye sonra SIGKILL); rm durmuş container'ı siler.
+        lang: sh
+        form: docker stop <container> && docker rm <container>
+        example: |
+          docker stop web
+          docker rm web
+          docker run --rm alpine echo hi   # removed as soon as it exits
+        mistake:
+          en: Using docker rm -f out of habit; the app gets no chance to shut down cleanly.
+          tr: Alışkanlıkla docker rm -f kullanmak; uygulamaya düzgün kapanma şansı verilmez.
+        source: https://docs.docker.com/reference/cli/docker/container/stop/
+      - id: env
+        level: basic
+        title: { en: Pass settings as environment variables, tr: Ayarları ortam değişkeni olarak verme }
+        what:
+          en: Sets environment variables in the container one by one with -e or from a file with --env-file.
+          tr: Container'daki ortam değişkenlerini -e ile tek tek ya da --env-file ile bir dosyadan ayarlar.
+        lang: sh
+        form: docker run -e KEY=value <image>
+        example: |
+          docker run -d -e POSTGRES_PASSWORD=dev -p 5432:5432 postgres:18
+          docker run --env-file .env myapp:1.0
+        mistake:
+          en: Baking secrets into the image with ENV in the Dockerfile; anyone with the image can read them.
+          tr: Sırları Dockerfile'da ENV ile image'ın içine gömmek; image'a erişen herkes onları okuyabilir.
+        source: https://docs.docker.com/reference/cli/docker/container/run/#env
+      - id: restart-policy
+        level: intermediate
+        title: { en: Start again after a crash or reboot, tr: Çökme ya da yeniden başlatmadan sonra tekrar başlatma }
+        what:
+          en: A restart policy tells Docker to start the container again when it exits or when the machine reboots.
+          tr: Restart policy, container çıktığında ya da makine yeniden başladığında Docker'a onu tekrar başlatmasını söyler.
+        lang: sh
+        form: docker run -d --restart unless-stopped <image>
+        example: |
+          docker run -d --restart unless-stopped --name api myapp:1.0
+          docker update --restart no api
+        mistake:
+          en: Using --restart always for a container that fails at start; it restarts over and over. Check docker logs first.
+          tr: Başlarken hata veren bir container'da --restart always kullanmak; sürekli yeniden başlar. Önce docker logs'a bak.
+        source: https://docs.docker.com/engine/containers/start-containers-automatically/
+      - id: limits
+        level: advanced
+        title: { en: Limit memory and CPU, tr: Bellek ve CPU sınırlama }
+        what:
+          en: Caps how much memory and CPU a container can use, so one container cannot slow down the whole machine.
+          tr: Bir container'ın kullanabileceği bellek ve CPU'yu sınırlar; böylece tek bir container bütün makineyi yavaşlatamaz.
+        lang: sh
+        form: docker run --memory 512m --cpus 1.5 <image>
+        example: |
+          docker run -d --memory 512m --cpus 1.5 myapp:1.0
+          docker stats --no-stream
+        mistake:
+          en: Setting a memory limit lower than the app needs; the kernel kills it (exit code 137, OOMKilled).
+          tr: Uygulamanın ihtiyacından düşük bellek sınırı koymak; kernel onu öldürür (çıkış kodu 137, OOMKilled).
+        source: https://docs.docker.com/engine/containers/resource_constraints/
+      - id: inspect
+        level: advanced
+        title: { en: Read low-level details, tr: Ayrıntılı bilgileri okuma }
+        what:
+          en: Prints everything Docker knows about a container, image, volume or network as JSON; -f picks one field.
+          tr: Docker'ın bir container, image, volume ya da network hakkında bildiği her şeyi JSON olarak yazar; -f tek bir alanı seçer.
+        lang: sh
+        form: docker inspect -f '{{.State.Status}}' <container>
+        example: |
+          docker inspect -f '{{.State.Status}} {{.State.ExitCode}}' web
+          docker inspect -f '{{json .NetworkSettings.Networks}}' web
+        source: https://docs.docker.com/reference/cli/docker/inspect/
+      - id: cp
+        level: intermediate
+        title: { en: Copy files in and out, tr: Dosyaları içeri ve dışarı kopyalama }
+        what:
+          en: Copies files between a container and your machine, even when the container is stopped.
+          tr: Container ile makinen arasında dosya kopyalar; container durmuş olsa bile çalışır.
+        lang: sh
+        form: docker cp <container>:<path> <local-path>
+        example: |
+          docker cp web:/etc/nginx/nginx.conf ./nginx.conf
+          docker cp ./index.html web:/usr/share/nginx/html/
+        avoid:
+          en: For files you change all the time during development; use a bind mount.
+          tr: Geliştirme sırasında sürekli değiştirdiğin dosyalar için; bind mount kullan.
+        source: https://docs.docker.com/reference/cli/docker/container/cp/
+  - id: images
+    title: { en: Images, tr: Image'lar }
+    items:
+      - id: build
+        level: basic
+        title: { en: Build an image, tr: Image oluşturma }
+        what:
+          en: Builds an image from the Dockerfile in a folder (the build context) and gives it a name and tag.
+          tr: Bir klasördeki (build context) Dockerfile'dan image oluşturur ve ona bir ad ve tag verir.
+        lang: sh
+        form: docker build -t <name>:<tag> .
+        example: |
+          docker build -t myapp:1.0 .
+          docker build -t myapp:dev -f Dockerfile.dev .
+        mistake:
+          en: Leaving out the final dot; it is the build context, the folder whose files COPY can see.
+          tr: Sondaki noktayı unutmak; o build context'tir, yani COPY'nin görebildiği dosyaların klasörü.
+        source: https://docs.docker.com/reference/cli/docker/buildx/build/
+      - id: image-ls
+        level: basic
+        title: { en: List and remove images, tr: Image'ları listeleme ve silme }
+        what:
+          en: Lists the images on your machine; docker image rm deletes one.
+          tr: Makinendeki image'ları listeler; docker image rm birini siler.
+        lang: sh
+        form: docker image ls
+        example: |
+          docker image ls
+          docker image ls --all     # also untagged images
+          docker image rm myapp:old
+        since: "29.0"
+        older:
+          en: Before Docker 29, docker image ls also listed untagged (<none>) images without --all.
+          tr: Docker 29'dan önce docker image ls, etiketsiz (<none>) image'ları --all olmadan da listelerdi.
+        source: https://docs.docker.com/reference/cli/docker/image/ls/
+      - id: tag-push
+        level: basic
+        title: { en: Name and upload an image, tr: Image'a ad verip yükleme }
+        what:
+          en: tag gives an image a registry name; push uploads it so servers can pull it.
+          tr: tag bir image'a registry adı verir; push onu yükler, böylece sunucular çekebilir.
+        lang: sh
+        form: docker tag <image> <registry>/<user>/<name>:<tag>
+        example: |
+          docker login ghcr.io
+          docker tag myapp:1.0 ghcr.io/acme/myapp:1.0
+          docker push ghcr.io/acme/myapp:1.0
+        mistake:
+          en: Deploying only :latest; you cannot tell which version runs or roll back. Push a version tag too.
+          tr: Sadece :latest deploy etmek; hangi sürümün çalıştığını bilemez, geri dönemezsin. Bir sürüm tag'i de push et.
+        source: https://docs.docker.com/reference/cli/docker/image/push/
+      - id: prune
+        level: intermediate
+        title: { en: Free disk space, tr: Disk alanı açma }
+        what:
+          en: Deletes stopped containers, unused networks, dangling images and unused build cache in one go.
+          tr: Durmuş container'ları, kullanılmayan network'leri, sahipsiz image'ları ve kullanılmayan build cache'i tek seferde siler.
+        lang: sh
+        form: docker system prune
+        example: |
+          docker system df          # what uses the space
+          docker system prune
+          docker builder prune      # only build cache
+        mistake:
+          en: Adding -a and --volumes without reading the warning; -a removes every image without a container, --volumes deletes data in unused anonymous volumes.
+          tr: Uyarıyı okumadan -a ve --volumes eklemek; -a container'ı olmayan bütün image'ları, --volumes kullanılmayan anonim volume'lardaki verileri siler.
+        source: https://docs.docker.com/reference/cli/docker/system/prune/
+      - id: multi-platform
+        level: advanced
+        title: { en: Build for ARM and x86, tr: ARM ve x86 için build alma }
+        what:
+          en: Builds one image for several CPU types, so the same tag runs on an x86 server and an ARM laptop.
+          tr: Tek bir image'ı birden çok CPU türü için oluşturur; aynı tag hem x86 sunucuda hem ARM laptopta çalışır.
+        lang: sh
+        form: docker build --platform linux/amd64,linux/arm64 -t <name> --push .
+        example: |
+          docker build --platform linux/amd64,linux/arm64 \
+            -t ghcr.io/acme/myapp:1.0 --push .
+        mistake:
+          en: Building on an ARM Mac and deploying to an x86 server; the container fails with "exec format error".
+          tr: ARM bir Mac'te build alıp x86 sunucuya deploy etmek; container "exec format error" ile çöker.
+        source: https://docs.docker.com/build/building/multi-platform/
+  - id: dockerfile
+    title: { en: Dockerfile, tr: Dockerfile }
+    items:
+      - id: dockerfile-basics
+        level: basic
+        title: { en: A Dockerfile for a Node app, tr: Bir Node uygulaması için Dockerfile }
+        what:
+          en: A Dockerfile lists the steps to build an image; each instruction adds a layer on top of the base image.
+          tr: Dockerfile image'ı oluşturma adımlarını listeler; her komut temel image'ın üstüne bir katman ekler.
+        lang: dockerfile
+        form: FROM <image>
+        example: |
+          FROM node:24-alpine
+          WORKDIR /app
+          COPY package.json package-lock.json ./
+          RUN npm ci --omit=dev
+          COPY . .
+          EXPOSE 3000
+          CMD ["node", "server.js"]
+        mistake:
+          en: Running COPY . . before installing dependencies; every code change then reinstalls all packages.
+          tr: Bağımlılıkları kurmadan önce COPY . . çalıştırmak; o zaman her kod değişikliğinde bütün paketler yeniden kurulur.
+        source: https://docs.docker.com/reference/dockerfile/
+      - id: cache-order
+        level: basic
+        title: { en: Order steps for the build cache, tr: Adımları build cache'e göre sıralama }
+        what:
+          en: Docker reuses a layer until something in it or before it changes, so put rarely changing steps first.
+          tr: Docker bir katmanı, kendisinde ya da öncesinde bir şey değişene kadar tekrar kullanır; az değişen adımları başa koy.
+        lang: dockerfile
+        form: COPY <lockfile> ./ then RUN <install> then COPY . .
+        example: |
+          COPY requirements.txt .
+          RUN pip install --no-cache-dir -r requirements.txt
+          COPY . .
+        mistake:
+          en: Putting a step that always changes (like copying the whole folder) near the top; everything after it rebuilds every time.
+          tr: Her zaman değişen bir adımı (bütün klasörü kopyalamak gibi) en üste koymak; ondan sonraki her şey her seferinde yeniden build edilir.
+        source: https://docs.docker.com/build/cache/optimize/
+      - id: dockerignore
+        level: basic
+        title: { en: Keep files out of the build, tr: Dosyaları build dışında tutma }
+        what:
+          en: A .dockerignore file lists files the build must not see, like node_modules, .git and .env.
+          tr: .dockerignore dosyası build'in görmemesi gereken dosyaları listeler; node_modules, .git ve .env gibi.
+        lang: text
+        form: .dockerignore next to the Dockerfile
+        example: |
+          node_modules
+          .git
+          .env
+          dist
+        mistake:
+          en: Having no .dockerignore, so COPY . . sends your .env and local node_modules into the image.
+          tr: .dockerignore olmaması; böylece COPY . . .env dosyanı ve yerel node_modules'u image'a gönderir.
+        source: https://docs.docker.com/build/concepts/context/#dockerignore-files
+      - id: cmd-entrypoint
+        level: intermediate
+        title: { en: CMD and ENTRYPOINT, tr: CMD ve ENTRYPOINT }
+        what:
+          en: ENTRYPOINT is the program the container always runs; CMD gives default arguments that docker run can replace.
+          tr: ENTRYPOINT container'ın her zaman çalıştırdığı programdır; CMD, docker run'ın değiştirebildiği varsayılan argümanları verir.
+        lang: dockerfile
+        form: CMD ["executable", "arg"]
+        example: |
+          ENTRYPOINT ["python", "manage.py"]
+          CMD ["runserver", "0.0.0.0:8000"]
+          # docker run myapp migrate  ->  python manage.py migrate
+        mistake:
+          en: Using the shell form (CMD node server.js); the app runs under /bin/sh, does not get SIGTERM and is killed after the timeout.
+          tr: Shell biçimini kullanmak (CMD node server.js); uygulama /bin/sh altında çalışır, SIGTERM almaz ve süre dolunca öldürülür.
+        source: https://docs.docker.com/reference/dockerfile/#entrypoint
+      - id: arg-env
+        level: intermediate
+        title: { en: ARG and ENV, tr: ARG ve ENV }
+        what:
+          en: ARG is a value only during the build; ENV is an environment variable that stays in the image and the running container.
+          tr: ARG sadece build sırasında olan bir değerdir; ENV image'da ve çalışan container'da kalan bir ortam değişkenidir.
+        lang: dockerfile
+        form: ARG NAME=default
+        example: |
+          ARG NODE_VERSION=24
+          FROM node:${NODE_VERSION}-alpine
+          ENV NODE_ENV=production
+          # docker build --build-arg NODE_VERSION=22 .
+        mistake:
+          en: Passing secrets with --build-arg; they stay visible in the image history. Use a secret mount.
+          tr: Sırları --build-arg ile vermek; image geçmişinde görünür kalırlar. Secret mount kullan.
+        source: https://docs.docker.com/reference/dockerfile/#arg
+      - id: user
+        level: intermediate
+        title: { en: Do not run as root, tr: Root olarak çalıştırmama }
+        what:
+          en: USER switches the user that runs the following steps and the container's main process.
+          tr: USER, sonraki adımları ve container'ın ana sürecini çalıştıran kullanıcıyı değiştirir.
+        lang: dockerfile
+        form: USER <user>
+        example: |
+          FROM node:24-alpine
+          WORKDIR /app
+          COPY --chown=node:node . .
+          USER node
+          CMD ["node", "server.js"]
+        mistake:
+          en: Switching to USER before copying files that the app must write to; the files are owned by root and writes fail. Use COPY --chown.
+          tr: Uygulamanın yazması gereken dosyaları kopyalamadan önce USER değiştirmek; dosyalar root'a ait olur ve yazma başarısız olur. COPY --chown kullan.
+        source: https://docs.docker.com/reference/dockerfile/#user
+      - id: healthcheck
+        level: intermediate
+        title: { en: Tell Docker when the app is healthy, tr: Uygulamanın sağlıklı olduğunu Docker'a söyleme }
+        what:
+          en: HEALTHCHECK runs a command from time to time; the container is marked healthy or unhealthy by its exit code.
+          tr: HEALTHCHECK belli aralıklarla bir komut çalıştırır; container, komutun çıkış koduna göre healthy ya da unhealthy olarak işaretlenir.
+        lang: dockerfile
+        form: HEALTHCHECK CMD <command>
+        example: |
+          HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+            CMD wget -qO- http://localhost:3000/health || exit 1
+        mistake:
+          en: Using curl in an image that does not have it; the check always fails. Alpine images have wget from BusyBox.
+          tr: curl'ü olmayan bir image'da curl kullanmak; kontrol her zaman başarısız olur. Alpine image'larında BusyBox'tan gelen wget vardır.
+        source: https://docs.docker.com/reference/dockerfile/#healthcheck
+      - id: multi-stage
+        level: intermediate
+        title: { en: Multi-stage build, tr: Çok aşamalı build }
+        what:
+          en: Builds in one stage with all the tools, then copies only the result into a small final image.
+          tr: Bütün araçlarla bir aşamada build alır, sonra sadece sonucu küçük bir son image'a kopyalar.
+        lang: dockerfile
+        form: COPY --from=<stage> <src> <dest>
+        example: |
+          FROM node:24-alpine AS build
+          WORKDIR /app
+          COPY package*.json ./
+          RUN npm ci
+          COPY . .
+          RUN npm run build
+
+          FROM nginx:alpine
+          COPY --from=build /app/dist /usr/share/nginx/html
+        mistake:
+          en: Shipping the build stage itself; the image keeps compilers and dev dependencies and is many times bigger.
+          tr: Build aşamasının kendisini yayınlamak; image derleyicileri ve dev bağımlılıklarını taşır, kat kat büyük olur.
+        source: https://docs.docker.com/build/building/multi-stage/
+      - id: cache-mount
+        level: advanced
+        title: { en: Keep the package cache between builds, tr: Paket cache'ini build'ler arasında koruma }
+        what:
+          en: A cache mount keeps a folder (like the npm or pip cache) between builds without putting it in the image.
+          tr: Cache mount bir klasörü (npm ya da pip cache'i gibi) image'a koymadan build'ler arasında saklar.
+        lang: dockerfile
+        form: RUN --mount=type=cache,target=<path> <command>
+        example: |
+          RUN --mount=type=cache,target=/root/.npm npm ci
+          RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
+        source: https://docs.docker.com/build/cache/optimize/#use-cache-mounts
+      - id: secret-mount
+        level: advanced
+        title: { en: Use a secret during the build, tr: Build sırasında sır kullanma }
+        what:
+          en: Makes a secret file (like an npm token) available to one RUN step without saving it in any layer.
+          tr: Bir sır dosyasını (npm token'ı gibi) hiçbir katmana kaydetmeden tek bir RUN adımına verir.
+        lang: dockerfile
+        form: RUN --mount=type=secret,id=<id>,target=<path> <command>
+        example: |
+          # Dockerfile
+          RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci
+          # build command
+          # docker build --secret id=npmrc,src=$HOME/.npmrc .
+        mistake:
+          en: COPY .npmrc and delete it in a later step; the file is still inside the earlier layer.
+          tr: .npmrc'yi COPY edip sonraki bir adımda silmek; dosya önceki katmanda hâlâ durur.
+        source: https://docs.docker.com/build/building/secrets/
+  - id: data-network
+    title: { en: Data and networks, tr: Veri ve network'ler }
+    items:
+      - id: volumes
+        level: basic
+        title: { en: Keep data with a volume, tr: Veriyi volume ile koruma }
+        what:
+          en: A named volume stores data outside the container, so it survives when the container is removed.
+          tr: İsimli volume veriyi container dışında saklar; container silinse bile veri kalır.
+        lang: sh
+        form: docker run -v <volume>:<container-path> <image>
+        example: |
+          docker volume create pgdata
+          docker run -d -e POSTGRES_PASSWORD=dev \
+            -v pgdata:/var/lib/postgresql postgres:18
+          docker volume ls
+        mistake:
+          en: Running a database without a volume; all data is gone when the container is recreated.
+          tr: Veritabanını volume olmadan çalıştırmak; container yeniden oluşturulunca bütün veri gider.
+        source: https://docs.docker.com/engine/storage/volumes/
+      - id: bind-mount
+        level: basic
+        title: { en: Share a folder from your machine, tr: Makinendeki bir klasörü paylaşma }
+        what:
+          en: A bind mount puts a folder from your machine inside the container; changes show up on both sides at once.
+          tr: Bind mount makinendeki bir klasörü container'ın içine koyar; değişiklikler iki tarafta da anında görünür.
+        lang: sh
+        form: docker run -v "$(pwd)":<container-path> <image>
+        example: |
+          docker run --rm -v "$(pwd)":/app -w /app node:24-alpine npm test
+          docker run -d -p 8080:80 -v "$(pwd)/site":/usr/share/nginx/html:ro nginx:alpine
+        mistake:
+          en: Mounting over a folder the image filled (like /app/node_modules); the folder from your machine hides it.
+          tr: Image'ın doldurduğu bir klasörün (/app/node_modules gibi) üstüne mount etmek; makinendeki klasör onu gizler.
+        source: https://docs.docker.com/engine/storage/bind-mounts/
+      - id: network
+        level: intermediate
+        title: { en: Let containers talk by name, tr: Container'ların adla konuşması }
+        what:
+          en: Containers on the same user-defined network reach each other by container name.
+          tr: Aynı kullanıcı tanımlı network'teki container'lar birbirine container adıyla ulaşır.
+        lang: sh
+        form: docker network create <name>
+        example: |
+          docker network create app
+          docker run -d --name db --network app -e POSTGRES_PASSWORD=dev postgres:18
+          docker run -d --network app -e DATABASE_HOST=db myapp:1.0
+        mistake:
+          en: Using localhost to reach another container; inside a container localhost is the container itself.
+          tr: Başka bir container'a localhost ile ulaşmaya çalışmak; container içinde localhost container'ın kendisidir.
+        source: https://docs.docker.com/engine/network/
+  - id: compose
+    title: { en: Docker Compose, tr: Docker Compose }
+    items:
+      - id: compose-file
+        level: basic
+        title: { en: Describe the whole app in compose.yaml, tr: Bütün uygulamayı compose.yaml'da tanımlama }
+        what:
+          en: A compose.yaml lists the services of your app (app, database, cache) with their images, ports and volumes.
+          tr: compose.yaml uygulamanın servislerini (uygulama, veritabanı, cache) image, port ve volume'larıyla listeler.
+        lang: yaml
+        form: "services: <name>: image: <image>"
+        example: |
+          services:
+            api:
+              build: .
+              ports:
+                - "3000:3000"
+              environment:
+                DATABASE_URL: postgres://postgres:dev@db:5432/postgres
+            db:
+              image: postgres:18
+              environment:
+                POSTGRES_PASSWORD: dev
+              volumes:
+                - pgdata:/var/lib/postgresql
+          volumes:
+            pgdata:
+        mistake:
+          en: Starting the file with version, like version "3.8"; it is obsolete and Compose only prints a warning.
+          tr: Dosyaya version ile başlamak, örneğin version "3.8"; bu artık kullanılmıyor ve Compose sadece uyarı verir.
+        source: https://docs.docker.com/reference/compose-file/services/
+      - id: compose-up-down
+        level: basic
+        title: { en: Start and stop everything, tr: Her şeyi başlatma ve durdurma }
+        what:
+          en: up creates and starts all services; down stops them and removes their containers and networks.
+          tr: up bütün servisleri oluşturup başlatır; down onları durdurur, container'larını ve network'lerini siler.
+        lang: sh
+        form: docker compose up -d
+        example: |
+          docker compose up -d --build
+          docker compose ps
+          docker compose down
+        mistake:
+          en: Running docker compose down -v to "restart clean"; -v also deletes the named volumes, so the database data is gone.
+          tr: '"Temiz başlamak" için docker compose down -v çalıştırmak; -v isimli volume''ları da siler, veritabanı verisi gider.'
+        avoid:
+          en: The old docker-compose (with a dash, v1) is no longer maintained; use docker compose.
+          tr: Eski docker-compose (tireli, v1) artık bakım görmüyor; docker compose kullan.
+        source: https://docs.docker.com/reference/cli/docker/compose/up/
+      - id: compose-logs-exec
+        level: basic
+        title: { en: Logs and commands in a service, tr: Bir serviste log ve komut }
+        what:
+          en: logs shows the output of services; exec runs a command in a running service; run starts a one-off container.
+          tr: logs servislerin çıktısını gösterir; exec çalışan bir serviste komut çalıştırır; run tek seferlik bir container başlatır.
+        lang: sh
+        form: docker compose logs -f <service>
+        example: |
+          docker compose logs -f api
+          docker compose exec db psql -U postgres
+          docker compose run --rm api npm test
+        mistake:
+          en: Forgetting --rm with run; every run leaves a stopped container behind.
+          tr: run ile --rm'i unutmak; her çalıştırma arkada durmuş bir container bırakır.
+        source: https://docs.docker.com/reference/cli/docker/compose/exec/
+      - id: compose-interpolation
+        level: intermediate
+        title: { en: Variables in compose.yaml, tr: compose.yaml'da değişkenler }
+        what:
+          en: Compose fills in ${VAR} from your shell or from a .env file next to compose.yaml; :- gives a default.
+          tr: Compose ${VAR} değerini shell'den ya da compose.yaml'ın yanındaki .env dosyasından doldurur; :- varsayılan değer verir.
+        lang: sh
+        form: "image: \"nginx:${TAG:-alpine}\""
+        example: |
+          cat > compose.yaml <<'EOF'
+          services:
+            web:
+              image: "nginx:${TAG:-alpine}"
+          EOF
+          docker compose config --images
+          echo "TAG=1.30" > .env
+          docker compose config --images
+          TAG=mainline docker compose config --images
+        output: |
+          nginx:alpine
+          nginx:1.30
+          nginx:mainline
+        check: sh
+        mistake:
+          en: Expecting .env to set variables inside the container; it only fills ${} in compose.yaml. Use env_file or environment for the container.
+          tr: .env dosyasının container içindeki değişkenleri ayarlayacağını sanmak; o sadece compose.yaml'daki ${} yerlerini doldurur. Container için env_file ya da environment kullan.
+        source: https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/
+      - id: compose-required-var
+        level: intermediate
+        title: { en: Fail when a variable is missing, tr: Değişken eksikse hata verme }
+        what:
+          en: ${VAR:?message} stops Compose with your message when the variable is not set or empty.
+          tr: ${VAR:?mesaj}, değişken tanımlı değilse ya da boşsa Compose'u senin mesajınla durdurur.
+        lang: sh
+        form: "${VAR:?message}"
+        example: |
+          cat > compose.yaml <<'EOF'
+          services:
+            db:
+              image: postgres:18
+              environment:
+                POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD}
+          EOF
+          docker compose config --services 2>/dev/null || echo "missing DB_PASSWORD"
+          DB_PASSWORD=dev docker compose config --services
+        output: |
+          missing DB_PASSWORD
+          db
+        check: sh
+        source: https://docs.docker.com/compose/how-tos/environment-variables/variable-interpolation/#interpolation-syntax
+      - id: compose-config
+        level: intermediate
+        title: { en: See the final configuration, tr: Son yapılandırmayı görme }
+        what:
+          en: Prints the configuration after merging files and filling variables, so you see what Compose will really use.
+          tr: Dosyalar birleştirilip değişkenler doldurulduktan sonraki yapılandırmayı yazar; Compose'un gerçekte ne kullanacağını görürsün.
+        lang: sh
+        form: docker compose config
+        example: |
+          docker compose config
+          docker compose config --services
+          docker compose -f compose.yaml -f compose.prod.yaml config
+        source: https://docs.docker.com/reference/cli/docker/compose/config/
+      - id: compose-override
+        level: advanced
+        title: { en: Override settings per environment, tr: Ortama göre ayarları ezme }
+        what:
+          en: Compose merges compose.override.yaml over compose.yaml automatically; -f picks the files yourself.
+          tr: Compose, compose.override.yaml'ı otomatik olarak compose.yaml'ın üstüne birleştirir; -f ile dosyaları kendin seçersin.
+        lang: sh
+        form: docker compose -f compose.yaml -f <other>.yaml up -d
+        example: |
+          printf 'services:\n  web:\n    image: nginx:alpine\n' > compose.yaml
+          printf 'services:\n  web:\n    ports:\n      - "8080:80"\n' > compose.override.yaml
+          docker compose config --format json | grep -o '"published": *"[0-9]*"'
+        output: |
+          "published": "8080"
+        check: sh
+        mistake:
+          en: Forgetting that compose.override.yaml is also used in production if it is on the server; use -f there to be explicit.
+          tr: Sunucuda duruyorsa compose.override.yaml'ın production'da da kullanıldığını unutmak; orada -f ile açıkça belirt.
+        source: https://docs.docker.com/compose/how-tos/multiple-compose-files/merge/
+      - id: compose-profiles
+        level: intermediate
+        title: { en: Optional services with profiles, tr: Profillerle isteğe bağlı servisler }
+        what:
+          en: A service with profiles starts only when you turn that profile on.
+          tr: profiles verilmiş bir servis, sadece o profili açtığında başlar.
+        lang: sh
+        form: docker compose --profile <name> up -d
+        example: |
+          cat > compose.yaml <<'EOF'
+          services:
+            db:
+              image: postgres:18
+            adminer:
+              image: adminer
+              profiles: [debug]
+          EOF
+          docker compose config --services
+          echo ---
+          docker compose --profile debug config --services | sort
+        output: |
+          db
+          ---
+          adminer
+          db
+        check: sh
+        source: https://docs.docker.com/compose/how-tos/profiles/
+      - id: depends-on-healthy
+        level: intermediate
+        title: { en: Wait until the database is ready, tr: Veritabanı hazır olana kadar bekleme }
+        what:
+          en: depends_on with condition service_healthy starts a service only after the other one's healthcheck passes.
+          tr: condition service_healthy ile depends_on, bir servisi ancak diğerinin healthcheck'i geçince başlatır.
+        lang: yaml
+        form: "depends_on: <service>: condition: service_healthy"
+        example: |
+          services:
+            api:
+              build: .
+              depends_on:
+                db:
+                  condition: service_healthy
+            db:
+              image: postgres:18
+              environment:
+                POSTGRES_PASSWORD: dev
+              healthcheck:
+                test: ["CMD-SHELL", "pg_isready -U postgres"]
+                interval: 5s
+                retries: 10
+        mistake:
+          en: Using a plain depends_on list and expecting it to wait for the database; it only waits for the container to start.
+          tr: Düz bir depends_on listesi kullanıp veritabanını beklemesini ummak; sadece container'ın başlamasını bekler.
+        source: https://docs.docker.com/compose/how-tos/startup-order/
+      - id: compose-watch
+        level: advanced
+        title: { en: Sync code while you work, tr: Çalışırken kodu senkronlama }
+        what:
+          en: Watch copies changed files into the running container or rebuilds it, depending on the rule.
+          tr: Watch, kurala göre değişen dosyaları çalışan container'a kopyalar ya da image'ı yeniden build eder.
+        lang: yaml
+        form: docker compose up --watch
+        example: |
+          services:
+            web:
+              build: .
+              develop:
+                watch:
+                  - action: sync
+                    path: ./src
+                    target: /app/src
+                  - action: rebuild
+                    path: package.json
+        mistake:
+          en: Syncing a package manifest; new dependencies need a rebuild, so use action rebuild for package.json.
+          tr: Paket listesini sync etmek; yeni bağımlılıklar rebuild ister, package.json için action rebuild kullan.
+        source: https://docs.docker.com/compose/how-tos/file-watch/

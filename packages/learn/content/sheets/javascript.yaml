@@ -1,0 +1,922 @@
+id: javascript
+title: JavaScript
+category: language
+summary:
+  en: The language of the web; it runs in every browser and, with Node.js, Bun or Deno, on servers too.
+  tr: Web'in dili; her tarayıcıda, Node.js, Bun ya da Deno ile sunucuda da çalışır.
+aliases: [js, ecmascript, es6, es2026, vanilla js, javascript dili, async await, promise]
+version: ES2026
+checked: 2026-10
+sources:
+  - title: MDN JavaScript reference
+    url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference
+  - title: MDN JavaScript guide
+    url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide
+  - title: ECMAScript language specification
+    url: https://tc39.es/ecma262/
+roadmap: web
+sections:
+  - id: basics
+    title: { en: Basics, tr: Temeller }
+    items:
+      - id: let-const
+        level: basic
+        title: { en: Declare variables, tr: Değişken tanımlama }
+        what:
+          en: const makes a name you cannot reassign, let makes one you can; both live only inside their block.
+          tr: const yeniden atanamayan bir isim, let atanabilen bir isim oluşturur; ikisi de sadece kendi bloğunun içinde yaşar.
+        lang: js
+        form: const name = value; let count = 0;
+        example: |
+          const user = { name: "Ada" };
+          user.name = "Grace"; // allowed: the object changes, not the name
+          let count = 0;
+          count += 1;
+          console.log(user.name, count);
+        output: |
+          Grace 1
+        check: js
+        mistake:
+          en: Thinking const makes an object read-only. It only stops reassignment; use Object.freeze to block changes.
+          tr: const'un nesneyi salt okunur yaptığını sanmak. Sadece yeniden atamayı engeller; değişikliği engellemek için Object.freeze kullan.
+        avoid:
+          en: Do not use var in new code; it ignores blocks and is visible in the whole function.
+          tr: Yeni kodda var kullanma; blokları tanımaz ve bütün fonksiyonda görünür.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
+      - id: typeof
+        level: basic
+        title: { en: Check a value's type, tr: Bir değerin tipini öğrenme }
+        what:
+          en: typeof returns the type of a value as a string such as "string", "number" or "object".
+          tr: typeof bir değerin tipini "string", "number" ya da "object" gibi bir metin olarak döndürür.
+        lang: js
+        form: typeof value
+        example: |
+          console.log(typeof "hi", typeof 42, typeof undefined);
+          console.log(typeof null, typeof [], Array.isArray([]));
+        output: |
+          string number undefined
+          object object true
+        check: js
+        mistake:
+          en: Using typeof to find arrays or null; both give "object". Use Array.isArray(x) and x === null.
+          tr: Array ya da null bulmak için typeof kullanmak; ikisi de "object" verir. Array.isArray(x) ve x === null kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
+      - id: strict-equality
+        level: basic
+        title: { en: Compare values, tr: Değerleri karşılaştırma }
+        what:
+          en: === compares value and type without converting; == converts types first and gives surprising results.
+          tr: === değeri ve tipi dönüştürmeden karşılaştırır; == önce tipleri dönüştürür ve şaşırtıcı sonuçlar verir.
+        lang: js
+        form: a === b
+        example: |
+          console.log(0 == "", 0 === "");
+          console.log(null == undefined, null === undefined);
+          console.log(NaN === NaN, Number.isNaN(NaN));
+        output: |
+          true false
+          true false
+          false true
+        check: js
+        mistake:
+          en: Checking for NaN with ===; NaN is never equal to anything, itself included. Use Number.isNaN.
+          tr: NaN'ı === ile kontrol etmek; NaN kendisi dahil hiçbir şeye eşit değildir. Number.isNaN kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Strict_equality
+      - id: template-literals
+        level: basic
+        title: { en: Build strings with values, tr: Değerlerle string oluşturma }
+        what:
+          en: Backtick strings can hold ${expressions} and span several lines.
+          tr: Backtick ile yazılan string'ler ${ifade} içerebilir ve birden fazla satıra yayılabilir.
+        lang: js
+        form: "`Hello ${name}`"
+        example: |
+          const name = "Ada";
+          const items = 3;
+          console.log(`Hi ${name}, you have ${items * 2} points`);
+        output: |
+          Hi Ada, you have 6 points
+        check: js
+        mistake:
+          en: Writing ${name} inside normal "quotes"; it only works between backticks.
+          tr: ${name}'i normal "tırnak" içine yazmak; sadece backtick arasında çalışır.
+        avoid:
+          en: Never build SQL or HTML from user input this way; use query parameters or proper escaping.
+          tr: Kullanıcı girdisinden bu şekilde SQL ya da HTML oluşturma; sorgu parametreleri ya da doğru escape kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
+      - id: arrow-functions
+        level: basic
+        title: { en: Write functions, tr: Fonksiyon yazma }
+        what:
+          en: A function groups code you can call again; arrow functions are the short form.
+          tr: Fonksiyon, tekrar çağırabileceğin kodu bir araya toplar; arrow function kısa yazım şeklidir.
+        lang: js
+        form: const add = (a, b) => a + b;
+        example: |
+          function greet(name = "friend") {
+            return `Hello ${name}`;
+          }
+          const square = (n) => n * n;
+          console.log(greet(), square(4));
+        output: |
+          Hello friend 16
+        check: js
+        mistake:
+          en: "Returning an object from a short arrow without parentheses: () => { a: 1 } returns undefined; write () => ({ a: 1 })."
+          tr: "Kısa arrow function'dan parantezsiz nesne döndürmek: () => { a: 1 } undefined döndürür; () => ({ a: 1 }) yaz."
+        avoid:
+          en: As object methods that use this; arrow functions take this from the surrounding code.
+          tr: this kullanan nesne metotlarında; arrow function this'i çevresindeki koddan alır.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+      - id: destructuring
+        level: basic
+        title: { en: Unpack objects and arrays, tr: Nesne ve array'leri açma }
+        what:
+          en: Pulls values out of an object or array into variables in one line.
+          tr: Bir nesne ya da array'deki değerleri tek satırda değişkenlere çıkarır.
+        lang: js
+        form: const { a, b } = obj; const [x, y] = arr;
+        example: |
+          const user = { name: "Ada", city: "London" };
+          const { name, age = 36 } = user;
+          const [first, , third] = ["a", "b", "c"];
+          console.log(name, age, first, third);
+        output: |
+          Ada 36 a c
+        check: js
+        mistake:
+          en: Destructuring from undefined throws a TypeError; give a default, as in function f({ a } = {}).
+          tr: undefined'dan destructuring yapmak TypeError fırlatır; function f({ a } = {}) gibi varsayılan değer ver.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring
+      - id: spread-rest
+        level: basic
+        title: { en: Copy and merge with ..., tr: ... ile kopyalama ve birleştirme }
+        what:
+          en: Spread (...) expands an array or object into a new one; rest (...) collects the remaining items.
+          tr: Spread (...) bir array ya da nesneyi yenisinin içine açar; rest (...) kalan öğeleri toplar.
+        lang: js
+        form: "const copy = { ...obj, key: value };"
+        example: |
+          const base = { theme: "dark", lang: "en" };
+          const settings = { ...base, lang: "tr" };
+          const [head, ...tail] = [1, 2, 3];
+          console.log(settings, head, tail);
+        output: |
+          { theme: 'dark', lang: 'tr' } 1 [ 2, 3 ]
+        check: js
+        mistake:
+          en: Expecting a deep copy; nested objects are still shared. Use structuredClone for a deep copy.
+          tr: Derin kopya beklemek; iç içe nesneler hâlâ paylaşılır. Derin kopya için structuredClone kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
+      - id: optional-chaining
+        level: basic
+        title: { en: Safe access and defaults, tr: Güvenli erişim ve varsayılan değer }
+        what:
+          en: '?. stops and gives undefined when a value is null or undefined; ?? gives a fallback only for null or undefined.'
+          tr: '?. değer null ya da undefined ise durur ve undefined verir; ?? sadece null ya da undefined için yedek değer verir.'
+        lang: js
+        form: const city = user?.address?.city ?? "unknown";
+        example: |
+          const user = { name: "Ada", score: 0 };
+          console.log(user.address?.city ?? "unknown");
+          console.log(user.score || 10, user.score ?? 10);
+        output: |
+          unknown
+          10 0
+        check: js
+        mistake:
+          en: Using || for defaults; it also replaces 0, "" and false. Use ?? when those are valid values.
+          tr: Varsayılan için || kullanmak; 0, "" ve false'u da değiştirir. Bunlar geçerli değerse ?? kullan.
+        since: ES2020
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+  - id: data
+    title: { en: Arrays and objects, tr: Array'ler ve nesneler }
+    items:
+      - id: map-filter-reduce
+        level: basic
+        title: { en: Transform arrays, tr: Array'leri dönüştürme }
+        what:
+          en: map changes each item, filter keeps the matching items, reduce combines all items into one value.
+          tr: map her öğeyi değiştirir, filter uyan öğeleri tutar, reduce tüm öğeleri tek bir değerde birleştirir.
+        lang: js
+        form: arr.map(x => ...).filter(x => ...)
+        example: |
+          const prices = [10, 25, 40];
+          const withTax = prices.map((p) => p * 1.2);
+          const big = withTax.filter((p) => p > 20);
+          const total = big.reduce((sum, p) => sum + p, 0);
+          console.log(withTax, big, total);
+        output: |
+          [ 12, 30, 48 ] [ 30, 48 ] 78
+        check: js
+        mistake:
+          en: Calling reduce without a start value; on an empty array it throws a TypeError.
+          tr: reduce'u başlangıç değeri vermeden çağırmak; boş array'de TypeError fırlatır.
+        avoid:
+          en: When you only need side effects (logging, saving); a for...of loop is clearer.
+          tr: Sadece yan etki (log, kaydetme) gerekiyorsa; for...of döngüsü daha anlaşılır.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
+      - id: find-includes
+        level: basic
+        title: { en: Search an array, tr: Array'de arama }
+        what:
+          en: find returns the first matching item, some tells if any matches, includes checks for a value.
+          tr: find uyan ilk öğeyi döndürür, some herhangi biri uyuyor mu söyler, includes bir değer var mı bakar.
+        lang: js
+        form: arr.find(x => x.id === id)
+        example: |
+          const users = [{ id: 1, name: "Ada" }, { id: 2, name: "Linus" }];
+          console.log(users.find((u) => u.id === 2).name);
+          console.log(users.some((u) => u.name === "Bob"));
+          console.log([1, 2, 3].includes(2), [1, 2, 3].at(-1));
+        output: |
+          Linus
+          false
+          true 3
+        check: js
+        mistake:
+          en: Forgetting that find returns undefined when nothing matches; check the result before using it.
+          tr: Hiçbir şey uymazsa find'ın undefined döndürdüğünü unutmak; kullanmadan önce sonucu kontrol et.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/find
+      - id: to-sorted
+        level: intermediate
+        title: { en: Sort without changing the original, tr: Orijinali değiştirmeden sıralama }
+        what:
+          en: toSorted returns a sorted copy; sort sorts the array in place.
+          tr: toSorted sıralanmış bir kopya döndürür; sort array'in kendisini sıralar.
+        lang: js
+        form: arr.toSorted((a, b) => a - b)
+        example: |
+          const nums = [10, 9, 1];
+          console.log(nums.toSorted(), nums.toSorted((a, b) => a - b), nums);
+          const names = ["Şule", "Ali", "Çağla"];
+          console.log(names.toSorted((a, b) => a.localeCompare(b, "tr")));
+        output: |
+          [ 1, 10, 9 ] [ 1, 9, 10 ] [ 10, 9, 1 ]
+          [ 'Ali', 'Çağla', 'Şule' ]
+        check: js
+        mistake:
+          en: Sorting numbers without a compare function; the default compares them as strings, so 10 comes before 9.
+          tr: Sayıları karşılaştırma fonksiyonu vermeden sıralamak; varsayılan onları string olarak karşılaştırır, 10 9'dan önce gelir.
+        since: ES2023
+        older:
+          en: Before ES2023 copy first, then sort, as in [...arr].sort(). toReversed and toSpliced came in the same version.
+          tr: ES2023'ten önce önce kopyalayıp sonra sırala, örneğin [...arr].sort(). toReversed ve toSpliced da aynı sürümde geldi.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/toSorted
+      - id: object-entries
+        level: intermediate
+        title: { en: Loop over an object, tr: Bir nesnenin üzerinde dönme }
+        what:
+          en: Object.entries turns an object into [key, value] pairs; Object.fromEntries turns pairs back into an object.
+          tr: Object.entries bir nesneyi [anahtar, değer] çiftlerine çevirir; Object.fromEntries çiftleri tekrar nesneye çevirir.
+        lang: js
+        form: for (const [key, value] of Object.entries(obj)) { }
+        example: |
+          const prices = { apple: 2, pear: 3 };
+          for (const [fruit, price] of Object.entries(prices)) console.log(fruit, price);
+          const doubled = Object.fromEntries(Object.entries(prices).map(([k, v]) => [k, v * 2]));
+          console.log(doubled);
+        output: |
+          apple 2
+          pear 3
+          { apple: 4, pear: 6 }
+        check: js
+        mistake:
+          en: Using for...in, which also walks inherited keys; Object.keys/entries only give the object's own keys.
+          tr: Miras alınan anahtarları da dolaşan for...in kullanmak; Object.keys/entries sadece nesnenin kendi anahtarlarını verir.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/entries
+      - id: group-by
+        level: intermediate
+        title: { en: Group items, tr: Öğeleri gruplama }
+        what:
+          en: Object.groupBy puts array items into groups by the key your function returns.
+          tr: Object.groupBy array öğelerini, fonksiyonunun döndürdüğü anahtara göre gruplara ayırır.
+        lang: js
+        form: Object.groupBy(items, (item) => item.key)
+        example: |
+          const tasks = [
+            { title: "Login", status: "done" },
+            { title: "Signup", status: "todo" },
+            { title: "Logout", status: "done" },
+          ];
+          const byStatus = Object.groupBy(tasks, (t) => t.status);
+          console.log(byStatus.done.length, byStatus.todo.length);
+        output: |
+          2 1
+        check: js
+        mistake:
+          en: Calling byStatus.hasOwnProperty(); the result has a null prototype, so use Object.hasOwn(byStatus, key).
+          tr: byStatus.hasOwnProperty() çağırmak; sonucun prototipi null olduğu için Object.hasOwn(byStatus, anahtar) kullan.
+        since: ES2024
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/groupBy
+      - id: json
+        level: basic
+        title: { en: Read and write JSON, tr: JSON okuma ve yazma }
+        what:
+          en: JSON.stringify turns a value into JSON text; JSON.parse turns JSON text back into a value.
+          tr: JSON.stringify bir değeri JSON metnine çevirir; JSON.parse JSON metnini tekrar değere çevirir.
+        lang: js
+        form: JSON.stringify(value, null, 2)
+        example: |
+          const text = JSON.stringify({ id: 1, tags: ["a"], when: undefined });
+          console.log(text);
+          console.log(JSON.parse(text).tags[0]);
+        output: |
+          {"id":1,"tags":["a"]}
+          a
+        check: js
+        mistake:
+          en: Calling JSON.parse on untrusted text without try/catch; invalid JSON throws a SyntaxError.
+          tr: Güvenilmeyen metinde try/catch olmadan JSON.parse çağırmak; geçersiz JSON SyntaxError fırlatır.
+        avoid:
+          en: For deep-copying objects with Dates, Maps or Sets; JSON loses them. Use structuredClone.
+          tr: Date, Map ya da Set içeren nesneleri derin kopyalamak için; JSON bunları kaybeder. structuredClone kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+      - id: structured-clone
+        level: intermediate
+        title: { en: Deep copy, tr: Derin kopya }
+        what:
+          en: structuredClone makes a full copy of a value, nested objects, Dates and Maps included.
+          tr: structuredClone bir değerin, iç içe nesneler, Date ve Map'ler dahil tam bir kopyasını çıkarır.
+        lang: js
+        form: const copy = structuredClone(value);
+        example: |
+          const original = { user: { name: "Ada" }, at: new Date(0) };
+          const copy = structuredClone(original);
+          copy.user.name = "Grace";
+          console.log(original.user.name, copy.at instanceof Date);
+        output: |
+          Ada true
+        check: js
+        mistake:
+          en: Cloning objects that hold functions or class instances; functions throw an error and class instances become plain objects.
+          tr: Fonksiyon ya da class örneği içeren nesneleri kopyalamak; fonksiyonlar hata fırlatır, class örnekleri düz nesneye dönüşür.
+        source: https://developer.mozilla.org/en-US/docs/Web/API/Window/structuredClone
+      - id: map-set
+        level: intermediate
+        title: { en: Map and Set, tr: Map ve Set }
+        what:
+          en: A Map stores key-value pairs with any type of key; a Set stores unique values.
+          tr: Map her tipte anahtarla anahtar-değer çiftleri saklar; Set tekrarsız değerler saklar.
+        lang: js
+        form: const seen = new Set(); const cache = new Map();
+        example: |
+          const unique = [...new Set(["a", "b", "a"])];
+          const visits = new Map();
+          visits.set("/home", (visits.get("/home") ?? 0) + 1);
+          console.log(unique, visits.get("/home"), visits.size);
+        output: |
+          [ 'a', 'b' ] 1 1
+        check: js
+        mistake:
+          en: Writing map["key"] = value on a Map; that sets a normal property, not an entry. Use set and get.
+          tr: Map'te map["anahtar"] = değer yazmak; bu bir kayıt değil, normal bir özellik ekler. set ve get kullan.
+        avoid:
+          en: When you need to send the data as JSON; Maps and Sets do not turn into JSON directly.
+          tr: Veriyi JSON olarak göndermen gerekiyorsa; Map ve Set doğrudan JSON'a dönüşmez.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+      - id: map-upsert
+        level: advanced
+        title: { en: Get or insert in a Map, tr: Map'te al ya da ekle }
+        what:
+          en: getOrInsertComputed returns the value for a key and, when the key is missing, stores a new one first.
+          tr: getOrInsertComputed bir anahtarın değerini döndürür; anahtar yoksa önce yeni bir değer kaydeder.
+        lang: js
+        form: map.getOrInsertComputed(key, () => [])
+        example: |
+          const byTag = new Map();
+          for (const [tag, title] of [["bug", "Login"], ["ui", "Logo"], ["bug", "Crash"]]) {
+            byTag.getOrInsertComputed(tag, () => []).push(title);
+          }
+          console.log(byTag.get("bug"), byTag.size);
+        output: |
+          [ 'Login', 'Crash' ] 2
+        check: js
+        mistake:
+          en: Using getOrInsert(key, expensive()) for costly defaults; the value is built every time. getOrInsertComputed builds it only when needed.
+          tr: Pahalı varsayılanlar için getOrInsert(anahtar, pahali()) kullanmak; değer her seferinde oluşturulur. getOrInsertComputed sadece gerektiğinde oluşturur.
+        since: ES2026
+        older:
+          en: Before, write it by hand, as in if (!map.has(k)) map.set(k, []); map.get(k).push(x).
+          tr: Önceden elle yazılır, örneğin if (!map.has(k)) map.set(k, []); map.get(k).push(x).
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/getOrInsertComputed
+  - id: strings-numbers
+    title: { en: Strings and numbers, tr: String'ler ve sayılar }
+    items:
+      - id: string-methods
+        level: basic
+        title: { en: Everyday string methods, tr: Günlük string metotları }
+        what:
+          en: Strings have methods to trim, split, search and replace text; they always return a new string.
+          tr: String'lerin kırpma, bölme, arama ve değiştirme metotları vardır; hep yeni bir string döndürürler.
+        lang: js
+        form: str.trim().split(",")
+        example: |
+          const s = "  red,green,blue ";
+          console.log(s.trim().split(","));
+          console.log("a-b-c".replaceAll("-", "/"), "7".padStart(3, "0"));
+          console.log("Hello".startsWith("He"), "Hello".slice(-3));
+        output: |
+          [ 'red', 'green', 'blue' ]
+          a/b/c 007
+          true llo
+        check: js
+        mistake:
+          en: Using replace and expecting every match to change; with a string pattern it changes only the first one. Use replaceAll.
+          tr: replace kullanıp her eşleşmenin değişmesini beklemek; string desenle sadece ilkini değiştirir. replaceAll kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String
+      - id: number-parse
+        level: basic
+        title: { en: Turn text into numbers, tr: Metni sayıya çevirme }
+        what:
+          en: Number() converts the whole text or gives NaN; parseInt reads digits from the start and stops at the first non-digit.
+          tr: Number() metnin tamamını çevirir ya da NaN verir; parseInt baştaki rakamları okur ve ilk rakam olmayanda durur.
+        lang: js
+        form: Number(text)
+        example: |
+          console.log(Number("42"), Number("42px"), Number(""));
+          console.log(parseInt("42px", 10), parseFloat("3.5kg"));
+          console.log(Number.isInteger(5.0), Number.isNaN(Number("abc")));
+        output: |
+          42 NaN 0
+          42 3.5
+          true true
+        check: js
+        mistake:
+          en: Treating Number("") as invalid; it is 0. Check for empty input before converting.
+          tr: Number("") sonucunu geçersiz sanmak; sonuç 0'dır. Çevirmeden önce boş girdiyi kontrol et.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number
+      - id: floating-point
+        level: intermediate
+        title: { en: Decimal math and formatting, tr: Ondalık hesap ve biçimlendirme }
+        what:
+          en: Numbers are binary floating point, so some decimals are not exact; round only when you show them.
+          tr: Sayılar ikili kayan noktalıdır, bu yüzden bazı ondalıklar tam değildir; sadece gösterirken yuvarla.
+        lang: js
+        form: 'new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n)'
+        example: |
+          console.log(0.1 + 0.2, (0.1 + 0.2).toFixed(2));
+          const usd = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+          console.log(usd.format(1234.5));
+        output: |
+          0.30000000000000004 0.30
+          $1,234.50
+        check: js
+        mistake:
+          en: Storing money as floating point; store it in the smallest unit (cents) as an integer.
+          tr: Parayı kayan noktalı sayı olarak saklamak; en küçük birimde (kuruş) tam sayı olarak sakla.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat
+      - id: bigint
+        level: advanced
+        title: { en: Very large integers, tr: Çok büyük tam sayılar }
+        what:
+          en: BigInt holds whole numbers of any size; you write them with an n at the end.
+          tr: BigInt her büyüklükte tam sayıyı tutar; sonuna n koyarak yazılır.
+        lang: js
+        form: const big = 2n ** 64n;
+        example: |
+          console.log(Number.MAX_SAFE_INTEGER + 2);
+          console.log(2n ** 64n, 7n / 2n);
+        output: |
+          9007199254740992
+          18446744073709551616n 3n
+        check: js
+        mistake:
+          en: Mixing BigInt and Number in math (1n + 1); it throws a TypeError. Convert one side first.
+          tr: BigInt ile Number'ı aynı işlemde kullanmak (1n + 1); TypeError fırlatır. Önce birini dönüştür.
+        avoid:
+          en: For decimals or normal counters; BigInt has no fractions and is slower.
+          tr: Ondalıklar ya da normal sayaçlar için; BigInt'te kesir yoktur ve daha yavaştır.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt
+      - id: regex
+        level: intermediate
+        title: { en: Regular expressions, tr: Düzenli ifadeler (regex) }
+        what:
+          en: A regular expression is a pattern to find or check text; named groups give matches readable names.
+          tr: Düzenli ifade, metin bulmak ya da kontrol etmek için bir desendir; isimli gruplar eşleşmelere okunabilir adlar verir.
+        lang: js
+        form: /(?<year>\d{4})-(?<month>\d{2})/.exec(text)
+        example: |
+          const m = /(?<year>\d{4})-(?<month>\d{2})/.exec("Due 2026-10-17");
+          console.log(m.groups.year, m.groups.month);
+          console.log(/^\S+@\S+$/.test("ada@example.com"));
+          console.log([..."a1b22c333".matchAll(/\d+/g)].map((x) => x[0]));
+        output: |
+          2026 10
+          true
+          [ '1', '22', '333' ]
+        check: js
+        mistake:
+          en: Reusing a regex with the g flag in test() calls; it remembers lastIndex and the next call can fail.
+          tr: g bayraklı bir regex'i test() çağrılarında tekrar kullanmak; lastIndex'i hatırlar ve sonraki çağrı başarısız olabilir.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+  - id: async
+    title: { en: Async code, tr: Asenkron kod }
+    items:
+      - id: promises
+        level: intermediate
+        title: { en: Promises, tr: Promise'ler }
+        what:
+          en: A Promise is a value that arrives later; then runs when it succeeds, catch when it fails.
+          tr: Promise daha sonra gelecek bir değerdir; başarılı olunca then, başarısız olunca catch çalışır.
+        lang: js
+        form: promise.then(value => ...).catch(err => ...)
+        example: |
+          const wait = (ms, v) => new Promise((resolve) => setTimeout(() => resolve(v), ms));
+          wait(10, "done")
+            .then((v) => console.log(v))
+            .catch((err) => console.error(err))
+            .finally(() => console.log("cleanup"));
+        output: |
+          done
+          cleanup
+        check: js
+        mistake:
+          en: Forgetting catch; an unhandled rejection is logged and, in Node.js, ends the process.
+          tr: catch'i unutmak; yakalanmayan bir reddetme loglanır ve Node.js'te process'i sonlandırır.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise
+      - id: async-await
+        level: basic
+        title: { en: async and await, tr: async ve await }
+        what:
+          en: await pauses an async function until a Promise settles, so async code reads like normal code.
+          tr: await, async bir fonksiyonu Promise sonuçlanana kadar bekletir; asenkron kod normal kod gibi okunur.
+        lang: js
+        form: const data = await fetchSomething();
+        example: |
+          async function load(id) {
+            if (id < 0) throw new Error("bad id");
+            return { id };
+          }
+          try {
+            console.log(await load(1));
+            await load(-1);
+          } catch (err) {
+            console.log("failed:", err.message);
+          }
+        output: |
+          { id: 1 }
+          failed: bad id
+        check: js
+        mistake:
+          en: Forgetting await; you get a pending Promise instead of the value and errors escape your try/catch.
+          tr: await'i unutmak; değer yerine bekleyen bir Promise alırsın ve hatalar try/catch'ten kaçar.
+        avoid:
+          en: Awaiting independent tasks one by one in a loop; start them together with Promise.all.
+          tr: Birbirinden bağımsız işleri döngüde tek tek beklemek; Promise.all ile birlikte başlat.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
+      - id: promise-all
+        level: intermediate
+        title: { en: Run promises together, tr: Promise'leri birlikte çalıştırma }
+        what:
+          en: Promise.all waits for all and fails on the first error; Promise.allSettled waits for all and reports each result.
+          tr: Promise.all hepsini bekler ve ilk hatada başarısız olur; Promise.allSettled hepsini bekler ve her sonucu ayrı bildirir.
+        lang: js
+        form: const [a, b] = await Promise.all([taskA(), taskB()]);
+        example: |
+          const ok = (v) => Promise.resolve(v);
+          const fail = (m) => Promise.reject(new Error(m));
+          console.log(await Promise.all([ok(1), ok(2)]));
+          const results = await Promise.allSettled([ok(1), fail("x")]);
+          console.log(results.map((r) => r.status));
+        output: |
+          [ 1, 2 ]
+          [ 'fulfilled', 'rejected' ]
+        check: js
+        mistake:
+          en: Expecting Promise.all to stop the other tasks after an error; they keep running, only the result is rejected.
+          tr: Promise.all'un bir hatadan sonra diğer işleri durduracağını sanmak; işler çalışmaya devam eder, sadece sonuç reddedilir.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all
+      - id: fetch
+        level: basic
+        title: { en: Call an HTTP API, tr: HTTP API çağırma }
+        what:
+          en: fetch sends an HTTP request and returns a Promise of the response.
+          tr: fetch bir HTTP isteği gönderir ve yanıtın Promise'ini döndürür.
+        lang: js
+        form: const res = await fetch(url);
+        example: |
+          const res = await fetch("https://api.github.com/repos/nodejs/node", {
+            headers: { Accept: "application/json" },
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const repo = await res.json();
+          console.log(repo.full_name);
+        mistake:
+          en: Expecting fetch to throw on 404 or 500; it only throws on network errors, so check res.ok.
+          tr: fetch'in 404 ya da 500'de hata fırlatacağını sanmak; sadece ağ hatalarında fırlatır, res.ok'u kontrol et.
+        source: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+      - id: abort-controller
+        level: advanced
+        title: { en: Cancel or time out a request, tr: İsteği iptal etme ya da süre sınırı koyma }
+        what:
+          en: An AbortSignal cancels fetch and other async work; AbortSignal.timeout(ms) cancels it after a time limit.
+          tr: AbortSignal fetch ve diğer asenkron işleri iptal eder; AbortSignal.timeout(ms) belli bir süre sonra iptal eder.
+        lang: js
+        form: 'fetch(url, { signal: AbortSignal.timeout(5000) })'
+        example: |
+          try {
+            await fetch("https://example.com/slow", { signal: AbortSignal.timeout(5000) });
+          } catch (err) {
+            if (err.name === "TimeoutError") console.log("took too long");
+            else throw err;
+          }
+        mistake:
+          en: Checking for "AbortError" with AbortSignal.timeout; a timeout gives a "TimeoutError" instead.
+          tr: AbortSignal.timeout kullanırken "AbortError" aramak; süre dolunca "TimeoutError" gelir.
+        source: https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal/timeout_static
+      - id: event-loop
+        level: advanced
+        title: { en: What runs first, tr: Önce ne çalışır }
+        what:
+          en: Normal code runs first, then promise callbacks (microtasks), then timers (tasks).
+          tr: Önce normal kod çalışır, sonra promise callback'leri (microtask), sonra zamanlayıcılar (task).
+        lang: js
+        form: queueMicrotask(fn); setTimeout(fn, 0);
+        example: |
+          setTimeout(() => console.log("timeout"), 0);
+          Promise.resolve().then(() => console.log("promise"));
+          console.log("sync");
+        output: |
+          sync
+          promise
+          timeout
+        check: js
+        mistake:
+          en: Expecting setTimeout(fn, 0) to run right away; it waits until the current code and all microtasks finish.
+          tr: setTimeout(fn, 0)'ın hemen çalışacağını sanmak; mevcut kod ve tüm microtask'lar bitene kadar bekler.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model
+  - id: structure
+    title: { en: Modules, classes and errors, tr: Modüller, class'lar ve hatalar }
+    items:
+      - id: modules
+        level: basic
+        title: { en: Import and export, tr: Import ve export }
+        what:
+          en: ES modules split code into files; export shares a value, import uses it in another file.
+          tr: ES modülleri kodu dosyalara böler; export bir değeri paylaşır, import onu başka bir dosyada kullanır.
+        lang: js
+        form: import { add } from "./math.js";
+        example: |
+          // math.js
+          export const add = (a, b) => a + b;
+          export default function sub(a, b) { return a - b; }
+
+          // main.js
+          import sub, { add } from "./math.js";
+          console.log(add(1, 2), sub(5, 3));
+        mistake:
+          en: Leaving out the file extension in browsers and Node.js; "./math" is not found, write "./math.js".
+          tr: Tarayıcıda ve Node.js'te dosya uzantısını yazmamak; "./math" bulunamaz, "./math.js" yaz.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules
+      - id: dynamic-import
+        level: intermediate
+        title: { en: Load a module when needed, tr: Modülü gerektiğinde yükleme }
+        what:
+          en: import() loads a module at run time and returns a Promise, so rarely used code loads only when needed.
+          tr: import() bir modülü çalışma anında yükler ve Promise döndürür; az kullanılan kod sadece gerektiğinde yüklenir.
+        lang: js
+        form: const mod = await import("./heavy.js");
+        example: |
+          const { basename } = await import("node:path");
+          console.log(basename("/tmp/report.pdf"));
+        output: |
+          report.pdf
+        check: js
+        mistake:
+          en: Building the path from user input; anyone could then load any module. Choose from a fixed list.
+          tr: Yolu kullanıcı girdisinden oluşturmak; herkes istediği modülü yükleyebilir. Sabit bir listeden seç.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import
+      - id: classes
+        level: intermediate
+        title: { en: Classes and private fields, tr: Class'lar ve private alanlar }
+        what:
+          en: 'A class is a template for objects; fields starting with # can only be used inside the class.'
+          tr: 'Class nesneler için bir şablondur; # ile başlayan alanlar sadece class''ın içinde kullanılabilir.'
+        lang: js
+        form: "class Name { #secret; constructor() {} method() {} }"
+        example: |
+          class Counter {
+            #count = 0;
+            static from(n) { const c = new Counter(); c.#count = n; return c; }
+            increment() { this.#count++; return this; }
+            get value() { return this.#count; }
+          }
+          console.log(Counter.from(5).increment().value);
+        output: |
+          6
+        check: js
+        mistake:
+          en: Passing a method as a callback (setTimeout(obj.method)); it loses this. Use an arrow function or bind.
+          tr: Bir metodu callback olarak vermek (setTimeout(obj.method)); this kaybolur. Arrow function ya da bind kullan.
+        avoid:
+          en: For a few related functions with no shared state; plain functions in a module are simpler.
+          tr: Ortak durumu olmayan birkaç ilgili fonksiyon için; modüldeki düz fonksiyonlar daha basit.
+        since: ES2022
+        older:
+          en: 'Private # fields and static blocks came in ES2022; classes themselves are from ES2015.'
+          tr: 'Private # alanlar ve static bloklar ES2022''de geldi; class''ların kendisi ES2015''ten beri var.'
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_elements
+      - id: closures
+        level: intermediate
+        title: { en: Closures, tr: Closure'lar }
+        what:
+          en: A function remembers the variables around where it was created, even after that code has finished.
+          tr: Bir fonksiyon, oluşturulduğu yerdeki değişkenleri o kod bittikten sonra bile hatırlar.
+        lang: js
+        form: function make() { let x = 0; return () => ++x; }
+        example: |
+          function makeCounter() {
+            let count = 0;
+            return () => ++count;
+          }
+          const next = makeCounter();
+          next();
+          console.log(next(), makeCounter()());
+        output: |
+          2 1
+        check: js
+        mistake:
+          en: Keeping large objects alive by accident in long-lived callbacks; they cannot be freed while the closure exists.
+          tr: Uzun yaşayan callback'lerde büyük nesneleri yanlışlıkla canlı tutmak; closure var oldukça bellekten silinemezler.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Closures
+      - id: errors
+        level: basic
+        title: { en: Handle errors, tr: Hataları yakalama }
+        what:
+          en: throw stops the code with an error; try/catch catches it and finally always runs.
+          tr: throw kodu bir hatayla durdurur; try/catch onu yakalar, finally her durumda çalışır.
+        lang: js
+        form: try { } catch (err) { } finally { }
+        example: |
+          function parse(text) {
+            try {
+              return JSON.parse(text);
+            } catch (err) {
+              throw new Error("Config is not valid JSON", { cause: err });
+            }
+          }
+          try { parse("{oops"); } catch (e) { console.log(e.message, e.cause.name); }
+        output: |
+          Config is not valid JSON SyntaxError
+        check: js
+        mistake:
+          en: Throwing strings (throw "failed"); they have no stack trace. Always throw Error objects.
+          tr: String fırlatmak (throw "failed"); stack trace'leri yoktur. Her zaman Error nesnesi fırlat.
+        avoid:
+          en: An empty catch that hides errors; at least log them or rethrow.
+          tr: Hataları gizleyen boş bir catch; en azından logla ya da tekrar fırlat.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
+      - id: this-binding
+        level: advanced
+        title: { en: What this means, tr: this neyi gösterir }
+        what:
+          en: In a normal function this is the object before the dot at call time; arrow functions keep the this of their surroundings.
+          tr: Normal fonksiyonda this, çağrı anında noktadan önceki nesnedir; arrow function çevresinin this'ini korur.
+        lang: js
+        form: const bound = obj.method.bind(obj);
+        example: |
+          const user = {
+            name: "Ada",
+            hello() { return `hi ${this?.name}`; },
+          };
+          const loose = user.hello;
+          console.log(user.hello(), loose(), loose.bind(user)());
+        output: |
+          hi Ada hi undefined hi Ada
+        check: js
+        mistake:
+          en: Using an arrow function as an object method; this is not the object there.
+          tr: Nesne metodu olarak arrow function kullanmak; orada this nesne değildir.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/this
+  - id: modern
+    title: { en: Modern and advanced, tr: Modern ve ileri seviye }
+    items:
+      - id: generators
+        level: advanced
+        title: { en: Generators and iterators, tr: Generator'lar ve iterator'lar }
+        what:
+          en: A function* gives values one at a time with yield, only when asked, so it can even be endless.
+          tr: function* değerleri yield ile, sadece istendiğinde birer birer verir; bu yüzden sonsuz bile olabilir.
+        lang: js
+        form: function* gen() { yield 1; }
+        example: |
+          function* ids(prefix) {
+            let n = 1;
+            while (true) yield `${prefix}-${n++}`;
+          }
+          const it = ids("task");
+          console.log(it.next().value, it.next().value);
+        output: |
+          task-1 task-2
+        check: js
+        mistake:
+          en: Spreading an endless generator ([...ids()]); it never ends. Take a fixed number first.
+          tr: Sonsuz bir generator'ı açmak ([...ids()]); hiç bitmez. Önce belli sayıda al.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
+      - id: iterator-helpers
+        level: advanced
+        title: { en: Iterator helpers, tr: Iterator yardımcıları }
+        what:
+          en: Iterators now have map, filter, take and toArray, which work step by step without building arrays.
+          tr: Iterator'ların artık map, filter, take ve toArray metotları var; array oluşturmadan adım adım çalışırlar.
+        lang: js
+        form: iterator.filter(fn).map(fn).take(n).toArray()
+        example: |
+          function* naturals() { let i = 1; while (true) yield i++; }
+          const evens = naturals().filter((n) => n % 2 === 0).map((n) => n * n).take(3);
+          console.log(evens.toArray());
+        output: |
+          [ 4, 16, 36 ]
+        check: js
+        mistake:
+          en: Calling these on an array and expecting a lazy result; arrays have their own map. Use arr.values() to get an iterator.
+          tr: Bunları array üzerinde çağırıp tembel sonuç beklemek; array'lerin kendi map'i var. Iterator almak için arr.values() kullan.
+        since: ES2025
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Iterator
+      - id: set-methods
+        level: intermediate
+        title: { en: Combine sets, tr: Set'leri birleştirme }
+        what:
+          en: Sets have union, intersection, difference and isSubsetOf for set math.
+          tr: Set'lerin küme işlemleri için union, intersection, difference ve isSubsetOf metotları var.
+        lang: js
+        form: a.union(b); a.intersection(b); a.difference(b)
+        example: |
+          const mine = new Set(["read", "write"]);
+          const needed = new Set(["read", "admin"]);
+          console.log([...mine.intersection(needed)], [...needed.difference(mine)]);
+          console.log(new Set(["read"]).isSubsetOf(mine));
+        output: |
+          [ 'read' ] [ 'admin' ]
+          true
+        check: js
+        since: ES2025
+        older:
+          en: Before ES2025 filter by hand, e.g. [...a].filter((x) => b.has(x)) for the intersection.
+          tr: ES2025'ten önce elle filtrelenir; örneğin kesişim için [...a].filter((x) => b.has(x)).
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/union
+      - id: date
+        level: intermediate
+        title: { en: Dates, tr: Tarihler }
+        what:
+          en: Date holds a moment in time; store and send it as an ISO string in UTC.
+          tr: Date zamanda bir anı tutar; onu UTC'de ISO string olarak sakla ve gönder.
+        lang: js
+        form: new Date().toISOString()
+        example: |
+          const d = new Date(Date.UTC(2026, 0, 15, 9, 30));
+          console.log(d.toISOString());
+          console.log(d.getUTCMonth(), d.getTime());
+        output: |
+          2026-01-15T09:30:00.000Z
+          0 1768469400000
+        check: js
+        mistake:
+          en: Forgetting that months start at 0; new Date(2026, 1, 1) is 1 February.
+          tr: Ayların 0'dan başladığını unutmak; new Date(2026, 1, 1) 1 Şubat'tır.
+        avoid:
+          en: For calendar math across time zones; the newer Temporal API handles that better where it is available.
+          tr: Saat dilimleri arası takvim hesapları için; daha yeni Temporal API, mevcut olduğu yerde bunu daha iyi yapar.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date
+      - id: temporal
+        level: advanced
+        title: { en: Temporal, the new date API, tr: Temporal, yeni tarih API'si }
+        what:
+          en: Temporal has separate types for a plain date, a time zone aware date-time and a duration, and they never change in place.
+          tr: Temporal'da düz tarih, saat dilimini bilen tarih-saat ve süre için ayrı tipler var; değerleri yerinde değişmez.
+        lang: js
+        form: Temporal.Now.plainDateISO()
+        example: |
+          const due = Temporal.PlainDate.from("2026-01-31").add({ months: 1 });
+          console.log(due.toString()); // 2026-02-28
+          const meeting = Temporal.ZonedDateTime.from("2026-03-29T09:00[Europe/Istanbul]");
+          console.log(meeting.withTimeZone("America/New_York").toString());
+        mistake:
+          en: Assuming every runtime has it; support is still rolling out, so check MDN's compatibility table or use the polyfill.
+          tr: Her ortamda olduğunu varsaymak; destek hâlâ yayılıyor, MDN'deki uyumluluk tablosuna bak ya da polyfill kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal
+      - id: weakmap
+        level: advanced
+        title: { en: Attach data without leaks, tr: Sızıntı olmadan veri ekleme }
+        what:
+          en: A WeakMap uses objects as keys and lets an entry disappear when its key object is no longer used.
+          tr: WeakMap nesneleri anahtar olarak kullanır; anahtar nesne artık kullanılmayınca kayıt da kaybolabilir.
+        lang: js
+        form: const meta = new WeakMap(); meta.set(obj, data);
+        example: |
+          const clicks = new WeakMap();
+          const button = {};
+          clicks.set(button, (clicks.get(button) ?? 0) + 1);
+          console.log(clicks.get(button), clicks.has({}));
+        output: |
+          1 false
+        check: js
+        mistake:
+          en: Trying to list or count a WeakMap; it has no size, keys or loop on purpose.
+          tr: WeakMap'i listelemeye ya da saymaya çalışmak; bilerek size, keys ya da döngü yoktur.
+        avoid:
+          en: When keys are strings or numbers; WeakMap keys must be objects (or non-registered symbols), use Map.
+          tr: Anahtarlar string ya da sayıysa; WeakMap anahtarları nesne (ya da kayıtsız symbol) olmalı, Map kullan.
+        source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap

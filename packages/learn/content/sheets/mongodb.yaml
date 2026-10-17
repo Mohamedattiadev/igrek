@@ -1,0 +1,617 @@
+id: mongodb
+title: MongoDB
+category: tool
+summary:
+  en: A document database that stores JSON-like records; mongosh commands for querying, updating, aggregating and indexing.
+  tr: JSON benzeri kayıtlar saklayan bir doküman veritabanı; sorgulama, güncelleme, aggregation ve index için mongosh komutları.
+aliases: [mongo, mongosh, nosql, document database, doküman veritabanı, aggregation, mongoose, pymongo]
+detect:
+  npm: [mongodb, mongoose]
+  pip: [pymongo]
+version: "9.0"
+latest: eol:mongodb
+checked: 2026-10
+sources:
+  - title: MongoDB Manual
+    url: https://www.mongodb.com/docs/manual/
+  - title: MongoDB Shell (mongosh)
+    url: https://www.mongodb.com/docs/mongodb-shell/
+  - title: MongoDB 9.0 release notes
+    url: https://www.mongodb.com/docs/manual/release-notes/9.0/
+roadmap: mongodb
+sections:
+  - id: shell
+    title: { en: Shell and databases, tr: Shell ve veritabanları }
+    items:
+      - id: docker-run
+        level: basic
+        title: { en: Run MongoDB locally, tr: MongoDB'yi yerelde çalıştırma }
+        what:
+          en: Starts a MongoDB server in a Docker container on port 27017 with its data kept in a volume.
+          tr: Verisini bir volume'da tutan, 27017 portunda çalışan bir MongoDB sunucusunu Docker container'ında başlatır.
+        lang: sh
+        form: docker run -d -p 27017:27017 mongodb/mongodb-community-server
+        example: |
+          docker run -d --name mongo -p 27017:27017 -v mongo-data:/data/db mongodb/mongodb-community-server:latest
+        mistake:
+          en: Running without a volume and losing all data when the container is removed.
+          tr: Volume olmadan çalıştırıp container silinince bütün veriyi kaybetmek.
+        source: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-community-with-docker/
+      - id: connect
+        level: basic
+        title: { en: Connect with mongosh, tr: mongosh ile bağlanma }
+        what:
+          en: mongosh is the interactive MongoDB shell; give it a connection string to open a session.
+          tr: mongosh, etkileşimli MongoDB shell'idir; oturum açmak için ona bir connection string verirsin.
+        lang: sh
+        form: mongosh "mongodb://localhost:27017"
+        example: |
+          mongosh "mongodb://localhost:27017/shop"
+          mongosh "mongodb+srv://cluster0.example.mongodb.net/shop" --username ada
+        mistake:
+          en: Putting the password in the connection string in shell history; leave it out and mongosh asks for it.
+          tr: Şifreyi connection string'e yazıp shell geçmişinde bırakmak; yazmazsan mongosh onu sorar.
+        source: https://www.mongodb.com/docs/mongodb-shell/connect/
+      - id: use-show
+        level: basic
+        title: { en: Switch database, list collections, tr: Veritabanı değiştirme, koleksiyonları listeleme }
+        what:
+          en: use picks the database; it is created the first time you write data to it.
+          tr: use veritabanını seçer; veritabanı içine ilk kez veri yazdığında oluşur.
+        lang: js
+        form: use shop
+        example: |
+          show dbs
+          use shop
+          show collections
+          db.getName()
+        mistake:
+          en: Expecting a new database to appear in show dbs right after use; it shows up only after the first insert.
+          tr: use'dan hemen sonra yeni veritabanının show dbs'te görünmesini beklemek; ancak ilk insert'ten sonra görünür.
+        source: https://www.mongodb.com/docs/mongodb-shell/run-commands/
+      - id: objectid
+        level: basic
+        title: { en: _id and ObjectId, tr: _id ve ObjectId }
+        what:
+          en: Every document has a unique _id; if you do not give one, MongoDB adds an ObjectId, which also holds its creation time.
+          tr: Her dokümanın benzersiz bir _id'si vardır; sen vermezsen MongoDB bir ObjectId ekler, bu da oluşturulma zamanını içerir.
+        lang: js
+        form: ObjectId("<24 hex chars>")
+        example: |
+          const id = ObjectId("6710a1b2c3d4e5f601234567")
+          id.getTimestamp()
+          db.users.findOne({ _id: id })
+        mistake:
+          en: 'Querying with the id as a plain string ({ _id: "6710..." }); it does not match an ObjectId.'
+          tr: 'id''yi düz string olarak sorgulamak ({ _id: "6710..." }); ObjectId ile eşleşmez.'
+        source: https://www.mongodb.com/docs/manual/reference/method/ObjectId/
+  - id: read
+    title: { en: Insert and find, tr: Ekleme ve bulma }
+    items:
+      - id: insert
+        level: basic
+        title: { en: Insert documents, tr: Doküman ekleme }
+        what:
+          en: Adds one or many documents to a collection; the collection is created if it does not exist.
+          tr: Bir koleksiyona bir ya da birçok doküman ekler; koleksiyon yoksa oluşturulur.
+        lang: js
+        form: db.users.insertOne({ ... })
+        example: |
+          db.users.insertOne({ name: "Ada", age: 36, tags: ["admin"] })
+          db.users.insertMany([
+            { name: "Bob", age: 25 },
+            { name: "Cem", age: 41, address: { city: "Izmir" } },
+          ])
+        mistake:
+          en: Using the old insert() method; it is deprecated in mongosh. Use insertOne or insertMany.
+          tr: Eski insert() metodunu kullanmak; mongosh'ta deprecated. insertOne ya da insertMany kullan.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.insertOne/
+      - id: find
+        level: basic
+        title: { en: Find documents, tr: Doküman bulma }
+        what:
+          en: Returns the documents that match a filter; an empty filter returns everything.
+          tr: Bir filtreye uyan dokümanları döndürür; boş filtre her şeyi döndürür.
+        lang: js
+        form: "db.users.find({ field: value })"
+        example: |
+          db.users.find({ name: "Ada" })
+          db.users.findOne({ age: 36 })
+          db.users.find()          // all documents, 20 at a time ("it" for more)
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.find/
+      - id: projection
+        level: basic
+        title: { en: Pick fields (projection), tr: Alan seçme (projection) }
+        what:
+          en: The second argument of find says which fields to return, so you do not send whole documents over the network.
+          tr: find'ın ikinci argümanı hangi alanların döneceğini söyler; böylece ağ üzerinden bütün dokümanı göndermezsin.
+        lang: js
+        form: "db.users.find(filter, { name: 1, _id: 0 })"
+        example: |
+          db.users.find({ age: { $gte: 30 } }, { name: 1, age: 1, _id: 0 })
+        mistake:
+          en: Mixing 1 and 0 in one projection; only _id may be excluded while other fields are included.
+          tr: Bir projection'da 1 ile 0'ı karıştırmak; diğer alanlar dahil edilirken sadece _id hariç tutulabilir.
+        source: https://www.mongodb.com/docs/manual/tutorial/project-fields-from-query-results/
+      - id: comparison
+        level: basic
+        title: { en: Comparison operators, tr: Karşılaştırma operatörleri }
+        what:
+          en: Operators like $gt, $lte and $in compare a field with a value instead of testing equality.
+          tr: $gt, $lte ve $in gibi operatörler bir alanı eşitlik yerine bir değerle karşılaştırır.
+        lang: js
+        form: "{ age: { $gt: 18, $lte: 65 } }"
+        example: |
+          db.users.find({ age: { $gte: 18, $lt: 30 } })
+          db.users.find({ status: { $in: ["active", "trial"] } })
+          db.users.find({ status: { $ne: "banned" } })
+        source: https://www.mongodb.com/docs/manual/reference/operator/query-comparison/
+      - id: logical
+        level: basic
+        title: { en: "$or, $and and $exists", tr: "$or, $and ve $exists" }
+        what:
+          en: "Fields in one filter are already joined with AND; use $or for alternatives and $exists to test that a field is there."
+          tr: "Tek filtredeki alanlar zaten AND ile bağlanır; alternatifler için $or, bir alanın var olup olmadığı için $exists kullan."
+        lang: js
+        form: "{ $or: [ { a: 1 }, { b: 2 } ] }"
+        example: |
+          db.users.find({ $or: [{ age: { $lt: 18 } }, { tags: "vip" }] })
+          db.users.find({ deletedAt: { $exists: false } })
+        mistake:
+          en: "Writing the same key twice in one object ({ age: { $gt: 1 }, age: { $lt: 9 } }); the last one wins. Put both in one object."
+          tr: "Aynı anahtarı tek nesnede iki kez yazmak ({ age: { $gt: 1 }, age: { $lt: 9 } }); sonuncusu kazanır. İkisini tek nesneye koy."
+        source: https://www.mongodb.com/docs/manual/reference/operator/query/or/
+      - id: nested-arrays
+        level: intermediate
+        title: { en: Nested fields and arrays, tr: İç içe alanlar ve array'ler }
+        what:
+          en: Reach into sub-documents with dot notation in quotes; a plain value matches if any array element equals it.
+          tr: Alt dokümanlara tırnak içinde nokta gösterimiyle ulaş; düz bir değer, array'in herhangi bir elemanı ona eşitse eşleşir.
+        lang: js
+        form: '{ "address.city": "Izmir" }'
+        example: |
+          db.users.find({ "address.city": "Izmir" })
+          db.users.find({ tags: "admin" })                    // array contains "admin"
+          db.orders.find({ items: { $elemMatch: { sku: "A1", qty: { $gte: 2 } } } })
+        mistake:
+          en: Writing two conditions on array elements without $elemMatch; they may be met by two different elements.
+          tr: Array elemanları üzerindeki iki koşulu $elemMatch olmadan yazmak; iki farklı eleman tarafından sağlanabilirler.
+        source: https://www.mongodb.com/docs/manual/reference/operator/query/elemMatch/
+      - id: sort-limit
+        level: basic
+        title: { en: Sort, limit and skip, tr: Sıralama, limit ve skip }
+        what:
+          en: Orders the results (1 ascending, -1 descending) and cuts them into pages.
+          tr: Sonuçları sıralar (1 artan, -1 azalan) ve sayfalara böler.
+        lang: js
+        form: "db.c.find().sort({ field: -1 }).limit(10)"
+        example: |
+          db.posts.find().sort({ createdAt: -1 }).limit(10)
+          db.posts.find().sort({ createdAt: -1 }).skip(20).limit(10)   // page 3
+        mistake:
+          en: Deep pages with large skip values; the server still walks every skipped document. Page by the last seen value instead (createdAt < last).
+          tr: Büyük skip değerleriyle derin sayfalar; sunucu atlanan her dokümanı yine de dolaşır. Bunun yerine son görülen değere göre sayfala (createdAt < son).
+        source: https://www.mongodb.com/docs/manual/reference/method/cursor.sort/
+      - id: count-distinct
+        level: intermediate
+        title: { en: Count and distinct values, tr: Sayma ve farklı değerler }
+        what:
+          en: countDocuments counts matches exactly; estimatedDocumentCount is fast but only for the whole collection.
+          tr: countDocuments eşleşenleri tam sayar; estimatedDocumentCount hızlıdır ama sadece koleksiyonun tamamı içindir.
+        lang: js
+        form: db.users.countDocuments(filter)
+        example: |
+          db.users.countDocuments({ age: { $gte: 18 } })
+          db.users.estimatedDocumentCount()
+          db.users.distinct("address.city")
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/
+      - id: regex
+        level: intermediate
+        title: { en: Search text with a regex, tr: Regex ile metin arama }
+        what:
+          en: $regex matches strings by pattern; only a pattern anchored at the start (^) can use an index well.
+          tr: $regex string'leri desenle eşleştirir; index'i ancak başa sabitlenmiş (^) bir desen iyi kullanabilir.
+        lang: js
+        form: '{ name: { $regex: "^ad", $options: "i" } }'
+        example: |
+          db.users.find({ email: { $regex: "@example\\.com$" } })
+          db.users.find({ name: /^ad/i })
+        mistake:
+          en: Putting user input straight into a regex; escape it or a value like ".*" matches everything and can be slow.
+          tr: Kullanıcı girdisini doğrudan regex'e koymak; escape et, yoksa ".*" gibi bir değer her şeyi eşleştirir ve yavaş olabilir.
+        avoid:
+          en: For real search (words, typos, ranking), use Atlas Search or a text index instead.
+          tr: Gerçek arama için (kelimeler, yazım hataları, sıralama) onun yerine Atlas Search ya da text index kullan.
+        source: https://www.mongodb.com/docs/manual/reference/operator/query/regex/
+  - id: write
+    title: { en: Update and delete, tr: Güncelleme ve silme }
+    items:
+      - id: update-set
+        level: basic
+        title: { en: Update fields with $set, tr: $set ile alan güncelleme }
+        what:
+          en: updateOne changes the first matching document; $set writes fields and keeps the rest.
+          tr: updateOne eşleşen ilk dokümanı değiştirir; $set alanları yazar ve geri kalanını korur.
+        lang: js
+        form: "db.c.updateOne(filter, { $set: { field: value } })"
+        example: |
+          db.users.updateOne({ name: "Ada" }, { $set: { age: 37, "address.city": "Ankara" } })
+          db.users.updateMany({ status: "trial" }, { $set: { status: "expired" } })
+        mistake:
+          en: Thinking updateOne updates every match; it changes only one. Use updateMany for all.
+          tr: updateOne'ın bütün eşleşenleri güncellediğini sanmak; sadece birini değiştirir. Hepsi için updateMany kullan.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.updateOne/
+      - id: update-ops
+        level: basic
+        title: { en: "$inc, $unset, $push, $addToSet, $pull", tr: "$inc, $unset, $push, $addToSet, $pull" }
+        what:
+          en: Update operators change a value in place on the server, so two clients do not overwrite each other.
+          tr: Update operatörleri bir değeri sunucuda yerinde değiştirir; böylece iki istemci birbirinin yazdığını ezmez.
+        lang: js
+        form: "{ $inc: { views: 1 } }"
+        example: |
+          db.posts.updateOne({ _id: id }, { $inc: { views: 1 } })
+          db.users.updateOne({ _id: id }, { $unset: { tempToken: "" } })
+          db.users.updateOne({ _id: id }, { $addToSet: { tags: "vip" } })   // no duplicates
+          db.users.updateOne({ _id: id }, { $push: { logins: new Date() } })
+          db.users.updateOne({ _id: id }, { $pull: { tags: "trial" } })
+        mistake:
+          en: Reading a document, changing it in code and writing it back; a concurrent update in between is lost. Let $inc do it.
+          tr: Dokümanı okuyup kodda değiştirip geri yazmak; aradaki eşzamanlı bir güncelleme kaybolur. Bunu $inc yapsın.
+        source: https://www.mongodb.com/docs/manual/reference/operator/update/
+      - id: upsert
+        level: intermediate
+        title: { en: Upsert, tr: Upsert }
+        what:
+          en: With upsert true, the update creates the document if nothing matches.
+          tr: upsert true ise, hiçbir şey eşleşmezse güncelleme dokümanı oluşturur.
+        lang: js
+        form: "db.c.updateOne(filter, update, { upsert: true })"
+        example: |
+          db.stats.updateOne(
+            { day: "2026-10-17" },
+            { $inc: { visits: 1 }, $setOnInsert: { createdAt: new Date() } },
+            { upsert: true },
+          )
+        mistake:
+          en: Upserting on a field without a unique index; two requests at the same time can insert two documents.
+          tr: Unique index'i olmayan bir alana upsert yapmak; aynı anda gelen iki istek iki doküman ekleyebilir.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.updateOne/#upsert
+      - id: replace
+        level: intermediate
+        title: { en: Replace a whole document, tr: Dokümanın tamamını değiştirme }
+        what:
+          en: replaceOne swaps the matched document for a new one; fields you do not include are gone.
+          tr: replaceOne eşleşen dokümanı yenisiyle değiştirir; yazmadığın alanlar silinir.
+        lang: js
+        form: db.c.replaceOne(filter, newDoc)
+        example: |
+          db.settings.replaceOne({ _id: "site" }, { _id: "site", theme: "dark", lang: "tr" })
+        mistake:
+          en: Using replaceOne when you meant to change one field; use updateOne with $set.
+          tr: Tek bir alanı değiştirmek isterken replaceOne kullanmak; $set ile updateOne kullan.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.replaceOne/
+      - id: find-and-update
+        level: intermediate
+        title: { en: Update and get the result back, tr: Güncelleyip sonucu geri alma }
+        what:
+          en: findOneAndUpdate updates one document and returns it in one step, before or after the change.
+          tr: findOneAndUpdate tek adımda bir dokümanı günceller ve onu değişiklikten önceki ya da sonraki haliyle döndürür.
+        lang: js
+        form: 'db.c.findOneAndUpdate(filter, update, { returnDocument: "after" })'
+        example: |
+          // a counter for invoice numbers
+          db.counters.findOneAndUpdate(
+            { _id: "invoice" },
+            { $inc: { seq: 1 } },
+            { upsert: true, returnDocument: "after" },
+          )
+        mistake:
+          en: Forgetting that it returns the old document by default.
+          tr: Varsayılan olarak eski dokümanı döndürdüğünü unutmak.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.findOneAndUpdate/
+      - id: delete
+        level: basic
+        title: { en: Delete documents, tr: Doküman silme }
+        what:
+          en: deleteOne removes the first match, deleteMany removes every match.
+          tr: deleteOne eşleşen ilk dokümanı, deleteMany eşleşen her dokümanı siler.
+        lang: js
+        form: db.c.deleteMany(filter)
+        example: |
+          db.sessions.deleteOne({ token: "abc" })
+          db.sessions.deleteMany({ expiresAt: { $lt: new Date() } })
+        mistake:
+          en: Running deleteMany({}) by accident; it empties the collection. Run the same filter with find first.
+          tr: Yanlışlıkla deleteMany({}) çalıştırmak; koleksiyonu boşaltır. Aynı filtreyi önce find ile çalıştır.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.deleteMany/
+      - id: bulk-write
+        level: advanced
+        title: { en: Many writes in one call, tr: Tek çağrıda çok yazma }
+        what:
+          en: bulkWrite sends many inserts, updates and deletes in one round trip.
+          tr: bulkWrite birçok insert, update ve delete'i tek bir gidiş dönüşte gönderir.
+        lang: js
+        form: "db.c.bulkWrite([ { insertOne: {...} }, { updateOne: {...} } ], { ordered: false })"
+        example: |
+          db.products.bulkWrite([
+            { updateOne: { filter: { sku: "A1" }, update: { $inc: { stock: -1 } } } },
+            { insertOne: { document: { sku: "B2", stock: 10 } } },
+            { deleteOne: { filter: { sku: "OLD" } } },
+          ], { ordered: false })
+        mistake:
+          en: Forgetting it is not a transaction; if one operation fails the others that ran stay applied.
+          tr: Bunun bir transaction olmadığını unutmak; bir işlem başarısız olursa çalışmış olan diğerleri uygulanmış kalır.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.bulkWrite/
+  - id: aggregation
+    title: { en: Aggregation, tr: Aggregation }
+    items:
+      - id: pipeline
+        level: basic
+        title: { en: The aggregation pipeline, tr: Aggregation pipeline }
+        what:
+          en: Runs documents through a list of stages, each one filtering, reshaping or grouping what the previous one gave.
+          tr: Dokümanları bir aşamalar listesinden geçirir; her aşama bir öncekinin verdiğini filtreler, yeniden şekillendirir ya da gruplar.
+        lang: js
+        form: db.c.aggregate([ { $match }, { $group }, { $sort } ])
+        example: |
+          db.orders.aggregate([
+            { $match: { status: "paid" } },
+            { $group: { _id: "$customerId", total: { $sum: "$amount" }, orders: { $sum: 1 } } },
+            { $sort: { total: -1 } },
+            { $limit: 5 },
+          ])
+        mistake:
+          en: Putting $match late in the pipeline; filter first so less data flows through the stages and an index can be used.
+          tr: $match'i pipeline'ın sonlarına koymak; önce filtrele ki aşamalardan daha az veri geçsin ve index kullanılabilsin.
+        source: https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+      - id: group
+        level: intermediate
+        title: { en: "$group and accumulators", tr: "$group ve accumulator'lar" }
+        what:
+          en: "Groups documents by the _id expression and computes sums, averages, counts or lists per group."
+          tr: "Dokümanları _id ifadesine göre gruplar ve her grup için toplam, ortalama, sayı ya da liste hesaplar."
+        lang: js
+        form: '{ $group: { _id: "$field", n: { $sum: 1 } } }'
+        example: |
+          db.orders.aggregate([
+            { $group: {
+                _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                revenue: { $sum: "$amount" },
+                avg: { $avg: "$amount" },
+                customers: { $addToSet: "$customerId" },
+            } },
+          ])
+        mistake:
+          en: Writing field names without the $ ("amount" instead of "$amount"); without it the value is the literal string.
+          tr: Alan adlarını $ olmadan yazmak ("$amount" yerine "amount"); $ yoksa değer düz bir string olur.
+        source: https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/
+      - id: project-addfields
+        level: intermediate
+        title: { en: "Reshape with $project and $set", tr: "$project ve $set ile yeniden şekillendirme" }
+        what:
+          en: "$project keeps, drops or computes fields; $set (alias $addFields) adds computed fields and keeps the rest."
+          tr: "$project alanları tutar, atar ya da hesaplar; $set ($addFields'ın diğer adı) hesaplanmış alanlar ekler ve geri kalanı korur."
+        lang: js
+        form: '{ $set: { total: { $multiply: ["$price", "$qty"] } } }'
+        example: |
+          db.items.aggregate([
+            { $set: { total: { $multiply: ["$price", "$qty"] } } },
+            { $project: { _id: 0, sku: 1, total: 1 } },
+          ])
+        source: https://www.mongodb.com/docs/manual/reference/operator/aggregation/set/
+      - id: lookup
+        level: intermediate
+        title: { en: "Join with $lookup", tr: "$lookup ile join" }
+        what:
+          en: Pulls matching documents from another collection into an array field, like a left outer join.
+          tr: Başka bir koleksiyondaki eşleşen dokümanları bir array alanına çeker; left outer join gibi.
+        lang: js
+        form: '{ $lookup: { from, localField, foreignField, as } }'
+        example: |
+          db.orders.aggregate([
+            { $lookup: { from: "users", localField: "userId", foreignField: "_id", as: "user" } },
+            { $unwind: "$user" },
+            { $project: { amount: 1, "user.name": 1 } },
+          ])
+        mistake:
+          en: No index on foreignField; every order then scans the whole users collection.
+          tr: foreignField üzerinde index olmaması; o zaman her sipariş bütün users koleksiyonunu tarar.
+        avoid:
+          en: If you join the same data on every read, consider storing it inside the document (embedding) instead.
+          tr: Aynı veriyi her okumada join'liyorsan, onun yerine dokümanın içinde saklamayı (embedding) düşün.
+        source: https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/
+      - id: unwind
+        level: intermediate
+        title: { en: "Flatten arrays with $unwind", tr: "$unwind ile array'leri açma" }
+        what:
+          en: Turns one document with an array into one document per array element, so you can group by the elements.
+          tr: Array içeren tek bir dokümanı her array elemanı için bir dokümana çevirir; böylece elemanlara göre gruplayabilirsin.
+        lang: js
+        form: '{ $unwind: "$items" }'
+        example: |
+          db.orders.aggregate([
+            { $unwind: "$items" },
+            { $group: { _id: "$items.sku", sold: { $sum: "$items.qty" } } },
+          ])
+        mistake:
+          en: Losing documents whose array is empty or missing; add preserveNullAndEmptyArrays true if you need them.
+          tr: Array'i boş ya da eksik olan dokümanları kaybetmek; onlar gerekiyorsa preserveNullAndEmptyArrays true ekle.
+        source: https://www.mongodb.com/docs/manual/reference/operator/aggregation/unwind/
+      - id: memory-limits
+        level: advanced
+        title: { en: Memory limits and allowDiskUse, tr: Bellek sınırları ve allowDiskUse }
+        what:
+          en: Each blocking stage like $group or $sort may use 100 MB of memory before it spills to disk; since 9.0 a whole operation is also capped (by default the larger of 1 GB and 20% of server memory).
+          tr: $group ya da $sort gibi bloklayan her aşama diske taşmadan önce 100 MB bellek kullanabilir; 9.0'dan beri bütün işlemin de bir sınırı vardır (varsayılan 1 GB ile sunucu belleğinin %20'sinden büyüğü).
+        lang: js
+        form: "db.c.aggregate(pipeline, { allowDiskUse: true })"
+        example: |
+          db.events.aggregate(
+            [{ $group: { _id: "$userId", n: { $sum: 1 } } }],
+            { allowDiskUse: true },
+          )
+        mistake:
+          en: Treating allowDiskUse as a fix for slow pipelines; filter earlier and add indexes first, spilling to disk is slow.
+          tr: allowDiskUse'u yavaş pipeline'lar için çözüm sanmak; önce erken filtrele ve index ekle, diske taşmak yavaştır.
+        source: https://www.mongodb.com/docs/manual/release-notes/9.0/
+  - id: indexes
+    title: { en: Indexes and speed, tr: Index ve hız }
+    items:
+      - id: create-index
+        level: basic
+        title: { en: Create an index, tr: Index oluşturma }
+        what:
+          en: An index lets queries on a field find documents without scanning the whole collection.
+          tr: Index, bir alan üzerindeki sorguların bütün koleksiyonu taramadan dokümanları bulmasını sağlar.
+        lang: js
+        form: "db.c.createIndex({ field: 1 })"
+        example: |
+          db.users.createIndex({ email: 1 }, { unique: true })
+          db.users.getIndexes()
+          db.users.dropIndex("email_1")
+        mistake:
+          en: Adding an index for every field; each one slows down writes and uses memory. Index what your queries filter and sort on.
+          tr: Her alana index eklemek; her biri yazmaları yavaşlatır ve bellek harcar. Sorgularının filtrelediği ve sıraladığı alanlara index koy.
+        source: https://www.mongodb.com/docs/manual/reference/method/db.collection.createIndex/
+      - id: compound-esr
+        level: intermediate
+        title: { en: Compound indexes and the ESR rule, tr: Bileşik index ve ESR kuralı }
+        what:
+          en: "In a compound index, put fields you match exactly first, then fields you sort on, then range fields (Equality, Sort, Range)."
+          tr: "Bileşik index'te önce tam eşleştirdiğin alanları, sonra sıraladığın alanları, en son aralık alanlarını koy (Equality, Sort, Range)."
+        lang: js
+        form: "db.c.createIndex({ equality: 1, sort: -1, range: 1 })"
+        example: |
+          // find({ status: "paid", amount: { $gt: 100 } }).sort({ createdAt: -1 })
+          db.orders.createIndex({ status: 1, createdAt: -1, amount: 1 })
+        mistake:
+          en: "Expecting an index on { a: 1, b: 1 } to help a query on b alone; a query must use a prefix of the index (a, or a and b)."
+          tr: "{ a: 1, b: 1 } index'inin sadece b üzerindeki bir sorguya yardım etmesini beklemek; sorgu index'in baş kısmını (a, ya da a ve b) kullanmalı."
+        source: https://www.mongodb.com/docs/manual/tutorial/equality-sort-range-guideline/
+      - id: explain
+        level: intermediate
+        title: { en: See how a query runs, tr: Sorgunun nasıl çalıştığını görme }
+        what:
+          en: explain shows whether a query used an index (IXSCAN) or scanned the whole collection (COLLSCAN), and how many documents it read.
+          tr: explain, sorgunun bir index kullanıp kullanmadığını (IXSCAN) ya da bütün koleksiyonu tarayıp taramadığını (COLLSCAN) ve kaç doküman okuduğunu gösterir.
+        lang: js
+        form: db.c.find(filter).explain("executionStats")
+        example: |
+          db.orders.find({ status: "paid" }).explain("executionStats")
+          // look at: winningPlan.stage, executionStats.totalDocsExamined, nReturned
+        mistake:
+          en: Reading only the stage name; if totalDocsExamined is much bigger than nReturned the index is a poor fit.
+          tr: Sadece aşama adına bakmak; totalDocsExamined, nReturned'dan çok büyükse index uygun değildir.
+        source: https://www.mongodb.com/docs/manual/reference/method/cursor.explain/
+      - id: ttl-index
+        level: intermediate
+        title: { en: Delete old documents automatically (TTL), tr: Eski dokümanları otomatik silme (TTL) }
+        what:
+          en: A TTL index on a date field removes documents after a number of seconds, good for sessions and logs.
+          tr: Bir tarih alanındaki TTL index'i dokümanları belli bir saniye sonra siler; oturumlar ve loglar için iyidir.
+        lang: js
+        form: "db.c.createIndex({ createdAt: 1 }, { expireAfterSeconds: 3600 })"
+        example: |
+          db.sessions.createIndex({ createdAt: 1 }, { expireAfterSeconds: 60 * 60 * 24 })
+        mistake:
+          en: Expecting deletion to the second; a background task runs about every 60 seconds, so expired documents can stay a little longer.
+          tr: Silinmenin saniyesi saniyesine olmasını beklemek; arka plandaki görev yaklaşık 60 saniyede bir çalışır, süresi dolan dokümanlar biraz daha kalabilir.
+        source: https://www.mongodb.com/docs/manual/core/index-ttl/
+      - id: partial-index
+        level: advanced
+        title: { en: Partial indexes, tr: Kısmi index }
+        what:
+          en: Indexes only the documents that match a filter, so the index is smaller and can enforce uniqueness on just those.
+          tr: Sadece bir filtreye uyan dokümanları index'ler; index küçülür ve benzersizliği sadece onlar üzerinde zorlayabilir.
+        lang: js
+        form: "db.c.createIndex(keys, { partialFilterExpression: { ... } })"
+        example: |
+          // unique email only among users that are not deleted
+          db.users.createIndex(
+            { email: 1 },
+            { unique: true, partialFilterExpression: { deleted: false } },
+          )
+        mistake:
+          en: A query that does not include the filter condition cannot use the partial index.
+          tr: Filtre koşulunu içermeyen bir sorgu kısmi index'i kullanamaz.
+        source: https://www.mongodb.com/docs/manual/core/index-partial/
+  - id: advanced
+    title: { en: Data safety and more, tr: Veri güvenliği ve fazlası }
+    items:
+      - id: schema-validation
+        level: intermediate
+        title: { en: Schema validation, tr: Şema doğrulama }
+        what:
+          en: Makes the server reject documents that do not follow a JSON Schema, even though MongoDB is schemaless by default.
+          tr: MongoDB varsayılan olarak şemasız olsa da, sunucunun bir JSON Schema'ya uymayan dokümanları reddetmesini sağlar.
+        lang: js
+        form: 'db.createCollection("c", { validator: { $jsonSchema: {...} } })'
+        example: |
+          db.createCollection("users", {
+            validator: { $jsonSchema: {
+              bsonType: "object",
+              required: ["email"],
+              properties: { email: { bsonType: "string" }, age: { bsonType: "int", minimum: 0 } },
+            } },
+          })
+        source: https://www.mongodb.com/docs/manual/core/schema-validation/
+      - id: transactions
+        level: advanced
+        title: { en: Transactions, tr: Transaction }
+        what:
+          en: Groups writes across documents or collections so all of them apply or none do; it needs a replica set or sharded cluster.
+          tr: Dokümanlar ya da koleksiyonlar arasındaki yazmaları gruplar; ya hepsi uygulanır ya hiçbiri. Replica set ya da sharded cluster gerekir.
+        lang: js
+        form: session.startTransaction() ... session.commitTransaction()
+        example: |
+          const session = db.getMongo().startSession()
+          const accounts = session.getDatabase("bank").accounts
+          session.startTransaction()
+          try {
+            accounts.updateOne({ _id: "a" }, { $inc: { balance: -50 } })
+            accounts.updateOne({ _id: "b" }, { $inc: { balance: 50 } })
+            session.commitTransaction()
+          } catch (e) {
+            session.abortTransaction()
+            throw e
+          } finally {
+            session.endSession()
+          }
+        mistake:
+          en: Running a transaction on a single standalone server; it fails. Even in local dev, start a one-node replica set.
+          tr: Tek başına çalışan bir sunucuda transaction çalıştırmak; hata verir. Yerelde bile tek düğümlü bir replica set başlat.
+        avoid:
+          en: Changes to a single document are already atomic; you need a transaction only when several documents must change together.
+          tr: Tek bir dokümandaki değişiklikler zaten atomiktir; transaction sadece birkaç doküman birlikte değişmek zorundaysa gerekir.
+        source: https://www.mongodb.com/docs/manual/core/transactions/
+      - id: change-streams
+        level: advanced
+        title: { en: Listen to changes, tr: Değişiklikleri dinleme }
+        what:
+          en: watch opens a stream of inserts, updates and deletes as they happen; it needs a replica set or sharded cluster.
+          tr: watch, insert, update ve delete'leri olurken veren bir akış açar; replica set ya da sharded cluster gerekir.
+        lang: js
+        form: db.c.watch(pipeline)
+        example: |
+          const stream = db.orders.watch([{ $match: { operationType: "insert" } }])
+          while (stream.hasNext()) printjson(stream.next())
+        mistake:
+          en: Not saving the resume token; after a disconnect you cannot continue from where you stopped.
+          tr: Resume token'ı saklamamak; bağlantı koparsa kaldığın yerden devam edemezsin.
+        source: https://www.mongodb.com/docs/manual/changeStreams/
+      - id: dump-restore
+        level: intermediate
+        title: { en: Back up and restore, tr: Yedekleme ve geri yükleme }
+        what:
+          en: mongodump writes a database to BSON files and mongorestore loads them back.
+          tr: mongodump bir veritabanını BSON dosyalarına yazar, mongorestore onları geri yükler.
+        lang: sh
+        form: mongodump --uri "<uri>" --out backup/
+        example: |
+          mongodump --uri "mongodb://localhost:27017/shop" --out backup/
+          mongorestore --uri "mongodb://localhost:27017" --drop backup/
+        mistake:
+          en: Never testing a restore; a backup you have not restored once is a guess.
+          tr: Geri yüklemeyi hiç denememek; bir kez geri yüklemediğin yedek sadece bir tahmindir.
+        source: https://www.mongodb.com/docs/database-tools/mongodump/

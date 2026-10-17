@@ -34,6 +34,7 @@ import { ActiveDot, ContextBar, HealthBadge, SummaryView } from "../components/w
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, dateTime, mainModel, modelName, relativeTime } from "../lib/format";
+import { learnApi } from "../lib/learn-api";
 import { useLiveData } from "../lib/live";
 
 function Message({ message }: { message: TranscriptMessage }) {
@@ -323,6 +324,11 @@ export function SessionPage() {
     [sessionId],
     (_, sessionIds) => sessionIds.includes(sessionId),
   );
+  const { data: apiIssues } = useLiveData(
+    () => learnApi.apiVersions(sessionId),
+    [sessionId],
+    (_, sessionIds) => sessionIds.includes(sessionId),
+  );
 
   if (error && !session)
     return (
@@ -515,6 +521,38 @@ export function SessionPage() {
                     <li key={claim.ts} className="rounded-md bg-bg-subtle p-2 text-xs leading-relaxed">
                       “{claim.text}”
                       <span className="mt-0.5 block text-[11px] text-fg-subtle">{relativeTime(claim.ts)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+            {apiIssues && apiIssues.length > 0 && (
+              <Card className="space-y-2 border-warning p-pad">
+                <h3 className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                  <AlertTriangle size={13} />
+                  {t("session.apiVersions")}
+                </h3>
+                <p className="text-xs text-fg-muted">{t("session.apiVersionsHint")}</p>
+                <ul className="space-y-1.5">
+                  {apiIssues.slice(0, 10).map((x) => (
+                    <li key={`${x.file}:${x.item}`} className="rounded-md bg-bg-subtle p-2 text-xs leading-relaxed">
+                      <span className="font-mono">{x.marker.trim()}</span>{" "}
+                      {t("session.apiNeeds", { since: x.since, installed: x.installed })}
+                      <span
+                        className="mt-0.5 block truncate font-mono text-[11px] text-fg-subtle"
+                        title={`${x.file}:${x.line}`}
+                      >
+                        {session.cwd && x.file.startsWith(session.cwd) ? x.file.slice(session.cwd.length + 1) : x.file}:
+                        {x.line}
+                      </span>
+                      <span className="mt-1 flex gap-3 text-[11px]">
+                        <Link to={`/learn/s/${x.sheet}#${x.item}`} className="text-accent hover:underline">
+                          {t("session.apiSheet")}
+                        </Link>
+                        <a href={x.source} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                          {t("session.apiDocs")}
+                        </a>
+                      </span>
                     </li>
                   ))}
                 </ul>
