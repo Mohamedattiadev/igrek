@@ -363,6 +363,43 @@ const migrations: string[] = [
      at INTEGER NOT NULL,
      PRIMARY KEY (hash, lang)
    );`,
+  // Faz 6: personas the user made or changed, their opinions notebook, which session ran as
+  // which persona, and team meetings.
+  `CREATE TABLE personas (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE TABLE persona_opinions (
+     id TEXT PRIMARY KEY,
+     persona_id TEXT NOT NULL,
+     project_id TEXT,
+     claim TEXT NOT NULL,
+     reasoning TEXT NOT NULL DEFAULT '',
+     evidence TEXT NOT NULL DEFAULT '',
+     confidence TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     replaces TEXT,
+     replaced_by TEXT,
+     changed_because TEXT,
+     source TEXT
+   );
+   CREATE INDEX persona_opinions_persona ON persona_opinions(persona_id, project_id, created_at);
+   CREATE TABLE persona_sessions (
+     session_id TEXT PRIMARY KEY,
+     persona_id TEXT NOT NULL,
+     at INTEGER NOT NULL
+   );
+   CREATE TABLE meetings (
+     id TEXT PRIMARY KEY,
+     project_id TEXT,
+     question TEXT NOT NULL,
+     status TEXT NOT NULL,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX meetings_project ON meetings(project_id, created_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

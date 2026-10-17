@@ -85,3 +85,36 @@ describe("chat", () => {
     chats.stopAll();
   });
 });
+
+describe("chat streaming", () => {
+  test("a text block after a thinking block is not shown twice", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    writeFileSync(
+      join(dir, "claude"),
+      `#!${process.execPath}
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+out({ type: "system", subtype: "init", session_id: "s", model: "m" });
+for await (const chunk of Bun.stdin.stream()) {
+  out({ type: "stream_event", event: { type: "message_start", message: { id: "m1" } } });
+  out({ type: "stream_event", event: { type: "content_block_delta", index: 1, delta: { type: "text_delta", text: "Hello there" } } });
+  out({ type: "assistant", message: { id: "m1", content: [{ type: "thinking", thinking: "" }] } });
+  out({ type: "assistant", message: { id: "m1", content: [{ type: "text", text: "Hello there" }] } });
+  out({ type: "result", subtype: "success", duration_ms: 1 });
+}
+`,
+    );
+    chmodSync(join(dir, "claude"), 0o755);
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(dir, "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    const events = new Map<string, ChatEvent>();
+    chats.attach(info.id, (op) => {
+      if (op.op === "upsert") events.set(op.event.id, op.event);
+    });
+    chats.send(info.id, "hi");
+    for (let i = 0; i < 200 && chats.get(info.id)?.status !== "idle"; i++) await Bun.sleep(10);
+    expect([...events.values()].filter((e) => e.kind === "text").map((e) => (e.kind === "text" ? e.text : ""))).toEqual(
+      ["Hello there"],
+    );
+    chats.stopAll();
+  });
+});

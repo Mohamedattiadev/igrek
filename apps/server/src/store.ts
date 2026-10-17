@@ -390,6 +390,7 @@ export class Store {
       author: row.author_name ?? undefined,
       authorId: row.author_id ?? undefined,
       private: !!row.private,
+      persona: this.sessionPersona(row.id),
       summary: row.summary ? JSON.parse(row.summary) : undefined,
       models: JSON.parse(row.models),
       tokens: {
@@ -406,6 +407,14 @@ export class Store {
       .query("SELECT * FROM sessions WHERE project_id = ? ORDER BY updated_at DESC LIMIT ?")
       .all(projectId, limit) as SessionRow[];
     return rows.map((row) => this.sessionItem(row));
+  }
+
+  /** Persona a session ran as (plan.md 6.3). */
+  sessionPersona(id: string): string | undefined {
+    const row = this.db.query("SELECT persona_id FROM persona_sessions WHERE session_id = ?").get(id) as
+      | { persona_id: string }
+      | undefined;
+    return row?.persona_id;
   }
 
   sessionRow(id: string): SessionRow | undefined {

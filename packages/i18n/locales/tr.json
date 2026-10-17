@@ -14,7 +14,8 @@
     "files": "Dosyalar",
     "ideas": "Fikirler",
     "prompts": "Prompt'lar",
-    "servers": "Sunucular"
+    "servers": "Sunucular",
+    "personas": "Personalar"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -493,7 +494,16 @@
     "kind_research": "Araştırma",
     "kind_other": "Diğer",
     "project": "Proje",
-    "shortcut": "Ctrl+I"
+    "shortcut": "Ctrl+I",
+    "review": "CEO Danışmanı ile değerlendir",
+    "reviewing": "Düşünüyor…",
+    "reviewTip": "Haftada bir: hangi fikirler şimdi, hangileri sonra, hangileri bırakılsın",
+    "reviewTitle": "CEO Danışmanı'nın değerlendirmesi",
+    "verdict_now": "Şimdi yap",
+    "verdict_later": "Sonra",
+    "verdict_drop": "Bırak",
+    "reviewApply": "Uygula",
+    "reviewClose": "Kapat"
   },
   "prompts": {
     "title": "Prompt'lar",
@@ -555,7 +565,12 @@
     "output": "Çıktı",
     "remove": "Sunucuyu kaldır",
     "lastCheck": "{{when}} kontrol edildi",
-    "hostKey": "Bu sunucuya ilk kez bağlanılıyor: SSH terminalini bir kez açıp sunucunun anahtarını onayla, sonra tekrar kontrol et."
+    "hostKey": "Bu sunucuya ilk kez bağlanılıyor: SSH terminalini bir kez açıp sunucunun anahtarını onayla, sonra tekrar kontrol et.",
+    "askDevOps": "DevOps'a sor",
+    "askNoHealth": "henüz sağlık kontrolü yok",
+    "askHealth": "disk %{{disk}}, bellek %{{mem}}, çöken servisler: {{failed}}",
+    "askDown": "ulaşılamıyor ({{error}})",
+    "askDraft": "{{name}} sunucusuna bak ({{target}}, etiket: {{tag}}). Son kontrol: {{state}}. Ne görüyorsun, ne riskli, önce ne yapmalıyım? Sadece oku; bir şeyi değiştiren her komuttan önce bana sor."
   },
   "approvals": {
     "title": "Onayını bekleyenler",
@@ -606,7 +621,11 @@
     "suggestTip_haiku": "Kısa bir soru: küçük model hızlı cevap verir ve limitini korur.",
     "guard_ship": "Bu işini dışarı gönderir (push, merge, yayınlama ya da deploy). AI bunu asla kendi başına yapmaz; her seferinde sorar.",
     "guard_external": "Bu sohbet internetten içerik okudu. Oradaki metin AI'ı yönlendirmeye çalışabilir; riskli adımlar her seferinde sorulur.",
-    "notice_external": "Bu sohbet internetten içerik okudu. O içerik talimat değil bilgi olarak ele alınır: sohbet her adımdan önce sormaya döndü ve \"her zaman izin ver\" artık riskli araçları kapsamaz."
+    "notice_external": "Bu sohbet internetten içerik okudu. O içerik talimat değil bilgi olarak ele alınır: sohbet her adımdan önce sormaya döndü ve \"her zaman izin ver\" artık riskli araçları kapsamaz.",
+    "notice_notebook_one": "Defterine 1 görüş yazdı",
+    "notice_notebook_other": "Defterine {{count}} görüş yazdı",
+    "notice_notebookRejected_one": "1 fikir değişikliği kaydedilmedi: yeni kanıt yoktu",
+    "notice_notebookRejected_other": "{{count}} fikir değişikliği kaydedilmedi: yeni kanıt yoktu"
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -1800,5 +1819,243 @@
     "discardConfirm": "Sohbet durdurulup kopyası ve dalı silinsin mi? Birleştirilmemiş değişiklikler kaybolur.",
     "sandboxOn": "Kabuk komutları ayrıca sandbox'ta çalışır (dosya ve ağ erişimi sınırlı).",
     "sandboxOff": "Tam sandbox için (dosya ve ağ erişimi sınırlı) bubblewrap ve socat kur."
+  },
+  "persona": {
+    "ai-engineer": {
+      "name": "AI Mühendisi",
+      "role": "AI modelleriyle çalışır: prompt, agent, ölçüm"
+    },
+    "pm-lead": {
+      "name": "Takım Lideri",
+      "role": "İşi böler, atar, bitene kadar takip eder"
+    },
+    "architect": {
+      "name": "Mimar",
+      "role": "Parçaların nasıl bir araya geldiği"
+    },
+    "uiux": {
+      "name": "UI/UX Tasarımcı",
+      "role": "Sıradan insanların anladığı ekranlar"
+    },
+    "frontend": {
+      "name": "Frontend Senior",
+      "role": "Tarayıcıda çalışan kısım"
+    },
+    "backend": {
+      "name": "Backend Senior",
+      "role": "Sunucu, API ve iş kuralları"
+    },
+    "database": {
+      "name": "Veritabanı Uzmanı",
+      "role": "Doğru ve hızlı kalan veri"
+    },
+    "devops": {
+      "name": "DevOps / SRE Senior",
+      "role": "Sunucular, deploy, yedek ve olaylar"
+    },
+    "mobile": {
+      "name": "Mobil Senior",
+      "role": "iOS, Android, React Native, Flutter"
+    },
+    "data-engineer": {
+      "name": "Veri Mühendisi",
+      "role": "Veri hatları ve analitik"
+    },
+    "qa": {
+      "name": "QA",
+      "role": "\"Yaptım\" denen işin gerçekten çalıştığını doğrular"
+    },
+    "security": {
+      "name": "Güvenlik",
+      "role": "Saldırganın bulacağını bulur; sadece okur"
+    },
+    "performance": {
+      "name": "Performans",
+      "role": "Önce ölçer, sonra hızlandırır"
+    },
+    "devils-advocate": {
+      "name": "Şeytanın Avukatı",
+      "role": "Planın zayıf noktalarını bulur"
+    },
+    "tech-writer": {
+      "name": "Teknik Yazar",
+      "role": "Takip edilebilir dokümanlar ve özetler"
+    },
+    "ceo-coach": {
+      "name": "CEO Danışmanı",
+      "role": "Strateji, odak ve neye hayır denmeli"
+    },
+    "chief-of-staff": {
+      "name": "Chief of Staff",
+      "role": "Her projenin durumu, haftalık"
+    },
+    "product-manager": {
+      "name": "Ürün Yöneticisi",
+      "role": "Kullanıcı ihtiyacı, yol haritası, metrikler"
+    },
+    "growth": {
+      "name": "Büyüme ve Pazarlama",
+      "role": "Konumlandırma, lansman, SEO, fiyat"
+    },
+    "finance": {
+      "name": "Finans ve Maliyet",
+      "role": "Sunucu, AI ve işletme maliyetleri"
+    },
+    "legal": {
+      "name": "Hukuk ve Uyumluluk",
+      "role": "KVKK, GDPR, lisanslar (bilgi amaçlı, avukat yerine geçmez)"
+    },
+    "researcher": {
+      "name": "Araştırmacı",
+      "role": "Derin araştırır, kaynakları karşılaştırır, raporlar"
+    },
+    "rnd-engineer": {
+      "name": "Ar-Ge Mühendisi",
+      "role": "Yeni teknolojiyi dener, kanıtla cevap verir"
+    },
+    "competitor-analyst": {
+      "name": "Rakip Analisti",
+      "role": "Benzer ürünler ne yapıyor"
+    },
+    "title": "Persona takımı",
+    "intro": "Ömrü boyunca kendi alanında çalışmış uzmanlar. Her biri görüşlerini bir deftere yazar ve fikrini ancak yeni kanıtla değiştirir. Biriyle konuş ya da takım toplantısında birkaçına birden sor.",
+    "loading": "Yükleniyor…",
+    "you": "Sen",
+    "ranAs": "{{who}} → {{name}} personası",
+    "tools_read": "Sadece okur",
+    "tools_edit": "Dosya düzenleyebilir",
+    "web": "İnternetten okur",
+    "edited": "Değiştirildi",
+    "own": "Senin",
+    "new": "Yeni persona",
+    "export": "Dışa aktar",
+    "tab_team": "Takım",
+    "tab_meetings": "Toplantılar",
+    "tab_scores": "Skor kartı",
+    "group_engineering": "Mühendislik",
+    "group_leadership": "Liderlik ve strateji",
+    "group_research": "Araştırma",
+    "group_testing": "Test",
+    "score_sessions": "Sohbet",
+    "score_meetings": "Toplantı",
+    "score_accepted": "Tutulan karar",
+    "score_opinions": "Görüş",
+    "score_changed": "Fikir değiştirdi",
+    "score_tokens": "Token",
+    "score_avg": "Ort. süre",
+    "scoreNote": "Tutulan karar: katıldığı ve kararı proje hafızasına işlenen toplantılar. Yakalanan hata ve kabul oranları görev panosuyla gelecek (Faz 8).",
+    "exportBody": "Her personayı AI araçlarının kendiliğinden okuduğu bir dosya olarak yazar: bir projede Claude Code alt-agent'ları (.claude/agents) ya da Codex özel prompt'ları. Bir sonraki dışa aktarımda dosyaların üzerine yazılır.",
+    "exportCodex": "Codex hesabının prompts klasörüne yazar; Codex'te /<persona kimliği> ile çalıştırılır.",
+    "exportDo": "Dosyaları yaz",
+    "exported_one": "1 dosya yazıldı",
+    "exported_other": "{{count}} dosya yazıldı",
+    "pickProject": "Proje seç",
+    "close": "Kapat",
+    "generalOnly": "Genel görüşler",
+    "showHistory": "Eski görüşleri de göster",
+    "notebookEmpty": "Henüz bir şey yazılmadı. Görüşler sohbet ve toplantılardan sonra burada görünür.",
+    "evidence": "Kanıt",
+    "noEvidence": "yok, tahmin",
+    "general": "genel",
+    "earlier": "eski bir görüş",
+    "changedBecause": "\"{{old}}\" görüşünden şu sebeple değişti: {{why}}",
+    "replaced": "Daha yeni bir görüşle değiştirildi",
+    "chat": "Sohbet et",
+    "chatWith": "{{name}} ile sohbet",
+    "chatPick": "Hangi projede? Persona başlamadan o projenin hafızasını ve kendi bölümlerini okur.",
+    "f_name": "Ad",
+    "f_role": "Rol",
+    "f_id": "Kimlik",
+    "f_idHint": "a-z, 0-9 ve tire; dışa aktarırken dosya adı olur",
+    "f_model": "Model",
+    "f_tools": "Araçlar",
+    "f_maxTurns": "Mesaj başına en fazla adım",
+    "f_group": "Grup",
+    "f_web": "İnternette arayıp okuyabilir (sohbet o zaman her riskli adımdan önce sorar)",
+    "f_categories": "Sorumlu olduğu proje bölümleri",
+    "f_icon": "Simge",
+    "englishNote": "Profil İngilizce yazılır, çünkü modeller onu en iyi böyle takip eder. Persona her zaman senin dilinde cevap verir.",
+    "s_bio": "Geçmişi",
+    "s_style": "Nasıl düşünür ve konuşur",
+    "s_settings": "Ayarlar",
+    "s_timeline": "Alanın tarihi",
+    "timelineHint": "Her satıra bir tane: yıl — olay. Sadece gerçek ve belgelenmiş kilometre taşları.",
+    "s_reading": "Okuma listesi",
+    "readingHint": "Her satıra bir tane: başlık — yazar (yıl)",
+    "readingLibrary": "Kütüphane bağlantısı Faz 7'de.",
+    "s_checklist": "Neye bakar",
+    "s_pitfalls": "Uyardığı tuzaklar",
+    "s_rules": "Kendi kuralları",
+    "rulesHint": "Sadece bu persona için ek kurallar, her satıra bir tane.",
+    "rulesAll": "Her persona ayrıca uzman kurallarına uyar: deftere sadık kalır, fikrini sadece yeni kanıtla değiştirir, kaynak gösterir, rakam uydurmaz, önem sırası verir, güven seviyesi söyler.",
+    "noOwnRules": "Ek kural yok.",
+    "lineHint": "Her satıra bir tane",
+    "showPrompt": "Başlamadan ne okuduğunu göster",
+    "s_notebook": "Görüşlerim defteri",
+    "notebookHint": "İddia, gerekçe, kanıt, güven ve tarih. Değişiklik yeni kanıt ister; kanıt yoksa eski görüş kalır.",
+    "modelIs": "Model: {{model}}",
+    "turns": "En fazla {{n}} adım",
+    "safetyNote": "Hiçbir persona kendi başına push, merge, yayın ya da deploy yapmaz: bunlar her zaman seni bekler.",
+    "cancel": "Vazgeç",
+    "save": "Kaydet",
+    "edit": "Düzenle",
+    "reset": "Sıfırla",
+    "delete": "Sil",
+    "wizardTitle": "Personayı bir cümleyle tarif et",
+    "wizardBody": "AI tüm profili taslak olarak çıkarır: geçmiş, alanın tarihi, okuma listesi, kontrol listesi ve tuzaklar. Kaydetmeden önce kontrol edip değiştirirsin.",
+    "wizardHint": "Örnek: Avrupa'da 15 yıldır online mağazaların ödeme sistemini yöneten bir ödeme uzmanı",
+    "draft": "Taslak çıkar",
+    "drafting": "Hazırlanıyor…",
+    "blank": "Boş başla",
+    "draftCheck": "Taslağı, özellikle yılları ve kitapları kontrol et, sonra kaydet.",
+    "confidence_high": "Güven: yüksek",
+    "confidence_medium": "Güven: orta",
+    "confidence_low": "Güven: düşük",
+    "picker": "Persona",
+    "none": "Persona yok",
+    "review": "Bu bölümü incele",
+    "reviewTip": "{{name}} bu bölüme bakar ve en önemli olanları söyler",
+    "reviewDraft": "Bu projenin {{section}} bölümünü incele. Önce açık kontrollerle başla, sonra kendi kontrol listeni kullan. Bulguları önem sırasıyla, dosya ve satırıyla yaz; önce neyin düzeltilmesi gerektiğini söyle ve her birine bir güven seviyesi ver."
+  },
+  "meeting": {
+    "title": "Takım toplantısı",
+    "question": "Takım neyi tartışsın?",
+    "questionHint": "Örnek: Google ile giriş ekleyelim mi, neyi değiştirir?",
+    "project": "Proje",
+    "noProject": "Proje yok (genel)",
+    "team": "Kimler katılıyor",
+    "teamHint": "sorundan önerildi; istediğin gibi değiştir",
+    "remove": "{{name}} çıkar",
+    "add": "Ekle",
+    "leadNote": "Takım lideri tüm cevapları okur ve kararı yazar.",
+    "start": "Toplantıyı başlat",
+    "starting": "Başlıyor…",
+    "none": "Henüz toplantı yok.",
+    "status_running": "Dinleniyor",
+    "status_deciding": "Karar yazılıyor",
+    "status_done": "Karar verildi",
+    "status_failed": "Bitmedi",
+    "view_running": "Düşünüyor",
+    "view_waiting": "Sırada",
+    "viewFailed": "Cevap gelmedi",
+    "objections": "İtirazlar",
+    "risks": "Riskler",
+    "recommends": "Önerisi",
+    "deciding": "Takım lideri cevapları tartıyor…",
+    "decision": "Karar",
+    "agreements": "Anlaşılanlar",
+    "disagreements": "Ayrılanlar",
+    "actions": "Sonraki adımlar",
+    "openQuestions": "Hâlâ açık",
+    "commit": "Hafızaya işle",
+    "saved": "Proje hafızasında",
+    "weakPoints": "Zayıf noktaları bul",
+    "looking": "Bakılıyor…",
+    "weakTitle": "Zayıf noktalar",
+    "noWeakPoints": "Ciddi bir zayıf nokta bulunmadı.",
+    "howToTest": "Nasıl denenir",
+    "severity_critical": "Kritik",
+    "severity_major": "Önemli",
+    "severity_minor": "Küçük"
   }
 }

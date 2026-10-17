@@ -396,7 +396,7 @@ god-eye/
 
 #### 1.6 Otomatik model yönlendirme
 - [x] Görev sınıflandırıcı: özet ve etiketleme → Haiku; normal iş → Sonnet; mimari ve zor hata → Opus (Codex için eşdeğerleri) — *arka plan işleri Haiku'da; chat'te yazdığına göre Opus/Haiku önerisi çıkar, tek tıkla geçilir (session devam eder)*
-- [ ] Persona bazlı varsayılan model + görev bazlı üst sınır — *Faz 6*
+- [x] Persona bazlı varsayılan model + görev bazlı üst sınır — *her personanın kendi modeli (Güvenlik/Mimar Opus, Teknik Yazar Haiku…) ve mesaj başına adım sınırı (`--max-turns`); sohbette elle değiştirilebilir*
 - [x] Kullanıcı her zaman elle değiştirebilir
 
 #### 1.7 Arama
@@ -442,7 +442,7 @@ god-eye/
 - [x] Araç kullanımları katlanabilir kartlar halinde (okunan dosya, çalıştırılan komut) — *Bash, Read, Edit, Write, Grep, WebFetch, TodoWrite (yapılacaklar listesi olarak)*
 - [x] Değişiklikler diff görünümünde, dosya bazında kabul veya red — *izin kartında ve araç kartında satır diff'i; dosya bazında red = izni reddetmek*
 - [x] Resim ve ekran görüntüsü yapıştırma, dosya sürükle bırak — *yapıştırma veya seçme; dosya sürükle bırak kalan iş*
-- [x] Mesaj kutusunun altında araç, hesap, model ve persona seçici — *model seçici + öneri, yeni sohbeti seçilen hesapta başlatma; persona Faz 6*
+- [x] Mesaj kutusunun altında araç, hesap, model ve persona seçici — *model seçici + öneri, yeni sohbeti seçilen hesapta başlatma; persona seçici yeni sohbette (konuşma başlayınca persona sabit kalır)*
 - [x] Slash komutları için otomatik tamamlama — *chat'te `/`: projenin ve kullanıcının Claude komutları + kayıtlı prompt'lar*
 - [x] **Mod seçici:** Normal (her şeye onay) · Düzenlemeleri kabul et · **Auto** (izole worktree'de otomatik, sonunda özet ve onay) — *Bana sor · Düzenlemeleri kabul et · Otomatik · Sadece plan; izole worktree Faz 8*
 
@@ -482,7 +482,7 @@ god-eye/
 - [x] 🔒 Prod etiketli sunucularda her değiştiren komut önce "Ne yapacağım ve neden" açıklamasıyla gösterilir, sonra çalıştırılır — *onay penceresinde komut, risk ve "canlı sunucu" uyarısı; agent istekleri gerekçesiyle gelir*
 - [x] Denetim kaydı: her uzak komut, kimin hangi persona ile çalıştırdığı, çıktısı ve zamanıyla kaydedilir (takımla paylaşılır) — *kim (sen / AI), komut, risk, çıktı, süre; takımla paylaşım Faz 4*
 - [x] Hafif izleme (sunucuya hiçbir şey kurmadan): belirli aralıklarla SSH üzerinden uptime, disk, RAM, `docker ps`, son hatalar — *5 dakikada bir, sadece okuyan tek komut*
-- [x] Sunucu kartı: sağlık durumu, son deploy, son hatalar, "DevOps'a sor" butonu — *sağlık + son deploy'lar; "DevOps'a sor" Faz 6*
+- [x] Sunucu kartı: sağlık durumu, son deploy, son hatalar, "DevOps'a sor" butonu — *sağlık + son deploy'lar; "DevOps'a sor" DevOps personasıyla sohbet açar, sunucunun son durumu taslakta bekler*
 - [x] Sunucudaki bir projeyi God Eye projesine bağlama: kod git'ten gelir, canlı ortam SSH ile izlenir
 - [x] Sunucu dosyalarını görüntüleme ve düzenleme (SFTP), değişiklikten önce otomatik yedek — *SSH üzerinden; anahtar ve kimlik klasörleri hiç açılmaz*
 
@@ -503,14 +503,14 @@ god-eye/
 #### 2.6c 💡 Fikir Kutusu (çok fikir gelen biri için)
 - [x] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir) — *Ctrl+I; sesli giriş Faz 11*
 - [x] PM personası fikirleri otomatik sınıflandırır: hangi proje, hangi faz, ne kadar iş, ne kadar değerli — *tek tıkla: proje, tür, iş büyüklüğü, değer, kısa not*
-- [ ] Haftalık fikir değerlendirmesi: CEO Danışmanı ile "Hangilerini yapalım, hangilerini bırakalım?" — *CEO Danışmanı personasıyla (Faz 6)*
+- [x] Haftalık fikir değerlendirmesi: CEO Danışmanı ile "Hangilerini yapalım, hangilerini bırakalım?" — *Fikirler sayfasında tek tık: şimdi / sonra / bırak + odak cümlesi; "Uygula" deyince durumlar değişir. Otomatik haftalık hatırlatma zamanlanmış işlerle (Faz 9)*
 - [ ] Onaylanan fikir tek tıkla plana ve görev panosuna eklenir — *durumlar (Yapılacak/Sonra/Bırakıldı) hazır; görev panosu Faz 8*
 - [x] Hiçbir fikir kaybolmaz, ama hiçbir fikir de odağı bozmaz
 
 #### 2.7 Prompt kütüphanesi
 - [x] Prompt kaydetme, etiketleme, değişkenli şablonlar (`{dosya}`, `{proje}`)
 - [x] Chat'te `/` ile hızlı çağırma
-- [ ] Personalar da bu kütüphaneyi kullanabilir — *Faz 6*
+- [x] Personalar da bu kütüphaneyi kullanabilir — *persona sohbetlerinde prompt seçici ve `/` menüsü aynen çalışır*
 - [x] En çok işe yarayan prompt'ları otomatik öne çıkarma — *kullanım sayısına göre*
 
 #### 2.8 Session devri
@@ -736,7 +736,7 @@ god-eye/
 - [x] **İlgili her şey:** dosyalar, session'lar, kararlar, açık sorunlar, fazlar, görevler — *dosyalar, session'lar, sorunlar ve bölümün dosyalarından bahseden kararlar/notlar; görevler Faz 8 panosuyla*
 - [x] **Puan halkası (0–100) + not (A–F):** neden bu puan, ne düzelirse kaç puan artar
 - [x] **Trend grafiği:** puan zaman içinde nasıl değişti
-- [x] **"Düzelt" butonları:** her sorunun yanında, tek tıkla ilgili personaya görev olarak gider — *şimdilik hazır prompt'la chat açar (gönderilmez); personalar Faz 6'da*
+- [x] **"Düzelt" butonları:** her sorunun yanında, tek tıkla ilgili personaya görev olarak gider — *hazır prompt'la o bölümün sahibi personayla sohbet açar (gönderilmez); sahibi sadece okuyorsa (Güvenlik, Mimar) normal sohbet açılır*
 - [x] Sayfa altında bağlama duyarlı prompt kutusu
 
 #### 5.3 Kanıta dayalı puanlama
@@ -788,52 +788,52 @@ god-eye/
 > Her persona, **ömrü boyunca o alanda çalışmış dünya çapında bir uzman** gibi tasarlanır: alanın tarihini baştan bugüne bilir, klasik kitapları ve güncel en iyi pratikleri tanır, kendi deneyiminden konuşur, gerektiğinde itiraz eder ve kaynak gösterir.
 
 **Persona profil standardı (her persona için):**
-- [ ] Biyografi: "30+ yıl deneyim, şu dönemleri yaşadı, şu tip sistemleri kurdu"
-- [ ] Alan tarihi zaman çizelgesi (ilk günden bugüne kilometre taşları)
-- [ ] Temel okuma listesi + kütüphane bağlantısı (Faz 7)
-- [ ] Düşünme tarzı ve kontrol listesi (review yaparken neye bakar)
-- [ ] Bilinen tuzaklar ve anti-pattern'ler
+- [x] Biyografi: "30+ yıl deneyim, şu dönemleri yaşadı, şu tip sistemleri kurdu"
+- [x] Alan tarihi zaman çizelgesi (ilk günden bugüne kilometre taşları) — *sadece belgelenmiş olaylar; yılı belirsiz olan yazılmadı*
+- [x] Temel okuma listesi + kütüphane bağlantısı (Faz 7) — *gerçek kitaplar, yazar ve yılıyla; kütüphane bağlantısı Faz 7'de*
+- [x] Düşünme tarzı ve kontrol listesi (review yaparken neye bakar)
+- [x] Bilinen tuzaklar ve anti-pattern'ler
 - [ ] Güncel kalma: kendi alanındaki yeni gelişmeleri otomatik takip eder (bkz. 7.3 Bilgi Motoru)
 
 **Gerçek uzman gibi davranma kuralları (tüm personalar için zorunlu):**
-- [ ] ⭐ **Tutarlılık:** her personanın bir **"Görüşlerim" defteri** vardır (iddia, gerekçe, kanıt, güven seviyesi, tarih). Cevap vermeden önce kendi geçmiş görüşlerine bakar. "Dün başka, bugün başka" olmaz
-- [ ] ⭐ **Fikir değiştirme kuralı:** sadece yeni kanıtla ve açıkça: *"Mart'ta X demiştim. Şu yeni veri yüzünden artık Y diyorum."*
-- [ ] ⭐ **Kanıtsız iddia yok:** her önemli iddiada kaynak bulunur (kitap, makale, resmi doküman, gerçek vaka, istatistik). Kaynak yoksa "bu benim tahminim, güvenim düşük" der
-- [ ] **İstatistik ve trend:** geçmiş veriler ve geleceğe dönük projeksiyonlar kaynağıyla birlikte verilir (anket, rapor, benimseme oranları). Tahmin ile kesin bilgi her zaman ayrılır, rakam uydurulmaz
-- [ ] **Vaka bilgisi:** benzer ürünlerin ve şirketlerin geçmişini bilir (ne denediler, ne işe yaradı, neden battılar) ve bunları karşılaştırır
-- [ ] **Önem sıralaması:** neyin kritik, neyin "olsa iyi olur", neyin hiç önemli olmadığını açıkça söyler. Her şeyi önemliymiş gibi göstermez
-- [ ] **Abartı yok:** sakin, net, kendinden emin ama mütevazı. Bilmediğini bilmediğini söyler
-- [ ] **Güven göstergesi:** her önerinin yanında 🟢 yüksek / 🟡 orta / 🔴 düşük güven
+- [x] ⭐ **Tutarlılık:** her personanın bir **"Görüşlerim" defteri** vardır (iddia, gerekçe, kanıt, güven seviyesi, tarih). Cevap vermeden önce kendi geçmiş görüşlerine bakar. "Dün başka, bugün başka" olmaz — *defter her sohbet ve toplantının başında prompt'a girer; persona yeni görüşünü cevabın sonuna `<notebook>` bloğuyla yazar, God Eye bloğu gizleyip kaydeder*
+- [x] ⭐ **Fikir değiştirme kuralı:** sadece yeni kanıtla ve açıkça: *"Mart'ta X demiştim. Şu yeni veri yüzünden artık Y diyorum."* — *eski görüşü değiştiren kayıt "yeni kanıt" alanı olmadan kabul edilmez, eski görüş kalır ve sohbette "kaydedilmedi" notu çıkar; değişiklikler defterde geçmişiyle görünür*
+- [x] ⭐ **Kanıtsız iddia yok:** her önemli iddiada kaynak bulunur (kitap, makale, resmi doküman, gerçek vaka, istatistik). Kaynak yoksa "bu benim tahminim, güvenim düşük" der — *bu ve aşağıdaki davranış kuralları her personanın prompt'unda; modelin her seferinde uyduğu otomatik olarak doğrulanamaz, gerçek toplantıda cevaplar kaynak verdi*
+- [x] **İstatistik ve trend:** geçmiş veriler ve geleceğe dönük projeksiyonlar kaynağıyla birlikte verilir (anket, rapor, benimseme oranları). Tahmin ile kesin bilgi her zaman ayrılır, rakam uydurulmaz
+- [x] **Vaka bilgisi:** benzer ürünlerin ve şirketlerin geçmişini bilir (ne denediler, ne işe yaradı, neden battılar) ve bunları karşılaştırır
+- [x] **Önem sıralaması:** neyin kritik, neyin "olsa iyi olur", neyin hiç önemli olmadığını açıkça söyler. Her şeyi önemliymiş gibi göstermez
+- [x] **Abartı yok:** sakin, net, kendinden emin ama mütevazı. Bilmediğini bilmediğini söyler
+- [x] **Güven göstergesi:** her önerinin yanında yüksek / orta / düşük güven — *emoji yerine yazıyla ve renkli rozetle*
 
 **Personalar:**
-- [ ] 🤖 **AI Engineer:** 1950'den bugüne yapay zekânın tamamı: Turing testi, Dartmouth (1956), perceptron, sembolik AI ve uzman sistemler, AI kışları, backpropagation, SVM, istatistiksel öğrenme, derin öğrenme (AlexNet), RNN/LSTM, Transformer (2017), BERT/GPT, RLHF, LLM'ler, agent'lar, RAG, tool use, MCP, eval'ler, fine-tuning, quantization, MLOps, prompt ve context engineering, AI güvenliği
-- [ ] 🧭 PM / Takım Lideri: işi böler, atar, takip eder
-- [ ] 🏛️ Mimar
-- [ ] 🎨 UI/UX Tasarımcı
-- [ ] 🖥️ Frontend Senior
-- [ ] ⚙️ Backend Senior
-- [ ] 🗄️ DB Uzmanı
-- [ ] 🚀 DevOps / SRE Senior: sunucular, SSH, CI/CD, Docker, Kubernetes, izleme, olay yönetimi
-- [ ] 📱 Mobil Senior: iOS, Android, React Native, Flutter
-- [ ] 📊 Data Engineer: veri hatları, ETL, analitik, veri ambarları
-- [ ] 🧪 QA: "yaptım" denen işi doğrular
-- [ ] 🔒 Security
-- [ ] ⚡ Performans
-- [ ] 😈 Şeytanın Avukatı: planın zayıf noktalarını bulur
-- [ ] 📝 Teknik Yazar: dokümantasyon ve özetler
+- [x] 🤖 **AI Engineer:** 1950'den bugüne yapay zekânın tamamı: Turing testi, Dartmouth (1956), perceptron, sembolik AI ve uzman sistemler, AI kışları, backpropagation, SVM, istatistiksel öğrenme, derin öğrenme (AlexNet), RNN/LSTM, Transformer (2017), BERT/GPT, RLHF, LLM'ler, agent'lar, RAG, tool use, MCP, eval'ler, fine-tuning, quantization, MLOps, prompt ve context engineering, AI güvenliği
+- [x] 🧭 PM / Takım Lideri: işi böler, atar, takip eder
+- [x] 🏛️ Mimar
+- [x] 🎨 UI/UX Tasarımcı
+- [x] 🖥️ Frontend Senior
+- [x] ⚙️ Backend Senior
+- [x] 🗄️ DB Uzmanı
+- [x] 🚀 DevOps / SRE Senior: sunucular, SSH, CI/CD, Docker, Kubernetes, izleme, olay yönetimi
+- [x] 📱 Mobil Senior: iOS, Android, React Native, Flutter
+- [x] 📊 Data Engineer: veri hatları, ETL, analitik, veri ambarları
+- [x] 🧪 QA: "yaptım" denen işi doğrular
+- [x] 🔒 Security
+- [x] ⚡ Performans
+- [x] 😈 Şeytanın Avukatı: planın zayıf noktalarını bulur
+- [x] 📝 Teknik Yazar: dokümantasyon ve özetler
 
 **Liderlik ve strateji personaları:**
-- [ ] 👔 **CEO Danışmanı / Executive Coach:** CEO'yu güçlendiren kişi. Strateji, önceliklendirme, odak, karar verme, "şu an neye hayır demelisin"
-- [ ] 🗂️ **Chief of Staff:** tüm projelerin genel durumu, takip edilmeyen işler, haftalık yönetici raporu
-- [ ] 📦 **Ürün Yöneticisi (Product Manager):** kullanıcı ihtiyacı, yol haritası, özellik önceliklendirme, metrikler
-- [ ] 📈 **Büyüme ve Pazarlama:** konumlandırma, lansman, SEO, içerik, fiyatlandırma
-- [ ] 💰 **Finans ve Maliyet:** sunucu, API ve AI maliyetleri, gelir modeli, birim ekonomisi
-- [ ] ⚖️ **Hukuk ve Uyumluluk:** KVKK, GDPR, lisanslar, kullanım şartları (bilgilendirme amaçlı, avukat yerine geçmez)
+- [x] 👔 **CEO Danışmanı / Executive Coach:** CEO'yu güçlendiren kişi. Strateji, önceliklendirme, odak, karar verme, "şu an neye hayır demelisin"
+- [x] 🗂️ **Chief of Staff:** tüm projelerin genel durumu, takip edilmeyen işler, haftalık yönetici raporu
+- [x] 📦 **Ürün Yöneticisi (Product Manager):** kullanıcı ihtiyacı, yol haritası, özellik önceliklendirme, metrikler
+- [x] 📈 **Büyüme ve Pazarlama:** konumlandırma, lansman, SEO, içerik, fiyatlandırma
+- [x] 💰 **Finans ve Maliyet:** sunucu, API ve AI maliyetleri, gelir modeli, birim ekonomisi
+- [x] ⚖️ **Hukuk ve Uyumluluk:** KVKK, GDPR, lisanslar, kullanım şartları (bilgilendirme amaçlı, avukat yerine geçmez)
 
 **Araştırma personaları:**
-- [ ] 🔬 **Araştırmacı:** bir konuyu derinlemesine araştırır, kaynakları karşılaştırır, raporlar
-- [ ] 🧪 **Ar-Ge Mühendisi:** yeni teknolojileri dener, prototip ve kıyaslama (benchmark) yapar, "bunu kullanmalı mıyız?" sorusuna kanıtla cevap verir
-- [ ] 🕵️ **Rakip Analisti:** benzer ürünleri takip eder, özellik ve fiyat karşılaştırması, "onlar bunu yaptı, biz ne yapmalıyız"
+- [x] 🔬 **Araştırmacı:** bir konuyu derinlemesine araştırır, kaynakları karşılaştırır, raporlar
+- [x] 🧪 **Ar-Ge Mühendisi:** yeni teknolojileri dener, prototip ve kıyaslama (benchmark) yapar, "bunu kullanmalı mıyız?" sorusuna kanıtla cevap verir
+- [x] 🕵️ **Rakip Analisti:** benzer ürünleri takip eder, özellik ve fiyat karşılaştırması, "onlar bunu yaptı, biz ne yapmalıyız"
 
 #### 6.1b 👵 Test Kullanıcıları Paneli (gerçek insanlar gibi test eden personalar)
 
@@ -870,20 +870,20 @@ god-eye/
 - [ ] Test kapsamı haritası: hangi kısım test edilmiş, hangisi edilmemiş
 
 #### 6.2 Altyapı
-- [ ] Persona tanımı: karakter, uzmanlık, kurallar, izinli araçlar, model, kütüphane, rubrik
-- [ ] Tanımlardan `.claude/agents/*.md` ve Codex eşdeğerinin otomatik üretilmesi ve senkronlanması
-- [ ] Persona düzenleme arayüzü + sıfırdan persona oluşturma sihirbazı
-- [ ] Her persona işe başlamadan hafızayı, ders defterini ve kendi kategori sayfasını okur; bitirince günceller (otomatik)
-- [ ] 🔒 İzin sınırları: Security sadece okur; DevOps onaysız deploy edemez; kimse onaysız `git push` yapamaz
+- [x] Persona tanımı: karakter, uzmanlık, kurallar, izinli araçlar, model, kütüphane, rubrik — *`packages/core/src/personas.ts`; araç izni (okur / düzenler / internet), model, adım sınırı ve insight bölümleri (rubrikler bölüm başına) var; kütüphane Faz 7*
+- [x] Tanımlardan `.claude/agents/*.md` ve Codex eşdeğerinin otomatik üretilmesi ve senkronlanması — *"Dışa aktar" ile: projeye `.claude/agents/<id>.md` (araçlar ve model ön bilgide) ya da Codex hesabına `prompts/<id>.md`; tekrar dışa aktarınca güncellenir. Kendiliğinden yazmaz; Codex dosyası bu bilgisayarda Codex olmadığı için Codex'te denenmedi*
+- [x] Persona düzenleme arayüzü + sıfırdan persona oluşturma sihirbazı — */personas: düzenleyici (yerleşikler de değiştirilip sıfırlanabilir), "bir cümleyle tarif et" → AI taslağı → kontrol et ve kaydet*
+- [x] Her persona işe başlamadan hafızayı, ders defterini ve kendi kategori sayfasını okur; bitirince günceller (otomatik) — *hafıza, kendi bölümlerinin puanı/açık kontrolleri/açıklaması ve kendi defteri prompt'a girer; bitince defter güncellenir, oturum özeti hafızaya her zamanki gibi akar. Ders defteri Faz 7*
+- [x] 🔒 İzin sınırları: Security sadece okur; DevOps onaysız deploy edemez; kimse onaysız `git push` yapamaz — *sadece okuyan personalar `--tools Read,Grep,Glob` ve MCP'siz çalışır; push/merge/deploy her modda ve "hep izin ver"e rağmen sorulur (testli)*
 
 #### 6.3 Etkileşim
-- [ ] Birebir sohbet: "DevOps, bunu nasıl deploy ederim?"
-- [ ] Kategori sayfasından "Bu bölümü review et"
-- [ ] **Takım toplantısı:** bir fikir tüm ilgili personalara sorulur, her biri kendi açısından görüş ve itiraz yazar, PM karar özeti çıkarır, karar hafızaya işlenir
-- [ ] **Şeytanın avukatı modu:** her planın altında "Zayıf noktaları bul" butonu
+- [x] Birebir sohbet: "DevOps, bunu nasıl deploy ederim?" — *mevcut sohbet + `--append-system-prompt` + araç izni + `--max-turns`; oturumlarda "Sen → Backend Senior personası" görünür, devam ettirilen oturum aynı personayla açılır. Gerçek Claude ile denendi*
+- [x] Kategori sayfasından "Bu bölümü review et" — *bölümün sahibi personayla sohbet, inceleme isteği taslakta*
+- [x] **Takım toplantısı:** bir fikir tüm ilgili personalara sorulur, her biri kendi açısından görüş ve itiraz yazar, PM karar özeti çıkarır, karar hafızaya işlenir — *sorudan ~5 persona önerilir (her zaman bir Şeytanın Avukatı), en fazla 5'i aynı anda araçsız çalışır, Takım Lideri anlaşılan/ayrılan/sonraki adımlarla kararı yazar, "Hafızaya işle" proje kararı yapar. Gerçek Claude ile 5 personalı toplantı uçtan uca denendi*
+- [x] **Şeytanın avukatı modu:** her planın altında "Zayıf noktaları bul" butonu — *toplantı kararının ve sohbette bitmiş uzun cevabın altında; kritik/önemli/küçük ve "nasıl denenir"*
 
 #### 6.4 Skor kartı
-- [ ] Persona başına: tamamlanan iş, yakalanan hata, kabul ve red oranı, token harcaması, ortalama süre
+- [x] Persona başına: tamamlanan iş, yakalanan hata, kabul ve red oranı, token harcaması, ortalama süre — *sohbet, toplantı, hafızaya işlenen karar, görüş, fikir değiştirme, token, ortalama süre. "Tamamlanan iş" ve "yakalanan hata" görev panosuyla (Faz 8)*
 
 **Bitti sayılır:** Bir fikri takım toplantısına sokuyorum, 5 uzmanın görüşü ve bir karar özeti geliyor.
 

@@ -34,6 +34,9 @@ import { HistoryImport } from "./insight/history";
 import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
 import { LanguagePacks } from "./langpacks";
+import { Meetings } from "./meetings";
+import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
+import { Personas } from "./personas";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
@@ -110,6 +113,28 @@ const crossCheck = new CrossCheck(sqlite, bus, () => readSettings(db), join(conf
 sync.onTeammateDecision = (projectId, itemId) => crossCheck.add(projectId, itemId);
 const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
 insight.watch();
+const personas = new Personas(
+  sqlite,
+  store,
+  bus,
+  stops,
+  () => readSettings(db),
+  join(config.dataDir, "runner"),
+  (id, cats) => insight.categorySummary(id, cats),
+);
+const meetings = new Meetings(
+  sqlite,
+  personas,
+  store,
+  bus,
+  stops,
+  () => readSettings(db),
+  join(config.dataDir, "runner"),
+);
+meetings.recover();
+const personaChat = connectPersonaChats(chats, personas, (sessionId, personaId) =>
+  personas.linkSession(sessionId, personaId),
+);
 const enhancer = new Enhancer(
   sqlite,
   store,
@@ -131,7 +156,22 @@ const app = createApp({
     registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers, accounts });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);
-    registerChatRoutes(hono, { chats, store, accounts, worktreeDir: join(config.dataDir, "worktrees") });
+    registerChatRoutes(hono, {
+      chats,
+      store,
+      accounts,
+      worktreeDir: join(config.dataDir, "worktrees"),
+      persona: personaChat,
+    });
+    registerPersonaRoutes(hono, {
+      personas,
+      meetings,
+      accounts,
+      ideas: () => ({
+        list: assist.listIdeas(),
+        projects: new Map(store.listProjects().map((p) => [p.id, p.name])),
+      }),
+    });
     registerFileRoutes(hono, { files, store, db: sqlite });
     registerAssistRoutes(hono, assist);
     registerTeamRoutes(hono, sync, store, {

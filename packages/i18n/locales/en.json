@@ -14,7 +14,8 @@
     "files": "Files",
     "ideas": "Ideas",
     "prompts": "Prompts",
-    "servers": "Servers"
+    "servers": "Servers",
+    "personas": "Personas"
   },
   "workspace": {
     "local": "My computer",
@@ -493,7 +494,16 @@
     "kind_research": "Research",
     "kind_other": "Other",
     "project": "Project",
-    "shortcut": "Ctrl+I"
+    "shortcut": "Ctrl+I",
+    "review": "Review with the CEO advisor",
+    "reviewing": "Thinking…",
+    "reviewTip": "Once a week: which ideas to do now, which later, which to drop",
+    "reviewTitle": "CEO advisor's review",
+    "verdict_now": "Do now",
+    "verdict_later": "Later",
+    "verdict_drop": "Drop",
+    "reviewApply": "Apply",
+    "reviewClose": "Close"
   },
   "prompts": {
     "title": "Prompts",
@@ -555,7 +565,12 @@
     "output": "Output",
     "remove": "Remove server",
     "lastCheck": "Checked {{when}}",
-    "hostKey": "First connection to this server: open the SSH terminal once and accept its host key, then check again."
+    "hostKey": "First connection to this server: open the SSH terminal once and accept its host key, then check again.",
+    "askDevOps": "Ask DevOps",
+    "askNoHealth": "no health check yet",
+    "askHealth": "disk {{disk}}%, memory {{mem}}%, failed services: {{failed}}",
+    "askDown": "not reachable ({{error}})",
+    "askDraft": "Look at the server {{name}} ({{target}}, tag: {{tag}}). Last check: {{state}}. What do you see, what is risky, and what should I do first? Only read; ask me before any command that changes something."
   },
   "approvals": {
     "title": "Waiting for your approval",
@@ -606,7 +621,11 @@
     "suggestTip_haiku": "A short question: the small model answers quickly and saves your limit.",
     "guard_ship": "This would send your work out (push, merge, publish or deploy). AI never does that on its own, so it asks every time.",
     "guard_external": "This chat read content from the internet. Text there could try to steer the AI, so risky steps are asked every time.",
-    "notice_external": "This chat read content from the internet. That content is treated as information, not instructions: the chat is back to asking before each step, and \"always allow\" no longer covers risky tools."
+    "notice_external": "This chat read content from the internet. That content is treated as information, not instructions: the chat is back to asking before each step, and \"always allow\" no longer covers risky tools.",
+    "notice_notebook_one": "Wrote 1 opinion in its notebook",
+    "notice_notebook_other": "Wrote {{count}} opinions in its notebook",
+    "notice_notebookRejected_one": "1 change of mind was not saved: it had no new evidence",
+    "notice_notebookRejected_other": "{{count}} changes of mind were not saved: they had no new evidence"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1800,5 +1819,243 @@
     "discardConfirm": "Stop this chat and delete its copy and branch? Changes that weren't merged are lost.",
     "sandboxOn": "Shell commands also run in a sandbox (limited files and network).",
     "sandboxOff": "For a full sandbox (limited files and network) install bubblewrap and socat."
+  },
+  "persona": {
+    "ai-engineer": {
+      "name": "AI Engineer",
+      "role": "Builds with AI models: prompts, agents, evals"
+    },
+    "pm-lead": {
+      "name": "Team Lead",
+      "role": "Splits the work, assigns it, follows it to done"
+    },
+    "architect": {
+      "name": "Architect",
+      "role": "How the parts fit together"
+    },
+    "uiux": {
+      "name": "UI/UX Designer",
+      "role": "Screens ordinary people understand"
+    },
+    "frontend": {
+      "name": "Frontend Senior",
+      "role": "What runs in the browser"
+    },
+    "backend": {
+      "name": "Backend Senior",
+      "role": "Servers, APIs and business rules"
+    },
+    "database": {
+      "name": "Database Expert",
+      "role": "Data that stays correct and fast"
+    },
+    "devops": {
+      "name": "DevOps / SRE Senior",
+      "role": "Servers, deploys, backups and incidents"
+    },
+    "mobile": {
+      "name": "Mobile Senior",
+      "role": "iOS, Android, React Native, Flutter"
+    },
+    "data-engineer": {
+      "name": "Data Engineer",
+      "role": "Data pipelines and analytics"
+    },
+    "qa": {
+      "name": "QA",
+      "role": "Checks that \"done\" really works"
+    },
+    "security": {
+      "name": "Security",
+      "role": "Finds what an attacker would; only reads"
+    },
+    "performance": {
+      "name": "Performance",
+      "role": "Measures first, then makes it fast"
+    },
+    "devils-advocate": {
+      "name": "Devil's Advocate",
+      "role": "Finds the weak points of a plan"
+    },
+    "tech-writer": {
+      "name": "Technical Writer",
+      "role": "Docs and summaries people can follow"
+    },
+    "ceo-coach": {
+      "name": "CEO Advisor",
+      "role": "Strategy, focus and what to say no to"
+    },
+    "chief-of-staff": {
+      "name": "Chief of Staff",
+      "role": "Where every project stands, weekly"
+    },
+    "product-manager": {
+      "name": "Product Manager",
+      "role": "User needs, roadmap, metrics"
+    },
+    "growth": {
+      "name": "Growth and Marketing",
+      "role": "Positioning, launch, SEO, pricing"
+    },
+    "finance": {
+      "name": "Finance and Cost",
+      "role": "Server, AI and running costs"
+    },
+    "legal": {
+      "name": "Legal and Compliance",
+      "role": "KVKK, GDPR, licenses (information, not legal advice)"
+    },
+    "researcher": {
+      "name": "Researcher",
+      "role": "Digs deep, compares sources, reports"
+    },
+    "rnd-engineer": {
+      "name": "R&D Engineer",
+      "role": "Tries new tech, answers with evidence"
+    },
+    "competitor-analyst": {
+      "name": "Competitor Analyst",
+      "role": "What similar products do"
+    },
+    "title": "Persona team",
+    "intro": "Experts who have worked in their field all their life. Each keeps a notebook of its opinions and only changes its mind with new evidence. Talk to one, or ask several at once in a team meeting.",
+    "loading": "Loading…",
+    "you": "You",
+    "ranAs": "{{who}} → {{name}} persona",
+    "tools_read": "Only reads",
+    "tools_edit": "Can edit files",
+    "web": "Reads the web",
+    "edited": "Changed",
+    "own": "Your own",
+    "new": "New persona",
+    "export": "Export",
+    "tab_team": "Team",
+    "tab_meetings": "Meetings",
+    "tab_scores": "Scorecard",
+    "group_engineering": "Engineering",
+    "group_leadership": "Leadership and strategy",
+    "group_research": "Research",
+    "group_testing": "Testing",
+    "score_sessions": "Chats",
+    "score_meetings": "Meetings",
+    "score_accepted": "Decisions kept",
+    "score_opinions": "Opinions",
+    "score_changed": "Changed mind",
+    "score_tokens": "Tokens",
+    "score_avg": "Avg. time",
+    "scoreNote": "Decisions kept: meetings it joined whose decision went into project memory. Bugs caught and acceptance rates come once the task board exists (Faz 8).",
+    "exportBody": "Writes each persona as a file your AI tools read on their own: Claude Code sub-agents (.claude/agents) in a project, or Codex custom prompts. Files are overwritten on the next export.",
+    "exportCodex": "Writes to the prompts folder of your Codex account; run one with /<persona id> in Codex.",
+    "exportDo": "Write files",
+    "exported_one": "1 file written",
+    "exported_other": "{{count}} files written",
+    "pickProject": "Pick a project",
+    "close": "Close",
+    "generalOnly": "General opinions",
+    "showHistory": "Show earlier opinions",
+    "notebookEmpty": "Nothing written down yet. Opinions appear here after chats and meetings.",
+    "evidence": "Evidence",
+    "noEvidence": "none, an estimate",
+    "general": "general",
+    "earlier": "an earlier opinion",
+    "changedBecause": "Changed from \"{{old}}\" because: {{why}}",
+    "replaced": "Replaced by a newer opinion",
+    "chat": "Chat",
+    "chatWith": "Chat with {{name}}",
+    "chatPick": "In which project? The persona reads that project's memory and its own parts before it starts.",
+    "f_name": "Name",
+    "f_role": "Role",
+    "f_id": "Id",
+    "f_idHint": "a-z, 0-9 and dashes; used as the file name when exported",
+    "f_model": "Model",
+    "f_tools": "Tools",
+    "f_maxTurns": "Max. steps per message",
+    "f_group": "Group",
+    "f_web": "May search and read the web (the chat then asks before every risky step)",
+    "f_categories": "Parts of the project it owns",
+    "f_icon": "Icon",
+    "englishNote": "The profile is written in English because the models follow it best. The persona always answers in your language.",
+    "s_bio": "Background",
+    "s_style": "How it thinks and talks",
+    "s_settings": "Settings",
+    "s_timeline": "History of the field",
+    "timelineHint": "One per line: year — event. Only real, well-documented milestones.",
+    "s_reading": "Reading list",
+    "readingHint": "One per line: title — author (year)",
+    "readingLibrary": "Linked to the library in Faz 7.",
+    "s_checklist": "What it checks",
+    "s_pitfalls": "Traps it warns about",
+    "s_rules": "Own rules",
+    "rulesHint": "Extra rules for this persona only, one per line.",
+    "rulesAll": "Every persona also follows the expert rules: stay consistent with the notebook, change its mind only with new evidence, name sources, never invent numbers, rank by importance, give a confidence level.",
+    "noOwnRules": "No extra rules.",
+    "lineHint": "One per line",
+    "showPrompt": "Show what it reads before it starts",
+    "s_notebook": "Opinions notebook",
+    "notebookHint": "Claim, reasoning, evidence, confidence and date. A change needs new evidence; without it the old opinion stays.",
+    "modelIs": "Model: {{model}}",
+    "turns": "Up to {{n}} steps",
+    "safetyNote": "No persona pushes, merges, publishes or deploys on its own: those always wait for you.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "reset": "Reset",
+    "delete": "Delete",
+    "wizardTitle": "Describe the persona in a sentence",
+    "wizardBody": "The AI drafts the whole profile: background, history of the field, reading list, checklist and traps. You check and change it before saving.",
+    "wizardHint": "For example: a payments expert who has run checkout for online shops in Europe for 15 years",
+    "draft": "Draft it",
+    "drafting": "Drafting…",
+    "blank": "Start empty",
+    "draftCheck": "Check the draft, especially the years and books, then save.",
+    "confidence_high": "Confidence: high",
+    "confidence_medium": "Confidence: medium",
+    "confidence_low": "Confidence: low",
+    "picker": "Persona",
+    "none": "No persona",
+    "review": "Review this part",
+    "reviewTip": "{{name}} looks at this part and reports what matters most",
+    "reviewDraft": "Review the {{section}} part of this project. Start with the open checks, then use your own checklist. List findings by importance with the file and line, say what to fix first, and give a confidence for each."
+  },
+  "meeting": {
+    "title": "Team meeting",
+    "question": "What should the team weigh in on?",
+    "questionHint": "For example: should we add sign-in with Google, and what would it change?",
+    "project": "Project",
+    "noProject": "No project (general)",
+    "team": "Who joins",
+    "teamHint": "suggested from your question; change it freely",
+    "remove": "Remove {{name}}",
+    "add": "Add",
+    "leadNote": "The team lead reads every answer and writes the decision.",
+    "start": "Start the meeting",
+    "starting": "Starting…",
+    "none": "No meetings yet.",
+    "status_running": "Listening",
+    "status_deciding": "Writing the decision",
+    "status_done": "Decided",
+    "status_failed": "Did not finish",
+    "view_running": "Thinking",
+    "view_waiting": "Waiting",
+    "viewFailed": "No answer",
+    "objections": "Objections",
+    "risks": "Risks",
+    "recommends": "Recommends",
+    "deciding": "The team lead is weighing the answers…",
+    "decision": "Decision",
+    "agreements": "Agreed",
+    "disagreements": "Disagreed",
+    "actions": "Next steps",
+    "openQuestions": "Still open",
+    "commit": "Save to memory",
+    "saved": "In project memory",
+    "weakPoints": "Find the weak points",
+    "looking": "Looking…",
+    "weakTitle": "Weak points",
+    "noWeakPoints": "No serious weak points found.",
+    "howToTest": "Test it",
+    "severity_critical": "Critical",
+    "severity_major": "Important",
+    "severity_minor": "Minor"
   }
 }

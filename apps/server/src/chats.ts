@@ -47,6 +47,16 @@ export interface ChatStart {
   accountId?: string;
   env?: Record<string, string>;
   worktree?: Worktree;
+  /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
+  persona?: {
+    id: string;
+    name?: string;
+    tools: "read" | "edit";
+    systemPrompt: string;
+    /** --tools list; undefined keeps Claude Code's normal set. */
+    toolList?: string[];
+    maxTurns: number;
+  };
 }
 
 function clip(text: string, max: number): string {
@@ -70,6 +80,13 @@ export class Chats {
   private chats = new Map<string, Chat>();
   /** Called whenever Claude reports limit usage (wired to the Limits page). */
   onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void = () => undefined;
+  /** A chat learned its saved session id (links a persona chat to its session). */
+  onSession: (info: ChatInfo) => void = () => undefined;
+  /** A persona chat finished a turn: its notebook entries are recorded; returns what was kept. */
+  onPersonaTurn: (info: ChatInfo, text: string) => { saved: number; rejected: number } = () => ({
+    saved: 0,
+    rejected: 0,
+  });
 
   constructor(
     private readonly bus: Bus,
@@ -118,6 +135,16 @@ export class Chats {
       }),
       ...(options.model ? ["--model", options.model] : []),
       ...(options.resume ? ["--resume", options.resume] : []),
+      ...(options.persona
+        ? [
+            "--append-system-prompt",
+            options.persona.systemPrompt,
+            "--max-turns",
+            String(options.persona.maxTurns),
+            // A read-only persona gets only the reading tools and no MCP servers.
+            ...(options.persona.toolList ? ["--tools", options.persona.toolList.join(","), "--strict-mcp-config"] : []),
+          ]
+        : []),
     ];
     const proc = Bun.spawn(args, {
       cwd: options.cwd,
@@ -140,6 +167,9 @@ export class Chats {
         accountId: options.accountId,
         worktree: options.worktree,
         sandboxed,
+        ...(options.persona
+          ? { persona: { id: options.persona.id, name: options.persona.name, tools: options.persona.tools } }
+          : {}),
       },
       events: [],
       index: new Map(),
@@ -324,6 +354,7 @@ export class Chats {
         if (msg.subtype === "init") {
           chat.info.sessionId = String(msg.session_id ?? chat.info.sessionId ?? "");
           if (typeof msg.model === "string") chat.info.model = msg.model;
+          if (chat.info.sessionId) this.onSession({ ...chat.info });
           this.emitInfo(chat);
           this.changed();
         }
@@ -355,11 +386,19 @@ export class Chats {
         const blocks = Array.isArray(message.content) ? (message.content as Json[]) : [];
         blocks.forEach((block, i) => {
           if (block.type === "text" && typeof block.text === "string") {
-            const id =
+            const full = block.text;
+            // Claude Code may send one assistant message per block, so `i` is not the stream index
+            // (a thinking block before the text shifts it). Match the streamed block by its text.
+            const streamed =
               chat.streaming?.messageId === messageId
-                ? (chat.streaming.blocks.get(i) ?? `t-${messageId}-${i}`)
-                : `t-${messageId}-${i}`;
-            this.upsert(chat, { kind: "text", id, at: now, text: block.text });
+                ? [...chat.streaming.blocks.values()].find((sid) => {
+                    const at = chat.index.get(sid);
+                    const prev = at !== undefined ? chat.events[at] : undefined;
+                    return prev?.kind === "text" && !!prev.text && full.startsWith(prev.text.slice(0, 200));
+                  })
+                : undefined;
+            const id = streamed ?? `t-${messageId}-${i}`;
+            this.upsert(chat, { kind: "text", id, at: now, text: full });
           } else if (block.type === "tool_use") {
             if (!chat.tainted && readsOutside(String(block.name ?? ""))) this.taint(chat, now);
             this.upsert(chat, {
@@ -418,6 +457,7 @@ export class Chats {
       }
       case "result": {
         chat.streaming = undefined;
+        if (chat.info.persona) this.personaTurn(chat, now);
         this.upsert(chat, {
           kind: "result",
           id: `r-${now}`,
@@ -432,6 +472,36 @@ export class Chats {
         return;
       }
     }
+  }
+
+  /** The persona's words since the last user message go to its notebook; say what was kept. */
+  private personaTurn(chat: Chat, now: number): void {
+    let start = chat.events.length;
+    while (start > 0 && chat.events[start - 1]?.kind !== "user") start--;
+    const text = chat.events
+      .slice(start)
+      .map((e) => (e.kind === "text" ? e.text : ""))
+      .join("\n");
+    if (!text.includes("<notebook>")) return;
+    const { saved, rejected } = this.onPersonaTurn({ ...chat.info }, text);
+    if (saved)
+      this.upsert(chat, {
+        kind: "notice",
+        id: `nb-${now}`,
+        at: now,
+        text: String(saved),
+        tone: "neutral",
+        code: "notebook",
+      });
+    if (rejected)
+      this.upsert(chat, {
+        kind: "notice",
+        id: `nbr-${now}`,
+        at: now,
+        text: String(rejected),
+        tone: "neutral",
+        code: "notebookRejected",
+      });
   }
 
   /** Live typing: text deltas grow one text event per content block. */

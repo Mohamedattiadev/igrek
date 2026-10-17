@@ -26,6 +26,7 @@ import type {
   HttpResponse,
   HubAlertInfo,
   Idea,
+  IdeaReview,
   IdeaStatus,
   ImportEstimate,
   ImportStatus,
@@ -35,8 +36,12 @@ import type {
   InsightScan,
   KeyRequest,
   LimitsOverview,
+  Meeting,
   MemorySection,
   MonthlyReport,
+  Persona,
+  PersonaOpinion,
+  PersonaScore,
   Presence,
   ProjectDetail,
   ProjectListItem,
@@ -68,6 +73,7 @@ import type {
   ToolPlan,
   ToolResult,
   TrashItem,
+  WeakPoint,
 } from "@godeye/core";
 import type { LanguageOption } from "@godeye/i18n";
 import i18n from "./i18n";
@@ -196,6 +202,39 @@ export const api = {
   }) => request<QuickAnswer>("/api/quick-ask", { method: "POST", body: JSON.stringify(body) }),
   terminalInput: (id: string, text: string, paste = false) =>
     request<{ ok: boolean }>(`/api/terminals/${id}/input`, { method: "POST", body: JSON.stringify({ text, paste }) }),
+  personas: () => request<Persona[]>("/api/personas"),
+  personaScores: () => request<PersonaScore[]>("/api/personas/scores"),
+  createPersona: (persona: Partial<Persona>) =>
+    request<Persona>("/api/personas", { method: "POST", body: JSON.stringify(persona) }),
+  updatePersona: (id: string, persona: Partial<Persona>) =>
+    request<Persona>(`/api/personas/${id}`, { method: "PUT", body: JSON.stringify(persona) }),
+  /** Own persona: deleted. Built-in: reset to how it shipped. */
+  removePersona: (id: string) => request<{ ok: boolean }>(`/api/personas/${id}`, { method: "DELETE" }),
+  draftPersona: (description: string) =>
+    request<Persona>("/api/personas/draft", { method: "POST", body: JSON.stringify({ description }) }),
+  personaPrompt: (id: string, projectId?: string) =>
+    request<{ prompt: string }>(`/api/personas/${id}/prompt${projectId ? `?projectId=${projectId}` : ""}`),
+  personaOpinions: (id: string, projectId?: string, all = false) =>
+    request<PersonaOpinion[]>(
+      `/api/personas/${id}/opinions?${new URLSearchParams({ ...(projectId ? { projectId } : {}), ...(all ? { all: "1" } : {}) })}`,
+    ),
+  deleteOpinion: (id: string) => request<{ ok: boolean }>(`/api/persona-opinions/${id}`, { method: "DELETE" }),
+  exportPersonas: (body: { target: "claude" | "codex"; projectId?: string; ids?: string[] }) =>
+    request<{ files: string[] }>("/api/personas/export", { method: "POST", body: JSON.stringify(body) }),
+  meetings: (projectId?: string) => request<Meeting[]>(`/api/meetings${projectId ? `?projectId=${projectId}` : ""}`),
+  meeting: (id: string) => request<Meeting>(`/api/meetings/${id}`),
+  suggestTeam: (question: string) =>
+    request<{ personaIds: string[] }>("/api/meetings/suggest", { method: "POST", body: JSON.stringify({ question }) }),
+  startMeeting: (body: { question: string; projectId?: string; personaIds?: string[] }) =>
+    request<Meeting>("/api/meetings", { method: "POST", body: JSON.stringify(body) }),
+  commitMeeting: (id: string) => request<Meeting>(`/api/meetings/${id}/commit`, { method: "POST" }),
+  meetingProject: (id: string, projectId: string) =>
+    request<Meeting>(`/api/meetings/${id}/project`, { method: "POST", body: JSON.stringify({ projectId }) }),
+  meetingWeakPoints: (id: string) => request<Meeting>(`/api/meetings/${id}/weak-points`, { method: "POST" }),
+  deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
+  weakPoints: (text: string, projectId?: string) =>
+    request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  reviewIdeas: () => request<IdeaReview>("/api/ideas/review", { method: "POST" }),
   ideas: () => request<Idea[]>("/api/ideas"),
   addIdea: (text: string, projectId?: string) =>
     request<Idea>("/api/ideas", { method: "POST", body: JSON.stringify({ text, projectId }) }),
@@ -241,6 +280,7 @@ export const api = {
     resume?: string;
     model?: string;
     mode?: ChatMode;
+    personaId?: string;
     accountId?: string;
     isolate?: boolean;
   }) => request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),

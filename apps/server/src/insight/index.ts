@@ -224,6 +224,33 @@ export class Insight {
     };
   }
 
+  /** A persona's parts of the project in a few lines: score, open findings, the plain explanation. */
+  categorySummary(projectId: string, categories: Category[]): string | undefined {
+    const latest = this.latest(projectId);
+    if (!("categories" in latest)) return undefined;
+    const out: string[] = [];
+    for (const category of categories) {
+      const score = latest.categories.find((c) => c.category === category);
+      if (!score) continue;
+      const open = score.findings
+        .filter((f) => f.status !== "pass")
+        .sort((a, b) => b.gain - a.gain)
+        .slice(0, 6)
+        .map(
+          (f) =>
+            `${f.status} ${f.id}${f.metric ? ` (${f.metric})` : ""}${f.evidence[0] ? ` at ${f.evidence[0].path}${f.evidence[0].line ? `:${f.evidence[0].line}` : ""}` : ""}`,
+        );
+      const text = this.db
+        .query("SELECT texts FROM category_texts WHERE project_id = ? AND category = ?")
+        .get(projectId, category) as { texts: string } | undefined;
+      const how = text ? (JSON.parse(text.texts) as Record<string, CategoryExplanation>).en?.how : undefined;
+      out.push(
+        `- ${category}: ${score.score}/100 (${score.grade}), ${score.fileCount} files${open.length ? `; open checks: ${open.join("; ")}` : ""}${how ? `\n  How it works: ${how}` : ""}`,
+      );
+    }
+    return out.length ? out.join("\n") : undefined;
+  }
+
   private filesHash(score: CategoryScore): string {
     return createHash("sha1").update(score.files.join("\n")).update(String(score.fileCount)).digest("hex").slice(0, 16);
   }

@@ -11,6 +11,7 @@ import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { deferDelete, usePendingDeletes } from "../lib/undo";
+import { PersonaChatDialog } from "./PersonaDetail";
 
 const TAGS: ServerTag[] = ["prod", "staging", "test", "other"];
 
@@ -334,6 +335,38 @@ function ServerDeploys({ serverId }: { serverId: string }) {
   );
 }
 
+/** "Ask DevOps" (plan.md 2.5): a chat with the DevOps persona about this server, its state in the draft. */
+function AskDevOps({ server }: { server: ServerInfo }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const [projects, setProjects] = useState<string[]>([]);
+  useEffect(() => {
+    api
+      .serverDeploys(server.id)
+      .then((d) => setProjects([...new Set(d.map((x) => x.projectId))]))
+      .catch(() => undefined);
+  }, [server.id]);
+  const h = server.health;
+  const state = !h
+    ? t("servers.askNoHealth")
+    : h.ok
+      ? t("servers.askHealth", {
+          disk: h.diskPercent ?? "?",
+          mem: h.memPercent ?? "?",
+          failed: h.failedUnits?.join(", ") || "-",
+        })
+      : t("servers.askDown", { error: h.error ?? "" });
+  const draft = t("servers.askDraft", { name: server.name, target: server.target, tag: server.tag, state });
+  return (
+    <>
+      <Button size="sm" variant="ghost" icon={Rocket} onClick={() => setOpen(true)}>
+        {t("servers.askDevOps")}
+      </Button>
+      <PersonaChatDialog personaId="devops" open={open} onClose={() => setOpen(false)} draft={draft} first={projects} />
+    </>
+  );
+}
+
 export function ServerPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -366,6 +399,7 @@ export function ServerPage() {
         <Badge tone={server.tag === "prod" ? "danger" : "neutral"}>{t(`servers.tag_${server.tag}`)}</Badge>
         <span className="font-mono text-[11px] text-fg-subtle">{server.target}</span>
         <div className="flex-1" />
+        <AskDevOps server={server} />
         <Button
           size="sm"
           variant="ghost"

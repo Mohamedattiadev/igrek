@@ -11,8 +11,11 @@ import { FilesPage } from "./pages/Files";
 import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
 import { LimitsPage } from "./pages/Limits";
+import { MeetingPage } from "./pages/Meeting";
 import { Onboarding } from "./pages/Onboarding";
 import { PersonPage } from "./pages/Person";
+import { NewPersonaPage, PersonaPage } from "./pages/PersonaDetail";
+import { PersonasPage } from "./pages/Personas";
 import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
 import { PromptsPage } from "./pages/Prompts";
@@ -43,6 +46,10 @@ const router = createBrowserRouter([
       { path: "t/:termId", element: <TerminalPage /> },
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <LimitsPage /> },
+      { path: "personas", element: <PersonasPage /> },
+      { path: "personas/new", element: <NewPersonaPage /> },
+      { path: "personas/:personaId", element: <PersonaPage /> },
+      { path: "meetings/:meetingId", element: <MeetingPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

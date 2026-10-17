@@ -11,6 +11,7 @@ import {
   Settings,
   SquareTerminal,
   Users,
+  UsersRound,
 } from "lucide-react";
 
 export interface NavItem {
@@ -31,6 +32,7 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/ideas", label: "nav.ideas", icon: Lightbulb },
   { to: "/prompts", label: "nav.prompts", icon: BookMarked },
   { to: "/limits", label: "nav.limits", icon: Gauge },
+  { to: "/personas", label: "nav.personas", icon: UsersRound },
   { to: "/team", label: "nav.team", icon: Users },
   { to: "/design", label: "nav.design", icon: Palette, bottom: true, proOnly: true },
   { to: "/settings", label: "nav.settings", icon: Settings, bottom: true },

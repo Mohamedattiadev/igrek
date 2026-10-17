@@ -1,7 +1,16 @@
-import { type ChatEvent, type ChatMode, findSecrets, isWeakPrompt, suggestModel } from "@godeye/core";
+import {
+  type ChatEvent,
+  type ChatMode,
+  extractNotebook,
+  findSecrets,
+  isWeakPrompt,
+  suggestModel,
+  type WeakPoint,
+} from "@godeye/core";
 import DOMPurify from "dompurify";
 import {
   ArrowLeft,
+  BookOpen,
   Bot,
   Check,
   ChevronDown,
@@ -21,6 +30,7 @@ import {
   ShieldQuestion,
   Square,
   SquareTerminal,
+  Swords,
   Terminal,
   Wrench,
   X,
@@ -41,7 +51,9 @@ import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
 import { cn } from "../lib/cn";
 import { modelName } from "../lib/format";
+import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
+import { WeakPointList } from "./Meeting";
 
 type Json = Record<string, unknown>;
 
@@ -264,6 +276,44 @@ function readImage(file: File): Promise<{ mediaType: string; data: string; name:
   });
 }
 
+/** "Find the weak points" under a plan (plan.md 6.3): the devil's advocate reads it. */
+function WeakPointsButton({ text, projectId }: { text: string; projectId: string }) {
+  const { t } = useTranslation();
+  const [points, setPoints] = useState<WeakPoint[]>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  if (points)
+    return (
+      <div className="ms-9">
+        <WeakPointList points={points} />
+      </div>
+    );
+  return (
+    <div className="ms-9">
+      <Button
+        size="sm"
+        variant="ghost"
+        icon={Swords}
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          setError(undefined);
+          try {
+            setPoints((await api.weakPoints(text, projectId)).points);
+          } catch (err) {
+            setError((err as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? t("meeting.looking") : t("meeting.weakPoints")}
+      </Button>
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
 /** Chat with Claude in a project (plan.md 2.2): live text, tool cards, approvals as buttons. */
 export function ChatPage() {
   const { t } = useTranslation();
@@ -362,6 +412,25 @@ export function ChatPage() {
     setImages([...images, ...(await Promise.all(files.map(readImage)))]);
   };
 
+  const { personas } = usePersonas();
+  const personaLabel = usePersonaLabel();
+  const persona = info?.persona ? personas.find((p) => p.id === info.persona?.id) : undefined;
+  const personaName = info?.persona ? info.persona.name || personaLabel(persona, info.persona.id).name : undefined;
+  /** A fresh chat can switch persona: it restarts as that persona, keeping the typed text. */
+  const switchPersona = async (personaId: string) => {
+    if (!info) return;
+    const next = await api.startChat({ projectId: info.projectId, personaId: personaId || undefined, mode: info.mode });
+    void api.closeChat(info.id).catch(() => undefined);
+    navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
+  };
+  // The last answer of a finished turn can be checked for weak points.
+  const lastText = [...chat.events].reverse().find((e) => e.kind === "text");
+  const lastIsAnswer =
+    info?.status === "idle" &&
+    chat.events
+      .slice(chat.events.findIndex((e) => e.id === lastText?.id) + 1)
+      .every((e) => e.kind === "result" || e.kind === "notice");
+
   const working = info?.status === "working";
   const status = info?.status ?? "idle";
   const tone = status === "working" ? "success" : status === "waiting" ? "warning" : "neutral";
@@ -377,6 +446,16 @@ export function ChatPage() {
           <ArrowLeft size={15} className="rtl:rotate-180" />
         </Link>
         <StatusDot tone={tone} pulse={status === "working" || status === "waiting"} />
+        {info?.persona && (
+          <Link
+            to={`/personas/${info.persona.id}`}
+            className="flex shrink-0 items-center gap-1.5 rounded-full bg-bg-muted py-0.5 ps-0.5 pe-2 text-[12px] hover:bg-bg-hover"
+            data-tip={info.persona.tools === "read" ? t("persona.tools_read") : undefined}
+          >
+            <PersonaIcon persona={persona} size={12} className="size-5 rounded-full" />
+            {personaName}
+          </Link>
+        )}
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{info?.title ?? "…"}</h1>
         <span className="text-[11px] text-fg-subtle">{t(`chat.${status}`)}</span>
         <select
@@ -439,17 +518,30 @@ export function ChatPage() {
                     </div>
                   </div>
                 );
-              case "text":
+              case "text": {
+                // A persona's notebook block is for God Eye, not for reading.
+                const shown = info?.persona ? extractNotebook(event.text).text : event.text;
+                const isLast = event.id === lastText?.id && lastIsAnswer;
                 return (
-                  <div key={event.id} className="flex gap-3">
-                    <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-bg-muted text-fg-muted">
-                      <Bot size={13} />
+                  <div key={event.id} className="space-y-2">
+                    <div className="flex gap-3">
+                      {persona ? (
+                        <PersonaIcon persona={persona} size={13} />
+                      ) : (
+                        <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-bg-muted text-fg-muted">
+                          <Bot size={13} />
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1 text-[13.5px]">
+                        <Markdown text={shown} />
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1 text-[13.5px]">
-                      <Markdown text={event.text} />
-                    </div>
+                    {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
+                      <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
+                    )}
                   </div>
                 );
+              }
               case "tool":
                 return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
               case "permission":
@@ -477,6 +569,13 @@ export function ChatPage() {
                   </div>
                 );
               case "notice":
+                if (event.code === "notebook" || event.code === "notebookRejected")
+                  return (
+                    <p key={event.id} className="ms-9 flex items-center gap-1.5 text-[11px] text-fg-subtle">
+                      <BookOpen size={12} aria-hidden="true" />
+                      {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
+                    </p>
+                  );
                 if (event.code)
                   return (
                     <p
@@ -634,6 +733,21 @@ export function ChatPage() {
                 }}
               />
               <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
+              {info && !info.sessionId && chat.events.length === 0 && personas.length > 0 && (
+                <select
+                  value={info.persona?.id ?? ""}
+                  onChange={(e) => void switchPersona(e.target.value)}
+                  aria-label={t("persona.picker")}
+                  className="h-7 max-w-40 rounded-md border border-border bg-bg px-1.5 text-[12px] text-fg-muted"
+                >
+                  <option value="">{t("persona.none")}</option>
+                  {personas.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {personaLabel(p).name}
+                    </option>
+                  ))}
+                </select>
+              )}
               {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
               <div className="flex-1" />
               <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)}>

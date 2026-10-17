@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { ChatMode } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
-import type { Chats } from "./chats";
+import type { ChatStart, Chats } from "./chats";
 import type { Store } from "./store";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
 
@@ -12,7 +12,23 @@ const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 
 export function registerChatRoutes(
   app: Hono,
-  { chats, store, accounts, worktreeDir }: { chats: Chats; store: Store; accounts: Accounts; worktreeDir: string },
+  {
+    chats,
+    store,
+    accounts,
+    worktreeDir,
+    persona,
+  }: {
+    chats: Chats;
+    store: Store;
+    accounts: Accounts;
+    worktreeDir: string;
+    /** Builds the persona part of a chat (prompt, tools, turn limit) and its default model. */
+    persona?: (
+      personaId: string,
+      projectId: string,
+    ) => { start: NonNullable<ChatStart["persona"]>; model: string } | undefined;
+  },
 ): void {
   const account = (projectId: string, sessionAccount?: string | null) =>
     (sessionAccount && accounts.get(sessionAccount)) || accounts.forProject("claude", projectId);
@@ -28,6 +44,8 @@ export function registerChatRoutes(
       accountId?: string;
       /** Work in a separate copy (default for auto mode). */
       isolate?: boolean;
+      /** Talk to one persona (plan.md 6.3). */
+      personaId?: string;
     };
     const project = body.projectId ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
@@ -35,6 +53,11 @@ export function registerChatRoutes(
     if (body.resume && session?.tool !== "claude")
       return c.json({ error: "Only Claude sessions can be continued in chat" }, 400);
     const mode = MODES.find((m) => m === body.mode);
+    // A session that ran as a persona continues as that persona.
+    const personaId =
+      typeof body.personaId === "string" ? body.personaId : body.resume ? store.sessionPersona(body.resume) : undefined;
+    const as = personaId && persona ? persona(personaId, project.id) : undefined;
+    if (typeof body.personaId === "string" && !as) return c.json({ error: "Persona not found" }, 404);
     let worktree: Worktree | undefined;
     try {
       if (!body.resume && (body.isolate ?? mode === "auto"))
@@ -50,8 +73,10 @@ export function registerChatRoutes(
           worktree,
           title: session?.title ?? undefined,
           resume: body.resume,
-          model: typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : undefined,
+          model:
+            typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
           mode,
+          persona: as?.start,
           ...(() => {
             const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
             const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
@@ -147,6 +172,7 @@ export function registerChatRoutes(
         resume: info.sessionId,
         model: body.model,
         mode: info.mode,
+        persona: info.persona && persona ? persona(info.persona.id, info.projectId)?.start : undefined,
         accountId: info.accountId,
         env: accounts.env(info.accountId ? accounts.get(info.accountId) : undefined),
       }),

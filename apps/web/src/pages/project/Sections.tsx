@@ -1,4 +1,11 @@
-import type { Category, CategoryDetail, Finding, InsightScan, ProjectDetail } from "@godeye/core";
+import {
+  type Category,
+  type CategoryDetail,
+  type Finding,
+  type InsightScan,
+  type ProjectDetail,
+  personaForCategory,
+} from "@godeye/core";
 import {
   ArrowLeft,
   Boxes,
@@ -34,6 +41,7 @@ import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import i18n from "../../lib/i18n";
 import { useServerEvent } from "../../lib/live";
+import { PersonaIcon, startPersonaChat, usePersonaLabel, usePersonas } from "../../lib/personas";
 import { useSettings } from "../../lib/settings";
 import { ApiMapView } from "./ApiMap";
 import { EnvView } from "./EnvView";
@@ -71,10 +79,14 @@ function useInsight(projectId: string) {
   return { latest, error, reload: load };
 }
 
-/** Starts a chat in this project with a ready "fix this" prompt waiting in the box (nothing is sent yet). */
+/**
+ * Starts a chat in this project with a ready "fix this" prompt waiting in the box (nothing is sent yet).
+ * It goes to the persona that owns the part, when that persona may edit files (plan.md 5 / 6.3).
+ */
 function useFix(projectId: string) {
   const navigate = useNavigate();
   const { settings } = useSettings();
+  const { personas } = usePersonas();
   return async (finding: Finding) => {
     const t = settings.enhanceLanguage === "user" ? i18n.t.bind(i18n) : i18n.getFixedT("en");
     const where = finding.evidence
@@ -88,7 +100,11 @@ function useFix(projectId: string) {
     ]
       .filter(Boolean)
       .join("\n\n");
-    const chat = await api.startChat({ projectId });
+    const owner = personaForCategory(
+      finding.category,
+      personas.filter((p) => p.tools === "edit"),
+    );
+    const chat = await api.startChat({ projectId, personaId: owner?.id });
     navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
   };
 }
@@ -179,6 +195,11 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
   const [ask, setAsk] = useState("");
   const navigate = useNavigate();
   const Icon = CATEGORY_ICONS[category];
+  // "Review this part" (plan.md 6.3): the persona that owns it, read-only or not as it is set up.
+  const { personas } = usePersonas();
+  const reviewer = personas.length ? personaForCategory(category, personas) : undefined;
+  const reviewerName = usePersonaLabel()(reviewer).name;
+  const [reviewError, setReviewError] = useState<string>();
 
   const explain = (force: boolean) => {
     setExplaining(true);
@@ -230,6 +251,26 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
           <p className="mb-1 text-[11px] font-medium text-fg-subtle">{t("insight.trend")}</p>
           <Trend points={detail.trend} />
         </div>
+        {reviewer && (
+          <div className="w-full space-y-1 border-t border-border pt-3 sm:w-auto sm:border-t-0 sm:pt-0">
+            <Button
+              size="sm"
+              onClick={() =>
+                startPersonaChat(
+                  reviewer.id,
+                  project.id,
+                  navigate,
+                  t("persona.reviewDraft", { section: t(`insight.cat.${category}`) }),
+                ).catch((err: Error) => setReviewError(err.message))
+              }
+              data-tip={t("persona.reviewTip", { name: reviewerName })}
+            >
+              <PersonaIcon persona={reviewer} size={11} className="size-4" />
+              {t("persona.review")}
+            </Button>
+            {reviewError && <p className="text-xs text-danger">{reviewError}</p>}
+          </div>
+        )}
       </Card>
 
       <Card className="space-y-3 p-pad">

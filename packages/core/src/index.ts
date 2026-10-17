@@ -1,4 +1,6 @@
 export * from "./insight";
+export * from "./persona";
+export * from "./personas";
 export * from "./prompt";
 export * from "./scrub";
 
@@ -133,6 +135,8 @@ export interface SessionListItem {
   /** Kept to yourself even when the project is shared. */
   private?: boolean;
   authorId?: string;
+  /** Persona the session ran as (plan.md 6.3), by id. */
+  persona?: string;
   summary?: SessionSummaryData;
   models: Record<string, number>;
   tokens: { input: number; output: number; cacheRead: number; cacheWrite: number };
@@ -431,6 +435,8 @@ export interface ChatInfo {
   worktree?: { path: string; branch: string; base: string; baseBranch?: string; sub: string };
   /** Shell commands run in Claude Code's sandbox (files and network limited). */
   sandboxed?: boolean;
+  /** The chat runs as this persona (plan.md 6.3). */
+  persona?: { id: string; name?: string; tools: "read" | "edit" };
 }
 
 export type ChatEvent =
@@ -458,7 +464,15 @@ export type ChatEvent =
       status: "pending" | "allowed" | "denied";
     }
   | { kind: "result"; id: string; at: number; durationMs?: number; isError: boolean; text?: string }
-  | { kind: "notice"; id: string; at: number; text: string; tone: "danger" | "neutral"; code?: "external" }
+  | {
+      kind: "notice";
+      id: string;
+      at: number;
+      text: string;
+      tone: "danger" | "neutral";
+      /** "notebook": opinions written down (text = count); "notebookRejected": a change without new evidence. */
+      code?: "external" | "notebook" | "notebookRejected";
+    }
   | { kind: "checkpoint"; id: string; at: number; checkpointId: string; projectId: string };
 
 export interface Checkpoint {
@@ -606,6 +620,8 @@ export type ServerMessage =
   | { type: "import-progress"; projectId: string }
   | { type: "deploys-changed"; projectId: string }
   | { type: "presence" }
+  | { type: "personas-changed" }
+  | { type: "meetings-changed"; meetingId: string }
   | { type: "i18n-progress"; code: string };
 
 /** Messages sent from UI to server over the WebSocket. */
