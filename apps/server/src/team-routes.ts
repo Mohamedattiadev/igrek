@@ -18,6 +18,8 @@ export function registerTeamRoutes(app: Hono, sync: Sync, store: Store): void {
       password?: string;
       invite?: string;
       newPassword?: string;
+      code?: string;
+      recovery?: string;
     };
     try {
       return c.json(await sync.connect(body));
@@ -36,7 +38,7 @@ export function registerTeamRoutes(app: Hono, sync: Sync, store: Store): void {
   app.get("/api/team/recovery-key", (c) => {
     const status = sync.status();
     if (status.user?.role !== "admin") return c.json({ error: "Admins only" }, 403);
-    return c.json({ key: sync.teamKey() });
+    return c.json({ key: sync.recoveryKey() });
   });
 
   // Admin: create the account on the hub and hand back one code to send to the teammate.
@@ -56,7 +58,8 @@ export function registerTeamRoutes(app: Hono, sync: Sync, store: Store): void {
         method: "POST",
         body: JSON.stringify({ username: body.username, displayName: body.displayName, role: body.role, password }),
       });
-      return c.json({ user, invite: encodeInvite({ hub: status.hub, username: user.username, password, key }) });
+      // No team key inside: the new device gets it once an admin approves it.
+      return c.json({ user, invite: encodeInvite({ hub: status.hub, username: user.username, password }) });
     } catch (err) {
       return c.json(fail(err), 400);
     }
@@ -76,7 +79,69 @@ export function registerTeamRoutes(app: Hono, sync: Sync, store: Store): void {
           body: JSON.stringify({ password }),
         },
       );
-      return c.json({ user, invite: encodeInvite({ hub: status.hub, username: user.username, password, key }) });
+      return c.json({ user, invite: encodeInvite({ hub: status.hub, username: user.username, password }) });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+
+  // Device approval and key replacement (plan.md 4.2).
+  app.get("/api/team/key-requests", async (c) => {
+    try {
+      return c.json(await sync.keyRequests());
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/team/key-requests/:device/approve", async (c) => {
+    try {
+      return c.json({ ok: true, keys: await sync.approveDevice(c.req.param("device")) });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/team/rotate-key", async (c) => {
+    try {
+      return c.json({ recoveryKey: await sync.rotateKey() });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.get("/api/team/alerts", (c) => c.json(sync.alerts));
+  app.get("/api/team/projects", async (c) => c.json(await sync.projectKeys()));
+
+  // Own account on the hub: profile, two-factor sign-in, signing out other devices.
+  app.patch("/api/team/me", async (c) => {
+    try {
+      return c.json(
+        await sync.me("/me", { method: "PATCH", body: JSON.stringify(await c.req.json().catch(() => ({}))) }),
+      );
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/team/2fa/:step{start|confirm|disable}", async (c) => {
+    try {
+      return c.json(
+        await sync.me(`/2fa/${c.req.param("step")}`, {
+          method: "POST",
+          body: JSON.stringify(await c.req.json().catch(() => ({}))),
+        }),
+      );
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/team/devices", async (c) => {
+    try {
+      return c.json(await sync.me("/devices", { method: "DELETE" }));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.get("/api/team/whoami", async (c) => {
+    try {
+      return c.json(await sync.me("/me"));
     } catch (err) {
       return c.json(fail(err), 400);
     }
@@ -88,9 +153,23 @@ export function registerTeamRoutes(app: Hono, sync: Sync, store: Store): void {
     if (body !== undefined) init.body = JSON.stringify(body);
     return sync.admin(path, init);
   };
-  app.get("/api/team/admin/:what{users|devices|audit|stats}", async (c) => {
+  app.get("/api/team/admin/:what{users|devices|audit|stats|policies|access}", async (c) => {
     try {
       return c.json(await proxy(`/${c.req.param("what")}`, "GET"));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.put("/api/team/admin/:what{policies|access}", async (c) => {
+    try {
+      return c.json(await proxy(`/${c.req.param("what")}`, "PUT", await c.req.json().catch(() => ({}))));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/team/admin/users/:id/:what{devices|2fa}", async (c) => {
+    try {
+      return c.json(await proxy(`/users/${encodeURIComponent(c.req.param("id"))}/${c.req.param("what")}`, "DELETE"));
     } catch (err) {
       return c.json(fail(err), 400);
     }

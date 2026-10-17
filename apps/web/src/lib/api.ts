@@ -24,6 +24,7 @@ import type {
   GitChange,
   GitInfo,
   HttpResponse,
+  HubAlertInfo,
   Idea,
   IdeaStatus,
   ImportEstimate,
@@ -32,6 +33,7 @@ import type {
   IndexStatus,
   InsightConfig,
   InsightScan,
+  KeyRequest,
   LimitsOverview,
   MemorySection,
   MonthlyReport,
@@ -378,11 +380,49 @@ export const api = {
       body: JSON.stringify({ path, text }),
     }),
   team: () => request<TeamStatus>("/api/team"),
-  teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
-    request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {
+  teamConnect: (body: {
+    hub?: string;
+    username?: string;
+    password?: string;
+    invite?: string;
+    newPassword?: string;
+    code?: string;
+    recovery?: string;
+  }) =>
+    request<{ status: TeamStatus; recoveryKey?: string; needs2fa?: boolean }>("/api/team/connect", {
       method: "POST",
       body: JSON.stringify(body),
     }),
+  teamKeyRequests: () => request<{ keyEpoch: number; requests: KeyRequest[] }>("/api/team/key-requests"),
+  teamApproveDevice: (deviceId: string) =>
+    request<{ ok: boolean }>(`/api/team/key-requests/${deviceId}/approve`, { method: "POST" }),
+  teamRotateKey: () => request<{ recoveryKey: string }>("/api/team/rotate-key", { method: "POST" }),
+  teamAlerts: () => request<HubAlertInfo[]>("/api/team/alerts"),
+  teamProjects: () => request<{ projectId: string; name: string; key: string }[]>("/api/team/projects"),
+  teamAccess: () => request<{ project: string; userId: string; role: string }[]>("/api/team/admin/access"),
+  teamSetAccess: (project: string, userId: string, role: string | null) =>
+    request<{ ok: boolean }>("/api/team/admin/access", {
+      method: "PUT",
+      body: JSON.stringify({ project, userId, role }),
+    }),
+  teamPolicies: () =>
+    request<{ minPassword: number; require2fa: boolean; sessionDays: number; ipAllow: string; retentionDays: number }>(
+      "/api/team/admin/policies",
+    ),
+  teamSetPolicies: (p: object) =>
+    request<unknown>("/api/team/admin/policies", { method: "PUT", body: JSON.stringify(p) }),
+  teamWhoami: () =>
+    request<{ user: { displayName: string; twoFactor: boolean; avatar?: string }; require2fa: boolean }>(
+      "/api/team/whoami",
+    ),
+  teamUpdateMe: (patch: { displayName?: string; language?: string; avatar?: string }) =>
+    request<unknown>("/api/team/me", { method: "PATCH", body: JSON.stringify(patch) }),
+  team2fa: (step: "start" | "confirm" | "disable", body: { code?: string } = {}) =>
+    request<unknown>(`/api/team/2fa/${step}`, { method: "POST", body: JSON.stringify(body) }),
+  teamSignOutOthers: () => request<{ ok: boolean; count: number }>("/api/team/devices", { method: "DELETE" }),
+  teamSignOutUser: (id: string) =>
+    request<{ ok: boolean }>(`/api/team/admin/users/${id}/devices`, { method: "DELETE" }),
+  teamClear2fa: (id: string) => request<{ ok: boolean }>(`/api/team/admin/users/${id}/2fa`, { method: "DELETE" }),
   teamDisconnect: () => request<{ ok: boolean }>("/api/team/disconnect", { method: "POST" }),
   teamRecoveryKey: () => request<{ key: string }>("/api/team/recovery-key"),
   teamInvite: (body: { username: string; displayName?: string; role: string }) =>

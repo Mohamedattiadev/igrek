@@ -511,6 +511,9 @@ export interface TeamStatus {
   signedOut: boolean;
   /** Changes waiting to go out (sessions, memory). */
   pending: number;
+  /** Signed in, but an admin hasn't approved this device yet (no team key). */
+  waitingForKey: boolean;
+  keyEpoch: number;
   lastSyncAt?: number;
   members: TeamMember[];
 }
@@ -518,6 +521,7 @@ export interface TeamStatus {
 export interface TeamUser extends TeamMember {
   disabled: boolean;
   mustChangePassword: boolean;
+  twoFactor?: boolean;
   createdAt: number;
 }
 
@@ -675,4 +679,25 @@ export interface SharePreview {
   messages: number;
   memory: { section: string; text: string }[];
   privateSessions: number;
+}
+
+/** A device waiting for an admin to give it the team key (plan.md 4.2). */
+export interface KeyRequest {
+  deviceId: string;
+  userId: string;
+  username: string;
+  displayName: string;
+  name: string;
+  publicKey: string;
+  createdAt: number;
+  missing: number[];
+}
+
+/** Pushed by the hub to admins. */
+export interface HubAlertInfo {
+  kind: "failed-logins" | "new-location";
+  user: string;
+  ip?: string;
+  count?: number;
+  at: number;
 }

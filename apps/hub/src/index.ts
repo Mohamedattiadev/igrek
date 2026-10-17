@@ -1,5 +1,6 @@
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
+import { backupKey, runBackup, s3FromEnv } from "./backup";
 import { Hub } from "./hub";
 import { createHubServer } from "./server";
 
@@ -15,6 +16,25 @@ const server = Bun.serve({
   fetch: handler.fetch,
   websocket: handler.websocket,
 });
+
+// Retention and backups, once a day (and an hour after start).
+const key = backupKey(process.env.HUB_BACKUP_KEY);
+const s3 = s3FromEnv(process.env);
+const daily = async () => {
+  const removed = hub.prune();
+  if (removed) console.log(`Removed ${removed} events older than the retention setting`);
+  if (key) {
+    try {
+      console.log(`Backup: ${await runBackup(hub, process.env.HUB_BACKUP_DIR ?? join(dataDir, "backups"), key, s3)}`);
+    } catch (err) {
+      console.error(`Backup failed: ${(err as Error).message}`);
+      hub.audit(undefined, "backup-failed", (err as Error).message.slice(0, 200));
+    }
+  }
+};
+setTimeout(() => void daily(), 60 * 60_000);
+setInterval(() => void daily(), 24 * 60 * 60_000);
+if (!key) console.log("Backups are off. Set HUB_BACKUP_KEY (openssl rand -base64 32) to turn them on.");
 
 if (hub.users().length === 0) {
   console.log("No users yet. Create the first admin with:  bun src/cli.ts create-admin <username>");

@@ -11,6 +11,7 @@ import type {
 } from "@godeye/core";
 import {
   Copy,
+  Download,
   Eraser,
   Eye,
   EyeOff,
@@ -20,6 +21,7 @@ import {
   Plus,
   RefreshCw,
   ShieldCheck,
+  Smartphone,
   Trash2,
   Users,
   UserX,
@@ -31,6 +33,15 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
+import {
+  AccessSection,
+  AlertsSection,
+  KeyRequestsSection,
+  MyAccountSection,
+  PoliciesSection,
+  RotateKeySection,
+  saveRecoveryFile,
+} from "./TeamSecurity";
 
 const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
 const SHARES: ShareLevel[] = ["off", "summary", "full"];
@@ -80,7 +91,16 @@ function CopyBox({ value, secret }: { value: string; secret?: boolean }) {
 function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
   const { t } = useTranslation();
   const [mode, setMode] = useState<"invite" | "admin">("invite");
-  const [form, setForm] = useState({ invite: "", newPassword: "", hub: "https://", username: "", password: "" });
+  const [form, setForm] = useState({
+    invite: "",
+    newPassword: "",
+    hub: "https://",
+    username: "",
+    password: "",
+    code: "",
+    recovery: "",
+  });
+  const [needsCode, setNeedsCode] = useState(false);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
 
@@ -90,14 +110,20 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
     try {
       const result = await api.teamConnect(
         mode === "invite"
-          ? { invite: form.invite, newPassword: form.newPassword || undefined }
+          ? { invite: form.invite, newPassword: form.newPassword || undefined, code: form.code || undefined }
           : {
               hub: form.hub,
               username: form.username,
               password: form.password,
               newPassword: form.newPassword || undefined,
+              code: form.code || undefined,
+              recovery: form.recovery.trim() || undefined,
             },
       );
+      if (result.needs2fa) {
+        setNeedsCode(true);
+        return;
+      }
       onDone(result.recoveryKey);
     } catch (err) {
       setError((err as Error).message);
@@ -163,7 +189,31 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
             <p className="text-[11px] text-fg-subtle">{t("team.adminHint")}</p>
+            <details className="text-xs">
+              <summary className="cursor-pointer text-fg-muted">{t("team.haveRecovery")}</summary>
+              <textarea
+                className={cn(field, "mt-2 h-16 py-2 font-mono text-[11px]")}
+                placeholder="godeye-recovery:…"
+                value={form.recovery}
+                onChange={(e) => setForm({ ...form, recovery: e.target.value })}
+                aria-label={t("team.haveRecovery")}
+              />
+            </details>
           </>
+        )}
+        {needsCode && (
+          <div className="space-y-1">
+            <input
+              className={cn(field, "w-40 font-mono tracking-widest")}
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              placeholder="123456"
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value.replace(/\D/g, "").slice(0, 6) })}
+              aria-label={t("account.code")}
+            />
+            <p className="text-[11px] text-fg-subtle">{t("team.codeHint")}</p>
+          </div>
         )}
         {error && <p className="text-xs text-danger">{error}</p>}
         <div className="flex justify-end">
@@ -343,7 +393,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
           <>
             <p className="text-xs text-fg-muted">{t("team.inviteReady", { name: result.user.username })}</p>
             <CopyBox value={result.invite} secret />
-            <p className="text-[11px] text-warning">{t("team.inviteSecret")}</p>
+            <p className="text-[11px] text-fg-muted">{t("team.inviteNoKey")}</p>
             <div className="flex justify-end">
               <Button variant="primary" onClick={close}>
                 {t("team.done")}
@@ -396,7 +446,7 @@ function InviteDialog({ open, onClose }: { open: boolean; onClose: () => void })
   );
 }
 
-function AdminPanel({ me }: { me: string }) {
+function AdminPanel({ me, onRecovery }: { me: string; onRecovery: (key: string) => void }) {
   const { t } = useTranslation();
   const [users, setUsers] = useState<TeamUser[]>([]);
   const [devices, setDevices] = useState<TeamDevice[]>([]);
@@ -425,9 +475,19 @@ function AdminPanel({ me }: { me: string }) {
     work.then(load).catch((err: Error) => setError(err.message));
   };
   const nameOf = (id?: string) => users.find((u) => u.id === id)?.displayName ?? "—";
+  /** After someone leaves, their devices still remember the old key: offer a new one. */
+  const suggestRotate = (name: string) => {
+    if (window.confirm(t("keys.rotateAfter", { name })))
+      void api
+        .teamRotateKey()
+        .then((r) => onRecovery(r.recoveryKey))
+        .catch((err: Error) => setError(err.message));
+  };
 
   return (
     <>
+      <AlertsSection />
+      <KeyRequestsSection />
       <Section title={t("team.users")} hint={t("team.usersHint")}>
         <div className="mb-3 flex gap-2">
           <Button variant="primary" icon={Plus} onClick={() => setInviting(true)}>
@@ -449,6 +509,7 @@ function AdminPanel({ me }: { me: string }) {
                 <div className="font-mono text-[11px] text-fg-subtle">
                   @{u.username}
                   {u.mustChangePassword && <span className="ms-2 text-warning">{t("team.pendingJoin")}</span>}
+                  {u.twoFactor && <span className="ms-2 text-success">2FA</span>}
                 </div>
               </div>
               <select
@@ -467,6 +528,30 @@ function AdminPanel({ me }: { me: string }) {
                 <>
                   <Button
                     size="sm"
+                    variant="ghost"
+                    icon={LogOut}
+                    aria-label={t("team.signOutUser")}
+                    data-tip={t("team.signOutUserTip")}
+                    onClick={() =>
+                      window.confirm(t("team.signOutUserConfirm", { name: u.displayName })) &&
+                      act(api.teamSignOutUser(u.id))
+                    }
+                  />
+                  {u.twoFactor && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={Smartphone}
+                      aria-label={t("team.clear2fa")}
+                      data-tip={t("team.clear2faTip")}
+                      onClick={() =>
+                        window.confirm(t("team.clear2faConfirm", { name: u.displayName })) &&
+                        act(api.teamClear2fa(u.id))
+                      }
+                    />
+                  )}
+                  <Button
+                    size="sm"
                     icon={KeyRound}
                     onClick={() =>
                       api
@@ -481,7 +566,13 @@ function AdminPanel({ me }: { me: string }) {
                     size="sm"
                     variant="ghost"
                     icon={UserX}
-                    onClick={() => act(api.teamUpdateUser(u.id, { disabled: !u.disabled }))}
+                    onClick={() =>
+                      act(
+                        api
+                          .teamUpdateUser(u.id, { disabled: !u.disabled })
+                          .then(() => !u.disabled && suggestRotate(u.displayName)),
+                      )
+                    }
                   >
                     {u.disabled ? t("team.enable") : t("team.disable")}
                   </Button>
@@ -491,7 +582,8 @@ function AdminPanel({ me }: { me: string }) {
                     icon={Trash2}
                     aria-label={t("team.remove")}
                     onClick={() =>
-                      window.confirm(t("team.removeConfirm", { name: u.displayName })) && act(api.teamDeleteUser(u.id))
+                      window.confirm(t("team.removeConfirm", { name: u.displayName })) &&
+                      act(api.teamDeleteUser(u.id).then(() => suggestRotate(u.displayName)))
                     }
                   />
                 </>
@@ -501,6 +593,9 @@ function AdminPanel({ me }: { me: string }) {
         </div>
       </Section>
 
+      <AccessSection users={users} />
+      <PoliciesSection />
+      <RotateKeySection onRecovery={onRecovery} />
       <Section title={t("team.devices")} hint={t("team.devicesHint")}>
         <div className="divide-y divide-border rounded-ui border border-border">
           {devices.map((d) => (
@@ -589,15 +684,37 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function RecoveryBody({ value, onClose }: { value: string; onClose: () => void }) {
   const { t } = useTranslation();
+  // It can't be skipped: closing needs the key copied or downloaded first.
+  const [kept, setKept] = useState(false);
   return (
     <div className="space-y-3 p-5">
       <h2 className="flex items-center gap-2 text-[14px] font-semibold">
         <ShieldCheck size={16} /> {t("team.recoveryTitle")}
       </h2>
       <p className="text-xs leading-relaxed text-fg-muted">{t("team.recoveryBody")}</p>
-      <CopyBox value={value} secret />
-      <div className="flex justify-end">
-        <Button variant="primary" onClick={onClose}>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: only watches the copy button inside */}
+      <div
+        onCopy={() => setKept(true)}
+        onClickCapture={(e) => (e.target as HTMLElement).closest("button") && setKept(true)}
+      >
+        <CopyBox value={value} secret />
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button
+          icon={Download}
+          onClick={() => {
+            saveRecoveryFile(value);
+            setKept(true);
+          }}
+        >
+          {t("team.recoveryDownload")}
+        </Button>
+        <Button
+          variant="primary"
+          disabled={!kept}
+          onClick={onClose}
+          data-tip={kept ? undefined : t("team.recoveryFirst")}
+        >
           {t("team.recoverySaved")}
         </Button>
       </div>
@@ -650,6 +767,11 @@ export function TeamPage() {
         {status.signedOut && (
           <p className="mx-6 mt-4 rounded-ui bg-warning-soft p-3 text-xs text-warning">{t("team.signedOut")}</p>
         )}
+        {status.waitingForKey && !status.signedOut && (
+          <p className="mx-6 mt-4 flex items-center gap-2 rounded-ui bg-accent-soft p-3 text-xs text-accent">
+            <KeyRound size={14} aria-hidden="true" /> {t("keys.waiting")}
+          </p>
+        )}
         {status.keyMismatch && (
           <p className="mx-6 mt-4 rounded-ui bg-danger-soft p-3 text-xs text-danger">{t("team.keyMismatch")}</p>
         )}
@@ -672,7 +794,8 @@ export function TeamPage() {
             <Section title={t("team.sharing")} hint={t("team.sharingHint")}>
               <Sharing />
             </Section>
-            {status.user?.role === "admin" && <AdminPanel me={status.user.id} />}
+            <MyAccountSection />
+            {status.user?.role === "admin" && <AdminPanel me={status.user.id} onRecovery={setRecovery} />}
           </div>
         )}
       </div>

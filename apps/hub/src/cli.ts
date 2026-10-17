@@ -1,4 +1,6 @@
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { backupKey, open, runBackup, s3FromEnv } from "./backup";
 import { Hub } from "./hub";
 
 /**
@@ -29,7 +31,35 @@ if (command === "create-admin" && username) {
   }
   await hub.setPassword(user.id, await askPassword(), true);
   console.log("Password changed; all their devices were signed out.");
+} else if (command === "backup") {
+  const key = backupKey(process.env.HUB_BACKUP_KEY);
+  if (!key) {
+    console.error("Set HUB_BACKUP_KEY first (openssl rand -base64 32) and keep it somewhere safe.");
+    process.exit(1);
+  }
+  console.log(
+    await runBackup(hub, username ?? join(process.env.HUB_DATA ?? "/data", "backups"), key, s3FromEnv(process.env)),
+  );
+} else if (command === "restore" && username) {
+  // Stop the hub first. The current database is kept next to it.
+  const key = backupKey(process.env.HUB_BACKUP_KEY);
+  if (!key) {
+    console.error("Set HUB_BACKUP_KEY to the key the backup was made with.");
+    process.exit(1);
+  }
+  const target = join(process.env.HUB_DATA ?? "/data", "hub.db");
+  const data = open(readFileSync(username), key);
+  hub.db.close();
+  // Move the old database and its WAL files aside together, or SQLite would replay the old WAL onto the restored file.
+  const stamp = Date.now();
+  for (const suffix of ["", "-wal", "-shm"])
+    if (existsSync(`${target}${suffix}`))
+      renameSync(`${target}${suffix}`, `${target}.before-restore-${stamp}${suffix}`);
+  writeFileSync(target, data, { mode: 0o600 });
+  console.log(`Restored ${username} → ${target}. Start the hub again.`);
 } else {
-  console.log("Usage: bun src/cli.ts create-admin <username> | reset-password <username>");
+  console.log(
+    "Usage: bun src/cli.ts create-admin <username> | reset-password <username> | backup [folder] | restore <file.geb>",
+  );
   process.exit(command ? 1 : 0);
 }

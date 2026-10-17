@@ -741,7 +741,18 @@
     "previewMessages_other": "Plus {{count}} conversation messages.",
     "previewNoMessages": "Conversations are not shared at this level.",
     "previewPrivate_one": "{{count}} private session stays here",
-    "previewPrivate_other": "{{count}} private sessions stay here"
+    "previewPrivate_other": "{{count}} private sessions stay here",
+    "haveRecovery": "I have a recovery key",
+    "codeHint": "Two-factor sign-in is on for this account: type the code from your authenticator app.",
+    "recoveryDownload": "Download",
+    "recoveryFirst": "Copy or download it first",
+    "inviteNoKey": "The code has no team key in it. After they join, approve their computer here (Waiting for approval).",
+    "signOutUser": "Sign out everywhere",
+    "signOutUserTip": "Sign this person out of every device",
+    "signOutUserConfirm": "Sign {{name}} out of every device?",
+    "clear2fa": "Reset two-factor",
+    "clear2faTip": "For someone who lost their phone",
+    "clear2faConfirm": "Turn off two-factor sign-in for {{name}}? They can turn it on again after signing in."
   },
   "enhance": {
     "button": "Enhance prompt",
@@ -1429,5 +1440,64 @@
     "offline_one": "Offline · {{count}} waiting",
     "offline_other": "Offline · {{count}} waiting",
     "lastTip": "Last synced {{when}}"
+  },
+  "keys": {
+    "waiting": "You're in. An admin now needs to approve this computer before it can read the team's work; this happens on their God Eye, usually within minutes.",
+    "requests": "Waiting for approval",
+    "requestsHint": "These computers signed in but don't have the team key yet. Approve only devices you recognise: approving lets them read everything the team shares.",
+    "approve": "Approve",
+    "approveConfirm": "Give {{name}}'s device \"{{device}}\" the team key?",
+    "rotate": "Team key",
+    "rotateHint": "Replace the key after someone leaves: new updates use a new key only the remaining devices get. Older history stays readable for those who already had it.",
+    "rotateNow": "Replace the key",
+    "rotateConfirm": "Make a new team key now? Every current device gets it automatically. You'll get a new recovery key to keep.",
+    "rotateAfter": "{{name}} no longer has access. Replace the team key too, so their devices can't read new updates? (Recommended)"
+  },
+  "alerts": {
+    "title": "Security alerts",
+    "hint": "Sent by the hub while you're online.",
+    "failed-logins": "{{count}} failed sign-in attempts for {{user}} (from {{ip}})",
+    "new-location": "{{user}} signed in from a new address: {{ip}}"
+  },
+  "policy": {
+    "title": "Security rules",
+    "hint": "Apply to everyone on this hub.",
+    "minPassword": "Minimum password length",
+    "require2fa": "Require two-factor sign-in",
+    "sessionDays": "Sign devices out after this many days unused (0 = never)",
+    "retentionDays": "Keep updates on the hub for this many days (0 = forever)",
+    "ipAllow": "Allow sign-ins only from these addresses (empty = anywhere)",
+    "saved": "Saved"
+  },
+  "access": {
+    "title": "Project access",
+    "hint": "Leave a project open to the whole team, or pick who can see it. Viewers can't share in it. Admins always have access.",
+    "project": "Project",
+    "open": "open to everyone",
+    "none": "no access",
+    "default": "default",
+    "roleFor": "Role of {{user}} in {{project}}",
+    "role_owner": "Owner",
+    "role_manager": "Manager",
+    "role_member": "Member",
+    "role_viewer": "Viewer"
+  },
+  "account": {
+    "title": "Your account",
+    "hint": "Your name and colour on the team, two-factor sign-in and your devices.",
+    "color": "Your colour on the team",
+    "required2fa": "Your team requires two-factor sign-in. Turn it on below.",
+    "twoFactor": "Two-factor sign-in",
+    "enable2fa": "Turn on",
+    "scan": "Add this key to an authenticator app (Google Authenticator, Aegis, 1Password…), then type the 6-digit code it shows.",
+    "openApp": "Open in an authenticator app",
+    "code": "6-digit code",
+    "confirm": "Confirm",
+    "enabled": "Two-factor sign-in is on.",
+    "disable2fa": "Turn off",
+    "signOutOthers": "Sign out my other devices",
+    "signOutOthersConfirm": "Sign out every other device signed in to your account?",
+    "signedOutOthers_one": "Signed out {{count}} device.",
+    "signedOutOthers_other": "Signed out {{count}} devices."
   }
 }

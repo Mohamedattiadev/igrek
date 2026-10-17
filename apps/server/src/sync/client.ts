@@ -2,29 +2,65 @@ import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { chmodSync, existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { hostname } from "node:os";
-import type { Presence, ShareLevel, SharePreview, TeamMember, TeamStatus } from "@godeye/core";
+import type {
+  HubAlertInfo,
+  KeyRequest,
+  Presence,
+  ShareLevel,
+  SharePreview,
+  TeamMember,
+  TeamStatus,
+} from "@godeye/core";
 import type { Bus } from "../bus";
 import {
+  type DeviceKey,
   decodeInvite,
   decrypt,
   encrypt,
+  generateDeviceKey,
   generateTeamKey,
   importTeamKey,
   keyCheck,
   projectKey,
   type TeamKey,
+  unwrapTeamKey,
+  wrapTeamKey,
 } from "./crypto";
 import { scrubDeep } from "./scrub";
 
 interface SyncConfig {
   hub: string;
   token: string;
-  teamKey: string;
+  /** Older configs: the single (epoch 0) team key. */
+  teamKey?: string;
+  /** Team keys by epoch, base64url. */
+  keys?: Record<string, string>;
+  epoch?: number;
+  /** This device's own key pair: the team key arrives wrapped for it. */
+  device?: DeviceKey;
   user: { id: string; username: string; displayName: string; role: "admin" | "member" | "viewer" };
+}
+
+const RECOVERY_PREFIX = "godeye-recovery:";
+
+/** Every team key in one string, so an admin can restore access (and history) on a new computer. */
+export function encodeRecovery(keys: Record<string, string>): string {
+  return RECOVERY_PREFIX + Buffer.from(JSON.stringify(keys)).toString("base64url");
+}
+
+export function decodeRecovery(text: string): Record<string, string> {
+  const t = text.trim();
+  // An older recovery key was just the epoch-0 key.
+  if (!t.startsWith(RECOVERY_PREFIX)) return { "0": t };
+  return JSON.parse(Buffer.from(t.slice(RECOVERY_PREFIX.length), "base64url").toString("utf8")) as Record<
+    string,
+    string
+  >;
 }
 
 interface WireEvent {
   seq: number;
+  epoch?: number;
   project: string;
   kind: string;
   author: string;
@@ -54,7 +90,12 @@ function wsUrl(hub: string, token: string): string {
  */
 export class Sync {
   private config?: SyncConfig;
-  private key?: TeamKey;
+  /** Epoch-0 key: project ids are derived from it, so they never change when the key is replaced. */
+  private idKey?: TeamKey;
+  /** Every team key this device has (old ones read old history). */
+  private keys = new Map<number, TeamKey>();
+  private epoch = 0;
+  private waitingForKey = false;
   private socket?: WebSocket;
   private connected = false;
   private keyMismatch = false;
@@ -87,12 +128,153 @@ export class Sync {
     if (!existsSync(this.file)) return;
     try {
       this.config = JSON.parse(readFileSync(this.file, "utf8")) as SyncConfig;
-      this.key = await importTeamKey(this.config.teamKey);
-      this.indexKey = await projectKey(this.key, "__team-index__");
+      if (this.config.teamKey && !this.config.keys) this.config.keys = { "0": this.config.teamKey };
+      await this.loadKeys();
       this.open();
     } catch {
       this.config = undefined;
     }
+  }
+
+  // ---- keys ----------------------------------------------------------------------------
+
+  private needsKeys = false;
+  /** Security alerts the hub pushed to this admin (failed logins, new places). */
+  alerts: HubAlertInfo[] = [];
+
+  private async loadKeys(): Promise<void> {
+    this.keys.clear();
+    for (const [epoch, key] of Object.entries(this.config?.keys ?? {}))
+      this.keys.set(Number(epoch), await importTeamKey(key));
+    this.idKey = this.keys.get(0);
+    this.epoch = Math.max(0, ...this.keys.keys());
+    this.indexKey = this.idKey ? await projectKey(this.idKey, "__team-index__") : undefined;
+    this.waitingForKey = !this.idKey;
+  }
+
+  private currentKey(): TeamKey {
+    const key = this.keys.get(this.epoch);
+    if (!key) throw new Error("No team key yet");
+    return key;
+  }
+
+  /** Makes this device's key pair once and tells the hub its public half. */
+  private async registerDevice(): Promise<void> {
+    if (!this.config) return;
+    if (!this.config.device) {
+      this.config.device = await generateDeviceKey();
+      this.save();
+    }
+    await this.hubRequest("/api/device-key", {
+      method: "POST",
+      body: JSON.stringify({ publicKey: this.config.device.publicKey }),
+    });
+  }
+
+  /** Picks up team keys an admin wrapped for this device (after approving it, or after a key change). */
+  async refreshKeys(): Promise<boolean> {
+    if (!this.config?.device) return false;
+    const { wraps } = await this.hubRequest<{
+      keyEpoch: number;
+      wraps: { epoch: number; fromPublic: string; nonce: string; wrapped: string }[];
+    }>("/api/key-wraps");
+    const me = await this.hubRequest<{ keyCheck: string | null; currentKeyCheck: string | null; keyEpoch: number }>(
+      "/api/me",
+    );
+    let added = false;
+    for (const w of wraps) {
+      if (this.config.keys?.[String(w.epoch)]) continue;
+      try {
+        const raw = await unwrapTeamKey(this.config.device.privateJwk, w.fromPublic, w.epoch, w.nonce, w.wrapped);
+        // Only accept a key the hub's check value agrees with (a wrong or forged wrap is dropped).
+        const expected = w.epoch === 0 ? me.keyCheck : w.epoch === me.keyEpoch ? me.currentKeyCheck : undefined;
+        if (expected && expected !== (await keyCheck(await importTeamKey(raw)))) continue;
+        this.config.keys = { ...(this.config.keys ?? {}), [String(w.epoch)]: raw };
+        added = true;
+      } catch {
+        // not for this device's key pair
+      }
+    }
+    if (added) {
+      this.save();
+      const hadKey = !!this.idKey;
+      await this.loadKeys();
+      if (!hadKey || this.needsKeys) {
+        this.needsKeys = false;
+        await this.subscribeAll();
+      }
+      this.bus.publish({ type: "team-changed" });
+    }
+    return added;
+  }
+
+  /** Admin: devices waiting for the team key. */
+  keyRequests(): Promise<{ keyEpoch: number; requests: KeyRequest[] }> {
+    return this.admin("/key-requests");
+  }
+
+  /** Admin: give a device every key this computer has (so it can read the whole history). */
+  async approveDevice(deviceId: string): Promise<number> {
+    if (!this.config?.device) throw new Error("This computer has no device key yet");
+    const { requests } = await this.keyRequests();
+    const request = requests.find((r) => r.deviceId === deviceId);
+    if (!request) throw new Error("That device isn't waiting any more");
+    const wraps = [];
+    for (const epoch of request.missing) {
+      const key = this.config.keys?.[String(epoch)];
+      if (!key) continue;
+      wraps.push({
+        deviceId,
+        epoch,
+        fromPublic: this.config.device.publicKey,
+        ...(await wrapTeamKey(this.config.device.privateJwk, request.publicKey, epoch, key)),
+      });
+    }
+    if (!wraps.length) throw new Error("This computer doesn't have the keys that device needs");
+    await this.admin("/key-wraps", { method: "POST", body: JSON.stringify({ wraps }) });
+    return wraps.length;
+  }
+
+  /**
+   * Admin: replace the team key (after someone leaves). New updates use the new
+   * key, which only the remaining devices receive. Returns the new recovery key.
+   */
+  async rotateKey(): Promise<string> {
+    if (!this.config?.device || !this.idKey) throw new Error("Connect first");
+    const epoch = (await this.hubRequest<{ keyEpoch: number }>("/api/me")).keyEpoch + 1;
+    const raw = generateTeamKey();
+    await this.admin("/key-rotate", {
+      method: "POST",
+      body: JSON.stringify({ epoch, keyCheck: await keyCheck(await importTeamKey(raw)) }),
+    });
+    const devices = await this.admin<{ deviceId: string; publicKey: string }[]>("/device-keys");
+    const wraps = [];
+    for (const d of devices)
+      wraps.push({
+        deviceId: d.deviceId,
+        epoch,
+        fromPublic: this.config.device.publicKey,
+        ...(await wrapTeamKey(this.config.device.privateJwk, d.publicKey, epoch, raw)),
+      });
+    await this.admin("/key-wraps", { method: "POST", body: JSON.stringify({ wraps }) });
+    this.config.keys = { ...(this.config.keys ?? {}), [String(epoch)]: raw };
+    this.save();
+    await this.loadKeys();
+    this.bus.publish({ type: "team-changed" });
+    return encodeRecovery(this.config.keys);
+  }
+
+  /** Shared projects with their opaque hub ids (only this computer can tell which is which). */
+  async projectKeys(): Promise<{ projectId: string; name: string; key: string }[]> {
+    if (!this.idKey) return [];
+    const out = [];
+    for (const p of this.sharedProjects())
+      out.push({ projectId: p.id, name: p.name, key: await projectKey(this.idKey, p.identity ?? `path:${p.path}`) });
+    return out;
+  }
+
+  recoveryKey(): string | undefined {
+    return this.config?.keys ? encodeRecovery(this.config.keys) : undefined;
   }
 
   private async hubRequest<T>(path: string, init: RequestInit = {}, config = this.config): Promise<T> {
@@ -117,7 +299,9 @@ export class Sync {
     password?: string;
     invite?: string;
     newPassword?: string;
-  }): Promise<{ status: TeamStatus; recoveryKey?: string }> {
+    code?: string;
+    recovery?: string;
+  }): Promise<{ status: TeamStatus; recoveryKey?: string; needs2fa?: boolean }> {
     const invite = input.invite ? decodeInvite(input.invite) : undefined;
     const hub = (invite?.hub ?? input.hub ?? "").trim().replace(/\/+$/, "");
     if (!/^https?:\/\/[^\s]+$/.test(hub)) throw new Error("Hub address must start with https://");
@@ -128,6 +312,7 @@ export class Sync {
         username: invite?.username ?? input.username,
         password: input.password || invite?.password,
         device: `God Eye · ${this.myName()}`,
+        code: input.code,
       }),
       signal: AbortSignal.timeout(15_000),
     });
@@ -135,23 +320,31 @@ export class Sync {
       token?: string;
       user?: SyncConfig["user"] & { mustChangePassword?: boolean };
       keyCheck?: string | null;
+      needs2fa?: boolean;
       error?: string;
     };
+    if (body.needs2fa) return { status: this.status(), needs2fa: true };
     if (!res.ok || !body.token || !body.user) throw new Error(body.error ?? "Could not sign in");
 
-    let teamKey = invite?.key;
+    // Keys: from a recovery key, an older invite, or (first admin) made right here.
+    // Otherwise this device waits until an admin approves it.
+    let keys: Record<string, string> | undefined = input.recovery
+      ? decodeRecovery(input.recovery)
+      : invite?.key
+        ? { "0": invite.key }
+        : undefined;
     let recoveryKey: string | undefined;
-    if (!teamKey && !body.keyCheck && body.user.role === "admin") {
-      teamKey = generateTeamKey();
-      recoveryKey = teamKey;
+    if (!keys && !body.keyCheck && body.user.role === "admin") {
+      keys = { "0": generateTeamKey() };
+      recoveryKey = encodeRecovery(keys);
     }
-    if (!teamKey) throw new Error("Use the invite code you received; it contains the team key");
-    const key = await importTeamKey(teamKey);
-    const check = await keyCheck(key);
-    const config: SyncConfig = { hub, token: body.token, teamKey, user: body.user };
-    if (body.keyCheck && body.keyCheck !== check) throw new Error("This team key doesn't match the team on this hub");
-    if (!body.keyCheck)
-      await this.hubRequest("/api/key-check", { method: "POST", body: JSON.stringify({ value: check }) }, config);
+    const config: SyncConfig = { hub, token: body.token, keys, user: body.user };
+    if (keys?.["0"]) {
+      const check = await keyCheck(await importTeamKey(keys["0"]));
+      if (body.keyCheck && body.keyCheck !== check) throw new Error("This team key doesn't match the team on this hub");
+      if (!body.keyCheck)
+        await this.hubRequest("/api/key-check", { method: "POST", body: JSON.stringify({ value: check }) }, config);
+    }
     if (body.user.mustChangePassword) {
       if (!input.newPassword) throw new Error("Choose a new password to finish joining");
       await this.hubRequest(
@@ -162,10 +355,11 @@ export class Sync {
     }
 
     this.config = config;
-    this.key = key;
     this.signedOut = false;
-    this.indexKey = await projectKey(key, "__team-index__");
     this.save();
+    await this.loadKeys();
+    await this.registerDevice();
+    await this.refreshKeys().catch(() => false);
     this.open();
     return { status: this.status(), recoveryKey };
   }
@@ -173,7 +367,8 @@ export class Sync {
   disconnect(): void {
     this.close();
     this.config = undefined;
-    this.key = undefined;
+    this.keys.clear();
+    this.idKey = undefined;
     if (existsSync(this.file)) rmSync(this.file);
     this.bus.publish({ type: "team-changed" });
   }
@@ -186,6 +381,8 @@ export class Sync {
       user: this.config?.user,
       keyMismatch: this.keyMismatch,
       signedOut: this.signedOut,
+      waitingForKey: this.waitingForKey,
+      keyEpoch: this.epoch,
       pending: this.pendingCount(),
       lastSyncAt: this.lastSyncAt,
       members: [...this.members.values()].map((m) => ({ ...m, online: this.online.has(m.id) })),
@@ -291,7 +488,7 @@ export class Sync {
   }
 
   teamKey(): string | undefined {
-    return this.config?.teamKey;
+    return this.config?.keys?.["0"];
   }
 
   // ---- sharing ---------------------------------------------------------------------
@@ -329,6 +526,8 @@ export class Sync {
     this.socket = socket;
     socket.onopen = () => {
       this.connected = true;
+      // A device still waiting for its key checks again on every reconnect.
+      if (this.waitingForKey || this.needsKeys) void this.refreshKeys().catch(() => false);
       void this.verifyKey();
       void this.loadMembers();
       void this.subscribeAll();
@@ -385,10 +584,10 @@ export class Sync {
 
   /** If the team key was changed on the hub, our copies can't be read: say so instead of syncing garbage. */
   private async verifyKey(): Promise<void> {
-    if (!this.key) return;
+    if (!this.idKey) return;
     try {
       const me = await this.hubRequest<{ keyCheck: string | null }>("/api/me");
-      this.keyMismatch = !!me.keyCheck && me.keyCheck !== (await keyCheck(this.key));
+      this.keyMismatch = !!me.keyCheck && me.keyCheck !== (await keyCheck(this.idKey));
       if (this.keyMismatch) this.close();
       this.bus.publish({ type: "team-changed" });
     } catch {
@@ -435,10 +634,10 @@ export class Sync {
   }
 
   private async subscribeAll(): Promise<void> {
-    if (!this.key || !this.indexKey) return;
+    if (!this.idKey || !this.indexKey) return;
     const keys = [this.indexKey];
     for (const project of this.sharedProjects()) {
-      const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
+      const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
       this.keyToProject.set(key, project.id);
       keys.push(key);
     }
@@ -449,20 +648,20 @@ export class Sync {
   // ---- outgoing ----------------------------------------------------------------------
 
   private async publish(project: string, kind: string, id: string, value: unknown): Promise<boolean> {
-    if (!this.key) return false;
-    const sealed = await encrypt(this.key, `${project}:${kind}`, scrubDeep(value));
-    return this.send({ op: "pub", project, kind, id, ...sealed });
+    if (!this.idKey) return false;
+    const sealed = await encrypt(this.currentKey(), `${project}:${kind}`, scrubDeep(value));
+    return this.send({ op: "pub", project, kind, id, epoch: this.epoch, ...sealed });
   }
 
   /** Ships whatever changed locally in shared projects since the last run. */
   async flush(): Promise<void> {
-    if (this.flushing || !this.connected || !this.key || !this.indexKey) return;
+    if (this.flushing || !this.connected || !this.idKey || !this.indexKey) return;
     if (this.config?.user.role === "viewer") return;
     this.flushing = true;
     try {
       for (const project of this.sharedProjects()) {
         const identity = project.identity ?? `path:${project.path}`;
-        const key = await projectKey(this.key, identity);
+        const key = await projectKey(this.idKey as TeamKey, identity);
         this.keyToProject.set(key, project.id);
 
         if (!this.cursor("announce", project.id)) {
@@ -565,19 +764,19 @@ export class Sync {
 
   /** A session made private after it was shared: ask teammates to drop their copy. */
   async forgetSession(projectId: string, sessionId: string): Promise<void> {
-    if (!this.connected || !this.key) return;
+    if (!this.connected || !this.idKey) return;
     const project = this.sharedProjects().find((p) => p.id === projectId);
     if (!project) return;
-    const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
+    const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
     await this.publish(key, "forget", `forget-${sessionId}-${Date.now()}`, { id: sessionId });
   }
 
   /** A setting was added/changed/removed: teammates see the name, who and when — never the value. */
   async envChanged(projectId: string, change: { file: string; key: string; action: string }): Promise<void> {
-    if (!this.connected || !this.key || this.config?.user.role === "viewer") return;
+    if (!this.connected || !this.idKey || this.config?.user.role === "viewer") return;
     const project = this.sharedProjects().find((p) => p.id === projectId);
     if (!project) return;
-    const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
+    const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
     // A server file is shown by its path on the server, not by the server's address.
     const file = change.file.startsWith("ssh:") ? change.file.replace(/^ssh:[^:]+:/, "server:") : change.file;
     await this.publish(key, "env", `env-${projectId}-${Date.now()}`, {
@@ -590,9 +789,9 @@ export class Sync {
 
   /** "Mohamed is working on …": active own sessions in shared projects. */
   private async sendPresence(): Promise<void> {
-    if (!this.connected || !this.key || !this.config) return;
+    if (!this.connected || !this.idKey || !this.config) return;
     for (const project of this.sharedProjects()) {
-      const key = await projectKey(this.key, project.identity ?? `path:${project.path}`);
+      const key = await projectKey(this.idKey as TeamKey, project.identity ?? `path:${project.path}`);
       const session = this.db
         .query(
           "SELECT title, tool, files_touched, updated_at FROM sessions WHERE project_id = ? AND author_id IS NULL AND private = 0 ORDER BY updated_at DESC LIMIT 1",
@@ -603,11 +802,11 @@ export class Sync {
       if (!session || Date.now() - session.updated_at > 15 * 60_000) continue;
       const files = (JSON.parse(session.files_touched) as string[]).slice(-8);
       const sealed = await encrypt(
-        this.key,
+        this.currentKey(),
         `${key}:presence`,
         scrubDeep({ title: session.title, tool: session.tool, files, at: session.updated_at }),
       );
-      this.send({ op: "presence", project: key, ...sealed });
+      this.send({ op: "presence", project: key, epoch: this.epoch, ...sealed });
     }
   }
 
@@ -627,11 +826,16 @@ export class Sync {
     if (msg.op === "online") {
       this.online = new Set(msg.users as string[]);
       this.bus.publish({ type: "team-changed" });
+    } else if (msg.op === "key-wraps") {
+      await this.refreshKeys().catch(() => false);
+    } else if (msg.op === "key-request" || msg.op === "alert") {
+      if (msg.op === "alert") this.alerts = [msg.alert as HubAlertInfo, ...this.alerts].slice(0, 20);
+      this.bus.publish({ type: "team-changed" });
     } else if (msg.op === "events") {
       await this.applyEvents(String(msg.project), msg.events as WireEvent[]);
     } else if (msg.op === "presence") {
       await this.applyPresence(
-        msg as unknown as { project: string; author: string; nonce: string; data: string; at: number },
+        msg as unknown as { project: string; author: string; nonce: string; data: string; at: number; epoch?: number },
       );
     }
   }
@@ -642,13 +846,15 @@ export class Sync {
     nonce: string;
     data: string;
     at: number;
+    epoch?: number;
   }): Promise<void> {
-    if (!this.key || p.author === this.config?.user.id) return;
+    const key = this.keys.get(p.epoch ?? 0);
+    if (!this.idKey || !key || p.author === this.config?.user.id) return;
     const projectId = this.keyToProject.get(p.project);
     if (!projectId) return;
     try {
       const value = await decrypt<{ title?: string; tool?: string; files?: string[]; at?: number }>(
-        this.key,
+        key,
         `${p.project}:presence`,
         p.nonce,
         p.data,
@@ -670,16 +876,22 @@ export class Sync {
   }
 
   async applyEvents(projectKeyHex: string, events: WireEvent[]): Promise<void> {
-    if (!this.key || !this.config) return;
+    if (!this.idKey || !this.config) return;
     const mine = deviceOf(this.config.token);
     const changed = new Set<string>();
     for (const event of events) {
+      // Without the key it was made with, keep it for later (don't move the cursor past it).
+      const key = this.keys.get(event.epoch ?? 0);
+      if (!key) {
+        this.needsKeys = true;
+        break;
+      }
       try {
         if (event.device === mine) continue; // our own, echoed back on reconnect
         if (projectKeyHex === this.indexKey) {
           if (event.kind === "project") {
             const value = await decrypt<{ identity: string; name: string; key: string }>(
-              this.key,
+              key,
               `${projectKeyHex}:project`,
               event.nonce,
               event.data,
@@ -691,7 +903,7 @@ export class Sync {
         const projectId = this.keyToProject.get(projectKeyHex);
         if (!projectId) continue;
         const value = await decrypt<Record<string, unknown>>(
-          this.key,
+          key,
           `${projectKeyHex}:${event.kind}`,
           event.nonce,
           event.data,
@@ -731,7 +943,7 @@ export class Sync {
 
   /** A teammate shared a project: link it to the local copy of the same repo, or add it as a team project. */
   private async adoptProject(identity: string, name: string): Promise<void> {
-    if (!this.key) return;
+    if (!this.idKey) return;
     const local = this.db
       .query("SELECT id, share FROM projects WHERE identity = ? OR path = ?")
       .get(identity, identity.replace(/^path:/, "")) as { id: string; share: ShareLevel } | undefined;
@@ -747,7 +959,7 @@ export class Sync {
       // Same repo exists here but isn't shared yet: receive the team's work for it, send nothing until the user decides.
       this.db.query("UPDATE projects SET share = 'summary' WHERE id = ? AND share = 'off'").run(id);
     }
-    const key = await projectKey(this.key, identity);
+    const key = await projectKey(this.idKey as TeamKey, identity);
     if (!this.keyToProject.has(key)) {
       this.keyToProject.set(key, id);
       this.send({ op: "sub", projects: [key], since: { [key]: this.cursor("seq", key) } });

@@ -741,7 +741,18 @@
     "previewMessages_other": "Ayrıca {{count}} konuşma mesajı.",
     "previewNoMessages": "Bu seviyede konuşmalar paylaşılmaz.",
     "previewPrivate_one": "{{count}} gizli session burada kalıyor",
-    "previewPrivate_other": "{{count}} gizli session burada kalıyor"
+    "previewPrivate_other": "{{count}} gizli session burada kalıyor",
+    "haveRecovery": "Kurtarma anahtarım var",
+    "codeHint": "Bu hesapta iki adımlı giriş açık: doğrulama uygulamandaki kodu yaz.",
+    "recoveryDownload": "İndir",
+    "recoveryFirst": "Önce kopyala veya indir",
+    "inviteNoKey": "Kodun içinde takım anahtarı yok. Katıldıktan sonra bilgisayarını buradan onayla (Onay bekleyenler).",
+    "signOutUser": "Her yerden çıkış yaptır",
+    "signOutUserTip": "Bu kişiyi tüm cihazlarından çıkar",
+    "signOutUserConfirm": "{{name}} tüm cihazlarından çıkarılsın mı?",
+    "clear2fa": "İki adımlıyı sıfırla",
+    "clear2faTip": "Telefonunu kaybeden biri için",
+    "clear2faConfirm": "{{name}} için iki adımlı giriş kapatılsın mı? Giriş yaptıktan sonra tekrar açabilir."
   },
   "enhance": {
     "button": "Prompt'u güçlendir",
@@ -1429,5 +1440,64 @@
     "offline_one": "Çevrimdışı · {{count}} bekliyor",
     "offline_other": "Çevrimdışı · {{count}} bekliyor",
     "lastTip": "Son senkron {{when}}"
+  },
+  "keys": {
+    "waiting": "Girdin. Takımın işini okuyabilmesi için bu bilgisayarı bir adminin onaylaması gerekiyor; bu onun God Eye'ında olur, genelde birkaç dakika içinde.",
+    "requests": "Onay bekleyenler",
+    "requestsHint": "Bu bilgisayarlar giriş yaptı ama takım anahtarı henüz yok. Sadece tanıdığın cihazları onayla: onaylamak, takımın paylaştığı her şeyi okumasına izin verir.",
+    "approve": "Onayla",
+    "approveConfirm": "{{name}} kişisinin \"{{device}}\" cihazına takım anahtarı verilsin mi?",
+    "rotate": "Takım anahtarı",
+    "rotateHint": "Biri ayrıldıktan sonra anahtarı değiştir: yeni güncellemeler sadece kalan cihazların aldığı yeni bir anahtarla gider. Eski geçmiş, zaten sahip olanlar için okunur kalır.",
+    "rotateNow": "Anahtarı değiştir",
+    "rotateConfirm": "Şimdi yeni bir takım anahtarı oluşturulsun mu? Mevcut her cihaz otomatik alır. Saklaman için yeni bir kurtarma anahtarı alacaksın.",
+    "rotateAfter": "{{name}} artık erişemiyor. Cihazları yeni güncellemeleri okuyamasın diye takım anahtarı da değiştirilsin mi? (Önerilir)"
+  },
+  "alerts": {
+    "title": "Güvenlik uyarıları",
+    "hint": "Sen çevrimiçiyken hub tarafından gönderilir.",
+    "failed-logins": "{{user}} için {{count}} başarısız giriş denemesi ({{ip}} adresinden)",
+    "new-location": "{{user}} yeni bir adresten giriş yaptı: {{ip}}"
+  },
+  "policy": {
+    "title": "Güvenlik kuralları",
+    "hint": "Bu hub'daki herkese uygulanır.",
+    "minPassword": "En kısa şifre uzunluğu",
+    "require2fa": "İki adımlı girişi zorunlu yap",
+    "sessionDays": "Bu kadar gün kullanılmayan cihazdan çıkış yaptır (0 = hiç)",
+    "retentionDays": "Güncellemeleri hub'da bu kadar gün tut (0 = hep)",
+    "ipAllow": "Girişe sadece bu adreslerden izin ver (boş = her yerden)",
+    "saved": "Kaydedildi"
+  },
+  "access": {
+    "title": "Proje erişimi",
+    "hint": "Bir projeyi tüm takıma açık bırak ya da kimlerin görebileceğini seç. İzleyiciler orada paylaşım yapamaz. Adminler her zaman erişir.",
+    "project": "Proje",
+    "open": "herkese açık",
+    "none": "erişimi yok",
+    "default": "varsayılan",
+    "roleFor": "{{user}} kişisinin {{project}} rolü",
+    "role_owner": "Sahip",
+    "role_manager": "Yönetici",
+    "role_member": "Üye",
+    "role_viewer": "İzleyici"
+  },
+  "account": {
+    "title": "Hesabın",
+    "hint": "Takımdaki adın ve rengin, iki adımlı giriş ve cihazların.",
+    "color": "Takımdaki rengin",
+    "required2fa": "Takımın iki adımlı girişi zorunlu tutuyor. Aşağıdan aç.",
+    "twoFactor": "İki adımlı giriş",
+    "enable2fa": "Aç",
+    "scan": "Bu anahtarı bir doğrulama uygulamasına ekle (Google Authenticator, Aegis, 1Password…), sonra gösterdiği 6 haneli kodu yaz.",
+    "openApp": "Doğrulama uygulamasında aç",
+    "code": "6 haneli kod",
+    "confirm": "Onayla",
+    "enabled": "İki adımlı giriş açık.",
+    "disable2fa": "Kapat",
+    "signOutOthers": "Diğer cihazlarımdan çıkış yap",
+    "signOutOthersConfirm": "Hesabında açık olan diğer tüm cihazlardan çıkış yapılsın mı?",
+    "signedOutOthers_one": "{{count}} cihazdan çıkış yapıldı.",
+    "signedOutOthers_other": "{{count}} cihazdan çıkış yapıldı."
   }
 }
