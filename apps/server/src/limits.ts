@@ -76,6 +76,17 @@ export function limitsOverview(db: Database, accounts: Accounts, now = Date.now(
       .all(since) as { key: string; label: string; tokens: number }[]
   ).filter((r) => r.tokens > 0);
 
+  // Sessions that ran as a persona (plan.md 1.4: by persona); label is the persona id, translated in the UI.
+  const personas = (
+    db
+      .query(
+        `SELECT ps.persona_id AS key, ps.persona_id AS label, SUM(${WEIGHT}) AS tokens
+         FROM usage u JOIN persona_sessions ps ON ps.session_id = u.session_id WHERE u.ts >= ?
+         GROUP BY ps.persona_id ORDER BY tokens DESC LIMIT 10`,
+      )
+      .all(since) as { key: string; label: string; tokens: number }[]
+  ).filter((r) => r.tokens > 0);
+
   const sessions = db
     .query(
       `SELECT u.session_id AS key, COALESCE(s.title, s.first_prompt, u.session_id) AS label, s.project_id AS projectId,
@@ -93,6 +104,7 @@ export function limitsOverview(db: Database, accounts: Accounts, now = Date.now(
     days: [...days.values()],
     projects,
     models,
+    personas,
     sessions: sessions.map((s) => ({ ...s, label: s.label.length > 80 ? `${s.label.slice(0, 80)}…` : s.label })),
     hours,
     total,

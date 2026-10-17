@@ -667,7 +667,8 @@
     "topProjects": "En yoğun projeler",
     "tokensCol": "Token",
     "emptyTitle": "Henüz kullanım yok",
-    "emptyBody": "Herhangi bir projede Claude Code ya da Codex oturumu başlat. Ne kadar kullandığın ve sınırlara ne kadar yaklaştığın burada görünür."
+    "emptyBody": "Herhangi bir projede Claude Code ya da Codex oturumu başlat. Ne kadar kullandığın ve sınırlara ne kadar yaklaştığın burada görünür.",
+    "personas": "Persona bazında"
   },
   "accounts": {
     "title": "Hesaplar",

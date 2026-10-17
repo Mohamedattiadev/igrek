@@ -546,7 +546,7 @@ god-eye/
 
 #### 3.2 📊 Limitler sayfası
 - [x] ⭐ Her hesap için 5 saatlik ve haftalık limit çubukları + sıfırlanma geri sayımı — *Claude'un kendi bildirdiği gerçek doluluk; her God Eye Claude çağrısında ek maliyetsiz güncellenir*
-- [x] ⭐ **Ne, nerede, ne zaman:** zaman çizelgesi grafiği; proje, persona, session ve model bazında kırılım — *14 günlük proje kırılımlı grafik, proje/model/saat dağılımı; persona kırılımı Faz 6*
+- [x] ⭐ **Ne, nerede, ne zaman:** zaman çizelgesi grafiği; proje, persona, session ve model bazında kırılım — *14 günlük proje kırılımlı grafik, proje/model/saat dağılımı ve persona bazında token*
 - [x] "En çok harcayan 10 session" listesi; tıklayınca session açılır
 - [x] Günlük, haftalık ve aylık raporlar — *aylık tablo + CSV indirme*
 - [x] Tahmin: "Bu hızla limit saat 16:40'ta dolar" — *son ölçümlerden saatlik hız; sıfırlanmadan önce dolacaksa saatini söyler*

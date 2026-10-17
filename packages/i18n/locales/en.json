@@ -667,7 +667,8 @@
     "topProjects": "Busiest projects",
     "tokensCol": "Tokens",
     "emptyTitle": "No usage yet",
-    "emptyBody": "Start a Claude Code or Codex session in any project. How much you use, and how close you are to your limits, shows up here."
+    "emptyBody": "Start a Claude Code or Codex session in any project. How much you use, and how close you are to your limits, shows up here.",
+    "personas": "By persona"
   },
   "accounts": {
     "title": "Accounts",

@@ -10,6 +10,7 @@ import { cn } from "../lib/cn";
 import { compactNumber, modelName, relativeTime } from "../lib/format";
 import i18n from "../lib/i18n";
 import { useServerEvent } from "../lib/live";
+import { usePersonaLabel, usePersonas } from "../lib/personas";
 
 const SERIES = [
   "var(--series-1)",
@@ -502,6 +503,8 @@ function MonthlyCard() {
 
 export function LimitsPage() {
   const { t } = useTranslation();
+  const { personas } = usePersonas();
+  const personaName = usePersonaLabel();
   const [data, setData] = useState<LimitsOverview>();
   const load = () => {
     api
@@ -548,6 +551,23 @@ export function LimitsPage() {
               <Card className="space-y-3 p-pad">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.models")}</h3>
                 <Bars items={data.models} format={modelName} />
+                {data.personas.length > 0 && (
+                  <>
+                    <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+                      {t("limits.personas")}
+                    </h3>
+                    <Bars
+                      items={data.personas}
+                      format={(id) =>
+                        personaName(
+                          personas.find((p) => p.id === id),
+                          id,
+                        ).name
+                      }
+                      link={(item) => `/personas/${item.key}`}
+                    />
+                  </>
+                )}
                 <h3 className="pt-2 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
                   {t("limits.hours")}
                 </h3>

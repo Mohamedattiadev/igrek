@@ -518,6 +518,8 @@ export interface LimitsOverview {
   days: { day: string; total: number; byProject: Record<string, number> }[];
   projects: UsageBucket[];
   models: UsageBucket[];
+  /** Tokens of sessions that ran as a persona. */
+  personas: UsageBucket[];
   sessions: (UsageBucket & { projectId: string | null })[];
   hours: { hour: number; tokens: number }[];
   total: number;
