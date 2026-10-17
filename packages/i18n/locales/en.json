@@ -217,7 +217,8 @@
     "keepNew": "Keep the new one",
     "keepOld": "Keep the old one",
     "keepBoth": "Keep both",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "conflictTeamBody": "Two people on the team recorded decisions that can't both hold. Agree on one; your choice is shared with everyone."
   },
   "setup": {
     "hooksTitle": "Give new sessions the project memory",

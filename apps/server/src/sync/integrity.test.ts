@@ -71,6 +71,8 @@ describe("event chain integrity", () => {
   test("an event the hub lost is noticed, and the sender sends its state again", async () => {
     // The hub loses the middle event before Bora joins.
     hub.db.query("DELETE FROM events WHERE kind = 'memory' AND n = 2").run();
+    const decisions: string[] = [];
+    b.sync.onTeammateDecision = (_project, id) => decisions.push(id);
     await hub.createUser({ username: "bora", password: "temp-password-1", role: "member" });
     await b.sync.connect({
       invite: encodeInvite({ hub: hubUrl, username: "bora", password: "temp-password-1", key: a.sync.teamKey() ?? "" }),
@@ -81,6 +83,8 @@ describe("event chain integrity", () => {
     await until(() => has(b.db, "k2"));
     await until(() => b.sync.integrity().missing === 0);
     expect(b.sync.integrity().broken).toBe(0);
+    // Each new teammate decision is handed to the cross-person conflict check once.
+    expect(decisions.sort()).toEqual(["k1", "k2", "k3"]);
   });
 
   test("an event missed on the way is fetched again from the hub", async () => {

@@ -182,7 +182,8 @@ export interface MemoryItem {
   /** Teammate who wrote it; empty for your own. */
   author?: string;
   /** Set when this item contradicts an older one; the user decides which stays. */
-  conflict?: { withId: string; withText: string; reason: string };
+  /** withAuthor: the teammate who wrote the other item (none when it is yours). */
+  conflict?: { withId: string; withText: string; withAuthor?: string; reason: string };
 }
 
 export interface CommitItem {

@@ -1495,6 +1495,9 @@ export class Sync {
     })();
   }
 
+  /** A teammate's new decision or convention arrived (checked against ours for contradictions). */
+  onTeammateDecision?: (projectId: string, itemId: string) => void;
+
   private applyMemory(projectId: string, item: Record<string, unknown>, author: { id: string; name: string }): void {
     const existing = this.db
       .query("SELECT updated_at, created_at, author_id FROM memory_items WHERE id = ?")
@@ -1523,5 +1526,11 @@ export class Sync {
         existing ? existing.author_id : author.id,
         existing ? null : author.name,
       );
+    if (
+      !existing &&
+      ["decision", "convention"].includes(String(item.section)) &&
+      (item.status ?? "active") === "active"
+    )
+      this.onTeammateDecision?.(projectId, String(item.id));
   }
 }

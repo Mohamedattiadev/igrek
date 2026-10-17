@@ -631,7 +631,7 @@ god-eye/
 - [ ] Görev sahiplenme (claim): "Bu işi ben alıyorum". Diğerleri görür, aynı iş iki kez yapılmaz
 - [x] **Prompt önerme:** arkadaşımın session'ına prompt veya not gönderebilirim. Onun ekranında öneri olarak çıkar, kabul ederse session'ına eklenir. Kimsenin session'ı izinsiz değiştirilmez
 - [x] **Session devralma:** "Bu işi sen devam ettir". Özet ve bağlam karşı tarafa geçer, iş kendi bilgisayarında devam eder
-- [ ] Çapraz çelişki tespiti: iki kişinin aldığı kararlar çelişirse ikisine de haber verilir
+- [x] Çapraz çelişki tespiti: iki kişinin aldığı kararlar çelişirse ikisine de haber verilir — *takım arkadaşının yeni kararı seninkilerle Haiku ile karşılaştırılır (otomatik özet açıkken); çelişki işareti senkronla karşıya da gider, kart kimin kararı olduğunu gösterir*
 - [x] Yorumlar ve @bahsetme: session'lara, kararlara ve kategori sayfalarına — *@ yazınca isim önerisi çıkar; bahsedilen kişinin Gelen kutusuna düşer*
 - [ ] Ortak görev panosu: görev bir insana veya bir personaya atanabilir
 - [x] Takım aktivite akışı: "Bugün takımda ne oldu" (her kullanıcının kendi dilinde)

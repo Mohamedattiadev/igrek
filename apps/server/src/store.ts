@@ -585,7 +585,7 @@ export class Store {
     const rows = this.db
       .query(
         `SELECT m.id, m.section, m.text, m.source_session, m.created_at, m.conflict_with, m.conflict_reason,
-                m.author_name, o.text AS conflict_text
+                m.author_name, o.text AS conflict_text, o.author_name AS conflict_author
          FROM memory_items m LEFT JOIN memory_items o ON o.id = m.conflict_with
          WHERE m.project_id = ? AND m.status IN ${statuses} ORDER BY m.created_at DESC`,
       )
@@ -598,6 +598,7 @@ export class Store {
       conflict_with: string | null;
       conflict_reason: string | null;
       conflict_text: string | null;
+      conflict_author: string | null;
       author_name: string | null;
     }[];
     return rows.map((m) => ({
@@ -608,7 +609,12 @@ export class Store {
       createdAt: m.created_at,
       author: m.author_name ?? undefined,
       conflict: m.conflict_with
-        ? { withId: m.conflict_with, withText: m.conflict_text ?? "", reason: m.conflict_reason ?? "" }
+        ? {
+            withId: m.conflict_with,
+            withText: m.conflict_text ?? "",
+            withAuthor: m.conflict_author ?? undefined,
+            reason: m.conflict_reason ?? "",
+          }
         : undefined,
     }));
   }

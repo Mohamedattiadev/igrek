@@ -15,6 +15,7 @@ import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { loadConfig } from "./config";
+import { CrossCheck } from "./crosscheck";
 import { openDb } from "./db";
 import { registerDeployRoutes } from "./deploy-routes";
 import { Enhancer } from "./enhance";
@@ -100,6 +101,8 @@ const files = new Files(
 );
 // Team hub: only active once the user connects from the Team page.
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
+const crossCheck = new CrossCheck(sqlite, bus, () => readSettings(db), join(config.dataDir, "runner"));
+sync.onTeammateDecision = (projectId, itemId) => crossCheck.add(projectId, itemId);
 const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
 insight.watch();
 const enhancer = new Enhancer(

@@ -13,6 +13,8 @@ const SECTIONS: MemorySection[] = ["status", "decision", "convention", "failed",
 
 function ConflictCard({ item, onDone }: { item: MemoryItem; onDone: () => void }) {
   const { t } = useTranslation();
+  // Between two people: say whose is whose.
+  const team = !!(item.author || item.conflict?.withAuthor);
   const resolve = async (keep: "new" | "old" | "both") => {
     await api.resolveMemory(item.id, keep);
     onDone();
@@ -23,14 +25,20 @@ function ConflictCard({ item, onDone }: { item: MemoryItem; onDone: () => void }
         <AlertTriangle size={14} />
         {t("memory.conflictTitle")}
       </h3>
-      <p className="text-xs text-fg-muted">{t("memory.conflictBody")}</p>
+      <p className="text-xs text-fg-muted">{t(team ? "memory.conflictTeamBody" : "memory.conflictBody")}</p>
       <div className="grid gap-2 md:grid-cols-2">
         <div className="rounded-md border border-border bg-bg-subtle p-2.5 text-[13px]">
-          <p className="mb-1 text-[11px] text-fg-subtle">{t("memory.keepOld")}</p>
+          <p className="mb-1 text-[11px] text-fg-subtle">
+            {t("memory.keepOld")}
+            {team && ` · ${item.conflict?.withAuthor ?? t("team.you")}`}
+          </p>
           {item.conflict?.withText}
         </div>
         <div className="rounded-md border border-accent bg-accent-soft p-2.5 text-[13px]">
-          <p className="mb-1 text-[11px] text-accent">{t("memory.keepNew")}</p>
+          <p className="mb-1 text-[11px] text-accent">
+            {t("memory.keepNew")}
+            {team && ` · ${item.author ?? t("team.you")}`}
+          </p>
           {item.text}
         </div>
       </div>

@@ -217,7 +217,8 @@
     "keepNew": "Yenisini tut",
     "keepOld": "Eskisini tut",
     "keepBoth": "İkisini de tut",
-    "cancel": "Vazgeç"
+    "cancel": "Vazgeç",
+    "conflictTeamBody": "Takımda iki kişi birbiriyle çelişen kararlar kaydetti. Birinde anlaşın; seçiminiz herkesle paylaşılır."
   },
   "setup": {
     "hooksTitle": "Yeni session'lara proje hafızasını ver",
