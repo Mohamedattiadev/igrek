@@ -501,7 +501,7 @@ god-eye/
 - [ ] Ayrıca "Sıfır gelen kutusu" hedefi: her şey ya halledilir ya ertelenir
 
 #### 2.6c 💡 Fikir Kutusu (çok fikir gelen biri için)
-- [x] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir) — *Ctrl+I; sesli giriş Faz 11*
+- [x] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir) — *Ctrl+I; sesli giriş mikrofon düğmesiyle (Faz 11)*
 - [x] PM personası fikirleri otomatik sınıflandırır: hangi proje, hangi faz, ne kadar iş, ne kadar değerli — *tek tıkla: proje, tür, iş büyüklüğü, değer, kısa not*
 - [x] Haftalık fikir değerlendirmesi: CEO Danışmanı ile "Hangilerini yapalım, hangilerini bırakalım?" — *Fikirler sayfasında tek tık: şimdi / sonra / bırak + odak cümlesi; "Uygula" deyince durumlar değişir. Otomatik haftalık hatırlatma zamanlanmış işlerle (Faz 9)*
 - [x] Onaylanan fikir tek tıkla plana ve görev panosuna eklenir — *"Yapılacak" fikirlerde "Panoya ekle"*
@@ -550,7 +550,7 @@ god-eye/
 - [x] "En çok harcayan 10 session" listesi; tıklayınca session açılır
 - [x] Günlük, haftalık ve aylık raporlar — *aylık tablo + CSV indirme*
 - [x] Tahmin: "Bu hızla limit saat 16:40'ta dolar" — *son ölçümlerden saatlik hız; sıfırlanmadan önce dolacaksa saatini söyler*
-- [x] Uyarılar: limitin %80 ve %95'inde bildirim + "şu hesaba geç" önerisi — *%80 ve üstü Gelen Kutusu'nda acil + üst bar renk değişimi + "başka hesaba geç / Codex'e devret" önerisi; masaüstü bildirimi Faz 11*
+- [x] Uyarılar: limitin %80 ve %95'inde bildirim + "şu hesaba geç" önerisi — *%80 ve üstü Gelen Kutusu'nda acil + üst bar renk değişimi + "başka hesaba geç / Codex'e devret" önerisi; tarayıcı bildirimi de geliyor (Faz 11)*
 - [x] Bütçe kuralları: persona veya zamanlanmış iş başına üst sınır — *persona başına adım sınırı (Faz 6), zamanlanmış iş başına süre ve adım sınırı (Faz 9)*
 
 **Bitti sayılır:** Hesaplar arasında tek tıkla geçiyorum, hangi projenin limitimi ne zaman yediğini grafikte görüyorum.
@@ -982,14 +982,14 @@ god-eye/
 
 ### Faz 11 — Ekstralar
 
-- [ ] **Sabah brifingi:** dün ne yapıldı, bugün ne var, nerede takıldık (TR/EN, istenirse sesli)
-- [ ] **Proje şablonları:** "Yeni SaaS" → senin en iyi pratiklerinle iskelet
-- [ ] **Bildirimler:** session bitti, takıldı, onay bekliyor, puan düştü, limit doluyor (tarayıcı/masaüstü)
-- [ ] **Sesli prompt:** mikrofonla konuşarak komut verme
-- [ ] **Bağımlılık izleyici:** güncel olmayan veya açığı olan paketler
-- [ ] **Sır taraması:** commit'lerde API key veya şifre yakalama
-- [ ] **Yedekleme ve dışa aktarma:** hafıza, ders defteri ve kütüphanenin tek dosyalık yedeği
-- [ ] **Kendi kendini güncelleme:** yeni sürüm bildirimi + tek tıkla güncelleme
+- [x] **Sabah brifingi:** dün ne yapıldı, bugün ne var, nerede takıldık (TR/EN, istenirse sesli) — *Projeler sayfasında kart; dünkü commit/session'lardan haiku ile yazılır, günde bir kez önbelleğe alınır, "Sesli oku" tarayıcının konuşma sentezini kullanır. Gerçek veriyle denendi (~14 sn). Arka plan AI kapalıysa sadece istenince yazılır*
+- [x] **Proje şablonları:** "Yeni SaaS" → senin en iyi pratiklerinle iskelet — *Yeni proje: SaaS / API / tanıtım sayfası / CLI / boş. Klasör + git + CLAUDE.md/AGENTS.md (diğer projelerdeki konvansiyonlar ve dersler), sonra iskeleti takım akışı kendi kopyasında kurar, onayınla birleşir. CLI şablonuyla denendi: 14 testli kelime sayacı iskeleti kuruldu*
+- [x] **Bildirimler:** session bitti, takıldı, onay bekliyor, puan düştü, limit doluyor (tarayıcı/masaüstü) — *Ayarlar'dan izin verilir; Gelen Kutusu'ndaki acil kayıtlar sekme arka plandayken tarayıcı bildirimi olarak gelir. Sadece God Eye bir sekmede açıkken çalışır (ayrı masaüstü uygulaması yok)*
+- [x] **Sesli prompt:** mikrofonla konuşarak komut verme — *Sohbet, hızlı soru ve fikir yakalamada mikrofon düğmesi (Web Speech API, arayüz dilinde). Chrome/Edge sesi Google/Microsoft sunucusuna gönderir; Firefox'ta yok, düğme gizlenir. Gerçek mikrofonla bu ortamda denenemedi*
+- [x] **Bağımlılık izleyici:** güncel olmayan veya açığı olan paketler — *npm (package.json, kurulu sürüm node_modules'tan) ve PyPI (requirements.txt) için OSV.dev açıkları + registry'den son sürüm; Bölümler > Bağımlılıklar kartı, günlük tarama, yeni açık Gelen Kutusu'na. Cargo/Go henüz yok*
+- [x] **Sır taraması:** commit'lerde API key veya şifre yakalama — *Bilinen anahtar ve şifre desenleri; her projenin yeni commit'leri 10 dakikada bir okunur, bulunan değer maskeli saklanır (ilk/son birkaç karakter), commit ve satırla Gelen Kutusu'na düşer. İsteğe bağlı pre-commit koruması commit'i durdurur. Bölümler > Güvenlik kartı*
+- [x] **Yedekleme ve dışa aktarma:** hafıza, ders defteri ve kütüphanenin tek dosyalık yedeği — *Ayarlar > Yedekleme: tek JSON, isteğe bağlı şifre (AES-256-GCM, PBKDF2 310k). Hesaplar, anahtarlar, .env yedekleri asla içinde değil. Geri yükleme sadece eksikleri ekler; kütüphane vektörleri yeniden üretilir. Şifreli gidiş-dönüş ve yanlış şifre denendi*
+- [x] **Kendi kendini güncelleme:** yeni sürüm bildirimi + tek tıkla güncelleme — *Git kopyası 6 saatte bir fetch eder; yeni değişiklik Gelen Kutusu'na. "Güncelle" = pull --ff-only + bun install + build, yerel değişiklik varsa reddeder; sonra yeniden başlat. Docker'da sadece komut gösterilir. Gerçek bir güncelleme çekme denenmedi (repo zaten güncel)*
 
 ---
 

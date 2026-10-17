@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { actions, contextFromPath } from "../lib/actions";
 import { api } from "../lib/api";
+import { MicButton } from "./MicButton";
 import { Button, Dialog } from "./ui";
 
 /** Ctrl+I from anywhere: drop an idea in one line and get back to work (plan.md 2.6c). */
@@ -43,13 +44,16 @@ export function IdeaCapture({ onSaved }: { onSaved: (message: string) => void })
           <Lightbulb size={16} className="text-warning" />
           {t("ideas.capture")}
         </h2>
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && save()}
-          placeholder={t("ideas.capturePlaceholder")}
-          className="h-10 w-full rounded-ui border border-border bg-bg px-3 text-[14px] outline-none focus:border-accent"
-        />
+        <div className="flex items-center gap-1">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+            placeholder={t("ideas.capturePlaceholder")}
+            className="h-10 min-w-0 flex-1 rounded-ui border border-border bg-bg px-3 text-[14px] outline-none focus:border-accent"
+          />
+          <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
+        </div>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setOpen(false)}>
             {t("memory.cancel")}

@@ -548,6 +548,17 @@ const migrations: string[] = [
      data TEXT NOT NULL,
      created_at INTEGER NOT NULL
    );`,
+  // Faz 11: secrets found in commits.
+  `CREATE TABLE secret_findings (
+     project_id TEXT NOT NULL,
+     hash TEXT NOT NULL,
+     file TEXT NOT NULL,
+     line INTEGER NOT NULL,
+     hint TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     dismissed INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (project_id, hash, file, line)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

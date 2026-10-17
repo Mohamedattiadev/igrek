@@ -5,8 +5,10 @@ import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
+import { BackupPanel, UpdatePanel } from "../components/MaintenancePanels";
 import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
+import { askNotificationPermission } from "../lib/notify";
 import { useSettings } from "../lib/settings";
 import { startTour } from "../lib/tour";
 
@@ -173,6 +175,19 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Section title={t("notify.setting")} hint={t("notify.settingHint")}>
+          <Segmented
+            value={settings.notifications ? "on" : "off"}
+            onChange={async (value) => {
+              if (value === "on" && !(await askNotificationPermission())) return;
+              await update({ notifications: value === "on" });
+            }}
+            options={[
+              { value: "on", label: t("settings.on") },
+              { value: "off", label: t("settings.off") },
+            ]}
+          />
+        </Section>
         <Section title={t("settings.autoSummarize")} hint={t("settings.autoSummarizeHint")}>
           <Segmented
             value={settings.autoSummarize ? "on" : "off"}
@@ -220,6 +235,12 @@ export function SettingsPage() {
         </Section>
         <Section title={t("mcp.title")} hint={t("mcp.hint")}>
           <McpSetup />
+        </Section>
+        <Section title={t("backup.title")} hint={t("backup.hint")}>
+          <BackupPanel />
+        </Section>
+        <Section title={t("update.title")} hint={t("update.hint")}>
+          <UpdatePanel />
         </Section>
         <Section title={t("settings.system")} hint={t("settings.systemHint")}>
           <SystemCheck />

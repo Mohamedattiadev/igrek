@@ -106,7 +106,9 @@
     "notice_schedule": "Zamanlanmış iş bitti: sonuç hazır",
     "notice_missed": "Bilgisayar kapalıyken kaçırıldı: şimdi çalıştırayım mı?",
     "notice_proposed": "Onayını bekleyen zamanlanmış iş",
-    "notice_scheduleFailed": "Zamanlanmış iş bir sorunda durdu"
+    "notice_scheduleFailed": "Zamanlanmış iş bir sorunda durdu",
+    "notice_secret": "Bir commit'te sır var",
+    "notice_vuln": "Kullandığın bir pakette ciddi bilinen açık var"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -2500,5 +2502,112 @@
     "every_weekday": "Hafta içi her gün {{time}}",
     "every_week": "Her {{day}} {{time}}",
     "every_month": "Her ayın {{day}}. günü, {{time}}"
+  },
+  "voice": {
+    "start": "Konuş",
+    "stop": "Dinlemeyi bitir",
+    "tip": "Yazmak yerine konuş. Chrome'da tarayıcı sesi yazıya çevirmek için Google'ın konuşma servisine gönderir.",
+    "denied": "Bu sayfada mikrofon engelli",
+    "failed": "Anlaşılamadı; tekrar dene"
+  },
+  "notify": {
+    "setting": "Masaüstü bildirimleri",
+    "settingHint": "God Eye arka plandayken: bir sohbet bitti ya da seni bekliyor, bir terminal cevap bekliyor, onay bekleyen bir komut var, bir takım işi seni bekliyor, bir puan düştü, bir limit doluyor.",
+    "chatDone": "Sohbet bitti",
+    "chatWaiting": "Bir sohbet onayını bekliyor",
+    "terminalWaiting": "Bir terminal cevabını bekliyor",
+    "approval": "Bir komut onayını bekliyor",
+    "limit": "Limit doluyor",
+    "limitBody": "{{account}}: 5 saatlik limitin %{{pct}}'i kullanıldı",
+    "run_needs_you": "Bir takım işi seni bekliyor",
+    "run_ready": "Bir takım işi onayını bekliyor",
+    "run_failed": "Bir takım işi bir sorunda durdu",
+    "scoreDrop": "Bir projenin puanı düştü",
+    "scoreBody": "{{from}} → {{to}}"
+  },
+  "briefing": {
+    "title": "Sabah brifingi",
+    "write": "Yaz",
+    "again": "Yeniden yaz",
+    "writing": "Yazılıyor…",
+    "read": "Sesli oku",
+    "yesterday": "Dün",
+    "today": "Bugün",
+    "stuck": "Takılan ya da bekleyen",
+    "quiet": "Dün bir şey olmadı, bugün için de bir plan yok.",
+    "none": "Bugün henüz yazılmadı. Arka plan AI açıksa God Eye'ı açtığında yazılır."
+  },
+  "secrets": {
+    "title": "Commit'lerdeki sırlar",
+    "scan": "Şimdi tara",
+    "none": "Okunan commit'lerde API anahtarı, token ya da şifre bulunmadı.",
+    "found_one": "Commit'lerde 1 sır bulundu",
+    "found_other": "Commit'lerde {{count}} sır bulundu",
+    "dismiss": "Sır değil",
+    "howTo": "Önce anahtarı sağlayıcısında yenile: git geçmişinden silmek onu tekrar güvenli yapmaz.",
+    "guard": "Commit'leri koru",
+    "guardOn": "Commit'ler korunuyor",
+    "guardTip": "Bu repoya (commit'lenmeyen .git/hooks içine) sır ekleyen commit'i durduran bir pre-commit hook ekler. God Eye çalışmıyorsa commit'lere izin verir."
+  },
+  "deps": {
+    "title": "Bağımlılık izleyici",
+    "check": "Şimdi kontrol et",
+    "hint": "Her paketi en yeni sürümüyle karşılaştırır ve OSV.dev'de bilinen açıklara bakar. Günde bir kendiliğinden kontrol edilir.",
+    "summary": "{{total}} paket · {{vulnerable}} tanesinde bilinen açık · {{outdated}} tanesi geride",
+    "out_major": "Ana sürüm geride",
+    "out_minor": "Küçük sürüm geride",
+    "out_patch": "Yama geride",
+    "out_none": "Güncel",
+    "out_unknown": "Bilinmiyor",
+    "vulns_one": "1 açık",
+    "vulns_other": "{{count}} açık",
+    "source": "Sürümler npm ve PyPI kayıtlarından; açıklar ücretsiz ve açık veritabanı OSV.dev'den."
+  },
+  "templates": {
+    "new": "Yeni proje",
+    "name": "Ad (harf, rakam, tire)",
+    "parent": "Hangi klasöre (varsayılan: ~/Projects)",
+    "parentLabel": "Üst klasör",
+    "details": "Ne için? (isteğe bağlı, takıma yardım eder)",
+    "create": "Oluştur",
+    "creating": "Oluşturuluyor…",
+    "carries": "Diğer projelerinden {{conventions}} konvansiyon ve {{lessons}} dersle başlar (CLAUDE.md ve AGENTS.md içinde).",
+    "t_saas": "SaaS web uygulaması",
+    "d_saas": "Ön yüz, API, kayıt ve giriş, migration'lı veritabanı, testler.",
+    "t_api": "API sunucusu",
+    "d_api": "Rotalar, doğrulama, veritabanı katmanı, sağlık kontrolü, testler.",
+    "t_landing": "Tanıtım sayfası",
+    "d_landing": "Hızlı ve erişilebilir tek sayfa: giriş, özellikler, fiyat ve iletişim formu.",
+    "t_cli": "Komut satırı aracı",
+    "d_cli": "Argüman ayrıştırma, yardım, örnek bir komut, testler.",
+    "t_empty": "Boş",
+    "d_empty": "Sadece git ve konvansiyonların; kod yok."
+  },
+  "backup": {
+    "title": "Yedekleme",
+    "hint": "Proje hafızası, ders defteri, kütüphane metinleri, personalar ve defterleri, zamanlanmış işler ve fikirler tek dosyada. Hesaplar, anahtarlar ve .env yedekleri asla içinde olmaz. Geri yüklemek sadece eksik olanları ekler.",
+    "password": "Şifre (isteğe bağlı, dosyayı kilitler)",
+    "export": "Yedeği indir",
+    "importPassword": "Dosyanın şifresi, varsa",
+    "import": "Dosyadan geri yükle",
+    "saved": "Yedek indirildi.",
+    "restored_one": "Geri yüklendi: 1 kayıt eklendi",
+    "restored_other": "Geri yüklendi: {{count}} kayıt eklendi"
+  },
+  "update": {
+    "title": "Güncellemeler",
+    "hint": "God Eye kendi git reposunu 6 saatte bir senin git girişinle kontrol eder. Güncelleme çeker, kurar ve derler; sonra yeniden başlar.",
+    "available_one": "1 yeni değişiklik var",
+    "available_other": "{{count}} yeni değişiklik var",
+    "upToDate": "God Eye güncel.",
+    "checked": "{{when}} kontrol edildi",
+    "dirty": "God Eye'ın klasöründe yerel değişiklikler var; güncellemeden önce commit'le ya da kenara koy.",
+    "check": "Şimdi kontrol et",
+    "update": "Güncelle",
+    "updating": "Güncelleniyor…",
+    "failed": "Güncelleme durdu; kayda bak.",
+    "restart": "God Eye'ı yeniden başlat",
+    "docker": "Docker'da çalışıyor: git pull, ardından docker compose up -d --build ile güncelle.",
+    "none": "Bu God Eye kopyası bir git çalışma kopyası değil, kendini güncelleyemez."
   }
 }

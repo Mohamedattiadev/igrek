@@ -48,6 +48,19 @@ export interface Settings {
   enhanceShortcuts: Record<string, string>;
   /** How often personas read the news of their field (plan.md 7.1b). */
   knowledgeScan: "off" | "daily" | "weekly";
+  /** Desktop notifications from the browser (plan.md 11): finished, waiting, approvals, scores, limits. */
+  notifications: boolean;
+}
+
+/** The morning briefing (plan.md 11): yesterday, today, where things are stuck. */
+export interface Briefing {
+  day: string;
+  yesterday: string[];
+  today: string[];
+  stuck: string[];
+  /** One sentence: what to start with. */
+  focus: string;
+  at: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -67,6 +80,7 @@ export const DEFAULT_SETTINGS: Settings = {
   enhanceLanguage: "en",
   enhanceShortcuts: {},
   knowledgeScan: "weekly",
+  notifications: false,
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */

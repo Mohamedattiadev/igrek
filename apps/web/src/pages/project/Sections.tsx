@@ -47,6 +47,7 @@ import { useSettings } from "../../lib/settings";
 import { ApiMapView } from "./ApiMap";
 import { EnvView } from "./EnvView";
 import { ImportCard, ScoringDialog, ToolsCard } from "./SectionsExtras";
+import { DepsCard, SecretsCard } from "./Watchers";
 
 export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   architecture: Network,
@@ -352,6 +353,8 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
       </Card>
 
       {category === "testing" && <CoverageCard projectId={project.id} />}
+      {category === "security" && <SecretsCard projectId={project.id} />}
+      {category === "dependencies" && <DepsCard projectId={project.id} />}
 
       <Card className="space-y-3 p-pad">
         <div className="flex items-center gap-2">

@@ -11,7 +11,9 @@ import { geminiAdapter } from "./adapters/gemini";
 import { createApp } from "./app";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
+import { Backups } from "./backup";
 import { Board } from "./board";
+import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { Chats } from "./chats";
@@ -27,6 +29,7 @@ import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
 import { syncExamples } from "./examples";
+import { registerExtrasRoutes } from "./extras-routes";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { registerFlowRoutes } from "./flow-routes";
@@ -66,6 +69,9 @@ import { Terminals } from "./terminals";
 import { registerTesterRoutes } from "./tester-routes";
 import { Testers } from "./testers";
 import { Translator } from "./translator";
+import { Updater } from "./update";
+import { registerWatcherRoutes } from "./watcher-routes";
+import { DependencyWatcher, SecretScanner } from "./watchers";
 
 // Everything God Eye writes (database, keys) is readable only by you.
 process.umask(0o077);
@@ -238,6 +244,26 @@ const schedules = new Schedules(
   () => readSettings(db),
   (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
 );
+const secretScanner = new SecretScanner(sqlite, store);
+const depWatcher = new DependencyWatcher(sqlite, store);
+// New commits are read for secrets every 10 minutes; dependencies are checked once a day.
+setTimeout(() => secretScanner.scanAll(), 60_000);
+setInterval(() => secretScanner.scanAll(), 10 * 60_000);
+setTimeout(() => void depWatcher.daily(), 3 * 60_000);
+setInterval(() => void depWatcher.daily(), 60 * 60_000);
+const updater = new Updater();
+// New versions of God Eye: checked shortly after start, then every 6 hours (git fetch with your own credentials).
+setTimeout(() => updater.check(), 2 * 60_000);
+setInterval(() => updater.check(), 6 * 60 * 60_000);
+const briefings = new Briefings(
+  sqlite,
+  store,
+  flows,
+  schedules,
+  lessons,
+  () => readSettings(db),
+  (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
+);
 // Scheduled work: checked every minute; times missed while the computer was off are asked about, not run.
 setInterval(() => schedules.tick(), 60_000);
 setTimeout(() => schedules.tick(), 20_000);
@@ -259,6 +285,8 @@ insight.extraNotices = () => [
   ...sync.mentionNotices(),
   ...knowledge.notices(),
   ...schedules.notices(),
+  ...secretScanner.notices(),
+  ...depWatcher.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
     .list()
@@ -318,6 +346,24 @@ const app = createApp({
     registerFlowRoutes(hono, { flows, board, store });
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
+    registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
+    registerWatcherRoutes(hono, {
+      secrets: secretScanner,
+      deps: depWatcher,
+      store,
+      dataDir: config.dataDir,
+      port: config.publicPort,
+    });
+    hono.get("/api/briefing", async (c) => {
+      try {
+        // Without background AI only an already written briefing is shown, unless the user asks.
+        const refresh = c.req.query("refresh") === "1";
+        if (!refresh && !readSettings(db).autoSummarize) return c.json(briefings.cached() ?? null);
+        return c.json(await briefings.get(refresh));
+      } catch (err) {
+        return c.json({ error: (err as Error).message }, 502);
+      }
+    });
     registerPersonaRoutes(hono, {
       personas,
       meetings,

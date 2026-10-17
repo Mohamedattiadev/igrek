@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { cn } from "../lib/cn";
 import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
+import { useDesktopNotifications } from "../lib/notify";
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
@@ -147,6 +148,7 @@ export function Shell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [toast, setToast] = useState<string>();
   const [zen, setZen] = useState(readZen);
+  useDesktopNotifications();
   useEffect(() => {
     const flip = () =>
       setZen((on) => {

@@ -4,6 +4,7 @@ import type {
   Approval,
   AskAnswer,
   BoardTask,
+  Briefing,
   Category,
   CategoryDetail,
   ChatInfo,
@@ -104,6 +105,19 @@ export interface PackStatus {
   done: number;
   total: number;
   error?: string;
+}
+
+export interface DependencyReport {
+  projectId: string;
+  at: number;
+  deps: {
+    name: string;
+    ecosystem: "npm" | "PyPI";
+    current: string;
+    latest?: string;
+    outdated: "major" | "minor" | "patch" | "none" | "unknown";
+    vulns: { id: string; summary: string; severity?: string }[];
+  }[];
 }
 
 export interface GitBranchInfo {
@@ -253,6 +267,58 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  secrets: (projectId: string) =>
+    request<{
+      findings: { projectId: string; hash: string; file: string; line: number; hint: string; at: number }[];
+      guard: boolean;
+    }>(`/api/projects/${projectId}/secrets`),
+  scanSecrets: (projectId: string) =>
+    request<{ found: number }>(`/api/projects/${projectId}/secrets/scan`, { method: "POST" }),
+  dismissSecret: (projectId: string, f: { hash: string; file: string; line: number }) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/secrets/dismiss`, { method: "POST", body: JSON.stringify(f) }),
+  installSecretGuard: (projectId: string) =>
+    request<{ ok: boolean }>(`/api/projects/${projectId}/secret-guard`, { method: "POST" }),
+  deps: (projectId: string) => request<DependencyReport | null>(`/api/projects/${projectId}/deps`),
+  checkDeps: (projectId: string) => request<DependencyReport>(`/api/projects/${projectId}/deps`, { method: "POST" }),
+  templates: () =>
+    request<{ templates: string[]; practices: { conventions: string[]; lessons: string[] } }>("/api/templates"),
+  newProject: (body: { name: string; parent: string; template: string; details?: string }) =>
+    request<{ projectId: string; path: string; runId?: string }>("/api/projects/new", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  updateStatus: (check = false) =>
+    request<{
+      mode: "git" | "docker" | "none";
+      behind: number;
+      commits: string[];
+      dirty: boolean;
+      branch?: string;
+      checkedAt: number;
+      error?: string;
+    }>(`/api/update${check ? "?check=1" : ""}`),
+  runUpdate: () => request<{ ok: boolean; log: string }>("/api/update", { method: "POST" }),
+  restartApp: () => request<{ ok: boolean }>("/api/update/restart", { method: "POST" }),
+  exportBackup: async (password?: string) => {
+    const res = await fetch("/api/backup/export", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) throw new Error(friendly(res.status));
+    return res.blob();
+  },
+  importBackup: async (file: File, password?: string) => {
+    const form = new FormData();
+    form.set("file", file);
+    if (password) form.set("password", password);
+    const res = await fetch("/api/backup/import", { method: "POST", body: form, credentials: "same-origin" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(friendly(res.status, body.error));
+    return body as { added: Record<string, number> };
+  },
+  briefing: (refresh = false) => request<Briefing | null>(`/api/briefing${refresh ? "?refresh=1" : ""}`),
   preview: (projectId: string) =>
     request<{ server: DevServerInfo | null; plan: { script: string; framework: string; vite: boolean } | null }>(
       `/api/projects/${projectId}/preview`,

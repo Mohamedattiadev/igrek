@@ -106,7 +106,9 @@
     "notice_schedule": "Scheduled work finished: the result is ready",
     "notice_missed": "Missed while the computer was off: run it now?",
     "notice_proposed": "Scheduled work waiting for your OK",
-    "notice_scheduleFailed": "Scheduled work stopped on a problem"
+    "notice_scheduleFailed": "Scheduled work stopped on a problem",
+    "notice_secret": "A secret was committed",
+    "notice_vuln": "A package you use has a serious known vulnerability"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -2500,5 +2502,112 @@
     "every_weekday": "Weekdays {{time}}",
     "every_week": "Every {{day}} {{time}}",
     "every_month": "Day {{day}} of every month, {{time}}"
+  },
+  "voice": {
+    "start": "Speak",
+    "stop": "Stop listening",
+    "tip": "Speak instead of typing. In Chrome the browser sends the audio to Google's speech service to turn it into text.",
+    "denied": "The microphone is blocked for this page",
+    "failed": "Could not understand; try again"
+  },
+  "notify": {
+    "setting": "Desktop notifications",
+    "settingHint": "When God Eye is in the background: a chat finished or waits for you, a terminal waits for an answer, an approval is pending, a team run needs you, a score dropped, a limit is filling up.",
+    "chatDone": "Chat finished",
+    "chatWaiting": "A chat waits for your approval",
+    "terminalWaiting": "A terminal waits for your answer",
+    "approval": "A command waits for your approval",
+    "limit": "Limit filling up",
+    "limitBody": "{{account}}: {{pct}}% of the 5-hour limit used",
+    "run_needs_you": "A team run waits for you",
+    "run_ready": "A team run is ready for your OK",
+    "run_failed": "A team run stopped on a problem",
+    "scoreDrop": "A project score dropped",
+    "scoreBody": "From {{from}} to {{to}}"
+  },
+  "briefing": {
+    "title": "Morning briefing",
+    "write": "Write it",
+    "again": "Write again",
+    "writing": "Writing…",
+    "read": "Read aloud",
+    "yesterday": "Yesterday",
+    "today": "Today",
+    "stuck": "Stuck or waiting",
+    "quiet": "Nothing happened yesterday and nothing is planned for today.",
+    "none": "Not written yet today. With background AI on it is written when you open God Eye."
+  },
+  "secrets": {
+    "title": "Secrets in commits",
+    "scan": "Scan now",
+    "none": "No API keys, tokens or passwords found in the commits read so far.",
+    "found_one": "1 secret found in commits",
+    "found_other": "{{count}} secrets found in commits",
+    "dismiss": "Not a secret",
+    "howTo": "Rotate (replace) the key at its provider first: removing it from git history does not make it safe again.",
+    "guard": "Guard commits",
+    "guardOn": "Commits are guarded",
+    "guardTip": "Adds a pre-commit hook to this repo (in .git/hooks, not committed) that stops a commit adding a secret. Without God Eye running it lets commits through."
+  },
+  "deps": {
+    "title": "Dependency watcher",
+    "check": "Check now",
+    "hint": "Compares each package with its newest version and looks up known vulnerabilities on OSV.dev. Checked once a day on its own.",
+    "summary": "{{total}} packages · {{vulnerable}} with known vulnerabilities · {{outdated}} behind",
+    "out_major": "Major behind",
+    "out_minor": "Minor behind",
+    "out_patch": "Patch behind",
+    "out_none": "Up to date",
+    "out_unknown": "Unknown",
+    "vulns_one": "1 vulnerability",
+    "vulns_other": "{{count}} vulnerabilities",
+    "source": "Versions from the npm and PyPI registries; vulnerabilities from OSV.dev, the free open database."
+  },
+  "templates": {
+    "new": "New project",
+    "name": "Name (letters, numbers, dashes)",
+    "parent": "Folder it goes in (default: ~/Projects)",
+    "parentLabel": "Parent folder",
+    "details": "What is it for? (optional, helps the team)",
+    "create": "Create",
+    "creating": "Creating…",
+    "carries": "It starts with {{conventions}} conventions and {{lessons}} lessons from your other projects (in CLAUDE.md and AGENTS.md).",
+    "t_saas": "SaaS web app",
+    "d_saas": "Front end, API, sign-up and login, database with migrations, tests.",
+    "t_api": "API server",
+    "d_api": "Routes, validation, database layer, health check, tests.",
+    "t_landing": "Landing page",
+    "d_landing": "One fast, accessible page with hero, features, pricing and a contact form.",
+    "t_cli": "Command-line tool",
+    "d_cli": "Argument parsing, help, one example command, tests.",
+    "t_empty": "Empty",
+    "d_empty": "Just git and your conventions; no code."
+  },
+  "backup": {
+    "title": "Backup",
+    "hint": "One file with project memory, the lessons book, the library's texts, personas and their notebooks, schedules and ideas. Accounts, keys and .env backups are never in it. Restoring only adds what is missing.",
+    "password": "Password (optional, locks the file)",
+    "export": "Download backup",
+    "importPassword": "Password of the file, if it has one",
+    "import": "Restore from a file",
+    "saved": "Backup downloaded.",
+    "restored_one": "Restored: 1 item added",
+    "restored_other": "Restored: {{count}} items added"
+  },
+  "update": {
+    "title": "Updates",
+    "hint": "God Eye checks its own git repository every 6 hours with your git login. Updating pulls, installs and builds; then it restarts.",
+    "available_one": "1 new change is available",
+    "available_other": "{{count}} new changes are available",
+    "upToDate": "God Eye is up to date.",
+    "checked": "checked {{when}}",
+    "dirty": "God Eye's folder has local changes; commit or put them aside before updating.",
+    "check": "Check now",
+    "update": "Update",
+    "updating": "Updating…",
+    "failed": "The update stopped; see the log.",
+    "restart": "Restart God Eye",
+    "docker": "Running in Docker: update with git pull, then docker compose up -d --build.",
+    "none": "This copy of God Eye is not a git checkout, so it can't update itself."
   }
 }

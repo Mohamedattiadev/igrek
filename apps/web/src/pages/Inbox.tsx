@@ -258,7 +258,9 @@ export function InboxPage() {
                                         n.kind === "missed" ||
                                         n.kind === "proposed"
                                       ? AlarmClock
-                                      : KeyRound;
+                                      : n.kind === "vuln"
+                                        ? PackageIcon
+                                        : KeyRound;
                     return (
                       <Link
                         key={n.id}

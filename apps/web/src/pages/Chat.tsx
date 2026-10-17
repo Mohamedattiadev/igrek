@@ -43,6 +43,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel } from "../components/Enhance";
+import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
@@ -733,6 +734,7 @@ export function ChatPage() {
                 }}
               />
               <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
+              <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
               {info && !info.sessionId && chat.events.length === 0 && personas.length > 0 && (
                 <select
                   value={info.persona?.id ?? ""}

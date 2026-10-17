@@ -1,8 +1,9 @@
 import type { ProjectListItem } from "@godeye/core";
-import { ArrowDown, ArrowUp, FolderKanban, FolderPlus, GitBranch, Search, Settings } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, FolderKanban, FolderPlus, GitBranch, Search, Settings, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
+import { BriefingCard } from "../components/BriefingCard";
 import { LoadError } from "../components/LoadError";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
@@ -139,6 +140,112 @@ function AddProject() {
   );
 }
 
+const TEMPLATE_IDS = ["saas", "api", "landing", "cli", "empty"] as const;
+
+/** A new project from a template, carrying your conventions and lessons (plan.md 11). */
+function NewProject() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [parent, setParent] = useState("");
+  const [template, setTemplate] = useState<(typeof TEMPLATE_IDS)[number]>("saas");
+  const [details, setDetails] = useState("");
+  const [practices, setPractices] = useState<{ conventions: string[]; lessons: string[] }>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    if (open)
+      api
+        .templates()
+        .then((r) => setPractices(r.practices))
+        .catch(() => undefined);
+  }, [open]);
+  const create = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      const made = await api.newProject({ name, parent, template, details });
+      setOpen(false);
+      navigate(made.runId ? `/runs/${made.runId}` : `/p/${made.projectId}`);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
+  return (
+    <>
+      <Button size="sm" variant="ghost" icon={Sparkles} onClick={() => setOpen(true)}>
+        {t("templates.new")}
+      </Button>
+      <Dialog open={open} onClose={() => setOpen(false)} label={t("templates.new")}>
+        <div className="space-y-3 p-5">
+          <h2 className="text-[15px] font-semibold">{t("templates.new")}</h2>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t("templates.name")}
+            aria-label={t("templates.name")}
+            className={field}
+            autoFocus
+          />
+          <input
+            value={parent}
+            onChange={(e) => setParent(e.target.value)}
+            placeholder={t("templates.parent")}
+            aria-label={t("templates.parentLabel")}
+            className={`${field} font-mono`}
+          />
+          <div className="grid gap-1.5">
+            {TEMPLATE_IDS.map((id) => (
+              <label
+                key={id}
+                className={`flex cursor-pointer items-start gap-2 rounded-ui border p-2 ${template === id ? "border-accent bg-accent-soft/40" : "border-border"}`}
+              >
+                <input
+                  type="radio"
+                  name="template"
+                  checked={template === id}
+                  onChange={() => setTemplate(id)}
+                  className="mt-1"
+                />
+                <span>
+                  <span className="block text-[13px] font-medium">{t(`templates.t_${id}`)}</span>
+                  <span className="block text-[11px] text-fg-subtle">{t(`templates.d_${id}`)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <textarea
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            rows={2}
+            placeholder={t("templates.details")}
+            aria-label={t("templates.details")}
+            className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
+          />
+          {practices && (
+            <p className="text-[11px] text-fg-subtle">
+              {t("templates.carries", { conventions: practices.conventions.length, lessons: practices.lessons.length })}
+            </p>
+          )}
+          {error && <p className="text-xs text-danger">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              {t("memory.cancel")}
+            </Button>
+            <Button variant="primary" onClick={() => void create()} disabled={busy || !name.trim()}>
+              {busy ? t("templates.creating") : t("templates.create")}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+    </>
+  );
+}
+
 /** One line: what happened today in every workspace. */
 function TodayStrip() {
   const { t } = useTranslation();
@@ -201,6 +308,7 @@ export function ProjectsPage() {
         actions={
           projects && projects.length > 0 ? (
             <div className="flex items-center gap-2">
+              <NewProject />
               <AddProject />
               <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
                 <Search size={13} className="text-fg-subtle" />
@@ -236,7 +344,8 @@ export function ProjectsPage() {
         />
       ) : (
         <div className="p-6">
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
+            <BriefingCard />
             <TodayStrip />
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">

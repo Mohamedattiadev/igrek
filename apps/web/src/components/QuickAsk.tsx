@@ -8,6 +8,7 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useTerminals } from "../lib/live";
 import { EnhanceButton, EnhancePanel } from "./Enhance";
+import { MicButton } from "./MicButton";
 import { maskSecrets, SecretGuard } from "./SecretGuard";
 import { Badge, Kbd, Segmented } from "./ui";
 
@@ -277,6 +278,7 @@ export function QuickAsk() {
             placeholder={t("quick.placeholder")}
             className="min-w-0 flex-1 resize-none bg-transparent px-1.5 text-[13px] outline-none placeholder:text-fg-subtle"
           />
+          <MicButton onText={(text) => setInput((v) => (v ? `${v} ${text}` : text))} />
           <EnhanceButton onClick={() => input.trim() && setEnhancing(input.trim())} disabled={!input.trim()} />
           <button
             type="button"
