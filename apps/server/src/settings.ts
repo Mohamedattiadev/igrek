@@ -36,6 +36,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     ["editorKeymap", ["vscode", "jetbrains", "vim", "emacs"]],
     ["enhanceLanguage", ["en", "user"]],
     ["knowledgeScan", ["off", "daily", "weekly"]],
+    ["localModel", ["off", "limit", "always"]],
   ];
   for (const [key, allowed] of enums) {
     if (key in body) {
@@ -51,6 +52,22 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
       .slice(0, 100)
       .map(([k, v]) => [k.trim().toLowerCase(), String(v).trim().slice(0, 200)]);
     patch.enhanceShortcuts = Object.fromEntries(entries);
+  }
+  if ("localModelName" in body) {
+    if (typeof body.localModelName !== "string" || !/^[\w.:/-]{0,80}$/.test(body.localModelName))
+      return { error: "Invalid localModelName" };
+    patch.localModelName = body.localModelName;
+  }
+  if ("localModelUrl" in body) {
+    // Only this computer or the local network: the point is that nothing leaves.
+    const url = String(body.localModelUrl ?? "");
+    if (
+      !/^http:\/\/(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?\/?$/.test(
+        url,
+      )
+    )
+      return { error: "Ollama must run on this computer or your local network" };
+    patch.localModelUrl = url.replace(/\/$/, "");
   }
   if ("allowedFolders" in body) {
     const folders = body.allowedFolders;

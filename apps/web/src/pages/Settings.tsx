@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
-import { BackupPanel, UpdatePanel } from "../components/MaintenancePanels";
+import { BackupPanel, LocalModelPanel, UpdatePanel } from "../components/MaintenancePanels";
 import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { askNotificationPermission } from "../lib/notify";
@@ -235,6 +235,9 @@ export function SettingsPage() {
         </Section>
         <Section title={t("mcp.title")} hint={t("mcp.hint")}>
           <McpSetup />
+        </Section>
+        <Section title={t("localModel.title")} hint={t("localModel.hint")}>
+          <LocalModelPanel />
         </Section>
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />

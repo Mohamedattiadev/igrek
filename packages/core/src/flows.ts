@@ -61,8 +61,10 @@ export interface FlowRun {
   /** What the user asked for: "Add user login". */
   request: string;
   engine: "godeye" | "archon";
-  status: "running" | "needs_you" | "ready" | "done" | "failed" | "stopped" | "merged" | "discarded";
+  status: "running" | "needs_you" | "ready" | "done" | "failed" | "stopped" | "merged" | "discarded" | "waiting_limit";
   nodes: FlowNodeState[];
+  /** Waiting for the AI plan's limit to reset (plan.md 13.1 "Limit kuyruğu"): it goes on by itself at this time. */
+  resumeAt?: number;
   /** The run's own copy of the repo and branch. Nothing reaches your branch until you approve. */
   worktree?: { path: string; branch: string; base: string; baseBranch?: string };
   /** Changed files at the end, for the approval screen. */
@@ -91,4 +93,14 @@ export interface BoardTask {
   order: number;
   createdAt: number;
   updatedAt: number;
+}
+
+/** When a "limit reached" message says the limit resets (epoch after "|", or in an hour). */
+export function limitResetAt(message: string, now = Date.now()): number {
+  const epoch = message.match(/\|(\d{10})\b/);
+  if (epoch?.[1]) {
+    const at = Number(epoch[1]) * 1000;
+    if (at > now && at < now + 8 * 86_400_000) return at;
+  }
+  return now + 60 * 60_000;
 }

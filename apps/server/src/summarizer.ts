@@ -12,6 +12,7 @@ import type {
 import { languages } from "@godeye/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
+import { LIMIT_REACHED, type LocalModelConfig, ollamaChat } from "./localmodel";
 import type { Store } from "./store";
 
 /** Which model each kind of background job uses (plan.md 1.6): cheap work goes to the cheap model. */
@@ -123,6 +124,18 @@ export function parseRateLimit(message: Record<string, unknown>, now = Date.now(
  * not persisted and no tools are available, so it can only read and write text.
  * Output is streamed so the limit report that comes with every call is kept too.
  */
+/**
+ * The local model for small jobs (plan.md 13.1), set by the server from the settings. `pick` says
+ * whether to use it now: always, or only while Claude's limit is full.
+ */
+export const localModel: {
+  pick: (limited: boolean) => LocalModelConfig | undefined;
+  /** When Claude last said its limit was reached. */
+  limitedUntil: number;
+} = { pick: () => undefined, limitedUntil: 0 };
+
+const SMALL_MODELS = new Set(["haiku", "claude-haiku-4-5"]);
+
 export async function runClaude(
   prompt: string,
   cwd: string,
@@ -132,6 +145,35 @@ export async function runClaude(
   accountId?: string,
   /** Pictures that go with the prompt (PNG/JPEG, base64): sent as one stream-json message. */
   images: { mediaType: string; data: string }[] = [],
+): Promise<string> {
+  // Small text-only jobs can go to the local model (always, or while the limit is full).
+  const small =
+    SMALL_MODELS.has(model) && !images.length && !extraArgs.includes("--resume") && !extraArgs.includes("--tools");
+  const local = small ? localModel.pick(Date.now() < localModel.limitedUntil) : undefined;
+  if (local) {
+    const system = extraArgs[extraArgs.indexOf("--append-system-prompt") + 1];
+    return ollamaChat(local, prompt, extraArgs.includes("--append-system-prompt") ? system : undefined);
+  }
+  try {
+    return await runClaudeNow(prompt, cwd, register, model, extraArgs, accountId, images);
+  } catch (err) {
+    if (!LIMIT_REACHED.test((err as Error).message)) throw err;
+    // Claude's limit is full: remember it for an hour, and finish this small job locally if allowed.
+    localModel.limitedUntil = Date.now() + 60 * 60_000;
+    const fallback = small ? localModel.pick(true) : undefined;
+    if (!fallback) throw err;
+    return ollamaChat(fallback, prompt);
+  }
+}
+
+async function runClaudeNow(
+  prompt: string,
+  cwd: string,
+  register: StopRegistry,
+  model: string,
+  extraArgs: string[],
+  accountId: string | undefined,
+  images: { mediaType: string; data: string }[],
 ): Promise<string> {
   const account = claudeAccount.env(accountId);
   // Our own small jobs run in an empty folder. Stop git from finding a repo above it (a dev
@@ -196,6 +238,9 @@ export async function runClaude(
         if (message.type === "rate_limit_event") {
           const info = parseRateLimit(message);
           if (info) claudeAccount.onRateLimit(account.accountId, info);
+          // A full five-hour window: small jobs may go local until it resets.
+          if (info?.fiveHour !== undefined && info.fiveHour >= 0.99)
+            localModel.limitedUntil = info.fiveHourResetsAt ?? Date.now() + 60 * 60_000;
         } else if (message.type === "result") result = message as typeof result;
       } catch {
         // Not JSON; ignore.

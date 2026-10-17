@@ -19,6 +19,7 @@ export const RUN_TONE = {
   failed: "danger",
   stopped: "neutral",
   discarded: "neutral",
+  waiting_limit: "warning",
 } as const;
 
 function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; onDragStart: (e: DragEvent) => void }) {

@@ -2472,7 +2472,11 @@
     "desc_task": "One AI step does the job; if code changed, the checks must pass.",
     "desc_check": "Build and tests, and a security review.",
     "desc_deps": "Patch and minor updates, tests run; majors only listed.",
-    "desc_report": "A short read-only report."
+    "desc_report": "A short read-only report.",
+    "name_spec": "Spec first (big feature)",
+    "desc_spec": "Requirements, design, then tasks with acceptance criteria are written into docs/specs and wait for your OK; only then the team codes, and QA checks every acceptance criterion.",
+    "status_waiting_limit": "Waiting for the limit",
+    "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. God Eye never switches accounts on its own."
   },
   "schedules": {
     "title": "Scheduled work",
@@ -3110,5 +3114,23 @@
     "emptyBody": "Install one from a folder or a git URL.",
     "noneHere": "No plugins for projects",
     "noneHereBody": "Turn on a plugin with project pages or commands on Tools > Plugins."
+  },
+  "localModel": {
+    "title": "Local model (Ollama)",
+    "hint": "A free model on this computer for God Eye's own small jobs: session summaries, sorting, translation. Coding agents always use your own AI accounts. Install Ollama (ollama.com) and pull a model, e.g. ollama pull qwen2.5:7b.",
+    "when": "When",
+    "off": "Off",
+    "limit": "When the limit is full",
+    "limitTip": "Small jobs move to the local model while Claude's limit is full, and come back when it resets.",
+    "always": "Always for small jobs",
+    "alwaysTip": "Summaries, sorting and translation always run locally; Claude is kept for real work.",
+    "url": "Ollama address",
+    "model": "Model",
+    "pick": "Pick a model",
+    "found_one": "Ollama is running with 1 model.",
+    "found_other": "Ollama is running with {{count}} models.",
+    "noModels": "Ollama is running but has no model. Pull one: ollama pull qwen2.5:7b",
+    "notRunning": "Ollama is not running at this address.",
+    "limitedNow": "Claude's limit is full right now: small jobs are going local."
   }
 }

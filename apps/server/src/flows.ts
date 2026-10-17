@@ -1,13 +1,22 @@
 import type { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { FlowDef, FlowNode, FlowNodeState, FlowRun, Persona, ToolResult } from "@godeye/core";
+import {
+  type FlowDef,
+  type FlowNode,
+  type FlowNodeState,
+  type FlowRun,
+  limitResetAt,
+  type Persona,
+  type ToolResult,
+} from "@godeye/core";
 import { parse as parseYaml } from "yaml";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { BUILTIN_FLOWS } from "./flows-builtin";
 import { SHIP_ASK_RULES } from "./guards";
 import { planTools, runTool } from "./insight/tools";
+import { LIMIT_REACHED } from "./localmodel";
 import type { Personas } from "./personas";
 import type { Store } from "./store";
 import { sandboxAvailable } from "./system";
@@ -393,6 +402,24 @@ export class Flows {
     this.wake.get(runId)?.();
   }
 
+  /** Runs waiting for a limit go on once it has reset (checked every minute). */
+  resumeWaiting(now = Date.now()): string[] {
+    const resumed: string[] = [];
+    for (const run of this.list()) {
+      if (run.status !== "waiting_limit" || (run.resumeAt ?? 0) > now) continue;
+      // Steps still running in parallel when the limit came finish on their own; wait for them.
+      if (run.nodes.some((n) => n.status === "running")) continue;
+      const def = this.def(run);
+      if (!def) continue;
+      run.status = "running";
+      run.resumeAt = undefined;
+      this.save(run);
+      void this.drive(run.id, def);
+      resumed.push(run.id);
+    }
+    return resumed;
+  }
+
   /** Runs failed or stopped nodes again from where they were. */
   retry(runId: string): FlowRun {
     const run = this.get(runId);
@@ -686,6 +713,19 @@ End with a short summary of what you did, for the next step.${node.review ? "\nY
       const current = this.get(runId);
       if (!current || current.status === "stopped") return;
       const state = current.nodes.find((n) => n.id === node.id) as FlowNodeState;
+      // The plan's limit is full: nothing is lost, the step waits and the run goes on when it resets.
+      if (LIMIT_REACHED.test(message) && !(err as { gate?: boolean }).gate) {
+        Object.assign(state, {
+          status: "waiting",
+          attempts: Math.max(0, state.attempts - 1),
+          activity: undefined,
+          error: undefined,
+        });
+        current.status = "waiting_limit";
+        current.resumeAt = Math.max(current.resumeAt ?? 0, limitResetAt(message));
+        this.save(current);
+        return;
+      }
       Object.assign(state, {
         endedAt: Date.now(),
         output: message.slice(-6000),

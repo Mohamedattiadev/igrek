@@ -96,6 +96,76 @@ nodes:
       Security: $security.output
       DevOps: $devops.output
 `,
+  spec: `name: spec
+description: "Spec first: requirements, design, then tasks with acceptance criteria are written into docs/specs and wait for your OK; only then the team codes, and QA checks every acceptance criterion before you approve."
+nodes:
+  - id: requirements
+    title: Requirements
+    persona: product-manager
+    prompt: |
+      The user wants: $REQUEST
+      Read the project first. Pick a short kebab-case name for this feature and create docs/specs/<name>/requirements.md with: the problem in two sentences, who it is for, user stories, numbered requirements written as "WHEN … THE SYSTEM SHALL …", what is out of scope, and open questions. Write only that file.
+      End your answer with the line: SPEC: docs/specs/<name>
+      $FEEDBACK
+  - id: design
+    title: Design
+    persona: architect
+    depends_on: [requirements]
+    prompt: |
+      Read the requirements ($requirements.output) and write design.md in the same folder: data model changes, API shape, the files to create or change, how each numbered requirement is met, risks and alternatives you rejected. Keep it as small as the requirements allow. Write only that file.
+      $FEEDBACK
+  - id: tasks
+    title: Tasks and acceptance criteria
+    persona: pm-lead
+    depends_on: [design]
+    prompt: |
+      From requirements.md and design.md in that folder ($requirements.output), write tasks.md: small numbered tasks in order (each names the files it touches and the requirement numbers it covers), then "Acceptance criteria" as a checklist of "- [ ]" items a tester can check one by one. Write only that file.
+      $FEEDBACK
+  - id: approve-spec
+    title: Your OK on the spec
+    depends_on: [tasks]
+    wait:
+      attention: Read requirements.md, design.md and tasks.md in docs/specs. Approve to start coding, or send it back with what to change.
+    on_fail: { back_to: [requirements, design, tasks], max: 3 }
+  - id: backend
+    title: Backend
+    persona: backend
+    depends_on: [approve-spec]
+    worktree: own
+    prompt: |
+      Do the backend and data tasks of tasks.md in the spec folder ($requirements.output), in order, with tests. If none are yours, change nothing and say so.
+      $FEEDBACK
+  - id: frontend
+    title: Frontend
+    persona: frontend
+    depends_on: [approve-spec]
+    worktree: own
+    prompt: |
+      Do the frontend tasks of tasks.md in the spec folder ($requirements.output), in order, matching the app's style. If none are yours, change nothing and say so.
+      $FEEDBACK
+  - id: checks
+    title: Build and tests
+    depends_on: [backend, frontend]
+    checks: true
+    on_fail: { back_to: [backend, frontend], max: 2 }
+  - id: acceptance
+    title: Acceptance check
+    persona: qa
+    depends_on: [checks]
+    review: true
+    on_fail: { back_to: [backend, frontend], max: 2 }
+    prompt: |
+      Go through every acceptance criterion in tasks.md of the spec folder ($requirements.output). For each, check the code (and run what you can), then mark it "- [x]" in tasks.md if it is met; leave "- [ ]" and say why if not. Change only tasks.md.
+  - id: summary
+    title: Summary for you
+    persona: pm-lead
+    depends_on: [acceptance]
+    prompt: |
+      Write the summary the user reads before approving: which requirements are done, which acceptance criteria passed or not, what the checks said, and what is left. Short, plain words. Do not change files.
+      Request: $REQUEST
+      Acceptance: $acceptance.output
+      Checks: $checks.output
+`,
   fix: `name: fix
 description: "A developer finds and fixes a bug in its own copy; the checks must pass; QA confirms; you approve."
 nodes:

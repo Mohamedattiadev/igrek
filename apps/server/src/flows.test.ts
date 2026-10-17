@@ -143,3 +143,32 @@ describe("team run", () => {
     expect(flows.get(run.id)?.status).toBe("discarded");
   });
 });
+
+describe("limit queue", () => {
+  test("a full limit puts the run on hold instead of failing it; it goes on by itself after the reset", async () => {
+    let calls = 0;
+    const reset = Math.floor(Date.now() / 1000) + 3 * 3600;
+    const agent: AgentRun = async ({ cwd }) => {
+      calls++;
+      if (calls === 1) throw new Error(`Claude AI usage limit reached|${reset}`);
+      writeFileSync(join(cwd, "fix.ts"), "export const ok = true;\n");
+      return "Fixed";
+    };
+    const { flows, projectId } = setup(agent, async () => [pass("test")]);
+    const run = flows.start({ projectId, flow: "task", request: "Rename the helper" });
+    const waiting = await until(
+      () => flows.get(run.id),
+      (r) => r.status === "waiting_limit",
+    );
+    expect(waiting.resumeAt).toBe(reset * 1000);
+    expect(waiting.nodes.every((n) => n.status !== "failed")).toBe(true);
+    expect(flows.resumeWaiting(reset * 1000 - 1000)).toEqual([]);
+    expect(flows.resumeWaiting(reset * 1000 + 1)).toEqual([run.id]);
+    const done = await until(
+      () => flows.get(run.id),
+      (r) => r.status === "ready",
+    );
+    expect(done.nodes.find((n) => n.status === "done")?.attempts).toBe(1);
+    expect(calls).toBe(2);
+  });
+});

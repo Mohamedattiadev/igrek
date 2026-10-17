@@ -1022,11 +1022,11 @@ god-eye/
 ### Faz 13 — 🚀 İleri Seviye Öneriler
 
 #### 13.1 AI ve agent'lar
-- [ ] 🆓 **Lokal model desteği (Ollama):** limit dolunca veya basit işlerde ücretsiz lokal modelle devam etme (özet, sınıflandırma, çeviri)
-- [ ] ⏳ **Limit kuyruğu:** limit dolunca işler kaybolmaz. Kuyruğa girer ve limit sıfırlanınca otomatik devam eder (hesap değiştirmeye yasal ve güvenli bir alternatif)
+- [x] 🆓 **Lokal model desteği (Ollama):** limit dolunca veya basit işlerde ücretsiz lokal modelle devam etme (özet, sınıflandırma, çeviri) — *Ayarlar > Lokal model: Kapalı / Limit dolunca / Küçük işlerde her zaman; Ollama'nın modelleri listelenir. God Eye'ın kendi küçük işleri (haiku ile yapılan özet, sınıflandırma, çeviri) gider; kod yazan agent'lar ve personalar asla. Limit hatası gelince o iş lokalde bitirilir ve limit sıfırlanana kadar küçük işler lokalde kalır. Ollama bu makinede kurulu olmadığı için sahte bir Ollama sunucusu ve limit hatası veren sahte bir claude ile test edildi*
+- [x] ⏳ **Limit kuyruğu:** limit dolunca işler kaybolmaz. Kuyruğa girer ve limit sıfırlanınca otomatik devam eder (hesap değiştirmeye yasal ve güvenli bir alternatif) — *Takım çalışmaları (ve zamanlanmış işlerin çalışmaları) limit mesajında başarısız olmaz: adım bekler, çalışma "Limit bekleniyor" olur, limitin sıfırlanma saati mesajdan okunur (yoksa 1 saat) ve dakikada bir kontrolle kendiliğinden devam eder; adım deneme hakkı yemez. Hesap asla kendiliğinden değişmez. Etkileşimli sohbetler kuyruğa girmez*
 - [ ] 🥊 **Model arenası:** aynı görevi Claude ve Codex'e ver, sonuçları yan yana karşılaştır, kazananı seç. Hangi modelin hangi işte daha iyi olduğu istatistiğe dönüşür
 - [ ] ✍️ **Prompt koçu:** yazdığın prompt'u göndermeden önce iyileştirme önerisi ("şu bilgiyi eklersen daha iyi sonuç alırsın")
-- [ ] 📐 **Spec odaklı geliştirme:** büyük bir özellik önce gereksinim → tasarım → görevler → kabul kriterleri olarak yazılır, onaylanır, sonra kodlanır
+- [x] 📐 **Spec odaklı geliştirme:** büyük bir özellik önce gereksinim → tasarım → görevler → kabul kriterleri olarak yazılır, onaylanır, sonra kodlanır — *Yerleşik "Önce spec" akışı: Product Manager docs/specs/<ad>/requirements.md (WHEN … SHALL …), mimar design.md, takım lideri tasks.md (görevler + "- [ ]" kabul kriterleri); senin onayından sonra backend/frontend kendi kopyalarında kodlar, kontroller geçer, QA her kriteri işaretler; dokümanlar kodla birlikte birleşir. Akış tanımı test edildi; uçtan uca gerçek bir büyük özellikle henüz çalıştırılmadı*
 - [ ] 🔁 **Agent tekrar oynatma:** bir agent'ın yaptığı her adımı video gibi geri sarıp izleme
 - [ ] 🧩 Kendi araçlarını ve MCP server'larını God Eye'a ekleme (marketten veya elle)
 

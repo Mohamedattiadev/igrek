@@ -60,6 +60,7 @@ import { registerLessonRoutes } from "./lesson-routes";
 import { Lessons } from "./lessons";
 import { Library } from "./library";
 import { registerLibraryRoutes } from "./library-routes";
+import { ollamaModels } from "./localmodel";
 import { Logs } from "./logs";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
@@ -85,7 +86,7 @@ import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
 import { Store } from "./store";
-import { claudeAccount, runClaude, Summarizer } from "./summarizer";
+import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
 import { registerTeamRoutes } from "./team-routes";
 import { registerTerminalRoutes } from "./terminal-routes";
@@ -261,6 +262,8 @@ const board = new Board(sqlite, bus, flows);
 const devServers = new DevServers(store, bus, stops, personas, join(config.dataDir, "preview"));
 flows.onChange = (run) => board.followRun(run);
 flows.recover();
+// Team runs waiting for a full limit go on by themselves once it resets (plan.md 13.1).
+setInterval(() => flows.resumeWaiting(), 60_000);
 const schedules = new Schedules(
   sqlite,
   store,
@@ -280,6 +283,12 @@ const updater = new Updater();
 // New versions of God Eye: checked shortly after start, then every 6 hours (git fetch with your own credentials).
 setTimeout(() => updater.check(), 2 * 60_000);
 setInterval(() => updater.check(), 6 * 60 * 60_000);
+// Small jobs can use a local Ollama model: always, or only while Claude's limit is full (plan.md 13.1).
+localModel.pick = (limited) => {
+  const s = readSettings(db);
+  if (s.localModel === "off" || !s.localModelName) return undefined;
+  return s.localModel === "always" || limited ? { url: s.localModelUrl, model: s.localModelName } : undefined;
+};
 const monitors = new Monitors(sqlite, store, bus);
 monitors.start();
 const docker = new Docker(servers);
@@ -398,6 +407,10 @@ const app = createApp({
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
+    hono.get("/api/local-model", async (c) => {
+      const s = readSettings(db);
+      return c.json({ ...(await ollamaModels(s.localModelUrl)), limitedUntil: localModel.limitedUntil });
+    });
     registerPluginRoutes(hono, { plugins: new Plugins(sqlite, join(config.dataDir, "plugins")), terminals, store });
     registerAnalyticsRoutes(hono, { analytics: new Analytics(sqlite, appErrors, databases), store });
     registerCostRoutes(hono, new Costs(sqlite, { accounts, servers, monitors }));

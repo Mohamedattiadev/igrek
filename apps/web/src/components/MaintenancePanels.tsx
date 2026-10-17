@@ -1,9 +1,10 @@
 import { Download, RefreshCw, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { api } from "../lib/api";
+import { api, request } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { Button } from "./ui";
+import { useSettings } from "../lib/settings";
+import { Button, Segmented } from "./ui";
 
 const field =
   "h-8 w-full max-w-72 rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent";
@@ -170,6 +171,81 @@ export function UpdatePanel() {
           {log && <pre className="max-h-48 overflow-auto rounded bg-bg-muted p-2 text-[11px]">{log}</pre>}
         </>
       )}
+      {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
+/** A free local model through Ollama for God Eye's own small jobs (plan.md 13.1). */
+export function LocalModelPanel() {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  const [status, setStatus] = useState<{ running: boolean; models: string[]; limitedUntil: number }>();
+  const [url, setUrl] = useState(settings.localModelUrl);
+  const [error, setError] = useState<string>();
+  const check = useCallback(
+    () =>
+      void request<{ running: boolean; models: string[]; limitedUntil: number }>("/api/local-model")
+        .then(setStatus)
+        .catch(() => undefined),
+    [],
+  );
+  useEffect(check, [check]);
+  return (
+    <div className="space-y-2 text-[13px]">
+      <Segmented
+        label={t("localModel.when")}
+        value={settings.localModel}
+        onChange={(v) => void update({ localModel: v })}
+        options={[
+          { value: "off", label: t("localModel.off") },
+          { value: "limit", label: t("localModel.limit"), tip: t("localModel.limitTip") },
+          { value: "always", label: t("localModel.always"), tip: t("localModel.alwaysTip") },
+        ]}
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onBlur={async () => {
+            setError(undefined);
+            if (url === settings.localModelUrl) return;
+            try {
+              await update({ localModelUrl: url });
+              check();
+            } catch (err) {
+              setError((err as Error).message);
+            }
+          }}
+          aria-label={t("localModel.url")}
+          className={field}
+        />
+        <select
+          value={settings.localModelName}
+          onChange={(e) => void update({ localModelName: e.target.value })}
+          className={field}
+          aria-label={t("localModel.model")}
+          disabled={!status?.models.length}
+        >
+          <option value="">{t("localModel.pick")}</option>
+          {(status?.models ?? []).map((m) => (
+            <option key={m}>{m}</option>
+          ))}
+        </select>
+        <Button size="sm" variant="ghost" icon={RefreshCw} onClick={check}>
+          {t("update.check")}
+        </Button>
+      </div>
+      <p className="text-xs text-fg-muted">
+        {!status
+          ? ""
+          : status.running
+            ? status.models.length
+              ? t("localModel.found", { count: status.models.length })
+              : t("localModel.noModels")
+            : t("localModel.notRunning")}
+        {status && status.limitedUntil > Date.now() && ` · ${t("localModel.limitedNow")}`}
+      </p>
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );

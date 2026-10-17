@@ -2472,7 +2472,11 @@
     "desc_task": "Tek bir AI adımı işi yapar; kod değiştiyse kontroller geçmeli.",
     "desc_check": "Build ve testler, bir de güvenlik incelemesi.",
     "desc_deps": "Yama ve küçük sürüm güncellemeleri, testler çalışır; büyük sürümler sadece listelenir.",
-    "desc_report": "Kısa, sadece okuyan bir rapor."
+    "desc_report": "Kısa, sadece okuyan bir rapor.",
+    "name_spec": "Önce spec (büyük özellik)",
+    "desc_spec": "Gereksinimler, tasarım, ardından kabul kriterli görevler docs/specs içine yazılır ve onayını bekler; ancak sonra takım kodlar, QA her kabul kriterini kontrol eder.",
+    "status_waiting_limit": "Limit bekleniyor",
+    "waitingLimit": "AI planının limiti doldu. Hiçbir şey kaybolmadı: limit sıfırlanınca, {{time}} civarında takım kendiliğinden devam eder. God Eye hesapları kendiliğinden değiştirmez."
   },
   "schedules": {
     "title": "Zamanlanmış işler",
@@ -3110,5 +3114,23 @@
     "emptyBody": "Bir klasörden ya da git adresinden kur.",
     "noneHere": "Projeler için eklenti yok",
     "noneHereBody": "Araçlar > Eklentiler'den proje sayfası ya da komutu olan bir eklenti aç."
+  },
+  "localModel": {
+    "title": "Lokal model (Ollama)",
+    "hint": "God Eye'ın kendi küçük işleri için bu bilgisayarda ücretsiz bir model: session özetleri, sınıflandırma, çeviri. Kod yazan agent'lar her zaman senin AI hesaplarını kullanır. Ollama'yı kur (ollama.com) ve bir model indir, ör. ollama pull qwen2.5:7b.",
+    "when": "Ne zaman",
+    "off": "Kapalı",
+    "limit": "Limit dolunca",
+    "limitTip": "Claude'un limiti doluyken küçük işler lokal modele geçer, limit sıfırlanınca geri döner.",
+    "always": "Küçük işlerde her zaman",
+    "alwaysTip": "Özet, sınıflandırma ve çeviri hep lokalde çalışır; Claude asıl iş için kalır.",
+    "url": "Ollama adresi",
+    "model": "Model",
+    "pick": "Bir model seç",
+    "found_one": "Ollama 1 modelle çalışıyor.",
+    "found_other": "Ollama {{count}} modelle çalışıyor.",
+    "noModels": "Ollama çalışıyor ama modeli yok. Bir tane indir: ollama pull qwen2.5:7b",
+    "notRunning": "Bu adreste Ollama çalışmıyor.",
+    "limitedNow": "Claude'un limiti şu an dolu: küçük işler lokale gidiyor."
   }
 }

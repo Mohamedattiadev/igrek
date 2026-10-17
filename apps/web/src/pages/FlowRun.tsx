@@ -21,7 +21,7 @@ import { Markdown } from "../components/Markdown";
 import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
-import { relativeTime } from "../lib/format";
+import { dateTime, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { RUN_TONE } from "./project/Board";
@@ -282,7 +282,7 @@ export function FlowRunPage() {
         <p className="p-6 text-[13px] text-fg-muted">{error ?? t("persona.loading")}</p>
       </>
     );
-  const busy = run.status === "running" || run.status === "needs_you";
+  const busy = run.status === "running" || run.status === "needs_you" || run.status === "waiting_limit";
   return (
     <>
       <PageHeader
@@ -322,6 +322,11 @@ export function FlowRunPage() {
           </p>
         </div>
         {run.error && <p className="text-xs text-danger">{run.error}</p>}
+        {run.status === "waiting_limit" && (
+          <p className="rounded-ui border border-warning bg-warning-soft/40 p-2 text-[13px]">
+            {t("flows.waitingLimit", { time: run.resumeAt ? dateTime(run.resumeAt) : "" })}
+          </p>
+        )}
         {error && <p className="text-xs text-danger">{error}</p>}
         {run.status === "ready" && <Approval run={run} />}
         {run.status === "merged" && (

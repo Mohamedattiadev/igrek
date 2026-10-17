@@ -53,6 +53,15 @@ export interface Settings {
   knowledgeScan: "off" | "daily" | "weekly";
   /** Desktop notifications from the browser (plan.md 11): finished, waiting, approvals, scores, limits. */
   notifications: boolean;
+  /**
+   * A free local model through Ollama (plan.md 13.1) for small jobs (summaries, sorting, translation):
+   * "off", only when Claude's limit is full ("limit"), or always for small jobs ("always").
+   */
+  localModel: "off" | "limit" | "always";
+  /** The Ollama model name, e.g. "qwen2.5:7b". */
+  localModelName: string;
+  /** Where Ollama listens. */
+  localModelUrl: string;
 }
 
 /** The morning briefing (plan.md 11): yesterday, today, where things are stuck. */
@@ -84,6 +93,9 @@ export const DEFAULT_SETTINGS: Settings = {
   enhanceShortcuts: {},
   knowledgeScan: "weekly",
   notifications: false,
+  localModel: "off",
+  localModelName: "",
+  localModelUrl: "http://localhost:11434",
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */
