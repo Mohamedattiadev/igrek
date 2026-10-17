@@ -74,7 +74,9 @@ import {
   registerMcpRoutes,
   registerOpsRoutes,
   registerPluginRoutes,
+  registerTimeRoutes,
   registerVaultRoutes,
+  registerWriteupRoutes,
 } from "./ops-routes";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
@@ -101,6 +103,7 @@ import { Updater } from "./update";
 import { Vault } from "./vault";
 import { registerWatcherRoutes } from "./watcher-routes";
 import { DependencyWatcher, SecretScanner } from "./watchers";
+import { Writeups } from "./writeups";
 
 // Everything God Eye writes (database, keys) is readable only by you.
 process.umask(0o077);
@@ -418,6 +421,14 @@ const app = createApp({
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerMcpRoutes(hono, mcpServers);
+    registerTimeRoutes(hono, store);
+    registerWriteupRoutes(hono, {
+      writeups: new Writeups(sqlite, store, flows, (prompt) =>
+        runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
+      ),
+      store,
+      team: sync,
+    });
     hono.get("/api/local-model", async (c) => {
       const s = readSettings(db);
       return c.json({ ...(await ollamaModels(s.localModelUrl)), limitedUntil: localModel.limitedUntil });

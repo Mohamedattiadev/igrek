@@ -194,6 +194,8 @@ export const api = {
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ gitFlow }) }),
   setProjectHidden: (id: string, hidden: boolean) =>
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ hidden }) }),
+  setProjectStatus: (id: string, status: "active" | "paused" | "archived") =>
+    request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
   projectSessions: (id: string) => request<SessionListItem[]>(`/api/projects/${id}/sessions`),
   projectContext: (id: string) => request<{ context: string }>(`/api/projects/${id}/context`),
   installHooks: (id: string) => request<{ ok: boolean }>(`/api/projects/${id}/hooks`, { method: "POST" }),
@@ -737,7 +739,7 @@ export const api = {
     request<
       {
         id: string;
-        kind: "suggestion" | "handoff";
+        kind: "suggestion" | "handoff" | "dayend";
         projectId: string;
         from?: string;
         fromId?: string;

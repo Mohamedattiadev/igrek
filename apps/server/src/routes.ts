@@ -71,9 +71,16 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   });
 
   app.patch("/api/projects/:id", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { hidden?: unknown; name?: unknown; gitFlow?: unknown };
+    const body = (await c.req.json().catch(() => ({}))) as {
+      hidden?: unknown;
+      name?: unknown;
+      gitFlow?: unknown;
+      status?: unknown;
+    };
     const id = c.req.param("id");
-    if (typeof body.gitFlow === "boolean") store.setGitFlow(id, body.gitFlow);
+    if (body.status === "active" || body.status === "paused" || body.status === "archived")
+      store.setProjectStatus(id, body.status);
+    else if (typeof body.gitFlow === "boolean") store.setGitFlow(id, body.gitFlow);
     else if (typeof body.hidden === "boolean") store.setProjectHidden(id, body.hidden);
     else if (typeof body.name === "string" && body.name.trim()) store.renameProject(id, body.name.trim().slice(0, 80));
     else return c.json({ error: "Nothing to change" }, 400);

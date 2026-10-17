@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Markdown } from "../../components/Markdown";
 import { Mermaid } from "../../components/Mermaid";
 import { Button, Card, EmptyState } from "../../components/ui";
+import { ReleaseNotesButton } from "../../components/Writeups";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
@@ -260,9 +261,12 @@ export function WikiTab({ projectId }: { projectId: string }) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row">
       <nav className="shrink-0 space-y-1 lg:w-52" aria-label={t("wiki.pages")}>
-        <Button size="sm" icon={Plus} onClick={() => setDraft({ title: "", body: "" })}>
-          {t("wiki.new")}
-        </Button>
+        <div className="flex flex-wrap gap-1">
+          <Button size="sm" icon={Plus} onClick={() => setDraft({ title: "", body: "" })}>
+            {t("wiki.new")}
+          </Button>
+          <ReleaseNotesButton projectId={projectId} onSaved={load} />
+        </div>
         <ul className="flex gap-1 overflow-x-auto lg:flex-col">
           {(pages ?? []).map((p) => (
             <li key={p.id} className="shrink-0">

@@ -64,7 +64,7 @@ export class SecretScanner {
 
   scanAll(): number {
     let found = 0;
-    for (const p of this.store.allProjectRows())
+    for (const p of this.store.liveProjectRows())
       if (!p.hidden && existsSync(join(p.path, ".git"))) found += this.scan(p.id);
     return found;
   }
@@ -346,7 +346,7 @@ export class DependencyWatcher {
 
   /** Re-checks projects whose report is older than a day (network only, no AI). */
   async daily(): Promise<void> {
-    for (const p of this.store.allProjectRows()) {
+    for (const p of this.store.liveProjectRows()) {
       if (p.hidden || !existsSync(join(p.path, "package.json"))) continue;
       const last = this.cached(p.id);
       if (last && Date.now() - last.at < 24 * 60 * 60_000) continue;
@@ -356,7 +356,7 @@ export class DependencyWatcher {
 
   notices(): InboxNotice[] {
     const out: InboxNotice[] = [];
-    for (const p of this.store.allProjectRows()) {
+    for (const p of this.store.liveProjectRows()) {
       const r = this.cached(p.id);
       const vulnerable = r?.deps.filter((d) => d.vulns.some((v) => /critical|high/i.test(v.severity ?? ""))) ?? [];
       if (vulnerable.length)

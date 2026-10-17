@@ -343,6 +343,21 @@ export interface CalendarItem {
   ok?: boolean;
   /** Only events you added can be removed. */
   own?: boolean;
+  /** Milestones and deadlines you marked as reached. */
+  done?: boolean;
+}
+
+/** Sprints are two weeks long and start on Mondays, counted from 5 January 2026 (plan.md 13.2). */
+export function sprintOf(at: number, weeks = 2): { index: number; start: number; end: number } {
+  const anchor = new Date(2026, 0, 5).getTime();
+  const length = weeks * 7 * 86_400_000;
+  const index = Math.floor((at - anchor) / length);
+  const start = new Date(anchor + index * length);
+  // Whole local days, so daylight saving time doesn't shift the edges.
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + weeks * 7);
+  return { index, start: start.getTime(), end: end.getTime() - 1 };
 }
 
 /** A secret as the vault lists it (plan.md 12 "Sır kasası"): never the value itself. */
@@ -546,3 +561,26 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
     homepage: "https://github.com/upstash/context7",
   },
 ];
+
+/** Time spent per project and day, from the sessions' own timestamps (plan.md 13.2 "Zaman takibi"). */
+export interface TimeReport {
+  from: number;
+  to: number;
+  /** "2026-10-17" → projectId → minutes */
+  days: { day: string; minutes: Record<string, number> }[];
+  totals: { projectId: string; minutes: number; sessions: number }[];
+}
+
+/** A gap longer than this ends a work block: you stepped away. */
+export const IDLE_GAP_MS = 15 * 60_000;
+
+/** Work blocks from sorted timestamps: each block counts from its first to its last moment, at least 2 minutes. */
+export function workBlocks(times: number[], gap = IDLE_GAP_MS): { start: number; end: number }[] {
+  const out: { start: number; end: number }[] = [];
+  for (const t of times) {
+    const last = out[out.length - 1];
+    if (last && t - last.end <= gap) last.end = Math.max(last.end, t);
+    else out.push({ start: t, end: t });
+  }
+  return out.map((b) => ({ start: b.start, end: Math.max(b.end, b.start + 2 * 60_000) }));
+}

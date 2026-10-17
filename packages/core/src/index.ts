@@ -278,6 +278,8 @@ export interface ProjectListItem {
   activeSessions: number;
   lastActivity: number;
   hidden: boolean;
+  /** Active, on hold or archived (plan.md 13.2). Archived projects use no background resources. */
+  status: "active" | "paused" | "archived";
   hooksInstalled: boolean;
   /** Account pinned for this project; empty means "follow the active one". */
   accountId?: string;

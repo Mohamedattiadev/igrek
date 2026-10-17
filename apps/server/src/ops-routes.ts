@@ -240,6 +240,11 @@ export function registerCalendarRoutes(app: Hono, calendar: import("./calendar")
     calendar.remove(c.req.param("id"));
     return c.json({ ok: true });
   });
+  app.patch("/api/calendar/:id", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { done?: boolean };
+    calendar.setDone(c.req.param("id"), body.done === true);
+    return c.json({ ok: true });
+  });
 }
 
 export function registerVaultRoutes(app: Hono, vault: import("./vault").Vault): void {
@@ -467,5 +472,87 @@ export function registerMcpRoutes(app: Hono, mcp: import("./mcpservers").McpServ
   app.delete("/api/mcp-servers/:id", (c) => {
     mcp.remove(c.req.param("id"));
     return c.json({ ok: true });
+  });
+}
+
+export function registerTimeRoutes(app: Hono, store: import("./store").Store): void {
+  app.get("/api/time", async (c) => {
+    const from = Number(c.req.query("from"));
+    const to = Number(c.req.query("to"));
+    if (!from || !to || to < from || to - from > 100 * 86_400_000) return c.json({ error: "Bad range" }, 400);
+    const { timeReport } = await import("./timetrack");
+    return c.json(timeReport(store, from, to));
+  });
+}
+
+export function registerWriteupRoutes(
+  app: Hono,
+  {
+    writeups,
+    store,
+    team,
+  }: {
+    writeups: import("./writeups").Writeups;
+    store: import("./store").Store;
+    team: {
+      sharedProjectIds: () => string[];
+      memberList: () => { id: string }[];
+      identity: () => { id?: string };
+      flush: () => Promise<void>;
+    };
+  },
+): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.post("/api/projects/:id/release-notes", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { language?: string };
+    try {
+      return c.json(await writeups.releaseNotes(c.req.param("id"), String(body.language ?? "en")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/projects/:id/adrs", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { language?: string };
+    try {
+      return c.json(await writeups.adrs(c.req.param("id"), String(body.language ?? "en")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/projects/:id/adrs/zip", async (c) => {
+    const body = (await c.req.json().catch(() => [])) as import("./writeups").AdrRecord[];
+    if (!Array.isArray(body) || !body.length) return c.json({ error: "Nothing to export" }, 400);
+    const zip = await writeups.adrZip(body.slice(0, 100), store.projectRow(c.req.param("id"))?.name ?? "project");
+    return new Response(new Blob([zip as BlobPart]), {
+      headers: { "content-type": "application/zip", "content-disposition": 'attachment; filename="adr.zip"' },
+    });
+  });
+  app.post("/api/dayend", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { language?: string };
+    try {
+      return c.json({ text: await writeups.dayNote(String(body.language ?? "en")) });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  /** The note goes to every teammate (end-to-end encrypted, like all team messages). */
+  app.post("/api/dayend/share", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { text?: string };
+    const text = String(body.text ?? "")
+      .trim()
+      .slice(0, 8000);
+    const projectId = team.sharedProjectIds()[0];
+    const me = team.identity().id;
+    const people = team.memberList().filter((m) => m.id !== me);
+    if (!text) return c.json({ error: "The note is empty" }, 400);
+    if (!projectId || !people.length)
+      return c.json({ error: "No team to share with: connect a team and share a project first" }, 400);
+    const insert = store.db.query(
+      "INSERT INTO team_messages (id, kind, project_id, to_id, title, text, at, outgoing) VALUES (?, 'dayend', ?, ?, ?, ?, ?, 1)",
+    );
+    for (const p of people)
+      insert.run(crypto.randomUUID(), projectId, p.id, new Date().toISOString().slice(0, 10), text, Date.now());
+    void team.flush();
+    return c.json({ sent: people.length });
   });
 }

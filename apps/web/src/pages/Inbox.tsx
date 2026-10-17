@@ -16,6 +16,7 @@ import {
   Lightbulb,
   type LucideIcon,
   MessageSquare,
+  Moon,
   NotebookPen,
   Package as PackageIcon,
   RadioTower,
@@ -221,14 +222,20 @@ export function InboxPage() {
               <Card>
                 <div className="divide-y divide-border">
                   {messages.map((m) => {
-                    const Icon = m.kind === "handoff" ? Forward : Lightbulb;
+                    const Icon = m.kind === "handoff" ? Forward : m.kind === "dayend" ? Moon : Lightbulb;
                     return (
                       <div key={m.id} className="flex items-start gap-3 px-3 py-2.5">
                         <Icon size={15} className="mt-0.5 text-accent" aria-hidden="true" />
                         <div className="min-w-0 flex-1 text-[13px]">
                           <p>
                             <span className="font-medium">{m.from}</span> ·{" "}
-                            {t(m.kind === "handoff" ? "inbox.handoffFrom" : "inbox.suggestionFrom")}
+                            {t(
+                              m.kind === "handoff"
+                                ? "inbox.handoffFrom"
+                                : m.kind === "dayend"
+                                  ? "inbox.dayendFrom"
+                                  : "inbox.suggestionFrom",
+                            )}
                             {m.title && <span className="ms-1 text-fg-subtle">· {m.title}</span>}
                           </p>
                           <p className="mt-0.5 line-clamp-3 whitespace-pre-wrap text-fg-muted">

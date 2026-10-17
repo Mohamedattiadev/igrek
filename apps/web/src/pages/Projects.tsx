@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { BriefingCard } from "../components/BriefingCard";
+import { FocusBanner } from "../components/FocusBanner";
 import { LoadError } from "../components/LoadError";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
+import { DayEndButton } from "../components/Writeups";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
@@ -285,6 +287,7 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showHidden, setShowHidden] = useState(false);
+  const [statusView, setStatusView] = useState<ProjectListItem["status"]>("active");
   const { data: projects, error, reload } = useLiveData(() => api.projects(), []);
   const status = useIndexStatus();
 
@@ -296,9 +299,12 @@ export function ProjectsPage() {
       (p) =>
         (workspace === "all" || p.workspace === workspace) &&
         (showHidden || !p.hidden) &&
+        (q ? true : p.status === statusView) &&
         (!q || `${p.name} ${p.path}`.toLowerCase().includes(q)),
     );
-  }, [projects, filter, showHidden, workspace]);
+  }, [projects, filter, showHidden, workspace, statusView]);
+  const statusCount = (s: ProjectListItem["status"]) =>
+    (projects ?? []).filter((p) => p.status === s && !p.hidden).length;
   const hiddenCount = (projects ?? []).filter((p) => p.hidden).length;
 
   return (
@@ -308,6 +314,7 @@ export function ProjectsPage() {
         actions={
           projects && projects.length > 0 ? (
             <div className="flex items-center gap-2">
+              <DayEndButton />
               <NewProject />
               <AddProject />
               <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
@@ -347,6 +354,19 @@ export function ProjectsPage() {
           <div className="mb-4 space-y-3">
             <BriefingCard />
             <TodayStrip />
+            {projects && <FocusBanner projects={projects} onChange={reload} />}
+            {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
+              <Segmented
+                label={t("projects.status")}
+                value={statusView}
+                onChange={setStatusView}
+                options={(["active", "paused", "archived"] as const).map((s) => ({
+                  value: s,
+                  label: `${t(`projects.status_${s}`)} (${statusCount(s)})`,
+                  tip: t(`projects.statusTip_${s}`),
+                }))}
+              />
+            )}
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
             {projects

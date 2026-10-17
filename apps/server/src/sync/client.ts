@@ -466,6 +466,11 @@ export class Sync {
     return { id: this.config?.user.id, name: this.config?.user.displayName };
   }
 
+  /** Projects shared with the team, for messages that go to everyone (the end-of-day note). */
+  sharedProjectIds(): string[] {
+    return this.connected ? this.sharedProjects().map((p) => p.id) : [];
+  }
+
   memberList(): TeamMember[] {
     return [...this.members.values()];
   }

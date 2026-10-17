@@ -25,6 +25,7 @@ import type {
   LogLine,
   LogSource,
   PluginInfo,
+  TimeReport,
   UptimeCheck,
   UptimeMonitor,
   VaultEntry,
@@ -184,6 +185,8 @@ export const calendarApi = {
   add: (body: { kind: string; title: string; at: number; projectId?: string }) =>
     post<CalendarItem>("/api/calendar", body),
   remove: (id: string) => del(`/api/calendar/${id}`),
+  setDone: (id: string, done: boolean) =>
+    request<{ ok: boolean }>(`/api/calendar/${id}`, { method: "PATCH", body: JSON.stringify({ done }) }),
 };
 
 export const vaultApi = {
@@ -232,4 +235,8 @@ export const arenaApi = {
     ),
   start: (body: { projectId: string; request: string; models: string[] }) => post<ArenaMatch>("/api/arena", body),
   pick: (id: string, model: string) => post<ArenaMatch>(`/api/arena/${id}/pick`, { model }),
+};
+
+export const timeApi = {
+  report: (from: number, to: number) => request<TimeReport>(`/api/time?from=${from}&to=${to}`),
 };

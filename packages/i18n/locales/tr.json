@@ -74,7 +74,14 @@
     "add": "Klasör ekle",
     "addTitle": "Proje klasörü ekle",
     "addHint": "Tam yol, örneğin /home/sen/projeler/dukkan",
-    "addAction": "Ekle"
+    "addAction": "Ekle",
+    "status": "Durum",
+    "status_active": "Aktif",
+    "status_paused": "Beklemede",
+    "status_archived": "Arşiv",
+    "statusTip_active": "Üzerinde çalıştığın projeler.",
+    "statusTip_paused": "Şimdilik kenara konmuş: izlenmeye devam eder, aradan çekilir.",
+    "statusTip_archived": "Bitmiş ya da bırakılmış: tarama yok, izleyici yok, rapor yok. Hiçbir şey silinmez."
   },
   "inbox": {
     "title": "Gelen Kutusu",
@@ -115,7 +122,8 @@
     "notice_domain": "Alan adının süresi doluyor",
     "notice_appError": "Uygulamanda hata",
     "notice_backup": "Yedeklemeye bakmak lazım",
-    "notice_rotate": "Bir anahtarı değiştirme zamanı"
+    "notice_rotate": "Bir anahtarı değiştirme zamanı",
+    "dayendFrom": "gün sonu notu:"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -228,7 +236,8 @@
     "monitor": "İzleme",
     "docs": "Wiki ve tahtalar",
     "host": "Issue'lar ve PR'lar",
-    "plugins": "Eklentiler"
+    "plugins": "Eklentiler",
+    "statusLabel": "Proje durumu"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -325,7 +334,19 @@
     "none": "Session'larında eşleşme yok."
   },
   "time": {
-    "justNow": "az önce"
+    "justNow": "az önce",
+    "intro": "AI ile geçen saatlerin nereye gittiği, proje ve gün bazında. Başlat/durdur yok: session'ların kendi zaman damgalarından okunur.",
+    "range": "Aralık",
+    "week": "Bu hafta",
+    "lastWeek": "Geçen hafta",
+    "month": "30 gün",
+    "total": "Toplam: {{time}}",
+    "chart": "Günlük saatler",
+    "hm": "{{h}} sa {{m}} dk",
+    "m": "{{m}} dk",
+    "how": "Aralarında 15 dakikadan az olan mesajlar tek bir çalışma bloğudur; bir projedeki paralel session'lar bir kez sayılır. AI dışında geçen zaman sayılmaz.",
+    "emptyTitle": "Bu aralıkta session yok",
+    "emptyBody": "Projelerinde Claude Code, Codex ya da Gemini ile çalıştıkça zaman burada görünür."
   },
   "git": {
     "title": "Kod akışı",
@@ -2643,7 +2664,8 @@
     "calendar": "Takvim",
     "vault": "Kasa",
     "costs": "Maliyet",
-    "plugins": "Eklentiler"
+    "plugins": "Eklentiler",
+    "time": "Zaman"
   },
   "uptime": {
     "intro": "God Eye bu adresleri kendi aralığında bu bilgisayardan açar. Arka arkaya iki başarısız kontrol kapalı sayılır; Gelen Kutusu'na düşer ve masaüstü bildirimi gelir.",
@@ -3215,5 +3237,59 @@
     "env": "Ortam değişkenleri, satır başına bir tane: API_KEY=… (şifreli saklanır, bir daha gösterilmez)",
     "add": "Ekle",
     "note": "Sunucular bu bilgisayarda senin yetkilerinle çalışır: sadece güvendiklerini ekle. Eklenenler kapalı başlar; dene, sonra aç."
+  },
+  "focus": {
+    "message_one": "{{count}} proje aktif.",
+    "message_other": "Bu hafta {{count}} projede çalışıldı: dikkat dağılıyor. {{names}} üzerine odaklanalım mı?",
+    "pauseRest_one": "1 tanesini beklemeye al",
+    "pauseRest_other": "Diğer {{count}} tanesini beklemeye al",
+    "pauseTip": "Beklemeye alınacaklar: {{names}}. İstediğin zaman geri getirebilirsin.",
+    "later": "Şimdi değil"
+  },
+  "writeups": {
+    "notes": "Sürüm notları",
+    "notesTip": "Son etiketten (ya da iki haftadan) beri commit'lerden, session'lardan ve birleştirilen takım çalışmalarından, kullanıcıların anlayacağı dille yazılır.",
+    "notesTitle": "Sürüm notları {{date}}",
+    "writing": "Yazılıyor…",
+    "since": "{{since}} tarihinden beri · {{count}} commit",
+    "toWiki": "Wiki'ye kaydet",
+    "adr": "ADR olarak dışa aktar",
+    "adrTip": "Hafızadaki kararlar Mimari Karar Kayıtları olarak: bağlam, karar, sonuçlar.",
+    "adrTitle": "Mimari kararlar",
+    "context": "Bağlam",
+    "decision": "Karar",
+    "consequences": "Sonuçlar",
+    "zip": "docs/adr indir (.zip)",
+    "savedWiki": "Wiki'ye kaydedildi.",
+    "day": "Günü kapat",
+    "dayTip": "Bugünkü işten gün sonu notun: bugün, yarın, takıldığım yer. Takımla paylaş.",
+    "share": "Takımla paylaş",
+    "shared_one": "1 takım arkadaşına gönderildi.",
+    "shared_other": "{{count}} takım arkadaşına gönderildi."
+  },
+  "roadmap": {
+    "view": "Görünüm",
+    "boardView": "Pano",
+    "title": "Yol haritası",
+    "sprint": "Sprint {{start}} – {{end}}",
+    "daysLeft_one": "1 gün kaldı",
+    "daysLeft_other": "{{count}} gün kaldı",
+    "doneThisSprint": "Bu sprintte biten",
+    "velocity": "Son üç sprintte biten: {{list}}",
+    "milestones": "Kilometre taşları",
+    "milestone": "Kilometre taşı (v1.0, demo…)",
+    "add": "Kilometre taşı ekle",
+    "toggle": "Ulaşıldı olarak işaretle",
+    "noMilestones": "Henüz kilometre taşı yok.",
+    "empty": "Bu haftalarda görev ya da takım çalışması yok.",
+    "st_todo": "yapılacak",
+    "st_doing": "yapılıyor",
+    "st_review": "incelemede",
+    "st_done": "bitti",
+    "st_running": "çalışıyor",
+    "st_ready": "onayını bekliyor",
+    "st_merged": "birleştirildi",
+    "st_failed": "başarısız",
+    "st_needs_you": "seni bekliyor"
   }
 }

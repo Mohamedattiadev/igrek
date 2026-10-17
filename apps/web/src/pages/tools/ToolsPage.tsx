@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,
   CircleDollarSign,
+  Clock,
   Container,
   Database,
   Globe,
@@ -26,6 +27,7 @@ import { DatabasesTab } from "./Databases";
 import { DockerTab } from "./Docker";
 import { LogsPanel } from "./Logs";
 import { PluginFrame, PluginsTab } from "./Plugins";
+import { TimeTab } from "./Time";
 import { DomainsTab, UptimeTab } from "./Uptime";
 import { VaultTab } from "./Vault";
 
@@ -39,6 +41,7 @@ export const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
   { key: "calendar", icon: CalendarDays },
   { key: "vault", icon: KeyRound },
   { key: "costs", icon: CircleDollarSign },
+  { key: "time", icon: Clock },
   { key: "plugins", icon: Plug },
 ];
 
@@ -52,6 +55,7 @@ const TABS: Record<string, () => React.ReactNode> = {
   calendar: () => <CalendarTab />,
   vault: () => <VaultTab />,
   costs: () => <CostsTab />,
+  time: () => <TimeTab />,
 };
 
 /** The suite's tools in one place (plan.md 12): nothing else to open for running your projects. */

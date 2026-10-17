@@ -1031,13 +1031,13 @@ god-eye/
 - [x] 🧩 Kendi araçlarını ve MCP server'larını God Eye'a ekleme (marketten veya elle) — *Ayarlar > Kendi MCP sunucuların: ücretsiz sunucular kataloğu (memory, sequential-thinking, fetch, git, playwright, context7; sürümler sabit) ya da elle komut/URL + şifreli ortam değişkenleri. Kapalı eklenir; "Dene" sunucuyu başlatıp araçlarını listeler (sequential-thinking gerçek denendi); açılanlar sohbetlerde God Eye araçlarının yanında sunulur. Otomatik takım çalışmalarına verilmez. Gerçek market yok*
 
 #### 13.2 Proje yönetimi ve odak
-- [ ] 🎯 **Odak modu:** aynı anda çok fazla aktif proje varsa uyarır ("6 proje aktif, 2 tanesine odaklanmayı öner"). Kullanıcının asıl sorunu buydu
-- [ ] 🗓️ Yol haritası, kilometre taşları, sprint görünümü, Gantt
-- [ ] 🧾 **Otomatik changelog ve sürüm notları:** commit ve session'lardan, kullanıcıların anlayacağı dilde
-- [ ] 🕐 **Zaman takibi:** session'lardan otomatik olarak hangi projeye ne kadar zaman harcandığı
-- [ ] 📚 **ADR (mimari karar kayıtları):** kararları standart formatta dışa aktarma
-- [ ] 💤 Proje durumları: Aktif · Beklemede · Arşiv (arşivlenen proje kaynak tüketmez)
-- [ ] ☀️ **Gün sonu devri:** çevrimdışı olurken "bugün ne yaptım, yarın ne var" notu otomatik olarak takıma paylaşılır
+- [x] 🎯 **Odak modu:** aynı anda çok fazla aktif proje varsa uyarır ("6 proje aktif, 2 tanesine odaklanmayı öner"). Kullanıcının asıl sorunu buydu — *Projeler sayfasında: son 7 günde 3'ten fazla aktif projede uyarı; yaklaşan kilometre taşı ve son aktiviteye göre 2 proje önerir, diğerlerini tek tıkla beklemeye alır; 7 gün ertelenebilir*
+- [x] 🗓️ Yol haritası, kilometre taşları, sprint görünümü, Gantt — *Pano > Yol haritası: kilometre taşları (ulaşıldı işareti), görevler ve takım çalışmaları zaman çizelgesinde (basit Gantt), iki haftalık sprint özeti ve son üç sprintte biten iş sayısı*
+- [x] 🧾 **Otomatik changelog ve sürüm notları:** commit ve session'lardan, kullanıcıların anlayacağı dilde — *Wiki'de "Sürüm notları": son etiketten (ya da 2 haftadan) beri commit, session ve birleştirilen çalışmalardan kullanıcı diliyle; wiki'ye kaydet / kopyala. Gerçek projede denendi*
+- [x] 🕐 **Zaman takibi:** session'lardan otomatik olarak hangi projeye ne kadar zaman harcandığı — *Araçlar > Zaman: session mesaj zamanlarından 15 dk boşlukla bölünen bloklar; proje/gün grafiği. Sadece AI ile geçen zamanı ölçer*
+- [x] 📚 **ADR (mimari karar kayıtları):** kararları standart formatta dışa aktarma — *Hafıza'da "ADR olarak dışa aktar": kararlar Nygard formatında (bağlam ve sonuçlar küçük modelle, bilinmeyen uydurulmaz), docs/adr .zip ya da wiki sayfası*
+- [x] 💤 Proje durumları: Aktif · Beklemede · Arşiv (arşivlenen proje kaynak tüketmez) — *Aktif/Beklemede/Arşiv; arşivdekiler sır taraması, bağımlılık, commit eşitleme, günlük rapor ve brifinge girmez; hiçbir şey silinmez*
+- [x] ☀️ **Gün sonu devri:** çevrimdışı olurken "bugün ne yaptım, yarın ne var" notu otomatik olarak takıma paylaşılır — *"Günü kapat": bugünkü işten Bugün/Yarın/Takıldığım notu, düzenlenip takıma (şifreli takım mesajı) paylaşılır. Otomatik zamanlı gönderim yok, elle tetiklenir*
 
 #### 13.3 Takım
 - [ ] 💬 **Takım sohbeti:** proje bazında kanallar (WhatsApp'a gerek kalmaz). AI ile "bu kanalda dün ne konuşuldu" özeti

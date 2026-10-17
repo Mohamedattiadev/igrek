@@ -72,6 +72,8 @@ interface ProjectRow {
   share?: string | null;
   git_flow?: number | null;
   team_linked?: number | null;
+  /** active, paused (on hold) or archived (plan.md 13.2). */
+  status?: string | null;
 }
 
 function rowToState(row: SessionRow): SessionState {
@@ -238,6 +240,7 @@ export class Store {
       activeSessions: sessions.filter((s) => isActive(s.updated_at ?? 0, now)).length,
       lastActivity: row.last_activity,
       hidden: !!row.hidden,
+      status: (row.status as ProjectListItem["status"]) ?? "active",
       hooksInstalled: !!row.hooks_installed,
       accountId: row.account_id ?? undefined,
       tools: [...new Set(sessions.map((s) => s.tool))],
@@ -825,6 +828,25 @@ export class Store {
 
   allProjectRows(): ProjectRow[] {
     return this.db.query("SELECT * FROM projects").all() as ProjectRow[];
+  }
+
+  /** Message times per project in a range, for time tracking. */
+  activityTimes(from: number, to: number): { project_id: string; session_id: string; ts: number }[] {
+    return this.db
+      .query(
+        `SELECT s.project_id, m.session_id, m.ts FROM messages m JOIN sessions s ON s.id = m.session_id
+         WHERE m.ts BETWEEN ? AND ? AND s.project_id IS NOT NULL ORDER BY s.project_id, m.ts`,
+      )
+      .all(from, to) as { project_id: string; session_id: string; ts: number }[];
+  }
+
+  /** Projects background work should look at: archived ones use no resources (plan.md 13.2). */
+  liveProjectRows(): ProjectRow[] {
+    return this.db.query("SELECT * FROM projects WHERE status != 'archived'").all() as ProjectRow[];
+  }
+
+  setProjectStatus(id: string, status: "active" | "paused" | "archived"): void {
+    this.db.query("UPDATE projects SET status = ? WHERE id = ?").run(status, id);
   }
 
   counts(): { sessions: number; projects: number } {

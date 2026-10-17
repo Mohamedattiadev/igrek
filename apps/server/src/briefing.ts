@@ -41,7 +41,7 @@ export class Briefings {
     const today = start.getTime();
     const yesterday = today - DAY;
     const parts: string[] = [];
-    for (const p of this.store.listProjects().filter((x) => !x.hidden)) {
+    for (const p of this.store.listProjects().filter((x) => !x.hidden && x.status !== "archived")) {
       const sessions = this.store.sessionsBetween(p.id, yesterday, today);
       const commits = this.store.commitsBetween(p.id, yesterday, today);
       if (!sessions.length && !commits.length) continue;

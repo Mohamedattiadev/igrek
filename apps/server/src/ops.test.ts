@@ -354,3 +354,51 @@ describe("costs", () => {
     expect(s.trend).toHaveLength(12);
   });
 });
+
+describe("time tracking", () => {
+  test("messages close together are one block; a 15-minute gap starts a new one; parallel sessions count once", async () => {
+    const { workBlocks } = await import("@godeye/core");
+    const min = 60_000;
+    expect(workBlocks([0, 5 * min, 10 * min, 40 * min])).toEqual([
+      { start: 0, end: 10 * min },
+      { start: 40 * min, end: 42 * min },
+    ]);
+    const { timeReport } = await import("./timetrack");
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    const dir = mkdtempSync(join(tmpdir(), "godeye-time-"));
+    const projectId = store.addProject(dir);
+    const day = new Date(2026, 9, 15, 10, 0).getTime();
+    for (const [sid, offsets] of [
+      ["s1", [0, 10, 20]],
+      ["s2", [5, 15]],
+    ] as const) {
+      sqlite.query("INSERT INTO sessions (id, project_id, tool) VALUES (?, ?, 'claude')").run(sid, projectId);
+      for (const o of offsets)
+        sqlite
+          .query("INSERT INTO messages (id, session_id, ts, role, kind, text) VALUES (?, ?, ?, 'user', 'prompt', 'x')")
+          .run(`${sid}-${o}`, sid, day + o * min);
+    }
+    const r = timeReport(store, day - min, day + 60 * min);
+    expect(r.totals).toEqual([{ projectId, minutes: 20, sessions: 2 }]);
+    expect(r.days.find((d) => d.day === "2026-10-15")?.minutes[projectId]).toBe(20);
+  });
+});
+
+describe("write-ups", () => {
+  test("ADRs in the Nygard format with numbered file names; fences taken off", async () => {
+    const { adrFileName, adrMarkdown, unfence } = await import("./writeups");
+    const a = {
+      number: 3,
+      title: "Use Postgres, not MongoDB",
+      date: "2026-10-01",
+      context: "c",
+      decision: "d",
+      consequences: "e",
+    };
+    expect(adrFileName(a)).toBe("0003-use-postgres-not-mongodb.md");
+    expect(adrMarkdown(a)).toContain("# 3. Use Postgres, not MongoDB\n\nDate: 2026-10-01\n\n## Status\n\nAccepted");
+    expect(unfence("```markdown\n## Bugün\n- x\n```")).toBe("## Bugün\n- x");
+    expect(unfence("## Plain")).toBe("## Plain");
+  });
+});

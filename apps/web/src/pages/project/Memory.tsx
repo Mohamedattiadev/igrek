@@ -7,6 +7,7 @@ import { Comments } from "../../components/Comments";
 import { useTeamPeople } from "../../components/TeamAvatar";
 import { TeamText } from "../../components/TeamText";
 import { Button, Card, EmptyState } from "../../components/ui";
+import { AdrExportButton } from "../../components/Writeups";
 import { api } from "../../lib/api";
 import { relativeTime } from "../../lib/format";
 import { deferDelete, usePendingDeletes } from "../../lib/undo";
@@ -198,7 +199,10 @@ export function MemoryTab({ project, onChange }: { project: ProjectDetail; onCha
 
   return (
     <div className="space-y-4">
-      <p className="max-w-2xl text-[13px] leading-relaxed text-fg-muted">{t("memory.hint")}</p>
+      <div className="flex flex-wrap items-start gap-2">
+        <p className="min-w-0 max-w-2xl flex-1 text-[13px] leading-relaxed text-fg-muted">{t("memory.hint")}</p>
+        {project.memory.some((m) => m.section === "decision") && <AdrExportButton projectId={project.id} />}
+      </div>
       {conflicts.map((item) => (
         <ConflictCard key={item.id} item={item} onDone={onChange} />
       ))}

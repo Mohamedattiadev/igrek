@@ -74,7 +74,14 @@
     "add": "Add folder",
     "addTitle": "Add a project folder",
     "addHint": "Full path, for example /home/you/projects/shop",
-    "addAction": "Add"
+    "addAction": "Add",
+    "status": "Status",
+    "status_active": "Active",
+    "status_paused": "On hold",
+    "status_archived": "Archive",
+    "statusTip_active": "Projects you are working on.",
+    "statusTip_paused": "Put aside for now: still watched, out of the way.",
+    "statusTip_archived": "Done or dropped: no scans, no watchers, no reports. Nothing is deleted."
   },
   "inbox": {
     "title": "Inbox",
@@ -115,7 +122,8 @@
     "notice_domain": "Domain is running out",
     "notice_appError": "Error in your app",
     "notice_backup": "Backup needs attention",
-    "notice_rotate": "Time to change a key"
+    "notice_rotate": "Time to change a key",
+    "dayendFrom": "end-of-day note from"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -228,7 +236,8 @@
     "monitor": "Monitoring",
     "docs": "Wiki & boards",
     "host": "Issues & PRs",
-    "plugins": "Plugins"
+    "plugins": "Plugins",
+    "statusLabel": "Project status"
   },
   "memory": {
     "title": "Project memory",
@@ -325,7 +334,19 @@
     "none": "No matches in your sessions."
   },
   "time": {
-    "justNow": "just now"
+    "justNow": "just now",
+    "intro": "Where your hours with the AI went, per project and day. Nothing to start or stop: it is read from the sessions' own timestamps.",
+    "range": "Range",
+    "week": "This week",
+    "lastWeek": "Last week",
+    "month": "30 days",
+    "total": "Total: {{time}}",
+    "chart": "Hours per day",
+    "hm": "{{h}} h {{m}} min",
+    "m": "{{m}} min",
+    "how": "Messages less than 15 minutes apart are one block of work; parallel sessions in a project count once. Time away from the AI is not counted.",
+    "emptyTitle": "No sessions in this range",
+    "emptyBody": "Time shows up here once you work with Claude Code, Codex or Gemini in your projects."
   },
   "git": {
     "title": "Code flow",
@@ -2643,7 +2664,8 @@
     "calendar": "Calendar",
     "vault": "Vault",
     "costs": "Costs",
-    "plugins": "Plugins"
+    "plugins": "Plugins",
+    "time": "Time"
   },
   "uptime": {
     "intro": "God Eye opens these addresses on their own schedule from this computer. Two failed checks in a row count as down; you get an inbox item and a desktop notification.",
@@ -3215,5 +3237,59 @@
     "env": "Environment, one per line: API_KEY=… (stored encrypted, never shown again)",
     "add": "Add",
     "note": "Servers run on this computer with your permissions: add only ones you trust. Added servers start turned off; test, then turn on."
+  },
+  "focus": {
+    "message_one": "{{count}} project is active.",
+    "message_other": "{{count}} projects were worked on this week: attention is split. Focus on {{names}}?",
+    "pauseRest_one": "Put 1 on hold",
+    "pauseRest_other": "Put the other {{count}} on hold",
+    "pauseTip": "On hold: {{names}}. You can bring them back any time.",
+    "later": "Not now"
+  },
+  "writeups": {
+    "notes": "Release notes",
+    "notesTip": "Written from the commits, sessions and merged team runs since the last tag (or two weeks), in words users understand.",
+    "notesTitle": "Release notes {{date}}",
+    "writing": "Writing…",
+    "since": "Since {{since}} · {{count}} commits",
+    "toWiki": "Save to the wiki",
+    "adr": "Export as ADRs",
+    "adrTip": "The decisions in memory as Architecture Decision Records: context, decision, consequences.",
+    "adrTitle": "Architecture decisions",
+    "context": "Context",
+    "decision": "Decision",
+    "consequences": "Consequences",
+    "zip": "Download docs/adr (.zip)",
+    "savedWiki": "Saved to the wiki.",
+    "day": "Close the day",
+    "dayTip": "Your end-of-day note from today's work: today, tomorrow, stuck. Share it with the team.",
+    "share": "Share with the team",
+    "shared_one": "Sent to 1 teammate.",
+    "shared_other": "Sent to {{count}} teammates."
+  },
+  "roadmap": {
+    "view": "View",
+    "boardView": "Board",
+    "title": "Roadmap",
+    "sprint": "Sprint {{start}} – {{end}}",
+    "daysLeft_one": "1 day left",
+    "daysLeft_other": "{{count}} days left",
+    "doneThisSprint": "Done this sprint",
+    "velocity": "Done in the last three sprints: {{list}}",
+    "milestones": "Milestones",
+    "milestone": "Milestone (v1.0, demo…)",
+    "add": "Add milestone",
+    "toggle": "Mark reached",
+    "noMilestones": "No milestones yet.",
+    "empty": "No tasks or team runs in these weeks.",
+    "st_todo": "to do",
+    "st_doing": "in progress",
+    "st_review": "in review",
+    "st_done": "done",
+    "st_running": "running",
+    "st_ready": "waiting for your OK",
+    "st_merged": "merged",
+    "st_failed": "failed",
+    "st_needs_you": "waiting for you"
   }
 }

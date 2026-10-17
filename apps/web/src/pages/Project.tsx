@@ -239,6 +239,17 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
   };
   return (
     <Card className="px-pad">
+      <Section title={t("project.statusLabel")} hint={t(`projects.statusTip_${project.status}`)}>
+        <Segmented
+          label={t("project.statusLabel")}
+          value={project.status}
+          onChange={(status) => void api.setProjectStatus(project.id, status).then(onChange)}
+          options={(["active", "paused", "archived"] as const).map((s) => ({
+            value: s,
+            label: t(`projects.status_${s}`),
+          }))}
+        />
+      </Section>
       <Section title={t("setup.hooksTitle")} hint={t("setup.hooksBody")}>
         <div className="flex items-center gap-3">
           <Plug size={16} className={project.hooksInstalled ? "text-success" : "text-fg-subtle"} />

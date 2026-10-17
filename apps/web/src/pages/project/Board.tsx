@@ -3,11 +3,12 @@ import { ArrowRight, Plus, Trash2, Users, Workflow } from "lucide-react";
 import { type DragEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-import { Badge, Button, Card } from "../../components/ui";
+import { Badge, Button, Card, Segmented } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
+import { Roadmap } from "./Roadmap";
 
 const COLUMNS: TaskStatus[] = ["todo", "doing", "review", "done"];
 export const RUN_TONE = {
@@ -158,6 +159,7 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
   const [title, setTitle] = useState("");
   const [over, setOver] = useState<TaskStatus>();
   const [error, setError] = useState<string>();
+  const [view, setView] = useState<"board" | "roadmap">("board");
   const load = () => {
     api
       .board(project.id)
@@ -181,8 +183,27 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
   };
   const looseRuns = runs.filter((r) => !r.taskId).slice(0, 5);
 
+  const views = (
+    <Segmented
+      label={t("roadmap.view")}
+      value={view}
+      onChange={setView}
+      options={[
+        { value: "board", label: t("roadmap.boardView") },
+        { value: "roadmap", label: t("roadmap.title") },
+      ]}
+    />
+  );
+  if (view === "roadmap")
+    return (
+      <div className="space-y-4">
+        {views}
+        <Roadmap projectId={project.id} tasks={tasks} runs={runs} />
+      </div>
+    );
   return (
     <div className="space-y-4">
+      {views}
       <StartRun projectId={project.id} />
       {error && <p className="text-xs text-danger">{error}</p>}
       <div className="grid gap-3 md:grid-cols-4">

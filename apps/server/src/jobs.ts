@@ -93,7 +93,7 @@ export class Jobs {
 
   syncCommits(): void {
     const changed: string[] = [];
-    for (const project of this.store.allProjectRows()) {
+    for (const project of this.store.liveProjectRows()) {
       const since = this.store.latestCommitAt(project.id) || Date.now() - 90 * DAY;
       const commits = gitLog(project.path, since);
       if (commits.length && this.store.saveCommits(project.id, commits) > 0) changed.push(project.id);
@@ -111,7 +111,7 @@ export class Jobs {
   async dailyDigests(): Promise<void> {
     const yesterday = localDay(Date.now() - DAY);
     const from = Date.parse(`${yesterday}T00:00:00`);
-    for (const project of this.store.allProjectRows()) {
+    for (const project of this.store.liveProjectRows()) {
       if (project.hidden || project.last_activity < from) continue;
       if (this.store.hasDigest(project.id, "day", yesterday)) continue;
       if (this.store.sessionsBetween(project.id, from, from + DAY).length === 0) continue;

@@ -161,6 +161,10 @@ export class Calendar {
     return { id, kind, title, at, ...(input.projectId ? { projectId: input.projectId } : {}), own: true };
   }
 
+  setDone(id: string, done: boolean): void {
+    this.db.query("UPDATE calendar_events SET done = ? WHERE id = ?").run(done ? 1 : 0, id);
+  }
+
   remove(id: string): void {
     this.db.query("DELETE FROM calendar_events WHERE id = ?").run(id);
   }
