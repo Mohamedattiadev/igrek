@@ -2015,7 +2015,8 @@
     "none": "No persona",
     "review": "Review this part",
     "reviewTip": "{{name}} looks at this part and reports what matters most",
-    "reviewDraft": "Review the {{section}} part of this project. Start with the open checks, then use your own checklist. List findings by importance with the file and line, say what to fix first, and give a confidence for each."
+    "reviewDraft": "Review the {{section}} part of this project. Start with the open checks, then use your own checklist. List findings by importance with the file and line, say what to fix first, and give a confidence for each.",
+    "tab_testers": "Test users"
   },
   "meeting": {
     "title": "Team meeting",
@@ -2057,5 +2058,103 @@
     "severity_critical": "Critical",
     "severity_major": "Important",
     "severity_minor": "Minor"
+  },
+  "testers": {
+    "title": "Test users",
+    "intro": "Ordinary people, not experts, try a task in your app in a real browser and think aloud while they do. Each runs in its own private browser, on its own device size, eyesight and connection. Use it only on your own app.",
+    "noBrowser": "Chromium or Google Chrome is needed on this computer for test users. Install it and reload this page. (The Docker image does not include a browser to stay small.)",
+    "url": "Address of your app",
+    "notLocal": "This address is not on this computer or your local network. Test only apps you own; the test users act on whatever is there.",
+    "task": "What should they try to do?",
+    "taskHint": "For example: sign up and add your first product",
+    "who": "Who tests",
+    "audience": "Describe your own audience",
+    "audienceHint": "For example: Turkish mothers aged 25-35 living in Germany",
+    "makeProfiles": "Make 3 test users",
+    "copies": "Copies of each",
+    "parallel": "At the same time",
+    "total_one": "1 test user in total",
+    "total_other": "{{count}} test users in total",
+    "usageNote": "Each test user is a Claude session with only browser tools: it cannot touch your files or run commands. Each one uses part of your Claude limit; at the same time means more speed and more load on this computer.",
+    "start": "Start the test",
+    "status_running": "Testing",
+    "status_done": "Done",
+    "status_failed": "Did not finish",
+    "status_stopped": "Stopped",
+    "auntShort": "Aunt score {{n}}",
+    "aunt": "Aunt score",
+    "auntHint": "How easy it felt for people with little tech experience (0-100). Success: share who reached the goal.",
+    "success": "Reached the goal",
+    "avgTime": "Average time",
+    "issues": "Problems found",
+    "complaints": "Most common complaints",
+    "times_one": "{{count}} time",
+    "times_other": "{{count}} times",
+    "toUiux": "Send to UI/UX",
+    "toFrontend": "Send to Frontend",
+    "needProject": "Pick a project for the test to send problems to a persona",
+    "fixDraft": "Test users found this problem in {{url}} while trying: {{task}}\n\nProblem: {{title}}\nWhere: {{where}}\n\nFind the cause in the code, fix it, and tell me how to check that it is fixed.",
+    "outcome_success": "Made it",
+    "outcome_struggled": "Struggled",
+    "outcome_gave-up": "Gave up",
+    "ease": "Ease {{n}}/10",
+    "better": "{{n}} easier",
+    "worse": "{{n}} harder",
+    "failed": "This session did not finish",
+    "thinking_one": "Thought aloud: {{count}} step",
+    "thinking_other": "Thought aloud: {{count}} steps",
+    "repeat": "Test again",
+    "repeatTip": "Same people, same task: did your change make it better?",
+    "comparing": "Compared with the test {{when}}",
+    "p": {
+      "aunt": {
+        "name": "Aunt Ayşe",
+        "who": "70, two years on a smartphone, afraid of breaking things"
+      },
+      "uncle": {
+        "name": "Uncle Hasan",
+        "who": "75, weak eyes, largest text size"
+      },
+      "child": {
+        "name": "Deniz",
+        "who": "10, impatient, clicks everything"
+      },
+      "first-phone": {
+        "name": "Mustafa",
+        "who": "45, first smartphone last month"
+      },
+      "busy-exec": {
+        "name": "Selin",
+        "who": "42, manager, one minute between meetings"
+      },
+      "newcomer": {
+        "name": "Ahmad",
+        "who": "30, reads Turkish slowly, Arabic best"
+      },
+      "screen-reader": {
+        "name": "Elif",
+        "who": "35, blind, screen reader and keyboard"
+      },
+      "color-blind": {
+        "name": "Can",
+        "who": "28, red-green colour blind"
+      },
+      "slow-phone": {
+        "name": "Fatma",
+        "who": "55, old phone, weak connection"
+      },
+      "angry": {
+        "name": "Burak",
+        "who": "38, already annoyed, no patience"
+      },
+      "hostile": {
+        "name": "Troll",
+        "who": "tries to break things on purpose"
+      },
+      "power-user": {
+        "name": "Kerem",
+        "who": "33, developer, wants shortcuts"
+      }
+    }
   }
 }

@@ -30,6 +30,15 @@ export class StopRegistry {
     return () => this.running.delete(id);
   }
 
+  /** Stops one registered item (e.g. "Stop" on a running test). */
+  async stop(id: string): Promise<boolean> {
+    const item = this.running.get(id);
+    if (!item) return false;
+    this.running.delete(id);
+    await item.stop();
+    return true;
+  }
+
   async stopAll(): Promise<number> {
     const items = [...this.running.values()];
     this.running.clear();

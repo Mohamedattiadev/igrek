@@ -3,6 +3,7 @@ export * from "./persona";
 export * from "./personas";
 export * from "./prompt";
 export * from "./scrub";
+export * from "./testusers";
 
 export const APP_NAME = "God Eye";
 export const APP_VERSION = "0.1.0";
@@ -622,6 +623,7 @@ export type ServerMessage =
   | { type: "presence" }
   | { type: "personas-changed" }
   | { type: "meetings-changed"; meetingId: string }
+  | { type: "testers-changed"; runId: string }
   | { type: "i18n-progress"; code: string };
 
 /** Messages sent from UI to server over the WebSocket. */

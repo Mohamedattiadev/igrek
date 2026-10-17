@@ -15,6 +15,7 @@
   "dependencies": {
     "@godeye/core": "workspace:*",
     "@godeye/i18n": "workspace:*",
+    "@playwright/mcp": "0.0.83",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13"
   }

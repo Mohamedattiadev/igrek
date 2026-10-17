@@ -67,6 +67,8 @@ import type {
   TeamUser,
   TerminalInfo,
   TerminalTool,
+  TesterProfile,
+  TesterRun,
   TimelineEntry,
   TodaySummary,
   ToolKind,
@@ -234,6 +236,33 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  testerStatus: () => request<{ browser: boolean; mcp: boolean; runtime: string }>("/api/testers/status"),
+  testerProfiles: () => request<TesterProfile[]>("/api/testers/profiles"),
+  saveTesterProfile: (profile: Partial<TesterProfile>) =>
+    request<TesterProfile>("/api/testers/profiles", { method: "POST", body: JSON.stringify(profile) }),
+  removeTesterProfile: (id: string) => request<{ ok: boolean }>(`/api/testers/profiles/${id}`, { method: "DELETE" }),
+  draftTesterProfiles: (audience: string) =>
+    request<TesterProfile[]>("/api/testers/profiles/draft", { method: "POST", body: JSON.stringify({ audience }) }),
+  checkTesterUrl: (url: string) =>
+    request<{ url: string; origin: string; local: boolean }>("/api/testers/check-url", {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    }),
+  testerRuns: (projectId?: string) =>
+    request<TesterRun[]>(`/api/testers/runs${projectId ? `?projectId=${projectId}` : ""}`),
+  testerRun: (id: string) => request<TesterRun>(`/api/testers/runs/${id}`),
+  startTesterRun: (body: {
+    url: string;
+    task: string;
+    profileIds: string[];
+    copies?: number;
+    parallel?: number;
+    projectId?: string;
+    model?: string;
+  }) => request<TesterRun>("/api/testers/runs", { method: "POST", body: JSON.stringify(body) }),
+  repeatTesterRun: (id: string) => request<TesterRun>(`/api/testers/runs/${id}/repeat`, { method: "POST" }),
+  stopTesterRun: (id: string) => request<{ ok: boolean }>(`/api/testers/runs/${id}/stop`, { method: "POST" }),
+  deleteTesterRun: (id: string) => request<{ ok: boolean }>(`/api/testers/runs/${id}`, { method: "DELETE" }),
   reviewIdeas: () => request<IdeaReview>("/api/ideas/review", { method: "POST" }),
   ideas: () => request<Idea[]>("/api/ideas"),
   addIdea: (text: string, projectId?: string) =>

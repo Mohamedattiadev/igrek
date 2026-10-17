@@ -47,6 +47,8 @@ import { Sync } from "./sync/client";
 import { registerTeamRoutes } from "./team-routes";
 import { registerTerminalRoutes } from "./terminal-routes";
 import { Terminals } from "./terminals";
+import { registerTesterRoutes } from "./tester-routes";
+import { Testers } from "./testers";
 import { Translator } from "./translator";
 
 // Everything God Eye writes (database, keys) is readable only by you.
@@ -132,6 +134,16 @@ const meetings = new Meetings(
   join(config.dataDir, "runner"),
 );
 meetings.recover();
+const testers = new Testers(
+  sqlite,
+  store,
+  bus,
+  stops,
+  () => readSettings(db),
+  join(config.dataDir, "testers"),
+  join(config.dataDir, "runner"),
+);
+testers.recover();
 const personaChat = connectPersonaChats(chats, personas, (sessionId, personaId) =>
   personas.linkSession(sessionId, personaId),
 );
@@ -163,6 +175,7 @@ const app = createApp({
       worktreeDir: join(config.dataDir, "worktrees"),
       persona: personaChat,
     });
+    registerTesterRoutes(hono, testers);
     registerPersonaRoutes(hono, {
       personas,
       meetings,

@@ -34,10 +34,10 @@ export function AccountChip() {
         className="flex h-7 items-center gap-2 rounded-ui px-2 text-[12px] hover:bg-bg-hover"
         title={t("limits.fiveHour")}
       >
-        <span className="max-w-28 truncate font-medium">{active.label}</span>
+        <span className="hidden max-w-28 truncate font-medium sm:inline">{active.label}</span>
         {pct !== undefined && (
           <span className="flex items-center gap-1">
-            <span className="h-1.5 w-10 overflow-hidden rounded-full bg-bg-muted">
+            <span className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-bg-muted sm:block">
               <span className={cn("block h-full rounded-full", tone)} style={{ width: `${Math.max(4, pct)}%` }} />
             </span>
             <span className="font-mono text-[10.5px] text-fg-muted">{pct}%</span>

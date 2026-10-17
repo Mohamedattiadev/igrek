@@ -87,18 +87,21 @@ function ToolStrip() {
 function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message: string) => void }) {
   const { t } = useTranslation();
   return (
-    <header className="flex h-11 shrink-0 items-center gap-3 border-b border-border bg-bg px-3">
+    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-bg px-3 sm:gap-3">
       <WorkspacePicker />
       <div className="flex-1" />
       <button
         type="button"
         onClick={onSearch}
         data-tour="search"
-        className="flex h-7 w-[min(340px,40vw)] items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2.5 text-[13px] text-fg-subtle hover:border-border-strong"
+        aria-label={t("palette.placeholder")}
+        className="flex h-7 shrink-0 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2 text-[13px] text-fg-subtle hover:border-border-strong sm:w-[min(340px,40vw)] sm:px-2.5"
       >
         <Search size={14} />
-        <span className="flex-1 truncate text-start">{t("palette.placeholder")}</span>
-        <Kbd>Ctrl K</Kbd>
+        <span className="hidden flex-1 truncate text-start sm:block">{t("palette.placeholder")}</span>
+        <span className="hidden sm:inline-flex">
+          <Kbd>Ctrl K</Kbd>
+        </span>
       </button>
       <div className="flex-1" />
       <SyncChip />

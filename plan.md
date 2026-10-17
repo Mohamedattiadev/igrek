@@ -839,8 +839,8 @@ god-eye/
 
 > Amaç: Uygulamayı uzmanlar değil, **gerçek ve sıradan insanlar** nasıl kullanır, onu görmek. "Teyze testi"nin otomatik hali.
 
-- [ ] ⭐ Test kullanıcıları, uygulamayı **gerçek bir tarayıcıda** kullanır (Playwright ile tıklar, yazar, kaybolur) ve kullanırken sesli düşünür: *"Bu buton ne işe yarıyor? Korktum, basmıyorum."*
-- [ ] ⭐ Hazır profiller:
+- [x] ⭐ Test kullanıcıları, uygulamayı **gerçek bir tarayıcıda** kullanır (Playwright ile tıklar, yazar, kaybolur) ve kullanırken sesli düşünür: *"Bu buton ne işe yarıyor? Korktum, basmıyorum."* — *Personalar → Test kullanıcıları: her biri Playwright MCP (0.0.83) ile kendi izole Chromium'unda, sadece tarayıcı araçlarıyla çalışan bir Claude oturumu; bilgisayarda kod çalıştıran ve dosya yükleyen araçlar kapalı, dosya/kabuk araçları yok. Ekran okuyucu kullanıcısı sadece erişilebilirlik ağacı + klavye, renk körü sayfayı renk filtresiyle görür, az gören en büyük yazıyla, yavaş telefon "Slow 3G" + 4 kat yavaş CPU ile. Gerçek testte telefonda üst çubuğun sayfayı genişletip pencereleri tıklanamaz yaptığını buldular; düzeltildi. Bilgisayarda Chromium gerekir; Docker imajında küçük kalsın diye yok*
+- [x] ⭐ Hazır profiller: — *12'si de var*
   - 👵 Teknolojiyle arası olmayan 70 yaşında bir teyze
   - 👴 Gözleri zayıf, büyük yazı kullanan 75 yaşında bir amca
   - 🧒 10 yaşında bir çocuk (sabırsız, her yere tıklar)
@@ -853,12 +853,12 @@ god-eye/
   - 😤 Sinirli ve hiç sabrı olmayan bir kullanıcı
   - 🦹 Kötü niyetli kullanıcı: formlara saçma şeyler yazar, sistemi bozmaya çalışır
   - 🧠 Uzman (power user): kısayolları ve hızı arar
-- [ ] Profiller **demografik çeşitlilik** için tasarlanır (yaş, cinsiyet, eğitim, dil, engellilik, cihaz). Klişe değil, gerçek kullanıcı araştırmalarına dayanır
-- [ ] Kendi profilini oluşturma: "Hedef kitlem 25–35 yaş arası, Almanya'da yaşayan Türk anneler"
-- [ ] **Paralel test:** tek tıkla 10–50 test kullanıcısı aynı anda (her biri ayrı tarayıcı oturumunda)
-- [ ] Rapor: nerede takıldılar, ne kadar sürede başardılar, nerede vazgeçtiler, ekran kayıtları, en sık şikâyetler, "teyze puanı"
-- [ ] Bulunan sorunlar tek tıkla UI/UX veya Frontend personasına görev olarak gider
-- [ ] Her önemli değişiklikten sonra otomatik tekrar test (regresyon)
+- [x] Profiller **demografik çeşitlilik** için tasarlanır (yaş, cinsiyet, eğitim, dil, engellilik, cihaz). Klişe değil, gerçek kullanıcı araştırmalarına dayanır — *10–75 yaş, kadın ve erkek, Türkçe ve Arapça okuyan, farklı cihaz ve engel durumları; her profil dayandığı araştırmayı yazar (NN/g yaşlılar ve çocuklar raporları, WebAIM ekran okuyucu anketi, WCAG 2.2, renk körlüğü yaygınlığı vb.)*
+- [x] Kendi profilini oluşturma: "Hedef kitlem 25–35 yaş arası, Almanya'da yaşayan Türk anneler" — *bir cümleden AI üç farklı kişi çıkarır, listeye eklenir ve silinebilir*
+- [x] **Paralel test:** tek tıkla 10–50 test kullanıcısı aynı anda (her biri ayrı tarayıcı oturumunda) — *bir testte en fazla 50 kişi (profil × kopya), aynı anda en fazla 10; her biri ayrı izole tarayıcı. Bu bilgisayarda 3'ü aynı anda denendi; 10'u aynı anda CPU ve Claude limitine bağlı*
+- [x] Rapor: nerede takıldılar, ne kadar sürede başardılar, nerede vazgeçtiler, ekran kayıtları, en sık şikâyetler, "teyze puanı" — *sonuç, kolaylık, süre, takıldıkları yerler, sesli düşünme adımları, ekran görüntüleri, sorunlar, şikâyetler, teyze puanı. Video kaydı yok: Playwright MCP bu sürümde video seçeneği sunmuyor; takıldıkları anlarda ekran görüntüsü alınıyor*
+- [x] Bulunan sorunlar tek tıkla UI/UX veya Frontend personasına görev olarak gider — *sorunun yanında "UI/UX'e / Frontend'e gönder": o personayla sohbet açılır, sorun taslakta bekler (görev panosu Faz 8)*
+- [ ] Her önemli değişiklikten sonra otomatik tekrar test (regresyon) — *"Tekrar test et": aynı kişiler, aynı görev; teyze puanı ve her kişinin kolaylığı öncekiyle karşılaştırılır (gerçek denemede 20 → 60). Değişiklikten sonra kendiliğinden başlatmak zamanlanmış işlerle (Faz 9)*
 
 #### 6.1c 🧪 Uzman Test Takımı
 - [ ] Birim test yazarı, entegrasyon testçisi, uçtan uca (E2E) testçisi

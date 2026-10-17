@@ -144,11 +144,19 @@ export function IdeasPage() {
               onClick={() => void runReview()}
               disabled={reviewing}
               data-tip={t("ideas.reviewTip")}
+              aria-label={t("ideas.review")}
             >
-              {reviewing ? t("ideas.reviewing") : t("ideas.review")}
+              <span className="hidden md:inline">{reviewing ? t("ideas.reviewing") : t("ideas.review")}</span>
             </Button>
-            <Button size="sm" variant="ghost" icon={Sparkles} onClick={triage} disabled={busy}>
-              {busy ? t("ideas.triaging") : t("ideas.triage")}
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={Sparkles}
+              onClick={triage}
+              disabled={busy}
+              aria-label={t("ideas.triage")}
+            >
+              <span className="hidden md:inline">{busy ? t("ideas.triaging") : t("ideas.triage")}</span>
             </Button>
             <Button size="sm" variant="primary" icon={Plus} onClick={() => actions.captureIdea()}>
               {t("ideas.capture")}

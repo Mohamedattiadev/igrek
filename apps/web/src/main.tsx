@@ -24,6 +24,7 @@ import { SessionPage } from "./pages/Session";
 import { SettingsPage } from "./pages/Settings";
 import { TeamPage } from "./pages/Team";
 import { TerminalPage, TerminalsPage } from "./pages/Terminals";
+import { TestRunPage } from "./pages/Testers";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/jetbrains-mono/wght.css";
 import "./styles.css";
@@ -50,6 +51,7 @@ const router = createBrowserRouter([
       { path: "personas/new", element: <NewPersonaPage /> },
       { path: "personas/:personaId", element: <PersonaPage /> },
       { path: "meetings/:meetingId", element: <MeetingPage /> },
+      { path: "test-runs/:runId", element: <TestRunPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

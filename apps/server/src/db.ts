@@ -400,6 +400,20 @@ const migrations: string[] = [
      updated_at INTEGER NOT NULL
    );
    CREATE INDEX meetings_project ON meetings(project_id, created_at);`,
+  // Faz 6.1b: test users' own profiles and their runs in a real browser.
+  `CREATE TABLE tester_profiles (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE TABLE tester_runs (
+     id TEXT PRIMARY KEY,
+     project_id TEXT,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX tester_runs_project ON tester_runs(project_id, created_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

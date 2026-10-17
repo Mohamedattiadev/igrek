@@ -2015,7 +2015,8 @@
     "none": "Persona yok",
     "review": "Bu bölümü incele",
     "reviewTip": "{{name}} bu bölüme bakar ve en önemli olanları söyler",
-    "reviewDraft": "Bu projenin {{section}} bölümünü incele. Önce açık kontrollerle başla, sonra kendi kontrol listeni kullan. Bulguları önem sırasıyla, dosya ve satırıyla yaz; önce neyin düzeltilmesi gerektiğini söyle ve her birine bir güven seviyesi ver."
+    "reviewDraft": "Bu projenin {{section}} bölümünü incele. Önce açık kontrollerle başla, sonra kendi kontrol listeni kullan. Bulguları önem sırasıyla, dosya ve satırıyla yaz; önce neyin düzeltilmesi gerektiğini söyle ve her birine bir güven seviyesi ver.",
+    "tab_testers": "Test kullanıcıları"
   },
   "meeting": {
     "title": "Takım toplantısı",
@@ -2057,5 +2058,103 @@
     "severity_critical": "Kritik",
     "severity_major": "Önemli",
     "severity_minor": "Küçük"
+  },
+  "testers": {
+    "title": "Test kullanıcıları",
+    "intro": "Uzmanlar değil, sıradan insanlar uygulamanda bir işi gerçek bir tarayıcıda dener ve denerken sesli düşünür. Her biri kendi özel tarayıcısında, kendi ekran boyutu, görme durumu ve bağlantısıyla çalışır. Sadece kendi uygulamanda kullan.",
+    "noBrowser": "Test kullanıcıları için bu bilgisayarda Chromium ya da Google Chrome gerekli. Kurup sayfayı yenile. (Docker imajı küçük kalsın diye tarayıcı içermez.)",
+    "url": "Uygulamanın adresi",
+    "notLocal": "Bu adres bu bilgisayarda ya da yerel ağında değil. Sadece sana ait uygulamaları test et; test kullanıcıları orada ne varsa onunla işlem yapar.",
+    "task": "Ne yapmayı denesinler?",
+    "taskHint": "Örnek: kayıt ol ve ilk ürününü ekle",
+    "who": "Kimler test ediyor",
+    "audience": "Kendi hedef kitleni tarif et",
+    "audienceHint": "Örnek: Almanya'da yaşayan 25-35 yaş arası Türk anneler",
+    "makeProfiles": "3 test kullanıcısı oluştur",
+    "copies": "Her birinden kaç tane",
+    "parallel": "Aynı anda",
+    "total_one": "Toplam 1 test kullanıcısı",
+    "total_other": "Toplam {{count}} test kullanıcısı",
+    "usageNote": "Her test kullanıcısı sadece tarayıcı araçları olan bir Claude oturumudur: dosyalarına dokunamaz, komut çalıştıramaz. Her biri Claude limitinden harcar; aynı anda sayısı arttıkça hız da bu bilgisayarın yükü de artar.",
+    "start": "Testi başlat",
+    "status_running": "Test ediliyor",
+    "status_done": "Bitti",
+    "status_failed": "Bitmedi",
+    "status_stopped": "Durduruldu",
+    "auntShort": "Teyze puanı {{n}}",
+    "aunt": "Teyze puanı",
+    "auntHint": "Teknolojiyle arası olmayanlar için ne kadar kolay geldi (0-100). Başarı: hedefe ulaşanların oranı.",
+    "success": "Hedefe ulaşan",
+    "avgTime": "Ortalama süre",
+    "issues": "Bulunan sorunlar",
+    "complaints": "En sık şikâyetler",
+    "times_one": "{{count}} kez",
+    "times_other": "{{count}} kez",
+    "toUiux": "UI/UX'e gönder",
+    "toFrontend": "Frontend'e gönder",
+    "needProject": "Sorunları personaya göndermek için teste bir proje seç",
+    "fixDraft": "Test kullanıcıları {{url}} adresinde şunu denerken bu sorunu buldu: {{task}}\n\nSorun: {{title}}\nNerede: {{where}}\n\nKoddaki sebebini bul, düzelt ve düzeldiğini nasıl kontrol edeceğimi söyle.",
+    "outcome_success": "Başardı",
+    "outcome_struggled": "Zorlandı",
+    "outcome_gave-up": "Vazgeçti",
+    "ease": "Kolaylık {{n}}/10",
+    "better": "{{n}} daha kolay",
+    "worse": "{{n}} daha zor",
+    "failed": "Bu oturum bitmedi",
+    "thinking_one": "Sesli düşünme: {{count}} adım",
+    "thinking_other": "Sesli düşünme: {{count}} adım",
+    "repeat": "Tekrar test et",
+    "repeatTip": "Aynı kişiler, aynı görev: değişikliğin işe yaradı mı?",
+    "comparing": "{{when}} yapılan testle karşılaştırılıyor",
+    "p": {
+      "aunt": {
+        "name": "Ayşe Teyze",
+        "who": "70, iki yıldır akıllı telefonu var, bir şeyi bozmaktan korkar"
+      },
+      "uncle": {
+        "name": "Hasan Amca",
+        "who": "75, gözleri zayıf, en büyük yazı boyutu"
+      },
+      "child": {
+        "name": "Deniz",
+        "who": "10, sabırsız, her yere tıklar"
+      },
+      "first-phone": {
+        "name": "Mustafa",
+        "who": "45, ilk akıllı telefonu geçen ay aldı"
+      },
+      "busy-exec": {
+        "name": "Selin",
+        "who": "42, yönetici, iki toplantı arası bir dakika"
+      },
+      "newcomer": {
+        "name": "Ahmad",
+        "who": "30, Türkçeyi yavaş okur, en iyi Arapça"
+      },
+      "screen-reader": {
+        "name": "Elif",
+        "who": "35, görme engelli, ekran okuyucu ve klavye"
+      },
+      "color-blind": {
+        "name": "Can",
+        "who": "28, kırmızı-yeşil renk körü"
+      },
+      "slow-phone": {
+        "name": "Fatma",
+        "who": "55, eski telefon, zayıf bağlantı"
+      },
+      "angry": {
+        "name": "Burak",
+        "who": "38, zaten sinirli, hiç sabrı yok"
+      },
+      "hostile": {
+        "name": "Trol",
+        "who": "bilerek bozmaya çalışır"
+      },
+      "power-user": {
+        "name": "Kerem",
+        "who": "33, yazılımcı, kısayol arar"
+      }
+    }
   }
 }
