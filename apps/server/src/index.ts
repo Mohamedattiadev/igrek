@@ -111,6 +111,7 @@ const enhancer = new Enhancer(
   (id) => sync.presenceList(id),
   (id) => terminals.recentErrors(id),
 );
+insight.extraNotices = () => sync.overlapNotices();
 const app = createApp({
   config,
   db,
@@ -125,7 +126,11 @@ const app = createApp({
     registerChatRoutes(hono, { chats, store, accounts });
     registerFileRoutes(hono, { files, store, db: sqlite });
     registerAssistRoutes(hono, assist);
-    registerTeamRoutes(hono, sync, store);
+    registerTeamRoutes(hono, sync, store, {
+      language: () => readSettings(db).language,
+      runnerDir: join(config.dataDir, "runner"),
+      stops,
+    });
     registerEnhanceRoutes(hono, enhancer);
     registerHttpRoutes(hono, store);
     registerDeployRoutes(hono, {

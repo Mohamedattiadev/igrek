@@ -88,7 +88,8 @@
     "notices": "Worth a look",
     "notice_tool": "a project check failed",
     "notice_score": "health score dropped",
-    "notice_env": "a teammate changed a setting"
+    "notice_env": "a teammate changed a setting",
+    "notice_overlap": "a teammate is in the same files"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -752,7 +753,8 @@
     "signOutUserConfirm": "Sign {{name}} out of every device?",
     "clear2fa": "Reset two-factor",
     "clear2faTip": "For someone who lost their phone",
-    "clear2faConfirm": "Turn off two-factor sign-in for {{name}}? They can turn it on again after signing in."
+    "clear2faConfirm": "Turn off two-factor sign-in for {{name}}? They can turn it on again after signing in.",
+    "offlineSince": "Offline · seen {{when}}"
   },
   "enhance": {
     "button": "Enhance prompt",
@@ -1499,5 +1501,22 @@
     "signOutOthersConfirm": "Sign out every other device signed in to your account?",
     "signedOutOthers_one": "Signed out {{count}} device.",
     "signedOutOthers_other": "Signed out {{count}} devices."
+  },
+  "people": {
+    "working": "{{name}} is working now: {{doing}}",
+    "idle": "{{name}} is online, not working on anything shared",
+    "offline": "{{name}} is offline",
+    "offlineSince": "{{name}} is offline (seen {{when}})"
+  },
+  "person": {
+    "summarize": "Summarize the week",
+    "summarizeTip": "A short summary of their week, in your language (small model)",
+    "summarizing": "Summarizing…",
+    "quiet": "Nothing shared this week",
+    "quietBody": "Their shared projects had no sessions or decisions in the last 7 days.",
+    "decisions": "Decisions and notes",
+    "today": "Today in the team",
+    "todayHint": "What teammates did today in shared projects.",
+    "todayNone": "Nothing from teammates yet today."
   }
 }

@@ -88,7 +88,8 @@
     "notices": "Göz atmaya değer",
     "notice_tool": "bir proje kontrolü başarısız",
     "notice_score": "sağlık puanı düştü",
-    "notice_env": "bir takım arkadaşı bir ayarı değiştirdi"
+    "notice_env": "bir takım arkadaşı bir ayarı değiştirdi",
+    "notice_overlap": "bir takım arkadaşı aynı dosyalarda"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -752,7 +753,8 @@
     "signOutUserConfirm": "{{name}} tüm cihazlarından çıkarılsın mı?",
     "clear2fa": "İki adımlıyı sıfırla",
     "clear2faTip": "Telefonunu kaybeden biri için",
-    "clear2faConfirm": "{{name}} için iki adımlı giriş kapatılsın mı? Giriş yaptıktan sonra tekrar açabilir."
+    "clear2faConfirm": "{{name}} için iki adımlı giriş kapatılsın mı? Giriş yaptıktan sonra tekrar açabilir.",
+    "offlineSince": "Çevrimdışı · {{when}} görüldü"
   },
   "enhance": {
     "button": "Prompt'u güçlendir",
@@ -1499,5 +1501,22 @@
     "signOutOthersConfirm": "Hesabında açık olan diğer tüm cihazlardan çıkış yapılsın mı?",
     "signedOutOthers_one": "{{count}} cihazdan çıkış yapıldı.",
     "signedOutOthers_other": "{{count}} cihazdan çıkış yapıldı."
+  },
+  "people": {
+    "working": "{{name}} şu an çalışıyor: {{doing}}",
+    "idle": "{{name}} çevrimiçi, paylaşılan bir şey üzerinde çalışmıyor",
+    "offline": "{{name}} çevrimdışı",
+    "offlineSince": "{{name}} çevrimdışı ({{when}} görüldü)"
+  },
+  "person": {
+    "summarize": "Haftayı özetle",
+    "summarizeTip": "Haftasının kısa bir özeti, senin dilinde (küçük model)",
+    "summarizing": "Özetleniyor…",
+    "quiet": "Bu hafta paylaşılan bir şey yok",
+    "quietBody": "Paylaşılan projelerinde son 7 günde session veya karar yok.",
+    "decisions": "Kararlar ve notlar",
+    "today": "Bugün takımda",
+    "todayHint": "Takım arkadaşlarının bugün paylaşılan projelerde yaptıkları.",
+    "todayNone": "Bugün takımdan henüz bir şey yok."
   }
 }

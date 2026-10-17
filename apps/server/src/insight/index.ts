@@ -385,8 +385,12 @@ ${heads.join("\n\n") || "(none)"}`;
         at: r.at,
         link: `/p/${r.project_id}?tab=sections&view=env`,
       });
+    out.push(...(this.extraNotices?.() ?? []));
     return out.sort((a, b) => b.at - a.at).slice(0, 50);
   }
+
+  /** Notices from elsewhere (team overlaps), merged into the same inbox list. */
+  extraNotices?: () => InboxNotice[];
 
   // ---- automatic rescans ---------------------------------------------------------------
 

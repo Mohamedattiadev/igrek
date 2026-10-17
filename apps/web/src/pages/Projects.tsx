@@ -3,6 +3,7 @@ import { ArrowDown, ArrowUp, FolderKanban, FolderPlus, GitBranch, Search, Settin
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
+import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
@@ -10,7 +11,7 @@ import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useIndexStatus, useLiveData } from "../lib/live";
 
-function ProjectCard({ project }: { project: ProjectListItem }) {
+function ProjectCard({ project, people }: { project: ProjectListItem; people: ReturnType<typeof useTeamPeople> }) {
   const { t } = useTranslation();
   const summary = useSummaryText(project.lastSummary);
   const git = project.git;
@@ -23,6 +24,32 @@ function ProjectCard({ project }: { project: ProjectListItem }) {
       <div className="flex items-center gap-2">
         <ActiveDot active={project.activeSessions > 0} />
         <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold">{project.name}</h3>
+        {/* Teammates who worked here lately; the one working right now has a green dot. */}
+        {(() => {
+          const here = people.presence.filter((p) => p.projectId === project.id);
+          const members = (people.status?.members ?? []).filter(
+            (m) =>
+              m.id !== people.status?.user?.id &&
+              (project.teamAuthors.includes(m.id) || here.some((p) => p.userId === m.id)),
+          );
+          if (!members.length) return null;
+          return (
+            <span className="flex -space-x-1.5">
+              {members.slice(0, 4).map((m) => {
+                const doing = here.find((p) => p.userId === m.id);
+                return (
+                  <TeamAvatar
+                    key={m.id}
+                    member={m}
+                    size={20}
+                    state={doing ? "working" : m.online ? "idle" : "offline"}
+                    doing={doing?.title}
+                  />
+                );
+              })}
+            </span>
+          );
+        })()}
         {project.health && <HealthBadge health={project.health} />}
       </div>
       <p className="mt-0.5 truncate font-mono text-[11px] text-fg-subtle">{project.path}</p>
@@ -154,6 +181,7 @@ export function ProjectsPage() {
   const status = useIndexStatus();
 
   const workspace = useWorkspace();
+  const people = useTeamPeople();
   const shown = useMemo(() => {
     const q = filter.trim().toLowerCase();
     return (projects ?? []).filter(
@@ -211,7 +239,7 @@ export function ProjectsPage() {
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
             {projects
-              ? shown.map((project) => <ProjectCard key={project.id} project={project} />)
+              ? shown.map((project) => <ProjectCard key={project.id} project={project} people={people} />)
               : [0, 1, 2, 3].map((i) => <Card key={i} className="h-40 animate-pulse bg-bg-subtle" />)}
           </div>
           {hiddenCount > 0 && (

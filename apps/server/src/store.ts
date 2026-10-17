@@ -224,6 +224,13 @@ export class Store {
       workspace: row.workspace === "team" ? "team" : "local",
       share: (row.share as ShareLevel | null) ?? "off",
       gitFlow: row.git_flow !== 0,
+      teamAuthors: (
+        this.db
+          .query(
+            "SELECT DISTINCT author_id FROM sessions WHERE project_id = ? AND author_id IS NOT NULL AND updated_at > ?",
+          )
+          .all(row.id, Date.now() - 14 * 86_400_000) as { author_id: string }[]
+      ).map((r) => r.author_id),
       sessionCount: sessions.length,
       activeSessions: sessions.filter((s) => isActive(s.updated_at ?? 0, now)).length,
       lastActivity: row.last_activity,

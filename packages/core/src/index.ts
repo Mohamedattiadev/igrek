@@ -220,6 +220,8 @@ export interface ProjectListItem {
   share: ShareLevel;
   /** Recommended flow (branches → main → deploy): warn before committing straight to main. */
   gitFlow: boolean;
+  /** Teammates who worked here in the last two weeks (hub user ids). */
+  teamAuthors: string[];
   sessionCount: number;
   activeSessions: number;
   lastActivity: number;
@@ -499,6 +501,10 @@ export interface TeamMember {
   displayName: string;
   role: "admin" | "member" | "viewer";
   online?: boolean;
+  /** "#3b82f6" or a small data: image. */
+  avatar?: string;
+  language?: string;
+  lastSeen?: number;
 }
 
 export interface TeamStatus {
@@ -700,4 +706,20 @@ export interface HubAlertInfo {
   ip?: string;
   count?: number;
   at: number;
+}
+
+/** One teammate's recent work (plan.md 4.4 / 4.6). */
+export interface TeamActivity {
+  userId: string;
+  name: string;
+  sessions: {
+    id: string;
+    projectId: string;
+    projectName: string;
+    title: string;
+    did: string[];
+    files: string[];
+    updatedAt: number;
+  }[];
+  decisions: { section: string; text: string; projectId: string; at: number }[];
 }

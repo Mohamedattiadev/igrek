@@ -28,11 +28,14 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
+import { TeamAvatar } from "../components/TeamAvatar";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Section, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
+import { TodayInTeam } from "./Person";
 import {
   AccessSection,
   AlertsSection,
@@ -257,10 +260,17 @@ function Members({ status, presence }: { status: TeamStatus; presence: Presence[
         const doing = presence.filter((p) => p.userId === m.id);
         return (
           <div key={m.id} className="flex items-start gap-3 py-2.5">
-            <StatusDot tone={m.online ? "success" : "neutral"} pulse={doing.length > 0} />
+            <TeamAvatar
+              member={m}
+              size={28}
+              state={doing.length ? "working" : m.online ? "idle" : "offline"}
+              doing={doing[0]?.title}
+            />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 text-[13px]">
-                <span className="font-medium">{m.displayName}</span>
+                <Link to={`/team/${m.id}`} className="font-medium hover:text-accent">
+                  {m.displayName}
+                </Link>
                 <span className="font-mono text-[11px] text-fg-subtle">@{m.username}</span>
                 {m.role !== "member" && (
                   <Badge tone={m.role === "admin" ? "accent" : "neutral"}>{t(`team.role_${m.role}`)}</Badge>
@@ -276,7 +286,13 @@ function Members({ status, presence }: { status: TeamStatus; presence: Presence[
                 </p>
               ))}
               {!doing.length && (
-                <p className="mt-0.5 text-xs text-fg-subtle">{m.online ? t("team.online") : t("team.offline")}</p>
+                <p className="mt-0.5 text-xs text-fg-subtle">
+                  {m.online
+                    ? t("team.online")
+                    : m.lastSeen
+                      ? t("team.offlineSince", { when: relativeTime(m.lastSeen) })
+                      : t("team.offline")}
+                </p>
               )}
             </div>
           </div>
@@ -790,6 +806,9 @@ export function TeamPage() {
               ) : (
                 <EmptyState icon={Users} title={t("team.noMembers")} body={t("team.noMembersBody")} />
               )}
+            </Section>
+            <Section title={t("person.today")} hint={t("person.todayHint")}>
+              <TodayInTeam />
             </Section>
             <Section title={t("team.sharing")} hint={t("team.sharingHint")}>
               <Sharing />

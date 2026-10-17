@@ -160,7 +160,15 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean } = {}
       hub
         .users()
         .filter((u) => !u.disabled)
-        .map(({ id, username, displayName, role }) => ({ id, username, displayName, role })),
+        .map(({ id, username, displayName, role, avatar, language }) => ({
+          id,
+          username,
+          displayName,
+          role,
+          avatar,
+          language,
+          lastSeen: hub.lastSeen(id),
+        })),
     ),
   );
 

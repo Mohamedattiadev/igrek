@@ -634,7 +634,7 @@ god-eye/
 - [ ] Çapraz çelişki tespiti: iki kişinin aldığı kararlar çelişirse ikisine de haber verilir
 - [ ] Yorumlar ve @bahsetme: session'lara, kararlara ve kategori sayfalarına
 - [ ] Ortak görev panosu: görev bir insana veya bir personaya atanabilir
-- [ ] Takım aktivite akışı: "Bugün takımda ne oldu" (her kullanıcının kendi dilinde)
+- [x] Takım aktivite akışı: "Bugün takımda ne oldu" (her kullanıcının kendi dilinde)
 - [ ] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir
 
 #### 4.5 Hub (VPS tarafı)
@@ -648,13 +648,13 @@ god-eye/
 - [x] Hub opsiyoneldir: tek başına kullanan biri hiç kurmaz
 
 #### 4.6 👤 "Kim yaptı, kim yapıyor" (her yerde isim)
-- [ ] ⭐ Canlı durum rozetleri: **"🟢 Mohamed şu an çalışıyor: Backend → ödeme modülü"**, "🟡 Kerim beklemede", "⚪ Ayşe çevrimdışı (2 saat önce)"
+- [x] ⭐ Canlı durum rozetleri: **"Mohamed şu an çalışıyor: Backend → ödeme modülü"**, "Kerim beklemede", "Ayşe çevrimdışı (2 saat önce)" — *yeşil/sarı/gri nokta + ipucu*
 - [x] ⭐ Her kayıtta yapan kişi: **"Kerim yaptı · Claude ile · 14:32"**. Session'larda, commit'lerde, kararlarda, görevlerde, sunucu komutlarında ve dosya değişikliklerinde — *şimdilik session'lar ve hafıza*
 - [ ] İnsan + agent birlikte gösterilir: "Mohamed → 🤖 Backend Senior persona → `payment.ts` değiştirildi"
 - [ ] Kod görünümünde satır bazında: "Bu satırı Kerim, 3 gün önce, Codex ile, şu session'da yazdı"
-- [ ] Proje kartında üye avatarları ve kimin aktif olduğu
-- [ ] Kişi sayfası: "Kerim bu hafta ne yaptı" (özet, kendi dilimde)
-- [ ] Bildirim: "Mohamed, senin çalıştığın `auth.ts` dosyasını değiştirdi"
+- [x] Proje kartında üye avatarları ve kimin aktif olduğu
+- [x] Kişi sayfası: "Kerim bu hafta ne yaptı" (özet, kendi dilimde)
+- [x] Bildirim: "Mohamed, senin çalıştığın `auth.ts` dosyasını değiştirdi" — *Gelen Kutusu: canlı ve son 2 saatteki ortak dosyalar*
 
 #### 4.7 ✅ Alınan kararlar (önerilen varsayılanlar)
 - [x] **Uçtan uca şifreleme: AÇIK** (kapatılamaz). Güvenliğin temeli

@@ -4,10 +4,12 @@ import { chmodSync, existsSync, readFileSync, rmSync, writeFileSync } from "node
 import { hostname } from "node:os";
 import type {
   HubAlertInfo,
+  InboxNotice,
   KeyRequest,
   Presence,
   ShareLevel,
   SharePreview,
+  TeamActivity,
   TeamMember,
   TeamStatus,
 } from "@godeye/core";
@@ -262,6 +264,138 @@ export class Sync {
     await this.loadKeys();
     this.bus.publish({ type: "team-changed" });
     return encodeRecovery(this.config.keys);
+  }
+
+  /**
+   * "Kerim changed auth.ts, which you're working on" (plan.md 4.4, 4.6): a
+   * teammate's live or recent (2 h) work touching files you touched lately.
+   */
+  overlapNotices(now = Date.now()): InboxNotice[] {
+    const since = now - 2 * 3600_000;
+    const out: InboxNotice[] = [];
+    const mine = new Map<string, Set<string>>();
+    for (const r of this.db
+      .query(
+        "SELECT project_id, files_touched FROM sessions WHERE author_id IS NULL AND updated_at > ? AND project_id IS NOT NULL",
+      )
+      .all(since) as {
+      project_id: string;
+      files_touched: string;
+    }[]) {
+      const set = mine.get(r.project_id) ?? new Set<string>();
+      for (const f of JSON.parse(r.files_touched) as string[]) set.add(f.split("/").slice(-3).join("/"));
+      mine.set(r.project_id, set);
+    }
+    const name = (id: string) =>
+      (this.db.query("SELECT name FROM projects WHERE id = ?").get(id) as { name: string } | undefined)?.name ?? id;
+    const tail = (f: string) => f.split("/").slice(-3).join("/");
+    for (const p of this.presenceList())
+      if (p.overlap?.length)
+        out.push({
+          id: `overlap-live-${p.userId}-${p.projectId}-${p.overlap.join()}`,
+          kind: "overlap",
+          projectId: p.projectId,
+          projectName: name(p.projectId),
+          detail: `${p.name} · ${p.overlap.slice(0, 3).map(tail).join(", ")}`,
+          at: p.at,
+          link: `/p/${p.projectId}`,
+        });
+    for (const r of this.db
+      .query(
+        "SELECT id, project_id, author_name, files_touched, updated_at FROM sessions WHERE author_id IS NOT NULL AND updated_at > ? ORDER BY updated_at DESC LIMIT 50",
+      )
+      .all(since) as {
+      id: string;
+      project_id: string;
+      author_name: string | null;
+      files_touched: string;
+      updated_at: number;
+    }[]) {
+      const own = mine.get(r.project_id);
+      if (!own) continue;
+      const shared = (JSON.parse(r.files_touched) as string[]).map(tail).filter((f) => own.has(f));
+      if (shared.length)
+        out.push({
+          id: `overlap-${r.id}-${shared.join()}`,
+          kind: "overlap",
+          projectId: r.project_id,
+          projectName: name(r.project_id),
+          detail: `${r.author_name ?? "?"} · ${shared.slice(0, 3).join(", ")}`,
+          at: r.updated_at,
+          link: `/p/${r.project_id}/s/${r.id}`,
+        });
+    }
+    return out;
+  }
+
+  /** Teammates' work since a time, per person (plan.md 4.4 "today in the team", 4.6 person page). */
+  activity(since: number, language: string, userId?: string): TeamActivity[] {
+    const rows = this.db
+      .query(
+        `SELECT s.id, s.project_id, p.name AS project, s.title, s.summary, s.updated_at, s.author_id, s.author_name, s.files_touched
+         FROM sessions s LEFT JOIN projects p ON p.id = s.project_id
+         WHERE s.author_id IS NOT NULL AND s.updated_at > ? ${userId ? "AND s.author_id = ?" : ""}
+         ORDER BY s.updated_at DESC LIMIT 300`,
+      )
+      .all(...(userId ? [since, userId] : [since])) as {
+      id: string;
+      project_id: string;
+      project: string | null;
+      title: string | null;
+      summary: string | null;
+      updated_at: number;
+      author_id: string;
+      author_name: string | null;
+      files_touched: string;
+    }[];
+    const people = new Map<string, TeamActivity>();
+    for (const r of rows) {
+      let person = people.get(r.author_id);
+      if (!person) {
+        person = {
+          userId: r.author_id,
+          name: r.author_name ?? this.authorName(r.author_id),
+          sessions: [],
+          decisions: [],
+        };
+        people.set(r.author_id, person);
+      }
+      const summary = r.summary
+        ? (JSON.parse(r.summary) as { title?: string; texts?: Record<string, { did?: string[] }> })
+        : undefined;
+      const text = summary?.texts?.[language] ?? summary?.texts?.en ?? Object.values(summary?.texts ?? {})[0];
+      person.sessions.push({
+        id: r.id,
+        projectId: r.project_id,
+        projectName: r.project ?? "",
+        title: summary?.title || r.title || "",
+        did: text?.did?.slice(0, 3) ?? [],
+        files: (JSON.parse(r.files_touched) as string[]).slice(-5).map((f) => f.split("/").slice(-2).join("/")),
+        updatedAt: r.updated_at,
+      });
+    }
+    const memory = this.db
+      .query(
+        `SELECT author_id, section, text, created_at, project_id FROM memory_items WHERE author_id IS NOT NULL AND created_at > ? ${userId ? "AND author_id = ?" : ""} AND status = 'active' ORDER BY created_at DESC LIMIT 100`,
+      )
+      .all(...(userId ? [since, userId] : [since])) as {
+      author_id: string;
+      section: string;
+      text: string;
+      created_at: number;
+      project_id: string;
+    }[];
+    for (const m of memory) {
+      const person = people.get(m.author_id) ?? {
+        userId: m.author_id,
+        name: this.authorName(m.author_id),
+        sessions: [],
+        decisions: [],
+      };
+      person.decisions.push({ section: m.section, text: m.text, projectId: m.project_id, at: m.created_at });
+      people.set(m.author_id, person);
+    }
+    return [...people.values()];
   }
 
   /** Shared projects with their opaque hub ids (only this computer can tell which is which). */

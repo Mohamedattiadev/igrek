@@ -8,6 +8,7 @@ import {
   MessageSquare,
   SquareTerminal,
   TrendingDown,
+  Users,
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -169,7 +170,14 @@ export function InboxPage() {
               <Card>
                 <div className="divide-y divide-border">
                   {notices.map((n) => {
-                    const Icon = n.kind === "tool" ? CircleX : n.kind === "score" ? TrendingDown : KeyRound;
+                    const Icon =
+                      n.kind === "tool"
+                        ? CircleX
+                        : n.kind === "score"
+                          ? TrendingDown
+                          : n.kind === "overlap"
+                            ? Users
+                            : KeyRound;
                     return (
                       <Link
                         key={n.id}

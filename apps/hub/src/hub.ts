@@ -413,6 +413,14 @@ export class Hub {
     return this.user(id);
   }
 
+  /** When any of this person's devices last talked to the hub. */
+  lastSeen(userId: string): number | undefined {
+    return (
+      (this.db.query("SELECT MAX(last_seen) AS at FROM devices WHERE user_id = ?").get(userId) as { at: number | null })
+        .at ?? undefined
+    );
+  }
+
   signOutEverywhere(userId: string, keepDevice?: string): number {
     return this.db.query("DELETE FROM devices WHERE user_id = ? AND token_hash != ?").run(userId, keepDevice ?? "")
       .changes;

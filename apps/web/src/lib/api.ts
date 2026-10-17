@@ -54,6 +54,7 @@ import type {
   ShareLevel,
   SharePreview,
   SystemStatus,
+  TeamActivity,
   TeamAuditEntry,
   TeamDevice,
   TeamInvite,
@@ -398,6 +399,10 @@ export const api = {
     request<{ ok: boolean }>(`/api/team/key-requests/${deviceId}/approve`, { method: "POST" }),
   teamRotateKey: () => request<{ recoveryKey: string }>("/api/team/rotate-key", { method: "POST" }),
   teamAlerts: () => request<HubAlertInfo[]>("/api/team/alerts"),
+  teamActivity: (since: number, user?: string) =>
+    request<TeamActivity[]>(`/api/team/activity?since=${since}${user ? `&user=${encodeURIComponent(user)}` : ""}`),
+  teamActivitySummary: (user: string) =>
+    request<{ text: string }>("/api/team/activity/summary", { method: "POST", body: JSON.stringify({ user }) }),
   teamProjects: () => request<{ projectId: string; name: string; key: string }[]>("/api/team/projects"),
   teamAccess: () => request<{ project: string; userId: string; role: string }[]>("/api/team/admin/access"),
   teamSetAccess: (project: string, userId: string, role: string | null) =>

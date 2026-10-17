@@ -12,6 +12,7 @@ import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
 import { LimitsPage } from "./pages/Limits";
 import { Onboarding } from "./pages/Onboarding";
+import { PersonPage } from "./pages/Person";
 import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
 import { PromptsPage } from "./pages/Prompts";
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
       { path: "inbox", element: <InboxPage /> },
       { path: "limits", element: <LimitsPage /> },
       { path: "team", element: <TeamPage /> },
+      { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "design", element: <DesignPage /> },
       { path: "*", element: <ProjectsPage /> },
