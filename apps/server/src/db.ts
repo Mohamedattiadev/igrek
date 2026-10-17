@@ -675,6 +675,31 @@ const migrations: string[] = [
      author_name TEXT
    );
    CREATE INDEX board_versions_board ON board_versions(board_id, at);`,
+  // Faz 12: your own deadlines and milestones on the calendar.
+  `CREATE TABLE calendar_events (
+     id TEXT PRIMARY KEY,
+     kind TEXT NOT NULL,
+     title TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     project_id TEXT,
+     created_at INTEGER NOT NULL
+   );
+   CREATE INDEX calendar_events_at ON calendar_events(at);`,
+  // Faz 12: the vault: your own secrets (encrypted) and rotation reminders for every key.
+  `CREATE TABLE vault_items (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL,
+     value TEXT NOT NULL,
+     note TEXT,
+     project_id TEXT,
+     changed_at INTEGER NOT NULL
+   );
+   CREATE TABLE vault_rotation (
+     ref TEXT PRIMARY KEY,
+     every_days INTEGER NOT NULL DEFAULT 0,
+     last_hash TEXT,
+     changed_at INTEGER
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

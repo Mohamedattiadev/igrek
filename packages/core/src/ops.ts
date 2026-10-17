@@ -329,3 +329,38 @@ export interface HostRun {
   url: string;
   createdAt: string;
 }
+
+/** One thing on the calendar (plan.md 12 "Takvim görünümü"). */
+export interface CalendarItem {
+  id: string;
+  kind: "schedule" | "backup" | "deploy" | "cert" | "domain" | "deadline" | "milestone" | "note" | "run";
+  title: string;
+  at: number;
+  projectId?: string;
+  /** Where clicking goes. */
+  link?: string;
+  /** Past deploys and runs: whether they worked. */
+  ok?: boolean;
+  /** Only events you added can be removed. */
+  own?: boolean;
+}
+
+/** A secret as the vault lists it (plan.md 12 "Sır kasası"): never the value itself. */
+export interface VaultEntry {
+  /** "env:<projectId>:<file>:<KEY>" or "item:<id>" */
+  ref: string;
+  kind: "env" | "item";
+  name: string;
+  projectId?: string;
+  /** The .env file it is in, relative to the project. */
+  file?: string;
+  note?: string;
+  /** Last time the value changed (file time for .env keys God Eye saw change, or when saved). */
+  changedAt?: number;
+  /** Rotation reminder in days; 0 = none. */
+  rotateDays: number;
+  /** Due for a change. */
+  due: boolean;
+  /** Other places with exactly the same value (compared by hash on this computer). */
+  sameAs: number;
+}

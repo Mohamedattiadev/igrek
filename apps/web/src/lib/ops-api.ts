@@ -4,6 +4,7 @@ import type {
   BackupRun,
   Board,
   BoardVersion,
+  CalendarItem,
   CodeHostInfo,
   DbConnection,
   DbResult,
@@ -19,6 +20,7 @@ import type {
   LogSource,
   UptimeCheck,
   UptimeMonitor,
+  VaultEntry,
   WikiPage,
 } from "@godeye/core";
 import { request } from "./api";
@@ -167,4 +169,22 @@ export const hostApi = {
   runs: (projectId: string) => request<HostRun[]>(`/api/projects/${projectId}/host/runs`),
   toTask: (projectId: string, number: number, start: boolean) =>
     post<{ taskId: string; runId?: string }>(`/api/projects/${projectId}/host/issues/${number}/task`, { start }),
+};
+
+export const calendarApi = {
+  items: (from: number, to: number, projectId?: string) =>
+    request<CalendarItem[]>(`/api/calendar?from=${from}&to=${to}${projectId ? `&projectId=${projectId}` : ""}`),
+  add: (body: { kind: string; title: string; at: number; projectId?: string }) =>
+    post<CalendarItem>("/api/calendar", body),
+  remove: (id: string) => del(`/api/calendar/${id}`),
+};
+
+export const vaultApi = {
+  list: () => request<VaultEntry[]>("/api/vault"),
+  add: (body: { name: string; value: string; note?: string; projectId?: string }) =>
+    post<{ id: string }>("/api/vault/items", body),
+  remove: (id: string) => del(`/api/vault/items/${id}`),
+  rotation: (ref: string, days: number) => post("/api/vault/rotation", { ref, days }),
+  rotated: (ref: string) => post("/api/vault/rotation", { ref, rotated: true }),
+  reveal: (ref: string) => post<{ value: string }>("/api/vault/reveal", { ref }),
 };

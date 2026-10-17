@@ -221,3 +221,76 @@ export function registerCodeHostRoutes(app: Hono, host: import("./codehost").Cod
     return r.ok ? c.json(r.value) : c.json({ error: r.error }, 400);
   });
 }
+
+export function registerCalendarRoutes(app: Hono, calendar: import("./calendar").Calendar): void {
+  app.get("/api/calendar", (c) => {
+    const from = Number(c.req.query("from"));
+    const to = Number(c.req.query("to"));
+    if (!from || !to || to < from || to - from > 400 * 86_400_000) return c.json({ error: "Bad range" }, 400);
+    return c.json(calendar.items(from, to, c.req.query("projectId") || undefined));
+  });
+  app.post("/api/calendar", async (c) => {
+    try {
+      return c.json(calendar.add((await c.req.json()) as Parameters<typeof calendar.add>[0]));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+  app.delete("/api/calendar/:id", (c) => {
+    calendar.remove(c.req.param("id"));
+    return c.json({ ok: true });
+  });
+}
+
+export function registerVaultRoutes(app: Hono, vault: import("./vault").Vault): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.get("/api/vault", (c) => c.json(vault.list()));
+  app.post("/api/vault/items", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      name?: string;
+      value?: string;
+      note?: string;
+      projectId?: string;
+    };
+    try {
+      return c.json({
+        id: await vault.addItem({
+          name: String(body.name ?? ""),
+          value: String(body.value ?? ""),
+          note: body.note,
+          projectId: body.projectId,
+        }),
+      });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.put("/api/vault/items/:id", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { value?: string };
+    try {
+      await vault.updateItem(c.req.param("id"), String(body.value ?? ""));
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/vault/items/:id", (c) => {
+    vault.removeItem(c.req.param("id"));
+    return c.json({ ok: true });
+  });
+  app.post("/api/vault/rotation", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { ref?: string; days?: number; rotated?: boolean };
+    if (!body.ref) return c.json({ error: "Missing key" }, 400);
+    if (body.rotated) vault.markRotated(body.ref);
+    else vault.setRotation(body.ref, Number(body.days) || 0);
+    return c.json({ ok: true });
+  });
+  app.post("/api/vault/reveal", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { ref?: string };
+    try {
+      return c.json({ value: await vault.reveal(String(body.ref ?? "")) });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+}

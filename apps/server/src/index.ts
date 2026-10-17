@@ -17,6 +17,7 @@ import { BackupJobs } from "./backup-jobs";
 import { Board } from "./board";
 import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
+import { Calendar } from "./calendar";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
@@ -60,7 +61,7 @@ import { registerLibraryRoutes } from "./library-routes";
 import { Logs } from "./logs";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
-import { registerCodeHostRoutes, registerOpsRoutes } from "./ops-routes";
+import { registerCalendarRoutes, registerCodeHostRoutes, registerOpsRoutes, registerVaultRoutes } from "./ops-routes";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
 import { DevServers } from "./preview/devservers";
@@ -82,6 +83,7 @@ import { registerTesterRoutes } from "./tester-routes";
 import { Testers } from "./testers";
 import { Translator } from "./translator";
 import { Updater } from "./update";
+import { Vault } from "./vault";
 import { registerWatcherRoutes } from "./watcher-routes";
 import { DependencyWatcher, SecretScanner } from "./watchers";
 
@@ -272,12 +274,10 @@ monitors.start();
 const docker = new Docker(servers);
 const logs = new Logs(sqlite, store, files, docker, servers);
 const appErrors = new AppErrors(sqlite, store, bus);
-const databases = new Databases(
-  sqlite,
-  store,
-  new Sealer(config.dataDir),
-  new EnvFiles(join(config.dataDir, "env-backups")),
-);
+const sealer = new Sealer(config.dataDir);
+const envFiles = new EnvFiles(join(config.dataDir, "env-backups"));
+const databases = new Databases(sqlite, store, sealer, envFiles);
+const vault = new Vault(sqlite, store, envFiles, sealer);
 const backupJobs = new BackupJobs(sqlite, store, bus, databases, servers, join(config.dataDir, "backups"));
 setInterval(() => void backupJobs.tick(), 60_000);
 const docs = new Docs(
@@ -324,6 +324,7 @@ insight.extraNotices = () => [
   ...monitors.notices(),
   ...appErrors.notices(),
   ...backupJobs.notices(),
+  ...vault.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
     .list()
@@ -385,6 +386,8 @@ const app = createApp({
     registerPreviewRoutes(hono, { devServers, stops });
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
+    registerVaultRoutes(hono, vault);
+    registerCalendarRoutes(hono, new Calendar(sqlite, schedules, backupJobs, monitors));
     registerDocsRoutes(hono, docs, (cwd) => store.projectForCwd(cwd) ?? undefined);
     registerDataRoutes(hono, { databases, backups: backupJobs });
     registerOpsRoutes(hono, { monitors, docker, logs, errors: appErrors, flows, port: config.publicPort });

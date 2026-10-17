@@ -42,7 +42,7 @@ interface Entry {
   end: number;
 }
 
-function parse(text: string): Entry[] {
+export function parse(text: string): Entry[] {
   const lines = text.split("\n");
   const out: Entry[] = [];
   for (let i = 0; i < lines.length; i++) {
