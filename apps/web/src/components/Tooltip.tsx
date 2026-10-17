@@ -16,6 +16,7 @@ interface Tip {
  *   data-tip="…" (+ optional data-tip-kbd="Ctrl K")
  *   title="…"   (moved to data-tip so the slow native tooltip never shows)
  *   aria-label  on buttons and links that have no visible text (icon buttons)
+ *   data-no-tip  opts an element out (e.g. a full-screen backdrop)
  * Works on hover and on keyboard focus; Esc hides it.
  */
 function tipFor(el: Element | null): { el: HTMLElement; text: string; kbd?: string } | undefined {
@@ -26,6 +27,7 @@ function tipFor(el: Element | null): { el: HTMLElement; text: string; kbd?: stri
       node.dataset.tip = title;
       node.removeAttribute("title");
     }
+    if (node.dataset.noTip !== undefined) return undefined;
     if (node.dataset.tip) return { el: node, text: node.dataset.tip, kbd: node.dataset.tipKbd };
     if (
       (node.tagName === "BUTTON" || node.tagName === "A") &&

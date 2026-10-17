@@ -1743,5 +1743,38 @@
       "text": "An AI teammate with a role, such as \"Security expert\", with its own rules and focus.",
       "match": "persona|personas"
     }
+  },
+  "tour": {
+    "title": "Quick tour",
+    "hint": "A one-minute look at where everything is.",
+    "start": "Show the tour",
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "nav": {
+      "title": "Everything in one strip",
+      "body": "Projects, terminals, files, servers, inbox, ideas and more. Hover an icon to see its name."
+    },
+    "search": {
+      "title": "Ask or jump anywhere",
+      "body": "Press Ctrl+K: search sessions, open a project, or ask a question about your work in plain words."
+    },
+    "inbox": {
+      "title": "What's waiting for you",
+      "body": "Approvals, terminals waiting for an answer, warnings and messages from your team, most urgent first."
+    },
+    "account": {
+      "title": "Your AI accounts and limits",
+      "body": "See how much of your Claude or Codex limit is used. When you're close, switching to another account is one click."
+    },
+    "stop": {
+      "title": "The emergency stop",
+      "body": "Stops every running AI job and terminal at once. Nothing else is touched."
+    },
+    "settings": {
+      "title": "Make it yours",
+      "body": "Language, theme, text size, Simple or Pro mode, and how much AI runs in the background."
+    }
   }
 }

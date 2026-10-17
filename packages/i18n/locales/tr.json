@@ -1743,5 +1743,38 @@
       "text": "Rolü olan bir AI takım arkadaşı, ör. \"Güvenlik uzmanı\"; kendi kuralları ve odağı var.",
       "match": "persona"
     }
+  },
+  "tour": {
+    "title": "Kısa tur",
+    "hint": "Her şeyin nerede olduğuna bir dakikalık bakış.",
+    "start": "Turu göster",
+    "skip": "Geç",
+    "back": "Geri",
+    "next": "İleri",
+    "done": "Bitti",
+    "nav": {
+      "title": "Her şey tek şeritte",
+      "body": "Projeler, terminaller, dosyalar, sunucular, gelen kutusu, fikirler ve fazlası. Adını görmek için ikonun üzerine gel."
+    },
+    "search": {
+      "title": "Sor ya da istediğin yere git",
+      "body": "Ctrl+K'ye bas: oturumlarda ara, bir proje aç ya da işin hakkında sade bir dille soru sor."
+    },
+    "inbox": {
+      "title": "Seni bekleyenler",
+      "body": "Onaylar, cevap bekleyen terminaller, uyarılar ve takımdan mesajlar; en acili en üstte."
+    },
+    "account": {
+      "title": "AI hesapların ve sınırların",
+      "body": "Claude ya da Codex sınırının ne kadarını kullandığını gör. Yaklaşınca başka hesaba geçmek tek tık."
+    },
+    "stop": {
+      "title": "Acil durdurma",
+      "body": "Çalışan tüm AI işlerini ve terminalleri bir anda durdurur. Başka hiçbir şeye dokunmaz."
+    },
+    "settings": {
+      "title": "Kendine göre ayarla",
+      "body": "Dil, tema, yazı boyutu, Basit ya da Pro mod ve arka planda ne kadar AI çalışacağı."
+    }
   }
 }

@@ -1,5 +1,5 @@
 import type { SystemStatus } from "@godeye/core";
-import { CheckCircle2, Circle, XCircle } from "lucide-react";
+import { CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
@@ -8,6 +8,7 @@ import { LanguagePicker } from "../components/LanguagePicker";
 import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
 import { api } from "../lib/api";
 import { useSettings } from "../lib/settings";
+import { startTour } from "../lib/tour";
 
 function SystemCheck() {
   const { t } = useTranslation();
@@ -122,6 +123,11 @@ export function SettingsPage() {
               { value: "notion", label: t("settings.themeNotion"), tip: t("settings.themeNotionTip") },
             ]}
           />
+        </Section>
+        <Section title={t("tour.title")} hint={t("tour.hint")}>
+          <Button icon={Compass} onClick={startTour}>
+            {t("tour.start")}
+          </Button>
         </Section>
         <Section title={t("settings.textSize")} hint={t("settings.textSizeHint")}>
           <Segmented

@@ -6,6 +6,7 @@ import { LanguagePicker } from "../components/LanguagePicker";
 import { Button } from "../components/ui";
 import { isBundled } from "../lib/i18n";
 import { useSettings } from "../lib/settings";
+import { queueTour } from "../lib/tour";
 
 /**
  * First-run wizard. Step 1 is always the language (plan.md 7.4); AI tools,
@@ -46,7 +47,14 @@ export function Onboarding() {
             <h1 className="text-[18px] font-semibold">{t("onboarding.readyTitle")}</h1>
             <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">{t("onboarding.readyBody")}</p>
             <div className="mt-6 flex justify-end">
-              <Button variant="primary" onClick={() => update({ onboarded: true })} autoFocus>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  queueTour();
+                  void update({ onboarded: true });
+                }}
+                autoFocus
+              >
                 {t("onboarding.start")}
               </Button>
             </div>

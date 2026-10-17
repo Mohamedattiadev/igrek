@@ -19,6 +19,7 @@ import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
 import { SyncChip } from "./SyncChip";
 import { TooltipLayer } from "./Tooltip";
+import { Tour } from "./Tour";
 import { UndoToast } from "./UndoToast";
 import { Kbd, StatusDot } from "./ui";
 import { WorkspacePicker } from "./WorkspacePicker";
@@ -56,7 +57,10 @@ function ToolStrip() {
   const approvals = useApprovals().length;
   const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting + approvals };
   return (
-    <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2">
+    <nav
+      data-tour="nav"
+      className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2"
+    >
       <div className="mb-2 flex size-9 items-center justify-center" aria-hidden>
         <svg viewBox="0 0 32 32" className="size-6">
           <title>God Eye</title>
@@ -89,6 +93,7 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
       <button
         type="button"
         onClick={onSearch}
+        data-tour="search"
         className="flex h-7 w-[min(340px,40vw)] items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2.5 text-[13px] text-fg-subtle hover:border-border-strong"
       >
         <Search size={14} />
@@ -97,8 +102,12 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
       </button>
       <div className="flex-1" />
       <SyncChip />
-      <AccountChip />
-      <StopButton onStopped={onToast} />
+      <span data-tour="account" className="flex">
+        <AccountChip />
+      </span>
+      <span data-tour="stop" className="flex">
+        <StopButton onStopped={onToast} />
+      </span>
     </header>
   );
 }
@@ -208,6 +217,7 @@ export function Shell() {
       <QuickAsk />
       <TooltipLayer />
       <UndoToast />
+      <Tour />
       <IdeaCapture onSaved={setToast} />
       {toast && (
         <div
