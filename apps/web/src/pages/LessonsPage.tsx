@@ -2,12 +2,12 @@ import type { Lesson } from "@godeye/core";
 import { EyeOff, NotebookPen, Plus, Repeat2, ScrollText, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { usePersonaLabel, usePersonas } from "../lib/personas";
+import { LibraryTabs } from "./KnowledgePage";
 import { useProjects } from "./Personas";
 
 const input = "w-full rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[13px] outline-none focus:border-accent";
@@ -211,12 +211,7 @@ export function LessonsPage() {
         }
       />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <div className="flex gap-1 text-[13px]">
-          <Link to="/library" className="rounded-ui px-3 py-1 text-fg-muted hover:bg-bg-hover">
-            {t("library.title")}
-          </Link>
-          <span className="rounded-ui bg-bg-active px-3 py-1 font-medium">{t("lessons.page")}</span>
-        </div>
+        <LibraryTabs active="lessons" />
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("lessons.intro")}</p>
         <div className="flex flex-wrap items-center gap-2">
           <input

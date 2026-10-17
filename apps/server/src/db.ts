@@ -478,6 +478,48 @@ const migrations: string[] = [
      key TEXT PRIMARY KEY,
      value TEXT NOT NULL
    );`,
+  // Faz 7.1b: the knowledge engine: sources per persona, rated news, what was seen, tech mentions, package updates.
+  `CREATE TABLE knowledge_sources (
+     persona_id TEXT PRIMARY KEY,
+     data TEXT NOT NULL
+   );
+   CREATE TABLE news_items (
+     id TEXT PRIMARY KEY,
+     persona_id TEXT NOT NULL,
+     title TEXT NOT NULL,
+     url TEXT NOT NULL,
+     source TEXT NOT NULL,
+     published_at INTEGER,
+     importance INTEGER NOT NULL,
+     verdict TEXT NOT NULL,
+     summary TEXT NOT NULL,
+     why TEXT NOT NULL,
+     affects TEXT NOT NULL DEFAULT '[]',
+     mentions INTEGER NOT NULL DEFAULT 1,
+     created_at INTEGER NOT NULL
+   );
+   CREATE INDEX news_items_persona ON news_items(persona_id, created_at);
+   CREATE TABLE news_seen (
+     key TEXT PRIMARY KEY,
+     at INTEGER NOT NULL
+   );
+   CREATE TABLE tech_mentions (
+     week TEXT NOT NULL,
+     term TEXT NOT NULL,
+     count INTEGER NOT NULL,
+     PRIMARY KEY (week, term)
+   );
+   CREATE TABLE package_updates (
+     project_id TEXT NOT NULL,
+     name TEXT NOT NULL,
+     current TEXT NOT NULL,
+     latest TEXT NOT NULL,
+     major INTEGER NOT NULL DEFAULT 1,
+     released_at INTEGER,
+     notes TEXT,
+     at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, name, latest)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

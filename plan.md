@@ -793,7 +793,7 @@ god-eye/
 - [x] Temel okuma listesi + kütüphane bağlantısı (Faz 7) — *gerçek kitaplar, yazar ve yılıyla; kütüphanede olanlar işaretli, olmayanlar tek tıkla eklenir*
 - [x] Düşünme tarzı ve kontrol listesi (review yaparken neye bakar)
 - [x] Bilinen tuzaklar ve anti-pattern'ler
-- [ ] Güncel kalma: kendi alanındaki yeni gelişmeleri otomatik takip eder (bkz. 7.3 Bilgi Motoru)
+- [x] Güncel kalma: kendi alanındaki yeni gelişmeleri otomatik takip eder (bkz. 7.3 Bilgi Motoru) — *Gündem (7.1b)*
 
 **Gerçek uzman gibi davranma kuralları (tüm personalar için zorunlu):**
 - [x] ⭐ **Tutarlılık:** her personanın bir **"Görüşlerim" defteri** vardır (iddia, gerekçe, kanıt, güven seviyesi, tarih). Cevap vermeden önce kendi geçmiş görüşlerine bakar. "Dün başka, bugün başka" olmaz — *defter her sohbet ve toplantının başında prompt'a girer; persona yeni görüşünü cevabın sonuna `<notebook>` bloğuyla yazar, God Eye bloğu gizleyip kaydeder*
@@ -903,18 +903,18 @@ god-eye/
 - [x] Kullanıcının eski projeleri otomatik olarak "örnek proje" kütüphanesine eklenir — *her lokal proje: README, kararlar, başarısız denemeler, son işler; günde bir güncellenir, sırlar temizlenir*
 
 #### 7.1b 📰 Bilgi Motoru (personalar her zaman güncel)
-- [ ] ⭐ Persona başına otomatik bilgi kaynakları:
+- [x] ⭐ Persona başına otomatik bilgi kaynakları: — *Kütüphane → Gündem: Hacker News (Algolia), Reddit RSS, Lobsters, Mastodon, Bluesky, arXiv, GitHub konuları, Product Hunt, Hugging Face günlük makaleleri (Papers with Code 2025'te kapandı), RSS/Atom (blog, changelog, bülten, podcast); persona başına düzenlenebilir, hesap gerekmez. Reddit hız sınırı koyuyor, istekler sıraya alındı; anketler/raporlar (Stack Overflow Survey vb.) link olarak kütüphaneye eklenir, otomatik çekilmez*
   - **Haber ve sosyal (tamamen ücretsiz):** Hacker News, Reddit (RSS), Bluesky, Mastodon, Lobsters, Product Hunt. X/Twitter'daki büyük haberler zaten birkaç saat içinde bu kaynaklara ve bloglara düşer; önde gelen isimlerin çoğu blog, bülten veya Bluesky'de de yazar
   - **X linki ekleme:** önemli bir tweet görürsen linkini yapıştırırsın, kütüphaneye eklenir (otomatik X taraması yok, çünkü ücretsiz yasal yolu yok)
   - **Teknik:** GitHub trending, yeni sürüm notları (release notes), RFC'ler, resmi bloglar ve changelog'lar
   - **Akademik:** arXiv, Papers with Code, konferanslar
   - **Sektör:** raporlar ve anketler (Stack Overflow Survey, State of JS, Gartner özetleri vb.), bültenler (newsletter), podcast transkriptleri
-- [ ] Günlük veya haftalık otomatik tarama (zamanlanmış iş olarak, düşük maliyetli modelle)
-- [ ] **Filtre:** gürültü değil sinyal. Önem puanı, tekrar eden haberlerin birleştirilmesi, "hype mı gerçek mi?" değerlendirmesi
-- [ ] Önemli gelişmeler persona kütüphanesine **tarihli ve kaynaklı** eklenir
-- [ ] Görüş güncellemesi: yeni bilgi bir personanın eski görüşünü etkiliyorsa "Görüşlerim" defteri güncellenir ve sana bildirilir
-- [ ] **Trend paneli:** "Bu hafta alanında neler oldu", yükselen ve düşen teknolojiler, senin projelerini etkileyen haberler ("kullandığın kütüphanenin yeni sürümü çıktı, şu değişiklik seni etkiler")
-- [ ] Karşılaştırma: "React mi Svelte mi?" gibi sorularda güncel verilerle tablo (benimseme, performans, topluluk, trend)
+- [x] Günlük veya haftalık otomatik tarama (zamanlanmış iş olarak, düşük maliyetli modelle) — *Kapalı / Günlük / Haftalık (varsayılan haftalık), saatte bir kontrol; arka plan AI kapalıysa bekler. Gerçek tarama 15 persona için ~10 dakika sürdü*
+- [x] **Filtre:** gürültü değil sinyal. Önem puanı, tekrar eden haberlerin birleştirilmesi, "hype mı gerçek mi?" değerlendirmesi — *aynı adres ya da çok benzer başlık birleşir (kaç kaynakta geçtiği sayılır), persona 0–10 puan ve gerçek/hype/belirsiz verir, 6 altı atılır, görülen haber tekrar puanlanmaz*
+- [x] Önemli gelişmeler persona kütüphanesine **tarihli ve kaynaklı** eklenir
+- [x] Görüş güncellemesi: yeni bilgi bir personanın eski görüşünü etkiliyorsa "Görüşlerim" defteri güncellenir ve sana bildirilir — *persona defterine bakar; sadece gerçek ve yeni kanıt olan haberle, defter kuralıyla değişir; Gelen Kutusu'na düşer (testli; gerçek taramada değişen görüş olmadı)*
+- [x] **Trend paneli:** "Bu hafta alanında neler oldu", yükselen ve düşen teknolojiler, senin projelerini etkileyen haberler ("kullandığın kütüphanenin yeni sürümü çıktı, şu değişiklik seni etkiler") — *projelerine dokunan haberler, package.json'daki paketlerin yeni ana sürümleri ve GitHub sürüm notundan "seni ne etkiler" özeti (Gelen Kutusu'na da düşer). Yükselen/düşen için en az bir haftalık geçmiş gerekiyor; ilk taramada boş. Şimdilik sadece npm paketleri*
+- [x] Karşılaştırma: "React mi Svelte mi?" gibi sorularda güncel verilerle tablo (benimseme, performans, topluluk, trend) — *npm haftalık indirme ve bir yıl öncesi, GitHub yıldız/açık issue, son sürüm, son 90 gün HN haberi; kaynakları altta. Performans ölçümü yok (güvenilir ücretsiz kaynak yok)*
 
 #### 7.2 📒 Ders Defteri (kendini geliştiren sistem)
 - [x] Her hata otomatik yakalanır: başarısız test, build hatası, geri alınan değişiklik, kullanıcının "yanlış" dediği cevap — *oturumlardaki test/build hataları, "yanlış/olmadı" diyen mesajlar, Revert commit'leri, geri yüklenen kayıt noktaları, başarısız proje kontrolleri; 10 dakikada bir (arka plan AI açıkken) küçük modelle yazılır, önemsizler atlanır*

@@ -36,6 +36,8 @@ import { Insight } from "./insight";
 import { HistoryImport } from "./insight/history";
 import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
+import { Knowledge } from "./knowledge";
+import { registerKnowledgeRoutes } from "./knowledge-routes";
 import { LanguagePacks } from "./langpacks";
 import { registerLessonRoutes } from "./lesson-routes";
 import { Lessons } from "./lessons";
@@ -49,7 +51,7 @@ import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
 import { Store } from "./store";
-import { claudeAccount, Summarizer } from "./summarizer";
+import { claudeAccount, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
 import { registerTeamRoutes } from "./team-routes";
 import { registerTerminalRoutes } from "./terminal-routes";
@@ -216,7 +218,38 @@ const enhancer = new Enhancer(
   (id) => sync.presenceList(id),
   (id) => terminals.recentErrors(id),
 );
-insight.extraNotices = () => [...sync.overlapNotices(), ...sync.mentionNotices()];
+const knowledge = new Knowledge(
+  sqlite,
+  store,
+  bus,
+  personas,
+  library,
+  () => readSettings(db),
+  (prompt, system) =>
+    runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku", system ? ["--append-system-prompt", system] : []),
+);
+// The news of each persona's field, on the schedule chosen on the Knowledge page (checked hourly).
+setTimeout(() => void knowledge.tick().catch(() => undefined), 5 * 60_000);
+setInterval(() => void knowledge.tick().catch(() => undefined), 60 * 60_000);
+insight.extraNotices = () => [
+  ...sync.overlapNotices(),
+  ...sync.mentionNotices(),
+  ...knowledge.notices(),
+  // A lesson that keeps coming back: make it a rule?
+  ...lessons
+    .list()
+    .filter((l) => l.repeats >= 2 && l.status === "active")
+    .slice(0, 10)
+    .map((l) => ({
+      id: `lesson:${l.id}:${l.repeats}`,
+      kind: "lesson" as const,
+      projectId: l.projectId ?? "",
+      projectName: l.projectId ? (store.projectRow(l.projectId)?.name ?? "") : "",
+      detail: l.title,
+      at: l.lastSeen,
+      link: "/lessons",
+    })),
+];
 const app = createApp({
   config,
   db,
@@ -237,6 +270,7 @@ const app = createApp({
     });
     registerTesterRoutes(hono, testers);
     registerLibraryRoutes(hono, { library, embedder });
+    registerKnowledgeRoutes(hono, knowledge);
     registerPersonaRoutes(hono, {
       personas,
       meetings,

@@ -1,4 +1,5 @@
 export * from "./insight";
+export * from "./knowledge";
 export * from "./lessons";
 export * from "./library";
 export * from "./persona";
@@ -42,6 +43,8 @@ export interface Settings {
   enhanceLanguage: "en" | "user";
   /** The user's own shorthands, expanded before enhancing: { "dyy": "doğrusunu yap" }. */
   enhanceShortcuts: Record<string, string>;
+  /** How often personas read the news of their field (plan.md 7.1b). */
+  knowledgeScan: "off" | "daily" | "weekly";
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -60,6 +63,7 @@ export const DEFAULT_SETTINGS: Settings = {
   enhanceMode: "suggest",
   enhanceLanguage: "en",
   enhanceShortcuts: {},
+  knowledgeScan: "weekly",
 };
 
 /** Languages written right-to-left; the UI flips its layout for these. */
@@ -630,6 +634,7 @@ export type ServerMessage =
   | { type: "testers-changed"; runId: string }
   | { type: "library-changed" }
   | { type: "lessons-changed" }
+  | { type: "knowledge-changed" }
   | { type: "i18n-progress"; code: string };
 
 /** Messages sent from UI to server over the WebSocket. */

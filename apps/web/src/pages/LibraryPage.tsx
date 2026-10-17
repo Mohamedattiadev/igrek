@@ -2,13 +2,14 @@ import { citation, type EmbedderStatus, type LibraryHit, type LibraryItem } from
 import { Download, Library, Link2, RotateCw, Search, Trash2, Upload } from "lucide-react";
 import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router";
+import { useSearchParams } from "react-router";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { usePersonaLabel, usePersonas } from "../lib/personas";
+import { LibraryTabs } from "./KnowledgePage";
 
 const input = "w-full rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[13px] outline-none focus:border-accent";
 
@@ -206,12 +207,7 @@ export function LibraryPage() {
     <>
       <PageHeader title={t("library.title")} />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <div className="flex gap-1 text-[13px]">
-          <span className="rounded-ui bg-bg-active px-3 py-1 font-medium">{t("library.title")}</span>
-          <Link to="/lessons" className="rounded-ui px-3 py-1 text-fg-muted hover:bg-bg-hover">
-            {t("lessons.page")}
-          </Link>
-        </div>
+        <LibraryTabs active="library" />
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("library.intro")}</p>
         {status && <ModelCard status={status} />}
         <Card className="space-y-3 p-pad">

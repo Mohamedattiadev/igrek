@@ -37,6 +37,8 @@ import type {
   InsightConfig,
   InsightScan,
   KeyRequest,
+  KnowledgeOverview,
+  KnowledgeSources,
   Lesson,
   LibraryHit,
   LibraryItem,
@@ -44,6 +46,7 @@ import type {
   Meeting,
   MemorySection,
   MonthlyReport,
+  PackageComparison,
   Persona,
   PersonaOpinion,
   PersonaScore,
@@ -241,6 +244,13 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  knowledge: (persona?: string) => request<KnowledgeOverview>(`/api/knowledge${persona ? `?persona=${persona}` : ""}`),
+  knowledgeSources: (persona: string) => request<KnowledgeSources>(`/api/knowledge/sources/${persona}`),
+  setKnowledgeSources: (persona: string, sources: KnowledgeSources) =>
+    request<KnowledgeSources>(`/api/knowledge/sources/${persona}`, { method: "PUT", body: JSON.stringify(sources) }),
+  scanKnowledge: () => request<{ ok: boolean }>("/api/knowledge/scan", { method: "POST" }),
+  comparePackages: (names: string[]) =>
+    request<PackageComparison[]>(`/api/knowledge/compare?packages=${encodeURIComponent(names.join(","))}`),
   lessons: (opts: { projectId?: string; q?: string } = {}) =>
     request<Lesson[]>(
       `/api/lessons?${new URLSearchParams(Object.entries(opts).filter(([, v]) => v) as [string, string][])}`,

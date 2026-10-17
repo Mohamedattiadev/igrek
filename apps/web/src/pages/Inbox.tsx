@@ -1,6 +1,7 @@
 import {
   AlarmClock,
   AtSign,
+  BookOpen,
   Brain,
   Check,
   CircleX,
@@ -10,6 +11,8 @@ import {
   KeyRound,
   Lightbulb,
   MessageSquare,
+  NotebookPen,
+  Package as PackageIcon,
   SquareTerminal,
   TrendingDown,
   Users,
@@ -244,7 +247,13 @@ export function InboxPage() {
                             ? Users
                             : n.kind === "mention"
                               ? AtSign
-                              : KeyRound;
+                              : n.kind === "lesson"
+                                ? NotebookPen
+                                : n.kind === "opinion"
+                                  ? BookOpen
+                                  : n.kind === "update"
+                                    ? PackageIcon
+                                    : KeyRound;
                     return (
                       <Link
                         key={n.id}
@@ -258,7 +267,8 @@ export function InboxPage() {
                           aria-hidden="true"
                         />
                         <span className="min-w-0 flex-1 truncate text-[13px]">
-                          <span className="font-medium">{n.projectName}</span> · {t(`inbox.notice_${n.kind}`)}
+                          {n.projectName && <span className="font-medium">{n.projectName} · </span>}
+                          {t(`inbox.notice_${n.kind}`)}
                           <span className="ms-2 font-mono text-[11px] text-fg-subtle">
                             {n.kind === "tool" ? t(`tools.kind_${n.detail}`) : n.detail}
                           </span>

@@ -240,7 +240,8 @@ export interface EnvChange {
 /** Something worth a look in the inbox (plan.md 2.6b). */
 export interface InboxNotice {
   id: string;
-  kind: "tool" | "score" | "env" | "overlap" | "mention";
+  /** lesson: a lesson keeps coming back (make it a rule?); opinion: a persona changed its mind; update: a package you use has a new major version. */
+  kind: "tool" | "score" | "env" | "overlap" | "mention" | "lesson" | "opinion" | "update";
   projectId: string;
   projectName: string;
   /** Short fact shown next to the title: the tool, "84 → 76", "Kerim · changed · STRIPE_KEY". */
