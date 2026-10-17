@@ -50,6 +50,8 @@ Sonra tarayıcında şu adresi aç: **http://localhost:7777**
 
 > **Not / Note:** `.env` dosyasındaki `GODEYE_PROJECTS_DIR` mutlaka var olan bir klasör olmalı. Yoksa Docker onu kendisi oluşturur ve klasörün sahibi `root` olur.
 
+**AI araçlarını imaja eklemek (isteğe bağlı):** `.env` dosyasında `GODEYE_INSTALL_CLAUDE=true` ve/veya `GODEYE_INSTALL_CODEX=true`, sonra `docker compose up -d --build`. Codex imajı yaklaşık 300 MB büyütür (kendi programı bu boyutta).
+
 ### Docker'sız çalıştırmak (geliştirici)
 
 ```bash
@@ -137,6 +139,8 @@ Then open **http://localhost:7777** and pick your language. That's it.
 (AI tools, accounts and project folders join the setup wizard in later phases.)
 
 > **Not / Note:** `GODEYE_PROJECTS_DIR` in `.env` must be a folder that already exists, otherwise Docker creates it owned by `root`.
+
+**Adding AI tools to the image (optional):** set `GODEYE_INSTALL_CLAUDE=true` and/or `GODEYE_INSTALL_CODEX=true` in `.env`, then `docker compose up -d --build`. Codex adds about 300 MB (its own binary is that size).
 
 ### Run without Docker (developers)
 

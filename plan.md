@@ -292,13 +292,13 @@ god-eye/
 - [x] ⭐ i18n altyapısı (TR/EN hazır, diğer diller için paket sistemi), RTL hazırlığı
 - [ ] ⭐ **Docker**
   - [x] Multi-stage Dockerfile, `oven/bun:slim` tabanlı, hedef < 400 MB (ölçülen: ~321 MB açılmış katman)
-  - [ ] İçinde `git`, `claude`, `codex` CLI'ları kurulu (build argümanıyla seçilebilir) — `git` ve `claude` (`GODEYE_INSTALL_CLAUDE=true`) hazır; `codex` kalan iş
-  - [ ] Volume'lar: `~/.godeye`, `~/.claude`, `~/.codex`, proje klasörleri (kullanıcı seçer) — `~/.codex` Codex adaptörüyle (Faz 1) eklenecek
+  - [x] İçinde `git`, `claude`, `codex` CLI'ları kurulu (build argümanıyla seçilebilir) — *`GODEYE_INSTALL_CLAUDE` / `GODEYE_INSTALL_CODEX`; Codex ~300 MB ekler*
+  - [x] Volume'lar: `~/.godeye`, `~/.claude`, `~/.codex`, proje klasörleri (kullanıcı seçer)
   - [x] Container içinde kullanıcının UID/GID'si ile çalışır, dosya sahipliği bozulmaz
   - [x] Healthcheck, otomatik yeniden başlama
 - [ ] Docker'sız alternatif: `bunx god-eye` (Docker kurmak istemeyenler için)
 - [x] 🔒 Sunucu sadece `127.0.0.1`'e bağlanır; oturum token'ı; Origin ve Host kontrolü (DNS rebinding koruması)
-- [ ] 🔒 **Prompt güvenlik duvarı:** kullanıcının yazdığı prompt'ta şifre, API key veya kişisel veri varsa AI'a gitmeden önce uyarır ve maskeler — *agent çalıştırma gelince (Faz 2) yapılacak*
+- [x] 🔒 **Prompt güvenlik duvarı:** kullanıcının yazdığı prompt'ta şifre, API key veya kişisel veri varsa AI'a gitmeden önce uyarır ve maskeler — *chat ve Hızlı Soru'da; güçlendirici ve senkron zaten temizler*
 - [ ] 🔒 **Prompt injection koruması:** web sayfaları, dokümanlar, issue'lar ve loglar gibi dışarıdan okunan içerik **veri** olarak işaretlenir, talimat olarak uygulanmaz. Dışarıdan içerik okuyan agent'ların tehlikeli araçları kapalıdır — *agent çalıştırma gelince (Faz 2) yapılacak*
 - [ ] 🔒 **Sandbox:** auto moddaki agent'lar izole bir ortamda çalışır (worktree + kısıtlı dosya ve ağ erişimi) — *agent çalıştırma gelince (Faz 2) yapılacak*
 - [x] 🛑 **Acil Durdur butonu:** tüm çalışan agent'ları, zamanlanmış işleri ve uzak komutları tek tıkla durdurur (üst barda her zaman görünür) — buton + durdurma kaydı hazır; çalışan her yeni iş buna kaydolacak
