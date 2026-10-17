@@ -17,3 +17,5 @@ if (!command || command === "serve") {
 } else {
   await import("./cli");
 }
+
+export {};
