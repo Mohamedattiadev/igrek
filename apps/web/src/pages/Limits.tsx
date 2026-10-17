@@ -1,5 +1,5 @@
-import type { Account, AiTool, LimitsOverview, RateLimitInfo, UsageBucket } from "@godeye/core";
-import { AlertTriangle, CheckCircle2, LogIn, Plus, RefreshCw, Trash2, User } from "lucide-react";
+import type { Account, AiTool, LimitsOverview, MonthlyReport, RateLimitInfo, UsageBucket } from "@godeye/core";
+import { AlertTriangle, CheckCircle2, Download, LogIn, Plus, RefreshCw, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
@@ -403,6 +403,99 @@ function AccountsSection({ accounts, reload }: { accounts: Account[]; reload: ()
 }
 
 /** Limits page (plan.md 3.2): what is used, where and when, with a pace forecast. */
+/** Month by month (plan.md 3.2): totals, top model and top projects, downloadable as CSV. */
+function MonthlyCard() {
+  const { t, i18n } = useTranslation();
+  const [months, setMonths] = useState<MonthlyReport[]>();
+  useEffect(() => {
+    api
+      .limitsMonthly()
+      .then(setMonths)
+      .catch(() => setMonths([]));
+  }, []);
+  if (!months?.length) return null;
+  const max = Math.max(...months.map((m) => m.tokens), 1);
+  const label = (month: string) =>
+    new Intl.DateTimeFormat(i18n.language, { month: "long", year: "numeric" }).format(
+      new Date(`${month}-01T00:00:00Z`),
+    );
+  const csv = () => {
+    const lines = [
+      ["month", "tokens", "input", "output", "cache_read", "sessions", "top_model", "top_project"].join(","),
+    ];
+    for (const m of months) {
+      const top = Object.entries(m.models).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+      lines.push(
+        [
+          m.month,
+          m.tokens,
+          m.input,
+          m.output,
+          m.cacheRead,
+          m.sessions,
+          top,
+          JSON.stringify(m.projects[0]?.name ?? ""),
+        ].join(","),
+      );
+    }
+    const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "god-eye-usage.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  return (
+    <Card className="space-y-3 p-pad">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("limits.monthly")}</h3>
+        <Button size="sm" variant="ghost" icon={Download} onClick={csv} data-tip={t("limits.csvTip")}>
+          CSV
+        </Button>
+      </div>
+      <table className="w-full text-[12px]">
+        <thead className="text-[11px] text-fg-subtle">
+          <tr>
+            <th className="py-1 text-start font-medium">{t("limits.month")}</th>
+            <th className="py-1 text-end font-medium">{t("limits.tokensCol")}</th>
+            <th className="w-40 py-1" />
+            <th className="py-1 text-end font-medium">{t("limits.sessionCount")}</th>
+            <th className="py-1 ps-4 text-start font-medium">{t("limits.topModel")}</th>
+            <th className="py-1 text-start font-medium">{t("limits.topProjects")}</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {months.map((m) => {
+            const top = Object.entries(m.models).sort((a, b) => b[1] - a[1])[0]?.[0];
+            return (
+              <tr key={m.month}>
+                <td className="py-1.5 capitalize">{label(m.month)}</td>
+                <td className="py-1.5 text-end font-mono">{compactNumber(m.tokens)}</td>
+                <td className="px-2 py-1.5">
+                  <div className="h-1.5 rounded-full bg-bg-muted">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${(m.tokens / max) * 100}%`, background: "var(--series-1)" }}
+                    />
+                  </div>
+                </td>
+                <td className="py-1.5 text-end font-mono">{m.sessions}</td>
+                <td className="py-1.5 ps-4">{top ? modelName(top) : "—"}</td>
+                <td className="truncate py-1.5 text-fg-muted">
+                  {m.projects
+                    .slice(0, 3)
+                    .map((p) => p.name)
+                    .join(", ")}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </Card>
+  );
+}
+
 export function LimitsPage() {
   const { t } = useTranslation();
   const [data, setData] = useState<LimitsOverview>();
@@ -461,6 +554,7 @@ export function LimitsPage() {
                 />
               </Card>
             </div>
+            <MonthlyCard />
             <p className="text-[11px] text-fg-subtle">{t("limits.tokensHint")}</p>
           </>
         )}

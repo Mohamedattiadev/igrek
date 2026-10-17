@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { LimitForecast, LimitsOverview, RateLimitInfo } from "@godeye/core";
+import type { LimitForecast, LimitsOverview, MonthlyReport, RateLimitInfo } from "@godeye/core";
 import type { Accounts } from "./accounts";
 
 const DAY = 24 * 60 * 60_000;
@@ -129,4 +129,52 @@ export function limitAlerts(
     }
   }
   return alerts;
+}
+
+/** Month-by-month totals for the report (plan.md 3.2): tokens per month, split by model and project. */
+export function monthlyReport(db: Database, months = 6, now = Date.now()): MonthlyReport[] {
+  const start = new Date(now);
+  start.setUTCDate(1);
+  start.setUTCHours(0, 0, 0, 0);
+  start.setUTCMonth(start.getUTCMonth() - (months - 1));
+  const rows = db
+    .query(
+      `SELECT strftime('%Y-%m', u.ts / 1000, 'unixepoch') AS month, u.model, u.project_id, p.name AS project,
+              SUM(u.input) AS input, SUM(u.output) AS output, SUM(u.cache_read) AS cache_read, SUM(u.cache_write) AS cache_write,
+              COUNT(DISTINCT u.session_id) AS sessions
+       FROM usage u LEFT JOIN projects p ON p.id = u.project_id
+       WHERE u.ts >= ? GROUP BY month, u.model, u.project_id`,
+    )
+    .all(start.getTime()) as {
+    month: string;
+    model: string | null;
+    project_id: string | null;
+    project: string | null;
+    input: number;
+    output: number;
+    cache_read: number;
+    cache_write: number;
+    sessions: number;
+  }[];
+  const byMonth = new Map<string, MonthlyReport>();
+  for (const r of rows) {
+    let m = byMonth.get(r.month);
+    if (!m) {
+      m = { month: r.month, tokens: 0, input: 0, output: 0, cacheRead: 0, sessions: 0, models: {}, projects: [] };
+      byMonth.set(r.month, m);
+    }
+    const tokens = r.input + r.output + r.cache_read + r.cache_write;
+    m.tokens += tokens;
+    m.input += r.input;
+    m.output += r.output;
+    m.cacheRead += r.cache_read;
+    m.sessions += r.sessions;
+    const model = r.model ?? "unknown";
+    m.models[model] = (m.models[model] ?? 0) + tokens;
+    const existing = m.projects.find((p) => p.id === (r.project_id ?? ""));
+    if (existing) existing.tokens += tokens;
+    else m.projects.push({ id: r.project_id ?? "", name: r.project ?? "—", tokens });
+  }
+  for (const m of byMonth.values()) m.projects = m.projects.sort((a, b) => b.tokens - a.tokens).slice(0, 8);
+  return [...byMonth.values()].sort((a, b) => b.month.localeCompare(a.month));
 }

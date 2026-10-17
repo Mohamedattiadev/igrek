@@ -24,11 +24,13 @@ import type {
   IdeaStatus,
   ImportEstimate,
   ImportStatus,
+  InboxNotice,
   IndexStatus,
   InsightConfig,
   InsightScan,
   LimitsOverview,
   MemorySection,
+  MonthlyReport,
   Presence,
   ProjectDetail,
   ProjectListItem,
@@ -323,6 +325,8 @@ export const api = {
       apply?: boolean;
     },
   ) => request<unknown>(`/api/projects/${projectId}/replace`, { method: "POST", body: JSON.stringify(body) }),
+  inboxNotices: () => request<InboxNotice[]>("/api/inbox/notices"),
+  limitsMonthly: () => request<MonthlyReport[]>("/api/limits/monthly"),
   team: () => request<TeamStatus>("/api/team"),
   teamConnect: (body: { hub?: string; username?: string; password?: string; invite?: string; newPassword?: string }) =>
     request<{ status: TeamStatus; recoveryKey?: string }>("/api/team/connect", {

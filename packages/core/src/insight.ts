@@ -236,3 +236,15 @@ export interface EnvChange {
   author?: string;
   at: number;
 }
+
+/** Something worth a look in the inbox (plan.md 2.6b). */
+export interface InboxNotice {
+  id: string;
+  kind: "tool" | "score" | "env";
+  projectId: string;
+  projectName: string;
+  /** Short fact shown next to the title: the tool, "84 → 76", "Kerim · changed · STRIPE_KEY". */
+  detail: string;
+  at: number;
+  link: string;
+}

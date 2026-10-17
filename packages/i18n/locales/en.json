@@ -78,7 +78,11 @@
     "urgent": "Urgent",
     "today": "Today",
     "info": "FYI",
-    "limits": "Limits"
+    "limits": "Limits",
+    "notices": "Worth a look",
+    "notice_tool": "a project check failed",
+    "notice_score": "health score dropped",
+    "notice_env": "a teammate changed a setting"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -567,7 +571,10 @@
     "empty": "What should we work on?",
     "emptyBody": "Claude works in this project's folder. Steps that change things wait for your approval.",
     "chats": "Chats",
-    "newIn": "New chat in {{account}}"
+    "newIn": "New chat in {{account}}",
+    "suggestModel": "Use {{model}} for this?",
+    "suggestTip_opus": "This looks like hard or wide work; the strongest model makes fewer mistakes here (it uses more of your limit).",
+    "suggestTip_haiku": "A short question: the small model answers quickly and saves your limit."
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -600,7 +607,14 @@
     "total": "{{tokens}} tokens in 14 days",
     "tokens": "tokens",
     "other": "Other",
-    "tokensHint": "Counted: new input, output and cache writes (cache reads are left out)."
+    "tokensHint": "Counted: new input, output and cache writes (cache reads are left out).",
+    "monthly": "Month by month",
+    "csvTip": "Download the monthly totals as a spreadsheet file",
+    "month": "Month",
+    "sessionCount": "Sessions",
+    "topModel": "Most used model",
+    "topProjects": "Busiest projects",
+    "tokensCol": "Tokens"
   },
   "accounts": {
     "title": "Accounts",

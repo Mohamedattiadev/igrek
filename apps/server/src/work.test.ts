@@ -435,3 +435,49 @@ describe("git changes", () => {
     ]);
   });
 });
+
+describe("gemini adapter", () => {
+  test("reads a whole chat file: prompts, answers, tools, tokens and the project folder", async () => {
+    const { geminiAdapter, geminiHash } = await import("./adapters/gemini");
+    const root = mkdtempSync(join(tmpdir(), "godeye-gemini-"));
+    const hash = geminiHash("/home/me/shop");
+    mkdirSync(join(root, hash, "chats"), { recursive: true });
+    const file = join(root, hash, "chats", "session-2026-10-17T10-00-abc123.json");
+    writeFileSync(
+      file,
+      JSON.stringify({
+        sessionId: "abc123",
+        projectHash: hash,
+        startTime: "2026-10-17T10:00:00Z",
+        lastUpdated: "2026-10-17T10:05:00Z",
+        messages: [
+          { id: "1", timestamp: "2026-10-17T10:00:00Z", type: "user", content: "add a cart page" },
+          {
+            id: "2",
+            timestamp: "2026-10-17T10:01:00Z",
+            type: "gemini",
+            content: "Done.",
+            model: "gemini-2.5-pro",
+            tokens: { input: 1200, output: 300, cached: 100 },
+            toolCalls: [
+              { name: "write_file", args: { file_path: "src/cart.tsx" }, status: "success" },
+              { name: "run_shell_command", args: { command: "npm test" }, status: "error", resultDisplay: "1 failing" },
+            ],
+          },
+        ],
+      }),
+    );
+    const adapter = geminiAdapter(root, () => ["/home/me/shop"]);
+    const [listed] = adapter.listFiles();
+    expect(listed?.sessionId).toBe("gemini-2026-10-17T10-00-abc123");
+    const state = emptyState();
+    const messages = adapter.parseFile(state, await Bun.file(file).text(), "s");
+    expect(state.cwd).toBe("/home/me/shop");
+    expect(state.title).toBe("add a cart page");
+    expect(state.toolCalls).toBe(2);
+    expect(state.toolErrors).toBe(1);
+    expect(state.filesTouched).toEqual(["/home/me/shop/src/cart.tsx"]);
+    expect(state.tokensIn).toBe(1200);
+    expect(messages.map((m) => m.kind)).toEqual(["prompt", "text", "tool", "tool", "error"]);
+  });
+});

@@ -18,6 +18,7 @@ export function registerInsightRoutes(app: Hono, insight: Insight, history: Hist
   });
 
   app.get("/api/projects/:id/insight", (c) => c.json(insight.latest(c.req.param("id"))));
+  app.get("/api/inbox/notices", (c) => c.json(insight.notices()));
 
   app.post("/api/projects/:id/insight/scan", async (c) => {
     try {

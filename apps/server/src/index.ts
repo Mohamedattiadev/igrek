@@ -6,6 +6,7 @@ import { Accounts } from "./accounts";
 import { registerAccountRoutes } from "./accounts-routes";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
+import { geminiAdapter } from "./adapters/gemini";
 import { createApp } from "./app";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
@@ -66,6 +67,7 @@ const indexer = new Indexer(store, bus, () => {
   return [
     ...(claudeDirs.length ? claudeDirs.map(({ accountId, dir }) => claudeAdapter(dir, accountId)) : [claudeAdapter()]),
     ...(codex.length ? codex.map((a) => codexAdapter(join(a.configDir, "sessions"), a.id)) : [codexAdapter()]),
+    geminiAdapter(undefined, () => store.allProjectRows().map((p) => p.path)),
   ];
 });
 const summarizer = new Summarizer(

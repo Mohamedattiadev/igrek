@@ -78,7 +78,11 @@
     "urgent": "Acil",
     "today": "Bugün",
     "info": "Bilgi",
-    "limits": "Limitler"
+    "limits": "Limitler",
+    "notices": "Göz atmaya değer",
+    "notice_tool": "bir proje kontrolü başarısız",
+    "notice_score": "sağlık puanı düştü",
+    "notice_env": "bir takım arkadaşı bir ayarı değiştirdi"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -567,7 +571,10 @@
     "empty": "Ne üzerinde çalışalım?",
     "emptyBody": "Claude bu projenin klasöründe çalışır. Bir şeyi değiştiren adımlar senin onayını bekler.",
     "chats": "Sohbetler",
-    "newIn": "{{account}} hesabında yeni sohbet"
+    "newIn": "{{account}} hesabında yeni sohbet",
+    "suggestModel": "Bunun için {{model}} kullanılsın mı?",
+    "suggestTip_opus": "Bu zor veya geniş bir iş gibi görünüyor; en güçlü model burada daha az hata yapar (limitinden daha çok harcar).",
+    "suggestTip_haiku": "Kısa bir soru: küçük model hızlı cevap verir ve limitini korur."
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -600,7 +607,14 @@
     "total": "14 günde {{tokens}} token",
     "tokens": "token",
     "other": "Diğer",
-    "tokensHint": "Sayılanlar: yeni girdi, çıktı ve önbelleğe yazılanlar (önbellekten okunanlar hariç)."
+    "tokensHint": "Sayılanlar: yeni girdi, çıktı ve önbelleğe yazılanlar (önbellekten okunanlar hariç).",
+    "monthly": "Aylık",
+    "csvTip": "Aylık toplamları tablo dosyası olarak indir",
+    "month": "Ay",
+    "sessionCount": "Session",
+    "topModel": "En çok kullanılan model",
+    "topProjects": "En yoğun projeler",
+    "tokensCol": "Token"
   },
   "accounts": {
     "title": "Hesaplar",

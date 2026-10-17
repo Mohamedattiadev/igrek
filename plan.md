@@ -318,7 +318,7 @@ god-eye/
 - [x] ⭐ **Claude Code:** `~/.claude/projects/*/*.jsonl` watcher + parser (mesajlar, araç kullanımları, token'lar) — *artımlı okuma: sadece yeni satırlar işlenir; alt-agent kayıtları şimdilik atlanıyor*
 - [x] ⭐ **Git:** commit ve diff izleyici. Hangi araç kullanılırsa kullanılsın değişiklikler yakalanır — *commit geçmişi her dakika okunuyor; branch, önde/geride, değişiklikler, son commit*
 - [x] **Codex:** `~/.codex/sessions` watcher + parser — *bilinen rollout formatına göre yazıldı ve testli; gerçek Codex dosyalarıyla henüz doğrulanmadı (bilgisayarda Codex yok)*
-- [ ] **Gemini CLI** ve **Antigravity** adaptörleri (format araştırması: bkz. Açık Sorular) — *araçlar kurulunca, gerçek dosya formatına bakılarak eklenecek*
+- [x] **Gemini CLI** ve **Antigravity** adaptörleri (format araştırması: bkz. Açık Sorular) — *Gemini CLI: yayınlanan formata göre (tüm dosya JSON, proje klasörü sha256 ile eşleşir), gerçek kurulumla doğrulanmadı; Antigravity'nin açık bir dosya formatı yok*
 - [x] Ortak `event` formatına dönüştürme + tekrar eden kayıtları ayıklama — *tüm araçlar aynı mesaj/sayaç yapısına dönüşüyor*
 
 #### 1.2 Projeler
@@ -395,9 +395,9 @@ god-eye/
 - [x] Özet tonu ayarı: "Teknik" / "Sade"
 
 #### 1.6 Otomatik model yönlendirme
-- [ ] Görev sınıflandırıcı: özet ve etiketleme → Haiku; normal iş → Sonnet; mimari ve zor hata → Opus (Codex için eşdeğerleri) — *arka plan işleri Haiku'da; etkileşimli işler için Faz 2 chat ile*
+- [x] Görev sınıflandırıcı: özet ve etiketleme → Haiku; normal iş → Sonnet; mimari ve zor hata → Opus (Codex için eşdeğerleri) — *arka plan işleri Haiku'da; chat'te yazdığına göre Opus/Haiku önerisi çıkar, tek tıkla geçilir (session devam eder)*
 - [ ] Persona bazlı varsayılan model + görev bazlı üst sınır — *Faz 6*
-- [ ] Kullanıcı her zaman elle değiştirebilir — *Faz 2 chat model seçicisi*
+- [x] Kullanıcı her zaman elle değiştirebilir
 
 #### 1.7 Arama
 - [x] ⭐ Global arama (`Ctrl+K`): session'lar, kararlar, dosyalar, dersler — *SQLite FTS5; prompt'lar, cevaplar ve araç adımları*
@@ -409,7 +409,7 @@ god-eye/
 
 - [x] ⭐ **Bağlam doluluk göstergesi:** her session'da context penceresinin ne kadar dolu olduğu (🟢 %0–50 · 🟡 %50–80 · 🔴 %80+)
 - [x] ⭐ **Sağlık puanı:** uzunluk, tekrarlanan hatalar, kendisiyle çelişme, aynı dosyayı tekrar tekrar bozma, "unuttum" belirtileri
-- [ ] ⭐ **"Temiz sayfa" önerisi:** sağlık düşünce *"Bu session yoruldu. Özetleyip yeni bir session'da devam edeyim mi?"* → tek tıkla devir özeti + yeni session (hafıza ile birlikte) — *uyarı hazır; tek tıkla devir + yeni session Faz 2 (web terminali)*
+- [x] ⭐ **"Temiz sayfa" önerisi:** sağlık düşünce *"Bu session yoruldu. Özetleyip yeni bir session'da devam edeyim mi?"* → tek tıkla devir özeti + yeni session (hafıza ile birlikte)
 - [x] Otomatik sıkıştırma (compact) önerisi, ne zaman gerektiğinin açıklamasıyla
 - [x] Session'da hangi dosyaların ve kararların bağlamda olduğunu gösteren "AI şu an neyi biliyor" paneli — *son okunan/düzenlenen dosyalar + hafızanın verilip verilmediği*
 
@@ -442,7 +442,7 @@ god-eye/
 - [x] Araç kullanımları katlanabilir kartlar halinde (okunan dosya, çalıştırılan komut) — *Bash, Read, Edit, Write, Grep, WebFetch, TodoWrite (yapılacaklar listesi olarak)*
 - [x] Değişiklikler diff görünümünde, dosya bazında kabul veya red — *izin kartında ve araç kartında satır diff'i; dosya bazında red = izni reddetmek*
 - [x] Resim ve ekran görüntüsü yapıştırma, dosya sürükle bırak — *yapıştırma veya seçme; dosya sürükle bırak kalan iş*
-- [ ] Mesaj kutusunun altında araç, hesap, model ve persona seçici — *model seçici hazır (değiştirince aynı session devam eder); hesap Faz 3, persona Faz 6*
+- [x] Mesaj kutusunun altında araç, hesap, model ve persona seçici — *model seçici + öneri, yeni sohbeti seçilen hesapta başlatma; persona Faz 6*
 - [x] Slash komutları için otomatik tamamlama — *chat'te `/`: projenin ve kullanıcının Claude komutları + kayıtlı prompt'lar*
 - [x] **Mod seçici:** Normal (her şeye onay) · Düzenlemeleri kabul et · **Auto** (izole worktree'de otomatik, sonunda özet ve onay) — *Bana sor · Düzenlemeleri kabul et · Otomatik · Sadece plan; izole worktree Faz 8*
 
@@ -548,7 +548,7 @@ god-eye/
 - [x] ⭐ Her hesap için 5 saatlik ve haftalık limit çubukları + sıfırlanma geri sayımı — *Claude'un kendi bildirdiği gerçek doluluk; her God Eye Claude çağrısında ek maliyetsiz güncellenir*
 - [x] ⭐ **Ne, nerede, ne zaman:** zaman çizelgesi grafiği; proje, persona, session ve model bazında kırılım — *14 günlük proje kırılımlı grafik, proje/model/saat dağılımı; persona kırılımı Faz 6*
 - [x] "En çok harcayan 10 session" listesi; tıklayınca session açılır
-- [ ] Günlük, haftalık ve aylık raporlar — *günlük ve haftalık grafikler hazır; aylık rapor kalan iş*
+- [x] Günlük, haftalık ve aylık raporlar — *aylık tablo + CSV indirme*
 - [x] Tahmin: "Bu hızla limit saat 16:40'ta dolar" — *son ölçümlerden saatlik hız; sıfırlanmadan önce dolacaksa saatini söyler*
 - [x] Uyarılar: limitin %80 ve %95'inde bildirim + "şu hesaba geç" önerisi — *%80 ve üstü Gelen Kutusu'nda acil + üst bar renk değişimi + "başka hesaba geç / Codex'e devret" önerisi; masaüstü bildirimi Faz 11*
 - [ ] Bütçe kuralları: persona veya zamanlanmış iş başına üst sınır — *zamanlanmış işler (Faz 9) ve personalar (Faz 6) ile*

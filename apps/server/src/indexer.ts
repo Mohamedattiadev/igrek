@@ -1,6 +1,7 @@
 import type { IndexStatus } from "@godeye/core";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
+import type { WholeFileAdapter } from "./adapters/gemini";
 import type { Adapter, ParsedMessage, SessionFile } from "./adapters/types";
 import type { Bus } from "./bus";
 import type { Store } from "./store";
@@ -107,6 +108,23 @@ export class Indexer {
     file: SessionFile,
     adapter: Adapter,
   ): Promise<{ projectId: string | null; sessionId: string } | undefined> {
+    // Whole-file formats (Gemini): read again from scratch whenever the file changed.
+    if ("parseFile" in adapter) {
+      const seen = this.store.fileOffset(file.path);
+      if (seen && seen.size === file.size && seen.mtime === file.mtime) return undefined;
+      this.store.resetSession(file.sessionId, file.path);
+      const state = this.store.loadState(file.sessionId);
+      const messages = (adapter as WholeFileAdapter).parseFile(state, await Bun.file(file.path).text(), file.sessionId);
+      const projectId = this.store.saveChunk({
+        sessionId: file.sessionId,
+        tool: adapter.tool,
+        accountId: adapter.accountId,
+        file: { path: file.path, offset: file.size, size: file.size, mtime: file.mtime },
+        state,
+        messages,
+      });
+      return { projectId, sessionId: file.sessionId };
+    }
     let offset = this.store.fileOffset(file.path)?.offset ?? 0;
     if (file.size < offset) {
       // Transcript got shorter: it was rewritten, start over.

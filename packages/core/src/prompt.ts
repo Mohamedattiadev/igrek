@@ -121,3 +121,19 @@ export function renderEnhanced(parts: EnhancedParts, dropAssumptions: number[] =
     .filter(Boolean)
     .join("\n\n");
 }
+
+/**
+ * Model routing hint (plan.md 1.6): hard or wide work → Opus, tiny questions → Haiku,
+ * everything else stays on the default. Only a suggestion; the user decides.
+ */
+export function suggestModel(text: string): "opus" | "haiku" | undefined {
+  const t = text.trim();
+  if (t.length < 3) return undefined;
+  const hard =
+    /\b(architect|architecture|design the|redesign|migrat|rewrite|from scratch|race condition|deadlock|memory leak|concurren|security audit|performance|optimi[sz]e|mimari|tasarla|yeniden yaz|sıfırdan|baştan|bellek sızıntısı|performans|güvenlik denetimi|karmaşık|zor bir)/i;
+  if (hard.test(t) || (t.length > 600 && /\n/.test(t))) return "opus";
+  const tiny = /^(what|why|how|is|does|can|ne|neden|nasıl|nedir|mı|mi)\b.{0,80}\??$/i;
+  if (t.length < 90 && !t.includes("\n") && (tiny.test(t) || /\b(typo|rename|yazım hatası|adını değiştir)\b/i.test(t)))
+    return "haiku";
+  return undefined;
+}

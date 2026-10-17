@@ -1,4 +1,4 @@
-import { type ChatEvent, type ChatMode, findSecrets, isWeakPrompt } from "@godeye/core";
+import { type ChatEvent, type ChatMode, findSecrets, isWeakPrompt, suggestModel } from "@godeye/core";
 import DOMPurify from "dompurify";
 import {
   ArrowLeft,
@@ -6,6 +6,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  Cpu,
   FileEdit,
   FilePlus,
   FileText,
@@ -274,6 +275,21 @@ export function ChatPage() {
     setText(item.insert);
     setSlashActive(0);
   };
+  const suggestedModel = text.trim() ? suggestModel(text) : undefined;
+  const currentModel = MODELS.find((m) => m && info?.model?.includes(m));
+  /** Restart on the suggested model, keeping the session (if any) and the typed text. */
+  const switchModel = async (model: string) => {
+    if (!info) return;
+    const draft = encodeURIComponent(text);
+    if (info.sessionId) {
+      const next = await api.chatModel(info.id, model);
+      navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
+    } else {
+      const next = await api.startChat({ projectId: info.projectId, model, mode: info.mode });
+      void api.closeChat(info.id).catch(() => undefined);
+      navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
+    }
+  };
   /** A message held back because it seems to contain a secret. */
   const [guarded, setGuarded] = useState<string>();
   /** The text the enhancer was opened with; undefined while closed. */
@@ -499,8 +515,19 @@ export function ChatPage() {
             </div>
           )}
           {enhancing === undefined && text.trim() && (
-            <div className="mb-1.5">
+            <div className="mb-1.5 flex flex-wrap gap-1.5">
               <EnhanceHint text={text} onEnhance={openEnhancer} />
+              {suggestedModel && suggestedModel !== currentModel && !working && (
+                <button
+                  type="button"
+                  onClick={() => void switchModel(suggestedModel)}
+                  data-tip={t(`chat.suggestTip_${suggestedModel}`)}
+                  className="inline-flex items-center gap-1 rounded-full bg-bg-muted px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg"
+                >
+                  <Cpu size={11} aria-hidden="true" />{" "}
+                  {t("chat.suggestModel", { model: modelName(`claude-${suggestedModel}`) })}
+                </button>
+              )}
             </div>
           )}
           <SlashMenu

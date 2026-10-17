@@ -570,3 +570,16 @@ export type ServerMessage =
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };
+
+/** One month in the usage report. */
+export interface MonthlyReport {
+  /** "2026-10" */
+  month: string;
+  tokens: number;
+  input: number;
+  output: number;
+  cacheRead: number;
+  sessions: number;
+  models: Record<string, number>;
+  projects: { id: string; name: string; tokens: number }[];
+}

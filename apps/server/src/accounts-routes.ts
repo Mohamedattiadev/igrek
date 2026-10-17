@@ -3,7 +3,7 @@ import { homedir } from "node:os";
 import type { AiTool } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
-import { limitAlerts, limitsOverview } from "./limits";
+import { limitAlerts, limitsOverview, monthlyReport } from "./limits";
 import type { Terminals } from "./terminals";
 
 const PROVIDERS: AiTool[] = ["claude", "codex"];
@@ -84,4 +84,5 @@ export function registerAccountRoutes(
 
   app.get("/api/limits", (c) => c.json(limitsOverview(db, accounts)));
   app.get("/api/limits/alerts", (c) => c.json(limitAlerts(accounts)));
+  app.get("/api/limits/monthly", (c) => c.json(monthlyReport(db)));
 }

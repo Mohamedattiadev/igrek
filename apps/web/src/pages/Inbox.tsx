@@ -1,4 +1,14 @@
-import { AlarmClock, Brain, Gauge, Inbox, MessageSquare, SquareTerminal } from "lucide-react";
+import {
+  AlarmClock,
+  Brain,
+  CircleX,
+  Gauge,
+  Inbox,
+  KeyRound,
+  MessageSquare,
+  SquareTerminal,
+  TrendingDown,
+} from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -58,7 +68,10 @@ export function InboxPage() {
   const conflicts = (data?.conflicts ?? []).filter((c) => !isSnoozed(`conflict-${c.projectId}-${c.count}`));
   const { data: alerts } = useLiveData(() => api.limitAlerts(), []);
   const limitAlerts = (alerts ?? []).filter((a) => !isSnoozed(`limit-${a.accountId}-${a.window}-${a.resetsAt}`));
-  const empty = approvals.length + terminals.length + chats.length + conflicts.length + limitAlerts.length === 0;
+  const { data: noticeData } = useLiveData(() => api.inboxNotices(), []);
+  const notices = (noticeData ?? []).filter((n) => !isSnoozed(n.id));
+  const empty =
+    approvals.length + terminals.length + chats.length + conflicts.length + limitAlerts.length + notices.length === 0;
 
   return (
     <>
@@ -143,6 +156,43 @@ export function InboxPage() {
                         <SnoozeButton onClick={() => later(`term-${term.id}-${term.lastOutputAt}`)} />
                       </Link>
                     ))}
+                </div>
+              </Card>
+            </section>
+          )}
+
+          {notices.length > 0 && (
+            <section>
+              <Heading dot="bg-fg-subtle">
+                {t("inbox.info")} · {t("inbox.notices")}
+              </Heading>
+              <Card>
+                <div className="divide-y divide-border">
+                  {notices.map((n) => {
+                    const Icon = n.kind === "tool" ? CircleX : n.kind === "score" ? TrendingDown : KeyRound;
+                    return (
+                      <Link
+                        key={n.id}
+                        to={n.link}
+                        data-nav-item
+                        className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
+                      >
+                        <Icon
+                          size={15}
+                          className={n.kind === "env" ? "text-fg-subtle" : "text-warning"}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1 truncate text-[13px]">
+                          <span className="font-medium">{n.projectName}</span> · {t(`inbox.notice_${n.kind}`)}
+                          <span className="ms-2 font-mono text-[11px] text-fg-subtle">
+                            {n.kind === "tool" ? t(`tools.kind_${n.detail}`) : n.detail}
+                          </span>
+                        </span>
+                        <span className="text-[11px] text-fg-subtle">{relativeTime(n.at)}</span>
+                        <SnoozeButton onClick={() => later(n.id)} />
+                      </Link>
+                    );
+                  })}
                 </div>
               </Card>
             </section>

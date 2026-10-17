@@ -11,6 +11,7 @@ import {
   type CategoryScore,
   type DiagramSet,
   gradeOf,
+  type InboxNotice,
   type InsightConfig,
   type InsightScan,
   type Settings,
@@ -314,6 +315,77 @@ ${heads.join("\n\n") || "(none)"}`;
     this.worker?.terminate();
     this.unsubscribe?.();
     for (const t of this.rescans.values()) clearTimeout(t);
+  }
+
+  // ---- inbox notices (plan.md 2.6b) -----------------------------------------------------------
+
+  /** Failing checks, dropped scores and teammates' setting changes, newest first. */
+  notices(now = Date.now()): InboxNotice[] {
+    const out: InboxNotice[] = [];
+    const name = (id: string) => this.store.projectRow(id)?.name ?? id;
+    for (const r of this.db
+      .query("SELECT project_id, kind, result, at FROM insight_tools WHERE at > ?")
+      .all(now - 7 * 86_400_000) as {
+      project_id: string;
+      kind: string;
+      result: string;
+      at: number;
+    }[]) {
+      const result = JSON.parse(r.result) as ToolResult;
+      if (result.ok) continue;
+      out.push({
+        id: `tool-${r.project_id}-${r.kind}-${r.at}`,
+        kind: "tool",
+        projectId: r.project_id,
+        projectName: name(r.project_id),
+        detail: r.kind,
+        at: r.at,
+        link: `/p/${r.project_id}?tab=sections`,
+      });
+    }
+    const projects = this.db
+      .query("SELECT DISTINCT project_id FROM insight_scans WHERE at > ?")
+      .all(now - 7 * 86_400_000) as { project_id: string }[];
+    for (const { project_id } of projects) {
+      const [latest, previous] = this.db
+        .query("SELECT overall, at FROM insight_scans WHERE project_id = ? ORDER BY at DESC LIMIT 2")
+        .all(project_id) as {
+        overall: number;
+        at: number;
+      }[];
+      if (latest && previous && previous.overall - latest.overall >= 5)
+        out.push({
+          id: `score-${project_id}-${latest.at}`,
+          kind: "score",
+          projectId: project_id,
+          projectName: name(project_id),
+          detail: `${previous.overall} → ${latest.overall}`,
+          at: latest.at,
+          link: `/p/${project_id}?tab=sections`,
+        });
+    }
+    for (const r of this.db
+      .query(
+        "SELECT project_id, file, key, action, author_name, at FROM env_changes WHERE author_id IS NOT NULL AND at > ? ORDER BY at DESC LIMIT 20",
+      )
+      .all(now - 3 * 86_400_000) as {
+      project_id: string;
+      file: string;
+      key: string;
+      action: string;
+      author_name: string | null;
+      at: number;
+    }[])
+      out.push({
+        id: `env-${r.project_id}-${r.key}-${r.at}`,
+        kind: "env",
+        projectId: r.project_id,
+        projectName: name(r.project_id),
+        detail: `${r.author_name ?? "?"} · ${r.action} · ${r.key}`,
+        at: r.at,
+        link: `/p/${r.project_id}?tab=sections&view=env`,
+      });
+    return out.sort((a, b) => b.at - a.at).slice(0, 50);
   }
 
   // ---- automatic rescans ---------------------------------------------------------------
