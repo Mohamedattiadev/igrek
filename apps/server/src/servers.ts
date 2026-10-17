@@ -247,6 +247,34 @@ export class Servers {
     return result;
   }
 
+  /**
+   * A fixed, read-only command whose output is binary and big (a tar of a folder for a backup):
+   * streamed straight into a local file instead of memory. In the audit log like any read.
+   */
+  async download(id: string, command: string, reason: string, file: string): Promise<{ code: number; bytes: number }> {
+    const server = this.get(id);
+    if (!server) throw new Error("Server not found");
+    const started = Date.now();
+    const proc = Bun.spawn(["ssh", ...this.sshArgs(server), "--", command], {
+      stdout: Bun.file(file),
+      stderr: "pipe",
+      stdin: "ignore",
+      env: cleanEnv(),
+    });
+    const unregister = this.stops.register(`ssh-${proc.pid}`, { label: `ssh ${server.name}`, stop: () => proc.kill() });
+    const timer = setTimeout(() => proc.kill(), 60 * 60_000);
+    try {
+      const code = await proc.exited;
+      this.logRemote(id, reason, "read", { code, ms: Date.now() - started });
+      if (code !== 0)
+        throw new Error((await new Response(proc.stderr).text()).trim().slice(-300) || `ssh exited with ${code}`);
+      return { code, bytes: Bun.file(file).size };
+    } finally {
+      clearTimeout(timer);
+      unregister();
+    }
+  }
+
   // ---- files on the server (plan.md 2.5) ----------------------------------------------------
 
   /** Any plain path, but never keys: the same "never read" rule as on this computer. */

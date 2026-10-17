@@ -1,5 +1,11 @@
 import type {
   AppErrorGroup,
+  BackupJob,
+  BackupRun,
+  DbConnection,
+  DbResult,
+  DbSuggestion,
+  DbTable,
   DockerContainer,
   DomainWatch,
   LogGroup,
@@ -67,4 +73,51 @@ export const opsApi = {
     request<{ browser: string; server: string }>(`/api/projects/${projectId}/errors/snippet`),
   setErrorStatus: (id: string, status: AppErrorGroup["status"]) => post(`/api/errors/${id}/status`, { status }),
   fixAppError: (id: string) => post<{ runId: string }>(`/api/errors/${id}/fix`),
+};
+
+/** Databases and backups (plan.md 12). */
+export const dataApi = {
+  databases: () => request<DbConnection[]>("/api/databases"),
+  suggestions: (projectId: string) => request<DbSuggestion[]>(`/api/projects/${projectId}/database-suggestions`),
+  addDatabase: (body: {
+    name?: string;
+    address?: string;
+    projectId?: string;
+    prod?: boolean;
+    from?: DbSuggestion["source"];
+  }) => post<DbConnection & { test: { ok: boolean; version?: string; error?: string } }>("/api/databases", body),
+  updateDatabase: (id: string, patch: { name?: string; prod?: boolean; readOnly?: boolean }) =>
+    request<DbConnection>(`/api/databases/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  removeDatabase: (id: string) => del(`/api/databases/${id}`),
+  testDatabase: (id: string) => post<{ ok: boolean; version?: string; error?: string }>(`/api/databases/${id}/test`),
+  tables: (id: string) => request<DbTable[]>(`/api/databases/${id}/tables`),
+  diagram: (id: string) => request<{ mermaid: string }>(`/api/databases/${id}/diagram`),
+  rows: (id: string, table: string, schema?: string, page = 0) =>
+    request<DbResult>(
+      `/api/databases/${id}/rows?table=${encodeURIComponent(table)}${schema ? `&schema=${encodeURIComponent(schema)}` : ""}&page=${page}`,
+    ),
+  /** A failed query keeps the server's code ("confirm", "read_only") on the error. */
+  query: async (id: string, query: string, allowWrite = false): Promise<DbResult> => {
+    const res = await fetch(`/api/databases/${id}/query`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ query, allowWrite }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(body.error ?? res.statusText), { code: body.code });
+    return body as DbResult;
+  },
+  explainDraft: (id: string, query: string) =>
+    post<{ kind: string; prod: boolean; query: string; schema: string; plan?: string; projectId?: string }>(
+      `/api/databases/${id}/explain-draft`,
+      { query },
+    ),
+  backups: () => request<BackupJob[]>("/api/backups"),
+  addBackup: (job: Omit<BackupJob, "id" | "createdAt">) => post<BackupJob>("/api/backups", job),
+  removeBackup: (id: string, files = false) => del(`/api/backups/${id}${files ? "?files=1" : ""}`),
+  backupRuns: (id: string) => request<BackupRun[]>(`/api/backups/${id}/runs`),
+  runBackup: (id: string) => post<BackupRun>(`/api/backups/${id}/run`),
+  verifyBackup: (runId: string) => post<BackupRun>(`/api/backup-runs/${runId}/verify`),
+  restoreBackup: (runId: string) => post<{ file: string }>(`/api/backup-runs/${runId}/restore`),
 };

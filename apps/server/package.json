@@ -20,6 +20,7 @@
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13",
     "jszip": "3.10.2",
+    "mongodb": "7.7.0",
     "onnxruntime-node": "1.30.0",
     "pdfjs-dist": "6.4.299",
     "playwright-core": "1.63.0",

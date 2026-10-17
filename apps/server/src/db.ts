@@ -618,6 +618,30 @@ const migrations: string[] = [
      status TEXT NOT NULL,
      UNIQUE (project_id, fingerprint)
    );`,
+  // Faz 12: databases and backups.
+  `CREATE TABLE db_connections (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL,
+     kind TEXT NOT NULL,
+     project_id TEXT,
+     prod INTEGER NOT NULL DEFAULT 0,
+     read_only INTEGER NOT NULL DEFAULT 0,
+     address TEXT NOT NULL,
+     display TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE backup_jobs (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE backup_runs (
+     id TEXT PRIMARY KEY,
+     job_id TEXT NOT NULL,
+     data TEXT NOT NULL,
+     started_at INTEGER NOT NULL
+   );
+   CREATE INDEX backup_runs_job ON backup_runs(job_id, started_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

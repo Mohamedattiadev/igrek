@@ -13,6 +13,7 @@ import { AppErrors } from "./apperrors";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
 import { Backups } from "./backup";
+import { BackupJobs } from "./backup-jobs";
 import { Board } from "./board";
 import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
@@ -21,6 +22,8 @@ import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { loadConfig } from "./config";
 import { CrossCheck } from "./crosscheck";
+import { registerDataRoutes } from "./data-routes";
+import { Databases } from "./databases";
 import { openDb } from "./db";
 import { registerDeployRoutes } from "./deploy-routes";
 import { Docker } from "./docker";
@@ -61,6 +64,7 @@ import { DevServers } from "./preview/devservers";
 import { registerPreviewRoutes } from "./preview-routes";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
+import { Sealer } from "./seal";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
@@ -265,6 +269,14 @@ monitors.start();
 const docker = new Docker(servers);
 const logs = new Logs(sqlite, store, files, docker, servers);
 const appErrors = new AppErrors(sqlite, store, bus);
+const databases = new Databases(
+  sqlite,
+  store,
+  new Sealer(config.dataDir),
+  new EnvFiles(join(config.dataDir, "env-backups")),
+);
+const backupJobs = new BackupJobs(sqlite, store, bus, databases, servers, join(config.dataDir, "backups"));
+setInterval(() => void backupJobs.tick(), 60_000);
 const briefings = new Briefings(
   sqlite,
   store,
@@ -299,6 +311,7 @@ insight.extraNotices = () => [
   ...depWatcher.notices(),
   ...monitors.notices(),
   ...appErrors.notices(),
+  ...backupJobs.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
     .list()
@@ -359,6 +372,7 @@ const app = createApp({
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
+    registerDataRoutes(hono, { databases, backups: backupJobs });
     registerOpsRoutes(hono, { monitors, docker, logs, errors: appErrors, flows, port: config.publicPort });
     registerWatcherRoutes(hono, {
       secrets: secretScanner,
