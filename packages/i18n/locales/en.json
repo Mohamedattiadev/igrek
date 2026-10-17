@@ -227,7 +227,8 @@
     "preview": "Preview",
     "monitor": "Monitoring",
     "docs": "Wiki & boards",
-    "host": "Issues & PRs"
+    "host": "Issues & PRs",
+    "plugins": "Plugins"
   },
   "memory": {
     "title": "Project memory",
@@ -2636,7 +2637,8 @@
     "backups": "Backups",
     "calendar": "Calendar",
     "vault": "Vault",
-    "costs": "Costs"
+    "costs": "Costs",
+    "plugins": "Plugins"
   },
   "uptime": {
     "intro": "God Eye opens these addresses on their own schedule from this computer. Two failed checks in a row count as down; you get an inbox item and a desktop notification.",
@@ -3079,5 +3081,34 @@
     "askTip": "Opens a chat with the Product Manager persona with these numbers only (no user data).",
     "askDraft": "What do these numbers say, and what should we do next? Which feature to improve, which to drop?",
     "isNew": "new"
+  },
+  "plugins": {
+    "intro": "Add what God Eye is missing. A plugin is a folder with a godeye-plugin.json: pages God Eye shows in a sandbox, and commands it runs in a terminal when you click. It stays off until you approve what it asks for.",
+    "source": "Folder path (/home/you/my-plugin) or https git URL",
+    "install": "Install",
+    "installing": "Installing…",
+    "example": "Example: the project-pulse folder under examples/plugins in God Eye's own repository.",
+    "approve": "Turn on the plugin",
+    "approveTitle": "Turn on {{name}}?",
+    "reads": "Its pages may read:",
+    "readsNothing": "Its pages read nothing from God Eye.",
+    "runs": "Commands it can run in a project's folder (only when you click them, in a terminal you see):",
+    "sandbox": "Plugin pages run in a sandbox with no network: they can't send anything out, can't change anything in God Eye and can't open other pages.",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "remove": "Remove",
+    "panels_one": "1 page",
+    "panels_other": "{{count}} pages",
+    "commands_one": "1 command",
+    "commands_other": "{{count}} commands",
+    "perm_projects_read": "your projects' names, session counts and health",
+    "perm_memory_read": "project memory (decisions, rules, problems)",
+    "perm_sessions_read": "session titles and summaries",
+    "perm_costs_read": "the cost panel's totals",
+    "perm_uptime_read": "uptime monitors and their state",
+    "emptyTitle": "No plugins yet",
+    "emptyBody": "Install one from a folder or a git URL.",
+    "noneHere": "No plugins for projects",
+    "noneHereBody": "Turn on a plugin with project pages or commands on Tools > Plugins."
   }
 }

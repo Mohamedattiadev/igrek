@@ -359,3 +359,78 @@ export function registerAnalyticsRoutes(
     }
   });
 }
+
+/** Plugin pages run sandboxed: no network, no forms, no popups, no top navigation (plan.md 12). */
+export const PLUGIN_CSP =
+  "sandbox allow-scripts; default-src 'self' 'unsafe-inline' data: blob:; connect-src 'none'; img-src 'self' data: blob:; form-action 'none'; frame-ancestors 'self'";
+
+export function registerPluginRoutes(
+  app: Hono,
+  {
+    plugins,
+    terminals,
+    store,
+  }: {
+    plugins: import("./plugins").Plugins;
+    terminals: import("./terminals").Terminals;
+    store: import("./store").Store;
+  },
+): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.get("/api/plugins", (c) => c.json(plugins.list()));
+  app.post("/api/plugins", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { source?: string };
+    try {
+      return c.json(await plugins.install(String(body.source ?? "")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/plugins/:id/enabled", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { enabled?: boolean };
+    try {
+      plugins.setEnabled(c.req.param("id"), body.enabled === true);
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/plugins/:id", (c) => {
+    plugins.remove(c.req.param("id"));
+    return c.json({ ok: true });
+  });
+  /** A plugin command, in a shell terminal in the project's folder: you see exactly what runs. */
+  app.post("/api/plugins/:id/commands/:command", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { projectId?: string };
+    const plugin = plugins.get(c.req.param("id"));
+    const command = plugin?.enabled ? plugin.commands.find((x) => x.id === c.req.param("command")) : undefined;
+    const project = body.projectId ? store.projectRow(body.projectId) : undefined;
+    if (!plugin || !command || !project) return c.json({ error: "Not found" }, 404);
+    try {
+      const { shellLine } = await import("./plugins");
+      return c.json(
+        terminals.start({
+          projectId: project.id,
+          cwd: project.path,
+          tool: "shell",
+          title: `${plugin.name} · ${command.title}`,
+          args: ["-c", shellLine(command.run)],
+        }),
+      );
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.get("/plugin-files/:id/*", (c) => {
+    const rest = decodeURIComponent(c.req.path.split("/").slice(3).join("/"));
+    const file = plugins.file(c.req.param("id"), rest);
+    if (!file) return c.text("Not found", 404);
+    return new Response(Bun.file(file), {
+      headers: {
+        "content-security-policy": PLUGIN_CSP,
+        "x-content-type-options": "nosniff",
+        "cache-control": "no-cache",
+      },
+    });
+  });
+}

@@ -22,6 +22,7 @@ import type {
   LogGroup,
   LogLine,
   LogSource,
+  PluginInfo,
   UptimeCheck,
   UptimeMonitor,
   VaultEntry,
@@ -211,4 +212,13 @@ export const analyticsApi = {
       method: "PUT",
       body: JSON.stringify(source),
     }),
+};
+
+export const pluginApi = {
+  list: () => request<PluginInfo[]>("/api/plugins"),
+  install: (source: string) => post<PluginInfo>("/api/plugins", { source }),
+  setEnabled: (id: string, enabled: boolean) => post(`/api/plugins/${id}/enabled`, { enabled }),
+  remove: (id: string) => del(`/api/plugins/${id}`),
+  run: (id: string, command: string, projectId: string) =>
+    post<{ id: string }>(`/api/plugins/${id}/commands/${command}`, { projectId }),
 };

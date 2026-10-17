@@ -33,6 +33,7 @@ import { PreviewTab } from "./project/Preview";
 import { SectionsTab } from "./project/Sections";
 import { SessionRow } from "./project/SessionRow";
 import { ReportsCard, TimelineTab } from "./project/Timeline";
+import { ProjectPlugins } from "./tools/Plugins";
 
 const TABS = [
   "overview",
@@ -47,6 +48,7 @@ const TABS = [
   "host",
   "environments",
   "monitor",
+  "plugins",
   "setup",
 ] as const;
 type Tab = (typeof TABS)[number];
@@ -433,6 +435,8 @@ export function ProjectPage() {
           <CodeHostTab projectId={project.id} />
         ) : tab === "docs" ? (
           <DocsTab projectId={project.id} />
+        ) : tab === "plugins" ? (
+          <ProjectPlugins projectId={project.id} />
         ) : tab === "monitor" ? (
           <MonitorTab project={project} />
         ) : tab === "memory" ? (

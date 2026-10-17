@@ -724,6 +724,13 @@ const migrations: string[] = [
      project_id TEXT PRIMARY KEY,
      data TEXT NOT NULL
    );`,
+  // Faz 12: plugins (folders with a manifest), off until the user approves their permissions.
+  `CREATE TABLE plugins (
+     id TEXT PRIMARY KEY,
+     source TEXT NOT NULL,
+     enabled INTEGER NOT NULL DEFAULT 0,
+     installed_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

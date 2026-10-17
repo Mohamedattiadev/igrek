@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="bridge.js"></script>
+  </head>
+  <body>
+    <p class="muted" id="note">Loading…</p>
+    <table hidden id="table">
+      <thead><tr><th>Project</th><th>Health</th><th>Sessions</th><th>Memory items</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <script>
+      (async () => {
+        const { language } = await godeye.hello;
+        const projects = await godeye.ask("projects");
+        const rows = await Promise.all(
+          projects.map(async (p) => ({ ...p, memory: (await godeye.ask("memory", { projectId: p.id })).length })),
+        );
+        const body = document.querySelector("tbody");
+        for (const p of rows.sort((a, b) => b.sessions - a.sessions)) {
+          const tr = document.createElement("tr");
+          for (const v of [p.name, p.health ?? "-", p.sessions, p.memory]) {
+            const td = document.createElement("td");
+            td.textContent = String(v);
+            tr.append(td);
+          }
+          body.append(tr);
+        }
+        document.getElementById("note").textContent = language === "tr" ? `${rows.length} proje` : `${rows.length} projects`;
+        document.getElementById("table").hidden = false;
+      })().catch((e) => (document.getElementById("note").textContent = e.message));
+    </script>
+  </body>
+</html>

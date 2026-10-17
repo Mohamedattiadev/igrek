@@ -227,7 +227,8 @@
     "preview": "Önizleme",
     "monitor": "İzleme",
     "docs": "Wiki ve tahtalar",
-    "host": "Issue'lar ve PR'lar"
+    "host": "Issue'lar ve PR'lar",
+    "plugins": "Eklentiler"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -2636,7 +2637,8 @@
     "backups": "Yedekler",
     "calendar": "Takvim",
     "vault": "Kasa",
-    "costs": "Maliyet"
+    "costs": "Maliyet",
+    "plugins": "Eklentiler"
   },
   "uptime": {
     "intro": "God Eye bu adresleri kendi aralığında bu bilgisayardan açar. Arka arkaya iki başarısız kontrol kapalı sayılır; Gelen Kutusu'na düşer ve masaüstü bildirimi gelir.",
@@ -3079,5 +3081,34 @@
     "askTip": "Product Manager personasıyla sadece bu rakamlarla (kullanıcı verisi olmadan) bir sohbet açar.",
     "askDraft": "Bu rakamlar ne söylüyor, sırada ne yapmalıyız? Hangi özellik geliştirilmeli, hangisi bırakılmalı?",
     "isNew": "yeni"
+  },
+  "plugins": {
+    "intro": "God Eye'da eksik olanı ekle. Eklenti, godeye-plugin.json içeren bir klasördür: God Eye'ın kum havuzunda gösterdiği sayfalar ve tıklayınca terminalde çalıştırdığı komutlar. İstediklerini onaylayana kadar kapalı kalır.",
+    "source": "Klasör yolu (/home/sen/eklentim) ya da https git adresi",
+    "install": "Kur",
+    "installing": "Kuruluyor…",
+    "example": "Örnek: God Eye'ın kendi reposunda examples/plugins altındaki project-pulse klasörü.",
+    "approve": "Eklentiyi aç",
+    "approveTitle": "{{name}} açılsın mı?",
+    "reads": "Sayfaları şunları okuyabilir:",
+    "readsNothing": "Sayfaları God Eye'dan hiçbir şey okumaz.",
+    "runs": "Bir projenin klasöründe çalıştırabileceği komutlar (sadece sen tıklayınca, gördüğün bir terminalde):",
+    "sandbox": "Eklenti sayfaları ağı olmayan bir kum havuzunda çalışır: dışarıya hiçbir şey gönderemez, God Eye'da hiçbir şeyi değiştiremez, başka sayfa açamaz.",
+    "turnOn": "Aç",
+    "turnOff": "Kapat",
+    "remove": "Kaldır",
+    "panels_one": "1 sayfa",
+    "panels_other": "{{count}} sayfa",
+    "commands_one": "1 komut",
+    "commands_other": "{{count}} komut",
+    "perm_projects_read": "projelerinin adları, session sayıları ve sağlığı",
+    "perm_memory_read": "proje hafızası (kararlar, kurallar, sorunlar)",
+    "perm_sessions_read": "session başlıkları ve özetleri",
+    "perm_costs_read": "maliyet panelinin toplamları",
+    "perm_uptime_read": "uptime izleyicileri ve durumları",
+    "emptyTitle": "Henüz eklenti yok",
+    "emptyBody": "Bir klasörden ya da git adresinden kur.",
+    "noneHere": "Projeler için eklenti yok",
+    "noneHereBody": "Araçlar > Eklentiler'den proje sayfası ya da komutu olan bir eklenti aç."
   }
 }

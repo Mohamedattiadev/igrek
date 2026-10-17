@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="bridge.js"></script>
+  </head>
+  <body>
+    <p class="muted" id="note">Loading…</p>
+    <table><tbody></tbody></table>
+    <script>
+      (async () => {
+        const { projectId } = await godeye.hello;
+        const items = await godeye.ask("memory", { projectId });
+        const counts = {};
+        for (const m of items) counts[m.section] = (counts[m.section] ?? 0) + 1;
+        const body = document.querySelector("tbody");
+        for (const [section, n] of Object.entries(counts)) {
+          const tr = document.createElement("tr");
+          tr.innerHTML = "<td></td><td></td>";
+          tr.children[0].textContent = section;
+          tr.children[1].textContent = n;
+          body.append(tr);
+        }
+        document.getElementById("note").textContent = `${items.length} memory items`;
+      })().catch((e) => (document.getElementById("note").textContent = e.message));
+    </script>
+  </body>
+</html>

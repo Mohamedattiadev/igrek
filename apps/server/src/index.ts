@@ -69,10 +69,12 @@ import {
   registerCodeHostRoutes,
   registerCostRoutes,
   registerOpsRoutes,
+  registerPluginRoutes,
   registerVaultRoutes,
 } from "./ops-routes";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
+import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
 import { registerPreviewRoutes } from "./preview-routes";
 import { registerScheduleRoutes } from "./schedule-routes";
@@ -396,6 +398,7 @@ const app = createApp({
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
+    registerPluginRoutes(hono, { plugins: new Plugins(sqlite, join(config.dataDir, "plugins")), terminals, store });
     registerAnalyticsRoutes(hono, { analytics: new Analytics(sqlite, appErrors, databases), store });
     registerCostRoutes(hono, new Costs(sqlite, { accounts, servers, monitors }));
     registerCalendarRoutes(hono, new Calendar(sqlite, schedules, backupJobs, monitors));

@@ -432,3 +432,34 @@ export interface AnalyticsSummary {
   events: { event: string; last7: number; previous7: number }[];
   source?: AnalyticsSource;
 }
+
+/** What a plugin may read through the bridge (plan.md 12 "Eklenti sistemi"). Nothing can be written. */
+export const PLUGIN_PERMISSIONS = [
+  "projects:read",
+  "memory:read",
+  "sessions:read",
+  "costs:read",
+  "uptime:read",
+] as const;
+export type PluginPermission = (typeof PLUGIN_PERMISSIONS)[number];
+
+export interface PluginManifest {
+  id: string;
+  name: string;
+  version: string;
+  description?: string;
+  author?: string;
+  permissions: PluginPermission[];
+  /** Pages shown in God Eye, in a sandbox: on the Tools page or in each project. */
+  panels: { id: string; title: string; entry: string; place: "tools" | "project" }[];
+  /** Shell commands run in a project's folder, in a terminal you can see, only when you click. */
+  commands: { id: string; title: string; run: string[] }[];
+}
+
+export interface PluginInfo extends PluginManifest {
+  enabled: boolean;
+  /** Where it was installed from (a folder or a git URL). */
+  source: string;
+  installedAt: number;
+  error?: string;
+}
