@@ -51,7 +51,7 @@ function setup(agent: AgentRun, checks: () => Promise<ToolResult[]>) {
   );
   const board = new Board(sqlite, bus, flows);
   flows.onChange = (run) => board.followRun(run);
-  return { flows, board, projectId, dir };
+  return { flows, board, projectId, dir, sqlite };
 }
 
 const pass = (kind: ToolResult["kind"]): ToolResult => ({
@@ -170,5 +170,39 @@ describe("limit queue", () => {
     );
     expect(done.nodes.find((n) => n.status === "done")?.attempts).toBe(1);
     expect(calls).toBe(2);
+  });
+});
+
+describe("model arena", () => {
+  test("two models, one task, each in its own copy; the winner is merged, the other thrown away; stats add up", async () => {
+    const { Arena } = await import("./arena");
+    const models: string[] = [];
+    const agent: AgentRun = async ({ cwd, model }) => {
+      models.push(model ?? "");
+      writeFileSync(join(cwd, "README.md"), `# app\nWritten by ${model}\n`);
+      return `Done by ${model}`;
+    };
+    const { flows, projectId, dir, sqlite } = setup(agent, async () => [pass("test")]);
+    const arena = new Arena(sqlite, flows);
+    expect(() =>
+      arena.start({ projectId, request: "Improve the README docs", models: ["sonnet", "sonnet"] }),
+    ).toThrow();
+    const match = arena.start({ projectId, request: "Improve the README docs", models: ["haiku", "sonnet"] });
+    expect(match.category).toBe("docs");
+    for (const s of match.sides)
+      await until(
+        () => flows.get(s.runId),
+        (r) => r.status === "ready",
+      );
+    expect(models.sort()).toEqual(["haiku", "sonnet"]);
+    arena.pick(match.id, "sonnet");
+    const [a, b] = match.sides.map((s) => flows.get(s.runId)?.status);
+    expect([a, b]).toEqual(["discarded", "merged"]);
+    expect(readFileSync(join(dir, "README.md"), "utf8")).toContain("Written by sonnet");
+    expect(arena.stats()).toEqual([
+      { category: "docs", model: "sonnet", wins: 1, played: 1 },
+      { category: "docs", model: "haiku", wins: 0, played: 1 },
+    ]);
+    expect(() => arena.pick(match.id, "haiku")).toThrow();
   });
 });

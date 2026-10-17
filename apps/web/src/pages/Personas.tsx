@@ -9,10 +9,11 @@ import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
+import { ArenaTab } from "./Arena";
 import { TestersTab } from "./Testers";
 
 const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testing"];
-type Tab = "team" | "meetings" | "testers" | "scores";
+type Tab = "team" | "meetings" | "testers" | "scores" | "arena";
 
 export function useProjects(): ProjectListItem[] {
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
@@ -392,7 +393,7 @@ export function PersonasPage() {
       />
       <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
         <div className="flex gap-1">
-          {(["team", "meetings", "testers", "scores"] as Tab[]).map((value) => (
+          {(["team", "meetings", "testers", "scores", "arena"] as Tab[]).map((value) => (
             <button
               key={value}
               type="button"
@@ -434,6 +435,7 @@ export function PersonasPage() {
         )}
         {tab === "testers" && <TestersTab />}
         {tab === "scores" && <Scores personas={personas} />}
+        {tab === "arena" && <ArenaTab />}
       </div>
       <ExportDialog open={exporting} onClose={() => setExporting(false)} />
     </>

@@ -434,3 +434,38 @@ export function registerPluginRoutes(
     });
   });
 }
+
+export function registerMcpRoutes(app: Hono, mcp: import("./mcpservers").McpServers): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.get("/api/mcp-servers", async (c) => {
+    const { MCP_CATALOG } = await import("@godeye/core");
+    return c.json({ servers: mcp.list(), catalog: MCP_CATALOG });
+  });
+  app.post("/api/mcp-servers", async (c) => {
+    try {
+      return c.json(await mcp.add(await c.req.json()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/mcp-servers/:id/test", async (c) => {
+    try {
+      return c.json(await mcp.test(c.req.param("id")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/mcp-servers/:id/enabled", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { enabled?: boolean };
+    try {
+      mcp.setEnabled(c.req.param("id"), body.enabled === true);
+      return c.json({ ok: true });
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.delete("/api/mcp-servers/:id", (c) => {
+    mcp.remove(c.req.param("id"));
+    return c.json({ ok: true });
+  });
+}

@@ -11,6 +11,7 @@ import { geminiAdapter } from "./adapters/gemini";
 import { Analytics } from "./analytics";
 import { createApp } from "./app";
 import { AppErrors } from "./apperrors";
+import { Arena } from "./arena";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
 import { Backups } from "./backup";
@@ -43,7 +44,7 @@ import { syncExamples } from "./examples";
 import { registerExtrasRoutes } from "./extras-routes";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
-import { registerFlowRoutes } from "./flow-routes";
+import { registerArenaRoutes, registerFlowRoutes } from "./flow-routes";
 import { Flows } from "./flows";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
@@ -62,6 +63,7 @@ import { Library } from "./library";
 import { registerLibraryRoutes } from "./library-routes";
 import { ollamaModels } from "./localmodel";
 import { Logs } from "./logs";
+import { McpServers } from "./mcpservers";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
 import {
@@ -69,6 +71,7 @@ import {
   registerCalendarRoutes,
   registerCodeHostRoutes,
   registerCostRoutes,
+  registerMcpRoutes,
   registerOpsRoutes,
   registerPluginRoutes,
   registerVaultRoutes,
@@ -298,6 +301,8 @@ const sealer = new Sealer(config.dataDir);
 const envFiles = new EnvFiles(join(config.dataDir, "env-backups"));
 const databases = new Databases(sqlite, store, sealer, envFiles);
 const vault = new Vault(sqlite, store, envFiles, sealer);
+const mcpServers = new McpServers(sqlite, sealer);
+void mcpServers.load().catch(() => undefined);
 const backupJobs = new BackupJobs(sqlite, store, bus, databases, servers, join(config.dataDir, "backups"));
 setInterval(() => void backupJobs.tick(), 60_000);
 const docs = new Docs(
@@ -378,15 +383,19 @@ const app = createApp({
       worktreeDir: join(config.dataDir, "worktrees"),
       persona: personaChat,
       godeyeMcp: {
-        config: JSON.stringify({
-          mcpServers: {
-            godeye: {
-              command: process.execPath,
-              args: [join(import.meta.dir, "mcp.ts")],
-              env: { GODEYE_PORT: String(config.publicPort), GODEYE_HOME: config.dataDir },
+        // Read when a chat starts: God Eye's own tools plus the user's enabled MCP servers.
+        get config() {
+          return JSON.stringify({
+            mcpServers: {
+              ...mcpServers.config(),
+              godeye: {
+                command: process.execPath,
+                args: [join(import.meta.dir, "mcp.ts")],
+                env: { GODEYE_PORT: String(config.publicPort), GODEYE_HOME: config.dataDir },
+              },
             },
-          },
-        }),
+          });
+        },
         // Reading God Eye and proposing a schedule need no prompt; a proposal still waits for the user's OK in God Eye.
         allow: [
           "mcp__godeye__godeye_project_memory",
@@ -402,11 +411,13 @@ const app = createApp({
     registerLibraryRoutes(hono, { library, embedder });
     registerKnowledgeRoutes(hono, knowledge);
     registerFlowRoutes(hono, { flows, board, store });
+    registerArenaRoutes(hono, new Arena(sqlite, flows));
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
+    registerMcpRoutes(hono, mcpServers);
     hono.get("/api/local-model", async (c) => {
       const s = readSettings(db);
       return c.json({ ...(await ollamaModels(s.localModelUrl)), limitedUntil: localModel.limitedUntil });

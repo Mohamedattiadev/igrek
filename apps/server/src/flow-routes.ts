@@ -1,6 +1,7 @@
 import type { TaskStatus } from "@godeye/core";
 import type { Hono } from "hono";
 import { archonBin, archonWorkflows, startArchon } from "./archon";
+import { arenaModels } from "./arena";
 import type { Board } from "./board";
 import type { Flows } from "./flows";
 import type { Store } from "./store";
@@ -119,5 +120,37 @@ export function registerFlowRoutes(
   app.delete("/api/board/:id", (c) => {
     board.remove(c.req.param("id"));
     return c.json({ ok: true });
+  });
+}
+
+export function registerArenaRoutes(app: Hono, arena: import("./arena").Arena): void {
+  app.get("/api/arena", (c) =>
+    c.json({ matches: arena.list(c.req.query("projectId") || undefined), stats: arena.stats(), models: arenaModels() }),
+  );
+  app.get("/api/arena/:id", (c) => {
+    const m = arena.get(c.req.param("id"));
+    return m ? c.json(m) : c.json({ error: "Not found" }, 404);
+  });
+  app.post("/api/arena", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { projectId?: string; request?: string; models?: string[] };
+    try {
+      return c.json(
+        arena.start({
+          projectId: String(body.projectId ?? ""),
+          request: String(body.request ?? ""),
+          models: body.models ?? [],
+        }),
+      );
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+  app.post("/api/arena/:id/pick", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { model?: string };
+    try {
+      return c.json(arena.pick(c.req.param("id"), String(body.model ?? "")));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
   });
 }

@@ -2,6 +2,8 @@ import type {
   AnalyticsSource,
   AnalyticsSummary,
   AppErrorGroup,
+  ArenaMatch,
+  ArenaStat,
   BackupJob,
   BackupRun,
   Board,
@@ -221,4 +223,13 @@ export const pluginApi = {
   remove: (id: string) => del(`/api/plugins/${id}`),
   run: (id: string, command: string, projectId: string) =>
     post<{ id: string }>(`/api/plugins/${id}/commands/${command}`, { projectId }),
+};
+
+export const arenaApi = {
+  list: (projectId?: string) =>
+    request<{ matches: ArenaMatch[]; stats: ArenaStat[]; models: string[] }>(
+      `/api/arena${projectId ? `?projectId=${projectId}` : ""}`,
+    ),
+  start: (body: { projectId: string; request: string; models: string[] }) => post<ArenaMatch>("/api/arena", body),
+  pick: (id: string, model: string) => post<ArenaMatch>(`/api/arena/${id}/pick`, { model }),
 };

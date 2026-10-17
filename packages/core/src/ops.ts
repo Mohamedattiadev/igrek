@@ -463,3 +463,86 @@ export interface PluginInfo extends PluginManifest {
   installedAt: number;
   error?: string;
 }
+
+/** An MCP server the user added to God Eye (plan.md 13.1): its tools are offered in chats. */
+export interface McpServerEntry {
+  id: string;
+  name: string;
+  /** stdio: a command God Eye starts; http: a URL it connects to. */
+  kind: "stdio" | "http";
+  command?: string;
+  args?: string[];
+  url?: string;
+  /** Names of environment variables it gets (values stay encrypted, never shown). */
+  envKeys: string[];
+  enabled: boolean;
+  /** From the catalog, by id. */
+  catalog?: string;
+  /** What the last connection test found. */
+  tools?: string[];
+  testedAt?: number;
+  error?: string;
+}
+
+export interface McpCatalogEntry {
+  id: string;
+  name: string;
+  description: string;
+  command: string;
+  args: string[];
+  /** Variables the user must fill in (an API key…). */
+  env?: string[];
+  homepage: string;
+}
+
+/** Well-known MCP servers that are free to use. Versions are pinned. */
+export const MCP_CATALOG: McpCatalogEntry[] = [
+  {
+    id: "memory",
+    name: "Memory (knowledge graph)",
+    description: "A small knowledge graph the AI can write to and read from across chats.",
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-memory@2026.8.31"],
+    homepage: "https://github.com/modelcontextprotocol/servers/tree/main/src/memory",
+  },
+  {
+    id: "sequential-thinking",
+    name: "Sequential thinking",
+    description: "Lets the AI think through hard problems step by step, revising earlier steps.",
+    command: "npx",
+    args: ["-y", "@modelcontextprotocol/server-sequential-thinking@2026.8.31"],
+    homepage: "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking",
+  },
+  {
+    id: "fetch",
+    name: "Fetch",
+    description: "Reads a web page and turns it into Markdown for the AI.",
+    command: "uvx",
+    args: ["mcp-server-fetch"],
+    homepage: "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch",
+  },
+  {
+    id: "git",
+    name: "Git",
+    description: "Read and search a git repository's history, branches and diffs.",
+    command: "uvx",
+    args: ["mcp-server-git"],
+    homepage: "https://github.com/modelcontextprotocol/servers/tree/main/src/git",
+  },
+  {
+    id: "playwright",
+    name: "Playwright (browser)",
+    description: "A real browser the AI can open, click and read (the same one God Eye's test users use).",
+    command: "npx",
+    args: ["-y", "@playwright/mcp@0.0.83"],
+    homepage: "https://github.com/microsoft/playwright-mcp",
+  },
+  {
+    id: "context7",
+    name: "Context7 (library docs)",
+    description: "Up-to-date documentation and examples for libraries and frameworks, fetched when needed.",
+    command: "npx",
+    args: ["-y", "@upstash/context7-mcp@4.1.1"],
+    homepage: "https://github.com/upstash/context7",
+  },
+];

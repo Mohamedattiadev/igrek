@@ -138,3 +138,19 @@ describe("shortcuts and stats", () => {
     expect(s.missing[0]?.count).toBe(3);
   });
 });
+
+describe("prompt coach", () => {
+  test("concrete tips for what is missing; none for a clear prompt", async () => {
+    const { coachPrompt } = await import("@godeye/core");
+    expect(coachPrompt("bunu düzelt")).toEqual(["which", "error", "done"]);
+    expect(coachPrompt("fix the login page")).toEqual(["error", "where", "done"]);
+    expect(
+      coachPrompt(
+        "Fix `login()` in src/auth.ts: TypeError when the password is empty; the test in auth.test.ts should pass",
+      ),
+    ).toEqual([]);
+    expect(coachPrompt("refactor src/db.ts")).toEqual(["keep"]);
+    expect(coachPrompt("deploy the latest version")).toContain("env");
+    expect(coachPrompt("/compact")).toEqual([]);
+  });
+});

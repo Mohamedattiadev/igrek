@@ -42,7 +42,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
-import { EnhanceButton, EnhanceHint, EnhancePanel } from "../components/Enhance";
+import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
@@ -655,6 +655,7 @@ export function ChatPage() {
           {enhancing === undefined && text.trim() && (
             <div className="mb-1.5 flex flex-wrap gap-1.5">
               <EnhanceHint text={text} onEnhance={openEnhancer} />
+              <PromptCoach text={text} />
               {suggestedModel && suggestedModel !== currentModel && !working && (
                 <button
                   type="button"

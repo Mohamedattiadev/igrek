@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Package,
   Play,
+  PlayCircle,
   RefreshCw,
   RotateCcw,
   Sparkles,
@@ -24,6 +25,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { Comments } from "../components/Comments";
+import { Replay } from "../components/Replay";
 import { useTeamPeople } from "../components/TeamAvatar";
 import { TeamText } from "../components/TeamText";
 import { Term } from "../components/Term";
@@ -309,6 +311,7 @@ export function SessionPage() {
   const { t } = useTranslation();
   const { projectId = "", sessionId = "" } = useParams();
   const [showTools, setShowTools] = useState(false);
+  const [replay, setReplay] = useState(false);
   const [busy, setBusy] = useState(false);
   const [summaryError, setSummaryError] = useState<string>();
   const {
@@ -399,15 +402,32 @@ export function SessionPage() {
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">
                   {t("session.transcript")}
                 </h3>
-                <label className="flex cursor-pointer items-center gap-1.5 text-xs text-fg-muted">
-                  <input type="checkbox" checked={showTools} onChange={(e) => setShowTools(e.target.checked)} />
-                  {t("session.showTools")}
-                </label>
+                <div className="flex items-center gap-3">
+                  <Button
+                    size="sm"
+                    variant={replay ? "primary" : "ghost"}
+                    icon={PlayCircle}
+                    onClick={() => setReplay(!replay)}
+                  >
+                    {t("replay.button")}
+                  </Button>
+                  {!replay && (
+                    <label className="flex cursor-pointer items-center gap-1.5 text-xs text-fg-muted">
+                      <input type="checkbox" checked={showTools} onChange={(e) => setShowTools(e.target.checked)} />
+                      {t("session.showTools")}
+                    </label>
+                  )}
+                </div>
               </div>
+              {replay && (
+                <div className="p-pad">
+                  <Replay messages={session.messages} cwd={session.cwd} />
+                </div>
+              )}
               {session.messages.length >= 400 && (
                 <p className="border-b border-border px-pad py-2 text-xs text-fg-subtle">{t("session.older")}</p>
               )}
-              <div className="space-y-4 p-pad">
+              <div className={replay ? "hidden" : "space-y-4 p-pad"}>
                 {messages.map((message) => (
                   <Message key={message.id} message={message} />
                 ))}

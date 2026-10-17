@@ -105,7 +105,44 @@ export type AgentRun = (args: {
   register: (stop: () => void) => () => void;
 }) => Promise<string>;
 
-export const runAgent: AgentRun = async ({ cwd, prompt, system, model, readOnly, maxTurns, onActivity, register }) => {
+/** OpenAI's Codex CLI as a team step (the model arena): workspace-write sandbox, only in the run's copy. */
+async function runCodex({ cwd, prompt, system, readOnly, register }: Parameters<AgentRun>[0]): Promise<string> {
+  if (!Bun.which("codex")) throw new Error("Codex CLI is not installed (npm install -g @openai/codex)");
+  const last = join(cwd, ".godeye-codex-last.txt");
+  const proc = Bun.spawn(
+    [
+      "codex",
+      "exec",
+      "--skip-git-repo-check",
+      "--sandbox",
+      readOnly ? "read-only" : "workspace-write",
+      "--output-last-message",
+      last,
+      `${system ? `${system}\n\n` : ""}${prompt}`,
+    ],
+    { cwd, stdout: "pipe", stderr: "pipe", env: cleanEnv({ GODEYE_INTERNAL: "1" }) },
+  );
+  const unregister = register(() => proc.kill());
+  const timer = setTimeout(() => proc.kill(), NODE_TIMEOUT_MS);
+  try {
+    const [out, err, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    const answer = existsSync(last) ? readFileSync(last, "utf8").trim() : out.trim().slice(-4000);
+    rmSync(last, { force: true });
+    if (code !== 0) throw new Error((err || out).trim().slice(-600) || `codex exited with ${code}`);
+    return answer || "Done";
+  } finally {
+    clearTimeout(timer);
+    unregister();
+  }
+}
+
+export const runAgent: AgentRun = async (args) => {
+  if (args.model === "codex") return runCodex(args);
+  const { cwd, prompt, system, model, readOnly, maxTurns, onActivity, register } = args;
   const sandboxed = !readOnly && sandboxAvailable();
   const proc = Bun.spawn(
     [
@@ -305,6 +342,7 @@ export class Flows {
     taskId?: string;
     scheduleId?: string;
     limits?: { maxMinutes?: number; maxTurns?: number };
+    model?: string;
   }): FlowRun {
     const project = this.store.projectRow(args.projectId);
     if (!project || !existsSync(project.path)) throw new Error("Project folder not found");
@@ -341,6 +379,7 @@ export class Flows {
       ...(args.taskId ? { taskId: args.taskId } : {}),
       ...(args.scheduleId ? { scheduleId: args.scheduleId } : {}),
       ...(args.limits ? { limits: args.limits } : {}),
+      ...(args.model ? { model: args.model } : {}),
       createdAt: now,
       updatedAt: now,
     };
@@ -668,7 +707,7 @@ End with a short summary of what you did, for the next step.${node.review ? "\nY
           cwd,
           prompt,
           system: persona ? this.personas.systemPrompt(persona, run.projectId, { notebook: false }) : undefined,
-          model: node.model ?? persona?.model,
+          model: run.model ?? node.model ?? persona?.model,
           readOnly,
           maxTurns: Math.min(run.limits?.maxTurns ?? 999, Math.max(persona?.maxTurns ?? 40, readOnly ? 30 : 80)),
           onActivity: log,

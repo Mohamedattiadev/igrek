@@ -1,7 +1,9 @@
+import type { McpCatalogEntry, McpServerEntry } from "@godeye/core";
 import { Download, RefreshCw, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useSettings } from "../lib/settings";
 import { Button, Segmented } from "./ui";
@@ -247,6 +249,154 @@ export function LocalModelPanel() {
         {status && status.limitedUntil > Date.now() && ` · ${t("localModel.limitedNow")}`}
       </p>
       {error && <p className="text-xs text-danger">{error}</p>}
+    </div>
+  );
+}
+
+/** Your own MCP servers, offered in chats (plan.md 13.1). */
+export function McpServersPanel() {
+  const { t } = useTranslation();
+  const [data, setData] = useState<{ servers: McpServerEntry[]; catalog: McpCatalogEntry[] }>();
+  const [busy, setBusy] = useState<string>();
+  const [form, setForm] = useState({ name: "", command: "", env: "" });
+  const [error, setError] = useState<string>();
+  const load = useCallback(
+    () =>
+      void request<{ servers: McpServerEntry[]; catalog: McpCatalogEntry[] }>("/api/mcp-servers")
+        .then(setData)
+        .catch(() => undefined),
+    [],
+  );
+  useEffect(load, [load]);
+  const call = async (key: string, fn: () => Promise<unknown>) => {
+    setBusy(key);
+    setError(undefined);
+    try {
+      await fn();
+      load();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(undefined);
+    }
+  };
+  const post = (path: string, body?: unknown) => request(path, { method: "POST", body: JSON.stringify(body ?? {}) });
+  const added = new Set(data?.servers.map((s) => s.catalog).filter(Boolean));
+  return (
+    <div className="space-y-3 text-[13px]">
+      {(data?.servers ?? []).length > 0 && (
+        <ul className="divide-y divide-border rounded-ui border border-border">
+          {data?.servers.map((s) => (
+            <li key={s.id} className="space-y-1 px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="min-w-0 flex-1 truncate font-medium">{s.name}</span>
+                {s.enabled && <span className="text-[11px] text-success">{t("mcpServers.on")}</span>}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={busy === `t${s.id}`}
+                  onClick={() => void call(`t${s.id}`, () => post(`/api/mcp-servers/${s.id}/test`))}
+                >
+                  {busy === `t${s.id}` ? t("mcpServers.testing") : t("mcpServers.test")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant={s.enabled ? "ghost" : "primary"}
+                  onClick={() =>
+                    void call(`e${s.id}`, () => post(`/api/mcp-servers/${s.id}/enabled`, { enabled: !s.enabled }))
+                  }
+                >
+                  {s.enabled ? t("plugins.turnOff") : t("plugins.turnOn")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => void call(`d${s.id}`, () => request(`/api/mcp-servers/${s.id}`, { method: "DELETE" }))}
+                >
+                  {t("plugins.remove")}
+                </Button>
+              </div>
+              <p className="truncate font-mono text-[11px] text-fg-subtle">
+                {s.kind === "http" ? s.url : [s.command, ...(s.args ?? [])].join(" ")}
+                {s.envKeys.length > 0 && ` · ${s.envKeys.join(", ")}`}
+              </p>
+              {s.error ? (
+                <p className="text-xs text-danger">{s.error}</p>
+              ) : s.tools ? (
+                <p className="text-xs text-fg-muted">
+                  {t("mcpServers.tools", { count: s.tools.length, list: s.tools.slice(0, 8).join(", ") })}
+                </p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex flex-wrap gap-1.5">
+        {(data?.catalog ?? [])
+          .filter((c) => !added.has(c.id))
+          .map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              data-tip={c.description}
+              onClick={() => void call(`c${c.id}`, () => post("/api/mcp-servers", { catalog: c.id }))}
+              className="inline-flex items-center gap-1 rounded-full border border-dashed border-border px-2.5 py-1 text-xs hover:bg-bg-hover"
+            >
+              + {c.name}
+            </button>
+          ))}
+      </div>
+      <form
+        className="flex flex-wrap items-center gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          const parts = form.command.trim().split(/\s+/);
+          const isUrl = /^https?:\/\//.test(parts[0] ?? "");
+          const env = Object.fromEntries(
+            form.env
+              .split("\n")
+              .map((l) => l.trim())
+              .filter((l) => l.includes("="))
+              .map((l) => [l.slice(0, l.indexOf("=")).trim(), l.slice(l.indexOf("=") + 1).trim()]),
+          );
+          void call("add", () =>
+            post(
+              "/api/mcp-servers",
+              isUrl
+                ? { name: form.name, url: parts[0], env }
+                : { name: form.name, command: parts[0], args: parts.slice(1), env },
+            ),
+          ).then(() => setForm({ name: "", command: "", env: "" }));
+        }}
+      >
+        <input
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          placeholder={t("mcpServers.name")}
+          aria-label={t("mcpServers.name")}
+          className={cn(field, "w-36")}
+        />
+        <input
+          value={form.command}
+          onChange={(e) => setForm({ ...form, command: e.target.value })}
+          placeholder={t("mcpServers.command")}
+          aria-label={t("mcpServers.command")}
+          className={cn(field, "min-w-0 flex-1 basis-56 font-mono")}
+        />
+        <textarea
+          value={form.env}
+          onChange={(e) => setForm({ ...form, env: e.target.value })}
+          placeholder={t("mcpServers.env")}
+          aria-label={t("mcpServers.env")}
+          rows={1}
+          className="min-w-0 basis-full rounded-ui border border-border bg-bg px-2.5 py-1.5 font-mono text-[12px] outline-none focus:border-accent"
+        />
+        <Button type="submit" disabled={!form.command.trim() || busy === "add"}>
+          {t("mcpServers.add")}
+        </Button>
+      </form>
+      {error && <p className="text-xs text-danger">{error}</p>}
+      <p className="text-xs text-fg-subtle">{t("mcpServers.note")}</p>
     </div>
   );
 }

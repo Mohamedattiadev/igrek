@@ -731,6 +731,19 @@ const migrations: string[] = [
      enabled INTEGER NOT NULL DEFAULT 0,
      installed_at INTEGER NOT NULL
    );`,
+  // Faz 13: model arena matches.
+  `CREATE TABLE arena_matches (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );`,
+  // Faz 13: MCP servers the user adds (env values encrypted).
+  `CREATE TABLE mcp_servers (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     env TEXT,
+     created_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

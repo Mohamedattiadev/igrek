@@ -137,3 +137,37 @@ export function suggestModel(text: string): "opus" | "haiku" | undefined {
     return "haiku";
   return undefined;
 }
+
+/** A concrete thing the prompt is missing (plan.md 13.1 "Prompt koçu"). Keys are translated in the UI. */
+export type CoachTip = "where" | "error" | "done" | "which" | "keep" | "target" | "env" | "split";
+
+const HAS_ERROR = /(error|exception|traceback|fail(ed|s)?|crash|\b[45]\d\d\b|hata|çöküyor|patlıyor|undefined|null)/i;
+const HAS_DONE =
+  /(should|must|so that|until|when .* then|expect|test|geçmeli|olmalı|görünmeli|bitmiş|tamam olunca|kabul)/i;
+const HAS_ENV = /\b(staging|prod|production|test env|canlı|canli|üretim)\b/i;
+const HAS_KEEP = /(without|keep|don't change|do not change|same behaviou?r|değiştirmeden|bozmadan|aynı kalsın)/i;
+
+/**
+ * What would make this prompt work better, checked locally while typing (no AI, no cost).
+ * At most three tips, the most useful first.
+ */
+export function coachPrompt(text: string): CoachTip[] {
+  const t = text.trim();
+  if (t.length < 8 || t.startsWith("/")) return [];
+  const intent = detectIntent(t);
+  const specific = SPECIFIC.test(t) || /@[\w./-]+/.test(t);
+  const tips: CoachTip[] = [];
+  if (VAGUE.test(t) && !specific) tips.push("which");
+  if (intent === "fix" && !HAS_ERROR.test(t)) tips.push("error");
+  if (!specific && t.split(/\s+/).length >= 3 && intent !== "explain") tips.push("where");
+  if ((intent === "add" || intent === "fix") && !HAS_DONE.test(t)) tips.push("done");
+  if (intent === "refactor" && !HAS_KEEP.test(t)) tips.push("keep");
+  if (intent === "test" && !specific) tips.push("target");
+  if (intent === "deploy" && !HAS_ENV.test(t)) tips.push("env");
+  if (
+    (t.match(/\b(and then|then|also|ayrıca|sonra|ve de)\b/gi) ?? []).length >= 2 ||
+    t.split(/\n/).filter((l) => /^\s*([-*]|\d+\.)\s/.test(l)).length >= 4
+  )
+    tips.push("split");
+  return [...new Set(tips)].slice(0, 3);
+}

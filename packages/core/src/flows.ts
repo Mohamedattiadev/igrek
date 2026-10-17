@@ -63,6 +63,8 @@ export interface FlowRun {
   engine: "godeye" | "archon";
   status: "running" | "needs_you" | "ready" | "done" | "failed" | "stopped" | "merged" | "discarded" | "waiting_limit";
   nodes: FlowNodeState[];
+  /** One model for every step instead of each persona's own (the model arena, plan.md 13.1): "sonnet", "opus", "codex"… */
+  model?: string;
   /** Waiting for the AI plan's limit to reset (plan.md 13.1 "Limit kuyruğu"): it goes on by itself at this time. */
   resumeAt?: number;
   /** The run's own copy of the repo and branch. Nothing reaches your branch until you approve. */
@@ -103,4 +105,35 @@ export function limitResetAt(message: string, now = Date.now()): number {
     if (at > now && at < now + 8 * 86_400_000) return at;
   }
   return now + 60 * 60_000;
+}
+
+/** The same task given to two models side by side (plan.md 13.1 "Model arenası"). */
+export interface ArenaMatch {
+  id: string;
+  projectId: string;
+  request: string;
+  /** Rough kind of work, for the statistics: ui, backend, tests, bug, docs, refactor, other. */
+  category: string;
+  sides: { model: string; runId: string }[];
+  winner?: string;
+  createdAt: number;
+}
+
+export interface ArenaStat {
+  category: string;
+  model: string;
+  wins: number;
+  played: number;
+}
+
+/** A rough category from the words of a request. */
+export function arenaCategory(request: string): string {
+  const r = request.toLowerCase();
+  if (/\b(test|tests|coverage|spec)\b|test yaz/.test(r)) return "tests";
+  if (/\b(bug|fix|crash|error|broken)\b|hata|düzelt|çöküyor/.test(r)) return "bug";
+  if (/\b(ui|button|page|screen|css|style|layout|component)\b|sayfa|buton|ekran|tasarım/.test(r)) return "ui";
+  if (/\b(api|endpoint|database|db|query|migration|server|auth)\b|veritabanı|sunucu/.test(r)) return "backend";
+  if (/\b(readme|docs?|documentation|comment)\b|doküman|açıklama/.test(r)) return "docs";
+  if (/\b(refactor|clean|rename|split|simplify)\b|sadeleştir|yeniden düzenle/.test(r)) return "refactor";
+  return "other";
 }

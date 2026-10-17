@@ -1,4 +1,11 @@
-import { type AiTool, type EnhanceContextKind, type EnhanceResult, isWeakPrompt, renderEnhanced } from "@godeye/core";
+import {
+  type AiTool,
+  coachPrompt,
+  type EnhanceContextKind,
+  type EnhanceResult,
+  isWeakPrompt,
+  renderEnhanced,
+} from "@godeye/core";
 import {
   BookmarkPlus,
   Brain,
@@ -6,6 +13,7 @@ import {
   CircleAlert,
   FileCode,
   GitBranch,
+  Lightbulb,
   ListChecks,
   LoaderCircle,
   MessagesSquare,
@@ -474,5 +482,29 @@ export function EnhanceDialog({
         )}
       </div>
     </Dialog>
+  );
+}
+
+/** Prompt coach (plan.md 13.1): what to add for a better result, checked while typing, no AI. */
+export function PromptCoach({ text }: { text: string }) {
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+  const [debounced, setDebounced] = useState(text);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(text), 400);
+    return () => clearTimeout(timer);
+  }, [text]);
+  if (settings.enhanceMode === "off") return null;
+  const tips = coachPrompt(debounced);
+  if (!tips.length) return null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1 text-[11px] text-fg-muted">
+      <Lightbulb size={11} className="text-warning" aria-hidden="true" />
+      {tips.map((tip) => (
+        <span key={tip} data-tip={t(`coach.${tip}Tip`)} className="rounded-full border border-border px-2 py-0.5">
+          {t(`coach.${tip}`)}
+        </span>
+      ))}
+    </span>
   );
 }
