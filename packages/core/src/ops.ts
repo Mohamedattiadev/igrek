@@ -623,3 +623,65 @@ export interface Bridge {
   lastSentAt?: number;
   lastError?: string;
 }
+
+/** Response time buckets (ms, upper bounds); the last one is "slower than 5 s". */
+export const PERF_BUCKETS = [50, 100, 200, 500, 1000, 2000, 5000, Number.POSITIVE_INFINITY];
+
+/** One endpoint's response times (plan.md 13.4 "Basit performans izleme"). */
+export interface RoutePerf {
+  route: string;
+  count: number;
+  /** Upper bound of the bucket the median / 95th percentile falls in. */
+  p50: number;
+  p95: number;
+  avg: number;
+  /** Answers with a 5xx status. */
+  errors: number;
+  /** Same numbers for the 7 days before, to see it getting slower. */
+  previousP95?: number;
+}
+
+/** "/users/42/orders/7f3c…" → "/users/:id/orders/:id": the same endpoint, whatever the ids. */
+export function normalizeRoute(path: string): string {
+  return (
+    path
+      .split("?")[0]
+      ?.replace(/\/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, "/:id")
+      .replace(/\/[0-9a-f]{16,}/gi, "/:id")
+      .replace(/\/\d+(?=\/|$)/g, "/:id")
+      .slice(0, 120) || "/"
+  );
+}
+
+/** The bucket bound below which `share` of the counts fall. */
+export function histogramQuantile(buckets: number[], share: number): number {
+  const total = buckets.reduce((a, b) => a + b, 0);
+  if (!total) return 0;
+  let seen = 0;
+  for (let i = 0; i < buckets.length; i++) {
+    seen += buckets[i] ?? 0;
+    if (seen / total >= share)
+      return PERF_BUCKETS[i] === Number.POSITIVE_INFINITY ? 10_000 : (PERF_BUCKETS[i] as number);
+  }
+  return 10_000;
+}
+
+/** A war room for when something is down (plan.md 13.4 "Olay modu"). */
+export interface Incident {
+  id: string;
+  projectId: string;
+  title: string;
+  status: "open" | "resolved";
+  startedAt: number;
+  endedAt?: number;
+  timeline: {
+    at: number;
+    kind: "start" | "note" | "deploy" | "commit" | "error" | "down" | "log" | "analysis" | "resolved";
+    text: string;
+  }[];
+  /** What the SRE persona read: uptime, errors, log groups, deploys, commits (as text). */
+  evidence: string;
+  analysis?: string;
+  analyzing?: boolean;
+  postmortem?: string;
+}

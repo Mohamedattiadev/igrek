@@ -761,6 +761,24 @@ const migrations: string[] = [
      secret TEXT NOT NULL,
      created_at INTEGER NOT NULL
    );`,
+  // Faz 13: response times the app sends (per endpoint and day, as a histogram).
+  `CREATE TABLE app_perf (
+     project_id TEXT NOT NULL,
+     day TEXT NOT NULL,
+     route TEXT NOT NULL,
+     count INTEGER NOT NULL,
+     total_ms REAL NOT NULL,
+     errors INTEGER NOT NULL,
+     buckets TEXT NOT NULL,
+     PRIMARY KEY (project_id, day, route)
+   );`,
+  // Faz 13: incidents (war rooms) and their postmortems.
+  `CREATE TABLE incidents (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     data TEXT NOT NULL,
+     started_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

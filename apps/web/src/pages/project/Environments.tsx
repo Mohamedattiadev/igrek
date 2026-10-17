@@ -9,6 +9,7 @@ import type {
 import {
   CheckCircle2,
   CircleAlert,
+  Copy,
   FileCode2,
   GitCommitHorizontal,
   Info,
@@ -61,8 +62,15 @@ function DeployDialog({ env, onClose }: { env?: EnvironmentInfo; onClose: () => 
   const [typed, setTyped] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<DeployRecord>();
+  const [branches, setBranches] = useState<string[]>([]);
+  const [branch, setBranch] = useState("");
   useEffect(() => {
     if (!env) return;
+    setBranch(env.branch);
+    api
+      .envBranches(env.id)
+      .then(setBranches)
+      .catch(() => setBranches([]));
     setData(undefined);
     setResult(undefined);
     setTyped("");
@@ -80,7 +88,7 @@ function DeployDialog({ env, onClose }: { env?: EnvironmentInfo; onClose: () => 
     setError(undefined);
     try {
       // Production needs the environment's name typed (two confirmations); others one.
-      setResult(await api.deploy(env.id, prod ? 2 : 1));
+      setResult(await api.deploy(env.id, prod ? 2 : 1, branch !== env.branch ? branch : undefined));
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -106,10 +114,28 @@ function DeployDialog({ env, onClose }: { env?: EnvironmentInfo; onClose: () => 
                 </li>
               )}
             </ul>
+            {branches.length > 1 && !result && (
+              <label className="flex flex-wrap items-center gap-2 text-xs text-fg-muted">
+                {t("deploy.branch")}
+                <select
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  className={field}
+                  aria-label={t("deploy.branch")}
+                >
+                  {[...new Set([env.branch, ...branches])].map((b) => (
+                    <option key={b}>{b}</option>
+                  ))}
+                </select>
+                {branch !== env.branch && (
+                  <span className="text-warning">{t("deploy.preview", { branch: env.branch })}</span>
+                )}
+              </label>
+            )}
             <div className="rounded-ui bg-bg-subtle p-2">
               <p className="text-[11px] text-fg-subtle">{t("deploy.willRun")}</p>
               <code className="block font-mono text-[11.5px] break-all">
-                cd {env.path} && git fetch && git checkout {env.branch} && git pull --ff-only
+                cd {env.path} && git fetch && git checkout {branch || env.branch} && git pull --ff-only
                 {env.deployCommand ? ` && ${env.deployCommand}` : ""}
               </code>
             </div>
@@ -165,8 +191,73 @@ function DeployDialog({ env, onClose }: { env?: EnvironmentInfo; onClose: () => 
   );
 }
 
+function StagingDialog({
+  env,
+  open,
+  onClose,
+  onDone,
+}: {
+  env: EnvironmentInfo;
+  open: boolean;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const { t } = useTranslation();
+  const [form, setForm] = useState({
+    name: "staging",
+    path: `${env.path.replace(/\/$/, "")}-staging`,
+    branch: env.branch,
+  });
+  const [error, setError] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  return (
+    <Dialog open={open} onClose={onClose} label={t("deploy.staging")}>
+      <form
+        className="space-y-3 p-5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setError(undefined);
+          try {
+            await api.createStaging(env.id, { ...form, confirmations: 1 });
+            onDone();
+            onClose();
+          } catch (err) {
+            setError((err as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <h2 className="text-[15px] font-semibold">{t("deploy.staging")}</h2>
+        <p className="text-xs text-fg-muted">{t("deploy.stagingHint", { server: env.serverName })}</p>
+        {(["name", "path", "branch"] as const).map((k) => (
+          <label key={k} className="block space-y-1 text-xs text-fg-muted">
+            {t(`deploy.staging_${k}`)}
+            <input
+              value={form[k]}
+              onChange={(e) => setForm({ ...form, [k]: e.target.value })}
+              className={cn(field, "w-full font-mono")}
+            />
+          </label>
+        ))}
+        {error && <p className="text-xs text-danger">{error}</p>}
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose}>
+            {t("memory.cancel")}
+          </Button>
+          <Button type="submit" variant="primary" disabled={busy}>
+            {busy ? t("deploy.running") : t("deploy.stagingCreate")}
+          </Button>
+        </div>
+      </form>
+    </Dialog>
+  );
+}
+
 function EnvCard({ env, onDeploy, onRemoved }: { env: EnvironmentInfo; onDeploy: () => void; onRemoved: () => void }) {
   const { t } = useTranslation();
+  const [staging, setStaging] = useState(false);
   const [state, setState] = useState<EnvironmentState>();
   const [editing, setEditing] = useState<string>();
   const [workflow, setWorkflow] = useState<{ path: string; content: string; exists: boolean }>();
@@ -192,9 +283,15 @@ function EnvCard({ env, onDeploy, onRemoved }: { env: EnvironmentInfo; onDeploy:
         <span className="text-[11px] text-fg-subtle">· {env.branch}</span>
         <div className="flex-1" />
         <Button size="sm" variant="ghost" icon={RefreshCw} onClick={load} aria-label={t("deploy.refresh")} />
+        {!/stag/i.test(env.name) && (
+          <Button size="sm" variant="ghost" icon={Copy} onClick={() => setStaging(true)}>
+            {t("deploy.staging")}
+          </Button>
+        )}
         <Button size="sm" variant="primary" icon={Rocket} onClick={onDeploy}>
           {t("deploy.go")}
         </Button>
+        <StagingDialog env={env} open={staging} onClose={() => setStaging(false)} onDone={onRemoved} />
       </div>
       {!state && <p className="text-xs text-fg-muted">{t("deploy.checking")}</p>}
       {state && !state.reachable && <p className="text-xs text-danger">{state.error}</p>}

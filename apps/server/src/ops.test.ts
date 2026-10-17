@@ -428,3 +428,25 @@ describe("pull request review", () => {
     ]);
   });
 });
+
+describe("deploy safety", () => {
+  test("destructive migrations are recognized", async () => {
+    const { DESTRUCTIVE_SQL } = await import("./environments");
+    for (const sql of [
+      "DROP TABLE users;",
+      "ALTER TABLE orders DROP COLUMN note;",
+      "TRUNCATE sessions;",
+      "DELETE FROM logs;",
+      "ALTER TABLE a RENAME COLUMN b TO c;",
+      "ALTER TABLE t ALTER COLUMN price TYPE integer;",
+    ])
+      expect(DESTRUCTIVE_SQL.test(sql)).toBe(true);
+    for (const sql of [
+      "CREATE TABLE users (id int);",
+      "ALTER TABLE orders ADD COLUMN note text;",
+      "DELETE FROM logs WHERE at < now() - interval '30 days';",
+      "CREATE INDEX x ON t(a);",
+    ])
+      expect(DESTRUCTIVE_SQL.test(sql)).toBe(false);
+  });
+});

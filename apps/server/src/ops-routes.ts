@@ -615,3 +615,69 @@ export function registerBridgeRoutes(app: Hono, bridges: import("./bridges").Bri
     return c.json({ ok: true });
   });
 }
+
+export function registerPerfRoutes(app: Hono, perf: import("./perf").Perf): void {
+  app.options("/ingest/perf/:key", (c) =>
+    c.body(null, 204, {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "POST",
+      "access-control-allow-headers": "content-type",
+    }),
+  );
+  app.post("/ingest/perf/:key", async (c) => {
+    const headers = { "access-control-allow-origin": "*" };
+    const text = await c.req.text();
+    if (text.length > 256_000) return c.json({ error: "Too big" }, 413, headers);
+    let body: unknown;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return c.json({ error: "Not JSON" }, 400, headers);
+    }
+    const ok = perf.ingest(c.req.param("key"), body);
+    return c.json({ ok }, ok ? 202 : 404, headers);
+  });
+  app.get("/api/projects/:id/perf", (c) =>
+    c.json(perf.summary(c.req.param("id"), Math.min(30, Number(c.req.query("days")) || 7))),
+  );
+}
+
+export function registerIncidentRoutes(
+  app: Hono,
+  incidents: import("./incidents").Incidents,
+  language: () => string,
+): void {
+  const fail = (err: unknown) => ({ error: (err as Error).message });
+  app.get("/api/projects/:id/incidents", (c) => c.json(incidents.list(c.req.param("id"))));
+  app.post("/api/projects/:id/incidents", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { title?: string };
+    try {
+      return c.json(await incidents.start(c.req.param("id"), String(body.title ?? ""), language()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.get("/api/incidents/:id", (c) => {
+    const i = incidents.get(c.req.param("id"));
+    return i ? c.json(i) : c.json({ error: "Not found" }, 404);
+  });
+  app.post("/api/incidents/:id/note", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { text?: string };
+    try {
+      return c.json(incidents.note(c.req.param("id"), String(body.text ?? "")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  app.post("/api/incidents/:id/analyze", async (c) => {
+    void incidents.analyze(c.req.param("id"), language());
+    return c.json({ ok: true });
+  });
+  app.post("/api/incidents/:id/resolve", async (c) => {
+    try {
+      return c.json(await incidents.resolve(c.req.param("id"), language()));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+}

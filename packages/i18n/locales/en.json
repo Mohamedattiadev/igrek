@@ -1583,7 +1583,16 @@
     "check_nothingNew": "Nothing new to deploy",
     "check_testsUnknown": "Tests haven't been run here recently (Sections → Run the project's own checks)",
     "check_testsFailing": "The tests failed the last time they ran",
-    "check_envMissing": "Settings the code needs are missing in the server's .env:"
+    "check_envMissing": "Settings the code needs are missing in the server's .env:",
+    "check_destructiveMigration": "Migrations that can lose data (drop, truncate, rename):",
+    "check_noDbBackup": "No database backup is set up for this project: add one on Tools > Backups and God Eye backs up before every deploy.",
+    "preview": "Preview deploy: this time only; the environment stays on {{branch}}.",
+    "staging": "Create staging",
+    "stagingHint": "The repo is cloned into a new folder on {{server}} and becomes its own environment with the same deploy command. Runs once you confirm; it is in the server's audit log.",
+    "staging_name": "Name",
+    "staging_path": "Folder on the server",
+    "staging_branch": "Branch",
+    "stagingCreate": "Create"
   },
   "remote": {
     "path": "Folder on the server",
@@ -3368,5 +3377,37 @@
     "comments": "Comments",
     "memory": "Memory",
     "projects": "Projects"
+  },
+  "perf": {
+    "title": "Response times",
+    "empty": "No timings from the app yet: the Node/Bun code under Connect the app has a small timing() middleware.",
+    "route": "Endpoint",
+    "requests": "Requests (7 d)",
+    "errors": "5xx",
+    "slower": "slower",
+    "faster": "faster"
+  },
+  "incident": {
+    "title": "Incident mode",
+    "hint": "When the site is down: God Eye gathers uptime, the app's errors, log errors, recent deploys and commits into a timeline, and the SRE persona says what is most likely wrong and what to check first. Resolving writes the postmortem into the wiki.",
+    "open": "Open incident mode",
+    "back": "Back to the open incident",
+    "whatHappened": "What is happening? (e.g. \"Checkout returns 500\")",
+    "gathering": "Gathering…",
+    "status_open": "Open",
+    "status_resolved": "Resolved",
+    "minutes_one": "1 minute",
+    "minutes_other": "{{count}} minutes",
+    "resolve": "Resolved",
+    "writingPostmortem": "Writing the postmortem…",
+    "postmortem": "Postmortem",
+    "inWiki": "Saved in the project's wiki.",
+    "analysis": "SRE analysis",
+    "reanalyze": "Analyze again",
+    "analyzing": "The SRE persona is reading the evidence…",
+    "evidence": "Evidence",
+    "timeline": "Timeline",
+    "note": "What you found or did…",
+    "add": "Add"
   }
 }

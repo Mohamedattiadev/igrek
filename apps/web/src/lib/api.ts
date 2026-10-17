@@ -685,11 +685,14 @@ export const api = {
     request<{ state: EnvironmentState; checks: DeployCheck[] }>(`/api/environments/${id}/checks`),
   envState: (id: string) =>
     request<{ state: EnvironmentState; checks: DeployCheck[] }>(`/api/environments/${id}/checks`),
-  deploy: (id: string, confirmations: number) =>
+  deploy: (id: string, confirmations: number, branch?: string) =>
     request<DeployRecord>(`/api/environments/${id}/deploy`, {
       method: "POST",
-      body: JSON.stringify({ confirmations }),
+      body: JSON.stringify({ confirmations, ...(branch ? { branch } : {}) }),
     }),
+  envBranches: (id: string) => request<string[]>(`/api/environments/${id}/branches`),
+  createStaging: (id: string, body: { name: string; path: string; branch: string; confirmations: number }) =>
+    request<EnvironmentInfo>(`/api/environments/${id}/staging`, { method: "POST", body: JSON.stringify(body) }),
   envWorkflow: (id: string) =>
     request<{ path: string; content: string; exists: boolean }>(`/api/environments/${id}/workflow`),
   writeEnvWorkflow: (id: string) => request<{ path: string }>(`/api/environments/${id}/workflow`, { method: "POST" }),

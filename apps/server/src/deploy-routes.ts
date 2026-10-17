@@ -48,9 +48,42 @@ export function registerDeployRoutes(app: Hono, { envs, servers }: { envs: Envir
     }
   });
   app.post("/api/environments/:id/deploy", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { confirmations?: number };
+    const body = (await c.req.json().catch(() => ({}))) as { confirmations?: number; branch?: string };
     try {
-      return c.json(await envs.deploy(c.req.param("id"), { confirmations: Number(body.confirmations ?? 0) }));
+      return c.json(
+        await envs.deploy(c.req.param("id"), {
+          confirmations: Number(body.confirmations ?? 0),
+          ...(body.branch ? { branch: body.branch } : {}),
+        }),
+      );
+    } catch (err) {
+      const risk = (err as { risk?: string }).risk;
+      return c.json({ ...fail(err), risk }, risk ? 428 : 400);
+    }
+  });
+  app.get("/api/environments/:id/branches", (c) => {
+    try {
+      return c.json(envs.branches(c.req.param("id")));
+    } catch (err) {
+      return c.json(fail(err), 404);
+    }
+  });
+  app.post("/api/environments/:id/staging", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      name?: string;
+      path?: string;
+      branch?: string;
+      confirmations?: number;
+    };
+    try {
+      return c.json(
+        await envs.createStaging(c.req.param("id"), {
+          name: String(body.name ?? "staging").slice(0, 40),
+          path: String(body.path ?? ""),
+          branch: String(body.branch ?? ""),
+          confirmations: Number(body.confirmations ?? 0),
+        }),
+      );
     } catch (err) {
       const risk = (err as { risk?: string }).risk;
       return c.json({ ...fail(err), risk }, risk ? 428 : 400);

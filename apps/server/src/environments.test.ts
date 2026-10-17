@@ -84,11 +84,85 @@ describe("environments", () => {
     expect(envs.workflow(env.id).content).toContain("cd /srv/shop");
   });
 
+  test("the databases are backed up before a deploy; a failed backup stops it", async () => {
+    const env = envs.list("p1")[0];
+    envs.hasDbBackup = () => false;
+    const { checks } = await envs.checks(env?.id ?? "");
+    expect(checks.map((c) => c.id)).toContain("noDbBackup");
+    envs.beforeDeploy = async () => ["Shop DB"];
+    const record = await envs.deploy(env?.id ?? "", { confirmations: 1 });
+    expect(record.output).toStartWith("Backed up first: Shop DB");
+    const before = ran.length;
+    envs.beforeDeploy = async () => {
+      throw new Error("The backup before the deploy failed");
+    };
+    await expect(envs.deploy(env?.id ?? "", { confirmations: 1 })).rejects.toThrow("backup");
+    expect(ran.length).toBe(before);
+    envs.beforeDeploy = undefined;
+  });
+
   test("edits made directly on the server block the deploy", async () => {
     dirty = 2;
     const env = envs.list("p1")[0];
     const { checks } = await envs.checks(env?.id ?? "");
     expect(checks[0]).toMatchObject({ id: "serverDirty", level: "block" });
     await expect(envs.deploy(env?.id ?? "", { confirmations: 1 })).rejects.toThrow(/serverDirty/);
+  });
+});
+
+describe("staging and preview", () => {
+  test("a staging copy is cloned next to the original as one confirmed command; a preview deploys another branch once", async () => {
+    const root = mkdtempSync(join(tmpdir(), "godeye-stg-"));
+    sh(root, "init", "-q", "-b", "main");
+    writeFileSync(join(root, "a.txt"), "1");
+    sh(root, "add", ".");
+    sh(root, "commit", "-qm", "first");
+    sh(root, "remote", "add", "origin", "git@github.com:me/shop.git");
+    const db = new Database(":memory:");
+    migrate(db);
+    db.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p1', 'Shop', ?, 0)").run(root);
+    const ran: { command: string; confirmations: number }[] = [];
+    const fake = {
+      get: () => ({ id: "s1", name: "vps" }),
+      inspect: async () => ({ code: 0, output: "abc\nmain\n0\n1700000000\tfirst\n" }),
+      readEnvFile: async () => "",
+      run: async (_id: string, command: string, opts: { confirmations: number }) => {
+        ran.push({ command, confirmations: opts.confirmations });
+        return { exitCode: 0, output: "" };
+      },
+    } as unknown as Servers;
+    const envs = new Environments(
+      db,
+      new Store(db),
+      fake,
+      new Bus(),
+      () => [],
+      () => undefined,
+    );
+    const prod = envs.add("p1", { name: "production", serverId: "s1", path: "/srv/shop", deployCommand: "make up" });
+    const staging = await envs.createStaging(prod.id, {
+      name: "staging",
+      path: "/srv/shop-staging",
+      branch: "develop",
+      confirmations: 1,
+    });
+    expect(ran[0]).toEqual({
+      command:
+        "test ! -e '/srv/shop-staging' && git clone 'git@github.com:me/shop.git' '/srv/shop-staging' && cd '/srv/shop-staging' && git checkout 'develop'",
+      confirmations: 1,
+    });
+    expect(staging).toMatchObject({
+      name: "staging",
+      path: "/srv/shop-staging",
+      branch: "develop",
+      deployCommand: "make up",
+    });
+    await expect(
+      envs.createStaging(prod.id, { name: "x", path: "/srv/shop", branch: "main", confirmations: 1 }),
+    ).rejects.toThrow();
+    await envs.deploy(staging.id, { confirmations: 1, branch: "feature/login" });
+    expect(ran.at(-1)?.command).toContain("git checkout 'feature/login'");
+    expect(envs.list("p1").find((e) => e.id === staging.id)?.branch).toBe("develop");
+    await expect(envs.deploy(staging.id, { confirmations: 1, branch: "x; rm -rf /" })).rejects.toThrow();
   });
 });

@@ -7,8 +7,10 @@ import { Badge, Button, Card, CopyButton, Dialog, EmptyState, Segmented } from "
 import { relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
 import { opsApi } from "../../lib/ops-api";
+import { IncidentButton } from "../Incident";
 import { LogsPanel } from "../tools/Logs";
 import { AnalyticsPanel } from "./Analytics";
+import { PerfPanel } from "./Perf";
 
 function Snippet({ projectId, open, onClose }: { projectId: string; open: boolean; onClose: () => void }) {
   const { t } = useTranslation();
@@ -155,7 +157,9 @@ export function MonitorTab({ project }: { project: ProjectDetail }) {
   useServerEvent("ops-changed", (m) => m.what === "errors" && load());
   return (
     <div className="space-y-8">
+      <IncidentButton projectId={project.id} />
       <AnalyticsPanel projectId={project.id} />
+      <PerfPanel projectId={project.id} />
       <section className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="min-w-0 flex-1 text-[14px] font-semibold">{t("apperrors.title")}</h2>

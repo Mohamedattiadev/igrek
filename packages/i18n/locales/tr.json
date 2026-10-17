@@ -1568,7 +1568,7 @@
     "addHint": "Sunucudaki proje, bir git kopyası olarak. God Eye kod kopyalamaz; sunucu kodu git'ten çeker.",
     "name": "Ad",
     "path": "Sunucudaki klasör",
-    "branch": "Branch",
+    "branch": "Dal",
     "addSave": "Ekle",
     "history": "Deploy'lar",
     "lastDeploys": "Son deploy'lar",
@@ -1583,7 +1583,16 @@
     "check_nothingNew": "Deploy edilecek yeni bir şey yok",
     "check_testsUnknown": "Testler burada yakın zamanda çalıştırılmadı (Bölümler → Projenin kendi kontrolleri)",
     "check_testsFailing": "Testler son çalıştığında başarısız oldu",
-    "check_envMissing": "Kodun ihtiyaç duyduğu ayarlar sunucudaki .env'de yok:"
+    "check_envMissing": "Kodun ihtiyaç duyduğu ayarlar sunucudaki .env'de yok:",
+    "check_destructiveMigration": "Veri kaybettirebilecek migration'lar (drop, truncate, rename):",
+    "check_noDbBackup": "Bu proje için veritabanı yedeği kurulu değil: Araçlar > Yedekler'den ekle, God Eye her deploy'dan önce yedek alır.",
+    "preview": "Önizleme deploy'u: sadece bu sefer; ortam {{branch}} dalında kalır.",
+    "staging": "Staging oluştur",
+    "stagingHint": "Repo {{server}} üzerinde yeni bir klasöre klonlanır ve aynı deploy komutuyla kendi ortamı olur. Onayladığında çalışır; sunucunun denetim kaydına girer.",
+    "staging_name": "Ad",
+    "staging_path": "Sunucudaki klasör",
+    "staging_branch": "Dal",
+    "stagingCreate": "Oluştur"
   },
   "remote": {
     "path": "Sunucudaki klasör",
@@ -3368,5 +3377,37 @@
     "comments": "Yorum",
     "memory": "Hafıza",
     "projects": "Proje"
+  },
+  "perf": {
+    "title": "Yanıt süreleri",
+    "empty": "Uygulamadan henüz süre gelmedi: Uygulamayı bağla altındaki Node/Bun kodunda küçük bir timing() ara katmanı var.",
+    "route": "Uç nokta",
+    "requests": "İstek (7 gün)",
+    "errors": "5xx",
+    "slower": "yavaşladı",
+    "faster": "hızlandı"
+  },
+  "incident": {
+    "title": "Olay modu",
+    "hint": "Site çökünce: God Eye uptime, uygulama hataları, log hataları, son deploy'lar ve commit'leri bir zaman çizelgesinde toplar; SRE personası en olası sorunu ve önce neye bakılacağını söyler. Çözüldü dediğinde postmortem wiki'ye yazılır.",
+    "open": "Olay modunu aç",
+    "back": "Açık olaya dön",
+    "whatHappened": "Ne oluyor? (ör. \"Ödeme 500 dönüyor\")",
+    "gathering": "Toplanıyor…",
+    "status_open": "Açık",
+    "status_resolved": "Çözüldü",
+    "minutes_one": "1 dakika",
+    "minutes_other": "{{count}} dakika",
+    "resolve": "Çözüldü",
+    "writingPostmortem": "Postmortem yazılıyor…",
+    "postmortem": "Postmortem",
+    "inWiki": "Projenin wiki'sine kaydedildi.",
+    "analysis": "SRE analizi",
+    "reanalyze": "Yeniden analiz et",
+    "analyzing": "SRE personası kanıtları okuyor…",
+    "evidence": "Kanıtlar",
+    "timeline": "Zaman çizelgesi",
+    "note": "Ne buldun ya da ne yaptın…",
+    "add": "Ekle"
   }
 }

@@ -11,6 +11,7 @@ import { FilesPage } from "./pages/Files";
 import { FlowRunPage } from "./pages/FlowRun";
 import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
+import { IncidentPage } from "./pages/Incident";
 import { KnowledgePage } from "./pages/KnowledgePage";
 import { LessonsPage } from "./pages/LessonsPage";
 import { LibraryPage } from "./pages/LibraryPage";
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
       { path: "runs/:runId", element: <FlowRunPage /> },
       { path: "schedules", element: <SchedulesPage /> },
       { path: "tools", element: <ToolsPage /> },
+      { path: "incidents/:incidentId", element: <IncidentPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

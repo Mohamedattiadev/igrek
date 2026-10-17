@@ -172,3 +172,52 @@ describe("wiki and boards", () => {
     expect(docs.boards(projectId).map((b) => b.title)).toEqual(["Theirs"]);
   });
 });
+
+describe("incident mode", () => {
+  test("evidence gathered into a timeline, the SRE reads it, notes go on, the postmortem lands in the wiki", async () => {
+    const { Incidents } = await import("./incidents");
+    const { AppErrors } = await import("./apperrors");
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-inc-")));
+    const errors = new AppErrors(sqlite, store, new Bus());
+    errors.ingest(errors.key(projectId), {
+      message: "x is undefined",
+      stack: "TypeError\n    at total (a.js:1:1)",
+      release: "abc123",
+    });
+    store.saveCommits(projectId, [
+      { hash: "abc1234567", author: "a", subject: "Change the cart", at: Date.now() - 3_600_000, files: 1 },
+    ]);
+    const asked: string[] = [];
+    const docs = new Docs(sqlite, store, new Bus(), { list: () => [] } as unknown as Databases, async () => "");
+    const incidents = new Incidents(
+      sqlite,
+      store,
+      new Bus(),
+      {
+        monitors: { list: () => [] } as never,
+        errors,
+        logs: { saved: () => [] } as never,
+        docs,
+        personas: { get: () => undefined } as never,
+      },
+      async (prompt) => {
+        asked.push(prompt);
+        return asked.length === 1 ? "## Likely the cart change\nRoll back abc1234." : "## Summary\nThe cart broke.";
+      },
+    );
+    const inc = await incidents.start(projectId, "Cart is broken", "en");
+    expect(inc.evidence).toContain('1x "x is undefined"');
+    expect(inc.evidence).toContain("abc1234 Change the cart");
+    expect(inc.timeline.map((e) => e.kind)).toEqual(["commit", "error", "start"]);
+    for (let i = 0; i < 50 && incidents.get(inc.id)?.analyzing; i++) await Bun.sleep(10);
+    expect(incidents.get(inc.id)?.analysis).toContain("cart change");
+    expect(incidents.get(inc.id)?.timeline.at(-1)).toMatchObject({ kind: "analysis", text: "Likely the cart change" });
+    incidents.note(inc.id, "Rolled back");
+    const done = await incidents.resolve(inc.id, "en");
+    expect(done.status).toBe("resolved");
+    expect(asked[1]).toContain("[note] Rolled back");
+    expect(docs.pages(projectId)[0]?.title).toStartWith("Postmortem: Cart is broken");
+  });
+});

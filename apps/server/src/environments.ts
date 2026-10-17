@@ -17,6 +17,10 @@ function git(cwd: string, args: string[]): string | undefined {
   return proc.exitCode === 0 ? proc.stdout.toString().trim() : undefined;
 }
 
+/** SQL in a migration that can lose data. */
+export const DESTRUCTIVE_SQL =
+  /\b(drop\s+(table|column|schema|database|index)|alter\s+table\s+\S+\s+drop|truncate\b|delete\s+from\s+\S+\s*(;|$)|rename\s+(column|to)\b|alter\s+column\s+\S+\s+(type|set\s+data\s+type))/im;
+
 const MIGRATION = /(^|\/)(migrations?|alembic|drizzle|prisma\/migrations)\/|\.sql$/i;
 const q = (s: string) => `'${s.replace(/'/g, "'\\''")}'`;
 
@@ -29,6 +33,14 @@ export class Environments {
     private readonly usedEnv: (projectId: string) => EnvKeyUse[],
     private readonly testsPassed: (projectId: string) => { ok: boolean; at: number } | undefined,
   ) {}
+
+  /**
+   * Before a deploy (plan.md 13.4): back up the project's databases first. Set by the server to
+   * run the project's database backup jobs; returns what was backed up, or throws to stop.
+   */
+  beforeDeploy?: (projectId: string) => Promise<string[]>;
+  /** Whether the project has a database backup job at all. */
+  hasDbBackup?: (projectId: string) => boolean;
 
   list(projectId: string): EnvironmentInfo[] {
     return (
@@ -107,6 +119,58 @@ export class Environments {
     return env;
   }
 
+  /** Branches the server could pull: the remote branches this computer knows about. */
+  branches(id: string): string[] {
+    const env = this.env(id);
+    const root = this.store.projectRow(env.projectId)?.path ?? "";
+    return (git(root, ["branch", "-r", "--format=%(refname:short)"]) ?? "")
+      .split("\n")
+      .filter((b) => b.startsWith("origin/") && b !== "origin/HEAD" && b !== "origin")
+      .map((b) => b.slice("origin/".length));
+  }
+
+  /**
+   * A staging copy next to an existing environment (plan.md 13.4): the repo is cloned into a new
+   * folder on the same server and set up as its own environment, with the same deploy command.
+   * It runs on your click, as a confirmed command in the server's audit log.
+   */
+  async createStaging(
+    fromId: string,
+    opts: { name: string; path: string; branch: string; confirmations: number },
+  ): Promise<EnvironmentInfo> {
+    const from = this.env(fromId);
+    const root = this.store.projectRow(from.projectId)?.path ?? "";
+    const url = git(root, ["remote", "get-url", "origin"]);
+    if (!url) throw new Error("The project has no origin remote to clone from");
+    if (!/^(~\/|\/)[\w./-]{1,200}$/.test(opts.path) || opts.path.includes(".."))
+      throw new Error("Give a full folder path for the copy");
+    if (!/^[\w./-]{1,100}$/.test(opts.branch)) throw new Error("Unknown branch");
+    if (opts.path.replace(/\/$/, "") === from.path.replace(/\/$/, ""))
+      throw new Error("Use another folder than the original");
+    const target = opts.path.startsWith("~/") ? `~/${q(opts.path.slice(2))}` : q(opts.path);
+    const run = await this.servers.run(
+      from.serverId,
+      `test ! -e ${target} && git clone ${q(url)} ${target} && cd ${target} && git checkout ${q(opts.branch)}`,
+      {
+        confirmations: opts.confirmations,
+        actor: "user",
+        reason: `create ${opts.name} for ${from.name}`,
+      },
+    );
+    if ((run.exitCode ?? 1) !== 0)
+      throw new Error(
+        (run.output ?? "").trim().split("\n").slice(-3).join(" ") ||
+          "The copy could not be made (does the folder exist already?)",
+      );
+    return this.add(from.projectId, {
+      name: opts.name,
+      serverId: from.serverId,
+      path: opts.path,
+      branch: opts.branch,
+      deployCommand: from.deployCommand,
+    });
+  }
+
   /** Where the server stands vs. this computer: commit, branch, edits made on the server. */
   async state(id: string): Promise<EnvironmentState> {
     const env = this.env(id);
@@ -169,8 +233,17 @@ export class Environments {
         .split("\n")
         .filter(Boolean);
       const migrations = changed.filter((f) => MIGRATION.test(f));
-      if (migrations.length)
+      if (migrations.length) {
         checks.push({ id: "migrations", level: "warn", detail: migrations.slice(0, 5).join(", ") });
+        // New migrations that can lose data: dropped tables or columns, truncates, renames.
+        const risky = migrations.filter((f) => {
+          const text = git(root, ["show", `${upstream ?? "HEAD"}:${f}`]) ?? "";
+          return DESTRUCTIVE_SQL.test(text);
+        });
+        if (risky.length)
+          checks.push({ id: "destructiveMigration", level: "warn", detail: risky.slice(0, 5).join(", ") });
+        if (this.hasDbBackup && !this.hasDbBackup(env.projectId)) checks.push({ id: "noDbBackup", level: "warn" });
+      }
       if (!changed.length) checks.push({ id: "nothingNew", level: "info" });
     }
     const tests = this.testsPassed(env.projectId);
@@ -195,11 +268,16 @@ export class Environments {
    * Pull on the server and run the deploy command. Blocking checks stop it;
    * the user has already confirmed the warnings. Logged with before/after commits.
    */
-  async deploy(id: string, opts: { confirmations: number }): Promise<DeployRecord> {
-    const env = this.env(id);
+  async deploy(id: string, opts: { confirmations: number; branch?: string }): Promise<DeployRecord> {
+    const base = this.env(id);
+    // A preview deploy (plan.md 13.4): another branch, this time only; the environment keeps its own.
+    if (opts.branch && !/^[\w./-]{1,100}$/.test(opts.branch)) throw new Error("Unknown branch");
+    const env = opts.branch ? { ...base, branch: opts.branch } : base;
     const { state, checks } = await this.checks(id);
     const blocking = checks.filter((c) => c.level === "block");
     if (blocking.length) throw new Error(`Can't deploy: ${blocking.map((c) => c.id).join(", ")}`);
+    // A backup of the project's databases first; if it fails, nothing is deployed.
+    const backedUp = this.beforeDeploy ? await this.beforeDeploy(env.projectId) : [];
     const cd = env.path.startsWith("~/") ? `~/${q(env.path.slice(2))}` : q(env.path);
     const command = `cd ${cd} && git fetch --quiet && git checkout ${q(env.branch)} && git pull --ff-only${env.deployCommand ? ` && ${env.deployCommand}` : ""}`;
     const started = Date.now();
@@ -218,7 +296,7 @@ export class Environments {
       toHead: after?.head ?? "",
       command,
       exitCode: run.exitCode ?? -1,
-      output: (run.output ?? "").slice(-8000),
+      output: `${backedUp.length ? `Backed up first: ${backedUp.join(", ")}\n` : ""}${run.output ?? ""}`.slice(-8000),
       ms: Date.now() - started,
     };
     this.db

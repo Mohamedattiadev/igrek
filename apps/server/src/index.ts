@@ -50,6 +50,7 @@ import { Flows } from "./flows";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
+import { Incidents } from "./incidents";
 import { Indexer } from "./indexer";
 import { Insight } from "./insight";
 import { HistoryImport } from "./insight/history";
@@ -73,13 +74,16 @@ import {
   registerCalendarRoutes,
   registerCodeHostRoutes,
   registerCostRoutes,
+  registerIncidentRoutes,
   registerMcpRoutes,
   registerOpsRoutes,
+  registerPerfRoutes,
   registerPluginRoutes,
   registerTimeRoutes,
   registerVaultRoutes,
   registerWriteupRoutes,
 } from "./ops-routes";
+import { Perf } from "./perf";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
 import { Plugins } from "./plugins";
@@ -308,6 +312,20 @@ setInterval(() => {
   if (writeups.cachedRecap(day) || !writeups.dayStats(day).projects.length) return;
   void writeups.recap(day, readSettings(db).language).catch(() => undefined);
 }, 15 * 60_000);
+const environments = new Environments(
+  sqlite,
+  store,
+  servers,
+  bus,
+  (id) => {
+    const latest = insight.latest(id);
+    return "apis" in latest && latest.apis ? latest.apis.env : [];
+  },
+  (id) => {
+    const test = insight.toolResults(id).find((r) => r.kind === "test");
+    return test ? { ok: test.ok, at: test.at } : undefined;
+  },
+);
 const monitors = new Monitors(sqlite, store, bus);
 monitors.start();
 const docker = new Docker(servers);
@@ -345,6 +363,28 @@ bus.subscribe((m) => {
 void mcpServers.load().catch(() => undefined);
 const backupJobs = new BackupJobs(sqlite, store, bus, databases, servers, join(config.dataDir, "backups"));
 setInterval(() => void backupJobs.tick(), 60_000);
+// Before a deploy, the project's databases are backed up (plan.md 13.4); a failed backup stops it.
+const dbJobs = (projectId: string) =>
+  backupJobs
+    .list()
+    .filter(
+      (j) =>
+        j.source.kind === "database" &&
+        (j.projectId === projectId ||
+          databases
+            .list()
+            .some((c) => c.projectId === projectId && j.source.kind === "database" && j.source.connectionId === c.id)),
+    );
+environments.hasDbBackup = (projectId) => dbJobs(projectId).length > 0;
+environments.beforeDeploy = async (projectId) => {
+  const done: string[] = [];
+  for (const job of dbJobs(projectId)) {
+    const run = await backupJobs.run(job.id);
+    if (run.status !== "ok") throw new Error(`The backup before the deploy failed (${job.name}): ${run.error ?? ""}`);
+    done.push(job.name);
+  }
+  return done;
+};
 const docs = new Docs(
   sqlite,
   store,
@@ -459,6 +499,20 @@ const app = createApp({
     registerVaultRoutes(hono, vault);
     registerMcpRoutes(hono, mcpServers);
     registerBridgeRoutes(hono, bridges, () => readSettings(db).language);
+    registerPerfRoutes(hono, new Perf(sqlite, appErrors));
+    registerIncidentRoutes(
+      hono,
+      new Incidents(sqlite, store, bus, { monitors, errors: appErrors, logs, docs, personas }, (prompt, system) =>
+        runClaude(
+          prompt,
+          join(config.dataDir, "runner"),
+          stops,
+          "sonnet",
+          system ? ["--append-system-prompt", system] : [],
+        ),
+      ),
+      () => readSettings(db).language,
+    );
     registerTimeRoutes(hono, store);
     registerWriteupRoutes(hono, {
       writeups,
@@ -521,20 +575,7 @@ const app = createApp({
     registerI18nRoutes(hono, languagePacks, translator, () => readSettings(db).language);
     registerDeployRoutes(hono, {
       servers,
-      envs: new Environments(
-        sqlite,
-        store,
-        servers,
-        bus,
-        (id) => {
-          const latest = insight.latest(id);
-          return "apis" in latest && latest.apis ? latest.apis.env : [];
-        },
-        (id) => {
-          const test = insight.toolResults(id).find((r) => r.kind === "test");
-          return test ? { ok: test.ok, at: test.at } : undefined;
-        },
-      ),
+      envs: environments,
     });
     registerInsightRoutes(hono, insight, new HistoryImport(sqlite, bus, summarizer, insight));
     registerEnvRoutes(hono, {

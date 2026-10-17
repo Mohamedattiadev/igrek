@@ -259,6 +259,20 @@ const report = (err) =>
 process.on("uncaughtException", (err) => { report(err).finally(() => process.exit(1)); });
 process.on("unhandledRejection", (err) => { report(err); });
 
+// Response times: wrap your request handler (Hono shown; any framework works the same way).
+// app.use(async (c, next) => { const t = performance.now(); await next(); timing(c.req.routePath ?? c.req.path, c.req.method, performance.now() - t, c.res.status); });
+const times = [];
+export const timing = (route, method, ms, status) => {
+  times.push({ route, method, ms: Math.round(ms), status });
+  if (times.length >= 50) flushTimes();
+};
+const flushTimes = () => {
+  if (!times.length) return;
+  const events = times.splice(0);
+  fetch("${base}/ingest/perf/${this.key(projectId)}", { method: "POST", body: JSON.stringify({ events }) }).catch(() => {});
+};
+setInterval(flushTimes, 30_000).unref?.();
+
 // Product analytics: track("signup", user.id). The id is hashed before it is stored.
 export const track = (event, user) =>
   fetch("${base}/ingest/events/${this.key(projectId)}", { method: "POST", body: JSON.stringify({ event, user }) }).catch(() => {});`;

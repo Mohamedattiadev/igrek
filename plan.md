@@ -1047,10 +1047,10 @@ god-eye/
 - [x] 🏆 Takım panosu: kim neye katkı verdi (suçlamak için değil, görünürlük için) — *Takım sayfasında Takım panosu: paylaşılan projelerde kişi başına commit (git yazar adı üyeyle eşleştirilir), AI session, yorum, hafıza katkısı; 7/30/90 gün. Gerçek bir takımla denenmedi*
 
 #### 13.4 Operasyon (prod)
-- [ ] 🚨 **Olay modu (incident):** site çökünce tek tıkla "savaş odası" açılır. SRE personası logları ve son deploy'ları toplar, zaman çizelgesi çıkarır, çözüm önerir. Sonunda otomatik postmortem raporu hazırlanır
-- [ ] 🔄 Staging ortamı oluşturma ve preview deploy
-- [ ] 🗃️ Deploy öncesi otomatik DB yedeği + migration kontrolü
-- [ ] 📉 Basit performans izleme: yanıt süreleri, yavaş endpoint'ler
+- [x] 🚨 **Olay modu (incident):** site çökünce tek tıkla "savaş odası" açılır. SRE personası logları ve son deploy'ları toplar, zaman çizelgesi çıkarır, çözüm önerir. Sonunda otomatik postmortem raporu hazırlanır — *Proje > İzleme > Olay modunu aç: uptime, uygulama hataları, log hata grupları, son 3 günün deploy'ları ve 24 saatin commit'leri tek zaman çizelgesinde; DevOps/SRE personası (sonnet) ne olduğunu, sıralı olası nedenleri kanıtıyla, önce çalıştırılacak salt-okunur komutları ve hızlı kurtarmayı yazar; notlar zaman çizelgesine eklenir; "Çözüldü" suçlamasız postmortem'i yazıp wiki'ye kaydeder. Gerçek kayıtlı bir hatayla uçtan uca denendi. Sunucuda kendiliğinden komut çalıştırmaz*
+- [x] 🔄 Staging ortamı oluşturma ve preview deploy — *Ortamlar: "Staging oluştur" repoyu aynı sunucuda yeni klasöre klonlayıp aynı deploy komutuyla yeni ortam yapar (onaylı tek komut, denetim kaydında); deploy penceresinde dal seçilerek önizleme deploy'u (sadece o sefer, ortam kendi dalında kalır). Sahte sunucuyla test edildi; gerçek sunucuda denenmedi. Ayrı alan adı/port ayarı yapmaz*
+- [x] 🗃️ Deploy öncesi otomatik DB yedeği + migration kontrolü — *Deploy'dan önce projenin veritabanı yedek işleri çalışır, yedek başarısızsa deploy durur; deploy kaydına yedek yazılır. Kontroller: gelecek migration dosyaları + veri kaybettirebilecek SQL (DROP, TRUNCATE, RENAME, tür değişikliği, WHERE'siz DELETE) + yedek kurulu değil uyarısı*
+- [x] 📉 Basit performans izleme: yanıt süreleri, yavaş endpoint'ler — *Uygulamanın sunucusuna birkaç satırlık timing() ara katmanı (Uygulamayı bağla); uç nokta başına (id'ler katlanır) günlük histogram; İzleme sekmesinde istek sayısı, p50, p95 (önceki haftaya göre yavaşladı/hızlandı), 5xx sayısı; en yavaş önce. Birim testli; gerçek bir uygulamadan gelen trafikle denenmedi*
 
 #### 13.5 İş ve ürün (CEO tarafı)
 - [ ] 📮 **Kullanıcı geri bildirim kutusu:** ürünlerinin kullanıcılarından gelen geri bildirimleri toplama; PM personası sınıflandırır

@@ -242,3 +242,37 @@ describe("product analytics", () => {
     ).toThrow();
   });
 });
+
+describe("performance", () => {
+  test("timings per endpoint, ids folded, p50/p95 from a histogram, compared with the week before", async () => {
+    const { Perf } = await import("./perf");
+    const { AppErrors } = await import("./apperrors");
+    const { normalizeRoute } = await import("@godeye/core");
+    expect(normalizeRoute("/users/42/orders/7f3c9a2b-1111-4222-8333-444455556666?x=1")).toBe("/users/:id/orders/:id");
+    const { sqlite, store } = setup();
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-perf-")));
+    const key = new AppErrors(sqlite, store, new Bus()).key(projectId);
+    let now = Date.now() - 8 * 86_400_000;
+    const perf = new Perf(sqlite, new AppErrors(sqlite, store, new Bus()), () => now);
+    perf.ingest(key, {
+      events: Array.from({ length: 20 }, () => ({ route: "/api/items/1", method: "GET", ms: 80, status: 200 })),
+    });
+    now = Date.now();
+    const events = [
+      ...Array.from({ length: 18 }, (_, i) => ({ route: `/api/items/${i}`, method: "GET", ms: 90, status: 200 })),
+      { route: "/api/items/9", method: "GET", ms: 1500, status: 500 },
+      { route: "/api/items/9", method: "GET", ms: 1800, status: 200 },
+    ];
+    expect(perf.ingest(key, { events })).toBe(true);
+    expect(perf.ingest("wrong", { route: "/", ms: 1 })).toBe(false);
+    const [row] = perf.summary(projectId);
+    expect(row).toMatchObject({
+      route: "GET /api/items/:id",
+      count: 20,
+      p50: 100,
+      p95: 2000,
+      errors: 1,
+      previousP95: 100,
+    });
+  });
+});
