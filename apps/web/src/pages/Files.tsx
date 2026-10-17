@@ -21,6 +21,7 @@ import {
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FilePreview } from "../components/FilePreview";
+import { ResizeHandle, usePanelSize } from "../components/Resizable";
 import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api, fs } from "../lib/api";
@@ -204,6 +205,7 @@ function Viewer({ entry }: { entry: FileEntry }) {
  */
 export function FilesPage() {
   const { t } = useTranslation();
+  const [placesWidth, setPlacesWidth] = usePanelSize("files-places", 208, 150, 420);
   const { settings, update } = useSettings();
   const [roots, setRoots] = useState<Root[]>([]);
   const [cwd, setCwd] = useState<string>();
@@ -312,7 +314,10 @@ export function FilesPage() {
         }
       />
       <div className="flex min-h-0 flex-1">
-        <aside className="w-52 shrink-0 overflow-y-auto border-e border-border bg-bg-subtle py-2">
+        <aside
+          className="shrink-0 overflow-y-auto border-e border-border bg-bg-subtle py-2"
+          style={{ width: placesWidth }}
+        >
           <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
             {t("files.roots")}
           </p>
@@ -343,6 +348,7 @@ export function FilesPage() {
           </button>
           <p className="px-3 pt-3 text-[10.5px] leading-snug text-fg-subtle">{t("files.protected")}</p>
         </aside>
+        <ResizeHandle size={placesWidth} onSize={setPlacesWidth} min={150} max={420} />
 
         {/* biome-ignore lint/a11y/noStaticElementInteractions: drop zone for uploads; the Upload button is the keyboard path */}
         <section

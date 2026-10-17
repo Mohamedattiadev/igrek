@@ -1779,5 +1779,9 @@
       "title": "Kendine göre ayarla",
       "body": "Dil, tema, yazı boyutu, Basit ya da Pro mod ve arka planda ne kadar AI çalışacağı."
     }
+  },
+  "panel": {
+    "resize": "Paneli boyutlandır",
+    "resizeTip": "Boyutlandırmak için sürükle ya da ok tuşlarını kullan. Boyut hatırlanır."
   }
 }

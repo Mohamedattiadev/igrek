@@ -3,7 +3,7 @@ import { APP_VERSION } from "@godeye/core";
 import { Minimize2, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NavLink, Outlet } from "react-router";
+import { NavLink, Outlet, useLocation } from "react-router";
 import { cn } from "../lib/cn";
 import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
 import { useSettings } from "../lib/settings";
@@ -140,6 +140,7 @@ function StatusBar({ status }: { status: SocketStatus }) {
 export function Shell() {
   const { settings, receive } = useSettings();
   const { t } = useTranslation();
+  const location = useLocation();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [toast, setToast] = useState<string>();
   const [zen, setZen] = useState(readZen);
@@ -198,7 +199,9 @@ export function Shell() {
       <div className="flex min-w-0 flex-1 flex-col">
         {!zen && <TopBar onSearch={openPalette} onToast={setToast} />}
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <Outlet />
+          <div key={location.pathname} className="ge-page flex min-h-0 flex-1 flex-col">
+            <Outlet />
+          </div>
         </main>
         {!zen && <StatusBar status={status} />}
       </div>

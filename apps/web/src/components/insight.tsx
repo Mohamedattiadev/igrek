@@ -1,5 +1,5 @@
 import type { CategoryScore } from "@godeye/core";
-import { useEffect, useId, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
 import { dateTime } from "../lib/format";
@@ -43,6 +43,8 @@ export function ScoreRing({
           strokeWidth={4}
           strokeLinecap="round"
           strokeDasharray={`${(c * score) / 100} ${c}`}
+          className="ge-ring"
+          style={{ "--ring-from": (c * score) / 100 } as CSSProperties}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">

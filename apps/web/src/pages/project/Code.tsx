@@ -25,6 +25,7 @@ import { useNavigate, useSearchParams } from "react-router";
 import { CheckpointRestore } from "../../components/CheckpointRestore";
 import { EnhanceDialog } from "../../components/Enhance";
 import { FilePreview } from "../../components/FilePreview";
+import { ResizeHandle, usePanelSize } from "../../components/Resizable";
 import { Button } from "../../components/ui";
 import { actions, type EnhanceCodeRequest } from "../../lib/actions";
 import type { GitBranchInfo } from "../../lib/api";
@@ -521,6 +522,7 @@ function CodeEnhance({ projectId }: { projectId: string }) {
 
 export function CodeTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
+  const [sideWidth, setSideWidth] = usePanelSize("code-side", 256, 180, 520);
   const { settings, update } = useSettings();
   // Older settings only had a Vim switch.
   const keymap: EditorKeymap =
@@ -658,7 +660,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
   return (
     <div className="flex min-h-96 min-w-0 flex-1">
       <CodeEnhance projectId={project.id} />
-      <aside className="flex w-64 shrink-0 flex-col border-e border-border bg-bg-subtle">
+      <aside className="flex shrink-0 flex-col border-e border-border bg-bg-subtle" style={{ width: sideWidth }}>
         <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border px-1">
           {(["files", "changes", "branches", "snapshots", "search"] as const).map((name) => (
             <button
@@ -709,6 +711,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
           <SearchPanel root={project.path} projectId={project.id} onOpen={openFile} />
         )}
       </aside>
+      <ResizeHandle size={sideWidth} onSize={setSideWidth} min={180} max={520} />
 
       <section className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-8 shrink-0 items-stretch overflow-x-auto border-b border-border bg-bg-subtle">

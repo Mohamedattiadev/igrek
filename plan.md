@@ -234,17 +234,17 @@ god-eye/
 - [x] ⭐ Nötr gri palet + **tek vurgu rengi**. Renk sadece anlam taşıdığında kullanılır (🟢 başarılı, 🔴 hata, 🟡 uyarı)
 - [x] Sakin tipografi: Inter (arayüz), JetBrains Mono (kod), net bir başlık hiyerarşisi — *iki font da uygulamayla birlikte gelir (internetsiz çalışır)*
 - [x] Yoğunluk ayarı: **Rahat** (Notion gibi ferah) / **Kompakt** (JetBrains gibi sıkı)
-- [ ] Paneller sürüklenip yeniden düzenlenebilir; düzen kaydedilir
+- [x] Paneller sürüklenip yeniden düzenlenebilir; düzen kaydedilir — *Kod ve Dosyalar yan panelleri sürüklenerek ya da ok tuşlarıyla boyutlanır, boyut hatırlanır*
 - [x] "Zen modu": tek tıkla tüm paneller gizlenir, sadece içerik kalır — *Ctrl+Alt+Z veya komut paleti; köşedeki küçük düğmeyle çıkılır*
 - [x] Hazır temalar: Açık, Koyu, JetBrains Darcula benzeri, Notion benzeri açık tema — *dördü de WCAG AA kontrastında (her metin rengi 4.5:1 üstü, hesapla doğrulandı)*
-- [ ] Kural: bir ekranda aynı anda en fazla bir ana aksiyon butonu
+- [x] Kural: bir ekranda aynı anda en fazla bir ana aksiyon butonu — *tüm sayfalar tarandı; Bölümler sekmesindeki iki fazla ana buton ikincil yapıldı*
 - [x] ⭐ **Emoji yok, gerçek ikonlar:** arayüzde hiç emoji kullanılmaz; her ikon SVG'dir (lucide), ekran okuyucu için etiketlidir ya da `aria-hidden` ile gizlidir. Terminal çıktısında da emoji yok
 - [x] ⭐ **Her yerde ipucu (tooltip):** her ikon butonun ve her seçeneğin üzerine gelince ne işe yaradığı sade dille yazar, varsa kısayolu da gösterir. Klavyeyle odaklanınca da çıkar, Esc ya da herhangi bir tuş kapatır — *tek global katman: `data-tip`, `title` ve ikon butonlardaki `aria-label` otomatik ipucuna dönüşür*
 
 ### 7.1 Tasarım sistemi
 - [x] ⭐ Renk token'ları (açık ve koyu tema), tipografi (Inter + JetBrains Mono), boşluk ölçeği, köşe yarıçapları, gölgeler
 - [x] ⭐ shadcn/ui tabanlı ortak bileşen kütüphanesi: kart, rozet, puan halkası, durum noktası, boş durum, yükleniyor iskeleti — *shadcn yerine kendi küçük bileşen kütüphanemiz (`components/ui.tsx`), aynı parçalar*
-- [ ] Mikro animasyonlar: sayfa geçişleri, canlı durum nabzı, puan dolma animasyonu (Framer Motion)
+- [x] Mikro animasyonlar: sayfa geçişleri, canlı durum nabzı, puan dolma animasyonu (Framer Motion) — *Framer Motion yerine saf CSS (ek bağımlılık yok); sistem "daha az hareket" derse kapanır*
 - [x] İkon seti: Lucide
 - [x] Tasarım vitrini sayfası (`/design`): tüm bileşenler tek sayfada
 
@@ -257,7 +257,7 @@ god-eye/
 - [x] Geri al (Undo) her yerde — *silmeler 6 sn bekler, "Silindi · Geri al"; hafıza, fikir, prompt, sunucu*
 
 ### 7.3 Erişilebilirlik ve kalite
-- [ ] Klavye ile tam kullanım, `Ctrl+K` komut paleti
+- [x] Klavye ile tam kullanım, `Ctrl+K` komut paleti — *Ctrl+K, vim tarzı liste gezinme, odak halkaları, klavyeyle boyutlanan paneller, okla gezilen tur*
 - [x] WCAG AA kontrast, ekran okuyucu etiketleri — *axe-core ile 18 sayfa, açık ve koyu temada: 0 ihlal*
 - [x] Büyük yazı seçeneği — *Normal / Büyük / Daha büyük; tüm arayüz ölçeklenir, editörde tıklama doğruluğu test edildi*
 - [x] Her ekran 1280px ve üstünde kusursuz; 768px'te kullanılabilir — *768px'te taşma testi: tüm sayfalar ve proje sekmeleri temiz*

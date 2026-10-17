@@ -1779,5 +1779,9 @@
       "title": "Make it yours",
       "body": "Language, theme, text size, Simple or Pro mode, and how much AI runs in the background."
     }
+  },
+  "panel": {
+    "resize": "Resize the panel",
+    "resizeTip": "Drag to resize, or use the arrow keys. The size is remembered."
   }
 }

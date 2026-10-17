@@ -58,7 +58,6 @@ export function ToolsCard({ projectId }: { projectId: string }) {
         <div className="flex-1" />
         <Button
           size="sm"
-          variant="primary"
           icon={data.running ? LoaderCircle : Play}
           disabled={data.running || !chosen?.length}
           onClick={() => {
@@ -304,7 +303,6 @@ export function ImportCard({ projectId }: { projectId: string }) {
       ) : (
         <Button
           size="sm"
-          variant="primary"
           icon={Play}
           onClick={() => void api.importStart(projectId).then(load)}
           data-tip={t("import.startTip")}
