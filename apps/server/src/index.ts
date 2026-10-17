@@ -11,6 +11,7 @@ import { geminiAdapter } from "./adapters/gemini";
 import { createApp } from "./app";
 import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
+import { Board } from "./board";
 import { Bus, StopRegistry } from "./bus";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { Chats } from "./chats";
@@ -28,6 +29,8 @@ import { Environments } from "./environments";
 import { syncExamples } from "./examples";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
+import { registerFlowRoutes } from "./flow-routes";
+import { Flows } from "./flows";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
@@ -46,6 +49,8 @@ import { registerLibraryRoutes } from "./library-routes";
 import { Meetings } from "./meetings";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
 import { Personas } from "./personas";
+import { registerScheduleRoutes } from "./schedule-routes";
+import { Schedules } from "./schedules";
 import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
@@ -218,6 +223,21 @@ const enhancer = new Enhancer(
   (id) => sync.presenceList(id),
   (id) => terminals.recentErrors(id),
 );
+const flows = new Flows(sqlite, store, bus, stops, personas, join(config.dataDir, "worktrees"));
+const board = new Board(sqlite, bus, flows);
+flows.onChange = (run) => board.followRun(run);
+flows.recover();
+const schedules = new Schedules(
+  sqlite,
+  store,
+  bus,
+  flows,
+  () => readSettings(db),
+  (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
+);
+// Scheduled work: checked every minute; times missed while the computer was off are asked about, not run.
+setInterval(() => schedules.tick(), 60_000);
+setTimeout(() => schedules.tick(), 20_000);
 const knowledge = new Knowledge(
   sqlite,
   store,
@@ -235,6 +255,7 @@ insight.extraNotices = () => [
   ...sync.overlapNotices(),
   ...sync.mentionNotices(),
   ...knowledge.notices(),
+  ...schedules.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
     .list()
@@ -271,6 +292,8 @@ const app = createApp({
     registerTesterRoutes(hono, testers);
     registerLibraryRoutes(hono, { library, embedder });
     registerKnowledgeRoutes(hono, knowledge);
+    registerFlowRoutes(hono, { flows, board, store });
+    registerScheduleRoutes(hono, { schedules, store });
     registerPersonaRoutes(hono, {
       personas,
       meetings,

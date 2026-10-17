@@ -504,7 +504,7 @@ god-eye/
 - [x] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir) — *Ctrl+I; sesli giriş Faz 11*
 - [x] PM personası fikirleri otomatik sınıflandırır: hangi proje, hangi faz, ne kadar iş, ne kadar değerli — *tek tıkla: proje, tür, iş büyüklüğü, değer, kısa not*
 - [x] Haftalık fikir değerlendirmesi: CEO Danışmanı ile "Hangilerini yapalım, hangilerini bırakalım?" — *Fikirler sayfasında tek tık: şimdi / sonra / bırak + odak cümlesi; "Uygula" deyince durumlar değişir. Otomatik haftalık hatırlatma zamanlanmış işlerle (Faz 9)*
-- [ ] Onaylanan fikir tek tıkla plana ve görev panosuna eklenir — *durumlar (Yapılacak/Sonra/Bırakıldı) hazır; görev panosu Faz 8*
+- [x] Onaylanan fikir tek tıkla plana ve görev panosuna eklenir — *"Yapılacak" fikirlerde "Panoya ekle"*
 - [x] Hiçbir fikir kaybolmaz, ama hiçbir fikir de odağı bozmaz
 
 #### 2.7 Prompt kütüphanesi
@@ -883,7 +883,7 @@ god-eye/
 - [x] **Şeytanın avukatı modu:** her planın altında "Zayıf noktaları bul" butonu — *toplantı kararının ve sohbette bitmiş uzun cevabın altında; kritik/önemli/küçük ve "nasıl denenir"*
 
 #### 6.4 Skor kartı
-- [x] Persona başına: tamamlanan iş, yakalanan hata, kabul ve red oranı, token harcaması, ortalama süre — *sohbet, toplantı, hafızaya işlenen karar, görüş, fikir değiştirme, token, ortalama süre. "Tamamlanan iş" ve "yakalanan hata" görev panosuyla (Faz 8)*
+- [x] Persona başına: tamamlanan iş, yakalanan hata, kabul ve red oranı, token harcaması, ortalama süre — *sohbet, toplantı, hafızaya işlenen karar, görüş, fikir değiştirme, token, ortalama süre. takım işlerinden biten adım, yakalanan sorun (işi geri gönderen inceleme/kontrol) ve birleştirilen/atılan oranı da var*
 
 **Bitti sayılır:** Bir fikri takım toplantısına sokuyorum, 5 uzmanın görüşü ve bir karar özeti geliyor.
 
@@ -932,16 +932,16 @@ god-eye/
 
 **Hedef:** "Bu özelliği yap" deyince takımın baştan sona kendi başına çalışması.
 
-- [ ] Archon kurulumu ve login ile çalıştığının doğrulanması (bkz. Açık Sorular)
-- [ ] Archon adaptörü: iş başlatma, izleme, logları ve sonucu God Eye'a alma
-- [ ] Archon yoksa yerleşik basit akış motoru (aynı YAML formatıyla)
-- [ ] Hazır akış: PM → Mimar (onay ✋) → Backend ‖ Frontend (ayrı worktree'lerde) → QA (✗ ise geri döner) → Security + DevOps review → PM özeti → onay → merge
-- [ ] **"Yaptım" doğrulaması:** build ve testlerden geçmeyen iş bitti sayılmaz
-- [ ] **Auto mod:** onaysız çalışır ama sadece izole worktree'de; sonunda tek bir özet ve onay ekranı gelir
-- [ ] Görev panosu (Kanban): Yapılacak → Devam Ediyor → Review → Bitti. Kart taşınınca agent başlar
-- [ ] Görsel akış ekranı: hangi persona şu an ne yapıyor, canlı
+- [x] Archon kurulumu ve login ile çalıştığının doğrulanması (bkz. Açık Sorular) — *kaynak koddan scratch klasörde kurulup denendi: `CLAUDE_USE_GLOBAL_AUTH=true` ile Claude Code girişiyle çalışıyor, API anahtarı yok. Kullanıcının sistemine God Eye kurmaz (curl|bash); kurmak isteyen kendisi kurar*
+- [x] Archon adaptörü: iş başlatma, izleme, logları ve sonucu God Eye'a alma — *Archon kuruluysa akışları panodaki listeye gelir; çalışırken "[adım] Started/Completed" satırlarından düğümler canlı görünür. Push eden ya da PR açan Archon akışları reddedilir. Kurulu bir Archon ikilisiyle uçtan uca denenmedi; satır biçimi denemedeki gerçek çıktıdan alındı*
+- [x] Archon yoksa yerleşik basit akış motoru (aynı YAML formatıyla) — *Archon'un `nodes / prompt / bash / depends_on / model` alanları + God Eye alanları (persona, kendi kopyası, kontrol kapısı, inceleme kararı, geri gönderme); projenin `.godeye/flows` ve `.archon/workflows` YAML'ları da okunur (desteklenmeyen Archon özellikleri olan akışlar listelenmez)*
+- [x] Hazır akış: PM → Mimar (onay) → Backend ‖ Frontend (ayrı worktree'lerde) → QA (✗ ise geri döner) → Security + DevOps review → PM özeti → onay → merge — *"Yeni özellik" akışı; ayrıca "Hata düzelt"*
+- [x] **"Yaptım" doğrulaması:** build ve testlerden geçmeyen iş bitti sayılmaz — *kontrol düğümü projenin typecheck/lint/test komutlarını çalıştırır; kalırsa iş, hata çıktısıyla geliştiricilere geri döner (en fazla 2 kez). Projede test komutu yoksa bunu açıkça yazar*
+- [x] **Auto mod:** onaysız çalışır ama sadece izole worktree'de; sonunda tek bir özet ve onay ekranı gelir — *her iş kendi kopyasında, kendi dalında; push/merge/deploy komutları tamamen yasak; onaylayınca sadece bu bilgisayarda birleşir. Değişiklik yoksa (rapor) doğrudan biter*
+- [x] Görev panosu (Kanban): Yapılacak → Devam Ediyor → Review → Bitti. Kart taşınınca agent başlar — *proje sayfasında Pano sekmesi; sürükle bırak ya da ok; iş hazır olunca kart Review'a, birleşince Bitti'ye kendiliğinden geçer*
+- [x] Görsel akış ekranı: hangi persona şu an ne yapıyor, canlı — *sütunlu akış; her düğümde persona, durum, şu anki araç adımı, deneme sayısı, karar ve çıktı*
 
-**Bitti sayılır:** "Kullanıcı girişi ekle" diyorum, takım planlıyor, yazıyor, test ediyor, review ediyor ve bana tek bir onay ekranı geliyor.
+**Bitti sayılır:** "Kullanıcı girişi ekle" diyorum, takım planlıyor, yazıyor, test ediyor, review ediyor ve bana tek bir onay ekranı geliyor. — *Gerçek Claude ile örnek bir uygulamada denendi: plan → tasarım → onay → backend ‖ frontend → build/test → QA, güvenlik, DevOps → özet → tek onay ekranı (8 dosya, 16 test geçti, şifreler argon2id) → birleştirildi*
 
 ---
 
@@ -1101,7 +1101,7 @@ god-eye/
 
 | # | Konu | Not / Karar |
 |---|---|---|
-| 1 | Archon Claude için login mi API key mi kullanıyor? | Faz 8 başında test edilecek |
+| 1 | Archon Claude için login mi API key mi kullanıyor? | **Test edildi (Ekim 2026, kaynak koddan, kullanıcının sistemine kurmadan):** `CLAUDE_USE_GLOBAL_AUTH=true` ile Claude Code girişini kullanıyor, API anahtarı gerekmedi. Worktree için gerçek bir uzak repo istiyor (yoksa `--no-worktree`). Hazır akışları push/PR açtığı için God Eye bunları çalıştırmaz; yerleşik motor aynı YAML biçimini okur |
 | 2 | Codex, Gemini ve Antigravity session dosya formatları | Faz 1'de araştırılacak |
 | 3 | Claude limit bilgisinin en doğru kaynağı | Session loglarındaki token sayıları + CLI limit mesajları; claude-swap ve clauth yöntemleri incelenecek |
 | 4 | ⚠️ Limit dolunca **otomatik** hesap değiştirme | Sağlayıcı şartlarına aykırı olabilir (limit aşma). **Varsayılan: manuel tek tık geçiş + uyarı. Otomatik geçiş kapalı.** |

@@ -303,6 +303,13 @@ export interface PersonaScore {
   changedMind: number;
   /** Meeting decisions that went into project memory. */
   accepted: number;
+  /** Team-run steps it finished (plan.md 6.4 "tamamlanan iş"). */
+  tasksDone: number;
+  /** Times its review or gate sent work back (a problem caught before it shipped). */
+  bugsCaught: number;
+  /** Team runs it worked on that you merged, and that you threw away. */
+  merged: number;
+  discarded: number;
   tokens: number;
   avgMs?: number;
   lastUsed?: number;

@@ -520,6 +520,34 @@ const migrations: string[] = [
      at INTEGER NOT NULL,
      PRIMARY KEY (project_id, name, latest)
    );`,
+  // Faz 8: team runs (flows) and the task board.
+  `CREATE TABLE flow_runs (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX flow_runs_project ON flow_runs(project_id, created_at);
+   CREATE TABLE board_tasks (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     title TEXT NOT NULL,
+     description TEXT NOT NULL DEFAULT '',
+     status TEXT NOT NULL,
+     run_id TEXT,
+     origin TEXT,
+     ord REAL NOT NULL DEFAULT 0,
+     created_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX board_tasks_project ON board_tasks(project_id, status, ord);`,
+  // Faz 9: scheduled work.
+  `CREATE TABLE schedules (
+     id TEXT PRIMARY KEY,
+     data TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

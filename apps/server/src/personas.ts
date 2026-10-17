@@ -431,8 +431,36 @@ Rules: use only real, well-known books and milestones; leave a year out rather t
         inMeetings.set(view.personaId, entry);
       }
     }
+    // Team runs (plan.md Faz 8): finished steps, problems caught by reviews and gates, merged or thrown away.
+    const work = new Map<string, { done: number; caught: number; merged: number; discarded: number }>();
+    for (const row of this.db.query("SELECT data FROM flow_runs").all() as { data: string }[]) {
+      let run: {
+        status?: string;
+        nodes?: { persona?: string; status?: string; attempts?: number; verdict?: string }[];
+      };
+      try {
+        run = JSON.parse(row.data);
+      } catch {
+        continue;
+      }
+      const seen = new Set<string>();
+      for (const node of run.nodes ?? []) {
+        if (!node.persona) continue;
+        const entry = work.get(node.persona) ?? { done: 0, caught: 0, merged: 0, discarded: 0 };
+        if (node.status === "done") entry.done++;
+        // A review that ran again had sent the work back before; its last verdict counts too.
+        if (node.verdict) entry.caught += Math.max(0, (node.attempts ?? 1) - 1) + (node.verdict === "fail" ? 1 : 0);
+        if (!seen.has(node.persona)) {
+          seen.add(node.persona);
+          if (run.status === "merged") entry.merged++;
+          if (run.status === "discarded") entry.discarded++;
+        }
+        work.set(node.persona, entry);
+      }
+    }
     return this.list().map((persona) => {
       const s = sessions.find((r) => r.id === persona.id);
+      const w = work.get(persona.id);
       const m = inMeetings.get(persona.id);
       const ms = [...(m?.ms ?? []), ...(s?.ms ? [s.ms] : [])];
       const last = Math.max(s?.last ?? 0, m?.last ?? 0);
@@ -443,6 +471,10 @@ Rules: use only real, well-known books and milestones; leave a year out rather t
         opinions: opinions.get(persona.id) ?? 0,
         changedMind: changed.get(persona.id) ?? 0,
         accepted: m?.accepted ?? 0,
+        tasksDone: w?.done ?? 0,
+        bugsCaught: w?.caught ?? 0,
+        merged: w?.merged ?? 0,
+        discarded: w?.discarded ?? 0,
         tokens: s?.tokens ?? 0,
         ...(ms.length ? { avgMs: Math.round(ms.reduce((a, b) => a + b, 0) / ms.length) } : {}),
         ...(last ? { lastUsed: last } : {}),

@@ -3,6 +3,7 @@ import type {
   AiTool,
   Approval,
   AskAnswer,
+  BoardTask,
   Category,
   CategoryDetail,
   ChatInfo,
@@ -23,6 +24,7 @@ import type {
   EnvOverview,
   FileContent,
   FileEntry,
+  FlowRun,
   GitChange,
   GitInfo,
   HttpResponse,
@@ -67,6 +69,7 @@ import type {
   ShareLevel,
   SharePreview,
   SystemStatus,
+  TaskStatus,
   TeamActivity,
   TeamAuditEntry,
   TeamDevice,
@@ -244,6 +247,36 @@ export const api = {
   deleteMeeting: (id: string) => request<{ ok: boolean }>(`/api/meetings/${id}`, { method: "DELETE" }),
   weakPoints: (text: string, projectId?: string) =>
     request<{ points: WeakPoint[] }>("/api/weak-points", { method: "POST", body: JSON.stringify({ text, projectId }) }),
+  projectFlows: (projectId: string) =>
+    request<{
+      flows: {
+        name: string;
+        description: string;
+        source?: string;
+        nodes: { id: string; title?: string; persona?: string }[];
+      }[];
+      archon: { installed: boolean; workflows: { name: string; description: string }[] };
+    }>(`/api/projects/${projectId}/flows`),
+  flowRuns: (projectId?: string) => request<FlowRun[]>(`/api/flows${projectId ? `?projectId=${projectId}` : ""}`),
+  flowRun: (id: string) => request<FlowRun>(`/api/flows/${id}`),
+  startFlow: (body: { projectId: string; flow: string; request: string }) =>
+    request<FlowRun>("/api/flows", { method: "POST", body: JSON.stringify(body) }),
+  respondFlow: (id: string, node: string, decision: "approve" | "reject", text?: string) =>
+    request<FlowRun>(`/api/flows/${id}/respond`, { method: "POST", body: JSON.stringify({ node, decision, text }) }),
+  flowAction: (id: string, action: "stop" | "retry" | "merge" | "discard") =>
+    request<FlowRun>(`/api/flows/${id}/${action}`, { method: "POST" }),
+  reviseFlow: (id: string, text: string) =>
+    request<FlowRun>(`/api/flows/${id}/revise`, { method: "POST", body: JSON.stringify({ text }) }),
+  flowDiff: (id: string) =>
+    request<{ files: { path: string; added: number; removed: number }[]; patch: string }>(`/api/flows/${id}/diff`),
+  board: (projectId: string) => request<BoardTask[]>(`/api/projects/${projectId}/board`),
+  addCard: (projectId: string, card: { title: string; description?: string; origin?: string }) =>
+    request<BoardTask>(`/api/projects/${projectId}/board`, { method: "POST", body: JSON.stringify(card) }),
+  updateCard: (id: string, patch: { title?: string; description?: string }) =>
+    request<BoardTask>(`/api/board/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  moveCard: (id: string, status: TaskStatus, order?: number, flow?: string) =>
+    request<BoardTask>(`/api/board/${id}/move`, { method: "POST", body: JSON.stringify({ status, order, flow }) }),
+  removeCard: (id: string) => request<{ ok: boolean }>(`/api/board/${id}`, { method: "DELETE" }),
   knowledge: (persona?: string) => request<KnowledgeOverview>(`/api/knowledge${persona ? `?persona=${persona}` : ""}`),
   knowledgeSources: (persona: string) => request<KnowledgeSources>(`/api/knowledge/sources/${persona}`),
   setKnowledgeSources: (persona: string, sources: KnowledgeSources) =>

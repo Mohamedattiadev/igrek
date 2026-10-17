@@ -241,7 +241,18 @@ export interface EnvChange {
 export interface InboxNotice {
   id: string;
   /** lesson: a lesson keeps coming back (make it a rule?); opinion: a persona changed its mind; update: a package you use has a new major version. */
-  kind: "tool" | "score" | "env" | "overlap" | "mention" | "lesson" | "opinion" | "update";
+  kind:
+    | "tool"
+    | "score"
+    | "env"
+    | "overlap"
+    | "mention"
+    | "lesson"
+    | "opinion"
+    | "update"
+    | "schedule"
+    | "missed"
+    | "proposed";
   projectId: string;
   projectName: string;
   /** Short fact shown next to the title: the tool, "84 → 76", "Kerim · changed · STRIPE_KEY". */

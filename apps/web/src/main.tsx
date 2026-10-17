@@ -8,6 +8,7 @@ import { SettingsProvider, useSettings } from "./lib/settings";
 import { ChatPage } from "./pages/Chat";
 import { DesignPage } from "./pages/Design";
 import { FilesPage } from "./pages/Files";
+import { FlowRunPage } from "./pages/FlowRun";
 import { IdeasPage } from "./pages/Ideas";
 import { InboxPage } from "./pages/Inbox";
 import { KnowledgePage } from "./pages/KnowledgePage";
@@ -58,6 +59,7 @@ const router = createBrowserRouter([
       { path: "personas/:personaId", element: <PersonaPage /> },
       { path: "meetings/:meetingId", element: <MeetingPage /> },
       { path: "test-runs/:runId", element: <TestRunPage /> },
+      { path: "runs/:runId", element: <FlowRunPage /> },
       { path: "team", element: <TeamPage /> },
       { path: "team/:userId", element: <PersonPage /> },
       { path: "settings", element: <SettingsPage /> },

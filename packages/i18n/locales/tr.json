@@ -208,7 +208,8 @@
     "sections": "Bölümler",
     "gitFlow": "Önerilen git düzeni",
     "gitFlowHint": "Kendi branch'inde çalış, main'e PR aç ve sadece main'i deploy et. Açıkken, doğrudan main'e commit etmeden önce God Eye sorar. Sunuculardaki kod sadece git'ten gelir.",
-    "environments": "Ortamlar"
+    "environments": "Ortamlar",
+    "board": "Pano"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -507,7 +508,10 @@
     "verdict_later": "Sonra",
     "verdict_drop": "Bırak",
     "reviewApply": "Uygula",
-    "reviewClose": "Kapat"
+    "reviewClose": "Kapat",
+    "toBoard": "Panoya ekle",
+    "fromIdea": "Fikir",
+    "onBoard": "{{project}} panosuna eklendi"
   },
   "prompts": {
     "title": "Prompt'lar",
@@ -1948,7 +1952,7 @@
     "score_changed": "Fikir değiştirdi",
     "score_tokens": "Token",
     "score_avg": "Ort. süre",
-    "scoreNote": "Tutulan karar: katıldığı ve kararı proje hafızasına işlenen toplantılar. Yakalanan hata ve kabul oranları görev panosuyla gelecek (Faz 8).",
+    "scoreNote": "Biten adım ve yakalanan sorun takım işlerinden gelir (işi geri gönderen bir inceleme ya da kontrol). Birleştirilen: katıldığı takım işlerinden atılmayıp birleştirilenlerin oranı. Tutulan karar: kararı proje hafızasına işlenen toplantılar.",
     "exportBody": "Her personayı AI araçlarının kendiliğinden okuduğu bir dosya olarak yazar: bir projede Claude Code alt-agent'ları (.claude/agents) ya da Codex özel prompt'ları. Bir sonraki dışa aktarımda dosyaların üzerine yazılır.",
     "exportCodex": "Codex hesabının prompts klasörüne yazar; Codex'te /<persona kimliği> ile çalıştırılır.",
     "exportDo": "Dosyaları yaz",
@@ -2055,7 +2059,10 @@
       "role": "Veritabanı giderse, internet koparsa ne olur"
     },
     "inLibrary": "Kütüphanede",
-    "addBook": "Ekle"
+    "addBook": "Ekle",
+    "score_done": "Biten adım",
+    "score_caught": "Yakalanan sorun",
+    "score_rate": "Birleştirilen"
   },
   "meeting": {
     "title": "Takım toplantısı",
@@ -2343,5 +2350,56 @@
     "src_hfPapers": "Hugging Face günlük makaleleri",
     "saved": "Kaydedildi",
     "xNote": "X'i otomatik okumanın ücretsiz ve yasal bir yolu yok: önemli bir gönderinin linkini Kütüphane'ye yapıştır."
+  },
+  "board": {
+    "col_todo": "Yapılacak",
+    "col_doing": "Devam ediyor",
+    "col_review": "Review",
+    "col_done": "Bitti",
+    "newCard": "Yeni kart…",
+    "add": "Kart ekle",
+    "moveTo": "{{column}} sütununa taşı",
+    "startTip": "Takımı bu işe başlat",
+    "giveTeam": "Takıma bir iş ver",
+    "request": "Takım ne yapsın?",
+    "requestHint": "Örnek: e-posta ve şifreyle kullanıcı girişi ekle",
+    "flow": "Akış",
+    "start": "Takımı başlat",
+    "safety": "Takım reponun kendi kopyasında, kendi dalında, sormadan çalışır. Sen onaylamadan hiçbir şey senin dalına gelmez ve hiçbir şey push edilmez.",
+    "archonOn": "Archon kurulu: akışları da listede (push eden ya da pull request açanlar çalıştırılmaz).",
+    "hint": "Bir kartı Devam ediyor sütununa sürükle (ya da okuna bas), takım başlar. İş hazır olunca kart Review'a geçer; birleştirince Bitti'ye geçer.",
+    "runs": "Kartsız takım işleri"
+  },
+  "flows": {
+    "title": "Takım işi",
+    "status_running": "Çalışıyor",
+    "status_needs_you": "Seni bekliyor",
+    "status_ready": "Onayını bekliyor",
+    "status_done": "Bitti",
+    "status_failed": "Bir sorunda durdu",
+    "status_stopped": "Durduruldu",
+    "status_merged": "Birleştirildi",
+    "status_discarded": "Atıldı",
+    "name_feature": "Yeni özellik (tüm takım)",
+    "name_fix": "Hata düzelt",
+    "desc_feature": "Plan ve tasarım (onayını bekler), backend ve frontend yan yana, build ve testler, QA, güvenlik ve DevOps incelemesi, tek özet.",
+    "desc_fix": "Bul ve düzelt, build ve testler, QA doğrular.",
+    "attempt": "{{n}}. deneme",
+    "verdict_pass": "Geçti",
+    "verdict_fail": "Kaldı",
+    "details": "Ayrıntılar",
+    "feedback": "Notun",
+    "feedbackHint": "Neyin değişmesi gerektiği (geri gönderirken gerekli)",
+    "approve": "Onayla",
+    "sendBack": "Geri gönder",
+    "retry": "Tekrar dene",
+    "readyTitle": "Takım bitirdi: bak ve onayla",
+    "changed_one": "1 dosya değişti",
+    "changed_other": "{{count}} dosya değişti",
+    "reviseHint": "Değişmesi gereken bir şey mi var? Yaz ve geri gönder; geliştiriciler tekrar çalışır, kontroller tekrar çalışır.",
+    "discard": "At",
+    "merge": "Onayla ve {{branch}} dalına birleştir",
+    "mergeNote": "Birleştirme sadece bu bilgisayarda olur. Push etmek sana kalmış.",
+    "mergedNote": "Bu bilgisayarda {{branch}} dalına birleştirildi. Hazır olunca push edebilirsin."
   }
 }

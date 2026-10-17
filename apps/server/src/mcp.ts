@@ -88,13 +88,34 @@ const TOOLS = [
     },
   },
   {
+    name: "godeye_schedule",
+    description:
+      'Schedule work for later in this project, from a plain sentence ("every Friday morning update the dependencies", "tomorrow 15:00 run the tests"). God Eye turns it into a proposal the user must approve in God Eye; at its time it runs in its own copy of the repo and the result waits for the user. Use it when the user asks for something to happen later or regularly.',
+    inputSchema: {
+      type: "object",
+      properties: {
+        sentence: { type: "string", description: "What should happen and when, in the user's words" },
+        path: pathArg,
+      },
+      required: ["sentence"],
+    },
+  },
+  {
     name: "godeye_recent_sessions",
     description: "The latest sessions in this project with their plain-language summaries.",
     inputSchema: { type: "object", properties: { path: pathArg } },
   },
 ];
 
-type Args = { path?: string; query?: string; server?: string; command?: string; reason?: string; persona?: string };
+type Args = {
+  path?: string;
+  query?: string;
+  server?: string;
+  command?: string;
+  reason?: string;
+  persona?: string;
+  sentence?: string;
+};
 
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`http://127.0.0.1:${PORT}${path}`, {
@@ -184,6 +205,13 @@ async function callTool(name: string, args: Args): Promise<string> {
       `/api/lessons/relevant?${new URLSearchParams({ q: args.query ?? "", cwd })}`,
     );
     return context || "No lesson in this project matches. Go ahead carefully.";
+  }
+  if (name === "godeye_schedule") {
+    const proposal = await post<{ summary?: string; title: string }>("/api/schedules/propose", {
+      sentence: args.sentence,
+      cwd,
+    });
+    return `Proposed: ${proposal.summary ?? proposal.title}. It waits for the user's approval on God Eye's Schedules page (or the inbox); nothing runs before that.`;
   }
   if (name === "godeye_recent_sessions") {
     const sessions = await api<

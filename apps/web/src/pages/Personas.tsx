@@ -245,6 +245,9 @@ function Scores({ personas }: { personas: Persona[] }) {
             <th className="px-3 py-2 text-start font-medium">{t("persona.title")}</th>
             <th className="px-2 py-2 text-end font-medium">{t("persona.score_sessions")}</th>
             <th className="px-2 py-2 text-end font-medium">{t("persona.score_meetings")}</th>
+            <th className="px-2 py-2 text-end font-medium">{t("persona.score_done")}</th>
+            <th className="px-2 py-2 text-end font-medium">{t("persona.score_caught")}</th>
+            <th className="px-2 py-2 text-end font-medium">{t("persona.score_rate")}</th>
             <th className="px-2 py-2 text-end font-medium">{t("persona.score_accepted")}</th>
             <th className="px-2 py-2 text-end font-medium">{t("persona.score_opinions")}</th>
             <th className="px-2 py-2 text-end font-medium">{t("persona.score_changed")}</th>
@@ -263,6 +266,11 @@ function Scores({ personas }: { personas: Persona[] }) {
               </td>
               <td className="px-2 text-end tabular-nums">{s.sessions}</td>
               <td className="px-2 text-end tabular-nums">{s.meetings}</td>
+              <td className="px-2 text-end tabular-nums">{s.tasksDone}</td>
+              <td className="px-2 text-end tabular-nums">{s.bugsCaught}</td>
+              <td className="px-2 text-end tabular-nums">
+                {s.merged + s.discarded ? `${Math.round((s.merged / (s.merged + s.discarded)) * 100)}%` : "–"}
+              </td>
               <td className="px-2 text-end tabular-nums">{s.accepted}</td>
               <td className="px-2 text-end tabular-nums">{s.opinions}</td>
               <td className="px-2 text-end tabular-nums">{s.changedMind}</td>

@@ -83,6 +83,7 @@ export function IdeasPage() {
   const [error, setError] = useState<string>();
   const [review, setReview] = useState<IdeaReview>();
   const [reviewing, setReviewing] = useState(false);
+  const [notice, setNotice] = useState<string>();
   const runReview = async () => {
     setReviewing(true);
     setError(undefined);
@@ -182,6 +183,7 @@ export function IdeasPage() {
           ))}
         </div>
         {error && <p className="text-xs text-danger">{error}</p>}
+        {notice && <p className="text-xs text-success">{notice}</p>}
         {review && (
           <ReviewPanel
             review={review}
@@ -218,6 +220,21 @@ export function IdeasPage() {
                       </>
                     )}
                     <div className="flex-1" />
+                    {idea.status === "accepted" && idea.projectId && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={async () => {
+                          await api.addCard(idea.projectId as string, {
+                            title: idea.text,
+                            origin: t("ideas.fromIdea"),
+                          });
+                          setNotice(t("ideas.onBoard", { project: name(idea.projectId) ?? "" }));
+                        }}
+                      >
+                        {t("ideas.toBoard")}
+                      </Button>
+                    )}
                     {STATUSES.filter((s) => s !== idea.status).map((status) => (
                       <Button key={status} size="sm" variant="ghost" onClick={() => setStatus(idea, status)}>
                         {t(`ideas.${status}`)}

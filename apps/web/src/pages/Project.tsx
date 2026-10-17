@@ -22,6 +22,7 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
+import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
 import { EnvironmentsTab } from "./project/Environments";
 import { MemoryTab } from "./project/Memory";
@@ -29,7 +30,17 @@ import { SectionsTab } from "./project/Sections";
 import { SessionRow } from "./project/SessionRow";
 import { ReportsCard, TimelineTab } from "./project/Timeline";
 
-const TABS = ["overview", "sections", "timeline", "sessions", "code", "memory", "environments", "setup"] as const;
+const TABS = [
+  "overview",
+  "board",
+  "sections",
+  "timeline",
+  "sessions",
+  "code",
+  "memory",
+  "environments",
+  "setup",
+] as const;
 type Tab = (typeof TABS)[number];
 
 /** Plain-language warnings about where the code stands vs. the remote (plan.md 1.2c). */
@@ -396,6 +407,8 @@ export function ProjectPage() {
           <div className="h-64 animate-pulse rounded-ui bg-bg-subtle" />
         ) : tab === "overview" ? (
           <Overview project={project} />
+        ) : tab === "board" ? (
+          <BoardTab project={project} />
         ) : tab === "sections" ? (
           <SectionsTab project={project} />
         ) : tab === "environments" ? (

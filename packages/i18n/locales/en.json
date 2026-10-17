@@ -208,7 +208,8 @@
     "sections": "Sections",
     "gitFlow": "Recommended git flow",
     "gitFlowHint": "Work on your own branch, open a PR to main, and deploy only main. When on, God Eye asks before you commit straight to main. Code on servers comes only from git.",
-    "environments": "Environments"
+    "environments": "Environments",
+    "board": "Board"
   },
   "memory": {
     "title": "Project memory",
@@ -507,7 +508,10 @@
     "verdict_later": "Later",
     "verdict_drop": "Drop",
     "reviewApply": "Apply",
-    "reviewClose": "Close"
+    "reviewClose": "Close",
+    "toBoard": "Add to the board",
+    "fromIdea": "Idea",
+    "onBoard": "Added to the board of {{project}}"
   },
   "prompts": {
     "title": "Prompts",
@@ -1948,7 +1952,7 @@
     "score_changed": "Changed mind",
     "score_tokens": "Tokens",
     "score_avg": "Avg. time",
-    "scoreNote": "Decisions kept: meetings it joined whose decision went into project memory. Bugs caught and acceptance rates come once the task board exists (Faz 8).",
+    "scoreNote": "Steps done and problems caught come from team runs (a review or gate that sent work back). Merged: share of its team runs you merged rather than threw away. Decisions kept: meetings whose decision went into project memory.",
     "exportBody": "Writes each persona as a file your AI tools read on their own: Claude Code sub-agents (.claude/agents) in a project, or Codex custom prompts. Files are overwritten on the next export.",
     "exportCodex": "Writes to the prompts folder of your Codex account; run one with /<persona id> in Codex.",
     "exportDo": "Write files",
@@ -2055,7 +2059,10 @@
       "role": "What if the database goes away or the network drops"
     },
     "inLibrary": "In the library",
-    "addBook": "Add it"
+    "addBook": "Add it",
+    "score_done": "Steps done",
+    "score_caught": "Problems caught",
+    "score_rate": "Merged"
   },
   "meeting": {
     "title": "Team meeting",
@@ -2343,5 +2350,56 @@
     "src_hfPapers": "Hugging Face daily papers",
     "saved": "Saved",
     "xNote": "X has no free legal way to read it automatically: paste the link of an important post into the Library instead."
+  },
+  "board": {
+    "col_todo": "To do",
+    "col_doing": "Doing",
+    "col_review": "Review",
+    "col_done": "Done",
+    "newCard": "New card…",
+    "add": "Add card",
+    "moveTo": "Move to {{column}}",
+    "startTip": "Start the team on it",
+    "giveTeam": "Give the team a job",
+    "request": "What should the team do?",
+    "requestHint": "For example: add user login with e-mail and password",
+    "flow": "Flow",
+    "start": "Start the team",
+    "safety": "The team works in its own copy of the repo, on its own branch, without asking. Nothing reaches your branch until you approve, and nothing is ever pushed.",
+    "archonOn": "Archon is installed: its workflows are in the list too (ones that push or open pull requests are refused).",
+    "hint": "Drag a card to Doing (or press its arrow) and the team starts. When the work is ready the card moves to Review; merging it moves it to Done.",
+    "runs": "Team runs without a card"
+  },
+  "flows": {
+    "title": "Team run",
+    "status_running": "Working",
+    "status_needs_you": "Waiting for you",
+    "status_ready": "Ready for your OK",
+    "status_done": "Done",
+    "status_failed": "Stopped on a problem",
+    "status_stopped": "Stopped",
+    "status_merged": "Merged",
+    "status_discarded": "Thrown away",
+    "name_feature": "New feature (whole team)",
+    "name_fix": "Fix a bug",
+    "desc_feature": "Plan and design (waits for your OK), backend and frontend side by side, build and tests, QA, security and DevOps review, one summary.",
+    "desc_fix": "Find and fix, build and tests, QA confirms.",
+    "attempt": "Try {{n}}",
+    "verdict_pass": "Passed",
+    "verdict_fail": "Failed",
+    "details": "Details",
+    "feedback": "Your note",
+    "feedbackHint": "What to change (needed when you send it back)",
+    "approve": "Approve",
+    "sendBack": "Send back",
+    "retry": "Try again",
+    "readyTitle": "The team is done: look and approve",
+    "changed_one": "1 file changed",
+    "changed_other": "{{count}} files changed",
+    "reviseHint": "Something to change? Write it and send it back; the developers work again and the checks run again.",
+    "discard": "Throw away",
+    "merge": "Approve and merge into {{branch}}",
+    "mergeNote": "Merging happens on this computer only. Pushing is up to you.",
+    "mergedNote": "Merged into {{branch}} on this computer. Push when you're ready."
   }
 }
