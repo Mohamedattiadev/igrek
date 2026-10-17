@@ -24,6 +24,12 @@ describe("secret scanning", () => {
   test("added lines with keys are found with file and line; placeholders and removed lines are not", () => {
     const patch = `+++ b/src/pay.ts\n@@ -1,0 +3,2 @@\n+const ok = 1;\n+const key = "${FAKE_KEY}";\n+++ b/.env.example\n@@ -0,0 +1 @@\n+STRIPE_KEY=${FAKE_KEY}\n-old = "${FAKE_KEY}"`;
     expect(secretsInPatch(patch)).toEqual([{ file: "src/pay.ts", line: 4, hint: expect.stringMatching(/^sk_l••••/) }]);
+    // Tests and fixtures hold made-up keys on purpose.
+    expect(
+      secretsInPatch(
+        `+++ b/src/pay.test.ts\n@@ -0,0 +1 @@\n+const key = "${FAKE_KEY}";\n+++ b/test/fixtures/keys.json\n@@ -0,0 +1 @@\n+"${FAKE_KEY}"`,
+      ),
+    ).toEqual([]);
   });
 
   test("new commits are scanned once; the pre-commit check answers OK or the lines", () => {

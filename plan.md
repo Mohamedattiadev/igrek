@@ -1061,7 +1061,7 @@ god-eye/
 #### 13.6 God Eye'ın kendisi
 - [ ] 🧭 **Uygulama içi rehber:** "God Eye'ı nasıl kullanırım?" sorularına cevap veren yardımcı + etkileşimli turlar
 - [ ] 🧪 **Demo proje:** ilk kurulumda güvenle denemek için hazır bir örnek proje
-- [ ] 🔧 Yerel API ve `godeye` CLI: her şey script ile de yapılabilsin
+- [x] 🔧 Yerel API ve `godeye` CLI: her şey script ile de yapılabilsin — *`godeye` komutu (package.json bin; `bun run godeye …`): status, projects, search, ask, inbox, run <proje> <akış> <istek>, recap, weekly, doctor ve her uç noktaya `godeye api GET /api/...`. Çalışan God Eye'a bu bilgisayardaki oturum anahtarıyla bağlanır (dışarı çıkmaz). Gerçek sunucuya karşı denendi*
 - [ ] 📦 Diğer araçlardan içe aktarma: Linear, Jira, Trello, Notion, GitHub Projects
 - [x] 🧹 Veri saklama politikası: eski session'ların sıkıştırılması, disk kullanım paneli — *Ayarlar > Disk ve saklama: God Eye'ın diskteki parçaları (veritabanı, arama modeli, çalışma kopyaları, yedekler…), session/mesaj sayısı; konuşma kopyalarını 30/90/180/365 gün ya da her zaman saklama; temizlik özeti olan eski konuşma kopyalarını, biten çalışmaların kopyalarını ve 30 günden eski ekran görüntülerini siler, sonra VACUUM; seçiliyse günde bir kez kendiliğinden. Özetler ve AI araçlarının kendi dosyaları silinmez*
 - [x] 🕵️ **Sıfır telemetri:** hiçbir kullanım verisi dışarı gönderilmez — *Hiçbir kullanım verisi gönderilmiyor; Ayarlar > Ağ bunu gösterir: sunucunun başladığından beri açtığı her internet adresi, kaç kez ve ne için (arama modeli, açık veritabanı, paket sürümleri, RDAP, kurlar, haberler, köprüler); sorgu dizeleri ve token'lar kaydedilmez. claude/git/gh/ssh gibi araçların kendi trafiği kapsam dışı (kendi girişlerinle kendi servislerine)*

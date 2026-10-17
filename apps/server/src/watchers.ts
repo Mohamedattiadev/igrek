@@ -27,6 +27,10 @@ export interface SecretFinding {
 }
 
 /** Added lines of a patch that look like secrets: file, line in the new file, masked hint. */
+/** Files where a key-looking value is expected and not a leak: examples, templates, tests, fixtures. */
+export const PLACEHOLDER_FILE =
+  /(^|\/)(\.env\.example|[^/]*\.sample|[^/]*\.template|[^/]*\.(test|spec)\.[cm]?[jt]sx?|[^/]*_test\.(go|py)|test_[^/]*\.py)$|(^|\/)(__tests__|fixtures|testdata)\//;
+
 export function secretsInPatch(patch: string): { file: string; line: number; hint: string }[] {
   const out: { file: string; line: number; hint: string }[] = [];
   let file = "";
@@ -42,8 +46,8 @@ export function secretsInPatch(patch: string): { file: string; line: number; hin
       continue;
     }
     if (raw.startsWith("+") && !raw.startsWith("+++")) {
-      // Example and template files are expected to hold placeholders.
-      if (!/(^|\/)(\.env\.example|.*\.sample|.*\.template)$/.test(file))
+      // Example and template files hold placeholders, and tests hold made-up keys on purpose.
+      if (!PLACEHOLDER_FILE.test(file))
         for (const s of findSecrets(raw.slice(1))) out.push({ file, line, hint: s.hint });
       line++;
     } else if (!raw.startsWith("-")) line++;
@@ -118,17 +122,21 @@ export class SecretScanner {
       at: number;
       dismissed: number;
     }[];
-    return rows
-      .filter((r) => includeDismissed || !r.dismissed)
-      .map((r) => ({
-        projectId: r.project_id,
-        hash: r.hash,
-        file: r.file,
-        line: r.line,
-        hint: r.hint,
-        at: r.at,
-        dismissed: !!r.dismissed,
-      }));
+    return (
+      rows
+        // Findings from before test files were left out.
+        .filter((r) => !PLACEHOLDER_FILE.test(r.file))
+        .filter((r) => includeDismissed || !r.dismissed)
+        .map((r) => ({
+          projectId: r.project_id,
+          hash: r.hash,
+          file: r.file,
+          line: r.line,
+          hint: r.hint,
+          at: r.at,
+          dismissed: !!r.dismissed,
+        }))
+    );
   }
 
   dismiss(projectId: string, hash: string, file: string, line: number): void {
