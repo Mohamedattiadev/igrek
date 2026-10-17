@@ -27,6 +27,8 @@ import { Databases } from "./databases";
 import { openDb } from "./db";
 import { registerDeployRoutes } from "./deploy-routes";
 import { Docker } from "./docker";
+import { Docs } from "./docs";
+import { registerDocsRoutes } from "./docs-routes";
 import { Embedder } from "./embedder";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
@@ -277,6 +279,15 @@ const databases = new Databases(
 );
 const backupJobs = new BackupJobs(sqlite, store, bus, databases, servers, join(config.dataDir, "backups"));
 setInterval(() => void backupJobs.tick(), 60_000);
+const docs = new Docs(
+  sqlite,
+  store,
+  bus,
+  databases,
+  (prompt, images) => runClaude(prompt, join(config.dataDir, "runner"), stops, "sonnet", [], undefined, images),
+  () => sync.identity().name,
+);
+sync.docs = docs;
 const briefings = new Briefings(
   sqlite,
   store,
@@ -372,6 +383,7 @@ const app = createApp({
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
+    registerDocsRoutes(hono, docs, (cwd) => store.projectForCwd(cwd) ?? undefined);
     registerDataRoutes(hono, { databases, backups: backupJobs });
     registerOpsRoutes(hono, { monitors, docker, logs, errors: appErrors, flows, port: config.publicPort });
     registerWatcherRoutes(hono, {

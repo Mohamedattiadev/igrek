@@ -24,6 +24,7 @@ import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
 import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
+import { DocsTab } from "./project/Docs";
 import { EnvironmentsTab } from "./project/Environments";
 import { MemoryTab } from "./project/Memory";
 import { MonitorTab } from "./project/Monitor";
@@ -41,6 +42,7 @@ const TABS = [
   "sessions",
   "code",
   "memory",
+  "docs",
   "environments",
   "monitor",
   "setup",
@@ -425,6 +427,8 @@ export function ProjectPage() {
           <CodeTab project={project} />
         ) : tab === "sessions" ? (
           <Sessions projectId={project.id} />
+        ) : tab === "docs" ? (
+          <DocsTab projectId={project.id} />
         ) : tab === "monitor" ? (
           <MonitorTab project={project} />
         ) : tab === "memory" ? (

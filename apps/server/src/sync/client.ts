@@ -1177,6 +1177,31 @@ export class Sync {
           });
           if (ok) this.db.query("UPDATE memory_items SET dirty = 0 WHERE id = ?").run(String(item.id));
         }
+
+        // Wiki pages and whiteboards: shared like memory, only for shared projects.
+        if (sharing && this.docs) {
+          for (const page of this.docs.dirtyPages(project.id)) {
+            const ok = await this.publish(key, "wiki", `wiki-${page.id}-${page.updated_at}`, {
+              id: page.id,
+              title: page.title,
+              body: page.body,
+              updatedAt: page.updated_at,
+              deleted: !!page.deleted,
+            });
+            if (ok) this.docs.markSent("wiki_pages", page.id, page.updated_at);
+          }
+          for (const board of this.docs.dirtyBoards(project.id)) {
+            const ok = await this.publish(key, "board", `board-${board.id}-${board.updated_at}`, {
+              id: board.id,
+              title: board.title,
+              category: board.category,
+              scene: board.scene,
+              updatedAt: board.updated_at,
+              deleted: !!board.deleted,
+            });
+            if (ok) this.docs.markSent("boards", board.id, board.updated_at);
+          }
+        }
       }
       this.lastSyncAt = Date.now();
     } finally {
@@ -1346,6 +1371,8 @@ export class Sync {
         if (event.kind === "session") this.applySession(projectId, value, author);
         else if (event.kind === "messages") this.applyMessages(value);
         else if (event.kind === "memory") this.applyMemory(projectId, value, author);
+        else if (event.kind === "wiki" || event.kind === "board")
+          this.docs?.apply(event.kind, projectId, value, author.name);
         else if (event.kind === "forget")
           // Only the session's own author can take it back.
           this.db
@@ -1510,6 +1537,8 @@ export class Sync {
 
   /** A teammate's new decision or convention arrived (checked against ours for contradictions). */
   onTeammateDecision?: (projectId: string, itemId: string) => void;
+  /** Wiki pages and boards (plan.md 12), set by the server at startup. */
+  docs?: import("../docs").Docs;
 
   private applyMemory(projectId: string, item: Record<string, unknown>, author: { id: string; name: string }): void {
     const existing = this.db

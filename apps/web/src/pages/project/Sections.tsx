@@ -45,6 +45,7 @@ import { useServerEvent } from "../../lib/live";
 import { PersonaIcon, startPersonaChat, usePersonaLabel, usePersonas } from "../../lib/personas";
 import { useSettings } from "../../lib/settings";
 import { ApiMapView } from "./ApiMap";
+import { BoardsList } from "./Boards";
 import { EnvView } from "./EnvView";
 import { ImportCard, ScoringDialog, ToolsCard } from "./SectionsExtras";
 import { DepsCard, SecretsCard } from "./Watchers";
@@ -355,6 +356,9 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
       {category === "testing" && <CoverageCard projectId={project.id} />}
       {category === "security" && <SecretsCard projectId={project.id} />}
       {category === "dependencies" && <DepsCard projectId={project.id} />}
+      <Card className="p-pad">
+        <BoardsList projectId={project.id} category={category} compact />
+      </Card>
 
       <Card className="space-y-3 p-pad">
         <div className="flex items-center gap-2">

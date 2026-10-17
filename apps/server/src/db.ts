@@ -642,6 +642,39 @@ const migrations: string[] = [
      started_at INTEGER NOT NULL
    );
    CREATE INDEX backup_runs_job ON backup_runs(job_id, started_at);`,
+  // Faz 12: project wiki and whiteboards (shared with the team like memory, end-to-end encrypted).
+  `CREATE TABLE wiki_pages (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     slug TEXT NOT NULL,
+     title TEXT NOT NULL,
+     body TEXT NOT NULL,
+     updated_at INTEGER NOT NULL,
+     author_name TEXT,
+     deleted INTEGER NOT NULL DEFAULT 0,
+     dirty INTEGER NOT NULL DEFAULT 1
+   );
+   CREATE INDEX wiki_pages_project ON wiki_pages(project_id, slug);
+   CREATE TABLE boards (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     category TEXT,
+     title TEXT NOT NULL,
+     scene TEXT NOT NULL,
+     updated_at INTEGER NOT NULL,
+     author_name TEXT,
+     deleted INTEGER NOT NULL DEFAULT 0,
+     dirty INTEGER NOT NULL DEFAULT 1
+   );
+   CREATE INDEX boards_project ON boards(project_id);
+   CREATE TABLE board_versions (
+     id TEXT PRIMARY KEY,
+     board_id TEXT NOT NULL,
+     at INTEGER NOT NULL,
+     scene TEXT NOT NULL,
+     author_name TEXT
+   );
+   CREATE INDEX board_versions_board ON board_versions(board_id, at);`,
 ];
 
 export function migrate(sqlite: Database): number {

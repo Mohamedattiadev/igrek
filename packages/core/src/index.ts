@@ -1,4 +1,5 @@
 export * from "./data";
+export * from "./docs";
 export * from "./flows";
 export * from "./insight";
 export * from "./knowledge";
@@ -660,6 +661,7 @@ export type ServerMessage =
   | { type: "devservers-changed"; projectId: string }
   | { type: "i18n-progress"; code: string }
   | { type: "monitors-changed" }
+  | { type: "docs-changed"; projectId: string }
   | { type: "ops-changed"; what: string }
   /** Something that needs a desktop notification right away (a site went down, a new app error). */
   | { type: "alert"; kind: "down" | "up" | "appError" | "backupFailed"; title: string; link: string };

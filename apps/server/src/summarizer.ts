@@ -130,6 +130,8 @@ export async function runClaude(
   model: string,
   extraArgs: string[] = [],
   accountId?: string,
+  /** Pictures that go with the prompt (PNG/JPEG, base64): sent as one stream-json message. */
+  images: { mediaType: string; data: string }[] = [],
 ): Promise<string> {
   const account = claudeAccount.env(accountId);
   // Our own small jobs run in an empty folder. Stop git from finding a repo above it (a dev
@@ -147,11 +149,28 @@ export async function runClaude(
       "--output-format",
       "stream-json",
       "--verbose",
+      ...(images.length ? ["--input-format", "stream-json"] : []),
       ...extraArgs,
     ],
     {
       cwd,
-      stdin: new Blob([prompt]),
+      stdin: new Blob([
+        images.length
+          ? `${JSON.stringify({
+              type: "user",
+              message: {
+                role: "user",
+                content: [
+                  ...images.map((img) => ({
+                    type: "image",
+                    source: { type: "base64", media_type: img.mediaType, data: img.data },
+                  })),
+                  { type: "text", text: prompt },
+                ],
+              },
+            })}\n`
+          : prompt,
+      ]),
       stdout: "pipe",
       stderr: "pipe",
       env: cleanEnv({

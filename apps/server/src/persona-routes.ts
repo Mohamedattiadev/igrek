@@ -208,7 +208,11 @@ export function connectPersonaChats(
         ...(mcp
           ? {
               mcpConfig: JSON.stringify({ mcpServers: { godeye: mcp } }),
-              allowTools: ["mcp__godeye__library_search", "mcp__godeye__godeye_project_memory"],
+              allowTools: [
+                "mcp__godeye__library_search",
+                "mcp__godeye__godeye_project_memory",
+                "mcp__godeye__godeye_wiki",
+              ],
             }
           : {}),
       },

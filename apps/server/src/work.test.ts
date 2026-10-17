@@ -375,6 +375,7 @@ describe("MCP server", () => {
     expect(list.tools.map((t) => t.name)).toEqual([
       "godeye_project_memory",
       "godeye_search",
+      "godeye_wiki",
       "godeye_servers",
       "godeye_server_run",
       "library_search",

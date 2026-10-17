@@ -2,6 +2,8 @@ import type {
   AppErrorGroup,
   BackupJob,
   BackupRun,
+  Board,
+  BoardVersion,
   DbConnection,
   DbResult,
   DbSuggestion,
@@ -13,6 +15,7 @@ import type {
   LogSource,
   UptimeCheck,
   UptimeMonitor,
+  WikiPage,
 } from "@godeye/core";
 import { request } from "./api";
 
@@ -120,4 +123,34 @@ export const dataApi = {
   runBackup: (id: string) => post<BackupRun>(`/api/backups/${id}/run`),
   verifyBackup: (runId: string) => post<BackupRun>(`/api/backup-runs/${runId}/verify`),
   restoreBackup: (runId: string) => post<{ file: string }>(`/api/backup-runs/${runId}/restore`),
+};
+
+/** Project wiki and whiteboards (plan.md 12). */
+export const docsApi = {
+  pages: (projectId: string) => request<WikiPage[]>(`/api/projects/${projectId}/wiki`),
+  savePage: (projectId: string, page: { id?: string; title: string; body: string }) =>
+    post<WikiPage>(`/api/projects/${projectId}/wiki`, page),
+  removePage: (id: string) => del(`/api/wiki/${id}`),
+  pageContext: (id: string) =>
+    request<{
+      backlinks: { id: string; title: string }[];
+      missing: string[];
+      memory: { id: string; section: string; text: string }[];
+    }>(`/api/wiki/${id}/context`),
+  boards: (projectId: string, category?: string) =>
+    request<Board[]>(`/api/projects/${projectId}/boards${category ? `?category=${category}` : ""}`),
+  createBoard: (projectId: string, body: { title: string; category?: string }) =>
+    post<Board>(`/api/projects/${projectId}/boards`, body),
+  board: (id: string) => request<Board & { scene: string }>(`/api/boards/${id}`),
+  saveBoard: (id: string, body: { scene?: string; title?: string; category?: string | null }) =>
+    request<Board>(`/api/boards/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  removeBoard: (id: string) => del(`/api/boards/${id}`),
+  versions: (id: string) => request<BoardVersion[]>(`/api/boards/${id}/versions`),
+  restoreVersion: (id: string, version: string) => post<Board>(`/api/boards/${id}/versions/${version}/restore`),
+  ask: (id: string, body: { mode: string; png?: string; elements?: unknown[]; language: string; question?: string }) =>
+    post<{ answer: string; mermaid?: string }>(`/api/boards/${id}/ask`, body),
+  draw: (
+    projectId: string,
+    body: { what: "schema" | "architecture" | "flow"; connectionId?: string; prompt?: string; language: string },
+  ) => post<{ mermaid: string }>(`/api/projects/${projectId}/draw`, body),
 };

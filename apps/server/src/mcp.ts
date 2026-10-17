@@ -46,6 +46,16 @@ const TOOLS = [
     },
   },
   {
+    name: "godeye_wiki",
+    description:
+      "Search this project's wiki (the team's own documentation pages in God Eye). Use it for how things are meant to work here: setup, architecture notes, decisions written up as pages.",
+    inputSchema: {
+      type: "object",
+      properties: { query: { type: "string" }, path: pathArg },
+      required: ["query"],
+    },
+  },
+  {
     name: "godeye_servers",
     description: "Servers the user saved in God Eye (name, ssh target, tag like prod/test).",
     inputSchema: { type: "object", properties: {} },
@@ -155,6 +165,12 @@ async function callTool(name: string, args: Args): Promise<string> {
           `- ${new Date(h.ts).toISOString().slice(0, 10)} · ${h.projectName ?? ""} · ${h.sessionTitle}: ${h.snippet.replace(/\[\[|\]\]/g, "")}`,
       )
       .join("\n");
+  }
+  if (name === "godeye_wiki") {
+    const pages = await api<{ title: string; excerpt: string }[]>(
+      `/api/agent/wiki?cwd=${encodeURIComponent(cwd)}&q=${encodeURIComponent(args.query ?? "")}`,
+    );
+    return pages.length ? pages.map((p) => `## ${p.title}\n${p.excerpt}`).join("\n\n") : "No wiki pages match.";
   }
   if (name === "godeye_servers") {
     const list = await api<{ name: string; target: string; tag: string }[]>("/api/agent/servers");
