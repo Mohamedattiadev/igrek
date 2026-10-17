@@ -8,6 +8,7 @@ import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
+import { ImportCards } from "./ImportCards";
 import { Roadmap } from "./Roadmap";
 
 const COLUMNS: TaskStatus[] = ["todo", "doing", "review", "done"];
@@ -184,15 +185,19 @@ export function BoardTab({ project }: { project: ProjectDetail }) {
   const looseRuns = runs.filter((r) => !r.taskId).slice(0, 5);
 
   const views = (
-    <Segmented
-      label={t("roadmap.view")}
-      value={view}
-      onChange={setView}
-      options={[
-        { value: "board", label: t("roadmap.boardView") },
-        { value: "roadmap", label: t("roadmap.title") },
-      ]}
-    />
+    <div className="flex flex-wrap items-center gap-2">
+      <Segmented
+        label={t("roadmap.view")}
+        value={view}
+        onChange={setView}
+        options={[
+          { value: "board", label: t("roadmap.boardView") },
+          { value: "roadmap", label: t("roadmap.title") },
+        ]}
+      />
+      <div className="flex-1" />
+      <ImportCards projectId={project.id} />
+    </div>
   );
   if (view === "roadmap")
     return (

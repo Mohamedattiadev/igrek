@@ -13,6 +13,7 @@ import { useVimNavigation } from "../lib/vim";
 import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CommandPalette } from "./CommandPalette";
+import { HelpGuide } from "./HelpGuide";
 import { IdeaCapture } from "./IdeaCapture";
 import { useLanguagePackSync } from "./LanguagePack";
 import { NAV_ITEMS, type NavItem } from "./nav";
@@ -105,6 +106,7 @@ function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message
         </span>
       </button>
       <div className="flex-1" />
+      <HelpGuide />
       <SyncChip />
       <span data-tour="account" className="flex">
         <AccountChip />

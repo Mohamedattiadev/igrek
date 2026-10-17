@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   Briefcase,
+  FlaskConical,
   FolderKanban,
   FolderPlus,
   GitBranch,
@@ -22,7 +23,7 @@ import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "
 import { useWorkspace } from "../components/WorkspacePicker";
 import { DayEndButton } from "../components/Writeups";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
-import { api } from "../lib/api";
+import { api, request } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useIndexStatus, useLiveData } from "../lib/live";
 
@@ -245,7 +246,9 @@ function NewProject() {
             </p>
           )}
           {error && <p className="text-xs text-danger">{error}</p>}
-          <div className="flex justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <DemoButton parent={parent} />
+            <div className="flex-1" />
             <Button variant="ghost" onClick={() => setOpen(false)}>
               {t("memory.cancel")}
             </Button>
@@ -256,6 +259,43 @@ function NewProject() {
         </div>
       </Dialog>
     </>
+  );
+}
+
+/** A demo project to try everything safely (plan.md 13.6). */
+function DemoButton({ parent }: { parent?: string }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  return (
+    <span className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        icon={FlaskConical}
+        disabled={busy}
+        data-tip={error ?? t("demo.tip")}
+        onClick={async () => {
+          setBusy(true);
+          setError(undefined);
+          try {
+            const r = await request<{ projectId: string }>("/api/demo", {
+              method: "POST",
+              body: JSON.stringify({ parent: parent || undefined }),
+            });
+            navigate(`/p/${r.projectId}`);
+          } catch (err) {
+            setError((err as Error).message);
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? t("templates.creating") : t("demo.button")}
+      </Button>
+      {error && <span className="text-xs text-danger">{error}</span>}
+    </span>
   );
 }
 
@@ -358,9 +398,12 @@ export function ProjectsPage() {
           title={t("projects.emptyTitle")}
           body={t("projects.emptyBody")}
           action={
-            <Button icon={Settings} onClick={() => navigate("/settings")}>
-              {t("projects.emptyAction")}
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button icon={Settings} onClick={() => navigate("/settings")}>
+                {t("projects.emptyAction")}
+              </Button>
+              <DemoButton />
+            </div>
           }
         />
       ) : (

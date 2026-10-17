@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { APP_VERSION, type ClientMessage, citation, lessonLines, type ServerMessage } from "@godeye/core";
+import { APP_VERSION, type ClientMessage, citation, HELP_TOPICS, lessonLines, type ServerMessage } from "@godeye/core";
+import { bundledResources } from "@godeye/i18n";
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
 import { Accounts } from "./accounts";
@@ -31,6 +32,7 @@ import { CrossCheck } from "./crosscheck";
 import { registerDataRoutes } from "./data-routes";
 import { Databases } from "./databases";
 import { openDb } from "./db";
+import { createDemo } from "./demo";
 import { registerDeployRoutes } from "./deploy-routes";
 import { Docker } from "./docker";
 import { Docs } from "./docs";
@@ -46,7 +48,7 @@ import { registerExtrasRoutes } from "./extras-routes";
 import { FeedbackBox } from "./feedback";
 import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
-import { registerArenaRoutes, registerFlowRoutes } from "./flow-routes";
+import { registerArenaRoutes, registerFlowRoutes, registerImportRoutes } from "./flow-routes";
 import { Flows } from "./flows";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
@@ -537,6 +539,62 @@ const app = createApp({
     registerKnowledgeRoutes(hono, knowledge);
     registerFlowRoutes(hono, { flows, board, store });
     registerArenaRoutes(hono, new Arena(sqlite, flows));
+    registerImportRoutes(hono, board, store);
+    hono.post("/api/help", async (c) => {
+      const body = (await c.req.json().catch(() => ({}))) as { question?: string };
+      const question = String(body.question ?? "")
+        .trim()
+        .slice(0, 500);
+      if (!question) return c.json({ error: "Write a question" }, 400);
+      const language = readSettings(db).language;
+      const guide = HELP_TOPICS.map((t) => {
+        const help = (bundledResources.en as unknown as { help: Record<string, string> }).help;
+        return `[${t.id}] ${help[`t_${t.id}`]} (open: ${t.path}): ${help[`d_${t.id}`]}`;
+      }).join("\n");
+      try {
+        const answer = await runClaude(
+          [
+            `You are the in-app guide of God Eye. Answer the user's question in the language with code "${language}", only from the guide below: where to click and what happens, in two to five short sentences. Name the page or tab. If the guide doesn't cover it, say so plainly. End with one line "TOPICS: id, id" listing the guide entries you used.`,
+            "Guide:",
+            guide,
+            `Question: ${question}`,
+          ].join("\n\n"),
+          join(config.dataDir, "runner"),
+          stops,
+          "haiku",
+        );
+        const topics = (answer.match(/TOPICS:\s*(.+)$/m)?.[1] ?? "")
+          .split(/[,\s]+/)
+          .filter((id) => HELP_TOPICS.some((t) => t.id === id));
+        return c.json({ answer: answer.replace(/\n?TOPICS:.*$/m, "").trim(), topics });
+      } catch (err) {
+        return c.json({ error: (err as Error).message }, 400);
+      }
+    });
+    hono.post("/api/demo", async (c) => {
+      const body = (await c.req.json().catch(() => ({}))) as { parent?: string };
+      try {
+        const out = createDemo(
+          {
+            store,
+            docs,
+            board,
+            addMilestone: (projectId, title, at) =>
+              sqlite
+                .query(
+                  "INSERT INTO calendar_events (id, kind, title, at, project_id, created_at) VALUES (?, 'milestone', ?, ?, ?, ?)",
+                )
+                .run(`ev-${crypto.randomUUID().slice(0, 10)}`, title, at, projectId, Date.now()),
+          },
+          body.parent,
+          readSettings(db).language,
+        );
+        bus.publish({ type: "sessions-changed", projectIds: [out.projectId], sessionIds: [] });
+        return c.json(out);
+      } catch (err) {
+        return c.json({ error: (err as Error).message }, 400);
+      }
+    });
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
     registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });

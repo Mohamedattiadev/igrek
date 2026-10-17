@@ -154,3 +154,54 @@ export function registerArenaRoutes(app: Hono, arena: import("./arena").Arena): 
     }
   });
 }
+
+/** Import cards from Trello, Jira, Linear, Notion or a GitHub project (plan.md 13.6). */
+export function registerImportRoutes(app: Hono, board: import("./board").Board, store: import("./store").Store): void {
+  app.post("/api/projects/:id/import", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as {
+      source?: string;
+      text?: string;
+      owner?: string;
+      number?: number;
+    };
+    const projectId = c.req.param("id");
+    if (!store.projectRow(projectId)) return c.json({ error: "Project not found" }, 404);
+    const { importCards, readImport } = await import("./imports");
+    try {
+      let text = String(body.text ?? "");
+      const source = body.source as import("./imports").ImportSource;
+      if (!["trello", "jira", "linear", "notion", "github"].includes(source)) throw new Error("Unknown source");
+      if (source === "github" && !text) {
+        // A GitHub project read with the user's own gh login.
+        if (!/^[\w.-]{1,40}$/.test(String(body.owner ?? "")) || !Number(body.number))
+          throw new Error("Give the owner and the project number");
+        const p = Bun.spawnSync(
+          [
+            "gh",
+            "project",
+            "item-list",
+            String(Number(body.number)),
+            "--owner",
+            String(body.owner),
+            "--format",
+            "json",
+            "--limit",
+            "500",
+          ],
+          {
+            stdout: "pipe",
+            stderr: "pipe",
+            timeout: 60_000,
+          },
+        );
+        if (p.exitCode !== 0)
+          throw new Error(p.stderr.toString().trim().slice(0, 300) || "gh could not read the project");
+        text = p.stdout.toString();
+      }
+      if (text.length > 20_000_000) throw new Error("The file is too big");
+      return c.json(importCards(board, projectId, readImport(source, text)));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+}

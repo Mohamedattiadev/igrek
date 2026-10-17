@@ -84,6 +84,17 @@ export class Board {
     return this.get(id) as BoardTask;
   }
 
+  /** Cards from another tool keep their column, without starting the team (plan.md 13.6). */
+  addImported(
+    projectId: string,
+    card: { title: string; description?: string; status: TaskStatus; origin: string },
+  ): BoardTask {
+    const task = this.add({ projectId, title: card.title, description: card.description, origin: card.origin });
+    if (card.status !== "todo")
+      this.db.query("UPDATE board_tasks SET status = ? WHERE id = ?").run(card.status, task.id);
+    return this.get(task.id) as BoardTask;
+  }
+
   update(id: string, patch: { title?: unknown; description?: unknown }): BoardTask | undefined {
     const task = this.get(id);
     if (!task) return undefined;
