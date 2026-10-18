@@ -33,6 +33,7 @@ COPY packages/i18n/package.json packages/i18n/
 COPY packages/genui/package.json packages/genui/
 COPY packages/learn/package.json packages/learn/
 RUN bun install --frozen-lockfile --filter '@godeye/web'
+COPY tsconfig.base.json ./
 COPY packages/core packages/core
 COPY packages/i18n packages/i18n
 COPY apps/web apps/web
