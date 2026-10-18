@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
-import { DEFAULT_SETTINGS } from "@godeye/core";
+import { DEFAULT_SETTINGS } from "@igrek/core";
 import { Assist, fillPrompt, promptVariables } from "./assist";
 import { StopRegistry } from "./bus";
 import { migrate } from "./db";

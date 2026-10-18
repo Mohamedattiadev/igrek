@@ -1,4 +1,4 @@
-import type { LogLine, LogSource, ServerInfo } from "@godeye/core";
+import type { LogLine, LogSource, ServerInfo } from "@igrek/core";
 import { Plus, RefreshCw, ScrollText, Search, Wrench, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

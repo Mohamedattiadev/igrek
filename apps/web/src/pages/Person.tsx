@@ -1,4 +1,4 @@
-import type { TeamActivity } from "@godeye/core";
+import type { TeamActivity } from "@igrek/core";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

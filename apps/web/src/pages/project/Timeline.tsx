@@ -1,4 +1,4 @@
-import type { Digest, TimelineEntry } from "@godeye/core";
+import type { Digest, TimelineEntry } from "@igrek/core";
 import { CalendarDays, FileText, GitCommitHorizontal, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

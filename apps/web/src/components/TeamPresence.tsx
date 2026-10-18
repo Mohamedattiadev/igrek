@@ -1,4 +1,4 @@
-import type { Presence } from "@godeye/core";
+import type { Presence } from "@igrek/core";
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

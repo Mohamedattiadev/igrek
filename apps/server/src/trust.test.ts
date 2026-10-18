@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ChatEvent } from "@godeye/core";
+import type { ChatEvent } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { Chats } from "./chats";
 import { openDb } from "./db";

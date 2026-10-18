@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { chmodSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { findSecrets, type InboxNotice } from "@godeye/core";
+import { findSecrets, type InboxNotice } from "@igrek/core";
 import type { Store } from "./store";
 
 const MARK = "godeye-secret-guard";

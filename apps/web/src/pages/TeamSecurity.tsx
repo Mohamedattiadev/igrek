@@ -1,4 +1,4 @@
-import type { HubAlertInfo, KeyRequest, TeamUser } from "@godeye/core";
+import type { HubAlertInfo, KeyRequest, TeamUser } from "@igrek/core";
 import { BellRing, KeyRound, LaptopMinimal, LogOut, RefreshCcw, ShieldCheck, Smartphone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -9,8 +9,8 @@ import {
   type ScheduleWhen,
   type Settings,
   scrub,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Bus } from "./bus";
 import type { Flows } from "./flows";
 import type { Store } from "./store";

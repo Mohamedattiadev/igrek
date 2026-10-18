@@ -1,4 +1,4 @@
-import type { LibraryKind } from "@godeye/core";
+import type { LibraryKind } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Embedder } from "./embedder";
 import type { Library } from "./library";

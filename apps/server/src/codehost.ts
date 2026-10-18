@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { CodeHostInfo, HostIssue, HostPull, HostRun } from "@godeye/core";
+import type { CodeHostInfo, HostIssue, HostPull, HostRun } from "@igrek/core";
 import type { Board } from "./board";
 import type { Store } from "./store";
 

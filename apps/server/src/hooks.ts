@@ -1,6 +1,6 @@
 import { appendFileSync, chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { MemorySection, SessionSummaryData } from "@godeye/core";
+import type { MemorySection, SessionSummaryData } from "@igrek/core";
 import type { Store } from "./store";
 
 const MARKER = "godeye-hook";

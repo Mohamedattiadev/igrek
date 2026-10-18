@@ -1,4 +1,4 @@
-import type { AnalyticsSummary, DbConnection, DbTable } from "@godeye/core";
+import type { AnalyticsSummary, DbConnection, DbTable } from "@igrek/core";
 import { ArrowDownRight, ArrowUpRight, BarChart3, Settings2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

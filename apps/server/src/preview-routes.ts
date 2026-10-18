@@ -1,5 +1,5 @@
 import { dirname } from "node:path";
-import type { PickedElement } from "@godeye/core";
+import type { PickedElement } from "@igrek/core";
 import type { Hono } from "hono";
 import type { StopRegistry } from "./bus";
 import { cleanEnv } from "./env";

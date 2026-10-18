@@ -11,7 +11,7 @@ import {
   registrableDomain,
   type UptimeCheck,
   type UptimeMonitor,
-} from "@godeye/core";
+} from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Store } from "./store";
 

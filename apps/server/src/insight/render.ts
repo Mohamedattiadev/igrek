@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
-import type { RenderAdvice, RenderMode } from "@godeye/core";
+import type { RenderAdvice, RenderMode } from "@igrek/core";
 
 /**
  * Render strategy per page for Next.js projects (plan.md 15.4): how each page renders today,

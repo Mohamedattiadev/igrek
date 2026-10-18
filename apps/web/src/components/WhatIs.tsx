@@ -1,4 +1,4 @@
-import type { LearnHit } from "@godeye/learn";
+import type { LearnHit } from "@igrek/learn";
 import { BookOpen, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

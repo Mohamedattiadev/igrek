@@ -1,4 +1,4 @@
-import type { TaskStatus } from "@godeye/core";
+import type { TaskStatus } from "@igrek/core";
 import type { Hono } from "hono";
 import { archonBin, archonWorkflows, startArchon } from "./archon";
 import { arenaModels } from "./arena";

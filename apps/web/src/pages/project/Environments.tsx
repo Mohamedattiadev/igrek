@@ -5,7 +5,7 @@ import type {
   EnvironmentState,
   ProjectDetail,
   ServerInfo,
-} from "@godeye/core";
+} from "@igrek/core";
 import {
   CheckCircle2,
   CircleAlert,

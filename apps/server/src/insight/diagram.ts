@@ -1,4 +1,4 @@
-import type { DiagramSet } from "@godeye/core";
+import type { DiagramSet } from "@igrek/core";
 import type { Snapshot } from "./snapshot";
 
 const SOURCE = /\.(ts|tsx|js|jsx|mjs|cjs|mts|cts|vue|svelte|py)$/;

@@ -3,7 +3,7 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_SETTINGS } from "@godeye/core";
+import { DEFAULT_SETTINGS } from "@igrek/core";
 import { Hub } from "../../../hub/src/hub";
 import { createHubServer } from "../../../hub/src/server";
 import { Board } from "../board";

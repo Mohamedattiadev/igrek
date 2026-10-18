@@ -1,4 +1,4 @@
-import type { EnvChange, EnvIssue, EnvKeyRow, EnvOverview, ServerInfo } from "@godeye/core";
+import type { EnvChange, EnvIssue, EnvKeyRow, EnvOverview, ServerInfo } from "@igrek/core";
 import {
   ArrowLeft,
   Eye,

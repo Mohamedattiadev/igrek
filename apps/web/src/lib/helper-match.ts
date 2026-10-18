@@ -1,4 +1,4 @@
-import type { ProjectListItem } from "@godeye/core";
+import type { ProjectListItem } from "@igrek/core";
 
 /** Plain word matching for the helper (no AI): intents and project names in TR and EN. */
 const FOLD: Record<string, string> = { ı: "i", ş: "s", ğ: "g", ü: "u", ö: "o", ç: "c", â: "a", î: "i" };

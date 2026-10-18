@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { Database as Sqlite } from "bun:sqlite";
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
-import type { BackupJob, BackupRun, InboxNotice } from "@godeye/core";
+import type { BackupJob, BackupRun, InboxNotice } from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Databases } from "./databases";
 import type { Servers } from "./servers";

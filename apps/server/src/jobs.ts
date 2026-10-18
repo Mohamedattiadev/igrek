@@ -1,4 +1,4 @@
-import type { PackageCheck, Settings } from "@godeye/core";
+import type { PackageCheck, Settings } from "@igrek/core";
 import { gitLog } from "./adapters/git";
 import type { Bus } from "./bus";
 import type { Store } from "./store";

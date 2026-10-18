@@ -10,7 +10,7 @@ import {
   type DbSuggestion,
   type DbTable,
   isWriteSql,
-} from "@godeye/core";
+} from "@igrek/core";
 import type { EnvFiles } from "./envfiles";
 import type { Sealer } from "./seal";
 import type { Store } from "./store";

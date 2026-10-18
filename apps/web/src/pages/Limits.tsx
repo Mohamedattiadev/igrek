@@ -1,4 +1,4 @@
-import type { Account, AiTool, LimitsOverview, MonthlyReport, RateLimitInfo, UsageBucket } from "@godeye/core";
+import type { Account, AiTool, LimitsOverview, MonthlyReport, RateLimitInfo, UsageBucket } from "@igrek/core";
 import { AlertTriangle, CheckCircle2, Download, Gauge, LogIn, Plus, RefreshCw, Trash2, User } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

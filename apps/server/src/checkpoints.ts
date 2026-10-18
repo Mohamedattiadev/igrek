@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdtempSync, rmSync, statSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
-import type { Checkpoint } from "@godeye/core";
+import type { Checkpoint } from "@igrek/core";
 
 const REF_PREFIX = "refs/godeye/checkpoints/";
 /** Untracked files larger than this are left out of snapshots (and left alone by restores). */

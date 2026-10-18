@@ -1,8 +1,8 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { languages } from "@godeye/i18n";
-import { pick, STAGES, type Title, titleOf } from "@godeye/learn";
+import { languages } from "@igrek/i18n";
+import { pick, STAGES, type Title, titleOf } from "@igrek/learn";
 import type { Hono } from "hono";
 import type { AppErrors } from "./apperrors";
 import type { Environments } from "./environments";

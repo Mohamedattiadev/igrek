@@ -1,4 +1,4 @@
-import type { SceneElement } from "@godeye/core";
+import type { SceneElement } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Docs } from "./docs";
 

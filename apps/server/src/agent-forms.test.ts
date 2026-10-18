@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { checkAnswers, formFields } from "@godeye/core";
+import { checkAnswers, formFields } from "@igrek/core";
 import { AgentRequests } from "./agent-requests";
 import type { EnvFiles } from "./envfiles";
 import type { Personas } from "./personas";

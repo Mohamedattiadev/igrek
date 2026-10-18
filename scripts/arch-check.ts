@@ -55,7 +55,7 @@ export const RULES: Rule[] = [
   },
 ];
 
-/** Workspace packages by name, with their entry files ("@godeye/learn/load" → its load.ts). */
+/** Workspace packages by name, with their entry files ("@igrek/learn/load" → its load.ts). */
 function workspaces(): Map<string, string> {
   const map = new Map<string, string>();
   for (const group of ["apps", "packages"])

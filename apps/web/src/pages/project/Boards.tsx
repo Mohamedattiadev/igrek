@@ -1,4 +1,4 @@
-import type { Board, BoardVersion, DbConnection } from "@godeye/core";
+import type { Board, BoardVersion, DbConnection } from "@igrek/core";
 import {
   ArrowLeft,
   Database,

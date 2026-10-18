@@ -1,4 +1,4 @@
-import type { Lesson } from "@godeye/core";
+import type { Lesson } from "@igrek/core";
 import { EyeOff, NotebookPen, Plus, Repeat2, ScrollText, Search, Trash2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

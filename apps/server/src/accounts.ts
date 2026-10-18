@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { chmodSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Account, AiTool, RateLimitInfo } from "@godeye/core";
+import type { Account, AiTool, RateLimitInfo } from "@igrek/core";
 import type { Bus } from "./bus";
 import { cleanEnv } from "./env";
 

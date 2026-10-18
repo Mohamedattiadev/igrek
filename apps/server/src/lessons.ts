@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
-import { type Lesson, type LessonKind, lessonLines, type Settings, scrub } from "@godeye/core";
-import { languages } from "@godeye/i18n";
+import { type Lesson, type LessonKind, lessonLines, type Settings, scrub } from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import type { Embed } from "./embedder";
 import type { Library } from "./library";

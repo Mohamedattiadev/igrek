@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { citation, type EmbedderStatus } from "@godeye/core";
+import { citation, type EmbedderStatus } from "@igrek/core";
 import { Bus } from "./bus";
 import { openDb } from "./db";
 import type { Embed } from "./embedder";

@@ -1,4 +1,4 @@
-import type { TesterProfile, TesterRun, TesterSession } from "@godeye/core";
+import type { TesterProfile, TesterRun, TesterSession } from "@igrek/core";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,

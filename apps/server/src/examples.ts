@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { type SessionSummaryData, scrub } from "@godeye/core";
+import { type SessionSummaryData, scrub } from "@igrek/core";
 import type { Library } from "./library";
 import type { Store } from "./store";
 

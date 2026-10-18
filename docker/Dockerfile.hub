@@ -16,7 +16,7 @@ COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 COPY packages/genui/package.json packages/genui/
 COPY packages/learn/package.json packages/learn/
-RUN bun install --frozen-lockfile --production --filter '@godeye/hub'
+RUN bun install --frozen-lockfile --production --filter '@igrek/hub'
 COPY apps/hub/src apps/hub/src
 RUN bun build apps/hub/src/main.ts --compile --minify --outfile /out/god-eye-hub \
  && mkdir -p /out/data
@@ -32,7 +32,7 @@ COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 COPY packages/genui/package.json packages/genui/
 COPY packages/learn/package.json packages/learn/
-RUN bun install --frozen-lockfile --filter '@godeye/web'
+RUN bun install --frozen-lockfile --filter '@igrek/web'
 COPY tsconfig.base.json ./
 COPY packages/core packages/core
 COPY packages/i18n packages/i18n

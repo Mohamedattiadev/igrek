@@ -23,8 +23,8 @@ import {
   type ToolKind,
   type ToolPlan,
   type ToolResult,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "../bus";
 import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";

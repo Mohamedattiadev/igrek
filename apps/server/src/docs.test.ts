@@ -10,7 +10,7 @@ import {
   schemaFlowchart,
   slugify,
   wikiLinks,
-} from "@godeye/core";
+} from "@igrek/core";
 import { Bus } from "./bus";
 import type { Databases } from "./databases";
 import { openDb } from "./db";

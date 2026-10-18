@@ -1,4 +1,4 @@
-import type { ArenaMatch, ArenaStat, FlowRun } from "@godeye/core";
+import type { ArenaMatch, ArenaStat, FlowRun } from "@igrek/core";
 import { Swords, Trophy } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

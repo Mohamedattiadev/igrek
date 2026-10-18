@@ -1,4 +1,4 @@
-import type { ProjectNeeds } from "@godeye/core";
+import type { ProjectNeeds } from "@igrek/core";
 import type { Hono } from "hono";
 import type { BackupFile, Backups } from "./backup";
 import type { Flows } from "./flows";

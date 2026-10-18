@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { Incident } from "@godeye/core";
+import type { Incident } from "@igrek/core";
 import type { AppErrors } from "./apperrors";
 import type { Bus } from "./bus";
 import type { Docs } from "./docs";

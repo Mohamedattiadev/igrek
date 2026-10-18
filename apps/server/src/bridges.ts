@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { BRIDGE_EVENTS, type Bridge, type BridgeEvent, type BridgeKind, scrub } from "@godeye/core";
+import { BRIDGE_EVENTS, type Bridge, type BridgeEvent, type BridgeKind, scrub } from "@igrek/core";
 import nodemailer from "nodemailer";
 import type { Sealer } from "./seal";
 

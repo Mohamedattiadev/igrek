@@ -20,8 +20,8 @@ import {
   titleOf,
   versionParts,
   words,
-} from "@godeye/learn";
-import { type Content, loadContent } from "@godeye/learn/load";
+} from "@igrek/learn";
+import { type Content, loadContent } from "@igrek/learn/load";
 
 type Ask = (prompt: string) => Promise<string>;
 

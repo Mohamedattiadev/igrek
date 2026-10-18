@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join, normalize, sep } from "node:path";
 import { brotliCompressSync, constants as zlibConstants } from "node:zlib";
-import { APP_VERSION, type SystemStatus } from "@godeye/core";
-import { languages } from "@godeye/i18n";
+import { APP_VERSION, type SystemStatus } from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import { Hono } from "hono";
 import type { Bus, StopRegistry } from "./bus";
 import type { Config } from "./config";

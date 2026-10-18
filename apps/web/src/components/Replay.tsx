@@ -1,4 +1,4 @@
-import type { TranscriptMessage } from "@godeye/core";
+import type { TranscriptMessage } from "@igrek/core";
 import { ChevronLeft, ChevronRight, FilePen, Pause, Play, SkipBack } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

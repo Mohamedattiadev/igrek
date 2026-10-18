@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { type Feedback, scrub } from "@godeye/core";
+import { type Feedback, scrub } from "@igrek/core";
 import type { AppErrors } from "./apperrors";
 import type { Board } from "./board";
 import type { Bus } from "./bus";

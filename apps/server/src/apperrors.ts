@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { type AppErrorEvent, type AppErrorGroup, errorFingerprint, type InboxNotice } from "@godeye/core";
+import { type AppErrorEvent, type AppErrorGroup, errorFingerprint, type InboxNotice } from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Store } from "./store";
 

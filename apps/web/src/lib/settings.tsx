@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type Settings } from "@godeye/core";
+import { DEFAULT_SETTINGS, type Settings } from "@igrek/core";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
 import { applyLanguage, loadBundled } from "./i18n";

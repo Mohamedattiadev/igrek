@@ -1,4 +1,4 @@
-import type { SessionListItem } from "@godeye/core";
+import type { SessionListItem } from "@igrek/core";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { Badge } from "../../components/ui";

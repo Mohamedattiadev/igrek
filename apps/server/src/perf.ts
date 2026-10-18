@@ -8,7 +8,7 @@ import {
   VITALS,
   type VitalName,
   vitalOf,
-} from "@godeye/core";
+} from "@igrek/core";
 import type { AppErrors } from "./apperrors";
 
 const DAY = 86_400_000;

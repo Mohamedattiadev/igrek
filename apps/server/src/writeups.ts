@@ -1,8 +1,8 @@
 import type { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import type { DayRecap } from "@godeye/core";
-import { languages } from "@godeye/i18n";
+import type { DayRecap } from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import JSZip from "jszip";
 import type { Flows } from "./flows";
 import type { Store } from "./store";

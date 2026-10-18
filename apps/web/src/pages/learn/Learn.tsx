@@ -6,7 +6,7 @@ import {
   type RoadmapInfo,
   SHEET_CATEGORIES,
   type SheetInfo,
-} from "@godeye/learn";
+} from "@igrek/learn";
 import { ArrowUpCircle, GraduationCap, Map as MapIcon, Search, Star } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

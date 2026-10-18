@@ -1,4 +1,4 @@
-import type { FlowNodeState, FlowRun } from "@godeye/core";
+import type { FlowNodeState, FlowRun } from "@igrek/core";
 import {
   ArrowLeft,
   Check,

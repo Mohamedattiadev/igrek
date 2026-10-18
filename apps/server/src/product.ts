@@ -1,9 +1,9 @@
 import type { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { slugify, type WikiPage } from "@godeye/core";
-import { reportUiHint } from "@godeye/genui";
-import { languages } from "@godeye/i18n";
+import { slugify, type WikiPage } from "@igrek/core";
+import { reportUiHint } from "@igrek/genui";
+import { languages } from "@igrek/i18n";
 import JSZip from "jszip";
 import type { Docs } from "./docs";
 import type { Flows } from "./flows";

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { bundledResources, languages } from "@godeye/i18n";
+import { bundledResources, languages } from "@igrek/i18n";
 import { type Bus, StopRegistry } from "./bus";
 import { MODEL_FOR, runClaude } from "./summarizer";
 

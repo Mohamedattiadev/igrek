@@ -1,4 +1,4 @@
-import type { DesignFinding } from "@godeye/core";
+import type { DesignFinding } from "@igrek/core";
 import type { Snapshot } from "./snapshot";
 
 /**

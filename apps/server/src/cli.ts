@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { APP_VERSION } from "@godeye/core";
+import { APP_VERSION } from "@igrek/core";
 import { loadConfig } from "./config";
 import { checkTools } from "./system";
 

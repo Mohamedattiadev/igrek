@@ -7,7 +7,7 @@ import {
   type InsightScan,
   type ProjectDetail,
   personaForCategory,
-} from "@godeye/core";
+} from "@igrek/core";
 import {
   ArrowLeft,
   Boxes,

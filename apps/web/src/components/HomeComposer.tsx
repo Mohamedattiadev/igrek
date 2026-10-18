@@ -1,4 +1,4 @@
-import type { ChatMode, ProjectListItem } from "@godeye/core";
+import type { ChatMode, ProjectListItem } from "@igrek/core";
 import { FolderKanban, Send, Sparkles } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

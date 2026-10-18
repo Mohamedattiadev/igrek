@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { BoardTask, FlowRun, TaskStatus } from "@godeye/core";
+import type { BoardTask, FlowRun, TaskStatus } from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Flows } from "./flows";
 

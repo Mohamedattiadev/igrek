@@ -1,6 +1,6 @@
 import { createWriteStream, existsSync, mkdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
-import type { EmbedderStatus } from "@godeye/core";
+import type { EmbedderStatus } from "@igrek/core";
 
 /**
  * Local meaning vectors for the library (plan.md 7.1): a small multilingual model that runs on

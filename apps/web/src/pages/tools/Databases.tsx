@@ -1,4 +1,4 @@
-import type { DataAnomaly, DbConnection, DbResult, DbSuggestion, DbTable } from "@godeye/core";
+import type { DataAnomaly, DbConnection, DbResult, DbSuggestion, DbTable } from "@igrek/core";
 import {
   ChevronLeft,
   ChevronRight,

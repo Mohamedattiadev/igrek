@@ -12,7 +12,7 @@ import {
 } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, extname, join, normalize, relative, sep } from "node:path";
-import type { FileContent, FileEntry, TrashItem } from "@godeye/core";
+import type { FileContent, FileEntry, TrashItem } from "@igrek/core";
 
 /** Never readable or writable through God Eye, even inside an allowed folder (plan.md 2.4). */
 const DENIED = [

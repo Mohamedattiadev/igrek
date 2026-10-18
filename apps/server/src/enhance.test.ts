@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
-import { detectIntent, isWeakPrompt, promptWeakness, renderEnhanced } from "@godeye/core";
+import { detectIntent, isWeakPrompt, promptWeakness, renderEnhanced } from "@igrek/core";
 import { StopRegistry } from "./bus";
 import { migrate } from "./db";
 import { Enhancer, parseEnhanceReply, sizeOf } from "./enhance";
@@ -134,7 +134,7 @@ describe("persona prompts", () => {
 
 describe("shortcuts and stats", () => {
   test("shorthands expand as whole words only", async () => {
-    const { expandShortcuts } = await import("@godeye/core");
+    const { expandShortcuts } = await import("@igrek/core");
     expect(expandShortcuts("login bozuk dyy", { dyy: "doğrusunu yap" })).toBe("login bozuk doğrusunu yap");
     expect(expandShortcuts("dyyx kalsın", { dyy: "doğrusunu yap" })).toBe("dyyx kalsın");
     expect(expandShortcuts("DYY, lütfen", { dyy: "doğrusunu yap" })).toBe("doğrusunu yap, lütfen");
@@ -168,7 +168,7 @@ describe("shortcuts and stats", () => {
 
 describe("prompt coach", () => {
   test("concrete tips for what is missing; none for a clear prompt", async () => {
-    const { coachPrompt } = await import("@godeye/core");
+    const { coachPrompt } = await import("@igrek/core");
     expect(coachPrompt("bunu düzelt")).toEqual(["which", "error", "done"]);
     expect(coachPrompt("fix the login page")).toEqual(["error", "where", "done"]);
     expect(

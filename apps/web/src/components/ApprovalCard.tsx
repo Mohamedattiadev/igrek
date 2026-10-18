@@ -1,4 +1,4 @@
-import type { Approval } from "@godeye/core";
+import type { Approval } from "@igrek/core";
 import { Server } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

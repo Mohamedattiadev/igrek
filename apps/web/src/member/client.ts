@@ -8,7 +8,7 @@ import {
   projectKey,
   type TeamKey,
   unwrapTeamKey,
-} from "@godeye/core";
+} from "@igrek/core";
 
 /**
  * The web member's sync client (plan.md 4.3): signs in to the hub, keeps a device key whose private

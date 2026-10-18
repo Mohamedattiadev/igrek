@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { EnvChange, EnvKeyUse } from "@godeye/core";
+import type { EnvChange, EnvKeyUse } from "@igrek/core";
 import type { Hono } from "hono";
 import { type EnvFiles, keyCount, removeFromText, setInText, valueIn } from "./envfiles";
 import type { Insight } from "./insight";

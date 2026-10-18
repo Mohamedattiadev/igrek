@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { type ChatMode, capabilitiesOf } from "@godeye/core";
+import { type ChatMode, capabilitiesOf } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";

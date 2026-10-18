@@ -1,4 +1,4 @@
-import type { SystemStatus } from "@godeye/core";
+import type { SystemStatus } from "@igrek/core";
 import { CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

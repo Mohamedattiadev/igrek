@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_PORT } from "@godeye/core";
+import { DEFAULT_PORT } from "@igrek/core";
 
 export interface Config {
   host: string;

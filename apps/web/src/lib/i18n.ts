@@ -1,5 +1,5 @@
-import { RTL_LANGUAGES } from "@godeye/core";
-import en from "@godeye/i18n/locales/en.json";
+import { RTL_LANGUAGES } from "@igrek/core";
+import en from "@igrek/i18n/locales/en.json";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
@@ -8,7 +8,7 @@ import { initReactI18next } from "react-i18next";
  * hand-checked languages load when they are chosen (plan.md 15.4: about 190 KB less for everyone else).
  */
 const BUNDLED: Record<string, () => Promise<{ default: Record<string, unknown> }>> = {
-  tr: () => import("@godeye/i18n/locales/tr.json"),
+  tr: () => import("@igrek/i18n/locales/tr.json"),
 };
 
 void i18n.use(initReactI18next).init({

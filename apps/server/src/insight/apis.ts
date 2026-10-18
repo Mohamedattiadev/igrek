@@ -1,4 +1,4 @@
-import type { ApiMap, CodeRef, Endpoint, EnvKeyUse, ExternalApi } from "@godeye/core";
+import type { ApiMap, CodeRef, Endpoint, EnvKeyUse, ExternalApi } from "@igrek/core";
 import { isEnvExample, type RepoFile, type Snapshot } from "./snapshot";
 
 interface Provider {

@@ -1,4 +1,4 @@
-import type { BoardTask, FlowRun, ProjectDetail, TaskStatus } from "@godeye/core";
+import type { BoardTask, FlowRun, ProjectDetail, TaskStatus } from "@igrek/core";
 import { ArrowRight, Hand, Plus, Trash2, Users, Workflow } from "lucide-react";
 import { type DragEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

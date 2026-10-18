@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { BUILTIN_TESTERS, DEFAULT_SETTINGS, summarizeRun, type TesterSession } from "@godeye/core";
+import { BUILTIN_TESTERS, DEFAULT_SETTINGS, summarizeRun, type TesterSession } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { openDb } from "./db";
 import { Store } from "./store";

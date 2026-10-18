@@ -31,7 +31,7 @@ import type {
   UptimeMonitor,
   VaultEntry,
   WikiPage,
-} from "@godeye/core";
+} from "@igrek/core";
 import { request } from "./api";
 
 const post = <T>(path: string, body?: unknown) =>

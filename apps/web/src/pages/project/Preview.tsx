@@ -1,4 +1,4 @@
-import type { DevServerInfo, PickedElement, PreviewError, ProjectDetail, QuickEdit, VisualCheck } from "@godeye/core";
+import type { DevServerInfo, PickedElement, PreviewError, ProjectDetail, QuickEdit, VisualCheck } from "@igrek/core";
 import {
   ArrowDown,
   ArrowUp,

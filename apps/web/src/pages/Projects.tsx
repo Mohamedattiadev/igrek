@@ -1,4 +1,4 @@
-import { type ProjectListItem, type ProjectNeeds, recommendArchitecture } from "@godeye/core";
+import { type ProjectListItem, type ProjectNeeds, recommendArchitecture } from "@igrek/core";
 import {
   ArrowDown,
   ArrowUp,

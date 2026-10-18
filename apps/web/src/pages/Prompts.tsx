@@ -1,4 +1,4 @@
-import type { SavedPrompt } from "@godeye/core";
+import type { SavedPrompt } from "@igrek/core";
 import { BookMarked, Copy, Pencil, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

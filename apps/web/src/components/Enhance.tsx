@@ -5,7 +5,7 @@ import {
   type EnhanceResult,
   isWeakPrompt,
   renderEnhanced,
-} from "@godeye/core";
+} from "@igrek/core";
 import {
   BookmarkPlus,
   Brain,

@@ -1,5 +1,5 @@
-import type { ServerMessage } from "@godeye/core";
-import { APP_VERSION } from "@godeye/core";
+import type { ServerMessage } from "@igrek/core";
+import { APP_VERSION } from "@igrek/core";
 import { Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

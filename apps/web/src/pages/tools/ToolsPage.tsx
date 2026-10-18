@@ -1,4 +1,4 @@
-import type { PluginInfo } from "@godeye/core";
+import type { PluginInfo } from "@igrek/core";
 import type { LucideIcon } from "lucide-react";
 import {
   CalendarDays,

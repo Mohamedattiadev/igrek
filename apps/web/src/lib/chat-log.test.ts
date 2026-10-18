@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatEvent } from "@godeye/core";
+import type { ChatEvent } from "@igrek/core";
 import { groupWork, workCounts } from "./chat-log";
 
 const tool = (id: string, name: string): ChatEvent => ({ kind: "tool", id, at: 0, name, input: {}, status: "done" });

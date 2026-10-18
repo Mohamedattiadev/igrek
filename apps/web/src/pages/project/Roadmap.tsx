@@ -1,4 +1,4 @@
-import { type BoardTask, type CalendarItem, type FlowRun, sprintOf } from "@godeye/core";
+import { type BoardTask, type CalendarItem, type FlowRun, sprintOf } from "@igrek/core";
 import { Check, Diamond, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

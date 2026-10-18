@@ -1,4 +1,4 @@
-import { type ChatInfo, capabilitiesOf, HELP_TOPICS, type ProjectListItem, type SessionListItem } from "@godeye/core";
+import { type ChatInfo, capabilitiesOf, HELP_TOPICS, type ProjectListItem, type SessionListItem } from "@igrek/core";
 import { ArrowRight, BookOpen, Bot, Compass, MessageSquarePlus, Play, Send, X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

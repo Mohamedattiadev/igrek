@@ -1,4 +1,4 @@
-import type { Presence, TeamMember, TeamStatus } from "@godeye/core";
+import type { Presence, TeamMember, TeamStatus } from "@igrek/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";

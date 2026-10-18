@@ -1,4 +1,4 @@
-import type { Meeting, MeetingView, WeakPoint } from "@godeye/core";
+import type { Meeting, MeetingView, WeakPoint } from "@igrek/core";
 import { AlertTriangle, ArrowLeft, BookmarkPlus, Check, LoaderCircle, Swords, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

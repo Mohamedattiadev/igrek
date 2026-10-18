@@ -1,4 +1,4 @@
-import type { TaskStatus } from "@godeye/core";
+import type { TaskStatus } from "@igrek/core";
 import type { Board } from "./board";
 
 export type ImportSource = "trello" | "jira" | "linear" | "notion" | "github";

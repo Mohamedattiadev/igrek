@@ -1,4 +1,4 @@
-import type { TimeReport } from "@godeye/core";
+import type { TimeReport } from "@igrek/core";
 import type { TFunction } from "i18next";
 import { Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, normalize, relative } from "node:path";
-import type { CoverageMap } from "@godeye/core";
+import type { CoverageMap } from "@igrek/core";
 import { CODE, isGenerated, TEST_FILE } from "./checks";
 import type { Snapshot } from "./snapshot";
 

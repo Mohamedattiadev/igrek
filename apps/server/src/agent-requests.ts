@@ -1,5 +1,5 @@
 import { isAbsolute, normalize } from "node:path";
-import { checkAnswers, type FormAnswers, type FormField, formFields, type InboxNotice } from "@godeye/core";
+import { checkAnswers, type FormAnswers, type FormField, formFields, type InboxNotice } from "@igrek/core";
 import type { Hono } from "hono";
 import type { EnvFiles } from "./envfiles";
 import type { Personas } from "./personas";

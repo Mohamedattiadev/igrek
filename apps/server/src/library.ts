@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { LibraryHit, LibraryItem, LibraryKind, LibraryStatus } from "@godeye/core";
+import type { LibraryHit, LibraryItem, LibraryKind, LibraryStatus } from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Embed } from "./embedder";
 import { EMBED_MODEL } from "./embedder";

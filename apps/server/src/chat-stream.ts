@@ -1,4 +1,4 @@
-import type { ChatEvent, ChatInfo } from "@godeye/core";
+import type { ChatEvent, ChatInfo } from "@igrek/core";
 import type { ChatOp } from "./chats";
 
 type Snapshot = { info: ChatInfo; events: ChatEvent[]; seq: number };

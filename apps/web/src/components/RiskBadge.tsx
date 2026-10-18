@@ -1,4 +1,4 @@
-import type { CommandRisk } from "@godeye/core";
+import type { CommandRisk } from "@igrek/core";
 import { useTranslation } from "react-i18next";
 import { Badge } from "./ui";
 

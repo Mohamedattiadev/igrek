@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { capabilitiesOf } from "@godeye/core";
+import { capabilitiesOf } from "@igrek/core";
 import { resumeArgs } from "../terminal-routes";
 import { applyPiLine, piAdapter } from "./pi";
 import { emptyState, type ParsedMessage } from "./types";

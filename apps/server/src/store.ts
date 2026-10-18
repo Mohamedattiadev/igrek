@@ -18,7 +18,7 @@ import type {
   TimelineEntry,
   TodaySummary,
   TranscriptMessage,
-} from "@godeye/core";
+} from "@igrek/core";
 import { gitRemote, gitRoot } from "./adapters/git";
 import { emptyState, isPackageName, type ParsedMessage, type SessionState } from "./adapters/types";
 import { isActive, sessionHealth } from "./health";

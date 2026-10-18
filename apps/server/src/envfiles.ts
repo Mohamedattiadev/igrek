@@ -10,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
-import type { EnvBackup, EnvFileInfo, EnvKeyRow, EnvKeyUse, EnvOverview } from "@godeye/core";
+import type { EnvBackup, EnvFileInfo, EnvKeyRow, EnvKeyUse, EnvOverview } from "@igrek/core";
 
 /**
  * .env editor (plan.md 5.6). Values stay on this computer: they're masked in

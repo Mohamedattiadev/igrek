@@ -1,4 +1,4 @@
-import type { DayRecap } from "@godeye/core";
+import type { DayRecap } from "@igrek/core";
 import { ChevronDown, ChevronRight, Moon, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

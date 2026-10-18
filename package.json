@@ -1,5 +1,5 @@
 {
-  "name": "god-eye",
+  "name": "igrek",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -11,8 +11,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --filter '@godeye/server' dev & bun run --filter '@godeye/web' dev",
-    "build": "bun run --filter '@godeye/web' build",
+    "dev": "bun run --filter '@igrek/server' dev & bun run --filter '@igrek/web' dev",
+    "build": "bun run --filter '@igrek/web' build",
     "start": "bun run apps/server/src/index.ts",
     "doctor": "bun run apps/server/src/cli.ts doctor",
     "godeye": "bun run apps/server/src/cli.ts",

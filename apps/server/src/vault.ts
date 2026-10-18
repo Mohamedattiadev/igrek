@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import type { InboxNotice, VaultEntry } from "@godeye/core";
+import type { InboxNotice, VaultEntry } from "@igrek/core";
 import { type EnvFiles, parse } from "./envfiles";
 import type { Sealer } from "./seal";
 import type { Store } from "./store";

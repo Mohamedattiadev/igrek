@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_SETTINGS, nextRun } from "@godeye/core";
+import { DEFAULT_SETTINGS, nextRun } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { openDb } from "./db";
 import { type AgentRun, Flows } from "./flows";

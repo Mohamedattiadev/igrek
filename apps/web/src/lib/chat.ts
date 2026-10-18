@@ -1,4 +1,4 @@
-import type { ChatEvent, ChatInfo, ChatMode, RecentChat } from "@godeye/core";
+import type { ChatEvent, ChatInfo, ChatMode, RecentChat } from "@igrek/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 

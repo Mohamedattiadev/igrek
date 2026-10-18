@@ -1,5 +1,5 @@
 import { homedir } from "node:os";
-import { type AiTool, capabilitiesOf, type SessionSummaryData, type TerminalTool } from "@godeye/core";
+import { type AiTool, capabilitiesOf, type SessionSummaryData, type TerminalTool } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import { createCheckpoint } from "./checkpoints";

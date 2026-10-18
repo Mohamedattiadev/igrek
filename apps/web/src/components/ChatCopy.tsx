@@ -1,4 +1,4 @@
-import type { ChatInfo } from "@godeye/core";
+import type { ChatInfo } from "@igrek/core";
 import { FileDiff, GitMerge, ShieldCheck, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

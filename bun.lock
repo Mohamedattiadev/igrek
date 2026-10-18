@@ -10,7 +10,7 @@
       },
     },
     "apps/hub": {
-      "name": "@godeye/hub",
+      "name": "@igrek/hub",
       "version": "0.1.0",
       "dependencies": {
         "hono": "^4.13.13",
@@ -23,13 +23,13 @@
       },
     },
     "apps/server": {
-      "name": "@godeye/server",
+      "name": "@igrek/server",
       "version": "0.1.0",
       "dependencies": {
-        "@godeye/core": "workspace:*",
-        "@godeye/genui": "workspace:*",
-        "@godeye/i18n": "workspace:*",
-        "@godeye/learn": "workspace:*",
+        "@igrek/core": "workspace:*",
+        "@igrek/genui": "workspace:*",
+        "@igrek/i18n": "workspace:*",
+        "@igrek/learn": "workspace:*",
         "@huggingface/tokenizers": "0.2.0",
         "@playwright/mcp": "0.0.83",
         "drizzle-orm": "^0.45.4",
@@ -51,17 +51,17 @@
       },
     },
     "apps/web": {
-      "name": "@godeye/web",
+      "name": "@igrek/web",
       "version": "0.1.0",
       "dependencies": {
         "@excalidraw/excalidraw": "0.18.1",
         "@excalidraw/mermaid-to-excalidraw": "2.2.2",
         "@fontsource-variable/inter": "5.3.0",
         "@fontsource-variable/jetbrains-mono": "5.3.0",
-        "@godeye/core": "workspace:*",
-        "@godeye/genui": "workspace:*",
-        "@godeye/i18n": "workspace:*",
-        "@godeye/learn": "workspace:*",
+        "@igrek/core": "workspace:*",
+        "@igrek/genui": "workspace:*",
+        "@igrek/i18n": "workspace:*",
+        "@igrek/learn": "workspace:*",
         "@openuidev/lang-core": "0.3.0",
         "@openuidev/react-lang": "0.3.0",
         "@xterm/addon-fit": "^0.11.0",
@@ -101,7 +101,7 @@
       },
     },
     "packages/core": {
-      "name": "@godeye/core",
+      "name": "@igrek/core",
       "version": "0.1.0",
       "devDependencies": {
         "@types/bun": "^1.4.3",
@@ -109,7 +109,7 @@
       },
     },
     "packages/genui": {
-      "name": "@godeye/genui",
+      "name": "@igrek/genui",
       "version": "0.1.0",
       "dependencies": {
         "@openuidev/lang-core": "0.3.0",
@@ -121,14 +121,14 @@
       },
     },
     "packages/i18n": {
-      "name": "@godeye/i18n",
+      "name": "@igrek/i18n",
       "version": "0.1.0",
       "devDependencies": {
         "typescript": "^7.0.2",
       },
     },
     "packages/learn": {
-      "name": "@godeye/learn",
+      "name": "@igrek/learn",
       "version": "0.1.0",
       "devDependencies": {
         "@types/bun": "^1.4.3",
@@ -204,19 +204,19 @@
 
     "@fontsource-variable/jetbrains-mono": ["@fontsource-variable/jetbrains-mono@5.3.0", "", {}, "sha512-F32xpS2NsGYoQi2ADSkKTgpJj7ozajsGgDJ8woTnqjmIB+dxDIqImjl4pXZVEExu8UFZ2ndhmX18EBS/hdz3Lw=="],
 
-    "@godeye/core": ["@godeye/core@workspace:packages/core"],
+    "@igrek/core": ["@igrek/core@workspace:packages/core"],
 
-    "@godeye/genui": ["@godeye/genui@workspace:packages/genui"],
+    "@igrek/genui": ["@igrek/genui@workspace:packages/genui"],
 
-    "@godeye/hub": ["@godeye/hub@workspace:apps/hub"],
+    "@igrek/hub": ["@igrek/hub@workspace:apps/hub"],
 
-    "@godeye/i18n": ["@godeye/i18n@workspace:packages/i18n"],
+    "@igrek/i18n": ["@igrek/i18n@workspace:packages/i18n"],
 
-    "@godeye/learn": ["@godeye/learn@workspace:packages/learn"],
+    "@igrek/learn": ["@igrek/learn@workspace:packages/learn"],
 
-    "@godeye/server": ["@godeye/server@workspace:apps/server"],
+    "@igrek/server": ["@igrek/server@workspace:apps/server"],
 
-    "@godeye/web": ["@godeye/web@workspace:apps/web"],
+    "@igrek/web": ["@igrek/web@workspace:apps/web"],
 
     "@huggingface/tokenizers": ["@huggingface/tokenizers@0.2.0", "", {}, "sha512-LidMHe1FpcSYH4vcSjXooda34pC0M8m1gmDOv7SQi6Iv+ib1zX7J3sHBCC9/3FPCkn2k1b55FneVqMRxrr99pg=="],
 

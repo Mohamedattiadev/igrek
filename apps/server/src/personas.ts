@@ -19,8 +19,8 @@ import {
   personaPrompt,
   type Settings,
   scrub,
-} from "@godeye/core";
-import { bundledResources, languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { bundledResources, languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { buildContext } from "./hooks";
 import type { Store } from "./store";

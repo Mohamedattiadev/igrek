@@ -1,4 +1,4 @@
-import type { TerminalInfo } from "@godeye/core";
+import type { TerminalInfo } from "@igrek/core";
 import { ArrowLeft, History, MessageSquare, RotateCcw, SquareTerminal, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import type { SessionHealth, SessionSummaryData } from "@godeye/core";
+import type { SessionHealth, SessionSummaryData } from "@igrek/core";
 import { HeartPulse } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";

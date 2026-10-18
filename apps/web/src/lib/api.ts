@@ -96,8 +96,8 @@ import type {
   TrashItem,
   VisualCheck,
   WeakPoint,
-} from "@godeye/core";
-import type { LanguageOption } from "@godeye/i18n";
+} from "@igrek/core";
+import type { LanguageOption } from "@igrek/i18n";
 import i18n from "./i18n";
 
 export interface PackStatus {

@@ -1,5 +1,5 @@
 {
-  "name": "@godeye/server",
+  "name": "@igrek/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,10 +14,10 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "@godeye/core": "workspace:*",
-    "@godeye/genui": "workspace:*",
-    "@godeye/i18n": "workspace:*",
-    "@godeye/learn": "workspace:*",
+    "@igrek/core": "workspace:*",
+    "@igrek/genui": "workspace:*",
+    "@igrek/i18n": "workspace:*",
+    "@igrek/learn": "workspace:*",
     "@huggingface/tokenizers": "0.2.0",
     "@playwright/mcp": "0.0.83",
     "drizzle-orm": "^0.45.4",

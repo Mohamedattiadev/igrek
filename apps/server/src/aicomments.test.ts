@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ProjectListItem } from "@godeye/core";
+import type { ProjectListItem } from "@igrek/core";
 import { AiComments, draftFor, findAiComments } from "./aicomments";
 
 describe("AI comments", () => {

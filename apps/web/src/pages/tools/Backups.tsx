@@ -1,4 +1,4 @@
-import type { BackupJob, BackupRun, DbConnection, ServerInfo } from "@godeye/core";
+import type { BackupJob, BackupRun, DbConnection, ServerInfo } from "@igrek/core";
 import {
   ArchiveRestore,
   ChevronDown,

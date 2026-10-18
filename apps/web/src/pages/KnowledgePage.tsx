@@ -1,4 +1,4 @@
-import type { KnowledgeOverview, KnowledgeSources, NewsItem, PackageComparison } from "@godeye/core";
+import type { KnowledgeOverview, KnowledgeSources, NewsItem, PackageComparison } from "@igrek/core";
 import { ExternalLink, Newspaper, RefreshCw, TrendingDown, TrendingUp } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

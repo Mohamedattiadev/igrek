@@ -12,8 +12,8 @@ import {
   type Settings,
   scrub,
   type WeakPoint,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { type Personas, personaLabel } from "./personas";
 import type { Store } from "./store";

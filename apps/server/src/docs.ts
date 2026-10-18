@@ -10,7 +10,7 @@ import {
   slugify,
   type WikiPage,
   wikiLinks,
-} from "@godeye/core";
+} from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Databases } from "./databases";
 import type { Store } from "./store";

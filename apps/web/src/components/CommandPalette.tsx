@@ -1,5 +1,5 @@
-import type { AskAnswer, ProjectListItem, SearchHit } from "@godeye/core";
-import type { LearnHit } from "@godeye/learn";
+import type { AskAnswer, ProjectListItem, SearchHit } from "@igrek/core";
+import type { LearnHit } from "@igrek/learn";
 import { Command } from "cmdk";
 import type { LucideIcon } from "lucide-react";
 import {

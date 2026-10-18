@@ -1,4 +1,4 @@
-import { CATEGORIES, type Category, type InsightConfig } from "@godeye/core";
+import { CATEGORIES, type Category, type InsightConfig } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Insight } from "./insight";
 import type { HistoryImport } from "./insight/history";

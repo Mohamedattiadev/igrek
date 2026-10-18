@@ -12,8 +12,8 @@ import {
   type TesterRun,
   type TesterSession,
   type TesterStep,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { readJsonLines } from "./jsonlines";

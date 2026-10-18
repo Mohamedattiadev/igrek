@@ -1,5 +1,5 @@
 /** Shared shapes every AI-tool adapter produces (plan.md 3: adapter pattern). */
-import type { AiTool } from "@godeye/core";
+import type { AiTool } from "@igrek/core";
 
 interface UsageEvent {
   ts: number;

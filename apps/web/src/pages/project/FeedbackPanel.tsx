@@ -1,4 +1,4 @@
-import type { Feedback } from "@godeye/core";
+import type { Feedback } from "@igrek/core";
 import { Check, ClipboardPlus, EyeOff, MessageCircleHeart } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

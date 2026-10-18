@@ -1,4 +1,4 @@
-import { findSecrets } from "@godeye/core";
+import { findSecrets } from "@igrek/core";
 import { ShieldAlert } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "./ui";

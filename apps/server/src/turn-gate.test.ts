@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatEvent, Settings, ToolResult } from "@godeye/core";
+import type { ChatEvent, Settings, ToolResult } from "@igrek/core";
 import { editedThisTurn } from "./chats";
 import { TurnGate } from "./turn-gate";
 

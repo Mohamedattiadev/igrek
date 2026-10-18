@@ -1,4 +1,4 @@
-import type { CodeHostInfo, HostIssue, HostPull, HostRun } from "@godeye/core";
+import type { CodeHostInfo, HostIssue, HostPull, HostRun } from "@igrek/core";
 import { CircleCheck, CircleDot, CircleX, ExternalLink, Eye, GitPullRequest, Loader, Play, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

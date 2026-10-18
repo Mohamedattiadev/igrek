@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, type Settings } from "@godeye/core";
+import { DEFAULT_SETTINGS, type Settings } from "@igrek/core";
 import { type Db, settingsTable } from "./db";
 
 const THEMES = ["system", "light", "dark", "darcula", "notion"];

@@ -1,4 +1,4 @@
-import type { CommandRisk, DeployRecord, RemoteRun, ServerInfo, ServerTag } from "@godeye/core";
+import type { CommandRisk, DeployRecord, RemoteRun, ServerInfo, ServerTag } from "@igrek/core";
 import { ArrowLeft, Bot, Download, Plus, RefreshCw, Rocket, Server, SquareTerminal, Trash2, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

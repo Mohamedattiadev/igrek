@@ -1,4 +1,4 @@
-import { citation, type EmbedderStatus, type LibraryHit, type LibraryItem } from "@godeye/core";
+import { citation, type EmbedderStatus, type LibraryHit, type LibraryItem } from "@igrek/core";
 import { Download, Library, Link2, RotateCw, Search, Trash2, Upload } from "lucide-react";
 import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

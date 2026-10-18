@@ -6,7 +6,7 @@ import {
   type PersonaGroup,
   type PersonaModel,
   type PersonaOpinion,
-} from "@godeye/core";
+} from "@igrek/core";
 import { ArrowLeft, MessageSquare, Pencil, RotateCcw, Save, Sparkles, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

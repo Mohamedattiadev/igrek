@@ -8,7 +8,7 @@ import {
   STEP_CUT,
   suggestModel,
   type WeakPoint,
-} from "@godeye/core";
+} from "@igrek/core";
 import {
   ArrowLeft,
   BookOpen,

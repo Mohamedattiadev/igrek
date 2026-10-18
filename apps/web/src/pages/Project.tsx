@@ -1,4 +1,4 @@
-import type { GitInfo, ProjectDetail } from "@godeye/core";
+import type { GitInfo, ProjectDetail } from "@igrek/core";
 import {
   AlertTriangle,
   ArrowLeft,

@@ -1,4 +1,4 @@
-import type { FlowRun, Schedule, ScheduleWhen } from "@godeye/core";
+import type { FlowRun, Schedule, ScheduleWhen } from "@igrek/core";
 import {
   AlarmClock,
   CalendarClock,

@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
-import type { DbConnection, DbTable } from "@godeye/core";
+import type { DbConnection, DbTable } from "@igrek/core";
 import { type AnomalySource, scanAnomalies } from "./data-anomalies";
 
 function source(prod = false): AnomalySource {

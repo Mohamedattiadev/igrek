@@ -2,7 +2,7 @@ import type { Database } from "bun:sqlite";
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Approval, CommandRisk, RemoteEntry, RemoteRun, ServerHealth, ServerInfo, ServerTag } from "@godeye/core";
+import type { Approval, CommandRisk, RemoteEntry, RemoteRun, ServerHealth, ServerInfo, ServerTag } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
 import { classifyCommand } from "./commands";
 import { cleanEnv } from "./env";

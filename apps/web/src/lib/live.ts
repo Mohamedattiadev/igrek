@@ -6,7 +6,7 @@ import type {
   ProjectListItem,
   ServerMessage,
   TerminalInfo,
-} from "@godeye/core";
+} from "@igrek/core";
 import { type DependencyList, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 

@@ -1,4 +1,4 @@
-import type { AppErrorGroup, ProjectDetail } from "@godeye/core";
+import type { AppErrorGroup, ProjectDetail } from "@igrek/core";
 import { Bug, Check, ChevronDown, ChevronRight, Code, EyeOff, RotateCcw, Wrench } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

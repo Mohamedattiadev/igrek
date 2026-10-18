@@ -8,8 +8,8 @@ import {
   type SavedPrompt,
   type SessionSummaryData,
   type Settings,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { StopRegistry } from "./bus";
 import { buildContext } from "./hooks";
 import type { Store } from "./store";

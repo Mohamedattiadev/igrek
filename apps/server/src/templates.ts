@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
-import { type FlowRun, type ProjectNeeds, recommendArchitecture } from "@godeye/core";
+import { type FlowRun, type ProjectNeeds, recommendArchitecture } from "@igrek/core";
 import type { Flows } from "./flows";
 import type { Lessons } from "./lessons";
 import type { Store } from "./store";

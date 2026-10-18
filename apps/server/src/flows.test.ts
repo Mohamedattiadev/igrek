@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_SETTINGS, type FlowRun, type ToolResult } from "@godeye/core";
+import { DEFAULT_SETTINGS, type FlowRun, type ToolResult } from "@igrek/core";
 import { parseArchonLine } from "./archon";
 import { Board } from "./board";
 import { Bus, StopRegistry } from "./bus";

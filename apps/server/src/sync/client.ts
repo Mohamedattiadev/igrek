@@ -12,7 +12,7 @@ import type {
   TeamActivity,
   TeamMember,
   TeamStatus,
-} from "@godeye/core";
+} from "@igrek/core";
 import type { Bus } from "../bus";
 import {
   type DeviceKey,

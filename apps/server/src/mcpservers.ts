@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { MCP_CATALOG, type McpServerEntry } from "@godeye/core";
+import { MCP_CATALOG, type McpServerEntry } from "@igrek/core";
 import { cleanEnv } from "./env";
 import type { Sealer } from "./seal";
 

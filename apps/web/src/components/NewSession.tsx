@@ -1,4 +1,4 @@
-import type { TerminalTool } from "@godeye/core";
+import type { TerminalTool } from "@igrek/core";
 import { ChevronDown, MessageSquare, Plus, SquareTerminal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

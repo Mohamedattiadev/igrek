@@ -1,4 +1,4 @@
-import type { ServerMessage } from "@godeye/core";
+import type { ServerMessage } from "@igrek/core";
 import { useEffect, useRef, useState } from "react";
 
 export type SocketStatus = "connecting" | "connected" | "offline";

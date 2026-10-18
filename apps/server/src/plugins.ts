@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import { join, normalize, resolve, sep } from "node:path";
-import { PLUGIN_PERMISSIONS, type PluginInfo, type PluginManifest, type PluginPermission } from "@godeye/core";
+import { PLUGIN_PERMISSIONS, type PluginInfo, type PluginManifest, type PluginPermission } from "@igrek/core";
 
 const MANIFEST = "godeye-plugin.json";
 

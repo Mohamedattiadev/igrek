@@ -1,6 +1,6 @@
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
-import type { MemorySection, ProjectDetail, ProjectListItem } from "@godeye/core";
+import type { MemorySection, ProjectDetail, ProjectListItem } from "@igrek/core";
 import type { Hono } from "hono";
 import { gitFetch, gitInfo } from "./adapters/git";
 import { buildContext, hooksInstalled, installHooks, uninstallHooks } from "./hooks";

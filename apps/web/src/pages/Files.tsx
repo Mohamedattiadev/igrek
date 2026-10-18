@@ -1,4 +1,4 @@
-import type { FileEntry, TrashItem } from "@godeye/core";
+import type { FileEntry, TrashItem } from "@igrek/core";
 import {
   ArrowLeft,
   ArrowUp,

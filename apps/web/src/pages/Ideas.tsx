@@ -1,4 +1,4 @@
-import type { Idea, IdeaReview, IdeaStatus, ProjectListItem } from "@godeye/core";
+import type { Idea, IdeaReview, IdeaStatus, ProjectListItem } from "@igrek/core";
 import { Briefcase, Lightbulb, Plus, Sparkles, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

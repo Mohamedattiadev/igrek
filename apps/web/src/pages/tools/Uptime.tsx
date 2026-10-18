@@ -1,4 +1,4 @@
-import { type DomainWatch, daysLeft, type UptimeCheck, type UptimeMonitor } from "@godeye/core";
+import { type DomainWatch, daysLeft, type UptimeCheck, type UptimeMonitor } from "@igrek/core";
 import { ChevronDown, ChevronRight, Globe, Plus, Radio, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

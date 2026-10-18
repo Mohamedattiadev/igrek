@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { APP_VERSION } from "@godeye/core";
+import { APP_VERSION } from "@igrek/core";
 
 /** What a backup holds (plan.md 11): memory, lessons, the library's texts, personas and their notebooks, plans. Never accounts, keys or .env backups. */
 const TABLES = [

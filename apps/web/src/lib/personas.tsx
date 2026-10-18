@@ -1,4 +1,4 @@
-import type { Persona } from "@godeye/core";
+import type { Persona } from "@igrek/core";
 import type { LucideIcon } from "lucide-react";
 import {
   Accessibility,

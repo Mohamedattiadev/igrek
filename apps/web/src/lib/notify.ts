@@ -1,4 +1,4 @@
-import type { ChatInfo, FlowRun, TerminalInfo } from "@godeye/core";
+import type { ChatInfo, FlowRun, TerminalInfo } from "@igrek/core";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "./api";

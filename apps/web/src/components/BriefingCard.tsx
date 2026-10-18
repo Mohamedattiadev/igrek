@@ -1,4 +1,4 @@
-import type { Briefing } from "@godeye/core";
+import type { Briefing } from "@igrek/core";
 import { ChevronDown, ChevronRight, RefreshCw, Sunrise, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

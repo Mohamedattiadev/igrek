@@ -8,7 +8,7 @@ import type {
   TeamInvite,
   TeamStatus,
   TeamUser,
-} from "@godeye/core";
+} from "@igrek/core";
 import {
   Copy,
   Download,

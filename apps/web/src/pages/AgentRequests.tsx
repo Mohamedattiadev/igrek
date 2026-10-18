@@ -1,4 +1,4 @@
-import type { FormAnswers, FormField } from "@godeye/core";
+import type { FormAnswers, FormField } from "@igrek/core";
 import { ClipboardList, KeyRound } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

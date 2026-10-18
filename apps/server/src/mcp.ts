@@ -8,7 +8,7 @@
 import { readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { APP_VERSION } from "@godeye/core";
+import { APP_VERSION } from "@igrek/core";
 
 const PORT = Number(process.env.GODEYE_PORT ?? 7777);
 const HOME = process.env.GODEYE_HOME ?? join(homedir(), ".godeye");

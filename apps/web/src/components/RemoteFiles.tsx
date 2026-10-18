@@ -1,4 +1,4 @@
-import type { RemoteEntry } from "@godeye/core";
+import type { RemoteEntry } from "@igrek/core";
 import { ArrowUp, File, Folder, FolderOpen, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

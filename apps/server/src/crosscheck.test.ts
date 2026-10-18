@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
-import type { Settings } from "@godeye/core";
+import type { Settings } from "@igrek/core";
 import { Bus } from "./bus";
 import { CrossCheck } from "./crosscheck";
 import { migrate } from "./db";

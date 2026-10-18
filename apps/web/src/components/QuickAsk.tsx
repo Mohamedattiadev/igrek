@@ -1,4 +1,4 @@
-import { findSecrets, type QuickAnswer } from "@godeye/core";
+import { findSecrets, type QuickAnswer } from "@igrek/core";
 import { Copy, CornerDownLeft, Paperclip, Send, Sparkles, Trash2, X, Zap } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

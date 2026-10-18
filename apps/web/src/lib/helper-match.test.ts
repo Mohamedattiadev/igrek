@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ProjectListItem } from "@godeye/core";
+import type { ProjectListItem } from "@igrek/core";
 import { CHAT, findProject, fold, has, LAST, WHERE_TYPE } from "./helper-match";
 
 const project = (id: string, name: string, lastActivity = 0) => ({ id, name, lastActivity }) as ProjectListItem;

@@ -1,4 +1,4 @@
-import type { VaultEntry } from "@godeye/core";
+import type { VaultEntry } from "@igrek/core";
 import { Check, Copy, Eye, EyeOff, KeyRound, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

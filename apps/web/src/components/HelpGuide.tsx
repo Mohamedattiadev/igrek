@@ -1,4 +1,4 @@
-import { HELP_TOPICS } from "@godeye/core";
+import { HELP_TOPICS } from "@igrek/core";
 import { BookOpen, CircleHelp, Compass } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

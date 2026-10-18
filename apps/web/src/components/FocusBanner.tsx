@@ -1,4 +1,4 @@
-import type { CalendarItem, ProjectListItem } from "@godeye/core";
+import type { CalendarItem, ProjectListItem } from "@igrek/core";
 import { Crosshair } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

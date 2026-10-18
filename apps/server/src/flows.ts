@@ -9,7 +9,7 @@ import {
   limitResetAt,
   type Persona,
   type ToolResult,
-} from "@godeye/core";
+} from "@igrek/core";
 import { parse as parseYaml } from "yaml";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";

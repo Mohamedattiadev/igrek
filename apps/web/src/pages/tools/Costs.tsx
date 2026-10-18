@@ -1,4 +1,4 @@
-import type { CostItem, CostSummary } from "@godeye/core";
+import type { CostItem, CostSummary } from "@igrek/core";
 import { CircleDollarSign, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

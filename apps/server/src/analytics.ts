@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
-import type { AnalyticsSource, AnalyticsSummary } from "@godeye/core";
+import type { AnalyticsSource, AnalyticsSummary } from "@igrek/core";
 import type { AppErrors } from "./apperrors";
 import type { Databases } from "./databases";
 

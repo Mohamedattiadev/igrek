@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { HttpResponse } from "@godeye/core";
+import type { HttpResponse } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Store } from "./store";
 

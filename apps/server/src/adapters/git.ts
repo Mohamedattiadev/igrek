@@ -1,4 +1,4 @@
-import type { CommitItem, GitChange, GitInfo } from "@godeye/core";
+import type { CommitItem, GitChange, GitInfo } from "@igrek/core";
 
 function git(cwd: string, args: string[]): string | undefined {
   try {

@@ -1,4 +1,4 @@
-import type { ApiMap, CodeRef, Endpoint, HttpResponse } from "@godeye/core";
+import type { ApiMap, CodeRef, Endpoint, HttpResponse } from "@igrek/core";
 import {
   Activity,
   ArrowLeft,

@@ -13,7 +13,7 @@ import {
   type ToolKind,
   type ToolPlan,
   type ToolResult,
-} from "@godeye/core";
+} from "@igrek/core";
 import {
   CheckCircle2,
   ChevronDown,

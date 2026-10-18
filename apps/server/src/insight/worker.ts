@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { InsightConfig, ToolResult } from "@godeye/core";
+import type { InsightConfig, ToolResult } from "@igrek/core";
 import { apiMap } from "./apis";
 import { scoreCategories } from "./checks";
 import { diagrams } from "./diagram";

@@ -1,4 +1,4 @@
-import { HELP_TOPICS } from "@godeye/core";
+import { HELP_TOPICS } from "@igrek/core";
 import {
   ArrowRight,
   Bot,

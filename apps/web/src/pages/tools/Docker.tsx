@@ -1,4 +1,4 @@
-import type { DockerContainer, ServerInfo } from "@godeye/core";
+import type { DockerContainer, ServerInfo } from "@igrek/core";
 import { Container, Play, RefreshCw, RotateCw, ScrollText, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
-import { type Briefing, type SessionSummaryData, type Settings, scrub } from "@godeye/core";
-import { languages } from "@godeye/i18n";
+import { type Briefing, type SessionSummaryData, type Settings, scrub } from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Flows } from "./flows";
 import type { Lessons } from "./lessons";
 import type { Schedules } from "./schedules";

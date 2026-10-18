@@ -1,4 +1,4 @@
-import type { Incident } from "@godeye/core";
+import type { Incident } from "@igrek/core";
 import {
   ArrowLeft,
   Bug,

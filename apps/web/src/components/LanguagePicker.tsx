@@ -1,5 +1,5 @@
-import type { LanguageOption } from "@godeye/i18n";
-import { languages as fallbackLanguages } from "@godeye/i18n";
+import type { LanguageOption } from "@igrek/i18n";
+import { languages as fallbackLanguages } from "@igrek/i18n";
 import { Check, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

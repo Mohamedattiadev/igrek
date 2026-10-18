@@ -30,7 +30,7 @@ COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 COPY packages/learn/package.json packages/learn/
 COPY packages/genui/package.json packages/genui/
-RUN bun install --frozen-lockfile --production --filter '@godeye/server' \
+RUN bun install --frozen-lockfile --production --filter '@igrek/server' \
  # The search model runtime ships binaries for every OS; keep only this one's (about 250 MB less).
  && ARCH=$(uname -m | sed 's/x86_64/x64/;s/aarch64/arm64/') \
  && for napi in $(find node_modules -type d -path '*onnxruntime-node/bin/napi-v*' -name 'napi-v*'); do \

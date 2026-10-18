@@ -1,4 +1,4 @@
-import { BRIDGE_EVENTS, type Bridge, type BridgeKind, type McpCatalogEntry, type McpServerEntry } from "@godeye/core";
+import { BRIDGE_EVENTS, type Bridge, type BridgeKind, type McpCatalogEntry, type McpServerEntry } from "@igrek/core";
 import { Download, RefreshCw, Upload } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { closeSync, existsSync, openSync, readdirSync, readSync, realpathSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { groupLines, type LogGroup, type LogLine, type LogSource, lineLevel } from "@godeye/core";
+import { groupLines, type LogGroup, type LogLine, type LogSource, lineLevel } from "@igrek/core";
 import type { Docker } from "./docker";
 import type { Files } from "./files";
 import type { Servers } from "./servers";

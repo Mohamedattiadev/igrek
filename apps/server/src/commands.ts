@@ -1,4 +1,4 @@
-import type { CommandRisk } from "@godeye/core";
+import type { CommandRisk } from "@igrek/core";
 
 /**
  * Sorts a shell command by how much it can change a server (plan.md 2.5):

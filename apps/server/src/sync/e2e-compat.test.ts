@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { decrypt, encrypt, generateDeviceKey, importTeamKey, unwrapTeamKey, wrapTeamKey } from "@godeye/core";
+import { decrypt, encrypt, generateDeviceKey, importTeamKey, unwrapTeamKey, wrapTeamKey } from "@igrek/core";
 import fixture from "../fixtures/e2e-v1.json";
 
 // Ciphertext made by the previous, Node-only implementation (throwaway keys made for this test):

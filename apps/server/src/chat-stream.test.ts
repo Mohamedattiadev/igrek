@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatEvent, ChatInfo } from "@godeye/core";
+import type { ChatEvent, ChatInfo } from "@igrek/core";
 import { ChatStream } from "./chat-stream";
 
 const info = { id: "c1", status: "working" } as unknown as ChatInfo;

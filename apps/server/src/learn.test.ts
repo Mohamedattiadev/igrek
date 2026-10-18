@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compareVersions, titleOf, validateSheet, words } from "@godeye/learn";
-import { loadContent } from "@godeye/learn/load";
+import { compareVersions, titleOf, validateSheet, words } from "@igrek/learn";
+import { loadContent } from "@igrek/learn/load";
 import { migrate } from "./db";
 import { detectTechs, Learn, searchContent, stageChecks, texts } from "./learn";
 

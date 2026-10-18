@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_SETTINGS, type EmbedderStatus } from "@godeye/core";
+import { DEFAULT_SETTINGS, type EmbedderStatus } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { openDb } from "./db";
 import type { Embed } from "./embedder";

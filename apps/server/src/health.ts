@@ -1,4 +1,4 @@
-import type { HealthFlag, HealthLevel, SessionHealth } from "@godeye/core";
+import type { HealthFlag, HealthLevel, SessionHealth } from "@igrek/core";
 
 export interface HealthInput {
   contextTokens: number;

@@ -1,4 +1,4 @@
-import type { ServerInfo } from "@godeye/core";
+import type { ServerInfo } from "@igrek/core";
 import { Check, ChevronDown, Laptop, Layers, Server, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

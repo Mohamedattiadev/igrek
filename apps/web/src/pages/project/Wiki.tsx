@@ -1,4 +1,4 @@
-import { slugify, type WikiPage } from "@godeye/core";
+import { slugify, type WikiPage } from "@igrek/core";
 import { Brain, Eye, FileText, Link2, Pencil, Plus, Save, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

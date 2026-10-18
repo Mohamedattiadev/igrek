@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { Settings } from "@godeye/core";
+import type { Settings } from "@igrek/core";
 import { createApp } from "./app";
 import { Bus, StopRegistry } from "./bus";
 import { loadConfig } from "./config";

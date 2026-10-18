@@ -10,7 +10,7 @@ import {
   groupLines,
   registrableDomain,
   type ServerMessage,
-} from "@godeye/core";
+} from "@igrek/core";
 import { AppErrors, browserName } from "./apperrors";
 import { Bus } from "./bus";
 import { openDb } from "./db";
@@ -349,7 +349,7 @@ describe("code host", () => {
 describe("costs", () => {
   test("yearly spread over months, cancelled ones stop, currencies converted with ECB rates", async () => {
     const { Costs } = await import("./costs");
-    const { costInMonth } = await import("@godeye/core");
+    const { costInMonth } = await import("@igrek/core");
     const jan = new Date(2026, 0, 1).getTime();
     expect(costInMonth({ amount: 120, period: "year", startsAt: jan }, 2026, 5)).toBe(10);
     expect(costInMonth({ amount: 50, period: "once", startsAt: jan }, 2026, 1)).toBe(0);
@@ -374,7 +374,7 @@ describe("costs", () => {
 
 describe("time tracking", () => {
   test("messages close together are one block; a 15-minute gap starts a new one; parallel sessions count once", async () => {
-    const { workBlocks } = await import("@godeye/core");
+    const { workBlocks } = await import("@igrek/core");
     const min = 60_000;
     expect(workBlocks([0, 5 * min, 10 * min, 40 * min])).toEqual([
       { start: 0, end: 10 * min },

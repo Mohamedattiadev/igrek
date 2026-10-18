@@ -1,4 +1,4 @@
-import type { AiTool } from "@godeye/core";
+import type { AiTool } from "@igrek/core";
 import type { Hono } from "hono";
 import type { EnhanceRequest, Enhancer } from "./enhance";
 

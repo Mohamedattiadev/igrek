@@ -1,4 +1,4 @@
-import type { DockerHost, LogLine, LogSource } from "@godeye/core";
+import type { DockerHost, LogLine, LogSource } from "@igrek/core";
 import type { Hono } from "hono";
 import type { AppErrors } from "./apperrors";
 import { auditCaching } from "./cache-audit";
@@ -368,7 +368,7 @@ export function registerAnalyticsRoutes(
     return c.json({ ...summary, draft: analytics.draft(summary, store.projectRow(c.req.param("id"))?.name ?? "") });
   });
   app.put("/api/projects/:id/analytics/source", async (c) => {
-    const body = (await c.req.json().catch(() => null)) as import("@godeye/core").AnalyticsSource | null;
+    const body = (await c.req.json().catch(() => null)) as import("@igrek/core").AnalyticsSource | null;
     try {
       analytics.setSource(c.req.param("id"), body);
       return c.json({ ok: true });
@@ -456,7 +456,7 @@ export function registerPluginRoutes(
 export function registerMcpRoutes(app: Hono, mcp: import("./mcpservers").McpServers): void {
   const fail = (err: unknown) => ({ error: (err as Error).message });
   app.get("/api/mcp-servers", async (c) => {
-    const { MCP_CATALOG } = await import("@godeye/core");
+    const { MCP_CATALOG } = await import("@igrek/core");
     return c.json({ servers: mcp.list(), catalog: MCP_CATALOG });
   });
   app.post("/api/mcp-servers", async (c) => {

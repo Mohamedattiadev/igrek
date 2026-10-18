@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { erDiagram, isWriteSql, tablesInSql } from "@godeye/core";
+import { erDiagram, isWriteSql, tablesInSql } from "@igrek/core";
 import { BackupJobs, nextBackupAt } from "./backup-jobs";
 import { Bus } from "./bus";
 import { Databases, displayAddress, kindOf } from "./databases";
@@ -249,7 +249,7 @@ describe("performance", () => {
   test("timings per endpoint, ids folded, p50/p95 from a histogram, compared with the week before", async () => {
     const { Perf } = await import("./perf");
     const { AppErrors } = await import("./apperrors");
-    const { normalizeRoute } = await import("@godeye/core");
+    const { normalizeRoute } = await import("@igrek/core");
     expect(normalizeRoute("/users/42/orders/7f3c9a2b-1111-4222-8333-444455556666?x=1")).toBe("/users/:id/orders/:id");
     const { sqlite, store } = setup();
     const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-perf-")));

@@ -1,4 +1,4 @@
-import type { IndexStatus } from "@godeye/core";
+import type { IndexStatus } from "@igrek/core";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
 import type { WholeFileAdapter } from "./adapters/gemini";

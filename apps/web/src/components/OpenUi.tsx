@@ -1,4 +1,4 @@
-import { type CALLOUT_KINDS, LIBRARY_ID, ROOT, SCHEMAS } from "@godeye/genui";
+import { type CALLOUT_KINDS, LIBRARY_ID, ROOT, SCHEMAS } from "@igrek/genui";
 import { type ActionEvent, createLibrary, defineComponent, Renderer, useTriggerAction } from "@openuidev/react-lang";
 import { useTranslation } from "react-i18next";
 import { actions } from "../lib/actions";

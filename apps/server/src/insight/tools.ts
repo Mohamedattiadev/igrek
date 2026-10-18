@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ToolKind, ToolPlan, ToolResult } from "@godeye/core";
+import type { ToolKind, ToolPlan, ToolResult } from "@igrek/core";
 import { cleanEnv } from "../env";
 import { scrub } from "../sync/scrub";
 

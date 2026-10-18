@@ -1,4 +1,4 @@
-import type { Checkpoint, FileEntry, GitChange, ProjectDetail } from "@godeye/core";
+import type { Checkpoint, FileEntry, GitChange, ProjectDetail } from "@igrek/core";
 import {
   ChevronDown,
   ChevronRight,

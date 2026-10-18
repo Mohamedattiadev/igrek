@@ -1,4 +1,4 @@
-import { type BackupJob, erDiagram, tablesInSql } from "@godeye/core";
+import { type BackupJob, erDiagram, tablesInSql } from "@igrek/core";
 import type { Hono } from "hono";
 import type { BackupJobs } from "./backup-jobs";
 import { scanAnomalies } from "./data-anomalies";

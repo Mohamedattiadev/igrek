@@ -1,4 +1,4 @@
-import { capabilitiesOf, type SessionDetail, type TranscriptMessage } from "@godeye/core";
+import { capabilitiesOf, type SessionDetail, type TranscriptMessage } from "@igrek/core";
 import {
   AlertTriangle,
   ArrowLeft,

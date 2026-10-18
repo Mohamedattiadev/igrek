@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_SETTINGS, type EmbedderStatus } from "@godeye/core";
+import { DEFAULT_SETTINGS, type EmbedderStatus } from "@igrek/core";
 import { Backups } from "./backup";
 import { Bus, StopRegistry } from "./bus";
 import { openDb } from "./db";
@@ -135,7 +135,7 @@ describe("project templates", () => {
   });
 
   test("the recommended pattern follows the needs", async () => {
-    const { recommendArchitecture } = await import("@godeye/core");
+    const { recommendArchitecture } = await import("@igrek/core");
     const base = { team: "solo", scale: "small", releases: "rare", background: false, plugins: false } as const;
     expect(recommendArchitecture(base).pattern).toBe("layered");
     expect(recommendArchitecture({ ...base, plugins: true }).pattern).toBe("microkernel");

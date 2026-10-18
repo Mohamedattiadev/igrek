@@ -1,4 +1,4 @@
-import type { InboxNotice } from "@godeye/core";
+import type { InboxNotice } from "@igrek/core";
 import {
   AlarmClock,
   AtSign,

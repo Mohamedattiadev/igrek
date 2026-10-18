@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ChatEvent } from "@godeye/core";
+import type { ChatEvent } from "@igrek/core";
 import { applyChanges } from "./chat";
 
 const text = (id: string, value: string) => ({ kind: "text", id, at: 1, text: value }) as ChatEvent;

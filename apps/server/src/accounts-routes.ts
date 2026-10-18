@@ -1,6 +1,6 @@
 import type { Database } from "bun:sqlite";
 import { homedir } from "node:os";
-import type { AiTool } from "@godeye/core";
+import type { AiTool } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import { limitAlerts, limitsOverview, monthlyReport } from "./limits";

@@ -1,4 +1,4 @@
-import type { DockerContainer, DockerHost } from "@godeye/core";
+import type { DockerContainer, DockerHost } from "@igrek/core";
 import type { Servers } from "./servers";
 
 /** Container names and ids as Docker makes them; nothing that could change the shell command. */

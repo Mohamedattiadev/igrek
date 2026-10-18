@@ -1,7 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { createHash } from "node:crypto";
-import type { Settings } from "@godeye/core";
-import { languages } from "@godeye/i18n";
+import type { Settings } from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import { StopRegistry } from "./bus";
 import { MODEL_FOR, runClaude } from "./summarizer";
 

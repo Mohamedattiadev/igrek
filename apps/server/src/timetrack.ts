@@ -1,4 +1,4 @@
-import { type TimeReport, workBlocks } from "@godeye/core";
+import { type TimeReport, workBlocks } from "@igrek/core";
 import type { Store } from "./store";
 
 const localDay = (at: number) => {

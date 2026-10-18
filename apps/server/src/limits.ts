@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { LimitForecast, LimitsOverview, MonthlyReport, RateLimitInfo } from "@godeye/core";
+import type { LimitForecast, LimitsOverview, MonthlyReport, RateLimitInfo } from "@igrek/core";
 import type { Accounts } from "./accounts";
 
 const DAY = 24 * 60 * 60_000;

@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { DevServerInfo, PickedElement, QuickEdit, VisualCheck } from "@godeye/core";
+import type { DevServerInfo, PickedElement, QuickEdit, VisualCheck } from "@igrek/core";
 import type { Server, ServerWebSocket } from "bun";
 import type { Bus, StopRegistry } from "../bus";
 import { createCheckpoint } from "../checkpoints";

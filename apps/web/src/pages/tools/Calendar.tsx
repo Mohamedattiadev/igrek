@@ -1,4 +1,4 @@
-import type { CalendarItem } from "@godeye/core";
+import type { CalendarItem } from "@igrek/core";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

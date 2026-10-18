@@ -1,4 +1,4 @@
-import { type ChatEvent, fixRequest, type Settings, type ToolResult } from "@godeye/core";
+import { type ChatEvent, fixRequest, type Settings, type ToolResult } from "@igrek/core";
 
 type Gate = Extract<ChatEvent, { kind: "gate" }>;
 

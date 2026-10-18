@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CHECK_SOURCES } from "@godeye/core";
+import { CHECK_SOURCES } from "@igrek/core";
 import en from "../../../../packages/i18n/locales/en.json";
 import { Bus, StopRegistry } from "../bus";
 import { migrate } from "../db";

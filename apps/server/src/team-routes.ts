@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
-import type { SessionSummaryData, ShareLevel } from "@godeye/core";
-import { languages } from "@godeye/i18n";
+import type { SessionSummaryData, ShareLevel } from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Hono } from "hono";
 import type { StopRegistry } from "./bus";
 import type { Store } from "./store";

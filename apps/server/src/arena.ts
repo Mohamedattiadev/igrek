@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { type ArenaMatch, type ArenaStat, arenaCategory } from "@godeye/core";
+import { type ArenaMatch, type ArenaStat, arenaCategory } from "@igrek/core";
 import type { Flows } from "./flows";
 
 /** Models a match can use. Codex only when its CLI is installed. */

@@ -1,4 +1,4 @@
-import type { DataAnomaly, DbConnection, DbKind, DbResult, DbTable } from "@godeye/core";
+import type { DataAnomaly, DbConnection, DbKind, DbResult, DbTable } from "@igrek/core";
 
 /** What the scan needs from the database layer: its tables and read-only queries. */
 export interface AnomalySource {

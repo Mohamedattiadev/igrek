@@ -1,5 +1,5 @@
 import { posix } from "node:path";
-import type { ArchitectureReport, ArchPattern } from "@godeye/core";
+import type { ArchitectureReport, ArchPattern } from "@igrek/core";
 import type { Snapshot } from "./snapshot";
 
 /**

@@ -10,7 +10,7 @@ import {
   extractNotebook,
   personaForCategory,
   personaPrompt,
-} from "@godeye/core";
+} from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { Chats } from "./chats";
 import { openDb } from "./db";

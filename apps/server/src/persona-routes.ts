@@ -1,6 +1,6 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { extractNotebook, type Idea, personaToolList } from "@godeye/core";
+import { extractNotebook, type Idea, personaToolList } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Chats } from "./chats";

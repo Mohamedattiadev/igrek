@@ -3,7 +3,7 @@
  * fetched once, and their response headers are checked against the usual rules. Each finding
  * names the file, what is wrong, and the fix; sources are MDN and web.dev.
  */
-import type { CacheAudit, CacheFinding } from "@godeye/core";
+import type { CacheAudit, CacheFinding } from "@igrek/core";
 
 /** Response headers of one file, lower-case names. */
 export type Headers = Record<string, string>;

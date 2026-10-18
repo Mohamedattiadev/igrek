@@ -11,8 +11,8 @@ import {
   expandShortcuts,
   type Presence,
   type Settings,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import { gitChanges, gitInfo, gitLog } from "./adapters/git";
 import type { StopRegistry } from "./bus";
 import type { Store } from "./store";

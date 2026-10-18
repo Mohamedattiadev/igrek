@@ -1,4 +1,4 @@
-import { type QuizQuestion, type RoadmapStep, type ServedRoadmap, STAGES } from "@godeye/learn";
+import { type QuizQuestion, type RoadmapStep, type ServedRoadmap, STAGES } from "@igrek/learn";
 import {
   ArrowLeft,
   BookOpen,

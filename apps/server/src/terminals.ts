@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import type { TerminalInfo, TerminalTool } from "@godeye/core";
+import type { TerminalInfo, TerminalTool } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv, loginShell } from "./env";
 

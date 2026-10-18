@@ -1,4 +1,4 @@
-import type { ToolCheck } from "@godeye/core";
+import type { ToolCheck } from "@igrek/core";
 
 const TOOLS: { id: ToolCheck["id"]; bin: string; args: string[]; required: boolean }[] = [
   { id: "git", bin: "git", args: ["--version"], required: true },

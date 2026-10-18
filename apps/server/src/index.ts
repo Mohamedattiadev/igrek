@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { APP_VERSION, type ClientMessage, citation, HELP_TOPICS, lessonLines, type ServerMessage } from "@godeye/core";
-import { reportUiHint } from "@godeye/genui";
-import { bundledResources } from "@godeye/i18n";
+import { APP_VERSION, type ClientMessage, citation, HELP_TOPICS, lessonLines, type ServerMessage } from "@igrek/core";
+import { reportUiHint } from "@igrek/genui";
+import { bundledResources } from "@igrek/i18n";
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
 import { Accounts } from "./accounts";

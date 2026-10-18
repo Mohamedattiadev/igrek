@@ -10,7 +10,7 @@ import {
   type RecentChat,
   RICH_BLOCKS_HINT,
   STEP_CUT,
-} from "@godeye/core";
+} from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";

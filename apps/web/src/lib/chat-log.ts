@@ -1,4 +1,4 @@
-import type { ChatEvent } from "@godeye/core";
+import type { ChatEvent } from "@igrek/core";
 
 type ToolEvent = Extract<ChatEvent, { kind: "tool" }>;
 

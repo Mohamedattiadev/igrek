@@ -7,7 +7,7 @@ import {
   gradeOf,
   type InsightConfig,
   type ToolResult,
-} from "@godeye/core";
+} from "@igrek/core";
 import { SECRET_PATTERNS } from "../sync/scrub";
 import { isEnvExample, type RepoFile, SENSITIVE, type Snapshot } from "./snapshot";
 

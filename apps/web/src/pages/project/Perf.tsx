@@ -1,4 +1,4 @@
-import type { CacheAudit, CodeCacheReport, PageVitals, RenderAdvice, RoutePerf, VitalValue } from "@godeye/core";
+import type { CacheAudit, CodeCacheReport, PageVitals, RenderAdvice, RoutePerf, VitalValue } from "@igrek/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui";

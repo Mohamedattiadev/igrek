@@ -1,10 +1,10 @@
 /**
- * End-to-end encryption for team sync (plan.md 4.2). The cipher itself lives in @godeye/core
+ * End-to-end encryption for team sync (plan.md 4.2). The cipher itself lives in @igrek/core
  * (e2e.ts) so browsers of web members use the very same code; here are the parts only a
  * computer needs: a device key kept as JWK, and invite codes.
  */
 
-import { generateDeviceKey as makeDeviceKey } from "@godeye/core";
+import { generateDeviceKey as makeDeviceKey } from "@igrek/core";
 
 export {
   decrypt,
@@ -16,7 +16,7 @@ export {
   type TeamKey,
   unwrapTeamKey,
   wrapTeamKey,
-} from "@godeye/core";
+} from "@igrek/core";
 
 export interface DeviceKey {
   /** Raw P-256 public key, base64url (what the hub stores). */

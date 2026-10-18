@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { ImportEstimate, ImportStatus } from "@godeye/core";
+import type { ImportEstimate, ImportStatus } from "@igrek/core";
 import type { Bus } from "../bus";
 import type { Summarizer } from "../summarizer";
 import type { Insight } from "./index";

@@ -1,4 +1,4 @@
-import { type ChatEvent, fixRequest } from "@godeye/core";
+import { type ChatEvent, fixRequest } from "@igrek/core";
 import { CircleCheck, CircleX, Loader2, Send, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

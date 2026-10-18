@@ -1,4 +1,4 @@
-import type { ServerMessage } from "@godeye/core";
+import type { ServerMessage } from "@igrek/core";
 
 type Listener = (message: ServerMessage) => void;
 

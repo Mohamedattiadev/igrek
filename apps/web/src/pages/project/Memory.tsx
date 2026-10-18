@@ -1,4 +1,4 @@
-import type { MemoryItem, MemorySection, ProjectDetail } from "@godeye/core";
+import type { MemoryItem, MemorySection, ProjectDetail } from "@igrek/core";
 import { AlertTriangle, Brain, Check, MessageSquare, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

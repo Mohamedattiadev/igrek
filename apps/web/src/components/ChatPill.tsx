@@ -1,4 +1,4 @@
-import type { ChatInfo, ChatPill as Pill } from "@godeye/core";
+import type { ChatInfo, ChatPill as Pill } from "@igrek/core";
 import { useTranslation } from "react-i18next";
 import { Badge } from "./ui";
 

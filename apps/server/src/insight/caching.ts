@@ -1,4 +1,4 @@
-import type { CodeCacheReport } from "@godeye/core";
+import type { CodeCacheReport } from "@igrek/core";
 import type { Snapshot } from "./snapshot";
 
 /**

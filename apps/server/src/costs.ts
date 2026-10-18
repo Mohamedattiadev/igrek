@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { type CostItem, type CostSummary, costInMonth } from "@godeye/core";
+import { type CostItem, type CostSummary, costInMonth } from "@igrek/core";
 import type { Accounts } from "./accounts";
 import type { Monitors } from "./monitors";
 import type { Servers } from "./servers";

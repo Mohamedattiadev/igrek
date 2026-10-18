@@ -1,4 +1,4 @@
-import type { PluginInfo, PluginPermission } from "@godeye/core";
+import type { PluginInfo, PluginPermission } from "@igrek/core";
 import { Plug, Plus, Power, ShieldCheck, Terminal, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

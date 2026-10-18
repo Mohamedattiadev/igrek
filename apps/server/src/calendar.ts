@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { type CalendarItem, nextRun } from "@godeye/core";
+import { type CalendarItem, nextRun } from "@igrek/core";
 import { type BackupJobs, nextBackupAt } from "./backup-jobs";
 import type { Monitors } from "./monitors";
 import type { Schedules } from "./schedules";

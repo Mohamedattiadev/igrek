@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import type { Settings } from "@godeye/core";
+import type { Settings } from "@igrek/core";
 import { type Bus, StopRegistry } from "./bus";
 import { MODEL_FOR, runClaude } from "./summarizer";
 

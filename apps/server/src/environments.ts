@@ -1,14 +1,7 @@
 import type { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type {
-  DeployCheck,
-  DeployRecord,
-  EnvironmentInfo,
-  EnvironmentState,
-  EnvKeyUse,
-  InboxNotice,
-} from "@godeye/core";
+import type { DeployCheck, DeployRecord, EnvironmentInfo, EnvironmentState, EnvKeyUse, InboxNotice } from "@igrek/core";
 import type { Bus } from "./bus";
 import type { Servers } from "./servers";
 import type { Store } from "./store";

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import type { InboxNotice, ProjectListItem } from "@godeye/core";
+import type { InboxNotice, ProjectListItem } from "@igrek/core";
 
 /**
  * A comment that asks the AI for something, written in the user's own editor (plan.md 16.4, after

@@ -15,8 +15,8 @@ import {
   scrub,
   TECH_TERMS,
   type TechTrend,
-} from "@godeye/core";
-import { languages } from "@godeye/i18n";
+} from "@igrek/core";
+import { languages } from "@igrek/i18n";
 import type { Bus } from "./bus";
 import { htmlToText } from "./extract";
 import type { Library } from "./library";

@@ -9,7 +9,7 @@ import {
 } from "@excalidraw/excalidraw";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
-import { describeScene, type SceneElement, sceneText } from "@godeye/core";
+import { describeScene, type SceneElement, sceneText } from "@igrek/core";
 import { useEffect, useRef, useState } from "react";
 
 type Scene = { elements?: unknown[]; appState?: Record<string, unknown>; files?: Record<string, unknown> };

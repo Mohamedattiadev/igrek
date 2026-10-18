@@ -1,4 +1,4 @@
-import { compareVersions, LEVELS, type Level, type ProjectTech, type ServedSheet, type SheetItem } from "@godeye/learn";
+import { compareVersions, LEVELS, type Level, type ProjectTech, type ServedSheet, type SheetItem } from "@igrek/learn";
 import {
   ArrowLeft,
   ArrowUpCircle,
