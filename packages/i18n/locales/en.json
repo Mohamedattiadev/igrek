@@ -3641,7 +3641,21 @@
     "render_serverPropsPublic": "getServerSideProps runs on every request though the page is the same for everyone: use getStaticProps with revalidate.",
     "render_streamWithLoading": "It renders per request for the signed-in user; add a loading.tsx so the shell shows at once and the data streams in.",
     "render_preRenderParams": "A page with a URL parameter that fetches data but lists no generateStaticParams: known pages are built on first visit only; list the common ones to build them ahead.",
-    "render_staticDataGoesStale": "It fetches data at build time and never refreshes: add a revalidate time, or it shows build-day data until the next deploy."
+    "render_staticDataGoesStale": "It fetches data at build time and never refreshes: add a revalidate time, or it shows build-day data until the next deploy.",
+    "codeCacheTitle": "Caches in the code",
+    "codeCacheLayers": "Layers found",
+    "codeCacheNone": "none",
+    "codeCacheClean": "Every cache found sets an expiry.",
+    "layer_memory": "in-memory (LRU)",
+    "layer_redis": "Redis",
+    "layer_framework": "framework data cache",
+    "layer_serviceWorker": "service worker",
+    "layer_database": "database query cache",
+    "codeCache_redisNoExpiry": "A Redis value is set without an expiry (EX/PX): it stays until someone deletes it, even after the data changed.",
+    "codeCache_lruNoTtl": "An LRU cache without a ttl: entries only leave when it is full, so old data can be served for a long time.",
+    "codeCache_nodeCacheNoTtl": "node-cache without stdTTL: entries never expire.",
+    "codeCache_unstableCacheNoRevalidate": "unstable_cache without revalidate: the result is kept until a deploy or a revalidateTag call.",
+    "codeCache_noInvalidation": "The code caches values but never deletes or refreshes a key: after data changes, readers may see the old value until it expires (or forever)."
   },
   "incident": {
     "title": "Incident mode",

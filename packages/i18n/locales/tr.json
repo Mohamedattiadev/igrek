@@ -3641,7 +3641,21 @@
     "render_serverPropsPublic": "getServerSideProps her istekte çalışıyor ama sayfa herkes için aynı: revalidate ile getStaticProps kullan.",
     "render_streamWithLoading": "Giriş yapmış kullanıcı için her istekte üretiliyor; bir loading.tsx ekle ki iskelet hemen görünsün, veri akarak gelsin.",
     "render_preRenderParams": "URL parametresi olan ve veri çeken sayfada generateStaticParams yok: bilinen sayfalar sadece ilk ziyarette üretiliyor; sık kullanılanları listele ki önceden üretilsin.",
-    "render_staticDataGoesStale": "Veriyi build sırasında çekiyor ve hiç yenilemiyor: bir revalidate süresi ekle, yoksa bir sonraki deploy'a kadar build günündeki veriyi gösterir."
+    "render_staticDataGoesStale": "Veriyi build sırasında çekiyor ve hiç yenilemiyor: bir revalidate süresi ekle, yoksa bir sonraki deploy'a kadar build günündeki veriyi gösterir.",
+    "codeCacheTitle": "Koddaki önbellekler",
+    "codeCacheLayers": "Bulunan katmanlar",
+    "codeCacheNone": "yok",
+    "codeCacheClean": "Bulunan her önbellek bir süre sonu belirliyor.",
+    "layer_memory": "bellek içi (LRU)",
+    "layer_redis": "Redis",
+    "layer_framework": "çatının veri önbelleği",
+    "layer_serviceWorker": "service worker",
+    "layer_database": "veritabanı sorgu önbelleği",
+    "codeCache_redisNoExpiry": "Bir Redis değeri süre sonu (EX/PX) olmadan yazılıyor: veri değişse bile biri silene kadar kalır.",
+    "codeCache_lruNoTtl": "ttl'siz bir LRU önbelleği: öğeler sadece dolunca çıkar, eski veri uzun süre sunulabilir.",
+    "codeCache_nodeCacheNoTtl": "stdTTL'siz node-cache: öğelerin süresi hiç dolmaz.",
+    "codeCache_unstableCacheNoRevalidate": "revalidate'siz unstable_cache: sonuç bir deploy'a ya da revalidateTag çağrısına kadar kalır.",
+    "codeCache_noInvalidation": "Kod değerleri önbelleğe alıyor ama hiçbir anahtarı silmiyor ya da yenilemiyor: veri değişince okuyanlar eski değeri süresi dolana kadar (ya da sonsuza kadar) görebilir."
   },
   "incident": {
     "title": "Olay modu",

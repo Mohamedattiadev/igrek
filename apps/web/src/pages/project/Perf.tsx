@@ -1,4 +1,4 @@
-import type { CacheAudit, PageVitals, RenderAdvice, RoutePerf, VitalValue } from "@godeye/core";
+import type { CacheAudit, CodeCacheReport, PageVitals, RenderAdvice, RoutePerf, VitalValue } from "@godeye/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui";
@@ -121,6 +121,47 @@ function RenderStrategy({ projectId }: { projectId: string }) {
   );
 }
 
+/** Cache layers in the project's code and values cached forever (plan.md 15.4). */
+function CodeCaches({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [report, setReport] = useState<CodeCacheReport>();
+  useEffect(() => {
+    let live = true;
+    request<CodeCacheReport>(`/api/projects/${projectId}/caching`)
+      .then((r) => live && setReport(r))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [projectId]);
+  if (!report || (!report.layers.length && !report.findings.length)) return null;
+  return (
+    <section className="space-y-2">
+      <h2 className="text-[14px] font-semibold">{t("perf.codeCacheTitle")}</h2>
+      <p className="text-xs text-fg-muted">
+        {t("perf.codeCacheLayers")}:{" "}
+        {report.layers.map((l) => t(`perf.layer_${l}`)).join(", ") || t("perf.codeCacheNone")}
+      </p>
+      {report.findings.length === 0 ? (
+        <p className="text-xs text-success">{t("perf.codeCacheClean")}</p>
+      ) : (
+        <ul className="divide-y divide-border rounded-ui border border-border text-[12.5px]">
+          {report.findings.map((f) => (
+            <li key={`${f.rule}:${f.file}:${f.line}`} className="space-y-0.5 px-3 py-2">
+              <p className="font-medium">{t(`perf.codeCache_${f.rule}`)}</p>
+              {f.file && (
+                <p className="font-mono text-[11px] text-fg-subtle">
+                  {f.file}:{f.line}
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 /** The live site's cache and compression headers (plan.md 15.4), checked on request. */
 function CacheCheck() {
   const { t } = useTranslation();
@@ -209,6 +250,7 @@ export function PerfPanel({ projectId }: { projectId: string }) {
       <RenderStrategy projectId={projectId} />
       <VitalsTable projectId={projectId} />
       <CacheCheck />
+      <CodeCaches projectId={projectId} />
       <section className="space-y-2">
         <h2 className="text-[14px] font-semibold">{t("perf.title")}</h2>
         {!rows?.length ? (

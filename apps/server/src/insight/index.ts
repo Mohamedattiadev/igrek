@@ -10,6 +10,7 @@ import {
   type CategoryDetail,
   type CategoryExplanation,
   type CategoryScore,
+  type CodeCacheReport,
   type CoverageMap,
   type DesignFinding,
   type DiagramSet,
@@ -28,6 +29,7 @@ import type { Bus, StopRegistry } from "../bus";
 import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
 import { scrub } from "../sync/scrub";
+import { cachingOf } from "./caching";
 import { coverageMap } from "./coverage";
 import { designFindings } from "./design";
 import { architectureOf } from "./patterns";
@@ -102,6 +104,12 @@ export class Insight {
   architecture(projectId: string): ArchitectureReport | undefined {
     const root = this.rootOf(projectId);
     return root ? architectureOf(takeSnapshot(root)) : undefined;
+  }
+
+  /** Cache layers in the code, and values cached with no expiry. */
+  caching(projectId: string): CodeCacheReport | undefined {
+    const root = this.rootOf(projectId);
+    return root ? cachingOf(takeSnapshot(root)) : undefined;
   }
 
   /** Design patterns used where they add nothing, missed chances, and SOLID breaks. */

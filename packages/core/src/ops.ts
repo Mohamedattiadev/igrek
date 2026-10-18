@@ -780,3 +780,13 @@ export interface RenderAdvice {
   /** What was seen in the code: "client", "signedIn", "revalidate"… */
   evidence: string[];
 }
+
+/** Cache layers in a project's code and values cached with no expiry (plan.md 15.4). */
+export interface CodeCacheReport {
+  layers: ("memory" | "redis" | "framework" | "serviceWorker" | "database")[];
+  findings: {
+    rule: "redisNoExpiry" | "lruNoTtl" | "nodeCacheNoTtl" | "unstableCacheNoRevalidate" | "noInvalidation";
+    file: string;
+    line: number;
+  }[];
+}
