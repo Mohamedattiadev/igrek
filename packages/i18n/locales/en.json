@@ -88,7 +88,9 @@
     "statusTip_paused": "Put aside for now: still watched, out of the way.",
     "statusTip_archived": "Done or dropped: no scans, no watchers, no reports. Nothing is deleted.",
     "summariesOff": "Automatic summaries are off, so the cards can't say what each project is doing. A small, cheap model writes them after each session.",
-    "summariesOn": "Turn on summaries"
+    "summariesOn": "Turn on summaries",
+    "day": "Your day",
+    "dayHint": "briefing, day end, today and focus"
   },
   "inbox": {
     "title": "Inbox",
@@ -403,7 +405,10 @@
     "errors": "Many failed steps recently",
     "compacted": "Already compressed several times",
     "fresh": "This session is tired. Starting a new one with a summary will give better, more reliable answers.",
-    "compact": "Half of the AI's working memory is used. Typing /compact in this session now keeps it sharp for longer."
+    "compact": "Half of the AI's working memory is used. Typing /compact in this session now keeps it sharp for longer.",
+    "explain_good": "the AI still remembers the conversation well.",
+    "explain_warn": "the conversation is getting long and the AI may start to forget earlier details.",
+    "explain_bad": "the AI is forgetting earlier details. Start a new conversation with a summary for better answers."
   },
   "search": {
     "results": "In your sessions",
@@ -802,7 +807,8 @@
     "goneOpen": "Read the conversation",
     "goneProject": "Go to the project",
     "recent": "Recent chats",
-    "forget": "Remove from the list"
+    "forget": "Remove from the list",
+    "modelTip": "Which AI model answers. Stronger models think better but use up your limit faster. If unsure, keep Default."
   },
   "checkpoint": {
     "title": "Snapshots",

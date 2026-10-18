@@ -513,6 +513,7 @@ export function ChatPage() {
             navigate(`/c/${next.id}`, { replace: true });
           }}
           aria-label={t("chat.model")}
+          data-tip={t("chat.modelTip")}
           className="h-7 rounded-md border border-border bg-bg px-1.5 text-[12px]"
         >
           {MODELS.map((m) => (

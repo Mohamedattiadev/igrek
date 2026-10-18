@@ -1177,7 +1177,7 @@ god-eye/
 
 #### 16.5 Kullanıcı testinden kalanlar (`research/kullanici-testi_2026-10-18.md`)
 - [x] ⭐ Sohbet listesi sunucuda kalıcı: God Eye yeniden başlayınca da her tarayıcıda "Kaldığım yerden devam et" — *sohbetler oturum kimliğiyle veritabanında saklanır; Terminaller sayfasında "Son sohbetler" listesi ve "Kaldığım yerden devam et" her tarayıcıda, yeniden başlatmadan sonra da çalışır*
-- [ ] ⭐ Ana sayfa sade: önce sohbet kutusu ve projeler; brifing, gün sonu, "Bugün" ve odak kartları katlanabilir; Basit modda jargon ("Session", "Dinç/Yoruluyor", model adları) açıklanır ya da gizlenir
+- [x] ⭐ Ana sayfa sade: önce sohbet kutusu ve projeler; brifing, gün sonu, "Bugün" ve odak kartları katlanabilir; Basit modda jargon ("Session", "Dinç/Yoruluyor", model adları) açıklanır ya da gizlenir — *brifing, gün sonu, "Bugün", odak ve özet önerisi tek bir "Günün özeti" bölümünde; Basit modda kapalı başlar, seçim hatırlanır. Sağlık rozeti ve model seçimi bir cümleyle açıklanır, Basit modda "Dinç" rozeti gizlenir; Türkçede "session" yerine "oturum" (sözlükte açıklamalı)*
 - [ ] Telefonda Dosyalar sayfası tek panel; telefonda turda menü butonu adımı
 - [ ] Öğrenme merkezi başlıklarının Türkçesi (yol haritası ve kâğıt başlıkları şu an tek dil)
 - [ ] Erişilebilirlik taraması (axe ile kontrast ve etiketler; sabit İngilizce aria-label'lar)

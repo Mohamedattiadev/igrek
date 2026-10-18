@@ -3,6 +3,7 @@ import {
   ArrowDown,
   ArrowUp,
   Briefcase,
+  ChevronRight,
   FlaskConical,
   FolderKanban,
   FolderPlus,
@@ -11,7 +12,7 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { BriefingCard } from "../components/BriefingCard";
@@ -25,6 +26,7 @@ import { useWorkspace } from "../components/WorkspacePicker";
 import { DayEndButton } from "../components/Writeups";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
 import { api, request } from "../lib/api";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useIndexStatus, useLiveData } from "../lib/live";
 import { useSettings } from "../lib/settings";
@@ -361,6 +363,46 @@ function SummariesOff() {
   );
 }
 
+const DAY_OPEN = "godeye.home.dayOpen";
+
+/** Briefing, day end, today and focus fold into one section; closed at first in Simple mode (plan.md 16.5). */
+function DaySection({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
+  const { settings } = useSettings();
+  const [open, setOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem(DAY_OPEN);
+      if (saved) return saved === "1";
+    } catch {
+      // Private window: fall back to the mode.
+    }
+    return settings.mode === "pro";
+  });
+  const toggle = () => {
+    setOpen(!open);
+    try {
+      localStorage.setItem(DAY_OPEN, open ? "0" : "1");
+    } catch {
+      // Only a convenience.
+    }
+  };
+  return (
+    <section className="space-y-3">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        className="flex w-full items-center gap-1.5 text-start text-xs font-semibold uppercase tracking-wide text-fg-subtle hover:text-fg"
+      >
+        <ChevronRight size={14} className={cn("shrink-0 transition-transform", open && "rotate-90")} />
+        {t("projects.day")}
+        <span className="min-w-0 truncate font-normal normal-case tracking-normal">{t("projects.dayHint")}</span>
+      </button>
+      {open && children}
+    </section>
+  );
+}
+
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -438,11 +480,13 @@ export function ProjectsPage() {
         <div className="p-6">
           <div className="mb-4 space-y-3">
             {projects && <HomeComposer projects={projects} />}
-            <SummariesOff />
-            <BriefingCard />
-            <RecapCard />
-            <TodayStrip />
-            {projects && <FocusBanner projects={projects} onChange={reload} />}
+            <DaySection>
+              <SummariesOff />
+              <BriefingCard />
+              <RecapCard />
+              <TodayStrip />
+              {projects && <FocusBanner projects={projects} onChange={reload} />}
+            </DaySection>
             {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
               <Segmented
                 label={t("projects.status")}

@@ -2,6 +2,7 @@ import type { SessionHealth, SessionSummaryData } from "@godeye/core";
 import { HeartPulse } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
+import { useSettings } from "../lib/settings";
 import { TeamText } from "./TeamText";
 import { Badge, StatusDot } from "./ui";
 
@@ -9,8 +10,11 @@ const LEVEL_TONE = { good: "success", warn: "warning", bad: "danger" } as const;
 
 export function HealthBadge({ health }: { health: SessionHealth }) {
   const { t } = useTranslation();
+  const { settings } = useSettings();
+  // Simple mode only speaks up when there is something to do.
+  if (settings.mode === "simple" && health.level === "good") return null;
   return (
-    <span title={t("health.title")}>
+    <span data-tip={`${t("health.title")}: ${t(`health.explain_${health.level}`)}`}>
       <Badge tone={LEVEL_TONE[health.level]}>
         <HeartPulse size={11} className="me-1" />
         {t(`health.${health.level}`)}
