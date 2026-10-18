@@ -53,7 +53,7 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
   app.use("/api/*", async (c, next) => {
     if (c.req.header("x-godeye-caller") === "agent" && c.req.method !== "GET" && !AGENT_WRITES.has(c.req.path))
       return c.json({ error: "Agents may propose, not approve or change this" }, 403);
-    await next();
+    return next();
   });
 
   app.get("/api/health", (c) => c.json({ ok: true, version: APP_VERSION }));

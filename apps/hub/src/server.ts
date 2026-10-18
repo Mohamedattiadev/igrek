@@ -120,7 +120,7 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean; mail?
     const auth = hub.authenticate(c.req.header("authorization")?.replace(/^Bearer /, ""), ip(c.req.raw, c.env));
     if (!auth) return c.json({ error: "Not signed in" }, 401);
     c.set("auth", auth);
-    await next();
+    return next();
   });
   const adminOnly = (c: { get: (k: "auth") => Ctx; json: (b: unknown, s?: number) => Response }) =>
     c.get("auth").user.role === "admin" ? undefined : c.json({ error: "Admins only" }, 403);

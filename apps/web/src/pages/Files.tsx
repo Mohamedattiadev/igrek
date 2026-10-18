@@ -105,9 +105,14 @@ function Viewer({ entry }: { entry: FileEntry }) {
     setDraft(undefined);
     setStatus(undefined);
     if (kind && !["markdown", "csv", "json", "tree"].includes(kind)) return;
+    // A slow read of the previous file must not land in this one (and be saved over it).
+    let live = true;
     fs.read(entry.path)
-      .then((f) => setText({ content: f.content ?? "", mtime: f.mtime, binary: f.kind === "binary" }))
-      .catch((err: Error) => setStatus(err.message));
+      .then((f) => live && setText({ content: f.content ?? "", mtime: f.mtime, binary: f.kind === "binary" }))
+      .catch((err: Error) => live && setStatus(err.message));
+    return () => {
+      live = false;
+    };
   }, [entry.path, kind]);
 
   const save = async () => {

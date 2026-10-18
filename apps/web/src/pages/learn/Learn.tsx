@@ -48,15 +48,19 @@ function LearnSearch({ autoFocus }: { autoFocus?: boolean }) {
   const [hits, setHits] = useState<LearnHit[]>([]);
   useEffect(() => {
     if (!query.trim()) return setHits([]);
+    let live = true;
     const timer = setTimeout(
       () =>
         void learnApi
           .search(query, i18n.language)
-          .then(setHits)
-          .catch(() => setHits([])),
+          .then((list) => live && setHits(list))
+          .catch(() => live && setHits([])),
       150,
     );
-    return () => clearTimeout(timer);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
   }, [query, i18n.language]);
   return (
     <div className="space-y-2">

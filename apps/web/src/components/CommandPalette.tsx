@@ -110,17 +110,21 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       setLearnHits([]);
       return;
     }
+    let live = true;
     const timer = setTimeout(() => {
       api
         .search(q)
-        .then(setHits)
-        .catch(() => setHits([]));
+        .then((list) => live && setHits(list))
+        .catch(() => live && setHits([]));
       learnApi
         .search(q, i18n.language)
-        .then((list) => setLearnHits(list.slice(0, 5)))
+        .then((list) => live && setLearnHits(list.slice(0, 5)))
         .catch(() => setLearnHits([]));
     }, 150);
-    return () => clearTimeout(timer);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
   }, [query, i18n.language]);
 
   // ">" at the start: only actions, like VS Code's command mode.

@@ -187,10 +187,14 @@ function TableRows({ conn, table }: { conn: DbConnection; table: DbTable }) {
   const { t } = useTranslation();
   useEffect(() => {
     setError(undefined);
+    let live = true;
     dataApi
       .rows(conn.id, table.name, table.schema, page)
-      .then(setResult)
-      .catch((err: Error) => setError(err.message));
+      .then((rows) => live && setResult(rows))
+      .catch((err: Error) => live && setError(err.message));
+    return () => {
+      live = false;
+    };
   }, [conn.id, table.name, table.schema, page]);
   return (
     <div className="space-y-2">

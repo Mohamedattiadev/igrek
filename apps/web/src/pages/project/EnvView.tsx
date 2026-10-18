@@ -176,11 +176,15 @@ function HistoryDialog({
   const { t } = useTranslation();
   const [list, setList] = useState<{ id: string; at: number; keys: number }[]>();
   useEffect(() => {
-    if (file)
-      api
-        .envHistory(projectId, file)
-        .then(setList)
-        .catch(() => setList([]));
+    if (!file) return;
+    let live = true;
+    api
+      .envHistory(projectId, file)
+      .then((history) => live && setList(history))
+      .catch(() => live && setList([]));
+    return () => {
+      live = false;
+    };
   }, [projectId, file]);
   return (
     <Dialog open={!!file} onClose={onClose} label={t("env.history")}>

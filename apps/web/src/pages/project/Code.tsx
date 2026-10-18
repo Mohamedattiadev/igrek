@@ -362,12 +362,16 @@ function SearchPanel({
       setHits([]);
       return;
     }
+    let live = true;
     const timer = setTimeout(() => {
       fs.search(root, query.trim(), true)
-        .then(setHits)
-        .catch(() => setHits([]));
+        .then((list) => live && setHits(list))
+        .catch(() => live && setHits([]));
     }, 250);
-    return () => clearTimeout(timer);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
   }, [query, root]);
   return (
     <div className="flex min-h-0 flex-1 flex-col">

@@ -1,7 +1,8 @@
 /**
  * Code quality rules as code (plan.md 15.1): too complex or too long functions, too many
- * parameters, swallowed errors (empty blocks), promises nobody waits for, and copy-pasted blocks.
- * Biome measures most of it with the rules in scripts/biome-quality.json; copies are found here.
+ * parameters, swallowed errors (empty blocks), promises nobody waits for, copy-pasted blocks, and
+ * React effects that leak or race. Biome measures most of it with the rules in
+ * scripts/biome-quality.json; copies and effects are found here.
  * Counts per rule and file that exist today are in code-baseline.json with the reason; a count
  * may only go down (the "ratchet"), and when it does the baseline must follow.
  *
@@ -27,7 +28,53 @@ export const RULES: Record<string, string> = {
   noFloatingPromises: "A promise nobody waits for loses its error; await it, catch it, or mark it with void.",
   noMisusedPromises: "A promise used where a boolean or a plain callback is expected.",
   duplicate: "Duplicate Code smell (refactoring.guru): the same lines in two places drift apart; extract them once.",
+  effectLeak:
+    "An effect starts a timer, listener, socket or observer and never stops it: it keeps running after the page is gone (react.dev: synchronizing with effects, cleanup).",
+  effectRace:
+    "An effect writes a fetched answer to state with no guard: when its inputs change quickly an older answer can land last and show the wrong data (react.dev: fetching data, ignore flag).",
 };
+
+/** What an effect starts, and what stops it. */
+const EFFECT_PAIRS: [RegExp, RegExp][] = [
+  [/\bsetInterval\(/, /\bclearInterval\(/],
+  [/\baddEventListener\(/, /\bremoveEventListener\(/],
+  [
+    /\bnew (WebSocket|EventSource|ResizeObserver|IntersectionObserver|MutationObserver|PerformanceObserver)\(/,
+    /\.(close|disconnect)\(/,
+  ],
+];
+/** Words that show a stale answer is dropped (an ignore flag, an abort signal, a sequence number). */
+const EFFECT_GUARD =
+  /(cancel|closed|alive|active|ignore|stale|abort|mounted|current\b|signal|\blive\b|latest|\bseq\b|token)/i;
+
+/** Every `useEffect(() => { ... }, [deps])` in a file: its line, body and dependency list. */
+function effects(text: string): { line: number; body: string; deps?: string }[] {
+  const out: { line: number; body: string; deps?: string }[] = [];
+  for (const m of text.matchAll(/useEffect\(\s*(?:async\s*)?\(\)\s*=>\s*\{/g)) {
+    const start = (m.index ?? 0) + m[0].length;
+    let depth = 1;
+    let i = start;
+    for (; i < text.length && depth; i++) depth += text[i] === "{" ? 1 : text[i] === "}" ? -1 : 0;
+    const deps = text.slice(i, i + 300).match(/^\s*,\s*\[([^\]]*)\]/)?.[1];
+    out.push({ line: text.slice(0, m.index).split("\n").length, body: text.slice(start, i - 1), deps });
+  }
+  return out;
+}
+
+/** Leaking and racing effects in the web app, one finding per effect. */
+export function effectFindings(list: string[], read = (f: string) => readFileSync(join(ROOT, f), "utf8")): string[] {
+  const out: string[] = [];
+  for (const file of list.filter((f) => f.startsWith("apps/web/"))) {
+    for (const { body, deps } of effects(read(file))) {
+      if (EFFECT_PAIRS.some(([start, stop]) => start.test(body) && !stop.test(body))) out.push(`effectLeak:${file}`);
+      // An empty dependency list runs once, so nothing can overtake it.
+      const reruns = deps !== undefined && deps.trim() !== "";
+      if (reruns && /(\.then\(|await )/.test(body) && /\bset[A-Z]\w*\(/.test(body) && !EFFECT_GUARD.test(body))
+        out.push(`effectRace:${file}`);
+    }
+  }
+  return out;
+}
 
 type Baseline = { reasons: Record<string, string>; counts: Record<string, number> };
 
@@ -117,7 +164,9 @@ function biomeCounts(): Map<string, number> {
 
 export function measure(): Record<string, number> {
   const counts = biomeCounts();
-  for (const file of duplicates(files())) counts.set(`duplicate:${file}`, (counts.get(`duplicate:${file}`) ?? 0) + 1);
+  const list = files();
+  for (const key of [...duplicates(list).map((f) => `duplicate:${f}`), ...effectFindings(list)])
+    counts.set(key, (counts.get(key) ?? 0) + 1);
   return Object.fromEntries([...counts].sort(([a], [b]) => a.localeCompare(b)));
 }
 

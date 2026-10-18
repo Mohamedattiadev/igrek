@@ -1,5 +1,29 @@
 import { describe, expect, test } from "bun:test";
-import { check, duplicates, RULES, readBaseline } from "./code-check";
+import { check, duplicates, effectFindings, RULES, readBaseline } from "./code-check";
+
+describe("effects", () => {
+  const find = (code: string) => effectFindings(["apps/web/x.tsx"], () => code);
+
+  test("a timer or listener that is never stopped leaks", () => {
+    expect(find("useEffect(() => { setInterval(tick, 1000); }, []);")).toEqual(["effectLeak:apps/web/x.tsx"]);
+    expect(find("useEffect(() => { const t = setInterval(tick, 1000); return () => clearInterval(t); }, []);")).toEqual(
+      [],
+    );
+    expect(find("useEffect(() => { window.addEventListener('resize', f); }, []);")).toEqual([
+      "effectLeak:apps/web/x.tsx",
+    ]);
+  });
+
+  test("a fetch for changing inputs needs a guard against older answers", () => {
+    const racy = "useEffect(() => { api.get(id).then((r) => setData(r)); }, [id]);";
+    const guarded =
+      "useEffect(() => { let live = true; api.get(id).then((r) => live && setData(r)); return () => { live = false; }; }, [id]);";
+    const once = "useEffect(() => { api.get().then((r) => setData(r)); }, []);";
+    expect(find(racy)).toEqual(["effectRace:apps/web/x.tsx"]);
+    expect(find(guarded)).toEqual([]);
+    expect(find(once)).toEqual([]);
+  });
+});
 
 describe("code quality gate", () => {
   const block = Array.from({ length: 14 }, (_, i) => `const value${i} = compute(${i}) + offset;`).join("\n");

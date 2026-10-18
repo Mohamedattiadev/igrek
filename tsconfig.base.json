@@ -5,6 +5,7 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2023"],
     "strict": true,
+    "noImplicitReturns": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
