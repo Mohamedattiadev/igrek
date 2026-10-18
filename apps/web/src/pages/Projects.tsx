@@ -1,4 +1,4 @@
-import type { ProjectListItem } from "@godeye/core";
+import { type ProjectListItem, type ProjectNeeds, recommendArchitecture } from "@godeye/core";
 import {
   ArrowDown,
   ArrowUp,
@@ -162,6 +162,56 @@ function AddProject() {
 
 const TEMPLATE_IDS = ["saas", "api", "landing", "cli", "empty"] as const;
 
+/** Team, scale and rhythm of a new project, and the architecture they point to (plan.md 15.2). */
+function ArchitectureQuestions({ needs, onChange }: { needs: ProjectNeeds; onChange: (n: ProjectNeeds) => void }) {
+  const { t } = useTranslation();
+  const advice = recommendArchitecture(needs);
+  const choice = <K extends "team" | "scale" | "releases">(key: K, options: ProjectNeeds[K][]) => (
+    <label className="flex items-center justify-between gap-2 text-[12.5px]">
+      <span>{t(`arch.ask_${key}`)}</span>
+      <select
+        value={needs[key]}
+        onChange={(e) => onChange({ ...needs, [key]: e.target.value })}
+        className="h-8 rounded-ui border border-border bg-bg px-2 text-[12.5px]"
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {t(`arch.${key}_${o}`)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+  return (
+    <details className="rounded-ui border border-border p-2">
+      <summary className="cursor-pointer text-[12.5px] font-medium">
+        {t("arch.newTitle")}: {t(`arch.pattern_${advice.pattern}`)}
+      </summary>
+      <div className="mt-2 space-y-2">
+        {choice("team", ["solo", "small", "large"])}
+        {choice("scale", ["small", "growing", "high"])}
+        {choice("releases", ["rare", "weekly", "daily"])}
+        {(["background", "plugins"] as const).map((key) => (
+          <label key={key} className="flex items-center gap-2 text-[12.5px]">
+            <input
+              type="checkbox"
+              checked={needs[key]}
+              onChange={(e) => onChange({ ...needs, [key]: e.target.checked })}
+            />
+            {t(`arch.ask_${key}`)}
+          </label>
+        ))}
+        <ul className="list-disc ps-5 text-[11.5px] text-fg-muted">
+          {advice.reasons.map((r) => (
+            <li key={r}>{t(`arch.why_${r}`)}</li>
+          ))}
+        </ul>
+        <p className="text-[11px] text-fg-subtle">{t("arch.newNote")}</p>
+      </div>
+    </details>
+  );
+}
+
 /** A new project from a template, carrying your conventions and lessons (plan.md 11). */
 function NewProject() {
   const { t } = useTranslation();
@@ -171,6 +221,13 @@ function NewProject() {
   const [parent, setParent] = useState("");
   const [template, setTemplate] = useState<(typeof TEMPLATE_IDS)[number]>("saas");
   const [details, setDetails] = useState("");
+  const [needs, setNeeds] = useState<ProjectNeeds>({
+    team: "solo",
+    scale: "small",
+    releases: "weekly",
+    background: false,
+    plugins: false,
+  });
   const [practices, setPractices] = useState<{ conventions: string[]; lessons: string[] }>();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -185,7 +242,7 @@ function NewProject() {
     setBusy(true);
     setError(undefined);
     try {
-      const made = await api.newProject({ name, parent, template, details });
+      const made = await api.newProject({ name, parent, template, details, needs });
       setOpen(false);
       void navigate(made.runId ? `/runs/${made.runId}` : `/p/${made.projectId}`);
     } catch (err) {
@@ -246,6 +303,7 @@ function NewProject() {
             aria-label={t("templates.details")}
             className="w-full rounded-ui border border-border bg-bg px-3 py-2 text-[13px] outline-none focus:border-accent"
           />
+          <ArchitectureQuestions needs={needs} onChange={setNeeds} />
           {practices && (
             <p className="text-[11px] text-fg-subtle">
               {t("templates.carries", { conventions: practices.conventions.length, lessons: practices.lessons.length })}

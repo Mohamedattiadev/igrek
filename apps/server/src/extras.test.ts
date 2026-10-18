@@ -118,5 +118,35 @@ describe("project templates", () => {
         home,
       ),
     ).toThrow("home folder");
+    // With the architecture questions answered, the decision and its rules are written down.
+    const planned = createProject(
+      { store: w.store, flows, lessons: w.lessons },
+      {
+        name: "ledger",
+        parent: home,
+        template: "empty",
+        needs: { team: "small", scale: "small", releases: "weekly", background: false, plugins: false },
+      },
+      home,
+    );
+    expect(readFileSync(join(planned.path, "docs/adr/0001-architecture.md"), "utf8")).toContain("layered");
+    expect(readFileSync(join(planned.path, "AGENTS.md"), "utf8")).toContain("Closed layers");
+    expect(readFileSync(join(planned.path, "docs/architecture.md"), "utf8")).toContain("C4Context");
+  });
+
+  test("the recommended pattern follows the needs", async () => {
+    const { recommendArchitecture } = await import("@godeye/core");
+    const base = { team: "solo", scale: "small", releases: "rare", background: false, plugins: false } as const;
+    expect(recommendArchitecture(base).pattern).toBe("layered");
+    expect(recommendArchitecture({ ...base, plugins: true }).pattern).toBe("microkernel");
+    expect(recommendArchitecture({ ...base, background: true, scale: "growing" }).pattern).toBe("eventDriven");
+    expect(recommendArchitecture({ ...base, team: "large", scale: "high", releases: "daily" }).pattern).toBe(
+      "microservices",
+    );
+    // A large team without high load or daily releases still starts as a modular monolith.
+    expect(recommendArchitecture({ ...base, team: "large" })).toMatchObject({
+      pattern: "layered",
+      reasons: ["modules", "startSimple"],
+    });
   });
 });

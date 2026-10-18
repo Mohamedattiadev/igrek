@@ -422,3 +422,38 @@ export const DESIGN_SOURCES: Record<DesignFinding["rule"], string> = {
   godClass: "https://en.wikipedia.org/wiki/Single-responsibility_principle",
   hardDependency: "https://en.wikipedia.org/wiki/Dependency_inversion_principle",
 };
+
+/** What a new project needs, asked when it is created (plan.md 15.2). */
+export interface ProjectNeeds {
+  team: "solo" | "small" | "large";
+  scale: "small" | "growing" | "high";
+  releases: "rare" | "weekly" | "daily";
+  /** Long jobs or work that reacts to events (emails, imports, payments). */
+  background: boolean;
+  /** Others will add features as plug-ins. */
+  plugins: boolean;
+}
+
+/**
+ * A pattern for those needs, from the book's analysis: start simple (a layered, modular monolith
+ * is high on ease of development and testability) and pay for distribution only when the team or
+ * the load asks for it. Each reason is an i18n key under arch.why_*.
+ */
+export function recommendArchitecture(needs: ProjectNeeds): {
+  pattern: Exclude<ArchPattern, "unknown">;
+  reasons: string[];
+} {
+  if (needs.plugins) return { pattern: "microkernel", reasons: ["plugins"] };
+  if (needs.team === "large" && needs.scale === "high" && needs.releases === "daily")
+    return { pattern: "microservices", reasons: ["largeTeam", "highScale", "dailyReleases"] };
+  if (needs.background && needs.scale !== "small")
+    return { pattern: "eventDriven", reasons: ["background", "scaleParts"] };
+  return {
+    pattern: "layered",
+    reasons: [
+      needs.team === "large" ? "modules" : "smallTeam",
+      ...(needs.background ? ["queueLater"] : []),
+      "startSimple",
+    ],
+  };
+}

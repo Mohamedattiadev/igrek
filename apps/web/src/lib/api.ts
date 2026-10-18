@@ -58,6 +58,7 @@ import type {
   Presence,
   ProjectDetail,
   ProjectListItem,
+  ProjectNeeds,
   QuickAnswer,
   QuickEdit,
   RecentChat,
@@ -302,7 +303,7 @@ export const api = {
   checkDeps: (projectId: string) => request<DependencyReport>(`/api/projects/${projectId}/deps`, { method: "POST" }),
   templates: () =>
     request<{ templates: string[]; practices: { conventions: string[]; lessons: string[] } }>("/api/templates"),
-  newProject: (body: { name: string; parent: string; template: string; details?: string }) =>
+  newProject: (body: { name: string; parent: string; template: string; details?: string; needs?: ProjectNeeds }) =>
     request<{ projectId: string; path: string; runId?: string }>("/api/projects/new", {
       method: "POST",
       body: JSON.stringify(body),
