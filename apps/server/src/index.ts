@@ -9,6 +9,7 @@ import { registerAccountRoutes } from "./accounts-routes";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
 import { geminiAdapter } from "./adapters/gemini";
+import { AiComments } from "./aicomments";
 import { Analytics } from "./analytics";
 import { createApp } from "./app";
 import { AppErrors } from "./apperrors";
@@ -473,7 +474,14 @@ const knowledge = new Knowledge(
 // The news of each persona's field, on the schedule chosen on the Knowledge page (checked hourly).
 setTimeout(() => void knowledge.tick().catch(() => undefined), 5 * 60_000);
 setInterval(() => void knowledge.tick().catch(() => undefined), 60 * 60_000);
+// "// ai: do this!" comments typed in the user's editor become inbox items (plan.md 16.4).
+const aiComments = new AiComments(
+  () => store.listProjects(),
+  () => readSettings(db).language,
+);
+aiComments.start();
 insight.extraNotices = () => [
+  ...aiComments.notices(),
   ...sync.overlapNotices(),
   ...sync.mentionNotices(),
   ...knowledge.notices(),

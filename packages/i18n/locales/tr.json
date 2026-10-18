@@ -133,7 +133,8 @@
     "notice_backup": "Yedeklemeye bakmak lazım",
     "notice_regression": "Otomatik tekrar test kötüleşti",
     "notice_rotate": "Bir anahtarı değiştirme zamanı",
-    "dayendFrom": "gün sonu notu:"
+    "dayendFrom": "gün sonu notu:",
+    "notice_aiComment": "bir yorumda AI'dan istiyor"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -878,7 +879,8 @@
     "limitResume": "Sıfırlanınca devam et",
     "limitCancel": "İptal",
     "limitOther": "Başka hesap kullan",
-    "limitResumeText": "Kullanım limiti sıfırlandı. Kaldığın yerden devam et."
+    "limitResumeText": "Kullanım limiti sıfırlandı. Kaldığın yerden devam et.",
+    "starting": "Sohbet başlatılıyor…"
   },
   "checkpoint": {
     "title": "Kayıtlar",

@@ -16,6 +16,7 @@ import {
   Lightbulb,
   type LucideIcon,
   MessageSquare,
+  MessageSquareCode,
   Moon,
   NotebookPen,
   Package as PackageIcon,
@@ -41,6 +42,7 @@ import { isSnoozed, snooze } from "../lib/snooze";
 import { TerminalStatus } from "./Terminals";
 
 const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
+  aiComment: MessageSquareCode,
   tool: CircleX,
   score: TrendingDown,
   overlap: Users,

@@ -133,7 +133,8 @@
     "notice_backup": "Backup needs attention",
     "notice_regression": "An automatic re-test went worse",
     "notice_rotate": "Time to change a key",
-    "dayendFrom": "end-of-day note from"
+    "dayendFrom": "end-of-day note from",
+    "notice_aiComment": "asks the AI in a comment"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -878,7 +879,8 @@
     "limitResume": "Go on when it resets",
     "limitCancel": "Cancel",
     "limitOther": "Use another account",
-    "limitResumeText": "The usage limit has reset. Continue where you left off."
+    "limitResumeText": "The usage limit has reset. Continue where you left off.",
+    "starting": "Starting a chat…"
   },
   "checkpoint": {
     "title": "Snapshots",

@@ -28,6 +28,7 @@ const router = createBrowserRouter([
       { path: "p/:projectId", ...page(() => import("./pages/Project"), "ProjectPage") },
       { path: "p/:projectId/s/:sessionId", ...page(() => import("./pages/Session"), "SessionPage") },
       { path: "terminals", ...page(() => import("./pages/Terminals"), "TerminalsPage") },
+      { path: "c/new", ...page(() => import("./pages/StartChat"), "StartChatPage") },
       { path: "c/:chatId", ...page(() => import("./pages/Chat"), "ChatPage") },
       { path: "files", ...page(() => import("./pages/Files"), "FilesPage") },
       { path: "ideas", ...page(() => import("./pages/Ideas"), "IdeasPage") },
