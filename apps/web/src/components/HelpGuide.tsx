@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { request } from "../lib/api";
 import { startTour } from "../lib/tour";
-import { Markdown } from "./Markdown";
+import { LazyMarkdown as Markdown } from "./LazyMarkdown";
 import { Button, Dialog } from "./ui";
 
 /**

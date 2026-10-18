@@ -1,21 +1,32 @@
 import { RTL_LANGUAGES } from "@godeye/core";
-import { bundledResources } from "@godeye/i18n";
+import en from "@godeye/i18n/locales/en.json";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 
-const resources = Object.fromEntries(
-  Object.entries(bundledResources).map(([code, messages]) => [code, { translation: messages }]),
-);
+/**
+ * English is the fallback for every language, so it ships with the first screen; the other
+ * hand-checked languages load when they are chosen (plan.md 15.4: about 190 KB less for everyone else).
+ */
+const BUNDLED: Record<string, () => Promise<{ default: Record<string, unknown> }>> = {
+  tr: () => import("@godeye/i18n/locales/tr.json"),
+};
 
 void i18n.use(initReactI18next).init({
-  resources,
+  resources: { en: { translation: en } },
   lng: "en",
   fallbackLng: "en",
   interpolation: { escapeValue: false },
 });
 
 export function isBundled(code: string): boolean {
-  return code in bundledResources;
+  return code === "en" || code in BUNDLED;
+}
+
+/** Loads a hand-checked language before it is shown, so the page never flashes in English. */
+export async function loadBundled(code: string): Promise<void> {
+  const load = BUNDLED[code];
+  if (!load || i18n.hasResourceBundle(code, "translation")) return;
+  i18n.addResourceBundle(code, "translation", (await load()).default, true, true);
 }
 
 /**
@@ -33,7 +44,9 @@ export async function loadPack(code: string): Promise<void> {
 
 /** Switches UI language; languages without a pack yet fall back to English text. */
 export function applyLanguage(code: string): void {
-  void i18n.changeLanguage(code).then(() => loadPack(code));
+  void loadBundled(code)
+    .then(() => i18n.changeLanguage(code))
+    .then(() => loadPack(code));
   document.documentElement.lang = code;
   document.documentElement.dir = RTL_LANGUAGES.has(code.split("-")[0] ?? code) ? "rtl" : "ltr";
 }

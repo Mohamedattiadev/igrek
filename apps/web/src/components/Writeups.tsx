@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
 import { docsApi } from "../lib/ops-api";
-import { Markdown } from "./Markdown";
+import { LazyMarkdown as Markdown } from "./LazyMarkdown";
 import { Button, CopyButton, Dialog } from "./ui";
 
 const post = <T,>(path: string, body: unknown) => request<T>(path, { method: "POST", body: JSON.stringify(body) });

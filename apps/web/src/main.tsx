@@ -1,45 +1,23 @@
-import { StrictMode } from "react";
+import { type ComponentType, StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Shell } from "./components/Shell";
-import { GuidePage } from "./pages/Guide";
-import { LearnPage } from "./pages/learn/Learn";
-import { RoadmapPage } from "./pages/learn/RoadmapPage";
-import { SheetPage } from "./pages/learn/SheetPage";
 import "./lib/i18n";
 import { SettingsProvider, useSettings } from "./lib/settings";
-import { ChatPage } from "./pages/Chat";
-import { DesignPage } from "./pages/Design";
-import { FilesPage } from "./pages/Files";
-import { FlowRunPage } from "./pages/FlowRun";
-import { IdeasPage } from "./pages/Ideas";
-import { InboxPage } from "./pages/Inbox";
-import { IncidentPage } from "./pages/Incident";
-import { KnowledgePage } from "./pages/KnowledgePage";
-import { LessonsPage } from "./pages/LessonsPage";
-import { LibraryPage } from "./pages/LibraryPage";
-import { LimitsPage } from "./pages/Limits";
-import { MeetingPage } from "./pages/Meeting";
 import { Onboarding } from "./pages/Onboarding";
-import { PersonPage } from "./pages/Person";
-import { NewPersonaPage, PersonaPage } from "./pages/PersonaDetail";
-import { PersonasPage } from "./pages/Personas";
-import { ProjectPage } from "./pages/Project";
 import { ProjectsPage } from "./pages/Projects";
-import { PromptsPage } from "./pages/Prompts";
-import { SchedulesPage } from "./pages/SchedulesPage";
-import { ServerPage, ServersPage } from "./pages/Servers";
-import { SessionPage } from "./pages/Session";
-import { SettingsPage } from "./pages/Settings";
-import { TeamPage } from "./pages/Team";
-import { TerminalPage, TerminalsPage } from "./pages/Terminals";
-import { TestRunPage } from "./pages/Testers";
-import { ToolsPage } from "./pages/tools/ToolsPage";
-import { WeeklyPage } from "./pages/Weekly";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/jetbrains-mono/wght.css";
 import "./styles.css";
+
+/**
+ * Each page is loaded the first time it is opened, so the first screen downloads only the shell and
+ * the projects page (plan.md 15.4). React Router waits for the module before it shows the page.
+ */
+function page(load: () => Promise<Record<string, unknown>>, name: string) {
+  return { lazy: async () => ({ Component: (await load())[name] as ComponentType }) };
+}
 
 const router = createBrowserRouter([
   {
@@ -47,39 +25,39 @@ const router = createBrowserRouter([
     element: <Shell />,
     children: [
       { index: true, element: <ProjectsPage /> },
-      { path: "p/:projectId", element: <ProjectPage /> },
-      { path: "p/:projectId/s/:sessionId", element: <SessionPage /> },
-      { path: "terminals", element: <TerminalsPage /> },
-      { path: "c/:chatId", element: <ChatPage /> },
-      { path: "files", element: <FilesPage /> },
-      { path: "ideas", element: <IdeasPage /> },
-      { path: "servers", element: <ServersPage /> },
-      { path: "servers/:serverId", element: <ServerPage /> },
-      { path: "prompts", element: <PromptsPage /> },
-      { path: "t/:termId", element: <TerminalPage /> },
-      { path: "inbox", element: <InboxPage /> },
-      { path: "limits", element: <LimitsPage /> },
-      { path: "personas", element: <PersonasPage /> },
-      { path: "library", element: <LibraryPage /> },
-      { path: "lessons", element: <LessonsPage /> },
-      { path: "knowledge", element: <KnowledgePage /> },
-      { path: "personas/new", element: <NewPersonaPage /> },
-      { path: "personas/:personaId", element: <PersonaPage /> },
-      { path: "meetings/:meetingId", element: <MeetingPage /> },
-      { path: "test-runs/:runId", element: <TestRunPage /> },
-      { path: "runs/:runId", element: <FlowRunPage /> },
-      { path: "schedules", element: <SchedulesPage /> },
-      { path: "tools", element: <ToolsPage /> },
-      { path: "incidents/:incidentId", element: <IncidentPage /> },
-      { path: "weekly", element: <WeeklyPage /> },
-      { path: "guide", element: <GuidePage /> },
-      { path: "learn", element: <LearnPage /> },
-      { path: "learn/s/:sheetId", element: <SheetPage /> },
-      { path: "learn/r/:roadmapId", element: <RoadmapPage /> },
-      { path: "team", element: <TeamPage /> },
-      { path: "team/:userId", element: <PersonPage /> },
-      { path: "settings", element: <SettingsPage /> },
-      { path: "design", element: <DesignPage /> },
+      { path: "p/:projectId", ...page(() => import("./pages/Project"), "ProjectPage") },
+      { path: "p/:projectId/s/:sessionId", ...page(() => import("./pages/Session"), "SessionPage") },
+      { path: "terminals", ...page(() => import("./pages/Terminals"), "TerminalsPage") },
+      { path: "c/:chatId", ...page(() => import("./pages/Chat"), "ChatPage") },
+      { path: "files", ...page(() => import("./pages/Files"), "FilesPage") },
+      { path: "ideas", ...page(() => import("./pages/Ideas"), "IdeasPage") },
+      { path: "servers", ...page(() => import("./pages/Servers"), "ServersPage") },
+      { path: "servers/:serverId", ...page(() => import("./pages/Servers"), "ServerPage") },
+      { path: "prompts", ...page(() => import("./pages/Prompts"), "PromptsPage") },
+      { path: "t/:termId", ...page(() => import("./pages/Terminals"), "TerminalPage") },
+      { path: "inbox", ...page(() => import("./pages/Inbox"), "InboxPage") },
+      { path: "limits", ...page(() => import("./pages/Limits"), "LimitsPage") },
+      { path: "personas", ...page(() => import("./pages/Personas"), "PersonasPage") },
+      { path: "library", ...page(() => import("./pages/LibraryPage"), "LibraryPage") },
+      { path: "lessons", ...page(() => import("./pages/LessonsPage"), "LessonsPage") },
+      { path: "knowledge", ...page(() => import("./pages/KnowledgePage"), "KnowledgePage") },
+      { path: "personas/new", ...page(() => import("./pages/PersonaDetail"), "NewPersonaPage") },
+      { path: "personas/:personaId", ...page(() => import("./pages/PersonaDetail"), "PersonaPage") },
+      { path: "meetings/:meetingId", ...page(() => import("./pages/Meeting"), "MeetingPage") },
+      { path: "test-runs/:runId", ...page(() => import("./pages/Testers"), "TestRunPage") },
+      { path: "runs/:runId", ...page(() => import("./pages/FlowRun"), "FlowRunPage") },
+      { path: "schedules", ...page(() => import("./pages/SchedulesPage"), "SchedulesPage") },
+      { path: "tools", ...page(() => import("./pages/tools/ToolsPage"), "ToolsPage") },
+      { path: "incidents/:incidentId", ...page(() => import("./pages/Incident"), "IncidentPage") },
+      { path: "weekly", ...page(() => import("./pages/Weekly"), "WeeklyPage") },
+      { path: "guide", ...page(() => import("./pages/Guide"), "GuidePage") },
+      { path: "learn", ...page(() => import("./pages/learn/Learn"), "LearnPage") },
+      { path: "learn/s/:sheetId", ...page(() => import("./pages/learn/SheetPage"), "SheetPage") },
+      { path: "learn/r/:roadmapId", ...page(() => import("./pages/learn/RoadmapPage"), "RoadmapPage") },
+      { path: "team", ...page(() => import("./pages/Team"), "TeamPage") },
+      { path: "team/:userId", ...page(() => import("./pages/Person"), "PersonPage") },
+      { path: "settings", ...page(() => import("./pages/Settings"), "SettingsPage") },
+      { path: "design", ...page(() => import("./pages/Design"), "DesignPage") },
       { path: "*", element: <ProjectsPage /> },
     ],
   },

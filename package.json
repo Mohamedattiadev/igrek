@@ -22,6 +22,7 @@
     "lint:arch": "bun scripts/arch-check.ts",
     "lint:db": "bun scripts/db-check.ts",
     "lint:quality": "bun scripts/code-check.ts",
+    "lint:bundle": "bun scripts/bundle-check.ts",
     "c4": "bun scripts/c4.ts",
     "format": "biome format --write .",
     "test": "bun test"

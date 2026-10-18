@@ -1,7 +1,7 @@
 import { DEFAULT_SETTINGS, type Settings } from "@godeye/core";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api } from "./api";
-import { applyLanguage } from "./i18n";
+import { applyLanguage, loadBundled } from "./i18n";
 
 interface SettingsContextValue {
   settings: Settings;
@@ -41,7 +41,9 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     api
       .bootstrap()
       .then(api.settings)
-      .then((value) => {
+      .then(async (value) => {
+        // The chosen language's texts arrive before the first screen is drawn.
+        await loadBundled(value.language).catch(() => undefined);
         setSettings(value);
         setLoaded(true);
       })

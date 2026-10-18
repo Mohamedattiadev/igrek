@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { request } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { duration } from "../pages/tools/Time";
-import { Markdown } from "./Markdown";
+import { LazyMarkdown as Markdown } from "./LazyMarkdown";
 import { Button, Card } from "./ui";
 
 const localDay = (d: Date) =>

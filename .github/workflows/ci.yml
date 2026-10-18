@@ -28,6 +28,8 @@ jobs:
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
+      # What the first screen downloads stays within its budget (plan.md 15.4).
+      - run: bun run lint:bundle
 
   docker:
     runs-on: ubuntu-latest

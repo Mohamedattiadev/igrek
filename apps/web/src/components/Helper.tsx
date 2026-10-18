@@ -8,7 +8,7 @@ import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { CHAT, findProject, fold, GUIDE, has, LAST, NEW, TERMINAL, TOUR, WHERE_TYPE } from "../lib/helper-match";
 import { startTour } from "../lib/tour";
-import { Markdown } from "./Markdown";
+import { LazyMarkdown as Markdown } from "./LazyMarkdown";
 
 /** Something the helper offers: a page to open or a thing to do. */
 interface Action {
