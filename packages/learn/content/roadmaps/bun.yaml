@@ -1,0 +1,2717 @@
+id: bun
+title: Bun full-stack
+summary:
+  en: "From an empty computer to your own full-stack app on the internet, built with Bun alone. You write a small notes app step by step: TypeScript with no build step, a web server, a page, a SQLite database, logins, tests, one executable file, a tiny Docker image and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi full-stack uygulamana, sadece Bun ile. Adım adım küçük bir not uygulaması yazarsın: derleme adımı olmayan TypeScript, bir web sunucusu, bir sayfa, SQLite veritabanı, giriş sistemi, testler, tek çalıştırılabilir dosya, küçücük bir Docker image'ı ve ücretsiz deploy."
+teacher: backend
+project:
+  en: "Notely, a small notes app. People register and log in, then add, list and delete their own notes. Bun serves both the page (plain TypeScript, no framework) and the JSON API. It uses bun:sqlite, Bun.password hashing, bun test, rate limiting, JSON logs and a health check, ships as one executable inside a small Docker image, and runs on Render's free plan."
+  tr: "Notely, küçük bir not uygulaması. Kişiler kayıt olup giriş yapar, sonra kendi notlarını ekler, listeler ve siler. Bun hem sayfayı (düz TypeScript, framework yok) hem de JSON API'yi sunar. bun:sqlite, Bun.password ile hash'leme, bun test, rate limiting, JSON log'lar ve bir health check kullanır; küçük bir Docker image'ının içinde tek çalıştırılabilir dosya olarak gelir ve Render'ın ücretsiz planında çalışır."
+detect:
+  npm: ["@types/bun", bun-types]
+  files: [bun.lock, bunfig.toml]
+version: "1.4.3"
+latest: eol:bun
+checked: 2026-10
+after: [web]
+sheets: [bun, typescript, javascript, http, auth, sql, docker, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Bun, an editor, Git and curl"
+      tr: "Bun, bir editör, Git ve curl kurma"
+    minutes: 40
+    why:
+      en: "Bun is one program that runs your TypeScript, installs packages, runs tests and builds your app, so there is very little else to set up. An editor makes writing code comfortable, Git keeps every version of your work, and curl lets you talk to your own server from the terminal before any web page exists."
+      tr: "Bun; TypeScript kodunu çalıştıran, paket kuran, test çalıştıran ve uygulamanı derleyen tek bir programdır; bu yüzden ayrıca kurulacak şey çok azdır. Editör kod yazmayı rahatlatır, Git işinin her sürümünü saklar, curl da henüz ortada bir web sayfası yokken kendi sunucunla terminalden konuşmanı sağlar."
+    learn:
+      en: |
+        - What Bun is: a JavaScript and TypeScript runtime (a program that runs code), a package manager, a test runner and a bundler in one
+        - What a backend is (a program that waits for requests and answers them) and what a full-stack app is (the backend plus the page people see)
+        - How to open a terminal and check that a program is installed
+      tr: |
+        - Bun'ın ne olduğu: JavaScript ve TypeScript çalışma ortamı (kodu çalıştıran program), paket yöneticisi, test çalıştırıcı ve bundler, hepsi bir arada
+        - Backend'in ne olduğu (istek bekleyen ve cevap veren program) ve full-stack uygulamanın ne olduğu (backend artı insanların gördüğü sayfa)
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+    do:
+      en: |
+        1. Install **Bun**. On macOS and Linux run `curl -fsSL https://bun.com/install | bash`. On Windows (10 version 1809 or later) run `powershell -c "irm bun.sh/install.ps1|iex"` in PowerShell. Other ways (Homebrew, npm) are on bun.com/docs/installation.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it. On Windows, Git also installs *Git Bash*, a terminal where the `curl` commands in this roadmap work exactly as written. Use it if PowerShell gives you trouble with quotes.
+        4. **Close the terminal and open a new one**, so it can find `bun`. In VS Code: *Terminal → New Terminal*.
+        5. Run the commands below. Each should print a version number. This roadmap was tested with Bun 1.4.3; any 1.4 version works.
+        6. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+      tr: |
+        1. **Bun**'ı kur. macOS ve Linux'ta `curl -fsSL https://bun.com/install | bash` çalıştır. Windows'ta (10 sürüm 1809 veya üstü) PowerShell'de `powershell -c "irm bun.sh/install.ps1|iex"` çalıştır. Diğer yollar (Homebrew, npm) bun.com/docs/installation sayfasında.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir. Windows'ta Git, *Git Bash* de kurar; bu roadmap'teki `curl` komutları orada aynen yazıldığı gibi çalışır. PowerShell tırnak işaretlerinde sorun çıkarırsa onu kullan.
+        4. **Terminali kapatıp yenisini aç**, ki `bun`'ı bulabilsin. VS Code'da: *Terminal → New Terminal*.
+        5. Aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı. Bu roadmap Bun 1.4.3 ile denendi; her 1.4 sürümü çalışır.
+        6. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          bun --version
+          git --version
+          curl --version
+    mistakes:
+      - problem:
+          en: "\"command not found: bun\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found: bun\" hatası."
+        fix:
+          en: "Close the terminal and open a new one. The installer adds Bun to your PATH, and only new terminals read it. If it still fails, run the installer's last lines again and follow what it says."
+          tr: "Terminali kapatıp yenisini aç. Kurucu Bun'ı PATH'ine ekler ve bunu sadece yeni terminaller okur. Hâlâ olmuyorsa kurucunun son satırlarını tekrar çalıştırıp yazdığını yap."
+      - problem:
+          en: "On Windows, `curl` in PowerShell behaves strangely and the JSON examples fail."
+          tr: "Windows'ta PowerShell'deki `curl` tuhaf davranıyor ve JSON örnekleri çalışmıyor."
+        fix:
+          en: "In PowerShell, `curl` is an alias of a different command. Run the examples in Git Bash, or type `curl.exe` instead of `curl`."
+          tr: "PowerShell'de `curl`, başka bir komutun takma adıdır. Örnekleri Git Bash'te çalıştır ya da `curl` yerine `curl.exe` yaz."
+    quiz:
+      - q:
+          en: "Which of these does Bun do on its own, with no extra program?"
+          tr: "Aşağıdakilerden hangisini Bun, ek bir program olmadan kendisi yapar?"
+        options:
+          en:
+            - "Only runs JavaScript"
+            - "Runs TypeScript, installs packages, runs tests and bundles code"
+            - "Only installs packages"
+          tr:
+            - "Sadece JavaScript çalıştırır"
+            - "TypeScript çalıştırır, paket kurar, test çalıştırır ve kodu paketler"
+            - "Sadece paket kurar"
+        answer: 1
+        why:
+          en: "Bun is a runtime, a package manager, a test runner and a bundler in one program."
+          tr: "Bun; çalışma ortamı, paket yöneticisi, test çalıştırıcı ve bundler olarak tek programdır."
+    sources:
+      - title: "Bun: Installation"
+        url: https://bun.com/docs/installation
+      - title: "Git: Installing Git"
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: hello
+    stage: first-code
+    title:
+      en: "Create the project and run TypeScript"
+      tr: "Projeyi oluşturma ve TypeScript çalıştırma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "Every project starts as a folder with a few files. `bun init` makes them for you. With Bun you run a `.ts` file directly: there is no compile step to set up, which is why this whole roadmap needs no build tool until the very end."
+      tr: "Her proje birkaç dosyalı bir klasör olarak başlar. `bun init` bunları senin için oluşturur. Bun ile bir `.ts` dosyasını doğrudan çalıştırırsın: kurulacak bir derleme adımı yoktur; bu yüzden bu roadmap en sona kadar hiçbir build aracı gerektirmez."
+    learn:
+      en: |
+        - What `bun init` creates: `package.json` (the project's name, scripts and packages), `tsconfig.json` (TypeScript settings), `index.ts`, `.gitignore`
+        - TypeScript is JavaScript plus types (`name: string`). Bun removes the types when it runs the file; it does not check them
+        - `bun check` is the command that does check types
+      tr: |
+        - `bun init`'in ne oluşturduğu: `package.json` (projenin adı, script'leri ve paketleri), `tsconfig.json` (TypeScript ayarları), `index.ts`, `.gitignore`
+        - TypeScript, JavaScript artı tiplerdir (`name: string`). Bun dosyayı çalıştırırken tipleri siler; kontrol etmez
+        - Tipleri kontrol eden komut `bun check`'tir
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects. Run the first block below: it makes a folder `notely`, goes into it and runs `bun init -y` (`-y` means "yes to every question").
+        2. Run `ls` (on Windows PowerShell: `dir`) and look at the files. `README.md` and `CLAUDE.md` are notes that `bun init` writes; `CLAUDE.md` is meant for AI coding assistants. You can delete both.
+        3. Open the folder in VS Code (`code .`). Replace everything in `index.ts` with the code below.
+        4. Run it with `bun run index.ts`. It prints one line with your Bun version.
+        5. Run `bun check`. It should say there are no type errors. Now change `"Notely"` to `42` and run `bun check` again: it reports an error, yet `bun run index.ts` still runs. That is the difference between running and checking. Change it back.
+        6. Save this first version: `git init`, `git add .`, `git commit -m "Start Notely"`. (`bun init` already wrote a `.gitignore` that keeps `node_modules` out.)
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git. Aşağıdaki ilk bloğu çalıştır: `notely` adında bir klasör oluşturur, içine girer ve `bun init -y` çalıştırır (`-y` "her soruya evet" demek).
+        2. `ls` çalıştır (Windows PowerShell'de: `dir`) ve dosyalara bak. `README.md` ve `CLAUDE.md`, `bun init`'in yazdığı notlardır; `CLAUDE.md` yapay zekâ kod asistanları içindir. İkisini de silebilirsin.
+        3. Klasörü VS Code'da aç (`code .`). `index.ts` içindeki her şeyi aşağıdaki kodla değiştir.
+        4. `bun run index.ts` ile çalıştır. Bun sürümünü yazan tek bir satır basar.
+        5. `bun check` çalıştır. Tip hatası olmadığını söylemeli. Şimdi `"Notely"` yerine `42` yaz ve `bun check`'i tekrar çalıştır: hata bildirir, ama `bun run index.ts` yine de çalışır. Çalıştırma ile kontrol etme arasındaki fark budur. Geri düzelt.
+        6. Bu ilk sürümü kaydet: `git init`, `git add .`, `git commit -m "Start Notely"`. (`bun init` zaten `node_modules`'ı dışarıda tutan bir `.gitignore` yazdı.)
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir notely
+          cd notely
+          bun init -y
+      - file: index.ts
+        lang: ts
+        text: |
+          const name: string = "Notely";
+          console.log(`Hello from ${name}, running on Bun ${Bun.version}`);
+      - file: terminal
+        lang: sh
+        text: |
+          bun run index.ts
+          bun check
+    mistakes:
+      - problem:
+          en: "Thinking Bun checks your types because the file runs."
+          tr: "Dosya çalışıyor diye Bun'ın tipleri kontrol ettiğini sanmak."
+        fix:
+          en: "Bun only strips the types when it runs a file. Run `bun check` (and later put it in CI) to find type errors."
+          tr: "Bun dosyayı çalıştırırken sadece tipleri siler. Tip hatalarını bulmak için `bun check` çalıştır (ve ileride CI'a koy)."
+      - problem:
+          en: "Running `bun init` inside a folder that already holds another project."
+          tr: "`bun init`'i başka bir projenin olduğu klasörde çalıştırmak."
+        fix:
+          en: "It is made for new, empty folders and does not merge with an existing project. Make a new folder first."
+          tr: "Yeni ve boş klasörler için yapılmıştır, mevcut projeyle birleşmez. Önce yeni bir klasör oluştur."
+    quiz:
+      - q:
+          en: "You wrote `const n: number = \"hi\"` and `bun run index.ts` still prints output. Why?"
+          tr: "`const n: number = \"hi\"` yazdın ve `bun run index.ts` yine de çıktı veriyor. Neden?"
+        options:
+          en:
+            - "Bun fixed the type for you"
+            - "Bun only strips types when running; `bun check` is what reports the error"
+            - "TypeScript errors only appear in the browser"
+          tr:
+            - "Bun tipi senin için düzeltti"
+            - "Bun çalıştırırken sadece tipleri siler; hatayı `bun check` bildirir"
+            - "TypeScript hataları sadece tarayıcıda görünür"
+        answer: 1
+        why:
+          en: "Running and type-checking are separate. Bun runs the code without looking at types."
+          tr: "Çalıştırma ve tip kontrolü ayrı şeylerdir. Bun kodu tiplere bakmadan çalıştırır."
+    sources:
+      - title: "Bun: bun init"
+        url: https://bun.com/docs/runtime/templating/init
+      - title: "Bun: TypeScript"
+        url: https://bun.com/docs/runtime/typescript
+
+  - id: server
+    stage: basics
+    title:
+      en: "Your first web server with Bun.serve"
+      tr: "Bun.serve ile ilk web sunucun"
+    minutes: 45
+    needs: [hello]
+    why:
+      en: "A backend is a program that waits for requests and answers them. `Bun.serve` is the built-in way to do that: you list the paths you want (routes) and what to answer for each. You also meet environment variables, the standard way to give a program its settings without changing its code."
+      tr: "Backend, istek bekleyen ve cevap veren bir programdır. `Bun.serve` bunu yapmanın hazır yoludur: istediğin yolları (route) ve her biri için ne cevap vereceğini yazarsın. Ayrıca ortam değişkenleriyle tanışırsın; bunlar bir programa ayarlarını kodunu değiştirmeden vermenin standart yoludur."
+    learn:
+      en: |
+        - What a request, a response, a status code (200 ok, 404 not found) and JSON are
+        - Routes: `"/health"` for one path and `"/api/hello/:name"` for a path with a changing part (`req.params.name`)
+        - `fetch()` in `Bun.serve` is the fallback for paths no route matched
+        - Environment variables: Bun reads them from `Bun.env` and loads a `.env` file by itself
+        - `bun --hot` reloads your code when you save, without restarting the server
+      tr: |
+        - İstek (request), cevap (response), durum kodu (200 tamam, 404 bulunamadı) ve JSON'un ne olduğu
+        - Route'lar: tek yol için `"/health"`, değişen kısmı olan yol için `"/api/hello/:name"` (`req.params.name`)
+        - `Bun.serve` içindeki `fetch()`, hiçbir route'a uymayan yollar için yedektir
+        - Ortam değişkenleri: Bun onları `Bun.env`'den okur ve `.env` dosyasını kendisi yükler
+        - `bun --hot` kaydedince kodunu sunucuyu yeniden başlatmadan yeniler
+    do:
+      en: |
+        1. Make a folder `src` and delete the old `index.ts` (the server moves into `src/`): `mkdir src` and `rm index.ts` (Windows PowerShell: `del index.ts`).
+        2. Create `src/config.ts` and `src/index.ts` with the code below.
+        3. Replace `package.json` with the version below. Only `module` and `scripts` changed from what `bun init` wrote. If your `devDependencies` or `peerDependencies` lines differ a little, keep yours.
+        4. Create `.env.example` (below). It documents which settings exist and is safe to commit. Your real `.env` is ignored by Git.
+        5. Add two lines to the end of `.gitignore`: `*.db` and `*.db-*` (the database files we create soon should never be committed).
+        6. Start the server with `bun run dev`. It prints the address.
+        7. In a second terminal, run the curl commands below. You should see `{"status":"ok"}`, a hello message and a 404 for an unknown path.
+        8. Test settings: create a file `.env` with the line `PORT=4000`, stop the server (Ctrl+C), start it again and see that it listens on 4000. Delete `.env` afterwards.
+        9. Change the hello message in `src/index.ts`, save, and call the URL again. `--hot` picked up the change without a restart.
+        10. Commit: `git add .` and `git commit -m "Add a web server"`.
+      tr: |
+        1. `src` adında bir klasör oluştur ve eski `index.ts`'i sil (sunucu `src/` içine taşınıyor): `mkdir src` ve `rm index.ts` (Windows PowerShell'de: `del index.ts`).
+        2. Aşağıdaki kodla `src/config.ts` ve `src/index.ts` dosyalarını oluştur.
+        3. `package.json`'u aşağıdaki sürümle değiştir. `bun init`'in yazdığına göre sadece `module` ve `scripts` değişti. `devDependencies` ya da `peerDependencies` satırların biraz farklıysa seninkileri koru.
+        4. `.env.example` dosyasını oluştur (aşağıda). Hangi ayarların olduğunu anlatır ve commit etmesi güvenlidir. Gerçek `.env` dosyan Git tarafından yok sayılır.
+        5. `.gitignore`'un sonuna iki satır ekle: `*.db` ve `*.db-*` (yakında oluşturacağımız veritabanı dosyaları asla commit edilmemeli).
+        6. Sunucuyu `bun run dev` ile başlat. Adresi yazar.
+        7. İkinci bir terminalde aşağıdaki curl komutlarını çalıştır. `{"status":"ok"}`, bir hello mesajı ve bilinmeyen yol için 404 görmelisin.
+        8. Ayarları dene: içinde `PORT=4000` satırı olan bir `.env` dosyası oluştur, sunucuyu durdur (Ctrl+C), tekrar başlat ve 4000'i dinlediğini gör. Sonra `.env`'i sil.
+        9. `src/index.ts` içindeki hello mesajını değiştir, kaydet ve URL'yi tekrar çağır. `--hot` değişikliği yeniden başlatmadan aldı.
+        10. Commit et: `git add .` ve `git commit -m "Add a web server"`.
+    code:
+      - file: src/config.ts
+        lang: ts
+        text: |
+          // Settings come from environment variables, with a default for local work.
+          // Bun.env is the same as process.env. We use Bun.env because it is read when the
+          // program runs, even after it is compiled into one file (step "One file").
+          export const config = {
+            port: Number(Bun.env.PORT ?? 3000),
+            dbPath: Bun.env.DB_PATH ?? "notely.db",
+            production: Bun.env.NODE_ENV === "production",
+            trustProxy: Bun.env.TRUST_PROXY === "1",
+          };
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import { config } from "./config";
+
+          const server = Bun.serve({
+            port: config.port,
+            routes: {
+              "/health": () => Response.json({ status: "ok" }),
+              "/api/hello/:name": (req) => Response.json({ message: `Hello, ${req.params.name}` }),
+            },
+            fetch() {
+              return Response.json({ error: "not found" }, { status: 404 });
+            },
+          });
+
+          console.log(`Notely listening on ${server.url}`);
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "notely",
+            "module": "src/index.ts",
+            "type": "module",
+            "private": true,
+            "scripts": {
+              "dev": "bun --hot src/index.ts",
+              "start": "bun src/index.ts",
+              "typecheck": "bun check"
+            },
+            "devDependencies": {
+              "@types/bun": "latest"
+            },
+            "peerDependencies": {
+              "typescript": "^7"
+            }
+          }
+      - file: .env.example
+        lang: sh
+        text: |
+          # Copy to .env and change. Bun loads .env by itself.
+          PORT=3000
+          DB_PATH=notely.db
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i localhost:3000/health
+          curl localhost:3000/api/hello/Ada
+          curl -i localhost:3000/nothing-here
+    mistakes:
+      - problem:
+          en: "`error: Failed to start server. Is port 3000 in use?`"
+          tr: "`error: Failed to start server. Is port 3000 in use?`"
+        fix:
+          en: "Another program (often an older copy of your own server) uses the port. Stop it, or start this one on another port: `PORT=4000 bun run dev`."
+          tr: "Başka bir program (çoğu zaman kendi sunucunun eski kopyası) portu kullanıyor. Onu durdur ya da bunu başka portta başlat: `PORT=4000 bun run dev`."
+      - problem:
+          en: "Writing `process.env.PORT` and getting a string, then wondering why `PORT + 1` is `30001`."
+          tr: "`process.env.PORT` yazıp bir string almak, sonra `PORT + 1`'in neden `30001` olduğuna şaşırmak."
+        fix:
+          en: "Environment variables are always text. Convert them: `Number(Bun.env.PORT)`."
+          tr: "Ortam değişkenleri her zaman metindir. Çevir: `Number(Bun.env.PORT)`."
+      - problem:
+          en: "Committing a real `.env` with secrets."
+          tr: "Sırlar içeren gerçek bir `.env` dosyasını commit etmek."
+        fix:
+          en: "`bun init` already ignores `.env` in `.gitignore`. Commit only `.env.example` with fake values."
+          tr: "`bun init` `.env`'i zaten `.gitignore`'a yazar. Sadece sahte değerli `.env.example`'ı commit et."
+    quiz:
+      - q:
+          en: "What answers a request to a path that no route matches?"
+          tr: "Hiçbir route'a uymayan bir yola gelen isteğe kim cevap verir?"
+        options:
+          en:
+            - "Bun crashes"
+            - "The `fetch` function of `Bun.serve`"
+            - "The `/health` route"
+          tr:
+            - "Bun çöker"
+            - "`Bun.serve`'ün `fetch` fonksiyonu"
+            - "`/health` route'u"
+        answer: 1
+        why:
+          en: "`routes` handle the paths you list; `fetch` is the fallback, and here it returns a 404 JSON answer."
+          tr: "`routes` yazdığın yolları karşılar; `fetch` yedektir ve burada 404 JSON cevabı döndürür."
+    sources:
+      - title: "Bun: HTTP server"
+        url: https://bun.com/docs/runtime/http/server
+      - title: "Bun: Routing"
+        url: https://bun.com/docs/runtime/http/routing
+      - title: "Bun: Environment variables"
+        url: https://bun.com/docs/runtime/environment-variables
+
+  - id: frontend
+    stage: first-project
+    title:
+      en: "A page for your app, served by Bun"
+      tr: "Uygulaman için Bun'ın sunduğu bir sayfa"
+    minutes: 60
+    needs: [server]
+    why:
+      en: "A full-stack app has a page people can use. In Bun you import an `.html` file into your server and put it in `routes`: Bun finds the scripts and styles the page links to, bundles them (TypeScript included) and serves them, with live reload while you develop. No Vite, no webpack, no extra config."
+      tr: "Full-stack uygulamanın insanların kullanabileceği bir sayfası vardır. Bun'da bir `.html` dosyasını sunucuna import edip `routes` içine koyarsın: Bun sayfanın bağladığı script ve stilleri bulur, paketler (TypeScript dahil) ve geliştirirken canlı yenileme ile sunar. Vite yok, webpack yok, ek ayar yok."
+    learn:
+      en: |
+        - HTML imports: `import home from "../public/index.html"` and `"/": home` in `routes`
+        - A page is HTML (structure), CSS (looks) and TypeScript (behaviour); the browser fetches your API with `fetch()`
+        - Why we write text into the page with `textContent` and not `innerHTML` (we come back to this in the security step)
+        - Notes live in a plain array for now, so they are lost when the server restarts. The next step fixes that
+      tr: |
+        - HTML import'ları: `import home from "../public/index.html"` ve `routes` içinde `"/": home`
+        - Sayfa HTML (yapı), CSS (görünüm) ve TypeScript'ten (davranış) oluşur; tarayıcı API'ne `fetch()` ile ulaşır
+        - Metni sayfaya neden `innerHTML` ile değil `textContent` ile yazdığımız (güvenlik adımında geri döneceğiz)
+        - Notlar şimdilik düz bir dizide durur, yani sunucu yeniden başlayınca kaybolur. Sonraki adım bunu düzeltir
+    do:
+      en: |
+        1. Replace `tsconfig.json` with the file below. The only real change is `"lib": ["ESNext", "DOM"]`: `DOM` teaches TypeScript the browser's objects (`document`, `fetch`...), which the page code uses.
+        2. Create the folder `public` with three files: `index.html`, `style.css` and `app.ts` (below).
+        3. Replace `src/index.ts` with the version below. It imports the page and adds an API for notes that keeps them in memory.
+        4. Run `bun run dev` and open http://localhost:3000. Add a few notes, delete one, reload the page.
+        5. Restart the server (Ctrl+C, `bun run dev`) and reload: the notes are gone. They only lived in memory.
+        6. Run `bun check`: it should report no errors in all files, including the browser code.
+        7. Commit: `git add .` and `git commit -m "Add the notes page"`.
+      tr: |
+        1. `tsconfig.json`'u aşağıdaki dosyayla değiştir. Asıl değişiklik `"lib": ["ESNext", "DOM"]`: `DOM`, TypeScript'e sayfa kodunun kullandığı tarayıcı nesnelerini (`document`, `fetch`...) öğretir.
+        2. `public` klasörünü üç dosyayla oluştur: `index.html`, `style.css` ve `app.ts` (aşağıda).
+        3. `src/index.ts`'i aşağıdaki sürümle değiştir. Sayfayı import eder ve notları bellekte tutan bir API ekler.
+        4. `bun run dev` çalıştır ve http://localhost:3000 adresini aç. Birkaç not ekle, birini sil, sayfayı yenile.
+        5. Sunucuyu yeniden başlat (Ctrl+C, `bun run dev`) ve sayfayı yenile: notlar gitti. Sadece bellekte yaşıyorlardı.
+        6. `bun check` çalıştır: tarayıcı kodu dahil bütün dosyalarda hata çıkmamalı.
+        7. Commit et: `git add .` ve `git commit -m "Add the notes page"`.
+    code:
+      - file: tsconfig.json
+        lang: json
+        text: |
+          {
+            "compilerOptions": {
+              "lib": ["ESNext", "DOM"],
+              "target": "ESNext",
+              "module": "Preserve",
+              "moduleDetection": "force",
+              "allowJs": true,
+              "types": ["bun"],
+              "moduleResolution": "bundler",
+              "allowImportingTsExtensions": true,
+              "verbatimModuleSyntax": true,
+              "noEmit": true,
+              "strict": true,
+              "skipLibCheck": true,
+              "noFallthroughCasesInSwitch": true,
+              "noUncheckedIndexedAccess": true,
+              "noImplicitOverride": true
+            },
+            "include": ["src", "public", "scripts"]
+          }
+      - file: public/index.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>Notely</title>
+              <link rel="stylesheet" href="./style.css" />
+            </head>
+            <body>
+              <main>
+                <h1>Notely</h1>
+                <form id="note-form">
+                  <input id="note-text" maxlength="500" placeholder="Write a note" required />
+                  <button type="submit">Add</button>
+                </form>
+                <ul id="notes"></ul>
+                <p id="status" role="status"></p>
+              </main>
+              <script type="module" src="./app.ts"></script>
+            </body>
+          </html>
+      - file: public/style.css
+        lang: css
+        text: |
+          :root {
+            color-scheme: light dark;
+            font-family: system-ui, sans-serif;
+          }
+          body {
+            margin: 0;
+          }
+          main {
+            max-width: 32rem;
+            margin: 2rem auto;
+            padding: 0 1rem;
+          }
+          form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+          }
+          input {
+            flex: 1;
+            min-width: 10rem;
+            padding: 0.5rem;
+          }
+          button {
+            padding: 0.5rem 0.9rem;
+            cursor: pointer;
+          }
+          ul {
+            list-style: none;
+            padding: 0;
+          }
+          li {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #8884;
+          }
+          #status {
+            color: #c0392b;
+            min-height: 1.5rem;
+          }
+      - file: public/app.ts
+        lang: ts
+        text: |
+          type Note = { id: number; text: string };
+
+          const form = document.querySelector<HTMLFormElement>("#note-form")!;
+          const input = document.querySelector<HTMLInputElement>("#note-text")!;
+          const list = document.querySelector<HTMLUListElement>("#notes")!;
+          const status = document.querySelector<HTMLParagraphElement>("#status")!;
+
+          async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+            const res = await fetch(path, {
+              ...init,
+              headers: { "content-type": "application/json" },
+            });
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              throw new Error(body.error ?? res.statusText);
+            }
+            return res.status === 204 ? (undefined as T) : res.json();
+          }
+
+          function render(notes: Note[]) {
+            list.replaceChildren(
+              ...notes.map((note) => {
+                const item = document.createElement("li");
+                const text = document.createElement("span");
+                text.textContent = note.text; // textContent never runs HTML, unlike innerHTML
+                const del = document.createElement("button");
+                del.textContent = "Delete";
+                del.addEventListener("click", () => run(async () => {
+                  await api(`/api/notes/${note.id}`, { method: "DELETE" });
+                  await load();
+                }));
+                item.append(text, del);
+                return item;
+              }),
+            );
+          }
+
+          async function load() {
+            render(await api<Note[]>("/api/notes"));
+          }
+
+          async function run(action: () => Promise<void>) {
+            status.textContent = "";
+            try {
+              await action();
+            } catch (err) {
+              status.textContent = err instanceof Error ? err.message : "Something went wrong";
+            }
+          }
+
+          form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            run(async () => {
+              await api("/api/notes", { method: "POST", body: JSON.stringify({ text: input.value }) });
+              input.value = "";
+              await load();
+            });
+          });
+
+          run(load);
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import home from "../public/index.html";
+          import { config } from "./config";
+
+          type Note = { id: number; text: string };
+          const notes: Note[] = [];
+          let nextId = 1;
+
+          const server = Bun.serve({
+            port: config.port,
+            routes: {
+              "/": home,
+              "/health": () => Response.json({ status: "ok" }),
+              "/api/notes": {
+                GET: () => Response.json(notes),
+                POST: async (req) => {
+                  const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
+                  const text = typeof body?.text === "string" ? body.text.trim() : "";
+                  if (text.length === 0 || text.length > 500) {
+                    return Response.json({ error: "text must be 1 to 500 characters" }, { status: 400 });
+                  }
+                  const note = { id: nextId++, text };
+                  notes.unshift(note);
+                  return Response.json(note, { status: 201 });
+                },
+              },
+              "/api/notes/:id": {
+                DELETE: (req) => {
+                  const index = notes.findIndex((n) => n.id === Number(req.params.id));
+                  if (index === -1) return Response.json({ error: "note not found" }, { status: 404 });
+                  notes.splice(index, 1);
+                  return new Response(null, { status: 204 });
+                },
+              },
+            },
+            fetch() {
+              return Response.json({ error: "not found" }, { status: 404 });
+            },
+          });
+
+          console.log(`Notely listening on ${server.url}`);
+    mistakes:
+      - problem:
+          en: "The page is blank and the browser console (F12) shows a 404 for the script."
+          tr: "Sayfa bomboş ve tarayıcı konsolu (F12) script için 404 gösteriyor."
+        fix:
+          en: "The `src=\"./app.ts\"` path in `index.html` is relative to the HTML file. Check that `app.ts` is in `public/` next to `index.html`."
+          tr: "`index.html` içindeki `src=\"./app.ts\"` yolu HTML dosyasına göredir. `app.ts`'in `public/` içinde, `index.html`'in yanında olduğunu kontrol et."
+      - problem:
+          en: "`bun check` complains that `document` or `HTMLElement` does not exist."
+          tr: "`bun check` `document` ya da `HTMLElement`'in olmadığından şikâyet ediyor."
+        fix:
+          en: "The `DOM` entry is missing from `lib` in `tsconfig.json`."
+          tr: "`tsconfig.json`'daki `lib` içinde `DOM` eksik."
+      - problem:
+          en: "Treating `bun run dev` as the production server."
+          tr: "`bun run dev`'i production sunucusu sanmak."
+        fix:
+          en: "In development Bun bundles on demand and adds reload helpers. Production starts later with `NODE_ENV=production` and a build (the packaging steps)."
+          tr: "Geliştirmede Bun isteğe göre paketler ve yenileme yardımcıları ekler. Production ileride `NODE_ENV=production` ve bir build ile başlar (paketleme adımları)."
+    quiz:
+      - q:
+          en: "How does the browser get `app.ts` (TypeScript) if browsers only run JavaScript?"
+          tr: "Tarayıcılar sadece JavaScript çalıştırdığına göre `app.ts`'i (TypeScript) nasıl alır?"
+        options:
+          en:
+            - "Browsers run TypeScript now"
+            - "Bun bundles the page and turns the TypeScript into JavaScript when it serves it"
+            - "You must compile by hand first"
+          tr:
+            - "Tarayıcılar artık TypeScript çalıştırıyor"
+            - "Bun sayfayı paketler ve sunarken TypeScript'i JavaScript'e çevirir"
+            - "Önce elle derlemen gerekir"
+        answer: 1
+        why:
+          en: "An HTML import makes Bun bundle the page's scripts and styles for you."
+          tr: "HTML import'u, Bun'ın sayfanın script ve stillerini senin için paketlemesini sağlar."
+    sources:
+      - title: "Bun: Full-stack dev server"
+        url: https://bun.com/docs/bundler/fullstack
+      - title: "MDN: Using the Fetch API"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+
+  - id: database
+    stage: data-api
+    title:
+      en: "Keep notes in SQLite"
+      tr: "Notları SQLite'ta saklama"
+    minutes: 50
+    needs: [frontend]
+    why:
+      en: "Data that must survive a restart belongs in a database. SQLite is a whole database in one file, and `bun:sqlite` is built into Bun, so there is nothing to install or run. In this step you also split the code into small files, which keeps the app readable as it grows."
+      tr: "Yeniden başlatmadan sağ çıkması gereken veri bir veritabanında durur. SQLite tek dosyada tam bir veritabanıdır ve `bun:sqlite` Bun'ın içinde hazır gelir; kurulacak ya da çalıştırılacak bir şey yok. Bu adımda ayrıca kodu küçük dosyalara bölersin; bu, uygulama büyürken okunabilir kalmasını sağlar."
+    learn:
+      en: |
+        - Tables, rows and columns, and the SQL you need: `CREATE TABLE`, `INSERT`, `SELECT`, `DELETE`
+        - Prepared queries with `db.query(sql)`: Bun compiles them once and reuses them
+        - `?` placeholders: values are passed separately from the SQL text, so input can never change the query (this stops SQL injection)
+        - `.all()` returns every row, `.get()` one row, `.run()` runs it and reports how many rows changed
+        - `createServer(db, options)`: building the server in a function lets tests start their own copy later
+      tr: |
+        - Tablolar, satırlar ve sütunlar ve ihtiyacın olan SQL: `CREATE TABLE`, `INSERT`, `SELECT`, `DELETE`
+        - `db.query(sql)` ile hazır sorgular: Bun onları bir kez derler ve yeniden kullanır
+        - `?` yer tutucuları: değerler SQL metninden ayrı gönderilir, bu yüzden girdi sorguyu asla değiştiremez (SQL injection'ı bu engeller)
+        - `.all()` bütün satırları, `.get()` tek satırı döndürür, `.run()` çalıştırır ve kaç satırın değiştiğini bildirir
+        - `createServer(db, options)`: sunucuyu bir fonksiyonda kurmak, testlerin ileride kendi kopyasını başlatmasını sağlar
+    do:
+      en: |
+        1. Create `src/http.ts`, `src/db.ts` and `src/notes.ts` (below).
+        2. Create `src/server.ts`: it builds the server from the pieces. Then replace `src/index.ts`, which now only opens the database and starts the server.
+        3. Run `bun run dev`. A file `notely.db` appears in the project folder (your database).
+        4. Open http://localhost:3000, add notes, then restart the server and reload: the notes are still there.
+        5. Try the API directly: `curl localhost:3000/api/notes`.
+        6. Run `bun check`, then commit: `git add .` and `git commit -m "Store notes in SQLite"`. `notely.db` must not appear in `git status` (the `.gitignore` lines from the server step hide it).
+      tr: |
+        1. `src/http.ts`, `src/db.ts` ve `src/notes.ts` dosyalarını oluştur (aşağıda).
+        2. `src/server.ts` dosyasını oluştur: sunucuyu parçalardan kurar. Sonra `src/index.ts`'i değiştir; artık sadece veritabanını açıp sunucuyu başlatıyor.
+        3. `bun run dev` çalıştır. Proje klasöründe `notely.db` adında bir dosya belirir (veritabanın).
+        4. http://localhost:3000 adresini aç, not ekle, sonra sunucuyu yeniden başlat ve sayfayı yenile: notlar hâlâ orada.
+        5. API'yi doğrudan dene: `curl localhost:3000/api/notes`.
+        6. `bun check` çalıştır, sonra commit et: `git add .` ve `git commit -m "Store notes in SQLite"`. `notely.db` `git status` içinde görünmemeli (sunucu adımındaki `.gitignore` satırları onu gizler).
+    code:
+      - file: src/http.ts
+        lang: ts
+        text: |
+          export const fail = (status: number, error: string) => Response.json({ error }, { status });
+      - file: src/db.ts
+        lang: ts
+        text: |
+          import { Database } from "bun:sqlite";
+
+          export type Note = { id: number; text: string; created_at: string };
+
+          export function openDb(path: string): Database {
+            const db = new Database(path, { create: true });
+            db.run(`
+              CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+            return db;
+          }
+      - file: src/notes.ts
+        lang: ts
+        text: |
+          import type { BunRequest } from "bun";
+          import type { Database } from "bun:sqlite";
+          import type { Note } from "./db";
+          import { fail } from "./http";
+
+          export function notesRoutes(db: Database) {
+            const list = db.query<Note, []>("SELECT id, text, created_at FROM notes ORDER BY id DESC");
+            const insert = db.query<Note, [string]>(
+              "INSERT INTO notes (text) VALUES (?) RETURNING id, text, created_at",
+            );
+            const remove = db.query("DELETE FROM notes WHERE id = ?");
+
+            return {
+              "/api/notes": {
+                GET: () => Response.json(list.all()),
+                POST: async (req: Request) => {
+                  const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
+                  const text = typeof body?.text === "string" ? body.text.trim() : "";
+                  if (text.length === 0 || text.length > 500) {
+                    return fail(400, "text must be 1 to 500 characters");
+                  }
+                  return Response.json(insert.get(text), { status: 201 });
+                },
+              },
+              "/api/notes/:id": {
+                DELETE: (req: BunRequest<"/api/notes/:id">) => {
+                  const { changes } = remove.run(Number(req.params.id));
+                  return changes === 0 ? fail(404, "note not found") : new Response(null, { status: 204 });
+                },
+              },
+            };
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import type { Database } from "bun:sqlite";
+          import home from "../public/index.html";
+          import { fail } from "./http";
+          import { notesRoutes } from "./notes";
+
+          export type ServerOptions = { port?: number };
+
+          export function createServer(db: Database, options: ServerOptions = {}) {
+            return Bun.serve({
+              port: options.port ?? 3000,
+              routes: {
+                "/": home,
+                "/health": () => Response.json({ status: "ok" }),
+                ...notesRoutes(db),
+              },
+              fetch() {
+                return fail(404, "not found");
+              },
+            });
+          }
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import { config } from "./config";
+          import { openDb } from "./db";
+          import { createServer } from "./server";
+
+          const db = openDb(config.dbPath);
+          const server = createServer(db, { port: config.port });
+
+          console.log(`Notely listening on ${server.url}`);
+      - file: terminal
+        lang: sh
+        text: |
+          curl localhost:3000/api/notes
+          curl -X POST localhost:3000/api/notes \
+            -H "content-type: application/json" \
+            -d '{"text":"buy milk"}'
+    mistakes:
+      - problem:
+          en: "Building SQL by joining strings, like `` `... WHERE id = ${id}` ``."
+          tr: "SQL'i string birleştirerek kurmak, örneğin `` `... WHERE id = ${id}` ``."
+        fix:
+          en: "Always use `?` placeholders and pass the values to `.get()`, `.all()` or `.run()`. Joined strings let a user smuggle SQL into your query."
+          tr: "Her zaman `?` yer tutucuları kullan ve değerleri `.get()`, `.all()` ya da `.run()`'a ver. Birleştirilmiş string, kullanıcının sorguna SQL sokmasına izin verir."
+      - problem:
+          en: "A query seems to do nothing."
+          tr: "Bir sorgu hiçbir şey yapmıyor gibi."
+        fix:
+          en: "`db.query(...)` only prepares the query. Call `.all()`, `.get()` or `.run()` to execute it."
+          tr: "`db.query(...)` sadece sorguyu hazırlar. Çalıştırmak için `.all()`, `.get()` ya da `.run()` çağır."
+      - problem:
+          en: "Committing `notely.db` to Git."
+          tr: "`notely.db`'yi Git'e commit etmek."
+        fix:
+          en: "Check that `.gitignore` has `*.db` and `*.db-*`. If it is already committed, run `git rm --cached notely.db`."
+          tr: "`.gitignore`'da `*.db` ve `*.db-*` olduğunu kontrol et. Zaten commit edildiyse `git rm --cached notely.db` çalıştır."
+    quiz:
+      - q:
+          en: "Why do we write `WHERE id = ?` and pass the id separately?"
+          tr: "`WHERE id = ?` yazıp id'yi neden ayrı veriyoruz?"
+        options:
+          en:
+            - "It is faster to type"
+            - "The value can never be read as SQL, which stops SQL injection"
+            - "SQLite does not allow numbers in text"
+          tr:
+            - "Yazması daha hızlı"
+            - "Değer asla SQL olarak okunamaz; bu SQL injection'ı engeller"
+            - "SQLite metin içinde sayıya izin vermez"
+        answer: 1
+        why:
+          en: "With placeholders the database treats the value as data only, never as part of the query."
+          tr: "Yer tutucularla veritabanı değeri sadece veri olarak görür, sorgunun parçası olarak asla."
+    sources:
+      - title: "Bun: SQLite"
+        url: https://bun.com/docs/runtime/sqlite
+      - title: "SQLite: SQL language reference"
+        url: https://www.sqlite.org/lang.html
+
+  - id: accounts
+    stage: data-api
+    title:
+      en: "Accounts, password hashing and sessions"
+      tr: "Hesaplar, parola hash'leme ve oturumlar"
+    minutes: 75
+    needs: [database]
+    why:
+      en: "Right now everyone shares one list of notes. Real apps have accounts, and that means passwords. You must never store a password as typed: if the database leaks, every user is exposed. You store a hash instead, and Bun has a safe one built in."
+      tr: "Şu an herkes tek bir not listesini paylaşıyor. Gerçek uygulamalarda hesap vardır ve bu parola demektir. Parolayı asla yazıldığı gibi saklamamalısın: veritabanı sızarsa her kullanıcı ortaya çıkar. Onun yerine hash saklarsın ve Bun'da güvenli olanı hazır gelir."
+    learn:
+      en: |
+        - A hash is a one-way scramble of a password: you can check a password against it but not turn it back. `Bun.password.hash()` uses argon2id and adds a random salt, so two equal passwords get different hashes
+        - `Bun.password.verify(password, hash)` checks a login attempt
+        - Sessions: after login you give the browser a long random token in a cookie, and keep a record on the server of who it belongs to
+        - Cookie flags: `httpOnly` (scripts on the page cannot read it), `sameSite: "lax"` (not sent with cross-site POSTs), `secure` (https only)
+        - Why we store only a hash of the session token, and why a wrong email and a wrong password get the same answer and take the same time
+      tr: |
+        - Hash, parolanın tek yönlü karıştırılmış halidir: parolayı onunla kontrol edebilirsin ama geri çeviremezsin. `Bun.password.hash()` argon2id kullanır ve rastgele bir tuz (salt) ekler; bu yüzden aynı iki parola farklı hash alır
+        - `Bun.password.verify(password, hash)` giriş denemesini kontrol eder
+        - Oturumlar: girişten sonra tarayıcıya cookie içinde uzun rastgele bir token verirsin ve sunucuda bunun kime ait olduğunu kaydedersin
+        - Cookie bayrakları: `httpOnly` (sayfadaki script'ler okuyamaz), `sameSite: "lax"` (siteler arası POST'larla gönderilmez), `secure` (sadece https)
+        - Oturum token'ının neden sadece hash'ini sakladığımız ve yanlış e-posta ile yanlış parolaya neden aynı cevabı verip aynı sürede cevapladığımız
+    do:
+      en: |
+        1. Stop the server and delete the old database (`rm notely.db*`; PowerShell: `del notely.db*`). The `notes` table gets a new column, and `CREATE TABLE IF NOT EXISTS` does not change a table that already exists. Your test notes are not worth keeping.
+        2. Replace `src/db.ts`, `src/notes.ts`, `src/server.ts` and `src/index.ts` with the versions below, and create `src/auth.ts`.
+        3. Run `bun run dev`. Then try the account commands below in order: register, ask who you are, add a note, log out, ask again. `-c cookies.txt` saves the cookie curl receives and `-b cookies.txt` sends it back, like a browser does.
+        4. Look at the `Set-Cookie` line in the output of the register command (we used `curl -i`): it shows `HttpOnly` and `SameSite=Lax`.
+        5. Open the database with `bun -e 'import {Database} from "bun:sqlite"; console.log(new Database("notely.db").query("select email, password_hash from users").all())'`. The password column holds a long `$argon2id$...` text, not your password.
+        6. Run `bun check` and commit: `git add .` and `git commit -m "Add accounts and sessions"`. Do not commit `cookies.txt` (delete it).
+      tr: |
+        1. Sunucuyu durdur ve eski veritabanını sil (`rm notely.db*`; PowerShell: `del notely.db*`). `notes` tablosu yeni bir sütun alıyor ve `CREATE TABLE IF NOT EXISTS` zaten var olan tabloyu değiştirmez. Deneme notlarını saklamaya değmez.
+        2. `src/db.ts`, `src/notes.ts`, `src/server.ts` ve `src/index.ts`'i aşağıdaki sürümlerle değiştir, ve `src/auth.ts`'i oluştur.
+        3. `bun run dev` çalıştır. Sonra aşağıdaki hesap komutlarını sırayla dene: kayıt ol, kim olduğunu sor, not ekle, çıkış yap, tekrar sor. `-c cookies.txt` curl'ün aldığı cookie'yi kaydeder, `-b cookies.txt` onu bir tarayıcı gibi geri gönderir.
+        4. Kayıt komutunun çıktısındaki (`curl -i` kullandık) `Set-Cookie` satırına bak: `HttpOnly` ve `SameSite=Lax` yazar.
+        5. Veritabanını `bun -e 'import {Database} from "bun:sqlite"; console.log(new Database("notely.db").query("select email, password_hash from users").all())'` ile aç. Parola sütununda senin parolan değil, uzun bir `$argon2id$...` metni vardır.
+        6. `bun check` çalıştır ve commit et: `git add .` ve `git commit -m "Add accounts and sessions"`. `cookies.txt`'yi commit etme (sil).
+    code:
+      - file: src/db.ts
+        lang: ts
+        text: |
+          import { Database } from "bun:sqlite";
+
+          export type Note = { id: number; text: string; created_at: string };
+
+          export function openDb(path: string): Database {
+            const db = new Database(path, { create: true });
+            db.run("PRAGMA foreign_keys = ON");
+            db.run(`
+              CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+            db.run(`
+              CREATE TABLE IF NOT EXISTS sessions (
+                token_hash TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                expires_at INTEGER NOT NULL
+              )
+            `);
+            db.run(`
+              CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+            return db;
+          }
+      - file: src/auth.ts
+        lang: ts
+        text: |
+          import type { BunRequest } from "bun";
+          import type { Database } from "bun:sqlite";
+          import { fail } from "./http";
+
+          export type User = { id: number; email: string };
+
+          const SESSION_SECONDS = 7 * 24 * 60 * 60;
+          const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+          // Used when the email is unknown, so a wrong email takes as long as a wrong password.
+          // It is a promise that starts now; we await it only when we need it.
+          const dummyHash = Bun.password.hash("not-a-real-password");
+
+          const sha256 = (value: string) => new Bun.CryptoHasher("sha256").update(value).digest("hex");
+          const now = () => Math.floor(Date.now() / 1000);
+
+          async function readCredentials(req: Request) {
+            const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+            const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+            const password = typeof body?.password === "string" ? body.password : "";
+            if (email.length > 254 || !EMAIL.test(email)) return "enter a valid email address";
+            if (password.length < 8 || password.length > 128) return "password must be 8 to 128 characters";
+            return { email, password };
+          }
+
+          export function createAuth(db: Database, secure: boolean) {
+            const findUser = db.query<{ id: number; password_hash: string }, [string]>(
+              "SELECT id, password_hash FROM users WHERE email = ?",
+            );
+            const addUser = db.query<User, [string, string]>(
+              "INSERT INTO users (email, password_hash) VALUES (?, ?) RETURNING id, email",
+            );
+            const addSession = db.query("INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)");
+            const findSession = db.query<User, [string, number]>(`
+              SELECT users.id, users.email FROM sessions
+              JOIN users ON users.id = sessions.user_id
+              WHERE sessions.token_hash = ? AND sessions.expires_at > ?
+            `);
+            const dropSession = db.query("DELETE FROM sessions WHERE token_hash = ?");
+
+            function startSession(req: BunRequest, userId: number) {
+              const token = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString("hex");
+              addSession.run(sha256(token), userId, now() + SESSION_SECONDS);
+              req.cookies.set("session", token, {
+                httpOnly: true, // JavaScript in the page cannot read it
+                sameSite: "lax", // not sent with cross-site POST requests
+                secure, // https only, turned on in production
+                maxAge: SESSION_SECONDS,
+                path: "/",
+              });
+            }
+
+            function currentUser(req: BunRequest): User | null {
+              const token = req.cookies.get("session");
+              return token ? (findSession.get(sha256(token), now()) ?? null) : null;
+            }
+
+            return {
+              currentUser,
+
+              register: async (req: BunRequest) => {
+                const credentials = await readCredentials(req);
+                if (typeof credentials === "string") return fail(400, credentials);
+                try {
+                  const user = addUser.get(credentials.email, await Bun.password.hash(credentials.password))!;
+                  startSession(req, user.id);
+                  return Response.json(user, { status: 201 });
+                } catch (err) {
+                  if (err instanceof Error && err.message.includes("UNIQUE")) {
+                    return fail(409, "that email is already registered");
+                  }
+                  throw err;
+                }
+              },
+
+              login: async (req: BunRequest) => {
+                const credentials = await readCredentials(req);
+                if (typeof credentials === "string") return fail(400, credentials);
+                const row = findUser.get(credentials.email);
+                const ok = await Bun.password.verify(credentials.password, row?.password_hash ?? (await dummyHash));
+                if (!row || !ok) return fail(401, "wrong email or password");
+                startSession(req, row.id);
+                return Response.json({ id: row.id, email: credentials.email });
+              },
+
+              logout: (req: BunRequest) => {
+                const token = req.cookies.get("session");
+                if (token) dropSession.run(sha256(token));
+                req.cookies.delete({ name: "session", path: "/" });
+                return new Response(null, { status: 204 });
+              },
+
+              me: (req: BunRequest) => {
+                const user = currentUser(req);
+                return user ? Response.json(user) : fail(401, "log in first");
+              },
+            };
+          }
+      - file: src/notes.ts
+        lang: ts
+        text: |
+          import type { BunRequest } from "bun";
+          import type { Database } from "bun:sqlite";
+          import type { User } from "./auth";
+          import type { Note } from "./db";
+          import { fail } from "./http";
+
+          export function notesRoutes(db: Database, currentUser: (req: BunRequest) => User | null) {
+            const list = db.query<Note, [number]>(
+              "SELECT id, text, created_at FROM notes WHERE user_id = ? ORDER BY id DESC",
+            );
+            const insert = db.query<Note, [number, string]>(
+              "INSERT INTO notes (user_id, text) VALUES (?, ?) RETURNING id, text, created_at",
+            );
+            const remove = db.query("DELETE FROM notes WHERE id = ? AND user_id = ?");
+
+            return {
+              "/api/notes": {
+                GET: (req: BunRequest) => {
+                  const user = currentUser(req);
+                  return user ? Response.json(list.all(user.id)) : fail(401, "log in first");
+                },
+                POST: async (req: BunRequest) => {
+                  const user = currentUser(req);
+                  if (!user) return fail(401, "log in first");
+                  const body = (await req.json().catch(() => null)) as { text?: unknown } | null;
+                  const text = typeof body?.text === "string" ? body.text.trim() : "";
+                  if (text.length === 0 || text.length > 500) {
+                    return fail(400, "text must be 1 to 500 characters");
+                  }
+                  return Response.json(insert.get(user.id, text), { status: 201 });
+                },
+              },
+              "/api/notes/:id": {
+                DELETE: (req: BunRequest<"/api/notes/:id">) => {
+                  const user = currentUser(req);
+                  if (!user) return fail(401, "log in first");
+                  const { changes } = remove.run(Number(req.params.id), user.id);
+                  return changes === 0 ? fail(404, "note not found") : new Response(null, { status: 204 });
+                },
+              },
+            };
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import type { Database } from "bun:sqlite";
+          import home from "../public/index.html";
+          import { createAuth } from "./auth";
+          import { fail } from "./http";
+          import { notesRoutes } from "./notes";
+
+          export type ServerOptions = { port?: number; secure?: boolean };
+
+          export function createServer(db: Database, options: ServerOptions = {}) {
+            const auth = createAuth(db, options.secure ?? false);
+            return Bun.serve({
+              port: options.port ?? 3000,
+              routes: {
+                "/": home,
+                "/health": () => Response.json({ status: "ok" }),
+                "/api/auth/register": { POST: auth.register },
+                "/api/auth/login": { POST: auth.login },
+                "/api/auth/logout": { POST: auth.logout },
+                "/api/me": { GET: auth.me },
+                ...notesRoutes(db, auth.currentUser),
+              },
+              fetch() {
+                return fail(404, "not found");
+              },
+            });
+          }
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import { config } from "./config";
+          import { openDb } from "./db";
+          import { createServer } from "./server";
+
+          const db = openDb(config.dbPath);
+          const server = createServer(db, { port: config.port, secure: config.production });
+
+          console.log(`Notely listening on ${server.url}`);
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i -c cookies.txt -X POST localhost:3000/api/auth/register \
+            -H "content-type: application/json" \
+            -d '{"email":"ada@example.com","password":"correct horse battery"}'
+          curl -b cookies.txt localhost:3000/api/me
+          curl -b cookies.txt -X POST localhost:3000/api/notes \
+            -H "content-type: application/json" \
+            -d '{"text":"my first note"}'
+          curl -b cookies.txt -X POST localhost:3000/api/auth/logout
+          curl localhost:3000/api/me
+    mistakes:
+      - problem:
+          en: "`SQLiteError: table notes has no column named user_id` (or `NOT NULL constraint failed`)."
+          tr: "`SQLiteError: table notes has no column named user_id` (ya da `NOT NULL constraint failed`)."
+        fix:
+          en: "You still have the database from the previous step. Stop the server, delete `notely.db*` and start again. Later, real changes to a table need a migration (an `ALTER TABLE` you run once)."
+          tr: "Önceki adımdan kalma veritabanın duruyor. Sunucuyu durdur, `notely.db*` dosyalarını sil ve tekrar başlat. İleride bir tabloda gerçek değişiklik için migration gerekir (bir kez çalıştırdığın `ALTER TABLE`)."
+      - problem:
+          en: "Comparing hashes yourself with `===`, or hashing the password twice and comparing."
+          tr: "Hash'leri kendin `===` ile karşılaştırmak ya da parolayı iki kez hash'leyip karşılaştırmak."
+        fix:
+          en: "Every hash contains its own random salt, so hashing the same password again gives a different text. Always call `Bun.password.verify(password, storedHash)`."
+          tr: "Her hash kendi rastgele tuzunu taşır; aynı parolayı tekrar hash'lemek farklı bir metin verir. Her zaman `Bun.password.verify(password, storedHash)` çağır."
+      - problem:
+          en: "`curl` says `{\"error\":\"log in first\"}` even though you registered."
+          tr: "Kayıt olmana rağmen `curl` `{\"error\":\"log in first\"}` diyor."
+        fix:
+          en: "You forgot `-b cookies.txt` (send the cookie) on that command, or `-c cookies.txt` (save it) on the register command."
+          tr: "O komutta `-b cookies.txt` (cookie'yi gönder) ya da kayıt komutunda `-c cookies.txt` (kaydet) yazmayı unuttun."
+    quiz:
+      - q:
+          en: "Why does the database store `password_hash` and not the password?"
+          tr: "Veritabanı neden parolayı değil `password_hash`'i saklıyor?"
+        options:
+          en:
+            - "Hashes are shorter"
+            - "If the database leaks, the real passwords still cannot be read"
+            - "Bun cannot store plain text"
+          tr:
+            - "Hash'ler daha kısa"
+            - "Veritabanı sızsa bile gerçek parolalar okunamaz"
+            - "Bun düz metin saklayamaz"
+        answer: 1
+        why:
+          en: "A hash cannot be turned back into the password, so a leaked database does not hand out the passwords."
+          tr: "Hash parolaya geri çevrilemez; bu yüzden sızan bir veritabanı parolaları vermez."
+      - q:
+          en: "What does the `httpOnly` cookie flag do?"
+          tr: "`httpOnly` cookie bayrağı ne yapar?"
+        options:
+          en:
+            - "Makes the cookie https only"
+            - "Keeps JavaScript on the page from reading the cookie"
+            - "Deletes the cookie after one request"
+          tr:
+            - "Cookie'yi sadece https yapar"
+            - "Sayfadaki JavaScript'in cookie'yi okumasını engeller"
+            - "Cookie'yi bir istekten sonra siler"
+        answer: 1
+        why:
+          en: "`httpOnly` hides the cookie from scripts, so an injected script cannot steal the session. `secure` is the https-only flag."
+          tr: "`httpOnly` cookie'yi script'lerden gizler; böylece enjekte edilen bir script oturumu çalamaz. Sadece https bayrağı `secure`'dür."
+    sources:
+      - title: "Bun: Password and hashing"
+        url: https://bun.com/docs/runtime/hashing
+      - title: "Bun: Cookies"
+        url: https://bun.com/docs/runtime/http/cookies
+      - title: "MDN: Using HTTP cookies"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies
+
+  - id: login-page
+    stage: data-api
+    title:
+      en: "Log in and out from the page"
+      tr: "Sayfadan giriş ve çıkış yapma"
+    minutes: 45
+    needs: [accounts]
+    why:
+      en: "The API now needs a login, so the page must offer one. This step connects the browser to the cookie-based session you just built. You do not write any cookie code on the page: the browser stores and sends the cookie by itself."
+      tr: "API artık giriş istiyor, o yüzden sayfa da bir giriş sunmalı. Bu adım tarayıcıyı az önce kurduğun cookie tabanlı oturuma bağlar. Sayfada hiç cookie kodu yazmazsın: tarayıcı cookie'yi kendisi saklar ve gönderir."
+    learn:
+      en: |
+        - A page that shows different parts for a logged-in and a logged-out visitor, by asking `/api/me` when it loads
+        - Forms: the `submit` event, `event.preventDefault()` and `reportValidity()`
+        - Showing server errors (wrong password, email taken) to the user
+      tr: |
+        - Sayfa yüklenirken `/api/me`'ye sorarak giriş yapmış ve yapmamış ziyaretçiye farklı bölümler gösteren bir sayfa
+        - Formlar: `submit` olayı, `event.preventDefault()` ve `reportValidity()`
+        - Sunucu hatalarını (yanlış parola, e-posta alınmış) kullanıcıya göstermek
+    do:
+      en: |
+        1. Replace `public/index.html` and `public/app.ts` with the versions below. `style.css` stays as it is.
+        2. Open http://localhost:3000. You see the login form. Register a new account with a password of at least 8 characters.
+        3. Add notes, reload the page: you stay logged in. Click *Log out*, then log in again.
+        4. Try the errors: a wrong password, registering the same email twice, a 3-letter password. Each shows a message under the form.
+        5. Open the browser tools (F12) → *Application* (or *Storage*) → *Cookies*: the `session` cookie is there with HttpOnly ticked. Type `document.cookie` in the console: it does not show it.
+        6. Run `bun check` and commit: `git add .` and `git commit -m "Add the login page"`.
+      tr: |
+        1. `public/index.html` ve `public/app.ts`'i aşağıdaki sürümlerle değiştir. `style.css` olduğu gibi kalır.
+        2. http://localhost:3000 adresini aç. Giriş formunu görürsün. En az 8 karakterli bir parolayla yeni hesap oluştur.
+        3. Not ekle, sayfayı yenile: giriş yapmış kalırsın. *Log out*'a tıkla, sonra tekrar giriş yap.
+        4. Hataları dene: yanlış parola, aynı e-postayla iki kez kayıt, 3 harfli parola. Her biri formun altında bir mesaj gösterir.
+        5. Tarayıcı araçlarını aç (F12) → *Application* (ya da *Storage*) → *Cookies*: `session` cookie'si orada, HttpOnly işaretli. Konsola `document.cookie` yaz: onu göstermez.
+        6. `bun check` çalıştır ve commit et: `git add .` ve `git commit -m "Add the login page"`.
+    code:
+      - file: public/index.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1" />
+              <title>Notely</title>
+              <link rel="stylesheet" href="./style.css" />
+            </head>
+            <body>
+              <main>
+                <h1>Notely</h1>
+
+                <section id="auth-view" hidden>
+                  <form id="auth-form">
+                    <input id="email" type="email" autocomplete="username" placeholder="Email" required />
+                    <input id="password" type="password" autocomplete="current-password" minlength="8" placeholder="Password (8+ characters)" required />
+                    <button type="submit">Log in</button>
+                    <button type="button" id="register">Register</button>
+                  </form>
+                </section>
+
+                <section id="notes-view" hidden>
+                  <p>Signed in as <strong id="who"></strong> <button type="button" id="logout">Log out</button></p>
+                  <form id="note-form">
+                    <input id="note-text" maxlength="500" placeholder="Write a note" required />
+                    <button type="submit">Add</button>
+                  </form>
+                  <ul id="notes"></ul>
+                </section>
+
+                <p id="status" role="status"></p>
+              </main>
+              <script type="module" src="./app.ts"></script>
+            </body>
+          </html>
+      - file: public/app.ts
+        lang: ts
+        text: |
+          type Note = { id: number; text: string };
+          type User = { id: number; email: string };
+
+          const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
+
+          const authView = $<HTMLElement>("#auth-view");
+          const notesView = $<HTMLElement>("#notes-view");
+          const authForm = $<HTMLFormElement>("#auth-form");
+          const noteForm = $<HTMLFormElement>("#note-form");
+          const email = $<HTMLInputElement>("#email");
+          const password = $<HTMLInputElement>("#password");
+          const noteText = $<HTMLInputElement>("#note-text");
+          const who = $<HTMLElement>("#who");
+          const list = $<HTMLUListElement>("#notes");
+          const status = $<HTMLParagraphElement>("#status");
+
+          async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
+            const res = await fetch(path, {
+              ...init,
+              headers: { "content-type": "application/json" },
+            });
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              throw new Error(body.error ?? res.statusText);
+            }
+            return res.status === 204 ? (undefined as T) : res.json();
+          }
+
+          async function run(action: () => Promise<void>) {
+            status.textContent = "";
+            try {
+              await action();
+            } catch (err) {
+              status.textContent = err instanceof Error ? err.message : "Something went wrong";
+            }
+          }
+
+          function render(notes: Note[]) {
+            list.replaceChildren(
+              ...notes.map((note) => {
+                const item = document.createElement("li");
+                const text = document.createElement("span");
+                text.textContent = note.text; // textContent never runs HTML, unlike innerHTML
+                const del = document.createElement("button");
+                del.textContent = "Delete";
+                del.addEventListener("click", () =>
+                  run(async () => {
+                    await api(`/api/notes/${note.id}`, { method: "DELETE" });
+                    await showNotes();
+                  }),
+                );
+                item.append(text, del);
+                return item;
+              }),
+            );
+          }
+
+          async function showNotes() {
+            render(await api<Note[]>("/api/notes"));
+          }
+
+          function show(user: User | null) {
+            authView.hidden = user !== null;
+            notesView.hidden = user === null;
+            who.textContent = user?.email ?? "";
+          }
+
+          async function start() {
+            const res = await fetch("/api/me");
+            if (res.ok) {
+              show((await res.json()) as User);
+              await showNotes();
+            } else {
+              show(null);
+            }
+          }
+
+          function credentials() {
+            return JSON.stringify({ email: email.value, password: password.value });
+          }
+
+          async function enter(path: "login" | "register") {
+            await api<User>(`/api/auth/${path}`, { method: "POST", body: credentials() });
+            password.value = "";
+            await start();
+          }
+
+          authForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            run(() => enter("login"));
+          });
+          $("#register").addEventListener("click", () => {
+            if (authForm.reportValidity()) run(() => enter("register"));
+          });
+          $("#logout").addEventListener("click", () =>
+            run(async () => {
+              await api("/api/auth/logout", { method: "POST" });
+              await start();
+            }),
+          );
+          noteForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            run(async () => {
+              await api("/api/notes", { method: "POST", body: JSON.stringify({ text: noteText.value }) });
+              noteText.value = "";
+              await showNotes();
+            });
+          });
+
+          run(start);
+    mistakes:
+      - problem:
+          en: "Clicking *Register* does nothing."
+          tr: "*Register*'a tıklamak hiçbir şey yapmıyor."
+        fix:
+          en: "The form is not valid yet (empty email or a password shorter than 8). The browser shows its own hint; `reportValidity()` makes it appear."
+          tr: "Form henüz geçerli değil (boş e-posta ya da 8'den kısa parola). Tarayıcı kendi ipucunu gösterir; `reportValidity()` onu görünür yapar."
+      - problem:
+          en: "After a code change the page still shows the old version."
+          tr: "Kod değişikliğinden sonra sayfa hâlâ eski sürümü gösteriyor."
+        fix:
+          en: "Do a hard reload (Ctrl+Shift+R) and check that the dev server prints no error. If you started with `bun start` instead of `bun run dev`, there is no live reload."
+          tr: "Zorla yenile (Ctrl+Shift+R) ve geliştirme sunucusunun hata yazmadığını kontrol et. `bun run dev` yerine `bun start` ile başlattıysan canlı yenileme yoktur."
+    quiz:
+      - q:
+          en: "How does the page know after a reload that you are still logged in?"
+          tr: "Sayfa yenilendikten sonra hâlâ giriş yaptığını nasıl bilir?"
+        options:
+          en:
+            - "It saves your password in the page"
+            - "The browser sends the session cookie, and `/api/me` answers who it belongs to"
+            - "It asks you to log in again every time"
+          tr:
+            - "Parolanı sayfada saklar"
+            - "Tarayıcı oturum cookie'sini gönderir ve `/api/me` kime ait olduğunu söyler"
+            - "Her seferinde yeniden giriş ister"
+        answer: 1
+        why:
+          en: "The cookie travels with every request; the server looks up the session and replies with the user."
+          tr: "Cookie her istekle birlikte gider; sunucu oturumu bulur ve kullanıcıyı cevaplar."
+    sources:
+      - title: "MDN: HTMLFormElement submit event"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/HTMLFormElement/submit_event
+      - title: "MDN: Document.querySelector"
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the API with bun test"
+      tr: "API'yi bun test ile test etme"
+    minutes: 50
+    needs: [login-page]
+    why:
+      en: "Tests are small programs that use your code and check the result. They let you change things later without fear: if you break a feature, a test fails at once instead of a user finding out. Bun has a test runner built in, so there is nothing to install."
+      tr: "Testler, kodunu kullanıp sonucu kontrol eden küçük programlardır. İleride korkmadan değişiklik yapmanı sağlarlar: bir özelliği bozarsan kullanıcı fark etmeden bir test hemen başarısız olur. Bun'da test çalıştırıcı hazır gelir, kurulacak bir şey yok."
+    learn:
+      en: |
+        - `bun test` runs every file named `*.test.ts`
+        - `test("name", () => { ... })`, `describe(...)` to group, and `expect(value).toBe(...)` to check
+        - How to test a server: start a real one on port `0` (Bun picks a free port) with an in-memory database (`:memory:`), call it with `fetch`, then stop it
+        - Test what a user can see (status codes and answers), not how the code is written inside
+      tr: |
+        - `bun test`, adı `*.test.ts` olan her dosyayı çalıştırır
+        - `test("ad", () => { ... })`, gruplamak için `describe(...)` ve kontrol için `expect(değer).toBe(...)`
+        - Sunucu nasıl test edilir: `0` portunda (Bun boş bir port seçer) bellekte bir veritabanıyla (`:memory:`) gerçek bir sunucu başlat, `fetch` ile çağır, sonra durdur
+        - Kullanıcının görebildiğini test et (durum kodları ve cevaplar), kodun içinin nasıl yazıldığını değil
+    do:
+      en: |
+        1. Create `src/app.test.ts` with the code below. It starts the real server with a fresh in-memory database, registers users and calls the API.
+        2. Add a script `"test": "bun test"` to `package.json` if you do not have it (the next steps' `package.json` has it).
+        3. Run `bun test`. You should see all tests pass.
+        4. Break something on purpose: in `src/notes.ts` change `> 500` to `> 5` and run `bun test` again. Read the failure: it tells you which test and which line. Put it back.
+        5. Add a test of your own, for example that a note with 501 characters is refused with status 400. Run it, see it pass.
+        6. Commit: `git add .` and `git commit -m "Test the API"`.
+      tr: |
+        1. Aşağıdaki kodla `src/app.test.ts` dosyasını oluştur. Gerçek sunucuyu yeni bir bellek veritabanıyla başlatır, kullanıcı kaydeder ve API'yi çağırır.
+        2. Yoksa `package.json`'a `"test": "bun test"` script'ini ekle (sonraki adımlardaki `package.json`'da var).
+        3. `bun test` çalıştır. Bütün testlerin geçtiğini görmelisin.
+        4. Bilerek bir şeyi boz: `src/notes.ts` içinde `> 500`'ü `> 5` yap ve `bun test`'i tekrar çalıştır. Hatayı oku: hangi testin ve hangi satırın olduğunu söyler. Geri koy.
+        5. Kendi testini ekle, örneğin 501 karakterlik bir notun 400 durum koduyla reddedildiğini. Çalıştır, geçtiğini gör.
+        6. Commit et: `git add .` ve `git commit -m "Test the API"`.
+    code:
+      - file: src/app.test.ts
+        lang: ts
+        text: |
+          import { afterAll, describe, expect, test } from "bun:test";
+          import { openDb } from "./db";
+          import { createServer } from "./server";
+
+          const db = openDb(":memory:");
+          const server = createServer(db, { port: 0 });
+          afterAll(async () => {
+            await server.stop(true);
+            db.close();
+          });
+
+          const url = (path: string) => new URL(path, server.url);
+
+          function send(path: string, method: string, body?: unknown, cookie = "") {
+            return fetch(url(path), {
+              method,
+              headers: { "content-type": "application/json", cookie },
+              body: body === undefined ? undefined : JSON.stringify(body),
+            });
+          }
+
+          // Registers a user and returns the session cookie the server sent back.
+          async function signUp(email: string) {
+            const res = await send("/api/auth/register", "POST", { email, password: "correct horse battery" });
+            expect(res.status).toBe(201);
+            return res.headers.getSetCookie()[0]!.split(";")[0]!;
+          }
+
+          describe("health", () => {
+            test("answers ok", async () => {
+              const res = await fetch(url("/health"));
+              expect(res.status).toBe(200);
+              expect(await res.json()).toEqual({ status: "ok" });
+            });
+          });
+
+          describe("accounts", () => {
+            test("register, log in and ask who I am", async () => {
+              await signUp("ada@example.com");
+              const login = await send("/api/auth/login", "POST", {
+                email: "ada@example.com",
+                password: "correct horse battery",
+              });
+              expect(login.status).toBe(200);
+              const cookie = login.headers.getSetCookie()[0]!.split(";")[0]!;
+              const me = await send("/api/me", "GET", undefined, cookie);
+              expect(await me.json()).toMatchObject({ email: "ada@example.com" });
+            });
+
+            test("the password is stored as a hash", () => {
+              const row = db.query<{ password_hash: string }, [string]>(
+                "SELECT password_hash FROM users WHERE email = ?",
+              ).get("ada@example.com")!;
+              expect(row.password_hash).not.toContain("correct horse");
+              expect(row.password_hash.startsWith("$argon2id$")).toBe(true);
+            });
+
+            test("a wrong password is refused", async () => {
+              const res = await send("/api/auth/login", "POST", { email: "ada@example.com", password: "wrong password" });
+              expect(res.status).toBe(401);
+            });
+
+            test("the same email cannot register twice", async () => {
+              const res = await send("/api/auth/register", "POST", {
+                email: "ada@example.com",
+                password: "another password",
+              });
+              expect(res.status).toBe(409);
+            });
+
+            test("a bad email is refused", async () => {
+              const res = await send("/api/auth/register", "POST", { email: "nope", password: "correct horse battery" });
+              expect(res.status).toBe(400);
+            });
+          });
+
+          describe("notes", () => {
+            test("need a login", async () => {
+              expect((await send("/api/notes", "GET")).status).toBe(401);
+            });
+
+            test("create, list and delete", async () => {
+              const cookie = await signUp("grace@example.com");
+              const created = await send("/api/notes", "POST", { text: "  buy milk " }, cookie);
+              expect(created.status).toBe(201);
+              const note = (await created.json()) as { id: number; text: string };
+              expect(note.text).toBe("buy milk");
+
+              const list = await send("/api/notes", "GET", undefined, cookie);
+              expect(await list.json()).toHaveLength(1);
+
+              expect((await send(`/api/notes/${note.id}`, "DELETE", undefined, cookie)).status).toBe(204);
+              expect(await (await send("/api/notes", "GET", undefined, cookie)).json()).toHaveLength(0);
+            });
+
+            test("an empty note is refused", async () => {
+              const cookie = await signUp("linus@example.com");
+              expect((await send("/api/notes", "POST", { text: "   " }, cookie)).status).toBe(400);
+            });
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          bun test
+          bun test --coverage
+    mistakes:
+      - problem:
+          en: "`bun test` says 0 tests found."
+          tr: "`bun test` 0 test bulundu diyor."
+        fix:
+          en: "The file name must match a test pattern: `*.test.ts`, `*_test.ts`, `*.spec.ts`. `app.ts` is not a test file."
+          tr: "Dosya adı bir test desenine uymalı: `*.test.ts`, `*_test.ts`, `*.spec.ts`. `app.ts` bir test dosyası değildir."
+      - problem:
+          en: "Tests pass alone but fail together, or fail in a different order."
+          tr: "Testler tek başına geçiyor ama birlikte başarısız oluyor ya da sıra değişince başarısız oluyor."
+        fix:
+          en: "They share state (the same user or database rows). Give each test its own data, such as a different email, or its own database."
+          tr: "Durum paylaşıyorlar (aynı kullanıcı ya da veritabanı satırları). Her teste kendi verisini ver; örneğin farklı bir e-posta ya da kendi veritabanı."
+      - problem:
+          en: "The test run never ends."
+          tr: "Test çalışması hiç bitmiyor."
+        fix:
+          en: "A server you started is still running. Stop it in `afterAll` with `await server.stop(true)`."
+          tr: "Başlattığın bir sunucu hâlâ çalışıyor. `afterAll` içinde `await server.stop(true)` ile durdur."
+    quiz:
+      - q:
+          en: "Why do the tests use `:memory:` and port `0`?"
+          tr: "Testler neden `:memory:` ve `0` portunu kullanıyor?"
+        options:
+          en:
+            - "To make the tests run slower on purpose"
+            - "So they never touch your real data and never clash with a running server"
+            - "Because `bun test` forbids files and ports"
+          tr:
+            - "Testleri bilerek yavaşlatmak için"
+            - "Gerçek verine hiç dokunmasınlar ve çalışan bir sunucuyla çakışmasınlar diye"
+            - "Çünkü `bun test` dosya ve portları yasaklar"
+        answer: 1
+        why:
+          en: "An in-memory database starts empty and disappears, and port 0 picks any free port, so tests are safe and repeatable."
+          tr: "Bellek veritabanı boş başlar ve kaybolur, 0 portu da boş herhangi bir portu seçer; testler güvenli ve tekrarlanabilir olur."
+    sources:
+      - title: "Bun: Test runner"
+        url: https://bun.com/docs/test
+      - title: "Bun: Writing tests"
+        url: https://bun.com/docs/test/writing-tests
+
+  - id: security
+    stage: security
+    title:
+      en: "Protect the app: limits, owners and safe cookies"
+      tr: "Uygulamayı koruma: limitler, sahiplik ve güvenli cookie'ler"
+    minutes: 60
+    needs: [tests]
+    why:
+      en: "Once an app is on the internet, strangers will poke at it. Most attacks on small apps are simple: guessing passwords, reading someone else's data, sending huge requests or injecting scripts. Each one has a small, standard defence, and you write a test for each so they cannot silently break."
+      tr: "Bir uygulama internete çıkınca yabancılar onu kurcalar. Küçük uygulamalara yapılan saldırıların çoğu basittir: parola tahmin etmek, başkasının verisini okumak, devasa istekler göndermek ya da script enjekte etmek. Her birinin küçük, standart bir savunması vardır ve her biri için bir test yazarsın ki sessizce bozulamasınlar."
+    learn:
+      en: |
+        - Rate limiting: allow only a few login attempts per minute per address and answer `429 Too Many Requests` after that
+        - Ownership checks: every note query includes `AND user_id = ?`, so a user can never reach another user's note (the server answers 404, as if it did not exist)
+        - A request body size limit (`maxRequestBodySize`) so nobody can send you 100 MB of JSON
+        - XSS (cross-site scripting): if a note containing `<script>` were put into the page as HTML, it would run in other people's browsers. `textContent` shows it as plain text
+        - The `Secure` cookie flag in production, and why `.env` and the database file stay out of Git
+      tr: |
+        - Rate limiting: adres başına dakikada sadece birkaç giriş denemesine izin ver, sonrasında `429 Too Many Requests` cevapla
+        - Sahiplik kontrolleri: her not sorgusu `AND user_id = ?` içerir; böylece bir kullanıcı başka kullanıcının notuna asla ulaşamaz (sunucu 404 cevaplar, sanki yokmuş gibi)
+        - İstek gövdesi boyut sınırı (`maxRequestBodySize`); kimse sana 100 MB'lık JSON gönderemesin
+        - XSS (cross-site scripting): içinde `<script>` olan bir not sayfaya HTML olarak konsaydı başkalarının tarayıcısında çalışırdı. `textContent` onu düz metin olarak gösterir
+        - Production'da `Secure` cookie bayrağı ve `.env` ile veritabanı dosyasının neden Git dışında kaldığı
+    do:
+      en: |
+        1. Create `src/ratelimit.ts` (below).
+        2. Replace `src/server.ts` and `src/index.ts`. The server now wraps `register` and `login` with the limiter, sets a body size limit, and `index.ts` passes `trustProxy` (set by the `TRUST_PROXY` variable; see the deploy step).
+        3. Create `src/security.test.ts` (below). Each test starts its own server, so they cannot disturb each other.
+        4. Run `bun test`. All tests, old and new, should pass.
+        5. Look at one test, "a user cannot delete or see another user's notes". In `src/notes.ts` temporarily remove ` AND user_id = ?` from the `DELETE` query (and the second argument of `remove.run`), run `bun test` and watch it fail. Put it back. That is what a test is for.
+        6. Try the limit by hand: run the login curl command from the accounts step with a wrong password 11 times quickly. The 11th answer is a 429.
+        7. Commit: `git add .` and `git commit -m "Add rate limiting and security tests"`.
+      tr: |
+        1. `src/ratelimit.ts` dosyasını oluştur (aşağıda).
+        2. `src/server.ts` ve `src/index.ts`'i değiştir. Sunucu artık `register` ve `login`'i limiter ile sarar, gövde boyut sınırı koyar; `index.ts` de `trustProxy`'yi geçirir (`TRUST_PROXY` değişkeniyle ayarlanır; deploy adımına bak).
+        3. `src/security.test.ts` dosyasını oluştur (aşağıda). Her test kendi sunucusunu başlatır, birbirlerini bozamazlar.
+        4. `bun test` çalıştır. Eski ve yeni bütün testler geçmeli.
+        5. Testlerden birine bak: "a user cannot delete or see another user's notes". `src/notes.ts` içinde `DELETE` sorgusundan geçici olarak ` AND user_id = ?` kısmını (ve `remove.run`'ın ikinci argümanını) çıkar, `bun test` çalıştır ve başarısız olmasını izle. Geri koy. Testin işi budur.
+        6. Limiti elle dene: hesaplar adımındaki giriş curl komutunu yanlış parolayla 11 kez hızlıca çalıştır. 11. cevap 429'dur.
+        7. Commit et: `git add .` ve `git commit -m "Add rate limiting and security tests"`.
+    code:
+      - file: src/ratelimit.ts
+        lang: ts
+        text: |
+          // Counts attempts per key (for example per IP address) in fixed time windows.
+          // It lives in memory, which is fine for one server process.
+          export function createLimiter(max: number, windowMs: number) {
+            const hits = new Map<string, { count: number; resetAt: number }>();
+
+            return function allow(key: string): boolean {
+              const now = Date.now();
+              const hit = hits.get(key);
+              if (!hit || hit.resetAt <= now) {
+                if (hits.size > 10_000) {
+                  for (const [k, v] of hits) if (v.resetAt <= now) hits.delete(k);
+                }
+                hits.set(key, { count: 1, resetAt: now + windowMs });
+                return true;
+              }
+              hit.count++;
+              return hit.count <= max;
+            };
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import type { BunRequest, Server } from "bun";
+          import type { Database } from "bun:sqlite";
+          import home from "../public/index.html";
+          import { createAuth } from "./auth";
+          import { fail } from "./http";
+          import { notesRoutes } from "./notes";
+          import { createLimiter } from "./ratelimit";
+
+          export type ServerOptions = {
+            port?: number;
+            secure?: boolean;
+            trustProxy?: boolean;
+            authLimit?: number;
+          };
+
+          type Handler = (req: BunRequest) => Response | Promise<Response>;
+
+          export function createServer(db: Database, options: ServerOptions = {}) {
+            const auth = createAuth(db, options.secure ?? false);
+            const allow = createLimiter(options.authLimit ?? 10, 60_000);
+
+            // Behind a proxy the address we see is the proxy's, so we read X-Forwarded-For instead.
+            // A client can add its own value there, so this limit is basic protection only.
+            function clientIp(req: Request, server: Server<undefined>) {
+              const forwarded = options.trustProxy ? req.headers.get("x-forwarded-for") : null;
+              return forwarded?.split(",")[0]?.trim() || server.requestIP(req)?.address || "unknown";
+            }
+
+            const limited = (handler: Handler) => (req: BunRequest, server: Server<undefined>) =>
+              allow(clientIp(req, server))
+                ? handler(req)
+                : fail(429, "too many attempts, try again in a minute");
+
+            return Bun.serve({
+              port: options.port ?? 3000,
+              maxRequestBodySize: 16 * 1024, // our JSON bodies are tiny; the default is 128 MB
+              routes: {
+                "/": home,
+                "/health": () => Response.json({ status: "ok" }),
+                "/api/auth/register": { POST: limited(auth.register) },
+                "/api/auth/login": { POST: limited(auth.login) },
+                "/api/auth/logout": { POST: auth.logout },
+                "/api/me": { GET: auth.me },
+                ...notesRoutes(db, auth.currentUser),
+              },
+              fetch() {
+                return fail(404, "not found");
+              },
+            });
+          }
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import { config } from "./config";
+          import { openDb } from "./db";
+          import { createServer } from "./server";
+
+          const db = openDb(config.dbPath);
+          const server = createServer(db, {
+            port: config.port,
+            secure: config.production,
+            trustProxy: config.trustProxy,
+          });
+
+          console.log(`Notely listening on ${server.url}`);
+      - file: src/security.test.ts
+        lang: ts
+        text: |
+          import { describe, expect, test } from "bun:test";
+          import { openDb } from "./db";
+          import { createServer, type ServerOptions } from "./server";
+
+          // Each test gets its own database and server, and cleans them up afterwards.
+          async function withServer(
+            options: ServerOptions,
+            body: (ctx: { db: ReturnType<typeof openDb>; send: Send }) => Promise<void>,
+          ) {
+            const db = openDb(":memory:");
+            const server = createServer(db, { port: 0, ...options });
+            const send: Send = (path, method, data, cookie = "") =>
+              fetch(new URL(path, server.url), {
+                method,
+                headers: { "content-type": "application/json", cookie },
+                body: data === undefined ? undefined : typeof data === "string" ? data : JSON.stringify(data),
+              });
+            try {
+              await body({ db, send });
+            } finally {
+              await server.stop(true);
+              db.close();
+            }
+          }
+
+          type Send = (path: string, method: string, data?: unknown, cookie?: string) => Promise<Response>;
+
+          const password = "correct horse battery";
+
+          async function signUp(send: Send, email: string) {
+            const res = await send("/api/auth/register", "POST", { email, password });
+            expect(res.status).toBe(201);
+            return res.headers.getSetCookie()[0]!;
+          }
+
+          describe("security", () => {
+            test("a user cannot delete or see another user's notes", async () => {
+              await withServer({ authLimit: 100 }, async ({ send }) => {
+                const ada = (await signUp(send, "ada@example.com")).split(";")[0]!;
+                const eve = (await signUp(send, "eve@example.com")).split(";")[0]!;
+                const note = (await (await send("/api/notes", "POST", { text: "secret" }, ada)).json()) as { id: number };
+
+                expect((await send(`/api/notes/${note.id}`, "DELETE", undefined, eve)).status).toBe(404);
+                expect(await (await send("/api/notes", "GET", undefined, eve)).json()).toEqual([]);
+                expect(await (await send("/api/notes", "GET", undefined, ada)).json()).toHaveLength(1);
+              });
+            });
+
+            test("the session cookie is HttpOnly and SameSite", async () => {
+              await withServer({}, async ({ send }) => {
+                const cookie = await signUp(send, "ada@example.com");
+                expect(cookie).toContain("HttpOnly");
+                expect(cookie).toContain("SameSite=Lax");
+                expect(cookie).not.toContain("Secure");
+              });
+            });
+
+            test("the cookie is Secure in production", async () => {
+              await withServer({ secure: true }, async ({ send }) => {
+                expect(await signUp(send, "ada@example.com")).toContain("Secure");
+              });
+            });
+
+            test("an expired session is refused", async () => {
+              await withServer({}, async ({ db, send }) => {
+                const cookie = (await signUp(send, "ada@example.com")).split(";")[0]!;
+                expect((await send("/api/me", "GET", undefined, cookie)).status).toBe(200);
+                db.run("UPDATE sessions SET expires_at = 1");
+                expect((await send("/api/me", "GET", undefined, cookie)).status).toBe(401);
+              });
+            });
+
+            test("too many login attempts get 429", async () => {
+              await withServer({ authLimit: 3 }, async ({ send }) => {
+                const attempt = () => send("/api/auth/login", "POST", { email: "x@example.com", password });
+                expect((await attempt()).status).toBe(401);
+                expect((await attempt()).status).toBe(401);
+                expect((await attempt()).status).toBe(401);
+                expect((await attempt()).status).toBe(429);
+              });
+            });
+
+            test("a huge body is refused", async () => {
+              await withServer({}, async ({ send }) => {
+                const res = await send("/api/notes", "POST", "x".repeat(100_000));
+                expect(res.status).toBe(413);
+              });
+            });
+
+            test("HTML in a note is stored as plain text", async () => {
+              await withServer({}, async ({ send }) => {
+                const cookie = (await signUp(send, "ada@example.com")).split(";")[0]!;
+                const text = "<img src=x onerror=alert(1)>";
+                await send("/api/notes", "POST", { text }, cookie);
+                const notes = (await (await send("/api/notes", "GET", undefined, cookie)).json()) as { text: string }[];
+                expect(notes[0]!.text).toBe(text); // the server keeps it as is; the page shows it with textContent
+              });
+            });
+          });
+    mistakes:
+      - problem:
+          en: "Showing user text with `element.innerHTML = note.text`."
+          tr: "Kullanıcı metnini `element.innerHTML = note.text` ile göstermek."
+        fix:
+          en: "Use `textContent`. If you really need HTML from users, clean it with a trusted sanitizer first; never insert it raw."
+          tr: "`textContent` kullan. Kullanıcılardan gerçekten HTML gerekiyorsa önce güvenilir bir temizleyiciden geçir; ham olarak asla ekleme."
+      - problem:
+          en: "Checking the owner only in the page (hiding other people's delete buttons)."
+          tr: "Sahipliği sadece sayfada kontrol etmek (başkalarının sil düğmelerini gizlemek)."
+        fix:
+          en: "Anyone can call the API without your page. The check must be on the server, in the SQL query, like `WHERE id = ? AND user_id = ?`."
+          tr: "Herkes sayfan olmadan API'yi çağırabilir. Kontrol sunucuda, SQL sorgusunda olmalı: `WHERE id = ? AND user_id = ?`."
+      - problem:
+          en: "Trusting the limiter completely."
+          tr: "Limiter'a tamamen güvenmek."
+        fix:
+          en: "It lives in memory (reset on restart, not shared between servers), and behind a proxy it reads `X-Forwarded-For`, which a client can fake. It stops casual guessing, not a determined attacker. Real protection also uses long passwords and a firewall at the edge."
+          tr: "Bellekte yaşar (yeniden başlayınca sıfırlanır, sunucular arasında paylaşılmaz) ve proxy arkasında bir istemcinin taklit edebileceği `X-Forwarded-For`'u okur. Sıradan tahmini durdurur, kararlı bir saldırganı değil. Gerçek koruma uzun parolaları ve uçta bir güvenlik duvarını da kullanır."
+    quiz:
+      - q:
+          en: "Why is `DELETE FROM notes WHERE id = ? AND user_id = ?` safer than `WHERE id = ?` alone?"
+          tr: "`DELETE FROM notes WHERE id = ? AND user_id = ?`, tek başına `WHERE id = ?`'ten neden daha güvenli?"
+        options:
+          en:
+            - "It is faster"
+            - "A user can only delete their own notes, even if they guess another note's id"
+            - "It stops SQL injection"
+          tr:
+            - "Daha hızlı"
+            - "Bir kullanıcı başka notun id'sini tahmin etse bile sadece kendi notlarını silebilir"
+            - "SQL injection'ı durdurur"
+        answer: 1
+        why:
+          en: "Ids are easy to guess (1, 2, 3...). The `user_id` part makes the database ignore notes that belong to someone else."
+          tr: "Id'ler tahmin etmesi kolaydır (1, 2, 3...). `user_id` kısmı veritabanının başkasına ait notları yok saymasını sağlar."
+    sources:
+      - title: "Bun: HTTP server (request body size limit)"
+        url: https://bun.com/docs/runtime/http/server
+      - title: "MDN: 429 Too Many Requests"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429
+      - title: "MDN: Cross-site scripting (XSS)"
+        url: https://developer.mozilla.org/en-US/docs/Web/Security/Attacks/XSS
+
+  - id: speed
+    stage: performance
+    title:
+      en: "Measure first, then speed up: SQLite settings and an index"
+      tr: "Önce ölç, sonra hızlandır: SQLite ayarları ve bir index"
+    minutes: 50
+    needs: [security]
+    why:
+      en: "Bun is already fast, so most small apps are not slow. The skill is to measure before you change anything, because guesses about speed are often wrong. Here you build a tiny benchmark, then apply the two changes that matter for a SQLite app: write-ahead logging and an index."
+      tr: "Bun zaten hızlı, bu yüzden küçük uygulamaların çoğu yavaş değildir. Beceri, bir şeyi değiştirmeden önce ölçmektir; çünkü hız hakkındaki tahminler çoğu zaman yanlıştır. Burada küçük bir benchmark yazarsın, sonra SQLite uygulaması için önemli iki değişikliği uygularsın: write-ahead logging ve bir index."
+    learn:
+      en: |
+        - Throughput (requests per second) and latency (how long one request takes); the median (typical) and the 95th percentile (the slow 1 in 20)
+        - WAL mode (`PRAGMA journal_mode = WAL`): readers and a writer do not block each other. `synchronous = NORMAL` is the safe, faster companion for WAL
+        - An index is a sorted lookup table. Without it SQLite reads every row (`SCAN`); with it, it jumps to the rows (`SEARCH`). `EXPLAIN QUERY PLAN` shows which one it uses
+        - Why hashing a password is slow on purpose (about 0.2 seconds here): it makes guessing expensive. Do not benchmark logins
+        - Cleaning expired sessions so the table does not grow forever
+      tr: |
+        - Throughput (saniyede istek) ve latency (bir isteğin ne kadar sürdüğü); medyan (tipik) ve 95. yüzdelik (20 istekten yavaş olan 1'i)
+        - WAL modu (`PRAGMA journal_mode = WAL`): okuyucular ve yazıcı birbirini engellemez. `synchronous = NORMAL`, WAL'ın güvenli ve daha hızlı eşidir
+        - Index, sıralı bir arama tablosudur. Olmadan SQLite her satırı okur (`SCAN`); varken doğrudan satırlara gider (`SEARCH`). `EXPLAIN QUERY PLAN` hangisini kullandığını gösterir
+        - Parola hash'lemenin neden bilerek yavaş olduğu (burada yaklaşık 0,2 saniye): tahmin etmeyi pahalı yapar. Girişleri benchmark etme
+        - Süresi dolan oturumları temizlemek; tablo sonsuza kadar büyümesin
+    do:
+      en: |
+        1. Create the folder `scripts` and add `scripts/bench.ts` (below). It registers a user, adds 20 notes and then sends 5000 requests to `/api/notes`, 50 at a time.
+        2. **Before changing anything**, measure. Start the server with `bun start` in one terminal and run `bun scripts/bench.ts` in another. Write down the numbers. (The script registers a new user each run, and registration is limited to 10 per minute.)
+        3. Replace `src/db.ts` and `src/index.ts` with the versions below. They turn on WAL, add the index `notes_by_user` and delete expired sessions at start and every hour.
+        4. Stop the server, start it again with `bun start` and run the benchmark again. Compare.
+        5. Add `scripts/explain.ts` (below) and run `bun scripts/explain.ts`. The query on `user_id` says `SEARCH ... USING INDEX`, the query on `text` says `SCAN`. That is the difference an index makes. With 20 notes you will not see it in the timing; with 100,000 notes you would.
+        6. Run `bun test` and `bun check`, then commit: `git add .` and `git commit -m "Speed: WAL, index, session cleanup"`.
+      tr: |
+        1. `scripts` klasörünü oluştur ve `scripts/bench.ts` ekle (aşağıda). Bir kullanıcı kaydeder, 20 not ekler ve sonra `/api/notes`'a 50'şer 50'şer 5000 istek gönderir.
+        2. **Hiçbir şeyi değiştirmeden önce** ölç. Bir terminalde `bun start` ile sunucuyu başlat, başka birinde `bun scripts/bench.ts` çalıştır. Sayıları not al. (Script her çalışmada yeni bir kullanıcı kaydeder ve kayıt dakikada 10 ile sınırlıdır.)
+        3. `src/db.ts` ve `src/index.ts`'i aşağıdaki sürümlerle değiştir. WAL'ı açarlar, `notes_by_user` index'ini eklerler ve süresi dolan oturumları başlangıçta ve her saat siler.
+        4. Sunucuyu durdur, `bun start` ile tekrar başlat ve benchmark'ı yeniden çalıştır. Karşılaştır.
+        5. `scripts/explain.ts` ekle (aşağıda) ve `bun scripts/explain.ts` çalıştır. `user_id` sorgusu `SEARCH ... USING INDEX`, `text` sorgusu `SCAN` der. Index'in yarattığı fark budur. 20 notla süreye yansımaz; 100.000 notla yansırdı.
+        6. `bun test` ve `bun check` çalıştır, sonra commit et: `git add .` ve `git commit -m "Speed: WAL, index, session cleanup"`.
+    code:
+      - file: scripts/bench.ts
+        lang: ts
+        text: |
+          // Usage: bun scripts/bench.ts   (the server must already be running)
+          const base = process.env.BASE ?? "http://localhost:3000";
+          const total = 5000;
+          const concurrency = 50;
+
+          const register = await fetch(`${base}/api/auth/register`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ email: `bench-${Date.now()}@example.com`, password: "correct horse battery" }),
+          });
+          if (!register.ok) throw new Error(`register failed: ${register.status}`);
+          const cookie = register.headers.getSetCookie()[0]!.split(";")[0]!;
+
+          for (let i = 0; i < 20; i++) {
+            await fetch(`${base}/api/notes`, {
+              method: "POST",
+              headers: { "content-type": "application/json", cookie },
+              body: JSON.stringify({ text: `note ${i}` }),
+            });
+          }
+
+          const times: number[] = [];
+          let sent = 0;
+
+          async function worker() {
+            while (sent < total) {
+              sent++;
+              const start = performance.now();
+              const res = await fetch(`${base}/api/notes`, { headers: { cookie } });
+              await res.arrayBuffer();
+              times.push(performance.now() - start);
+            }
+          }
+
+          const started = performance.now();
+          await Promise.all(Array.from({ length: concurrency }, worker));
+          const seconds = (performance.now() - started) / 1000;
+
+          times.sort((a, b) => a - b);
+          const at = (p: number) => times[Math.floor(times.length * p)]!.toFixed(1);
+          console.log(`${total} requests in ${seconds.toFixed(2)} s: ${Math.round(total / seconds)} req/s`);
+          console.log(`median ${at(0.5)} ms, 95th percentile ${at(0.95)} ms`);
+      - file: src/db.ts
+        lang: ts
+        text: |
+          import { Database } from "bun:sqlite";
+
+          export type Note = { id: number; text: string; created_at: string };
+
+          export function openDb(path: string): Database {
+            const db = new Database(path, { create: true });
+            db.run("PRAGMA journal_mode = WAL"); // readers do not block the writer
+            db.run("PRAGMA synchronous = NORMAL"); // safe with WAL, and faster than the default
+            db.run("PRAGMA foreign_keys = ON");
+            db.run(`
+              CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL UNIQUE,
+                password_hash TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+            db.run(`
+              CREATE TABLE IF NOT EXISTS sessions (
+                token_hash TEXT PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                expires_at INTEGER NOT NULL
+              )
+            `);
+            db.run(`
+              CREATE TABLE IF NOT EXISTS notes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                text TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now'))
+              )
+            `);
+            db.run("CREATE INDEX IF NOT EXISTS notes_by_user ON notes (user_id, id)");
+            return db;
+          }
+
+          export function purgeExpiredSessions(db: Database) {
+            db.query("DELETE FROM sessions WHERE expires_at <= ?").run(Math.floor(Date.now() / 1000));
+          }
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import { config } from "./config";
+          import { openDb, purgeExpiredSessions } from "./db";
+          import { createServer } from "./server";
+
+          const db = openDb(config.dbPath);
+          const server = createServer(db, {
+            port: config.port,
+            secure: config.production,
+            trustProxy: config.trustProxy,
+          });
+
+          purgeExpiredSessions(db);
+          setInterval(() => purgeExpiredSessions(db), 60 * 60 * 1000);
+
+          console.log(`Notely listening on ${server.url}`);
+      - file: scripts/explain.ts
+        lang: ts
+        text: |
+          import { openDb } from "../src/db";
+
+          const db = openDb(":memory:");
+
+          function plan(sql: string) {
+            const rows = db.query<{ detail: string }, []>(`EXPLAIN QUERY PLAN ${sql}`).all();
+            console.log(sql);
+            for (const row of rows) console.log("  ->", row.detail);
+          }
+
+          plan("SELECT id, text FROM notes WHERE user_id = 1 ORDER BY id DESC");
+          plan("SELECT id, text FROM notes WHERE text = 'milk'");
+      - file: terminal
+        lang: sh
+        text: |
+          bun start
+          # in a second terminal:
+          bun scripts/bench.ts
+          # example output on one laptop (yours will differ):
+          # 5000 requests in 0.54 s: 9338 req/s
+          # median 5.0 ms, 95th percentile 8.6 ms
+    mistakes:
+      - problem:
+          en: "Changing code for speed without measuring, then not knowing if it helped."
+          tr: "Ölçmeden hız için kodu değiştirmek, sonra işe yarayıp yaramadığını bilmemek."
+        fix:
+          en: "Measure, change one thing, measure again. Keep the numbers. If nothing moved, the change was not needed."
+          tr: "Ölç, tek şeyi değiştir, tekrar ölç. Sayıları sakla. Hiçbir şey oynamadıysa değişiklik gerekmiyordu."
+      - problem:
+          en: "Trusting a benchmark that runs on the same machine as the server and with few requests."
+          tr: "Sunucuyla aynı makinede ve az istekle çalışan bir benchmark'a güvenmek."
+        fix:
+          en: "The client and the server share the CPU, so the numbers are rough and noisy. Use them to compare *your* before and after on the same machine, not as a promise of production speed."
+          tr: "İstemci ve sunucu işlemciyi paylaşır; sayılar kaba ve oynaktır. Onları aynı makinede *kendi* önce ve sonranı karşılaştırmak için kullan, production hızı vaadi olarak değil."
+      - problem:
+          en: "Adding an index to every column."
+          tr: "Her sütuna index eklemek."
+        fix:
+          en: "Each index makes writes slower and uses space. Add one when `EXPLAIN QUERY PLAN` shows a `SCAN` on a query you run often."
+          tr: "Her index yazmayı yavaşlatır ve yer kaplar. Sık çalıştırdığın bir sorguda `EXPLAIN QUERY PLAN` `SCAN` gösterince ekle."
+    quiz:
+      - q:
+          en: "What does an index change for the query `WHERE user_id = ?`?"
+          tr: "Index, `WHERE user_id = ?` sorgusu için neyi değiştirir?"
+        options:
+          en:
+            - "SQLite reads every row instead of a few"
+            - "SQLite jumps straight to the matching rows instead of scanning the whole table"
+            - "The query returns different results"
+          tr:
+            - "SQLite birkaç satır yerine her satırı okur"
+            - "SQLite tüm tabloyu taramak yerine doğrudan eşleşen satırlara gider"
+            - "Sorgu farklı sonuçlar döndürür"
+        answer: 1
+        why:
+          en: "An index is a sorted lookup structure: `SEARCH` finds rows directly, `SCAN` reads them all. Results stay the same."
+          tr: "Index sıralı bir arama yapısıdır: `SEARCH` satırları doğrudan bulur, `SCAN` hepsini okur. Sonuçlar aynı kalır."
+    sources:
+      - title: "SQLite: Write-Ahead Logging"
+        url: https://www.sqlite.org/wal.html
+      - title: "SQLite: Query planning (EXPLAIN QUERY PLAN)"
+        url: https://www.sqlite.org/eqp.html
+      - title: "Bun: SQLite"
+        url: https://bun.com/docs/runtime/sqlite
+
+  - id: binary
+    stage: packaging
+    title:
+      en: "One executable file with bun build --compile"
+      tr: "bun build --compile ile tek çalıştırılabilir dosya"
+    minutes: 40
+    needs: [speed]
+    why:
+      en: "Normally to run your app, a machine needs Bun, your source files and your packages. `bun build --compile` packs your code, the page (HTML, CSS and TypeScript, already bundled) and the Bun runtime into one file. You can copy that file to a server that has nothing installed and run it."
+      tr: "Normalde uygulamanı çalıştırmak için makinede Bun, kaynak dosyaların ve paketlerin olmalı. `bun build --compile` kodunu, sayfayı (HTML, CSS ve TypeScript, önceden paketlenmiş) ve Bun çalışma ortamını tek dosyada toplar. O dosyayı hiçbir şey kurulu olmayan bir sunucuya kopyalayıp çalıştırabilirsin."
+    learn:
+      en: |
+        - What building means here: turning many source files into one runnable file
+        - The flags: `--compile` (make an executable), `--minify` (smaller code), `--sourcemap` (error messages still point at your original lines)
+        - The binary is for one operating system and CPU. It is about 87 MB because it contains the whole Bun runtime
+        - Files you read while running (like the database) are found relative to the folder you run the program in, not where the binary lives
+      tr: |
+        - Burada build etmenin ne demek olduğu: birçok kaynak dosyayı tek çalıştırılabilir dosyaya çevirmek
+        - Bayraklar: `--compile` (çalıştırılabilir dosya yap), `--minify` (daha küçük kod), `--sourcemap` (hata mesajları yine orijinal satırlarını gösterir)
+        - Binary tek bir işletim sistemi ve CPU içindir. Bun'ın tamamını içerdiği için yaklaşık 87 MB'tır
+        - Çalışırken okuduğun dosyalar (veritabanı gibi) binary'nin durduğu yere değil, programı çalıştırdığın klasöre göre bulunur
+    do:
+      en: |
+        1. Replace `package.json` with the version below. It adds the `build` script. (It also holds `test` and `typecheck`.)
+        2. Add two lines to `.gitignore`: `notely` and `*.map` (the build creates a file called `notely` and source map files).
+        3. Run `bun run build`. It creates the file `notely` (on Windows `notely.exe`) in about a second.
+        4. Make another folder, for example `mkdir ../try-notely`, copy the file there and run it from that folder (`cd ../try-notely`, then `PORT=4000 ./notely`). Open http://localhost:4000: the whole app works, and a new `notely.db` appears next to it. You did not need `node_modules` or the `src` folder.
+        5. Try production mode: stop it and run `NODE_ENV=production ./notely`. Register: the cookie now has the `Secure` flag (`curl -i` shows it).
+        6. Delete the test folder. Run `bun test` once more, then commit: `git add .` and `git commit -m "Build one executable"`.
+      tr: |
+        1. `package.json`'u aşağıdaki sürümle değiştir. `build` script'ini ekler. (`test` ve `typecheck` de içinde.)
+        2. `.gitignore`'a iki satır ekle: `notely` ve `*.map` (build `notely` adlı bir dosya ve source map dosyaları oluşturur).
+        3. `bun run build` çalıştır. Yaklaşık bir saniyede `notely` dosyasını oluşturur (Windows'ta `notely.exe`).
+        4. Başka bir klasör oluştur, örneğin `mkdir ../try-notely`, dosyayı oraya kopyala ve o klasörden çalıştır (`cd ../try-notely`, sonra `PORT=4000 ./notely`). http://localhost:4000 adresini aç: uygulamanın tamamı çalışır ve yanında yeni bir `notely.db` belirir. `node_modules`'a ya da `src` klasörüne ihtiyacın olmadı.
+        5. Production modunu dene: durdur ve `NODE_ENV=production ./notely` çalıştır. Kayıt ol: cookie'de artık `Secure` bayrağı var (`curl -i` gösterir).
+        6. Deneme klasörünü sil. `bun test`'i bir kez daha çalıştır, sonra commit et: `git add .` ve `git commit -m "Build one executable"`.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "notely",
+            "module": "src/index.ts",
+            "type": "module",
+            "private": true,
+            "scripts": {
+              "dev": "bun --hot src/index.ts",
+              "start": "bun src/index.ts",
+              "test": "bun test",
+              "typecheck": "bun check",
+              "build": "bun build --compile --minify --sourcemap ./src/index.ts --outfile notely"
+            },
+            "devDependencies": {
+              "@types/bun": "latest"
+            },
+            "peerDependencies": {
+              "typescript": "^7"
+            }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          bun run build
+          ls -lh notely
+          mkdir ../try-notely
+          cp notely ../try-notely/
+          cd ../try-notely
+          PORT=4000 ./notely
+    mistakes:
+      - problem:
+          en: "The binary says production is off even though you set `NODE_ENV=production`."
+          tr: "`NODE_ENV=production` vermene rağmen binary production'ın kapalı olduğunu söylüyor."
+        fix:
+          en: "Bun replaces the text `process.env.NODE_ENV` while building, so the value from your terminal is ignored. Read `Bun.env.NODE_ENV` instead, as `src/config.ts` does. Always test the built file, not only `bun run dev`."
+          tr: "Bun build sırasında `process.env.NODE_ENV` yazısını değiştirir, bu yüzden terminalindeki değer yok sayılır. Bunun yerine `src/config.ts`'in yaptığı gibi `Bun.env.NODE_ENV` oku. Sadece `bun run dev`'i değil, her zaman build edilmiş dosyayı da dene."
+      - problem:
+          en: "Building on Linux and copying the file to macOS or Windows: it will not run."
+          tr: "Linux'ta build edip dosyayı macOS'a ya da Windows'a kopyalamak: çalışmaz."
+        fix:
+          en: "A binary is for the system it was built for. Build on that system, or choose the target: `bun build --compile --target=bun-darwin-arm64 ...` (more targets in the last step)."
+          tr: "Binary, build edildiği sistem içindir. O sistemde build et ya da hedefi seç: `bun build --compile --target=bun-darwin-arm64 ...` (daha fazla hedef son adımda)."
+      - problem:
+          en: "Looking for `notely.db` next to the binary and finding it somewhere else."
+          tr: "`notely.db`'yi binary'nin yanında arayıp başka yerde bulmak."
+        fix:
+          en: "`DB_PATH` defaults to a relative name, so the file is created in the folder you ran the program from. In production we set an absolute path (`/data/notely.db`) on purpose."
+          tr: "`DB_PATH` varsayılan olarak göreli bir ad olduğundan dosya programı çalıştırdığın klasörde oluşur. Production'da bilerek mutlak bir yol veriyoruz (`/data/notely.db`)."
+    quiz:
+      - q:
+          en: "What does `bun build --compile` put inside the file `notely`?"
+          tr: "`bun build --compile`, `notely` dosyasının içine ne koyar?"
+        options:
+          en:
+            - "Only your TypeScript files"
+            - "Your bundled code, the page and the Bun runtime"
+            - "A link to the Bun installed on the machine"
+          tr:
+            - "Sadece TypeScript dosyalarını"
+            - "Paketlenmiş kodunu, sayfayı ve Bun çalışma ortamını"
+            - "Makinede kurulu Bun'a bir bağlantıyı"
+        answer: 1
+        why:
+          en: "The executable is self-contained, which is why it also works on a machine without Bun."
+          tr: "Çalıştırılabilir dosya kendi kendine yeter; bu yüzden Bun olmayan bir makinede de çalışır."
+    sources:
+      - title: "Bun: Single-file executable"
+        url: https://bun.com/docs/bundler/executables
+      - title: "Bun: Bundler"
+        url: https://bun.com/docs/bundler
+
+  - id: docker
+    stage: packaging
+    title:
+      en: "A small Docker image"
+      tr: "Küçük bir Docker image'ı"
+    minutes: 50
+    needs: [binary]
+    why:
+      en: "Most hosting services run apps from a Docker image: a sealed box that holds your program and everything it needs. Because your app is already one file, the image can be tiny: build the file in one stage, then copy only that file into a clean, minimal Linux image."
+      tr: "Çoğu barındırma servisi uygulamaları bir Docker image'ından çalıştırır: programını ve ihtiyacı olan her şeyi içeren kapalı bir kutu. Uygulaman zaten tek dosya olduğu için image minik olabilir: dosyayı bir aşamada build et, sonra sadece o dosyayı temiz ve minimal bir Linux image'ına kopyala."
+    learn:
+      en: |
+        - Image (the box) and container (a running copy of it)
+        - A multi-stage Dockerfile: stage 1 has Bun and builds; stage 2 starts from tiny `alpine` and copies in just `notely`
+        - Alpine uses the musl C library, and the `oven/bun:...-alpine` image builds a binary that matches it. That binary also needs two small libraries (`libstdc++`, `libgcc`)
+        - Run as a normal user (not root), keep data in a volume (`/data`) and add a `HEALTHCHECK`
+        - Why `COPY package.json bun.lock` comes first: Docker caches layers, so packages are reinstalled only when those files change
+      tr: |
+        - Image (kutu) ve container (onun çalışan kopyası)
+        - Çok aşamalı Dockerfile: 1. aşamada Bun var ve build eder; 2. aşama minik `alpine`'den başlar ve sadece `notely`'yi kopyalar
+        - Alpine musl C kütüphanesini kullanır ve `oven/bun:...-alpine` image'ı ona uygun bir binary üretir. Bu binary iki küçük kütüphaneye de ihtiyaç duyar (`libstdc++`, `libgcc`)
+        - Normal kullanıcı olarak çalıştır (root değil), veriyi bir volume'da tut (`/data`) ve `HEALTHCHECK` ekle
+        - `COPY package.json bun.lock`'un neden ilk geldiği: Docker katmanları önbelleğe alır, paketler sadece bu dosyalar değişince yeniden kurulur
+    do:
+      en: |
+        1. Install Docker (docs.docker.com/get-started/get-docker). Check with `docker --version`.
+        2. Create `Dockerfile` and `.dockerignore` in the project root (below). The `.dockerignore` keeps `node_modules`, the database and `.env` out of the image.
+        3. Make sure `bun.lock` is committed (`git status` should not list it). The Dockerfile needs it.
+        4. Build the image: `docker build -t notely .` The first build downloads the base images; later builds are fast.
+        5. Look at the size with `docker images notely`. It should be around 140 MB: about 87 MB of it is the Bun runtime inside your file.
+        6. Run it: `docker run --rm -p 3000:3000 -v notely-data:/data notely`. Open http://localhost:3000, register and add a note.
+        7. Stop it (Ctrl+C) and run it again: your account is still there, because the database lives in the `notely-data` volume, not inside the container.
+        8. In another terminal, `docker ps` shows the container as `healthy` after a few seconds (the `HEALTHCHECK` calls `/health`).
+        9. Commit: `git add .` and `git commit -m "Add a Dockerfile"`.
+      tr: |
+        1. Docker'ı kur (docs.docker.com/get-started/get-docker). `docker --version` ile kontrol et.
+        2. Proje köküne `Dockerfile` ve `.dockerignore` oluştur (aşağıda). `.dockerignore`, `node_modules`'ı, veritabanını ve `.env`'i image'ın dışında tutar.
+        3. `bun.lock`'un commit edildiğinden emin ol (`git status` onu listelememeli). Dockerfile'ın ona ihtiyacı var.
+        4. Image'ı build et: `docker build -t notely .` İlk build temel image'ları indirir; sonrakiler hızlıdır.
+        5. Boyutuna `docker images notely` ile bak. Yaklaşık 140 MB olmalı: bunun yaklaşık 87 MB'ı dosyanın içindeki Bun çalışma ortamı.
+        6. Çalıştır: `docker run --rm -p 3000:3000 -v notely-data:/data notely`. http://localhost:3000 adresini aç, kayıt ol ve not ekle.
+        7. Durdur (Ctrl+C) ve tekrar çalıştır: hesabın hâlâ orada, çünkü veritabanı container'ın içinde değil `notely-data` volume'unda duruyor.
+        8. Başka bir terminalde `docker ps` birkaç saniye sonra container'ı `healthy` gösterir (`HEALTHCHECK` `/health`'i çağırır).
+        9. Commit et: `git add .` ve `git commit -m "Add a Dockerfile"`.
+    code:
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: build the single executable with Bun
+          FROM oven/bun:1.4.3-alpine AS build
+          WORKDIR /app
+          COPY package.json bun.lock ./
+          RUN bun install --frozen-lockfile
+          COPY tsconfig.json ./
+          COPY src ./src
+          COPY public ./public
+          RUN bun run build
+
+          # Stage 2: a tiny image that only holds the executable
+          FROM alpine:3.22
+          RUN apk add --no-cache libstdc++ libgcc \
+           && addgroup -S app && adduser -S app -G app \
+           && mkdir /data && chown app:app /data
+          COPY --from=build /app/notely /usr/local/bin/notely
+          USER app
+          ENV NODE_ENV=production \
+              PORT=3000 \
+              DB_PATH=/data/notely.db
+          EXPOSE 3000
+          HEALTHCHECK --interval=30s --timeout=3s --start-period=5s \
+            CMD wget -q -O /dev/null "http://127.0.0.1:${PORT}/health" || exit 1
+          CMD ["notely"]
+      - file: .dockerignore
+        lang: text
+        text: |
+          node_modules
+          .git
+          .env
+          *.db
+          *.db-*
+          notely
+          coverage
+          dist
+      - file: terminal
+        lang: sh
+        text: |
+          docker build -t notely .
+          docker images notely
+          docker run --rm -p 3000:3000 -v notely-data:/data notely
+    mistakes:
+      - problem:
+          en: "The build fails at `bun install --frozen-lockfile` or `COPY ... bun.lock`."
+          tr: "Build `bun install --frozen-lockfile` ya da `COPY ... bun.lock` adımında başarısız oluyor."
+        fix:
+          en: "`bun.lock` is missing or out of date. Run `bun install` locally, commit `bun.lock`, and build again."
+          tr: "`bun.lock` yok ya da eski. Yerelde `bun install` çalıştır, `bun.lock`'u commit et ve tekrar build et."
+      - problem:
+          en: "The page does not open although the container runs."
+          tr: "Container çalışıyor ama sayfa açılmıyor."
+        fix:
+          en: "You forgot to publish the port: `-p 3000:3000` (outside:inside). The app listens on the `PORT` variable, 3000 in the image."
+          tr: "Portu yayınlamayı unuttun: `-p 3000:3000` (dış:iç). Uygulama `PORT` değişkenini dinler; image'da 3000."
+      - problem:
+          en: "Accounts disappear every time you start the container."
+          tr: "Container'ı her başlattığında hesaplar kayboluyor."
+        fix:
+          en: "Without `-v notely-data:/data` the database lives in the container's own disk, which is thrown away with `--rm`. Mount a volume."
+          tr: "`-v notely-data:/data` olmadan veritabanı container'ın kendi diskinde durur ve `--rm` ile atılır. Bir volume bağla."
+    quiz:
+      - q:
+          en: "Why does the Dockerfile have two stages?"
+          tr: "Dockerfile neden iki aşamalı?"
+        options:
+          en:
+            - "Docker requires exactly two"
+            - "The final image holds only the executable, not Bun's tools, packages or source code"
+            - "The second stage runs the tests"
+          tr:
+            - "Docker tam iki tane ister"
+            - "Son image sadece çalıştırılabilir dosyayı içerir; Bun'ın araçlarını, paketleri ve kaynak kodu değil"
+            - "İkinci aşama testleri çalıştırır"
+        answer: 1
+        why:
+          en: "Only the last stage becomes the image. Copying just `notely` into a small base keeps it small and gives attackers less to find."
+          tr: "Sadece son aşama image olur. Küçük bir tabana sadece `notely`'yi kopyalamak onu küçük tutar ve saldırgana bulunacak daha az şey bırakır."
+    sources:
+      - title: "Bun: Containerize a Bun application with Docker"
+        url: https://bun.com/docs/guides/ecosystem/docker
+      - title: "Docker: Multi-stage builds"
+        url: https://docs.docker.com/build/building/multi-stage/
+      - title: "Docker: Dockerfile reference"
+        url: https://docs.docker.com/reference/dockerfile/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on Render"
+      tr: "Render'da ücretsiz deploy"
+    minutes: 45
+    needs: [docker]
+    why:
+      en: "An app on your laptop helps nobody. Render can build your Dockerfile straight from a GitHub repository and give the app a public https address, on a free web service plan that is fine for learning. It is important to know exactly what \"free\" means here, so you are not surprised."
+      tr: "Laptopundaki bir uygulama kimseye yardım etmez. Render, Dockerfile'ını doğrudan bir GitHub reposundan build edip uygulamaya herkese açık bir https adresi verebilir; öğrenmek için yeterli ücretsiz bir web servisi planı vardır. \"Ücretsiz\"in burada tam olarak ne demek olduğunu bilmek önemli, böylece şaşırmazsın."
+    learn:
+      en: |
+        - Putting the project on GitHub, and how a host builds a Docker image from it
+        - Environment variables on the host: `TRUST_PROXY=1` (Render has a proxy in front of your app that sets `X-Forwarded-For`), and `PORT` (Render sets it; the default is 10000). The Dockerfile already sets `NODE_ENV=production`
+        - The free plan's limits, from Render's docs: the service spins down after 15 minutes without traffic and takes about a minute to wake up on the next request; the filesystem is ephemeral, so **the SQLite file is lost on every redeploy, restart and spin-down**; free web services cannot attach a persistent disk; a workspace gets 750 free instance hours per month; free Postgres databases expire after 30 days
+        - So the deployed Notely is a demo: accounts and notes disappear from time to time. Real data needs a database that lives outside the web service (a hosted Postgres) or a paid plan with a persistent disk
+      tr: |
+        - Projeyi GitHub'a koymak ve bir host'un ondan nasıl Docker image'ı build ettiği
+        - Host'taki ortam değişkenleri: `TRUST_PROXY=1` (Render'da uygulamanın önünde `X-Forwarded-For` ekleyen bir proxy var) ve `PORT` (Render ayarlar; varsayılan 10000). Dockerfile `NODE_ENV=production`'ı zaten ayarlıyor
+        - Ücretsiz planın sınırları, Render'ın dokümanından: servis 15 dakika trafik almazsa kapanır ve sonraki istekte uyanması yaklaşık bir dakika sürer; dosya sistemi geçicidir, yani **SQLite dosyası her redeploy'da, yeniden başlatmada ve kapanmada kaybolur**; ücretsiz web servislerine kalıcı disk bağlanamaz; bir workspace ayda 750 ücretsiz instance saati alır; ücretsiz Postgres veritabanları 30 gün sonra sona erer
+        - Yani deploy edilen Notely bir demodur: hesaplar ve notlar zaman zaman kaybolur. Gerçek veri için web servisinin dışında yaşayan bir veritabanı (barındırılan bir Postgres) ya da kalıcı disk veren ücretli bir plan gerekir
+    do:
+      en: |
+        1. Create an empty repository named `notely` on github.com (no README). In your project run `git status` first and check that `node_modules`, `notely.db`, `notely` (the binary) and `.env` are not listed as new files. Then push with the first commands below.
+        2. Create a free account at render.com (sign in with GitHub) and click *New → Web Service*. Connect your `notely` repository.
+        3. Fill in the form: *Language*: **Docker** (even though the app is TypeScript; Render builds the Dockerfile). Leave *Dockerfile Path* as it is (the root `Dockerfile`). *Instance type*: **Free**.
+        4. Under *Environment Variables* add `TRUST_PROXY` = `1`. In *Advanced*, set *Health Check Path* to `/health`.
+        5. Click *Deploy*. Watch the logs until the service is live. Render gives you an address like `https://notely-xxxx.onrender.com`.
+        6. Test it with the curl commands below (use your own address), then open it in the browser and register. The first request after a quiet period is slow: that is the spin-down.
+        7. Optional: instead of the form, put the `render.yaml` below in the repository root and use *New → Blueprint*. It describes the same service as code.
+        8. From now on every `git push` to `main` deploys a new version by itself.
+      tr: |
+        1. github.com'da `notely` adında boş bir repo oluştur (README olmasın). Projende önce `git status` çalıştır ve `node_modules`, `notely.db`, `notely` (binary) ve `.env`'in yeni dosya olarak listelenmediğini kontrol et. Sonra aşağıdaki ilk komutlarla push et.
+        2. render.com'da ücretsiz bir hesap aç (GitHub ile giriş yap) ve *New → Web Service*'e tıkla. `notely` reponu bağla.
+        3. Formu doldur: *Language*: **Docker** (uygulama TypeScript olsa da; Render Dockerfile'ı build eder). *Dockerfile Path*'e dokunma (kökteki `Dockerfile`). *Instance type*: **Free**.
+        4. *Environment Variables* altına `TRUST_PROXY` = `1` ekle. *Advanced* içinde *Health Check Path* alanını `/health` yap.
+        5. *Deploy*'a tıkla. Servis canlı olana kadar log'ları izle. Render sana `https://notely-xxxx.onrender.com` gibi bir adres verir.
+        6. Aşağıdaki curl komutlarıyla dene (kendi adresini kullan), sonra tarayıcıda aç ve kayıt ol. Sessiz bir dönemden sonraki ilk istek yavaştır: kapanma budur.
+        7. İsteğe bağlı: form yerine aşağıdaki `render.yaml` dosyasını repo köküne koy ve *New → Blueprint* kullan. Aynı servisi kod olarak tanımlar.
+        8. Bundan sonra `main`'e her `git push` yeni bir sürümü kendiliğinden deploy eder.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git status
+          git remote add origin https://github.com/<your-user>/notely.git
+          git branch -M main
+          git push -u origin main
+      - file: render.yaml
+        lang: yaml
+        text: |
+          services:
+            - type: web
+              name: notely
+              runtime: docker
+              plan: free
+              healthCheckPath: /health
+              envVars:
+                - key: TRUST_PROXY
+                  value: "1"
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i https://<your-service>.onrender.com/health
+
+          curl -s -X POST https://<your-service>.onrender.com/api/auth/register \
+            -H "content-type: application/json" \
+            -d '{"email":"ada@example.com","password":"correct horse battery"}'
+    mistakes:
+      - problem:
+          en: "The deploy fails in the build with `COPY ... bun.lock: not found` or a frozen-lockfile error."
+          tr: "Deploy, build sırasında `COPY ... bun.lock: not found` ya da frozen-lockfile hatasıyla başarısız oluyor."
+        fix:
+          en: "`bun.lock` was not pushed or is out of date. Run `bun install` locally, commit `bun.lock` and push again."
+          tr: "`bun.lock` push'lanmadı ya da eski. Yerelde `bun install` çalıştır, `bun.lock`'u commit et ve tekrar push et."
+      - problem:
+          en: "`No open ports detected`, or the service never becomes live."
+          tr: "`No open ports detected` hatası ya da servis hiç canlı olmuyor."
+        fix:
+          en: "The app must listen on the port from the `PORT` variable (the code does: `Bun.env.PORT`) and on all addresses, which `Bun.serve` does by default. Do not hard-code 3000 and do not set `hostname: \"localhost\"`."
+          tr: "Uygulama `PORT` değişkenindeki portu ve tüm adresleri dinlemeli (kod `Bun.env.PORT` ile yapıyor; `Bun.serve` varsayılan olarak tüm adresleri dinler). 3000'i koda gömme ve `hostname: \"localhost\"` verme."
+      - problem:
+          en: "Accounts and notes are gone the next morning."
+          tr: "Hesaplar ve notlar ertesi sabah yok."
+        fix:
+          en: "That is the free plan: its filesystem is ephemeral, so the SQLite file is lost on spin-down and redeploy. It is a demo. For data that must stay, use a hosted Postgres, or a paid plan with a persistent disk."
+          tr: "Bu ücretsiz plan: dosya sistemi geçici, bu yüzden SQLite dosyası kapanınca ve redeploy'da kaybolur. Bu bir demo. Kalması gereken veri için barındırılan bir Postgres ya da kalıcı diskli ücretli bir plan kullan."
+    quiz:
+      - q:
+          en: "Why does the deployed Notely lose its data from time to time?"
+          tr: "Deploy edilen Notely neden zaman zaman verisini kaybediyor?"
+        options:
+          en:
+            - "SQLite deletes old rows by itself"
+            - "A free Render web service has an ephemeral filesystem, so the database file is lost when it restarts, redeploys or spins down"
+            - "Bun clears its data every hour"
+          tr:
+            - "SQLite eski satırları kendiliğinden siler"
+            - "Ücretsiz bir Render web servisinin dosya sistemi geçicidir, bu yüzden veritabanı dosyası yeniden başlayınca, redeploy'da ya da kapanınca kaybolur"
+            - "Bun verisini her saat temizler"
+        answer: 1
+        why:
+          en: "Render's docs say changes to a free service's local filesystem, such as a SQLite database, are lost on redeploy, restart and spin-down."
+          tr: "Render'ın dokümanı, ücretsiz bir servisin yerel dosya sistemindeki değişikliklerin, örneğin bir SQLite veritabanının, redeploy'da, yeniden başlatmada ve kapanmada kaybolduğunu söyler."
+    sources:
+      - title: "Render: Deploy for free (limits)"
+        url: https://render.com/docs/free
+      - title: "Render: Deploying with Docker"
+        url: https://render.com/docs/docker
+      - title: "Render: Blueprint spec (render.yaml)"
+        url: https://render.com/docs/blueprint-spec
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Logs, a real health check and a clean shutdown"
+      tr: "Log'lar, gerçek bir health check ve düzgün kapanış"
+    minutes: 50
+    needs: [deploy]
+    why:
+      en: "When something goes wrong on a server you cannot look at your screen, you can only read what the app wrote down. Good logs are one JSON object per line. A health check lets the host see that the app is really working, and a clean shutdown means a redeploy does not cut requests in half."
+      tr: "Sunucuda bir şey ters gittiğinde ekranına bakamazsın, sadece uygulamanın yazdıklarını okuyabilirsin. İyi log'lar satır başına bir JSON nesnesidir. Health check host'un uygulamanın gerçekten çalıştığını görmesini sağlar, düzgün kapanış da redeploy'un istekleri yarıda kesmemesi demektir."
+    learn:
+      en: |
+        - Structured logs: JSON lines with a time, a level (`info`, `warn`, `error`) and fields. Hosts show them, and tools like `jq` can filter them
+        - Log what happened (method, path, status, milliseconds), never secrets: no passwords, no session tokens, no request bodies
+        - A health check that asks the database a question (`SELECT 1`), so it fails when the app is really broken. Render calls it before sending traffic to a new version
+        - The `error` handler of `Bun.serve`: an unexpected crash in a route becomes a logged, clean 500 answer
+        - Signals: hosts send `SIGTERM` before stopping an app (Render waits up to 30 seconds by default, then kills it). We stop accepting new requests, let running ones finish, close the database and exit
+      tr: |
+        - Yapılandırılmış log'lar: zaman, seviye (`info`, `warn`, `error`) ve alanları olan JSON satırları. Host'lar gösterir, `jq` gibi araçlar süzebilir
+        - Ne olduğunu logla (method, yol, durum, milisaniye), sırları asla: parola yok, oturum token'ı yok, istek gövdesi yok
+        - Veritabanına bir soru soran (`SELECT 1`) bir health check; uygulama gerçekten bozulunca başarısız olur. Render yeni sürüme trafik göndermeden önce onu çağırır
+        - `Bun.serve`'ün `error` işleyicisi: bir route'taki beklenmedik çökme, loglanan ve temiz bir 500 cevabına dönüşür
+        - Sinyaller: host'lar bir uygulamayı durdurmadan önce `SIGTERM` gönderir (Render varsayılan olarak 30 saniyeye kadar bekler, sonra öldürür). Yeni istek almayı bırakırız, çalışanların bitmesine izin veririz, veritabanını kapatır ve çıkarız
+    do:
+      en: |
+        1. Create `src/log.ts` (below).
+        2. Replace `src/server.ts` and `src/index.ts`. Every API request now writes one log line; `/health` checks the database; unexpected errors are logged and answered with a 500.
+        3. Run `bun run dev`, use the page a little and read the terminal: one JSON line per request.
+        4. Press Ctrl+C. You see a `shutting down` line and the program exits at once, cleanly.
+        5. Run `bun test`. It still passes; the output is now noisy because the server logs during tests.
+        6. Locally, filter logs with `jq` if you have it: `bun start | jq 'select(.status >= 400)'`.
+        7. Commit and push: `git add .`, `git commit -m "Add logging and a real health check"`, `git push`. Render deploys it.
+        8. In the Render dashboard open your service → *Logs*. Use the page and watch the lines arrive. Open *Events* to see each deploy.
+      tr: |
+        1. `src/log.ts` dosyasını oluştur (aşağıda).
+        2. `src/server.ts` ve `src/index.ts`'i değiştir. Her API isteği artık bir log satırı yazar; `/health` veritabanını kontrol eder; beklenmedik hatalar loglanır ve 500 ile cevaplanır.
+        3. `bun run dev` çalıştır, sayfayı biraz kullan ve terminali oku: istek başına bir JSON satırı.
+        4. Ctrl+C'ye bas. Bir `shutting down` satırı görürsün ve program hemen, temiz biçimde kapanır.
+        5. `bun test` çalıştır. Hâlâ geçer; sunucu testler sırasında log yazdığı için çıktı artık kalabalık.
+        6. Yerelde, varsa `jq` ile log'ları süz: `bun start | jq 'select(.status >= 400)'`.
+        7. Commit et ve push'la: `git add .`, `git commit -m "Add logging and a real health check"`, `git push`. Render deploy eder.
+        8. Render panelinde servisini aç → *Logs*. Sayfayı kullan ve satırların gelişini izle. Her deploy'u görmek için *Events*'i aç.
+    code:
+      - file: src/log.ts
+        lang: ts
+        text: |
+          type Level = "info" | "warn" | "error";
+
+          // One JSON object per line: easy for a hosting service (or a tool like jq) to read.
+          export function log(level: Level, msg: string, fields: Record<string, unknown> = {}) {
+            console.log(JSON.stringify({ time: new Date().toISOString(), level, msg, ...fields }));
+          }
+      - file: src/server.ts
+        lang: ts
+        text: |
+          import type { BunRequest, Server } from "bun";
+          import type { Database } from "bun:sqlite";
+          import home from "../public/index.html";
+          import { createAuth } from "./auth";
+          import { fail } from "./http";
+          import { log } from "./log";
+          import { notesRoutes } from "./notes";
+          import { createLimiter } from "./ratelimit";
+
+          export type ServerOptions = {
+            port?: number;
+            secure?: boolean;
+            trustProxy?: boolean;
+            authLimit?: number;
+          };
+
+          type Handler = (req: BunRequest, server: Server<undefined>) => Response | Promise<Response>;
+
+          // Wraps a handler so every request writes one log line: method, path, status and time taken.
+          function logged(handler: Handler): Handler {
+            return async (req, server) => {
+              const started = performance.now();
+              const res = await handler(req, server);
+              log("info", "request", {
+                method: req.method,
+                path: new URL(req.url).pathname,
+                status: res.status,
+                ms: Math.round(performance.now() - started),
+              });
+              return res;
+            };
+          }
+
+          // Applies logged() to every handler in a routes object.
+          function withLogging<T extends Record<string, unknown>>(routes: T): T {
+            const out: Record<string, unknown> = {};
+            for (const [path, route] of Object.entries(routes)) {
+              if (typeof route === "function") {
+                out[path] = logged(route as Handler);
+              } else if (route && typeof route === "object") {
+                out[path] = Object.fromEntries(
+                  Object.entries(route).map(([method, h]) => [method, logged(h as Handler)]),
+                );
+              } else {
+                out[path] = route;
+              }
+            }
+            return out as T;
+          }
+
+          export function createServer(db: Database, options: ServerOptions = {}) {
+            const auth = createAuth(db, options.secure ?? false);
+            const allow = createLimiter(options.authLimit ?? 10, 60_000);
+
+            function clientIp(req: Request, server: Server<undefined>) {
+              const forwarded = options.trustProxy ? req.headers.get("x-forwarded-for") : null;
+              return forwarded?.split(",")[0]?.trim() || server.requestIP(req)?.address || "unknown";
+            }
+
+            const limited = (handler: (req: BunRequest) => Response | Promise<Response>): Handler =>
+              (req, server) =>
+                allow(clientIp(req, server))
+                  ? handler(req)
+                  : fail(429, "too many attempts, try again in a minute");
+
+            return Bun.serve({
+              port: options.port ?? 3000,
+              maxRequestBodySize: 16 * 1024,
+              routes: {
+                "/": home,
+                // The health check asks the database a question, so it fails when the app is really broken.
+                "/health": () => {
+                  try {
+                    db.query("SELECT 1").get();
+                    return Response.json({ status: "ok" });
+                  } catch {
+                    return fail(503, "database unavailable");
+                  }
+                },
+                ...withLogging({
+                  "/api/auth/register": { POST: limited(auth.register) },
+                  "/api/auth/login": { POST: limited(auth.login) },
+                  "/api/auth/logout": { POST: auth.logout },
+                  "/api/me": { GET: auth.me },
+                  ...notesRoutes(db, auth.currentUser),
+                }),
+              },
+              fetch(req) {
+                log("info", "request", { method: req.method, path: new URL(req.url).pathname, status: 404 });
+                return fail(404, "not found");
+              },
+              error(err) {
+                log("error", "unhandled error", { message: err.message });
+                return fail(500, "internal error");
+              },
+            });
+          }
+      - file: src/index.ts
+        lang: ts
+        text: |
+          import { config } from "./config";
+          import { openDb, purgeExpiredSessions } from "./db";
+          import { log } from "./log";
+          import { createServer } from "./server";
+
+          const db = openDb(config.dbPath);
+          const server = createServer(db, {
+            port: config.port,
+            secure: config.production,
+            trustProxy: config.trustProxy,
+          });
+
+          purgeExpiredSessions(db);
+          const cleanup = setInterval(() => purgeExpiredSessions(db), 60 * 60 * 1000);
+
+          log("info", "listening", { url: server.url.href, production: config.production });
+
+          // Hosts send SIGTERM before they stop a service. Finish running requests, then exit cleanly.
+          async function shutdown(signal: string) {
+            log("info", "shutting down", { signal });
+            clearInterval(cleanup);
+            await server.stop();
+            db.close();
+            process.exit(0);
+          }
+          process.on("SIGTERM", () => void shutdown("SIGTERM"));
+          process.on("SIGINT", () => void shutdown("SIGINT"));
+      - file: terminal
+        lang: sh
+        text: |
+          bun start | jq 'select(.status >= 400)'
+          docker run --rm -p 3000:3000 notely   # JSON lines appear in this terminal
+    mistakes:
+      - problem:
+          en: "Logging the whole request body or the session cookie to debug a problem."
+          tr: "Bir sorunu ayıklamak için tüm istek gövdesini ya da oturum cookie'sini loglamak."
+        fix:
+          en: "Logs are copied, stored and read by many people and tools. Never write passwords, tokens or personal data in them. Log ids and sizes instead."
+          tr: "Log'lar çok kişi ve araç tarafından kopyalanır, saklanır ve okunur. İçine asla parola, token ya da kişisel veri yazma. Onun yerine id'leri ve boyutları logla."
+      - problem:
+          en: "A health check that always says ok, even when the database is broken."
+          tr: "Veritabanı bozukken bile hep ok diyen bir health check."
+        fix:
+          en: "Make it do a tiny real piece of work, like `SELECT 1`. But keep it cheap: the host calls it often."
+          tr: "Küçük bir gerçek iş yaptır, örneğin `SELECT 1`. Ama ucuz tut: host onu sık çağırır."
+      - problem:
+          en: "The app takes 30 seconds to stop and gets killed."
+          tr: "Uygulama durmak için 30 saniye alıyor ve öldürülüyor."
+        fix:
+          en: "Something keeps the process alive (a timer, an open connection) or nobody handles `SIGTERM`. Handle the signal, clear timers and call `process.exit(0)` at the end, as `src/index.ts` does. In Docker, `CMD [\"notely\"]` runs the program directly, so it receives the signal."
+          tr: "Süreci bir şey canlı tutuyor (bir zamanlayıcı, açık bir bağlantı) ya da `SIGTERM`'ü kimse işlemiyor. Sinyali işle, zamanlayıcıları temizle ve sonda `process.exit(0)` çağır; `src/index.ts` böyle yapıyor. Docker'da `CMD [\"notely\"]` programı doğrudan çalıştırır, bu yüzden sinyali alır."
+    quiz:
+      - q:
+          en: "Why does `/health` run `SELECT 1` instead of just returning ok?"
+          tr: "`/health` neden sadece ok döndürmek yerine `SELECT 1` çalıştırıyor?"
+        options:
+          en:
+            - "To make the response slower"
+            - "So the check fails when the database is really unreachable, and the host can notice"
+            - "Because SQLite needs a daily query"
+          tr:
+            - "Cevabı yavaşlatmak için"
+            - "Veritabanına gerçekten ulaşılamadığında kontrol başarısız olsun ve host fark edebilsin diye"
+            - "Çünkü SQLite günlük bir sorgu ister"
+        answer: 1
+        why:
+          en: "A health check that cannot fail tells you nothing. Touching the database makes it reflect the app's real state."
+          tr: "Başarısız olamayan bir health check hiçbir şey söylemez. Veritabanına dokunmak onu uygulamanın gerçek durumunu yansıtır hale getirir."
+    sources:
+      - title: "Bun: HTTP server (error handling)"
+        url: https://bun.com/docs/runtime/http/error-handling
+      - title: "Render: Health checks"
+        url: https://render.com/docs/health-checks
+      - title: "Render: Deploys (shutdown and zero downtime)"
+        url: https://render.com/docs/deploys
+
+  - id: advanced
+    stage: advanced
+    title:
+      en: "Keep it healthy: CI, targets and where to go next"
+      tr: "Sağlıklı tut: CI, hedefler ve sonra nereye"
+    minutes: 45
+    needs: [monitoring]
+    why:
+      en: "Now the app works and is live. The last habit is to make a machine check every change: a CI workflow runs the type check, the tests and the build on each push, so a broken commit is caught before you deploy it. Then you see how far this Bun-only setup goes and where you would add other tools."
+      tr: "Artık uygulama çalışıyor ve yayında. Son alışkanlık, her değişikliği bir makineye kontrol ettirmek: CI workflow'u her push'ta tip kontrolünü, testleri ve build'i çalıştırır; bozuk bir commit deploy etmeden önce yakalanır. Sonra bu sadece-Bun düzeninin nereye kadar gittiğini ve nerede başka araçlar ekleyeceğini görürsün."
+    learn:
+      en: |
+        - GitHub Actions: a workflow file in `.github/workflows/` that runs on GitHub's computers when you push
+        - `oven-sh/setup-bun` installs the Bun version you ask for. Pin it to the version you develop with
+        - `bun install --frozen-lockfile` fails if `bun.lock` does not match `package.json`, so CI installs exactly what you tested
+        - `bun build --compile --target=...` builds the executable for another system (for example `bun-linux-x64`, `bun-linux-arm64`, `bun-darwin-arm64`, `bun-windows-x64`)
+        - What to learn next: SQLite is perfect for one server; for several servers or data that must not be lost on a free plan you move to Postgres (Bun has a built-in client, `Bun.sql`)
+      tr: |
+        - GitHub Actions: `.github/workflows/` içindeki, push'ladığında GitHub'ın bilgisayarlarında çalışan bir workflow dosyası
+        - `oven-sh/setup-bun`, istediğin Bun sürümünü kurar. Geliştirdiğin sürüme sabitle
+        - `bun install --frozen-lockfile`, `bun.lock` ile `package.json` uyuşmazsa hata verir; böylece CI tam olarak test ettiğini kurar
+        - `bun build --compile --target=...` başka bir sistem için çalıştırılabilir dosya üretir (örneğin `bun-linux-x64`, `bun-linux-arm64`, `bun-darwin-arm64`, `bun-windows-x64`)
+        - Sonra ne öğrenmeli: SQLite tek sunucu için mükemmeldir; birden çok sunucu ya da ücretsiz planda kaybolmaması gereken veri için Postgres'e geçersin (Bun'ın hazır istemcisi var: `Bun.sql`)
+    do:
+      en: |
+        1. Create the folders `.github/workflows` and the file `.github/workflows/ci.yml` (below). Set `bun-version` to the version `bun --version` shows on your machine.
+        2. Commit and push: `git add .`, `git commit -m "Add CI"`, `git push`.
+        3. On github.com open your repository → *Actions*. The workflow runs: install, type check, test, build. Wait for the green tick.
+        4. Break something on purpose on a branch (for example make a test fail), push it and see the red cross. Fix it. This is what protects `main`.
+        5. Try a cross build for another system and look at the file: `bun build --compile --target=bun-windows-x64 ./src/index.ts --outfile notely-win` (the first time Bun downloads that runtime). Do not commit these files.
+        6. Read the list of ideas below and pick one for your next session.
+      tr: |
+        1. `.github/workflows` klasörlerini ve `.github/workflows/ci.yml` dosyasını oluştur (aşağıda). `bun-version`'ı makinende `bun --version`'ın gösterdiği sürüme ayarla.
+        2. Commit et ve push'la: `git add .`, `git commit -m "Add CI"`, `git push`.
+        3. github.com'da reponu aç → *Actions*. Workflow çalışır: kurulum, tip kontrolü, test, build. Yeşil işareti bekle.
+        4. Bir branch'te bilerek bir şeyi boz (örneğin bir testi başarısız yap), push'la ve kırmızı çarpıyı gör. Düzelt. `main`'i koruyan şey budur.
+        5. Başka bir sistem için çapraz build dene ve dosyaya bak: `bun build --compile --target=bun-windows-x64 ./src/index.ts --outfile notely-win` (ilk seferde Bun o çalışma ortamını indirir). Bu dosyaları commit etme.
+        6. Aşağıdaki fikir listesini oku ve sonraki oturumun için birini seç.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          jobs:
+            check:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v4
+                - uses: oven-sh/setup-bun@v2
+                  with:
+                    bun-version: 1.4.3
+                - run: bun install --frozen-lockfile
+                - run: bun check
+                - run: bun test
+                - run: bun run build
+      - file: terminal
+        lang: sh
+        text: |
+          bun build --compile --target=bun-windows-x64 ./src/index.ts --outfile notely-win
+          bun build --compile --target=bun-linux-arm64 ./src/index.ts --outfile notely-arm
+      - file: ideas.md
+        lang: md
+        text: |
+          - Edit a note, and add a search box (practice `UPDATE` and `LIKE`).
+          - Move the data to a hosted Postgres with Bun.sql so it survives redeploys.
+          - Add a CSRF token or check the Origin header for state-changing requests.
+          - Add pagination to GET /api/notes (LIMIT and OFFSET) and test it.
+          - Use a custom domain and let the host issue the https certificate.
+    mistakes:
+      - problem:
+          en: "CI fails on `bun install --frozen-lockfile`: \"lockfile had changes, but lockfile is frozen\"."
+          tr: "CI `bun install --frozen-lockfile` adımında şu hatayla düşüyor: \"lockfile had changes, but lockfile is frozen\"."
+        fix:
+          en: "You changed `package.json` without committing the new `bun.lock`. Run `bun install` locally and commit `bun.lock`."
+          tr: "`package.json`'u değiştirip yeni `bun.lock`'u commit etmedin. Yerelde `bun install` çalıştır ve `bun.lock`'u commit et."
+      - problem:
+          en: "Using `bun-version: latest` in CI."
+          tr: "CI'da `bun-version: latest` kullanmak."
+        fix:
+          en: "A new Bun release can change behaviour overnight and break a build you did not touch. Pin an exact version and upgrade on purpose (`bun upgrade`, then update the file)."
+          tr: "Yeni bir Bun sürümü bir gecede davranış değiştirip dokunmadığın bir build'i bozabilir. Tam bir sürüm sabitle ve bilerek yükselt (`bun upgrade`, sonra dosyayı güncelle)."
+    quiz:
+      - q:
+          en: "Why does CI use `bun install --frozen-lockfile`?"
+          tr: "CI neden `bun install --frozen-lockfile` kullanıyor?"
+        options:
+          en:
+            - "To install faster than normal"
+            - "To fail instead of silently changing `bun.lock`, so CI uses exactly the versions you committed"
+            - "To skip dev dependencies"
+          tr:
+            - "Normalden hızlı kurmak için"
+            - "`bun.lock`'u sessizce değiştirmek yerine hata vermek için; böylece CI tam olarak commit ettiğin sürümleri kullanır"
+            - "Dev bağımlılıklarını atlamak için"
+        answer: 1
+        why:
+          en: "A repeatable install means a green CI run says something true about the code you committed."
+          tr: "Tekrarlanabilir kurulum, yeşil bir CI çalışmasının commit ettiğin kod hakkında doğru bir şey söylemesi demektir."
+    sources:
+      - title: "Bun: Run Bun in GitHub Actions"
+        url: https://bun.com/docs/guides/runtime/cicd
+      - title: "Bun: Single-file executable (cross-compile targets)"
+        url: https://bun.com/docs/bundler/executables
+      - title: "GitHub: Writing workflows"
+        url: https://docs.github.com/en/actions/writing-workflows
