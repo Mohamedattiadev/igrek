@@ -74,3 +74,24 @@ describe("transactions", () => {
     ]);
   });
 });
+
+describe("lost updates", () => {
+  test("a read, an await, then a write needs a fresh read in between", () => {
+    const code = [
+      "class Sites {",
+      "  async check(id: string): Promise<void> {",
+      '    const row = this.db.query("SELECT * FROM sites WHERE id = ?").get(id);',
+      "    const r = await probe(row.url);",
+      '    this.db.query("UPDATE sites SET state = ? WHERE id = ?").run(r, id);',
+      "  }",
+      "  async safe(id: string): Promise<void> {",
+      '    const row = this.db.query("SELECT * FROM sites WHERE id = ?").get(id);',
+      "    const r = await probe(row.url);",
+      '    const now = this.db.query("SELECT * FROM sites WHERE id = ?").get(id);',
+      '    if (now) this.db.query("UPDATE sites SET state = ? WHERE id = ?").run(r, id);',
+      "  }",
+      "}",
+    ].join("\n");
+    expect(transactionRisksIn("sites.ts", code)).toEqual(["read-await-write:sites.ts:check"]);
+  });
+});

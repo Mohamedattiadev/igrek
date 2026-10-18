@@ -13,7 +13,8 @@
     "n-plus-one": "Loops over a handful of items (the entries of one answer, the projects of one user, the routes of one day); reviewed when the check was added. New ones must use IN or a JOIN.",
     "sql-interpolation": "Reviewed when the check was added: only table names from the schema or a fixed list, quoted identifiers, numbers, or ?-placeholder lists are put into the text; values are always bound with ?.",
     "multi-write": "Found when the rule came in (26): most write in different branches of one method (only one runs), or bump a counter after an insert where a lost bump is harmless. The ones that delete a parent and its children were wrapped in a transaction then; the rest get one when next changed.",
-    "await-in-transaction": "None today; a new one fails the gate."
+    "await-in-transaction": "None today; a new one fails the gate.",
+    "read-await-write": "Found when the rule came in. Each writes a cache or a status keyed by id (UPDATE ... WHERE id = ?): if the row went away meanwhile nothing is written, and two runs at once write the same value. The one that could leave orphan rows and send a false alert (the uptime check) was fixed then: it reads the monitor again after the check."
   },
   "violations": [
     "denormalized-copy:board_tasks.assignee_name",
@@ -47,7 +48,6 @@
     "multi-write:apps/server/src/insight/index.ts:scan",
     "multi-write:apps/server/src/lessons.ts:save",
     "multi-write:apps/server/src/library.ts:update",
-    "multi-write:apps/server/src/monitors.ts:checkSite",
     "multi-write:apps/server/src/servers.ts:run",
     "multi-write:apps/server/src/servers.ts:update",
     "multi-write:apps/server/src/sync/client.ts:adoptProject",
@@ -146,6 +146,11 @@
     "pk-required:rate_limits",
     "pk-required:uptime_checks",
     "pk-required:usage",
+    "read-await-write:apps/server/src/insight/index.ts:runExplain",
+    "read-await-write:apps/server/src/knowledge.ts:explainUpdates",
+    "read-await-write:apps/server/src/library.ts:embedItem",
+    "read-await-write:apps/server/src/library.ts:read",
+    "read-await-write:apps/server/src/monitors.ts:checkDomain",
     "reference-fk:analytics_sources.project_id",
     "reference-fk:app_error_groups.project_id",
     "reference-fk:app_error_keys.project_id",

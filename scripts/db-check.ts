@@ -68,6 +68,8 @@ export const RULES: Record<string, string> = {
     "SQL built with ${...} can carry injection; values must be bound with ?, identifiers quoted or picked from a fixed list.",
   "multi-write":
     "Two or more writes in one method without a transaction: a crash or error between them leaves half the change (atomicity, Elmasri 20.3). Wrap them in db.transaction().",
+  "read-await-write":
+    "Reads a row, awaits something slow, then writes based on what it read: the row may have changed or gone meanwhile (a lost update; Elmasri 21.1). Read it again after the await, or write with a condition.",
   "await-in-transaction":
     "A transaction that awaits holds the database lock while it waits for the network or disk; every other writer stops (Elmasri 21, concurrency control). Do the slow work first, then the transaction.",
 };
@@ -197,6 +199,18 @@ export function transactionRisksIn(rel: string, text: string): string[] {
     const body = block(text, (m.index ?? 0) + m[0].length - 2);
     const writes = body.match(/\.query\(\s*[`"'][^`"']*?\b(INSERT|UPDATE|DELETE|REPLACE)\b/g) ?? [];
     if (writes.length >= 2 && !body.includes("transaction(")) out.push(`multi-write:${rel}:${m[1]}`);
+  }
+  // Check-then-act across an await: a read, a pause, then a write with no fresh read in between.
+  const asyncMethod = /\n {2}(?:private |public |static )*async (\w+)\s*\([^)]*\)[^{\n]*\{\n/g;
+  for (const m of text.matchAll(asyncMethod)) {
+    const body = block(text, (m.index ?? 0) + m[0].length - 2);
+    const read = body.search(/\.query\(\s*[`"']\s*SELECT\b/);
+    const pause = read < 0 ? -1 : body.indexOf("await ", read);
+    if (pause < 0) continue;
+    const after = body.slice(pause);
+    const write = after.search(/\.query\(\s*[`"'][^`"']*\b(UPDATE|INSERT|DELETE)\b/);
+    const reread = after.search(/\.query\(\s*[`"']\s*SELECT\b/);
+    if (write >= 0 && (reread < 0 || reread > write)) out.push(`read-await-write:${rel}:${m[1]}`);
   }
   for (const m of text.matchAll(/\.transaction\(\s*(async\b)?/g)) {
     const open = text.indexOf("{", m.index ?? 0);

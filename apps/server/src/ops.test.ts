@@ -69,6 +69,23 @@ describe("domains and certificates", () => {
 });
 
 describe("uptime", () => {
+  test("a monitor removed while its check is running leaves nothing behind", async () => {
+    const { sqlite } = openDb(":memory:");
+    let release = () => {};
+    const fetcher = (() =>
+      new Promise<Response>((resolve) => {
+        release = () => resolve(new Response("ok", { status: 200 }));
+      })) as unknown as typeof fetch;
+    const monitors = new Monitors(sqlite, new Store(sqlite), new Bus(), { fetcher });
+    // Adding a monitor starts its first check; it waits on the slow site.
+    const m = monitors.add({ url: "https://example.com", interval: 60 });
+    await Bun.sleep(5);
+    monitors.remove(m.id);
+    release();
+    await Bun.sleep(20);
+    expect(sqlite.query("SELECT COUNT(*) AS n FROM uptime_checks").get()).toEqual({ n: 0 });
+  });
+
   test("down after two failed checks, up again on the first success, with an alert each time", async () => {
     const { sqlite } = openDb(":memory:");
     const bus = new Bus();

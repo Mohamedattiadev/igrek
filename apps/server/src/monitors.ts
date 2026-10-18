@@ -264,12 +264,11 @@ export class Monitors {
     this.checking.add(id);
     try {
       const result = await this.probe(row.url);
+      // The check took a while: the monitor may have been removed or changed meanwhile.
+      const now = this.db.query("SELECT * FROM uptime_monitors WHERE id = ?").get(id) as MonitorRow | null;
+      if (!now) return undefined;
       const at = this.now();
-      this.db
-        .query("INSERT INTO uptime_checks (monitor_id, at, up, status, ms, error) VALUES (?, ?, ?, ?, ?, ?)")
-        .run(id, at, result.up ? 1 : 0, result.status ?? null, result.ms ?? null, result.error ?? null);
-      this.db.query("DELETE FROM uptime_checks WHERE monitor_id = ? AND at < ?").run(id, at - 30 * DAY);
-      const before = (row.state ? JSON.parse(row.state) : {}) as MonitorState;
+      const before = (now.state ? JSON.parse(now.state) : {}) as MonitorState;
       const fails = result.up ? 0 : (before.fails ?? 0) + 1;
       // The shown state changes after DOWN_AFTER failures, and back on the first success.
       const up = result.up ? true : fails >= DOWN_AFTER ? false : (before.up ?? true);
@@ -280,11 +279,17 @@ export class Monitors {
         checkedAt: at,
         since: before.up === up && before.since ? before.since : at,
       };
-      this.db.query("UPDATE uptime_monitors SET state = ? WHERE id = ?").run(JSON.stringify(state), id);
+      this.db.transaction(() => {
+        this.db
+          .query("INSERT INTO uptime_checks (monitor_id, at, up, status, ms, error) VALUES (?, ?, ?, ?, ?, ?)")
+          .run(id, at, result.up ? 1 : 0, result.status ?? null, result.ms ?? null, result.error ?? null);
+        this.db.query("DELETE FROM uptime_checks WHERE monitor_id = ? AND at < ?").run(id, at - 30 * DAY);
+        this.db.query("UPDATE uptime_monitors SET state = ? WHERE id = ?").run(JSON.stringify(state), id);
+      })();
       if (before.up !== undefined && before.up !== up)
-        this.bus.publish({ type: "alert", kind: up ? "up" : "down", title: row.name, link: "/tools?tab=uptime" });
+        this.bus.publish({ type: "alert", kind: up ? "up" : "down", title: now.name, link: "/tools?tab=uptime" });
       this.bus.publish({ type: "monitors-changed" });
-      return this.toMonitor({ ...row, state: JSON.stringify(state) });
+      return this.toMonitor({ ...now, state: JSON.stringify(state) });
     } finally {
       this.checking.delete(id);
     }

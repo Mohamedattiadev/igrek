@@ -81,7 +81,7 @@
     "noExcessiveCognitiveComplexity:apps/server/src/library.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/mcp.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/mcpservers.ts": 1,
-    "noExcessiveCognitiveComplexity:apps/server/src/monitors.ts": 2,
+    "noExcessiveCognitiveComplexity:apps/server/src/monitors.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/personas.ts": 2,
     "noExcessiveCognitiveComplexity:apps/server/src/preview/agent.js": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/preview/devservers.ts": 1,
