@@ -1098,6 +1098,51 @@ god-eye/
 
 ---
 
+### Faz 15 — 🛡️ Kalite Kapısı: Temiz Kod, Doğru Mimari, Sağlam Veritabanı, Hızlı Uygulama
+
+**Hedef:** Hem God Eye'ın kendisinde hem God Eye ile yazılan her projede ölü kod, anti-pattern, mimari ihlal, veritabanı anomalisi ve performans sorunu **yeni girmez**, var olanlar sıfıra iner. Sadece bir persona değil: önce her seferinde aynı sonucu veren araçlar ve kurallar karar verir, personalar açıklar ve düzeltir.
+
+**Neden persona yetmez:** Bir persona fikir verir ama bir şeyi kaçırabilir, her seferinde biraz farklı konuşur. Kapı ise ölçer, kanıt gösterir ve engeller. "Sıfır bug" kimse için garanti edilemez; buradaki ölçülebilir hedef: **tespit edilebilen her sorun türünde sıfır, ve yenisi giremez** ("ratchet": mevcut sorunlar taban çizgisi olur, sayı sadece azalabilir).
+
+#### 15.1 🧹 Kod Temizleyici (ölü kod, anti-pattern, anomali)
+- [ ] ⭐ Ölü kod: kullanılmayan dosya, export, fonksiyon, değişken, bağımlılık, `.env` anahtarı, CSS sınıfı, route ve feature flag (ör. knip, vulture, staticcheck, cargo/clippy uyarıları; dile göre ücretsiz araçlar)
+- [ ] Tekrar eden kod (kopyala-yapıştır blokları), aşırı uzun fonksiyon/dosya, derin iç içe yapı, aşırı parametre, yüksek karmaşıklık (cyclomatic/cognitive)
+- [ ] **Kod kokuları ve anti-pattern kataloğu:** refactoring.guru'daki koku → refactoring eşlemesi (Long Method → Extract Method, Feature Envy → Move Method, Shotgun Surgery, God Object, Primitive Obsession…) ve bilinen anti-pattern'ler; her bulguda hangi refactoring'in önerildiği ve kaynak bağlantısı
+- [ ] Hata anomalileri: yutulan hatalar (boş catch), beklenmeyen promise'ler, null/undefined riskleri, yarış durumları, sızan kaynaklar (kapanmayan bağlantı, temizlenmeyen timer/listener), tutarsız dönüş tipleri
+- [ ] ⭐ **Güvenli temizlik:** "Temizle" ayrı bir kopyada (worktree) yapılır; testler ve tip kontrolü önce ve sonra çalışır, davranış değişmediği kanıtlanmadan birleştirilmez; her değişiklik tek tek geri alınabilir
+
+#### 15.2 🏛️ Mimari Uygunluk (C4 + kitaplar + tasarım desenleri)
+- [ ] ⭐ **C4 modeli koddan çıkarılır:** Context → Container → Component → Code seviyeleri (Mermaid C4); kod değiştikçe güncellenir. Mimar persona "olması gereken" mimariyi bir kere yazar (ADR'lerle), kapı "olan" ile karşılaştırır (mimari kayma)
+- [ ] **Mimari kurallar kod olarak:** katman ihlali (ör. UI doğrudan DB'ye erişemez), döngüsel bağımlılık, modül sınırları, izin verilen import yönleri (ör. dependency-cruiser, import-linter, ArchUnit benzeri "fitness function"lar); her kuralın gerekçesi ve kaynağı yazılı
+- [ ] **Mimari desen seçimi ve kontrolü:** Mark Richards, *Software Architecture Patterns* (O'Reilly, 2015): Layered, Event-Driven (mediator/broker), Microkernel, Microservices, Space-Based; projenin hangi desende olduğu tespit edilir, desenin kendi kuralları (ör. layered'da "closed layer", sinkhole anti-pattern'i) kontrol edilir; kitabın "pattern analysis" tablosuyla (çeviklik, deploy kolaylığı, test edilebilirlik, performans, ölçeklenebilirlik, geliştirme kolaylığı) proje ihtiyacına uygunluğu raporlanır
+- [ ] **Tasarım desenleri:** refactoring.guru'daki 22 GoF deseni; yanlış ya da gereksiz kullanılan desen (her yere Singleton, tek implementasyonlu Strategy, gereksiz Factory) ve eksik desen fırsatı (büyük switch → Strategy/State) işaretlenir; SOLID ihlalleri
+- [ ] Yeni proje başlarken: ihtiyaç sorulur (ekip büyüklüğü, ölçek, deploy sıklığı), kitaptaki analize göre mimari önerilir, C4 iskeleti ve kurallar en baştan kurulur
+
+#### 15.3 🗄️ Veritabanı Uygunluğu ve Anomalileri
+- [ ] ⭐ **Şema kuralları:** Elmasri & Navathe, *Fundamentals of Database Systems* (7. baskı): her tabloda birincil anahtar, yabancı anahtarlar ve bütünlük kısıtları (NOT NULL, UNIQUE, CHECK), doğru veri tipleri, adlandırma tutarlılığı
+- [ ] **Normalizasyon ve güncelleme anomalileri:** fonksiyonel bağımlılıklara göre 1NF/2NF/3NF/BCNF ihlali şüphesi (tekrarlanan gruplar, aynı bilginin birden fazla yerde tutulması), ekleme/silme/güncelleme anomalisi riskleri; bilerek yapılan denormalizasyon ADR ile belgelenir
+- [ ] **Veri anomalileri (gerçek veride, sadece okuma):** yetim kayıtlar, kısıtsız sütunlarda tekrarlar, beklenmeyen NULL'lar, tutarsız değerler, aralık dışı veriler; prod'a sadece okuma yetkisiyle ve onayla bağlanır
+- [ ] **Sorgu ve indeks:** N+1 sorgular, indekssiz yabancı anahtar ve sık filtrelenen sütun, kullanılmayan ya da tekrar eden indeks, `SELECT *`, EXPLAIN ile yavaş planlar; transaction ve kilit riskleri (kitabın eşzamanlılık ve kurtarma bölümleri)
+- [ ] **Migration güvenliği:** tabloyu kilitleyen, veri kaybettiren ya da geri alınamayan migration'lar merge'den önce yakalanır (ör. squawk benzeri migration linter'ları); SQL enjeksiyonu riskleri Güvenlik ile birlikte
+
+#### 15.4 ⚡ Hız, Ağ ve Teslimat Uzmanı (webin başından bugüne bilinen sorunlar)
+- [ ] ⭐ **Sorun kataloğu:** webin ilk yıllarından bugüne bilinen her performans sorunu bir kayıt olarak: nasıl tespit edilir (araç/ölçüm), neden olur, çözümü, kaynağı. Örnekler: çok fazla istek ve büyük dosyalar, render'ı bloklayan CSS/JS, optimize edilmemiş görseller ve fontlar, sıkıştırma yok (gzip/brotli/zstd), cache başlıkları yanlış, CDN yok, HTTP/1.1 head-of-line blocking (HTTP/2/3), DNS/TLS gecikmesi, büyük JS paketi ve gereksiz hydration, layout shift, uzun görevler, üçüncü parti script yükü, bellek sızıntısı, N+1 ve yavaş sorgu, bağlantı havuzu yok, cache stampede, soğuk başlangıç, rate limit eksikliği, WebSocket backpressure
+- [ ] **Render stratejisi önerisi:** her sayfa için CSR, SSR, SSG, ISR, streaming, edge seçimi; ne zaman hangisi, kanıtıyla (veri ne sıklıkta değişiyor, SEO gerekiyor mu, kişisel mi)
+- [ ] **Ölçüm:** Core Web Vitals (LCP, INP, CLS), Lighthouse (zaten var), paket boyutu bütçesi, sunucu yanıt süreleri; uygulamanın kendi hata SDK'sıyla gerçek kullanıcı ölçümleri (sadece lokale gider); yük testçisi persona (6.1c) ile birlikte
+- [ ] Ağ ve cache katmanları: tarayıcı cache, service worker, CDN, reverse proxy, uygulama cache'i, DB cache; her katmanda doğru TTL ve geçersiz kılma
+
+#### 15.5 🚦 Kapı, Takip ve Kaynaklar
+- [ ] ⭐ **Kapı noktaları:** AI bir işi "bitti" demeden önce, commit'ten önce (hook, isteğe bağlı), merge ve deploy'dan önce; yeni sorun varsa iş bitmiş sayılmaz, AI'a kanıtla geri gönderilir
+- [ ] **Ratchet:** ilk taramada mevcut sorunlar taban çizgisi olur; sayı artamaz, sadece azalır. Kategori Sayfaları ve puanlamaya (Faz 5) bağlanır; "sıfıra kadar" ilerleme grafiği
+- [ ] Her kural: neden var, kaynağı (kitap bölümü, refactoring.guru sayfası, resmi doküman), nasıl düzeltilir, ne zaman bilerek kapatılabilir (gerekçe yazmak zorunlu); kurallar proje bazında açılıp kapatılabilir
+- [ ] **Personalar ne yapar:** Mimar, Veritabanı Uzmanı, Performans ve Güvenlik personaları bulguları açıklar, düzeltme önerir ve "Düzelt" ile kendi kopyalarında düzeltir; kitaplar kütüphaneden (Faz 7) alıntılanarak kaynak gösterilir
+- [ ] Önce God Eye'ın kendisinde çalıştırılır (kendi kodumuz örnek olur), sonra her projede
+- [ ] Kaynaklar: kullanıcının kendi kitapları kütüphaneye eklenir (kişisel kullanım, dağıtılmaz; Açık Sorular #8); refactoring.guru içeriği kopyalanmaz, katalog adlarıyla eşlenir ve bağlantı verilir; kullanılan tüm araçlar ücretsiz ve açık kaynak (lisansları eklenmeden önce kontrol edilir)
+
+**Bitti sayılır:** God Eye'ın kendi reposunda kapı açık; ölü kod, döngüsel bağımlılık ve şema kuralı ihlali sıfır, C4 diyagramı güncel; bir AI session'ı bilerek kötü bir değişiklik (kullanılmayan export, katman ihlali, indekssiz yabancı anahtar, render'ı bloklayan script) yaptığında kapı her birini kanıtla yakalayıp işi geri gönderiyor.
+
+---
+
 ---
 
 ## 9. Açık Sorular ve Riskler
