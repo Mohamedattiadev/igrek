@@ -89,6 +89,8 @@ export interface ChatStart {
  * gets no rule, so "bun test && rm -rf ~" is never covered by "Bash(bun test)".
  */
 export function ruleFor(toolName: string, input: unknown): string | undefined {
+  // A question for the user is never answered by a rule.
+  if (ASK_TOOLS.has(toolName)) return undefined;
   if (toolName !== "Bash") return toolName;
   const command = String((input as Json | undefined)?.command ?? "").trim();
   if (!command || /[;&|<>`$()\n\\]/.test(command)) return undefined;
@@ -106,10 +108,20 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
   return !!m?.[1] && toolName === "Bash" && (command === m[1] || command.startsWith(`${m[1]} `));
 }
 
+/** Tools that ask the user something: they wait for an answer, never for an approval. */
+const ASK_TOOLS = new Set(["AskUserQuestion"]);
+
+/** Window size from Claude Code when it says, otherwise from the model's name and what was used. */
+function windowFor(model: string | undefined, tokens: number): number {
+  return model?.includes("[1m]") || tokens > 200_000 ? 1_000_000 : 200_000;
+}
+
 function pillOf(chat: Chat): ChatPill | undefined {
   if (chat.info.status === "exited") return undefined;
   const pending = chat.events.filter((e) => e.kind === "permission" && e.status === "pending");
-  if (pending.some((e) => e.kind === "permission" && e.toolName !== "ExitPlanMode")) return "approval";
+  if (pending.some((e) => e.kind === "permission" && e.toolName !== "ExitPlanMode" && !ASK_TOOLS.has(e.toolName)))
+    return "approval";
+  if (pending.some((e) => e.kind === "permission" && ASK_TOOLS.has(e.toolName))) return "question";
   if (chat.info.status === "idle") {
     let i = chat.events.length - 1;
     while (i >= 0 && chat.events[i]?.kind !== "text" && chat.events[i]?.kind !== "user") i--;
@@ -390,16 +402,26 @@ export class Chats {
   }
 
   /** Answers a permission prompt. "always" also allows this tool for the rest of the chat. */
-  answer(id: string, requestId: string, decision: "allow" | "deny" | "always" | "project", message?: string): void {
+  answer(
+    id: string,
+    requestId: string,
+    decision: "allow" | "deny" | "always" | "project",
+    message?: string,
+    /** The user's answers to an AskUserQuestion card, by question text. */
+    answers?: Record<string, string>,
+  ): void {
     const chat = this.chats.get(id);
     const index = chat?.index.get(`perm-${requestId}`);
     if (!chat || index === undefined) return;
     const event = chat.events[index];
     if (event?.kind !== "permission" || event.status !== "pending") return;
     // "Always" never covers shipping or post-web requests: those are asked each time.
-    if (decision === "always" && !event.guard) chat.alwaysAllow.add(event.toolName);
+    if (decision === "always" && !event.guard && !ASK_TOOLS.has(event.toolName)) chat.alwaysAllow.add(event.toolName);
     if (decision === "project" && !event.guard && event.rule) this.addProjectRule(chat.info.projectId, event.rule);
-    this.respond(chat, requestId, decision !== "deny", event.input, message);
+    // Answers go back the way the Agent SDK expects them: inside the tool's input.
+    const input =
+      answers && ASK_TOOLS.has(event.toolName) ? { ...((event.input ?? {}) as Json), answers } : event.input;
+    this.respond(chat, requestId, decision !== "deny", input, message);
     this.upsert(chat, { ...event, status: decision === "deny" ? "denied" : "allowed" });
     chat.info.status = "working";
     this.emitInfo(chat);
@@ -522,6 +544,15 @@ export class Chats {
         const message = msg.message as Json;
         const messageId = String(message.id ?? now);
         const blocks = Array.isArray(message.content) ? (message.content as Json[]) : [];
+        // What the model saw for this answer: the whole conversation, partly from the prompt cache.
+        const usage = message.usage as Record<string, number> | undefined;
+        if (usage && typeof usage.input_tokens === "number") {
+          const cacheRead = usage.cache_read_input_tokens ?? 0;
+          const tokens = usage.input_tokens + cacheRead + (usage.cache_creation_input_tokens ?? 0);
+          const window = chat.info.context?.window ?? windowFor(chat.info.model, tokens);
+          chat.info.context = { tokens, window: Math.max(window, windowFor(undefined, tokens)), cacheRead, at: now };
+          this.emitInfo(chat);
+        }
         blocks.forEach((block, i) => {
           if (block.type === "text" && typeof block.text === "string") {
             const full = block.text;
@@ -574,7 +605,7 @@ export class Chats {
         const toolName = String(request.tool_name ?? "tool");
         const guard = guardFor(toolName, request.input, !!chat.tainted);
         const allowedHere = this.projectRules(chat.info.projectId).some((r) => ruleCovers(r, toolName, request.input));
-        if ((chat.alwaysAllow.has(toolName) || allowedHere) && !guard) {
+        if ((chat.alwaysAllow.has(toolName) || allowedHere) && !guard && !ASK_TOOLS.has(toolName)) {
           this.respond(chat, requestId, true, request.input);
           return;
         }
@@ -607,6 +638,10 @@ export class Chats {
           text: typeof msg.result === "string" && msg.is_error ? msg.result : undefined,
         });
         chat.info.status = "idle";
+        // Claude Code says how large the window really is.
+        const models = msg.modelUsage as Record<string, { contextWindow?: number }> | undefined;
+        const reported = Math.max(0, ...Object.values(models ?? {}).map((m) => m.contextWindow ?? 0));
+        if (reported && chat.info.context) chat.info.context = { ...chat.info.context, window: reported };
         // Someone watching the chat sees the answer arrive.
         chat.unseen = chat.listeners.size === 0;
         this.emitInfo(chat);

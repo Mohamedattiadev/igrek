@@ -149,6 +149,55 @@ for await (const chunk of Bun.stdin.stream()) {
   });
 });
 
+describe("questions and context", () => {
+  test("an AskUserQuestion card waits for an answer, and the answer goes back in the tool's input", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    writeFileSync(
+      join(dir, "claude"),
+      `#!${process.execPath}
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+out({ type: "system", subtype: "init", session_id: "s", model: "claude-test" });
+let buf = "";
+for await (const chunk of Bun.stdin.stream()) {
+  buf += new TextDecoder().decode(chunk);
+  let i;
+  while ((i = buf.indexOf("\\n")) >= 0) {
+    const msg = JSON.parse(buf.slice(0, i)); buf = buf.slice(i + 1);
+    if (msg.type === "user") {
+      out({ type: "assistant", message: { id: "m1", usage: { input_tokens: 10, cache_read_input_tokens: 50000, cache_creation_input_tokens: 2000, output_tokens: 5 }, content: [{ type: "text", text: "One question first." }] } });
+      out({ type: "control_request", request_id: "q1", request: { subtype: "can_use_tool", tool_name: "AskUserQuestion", input: { questions: [{ question: "Which database?", header: "DB", options: [{ label: "SQLite" }, { label: "Postgres" }], multiSelect: false }] } } });
+    }
+    if (msg.type === "control_response") {
+      const r = msg.response.response;
+      out({ type: "assistant", message: { id: "m2", content: [{ type: "text", text: "Got: " + JSON.stringify(r.updatedInput.answers) }] } });
+      out({ type: "result", subtype: "success", duration_ms: 1, modelUsage: { "claude-test": { contextWindow: 1000000 } } });
+    }
+  }
+}
+`,
+    );
+    chmodSync(join(dir, "claude"), 0o755);
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(dir, "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    const events: ChatEvent[] = [];
+    chats.attach(info.id, (op) => {
+      if (op.op === "upsert") events.push(op.event);
+    });
+    await Bun.sleep(300);
+    chats.send(info.id, "build it");
+    await Bun.sleep(400);
+    expect(chats.get(info.id)?.pill).toBe("question");
+    expect(chats.get(info.id)?.context).toMatchObject({ tokens: 52010, window: 200000, cacheRead: 50000 });
+    // "Always allow" never covers a question.
+    expect(events.find((e) => e.kind === "permission")).toMatchObject({ toolName: "AskUserQuestion", rule: undefined });
+    chats.answer(info.id, "q1", "allow", undefined, { "Which database?": "SQLite" });
+    await Bun.sleep(400);
+    expect(events.some((e) => e.kind === "text" && e.text === 'Got: {"Which database?":"SQLite"}')).toBe(true);
+    expect(chats.get(info.id)?.context?.window).toBe(1000000);
+    chats.stopAll();
+  });
+});
+
 describe("chat queue", () => {
   test("a message written while the AI works waits, then goes out when the turn ends", async () => {
     const chats = new Chats(new Bus(), new StopRegistry(), () => join(fakeClaude(), "claude"));

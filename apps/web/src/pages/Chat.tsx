@@ -1,5 +1,6 @@
 import {
   type ChatEvent,
+  type ChatInfo,
   type ChatMode,
   extractNotebook,
   findSecrets,
@@ -27,6 +28,7 @@ import {
   ListPlus,
   ListTodo,
   MessageSquare,
+  MessageSquarePlus,
   RotateCcw,
   Search,
   Send,
@@ -40,7 +42,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { type ClipboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type ClipboardEvent, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
@@ -56,7 +58,7 @@ import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
 import { DETAIL_LEVELS, type DetailLevel, groupWork, workCounts } from "../lib/chat-log";
 import { cn } from "../lib/cn";
-import { modelName } from "../lib/format";
+import { compactNumber, modelName } from "../lib/format";
 import { warmHighlighter } from "../lib/highlight";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
@@ -67,22 +69,75 @@ type Json = Record<string, unknown>;
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 const MODELS = ["", "opus", "sonnet", "haiku"];
 
-function Diff({ before, after }: { before: string; after: string }) {
+/** A note on one line of a change, added to the next message (plan.md 16.1). */
+interface LineComment {
+  file?: string;
+  line: string;
+  text: string;
+}
+const CommentContext = createContext<((comment: LineComment) => void) | undefined>(undefined);
+
+function Diff({ before, after, file }: { before: string; after: string; file?: string }) {
+  const { t } = useTranslation();
   const lines = useMemo(() => lineDiff(before, after), [before, after]);
+  const addComment = useContext(CommentContext);
+  const [editing, setEditing] = useState<number>();
+  const [draft, setDraft] = useState("");
   return (
     <pre className="max-h-72 overflow-auto rounded-md border border-border bg-bg font-mono text-[11.5px] leading-[1.55]">
       {lines.map((line, i) => (
-        <div
-          // biome-ignore lint/suspicious/noArrayIndexKey: diff lines have no identity
-          key={i}
-          className={cn(
-            "px-2",
-            line.type === "add" && "bg-success-soft text-success",
-            line.type === "del" && "bg-danger-soft text-danger",
+        // biome-ignore lint/suspicious/noArrayIndexKey: diff lines have no identity
+        <div key={i}>
+          <div
+            className={cn(
+              "group flex px-2",
+              line.type === "add" && "bg-success-soft text-success",
+              line.type === "del" && "bg-danger-soft text-danger",
+            )}
+          >
+            <span className="min-w-0 flex-1 whitespace-pre">
+              {line.type === "add" ? "+ " : line.type === "del" ? "- " : "  "}
+              {line.text}
+            </span>
+            {addComment && line.text.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditing(i);
+                  setDraft("");
+                }}
+                aria-label={t("chat.commentLine")}
+                title={t("chat.commentLine")}
+                className="shrink-0 text-fg-subtle hover:text-accent focus:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+              >
+                <MessageSquarePlus size={12} />
+              </button>
+            )}
+          </div>
+          {editing === i && addComment && (
+            <form
+              className="flex gap-1.5 bg-bg-subtle px-2 py-1 font-sans"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (draft.trim()) addComment({ file, line: line.text.trim(), text: draft.trim() });
+                setEditing(undefined);
+              }}
+            >
+              <input
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => e.key === "Escape" && setEditing(undefined)}
+                placeholder={t("chat.commentPlaceholder")}
+                aria-label={t("chat.commentLine")}
+                // biome-ignore lint/a11y/noAutofocus: the user just asked to write a comment
+                autoFocus
+                className="h-6 min-w-0 flex-1 rounded border border-border bg-bg px-1.5 text-[12px] outline-none focus:border-accent"
+              />
+              <Button size="sm" type="submit">
+                {t("chat.commentAdd")}
+              </Button>
+            </form>
           )}
-        >
-          {line.type === "add" ? "+ " : line.type === "del" ? "- " : "  "}
-          {line.text}
         </div>
       ))}
     </pre>
@@ -116,18 +171,20 @@ function toolSummary(name: string, input: Json, cwd?: string): string {
 
 /** What a step would do, shown before you approve it and inside tool cards. */
 function ToolPreview({ name, input }: { name: string; input: Json }) {
-  if (name === "Edit") return <Diff before={String(input.old_string ?? "")} after={String(input.new_string ?? "")} />;
+  const file = typeof input.file_path === "string" ? input.file_path : undefined;
+  if (name === "Edit")
+    return <Diff file={file} before={String(input.old_string ?? "")} after={String(input.new_string ?? "")} />;
   if (name === "MultiEdit" && Array.isArray(input.edits)) {
     return (
       <div className="space-y-1.5">
         {(input.edits as Json[]).map((edit, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: edits come in order
-          <Diff key={i} before={String(edit.old_string ?? "")} after={String(edit.new_string ?? "")} />
+          <Diff key={i} file={file} before={String(edit.old_string ?? "")} after={String(edit.new_string ?? "")} />
         ))}
       </div>
     );
   }
-  if (name === "Write") return <Diff before="" after={String(input.content ?? "").slice(0, 6000)} />;
+  if (name === "Write") return <Diff file={file} before="" after={String(input.content ?? "").slice(0, 6000)} />;
   if (name === "Bash") {
     return (
       <pre className="overflow-x-auto rounded-md bg-bg-muted p-2 font-mono text-[12px]">
@@ -301,6 +358,152 @@ function ToolCard({ event, cwd, nested }: { event: ToolEvent; cwd?: string; nest
   );
 }
 
+type Question = {
+  question: string;
+  header?: string;
+  options?: { label: string; description?: string }[];
+  multiSelect?: boolean;
+};
+
+/** Claude asks with AskUserQuestion: options to pick, or your own answer (plan.md 16.1). */
+function QuestionCard({
+  event,
+  ended,
+  onAnswer,
+}: {
+  event: Extract<ChatEvent, { kind: "permission" }>;
+  ended: boolean;
+  onAnswer: (decision: "allow" | "deny", message?: string, answers?: Record<string, string>) => void;
+}) {
+  const { t } = useTranslation();
+  const questions = ((event.input as Json | undefined)?.questions as Question[] | undefined) ?? [];
+  const [picked, setPicked] = useState<Record<string, string[]>>({});
+  const [other, setOther] = useState<Record<string, string>>({});
+  const pending = event.status === "pending" && !ended;
+  const answerOf = (q: Question) =>
+    [...(picked[q.question] ?? []), ...(other[q.question]?.trim() ? [other[q.question]?.trim() ?? ""] : [])].join(", ");
+  const complete = questions.length > 0 && questions.every((q) => answerOf(q));
+  const pick = (q: Question, label: string) => {
+    const now = picked[q.question] ?? [];
+    setPicked({
+      ...picked,
+      [q.question]: q.multiSelect ? (now.includes(label) ? now.filter((l) => l !== label) : [...now, label]) : [label],
+    });
+    if (!q.multiSelect) setOther({ ...other, [q.question]: "" });
+  };
+  return (
+    <div
+      className={cn(
+        "ms-9 space-y-3 rounded-ui border p-3",
+        pending ? "border-accent bg-accent-soft/40" : "border-border opacity-70",
+      )}
+    >
+      <p className="flex items-center gap-2 text-[12.5px] font-semibold">
+        <MessageSquare size={14} className="text-accent" aria-hidden="true" />
+        {t("chat.asks")}
+      </p>
+      {questions.map((q) => (
+        <fieldset key={q.question} className="space-y-1.5" disabled={!pending}>
+          <legend className="text-[13px]">
+            {q.header && <Badge>{q.header}</Badge>} <span className="font-medium">{q.question}</span>
+          </legend>
+          <div className="flex flex-wrap gap-1.5">
+            {(q.options ?? []).map((o) => {
+              const on = picked[q.question]?.includes(o.label) ?? false;
+              return (
+                <button
+                  key={o.label}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => pick(q, o.label)}
+                  data-tip={o.description}
+                  className={cn(
+                    "rounded-ui border px-2.5 py-1 text-start text-[12.5px]",
+                    on ? "border-accent bg-accent text-accent-fg" : "border-border bg-bg hover:border-accent",
+                  )}
+                >
+                  {o.label}
+                  {o.description && <span className="block text-[11px] opacity-75">{o.description}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <input
+            value={other[q.question] ?? ""}
+            onChange={(e) => {
+              setOther({ ...other, [q.question]: e.target.value });
+              if (!q.multiSelect && e.target.value) setPicked({ ...picked, [q.question]: [] });
+            }}
+            placeholder={t("chat.askOther")}
+            aria-label={`${q.question} ${t("chat.askOther")}`}
+            className="h-7 w-full max-w-md rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+          />
+        </fieldset>
+      ))}
+      {pending ? (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="primary"
+            disabled={!complete}
+            onClick={() =>
+              onAnswer("allow", undefined, Object.fromEntries(questions.map((q) => [q.question, answerOf(q)])))
+            }
+          >
+            {t("chat.askSend")}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => onAnswer("deny", "The user skipped the question.")}>
+            {t("chat.askSkip")}
+          </Button>
+        </div>
+      ) : event.status === "pending" ? (
+        <p className="text-xs text-fg-muted">{t("chat.permissionEnded")}</p>
+      ) : (
+        <Badge tone={event.status === "allowed" ? "success" : "neutral"}>
+          {event.status === "allowed" ? t("chat.askAnswered") : t("chat.askSkipped")}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+/** How full the AI's working memory is, and how long since its last answer (plan.md 16.1). */
+function ContextMeter({ context }: { context: NonNullable<ChatInfo["context"]> }) {
+  const { t } = useTranslation();
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+  const fill = Math.min(1, context.tokens / context.window);
+  const minutes = Math.floor((now - context.at) / 60_000);
+  const cold = minutes >= 5;
+  return (
+    <span
+      className="hidden items-center gap-1.5 sm:flex"
+      data-tip={`${t("chat.contextTip", {
+        used: compactNumber(context.tokens),
+        window: compactNumber(context.window),
+        cached: compactNumber(context.cacheRead),
+      })} ${t("chat.cacheTip", { count: minutes })}`}
+    >
+      <span className="h-1.5 w-12 overflow-hidden rounded-full bg-bg-muted">
+        <span
+          className={cn(
+            "block h-full rounded-full",
+            fill >= 0.8 ? "bg-danger" : fill >= 0.5 ? "bg-warning" : "bg-success",
+          )}
+          style={{ width: `${Math.max(3, Math.round(fill * 100))}%` }}
+        />
+      </span>
+      <span className="text-[11px] text-fg-subtle">
+        {t("chat.context", { pct: Math.round(fill * 100) })}
+        {cold && <span className="ms-1 text-warning">· {t("chat.cacheCold")}</span>}
+      </span>
+    </span>
+  );
+}
+
 function PermissionCard({
   event,
   ended,
@@ -451,6 +654,7 @@ export function ChatPage() {
   const navigate = useNavigate();
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
+  const [comments, setComments] = useState<LineComment[]>([]);
   const [detail, setDetail] = useDetailLevel();
   const units = useMemo(() => groupWork(chat.events, detail), [chat.events, detail]);
   // Answers often carry code: have the highlighter ready before the first block arrives.
@@ -520,7 +724,18 @@ export function ChatPage() {
 
   const openEnhancer = () => text.trim() && setEnhancing(text.trim());
   const send = (override?: string, allowSecrets = false, how: "queue" | "steer" = "queue") => {
-    const value = override ?? text.trim();
+    const typed = override ?? text.trim();
+    // Comments on diff lines go with the next message, file and line first.
+    const value = comments.length
+      ? [
+          typed,
+          `${t("chat.commentsHeader")}\n${comments
+            .map((c) => `- ${c.file ? `${c.file}, ` : ""}\`${c.line.slice(0, 200)}\`: ${c.text}`)
+            .join("\n")}`,
+        ]
+          .filter(Boolean)
+          .join("\n\n")
+      : typed;
     if (!value && images.length === 0) return;
     // Prompt firewall: a key or password in the message waits for the user's choice.
     if (!allowSecrets && findSecrets(value).length) {
@@ -541,6 +756,7 @@ export function ChatPage() {
     );
     setText("");
     setImages([]);
+    setComments([]);
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: send once, when the chat has started
@@ -637,6 +853,7 @@ export function ChatPage() {
           </Link>
         )}
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{info?.title ?? "…"}</h1>
+        {info?.context && <ContextMeter context={info.context} />}
         <span className="text-[11px] text-fg-subtle">{t(`chat.${status}`)}</span>
         <select
           value={MODELS.find((m) => m && info?.model?.includes(m)) ?? ""}
@@ -688,126 +905,143 @@ export function ChatPage() {
       </header>
       {info?.worktree && <ChatCopy info={info} />}
 
-      <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl space-y-3 px-4 py-5">
-          {chat.events.length === 0 && (
-            <div className="py-20 text-center">
-              <Bot size={28} className="mx-auto mb-3 text-fg-subtle" />
-              <p className="text-[15px] font-semibold">{t("chat.empty")}</p>
-              <p className="mx-auto mt-1 max-w-sm text-[13px] text-fg-muted">{t("chat.emptyBody")}</p>
-            </div>
-          )}
-          {units.map((unit) => {
-            if (unit.kind === "group")
-              return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
-            const event = unit.event;
-            switch (event.kind) {
-              case "user":
-                return (
-                  <div key={event.id} className="flex justify-end">
-                    <div className="max-w-[85%] whitespace-pre-wrap rounded-xl rounded-ee-sm bg-accent px-3.5 py-2 text-[13.5px] text-accent-fg">
-                      {event.images > 0 && (
-                        <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
-                          <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
-                        </p>
-                      )}
-                      {event.text}
-                    </div>
-                  </div>
-                );
-              case "text": {
-                // A persona's notebook block is for God Eye, not for reading.
-                const shown = info?.persona ? extractNotebook(event.text).text : event.text;
-                const isLast = event.id === lastText?.id && lastIsAnswer;
-                return (
-                  <div key={event.id} className="space-y-2">
-                    <div className="flex gap-3">
-                      {persona ? (
-                        <PersonaIcon persona={persona} size={13} />
-                      ) : (
-                        <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-bg-muted text-fg-muted">
-                          <Bot size={13} />
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1 text-[13.5px]">
-                        <Markdown text={shown} streaming={working && event.id === lastText?.id} />
+      <CommentContext.Provider
+        value={(c) => {
+          const cwd = info?.cwd;
+          const file = cwd && c.file?.startsWith(`${cwd}/`) ? c.file.slice(cwd.length + 1) : c.file;
+          setComments((all) => [...all, { ...c, file }]);
+        }}
+      >
+        <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
+          <div className="mx-auto max-w-3xl space-y-3 px-4 py-5">
+            {chat.events.length === 0 && (
+              <div className="py-20 text-center">
+                <Bot size={28} className="mx-auto mb-3 text-fg-subtle" />
+                <p className="text-[15px] font-semibold">{t("chat.empty")}</p>
+                <p className="mx-auto mt-1 max-w-sm text-[13px] text-fg-muted">{t("chat.emptyBody")}</p>
+              </div>
+            )}
+            {units.map((unit) => {
+              if (unit.kind === "group")
+                return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
+              const event = unit.event;
+              switch (event.kind) {
+                case "user":
+                  return (
+                    <div key={event.id} className="flex justify-end">
+                      <div className="max-w-[85%] whitespace-pre-wrap rounded-xl rounded-ee-sm bg-accent px-3.5 py-2 text-[13.5px] text-accent-fg">
+                        {event.images > 0 && (
+                          <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
+                            <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
+                          </p>
+                        )}
+                        {event.text}
                       </div>
                     </div>
-                    {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
-                      <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
-                    )}
-                  </div>
-                );
-              }
-              case "tool":
-                return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
-              case "permission":
-                return (
-                  <PermissionCard
-                    key={event.id}
-                    event={event}
-                    ended={info?.status === "exited"}
-                    onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
-                  />
-                );
-              case "result":
-                return (
-                  <p
-                    key={event.id}
-                    className={cn("ms-9 text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
-                  >
-                    {event.isError
-                      ? `${t("chat.failed")}${event.text ? `: ${event.text}` : ""}`
-                      : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
-                  </p>
-                );
-              case "checkpoint":
-                return (
-                  <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
-                    <span className="flex items-center gap-1">
-                      <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
-                    </span>
-                    <CheckpointRestore compact projectId={event.projectId} checkpointId={event.checkpointId} />
-                  </div>
-                );
-              case "notice":
-                if (event.code === "notebook" || event.code === "notebookRejected")
-                  return (
-                    <p key={event.id} className="ms-9 flex items-center gap-1.5 text-[11px] text-fg-subtle">
-                      <BookOpen size={12} aria-hidden="true" />
-                      {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
-                    </p>
                   );
-                if (event.code)
+                case "text": {
+                  // A persona's notebook block is for God Eye, not for reading.
+                  const shown = info?.persona ? extractNotebook(event.text).text : event.text;
+                  const isLast = event.id === lastText?.id && lastIsAnswer;
+                  return (
+                    <div key={event.id} className="space-y-2">
+                      <div className="flex gap-3">
+                        {persona ? (
+                          <PersonaIcon persona={persona} size={13} />
+                        ) : (
+                          <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-bg-muted text-fg-muted">
+                            <Bot size={13} />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1 text-[13.5px]">
+                          <Markdown text={shown} streaming={working && event.id === lastText?.id} />
+                        </div>
+                      </div>
+                      {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
+                        <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
+                      )}
+                    </div>
+                  );
+                }
+                case "tool":
+                  return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
+                case "permission":
+                  if (event.toolName === "AskUserQuestion")
+                    return (
+                      <QuestionCard
+                        key={event.id}
+                        event={event}
+                        ended={info?.status === "exited"}
+                        onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                      />
+                    );
+                  return (
+                    <PermissionCard
+                      key={event.id}
+                      event={event}
+                      ended={info?.status === "exited"}
+                      onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
+                    />
+                  );
+                case "result":
                   return (
                     <p
                       key={event.id}
-                      className="ms-9 flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                      className={cn("ms-9 text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
                     >
-                      <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                      {t(`chat.notice_${event.code}`)}
+                      {event.isError
+                        ? `${t("chat.failed")}${event.text ? `: ${event.text}` : ""}`
+                        : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
                     </p>
                   );
-                return (
-                  <pre
-                    key={event.id}
-                    className="ms-9 whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
-                  >
-                    {event.text}
-                  </pre>
-                );
-              default:
-                return null;
-            }
-          })}
-          {working && (
-            <p className="ms-9 flex items-center gap-1.5 text-xs text-fg-muted">
-              <span className="size-1.5 animate-pulse rounded-full bg-accent" />
-              {t("chat.working")}
-            </p>
-          )}
+                case "checkpoint":
+                  return (
+                    <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
+                      <span className="flex items-center gap-1">
+                        <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
+                      </span>
+                      <CheckpointRestore compact projectId={event.projectId} checkpointId={event.checkpointId} />
+                    </div>
+                  );
+                case "notice":
+                  if (event.code === "notebook" || event.code === "notebookRejected")
+                    return (
+                      <p key={event.id} className="ms-9 flex items-center gap-1.5 text-[11px] text-fg-subtle">
+                        <BookOpen size={12} aria-hidden="true" />
+                        {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
+                      </p>
+                    );
+                  if (event.code)
+                    return (
+                      <p
+                        key={event.id}
+                        className="ms-9 flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                      >
+                        <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                        {t(`chat.notice_${event.code}`)}
+                      </p>
+                    );
+                  return (
+                    <pre
+                      key={event.id}
+                      className="ms-9 whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
+                    >
+                      {event.text}
+                    </pre>
+                  );
+                default:
+                  return null;
+              }
+            })}
+            {working && (
+              <p className="ms-9 flex items-center gap-1.5 text-xs text-fg-muted">
+                <span className="size-1.5 animate-pulse rounded-full bg-accent" />
+                {t("chat.working")}
+              </p>
+            )}
+          </div>
         </div>
-      </div>
+      </CommentContext.Provider>
 
       <footer className="shrink-0 border-t border-border bg-bg-subtle p-3">
         <div className="mx-auto max-w-3xl space-y-2">
@@ -875,6 +1109,41 @@ export function ChatPage() {
             active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
             onPick={pickSlash}
           />
+          {info?.context && info.context.tokens / info.context.window >= 0.7 && !working && (
+            <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft px-2.5 py-1.5 text-[12.5px]">
+              <span className="min-w-0 flex-1">
+                {t("chat.compactHint", { pct: Math.round((info.context.tokens / info.context.window) * 100) })}
+              </span>
+              <Button size="sm" onClick={() => chat.send("/compact")}>
+                {t("chat.compact")}
+              </Button>
+            </div>
+          )}
+          {comments.length > 0 && (
+            <div className="mb-1.5 flex flex-wrap gap-1.5">
+              {comments.map((c, i) => (
+                <span
+                  // biome-ignore lint/suspicious/noArrayIndexKey: comments are only added and removed here
+                  key={i}
+                  className="flex max-w-full items-center gap-1 rounded-full border border-border bg-bg ps-2.5 pe-1 text-[12px]"
+                >
+                  <MessageSquarePlus size={12} className="shrink-0 text-accent" aria-hidden="true" />
+                  <span className="min-w-0 truncate">
+                    <code className="font-mono text-[11px]">{c.line.slice(0, 40)}</code> {c.text}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setComments((all) => all.filter((_, j) => j !== i))}
+                    aria-label={t("chat.commentRemove")}
+                    title={t("chat.commentRemove")}
+                    className="shrink-0 rounded-full p-0.5 text-fg-subtle hover:text-danger"
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           {info?.queued && info.queued.length > 0 && (
             <div className="mb-1.5 rounded-ui border border-border bg-bg-subtle p-1.5">
               <p className="flex items-center gap-1.5 px-1 pb-1 text-[11px] font-medium text-fg-subtle">
@@ -1032,7 +1301,7 @@ export function ChatPage() {
                     variant="primary"
                     icon={Send}
                     onClick={() => send()}
-                    disabled={!text.trim() && images.length === 0}
+                    disabled={!text.trim() && images.length === 0 && comments.length === 0}
                   >
                     {t("chat.send")}
                   </Button>

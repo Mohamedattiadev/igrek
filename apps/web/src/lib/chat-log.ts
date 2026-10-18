@@ -10,10 +10,15 @@ export type LogUnit = { kind: "event"; event: ChatEvent } | { kind: "group"; id:
 
 /** The to-do list stays a card of its own: it is what the AI plans, not a step it took. */
 const ALONE = new Set(["TodoWrite"]);
+/** A question to the user is shown as its own card; the tool call behind it adds nothing. */
+const HIDDEN = new Set(["AskUserQuestion"]);
 
 /** Runs of two or more tool calls in a row become one line; the rest stays as it is. */
 export function groupWork(events: ChatEvent[], level: DetailLevel): LogUnit[] {
-  if (level === "all") return events.map((event) => ({ kind: "event", event }));
+  if (level === "all")
+    return events
+      .filter((event) => !(event.kind === "tool" && HIDDEN.has(event.name)))
+      .map((event) => ({ kind: "event", event }));
   const units: LogUnit[] = [];
   let run: ToolEvent[] = [];
   const flush = () => {
@@ -23,6 +28,7 @@ export function groupWork(events: ChatEvent[], level: DetailLevel): LogUnit[] {
     run = [];
   };
   for (const event of events) {
+    if (event.kind === "tool" && HIDDEN.has(event.name)) continue;
     if (event.kind === "tool" && !ALONE.has(event.name)) {
       if (level !== "text") run.push(event);
       continue;

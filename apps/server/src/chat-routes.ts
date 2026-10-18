@@ -233,9 +233,24 @@ type ChatClientMessage =
   | { op: "send"; text: string; images?: { mediaType: string; data: string }[]; how?: SendHow }
   | { op: "unqueue"; queuedId: string }
   | { op: "sendQueued"; queuedId: string }
-  | { op: "permission"; requestId: string; decision: "allow" | "deny" | "always" | "project"; message?: string }
+  | {
+      op: "permission";
+      requestId: string;
+      decision: "allow" | "deny" | "always" | "project";
+      message?: string;
+      answers?: Record<string, string>;
+    }
   | { op: "interrupt" }
   | { op: "mode"; mode: ChatMode };
+
+/** Only text answers, a few and short: they go straight into the AI's input. */
+function cleanAnswers(raw: unknown): Record<string, string> | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const out: Record<string, string> = {};
+  for (const [question, answer] of Object.entries(raw as Record<string, unknown>).slice(0, 10))
+    if (typeof answer === "string") out[question.slice(0, 500)] = answer.slice(0, 2000);
+  return Object.keys(out).length ? out : undefined;
+}
 
 export function handleChatMessage(chats: Chats, id: string, raw: string): string | undefined {
   let msg: ChatClientMessage;
@@ -254,7 +269,13 @@ export function handleChatMessage(chats: Chats, id: string, raw: string): string
     else if (msg.op === "sendQueued") {
       chats.sendQueued(id, String(msg.queuedId));
     } else if (msg.op === "permission" && ["allow", "deny", "always", "project"].includes(msg.decision))
-      chats.answer(id, msg.requestId, msg.decision, msg.message ? String(msg.message).slice(0, 2000) : undefined);
+      chats.answer(
+        id,
+        msg.requestId,
+        msg.decision,
+        msg.message ? String(msg.message).slice(0, 2000) : undefined,
+        cleanAnswers(msg.answers),
+      );
     else if (msg.op === "interrupt") chats.interrupt(id);
     else if (msg.op === "mode" && MODES.includes(msg.mode)) chats.setMode(id, msg.mode);
   } catch (err) {

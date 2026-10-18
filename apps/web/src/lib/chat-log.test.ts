@@ -33,6 +33,12 @@ describe("work log", () => {
     expect(groupWork(events, "text").map((u) => (u.kind === "event" ? u.event.id : "group"))).toEqual(["t1", "t2"]);
   });
 
+  test("the tool call behind a question card is not shown", () => {
+    const units = groupWork([text("t1"), tool("q", "AskUserQuestion"), text("t2")], "grouped");
+    expect(units.map((u) => (u.kind === "event" ? u.event.id : "group"))).toEqual(["t1", "t2"]);
+    expect(groupWork([tool("q", "AskUserQuestion")], "all")).toEqual([]);
+  });
+
   test("counts steps by kind in a fixed order", () => {
     const run = [tool("a", "Edit"), tool("b", "Read"), tool("c", "Read"), tool("d", "mcp__x__y")];
     expect(workCounts(run as Extract<ChatEvent, { kind: "tool" }>[])).toEqual([
