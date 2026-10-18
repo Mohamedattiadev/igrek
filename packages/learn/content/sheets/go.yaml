@@ -33,7 +33,7 @@ sections:
         example: |
           mkdir hello && cd hello
           go mod init example.com/hello
-          # Go 1.26+ writes the previous Go version into go.mod (1.27 writes go 1.26.0)
+          cat go.mod       # the "go" line is the minimum Go version for this module
           go get go@1.27   # raise it when you need newer features
         mistake:
           en: Using a short name like "hello" for code you will publish; others import it by the full path, such as github.com/you/hello.

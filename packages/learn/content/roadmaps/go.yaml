@@ -1,0 +1,3068 @@
+id: go
+title: Go
+summary:
+  en: "From an empty computer to your own JSON API on the internet, written in Go with almost only the standard library. You build a link-saving API step by step and understand why each step is there."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi JSON API'ne, neredeyse sadece standart kütüphane kullanarak Go ile. Adım adım link kaydeden bir API yazarsın ve her adımın neden orada olduğunu anlarsın."
+teacher: backend
+project:
+  en: 'Linkbox: a small JSON REST API that saves links. List, search, add and delete links stored in SQLite, with user accounts and hashed passwords, tests, a tiny Docker image, logs and health checks, deployed on Render''s free plan.'
+  tr: 'Linkbox: link kaydeden küçük bir JSON REST API. SQLite''ta saklanan linkleri listeleme, arama, ekleme ve silme; kullanıcı hesapları ve hash''lenmiş şifreler, testler, küçücük bir Docker image''ı, loglar ve sağlık kontrolleri; Render''ın ücretsiz planında yayında.'
+detect:
+  files: [go.mod]
+after: [web]
+version: "1.27"
+latest: eol:go
+checked: 2026-10
+sheets: [go, git, http, sql, docker, github-actions]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Go, an editor and Git"
+      tr: "Go, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "Go turns your code into one program with a tool called the compiler. You need the Go tools on your computer, an editor that understands Go, and Git to keep every version of your work."
+      tr: "Go, kodunu derleyici denen bir araçla tek bir programa çevirir. Bilgisayarında Go araçlarına, Go'yu anlayan bir editöre ve işinin her sürümünü saklayan Git'e ihtiyacın var."
+    learn:
+      en: |
+        - What a compiler is: it reads your code and builds a program the computer can run
+        - How to open a terminal and check that a program is installed
+        - Why the newest Go release is a good choice: Go releases twice a year and only the two newest versions get fixes
+      tr: |
+        - Derleyicinin ne olduğu: kodunu okur ve bilgisayarın çalıştırabileceği bir program üretir
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - En yeni Go sürümünün neden iyi bir seçim olduğu: Go yılda iki kez çıkar ve sadece en yeni iki sürüm düzeltme alır
+    do:
+      en: |
+        1. Download Go from go.dev/dl and install it. On Windows and macOS run the installer. On Linux follow the steps on go.dev/doc/install (a tar file you unpack into `/usr/local` and add `/usr/local/go/bin` to your `PATH`); the version in your package manager is often old.
+        2. Install **Visual Studio Code** (code.visualstudio.com) and add its **Go** extension (the one published by "Go Team at Google"). Accept when it offers to install its Go tools.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a **new** terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number. Go should say `go1.27` or newer.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        6. You will test the API with `curl`. macOS and Linux have it. On Windows use **Git Bash** (installed with Git) for the `curl` commands in this roadmap, because PowerShell and cmd quote text differently.
+      tr: |
+        1. go.dev/dl adresinden Go'yu indirip kur. Windows ve macOS'ta kurulum dosyasını çalıştır. Linux'ta go.dev/doc/install sayfasındaki adımları izle (`/usr/local` içine açtığın bir tar dosyası ve `PATH`'ine eklediğin `/usr/local/go/bin`); paket yöneticindeki sürüm çoğu zaman eskidir.
+        2. **Visual Studio Code**'u kur (code.visualstudio.com) ve **Go** eklentisini ekle ("Go Team at Google" tarafından yayınlanan). Go araçlarını kurmayı önerince kabul et.
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. **Yeni** bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı. Go `go1.27` ya da daha yenisini göstermeli.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        6. API'yi `curl` ile deneyeceksin. macOS ve Linux'ta var. Windows'ta bu yol haritasındaki `curl` komutları için **Git Bash**'i (Git ile kurulur) kullan; çünkü PowerShell ve cmd metinleri farklı tırnaklar.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          go version
+          git --version
+          curl --version
+    mistakes:
+      - problem:
+          en: "\"go: command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"go: command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open a new one so it sees the new PATH. On Linux check that `/usr/local/go/bin` is in your PATH. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yenisini aç ki yeni PATH'i görsün. Linux'ta `/usr/local/go/bin`'in PATH'inde olduğunu kontrol et. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Installing Go from the package manager and getting a very old version."
+          tr: "Go'yu paket yöneticisinden kurup çok eski bir sürüm almak."
+        fix:
+          en: "Use the download from go.dev/dl. Older versions miss features this roadmap uses, such as the method and path patterns in net/http (Go 1.22)."
+          tr: "go.dev/dl'deki indirmeyi kullan. Eski sürümlerde bu yol haritasının kullandığı özellikler yok; örneğin net/http'deki method ve yol kalıpları (Go 1.22)."
+    quiz:
+      - q:
+          en: "What does the Go compiler do?"
+          tr: "Go derleyicisi ne yapar?"
+        options:
+          en:
+            - "It downloads other people's code"
+            - "It turns your code into a program the computer can run"
+            - "It saves versions of your work"
+          tr:
+            - "Başkalarının kodunu indirir"
+            - "Kodunu bilgisayarın çalıştırabileceği bir programa çevirir"
+            - "İşinin sürümlerini saklar"
+        answer: 1
+        why:
+          en: "The compiler reads your .go files and builds an executable. Saving versions is Git's job."
+          tr: "Derleyici .go dosyalarını okur ve çalıştırılabilir bir dosya üretir. Sürümleri saklamak Git'in işi."
+    sources:
+      - title: Download and install Go
+        url: https://go.dev/doc/install
+      - title: Go downloads
+        url: https://go.dev/dl/
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: hello
+    stage: first-code
+    title:
+      en: "Your first Go program and module"
+      tr: "İlk Go programın ve modülün"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "Every Go project is a module: a folder with a go.mod file that names it and lists the code it uses. Running one tiny program first shows you the whole loop: write, run, build."
+      tr: "Her Go projesi bir modüldür: kendisine ad veren ve kullandığı kodu listeleyen go.mod dosyası olan bir klasör. Önce küçücük bir program çalıştırmak bütün döngüyü gösterir: yaz, çalıştır, derle."
+    learn:
+      en: |
+        - A module and `go mod init`: what go.mod holds
+        - `package main` and `func main`: where a program starts
+        - `go run .` compiles and runs in one step; `go build` leaves a program file you can copy anywhere
+      tr: |
+        - Modül ve `go mod init`: go.mod'un neyi tuttuğu
+        - `package main` ve `func main`: bir programın başladığı yer
+        - `go run .` tek adımda derler ve çalıştırır; `go build` her yere kopyalayabileceğin bir program dosyası bırakır
+    do:
+      en: |
+        1. Make a folder called `linkbox`, go into it and create the module (first commands below). The path `example.com/linkbox` is only a name; a program nobody imports does not need a real address.
+        2. Open the folder in VS Code (`code .`) and create `main.go` with the code below.
+        3. Run `go run .` (the dot means "the package in this folder"). It prints a line.
+        4. Run `go build -o linkbox .` and then `./linkbox` (on Windows `go build -o linkbox.exe .` and `.\linkbox.exe`). That file is the whole program.
+        5. Create `.gitignore` (below) so the program file and later the database never get committed. Then start Git here: `git init`, `git add .` and `git commit -m "Start Linkbox"`.
+      tr: |
+        1. `linkbox` adında bir klasör yap, içine gir ve modülü oluştur (aşağıdaki ilk komutlar). `example.com/linkbox` sadece bir addır; kimsenin import etmediği bir program için gerçek bir adres gerekmez.
+        2. Klasörü VS Code'da aç (`code .`) ve aşağıdaki kodla `main.go` dosyasını oluştur.
+        3. `go run .` çalıştır (nokta "bu klasördeki paket" demek). Bir satır yazar.
+        4. `go build -o linkbox .` çalıştır, sonra `./linkbox` (Windows'ta `go build -o linkbox.exe .` ve `.\linkbox.exe`). O dosya programın tamamıdır.
+        5. Program dosyası ve ileride veritabanı commit edilmesin diye `.gitignore` dosyasını oluştur (aşağıda). Sonra Git'i burada başlat: `git init`, `git add .` ve `git commit -m "Start Linkbox"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir linkbox
+          cd linkbox
+          go mod init example.com/linkbox
+      - file: main.go
+        lang: go
+        text: |
+          package main
+
+          import "fmt"
+
+          func main() {
+          	fmt.Println("Hello, Linkbox")
+          }
+      - file: .gitignore
+        lang: text
+        text: |
+          /linkbox
+          /linkbox.exe
+          *.db
+          *.db-shm
+          *.db-wal
+          *.test
+          *.out
+    mistakes:
+      - problem:
+          en: "\"go: go.mod file not found in current directory or any parent directory\"."
+          tr: "\"go: go.mod file not found in current directory or any parent directory\" hatası."
+        fix:
+          en: "You are in the wrong folder, or you skipped `go mod init`. Go commands that build code must run inside the module folder."
+          tr: "Yanlış klasördesin ya da `go mod init`'i atladın. Kod derleyen Go komutları modül klasörünün içinde çalışmalı."
+      - problem:
+          en: "\"declared and not used\" or \"imported and not used\"."
+          tr: "\"declared and not used\" ya da \"imported and not used\" hatası."
+        fix:
+          en: "Go refuses to compile unused variables and imports. Use them or delete them. VS Code with the Go extension removes unused imports when you save."
+          tr: "Go kullanılmayan değişkenleri ve import'ları derlemez. Kullan ya da sil. Go eklentili VS Code kaydedince kullanılmayan import'ları siler."
+    quiz:
+      - q:
+          en: "Which file names your module and records the packages it depends on?"
+          tr: "Hangi dosya modülüne ad verir ve bağlı olduğu paketleri kaydeder?"
+        options:
+          en:
+            - "main.go"
+            - "go.mod"
+            - "linkbox"
+          tr:
+            - "main.go"
+            - "go.mod"
+            - "linkbox"
+        answer: 1
+        why:
+          en: "go.mod holds the module path, the Go version and the dependencies. main.go is code, and linkbox is the built program."
+          tr: "go.mod modül yolunu, Go sürümünü ve bağımlılıkları tutar. main.go koddur, linkbox da derlenmiş programdır."
+    sources:
+      - title: "Tutorial: get started with Go"
+        url: https://go.dev/doc/tutorial/getting-started
+      - title: "Tutorial: create a Go module"
+        url: https://go.dev/doc/tutorial/create-module
+      - title: go mod init
+        url: https://go.dev/ref/mod#go-mod-init
+
+  - id: model
+    stage: basics
+    title:
+      en: "Model a link: structs, methods and errors"
+      tr: "Bir linki modelleme: struct, metot ve hata"
+    minutes: 60
+    needs: [hello]
+    why:
+      en: "An API is mostly data going in and out, and bad data is the most common problem. A Link type with a Validate method gives you one place that decides what a good link is. You also meet Go's way of handling failure: functions return an error value and you check it."
+      tr: "Bir API'nin işi çoğunlukla içeri girip dışarı çıkan veridir ve en sık sorun kötü veridir. Validate metodu olan bir Link tipi, iyi bir linkin ne olduğuna karar veren tek bir yer verir. Ayrıca Go'nun hatayla başa çıkma yoluyla tanışırsın: fonksiyonlar bir error değeri döner ve sen onu kontrol edersin."
+    learn:
+      en: |
+        - `struct`: a type that groups fields; `json:"..."` tags set the field names in JSON
+        - A method with a pointer receiver (`func (l *Link) Validate()`) can change the value it is called on
+        - Errors are values: `errors.New`, and `if err != nil`
+        - Slices and `for i := range`; a name that starts with a capital letter is visible outside the package
+      tr: |
+        - `struct`: alanları gruplayan bir tip; `json:"..."` tag'leri JSON'daki alan adlarını belirler
+        - Pointer receiver'lı bir metot (`func (l *Link) Validate()`) çağrıldığı değeri değiştirebilir
+        - Hatalar değerdir: `errors.New` ve `if err != nil`
+        - Slice'lar ve `for i := range`; büyük harfle başlayan ad paketin dışından görünür
+    do:
+      en: |
+        1. Create `link.go` with the code below.
+        2. Replace `main.go` with the small test program below. It checks four links by hand.
+        3. Run `go run .` and compare with the output below. Change a link and run again.
+        4. Run `gofmt -l .` (it lists files that are not formatted; no output is good) and `go vet ./...` (it finds likely mistakes). Run both again after every step.
+        5. Commit: `git add . && git commit -m "Add the Link type"`.
+      tr: |
+        1. Aşağıdaki kodla `link.go` dosyasını oluştur.
+        2. `main.go` içeriğini aşağıdaki küçük deneme programıyla değiştir. Dört linki elle kontrol eder.
+        3. `go run .` çalıştır ve çıktıyı aşağıdakiyle karşılaştır. Bir linki değiştir ve tekrar çalıştır.
+        4. `gofmt -l .` (biçimlenmemiş dosyaları listeler; çıktı yoksa iyi) ve `go vet ./...` (olası hataları bulur) çalıştır. Her adımdan sonra ikisini tekrar çalıştır.
+        5. Commit et: `git add . && git commit -m "Add the Link type"`.
+    code:
+      - file: link.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"errors"
+          	"net/url"
+          	"strings"
+          	"time"
+          	"unicode/utf8"
+          )
+
+          const (
+          	maxTitleLen = 200  // characters
+          	maxURLLen   = 2048 // bytes
+          )
+
+          // Link is one saved link. The json tags set the field names in the API.
+          type Link struct {
+          	ID        int64     `json:"id"`
+          	URL       string    `json:"url"`
+          	Title     string    `json:"title"`
+          	CreatedAt time.Time `json:"created_at"`
+          }
+
+          // Validate trims the text fields and reports the first problem it finds.
+          func (l *Link) Validate() error {
+          	l.URL = strings.TrimSpace(l.URL)
+          	l.Title = strings.TrimSpace(l.Title)
+
+          	if l.Title == "" {
+          		return errors.New("title is required")
+          	}
+          	if utf8.RuneCountInString(l.Title) > maxTitleLen {
+          		return errors.New("title is too long")
+          	}
+          	if len(l.URL) > maxURLLen {
+          		return errors.New("url is too long")
+          	}
+          	u, err := url.Parse(l.URL)
+          	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+          		return errors.New("url must be a full http or https address")
+          	}
+          	return nil
+          }
+      - file: main.go
+        lang: go
+        text: |
+          package main
+
+          import "fmt"
+
+          func main() {
+          	links := []Link{
+          		{Title: "Go documentation", URL: "https://go.dev/doc/"},
+          		{Title: "", URL: "https://example.com"},
+          		{Title: "Wrong scheme", URL: "ftp://example.com"},
+          		{Title: "No host", URL: "not a url"},
+          	}
+          	for i := range links {
+          		if err := links[i].Validate(); err != nil {
+          			fmt.Printf("%q: %v\n", links[i].Title, err)
+          			continue
+          		}
+          		fmt.Printf("ok: %s\n", links[i].Title)
+          	}
+          }
+      - file: terminal (what you should see)
+        lang: text
+        text: |
+          ok: Go documentation
+          "": title is required
+          "Wrong scheme": url must be a full http or https address
+          "No host": url must be a full http or https address
+    mistakes:
+      - problem:
+          en: "Writing `for _, l := range links { l.Validate() }` and finding the links unchanged."
+          tr: "`for _, l := range links { l.Validate() }` yazıp linklerin değişmediğini görmek."
+        fix:
+          en: "`l` is a copy of each element. Use the index, `links[i].Validate()`, as the code above does."
+          tr: "`l` her elemanın bir kopyasıdır. Yukarıdaki kodda olduğu gibi indeksi kullan: `links[i].Validate()`."
+      - problem:
+          en: "Naming a field `url` or `title` in lower case and getting `{}` from encoding/json later."
+          tr: "Bir alana küçük harfle `url` ya da `title` adını verip sonra encoding/json'dan `{}` almak."
+        fix:
+          en: "encoding/json only sees exported fields, the ones that start with a capital letter. Keep `URL` and use the tag `json:\"url\"` for the lower-case name in JSON."
+          tr: "encoding/json sadece dışa açık, yani büyük harfle başlayan alanları görür. `URL` kalsın ve JSON'daki küçük harfli ad için `json:\"url\"` tag'ini kullan."
+      - problem:
+          en: "Ignoring an error with `_` because \"it will not fail\"."
+          tr: "\"Nasılsa hata vermez\" diye bir hatayı `_` ile yok saymak."
+        fix:
+          en: "Check every error. When it does fail, the other result is a zero value and the bug shows up far away from its cause."
+          tr: "Her hatayı kontrol et. Gerçekten hata verdiğinde diğer sonuç sıfır değeridir ve hata sebebinden çok uzakta ortaya çıkar."
+    quiz:
+      - q:
+          en: "Why is Validate written with a pointer receiver, (l *Link)?"
+          tr: "Validate neden pointer receiver ile, (l *Link) diye yazıldı?"
+        options:
+          en:
+            - "So it can trim the fields of the Link it is called on"
+            - "Because methods must always use pointers"
+            - "To make it run faster"
+          tr:
+            - "Çağrıldığı Link'in alanlarını kırpabilsin diye"
+            - "Metotlar her zaman pointer kullanmak zorunda olduğu için"
+            - "Daha hızlı çalışsın diye"
+        answer: 0
+        why:
+          en: "A value receiver gets a copy, so changes would be lost. A pointer receiver changes the real Link."
+          tr: "Value receiver bir kopya alır, değişiklikler kaybolurdu. Pointer receiver gerçek Link'i değiştirir."
+    sources:
+      - title: Effective Go, methods
+        url: https://go.dev/doc/effective_go#methods
+      - title: Error handling in Go
+        url: https://go.dev/blog/error-handling-and-go
+      - title: net/url, Parse
+        url: https://pkg.go.dev/net/url#Parse
+
+  - id: api
+    stage: first-project
+    title:
+      en: "Build the JSON API with only the standard library"
+      tr: "Sadece standart kütüphaneyle JSON API'yi yazma"
+    minutes: 120
+    needs: [model]
+    why:
+      en: "Go's standard library already contains a production-grade web server and JSON support, so you can build a real API with no framework. Since Go 1.22 the router understands the method and path wildcards you need, like `GET /links/{id}`."
+      tr: "Go'nun standart kütüphanesinde üretime uygun bir web sunucusu ve JSON desteği zaten var; yani framework olmadan gerçek bir API yazabilirsin. Go 1.22'den beri router, `GET /links/{id}` gibi ihtiyacın olan method ve yol joker'lerini anlıyor."
+    learn:
+      en: |
+        - HTTP in one minute: a request has a method (GET, POST, DELETE) and a path; the answer has a status code (200 OK, 201 Created, 400 Bad Request, 404 Not Found, 500 Server Error) and a body
+        - `http.ServeMux` patterns: `"GET /links/{id}"` and `r.PathValue("id")`
+        - A handler is a function `func(w http.ResponseWriter, r *http.Request)`
+        - `encoding/json` turns structs into JSON and back
+        - Many requests run at the same time, so shared data needs a `sync.Mutex`
+        - The data lives in memory for now; the next step moves it into a database
+      tr: |
+        - Bir dakikada HTTP: isteğin bir method'u (GET, POST, DELETE) ve yolu vardır; cevabın bir durum kodu (200 OK, 201 Created, 400 Bad Request, 404 Not Found, 500 Server Error) ve bir gövdesi vardır
+        - `http.ServeMux` kalıpları: `"GET /links/{id}"` ve `r.PathValue("id")`
+        - Handler, `func(w http.ResponseWriter, r *http.Request)` biçiminde bir fonksiyondur
+        - `encoding/json` struct'ları JSON'a ve geri çevirir
+        - Birçok istek aynı anda çalışır; bu yüzden paylaşılan veri `sync.Mutex` ister
+        - Veri şimdilik bellekte durur; sonraki adım onu veritabanına taşır
+    do:
+      en: |
+        1. Create `store.go`, `json.go` and `server.go`, and replace `main.go`, with the code below (keep `link.go`).
+        2. Start the server: `go run .`. Leave it running and open a **second** terminal.
+        3. Add a link, list links, search, get one, delete one and try two mistakes: use the `curl` commands below.
+        4. Stop the server with Ctrl+C and start it again: the links are gone. They only live in memory. That is what the next step fixes.
+        5. Commit: `git add . && git commit -m "JSON API with an in-memory store"`.
+      tr: |
+        1. Aşağıdaki kodla `store.go`, `json.go` ve `server.go` dosyalarını oluştur, `main.go`'yu değiştir (`link.go` kalsın).
+        2. Sunucuyu başlat: `go run .`. Açık bırak ve **ikinci** bir terminal aç.
+        3. Bir link ekle, linkleri listele, ara, birini getir, birini sil ve iki hatayı dene: aşağıdaki `curl` komutlarını kullan.
+        4. Sunucuyu Ctrl+C ile durdur ve tekrar başlat: linkler gitti. Sadece bellekte duruyorlardı. Sonraki adım bunu düzeltir.
+        5. Commit et: `git add . && git commit -m "JSON API with an in-memory store"`.
+    code:
+      - file: store.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"errors"
+          	"slices"
+          	"strings"
+          	"sync"
+          	"time"
+          )
+
+          // ErrNotFound is returned when a link does not exist.
+          var ErrNotFound = errors.New("not found")
+
+          // Store keeps links in memory. They are lost when the program stops;
+          // the next step moves them into a database.
+          type Store struct {
+          	mu     sync.Mutex
+          	links  []Link
+          	nextID int64
+          }
+
+          func NewStore() *Store {
+          	return &Store{nextID: 1}
+          }
+
+          func (s *Store) Create(ctx context.Context, l Link) (Link, error) {
+          	s.mu.Lock()
+          	defer s.mu.Unlock()
+
+          	l.ID = s.nextID
+          	l.CreatedAt = time.Now().UTC().Truncate(time.Second)
+          	s.nextID++
+          	s.links = append(s.links, l)
+          	return l, nil
+          }
+
+          // List returns the newest links first. A non-empty q keeps only links
+          // whose title or url contains it, ignoring case.
+          func (s *Store) List(ctx context.Context, q string) ([]Link, error) {
+          	s.mu.Lock()
+          	defer s.mu.Unlock()
+
+          	q = strings.ToLower(q)
+          	out := []Link{} // not nil, so it becomes [] and not null in JSON
+          	for _, l := range s.links {
+          		if strings.Contains(strings.ToLower(l.Title), q) || strings.Contains(strings.ToLower(l.URL), q) {
+          			out = append(out, l)
+          		}
+          	}
+          	slices.Reverse(out)
+          	return out, nil
+          }
+
+          func (s *Store) Get(ctx context.Context, id int64) (Link, error) {
+          	s.mu.Lock()
+          	defer s.mu.Unlock()
+
+          	for _, l := range s.links {
+          		if l.ID == id {
+          			return l, nil
+          		}
+          	}
+          	return Link{}, ErrNotFound
+          }
+
+          func (s *Store) Delete(ctx context.Context, id int64) error {
+          	s.mu.Lock()
+          	defer s.mu.Unlock()
+
+          	for i, l := range s.links {
+          		if l.ID == id {
+          			s.links = slices.Delete(s.links, i, i+1)
+          			return nil
+          		}
+          	}
+          	return ErrNotFound
+          }
+      - file: json.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"encoding/json"
+          	"log/slog"
+          	"net/http"
+          )
+
+          func writeJSON(w http.ResponseWriter, status int, v any) {
+          	w.Header().Set("Content-Type", "application/json")
+          	w.WriteHeader(status)
+          	if err := json.NewEncoder(w).Encode(v); err != nil {
+          		slog.Error("write response", "err", err)
+          	}
+          }
+
+          func writeError(w http.ResponseWriter, status int, message string) {
+          	writeJSON(w, status, map[string]string{"error": message})
+          }
+
+          func readJSON(r *http.Request, dst any) error {
+          	return json.NewDecoder(r.Body).Decode(dst)
+          }
+      - file: server.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"errors"
+          	"fmt"
+          	"log/slog"
+          	"net/http"
+          	"strconv"
+          )
+
+          type Server struct {
+          	store *Store
+          }
+
+          func NewServer(store *Store) *Server {
+          	return &Server{store: store}
+          }
+
+          // Routes connects each method and path to a handler (Go 1.22+ patterns).
+          func (s *Server) Routes() http.Handler {
+          	mux := http.NewServeMux()
+          	mux.HandleFunc("GET /links", s.listLinks)
+          	mux.HandleFunc("POST /links", s.createLink)
+          	mux.HandleFunc("GET /links/{id}", s.getLink)
+          	mux.HandleFunc("DELETE /links/{id}", s.deleteLink)
+          	return mux
+          }
+
+          func (s *Server) listLinks(w http.ResponseWriter, r *http.Request) {
+          	links, err := s.store.List(r.Context(), r.URL.Query().Get("q"))
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	writeJSON(w, http.StatusOK, links)
+          }
+
+          func (s *Server) createLink(w http.ResponseWriter, r *http.Request) {
+          	var in Link
+          	if err := readJSON(r, &in); err != nil {
+          		writeError(w, http.StatusBadRequest, "body must be valid JSON")
+          		return
+          	}
+          	if err := in.Validate(); err != nil {
+          		writeError(w, http.StatusBadRequest, err.Error())
+          		return
+          	}
+          	link, err := s.store.Create(r.Context(), Link{URL: in.URL, Title: in.Title})
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	w.Header().Set("Location", fmt.Sprintf("/links/%d", link.ID))
+          	writeJSON(w, http.StatusCreated, link)
+          }
+
+          func (s *Server) getLink(w http.ResponseWriter, r *http.Request) {
+          	id, ok := pathID(w, r)
+          	if !ok {
+          		return
+          	}
+          	link, err := s.store.Get(r.Context(), id)
+          	if errors.Is(err, ErrNotFound) {
+          		writeError(w, http.StatusNotFound, "link not found")
+          		return
+          	}
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	writeJSON(w, http.StatusOK, link)
+          }
+
+          func (s *Server) deleteLink(w http.ResponseWriter, r *http.Request) {
+          	id, ok := pathID(w, r)
+          	if !ok {
+          		return
+          	}
+          	err := s.store.Delete(r.Context(), id)
+          	if errors.Is(err, ErrNotFound) {
+          		writeError(w, http.StatusNotFound, "link not found")
+          		return
+          	}
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	w.WriteHeader(http.StatusNoContent)
+          }
+
+          // pathID reads {id} from the URL. On a bad id it answers 400 and returns false.
+          func pathID(w http.ResponseWriter, r *http.Request) (int64, bool) {
+          	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+          	if err != nil || id < 1 {
+          		writeError(w, http.StatusBadRequest, "id must be a positive number")
+          		return 0, false
+          	}
+          	return id, true
+          }
+
+          // serverError logs the real error and tells the client nothing about it.
+          func serverError(w http.ResponseWriter, r *http.Request, err error) {
+          	slog.Error("request failed", "method", r.Method, "path", r.URL.Path, "err", err)
+          	writeError(w, http.StatusInternalServerError, "something went wrong")
+          }
+      - file: main.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"log/slog"
+          	"net/http"
+          	"os"
+          )
+
+          func main() {
+          	srv := &http.Server{
+          		Addr:    ":8080",
+          		Handler: NewServer(NewStore()).Routes(),
+          	}
+          	slog.Info("listening", "addr", srv.Addr)
+          	if err := srv.ListenAndServe(); err != nil {
+          		slog.Error("server stopped", "err", err)
+          		os.Exit(1)
+          	}
+          }
+      - file: terminal (second window)
+        lang: sh
+        text: |
+          curl -i -X POST localhost:8080/links -H "Content-Type: application/json" -d '{"title":"Go docs","url":"https://go.dev/doc/"}'
+          curl localhost:8080/links
+          curl "localhost:8080/links?q=docs"
+          curl localhost:8080/links/1
+          curl -i -X DELETE localhost:8080/links/1
+          curl -i localhost:8080/links/abc
+          curl -i -X POST localhost:8080/links -d '{oops'
+    mistakes:
+      - problem:
+          en: "\"listen tcp :8080: bind: address already in use\"."
+          tr: "\"listen tcp :8080: bind: address already in use\" hatası."
+        fix:
+          en: "Another program (often your own earlier run) uses the port. Stop it with Ctrl+C in its terminal, or change `:8080` in main.go."
+          tr: "Port'u başka bir program kullanıyor (çoğu zaman senin önceki çalıştırman). Onun terminalinde Ctrl+C ile durdur ya da main.go'daki `:8080`'i değiştir."
+      - problem:
+          en: "Calling `w.WriteHeader(404)` after writing the body, or writing the body first and then the status."
+          tr: "Gövdeyi yazdıktan sonra `w.WriteHeader(404)` çağırmak ya da önce gövdeyi sonra durumu yazmak."
+        fix:
+          en: "The status and headers must come first; the first write to w sends them. Set headers, then WriteHeader, then the body. The writeJSON helper does it in that order."
+          tr: "Durum ve başlıklar önce gelmeli; w'ye ilk yazma onları gönderir. Önce başlıkları ayarla, sonra WriteHeader, sonra gövde. writeJSON yardımcısı bu sırayla yapar."
+      - problem:
+          en: "Returning the real error text to the client, such as a database message."
+          tr: "Gerçek hata metnini, örneğin bir veritabanı mesajını, istemciye döndürmek."
+        fix:
+          en: "Log the real error on the server and answer with a short, general message, as serverError does. Error texts can reveal how your system works."
+          tr: "Gerçek hatayı sunucuda logla ve serverError'daki gibi kısa, genel bir mesajla cevap ver. Hata metinleri sisteminin nasıl çalıştığını açığa çıkarabilir."
+    quiz:
+      - q:
+          en: "Which status code should POST /links answer when it created a link?"
+          tr: "POST /links bir link oluşturunca hangi durum kodunu dönmeli?"
+        options:
+          en:
+            - "200 OK"
+            - "201 Created"
+            - "204 No Content"
+          tr:
+            - "200 OK"
+            - "201 Created"
+            - "204 No Content"
+        answer: 1
+        why:
+          en: "201 means a new thing now exists. We also send its address in the Location header. 204 is what DELETE answers: success with no body."
+          tr: "201, yeni bir şeyin oluştuğu anlamına gelir. Adresini de Location başlığında gönderiyoruz. 204'ü DELETE döner: başarılı ama gövde yok."
+      - q:
+          en: "Why does the store use a sync.Mutex?"
+          tr: "Store neden sync.Mutex kullanıyor?"
+        options:
+          en:
+            - "net/http runs each request in its own goroutine, so two requests can touch the slice at the same time"
+            - "To make the JSON smaller"
+            - "A mutex is required by every struct"
+          tr:
+            - "net/http her isteği kendi goroutine'inde çalıştırır; iki istek slice'a aynı anda dokunabilir"
+            - "JSON'u küçültmek için"
+            - "Her struct mutex ister"
+        answer: 0
+        why:
+          en: "Two goroutines changing the same slice without a lock is a data race and can corrupt it."
+          tr: "İki goroutine'in kilit olmadan aynı slice'ı değiştirmesi veri yarışıdır (data race) ve onu bozabilir."
+    sources:
+      - title: "net/http, ServeMux patterns"
+        url: https://pkg.go.dev/net/http#ServeMux
+      - title: "Routing enhancements for Go 1.22"
+        url: https://go.dev/blog/routing-enhancements
+      - title: "HTTP response status codes (MDN)"
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status
+
+  - id: sqlite
+    stage: data-api
+    title:
+      en: "Keep the links in SQLite"
+      tr: "Linkleri SQLite'ta saklama"
+    minutes: 75
+    needs: [api]
+    why:
+      en: "Memory is wiped when the program stops. A database keeps data on disk. SQLite is a full SQL database in one file, so you need no server to install. The modernc.org/sqlite driver is written in pure Go, which keeps building and shipping simple later."
+      tr: "Program durunca bellek silinir. Veritabanı veriyi diskte tutar. SQLite tek dosyada tam bir SQL veritabanıdır; kuracağın bir sunucu yok. modernc.org/sqlite sürücüsü saf Go ile yazılmış; bu da ileride derlemeyi ve yayınlamayı basit tutar."
+    learn:
+      en: |
+        - `database/sql`: Go's standard database interface; a driver plugs in below it with a blank import (`_ "modernc.org/sqlite"`)
+        - SQL basics used here: `CREATE TABLE`, `INSERT`, `SELECT ... WHERE`, `DELETE`
+        - Placeholders (`?`): values travel separately from the SQL text, so a user can never turn input into SQL (SQL injection)
+        - Why `rows.Close()`, `rows.Err()` and `sql.ErrNoRows` matter
+        - Other choice: PostgreSQL with the pgx driver (`github.com/jackc/pgx/v5`); the code looks alike but placeholders are `$1, $2` and you need a running Postgres server
+      tr: |
+        - `database/sql`: Go'nun standart veritabanı arayüzü; sürücü altına boş import ile takılır (`_ "modernc.org/sqlite"`)
+        - Burada kullanılan SQL temelleri: `CREATE TABLE`, `INSERT`, `SELECT ... WHERE`, `DELETE`
+        - Yer tutucular (`?`): değerler SQL metninden ayrı gider; bu yüzden kullanıcı girdisi asla SQL'e dönüşemez (SQL injection)
+        - `rows.Close()`, `rows.Err()` ve `sql.ErrNoRows`'un neden önemli olduğu
+        - Başka seçenek: pgx sürücüsüyle PostgreSQL (`github.com/jackc/pgx/v5`); kod benzer görünür ama yer tutucular `$1, $2` olur ve çalışan bir Postgres sunucusu gerekir
+    do:
+      en: |
+        1. Add the driver: `go get modernc.org/sqlite@latest`. This edits `go.mod` and creates `go.sum` (both are committed).
+        2. Replace `store.go` and `main.go` with the code below. The Store methods keep the same names, so `server.go` does not change.
+        3. Run `go mod tidy` (adds what is missing, removes what is unused) and `go run .`. The first build is slow because the driver is big; later builds are fast.
+        4. Add a link with curl as before. Stop the server, start it again and list the links: they are still there. A file `linkbox.db` appeared in the folder.
+        5. Run `git status`: `linkbox.db` is not listed, because `.gitignore` already ignores `*.db` and its helper files. Commit: `git add . && git commit -m "Store links in SQLite"`.
+      tr: |
+        1. Sürücüyü ekle: `go get modernc.org/sqlite@latest`. Bu, `go.mod`'u düzenler ve `go.sum`'ı oluşturur (ikisi de commit edilir).
+        2. `store.go` ve `main.go` dosyalarını aşağıdaki kodla değiştir. Store metotları aynı adları taşıyor; bu yüzden `server.go` değişmez.
+        3. `go mod tidy` (eksikleri ekler, kullanılmayanları siler) ve `go run .` çalıştır. İlk derleme sürücü büyük olduğu için yavaştır; sonrakiler hızlıdır.
+        4. Linki curl ile daha önceki gibi ekle. Sunucuyu durdur, tekrar başlat ve linkleri listele: hâlâ orada. Klasörde `linkbox.db` dosyası belirdi.
+        5. `git status` çalıştır: `linkbox.db` listede yok, çünkü `.gitignore` `*.db` dosyalarını ve yardımcı dosyalarını zaten yok sayıyor. Commit et: `git add . && git commit -m "Store links in SQLite"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          go get modernc.org/sqlite@latest
+          go mod tidy
+          go run .
+      - file: store.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"database/sql"
+          	"errors"
+          	"fmt"
+          	"time"
+
+          	_ "modernc.org/sqlite" // registers the "sqlite" driver; pure Go, no C compiler needed
+          )
+
+          // ErrNotFound is returned when a link does not exist.
+          var ErrNotFound = errors.New("not found")
+
+          const schema = `
+          CREATE TABLE IF NOT EXISTS links (
+          	id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          	url        TEXT    NOT NULL,
+          	title      TEXT    NOT NULL,
+          	created_at INTEGER NOT NULL
+          );`
+
+          // Store keeps links in a SQLite database file.
+          type Store struct {
+          	db *sql.DB
+          }
+
+          // OpenStore opens (and creates, if needed) the database file at path.
+          func OpenStore(path string) (*Store, error) {
+          	// The _pragma options run on every new connection: wait up to 5 s when the
+          	// database is busy, and use the write-ahead log, which copes better with
+          	// readers and a writer at the same time.
+          	dsn := "file:" + path + "?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
+          	db, err := sql.Open("sqlite", dsn)
+          	if err != nil {
+          		return nil, err
+          	}
+          	if _, err := db.Exec(schema); err != nil {
+          		db.Close()
+          		return nil, fmt.Errorf("create schema: %w", err)
+          	}
+          	return &Store{db: db}, nil
+          }
+
+          func (s *Store) Close() error { return s.db.Close() }
+
+          func (s *Store) Create(ctx context.Context, l Link) (Link, error) {
+          	l.CreatedAt = time.Now().UTC().Truncate(time.Second)
+          	// The ? marks are placeholders: the driver sends the values separately from
+          	// the SQL text, so a value can never be run as SQL (no SQL injection).
+          	res, err := s.db.ExecContext(ctx,
+          		`INSERT INTO links (url, title, created_at) VALUES (?, ?, ?)`,
+          		l.URL, l.Title, l.CreatedAt.Unix())
+          	if err != nil {
+          		return Link{}, err
+          	}
+          	l.ID, err = res.LastInsertId()
+          	return l, err
+          }
+
+          // List returns the newest links first. A non-empty q keeps only links
+          // whose title or url contains it, ignoring case.
+          func (s *Store) List(ctx context.Context, q string) ([]Link, error) {
+          	rows, err := s.db.QueryContext(ctx,
+          		`SELECT id, url, title, created_at FROM links
+          		 WHERE instr(lower(title), lower(?)) > 0 OR instr(lower(url), lower(?)) > 0
+          		 ORDER BY id DESC`, q, q)
+          	if err != nil {
+          		return nil, err
+          	}
+          	defer rows.Close()
+
+          	out := []Link{} // not nil, so it becomes [] and not null in JSON
+          	for rows.Next() {
+          		var l Link
+          		var created int64
+          		if err := rows.Scan(&l.ID, &l.URL, &l.Title, &created); err != nil {
+          			return nil, err
+          		}
+          		l.CreatedAt = time.Unix(created, 0).UTC()
+          		out = append(out, l)
+          	}
+          	return out, rows.Err()
+          }
+
+          func (s *Store) Get(ctx context.Context, id int64) (Link, error) {
+          	var l Link
+          	var created int64
+          	err := s.db.QueryRowContext(ctx,
+          		`SELECT id, url, title, created_at FROM links WHERE id = ?`, id).
+          		Scan(&l.ID, &l.URL, &l.Title, &created)
+          	if errors.Is(err, sql.ErrNoRows) {
+          		return Link{}, ErrNotFound
+          	}
+          	l.CreatedAt = time.Unix(created, 0).UTC()
+          	return l, err
+          }
+
+          func (s *Store) Delete(ctx context.Context, id int64) error {
+          	res, err := s.db.ExecContext(ctx, `DELETE FROM links WHERE id = ?`, id)
+          	if err != nil {
+          		return err
+          	}
+          	n, err := res.RowsAffected()
+          	if err != nil {
+          		return err
+          	}
+          	if n == 0 {
+          		return ErrNotFound
+          	}
+          	return nil
+          }
+      - file: main.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"log/slog"
+          	"net/http"
+          	"os"
+          )
+
+          func main() {
+          	store, err := OpenStore(envOr("LINKBOX_DB", "linkbox.db"))
+          	if err != nil {
+          		slog.Error("open database", "err", err)
+          		os.Exit(1)
+          	}
+          	defer store.Close()
+
+          	srv := &http.Server{
+          		Addr:    ":" + envOr("PORT", "8080"),
+          		Handler: NewServer(store).Routes(),
+          	}
+          	slog.Info("listening", "addr", srv.Addr)
+          	if err := srv.ListenAndServe(); err != nil {
+          		slog.Error("server stopped", "err", err)
+          		os.Exit(1)
+          	}
+          }
+
+          // envOr returns the environment variable key, or fallback when it is not set.
+          func envOr(key, fallback string) string {
+          	if v := os.Getenv(key); v != "" {
+          		return v
+          	}
+          	return fallback
+          }
+    mistakes:
+      - problem:
+          en: "Building the SQL with `fmt.Sprintf(\"... WHERE id = %s\", id)` or `+`."
+          tr: "SQL'i `fmt.Sprintf(\"... WHERE id = %s\", id)` ya da `+` ile oluşturmak."
+        fix:
+          en: "Never put input into the SQL text. Use `?` placeholders and pass the values as arguments, as store.go does. This is what stops SQL injection."
+          tr: "Girdiyi asla SQL metnine koyma. `?` yer tutucularını kullan ve değerleri argüman olarak ver; store.go böyle yapıyor. SQL injection'ı bu durdurur."
+      - problem:
+          en: "Forgetting `defer rows.Close()` or not checking `rows.Err()` after the loop."
+          tr: "`defer rows.Close()` yazmayı unutmak ya da döngüden sonra `rows.Err()`'ı kontrol etmemek."
+        fix:
+          en: "Without Close the connection is never given back and the program stalls after a few requests. rows.Err() reports an error that ended the loop early."
+          tr: "Close olmazsa bağlantı geri verilmez ve program birkaç istekten sonra takılır. rows.Err() döngüyü erken bitiren hatayı bildirir."
+      - problem:
+          en: "Putting `?` or `#` in the database file name."
+          tr: "Veritabanı dosya adına `?` ya da `#` koymak."
+        fix:
+          en: "The file name becomes part of a URL (`file:name?options`), so these characters are read as options. Keep it simple, like `linkbox.db`."
+          tr: "Dosya adı bir URL'nin parçası olur (`file:ad?seçenekler`); bu yüzden bu karakterler seçenek olarak okunur. `linkbox.db` gibi basit tut."
+    quiz:
+      - q:
+          en: "Why do we write WHERE id = ? and pass id separately?"
+          tr: "Neden WHERE id = ? yazıp id'yi ayrıca veriyoruz?"
+        options:
+          en:
+            - "It is faster to type"
+            - "The value is never read as SQL, so input cannot change the query"
+            - "SQLite only accepts numbers this way"
+          tr:
+            - "Yazması daha kısa"
+            - "Değer asla SQL olarak okunmaz; girdi sorguyu değiştiremez"
+            - "SQLite sadece böyle sayı kabul eder"
+        answer: 1
+        why:
+          en: "The driver sends the SQL and the values separately, so text like `1; DROP TABLE links` stays a plain value."
+          tr: "Sürücü SQL'i ve değerleri ayrı gönderir; `1; DROP TABLE links` gibi bir metin düz bir değer olarak kalır."
+    sources:
+      - title: Accessing relational databases (Go docs)
+        url: https://go.dev/doc/database/
+      - title: Avoiding SQL injection risk
+        url: https://go.dev/doc/database/sql-injection
+      - title: modernc.org/sqlite
+        url: https://pkg.go.dev/modernc.org/sqlite
+
+  - id: shutdown
+    stage: data-api
+    title:
+      en: "Deadlines with context and a graceful shutdown"
+      tr: "context ile süre sınırı ve düzgün kapanma"
+    minutes: 60
+    needs: [sqlite]
+    why:
+      en: "A slow query should not hang a request forever, and a deploy should not cut requests in half. A context carries a deadline from the request down to the database. On shutdown the server stops taking new requests, finishes the running ones and only then closes the database."
+      tr: "Yavaş bir sorgu bir isteği sonsuza kadar asılı bırakmamalı ve bir deploy istekleri yarıda kesmemeli. context, bir son tarihi istekten veritabanına kadar taşır. Kapanırken sunucu yeni istek almayı bırakır, çalışanları bitirir ve ancak sonra veritabanını kapatır."
+    learn:
+      en: |
+        - `context.Context`: a deadline and a cancel signal passed as the first argument, named `ctx`
+        - `context.WithTimeout` and why you always `defer cancel()`
+        - Middleware: a function that wraps a handler (`func(http.Handler) http.Handler` style)
+        - Signals: Ctrl+C is `os.Interrupt`; Docker and hosting platforms send `SIGTERM` before they stop a program
+        - `signal.NotifyContext` and `srv.Shutdown(ctx)`
+      tr: |
+        - `context.Context`: ilk argüman olarak geçirilen, `ctx` adlı bir son tarih ve iptal sinyali
+        - `context.WithTimeout` ve neden her zaman `defer cancel()` yazdığın
+        - Middleware: bir handler'ı saran fonksiyon (`func(http.Handler) http.Handler` tarzı)
+        - Sinyaller: Ctrl+C `os.Interrupt`'tır; Docker ve barındırma platformları bir programı durdurmadan önce `SIGTERM` gönderir
+        - `signal.NotifyContext` ve `srv.Shutdown(ctx)`
+    do:
+      en: |
+        1. Create `middleware.go` below. `withTimeout` gives each request three seconds; the store already passes `r.Context()` to every query.
+        2. In `server.go` change the last line of `Routes` as shown, and add `"time"` to the imports.
+        3. Replace `main.go` with the version below.
+        4. Run `go run .`, then press Ctrl+C. You should see `shutting down` and the program ends cleanly.
+        5. Try the other signal: build with `go build -o linkbox .`, start `./linkbox`, and from another terminal run `kill -TERM <pid>` (find the pid with `pgrep linkbox`). It stops the same way. (On Windows only Ctrl+C is available.)
+      tr: |
+        1. Aşağıdaki `middleware.go` dosyasını oluştur. `withTimeout` her isteğe üç saniye verir; store zaten her sorguya `r.Context()` geçiriyor.
+        2. `server.go` içinde `Routes`'un son satırını gösterildiği gibi değiştir ve import'lara `"time"` ekle.
+        3. `main.go` dosyasını aşağıdaki sürümle değiştir.
+        4. `go run .` çalıştır, sonra Ctrl+C'ye bas. `shutting down` yazısını görmelisin ve program temiz bir şekilde biter.
+        5. Diğer sinyali dene: `go build -o linkbox .` ile derle, `./linkbox`'u başlat ve başka bir terminalden `kill -TERM <pid>` çalıştır (pid'yi `pgrep linkbox` ile bul). Aynı şekilde durur. (Windows'ta sadece Ctrl+C var.)
+    code:
+      - file: middleware.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"net/http"
+          	"time"
+          )
+
+          // withTimeout gives every request a deadline. The store passes the request's
+          // context to the database, so a slow query is cancelled when time runs out.
+          func withTimeout(d time.Duration, next http.Handler) http.Handler {
+          	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+          		ctx, cancel := context.WithTimeout(r.Context(), d)
+          		defer cancel()
+          		next.ServeHTTP(w, r.WithContext(ctx))
+          	})
+          }
+      - file: server.go (the end of Routes)
+        lang: go
+        text: |
+          	mux.HandleFunc("DELETE /links/{id}", s.deleteLink)
+          	return withTimeout(3*time.Second, mux)
+          }
+      - file: main.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"errors"
+          	"log/slog"
+          	"net/http"
+          	"os"
+          	"os/signal"
+          	"syscall"
+          	"time"
+          )
+
+          func main() {
+          	if err := run(); err != nil {
+          		slog.Error("stopped", "err", err)
+          		os.Exit(1)
+          	}
+          }
+
+          func run() error {
+          	// ctx is cancelled when someone presses Ctrl+C or a platform sends SIGTERM
+          	// (what Docker and most hosts send before they stop your program).
+          	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+          	defer stop()
+
+          	store, err := OpenStore(envOr("LINKBOX_DB", "linkbox.db"))
+          	if err != nil {
+          		return err
+          	}
+          	defer store.Close() // runs last, after the server has stopped
+
+          	srv := &http.Server{
+          		Addr:    ":" + envOr("PORT", "8080"),
+          		Handler: NewServer(store).Routes(),
+          	}
+
+          	errc := make(chan error, 1)
+          	go func() {
+          		slog.Info("listening", "addr", srv.Addr)
+          		errc <- srv.ListenAndServe()
+          	}()
+
+          	select {
+          	case err := <-errc: // the server failed to start or crashed
+          		return err
+          	case <-ctx.Done(): // we were asked to stop
+          	}
+
+          	slog.Info("shutting down")
+          	// Stop accepting new requests and give running ones up to 10 seconds to finish.
+          	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+          	defer cancel()
+          	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+          		return err
+          	}
+          	return nil
+          }
+
+          // envOr returns the environment variable key, or fallback when it is not set.
+          func envOr(key, fallback string) string {
+          	if v := os.Getenv(key); v != "" {
+          		return v
+          	}
+          	return fallback
+          }
+    mistakes:
+      - problem:
+          en: "Not calling `cancel()` after `WithTimeout`."
+          tr: "`WithTimeout`'tan sonra `cancel()` çağırmamak."
+        fix:
+          en: "The context's timer and resources are kept until the timeout fires. Always write `defer cancel()` on the next line (`go vet` warns about it)."
+          tr: "Context'in zamanlayıcısı ve kaynakları zaman aşımı dolana kadar tutulur. Hemen sonraki satıra her zaman `defer cancel()` yaz (`go vet` bunu uyarır)."
+      - problem:
+          en: "Calling `os.Exit` or `log.Fatal` in main and expecting deferred calls (like closing the database) to run."
+          tr: "main'de `os.Exit` ya da `log.Fatal` çağırıp ertelenmiş çağrıların (veritabanını kapatmak gibi) çalışmasını beklemek."
+        fix:
+          en: "They end the program at once and skip defers. That is why main only calls `run()` and exits after it returned."
+          tr: "Programı hemen bitirirler ve defer'leri atlarlar. Bu yüzden main sadece `run()`'ı çağırır ve o döndükten sonra çıkar."
+    quiz:
+      - q:
+          en: "What happens to a request that is still running when srv.Shutdown is called?"
+          tr: "srv.Shutdown çağrıldığında hâlâ çalışan bir istek ne olur?"
+        options:
+          en:
+            - "It is cut at once"
+            - "It gets time to finish, up to the shutdown deadline"
+            - "It starts again"
+          tr:
+            - "Hemen kesilir"
+            - "Kapanma süresine kadar bitmesi için zaman verilir"
+            - "Yeniden başlar"
+        answer: 1
+        why:
+          en: "Shutdown stops new connections and waits for running requests until its context ends (10 seconds in our code)."
+          tr: "Shutdown yeni bağlantıları durdurur ve context'i bitene kadar çalışan istekleri bekler (bizim kodda 10 saniye)."
+    sources:
+      - title: context
+        url: https://pkg.go.dev/context
+      - title: "net/http, Server.Shutdown"
+        url: https://pkg.go.dev/net/http#Server.Shutdown
+      - title: "os/signal, NotifyContext"
+        url: https://pkg.go.dev/os/signal#NotifyContext
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the API with testing and httptest"
+      tr: "API'yi testing ve httptest ile test etme"
+    minutes: 90
+    needs: [shutdown]
+    why:
+      en: "Every change can break something you are not looking at. Go has testing built in: `go test` runs functions named `TestSomething`. With `httptest` you call your handlers without a network, in milliseconds."
+      tr: "Her değişiklik bakmadığın bir yeri bozabilir. Go'da test yazmak yerleşiktir: `go test`, `TestBirSey` adlı fonksiyonları çalıştırır. `httptest` ile handler'larını ağ olmadan, milisaniyeler içinde çağırırsın."
+    learn:
+      en: |
+        - Test files end in `_test.go`; a test is `func TestXxx(t *testing.T)`
+        - Table-driven tests: a slice of cases and one loop, with `t.Run(name, ...)` for each
+        - `httptest.NewRequest` and `httptest.NewRecorder` call a handler directly; `httptest.NewServer` starts a real server on a free port
+        - `t.TempDir()` gives each test its own empty folder, so each test gets its own empty database
+        - `t.Errorf` reports and continues; `t.Fatalf` reports and stops this test
+        - `go test -cover` shows how much code the tests run
+      tr: |
+        - Test dosyaları `_test.go` ile biter; test, `func TestXxx(t *testing.T)` biçimindedir
+        - Tablo güdümlü testler: bir case slice'ı ve tek bir döngü; her biri için `t.Run(ad, ...)`
+        - `httptest.NewRequest` ve `httptest.NewRecorder` bir handler'ı doğrudan çağırır; `httptest.NewServer` boş bir portta gerçek bir sunucu başlatır
+        - `t.TempDir()` her teste kendi boş klasörünü verir; böylece her testin kendi boş veritabanı olur
+        - `t.Errorf` bildirir ve devam eder; `t.Fatalf` bildirir ve bu testi durdurur
+        - `go test -cover` testlerin kodun ne kadarını çalıştırdığını gösterir
+    do:
+      en: |
+        1. Create `server_test.go` and `store_test.go` with the code below.
+        2. Run `go test ./...`. It should print `ok`. Run `go test -v ./...` to see every case by name, and `go test -cover ./...`.
+        3. Break the code on purpose: in `link.go` change `!= "http"` to `!= "htt"`. Run the tests and read which cases fail and why. Undo the change.
+        4. Add a case of your own to the table in `TestCreateLink`, for example a title made only of spaces.
+        5. Commit: `git add . && git commit -m "Tests for the API"`.
+      tr: |
+        1. Aşağıdaki kodla `server_test.go` ve `store_test.go` dosyalarını oluştur.
+        2. `go test ./...` çalıştır. `ok` yazmalı. Her case'i adıyla görmek için `go test -v ./...`, kapsamı görmek için `go test -cover ./...` çalıştır.
+        3. Kodu bilerek boz: `link.go` içinde `!= "http"`'yi `!= "htt"` yap. Testleri çalıştır ve hangi case'lerin neden kırıldığını oku. Değişikliği geri al.
+        4. `TestCreateLink` tablosuna kendi case'ini ekle; örneğin sadece boşluklardan oluşan bir başlık.
+        5. Commit et: `git add . && git commit -m "Tests for the API"`.
+    code:
+      - file: server_test.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"encoding/json"
+          	"net/http"
+          	"net/http/httptest"
+          	"path/filepath"
+          	"strings"
+          	"testing"
+          )
+
+          // newTestStore opens a real SQLite database in a temporary folder that Go
+          // deletes after the test, so every test starts with an empty database.
+          func newTestStore(t *testing.T) *Store {
+          	t.Helper()
+          	store, err := OpenStore(filepath.Join(t.TempDir(), "test.db"))
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	t.Cleanup(func() { store.Close() })
+          	return store
+          }
+
+          func newTestHandler(t *testing.T) http.Handler {
+          	return NewServer(newTestStore(t)).Routes()
+          }
+
+          // do sends one request straight to the handler, with no network involved.
+          func do(h http.Handler, method, path, body string) *httptest.ResponseRecorder {
+          	req := httptest.NewRequest(method, path, strings.NewReader(body))
+          	rec := httptest.NewRecorder()
+          	h.ServeHTTP(rec, req)
+          	return rec
+          }
+
+          func TestCreateLink(t *testing.T) {
+          	tests := []struct {
+          		name       string
+          		body       string
+          		wantStatus int
+          	}{
+          		{"valid", `{"title":"Go docs","url":"https://go.dev/doc/"}`, http.StatusCreated},
+          		{"missing title", `{"url":"https://go.dev"}`, http.StatusBadRequest},
+          		{"missing url", `{"title":"Go"}`, http.StatusBadRequest},
+          		{"wrong scheme", `{"title":"Go","url":"ftp://go.dev"}`, http.StatusBadRequest},
+          		{"not json", `{oops`, http.StatusBadRequest},
+          		{"empty body", ``, http.StatusBadRequest},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.name, func(t *testing.T) {
+          			rec := do(newTestHandler(t), "POST", "/links", tc.body)
+          			if rec.Code != tc.wantStatus {
+          				t.Errorf("status = %d, want %d (body: %s)", rec.Code, tc.wantStatus, rec.Body)
+          			}
+          		})
+          	}
+          }
+
+          func TestGetAndDelete(t *testing.T) {
+          	h := newTestHandler(t)
+          	do(h, "POST", "/links", `{"title":"Go docs","url":"https://go.dev/doc/"}`)
+
+          	tests := []struct {
+          		name       string
+          		method     string
+          		path       string
+          		wantStatus int
+          	}{
+          		{"get existing", "GET", "/links/1", http.StatusOK},
+          		{"get missing", "GET", "/links/99", http.StatusNotFound},
+          		{"get bad id", "GET", "/links/abc", http.StatusBadRequest},
+          		{"delete missing", "DELETE", "/links/99", http.StatusNotFound},
+          		{"delete existing", "DELETE", "/links/1", http.StatusNoContent},
+          		{"get after delete", "GET", "/links/1", http.StatusNotFound},
+          		{"wrong method", "PUT", "/links/1", http.StatusMethodNotAllowed},
+          	}
+          	// These run in order: each one builds on the one before.
+          	for _, tc := range tests {
+          		t.Run(tc.name, func(t *testing.T) {
+          			if rec := do(h, tc.method, tc.path, ""); rec.Code != tc.wantStatus {
+          				t.Errorf("status = %d, want %d", rec.Code, tc.wantStatus)
+          			}
+          		})
+          	}
+          }
+
+          func TestListSearch(t *testing.T) {
+          	h := newTestHandler(t)
+          	do(h, "POST", "/links", `{"title":"Go docs","url":"https://go.dev/doc/"}`)
+          	do(h, "POST", "/links", `{"title":"Rust book","url":"https://doc.rust-lang.org/book/"}`)
+
+          	tests := []struct {
+          		query string
+          		want  []string // titles, newest first
+          	}{
+          		{"", []string{"Rust book", "Go docs"}},
+          		{"?q=rust", []string{"Rust book"}},
+          		{"?q=GO.DEV", []string{"Go docs"}},
+          		{"?q=nothing", []string{}},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.query, func(t *testing.T) {
+          			rec := do(h, "GET", "/links"+tc.query, "")
+          			var got []Link
+          			if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
+          				t.Fatal(err)
+          			}
+          			if len(got) != len(tc.want) {
+          				t.Fatalf("got %d links, want %d", len(got), len(tc.want))
+          			}
+          			for i, l := range got {
+          				if l.Title != tc.want[i] {
+          					t.Errorf("link %d = %q, want %q", i, l.Title, tc.want[i])
+          				}
+          			}
+          		})
+          	}
+          }
+
+          // TestOverHTTP starts a real server on a random local port and talks to it
+          // like any client would.
+          func TestOverHTTP(t *testing.T) {
+          	ts := httptest.NewServer(newTestHandler(t))
+          	defer ts.Close()
+
+          	resp, err := http.Post(ts.URL+"/links", "application/json",
+          		strings.NewReader(`{"title":"Go docs","url":"https://go.dev/doc/"}`))
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	defer resp.Body.Close()
+          	if resp.StatusCode != http.StatusCreated {
+          		t.Fatalf("status = %d, want 201", resp.StatusCode)
+          	}
+          	if got := resp.Header.Get("Location"); got != "/links/1" {
+          		t.Errorf("Location = %q, want /links/1", got)
+          	}
+          }
+      - file: store_test.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"path/filepath"
+          	"testing"
+          )
+
+          func TestStoreKeepsDataAfterReopen(t *testing.T) {
+          	ctx := context.Background()
+          	path := filepath.Join(t.TempDir(), "test.db")
+
+          	store, err := OpenStore(path)
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	if _, err := store.Create(ctx, Link{Title: "Go docs", URL: "https://go.dev/doc/"}); err != nil {
+          		t.Fatal(err)
+          	}
+          	store.Close()
+
+          	store, err = OpenStore(path)
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	defer store.Close()
+          	links, err := store.List(ctx, "")
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	if len(links) != 1 || links[0].Title != "Go docs" {
+          		t.Fatalf("links after reopen = %+v", links)
+          	}
+          }
+    mistakes:
+      - problem:
+          en: "Tests share one database and pass alone but fail together."
+          tr: "Testler tek bir veritabanını paylaşıyor; tek tek geçiyor ama birlikte kırılıyor."
+        fix:
+          en: "Give each test its own database in `t.TempDir()`, as newTestStore does. Tests must not depend on each other or on their order."
+          tr: "newTestStore'daki gibi her teste `t.TempDir()` içinde kendi veritabanını ver. Testler birbirine ya da sıralarına bağlı olmamalı."
+      - problem:
+          en: "Using `t.Fatal` inside a loop of cases and seeing only the first failure."
+          tr: "Case döngüsünde `t.Fatal` kullanıp sadece ilk hatayı görmek."
+        fix:
+          en: "Use `t.Run` for each case (a failure only stops its own subtest) and `t.Errorf` when the rest of the test can still run."
+          tr: "Her case için `t.Run` kullan (hata sadece kendi alt testini durdurur) ve testin geri kalanı çalışabiliyorsa `t.Errorf` kullan."
+      - problem:
+          en: "Wanting `go test -race` and getting \"-race requires cgo\"."
+          tr: "`go test -race` isteyip \"-race requires cgo\" hatası almak."
+        fix:
+          en: "The race detector needs cgo and a C compiler (gcc or clang). Install one, or skip -race; the program itself stays pure Go either way."
+          tr: "Race detector cgo ve bir C derleyicisi (gcc ya da clang) ister. Birini kur ya da -race'i atla; program her iki durumda da saf Go kalır."
+    quiz:
+      - q:
+          en: "What is the benefit of a table-driven test?"
+          tr: "Tablo güdümlü testin faydası nedir?"
+        options:
+          en:
+            - "Tests run in parallel by themselves"
+            - "Go requires it"
+            - "A new case is one new line, and the checking code is written once"
+          tr:
+            - "Testler kendiliğinden paralel çalışır"
+            - "Go bunu zorunlu tutar"
+            - "Yeni bir case tek bir yeni satırdır ve kontrol kodu bir kez yazılır"
+        answer: 2
+        why:
+          en: "The cases are data and the loop is shared, so adding a case is cheap and failures are named by case."
+          tr: "Case'ler veridir, döngü ortaktır; yeni case eklemek ucuzdur ve hatalar case adıyla bildirilir."
+    sources:
+      - title: testing
+        url: https://pkg.go.dev/testing
+      - title: net/http/httptest
+        url: https://pkg.go.dev/net/http/httptest
+      - title: Table-driven tests (Go wiki)
+        url: https://go.dev/wiki/TableDrivenTests
+
+  - id: limits
+    stage: security
+    title:
+      en: "Limit what comes in: body size, unknown fields, timeouts"
+      tr: "Gelenin sınırını koyma: gövde boyutu, bilinmeyen alanlar, zaman aşımı"
+    minutes: 60
+    needs: [tests]
+    why:
+      en: "Anyone on the internet can send your server anything: a 10 GB body, extra fields, or a connection that sends one byte a minute. A Go http.Server has no timeouts and no body limit by default. Setting them is the cheapest security you can add."
+      tr: "İnternetteki herkes sunucuna her şeyi gönderebilir: 10 GB'lık bir gövde, fazladan alanlar ya da dakikada bir bayt gönderen bir bağlantı. Go'daki bir http.Server varsayılan olarak zaman aşımı ve gövde sınırı içermez. Bunları ayarlamak ekleyebileceğin en ucuz güvenliktir."
+    learn:
+      en: |
+        - Never trust input: check size, type, length and format on the server, even if your own front end checks too
+        - `http.MaxBytesReader` caps the body; going over it gives a `*http.MaxBytesError` and the answer `413`
+        - `Decoder.DisallowUnknownFields()` rejects fields you did not expect; a second `Decode` or `Token` call shows junk after the JSON value
+        - The four server timeouts: `ReadHeaderTimeout`, `ReadTimeout`, `WriteTimeout`, `IdleTimeout`, and `MaxHeaderBytes`
+        - Show the client little: generic error text, and no stack traces
+      tr: |
+        - Girdiye asla güvenme: front end de kontrol etse bile boyutu, tipi, uzunluğu ve biçimi sunucuda kontrol et
+        - `http.MaxBytesReader` gövdeyi sınırlar; aşılırsa `*http.MaxBytesError` oluşur ve cevap `413` olur
+        - `Decoder.DisallowUnknownFields()` beklemediğin alanları reddeder; ikinci bir `Decode` ya da `Token` çağrısı JSON değerinden sonraki çöpü gösterir
+        - Sunucunun zaman aşımları: `ReadHeaderTimeout`, `ReadTimeout`, `WriteTimeout`, `IdleTimeout` ve `MaxHeaderBytes`
+        - İstemciye az şey göster: genel hata metni, stack trace yok
+    do:
+      en: |
+        1. Replace `json.go` with the version below. `readJSON` now takes `w` too, and a new `badBody` answers 400 or 413.
+        2. In `server.go`, in `createLink`, use the new calls (below).
+        3. In `main.go`, replace the `http.Server` literal with the one below.
+        4. Add the three new cases to the table in `TestCreateLink` (below) and run `go test ./...`.
+        5. Try it by hand: `curl -i -X POST localhost:8080/links -d '{"title":"a","url":"https://a.b","admin":true}'` answers 400.
+        6. Commit: `git add . && git commit -m "Limit request bodies and set server timeouts"`.
+      tr: |
+        1. `json.go` dosyasını aşağıdaki sürümle değiştir. `readJSON` artık `w`'yi de alıyor ve yeni `badBody` 400 ya da 413 cevabı veriyor.
+        2. `server.go` içinde `createLink`'te yeni çağrıları kullan (aşağıda).
+        3. `main.go` içinde `http.Server` literal'ini aşağıdakiyle değiştir.
+        4. `TestCreateLink` tablosuna üç yeni case'i ekle (aşağıda) ve `go test ./...` çalıştır.
+        5. Elle dene: `curl -i -X POST localhost:8080/links -d '{"title":"a","url":"https://a.b","admin":true}'` 400 döner.
+        6. Commit et: `git add . && git commit -m "Limit request bodies and set server timeouts"`.
+    code:
+      - file: json.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"encoding/json"
+          	"errors"
+          	"io"
+          	"log/slog"
+          	"net/http"
+          )
+
+          // maxBodyBytes is the biggest request body we accept. A link is tiny.
+          const maxBodyBytes = 16 << 10 // 16 KiB
+
+          func writeJSON(w http.ResponseWriter, status int, v any) {
+          	w.Header().Set("Content-Type", "application/json")
+          	w.WriteHeader(status)
+          	if err := json.NewEncoder(w).Encode(v); err != nil {
+          		slog.Error("write response", "err", err)
+          	}
+          }
+
+          func writeError(w http.ResponseWriter, status int, message string) {
+          	writeJSON(w, status, map[string]string{"error": message})
+          }
+
+          // readJSON reads exactly one JSON value from the body into dst. It refuses
+          // bodies over maxBodyBytes, fields dst does not have, and anything after the value.
+          func readJSON(w http.ResponseWriter, r *http.Request, dst any) error {
+          	r.Body = http.MaxBytesReader(w, r.Body, maxBodyBytes)
+          	dec := json.NewDecoder(r.Body)
+          	dec.DisallowUnknownFields()
+          	if err := dec.Decode(dst); err != nil {
+          		return err
+          	}
+          	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+          		return errors.New("body must contain a single JSON value")
+          	}
+          	return nil
+          }
+
+          // badBody answers a request whose body readJSON refused.
+          func badBody(w http.ResponseWriter, err error) {
+          	var tooBig *http.MaxBytesError
+          	if errors.As(err, &tooBig) {
+          		writeError(w, http.StatusRequestEntityTooLarge, "body is too large")
+          		return
+          	}
+          	writeError(w, http.StatusBadRequest, "body must be valid JSON with only the known fields")
+          }
+      - file: server.go (in createLink)
+        lang: go
+        text: |
+          	var in Link
+          	if err := readJSON(w, r, &in); err != nil {
+          		badBody(w, err)
+          		return
+          	}
+      - file: main.go (the server in run)
+        lang: go
+        text: |
+          	srv := &http.Server{
+          		Addr:    ":" + envOr("PORT", "8080"),
+          		Handler: NewServer(store).Routes(),
+
+          		// Without timeouts one slow or silent client can hold a connection forever.
+          		ReadHeaderTimeout: 5 * time.Second,  // time to send the request headers
+          		ReadTimeout:       10 * time.Second, // time to send the whole request
+          		WriteTimeout:      15 * time.Second, // time to receive the whole response
+          		IdleTimeout:       60 * time.Second, // time a kept-alive connection may sit unused
+          		MaxHeaderBytes:    16 << 10,         // 16 KiB of headers
+          	}
+      - file: server_test.go (new cases in TestCreateLink)
+        lang: go
+        text: |
+          		{"unknown field", `{"title":"Go","url":"https://go.dev","admin":true}`, http.StatusBadRequest},
+          		{"two values", `{"title":"Go","url":"https://go.dev"}{}`, http.StatusBadRequest},
+          		{"too big", `{"title":"` + strings.Repeat("a", 20<<10) + `","url":"https://go.dev"}`, http.StatusRequestEntityTooLarge},
+    mistakes:
+      - problem:
+          en: "Setting `WriteTimeout` shorter than the slowest answer, and clients get cut off."
+          tr: "`WriteTimeout`'u en yavaş cevaptan kısa ayarlamak ve istemcilerin yarıda kesilmesi."
+        fix:
+          en: "The write deadline starts when the request headers have been read, so it includes the time your handler needs. Keep it above your per-request deadline (3 seconds here, 15 for the server)."
+          tr: "Yazma süresi istek başlıkları okunduğunda başlar; yani handler'ının harcadığı süreyi de içerir. İstek başına süre sınırının (burada 3 saniye) üstünde tut (sunucuda 15)."
+      - problem:
+          en: "Checking the size with `r.ContentLength`."
+          tr: "Boyutu `r.ContentLength` ile kontrol etmek."
+        fix:
+          en: "That header is claimed by the client and can be missing or false. Wrap the body in MaxBytesReader, which counts the bytes really read."
+          tr: "O başlığı istemci kendi söyler; eksik ya da yanlış olabilir. Gövdeyi, gerçekten okunan baytları sayan MaxBytesReader ile sar."
+    quiz:
+      - q:
+          en: "Why add ReadHeaderTimeout to the server?"
+          tr: "Sunucuya neden ReadHeaderTimeout ekliyoruz?"
+        options:
+          en:
+            - "A client that connects and then sends nothing would hold a connection forever"
+            - "To make responses faster"
+            - "To limit how many users can register"
+          tr:
+            - "Bağlanıp sonra hiçbir şey göndermeyen bir istemci bağlantıyı sonsuza kadar tutardı"
+            - "Cevapları hızlandırmak için"
+            - "Kaç kullanıcının kayıt olabileceğini sınırlamak için"
+        answer: 0
+        why:
+          en: "Without timeouts, slow clients (accidental or on purpose, \"slowloris\") use up your connections."
+          tr: "Zaman aşımı olmazsa yavaş istemciler (kazara ya da kasten, \"slowloris\") bağlantılarını tüketir."
+    sources:
+      - title: "net/http, MaxBytesReader"
+        url: https://pkg.go.dev/net/http#MaxBytesReader
+      - title: "net/http, Server timeouts"
+        url: https://pkg.go.dev/net/http#Server
+      - title: "encoding/json, Decoder.DisallowUnknownFields"
+        url: https://pkg.go.dev/encoding/json#Decoder.DisallowUnknownFields
+
+  - id: auth
+    stage: security
+    title:
+      en: "User accounts and password hashing with bcrypt"
+      tr: "Kullanıcı hesapları ve bcrypt ile şifre hash'leme"
+    minutes: 120
+    needs: [limits]
+    why:
+      en: "Right now anyone can add or delete links. Accounts fix that, but a password must never be stored as text: if the database leaks, every password leaks. You store a slow, salted hash, so a stolen database is very hard to turn back into passwords."
+      tr: "Şu an herkes link ekleyip silebiliyor. Hesaplar bunu çözer ama şifre asla metin olarak saklanmamalı: veritabanı sızarsa bütün şifreler sızar. Yavaş ve tuzlanmış (salted) bir hash saklarsın; böylece çalınan bir veritabanını şifrelere geri çevirmek çok zordur."
+    learn:
+      en: |
+        - Hashing is one-way: you can check a password against a hash but not read the password from it
+        - A salt is random data added to every password, so equal passwords get different hashes; bcrypt makes and stores it inside the hash
+        - bcrypt is slow on purpose (the cost, 10 by default) and reads only the first 72 bytes, so the code limits passwords to 8 to 72 bytes
+        - OWASP prefers Argon2id (`golang.org/x/crypto/argon2`) and lists bcrypt with a cost of 10 or more for legacy systems; bcrypt is simpler to use and fine to start with
+        - HTTP Basic authentication: the client sends `username:password` in the Authorization header. Only send it over HTTPS; the host in the deploy step gives you HTTPS
+        - Timing: an unknown user must take as long to reject as a wrong password
+      tr: |
+        - Hash'leme tek yönlüdür: bir şifreyi hash'e karşı kontrol edebilirsin ama hash'ten şifreyi okuyamazsın
+        - Salt, her şifreye eklenen rastgele veridir; böylece aynı şifreler farklı hash alır; bcrypt onu üretir ve hash'in içinde saklar
+        - bcrypt bilerek yavaştır (maliyet, varsayılan 10) ve sadece ilk 72 baytı okur; bu yüzden kod şifreleri 8 ile 72 bayt arasında tutar
+        - OWASP Argon2id'yi (`golang.org/x/crypto/argon2`) tercih eder ve eski sistemler için 10 ya da daha yüksek maliyetli bcrypt'i listeler; bcrypt kullanması daha basittir ve başlamak için yeterlidir
+        - HTTP Basic kimlik doğrulama: istemci `kullanıcıadı:şifre`'yi Authorization başlığında gönderir. Sadece HTTPS üzerinden gönder; deploy adımındaki barındırma sana HTTPS verir
+        - Zamanlama: bilinmeyen bir kullanıcıyı reddetmek, yanlış şifreyi reddetmek kadar sürmeli
+    do:
+      en: |
+        1. Add bcrypt: `go get golang.org/x/crypto/bcrypt@latest`, later `go mod tidy`.
+        2. Create `users.go` and `auth.go` with the code below.
+        3. In `store.go` change the line in `OpenStore` that creates the schema, so it creates the users table too (below).
+        4. In `server.go` add the `POST /users` route and wrap the two write routes in `requireAuth` (below).
+        5. Replace `server_test.go` with the new version. It registers a user for every test and covers logins, wrong passwords and hashed storage. Run `go test ./...`; it takes a few seconds because bcrypt is slow on purpose.
+        6. Try it: register, then add a link with and without a login (below). Reading links stays public.
+        7. Commit: `git add . && git commit -m "Accounts with bcrypt and basic auth"`.
+      tr: |
+        1. bcrypt'i ekle: `go get golang.org/x/crypto/bcrypt@latest`, sonra `go mod tidy`.
+        2. Aşağıdaki kodla `users.go` ve `auth.go` dosyalarını oluştur.
+        3. `store.go` içinde `OpenStore`'daki şemayı oluşturan satırı, users tablosunu da oluşturacak şekilde değiştir (aşağıda).
+        4. `server.go` içine `POST /users` rotasını ekle ve iki yazma rotasını `requireAuth` ile sar (aşağıda).
+        5. `server_test.go` dosyasını yeni sürümle değiştir. Her test için bir kullanıcı kaydeder; girişleri, yanlış şifreleri ve hash'lenmiş saklamayı kapsar. `go test ./...` çalıştır; bcrypt bilerek yavaş olduğu için birkaç saniye sürer.
+        6. Dene: kayıt ol, sonra giriş yaparak ve yapmadan link ekle (aşağıda). Linkleri okumak herkese açık kalır.
+        7. Commit et: `git add . && git commit -m "Accounts with bcrypt and basic auth"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          go get golang.org/x/crypto/bcrypt@latest
+          go mod tidy
+      - file: users.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"database/sql"
+          	"errors"
+          	"time"
+          )
+
+          // ErrExists is returned when a username is already taken.
+          var ErrExists = errors.New("already exists")
+
+          const userSchema = `
+          CREATE TABLE IF NOT EXISTS users (
+          	id            INTEGER PRIMARY KEY AUTOINCREMENT,
+          	username      TEXT    NOT NULL UNIQUE,
+          	password_hash TEXT    NOT NULL,
+          	created_at    INTEGER NOT NULL
+          );`
+
+          // CreateUser stores a user. passwordHash must already be hashed.
+          func (s *Store) CreateUser(ctx context.Context, username, passwordHash string) error {
+          	res, err := s.db.ExecContext(ctx,
+          		`INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)
+          		 ON CONFLICT(username) DO NOTHING`,
+          		username, passwordHash, time.Now().Unix())
+          	if err != nil {
+          		return err
+          	}
+          	n, err := res.RowsAffected()
+          	if err != nil {
+          		return err
+          	}
+          	if n == 0 {
+          		return ErrExists
+          	}
+          	return nil
+          }
+
+          // PasswordHash returns the stored hash of a user, or ErrNotFound.
+          func (s *Store) PasswordHash(ctx context.Context, username string) (string, error) {
+          	var hash string
+          	err := s.db.QueryRowContext(ctx,
+          		`SELECT password_hash FROM users WHERE username = ?`, username).Scan(&hash)
+          	if errors.Is(err, sql.ErrNoRows) {
+          		return "", ErrNotFound
+          	}
+          	return hash, err
+          }
+      - file: auth.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"errors"
+          	"log/slog"
+          	"net/http"
+          	"regexp"
+          	"strings"
+
+          	"golang.org/x/crypto/bcrypt"
+          )
+
+          var usernamePattern = regexp.MustCompile(`^[a-z0-9_]{3,32}$`)
+
+          const (
+          	minPasswordLen = 8
+          	maxPasswordLen = 72 // bcrypt only reads the first 72 bytes of a password
+          )
+
+          // dummyHash is checked when a username does not exist, so "no such user" takes
+          // as long as "wrong password" and an attacker cannot tell the two apart by timing.
+          var dummyHash = func() []byte {
+          	h, err := bcrypt.GenerateFromPassword([]byte("not a real password"), bcrypt.DefaultCost)
+          	if err != nil {
+          		panic(err)
+          	}
+          	return h
+          }()
+
+          type credentials struct {
+          	Username string `json:"username"`
+          	Password string `json:"password"`
+          }
+
+          func (s *Server) register(w http.ResponseWriter, r *http.Request) {
+          	var in credentials
+          	if err := readJSON(w, r, &in); err != nil {
+          		badBody(w, err)
+          		return
+          	}
+          	username := strings.ToLower(strings.TrimSpace(in.Username))
+          	if !usernamePattern.MatchString(username) {
+          		writeError(w, http.StatusBadRequest, "username must be 3 to 32 characters: a-z, 0-9 and _")
+          		return
+          	}
+          	if len(in.Password) < minPasswordLen || len(in.Password) > maxPasswordLen {
+          		writeError(w, http.StatusBadRequest, "password must be 8 to 72 bytes long")
+          		return
+          	}
+
+          	// bcrypt adds a random salt and stores it inside the hash. It is slow on
+          	// purpose, so guessing passwords is slow too.
+          	hash, err := bcrypt.GenerateFromPassword([]byte(in.Password), bcrypt.DefaultCost)
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	err = s.store.CreateUser(r.Context(), username, string(hash))
+          	if errors.Is(err, ErrExists) {
+          		writeError(w, http.StatusConflict, "username is taken")
+          		return
+          	}
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	writeJSON(w, http.StatusCreated, map[string]string{"username": username})
+          }
+
+          // requireAuth only lets a request through when it has a valid username and
+          // password in HTTP Basic authentication (the Authorization header).
+          func (s *Server) requireAuth(next http.HandlerFunc) http.HandlerFunc {
+          	return func(w http.ResponseWriter, r *http.Request) {
+          		username, password, ok := r.BasicAuth()
+          		if !ok || !s.passwordMatches(r.Context(), strings.ToLower(username), password) {
+          			w.Header().Set("WWW-Authenticate", `Basic realm="linkbox"`)
+          			writeError(w, http.StatusUnauthorized, "login required")
+          			return
+          		}
+          		next(w, r)
+          	}
+          }
+
+          func (s *Server) passwordMatches(ctx context.Context, username, password string) bool {
+          	hash, err := s.store.PasswordHash(ctx, username)
+          	if err != nil {
+          		if !errors.Is(err, ErrNotFound) {
+          			slog.Error("look up user", "err", err)
+          		}
+          		bcrypt.CompareHashAndPassword(dummyHash, []byte(password)) // spend the same time
+          		return false
+          	}
+          	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
+          }
+      - file: store.go (in OpenStore)
+        lang: go
+        text: |
+          	if _, err := db.Exec(schema + userSchema); err != nil {
+          		db.Close()
+          		return nil, fmt.Errorf("create schema: %w", err)
+          	}
+      - file: server.go (Routes)
+        lang: go
+        text: |
+          	mux.HandleFunc("GET /links", s.listLinks)
+          	mux.HandleFunc("POST /users", s.register)
+          	mux.HandleFunc("POST /links", s.requireAuth(s.createLink))
+          	mux.HandleFunc("GET /links/{id}", s.getLink)
+          	mux.HandleFunc("DELETE /links/{id}", s.requireAuth(s.deleteLink))
+      - file: terminal (try it)
+        lang: sh
+        text: |
+          curl -i -X POST localhost:8080/users -d '{"username":"ada","password":"correct horse battery"}'
+          curl -i -X POST localhost:8080/links -d '{"title":"Go docs","url":"https://go.dev/doc/"}'
+          curl -i -u ada:'correct horse battery' -X POST localhost:8080/links -d '{"title":"Go docs","url":"https://go.dev/doc/"}'
+      - file: server_test.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"encoding/json"
+          	"net/http"
+          	"net/http/httptest"
+          	"path/filepath"
+          	"strings"
+          	"testing"
+          )
+
+          const (
+          	testUser = "ada"
+          	testPass = "correct horse battery"
+          )
+
+          // newTestStore opens a real SQLite database in a temporary folder that Go
+          // deletes after the test, so every test starts with an empty database.
+          func newTestStore(t *testing.T) *Store {
+          	t.Helper()
+          	store, err := OpenStore(filepath.Join(t.TempDir(), "test.db"))
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	t.Cleanup(func() { store.Close() })
+          	return store
+          }
+
+          // newTestHandler returns a handler whose database already has the user "ada".
+          func newTestHandler(t *testing.T) http.Handler {
+          	t.Helper()
+          	h := NewServer(newTestStore(t)).Routes()
+          	body := `{"username":"` + testUser + `","password":"` + testPass + `"}`
+          	if rec := do(h, "POST", "/users", body); rec.Code != http.StatusCreated {
+          		t.Fatalf("register test user: status %d: %s", rec.Code, rec.Body)
+          	}
+          	return h
+          }
+
+          // do sends one request straight to the handler, with no network involved.
+          func do(h http.Handler, method, path, body string) *httptest.ResponseRecorder {
+          	return send(h, httptest.NewRequest(method, path, strings.NewReader(body)))
+          }
+
+          // doAs is like do, but logged in as the test user.
+          func doAs(h http.Handler, method, path, body string) *httptest.ResponseRecorder {
+          	req := httptest.NewRequest(method, path, strings.NewReader(body))
+          	req.SetBasicAuth(testUser, testPass)
+          	return send(h, req)
+          }
+
+          func send(h http.Handler, req *http.Request) *httptest.ResponseRecorder {
+          	rec := httptest.NewRecorder()
+          	h.ServeHTTP(rec, req)
+          	return rec
+          }
+
+          func TestCreateLink(t *testing.T) {
+          	h := newTestHandler(t)
+          	tests := []struct {
+          		name       string
+          		body       string
+          		wantStatus int
+          	}{
+          		{"valid", `{"title":"Go docs","url":"https://go.dev/doc/"}`, http.StatusCreated},
+          		{"missing title", `{"url":"https://go.dev"}`, http.StatusBadRequest},
+          		{"missing url", `{"title":"Go"}`, http.StatusBadRequest},
+          		{"wrong scheme", `{"title":"Go","url":"ftp://go.dev"}`, http.StatusBadRequest},
+          		{"not json", `{oops`, http.StatusBadRequest},
+          		{"empty body", ``, http.StatusBadRequest},
+          		{"unknown field", `{"title":"Go","url":"https://go.dev","admin":true}`, http.StatusBadRequest},
+          		{"two values", `{"title":"Go","url":"https://go.dev"}{}`, http.StatusBadRequest},
+          		{"too big", `{"title":"` + strings.Repeat("a", 20<<10) + `","url":"https://go.dev"}`, http.StatusRequestEntityTooLarge},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.name, func(t *testing.T) {
+          			rec := doAs(h, "POST", "/links", tc.body)
+          			if rec.Code != tc.wantStatus {
+          				t.Errorf("status = %d, want %d (body: %s)", rec.Code, tc.wantStatus, rec.Body)
+          			}
+          		})
+          	}
+          }
+
+          func TestGetAndDelete(t *testing.T) {
+          	h := newTestHandler(t)
+          	doAs(h, "POST", "/links", `{"title":"Go docs","url":"https://go.dev/doc/"}`)
+
+          	tests := []struct {
+          		name       string
+          		method     string
+          		path       string
+          		wantStatus int
+          	}{
+          		{"get existing", "GET", "/links/1", http.StatusOK},
+          		{"get missing", "GET", "/links/99", http.StatusNotFound},
+          		{"get bad id", "GET", "/links/abc", http.StatusBadRequest},
+          		{"delete missing", "DELETE", "/links/99", http.StatusNotFound},
+          		{"delete existing", "DELETE", "/links/1", http.StatusNoContent},
+          		{"get after delete", "GET", "/links/1", http.StatusNotFound},
+          		{"wrong method", "PUT", "/links/1", http.StatusMethodNotAllowed},
+          	}
+          	// These run in order: each one builds on the one before.
+          	for _, tc := range tests {
+          		t.Run(tc.name, func(t *testing.T) {
+          			if rec := doAs(h, tc.method, tc.path, ""); rec.Code != tc.wantStatus {
+          				t.Errorf("status = %d, want %d", rec.Code, tc.wantStatus)
+          			}
+          		})
+          	}
+          }
+
+          func TestListSearch(t *testing.T) {
+          	h := newTestHandler(t)
+          	doAs(h, "POST", "/links", `{"title":"Go docs","url":"https://go.dev/doc/"}`)
+          	doAs(h, "POST", "/links", `{"title":"Rust book","url":"https://doc.rust-lang.org/book/"}`)
+
+          	tests := []struct {
+          		query string
+          		want  []string // titles, newest first
+          	}{
+          		{"", []string{"Rust book", "Go docs"}},
+          		{"?q=rust", []string{"Rust book"}},
+          		{"?q=GO.DEV", []string{"Go docs"}},
+          		{"?q=nothing", []string{}},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.query, func(t *testing.T) {
+          			rec := do(h, "GET", "/links"+tc.query, "") // reading needs no login
+          			var got []Link
+          			if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
+          				t.Fatal(err)
+          			}
+          			if len(got) != len(tc.want) {
+          				t.Fatalf("got %d links, want %d", len(got), len(tc.want))
+          			}
+          			for i, l := range got {
+          				if l.Title != tc.want[i] {
+          					t.Errorf("link %d = %q, want %q", i, l.Title, tc.want[i])
+          				}
+          			}
+          		})
+          	}
+          }
+
+          func TestRegister(t *testing.T) {
+          	h := newTestHandler(t) // "ada" exists already
+          	tests := []struct {
+          		name       string
+          		body       string
+          		wantStatus int
+          	}{
+          		{"valid", `{"username":"grace","password":"hopper-1906"}`, http.StatusCreated},
+          		{"taken", `{"username":"ada","password":"another password"}`, http.StatusConflict},
+          		{"taken, other case", `{"username":"ADA","password":"another password"}`, http.StatusConflict},
+          		{"short password", `{"username":"linus","password":"short"}`, http.StatusBadRequest},
+          		{"password over 72 bytes", `{"username":"linus","password":"` + strings.Repeat("a", 73) + `"}`, http.StatusBadRequest},
+          		{"bad username", `{"username":"no spaces!","password":"long enough pass"}`, http.StatusBadRequest},
+          		{"unknown field", `{"username":"linus","password":"long enough pass","admin":true}`, http.StatusBadRequest},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.name, func(t *testing.T) {
+          			if rec := do(h, "POST", "/users", tc.body); rec.Code != tc.wantStatus {
+          				t.Errorf("status = %d, want %d (body: %s)", rec.Code, tc.wantStatus, rec.Body)
+          			}
+          		})
+          	}
+          }
+
+          func TestPasswordIsStoredHashed(t *testing.T) {
+          	store := newTestStore(t)
+          	h := NewServer(store).Routes()
+          	do(h, "POST", "/users", `{"username":"ada","password":"correct horse battery"}`)
+
+          	hash, err := store.PasswordHash(context.Background(), "ada")
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	if strings.Contains(hash, "correct horse") || !strings.HasPrefix(hash, "$2a$") {
+          		t.Errorf("stored value does not look like a bcrypt hash: %q", hash)
+          	}
+          }
+
+          func TestWritesNeedLogin(t *testing.T) {
+          	h := newTestHandler(t)
+          	link := `{"title":"Go docs","url":"https://go.dev/doc/"}`
+
+          	tests := []struct {
+          		name       string
+          		user, pass string
+          		wantStatus int
+          	}{
+          		{"no login", "", "", http.StatusUnauthorized},
+          		{"wrong password", "ada", "wrong password", http.StatusUnauthorized},
+          		{"unknown user", "nobody", testPass, http.StatusUnauthorized},
+          		{"right login", "ada", testPass, http.StatusCreated},
+          		{"username in other case", "ADA", testPass, http.StatusCreated},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.name, func(t *testing.T) {
+          			req := httptest.NewRequest("POST", "/links", strings.NewReader(link))
+          			if tc.user != "" {
+          				req.SetBasicAuth(tc.user, tc.pass)
+          			}
+          			rec := send(h, req)
+          			if rec.Code != tc.wantStatus {
+          				t.Errorf("status = %d, want %d", rec.Code, tc.wantStatus)
+          			}
+          			if tc.wantStatus == http.StatusUnauthorized && rec.Header().Get("WWW-Authenticate") == "" {
+          				t.Error("401 without a WWW-Authenticate header")
+          			}
+          		})
+          	}
+
+          	if rec := do(h, "DELETE", "/links/1", ""); rec.Code != http.StatusUnauthorized {
+          		t.Errorf("DELETE without login: status = %d, want 401", rec.Code)
+          	}
+          }
+
+          // TestOverHTTP starts a real server on a random local port and talks to it
+          // like any client would.
+          func TestOverHTTP(t *testing.T) {
+          	ts := httptest.NewServer(newTestHandler(t))
+          	defer ts.Close()
+
+          	req, err := http.NewRequest("POST", ts.URL+"/links",
+          		strings.NewReader(`{"title":"Go docs","url":"https://go.dev/doc/"}`))
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	req.SetBasicAuth(testUser, testPass)
+          	resp, err := http.DefaultClient.Do(req)
+          	if err != nil {
+          		t.Fatal(err)
+          	}
+          	defer resp.Body.Close()
+          	if resp.StatusCode != http.StatusCreated {
+          		t.Fatalf("status = %d, want 201", resp.StatusCode)
+          	}
+          	if got := resp.Header.Get("Location"); got != "/links/1" {
+          		t.Errorf("Location = %q, want /links/1", got)
+          	}
+          }
+    mistakes:
+      - problem:
+          en: "Storing the password with SHA-256 or MD5 because \"it is a hash\"."
+          tr: "\"Nasılsa hash\" diye şifreyi SHA-256 ya da MD5 ile saklamak."
+        fix:
+          en: "Those are fast, so attackers try billions of guesses per second. Use a password hash made to be slow and salted: bcrypt, scrypt or Argon2id."
+          tr: "Bunlar hızlıdır; saldırganlar saniyede milyarlarca tahmin dener. Yavaş ve tuzlu olması için tasarlanmış bir şifre hash'i kullan: bcrypt, scrypt ya da Argon2id."
+      - problem:
+          en: "Comparing the stored hash with `==`, or answering \"no such user\" and \"wrong password\" differently."
+          tr: "Saklanan hash'i `==` ile karşılaştırmak ya da \"böyle kullanıcı yok\" ile \"yanlış şifre\"ye farklı cevap vermek."
+        fix:
+          en: "Always use `bcrypt.CompareHashAndPassword`, and give the same answer and about the same time in both cases, as passwordMatches does. Otherwise attackers can find out which usernames exist."
+          tr: "Her zaman `bcrypt.CompareHashAndPassword` kullan ve passwordMatches'taki gibi iki durumda aynı cevabı ve yaklaşık aynı süreyi ver. Aksi halde saldırganlar hangi kullanıcı adlarının var olduğunu öğrenebilir."
+      - problem:
+          en: "Logging the request body or the Authorization header while debugging."
+          tr: "Hata ayıklarken istek gövdesini ya da Authorization başlığını loglamak."
+        fix:
+          en: "Logs get copied and kept. Never log passwords, tokens or headers with secrets."
+          tr: "Loglar kopyalanır ve saklanır. Şifreleri, token'ları ya da sır içeren başlıkları asla loglama."
+      - problem:
+          en: "Leaving sign-up open on a public server and getting thousands of fake accounts."
+          tr: "Herkese açık bir sunucuda kaydı açık bırakıp binlerce sahte hesap oluşması."
+        fix:
+          en: "Fine for learning. For real use limit sign-ups (an invite code, a rate limit) as the last step suggests."
+          tr: "Öğrenmek için sorun değil. Gerçek kullanımda son adımın önerdiği gibi kaydı sınırla (davet kodu, istek sınırı)."
+    quiz:
+      - q:
+          en: "Where does bcrypt keep the salt?"
+          tr: "bcrypt salt'ı nerede tutar?"
+        options:
+          en:
+            - "In a second database column you must add"
+            - "Inside the hash string it returns"
+            - "It does not use a salt"
+          tr:
+            - "Senin eklemen gereken ikinci bir veritabanı sütununda"
+            - "Döndürdüğü hash metninin içinde"
+            - "Salt kullanmaz"
+        answer: 1
+        why:
+          en: "A bcrypt hash starts with `$2a$`, the cost and the salt, so the one string is all CompareHashAndPassword needs."
+          tr: "Bir bcrypt hash'i `$2a$`, maliyet ve salt ile başlar; yani CompareHashAndPassword'e gereken tek şey o metindir."
+      - q:
+          en: "Why is the password limited to 72 bytes?"
+          tr: "Şifre neden 72 baytla sınırlı?"
+        options:
+          en:
+            - "bcrypt only uses the first 72 bytes and the library refuses longer ones"
+            - "The database column is that small"
+            - "Longer passwords are less secure"
+          tr:
+            - "bcrypt sadece ilk 72 baytı kullanır ve kütüphane daha uzunlarını reddeder"
+            - "Veritabanı sütunu o kadar küçük"
+            - "Daha uzun şifreler daha az güvenli"
+        answer: 0
+        why:
+          en: "bcrypt.GenerateFromPassword returns ErrPasswordTooLong over 72 bytes. Checking first gives the user a clear message."
+          tr: "bcrypt.GenerateFromPassword 72 baytın üstünde ErrPasswordTooLong döner. Önce kontrol etmek kullanıcıya net bir mesaj verir."
+    sources:
+      - title: x/crypto/bcrypt
+        url: https://pkg.go.dev/golang.org/x/crypto/bcrypt
+      - title: OWASP, Password Storage Cheat Sheet
+        url: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
+      - title: "net/http, Request.BasicAuth"
+        url: https://pkg.go.dev/net/http#Request.BasicAuth
+
+  - id: perf
+    stage: performance
+    title:
+      en: "Measure first: benchmarks and pprof"
+      tr: "Önce ölç: benchmark ve pprof"
+    minutes: 75
+    needs: [tests]
+    why:
+      en: "Guessing what is slow usually wastes time. Go has measuring tools built in: benchmarks tell you how long something takes, and pprof shows where the time and memory go. Here a measurement finds a real problem: listing returns every link, with no limit."
+      tr: "Neyin yavaş olduğunu tahmin etmek genelde zaman kaybıdır. Go'da ölçüm araçları yerleşik: benchmark bir şeyin ne kadar sürdüğünü, pprof zamanın ve belleğin nereye gittiğini gösterir. Burada bir ölçüm gerçek bir sorunu buluyor: listeleme hiçbir sınır olmadan bütün linkleri döndürüyor."
+    learn:
+      en: |
+        - A benchmark is `func BenchmarkXxx(b *testing.B)` with `for b.Loop() { ... }`; run with `go test -bench`
+        - `-benchmem` adds bytes and allocations per operation; fewer allocations usually mean less garbage collection work
+        - `-cpuprofile` records where the CPU time goes, and `go tool pprof -top` prints the biggest users
+        - `net/http/pprof` serves live profiles (CPU, heap, goroutines) from a running program; Go 1.27 adds a goroutine leak profile there
+        - Paging: `LIMIT` and `OFFSET` keep an answer small. Measure again after the change
+        - A profile page shows internals: bind it to 127.0.0.1 only, never to the internet
+      tr: |
+        - Benchmark, `for b.Loop() { ... }` içeren `func BenchmarkXxx(b *testing.B)` fonksiyonudur; `go test -bench` ile çalışır
+        - `-benchmem` işlem başına bayt ve allocation sayısını ekler; daha az allocation genelde çöp toplayıcıya daha az iş demektir
+        - `-cpuprofile` CPU zamanının nereye gittiğini kaydeder, `go tool pprof -top` en çok harcayanları yazdırır
+        - `net/http/pprof`, çalışan bir programdan canlı profiller (CPU, heap, goroutine) sunar; Go 1.27 oraya bir goroutine sızıntısı profili ekler
+        - Sayfalama: `LIMIT` ve `OFFSET` cevabı küçük tutar. Değişiklikten sonra tekrar ölç
+        - Profil sayfası iç detayları gösterir: sadece 127.0.0.1'e bağla, asla internete değil
+    do:
+      en: |
+        1. In `server_test.go` change `newTestStore(t *testing.T)` to `newTestStore(t testing.TB)`, so benchmarks can use it too.
+        2. Create `bench_test.go` below. It puts 5000 links in a database and times a request to list them, and a search.
+        3. Measure the **before** state: `go test -run NONE -bench . -benchmem`. (`-run NONE` skips the normal tests.) Note the time and bytes per operation of `BenchmarkListLinks`.
+        4. Find where the time goes: `go test -run NONE -bench ListLinks -cpuprofile cpu.out`, then `go tool pprof -top linkbox.test cpu.out`. You will see database and JSON work for thousands of rows.
+        5. Fix it: add `limit` and `offset` to `Store.List` (default 50 links, at most 100) and read them in `listLinks` with `queryInt`, then replace `TestListSearch` (all below). Run `go test ./...`.
+        6. Measure the **after** state with the same bench command. On the author's laptop `BenchmarkListLinks` went from about 13.8 ms and 4 MB per request to about 0.3 ms and 33 KB. Your numbers will differ; the size of the drop will not.
+        7. Add the profiling server to `main.go` (below) and look at it live: `PPROF_ADDR=127.0.0.1:6060 go run .`, then open http://127.0.0.1:6060/debug/pprof/. On Windows PowerShell set the variable first: `$env:PPROF_ADDR="127.0.0.1:6060"`.
+        8. Commit: `git add . && git commit -m "Page the list, add benchmarks and pprof"`.
+      tr: |
+        1. `server_test.go` içinde `newTestStore(t *testing.T)`'yi `newTestStore(t testing.TB)` yap; böylece benchmark'lar da kullanabilir.
+        2. Aşağıdaki `bench_test.go` dosyasını oluştur. Veritabanına 5000 link koyar, onları listeleyen bir isteğin ve bir aramanın süresini ölçer.
+        3. **Önceki** durumu ölç: `go test -run NONE -bench . -benchmem`. (`-run NONE` normal testleri atlar.) `BenchmarkListLinks`'in işlem başına süresini ve baytını not et.
+        4. Zamanın nereye gittiğini bul: `go test -run NONE -bench ListLinks -cpuprofile cpu.out`, sonra `go tool pprof -top linkbox.test cpu.out`. Binlerce satır için veritabanı ve JSON işi göreceksin.
+        5. Düzelt: `Store.List`'e `limit` ve `offset` ekle (varsayılan 50 link, en fazla 100) ve `listLinks` içinde `queryInt` ile oku, sonra `TestListSearch`'ü değiştir (hepsi aşağıda). `go test ./...` çalıştır.
+        6. Aynı benchmark komutuyla **sonraki** durumu ölç. Yazarın dizüstünde `BenchmarkListLinks` istek başına yaklaşık 13,8 ms ve 4 MB'tan yaklaşık 0,3 ms ve 33 KB'a indi. Seninkiler farklı olacak; düşüşün büyüklüğü olmayacak.
+        7. Profil sunucusunu `main.go`'ya ekle (aşağıda) ve canlı bak: `PPROF_ADDR=127.0.0.1:6060 go run .`, sonra http://127.0.0.1:6060/debug/pprof/ adresini aç. Windows PowerShell'de önce değişkeni ata: `$env:PPROF_ADDR="127.0.0.1:6060"`.
+        8. Commit et: `git add . && git commit -m "Page the list, add benchmarks and pprof"`.
+    code:
+      - file: bench_test.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"fmt"
+          	"net/http/httptest"
+          	"testing"
+          )
+
+          // seed inserts n links in one transaction (much faster than n separate ones).
+          func seed(b *testing.B, store *Store, n int) {
+          	b.Helper()
+          	tx, err := store.db.Begin()
+          	if err != nil {
+          		b.Fatal(err)
+          	}
+          	stmt, err := tx.Prepare(`INSERT INTO links (url, title, created_at) VALUES (?, ?, ?)`)
+          	if err != nil {
+          		b.Fatal(err)
+          	}
+          	for i := range n {
+          		url := fmt.Sprintf("https://example.com/page/%d", i)
+          		title := fmt.Sprintf("Example page %d", i)
+          		if _, err := stmt.Exec(url, title, 1_700_000_000+i); err != nil {
+          			b.Fatal(err)
+          		}
+          	}
+          	if err := tx.Commit(); err != nil {
+          		b.Fatal(err)
+          	}
+          }
+
+          func BenchmarkListLinks(b *testing.B) {
+          	store := newTestStore(b)
+          	seed(b, store, 5000)
+          	h := NewServer(store).Routes()
+
+          	for b.Loop() {
+          		rec := httptest.NewRecorder()
+          		h.ServeHTTP(rec, httptest.NewRequest("GET", "/links", nil))
+          		if rec.Code != 200 {
+          			b.Fatalf("status = %d", rec.Code)
+          		}
+          	}
+          }
+
+          func BenchmarkSearchLinks(b *testing.B) {
+          	store := newTestStore(b)
+          	seed(b, store, 5000)
+          	h := NewServer(store).Routes()
+
+          	for b.Loop() {
+          		rec := httptest.NewRecorder()
+          		h.ServeHTTP(rec, httptest.NewRequest("GET", "/links?q=page/4999", nil))
+          		if rec.Code != 200 {
+          			b.Fatalf("status = %d", rec.Code)
+          		}
+          	}
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          go test -run NONE -bench . -benchmem
+          go test -run NONE -bench ListLinks -cpuprofile cpu.out
+          go tool pprof -top linkbox.test cpu.out
+      - file: store.go (replace List)
+        lang: go
+        text: |
+          // List returns the newest links first. A non-empty q keeps only links
+          // whose title or url contains it, ignoring case. limit and offset page the result.
+          func (s *Store) List(ctx context.Context, q string, limit, offset int) ([]Link, error) {
+          	rows, err := s.db.QueryContext(ctx,
+          		`SELECT id, url, title, created_at FROM links
+          		 WHERE instr(lower(title), lower(?)) > 0 OR instr(lower(url), lower(?)) > 0
+          		 ORDER BY id DESC
+          		 LIMIT ? OFFSET ?`, q, q, limit, offset)
+          	if err != nil {
+          		return nil, err
+          	}
+          	defer rows.Close()
+          	// ... the rest of List stays as it was
+      - file: server.go (replace listLinks, add queryInt)
+        lang: go
+        text: |
+          func (s *Server) listLinks(w http.ResponseWriter, r *http.Request) {
+          	query := r.URL.Query()
+          	limit, err := queryInt(query.Get("limit"), 50, 1, 100)
+          	if err != nil {
+          		writeError(w, http.StatusBadRequest, "limit must be a number from 1 to 100")
+          		return
+          	}
+          	offset, err := queryInt(query.Get("offset"), 0, 0, 1_000_000)
+          	if err != nil {
+          		writeError(w, http.StatusBadRequest, "offset must be a number from 0 to 1000000")
+          		return
+          	}
+          	links, err := s.store.List(r.Context(), query.Get("q"), limit, offset)
+          	if err != nil {
+          		serverError(w, r, err)
+          		return
+          	}
+          	writeJSON(w, http.StatusOK, links)
+          }
+
+          // queryInt reads a whole number from a query parameter. An empty value gives
+          // def; a value that is not a number, or not between lo and hi, is an error.
+          func queryInt(value string, def, lo, hi int) (int, error) {
+          	if value == "" {
+          		return def, nil
+          	}
+          	n, err := strconv.Atoi(value)
+          	if err != nil {
+          		return 0, err
+          	}
+          	if n < lo || n > hi {
+          		return 0, errors.New("out of range")
+          	}
+          	return n, nil
+          }
+      - file: server_test.go (replace TestListSearch)
+        lang: go
+        text: |
+          func TestListSearch(t *testing.T) {
+          	h := newTestHandler(t)
+          	doAs(h, "POST", "/links", `{"title":"Go docs","url":"https://go.dev/doc/"}`)
+          	doAs(h, "POST", "/links", `{"title":"Rust book","url":"https://doc.rust-lang.org/book/"}`)
+
+          	tests := []struct {
+          		query string
+          		want  []string // titles, newest first
+          	}{
+          		{"", []string{"Rust book", "Go docs"}},
+          		{"?q=rust", []string{"Rust book"}},
+          		{"?q=GO.DEV", []string{"Go docs"}},
+          		{"?q=nothing", []string{}},
+          		{"?limit=1", []string{"Rust book"}},
+          		{"?limit=1&offset=1", []string{"Go docs"}},
+          		{"?limit=0", nil}, // nil means: expect a 400 error
+          		{"?limit=1000", nil},
+          		{"?offset=-1", nil},
+          		{"?limit=abc", nil},
+          	}
+          	for _, tc := range tests {
+          		t.Run(tc.query, func(t *testing.T) {
+          			rec := do(h, "GET", "/links"+tc.query, "") // reading needs no login
+          			if tc.want == nil {
+          				if rec.Code != http.StatusBadRequest {
+          					t.Errorf("status = %d, want 400", rec.Code)
+          				}
+          				return
+          			}
+          			var got []Link
+          			if err := json.NewDecoder(rec.Body).Decode(&got); err != nil {
+          				t.Fatal(err)
+          			}
+          			if len(got) != len(tc.want) {
+          				t.Fatalf("got %d links, want %d", len(got), len(tc.want))
+          			}
+          			for i, l := range got {
+          				if l.Title != tc.want[i] {
+          					t.Errorf("link %d = %q, want %q", i, l.Title, tc.want[i])
+          				}
+          			}
+          		})
+          	}
+          }
+      - file: store_test.go (one line)
+        lang: go
+        text: |
+          	links, err := store.List(ctx, "", 50, 0)
+      - file: main.go (import and a block in run, before errc)
+        lang: go
+        text: |
+          	_ "net/http/pprof" // adds the /debug/pprof/ pages to http.DefaultServeMux
+
+          	// Profiling pages are off unless PPROF_ADDR is set, for example 127.0.0.1:6060.
+          	// Always bind them to 127.0.0.1: they must never be reachable from the internet.
+          	if addr := os.Getenv("PPROF_ADDR"); addr != "" {
+          		go func() {
+          			slog.Info("pprof listening", "addr", addr)
+          			// Our API uses its own mux, so only this server serves /debug/pprof/.
+          			if err := http.ListenAndServe(addr, nil); err != nil {
+          				slog.Error("pprof server", "err", err)
+          			}
+          		}()
+          	}
+    mistakes:
+      - problem:
+          en: "Benchmarking code that does a lot more than the thing you care about (for example, filling the database inside the loop)."
+          tr: "İlgilendiğin şeyden çok daha fazlasını yapan kodu ölçmek (örneğin veritabanını döngünün içinde doldurmak)."
+        fix:
+          en: "Do the setup before the loop. `for b.Loop()` also keeps the compiler from removing code whose result you do not use, and it excludes the setup before the loop from the timing."
+          tr: "Hazırlığı döngüden önce yap. `for b.Loop()` ayrıca sonucunu kullanmadığın kodu derleyicinin silmesini engeller ve döngüden önceki hazırlığı süreye katmaz."
+      - problem:
+          en: "Exposing /debug/pprof/ on the public port."
+          tr: "/debug/pprof/ sayfasını herkese açık portta yayınlamak."
+        fix:
+          en: "Profiles reveal internals and can slow the server down. Serve them on a separate listener bound to 127.0.0.1, only when PPROF_ADDR is set, as main.go does. Our API uses its own mux, so importing net/http/pprof does not add the pages to it."
+          tr: "Profiller iç detayları açığa çıkarır ve sunucuyu yavaşlatabilir. main.go'daki gibi sadece PPROF_ADDR verilince, 127.0.0.1'e bağlı ayrı bir dinleyicide sun. API'miz kendi mux'ını kullanıyor; bu yüzden net/http/pprof'u import etmek sayfaları ona eklemez."
+      - problem:
+          en: "Optimizing from a feeling and never measuring again."
+          tr: "Hissederek optimize edip bir daha ölçmemek."
+        fix:
+          en: "Measure before and after, on the same machine, with the same data. Keep the change only if the numbers improve."
+          tr: "Aynı makinede, aynı veriyle önce ve sonra ölç. Değişikliği sadece sayılar iyileşirse tut."
+    quiz:
+      - q:
+          en: "What fixed the slow listing?"
+          tr: "Yavaş listelemeyi ne düzeltti?"
+        options:
+          en:
+            - "Returning less data: LIMIT keeps each answer to at most 100 links"
+            - "A faster JSON library"
+            - "More CPU cores"
+          tr:
+            - "Daha az veri döndürmek: LIMIT her cevabı en fazla 100 linkle sınırlar"
+            - "Daha hızlı bir JSON kütüphanesi"
+            - "Daha fazla CPU çekirdeği"
+        answer: 0
+        why:
+          en: "The profile showed time spent reading and encoding thousands of rows. The cheapest work is the work you skip."
+          tr: "Profil, zamanın binlerce satırı okumaya ve kodlamaya harcandığını gösterdi. En ucuz iş, yapmadığın iştir."
+    sources:
+      - title: "Diagnostics (Go docs)"
+        url: https://go.dev/doc/diagnostics
+      - title: "testing, B.Loop"
+        url: https://pkg.go.dev/testing#B.Loop
+      - title: net/http/pprof
+        url: https://pkg.go.dev/net/http/pprof
+
+  - id: build
+    stage: packaging
+    title:
+      en: "Build a static binary and a tiny Docker image"
+      tr: "Statik bir binary ve minik bir Docker image'ı oluşturma"
+    minutes: 60
+    needs: [perf]
+    why:
+      en: "A Go program is one file. Built without C code (CGO_ENABLED=0) it needs nothing from the computer it runs on, so the Docker image can be almost empty: only your program. Small images start fast, cost little to store and have almost nothing an attacker can use."
+      tr: "Bir Go programı tek bir dosyadır. C kodu olmadan derlendiğinde (CGO_ENABLED=0) çalıştığı bilgisayardan hiçbir şey istemez; bu yüzden Docker image'ı neredeyse boş olabilir: sadece senin programın. Küçük image'lar hızlı başlar, saklaması ucuzdur ve saldırganın kullanabileceği neredeyse hiçbir şey içermez."
+    learn:
+      en: |
+        - What a static binary is, and why the pure-Go SQLite driver makes it possible
+        - Build flags: `-trimpath` removes your folder names, `-ldflags="-s -w"` drops debug data
+        - A multi-stage Dockerfile: stage one has the Go tools and builds; the last stage starts from `scratch` (empty) and copies in only the program
+        - Run as a normal user, not root: `USER 65532:65532`
+        - A container's disk is thrown away with the container; a volume keeps the database
+        - `.dockerignore` keeps junk (your database, `.git`) out of the build
+      tr: |
+        - Statik binary'nin ne olduğu ve saf Go SQLite sürücüsünün bunu nasıl mümkün kıldığı
+        - Derleme bayrakları: `-trimpath` klasör adlarını siler, `-ldflags="-s -w"` hata ayıklama verisini atar
+        - Çok aşamalı Dockerfile: ilk aşamada Go araçları var ve derler; son aşama `scratch`'ten (boş) başlar ve sadece programı kopyalar
+        - root olarak değil, normal bir kullanıcı olarak çalıştır: `USER 65532:65532`
+        - Container'ın diski container ile birlikte atılır; volume veritabanını korur
+        - `.dockerignore` çöpü (veritabanın, `.git`) build'in dışında tutar
+    do:
+      en: |
+        1. Install Docker (docs.docker.com/get-started/get-docker/): Docker Desktop on Windows and macOS, Docker Engine on Linux. Check with `docker version`.
+        2. First build the program without Docker, as a static binary, and look at it (first commands below). `go version -m` should show `CGO_ENABLED=0`.
+        3. Create `Dockerfile` and `.dockerignore` below.
+        4. Build the image and look at its size: `docker build -t linkbox .` then `docker images linkbox`. The author's image was about 17 MB.
+        5. Run it with a volume for the database, add a user and a link, stop and remove the container, run it again with the same volume: the data is still there.
+        6. `docker stop` ends it in a moment, because the program handles SIGTERM (the shutdown step).
+        7. Commit: `git add . && git commit -m "Dockerfile for a tiny image"`.
+      tr: |
+        1. Docker'ı kur (docs.docker.com/get-started/get-docker/): Windows ve macOS'ta Docker Desktop, Linux'ta Docker Engine. `docker version` ile kontrol et.
+        2. Önce programı Docker olmadan statik bir binary olarak derle ve ona bak (aşağıdaki ilk komutlar). `go version -m` `CGO_ENABLED=0` göstermeli.
+        3. Aşağıdaki `Dockerfile` ve `.dockerignore` dosyalarını oluştur.
+        4. Image'ı build et ve boyutuna bak: `docker build -t linkbox .` sonra `docker images linkbox`. Yazarın image'ı yaklaşık 17 MB idi.
+        5. Veritabanı için bir volume ile çalıştır, bir kullanıcı ve bir link ekle, container'ı durdurup sil, aynı volume ile tekrar çalıştır: veri hâlâ orada.
+        6. `docker stop` onu bir anda bitirir; çünkü program SIGTERM'i yönetiyor (kapanma adımı).
+        7. Commit et: `git add . && git commit -m "Dockerfile for a tiny image"`.
+    code:
+      - file: terminal (without Docker)
+        lang: sh
+        text: |
+          CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o linkbox .
+          go version -m linkbox
+          ls -lh linkbox
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: build the program with the full Go toolchain.
+          FROM golang:1.27-alpine AS build
+          WORKDIR /src
+          COPY go.mod go.sum ./
+          RUN go mod download
+          COPY . .
+          # CGO_ENABLED=0 gives a static binary that needs nothing from the system.
+          # -trimpath removes your folder names; -s -w drop debug data to make it smaller.
+          RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/linkbox . \
+           && mkdir /out/data
+
+          # Stage 2: an empty image with only the program in it.
+          FROM scratch
+          COPY --from=build /out/linkbox /linkbox
+          COPY --from=build --chown=65532:65532 /out/data /data
+          ENV LINKBOX_DB=/data/linkbox.db
+          USER 65532:65532
+          EXPOSE 8080
+          ENTRYPOINT ["/linkbox"]
+      - file: .dockerignore
+        lang: text
+        text: |
+          .git
+          *.db
+          *.db-shm
+          *.db-wal
+          *.test
+          *.out
+          /linkbox
+      - file: terminal (with Docker)
+        lang: sh
+        text: |
+          docker build -t linkbox .
+          docker images linkbox
+          docker run -d --name linkbox -p 8080:8080 -v linkbox-data:/data linkbox
+          curl -i localhost:8080/links
+          docker stop linkbox && docker rm linkbox
+          docker run -d --name linkbox -p 8080:8080 -v linkbox-data:/data linkbox
+          docker logs linkbox
+    mistakes:
+      - problem:
+          en: "The container exits at once and `docker logs` shows \"exec /linkbox: no such file or directory\" (or similar)."
+          tr: "Container hemen kapanıyor ve `docker logs` \"exec /linkbox: no such file or directory\" (ya da benzeri) gösteriyor."
+        fix:
+          en: "The binary was built with C code and needs libraries the empty image does not have. Build with CGO_ENABLED=0, as the Dockerfile does."
+          tr: "Binary C koduyla derlenmiş ve boş image'da olmayan kütüphanelere ihtiyaç duyuyor. Dockerfile'daki gibi CGO_ENABLED=0 ile derle."
+      - problem:
+          en: "\"unable to open database file\" in the container."
+          tr: "Container içinde \"unable to open database file\" hatası."
+        fix:
+          en: "The program runs as a normal user, which may not write to the folder. The Dockerfile makes /data owned by user 65532. If you mount a folder from your computer instead of a volume, give that folder the same owner."
+          tr: "Program normal bir kullanıcı olarak çalışıyor ve klasöre yazamayabilir. Dockerfile /data'yı 65532 kullanıcısına verir. Volume yerine bilgisayarından bir klasör bağlarsan o klasöre aynı sahibi ver."
+      - problem:
+          en: "\"go.mod requires go >= ... (running go ...)\" during docker build."
+          tr: "docker build sırasında \"go.mod requires go >= ... (running go ...)\" hatası."
+        fix:
+          en: "The Go in the image is older than the `go` line in go.mod. Use a newer image tag in the first FROM line."
+          tr: "Image'daki Go, go.mod'daki `go` satırından eski. İlk FROM satırında daha yeni bir image etiketi kullan."
+    quiz:
+      - q:
+          en: "Why can the final image start from scratch?"
+          tr: "Son image neden scratch'ten başlayabiliyor?"
+        options:
+          en:
+            - "Docker adds Go to it later"
+            - "scratch already contains Linux tools"
+            - "The binary is static, so it needs no other files"
+          tr:
+            - "Docker ona sonra Go ekler"
+            - "scratch içinde zaten Linux araçları var"
+            - "Binary statik; başka dosyaya ihtiyacı yok"
+        answer: 2
+        why:
+          en: "scratch is empty. A program built with CGO_ENABLED=0 carries everything it needs inside its one file."
+          tr: "scratch boştur. CGO_ENABLED=0 ile derlenen program ihtiyacı olan her şeyi tek dosyasının içinde taşır."
+    sources:
+      - title: "cmd/go, build flags"
+        url: https://pkg.go.dev/cmd/go#hdr-Compile_packages_and_dependencies
+      - title: Docker multi-stage builds
+        url: https://docs.docker.com/build/building/multi-stage/
+      - title: Get Docker
+        url: https://docs.docker.com/get-started/get-docker/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Test on every push and deploy free on Render"
+      tr: "Her push'ta test etme ve Render'da ücretsiz deploy"
+    minutes: 90
+    needs: [build]
+    why:
+      en: "A deploy puts your API on a public address with HTTPS. GitHub Actions runs your tests on every push, and Render builds your Dockerfile and starts the container. Render has a free plan with real limits; read them below so nothing surprises you."
+      tr: "Deploy, API'ni HTTPS'li herkese açık bir adrese koyar. GitHub Actions her push'ta testlerini çalıştırır, Render da Dockerfile'ını build edip container'ı başlatır. Render'ın gerçek sınırları olan ücretsiz bir planı var; sürpriz yaşamamak için aşağıdakileri oku."
+    learn:
+      en: |
+        - A health check: a cheap route (`/healthz`) a platform calls to see that your program is alive
+        - Hosts tell your program its port in the `PORT` environment variable; main.go already reads it
+        - A GitHub Actions workflow that runs `go vet` and `go test` on every push
+        - **Render free web service, limits from Render's docs (checked October 2026):** it spins down after 15 minutes without traffic and takes about a minute to wake up on the next request; its disk is temporary, so **the SQLite file is lost on every restart, redeploy or spin-down**; you get 750 free instance hours per month; free instances may be restarted at any time; and free instances are not meant for production
+        - So on the free plan Linkbox is a demo whose data resets. For data that must stay, use a database that lives outside the container, such as Render Postgres (a free one expires after 30 days) with the pgx driver
+      tr: |
+        - Sağlık kontrolü: bir platformun programının canlı olduğunu görmek için çağırdığı ucuz bir rota (`/healthz`)
+        - Barındırıcılar programına portunu `PORT` ortam değişkeninde söyler; main.go bunu zaten okuyor
+        - Her push'ta `go vet` ve `go test` çalıştıran bir GitHub Actions workflow'u
+        - **Render ücretsiz web servisi, Render dokümanlarındaki sınırlar (Ekim 2026'da kontrol edildi):** 15 dakika trafik almazsa kapanır ve sonraki istekte uyanması yaklaşık bir dakika sürer; diski geçicidir, yani **SQLite dosyası her yeniden başlatmada, yeniden deploy'da ve kapanmada kaybolur**; ayda 750 ücretsiz instance saati verilir; ücretsiz instance'lar her an yeniden başlatılabilir; ve ücretsiz instance'lar üretim için değildir
+        - Yani ücretsiz planda Linkbox, verisi sıfırlanan bir demodur. Kalması gereken veri için container'ın dışında yaşayan bir veritabanı kullan; örneğin pgx sürücüsüyle Render Postgres (ücretsiz olan 30 gün sonra sona erer)
+    do:
+      en: |
+        1. Add the `/healthz` route and its test (below), run `go test ./...`.
+        2. Create `.github/workflows/ci.yml` below. Check that `.gitignore` has the lines shown.
+        3. Create an empty repository on github.com (for example `linkbox`; no README), then connect and push (first commands below).
+        4. Open the *Actions* tab: the CI workflow should turn green.
+        5. Go to render.com and sign in with GitHub. Choose *New → Web Service* and pick your repository. Render finds the `Dockerfile`; choose Docker as the language and **Free** as the instance type, then create it. The first build takes a few minutes.
+        6. In the service's *Settings*, find *Health Checks*, click *Edit* and set the path to `/healthz`.
+        7. In *Settings → Auto-Deploy* choose *After CI Checks Pass*, so a broken commit is never deployed.
+        8. Open your service address (`https://<name>.onrender.com`) and try it with the curl commands, replacing `localhost:8080`. The first request after an idle time is slow: that is the spin-up.
+      tr: |
+        1. `/healthz` rotasını ve testini ekle (aşağıda), `go test ./...` çalıştır.
+        2. Aşağıdaki `.github/workflows/ci.yml` dosyasını oluştur. `.gitignore` dosyasında gösterilen satırların olduğunu kontrol et.
+        3. github.com'da boş bir repo oluştur (örneğin `linkbox`; README olmadan), sonra bağla ve push et (aşağıdaki ilk komutlar).
+        4. *Actions* sekmesini aç: CI workflow'u yeşile dönmeli.
+        5. render.com'a git ve GitHub ile giriş yap. *New → Web Service*'i seç ve repo'nu seç. Render `Dockerfile`'ı bulur; dil olarak Docker'ı, instance tipi olarak **Free**'yi seç ve oluştur. İlk build birkaç dakika sürer.
+        6. Servisin *Settings* sayfasında *Health Checks*'i bul, *Edit*'e tıkla ve yolu `/healthz` yap.
+        7. *Settings → Auto-Deploy* içinde *After CI Checks Pass*'i seç; böylece bozuk bir commit asla deploy edilmez.
+        8. Servis adresini (`https://<ad>.onrender.com`) aç ve `localhost:8080` yerine onu koyarak curl komutlarıyla dene. Boşta kaldıktan sonraki ilk istek yavaştır: bu, uyanma süresidir.
+    code:
+      - file: server.go (Routes and healthz)
+        lang: go
+        text: |
+          // Routes connects each method and path to a handler (Go 1.22+ patterns).
+          func (s *Server) Routes() http.Handler {
+          	mux := http.NewServeMux()
+          	mux.HandleFunc("GET /healthz", s.healthz)
+          	mux.HandleFunc("GET /links", s.listLinks)
+          	mux.HandleFunc("POST /users", s.register)
+          	mux.HandleFunc("POST /links", s.requireAuth(s.createLink))
+          	mux.HandleFunc("GET /links/{id}", s.getLink)
+          	mux.HandleFunc("DELETE /links/{id}", s.requireAuth(s.deleteLink))
+          	return withTimeout(3*time.Second, mux)
+          }
+
+          // healthz tells a platform that the program is up and answering.
+          func (s *Server) healthz(w http.ResponseWriter, r *http.Request) {
+          	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+          }
+      - file: server_test.go (new test at the end)
+        lang: go
+        text: |
+          func TestHealthz(t *testing.T) {
+          	rec := do(newTestHandler(t), "GET", "/healthz", "")
+          	if rec.Code != http.StatusOK {
+          		t.Fatalf("status = %d, want 200", rec.Code)
+          	}
+          }
+      - file: .gitignore
+        lang: text
+        text: |
+          /linkbox
+          *.db
+          *.db-shm
+          *.db-wal
+          *.test
+          *.out
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          permissions:
+            contents: read
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-go@v7
+                  with:
+                    go-version-file: go.mod
+                - run: go vet ./...
+                - run: go test ./...
+      - file: terminal
+        lang: sh
+        text: |
+          git remote add origin https://github.com/<your-user>/linkbox.git
+          git branch -M main
+          git push -u origin main
+    mistakes:
+      - problem:
+          en: "The Render deploy says the port is not open, or the service never gets healthy."
+          tr: "Render deploy'u port açık değil diyor ya da servis hiç sağlıklı olmuyor."
+        fix:
+          en: "Bind to the port in the PORT variable on all interfaces: `Addr: \":\" + envOr(\"PORT\", \"8080\")`, as main.go does. Render's default PORT is 10000. Binding to `localhost` only does not work."
+          tr: "Tüm arayüzlerde PORT değişkenindeki porta bağlan: main.go'daki gibi `Addr: \":\" + envOr(\"PORT\", \"8080\")`. Render'ın varsayılan PORT'u 10000'dir. Sadece `localhost`'a bağlanmak çalışmaz."
+      - problem:
+          en: "Users and links disappear on the free plan."
+          tr: "Ücretsiz planda kullanıcılar ve linkler kayboluyor."
+        fix:
+          en: "This is expected: the free instance has a temporary filesystem, so the SQLite file is lost on restart, redeploy and spin-down. Treat the free deploy as a demo, or move the data to a database outside the container."
+          tr: "Bu beklenen bir durum: ücretsiz instance'ın dosya sistemi geçicidir; SQLite dosyası yeniden başlatmada, yeniden deploy'da ve kapanmada kaybolur. Ücretsiz deploy'u demo say ya da veriyi container'ın dışındaki bir veritabanına taşı."
+      - problem:
+          en: "The CI workflow fails with \"go.mod ... not found\" or cannot find the Go version."
+          tr: "CI workflow'u \"go.mod ... not found\" ile ya da Go sürümünü bulamadan başarısız oluyor."
+        fix:
+          en: "go.mod and go.sum must be committed, and `go-version-file: go.mod` must point at the right path. Run `git status` to see what you forgot to add."
+          tr: "go.mod ve go.sum commit edilmiş olmalı ve `go-version-file: go.mod` doğru yolu göstermeli. Neyi eklemeyi unuttuğunu görmek için `git status` çalıştır."
+    quiz:
+      - q:
+          en: "A friend registers on your free Render deploy; a day later the account is gone. Why?"
+          tr: "Bir arkadaşın ücretsiz Render deploy'una kayıt oluyor; bir gün sonra hesap yok. Neden?"
+        options:
+          en:
+            - "bcrypt expired the password"
+            - "The free instance's disk is temporary, so the SQLite file was lost when the service restarted or spun down"
+            - "GitHub deleted the repository"
+          tr:
+            - "bcrypt şifrenin süresini bitirdi"
+            - "Ücretsiz instance'ın diski geçici; servis yeniden başlayınca ya da kapanınca SQLite dosyası kayboldu"
+            - "GitHub repo'yu sildi"
+        answer: 1
+        why:
+          en: "Render's docs say local files, including SQLite databases, are lost whenever a free web service restarts, redeploys or spins down."
+          tr: "Render dokümanları, ücretsiz bir web servisi yeniden başladığında, yeniden deploy edildiğinde ya da kapandığında SQLite veritabanları dahil yerel dosyaların kaybolduğunu söyler."
+    sources:
+      - title: "Render, deploy for free (limits)"
+        url: https://render.com/docs/free
+      - title: "Render, web services and the PORT variable"
+        url: https://render.com/docs/web-services
+      - title: "Render, deploys, auto-deploy and health checks"
+        url: https://render.com/docs/deploys
+      - title: "GitHub, building and testing Go"
+        url: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-go
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Structured logs with slog, health checks and uptime"
+      tr: "slog ile yapılandırılmış loglar, sağlık kontrolleri ve uptime"
+    minutes: 60
+    needs: [deploy]
+    why:
+      en: "Once real people use the API you cannot see what happens inside it. Logs are how it tells you. Structured logs (one JSON object per line) can be searched and counted by tools. A readiness check tells the platform when the database is not working, and an uptime check tells you when the whole service is down."
+      tr: "API'yi gerçek insanlar kullanmaya başlayınca içinde olanı göremezsin. Loglar, onun sana anlatma yoludur. Yapılandırılmış loglar (satır başına bir JSON nesnesi) araçlarla aranabilir ve sayılabilir. Hazır olma (readiness) kontrolü, veritabanı çalışmadığında platforma haber verir; uptime kontrolü de bütün servis çöktüğünde sana haber verir."
+    learn:
+      en: |
+        - `log/slog`: `slog.Info("request", "path", p, "status", 200)` writes key-value pairs; a JSON handler prints them as JSON, a text handler as readable text
+        - Log levels (Debug, Info, Warn, Error) and what to log: one line per request with method, path, status and duration
+        - What never to log: passwords, tokens, the Authorization header, request bodies, full query strings
+        - Liveness (`/healthz`: the process answers) versus readiness (`/readyz`: it can also reach its database)
+        - A recover middleware turns a panic into a logged 500 answer
+        - Uptime checks and keeping dependencies current
+      tr: |
+        - `log/slog`: `slog.Info("request", "path", p, "status", 200)` anahtar-değer çiftleri yazar; JSON handler onları JSON olarak, text handler okunur metin olarak basar
+        - Log seviyeleri (Debug, Info, Warn, Error) ve ne loglanacağı: istek başına bir satır; method, yol, durum ve süre
+        - Asla loglanmayacaklar: şifreler, token'lar, Authorization başlığı, istek gövdeleri, tam query string'ler
+        - Liveness (`/healthz`: süreç cevap veriyor) ile readiness (`/readyz`: veritabanına da ulaşabiliyor) farkı
+        - Recover middleware bir panic'i loglanan bir 500 cevabına çevirir
+        - Uptime kontrolleri ve bağımlılıkları güncel tutmak
+    do:
+      en: |
+        1. Add `Ping` to `store.go` (below).
+        2. Replace `middleware.go` with the version below. It adds `withRecover` and `withLogging`.
+        3. In `server.go` add `"context"` and `"log/slog"` to the imports if they are missing, set up the routes and `readyz` as below.
+        4. In `main.go` add `setupLogging` and call it first in `main` (full file below).
+        5. Add the new tests at the end of `server_test.go` and run `go test ./...`.
+        6. Run it with readable logs: `LOG_FORMAT=text go run .` (PowerShell: `$env:LOG_FORMAT="text"; go run .`). Make a few requests with curl and read the lines.
+        7. On Render, change the health check path to `/readyz`, so a broken database stops traffic. Push, and wait for the deploy.
+        8. Add your service address to an uptime check (God Eye *Tools → Uptime*). Expect it to look down while the free instance is asleep.
+        9. Once a month: `go list -m -u all` (lists newer versions of your dependencies), `go get -u ./...`, `go mod tidy`, run the tests, deploy.
+      tr: |
+        1. `store.go` dosyasına `Ping` ekle (aşağıda).
+        2. `middleware.go` dosyasını aşağıdaki sürümle değiştir. `withRecover` ve `withLogging` ekler.
+        3. `server.go` içinde eksikse import'lara `"context"` ve `"log/slog"` ekle, rotaları ve `readyz`'i aşağıdaki gibi ayarla.
+        4. `main.go` içine `setupLogging`'i ekle ve `main`'in başında çağır (tam dosya aşağıda).
+        5. Yeni testleri `server_test.go` sonuna ekle ve `go test ./...` çalıştır.
+        6. Okunur loglarla çalıştır: `LOG_FORMAT=text go run .` (PowerShell: `$env:LOG_FORMAT="text"; go run .`). curl ile birkaç istek yap ve satırları oku.
+        7. Render'da sağlık kontrolü yolunu `/readyz` yap; böylece bozuk bir veritabanı trafiği durdurur. Push et ve deploy'u bekle.
+        8. Servis adresini bir uptime kontrolüne ekle (God Eye *Araçlar → Uptime*). Ücretsiz instance uyurken kapalı görünmesini bekle.
+        9. Ayda bir: `go list -m -u all` (bağımlılıklarının daha yeni sürümlerini listeler), `go get -u ./...`, `go mod tidy`, testleri çalıştır, deploy et.
+    code:
+      - file: store.go (add at the end)
+        lang: go
+        text: |
+          // Ping checks that the database answers.
+          func (s *Store) Ping(ctx context.Context) error { return s.db.PingContext(ctx) }
+      - file: middleware.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"log/slog"
+          	"net/http"
+          	"time"
+          )
+
+          // withTimeout gives every request a deadline. The store passes the request's
+          // context to the database, so a slow query is cancelled when time runs out.
+          func withTimeout(d time.Duration, next http.Handler) http.Handler {
+          	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+          		ctx, cancel := context.WithTimeout(r.Context(), d)
+          		defer cancel()
+          		next.ServeHTTP(w, r.WithContext(ctx))
+          	})
+          }
+
+          // withRecover turns a panic in a handler into a logged 500 answer.
+          func withRecover(next http.Handler) http.Handler {
+          	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+          		defer func() {
+          			if v := recover(); v != nil {
+          				slog.Error("panic in handler", "method", r.Method, "path", r.URL.Path, "panic", v)
+          				writeError(w, http.StatusInternalServerError, "something went wrong")
+          			}
+          		}()
+          		next.ServeHTTP(w, r)
+          	})
+          }
+
+          // statusRecorder remembers the status code a handler wrote.
+          type statusRecorder struct {
+          	http.ResponseWriter
+          	status int
+          }
+
+          func (r *statusRecorder) WriteHeader(code int) {
+          	r.status = code
+          	r.ResponseWriter.WriteHeader(code)
+          }
+
+          // withLogging writes one log line per request. It logs the path but never the
+          // query, headers or body, so passwords and logins cannot end up in the logs.
+          func withLogging(next http.Handler) http.Handler {
+          	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+          		if r.URL.Path == "/healthz" || r.URL.Path == "/readyz" {
+          			next.ServeHTTP(w, r) // platforms call these every few seconds; skip the noise
+          			return
+          		}
+          		start := time.Now()
+          		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
+          		next.ServeHTTP(rec, r)
+          		slog.Info("request",
+          			"method", r.Method,
+          			"path", r.URL.Path,
+          			"status", rec.status,
+          			"duration_ms", time.Since(start).Milliseconds())
+          	})
+          }
+      - file: server.go (Routes and readyz)
+        lang: go
+        text: |
+          // Routes connects each method and path to a handler (Go 1.22+ patterns).
+          func (s *Server) Routes() http.Handler {
+          	mux := http.NewServeMux()
+          	mux.HandleFunc("GET /healthz", s.healthz)
+          	mux.HandleFunc("GET /readyz", s.readyz)
+          	mux.HandleFunc("GET /links", s.listLinks)
+          	mux.HandleFunc("POST /users", s.register)
+          	mux.HandleFunc("POST /links", s.requireAuth(s.createLink))
+          	mux.HandleFunc("GET /links/{id}", s.getLink)
+          	mux.HandleFunc("DELETE /links/{id}", s.requireAuth(s.deleteLink))
+          	return withLogging(withRecover(withTimeout(3*time.Second, mux)))
+          }
+
+          // readyz also checks the database. Use it where "can this instance serve
+          // real requests?" matters, for example as a platform health check.
+          func (s *Server) readyz(w http.ResponseWriter, r *http.Request) {
+          	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+          	defer cancel()
+          	if err := s.store.Ping(ctx); err != nil {
+          		slog.Error("readiness check failed", "err", err)
+          		writeError(w, http.StatusServiceUnavailable, "database not ready")
+          		return
+          	}
+          	writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+          }
+      - file: main.go
+        lang: go
+        text: |
+          package main
+
+          import (
+          	"context"
+          	"errors"
+          	"log/slog"
+          	"net/http"
+          	_ "net/http/pprof" // adds the /debug/pprof/ pages to http.DefaultServeMux
+          	"os"
+          	"os/signal"
+          	"syscall"
+          	"time"
+          )
+
+          func main() {
+          	setupLogging()
+          	if err := run(); err != nil {
+          		slog.Error("stopped", "err", err)
+          		os.Exit(1)
+          	}
+          }
+
+          // setupLogging sends structured logs to standard output: JSON for log tools,
+          // or readable text when LOG_FORMAT=text. Hosts such as Render collect this output.
+          func setupLogging() {
+          	var handler slog.Handler = slog.NewJSONHandler(os.Stdout, nil)
+          	if os.Getenv("LOG_FORMAT") == "text" {
+          		handler = slog.NewTextHandler(os.Stdout, nil)
+          	}
+          	slog.SetDefault(slog.New(handler))
+          }
+
+          func run() error {
+          	// ctx is cancelled when someone presses Ctrl+C or a platform sends SIGTERM
+          	// (what Docker and most hosts send before they stop your program).
+          	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+          	defer stop()
+
+          	store, err := OpenStore(envOr("LINKBOX_DB", "linkbox.db"))
+          	if err != nil {
+          		return err
+          	}
+          	defer store.Close() // runs last, after the server has stopped
+
+          	srv := &http.Server{
+          		Addr:    ":" + envOr("PORT", "8080"),
+          		Handler: NewServer(store).Routes(),
+
+          		// Without timeouts one slow or silent client can hold a connection forever.
+          		ReadHeaderTimeout: 5 * time.Second,  // time to send the request headers
+          		ReadTimeout:       10 * time.Second, // time to send the whole request
+          		WriteTimeout:      15 * time.Second, // time to receive the whole response
+          		IdleTimeout:       60 * time.Second, // time a kept-alive connection may sit unused
+          		MaxHeaderBytes:    16 << 10,         // 16 KiB of headers
+          	}
+
+          	// Profiling pages are off unless PPROF_ADDR is set, for example 127.0.0.1:6060.
+          	// Always bind them to 127.0.0.1: they must never be reachable from the internet.
+          	if addr := os.Getenv("PPROF_ADDR"); addr != "" {
+          		go func() {
+          			slog.Info("pprof listening", "addr", addr)
+          			// Our API uses its own mux, so only this server serves /debug/pprof/.
+          			if err := http.ListenAndServe(addr, nil); err != nil {
+          				slog.Error("pprof server", "err", err)
+          			}
+          		}()
+          	}
+
+          	errc := make(chan error, 1)
+          	go func() {
+          		slog.Info("listening", "addr", srv.Addr)
+          		errc <- srv.ListenAndServe()
+          	}()
+
+          	select {
+          	case err := <-errc: // the server failed to start or crashed
+          		return err
+          	case <-ctx.Done(): // we were asked to stop
+          	}
+
+          	slog.Info("shutting down")
+          	// Stop accepting new requests and give running ones up to 10 seconds to finish.
+          	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+          	defer cancel()
+          	if err := srv.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
+          		return err
+          	}
+          	return nil
+          }
+
+          // envOr returns the environment variable key, or fallback when it is not set.
+          func envOr(key, fallback string) string {
+          	if v := os.Getenv(key); v != "" {
+          		return v
+          	}
+          	return fallback
+          }
+      - file: server_test.go (imports at the top, new tests at the end)
+        lang: go
+        text: |
+          import (
+          	"bytes"
+          	"context"
+          	"encoding/json"
+          	"log/slog"
+          	"net/http"
+          	"net/http/httptest"
+          	"path/filepath"
+          	"strings"
+          	"testing"
+          )
+
+          // ... the existing code stays ...
+
+          func TestReadyz(t *testing.T) {
+          	store := newTestStore(t)
+          	h := NewServer(store).Routes()
+          	if rec := do(h, "GET", "/readyz", ""); rec.Code != http.StatusOK {
+          		t.Fatalf("status = %d, want 200", rec.Code)
+          	}
+          	store.Close() // now the database is gone
+          	if rec := do(h, "GET", "/readyz", ""); rec.Code != http.StatusServiceUnavailable {
+          		t.Fatalf("status after close = %d, want 503", rec.Code)
+          	}
+          }
+
+          func TestRequestLogging(t *testing.T) {
+          	var buf bytes.Buffer
+          	old := slog.Default()
+          	slog.SetDefault(slog.New(slog.NewJSONHandler(&buf, nil)))
+          	t.Cleanup(func() { slog.SetDefault(old) })
+
+          	h := newTestHandler(t)
+          	buf.Reset() // forget the lines from registering the test user
+          	req := httptest.NewRequest("POST", "/links", strings.NewReader(`{"title":"Go","url":"https://go.dev"}`))
+          	req.SetBasicAuth(testUser, testPass)
+          	send(h, req)
+
+          	line := buf.String()
+          	for _, want := range []string{`"msg":"request"`, `"path":"/links"`, `"status":201`} {
+          		if !strings.Contains(line, want) {
+          			t.Errorf("log line %q does not contain %s", line, want)
+          		}
+          	}
+          	if strings.Contains(line, testPass) {
+          		t.Error("the password is in the log")
+          	}
+          }
+
+          func TestPanicBecomes500(t *testing.T) {
+          	h := withRecover(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+          		panic("boom")
+          	}))
+          	if rec := do(h, "GET", "/", ""); rec.Code != http.StatusInternalServerError {
+          		t.Fatalf("status = %d, want 500", rec.Code)
+          	}
+          }
+    mistakes:
+      - problem:
+          en: "Health check requests fill the logs every few seconds."
+          tr: "Sağlık kontrolü istekleri logları birkaç saniyede bir dolduruyor."
+        fix:
+          en: "withLogging skips /healthz and /readyz on purpose. Keep noise out of logs so real problems stand out."
+          tr: "withLogging /healthz ve /readyz'i bilerek atlar. Gerçek sorunlar öne çıksın diye gürültüyü loglardan uzak tut."
+      - problem:
+          en: "Logging with `fmt.Println` or `log.Printf` and having no levels, fields or JSON."
+          tr: "`fmt.Println` ya da `log.Printf` ile loglayıp seviye, alan ya da JSON olmaması."
+        fix:
+          en: "Use slog. After `slog.SetDefault`, even the old `log` package writes through the same handler."
+          tr: "slog kullan. `slog.SetDefault`'tan sonra eski `log` paketi bile aynı handler üzerinden yazar."
+      - problem:
+          en: "Using /readyz (database check) as the only uptime check and being told the site is down when only the database had a short problem."
+          tr: "Sadece /readyz'i (veritabanı kontrolü) uptime kontrolü yapmak ve veritabanında kısa bir sorun olunca sitenin çöktüğünün söylenmesi."
+        fix:
+          en: "Both are useful: /healthz says the process is up, /readyz says it can do real work. Pick the one that matches the question you are asking."
+          tr: "İkisi de yararlı: /healthz süreç ayakta der, /readyz gerçek iş yapabilir der. Sorduğun soruya uyanı seç."
+    quiz:
+      - q:
+          en: "What is the difference between /healthz and /readyz here?"
+          tr: "Buradaki /healthz ile /readyz arasındaki fark nedir?"
+        options:
+          en:
+            - "/healthz checks only that the process answers; /readyz also pings the database"
+            - "/readyz is the public home page"
+            - "There is no difference"
+          tr:
+            - "/healthz sadece sürecin cevap verdiğine bakar; /readyz veritabanına da ping atar"
+            - "/readyz herkese açık ana sayfadır"
+            - "Fark yok"
+        answer: 0
+        why:
+          en: "Liveness means the program runs. Readiness means it can serve real requests, which needs the database."
+          tr: "Liveness programın çalıştığı demektir. Readiness gerçek istekleri karşılayabildiği demektir; bunun için veritabanı gerekir."
+      - q:
+          en: "Which of these must never be written to a log?"
+          tr: "Bunlardan hangisi asla loga yazılmamalı?"
+        options:
+          en:
+            - "The request method"
+            - "The response status"
+            - "The Authorization header"
+          tr:
+            - "İstek method'u"
+            - "Cevap durumu"
+            - "Authorization başlığı"
+        answer: 2
+        why:
+          en: "It holds the username and password. Logs are copied, shipped to other services and kept for months."
+          tr: "Kullanıcı adı ve şifreyi içerir. Loglar kopyalanır, başka servislere gönderilir ve aylarca saklanır."
+    sources:
+      - title: log/slog
+        url: https://pkg.go.dev/log/slog
+      - title: "Structured logging with slog (Go blog)"
+        url: https://go.dev/blog/slog
+      - title: "Render, health checks"
+        url: https://render.com/docs/health-checks
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Where to go next"
+      tr: "Bundan sonra nereye"
+    minutes: 120
+    needs: [deploy]
+    why:
+      en: "You have a tested, measured, monitored API on the internet. These topics are what real services add as they grow; pick the one your next project needs instead of learning all of them at once."
+      tr: "İnternette yayında, testleri yazılmış, ölçülmüş ve izlenen bir API'n var. Bu konular, gerçek servislerin büyüdükçe eklediği şeyler; hepsini birden öğrenmek yerine bir sonraki projenin ihtiyaç duyduğunu seç."
+    learn:
+      en: |
+        - **A database that stays**: PostgreSQL with `pgx` (and a migration tool such as goose or golang-migrate) so data survives restarts and deploys
+        - **Rate limiting** on `POST /users` and logins (`golang.org/x/time/rate`), and sign-up control
+        - **Argon2id** for passwords (`golang.org/x/crypto/argon2`), tokens or sessions instead of Basic auth on every request
+        - **Dependency safety**: `govulncheck` reports known vulnerabilities in the modules and standard library you really call
+        - **Modern Go**: `go fix` rewrites old code to new idioms; Go 1.27 has generic methods and a `uuid` package, and `encoding/json` now runs on the new `encoding/json/v2` code
+        - **More tests**: `testing/synctest` for code with time and goroutines, fuzzing with `go test -fuzz`
+        - **Docs and clients**: an OpenAPI description of your API
+      tr: |
+        - **Kalıcı bir veritabanı**: veri yeniden başlatmalardan ve deploy'lardan sağ çıksın diye `pgx` ile PostgreSQL (ve goose ya da golang-migrate gibi bir migration aracı)
+        - `POST /users` ve girişler için **istek sınırı** (`golang.org/x/time/rate`) ve kayıt kontrolü
+        - Şifreler için **Argon2id** (`golang.org/x/crypto/argon2`), her istekte Basic auth yerine token ya da oturum
+        - **Bağımlılık güvenliği**: `govulncheck`, gerçekten çağırdığın modüllerdeki ve standart kütüphanedeki bilinen açıkları bildirir
+        - **Modern Go**: `go fix` eski kodu yeni deyimlere çevirir; Go 1.27'de generic metotlar ve bir `uuid` paketi var, `encoding/json` da artık yeni `encoding/json/v2` kodu üzerinde çalışıyor
+        - **Daha fazla test**: zaman ve goroutine içeren kod için `testing/synctest`, `go test -fuzz` ile fuzzing
+        - **Doküman ve istemciler**: API'nin bir OpenAPI tanımı
+    do:
+      en: |
+        1. Run `go fix -diff ./...`. It prints the changes its modernizers would make without touching your files. On Go 1.27 it suggests replacing `errors.As` with `errors.AsType` in `json.go`. Commit first, then run `go fix ./...` to apply them, run the tests and read the diff.
+        2. Run `go test -cover ./...` and add a test for one path that is not covered yet.
+        3. Check your dependencies for known vulnerabilities: install the tool and run it (commands below). It reports only what your code actually calls.
+        4. Pick one real next step: Postgres with pgx, rate limiting, or a login token. Build it on a new branch, with tests first.
+        5. Then read the Docker and PostgreSQL roadmaps and cheatsheets in the learning center.
+      tr: |
+        1. `go fix -diff ./...` çalıştır. Dosyalarına dokunmadan modernizer'larının yapacağı değişiklikleri yazdırır. Go 1.27'de `json.go` içinde `errors.As` yerine `errors.AsType` kullanmayı önerir. Önce commit et, sonra uygulamak için `go fix ./...` çalıştır, testleri çalıştır ve diff'i oku.
+        2. `go test -cover ./...` çalıştır ve henüz kapsanmayan bir yol için test ekle.
+        3. Bağımlılıklarını bilinen açıklara karşı kontrol et: aracı kur ve çalıştır (aşağıdaki komutlar). Sadece kodunun gerçekten çağırdıklarını bildirir.
+        4. Gerçek bir sonraki adımı seç: pgx ile Postgres, istek sınırı ya da giriş token'ı. Yeni bir branch'te, önce testlerle yaz.
+        5. Sonra öğrenme merkezindeki Docker ve PostgreSQL yol haritalarını ve kopya kâğıtlarını oku.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          go fix -diff ./...
+          go test -cover ./...
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+    mistakes:
+      - problem:
+          en: "Learning every library at once and never finishing a project."
+          tr: "Her kütüphaneyi aynı anda öğrenmeye çalışıp hiçbir projeyi bitirememek."
+        fix:
+          en: "Add one thing at a time, only when your service needs it."
+          tr: "Her seferinde tek bir şey ekle, sadece servisin ona ihtiyaç duyduğunda."
+      - problem:
+          en: "Reaching for a web framework or an ORM first because other languages do."
+          tr: "Diğer dillerde öyle yapıldığı için önce bir web framework'üne ya da ORM'ye uzanmak."
+        fix:
+          en: "In Go the standard library often is enough. Add a dependency when it saves real work, and read its code and its maintenance state first."
+          tr: "Go'da standart kütüphane çoğu zaman yeter. Gerçek bir işi kısaltıyorsa bağımlılık ekle ve önce kodunu ve bakım durumunu oku."
+    quiz:
+      - q:
+          en: "Your free Render deploy loses its data. What is the right next step if the data matters?"
+          tr: "Ücretsiz Render deploy'un verisini kaybediyor. Veri önemliyse doğru sonraki adım nedir?"
+        options:
+          en:
+            - "Increase the bcrypt cost"
+            - "Move the data to a database that lives outside the container, such as PostgreSQL"
+            - "Add more logging"
+          tr:
+            - "bcrypt maliyetini artırmak"
+            - "Veriyi container'ın dışında yaşayan bir veritabanına, örneğin PostgreSQL'e taşımak"
+            - "Daha fazla log eklemek"
+        answer: 1
+        why:
+          en: "The container's own disk is temporary on the free plan, so lasting data needs a database outside it."
+          tr: "Ücretsiz planda container'ın kendi diski geçicidir; kalıcı veri için dışarıda bir veritabanı gerekir."
+    sources:
+      - title: Go 1.27 release notes
+        url: https://go.dev/doc/go1.27
+      - title: "Go vulnerability management (govulncheck)"
+        url: https://go.dev/doc/security/vuln/
+      - title: "pgx, PostgreSQL driver for Go"
+        url: https://pkg.go.dev/github.com/jackc/pgx/v5
