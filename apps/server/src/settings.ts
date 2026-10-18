@@ -37,6 +37,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     ["enhanceLanguage", ["en", "user"]],
     ["knowledgeScan", ["off", "daily", "weekly"]],
     ["localModel", ["off", "limit", "always"]],
+    ["turnGate", ["off", "check", "sendBack"]],
   ];
   for (const [key, allowed] of enums) {
     if (key in body) {

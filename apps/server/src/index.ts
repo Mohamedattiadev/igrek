@@ -62,6 +62,7 @@ import { Incidents } from "./incidents";
 import { Indexer } from "./indexer";
 import { Insight } from "./insight";
 import { HistoryImport } from "./insight/history";
+import { runChecks } from "./insight/tools";
 import { registerInsightRoutes } from "./insight-routes";
 import { Jobs } from "./jobs";
 import { Knowledge } from "./knowledge";
@@ -120,6 +121,7 @@ import { Terminals } from "./terminals";
 import { registerTesterRoutes } from "./tester-routes";
 import { Testers } from "./testers";
 import { Translator } from "./translator";
+import { TurnGate } from "./turn-gate";
 import { Updater } from "./update";
 import { Vault } from "./vault";
 import { registerWatcherRoutes } from "./watcher-routes";
@@ -185,6 +187,13 @@ const jobs = new Jobs(store, bus, summarizer, () => readSettings(db));
 const terminals = new Terminals(bus, stops);
 const servers = new Servers(sqlite, bus, stops);
 const chats = new Chats(bus, stops, undefined, (cwd, label) => createCheckpoint(cwd, label)?.id);
+const turnGate = new TurnGate(
+  () => readSettings(db).turnGate,
+  chats,
+  (root) => runChecks(root, (stop) => stops.register(`gate-${root}`, { label: "checks", stop })),
+);
+chats.onStart = (cwd) => void turnGate.baseline(cwd).catch(() => undefined);
+chats.onTurnEnd = (id, cwd, edited) => void turnGate.turnEnded(id, cwd, edited).catch(() => undefined);
 chats.onRateLimit = (accountId, info) => {
   const id = accountId ?? accounts.active("claude")?.id;
   if (id) accounts.recordLimit(id, info);

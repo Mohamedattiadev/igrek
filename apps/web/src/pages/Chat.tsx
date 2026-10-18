@@ -51,6 +51,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
+import { GateCard } from "../components/GateCard";
 import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
@@ -1093,6 +1094,8 @@ export function ChatPage() {
                       />
                     </div>
                   );
+                case "gate":
+                  return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
                 case "notice":
                   if (event.code === "loop")
                     return (

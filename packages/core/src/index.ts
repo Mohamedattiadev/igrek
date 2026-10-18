@@ -39,6 +39,11 @@ export interface Settings {
   autoSummarize: boolean;
   /** Chats may answer with OpenUI blocks drawn with God Eye's components (plan.md 16.2); costs about a thousand tokens per chat. */
   richAnswers: boolean;
+  /**
+   * Gate point (plan.md 15.5): when a chat turn changed files, run the project's typecheck, lint
+   * and tests. "check" shows what newly broke; "sendBack" also hands it to the AI to fix.
+   */
+  turnGate: "off" | "check" | "sendBack";
   /** How summaries are written: for anyone, or with technical detail. */
   summaryTone: "plain" | "technical";
   /** Extra folders (besides projects) God Eye may open in the file manager. */
@@ -94,6 +99,7 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   autoSummarize: true,
   richAnswers: false,
+  turnGate: "off",
   summaryTone: "plain",
   allowedFolders: [],
   editorVim: false,
@@ -593,7 +599,28 @@ export type ChatEvent =
        */
       code?: "external" | "notebook" | "notebookRejected" | "loop";
     }
+  | {
+      /** The project's checks after a turn that changed files (plan.md 15.5). */
+      kind: "gate";
+      id: string;
+      at: number;
+      status: "running" | "pass" | "fail" | "none";
+      checks: {
+        command: string;
+        ok: boolean /** Passed the last time it ran here. */;
+        broke: boolean;
+        output?: string;
+      }[];
+      /** The failures were sent to the AI to fix. */
+      sentBack?: boolean;
+    }
   | { kind: "checkpoint"; id: string; at: number; checkpointId: string; projectId: string };
+
+/** The message that hands failures from the gate back to the AI, with the evidence (plan.md 15.5). */
+export function fixRequest(broke: { command: string; output?: string }[]): string {
+  const parts = broke.map((c) => `$ ${c.command}\n${(c.output ?? "").trim()}`);
+  return `God Eye ran the project's checks after your changes. These passed before this turn and fail now:\n\n${parts.join("\n\n")}\n\nFix what your changes broke, then say what you changed. Do not weaken or skip the checks.`;
+}
 
 export interface Checkpoint {
   id: string;

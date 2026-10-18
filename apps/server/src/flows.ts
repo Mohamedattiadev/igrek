@@ -15,7 +15,7 @@ import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { BUILTIN_FLOWS } from "./flows-builtin";
 import { SHIP_ASK_RULES } from "./guards";
-import { planTools, runTool } from "./insight/tools";
+import { runChecks } from "./insight/tools";
 import { readJsonLines } from "./jsonlines";
 import { LIMIT_REACHED } from "./localmodel";
 import type { Personas } from "./personas";
@@ -257,12 +257,7 @@ export class Flows {
     private readonly checks: (
       root: string,
       register: (stop: () => void) => () => void,
-    ) => Promise<ToolResult[]> = async (root, register) => {
-      const out: ToolResult[] = [];
-      for (const plan of planTools(root).filter((p) => p.kind !== "audit"))
-        out.push(await runTool(root, plan, register));
-      return out;
-    },
+    ) => Promise<ToolResult[]> = runChecks,
   ) {}
 
   // ---- flows ---------------------------------------------------------------------

@@ -66,7 +66,14 @@ export function planTools(root: string): ToolPlan[] {
       out.push({ kind: "audit", command: audit[pm] as string[] });
   } else if (existsSync(join(root, "requirements.txt")) && Bun.which("pip-audit"))
     out.push({ kind: "audit", command: ["pip-audit", "-r", "requirements.txt", "-f", "json"] });
-  return out.filter((p) => Bun.which(p.command[0] ?? ""));
+  return out.filter((p) => resolveBin(p.command[0] ?? ""));
+}
+
+/** A program on PATH; `bun` is also the Bun running God Eye, which may not be on PATH itself. */
+function resolveBin(name: string): string | undefined {
+  if (Bun.which(name)) return name;
+  if (name === "bun" && /\bbun(\.exe)?$/.test(process.execPath)) return process.execPath;
+  return undefined;
 }
 
 /** Counts by severity from npm/pnpm/bun/yarn/pip-audit JSON (the formats differ). */
@@ -123,7 +130,8 @@ export async function runTool(
   register: (stop: () => void) => () => void,
 ): Promise<ToolResult> {
   const started = Date.now();
-  const proc = Bun.spawn(plan.command, {
+  const [bin = "", ...args] = plan.command;
+  const proc = Bun.spawn([resolveBin(bin) ?? bin, ...args], {
     cwd: root,
     stdout: "pipe",
     stderr: "pipe",
@@ -167,3 +175,10 @@ export async function runTool(
 }
 
 export const TOOL_KINDS: ToolKind[] = ["typecheck", "lint", "test", "audit"];
+
+/** Typecheck, lint and tests of a folder, one after another (the audit needs the network, so it is left out). */
+export async function runChecks(root: string, register: (stop: () => void) => () => void): Promise<ToolResult[]> {
+  const out: ToolResult[] = [];
+  for (const plan of planTools(root).filter((p) => p.kind !== "audit")) out.push(await runTool(root, plan, register));
+  return out;
+}

@@ -216,6 +216,17 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Section title={t("settings.turnGate")} hint={t("settings.turnGateHint")}>
+          <Segmented
+            value={settings.turnGate}
+            onChange={(turnGate) => update({ turnGate })}
+            options={[
+              { value: "off", label: t("settings.off") },
+              { value: "check", label: t("settings.turnGateCheck") },
+              { value: "sendBack", label: t("settings.turnGateSendBack") },
+            ]}
+          />
+        </Section>
         <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
           <Segmented
             value={settings.summaryTone}

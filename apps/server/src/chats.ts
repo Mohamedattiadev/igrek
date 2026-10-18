@@ -65,6 +65,22 @@ type Image = { mediaType: string; data: string };
 /** What to do with a message written while the AI is still working. */
 export type SendHow = "queue" | "steer";
 
+const WRITE_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
+
+/** Files the AI wrote since the last user message. */
+export function editedThisTurn(events: ChatEvent[]): string[] {
+  const files = new Set<string>();
+  for (let i = events.length - 1; i >= 0; i--) {
+    const event = events[i];
+    if (!event || event.kind === "user") break;
+    if (event.kind !== "tool" || event.status !== "done" || !WRITE_TOOLS.has(event.name)) continue;
+    const input = (event.input ?? {}) as { file_path?: unknown; notebook_path?: unknown };
+    const file = input.file_path ?? input.notebook_path;
+    if (typeof file === "string") files.add(file);
+  }
+  return [...files];
+}
+
 export type ChatOp = { op: "upsert"; seq: number; event: ChatEvent } | { op: "info"; seq: number; info: ChatInfo };
 
 export interface ChatStart {
@@ -187,6 +203,10 @@ export class Chats {
   private chats = new Map<string, Chat>();
   /** Called whenever Claude reports limit usage (wired to the Limits page). */
   onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void = () => undefined;
+  /** A chat started in a folder (the gate takes its baseline there). */
+  onStart: (cwd: string) => void = () => undefined;
+  /** A turn finished; `edited` are the files it wrote. */
+  onTurnEnd: (id: string, cwd: string, edited: string[]) => void = () => undefined;
   /** Steps the user always allows in a project (plan.md 16.1); wired to the database. */
   projectRules: (projectId: string) => string[] = () => [];
   addProjectRule: (projectId: string, rule: string) => void = () => undefined;
@@ -325,6 +345,7 @@ export class Chats {
       this.changed();
     });
     this.changed();
+    this.onStart(chat.info.cwd);
     return { ...chat.info };
   }
 
@@ -689,9 +710,16 @@ export class Chats {
         this.changed();
         // The turn is over: what the user wrote meanwhile goes out now.
         if (chat.queue.length) this.next(chat);
+        else this.onTurnEnd(chat.info.id, chat.info.cwd, editedThisTurn(chat.events));
         return;
       }
     }
+  }
+
+  /** Adds an event from outside the CLI's stream (the gate's check results). */
+  addEvent(id: string, event: ChatEvent): void {
+    const chat = this.chats.get(id);
+    if (chat) this.upsert(chat, event);
   }
 
   /** The persona's words since the last user message go to its notebook; say what was kept. */

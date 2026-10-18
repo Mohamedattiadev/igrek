@@ -202,7 +202,11 @@
     "textLarge": "Büyük",
     "textLarger": "Daha büyük",
     "richAnswers": "Sohbetlerde zengin cevaplar",
-    "richAnswersHint": "Sohbetler God Eye'ın kendi parçalarıyla çizilen kutular, grafikler, tablolar ve butonlarla cevap verebilir (OpenUI). Her sohbete yaklaşık bin token'lık ek talimat gider."
+    "richAnswersHint": "Sohbetler God Eye'ın kendi parçalarıyla çizilen kutular, grafikler, tablolar ve butonlarla cevap verebilir (OpenUI). Her sohbete yaklaşık bin token'lık ek talimat gider.",
+    "turnGate": "AI'ın işini kontrol et",
+    "turnGateHint": "Bir sohbet turu dosya değiştirince projenin tip kontrolü, lint ve testleri çalışır. Sadece önce geçip şimdi kırılan sayılır. 'Geri gönder' bunu düzeltmesi için AI'a verir (art arda en çok iki kez).",
+    "turnGateCheck": "Göster",
+    "turnGateSendBack": "Geri gönder"
   },
   "onboarding": {
     "welcome": "God Eye'a hoş geldin",
@@ -3996,5 +4000,19 @@
     "form_answered": "Gönderildi. AI cevaplarını aldı.",
     "form_declined": "Reddedildi. AI'a formu doldurmadığın söylendi.",
     "form_pending": "Seni bekliyor."
+  },
+  "gate": {
+    "running": "Projenin kontrolleri çalışıyor…",
+    "none": "Bu projede tip kontrolü, lint ya da test komutu bulunamadı, bir şey kontrol edilmedi.",
+    "pass_one": "{{count}} kontrol geçti",
+    "pass_other": "{{count}} kontrolün hepsi geçti",
+    "passNew_one": "Yeni bir şey kırılmadı ({{count}} kontrol zaten önceden kırıktı)",
+    "passNew_other": "Yeni bir şey kırılmadı ({{count}} kontrol zaten önceden kırıktı)",
+    "broke_one": "Bu tur, önce geçen {{count}} kontrolü kırdı",
+    "broke_other": "Bu tur, önce geçen {{count}} kontrolü kırdı",
+    "alreadyFailing_one": "{{count}} kontrol daha bu sohbetten önce de kırıktı.",
+    "alreadyFailing_other": "{{count}} kontrol daha bu sohbetten önce de kırıktı.",
+    "sendBack": "Düzeltmesi için AI'a gönder",
+    "sentBack": "Bu çıktıyla AI'a gönderildi."
   }
 }

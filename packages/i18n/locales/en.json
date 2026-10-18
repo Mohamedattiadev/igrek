@@ -202,7 +202,11 @@
     "textLarge": "Large",
     "textLarger": "Larger",
     "richAnswers": "Rich answers in chats",
-    "richAnswersHint": "Chats may answer with tiles, charts, tables and buttons drawn with God Eye's own pieces (OpenUI). Each chat gets about a thousand extra tokens of instructions."
+    "richAnswersHint": "Chats may answer with tiles, charts, tables and buttons drawn with God Eye's own pieces (OpenUI). Each chat gets about a thousand extra tokens of instructions.",
+    "turnGate": "Check the AI's work",
+    "turnGateHint": "When a chat turn changed files, run the project's typecheck, lint and tests. Only what passed before and fails now counts. 'Send back' gives it to the AI to fix (at most twice in a row).",
+    "turnGateCheck": "Show",
+    "turnGateSendBack": "Send back"
   },
   "onboarding": {
     "welcome": "Welcome to God Eye",
@@ -3996,5 +4000,19 @@
     "form_answered": "Sent. The AI has your answers.",
     "form_declined": "Declined. The AI was told you did not fill it.",
     "form_pending": "Waiting for you."
+  },
+  "gate": {
+    "running": "Running the project's checks…",
+    "none": "No typecheck, lint or test command found in this project, so nothing was checked.",
+    "pass_one": "{{count}} check passed",
+    "pass_other": "All {{count}} checks passed",
+    "passNew_one": "Nothing new broke ({{count}} check was already failing before)",
+    "passNew_other": "Nothing new broke ({{count}} checks were already failing before)",
+    "broke_one": "This turn broke {{count}} check that passed before",
+    "broke_other": "This turn broke {{count}} checks that passed before",
+    "alreadyFailing_one": "{{count}} more was already failing before this chat.",
+    "alreadyFailing_other": "{{count}} more were already failing before this chat.",
+    "sendBack": "Send to the AI to fix",
+    "sentBack": "Sent to the AI with this output."
   }
 }
