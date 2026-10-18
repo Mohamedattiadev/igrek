@@ -45,6 +45,7 @@ describe("security", () => {
     expect(write.status).toBe(403);
     expect((await call("/api/schedules/x/activate", { method: "POST", headers: agent })).status).toBe(403);
     expect((await call("/api/schedules/propose", { method: "POST", headers: agent, body: "{}" })).status).not.toBe(403);
+    expect((await call("/api/agent/servers/run", { method: "POST", headers: agent, body: "{}" })).status).not.toBe(403);
   });
 
   test("rejects requests from other websites", async () => {

@@ -24,8 +24,11 @@ export interface AppDeps {
   extraRoutes?: (app: Hono) => void;
 }
 
-/** The only writes an agent may make: proposals that wait for the user's OK. */
-const AGENT_WRITES = new Set(["/api/schedules/propose"]);
+/**
+ * The only writes an agent may make, both waiting for the user: a schedule proposal, and a server
+ * command (read-only ones run at once, anything that changes something waits for approval).
+ */
+const AGENT_WRITES = new Set(["/api/schedules/propose", "/api/agent/servers/run"]);
 
 export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes }: AppDeps) {
   const app = new Hono();
