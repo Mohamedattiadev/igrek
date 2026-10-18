@@ -897,6 +897,8 @@ export const migrations: string[] = [
      buckets TEXT NOT NULL,
      PRIMARY KEY (project_id, day, page, metric)
    );`,
+  // Wiki pages as Yjs documents (plan.md 4.1): edits merge instead of the last writer winning.
+  `ALTER TABLE wiki_pages ADD COLUMN ydoc TEXT;`,
 ];
 
 export function migrate(sqlite: Database): number {

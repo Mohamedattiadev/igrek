@@ -1192,6 +1192,8 @@ export class Sync {
               id: page.id,
               title: page.title,
               body: page.body,
+              // The page's Yjs state: teammates merge it with their own edits (older versions read body).
+              ...(page.ydoc ? { y: page.ydoc } : {}),
               updatedAt: page.updated_at,
               deleted: !!page.deleted,
             });

@@ -14,7 +14,7 @@ The server is layered (Mark Richards, *Software Architecture Patterns*, "Layered
 use the areas below it, never the ones above:
 
 1. **foundation**: the event bus, the database and its migrations, config, settings, sealing, JSON-lines reading,
-   process environment, file access rules, the local model runner and secret scrubbing. Uses nothing.
+   process environment, file access rules, the local model runner, secret scrubbing and shared-text merging (Yjs). Uses nothing.
 2. **sessions**: reading AI session files, the store, summaries, accounts and limits, session health.
 3. **knowledge** (learning, library, docs), **ops** (servers, deploys, monitors, env files, costs),
    **sync** (team hub): each uses foundation and sessions.

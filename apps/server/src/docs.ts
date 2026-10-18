@@ -14,6 +14,7 @@ import {
 import type { Bus } from "./bus";
 import type { Databases } from "./databases";
 import type { Store } from "./store";
+import { mergeText, saveText } from "./ydoc";
 
 /** A new version is kept when the last one is older than this, or the board changed a lot. */
 const VERSION_EVERY = 10 * 60_000;
@@ -28,6 +29,8 @@ interface PageRow {
   slug: string;
   title: string;
   body: string;
+  /** The page's Yjs state (base64); null for pages last written before pages merged. */
+  ydoc: string | null;
   updated_at: number;
   author_name: string | null;
 }
@@ -125,13 +128,19 @@ export class Docs {
     if (clash) throw new Error("A page with this title already exists");
     const id = input.id ?? crypto.randomUUID().slice(0, 12);
     const now = Date.now();
+    // The change is recorded as a Yjs edit, so a teammate's edit made at the same time merges in.
+    const before = this.db.query("SELECT body, ydoc FROM wiki_pages WHERE id = ?").get(id) as {
+      body: string;
+      ydoc: string | null;
+    } | null;
+    const { state, text } = saveText(before?.ydoc, before?.body ?? "", input.body);
     this.db
       .query(
-        `INSERT INTO wiki_pages (id, project_id, slug, title, body, updated_at, author_name, dirty) VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-         ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, title = excluded.title, body = excluded.body,
+        `INSERT INTO wiki_pages (id, project_id, slug, title, body, ydoc, updated_at, author_name, dirty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+         ON CONFLICT(id) DO UPDATE SET slug = excluded.slug, title = excluded.title, body = excluded.body, ydoc = excluded.ydoc,
            updated_at = excluded.updated_at, author_name = excluded.author_name, dirty = 1`,
       )
-      .run(id, projectId, slug, title, input.body, now, this.me() ?? null);
+      .run(id, projectId, slug, title, text, state, now, this.me() ?? null);
     this.changed(projectId);
     return this.page(id) as WikiPage;
   }
@@ -426,6 +435,58 @@ export class Docs {
 
   // ---- team sync ----------------------------------------------------------------------------
 
+  /**
+   * A page with a Yjs state on either side merges whatever the timestamps say: both edits are kept.
+   * Returns false for plain pages from an older God Eye, which take the last-writer path.
+   */
+  private mergePage(projectId: string, value: Record<string, unknown>, author: string): boolean {
+    const id = String(value.id ?? "");
+    const local = this.db.query("SELECT body, ydoc, updated_at, deleted FROM wiki_pages WHERE id = ?").get(id) as {
+      body: string;
+      ydoc: string | null;
+      updated_at: number;
+      deleted: number;
+    } | null;
+    const remoteState = typeof value.y === "string" ? value.y : undefined;
+    if (!remoteState && !local?.ydoc) return false;
+    const at = Number(value.updatedAt ?? 0);
+    const newer = !local || at > local.updated_at;
+    // Plain text from an older God Eye can't merge: only a newer one is applied (as an edit).
+    if (!remoteState && !newer) return true;
+    const { state, text } = mergeText(local?.ydoc, local?.body ?? "", {
+      state: remoteState,
+      text: String(value.body ?? "").slice(0, 500_000),
+    });
+    this.db
+      .query(
+        `INSERT INTO wiki_pages (id, project_id, slug, title, body, ydoc, updated_at, author_name, deleted, dirty) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+         ON CONFLICT(id) DO UPDATE SET body = excluded.body, ydoc = excluded.ydoc,
+           slug = CASE WHEN ? THEN excluded.slug ELSE slug END, title = CASE WHEN ? THEN excluded.title ELSE title END,
+           updated_at = MAX(updated_at, excluded.updated_at), author_name = CASE WHEN ? THEN excluded.author_name ELSE author_name END,
+           deleted = CASE WHEN ? THEN excluded.deleted ELSE deleted END,
+           dirty = CASE WHEN ? THEN dirty ELSE 0 END`,
+      )
+      .run(
+        id,
+        projectId,
+        slugify(String(value.title ?? "")),
+        String(value.title ?? "").slice(0, 120),
+        text,
+        state,
+        at,
+        author,
+        value.deleted ? 1 : 0,
+        newer ? 1 : 0,
+        newer ? 1 : 0,
+        newer ? 1 : 0,
+        newer ? 1 : 0,
+        // A merge keeps our own unsent edit queued; plain text that replaced ours leaves nothing to send.
+        remoteState ? 1 : 0,
+      );
+    this.changed(projectId);
+    return true;
+  }
+
   dirtyPages(projectId: string): (PageRow & { deleted: number })[] {
     return this.db
       .query("SELECT * FROM wiki_pages WHERE project_id = ? AND dirty = 1 LIMIT 50")
@@ -446,8 +507,9 @@ export class Docs {
     this.db.query(`UPDATE ${table} SET dirty = 0 WHERE id = ? AND updated_at = ?`).run(id, updatedAt);
   }
 
-  /** A teammate's page or board: last writer wins, like memory. */
+  /** A teammate's page or board: pages merge (Yjs), boards and titles go to the last writer. */
   apply(kind: "wiki" | "board", projectId: string, value: Record<string, unknown>, author: string): void {
+    if (kind === "wiki" && this.mergePage(projectId, value, author)) return;
     const table = kind === "wiki" ? "wiki_pages" : "boards";
     const existing = this.db.query(`SELECT updated_at FROM ${table} WHERE id = ?`).get(String(value.id)) as {
       updated_at: number;

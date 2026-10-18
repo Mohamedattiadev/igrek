@@ -171,6 +171,35 @@ describe("wiki and boards", () => {
     docs.apply("board", projectId, { id: "b1", title: "Theirs", scene: '{"elements":[]}', updatedAt: 5 }, "Kerem");
     expect(docs.boards(projectId).map((b) => b.title)).toEqual(["Theirs"]);
   });
+
+  test("concurrent edits on two computers both survive the sync", () => {
+    const a = setup();
+    const b = setup();
+    const page = a.docs.savePage(a.projectId, { title: "Runbook", body: "Line one.\n\nLine two.\n\nLine three." });
+    const sent = (docs: typeof a.docs, projectId: string) =>
+      docs
+        .dirtyPages(projectId)
+        .map((p) => ({ id: p.id, title: p.title, body: p.body, y: p.ydoc, updatedAt: p.updated_at }));
+    for (const p of sent(a.docs, a.projectId)) b.docs.apply("wiki", b.projectId, p, "Ayse");
+    // Both edit at the same time, offline from each other.
+    a.docs.savePage(a.projectId, {
+      id: page.id,
+      title: "Runbook",
+      body: "Line one, edited by Ayse.\n\nLine two.\n\nLine three.",
+    });
+    b.docs.savePage(b.projectId, {
+      id: page.id,
+      title: "Runbook",
+      body: "Line one.\n\nLine two.\n\nLine three, edited by Kerem.",
+    });
+    const fromA = sent(a.docs, a.projectId);
+    const fromB = sent(b.docs, b.projectId);
+    for (const p of fromB) a.docs.apply("wiki", a.projectId, p, "Kerem");
+    for (const p of fromA) b.docs.apply("wiki", b.projectId, p, "Ayse");
+    const expected = "Line one, edited by Ayse.\n\nLine two.\n\nLine three, edited by Kerem.";
+    expect(a.docs.page(page.id)?.body).toBe(expected);
+    expect(b.docs.page(page.id)?.body).toBe(expected);
+  });
 });
 
 describe("incident mode", () => {
