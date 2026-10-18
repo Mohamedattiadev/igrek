@@ -18,6 +18,14 @@ describe("database gate", () => {
     expect(found).toContain("duplicate-index:notes.notes_a");
   });
 
+  test("a list in a column and a copied name are normal-form suspects", () => {
+    const db = new Database(":memory:");
+    db.run(`CREATE TABLE posts (id TEXT PRIMARY KEY NOT NULL, text TEXT NOT NULL, tags TEXT NOT NULL DEFAULT '[]',
+            author_id TEXT REFERENCES people(id), author_name TEXT);
+            CREATE INDEX posts_author ON posts(author_id);`);
+    expect(schemaViolations(db)).toEqual(["list-in-column:posts.tags", "denormalized-copy:posts.author_name"]);
+  });
+
   test("a lookup column without an index is caught", () => {
     const db = new Database(":memory:");
     db.run("CREATE TABLE a (id TEXT PRIMARY KEY NOT NULL, owner_id TEXT REFERENCES b(id))");

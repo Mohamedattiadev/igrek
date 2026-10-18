@@ -57,6 +57,15 @@ export const RULES: Record<string, string> = {
   "full-scan": "A query with WHERE on a growing table must use an index (checked with EXPLAIN QUERY PLAN).",
   "migration-destructive":
     "DROP and RENAME lose data or break running copies; such a migration must say why in a -- why: comment.",
+  "list-in-column":
+    "A list kept as JSON in one column is a repeating group (1NF, Elmasri 14.3.4): it can't be indexed, joined or kept consistent by the database.",
+  "denormalized-copy":
+    "A name stored next to the id it belongs to is a second copy of the same fact (3NF, Elmasri 14.3.6); when the original changes, the copy goes stale.",
+  "unused-index": "No query in the code uses this index (per EXPLAIN QUERY PLAN), yet every write updates it.",
+  "select-star": "SELECT * reads columns nobody asked for and changes meaning when a column is added.",
+  "n-plus-one": "A SELECT inside a loop runs once per item; one query with IN or a JOIN does the same work at once.",
+  "sql-interpolation":
+    "SQL built with ${...} can carry injection; values must be bound with ?, identifiers quoted or picked from a fixed list.",
 };
 
 type Baseline = {
@@ -94,8 +103,14 @@ export function schemaViolations(db: Database): string[] {
       if (!c.notnull && !(pk.length === 1 && /^INTEGER$/i.test(c.type))) out.push(`pk-not-null:${table}.${c.name}`);
     const leads = new Set([...indexes.map((i) => i.cols[0]), pk[0]?.name]);
     if (!/^[a-z][a-z0-9_]*$/.test(table)) out.push(`snake-case:${table}`);
+    const sql = (db.query("SELECT sql FROM sqlite_master WHERE name = ?").get(table) as { sql: string }).sql;
     for (const c of cols) {
       const at = `${table}.${c.name}`;
+      // The column's own definition: from its name (after "(" or ",") to the next comma.
+      if (new RegExp(`(^|[(,])\\s*"?${c.name}"?\\s[^,]*DEFAULT\\s+'(\\[\\]|\\{\\})'`).test(sql))
+        out.push(`list-in-column:${at}`);
+      const owner = c.name.match(/^(\w+)_name$/)?.[1];
+      if (owner && cols.some((o) => o.name === `${owner}_id`)) out.push(`denormalized-copy:${at}`);
       if (!/^[a-z][a-z0-9_]*$/.test(c.name)) out.push(`snake-case:${at}`);
       if (!c.type || (/_at$/.test(c.name) && !/^INTEGER$/i.test(c.type))) out.push(`typed-columns:${at}`);
       if (/_id$/.test(c.name) && !fks.some((f) => f.from === c.name)) out.push(`reference-fk:${at}`);
@@ -125,25 +140,92 @@ function serverFiles(dir = SERVER, out: string[] = []): string[] {
 
 /** SQL written as plain strings in the server code (strings built with ${} are skipped). */
 export function codeQueries(): { file: string; sql: string }[] {
+  return allSql().filter((q) => !q.sql.includes("${"));
+}
+
+/** Every SQL statement written in the server code, with the ones built from ${...} too. */
+function allSql(): { file: string; sql: string }[] {
   const out: { file: string; sql: string }[] = [];
   for (const file of serverFiles()) {
     const src = readFileSync(file, "utf8");
-    for (const m of src.matchAll(/(["'`])((?:SELECT|UPDATE|DELETE)\b(?:(?!\1)[\s\S])*?)\1/g))
-      if (!m[2]?.includes("${")) out.push({ file: relative(ROOT, file), sql: m[2] ?? "" });
+    for (const m of src.matchAll(/(["'`])((?:SELECT|UPDATE|DELETE|INSERT|PRAGMA|VACUUM)\b(?:(?!\1)[\s\S])*?)\1/g))
+      out.push({ file: relative(ROOT, file), sql: m[2] ?? "" });
+  }
+  return out;
+}
+
+/** Statements that read SELECT *, statements built with ${...}, and SELECTs inside loops. */
+export function codeViolations(): string[] {
+  const out = new Set<string>();
+  for (const { file, sql } of allSql()) {
+    const id = hash(sql.replace(/\s+/g, " ")).slice(0, 8);
+    if (/SELECT\s+\*/i.test(sql)) out.add(`select-star:${file}:${id}`);
+    if (sql.includes("${")) out.add(`sql-interpolation:${file}:${id}`);
+  }
+  for (const file of serverFiles()) for (const v of loopQueries(file)) out.add(v);
+  return [...out];
+}
+
+/**
+ * A SELECT run inside a loop (for, map, forEach…), found by following braces line by line: a
+ * heuristic, so what it finds is reviewed once and then kept in the baseline with the reason.
+ */
+function loopQueries(file: string): string[] {
+  const out: string[] = [];
+  const lines = readFileSync(file, "utf8").split("\n");
+  const loops: number[] = [];
+  let depth = 0;
+  let parens = 0;
+  /** While a for (...) header is open, at this paren depth: a query there feeds the loop once. */
+  let header: number | undefined;
+  const opener = /\bfor\s*\(|\.(map|flatMap|forEach|filter|some|every|reduce)\(\s*(async\s*)?\(?[\w\s,{}[\]]*\)?\s*=>/;
+  for (const [i, line] of lines.entries()) {
+    const code = line.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""').replace(/\/\/.*$/, "");
+    const open = code.match(opener);
+    const query = code.indexOf(".query(");
+    let inBody: boolean;
+    if (open?.[0].includes("=>")) inBody = query > code.indexOf("=>", open.index ?? 0);
+    else if (open) inBody = false;
+    else inBody = loops.length > 0 && header === undefined;
+    const next = lines.slice(i, i + 3).join(" ");
+    if (query >= 0 && inBody && /\bSELECT\b/.test(next))
+      out.push(`n-plus-one:${relative(ROOT, file)}:${hash(next.replace(/\s+/g, " ")).slice(0, 8)}`);
+    if (open) {
+      loops.push(depth);
+      if (!open[0].includes("=>")) header = parens;
+    }
+    for (const ch of code) {
+      depth += ch === "{" ? 1 : ch === "}" ? -1 : 0;
+      parens += ch === "(" ? 1 : ch === ")" ? -1 : 0;
+    }
+    if (header !== undefined && parens <= header) header = undefined;
+    // A loop on one line (no braces left open) ends on that line.
+    while (
+      loops.length &&
+      depth <= (loops[loops.length - 1] ?? 0) &&
+      !code.trimEnd().endsWith("{") &&
+      header === undefined
+    )
+      loops.pop();
   }
   return out;
 }
 
 export function queryViolations(db: Database): string[] {
   const out = new Set<string>();
+  const used = new Set<string>();
   for (const { file, sql } of codeQueries()) {
-    if (!/\bWHERE\b/i.test(sql)) continue;
     let plan: { detail: string }[] = [];
     try {
       plan = db.query(`EXPLAIN QUERY PLAN ${sql}`).all() as { detail: string }[];
     } catch {
       continue; // Not a statement on its own (a fragment glued to others).
     }
+    for (const step of plan) {
+      const index = step.detail.match(/USING (?:COVERING )?INDEX (\w+)/)?.[1];
+      if (index) used.add(index);
+    }
+    if (!/\bWHERE\b/i.test(sql)) continue;
     for (const step of plan) {
       const table = step.detail.match(/^SCAN (\w+)(?: AS \w+)?$/)?.[1];
       // "SCAN s" names an alias: find the table it stands for.
@@ -152,6 +234,13 @@ export function queryViolations(db: Database): string[] {
       if (real && LARGE.has(real)) out.add(`full-scan:${file}:${real}:${hash(sql.replace(/\s+/g, " ")).slice(0, 8)}`);
     }
   }
+  // Indexes no query uses; unique ones are kept for the rule they enforce.
+  for (const { name, tbl_name } of db
+    .query(
+      "SELECT name, tbl_name FROM sqlite_master WHERE type = 'index' AND sql IS NOT NULL AND sql NOT LIKE 'CREATE UNIQUE%'",
+    )
+    .all() as { name: string; tbl_name: string }[])
+    if (!used.has(name) && !/_fts/.test(tbl_name)) out.add(`unused-index:${tbl_name}.${name}`);
   return [...out];
 }
 
@@ -173,7 +262,7 @@ export function readBaseline(): Baseline {
 
 export function check(): { added: string[]; fixed: string[]; edited: number[]; unlocked: number } {
   const db = schema();
-  const now = [...schemaViolations(db), ...queryViolations(db), ...migrationViolations()].sort();
+  const now = [...schemaViolations(db), ...queryViolations(db), ...codeViolations(), ...migrationViolations()].sort();
   const base = readBaseline();
   const known = new Set(base.violations);
   const current = migrations.map(hash);
@@ -233,7 +322,12 @@ if (import.meta.main) {
   if (args.includes("--baseline") || args.includes("--lock")) {
     const db = schema();
     if (args.includes("--baseline"))
-      base.violations = [...schemaViolations(db), ...queryViolations(db), ...migrationViolations()].sort();
+      base.violations = [
+        ...schemaViolations(db),
+        ...queryViolations(db),
+        ...codeViolations(),
+        ...migrationViolations(),
+      ].sort();
     if (args.includes("--lock")) base.migrations = migrations.map(hash);
     writeFileSync(BASELINE, `${JSON.stringify(base, null, 2)}\n`);
     console.log(`wrote ${relative(ROOT, BASELINE)}: ${base.violations.length} known violations`);
