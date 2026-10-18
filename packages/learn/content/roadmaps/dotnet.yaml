@@ -1,0 +1,2041 @@
+id: dotnet
+title: C# and ASP.NET Core
+summary:
+  en: "From an empty computer to your own C# web API on the internet. You learn C# in a small console app first, then build a real REST API with ASP.NET Core, a SQLite database, tests, login, a Docker image and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi C# web API'ne. Önce küçük bir konsol uygulamasında C# öğrenirsin, sonra ASP.NET Core ile gerçek bir REST API, SQLite veritabanı, test, giriş, Docker image'ı ve ücretsiz bir deploy hazırlarsın."
+teacher: backend
+project:
+  en: 'A todo service: a REST API where each user registers, logs in and then adds, lists, searches, changes and deletes their own todos. It stores them in SQLite with EF Core, validates input, has xUnit tests, caches a public stats route, logs and answers health checks, and runs as a Docker container on a free host.'
+  tr: 'Bir yapılacaklar servisi: her kullanıcının kayıt olup giriş yaptığı, sonra kendi işlerini ekleyip listelediği, aradığı, değiştirdiği ve sildiği bir REST API. İşleri EF Core ile SQLite''ta saklar, girdiyi doğrular, xUnit testleri vardır, herkese açık bir istatistik rotasını cache''ler, log yazar, sağlık kontrollerine cevap verir ve ücretsiz bir sunucuda Docker container olarak çalışır.'
+detect:
+  nuget: [Microsoft.EntityFrameworkCore.Sqlite]
+  files: [global.json]
+after: [web]
+version: "10"
+latest: eol:dotnet
+checked: 2026-10
+sheets: [csharp, sql, http, rest-graphql, docker, git, auth, caching, github-actions]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install the .NET SDK, an editor and Git"
+      tr: ".NET SDK, bir editör ve Git kurma"
+    minutes: 45
+    why:
+      en: "C# programs are compiled and run with .NET. The .NET SDK (Software Development Kit) holds the compiler and the `dotnet` command you will use for everything: creating, running, testing and publishing. An editor that understands C# shows mistakes while you type, and Git keeps every version of your work."
+      tr: "C# programları .NET ile derlenir ve çalışır. .NET SDK (Software Development Kit) derleyiciyi ve her iş için kullanacağın `dotnet` komutunu içerir: proje oluşturma, çalıştırma, test etme ve publish etme. C#'ı anlayan bir editör sen yazarken hataları gösterir, Git de işinin her sürümünü saklar."
+    learn:
+      en: |
+        - What .NET, the SDK and the `dotnet` command are
+        - Which version to pick: **.NET 10 is the current LTS** (long-term support: fixes for years). This roadmap uses .NET 10 and C# 14
+        - How to check which SDK is installed
+      tr: |
+        - .NET, SDK ve `dotnet` komutunun ne olduğu
+        - Hangi sürümü seçeceğin: **.NET 10 şu anki LTS sürümü** (uzun süreli destek: yıllarca düzeltme alır). Bu yol haritası .NET 10 ve C# 14 kullanır
+        - Hangi SDK'nın kurulu olduğunu nasıl kontrol edeceğin
+    do:
+      en: |
+        1. Install the **.NET 10 SDK** (not only the "runtime"). The official page is dotnet.microsoft.com/download. Windows: run `winget install Microsoft.DotNet.SDK.10` or use the installer. macOS: use the installer from that page. Linux: follow the page for your distribution (Ubuntu example: `sudo apt install dotnet-sdk-10.0`). On Arch Linux also install the `aspnet-runtime` and `aspnet-targeting-pack` packages, because `dotnet-sdk` alone has no ASP.NET Core.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor, and add its **C# Dev Kit** extension (it also installs the C# extension). Visual Studio Community (Windows) and JetBrains Rider are other good choices.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it. On Windows, Git for Windows also gives you *Git Bash*, a terminal that works with the curl commands in this roadmap.
+        4. Open a **new** terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. `dotnet --version` should print something that starts with `10.0`.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        6. Optional: `dotnet` sends anonymous usage data to Microsoft. To turn it off, set the environment variable `DOTNET_CLI_TELEMETRY_OPTOUT` to `1`.
+      tr: |
+        1. **.NET 10 SDK**'yı kur (sadece "runtime" değil). Resmi sayfa dotnet.microsoft.com/download. Windows: `winget install Microsoft.DotNet.SDK.10` komutunu çalıştır ya da yükleyiciyi kullan. macOS: o sayfadaki yükleyiciyi kullan. Linux: dağıtımın için sayfadaki adımları izle (Ubuntu örneği: `sudo apt install dotnet-sdk-10.0`). Arch Linux'ta ayrıca `aspnet-runtime` ve `aspnet-targeting-pack` paketlerini kur, çünkü tek başına `dotnet-sdk` içinde ASP.NET Core yok.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com) ve **C# Dev Kit** eklentisini ekle (C# eklentisini de kurar). Visual Studio Community (Windows) ve JetBrains Rider da iyi seçeneklerdir.
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir. Windows'ta Git for Windows sana *Git Bash* de verir; bu yol haritasındaki curl komutlarıyla çalışan bir terminaldir.
+        4. **Yeni** bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. `dotnet --version` `10.0` ile başlayan bir şey yazmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        6. İsteğe bağlı: `dotnet` Microsoft'a anonim kullanım verisi gönderir. Kapatmak için `DOTNET_CLI_TELEMETRY_OPTOUT` ortam değişkenini `1` yap.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          dotnet --version
+          dotnet --list-sdks
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" or \"dotnet is not recognized\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" ya da \"dotnet is not recognized\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open a new one so it sees the new program. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yenisini aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Installing only the .NET runtime. `dotnet --version` then fails or says no SDK was found."
+          tr: "Sadece .NET runtime'ı kurmak. O zaman `dotnet --version` hata verir ya da SDK bulunamadı der."
+        fix:
+          en: "The runtime only runs finished programs. To build programs you need the SDK. Install the SDK; it contains the runtime too."
+          tr: "Runtime sadece hazır programları çalıştırır. Program yazmak için SDK gerekir. SDK'yı kur; içinde runtime da vardır."
+    quiz:
+      - q:
+          en: "What does the .NET SDK give you that the runtime alone does not?"
+          tr: ".NET SDK sana tek başına runtime'ın vermediği ne sağlar?"
+        options:
+          en:
+            - "Nothing, they are the same"
+            - "The compiler and the dotnet command to create, build and test projects"
+            - "A faster internet connection"
+          tr:
+            - "Hiçbir şey, ikisi aynı"
+            - "Proje oluşturmak, derlemek ve test etmek için derleyici ve dotnet komutu"
+            - "Daha hızlı internet bağlantısı"
+        answer: 1
+        why:
+          en: "The runtime can only run programs that are already built. The SDK includes the compiler, the project templates and the dotnet command."
+          tr: "Runtime sadece derlenmiş programları çalıştırır. SDK derleyiciyi, proje şablonlarını ve dotnet komutunu içerir."
+    sources:
+      - title: Install .NET
+        url: https://learn.microsoft.com/en-us/dotnet/core/install/
+      - title: .NET support policy and release schedule
+        url: https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
+      - title: What's new in .NET 10
+        url: https://learn.microsoft.com/en-us/dotnet/core/whats-new/dotnet-10/overview
+
+  - id: hello
+    stage: first-code
+    title:
+      en: "Your first C# program"
+      tr: "İlk C# programın"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "Before a web API, run the smallest possible program. You learn what a project is, what `dotnet run` does, and how to read an error, all with a few lines of code."
+      tr: "Web API'den önce mümkün olan en küçük programı çalıştır. Proje nedir, `dotnet run` ne yapar ve bir hata nasıl okunur; hepsini birkaç satır kodla öğrenirsin."
+    learn:
+      en: |
+        - A **project** is a folder with a `.csproj` file that says what to build (the .NET version and settings)
+        - **Top-level statements**: the lines in `Program.cs` are the program, with no `Main` method needed
+        - `dotnet run` builds and starts the project; errors name the file and line
+        - String interpolation: `$"Hello {name}"`
+      tr: |
+        - **Proje**, neyin derleneceğini söyleyen (.NET sürümü ve ayarlar) bir `.csproj` dosyası olan klasördür
+        - **Top-level statement**: `Program.cs` içindeki satırların kendisi programdır, `Main` metodu gerekmez
+        - `dotnet run` projeyi derler ve başlatır; hatalar dosyayı ve satırı söyler
+        - String interpolation: `$"Merhaba {name}"`
+    do:
+      en: |
+        1. In the terminal go to the folder where you keep projects. Create the project folder `todo`, go into it and let Git watch it (first commands below). `dotnet new gitignore` writes a `.gitignore` that keeps build output out of Git.
+        2. Create a throw-away console app called `scratch` with `dotnet new console -o scratch`. It makes `scratch/Program.cs` and `scratch/scratch.csproj`.
+        3. Open the `todo` folder in VS Code, open `scratch/scratch.csproj` and look at it: `net10.0` is the .NET version, `Nullable` turns on null checks.
+        4. Replace everything in `scratch/Program.cs` with the code below and run it with `dotnet run --project scratch`. It prints two lines.
+        5. Change "Hello, .NET!" to your own text and run again. Then break something on purpose (delete the last `)`) and read the error: it shows the file, the line and what is wrong.
+        6. Save this version: `git add .` and `git commit -m "Start the todo project"`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git. `todo` proje klasörünü oluştur, içine gir ve Git'in izlemesini sağla (aşağıdaki ilk komutlar). `dotnet new gitignore`, build çıktılarını Git'ten uzak tutan bir `.gitignore` yazar.
+        2. `dotnet new console -o scratch` ile `scratch` adında, atılacak (deneme) bir konsol uygulaması oluştur. `scratch/Program.cs` ve `scratch/scratch.csproj` dosyalarını yapar.
+        3. `todo` klasörünü VS Code'da aç, `scratch/scratch.csproj` dosyasına bak: `net10.0` .NET sürümüdür, `Nullable` null kontrollerini açar.
+        4. `scratch/Program.cs` içindeki her şeyi aşağıdaki kodla değiştir ve `dotnet run --project scratch` ile çalıştır. İki satır yazar.
+        5. "Hello, .NET!" yerine kendi metnini yaz ve yeniden çalıştır. Sonra bilerek bir şeyi boz (son `)` karakterini sil) ve hatayı oku: dosyayı, satırı ve neyin yanlış olduğunu gösterir.
+        6. Bu sürümü kaydet: `git add .` ve `git commit -m "Start the todo project"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir todo
+          cd todo
+          git init
+          dotnet new gitignore
+          dotnet new console -o scratch
+          dotnet run --project scratch
+      - file: scratch/Program.cs
+        lang: cs
+        text: |
+          Console.WriteLine("Hello, .NET!");
+          Console.WriteLine($"Running on {Environment.Version}");
+    mistakes:
+      - problem:
+          en: "\"Couldn't find a project to run\" when you type `dotnet run`."
+          tr: "`dotnet run` yazınca \"Couldn't find a project to run\" hatası."
+        fix:
+          en: "You are in a folder with no `.csproj`. Either `cd scratch` first, or keep the folder and run `dotnet run --project scratch`."
+          tr: "İçinde `.csproj` olmayan bir klasördesin. Ya önce `cd scratch` yap, ya da klasörde kal ve `dotnet run --project scratch` çalıştır."
+      - problem:
+          en: "Editing the file but running an old version."
+          tr: "Dosyayı değiştirmek ama eski sürümü çalıştırmak."
+        fix:
+          en: "Save the file first (Ctrl+S). `dotnet run` rebuilds from what is saved on disk."
+          tr: "Önce dosyayı kaydet (Ctrl+S). `dotnet run` diskte kayıtlı olandan yeniden derler."
+    quiz:
+      - q:
+          en: "What does `dotnet run` do?"
+          tr: "`dotnet run` ne yapar?"
+        options:
+          en:
+            - "Only checks the spelling of your code"
+            - "Builds the project and starts the program"
+            - "Uploads the program to the internet"
+          tr:
+            - "Sadece kodunun yazımını kontrol eder"
+            - "Projeyi derler ve programı başlatır"
+            - "Programı internete yükler"
+        answer: 1
+        why:
+          en: "It compiles the project in the folder (or the one you name with --project) and then runs it."
+          tr: "Klasördeki projeyi (ya da --project ile söylediğin projeyi) derler ve sonra çalıştırır."
+    sources:
+      - title: "Tutorial: Create a .NET console application using Visual Studio Code"
+        url: https://learn.microsoft.com/en-us/dotnet/core/tutorials/with-visual-studio-code
+      - title: Top-level statements
+        url: https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/program-structure/top-level-statements
+
+  - id: csharp
+    stage: basics
+    title:
+      en: "C# basics: records, LINQ, nullable and async"
+      tr: "C# temelleri: record, LINQ, nullable ve async"
+    minutes: 60
+    needs: [hello]
+    why:
+      en: "The API you build next uses four C# ideas in almost every line: small data types (records), questions about lists (LINQ), values that may be missing (nullable) and waiting without blocking (async). Learning them in a console app, where you see each result at once, is much easier than learning them inside a web server."
+      tr: "Sonra yazacağın API neredeyse her satırda dört C# fikrini kullanır: küçük veri tipleri (record), listelere soru sormak (LINQ), eksik olabilen değerler (nullable) ve bloklamadan beklemek (async). Bunları her sonucu hemen gördüğün bir konsol uygulamasında öğrenmek, web sunucusunun içinde öğrenmekten çok daha kolaydır."
+    learn:
+      en: |
+        - **record**: a short way to write a data type. It compares by value and `with` makes a changed copy
+        - **LINQ**: `Where`, `OrderBy`, `Select`, `Count`, `FirstOrDefault` ask questions about a list
+        - **Nullable reference types**: `TodoItem?` means "may be null"; the compiler warns when you forget to check
+        - **async/await**: `await` waits for slow work (a database, the network) and lets the thread do other work meanwhile
+        - Collection expressions: `[a, b, c]` makes a list
+      tr: |
+        - **record**: bir veri tipini kısa yazmanın yolu. Değere göre karşılaştırır ve `with` değiştirilmiş bir kopya yapar
+        - **LINQ**: `Where`, `OrderBy`, `Select`, `Count`, `FirstOrDefault` bir liste hakkında soru sorar
+        - **Nullable reference type**: `TodoItem?` "null olabilir" demek; kontrol etmeyi unutursan derleyici uyarır
+        - **async/await**: `await` yavaş işi (veritabanı, ağ) bekler ve thread'in o sırada başka iş yapmasına izin verir
+        - Collection expression: `[a, b, c]` bir liste yapar
+    do:
+      en: |
+        1. Replace everything in `scratch/Program.cs` with the code below.
+        2. Run `dotnet run --project scratch`. You should see exactly the output listed below the code (the last line says "about 1 second").
+        3. Read the output next to the code. Which line printed `True`? Why are the two records equal although they are two objects?
+        4. Change `t => !t.IsDone` to `t => t.IsDone` and run again. Then add a fifth todo to the list and see the counts change.
+        5. In `LoadTitleAsync`, change the delay to `2000` and run. Both calls still finish together: `Task.WhenAll` starts them at the same time and waits for both.
+        6. Commit: `git add .` and `git commit -m "Try records, LINQ and async"`.
+      tr: |
+        1. `scratch/Program.cs` içindeki her şeyi aşağıdaki kodla değiştir.
+        2. `dotnet run --project scratch` çalıştır. Kodun altındaki çıktıyı aynen görmelisin (son satır "about 1 second" der).
+        3. Çıktıyı kodun yanında oku. Hangi satır `True` yazdı? İki record iki ayrı nesne olduğu halde neden eşit?
+        4. `t => !t.IsDone` yerine `t => t.IsDone` yaz ve yeniden çalıştır. Sonra listeye beşinci bir iş ekle ve sayıların değiştiğini gör.
+        5. `LoadTitleAsync` içinde bekleme süresini `2000` yap ve çalıştır. İki çağrı yine birlikte biter: `Task.WhenAll` ikisini aynı anda başlatır ve ikisini de bekler.
+        6. Commit et: `git add .` ve `git commit -m "Try records, LINQ and async"`.
+    code:
+      - file: scratch/Program.cs
+        lang: cs
+        text: |
+          // A record is a small, read-only data type with a built-in ToString and equality.
+          var first = new TodoItem(1, "Buy milk", false);
+          var done = first with { IsDone = true };   // a copy with one change
+          Console.WriteLine(first);
+          Console.WriteLine(done);
+          Console.WriteLine(first == new TodoItem(1, "Buy milk", false));   // True: records compare by value
+
+          // LINQ asks questions about a list.
+          List<TodoItem> todos =
+          [
+              first,
+              new(2, "Write code", true),
+              new(3, "Walk the dog", false),
+              new(4, "Read a book", false),
+          ];
+
+          var open = todos.Where(t => !t.IsDone).OrderBy(t => t.Title).ToList();
+          foreach (var t in open)
+              Console.WriteLine($"open: {t.Title}");
+          Console.WriteLine($"{todos.Count(t => t.IsDone)} of {todos.Count} done");
+
+          // Nullable types: the ? says "may be missing", so the compiler makes you check.
+          TodoItem? found = todos.FirstOrDefault(t => t.Id == 99);
+          Console.WriteLine(found?.Title ?? "no such todo");
+
+          // async/await: wait for slow work without blocking the thread.
+          var started = DateTime.Now;
+          var titles = await Task.WhenAll(LoadTitleAsync(1), LoadTitleAsync(2));
+          Console.WriteLine($"{string.Join(" + ", titles)} in about {(DateTime.Now - started).TotalSeconds:F0} second");
+
+          static async Task<string> LoadTitleAsync(int id)
+          {
+              await Task.Delay(1000);   // pretend this is a database or network call
+              return $"todo {id}";
+          }
+
+          record TodoItem(int Id, string Title, bool IsDone);
+      - file: terminal (expected output)
+        lang: text
+        text: |
+          TodoItem { Id = 1, Title = Buy milk, IsDone = False }
+          TodoItem { Id = 1, Title = Buy milk, IsDone = True }
+          True
+          open: Buy milk
+          open: Read a book
+          open: Walk the dog
+          1 of 4 done
+          no such todo
+          todo 1 + todo 2 in about 1 second
+    mistakes:
+      - problem:
+          en: "Waiting for async code with `.Result` or `.Wait()`."
+          tr: "Async kodu `.Result` ya da `.Wait()` ile beklemek."
+        fix:
+          en: "Use `await` and make the method `async Task`. Blocking a thread on async work can freeze a web server under load."
+          tr: "`await` kullan ve metodu `async Task` yap. Thread'i async işte bloklamak, yük altında bir web sunucusunu dondurabilir."
+      - problem:
+          en: "Ignoring the warning \"Dereference of a possibly null reference\" (CS8602)."
+          tr: "\"Dereference of a possibly null reference\" (CS8602) uyarısını görmezden gelmek."
+        fix:
+          en: "The compiler found a place where a value can be null. Check it first (`if (x is not null)`), or use `x?.Name`. Do not silence it with `!` unless you are sure."
+          tr: "Derleyici bir değerin null olabileceği bir yer buldu. Önce kontrol et (`if (x is not null)`) ya da `x?.Name` kullan. Emin değilsen `!` ile susturma."
+      - problem:
+          en: "Error CS8803 (\"Top-level statements must precede namespace and type declarations\") after putting the `record` line in the middle of the code."
+          tr: "`record` satırını kodun ortasına yazınca CS8803 hatası (\"Top-level statements must precede namespace and type declarations\")."
+        fix:
+          en: "Type declarations go after the statements (or in their own file). Statements must come before them."
+          tr: "Tip tanımları komutlardan sonra (ya da kendi dosyasında) olur. Komutlar onlardan önce gelmeli."
+    quiz:
+      - q:
+          en: "What does `first with { IsDone = true }` do to `first`?"
+          tr: "`first with { IsDone = true }` `first` değişkenine ne yapar?"
+        options:
+          en:
+            - "Changes first itself"
+            - "Makes a new record with IsDone changed and leaves first as it was"
+            - "Deletes first"
+          tr:
+            - "first'ün kendisini değiştirir"
+            - "IsDone değişmiş yeni bir record yapar ve first olduğu gibi kalır"
+            - "first'ü siler"
+        answer: 1
+        why:
+          en: "Records are meant to stay unchanged. `with` copies the record and changes only what you name."
+          tr: "Record'lar değişmeden kalmak için tasarlanır. `with` record'u kopyalar ve sadece söylediğin alanı değiştirir."
+    sources:
+      - title: Records (C# reference)
+        url: https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record
+      - title: Language Integrated Query (LINQ)
+        url: https://learn.microsoft.com/en-us/dotnet/csharp/linq/
+      - title: Asynchronous programming
+        url: https://learn.microsoft.com/en-us/dotnet/csharp/asynchronous-programming/
+
+  - id: minimal-api
+    stage: first-project
+    title:
+      en: "Your first web API with ASP.NET Core Minimal APIs"
+      tr: "ASP.NET Core Minimal API ile ilk web API'n"
+    minutes: 60
+    needs: [csharp]
+    why:
+      en: "A web API is a program that waits for HTTP requests and answers with data, usually JSON. Other programs (a web page, a phone app) talk to it. Minimal APIs let you write each route in one or two lines, so you can see how a request becomes an answer."
+      tr: "Web API, HTTP isteklerini bekleyen ve genelde JSON olan veriyle cevap veren bir programdır. Başka programlar (bir web sayfası, bir telefon uygulaması) onunla konuşur. Minimal API her rotayı bir iki satırda yazmanı sağlar; böylece bir isteğin nasıl cevaba dönüştüğünü görürsün."
+    learn:
+      en: |
+        - HTTP in short: a **method** (GET reads, POST creates, PUT replaces, DELETE removes), a **path** (`/todos/1`) and a **status code** (200 OK, 201 Created, 404 Not Found)
+        - `WebApplication.CreateBuilder` makes the app; `app.MapGet`, `app.MapPost` connect a method and a path to a function
+        - ASP.NET Core turns your C# objects into JSON and JSON bodies into C# objects
+        - `Results.Ok`, `Results.NotFound`, `Results.Created` choose the status code
+      tr: |
+        - HTTP kısaca: bir **metot** (GET okur, POST oluşturur, PUT değiştirir, DELETE siler), bir **path** (`/todos/1`) ve bir **durum kodu** (200 OK, 201 Created, 404 Not Found)
+        - `WebApplication.CreateBuilder` uygulamayı yapar; `app.MapGet`, `app.MapPost` bir metodu ve bir path'i bir fonksiyona bağlar
+        - ASP.NET Core C# nesnelerini JSON'a, JSON gövdelerini C# nesnelerine çevirir
+        - `Results.Ok`, `Results.NotFound`, `Results.Created` durum kodunu seçer
+    do:
+      en: |
+        1. In the `todo` folder create the web project, a solution file (it groups projects so one command builds and tests them all) and add the project to it (first commands below). Add a line `*.db*` to the end of `.gitignore` so the database file you create later never goes into Git.
+        2. Replace everything in `src/TodoApi/Program.cs` with the code below.
+        3. Start the app: `dotnet run --project src/TodoApi --urls http://localhost:5080`. Leave it running. (We fix the port so every command in this roadmap matches.)
+        4. In a second terminal, try the routes with curl (on Windows use Git Bash). Open http://localhost:5080/todos in a browser too: a GET is just a page visit.
+        5. Stop the app with Ctrl+C, start it again and list the todos: they are gone, because the list lives only in memory. A database fixes that later.
+        6. Commit: `git add .` and `git commit -m "Add a first Minimal API"`.
+      tr: |
+        1. `todo` klasöründe web projesini, bir solution dosyasını (projeleri gruplar; tek komut hepsini derler ve test eder) oluştur ve projeyi ona ekle (aşağıdaki ilk komutlar). `.gitignore` dosyasının sonuna `*.db*` satırını ekle; böylece sonra oluşturacağın veritabanı dosyası asla Git'e girmez.
+        2. `src/TodoApi/Program.cs` içindeki her şeyi aşağıdaki kodla değiştir.
+        3. Uygulamayı başlat: `dotnet run --project src/TodoApi --urls http://localhost:5080`. Açık bırak. (Portu sabitliyoruz ki bu yol haritasındaki her komut uysun.)
+        4. İkinci bir terminalde rotaları curl ile dene (Windows'ta Git Bash kullan). http://localhost:5080/todos adresini tarayıcıda da aç: GET sadece bir sayfa ziyaretidir.
+        5. Uygulamayı Ctrl+C ile durdur, yeniden başlat ve işleri listele: yok olmuşlar, çünkü liste sadece bellekte yaşıyor. Bunu sonra bir veritabanı çözer.
+        6. Commit et: `git add .` ve `git commit -m "Add a first Minimal API"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          dotnet new web -o src/TodoApi
+          dotnet new sln -n Todo
+          dotnet sln add src/TodoApi
+      - file: src/TodoApi/Program.cs
+        lang: cs
+        text: |
+          var builder = WebApplication.CreateBuilder(args);
+          var app = builder.Build();
+
+          // An in-memory list for now. It is lost when the app stops; a database comes later.
+          var todos = new List<Todo>();
+          var nextId = 1;
+
+          app.MapGet("/", () => "Todo API is running");
+
+          app.MapGet("/todos", () => todos);
+
+          app.MapGet("/todos/{id:int}", (int id) =>
+              todos.FirstOrDefault(t => t.Id == id) is { } todo
+                  ? Results.Ok(todo)
+                  : Results.NotFound());
+
+          app.MapPost("/todos", (CreateTodo input) =>
+          {
+              var todo = new Todo(nextId++, input.Title, false);
+              todos.Add(todo);
+              return Results.Created($"/todos/{todo.Id}", todo);
+          });
+
+          app.Run();
+
+          record Todo(int Id, string Title, bool IsDone);
+          record CreateTodo(string Title);
+      - file: terminal (second terminal)
+        lang: sh
+        text: |
+          curl http://localhost:5080/
+          curl -i -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{"title":"Buy milk"}'
+          curl http://localhost:5080/todos
+          curl http://localhost:5080/todos/1
+          curl -i http://localhost:5080/todos/9
+    mistakes:
+      - problem:
+          en: "\"Address already in use\" when starting the app."
+          tr: "Uygulamayı başlatırken \"Address already in use\" hatası."
+        fix:
+          en: "The previous run is still going. Find its terminal and press Ctrl+C, or choose another port in `--urls`."
+          tr: "Önceki çalıştırma hâlâ açık. Onun terminalini bulup Ctrl+C yap, ya da `--urls` içinde başka bir port seç."
+      - problem:
+          en: "A POST without the header `Content-Type: application/json` answers 415 (Unsupported Media Type)."
+          tr: "`Content-Type: application/json` başlığı olmayan POST 415 (Unsupported Media Type) döner."
+        fix:
+          en: "Add `-H \"Content-Type: application/json\"` to curl. The server needs to know the body is JSON."
+          tr: "curl'e `-H \"Content-Type: application/json\"` ekle. Sunucunun gövdenin JSON olduğunu bilmesi gerekir."
+      - problem:
+          en: "After changing the code the old behaviour is still there."
+          tr: "Kodu değiştirdikten sonra eski davranış hâlâ duruyor."
+        fix:
+          en: "The running app does not reload by itself. Stop it with Ctrl+C and start it again, or use `dotnet watch --project src/TodoApi` which restarts on every save."
+          tr: "Çalışan uygulama kendiliğinden yenilenmez. Ctrl+C ile durdurup yeniden başlat, ya da her kaydedişte yeniden başlayan `dotnet watch --project src/TodoApi` kullan."
+    quiz:
+      - q:
+          en: "Which status code should a successful POST that created a todo return?"
+          tr: "Bir işi oluşturan başarılı bir POST hangi durum kodunu döndürmeli?"
+        options:
+          en:
+            - "200 OK"
+            - "201 Created"
+            - "404 Not Found"
+          tr:
+            - "200 OK"
+            - "201 Created"
+            - "404 Not Found"
+        answer: 1
+        why:
+          en: "201 Created says a new thing now exists, and the Location header tells where to find it."
+          tr: "201 Created yeni bir şeyin oluştuğunu söyler, Location başlığı da onu nerede bulacağını gösterir."
+    sources:
+      - title: "Tutorial: Create a Minimal API with ASP.NET Core"
+        url: https://learn.microsoft.com/en-us/aspnet/core/tutorials/min-web-api
+      - title: Minimal APIs overview
+        url: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis
+
+  - id: validation
+    stage: first-project
+    title:
+      en: "Validate what clients send"
+      tr: "İstemcilerin gönderdiğini doğrulama"
+    minutes: 40
+    needs: [minimal-api]
+    why:
+      en: "Clients send anything: an empty title, a title a million letters long, nothing at all. If you trust the input, bad data ends up in your database. Validation rejects it at the door with a clear 400 answer."
+      tr: "İstemciler her şeyi gönderir: boş bir başlık, bir milyon harflik bir başlık, hiçbir şey. Girdiye güvenirsen kötü veri veritabanına girer. Doğrulama onu kapıda, açık bir 400 cevabıyla geri çevirir."
+    learn:
+      en: |
+        - **Data annotations**: attributes such as `[Required]` and `[StringLength]` describe what a valid value is
+        - Since .NET 10, `builder.Services.AddValidation()` makes Minimal APIs check these attributes on request bodies, queries and headers by themselves
+        - A failed check answers **400 Bad Request** with a JSON list of errors (a "problem details" body)
+        - Never trust the client: validation on the server is the one that counts
+      tr: |
+        - **Data annotation**: `[Required]` ve `[StringLength]` gibi attribute'lar geçerli değerin ne olduğunu anlatır
+        - .NET 10'dan beri `builder.Services.AddValidation()` Minimal API'nin bu attribute'ları istek gövdesinde, query'de ve header'larda kendiliğinden kontrol etmesini sağlar
+        - Başarısız kontrol, hataların JSON listesiyle (bir "problem details" gövdesi) **400 Bad Request** döner
+        - İstemciye asla güvenme: önemli olan sunucudaki doğrulamadır
+    do:
+      en: |
+        1. Create `src/TodoApi/Todo.cs` with the code below. The types move out of `Program.cs`, become `public`, and `CreateTodo` gets validation attributes.
+        2. In `src/TodoApi/Program.cs` delete the two `record` lines at the bottom, and add the `AddValidation()` line right after `CreateBuilder` (see the code).
+        3. Restart the app and send an empty title, then a missing title, then a good one (curl commands below). The first two now answer 400 with a message.
+        4. Commit: `git add .` and `git commit -m "Validate new todos"`.
+      tr: |
+        1. Aşağıdaki kodla `src/TodoApi/Todo.cs` dosyasını oluştur. Tipler `Program.cs` içinden çıkar, `public` olur ve `CreateTodo` doğrulama attribute'larını alır.
+        2. `src/TodoApi/Program.cs` içinde alttaki iki `record` satırını sil ve `CreateBuilder` satırının hemen altına `AddValidation()` satırını ekle (koda bak).
+        3. Uygulamayı yeniden başlat ve boş başlık, eksik başlık, sonra düzgün bir başlık gönder (aşağıdaki curl komutları). İlk ikisi artık bir mesajla 400 döner.
+        4. Commit et: `git add .` ve `git commit -m "Validate new todos"`.
+    code:
+      - file: src/TodoApi/Todo.cs
+        lang: cs
+        text: |
+          using System.ComponentModel.DataAnnotations;
+
+          public record Todo(int Id, string Title, bool IsDone);
+
+          public record CreateTodo(
+              [Required, StringLength(100, MinimumLength = 1)] string Title);
+      - file: src/TodoApi/Program.cs (top of the file)
+        lang: cs
+        text: |
+          var builder = WebApplication.CreateBuilder(args);
+          builder.Services.AddValidation();
+          var app = builder.Build();
+          // ... the routes stay as they were, and the two record lines at the bottom are gone
+      - file: terminal
+        lang: sh
+        text: |
+          curl -i -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{"title":""}'
+          curl -i -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{}'
+          curl -i -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{"title":"Buy milk"}'
+    mistakes:
+      - problem:
+          en: "Bad titles are still accepted (201)."
+          tr: "Kötü başlıklar hâlâ kabul ediliyor (201)."
+        fix:
+          en: "Check that `AddValidation()` is called before `Build()`, and that the types are `public` and in their own file. Types declared as plain types at the bottom of `Program.cs` were not checked at all in my test, and nothing warned about it."
+          tr: "`AddValidation()` çağrısının `Build()` öncesinde olduğunu, tiplerin `public` ve kendi dosyasında olduğunu kontrol et. `Program.cs` altında düz tip olarak bırakılan tipler denememde hiç kontrol edilmedi ve hiçbir uyarı çıkmadı."
+      - problem:
+          en: "Error CS0246: the type or namespace name 'Required' could not be found."
+          tr: "CS0246 hatası: the type or namespace name 'Required' could not be found."
+        fix:
+          en: "The attributes live in `System.ComponentModel.DataAnnotations`. Add `using System.ComponentModel.DataAnnotations;` at the top of the file."
+          tr: "Attribute'lar `System.ComponentModel.DataAnnotations` içinde. Dosyanın en üstüne `using System.ComponentModel.DataAnnotations;` ekle."
+    quiz:
+      - q:
+          en: "Why validate on the server when the web page already checks the form?"
+          tr: "Web sayfası formu zaten kontrol ediyorsa neden sunucuda da doğrulayalım?"
+        options:
+          en:
+            - "It is not needed"
+            - "Anyone can send requests without the page, so only server checks are reliable"
+            - "Servers are faster at checking"
+          tr:
+            - "Gerek yok"
+            - "Herkes sayfa olmadan istek gönderebilir; güvenilir olan sadece sunucu kontrolüdür"
+            - "Sunucular kontrolü daha hızlı yapar"
+        answer: 1
+        why:
+          en: "curl, scripts and attackers skip your page completely. Only the checks in your API always run."
+          tr: "curl, script'ler ve saldırganlar sayfanı tamamen atlar. Her zaman çalışan tek kontrol API'ndeki kontrollerdir."
+    sources:
+      - title: Validation support in Minimal APIs
+        url: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis#validation-support-in-minimal-apis
+      - title: Validation in ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/validation
+
+  - id: database
+    stage: data-api
+    title:
+      en: "Save todos in SQLite with EF Core"
+      tr: "İşleri EF Core ile SQLite'ta saklama"
+    minutes: 75
+    needs: [validation]
+    why:
+      en: "Right now every todo is lost when the app stops. A database keeps data on disk. SQLite is a database in one file, so there is nothing to install. EF Core (Entity Framework Core) lets you work with tables as C# classes, and migrations record every change of the table layout so it can be repeated on any machine."
+      tr: "Şu an uygulama durunca her iş kayboluyor. Veritabanı veriyi diskte tutar. SQLite tek dosyalık bir veritabanıdır, kurulacak bir şey yoktur. EF Core (Entity Framework Core) tablolarla C# class'ları gibi çalışmanı sağlar; migration'lar tablo düzenindeki her değişikliği kaydeder, böylece her makinede tekrarlanabilir."
+    learn:
+      en: |
+        - An **entity** is a class that maps to a table (`Todo`), a **DbContext** is your session with the database (`TodoDb`), a **DbSet** is one table
+        - A **DTO** (data transfer object) is the shape you send out (`TodoDto`), so the table layout does not leak into your API
+        - A **migration** is a C# file that creates or changes tables. `dotnet ef` makes it, `Database.Migrate()` applies it
+        - Use the `Async` methods (`ToListAsync`, `SaveChangesAsync`) so no thread waits idle
+        - A **connection string** says where the database is; it belongs in configuration, not in code
+        - Use EF Core packages with the same major version as your SDK (10.x for .NET 10)
+      tr: |
+        - **Entity** bir tabloya karşılık gelen class'tır (`Todo`), **DbContext** veritabanıyla oturumundur (`TodoDb`), **DbSet** tek bir tablodur
+        - **DTO** (data transfer object) dışarı gönderdiğin şekildir (`TodoDto`); böylece tablo düzeni API'ne sızmaz
+        - **Migration**, tablo oluşturan ya da değiştiren bir C# dosyasıdır. `dotnet ef` onu üretir, `Database.Migrate()` uygular
+        - `Async` metotları kullan (`ToListAsync`, `SaveChangesAsync`); böylece hiçbir thread boşuna beklemez
+        - **Connection string** veritabanının nerede olduğunu söyler; kodda değil, yapılandırmada durur
+        - SDK'nla aynı ana sürümde EF Core paketleri kullan (.NET 10 için 10.x)
+    do:
+      en: |
+        1. Stop the app. Add the packages (first commands below). `Design` is only used while you build, and `dotnet package add` marks it that way for you. (Before .NET 10 the command was `dotnet add package`.)
+        2. Install the `dotnet-ef` tool for this project only: a tool manifest keeps the version in the repo (second block). It is not installed globally.
+        3. Replace `src/TodoApi/Todo.cs` with the code below and create `src/TodoApi/TodoDb.cs`.
+        4. Open `src/TodoApi/appsettings.json` and add the `ConnectionStrings` part (code below). `todos.db` is a file next to where the app runs.
+        5. Replace `src/TodoApi/Program.cs` with the code below. `Migrate()` creates the file and the tables on start.
+        6. Create the first migration: the `migrations add` command (second block). Look at the new `Migrations` folder: it contains plain C# that creates the `Todos` table.
+        7. Start the app. Create todos with curl, stop the app, start it again: the todos are still there. A `todos.db` file appeared in `src/TodoApi`.
+        8. Commit: `git add .` and `git commit -m "Store todos in SQLite"`. The `.gitignore` line from earlier keeps `todos.db` out of Git.
+      tr: |
+        1. Uygulamayı durdur. Paketleri ekle (aşağıdaki ilk komutlar). `Design` sadece geliştirirken kullanılır ve `dotnet package add` bunu senin için öyle işaretler. (.NET 10'dan önce komut `dotnet add package` idi.)
+        2. `dotnet-ef` aracını sadece bu proje için kur: bir tool manifest sürümü repoda tutar (ikinci blok). Global kurulmaz.
+        3. `src/TodoApi/Todo.cs` dosyasını aşağıdaki kodla değiştir ve `src/TodoApi/TodoDb.cs` dosyasını oluştur.
+        4. `src/TodoApi/appsettings.json` dosyasını aç ve `ConnectionStrings` bölümünü ekle (aşağıdaki kod). `todos.db`, uygulamanın çalıştığı yerin yanındaki bir dosyadır.
+        5. `src/TodoApi/Program.cs` dosyasını aşağıdaki kodla değiştir. `Migrate()` başlarken dosyayı ve tabloları oluşturur.
+        6. İlk migration'ı oluştur: `migrations add` komutu (ikinci blok). Yeni `Migrations` klasörüne bak: `Todos` tablosunu oluşturan düz C# içerir.
+        7. Uygulamayı başlat. curl ile iş oluştur, uygulamayı durdur, yeniden başlat: işler hâlâ orada. `src/TodoApi` içinde bir `todos.db` dosyası oluştu.
+        8. Commit et: `git add .` ve `git commit -m "Store todos in SQLite"`. Daha önceki `.gitignore` satırı `todos.db` dosyasını Git'ten uzak tutar.
+    code:
+      - file: terminal (packages)
+        lang: sh
+        text: |
+          dotnet package add Microsoft.EntityFrameworkCore.Sqlite --project src/TodoApi
+          dotnet package add Microsoft.EntityFrameworkCore.Design --project src/TodoApi
+      - file: terminal (tool and first migration)
+        lang: sh
+        text: |
+          dotnet new tool-manifest
+          dotnet tool install dotnet-ef
+          dotnet tool run dotnet-ef migrations add InitialCreate --project src/TodoApi
+      - file: src/TodoApi/Todo.cs
+        lang: cs
+        text: |
+          using System.ComponentModel.DataAnnotations;
+
+          // The row in the database.
+          public class Todo
+          {
+              public int Id { get; set; }
+              public required string Title { get; set; }
+              public bool IsDone { get; set; }
+              public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+          }
+
+          // What the API sends out.
+          public record TodoDto(int Id, string Title, bool IsDone, DateTimeOffset CreatedAt)
+          {
+              public static TodoDto From(Todo t) => new(t.Id, t.Title, t.IsDone, t.CreatedAt);
+          }
+
+          // What the API accepts when someone creates a todo.
+          public record CreateTodo(
+              [Required, StringLength(100, MinimumLength = 1)] string Title);
+      - file: src/TodoApi/TodoDb.cs
+        lang: cs
+        text: |
+          using Microsoft.EntityFrameworkCore;
+
+          public class TodoDb(DbContextOptions<TodoDb> options) : DbContext(options)
+          {
+              public DbSet<Todo> Todos => Set<Todo>();
+          }
+      - file: src/TodoApi/appsettings.json
+        lang: json
+        text: |
+          {
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            },
+            "AllowedHosts": "*",
+            "ConnectionStrings": {
+              "Todos": "Data Source=todos.db"
+            }
+          }
+      - file: src/TodoApi/Program.cs
+        lang: cs
+        text: |
+          using Microsoft.EntityFrameworkCore;
+
+          var builder = WebApplication.CreateBuilder(args);
+
+          builder.Services.AddValidation();
+          builder.Services.AddDbContext<TodoDb>((sp, options) =>
+              options.UseSqlite(sp.GetRequiredService<IConfiguration>().GetConnectionString("Todos")));
+
+          var app = builder.Build();
+
+          // Create the database file and bring its tables up to date every time the app starts.
+          using (var scope = app.Services.CreateScope())
+          {
+              scope.ServiceProvider.GetRequiredService<TodoDb>().Database.Migrate();
+          }
+
+          app.MapGet("/", () => "Todo API is running");
+
+          var todos = app.MapGroup("/todos");
+
+          todos.MapGet("/", async (TodoDb db) =>
+          {
+              var all = await db.Todos.AsNoTracking().OrderBy(t => t.Id).ToListAsync();
+              return all.Select(TodoDto.From);
+          });
+
+          todos.MapGet("/{id:int}", async (int id, TodoDb db) =>
+              await db.Todos.FindAsync(id) is { } todo
+                  ? Results.Ok(TodoDto.From(todo))
+                  : Results.NotFound());
+
+          todos.MapPost("/", async (CreateTodo input, TodoDb db) =>
+          {
+              var todo = new Todo { Title = input.Title.Trim() };
+              db.Todos.Add(todo);
+              await db.SaveChangesAsync();
+              return Results.Created($"/todos/{todo.Id}", TodoDto.From(todo));
+          });
+
+          app.Run();
+    mistakes:
+      - problem:
+          en: "\"no such table: Todos\" or \"unable to open database file\"."
+          tr: "\"no such table: Todos\" ya da \"unable to open database file\" hatası."
+        fix:
+          en: "Either you forgot to create the migration, or the connection string is empty. The app reads `appsettings.json` from the project folder, so start it with `dotnet run --project src/TodoApi` (or from inside `src/TodoApi`)."
+          tr: "Ya migration'ı oluşturmayı unuttun ya da connection string boş. Uygulama `appsettings.json` dosyasını proje klasöründen okur; bu yüzden `dotnet run --project src/TodoApi` ile (ya da `src/TodoApi` içinden) başlat."
+      - problem:
+          en: "\"Could not execute because the specified command or file was not found\" for `dotnet ef`."
+          tr: "`dotnet ef` için \"Could not execute because the specified command or file was not found\" hatası."
+        fix:
+          en: "Run `dotnet tool restore` in the `todo` folder (it installs the tools listed in `dotnet-tools.json`) and run the command from that folder, as `dotnet tool run dotnet-ef ...`."
+          tr: "`todo` klasöründe `dotnet tool restore` çalıştır (`dotnet-tools.json` içindeki araçları kurar) ve komutu o klasörden `dotnet tool run dotnet-ef ...` şeklinde çalıştır."
+      - problem:
+          en: "Changing the `Todo` class but not the database."
+          tr: "`Todo` class'ını değiştirip veritabanını değiştirmemek."
+        fix:
+          en: "After every change to an entity, create a new migration (`migrations add <Name>`). On the next start `Migrate()` applies it."
+          tr: "Bir entity'yi her değiştirişinde yeni bir migration oluştur (`migrations add <Ad>`). Bir sonraki başlangıçta `Migrate()` onu uygular."
+    quiz:
+      - q:
+          en: "What is a migration?"
+          tr: "Migration nedir?"
+        options:
+          en:
+            - "A backup of the database"
+            - "A C# file that creates or changes tables, so the layout can be repeated anywhere"
+            - "A way to move the app to another server"
+          tr:
+            - "Veritabanının bir yedeği"
+            - "Tablo oluşturan ya da değiştiren, böylece düzenin her yerde tekrarlanmasını sağlayan bir C# dosyası"
+            - "Uygulamayı başka bir sunucuya taşımanın yolu"
+        answer: 1
+        why:
+          en: "Migrations are the history of your table layout, kept in the repository. Any machine, including the production server, can replay them."
+          tr: "Migration'lar tablo düzeninin geçmişidir ve repoda durur. Üretim sunucusu dahil her makine onları yeniden oynatabilir."
+    sources:
+      - title: "Getting started with EF Core"
+        url: https://learn.microsoft.com/en-us/ef/core/get-started/overview/first-app
+      - title: Migrations overview
+        url: https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/
+      - title: SQLite EF Core database provider
+        url: https://learn.microsoft.com/en-us/ef/core/providers/sqlite/
+
+  - id: crud
+    stage: data-api
+    title:
+      en: "Update, delete, filter and page"
+      tr: "Güncelleme, silme, süzme ve sayfalama"
+    minutes: 60
+    needs: [database]
+    why:
+      en: "A real API lets clients change and remove data too, and a list that returns everything stops working once there are thousands of rows. Filtering and paging let a client ask for just what it needs."
+      tr: "Gerçek bir API istemcilerin veriyi değiştirmesine ve silmesine de izin verir; her şeyi döndüren bir liste de binlerce satır olunca çalışmaz hale gelir. Süzme ve sayfalama istemcinin sadece ihtiyacı olanı istemesini sağlar."
+    learn:
+      en: |
+        - **PUT** replaces a todo, **DELETE** removes it; unknown ids answer 404
+        - **Query string** values (`?done=true&page=2`) become method parameters
+        - EF Core builds one SQL query from your `Where`, `Skip` and `Take`; nothing runs until `ToListAsync` or `CountAsync`
+        - **Paging**: `Skip((page - 1) * pageSize).Take(pageSize)`, with a maximum page size so nobody asks for a million rows
+        - `AsNoTracking()` makes read-only queries a little faster
+      tr: |
+        - **PUT** bir işi değiştirir, **DELETE** siler; bilinmeyen id 404 döner
+        - **Query string** değerleri (`?done=true&page=2`) metot parametresi olur
+        - EF Core `Where`, `Skip` ve `Take` çağrılarından tek bir SQL sorgusu üretir; `ToListAsync` ya da `CountAsync`'e kadar hiçbir şey çalışmaz
+        - **Sayfalama**: `Skip((page - 1) * pageSize).Take(pageSize)`; kimse milyon satır istemesin diye en büyük sayfa boyutuyla
+        - `AsNoTracking()` sadece okuyan sorguları biraz hızlandırır
+    do:
+      en: |
+        1. Add the new records at the end of `src/TodoApi/Todo.cs` (code below).
+        2. In `src/TodoApi/Program.cs` replace the list route with the new one, and add the PUT and DELETE routes before `app.Run();` (code below).
+        3. Restart the app, create three todos, then try the curl commands below: update, filter, search, page, delete.
+        4. Try a bad id (`/todos/77`) and an empty title on PUT: you should get 404 and 400.
+        5. Commit: `git add .` and `git commit -m "Add update, delete, filter and paging"`.
+      tr: |
+        1. Yeni record'ları `src/TodoApi/Todo.cs` sonuna ekle (aşağıdaki kod).
+        2. `src/TodoApi/Program.cs` içinde liste rotasını yenisiyle değiştir ve PUT ile DELETE rotalarını `app.Run();` satırından önce ekle (aşağıdaki kod).
+        3. Uygulamayı yeniden başlat, üç iş oluştur, sonra aşağıdaki curl komutlarını dene: güncelleme, süzme, arama, sayfalama, silme.
+        4. Kötü bir id (`/todos/77`) ve PUT'ta boş başlık dene: 404 ve 400 almalısın.
+        5. Commit et: `git add .` ve `git commit -m "Add update, delete, filter and paging"`.
+    code:
+      - file: src/TodoApi/Todo.cs (add at the end)
+        lang: cs
+        text: |
+          // What the API accepts when someone changes a todo.
+          public record UpdateTodo(
+              [Required, StringLength(100, MinimumLength = 1)] string Title,
+              bool IsDone);
+
+          // One page of results plus the numbers a client needs to ask for the next page.
+          public record Page<T>(IReadOnlyList<T> Items, int PageNumber, int PageSize, int Total);
+      - file: src/TodoApi/Program.cs (replace the GET list route)
+        lang: cs
+        text: |
+          todos.MapGet("/", async (TodoDb db, bool? done, string? search, int page = 1, int pageSize = 20) =>
+          {
+              page = Math.Max(page, 1);
+              pageSize = Math.Clamp(pageSize, 1, 100);
+
+              // Build the query step by step; nothing runs until ToListAsync / CountAsync.
+              var query = db.Todos.AsNoTracking();
+              if (done is { } d)
+                  query = query.Where(t => t.IsDone == d);
+              if (!string.IsNullOrWhiteSpace(search))
+                  query = query.Where(t => EF.Functions.Like(t.Title, $"%{search}%"));
+
+              var total = await query.CountAsync();
+              var items = await query
+                  .OrderBy(t => t.Id)
+                  .Skip((page - 1) * pageSize)
+                  .Take(pageSize)
+                  .ToListAsync();
+
+              return new Page<TodoDto>(items.Select(TodoDto.From).ToList(), page, pageSize, total);
+          });
+      - file: src/TodoApi/Program.cs (add before app.Run())
+        lang: cs
+        text: |
+          todos.MapPut("/{id:int}", async (int id, UpdateTodo input, TodoDb db) =>
+          {
+              var todo = await db.Todos.FindAsync(id);
+              if (todo is null) return Results.NotFound();
+
+              todo.Title = input.Title.Trim();
+              todo.IsDone = input.IsDone;
+              await db.SaveChangesAsync();
+              return Results.Ok(TodoDto.From(todo));
+          });
+
+          todos.MapDelete("/{id:int}", async (int id, TodoDb db) =>
+          {
+              var deleted = await db.Todos.Where(t => t.Id == id).ExecuteDeleteAsync();
+              return deleted == 0 ? Results.NotFound() : Results.NoContent();
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          curl -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{"title":"Buy milk"}'
+          curl -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{"title":"Write code"}'
+          curl -X POST http://localhost:5080/todos -H "Content-Type: application/json" -d '{"title":"Walk the dog"}'
+          curl -X PUT http://localhost:5080/todos/2 -H "Content-Type: application/json" -d '{"title":"Write code","isDone":true}'
+          curl "http://localhost:5080/todos?done=false"
+          curl "http://localhost:5080/todos?search=milk"
+          curl "http://localhost:5080/todos?pageSize=2&page=2"
+          curl -i -X DELETE http://localhost:5080/todos/1
+          curl -i -X DELETE http://localhost:5080/todos/1
+    mistakes:
+      - problem:
+          en: "The `search` or `done` filter is ignored."
+          tr: "`search` ya da `done` süzgeci yok sayılıyor."
+        fix:
+          en: "Wrap the URL in quotes when it has `&` or `?`; a shell treats `&` as a special character and cuts the URL."
+          tr: "URL'de `&` ya da `?` varsa tırnak içine al; kabuk `&` karakterini özel sayar ve URL'yi keser."
+      - problem:
+          en: "Loading every row and filtering in C# (`(await db.Todos.ToListAsync()).Where(...)`)."
+          tr: "Her satırı yükleyip C# içinde süzmek (`(await db.Todos.ToListAsync()).Where(...)`)."
+        fix:
+          en: "Put `Where` before `ToListAsync` so the database does the filtering and only matching rows travel to your app."
+          tr: "`Where`'i `ToListAsync`'ten önce yaz; böylece süzmeyi veritabanı yapar ve uygulamana sadece uyan satırlar gelir."
+    quiz:
+      - q:
+          en: "Why does the list route limit `pageSize` with `Math.Clamp`?"
+          tr: "Liste rotası `pageSize` değerini neden `Math.Clamp` ile sınırlıyor?"
+        options:
+          en:
+            - "To make the code shorter"
+            - "So a client cannot ask for a huge page and slow the server down"
+            - "Because SQLite cannot return more than 100 rows"
+          tr:
+            - "Kod kısalsın diye"
+            - "İstemci devasa bir sayfa isteyip sunucuyu yavaşlatmasın diye"
+            - "SQLite 100'den fazla satır döndüremediği için"
+        answer: 1
+        why:
+          en: "Query values come from the client. A maximum protects the server and the database."
+          tr: "Query değerleri istemciden gelir. Bir üst sınır sunucuyu ve veritabanını korur."
+    sources:
+      - title: Querying data with EF Core
+        url: https://learn.microsoft.com/en-us/ef/core/querying/
+      - title: ExecuteUpdate and ExecuteDelete
+        url: https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete
+      - title: Minimal API parameter binding
+        url: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/minimal-apis/parameter-binding
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the API with xUnit and WebApplicationFactory"
+      tr: "API'yi xUnit ve WebApplicationFactory ile test etme"
+    minutes: 75
+    needs: [crud]
+    why:
+      en: "Tests are programs that check your program. They catch the break you did not notice, and they let you change code later without fear. `WebApplicationFactory` starts your whole API in memory, so a test sends real HTTP requests without a port and without you typing curl."
+      tr: "Test, programını kontrol eden programlardır. Fark etmediğin bozulmayı yakalar ve sonra korkmadan kod değiştirmeni sağlar. `WebApplicationFactory` tüm API'ni bellekte başlatır; böylece bir test, port açmadan ve curl yazmana gerek kalmadan gerçek HTTP istekleri gönderir."
+    learn:
+      en: |
+        - **xUnit**: a method with `[Fact]` is one test; `Assert.Equal` compares what you got with what you expected
+        - An **integration test** runs the real app and checks the whole path: route, validation, database
+        - `WebApplicationFactory<Program>` starts the app; `CreateClient()` gives an `HttpClient` that talks to it
+        - Each test run should use its own throw-away database, never your real `todos.db`
+        - `IClassFixture` shares one started app between the tests of a class, so tests must not depend on an empty database
+      tr: |
+        - **xUnit**: `[Fact]` taşıyan bir metot tek bir testtir; `Assert.Equal` aldığınla beklediğini karşılaştırır
+        - **Integration test** gerçek uygulamayı çalıştırır ve bütün yolu kontrol eder: rota, doğrulama, veritabanı
+        - `WebApplicationFactory<Program>` uygulamayı başlatır; `CreateClient()` onunla konuşan bir `HttpClient` verir
+        - Her test çalıştırması kendi geçici veritabanını kullanmalı, asla gerçek `todos.db` dosyanı değil
+        - `IClassFixture` bir class'ın testleri arasında başlatılmış tek bir uygulamayı paylaştırır; bu yüzden testler boş bir veritabanına güvenmemeli
+    do:
+      en: |
+        1. Create the test project, add it to the solution, point it at the API project and add the testing package (first block). The template gives you xUnit. Delete the sample file `tests/TodoApi.Tests/UnitTest1.cs`.
+        2. Add the last two lines to `src/TodoApi/Program.cs` (code below). Top-level `Program` is hidden from other projects; this line makes it visible to the test project.
+        3. Create `tests/TodoApi.Tests/ApiFactory.cs` and `tests/TodoApi.Tests/TodoEndpointsTests.cs` with the code below. `ApiFactory` gives each test class a new database file in the temp folder and removes it at the end.
+        4. Run all tests from the `todo` folder: `dotnet test`. You should see `Passed! ... Passed: 5`.
+        5. Break the API on purpose (for example return 200 instead of 201 in the POST route) and run `dotnet test` again. Read the failure message, then fix it.
+        6. Commit: `git add .` and `git commit -m "Add API tests"`.
+      tr: |
+        1. Test projesini oluştur, solution'a ekle, API projesine bağla ve test paketini ekle (ilk blok). Şablon sana xUnit'i verir. Örnek dosya `tests/TodoApi.Tests/UnitTest1.cs` dosyasını sil.
+        2. `src/TodoApi/Program.cs` dosyasının sonuna son iki satırı ekle (aşağıdaki kod). Top-level `Program` diğer projelerden gizlidir; bu satır onu test projesine görünür yapar.
+        3. Aşağıdaki kodla `tests/TodoApi.Tests/ApiFactory.cs` ve `tests/TodoApi.Tests/TodoEndpointsTests.cs` dosyalarını oluştur. `ApiFactory` her test class'ına geçici klasörde yeni bir veritabanı dosyası verir ve sonunda siler.
+        4. `todo` klasöründen tüm testleri çalıştır: `dotnet test`. `Passed! ... Passed: 5` görmelisin.
+        5. API'yi bilerek boz (örneğin POST rotasında 201 yerine 200 döndür) ve `dotnet test` komutunu yeniden çalıştır. Hata mesajını oku, sonra düzelt.
+        6. Commit et: `git add .` ve `git commit -m "Add API tests"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          dotnet new xunit -o tests/TodoApi.Tests
+          dotnet sln add tests/TodoApi.Tests
+          dotnet reference add src/TodoApi --project tests/TodoApi.Tests
+          dotnet package add Microsoft.AspNetCore.Mvc.Testing --project tests/TodoApi.Tests
+          dotnet test
+      - file: src/TodoApi/Program.cs (add at the very end)
+        lang: cs
+        text: |
+
+          // Lets the test project start the whole app (WebApplicationFactory<Program>).
+          public partial class Program;
+      - file: tests/TodoApi.Tests/ApiFactory.cs
+        lang: cs
+        text: |
+          using Microsoft.AspNetCore.Hosting;
+          using Microsoft.AspNetCore.Mvc.Testing;
+
+          // Starts the real app in memory, but on its own throw-away database file.
+          public class ApiFactory : WebApplicationFactory<Program>
+          {
+              private readonly string _dbFile = Path.Combine(Path.GetTempPath(), $"todo-test-{Guid.NewGuid():N}.db");
+
+              protected override void ConfigureWebHost(IWebHostBuilder builder)
+              {
+                  builder.UseSetting("ConnectionStrings:Todos", $"Data Source={_dbFile};Pooling=False");
+              }
+
+              protected override void Dispose(bool disposing)
+              {
+                  base.Dispose(disposing);
+                  if (disposing && File.Exists(_dbFile)) File.Delete(_dbFile);
+              }
+          }
+      - file: tests/TodoApi.Tests/TodoEndpointsTests.cs
+        lang: cs
+        text: |
+          using System.Net;
+          using System.Net.Http.Json;
+
+          public class TodoEndpointsTests(ApiFactory factory) : IClassFixture<ApiFactory>
+          {
+              private readonly HttpClient _client = factory.CreateClient();
+
+              [Fact]
+              public async Task Create_returns_201_and_the_todo_can_be_read_back()
+              {
+                  var response = await _client.PostAsJsonAsync("/todos", new { title = "  Buy milk  " });
+
+                  Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                  var created = await response.Content.ReadFromJsonAsync<TodoDto>();
+                  Assert.NotNull(created);
+                  Assert.Equal("Buy milk", created.Title);       // trimmed
+                  Assert.False(created.IsDone);
+
+                  var fetched = await _client.GetFromJsonAsync<TodoDto>($"/todos/{created.Id}");
+                  Assert.Equal(created.Id, fetched?.Id);
+              }
+
+              [Fact]
+              public async Task Create_with_an_empty_title_returns_400()
+              {
+                  var response = await _client.PostAsJsonAsync("/todos", new { title = "" });
+
+                  Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+              }
+
+              [Fact]
+              public async Task Unknown_id_returns_404()
+              {
+                  var response = await _client.GetAsync("/todos/999999");
+
+                  Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+              }
+
+              [Fact]
+              public async Task Update_then_filter_by_done()
+              {
+                  var created = await (await _client.PostAsJsonAsync("/todos", new { title = "Write tests" }))
+                      .Content.ReadFromJsonAsync<TodoDto>();
+
+                  var put = await _client.PutAsJsonAsync($"/todos/{created!.Id}", new { title = "Write tests", isDone = true });
+                  Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+
+                  var done = await _client.GetFromJsonAsync<Page<TodoDto>>("/todos?done=true&search=Write tests");
+                  Assert.Contains(done!.Items, t => t.Id == created.Id);
+              }
+
+              [Fact]
+              public async Task Delete_removes_the_todo()
+              {
+                  var created = await (await _client.PostAsJsonAsync("/todos", new { title = "Temporary" }))
+                      .Content.ReadFromJsonAsync<TodoDto>();
+
+                  var delete = await _client.DeleteAsync($"/todos/{created!.Id}");
+                  var again = await _client.GetAsync($"/todos/{created.Id}");
+
+                  Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+                  Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+              }
+          }
+    mistakes:
+      - problem:
+          en: "Error CS0122: 'Program' is inaccessible due to its protection level."
+          tr: "CS0122 hatası: 'Program' is inaccessible due to its protection level."
+        fix:
+          en: "Add `public partial class Program;` at the end of `src/TodoApi/Program.cs`."
+          tr: "`src/TodoApi/Program.cs` sonuna `public partial class Program;` ekle."
+      - problem:
+          en: "Tests pass alone but fail together, or fill your real `todos.db`."
+          tr: "Testler tek tek geçiyor ama birlikte kalıyor, ya da gerçek `todos.db` dosyanı dolduruyor."
+        fix:
+          en: "Tests in a class share one database. Create unique data per test (unique titles, ids you just got back) and never count on an empty table. Always override the connection string in the factory, as shown."
+          tr: "Bir class'taki testler tek veritabanını paylaşır. Her test için benzersiz veri oluştur (benzersiz başlıklar, az önce geri aldığın id'ler) ve boş bir tabloya güvenme. Connection string'i gösterildiği gibi her zaman factory içinde değiştir."
+      - problem:
+          en: "Testing only the happy path."
+          tr: "Sadece mutlu yolu test etmek."
+        fix:
+          en: "Bugs live in the unhappy paths: the empty title, the unknown id. Write a test for each answer you promise (400, 404), as above."
+          tr: "Hatalar mutsuz yollarda yaşar: boş başlık, bilinmeyen id. Yukarıdaki gibi vaat ettiğin her cevap (400, 404) için bir test yaz."
+    quiz:
+      - q:
+          en: "Why does `ApiFactory` use a different database file for tests?"
+          tr: "`ApiFactory` testler için neden farklı bir veritabanı dosyası kullanıyor?"
+        options:
+          en:
+            - "SQLite only allows one file per computer"
+            - "So tests never touch your real data and start from a clean state"
+            - "To make the tests slower on purpose"
+          tr:
+            - "SQLite bilgisayar başına tek dosyaya izin verir"
+            - "Testler gerçek verine hiç dokunmasın ve temiz bir durumdan başlasın diye"
+            - "Testleri bilerek yavaşlatmak için"
+        answer: 1
+        why:
+          en: "A test that changes your real data is dangerous and its result depends on what happens to be saved. A fresh file makes every run repeatable."
+          tr: "Gerçek verini değiştiren bir test tehlikelidir ve sonucu kayıtlı olana bağlıdır. Yeni bir dosya her çalıştırmayı tekrarlanabilir yapar."
+    sources:
+      - title: Integration tests in ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests
+      - title: Getting started with xUnit.net (v2)
+        url: https://xunit.net/docs/getting-started/v2/getting-started
+
+  - id: auth
+    stage: security
+    title:
+      en: "Register, log in and protect each user's todos"
+      tr: "Kayıt, giriş ve her kullanıcının işlerini koruma"
+    minutes: 90
+    needs: [tests]
+    why:
+      en: "Right now anyone can read and delete everybody's todos. Authentication answers \"who are you?\" and authorization answers \"what may you do?\". ASP.NET Core Identity stores users and password hashes for you, and its API endpoints give you register and login routes without writing them."
+      tr: "Şu an herkes herkesin işlerini okuyabilir ve silebilir. Kimlik doğrulama (authentication) \"sen kimsin?\" sorusunu, yetkilendirme (authorization) \"ne yapabilirsin?\" sorusunu cevaplar. ASP.NET Core Identity kullanıcıları ve şifre hash'lerini senin için saklar; API endpoint'leri de register ve login rotalarını yazmadan verir."
+    learn:
+      en: |
+        - **Never store a password.** Identity stores a salted **hash** (a one-way scramble), so even you cannot read it back
+        - `AddIdentityApiEndpoints<IdentityUser>()` plus `MapIdentityApi` give `/auth/register`, `/auth/login` and `/auth/refresh`. Login returns a **bearer token** that the client sends in the `Authorization: Bearer <token>` header
+        - These tokens are opaque (protected by the framework), not JWTs. They are fine for learning and small apps; bigger systems often use an external identity provider and JWTs (`AddJwtBearer`)
+        - `RequireAuthorization()` answers **401** to anyone without a valid token
+        - Checking who owns a row matters as much as logging in: each query filters by the user's id, so one user can never see another's data
+        - The default password rules: at least 6 characters with a digit, a lower-case letter, an upper-case letter and a symbol
+      tr: |
+        - **Şifreyi asla saklama.** Identity tuzlanmış bir **hash** (tek yönlü karıştırma) saklar; sen bile geri okuyamazsın
+        - `AddIdentityApiEndpoints<IdentityUser>()` ve `MapIdentityApi` `/auth/register`, `/auth/login` ve `/auth/refresh` rotalarını verir. Login, istemcinin `Authorization: Bearer <token>` başlığında göndereceği bir **bearer token** döndürür
+        - Bu token'lar JWT değil, çerçevenin koruduğu opak token'lardır. Öğrenmek ve küçük uygulamalar için uygundur; büyük sistemler çoğunlukla dış bir kimlik sağlayıcı ve JWT kullanır (`AddJwtBearer`)
+        - `RequireAuthorization()` geçerli token'ı olmayan herkese **401** döner
+        - Bir satırın sahibini kontrol etmek giriş yapmak kadar önemlidir: her sorgu kullanıcının id'siyle süzülür; böylece bir kullanıcı başkasının verisini asla göremez
+        - Varsayılan şifre kuralları: en az 6 karakter; bir rakam, bir küçük harf, bir büyük harf ve bir sembol
+    do:
+      en: |
+        1. Stop the app. Add the Identity package (first block).
+        2. Replace `TodoDb.cs` so the context also holds users, add `OwnerId` to the `Todo` class, and replace `Program.cs` with the code below. Every route now reads the user's id from the token and filters by it.
+        3. Make a migration that adds the user tables and the owner column (first block, last command). `Migrate()` will apply it on start. If you have old todos from before, they get an empty owner and nobody sees them; delete `src/TodoApi/todos.db*` first for a clean start.
+        4. Start the app and try the flow with curl (second block): `/todos` without a token gives 401, register, log in (copy the `accessToken` from the answer), then call `/todos` with the header.
+        5. Update the tests: replace `ApiFactory.cs` and `TodoEndpointsTests.cs` with the new versions. Every test now gets its own freshly registered and logged-in user, and two new tests check the 401 and that users cannot see each other's data.
+        6. Run `dotnet test`: `Passed: 7`.
+        7. Commit: `git add .` and `git commit -m "Add Identity login and per-user todos"`.
+      tr: |
+        1. Uygulamayı durdur. Identity paketini ekle (ilk blok).
+        2. `TodoDb.cs` dosyasını kullanıcıları da tutacak şekilde değiştir, `Todo` class'ına `OwnerId` ekle ve `Program.cs` dosyasını aşağıdaki kodla değiştir. Her rota artık kullanıcının id'sini token'dan okur ve onunla süzer.
+        3. Kullanıcı tablolarını ve sahip sütununu ekleyen bir migration oluştur (ilk blok, son komut). `Migrate()` onu başlarken uygular. Daha önceden kalan işlerin varsa sahibi boş olur ve kimse onları görmez; temiz bir başlangıç için önce `src/TodoApi/todos.db*` dosyalarını sil.
+        4. Uygulamayı başlat ve akışı curl ile dene (ikinci blok): token'sız `/todos` 401 verir; kayıt ol, giriş yap (cevaptaki `accessToken` değerini kopyala), sonra `/todos` rotasını başlıkla çağır.
+        5. Testleri güncelle: `ApiFactory.cs` ve `TodoEndpointsTests.cs` dosyalarını yeni sürümlerle değiştir. Her test artık kendi yeni kayıtlı ve giriş yapmış kullanıcısını alır; iki yeni test 401'i ve kullanıcıların birbirinin verisini görememesini kontrol eder.
+        6. `dotnet test` çalıştır: `Passed: 7`.
+        7. Commit et: `git add .` ve `git commit -m "Add Identity login and per-user todos"`.
+    code:
+      - file: terminal (package and migration)
+        lang: sh
+        text: |
+          dotnet package add Microsoft.AspNetCore.Identity.EntityFrameworkCore --project src/TodoApi
+          dotnet tool run dotnet-ef migrations add AddIdentityAndOwner --project src/TodoApi
+      - file: src/TodoApi/TodoDb.cs
+        lang: cs
+        text: |
+          using Microsoft.AspNetCore.Identity;
+          using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+          using Microsoft.EntityFrameworkCore;
+
+          // IdentityDbContext adds the tables for users and their passwords next to our Todos table.
+          public class TodoDb(DbContextOptions<TodoDb> options) : IdentityDbContext<IdentityUser>(options)
+          {
+              public DbSet<Todo> Todos => Set<Todo>();
+          }
+      - file: src/TodoApi/Todo.cs (the Todo class)
+        lang: cs
+        text: |
+          public class Todo
+          {
+              public int Id { get; set; }
+              public required string Title { get; set; }
+              public bool IsDone { get; set; }
+              public string OwnerId { get; set; } = "";   // the Id of the user who owns this todo
+              public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+          }
+      - file: src/TodoApi/Program.cs
+        lang: cs
+        text: |
+          using System.Security.Claims;
+          using Microsoft.AspNetCore.Identity;
+          using Microsoft.EntityFrameworkCore;
+
+          var builder = WebApplication.CreateBuilder(args);
+
+          builder.Services.AddValidation();
+          builder.Services.AddDbContext<TodoDb>((sp, options) =>
+              options.UseSqlite(sp.GetRequiredService<IConfiguration>().GetConnectionString("Todos")));
+
+          builder.Services.AddAuthorization();
+          builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+              .AddEntityFrameworkStores<TodoDb>();
+
+          var app = builder.Build();
+
+          app.UseAuthentication();
+          app.UseAuthorization();
+
+          // Create the database file and bring its tables up to date every time the app starts.
+          using (var scope = app.Services.CreateScope())
+          {
+              scope.ServiceProvider.GetRequiredService<TodoDb>().Database.Migrate();
+          }
+
+          app.MapGet("/", () => "Todo API is running");
+
+          // /auth/register, /auth/login and /auth/refresh are written by the framework.
+          app.MapGroup("/auth").MapIdentityApi<IdentityUser>();
+
+          // Every route in this group needs a logged-in user.
+          var todos = app.MapGroup("/todos").RequireAuthorization();
+
+          todos.MapGet("/", async (ClaimsPrincipal user, TodoDb db, bool? done, string? search, int page = 1, int pageSize = 20) =>
+          {
+              page = Math.Max(page, 1);
+              pageSize = Math.Clamp(pageSize, 1, 100);
+
+              // Build the query step by step; nothing runs until ToListAsync / CountAsync.
+              var ownerId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+              var query = db.Todos.AsNoTracking().Where(t => t.OwnerId == ownerId);
+              if (done is { } d)
+                  query = query.Where(t => t.IsDone == d);
+              if (!string.IsNullOrWhiteSpace(search))
+                  query = query.Where(t => EF.Functions.Like(t.Title, $"%{search}%"));
+
+              var total = await query.CountAsync();
+              var items = await query
+                  .OrderBy(t => t.Id)
+                  .Skip((page - 1) * pageSize)
+                  .Take(pageSize)
+                  .ToListAsync();
+
+              return new Page<TodoDto>(items.Select(TodoDto.From).ToList(), page, pageSize, total);
+          });
+
+          todos.MapGet("/{id:int}", async (int id, ClaimsPrincipal user, TodoDb db) =>
+          {
+              var ownerId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+              var todo = await db.Todos.AsNoTracking().FirstOrDefaultAsync(t => t.Id == id && t.OwnerId == ownerId);
+              return todo is null ? Results.NotFound() : Results.Ok(TodoDto.From(todo));
+          });
+
+          todos.MapPost("/", async (CreateTodo input, ClaimsPrincipal user, TodoDb db) =>
+          {
+              var todo = new Todo
+              {
+                  Title = input.Title.Trim(),
+                  OwnerId = user.FindFirstValue(ClaimTypes.NameIdentifier)!,
+              };
+              db.Todos.Add(todo);
+              await db.SaveChangesAsync();
+              return Results.Created($"/todos/{todo.Id}", TodoDto.From(todo));
+          });
+
+          todos.MapPut("/{id:int}", async (int id, UpdateTodo input, ClaimsPrincipal user, TodoDb db) =>
+          {
+              var ownerId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+              var todo = await db.Todos.FirstOrDefaultAsync(t => t.Id == id && t.OwnerId == ownerId);
+              if (todo is null) return Results.NotFound();
+
+              todo.Title = input.Title.Trim();
+              todo.IsDone = input.IsDone;
+              await db.SaveChangesAsync();
+              return Results.Ok(TodoDto.From(todo));
+          });
+
+          todos.MapDelete("/{id:int}", async (int id, ClaimsPrincipal user, TodoDb db) =>
+          {
+              var ownerId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+              var deleted = await db.Todos.Where(t => t.Id == id && t.OwnerId == ownerId).ExecuteDeleteAsync();
+              return deleted == 0 ? Results.NotFound() : Results.NoContent();
+          });
+
+          app.Run();
+
+          // Lets the test project start the whole app (WebApplicationFactory<Program>).
+          public partial class Program;
+      - file: terminal (try the login flow)
+        lang: sh
+        text: |
+          curl -i http://localhost:5080/todos
+          curl -X POST http://localhost:5080/auth/register -H "Content-Type: application/json" -d '{"email":"ada@example.com","password":"Passw0rd!"}'
+          curl -X POST http://localhost:5080/auth/login -H "Content-Type: application/json" -d '{"email":"ada@example.com","password":"Passw0rd!"}'
+          # copy the accessToken value from the answer, then:
+          curl -X POST http://localhost:5080/todos -H "Content-Type: application/json" -H "Authorization: Bearer PASTE_TOKEN_HERE" -d '{"title":"Mine"}'
+          curl http://localhost:5080/todos -H "Authorization: Bearer PASTE_TOKEN_HERE"
+      - file: tests/TodoApi.Tests/ApiFactory.cs
+        lang: cs
+        text: |
+          using System.Net.Http.Headers;
+          using System.Net.Http.Json;
+          using Microsoft.AspNetCore.Hosting;
+          using Microsoft.AspNetCore.Mvc.Testing;
+
+          // Starts the real app in memory, but on its own throw-away database file.
+          public class ApiFactory : WebApplicationFactory<Program>
+          {
+              private readonly string _dbFile = Path.Combine(Path.GetTempPath(), $"todo-test-{Guid.NewGuid():N}.db");
+
+              protected override void ConfigureWebHost(IWebHostBuilder builder)
+              {
+                  builder.UseSetting("ConnectionStrings:Todos", $"Data Source={_dbFile};Pooling=False");
+              }
+
+              // A client that is already registered and logged in as a brand-new user.
+              public async Task<HttpClient> CreateLoggedInClientAsync()
+              {
+                  var client = CreateClient();
+                  var login = new { email = $"{Guid.NewGuid():N}@example.com", password = "Passw0rd!" };
+
+                  (await client.PostAsJsonAsync("/auth/register", login)).EnsureSuccessStatusCode();
+                  var response = await client.PostAsJsonAsync("/auth/login", login);
+                  response.EnsureSuccessStatusCode();
+
+                  var tokens = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                  client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens!.AccessToken);
+                  return client;
+              }
+
+              protected override void Dispose(bool disposing)
+              {
+                  base.Dispose(disposing);
+                  if (disposing && File.Exists(_dbFile)) File.Delete(_dbFile);
+              }
+          }
+
+          public record LoginResponse(string AccessToken, string RefreshToken);
+      - file: tests/TodoApi.Tests/TodoEndpointsTests.cs
+        lang: cs
+        text: |
+          using System.Net;
+          using System.Net.Http.Json;
+
+          public class TodoEndpointsTests : IClassFixture<ApiFactory>, IAsyncLifetime
+          {
+              private readonly ApiFactory _factory;
+              private HttpClient _client = null!;
+
+              public TodoEndpointsTests(ApiFactory factory) => _factory = factory;
+
+              // xUnit calls this before every test: each test gets its own new, logged-in user.
+              public async Task InitializeAsync() => _client = await _factory.CreateLoggedInClientAsync();
+
+              public Task DisposeAsync() => Task.CompletedTask;
+
+              [Fact]
+              public async Task Create_returns_201_and_the_todo_can_be_read_back()
+              {
+                  var response = await _client.PostAsJsonAsync("/todos", new { title = "  Buy milk  " });
+
+                  Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+                  var created = await response.Content.ReadFromJsonAsync<TodoDto>();
+                  Assert.NotNull(created);
+                  Assert.Equal("Buy milk", created.Title);       // trimmed
+                  Assert.False(created.IsDone);
+
+                  var fetched = await _client.GetFromJsonAsync<TodoDto>($"/todos/{created.Id}");
+                  Assert.Equal(created.Id, fetched?.Id);
+              }
+
+              [Fact]
+              public async Task Create_with_an_empty_title_returns_400()
+              {
+                  var response = await _client.PostAsJsonAsync("/todos", new { title = "" });
+
+                  Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+              }
+
+              [Fact]
+              public async Task Unknown_id_returns_404()
+              {
+                  var response = await _client.GetAsync("/todos/999999");
+
+                  Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+              }
+
+              [Fact]
+              public async Task Update_then_filter_by_done()
+              {
+                  var created = await (await _client.PostAsJsonAsync("/todos", new { title = "Write tests" }))
+                      .Content.ReadFromJsonAsync<TodoDto>();
+
+                  var put = await _client.PutAsJsonAsync($"/todos/{created!.Id}", new { title = "Write tests", isDone = true });
+                  Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+
+                  var done = await _client.GetFromJsonAsync<Page<TodoDto>>("/todos?done=true&search=Write tests");
+                  Assert.Contains(done!.Items, t => t.Id == created.Id);
+              }
+
+              [Fact]
+              public async Task Delete_removes_the_todo()
+              {
+                  var created = await (await _client.PostAsJsonAsync("/todos", new { title = "Temporary" }))
+                      .Content.ReadFromJsonAsync<TodoDto>();
+
+                  var delete = await _client.DeleteAsync($"/todos/{created!.Id}");
+                  var again = await _client.GetAsync($"/todos/{created.Id}");
+
+                  Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+                  Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+              }
+          }
+
+          public class AuthTests(ApiFactory factory) : IClassFixture<ApiFactory>
+          {
+              [Fact]
+              public async Task Todos_without_a_token_returns_401()
+              {
+                  var response = await factory.CreateClient().GetAsync("/todos");
+
+                  Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+              }
+
+              [Fact]
+              public async Task A_user_cannot_see_another_users_todo()
+              {
+                  var ada = await factory.CreateLoggedInClientAsync();
+                  var bob = await factory.CreateLoggedInClientAsync();
+
+                  var created = await (await ada.PostAsJsonAsync("/todos", new { title = "Ada only" }))
+                      .Content.ReadFromJsonAsync<TodoDto>();
+
+                  var asBob = await bob.GetAsync($"/todos/{created!.Id}");
+
+                  Assert.Equal(HttpStatusCode.NotFound, asBob.StatusCode);
+              }
+          }
+    mistakes:
+      - problem:
+          en: "Every request answers 401 even with a token."
+          tr: "Token olsa bile her istek 401 dönüyor."
+        fix:
+          en: "Send the header exactly as `Authorization: Bearer <token>` with one space, and use the `accessToken` value, not the refresh token. Tokens also expire (the login answer has `expiresIn` in seconds); log in again. Check that `UseAuthentication()` comes before `UseAuthorization()`."
+          tr: "Başlığı tam olarak `Authorization: Bearer <token>` biçiminde, tek boşlukla gönder ve `accessToken` değerini kullan, refresh token'ı değil. Token'ların süresi de dolar (login cevabında saniye cinsinden `expiresIn` var); yeniden giriş yap. `UseAuthentication()` çağrısının `UseAuthorization()` öncesinde olduğunu kontrol et."
+      - problem:
+          en: "Looking a todo up by id only (`FindAsync(id)`), so any logged-in user can read or change anybody's todo."
+          tr: "Bir işi sadece id ile aramak (`FindAsync(id)`); böylece giriş yapmış herkes herkesin işini okuyabilir ya da değiştirebilir."
+        fix:
+          en: "Always add the owner to the lookup (`t.Id == id && t.OwnerId == ownerId`), as the routes above do. A missing row and somebody else's row both answer 404."
+          tr: "Aramaya her zaman sahibi de ekle (`t.Id == id && t.OwnerId == ownerId`); yukarıdaki rotalar böyle yapıyor. Olmayan satır da başkasının satırı da 404 döner."
+      - problem:
+          en: "Registration answers 400 with \"PasswordRequiresNonAlphanumeric\" or similar."
+          tr: "Kayıt \"PasswordRequiresNonAlphanumeric\" gibi bir mesajla 400 dönüyor."
+        fix:
+          en: "The password breaks the default rules. Use something like `Passw0rd!` (a digit, lower and upper case, a symbol, 6+ characters)."
+          tr: "Şifre varsayılan kuralları bozuyor. `Passw0rd!` gibi bir şey kullan (rakam, küçük ve büyük harf, sembol, 6+ karakter)."
+    quiz:
+      - q:
+          en: "Why does Identity store a password hash instead of the password?"
+          tr: "Identity neden şifreyi değil, şifrenin hash'ini saklıyor?"
+        options:
+          en:
+            - "A hash takes less disk space"
+            - "A hash cannot be turned back into the password, so a stolen database does not reveal passwords directly"
+            - "Passwords are illegal to store"
+          tr:
+            - "Hash diskte daha az yer kaplar"
+            - "Hash şifreye geri çevrilemez; çalınan bir veritabanı şifreleri doğrudan göstermez"
+            - "Şifre saklamak yasa dışıdır"
+        answer: 1
+        why:
+          en: "Login hashes the typed password and compares the two hashes. The real password is never kept anywhere."
+          tr: "Giriş, yazılan şifreyi hash'ler ve iki hash'i karşılaştırır. Gerçek şifre hiçbir yerde tutulmaz."
+    sources:
+      - title: Use Identity to secure a Web API backend for SPAs
+        url: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity-api-authorization
+      - title: Simple authorization in ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/security/authorization/simple
+      - title: Introduction to Identity on ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity
+
+  - id: cache
+    stage: performance
+    title:
+      en: "Make it faster: output caching and async habits"
+      tr: "Hızlandırma: output caching ve async alışkanlıkları"
+    minutes: 45
+    needs: [auth]
+    why:
+      en: "The fastest answer is one you do not compute again. If many visitors ask the same question (here: how many todos exist?), the server can keep the answer for a short time. The hard part of caching is not storing, it is throwing the answer away when the data changes."
+      tr: "En hızlı cevap tekrar hesaplamadığın cevaptır. Çok ziyaretçi aynı soruyu soruyorsa (burada: kaç iş var?) sunucu cevabı kısa süre tutabilir. Cache'in zor kısmı saklamak değil, veri değişince cevabı atmaktır."
+    learn:
+      en: |
+        - **Output caching** stores a whole response in memory and serves it again until it expires
+        - A **policy** names the rules (here: 30 seconds); a **tag** lets you remove all entries of a group at once with `EvictByTagAsync`
+        - By default output caching **skips responses to authenticated requests** and responses that set cookies, because they are per user. That is why the cached route here is public and the same for everyone
+        - `UseOutputCache()` must come after `UseAuthentication()` and `UseAuthorization()`
+        - The cache lives in this process: after a restart it is empty, and two servers would each have their own copy
+        - Other habits that speed things up: async all the way (no `.Result`), paging (already done), `AsNoTracking()` on read-only queries (already done), and measuring before guessing
+      tr: |
+        - **Output caching** bir cevabın tamamını bellekte saklar ve süresi dolana kadar yeniden sunar
+        - **Policy** kuralları adlandırır (burada: 30 saniye); **tag** bir grubun tüm kayıtlarını `EvictByTagAsync` ile tek seferde silmeni sağlar
+        - Output caching varsayılan olarak **kimliği doğrulanmış isteklerin cevaplarını** ve cookie koyan cevapları **atlar**, çünkü bunlar kullanıcıya özeldir. Bu yüzden buradaki cache'lenen rota herkese açık ve herkes için aynı
+        - `UseOutputCache()`, `UseAuthentication()` ve `UseAuthorization()` çağrılarından sonra gelmeli
+        - Cache bu process'te yaşar: yeniden başlatınca boştur ve iki sunucunun her birinin kendi kopyası olur
+        - Hızlandıran diğer alışkanlıklar: baştan sona async (`.Result` yok), sayfalama (yaptık), sadece okuyan sorgularda `AsNoTracking()` (yaptık) ve tahmin etmeden önce ölçmek
+    do:
+      en: |
+        1. Add the `Stats` record at the end of `Todo.cs` (code below).
+        2. In `Program.cs`: add the `using`, register the cache policy before `Build()`, add `UseOutputCache()` after `UseAuthorization()`, and add the public `/stats` route (code below).
+        3. In the POST, PUT and DELETE routes add `IOutputCacheStore cache` to the parameters and call `await cache.EvictByTagAsync("stats", default);` after the change is saved (shown for POST).
+        4. Start the app. Call `/stats` twice and compare `generatedAt`: it is the same, so the second answer came from the cache. Create a todo (with your token) and call `/stats` again: `generatedAt` is new.
+        5. Add the test below to `TodoEndpointsTests.cs` and run `dotnet test`: `Passed: 8`. The test calls `/stats` without a token on purpose.
+        6. Commit: `git add .` and `git commit -m "Cache the public stats route"`.
+      tr: |
+        1. `Stats` record'unu `Todo.cs` sonuna ekle (aşağıdaki kod).
+        2. `Program.cs` içinde: `using` satırını ekle, cache policy'sini `Build()` öncesinde kaydet, `UseAuthorization()` sonrasına `UseOutputCache()` ekle ve herkese açık `/stats` rotasını ekle (aşağıdaki kod).
+        3. POST, PUT ve DELETE rotalarında parametrelere `IOutputCacheStore cache` ekle ve değişiklik kaydedildikten sonra `await cache.EvictByTagAsync("stats", default);` çağır (POST için gösterildi).
+        4. Uygulamayı başlat. `/stats` rotasını iki kez çağır ve `generatedAt` değerlerini karşılaştır: aynı; yani ikinci cevap cache'ten geldi. (Token'ınla) bir iş oluştur ve `/stats` rotasını yeniden çağır: `generatedAt` yeni.
+        5. Aşağıdaki testi `TodoEndpointsTests.cs` dosyasına ekle ve `dotnet test` çalıştır: `Passed: 8`. Test `/stats` rotasını bilerek token'sız çağırır.
+        6. Commit et: `git add .` ve `git commit -m "Cache the public stats route"`.
+    code:
+      - file: src/TodoApi/Todo.cs (add at the end)
+        lang: cs
+        text: |
+          // Public numbers about the whole service, the same for every visitor.
+          public record Stats(int Todos, int Done, int Users, DateTimeOffset GeneratedAt);
+      - file: src/TodoApi/Program.cs (the new and changed parts)
+        lang: cs
+        text: |
+          // at the top
+          using Microsoft.AspNetCore.OutputCaching;
+
+          // before var app = builder.Build();
+          builder.Services.AddOutputCache(options =>
+              options.AddPolicy("stats", policy => policy.Expire(TimeSpan.FromSeconds(30)).Tag("stats")));
+
+          // after app.UseAuthorization();
+          app.UseOutputCache();
+
+          // next to the "/" route
+          // Anyone can read this, and it is the same for everyone, so it is a good fit for the cache.
+          // Without the cache, every request would count the whole table again.
+          app.MapGet("/stats", async (TodoDb db) => new Stats(
+                  await db.Todos.CountAsync(),
+                  await db.Todos.CountAsync(t => t.IsDone),
+                  await db.Users.CountAsync(),
+                  DateTimeOffset.UtcNow))
+              .CacheOutput("stats");
+
+          // the POST route now forgets the old copy after saving (do the same in PUT and DELETE)
+          todos.MapPost("/", async (CreateTodo input, ClaimsPrincipal user, TodoDb db, IOutputCacheStore cache) =>
+          {
+              var todo = new Todo
+              {
+                  Title = input.Title.Trim(),
+                  OwnerId = user.FindFirstValue(ClaimTypes.NameIdentifier)!,
+              };
+              db.Todos.Add(todo);
+              await db.SaveChangesAsync();
+              await cache.EvictByTagAsync("stats", default);   // the numbers changed: forget the old copy
+              return Results.Created($"/todos/{todo.Id}", TodoDto.From(todo));
+          });
+      - file: tests/TodoApi.Tests/TodoEndpointsTests.cs (add at the end)
+        lang: cs
+        text: |
+          public class StatsTests(ApiFactory factory) : IClassFixture<ApiFactory>
+          {
+              [Fact]
+              public async Task Stats_are_cached_until_a_todo_changes()
+              {
+                  var visitor = factory.CreateClient();   // no token: the cache skips requests that carry one
+                  var client = await factory.CreateLoggedInClientAsync();
+
+                  var first = await visitor.GetFromJsonAsync<Stats>("/stats");
+                  var second = await visitor.GetFromJsonAsync<Stats>("/stats");
+                  Assert.Equal(first!.GeneratedAt, second!.GeneratedAt);   // the second answer came from the cache
+
+                  await client.PostAsJsonAsync("/todos", new { title = "Evict the cache" });
+
+                  var third = await visitor.GetFromJsonAsync<Stats>("/stats");
+                  Assert.True(third!.GeneratedAt > first.GeneratedAt);     // the cache was emptied, so it was rebuilt
+                  Assert.Equal(first.Todos + 1, third.Todos);
+              }
+          }
+    mistakes:
+      - problem:
+          en: "Calling `/stats` with your token and seeing a new `generatedAt` every time."
+          tr: "`/stats` rotasını token'ınla çağırıp her seferinde yeni bir `generatedAt` görmek."
+        fix:
+          en: "That is the default rule at work: responses to authenticated requests are not served from the output cache. Call it without the header (or in the browser) to see caching."
+          tr: "Bu varsayılan kural: kimliği doğrulanmış isteklerin cevapları output cache'ten sunulmaz. Cache'i görmek için başlıksız çağır (ya da tarayıcıda aç)."
+      - problem:
+          en: "Showing old numbers after changes, or caching per-user data."
+          tr: "Değişikliklerden sonra eski sayıları göstermek ya da kullanıcıya özel veriyi cache'lemek."
+        fix:
+          en: "Evict by tag whenever the data changes, keep the expiry short, and only cache answers that are the same for everybody. Never put per-user data behind a shared cache key."
+          tr: "Veri her değiştiğinde tag ile temizle, süreyi kısa tut ve sadece herkes için aynı olan cevapları cache'le. Kullanıcıya özel veriyi asla paylaşılan bir cache anahtarının arkasına koyma."
+    quiz:
+      - q:
+          en: "Why is `/stats` a good route to cache but `/todos` is not?"
+          tr: "`/stats` neden cache'lenecek iyi bir rota, `/todos` neden değil?"
+        options:
+          en:
+            - "`/stats` is shorter"
+            - "`/stats` is the same for every visitor, while `/todos` differs per user"
+            - "`/todos` cannot return JSON"
+          tr:
+            - "`/stats` daha kısa"
+            - "`/stats` her ziyaretçi için aynı, `/todos` ise kullanıcıya göre değişiyor"
+            - "`/todos` JSON döndüremez"
+        answer: 1
+        why:
+          en: "A cache key is the URL. If two users shared the key of `/todos`, one could receive the other's data."
+          tr: "Cache anahtarı URL'dir. İki kullanıcı `/todos` anahtarını paylaşsaydı biri diğerinin verisini alabilirdi."
+    sources:
+      - title: Output caching middleware in ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/performance/caching/output
+      - title: ASP.NET Core best practices
+        url: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/best-practices
+
+  - id: docker
+    stage: packaging
+    title:
+      en: "Package the API: dotnet publish and a Docker image"
+      tr: "API'yi paketleme: dotnet publish ve bir Docker image'ı"
+    minutes: 60
+    needs: [cache]
+    why:
+      en: "The code works on your machine because your machine has .NET, the right packages and the right files. A server has none of that. `dotnet publish` collects exactly what must run, and a Docker image wraps it together with the .NET runtime into one box that starts the same way everywhere."
+      tr: "Kod senin makinende çalışıyor, çünkü makinende .NET, doğru paketler ve doğru dosyalar var. Bir sunucuda bunların hiçbiri yok. `dotnet publish` çalışması gereken şeyleri toplar; Docker image'ı da onu .NET runtime ile birlikte, her yerde aynı şekilde başlayan tek bir kutuya koyar."
+    learn:
+      en: |
+        - `dotnet publish -c Release -o out` builds an optimized version and copies everything needed into `out`. Deploy what `publish` makes, never the output of `build`
+        - **Image** = the recipe and files, **container** = a running copy of an image
+        - A **multi-stage Dockerfile**: the big SDK image builds the app, the small ASP.NET image only runs it
+        - Copying the `.csproj` and running `restore` first lets Docker cache the package download between builds
+        - ASP.NET images listen on port **8080** (not 80) and have a ready-made non-root user; hosts that set `PORT` are handled by the three lines you add to `Program.cs`
+        - A container's disk is temporary, so SQLite lives in `/tmp` and its data is lost when the container is replaced
+        - Alternative with no Dockerfile: the .NET SDK can build an image itself with `dotnet publish -t:PublishContainer`
+      tr: |
+        - `dotnet publish -c Release -o out` optimize edilmiş bir sürüm üretir ve gereken her şeyi `out` klasörüne kopyalar. `publish`'in ürettiğini deploy et, `build` çıktısını asla
+        - **Image** = tarif ve dosyalar, **container** = bir image'ın çalışan kopyası
+        - **Çok aşamalı Dockerfile**: büyük SDK image'ı uygulamayı derler, küçük ASP.NET image'ı sadece çalıştırır
+        - `.csproj` dosyasını kopyalayıp önce `restore` çalıştırmak, Docker'ın paket indirmesini build'ler arasında cache'lemesini sağlar
+        - ASP.NET image'ları **8080** portunu dinler (80'i değil) ve hazır, root olmayan bir kullanıcıya sahiptir; `PORT` ayarlayan sunucuları `Program.cs`'e ekleyeceğin üç satır halleder
+        - Container'ın diski geçicidir; bu yüzden SQLite `/tmp` içinde yaşar ve container değiştirilince verisi kaybolur
+        - Dockerfile'sız alternatif: .NET SDK `dotnet publish -t:PublishContainer` ile kendisi image üretebilir
+    do:
+      en: |
+        1. Publish once by hand and look at the result: `dotnet publish src/TodoApi -c Release -o out`, then `dotnet out/TodoApi.dll`. This is what a server would run. Stop it with Ctrl+C. Delete the `out` folder and add the line `out/` to `.gitignore`.
+        2. Add the three `PORT` lines near the top of `src/TodoApi/Program.cs`, right after `CreateBuilder` (code below).
+        3. Install Docker (Docker Desktop on Windows and macOS, free for personal use and learning; Docker Engine on Linux) and check `docker --version`. No Docker? Read on and skip the local run: the host in the next step builds the image for you.
+        4. Create `Dockerfile` and `.dockerignore` in the `todo` folder (code below).
+        5. Build and run: the commands below. Open http://localhost:8080/ and http://localhost:8080/stats.
+        6. Stop with Ctrl+C (`--rm` removes the container). The data was in `/tmp` of that container, so a new `docker run` starts empty.
+        7. Optional: the SDK route, `dotnet publish src/TodoApi -t:PublishContainer -p:ContainerRepository=todo-api` (Docker must be running). That image runs as a non-root user and cannot write to `/app`, so run it with `-e "ConnectionStrings__Todos=Data Source=/tmp/todos.db"`.
+        8. Commit: `git add .` and `git commit -m "Add a Dockerfile"`.
+      tr: |
+        1. Bir kez elle publish et ve sonuca bak: `dotnet publish src/TodoApi -c Release -o out`, sonra `dotnet out/TodoApi.dll`. Bir sunucunun çalıştıracağı şey bu. Ctrl+C ile durdur. `out` klasörünü sil ve `.gitignore` dosyasına `out/` satırını ekle.
+        2. `src/TodoApi/Program.cs` dosyasının başına, `CreateBuilder` satırının hemen altına üç `PORT` satırını ekle (aşağıdaki kod).
+        3. Docker'ı kur (Windows ve macOS'ta Docker Desktop, kişisel kullanım ve öğrenme için ücretsiz; Linux'ta Docker Engine) ve `docker --version` ile kontrol et. Docker yok mu? Okumaya devam et ve yerel çalıştırmayı atla: sonraki adımdaki sunucu image'ı senin için derler.
+        4. `todo` klasöründe `Dockerfile` ve `.dockerignore` dosyalarını oluştur (aşağıdaki kod).
+        5. Build et ve çalıştır: aşağıdaki komutlar. http://localhost:8080/ ve http://localhost:8080/stats adreslerini aç.
+        6. Ctrl+C ile durdur (`--rm` container'ı siler). Veri o container'ın `/tmp` klasöründeydi; bu yüzden yeni bir `docker run` boş başlar.
+        7. İsteğe bağlı: SDK yolu, `dotnet publish src/TodoApi -t:PublishContainer -p:ContainerRepository=todo-api` (Docker çalışıyor olmalı). O image root olmayan bir kullanıcıyla çalışır ve `/app` içine yazamaz; bu yüzden `-e "ConnectionStrings__Todos=Data Source=/tmp/todos.db"` ile çalıştır.
+        8. Commit et: `git add .` ve `git commit -m "Add a Dockerfile"`.
+    code:
+      - file: src/TodoApi/Program.cs (right after CreateBuilder)
+        lang: cs
+        text: |
+          var builder = WebApplication.CreateBuilder(args);
+
+          // Hosting services such as Render tell the app which port to listen on in the PORT variable.
+          if (Environment.GetEnvironmentVariable("PORT") is { } port)
+              builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: build with the SDK image (big, has the compiler).
+          FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+          WORKDIR /src
+          # Copy only the project file first so Docker can cache the package restore.
+          COPY src/TodoApi/TodoApi.csproj src/TodoApi/
+          RUN dotnet restore src/TodoApi/TodoApi.csproj
+          COPY src/TodoApi/ src/TodoApi/
+          RUN dotnet publish src/TodoApi/TodoApi.csproj -c Release -o /app --no-restore
+
+          # Stage 2: run with the small ASP.NET runtime image (no compiler).
+          FROM mcr.microsoft.com/dotnet/aspnet:10.0
+          WORKDIR /app
+          COPY --from=build /app .
+          # The container's disk is temporary, so the SQLite file lives in /tmp.
+          ENV ConnectionStrings__Todos="Data Source=/tmp/todos.db"
+          # Run as the non-root user that the image already provides.
+          USER $APP_UID
+          EXPOSE 8080
+          ENTRYPOINT ["dotnet", "TodoApi.dll"]
+      - file: .dockerignore
+        lang: text
+        text: |
+          **/bin/
+          **/obj/
+          **/*.db
+          **/*.db-shm
+          **/*.db-wal
+          .git/
+          tests/
+          scratch/
+      - file: terminal
+        lang: sh
+        text: |
+          dotnet publish src/TodoApi -c Release -o out
+          dotnet out/TodoApi.dll
+          # with Docker:
+          docker build -t todo-api .
+          docker run --rm -p 8080:8080 todo-api
+    mistakes:
+      - problem:
+          en: "The app runs in the container but the browser cannot reach it."
+          tr: "Uygulama container içinde çalışıyor ama tarayıcı ona ulaşamıyor."
+        fix:
+          en: "Publish the port: `-p 8080:8080` (host:container). The app inside listens on 8080, not 80."
+          tr: "Portu yayınla: `-p 8080:8080` (host:container). İçerideki uygulama 80'i değil, 8080'i dinler."
+      - problem:
+          en: "\"unable to open database file\" inside the container."
+          tr: "Container içinde \"unable to open database file\" hatası."
+        fix:
+          en: "The app runs as a non-root user and cannot write to `/app`. Keep the `ConnectionStrings__Todos` line in the Dockerfile so the database goes to `/tmp`. (Two underscores stand for the `:` in `ConnectionStrings:Todos`.)"
+          tr: "Uygulama root olmayan bir kullanıcıyla çalışır ve `/app` içine yazamaz. Veritabanı `/tmp` içine gitsin diye Dockerfile'daki `ConnectionStrings__Todos` satırını koru. (İki alt çizgi, `ConnectionStrings:Todos` içindeki `:` yerine geçer.)"
+      - problem:
+          en: "Every build downloads all packages again and is slow."
+          tr: "Her build bütün paketleri yeniden indiriyor ve yavaş."
+        fix:
+          en: "Keep the order: copy the `.csproj` and run `restore` first, copy the rest of the code after. Then Docker reuses the restore layer until the project file changes."
+          tr: "Sırayı koru: önce `.csproj` dosyasını kopyala ve `restore` çalıştır, kodun geri kalanını sonra kopyala. O zaman Docker, proje dosyası değişene kadar restore katmanını yeniden kullanır."
+    quiz:
+      - q:
+          en: "Why does the Dockerfile have two `FROM` lines?"
+          tr: "Dockerfile'da neden iki `FROM` satırı var?"
+        options:
+          en:
+            - "One is a backup in case the first fails"
+            - "The first stage builds with the big SDK, the second image only runs the result and stays small"
+            - "Docker needs two to start"
+          tr:
+            - "Biri, ilki başarısız olursa yedek"
+            - "İlk aşama büyük SDK ile derler, ikinci image sadece sonucu çalıştırır ve küçük kalır"
+            - "Docker'ın başlaması için iki tane gerekir"
+        answer: 1
+        why:
+          en: "The compiler is only needed to build. Leaving it out of the final image makes the image smaller and gives an attacker less to work with."
+          tr: "Derleyiciye sadece derlerken ihtiyaç var. Onu son image'a koymamak image'ı küçültür ve saldırgana daha az malzeme bırakır."
+    sources:
+      - title: dotnet publish
+        url: https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+      - title: Containerize a .NET app with dotnet publish
+        url: https://learn.microsoft.com/en-us/dotnet/core/containers/sdk-publish
+      - title: Docker images for ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/docker/building-net-docker-images
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy free on Render"
+      tr: "Render'da ücretsiz deploy"
+    minutes: 90
+    needs: [docker]
+    why:
+      en: "A deploy puts your API on a public address with HTTPS. Render builds your Dockerfile from GitHub and runs the container. Render has a free plan with real limits; read them below so nothing surprises you."
+      tr: "Deploy, API'ni HTTPS'li herkese açık bir adrese koyar. Render Dockerfile'ını GitHub'dan build eder ve container'ı çalıştırır. Render'ın gerçek sınırları olan ücretsiz bir planı var; sürpriz yaşamamak için aşağıdakileri oku."
+    learn:
+      en: |
+        - A **health check** is a cheap route (`/healthz`) that a platform calls to see that your program is alive
+        - Hosts tell your program its port in the `PORT` environment variable (Render's default is 10000); your `Program.cs` already reads it
+        - Render deploys from a GitHub repository, so your code must be pushed first
+        - **Render free web service, limits from Render's docs (checked October 2026):** it spins down after 15 minutes without traffic and takes about a minute to wake up on the next request; its disk is temporary, so **the SQLite file is lost on every restart, redeploy or spin-down**; you get 750 free instance hours per month; free instances may be restarted at any time; and they cannot scale beyond one instance
+        - So on the free plan this API is a demo whose data resets, and users must register again after a reset. For data that must stay you need a database outside the container, for example Render Postgres (a free one expires after 30 days), which also means switching the EF Core provider to Npgsql
+        - Free services are not meant for production use
+      tr: |
+        - **Health check**, bir platformun programının canlı olduğunu görmek için çağırdığı ucuz bir rotadır (`/healthz`)
+        - Barındırıcılar programına portunu `PORT` ortam değişkeninde söyler (Render'ın varsayılanı 10000); `Program.cs` bunu zaten okuyor
+        - Render bir GitHub reposundan deploy eder; bu yüzden kodun önce push edilmiş olmalı
+        - **Render ücretsiz web servisi, Render dokümanlarındaki sınırlar (Ekim 2026'da kontrol edildi):** 15 dakika trafik almazsa kapanır ve sonraki istekte uyanması yaklaşık bir dakika sürer; diski geçicidir, yani **SQLite dosyası her yeniden başlatmada, yeniden deploy'da ve kapanmada kaybolur**; ayda 750 ücretsiz instance saati verilir; ücretsiz instance'lar her an yeniden başlatılabilir; ve tek instance'tan fazlasına ölçeklenemez
+        - Yani ücretsiz planda bu API, verisi sıfırlanan bir demodur ve sıfırlanınca kullanıcıların yeniden kayıt olması gerekir. Kalması gereken veri için container'ın dışında bir veritabanı gerekir; örneğin Render Postgres (ücretsiz olan 30 gün sonra sona erer). Bu, EF Core sağlayıcısını Npgsql'e çevirmek demektir
+        - Ücretsiz servisler üretim kullanımı için değildir
+    do:
+      en: |
+        1. Add the health check (code below): one line in the services and one route. Start the app and open http://localhost:5080/healthz: it says `Healthy`. Run `dotnet test` once more.
+        2. Check `.gitignore` has the `*.db*` and `out/` lines, then commit: `git add .` and `git commit -m "Add a health check"`.
+        3. Create an empty repository on github.com (for example `todo-api`; no README), then connect and push (first commands below, with your own address).
+        4. Go to render.com and sign in with GitHub. Choose *New → Web Service* and pick your repository. Render finds the `Dockerfile`; choose Docker as the language and **Free** as the instance type. In the *Advanced* section set the **Health Check Path** to `/healthz`. Create the service. The first build takes several minutes.
+        5. When the log says the service is live, open `https://<name>.onrender.com/` and `/stats`, then try register, login and the todo routes with curl, replacing `http://localhost:5080` with your address.
+        6. Wait 15 minutes without a request and open it again: the first answer is slow (the spin-up) and your user and todos are gone (the temporary disk). Both are the free plan's limits, not bugs.
+      tr: |
+        1. Health check'i ekle (aşağıdaki kod): servislerde bir satır ve bir rota. Uygulamayı başlat ve http://localhost:5080/healthz adresini aç: `Healthy` yazar. `dotnet test` komutunu bir kez daha çalıştır.
+        2. `.gitignore` dosyasında `*.db*` ve `out/` satırlarının olduğunu kontrol et, sonra commit et: `git add .` ve `git commit -m "Add a health check"`.
+        3. github.com'da boş bir repo oluştur (örneğin `todo-api`; README olmadan), sonra bağla ve push et (aşağıdaki ilk komutlar, kendi adresinle).
+        4. render.com'a git ve GitHub ile giriş yap. *New → Web Service*'i seç ve repo'nu seç. Render `Dockerfile`'ı bulur; dil olarak Docker'ı, instance tipi olarak **Free**'yi seç. *Advanced* bölümünde **Health Check Path** değerini `/healthz` yap. Servisi oluştur. İlk build birkaç dakika sürer.
+        5. Log servisin canlı olduğunu söyleyince `https://<ad>.onrender.com/` ve `/stats` adreslerini aç, sonra kayıt, giriş ve iş rotalarını `http://localhost:5080` yerine kendi adresini koyarak curl ile dene.
+        6. 15 dakika istek göndermeden bekle ve yeniden aç: ilk cevap yavaştır (uyanma) ve kullanıcın ile işlerin yok olmuştur (geçici disk). İkisi de ücretsiz planın sınırlarıdır, hata değil.
+    code:
+      - file: src/TodoApi/Program.cs (health check)
+        lang: cs
+        text: |
+          // before var app = builder.Build();
+          builder.Services.AddHealthChecks();
+
+          // next to the "/" route
+          // A cheap route that hosting platforms call to see that the app is alive.
+          app.MapHealthChecks("/healthz");
+      - file: terminal
+        lang: sh
+        text: |
+          git branch -M main
+          git remote add origin https://github.com/YOUR-NAME/todo-api.git
+          git push -u origin main
+    mistakes:
+      - problem:
+          en: "The deploy fails with a port error, or the service never turns healthy."
+          tr: "Deploy bir port hatasıyla başarısız oluyor ya da servis hiç sağlıklı olmuyor."
+        fix:
+          en: "The app must listen on `0.0.0.0` and the port in `PORT`. Keep the `PORT` lines in `Program.cs`. Check that the Health Check Path is exactly `/healthz`."
+          tr: "Uygulama `0.0.0.0` adresini ve `PORT` içindeki portu dinlemeli. `Program.cs` içindeki `PORT` satırlarını koru. Health Check Path değerinin tam olarak `/healthz` olduğunu kontrol et."
+      - problem:
+          en: "The first request after a break takes a minute, or the users and todos have vanished."
+          tr: "Moladan sonraki ilk istek bir dakika sürüyor ya da kullanıcılar ve işler kaybolmuş."
+        fix:
+          en: "That is the free plan: it spins down after 15 minutes without traffic and its disk is temporary. Register again. For data that stays, use an external database."
+          tr: "Bu ücretsiz plan: 15 dakika trafik olmazsa kapanır ve diski geçicidir. Yeniden kayıt ol. Kalıcı veri için dış bir veritabanı kullan."
+      - problem:
+          en: "Committing `todos.db` or `bin`/`obj` folders to GitHub."
+          tr: "`todos.db` ya da `bin`/`obj` klasörlerini GitHub'a commit etmek."
+        fix:
+          en: "Keep them in `.gitignore`. If already committed, run `git rm -r --cached <path>` and commit again."
+          tr: "Onları `.gitignore` içinde tut. Zaten commit edildiyse `git rm -r --cached <yol>` çalıştır ve yeniden commit et."
+    quiz:
+      - q:
+          en: "Your todos disappear after the free Render service wakes from sleep. Why?"
+          tr: "Ücretsiz Render servisi uykudan uyanınca işlerin kayboluyor. Neden?"
+        options:
+          en:
+            - "Render deletes accounts that are idle"
+            - "The container's disk is temporary and the SQLite file lives on it"
+            - "The code has a bug in the DELETE route"
+          tr:
+            - "Render boştaki hesapları siler"
+            - "Container'ın diski geçicidir ve SQLite dosyası onun üzerinde"
+            - "Kodun DELETE rotasında bir hata var"
+        answer: 1
+        why:
+          en: "Render's docs say the free filesystem is ephemeral: local files are lost on restart, redeploy or spin-down."
+          tr: "Render dokümanlarına göre ücretsiz dosya sistemi geçicidir: yerel dosyalar yeniden başlatmada, yeniden deploy'da ve kapanmada kaybolur."
+    sources:
+      - title: Render free instances
+        url: https://render.com/docs/free
+      - title: Render web services (ports and binding)
+        url: https://render.com/docs/web-services
+      - title: Render deploys and auto-deploy
+        url: https://render.com/docs/deploys
+
+  - id: logs
+    stage: monitoring
+    title:
+      en: "Logging and health checks you can trust"
+      tr: "Güvenebileceğin loglar ve sağlık kontrolleri"
+    minutes: 45
+    needs: [deploy]
+    why:
+      en: "When something breaks on a server you cannot attach a debugger; you read logs. Good logs say what happened and to whom, in a form a tool can search. A good health check says not only \"the process runs\" but also \"the database answers\"."
+      tr: "Bir sunucuda bir şey bozulunca debugger bağlayamazsın; logları okursun. İyi loglar neyin kime olduğunu, bir aracın arayabileceği biçimde söyler. İyi bir health check sadece \"process çalışıyor\" değil, \"veritabanı cevap veriyor\" da der."
+    learn:
+      en: |
+        - `ILogger<T>` is injected like any service; levels are Trace, Debug, Information, Warning, Error, Critical
+        - **Structured logging**: write `logger.LogInformation("Created todo {TodoId}", id)` with named holes, not `$"..."`. The values stay separate fields, so tools can filter by `TodoId`
+        - **JSON console** logging prints one JSON object per line, which hosts and log tools understand
+        - Log levels are set per category in `appsettings.json`; EF Core is very chatty at Information, so this roadmap sets it to Warning
+        - **Liveness** (`/healthz`: the process answers) and **readiness** (`/readyz`: its dependencies work too) are different questions. A platform should restart on liveness failures, not because a database blinked
+        - Never log passwords, tokens or other secrets
+      tr: |
+        - `ILogger<T>` her servis gibi enjekte edilir; seviyeler Trace, Debug, Information, Warning, Error, Critical
+        - **Structured logging**: `$"..."` değil, isimli boşluklarla `logger.LogInformation("Created todo {TodoId}", id)` yaz. Değerler ayrı alan olarak kalır, böylece araçlar `TodoId` ile süzebilir
+        - **JSON console** logu her satıra bir JSON nesnesi basar; barındırıcılar ve log araçları bunu anlar
+        - Log seviyeleri `appsettings.json` içinde kategori başına ayarlanır; EF Core Information seviyesinde çok konuşkandır, bu yüzden bu yol haritası onu Warning yapar
+        - **Liveness** (`/healthz`: process cevap veriyor) ve **readiness** (`/readyz`: bağımlılıkları da çalışıyor) farklı sorulardır. Bir platform liveness başarısızlığında yeniden başlatmalı, bir veritabanı göz kırptı diye değil
+        - Şifre, token ya da başka sır asla loglama
+    do:
+      en: |
+        1. Add the health check package for EF Core (first block).
+        2. Change `Program.cs` as shown below: JSON logs outside development, a database check tagged `ready`, `/healthz` that runs no checks, a new `/readyz` that runs the `ready` ones, and a log line when a todo is created.
+        3. In `appsettings.json` add `"Microsoft.EntityFrameworkCore": "Warning"` to `LogLevel`.
+        4. Add the test below to the tests and run `dotnet test`: `Passed: 10`.
+        5. Start the app with `dotnet run --project src/TodoApi --no-launch-profile --urls http://localhost:5080`. Plain `dotnet run` uses the Development settings from `launchSettings.json`, which print readable text logs; `--no-launch-profile` gives the Production behaviour. Create a todo and find the JSON line with your `TodoId` in the terminal.
+        6. Push to GitHub. After Render redeploys, open the service's *Logs* page and find the same line. Keep the health check path at `/healthz`: it must not depend on the database.
+        7. Commit: `git add .` and `git commit -m "Add structured logs and a readiness check"`.
+      tr: |
+        1. EF Core için health check paketini ekle (ilk blok).
+        2. `Program.cs` dosyasını aşağıdaki gibi değiştir: geliştirme dışında JSON loglar, `ready` etiketli bir veritabanı kontrolü, hiç kontrol çalıştırmayan `/healthz`, `ready` olanları çalıştıran yeni bir `/readyz` ve bir iş oluşturulunca bir log satırı.
+        3. `appsettings.json` içinde `LogLevel` bölümüne `"Microsoft.EntityFrameworkCore": "Warning"` ekle.
+        4. Aşağıdaki testi testlere ekle ve `dotnet test` çalıştır: `Passed: 10`.
+        5. Uygulamayı `dotnet run --project src/TodoApi --no-launch-profile --urls http://localhost:5080` ile başlat. Düz `dotnet run`, `launchSettings.json` içindeki Development ayarlarını kullanır ve okunaklı metin loglar basar; `--no-launch-profile` Production davranışını verir. Bir iş oluştur ve terminalde `TodoId` değerini taşıyan JSON satırını bul.
+        6. GitHub'a push et. Render yeniden deploy edince servisin *Logs* sayfasını aç ve aynı satırı bul. Health check path değeri `/healthz` kalsın: veritabanına bağlı olmamalı.
+        7. Commit et: `git add .` ve `git commit -m "Add structured logs and a readiness check"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          dotnet package add Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore --project src/TodoApi
+      - file: src/TodoApi/Program.cs (the changed parts)
+        lang: cs
+        text: |
+          // at the top
+          using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+
+          // right after CreateBuilder
+          // One JSON object per log line outside development: easy for log tools to search and filter.
+          if (!builder.Environment.IsDevelopment())
+              builder.Logging.AddJsonConsole();
+
+          // replaces builder.Services.AddHealthChecks();
+          // "alive" needs no checks; "ready" also proves that the database answers.
+          builder.Services.AddHealthChecks()
+              .AddDbContextCheck<TodoDb>("database", tags: ["ready"]);
+
+          // replaces app.MapHealthChecks("/healthz");
+          app.MapHealthChecks("/healthz", new HealthCheckOptions { Predicate = _ => false });
+          app.MapHealthChecks("/readyz", new HealthCheckOptions { Predicate = check => check.Tags.Contains("ready") });
+
+          // the POST route logs what happened, with named values
+          todos.MapPost("/", async (CreateTodo input, ClaimsPrincipal user, TodoDb db, IOutputCacheStore cache, ILogger<Program> logger) =>
+          {
+              var todo = new Todo
+              {
+                  Title = input.Title.Trim(),
+                  OwnerId = user.FindFirstValue(ClaimTypes.NameIdentifier)!,
+              };
+              db.Todos.Add(todo);
+              await db.SaveChangesAsync();
+              await cache.EvictByTagAsync("stats", default);
+              logger.LogInformation("Created todo {TodoId} for user {UserId}", todo.Id, todo.OwnerId);
+              return Results.Created($"/todos/{todo.Id}", TodoDto.From(todo));
+          });
+      - file: src/TodoApi/appsettings.json
+        lang: json
+        text: |
+          {
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning",
+                "Microsoft.EntityFrameworkCore": "Warning"
+              }
+            },
+            "AllowedHosts": "*",
+            "ConnectionStrings": {
+              "Todos": "Data Source=todos.db"
+            }
+          }
+      - file: tests/TodoApi.Tests/TodoEndpointsTests.cs (add at the end)
+        lang: cs
+        text: |
+          public class HealthTests(ApiFactory factory) : IClassFixture<ApiFactory>
+          {
+              [Theory]
+              [InlineData("/healthz")]
+              [InlineData("/readyz")]
+              public async Task Health_routes_return_200(string path)
+              {
+                  var response = await factory.CreateClient().GetAsync(path);
+
+                  Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+              }
+          }
+    mistakes:
+      - problem:
+          en: "Logging with string interpolation: `logger.LogInformation($\"Created {todo.Id}\")`."
+          tr: "String interpolation ile loglamak: `logger.LogInformation($\"Created {todo.Id}\")`."
+        fix:
+          en: "Use a template with named holes and pass the values as arguments: `LogInformation(\"Created todo {TodoId}\", todo.Id)`. Then the id stays a searchable field."
+          tr: "İsimli boşluklu bir şablon kullan ve değerleri argüman olarak geç: `LogInformation(\"Created todo {TodoId}\", todo.Id)`. O zaman id aranabilir bir alan olarak kalır."
+      - problem:
+          en: "Pointing the platform's health check at `/readyz`, so a short database problem makes it restart your app again and again."
+          tr: "Platformun health check'ini `/readyz` adresine yöneltmek; böylece kısa bir veritabanı sorunu uygulamanı tekrar tekrar yeniden başlattırır."
+        fix:
+          en: "Use the cheap liveness route `/healthz` for restarts. Use `/readyz` for dashboards or for deciding whether to send traffic."
+          tr: "Yeniden başlatmalar için ucuz liveness rotası `/healthz` kullan. `/readyz` rotasını panolar için ya da trafik gönderilip gönderilmeyeceğine karar vermek için kullan."
+      - problem:
+          en: "Logging request bodies, tokens or passwords while debugging and forgetting to remove it."
+          tr: "Debug ederken istek gövdelerini, token'ları ya da şifreleri loglayıp silmeyi unutmak."
+        fix:
+          en: "Logs are copied to many places and kept for a long time. Log ids and counts, never secrets."
+          tr: "Loglar birçok yere kopyalanır ve uzun süre saklanır. Id'leri ve sayıları logla, sırları asla."
+    quiz:
+      - q:
+          en: "Why write `LogInformation(\"Created todo {TodoId}\", id)` instead of `LogInformation($\"Created todo {id}\")`?"
+          tr: "`LogInformation($\"Created todo {id}\")` yerine neden `LogInformation(\"Created todo {TodoId}\", id)` yazıyoruz?"
+        options:
+          en:
+            - "It is shorter"
+            - "The id stays a separate field that log tools can search and filter"
+            - "The second form does not compile"
+          tr:
+            - "Daha kısa"
+            - "Id ayrı bir alan olarak kalır ve log araçları onu arayıp süzebilir"
+            - "İkinci biçim derlenmez"
+        answer: 1
+        why:
+          en: "A template keeps the message and the values apart. With interpolation everything is merged into one text."
+          tr: "Şablon mesajı ve değerleri ayrı tutar. Interpolation'da her şey tek bir metne karışır."
+    sources:
+      - title: Health checks in ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks
+      - title: Logging in .NET
+        url: https://learn.microsoft.com/en-us/dotnet/core/extensions/logging
+      - title: Logging in ASP.NET Core
+        url: https://learn.microsoft.com/en-us/aspnet/core/fundamentals/logging/
+
+  - id: ci
+    stage: advanced
+    title:
+      en: "Run the tests on every push with GitHub Actions"
+      tr: "GitHub Actions ile her push'ta testleri çalıştırma"
+    minutes: 40
+    needs: [logs]
+    why:
+      en: "Tests only help if they run. A GitHub Actions workflow runs `dotnet test` on a clean machine for every push and pull request, so a broken change is noticed in minutes, and Render can wait for it before it deploys."
+      tr: "Testler ancak çalışırsa işe yarar. GitHub Actions workflow'u her push ve pull request için temiz bir makinede `dotnet test` çalıştırır; böylece bozuk bir değişiklik dakikalar içinde fark edilir ve Render deploy etmeden önce onu bekleyebilir."
+    learn:
+      en: |
+        - A **workflow** is a YAML file in `.github/workflows/`; it runs on events such as `push`
+        - A **runner** is the clean machine GitHub starts for each run (`ubuntu-latest`)
+        - Steps: get the code (`actions/checkout`), install .NET (`actions/setup-dotnet`), run `dotnet test`
+        - GitHub Actions is free for public repositories; private repositories get a monthly amount of free minutes
+        - Render can deploy **after CI checks pass** instead of on every commit
+      tr: |
+        - **Workflow**, `.github/workflows/` içindeki bir YAML dosyasıdır; `push` gibi olaylarda çalışır
+        - **Runner**, GitHub'ın her çalıştırma için başlattığı temiz makinedir (`ubuntu-latest`)
+        - Adımlar: kodu al (`actions/checkout`), .NET'i kur (`actions/setup-dotnet`), `dotnet test` çalıştır
+        - GitHub Actions herkese açık repolar için ücretsizdir; özel repolara aylık belli bir ücretsiz dakika verilir
+        - Render her commit'te değil, **CI kontrolleri geçtikten sonra** deploy edebilir
+    do:
+      en: |
+        1. Create the file `.github/workflows/ci.yml` with the code below (the folder names must be exact, including the dot).
+        2. Commit and push: `git add .`, `git commit -m "Add CI"`, `git push`.
+        3. On github.com open your repository's *Actions* tab. The workflow should turn green after a minute or two. Click it to read the log of each step.
+        4. Break a test on purpose, push, and watch the run turn red. Fix it and push again.
+        5. In Render, open your service's *Settings*, find *Auto-Deploy* and choose *After CI Checks Pass*, so a red commit is never deployed.
+      tr: |
+        1. Aşağıdaki kodla `.github/workflows/ci.yml` dosyasını oluştur (klasör adları, noktası dahil, tam olarak aynı olmalı).
+        2. Commit et ve push et: `git add .`, `git commit -m "Add CI"`, `git push`.
+        3. github.com'da reponun *Actions* sekmesini aç. Workflow bir iki dakika sonra yeşile dönmeli. Her adımın logunu okumak için üzerine tıkla.
+        4. Bir testi bilerek boz, push et ve çalıştırmanın kırmızıya döndüğünü izle. Düzelt ve yeniden push et.
+        5. Render'da servisinin *Settings* sayfasını aç, *Auto-Deploy* ayarını bul ve *After CI Checks Pass*'i seç; böylece kırmızı bir commit asla deploy edilmez.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-dotnet@v6
+                  with:
+                    dotnet-version: 10.0.x
+                - run: dotnet test --configuration Release
+    mistakes:
+      - problem:
+          en: "The workflow does not appear in the Actions tab."
+          tr: "Workflow Actions sekmesinde görünmüyor."
+        fix:
+          en: "The file must be exactly at `.github/workflows/ci.yml` on the branch you pushed, and the YAML must be valid (indentation uses spaces, never tabs)."
+          tr: "Dosya, push ettiğin branch'te tam olarak `.github/workflows/ci.yml` yolunda olmalı ve YAML geçerli olmalı (girinti boşlukla yapılır, asla tab ile)."
+      - problem:
+          en: "Tests pass on your machine but fail in CI."
+          tr: "Testler senin makinende geçiyor ama CI'da kalıyor."
+        fix:
+          en: "CI starts from a clean checkout, so anything that only exists on your machine is missing: ignored files, a local database, environment variables. Make the tests create everything they need, as `ApiFactory` does."
+          tr: "CI temiz bir checkout ile başlar; bu yüzden sadece senin makinende olan her şey eksiktir: yok sayılan dosyalar, yerel bir veritabanı, ortam değişkenleri. Testlerin ihtiyaç duyduğu her şeyi kendisi oluşturmasını sağla, `ApiFactory`'nin yaptığı gibi."
+    quiz:
+      - q:
+          en: "What is the main benefit of running tests in CI instead of only on your machine?"
+          tr: "Testleri sadece kendi makinende değil CI'da çalıştırmanın ana faydası nedir?"
+        options:
+          en:
+            - "CI makes the code run faster in production"
+            - "Every change is checked on a clean machine, automatically, before it is deployed"
+            - "You no longer need to write tests"
+          tr:
+            - "CI kodu üretimde daha hızlı çalıştırır"
+            - "Her değişiklik, deploy edilmeden önce temiz bir makinede otomatik kontrol edilir"
+            - "Artık test yazmana gerek kalmaz"
+        answer: 1
+        why:
+          en: "Nobody has to remember to run the tests, and \"it works on my machine\" problems show up at once."
+          tr: "Testleri çalıştırmayı kimsenin hatırlaması gerekmez ve \"bende çalışıyor\" sorunları hemen ortaya çıkar."
+    sources:
+      - title: Building and testing .NET (GitHub Actions)
+        url: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-net
+      - title: actions/setup-dotnet
+        url: https://github.com/actions/setup-dotnet
+      - title: Render deploys and auto-deploy
+        url: https://render.com/docs/deploys
