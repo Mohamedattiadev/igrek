@@ -285,8 +285,10 @@ export class Personas {
 
   deleteOpinion(id: string): void {
     // Unlink first so the opinion it replaced (if any) becomes current again.
-    this.db.query("UPDATE persona_opinions SET replaced_by = NULL WHERE replaced_by = ?").run(id);
-    this.db.query("DELETE FROM persona_opinions WHERE id = ?").run(id);
+    this.db.transaction(() => {
+      this.db.query("UPDATE persona_opinions SET replaced_by = NULL WHERE replaced_by = ?").run(id);
+      this.db.query("DELETE FROM persona_opinions WHERE id = ?").run(id);
+    })();
     this.bus.publish({ type: "personas-changed" });
   }
 

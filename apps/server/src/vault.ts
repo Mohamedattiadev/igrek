@@ -171,8 +171,10 @@ export class Vault {
   }
 
   removeItem(id: string): void {
-    this.db.query("DELETE FROM vault_items WHERE id = ?").run(id);
-    this.db.query("DELETE FROM vault_rotation WHERE ref = ?").run(`item:${id}`);
+    this.db.transaction(() => {
+      this.db.query("DELETE FROM vault_items WHERE id = ?").run(id);
+      this.db.query("DELETE FROM vault_rotation WHERE ref = ?").run(`item:${id}`);
+    })();
   }
 
   /** The value, for the reveal button only. .env values are read from the file at that moment. */

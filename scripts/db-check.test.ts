@@ -1,6 +1,6 @@
 import { Database } from "bun:sqlite";
 import { describe, expect, test } from "bun:test";
-import { check, RULES, readBaseline, schemaViolations } from "./db-check";
+import { check, RULES, readBaseline, schemaViolations, transactionRisksIn } from "./db-check";
 
 describe("database gate", () => {
   test("a careless table breaks the schema rules", () => {
@@ -44,5 +44,33 @@ describe("database gate", () => {
   // The ratchet: nothing new, nothing fixed but still listed, no shipped migration edited.
   test("God Eye's schema, queries and migrations keep the rules", () => {
     expect(check()).toEqual({ added: [], fixed: [], edited: [], unlocked: 0 });
+  });
+});
+
+describe("transactions", () => {
+  test("two writes need a transaction, and a transaction must not await", () => {
+    const code = [
+      "class Jobs {",
+      "  remove(id: string): void {",
+      '    this.db.query("DELETE FROM jobs WHERE id = ?").run(id);',
+      '    this.db.query("DELETE FROM runs WHERE job_id = ?").run(id);',
+      "  }",
+      "  safe(id: string): void {",
+      "    this.db.transaction(() => {",
+      '      this.db.query("DELETE FROM jobs WHERE id = ?").run(id);',
+      '      this.db.query("DELETE FROM runs WHERE job_id = ?").run(id);',
+      "    })();",
+      "  }",
+      "  async slow(): Promise<void> {",
+      "    this.db.transaction(async () => {",
+      "      await fetch(url);",
+      "    })();",
+      "  }",
+      "}",
+    ].join("\n");
+    expect(transactionRisksIn("jobs.ts", code)).toEqual([
+      "multi-write:jobs.ts:remove",
+      "await-in-transaction:jobs.ts:13",
+    ]);
   });
 });

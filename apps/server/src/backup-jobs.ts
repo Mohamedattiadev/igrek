@@ -142,8 +142,11 @@ export class BackupJobs {
 
   /** Removes the job; its backup files stay on disk unless asked. */
   remove(id: string, deleteFiles = false): void {
-    this.db.query("DELETE FROM backup_jobs WHERE id = ?").run(id);
-    this.db.query("DELETE FROM backup_runs WHERE job_id = ?").run(id);
+    // Both or neither: a job removed halfway would leave runs nobody owns.
+    this.db.transaction(() => {
+      this.db.query("DELETE FROM backup_jobs WHERE id = ?").run(id);
+      this.db.query("DELETE FROM backup_runs WHERE job_id = ?").run(id);
+    })();
     if (deleteFiles) rmSync(join(this.dir, id), { recursive: true, force: true });
     this.changed();
   }

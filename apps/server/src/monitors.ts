@@ -213,8 +213,10 @@ export class Monitors {
   }
 
   remove(id: string): void {
-    this.db.query("DELETE FROM uptime_monitors WHERE id = ?").run(id);
-    this.db.query("DELETE FROM uptime_checks WHERE monitor_id = ?").run(id);
+    this.db.transaction(() => {
+      this.db.query("DELETE FROM uptime_monitors WHERE id = ?").run(id);
+      this.db.query("DELETE FROM uptime_checks WHERE monitor_id = ?").run(id);
+    })();
     this.bus.publish({ type: "monitors-changed" });
   }
 

@@ -66,6 +66,10 @@ export const RULES: Record<string, string> = {
   "n-plus-one": "A SELECT inside a loop runs once per item; one query with IN or a JOIN does the same work at once.",
   "sql-interpolation":
     "SQL built with ${...} can carry injection; values must be bound with ?, identifiers quoted or picked from a fixed list.",
+  "multi-write":
+    "Two or more writes in one method without a transaction: a crash or error between them leaves half the change (atomicity, Elmasri 20.3). Wrap them in db.transaction().",
+  "await-in-transaction":
+    "A transaction that awaits holds the database lock while it waits for the network or disk; every other writer stops (Elmasri 21, concurrency control). Do the slow work first, then the transaction.",
 };
 
 type Baseline = {
@@ -162,9 +166,47 @@ export function codeViolations(): string[] {
     if (/SELECT\s+\*/i.test(sql)) out.add(`select-star:${file}:${id}`);
     if (sql.includes("${")) out.add(`sql-interpolation:${file}:${id}`);
   }
-  for (const file of serverFiles()) for (const v of loopQueries(file)) out.add(v);
+  for (const file of serverFiles()) for (const v of [...loopQueries(file), ...transactionRisks(file)]) out.add(v);
   return [...out];
 }
+
+/** The body of the block that opens at `open` (index of its "{"). */
+function block(text: string, open: number): string {
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}" && --depth === 0) return text.slice(open, i + 1);
+  }
+  return text.slice(open);
+}
+
+/**
+ * Methods that write more than once without a transaction, and transactions that await: found by
+ * following braces from each class method, so it is a heuristic (two writes in different branches
+ * count too); what it finds is reviewed once and kept in the baseline with the reason.
+ */
+function transactionRisks(file: string): string[] {
+  return transactionRisksIn(relative(ROOT, file), readFileSync(file, "utf8"));
+}
+
+export function transactionRisksIn(rel: string, text: string): string[] {
+  const out: string[] = [];
+  const method =
+    /\n {2}(?:private |public |static |async |get )*(?!if\b|for\b|while\b|switch\b|catch\b)(\w+)\s*\([^)]*\)[^{\n]*\{\n/g;
+  for (const m of text.matchAll(method)) {
+    const body = block(text, (m.index ?? 0) + m[0].length - 2);
+    const writes = body.match(/\.query\(\s*[`"'][^`"']*?\b(INSERT|UPDATE|DELETE|REPLACE)\b/g) ?? [];
+    if (writes.length >= 2 && !body.includes("transaction(")) out.push(`multi-write:${rel}:${m[1]}`);
+  }
+  for (const m of text.matchAll(/\.transaction\(\s*(async\b)?/g)) {
+    const open = text.indexOf("{", m.index ?? 0);
+    if (m[1] || (open >= 0 && /\bawait\b/.test(block(text, open))))
+      out.push(`await-in-transaction:${rel}:${lineOf(text, m.index ?? 0)}`);
+  }
+  return out;
+}
+
+const lineOf = (text: string, index: number) => text.slice(0, index).split("\n").length;
 
 /**
  * A SELECT run inside a loop (for, map, forEach…), found by following braces line by line: a
