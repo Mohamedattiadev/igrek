@@ -1,0 +1,2279 @@
+id: angular
+title: Angular
+summary:
+  en: "From an empty computer to your own Angular app on the internet. You build a real reading log step by step: standalone components, signals, routing, a signal form, an API call, tests, and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Angular uygulamana. Adım adım gerçek bir okuma günlüğü yazarsın: standalone component'ler, signal'ler, routing, signal form, API çağrısı, testler ve ücretsiz deploy."
+teacher: frontend
+project:
+  en: 'A reading log: add books, tick them off as finished, search the list, see statistics, find books from the free Open Library API, keep everything after a reload, with tests, and published on GitHub Pages.'
+  tr: 'Bir okuma günlüğü: kitap ekleme, bitti olarak işaretleme, listede arama, istatistik görme, ücretsiz Open Library API''sinden kitap bulma, sayfa yenilenince hepsinin kalması; testleri yazılmış ve GitHub Pages''te yayında.'
+detect:
+  npm: ["@angular/core"]
+  files: [angular.json]
+version: "22.2"
+latest: npm:@angular/core
+checked: 2026-10
+after: [typescript]
+sheets: [angular, typescript, javascript, git, github-actions]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Node.js, an editor and Git"
+      tr: "Node.js, bir editör ve Git kurma"
+    minutes: 45
+    why:
+      en: "Angular's tools run on Node.js. An editor makes writing code comfortable, and Git keeps every version of your work so you can never really lose it."
+      tr: "Angular'ın araçları Node.js üzerinde çalışır. Editör kod yazmayı rahatlatır, Git de işinin her sürümünü saklar; böylece hiçbir şeyi gerçekten kaybetmezsin."
+    learn:
+      en: |
+        - What Node.js and npm are (Node runs JavaScript on your computer, npm installs packages)
+        - How to open a terminal and check that a program is installed
+        - Which Node.js version Angular 22 needs
+      tr: |
+        - Node.js ve npm'in ne olduğu (Node, JavaScript'i bilgisayarında çalıştırır; npm paket kurar)
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - Angular 22'nin hangi Node.js sürümünü istediği
+    do:
+      en: |
+        1. Download **Node.js LTS** from nodejs.org and install it. Angular 22 needs Node.js 22.22.3 or newer, 24.15 or newer, or 26 and up, and the current LTS download meets that. LTS means "long-term support": it gets fixes for years.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Open a terminal (in VS Code: *Terminal → New Terminal*) and run the commands below. Each should print a version number.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        6. Read the TypeScript roadmap first if you have not: Angular code is written in TypeScript.
+      tr: |
+        1. nodejs.org'dan **Node.js LTS** sürümünü indirip kur. Angular 22, Node.js 22.22.3 ya da daha yenisini, 24.15 ya da daha yenisini veya 26 ve üstünü ister; güncel LTS indirmesi bunu karşılar. LTS "uzun süreli destek" demek: yıllarca düzeltme alır.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com).
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Bir terminal aç (VS Code'da: *Terminal → New Terminal*) ve aşağıdaki komutları çalıştır. Her biri bir sürüm numarası yazmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        6. Henüz yapmadıysan önce TypeScript yol haritasını oku: Angular kodu TypeScript ile yazılır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          npm --version
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found\" hatası."
+        fix:
+          en: "Close the terminal (or VS Code) and open it again so it sees the new program. On Windows, restart if it still fails."
+          tr: "Terminali (ya da VS Code'u) kapatıp yeniden aç ki yeni programı görsün. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "node --version prints an old number such as 18 or 20."
+          tr: "node --version 18 ya da 20 gibi eski bir numara yazıyor."
+        fix:
+          en: "Angular 22 refuses to run on it. Install the current LTS from nodejs.org, then open a new terminal."
+          tr: "Angular 22 onda çalışmayı reddeder. nodejs.org'dan güncel LTS'i kur, sonra yeni bir terminal aç."
+    quiz:
+      - q:
+          en: "What does npm do?"
+          tr: "npm ne işe yarar?"
+        options:
+          en: [It installs and runs packages for your project, It edits your code, It hosts your website]
+          tr: [Projen için paket kurar ve çalıştırır, Kodunu düzenler, Web sitene barındırma sağlar]
+        answer: 0
+        why:
+          en: "npm is the package manager that comes with Node.js. Angular and its tools are packages that npm installs."
+          tr: "npm, Node.js ile gelen paket yöneticisidir. Angular ve araçları npm'in kurduğu paketlerdir."
+    sources:
+      - title: Angular installation and prerequisites
+        url: https://angular.dev/installation
+      - title: Node.js downloads
+        url: https://nodejs.org/en/download
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first Angular app"
+      tr: "İlk Angular uygulamanı oluşturma"
+    minutes: 40
+    needs: [setup]
+    why:
+      en: "The Angular CLI (command line tool) creates a complete working project in one command: build, test and dev server are already set up. You see your first page and learn what the generated files are for."
+      tr: "Angular CLI (komut satırı aracı) tek komutla çalışan eksiksiz bir proje oluşturur: build, test ve geliştirme sunucusu hazır gelir. İlk sayfanı görür ve oluşan dosyaların ne işe yaradığını öğrenirsin."
+    learn:
+      en: |
+        - `npx` runs a package without installing it for good, so `npx @angular/cli@22 new` creates a project with the CLI version 22
+        - What `src/main.ts`, `src/app/app.ts`, `app.html`, `app.config.ts` and `app.routes.ts` do
+        - The dev server reloads the page every time you save
+      tr: |
+        - `npx` bir paketi kalıcı kurmadan çalıştırır; `npx @angular/cli@22 new` CLI'ın 22 sürümüyle proje oluşturur
+        - `src/main.ts`, `src/app/app.ts`, `app.html`, `app.config.ts` ve `app.routes.ts` dosyalarının ne yaptığı
+        - Geliştirme sunucusu her kaydedişinde sayfayı yeniler
+    do:
+      en: |
+        1. Run the first block below in a folder where you keep projects. If npx asks "Ok to proceed?", type `y`. The flags choose plain CSS, no server-side rendering and no AI config files. The CLI installs the packages and makes a Git repository with the first commit.
+        2. Run `cd reading-log` and `npm start`. Open http://localhost:4200 in the browser: you see the Angular welcome page.
+        3. Open the folder in VS Code (`code .`). Replace the whole content of `src/app/app.html` with the two lines below and save. The page changes by itself.
+        4. Stop the server with `Ctrl+C` when you are done.
+        5. Commit your work (second block).
+        6. Know that `npm test` fails for now: the generated test looks for the old welcome text. You rewrite the tests in step 10.
+      tr: |
+        1. Aşağıdaki ilk bloğu projelerini tuttuğun bir klasörde çalıştır. npx "Ok to proceed?" diye sorarsa `y` yaz. Bayraklar düz CSS'i, sunucu tarafı render olmamasını ve AI yapılandırma dosyası olmamasını seçer. CLI paketleri kurar ve ilk commit'iyle bir Git repo'su oluşturur.
+        2. `cd reading-log` ve `npm start` çalıştır. Tarayıcıda http://localhost:4200 adresini aç: Angular karşılama sayfasını görürsün.
+        3. Klasörü VS Code'da aç (`code .`). `src/app/app.html` dosyasının bütün içeriğini aşağıdaki iki satırla değiştir ve kaydet. Sayfa kendiliğinden değişir.
+        4. İşin bitince sunucuyu `Ctrl+C` ile durdur.
+        5. Çalışmanı commit et (ikinci blok).
+        6. `npm test` şimdilik hata verir: oluşan test eski karşılama metnini arar. Testleri 10. adımda yeniden yazarsın.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx @angular/cli@22 new reading-log --defaults --style=css --ssr=false --ai-config=none
+          cd reading-log
+          npm start
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+          <p>Books I want to read, and books I have finished.</p>
+      - file: terminal
+        lang: sh
+        text: |
+          git add -A
+          git commit -m "Hello Angular"
+    mistakes:
+      - problem:
+          en: "Running npm start outside the project folder (\"Missing script: start\")."
+          tr: "npm start'ı proje klasörünün dışında çalıştırmak (\"Missing script: start\")."
+        fix:
+          en: "Run cd reading-log first. The folder with package.json and angular.json is the project."
+          tr: "Önce cd reading-log çalıştır. package.json ve angular.json dosyalarının olduğu klasör projedir."
+      - problem:
+          en: "Port 4200 is already in use."
+          tr: "4200 portu zaten kullanımda."
+        fix:
+          en: "Stop the other server, or start on another port: npm start -- --port 4300."
+          tr: "Diğer sunucuyu durdur ya da başka bir portta başlat: npm start -- --port 4300."
+    quiz:
+      - q:
+          en: "Which file do you deploy to the internet: the project folder or the build output?"
+          tr: "İnternete hangisini yayınlarsın: proje klasörünü mü, build çıktısını mı?"
+        options:
+          en: [The whole project folder, The build output made by ng build, The node_modules folder]
+          tr: [Proje klasörünün tamamını, ng build'in ürettiği build çıktısını, node_modules klasörünü]
+        answer: 1
+        why:
+          en: "The source needs Node.js tools to run. The build output is plain HTML, JavaScript and CSS that any web server can serve. You make it in step 13."
+          tr: "Kaynak kodun çalışması için Node.js araçları gerekir. Build çıktısı her web sunucusunun verebileceği düz HTML, JavaScript ve CSS'tir. Onu 13. adımda üreteceksin."
+    sources:
+      - title: Angular installation, creating a project
+        url: https://angular.dev/installation
+      - title: ng new (CLI reference)
+        url: https://angular.dev/cli/new
+      - title: Angular components, the basics
+        url: https://angular.dev/essentials/components
+
+  - id: components
+    stage: basics
+    title:
+      en: "Components, inputs and outputs"
+      tr: "Component'ler, input'lar ve output'lar"
+    minutes: 60
+    needs: [first-app]
+    why:
+      en: "An Angular page is a tree of components. Each component is a TypeScript class with a template. Small components that get data in and send events out are the building block of every app."
+      tr: "Bir Angular sayfası component ağacıdır. Her component, template'i olan bir TypeScript class'ıdır. Veri alan ve olay gönderen küçük component'ler her uygulamanın yapı taşıdır."
+    learn:
+      en: |
+        - A component: `@Component` with a `selector` and a `template`
+        - Standalone components list what their template uses in `imports`
+        - `input.required<T>()` receives data from the parent, `output<T>()` sends an event to it
+        - `@for` repeats a block (and `track` is required), `@empty` shows when the list is empty
+        - `[class.finished]="..."` switches a CSS class from a value
+      tr: |
+        - Component: `selector` ve `template` olan bir `@Component`
+        - Standalone component'ler template'inin kullandıklarını `imports` içinde listeler
+        - `input.required<T>()` parent'tan veri alır, `output<T>()` ona olay gönderir
+        - `@for` bir bloğu tekrar eder (`track` zorunludur), `@empty` liste boşken gösterilir
+        - `[class.finished]="..."` bir değere göre CSS class'ını açıp kapatır
+    do:
+      en: |
+        1. Run `npm start` in a terminal and keep it open. Use a second terminal for other commands.
+        2. Create `src/app/book.ts` (the shape of a book) and `src/app/book-card.ts` (the card component) with the code below.
+        3. Replace `src/app/app.ts` and `src/app/app.html`. Delete `src/app/app.css`: the root component no longer uses it.
+        4. Replace `src/styles.css` with the global styles below.
+        5. Open the page. You see three cards. Open the developer tools (F12 → Console), click the buttons and read the messages.
+        6. Commit your work.
+      tr: |
+        1. Bir terminalde `npm start` çalıştır ve açık bırak. Diğer komutlar için ikinci bir terminal kullan.
+        2. Aşağıdaki kodla `src/app/book.ts` (kitabın şekli) ve `src/app/book-card.ts` (kart component'i) dosyalarını oluştur.
+        3. `src/app/app.ts` ve `src/app/app.html` dosyalarını değiştir. `src/app/app.css` dosyasını sil: kök component artık onu kullanmıyor.
+        4. `src/styles.css` dosyasını aşağıdaki global stillerle değiştir.
+        5. Sayfayı aç. Üç kart görürsün. Geliştirici araçlarını aç (F12 → Console), butonlara tıkla ve mesajları oku.
+        6. Çalışmanı commit et.
+    code:
+      - file: src/app/book.ts
+        lang: ts
+        text: |
+          export interface Book {
+            id: string;
+            title: string;
+            author: string;
+            pages: number;
+            finished: boolean;
+          }
+      - file: src/app/book-card.ts
+        lang: ts
+        text: |
+          import { Component, input, output } from '@angular/core';
+          import { Book } from './book';
+
+          @Component({
+            selector: 'app-book-card',
+            template: `
+              <article [class.finished]="book().finished">
+                <h3>{{ book().title }}</h3>
+                <p>{{ book().author }}, {{ book().pages }} pages</p>
+                <button type="button" (click)="toggled.emit(book().id)">
+                  {{ book().finished ? 'Mark as not finished' : 'Mark as finished' }}
+                </button>
+                <button type="button" (click)="removed.emit(book().id)">Remove</button>
+              </article>
+            `,
+          })
+          export class BookCard {
+            readonly book = input.required<Book>();
+            readonly toggled = output<string>();
+            readonly removed = output<string>();
+          }
+      - file: src/app/app.ts
+        lang: ts
+        text: |
+          import { Component } from '@angular/core';
+          import { Book } from './book';
+          import { BookCard } from './book-card';
+
+          @Component({
+            selector: 'app-root',
+            imports: [BookCard],
+            templateUrl: './app.html',
+          })
+          export class App {
+            protected readonly books: Book[] = [
+              { id: '1', title: 'Dune', author: 'Frank Herbert', pages: 608, finished: true },
+              { id: '2', title: 'The Pragmatic Programmer', author: 'Andrew Hunt and David Thomas', pages: 352, finished: false },
+              { id: '3', title: 'Piranesi', author: 'Susanna Clarke', pages: 272, finished: false },
+            ];
+
+            protected log(id: string) {
+              console.log('clicked on book', id);
+            }
+          }
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+
+          @for (book of books; track book.id) {
+            <app-book-card [book]="book" (toggled)="log($event)" (removed)="log($event)" />
+          } @empty {
+            <p>No books yet.</p>
+          }
+      - file: src/styles.css
+        lang: css
+        text: |
+          body {
+            font-family: system-ui, sans-serif;
+            max-width: 40rem;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.5;
+          }
+
+          nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+          }
+
+          nav a.active {
+            font-weight: bold;
+          }
+
+          article {
+            border: 1px solid #bbb;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+          }
+
+          article.finished {
+            background: #eef8ee;
+          }
+
+          label {
+            display: block;
+            margin-bottom: 0.75rem;
+          }
+
+          input {
+            display: block;
+            padding: 0.4rem;
+            margin-top: 0.25rem;
+          }
+
+          button {
+            padding: 0.4rem 0.8rem;
+            margin-right: 0.5rem;
+          }
+
+          .error {
+            color: #b00020;
+          }
+    mistakes:
+      - problem:
+          en: "The page is empty and the console says the element app-book-card is not a known element."
+          tr: "Sayfa boş ve konsol app-book-card elementinin bilinmediğini söylüyor."
+        fix:
+          en: "Add BookCard to the imports array of the component whose template uses it (App here)."
+          tr: "BookCard'ı, template'inde kullanan component'in (burada App) imports dizisine ekle."
+      - problem:
+          en: "The build fails with an error about track in @for."
+          tr: "Build @for içindeki track ile ilgili bir hatayla başarısız oluyor."
+        fix:
+          en: "track is required. Track something unique, like book.id, so Angular can tell the items apart."
+          tr: "track zorunludur. Angular elemanları ayırt edebilsin diye book.id gibi benzersiz bir şeyi izle."
+      - problem:
+          en: "Writing {{ book.title }} in the card and getting an error."
+          tr: "Kartta {{ book.title }} yazıp hata almak."
+        fix:
+          en: "An input is a signal: call it. Write book().title."
+          tr: "Input bir signal'dir: onu çağır. book().title yaz."
+    quiz:
+      - q:
+          en: "How does a child component tell its parent that something happened?"
+          tr: "Child component, parent'a bir şey olduğunu nasıl söyler?"
+        options:
+          en: [It changes the input, It emits an output event that the parent listens to with parentheses, It calls the parent's constructor]
+          tr: [Input'u değiştirir, Parent'ın yuvarlak parantezle dinlediği bir output olayı gönderir, Parent'ın constructor'ını çağırır]
+        answer: 1
+        why:
+          en: "Inputs are read-only inside the child. An output() emits events, and the parent listens with (toggled)=\"...\"."
+          tr: "Input'lar child içinde salt okunurdur. output() olay gönderir, parent de (toggled)=\"...\" ile dinler."
+    sources:
+      - title: Anatomy of a component
+        url: https://angular.dev/guide/components/anatomy-of-components
+      - title: Accepting data with input properties
+        url: https://angular.dev/guide/components/inputs
+      - title: Custom events with outputs
+        url: https://angular.dev/guide/components/outputs
+      - title: Control flow (@if, @for, @switch)
+        url: https://angular.dev/guide/templates/control-flow
+
+  - id: signals
+    stage: basics
+    title:
+      en: "Signals: state that updates the page"
+      tr: "Signal'ler: sayfayı güncelleyen state"
+    minutes: 60
+    needs: [components]
+    why:
+      en: "Right now the buttons do nothing. A signal holds a value, and everything that reads it updates when it changes. Signals are how modern Angular knows what to redraw."
+      tr: "Şu an butonlar bir şey yapmıyor. Signal bir değer tutar ve onu okuyan her şey değişince güncellenir. Modern Angular neyi yeniden çizeceğini signal'lerle bilir."
+    learn:
+      en: |
+        - `signal(value)` holds state: read with `count()`, change with `.set()` or `.update()`
+        - Never change an array or object in place: make a new one (`[...list]`, `{ ...book }`)
+        - `computed(() => ...)` is a read-only value that recalculates only when the signals it reads change
+        - `model()` is an input the child can also change, so the parent can use two-way binding `[(value)]`
+      tr: |
+        - `signal(değer)` state tutar: `count()` ile oku, `.set()` ya da `.update()` ile değiştir
+        - Bir diziyi ya da objeyi yerinde değiştirme: yenisini üret (`[...list]`, `{ ...book }`)
+        - `computed(() => ...)` sadece okuduğu signal'ler değişince yeniden hesaplanan salt okunur değerdir
+        - `model()` child'ın da değiştirebildiği bir input'tur; böylece parent `[(value)]` iki yönlü bağlamasını kullanabilir
+    do:
+      en: |
+        1. Create `src/app/search-box.ts`, a small component with a `model()`.
+        2. Replace `src/app/app.ts` and `src/app/app.html` with the versions below.
+        3. In the browser: type in the search box, mark a book as finished, remove a book. The counter at the top follows.
+        4. Commit your work.
+      tr: |
+        1. `model()` kullanan küçük bir component olan `src/app/search-box.ts` dosyasını oluştur.
+        2. `src/app/app.ts` ve `src/app/app.html` dosyalarını aşağıdaki sürümlerle değiştir.
+        3. Tarayıcıda: arama kutusuna yaz, bir kitabı bitti olarak işaretle, bir kitabı sil. Üstteki sayaç bunları takip eder.
+        4. Çalışmanı commit et.
+    code:
+      - file: src/app/search-box.ts
+        lang: ts
+        text: |
+          import { Component, model } from '@angular/core';
+
+          @Component({
+            selector: 'app-search-box',
+            template: `
+              <label>
+                Search
+                <input #box type="search" [value]="value()" (input)="value.set(box.value)" />
+              </label>
+            `,
+          })
+          export class SearchBox {
+            readonly value = model('');
+          }
+      - file: src/app/app.ts
+        lang: ts
+        text: |
+          import { Component, computed, signal } from '@angular/core';
+          import { Book } from './book';
+          import { BookCard } from './book-card';
+          import { SearchBox } from './search-box';
+
+          @Component({
+            selector: 'app-root',
+            imports: [BookCard, SearchBox],
+            templateUrl: './app.html',
+          })
+          export class App {
+            protected readonly books = signal<Book[]>([
+              { id: '1', title: 'Dune', author: 'Frank Herbert', pages: 608, finished: true },
+              { id: '2', title: 'The Pragmatic Programmer', author: 'Andrew Hunt and David Thomas', pages: 352, finished: false },
+              { id: '3', title: 'Piranesi', author: 'Susanna Clarke', pages: 272, finished: false },
+            ]);
+            protected readonly query = signal('');
+
+            protected readonly visible = computed(() => {
+              const q = this.query().trim().toLowerCase();
+              return this.books().filter(
+                (book) => book.title.toLowerCase().includes(q) || book.author.toLowerCase().includes(q),
+              );
+            });
+            protected readonly finishedCount = computed(() => this.books().filter((book) => book.finished).length);
+
+            protected toggle(id: string) {
+              this.books.update((list) => list.map((book) => (book.id === id ? { ...book, finished: !book.finished } : book)));
+            }
+
+            protected remove(id: string) {
+              this.books.update((list) => list.filter((book) => book.id !== id));
+            }
+          }
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+          <p>{{ finishedCount() }} of {{ books().length }} books finished</p>
+
+          <app-search-box [(value)]="query" />
+
+          @for (book of visible(); track book.id) {
+            <app-book-card [book]="book" (toggled)="toggle($event)" (removed)="remove($event)" />
+          } @empty {
+            <p>No books found.</p>
+          }
+    mistakes:
+      - problem:
+          en: "The page shows [object Object] or a function instead of the value."
+          tr: "Sayfa değer yerine [object Object] ya da bir fonksiyon gösteriyor."
+        fix:
+          en: "You printed the signal itself. Call it with parentheses: {{ books().length }}."
+          tr: "Signal'in kendisini yazdırdın. Parantezle çağır: {{ books().length }}."
+      - problem:
+          en: "Changing a book with book.finished = true and nothing updates."
+          tr: "Bir kitabı book.finished = true ile değiştirmek ve hiçbir şeyin güncellenmemesi."
+        fix:
+          en: "A signal only notices a new value. Use update() and return a new array with a new object, as toggle() does."
+          tr: "Signal sadece yeni bir değeri fark eder. update() kullan ve toggle()'daki gibi yeni objeli yeni bir dizi döndür."
+    quiz:
+      - q:
+          en: "Why is visible a computed() and not a second signal that you update by hand?"
+          tr: "visible neden elle güncellediğin ikinci bir signal değil de computed()?"
+        options:
+          en: [Computed is the only way to filter, It can never get out of sync with books and query, It makes the page load faster]
+          tr: [Filtrelemenin tek yolu computed, books ve query ile asla uyumsuz kalamaz, Sayfayı daha hızlı yükler]
+        answer: 1
+        why:
+          en: "A computed value is derived from the signals it reads, so it is always correct. A second copy would drift away whenever you forget to update it."
+          tr: "Computed değer okuduğu signal'lerden türetilir, bu yüzden hep doğrudur. İkinci bir kopya, güncellemeyi unuttuğun anda uyumsuz kalır."
+    sources:
+      - title: Signals overview
+        url: https://angular.dev/guide/signals
+      - title: Two-way binding
+        url: https://angular.dev/guide/templates/two-way-binding
+      - title: Component inputs
+        url: https://angular.dev/guide/components/inputs
+
+  - id: service
+    stage: first-project
+    title:
+      en: "A service for the shared data"
+      tr: "Ortak veri için bir service"
+    minutes: 50
+    needs: [signals]
+    why:
+      en: "Soon several pages need the same list of books. A service is a class that holds shared data and logic, and inject() gives every component the one shared instance. The component only shows things."
+      tr: "Birazdan birkaç sayfa aynı kitap listesine ihtiyaç duyacak. Service, ortak veriyi ve mantığı tutan bir class'tır; inject() her component'e paylaşılan tek örneği verir. Component sadece gösterir."
+    learn:
+      en: |
+        - `@Service()` makes a class a service that exists once for the whole app
+        - `inject(BookStore)` gives a component that service (only in field initializers and the constructor)
+        - Components stay small: the store holds state and rules, the component shows them
+      tr: |
+        - `@Service()` bir class'ı tüm uygulama için tek bir örneği olan service yapar
+        - `inject(BookStore)` component'e o service'i verir (sadece field başlangıç değerlerinde ve constructor'da)
+        - Component'ler küçük kalır: store state'i ve kuralları tutar, component onları gösterir
+    do:
+      en: |
+        1. Create `src/app/book-store.ts` with the service below. It moves the list and the actions out of `App`.
+        2. Create `src/app/home.ts`, the page that shows the list. It keeps only the search text.
+        3. Replace `src/app/app.ts` and `src/app/app.html`: the root component now just shows the home page.
+        4. The page looks the same as before. That is the point: you moved code without changing behavior.
+        5. Commit your work.
+      tr: |
+        1. Aşağıdaki service ile `src/app/book-store.ts` dosyasını oluştur. Liste ve işlemler `App`'ten buraya taşınır.
+        2. Listeyi gösteren sayfa olan `src/app/home.ts` dosyasını oluştur. Sadece arama metnini tutar.
+        3. `src/app/app.ts` ve `src/app/app.html` dosyalarını değiştir: kök component artık sadece ana sayfayı gösterir.
+        4. Sayfa öncekiyle aynı görünür. Amaç da bu: davranışı değiştirmeden kodu taşıdın.
+        5. Çalışmanı commit et.
+    code:
+      - file: src/app/book-store.ts
+        lang: ts
+        text: |
+          import { computed, Service, signal } from '@angular/core';
+          import { Book } from './book';
+
+          @Service()
+          export class BookStore {
+            readonly books = signal<Book[]>([
+              { id: '1', title: 'Dune', author: 'Frank Herbert', pages: 608, finished: true },
+              { id: '2', title: 'The Pragmatic Programmer', author: 'Andrew Hunt and David Thomas', pages: 352, finished: false },
+              { id: '3', title: 'Piranesi', author: 'Susanna Clarke', pages: 272, finished: false },
+            ]);
+
+            readonly finishedCount = computed(() => this.books().filter((book) => book.finished).length);
+            readonly pagesRead = computed(() =>
+              this.books()
+                .filter((book) => book.finished)
+                .reduce((sum, book) => sum + book.pages, 0),
+            );
+
+            add(details: { title: string; author: string; pages: number }) {
+              const book: Book = { id: crypto.randomUUID(), ...details, finished: false };
+              this.books.update((list) => [...list, book]);
+            }
+
+            toggle(id: string) {
+              this.books.update((list) => list.map((book) => (book.id === id ? { ...book, finished: !book.finished } : book)));
+            }
+
+            remove(id: string) {
+              this.books.update((list) => list.filter((book) => book.id !== id));
+            }
+          }
+      - file: src/app/home.ts
+        lang: ts
+        text: |
+          import { Component, computed, inject, signal } from '@angular/core';
+          import { BookCard } from './book-card';
+          import { BookStore } from './book-store';
+          import { SearchBox } from './search-box';
+
+          @Component({
+            selector: 'app-home',
+            imports: [BookCard, SearchBox],
+            template: `
+              <p>{{ store.finishedCount() }} of {{ store.books().length }} books finished</p>
+
+              <app-search-box [(value)]="query" />
+
+              @for (book of visible(); track book.id) {
+                <app-book-card [book]="book" (toggled)="store.toggle($event)" (removed)="store.remove($event)" />
+              } @empty {
+                <p>No books found.</p>
+              }
+            `,
+          })
+          export class Home {
+            protected readonly store = inject(BookStore);
+            protected readonly query = signal('');
+
+            protected readonly visible = computed(() => {
+              const q = this.query().trim().toLowerCase();
+              return this.store
+                .books()
+                .filter((book) => book.title.toLowerCase().includes(q) || book.author.toLowerCase().includes(q));
+            });
+          }
+      - file: src/app/app.ts
+        lang: ts
+        text: |
+          import { Component } from '@angular/core';
+          import { Home } from './home';
+
+          @Component({
+            selector: 'app-root',
+            imports: [Home],
+            templateUrl: './app.html',
+          })
+          export class App {}
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+          <app-home />
+    mistakes:
+      - problem:
+          en: "Calling inject() inside a method (error: inject() must be called from an injection context)."
+          tr: "inject()'i bir metodun içinde çağırmak (hata: inject() must be called from an injection context)."
+        fix:
+          en: "Call it where Angular builds the class: a field initializer (store = inject(BookStore)) or the constructor."
+          tr: "Angular'ın class'ı kurduğu yerde çağır: field başlangıç değeri (store = inject(BookStore)) ya da constructor."
+      - problem:
+          en: "Using @Service with constructor parameters."
+          tr: "@Service'i constructor parametreleriyle kullanmak."
+        fix:
+          en: "@Service supports only inject(). Use the older @Injectable({ providedIn: 'root' }) if you need constructor injection."
+          tr: "@Service sadece inject()'i destekler. Constructor injection gerekiyorsa eski @Injectable({ providedIn: 'root' })'u kullan."
+    quiz:
+      - q:
+          en: "Two components both call inject(BookStore). How many BookStore objects exist?"
+          tr: "İki component da inject(BookStore) çağırıyor. Kaç tane BookStore objesi vardır?"
+        options:
+          en: [Two, one shared by both, None until you call new]
+          tr: [İki, ikisinin paylaştığı bir tane, new çağırana kadar hiç]
+        answer: 1
+        why:
+          en: "A root service is created once and shared, so a change made by one component shows up in the other."
+          tr: "Kök service bir kez oluşturulur ve paylaşılır; bu yüzden bir component'in yaptığı değişiklik diğerinde görünür."
+    sources:
+      - title: Creating and using services
+        url: https://angular.dev/guide/di/creating-and-using-services
+      - title: Dependency injection overview
+        url: https://angular.dev/guide/di
+      - title: Injection context
+        url: https://angular.dev/guide/di/dependency-injection-context
+
+  - id: routing
+    stage: first-project
+    title:
+      en: "Several pages with the router"
+      tr: "Router ile birden fazla sayfa"
+    minutes: 50
+    needs: [service]
+    why:
+      en: "A real app has several pages. The router shows a different component for each URL and changes the address without reloading. Loading a page's code only when it is visited keeps the first load small."
+      tr: "Gerçek bir uygulamanın birden fazla sayfası olur. Router her URL için farklı bir component gösterir ve adresi sayfayı yenilemeden değiştirir. Bir sayfanın kodunu sadece ziyaret edilince yüklemek ilk yüklemeyi küçük tutar."
+    learn:
+      en: |
+        - A `routes` array maps URL paths to components, and `provideRouter(routes)` in `app.config.ts` turns it on
+        - `<router-outlet />` is where the matched page appears, `routerLink` makes links that do not reload the page
+        - `loadComponent: () => import(...)` makes a lazy route: its code downloads on the first visit
+        - The wildcard route `**` goes last and catches unknown URLs
+      tr: |
+        - `routes` dizisi URL yollarını component'lere eşler; `app.config.ts` içindeki `provideRouter(routes)` onu açar
+        - `<router-outlet />` eşleşen sayfanın göründüğü yerdir, `routerLink` sayfayı yenilemeyen link yapar
+        - `loadComponent: () => import(...)` lazy route yapar: kodu ilk ziyarette iner
+        - `**` wildcard route'u en sona konur ve bilinmeyen URL'leri yakalar
+    do:
+      en: |
+        1. Create `src/app/stats.ts` (statistics page) and `src/app/not-found.ts`.
+        2. Create `src/app/app.routes.ts`: this file already exists from the CLI, replace its content. `app.config.ts` already calls `provideRouter(routes)`, no change needed.
+        3. Replace `src/app/app.ts` and `src/app/app.html` with the shell: title, navigation, `<router-outlet />`.
+        4. Click "Statistics" and then the browser's back button. The page does not reload. Open http://localhost:4200/nothing to see the not found page.
+        5. Run `npm run build` once. The output lists a lazy chunk named `stats`: that is the separate file for the lazy route.
+        6. Commit your work.
+      tr: |
+        1. `src/app/stats.ts` (istatistik sayfası) ve `src/app/not-found.ts` dosyalarını oluştur.
+        2. `src/app/app.routes.ts` dosyasını oluştur: bu dosya CLI'dan zaten var, içeriğini değiştir. `app.config.ts` zaten `provideRouter(routes)` çağırıyor, değişiklik gerekmez.
+        3. `src/app/app.ts` ve `src/app/app.html` dosyalarını kabukla değiştir: başlık, gezinme ve `<router-outlet />`.
+        4. "Statistics"e tıkla, sonra tarayıcının geri butonuna bas. Sayfa yenilenmez. Bulunamadı sayfasını görmek için http://localhost:4200/nothing adresini aç.
+        5. Bir kez `npm run build` çalıştır. Çıktıda `stats` adlı bir lazy chunk listelenir: lazy route'un ayrı dosyası odur.
+        6. Çalışmanı commit et.
+    code:
+      - file: src/app/stats.ts
+        lang: ts
+        text: |
+          import { Component, inject } from '@angular/core';
+          import { BookStore } from './book-store';
+
+          @Component({
+            selector: 'app-stats',
+            template: `
+              <h2>Statistics</h2>
+              <ul>
+                <li>Books in the list: {{ store.books().length }}</li>
+                <li>Books finished: {{ store.finishedCount() }}</li>
+                <li>Pages read: {{ store.pagesRead() }}</li>
+              </ul>
+            `,
+          })
+          export class Stats {
+            protected readonly store = inject(BookStore);
+          }
+      - file: src/app/not-found.ts
+        lang: ts
+        text: |
+          import { Component } from '@angular/core';
+          import { RouterLink } from '@angular/router';
+
+          @Component({
+            selector: 'app-not-found',
+            imports: [RouterLink],
+            template: `
+              <h2>Page not found</h2>
+              <p><a routerLink="/">Back to the list</a></p>
+            `,
+          })
+          export class NotFound {}
+      - file: src/app/app.routes.ts
+        lang: ts
+        text: |
+          import { Routes } from '@angular/router';
+          import { Home } from './home';
+          import { NotFound } from './not-found';
+
+          export const routes: Routes = [
+            { path: '', component: Home, title: 'Reading log' },
+            {
+              path: 'stats',
+              loadComponent: () => import('./stats').then((m) => m.Stats),
+              title: 'Statistics',
+            },
+            { path: '**', component: NotFound, title: 'Page not found' },
+          ];
+      - file: src/app/app.ts
+        lang: ts
+        text: |
+          import { Component } from '@angular/core';
+          import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+          @Component({
+            selector: 'app-root',
+            imports: [RouterOutlet, RouterLink, RouterLinkActive],
+            templateUrl: './app.html',
+          })
+          export class App {}
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+
+          <nav>
+            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My books</a>
+            <a routerLink="/stats" routerLinkActive="active">Statistics</a>
+          </nav>
+
+          <router-outlet />
+    mistakes:
+      - problem:
+          en: "Using href=\"/stats\" for links: the whole app reloads."
+          tr: "Linklerde href=\"/stats\" kullanmak: bütün uygulama yeniden yüklenir."
+        fix:
+          en: "Use routerLink and add RouterLink to the component imports."
+          tr: "routerLink kullan ve RouterLink'i component imports'una ekle."
+      - problem:
+          en: "A lazy route does not make a separate chunk."
+          tr: "Lazy route ayrı bir chunk üretmiyor."
+        fix:
+          en: "You also imported the component at the top of the routes file. A normal import puts it back in the main bundle; keep only the import() inside loadComponent."
+          tr: "Component'i route dosyasının üstünde de import etmişsin. Normal import onu tekrar ana bundle'a koyar; sadece loadComponent içindeki import()'u bırak."
+    quiz:
+      - q:
+          en: "Why does the ** route come last?"
+          tr: "** route'u neden en sonda?"
+        options:
+          en: [Routes are matched from top to bottom and ** matches everything, It is faster there, Angular requires alphabetical order]
+          tr: [Route'lar yukarıdan aşağıya eşleşir ve ** her şeyi yakalar, Orada daha hızlıdır, Angular alfabetik sıra ister]
+        answer: 0
+        why:
+          en: "The first matching route wins. If ** were first, every URL would show the not found page."
+          tr: "İlk eşleşen route kazanır. ** başta olsaydı her URL bulunamadı sayfasını gösterirdi."
+    sources:
+      - title: Define routes
+        url: https://angular.dev/guide/routing/define-routes
+      - title: Show routes with outlets
+        url: https://angular.dev/guide/routing/show-routes-with-outlets
+      - title: Lazy-loaded routes
+        url: https://angular.dev/guide/routing/loading-strategies
+
+  - id: forms
+    stage: data-api
+    title:
+      en: "A form with signal forms"
+      tr: "Signal form ile bir form"
+    minutes: 60
+    needs: [routing]
+    why:
+      en: "People need to add their own books. A form must check what they type before it is saved. Signal forms keep the form data in a signal and check it with rules, and they are stable in Angular 22."
+      tr: "İnsanların kendi kitaplarını eklemesi gerekir. Form, yazılanı kaydedilmeden önce kontrol etmelidir. Signal form'lar form verisini bir signal'de tutar ve kurallarla kontrol eder; Angular 22'de kararlıdır."
+    learn:
+      en: |
+        - The form model is a `signal` holding an object; `form(model, rules, options)` wraps it in fields
+        - `[formField]` binds an input to a field; `FormField` and `FormRoot` go in the component's `imports`
+        - Rules like `required()` and `min()` take an optional `message`
+        - A field shows `touched()` and `errors()`; show errors only after the user touched the field
+        - The `submission.action` runs only when the form is valid, and `[formRoot]` stops the page from reloading
+      tr: |
+        - Form modeli, bir obje tutan `signal`'dir; `form(model, kurallar, seçenekler)` onu alanlara sarar
+        - `[formField]` bir input'u alana bağlar; `FormField` ve `FormRoot` component'in `imports` listesine girer
+        - `required()` ve `min()` gibi kurallar isteğe bağlı bir `message` alır
+        - Alan `touched()` ve `errors()` sunar; hataları sadece kullanıcı alana dokunduktan sonra göster
+        - `submission.action` sadece form geçerliyse çalışır ve `[formRoot]` sayfanın yenilenmesini engeller
+    do:
+      en: |
+        1. Create `src/app/add.ts` with the form page below.
+        2. Replace `src/app/app.routes.ts` (a new lazy route `add`) and `src/app/app.html` (a new link).
+        3. Open "Add a book". Click "Save book" with the empty form: the errors appear. Fill it in and save: you go back to the list and the book is there.
+        4. Commit your work.
+      tr: |
+        1. Aşağıdaki form sayfasıyla `src/app/add.ts` dosyasını oluştur.
+        2. `src/app/app.routes.ts` (yeni `add` lazy route'u) ve `src/app/app.html` (yeni link) dosyalarını değiştir.
+        3. "Add a book" sayfasını aç. Boş formla "Save book"a tıkla: hatalar görünür. Formu doldur ve kaydet: listeye dönersin ve kitap oradadır.
+        4. Çalışmanı commit et.
+    code:
+      - file: src/app/add.ts
+        lang: ts
+        text: |
+          import { Component, inject, signal } from '@angular/core';
+          import { form, FormField, FormRoot, min, required } from '@angular/forms/signals';
+          import { Router } from '@angular/router';
+          import { BookStore } from './book-store';
+
+          @Component({
+            selector: 'app-add',
+            imports: [FormField, FormRoot],
+            template: `
+              <h2>Add a book</h2>
+
+              <form [formRoot]="bookForm">
+                <label>
+                  Title
+                  <input [formField]="bookForm.title" />
+                </label>
+                @if (bookForm.title().touched()) {
+                  @for (error of bookForm.title().errors(); track error.kind) {
+                    <p class="error">{{ error.message }}</p>
+                  }
+                }
+
+                <label>
+                  Author
+                  <input [formField]="bookForm.author" />
+                </label>
+                @if (bookForm.author().touched()) {
+                  @for (error of bookForm.author().errors(); track error.kind) {
+                    <p class="error">{{ error.message }}</p>
+                  }
+                }
+
+                <label>
+                  Pages
+                  <input type="number" [formField]="bookForm.pages" />
+                </label>
+                @if (bookForm.pages().touched()) {
+                  @for (error of bookForm.pages().errors(); track error.kind) {
+                    <p class="error">{{ error.message }}</p>
+                  }
+                }
+
+                <button type="submit" [disabled]="bookForm().submitting()">Save book</button>
+              </form>
+            `,
+          })
+          export class Add {
+            private readonly store = inject(BookStore);
+            private readonly router = inject(Router);
+
+            private readonly model = signal({ title: '', author: '', pages: 0 });
+
+            protected readonly bookForm = form(
+              this.model,
+              (path) => {
+                required(path.title, { message: 'Enter a title' });
+                required(path.author, { message: 'Enter an author' });
+                min(path.pages, 1, { message: 'A book has at least 1 page' });
+              },
+              {
+                submission: {
+                  action: async () => {
+                    const value = this.model();
+                    this.store.add({ title: value.title.trim(), author: value.author.trim(), pages: value.pages });
+                    await this.router.navigateByUrl('/');
+                  },
+                },
+              },
+            );
+          }
+      - file: src/app/app.routes.ts
+        lang: ts
+        text: |
+          import { Routes } from '@angular/router';
+          import { Home } from './home';
+          import { NotFound } from './not-found';
+
+          export const routes: Routes = [
+            { path: '', component: Home, title: 'Reading log' },
+            {
+              path: 'add',
+              loadComponent: () => import('./add').then((m) => m.Add),
+              title: 'Add a book',
+            },
+            {
+              path: 'stats',
+              loadComponent: () => import('./stats').then((m) => m.Stats),
+              title: 'Statistics',
+            },
+            { path: '**', component: NotFound, title: 'Page not found' },
+          ];
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+
+          <nav>
+            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My books</a>
+            <a routerLink="/add" routerLinkActive="active">Add a book</a>
+            <a routerLink="/stats" routerLinkActive="active">Statistics</a>
+          </nav>
+
+          <router-outlet />
+    mistakes:
+      - problem:
+          en: "The inputs do not react: the form seems dead."
+          tr: "Input'lar tepki vermiyor: form ölü gibi."
+        fix:
+          en: "FormField (and FormRoot for the form element) must be in the component's imports array."
+          tr: "FormField (ve form elementi için FormRoot) component'in imports dizisinde olmalı."
+      - problem:
+          en: "Errors show up while the user is still typing the first letter."
+          tr: "Kullanıcı daha ilk harfi yazarken hatalar görünüyor."
+        fix:
+          en: "Wrap the errors in @if (field().touched()). A field becomes touched when the user leaves it or submits."
+          tr: "Hataları @if (field().touched()) içine al. Alan, kullanıcı ondan ayrılınca ya da gönderince touched olur."
+      - problem:
+          en: "Trusting the form check as the only check."
+          tr: "Form kontrolünü tek kontrol olarak görmek."
+        fix:
+          en: "Checks in the browser help users, they do not protect a server. If you add a backend later, check the data there too."
+          tr: "Tarayıcıdaki kontroller kullanıcıya yardım eder, sunucuyu korumaz. İleride backend eklersen veriyi orada da kontrol et."
+    quiz:
+      - q:
+          en: "When does the submission action run?"
+          tr: "Submission action ne zaman çalışır?"
+        options:
+          en: [On every key press, Only when all rules pass, Only when the form is empty]
+          tr: [Her tuş basışında, Sadece bütün kurallar geçince, Sadece form boşken]
+        answer: 1
+        why:
+          en: "submit() first marks the fields as touched and checks the rules. If a rule fails it stops, so the errors show and nothing is saved."
+          tr: "submit() önce alanları touched yapar ve kuralları kontrol eder. Bir kural başarısızsa durur; hatalar görünür ve hiçbir şey kaydedilmez."
+    sources:
+      - title: Signal forms overview
+        url: https://angular.dev/guide/forms/signals/overview
+      - title: Signal forms validation
+        url: https://angular.dev/guide/forms/signals/validation
+      - title: Signal forms submission
+        url: https://angular.dev/guide/forms/signals/form-submission
+      - title: Signal forms state management
+        url: https://angular.dev/guide/forms/signals/field-state-management
+
+  - id: persist
+    stage: data-api
+    title:
+      en: "Keep the books after a reload"
+      tr: "Sayfa yenilenince kitapları koruma"
+    minutes: 40
+    needs: [forms]
+    why:
+      en: "A reload empties the list again. Saving it in the browser's localStorage keeps it on this computer. An effect is the right tool: it runs code outside Angular whenever a signal changes."
+      tr: "Sayfa yenilenince liste yine boşalıyor. Onu tarayıcının localStorage'ında saklamak bu bilgisayarda korur. Effect doğru araçtır: bir signal değiştikçe Angular dışındaki kodu çalıştırır."
+    learn:
+      en: |
+        - `localStorage` keeps text per site in the browser; objects go in as JSON
+        - `effect(() => ...)` runs once and again whenever a signal it reads changes
+        - Saved data is untrusted: it can be missing, broken or edited by hand, so check it when you read it
+      tr: |
+        - `localStorage` tarayıcıda site başına metin saklar; objeler JSON olarak girer
+        - `effect(() => ...)` bir kez çalışır ve okuduğu signal değişince tekrar çalışır
+        - Kayıtlı veriye güvenilmez: eksik, bozuk ya da elle değiştirilmiş olabilir; okurken kontrol et
+    do:
+      en: |
+        1. Replace `src/app/book-store.ts` with the version below. It reads the saved list when the app starts and saves it in an effect.
+        2. Add a book, mark one as finished and reload the page: everything stays.
+        3. Look at the saved JSON: F12 → Application → Local Storage.
+        4. Commit your work.
+      tr: |
+        1. `src/app/book-store.ts` dosyasını aşağıdaki sürümle değiştir. Uygulama başlarken kayıtlı listeyi okur ve bir effect içinde kaydeder.
+        2. Bir kitap ekle, birini bitti işaretle ve sayfayı yenile: her şey yerinde kalır.
+        3. Kayıtlı JSON'a bak: F12 → Application → Local Storage.
+        4. Çalışmanı commit et.
+    code:
+      - file: src/app/book-store.ts
+        lang: ts
+        text: |
+          import { computed, effect, Service, signal } from '@angular/core';
+          import { Book } from './book';
+
+          const STORAGE_KEY = 'reading-log.books';
+
+          const SAMPLE_BOOKS: Book[] = [
+            { id: '1', title: 'Dune', author: 'Frank Herbert', pages: 608, finished: true },
+            { id: '2', title: 'The Pragmatic Programmer', author: 'Andrew Hunt and David Thomas', pages: 352, finished: false },
+            { id: '3', title: 'Piranesi', author: 'Susanna Clarke', pages: 272, finished: false },
+          ];
+
+          function isBook(value: unknown): value is Book {
+            const book = value as Partial<Book> | null;
+            return (
+              typeof book === 'object' &&
+              book !== null &&
+              typeof book.id === 'string' &&
+              typeof book.title === 'string' &&
+              typeof book.author === 'string' &&
+              typeof book.pages === 'number' &&
+              typeof book.finished === 'boolean'
+            );
+          }
+
+          // Saved data is untrusted: it may be missing, broken or edited by hand.
+          function loadBooks(): Book[] {
+            try {
+              const text = localStorage.getItem(STORAGE_KEY);
+              if (text === null) return SAMPLE_BOOKS;
+              const data: unknown = JSON.parse(text);
+              return Array.isArray(data) ? data.filter(isBook) : SAMPLE_BOOKS;
+            } catch {
+              return SAMPLE_BOOKS;
+            }
+          }
+
+          @Service()
+          export class BookStore {
+            readonly books = signal<Book[]>(loadBooks());
+
+            readonly finishedCount = computed(() => this.books().filter((book) => book.finished).length);
+            readonly pagesRead = computed(() =>
+              this.books()
+                .filter((book) => book.finished)
+                .reduce((sum, book) => sum + book.pages, 0),
+            );
+
+            constructor() {
+              // Runs once now and again whenever the list changes.
+              effect(() => {
+                const text = JSON.stringify(this.books());
+                try {
+                  localStorage.setItem(STORAGE_KEY, text);
+                } catch {
+                  // Storage can be full or blocked (private mode). The app keeps working without saving.
+                }
+              });
+            }
+
+            add(details: { title: string; author: string; pages: number }) {
+              const book: Book = { id: crypto.randomUUID(), ...details, finished: false };
+              this.books.update((list) => [...list, book]);
+            }
+
+            toggle(id: string) {
+              this.books.update((list) => list.map((book) => (book.id === id ? { ...book, finished: !book.finished } : book)));
+            }
+
+            remove(id: string) {
+              this.books.update((list) => list.filter((book) => book.id !== id));
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Using an effect to copy one signal into another."
+          tr: "Bir signal'i diğerine kopyalamak için effect kullanmak."
+        fix:
+          en: "Use computed for derived values. Effects are for things outside Angular: storage, logs, canvas."
+          tr: "Türetilmiş değerler için computed kullan. Effect'ler Angular dışındaki şeyler içindir: storage, log, canvas."
+      - problem:
+          en: "Calling JSON.parse on saved text without try/catch: one broken value crashes the app at start."
+          tr: "Kayıtlı metinde try/catch olmadan JSON.parse çağırmak: tek bir bozuk değer uygulamayı açılışta çökertir."
+        fix:
+          en: "Wrap it in try/catch and fall back to a safe value, as loadBooks() does."
+          tr: "Onu try/catch içine al ve loadBooks()'taki gibi güvenli bir değere dön."
+    quiz:
+      - q:
+          en: "Why check the saved data with isBook() when you wrote it yourself?"
+          tr: "Veriyi kendin yazdığın halde neden isBook() ile kontrol ediyorsun?"
+        options:
+          en: [Anyone can edit localStorage and old versions of the app may have saved other shapes, JSON.parse needs it, Angular requires it]
+          tr: [localStorage'ı herkes değiştirebilir ve uygulamanın eski sürümleri başka şekiller kaydetmiş olabilir, JSON.parse bunu ister, Angular bunu zorunlu tutar]
+        answer: 0
+        why:
+          en: "Data from outside your code is untrusted, even when your own app saved it earlier."
+          tr: "Kodunun dışından gelen veriye güvenilmez; onu eskiden kendi uygulaman kaydetmiş olsa bile."
+    sources:
+      - title: Effects
+        url: https://angular.dev/guide/signals/effect
+      - title: Web Storage API (MDN)
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+      - title: JSON.parse (MDN)
+        url: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/parse
+
+  - id: api
+    stage: data-api
+    title:
+      en: "Find books from a public API"
+      tr: "Herkese açık bir API'den kitap bulma"
+    minutes: 60
+    needs: [persist]
+    why:
+      en: "Most apps talk to a server. An API is an address that answers with data. Open Library offers a free search API without a key. httpResource makes the request from a signal and gives you the result, the loading state and the error as signals."
+      tr: "Çoğu uygulama bir sunucuyla konuşur. API, veriyle cevap veren bir adrestir. Open Library anahtarsız ücretsiz bir arama API'si sunar. httpResource isteği bir signal'den yapar ve sonucu, yüklenme durumunu ve hatayı signal olarak verir."
+    learn:
+      en: |
+        - `httpResource<T>(() => request)` sends a GET request whenever the signals inside change
+        - If the function returns `undefined`, no request is sent: that is how we wait for the user
+        - `isLoading()`, `error()`, `hasValue()` and `value()` are signals; check `hasValue()` before `value()`
+        - Pass query values as `params`, so Angular encodes them
+        - For POST, PUT and DELETE use `HttpClient` instead
+      tr: |
+        - `httpResource<T>(() => istek)` içindeki signal'ler değişince GET isteği gönderir
+        - Fonksiyon `undefined` döndürürse istek gönderilmez: kullanıcıyı böyle bekleriz
+        - `isLoading()`, `error()`, `hasValue()` ve `value()` signal'dir; `value()`'dan önce `hasValue()`'ya bak
+        - Sorgu değerlerini `params` olarak ver; Angular onları kodlar
+        - POST, PUT ve DELETE için bunun yerine `HttpClient` kullan
+    do:
+      en: |
+        1. Create `src/app/discover.ts` with the search page below.
+        2. Replace `src/app/book-card.ts` (it now hides "0 pages" for books without a page count), `src/app/app.routes.ts` and `src/app/app.html`.
+        3. Open "Find books", search for `piranesi`, and add a result to your list. It appears under "My books".
+        4. Commit your work.
+      tr: |
+        1. Aşağıdaki arama sayfasıyla `src/app/discover.ts` dosyasını oluştur.
+        2. `src/app/book-card.ts` (artık sayfa sayısı olmayan kitaplarda "0 pages" yazısını gizler), `src/app/app.routes.ts` ve `src/app/app.html` dosyalarını değiştir.
+        3. "Find books" sayfasını aç, `piranesi` ara ve bir sonucu listene ekle. "My books" altında görünür.
+        4. Çalışmanı commit et.
+    code:
+      - file: src/app/discover.ts
+        lang: ts
+        text: |
+          import { httpResource } from '@angular/common/http';
+          import { Component, inject, signal } from '@angular/core';
+          import { BookStore } from './book-store';
+
+          interface SearchDoc {
+            key: string;
+            title: string;
+            author_name?: string[];
+            number_of_pages_median?: number;
+          }
+
+          interface SearchResponse {
+            numFound: number;
+            docs: SearchDoc[];
+          }
+
+          @Component({
+            selector: 'app-discover',
+            template: `
+              <h2>Find books</h2>
+
+              <label>
+                Search Open Library
+                <input #box (keyup.enter)="term.set(box.value)" />
+              </label>
+              <button type="button" (click)="term.set(box.value)">Search</button>
+
+              @if (results.isLoading()) {
+                <p>Searching...</p>
+              } @else if (results.error()) {
+                <p class="error">Could not reach Open Library. Try again later.</p>
+              } @else if (results.hasValue()) {
+                @for (doc of results.value().docs; track doc.key) {
+                  <article>
+                    <h3>{{ doc.title }}</h3>
+                    <p>{{ doc.author_name?.[0] ?? 'Unknown author' }}</p>
+                    <button type="button" (click)="add(doc)">Add to my list</button>
+                    <a [href]="'https://openlibrary.org' + doc.key" target="_blank" rel="noopener">Open Library page</a>
+                  </article>
+                } @empty {
+                  <p>No books found.</p>
+                }
+              }
+            `,
+          })
+          export class Discover {
+            private readonly store = inject(BookStore);
+
+            protected readonly term = signal('');
+
+            protected readonly results = httpResource<SearchResponse>(() => {
+              const q = this.term().trim();
+              if (!q) return undefined; // no request until the user searches
+              return {
+                url: 'https://openlibrary.org/search.json',
+                params: { q, limit: 8, fields: 'key,title,author_name,number_of_pages_median' },
+              };
+            });
+
+            protected add(doc: SearchDoc) {
+              this.store.add({
+                title: doc.title,
+                author: doc.author_name?.[0] ?? 'Unknown author',
+                pages: doc.number_of_pages_median ?? 0,
+              });
+            }
+          }
+      - file: src/app/book-card.ts
+        lang: ts
+        text: |
+          import { Component, input, output } from '@angular/core';
+          import { Book } from './book';
+
+          @Component({
+            selector: 'app-book-card',
+            template: `
+              <article [class.finished]="book().finished">
+                <h3>{{ book().title }}</h3>
+                <p>{{ book().author }}{{ book().pages > 0 ? ', ' + book().pages + ' pages' : '' }}</p>
+                <button type="button" (click)="toggled.emit(book().id)">
+                  {{ book().finished ? 'Mark as not finished' : 'Mark as finished' }}
+                </button>
+                <button type="button" (click)="removed.emit(book().id)">Remove</button>
+              </article>
+            `,
+          })
+          export class BookCard {
+            readonly book = input.required<Book>();
+            readonly toggled = output<string>();
+            readonly removed = output<string>();
+          }
+      - file: src/app/app.routes.ts
+        lang: ts
+        text: |
+          import { Routes } from '@angular/router';
+          import { Home } from './home';
+          import { NotFound } from './not-found';
+
+          export const routes: Routes = [
+            { path: '', component: Home, title: 'Reading log' },
+            {
+              path: 'add',
+              loadComponent: () => import('./add').then((m) => m.Add),
+              title: 'Add a book',
+            },
+            {
+              path: 'discover',
+              loadComponent: () => import('./discover').then((m) => m.Discover),
+              title: 'Find books',
+            },
+            {
+              path: 'stats',
+              loadComponent: () => import('./stats').then((m) => m.Stats),
+              title: 'Statistics',
+            },
+            { path: '**', component: NotFound, title: 'Page not found' },
+          ];
+      - file: src/app/app.html
+        lang: html
+        text: |
+          <h1>Reading log</h1>
+
+          <nav>
+            <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">My books</a>
+            <a routerLink="/add" routerLinkActive="active">Add a book</a>
+            <a routerLink="/discover" routerLinkActive="active">Find books</a>
+            <a routerLink="/stats" routerLinkActive="active">Statistics</a>
+          </nav>
+
+          <router-outlet />
+    mistakes:
+      - problem:
+          en: "The page crashes when the request fails."
+          tr: "İstek başarısız olunca sayfa çöküyor."
+        fix:
+          en: "Reading value() while the resource is in error state throws. Check hasValue() first, and show error() to the user, as the template does."
+          tr: "Resource hata durumundayken value() okumak hata fırlatır. Önce hasValue()'ya bak ve şablondaki gibi error()'ı kullanıcıya göster."
+      - problem:
+          en: "The browser blocks the request with a CORS error."
+          tr: "Tarayıcı isteği CORS hatasıyla engelliyor."
+        fix:
+          en: "The API must allow your site. Open Library does for any site; for another API check its docs, or call it from your own backend."
+          tr: "API'nin sitene izin vermesi gerekir. Open Library her siteye izin verir; başka bir API için dokümanına bak ya da kendi backend'inden çağır."
+    quiz:
+      - q:
+          en: "What happens while the search term is empty?"
+          tr: "Arama metni boşken ne olur?"
+        options:
+          en: [A request for everything is sent, The resource stays idle and sends no request, The app crashes]
+          tr: [Her şey için bir istek gönderilir, Resource boşta kalır ve istek göndermez, Uygulama çöker]
+        answer: 1
+        why:
+          en: "The request function returns undefined for an empty term, and a resource sends nothing in that case."
+          tr: "İstek fonksiyonu boş metinde undefined döndürür ve resource bu durumda hiçbir şey göndermez."
+    sources:
+      - title: Reactive data fetching with httpResource
+        url: https://angular.dev/guide/http/http-resource
+      - title: Making HTTP requests
+        url: https://angular.dev/guide/http/making-requests
+      - title: Open Library Search API
+        url: https://openlibrary.org/dev/docs/api/search
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the app with Vitest"
+      tr: "Uygulamayı Vitest ile test etme"
+    minutes: 60
+    needs: [api]
+    why:
+      en: "Tests run your code and tell you when something breaks. New Angular projects test with Vitest and jsdom (a fake browser in Node.js), so tests are fast and need no real browser. Tests that never call the real API are fast and do not break when the network does."
+      tr: "Testler kodunu çalıştırır ve bir şey bozulduğunda sana söyler. Yeni Angular projeleri Vitest ve jsdom (Node.js içinde sahte bir tarayıcı) ile test eder; bu yüzden testler hızlıdır ve gerçek tarayıcı gerekmez. Gerçek API'yi hiç çağırmayan testler hızlıdır ve ağ bozulunca bozulmaz."
+    learn:
+      en: |
+        - `describe`, `it` and `expect` are Vitest's way to group and check things
+        - `TestBed.createComponent(...)` builds a component in a test; `await fixture.whenStable()` waits until the page is updated
+        - `TestBed.inject(Service)` gets a service; `fixture.componentRef.setInput(...)` sets an input
+        - `provideHttpClientTesting()` and `HttpTestingController` replace the network with answers you write
+      tr: |
+        - `describe`, `it` ve `expect` Vitest'in şeyleri gruplama ve kontrol etme yoludur
+        - `TestBed.createComponent(...)` bir testte component kurar; `await fixture.whenStable()` sayfa güncellenene kadar bekler
+        - `TestBed.inject(Service)` service alır; `fixture.componentRef.setInput(...)` input verir
+        - `provideHttpClientTesting()` ve `HttpTestingController` ağın yerine senin yazdığın cevapları koyar
+    do:
+      en: |
+        1. Replace `src/app/app.spec.ts` with the version below (the CLI's test looked for the welcome text).
+        2. Create the four other spec files below.
+        3. Run `npm test -- --no-watch`. Without `--no-watch` the tests run again on every save, which is nice while writing them. Expect `Tests 12 passed`.
+        4. Break something on purpose, for example change `pages: 474` to `475` in a test, and see it fail. Then fix it.
+        5. Commit your work.
+      tr: |
+        1. `src/app/app.spec.ts` dosyasını aşağıdaki sürümle değiştir (CLI'ın testi karşılama metnini arıyordu).
+        2. Aşağıdaki diğer dört spec dosyasını oluştur.
+        3. `npm test -- --no-watch` çalıştır. `--no-watch` olmadan testler her kaydedişte yeniden çalışır; yazarken güzeldir. `Tests 12 passed` görmelisin.
+        4. Bilerek bir şeyi boz, örneğin bir testte `pages: 474`'ü `475` yap ve başarısız olduğunu gör. Sonra düzelt.
+        5. Çalışmanı commit et.
+    code:
+      - file: src/app/app.spec.ts
+        lang: ts
+        text: |
+          import { TestBed } from '@angular/core/testing';
+          import { provideRouter } from '@angular/router';
+          import { App } from './app';
+          import { routes } from './app.routes';
+
+          describe('App', () => {
+            beforeEach(() => {
+              localStorage.clear();
+              TestBed.configureTestingModule({ imports: [App], providers: [provideRouter(routes)] });
+            });
+
+            it('shows the title and the navigation', async () => {
+              const fixture = TestBed.createComponent(App);
+              await fixture.whenStable();
+
+              const page = fixture.nativeElement as HTMLElement;
+              expect(page.querySelector('h1')?.textContent).toBe('Reading log');
+              expect(page.querySelectorAll('nav a').length).toBe(4);
+            });
+          });
+      - file: src/app/book-store.spec.ts
+        lang: ts
+        text: |
+          import { TestBed } from '@angular/core/testing';
+          import { BookStore } from './book-store';
+
+          describe('BookStore', () => {
+            beforeEach(() => localStorage.clear());
+
+            it('adds a book that is not finished', () => {
+              const store = TestBed.inject(BookStore);
+              const before = store.books().length;
+
+              store.add({ title: 'Test book', author: 'Test author', pages: 100 });
+
+              expect(store.books().length).toBe(before + 1);
+              expect(store.books().at(-1)).toMatchObject({ title: 'Test book', finished: false });
+            });
+
+            it('counts the pages of finished books only', () => {
+              const store = TestBed.inject(BookStore);
+              expect(store.pagesRead()).toBe(608); // Dune is finished in the sample data
+
+              store.toggle('2'); // The Pragmatic Programmer, 352 pages
+
+              expect(store.finishedCount()).toBe(2);
+              expect(store.pagesRead()).toBe(608 + 352);
+            });
+
+            it('removes a book', () => {
+              const store = TestBed.inject(BookStore);
+
+              store.remove('1');
+
+              expect(store.books().some((book) => book.id === '1')).toBe(false);
+            });
+
+            it('saves the list in localStorage', () => {
+              const store = TestBed.inject(BookStore);
+
+              store.add({ title: 'Saved book', author: 'Someone', pages: 50 });
+              TestBed.tick(); // runs the effect that saves
+
+              expect(localStorage.getItem('reading-log.books')).toContain('Saved book');
+            });
+
+            it('starts with the sample books when the saved data is broken', () => {
+              localStorage.setItem('reading-log.books', 'this is not json');
+
+              const store = TestBed.inject(BookStore);
+
+              expect(store.books().length).toBe(3);
+            });
+          });
+      - file: src/app/book-card.spec.ts
+        lang: ts
+        text: |
+          import { TestBed } from '@angular/core/testing';
+          import { Book } from './book';
+          import { BookCard } from './book-card';
+
+          const book: Book = { id: 'b1', title: 'Dune', author: 'Frank Herbert', pages: 608, finished: false };
+
+          describe('BookCard', () => {
+            function create(value: Book = book) {
+              const fixture = TestBed.createComponent(BookCard);
+              fixture.componentRef.setInput('book', value);
+              return fixture;
+            }
+
+            it('shows the title and the author', async () => {
+              const fixture = create();
+              await fixture.whenStable();
+
+              const text = (fixture.nativeElement as HTMLElement).textContent;
+              expect(text).toContain('Dune');
+              expect(text).toContain('Frank Herbert');
+              expect(text).toContain('608 pages');
+            });
+
+            it('sends the id when the toggle button is clicked', async () => {
+              const fixture = create();
+              const received: string[] = [];
+              fixture.componentInstance.toggled.subscribe((id) => received.push(id));
+              await fixture.whenStable();
+
+              const button = (fixture.nativeElement as HTMLElement).querySelector('button');
+              button?.click();
+
+              expect(received).toEqual(['b1']);
+            });
+          });
+      - file: src/app/add.spec.ts
+        lang: ts
+        text: |
+          import { TestBed } from '@angular/core/testing';
+          import { provideRouter, Router } from '@angular/router';
+          import { Add } from './add';
+          import { BookStore } from './book-store';
+
+          function type(page: HTMLElement, label: string, value: string) {
+            const field = [...page.querySelectorAll('label')].find((l) => l.textContent?.includes(label));
+            const input = field?.querySelector('input') as HTMLInputElement;
+            input.value = value;
+            input.dispatchEvent(new Event('input'));
+          }
+
+          describe('Add', () => {
+            beforeEach(() => {
+              localStorage.clear();
+              TestBed.configureTestingModule({ providers: [provideRouter([{ path: '', children: [] }])] });
+            });
+
+            it('saves a valid book and goes back to the list', async () => {
+              const fixture = TestBed.createComponent(Add);
+              const page = fixture.nativeElement as HTMLElement;
+              await fixture.whenStable();
+
+              type(page, 'Title', '  Emma  ');
+              type(page, 'Author', 'Jane Austen');
+              type(page, 'Pages', '474');
+              page.querySelector('form')?.dispatchEvent(new Event('submit'));
+              await fixture.whenStable();
+
+              expect(TestBed.inject(BookStore).books().at(-1)).toMatchObject({
+                title: 'Emma',
+                author: 'Jane Austen',
+                pages: 474,
+              });
+              expect(TestBed.inject(Router).url).toBe('/');
+            });
+
+            it('does not save an empty form and shows the errors', async () => {
+              const fixture = TestBed.createComponent(Add);
+              const page = fixture.nativeElement as HTMLElement;
+              const store = TestBed.inject(BookStore);
+              const before = store.books().length;
+              await fixture.whenStable();
+
+              page.querySelector('form')?.dispatchEvent(new Event('submit'));
+              await fixture.whenStable();
+
+              expect(store.books().length).toBe(before);
+              expect(page.textContent).toContain('Enter a title');
+              expect(page.textContent).toContain('A book has at least 1 page');
+            });
+          });
+      - file: src/app/discover.spec.ts
+        lang: ts
+        text: |
+          import { provideHttpClient } from '@angular/common/http';
+          import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+          import { TestBed } from '@angular/core/testing';
+          import { BookStore } from './book-store';
+          import { Discover } from './discover';
+
+          describe('Discover', () => {
+            beforeEach(() => {
+              localStorage.clear();
+              TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+            });
+
+            it('sends no request until the user searches, then shows the results', async () => {
+              const http = TestBed.inject(HttpTestingController);
+              const fixture = TestBed.createComponent(Discover);
+              const page = fixture.nativeElement as HTMLElement;
+              fixture.detectChanges();
+              http.expectNone(() => true);
+
+              const input = page.querySelector('input') as HTMLInputElement;
+              input.value = 'dune';
+              page.querySelector('button')?.click();
+              fixture.detectChanges();
+
+              const request = http.expectOne((r) => r.url === 'https://openlibrary.org/search.json');
+              expect(request.request.params.get('q')).toBe('dune');
+              request.flush({
+                numFound: 1,
+                docs: [{ key: '/works/OL893414W', title: 'Dune', author_name: ['Frank Herbert'], number_of_pages_median: 608 }],
+              });
+              await fixture.whenStable();
+
+              expect(page.textContent).toContain('Dune');
+              expect(page.textContent).toContain('Frank Herbert');
+            });
+
+            it('adds a found book to the list', async () => {
+              const http = TestBed.inject(HttpTestingController);
+              const fixture = TestBed.createComponent(Discover);
+              const page = fixture.nativeElement as HTMLElement;
+              fixture.detectChanges();
+
+              (page.querySelector('input') as HTMLInputElement).value = 'piranesi';
+              page.querySelector('button')?.click();
+              fixture.detectChanges();
+              http
+                .expectOne((r) => r.url === 'https://openlibrary.org/search.json')
+                .flush({ numFound: 1, docs: [{ key: '/works/OL1W', title: 'Piranesi' }] });
+              await fixture.whenStable();
+
+              const add = [...page.querySelectorAll('article button')].find((b) => b.textContent?.includes('Add to my list'));
+              (add as HTMLButtonElement).click();
+
+              expect(TestBed.inject(BookStore).books().at(-1)).toMatchObject({
+                title: 'Piranesi',
+                author: 'Unknown author',
+                pages: 0,
+              });
+            });
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm test -- --no-watch
+    mistakes:
+      - problem:
+          en: "A test checks the page right after a click and sees the old text."
+          tr: "Bir test tıklamadan hemen sonra sayfayı kontrol ediyor ve eski metni görüyor."
+        fix:
+          en: "Await fixture.whenStable() so Angular can update the page before you look at it."
+          tr: "Sayfaya bakmadan önce Angular güncelleyebilsin diye fixture.whenStable()'ı bekle (await)."
+      - problem:
+          en: "Tests pass alone but fail together."
+          tr: "Testler tek tek geçiyor ama birlikte başarısız oluyor."
+        fix:
+          en: "They share localStorage. Clear it in beforeEach, as the specs here do."
+          tr: "localStorage'ı paylaşıyorlar. Buradaki spec'lerin yaptığı gibi beforeEach içinde temizle."
+    quiz:
+      - q:
+          en: "Why does the Discover test use HttpTestingController?"
+          tr: "Discover testi neden HttpTestingController kullanıyor?"
+        options:
+          en: [To call the real Open Library faster, So the test never uses the network and controls the answer, Because Vitest cannot run without it]
+          tr: [Gerçek Open Library'yi daha hızlı çağırmak için, Test ağı hiç kullanmasın ve cevabı kendisi belirlesin diye, Vitest onsuz çalışamadığı için]
+        answer: 1
+        why:
+          en: "Real network calls make tests slow and flaky. The controller lets the test check the request and answer it with fake data."
+          tr: "Gerçek ağ çağrıları testleri yavaş ve güvenilmez yapar. Controller testin isteği kontrol etmesini ve sahte veriyle cevaplamasını sağlar."
+    sources:
+      - title: Unit testing overview
+        url: https://angular.dev/guide/testing
+      - title: Testing HTTP requests
+        url: https://angular.dev/guide/http/testing
+      - title: Testing components
+        url: https://angular.dev/guide/testing/components-basics
+
+  - id: security
+    stage: security
+    title:
+      en: "Keep it safe: XSS and dependencies"
+      tr: "Güvende tut: XSS ve bağımlılıklar"
+    minutes: 40
+    needs: [tests]
+    why:
+      en: "The app shows text that users and APIs control. If that text could run as code (XSS, cross-site scripting), an attacker could act as your user. Angular treats every value as untrusted by default, and you must not turn that off."
+      tr: "Uygulama, kullanıcıların ve API'lerin kontrol ettiği metni gösterir. Bu metin kod olarak çalışabilseydi (XSS, cross-site scripting) saldırgan kullanıcın gibi davranabilirdi. Angular her değeri varsayılan olarak güvenilmez sayar ve sen bunu kapatmamalısın."
+    learn:
+      en: |
+        - Interpolation `{{ }}` always escapes: markup shows as plain text
+        - Values bound to `[innerHTML]` and `[href]` are sanitized: scripts and `javascript:` links are removed or disarmed
+        - `bypassSecurityTrust...` switches this off for one value. Never use it with data a user or an API can control
+        - A Content Security Policy (CSP) tells the browser which scripts may run; `autoCsp` builds one for static hosting
+        - `npm audit` lists known problems in your packages
+      tr: |
+        - Interpolation `{{ }}` her zaman kaçırır (escape): HTML işaretleri düz metin olarak görünür
+        - `[innerHTML]` ve `[href]`'e bağlanan değerler temizlenir (sanitize): script'ler ve `javascript:` linkleri kaldırılır ya da etkisizleştirilir
+        - `bypassSecurityTrust...` bunu tek bir değer için kapatır. Kullanıcının ya da API'nin kontrol edebildiği veriyle asla kullanma
+        - Content Security Policy (CSP) tarayıcıya hangi script'lerin çalışabileceğini söyler; `autoCsp` statik barındırma için bir tane üretir
+        - `npm audit` paketlerindeki bilinen sorunları listeler
+    do:
+      en: |
+        1. Create `src/app/security.spec.ts`. It proves that a book titled `<img src=x onerror=alert(1)>` shows as text and that Angular disarms a `javascript:` link and removes scripts from `innerHTML`. Run `npm test -- --no-watch`; expect `Tests 14 passed`.
+        2. Turn on the automatic CSP with the first command below, then run `npm run build`. Open `dist/reading-log/browser/index.html` and find the `Content-Security-Policy` meta tag.
+        3. Run `npm audit`. Read what it says; `found 0 vulnerabilities` is the goal.
+        4. Rule for the whole project: no `bypassSecurityTrust...` calls and no `innerHTML` with data you did not write.
+        5. Commit your work.
+      tr: |
+        1. `src/app/security.spec.ts` dosyasını oluştur. `<img src=x onerror=alert(1)>` başlıklı bir kitabın metin olarak göründüğünü, Angular'ın bir `javascript:` linkini etkisizleştirdiğini ve `innerHTML` içinden script'leri kaldırdığını kanıtlar. `npm test -- --no-watch` çalıştır; `Tests 14 passed` görmelisin.
+        2. Aşağıdaki ilk komutla otomatik CSP'yi aç, sonra `npm run build` çalıştır. `dist/reading-log/browser/index.html` dosyasını aç ve `Content-Security-Policy` meta etiketini bul.
+        3. `npm audit` çalıştır. Ne dediğini oku; hedef `found 0 vulnerabilities`.
+        4. Bütün proje için kural: `bypassSecurityTrust...` çağrısı yok ve kendi yazmadığın veriyle `innerHTML` yok.
+        5. Çalışmanı commit et.
+    code:
+      - file: src/app/security.spec.ts
+        lang: ts
+        text: |
+          import { Component } from '@angular/core';
+          import { TestBed } from '@angular/core/testing';
+          import { Book } from './book';
+          import { BookCard } from './book-card';
+
+          @Component({
+            selector: 'app-probe',
+            template: `
+              <a [href]="link">link</a>
+              <div [innerHTML]="html"></div>
+            `,
+          })
+          class Probe {
+            link = 'javascript:alert(1)';
+            html = '<b>bold</b><script>alert(1)</script><img src="x" onerror="alert(1)">';
+          }
+
+          describe('Angular protects against XSS', () => {
+            it('shows markup in a book title as plain text', async () => {
+              const book: Book = { id: 'x', title: '<img src=x onerror=alert(1)>', author: 'A', pages: 1, finished: false };
+              const fixture = TestBed.createComponent(BookCard);
+              fixture.componentRef.setInput('book', book);
+              await fixture.whenStable();
+
+              const page = fixture.nativeElement as HTMLElement;
+              expect(page.querySelector('img')).toBeNull();
+              expect(page.querySelector('h3')?.textContent).toBe('<img src=x onerror=alert(1)>');
+            });
+
+            it('sanitizes a javascript: link and removes scripts from innerHTML', async () => {
+              const fixture = TestBed.createComponent(Probe);
+              await fixture.whenStable();
+
+              const page = fixture.nativeElement as HTMLElement;
+              expect(page.querySelector('a')?.getAttribute('href')).toBe('unsafe:javascript:alert(1)');
+              expect(page.querySelector('div')?.innerHTML).toContain('<b>bold</b>');
+              expect(page.querySelector('script')).toBeNull();
+              expect(page.querySelector('div')?.innerHTML).not.toContain('onerror');
+            });
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npx ng config projects.reading-log.architect.build.options.security.autoCsp true
+          npm run build
+          npm audit
+    mistakes:
+      - problem:
+          en: "Using bypassSecurityTrustHtml to make some API text look nice."
+          tr: "Bir API metni güzel görünsün diye bypassSecurityTrustHtml kullanmak."
+        fix:
+          en: "That text is untrusted. Show it with {{ }}. If you really need HTML, sanitize it first or render it with real components."
+          tr: "O metin güvenilmezdir. {{ }} ile göster. Gerçekten HTML gerekiyorsa önce temizle ya da gerçek component'lerle çiz."
+      - problem:
+          en: "Believing autoCsp protects everything."
+          tr: "autoCsp'nin her şeyi koruduğunu sanmak."
+        fix:
+          en: "It covers scripts only, and a meta tag cannot carry every directive. GitHub Pages cannot send custom headers, so for stricter rules use a host where you can set them."
+          tr: "Sadece script'leri kapsar ve meta etiketi her direktifi taşıyamaz. GitHub Pages özel header gönderemez; daha sıkı kurallar için header koyabildiğin bir barındırma kullan."
+    quiz:
+      - q:
+          en: "A book title contains <script>alert(1)</script> and you show it with {{ book().title }}. What happens?"
+          tr: "Bir kitap başlığı <script>alert(1)</script> içeriyor ve onu {{ book().title }} ile gösteriyorsun. Ne olur?"
+        options:
+          en: [The script runs, The text is shown as is and nothing runs, The build fails]
+          tr: [Script çalışır, Metin olduğu gibi gösterilir ve hiçbir şey çalışmaz, Build başarısız olur]
+        answer: 1
+        why:
+          en: "Interpolation escapes the value, so the browser shows the angle brackets instead of treating them as HTML."
+          tr: "Interpolation değeri kaçırır; bu yüzden tarayıcı açılı parantezleri HTML saymak yerine olduğu gibi gösterir."
+    sources:
+      - title: Angular security
+        url: https://angular.dev/best-practices/security
+      - title: Content security policy with autoCsp
+        url: https://angular.dev/best-practices/security#content-security-policy
+      - title: npm audit
+        url: https://docs.npmjs.com/cli/commands/npm-audit
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Fast by default: zoneless, OnPush and @defer"
+      tr: "Varsayılan olarak hızlı: zoneless, OnPush ve @defer"
+    minutes: 50
+    needs: [security]
+    why:
+      en: "A fast app downloads little and redraws little. Angular 22 helps by default; you keep it fast by using signals and by loading rarely used parts later."
+      tr: "Hızlı bir uygulama az indirir ve az yeniden çizer. Angular 22 varsayılan olarak yardım eder; signal kullanarak ve nadir kullanılan parçaları sonra yükleyerek hızlı tutarsın."
+    learn:
+      en: |
+        - Zoneless: new apps run without zone.js; the page updates when a signal, an event or `markForCheck` says something changed
+        - OnPush is the default change detection since Angular 22: a component is checked when its inputs, signals or events change. `ChangeDetectionStrategy.Eager` is the old behavior
+        - `@defer (on viewport)` loads a component and its code only when its placeholder scrolls into view
+        - Lazy routes and `@defer` both make separate files; the build output lists them
+      tr: |
+        - Zoneless: yeni uygulamalar zone.js olmadan çalışır; sayfa bir signal, bir olay ya da `markForCheck` bir şeyin değiştiğini söyleyince güncellenir
+        - Angular 22'den beri varsayılan change detection OnPush'tur: component, input'ları, signal'leri ya da olayları değişince kontrol edilir. `ChangeDetectionStrategy.Eager` eski davranıştır
+        - `@defer (on viewport)` bir component'i ve kodunu sadece placeholder'ı ekrana kayınca yükler
+        - Lazy route'lar ve `@defer` ikisi de ayrı dosyalar üretir; build çıktısı onları listeler
+    do:
+      en: |
+        1. Check that your project is zoneless: `grep zone package.json` prints nothing (no `zone.js` package), and none of your components set `changeDetection`.
+        2. Create `src/app/reading-goal.ts` and replace `src/app/stats.ts` with the version that wraps the goal in `@defer`.
+        3. Run `npm run build`. A new lazy chunk named `reading-goal` appears: that part of the page is not in the first download.
+        4. Open the statistics page. The goal appears when the placeholder is visible. Change the goal and see the progress bar follow.
+        5. Optional: in Chrome, open DevTools → Lighthouse and run a report on your page to see the scores.
+        6. Commit your work.
+      tr: |
+        1. Projenin zoneless olduğunu kontrol et: `grep zone package.json` hiçbir şey yazmaz (`zone.js` paketi yok) ve component'lerinden hiçbiri `changeDetection` ayarlamaz.
+        2. `src/app/reading-goal.ts` dosyasını oluştur ve `src/app/stats.ts` dosyasını hedefi `@defer` içine saran sürümle değiştir.
+        3. `npm run build` çalıştır. `reading-goal` adlı yeni bir lazy chunk görünür: sayfanın o parçası ilk indirmede yok.
+        4. İstatistik sayfasını aç. Hedef, placeholder görününce çıkar. Hedefi değiştir ve ilerleme çubuğunun takip ettiğini gör.
+        5. İsteğe bağlı: Chrome'da DevTools → Lighthouse'u aç ve sayfan için bir rapor çalıştır; puanları gör.
+        6. Çalışmanı commit et.
+    code:
+      - file: src/app/reading-goal.ts
+        lang: ts
+        text: |
+          import { Component, computed, inject, signal } from '@angular/core';
+          import { BookStore } from './book-store';
+
+          @Component({
+            selector: 'app-reading-goal',
+            template: `
+              <h3>Reading goal</h3>
+              <label>
+                Pages to read
+                <input #goalInput type="number" min="1" [value]="goal()" (input)="goal.set(goalInput.valueAsNumber > 0 ? goalInput.valueAsNumber : 1)" />
+              </label>
+              <progress [value]="percent()" max="100"></progress>
+              <p>{{ store.pagesRead() }} of {{ goal() }} pages ({{ percent() }}%)</p>
+            `,
+          })
+          export class ReadingGoal {
+            protected readonly store = inject(BookStore);
+            protected readonly goal = signal(1000);
+            protected readonly percent = computed(() => Math.min(100, Math.round((this.store.pagesRead() / this.goal()) * 100)));
+          }
+      - file: src/app/stats.ts
+        lang: ts
+        text: |
+          import { Component, inject } from '@angular/core';
+          import { BookStore } from './book-store';
+          import { ReadingGoal } from './reading-goal';
+
+          @Component({
+            selector: 'app-stats',
+            imports: [ReadingGoal],
+            template: `
+              <h2>Statistics</h2>
+              <ul>
+                <li>Books in the list: {{ store.books().length }}</li>
+                <li>Books finished: {{ store.finishedCount() }}</li>
+                <li>Pages read: {{ store.pagesRead() }}</li>
+              </ul>
+
+              @defer (on viewport) {
+                <app-reading-goal />
+              } @placeholder {
+                <p>The reading goal loads when you scroll here.</p>
+              } @loading (minimum 300ms) {
+                <p>Loading...</p>
+              }
+            `,
+          })
+          export class Stats {
+            protected readonly store = inject(BookStore);
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          grep zone package.json
+          npm run build
+    mistakes:
+      - problem:
+          en: "Changing a plain field (count = 5) and the page does not update."
+          tr: "Düz bir field'ı değiştirmek (count = 5) ve sayfanın güncellenmemesi."
+        fix:
+          en: "Without zone.js nothing watches plain fields. Keep changing state in a signal."
+          tr: "zone.js olmadan düz field'ları kimse izlemez. State'i signal içinde değiştirmeye devam et."
+      - problem:
+          en: "Using the deferred component outside the @defer block too: nothing is deferred."
+          tr: "Ertelenen component'i @defer bloğunun dışında da kullanmak: hiçbir şey ertelenmez."
+        fix:
+          en: "Then it is part of the main bundle. Use it only inside @defer."
+          tr: "O zaman ana bundle'ın parçası olur. Sadece @defer içinde kullan."
+      - problem:
+          en: "Changing a property of an object that an input holds (book.title = 'x') and seeing no update."
+          tr: "Bir input'un tuttuğu objenin özelliğini değiştirmek (book.title = 'x') ve güncelleme görmemek."
+        fix:
+          en: "OnPush components update when the input gets a new object. Replace the object, as toggle() does."
+          tr: "OnPush component'ler input yeni bir obje alınca güncellenir. toggle()'daki gibi objeyi yenisiyle değiştir."
+    quiz:
+      - q:
+          en: "What makes the reading-goal code a separate file in the build?"
+          tr: "reading-goal kodunu build'de ayrı bir dosya yapan nedir?"
+        options:
+          en: [The @defer block that is the only place using it, The file name, A setting in package.json]
+          tr: [Onu kullanan tek yer olan @defer bloğu, Dosyanın adı, package.json'daki bir ayar]
+        answer: 0
+        why:
+          en: "The compiler moves a component that is used only inside @defer into its own chunk and downloads it when the trigger fires."
+          tr: "Derleyici, sadece @defer içinde kullanılan component'i kendi chunk'ına taşır ve tetikleyici çalışınca indirir."
+    sources:
+      - title: Zoneless Angular
+        url: https://angular.dev/guide/zoneless
+      - title: Skipping component subtrees (OnPush)
+        url: https://angular.dev/best-practices/skipping-subtrees
+      - title: Deferrable views (@defer)
+        url: https://angular.dev/guide/templates/defer
+
+  - id: build
+    stage: packaging
+    title:
+      en: "Build the app for production"
+      tr: "Uygulamayı production için build etme"
+    minutes: 30
+    needs: [performance]
+    why:
+      en: "ng build turns your TypeScript and templates into small optimized files. Those files are what you put on a server. The build also warns you when the app gets too big."
+      tr: "ng build TypeScript ve template'lerini küçük, optimize dosyalara çevirir. Sunucuya koyduğun şey bu dosyalardır. Build, uygulama çok büyüyünce de seni uyarır."
+    learn:
+      en: |
+        - `npm run build` runs `ng build`; the production configuration is the default
+        - The output is in `dist/reading-log/browser`: `index.html`, hashed JavaScript chunks and CSS
+        - File names contain a hash of the content, so browsers cache them safely
+        - Budgets in `angular.json` warn at 500 kB and fail at 1 MB for the first download
+      tr: |
+        - `npm run build` `ng build`'i çalıştırır; production yapılandırması varsayılandır
+        - Çıktı `dist/reading-log/browser` içindedir: `index.html`, hash'li JavaScript chunk'ları ve CSS
+        - Dosya adları içeriğin hash'ini taşır; böylece tarayıcılar onları güvenle önbelleğe alır
+        - `angular.json` içindeki budget'lar ilk indirme için 500 kB'ta uyarır, 1 MB'ta başarısız olur
+    do:
+      en: |
+        1. Run the first block below and read the output: the "Initial total" is what a visitor downloads first (about 290 kB raw and 80 kB compressed here). The lazy chunks come later.
+        2. Look inside `dist/reading-log/browser`.
+        3. Serve it locally with the second block and open http://localhost:8080. This is exactly what a web server will deliver.
+        4. Stop it with `Ctrl+C`. The `dist` folder stays out of Git: the CLI's `.gitignore` already lists it.
+        5. Run `npm run build` again after every change before you publish.
+      tr: |
+        1. Aşağıdaki ilk bloğu çalıştır ve çıktıyı oku: "Initial total" ziyaretçinin ilk indirdiği şeydir (burada ham yaklaşık 290 kB, sıkıştırılmış 80 kB). Lazy chunk'lar sonra gelir.
+        2. `dist/reading-log/browser` içine bak.
+        3. İkinci blokla yerelde sun ve http://localhost:8080 adresini aç. Bir web sunucusunun vereceği şey tam olarak budur.
+        4. `Ctrl+C` ile durdur. `dist` klasörü Git'e girmez: CLI'ın `.gitignore` dosyası onu zaten listeler.
+        5. Yayınlamadan önce her değişiklikten sonra `npm run build`'i tekrar çalıştır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm run build
+      - file: terminal
+        lang: sh
+        text: |
+          python3 -m http.server 8080 --directory dist/reading-log/browser
+    mistakes:
+      - problem:
+          en: "Opening dist/reading-log/browser/index.html by double click: the page is blank."
+          tr: "dist/reading-log/browser/index.html dosyasına çift tıklayıp açmak: sayfa boş."
+        fix:
+          en: "The files must be served over http. Use a server, as in the second block."
+          tr: "Dosyalar http üzerinden sunulmalı. İkinci bloktaki gibi bir sunucu kullan."
+      - problem:
+          en: "The build fails because of the bundle budget."
+          tr: "Build bundle budget'ı yüzünden başarısız oluyor."
+        fix:
+          en: "Find what is big with the build output. Lazy load pages, use @defer, remove unused packages. Raise the budget in angular.json only when you understand why."
+          tr: "Neyin büyük olduğunu build çıktısından bul. Sayfaları lazy yükle, @defer kullan, kullanılmayan paketleri kaldır. Budget'ı angular.json'da sadece nedenini anlayınca yükselt."
+    quiz:
+      - q:
+          en: "Why do built file names contain a hash like main-TQHI4BB6.js?"
+          tr: "Build edilen dosya adları neden main-TQHI4BB6.js gibi bir hash içerir?"
+        options:
+          en: [To hide the code, So a changed file gets a new name and browsers can cache the others for long, To make it smaller]
+          tr: [Kodu gizlemek için, Değişen dosya yeni ad alsın ve tarayıcılar diğerlerini uzun süre önbellekte tutabilsin diye, Küçültmek için]
+        answer: 1
+        why:
+          en: "The hash comes from the content. Unchanged files keep their name and stay cached; a changed file is downloaded fresh."
+          tr: "Hash içerikten gelir. Değişmeyen dosyalar adını korur ve önbellekte kalır; değişen dosya yeniden indirilir."
+    sources:
+      - title: Building Angular apps
+        url: https://angular.dev/tools/cli/build
+      - title: Deployment (production build)
+        url: https://angular.dev/tools/cli/deployment
+      - title: Python http.server
+        url: https://docs.python.org/3/library/http.server.html
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Publish on GitHub Pages"
+      tr: "GitHub Pages'te yayınlama"
+    minutes: 60
+    needs: [build]
+    why:
+      en: "Publishing makes your app reachable by anyone with the link. With GitHub Actions every push to main tests, builds and publishes the app by itself, for free."
+      tr: "Yayınlamak uygulamanı bağlantıya sahip herkesin erişebileceği hale getirir. GitHub Actions ile main'e her push'ta uygulama kendiliğinden test edilir, build edilir ve ücretsiz yayınlanır."
+    learn:
+      en: |
+        - Putting your project on GitHub
+        - A GitHub Actions workflow that tests, builds and deploys
+        - `--base-href /reading-log/` for a project site at `https://<user>.github.io/<repo>/`
+        - GitHub Pages is static: a copy of `index.html` named `404.html` lets Angular handle deep links like `/stats`
+        - Limits from GitHub's docs: sites up to 1 GB, a soft bandwidth limit of 100 GB per month, and deployments time out after 10 minutes. On a free account the repository must be public. Pages is not for running a business or a shop
+      tr: |
+        - Projeni GitHub'a koymak
+        - Test eden, build eden ve yayınlayan bir GitHub Actions workflow'u
+        - `https://<kullanıcı>.github.io/<repo>/` adresindeki proje sitesi için `--base-href /reading-log/`
+        - GitHub Pages statiktir: `404.html` adlı bir `index.html` kopyası, Angular'ın `/stats` gibi derin linkleri yönetmesini sağlar
+        - GitHub dokümanındaki limitler: 1 GB'a kadar site, ayda 100 GB'lık yumuşak bant genişliği limiti ve 10 dakikada zaman aşımına uğrayan deploy'lar. Ücretsiz hesapta repo herkese açık (public) olmalı. Pages bir iş ya da mağaza işletmek için değildir
+    do:
+      en: |
+        1. On github.com create a new **public** repository named `reading-log`, empty (no README).
+        2. Connect it and push (first block below). `git branch -M main` makes sure your branch is called `main`.
+        3. Create `.github/workflows/deploy.yml` with the content below, commit and push.
+        4. On GitHub: *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+        5. Open the *Actions* tab and wait for the green check. Your app is at `https://<your-user>.github.io/reading-log/`.
+        6. Open `/reading-log/stats` directly in a new tab: it works because of `404.html`.
+        7. Another free option is Firebase Hosting: `ng add @angular/fire` (see the Angular deployment docs).
+      tr: |
+        1. github.com'da **herkese açık (public)** `reading-log` adında boş yeni bir repo oluştur (README yok).
+        2. Bağla ve push et (aşağıdaki ilk blok). `git branch -M main` dalının adının `main` olmasını sağlar.
+        3. Aşağıdaki içerikle `.github/workflows/deploy.yml` dosyasını oluştur, commit ve push et.
+        4. GitHub'da: *Settings → Pages → Build and deployment → Source: GitHub Actions*.
+        5. *Actions* sekmesini aç ve yeşil onayı bekle. Uygulaman `https://<kullanıcı-adın>.github.io/reading-log/` adresinde.
+        6. Yeni sekmede `/reading-log/stats` adresini doğrudan aç: `404.html` sayesinde çalışır.
+        7. Bir diğer ücretsiz seçenek Firebase Hosting: `ng add @angular/fire` (Angular deployment dokümanına bak).
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git branch -M main
+          git remote add origin https://github.com/<your-user>/reading-log.git
+          git push -u origin main
+      - file: .github/workflows/deploy.yml
+        lang: yaml
+        text: |
+          name: Deploy to GitHub Pages
+
+          on:
+            push:
+              branches: [main]
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+          concurrency:
+            group: pages
+            cancel-in-progress: true
+
+          jobs:
+            deploy:
+              environment:
+                name: github-pages
+                url: ${{ steps.deployment.outputs.page_url }}
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: lts/*
+                    cache: npm
+                - run: npm ci
+                - run: npm test -- --no-watch
+                - run: npm run build -- --base-href /${{ github.event.repository.name }}/
+                # GitHub Pages shows 404.html for unknown paths. Angular starts from it and shows the right page.
+                - run: cp dist/reading-log/browser/index.html dist/reading-log/browser/404.html
+                - uses: actions/configure-pages@v6
+                - uses: actions/upload-pages-artifact@v5
+                  with:
+                    path: ./dist/reading-log/browser
+                - id: deployment
+                  uses: actions/deploy-pages@v5
+    mistakes:
+      - problem:
+          en: "The published page is blank and the console shows 404 for the JavaScript files."
+          tr: "Yayınlanan sayfa boş ve konsolda JavaScript dosyaları için 404 görünüyor."
+        fix:
+          en: "The base href is missing or wrong. For https://user.github.io/reading-log/ it must be /reading-log/ with both slashes. The workflow passes it with --base-href."
+          tr: "Base href eksik ya da yanlış. https://user.github.io/reading-log/ için iki eğik çizgisiyle /reading-log/ olmalı. Workflow bunu --base-href ile verir."
+      - problem:
+          en: "The workflow fails at npm ci, or the deploy step says Pages is not enabled."
+          tr: "Workflow npm ci'da başarısız oluyor ya da deploy adımı Pages'in açık olmadığını söylüyor."
+        fix:
+          en: "Commit package-lock.json (npm ci installs exactly what it lists). And set Settings → Pages → Source to GitHub Actions."
+          tr: "package-lock.json'u commit et (npm ci tam olarak onda yazanları kurar). Ve Settings → Pages → Source'u GitHub Actions yap."
+    quiz:
+      - q:
+          en: "Why does the workflow run the tests before building?"
+          tr: "Workflow neden build'den önce testleri çalıştırıyor?"
+        options:
+          en: [GitHub requires it, So a broken version is never published, To make the build smaller]
+          tr: [GitHub zorunlu tutuyor, Bozuk bir sürüm asla yayınlanmasın diye, Build'i küçültmek için]
+        answer: 1
+        why:
+          en: "If a test fails the job stops and the last good version stays online."
+          tr: "Bir test başarısız olursa iş durur ve son sağlam sürüm yayında kalır."
+    sources:
+      - title: Angular deployment guide
+        url: https://angular.dev/tools/cli/deployment
+      - title: GitHub Pages with a custom workflow
+        url: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+      - title: GitHub Pages limits
+        url: https://docs.github.com/en/pages/getting-started-with-github-pages/github-pages-limits
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Know when it breaks"
+      tr: "Bozulduğunda haberin olsun"
+    minutes: 45
+    needs: [deploy]
+    why:
+      en: "Once real people use the app you will not see their screens. Angular sends unexpected errors to one place, the ErrorHandler. You report them from there, and an uptime check tells you when the site is down."
+      tr: "Uygulamayı gerçek insanlar kullanmaya başlayınca onların ekranını göremezsin. Angular beklenmeyen hataları tek bir yere, ErrorHandler'a gönderir. Onları oradan raporlarsın; uptime kontrolü de site çöktüğünde haber verir."
+    learn:
+      en: |
+        - `ErrorHandler` receives errors that nobody caught; replace it with your own class in `app.config.ts`
+        - `provideBrowserGlobalErrorListeners()` (already in the generated config) also sends window errors and unhandled promise rejections to it
+        - Errors you expect, like a failed request, belong at the place they happen: `httpResource` shows them in `error()`
+        - `navigator.sendBeacon` sends a small POST that survives a closing tab
+        - Uptime checks and keeping packages up to date
+      tr: |
+        - `ErrorHandler` kimsenin yakalamadığı hataları alır; `app.config.ts` içinde onu kendi class'ınla değiştir
+        - `provideBrowserGlobalErrorListeners()` (oluşan yapılandırmada zaten var) pencere hatalarını ve yakalanmamış promise reddedişlerini de ona gönderir
+        - Başarısız istek gibi beklediğin hatalar, oluştukları yerde ele alınır: `httpResource` onları `error()` içinde gösterir
+        - `navigator.sendBeacon` sekme kapanırken bile gönderilen küçük bir POST yollar
+        - Uptime kontrolleri ve paketleri güncel tutmak
+    do:
+      en: |
+        1. Create `src/app/error-reporter.ts` and `src/app/error-reporter.spec.ts` below, and replace `src/app/app.config.ts`.
+        2. Run `npm test -- --no-watch`; expect `Tests 15 passed`.
+        3. Send the errors somewhere: set the `ERROR_ENDPOINT` value to your collector's address. In God Eye: the project's *Monitoring* tab gives you a snippet that sends errors to God Eye. With the empty default the errors only go to the console.
+        4. Add your site's address as an uptime check (God Eye *Tools → Uptime*).
+        5. Once a month: `npm outdated`, then `npx ng update` to see and apply Angular updates, run the tests, push.
+        6. Commit and push: the workflow deploys the new version.
+      tr: |
+        1. Aşağıdaki `src/app/error-reporter.ts` ve `src/app/error-reporter.spec.ts` dosyalarını oluştur ve `src/app/app.config.ts` dosyasını değiştir.
+        2. `npm test -- --no-watch` çalıştır; `Tests 15 passed` görmelisin.
+        3. Hataları bir yere gönder: `ERROR_ENDPOINT` değerini toplayıcının adresi yap. God Eye'da: projenin *İzleme* sekmesi hataları God Eye'a gönderen bir kod parçası verir. Boş varsayılanla hatalar sadece konsola gider.
+        4. Sitenin adresini uptime kontrolü olarak ekle (God Eye *Araçlar → Uptime*).
+        5. Ayda bir: `npm outdated`, sonra Angular güncellemelerini görmek ve uygulamak için `npx ng update`, testleri çalıştır, push et.
+        6. Commit et ve push et: workflow yeni sürümü yayınlar.
+    code:
+      - file: src/app/error-reporter.ts
+        lang: ts
+        text: |
+          import { ErrorHandler, inject, InjectionToken } from '@angular/core';
+          import { Router } from '@angular/router';
+
+          /** Address of your error collector. Empty means: only write to the console. */
+          export const ERROR_ENDPOINT = new InjectionToken<string>('ERROR_ENDPOINT', {
+            providedIn: 'root',
+            factory: () => '',
+          });
+
+          export class ErrorReporter implements ErrorHandler {
+            private readonly router = inject(Router);
+            private readonly endpoint = inject(ERROR_ENDPOINT);
+
+            handleError(error: unknown) {
+              const report = {
+                message: error instanceof Error ? error.message : String(error),
+                page: this.router.url,
+                time: new Date().toISOString(),
+              };
+              console.error('Reading log error', report, error);
+              if (this.endpoint) {
+                // sendBeacon sends a small POST in the background and survives a closing tab.
+                navigator.sendBeacon(this.endpoint, JSON.stringify(report));
+              }
+            }
+          }
+      - file: src/app/app.config.ts
+        lang: ts
+        text: |
+          import { ApplicationConfig, ErrorHandler, provideBrowserGlobalErrorListeners } from '@angular/core';
+          import { provideRouter } from '@angular/router';
+          import { ErrorReporter } from './error-reporter';
+          import { routes } from './app.routes';
+
+          export const appConfig: ApplicationConfig = {
+            providers: [
+              provideBrowserGlobalErrorListeners(),
+              provideRouter(routes),
+              { provide: ErrorHandler, useClass: ErrorReporter },
+            ],
+          };
+      - file: src/app/error-reporter.spec.ts
+        lang: ts
+        text: |
+          import { ErrorHandler } from '@angular/core';
+          import { TestBed } from '@angular/core/testing';
+          import { provideRouter } from '@angular/router';
+          import { ERROR_ENDPOINT, ErrorReporter } from './error-reporter';
+
+          describe('ErrorReporter', () => {
+            it('writes the error to the console and sends it to the collector', () => {
+              const sendBeacon = vi.fn();
+              Object.defineProperty(navigator, 'sendBeacon', { value: sendBeacon, configurable: true });
+              const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+              TestBed.configureTestingModule({
+                providers: [
+                  provideRouter([]),
+                  { provide: ErrorHandler, useClass: ErrorReporter },
+                  { provide: ERROR_ENDPOINT, useValue: 'https://errors.example.com/collect' },
+                ],
+              });
+
+              TestBed.inject(ErrorHandler).handleError(new Error('boom'));
+
+              expect(consoleError).toHaveBeenCalled();
+              expect(sendBeacon).toHaveBeenCalledWith(
+                'https://errors.example.com/collect',
+                expect.stringContaining('"message":"boom"'),
+              );
+            });
+          });
+    mistakes:
+      - problem:
+          en: "Expecting the ErrorHandler to see a failed request from httpResource."
+          tr: "ErrorHandler'ın httpResource'taki başarısız isteği görmesini beklemek."
+        fix:
+          en: "A resource keeps its error in error(). Show it in the template, and report it yourself if you want to track it."
+          tr: "Resource hatasını error() içinde tutar. Onu template'te göster; takip etmek istiyorsan kendin raporla."
+      - problem:
+          en: "Sending users' private data in the error report."
+          tr: "Hata raporunda kullanıcıların özel verisini göndermek."
+        fix:
+          en: "Send the message, the page and the time only. Never the content of forms or saved data."
+          tr: "Sadece mesajı, sayfayı ve zamanı gönder. Asla form içeriğini ya da kayıtlı veriyi değil."
+    quiz:
+      - q:
+          en: "Which errors reach your ErrorHandler?"
+          tr: "Hangi hatalar ErrorHandler'a ulaşır?"
+        options:
+          en: [Only errors you catch with try/catch, Unexpected errors that nothing else caught, Every console.log]
+          tr: [Sadece try/catch ile yakaladıkların, Başka hiçbir şeyin yakalamadığı beklenmeyen hatalar, Her console.log]
+        answer: 1
+        why:
+          en: "Errors you handle yourself never reach it. It is the last place, good for reporting what you did not expect."
+          tr: "Kendin ele aldığın hatalar ona hiç ulaşmaz. O son duraktır ve beklemediğin şeyleri raporlamak için iyidir."
+    sources:
+      - title: Unhandled errors in Angular
+        url: https://angular.dev/best-practices/error-handling
+      - title: Updating Angular (ng update)
+        url: https://angular.dev/cli/update
+      - title: npm outdated
+        url: https://docs.npmjs.com/cli/commands/npm-outdated
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Where to go next"
+      tr: "Bundan sonra nereye"
+    minutes: 120
+    needs: [deploy]
+    why:
+      en: "You have a tested Angular app on the internet. The next topics are what real projects add as they grow; pick the one your next project needs instead of learning all of them at once."
+      tr: "İnternette yayında, testleri yazılmış bir Angular uygulaman var. Sıradaki konular, gerçek projelerin büyüdükçe eklediği şeyler; hepsini birden öğrenmek yerine bir sonraki projenin ihtiyaç duyduğunu seç."
+    learn:
+      en: |
+        - **RxJS**: Angular's `HttpClient` returns observables; `toSignal` connects them to signals
+        - **HttpClient and interceptors**: POST requests, auth headers
+        - **Server-side rendering**: `ng add @angular/ssr` for search engines and a faster first view
+        - **Angular Material and the CDK**: ready-made accessible components
+        - **Accessibility**: keyboard use, labels and screen readers
+        - **End-to-end tests** with a browser tool such as Playwright
+        - **A backend**: build one with the Node.js or another backend roadmap
+      tr: |
+        - **RxJS**: Angular'ın `HttpClient`'ı observable döndürür; `toSignal` onları signal'lere bağlar
+        - **HttpClient ve interceptor'lar**: POST istekleri, auth header'ları
+        - **Sunucu tarafı render**: arama motorları ve daha hızlı ilk görünüm için `ng add @angular/ssr`
+        - **Angular Material ve CDK**: hazır, erişilebilir component'ler
+        - **Erişilebilirlik**: klavyeyle kullanım, etiketler ve ekran okuyucular
+        - **Uçtan uca testler**: Playwright gibi bir tarayıcı aracıyla
+        - **Bir backend**: Node.js ya da başka bir backend yol haritasıyla yaz
+    do:
+      en: |
+        1. Add a field to the form, for example a rating from 1 to 5, with `min()` and `max()` rules and a test.
+        2. Or add a "Delete all" button that asks the user first.
+        3. Or follow the Angular tutorials at angular.dev/tutorials for a second view of the same ideas.
+        4. Then start a backend roadmap in the learning center and make the app save its books on a server.
+      tr: |
+        1. Forma bir alan ekle, örneğin 1 ile 5 arası bir puan; `min()` ve `max()` kurallarıyla ve bir testle.
+        2. Ya da önce kullanıcıya soran bir "Hepsini sil" butonu ekle.
+        3. Ya da aynı fikirlere ikinci bir bakış için angular.dev/tutorials adresindeki Angular eğitimlerini izle.
+        4. Sonra öğrenme merkezinde bir backend yol haritasına başla ve uygulamanın kitaplarını bir sunucuda saklamasını sağla.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx ng generate component rating
+          npx ng add @angular/material
+    mistakes:
+      - problem:
+          en: "Learning every library at once and never finishing a project."
+          tr: "Her kütüphaneyi aynı anda öğrenmeye çalışıp hiçbir projeyi bitirememek."
+        fix:
+          en: "Add one thing at a time, only when your app needs it."
+          tr: "Her seferinde tek bir şey ekle, sadece uygulaman ona ihtiyaç duyduğunda."
+    quiz:
+      - q:
+          en: "Search engines should show your pages with their content. What do you add?"
+          tr: "Arama motorları sayfalarını içeriğiyle göstermeli. Ne eklersin?"
+        options:
+          en: [Server-side rendering, A bigger bundle budget, More signals]
+          tr: [Sunucu tarafı render, Daha büyük bir bundle budget'ı, Daha fazla signal]
+        answer: 0
+        why:
+          en: "With SSR the server sends finished HTML, so crawlers and users see content before the JavaScript loads."
+          tr: "SSR ile sunucu hazır HTML gönderir; böylece tarayıcı botları ve kullanıcılar JavaScript yüklenmeden içeriği görür."
+    sources:
+      - title: Angular essentials
+        url: https://angular.dev/essentials/components
+      - title: Server-side rendering
+        url: https://angular.dev/guide/ssr
+      - title: Angular Aria and accessibility best practices
+        url: https://angular.dev/best-practices/a11y

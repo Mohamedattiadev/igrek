@@ -1192,7 +1192,7 @@ sections:
         mistake:
           en: "Mutating an object that an input holds (user.name = 'x') and expecting an update. Replace the object or use signals."
           tr: "Bir input'un tuttuğu objeyi değiştirip (user.name = 'x') güncelleme beklemek. Objeyi yenisiyle değiştir ya da signal kullan."
-        source: https://angular.dev/best-practices/runtime-performance/skipping-subtrees
+        source: https://angular.dev/best-practices/skipping-subtrees
       - id: defer-block
         level: advanced
         title:
