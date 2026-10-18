@@ -511,6 +511,7 @@ insight.extraNotices = () => [
   ...backupJobs.notices(),
   ...testers.notices(),
   ...vault.notices(),
+  ...environments.notices(),
   // A lesson that keeps coming back: make it a rule?
   ...lessons
     .list()

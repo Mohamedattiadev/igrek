@@ -219,7 +219,9 @@ describe("product analytics", () => {
     ).toBe(true);
     const hashes = sqlite.query("SELECT user_hash FROM app_users_daily").all() as { user_hash: string }[];
     expect(hashes).toHaveLength(2);
-    expect(JSON.stringify(hashes)).not.toContain("ada");
+    // Only hex hashes are kept: the email (with its "@" and ".") never reaches the table.
+    for (const { user_hash } of hashes) expect(user_hash).toMatch(/^[0-9a-f]+$/);
+    expect(JSON.stringify(hashes)).not.toContain("x.test");
     // Sign-ups stored as epoch milliseconds (as Prisma does on SQLite).
     const file = join(dir, "app.db");
     const app = new Sqlite(file);

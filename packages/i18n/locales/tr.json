@@ -141,7 +141,10 @@
     "notice_secretRequest": "bir AI senden bir sır istiyor",
     "notice_agentReport": "bir AI senin için bir sayfa hazırladı",
     "notice_agentForm": "bir AI senden bir form doldurmanı istiyor",
-    "notice_ratchet": "son taramadan beri yeni sorunlar çıktı"
+    "notice_ratchet": "son taramadan beri yeni sorunlar çıktı",
+    "notice_deployFailed": "bir deploy başarısız oldu",
+    "notice_deployDone": "deploy edildi",
+    "done": "Halledildi (gizle)"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",

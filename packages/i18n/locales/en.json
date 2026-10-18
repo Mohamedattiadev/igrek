@@ -141,7 +141,10 @@
     "notice_secretRequest": "an AI asks you for a secret",
     "notice_agentReport": "an AI made a page for you",
     "notice_agentForm": "an AI asks you to fill a form",
-    "notice_ratchet": "new problems appeared since the last scan"
+    "notice_ratchet": "new problems appeared since the last scan",
+    "notice_deployFailed": "a deploy failed",
+    "notice_deployDone": "deployed",
+    "done": "Handled (hide it)"
   },
   "placeholder": {
     "soon": "Coming in a later phase",

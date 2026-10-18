@@ -495,10 +495,10 @@ god-eye/
 - [x] Hızlı soru geçmişi — *proje başına*
 
 #### 2.6b 📥 Gelen Kutusu (dikkatini isteyen her şey tek yerde)
-- [ ] ⭐ Onay bekleyen agent'lar, @bahsetmeler, başarısız testler, düşen puanlar, limit uyarıları, zamanlanmış iş raporları, deploy sonuçları, takımdan öneriler — *cevap bekleyen terminaller ve hafıza çelişkileri hazır; diğer kaynaklar ilgili fazlarla eklenecek*
+- [x] ⭐ Onay bekleyen agent'lar, @bahsetmeler, başarısız testler, düşen puanlar, limit uyarıları, zamanlanmış iş raporları, deploy sonuçları, takımdan öneriler — *cevap bekleyen terminaller ve hafıza çelişkileri hazır; diğer kaynaklar ilgili fazlarla eklenecek. Ekim 2026 itibarıyla hepsi Gelen Kutusu'nda: onaylar ve cevap bekleyen sohbetler, @bahsetmeler, başarısız kontroller ve testçi gerilemeleri, düşen puan ve artan bulgular, limit uyarıları, zamanlanmış işlerin raporları ve kaçanlar, takımdan öneriler ve çakışmalar; son eklenen deploy sonuçları (başarısızlar 3 gün, başarılılar 1 gün)*
 - [x] Öncelik sıralaması: 🔴 acil · 🟡 bugün · ⚪ bilgi — *onaylar (acil) · cevap bekleyen session'lar (bugün) · hafıza kararları (bilgi)*
 - [x] Tek tıkla aksiyon: onayla, reddet, aç, ertele — *onayla, reddet, aç, ertele (4 saat)*
-- [ ] Ayrıca "Sıfır gelen kutusu" hedefi: her şey ya halledilir ya ertelenir
+- [x] Ayrıca "Sıfır gelen kutusu" hedefi: her şey ya halledilir ya ertelenir — *her öğe tıklayınca ilgili yere gider (halletmek), "Bugün sonra" ile 4 saat ertelenir; kendiliğinden kaybolmayan bildirimler (başarılı deploy, AI'ın sayfası gibi) "Halledildi" ile kalıcı gizlenir; hepsi bitince "Her şey yolunda" görünür. Erteleme ve gizleme tarayıcı başına*
 
 #### 2.6c 💡 Fikir Kutusu (çok fikir gelen biri için)
 - [x] ⭐ Aklına gelen her fikri tek satırla at (her ekrandan `Ctrl+I`, sesli de olabilir) — *Ctrl+I; sesli giriş mikrofon düğmesiyle (Faz 11)*

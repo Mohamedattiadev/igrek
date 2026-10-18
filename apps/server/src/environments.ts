@@ -1,7 +1,14 @@
 import type { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { DeployCheck, DeployRecord, EnvironmentInfo, EnvironmentState, EnvKeyUse } from "@godeye/core";
+import type {
+  DeployCheck,
+  DeployRecord,
+  EnvironmentInfo,
+  EnvironmentState,
+  EnvKeyUse,
+  InboxNotice,
+} from "@godeye/core";
 import type { Bus } from "./bus";
 import type { Servers } from "./servers";
 import type { Store } from "./store";
@@ -317,6 +324,35 @@ export class Environments {
       );
     this.bus.publish({ type: "deploys-changed", projectId: env.projectId });
     return record;
+  }
+
+  /** Deploy results for the inbox (plan.md 3.7): failures of the last three days, successes of the last day. */
+  notices(now = Date.now()): InboxNotice[] {
+    const rows = this.db
+      .query(
+        `SELECT d.id, d.project_id, d.at, d.exit_code, e.name AS env, p.name AS project FROM deploys d
+         JOIN project_envs e ON e.id = d.env_id JOIN projects p ON p.id = d.project_id
+         WHERE d.at > ? ORDER BY d.at DESC LIMIT 20`,
+      )
+      .all(now - 3 * 86_400_000) as {
+      id: string;
+      project_id: string;
+      at: number;
+      exit_code: number;
+      env: string;
+      project: string;
+    }[];
+    return rows
+      .filter((r) => r.exit_code !== 0 || r.at > now - 86_400_000)
+      .map((r) => ({
+        id: `deploy:${r.id}`,
+        kind: r.exit_code === 0 ? ("deployDone" as const) : ("deployFailed" as const),
+        projectId: r.project_id,
+        projectName: r.project,
+        detail: r.exit_code === 0 ? r.env : `${r.env} · exit ${r.exit_code}`,
+        at: r.at,
+        link: `/p/${r.project_id}?tab=environments`,
+      }));
   }
 
   deploys(filter: { projectId?: string; serverId?: string }, limit = 30): DeployRecord[] {

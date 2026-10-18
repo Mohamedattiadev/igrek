@@ -24,6 +24,7 @@ import {
   Package as PackageIcon,
   RadioTower,
   RefreshCcw,
+  Rocket,
   ShieldAlert,
   SquareTerminal,
   TrendingDown,
@@ -51,6 +52,8 @@ const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
   tool: CircleX,
   score: TrendingDown,
   ratchet: TrendingDown,
+  deployFailed: Rocket,
+  deployDone: Rocket,
   overlap: Users,
   mention: AtSign,
   lesson: NotebookPen,
@@ -76,6 +79,25 @@ function Heading({ dot, children }: { dot: string; children: ReactNode }) {
       <span className={`size-2 rounded-full ${dot}`} />
       {children}
     </h2>
+  );
+}
+
+/** "Handled": the notice leaves this browser's inbox for good (inbox zero, plan.md 3.7). */
+function DoneButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      title={t("inbox.done")}
+      aria-label={t("inbox.done")}
+      onClick={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+      className="text-fg-subtle hover:text-success"
+    >
+      <Check size={13} />
+    </button>
   );
 }
 
@@ -106,6 +128,10 @@ export function InboxPage() {
   const [, refresh] = useState(0);
   const later = (id: string) => {
     snooze(id);
+    refresh((n) => n + 1);
+  };
+  const done = (id: string) => {
+    snooze(id, 10 * 365 * 86_400_000);
     refresh((n) => n + 1);
   };
   const approvals = useApprovals();
@@ -306,6 +332,7 @@ export function InboxPage() {
                         </span>
                         <span className="text-[11px] text-fg-subtle">{relativeTime(n.at)}</span>
                         <SnoozeButton onClick={() => later(n.id)} />
+                        <DoneButton onClick={() => done(n.id)} />
                       </Link>
                     );
                   })}
