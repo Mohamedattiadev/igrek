@@ -33,6 +33,8 @@ export const RULES: Record<string, string> = {
     "Duplicate Code smell: the same lines in two places drift apart; extract them once (https://refactoring.guru/smells/duplicate-code).",
   effectLeak:
     "An effect starts a timer, listener, socket or observer and never stops it: it keeps running after the page is gone (react.dev: synchronizing with effects, cleanup).",
+  serverLeak:
+    "A server module starts a repeating timer it never stops: tests, restarts and stop() leave it running. Keep the handle and clear it (only index.ts, the process root, may run timers for the whole life of the process).",
   effectRace:
     "An effect writes a fetched answer to state with no guard: when its inputs change quickly an older answer can land last and show the wrong data (react.dev: fetching data, ignore flag).",
 };
@@ -62,6 +64,17 @@ function effects(text: string): { line: number; body: string; deps?: string }[] 
     out.push({ line: text.slice(0, m.index).split("\n").length, body: text.slice(start, i - 1), deps });
   }
   return out;
+}
+
+/** Server and hub modules with a repeating timer and no clearInterval anywhere in the file. */
+export function serverLeaks(list: string[], read = (f: string) => readFileSync(join(ROOT, f), "utf8")): string[] {
+  return list
+    .filter((f) => /^apps\/(server|hub)\/src\//.test(f) && !/\/index\.ts$/.test(f))
+    .filter((f) => {
+      const text = read(f);
+      return /\bsetInterval\(/.test(text) && !/\bclearInterval\(/.test(text);
+    })
+    .map((f) => `serverLeak:${f}`);
 }
 
 /** Leaking and racing effects in the web app, one finding per effect. */
@@ -168,7 +181,7 @@ function biomeCounts(): Map<string, number> {
 export function measure(): Record<string, number> {
   const counts = biomeCounts();
   const list = files();
-  for (const key of [...duplicates(list).map((f) => `duplicate:${f}`), ...effectFindings(list)])
+  for (const key of [...duplicates(list).map((f) => `duplicate:${f}`), ...effectFindings(list), ...serverLeaks(list)])
     counts.set(key, (counts.get(key) ?? 0) + 1);
   return Object.fromEntries([...counts].sort(([a], [b]) => a.localeCompare(b)));
 }

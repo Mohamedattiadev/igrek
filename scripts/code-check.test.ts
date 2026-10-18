@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { check, duplicates, effectFindings, RULES, readBaseline } from "./code-check";
+import { check, duplicates, effectFindings, RULES, readBaseline, serverLeaks } from "./code-check";
 
 describe("effects", () => {
   const find = (code: string) => effectFindings(["apps/web/x.tsx"], () => code);
@@ -22,6 +22,18 @@ describe("effects", () => {
     expect(find(racy)).toEqual(["effectRace:apps/web/x.tsx"]);
     expect(find(guarded)).toEqual([]);
     expect(find(once)).toEqual([]);
+  });
+});
+
+describe("server timers", () => {
+  test("a server module that starts a timer must stop it; index.ts may run timers for the process", () => {
+    const files: Record<string, string> = {
+      "apps/server/src/a.ts": "this.t = setInterval(tick, 1000);",
+      "apps/server/src/b.ts": "this.t = setInterval(tick, 1000); stop() { clearInterval(this.t); }",
+      "apps/server/src/index.ts": "setInterval(tick, 1000);",
+      "apps/web/src/c.ts": "setInterval(tick, 1000);",
+    };
+    expect(serverLeaks(Object.keys(files), (f) => files[f] ?? "")).toEqual(["serverLeak:apps/server/src/a.ts"]);
   });
 });
 
