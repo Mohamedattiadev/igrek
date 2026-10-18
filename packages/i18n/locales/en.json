@@ -4014,5 +4014,13 @@
     "alreadyFailing_other": "{{count}} more were already failing before this chat.",
     "sendBack": "Send to the AI to fix",
     "sentBack": "Sent to the AI with this output."
+  },
+  "commitHook": {
+    "title": "Checks before every commit",
+    "hint": "A git pre-commit hook that runs this project's checks and stops the commit if one fails, whoever commits (you or an AI). It skips with git commit --no-verify.",
+    "runs": "Runs:",
+    "noGit": "This folder is not a git repository.",
+    "other": "This project already has its own pre-commit hook (husky or similar); God Eye leaves it as it is.",
+    "nothing": "No typecheck, lint or test command found in this project."
   }
 }

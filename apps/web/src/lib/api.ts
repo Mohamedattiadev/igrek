@@ -206,6 +206,13 @@ export const api = {
     }>(`/api/projects/${id}/trust`),
   setProjectTrust: (id: string, trust: boolean) =>
     request<{ ok: boolean }>(`/api/projects/${id}/trust`, { method: "POST", body: JSON.stringify({ trust }) }),
+  commitHook: (id: string) =>
+    request<{ state: "none" | "ours" | "other" | "noGit"; commands: string[] }>(`/api/projects/${id}/commit-hook`),
+  setCommitHook: (id: string, on: boolean) =>
+    request<{ state: "none" | "ours" | "other" | "noGit"; commands: string[] }>(`/api/projects/${id}/commit-hook`, {
+      method: "POST",
+      body: JSON.stringify({ on }),
+    }),
   toolRules: (id: string) => request<string[]>(`/api/projects/${id}/tool-rules`),
   removeToolRule: (id: string, rule: string) =>
     request<{ ok: boolean }>(`/api/projects/${id}/tool-rules?rule=${encodeURIComponent(rule)}`, { method: "DELETE" }),

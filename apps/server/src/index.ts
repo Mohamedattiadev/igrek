@@ -31,6 +31,7 @@ import { ChatStream } from "./chat-stream";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { CodeHost } from "./codehost";
+import { registerCommitHookRoutes } from "./commit-hook";
 import { loadConfig } from "./config";
 import { Costs } from "./costs";
 import { CrossCheck } from "./crosscheck";
@@ -722,6 +723,7 @@ const app = createApp({
         projects: new Map(store.listProjects().map((p) => [p.id, p.name])),
       }),
     });
+    registerCommitHookRoutes(hono, store);
     registerFileRoutes(hono, {
       files,
       store,

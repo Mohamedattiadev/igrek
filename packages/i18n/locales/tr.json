@@ -4014,5 +4014,13 @@
     "alreadyFailing_other": "{{count}} kontrol daha bu sohbetten önce de kırıktı.",
     "sendBack": "Düzeltmesi için AI'a gönder",
     "sentBack": "Bu çıktıyla AI'a gönderildi."
+  },
+  "commitHook": {
+    "title": "Her commit'ten önce kontroller",
+    "hint": "Projenin kontrollerini çalıştıran ve biri kırılırsa commit'i durduran bir git pre-commit hook'u; commit'i kim yaparsa yapsın (sen ya da bir AI). git commit --no-verify ile atlanır.",
+    "runs": "Çalıştırır:",
+    "noGit": "Bu klasör bir git reposu değil.",
+    "other": "Bu projenin kendi pre-commit hook'u var (husky ya da benzeri); God Eye ona dokunmaz.",
+    "nothing": "Bu projede tip kontrolü, lint ya da test komutu bulunamadı."
   }
 }

@@ -324,6 +324,43 @@ function TrustState({ projectId }: { projectId: string }) {
   );
 }
 
+/** The optional pre-commit hook that runs the project's checks (plan.md 15.5). */
+function CommitHook({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const { data, reload } = useLiveData(() => api.commitHook(projectId), [projectId]);
+  const [problem, setProblem] = useState<string>();
+  if (!data) return null;
+  if (data.state === "noGit") return <p className="text-xs text-fg-subtle">{t("commitHook.noGit")}</p>;
+  if (data.state === "other") return <p className="text-xs text-fg-subtle">{t("commitHook.other")}</p>;
+  if (!data.commands.length) return <p className="text-xs text-fg-subtle">{t("commitHook.nothing")}</p>;
+  const on = data.state === "ours";
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-3">
+        <Badge tone={on ? "success" : "neutral"}>{on ? t("setup.on") : t("setup.off")}</Badge>
+        <Button
+          size="sm"
+          onClick={async () => {
+            setProblem(undefined);
+            try {
+              await api.setCommitHook(projectId, !on);
+              reload();
+            } catch (err) {
+              setProblem((err as Error).message);
+            }
+          }}
+        >
+          {on ? t("setup.uninstall") : t("setup.install")}
+        </Button>
+      </div>
+      <p className="text-xs text-fg-subtle">
+        {t("commitHook.runs")} <code className="font-mono">{data.commands.join(" · ")}</code>
+      </p>
+      {problem && <p className="text-xs text-danger">{problem}</p>}
+    </div>
+  );
+}
+
 /** Steps always allowed in this project, saved from a chat's approval card (plan.md 16.1). */
 function ToolRules({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
@@ -395,6 +432,9 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
       </Section>
       <Section title={t("trust.title")} hint={t("trust.hint")}>
         <TrustState projectId={project.id} />
+      </Section>
+      <Section title={t("commitHook.title")} hint={t("commitHook.hint")}>
+        <CommitHook projectId={project.id} />
       </Section>
       <Section title={t("setup.rulesTitle")} hint={t("setup.rulesHint")}>
         <ToolRules projectId={project.id} />
