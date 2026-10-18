@@ -1,5 +1,16 @@
-import type { DbConnection, DbResult, DbSuggestion, DbTable } from "@godeye/core";
-import { ChevronLeft, ChevronRight, Database, Lock, LockOpen, Play, Plus, Sparkles, Trash2 } from "lucide-react";
+import type { DataAnomaly, DbConnection, DbResult, DbSuggestion, DbTable } from "@godeye/core";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Database,
+  Lock,
+  LockOpen,
+  Play,
+  Plus,
+  Sparkles,
+  Stethoscope,
+  Trash2,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Mermaid } from "../../components/Mermaid";
@@ -239,10 +250,10 @@ function TableRows({ conn, table }: { conn: DbConnection; table: DbTable }) {
   );
 }
 
-function QueryEditor({ conn }: { conn: DbConnection }) {
+function QueryEditor({ conn, initial }: { conn: DbConnection; initial?: string }) {
   const { t } = useTranslation();
   const [text, setText] = useState(
-    conn.kind === "mongodb" ? '{"find": "users", "filter": {}, "limit": 20}' : "select * from ",
+    initial ?? (conn.kind === "mongodb" ? '{"find": "users", "filter": {}, "limit": 20}' : "select * from "),
   );
   const [result, setResult] = useState<DbResult>();
   const [error, setError] = useState<{ message: string; code?: string }>();
@@ -330,9 +341,71 @@ function QueryEditor({ conn }: { conn: DbConnection }) {
   );
 }
 
+/** Problems in the data itself (plan.md 15.3), found with read-only queries. */
+function DataHealth({ conn, onShow }: { conn: DbConnection; onShow: (query: string) => void }) {
+  const { t } = useTranslation();
+  const [found, setFound] = useState<DataAnomaly[]>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<{ message: string; code?: string }>();
+  const scan = async (confirmProd = false) => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      setFound(await dataApi.anomalies(conn.id, confirmProd));
+    } catch (err) {
+      setError({ message: (err as Error).message, code: (err as { code?: string }).code });
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-fg-muted">{t("db.healthHint")}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button size="sm" variant="primary" icon={Stethoscope} disabled={busy} onClick={() => void scan()}>
+          {busy ? t("db.healthScanning") : t("db.healthScan")}
+        </Button>
+        {error?.code === "confirm" && (
+          <Button size="sm" variant="danger" disabled={busy} onClick={() => void scan(true)}>
+            {t("db.healthConfirmProd")}
+          </Button>
+        )}
+      </div>
+      {error && <p className="text-xs text-danger">{error.code === "confirm" ? t("db.healthProd") : error.message}</p>}
+      {found && !found.length && <p className="text-xs text-success">{t("db.healthClean")}</p>}
+      {found && found.length > 0 && (
+        <ul className="divide-y divide-border rounded-ui border border-border">
+          {found.map((a) => (
+            <li
+              key={`${a.kind}:${a.table}.${a.column}`}
+              className="flex flex-wrap items-center gap-2 px-3 py-2 text-[12.5px]"
+            >
+              <Badge tone={a.kind === "orphan" || a.kind === "negative" ? "danger" : "warning"}>
+                {t(`db.anomaly_${a.kind}`)}
+              </Badge>
+              <span className="font-mono">
+                {a.table}.{a.column}
+              </span>
+              {a.target && <span className="text-fg-subtle">→ {a.target}</span>}
+              <span className="text-fg-muted">
+                {t(a.kind === "duplicate" ? "db.anomalyValues" : "db.anomalyCount", { count: a.count })}
+              </span>
+              <span className="flex-1" />
+              <button type="button" onClick={() => onShow(a.query)} className="text-[12px] text-accent hover:underline">
+                {t("db.anomalyShow")}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 function ConnectionView({ conn, onChange }: { conn: DbConnection; onChange: () => void }) {
   const { t } = useTranslation();
-  const [view, setView] = useState<"tables" | "query" | "diagram">("tables");
+  const [view, setView] = useState<"tables" | "query" | "diagram" | "health">("tables");
+  const [draft, setDraft] = useState<string>();
   const [tables, setTables] = useState<DbTable[]>();
   const [table, setTable] = useState<DbTable>();
   const [diagram, setDiagram] = useState<string>();
@@ -420,6 +493,7 @@ function ConnectionView({ conn, onChange }: { conn: DbConnection; onChange: () =
           { value: "tables", label: conn.kind === "mongodb" ? t("db.collections") : t("db.tables") },
           { value: "query", label: t("db.query") },
           { value: "diagram", label: t("db.diagram") },
+          ...(conn.kind === "mongodb" ? [] : [{ value: "health" as const, label: t("db.health") }]),
         ]}
       />
       {view === "tables" ? (
@@ -446,7 +520,15 @@ function ConnectionView({ conn, onChange }: { conn: DbConnection; onChange: () =
           <div className="min-w-0 flex-1">{table && <TableRows conn={conn} table={table} />}</div>
         </div>
       ) : view === "query" ? (
-        <QueryEditor conn={conn} />
+        <QueryEditor key={draft} conn={conn} initial={draft} />
+      ) : view === "health" ? (
+        <DataHealth
+          conn={conn}
+          onShow={(query) => {
+            setDraft(query);
+            setView("query");
+          }}
+        />
       ) : diagram ? (
         <Card className="p-3">
           <Mermaid code={diagram} />

@@ -12,6 +12,7 @@ import type {
   CodeHostInfo,
   CostItem,
   CostSummary,
+  DataAnomaly,
   DbConnection,
   DbResult,
   DbSuggestion,
@@ -124,6 +125,17 @@ export const dataApi = {
     const body = await res.json().catch(() => ({}));
     if (!res.ok) throw Object.assign(new Error(body.error ?? res.statusText), { code: body.code });
     return body as DbResult;
+  },
+  anomalies: async (id: string, confirmProd = false): Promise<DataAnomaly[]> => {
+    const res = await fetch(`/api/databases/${id}/anomalies`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ confirmProd }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw Object.assign(new Error(body.error ?? res.statusText), { code: body.code });
+    return body as DataAnomaly[];
   },
   explainDraft: (id: string, query: string) =>
     post<{ kind: string; prod: boolean; query: string; schema: string; plan?: string; projectId?: string }>(

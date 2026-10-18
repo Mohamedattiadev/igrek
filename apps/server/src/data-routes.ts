@@ -1,6 +1,7 @@
 import { type BackupJob, erDiagram, tablesInSql } from "@godeye/core";
 import type { Hono } from "hono";
 import type { BackupJobs } from "./backup-jobs";
+import { scanAnomalies } from "./data-anomalies";
 import type { Databases } from "./databases";
 
 const fail = (err: unknown) => {
@@ -66,6 +67,15 @@ export function registerDataRoutes(
     const body = (await c.req.json().catch(() => ({}))) as { query?: string; allowWrite?: boolean };
     try {
       return c.json(await databases.query(c.req.param("id"), String(body.query ?? ""), body.allowWrite === true));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
+  // Read-only scan for problems in the data (plan.md 15.3); production needs confirmProd.
+  app.post("/api/databases/:id/anomalies", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { confirmProd?: boolean };
+    try {
+      return c.json(await scanAnomalies(databases, c.req.param("id"), { confirmProd: body.confirmProd === true }));
     } catch (err) {
       return c.json(fail(err), 400);
     }

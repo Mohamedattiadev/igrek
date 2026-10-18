@@ -165,3 +165,16 @@ export interface BackupRun {
     at: number;
   };
 }
+
+/** One problem in the data itself (plan.md 15.3), with the query that shows it. */
+export interface DataAnomaly {
+  kind: "orphan" | "unexpectedNull" | "duplicate" | "negative";
+  table: string;
+  column: string;
+  /** Rows (or distinct values, for duplicates) affected. */
+  count: number;
+  /** For orphans: the table.column the value should point at. */
+  target?: string;
+  /** A read-only query that lists the rows, to look at them in the query editor. */
+  query: string;
+}
