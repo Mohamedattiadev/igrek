@@ -1148,7 +1148,7 @@ god-eye/
 **Hedef:** t3code, pi, opencode, crush, cline, aider, goose ve OpenUI'de işe yaradığı kanıtlanmış ne varsa God Eye'a almak. Ayrıntı, kaynak dosya yolları ve lisanslar: `research/acik-kaynak-harness-raporu_2026-10-18.md` (ve `research/notes/`). MIT/Apache kod telif notuyla alınır, FSL (crush) sadece fikir; Effect-TS sunucu kodu kopyalanmaz, algoritması yazılır.
 
 #### 16.1 Sohbet deneyimi
-- [ ] ⭐ Blok blok akan Markdown, artımlı Shiki ve LRU önbellek: uzun cevaplarda takılma yok (rapor #1)
+- [x] ⭐ Blok blok akan Markdown, artımlı Shiki ve LRU önbellek: uzun cevaplarda takılma yok (rapor #1) — *cevap üst düzey bloklara bölünür, akarken sadece son blok yeniden işlenir ve yarım kalan kalın/satır içi kod geçici kapatılır; akan kod bloğunda sadece biten satırlar renklenir; blok HTML'i ve Shiki çıktısı LRU önbellekte; sohbet sayfası açılınca Shiki boşta önceden yüklenir. Sohbet artık ortak Markdown bileşenini kullanıyor (renkli kod, grafik, uyarı kutuları). Sahte bir claude ile 21 KB'lık akan cevapta, 4 kat yavaşlatılmış CPU'da: ana iş parçacığı 12,9 sn → 6,8 sn, uzun görevler 56 (toplam 6,6 sn) → 6 (toplam 0,87 sn)*
 - [ ] ⭐ İş günlüğü: ardışık araç çağrıları tek cümlelik satır ("3 dosya okudu, 2 düzenledi"), açılınca ayrıntı; detay seviyeleri (her şey / ayrıntılı / sade / sadece metin) (#2)
 - [ ] ⭐ Ajan çalışırken mesaj yazma: kuyruğa al ya da yönlendir (steer); yeniden başlatmada kuyruk korunur (#3)
 - [ ] Onaylar sohbet kutusunda: "her zaman izin ver" kuralları, "reddet ve neden yaz", proje bazında otomatik onay, "süreç bitti, devam edilemez" durumu (#4)

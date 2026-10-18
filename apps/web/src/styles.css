@@ -419,10 +419,16 @@ dialog[open] {
     font-size: 13.5px;
     line-height: 1.65;
   }
-  .prose-chat > :first-child {
+  /* Markdown is drawn block by block; the wrapper takes no space of its own. */
+  .ge-md-block {
+    display: contents;
+  }
+  .prose-chat > :first-child,
+  .prose-chat > .ge-md-block:first-child > :first-child {
     margin-top: 0;
   }
-  .prose-chat > :last-child {
+  .prose-chat > :last-child,
+  .prose-chat > .ge-md-block:last-child > :last-child {
     margin-bottom: 0;
   }
   .prose-chat :where(h1, h2, h3) {

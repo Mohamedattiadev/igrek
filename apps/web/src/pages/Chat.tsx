@@ -7,7 +7,6 @@ import {
   suggestModel,
   type WeakPoint,
 } from "@godeye/core";
-import DOMPurify from "dompurify";
 import {
   ArrowLeft,
   BookOpen,
@@ -38,13 +37,13 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { marked } from "marked";
 import { type ClipboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
+import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
@@ -54,6 +53,7 @@ import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
 import { cn } from "../lib/cn";
 import { modelName } from "../lib/format";
+import { warmHighlighter } from "../lib/highlight";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
 import { WeakPointList } from "./Meeting";
@@ -62,12 +62,6 @@ type Json = Record<string, unknown>;
 
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 const MODELS = ["", "opus", "sonnet", "haiku"];
-
-function Markdown({ text }: { text: string }) {
-  const html = useMemo(() => DOMPurify.sanitize(marked.parse(text, { async: false })), [text]);
-  // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with DOMPurify
-  return <div className="prose-godeye prose-chat" dangerouslySetInnerHTML={{ __html: html }} />;
-}
 
 function Diff({ before, after }: { before: string; after: string }) {
   const lines = useMemo(() => lineDiff(before, after), [before, after]);
@@ -323,6 +317,8 @@ export function ChatPage() {
   const navigate = useNavigate();
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
+  // Answers often carry code: have the highlighter ready before the first block arrives.
+  useEffect(() => warmHighlighter(), []);
   const info = chat.info;
   const [searchParams, setSearchParams] = useSearchParams();
   // A prompt prepared elsewhere (a "Fix" button) waits in the box; nothing is sent until the user does.
@@ -581,7 +577,7 @@ export function ChatPage() {
                         </div>
                       )}
                       <div className="min-w-0 flex-1 text-[13.5px]">
-                        <Markdown text={shown} />
+                        <Markdown text={shown} streaming={working && event.id === lastText?.id} />
                       </div>
                     </div>
                     {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (

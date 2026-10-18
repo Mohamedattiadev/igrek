@@ -1,4 +1,5 @@
 import type { HighlighterCore, LanguageInput } from "shiki/core";
+import { Lru } from "./lru";
 
 /**
  * Syntax highlighting like VS Code (its Light+ and Dark+ themes, TextMate grammars) for every
@@ -115,7 +116,7 @@ const GRAMMAR: Record<string, string> = {
 
 let core: Promise<HighlighterCore> | undefined;
 const loaded = new Map<string, Promise<void>>();
-const cache = new Map<string, string>();
+const cache = new Lru<string>(500);
 
 function highlighter(): Promise<HighlighterCore> {
   core ??= Promise.all([
@@ -149,7 +150,25 @@ export async function highlight(code: string, lang: string | undefined): Promise
     themes: { light: "light-plus", dark: "dark-plus" },
     defaultColor: false,
   });
-  if (cache.size > 500) cache.clear();
   cache.set(key, html);
   return html;
+}
+
+/**
+ * Loads Shiki and the most common grammars while the browser is idle, so the first code block
+ * of a streaming answer does not stall the page.
+ */
+export function warmHighlighter(langs: string[] = ["ts", "sh", "py"]): void {
+  const run = () => {
+    // A real line, not an empty string: the grammar's patterns are only built when they run.
+    for (const lang of langs) void highlight('const a = f("x", 1); // b\nif (a) { return [a]; }', lang);
+  };
+  if ("requestIdleCallback" in window) window.requestIdleCallback(run, { timeout: 3000 });
+  else setTimeout(run, 500);
+}
+
+/** The colors for code that was highlighted before, right away, so a redrawn block does not flash. */
+export function highlightCached(code: string, lang: string | undefined): string | undefined {
+  const name = langKey(lang);
+  return name ? cache.get(`${name}\u0000${code}`) : undefined;
 }
