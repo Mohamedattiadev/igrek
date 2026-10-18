@@ -154,7 +154,7 @@ export function QuickAsk() {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          aria-label="Close"
+          aria-label={t("term.close")}
           className="p-1 text-fg-subtle hover:text-fg"
         >
           <X size={15} />
@@ -233,7 +233,7 @@ export function QuickAsk() {
             <button
               type="button"
               onClick={() => setAttachment(undefined)}
-              aria-label="Remove"
+              aria-label={t("chat.removeImage")}
               className="ms-1 text-fg-subtle"
             >
               <X size={11} />

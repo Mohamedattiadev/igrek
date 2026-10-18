@@ -458,7 +458,12 @@ function MonthlyCard() {
           CSV
         </Button>
       </div>
-      <div className="overflow-x-auto">
+      <section
+        // biome-ignore lint/a11y/noNoninteractiveTabindex: a scrollable region must be focusable (WCAG 2.1.1)
+        tabIndex={0}
+        aria-label={t("limits.monthly")}
+        className="overflow-x-auto"
+      >
         <table className="w-full text-[12px]">
           <thead className="text-[11px] text-fg-subtle">
             <tr>
@@ -498,7 +503,7 @@ function MonthlyCard() {
             })}
           </tbody>
         </table>
-      </div>
+      </section>
     </Card>
   );
 }

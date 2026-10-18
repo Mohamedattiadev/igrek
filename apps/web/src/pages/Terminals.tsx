@@ -49,6 +49,7 @@ export function TerminalStatus({ term }: { term: TerminalInfo }) {
 
 /** JetBrains-style tab strip across all open terminals. */
 function Tabs({ terminals, active }: { terminals: TerminalInfo[]; active?: string }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   return (
     <div className="flex h-9 shrink-0 items-stretch overflow-x-auto border-b border-border bg-bg-subtle">
@@ -68,7 +69,7 @@ function Tabs({ terminals, active }: { terminals: TerminalInfo[]; active?: strin
           </Link>
           <button
             type="button"
-            aria-label="Close"
+            aria-label={t("term.close")}
             onClick={async () => {
               await api.closeTerminal(term.id);
               if (term.id === active && term.status === "exited") navigate("/terminals");

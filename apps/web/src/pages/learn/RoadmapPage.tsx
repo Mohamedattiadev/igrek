@@ -110,7 +110,8 @@ function StepGraph({
   const height = 20 + rows * (H + GAP_Y);
   return (
     <div className="overflow-x-auto">
-      <svg width={width} height={height} role="img" aria-label={t("learn.graph")} className="text-fg">
+      {/* biome-ignore lint/a11y/useSemanticElements: an SVG drawing with links inside, not a form */}
+      <svg width={width} height={height} role="group" aria-label={t("learn.graph")} className="text-fg">
         {STAGES.map((st, i) => (
           <text key={st} x={i * (W + GAP_X) + 2} y={12} className="fill-fg-subtle text-[10px]">
             {i}. {t(`learn.stage_${st}`)}

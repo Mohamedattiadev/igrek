@@ -75,7 +75,7 @@ function ToolStripLink({
         cn(
           "relative flex h-9 shrink-0 items-center rounded-ui transition-colors",
           wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
-          isActive ? "bg-bg-active font-medium text-accent" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
+          isActive ? "bg-bg-active font-medium text-accent-hover" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
         )
       }
     >
