@@ -1,0 +1,2496 @@
+id: cloud
+title: Cloud (AWS, Google Cloud, Azure)
+summary:
+  en: "Learn what the cloud is and put a small web API with a database on the internet, safely. Budget alerts first, then least-privilege access, secrets, HTTPS, deploys from GitHub without stored keys, monitoring and a full cleanup. The three big clouds are compared; you build on the one with the best free tier today."
+  tr: "Bulutun ne olduğunu öğren ve veritabanı olan küçük bir web API'sini güvenle internete çıkar. Önce bütçe uyarıları, sonra en az yetki, sırlar, HTTPS, saklı anahtar olmadan GitHub'dan deploy, izleme ve eksiksiz temizlik. Üç büyük bulut karşılaştırılır; sen bugün en iyi ücretsiz katmanı olanın üzerinde çalışırsın."
+teacher: devops
+project:
+  en: 'Notes API on Google Cloud: a small Node.js API in a container, running on Cloud Run with its notes in Firestore, a secret API key in Secret Manager, a bucket for backups, a least-privilege service account, HTTPS, deploys from GitHub Actions with no stored keys, an uptime alert, and a script to delete everything.'
+  tr: 'Google Cloud üzerinde Notes API: container içinde çalışan küçük bir Node.js API''si; Cloud Run''da çalışır, notları Firestore''da durur, gizli API anahtarı Secret Manager''dadır, yedekler için bir bucket, en az yetkili bir service account, HTTPS, saklı anahtar olmadan GitHub Actions ile deploy, bir uptime uyarısı ve her şeyi silen bir temizlik adımı vardır.'
+detect:
+  npm: ["@google-cloud/firestore", "@google-cloud/storage", "@google-cloud/secret-manager"]
+  files: [app.yaml, cloudbuild.yaml, .gcloudignore, firebase.json]
+version: "589.0"
+checked: 2026-10
+after: [docker]
+sheets: [docker, github-actions, bash, http]
+steps:
+  - id: compare
+    stage: setup
+    title:
+      en: "What the cloud is, and which one to start with"
+      tr: "Bulut nedir ve hangisiyle başlamalı"
+    minutes: 40
+    why:
+      en: "\"The cloud\" means renting computers, storage and ready-made services from a big company and paying only for what you use. AWS, Google Cloud and Azure sell almost the same things under different names. You do not need all three: pick one, learn the ideas, and the others become easy. The pick matters for your wallet, because free offers are very different."
+      tr: "\"Bulut\", büyük bir şirketten bilgisayar, depolama ve hazır servis kiralamak ve sadece kullandığın kadar ödemek demek. AWS, Google Cloud ve Azure hemen hemen aynı şeyleri farklı isimlerle satar. Üçüne de gerek yok: birini seç, fikirleri öğren, diğerleri kolaylaşır. Seçim cüzdanını ilgilendirir, çünkü ücretsiz teklifler birbirinden çok farklı."
+    learn:
+      en: |
+        - What a region and a managed service are (the provider runs the machine, you only bring your app)
+        - The three big clouds and their free offers as of October 2026
+        - The question to ask of any free offer: how long does it last, what happens when it ends, and can I be charged by accident?
+        - Why this roadmap uses Google Cloud, and what the honest downsides are
+      tr: |
+        - Region ve yönetilen servis (managed service) nedir: makineyi sağlayıcı çalıştırır, sen sadece uygulamanı getirirsin
+        - Üç büyük bulut ve Ekim 2026 itibarıyla ücretsiz teklifleri
+        - Her ücretsiz teklife sorulacak soru: ne kadar sürüyor, bitince ne oluyor ve yanlışlıkla ücret kesilebilir mi?
+        - Bu yol haritasının neden Google Cloud kullandığı ve dürüst eksileri
+    do:
+      en: |
+        1. Open the three official free-offer pages (links under Sources). For each one, write down: how long the free credit lasts, what happens when it ends, and whether a card is needed.
+        2. Compare with this summary, checked in October 2026:
+           - **AWS**: a Free plan with $100 credit at sign-up plus up to $100 more for trying services. It ends after 6 months or when the credit is gone, then the account closes (data is kept 90 days). More than 30 services are free every month within limits.
+           - **Google Cloud**: a $300 Free Trial for 90 days, plus a **Free Tier with no end date**: Cloud Run (2 million requests, 180,000 vCPU-seconds and 360,000 GiB-seconds a month), Firestore (1 GiB), Secret Manager (6 secret versions), Cloud Storage (5 GB in US regions), Artifact Registry (0.5 GB). A card is needed to open the account. During the trial you cannot spend more than the credit, and nothing is charged until you upgrade.
+           - **Azure**: a $200 credit for 30 days, 20+ services free for 12 months, 65+ services always free (for example Functions, Cosmos DB, Container Apps have a monthly free amount). A card is needed. After 30 days or when the credit ends, the account is disabled unless you move to pay as you go.
+        3. Notice the difference: for AWS and Azure the free period ends and you must pay or lose the account. Only Google Cloud lets a tiny app (container service, database, secrets, storage) run for free with no end date.
+        4. This roadmap therefore builds on **Google Cloud**. The honest downsides: a card is required, Firestore is a document database (not PostgreSQL; the managed PostgreSQL service Cloud SQL is not in the Free Tier), and free offers change, so read the pages again before you sign up.
+        5. Create the file `docs/cloud-map.md` below in your project folder. It shows that the same idea has three names, so what you learn here moves to the other clouds.
+      tr: |
+        1. Üç resmi ücretsiz teklif sayfasını aç (linkler Sources altında). Her biri için yaz: ücretsiz kredi ne kadar sürüyor, bitince ne oluyor, kart gerekiyor mu.
+        2. Ekim 2026'da kontrol edilen şu özetle karşılaştır:
+           - **AWS**: kayıtta 100 dolar kredi ve servisleri deneyince 100 dolara kadar ek kredi veren bir Free plan. 6 ay sonra ya da kredi bitince sona erer, sonra hesap kapanır (veri 90 gün saklanır). 30'dan fazla servis her ay limit dahilinde ücretsizdir.
+           - **Google Cloud**: 90 gün süren 300 dolarlık bir Free Trial ve **süresi hiç bitmeyen bir Free Tier**: Cloud Run (ayda 2 milyon istek, 180.000 vCPU-saniye, 360.000 GiB-saniye), Firestore (1 GiB), Secret Manager (6 secret sürümü), Cloud Storage (ABD bölgelerinde 5 GB), Artifact Registry (0,5 GB). Hesap açmak için kart gerekir. Deneme sürecinde krediden fazla harcayamazsın ve sen yükseltmeden hiçbir şey tahsil edilmez.
+           - **Azure**: 30 gün için 200 dolar kredi, 12 ay boyunca ücretsiz 20+ servis, her zaman ücretsiz 65+ servis (örneğin Functions, Cosmos DB, Container Apps'in aylık ücretsiz bir miktarı var). Kart gerekir. 30 gün ya da kredi bitince, kullandıkça öde'ye geçmezsen hesap devre dışı kalır.
+        3. Farka dikkat et: AWS ve Azure'da ücretsiz süre biter ve ya ödersin ya da hesabı kaybedersin. Sadece Google Cloud'da küçük bir uygulama (container servisi, veritabanı, sırlar, depolama) süre sınırı olmadan ücretsiz çalışabilir.
+        4. Bu yol haritası bu yüzden **Google Cloud** üzerine kurulu. Dürüst eksiler: kart gerekiyor, Firestore bir doküman veritabanı (PostgreSQL değil; yönetilen PostgreSQL servisi Cloud SQL Free Tier'da yok) ve ücretsiz teklifler değişir; kayıttan önce sayfaları tekrar oku.
+        5. Aşağıdaki `docs/cloud-map.md` dosyasını proje klasöründe oluştur. Aynı fikrin üç ismi olduğunu gösterir; yani burada öğrendiğin şey diğer bulutlara da taşınır.
+    code:
+      - file: docs/cloud-map.md
+        lang: md
+        text: |
+          # Cloud map: the same idea under three names
+
+          | I need | Google Cloud | AWS | Azure |
+          | --- | --- | --- | --- |
+          | A command line tool | gcloud | aws | az |
+          | Run a container without managing servers | Cloud Run | ECS on Fargate | Container Apps |
+          | A place for container images | Artifact Registry | ECR | Container Registry |
+          | A document database | Firestore | DynamoDB | Cosmos DB |
+          | Files (object storage) | Cloud Storage | S3 | Blob Storage |
+          | Secrets | Secret Manager | Secrets Manager | Key Vault |
+          | Who may do what | IAM | IAM | Entra ID and Azure RBAC |
+          | Deploy from GitHub without a stored key | Workload Identity Federation | IAM OIDC identity provider | Federated credentials |
+          | Logs and metrics | Cloud Logging and Monitoring | CloudWatch | Azure Monitor |
+          | Budget alerts | Budgets | AWS Budgets | Cost Management budgets |
+          | A private network | VPC | VPC | Virtual Network |
+
+          My choice for the example project: Google Cloud (see the free-tier notes below).
+
+          ## Free offers I read on 2026-10 (check again before you sign up)
+
+          - AWS: Free plan, $100 credit at sign-up plus up to $100 more for activities. Ends after 6 months or when the credit is gone, then the account closes.
+          - Google Cloud: $300 Free Trial for 90 days, plus a Free Tier that has no end date (Cloud Run, Firestore, Secret Manager, Cloud Storage in US regions, Artifact Registry 0.5 GB).
+          - Azure: $200 credit for 30 days, 20+ services free for 12 months, 65+ services always free. After 30 days the account is disabled unless you move to pay as you go.
+    mistakes:
+      - problem:
+          en: "Choosing a cloud from an old blog post or video."
+          tr: "Eski bir blog yazısı ya da videoya bakıp bulut seçmek."
+        fix:
+          en: "Free offers change often, and old posts describe offers that no longer exist. Read the provider's own page the day you sign up."
+          tr: "Ücretsiz teklifler sık değişir ve eski yazılar artık var olmayan tekliflerden bahseder. Kayıt olduğun gün sağlayıcının kendi sayfasını oku."
+      - problem:
+          en: "Thinking \"free tier\" and \"free trial\" are the same thing."
+          tr: "\"Free tier\" ile \"free trial\" aynı şey sanmak."
+        fix:
+          en: "A trial is a credit that runs out. A free tier is a monthly allowance of specific services. Google Cloud has both: the trial credit ends after 90 days, the Free Tier does not end."
+          tr: "Trial, biten bir kredidir. Free tier ise belirli servisler için aylık bir haktır. Google Cloud'da ikisi de var: deneme kredisi 90 günde biter, Free Tier bitmez."
+    quiz:
+      - q:
+          en: "Why does this roadmap use Google Cloud?"
+          tr: "Bu yol haritası neden Google Cloud kullanıyor?"
+        options:
+          en:
+            - "It is the cheapest cloud in every case"
+            - "Its Free Tier has no end date and covers a container service, a database and secrets"
+            - "It is the only cloud with a command line tool"
+          tr:
+            - "Her durumda en ucuz bulut o"
+            - "Free Tier'ı süresiz ve bir container servisini, bir veritabanını ve sırları kapsıyor"
+            - "Komut satırı aracı olan tek bulut o"
+        answer: 1
+        why:
+          en: "All three have command line tools, and prices depend on what you run. For a tiny beginner project, the Free Tier with no end date is what matters."
+          tr: "Üçünün de komut satırı aracı var ve fiyat neyi çalıştırdığına bağlı. Küçük bir başlangıç projesi için önemli olan süresiz Free Tier."
+    sources:
+      - title: Google Cloud Free Tier and Free Trial
+        url: https://docs.cloud.google.com/free/docs/free-cloud-features
+      - title: AWS Free Tier and account plans
+        url: https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/free-tier-plans.html
+      - title: Azure free account
+        url: https://azure.microsoft.com/en-us/free/
+
+  - id: account
+    stage: setup
+    title:
+      en: "Account, 2-Step Verification and a budget alert, before anything else"
+      tr: "Hesap, 2 adımlı doğrulama ve bütçe uyarısı: her şeyden önce"
+    minutes: 40
+    needs: [compare]
+    why:
+      en: "The biggest fear of a beginner is a surprise bill. You remove it in the first hour: protect the account so nobody else can use it, stay on the trial where you cannot be charged, and set an alert that emails you when spending starts. All of this is done before you create a single resource."
+      tr: "Yeni başlayanın en büyük korkusu sürpriz faturadır. Bunu ilk saatte ortadan kaldırırsın: hesabı başkası kullanamasın diye korursun, ücret kesilemeyen deneme sürümünde kalırsın ve harcama başlayınca sana e-posta atan bir uyarı kurarsın. Hepsi tek bir kaynak oluşturmadan önce yapılır."
+    learn:
+      en: |
+        - Why your cloud account is as powerful as a bank login: whoever gets in can create expensive things
+        - 2-Step Verification (MFA): a second proof such as a passkey or an authenticator app code
+        - What the Free Trial protects you from, and what it does not
+        - A budget is an alarm, not a brake: it sends emails, it does not stop anything
+      tr: |
+        - Bulut hesabının neden banka girişi kadar güçlü olduğu: içeri giren pahalı şeyler oluşturabilir
+        - 2 adımlı doğrulama (MFA): passkey ya da doğrulama uygulaması kodu gibi ikinci bir kanıt
+        - Free Trial'ın seni neden koruduğu ve neyden korumadığı
+        - Bütçe bir alarmdır, fren değil: e-posta gönderir, hiçbir şeyi durdurmaz
+    do:
+      en: |
+        1. Turn on **2-Step Verification** for the Google account you will use: open myaccount.google.com/security, choose *2-Step Verification* and add a **passkey** (best) or an authenticator app. Save the backup codes somewhere offline, such as on paper.
+        2. Go to cloud.google.com/free and choose *Get started for free*. Sign in, pick your country, accept the terms and add a card. Google puts a temporary hold of $0 to $1 on it to check it. That is not a charge.
+        3. You land in the console (console.cloud.google.com). A banner shows your trial status and credit. **Do not click "Activate" or "Upgrade".** While you are on the trial, spending cannot go over the credit and your card is not charged.
+        4. Create the budget now. In the console open *Billing* > *Budgets & alerts* > *Create budget*. Name it `notes-budget`. Scope: all projects, all services. Under *Savings* (credits), **clear every checkbox**, so credits do not hide your spending and the alert counts the cost before credits. Budget amount: `5` (in your billing currency). Keep the alert thresholds at 50%, 90% and 100% of actual spend and add 100% of forecasted spend. Leave email notifications on for billing admins and finish.
+        5. Know the limits of a budget: it does not stop anything, and Google says the first email can take several hours. So the budget is your alarm, and the rules in the file below are your brake.
+        6. Save the file `docs/cost-rules.md` below in your project folder and read it again every time you try something new.
+      tr: |
+        1. Kullanacağın Google hesabı için **2 adımlı doğrulamayı** aç: myaccount.google.com/security adresine git, *2-Step Verification* seç ve bir **passkey** (en iyisi) ya da doğrulama uygulaması ekle. Yedek kodları kağıt gibi internet dışı bir yere kaydet.
+        2. cloud.google.com/free adresine git ve *Get started for free* seç. Giriş yap, ülkeni seç, şartları kabul et ve bir kart ekle. Google kartı denemek için 0 ile 1 dolar arası geçici bir blokaj koyar. Bu bir ücret değildir.
+        3. Konsola (console.cloud.google.com) düşersin. Bir banner deneme durumunu ve kredini gösterir. **"Activate" ya da "Upgrade"e tıklama.** Deneme sürümündeyken harcama kredinin üstüne çıkamaz ve kartından para çekilmez.
+        4. Bütçeyi şimdi oluştur. Konsolda *Billing* > *Budgets & alerts* > *Create budget* yolunu aç. Adı `notes-budget` olsun. Kapsam: tüm projeler, tüm servisler. *Savings* (krediler) altında **tüm kutuların işaretini kaldır**; böylece krediler harcamanı gizlemez ve uyarı krediden önceki maliyeti sayar. Bütçe tutarı: `5` (fatura para biriminde). Uyarı eşiklerini gerçek harcamanın %50, %90 ve %100'ünde bırak ve tahmini harcamanın %100'ünü ekle. Faturalandırma yöneticileri için e-posta bildirimi açık kalsın ve bitir.
+        5. Bütçenin sınırlarını bil: hiçbir şeyi durdurmaz ve Google ilk e-postanın birkaç saat sürebileceğini söylüyor. Yani bütçe alarmındır, aşağıdaki dosyadaki kurallar ise frenindir.
+        6. Aşağıdaki `docs/cost-rules.md` dosyasını proje klasörüne kaydet ve yeni bir şey denediğin her seferinde yeniden oku.
+    code:
+      - file: docs/cost-rules.md
+        lang: md
+        text: |
+          # My cost rules
+
+          1. A budget alert exists before I create any resource: notes-budget, 5 per month, alerts at 50%, 90% and 100%.
+          2. A budget only sends emails. It does not stop anything. Emails can be hours late.
+          3. I stay on the Free Trial while I learn. I do not press "Activate full account" until I have read the free-tier limits.
+          4. Every service I deploy has a maximum number of instances.
+          5. Nothing stays on "minimum instances 1" or in a paid size.
+          6. I open Billing > Reports once a week.
+          7. When a project is finished I delete the whole project (step "Cost review and cleanup").
+    mistakes:
+      - problem:
+          en: "Believing a budget stops spending at the limit."
+          tr: "Bütçenin limitte harcamayı durdurduğunu sanmak."
+        fix:
+          en: "An alerts-only budget just sends emails, and they can arrive hours late. Keep the max-instances limits and the cleanup habit, and stay on the trial while you learn."
+          tr: "Sadece uyarı veren bütçe yalnızca e-posta yollar ve bunlar saatlerce geç gelebilir. max-instances limitlerini ve temizlik alışkanlığını koru, öğrenirken deneme sürümünde kal."
+      - problem:
+          en: "Leaving the budget \"Savings\" boxes ticked, so the free credit hides all spending and the alert never fires."
+          tr: "Bütçedeki \"Savings\" kutularını işaretli bırakmak; ücretsiz kredi tüm harcamayı gizler ve uyarı hiç çalışmaz."
+        fix:
+          en: "Clear them. Then the alert counts the cost before credits, which warns you early even while the credit pays the bill."
+          tr: "İşaretleri kaldır. Böylece uyarı krediden önceki maliyeti sayar ve kredi faturayı öderken bile seni erkenden uyarır."
+      - problem:
+          en: "Setting up 2-Step Verification with only a phone number and no backup codes."
+          tr: "2 adımlı doğrulamayı sadece telefon numarasıyla kurmak, yedek kod almamak."
+        fix:
+          en: "Add a passkey or an authenticator app and keep the backup codes offline, so losing the phone does not lock you out."
+          tr: "Bir passkey ya da doğrulama uygulaması ekle ve yedek kodları internet dışında tut; telefonu kaybetmek seni dışarıda bırakmasın."
+    quiz:
+      - q:
+          en: "A budget of 5 reaches 100%. What happens?"
+          tr: "5 tutarındaki bütçe %100'e ulaşıyor. Ne olur?"
+        options:
+          en:
+            - "Google stops all your services"
+            - "You get an email alert, and services keep running"
+            - "Google refunds the money"
+          tr:
+            - "Google tüm servislerini durdurur"
+            - "E-posta uyarısı alırsın ve servisler çalışmaya devam eder"
+            - "Google parayı iade eder"
+        answer: 1
+        why:
+          en: "An alerts-only budget does not cap spending. It only notifies, so you must act on the email."
+          tr: "Sadece uyarı veren bütçe harcamayı sınırlamaz. Sadece haber verir; e-postaya göre senin harekete geçmen gerekir."
+      - q:
+          en: "Why enable 2-Step Verification before creating anything?"
+          tr: "Neden bir şey oluşturmadan önce 2 adımlı doğrulamayı açıyoruz?"
+        options:
+          en:
+            - "A stolen password alone then cannot open the account and run up costs"
+            - "It makes the services faster"
+            - "It is needed to use the free tier"
+          tr:
+            - "Çalınan bir parola tek başına hesabı açıp masraf çıkaramaz"
+            - "Servisleri hızlandırır"
+            - "Free tier'ı kullanmak için gerekir"
+        answer: 0
+        why:
+          en: "Attackers who get into cloud accounts often start expensive machines. A second factor stops most of them."
+          tr: "Bulut hesaplarına giren saldırganlar çoğunlukla pahalı makineler başlatır. İkinci faktör çoğunu durdurur."
+    sources:
+      - title: Google Cloud, create budgets and alerts
+        url: https://docs.cloud.google.com/billing/docs/how-to/budgets
+      - title: Google Account, turn on 2-Step Verification
+        url: https://support.google.com/accounts/answer/185839
+      - title: Google Cloud Free Trial, what happens when it ends
+        url: https://docs.cloud.google.com/free/docs/free-cloud-features
+
+  - id: cli
+    stage: setup
+    title:
+      en: "The command line tool, a project and the first settings"
+      tr: "Komut satırı aracı, bir proje ve ilk ayarlar"
+    minutes: 40
+    needs: [account]
+    why:
+      en: "Clicking in the console is fine to look around, but commands can be saved, repeated and shared. Everything in this roadmap is a command you can read again later. The CLI is called gcloud. Here you also make the project, which is the box that holds all your resources and that you can delete at once when you are done."
+      tr: "Konsolda tıklamak etrafa bakmak için iyi ama komutlar kaydedilir, tekrarlanır ve paylaşılır. Bu yol haritasındaki her şey sonradan tekrar okuyabileceğin bir komuttur. Komut satırı aracının adı gcloud. Burada ayrıca projeyi de oluşturursun; proje, tüm kaynaklarını tutan kutudur ve işin bitince hepsini tek seferde silebilirsin."
+    learn:
+      en: |
+        - What a project is: a box with its own ID, billing link, permissions and resources
+        - What a region is, and why we use `us-central1` (Iowa) here: Cloud Storage's free tier is only for some US regions, and Cloud Run's free amounts are priced on `us-central1`
+        - Logging in with `gcloud auth login` and setting defaults so you do not repeat flags
+        - Enabling APIs: each service is switched on per project
+      tr: |
+        - Proje nedir: kendi kimliği, faturalandırma bağlantısı, izinleri ve kaynakları olan bir kutu
+        - Region nedir ve burada neden `us-central1` (Iowa) kullanıyoruz: Cloud Storage'ın ücretsiz katmanı sadece bazı ABD bölgelerinde geçerli ve Cloud Run'ın ücretsiz miktarları `us-central1` fiyatına göre hesaplanıyor
+        - `gcloud auth login` ile giriş yapmak ve her seferinde bayrak yazmamak için varsayılanları ayarlamak
+        - API'leri açmak: her servis proje bazında açılır
+    do:
+      en: |
+        1. Install the Google Cloud CLI from the official install page (link under Sources). On Windows, run these bash commands in WSL or Git Bash. Or skip the install: open Cloud Shell (the terminal icon in the console), which already has `gcloud` and Docker.
+        2. Check it works, then log in. A browser opens to sign in.
+        3. Create the project. The ID must be unique in the whole world, 6 to 30 characters, lowercase letters, digits and hyphens. Add random digits to make it yours.
+        4. Link the project to your billing account. Find your billing account ID with the list command (looks like `012345-6789AB-CDEF01`). Without a billing link most APIs refuse to start, even free ones.
+        5. Set the defaults and switch on the APIs this roadmap uses. All are free to switch on. This takes a minute or two.
+        6. Confirm that your budget exists. If gcloud asks to enable the Billing Budgets API, answer yes.
+      tr: |
+        1. Google Cloud CLI'ı resmi kurulum sayfasından kur (link Sources altında). Windows'ta bu bash komutlarını WSL ya da Git Bash'te çalıştır. Ya da kurulumu atla: konsoldaki terminal ikonuyla Cloud Shell'i aç; `gcloud` ve Docker orada hazır.
+        2. Çalıştığını kontrol et, sonra giriş yap. Giriş için tarayıcı açılır.
+        3. Projeyi oluştur. ID tüm dünyada benzersiz olmalı, 6 ile 30 karakter, küçük harf, rakam ve tire. Sana ait olması için rastgele rakamlar ekle.
+        4. Projeyi faturalandırma hesabına bağla. Faturalandırma hesabı ID'sini list komutuyla bul (`012345-6789AB-CDEF01` gibi görünür). Faturalandırma bağlantısı olmadan çoğu API, ücretsiz olanlar bile açılmaz.
+        5. Varsayılanları ayarla ve bu yol haritasının kullandığı API'leri aç. Hepsini açmak ücretsizdir. Bir iki dakika sürer.
+        6. Bütçenin var olduğunu doğrula. gcloud Billing Budgets API'yi açmak isterse evet de.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          gcloud --version
+          gcloud auth login
+
+          # Pick your own digits so the ID is unique
+          PROJECT_ID=notes-api-48213
+          gcloud projects create "$PROJECT_ID" --name="Notes API"
+          gcloud config set project "$PROJECT_ID"
+
+          # Link billing (use the ID from the list)
+          gcloud billing accounts list
+          gcloud billing projects link "$PROJECT_ID" --billing-account=012345-6789AB-CDEF01
+
+          # Defaults and APIs
+          gcloud config set run/region us-central1
+          gcloud services enable \
+            run.googleapis.com artifactregistry.googleapis.com firestore.googleapis.com \
+            secretmanager.googleapis.com iam.googleapis.com iamcredentials.googleapis.com \
+            sts.googleapis.com cloudresourcemanager.googleapis.com monitoring.googleapis.com \
+            logging.googleapis.com storage.googleapis.com
+
+          # Is the budget there?
+          gcloud billing budgets list --billing-account=012345-6789AB-CDEF01
+    mistakes:
+      - problem:
+          en: "\"The project ID is already in use\" or \"invalid project ID\"."
+          tr: "\"The project ID is already in use\" ya da \"invalid project ID\" hatası."
+        fix:
+          en: "IDs are global. Add more random digits, use only lowercase letters, digits and hyphens, and start with a letter."
+          tr: "ID'ler küreseldir. Daha fazla rastgele rakam ekle, sadece küçük harf, rakam ve tire kullan ve harfle başla."
+      - problem:
+          en: "Commands fail with \"billing must be enabled\"."
+          tr: "Komutlar \"billing must be enabled\" hatasıyla başarısız oluyor."
+        fix:
+          en: "The project is not linked to the billing account. Run the `gcloud billing projects link` command. It is still the trial: linking does not mean you pay."
+          tr: "Proje faturalandırma hesabına bağlı değil. `gcloud billing projects link` komutunu çalıştır. Hâlâ deneme sürümündesin: bağlamak ödeme yapacağın anlamına gelmez."
+      - problem:
+          en: "Working in the wrong project because you have several."
+          tr: "Birden fazla proje olduğu için yanlış projede çalışmak."
+        fix:
+          en: "Run `gcloud config get-value project` and `gcloud auth list` before anything that creates or deletes. Fix with `gcloud config set project`."
+          tr: "Bir şey oluşturan ya da silen her komuttan önce `gcloud config get-value project` ve `gcloud auth list` çalıştır. `gcloud config set project` ile düzelt."
+    quiz:
+      - q:
+          en: "What is the project ID used for?"
+          tr: "Proje ID'si ne işe yarar?"
+        options:
+          en:
+            - "It is only a display label"
+            - "It names the box that holds your resources, and it must be unique worldwide"
+            - "It is your password"
+          tr:
+            - "Sadece bir görünen etikettir"
+            - "Kaynaklarını tutan kutuyu adlandırır ve dünyada benzersiz olmalıdır"
+            - "Parolandır"
+        answer: 1
+        why:
+          en: "The ID is permanent and global. The display name (\"Notes API\") can be anything and can change."
+          tr: "ID kalıcı ve küreseldir. Görünen ad (\"Notes API\") herhangi bir şey olabilir ve değişebilir."
+    sources:
+      - title: Install the Google Cloud CLI
+        url: https://docs.cloud.google.com/sdk/docs/install-sdk
+      - title: Creating and managing projects
+        url: https://docs.cloud.google.com/resource-manager/docs/creating-managing-projects
+      - title: gcloud billing budgets create
+        url: https://docs.cloud.google.com/sdk/gcloud/reference/billing/budgets/create
+
+  - id: app
+    stage: first-code
+    title:
+      en: "The Notes API in a container, working on your computer"
+      tr: "Container içinde Notes API, kendi bilgisayarında çalışıyor"
+    minutes: 60
+    needs: [cli]
+    why:
+      en: "Before you put anything in the cloud, make sure it works at home. This is a tiny Node.js API with tests. It follows the rules every container service expects: listen on the port it is given, keep no data on its own disk, write logs to the screen and stop politely when asked. You need Node.js 24 and Docker (see the Docker roadmap)."
+      tr: "Buluta bir şey koymadan önce evde çalıştığından emin ol. Bu, testleri olan küçük bir Node.js API'si. Her container servisinin beklediği kurallara uyar: verilen portu dinler, kendi diskinde veri tutmaz, logları ekrana yazar ve istenince kibarca durur. Node.js 24 ve Docker gerekir (Docker yol haritasına bak)."
+    learn:
+      en: |
+        - The container contract of Cloud Run: listen on `0.0.0.0` and the port in `$PORT`, be stateless, log to stdout, handle SIGTERM
+        - Why the store is a separate small module: first it keeps notes in memory, later it will talk to a database
+        - Why the API key check is already in the code but does nothing until a key is set
+        - `node --test`: Node's built-in test runner, no packages needed
+      tr: |
+        - Cloud Run'ın container sözleşmesi: `0.0.0.0` ve `$PORT` içindeki portu dinle, durumsuz (stateless) ol, stdout'a log yaz, SIGTERM'i işle
+        - Store'un neden ayrı küçük bir modül olduğu: önce notları bellekte tutar, sonra bir veritabanıyla konuşacak
+        - API anahtarı kontrolünün neden kodda şimdiden olduğu ama anahtar verilene kadar bir şey yapmadığı
+        - `node --test`: Node'un yerleşik test aracı, paket gerekmez
+    do:
+      en: |
+        1. Make a folder `notes-api` and put the files below in it (`package.json`, `.gitignore`, `.dockerignore`, `Dockerfile`, `src/validate.js`, `src/store.js`, `src/server.js`, `test/server.test.js`).
+        2. Inside the folder run `npm install` once. It writes `package-lock.json`, which the Dockerfile needs (`npm ci` installs exactly what the lock says).
+        3. Run `npm test`. Five tests should pass.
+        4. Start it with `npm start` and try it from a second terminal with the `curl` lines. The notes are kept in memory, so they vanish when you stop it. That is on purpose for now.
+        5. Build and run the container. The `-p 8080:8080` part connects port 8080 of your computer to port 8080 in the container. Open http://localhost:8080/health.
+        6. Stop it with Ctrl+C. Then save your work with Git: `git init`, `git add .`, `git commit -m "Notes API"`.
+      tr: |
+        1. `notes-api` adında bir klasör oluştur ve aşağıdaki dosyaları içine koy (`package.json`, `.gitignore`, `.dockerignore`, `Dockerfile`, `src/validate.js`, `src/store.js`, `src/server.js`, `test/server.test.js`).
+        2. Klasörün içinde bir kez `npm install` çalıştır. Dockerfile'ın ihtiyaç duyduğu `package-lock.json` dosyasını yazar (`npm ci`, kilit dosyasında ne yazıyorsa tam onu kurar).
+        3. `npm test` çalıştır. Beş test geçmeli.
+        4. `npm start` ile başlat ve ikinci bir terminalden `curl` satırlarıyla dene. Notlar bellekte durur, yani durdurunca kaybolur. Şimdilik bilerek böyle.
+        5. Container'ı oluştur ve çalıştır. `-p 8080:8080` kısmı bilgisayarının 8080 portunu container içindeki 8080 portuna bağlar. http://localhost:8080/health adresini aç.
+        6. Ctrl+C ile durdur. Sonra işini Git ile kaydet: `git init`, `git add .`, `git commit -m "Notes API"`.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "notes-api",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "engines": {
+              "node": ">=24"
+            },
+            "scripts": {
+              "start": "node src/server.js",
+              "test": "node --test"
+            }
+          }
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          .env
+          *.log
+          notes-*.json
+      - file: .dockerignore
+        lang: text
+        text: |
+          node_modules
+          .git
+          .env
+          *.log
+          test
+          Dockerfile
+          .dockerignore
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          FROM node:24-alpine
+          WORKDIR /app
+          ENV NODE_ENV=production
+          COPY package.json package-lock.json ./
+          RUN npm ci --omit=dev
+          COPY src ./src
+          USER node
+          # Cloud Run sends requests to the port in $PORT (8080 by default).
+          EXPOSE 8080
+          CMD ["node", "src/server.js"]
+      - file: src/validate.js
+        lang: js
+        text: |
+          // Checks the JSON body of POST /notes and returns the clean text.
+          export function parseNote(body) {
+            const text = typeof body?.text === "string" ? body.text.trim() : "";
+            if (text === "") throw new Error("text is required");
+            if (text.length > 500) throw new Error("text is too long (500 characters at most)");
+            return text;
+          }
+      - file: src/store.js
+        lang: js
+        text: |
+          // Where the notes live. The API only needs two methods: list() and add(text).
+          // This first version keeps notes in memory, so they vanish when the process stops.
+          export function memoryStore() {
+            const notes = [];
+            return {
+              async list() {
+                return notes;
+              },
+              async add(text) {
+                const note = { id: String(notes.length + 1), text, createdAt: new Date().toISOString() };
+                notes.push(note);
+                return note;
+              },
+            };
+          }
+
+          export async function createStore() {
+            if ((process.env.STORE ?? "memory") === "memory") return memoryStore();
+            throw new Error(`unknown STORE: ${process.env.STORE}`);
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import http from "node:http";
+          import { timingSafeEqual } from "node:crypto";
+          import { fileURLToPath } from "node:url";
+          import { parseNote } from "./validate.js";
+          import { createStore } from "./store.js";
+
+          function send(res, status, data) {
+            res.writeHead(status, { "content-type": "application/json" });
+            res.end(JSON.stringify(data));
+          }
+
+          async function readJson(req) {
+            let raw = "";
+            for await (const chunk of req) raw += chunk;
+            try {
+              return JSON.parse(raw);
+            } catch {
+              throw new Error("body must be JSON");
+            }
+          }
+
+          // Compare two strings in constant time, so the answer time does not leak the key.
+          function sameKey(given, wanted) {
+            const a = Buffer.from(given ?? "");
+            const b = Buffer.from(wanted);
+            return a.length === b.length && timingSafeEqual(a, b);
+          }
+
+          // apiKey is optional: when it is set, POST /notes needs a matching x-api-key header.
+          export function createApp({ store, apiKey }) {
+            return http.createServer(async (req, res) => {
+              try {
+                if (req.method === "GET" && req.url === "/health") {
+                  return send(res, 200, { status: "ok" });
+                }
+                if (req.url === "/notes") {
+                  if (req.method === "GET") return send(res, 200, await store.list());
+                  if (req.method === "POST") {
+                    if (apiKey && !sameKey(req.headers["x-api-key"], apiKey)) {
+                      return send(res, 401, { error: "missing or wrong x-api-key" });
+                    }
+                    let text;
+                    try {
+                      text = parseNote(await readJson(req));
+                    } catch (err) {
+                      return send(res, 400, { error: err.message });
+                    }
+                    return send(res, 201, await store.add(text));
+                  }
+                }
+                send(res, 404, { error: "not found" });
+              } catch (err) {
+                console.error(err.message);
+                send(res, 503, { error: "storage unavailable" });
+              }
+            });
+          }
+
+          // Start the server only when this file is run directly (not when a test imports it).
+          if (process.argv[1] === fileURLToPath(import.meta.url)) {
+            // Cloud Run tells the container which port to listen on in the PORT variable.
+            const port = Number(process.env.PORT ?? 8080);
+            const server = createApp({ store: await createStore(), apiKey: process.env.API_KEY });
+            server.listen(port, "0.0.0.0", () => console.log(`notes-api listening on ${port}`));
+
+            // Cloud Run stops an instance with SIGTERM: finish the open requests, then exit.
+            process.on("SIGTERM", () => {
+              console.log("shutting down");
+              server.close(() => process.exit(0));
+            });
+          }
+      - file: test/server.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { createApp } from "../src/server.js";
+          import { memoryStore } from "../src/store.js";
+          import { parseNote } from "../src/validate.js";
+
+          // Start the app on a random free port and give back a small fetch helper.
+          async function start(options = {}) {
+            const server = createApp({ store: memoryStore(), ...options });
+            await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+            const base = `http://127.0.0.1:${server.address().port}`;
+            return { base, close: () => new Promise((resolve) => server.close(resolve)) };
+          }
+
+          const post = (base, body, headers = {}) =>
+            fetch(`${base}/notes`, {
+              method: "POST",
+              headers: { "content-type": "application/json", ...headers },
+              body: JSON.stringify(body),
+            });
+
+          test("parseNote trims the text and rejects an empty one", () => {
+            assert.equal(parseNote({ text: "  buy milk " }), "buy milk");
+            assert.throws(() => parseNote({ text: "   " }), /required/);
+          });
+
+          test("health answers ok", async () => {
+            const app = await start();
+            const res = await fetch(`${app.base}/health`);
+            assert.equal(res.status, 200);
+            assert.deepEqual(await res.json(), { status: "ok" });
+            await app.close();
+          });
+
+          test("a posted note shows up in the list", async () => {
+            const app = await start();
+            const created = await post(app.base, { text: "hello cloud" });
+            assert.equal(created.status, 201);
+            const notes = await (await fetch(`${app.base}/notes`)).json();
+            assert.equal(notes.length, 1);
+            assert.equal(notes[0].text, "hello cloud");
+            await app.close();
+          });
+
+          test("a bad body is a 400", async () => {
+            const app = await start();
+            assert.equal((await post(app.base, { text: "" })).status, 400);
+            await app.close();
+          });
+
+          test("with an api key set, POST needs it and GET stays open", async () => {
+            const app = await start({ apiKey: "s3cret" });
+            assert.equal((await post(app.base, { text: "a" })).status, 401);
+            assert.equal((await post(app.base, { text: "a" }, { "x-api-key": "nope" })).status, 401);
+            assert.equal((await post(app.base, { text: "a" }, { "x-api-key": "s3cret" })).status, 201);
+            assert.equal((await fetch(`${app.base}/notes`)).status, 200);
+            await app.close();
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm install
+          npm test
+          npm start
+          # in a second terminal:
+          curl http://localhost:8080/health
+          curl -X POST http://localhost:8080/notes -H "content-type: application/json" -d '{"text":"hello cloud"}'
+          curl http://localhost:8080/notes
+
+          # the container
+          docker build -t notes-api .
+          docker run --rm -p 8080:8080 --name notes notes-api
+    mistakes:
+      - problem:
+          en: "The server listens on 127.0.0.1 or a fixed port, and the container works nowhere."
+          tr: "Sunucu 127.0.0.1'i ya da sabit bir portu dinliyor ve container hiçbir yerde çalışmıyor."
+        fix:
+          en: "Inside a container, listen on `0.0.0.0` and read the port from `PORT`. The code does both."
+          tr: "Container içinde `0.0.0.0` dinle ve portu `PORT` değişkeninden oku. Kod ikisini de yapıyor."
+      - problem:
+          en: "`npm ci` fails in the Docker build: \"package-lock.json not found\"."
+          tr: "Docker build'inde `npm ci` başarısız: \"package-lock.json not found\"."
+        fix:
+          en: "Run `npm install` once on your computer to create the lock file, and do not put it in `.dockerignore`."
+          tr: "Kilit dosyasını oluşturmak için bilgisayarında bir kez `npm install` çalıştır ve onu `.dockerignore` içine koyma."
+      - problem:
+          en: "\"port is already allocated\" when starting the container."
+          tr: "Container başlarken \"port is already allocated\" hatası."
+        fix:
+          en: "`npm start` is still running on 8080. Stop it with Ctrl+C or use `-p 8081:8080`."
+          tr: "`npm start` hâlâ 8080'de çalışıyor. Ctrl+C ile durdur ya da `-p 8081:8080` kullan."
+    quiz:
+      - q:
+          en: "Why does the app read the port from the PORT variable?"
+          tr: "Uygulama portu neden PORT değişkeninden okuyor?"
+        options:
+          en:
+            - "Cloud Run tells each container which port to listen on"
+            - "Port 8080 is forbidden"
+            - "It makes the app faster"
+          tr:
+            - "Cloud Run her container'a hangi portu dinleyeceğini söyler"
+            - "8080 portu yasaktır"
+            - "Uygulamayı hızlandırır"
+        answer: 0
+        why:
+          en: "The platform sets PORT (8080 by default) and sends requests there. Reading it keeps the same image working locally and in the cloud."
+          tr: "Platform PORT'u ayarlar (varsayılan 8080) ve istekleri oraya yollar. Okumak, aynı image'ın hem yerelde hem bulutta çalışmasını sağlar."
+      - q:
+          en: "Why must the container not keep important data on its own disk?"
+          tr: "Container neden önemli veriyi kendi diskinde tutmamalı?"
+        options:
+          en:
+            - "Instances are started and stopped at any time, and their disk disappears"
+            - "Containers have no disk"
+            - "Disks are only allowed in paid plans"
+          tr:
+            - "Instance'lar her an başlatılıp durdurulur ve diskleri kaybolur"
+            - "Container'ların diski yoktur"
+            - "Diske sadece ücretli planlarda izin verilir"
+        answer: 0
+        why:
+          en: "A container service adds and removes copies of your app. Data must live in a database or in storage outside the instance."
+          tr: "Container servisi uygulamanın kopyalarını ekler ve kaldırır. Veri, instance'ın dışında bir veritabanında ya da depolamada durmalı."
+    sources:
+      - title: Cloud Run, container runtime contract
+        url: https://docs.cloud.google.com/run/docs/container-contract
+      - title: Node.js test runner
+        url: https://nodejs.org/api/test.html
+
+  - id: storage
+    stage: basics
+    title:
+      en: "Regions and a first bucket for backups"
+      tr: "Region'lar ve yedekler için ilk bucket"
+    minutes: 35
+    needs: [app]
+    why:
+      en: "Object storage is the cloud's file cabinet: you put a file in a bucket and get it back by name, and the provider keeps it safe. Almost every app needs it for uploads, exports and backups. It is also the easiest first resource, so you learn how regions, names and the CLI feel before the bigger parts."
+      tr: "Nesne depolama (object storage) bulutun dosya dolabıdır: bir dosyayı bucket'a koyarsın, adıyla geri alırsın ve sağlayıcı onu güvende tutar. Neredeyse her uygulama yüklemeler, dışa aktarmalar ve yedekler için buna ihtiyaç duyar. Aynı zamanda en kolay ilk kaynaktır; böylece büyük parçalardan önce region'ın, isimlerin ve CLI'ın nasıl hissettirdiğini öğrenirsin."
+    learn:
+      en: |
+        - Region and zone: a region is a place (Iowa, Frankfurt), a zone is one building complex inside it. Data in one region is not copied to another unless you ask.
+        - Why we keep everything in one region (`us-central1`): speed between your own services, simpler billing, and the free allowance for storage
+        - Bucket names are global, and a bucket is private by default: use *uniform bucket-level access* and *public access prevention*
+        - Lifecycle rules: delete old files by themselves, so storage never grows forever
+      tr: |
+        - Region ve zone: region bir yerdir (Iowa, Frankfurt), zone onun içindeki bir bina kompleksidir. Bir region'daki veri sen istemeden başka yere kopyalanmaz.
+        - Her şeyi neden tek region'da (`us-central1`) tutuyoruz: kendi servislerin arasında hız, daha basit fatura ve depolama için ücretsiz hak
+        - Bucket adları küreseldir ve bucket varsayılan olarak özeldir: *uniform bucket-level access* ve *public access prevention* kullan
+        - Yaşam döngüsü kuralları (lifecycle): eski dosyaları kendiliğinden sil, depolama hiç sonsuza kadar büyümesin
+    do:
+      en: |
+        1. Pick the bucket name. Bucket names are global, so use your project ID in it. Create the bucket in `us-central1` with the safe settings. The free allowance is 5 GB of regional storage in some US regions (`us-central1` is one). A bucket in another region may cost money, even a little.
+        2. Save `lifecycle.json` below. It deletes files older than 30 days. Apply it to the bucket.
+        3. Save `scripts/backup.sh` below. It downloads all notes from a running API and uploads them to the bucket.
+        4. Start the API locally (`npm start`), add a note with `curl`, then run the script against `http://localhost:8080`.
+        5. List the bucket to see the backup, and read the file.
+        6. Check in the console (*Cloud Storage* > *Buckets*) that the bucket shows *Public access: Not public*.
+      tr: |
+        1. Bucket adını seç. Bucket adları küresel olduğundan içine proje ID'ni koy. Bucket'ı güvenli ayarlarla `us-central1` içinde oluştur. Ücretsiz hak, bazı ABD bölgelerinde (`us-central1` bunlardan biri) 5 GB bölgesel depolamadır. Başka bir region'daki bucket az da olsa para tutabilir.
+        2. Aşağıdaki `lifecycle.json` dosyasını kaydet. 30 günden eski dosyaları siler. Bucket'a uygula.
+        3. Aşağıdaki `scripts/backup.sh` dosyasını kaydet. Çalışan bir API'den tüm notları indirir ve bucket'a yükler.
+        4. API'yi yerelde başlat (`npm start`), `curl` ile bir not ekle, sonra betiği `http://localhost:8080` adresine karşı çalıştır.
+        5. Yedeği görmek için bucket'ı listele ve dosyayı oku.
+        6. Konsolda (*Cloud Storage* > *Buckets*) bucket'ın *Public access: Not public* gösterdiğini kontrol et.
+    code:
+      - file: lifecycle.json
+        lang: json
+        text: |
+          {
+            "rule": [
+              {
+                "action": { "type": "Delete" },
+                "condition": { "age": 30 }
+              }
+            ]
+          }
+      - file: scripts/backup.sh
+        lang: sh
+        text: |
+          #!/bin/sh
+          # Save every note as a JSON file in the bucket.
+          # Usage: scripts/backup.sh https://your-service-url gs://your-bucket
+          set -eu
+          URL="${1:?usage: backup.sh SERVICE_URL gs://BUCKET}"
+          BUCKET="${2:?usage: backup.sh SERVICE_URL gs://BUCKET}"
+          FILE="notes-$(date -u +%Y%m%dT%H%M%SZ).json"
+          curl -fsS "$URL/notes" -o "$FILE"
+          gcloud storage cp "$FILE" "$BUCKET/backups/$FILE"
+          rm "$FILE"
+          echo "saved $BUCKET/backups/$FILE"
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          BUCKET="$PROJECT_ID-backups"
+
+          gcloud storage buckets create "gs://$BUCKET" \
+            --location=us-central1 \
+            --uniform-bucket-level-access \
+            --public-access-prevention
+          gcloud storage buckets update "gs://$BUCKET" --lifecycle-file=lifecycle.json
+
+          # with the API running locally (npm start) and one note added:
+          sh scripts/backup.sh http://localhost:8080 "gs://$BUCKET"
+          gcloud storage ls "gs://$BUCKET/backups/"
+          gcloud storage cat "gs://$BUCKET/backups/*"
+    mistakes:
+      - problem:
+          en: "\"The bucket name is not available\" or an uppercase name is rejected."
+          tr: "\"The bucket name is not available\" ya da büyük harfli ad reddediliyor."
+        fix:
+          en: "Names are global and must be lowercase letters, digits, hyphens. Put your unique project ID in it."
+          tr: "Adlar küreseldir ve küçük harf, rakam, tireden oluşmalı. Benzersiz proje ID'ni içine koy."
+      - problem:
+          en: "Making a bucket public to share a file easily."
+          tr: "Bir dosyayı kolay paylaşmak için bucket'ı herkese açmak."
+        fix:
+          en: "Keep public access prevention on. To share one file for a short time, make a signed URL that expires. Anything in a public bucket can be found and downloaded by anyone, and download traffic costs money."
+          tr: "Public access prevention açık kalsın. Bir dosyayı kısa süre paylaşmak için süresi dolan imzalı bir URL (signed URL) üret. Herkese açık bucket'taki her şeyi herkes bulup indirebilir ve indirme trafiği para tutar."
+      - problem:
+          en: "Choosing a far-away or multi-region location \"to be safe\"."
+          tr: "\"Garanti olsun\" diye uzak ya da çok bölgeli (multi-region) bir konum seçmek."
+        fix:
+          en: "A location cannot be changed later, and only some single US regions are in the free allowance. For this project use `us-central1`."
+          tr: "Konum sonradan değiştirilemez ve ücretsiz hakta sadece bazı tek ABD bölgeleri var. Bu proje için `us-central1` kullan."
+    quiz:
+      - q:
+          en: "What does a lifecycle rule with age 30 do?"
+          tr: "Yaşı 30 olan bir lifecycle kuralı ne yapar?"
+        options:
+          en:
+            - "Deletes objects older than 30 days by itself"
+            - "Makes the bucket public after 30 days"
+            - "Copies the bucket to another region"
+          tr:
+            - "30 günden eski nesneleri kendiliğinden siler"
+            - "30 gün sonra bucket'ı herkese açar"
+            - "Bucket'ı başka bir region'a kopyalar"
+        answer: 0
+        why:
+          en: "The rule runs on the provider's side, so old backups never fill your free 5 GB."
+          tr: "Kural sağlayıcı tarafında çalışır; eski yedekler ücretsiz 5 GB'ını doldurmaz."
+    sources:
+      - title: Cloud Storage locations
+        url: https://docs.cloud.google.com/storage/docs/locations
+      - title: Create buckets
+        url: https://docs.cloud.google.com/storage/docs/creating-buckets
+      - title: Object lifecycle management
+        url: https://docs.cloud.google.com/storage/docs/lifecycle
+
+  - id: first-deploy
+    stage: first-project
+    title:
+      en: "Push the image and run it on Cloud Run"
+      tr: "Image'ı gönder ve Cloud Run'da çalıştır"
+    minutes: 60
+    needs: [app, cli]
+    why:
+      en: "Cloud Run takes a container image and gives you a public HTTPS address, with no server to manage. It starts copies when requests come and stops them when they stop, and you pay only for the time requests are handled (the free amounts cover a small API). The image first goes to Artifact Registry, Google's place to keep images."
+      tr: "Cloud Run bir container image alır ve sana yönetmen gereken bir sunucu olmadan herkese açık bir HTTPS adresi verir. İstek gelince kopya başlatır, istek kesilince durdurur ve sadece isteklerin işlendiği süre için ödersin (ücretsiz miktarlar küçük bir API'yi karşılar). Image önce Google'ın image saklama yeri olan Artifact Registry'ye gider."
+    learn:
+      en: |
+        - The path of an image: build on your computer, push to a registry, deploy from the registry
+        - Cloud Run settings that protect your wallet: `--max-instances`, `--min-instances 0`, small memory
+        - Why the service gets its own **service account** (the identity your app runs as), not the default one
+        - `--allow-unauthenticated`: anyone with the URL may call the service (a public API); secrets and the API key protect the writes
+        - Scale to zero: with no traffic there are no running instances, and the next request has to wait for a new one to start (a cold start)
+      tr: |
+        - Bir image'ın yolu: bilgisayarında build et, registry'ye gönder, registry'den deploy et
+        - Cüzdanını koruyan Cloud Run ayarları: `--max-instances`, `--min-instances 0`, küçük bellek
+        - Servisin neden varsayılan değil, kendi **service account**'una (uygulamanın çalıştığı kimlik) sahip olduğu
+        - `--allow-unauthenticated`: URL'yi bilen herkes servisi çağırabilir (herkese açık API); yazmaları sırlar ve API anahtarı korur
+        - Sıfıra ölçekleme: trafik yokken çalışan instance yoktur ve sonraki istek yenisinin başlamasını bekler (cold start)
+    do:
+      en: |
+        1. Create the identity the app will run as. It has **no permissions** yet. You will give it exactly what it needs later.
+        2. Create the Docker repository `notes` in Artifact Registry and let Docker log in to it.
+        3. Build the image for the machines Cloud Run uses (`linux/amd64`; this matters on Apple Silicon Macs) and push it. The name has the form `REGION-docker.pkg.dev/PROJECT/REPO/IMAGE:TAG`.
+        4. Deploy. The flags keep it small and safe: at most 2 instances, none when idle, 512 MiB memory, 1 CPU. For now the notes are kept in memory.
+        5. Get the URL (it ends in `.run.app`, uses HTTPS automatically) and try it. Add a note and read it back.
+        6. Wait about 15 minutes with no requests, then read the notes again. The list is empty: Cloud Run stopped the instance and the memory went with it. This is why the next step adds a database.
+      tr: |
+        1. Uygulamanın altında çalışacağı kimliği oluştur. Henüz **hiçbir izni yok**. Gereken izni sonra tam olarak vereceksin.
+        2. Artifact Registry'de `notes` adında Docker deposunu oluştur ve Docker'ın ona giriş yapmasını sağla.
+        3. Image'ı Cloud Run'ın kullandığı makineler için build et (`linux/amd64`; Apple Silicon Mac'lerde bu önemli) ve gönder. Ad şu biçimde olur: `REGION-docker.pkg.dev/PROJECT/REPO/IMAGE:TAG`.
+        4. Deploy et. Bayraklar onu küçük ve güvenli tutar: en fazla 2 instance, boştayken sıfır, 512 MiB bellek, 1 CPU. Şimdilik notlar bellekte duruyor.
+        5. URL'yi al (`.run.app` ile biter, HTTPS otomatik gelir) ve dene. Bir not ekle ve geri oku.
+        6. Yaklaşık 15 dakika istek atmadan bekle, sonra notları tekrar oku. Liste boş: Cloud Run instance'ı durdurdu ve bellek onunla gitti. Bu yüzden sonraki adım bir veritabanı ekliyor.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/notes/notes-api"
+
+          # 1. the identity of the app (no roles yet)
+          gcloud iam service-accounts create notes-run --display-name="Notes API runtime"
+
+          # 2. the image repository
+          gcloud artifacts repositories create notes \
+            --repository-format=docker --location="$REGION" --description="Notes API images"
+          gcloud auth configure-docker "$REGION-docker.pkg.dev"
+
+          # 3. build and push
+          docker build --platform linux/amd64 -t "$IMAGE:v1" .
+          docker push "$IMAGE:v1"
+
+          # 4. deploy
+          gcloud run deploy notes-api \
+            --image "$IMAGE:v1" \
+            --region "$REGION" \
+            --service-account "notes-run@$PROJECT_ID.iam.gserviceaccount.com" \
+            --allow-unauthenticated \
+            --min-instances 0 \
+            --max-instances 2 \
+            --memory 512Mi \
+            --cpu 1
+
+          # 5. try it
+          URL=$(gcloud run services describe notes-api --region "$REGION" --format='value(status.url)')
+          curl "$URL/health"
+          curl -X POST "$URL/notes" -H "content-type: application/json" -d '{"text":"first note in the cloud"}'
+          curl "$URL/notes"
+    mistakes:
+      - problem:
+          en: "\"exec format error\" and the container fails to start."
+          tr: "\"exec format error\" ve container başlamıyor."
+        fix:
+          en: "The image was built for another CPU type (an Apple Silicon Mac builds arm64). Build with `--platform linux/amd64`."
+          tr: "Image başka bir CPU türü için build edilmiş (Apple Silicon Mac arm64 üretir). `--platform linux/amd64` ile build et."
+      - problem:
+          en: "\"The user-provided container failed to start and listen on the port defined by PORT\"."
+          tr: "\"The user-provided container failed to start and listen on the port defined by PORT\" hatası."
+        fix:
+          en: "Read the logs link in the error. Usually the app crashed at start or listens on 127.0.0.1. Test the same image locally with `docker run -p 8080:8080` first."
+          tr: "Hatadaki log linkini oku. Genelde uygulama başlarken çöktü ya da 127.0.0.1'i dinliyor. Önce aynı image'ı yerelde `docker run -p 8080:8080` ile dene."
+      - problem:
+          en: "Deploying without `--service-account` and `--max-instances`."
+          tr: "`--service-account` ve `--max-instances` vermeden deploy etmek."
+        fix:
+          en: "Without them the service runs as the default Compute Engine account (in many projects it has the broad Editor role) and can start many instances under heavy traffic. Always set both."
+          tr: "Onlar olmadan servis varsayılan Compute Engine hesabıyla çalışır (birçok projede geniş Editor rolü vardır) ve yoğun trafikte çok sayıda instance başlatabilir. İkisini de her zaman ver."
+    quiz:
+      - q:
+          en: "Why set --max-instances 2?"
+          tr: "Neden --max-instances 2 veriyoruz?"
+        options:
+          en:
+            - "It makes requests faster"
+            - "It caps how many copies can run, so a traffic spike cannot run up a big bill"
+            - "Cloud Run needs at least 2"
+          tr:
+            - "İstekleri hızlandırır"
+            - "Aynı anda kaç kopya çalışabileceğini sınırlar; böylece trafik patlaması büyük fatura çıkaramaz"
+            - "Cloud Run en az 2 ister"
+        answer: 1
+        why:
+          en: "More traffic makes Cloud Run add instances. A cap is a brake that works even if you are not watching."
+          tr: "Daha çok trafik Cloud Run'ın instance eklemesine yol açar. Sınır, sen izlemesen de çalışan bir frendir."
+    sources:
+      - title: Deploy a container image to Cloud Run
+        url: https://docs.cloud.google.com/run/docs/deploying
+      - title: Store Docker images in Artifact Registry
+        url: https://docs.cloud.google.com/artifact-registry/docs/docker/store-docker-container-images
+      - title: Cloud Run pricing
+        url: https://cloud.google.com/run/pricing
+
+  - id: firestore
+    stage: data-api
+    title:
+      en: "A managed database: Firestore"
+      tr: "Yönetilen bir veritabanı: Firestore"
+    minutes: 55
+    needs: [first-deploy]
+    why:
+      en: "A managed database means Google runs, patches and backs up the database; you only use it. Firestore stores documents (like small JSON objects) in collections, and its Free Tier is one database per project with 1 GiB and daily limits. The app proves who it is with its service account, so there is no password in the code."
+      tr: "Yönetilen veritabanı, veritabanını Google'ın çalıştırması, yamalaması ve yedeklemesi demek; sen sadece kullanırsın. Firestore dokümanları (küçük JSON nesneleri gibi) koleksiyonlarda saklar ve Free Tier'ı proje başına bir veritabanı, 1 GiB ve günlük limitlerdir. Uygulama kim olduğunu service account'uyla kanıtlar; yani kodda parola yoktur."
+    learn:
+      en: |
+        - Documents and collections, and when a document database fits (notes, profiles) and when you need SQL
+        - The free quota per day: 50,000 reads, 20,000 writes, 20,000 deletes, and 1 GiB stored, for one database per project. Above the limit, usage costs money: on the trial it uses your credit, on a paid account it is billed.
+        - Application Default Credentials: the library finds the identity of the Cloud Run service by itself
+        - A role is given to the service account, not to the code: `roles/datastore.user` lets it read and write documents and nothing else
+        - Firestore security rules are for apps that talk to the database from a browser or phone. Your server uses IAM instead.
+      tr: |
+        - Dokümanlar ve koleksiyonlar; doküman veritabanı ne zaman uyar (notlar, profiller) ve ne zaman SQL gerekir
+        - Günlük ücretsiz kota: 50.000 okuma, 20.000 yazma, 20.000 silme ve 1 GiB depolama; proje başına bir veritabanı için. Limit aşılınca kullanım para tutar: deneme hesabında kredinden düşer, ücretli hesapta faturalanır.
+        - Application Default Credentials: kütüphane Cloud Run servisinin kimliğini kendisi bulur
+        - Rol koda değil service account'a verilir: `roles/datastore.user` doküman okuma ve yazma izni verir, başka bir şey vermez
+        - Firestore güvenlik kuralları veritabanıyla tarayıcıdan ya da telefondan konuşan uygulamalar içindir. Senin sunucun onun yerine IAM kullanır.
+    do:
+      en: |
+        1. Create the database. The `(default)` database is the one with the free quota. Choose the `standard` edition and the location `us-central1`. The location cannot be changed later.
+        2. Give the app's service account the Firestore role. Without it the app can start but every database call fails with *PERMISSION_DENIED*. `--condition=None` means the role has no extra conditions.
+        3. Install the Firestore library: `npm install @google-cloud/firestore`. Your `package.json` and `package-lock.json` change. Replace `src/store.js` with the version below. The only new part is `firestoreStore`. The library is loaded inside it, so tests and local runs never need Google credentials.
+        4. Build version 2 of the image, push it and deploy with the environment variable `STORE=firestore`.
+        5. Add a note and read it. Open the console (*Firestore* > *Data*): the `notes` collection is there.
+        6. Prove the data is outside the instance: deploy again with a changed variable, which creates a new revision and a new instance, and list the notes. They are still there.
+      tr: |
+        1. Veritabanını oluştur. Ücretsiz kotası olan `(default)` veritabanıdır. `standard` edition'ı ve `us-central1` konumunu seç. Konum sonradan değiştirilemez.
+        2. Uygulamanın service account'una Firestore rolünü ver. Olmazsa uygulama başlar ama her veritabanı çağrısı *PERMISSION_DENIED* ile başarısız olur. `--condition=None`, rolün ek bir koşulu olmadığı anlamına gelir.
+        3. Firestore kütüphanesini kur: `npm install @google-cloud/firestore`. `package.json` ve `package-lock.json` değişir. `src/store.js` dosyasını aşağıdaki sürümle değiştir. Tek yeni kısım `firestoreStore`. Kütüphane onun içinde yüklenir; testler ve yerel çalıştırmalar hiç Google kimlik bilgisi istemez.
+        4. Image'ın 2. sürümünü build et, gönder ve `STORE=firestore` ortam değişkeniyle deploy et.
+        5. Bir not ekle ve oku. Konsolu aç (*Firestore* > *Data*): `notes` koleksiyonu orada.
+        6. Verinin instance'ın dışında olduğunu kanıtla: değişmiş bir değişkenle tekrar deploy et; bu yeni bir revision ve yeni bir instance oluşturur. Notları listele. Hâlâ orada.
+    code:
+      - file: src/store.js
+        lang: js
+        text: |
+          // Where the notes live. The API only needs two methods: list() and add(text).
+          // memoryStore keeps notes in memory (tests, local runs). firestoreStore keeps them in Firestore.
+          export function memoryStore() {
+            const notes = [];
+            return {
+              async list() {
+                return notes;
+              },
+              async add(text) {
+                const note = { id: String(notes.length + 1), text, createdAt: new Date().toISOString() };
+                notes.push(note);
+                return note;
+              },
+            };
+          }
+
+          export async function firestoreStore() {
+            // Loaded only here, so tests and local runs do not need Google credentials.
+            const { Firestore } = await import("@google-cloud/firestore");
+            // No keys in the code: on Cloud Run the library uses the service's own identity.
+            const notes = new Firestore().collection("notes");
+            const toNote = (doc) => ({
+              id: doc.id,
+              text: doc.get("text"),
+              createdAt: doc.get("createdAt").toDate().toISOString(),
+            });
+            return {
+              async list() {
+                const snapshot = await notes.orderBy("createdAt").limit(100).get();
+                return snapshot.docs.map(toNote);
+              },
+              async add(text) {
+                const ref = await notes.add({ text, createdAt: new Date() });
+                return toNote(await ref.get());
+              },
+            };
+          }
+
+          export async function createStore() {
+            const kind = process.env.STORE ?? "memory";
+            if (kind === "memory") return memoryStore();
+            if (kind === "firestore") return firestoreStore();
+            throw new Error(`unknown STORE: ${kind}`);
+          }
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "notes-api",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "engines": {
+              "node": ">=24"
+            },
+            "scripts": {
+              "start": "node src/server.js",
+              "test": "node --test"
+            },
+            "dependencies": {
+              "@google-cloud/firestore": "^9.3.1"
+            }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/notes/notes-api"
+          RUN_SA="notes-run@$PROJECT_ID.iam.gserviceaccount.com"
+
+          gcloud firestore databases create --location="$REGION" --edition=standard --type=firestore-native
+
+          gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+            --member="serviceAccount:$RUN_SA" --role="roles/datastore.user" --condition=None
+
+          npm install @google-cloud/firestore
+          docker build --platform linux/amd64 -t "$IMAGE:v2" .
+          docker push "$IMAGE:v2"
+          gcloud run deploy notes-api --image "$IMAGE:v2" --region "$REGION" --set-env-vars STORE=firestore
+
+          URL=$(gcloud run services describe notes-api --region "$REGION" --format='value(status.url)')
+          curl -X POST "$URL/notes" -H "content-type: application/json" -d '{"text":"saved in Firestore"}'
+          curl "$URL/notes"
+
+          # a new revision means a new instance: the note must still be there
+          gcloud run deploy notes-api --image "$IMAGE:v2" --region "$REGION" --update-env-vars "DEPLOYED_AT=$(date +%s)"
+          curl "$URL/notes"
+    mistakes:
+      - problem:
+          en: "The API answers 503 and the logs say \"7 PERMISSION_DENIED\"."
+          tr: "API 503 dönüyor ve loglarda \"7 PERMISSION_DENIED\" yazıyor."
+        fix:
+          en: "The service account has no Firestore role yet, or the grant is still spreading (wait a minute). Check the role binding and the `--service-account` the service uses."
+          tr: "Service account'un henüz Firestore rolü yok ya da yetki hâlâ yayılıyor (bir dakika bekle). Rol bağlamasını ve servisin kullandığı `--service-account`'u kontrol et."
+      - problem:
+          en: "\"5 NOT_FOUND\": the database does not exist."
+          tr: "\"5 NOT_FOUND\": veritabanı yok."
+        fix:
+          en: "Run the `gcloud firestore databases create` command first. Check with `gcloud firestore databases list`."
+          tr: "Önce `gcloud firestore databases create` komutunu çalıştır. `gcloud firestore databases list` ile kontrol et."
+      - problem:
+          en: "Downloading a service account key file (JSON) to run the app locally or on Cloud Run."
+          tr: "Uygulamayı yerelde ya da Cloud Run'da çalıştırmak için service account anahtar dosyası (JSON) indirmek."
+        fix:
+          en: "Never do this. A key is a password that does not expire. On Cloud Run the identity comes for free; for your laptop use `gcloud auth application-default login`."
+          tr: "Bunu asla yapma. Anahtar, süresi dolmayan bir paroladır. Cloud Run'da kimlik zaten gelir; dizüstü bilgisayarın için `gcloud auth application-default login` kullan."
+    quiz:
+      - q:
+          en: "How does the app get permission to use Firestore?"
+          tr: "Uygulama Firestore'u kullanma iznini nasıl alıyor?"
+        options:
+          en:
+            - "A password written in the code"
+            - "A key file inside the image"
+            - "A role given to the service account the Cloud Run service runs as"
+          tr:
+            - "Kodun içine yazılmış bir parola"
+            - "Image içindeki bir anahtar dosyası"
+            - "Cloud Run servisinin altında çalıştığı service account'a verilmiş bir rol"
+        answer: 2
+        why:
+          en: "The library asks the platform who it is running as. Roles on that identity decide what is allowed. Nothing secret is stored."
+          tr: "Kütüphane platforma hangi kimlikle çalıştığını sorar. O kimliğe verilen roller neyin serbest olduğunu belirler. Saklanan bir sır yoktur."
+    sources:
+      - title: Firestore pricing and free quota
+        url: https://cloud.google.com/firestore/pricing
+      - title: Firestore, use a server client library
+        url: https://docs.cloud.google.com/firestore/docs/create-database-server-client-library
+      - title: Firestore access control with IAM
+        url: https://docs.cloud.google.com/firestore/docs/security/iam
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test without the cloud, then smoke test the real thing"
+      tr: "Bulut olmadan test et, sonra gerçeğine duman testi (smoke test) yap"
+    minutes: 40
+    needs: [firestore]
+    why:
+      en: "Tests that need a real cloud are slow, need secrets and can cost money. So the unit tests use a fake database that has the same few methods, and a tiny smoke test checks the real deployed service after every deploy. The first catches bugs in your code, the second catches mistakes in the setup."
+      tr: "Gerçek bulut isteyen testler yavaştır, sır ister ve para tutabilir. Bu yüzden birim testleri aynı birkaç metodu olan sahte bir veritabanı kullanır; her deploy'dan sonra da küçük bir smoke test gerçek servisi kontrol eder. Birincisi koddaki hataları, ikincisi kurulumdaki hataları yakalar."
+    learn:
+      en: |
+        - Dependency injection in one line: `firestoreStore(db)` takes the database as an argument, so a test can hand in a fake
+        - What a smoke test is: a few quick calls to the real service that answer "is it alive and wired up?"
+        - The Firestore emulator (`gcloud emulators firestore start`, needs Java) runs a local pretend database; the client library uses it when `FIRESTORE_EMULATOR_HOST` is set. It is optional here.
+      tr: |
+        - Tek satırda bağımlılık enjeksiyonu: `firestoreStore(db)` veritabanını argüman olarak alır, bu yüzden bir test sahtesini verebilir
+        - Smoke test nedir: gerçek servise yapılan birkaç hızlı çağrı; "ayakta mı ve bağlantılar doğru mu?" sorusunu yanıtlar
+        - Firestore emulator'ü (`gcloud emulators firestore start`, Java gerekir) yerelde sahte bir veritabanı çalıştırır; `FIRESTORE_EMULATOR_HOST` ayarlıysa istemci kütüphanesi onu kullanır. Burada isteğe bağlıdır.
+    do:
+      en: |
+        1. Replace `src/store.js` with the version below. Only the start of `firestoreStore` changed: it accepts an optional `db`.
+        2. Add `test/store.test.js`. It builds a fake with `collection`, `add`, `orderBy`, `limit` and `get`, which are all the store uses.
+        3. Run `npm test`. Six tests should pass, and none of them touches the internet.
+        4. Add `scripts/smoke.sh`. It calls `/health` and `/notes`, and posts a note if the environment variable `API_KEY` is set.
+        5. Run it against the deployed service. The deploy step in the later CI/CD step runs the same script automatically.
+      tr: |
+        1. `src/store.js` dosyasını aşağıdaki sürümle değiştir. Sadece `firestoreStore`'un başı değişti: isteğe bağlı bir `db` kabul ediyor.
+        2. `test/store.test.js` dosyasını ekle. `collection`, `add`, `orderBy`, `limit` ve `get` içeren bir sahte oluşturur; store'un kullandığı hepsi bu.
+        3. `npm test` çalıştır. Altı test geçmeli ve hiçbiri internete dokunmaz.
+        4. `scripts/smoke.sh` dosyasını ekle. `/health` ve `/notes` çağırır, `API_KEY` ortam değişkeni ayarlıysa bir not da gönderir.
+        5. Deploy edilmiş servise karşı çalıştır. Sonraki CI/CD adımındaki deploy aşaması aynı betiği otomatik çalıştırır.
+    code:
+      - file: src/store.js
+        lang: js
+        text: |
+          // Where the notes live. The API only needs two methods: list() and add(text).
+          // memoryStore keeps notes in memory (tests, local runs). firestoreStore keeps them in Firestore.
+          export function memoryStore() {
+            const notes = [];
+            return {
+              async list() {
+                return notes;
+              },
+              async add(text) {
+                const note = { id: String(notes.length + 1), text, createdAt: new Date().toISOString() };
+                notes.push(note);
+                return note;
+              },
+            };
+          }
+
+          export async function firestoreStore(db) {
+            if (!db) {
+              // Loaded only here, so tests and local runs do not need Google credentials.
+              const { Firestore } = await import("@google-cloud/firestore");
+              // No keys in the code: on Cloud Run the library uses the service's own identity.
+              db = new Firestore();
+            }
+            const notes = db.collection("notes");
+            const toNote = (doc) => ({
+              id: doc.id,
+              text: doc.get("text"),
+              createdAt: doc.get("createdAt").toDate().toISOString(),
+            });
+            return {
+              async list() {
+                const snapshot = await notes.orderBy("createdAt").limit(100).get();
+                return snapshot.docs.map(toNote);
+              },
+              async add(text) {
+                const ref = await notes.add({ text, createdAt: new Date() });
+                return toNote(await ref.get());
+              },
+            };
+          }
+
+          export async function createStore() {
+            const kind = process.env.STORE ?? "memory";
+            if (kind === "memory") return memoryStore();
+            if (kind === "firestore") return firestoreStore();
+            throw new Error(`unknown STORE: ${kind}`);
+          }
+      - file: test/store.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { firestoreStore } from "../src/store.js";
+
+          // A tiny stand-in for the Firestore client: just the calls our store uses.
+          function fakeFirestore() {
+            const docs = [];
+            const makeDoc = (id, data) => ({ id, get: (field) => data[field] });
+            const collection = {
+              async add(data) {
+                const doc = makeDoc(String(docs.length + 1), {
+                  text: data.text,
+                  // Firestore hands dates back as Timestamp objects with a toDate() method.
+                  createdAt: { toDate: () => data.createdAt },
+                });
+                docs.push(doc);
+                return { get: async () => doc };
+              },
+              orderBy: () => collection,
+              limit: () => collection,
+              async get() {
+                return { docs };
+              },
+            };
+            return { collection: () => collection };
+          }
+
+          test("firestoreStore adds a note and lists it with an ISO date", async () => {
+            const store = await firestoreStore(fakeFirestore());
+            const note = await store.add("hello firestore");
+            assert.equal(note.text, "hello firestore");
+            assert.match(note.createdAt, /^\d{4}-\d{2}-\d{2}T/);
+            const all = await store.list();
+            assert.equal(all.length, 1);
+            assert.equal(all[0].id, note.id);
+          });
+      - file: scripts/smoke.sh
+        lang: sh
+        text: |
+          #!/bin/sh
+          # Quick check of a running service.
+          # Usage: scripts/smoke.sh https://your-service-url
+          # If API_KEY is set in the environment, it also posts a note.
+          set -eu
+          URL="${1:?usage: smoke.sh SERVICE_URL}"
+          curl -fsS "$URL/health" | grep -q '"status":"ok"' && echo "health: ok"
+          curl -fsS "$URL/notes" > /dev/null && echo "list: ok"
+          if [ -n "${API_KEY:-}" ]; then
+            curl -fsS -X POST "$URL/notes" \
+              -H "content-type: application/json" -H "x-api-key: $API_KEY" \
+              -d '{"text":"smoke test"}' > /dev/null && echo "create: ok"
+          fi
+      - file: terminal
+        lang: sh
+        text: |
+          npm test
+
+          URL=$(gcloud run services describe notes-api --region us-central1 --format='value(status.url)')
+          sh scripts/smoke.sh "$URL"
+    mistakes:
+      - problem:
+          en: "Pointing unit tests at the real database \"just this once\"."
+          tr: "Birim testlerini \"sadece bu seferlik\" gerçek veritabanına yöneltmek."
+        fix:
+          en: "Tests then eat your daily free quota, write junk into real data and fail when the internet is down. Use the fake in unit tests and the smoke test for the real thing."
+          tr: "Testler günlük ücretsiz kotanı yer, gerçek veriye çöp yazar ve internet yokken başarısız olur. Birim testlerinde sahteyi, gerçek için smoke testi kullan."
+      - problem:
+          en: "A fake that is much simpler than the real service, so tests pass but production fails."
+          tr: "Gerçek servisten çok daha basit bir sahte; testler geçer ama production'da hata çıkar."
+        fix:
+          en: "That is why the smoke test exists. Keep the fake tiny and let the smoke test cover the wiring (permissions, database, environment variables)."
+          tr: "Smoke test bu yüzden var. Sahteyi küçük tut ve bağlantıları (izinler, veritabanı, ortam değişkenleri) smoke teste bırak."
+    quiz:
+      - q:
+          en: "What can a smoke test find that the unit tests with a fake cannot?"
+          tr: "Smoke test, sahteli birim testlerin bulamadığı neyi bulabilir?"
+        options:
+          en:
+            - "A missing IAM role or a wrong environment variable on the real service"
+            - "A typo in a variable name inside a function"
+            - "A slow test"
+          tr:
+            - "Gerçek serviste eksik bir IAM rolü ya da yanlış bir ortam değişkeni"
+            - "Bir fonksiyonun içindeki değişken adı yazım hatası"
+            - "Yavaş bir test"
+        answer: 0
+        why:
+          en: "A fake always allows everything. Only a call to the real service shows whether the permissions and settings are right."
+          tr: "Sahte her zaman her şeye izin verir. İzinlerin ve ayarların doğru olup olmadığını sadece gerçek servise yapılan çağrı gösterir."
+    sources:
+      - title: Node.js test runner
+        url: https://nodejs.org/api/test.html
+      - title: Firestore emulator
+        url: https://docs.cloud.google.com/firestore/docs/emulator
+
+  - id: iam
+    stage: security
+    title:
+      en: "Who may do what: IAM, roles and least privilege"
+      tr: "Kim ne yapabilir: IAM, roller ve en az yetki"
+    minutes: 50
+    needs: [firestore]
+    why:
+      en: "IAM (Identity and Access Management) answers one question for every action: is this identity allowed to do this? Most real cloud break-ins and big bills come from identities that could do far more than they needed. Least privilege means giving each person and program exactly the roles it needs and nothing more."
+      tr: "IAM (Identity and Access Management) her işlem için tek bir soruyu yanıtlar: bu kimlik bunu yapabilir mi? Gerçek bulut ihlallerinin ve büyük faturaların çoğu, ihtiyacından çok fazlasını yapabilen kimliklerden çıkar. En az yetki (least privilege), her kişiye ve programa tam ihtiyacı olan rolleri vermek, fazlasını vermemek demektir."
+    learn:
+      en: |
+        - A **principal** is who (a Google account, a group, a service account). A **role** is a bundle of permissions. A **binding** says "this principal has this role on this resource". The list of bindings is the IAM policy.
+        - Humans are Google accounts; programs are **service accounts**. Your own account is the owner of the project: protect it with 2-Step Verification (done) and use it for setup, not for programs.
+        - Basic roles (Owner, Editor, Viewer) are very broad. Use predefined roles such as `roles/datastore.user`, and give them on the smallest thing that works (one secret, one repository, one service) and not on the whole project when you can.
+        - Service account **keys** are passwords that never expire. Do not create them. Programs on Google Cloud get their identity from the platform, and programs outside get short-lived tokens (see the CI/CD step).
+      tr: |
+        - **Principal** kimin olduğunu belirtir (bir Google hesabı, bir grup, bir service account). **Rol** izinler paketidir. **Binding** "bu principal'ın bu kaynakta bu rolü var" der. Binding listesi IAM policy'sidir.
+        - İnsanlar Google hesaplarıdır; programlar **service account**'lardır. Kendi hesabın projenin sahibidir (owner): 2 adımlı doğrulamayla koru (yapıldı) ve kurulum için kullan, programlar için değil.
+        - Temel roller (Owner, Editor, Viewer) çok geniştir. `roles/datastore.user` gibi hazır roller kullan ve mümkünse tüm proje yerine çalışan en küçük şeye ver (bir secret, bir depo, bir servis).
+        - Service account **anahtarları** süresi dolmayan parolalardır. Oluşturma. Google Cloud'daki programlar kimliğini platformdan alır, dışarıdaki programlar kısa ömürlü token alır (CI/CD adımına bak).
+    do:
+      en: |
+        1. Save `scripts/iam-audit.sh` below and run it. It prints who has which role on the project.
+        2. Read the output line by line. You should see: your own account with `roles/owner`; some Google-managed service agents (names with `gcp-sa-` or `serverless-robot-prod`) that you leave alone; and `notes-run` with `roles/datastore.user` only. Everyone else is a question mark: find out why they are there.
+        3. Look at what the role you gave contains. It is mostly a list of permissions for documents, with nothing about storage, secrets or deleting the project.
+        4. Check that your service account has no key files: only keys managed by Google should appear.
+        5. Practice the habit: if you later give a friend access, give the narrowest role, for example `roles/run.viewer` (see the services) instead of Editor. The command is in the code box, commented out.
+        6. In the console, open *IAM & Admin* > *IAM* and look at the *Excess permissions* column when it shows. Google compares what each identity could do with what it did, and suggests removing unused roles.
+      tr: |
+        1. Aşağıdaki `scripts/iam-audit.sh` dosyasını kaydet ve çalıştır. Projede kimin hangi role sahip olduğunu yazar.
+        2. Çıktıyı satır satır oku. Şunları görmelisin: `roles/owner` ile kendi hesabın; dokunmadığın, Google'ın yönettiği bazı service agent'lar (adlarında `gcp-sa-` ya da `serverless-robot-prod` geçer); ve sadece `roles/datastore.user` ile `notes-run`. Diğer herkes bir soru işaretidir: neden orada olduklarını bul.
+        3. Verdiğin rolün içinde ne olduğuna bak. Çoğunlukla dokümanlar için izinlerin listesidir; depolama, sırlar ya da projeyi silme hakkında hiçbir şey yok.
+        4. Service account'unda anahtar dosyası olmadığını kontrol et: sadece Google'ın yönettiği anahtarlar görünmeli.
+        5. Alışkanlığı çalış: ileride bir arkadaşına erişim verirsen Editor yerine en dar rolü ver, örneğin `roles/run.viewer` (servisleri görür). Komut kod kutusunda, yorum satırı olarak duruyor.
+        6. Konsolda *IAM & Admin* > *IAM* sayfasını aç ve göründüğünde *Excess permissions* sütununa bak. Google her kimliğin yapabildikleriyle yaptıklarını karşılaştırır ve kullanılmayan rolleri kaldırmayı önerir.
+    code:
+      - file: scripts/iam-audit.sh
+        lang: sh
+        text: |
+          #!/bin/sh
+          # Who has which role on this project?
+          set -eu
+          PROJECT_ID="${1:-$(gcloud config get-value project)}"
+          gcloud projects get-iam-policy "$PROJECT_ID" \
+            --flatten="bindings[].members" \
+            --format="table(bindings.members, bindings.role)"
+      - file: terminal
+        lang: sh
+        text: |
+          sh scripts/iam-audit.sh
+
+          # what is inside a role?
+          gcloud iam roles describe roles/datastore.user --format="value(includedPermissions)"
+
+          # no key files should exist for the app's identity
+          PROJECT_ID=$(gcloud config get-value project)
+          gcloud iam service-accounts keys list --iam-account="notes-run@$PROJECT_ID.iam.gserviceaccount.com"
+
+          # later, for a friend: the narrowest role that works
+          # gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+          #   --member="user:friend@example.com" --role="roles/run.viewer" --condition=None
+    mistakes:
+      - problem:
+          en: "Giving a program the Editor or Owner role \"to make the error go away\"."
+          tr: "\"Hata gitsin diye\" bir programa Editor ya da Owner rolü vermek."
+        fix:
+          en: "Read the error: it names the missing permission (for example `datastore.entities.create`). Find the smallest predefined role with it, and give that role on the smallest resource."
+          tr: "Hatayı oku: eksik izni söyler (örneğin `datastore.entities.create`). Onu içeren en küçük hazır rolü bul ve en küçük kaynağa ver."
+      - problem:
+          en: "Using your own Owner account's login inside programs or CI."
+          tr: "Kendi Owner hesabının girişini programların ya da CI'ın içinde kullanmak."
+        fix:
+          en: "Programs get their own service account with only their roles. If the program leaks, only that small power leaks."
+          tr: "Programlar sadece kendi rollerini taşıyan kendi service account'unu alır. Program sızarsa sadece o küçük yetki sızar."
+      - problem:
+          en: "Waiting for a role to work and it still fails a few seconds later."
+          tr: "Bir rol verilir ve birkaç saniye sonra hâlâ çalışmaz."
+        fix:
+          en: "IAM changes can take a few minutes to spread. Wait two minutes before you change something else."
+          tr: "IAM değişikliklerinin yayılması birkaç dakika sürebilir. Başka bir şeyi değiştirmeden önce iki dakika bekle."
+    quiz:
+      - q:
+          en: "Which is the better way to let a program read one secret?"
+          tr: "Bir programın tek bir sırrı okumasının daha iyi yolu hangisi?"
+        options:
+          en:
+            - "Give its service account the Editor role on the project"
+            - "Give its service account the Secret Accessor role on that one secret"
+            - "Put your own login in the program"
+          tr:
+            - "Service account'una projede Editor rolü vermek"
+            - "Service account'una sadece o secret üzerinde Secret Accessor rolü vermek"
+            - "Kendi girişini programın içine koymak"
+        answer: 1
+        why:
+          en: "A narrow role on a narrow resource is least privilege. If the program is hacked, only that one secret is exposed."
+          tr: "Dar kaynakta dar rol, en az yetkidir. Program ele geçirilirse sadece o tek sır açığa çıkar."
+    sources:
+      - title: IAM, use IAM securely
+        url: https://docs.cloud.google.com/iam/docs/using-iam-securely
+      - title: Service accounts overview
+        url: https://docs.cloud.google.com/iam/docs/service-account-overview
+      - title: Understanding roles
+        url: https://docs.cloud.google.com/iam/docs/roles-overview
+
+  - id: secrets
+    stage: security
+    title:
+      en: "Secrets: Secret Manager and a protected API key"
+      tr: "Sırlar: Secret Manager ve korunan bir API anahtarı"
+    minutes: 40
+    needs: [iam]
+    why:
+      en: "Passwords and keys must never be written in code, in the image or in Git: anyone who can see those can use them. Secret Manager stores the value, can record who read it (audit logs), lets you change it (rotate) and gives it only to identities you name. Here it protects the key that is needed to write notes."
+      tr: "Parolalar ve anahtarlar asla kodun, image'ın ya da Git'in içine yazılmamalı: bunları gören herkes kullanabilir. Secret Manager değeri saklar, kimin okuduğunu kaydedebilir (audit log), değiştirmene (rotate) izin verir ve sadece adını verdiğin kimliklere verir. Burada notları yazmak için gereken anahtarı korur."
+    learn:
+      en: |
+        - A secret has **versions**. Each new value is a new version, so you can roll back. The Free Tier covers 6 active versions and 10,000 access operations a month.
+        - Cloud Run can put a secret into an environment variable when an instance starts. Pin a version number (`:1`), not `latest`, so a deploy is repeatable.
+        - Give access with `roles/secretmanager.secretAccessor` on that one secret, to that one service account
+        - Rotation: add a new version, point the service at it, then destroy the old version
+        - Keep a plain environment variable (`--set-env-vars`) only for things that are not secret: it is visible to everyone who can view the service
+      tr: |
+        - Bir secret'ın **sürümleri** vardır. Her yeni değer yeni bir sürümdür; böylece geri dönebilirsin. Free Tier 6 aktif sürümü ve ayda 10.000 erişim işlemini kapsar.
+        - Cloud Run, instance başlarken bir secret'ı ortam değişkenine koyabilir. Deploy'un tekrarlanabilir olması için `latest` değil sürüm numarası (`:1`) sabitle.
+        - Erişimi sadece o secret üzerinde, sadece o service account'a `roles/secretmanager.secretAccessor` ile ver
+        - Rotasyon: yeni sürüm ekle, servisi ona yönlendir, sonra eski sürümü yok et
+        - Düz ortam değişkenini (`--set-env-vars`) sadece sır olmayan şeyler için kullan: servisi görebilen herkes onu görür
+    do:
+      en: |
+        1. Create the secret with a random value. The `tr -d '\n'` removes the line break `openssl` adds, so the key has no hidden character at the end. The value goes straight through a pipe and is never printed or saved in a file.
+        2. Give the service account the right to read this one secret.
+        3. Update the service so that the environment variable `API_KEY` comes from version 1 of the secret. The code you wrote in the first steps already checks this variable on `POST /notes`. No new image is needed.
+        4. Try it: a POST without the key must return `401`. Read the key (your own account may read it as the project owner) and try again with the `x-api-key` header: `201`. Reading notes (GET) stays open.
+        5. Practice rotation: add version 2, switch the service to it, check that it works, then destroy version 1.
+        6. For local work, set a throwaway key in your terminal only: `API_KEY=dev-key npm start`. It is not a secret, and it never goes in a file you commit.
+      tr: |
+        1. Rastgele bir değerle secret'ı oluştur. `tr -d '\n'`, `openssl`'in eklediği satır sonunu siler; böylece anahtarın sonunda gizli karakter kalmaz. Değer doğrudan boru (pipe) ile geçer, hiç yazdırılmaz ve dosyaya kaydedilmez.
+        2. Service account'a sadece bu secret'ı okuma hakkı ver.
+        3. Servisi güncelle; `API_KEY` ortam değişkeni secret'ın 1. sürümünden gelsin. İlk adımlarda yazdığın kod bu değişkeni `POST /notes` için zaten kontrol ediyor. Yeni image gerekmez.
+        4. Dene: anahtarsız bir POST `401` dönmeli. Anahtarı oku (proje sahibi olarak kendi hesabın okuyabilir) ve `x-api-key` başlığıyla tekrar dene: `201`. Notları okumak (GET) açık kalır.
+        5. Rotasyonu çalış: 2. sürümü ekle, servisi ona geçir, çalıştığını kontrol et, sonra 1. sürümü yok et.
+        6. Yerel çalışma için tek kullanımlık bir anahtarı sadece terminalinde ayarla: `API_KEY=dev-key npm start`. Bu bir sır değildir ve commit edeceğin bir dosyaya asla girmez.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+          RUN_SA="notes-run@$PROJECT_ID.iam.gserviceaccount.com"
+
+          # 1. create the secret (value comes through the pipe)
+          openssl rand -base64 32 | tr -d '\n' | gcloud secrets create notes-api-key \
+            --replication-policy=automatic --data-file=-
+
+          # 2. only this identity, only this secret
+          gcloud secrets add-iam-policy-binding notes-api-key \
+            --member="serviceAccount:$RUN_SA" --role="roles/secretmanager.secretAccessor"
+
+          # 3. the service gets it as API_KEY, pinned to version 1
+          gcloud run services update notes-api --region "$REGION" --update-secrets=API_KEY=notes-api-key:1
+
+          # 4. test
+          URL=$(gcloud run services describe notes-api --region "$REGION" --format='value(status.url)')
+          curl -i -X POST "$URL/notes" -H "content-type: application/json" -d '{"text":"no key"}'
+          API_KEY=$(gcloud secrets versions access 1 --secret=notes-api-key)
+          curl -i -X POST "$URL/notes" -H "content-type: application/json" -H "x-api-key: $API_KEY" -d '{"text":"with key"}'
+
+          # 5. rotate: new version, switch, then destroy the old one
+          openssl rand -base64 32 | tr -d '\n' | gcloud secrets versions add notes-api-key --data-file=-
+          gcloud run services update notes-api --region "$REGION" --update-secrets=API_KEY=notes-api-key:2
+          gcloud secrets versions destroy 1 --secret=notes-api-key
+    mistakes:
+      - problem:
+          en: "Writing the key with `echo \"value\" | ...` and the key never matches."
+          tr: "Anahtarı `echo \"value\" | ...` ile yazmak ve anahtarın hiç eşleşmemesi."
+        fix:
+          en: "`echo` adds a line break to the value. Use the `tr -d '\\n'` form above or `printf`."
+          tr: "`echo` değere satır sonu ekler. Yukarıdaki `tr -d '\\n'` biçimini ya da `printf` kullan."
+      - problem:
+          en: "The new revision fails to start with a permission error on the secret."
+          tr: "Yeni revision, secret üzerindeki bir izin hatasıyla başlamıyor."
+        fix:
+          en: "The service account needs `roles/secretmanager.secretAccessor` on that secret. If a secret fails at start, the instance does not start at all, so the old revision keeps serving."
+          tr: "Service account'un o secret üzerinde `roles/secretmanager.secretAccessor` rolü olmalı. Secret başlangıçta okunamazsa instance hiç başlamaz; eski revision hizmet vermeye devam eder."
+      - problem:
+          en: "Putting the key in `--set-env-vars`, in a `.env` file in Git, or printing it in a log."
+          tr: "Anahtarı `--set-env-vars` içine, Git'teki bir `.env` dosyasına koymak ya da logda yazdırmak."
+        fix:
+          en: "Anyone who can see the service, the repository or the logs then has the key. Treat it as leaked: rotate it (new version, switch, destroy the old one) and keep it only in Secret Manager."
+          tr: "Servisi, depoyu ya da logları görebilen herkes anahtara sahip olur. Sızmış say: döndür (yeni sürüm, geçir, eskiyi yok et) ve sadece Secret Manager'da tut."
+    quiz:
+      - q:
+          en: "Why pin a secret version like API_KEY=notes-api-key:1 instead of latest?"
+          tr: "Neden latest yerine API_KEY=notes-api-key:1 gibi bir sürüm sabitliyoruz?"
+        options:
+          en:
+            - "Pinned versions are free and latest costs money"
+            - "A deploy then always uses the same value, and rotation is a clear, reversible step"
+            - "latest does not work with Cloud Run"
+          tr:
+            - "Sabit sürümler ücretsiz, latest paralı"
+            - "Deploy her zaman aynı değeri kullanır ve rotasyon net, geri alınabilir bir adım olur"
+            - "latest Cloud Run ile çalışmaz"
+        answer: 1
+        why:
+          en: "Environment variables are read when an instance starts. A pinned version makes it clear which value a revision uses, and you can switch back."
+          tr: "Ortam değişkenleri instance başlarken okunur. Sabit sürüm, bir revision'ın hangi değeri kullandığını açık yapar ve geri dönebilirsin."
+    sources:
+      - title: Cloud Run, use secrets
+        url: https://docs.cloud.google.com/run/docs/configuring/services/secrets
+      - title: Secret Manager overview
+        url: https://docs.cloud.google.com/secret-manager/docs/overview
+      - title: Secret Manager pricing
+        url: https://cloud.google.com/secret-manager/pricing
+
+  - id: network
+    stage: security
+    title:
+      en: "Networking basics: VPC, firewall rules and who can reach your app"
+      tr: "Ağ temelleri: VPC, güvenlik duvarı kuralları ve uygulamana kim ulaşabilir"
+    minutes: 45
+    needs: [iam]
+    why:
+      en: "Every cloud has a private network (a VPC) and firewall rules that decide which traffic may enter or leave. Cloud Run sits outside your VPC and has its own public HTTPS front door, so you do not need a network for this app. You still must understand the idea, because the day you add a virtual machine or a private database, a wrong firewall rule is the classic way to be hacked."
+      tr: "Her bulutun özel bir ağı (VPC) ve hangi trafiğin girip çıkabileceğine karar veren güvenlik duvarı kuralları vardır. Cloud Run senin VPC'nin dışında durur ve kendi herkese açık HTTPS kapısı vardır; bu yüzden bu uygulama için ağa ihtiyacın yok. Yine de fikri anlamalısın, çünkü bir sanal makine ya da özel veritabanı eklediğin gün yanlış bir güvenlik duvarı kuralı hacklenmenin klasik yoludur."
+    learn:
+      en: |
+        - **VPC**: your private network. A **subnet** is a range of private addresses (like `10.10.0.0/24`) inside one region. Creating networks and firewall rules costs nothing.
+        - **Firewall rules**: traffic coming in (ingress) is denied unless a rule allows it; traffic going out (egress) is allowed unless a rule denies it. A rule names a direction, ports, sources and the machines it applies to (by tag).
+        - The **default** network that Compute Engine creates has permissive rules (SSH and RDP open to the whole internet). Delete or tighten them, and create your own network for real work.
+        - For Cloud Run: `--ingress` says who may reach the service (`all`, `internal`, or `internal-and-cloud-load-balancing`). `--allow-unauthenticated` is a separate switch: it says whether callers must prove who they are. If your service needs a private resource inside a VPC, Cloud Run can send its outgoing traffic into your network (Direct VPC egress).
+      tr: |
+        - **VPC**: özel ağın. **Subnet**, tek bir region içindeki özel adres aralığıdır (`10.10.0.0/24` gibi). Ağ ve güvenlik duvarı kuralı oluşturmak para tutmaz.
+        - **Güvenlik duvarı kuralları**: içeri gelen trafik (ingress) bir kural izin vermedikçe reddedilir; dışarı giden trafik (egress) bir kural yasaklamadıkça serbesttir. Bir kural yön, port, kaynak ve uygulandığı makineleri (etiketle) belirtir.
+        - Compute Engine'in oluşturduğu **default** ağın kuralları gevşektir (SSH ve RDP tüm internete açık). Sil ya da sıkılaştır ve gerçek işler için kendi ağını oluştur.
+        - Cloud Run için: `--ingress`, servise kimin ulaşabileceğini söyler (`all`, `internal` ya da `internal-and-cloud-load-balancing`). `--allow-unauthenticated` ayrı bir anahtardır: çağıranların kim olduklarını kanıtlayıp kanıtlamayacağını belirler. Servisin bir VPC içindeki özel bir kaynağa ihtiyacı varsa Cloud Run, giden trafiğini ağına gönderebilir (Direct VPC egress).
+    do:
+      en: |
+        1. Switch on the Compute Engine API. It is free to enable and no machine is created. It also creates the `default` network in most new projects.
+        2. List the networks and the firewall rules. In a new project you will probably see `default` with rules such as `default-allow-ssh` and `default-allow-rdp` that allow `0.0.0.0/0` (the whole internet).
+        3. Run the IAM audit from the previous step again. The Compute Engine default service account (`...-compute@developer.gserviceaccount.com`) may now appear with the broad `roles/editor`. Nothing here uses it, so remove that role.
+        4. Delete the two risky default rules. No machine uses them.
+        5. Create your own network `notes-vpc` in custom mode with one subnet, and one firewall rule that allows HTTPS (port 443) from anywhere to machines tagged `web`. Everything else coming in stays denied by default.
+        6. List the rules of your network and read each column: direction, allowed ports, source ranges and target tags. This network stays empty for now. You will delete it in the cleanup step.
+      tr: |
+        1. Compute Engine API'yi aç. Açmak ücretsiz ve makine oluşturmaz. Yeni projelerin çoğunda `default` ağını da oluşturur.
+        2. Ağları ve güvenlik duvarı kurallarını listele. Yeni bir projede büyük olasılıkla `default` ağını ve `0.0.0.0/0` (tüm internet) için izin veren `default-allow-ssh` ve `default-allow-rdp` gibi kuralları göreceksin.
+        3. Önceki adımdaki IAM denetimini tekrar çalıştır. Compute Engine varsayılan service account'u (`...-compute@developer.gserviceaccount.com`) şimdi geniş `roles/editor` ile görünebilir. Burada hiçbir şey onu kullanmıyor, o yüzden rolü kaldır.
+        4. Riskli iki varsayılan kuralı sil. Hiçbir makine onları kullanmıyor.
+        5. Özel modda tek subnet'li kendi ağın `notes-vpc`'yi ve `web` etiketli makinelere her yerden HTTPS'e (443 portu) izin veren tek bir güvenlik duvarı kuralı oluştur. İçeri gelen diğer her şey varsayılan olarak reddedilmiş kalır.
+        6. Ağının kurallarını listele ve her sütunu oku: yön, izinli portlar, kaynak aralıkları ve hedef etiketler. Bu ağ şimdilik boş kalır. Temizlik adımında silersin.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+
+          gcloud services enable compute.googleapis.com
+          gcloud compute networks list
+          gcloud compute firewall-rules list
+
+          # is the default Compute Engine account an Editor? then remove that role
+          sh scripts/iam-audit.sh | grep compute@developer
+          PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+          gcloud projects remove-iam-policy-binding "$PROJECT_ID" \
+            --member="serviceAccount:$PROJECT_NUMBER-compute@developer.gserviceaccount.com" \
+            --role="roles/editor"
+
+          # delete the risky defaults (names as shown by the list above)
+          gcloud compute firewall-rules delete default-allow-ssh default-allow-rdp --quiet
+
+          # your own network
+          gcloud compute networks create notes-vpc --subnet-mode=custom
+          gcloud compute networks subnets create notes-subnet \
+            --network=notes-vpc --region="$REGION" --range=10.10.0.0/24
+          gcloud compute firewall-rules create notes-allow-https \
+            --network=notes-vpc --direction=INGRESS --allow=tcp:443 \
+            --source-ranges=0.0.0.0/0 --target-tags=web
+          gcloud compute firewall-rules list --filter="network:notes-vpc"
+    mistakes:
+      - problem:
+          en: "Opening a port to `0.0.0.0/0` \"just to test\" and forgetting it."
+          tr: "Bir portu \"sadece denemek için\" `0.0.0.0/0`'a açıp unutmak."
+        fix:
+          en: "Bots scan the internet for open SSH, RDP and database ports within minutes. Allow only the ports and source ranges you need (your own IP for SSH), and review the rule list now and then."
+          tr: "Botlar açık SSH, RDP ve veritabanı portlarını dakikalar içinde tarar. Sadece ihtiyacın olan portlara ve kaynak aralıklarına izin ver (SSH için kendi IP'n) ve kural listesini ara sıra gözden geçir."
+      - problem:
+          en: "Thinking `--allow-unauthenticated` and `--ingress` do the same thing."
+          tr: "`--allow-unauthenticated` ile `--ingress`'in aynı şeyi yaptığını sanmak."
+        fix:
+          en: "Ingress is about where a request may come from (the network path). Unauthenticated access is about who may call (identity). A private service needs both settings tightened."
+          tr: "Ingress, isteğin nereden gelebileceğiyle (ağ yolu) ilgilidir. Kimliksiz erişim ise kimin çağırabileceğiyle (kimlik) ilgilidir. Özel bir servis için ikisi de sıkılaştırılmalı."
+      - problem:
+          en: "A firewall rule that seems right has no effect."
+          tr: "Doğru görünen bir güvenlik duvarı kuralı etki etmiyor."
+        fix:
+          en: "Check the network it belongs to, the direction (ingress or egress) and the target tags on the machine. A rule only applies to machines in its network that carry its tag."
+          tr: "Ait olduğu ağı, yönü (ingress mi egress mi) ve makinedeki hedef etiketleri kontrol et. Kural sadece kendi ağındaki ve etiketini taşıyan makinelere uygulanır."
+    quiz:
+      - q:
+          en: "In a VPC, what happens to incoming traffic that no firewall rule allows?"
+          tr: "Bir VPC'de, hiçbir güvenlik duvarı kuralının izin vermediği gelen trafiğe ne olur?"
+        options:
+          en:
+            - "It is allowed"
+            - "It is denied"
+            - "It waits for 5 minutes and is allowed"
+          tr:
+            - "İzin verilir"
+            - "Reddedilir"
+            - "5 dakika bekler ve izin verilir"
+        answer: 1
+        why:
+          en: "Ingress is denied by default. That is why you add narrow allow rules, one for each thing you want to open."
+          tr: "Ingress varsayılan olarak reddedilir. Bu yüzden açmak istediğin her şey için dar bir izin kuralı eklersin."
+    sources:
+      - title: VPC networks
+        url: https://docs.cloud.google.com/vpc/docs/vpc
+      - title: VPC firewall rules
+        url: https://docs.cloud.google.com/firewall/docs/firewalls
+      - title: Cloud Run ingress settings
+        url: https://docs.cloud.google.com/run/docs/securing/ingress
+
+  - id: scaling
+    stage: performance
+    title:
+      en: "Scaling, cold starts and keeping the bill at zero"
+      tr: "Ölçekleme, cold start ve faturayı sıfırda tutma"
+    minutes: 40
+    needs: [first-deploy]
+    why:
+      en: "Cloud Run decides how many copies of your app run. You decide the limits. A few settings change speed and cost a lot: how many requests one copy handles at once, whether copies stay warm when idle, and how much CPU and memory they get. Knowing them lets you make the app fast without paying for idle machines."
+      tr: "Uygulamanın kaç kopyasının çalışacağına Cloud Run karar verir; limitleri sen koyarsın. Birkaç ayar hızı ve maliyeti çok değiştirir: bir kopyanın aynı anda kaç isteği işlediği, boştayken kopyaların sıcak kalıp kalmadığı ve ne kadar CPU ve bellek aldıkları. Bunları bilmek, boşta duran makinelere para vermeden uygulamayı hızlı yapmanı sağlar."
+    learn:
+      en: |
+        - **Concurrency**: how many requests one instance handles at the same time (default 80). Node.js is good at waiting for a database, so 80 is fine for this API.
+        - **Cold start**: the extra time the first request waits while a new instance starts. Fix it in the code first (load less at start; this app loads the Firestore library only when needed), then consider settings.
+        - **Startup CPU boost** gives extra CPU while an instance starts, which shortens cold starts. You are billed for the boost only during startup.
+        - **Minimum instances** keep copies warm, but idle warm copies are billed. For a free project keep it at 0 and accept the cold start.
+        - By default Cloud Run bills only while a request is being handled (request-based billing), plus the time an instance takes to start.
+      tr: |
+        - **Concurrency**: bir instance'ın aynı anda kaç isteği işlediği (varsayılan 80). Node.js veritabanını beklemekte iyidir, bu yüzden bu API için 80 uygun.
+        - **Cold start**: yeni bir instance başlarken ilk isteğin beklediği fazladan süre. Önce kodda düzelt (başlangıçta daha az yükle; bu uygulama Firestore kütüphanesini sadece gerektiğinde yükler), sonra ayarları düşün.
+        - **Startup CPU boost**, instance başlarken ek CPU verir ve cold start'ı kısaltır. Boost için sadece başlangıç süresince ücretlendirilirsin.
+        - **Minimum instance** kopyaları sıcak tutar ama boşta bekleyen sıcak kopyalar ücretlendirilir. Ücretsiz bir proje için 0'da tut ve cold start'ı kabul et.
+        - Cloud Run varsayılan olarak sadece bir istek işlenirken ücretlendirir (istek bazlı faturalama), artı bir instance'ın başlama süresi.
+    do:
+      en: |
+        1. Measure the normal speed: call `/health` three times and read the time each call took (`time_total`).
+        2. Measure a cold start: wait about 15 minutes with no requests, then call it once more. The first call after a pause is slower. Write down both numbers.
+        3. Apply the settings in the code box: concurrency 80, startup CPU boost, request timeout of 30 seconds (this API never needs more), and the instance limits from before.
+        4. Cause another cold start (wait again) and compare. The difference may be small; that is normal for a small Node.js app.
+        5. Open the console, *Cloud Run* > `notes-api` > *Metrics*. Look at request count, request latency, container instance count and memory utilization. If memory stays far under 512 MiB, you could try 256 MiB, but leave it for now.
+        6. Do **not** set minimum instances to 1. A warm instance that waits all month is billed for idle time. Only a real need, such as a customer who cannot wait, is a reason for it.
+      tr: |
+        1. Normal hızı ölç: `/health` adresini üç kez çağır ve her çağrının süresini (`time_total`) oku.
+        2. Cold start'ı ölç: yaklaşık 15 dakika istek atmadan bekle, sonra bir kez daha çağır. Duraklamadan sonraki ilk çağrı daha yavaştır. İki sayıyı da not et.
+        3. Kod kutusundaki ayarları uygula: concurrency 80, startup CPU boost, 30 saniyelik istek zaman aşımı (bu API'nin daha fazlasına ihtiyacı yok) ve daha önceki instance limitleri.
+        4. Bir cold start daha oluştur (yine bekle) ve karşılaştır. Fark küçük olabilir; küçük bir Node.js uygulaması için bu normal.
+        5. Konsolu aç, *Cloud Run* > `notes-api` > *Metrics*. İstek sayısına, istek gecikmesine, container instance sayısına ve bellek kullanımına bak. Bellek 512 MiB'ın çok altında kalıyorsa 256 MiB deneyebilirsin ama şimdilik bırak.
+        6. Minimum instance'ı 1 **yapma**. Ay boyunca bekleyen sıcak bir instance boşta kaldığı süre için ücretlendirilir. Bunun nedeni sadece gerçek bir ihtiyaç olabilir; örneğin bekleyemeyen bir müşteri.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          REGION=us-central1
+          URL=$(gcloud run services describe notes-api --region "$REGION" --format='value(status.url)')
+
+          # 1. normal speed, three calls
+          for i in 1 2 3; do curl -s -o /dev/null -w "%{time_total}s\n" "$URL/health"; done
+
+          # 3. the settings
+          gcloud run services update notes-api --region "$REGION" \
+            --concurrency 80 --cpu-boost --timeout 30 \
+            --min-instances 0 --max-instances 2
+
+          # 2 and 4. after about 15 minutes without requests, one call
+          curl -s -o /dev/null -w "cold: %{time_total}s\n" "$URL/health"
+    mistakes:
+      - problem:
+          en: "Setting `--min-instances 1` to \"fix\" slow first requests, and forgetting it."
+          tr: "Yavaş ilk istekleri \"düzeltmek\" için `--min-instances 1` verip unutmak."
+        fix:
+          en: "A warm instance is billed while idle, all month. Set it back with `--min-instances 0`. Check `gcloud run services describe` now and then."
+          tr: "Sıcak instance boşta bile tüm ay ücretlendirilir. `--min-instances 0` ile geri al. Ara sıra `gcloud run services describe` ile kontrol et."
+      - problem:
+          en: "Raising `--max-instances` to a large number \"for safety\"."
+          tr: "\"Güvenlik için\" `--max-instances` değerini büyük bir sayıya çıkarmak."
+        fix:
+          en: "The limit is your brake against a surprise bill (or an attack). Keep it low, such as 2 to 5, until you really have the traffic, and remember each instance can handle many requests at once."
+          tr: "Limit, sürpriz faturaya (ya da saldırıya) karşı frenindir. Gerçekten o trafiğe sahip olana kadar 2 ile 5 gibi düşük tut ve her instance'ın aynı anda çok sayıda isteği işleyebildiğini unutma."
+      - problem:
+          en: "Measuring speed once and drawing a conclusion."
+          tr: "Hızı bir kez ölçüp sonuç çıkarmak."
+        fix:
+          en: "Take several measurements, at different times, and compare the cold and the warm case separately."
+          tr: "Farklı zamanlarda birkaç ölçüm al ve soğuk ve sıcak durumu ayrı ayrı karşılaştır."
+    quiz:
+      - q:
+          en: "What does a cold start mean?"
+          tr: "Cold start ne demek?"
+        options:
+          en:
+            - "The database is cold and needs to be warmed up"
+            - "The first request waits while a new instance of the app starts"
+            - "The CPU is too hot"
+          tr:
+            - "Veritabanı soğuk ve ısıtılması gerekiyor"
+            - "İlk istek, uygulamanın yeni bir instance'ı başlarken bekler"
+            - "CPU çok sıcak"
+        answer: 1
+        why:
+          en: "With zero minimum instances, no copy runs when idle. The next request has to wait for a new one to start."
+          tr: "Minimum instance sıfırken boşta hiçbir kopya çalışmaz. Sonraki istek yenisinin başlamasını beklemek zorunda."
+    sources:
+      - title: Cloud Run, concurrency
+        url: https://docs.cloud.google.com/run/docs/about-concurrency
+      - title: Cloud Run, minimum instances
+        url: https://docs.cloud.google.com/run/docs/configuring/min-instances
+      - title: Cloud Run, general development tips (cold starts)
+        url: https://docs.cloud.google.com/run/docs/tips/general
+
+  - id: images
+    stage: packaging
+    title:
+      en: "Keep the images small, tagged and cleaned up"
+      tr: "Image'ları küçük, etiketli ve temiz tut"
+    minutes: 40
+    needs: [first-deploy]
+    why:
+      en: "Every push adds an image to Artifact Registry, and the free amount is only 0.5 GB. Without a cleanup rule the registry fills up with old versions and one day starts to cost money. A good image is small, runs as a non-root user, and is tagged with the Git commit so you always know what code runs."
+      tr: "Her push, Artifact Registry'ye bir image ekler ve ücretsiz miktar sadece 0,5 GB. Temizlik kuralı yoksa registry eski sürümlerle dolar ve bir gün para tutmaya başlar. İyi bir image küçüktür, root olmayan kullanıcıyla çalışır ve Git commit'iyle etiketlenir; böylece hangi kodun çalıştığını her zaman bilirsin."
+    learn:
+      en: |
+        - The `Dockerfile` you have: a small base image (`node:24-alpine`), only production packages (`npm ci --omit=dev`), `USER node` instead of root, and a `.dockerignore` so tests, Git history and local files stay out
+        - Tag with the commit (`git rev-parse --short HEAD`), not only `latest`: one tag always means the same bytes
+        - **Cleanup policies** delete old versions by age and keep the newest ones. When a version matches both a delete and a keep rule, it is **kept**. Policies run in the background about once a day, so always use `--dry-run` first.
+        - Scanning images for known weaknesses is useful (see the Docker roadmap for Trivy). Google's own vulnerability scanning service is paid per image, so it is not part of this free setup.
+      tr: |
+        - Elindeki `Dockerfile`: küçük bir temel image (`node:24-alpine`), sadece production paketleri (`npm ci --omit=dev`), root yerine `USER node` ve testlerin, Git geçmişinin ve yerel dosyaların dışarıda kalması için `.dockerignore`
+        - Sadece `latest` ile değil commit ile etiketle (`git rev-parse --short HEAD`): bir etiket her zaman aynı baytlar demektir
+        - **Cleanup policy**'ler eski sürümleri yaşa göre siler ve en yenileri tutar. Bir sürüm hem silme hem tutma kuralına uyarsa **tutulur**. Policy'ler arka planda günde yaklaşık bir kez çalışır; bu yüzden önce her zaman `--dry-run` kullan.
+        - Image'ları bilinen zafiyetlere karşı taramak faydalıdır (Trivy için Docker yol haritasına bak). Google'ın kendi zafiyet tarama servisi image başına ücretlidir; bu yüzden bu ücretsiz kurulumun parçası değil.
+    do:
+      en: |
+        1. Look at the size of your local image (`docker image ls notes-api`) and at the files that went into it. Everything in `.dockerignore` stays out.
+        2. Tag and push the image with the short commit as its version. Commit your work first (`git add . && git commit`), because the tag comes from the commit.
+        3. List the images in the repository and look at the total size of the repository.
+        4. Save `cleanup-policy.json` below. It deletes versions older than 7 days and always keeps the 3 newest.
+        5. Test it with `--dry-run` first. Then apply it for real. The dry run and the real run both take effect within about a day.
+        6. Deploy the tagged image to Cloud Run with the same flags as before, so the running version is the one you can trace to a commit.
+      tr: |
+        1. Yerel image'ının boyutuna (`docker image ls notes-api`) ve içine giren dosyalara bak. `.dockerignore` içindeki her şey dışarıda kalır.
+        2. Image'ı kısa commit'i sürüm olarak vererek etiketle ve gönder. Önce işini commit'le (`git add . && git commit`), çünkü etiket commit'ten gelir.
+        3. Depodaki image'ları listele ve deponun toplam boyutuna bak.
+        4. Aşağıdaki `cleanup-policy.json` dosyasını kaydet. 7 günden eski sürümleri siler ve en yeni 3'ünü her zaman tutar.
+        5. Önce `--dry-run` ile dene. Sonra gerçekten uygula. Hem deneme hem gerçek çalıştırma yaklaşık bir gün içinde etkili olur.
+        6. Etiketli image'ı daha önceki bayraklarla Cloud Run'a deploy et; böylece çalışan sürüm bir commit'e kadar izlenebilen sürüm olur.
+    code:
+      - file: cleanup-policy.json
+        lang: json
+        text: |
+          [
+            {
+              "name": "delete-old-images",
+              "action": { "type": "Delete" },
+              "condition": { "tagState": "any", "olderThan": "7d" }
+            },
+            {
+              "name": "keep-three-newest",
+              "action": { "type": "Keep" },
+              "mostRecentVersions": { "keepCount": 3 }
+            }
+          ]
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+          IMAGE="$REGION-docker.pkg.dev/$PROJECT_ID/notes/notes-api"
+
+          docker image ls notes-api
+
+          SHA=$(git rev-parse --short HEAD)
+          docker build --platform linux/amd64 -t "$IMAGE:$SHA" .
+          docker push "$IMAGE:$SHA"
+
+          gcloud artifacts docker images list "$REGION-docker.pkg.dev/$PROJECT_ID/notes" --include-tags
+          gcloud artifacts repositories describe notes --location="$REGION" --format="value(sizeBytes)"
+
+          # try the cleanup policy first, then apply it
+          gcloud artifacts repositories set-cleanup-policies notes --location="$REGION" --policy=cleanup-policy.json --dry-run
+          gcloud artifacts repositories set-cleanup-policies notes --location="$REGION" --policy=cleanup-policy.json
+
+          gcloud run deploy notes-api --image "$IMAGE:$SHA" --region "$REGION"
+    mistakes:
+      - problem:
+          en: "A cleanup rule that deletes the image the running service needs."
+          tr: "Çalışan servisin ihtiyaç duyduğu image'ı silen bir temizlik kuralı."
+        fix:
+          en: "Always keep the newest few versions with a keep rule, as in the file above. If an instance has to start from an image that was deleted, it fails."
+          tr: "Yukarıdaki dosyada olduğu gibi, bir tutma kuralıyla her zaman en yeni birkaç sürümü tut. Bir instance silinmiş bir image'dan başlamak zorunda kalırsa başarısız olur."
+      - problem:
+          en: "Only using the `latest` tag."
+          tr: "Sadece `latest` etiketini kullanmak."
+        fix:
+          en: "`latest` moves, so you cannot tell what is running or go back. Tag every build with the commit."
+          tr: "`latest` hareket eder; ne çalıştığını anlayamaz ya da geri dönemezsin. Her build'i commit ile etiketle."
+      - problem:
+          en: "A huge image because `node_modules` or the Git history was copied in."
+          tr: "`node_modules` ya da Git geçmişi kopyalandığı için dev bir image."
+        fix:
+          en: "Keep the `.dockerignore` and install packages inside the build with `npm ci --omit=dev`."
+          tr: "`.dockerignore`'u koru ve paketleri build içinde `npm ci --omit=dev` ile kur."
+    quiz:
+      - q:
+          en: "A version matches both a delete policy and a keep policy. What happens?"
+          tr: "Bir sürüm hem silme hem tutma policy'sine uyuyor. Ne olur?"
+        options:
+          en:
+            - "It is deleted"
+            - "It is kept"
+            - "The policy file is rejected"
+          tr:
+            - "Silinir"
+            - "Tutulur"
+            - "Policy dosyası reddedilir"
+        answer: 1
+        why:
+          en: "Artifact Registry documents that keep wins, which protects the newest versions from an age-based delete rule."
+          tr: "Artifact Registry'nin belgelerine göre tutma kazanır; bu, en yeni sürümleri yaşa dayalı silme kuralından korur."
+    sources:
+      - title: Artifact Registry, cleanup policies
+        url: https://docs.cloud.google.com/artifact-registry/docs/repositories/cleanup-policy
+      - title: Artifact Registry pricing
+        url: https://cloud.google.com/artifact-registry/pricing
+      - title: Dockerfile best practices
+        url: https://docs.docker.com/build/building/best-practices/
+
+  - id: domain
+    stage: deploy
+    title:
+      en: "HTTPS and your own domain"
+      tr: "HTTPS ve kendi alan adın"
+    minutes: 45
+    needs: [first-deploy]
+    why:
+      en: "HTTPS keeps what travels between the browser and your API secret and proves the server is yours. Cloud Run already gives you HTTPS on its `.run.app` address with a certificate that Google renews for you. A domain like `api.yourname.dev` is nicer and lets you move later without telling your users. A domain itself costs money at a registrar, so this part is optional."
+      tr: "HTTPS, tarayıcı ile API arasında giden veriyi gizli tutar ve sunucunun senin olduğunu kanıtlar. Cloud Run, `.run.app` adresinde Google'ın senin için yenilediği bir sertifikayla zaten HTTPS verir. `api.senin-adin.dev` gibi bir alan adı daha hoş görünür ve sonradan kullanıcılarına söylemeden taşınmana izin verir. Alan adının kendisi kayıt şirketinde (registrar) para tutar; bu yüzden bu bölüm isteğe bağlıdır."
+    learn:
+      en: |
+        - What a certificate is: a signed proof that this name belongs to this server. The little lock in the browser means it was checked.
+        - DNS: the phone book that turns `api.example.com` into an address. A **CNAME** or **A/AAAA** record points your name at Google.
+        - Your choices for a custom domain on Cloud Run: a **domain mapping** (simple, but Google marks it Preview and not for production; it works in `us-central1`), a **global external Application Load Balancer** (the production way, with a monthly fee, so not free), or **Firebase Hosting** in front. For learning, a domain mapping is enough.
+        - CAA records, if you use them, must allow `pki.goog` and `letsencrypt.org` to issue certificates
+      tr: |
+        - Sertifika nedir: bu ismin bu sunucuya ait olduğunu gösteren imzalı bir kanıt. Tarayıcıdaki küçük kilit kontrol edildiği anlamına gelir.
+        - DNS: `api.example.com` adını bir adrese çeviren telefon rehberi. Bir **CNAME** ya da **A/AAAA** kaydı ismini Google'a yönlendirir.
+        - Cloud Run'da özel alan adı seçeneklerin: **domain mapping** (basit ama Google onu Preview olarak işaretliyor ve production için değil; `us-central1`'de çalışır), **global external Application Load Balancer** (production yolu, aylık ücreti var, yani ücretsiz değil) ya da önde **Firebase Hosting**. Öğrenmek için domain mapping yeterli.
+        - CAA kayıtları kullanıyorsan `pki.goog` ve `letsencrypt.org`'un sertifika vermesine izin vermeli
+    do:
+      en: |
+        1. First look at the certificate you already have. The command prints who issued the `.run.app` certificate and when it expires. Nothing for you to renew.
+        2. If you do not own a domain, you can stop here: your API already has HTTPS. Do the rest when you buy a domain (any registrar) and have access to its DNS settings.
+        3. Verify that you own the domain. The command opens a Google page to prove ownership (Search Console).
+        4. Create the mapping for a subdomain such as `api.example.com`. Replace it with your name. Gcloud may ask to install the `beta` component; say yes.
+        5. Describe the mapping and copy the DNS records it lists under `resourceRecords`. Add exactly those records at your registrar, with `api` as the record name for a subdomain.
+        6. Wait. The certificate normally appears in about 15 minutes and can take up to 24 hours. Then open `https://api.example.com/health`.
+      tr: |
+        1. Önce zaten sahip olduğun sertifikaya bak. Komut `.run.app` sertifikasını kimin verdiğini ve ne zaman biteceğini yazar. Yenilemen gereken bir şey yok.
+        2. Alan adın yoksa burada durabilirsin: API'nin zaten HTTPS'i var. Gerisini bir alan adı alınca (herhangi bir registrar) ve DNS ayarlarına erişince yap.
+        3. Alan adının sahibi olduğunu doğrula. Komut, sahipliği kanıtlamak için bir Google sayfası açar (Search Console).
+        4. `api.example.com` gibi bir alt alan adı için eşlemeyi (mapping) oluştur. Onu kendi adınla değiştir. gcloud `beta` bileşenini kurmak isteyebilir; evet de.
+        5. Eşlemeyi describe et ve `resourceRecords` altında listelediği DNS kayıtlarını kopyala. Tam olarak o kayıtları registrar'ında ekle; alt alan adı için kayıt adı olarak `api` kullan.
+        6. Bekle. Sertifika normalde yaklaşık 15 dakikada çıkar ve 24 saate kadar sürebilir. Sonra `https://api.example.com/health` adresini aç.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          REGION=us-central1
+          URL=$(gcloud run services describe notes-api --region "$REGION" --format='value(status.url)')
+          HOST=${URL#https://}
+
+          # 1. the certificate Google already gives you
+          echo | openssl s_client -connect "$HOST:443" -servername "$HOST" 2>/dev/null | openssl x509 -noout -issuer -dates
+
+          # 3-5. your own domain (replace api.example.com)
+          gcloud domains verify example.com
+          gcloud beta run domain-mappings create --service notes-api --domain api.example.com --region "$REGION"
+          gcloud beta run domain-mappings describe --domain api.example.com --region "$REGION"
+
+          # 6. after the certificate is ready
+          curl -i https://api.example.com/health
+    mistakes:
+      - problem:
+          en: "The certificate stays \"pending\" for hours."
+          tr: "Sertifika saatlerce \"pending\" kalıyor."
+        fix:
+          en: "Check that every DNS record from `describe` is added exactly, that a CAA record (if any) allows `pki.goog` and `letsencrypt.org`, and that a CDN or proxy in front of the name is not blocking the check. It can take up to 24 hours."
+          tr: "`describe` çıktısındaki her DNS kaydının tam olarak eklendiğini, varsa CAA kaydının `pki.goog` ve `letsencrypt.org`'a izin verdiğini ve ismin önündeki bir CDN ya da proxy'nin kontrolü engellemediğini doğrula. 24 saate kadar sürebilir."
+      - problem:
+          en: "Using the domain mapping for something important, since Google says it is not for production."
+          tr: "Google production için değil diyor diye, domain mapping'i önemli bir iş için kullanmak."
+        fix:
+          en: "It is fine for learning and small projects. For a real product, put a load balancer in front (it has a monthly fee) or use Firebase Hosting."
+          tr: "Öğrenmek ve küçük projeler için uygun. Gerçek bir ürün için önüne bir load balancer koy (aylık ücreti var) ya da Firebase Hosting kullan."
+      - problem:
+          en: "Forgetting the domain mapping and DNS records when you stop the project."
+          tr: "Projeyi bırakırken domain mapping'i ve DNS kayıtlarını unutmak."
+        fix:
+          en: "The cleanup step deletes the mapping. You must also delete the DNS records at your registrar, or someone could take over the name."
+          tr: "Temizlik adımı mapping'i siler. DNS kayıtlarını da registrar'ında silmelisin; yoksa biri ismi ele geçirebilir."
+    quiz:
+      - q:
+          en: "Do you need to buy a certificate to get HTTPS on a Cloud Run service?"
+          tr: "Bir Cloud Run servisinde HTTPS için sertifika satın almak gerekir mi?"
+        options:
+          en:
+            - "Yes, from a certificate seller"
+            - "No, Google issues and renews the certificate for the run.app address and for mapped domains"
+            - "Only on paid plans"
+          tr:
+            - "Evet, bir sertifika satıcısından"
+            - "Hayır, Google run.app adresi ve eşlenen alan adları için sertifikayı verir ve yeniler"
+            - "Sadece ücretli planlarda"
+        answer: 1
+        why:
+          en: "Both the default address and domain mappings get a Google-managed certificate that renews by itself."
+          tr: "Hem varsayılan adres hem domain mapping'ler kendiliğinden yenilenen, Google'ın yönettiği sertifika alır."
+    sources:
+      - title: Cloud Run, map a custom domain
+        url: https://docs.cloud.google.com/run/docs/mapping-custom-domains
+      - title: Cloud Run, custom domains with a load balancer
+        url: https://docs.cloud.google.com/load-balancing/docs/https/setup-global-ext-https-serverless
+
+  - id: cicd
+    stage: deploy
+    title:
+      en: "Deploy from GitHub Actions without any stored key"
+      tr: "Saklanan hiçbir anahtar olmadan GitHub Actions'tan deploy"
+    minutes: 70
+    needs: [tests, iam, domain]
+    why:
+      en: "Deploying by hand does not scale, and the old way to automate it, a service account key stored as a GitHub secret, is a password that never expires and can leak. With OpenID Connect (OIDC) GitHub proves \"this job runs in this repository on the main branch\" with a token that lasts minutes, and Google accepts that proof. There is no key to steal."
+      tr: "Elle deploy etmek ölçeklenmez; otomatikleştirmenin eski yolu, GitHub secret olarak saklanan service account anahtarı, süresi dolmayan ve sızabilen bir paroladır. OpenID Connect (OIDC) ile GitHub, dakikalar süren bir token'la \"bu iş bu depoda main dalında çalışıyor\" diye kanıtlar ve Google bu kanıtı kabul eder. Çalınacak anahtar yoktur."
+    learn:
+      en: |
+        - **Workload Identity Federation**: a pool and a provider in your Google project that trust tokens from GitHub, but only those that match a condition you write (your repository, the `main` branch)
+        - The job asks GitHub for an ID token (needs `permissions: id-token: write`), swaps it for short-lived Google access, and acts as an identity that has only the roles you gave it
+        - The condition is your lock. A provider without a condition would trust other people's repositories too.
+        - The roles the pipeline needs, each on its own resource: push images to one repository, update one Cloud Run service, and act as the runtime service account. It does **not** get access to Firestore data or secrets.
+        - Use the same tests in CI as on your computer, and run the smoke test after the deploy
+      tr: |
+        - **Workload Identity Federation**: Google projende, GitHub token'larına güvenen bir pool ve bir provider; ama sadece yazdığın koşula uyanlara (deponun, `main` dalı)
+        - İş, GitHub'dan bir ID token ister (`permissions: id-token: write` gerekir), onu kısa ömürlü Google erişimiyle değiştirir ve sadece verdiğin rollere sahip bir kimlik olarak çalışır
+        - Koşul senin kilidindir. Koşulsuz bir provider başkalarının depolarına da güvenirdi.
+        - Pipeline'ın ihtiyacı olan roller, her biri kendi kaynağında: tek bir depoya image göndermek, tek bir Cloud Run servisini güncellemek ve runtime service account olarak davranmak. Firestore verisine ya da sırlara erişimi **yok**.
+        - CI'da bilgisayarındakiyle aynı testleri çalıştır ve deploy'dan sonra smoke testi koş
+    do:
+      en: |
+        1. Make a new **private** repository on GitHub named `notes-api`, then push your project: `git remote add origin https://github.com/YOUR-GITHUB-USER/notes-api.git`, `git branch -M main`, `git push -u origin main`. Do not commit `.env` files or keys (the `.gitignore` from step 4 covers common ones).
+        2. Prepare the values in the terminal. `REPO` must be written exactly as on GitHub, including capitals.
+        3. Create the pool and the provider. The condition lets only `main` of your repository in.
+        4. Give the identity (the repository, as a *principalSet*) its roles: write to the `notes` repository, develop the `notes-api` service, act as `notes-run`, and use the project's APIs. Wait up to five minutes for the grants to spread.
+        5. Save `.github/workflows/deploy.yml` below. Replace the three values that say *replace* (project ID twice, project number). The workflow runs the tests, builds and pushes the image tagged with the commit, deploys it, and runs the smoke test.
+        6. Commit and push to `main`. In the repository open the *Actions* tab and watch the run. When it is green, change one line of the app (for example the text of the 404 message), push again and check the new revision in Cloud Run.
+      tr: |
+        1. GitHub'da `notes-api` adında yeni bir **özel** depo oluştur ve projeni gönder: `git remote add origin https://github.com/GITHUB-KULLANICI-ADIN/notes-api.git`, `git branch -M main`, `git push -u origin main`. `.env` dosyalarını ya da anahtarları commit'leme (4. adımdaki `.gitignore` yaygın olanları kapsar).
+        2. Değerleri terminalde hazırla. `REPO`, büyük harfler dahil GitHub'daki gibi tam yazılmalı.
+        3. Pool'u ve provider'ı oluştur. Koşul sadece deponun `main` dalını içeri alır.
+        4. Kimliğe (depo, bir *principalSet* olarak) rollerini ver: `notes` deposuna yazmak, `notes-api` servisini geliştirmek, `notes-run` olarak davranmak ve projenin API'lerini kullanmak. Yetkilerin yayılması için beş dakikaya kadar bekle.
+        5. Aşağıdaki `.github/workflows/deploy.yml` dosyasını kaydet. *replace* yazan üç değeri değiştir (proje ID'si iki kez, proje numarası). Workflow testleri çalıştırır, commit ile etiketli image'ı build edip gönderir, deploy eder ve smoke testi koşar.
+        6. Commit'le ve `main`'e gönder. Depoda *Actions* sekmesini aç ve çalışmayı izle. Yeşil olunca uygulamada bir satırı değiştir (örneğin 404 mesajının metni), tekrar gönder ve Cloud Run'da yeni revision'ı kontrol et.
+    code:
+      - file: .github/workflows/deploy.yml
+        lang: yaml
+        text: |
+          name: Test and deploy
+
+          on:
+            push:
+              branches: [main]
+
+          # id-token: write lets the job ask GitHub for a short-lived OIDC token. No key is stored anywhere.
+          permissions:
+            contents: read
+            id-token: write
+
+          # Never run two deploys at once.
+          concurrency: deploy-notes-api
+
+          env:
+            PROJECT_ID: your-project-id # replace
+            PROJECT_NUMBER: "123456789012" # replace (gcloud projects describe ... --format='value(projectNumber)')
+            REGION: us-central1
+            SERVICE: notes-api
+            IMAGE: us-central1-docker.pkg.dev/your-project-id/notes/notes-api # replace your-project-id
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-node@v7
+                  with:
+                    node-version: 24
+                    cache: npm
+                - run: npm ci
+                - run: npm test
+
+            deploy:
+              needs: test
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+
+                - id: auth
+                  uses: google-github-actions/auth@v3
+                  with:
+                    project_id: ${{ env.PROJECT_ID }}
+                    workload_identity_provider: projects/${{ env.PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/notes-repo
+
+                - uses: google-github-actions/setup-gcloud@v3
+
+                - name: Let Docker push to Artifact Registry
+                  run: gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+                - name: Build and push the image
+                  run: |
+                    docker build -t "${IMAGE}:${GITHUB_SHA}" .
+                    docker push "${IMAGE}:${GITHUB_SHA}"
+
+                - id: deploy
+                  uses: google-github-actions/deploy-cloudrun@v3
+                  with:
+                    service: ${{ env.SERVICE }}
+                    region: ${{ env.REGION }}
+                    image: ${{ env.IMAGE }}:${{ github.sha }}
+
+                - name: Smoke test
+                  run: sh scripts/smoke.sh "${{ steps.deploy.outputs.url }}"
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+          REGION=us-central1
+          REPO=YOUR-GITHUB-USER/notes-api
+          RUN_SA="notes-run@$PROJECT_ID.iam.gserviceaccount.com"
+
+          # the pool and the provider (the condition is the lock)
+          gcloud iam workload-identity-pools create github \
+            --project="$PROJECT_ID" --location=global --display-name="GitHub Actions"
+          gcloud iam workload-identity-pools providers create-oidc notes-repo \
+            --project="$PROJECT_ID" --location=global --workload-identity-pool=github \
+            --display-name="notes-api repository" \
+            --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+            --attribute-condition="assertion.repository == '$REPO' && assertion.ref == 'refs/heads/main'" \
+            --issuer-uri="https://token.actions.githubusercontent.com"
+
+          # who may use it: this repository
+          PRINCIPAL="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/$REPO"
+
+          gcloud artifacts repositories add-iam-policy-binding notes \
+            --location="$REGION" --member="$PRINCIPAL" --role="roles/artifactregistry.writer"
+          gcloud run services add-iam-policy-binding notes-api \
+            --region="$REGION" --member="$PRINCIPAL" --role="roles/run.developer"
+          gcloud iam service-accounts add-iam-policy-binding "$RUN_SA" \
+            --member="$PRINCIPAL" --role="roles/iam.serviceAccountUser"
+          gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+            --member="$PRINCIPAL" --role="roles/serviceusage.serviceUsageConsumer" --condition=None
+
+          echo "project number for the workflow file: $PROJECT_NUMBER"
+    mistakes:
+      - problem:
+          en: "Error: \"The given credential is rejected by the attribute condition\"."
+          tr: "Hata: \"The given credential is rejected by the attribute condition\"."
+        fix:
+          en: "The job does not match your condition. Check the repository name (capitals count), that the job runs on `main`, and that you did not use a pull request or another branch. The condition is doing its job."
+          tr: "İş, koşulunla eşleşmiyor. Depo adını (büyük harfler önemli), işin `main` üzerinde çalıştığını ve pull request ya da başka bir dal kullanmadığını kontrol et. Koşul işini yapıyor."
+      - problem:
+          en: "\"Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable\"."
+          tr: "\"Unable to get ACTIONS_ID_TOKEN_REQUEST_URL env variable\" hatası."
+        fix:
+          en: "The workflow or job lacks `permissions: id-token: write`. Add it, as in the file above."
+          tr: "Workflow ya da işte `permissions: id-token: write` yok. Yukarıdaki dosyadaki gibi ekle."
+      - problem:
+          en: "A 403 \"permission denied\" right after granting roles, or one that names a missing permission."
+          tr: "Rol verdikten hemen sonra 403 \"permission denied\" ya da eksik bir izni söyleyen hata."
+        fix:
+          en: "IAM changes can take up to five minutes. If the error stays, read which permission is missing and which resource it is on, and give the smallest role with it on that resource. Do not switch to Editor."
+          tr: "IAM değişiklikleri beş dakikaya kadar sürebilir. Hata sürerse hangi iznin ve hangi kaynakta eksik olduğunu oku ve onu içeren en küçük rolü o kaynağa ver. Editor'a geçme."
+    quiz:
+      - q:
+          en: "Why is OIDC better than a service account key stored as a GitHub secret?"
+          tr: "OIDC neden GitHub secret olarak saklanan service account anahtarından daha iyi?"
+        options:
+          en:
+            - "It is faster to download"
+            - "There is no long-lived key to leak, and access is limited to your repository and branch"
+            - "GitHub Actions cannot use secrets"
+          tr:
+            - "İndirmesi daha hızlı"
+            - "Sızabilecek uzun ömürlü bir anahtar yok ve erişim deponla ve dalınla sınırlı"
+            - "GitHub Actions sırları kullanamaz"
+        answer: 1
+        why:
+          en: "The token lasts minutes and is only accepted when the repository and branch match your condition."
+          tr: "Token dakikalar sürer ve sadece depo ve dal koşulunla eşleşirse kabul edilir."
+      - q:
+          en: "What does the attribute condition protect you from?"
+          tr: "Attribute condition seni neyden korur?"
+        options:
+          en:
+            - "Typos in the workflow file"
+            - "Someone else's GitHub repository using your Google project"
+            - "Slow builds"
+          tr:
+            - "Workflow dosyasındaki yazım hatalarından"
+            - "Başka birinin GitHub deposunun Google projeni kullanmasından"
+            - "Yavaş build'lerden"
+        answer: 1
+        why:
+          en: "Anyone on GitHub can make a token. Only the condition decides which of them Google trusts."
+          tr: "GitHub'daki herkes token üretebilir. Hangisine Google'ın güveneceğine sadece koşul karar verir."
+    sources:
+      - title: google-github-actions/auth, Direct Workload Identity Federation
+        url: https://github.com/google-github-actions/auth
+      - title: google-github-actions/deploy-cloudrun
+        url: https://github.com/google-github-actions/deploy-cloudrun
+      - title: GitHub, OpenID Connect in cloud providers
+        url: https://docs.github.com/en/actions/how-tos/secure-your-work/security-harden-deployments/oidc-in-cloud-providers
+
+  - id: observe
+    stage: monitoring
+    title:
+      en: "Logs, metrics and an alert when the API is down"
+      tr: "Loglar, metrikler ve API çökünce uyarı"
+    minutes: 50
+    needs: [cicd]
+    why:
+      en: "You cannot fix what you cannot see. Cloud Run sends everything your app prints to Cloud Logging and measures requests and latency for free. You add structured log lines (JSON) so you can filter them, and an uptime check with an email alert so you hear about a broken API before your users do."
+      tr: "Göremediğini düzeltemezsin. Cloud Run, uygulamanın yazdığı her şeyi Cloud Logging'e gönderir ve istekleri ve gecikmeyi ücretsiz ölçer. Filtreleyebilmek için yapılandırılmış log satırları (JSON) eklersin; ayrıca kullanıcılarından önce bozuk API'yi sen öğren diye e-posta uyarılı bir uptime check kurarsın."
+    learn:
+      en: |
+        - **Logs**: whatever goes to stdout/stderr is stored. A line of JSON with `severity` and `message` becomes a searchable entry with a level (INFO, ERROR). The free amount is 50 GiB of logs per project per month, kept 30 days.
+        - **Metrics**: Cloud Run gives request count, latency, instances and memory without any code
+        - Never log secrets, API keys or the text users send. The code logs method, path, status and duration only.
+        - **Uptime check**: Google calls your `/health` every few minutes from several places. Its failure can raise an **alert** that emails you. Uptime checks have 1 million free executions per project each month, and alerts on uptime metrics are not charged.
+        - Google has announced that charging for other alerting policies starts no sooner than 1 September 2027 (about $0.35 per month per metric in a policy). Keep alerts few and delete those you do not use.
+      tr: |
+        - **Loglar**: stdout/stderr'e giden her şey saklanır. `severity` ve `message` içeren bir JSON satırı seviyeli (INFO, ERROR) aranabilir bir kayıt olur. Ücretsiz miktar proje başına ayda 50 GiB log; 30 gün saklanır.
+        - **Metrikler**: Cloud Run istek sayısını, gecikmeyi, instance'ları ve belleği hiç kod yazmadan verir
+        - Sırları, API anahtarlarını ve kullanıcıların gönderdiği metni asla loglama. Kod sadece metot, yol, durum ve süreyi loglar.
+        - **Uptime check**: Google birkaç dakikada bir birkaç yerden `/health` adresini çağırır. Başarısız olması sana e-posta atan bir **uyarı** (alert) tetikleyebilir. Uptime check'lerin proje başına ayda 1 milyon ücretsiz çalıştırması var ve uptime metrikleri üzerindeki uyarılar ücretlendirilmez.
+        - Google, diğer uyarı policy'leri için ücretlendirmenin en erken 1 Eylül 2027'de başlayacağını duyurdu (policy'deki metrik başına ayda yaklaşık 0,35 dolar). Uyarıları az tut ve kullanmadıklarını sil.
+    do:
+      en: |
+        1. Replace `src/server.js` and `test/server.test.js` with the versions below. The server now writes one JSON line per request. The tests pass a silent `log` function so test output stays clean. Run `npm test`: six tests pass.
+        2. Commit and push to `main`. The pipeline deploys the new version by itself.
+        3. Send a few requests (including one wrong request, such as a POST without a key). Read the latest log lines in the terminal, and then only the errors.
+        4. Open the console: *Logging* > *Logs Explorer*, and *Cloud Run* > `notes-api` > *Metrics*. Find your JSON lines and the request count graph.
+        5. Create the uptime check on `/health` (every 5 minutes), find its ID, and create an email notification channel from a small JSON file with your address.
+        6. Create the alert policy from the JSON below. The commands fill in your check ID and channel. The policy fires when the check fails for about ten minutes.
+      tr: |
+        1. `src/server.js` ve `test/server.test.js` dosyalarını aşağıdaki sürümlerle değiştir. Sunucu artık istek başına bir JSON satırı yazıyor. Test çıktısı temiz kalsın diye testler sessiz bir `log` fonksiyonu verir. `npm test` çalıştır: altı test geçer.
+        2. Commit'le ve `main`'e gönder. Pipeline yeni sürümü kendiliğinden deploy eder.
+        3. Birkaç istek at (bir tanesi hatalı olsun, örneğin anahtarsız bir POST). Terminalde son log satırlarını, sonra sadece hataları oku.
+        4. Konsolu aç: *Logging* > *Logs Explorer* ve *Cloud Run* > `notes-api` > *Metrics*. JSON satırlarını ve istek sayısı grafiğini bul.
+        5. `/health` için uptime check oluştur (5 dakikada bir), ID'sini bul ve adresinle küçük bir JSON dosyasından e-posta bildirim kanalı oluştur.
+        6. Aşağıdaki JSON'dan uyarı policy'sini oluştur. Komutlar check ID'ni ve kanalı doldurur. Policy, check yaklaşık on dakika başarısız olunca tetiklenir.
+    code:
+      - file: src/server.js
+        lang: js
+        text: |
+          import http from "node:http";
+          import { timingSafeEqual } from "node:crypto";
+          import { fileURLToPath } from "node:url";
+          import { parseNote } from "./validate.js";
+          import { createStore } from "./store.js";
+
+          function send(res, status, data) {
+            res.writeHead(status, { "content-type": "application/json" });
+            res.end(JSON.stringify(data));
+          }
+
+          async function readJson(req) {
+            let raw = "";
+            for await (const chunk of req) raw += chunk;
+            try {
+              return JSON.parse(raw);
+            } catch {
+              throw new Error("body must be JSON");
+            }
+          }
+
+          // Compare two strings in constant time, so the answer time does not leak the key.
+          function sameKey(given, wanted) {
+            const a = Buffer.from(given ?? "");
+            const b = Buffer.from(wanted);
+            return a.length === b.length && timingSafeEqual(a, b);
+          }
+
+          // One JSON line per request. Cloud Run sends stdout to Cloud Logging, which reads the
+          // "severity" and "message" fields. We never log the note text itself.
+          function logRequest(req, res, started) {
+            const status = res.statusCode;
+            console.log(
+              JSON.stringify({
+                severity: status >= 500 ? "ERROR" : "INFO",
+                message: `${req.method} ${req.url} ${status}`,
+                status,
+                ms: Date.now() - started,
+              }),
+            );
+          }
+
+          // apiKey is optional: when it is set, POST /notes needs a matching x-api-key header.
+          // log is a function that writes one line; tests pass a silent one.
+          export function createApp({ store, apiKey, log = logRequest }) {
+            return http.createServer(async (req, res) => {
+              const started = Date.now();
+              res.on("finish", () => log(req, res, started));
+              try {
+                if (req.method === "GET" && req.url === "/health") {
+                  return send(res, 200, { status: "ok" });
+                }
+                if (req.url === "/notes") {
+                  if (req.method === "GET") return send(res, 200, await store.list());
+                  if (req.method === "POST") {
+                    if (apiKey && !sameKey(req.headers["x-api-key"], apiKey)) {
+                      return send(res, 401, { error: "missing or wrong x-api-key" });
+                    }
+                    let text;
+                    try {
+                      text = parseNote(await readJson(req));
+                    } catch (err) {
+                      return send(res, 400, { error: err.message });
+                    }
+                    return send(res, 201, await store.add(text));
+                  }
+                }
+                send(res, 404, { error: "not found" });
+              } catch (err) {
+                console.error(err.message);
+                send(res, 503, { error: "storage unavailable" });
+              }
+            });
+          }
+
+          // Start the server only when this file is run directly (not when a test imports it).
+          if (process.argv[1] === fileURLToPath(import.meta.url)) {
+            // Cloud Run tells the container which port to listen on in the PORT variable.
+            const port = Number(process.env.PORT ?? 8080);
+            const server = createApp({ store: await createStore(), apiKey: process.env.API_KEY });
+            server.listen(port, "0.0.0.0", () => console.log(`notes-api listening on ${port}`));
+
+            // Cloud Run stops an instance with SIGTERM: finish the open requests, then exit.
+            process.on("SIGTERM", () => {
+              console.log("shutting down");
+              server.close(() => process.exit(0));
+            });
+          }
+      - file: test/server.test.js
+        lang: js
+        text: |
+          import { test } from "node:test";
+          import assert from "node:assert/strict";
+          import { createApp } from "../src/server.js";
+          import { memoryStore } from "../src/store.js";
+          import { parseNote } from "../src/validate.js";
+
+          // Start the app on a random free port and give back a small fetch helper.
+          async function start(options = {}) {
+            const server = createApp({ store: memoryStore(), log: () => {}, ...options });
+            await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+            const base = `http://127.0.0.1:${server.address().port}`;
+            return { base, close: () => new Promise((resolve) => server.close(resolve)) };
+          }
+
+          const post = (base, body, headers = {}) =>
+            fetch(`${base}/notes`, {
+              method: "POST",
+              headers: { "content-type": "application/json", ...headers },
+              body: JSON.stringify(body),
+            });
+
+          test("parseNote trims the text and rejects an empty one", () => {
+            assert.equal(parseNote({ text: "  buy milk " }), "buy milk");
+            assert.throws(() => parseNote({ text: "   " }), /required/);
+          });
+
+          test("health answers ok", async () => {
+            const app = await start();
+            const res = await fetch(`${app.base}/health`);
+            assert.equal(res.status, 200);
+            assert.deepEqual(await res.json(), { status: "ok" });
+            await app.close();
+          });
+
+          test("a posted note shows up in the list", async () => {
+            const app = await start();
+            const created = await post(app.base, { text: "hello cloud" });
+            assert.equal(created.status, 201);
+            const notes = await (await fetch(`${app.base}/notes`)).json();
+            assert.equal(notes.length, 1);
+            assert.equal(notes[0].text, "hello cloud");
+            await app.close();
+          });
+
+          test("a bad body is a 400", async () => {
+            const app = await start();
+            assert.equal((await post(app.base, { text: "" })).status, 400);
+            await app.close();
+          });
+
+          test("with an api key set, POST needs it and GET stays open", async () => {
+            const app = await start({ apiKey: "s3cret" });
+            assert.equal((await post(app.base, { text: "a" })).status, 401);
+            assert.equal((await post(app.base, { text: "a" }, { "x-api-key": "nope" })).status, 401);
+            assert.equal((await post(app.base, { text: "a" }, { "x-api-key": "s3cret" })).status, 201);
+            assert.equal((await fetch(`${app.base}/notes`)).status, 200);
+            await app.close();
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+          URL=$(gcloud run services describe notes-api --region "$REGION" --format='value(status.url)')
+          HOST=${URL#https://}
+
+          # 3. read the logs
+          gcloud run services logs read notes-api --region "$REGION" --limit 20
+          gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="notes-api" AND severity>=ERROR' --limit 10 --freshness=1d
+
+          # 5. uptime check on /health, every 5 minutes
+          gcloud monitoring uptime create notes-api-health \
+            --resource-type=uptime-url \
+            --resource-labels="host=$HOST,project_id=$PROJECT_ID" \
+            --protocol=https --port=443 --path=/health --period=5
+          CHECK_ID=$(gcloud monitoring uptime list-configs --format="value(name)" | sed 's|.*/||')
+
+          # an email channel (answer yes if gcloud offers to install the beta component)
+          cat > email-channel.json <<EOF
+          {
+            "type": "email",
+            "displayName": "My email",
+            "labels": { "email_address": "you@example.com" }
+          }
+          EOF
+          gcloud beta monitoring channels create --channel-content-from-file=email-channel.json
+          CHANNEL=$(gcloud beta monitoring channels list --format="value(name)")
+
+          # 6. the alert policy
+          cat > alert-uptime.json <<EOF
+          {
+            "displayName": "notes-api is down",
+            "combiner": "OR",
+            "conditions": [
+              {
+                "displayName": "Uptime check $CHECK_ID fails",
+                "conditionThreshold": {
+                  "filter": "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id=\"$CHECK_ID\" AND resource.type=\"uptime_url\"",
+                  "aggregations": [
+                    {
+                      "alignmentPeriod": "1200s",
+                      "perSeriesAligner": "ALIGN_NEXT_OLDER",
+                      "crossSeriesReducer": "REDUCE_COUNT_FALSE",
+                      "groupByFields": ["resource.label.*"]
+                    }
+                  ],
+                  "comparison": "COMPARISON_GT",
+                  "thresholdValue": 1,
+                  "duration": "600s",
+                  "trigger": { "count": 1 }
+                }
+              }
+            ],
+            "notificationChannels": ["$CHANNEL"]
+          }
+          EOF
+          gcloud monitoring policies create --policy-from-file=alert-uptime.json
+    mistakes:
+      - problem:
+          en: "Logging whole request bodies or headers for easier debugging."
+          tr: "Hata ayıklamayı kolaylaştırmak için tüm istek gövdelerini ya da başlıklarını loglamak."
+        fix:
+          en: "Logs are read by many people and kept for weeks. Log ids, statuses and durations, never keys, passwords or user text."
+          tr: "Logları çok kişi okur ve haftalarca saklanır. Id, durum ve süre logla; anahtar, parola ya da kullanıcı metni asla."
+      - problem:
+          en: "An alert that never fires because the notification channel was never added to the policy."
+          tr: "Bildirim kanalı policy'ye eklenmediği için hiç çalışmayan uyarı."
+        fix:
+          en: "Check that `notificationChannels` holds a real channel name (`gcloud beta monitoring channels list`) and click the link in the first email to confirm the address if asked."
+          tr: "`notificationChannels` içinde gerçek bir kanal adı olduğunu (`gcloud beta monitoring channels list`) kontrol et ve istenirse ilk e-postadaki bağlantıya tıklayarak adresi onayla."
+      - problem:
+          en: "The alert policy JSON is rejected, or `CHECK_ID` is empty."
+          tr: "Uyarı policy JSON'u reddediliyor ya da `CHECK_ID` boş."
+        fix:
+          en: "Run `echo $CHECK_ID $CHANNEL` and make sure both have a value before creating the file. If you have more than one check or channel, pick the right line by hand."
+          tr: "Dosyayı oluşturmadan önce `echo $CHECK_ID $CHANNEL` çalıştır ve ikisinin de değeri olduğundan emin ol. Birden fazla check ya da kanalın varsa doğru satırı elle seç."
+    quiz:
+      - q:
+          en: "What is the benefit of logging one JSON line with a severity field?"
+          tr: "Severity alanı olan tek satır JSON loglamanın faydası ne?"
+        options:
+          en:
+            - "The log entries can be filtered by level and fields, for example only ERROR"
+            - "Logs become free forever"
+            - "The app starts faster"
+          tr:
+            - "Log kayıtları seviyeye ve alanlara göre filtrelenebilir, örneğin sadece ERROR"
+            - "Loglar sonsuza dek ücretsiz olur"
+            - "Uygulama daha hızlı başlar"
+        answer: 0
+        why:
+          en: "Cloud Logging reads severity and message from JSON on stdout, so you can search and filter instead of scrolling."
+          tr: "Cloud Logging, stdout'taki JSON'dan severity ve message alanlarını okur; kaydırmak yerine arayıp filtreleyebilirsin."
+    sources:
+      - title: Cloud Run, logging
+        url: https://docs.cloud.google.com/run/docs/logging
+      - title: Uptime checks
+        url: https://docs.cloud.google.com/monitoring/uptime-checks
+      - title: Google Cloud Observability pricing
+        url: https://cloud.google.com/stackdriver/pricing
+
+  - id: cleanup
+    stage: advanced
+    title:
+      en: "Cost review and how to delete everything"
+      tr: "Maliyet kontrolü ve her şeyi nasıl silersin"
+    minutes: 50
+    needs: [observe, network, scaling, images]
+    why:
+      en: "Clouds are easy to start and easy to forget. The habit that keeps your wallet safe is to look at what you spend, and to be able to remove everything in minutes when you finish a project. The cleanest way is to delete the whole project: all resources go with it, and so does the billing link."
+      tr: "Bulutları başlatmak kolay, unutmak da kolay. Cüzdanını güvende tutan alışkanlık, ne harcadığına bakmak ve bir projeyi bitirince her şeyi dakikalar içinde kaldırabilmektir. En temiz yol tüm projeyi silmektir: tüm kaynaklar ve faturalandırma bağlantısı onunla gider."
+    learn:
+      en: |
+        - The **Billing Reports** page: group cost by service and look at what is not zero. With credits and the Free Tier your real bill is $0, but the report shows what the usage would cost, which is what to watch.
+        - Where each free allowance is shown: Cloud Run *Metrics*, Firestore *Usage*, Artifact Registry repository size, Secret Manager active versions (6 at most), and logging volume
+        - **Deleting a project** shuts down all its resources and ends billing for it; it is recoverable for about 30 days, then removed for good. Things outside the project (DNS records at your registrar, GitHub repository, budgets on the billing account) must be removed separately.
+        - A budget alert is not a brake. A stronger brake is automation that turns billing off when a budget alert arrives. It is a more advanced setup (Pub/Sub and a function) and dangerous if wrong, so read the official guide before you try it.
+        - Where to go next: write this setup as code with Terraform or OpenTofu so creating and deleting is one command; use Cloud SQL when you need PostgreSQL (not free); learn Kubernetes when you outgrow Cloud Run
+      tr: |
+        - **Billing Reports** sayfası: maliyeti servise göre grupla ve sıfır olmayanlara bak. Krediler ve Free Tier ile gerçek faturan 0 dolardır; ama rapor kullanımın ne tutacağını gösterir ve izlenecek olan budur.
+        - Her ücretsiz hakkın nerede görüldüğü: Cloud Run *Metrics*, Firestore *Usage*, Artifact Registry depo boyutu, Secret Manager aktif sürümleri (en fazla 6) ve log hacmi
+        - **Projeyi silmek** tüm kaynaklarını kapatır ve onun faturalamasını bitirir; yaklaşık 30 gün geri alınabilir, sonra kalıcı olarak kaldırılır. Projenin dışındaki şeyler (registrar'ındaki DNS kayıtları, GitHub deposu, faturalandırma hesabındaki bütçeler) ayrıca kaldırılmalı.
+        - Bütçe uyarısı fren değildir. Daha güçlü fren, bütçe uyarısı gelince faturalamayı kapatan otomasyondur. Bu ileri bir kurulum (Pub/Sub ve bir fonksiyon) ve yanlışsa tehlikeli; denemeden önce resmi rehberi oku.
+        - Sonra nereye: bu kurulumu Terraform ya da OpenTofu ile kod olarak yaz; böylece oluşturmak ve silmek tek komut olur; PostgreSQL gerekince Cloud SQL kullan (ücretsiz değil); Cloud Run'a sığmayınca Kubernetes öğren
+    do:
+      en: |
+        1. Open *Billing* > *Reports* in the console. Group by *Service*. Write down every service with a cost above zero and make sure you know why. Then check the free allowances: Cloud Run metrics, Firestore usage, repository size and secret versions.
+        2. Decide: keep the project or delete it. If you keep it, keep the budget, the `max-instances` limit, the cost rules and a weekly look at the reports.
+        3. To remove just some things, delete in this order (things that use others first). Replace the placeholders with your values. The commands are in the code box.
+        4. To remove everything at once, delete the project. Check `gcloud projects list` afterwards: it shows the project as being deleted.
+        5. Clean up outside the project: delete the DNS records you added at your registrar, delete the GitHub repository (or at least `.github/workflows/deploy.yml`), and remove the budget if you no longer need it (`gcloud billing budgets delete`). Keep the 2-Step Verification on your account.
+        6. Come back the next day and check *Billing* > *Reports*: the cost for the deleted project should stop. If you want to be sure, look at the projects linked to your billing account with `gcloud billing projects list --billing-account=BILLING_ACCOUNT_ID`.
+      tr: |
+        1. Konsolda *Billing* > *Reports* sayfasını aç. *Service*'e göre grupla. Maliyeti sıfırın üstünde olan her servisi yaz ve nedenini bildiğinden emin ol. Sonra ücretsiz hakları kontrol et: Cloud Run metrikleri, Firestore kullanımı, depo boyutu ve secret sürümleri.
+        2. Karar ver: projeyi tut ya da sil. Tutacaksan bütçeyi, `max-instances` limitini, maliyet kurallarını ve raporlara haftalık bakışı koru.
+        3. Sadece bazı şeyleri kaldırmak için şu sırayla sil (başkalarını kullananlar önce). Yer tutucuları kendi değerlerinle değiştir. Komutlar kod kutusunda.
+        4. Her şeyi bir seferde kaldırmak için projeyi sil. Sonra `gcloud projects list` ile kontrol et: projeyi silinmekte olarak gösterir.
+        5. Proje dışını temizle: registrar'ında eklediğin DNS kayıtlarını sil, GitHub deposunu sil (en azından `.github/workflows/deploy.yml` dosyasını) ve artık gerekmiyorsa bütçeyi kaldır (`gcloud billing budgets delete`). Hesabındaki 2 adımlı doğrulamayı açık bırak.
+        6. Ertesi gün tekrar gel ve *Billing* > *Reports* sayfasına bak: silinen projenin maliyeti durmalı. Emin olmak istersen faturalandırma hesabına bağlı projelere `gcloud billing projects list --billing-account=FATURA_HESABI_ID` ile bak.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          PROJECT_ID=$(gcloud config get-value project)
+          REGION=us-central1
+          BUCKET="$PROJECT_ID-backups"
+
+          # Option A, one by one (things that use others first)
+          gcloud run services delete notes-api --region "$REGION"
+          gcloud beta run domain-mappings delete --domain api.example.com --region "$REGION"
+          gcloud monitoring policies list --format="value(name)"
+          gcloud monitoring policies delete POLICY_NAME
+          gcloud monitoring uptime list-configs --format="value(name)"
+          gcloud monitoring uptime delete CHECK_ID
+          gcloud artifacts repositories delete notes --location "$REGION"
+          gcloud firestore databases delete --database="(default)"
+          gcloud secrets delete notes-api-key
+          gcloud storage rm --recursive "gs://$BUCKET"
+          gcloud compute firewall-rules delete notes-allow-https
+          gcloud compute networks subnets delete notes-subnet --region "$REGION"
+          gcloud compute networks delete notes-vpc
+          gcloud iam workload-identity-pools delete github --location=global
+          gcloud iam service-accounts delete "notes-run@$PROJECT_ID.iam.gserviceaccount.com"
+
+          # Option B, everything at once (recoverable for about 30 days)
+          gcloud projects delete "$PROJECT_ID"
+          gcloud projects list
+
+          # outside the project
+          gcloud billing budgets list --billing-account=012345-6789AB-CDEF01
+    mistakes:
+      - problem:
+          en: "Deleting resources one by one and forgetting some, such as the bucket or the secret."
+          tr: "Kaynakları tek tek silip bazılarını, örneğin bucket'ı ya da secret'ı unutmak."
+        fix:
+          en: "Prefer deleting the whole project. If you go one by one, check the console afterwards: *Billing* > *Reports* by service shows what still costs."
+          tr: "Tüm projeyi silmeyi tercih et. Tek tek gidersen sonra konsolda kontrol et: *Billing* > *Reports* servise göre neyin hâlâ maliyet çıkardığını gösterir."
+      - problem:
+          en: "Deleting the project but leaving the DNS records and the GitHub workflow."
+          tr: "Projeyi silip DNS kayıtlarını ve GitHub workflow'unu bırakmak."
+        fix:
+          en: "DNS records that point to something that no longer exists can be taken over by others. Remove them. The workflow will fail on every push, so delete or disable it."
+          tr: "Artık var olmayan bir şeye işaret eden DNS kayıtlarını başkaları ele geçirebilir. Kaldır. Workflow her push'ta başarısız olur; sil ya da devre dışı bırak."
+      - problem:
+          en: "Upgrading from the Free Trial to a paid account without a plan."
+          tr: "Free Trial'dan plansız ücretli hesaba geçmek."
+        fix:
+          en: "After the upgrade, everything above the Free Tier is billed. Do it only on purpose, with the budget and the limits in place, and delete what you do not need first."
+          tr: "Yükseltmeden sonra Free Tier'ın üstündeki her şey faturalanır. Sadece bilerek yap; bütçe ve limitler yerinde olsun ve önce gerekmeyenleri sil."
+    quiz:
+      - q:
+          en: "What is the most reliable way to stop all costs for a finished experiment?"
+          tr: "Biten bir deneyin tüm maliyetlerini durdurmanın en güvenilir yolu hangisi?"
+        options:
+          en:
+            - "Stop the Cloud Run service and keep everything else"
+            - "Delete the whole project (and the things outside it, like DNS records)"
+            - "Lower the budget amount"
+          tr:
+            - "Cloud Run servisini durdurup geri kalanını bırakmak"
+            - "Tüm projeyi silmek (ve DNS kayıtları gibi dışındaki şeyleri)"
+            - "Bütçe tutarını düşürmek"
+        answer: 1
+        why:
+          en: "A project holds all its resources, so deleting it removes them together. Storage, databases and registries keep costing even when the service is not running."
+          tr: "Proje tüm kaynaklarını tutar; silmek hepsini birlikte kaldırır. Servis çalışmasa bile depolama, veritabanları ve registry'ler maliyet çıkarmaya devam eder."
+    sources:
+      - title: Shutting down (deleting) projects
+        url: https://docs.cloud.google.com/resource-manager/docs/creating-managing-projects
+      - title: Disable billing with notifications (advanced budget brake)
+        url: https://docs.cloud.google.com/billing/docs/how-to/disable-billing-with-notifications
+      - title: View and analyze your cost with reports
+        url: https://docs.cloud.google.com/billing/docs/reports
