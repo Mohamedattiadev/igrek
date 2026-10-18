@@ -3962,5 +3962,12 @@
     "items": "öğe",
     "revoke": "Güvenmeyi bırak",
     "trustShort": "Güven"
+  },
+  "report": {
+    "htmlTitle": "AI'ın yazdığı HTML sayfası (yalıtılmış, ağa çıkamaz)",
+    "htmlCode": "Kod",
+    "htmlPage": "Sayfa",
+    "htmlFull": "Tam ekran",
+    "htmlSmall": "Sohbete dön"
   }
 }

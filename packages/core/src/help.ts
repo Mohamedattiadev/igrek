@@ -50,4 +50,5 @@ export const RICH_BLOCKS_HINT = [
   '```stats\n[{"label":"…","value":"…","delta":"+3","tone":"good"}]\n``` (tone: good, warning, bad; for a few headline numbers);',
   '```progress\n[{"label":"…","value":72,"max":100}]\n``` (for parts of a whole or how far something is);',
   "```mermaid``` for flows and diagrams. The JSON must be valid; numbers in values, never text.",
+  "```html-report``` for a whole self-contained HTML page (inline CSS and JS only; it cannot load anything from the network), when the user asks for a page or a rich report.",
 ].join("\n");

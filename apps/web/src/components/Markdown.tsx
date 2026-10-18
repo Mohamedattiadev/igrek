@@ -7,6 +7,7 @@ import { highlight, highlightCached, langKey } from "../lib/highlight";
 import { Lru } from "../lib/lru";
 import { healBlock, splitBlocks } from "../lib/markdown-blocks";
 import { innerCode } from "../lib/useHighlight";
+import { HtmlReport } from "./HtmlReport";
 import { RICH_LANGS, RichBlock } from "./RichBlocks";
 
 type Words = { copy: string; copied: string; callout: Record<string, string> };
@@ -42,6 +43,14 @@ function enhanceCode(root: HTMLElement, words: Words, streaming: boolean): () =>
     if (!code) continue;
     const lang = [...code.classList].find((c) => c.startsWith("language-"))?.slice(9);
     const text = code.textContent ?? "";
+    if (lang === "html-report" && !streaming) {
+      const box = document.createElement("div");
+      pre.replaceWith(box);
+      const r = createRoot(box);
+      r.render(<HtmlReport html={text} />);
+      roots.push({ root: r, box });
+      continue;
+    }
     // OpenUI's own prompt teaches "openui-lang"; "openui" is the short name.
     if (lang === "openui" || lang === "openui-lang") {
       const box = document.createElement("div");

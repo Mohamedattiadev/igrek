@@ -3962,5 +3962,12 @@
     "items": "items",
     "revoke": "Stop trusting",
     "trustShort": "Trust"
+  },
+  "report": {
+    "htmlTitle": "HTML page from the AI (sandboxed, no network)",
+    "htmlCode": "Code",
+    "htmlPage": "Page",
+    "htmlFull": "Full screen",
+    "htmlSmall": "Back to the chat"
   }
 }
