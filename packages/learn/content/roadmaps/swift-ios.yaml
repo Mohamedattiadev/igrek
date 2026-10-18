@@ -1,0 +1,2818 @@
+id: swift-ios
+title: Swift and SwiftUI (iPhone)
+summary:
+  en: "From an empty Mac to your own iPhone app. You build a habit tracker in Swift and SwiftUI step by step, save its data with SwiftData, test it, run it on your own iPhone and learn how TestFlight and the App Store work."
+  tr: "Boş bir Mac'ten kendi iPhone uygulamana. Swift ve SwiftUI ile adım adım bir alışkanlık takip uygulaması yazarsın, verisini SwiftData ile kaydedersin, test edersin, kendi iPhone'unda çalıştırırsın ve TestFlight ile App Store'un nasıl işlediğini öğrenirsin."
+teacher: mobile
+project:
+  en: 'A habit tracker for iPhone: add habits, tick them off each day, see your streak, keep everything on the phone with SwiftData, load a daily quote from a public API, store a token in the Keychain, with tests, an app icon, a build on your own iPhone and a plan for TestFlight, the App Store and crash reports.'
+  tr: 'iPhone için bir alışkanlık takip uygulaması: alışkanlık ekleme, her gün işaretleme, seri (streak) görme, her şeyi SwiftData ile telefonda tutma, herkese açık bir API''den günlük söz yükleme, bir token''ı Keychain''de saklama; testleri, uygulama ikonu, kendi iPhone''unda çalışan bir build ve TestFlight, App Store ile çökme raporları için bir plan da var.'
+detect:
+  files: [Package.swift]
+version: "27"
+latest: eol:ios
+checked: 2026-10
+sheets: [git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Get a Mac, Xcode and Swift ready"
+      tr: "Mac'ini, Xcode'u ve Swift'i hazırlama"
+    minutes: 90
+    why:
+      en: "iPhone apps are built with Xcode, Apple's development tool, and Xcode only runs on a Mac. There is no official way to build or run an iPhone app on Windows or Linux. Knowing this on day one saves you a lot of frustration."
+      tr: "iPhone uygulamaları Apple'ın geliştirme aracı Xcode ile hazırlanır ve Xcode sadece Mac'te çalışır. Windows ya da Linux'ta bir iPhone uygulaması derlemenin ya da çalıştırmanın resmi bir yolu yok. Bunu ilk günden bilmek seni çok uğraştan kurtarır."
+    learn:
+      en: |
+        - What you need and what you do not: a Mac, Xcode (free), an Apple Account (free), an iPhone (optional at first)
+        - What Swift is (the language) and what SwiftUI is (the toolkit that draws screens)
+        - How to check from the terminal that Xcode and Swift are installed
+      tr: |
+        - Neye ihtiyacın olduğu, neye olmadığı: bir Mac, Xcode (ücretsiz), bir Apple Account (ücretsiz), bir iPhone (başta isteğe bağlı)
+        - Swift'in (dil) ve SwiftUI'ın (ekranları çizen araç seti) ne olduğu
+        - Xcode ve Swift'in kurulu olduğunu terminalden kontrol etmek
+    do:
+      en: |
+        1. **Be honest about the hardware.** You need a Mac. Xcode 27 needs an Apple silicon Mac running macOS Tahoe 26.6 or later (see the Xcode 27 release notes). If you have no Mac, you can still learn the Swift language on Linux or Windows with the toolchain from swift.org, but you cannot build the iPhone app until you have a Mac (borrow one, or buy a used Mac mini). Cloud Mac rental services exist, but they cost money, so this roadmap does not use them.
+        2. Open the **App Store** app on your Mac, search for **Xcode** and install it. It is free and the download is large, so use a good connection.
+        3. Open Xcode once. Accept the license and let it install the extra components it asks for. When it offers the **iOS** platform (the Simulator), install it.
+        4. Create a free **Apple Account** if you do not have one. You will sign in to Xcode with it later (*Xcode → Settings → Apple Accounts*).
+        5. Open the Terminal app and run the commands below. `xcodebuild -version` should print Xcode 27 and `swift --version` should print Swift 6.4.
+      tr: |
+        1. **Donanım konusunda dürüst olalım.** Bir Mac'e ihtiyacın var. Xcode 27, macOS Tahoe 26.6 ya da daha yenisini çalıştıran Apple silicon bir Mac ister (Xcode 27 sürüm notlarına bak). Mac'in yoksa Swift dilini Linux veya Windows'ta swift.org'daki araç setiyle öğrenebilirsin ama bir Mac bulana kadar iPhone uygulamasını derleyemezsin (birinden ödünç al ya da ikinci el bir Mac mini al). Bulutta Mac kiralayan servisler var ama paralıdır, bu yüzden bu yol haritası onları kullanmaz.
+        2. Mac'inde **App Store** uygulamasını aç, **Xcode**'u ara ve kur. Ücretsiz ama indirme büyük, iyi bir bağlantı kullan.
+        3. Xcode'u bir kez aç. Lisansı kabul et, istediği ek bileşenleri kurmasına izin ver. **iOS** platformunu (Simulator) önerdiğinde onu da kur.
+        4. Yoksa ücretsiz bir **Apple Account** oluştur. Xcode'a onunla giriş yapacaksın (*Xcode → Settings → Apple Accounts*).
+        5. Terminal uygulamasını aç ve aşağıdaki komutları çalıştır. `xcodebuild -version` Xcode 27, `swift --version` Swift 6.4 yazmalı.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          xcode-select -p
+          xcodebuild -version
+          swift --version
+    mistakes:
+      - problem:
+          en: "Xcode will not open or install because macOS is too old."
+          tr: "macOS çok eski olduğu için Xcode açılmıyor ya da kurulmuyor."
+        fix:
+          en: "Update macOS first (System Settings → General → Software Update). The macOS version Xcode needs is in its release notes."
+          tr: "Önce macOS'u güncelle (System Settings → General → Software Update). Xcode'un istediği macOS sürümü sürüm notlarında yazar."
+      - problem:
+          en: "`xcode-select -p` prints `/Library/Developer/CommandLineTools` and `xcodebuild` complains."
+          tr: "`xcode-select -p` `/Library/Developer/CommandLineTools` yazıyor ve `xcodebuild` şikâyet ediyor."
+        fix:
+          en: "Only the small command line tools are selected, not the full Xcode. Run `sudo xcode-select -s /Applications/Xcode.app` and check again."
+          tr: "Tam Xcode değil, sadece küçük komut satırı araçları seçili. `sudo xcode-select -s /Applications/Xcode.app` çalıştır ve tekrar kontrol et."
+      - problem:
+          en: "The install stops because the disk is full."
+          tr: "Disk dolu olduğu için kurulum duruyor."
+        fix:
+          en: "Xcode and the Simulator need tens of gigabytes. Free space in System Settings → General → Storage, then try again."
+          tr: "Xcode ve Simulator onlarca gigabayt ister. System Settings → General → Storage'dan yer aç, sonra tekrar dene."
+    quiz:
+      - q:
+          en: "Can you build an iPhone app with Xcode on a Windows PC?"
+          tr: "Bir Windows bilgisayarda Xcode ile iPhone uygulaması derleyebilir misin?"
+        options:
+          en: [Yes if you install the Windows version, No because Xcode only runs on a Mac, Yes but only for free apps]
+          tr: [Evet Windows sürümünü kurarsan, Hayır çünkü Xcode sadece Mac'te çalışır, Evet ama sadece ücretsiz uygulamalar için]
+        answer: 1
+        why:
+          en: "Xcode is a Mac app and there is no Windows version. You need a Mac to build and run iPhone apps."
+          tr: "Xcode bir Mac uygulaması ve Windows sürümü yok. iPhone uygulaması derlemek ve çalıştırmak için bir Mac gerekir."
+    sources:
+      - title: Xcode 27 release notes
+        url: https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes
+      - title: Xcode (Apple Developer)
+        url: https://developer.apple.com/xcode/
+      - title: Install Swift (swift.org)
+        url: https://www.swift.org/install/
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first app and run it in the Simulator"
+      tr: "İlk uygulamanı oluşturma ve Simulator'da çalıştırma"
+    minutes: 40
+    needs: [setup]
+    why:
+      en: "An iPhone app needs a project with a few files, a name that identifies it and a place to run. Xcode creates the project in seconds, and the Simulator is a virtual iPhone on your Mac, so you see every change without a real phone."
+      tr: "Bir iPhone uygulaması için birkaç dosyalı bir proje, onu tanıtan bir ad ve çalışacağı bir yer gerekir. Xcode projeyi saniyeler içinde oluşturur, Simulator da Mac'indeki sanal bir iPhone'dur; gerçek telefon olmadan her değişikliği görürsün."
+    learn:
+      en: |
+        - What a new SwiftUI project contains: `HabitsApp.swift`, `ContentView.swift`, `Assets.xcassets`
+        - What `@main`, `App`, `WindowGroup` and `View` mean in a few words
+        - Run (Cmd+R) and the preview canvas, and how they differ
+      tr: |
+        - Yeni bir SwiftUI projesinde neler olduğu: `HabitsApp.swift`, `ContentView.swift`, `Assets.xcassets`
+        - `@main`, `App`, `WindowGroup` ve `View`'ün kısaca ne demek olduğu
+        - Çalıştırma (Cmd+R) ile önizleme kanvasının farkı
+    do:
+      en: |
+        1. In Xcode choose *File → New → Project*, then **iOS → App** and click Next.
+        2. Product Name: `Habits`. Interface: **SwiftUI**. Language: **Swift**. Storage: **None** (we add SwiftData by hand later so you see every line). Keep **Include Tests** on and, if Xcode asks for the testing system, choose **Swift Testing**.
+        3. Organization Identifier: your own reverse domain, for example `com.yourname`. Xcode builds the **bundle identifier** (the app's unique name, `com.yourname.Habits`) from it. Save the project in your projects folder and tick *Create Git repository*.
+        4. At the top of the window pick an iPhone Simulator as the run destination and press **Cmd+R** (or the Run button). The first start of the Simulator can take a few minutes.
+        5. Replace `ContentView.swift` with the code below. Open the preview canvas (*Editor → Canvas*) and press **Resume** if it is paused.
+        6. Stop the app (Cmd+.) and commit: in the terminal, inside the project folder, run `git add .` and `git commit -m "Create the Habits app"`. If you did not tick the Git box, run `git init` first and add the `.gitignore` below.
+      tr: |
+        1. Xcode'da *File → New → Project* seç, sonra **iOS → App** ve Next'e bas.
+        2. Product Name: `Habits`. Interface: **SwiftUI**. Language: **Swift**. Storage: **None** (SwiftData'yı sonra elle ekleyeceğiz ki her satırı gör). **Include Tests** açık kalsın; Xcode test sistemini sorarsa **Swift Testing**'i seç.
+        3. Organization Identifier: kendi ters alan adın, örneğin `com.senin-adin`. Xcode **bundle identifier**'ı (uygulamanın benzersiz adı, `com.senin-adin.Habits`) bundan üretir. Projeyi proje klasörüne kaydet ve *Create Git repository* kutusunu işaretle.
+        4. Pencerenin üstünde çalıştırma hedefi olarak bir iPhone Simulator seç ve **Cmd+R**'ye (ya da Run düğmesine) bas. Simulator'ın ilk açılışı birkaç dakika sürebilir.
+        5. `ContentView.swift` içeriğini aşağıdaki kodla değiştir. Önizleme kanvasını aç (*Editor → Canvas*), durmuşsa **Resume**'a bas.
+        6. Uygulamayı durdur (Cmd+.) ve commit'le: terminalde proje klasöründeyken `git add .` ve `git commit -m "Create the Habits app"` çalıştır. Git kutusunu işaretlemediysen önce `git init` yap ve aşağıdaki `.gitignore`'u ekle.
+    code:
+      - file: Habits/HabitsApp.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          @main
+          struct HabitsApp: App {
+              var body: some Scene {
+                  WindowGroup {
+                      ContentView()
+                  }
+              }
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct ContentView: View {
+              var body: some View {
+                  VStack(spacing: 12) {
+                      Image(systemName: "checkmark.circle")
+                          .font(.system(size: 48))
+                          .foregroundStyle(.tint)
+                      Text("Hello, Habits")
+                          .font(.title)
+                  }
+                  .padding()
+              }
+          }
+
+          #Preview {
+              ContentView()
+          }
+      - file: .gitignore
+        lang: text
+        text: |
+          .DS_Store
+          xcuserdata/
+          DerivedData/
+          build/
+    mistakes:
+      - problem:
+          en: "\"No simulator runtimes\" or the iOS platform is missing."
+          tr: "\"No simulator runtimes\" hatası ya da iOS platformu eksik."
+        fix:
+          en: "Open *Xcode → Settings → Components* and download the iOS platform. It is a big download."
+          tr: "*Xcode → Settings → Components*'i aç ve iOS platformunu indir. İndirme büyüktür."
+      - problem:
+          en: "The preview canvas is blank or says it is paused."
+          tr: "Önizleme kanvası boş ya da durdu yazıyor."
+        fix:
+          en: "Open *Editor → Canvas* and press Resume. If it still fails, read the error in the canvas, then run the app with Cmd+R to see the full build error."
+          tr: "*Editor → Canvas*'ı aç ve Resume'a bas. Yine olmazsa kanvastaki hatayı oku, sonra tam derleme hatasını görmek için Cmd+R ile çalıştır."
+      - problem:
+          en: "Typing the bundle identifier of someone else's app, or a name with spaces."
+          tr: "Başkasının uygulamasının bundle identifier'ını ya da boşluklu bir ad yazmak."
+        fix:
+          en: "Use your own reverse domain such as `com.yourname.Habits`. It must be unique, because Apple uses it to tell apps apart."
+          tr: "`com.senin-adin.Habits` gibi kendi ters alan adını kullan. Benzersiz olmalı, çünkü Apple uygulamaları bununla ayırt eder."
+    quiz:
+      - q:
+          en: "What does the bundle identifier do?"
+          tr: "Bundle identifier ne işe yarar?"
+        options:
+          en: [It is the name shown under the icon, It uniquely identifies your app for Apple and the system, It is your Apple password]
+          tr: [İkonun altında görünen addır, Uygulamanı Apple ve sistem için benzersiz olarak tanımlar, Apple şifrendir]
+        answer: 1
+        why:
+          en: "The name under the icon is the display name. The bundle identifier is the unique ID used for signing, the App Store and the Keychain."
+          tr: "İkonun altındaki ad görünen addır. Bundle identifier imzalama, App Store ve Keychain için kullanılan benzersiz kimliktir."
+    sources:
+      - title: Creating an Xcode project for an app
+        url: https://developer.apple.com/documentation/xcode/creating-an-xcode-project-for-an-app
+      - title: Running your app on simulated or physical devices
+        url: https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices
+
+  - id: playground
+    stage: first-code
+    title:
+      en: "Learn Swift basics in a playground"
+      tr: "Swift'in temellerini bir playground'da öğrenme"
+    minutes: 40
+    needs: [first-app]
+    why:
+      en: "SwiftUI is written in Swift, so a few Swift ideas make everything after this easier: constants and variables, arrays, optionals, structs and enums. A playground runs your code line by line and shows each value right next to it, so you learn by trying."
+      tr: "SwiftUI Swift ile yazılır; bu yüzden birkaç Swift fikri bundan sonrasını kolaylaştırır: sabitler ve değişkenler, dizi (array), optional, struct ve enum. Playground kodunu satır satır çalıştırır ve her değeri hemen yanında gösterir; denerek öğrenirsin."
+    learn:
+      en: |
+        - `let` (constant) and `var` (variable), and string interpolation `"\(value)"`
+        - Arrays and closures: `append`, `filter`, `map`
+        - Optionals: a value that may be missing (`Int?`), `if let` and `??`
+        - `struct` with a function, and `enum` with `switch`
+      tr: |
+        - `let` (sabit) ve `var` (değişken), string interpolation `"\(value)"`
+        - Dizi (array) ve closure: `append`, `filter`, `map`
+        - Optional: eksik olabilen değer (`Int?`), `if let` ve `??`
+        - Fonksiyonlu `struct` ve `switch` ile `enum`
+    do:
+      en: |
+        1. In Xcode add a new Swift file to the project (*File → New → File from Template*, **Swift File**) and call it `Basics.swift`.
+        2. Replace its content with the code below. `#Playground` is a macro: Xcode runs the code inside it and shows the results in the canvas.
+        3. Open the canvas (*Editor → Canvas*) and press **Resume**. Look at the value shown next to each line.
+        4. Change numbers and words and watch the results change. Try to predict each result before you look: `message` is `"Habits: 4 days in a row"`, `longNames` has three items, `second` is `0`.
+        5. This file is only for practice. When you are done, delete `Basics.swift` (*Move to Trash*) so it does not stay in your app. Keep the ideas.
+      tr: |
+        1. Xcode'da projeye yeni bir Swift dosyası ekle (*File → New → File from Template*, **Swift File**) ve adını `Basics.swift` yap.
+        2. İçeriğini aşağıdaki kodla değiştir. `#Playground` bir makrodur: Xcode içindeki kodu çalıştırır ve sonuçları kanvasta gösterir.
+        3. Kanvası aç (*Editor → Canvas*) ve **Resume**'a bas. Her satırın yanında gösterilen değere bak.
+        4. Sayıları ve kelimeleri değiştir, sonuçların nasıl değiştiğini izle. Bakmadan önce her sonucu tahmin etmeyi dene: `message` `"Habits: 4 days in a row"`, `longNames` üç öğeli, `second` `0` olur.
+        5. Bu dosya sadece alıştırma için. İşin bitince `Basics.swift`'i sil (*Move to Trash*) ki uygulamanda kalmasın. Fikirler kalsın.
+    code:
+      - file: Habits/Basics.swift
+        lang: swift
+        text: |
+          import Playgrounds
+
+          #Playground {
+              // let is a constant, var can change
+              let appName = "Habits"
+              var streak = 3
+              streak += 1
+              let message = "\(appName): \(streak) days in a row"
+
+              // Arrays and closures
+              var habits = ["Drink water", "Read", "Walk"]
+              habits.append("Stretch")
+              let longNames = habits.filter { $0.count > 5 }
+              let shouting = habits.map { $0.uppercased() }
+
+              // Optionals: a value that may be missing
+              let inputs = ["7", "seven"]
+              let numbers = inputs.map { Int($0) }   // [7, nil]
+              if let first = numbers[0] {
+                  print("The first number is \(first)")
+              }
+              let second = numbers[1] ?? 0
+
+              // A struct with a function
+              struct Habit {
+                  var name: String
+                  var days: Int
+
+                  func summary() -> String {
+                      "\(name): \(days) days"
+                  }
+              }
+              let read = Habit(name: "Read", days: 12)
+              let text = read.summary()
+
+              // An enum and a switch
+              enum Mood { case great, ok, bad }
+              let mood = Mood.ok
+              switch mood {
+              case .great: print("Keep going")
+              case .ok: print("Do a little today")
+              case .bad: print("Start with one minute")
+              }
+          }
+    mistakes:
+      - problem:
+          en: "\"Cannot find '#Playground' in scope\" or the macro is not recognised."
+          tr: "\"Cannot find '#Playground' in scope\" ya da makro tanınmıyor."
+        fix:
+          en: "Add `import Playgrounds` at the top of the file, as in the code above."
+          tr: "Dosyanın başına yukarıdaki gibi `import Playgrounds` ekle."
+      - problem:
+          en: "\"Cannot assign to value: 'x' is a 'let' constant\"."
+          tr: "\"Cannot assign to value: 'x' is a 'let' constant\" hatası."
+        fix:
+          en: "A `let` never changes. If the value must change, declare it with `var`."
+          tr: "`let` hiç değişmez. Değer değişecekse `var` ile tanımla."
+      - problem:
+          en: "Using `!` to force an optional open and the app crashes when the value is `nil`."
+          tr: "Optional'ı `!` ile zorla açmak ve değer `nil` olunca uygulamanın çökmesi."
+        fix:
+          en: "Prefer `if let` or `??` with a default. A `!` is a promise that the value is never `nil`, and Swift stops the program when the promise is broken."
+          tr: "`if let` ya da varsayılan değerli `??` kullan. `!` değerin asla `nil` olmayacağına söz vermektir; söz bozulunca Swift programı durdurur."
+    quiz:
+      - q:
+          en: "What is `numbers[1] ?? 0` when `numbers[1]` is `nil`?"
+          tr: "`numbers[1]` `nil` iken `numbers[1] ?? 0` ne olur?"
+        options:
+          en: [It crashes, It is 0, It is nil]
+          tr: [Çöker, 0 olur, nil olur]
+        answer: 1
+        why:
+          en: "`??` gives the value on its right when the left side is `nil`, so the result is 0 and is no longer an optional."
+          tr: "`??` soldaki `nil` ise sağdaki değeri verir; sonuç 0 olur ve artık optional değildir."
+    sources:
+      - title: Running code snippets using the Playground macro
+        url: https://developer.apple.com/documentation/xcode/running-code-snippets-using-the-playground-macro
+      - title: The Swift Programming Language - The Basics
+        url: https://docs.swift.org/swift-book/documentation/the-swift-programming-language/thebasics/
+      - title: The Swift Programming Language - Collection Types
+        url: https://docs.swift.org/swift-book/documentation/the-swift-programming-language/collectiontypes/
+
+  - id: views
+    stage: basics
+    title:
+      en: "Build screens with SwiftUI views"
+      tr: "SwiftUI view'leriyle ekran kurma"
+    minutes: 45
+    needs: [playground]
+    why:
+      en: "In SwiftUI a screen is a small description of what you want, built from simple views like Text, Image and Button that you put inside stacks. Learning how views, stacks and modifiers fit together is most of SwiftUI."
+      tr: "SwiftUI'da ekran, ne istediğinin küçük bir tarifidir; Text, Image, Button gibi basit view'lerin yığınların (stack) içine konmasıyla kurulur. View, stack ve modifier'ların nasıl bir araya geldiğini öğrenmek SwiftUI'ın büyük kısmıdır."
+    learn:
+      en: |
+        - `VStack`, `HStack`, `Spacer`: vertical and horizontal layout
+        - `Text`, `Image(systemName:)` (SF Symbols, Apple's free icon set), `Button`
+        - Modifiers such as `.font`, `.padding`, `.background`, and why their order matters
+        - Splitting a big view into small views (`HabitRow`)
+      tr: |
+        - `VStack`, `HStack`, `Spacer`: dikey ve yatay yerleşim
+        - `Text`, `Image(systemName:)` (SF Symbols, Apple'ın ücretsiz ikon seti), `Button`
+        - `.font`, `.padding`, `.background` gibi modifier'lar ve sıralarının neden önemli olduğu
+        - Büyük bir view'ü küçük view'lere bölmek (`HabitRow`)
+    do:
+      en: |
+        1. Create `HabitRow.swift` (*File → New → File from Template → SwiftUI View*) and replace it with the first code block. It draws one habit: an icon, a name and a streak line.
+        2. Replace `ContentView.swift` with the second code block. It shows a title and two rows with fixed data. The data is fake for now.
+        3. Watch the canvas. Then change `.padding()` to `.padding(.horizontal)` and see what moves.
+        4. Move `.background(...)` above `.padding(...)` on the icon and see why the order changes the look: each modifier wraps the view it is attached to.
+        5. Commit: `git add .` and `git commit -m "Draw the habit rows"`.
+      tr: |
+        1. `HabitRow.swift` oluştur (*File → New → File from Template → SwiftUI View*) ve içeriğini ilk kod bloğuyla değiştir. Bir alışkanlığı çizer: ikon, ad ve seri satırı.
+        2. `ContentView.swift` içeriğini ikinci kod bloğuyla değiştir. Bir başlık ve sabit veriyle iki satır gösterir. Veri şimdilik sahte.
+        3. Kanvasa bak. Sonra `.padding()` yerine `.padding(.horizontal)` yaz ve neyin kaydığını gör.
+        4. İkonda `.background(...)` satırını `.padding(...)` satırının üstüne taşı ve sıranın görünümü neden değiştirdiğini gör: her modifier bağlı olduğu view'ü sarar.
+        5. Commit'le: `git add .` ve `git commit -m "Draw the habit rows"`.
+    code:
+      - file: Habits/HabitRow.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitRow: View {
+              let name: String
+              let symbol: String
+              let streak: Int
+
+              var body: some View {
+                  HStack(spacing: 12) {
+                      Image(systemName: symbol)
+                          .font(.title2)
+                          .frame(width: 44, height: 44)
+                          .background(.tint.opacity(0.15), in: Circle())
+
+                      VStack(alignment: .leading) {
+                          Text(name)
+                              .font(.headline)
+                          Text("\(streak) days in a row")
+                              .font(.subheadline)
+                              .foregroundStyle(.secondary)
+                      }
+
+                      Spacer()
+                  }
+              }
+          }
+
+          #Preview {
+              HabitRow(name: "Read", symbol: "book.fill", streak: 12)
+                  .padding()
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct ContentView: View {
+              var body: some View {
+                  VStack(alignment: .leading, spacing: 16) {
+                      Text("Today")
+                          .font(.largeTitle.bold())
+                      HabitRow(name: "Drink water", symbol: "drop.fill", streak: 4)
+                      HabitRow(name: "Read", symbol: "book.fill", streak: 12)
+                      Spacer()
+                  }
+                  .padding()
+              }
+          }
+
+          #Preview {
+              ContentView()
+          }
+    mistakes:
+      - problem:
+          en: "The modifiers seem to do nothing, or the look is wrong."
+          tr: "Modifier'lar hiçbir şey yapmıyor gibi ya da görünüm yanlış."
+        fix:
+          en: "Order matters. `.padding().background(.red)` colours the padding too, `.background(.red).padding()` does not. Read modifiers from top to bottom."
+          tr: "Sıra önemli. `.padding().background(.red)` boşluğu da boyar, `.background(.red).padding()` boyamaz. Modifier'ları yukarıdan aşağı oku."
+      - problem:
+          en: "\"Missing argument for parameter\" when using HabitRow."
+          tr: "HabitRow kullanırken \"Missing argument for parameter\" hatası."
+        fix:
+          en: "Each `let` without a value is a required argument, in the same order as declared: `HabitRow(name:symbol:streak:)`."
+          tr: "Değersiz her `let` zorunlu bir argümandır ve tanımlandığı sırayla yazılır: `HabitRow(name:symbol:streak:)`."
+      - problem:
+          en: "A symbol name shows nothing."
+          tr: "Bir sembol adı hiçbir şey göstermiyor."
+        fix:
+          en: "SF Symbol names must be exact. Browse them in the free SF Symbols app from Apple and copy the name."
+          tr: "SF Symbol adları tam doğru olmalı. Apple'ın ücretsiz SF Symbols uygulamasından göz at ve adı kopyala."
+    quiz:
+      - q:
+          en: "Which code puts the background behind the padding too?"
+          tr: "Hangi kod arka planı boşluğun arkasına da koyar?"
+        options:
+          en: [".background(.red).padding()", ".padding().background(.red)", "Both give the same result"]
+          tr: [".background(.red).padding()", ".padding().background(.red)", "İkisi de aynı sonucu verir"]
+        answer: 1
+        why:
+          en: "`.padding()` first makes the view bigger, then `.background` colours that bigger area."
+          tr: "Önce `.padding()` view'ü büyütür, sonra `.background` o büyük alanı boyar."
+    sources:
+      - title: SwiftUI - View fundamentals
+        url: https://developer.apple.com/documentation/swiftui/view-fundamentals
+      - title: SwiftUI - Layout fundamentals
+        url: https://developer.apple.com/documentation/swiftui/layout-fundamentals
+      - title: SF Symbols
+        url: https://developer.apple.com/sf-symbols/
+
+  - id: state
+    stage: basics
+    title:
+      en: "Make it interactive with @State and @Observable"
+      tr: "@State ve @Observable ile etkileşimli yapma"
+    minutes: 60
+    needs: [views]
+    why:
+      en: "A SwiftUI view is a function of your data: when the data changes, SwiftUI draws the view again. You must tell SwiftUI which data to watch. @State does this for a value that belongs to one view, and an @Observable class does it for a model that many views share."
+      tr: "SwiftUI view'ü verinin bir fonksiyonudur: veri değişince SwiftUI view'ü yeniden çizer. Hangi veriyi izleyeceğini SwiftUI'a söylemelisin. @State bunu tek bir view'e ait değer için, @Observable bir sınıf ise birçok view'ün paylaştığı model için yapar."
+    learn:
+      en: |
+        - `@State`: a value owned by a view, changed with `count += 1`
+        - `@Observable`: a class whose changed properties update the views that read them (Swift Observation, iOS 17 and later)
+        - Why `@State private var store = HabitStore()` is how a view owns an observable model
+        - Pure logic in its own type (`Streak`), away from the views
+      tr: |
+        - `@State`: bir view'ün sahip olduğu değer, `count += 1` ile değişir
+        - `@Observable`: değişen özellikleri, onları okuyan view'leri güncelleyen bir sınıf (Swift Observation, iOS 17 ve sonrası)
+        - Bir view'ün gözlemlenebilir modele sahip olmasının neden `@State private var store = HabitStore()` olduğu
+        - Saf mantığı view'lerden ayrı, kendi tipinde tutmak (`Streak`)
+    do:
+      en: |
+        1. Try `@State` alone first: add `CounterDemo.swift` with the first code block, open its preview and tap the button. The number changes because `count` is `@State`. Delete the file when you are done.
+        2. Create `Streak.swift`. It counts how many days in a row are done, ending today (or yesterday, if today is not done yet, so the streak does not drop to 0 in the morning). It is plain Swift, so it is easy to test later.
+        3. Create `Habit.swift` (a struct) and `HabitStore.swift` (the `@Observable` class that holds the list and the toggle logic).
+        4. Update `HabitRow.swift` so it takes a `Habit` and a closure to run when the check button is tapped, and replace `ContentView.swift` with the last block. `@State private var store` makes the view own the store.
+        5. Run in the Simulator, tap the circles: the check mark and the streak change. Commit: `git add .` and `git commit -m "Track habits in memory"`.
+      tr: |
+        1. Önce `@State`'i tek başına dene: ilk kod bloğuyla `CounterDemo.swift` ekle, önizlemesini aç ve düğmeye bas. `count` `@State` olduğu için sayı değişir. İşin bitince dosyayı sil.
+        2. `Streak.swift` oluştur. Arka arkaya kaç günün tamamlandığını sayar; bugünle (bugün henüz yapılmadıysa dünle) biter, böylece seri sabahları 0'a düşmez. Düz Swift olduğu için sonra test etmesi kolaydır.
+        3. `Habit.swift` (bir struct) ve `HabitStore.swift` (listeyi ve işaretleme mantığını tutan `@Observable` sınıf) oluştur.
+        4. `HabitRow.swift`'i bir `Habit` ve onay düğmesine basılınca çalışacak bir closure alacak şekilde güncelle, `ContentView.swift` içeriğini son blokla değiştir. `@State private var store` view'ün store'a sahip olmasını sağlar.
+        5. Simulator'da çalıştır, dairelere bas: onay işareti ve seri değişir. Commit'le: `git add .` ve `git commit -m "Track habits in memory"`.
+    code:
+      - file: Habits/CounterDemo.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct CounterDemo: View {
+              @State private var count = 0
+
+              var body: some View {
+                  Button("Pressed \(count) times") {
+                      count += 1
+                  }
+              }
+          }
+
+          #Preview {
+              CounterDemo()
+          }
+      - file: Habits/Streak.swift
+        lang: swift
+        text: |
+          import Foundation
+
+          /// Counts the days in a row that are done.
+          nonisolated enum Streak {
+              /// The streak ends today, or yesterday if today is not done yet.
+              static func current(
+                  completedDays: [Date],
+                  today: Date = .now,
+                  calendar: Calendar = .current
+              ) -> Int {
+                  let days = Set(completedDays.map { calendar.startOfDay(for: $0) })
+                  var day = calendar.startOfDay(for: today)
+
+                  if !days.contains(day) {
+                      guard let yesterday = calendar.date(byAdding: .day, value: -1, to: day) else { return 0 }
+                      day = yesterday
+                  }
+
+                  var count = 0
+                  while days.contains(day) {
+                      count += 1
+                      guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+                      day = previous
+                  }
+                  return count
+              }
+          }
+      - file: Habits/Habit.swift
+        lang: swift
+        text: |
+          import Foundation
+
+          struct Habit: Identifiable {
+              let id = UUID()
+              var name: String
+              var symbol: String = "checkmark.circle"
+              var completedDays: [Date] = []
+
+              func isDone(on day: Date = .now, calendar: Calendar = .current) -> Bool {
+                  completedDays.contains { calendar.isDate($0, inSameDayAs: day) }
+              }
+
+              var streak: Int {
+                  Streak.current(completedDays: completedDays)
+              }
+          }
+      - file: Habits/HabitStore.swift
+        lang: swift
+        text: |
+          import Foundation
+          import Observation
+
+          @Observable
+          final class HabitStore {
+              var habits: [Habit] = [
+                  Habit(name: "Drink water", symbol: "drop.fill"),
+                  Habit(name: "Read", symbol: "book.fill"),
+                  Habit(name: "Walk", symbol: "figure.walk"),
+              ]
+
+              func toggleToday(_ habit: Habit, calendar: Calendar = .current, now: Date = .now) {
+                  guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
+                  if habits[index].isDone(on: now, calendar: calendar) {
+                      habits[index].completedDays.removeAll { calendar.isDate($0, inSameDayAs: now) }
+                  } else {
+                      habits[index].completedDays.append(calendar.startOfDay(for: now))
+                  }
+              }
+          }
+      - file: Habits/HabitRow.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitRow: View {
+              let habit: Habit
+              let onToggle: () -> Void
+
+              var body: some View {
+                  HStack(spacing: 12) {
+                      Image(systemName: habit.symbol)
+                          .font(.title2)
+                          .frame(width: 44, height: 44)
+                          .background(.tint.opacity(0.15), in: Circle())
+
+                      VStack(alignment: .leading) {
+                          Text(habit.name)
+                              .font(.headline)
+                          Text("\(habit.streak) days in a row")
+                              .font(.subheadline)
+                              .foregroundStyle(.secondary)
+                      }
+
+                      Spacer()
+
+                      Button(action: onToggle) {
+                          Image(systemName: habit.isDone() ? "checkmark.circle.fill" : "circle")
+                              .font(.title)
+                      }
+                      .buttonStyle(.plain)
+                  }
+              }
+          }
+
+          #Preview {
+              HabitRow(habit: Habit(name: "Read", symbol: "book.fill")) {}
+                  .padding()
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct ContentView: View {
+              @State private var store = HabitStore()
+
+              var body: some View {
+                  VStack(alignment: .leading, spacing: 16) {
+                      Text("Today")
+                          .font(.largeTitle.bold())
+                      ForEach(store.habits) { habit in
+                          HabitRow(habit: habit) {
+                              store.toggleToday(habit)
+                          }
+                      }
+                      Spacer()
+                  }
+                  .padding()
+              }
+          }
+
+          #Preview {
+              ContentView()
+          }
+    mistakes:
+      - problem:
+          en: "Changing a normal `var` in a view does nothing on screen, or the compiler says \"Cannot assign to property: 'self' is immutable\"."
+          tr: "Bir view'deki normal `var`'ı değiştirmek ekranda hiçbir şey yapmıyor ya da derleyici \"Cannot assign to property: 'self' is immutable\" diyor."
+        fix:
+          en: "A view is a struct and cannot change its own properties. Mark values that change over time as `@State`."
+          tr: "View bir struct'tır ve kendi özelliklerini değiştiremez. Zamanla değişen değerleri `@State` olarak işaretle."
+      - problem:
+          en: "Writing `var store = HabitStore()` without `@State`: the store is created again and the data resets when the view is redrawn."
+          tr: "`@State` olmadan `var store = HabitStore()` yazmak: view yeniden çizilince store yeniden oluşur ve veri sıfırlanır."
+        fix:
+          en: "When a view creates and owns an `@Observable` model, store it in `@State private var`. SwiftUI then keeps the same object between redraws."
+          tr: "Bir view `@Observable` bir modeli oluşturup ona sahip oluyorsa `@State private var` içinde tut. SwiftUI de yeniden çizimler arasında aynı nesneyi korur."
+      - problem:
+          en: "Using the old `ObservableObject`, `@Published` and `@StateObject` from older tutorials."
+          tr: "Eski eğitimlerdeki `ObservableObject`, `@Published` ve `@StateObject`'i kullanmak."
+        fix:
+          en: "They still work, but the current way is the `@Observable` macro with `@State`, `@Environment` and `@Bindable`. Apple has a migration guide if you meet old code."
+          tr: "Hâlâ çalışırlar ama güncel yol `@Observable` makrosudur ve `@State`, `@Environment`, `@Bindable` ile kullanılır. Eski kodla karşılaşırsan Apple'ın bir geçiş rehberi var."
+    quiz:
+      - q:
+          en: "Which one makes a view own an @Observable model?"
+          tr: "Hangisi bir view'ün @Observable bir modele sahip olmasını sağlar?"
+        options:
+          en: ["var store = HabitStore()", "@State private var store = HabitStore()", "let store: HabitStore?"]
+          tr: ["var store = HabitStore()", "@State private var store = HabitStore()", "let store: HabitStore?"]
+        answer: 1
+        why:
+          en: "`@State` keeps the object alive between redraws, so the data is not lost."
+          tr: "`@State` nesneyi yeniden çizimler arasında canlı tutar, böylece veri kaybolmaz."
+    sources:
+      - title: Managing model data in your app
+        url: https://developer.apple.com/documentation/swiftui/managing-model-data-in-your-app
+      - title: Migrating from the Observable Object protocol to the Observable macro
+        url: https://developer.apple.com/documentation/swiftui/migrating-from-the-observable-object-protocol-to-the-observable-macro
+      - title: State
+        url: https://developer.apple.com/documentation/swiftui/state
+
+  - id: navigation
+    stage: first-project
+    title:
+      en: "Lists and navigation with NavigationStack"
+      tr: "NavigationStack ile liste ve gezinme"
+    minutes: 60
+    needs: [state]
+    why:
+      en: "Real apps have a list and a detail screen behind each item. List draws rows efficiently, and NavigationStack gives you the title bar, the push to a new screen and the back button for free."
+      tr: "Gerçek uygulamalarda bir liste ve her öğenin ardında bir ayrıntı ekranı olur. List satırları verimli çizer, NavigationStack başlık çubuğunu, yeni ekrana geçişi ve geri düğmesini hazır verir."
+    learn:
+      en: |
+        - `List` and `ForEach` over identifiable data
+        - `NavigationStack`, `NavigationLink(value:)` and `.navigationDestination(for:)`
+        - Sharing the store with `.environment(store)` and reading it with `@Environment`
+        - Swipe actions (`.swipeActions`)
+      tr: |
+        - Kimlikli (identifiable) veri üzerinde `List` ve `ForEach`
+        - `NavigationStack`, `NavigationLink(value:)` ve `.navigationDestination(for:)`
+        - Store'u `.environment(store)` ile paylaşmak ve `@Environment` ile okumak
+        - Kaydırma eylemleri (`.swipeActions`)
+    do:
+      en: |
+        1. Update `HabitsApp.swift`: the app now creates the store once and hands it to the whole view tree with `.environment(store)`.
+        2. Replace `HabitRow.swift`. In a `List` the whole row is a link, so the row only shows the state (a check mark when done). Toggling moves to a swipe action and to the detail screen.
+        3. Create `HabitDetailView.swift`. It receives the id of the habit and looks it up in the store, so it always shows the latest data.
+        4. Replace `ContentView.swift` with the `NavigationStack` and the `List`.
+        5. Run it. Tap a row to open the detail, press back, swipe a row to the right to mark it done. Commit: `git add .` and `git commit -m "Add the list and the detail screen"`.
+      tr: |
+        1. `HabitsApp.swift`'i güncelle: uygulama artık store'u bir kez oluşturur ve `.environment(store)` ile tüm view ağacına verir.
+        2. `HabitRow.swift`'i değiştir. `List` içinde satırın tamamı bir bağlantıdır; bu yüzden satır sadece durumu gösterir (yapıldıysa onay işareti). İşaretleme kaydırma eylemine ve ayrıntı ekranına taşınır.
+        3. `HabitDetailView.swift` oluştur. Alışkanlığın id'sini alır ve store'dan bulur; böylece her zaman en güncel veriyi gösterir.
+        4. `ContentView.swift` içeriğini `NavigationStack` ve `List` ile değiştir.
+        5. Çalıştır. Bir satıra dokunup ayrıntıyı aç, geri bas, bir satırı sağa kaydırıp yapıldı olarak işaretle. Commit'le: `git add .` ve `git commit -m "Add the list and the detail screen"`.
+    code:
+      - file: Habits/HabitsApp.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          @main
+          struct HabitsApp: App {
+              @State private var store = HabitStore()
+
+              var body: some Scene {
+                  WindowGroup {
+                      ContentView()
+                          .environment(store)
+                  }
+              }
+          }
+      - file: Habits/HabitRow.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitRow: View {
+              let habit: Habit
+
+              var body: some View {
+                  HStack(spacing: 12) {
+                      Image(systemName: habit.symbol)
+                          .font(.title2)
+                          .frame(width: 44, height: 44)
+                          .background(.tint.opacity(0.15), in: Circle())
+
+                      VStack(alignment: .leading) {
+                          Text(habit.name)
+                              .font(.headline)
+                          Text("\(habit.streak) days in a row")
+                              .font(.subheadline)
+                              .foregroundStyle(.secondary)
+                      }
+
+                      Spacer()
+
+                      if habit.isDone() {
+                          Image(systemName: "checkmark.circle.fill")
+                              .foregroundStyle(.green)
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              HabitRow(habit: Habit(name: "Read", symbol: "book.fill"))
+                  .padding()
+          }
+      - file: Habits/HabitDetailView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitDetailView: View {
+              @Environment(HabitStore.self) private var store
+              let habitID: Habit.ID
+
+              var body: some View {
+                  if let habit = store.habits.first(where: { $0.id == habitID }) {
+                      VStack(spacing: 24) {
+                          Image(systemName: habit.symbol)
+                              .font(.system(size: 64))
+                              .foregroundStyle(.tint)
+                          Text("\(habit.streak)")
+                              .font(.system(size: 72, weight: .bold, design: .rounded))
+                          Text("days in a row")
+                              .foregroundStyle(.secondary)
+                          Button(habit.isDone() ? "Undo today" : "Done for today") {
+                              store.toggleToday(habit)
+                          }
+                          .buttonStyle(.borderedProminent)
+                          .controlSize(.large)
+                      }
+                      .navigationTitle(habit.name)
+                      .navigationBarTitleDisplayMode(.inline)
+                  } else {
+                      ContentUnavailableView("Habit not found", systemImage: "questionmark.circle")
+                  }
+              }
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct ContentView: View {
+              @Environment(HabitStore.self) private var store
+
+              var body: some View {
+                  NavigationStack {
+                      List {
+                          ForEach(store.habits) { habit in
+                              NavigationLink(value: habit.id) {
+                                  HabitRow(habit: habit)
+                              }
+                              .swipeActions(edge: .leading) {
+                                  Button(habit.isDone() ? "Undo" : "Done", systemImage: "checkmark") {
+                                      store.toggleToday(habit)
+                                  }
+                                  .tint(.green)
+                              }
+                          }
+                      }
+                      .navigationTitle("Today")
+                      .navigationDestination(for: Habit.ID.self) { id in
+                          HabitDetailView(habitID: id)
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              ContentView()
+                  .environment(HabitStore())
+          }
+    mistakes:
+      - problem:
+          en: "A crash that says no `Observable` object of type HabitStore was found in the environment."
+          tr: "Ortamda HabitStore tipinde bir `Observable` nesne bulunamadığını söyleyen çökme."
+        fix:
+          en: "Some ancestor view must call `.environment(store)`. Do it in the app, and also in every `#Preview` that needs the store."
+          tr: "Üst view'lerden biri `.environment(store)` çağırmalı. Bunu app'te yap, store'a ihtiyacı olan her `#Preview`'de de yap."
+      - problem:
+          en: "Tapping a link does nothing."
+          tr: "Bağlantıya dokunmak hiçbir şey yapmıyor."
+        fix:
+          en: "`NavigationLink(value:)` only works inside a `NavigationStack` and needs a `.navigationDestination(for:)` for the same type as the value (here `Habit.ID`)."
+          tr: "`NavigationLink(value:)` sadece bir `NavigationStack` içinde çalışır ve değerle aynı tip için (burada `Habit.ID`) bir `.navigationDestination(for:)` ister."
+      - problem:
+          en: "ForEach says the type does not conform to Identifiable."
+          tr: "ForEach tipin Identifiable olmadığını söylüyor."
+        fix:
+          en: "Add `Identifiable` with an `id`, or write `ForEach(items, id: \\.someProperty)`."
+          tr: "Bir `id` ile `Identifiable` ekle ya da `ForEach(items, id: \\.someProperty)` yaz."
+    quiz:
+      - q:
+          en: "What does `.navigationDestination(for: Habit.ID.self)` do?"
+          tr: "`.navigationDestination(for: Habit.ID.self)` ne yapar?"
+        options:
+          en: [It deletes a habit, It tells the stack which screen to show for a value of that type, It sets the title]
+          tr: [Bir alışkanlığı siler, Yığına o tipteki bir değer için hangi ekranı göstereceğini söyler, Başlığı ayarlar]
+        answer: 1
+        why:
+          en: "A link pushes a value. The stack finds the destination registered for the type of that value."
+          tr: "Bağlantı bir değer iter. Yığın, o değerin tipi için kayıtlı hedefi bulur."
+    sources:
+      - title: NavigationStack
+        url: https://developer.apple.com/documentation/swiftui/navigationstack
+      - title: Navigation
+        url: https://developer.apple.com/documentation/swiftui/navigation
+      - title: List
+        url: https://developer.apple.com/documentation/swiftui/list
+
+  - id: forms
+    stage: first-project
+    title:
+      en: "Forms, sheets and settings"
+      tr: "Form, sheet ve ayarlar"
+    minutes: 60
+    needs: [navigation]
+    why:
+      en: "People need to add their own habits. A form with a text field and a picker, shown in a sheet that slides up, is the standard iOS way to collect input, and bindings (`$name`) connect each control to your data."
+      tr: "İnsanların kendi alışkanlıklarını eklemesi gerekir. Metin kutusu ve seçici içeren bir form ve onu gösteren, aşağıdan kayan bir sheet, iOS'ta girdi toplamanın standart yoludur; binding'ler (`$name`) her kontrolü verine bağlar."
+    learn:
+      en: |
+        - `Form`, `Section`, `TextField`, `Picker`, `Toggle`
+        - `@Binding` and the `$` prefix: a two-way connection to a `@State` value
+        - `.sheet(item:)` and `dismiss`
+        - `@AppStorage`: a small setting saved in UserDefaults
+        - Validation: disable Save while the name is empty
+      tr: |
+        - `Form`, `Section`, `TextField`, `Picker`, `Toggle`
+        - `@Binding` ve `$` öneki: bir `@State` değerine iki yönlü bağlantı
+        - `.sheet(item:)` ve `dismiss`
+        - `@AppStorage`: UserDefaults'ta saklanan küçük bir ayar
+        - Doğrulama: ad boşken Save'i kapatmak
+    do:
+      en: |
+        1. Add `add` and `delete` functions to `HabitStore.swift`.
+        2. Create `AddHabitView.swift`: a `Form` with a name field and an icon picker, a Cancel button and a Save button that stays disabled while the name is empty.
+        3. Create `SettingsView.swift` with a switch that decides whether the list shows streaks. `@AppStorage` saves it for you.
+        4. Update `HabitRow.swift` to read that setting, and update `ContentView.swift`: a plus button and a gear button open the two sheets, and rows can be deleted by swiping left.
+        5. Run it, add a habit, turn the setting off and on, delete a habit. Commit: `git add .` and `git commit -m "Add habits with a form and a settings sheet"`.
+      tr: |
+        1. `HabitStore.swift`'e `add` ve `delete` fonksiyonlarını ekle.
+        2. `AddHabitView.swift` oluştur: ad alanı ve ikon seçicisi olan bir `Form`, bir Cancel düğmesi ve ad boşken kapalı kalan bir Save düğmesi.
+        3. Listenin seriyi gösterip göstermeyeceğine karar veren bir anahtarla `SettingsView.swift` oluştur. `@AppStorage` bunu senin için kaydeder.
+        4. `HabitRow.swift`'i bu ayarı okuyacak şekilde, `ContentView.swift`'i de güncelle: artı ve çark düğmeleri iki sheet'i açar, satırlar sola kaydırılarak silinebilir.
+        5. Çalıştır, bir alışkanlık ekle, ayarı kapat ve aç, bir alışkanlığı sil. Commit'le: `git add .` ve `git commit -m "Add habits with a form and a settings sheet"`.
+    code:
+      - file: Habits/HabitStore.swift
+        lang: swift
+        text: |
+          import Foundation
+          import Observation
+
+          @Observable
+          final class HabitStore {
+              var habits: [Habit] = [
+                  Habit(name: "Drink water", symbol: "drop.fill"),
+                  Habit(name: "Read", symbol: "book.fill"),
+                  Habit(name: "Walk", symbol: "figure.walk"),
+              ]
+
+              func add(_ habit: Habit) {
+                  habits.append(habit)
+              }
+
+              func delete(at offsets: IndexSet) {
+                  habits.remove(atOffsets: offsets)
+              }
+
+              func toggleToday(_ habit: Habit, calendar: Calendar = .current, now: Date = .now) {
+                  guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
+                  if habits[index].isDone(on: now, calendar: calendar) {
+                      habits[index].completedDays.removeAll { calendar.isDate($0, inSameDayAs: now) }
+                  } else {
+                      habits[index].completedDays.append(calendar.startOfDay(for: now))
+                  }
+              }
+          }
+      - file: Habits/AddHabitView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct AddHabitView: View {
+              @Environment(\.dismiss) private var dismiss
+              @Environment(HabitStore.self) private var store
+
+              @State private var name = ""
+              @State private var symbol = "checkmark.circle"
+
+              private let symbols = [
+                  "checkmark.circle", "drop.fill", "book.fill",
+                  "figure.walk", "bed.double.fill", "leaf.fill",
+              ]
+
+              private var trimmedName: String {
+                  name.trimmingCharacters(in: .whitespacesAndNewlines)
+              }
+
+              var body: some View {
+                  NavigationStack {
+                      Form {
+                          Section("Name") {
+                              TextField("For example: Read 10 pages", text: $name)
+                          }
+                          Section("Icon") {
+                              Picker("Icon", selection: $symbol) {
+                                  ForEach(symbols, id: \.self) { option in
+                                      Image(systemName: option).tag(option)
+                                  }
+                              }
+                              .pickerStyle(.segmented)
+                          }
+                      }
+                      .navigationTitle("New habit")
+                      .navigationBarTitleDisplayMode(.inline)
+                      .toolbar {
+                          ToolbarItem(placement: .cancellationAction) {
+                              Button("Cancel") { dismiss() }
+                          }
+                          ToolbarItem(placement: .confirmationAction) {
+                              Button("Save") {
+                                  store.add(Habit(name: trimmedName, symbol: symbol))
+                                  dismiss()
+                              }
+                              .disabled(trimmedName.isEmpty)
+                          }
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              AddHabitView()
+                  .environment(HabitStore())
+          }
+      - file: Habits/SettingsView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct SettingsView: View {
+              @Environment(\.dismiss) private var dismiss
+              @AppStorage("showStreaks") private var showStreaks = true
+
+              var body: some View {
+                  NavigationStack {
+                      Form {
+                          Section {
+                              Toggle("Show streaks in the list", isOn: $showStreaks)
+                          }
+                      }
+                      .navigationTitle("Settings")
+                      .navigationBarTitleDisplayMode(.inline)
+                      .toolbar {
+                          ToolbarItem(placement: .confirmationAction) {
+                              Button("Done") { dismiss() }
+                          }
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              SettingsView()
+          }
+      - file: Habits/HabitRow.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitRow: View {
+              let habit: Habit
+              @AppStorage("showStreaks") private var showStreaks = true
+
+              var body: some View {
+                  HStack(spacing: 12) {
+                      Image(systemName: habit.symbol)
+                          .font(.title2)
+                          .frame(width: 44, height: 44)
+                          .background(.tint.opacity(0.15), in: Circle())
+
+                      VStack(alignment: .leading) {
+                          Text(habit.name)
+                              .font(.headline)
+                          if showStreaks {
+                              Text("\(habit.streak) days in a row")
+                                  .font(.subheadline)
+                                  .foregroundStyle(.secondary)
+                          }
+                      }
+
+                      Spacer()
+
+                      if habit.isDone() {
+                          Image(systemName: "checkmark.circle.fill")
+                              .foregroundStyle(.green)
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              HabitRow(habit: Habit(name: "Read", symbol: "book.fill"))
+                  .padding()
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct ContentView: View {
+              enum Sheet: Identifiable {
+                  case add, settings
+                  var id: Self { self }
+              }
+
+              @Environment(HabitStore.self) private var store
+              @State private var sheet: Sheet?
+
+              var body: some View {
+                  NavigationStack {
+                      List {
+                          ForEach(store.habits) { habit in
+                              NavigationLink(value: habit.id) {
+                                  HabitRow(habit: habit)
+                              }
+                              .swipeActions(edge: .leading) {
+                                  Button(habit.isDone() ? "Undo" : "Done", systemImage: "checkmark") {
+                                      store.toggleToday(habit)
+                                  }
+                                  .tint(.green)
+                              }
+                          }
+                          .onDelete { offsets in
+                              store.delete(at: offsets)
+                          }
+                      }
+                      .navigationTitle("Today")
+                      .navigationDestination(for: Habit.ID.self) { id in
+                          HabitDetailView(habitID: id)
+                      }
+                      .toolbar {
+                          ToolbarItem(placement: .topBarLeading) {
+                              Button("Settings", systemImage: "gearshape") {
+                                  sheet = .settings
+                              }
+                          }
+                          ToolbarItem(placement: .topBarTrailing) {
+                              Button("Add habit", systemImage: "plus") {
+                                  sheet = .add
+                              }
+                          }
+                      }
+                      .sheet(item: $sheet) { sheet in
+                          switch sheet {
+                          case .add: AddHabitView()
+                          case .settings: SettingsView()
+                          }
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              ContentView()
+                  .environment(HabitStore())
+          }
+    mistakes:
+      - problem:
+          en: "Writing `TextField(\"Name\", text: name)` gives \"Cannot convert value of type 'String' to expected argument type 'Binding<String>'\"."
+          tr: "`TextField(\"Name\", text: name)` yazmak \"Cannot convert value of type 'String' to expected argument type 'Binding<String>'\" hatası verir."
+        fix:
+          en: "The field must change the value, so it needs a binding. Put `$` in front: `text: $name`."
+          tr: "Alan değeri değiştireceği için binding ister. Başına `$` koy: `text: $name`."
+      - problem:
+          en: "The sheet does not close after Save."
+          tr: "Save'den sonra sheet kapanmıyor."
+        fix:
+          en: "Read `@Environment(\\.dismiss)` in the sheet's view and call `dismiss()`."
+          tr: "Sheet'in view'ünde `@Environment(\\.dismiss)` oku ve `dismiss()` çağır."
+      - problem:
+          en: "Saving a habit with an empty or whitespace-only name."
+          tr: "Boş ya da sadece boşluktan oluşan adla alışkanlık kaydetmek."
+        fix:
+          en: "Trim the text (`trimmingCharacters(in: .whitespacesAndNewlines)`) and disable Save while the result is empty."
+          tr: "Metni kırp (`trimmingCharacters(in: .whitespacesAndNewlines)`) ve sonuç boşken Save'i kapat."
+    quiz:
+      - q:
+          en: "What does the `$` in `$name` give you?"
+          tr: "`$name` içindeki `$` sana ne verir?"
+        options:
+          en: [A copy of the string, A binding that can read and change name, The length of the string]
+          tr: [String'in bir kopyasını, name'i okuyup değiştirebilen bir binding, String'in uzunluğunu]
+        answer: 1
+        why:
+          en: "A binding is a two-way connection: the TextField shows the value and writes back what the user types."
+          tr: "Binding iki yönlü bir bağlantıdır: TextField değeri gösterir ve kullanıcının yazdığını geri yazar."
+    sources:
+      - title: Form
+        url: https://developer.apple.com/documentation/swiftui/form
+      - title: Binding
+        url: https://developer.apple.com/documentation/swiftui/binding
+      - title: AppStorage
+        url: https://developer.apple.com/documentation/swiftui/appstorage
+
+  - id: swiftdata
+    stage: data-api
+    title:
+      en: "Keep the habits on the phone with SwiftData"
+      tr: "Alışkanlıkları SwiftData ile telefonda saklama"
+    minutes: 75
+    needs: [forms]
+    why:
+      en: "Right now every habit disappears when the app closes. SwiftData is Apple's framework for saving your models in a database on the phone. You mark a class with `@Model`, ask for data with `@Query`, and the views update by themselves when the data changes."
+      tr: "Şu an her alışkanlık uygulama kapanınca kayboluyor. SwiftData, modellerini telefondaki bir veritabanına kaydeden Apple framework'üdür. Bir sınıfı `@Model` ile işaretlersin, veriyi `@Query` ile istersin ve veri değişince view'ler kendiliğinden güncellenir."
+    learn:
+      en: |
+        - `@Model`: turns a class into something SwiftData can save
+        - `ModelContainer` (the database) and `ModelContext` (the scratch pad you insert into and delete from)
+        - `@Query` with sorting, and why it replaces the `HabitStore`
+        - `@Bindable` to edit a model in a `TextField`
+        - Previews with an in-memory container
+      tr: |
+        - `@Model`: bir sınıfı SwiftData'nın kaydedebileceği hale getirir
+        - `ModelContainer` (veritabanı) ve `ModelContext` (ekleme ve silme yaptığın çalışma alanı)
+        - Sıralamalı `@Query` ve neden `HabitStore`'un yerini aldığı
+        - Bir modeli `TextField`'da düzenlemek için `@Bindable`
+        - Bellekte çalışan container ile önizleme
+    do:
+      en: |
+        1. Replace `Habit.swift`: it is now a `@Model` class (a reference type, not a struct) with an `init`, and it gets a `toggle` function that used to live in the store.
+        2. **Delete** `HabitStore.swift` (*Move to Trash*). `@Query` and the model context do its job.
+        3. Replace `HabitsApp.swift`: `.modelContainer(for: Habit.self)` creates the database and gives every view a model context.
+        4. Replace `ContentView.swift`, `AddHabitView.swift` and `HabitDetailView.swift` with the versions below. `HabitRow.swift` and `SettingsView.swift` stay as they are.
+        5. Run the app, add two habits and tick one. Stop the app in Xcode and run it again: the habits are still there.
+        6. Commit: `git add .` and `git commit -m "Save habits with SwiftData"`.
+      tr: |
+        1. `Habit.swift`'i değiştir: artık bir `@Model` sınıfı (struct değil, referans tipi), bir `init`'i var ve eskiden store'da olan `toggle` fonksiyonunu alıyor.
+        2. `HabitStore.swift`'i **sil** (*Move to Trash*). Onun işini `@Query` ve model context yapar.
+        3. `HabitsApp.swift`'i değiştir: `.modelContainer(for: Habit.self)` veritabanını oluşturur ve her view'e bir model context verir.
+        4. `ContentView.swift`, `AddHabitView.swift` ve `HabitDetailView.swift` dosyalarını aşağıdaki sürümlerle değiştir. `HabitRow.swift` ve `SettingsView.swift` olduğu gibi kalır.
+        5. Uygulamayı çalıştır, iki alışkanlık ekle ve birini işaretle. Uygulamayı Xcode'da durdurup tekrar çalıştır: alışkanlıklar hâlâ orada.
+        6. Commit'le: `git add .` ve `git commit -m "Save habits with SwiftData"`.
+    code:
+      - file: Habits/Habit.swift
+        lang: swift
+        text: |
+          import Foundation
+          import SwiftData
+
+          @Model
+          final class Habit {
+              var name: String
+              var symbol: String
+              var createdAt: Date
+              var completedDays: [Date]
+
+              init(
+                  name: String,
+                  symbol: String = "checkmark.circle",
+                  createdAt: Date = .now,
+                  completedDays: [Date] = []
+              ) {
+                  self.name = name
+                  self.symbol = symbol
+                  self.createdAt = createdAt
+                  self.completedDays = completedDays
+              }
+
+              func isDone(on day: Date = .now, calendar: Calendar = .current) -> Bool {
+                  completedDays.contains { calendar.isDate($0, inSameDayAs: day) }
+              }
+
+              func toggle(on day: Date = .now, calendar: Calendar = .current) {
+                  if isDone(on: day, calendar: calendar) {
+                      completedDays.removeAll { calendar.isDate($0, inSameDayAs: day) }
+                  } else {
+                      completedDays.append(calendar.startOfDay(for: day))
+                  }
+              }
+
+              var streak: Int {
+                  Streak.current(completedDays: completedDays)
+              }
+          }
+      - file: Habits/HabitsApp.swift
+        lang: swift
+        text: |
+          import SwiftData
+          import SwiftUI
+
+          @main
+          struct HabitsApp: App {
+              var body: some Scene {
+                  WindowGroup {
+                      ContentView()
+                  }
+                  .modelContainer(for: Habit.self)
+              }
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftData
+          import SwiftUI
+
+          struct ContentView: View {
+              enum Sheet: Identifiable {
+                  case add, settings
+                  var id: Self { self }
+              }
+
+              @Environment(\.modelContext) private var modelContext
+              @Query(sort: \Habit.createdAt) private var habits: [Habit]
+              @State private var sheet: Sheet?
+
+              var body: some View {
+                  NavigationStack {
+                      List {
+                          ForEach(habits) { habit in
+                              NavigationLink(value: habit) {
+                                  HabitRow(habit: habit)
+                              }
+                              .swipeActions(edge: .leading) {
+                                  Button(habit.isDone() ? "Undo" : "Done", systemImage: "checkmark") {
+                                      habit.toggle()
+                                  }
+                                  .tint(.green)
+                              }
+                          }
+                          .onDelete(perform: delete)
+                      }
+                      .overlay {
+                          if habits.isEmpty {
+                              ContentUnavailableView(
+                                  "No habits yet",
+                                  systemImage: "checklist",
+                                  description: Text("Tap + to add your first one.")
+                              )
+                          }
+                      }
+                      .navigationTitle("Today")
+                      .navigationDestination(for: Habit.self) { habit in
+                          HabitDetailView(habit: habit)
+                      }
+                      .toolbar {
+                          ToolbarItem(placement: .topBarLeading) {
+                              Button("Settings", systemImage: "gearshape") {
+                                  sheet = .settings
+                              }
+                          }
+                          ToolbarItem(placement: .topBarTrailing) {
+                              Button("Add habit", systemImage: "plus") {
+                                  sheet = .add
+                              }
+                          }
+                      }
+                      .sheet(item: $sheet) { sheet in
+                          switch sheet {
+                          case .add: AddHabitView()
+                          case .settings: SettingsView()
+                          }
+                      }
+                  }
+              }
+
+              private func delete(at offsets: IndexSet) {
+                  for index in offsets {
+                      modelContext.delete(habits[index])
+                  }
+              }
+          }
+
+          #Preview {
+              ContentView()
+                  .modelContainer(for: Habit.self, inMemory: true)
+          }
+      - file: Habits/AddHabitView.swift
+        lang: swift
+        text: |
+          import SwiftData
+          import SwiftUI
+
+          struct AddHabitView: View {
+              @Environment(\.dismiss) private var dismiss
+              @Environment(\.modelContext) private var modelContext
+
+              @State private var name = ""
+              @State private var symbol = "checkmark.circle"
+
+              private let symbols = [
+                  "checkmark.circle", "drop.fill", "book.fill",
+                  "figure.walk", "bed.double.fill", "leaf.fill",
+              ]
+
+              private var trimmedName: String {
+                  name.trimmingCharacters(in: .whitespacesAndNewlines)
+              }
+
+              var body: some View {
+                  NavigationStack {
+                      Form {
+                          Section("Name") {
+                              TextField("For example: Read 10 pages", text: $name)
+                          }
+                          Section("Icon") {
+                              Picker("Icon", selection: $symbol) {
+                                  ForEach(symbols, id: \.self) { option in
+                                      Image(systemName: option).tag(option)
+                                  }
+                              }
+                              .pickerStyle(.segmented)
+                          }
+                      }
+                      .navigationTitle("New habit")
+                      .navigationBarTitleDisplayMode(.inline)
+                      .toolbar {
+                          ToolbarItem(placement: .cancellationAction) {
+                              Button("Cancel") { dismiss() }
+                          }
+                          ToolbarItem(placement: .confirmationAction) {
+                              Button("Save") {
+                                  modelContext.insert(Habit(name: trimmedName, symbol: symbol))
+                                  dismiss()
+                              }
+                              .disabled(trimmedName.isEmpty)
+                          }
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              AddHabitView()
+                  .modelContainer(for: Habit.self, inMemory: true)
+          }
+      - file: Habits/HabitDetailView.swift
+        lang: swift
+        text: |
+          import SwiftData
+          import SwiftUI
+
+          struct HabitDetailView: View {
+              @Bindable var habit: Habit
+
+              var body: some View {
+                  VStack(spacing: 24) {
+                      Image(systemName: habit.symbol)
+                          .font(.system(size: 64))
+                          .foregroundStyle(.tint)
+                      Text("\(habit.streak)")
+                          .font(.system(size: 72, weight: .bold, design: .rounded))
+                      Text("days in a row")
+                          .foregroundStyle(.secondary)
+                      Button(habit.isDone() ? "Undo today" : "Done for today") {
+                          habit.toggle()
+                      }
+                      .buttonStyle(.borderedProminent)
+                      .controlSize(.large)
+
+                      TextField("Name", text: $habit.name)
+                          .textFieldStyle(.roundedBorder)
+                          .padding(.horizontal)
+                  }
+                  .navigationTitle(habit.name)
+                  .navigationBarTitleDisplayMode(.inline)
+              }
+          }
+    mistakes:
+      - problem:
+          en: "The app crashes at launch or when opening the list, and the message says SwiftData could not find an active model container."
+          tr: "Uygulama açılışta ya da listeyi açarken çöküyor ve mesaj SwiftData'nın etkin bir model container bulamadığını söylüyor."
+        fix:
+          en: "Add `.modelContainer(for: Habit.self)` to the scene in the app, and to every `#Preview` that shows a view with `@Query` or `modelContext` (use `inMemory: true` there)."
+          tr: "Uygulamadaki sahneye ve `@Query` ya da `modelContext` kullanan bir view gösteren her `#Preview`'e `.modelContainer(for: Habit.self)` ekle (orada `inMemory: true` kullan)."
+      - problem:
+          en: "After you add or rename a property of `Habit`, the app crashes on launch with an error about the store."
+          tr: "`Habit`'e özellik ekledikten ya da adını değiştirdikten sonra uygulama store ile ilgili bir hatayla açılışta çöküyor."
+        fix:
+          en: "The saved database has the old shape. While you are developing, delete the app from the Simulator and run again. Once real users have your app, you must write a migration (see the SwiftData documentation on schema versions) instead."
+          tr: "Kayıtlı veritabanı eski şekilde. Geliştirme sırasında uygulamayı Simulator'dan sil ve tekrar çalıştır. Gerçek kullanıcıların elinde uygulama olunca bunun yerine bir migration yazmalısın (SwiftData belgelerindeki şema sürümlerine bak)."
+      - problem:
+          en: "Using the same `ModelContext` or a `Habit` from a background task."
+          tr: "Aynı `ModelContext`'i ya da bir `Habit`'i arka plan görevinden kullanmak."
+        fix:
+          en: "Models and contexts belong to the actor that made them. Do UI work on the main actor. For heavy background work, SwiftData has `@ModelActor`; read about it when you need it."
+          tr: "Modeller ve context'ler onları oluşturan actor'a aittir. Arayüz işlerini main actor'da yap. Ağır arka plan işi için SwiftData'da `@ModelActor` var; ihtiyacın olunca oku."
+    quiz:
+      - q:
+          en: "What is the job of `@Query`?"
+          tr: "`@Query`'nin işi nedir?"
+        options:
+          en: [It sends a request to a server, It fetches saved models and refreshes the view when they change, It creates the database file by hand]
+          tr: [Bir sunucuya istek gönderir, Kayıtlı modelleri getirir ve değişince view'ü yeniler, Veritabanı dosyasını elle oluşturur]
+        answer: 1
+        why:
+          en: "`@Query` reads models from the model context and keeps the view up to date as they are added, changed or deleted."
+          tr: "`@Query` modelleri model context'ten okur; eklendikçe, değiştikçe ya da silindikçe view'ü güncel tutar."
+    sources:
+      - title: SwiftData - Adding and editing persistent data in your app
+        url: https://developer.apple.com/documentation/swiftdata/adding-and-editing-persistent-data-in-your-app
+      - title: Query
+        url: https://developer.apple.com/documentation/swiftdata/query
+      - title: Model()
+        url: https://developer.apple.com/documentation/swiftdata/model()
+
+  - id: networking
+    stage: data-api
+    title:
+      en: "Load a daily quote with async/await and Codable"
+      tr: "async/await ve Codable ile günlük söz yükleme"
+    minutes: 60
+    needs: [swiftdata]
+    why:
+      en: "Most apps talk to a server. In Swift you describe the JSON with a `Codable` type, fetch it with `URLSession` and `await`, and the app stays responsive while it waits. A service type that you can replace in tests keeps this code easy to check."
+      tr: "Çoğu uygulama bir sunucuyla konuşur. Swift'te JSON'u bir `Codable` tipiyle tarif eder, `URLSession` ve `await` ile getirirsin; beklerken uygulama akıcı kalır. Testlerde değiştirebildiğin bir servis tipi bu kodu kontrol etmeyi kolaylaştırır."
+    learn:
+      en: |
+        - `Codable` (`Decodable` and `Encodable`) and `JSONDecoder`
+        - `async`, `await`, `throws` and `try await`
+        - `URLSession.shared.data(from:)` and checking the HTTP status code
+        - `.task { }`: start async work when a view appears, and cancel it when it goes away
+        - A loading, loaded and failed state with an `enum`
+      tr: |
+        - `Codable` (`Decodable` ve `Encodable`) ve `JSONDecoder`
+        - `async`, `await`, `throws` ve `try await`
+        - `URLSession.shared.data(from:)` ve HTTP durum kodunu kontrol etmek
+        - `.task { }`: view görününce async işi başlatmak, kaybolunca iptal etmek
+        - `enum` ile yükleniyor, yüklendi ve hata durumu
+    do:
+      en: |
+        1. Open `https://dummyjson.com/quotes/random` in a browser. It is a free public service that returns JSON like `{ "id": 1, "quote": "...", "author": "..." }`. Reload and you get another quote.
+        2. Create `Quote.swift`: a `Codable` type with the two fields you need. JSON fields you do not list (like `id`) are ignored.
+        3. Create `QuoteService.swift`. It takes the network call as a parameter (`fetch`) with the real `URLSession` as the default, so tests can pass a fake one. It checks the status code before decoding.
+        4. Create `QuoteCard.swift` and put it at the top of the list in `ContentView.swift`. The card shows a spinner, the quote, or a retry button.
+        5. Run it. Turn Wi-Fi off on the Mac, relaunch and see the retry button. Commit: `git add .` and `git commit -m "Load a daily quote"`.
+      tr: |
+        1. Tarayıcıda `https://dummyjson.com/quotes/random` adresini aç. `{ "id": 1, "quote": "...", "author": "..." }` gibi bir JSON döndüren ücretsiz, herkese açık bir servis. Yenilersen başka bir söz gelir.
+        2. `Quote.swift` oluştur: ihtiyacın olan iki alanlı bir `Codable` tip. Listelemediğin JSON alanları (`id` gibi) yok sayılır.
+        3. `QuoteService.swift` oluştur. Ağ çağrısını parametre (`fetch`) olarak alır, varsayılanı gerçek `URLSession`'dır; böylece testler sahte bir tane verebilir. Çözmeden (decode) önce durum kodunu kontrol eder.
+        4. `QuoteCard.swift` oluştur ve `ContentView.swift` içinde listenin en üstüne koy. Kart bir yükleniyor göstergesi, sözü ya da yeniden dene düğmesini gösterir.
+        5. Çalıştır. Mac'te Wi-Fi'ı kapat, uygulamayı yeniden başlat ve yeniden dene düğmesini gör. Commit'le: `git add .` ve `git commit -m "Load a daily quote"`.
+    code:
+      - file: Habits/Quote.swift
+        lang: swift
+        text: |
+          import Foundation
+
+          nonisolated struct Quote: Codable, Equatable, Sendable {
+              let quote: String
+              let author: String
+          }
+      - file: Habits/QuoteService.swift
+        lang: swift
+        text: |
+          import Foundation
+
+          nonisolated enum QuoteError: Error, Equatable {
+              case notHTTP
+              case badStatus(Int)
+          }
+
+          nonisolated struct QuoteService: Sendable {
+              typealias Fetch = @Sendable (URL) async throws -> (Data, URLResponse)
+
+              var fetch: Fetch = { url in
+                  try await URLSession.shared.data(from: url)
+              }
+              var url = URL(string: "https://dummyjson.com/quotes/random")!
+
+              func randomQuote() async throws -> Quote {
+                  let (data, response) = try await fetch(url)
+                  guard let http = response as? HTTPURLResponse else {
+                      throw QuoteError.notHTTP
+                  }
+                  guard (200..<300).contains(http.statusCode) else {
+                      throw QuoteError.badStatus(http.statusCode)
+                  }
+                  return try JSONDecoder().decode(Quote.self, from: data)
+              }
+          }
+      - file: Habits/QuoteCard.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct QuoteCard: View {
+              enum LoadState {
+                  case loading
+                  case loaded(Quote)
+                  case failed
+              }
+
+              var service = QuoteService()
+              @State private var state: LoadState = .loading
+
+              var body: some View {
+                  Group {
+                      switch state {
+                      case .loading:
+                          ProgressView()
+                              .frame(maxWidth: .infinity)
+                      case .loaded(let quote):
+                          VStack(alignment: .leading, spacing: 4) {
+                              Text(quote.quote)
+                                  .italic()
+                              Text(quote.author)
+                                  .font(.footnote)
+                                  .foregroundStyle(.secondary)
+                          }
+                      case .failed:
+                          Button("Could not load a quote. Try again", systemImage: "arrow.clockwise") {
+                              Task { await load() }
+                          }
+                      }
+                  }
+                  .task { await load() }
+              }
+
+              private func load() async {
+                  state = .loading
+                  do {
+                      state = .loaded(try await service.randomQuote())
+                  } catch {
+                      if Task.isCancelled { return }
+                      state = .failed
+                  }
+              }
+          }
+
+          #Preview {
+              List {
+                  Section { QuoteCard() }
+              }
+          }
+      - file: Habits/ContentView.swift
+        lang: swift
+        text: |
+          import SwiftData
+          import SwiftUI
+
+          struct ContentView: View {
+              enum Sheet: Identifiable {
+                  case add, settings
+                  var id: Self { self }
+              }
+
+              @Environment(\.modelContext) private var modelContext
+              @Query(sort: \Habit.createdAt) private var habits: [Habit]
+              @State private var sheet: Sheet?
+
+              var body: some View {
+                  NavigationStack {
+                      List {
+                          Section {
+                              QuoteCard()
+                          }
+                          Section {
+                              ForEach(habits) { habit in
+                                  NavigationLink(value: habit) {
+                                      HabitRow(habit: habit)
+                                  }
+                                  .swipeActions(edge: .leading) {
+                                      Button(habit.isDone() ? "Undo" : "Done", systemImage: "checkmark") {
+                                          habit.toggle()
+                                      }
+                                      .tint(.green)
+                                  }
+                              }
+                              .onDelete(perform: delete)
+                          }
+                      }
+                      .overlay {
+                          if habits.isEmpty {
+                              ContentUnavailableView(
+                                  "No habits yet",
+                                  systemImage: "checklist",
+                                  description: Text("Tap + to add your first one.")
+                              )
+                          }
+                      }
+                      .navigationTitle("Today")
+                      .navigationDestination(for: Habit.self) { habit in
+                          HabitDetailView(habit: habit)
+                      }
+                      .toolbar {
+                          ToolbarItem(placement: .topBarLeading) {
+                              Button("Settings", systemImage: "gearshape") {
+                                  sheet = .settings
+                              }
+                          }
+                          ToolbarItem(placement: .topBarTrailing) {
+                              Button("Add habit", systemImage: "plus") {
+                                  sheet = .add
+                              }
+                          }
+                      }
+                      .sheet(item: $sheet) { sheet in
+                          switch sheet {
+                          case .add: AddHabitView()
+                          case .settings: SettingsView()
+                          }
+                      }
+                  }
+              }
+
+              private func delete(at offsets: IndexSet) {
+                  for index in offsets {
+                      modelContext.delete(habits[index])
+                  }
+              }
+          }
+
+          #Preview {
+              ContentView()
+                  .modelContainer(for: Habit.self, inMemory: true)
+          }
+    mistakes:
+      - problem:
+          en: "The decoding fails with \"keyNotFound\" or \"typeMismatch\"."
+          tr: "Çözme \"keyNotFound\" ya da \"typeMismatch\" ile başarısız oluyor."
+        fix:
+          en: "The Swift property names and types must match the JSON. Open the address in a browser and compare. Mark a field optional (`String?`) if the server may leave it out."
+          tr: "Swift özellik adları ve tipleri JSON ile eşleşmeli. Adresi tarayıcıda aç ve karşılaştır. Sunucu bir alanı bırakabiliyorsa o alanı optional yap (`String?`)."
+      - problem:
+          en: "Calling an `async` function without `await`, or from a place that is not async."
+          tr: "Bir `async` fonksiyonu `await` olmadan ya da async olmayan bir yerden çağırmak."
+        fix:
+          en: "Write `try await`. Inside a button action use `Task { await load() }`, and for work that starts when a view appears use `.task { }`."
+          tr: "`try await` yaz. Düğme eyleminin içinde `Task { await load() }`, view görününce başlayan iş için `.task { }` kullan."
+      - problem:
+          en: "Treating every response as success. A 404 or 500 page then fails in confusing ways."
+          tr: "Her yanıtı başarılı saymak. O zaman 404 ya da 500 sayfası kafa karıştıran şekillerde patlar."
+        fix:
+          en: "Always check `statusCode` (200 to 299 is success) before decoding, as `randomQuote()` does."
+          tr: "Çözmeden önce her zaman `statusCode`'u kontrol et (200 ile 299 başarıdır), `randomQuote()`'ın yaptığı gibi."
+    quiz:
+      - q:
+          en: "Why does `QuoteService` take `fetch` as a parameter?"
+          tr: "`QuoteService` neden `fetch`'i parametre olarak alıyor?"
+        options:
+          en: [To make requests slower, So tests can give it a fake response without the internet, Because URLSession cannot be used directly]
+          tr: [İstekleri yavaşlatmak için, Testler internet olmadan sahte bir yanıt verebilsin diye, Çünkü URLSession doğrudan kullanılamaz]
+        answer: 1
+        why:
+          en: "A replaceable network call lets a test return fixed data, so tests are fast and never depend on a real server."
+          tr: "Değiştirilebilir bir ağ çağrısı testin sabit veri döndürmesini sağlar; testler hızlı olur ve gerçek bir sunucuya bağlı kalmaz."
+    sources:
+      - title: URLSession
+        url: https://developer.apple.com/documentation/foundation/urlsession
+      - title: Codable
+        url: https://developer.apple.com/documentation/swift/codable
+      - title: The Swift Programming Language - Concurrency
+        url: https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Write tests with Swift Testing"
+      tr: "Swift Testing ile test yazma"
+    minutes: 60
+    needs: [networking]
+    why:
+      en: "A test runs your code and fails when the result is wrong. The streak rule has easy-to-break edge cases (yesterday, gaps, the same day twice), and tests let you change code later without fear."
+      tr: "Test kodunu çalıştırır ve sonuç yanlışsa kırmızı olur. Seri kuralının kolay bozulan sınır durumları var (dün, boşluklar, aynı günün iki kez eklenmesi); testler kodu sonradan korkmadan değiştirmeni sağlar."
+    learn:
+      en: |
+        - Swift Testing: `import Testing`, `@Test`, `#expect`, `#require`, parameterized tests with `arguments:`
+        - XCTest is still used for UI tests (`XCUIApplication`); both live side by side
+        - Test pure logic with fixed dates and a fixed time zone, never "today"
+        - Fake the network with the `fetch` parameter, and use an in-memory SwiftData container
+      tr: |
+        - Swift Testing: `import Testing`, `@Test`, `#expect`, `#require`, `arguments:` ile parametreli testler
+        - UI testleri için hâlâ XCTest kullanılır (`XCUIApplication`); ikisi yan yana yaşar
+        - Saf mantığı sabit tarihler ve sabit saat dilimiyle test et, asla "bugün" ile değil
+        - Ağı `fetch` parametresiyle taklit et, SwiftData için bellekte çalışan container kullan
+    do:
+      en: |
+        1. Open the `HabitsTests` folder. Delete the sample test file Xcode made, then create `StreakTests.swift`, `QuoteServiceTests.swift` and `HabitTests.swift` with the code below.
+        2. Press **Cmd+U** (*Product → Test*). Open the Test navigator (Cmd+6) to see each test with a green or red mark.
+        3. Break the rule on purpose: change `value: -1` to `value: -2` in the `yesterday` line of `Streak.swift`, run again, read the failure message, then undo.
+        4. UI tests use XCTest. In the `HabitsUITests` folder replace the sample with `HabitsUITests.swift`. It launches the app, adds a habit through the form and checks that it shows up.
+        5. Optional, from the terminal: `xcodebuild -scheme Habits -showdestinations` lists the destinations, then run `xcodebuild test` with one of them.
+        6. Commit: `git add .` and `git commit -m "Add tests"`.
+      tr: |
+        1. `HabitsTests` klasörünü aç. Xcode'un oluşturduğu örnek test dosyasını sil, sonra aşağıdaki kodla `StreakTests.swift`, `QuoteServiceTests.swift` ve `HabitTests.swift` oluştur.
+        2. **Cmd+U**'ya bas (*Product → Test*). Her testi yeşil ya da kırmızı işaretle görmek için Test navigator'ı aç (Cmd+6).
+        3. Kuralı bilerek boz: `Streak.swift` içindeki `yesterday` satırında `value: -1`'i `value: -2` yap, tekrar çalıştır, hata mesajını oku, sonra geri al.
+        4. UI testleri XCTest kullanır. `HabitsUITests` klasöründe örneği `HabitsUITests.swift` ile değiştir. Uygulamayı açar, formla bir alışkanlık ekler ve göründüğünü kontrol eder.
+        5. İsteğe bağlı, terminalden: `xcodebuild -scheme Habits -showdestinations` hedefleri listeler, sonra birini seçip `xcodebuild test` çalıştır.
+        6. Commit'le: `git add .` ve `git commit -m "Add tests"`.
+    code:
+      - file: HabitsTests/StreakTests.swift
+        lang: swift
+        text: |
+          import Foundation
+          import Testing
+          @testable import Habits
+
+          struct StreakTests {
+              let calendar: Calendar = {
+                  var calendar = Calendar(identifier: .gregorian)
+                  calendar.timeZone = TimeZone(identifier: "UTC")!
+                  return calendar
+              }()
+              let today = Date(timeIntervalSince1970: 1_800_000_000)
+
+              func days(back offsets: [Int]) -> [Date] {
+                  offsets.map { calendar.date(byAdding: .day, value: -$0, to: today)! }
+              }
+
+              @Test func noDaysMeansNoStreak() {
+                  #expect(Streak.current(completedDays: [], today: today, calendar: calendar) == 0)
+              }
+
+              @Test func countsDaysInARowEndingToday() {
+                  let done = days(back: [0, 1, 2])
+                  #expect(Streak.current(completedDays: done, today: today, calendar: calendar) == 3)
+              }
+
+              @Test func yesterdayStillCountsWhenTodayIsNotDoneYet() {
+                  let done = days(back: [1, 2])
+                  #expect(Streak.current(completedDays: done, today: today, calendar: calendar) == 2)
+              }
+
+              @Test func aGapEndsTheStreak() {
+                  let done = days(back: [0, 1, 3, 4])
+                  #expect(Streak.current(completedDays: done, today: today, calendar: calendar) == 2)
+              }
+
+              @Test func oldDaysAloneGiveZero() {
+                  let done = days(back: [2, 3])
+                  #expect(Streak.current(completedDays: done, today: today, calendar: calendar) == 0)
+              }
+
+              @Test func theSameDayTwiceCountsOnce() {
+                  let done = [today, today.addingTimeInterval(60)]
+                  #expect(Streak.current(completedDays: done, today: today, calendar: calendar) == 1)
+              }
+
+              @Test(arguments: [1, 7, 30, 365])
+              func longStreaks(length: Int) {
+                  let done = days(back: Array(0..<length))
+                  #expect(Streak.current(completedDays: done, today: today, calendar: calendar) == length)
+              }
+          }
+      - file: HabitsTests/QuoteServiceTests.swift
+        lang: swift
+        text: |
+          import Foundation
+          import Testing
+          @testable import Habits
+
+          nonisolated private func http(_ status: Int) -> URLResponse {
+              HTTPURLResponse(
+                  url: URL(string: "https://example.com")!,
+                  statusCode: status,
+                  httpVersion: nil,
+                  headerFields: nil
+              )!
+          }
+
+          struct QuoteServiceTests {
+              @Test func decodesAQuote() async throws {
+                  let json = #"{"id": 1, "quote": "Well begun is half done.", "author": "Aristotle"}"#
+                  let service = QuoteService(fetch: { _ in (Data(json.utf8), http(200)) })
+
+                  let quote = try await service.randomQuote()
+
+                  #expect(quote == Quote(quote: "Well begun is half done.", author: "Aristotle"))
+              }
+
+              @Test func throwsOnABadStatus() async {
+                  let service = QuoteService(fetch: { _ in (Data(), http(500)) })
+
+                  await #expect(throws: QuoteError.badStatus(500)) {
+                      try await service.randomQuote()
+                  }
+              }
+
+              @Test func throwsOnBrokenJSON() async {
+                  let service = QuoteService(fetch: { _ in (Data("nope".utf8), http(200)) })
+
+                  await #expect(throws: DecodingError.self) {
+                      try await service.randomQuote()
+                  }
+              }
+          }
+      - file: HabitsTests/HabitTests.swift
+        lang: swift
+        text: |
+          import Foundation
+          import SwiftData
+          import Testing
+          @testable import Habits
+
+          @MainActor
+          struct HabitTests {
+              @Test func toggleMarksTodayDoneAndUndoesIt() throws {
+                  let container = try ModelContainer(
+                      for: Habit.self,
+                      configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                  )
+                  let habit = Habit(name: "Read")
+                  container.mainContext.insert(habit)
+
+                  #expect(!habit.isDone())
+
+                  habit.toggle()
+                  #expect(habit.isDone())
+                  #expect(habit.streak == 1)
+
+                  habit.toggle()
+                  #expect(!habit.isDone())
+                  #expect(habit.streak == 0)
+              }
+          }
+      - file: HabitsUITests/HabitsUITests.swift
+        lang: swift
+        text: |
+          import XCTest
+
+          final class HabitsUITests: XCTestCase {
+              override func setUpWithError() throws {
+                  continueAfterFailure = false
+              }
+
+              @MainActor
+              func testAddingAHabit() throws {
+                  let app = XCUIApplication()
+                  app.launch()
+
+                  app.buttons["Add habit"].tap()
+                  let field = app.textFields["For example: Read 10 pages"]
+                  field.tap()
+                  field.typeText("Stretch")
+                  app.buttons["Save"].tap()
+
+                  XCTAssertTrue(app.staticTexts["Stretch"].firstMatch.waitForExistence(timeout: 5))
+              }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          xcodebuild -scheme Habits -showdestinations
+          xcodebuild test -scheme Habits -destination 'platform=iOS Simulator,name=<a simulator name from the list>'
+    mistakes:
+      - problem:
+          en: "\"Main actor-isolated ... can not be referenced from a nonisolated context\" in a test."
+          tr: "Bir testte \"Main actor-isolated ... can not be referenced from a nonisolated context\" hatası."
+        fix:
+          en: "New app targets run code on the main actor by default. Mark the test or the whole test struct with `@MainActor` (as `HabitTests` does), or mark pure logic types `nonisolated` (as `Streak` and `QuoteService` are)."
+          tr: "Yeni app hedefleri kodu varsayılan olarak main actor'da çalıştırır. Testi ya da tüm test struct'ını `@MainActor` ile işaretle (`HabitTests`'in yaptığı gibi) veya saf mantık tiplerini `nonisolated` yap (`Streak` ve `QuoteService` gibi)."
+      - problem:
+          en: "A test passes today and fails tomorrow, or fails in another country."
+          tr: "Bir test bugün geçiyor yarın kalıyor ya da başka bir ülkede kalıyor."
+        fix:
+          en: "The test used `Date.now` or the phone's time zone. Pass a fixed date and a fixed calendar, as `StreakTests` does."
+          tr: "Test `Date.now` ya da telefonun saat dilimini kullanmış. `StreakTests`'in yaptığı gibi sabit bir tarih ve sabit bir takvim ver."
+      - problem:
+          en: "The UI test fails with \"multiple matching elements found\" on the second run."
+          tr: "UI testi ikinci çalıştırmada \"multiple matching elements found\" ile kalıyor."
+        fix:
+          en: "SwiftData keeps the habit from the first run, so the text now appears twice. Use `.firstMatch`, or delete the app from the Simulator before the test."
+          tr: "SwiftData ilk çalıştırmadaki alışkanlığı sakladığı için metin artık iki kez görünüyor. `.firstMatch` kullan ya da testten önce uygulamayı Simulator'dan sil."
+    quiz:
+      - q:
+          en: "Why should a streak test not use the real current date?"
+          tr: "Bir seri testi neden gerçek günün tarihini kullanmamalı?"
+        options:
+          en: [Dates are slow to read, The result would change from day to day and test nothing reliable, Swift Testing does not allow dates]
+          tr: [Tarihleri okumak yavaş, Sonuç günden güne değişir ve güvenilir bir şeyi test etmez, Swift Testing tarihe izin vermez]
+        answer: 1
+        why:
+          en: "A good test gives the same result every time. A fixed date and calendar make that true."
+          tr: "İyi bir test her seferinde aynı sonucu verir. Sabit tarih ve takvim bunu sağlar."
+    sources:
+      - title: Swift Testing
+        url: https://developer.apple.com/xcode/swift-testing/
+      - title: Adding tests to your Xcode project
+        url: https://developer.apple.com/documentation/xcode/adding-tests-to-your-xcode-project
+      - title: Swift Testing documentation
+        url: https://developer.apple.com/documentation/testing
+
+  - id: keychain
+    stage: security
+    title:
+      en: "Store a secret safely in the Keychain"
+      tr: "Bir sırrı Keychain'de güvenle saklama"
+    minutes: 50
+    needs: [tests]
+    why:
+      en: "Anything you put in UserDefaults, in a file or in your source code can be read by someone who gets the app or the device backup. Passwords and tokens belong in the Keychain, the encrypted store of iOS made for exactly this."
+      tr: "UserDefaults'a, bir dosyaya ya da kaynak koduna koyduğun her şey, uygulamaya ya da cihaz yedeğine ulaşan biri tarafından okunabilir. Şifreler ve token'lar Keychain'e aittir; iOS'un tam bunun için yapılmış şifreli deposu."
+    learn:
+      en: |
+        - What the Keychain is and the four calls: `SecItemAdd`, `SecItemCopyMatching`, `SecItemUpdate`, `SecItemDelete`
+        - Why secrets must never be in source code, in `Info.plist` or in `UserDefaults`
+        - `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`: when the item can be read
+        - App Transport Security: iOS requires HTTPS by default, so leave it that way
+      tr: |
+        - Keychain'in ne olduğu ve dört çağrı: `SecItemAdd`, `SecItemCopyMatching`, `SecItemUpdate`, `SecItemDelete`
+        - Sırların neden asla kaynak kodunda, `Info.plist`'te ya da `UserDefaults`'ta olmaması gerektiği
+        - `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`: öğenin ne zaman okunabileceği
+        - App Transport Security: iOS varsayılan olarak HTTPS ister, böyle bırak
+    do:
+      en: |
+        1. Habits has no server, so we practise with a stand-in: a **sync token** the user pastes in Settings. The same code stores any small secret, such as an API token or a password.
+        2. Create `KeychainStore.swift`. It saves, reads and deletes one text value for an account name. It updates the item if it exists and adds it if not.
+        3. Replace `SettingsView.swift`. A `SecureField` (the text is hidden) lets the user paste the token, and the buttons call the Keychain.
+        4. Run it, open Settings, save a token, close the app completely, run again and open Settings: the token is still there.
+        5. Check your own project like a reviewer. In the terminal run the search below, and in the target's Info tab make sure there is no *App Transport Security Settings → Allow Arbitrary Loads* switched on.
+        6. Commit: `git add .` and `git commit -m "Keep the sync token in the Keychain"`.
+      tr: |
+        1. Habits'in sunucusu yok, bu yüzden bir yedek senaryoyla çalışıyoruz: kullanıcının Settings'e yapıştırdığı bir **sync token**. Aynı kod API token'ı ya da şifre gibi her küçük sırrı saklar.
+        2. `KeychainStore.swift` oluştur. Bir hesap adı için tek bir metin değerini kaydeder, okur ve siler. Öğe varsa günceller, yoksa ekler.
+        3. `SettingsView.swift`'i değiştir. Bir `SecureField` (metin gizlenir) kullanıcının token'ı yapıştırmasını sağlar, düğmeler Keychain'i çağırır.
+        4. Çalıştır, Settings'i aç, bir token kaydet, uygulamayı tamamen kapat, tekrar çalıştır ve Settings'i aç: token hâlâ orada.
+        5. Kendi projeni bir gözden geçiren gibi kontrol et. Terminalde aşağıdaki aramayı çalıştır, hedefin Info sekmesinde de *App Transport Security Settings → Allow Arbitrary Loads* seçeneğinin açık olmadığından emin ol.
+        6. Commit'le: `git add .` ve `git commit -m "Keep the sync token in the Keychain"`.
+    code:
+      - file: Habits/KeychainStore.swift
+        lang: swift
+        text: |
+          import Foundation
+          import Security
+
+          nonisolated enum KeychainError: Error {
+              case unexpectedStatus(OSStatus)
+          }
+
+          /// Saves small text secrets in the iOS Keychain.
+          nonisolated struct KeychainStore: Sendable {
+              let service: String
+
+              private func baseQuery(account: String) -> [String: Any] {
+                  [
+                      kSecClass as String: kSecClassGenericPassword,
+                      kSecAttrService as String: service,
+                      kSecAttrAccount as String: account,
+                  ]
+              }
+
+              func save(_ value: String, account: String) throws {
+                  let query = baseQuery(account: account)
+                  let attributes: [String: Any] = [
+                      kSecValueData as String: Data(value.utf8),
+                      kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+                  ]
+
+                  var status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+                  if status == errSecItemNotFound {
+                      status = SecItemAdd(query.merging(attributes) { _, new in new } as CFDictionary, nil)
+                  }
+                  guard status == errSecSuccess else {
+                      throw KeychainError.unexpectedStatus(status)
+                  }
+              }
+
+              func read(account: String) throws -> String? {
+                  var query = baseQuery(account: account)
+                  query[kSecReturnData as String] = true
+                  query[kSecMatchLimit as String] = kSecMatchLimitOne
+
+                  var result: CFTypeRef?
+                  let status = SecItemCopyMatching(query as CFDictionary, &result)
+                  if status == errSecItemNotFound { return nil }
+                  guard status == errSecSuccess, let data = result as? Data else {
+                      throw KeychainError.unexpectedStatus(status)
+                  }
+                  return String(data: data, encoding: .utf8)
+              }
+
+              func delete(account: String) throws {
+                  let status = SecItemDelete(baseQuery(account: account) as CFDictionary)
+                  guard status == errSecSuccess || status == errSecItemNotFound else {
+                      throw KeychainError.unexpectedStatus(status)
+                  }
+              }
+          }
+      - file: Habits/SettingsView.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct SettingsView: View {
+              @Environment(\.dismiss) private var dismiss
+              @AppStorage("showStreaks") private var showStreaks = true
+              @State private var token = ""
+              @State private var message: String?
+
+              private let keychain = KeychainStore(service: Bundle.main.bundleIdentifier ?? "Habits")
+              private let account = "sync-token"
+
+              var body: some View {
+                  NavigationStack {
+                      Form {
+                          Section {
+                              Toggle("Show streaks in the list", isOn: $showStreaks)
+                          }
+                          Section {
+                              SecureField("Paste your token", text: $token)
+                              Button("Save token", action: saveToken)
+                                  .disabled(token.isEmpty)
+                              Button("Remove token", role: .destructive, action: removeToken)
+                          } header: {
+                              Text("Sync token")
+                          } footer: {
+                              Text(message ?? "Stored in the iOS Keychain, not in the app's files.")
+                          }
+                      }
+                      .navigationTitle("Settings")
+                      .navigationBarTitleDisplayMode(.inline)
+                      .toolbar {
+                          ToolbarItem(placement: .confirmationAction) {
+                              Button("Done") { dismiss() }
+                          }
+                      }
+                      .onAppear {
+                          token = (try? keychain.read(account: account)) ?? ""
+                      }
+                  }
+              }
+
+              private func saveToken() {
+                  do {
+                      try keychain.save(token, account: account)
+                      message = "Saved."
+                  } catch {
+                      message = "Could not save the token."
+                  }
+              }
+
+              private func removeToken() {
+                  do {
+                      try keychain.delete(account: account)
+                      token = ""
+                      message = "Removed."
+                  } catch {
+                      message = "Could not remove the token."
+                  }
+              }
+          }
+
+          #Preview {
+              SettingsView()
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          git grep -n -i -E "password|secret|api[_-]?key|token" -- '*.swift' '*.plist'
+    mistakes:
+      - problem:
+          en: "Putting an API key in a Swift constant or in `Info.plist` because \"nobody will look\"."
+          tr: "\"Kimse bakmaz\" diye bir API anahtarını Swift sabitine ya da `Info.plist`'e koymak."
+        fix:
+          en: "An app can be downloaded and unpacked, so anything inside it is public. Keep real secrets on your own server, and only keep per-user tokens (that the user or your server gave) in the Keychain."
+          tr: "Bir uygulama indirilip açılabilir; içindeki her şey herkese açıktır. Gerçek sırları kendi sunucunda tut, Keychain'de sadece kullanıcı başına token'ları (kullanıcının ya da sunucunun verdiği) sakla."
+      - problem:
+          en: "`SecItemAdd` returns `errSecDuplicateItem` (-25299) the second time."
+          tr: "`SecItemAdd` ikinci seferde `errSecDuplicateItem` (-25299) döndürüyor."
+        fix:
+          en: "An item with the same class, service and account already exists. Update it with `SecItemUpdate`, as `save` does, or delete it first."
+          tr: "Aynı sınıf, servis ve hesapla bir öğe zaten var. `save`'in yaptığı gibi `SecItemUpdate` ile güncelle ya da önce sil."
+      - problem:
+          en: "Turning off App Transport Security (`NSAllowsArbitraryLoads`) to make an HTTP address work."
+          tr: "Bir HTTP adresi çalışsın diye App Transport Security'yi (`NSAllowsArbitraryLoads`) kapatmak."
+        fix:
+          en: "Use an HTTPS address instead. HTTP sends everything in plain text, and Apple may ask you to justify an exception."
+          tr: "Bunun yerine HTTPS adresi kullan. HTTP her şeyi düz metin olarak gönderir ve Apple bir istisnayı gerekçelendirmeni isteyebilir."
+    quiz:
+      - q:
+          en: "Where should a user's login token be stored on the iPhone?"
+          tr: "Bir kullanıcının giriş token'ı iPhone'da nerede saklanmalı?"
+        options:
+          en: [In UserDefaults, In the Keychain, In a constant in the source code]
+          tr: [UserDefaults'ta, Keychain'de, Kaynak kodundaki bir sabitte]
+        answer: 1
+        why:
+          en: "The Keychain is encrypted and managed by the system. UserDefaults and files are plain, and source code ships inside the app."
+          tr: "Keychain şifrelidir ve sistem tarafından yönetilir. UserDefaults ve dosyalar düzdür, kaynak kodu da uygulamanın içinde dağıtılır."
+    sources:
+      - title: Keychain services
+        url: https://developer.apple.com/documentation/security/keychain-services
+      - title: Adding a password to the keychain
+        url: https://developer.apple.com/documentation/security/adding-a-password-to-the-keychain
+      - title: Preventing insecure network connections
+        url: https://developer.apple.com/documentation/security/preventing-insecure-network-connections
+
+  - id: instruments
+    stage: performance
+    title:
+      en: "Find slow code with Instruments"
+      tr: "Instruments ile yavaş kodu bulma"
+    minutes: 60
+    needs: [keychain]
+    why:
+      en: "A guess about what is slow is often wrong. Instruments records what your app really does, such as which functions use the CPU and how often views redraw, so you fix the real problem. Apple recommends this cycle: measure, change one thing, measure again."
+      tr: "Neyin yavaş olduğuna dair tahmin çoğu zaman yanlıştır. Instruments uygulamanın gerçekte ne yaptığını kaydeder; hangi fonksiyonlar işlemciyi kullanıyor, view'ler ne sıklıkla yeniden çiziliyor. Böylece gerçek sorunu düzeltirsin. Apple şu döngüyü önerir: ölç, tek şeyi değiştir, tekrar ölç."
+    learn:
+      en: |
+        - Product → Profile (Cmd+I) and why profiling builds the Release configuration
+        - The Time Profiler and the SwiftUI instrument, and how to read a call tree
+        - `Self._printChanges()` to see why a view redrew (debug only)
+        - A simple timing check in a test with `ContinuousClock`
+      tr: |
+        - Product → Profile (Cmd+I) ve profillemenin neden Release yapılandırmasıyla derlediği
+        - Time Profiler ve SwiftUI instrument'ı, çağrı ağacı (call tree) nasıl okunur
+        - Bir view'ün neden yeniden çizildiğini görmek için `Self._printChanges()` (sadece debug)
+        - `ContinuousClock` ile testte basit bir süre kontrolü
+    do:
+      en: |
+        1. Make the data big. Add a debug-only habit with ten years of done days (or just add many habits) so slow code becomes visible. Real users will have much more data than you do.
+        2. Add the timing test below to `HabitsTests`. Run it with Cmd+U. It checks that counting a ten-year streak is far below a second.
+        3. Profile the app: choose a **real iPhone** as the destination if you have one (the Simulator runs on your fast Mac and hides problems), then *Product → Profile* (Cmd+I). Instruments opens: choose **Time Profiler** and press Record.
+        4. Use the app for 20 seconds: scroll, open details, toggle habits. Stop. In the call tree switch on *Hide System Libraries* and *Invert Call Tree* and look for your own functions near the top.
+        5. Try the **SwiftUI** template the same way to see which views update how often. In debug runs, the `_printChanges()` line in `HabitRow` prints to the Xcode console why a row redrew.
+        6. Rule: change one thing, measure again. Commit: `git add .` and `git commit -m "Add a timing test and redraw logging"`.
+      tr: |
+        1. Veriyi büyüt. Yavaş kod görünür olsun diye sadece debug için on yıllık tamamlanmış günü olan bir alışkanlık ekle (ya da çok sayıda alışkanlık ekle). Gerçek kullanıcıların senden çok daha fazla verisi olacak.
+        2. Aşağıdaki süre testini `HabitsTests`'e ekle. Cmd+U ile çalıştır. On yıllık bir serinin sayılmasının bir saniyenin çok altında olduğunu kontrol eder.
+        3. Uygulamayı profille: varsa hedef olarak **gerçek bir iPhone** seç (Simulator hızlı Mac'inde çalışır ve sorunları gizler), sonra *Product → Profile* (Cmd+I). Instruments açılır: **Time Profiler**'ı seç ve Record'a bas.
+        4. Uygulamayı 20 saniye kullan: kaydır, ayrıntıları aç, alışkanlıkları işaretle. Durdur. Çağrı ağacında *Hide System Libraries* ve *Invert Call Tree*'yi aç ve en üstlerde kendi fonksiyonlarını ara.
+        5. Hangi view'ün ne sıklıkla güncellendiğini görmek için aynı şekilde **SwiftUI** şablonunu dene. Debug çalıştırmalarında `HabitRow` içindeki `_printChanges()` satırı bir satırın neden yeniden çizildiğini Xcode konsoluna yazar.
+        6. Kural: tek şeyi değiştir, tekrar ölç. Commit'le: `git add .` ve `git commit -m "Add a timing test and redraw logging"`.
+    code:
+      - file: HabitsTests/StreakPerformanceTests.swift
+        lang: swift
+        text: |
+          import Foundation
+          import Testing
+          @testable import Habits
+
+          struct StreakPerformanceTests {
+              @Test func tenYearStreakIsFast() {
+                  var calendar = Calendar(identifier: .gregorian)
+                  calendar.timeZone = TimeZone(identifier: "UTC")!
+                  let today = Date(timeIntervalSince1970: 1_800_000_000)
+                  let days = (0..<3650).map {
+                      calendar.date(byAdding: .day, value: -$0, to: today)!
+                  }
+
+                  var streak = 0
+                  let elapsed = ContinuousClock().measure {
+                      streak = Streak.current(completedDays: days, today: today, calendar: calendar)
+                  }
+
+                  #expect(streak == 3650)
+                  // A generous limit: the test must not fail on a slow computer.
+                  #expect(elapsed < .seconds(1))
+              }
+          }
+      - file: Habits/HabitRow.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitRow: View {
+              let habit: Habit
+              @AppStorage("showStreaks") private var showStreaks = true
+
+              var body: some View {
+                  #if DEBUG
+                  let _ = Self._printChanges()
+                  #endif
+                  HStack(spacing: 12) {
+                      Image(systemName: habit.symbol)
+                          .font(.title2)
+                          .frame(width: 44, height: 44)
+                          .background(.tint.opacity(0.15), in: Circle())
+
+                      VStack(alignment: .leading) {
+                          Text(habit.name)
+                              .font(.headline)
+                          if showStreaks {
+                              Text("\(habit.streak) days in a row")
+                                  .font(.subheadline)
+                                  .foregroundStyle(.secondary)
+                          }
+                      }
+
+                      Spacer()
+
+                      if habit.isDone() {
+                          Image(systemName: "checkmark.circle.fill")
+                              .foregroundStyle(.green)
+                      }
+                  }
+              }
+          }
+
+          #Preview {
+              HabitRow(habit: Habit(name: "Read", symbol: "book.fill"))
+                  .padding()
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          xcrun xctrace list templates
+    mistakes:
+      - problem:
+          en: "Profiling a Debug build or only in the Simulator and trusting the numbers."
+          tr: "Debug build'i ya da sadece Simulator'da profilleyip sayılara güvenmek."
+        fix:
+          en: "Profile uses the Release configuration for a reason: Debug code is slower and different. Measure on a real iPhone, ideally an older one, because that is where users feel slowness."
+          tr: "Profile'ın Release yapılandırmasını kullanmasının nedeni var: Debug kodu daha yavaş ve farklıdır. Gerçek bir iPhone'da, mümkünse eski bir modelde ölç; kullanıcılar yavaşlığı orada hisseder."
+      - problem:
+          en: "Doing heavy work (sorting, decoding, loops over thousands of items) directly in `body`."
+          tr: "Ağır işi (sıralama, çözme, binlerce öğe üzerinde döngü) doğrudan `body` içinde yapmak."
+        fix:
+          en: "`body` runs often and must be cheap. Move the work into a model or function, compute it once, and use `@Query` with a sort or a predicate so SwiftData does the filtering."
+          tr: "`body` sık çalışır ve ucuz olmalı. İşi bir modele ya da fonksiyona taşı, bir kez hesapla; filtrelemeyi SwiftData yapsın diye sıralamalı ya da predicate'li `@Query` kullan."
+      - problem:
+          en: "Leaving `_printChanges()` or heavy logging in the shipped app."
+          tr: "`_printChanges()`'ı ya da ağır loglamayı yayınlanan uygulamada bırakmak."
+        fix:
+          en: "Wrap it in `#if DEBUG` as in the code, so it is not compiled into the Release build."
+          tr: "Koddaki gibi `#if DEBUG` içine al; böylece Release build'e derlenmez."
+    quiz:
+      - q:
+          en: "Why profile on a real iPhone and not only in the Simulator?"
+          tr: "Neden sadece Simulator'da değil, gerçek bir iPhone'da profilleme yapılır?"
+        options:
+          en: [The Simulator cannot run Instruments at all, The Simulator uses your Mac's power and hides problems a phone has, Real phones are always faster]
+          tr: [Simulator'da Instruments hiç çalışmaz, Simulator Mac'inin gücünü kullanır ve telefonda olan sorunları gizler, Gerçek telefonlar her zaman daha hızlıdır]
+        answer: 1
+        why:
+          en: "The Simulator runs on your Mac, which is much faster than an iPhone, so slow code can look fine there."
+          tr: "Simulator Mac'inde çalışır ve bir iPhone'dan çok daha hızlıdır; bu yüzden yavaş kod orada iyi görünebilir."
+    sources:
+      - title: Improving your app's performance
+        url: https://developer.apple.com/documentation/xcode/improving-your-app-s-performance
+      - title: Instruments User Guide
+        url: https://help.apple.com/instruments/mac/current/
+      - title: Understanding and improving SwiftUI performance
+        url: https://developer.apple.com/documentation/Xcode/understanding-and-improving-swiftui-performance
+
+  - id: icon
+    stage: packaging
+    title:
+      en: "Give the app an icon, a colour and a name"
+      tr: "Uygulamaya bir ikon, bir renk ve bir ad verme"
+    minutes: 45
+    needs: [instruments]
+    why:
+      en: "The icon and the name are the first things people see on the Home Screen and in the store. Xcode keeps all pictures and colours in an asset catalog and makes the many sizes from one 1024 x 1024 image."
+      tr: "İkon ve ad, insanların Ana Ekran'da ve mağazada ilk gördüğü şeylerdir. Xcode tüm resim ve renkleri bir asset catalog'da tutar ve birçok boyutu tek bir 1024 x 1024 resimden üretir."
+    learn:
+      en: |
+        - What an asset catalog (`Assets.xcassets`) is
+        - Icon rules: one square 1024 x 1024 image, the system rounds the corners, light, dark and tinted variants
+        - Icon Composer, Apple's tool for layered icons
+        - `AccentColor`: the colour that `.tint` and buttons use across the app
+        - The display name under the icon
+      tr: |
+        - Asset catalog'un (`Assets.xcassets`) ne olduğu
+        - İkon kuralları: tek kare 1024 x 1024 resim, köşeleri sistem yuvarlar, açık, koyu ve tonlu varyantlar
+        - Katmanlı ikonlar için Apple'ın aracı Icon Composer
+        - `AccentColor`: uygulama genelinde `.tint` ve düğmelerin kullandığı renk
+        - İkonun altındaki görünen ad
+    do:
+      en: |
+        1. Design a simple icon: a bold shape or symbol on a solid background, no text, no rounded corners (iOS adds them). Use any design tool you like, or Icon Composer. Export a **1024 x 1024 px PNG**.
+        2. Check the size in the terminal with the first command below. If it is not square and 1024 x 1024, fix it in your design tool (do not stretch a non-square image).
+        3. In Xcode open `Assets.xcassets` and select **AppIcon**. Drag your PNG into the 1024 x 1024 slot. Keep *Single Size*: Xcode makes the other sizes. Optionally add Dark and Tinted versions as the documentation describes.
+        4. Select **AccentColor** and pick your brand colour (set a Dark appearance too if it needs it). Every `.tint` and button in the app now uses it.
+        5. Select the app target, open **General** and set **Display Name** to `Habits` (or a nicer name). Keep it short, so it is not cut off under the icon.
+        6. Run the app, press Home in the Simulator (*Device → Home* or Shift+Cmd+H) and look at the icon. Commit: `git add .` and `git commit -m "Add the app icon and accent colour"`.
+      tr: |
+        1. Basit bir ikon tasarla: düz bir arka plan üzerinde cesur bir şekil ya da sembol, yazı yok, yuvarlatılmış köşe yok (iOS ekler). İstediğin tasarım aracını ya da Icon Composer'ı kullan. **1024 x 1024 px PNG** olarak dışa aktar.
+        2. Boyutu terminalde aşağıdaki ilk komutla kontrol et. Kare ve 1024 x 1024 değilse tasarım aracında düzelt (kare olmayan resmi germe).
+        3. Xcode'da `Assets.xcassets`'i aç ve **AppIcon**'u seç. PNG'ni 1024 x 1024 kutusuna sürükle. *Single Size* seçili kalsın: diğer boyutları Xcode üretir. İstersen belgelerin anlattığı gibi Dark ve Tinted sürümleri de ekle.
+        4. **AccentColor**'ı seç ve marka rengini seç (gerekiyorsa Dark görünümünü de ayarla). Uygulamadaki her `.tint` ve düğme artık onu kullanır.
+        5. Uygulama hedefini seç, **General**'ı aç ve **Display Name**'i `Habits` (ya da daha güzel bir ad) yap. İkonun altında kesilmesin diye kısa tut.
+        6. Uygulamayı çalıştır, Simulator'da Home'a bas (*Device → Home* ya da Shift+Cmd+H) ve ikona bak. Commit'le: `git add .` ve `git commit -m "Add the app icon and accent colour"`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          sips -g pixelWidth -g pixelHeight AppIcon.png
+          # macOS tool "sips": prints the size of the picture in pixels
+    mistakes:
+      - problem:
+          en: "The icon shows as a blank white square, or Xcode warns about the icon."
+          tr: "İkon boş beyaz kare görünüyor ya da Xcode ikon hakkında uyarı veriyor."
+        fix:
+          en: "Check that the picture is exactly 1024 x 1024 pixels and is placed in the right slot of **AppIcon** (the Any appearance slot for the normal icon). Clean the build (*Product → Clean Build Folder*) and delete the app from the Simulator."
+          tr: "Resmin tam 1024 x 1024 piksel olduğunu ve **AppIcon**'un doğru kutusuna (normal ikon için Any görünüm kutusu) konduğunu kontrol et. Build'i temizle (*Product → Clean Build Folder*) ve uygulamayı Simulator'dan sil."
+      - problem:
+          en: "Rounding the corners yourself or adding a border and a shadow."
+          tr: "Köşeleri kendin yuvarlamak ya da çerçeve ve gölge eklemek."
+        fix:
+          en: "Deliver square layers. The system applies the exact corner shape and effects, and your own rounding would show as odd edges."
+          tr: "Kare katmanlar ver. Tam köşe şeklini ve efektleri sistem uygular; kendi yuvarlatman tuhaf kenarlar olarak görünür."
+      - problem:
+          en: "A long display name is cut off with \"...\" under the icon."
+          tr: "Uzun bir görünen ad ikonun altında \"...\" ile kesiliyor."
+        fix:
+          en: "Shorten the display name. The full product name can stay longer on the store page."
+          tr: "Görünen adı kısalt. Tam ürün adı mağaza sayfasında daha uzun kalabilir."
+    quiz:
+      - q:
+          en: "How many icon images do you need to start with in Xcode?"
+          tr: "Xcode'da başlamak için kaç ikon resmi gerekir?"
+        options:
+          en: [One square 1024 x 1024 image, Twenty images in different sizes, One 512 x 256 image]
+          tr: [Tek bir kare 1024 x 1024 resim, Farklı boyutlarda yirmi resim, Tek bir 512 x 256 resim]
+        answer: 0
+        why:
+          en: "With *Single Size*, Xcode generates the other sizes from one 1024 x 1024 image."
+          tr: "*Single Size* ile Xcode diğer boyutları tek bir 1024 x 1024 resimden üretir."
+    sources:
+      - title: Configuring your app icon
+        url: https://developer.apple.com/documentation/xcode/configuring-your-app-icon
+      - title: Human Interface Guidelines - App icons
+        url: https://developer.apple.com/design/human-interface-guidelines/app-icons
+      - title: Icon Composer
+        url: https://developer.apple.com/icon-composer/
+
+  - id: on-iphone
+    stage: packaging
+    title:
+      en: "Run the app on your own iPhone with a free Apple Account"
+      tr: "Uygulamayı ücretsiz Apple Account ile kendi iPhone'unda çalıştırma"
+    minutes: 45
+    needs: [icon]
+    why:
+      en: "The Simulator is not a phone: it has no real touch, speed, sensors or battery. Running on your own iPhone costs nothing, and it is the best test there is. The free account has clear limits that you should know before you start."
+      tr: "Simulator bir telefon değildir: gerçek dokunma, hız, sensör ve pil yoktur. Kendi iPhone'unda çalıştırmak ücretsizdir ve yapabileceğin en iyi testtir. Ücretsiz hesabın başlamadan bilmen gereken net sınırları var."
+    learn:
+      en: |
+        - Pairing an iPhone, Developer Mode, and signing with a Personal Team
+        - What code signing and a provisioning profile are, in one sentence each
+        - The free-account limits from Apple's membership comparison page: 10 App IDs, 3 devices, 3 apps per device, and 7 days
+        - What the free account cannot do: TestFlight and the App Store
+      tr: |
+        - iPhone'u eşleştirmek, Developer Mode ve Personal Team ile imzalama
+        - Code signing ve provisioning profile'ın birer cümleyle ne olduğu
+        - Apple'ın üyelik karşılaştırma sayfasındaki ücretsiz hesap sınırları: 10 App ID, 3 cihaz, cihaz başına 3 uygulama ve 7 gün
+        - Ücretsiz hesabın yapamadıkları: TestFlight ve App Store
+    do:
+      en: |
+        1. Sign in to Xcode with your free Apple Account: *Xcode → Settings → Apple Accounts → +*. Xcode shows it as a **Personal Team**.
+        2. Select the app target, open **Signing & Capabilities**, tick *Automatically manage signing*, pick your Personal Team and set a **unique bundle identifier** (for example `com.yourname.Habits`; if it is taken, add something of your own).
+        3. Under **General → Minimum Deployments** set the iOS version to the lowest your iPhone and the code allow. The app uses features from **iOS 17**, so 17.0 is the lowest it can be. Your iPhone must run that version or newer, and Xcode 27 can debug on iOS 17 and later.
+        4. Connect the iPhone to the Mac with a cable, unlock it and tap **Trust** when asked. (With an iPhone on iOS 27, Device Hub can also pair over the network: *+ → Pair Nearby Device…*.)
+        5. Turn on **Developer Mode** on the iPhone: *Settings → Privacy & Security → Developer Mode*, then restart as it asks and confirm. The switch only appears after you have paired the phone with Xcode.
+        6. Choose your iPhone as the run destination and press Run. If the iPhone says the developer is not trusted, open *Settings → General → VPN & Device Management* (the name can differ a little between iOS versions), choose your developer entry and trust it, then launch the app again.
+        7. Know the limits of the free account (from Apple's membership page). You can register up to 10 App IDs and up to 3 devices, and both expire after 7 days. You can install up to 3 apps on a device. The provisioning profile expires 7 days after it was issued, and then the app stops opening until you rebuild and reinstall it: connect the phone and press Run again. There is no TestFlight and no App Store with a free account, and more advanced app capabilities need the paid Apple Developer Program. This step changes only settings, so there is nothing new to commit.
+      tr: |
+        1. Xcode'a ücretsiz Apple Account'unla giriş yap: *Xcode → Settings → Apple Accounts → +*. Xcode bunu **Personal Team** olarak gösterir.
+        2. Uygulama hedefini seç, **Signing & Capabilities**'i aç, *Automatically manage signing*'i işaretle, Personal Team'ini seç ve **benzersiz bir bundle identifier** yaz (örneğin `com.senin-adin.Habits`; alınmışsa kendi bir şeyini ekle).
+        3. **General → Minimum Deployments** altında iOS sürümünü iPhone'unun ve kodun izin verdiği en düşük sürüme ayarla. Uygulama **iOS 17** özellikleri kullanır, yani en düşük 17.0 olabilir. iPhone'un bu sürümü ya da daha yenisini çalıştırmalı; Xcode 27 iOS 17 ve sonrasında hata ayıklayabilir.
+        4. iPhone'u kabloyla Mac'e bağla, kilidini aç ve sorulunca **Trust**'a dokun. (iOS 27 çalıştıran bir iPhone'da Device Hub ağ üzerinden de eşleşebilir: *+ → Pair Nearby Device…*.)
+        5. iPhone'da **Developer Mode**'u aç: *Settings → Privacy & Security → Developer Mode*, sonra istediği gibi yeniden başlat ve onayla. Anahtar ancak telefonu Xcode ile eşleştirdikten sonra görünür.
+        6. Çalıştırma hedefi olarak iPhone'unu seç ve Run'a bas. iPhone geliştiriciye güvenilmediğini söylerse *Settings → General → VPN & Device Management*'i aç (ad iOS sürümlerine göre biraz değişebilir), geliştirici kaydını seç ve güven, sonra uygulamayı tekrar aç.
+        7. Ücretsiz hesabın sınırlarını bil (Apple'ın üyelik sayfasından). En fazla 10 App ID ve 3 cihaz kaydedebilirsin, ikisi de 7 gün sonra sona erer. Bir cihaza en fazla 3 uygulama kurabilirsin. Provisioning profile verildikten 7 gün sonra sona erer ve uygulama, yeniden derleyip kurana kadar açılmaz: telefonu bağla ve tekrar Run'a bas. Ücretsiz hesapla TestFlight ve App Store yok, daha gelişmiş uygulama yetenekleri ücretli Apple Developer Program ister. Bu adım sadece ayarları değiştirir, commit'lenecek yeni bir şey yok.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          xcrun devicectl list devices
+    mistakes:
+      - problem:
+          en: "\"Failed to register bundle identifier\" or \"no profiles for ... were found\"."
+          tr: "\"Failed to register bundle identifier\" ya da \"no profiles for ... were found\"."
+        fix:
+          en: "The bundle identifier is already used by someone else. Pick another unique one. A free account may also have hit its limit of 10 App IDs per 7 days; wait or reuse the identifier you already have."
+          tr: "Bundle identifier başka biri tarafından kullanılıyor. Başka bir benzersiz tane seç. Ücretsiz hesap 7 günde 10 App ID sınırına da takılmış olabilir; bekle ya da elindeki identifier'ı yeniden kullan."
+      - problem:
+          en: "The Developer Mode switch is missing on the iPhone."
+          tr: "iPhone'da Developer Mode anahtarı yok."
+        fix:
+          en: "It appears only after the iPhone has been connected to Xcode (or paired in Device Hub). Connect it, unlock it and look again."
+          tr: "Sadece iPhone Xcode'a bağlandıktan (ya da Device Hub'da eşleştikten) sonra görünür. Bağla, kilidini aç ve tekrar bak."
+      - problem:
+          en: "The app worked last week and now it does not open."
+          tr: "Uygulama geçen hafta çalışıyordu, şimdi açılmıyor."
+        fix:
+          en: "With a free account the provisioning profile expires after 7 days. Connect the phone to the Mac and press Run again. A paid Apple Developer Program account removes this limit."
+          tr: "Ücretsiz hesapta provisioning profile 7 gün sonra sona erer. Telefonu Mac'e bağla ve tekrar Run'a bas. Ücretli Apple Developer Program hesabı bu sınırı kaldırır."
+    quiz:
+      - q:
+          en: "What happens to an app installed with a free Apple Account after 7 days?"
+          tr: "Ücretsiz Apple Account ile kurulan bir uygulamaya 7 gün sonra ne olur?"
+        options:
+          en: [It is removed from the App Store, It stops opening until you build and install it again, It turns into a paid app]
+          tr: [App Store'dan kaldırılır, Yeniden derleyip kurana kadar açılmaz, Ücretli uygulamaya dönüşür]
+        answer: 1
+        why:
+          en: "Apple's page says the provisioning profile expires 7 days after it is issued, and you must rebuild and reinstall the app."
+          tr: "Apple'ın sayfası provisioning profile'ın verildikten 7 gün sonra sona erdiğini ve uygulamayı yeniden derleyip kurman gerektiğini söyler."
+    sources:
+      - title: Apple Developer - Compare memberships (free account limits)
+        url: https://developer.apple.com/support/compare-memberships
+      - title: Running your app on simulated or physical devices
+        url: https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices
+      - title: Enabling Developer Mode on a device
+        url: https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device
+
+  - id: testflight-store
+    stage: deploy
+    title:
+      en: "TestFlight and the App Store"
+      tr: "TestFlight ve App Store"
+    minutes: 120
+    needs: [on-iphone]
+    why:
+      en: "To give the app to other people you must go through Apple. TestFlight lets friends try a beta on their own iPhones, and the App Store is how everyone else gets it. Both need a paid membership, and you should know the cost and the steps before you plan around them."
+      tr: "Uygulamayı başkalarına vermek için Apple'dan geçmek gerekir. TestFlight arkadaşlarının betayı kendi iPhone'larında denemesini sağlar, App Store ise herkesin uygulamayı alma yoludur. İkisi de ücretli üyelik ister; bunlara göre plan yapmadan önce maliyeti ve adımları bilmelisin."
+    learn:
+      en: |
+        - The honest cost: the Apple Developer Program is 99 USD per year (in local currency where available); the free account cannot use TestFlight or the App Store
+        - The path: archive in Xcode, upload to App Store Connect, TestFlight beta, then submit for App Review
+        - Version and build numbers, and the privacy manifest
+        - What internal and external testers are, and how long a beta build lasts (90 days)
+      tr: |
+        - Dürüst maliyet: Apple Developer Program yılda 99 USD'dir (mümkün olan yerlerde yerel para biriminde); ücretsiz hesap TestFlight'ı ya da App Store'u kullanamaz
+        - Yol: Xcode'da arşivle, App Store Connect'e yükle, TestFlight betası, sonra App Review'a gönder
+        - Sürüm ve build numaraları, privacy manifest
+        - Dahili ve harici test edenlerin ne olduğu, bir beta build'in ne kadar yaşadığı (90 gün)
+    do:
+      en: |
+        1. **Decide first.** If you only want to learn, you can stop at the previous step: nothing here is needed for your own iPhone. To go on you must join the **Apple Developer Program** (developer.apple.com/programs): 99 USD per year, an Apple Account with two-factor authentication, and identity verification. Some schools and non-profits can get a fee waiver.
+        2. Add a privacy manifest. `@AppStorage` uses UserDefaults, which Apple lists as a "required reason API", so the app must say why (reason `CA92.1`: only the app itself reads its own settings). Use *File → New → File from Template → App Privacy* (or create `PrivacyInfo.xcprivacy` by hand with the content below).
+        3. Set the version in the target's **General** tab: **Version** `1.0` and **Build** `1`. Every upload of a version needs a build number higher than the last.
+        4. Create the app record: sign in to **App Store Connect** (appstoreconnect.apple.com), *Apps → + → New App*. Choose iOS, a store name, the primary language, your bundle identifier and a SKU (any ID you invent).
+        5. In Xcode choose **Any iOS Device** as the destination, then *Product → Archive*. In the Organizer click **Distribute App → App Store Connect → Distribute**. Keep the option to upload symbols, so crash reports are readable later.
+        6. Wait for the build to finish processing in App Store Connect. Answer the export compliance question (read Apple's page on encryption export rules; the app only uses system encryption such as HTTPS, but you give the answer).
+        7. In **TestFlight** add yourself as an internal tester, install the free TestFlight app on your iPhone and try the build. Internal testers (up to 100 people from your App Store Connect team) need no review. External testers (up to 10,000, invited by email or a public link) need the first build to pass a short beta review. A build expires after 90 days.
+        8. When you are happy, fill in the store page: description, keywords, screenshots, support URL, privacy policy URL, age rating, the App Privacy answers and the price. Choose your build and click **Add for Review**, then **Submit**. Read the App Review Guidelines first. Review times vary.
+      tr: |
+        1. **Önce karar ver.** Sadece öğrenmek istiyorsan bir önceki adımda durabilirsin: kendi iPhone'un için buradakilerin hiçbiri gerekmez. Devam etmek için **Apple Developer Program**'a (developer.apple.com/programs) katılmalısın: yılda 99 USD, iki adımlı doğrulamalı bir Apple Account ve kimlik doğrulaması. Bazı okullar ve kâr amacı gütmeyen kuruluşlar ücret muafiyeti alabilir.
+        2. Bir privacy manifest ekle. `@AppStorage` UserDefaults kullanır; Apple bunu "required reason API" olarak listeler, bu yüzden uygulama nedenini söylemeli (`CA92.1` nedeni: ayarları sadece uygulamanın kendisi okur). *File → New → File from Template → App Privacy*'yi kullan (ya da `PrivacyInfo.xcprivacy` dosyasını aşağıdaki içerikle elle oluştur).
+        3. Sürümü hedefin **General** sekmesinde ayarla: **Version** `1.0`, **Build** `1`. Bir sürümün her yüklemesi, bir öncekinden büyük bir build numarası ister.
+        4. Uygulama kaydını oluştur: **App Store Connect**'e (appstoreconnect.apple.com) gir, *Apps → + → New App*. iOS'u, mağaza adını, ana dili, bundle identifier'ını ve bir SKU'yu (uydurduğun herhangi bir ID) seç.
+        5. Xcode'da hedef olarak **Any iOS Device**'ı seç, sonra *Product → Archive*. Organizer'da **Distribute App → App Store Connect → Distribute**'a tıkla. Sembolleri yükleme seçeneği açık kalsın ki çökme raporları sonra okunabilsin.
+        6. App Store Connect'te build'in işlenmesini bekle. İhracat uyumluluğu (export compliance) sorusunu yanıtla (Apple'ın şifreleme ihracat kuralları sayfasını oku; uygulama sadece HTTPS gibi sistem şifrelemesini kullanır ama cevabı sen verirsin).
+        7. **TestFlight**'ta kendini dahili test eden olarak ekle, iPhone'una ücretsiz TestFlight uygulamasını kur ve build'i dene. Dahili test edenler (App Store Connect ekibinden en fazla 100 kişi) inceleme gerektirmez. Harici test edenler (en fazla 10.000 kişi, e-posta ya da herkese açık bağlantıyla davet edilir) için ilk build kısa bir beta incelemesinden geçmelidir. Build 90 gün sonra sona erer.
+        8. Memnun olunca mağaza sayfasını doldur: açıklama, anahtar kelimeler, ekran görüntüleri, destek URL'si, gizlilik politikası URL'si, yaş derecesi, App Privacy cevapları ve fiyat. Build'ini seç, **Add for Review**'a sonra **Submit**'e tıkla. Önce App Review Guidelines'ı oku. İnceleme süreleri değişir.
+    code:
+      - file: Habits/PrivacyInfo.xcprivacy
+        lang: xml
+        text: |
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>NSPrivacyTracking</key>
+              <false/>
+              <key>NSPrivacyTrackingDomains</key>
+              <array/>
+              <key>NSPrivacyCollectedDataTypes</key>
+              <array/>
+              <key>NSPrivacyAccessedAPITypes</key>
+              <array>
+                  <dict>
+                      <key>NSPrivacyAccessedAPIType</key>
+                      <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+                      <key>NSPrivacyAccessedAPITypeReasons</key>
+                      <array>
+                          <string>CA92.1</string>
+                      </array>
+                  </dict>
+              </array>
+          </dict>
+          </plist>
+      - file: terminal
+        lang: sh
+        text: |
+          xcodebuild -scheme Habits -destination 'generic/platform=iOS' -archivePath build/Habits.xcarchive archive
+    mistakes:
+      - problem:
+          en: "The upload is rejected because the build number was already used."
+          tr: "Build numarası daha önce kullanıldığı için yükleme reddediliyor."
+        fix:
+          en: "Raise **Build** (for example from 1 to 2) and archive again. The **Version** (1.0) can stay the same until you release a new one."
+          tr: "**Build**'i artır (örneğin 1'den 2'ye) ve tekrar arşivle. **Version** (1.0) yeni sürüm çıkarana kadar aynı kalabilir."
+      - problem:
+          en: "Apple emails you about a missing reason for a required reason API, or the upload warns about the privacy manifest."
+          tr: "Apple bir required reason API için eksik neden hakkında e-posta atıyor ya da yükleme privacy manifest konusunda uyarı veriyor."
+        fix:
+          en: "Add the API category and reason to `PrivacyInfo.xcprivacy`, as in the code. Third-party SDKs bring their own manifests."
+          tr: "API kategorisini ve nedenini koddaki gibi `PrivacyInfo.xcprivacy`'ye ekle. Üçüncü taraf SDK'ların kendi manifest'leri vardır."
+      - problem:
+          en: "The review is rejected because there is no way to reach you or no privacy policy."
+          tr: "İnceleme, sana ulaşma yolu ya da gizlilik politikası olmadığı için reddediliyor."
+        fix:
+          en: "Fill in a working support URL and a privacy policy URL (a simple public page is enough), a contact, and honest App Privacy answers. Read the rejection message: it names the guideline."
+          tr: "Çalışan bir destek URL'si ve gizlilik politikası URL'si (basit bir herkese açık sayfa yeter), bir iletişim bilgisi ve dürüst App Privacy cevapları gir. Red mesajını oku: hangi kuralın ihlal edildiğini söyler."
+    quiz:
+      - q:
+          en: "Can you put an app on TestFlight or the App Store with only a free Apple Account?"
+          tr: "Sadece ücretsiz bir Apple Account ile bir uygulamayı TestFlight'a ya da App Store'a koyabilir misin?"
+        options:
+          en: [Yes for TestFlight but not the App Store, No you need the paid Apple Developer Program, Yes both are free]
+          tr: [TestFlight evet ama App Store hayır, Hayır ücretli Apple Developer Program gerekir, Evet ikisi de ücretsiz]
+        answer: 1
+        why:
+          en: "App Store Connect, TestFlight and App Store distribution come with the Apple Developer Program membership (99 USD per year). The free account can only run apps on your own devices."
+          tr: "App Store Connect, TestFlight ve App Store dağıtımı Apple Developer Program üyeliğiyle (yılda 99 USD) gelir. Ücretsiz hesap uygulamaları sadece kendi cihazlarında çalıştırabilir."
+    sources:
+      - title: Distributing your app for beta testing and releases
+        url: https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases
+      - title: TestFlight overview
+        url: https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview
+      - title: Apple Developer Program enrollment
+        url: https://developer.apple.com/help/account/membership/program-enrollment/
+
+  - id: crashes
+    stage: monitoring
+    title:
+      en: "Find out when the app crashes"
+      tr: "Uygulama çöktüğünde öğrenme"
+    minutes: 60
+    needs: [testflight-store]
+    why:
+      en: "Once other people use the app, you are no longer there to see it crash. Apple collects crash reports from TestFlight and the App Store for you, and Xcode shows them with the exact line that failed."
+      tr: "Uygulamayı başkaları kullanmaya başlayınca çöktüğünü görmek için yanında olmazsın. Apple TestFlight ve App Store'dan çökme raporlarını senin için toplar, Xcode da bunları başarısız olan satırla birlikte gösterir."
+    learn:
+      en: |
+        - The Crashes organizer (Window → Organizer) and TestFlight feedback in App Store Connect
+        - Why symbols (dSYM files) matter: they turn memory addresses into function names and lines
+        - How to read a crash report: the crashed thread and the exception type (`EXC_BREAKPOINT` is how a Swift runtime error such as a failed force unwrap looks)
+        - MetricKit: your app receives crash and hang diagnostics from the system
+      tr: |
+        - Crashes organizer (Window → Organizer) ve App Store Connect'teki TestFlight geri bildirimleri
+        - Sembollerin (dSYM dosyaları) neden önemli olduğu: bellek adreslerini fonksiyon adlarına ve satırlara çevirirler
+        - Çökme raporu nasıl okunur: çöken thread ve istisna türü (`EXC_BREAKPOINT`, `nil` bir optional'ı zorla açmak gibi Swift çalışma zamanı hatalarının görünümüdür)
+        - MetricKit: uygulaman sistemden çökme ve takılma tanılamalarını (diagnostics) alır
+    do:
+      en: |
+        1. Make sure symbols are uploaded when you distribute (the option you kept in the previous step). Without them, a report shows only addresses.
+        2. Create `DiagnosticsReceiver.swift` and start it in `HabitsApp`. The system hands your app crash and hang reports through MetricKit, usually within a day. For now it writes a line to the log. In a real app you would send it to your own server.
+        3. Test the path once: add a debug-only button that crashes on purpose (see the snippet in the `Settings` code below, wrapped in `#if DEBUG`), install a build from TestFlight with it temporarily enabled, crash it, and look for the report. Remove the button after.
+        4. Look at reports: in Xcode open *Window → Organizer → Crashes*, choose your app and version. In App Store Connect, TestFlight shows crashes and tester feedback for each build. Testers can also send feedback by taking a screenshot in the beta app.
+        5. Read one report: find the crashed thread, then the first line that is your own code. The exception type and the message (for example "Unexpectedly found nil while unwrapping an Optional value") tell you why.
+        6. Make it a habit: after every release look at the Crashes organizer. Commit: `git add .` and `git commit -m "Receive MetricKit diagnostics"`.
+      tr: |
+        1. Dağıtırken sembollerin yüklendiğinden emin ol (önceki adımda açık bıraktığın seçenek). Onlar olmadan rapor sadece adresleri gösterir.
+        2. `DiagnosticsReceiver.swift` oluştur ve `HabitsApp` içinde başlat. Sistem çökme ve takılma raporlarını MetricKit ile uygulamana, genelde bir gün içinde verir. Şimdilik log'a bir satır yazar. Gerçek bir uygulamada bunu kendi sunucuna gönderirdin.
+        3. Yolu bir kez dene: bilerek çöken, sadece debug'da olan bir düğme ekle (aşağıdaki `Settings` kodundaki `#if DEBUG` içindeki parçaya bak), geçici olarak açık halde TestFlight'tan bir build kur, çökert ve raporu ara. Sonra düğmeyi kaldır.
+        4. Raporlara bak: Xcode'da *Window → Organizer → Crashes*'i aç, uygulamanı ve sürümü seç. App Store Connect'te TestFlight her build için çökmeleri ve test edenlerin geri bildirimlerini gösterir. Test edenler beta uygulamada ekran görüntüsü alarak da geri bildirim gönderebilir.
+        5. Bir raporu oku: çöken thread'i, sonra kendi kodun olan ilk satırı bul. İstisna türü ve mesaj (örneğin "Unexpectedly found nil while unwrapping an Optional value") nedenini söyler.
+        6. Alışkanlık yap: her sürümden sonra Crashes organizer'a bak. Commit'le: `git add .` ve `git commit -m "Receive MetricKit diagnostics"`.
+    code:
+      - file: Habits/DiagnosticsReceiver.swift
+        lang: swift
+        text: |
+          import MetricKit
+          import os
+
+          /// Receives crash and hang reports that the system collects for the app.
+          nonisolated final class DiagnosticsReceiver: NSObject, MXMetricManagerSubscriber {
+              private let logger = Logger(subsystem: "com.yourname.Habits", category: "diagnostics")
+
+              func didReceive(_ payloads: [MXMetricPayload]) {
+                  logger.info("Received \(payloads.count) metric payload(s)")
+              }
+
+              func didReceive(_ payloads: [MXDiagnosticPayload]) {
+                  for payload in payloads {
+                      let crashes = payload.crashDiagnostics?.count ?? 0
+                      let hangs = payload.hangDiagnostics?.count ?? 0
+                      logger.error("Diagnostics: \(crashes) crash(es), \(hangs) hang(s)")
+                  }
+              }
+          }
+      - file: Habits/HabitsApp.swift
+        lang: swift
+        text: |
+          import MetricKit
+          import SwiftData
+          import SwiftUI
+
+          @main
+          struct HabitsApp: App {
+              private let diagnostics = DiagnosticsReceiver()
+
+              init() {
+                  MXMetricManager.shared.add(diagnostics)
+              }
+
+              var body: some Scene {
+                  WindowGroup {
+                      ContentView()
+                  }
+                  .modelContainer(for: Habit.self)
+              }
+          }
+      - file: Habits/SettingsView.swift
+        lang: swift
+        text: |
+          // Add this section inside the Form in SettingsView, after the sync token section.
+          // It only exists in Debug builds. To test a TestFlight crash, enable it for one build only.
+          #if DEBUG
+          Section("Debug") {
+              Button("Crash now", role: .destructive) {
+                  fatalError("Test crash")
+              }
+          }
+          #endif
+    mistakes:
+      - problem:
+          en: "A crash report shows only hex addresses and no function names."
+          tr: "Bir çökme raporu sadece onaltılık adresleri gösteriyor, fonksiyon adı yok."
+        fix:
+          en: "The symbols (dSYM) were not uploaded. Keep *Upload your app's symbols* on when distributing, and keep each archive: the Organizer can re-symbolicate from it."
+          tr: "Semboller (dSYM) yüklenmemiş. Dağıtırken *Upload your app's symbols* açık kalsın ve her arşivi sakla: Organizer ondan yeniden sembolleştirebilir."
+      - problem:
+          en: "The Crashes organizer is empty although people say the app crashes."
+          tr: "İnsanlar uygulamanın çöktüğünü söylediği halde Crashes organizer boş."
+        fix:
+          en: "The Organizer shows reports only from people who share diagnostics with developers, and it takes a while. TestFlight users share crash reports automatically. You can also ask a user to send the crash log from Settings → Privacy & Security → Analytics & Improvements → Analytics Data."
+          tr: "Organizer sadece tanılamaları geliştiricilerle paylaşan kişilerin raporlarını gösterir ve biraz zaman alır. TestFlight kullanıcıları çökme raporlarını otomatik paylaşır. Bir kullanıcıdan çökme kaydını Settings → Privacy & Security → Analytics & Improvements → Analytics Data içinden göndermesini de isteyebilirsin."
+      - problem:
+          en: "Leaving the debug crash button in a build you release."
+          tr: "Debug çökme düğmesini yayınladığın bir build'de bırakmak."
+        fix:
+          en: "Keep it inside `#if DEBUG` and remove it again after the test. An app that can crash on a button is a bad release."
+          tr: "`#if DEBUG` içinde tut ve testten sonra tekrar kaldır. Düğmeyle çökebilen bir uygulama kötü bir sürümdür."
+    quiz:
+      - q:
+          en: "Why upload symbols (dSYM) with a build?"
+          tr: "Neden bir build ile semboller (dSYM) yüklenir?"
+        options:
+          en: [To make the app smaller, To turn crash addresses into readable function names and lines, To get the app approved faster]
+          tr: [Uygulama küçülsün diye, Çökme adreslerini okunabilir fonksiyon adlarına ve satırlara çevirmek için, Uygulama daha hızlı onaylansın diye]
+        answer: 1
+        why:
+          en: "Release builds hide names. The symbols map addresses back to your functions, so the report points to the line that failed."
+          tr: "Release build'ler adları gizler. Semboller adresleri fonksiyonlarına geri eşler; böylece rapor başarısız olan satırı gösterir."
+    sources:
+      - title: Acquiring crash reports and diagnostic logs
+        url: https://developer.apple.com/documentation/xcode/acquiring-crash-reports-and-diagnostic-logs
+      - title: Diagnosing issues using crash reports and device logs
+        url: https://developer.apple.com/documentation/xcode/diagnosing-issues-using-crash-reports-and-device-logs
+      - title: MetricKit
+        url: https://developer.apple.com/documentation/metrickit
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Where to go next"
+      tr: "Sonraki adımlar"
+    minutes: 45
+    needs: [crashes]
+    why:
+      en: "You now know the whole path from an idea to an app on a phone. The best next step is to make this app better for every kind of person, then add one new platform feature at a time."
+      tr: "Artık fikirden telefondaki bir uygulamaya giden tüm yolu biliyorsun. En iyi sonraki adım bu uygulamayı her türlü insan için daha iyi yapmak, sonra her seferinde yeni bir platform özelliği eklemek."
+    learn:
+      en: |
+        - Accessibility: VoiceOver labels, Dynamic Type, enough contrast (it is also checked by App Review and loved by users)
+        - Widgets (WidgetKit) and App Intents: show the streak on the Home Screen and in Shortcuts
+        - Local notifications as daily reminders (the app asks permission first)
+        - iCloud sync with SwiftData and CloudKit: needs the paid Developer Program
+        - Swift concurrency in depth: actors, `Sendable`, `@MainActor`
+        - Localization: `String(localized:)` and String Catalogs
+      tr: |
+        - Erişilebilirlik: VoiceOver etiketleri, Dynamic Type, yeterli kontrast (App Review da bakar, kullanıcılar da sever)
+        - Widget'lar (WidgetKit) ve App Intents: seriyi Ana Ekran'da ve Shortcuts'ta göstermek
+        - Günlük hatırlatma olarak yerel bildirimler (uygulama önce izin ister)
+        - SwiftData ve CloudKit ile iCloud eşitleme: ücretli Developer Program ister
+        - Swift concurrency'yi derinlemesine: actor, `Sendable`, `@MainActor`
+        - Yerelleştirme: `String(localized:)` ve String Catalog'lar
+    do:
+      en: |
+        1. Turn on VoiceOver on your iPhone (*Settings → Accessibility → VoiceOver*) and use Habits with your eyes closed. Replace `HabitRow.swift` with the version below: the whole row is read as one item with a clear value.
+        2. Set the text size to the largest in *Settings → Accessibility → Display & Text Size → Larger Text*. Does the layout still work? Fix what breaks.
+        3. Pick one feature from the list and build it from the official tutorial. A Home Screen widget with today's streak is a good first one.
+        4. Read the App Review Guidelines and the Human Interface Guidelines once. They explain why many things in this roadmap are the way they are.
+        5. Keep the habit loop: small change, test on your phone, commit.
+      tr: |
+        1. iPhone'unda VoiceOver'ı aç (*Settings → Accessibility → VoiceOver*) ve Habits'i gözlerin kapalı kullan. `HabitRow.swift`'i aşağıdaki sürümle değiştir: tüm satır net bir değerle tek öğe olarak okunur.
+        2. Yazı boyutunu *Settings → Accessibility → Display & Text Size → Larger Text* altında en büyüğe ayarla. Yerleşim hâlâ çalışıyor mu? Bozulanı düzelt.
+        3. Listeden bir özellik seç ve resmî eğitimden yap. Bugünün serisini gösteren bir Ana Ekran widget'ı iyi bir ilk seçim.
+        4. App Review Guidelines ve Human Interface Guidelines'ı bir kez oku. Bu yol haritasındaki birçok şeyin neden öyle olduğunu açıklarlar.
+        5. Alışkanlık döngüsünü sürdür: küçük değişiklik, telefonda test, commit.
+    code:
+      - file: Habits/HabitRow.swift
+        lang: swift
+        text: |
+          import SwiftUI
+
+          struct HabitRow: View {
+              let habit: Habit
+              @AppStorage("showStreaks") private var showStreaks = true
+
+              var body: some View {
+                  HStack(spacing: 12) {
+                      Image(systemName: habit.symbol)
+                          .font(.title2)
+                          .frame(width: 44, height: 44)
+                          .background(.tint.opacity(0.15), in: Circle())
+                          .accessibilityHidden(true)
+
+                      VStack(alignment: .leading) {
+                          Text(habit.name)
+                              .font(.headline)
+                          if showStreaks {
+                              Text("\(habit.streak) days in a row")
+                                  .font(.subheadline)
+                                  .foregroundStyle(.secondary)
+                          }
+                      }
+
+                      Spacer()
+
+                      if habit.isDone() {
+                          Image(systemName: "checkmark.circle.fill")
+                              .foregroundStyle(.green)
+                              .accessibilityHidden(true)
+                      }
+                  }
+                  .accessibilityElement(children: .combine)
+                  .accessibilityValue(habit.isDone() ? "Done today" : "Not done today")
+              }
+          }
+
+          #Preview {
+              HabitRow(habit: Habit(name: "Read", symbol: "book.fill"))
+                  .padding()
+          }
+    mistakes:
+      - problem:
+          en: "Adding many features at once and losing track of what broke."
+          tr: "Bir sürü özelliği birden eklemek ve neyin bozulduğunu kaybetmek."
+        fix:
+          en: "One feature per commit, with the tests green before the next one."
+          tr: "Commit başına bir özellik; sonrakine geçmeden testler yeşil olsun."
+      - problem:
+          en: "Only testing with the Simulator and the default text size."
+          tr: "Sadece Simulator'da ve varsayılan yazı boyutuyla test etmek."
+        fix:
+          en: "Test on a real phone, with VoiceOver, with the largest text size and in Dark Mode. Many users use at least one of these."
+          tr: "Gerçek telefonda, VoiceOver ile, en büyük yazı boyutuyla ve Koyu Mod'da test et. Kullanıcıların çoğu bunlardan en az birini kullanır."
+    quiz:
+      - q:
+          en: "What does `.accessibilityElement(children: .combine)` do for the row?"
+          tr: "`.accessibilityElement(children: .combine)` satır için ne yapar?"
+        options:
+          en: [It hides the row from VoiceOver, It makes VoiceOver read the whole row as one item, It makes the text bigger]
+          tr: [Satırı VoiceOver'dan gizler, VoiceOver'ın tüm satırı tek öğe olarak okumasını sağlar, Yazıyı büyütür]
+        answer: 1
+        why:
+          en: "The row's texts are combined into one VoiceOver item, so people swipe once per habit instead of once per word."
+          tr: "Satırın metinleri tek bir VoiceOver öğesinde birleşir; böylece insanlar kelime başına değil alışkanlık başına bir kez kaydırır."
+    sources:
+      - title: Accessibility (SwiftUI)
+        url: https://developer.apple.com/documentation/swiftui/accessibility-fundamentals
+      - title: WidgetKit
+        url: https://developer.apple.com/documentation/widgetkit
+      - title: App Review Guidelines
+        url: https://developer.apple.com/app-store/review/guidelines/
