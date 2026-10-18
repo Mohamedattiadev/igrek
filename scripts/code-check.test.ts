@@ -64,7 +64,7 @@ describe("code quality gate", () => {
   });
 
   // The ratchet: no rule may count higher in any file, and a lower count must be written down.
-  test("God Eye's code is no worse than its baseline", () => {
+  test("Igrek's code is no worse than its baseline", () => {
     expect(check()).toEqual({ worse: [], better: [] });
   });
 });

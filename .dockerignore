@@ -3,7 +3,7 @@ node_modules
 **/dist
 .git
 .github
-.godeye-dev
+.igrek-dev
 *.log
 .env
 plan.md

@@ -1,4 +1,4 @@
-# God Eye — Ana Plan
+# Igrek (eski adı God Eye) — Ana Plan
 
 > **Tek cümle:** Hangi AI kod aracını kullanırsan kullan (Claude Code, Codex, Gemini, Antigravity…), tüm projelerini
 > tek bir güzel ekrandan gören, anlatan, puanlayan, uzman persona takımıyla geliştiren, kendi kendine öğrenen

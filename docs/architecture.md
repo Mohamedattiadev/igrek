@@ -1,4 +1,4 @@
-# God Eye architecture (C4)
+# Igrek architecture (C4)
 
 <!-- Written by `bun scripts/c4.ts` from the code; do not edit by hand. A test fails when it is out of date. -->
 
@@ -10,16 +10,16 @@ pictures must keep are in `scripts/arch-check.ts` (`bun run lint:arch`).
 ```mermaid
 C4Context
   Person(user, "Developer", "Works with AI coding tools on their own projects")
-  System(godeye, "God Eye", "Runs on the developer's computer: sees, explains and steers their AI coding work")
+  System(igrek, "Igrek", "Runs on the developer's computer: sees, explains and steers their AI coding work")
   System_Ext(ai, "AI coding CLIs", "Claude Code, Codex, Gemini: their session files and processes")
   System_Ext(git, "Git hosts", "GitHub, GitLab, through the user's own gh and glab logins")
   System_Ext(servers, "User's servers", "Reached over SSH for deploys and checks")
   System_Ext(hub, "Team hub", "Optional, self-hosted, end-to-end encrypted")
-  Rel(user, godeye, "Uses", "Browser")
-  Rel(godeye, ai, "Reads sessions, starts chats")
-  Rel(godeye, git, "Issues, pull requests, CI")
-  Rel(godeye, servers, "Deploys, health", "SSH")
-  Rel(godeye, hub, "Shares chosen projects", "HTTPS")
+  Rel(user, igrek, "Uses", "Browser")
+  Rel(igrek, ai, "Reads sessions, starts chats")
+  Rel(igrek, git, "Issues, pull requests, CI")
+  Rel(igrek, servers, "Deploys, health", "SSH")
+  Rel(igrek, hub, "Shares chosen projects", "HTTPS")
 ```
 
 ## 2. Containers
@@ -27,7 +27,7 @@ C4Context
 ```mermaid
 C4Container
   Person(user, "Developer")
-  System_Boundary(ge, "God Eye") {
+  System_Boundary(ge, "Igrek") {
     Container(apps_web, "Web app", "React, Vite", "Everything the user sees, in the browser")
     Container(apps_server, "Server", "Bun, SQLite", "Reads AI sessions, runs chats, terminals, checks and jobs")
     Container(apps_hub, "Team hub", "Bun", "End-to-end encrypted relay for teams; deployed on its own")

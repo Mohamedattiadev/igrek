@@ -1,7 +1,7 @@
-# God Eye Hub on your VPS, next to your other services.
+# Igrek Hub on your VPS, next to your other services.
 #
 #   docker compose -f docker/hub-compose.yml up -d --build
-#   docker compose -f docker/hub-compose.yml exec hub god-eye-hub create-admin <username>
+#   docker compose -f docker/hub-compose.yml exec hub igrek-hub create-admin <username>
 #
 # Put it behind HTTPS (see docker/Caddyfile.example); the port below only
 # listens on the VPS itself, so nothing is exposed without the proxy.
@@ -10,8 +10,8 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.hub
-    image: god-eye-hub:local
-    container_name: god-eye-hub
+    image: igrek-hub:local
+    container_name: igrek-hub
     restart: unless-stopped
     ports:
       - "127.0.0.1:${HUB_PORT:-7700}:7700"

@@ -42,7 +42,7 @@ describe("database gate", () => {
   });
 
   // The ratchet: nothing new, nothing fixed but still listed, no shipped migration edited.
-  test("God Eye's schema, queries and migrations keep the rules", () => {
+  test("Igrek's schema, queries and migrations keep the rules", () => {
     expect(check()).toEqual({ added: [], fixed: [], edited: [], unlocked: 0 });
   });
 });

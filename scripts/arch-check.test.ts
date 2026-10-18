@@ -20,8 +20,8 @@ describe("architecture gate", () => {
     expect(broken.map((r) => r.name)).toEqual(["ui-not-into-server"]);
   });
 
-  // The ratchet: God Eye itself has no layer violation and no cycle, and none may come in.
-  test("God Eye keeps every rule", () => {
+  // The ratchet: Igrek itself has no layer violation and no cycle, and none may come in.
+  test("Igrek keeps every rule", () => {
     const { violations, cycles: loops } = check(sourceFiles());
     expect(violations).toEqual([]);
     expect(loops).toEqual([]);

@@ -1,5 +1,5 @@
 /**
- * Database rules as code (plan.md 15.3), run on God Eye's own SQLite schema: the migrations are
+ * Database rules as code (plan.md 15.3), run on Igrek's own SQLite schema: the migrations are
  * applied to an empty database and the result is inspected, and every SQL statement in the server
  * code is explained against it. Sources: Elmasri & Navathe, "Fundamentals of Database Systems"
  * (7th ed.): key, entity and referential integrity (ch. 5.2), indexes (ch. 17), plus SQLite's own

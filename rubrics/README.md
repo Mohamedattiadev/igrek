@@ -1,8 +1,8 @@
 # Rubrics / Puanlama kuralları
 
-Every score in God Eye comes from these checks. Each one has a weight and points to evidence (file:line). Scores never come from the AI; the AI only writes the plain-language explanation.
+Every score in Igrek comes from these checks. Each one has a weight and points to evidence (file:line). Scores never come from the AI; the AI only writes the plain-language explanation.
 
-God Eye'daki her puan bu kontrollerden gelir. Her kontrolün bir ağırlığı vardır ve kanıt gösterir (dosya:satır). Puanları AI vermez; AI sadece sade dildeki açıklamayı yazar.
+Igrek'teki her puan bu kontrollerden gelir. Her kontrolün bir ağırlığı vardır ve kanıt gösterir (dosya:satır). Puanları AI vermez; AI sadece sade dildeki açıklamayı yazar.
 
 Weights and checks can be changed per project in **Sections → Scoring** / Ağırlıklar ve kontroller **Bölümler → Puanlama** ekranından proje bazında değiştirilebilir.
 

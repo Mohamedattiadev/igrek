@@ -1,4 +1,4 @@
-# Working on God Eye
+# Working on Igrek
 
 Instructions for any AI coding agent in this repository (Claude Code reads them through CLAUDE.md).
 The roadmap is `plan.md`; the architecture, drawn from the code, is `docs/architecture.md`.
@@ -30,3 +30,5 @@ bun test && bun run build && bun run lint:bundle
 - Do not touch `~/.ssh`. In Docker: never `--privileged` or host mounts of /dev, /run or cgroups, no systemd in containers.
 - `plan.md`: change single lines exactly (never with sed) and keep the user's requirement text as it is.
 - Comments explain why, in plain English, like the code around them.
+- The product was called God Eye until 2026-10-18. Old names (godeye, GODEYE_*) appear only where old data
+  is still read (`apps/server/src/names.ts` and the places that use it); never add new ones.

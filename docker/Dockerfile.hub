@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# God Eye Hub: the small team server. It relays and stores end-to-end
+# Igrek Hub: the small team server. It relays and stores end-to-end
 # encrypted updates; it never sees project contents or the team key.
 #
 # One self-contained binary (bun build --compile) on a minimal base image with
@@ -18,7 +18,7 @@ COPY packages/genui/package.json packages/genui/
 COPY packages/learn/package.json packages/learn/
 RUN bun install --frozen-lockfile --production --filter '@igrek/hub'
 COPY apps/hub/src apps/hub/src
-RUN bun build apps/hub/src/main.ts --compile --minify --outfile /out/god-eye-hub \
+RUN bun build apps/hub/src/main.ts --compile --minify --outfile /out/igrek-hub \
  && mkdir -p /out/data
 
 # The web member's page (plan.md 4.3): built here, only its few files go into the image.
@@ -41,7 +41,7 @@ RUN cd apps/web && bun run build:member
 
 # glibc + libstdc++ only, runs as an unprivileged user (uid 65532).
 FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
-COPY --from=build /out/god-eye-hub /usr/local/bin/god-eye-hub
+COPY --from=build /out/igrek-hub /usr/local/bin/igrek-hub
 COPY --from=build --chown=65532:65532 /out/data /data
 COPY --from=web /app/apps/web/dist-member /web
 ENV NODE_ENV=production \
@@ -51,5 +51,5 @@ ENV NODE_ENV=production \
     HUB_HOST=0.0.0.0
 VOLUME /data
 EXPOSE 7700
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["god-eye-hub", "health"]
-ENTRYPOINT ["god-eye-hub"]
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["igrek-hub", "health"]
+ENTRYPOINT ["igrek-hub"]

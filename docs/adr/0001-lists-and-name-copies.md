@@ -7,7 +7,7 @@
 ## Context
 
 Normal forms (Elmasri & Navathe, *Fundamentals of Database Systems*, 7th ed., ch. 14) say a column
-holds one value (1NF) and every fact is stored once (3NF). God Eye's schema breaks both on purpose
+holds one value (1NF) and every fact is stored once (3NF). Igrek's schema breaks both on purpose
 in two places, and the database gate lists each case.
 
 ## Decision

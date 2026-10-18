@@ -7,6 +7,6 @@ dist/
 .DS_Store
 coverage/
 *.tsbuildinfo
-.godeye-dev/
+.igrek-dev/
 docker/hub.env
 apps/web/dist-member

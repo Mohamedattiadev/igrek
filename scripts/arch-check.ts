@@ -1,7 +1,7 @@
 /**
  * Architecture rules as code (plan.md 15.2): who may import whom, and no import cycles. Runs with
  * `bun run lint:arch` and in CI. It reads imports with Bun's own transpiler, so it needs no
- * TypeScript compiler (God Eye is on TypeScript 7, which has no JS API for tools to use).
+ * TypeScript compiler (Igrek is on TypeScript 7, which has no JS API for tools to use).
  *
  * The rules follow the layered pattern (Mark Richards, "Software Architecture Patterns", ch. 1):
  * shared packages are the bottom layer, the apps sit on top, and the web UI talks to the server

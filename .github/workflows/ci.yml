@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
 
-# God Eye sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
+# Igrek sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
 env:
   OPENUI_TELEMETRY_DISABLED: "1"
   DO_NOT_TRACK: "1"
@@ -36,10 +36,10 @@ jobs:
     needs: check
     steps:
       - uses: actions/checkout@v4
-      - run: docker build -f docker/Dockerfile -t god-eye:ci .
+      - run: docker build -f docker/Dockerfile -t igrek:ci .
       - name: Image size
-        run: docker image inspect god-eye:ci --format '{{.Size}}' | awk '{ printf "%.0f MB\n", $1/1024/1024 }'
+        run: docker image inspect igrek:ci --format '{{.Size}}' | awk '{ printf "%.0f MB\n", $1/1024/1024 }'
       # The team hub, with the web member's page inside.
-      - run: docker build -f docker/Dockerfile.hub -t god-eye-hub:ci .
+      - run: docker build -f docker/Dockerfile.hub -t igrek-hub:ci .
       - name: Hub image size
-        run: docker image inspect god-eye-hub:ci --format '{{.Size}}' | awk '{ printf "%.0f MB\n", $1/1024/1024 }'
+        run: docker image inspect igrek-hub:ci --format '{{.Size}}' | awk '{ printf "%.0f MB\n", $1/1024/1024 }'

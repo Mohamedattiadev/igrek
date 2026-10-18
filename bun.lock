@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "god-eye",
+      "name": "igrek",
       "devDependencies": {
         "@biomejs/biome": "^2.5.15",
         "knip": "6.39.0",

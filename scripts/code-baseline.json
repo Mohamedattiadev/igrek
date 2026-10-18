@@ -6,7 +6,7 @@
     "noMisusedPromises": "Biome's nursery rule reads `if (running) return running` (is there a promise already?) as a promise used as a condition; reviewed, not a bug.",
     "duplicate": "Copies found when the gate was added (route boilerplate, similar page sections); merged when next changed, none may be added.",
     "effectRace": "Effects written before the rule that load data for an id (project, tab, server) without an ignore flag; the worst case is a moment of the previous item's data. The ones that could write wrong data or show wrong search results (file content, env history, table rows, searches) were fixed when the rule came in; the rest get the flag when next changed.",
-    "serverLeak": "apperrors.ts only holds the timer as text: it is part of the small error SDK God Eye hands to the user's own app, where the page lives as long as the timer."
+    "serverLeak": "apperrors.ts only holds the timer as text: it is part of the small error SDK Igrek hands to the user's own app, where the page lives as long as the timer."
   },
   "counts": {
     "duplicate:apps/server/src/demo.ts": 2,

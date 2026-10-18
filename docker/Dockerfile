@@ -4,7 +4,7 @@ ARG BUN_VERSION=1.4.3
 # ---- 1. Build the web UI ---------------------------------------------------
 FROM oven/bun:${BUN_VERSION}-slim AS build
 WORKDIR /app
-# God Eye sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
+# Igrek sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
 ENV OPENUI_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1
 COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
@@ -82,9 +82,9 @@ COPY packages/genui packages/genui
 COPY --from=build /app/apps/web/dist apps/web/dist
 
 ENV NODE_ENV=production \
-    GODEYE_HOST=0.0.0.0 \
-    GODEYE_PORT=7777 \
-    GODEYE_WEB_DIST=/app/apps/web/dist
+    IGREK_HOST=0.0.0.0 \
+    IGREK_PORT=7777 \
+    IGREK_WEB_DIST=/app/apps/web/dist
 
 EXPOSE 7777
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \

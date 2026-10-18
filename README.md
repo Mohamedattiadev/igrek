@@ -1,4 +1,6 @@
-# God Eye
+# Igrek
+
+*Igrek: know why.* (Eski adı / formerly: God Eye)
 
 **Tüm AI kod projelerini tek ekrandan gör, anla ve yönet.**
 *See, understand and manage all your AI coding projects from one screen.*
@@ -15,7 +17,7 @@
 Artık kodu çoğunlukla yapay zekâ yazıyor (Claude, Codex, Gemini…). Ama çok fazla proje ve sohbet olunca
 neyin yapıldığı, neyin kaldığı ve neyin bozuk olduğu kayboluyor.
 
-**God Eye bunu çözer:**
+**Igrek bunu çözer:**
 
 - **Her şeyi takip eder:** Tüm AI sohbetlerini otomatik okur ve "bugün ne yapıldı" diye sade dille anlatır.
 - **Her şeyi hatırlar:** Alınan kararları, yapılan hataları ve projenin durumunu unutmaz. Yeni bir sohbette AI'a bunları kendisi hatırlatır.
@@ -36,10 +38,10 @@ Her şey **senin bilgisayarında** çalışır. Takımla paylaştığın veriler
 **Gerekenler:** [Docker](https://docs.docker.com/get-docker/) ve en az bir AI aracı (örneğin Claude Code).
 
 ```bash
-git clone <repo-adresi> god-eye
-cd god-eye
-cp .env.example .env     # projelerinin olduğu klasörü yaz: GODEYE_PROJECTS_DIR=...
-mkdir -p ~/.godeye
+git clone <repo-adresi> igrek
+cd igrek
+cp .env.example .env     # projelerinin olduğu klasörü yaz: IGREK_PROJECTS_DIR=...
+mkdir -p ~/.igrek
 docker compose up -d
 ```
 
@@ -48,9 +50,9 @@ Sonra tarayıcında şu adresi aç: **http://localhost:7777**
 İlk açılışta dilini seçersin, o kadar.
 (AI araçları, hesaplar ve proje klasörleri sonraki fazlarda bu sihirbaza eklenecek.)
 
-> **Not / Note:** `.env` dosyasındaki `GODEYE_PROJECTS_DIR` mutlaka var olan bir klasör olmalı. Yoksa Docker onu kendisi oluşturur ve klasörün sahibi `root` olur.
+> **Not / Note:** `.env` dosyasındaki `IGREK_PROJECTS_DIR` mutlaka var olan bir klasör olmalı. Yoksa Docker onu kendisi oluşturur ve klasörün sahibi `root` olur.
 
-**AI araçlarını imaja eklemek (isteğe bağlı):** `.env` dosyasında `GODEYE_INSTALL_CLAUDE=true` ve/veya `GODEYE_INSTALL_CODEX=true`, sonra `docker compose up -d --build`. Codex imajı yaklaşık 300 MB büyütür (kendi programı bu boyutta).
+**AI araçlarını imaja eklemek (isteğe bağlı):** `.env` dosyasında `IGREK_INSTALL_CLAUDE=true` ve/veya `IGREK_INSTALL_CODEX=true`, sonra `docker compose up -d --build`. Codex imajı yaklaşık 300 MB büyütür (kendi programı bu boyutta).
 
 ### Docker'sız çalıştırmak (geliştirici)
 
@@ -75,10 +77,10 @@ Tek başına kullanıyorsan bunu atla. Takım için küçük bir **Hub** sunucus
 ```bash
 # VPS'te, repo klasöründe
 docker compose -f docker/hub-compose.yml up -d --build
-docker compose -f docker/hub-compose.yml exec hub god-eye-hub create-admin <kullanici-adin>
+docker compose -f docker/hub-compose.yml exec hub igrek-hub create-admin <kullanici-adin>
 ```
 
-HTTPS için önüne Caddy koy (`docker/Caddyfile.example`). Sonra God Eye → **Takım** → *Kullanıcı adıyla giriş*. İlk girişte **kurtarma anahtarı** gösterilir, bir şifre yöneticisinde sakla. Arkadaşlarını oradan davet edersin: her biri için tek bir davet kodu çıkar, kodu özelden gönderirsin.
+HTTPS için önüne Caddy koy (`docker/Caddyfile.example`). Sonra Igrek → **Takım** → *Kullanıcı adıyla giriş*. İlk girişte **kurtarma anahtarı** gösterilir, bir şifre yöneticisinde sakla. Arkadaşlarını oradan davet edersin: her biri için tek bir davet kodu çıkar, kodu özelden gönderirsin.
 
 İstersen hub davet kodunu ve "şifremi unuttum" kodlarını **e-postayla** da gönderebilir (ücretsiz, kendi hesabınla; ör. Gmail uygulama şifresi). `docker/hub.env` dosyasına `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` yaz; yedekleme ayarları da aynı dosyaya gider (bkz. `docker/hub-compose.yml`).
 
@@ -92,7 +94,12 @@ HTTPS için önüne Caddy koy (`docker/Caddyfile.example`). Sonra God Eye → **
 Hayır. "Basit Mod"da sadece ne istediğini yazarsın.
 
 **Verilerim nerede duruyor?**
-Bilgisayarında, `~/.godeye` klasöründe.
+Bilgisayarında, `~/.igrek` klasöründe.
+
+**God Eye'dan güncelliyorum, verilerim ne olacak?**
+Igrek ilk açılışta `~/.godeye` klasörünü `~/.igrek`'e taşır ve eski yerde bir bağlantı bırakır. Eski `GODEYE_*` ayarları,
+kurulu hook'lar, eklentiler ve MCP kaydı çalışmaya devam eder. Docker kullanıyorsan önce `docker compose down`, sonra
+bir kez `mv ~/.godeye ~/.igrek`, ardından `docker compose up -d --build`.
 
 **API anahtarı (API key) gerekiyor mu?**
 Hayır. Normal Claude/Codex hesabınla giriş yapman yeterli.
@@ -109,7 +116,7 @@ Her değişiklik kaydedilir. Tek tıkla geri alabilirsin.
 Most code is now written by AI (Claude, Codex, Gemini…). But with many projects and chats, it's easy to lose
 track of what was done, what's left and what's broken.
 
-**God Eye fixes that:**
+**Igrek fixes that:**
 
 - **Tracks everything:** Reads all your AI chats automatically and explains "what happened today" in plain words.
 - **Remembers everything:** Keeps decisions, mistakes and project status, and reminds the AI in every new chat.
@@ -130,19 +137,19 @@ Everything runs **on your own computer**. Anything you share with your team is e
 **You need:** [Docker](https://docs.docker.com/get-docker/) and at least one AI tool (for example Claude Code).
 
 ```bash
-git clone <repo-url> god-eye
-cd god-eye
-cp .env.example .env     # set the folder that holds your projects: GODEYE_PROJECTS_DIR=...
-mkdir -p ~/.godeye
+git clone <repo-url> igrek
+cd igrek
+cp .env.example .env     # set the folder that holds your projects: IGREK_PROJECTS_DIR=...
+mkdir -p ~/.igrek
 docker compose up -d
 ```
 
 Then open **http://localhost:7777** and pick your language. That's it.
 (AI tools, accounts and project folders join the setup wizard in later phases.)
 
-> **Not / Note:** `GODEYE_PROJECTS_DIR` in `.env` must be a folder that already exists, otherwise Docker creates it owned by `root`.
+> **Not / Note:** `IGREK_PROJECTS_DIR` in `.env` must be a folder that already exists, otherwise Docker creates it owned by `root`.
 
-**Adding AI tools to the image (optional):** set `GODEYE_INSTALL_CLAUDE=true` and/or `GODEYE_INSTALL_CODEX=true` in `.env`, then `docker compose up -d --build`. Codex adds about 300 MB (its own binary is that size).
+**Adding AI tools to the image (optional):** set `IGREK_INSTALL_CLAUDE=true` and/or `IGREK_INSTALL_CODEX=true` in `.env`, then `docker compose up -d --build`. Codex adds about 300 MB (its own binary is that size).
 
 ### Run without Docker (developers)
 
@@ -167,10 +174,10 @@ Skip this if you work alone. A team runs a small **Hub** server (on your own VPS
 ```bash
 # On the VPS, in the repo folder
 docker compose -f docker/hub-compose.yml up -d --build
-docker compose -f docker/hub-compose.yml exec hub god-eye-hub create-admin <your-username>
+docker compose -f docker/hub-compose.yml exec hub igrek-hub create-admin <your-username>
 ```
 
-Put Caddy in front for HTTPS (`docker/Caddyfile.example`). Then God Eye → **Team** → *Sign in with username*. The first time, you get a **recovery key**. Keep it in a password manager. Invite teammates from there: each one gets a single invite code, which you send them privately.
+Put Caddy in front for HTTPS (`docker/Caddyfile.example`). Then Igrek → **Team** → *Sign in with username*. The first time, you get a **recovery key**. Keep it in a password manager. Invite teammates from there: each one gets a single invite code, which you send them privately.
 
 If you like, the hub can also **email** invite codes and "forgot password" codes (free, through your own account, e.g. a Gmail app password). Put `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER` and `SMTP_PASS` in `docker/hub.env`; backup settings go in the same file (see `docker/hub-compose.yml`).
 
@@ -182,7 +189,11 @@ If you like, the hub can also **email** invite codes and "forgot password" codes
 
 **Do I need to know how to code?** No. In "Simple Mode" you just type what you want.
 
-**Where is my data?** On your computer, in the `~/.godeye` folder.
+**Where is my data?** On your computer, in the `~/.igrek` folder.
+
+**Updating from God Eye?** On first start Igrek moves `~/.godeye` to `~/.igrek` and leaves a link at the old path. Old
+`GODEYE_*` settings, installed hooks, plugins and the MCP entry keep working. With Docker: `docker compose down`, then once
+`mv ~/.godeye ~/.igrek`, then `docker compose up -d --build`.
 
 **Do I need an API key?** No. Your normal Claude/Codex account login is enough.
 
