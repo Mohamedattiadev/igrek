@@ -709,7 +709,7 @@ god-eye/
 - [x] **İş büyüklüğü tahmini:** büyük işlerde *"Bu iş büyük, önce Plan modunda başlayalım mı?"* veya *"Bunu 3 adıma bölelim mi?"* — *Plan moduna geçiş butonu var; adımlara bölme sonra*
 - [x] Araca göre ayar: Claude ve Codex için en iyi çalışan biçim (ör. Codex'e daha net dosya listesi)
 - [x] Hazır niyet kalıpları: *düzelt · ekle · yeniden düzenle · açıkla · test yaz · gözden geçir · deploy'a hazırla*. Her biri kendi "Bitti sayılır" maddeleriyle gelir
-- [ ] Personalar (Faz 6) gelince: prompt seçilen personaya göre hazırlanır (ör. "Güvenlik uzmanı" için risk kontrolü maddeleri)
+- [x] Personalar (Faz 6) gelince: prompt seçilen personaya göre hazırlanır (ör. "Güvenlik uzmanı" için risk kontrolü maddeleri) — *sohbet bir personayla açıldıysa güçlendirici o personanın kontrol listesini kullanır: model, listeden bu isteğe uyan maddeleri "Bitti sayılır"a ekler; modelsiz anlık sürümde listenin ilk dört maddesi eklenir. Testle denendi (şablon yolu); model yolu gerçek bir modelle denenmedi*
 
 #### 4.5.4 Benden öğrenme
 - [x] Hangi güçlendirilmiş prompt'ların iyi sonuç verdiğini takip eder (az hata, az tekrar deneme, session sağlığı iyi, kabul edildi) — *gönderilen sürüm session'a bağlanır; sonraki 30 dk'daki hatalar güçlendirilmiş/orijinal olarak karşılaştırılır*

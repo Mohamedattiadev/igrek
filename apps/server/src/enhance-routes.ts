@@ -18,6 +18,7 @@ export function registerEnhanceRoutes(app: Hono, enhancer: Enhancer): void {
       sessionId: str(body.sessionId, 128),
       tool: body.tool === "codex" ? "codex" : ("claude" as AiTool),
       template: body.template === true,
+      personaId: str(body.personaId, 64),
       file:
         file && typeof file.path === "string"
           ? {

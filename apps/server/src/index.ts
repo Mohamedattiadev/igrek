@@ -100,7 +100,7 @@ import {
 } from "./ops-routes";
 import { Perf } from "./perf";
 import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
-import { Personas } from "./personas";
+import { Personas, personaLabel } from "./personas";
 import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
 import { registerPreviewRoutes } from "./preview-routes";
@@ -298,6 +298,10 @@ const enhancer = new Enhancer(
   join(config.dataDir, "runner"),
   (id) => sync.presenceList(id),
   (id) => terminals.recentErrors(id),
+  (id) => {
+    const persona = personas.get(id);
+    return persona && { name: personaLabel(persona).role, checklist: persona.profile.checklist };
+  },
 );
 const flows = new Flows(sqlite, store, bus, stops, personas, join(config.dataDir, "worktrees"));
 const board = new Board(sqlite, bus, flows);

@@ -1190,7 +1190,12 @@ export function ChatPage() {
               <EnhancePanel
                 key={enhancing}
                 text={enhancing}
-                target={{ projectId: info.projectId, sessionId: info.sessionId, tool: "claude" }}
+                target={{
+                  projectId: info.projectId,
+                  sessionId: info.sessionId,
+                  tool: "claude",
+                  personaId: info.persona?.id,
+                }}
                 onClose={() => setEnhancing(undefined)}
                 onUse={(prompt) => send(prompt)}
                 onPlanMode={info.mode === "plan" ? undefined : () => chat.setMode("plan")}

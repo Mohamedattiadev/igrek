@@ -585,6 +585,7 @@ export const api = {
     answers?: { question: string; answer: string }[];
     exclude?: string[];
     template?: boolean;
+    personaId?: string;
   }) => request<EnhanceResult & { id: string }>("/api/enhance", { method: "POST", body: JSON.stringify(body) }),
   enhanceUsed: (id: string, choice: "enhanced" | "edited" | "original", final?: string, sessionId?: string) =>
     request<{ ok: boolean }>(`/api/enhance/${id}/used`, {

@@ -105,6 +105,33 @@ describe("enhancer", () => {
   });
 });
 
+describe("persona prompts", () => {
+  test("the persona's checklist joins the done-when items", async () => {
+    const db = new Database(":memory:");
+    migrate(db);
+    const e = new Enhancer(
+      db,
+      new Store(db),
+      new StopRegistry(),
+      () => ({ language: "en" }) as never,
+      "/tmp",
+      () => [],
+      () => undefined,
+      (id) =>
+        id === "security"
+          ? { name: "Security expert", checklist: ["No secrets in logs", "Inputs validated on the server"] }
+          : undefined,
+    );
+    const plain = await e.enhance({ text: "add a login form", template: true });
+    const secure = await e.enhance({ text: "add a login form", template: true, personaId: "security" });
+    expect(secure.parts?.done).toEqual([
+      ...(plain.parts?.done ?? []),
+      "No secrets in logs",
+      "Inputs validated on the server",
+    ]);
+  });
+});
+
 describe("shortcuts and stats", () => {
   test("shorthands expand as whole words only", async () => {
     const { expandShortcuts } = await import("@godeye/core");

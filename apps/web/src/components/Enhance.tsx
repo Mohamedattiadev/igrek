@@ -34,6 +34,8 @@ export interface EnhanceTarget {
   sessionId?: string;
   tool?: AiTool;
   file?: { path: string; selection?: string; startLine?: number; endLine?: number };
+  /** The chat's persona: its checklist shapes the "done when" items. */
+  personaId?: string;
 }
 
 const CONTEXT_ICONS: Record<EnhanceContextKind, typeof Brain> = {
