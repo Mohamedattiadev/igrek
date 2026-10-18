@@ -16,6 +16,7 @@ import { Jobs } from "./jobs";
 import { handle } from "./mcp";
 import { Store } from "./store";
 import { buildPrompt, parseModelReply } from "./summarizer";
+import { handoffPrompt } from "./terminal-routes";
 
 const ts = (min: number) => new Date(Date.UTC(2026, 9, 16, 10, min)).toISOString();
 
@@ -386,6 +387,30 @@ describe("MCP server", () => {
       "godeye_schedule",
       "godeye_recent_sessions",
     ]);
+  });
+});
+
+describe("incremental summaries and handoffs", () => {
+  test("an update sends the previous summary and only what came after", () => {
+    const previous = {
+      title: "Login",
+      texts: { en: { did: ["Added the form"], why: "Users sign in", left: ["Error messages"], risks: [] } },
+      generatedAt: 1,
+    };
+    const prompt = buildPrompt("USER: add error messages", ["src/Login.tsx"], "en", { previous });
+    expect(prompt).toContain("PREVIOUS SUMMARY");
+    expect(prompt).toContain("Added the form");
+    expect(prompt).toContain("only what happened after it");
+    expect(buildPrompt("USER: hi", [], "en")).not.toContain("PREVIOUS SUMMARY");
+  });
+
+  test("a handoff names the branch and the files the session changed", () => {
+    const text = handoffPrompt("Login", undefined, "en", undefined, {
+      files: ["src/a.ts", "src/b.ts"],
+      branch: "feat/login",
+    });
+    expect(text).toContain("Branch: feat/login");
+    expect(text).toContain("- src/b.ts");
   });
 });
 

@@ -18,6 +18,8 @@ export function handoffPrompt(
   summary: SessionSummaryData | undefined,
   language: string,
   reason = "that got too long",
+  /** Facts read from the session itself, not written by a model: where the work happened. */
+  where: { files?: string[]; branch?: string } = {},
 ): string {
   const text = summary?.texts[language] ?? summary?.texts.en ?? Object.values(summary?.texts ?? {})[0];
   const lines = [
@@ -26,6 +28,13 @@ export function handoffPrompt(
     text?.did.length ? `Already done:\n${text.did.map((d) => `- ${d}`).join("\n")}` : "",
     text?.left.length ? `Still open:\n${text.left.map((d) => `- ${d}`).join("\n")}` : "",
     text?.risks.length ? `Check first:\n${text.risks.map((d) => `- ${d}`).join("\n")}` : "",
+    where.branch ? `Branch: ${where.branch}` : "",
+    where.files?.length
+      ? `Files it changed:\n${where.files
+          .slice(-15)
+          .map((f) => `- ${f}`)
+          .join("\n")}`
+      : "",
     "Start by checking the current state of the code (git status, the files involved) before changing anything, then tell me in two sentences where we are and what you'll do next.",
   ];
   return lines.filter(Boolean).join("\n\n");
@@ -127,7 +136,12 @@ export function registerTerminalRoutes(
         tool,
         env: accountEnv(tool === "codex" ? "codex" : "claude", project.id),
         title: `↻ ${summary?.title || session.title || "handoff"}`,
-        args: [handoffPrompt(session.title ?? "", summary, language())],
+        args: [
+          handoffPrompt(session.title ?? "", summary, language(), undefined, {
+            files: JSON.parse(session.files_touched) as string[],
+            branch: session.git_branch ?? undefined,
+          }),
+        ],
       });
       return c.json(info);
     } catch (err) {

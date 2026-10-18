@@ -470,10 +470,13 @@ export class Store {
   }
 
   /** Condensed transcript for summarizing: every prompt and reply, newest kept when trimming. */
-  transcriptForSummary(id: string, maxChars = 16_000): string {
+  /** The session as text for a summary; with `since`, only what was said after that time (an update). */
+  transcriptForSummary(id: string, maxChars = 16_000, since = 0): string {
     const rows = this.db
-      .query("SELECT role, kind, text FROM messages WHERE session_id = ? AND kind != 'tool' ORDER BY ts ASC, rowid ASC")
-      .all(id) as { role: string; kind: string; text: string }[];
+      .query(
+        "SELECT role, kind, text FROM messages WHERE session_id = ? AND kind != 'tool' AND ts > ? ORDER BY ts ASC, rowid ASC",
+      )
+      .all(id, since) as { role: string; kind: string; text: string }[];
     const lines = rows.map((r) => `${r.role === "user" ? "USER" : "AI"}: ${r.text.slice(0, 1500)}`);
     const first = lines[0] ?? "";
     let body = "";
