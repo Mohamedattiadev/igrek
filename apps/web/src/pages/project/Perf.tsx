@@ -1,4 +1,4 @@
-import type { CacheAudit, PageVitals, RoutePerf, VitalValue } from "@godeye/core";
+import type { CacheAudit, PageVitals, RenderAdvice, RoutePerf, VitalValue } from "@godeye/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui";
@@ -76,6 +76,47 @@ function VitalsTable({ projectId }: { projectId: string }) {
           </table>
         </div>
       )}
+    </section>
+  );
+}
+
+/** Render strategy per page (plan.md 15.4), from the code; only shown for projects that have pages. */
+function RenderStrategy({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [rows, setRows] = useState<RenderAdvice[]>();
+  useEffect(() => {
+    let live = true;
+    request<RenderAdvice[]>(`/api/projects/${projectId}/render-advice`)
+      .then((list) => live && setRows(list))
+      .catch(() => live && setRows([]));
+    return () => {
+      live = false;
+    };
+  }, [projectId]);
+  if (!rows?.length) return null;
+  return (
+    <section className="space-y-2">
+      <h2 className="text-[14px] font-semibold">{t("perf.renderTitle")}</h2>
+      <p className="text-xs text-fg-muted">{t("perf.renderHint")}</p>
+      <ul className="divide-y divide-border rounded-ui border border-border text-[12.5px]">
+        {rows.map((r) => (
+          <li key={r.file} className="space-y-0.5 px-3 py-2">
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="font-mono">{r.route}</span>
+              <span className="rounded bg-bg-subtle px-1.5 text-[11px] uppercase">{r.current}</span>
+              {r.suggested && (
+                <span className="rounded bg-accent-soft px-1.5 text-[11px] uppercase text-accent">→ {r.suggested}</span>
+              )}
+              <span className="truncate font-mono text-[11px] text-fg-subtle">{r.file}</span>
+            </p>
+            {r.reasons.map((reason) => (
+              <p key={reason} className="text-xs text-fg-muted">
+                {t(`perf.render_${reason}`)}
+              </p>
+            ))}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
@@ -165,6 +206,7 @@ export function PerfPanel({ projectId }: { projectId: string }) {
   }, [projectId]);
   return (
     <div className="space-y-6">
+      <RenderStrategy projectId={projectId} />
       <VitalsTable projectId={projectId} />
       <CacheCheck />
       <section className="space-y-2">

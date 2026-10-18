@@ -3629,7 +3629,15 @@
     "cache_notCompressed": "Sıkıştırılmamış",
     "cacheFix_notCompressed": "Sunucuda ya da CDN'de metin dosyaları (HTML, JS, CSS, JSON, SVG) için brotli ya da gzip'i aç; genelde üçte birine iner.",
     "cache_noCache": "Hiç önbellek kuralı yok",
-    "cacheFix_noCache": "Bir Cache-Control başlığı ver ve adına içerik hash'i koy ki bir yıl önbelleğe alınabilsin."
+    "cacheFix_noCache": "Bir Cache-Control başlığı ver ve adına içerik hash'i koy ki bir yıl önbelleğe alınabilsin.",
+    "renderTitle": "Sayfa başına render stratejisi",
+    "renderHint": "Koddan okunur (Next.js): SSG bir kez üretilir, ISR belli aralıklarla yeniden üretilir, SSR her istekte üretilir, CSR veriyi tarayıcıda çeker. Sayfanın verisine başka biri daha uygunsa öneri çıkar.",
+    "render_browserFetchPublic": "Sayfa verisini yüklendikten sonra tarayıcıda çekiyor ama içinde kişiye özel bir şey yok: veriyi bir server component'te çek ki ilk HTML'de olsun (daha hızlı ilk görüntü, arama motorları görür).",
+    "render_dynamicNotPersonal": "Her istekte üretiliyor (no-store) ama herkese aynı şeyi gösteriyor: önbelleğe al ve belli aralıkla (export const revalidate = 60) ya da veri değişince (revalidateTag) yenile.",
+    "render_serverPropsPublic": "getServerSideProps her istekte çalışıyor ama sayfa herkes için aynı: revalidate ile getStaticProps kullan.",
+    "render_streamWithLoading": "Giriş yapmış kullanıcı için her istekte üretiliyor; bir loading.tsx ekle ki iskelet hemen görünsün, veri akarak gelsin.",
+    "render_preRenderParams": "URL parametresi olan ve veri çeken sayfada generateStaticParams yok: bilinen sayfalar sadece ilk ziyarette üretiliyor; sık kullanılanları listele ki önceden üretilsin.",
+    "render_staticDataGoesStale": "Veriyi build sırasında çekiyor ve hiç yenilemiyor: bir revalidate süresi ekle, yoksa bir sonraki deploy'a kadar build günündeki veriyi gösterir."
   },
   "incident": {
     "title": "Olay modu",

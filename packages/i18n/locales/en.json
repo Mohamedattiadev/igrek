@@ -3629,7 +3629,15 @@
     "cache_notCompressed": "Not compressed",
     "cacheFix_notCompressed": "Turn on brotli or gzip for text files (HTML, JS, CSS, JSON, SVG) in the server or the CDN; they usually shrink to a third.",
     "cache_noCache": "No caching rule at all",
-    "cacheFix_noCache": "Give it a Cache-Control header, and put a content hash in its name so it can be cached for a year."
+    "cacheFix_noCache": "Give it a Cache-Control header, and put a content hash in its name so it can be cached for a year.",
+    "renderTitle": "Render strategy per page",
+    "renderHint": "Read from the code (Next.js): SSG is built once, ISR is rebuilt on a timer, SSR renders on every request, CSR fetches in the browser. A suggestion appears when the page's data fits another one better.",
+    "render_browserFetchPublic": "The page fetches its data in the browser after it loads, though nothing in it is personal: fetch it in a server component so it is in the first HTML (faster first paint, visible to search engines).",
+    "render_dynamicNotPersonal": "It renders on every request (no-store) but shows the same thing to everyone: cache it and refresh on a timer (export const revalidate = 60) or when the data changes (revalidateTag).",
+    "render_serverPropsPublic": "getServerSideProps runs on every request though the page is the same for everyone: use getStaticProps with revalidate.",
+    "render_streamWithLoading": "It renders per request for the signed-in user; add a loading.tsx so the shell shows at once and the data streams in.",
+    "render_preRenderParams": "A page with a URL parameter that fetches data but lists no generateStaticParams: known pages are built on first visit only; list the common ones to build them ahead.",
+    "render_staticDataGoesStale": "It fetches data at build time and never refreshes: add a revalidate time, or it shows build-day data until the next deploy."
   },
   "incident": {
     "title": "Incident mode",

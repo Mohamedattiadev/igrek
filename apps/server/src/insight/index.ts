@@ -15,6 +15,7 @@ import {
   type InboxNotice,
   type InsightConfig,
   type InsightScan,
+  type RenderAdvice,
   type Settings,
   type ToolKind,
   type ToolPlan,
@@ -26,6 +27,7 @@ import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
 import { scrub } from "../sync/scrub";
 import { coverageMap } from "./coverage";
+import { renderAdvice as adviseRender } from "./render";
 import { SENSITIVE, takeSnapshot } from "./snapshot";
 import { planTools, runTool } from "./tools";
 
@@ -92,6 +94,12 @@ export class Insight {
   onToolFailed: (projectId: string, result: ToolResult) => void = () => undefined;
 
   /** Which code has tests (plan.md 6.1c); computed when asked. */
+  /** Render strategy per page (Next.js projects). */
+  renderAdvice(projectId: string): RenderAdvice[] | undefined {
+    const root = this.rootOf(projectId);
+    return root ? adviseRender(root) : undefined;
+  }
+
   coverage(projectId: string): CoverageMap | undefined {
     const root = this.rootOf(projectId);
     return root ? coverageMap(takeSnapshot(root)) : undefined;

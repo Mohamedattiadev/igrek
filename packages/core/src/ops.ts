@@ -766,3 +766,17 @@ export interface CacheAudit {
   cdn?: { name: string; hit?: boolean };
   serviceWorker: boolean;
 }
+
+/** How a page is rendered (plan.md 15.4): static, static with timed refresh, per request, or in the browser. */
+export type RenderMode = "ssg" | "isr" | "ssr" | "csr";
+
+export interface RenderAdvice {
+  route: string;
+  file: string;
+  current: RenderMode;
+  suggested?: RenderMode;
+  /** Why (i18n keys under perf.render_*): the fix to make even when the mode stays. */
+  reasons: string[];
+  /** What was seen in the code: "client", "signedIn", "revalidate"… */
+  evidence: string[];
+}

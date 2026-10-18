@@ -18,6 +18,10 @@ export function registerInsightRoutes(app: Hono, insight: Insight, history: Hist
   });
 
   app.get("/api/projects/:id/insight", (c) => c.json(insight.latest(c.req.param("id"))));
+  app.get("/api/projects/:id/render-advice", (c) => {
+    const advice = insight.renderAdvice(c.req.param("id"));
+    return advice ? c.json(advice) : c.json({ error: "Project folder not found" }, 404);
+  });
   app.get("/api/projects/:id/coverage-map", (c) => {
     const map = insight.coverage(c.req.param("id"));
     return map ? c.json(map) : c.json({ error: "Project folder not found" }, 404);
