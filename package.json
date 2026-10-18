@@ -25,6 +25,8 @@
     "@biomejs/biome": "^2.5.15"
   },
   "overrides": {
-    "dompurify": "3.4.17"
+    "dompurify": "3.4.17",
+    "@openuidev/devtools": "0.2.2",
+    "lucide-react": "^1.58.0"
   }
 }

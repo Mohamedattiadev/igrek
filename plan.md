@@ -1157,7 +1157,7 @@ god-eye/
 - [ ] Bağlam ölçer, prompt önbelleği süresi, "önbellek doldu, sıkıştıralım mı?" (#18)
 
 #### 16.2 Zengin cevaplar ve raporlar
-- [ ] ⭐ OpenUI (sadece `react-lang` + `lang-core`) God Eye'ın kendi bileşenleriyle, ` ```openui ` bloğu olarak; önce kendi raporlarımızda, sonra sohbette isteğe bağlı. Telemetri kapalı ve testle doğrulanmış (#7, rapor bölüm 4)
+- [ ] ⭐ OpenUI (sadece `react-lang` + `lang-core`) God Eye'ın kendi bileşenleriyle, ` ```openui ` bloğu olarak; önce kendi raporlarımızda, sonra sohbette isteğe bağlı. Telemetri kapalı ve testle doğrulanmış (#7, rapor bölüm 4) — *Deneme bitti (Ekim 2026): `react-lang` ve `lang-core` 0.3.0 (2 haftalık kuralı yüzünden 1.0 değil) ve zod 4.6.5 eklendi; 9 bileşenlik God Eye kütüphanesi (Stack, Card, Text, Stats, Chart, Progress, Table, Callout, Code) mevcut grafik/istatistik/ilerleme parçalarını sarar; ` ```openui ` ve ` ```openui-lang ` blokları sohbette tembel yüklenen ayrı bir parçayla (165 KB, gzip 50 KB) çizilir, ana paket büyümedi; talimat yaklaşık 1050 token. Telemetri testle doğrulandı: Bun kurulum betiğini çalıştırmaz, bayraklarla betik hiçbir şey göndermez (kontrol olarak bayraksız gönderdiği de gösterilir), kütüphane ve talimat üretmek istek atmaz, ekranda dış adrese istek gitmedi; CI ve Dockerfile bayrakları ayarlar. Kalanlar: modele talimatın verilmesi, raporların OpenUI ile yazılması, sohbette isteğe bağlı açma, buton eylemleri*
 - [ ] AI'ın yaptığı HTML raporlar için temalı, sandbox'lı iframe (#7)
 
 #### 16.3 Çoklu ajan ve güvenilirlik

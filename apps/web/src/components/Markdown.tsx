@@ -1,6 +1,6 @@
 import DOMPurify from "dompurify";
 import { marked } from "marked";
-import { memo, useEffect, useMemo, useRef } from "react";
+import { lazy, memo, Suspense, useEffect, useMemo, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { highlight, highlightCached, langKey } from "../lib/highlight";
@@ -10,6 +10,9 @@ import { innerCode } from "../lib/useHighlight";
 import { RICH_LANGS, RichBlock } from "./RichBlocks";
 
 type Words = { copy: string; copied: string; callout: Record<string, string> };
+
+/** OpenUI is loaded the first time an answer has a ```openui block (plan.md 16.2). */
+const OpenUiBlock = lazy(() => import("./OpenUi"));
 
 /**
  * Code blocks get colors like VS Code, a language label and a copy button. Done on the rendered
@@ -39,6 +42,19 @@ function enhanceCode(root: HTMLElement, words: Words, streaming: boolean): () =>
     if (!code) continue;
     const lang = [...code.classList].find((c) => c.startsWith("language-"))?.slice(9);
     const text = code.textContent ?? "";
+    // OpenUI's own prompt teaches "openui-lang"; "openui" is the short name.
+    if (lang === "openui" || lang === "openui-lang") {
+      const box = document.createElement("div");
+      pre.replaceWith(box);
+      const r = createRoot(box);
+      r.render(
+        <Suspense fallback={null}>
+          <OpenUiBlock code={text} streaming={streaming && pre === pres[pres.length - 1]} />
+        </Suspense>,
+      );
+      roots.push({ root: r, box });
+      continue;
+    }
     // A chart, stats or diagram block becomes a component, once its JSON is complete
     // (while an answer streams in, the half-written block stays plain).
     if (lang && (RICH_LANGS as readonly string[]).includes(lang) && (lang === "mermaid" || parses(text))) {

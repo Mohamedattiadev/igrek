@@ -4,6 +4,8 @@ ARG BUN_VERSION=1.4.3
 # ---- 1. Build the web UI ---------------------------------------------------
 FROM oven/bun:${BUN_VERSION}-slim AS build
 WORKDIR /app
+# God Eye sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
+ENV OPENUI_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1
 COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
@@ -18,6 +20,7 @@ RUN bun run build
 # ---- 2. Production dependencies only ---------------------------------------
 FROM oven/bun:${BUN_VERSION}-slim AS deps
 WORKDIR /app
+ENV OPENUI_TELEMETRY_DISABLED=1 DO_NOT_TRACK=1
 COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/

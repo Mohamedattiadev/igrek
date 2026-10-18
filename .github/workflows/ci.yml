@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
 
+# God Eye sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
+env:
+  OPENUI_TELEMETRY_DISABLED: "1"
+  DO_NOT_TRACK: "1"
+
 jobs:
   check:
     runs-on: ubuntu-latest
