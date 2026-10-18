@@ -1,0 +1,736 @@
+id: web-performance
+title:
+  en: "Web performance problems"
+  tr: "Web performans sorunları"
+category: concept
+summary:
+  en: A catalog of known web performance problems, from the early web to today; each one says how to detect it, how to fix it and the usual wrong fix.
+  tr: Web'in ilk günlerinden bugüne bilinen performans sorunlarının kataloğu; her biri nasıl tespit edilir, nasıl düzeltilir ve en sık yapılan yanlış düzeltme nedir söyler.
+aliases: [performance, web vitals, core web vitals, lcp, inp, cls, lighthouse, page speed, slow website, yavaş site, performans, sayfa hızı, optimizasyon, bundle size, render blocking]
+checked: 2026-10
+sources:
+  - title: web.dev Core Web Vitals
+    url: https://web.dev/articles/vitals
+  - title: web.dev Performance
+    url: https://web.dev/performance
+  - title: MDN Web performance
+    url: https://developer.mozilla.org/en-US/docs/Web/Performance
+roadmap: web
+sections:
+  - id: vitals
+    title: { en: "Measuring first", tr: "Önce ölçmek" }
+    items:
+      - id: no-measurement
+        level: basic
+        title: { en: "Guessing instead of measuring", tr: "Ölçmek yerine tahmin etmek" }
+        what:
+          en: Without numbers you fix the wrong thing, and users still wait.
+          tr: Sayı olmadan yanlış şeyi düzeltirsin ve kullanıcılar yine bekler.
+        lang: text
+        form: |
+          Core Web Vitals at the 75th percentile of real users (good values):
+            LCP (loading)       <= 2.5 s
+            INP (interactivity) <= 200 ms
+            CLS (stability)     <= 0.1
+          Lab: Lighthouse, Chrome DevTools Performance panel.
+          Field: CrUX / PageSpeed Insights, web-vitals library.
+        example: |
+          # Lab test from the terminal
+          npx lighthouse https://example.com --only-categories=performance --view
+        mistake:
+          en: Trusting only a lab score on your fast laptop. Real users on slow phones and networks decide the Core Web Vitals.
+          tr: Sadece hızlı laptopundaki lab skoruna güvenmek. Core Web Vitals'ı yavaş telefon ve ağdaki gerçek kullanıcılar belirler.
+        source: https://web.dev/articles/vitals
+      - id: lab-vs-field
+        level: intermediate
+        title: { en: "Lab data and field data disagree", tr: "Lab verisi ile saha verisi uyuşmuyor" }
+        what:
+          en: A lab run is one simulated load, field data is what real users lived, so the numbers differ and INP exists only in the field.
+          tr: Lab ölçümü tek bir simüle yükleme, saha verisi ise gerçek kullanıcıların yaşadığıdır; sayılar farklı çıkar ve INP sadece sahada ölçülür.
+        lang: text
+        form: |
+          PageSpeed Insights: compare "Discover what your real users are experiencing" with the Lighthouse part.
+          Lighthouse proxy for INP: Total Blocking Time (TBT).
+        example: |
+          import { onLCP, onINP, onCLS } from "web-vitals";
+          onLCP(console.log);
+          onINP(console.log);
+          onCLS(console.log);
+        mistake:
+          en: Tuning until Lighthouse shows 100 while the field data stays bad, or the reverse.
+          tr: Saha verisi kötü kalırken Lighthouse 100 gösterene kadar ayar yapmak, ya da tersi.
+        source: https://web.dev/articles/lab-and-field-data-differences
+      - id: slow-ttfb
+        level: basic
+        title: { en: "Slow server response (TTFB)", tr: "Yavaş sunucu cevabı (TTFB)" }
+        what:
+          en: The browser waits a long time for the first byte, so everything after it starts late.
+          tr: Tarayıcı ilk byte için uzun süre bekler, bu yüzden sonrasındaki her şey geç başlar.
+        lang: sh
+        form: |
+          curl -o /dev/null -s -w "ttfb: %{time_starttransfer}s\n" https://example.com
+          # Lighthouse: "Reduce initial server response time"
+        example: |
+          # Cache the HTML at a CDN or reverse proxy, add database indexes,
+          # and avoid work before the first byte (render static pages ahead of time).
+          Cache-Control: public, s-maxage=300, stale-while-revalidate=60
+        mistake:
+          en: Minifying CSS when the real delay is a slow database query or a server in another continent.
+          tr: Asıl gecikme yavaş bir veritabanı sorgusu ya da başka kıtadaki bir sunucuyken CSS'i minify etmeye uğraşmak.
+        source: https://web.dev/articles/ttfb
+      - id: redirect-chains
+        level: basic
+        title: { en: "Redirect chains", tr: "Yönlendirme zincirleri" }
+        what:
+          en: Each redirect is a full extra round trip before the real page starts loading.
+          tr: Her yönlendirme, asıl sayfa yüklenmeye başlamadan önce eklenen tam bir gidiş-dönüş süresidir.
+        lang: sh
+        form: |
+          curl -sIL http://example.com | grep -iE "^(HTTP|location)"
+          # Lighthouse: "Avoid multiple page redirects"
+        example: |
+          # Send http://example.com and www straight to the final URL in one hop
+          return 301 https://example.com$request_uri;
+        mistake:
+          en: Redirecting http to https and then non-www to www as two separate hops.
+          tr: http'den https'e, sonra www olmayandan www'ye iki ayrı adımla yönlendirmek.
+        source: https://developer.chrome.com/docs/lighthouse/performance/redirects
+  - id: payload
+    title: { en: "Requests and payload size", tr: "İstekler ve veri boyutu" }
+    items:
+      - id: huge-payload
+        level: basic
+        title: { en: "Enormous network payload", tr: "Aşırı büyük ağ yükü" }
+        what:
+          en: The page downloads many megabytes, so it is slow on mobile data and costs users money.
+          tr: Sayfa megabaytlarca veri indirir; mobil veride yavaşlar ve kullanıcıya para kaybettirir.
+        lang: text
+        form: |
+          DevTools > Network: sort by Size, tick "Disable cache", read the transferred total.
+          Lighthouse: "Avoid enormous network payloads".
+        example: |
+          Remove what is not needed, compress what is left (images, text, video),
+          and load the rest later (lazy loading, code splitting).
+        mistake:
+          en: Looking only at the code size; images and video are usually the largest part.
+          tr: Sadece kod boyutuna bakmak; çoğu zaman en büyük kısım görseller ve videodur.
+        source: https://developer.chrome.com/docs/lighthouse/performance/total-byte-weight
+      - id: no-compression
+        level: basic
+        title: { en: "No text compression (gzip, Brotli)", tr: "Metin sıkıştırması yok (gzip, Brotli)" }
+        what:
+          en: HTML, CSS, JS and JSON travel at full size, much larger than needed.
+          tr: HTML, CSS, JS ve JSON tam boyutuyla gider; gerekenden çok daha büyüktür.
+        lang: sh
+        form: |
+          curl -sI -H "Accept-Encoding: br, gzip" https://example.com/app.js | grep -i content-encoding
+          # no content-encoding line = not compressed
+          # Lighthouse: "Enable text compression"
+        example: |
+          # nginx: gzip is built in, Brotli needs the ngx_brotli module
+          gzip on;
+          gzip_types text/css application/javascript application/json image/svg+xml;
+        mistake:
+          en: Compressing images and fonts such as JPEG or WOFF2 again; they are already compressed, so it only wastes CPU. Note that text/html is compressed by default but other types must be listed.
+          tr: JPEG veya WOFF2 gibi zaten sıkıştırılmış dosyaları tekrar sıkıştırmak; sadece CPU harcar. text/html varsayılan olarak sıkıştırılır ama diğer türler listeye eklenmelidir.
+        source: https://nginx.org/en/docs/http/ngx_http_gzip_module.html
+      - id: no-minify
+        level: basic
+        title: { en: "Unminified CSS and JavaScript", tr: "Minify edilmemiş CSS ve JavaScript" }
+        what:
+          en: Comments, spaces and long names stay in the files, so more bytes are sent and parsed.
+          tr: Yorumlar, boşluklar ve uzun isimler dosyalarda kalır; daha fazla byte gönderilir ve ayrıştırılır.
+        lang: text
+        form: |
+          The built file served to users still has spaces, long names and comments.
+          DevTools > Sources: if the file is readable with comments, it is not minified.
+        example: |
+          Use the production build of your bundler (vite build, next build);
+          it minifies automatically. Never ship the dev build.
+        mistake:
+          en: Shipping the development build of a framework to production, which is larger and slower than minifying alone can fix.
+          tr: Framework'ün development build'ini canlıya almak; bu, tek başına minify'ın düzeltebileceğinden daha büyük ve yavaştır.
+        source: https://developer.chrome.com/docs/lighthouse/performance/unminified-javascript
+      - id: too-many-requests
+        level: basic
+        title: { en: "Too many small requests", tr: "Çok sayıda küçük istek" }
+        what:
+          en: Dozens of tiny files each cost a request, which hurts most on slow or high-latency networks.
+          tr: Onlarca küçük dosyanın her biri bir istek maliyeti getirir; yavaş ve gecikmesi yüksek ağlarda en çok canını yakar.
+        lang: text
+        form: |
+          DevTools > Network: count the requests, look at the waterfall for many short bars.
+          Old fix: CSS sprites and concatenated files (made for HTTP/1.1).
+        example: |
+          Let the bundler group modules sensibly. Inline tiny critical assets,
+          and keep a handful of well-cached files instead of one giant or hundreds of tiny ones.
+        mistake:
+          en: Bundling everything into one huge file; on HTTP/2 and HTTP/3 many requests are cheap, but one change then invalidates the whole cache.
+          tr: Her şeyi tek dev dosyada toplamak; HTTP/2 ve HTTP/3'te çok istek ucuzdur, ama tek değişiklik tüm cache'i geçersiz kılar.
+        source: https://web.dev/articles/performance-http2
+      - id: css-import-chain
+        level: intermediate
+        title: { en: "CSS @import chains", tr: "CSS @import zincirleri" }
+        what:
+          en: A stylesheet that imports another one makes the browser discover files one after another instead of in parallel.
+          tr: Başka bir stylesheet'i import eden stylesheet, tarayıcının dosyaları paralel yerine birbiri ardına keşfetmesine yol açar.
+        lang: html
+        form: |
+          DevTools > Network waterfall: a CSS file requested only after another CSS file finished.
+          Lighthouse: "Avoid chaining critical requests".
+        example: |
+          <!-- instead of @import url("b.css") inside a.css -->
+          <link rel="stylesheet" href="a.css">
+          <link rel="stylesheet" href="b.css">
+        mistake:
+          en: Keeping @import and adding preload for the second file instead of removing the chain.
+          tr: Zinciri kaldırmak yerine @import'u bırakıp ikinci dosyaya preload eklemek.
+        source: https://developer.mozilla.org/en-US/docs/Web/CSS/@import
+      - id: unused-code
+        level: intermediate
+        title: { en: "Unused JavaScript and CSS", tr: "Kullanılmayan JavaScript ve CSS" }
+        what:
+          en: Code for features the page never uses is still downloaded and parsed.
+          tr: Sayfanın hiç kullanmadığı özelliklerin kodu yine de indirilir ve ayrıştırılır.
+        lang: text
+        form: |
+          DevTools > Coverage panel: red bars show unused bytes.
+          Lighthouse: "Reduce unused JavaScript", "Reduce unused CSS".
+        example: |
+          // load a heavy part only when needed
+          const { Chart } = await import("./chart.js");
+        mistake:
+          en: Deleting code that only looks unused because the Coverage run did not click through that feature.
+          tr: Sadece Coverage kaydında o özelliğe tıklanmadığı için kullanılmıyor görünen kodu silmek.
+        source: https://web.dev/articles/reduce-javascript-payloads-with-code-splitting
+      - id: legacy-js
+        level: advanced
+        title: { en: "Legacy JavaScript and polyfills sent to modern browsers", tr: "Modern tarayıcılara gönderilen eski JavaScript ve polyfill'ler" }
+        what:
+          en: Code transpiled for very old browsers is bigger and slower than the modern syntax that today's browsers run directly.
+          tr: Çok eski tarayıcılar için derlenmiş kod, bugünkü tarayıcıların doğrudan çalıştırdığı modern sözdiziminden daha büyük ve yavaştır.
+        lang: json
+        form: |
+          Chrome DevTools / Lighthouse: the "Legacy JavaScript" insight (fails above 5 KiB of needless polyfills or transforms)
+        example: |
+          {
+            "browserslist": ["baseline widely available"]
+          }
+        mistake:
+          en: Setting a very old browserslist target "just in case" without checking your real visitors.
+          tr: Gerçek ziyaretçilerine bakmadan "ne olur ne olmaz" diye çok eski bir browserslist hedefi seçmek.
+        source: https://developer.chrome.com/docs/performance/insights/legacy-javascript
+  - id: loading-order
+    title: { en: "Render blocking and loading order", tr: "Render engelleme ve yükleme sırası" }
+    items:
+      - id: render-blocking
+        level: basic
+        title: { en: "Render-blocking CSS and JavaScript", tr: "Render'ı engelleyen CSS ve JavaScript" }
+        what:
+          en: The browser shows nothing until it has downloaded and run the scripts and styles in the head, so the screen stays blank.
+          tr: Tarayıcı head içindeki script ve stilleri indirip çalıştırmadan hiçbir şey göstermez; ekran boş kalır.
+        lang: html
+        form: |
+          Lighthouse 13 and the DevTools Performance panel: the "render-blocking" insight.
+          DevTools > Performance: long gap before First Contentful Paint.
+        example: |
+          <script src="app.js" defer></script>
+          <!-- CSS needed for the first screen inline, the rest loaded without blocking -->
+          <link rel="stylesheet" href="print.css" media="print">
+        mistake:
+          en: Adding async to scripts that depend on each other; async runs in download order, defer keeps document order.
+          tr: Birbirine bağımlı script'lere async eklemek; async indirme sırasına göre çalışır, defer doküman sırasını korur.
+        source: https://developer.chrome.com/docs/lighthouse/performance/render-blocking-resources
+      - id: sync-script-document-write
+        level: intermediate
+        title: { en: "Synchronous scripts and document.write", tr: "Senkron script'ler ve document.write" }
+        what:
+          en: A plain script tag or document.write in the head stops the HTML parser until the file is fetched and run.
+          tr: head içindeki sade bir script etiketi veya document.write, dosya indirilip çalışana kadar HTML ayrıştırıcısını durdurur.
+        lang: html
+        form: |
+          Search the page and its tags for document.write; Lighthouse 13 no longer has an audit for it.
+          DevTools Console: a warning about document.write for cross-site scripts.
+        example: |
+          <script src="https://example.com/widget.js" async></script>
+        mistake:
+          en: Moving the plain script to the end of the body and thinking it no longer blocks; it still delays the end of parsing, defer is better.
+          tr: Sade script'i body sonuna taşıyıp artık engellemediğini sanmak; ayrıştırmanın bitişini yine geciktirir, defer daha iyidir.
+        source: https://developer.mozilla.org/en-US/docs/Web/API/Document/write
+      - id: lcp-image-late
+        level: intermediate
+        title: { en: "LCP image discovered late or given low priority", tr: "LCP görselinin geç keşfedilmesi veya düşük öncelik alması" }
+        what:
+          en: The biggest picture on screen starts downloading late, so the main content appears late.
+          tr: Ekrandaki en büyük görsel geç indirilmeye başlar; ana içerik geç görünür.
+        lang: html
+        form: |
+          Lighthouse 13 and DevTools Performance: the "LCP discovery" insight and the LCP breakdown.
+          Good LCP: <= 2.5 s.
+        example: |
+          <img src="hero.jpg" fetchpriority="high" width="1200" height="600" alt="Hero">
+        mistake:
+          en: Putting loading="lazy" on the hero image, or setting the image only through JavaScript or CSS background so the preload scanner cannot see it.
+          tr: Hero görsele loading="lazy" koymak, ya da görseli sadece JavaScript veya CSS background ile vermek; böylece preload scanner onu göremez.
+        source: https://web.dev/articles/optimize-lcp
+      - id: no-preconnect
+        level: intermediate
+        title: { en: "Late connection to important third-party origins", tr: "Önemli üçüncü taraf kaynaklara geç bağlanmak" }
+        what:
+          en: DNS lookup, TCP and TLS for another domain only begin when the browser first needs a file from it.
+          tr: Başka bir alan adı için DNS, TCP ve TLS, tarayıcı oradan ilk dosyaya ihtiyaç duyduğunda başlar.
+        lang: html
+        form: |
+          DevTools > Network waterfall: look for DNS, Initial connection and SSL segments on critical files.
+          Lighthouse: "Preconnect to required origins".
+        example: |
+          <link rel="preconnect" href="https://cdn.example.com">
+          <!-- font files need crossorigin -->
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        mistake:
+          en: Preconnecting to many origins; each one holds a connection open and competes for bandwidth, so keep it to the few that matter.
+          tr: Çok sayıda origin'e preconnect yapmak; her biri bir bağlantıyı açık tutar ve bant genişliği için yarışır, önemli birkaçıyla sınırla.
+        source: https://web.dev/articles/preconnect-and-dns-prefetch
+      - id: preload-misuse
+        level: advanced
+        title: { en: "Preload used wrong", tr: "Preload'ın yanlış kullanımı" }
+        what:
+          en: Preloading too much or with the wrong settings makes the browser download things twice or delays the files that matter.
+          tr: Çok fazla ya da yanlış ayarla preload yapmak tarayıcının bir şeyi iki kez indirmesine veya önemli dosyaları geciktirmesine yol açar.
+        lang: html
+        form: |
+          DevTools Console: "The resource ... was preloaded using link preload but not used within a few seconds".
+          Network: the same URL requested twice.
+        example: |
+          <link rel="preload" href="/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
+        mistake:
+          en: Forgetting crossorigin on a font preload; fonts are fetched in CORS mode, so the preloaded copy is not reused.
+          tr: Font preload'unda crossorigin'i unutmak; fontlar CORS modunda istenir, bu yüzden preload edilen kopya kullanılmaz.
+        source: https://web.dev/articles/preload-critical-assets
+  - id: images-fonts
+    title: { en: "Images and fonts", tr: "Görseller ve fontlar" }
+    items:
+      - id: unoptimized-images
+        level: basic
+        title: { en: "Unoptimized and oversized images", tr: "Optimize edilmemiş ve gereğinden büyük görseller" }
+        what:
+          en: A 4000 px photo shown in a 400 px box wastes bandwidth and slows the page.
+          tr: 400 px'lik kutuda gösterilen 4000 px'lik fotoğraf bant genişliğini boşa harcar ve sayfayı yavaşlatır.
+        lang: html
+        form: |
+          Lighthouse 13 and DevTools Performance: the "image delivery" insight (size, encoding and format in one).
+        example: |
+          <img src="photo-800.webp"
+               srcset="photo-400.webp 400w, photo-800.webp 800w, photo-1600.webp 1600w"
+               sizes="(min-width: 800px) 800px, 100vw"
+               width="800" height="500" alt="Photo">
+        mistake:
+          en: Shrinking a huge image with CSS width only; the browser still downloads every pixel.
+          tr: Dev görseli sadece CSS width ile küçültmek; tarayıcı yine de tüm pikselleri indirir.
+        source: https://web.dev/articles/serve-responsive-images
+      - id: old-image-format
+        level: intermediate
+        title: { en: "Old image formats for photos", tr: "Fotoğraflar için eski görsel formatları" }
+        what:
+          en: PNG or JPEG for photos is much larger than WebP or AVIF at similar quality.
+          tr: Fotoğraflar için PNG veya JPEG, benzer kalitede WebP veya AVIF'ten çok daha büyüktür.
+        lang: html
+        form: |
+          Lighthouse 13: the "image delivery" insight.
+          Compare file sizes with a tool such as squoosh.app.
+        example: |
+          <picture>
+            <source srcset="photo.avif" type="image/avif">
+            <source srcset="photo.webp" type="image/webp">
+            <img src="photo.jpg" width="800" height="500" alt="Photo">
+          </picture>
+        mistake:
+          en: Converting logos and icons to a photo format; use SVG for those.
+          tr: Logo ve ikonları fotoğraf formatına çevirmek; onlar için SVG kullan.
+        source: https://web.dev/articles/choose-the-right-image-format
+      - id: no-lazy-loading
+        level: basic
+        title: { en: "No lazy loading for offscreen images", tr: "Ekran dışı görsellerde lazy loading olmaması" }
+        what:
+          en: The browser downloads images far below the fold that the user may never scroll to.
+          tr: Tarayıcı, kullanıcının belki hiç kaydırmayacağı sayfa altındaki görselleri de indirir.
+        lang: html
+        form: |
+          DevTools > Network > Img, then reload: images below the first screen downloaded at once (Lighthouse 13 removed its audit for this).
+        example: |
+          <img src="gallery-1.jpg" loading="lazy" width="600" height="400" alt="">
+        mistake:
+          en: Lazy loading images that are visible at the top of the page; this delays LCP.
+          tr: Sayfanın üstünde görünen görselleri lazy loading yapmak; LCP'yi geciktirir.
+        source: https://web.dev/articles/browser-level-image-lazy-loading
+      - id: gif-animation
+        level: basic
+        title: { en: "Animated GIFs", tr: "Animasyonlu GIF'ler" }
+        what:
+          en: A GIF animation is often many times larger than the same clip as a video.
+          tr: GIF animasyonu, aynı klibin videoya göre çoğu zaman kat kat daha büyüktür.
+        lang: html
+        form: |
+          Lighthouse 13: the "image delivery" insight flags large animated GIFs.
+        example: |
+          <video autoplay loop muted playsinline>
+            <source src="demo.webm" type="video/webm">
+            <source src="demo.mp4" type="video/mp4">
+          </video>
+        mistake:
+          en: Leaving out muted; browsers only autoplay videos that are muted.
+          tr: muted'ı unutmak; tarayıcılar sadece sessiz videoyu otomatik oynatır.
+        source: https://web.dev/articles/replace-gifs-with-videos
+      - id: font-loading
+        level: intermediate
+        title: { en: "Invisible text while web fonts load (FOIT)", tr: "Web fontları yüklenirken görünmeyen metin (FOIT)" }
+        what:
+          en: Text stays invisible until the custom font arrives, or jumps when it swaps in.
+          tr: Özel font gelene kadar metin görünmez kalır ya da font değişince zıplar.
+        lang: css
+        form: |
+          Lighthouse 13 and DevTools Performance: the "font display" insight.
+          Layout shift from the swap shows up in CLS.
+        example: |
+          @font-face {
+            font-family: "Inter";
+            src: url("/fonts/Inter.woff2") format("woff2");
+            font-display: swap;
+          }
+        mistake:
+          en: Using font-display swap and ignoring the size difference of the fallback font, which causes a layout shift; match it with size-adjust and related descriptors.
+          tr: font-display swap kullanıp yedek fontun boyut farkını yok saymak; layout shift oluşur, size-adjust ve benzeri descriptor'larla eşleştir.
+        source: https://web.dev/articles/font-best-practices
+      - id: heavy-fonts
+        level: intermediate
+        title: { en: "Too many or too heavy font files", tr: "Çok fazla veya çok ağır font dosyası" }
+        what:
+          en: Many weights, old formats and full character sets add hundreds of kilobytes before text looks right.
+          tr: Çok sayıda kalınlık, eski formatlar ve tam karakter setleri, metin doğru görünmeden önce yüzlerce kilobayt ekler.
+        lang: css
+        form: |
+          DevTools > Network > filter "Font": count files and sizes.
+        example: |
+          /* WOFF2 only, one variable font file, only the characters you need */
+          @font-face {
+            font-family: "Inter";
+            src: url("/fonts/Inter-var-latin.woff2") format("woff2");
+            font-weight: 100 900;
+            unicode-range: U+0000-00FF;
+          }
+        mistake:
+          en: Subsetting away characters you need, for example removing the Turkish letters from a font used on a Turkish site.
+          tr: İhtiyacın olan karakterleri subset ile atmak, örneğin Türkçe bir sitede kullanılan fontun Türkçe harflerini çıkarmak.
+        source: https://web.dev/articles/optimize-webfont-loading
+  - id: caching-network
+    title: { en: "Caching and network", tr: "Cache ve ağ" }
+    items:
+      - id: missing-cache-headers
+        level: basic
+        title: { en: "Missing or weak cache headers", tr: "Eksik veya zayıf cache header'ları" }
+        what:
+          en: Repeat visitors download the same files again because the server did not say they can be reused.
+          tr: Sunucu dosyaların yeniden kullanılabileceğini söylemediği için tekrar gelen ziyaretçiler aynı dosyaları yeniden indirir.
+        lang: sh
+        form: |
+          curl -sI https://example.com/assets/app.3f9a1c.js | grep -iE "cache-control|etag|last-modified"
+          # Lighthouse: "Serve static assets with an efficient cache policy"
+        example: |
+          # Files with a hash in the name never change: cache them for a year
+          Cache-Control: public, max-age=31536000, immutable
+          # The HTML page: always revalidate
+          Cache-Control: no-cache
+        mistake:
+          en: Using a long max-age on files whose names do not change (app.js); users keep the old version. Put a content hash in the file name first.
+          tr: Adı değişmeyen dosyalarda (app.js) uzun max-age kullanmak; kullanıcılar eski sürümde kalır. Önce dosya adına içerik hash'i koy.
+        source: https://web.dev/articles/http-cache
+      - id: no-cdn
+        level: intermediate
+        title: { en: "No CDN, far-away server", tr: "CDN yok, uzaktaki sunucu" }
+        what:
+          en: Every file travels from one distant server, so users far from it wait longer.
+          tr: Her dosya tek bir uzak sunucudan gelir; ondan uzaktaki kullanıcılar daha uzun bekler.
+        lang: sh
+        form: |
+          curl -sI https://example.com/app.js | grep -iE "^(age|x-cache|cf-cache-status|via)"
+          # no cache status header and a high TTFB from far regions = probably no CDN
+        example: |
+          # Put a CDN in front, let it cache static files and, where safe, HTML
+          Cache-Control: public, s-maxage=86400
+        mistake:
+          en: Caching pages that contain user-specific data at the CDN, which shows one person's page to another.
+          tr: Kullanıcıya özel veri içeren sayfaları CDN'de cache'lemek; bir kişinin sayfasını başkasına gösterir.
+        source: https://web.dev/articles/content-delivery-networks
+      - id: http1-only
+        level: intermediate
+        title: { en: "Still on HTTP/1.1", tr: "Hâlâ HTTP/1.1 kullanmak" }
+        what:
+          en: HTTP/1.1 handles one response at a time per connection, so requests queue up behind slow ones (head-of-line blocking).
+          tr: HTTP/1.1 bağlantı başına aynı anda tek cevap işler; istekler yavaş olanların arkasında sıraya girer (head-of-line blocking).
+        lang: sh
+        form: |
+          curl -sI --http2 https://example.com | head -1
+          # HTTP/2 200 = ok, HTTP/1.1 200 = still on 1.1
+          # DevTools > Network > right-click header > Protocol column (http/1.1, h2, h3)
+        example: |
+          # nginx
+          listen 443 ssl;
+          http2 on;
+        mistake:
+          en: Thinking HTTP/2 fixes everything; it still runs over one TCP connection, so a lost packet blocks all streams. HTTP/3 over QUIC avoids that.
+          tr: HTTP/2'nin her şeyi çözdüğünü sanmak; hâlâ tek TCP bağlantısı üzerinden çalışır, kaybolan bir paket tüm stream'leri bloklar. QUIC üzerindeki HTTP/3 bunu önler.
+        source: https://www.rfc-editor.org/rfc/rfc9113
+      - id: domain-sharding
+        level: advanced
+        title: { en: "Domain sharding (an old HTTP/1.1 trick)", tr: "Domain sharding (eski bir HTTP/1.1 hilesi)" }
+        what:
+          en: Splitting assets over several hostnames once opened more parallel connections, but on HTTP/2 it costs extra DNS and TLS and breaks multiplexing.
+          tr: Dosyaları birkaç host adına bölmek bir zamanlar daha çok paralel bağlantı açardı; HTTP/2'de ekstra DNS ve TLS maliyeti getirir ve multiplexing'i bozar.
+        lang: html
+        form: |
+          DevTools > Network > Domain column: the same site's static files on static1., static2., static3. hosts.
+        example: |
+          <!-- one host for all your static files over HTTP/2 -->
+          <link rel="stylesheet" href="https://example.com/assets/app.css">
+          <script src="https://example.com/assets/app.js" defer></script>
+        mistake:
+          en: Keeping shards "because it worked before" after moving to HTTP/2; each shard needs its own connection and prioritization is lost.
+          tr: HTTP/2'ye geçtikten sonra "eskiden işe yarıyordu" diye shard'ları korumak; her shard kendi bağlantısını ister ve önceliklendirme kaybolur.
+        source: https://web.dev/articles/performance-http2
+      - id: cookie-bloat
+        level: intermediate
+        title: { en: "Large cookies on every request", tr: "Her istekte giden büyük cookie'ler" }
+        what:
+          en: Cookies are sent with every request to their domain, including images and scripts, which wastes upload bandwidth.
+          tr: Cookie'ler, görseller ve script'ler dahil, alan adına giden her istekle gönderilir; yükleme bant genişliğini boşa harcar.
+        lang: sh
+        form: |
+          DevTools > Network > a static file > Request Headers > Cookie (look at its length)
+        example: |
+          # keep session data on the server, store only a short id in the cookie
+          Set-Cookie: sid=abc123; Path=/; Secure; HttpOnly; SameSite=Lax
+        mistake:
+          en: Storing whole user objects in cookies instead of an id.
+          tr: Cookie'de id yerine tüm kullanıcı nesnesini saklamak.
+        source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Cookies
+      - id: bfcache-blocked
+        level: advanced
+        title: { en: "Back/forward cache blockers", tr: "Back/forward cache'i engelleyenler" }
+        what:
+          en: Pages that cannot enter the back/forward cache reload from scratch when the user presses Back, instead of showing instantly.
+          tr: Back/forward cache'e giremeyen sayfalar, kullanıcı Geri'ye bastığında anında açılmak yerine baştan yüklenir.
+        lang: js
+        form: |
+          Chrome DevTools > Application > Back/forward cache > "Test back/forward cache"
+          lists the reasons a page was not restored.
+        example: |
+          // instead of the unload event (blocks bfcache in many browsers)
+          window.addEventListener("pagehide", () => {
+            navigator.sendBeacon("/log", "left");
+          });
+        mistake:
+          en: "Sending the header Cache-Control: no-store on ordinary pages out of habit; it can make a page ineligible. Use it only for truly sensitive content."
+          tr: "Alışkanlıkla sıradan sayfalara Cache-Control: no-store header'ı göndermek; sayfayı uygunsuz yapabilir. Sadece gerçekten hassas içerik için kullan."
+        source: https://web.dev/articles/bfcache
+  - id: javascript
+    title: { en: "JavaScript cost", tr: "JavaScript maliyeti" }
+    items:
+      - id: big-bundle
+        level: basic
+        title: { en: "One huge JavaScript bundle", tr: "Tek dev JavaScript bundle'ı" }
+        what:
+          en: The user downloads and runs the code of every page just to see the first one.
+          tr: Kullanıcı sadece ilk sayfayı görmek için tüm sayfaların kodunu indirir ve çalıştırır.
+        lang: js
+        form: |
+          Bundle analyzer (rollup-plugin-visualizer, webpack-bundle-analyzer, next build output)
+          Lighthouse: "Reduce JavaScript execution time"
+        example: |
+          // split by route or by feature
+          const Settings = lazy(() => import("./Settings"));
+        mistake:
+          en: Splitting into so many tiny chunks that loading them becomes a waterfall of its own.
+          tr: O kadar çok küçük parçaya bölmek ki yüklenmeleri başlı başına bir waterfall'a dönüşür.
+        source: https://web.dev/articles/reduce-javascript-payloads-with-code-splitting
+      - id: long-tasks
+        level: intermediate
+        title: { en: "Long tasks block the main thread", tr: "Uzun task'lar ana thread'i bloklar" }
+        what:
+          en: JavaScript running for more than 50 ms in one piece freezes the page, so clicks and typing feel stuck.
+          tr: Tek parça 50 ms'den uzun çalışan JavaScript sayfayı dondurur; tıklama ve yazma takılmış hissedilir.
+        lang: js
+        form: |
+          DevTools > Performance: tasks with a red corner mark are long tasks (over 50 ms).
+          Lighthouse: "Avoid long main-thread tasks".
+        example: |
+          async function processAll(items) {
+            for (const item of items) {
+              handle(item);
+              // give the browser a chance to respond between pieces of work
+              await new Promise((r) => setTimeout(r, 0));
+            }
+          }
+        mistake:
+          en: Wrapping the whole job in one setTimeout; it moves the work later but is still one long task.
+          tr: Tüm işi tek bir setTimeout içine sarmak; işi sonraya kaydırır ama yine tek uzun task'tır.
+        source: https://web.dev/articles/optimize-long-tasks
+      - id: slow-inp
+        level: intermediate
+        title: { en: "Slow interactions (INP)", tr: "Yavaş etkileşimler (INP)" }
+        what:
+          en: After a click or key press the screen takes too long to update.
+          tr: Tıklama veya tuşa basmadan sonra ekranın güncellenmesi çok uzun sürer.
+        lang: text
+        form: |
+          Good INP: <= 200 ms (75th percentile). Check with the Chrome DevTools Performance panel
+          (Interactions track) and the web-vitals library with attribution in the field.
+          INP parts: input delay + processing time + presentation delay.
+        example: |
+          Do the minimum in the event handler, update the UI first,
+          and move heavy work after the next paint or into a Web Worker.
+        mistake:
+          en: Optimizing only the page load; INP is measured over the whole visit, on every click and key press.
+          tr: Sadece sayfa yüklemeyi optimize etmek; INP tüm ziyaret boyunca her tıklama ve tuş basışında ölçülür.
+        source: https://web.dev/articles/optimize-inp
+      - id: main-thread-work
+        level: intermediate
+        title: { en: "Heavy main-thread work", tr: "Ana thread'de ağır iş" }
+        what:
+          en: Parsing, compiling and running scripts and style work fill the one thread that also handles user input.
+          tr: Script'leri ayrıştırma, derleme ve çalıştırma ile stil işleri, kullanıcı girdisini de işleyen tek thread'i doldurur.
+        lang: js
+        form: |
+          Lighthouse: the Total Blocking Time (TBT) metric.
+          DevTools > Performance > Bottom-Up tab.
+        example: |
+          // move pure computation to a worker
+          const worker = new Worker("worker.js");
+          worker.postMessage(bigData);
+          worker.onmessage = (e) => render(e.data);
+        mistake:
+          en: Trying to move DOM work into a worker; workers cannot touch the DOM.
+          tr: DOM işini worker'a taşımaya çalışmak; worker'lar DOM'a erişemez.
+        source: https://web.dev/articles/off-main-thread
+      - id: third-party-scripts
+        level: basic
+        title: { en: "Third-party scripts and tags", tr: "Üçüncü taraf script'ler ve tag'ler" }
+        what:
+          en: Ads, analytics, chat widgets and tag managers add requests and main-thread work you do not control.
+          tr: Reklamlar, analitik, sohbet widget'ları ve tag manager'lar, kontrol etmediğin istekler ve ana thread işi ekler.
+        lang: html
+        form: |
+          Lighthouse 13 and DevTools Performance: the "third parties" insight.
+          DevTools > Network > filter "3rd-party requests".
+        example: |
+          <script src="https://example.com/analytics.js" async></script>
+          <!-- or load it after the page is interactive, or use a facade for chat widgets -->
+        mistake:
+          en: Adding every tag to the tag manager with no owner or review; nobody removes them later.
+          tr: Her tag'i sahibi ve incelemesi olmadan tag manager'a eklemek; sonra kimse kaldırmaz.
+        source: https://developer.chrome.com/docs/lighthouse/performance/third-party-summary
+      - id: hydration-cost
+        level: advanced
+        title: { en: "Too much hydration", tr: "Gereğinden fazla hydration" }
+        what:
+          en: The server HTML is visible but the page ignores clicks while the browser re-runs all the component code to attach events.
+          tr: Sunucu HTML'i görünür ama tarayıcı olayları bağlamak için tüm component kodunu yeniden çalıştırırken sayfa tıklamalara cevap vermez.
+        lang: js
+        form: |
+          Symptom: content visible, then a clicks-do-nothing gap; high TBT in Lighthouse.
+          DevTools > Performance: a long task after First Contentful Paint.
+        example: |
+          // hydrate only the interactive parts: server components, islands, or lazy-loaded widgets
+          const Comments = lazy(() => import("./Comments"));
+        mistake:
+          en: Rendering a mostly static page as a full client app; use server rendering without client JS for the static parts.
+          tr: Çoğu statik bir sayfayı tam client uygulaması olarak render etmek; statik kısımlar için client JS olmadan sunucu render'ı kullan.
+        source: https://web.dev/articles/rendering-on-the-web
+  - id: layout
+    title: { en: "Layout and rendering", tr: "Layout ve render" }
+    items:
+      - id: layout-shift-media
+        level: basic
+        title: { en: "Layout shift from images without size", tr: "Boyutsuz görsellerden layout shift" }
+        what:
+          en: When an image loads, the text below it jumps down because the browser did not know its size.
+          tr: Görsel yüklenince, tarayıcı boyutunu bilmediği için altındaki metin aşağı zıplar.
+        lang: html
+        form: |
+          Good CLS: <= 0.1.
+          Lighthouse: "Image elements do not have explicit width and height".
+          DevTools > Performance > Experience > Layout Shifts.
+        example: |
+          <img src="cat.jpg" width="640" height="480" alt="Cat" style="max-width:100%; height:auto">
+        mistake:
+          en: Setting only width in CSS; the browser still cannot reserve the height until the image arrives. Give width and height attributes, or aspect-ratio.
+          tr: CSS'te sadece width vermek; görsel gelene kadar tarayıcı yüksekliği ayıramaz. width ve height attribute'u ya da aspect-ratio ver.
+        source: https://web.dev/articles/optimize-cls
+      - id: layout-shift-late-content
+        level: intermediate
+        title: { en: "Layout shift from ads, banners and injected content", tr: "Reklam, banner ve sonradan eklenen içerikten layout shift" }
+        what:
+          en: Content inserted above what the user is reading pushes the page around, causing wrong taps.
+          tr: Kullanıcının okuduğu şeyin üstüne eklenen içerik sayfayı iter ve yanlış tıklamalara neden olur.
+        lang: css
+        form: |
+          CLS <= 0.1 is good. DevTools > Performance > Layout Shifts shows which element moved.
+        example: |
+          /* reserve the space before the ad or banner arrives */
+          .ad-slot { min-height: 250px; }
+        mistake:
+          en: Collapsing an ad slot when no ad is returned; that shifts the page too. Keep the reserved space or put the slot below the fold.
+          tr: Reklam gelmeyince reklam alanını daraltmak; bu da sayfayı kaydırır. Ayrılan boşluğu koru ya da alanı sayfa altına koy.
+        source: https://web.dev/articles/optimize-cls
+      - id: big-dom
+        level: intermediate
+        title: { en: "Huge DOM", tr: "Çok büyük DOM" }
+        what:
+          en: Thousands of elements make every style and layout calculation slower, which also slows interactions.
+          tr: Binlerce element her stil ve layout hesabını yavaşlatır; bu da etkileşimleri yavaşlatır.
+        lang: js
+        form: |
+          // in the DevTools console
+          document.querySelectorAll("*").length
+          // Lighthouse: "Avoid an excessive DOM size"
+        example: |
+          /* skip rendering work for offscreen sections */
+          .article-section { content-visibility: auto; contain-intrinsic-size: auto 600px; }
+        mistake:
+          en: Rendering a list of 10,000 rows because it is easy; use pagination or a virtualized list.
+          tr: Kolay olduğu için 10.000 satırlık listeyi tamamen render etmek; sayfalama veya sanallaştırılmış liste kullan.
+        source: https://web.dev/articles/dom-size-and-interactivity
+      - id: layout-thrashing
+        level: advanced
+        title: { en: "Layout thrashing", tr: "Layout thrashing" }
+        what:
+          en: Mixing DOM reads and writes in a loop forces the browser to recalculate layout again and again.
+          tr: Döngüde DOM okuma ve yazmayı karıştırmak, tarayıcıyı layout'u tekrar tekrar hesaplamaya zorlar.
+        lang: js
+        form: |
+          DevTools > Performance: many purple "Layout" blocks with a warning "Forced reflow".
+        example: |
+          // read everything first, then write
+          const heights = boxes.map((b) => b.offsetHeight);
+          boxes.forEach((b, i) => { b.style.height = heights[i] + 10 + "px"; });
+        mistake:
+          en: Reading offsetHeight or getBoundingClientRect inside the same loop that sets styles.
+          tr: Stil atayan aynı döngünün içinde offsetHeight veya getBoundingClientRect okumak.
+        source: https://web.dev/articles/avoid-large-complex-layouts-and-layout-thrashing
+      - id: expensive-animations
+        level: advanced
+        title: { en: "Animations that trigger layout", tr: "Layout tetikleyen animasyonlar" }
+        what:
+          en: Animating width, height, top or left recalculates layout every frame, so the animation stutters.
+          tr: width, height, top veya left animasyonu her karede layout'u yeniden hesaplar; animasyon takılır.
+        lang: css
+        form: |
+          DevTools > Performance: layout and paint work in every frame during the animation.
+          Lighthouse: "Avoid non-composited animations".
+        example: |
+          /* animate transform and opacity instead */
+          .box { transition: transform 200ms; }
+          .box:hover { transform: translateX(20px); }
+        mistake:
+          en: Adding will-change to many elements permanently; each one uses extra memory.
+          tr: Çok sayıda elemente kalıcı olarak will-change eklemek; her biri ek bellek kullanır.
+        source: https://developer.chrome.com/docs/lighthouse/performance/non-composited-animations
