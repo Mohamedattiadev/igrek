@@ -1,0 +1,2160 @@
+id: java
+title: Java and Spring Boot
+summary:
+  en: "From an empty computer to your own Java web service on the internet. You write plain Java first, then build a real REST API with Spring Boot, a database, tests, login, a Docker image and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Java web servisine. Önce düz Java yazarsın, sonra Spring Boot ile gerçek bir REST API, veritabanı, test, giriş, Docker image'ı ve ücretsiz bir deploy hazırlarsın."
+teacher: backend
+project:
+  en: 'A small library service: a REST API to add, list, search, change and delete books. It stores them in H2 and then PostgreSQL, validates input, has tests, needs a login to change data, caches reads, and runs as a Docker container on a free host.'
+  tr: 'Küçük bir kütüphane servisi: kitap ekleyen, listeleyen, arayan, değiştiren ve silen bir REST API. Kitapları önce H2''de, sonra PostgreSQL''de saklar, girdiyi doğrular, testleri vardır, veriyi değiştirmek için giriş ister, okumaları cache''ler ve ücretsiz bir sunucuda Docker container olarak çalışır.'
+detect:
+  files: [pom.xml, build.gradle, build.gradle.kts]
+version: "27"
+latest: eol:oracle-jdk
+checked: 2026-10
+sheets: [java, sql, http, rest-graphql, docker, git, auth, caching]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install a JDK, an editor and Git"
+      tr: "JDK, bir editör ve Git kurma"
+    minutes: 40
+    why:
+      en: "Java programs are compiled and run by the JDK (Java Development Kit). Without it nothing else works. An editor that understands Java will point out mistakes while you type, and Git keeps every version of your work."
+      tr: "Java programlarını JDK (Java Development Kit) derler ve çalıştırır. O olmadan hiçbir şey çalışmaz. Java'yı anlayan bir editör sen yazarken hataları gösterir, Git de işinin her sürümünü saklar."
+    learn:
+      en: |
+        - What the JDK is, and what LTS means (a version that gets fixes for many years)
+        - Which version to pick: **Java 25 is the current LTS**; Java 27 is newer but a normal release with a short life
+        - How to check that `java` and `javac` are installed and are the same version
+      tr: |
+        - JDK'nın ne olduğu ve LTS'in ne demek olduğu (uzun yıllar düzeltme alan sürüm)
+        - Hangi sürümü seçeceğin: **Java 25 şu anki LTS**; Java 27 daha yeni ama kısa ömürlü normal bir sürüm
+        - `java` ve `javac`'in kurulu olduğunu ve aynı sürüm olduğunu kontrol etmek
+    do:
+      en: |
+        1. Install a **JDK 25** (the free Temurin build from adoptium.net is a good choice). On Windows and macOS use the installer. On Linux use the package for your distribution (Adoptium and most distributions have one) and pick the JDK, not only the JRE.
+        2. Install an editor: **IntelliJ IDEA Community** (free, best Java support) or **Visual Studio Code** with the "Extension Pack for Java".
+        3. Install **Git** (git-scm.com) and tell it who you are (see the Git cheatsheet).
+        4. Open a *new* terminal and run the commands below. `java` runs programs and `javac` compiles them; both must print the same major version.
+        5. You do **not** need to install Maven: the project you create later contains `mvnw`, a small script that downloads the right Maven by itself.
+        6. Newer JDKs such as 27 also work for everything in this roadmap. Only the Dockerfile and the CI file name 25, change them if you prefer another version.
+      tr: |
+        1. Bir **JDK 25** kur (adoptium.net'teki ücretsiz Temurin sürümü iyi bir seçim). Windows ve macOS'ta yükleyiciyi kullan. Linux'ta dağıtımının paketini kullan (Adoptium'un ve çoğu dağıtımın paketi var) ve sadece JRE'yi değil, JDK'yı seç.
+        2. Bir editör kur: **IntelliJ IDEA Community** (ücretsiz, en iyi Java desteği) ya da "Extension Pack for Java" eklentisiyle **Visual Studio Code**.
+        3. **Git**'i kur (git-scm.com) ve ona kim olduğunu söyle (Git kopya kâğıdına bak).
+        4. *Yeni* bir terminal aç ve aşağıdaki komutları çalıştır. `java` programları çalıştırır, `javac` derler; ikisi de aynı ana sürümü yazmalı.
+        5. Maven kurman **gerekmiyor**: sonra oluşturacağın projede `mvnw` adında küçük bir script var, doğru Maven'ı kendisi indirir.
+        6. 27 gibi daha yeni JDK'lar da bu roadmap'teki her şeyle çalışır. Sadece Dockerfile ve CI dosyasında 25 yazıyor, istersen başka bir sürüm yaz.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          java -version
+          javac -version
+          git --version
+    mistakes:
+      - problem:
+          en: "`java -version` shows an old version (for example 17) after installing a new JDK."
+          tr: "Yeni JDK kurduktan sonra `java -version` eski bir sürüm (mesela 17) gösteriyor."
+        fix:
+          en: "An older JDK comes first on your PATH. Close and reopen the terminal; if it persists, remove the old JDK or point the `JAVA_HOME` variable to the new one."
+          tr: "PATH'te eski bir JDK önce geliyor. Terminali kapatıp yeniden aç; sürerse eski JDK'yı kaldır ya da `JAVA_HOME` değişkenini yenisine yönlendir."
+      - problem:
+          en: "`java` works but `javac` is \"command not found\"."
+          tr: "`java` çalışıyor ama `javac` \"command not found\" diyor."
+        fix:
+          en: "Only a JRE (runtime) is installed. Install the full JDK, which contains the compiler."
+          tr: "Sadece JRE (çalışma ortamı) kurulu. Derleyiciyi de içeren tam JDK'yı kur."
+    quiz:
+      - q:
+          en: "What does the JDK have that a plain JRE does not?"
+          tr: "JDK'da, düz bir JRE'de olmayan ne var?"
+        options:
+          en: ["The compiler and developer tools", "A faster JVM", "A built-in editor"]
+          tr: ["Derleyici ve geliştirici araçları", "Daha hızlı bir JVM", "Yerleşik bir editör"]
+        answer: 0
+        why:
+          en: "The JDK contains `javac` and other tools used to build programs. A JRE can only run them."
+          tr: "JDK, program derlemek için kullanılan `javac` ve diğer araçları içerir. JRE sadece çalıştırabilir."
+    sources:
+      - title: Adoptium, installation
+        url: https://adoptium.net/installation/
+      - title: JDK 25 installation guide
+        url: https://docs.oracle.com/en/java/javase/25/install/overview-jdk-installation.html
+      - title: Java release schedule (which versions are LTS)
+        url: https://endoflife.date/oracle-jdk
+
+  - id: hello-java
+    stage: first-code
+    title:
+      en: "Run your first Java program"
+      tr: "İlk Java programını çalıştırma"
+    minutes: 20
+    needs: [setup]
+    why:
+      en: "Before any framework, you should see how a Java program starts and how it is compiled and run. Everything Spring does later is plain Java underneath."
+      tr: "Herhangi bir framework'ten önce bir Java programının nasıl başladığını, nasıl derlenip çalıştığını görmelisin. Spring'in sonradan yaptığı her şey altta düz Java."
+    learn:
+      en: |
+        - A program starts in the `main` method of a class
+        - `java Hello.java` compiles and runs one file in a single step
+        - `javac` and `java` as two separate steps, and what a `.class` file is
+      tr: |
+        - Bir program, bir class'ın `main` metodunda başlar
+        - `java Hello.java` tek bir dosyayı tek adımda derleyip çalıştırır
+        - `javac` ve `java`'nın iki ayrı adım olarak kullanımı, `.class` dosyasının ne olduğu
+    do:
+      en: |
+        1. Make a folder for your work, for example `library-playground`, and open it in your editor.
+        2. Create the file `Hello.java` with the code below. The file name must match the class name: `Hello` lives in `Hello.java`.
+        3. Run it with `java Hello.java`. You should see the greeting.
+        4. Now do it in two steps: `javac -d out Hello.java` creates `out/Hello.class`, and `java -cp out Hello` runs it. This is what build tools do for you later.
+        5. Change the text, run again, and break it on purpose (remove a semicolon) to see what a compiler error looks like.
+      tr: |
+        1. Çalışman için bir klasör aç, mesela `library-playground`, ve editörde aç.
+        2. Aşağıdaki kodla `Hello.java` dosyasını oluştur. Dosya adı class adıyla aynı olmalı: `Hello`, `Hello.java` içinde durur.
+        3. `java Hello.java` ile çalıştır. Selamlama yazısını görmelisin.
+        4. Şimdi iki adımda yap: `javac -d out Hello.java` `out/Hello.class` dosyasını oluşturur, `java -cp out Hello` onu çalıştırır. Build araçları bunu sonradan senin yerine yapar.
+        5. Metni değiştir, yeniden çalıştır, sonra bilerek bozup (bir noktalı virgülü sil) derleyici hatasının nasıl göründüğüne bak.
+    code:
+      - file: Hello.java
+        lang: java
+        text: |
+          public class Hello {
+              public static void main(String[] args) {
+                  String name = "library";
+                  System.out.println("Hello from the " + name + " project");
+              }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          java Hello.java
+          javac -d out Hello.java
+          java -cp out Hello
+    mistakes:
+      - problem:
+          en: "\"class Hello is public, should be declared in a file named Hello.java\"."
+          tr: "\"class Hello is public, should be declared in a file named Hello.java\" hatası."
+        fix:
+          en: "The public class and the file must have the same name, including upper and lower case letters. Rename the file or the class."
+          tr: "Public class ile dosyanın adı, büyük küçük harfler dahil, aynı olmalı. Dosyayı ya da class'ı yeniden adlandır."
+      - problem:
+          en: "\"Could not find or load main class Hello\" when using `java -cp out Hello`."
+          tr: "`java -cp out Hello` çalıştırırken \"Could not find or load main class Hello\" hatası."
+        fix:
+          en: "You are in the wrong folder, or you wrote `Hello.class` or `out/Hello`. Run it from the folder that contains `out`, and give the class name only."
+          tr: "Yanlış klasördesin ya da `Hello.class` veya `out/Hello` yazdın. `out` klasörünü içeren klasörden çalıştır ve sadece class adını ver."
+    quiz:
+      - q:
+          en: "What does `java Hello.java` do?"
+          tr: "`java Hello.java` ne yapar?"
+        options:
+          en: ["Only compiles the file", "Compiles and runs the file in one step", "Installs the program"]
+          tr: ["Sadece dosyayı derler", "Dosyayı tek adımda derleyip çalıştırır", "Programı kurar"]
+        answer: 1
+        why:
+          en: "The source launcher compiles the file in memory and runs it at once, which is handy for small programs and learning."
+          tr: "Kaynak başlatıcı dosyayı bellekte derler ve hemen çalıştırır; küçük programlar ve öğrenme için çok kullanışlıdır."
+    sources:
+      - title: dev.java, your first Java code
+        url: https://dev.java/learn/first-steps/first-java-code/
+      - title: The java command
+        url: https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html
+
+  - id: records-streams
+    stage: basics
+    title:
+      en: "Records, collections and streams"
+      tr: "Record'lar, koleksiyonlar ve stream'ler"
+    minutes: 60
+    needs: [hello-java]
+    why:
+      en: "The library service is about books: a type that holds data, lists of them, searching and grouping. Records, `List`, `Map`, `Optional` and streams are the tools you will use in every Spring controller and service."
+      tr: "Kütüphane servisi kitaplarla ilgili: veri tutan bir tip, onların listeleri, arama ve gruplama. Record, `List`, `Map`, `Optional` ve stream'ler her Spring controller ve service'inde kullanacağın araçlar."
+    learn:
+      en: |
+        - A **record** is a short class for data: Java writes the constructor, accessors, `equals` and `toString`
+        - A compact constructor checks the values when a record is created
+        - `List`, `Map` and `Optional`, and how to read generic types like `List<Book>`
+        - **Streams**: `filter`, `map`, `sorted`, `toList` and `groupingBy` describe what you want instead of writing loops
+      tr: |
+        - **Record**, veri için kısa bir class: Java constructor'ı, erişim metotlarını, `equals` ve `toString`'i senin yerine yazar
+        - Compact constructor, record oluşturulurken değerleri kontrol eder
+        - `List`, `Map` ve `Optional`; `List<Book>` gibi generic tipler nasıl okunur
+        - **Stream**'ler: `filter`, `map`, `sorted`, `toList` ve `groupingBy`, döngü yazmak yerine ne istediğini anlatır
+    do:
+      en: |
+        1. Create `Catalog.java` in the same playground folder with the code below.
+        2. Run it with `java Catalog.java` and compare the output with what you expect from each line.
+        3. Add a fifth book and change the filter to `b.year() < 1900`. Predict the output before you run it.
+        4. Try `new Book(6, null, "X", 2000)` and read the error message.
+      tr: |
+        1. Aynı playground klasöründe aşağıdaki kodla `Catalog.java` oluştur.
+        2. `java Catalog.java` ile çalıştır ve çıktıyı her satırdan beklediğinle karşılaştır.
+        3. Beşinci bir kitap ekle ve filtreyi `b.year() < 1900` yap. Çalıştırmadan önce çıktıyı tahmin et.
+        4. `new Book(6, null, "X", 2000)` dene ve hata mesajını oku.
+    code:
+      - file: Catalog.java
+        lang: java
+        text: |
+          import java.util.ArrayList;
+          import java.util.Comparator;
+          import java.util.List;
+          import java.util.Map;
+          import java.util.Optional;
+          import java.util.stream.Collectors;
+
+          public class Catalog {
+
+              // A record is a small class that only holds data. Java writes the constructor,
+              // the getters (title(), author() ...), equals, hashCode and toString for you.
+              record Book(long id, String title, String author, int year) {
+                  Book {
+                      if (title == null || title.isBlank()) {
+                          throw new IllegalArgumentException("title is required");
+                      }
+                  }
+              }
+
+              public static void main(String[] args) {
+                  List<Book> books = new ArrayList<>();
+                  books.add(new Book(1, "Dune", "Frank Herbert", 1965));
+                  books.add(new Book(2, "Emma", "Jane Austen", 1815));
+                  books.add(new Book(3, "Persuasion", "Jane Austen", 1817));
+                  books.add(new Book(4, "Neuromancer", "William Gibson", 1984));
+
+                  System.out.println(books.get(0));
+
+                  // Stream: describe what you want, not how to loop.
+                  List<String> titles = books.stream()
+                          .filter(b -> b.year() < 1970)
+                          .sorted(Comparator.comparing(Book::title))
+                          .map(Book::title)
+                          .toList();
+                  System.out.println("Before 1970: " + titles);
+
+                  // Group books by author.
+                  Map<String, List<String>> byAuthor = books.stream()
+                          .collect(Collectors.groupingBy(Book::author,
+                                  Collectors.mapping(Book::title, Collectors.toList())));
+                  System.out.println("Austen wrote: " + byAuthor.get("Jane Austen"));
+
+                  // Optional: "maybe there is a value".
+                  Optional<Book> found = books.stream().filter(b -> b.id() == 9).findFirst();
+                  System.out.println(found.map(Book::title).orElse("no book with id 9"));
+
+                  try {
+                      new Book(5, " ", "Nobody", 2000);
+                  } catch (IllegalArgumentException e) {
+                      System.out.println("Rejected: " + e.getMessage());
+                  }
+              }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          java Catalog.java
+    mistakes:
+      - problem:
+          en: "Comparing strings with `==`, for example `book.author() == \"Jane Austen\"`."
+          tr: "String'leri `==` ile karşılaştırmak, mesela `book.author() == \"Jane Austen\"`."
+        fix:
+          en: "`==` compares object identity, not text. Use `book.author().equals(\"Jane Austen\")` or `equalsIgnoreCase`."
+          tr: "`==` metni değil nesne kimliğini karşılaştırır. `book.author().equals(\"Jane Austen\")` ya da `equalsIgnoreCase` kullan."
+      - problem:
+          en: "Trying to change a record field: `book.title = \"New\"` or looking for `setTitle`."
+          tr: "Record alanını değiştirmeye çalışmak: `book.title = \"New\"` ya da `setTitle` aramak."
+        fix:
+          en: "Records are immutable. Create a new record with the changed value instead. (This is also why the database entity later is a normal class.)"
+          tr: "Record'lar değiştirilemez. Bunun yerine değişen değerle yeni bir record oluştur. (Veritabanı entity'sinin sonradan normal bir class olmasının sebebi de bu.)"
+    quiz:
+      - q:
+          en: "What does `Optional<Book>` tell the reader?"
+          tr: "`Optional<Book>` okuyana ne söyler?"
+        options:
+          en: ["The book is optional to print", "There may be no book at all", "The book can be changed"]
+          tr: ["Kitabı yazdırmak isteğe bağlı", "Hiç kitap olmayabilir", "Kitap değiştirilebilir"]
+        answer: 1
+        why:
+          en: "It is a box that holds a value or nothing. It forces the caller to decide what to do when the value is missing, instead of getting a surprise `null`."
+          tr: "İçinde ya bir değer ya da hiçbir şey olan bir kutudur. Değer yokken ne yapılacağını çağıranın düşünmesini sağlar; sürpriz bir `null` gelmez."
+    sources:
+      - title: Java language guide, records
+        url: https://docs.oracle.com/en/java/javase/25/language/records.html
+      - title: java.util.stream package
+        url: https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html
+      - title: dev.java, learn Java
+        url: https://dev.java/learn/
+
+  - id: spring-project
+    stage: first-project
+    title:
+      en: "Create the Spring Boot project and run it"
+      tr: "Spring Boot projesini oluşturma ve çalıştırma"
+    minutes: 45
+    needs: [records-streams]
+    why:
+      en: "Spring Boot is the most used Java framework for web services. It starts a web server inside your program and wires everything together with almost no setup. start.spring.io generates a project that already builds and runs."
+      tr: "Spring Boot, web servisleri için en çok kullanılan Java framework'ü. Programının içinde bir web sunucusu başlatır ve neredeyse hiç ayar yapmadan her şeyi birbirine bağlar. start.spring.io, zaten derlenen ve çalışan bir proje üretir."
+    learn:
+      en: |
+        - What a **dependency** is, and how `pom.xml` (Maven) lists them
+        - What each starter gives you: Web (HTTP server and controllers), Validation, JPA (database access), H2 (an in-memory database), PostgreSQL driver, Actuator (health and metrics)
+        - The layout: `src/main/java`, `src/main/resources/application.properties`, `src/test/java`
+        - `mvnw` (Maven wrapper) runs the build without installing Maven
+      tr: |
+        - **Dependency** (bağımlılık) nedir ve `pom.xml` (Maven) bunları nasıl listeler
+        - Her starter'ın ne verdiği: Web (HTTP sunucusu ve controller'lar), Validation, JPA (veritabanı erişimi), H2 (bellekte çalışan veritabanı), PostgreSQL driver, Actuator (sağlık ve metrikler)
+        - Klasör yapısı: `src/main/java`, `src/main/resources/application.properties`, `src/test/java`
+        - `mvnw` (Maven wrapper), Maven kurmadan build'i çalıştırır
+    do:
+      en: |
+        1. Open **start.spring.io**. Choose: Project **Maven**, Language **Java**, the newest stable Spring Boot (not a SNAPSHOT or M release; this roadmap used **4.1.1**), Group `dev.godeye`, Artifact `library`, Packaging **Jar**, Java **25**.
+        2. Add these dependencies: **Spring Web**, **Validation**, **Spring Data JPA**, **H2 Database**, **PostgreSQL Driver**, **Spring Boot Actuator**. Click **Generate** and unzip the file. (Instead of the website you can run the `curl` command below, which asks for the same project.)
+        3. Open the `library` folder in your editor. Look at `pom.xml`, `LibraryApplication.java` and the test that came with it.
+        4. Start the app with `./mvnw spring-boot:run` (on Windows PowerShell: `.\mvnw spring-boot:run`). The first run downloads Maven and the libraries and takes a few minutes.
+        5. Wait for the line `Started LibraryApplication`. Open http://localhost:8080/actuator/health in a browser: it shows `{"groups":["liveness","readiness"],"status":"UP"}`. Stop the app with Ctrl+C.
+        6. Add `Book.java` and `BookController.java` below, in `src/main/java/dev/godeye/library/`. Run the app again and open http://localhost:8080/api/books.
+        7. Put the project under Git: `git init`, `git add .`, `git commit -m "Create the library project"`. The generated `.gitignore` already skips `target/`.
+      tr: |
+        1. **start.spring.io**'yu aç. Şunları seç: Project **Maven**, Language **Java**, en yeni kararlı Spring Boot (SNAPSHOT ya da M sürümü değil; bu roadmap **4.1.1** kullandı), Group `dev.godeye`, Artifact `library`, Packaging **Jar**, Java **25**.
+        2. Şu bağımlılıkları ekle: **Spring Web**, **Validation**, **Spring Data JPA**, **H2 Database**, **PostgreSQL Driver**, **Spring Boot Actuator**. **Generate**'e tıkla ve zip'i aç. (Web sitesi yerine aşağıdaki `curl` komutunu da çalıştırabilirsin, aynı projeyi ister.)
+        3. `library` klasörünü editörde aç. `pom.xml`, `LibraryApplication.java` ve yanında gelen teste bak.
+        4. Uygulamayı `./mvnw spring-boot:run` ile başlat (Windows PowerShell'de: `.\mvnw spring-boot:run`). İlk çalıştırmada Maven ve kütüphaneler iner, birkaç dakika sürer.
+        5. `Started LibraryApplication` satırını bekle. Tarayıcıda http://localhost:8080/actuator/health adresini aç: `{"groups":["liveness","readiness"],"status":"UP"}` görürsün. Uygulamayı Ctrl+C ile durdur.
+        6. Aşağıdaki `Book.java` ve `BookController.java` dosyalarını `src/main/java/dev/godeye/library/` içine ekle. Uygulamayı yeniden çalıştır ve http://localhost:8080/api/books adresini aç.
+        7. Projeyi Git'e koy: `git init`, `git add .`, `git commit -m "Create the library project"`. Üretilen `.gitignore` zaten `target/` klasörünü atlar.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          curl https://start.spring.io/starter.zip -o library.zip \
+            -d type=maven-project -d language=java -d bootVersion=4.1.1 -d javaVersion=25 \
+            -d groupId=dev.godeye -d artifactId=library -d name=library -d packageName=dev.godeye.library \
+            -d dependencies=web,validation,data-jpa,h2,postgresql,actuator
+          unzip library.zip -d library
+          cd library
+          ./mvnw spring-boot:run
+      - file: src/main/java/dev/godeye/library/Book.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          public record Book(long id, String title, String author, int year) {
+          }
+      - file: src/main/java/dev/godeye/library/BookController.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.List;
+
+          import org.springframework.web.bind.annotation.GetMapping;
+          import org.springframework.web.bind.annotation.RequestMapping;
+          import org.springframework.web.bind.annotation.RestController;
+
+          @RestController
+          @RequestMapping("/api/books")
+          public class BookController {
+
+              @GetMapping
+              public List<Book> list() {
+                  return List.of(new Book(1, "Dune", "Frank Herbert", 1965));
+              }
+          }
+    mistakes:
+      - problem:
+          en: "\"Web server failed to start. Port 8080 was already in use.\""
+          tr: "\"Web server failed to start. Port 8080 was already in use.\" hatası."
+        fix:
+          en: "Another program (or an older run of this app) uses port 8080. Stop it, or start this app on another port: `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081`."
+          tr: "Başka bir program (ya da bu uygulamanın eski bir çalıştırması) 8080 portunu kullanıyor. Onu durdur ya da bu uygulamayı başka bir portta başlat: `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081`."
+      - problem:
+          en: "\"error: release version 25 not supported\" when building."
+          tr: "Build sırasında \"error: release version 25 not supported\" hatası."
+        fix:
+          en: "The JDK that runs Maven is older than the Java version in `pom.xml`. Check `java -version` and `JAVA_HOME`, install JDK 25, or choose a lower Java version on start.spring.io (Spring Boot 4 needs at least 17)."
+          tr: "Maven'ı çalıştıran JDK, `pom.xml`'deki Java sürümünden eski. `java -version` ve `JAVA_HOME`'a bak, JDK 25 kur ya da start.spring.io'da daha düşük bir Java sürümü seç (Spring Boot 4 en az 17 ister)."
+      - problem:
+          en: "The page at /api/books shows \"Whitelabel Error Page\" or 404."
+          tr: "/api/books sayfası \"Whitelabel Error Page\" ya da 404 gösteriyor."
+        fix:
+          en: "The controller is not found. It must be in the same package as `LibraryApplication` (or below it), because Spring only scans that package. Also check that the file is saved and the app was restarted."
+          tr: "Controller bulunamıyor. `LibraryApplication` ile aynı paketin (ya da altının) içinde olmalı, çünkü Spring sadece o paketi tarar. Dosyanın kayıtlı olduğuna ve uygulamanın yeniden başlatıldığına da bak."
+    quiz:
+      - q:
+          en: "What does `@RestController` do?"
+          tr: "`@RestController` ne yapar?"
+        options:
+          en: ["Starts the database", "Marks a class whose methods answer HTTP requests and return data as JSON", "Restarts the server"]
+          tr: ["Veritabanını başlatır", "Metotları HTTP isteklerine cevap veren ve veriyi JSON olarak döndüren bir class'ı işaretler", "Sunucuyu yeniden başlatır"]
+        answer: 1
+        why:
+          en: "Spring finds the class, routes matching requests to its methods and turns the returned objects into JSON."
+          tr: "Spring class'ı bulur, uyan istekleri metotlarına yönlendirir ve döndürülen nesneleri JSON'a çevirir."
+    sources:
+      - title: Spring Boot, developing your first application
+        url: https://docs.spring.io/spring-boot/tutorial/first-application/index.html
+      - title: start.spring.io
+        url: https://start.spring.io
+      - title: Spring Boot system requirements
+        url: https://docs.spring.io/spring-boot/system-requirements.html
+
+  - id: rest-api
+    stage: first-project
+    title:
+      en: "A REST API with validation"
+      tr: "Doğrulamalı bir REST API"
+    minutes: 70
+    needs: [spring-project]
+    why:
+      en: "A real API lets clients create, read, change and delete data, rejects bad input with a clear message, and answers \"not found\" properly. You build all of that now with books kept in memory, so you can focus on HTTP before adding a database."
+      tr: "Gerçek bir API, istemcilerin veri oluşturmasına, okumasına, değiştirmesine ve silmesine izin verir, kötü girdiyi açık bir mesajla reddeder ve \"bulunamadı\" cevabını doğru verir. Hepsini şimdi, kitaplar bellekte dururken yapıyorsun; böylece veritabanından önce HTTP'ye odaklanırsın."
+    learn:
+      en: |
+        - HTTP methods and status codes: GET 200, POST 201 with a `Location` header, PUT 200, DELETE 204, bad input 400, missing 404
+        - Controller to service: the controller handles HTTP, the service holds the logic
+        - **Validation**: `@Valid` on the request body and annotations like `@NotBlank` on a record
+        - One place that turns exceptions into JSON errors (`@RestControllerAdvice` and `ProblemDetail`)
+      tr: |
+        - HTTP metotları ve durum kodları: GET 200, `Location` başlıklı POST 201, PUT 200, DELETE 204, kötü girdi 400, bulunamadı 404
+        - Controller'dan service'e: controller HTTP'yi yönetir, service mantığı tutar
+        - **Validation** (doğrulama): istek gövdesinde `@Valid` ve bir record üzerinde `@NotBlank` gibi anotasyonlar
+        - Exception'ları JSON hatalarına çeviren tek bir yer (`@RestControllerAdvice` ve `ProblemDetail`)
+    do:
+      en: |
+        1. Replace `BookController.java` with the version below and add the other four files: `BookRequest.java` (the JSON a client sends, with validation rules), `BookNotFoundException.java`, `BookService.java` (the books live in a map for now) and `ApiExceptionHandler.java`.
+        2. Run the app and try the `curl` commands below in a second terminal. On Windows use Git Bash or WSL (PowerShell treats the quotes differently, and `curl` there is an alias; `curl.exe` is the real one).
+        3. Check each answer: the POST returns `201` and the new book, the invalid POST returns `400` with an `errors` field, an unknown id returns `404`.
+        4. Stop and restart the app: the books are gone, because memory is not storage. That is the next problem to solve.
+      tr: |
+        1. `BookController.java` dosyasını aşağıdaki sürümle değiştir ve diğer dört dosyayı ekle: `BookRequest.java` (istemcinin gönderdiği JSON, doğrulama kurallarıyla), `BookNotFoundException.java`, `BookService.java` (kitaplar şimdilik bir map'te durur) ve `ApiExceptionHandler.java`.
+        2. Uygulamayı çalıştır ve ikinci bir terminalde aşağıdaki `curl` komutlarını dene. Windows'ta Git Bash ya da WSL kullan (PowerShell tırnakları farklı işler ve oradaki `curl` bir alias; gerçeği `curl.exe`).
+        3. Her cevabı kontrol et: POST `201` ve yeni kitabı döner, geçersiz POST `errors` alanıyla `400` döner, bilinmeyen id `404` döner.
+        4. Uygulamayı durdur ve yeniden başlat: kitaplar gitti, çünkü bellek depolama değil. Çözülecek sıradaki sorun bu.
+    code:
+      - file: src/main/java/dev/godeye/library/BookRequest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import jakarta.validation.constraints.Max;
+          import jakarta.validation.constraints.Min;
+          import jakarta.validation.constraints.NotBlank;
+          import jakarta.validation.constraints.Size;
+
+          public record BookRequest(
+                  @NotBlank @Size(max = 200) String title,
+                  @NotBlank @Size(max = 100) String author,
+                  @Min(1000) @Max(2100) int year) {
+          }
+      - file: src/main/java/dev/godeye/library/BookNotFoundException.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          public class BookNotFoundException extends RuntimeException {
+
+              public BookNotFoundException(long id) {
+                  super("No book with id " + id);
+              }
+          }
+      - file: src/main/java/dev/godeye/library/BookService.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.List;
+          import java.util.Map;
+          import java.util.concurrent.ConcurrentHashMap;
+          import java.util.concurrent.atomic.AtomicLong;
+
+          import org.springframework.stereotype.Service;
+
+          // For now the books live in memory and disappear when the app stops.
+          @Service
+          public class BookService {
+
+              private final Map<Long, Book> books = new ConcurrentHashMap<>();
+              private final AtomicLong nextId = new AtomicLong(1);
+
+              public List<Book> list(String author) {
+                  return books.values().stream()
+                          .filter(b -> author == null || b.author().equalsIgnoreCase(author))
+                          .sorted((a, b) -> Long.compare(a.id(), b.id()))
+                          .toList();
+              }
+
+              public Book get(long id) {
+                  Book book = books.get(id);
+                  if (book == null) {
+                      throw new BookNotFoundException(id);
+                  }
+                  return book;
+              }
+
+              public Book create(BookRequest request) {
+                  Book book = new Book(nextId.getAndIncrement(), request.title(), request.author(), request.year());
+                  books.put(book.id(), book);
+                  return book;
+              }
+
+              public Book update(long id, BookRequest request) {
+                  get(id); // throws if it does not exist
+                  Book book = new Book(id, request.title(), request.author(), request.year());
+                  books.put(id, book);
+                  return book;
+              }
+
+              public void delete(long id) {
+                  if (books.remove(id) == null) {
+                      throw new BookNotFoundException(id);
+                  }
+              }
+          }
+      - file: src/main/java/dev/godeye/library/ApiExceptionHandler.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.LinkedHashMap;
+          import java.util.Map;
+
+          import org.springframework.http.HttpStatus;
+          import org.springframework.http.ProblemDetail;
+          import org.springframework.validation.FieldError;
+          import org.springframework.web.bind.MethodArgumentNotValidException;
+          import org.springframework.web.bind.annotation.ExceptionHandler;
+          import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+          // Turns exceptions into clear JSON answers (RFC 9457 "problem details").
+          @RestControllerAdvice
+          public class ApiExceptionHandler {
+
+              @ExceptionHandler(BookNotFoundException.class)
+              public ProblemDetail notFound(BookNotFoundException e) {
+                  return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, e.getMessage());
+              }
+
+              @ExceptionHandler(MethodArgumentNotValidException.class)
+              public ProblemDetail invalid(MethodArgumentNotValidException e) {
+                  Map<String, String> errors = new LinkedHashMap<>();
+                  for (FieldError fe : e.getBindingResult().getFieldErrors()) {
+                      errors.put(fe.getField(), fe.getDefaultMessage());
+                  }
+                  ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed");
+                  problem.setProperty("errors", errors);
+                  return problem;
+              }
+          }
+      - file: src/main/java/dev/godeye/library/BookController.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.net.URI;
+          import java.util.List;
+
+          import jakarta.validation.Valid;
+
+          import org.springframework.http.ResponseEntity;
+          import org.springframework.web.bind.annotation.DeleteMapping;
+          import org.springframework.web.bind.annotation.GetMapping;
+          import org.springframework.web.bind.annotation.PathVariable;
+          import org.springframework.web.bind.annotation.PostMapping;
+          import org.springframework.web.bind.annotation.PutMapping;
+          import org.springframework.web.bind.annotation.RequestBody;
+          import org.springframework.web.bind.annotation.RequestMapping;
+          import org.springframework.web.bind.annotation.RequestParam;
+          import org.springframework.web.bind.annotation.RestController;
+
+          @RestController
+          @RequestMapping("/api/books")
+          public class BookController {
+
+              private final BookService service;
+
+              public BookController(BookService service) {
+                  this.service = service;
+              }
+
+              @GetMapping
+              public List<Book> list(@RequestParam(required = false) String author) {
+                  return service.list(author);
+              }
+
+              @GetMapping("/{id}")
+              public Book get(@PathVariable long id) {
+                  return service.get(id);
+              }
+
+              @PostMapping
+              public ResponseEntity<Book> create(@Valid @RequestBody BookRequest request) {
+                  Book created = service.create(request);
+                  return ResponseEntity.created(URI.create("/api/books/" + created.id())).body(created);
+              }
+
+              @PutMapping("/{id}")
+              public Book update(@PathVariable long id, @Valid @RequestBody BookRequest request) {
+                  return service.update(id, request);
+              }
+
+              @DeleteMapping("/{id}")
+              public ResponseEntity<Void> delete(@PathVariable long id) {
+                  service.delete(id);
+                  return ResponseEntity.noContent().build();
+              }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          # create a book (201 Created)
+          curl -i -X POST localhost:8080/api/books -H 'Content-Type: application/json' \
+            -d '{"title":"Dune","author":"Frank Herbert","year":1965}'
+          # invalid input (400 with the list of problems)
+          curl -i -X POST localhost:8080/api/books -H 'Content-Type: application/json' \
+            -d '{"title":"","author":"X","year":5}'
+          # list, search by author, one book, unknown book (404)
+          curl localhost:8080/api/books
+          curl "localhost:8080/api/books?author=frank%20herbert"
+          curl localhost:8080/api/books/1
+          curl -i localhost:8080/api/books/99
+          # change and delete (204 No Content)
+          curl -X PUT localhost:8080/api/books/1 -H 'Content-Type: application/json' \
+            -d '{"title":"Dune Messiah","author":"Frank Herbert","year":1969}'
+          curl -i -X DELETE localhost:8080/api/books/1
+    mistakes:
+      - problem:
+          en: "Every POST answers 400 or 415, or the fields arrive empty."
+          tr: "Her POST 400 ya da 415 dönüyor, ya da alanlar boş geliyor."
+        fix:
+          en: "The `Content-Type: application/json` header is missing or the JSON is broken (single quotes inside the JSON, missing quotes around keys). Copy the curl commands exactly."
+          tr: "`Content-Type: application/json` başlığı eksik ya da JSON bozuk (JSON içinde tek tırnak, anahtarların etrafında tırnak yok). curl komutlarını aynen kopyala."
+      - problem:
+          en: "Validation does nothing: a blank title is accepted."
+          tr: "Doğrulama hiçbir şey yapmıyor: boş başlık kabul ediliyor."
+        fix:
+          en: "The `@Valid` annotation is missing on the controller parameter, or the `validation` starter is not in `pom.xml`. Annotations on the record alone are only rules; `@Valid` makes Spring check them."
+          tr: "Controller parametresinde `@Valid` eksik ya da `validation` starter'ı `pom.xml`'de yok. Sadece record üzerindeki anotasyonlar kuraldır; Spring'in kontrol etmesini `@Valid` sağlar."
+      - problem:
+          en: "Returning the same class you receive (for example saving a `Book` sent by the client)."
+          tr: "Gelen class'ı aynen geri döndürmek (mesela istemcinin gönderdiği `Book`'u kaydetmek)."
+        fix:
+          en: "Use a separate request type (`BookRequest`). Then a client cannot choose the `id`, and the rules for input and output can change independently."
+          tr: "Ayrı bir istek tipi kullan (`BookRequest`). Böylece istemci `id`'yi seçemez ve girdi ile çıktı kuralları birbirinden bağımsız değişebilir."
+    quiz:
+      - q:
+          en: "Which status code should a successful POST that creates a book return?"
+          tr: "Kitap oluşturan başarılı bir POST hangi durum kodunu döndürmeli?"
+        options:
+          en: ["200 OK", "201 Created", "204 No Content"]
+          tr: ["200 OK", "201 Created", "204 No Content"]
+        answer: 1
+        why:
+          en: "201 means a new resource was created; the `Location` header tells the client where it lives."
+          tr: "201, yeni bir kaynağın oluşturulduğunu söyler; `Location` başlığı istemciye nerede durduğunu bildirir."
+    sources:
+      - title: Spring Boot, developing web applications (Spring MVC)
+        url: https://docs.spring.io/spring-boot/reference/web/servlet.html
+      - title: Spring Framework, error responses (ProblemDetail)
+        url: https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html
+      - title: Spring Framework, exception handlers
+        url: https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-exceptionhandler.html
+
+  - id: jpa-h2
+    stage: data-api
+    title:
+      en: "Store books in a database with Spring Data JPA"
+      tr: "Kitapları Spring Data JPA ile veritabanında saklama"
+    minutes: 60
+    needs: [rest-api]
+    why:
+      en: "Data in memory disappears when the app stops. A database keeps it. Spring Data JPA lets you save and query rows by writing a small interface, and H2 is a database that runs inside your app, so you need to install nothing yet."
+      tr: "Bellekteki veri uygulama durunca kaybolur. Veritabanı onu saklar. Spring Data JPA, küçük bir interface yazarak satır kaydetmeni ve sorgulamanı sağlar; H2 ise uygulamanın içinde çalışan bir veritabanı, yani henüz hiçbir şey kurman gerekmez."
+    learn:
+      en: |
+        - An **entity** is a class mapped to a table; `@Id` marks the primary key
+        - A **repository** interface gives you `save`, `findById`, `findAll`, `deleteById` with no code, and queries from method names like `findByAuthorIgnoreCaseOrderById`
+        - `@Transactional`: the work in a method succeeds or fails as one unit; changes to a loaded entity are saved when it ends
+        - Why a record cannot be an entity, and why a SQL word like `year` cannot be a column name
+      tr: |
+        - **Entity**, bir tabloya eşlenen class'tır; `@Id` birincil anahtarı işaretler
+        - **Repository** interface'i, kod yazmadan `save`, `findById`, `findAll`, `deleteById` verir ve `findByAuthorIgnoreCaseOrderById` gibi metot adlarından sorgu üretir
+        - `@Transactional`: bir metottaki iş tek parça olarak başarılı olur ya da başarısız olur; yüklenen bir entity'deki değişiklikler metot bitince kaydedilir
+        - Record'un neden entity olamayacağı ve `year` gibi bir SQL kelimesinin neden kolon adı olamayacağı
+    do:
+      en: |
+        1. Replace `Book.java` with the entity below (it is now a normal class, not a record). Add `BookRepository.java`.
+        2. Replace `BookService.java` with the version below. It has the same methods as before, so the controller only needs one change: in `create`, write `created.getId()` instead of `created.id()`.
+        3. Add the line `spring.jpa.show-sql=true` to `src/main/resources/application.properties` so the SQL that Hibernate runs is printed.
+        4. Run the app and repeat the `curl` commands from the last step. Watch the terminal: every request prints its SQL.
+        5. Notice that the app still forgets the books when you restart it. H2 here is an *in-memory* database: it is recreated empty every time. The next step fixes that with a real database.
+      tr: |
+        1. `Book.java` dosyasını aşağıdaki entity ile değiştir (artık record değil, normal bir class). `BookRepository.java` dosyasını ekle.
+        2. `BookService.java` dosyasını aşağıdaki sürümle değiştir. Metotları öncekiyle aynı, bu yüzden controller'da sadece bir değişiklik gerekiyor: `create` içinde `created.id()` yerine `created.getId()` yaz.
+        3. `src/main/resources/application.properties` dosyasına `spring.jpa.show-sql=true` satırını ekle; böylece Hibernate'in çalıştırdığı SQL yazdırılır.
+        4. Uygulamayı çalıştır ve son adımdaki `curl` komutlarını tekrarla. Terminale bak: her istek kendi SQL'ini yazdırır.
+        5. Uygulamanın yeniden başlatınca kitapları hâlâ unuttuğuna dikkat et. Buradaki H2 *bellekte çalışan* bir veritabanı: her seferinde boş olarak yeniden oluşturulur. Sıradaki adım bunu gerçek bir veritabanıyla çözer.
+    code:
+      - file: src/main/java/dev/godeye/library/Book.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import jakarta.persistence.Column;
+          import jakarta.persistence.Entity;
+          import jakarta.persistence.GeneratedValue;
+          import jakarta.persistence.GenerationType;
+          import jakarta.persistence.Id;
+
+          // An entity is a class JPA maps to a database table. (Records cannot be entities.)
+          @Entity
+          public class Book {
+
+              @Id
+              @GeneratedValue(strategy = GenerationType.IDENTITY)
+              private Long id;
+
+              @Column(nullable = false, length = 200)
+              private String title;
+
+              @Column(nullable = false, length = 100)
+              private String author;
+
+              // "year" is a reserved word in SQL databases, so the column gets another name
+              @Column(name = "published_year", nullable = false)
+              private int year;
+
+              protected Book() {
+                  // JPA needs an empty constructor
+              }
+
+              public Book(String title, String author, int year) {
+                  this.title = title;
+                  this.author = author;
+                  this.year = year;
+              }
+
+              public Long getId() { return id; }
+              public String getTitle() { return title; }
+              public String getAuthor() { return author; }
+              public int getYear() { return year; }
+
+              public void change(String title, String author, int year) {
+                  this.title = title;
+                  this.author = author;
+                  this.year = year;
+              }
+          }
+      - file: src/main/java/dev/godeye/library/BookRepository.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.List;
+
+          import org.springframework.data.jpa.repository.JpaRepository;
+
+          // No code needed: Spring Data builds the implementation, and even the query from the method name.
+          public interface BookRepository extends JpaRepository<Book, Long> {
+
+              List<Book> findByAuthorIgnoreCaseOrderById(String author);
+          }
+      - file: src/main/java/dev/godeye/library/BookService.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.List;
+
+          import org.springframework.data.domain.Sort;
+          import org.springframework.stereotype.Service;
+          import org.springframework.transaction.annotation.Transactional;
+
+          @Service
+          @Transactional
+          public class BookService {
+
+              private final BookRepository repository;
+
+              public BookService(BookRepository repository) {
+                  this.repository = repository;
+              }
+
+              @Transactional(readOnly = true)
+              public List<Book> list(String author) {
+                  if (author == null) {
+                      return repository.findAll(Sort.by("id"));
+                  }
+                  return repository.findByAuthorIgnoreCaseOrderById(author);
+              }
+
+              @Transactional(readOnly = true)
+              public Book get(long id) {
+                  return repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
+              }
+
+              public Book create(BookRequest request) {
+                  return repository.save(new Book(request.title(), request.author(), request.year()));
+              }
+
+              public Book update(long id, BookRequest request) {
+                  Book book = get(id);
+                  book.change(request.title(), request.author(), request.year());
+                  return book; // saved automatically when the transaction ends
+              }
+
+              public void delete(long id) {
+                  if (!repository.existsById(id)) {
+                      throw new BookNotFoundException(id);
+                  }
+                  repository.deleteById(id);
+              }
+          }
+      - file: src/main/resources/application.properties
+        lang: properties
+        text: |
+          spring.application.name=library
+
+          # Show the SQL that Hibernate runs, so you can see what happens (turn off later)
+          spring.jpa.show-sql=true
+    mistakes:
+      - problem:
+          en: "A \"Syntax error in SQL statement ... create table book (year integer ...\" appears at start-up and every request answers 500."
+          tr: "Başlangıçta \"Syntax error in SQL statement ... create table book (year integer ...\" hatası çıkıyor ve her istek 500 dönüyor."
+        fix:
+          en: "`year` is a reserved word in SQL. Give the column another name, as the entity does with `@Column(name = \"published_year\")`. The Java field and the JSON can keep the name `year`."
+          tr: "`year` SQL'de ayrılmış bir kelime. Kolona başka bir ad ver; entity bunu `@Column(name = \"published_year\")` ile yapıyor. Java alanı ve JSON `year` adını koruyabilir."
+      - problem:
+          en: "\"No default constructor for entity\" or \"Entity class ... must not be a record\"."
+          tr: "\"No default constructor for entity\" ya da \"Entity class ... must not be a record\" hatası."
+        fix:
+          en: "JPA creates entities itself, so it needs a normal class with an empty constructor (it can be `protected`). Records cannot be entities."
+          tr: "JPA entity'leri kendisi oluşturur, bu yüzden boş constructor'lı normal bir class ister (`protected` olabilir). Record'lar entity olamaz."
+      - problem:
+          en: "Changing a field in `update` and expecting nothing to be saved, or the reverse: the change does not reach the database."
+          tr: "`update` içinde bir alanı değiştirip kaydedilmeyeceğini sanmak, ya da tersi: değişiklik veritabanına ulaşmıyor."
+        fix:
+          en: "Inside a `@Transactional` method a loaded entity is tracked, so changes are written when the method ends. Without `@Transactional` they are not. Keep `@Transactional` on the service class."
+          tr: "`@Transactional` bir metodun içinde yüklenen entity takip edilir, değişiklikler metot bitince yazılır. `@Transactional` yoksa yazılmaz. `@Transactional`'ı service class'ında tut."
+    quiz:
+      - q:
+          en: "You write `List<Book> findByAuthorIgnoreCaseOrderById(String author);` in the repository and no other code. What happens?"
+          tr: "Repository'ye `List<Book> findByAuthorIgnoreCaseOrderById(String author);` yazıyorsun, başka kod yok. Ne olur?"
+        options:
+          en: ["Nothing, you must write the SQL", "Spring Data builds the query from the method name", "It only works with H2"]
+          tr: ["Hiçbir şey, SQL'i yazman gerekir", "Spring Data sorguyu metot adından üretir", "Sadece H2 ile çalışır"]
+        answer: 1
+        why:
+          en: "Spring Data reads the name (find by author, ignore case, order by id) and creates the query at start-up. It works with any supported database."
+          tr: "Spring Data adı okur (author'a göre bul, büyük küçük harfi yoksay, id'ye göre sırala) ve sorguyu başlangıçta oluşturur. Desteklenen her veritabanıyla çalışır."
+    sources:
+      - title: Spring Boot, working with SQL databases
+        url: https://docs.spring.io/spring-boot/reference/data/sql.html
+      - title: Spring Data JPA, query methods
+        url: https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html
+
+  - id: postgres
+    stage: data-api
+    title:
+      en: "Switch to PostgreSQL with a profile"
+      tr: "Bir profile ile PostgreSQL'e geçme"
+    minutes: 45
+    needs: [jpa-h2]
+    why:
+      en: "Real services use a database server that keeps data on disk and handles many users. PostgreSQL is the most common free one. A Spring **profile** lets the same code use H2 for quick local work and PostgreSQL when you ask for it, with the settings outside the code."
+      tr: "Gerçek servisler, veriyi diskte tutan ve çok kullanıcıyı kaldıran bir veritabanı sunucusu kullanır. PostgreSQL en yaygın ücretsiz olanı. Spring **profile**'ı, aynı kodun hızlı yerel çalışma için H2'yi, istediğinde de PostgreSQL'i kullanmasını sağlar; ayarlar kodun dışında durur."
+    learn:
+      en: |
+        - A **profile** is a named set of settings; `application-postgres.properties` is read only when the profile `postgres` is active
+        - The JDBC URL `jdbc:postgresql://host:port/database`, and why secrets come from environment variables (`${NAME:default}`)
+        - `ddl-auto=update` creates missing tables for you; real projects use migrations (the last step names the tool)
+        - Running PostgreSQL in a Docker container so you install nothing on your computer
+      tr: |
+        - **Profile**, adı olan bir ayar kümesidir; `application-postgres.properties` sadece `postgres` profile'ı aktifken okunur
+        - `jdbc:postgresql://host:port/database` biçimindeki JDBC URL'si ve sırların neden ortam değişkenlerinden geldiği (`${NAME:default}`)
+        - `ddl-auto=update` eksik tabloları senin için oluşturur; gerçek projeler migration kullanır (son adım aracın adını verir)
+        - Bilgisayarına hiçbir şey kurmamak için PostgreSQL'i bir Docker container'ında çalıştırmak
+    do:
+      en: |
+        1. Install Docker (Docker Desktop, or Docker Engine on Linux) if you do not have it.
+        2. Start PostgreSQL with the first command below. It creates a database named `library` with user and password `library`, which is fine for local learning only.
+        3. Create `src/main/resources/application-postgres.properties` with the content below.
+        4. Start the app with the `postgres` profile (second command) and create a book with `curl`.
+        5. Stop the app and start it again: the book is still there, because PostgreSQL stored it. Look at the table with the `psql` command.
+        6. Without the profile the app still uses H2, so tests and quick runs need no database server.
+      tr: |
+        1. Docker kurulu değilse kur (Docker Desktop ya da Linux'ta Docker Engine).
+        2. Aşağıdaki ilk komutla PostgreSQL'i başlat. Kullanıcı adı ve şifresi `library` olan `library` adında bir veritabanı oluşturur; sadece yerel öğrenme için uygundur.
+        3. Aşağıdaki içerikle `src/main/resources/application-postgres.properties` dosyasını oluştur.
+        4. Uygulamayı `postgres` profile'ı ile başlat (ikinci komut) ve `curl` ile bir kitap oluştur.
+        5. Uygulamayı durdurup yeniden başlat: kitap hâlâ orada, çünkü PostgreSQL sakladı. Tabloya `psql` komutuyla bak.
+        6. Profile olmadan uygulama yine H2 kullanır; yani testler ve hızlı çalıştırmalar için veritabanı sunucusu gerekmez.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker run -d --name library-db \
+            -e POSTGRES_USER=library -e POSTGRES_PASSWORD=library -e POSTGRES_DB=library \
+            -p 5432:5432 postgres:18-alpine
+
+          ./mvnw spring-boot:run -Dspring-boot.run.profiles=postgres
+
+          docker exec library-db psql -U library -c "select * from book"
+      - file: src/main/resources/application-postgres.properties
+        lang: properties
+        text: |
+          # Used when the "postgres" profile is active: SPRING_PROFILES_ACTIVE=postgres
+          spring.datasource.url=${DATABASE_URL:jdbc:postgresql://localhost:5432/library}
+          spring.datasource.username=${DATABASE_USER:library}
+          spring.datasource.password=${DATABASE_PASSWORD:library}
+
+          # update: create missing tables and columns at start-up (fine for learning;
+          # real projects use migrations, see the last step)
+          spring.jpa.hibernate.ddl-auto=update
+    mistakes:
+      - problem:
+          en: "\"FATAL: password authentication failed for user library\", although the container is running."
+          tr: "Container çalışıyor olduğu halde \"FATAL: password authentication failed for user library\" hatası."
+        fix:
+          en: "Often another PostgreSQL already listens on port 5432 on your computer and the app talks to that one. Stop it, or publish the container on another port (`-p 5433:5432`) and set `DATABASE_URL=jdbc:postgresql://localhost:5433/library`."
+          tr: "Çoğu zaman bilgisayarında 5432 portunu başka bir PostgreSQL dinliyordur ve uygulama onunla konuşuyordur. Onu durdur ya da container'ı başka bir portta yayınla (`-p 5433:5432`) ve `DATABASE_URL=jdbc:postgresql://localhost:5433/library` ayarla."
+      - problem:
+          en: "\"Connection refused\" right after `docker run`."
+          tr: "`docker run` sonrası hemen \"Connection refused\" hatası."
+        fix:
+          en: "The database needs a few seconds to start. Wait until `docker logs library-db` says it is ready to accept connections, then start the app."
+          tr: "Veritabanının başlaması birkaç saniye sürer. `docker logs library-db` bağlantı kabul etmeye hazır diyene kadar bekle, sonra uygulamayı başlat."
+      - problem:
+          en: "Putting the real database password in `application.properties` and committing it."
+          tr: "Gerçek veritabanı şifresini `application.properties` içine yazıp commit etmek."
+        fix:
+          en: "Keep passwords out of Git. Read them from environment variables (`${DATABASE_PASSWORD}`) and set them on the host. The `library` defaults above are only for the local container."
+          tr: "Şifreleri Git'ten uzak tut. Onları ortam değişkenlerinden oku (`${DATABASE_PASSWORD}`) ve sunucuda ayarla. Yukarıdaki `library` varsayılanları sadece yerel container içindir."
+    quiz:
+      - q:
+          en: "When is `application-postgres.properties` read?"
+          tr: "`application-postgres.properties` ne zaman okunur?"
+        options:
+          en: ["Always", "Only when the postgres profile is active", "Only in tests"]
+          tr: ["Her zaman", "Sadece postgres profile'ı aktifken", "Sadece testlerde"]
+        answer: 1
+        why:
+          en: "Profile files are added on top of `application.properties` only for the active profiles."
+          tr: "Profile dosyaları sadece aktif profile'lar için `application.properties`'in üstüne eklenir."
+    sources:
+      - title: Spring Boot, profiles
+        url: https://docs.spring.io/spring-boot/reference/features/profiles.html
+      - title: Spring Boot, externalized configuration
+        url: https://docs.spring.io/spring-boot/reference/features/external-config.html
+      - title: PostgreSQL image on Docker Hub
+        url: https://hub.docker.com/_/postgres
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the API with JUnit 5 and MockMvc"
+      tr: "API'yi JUnit 5 ve MockMvc ile test etme"
+    minutes: 60
+    needs: [postgres]
+    why:
+      en: "Tests let you change the code without fear. Spring Boot can start the whole app, or only a slice of it (just the web layer, or just the database layer), so you can choose between a realistic test and a fast one."
+      tr: "Testler, kodu korkmadan değiştirmeni sağlar. Spring Boot tüm uygulamayı ya da sadece bir dilimini (sadece web katmanı ya da sadece veritabanı katmanı) başlatabilir; böylece gerçekçi bir test ile hızlı bir test arasında seçim yaparsın."
+    learn:
+      en: |
+        - A test is a method with `@Test` (JUnit 5); AssertJ's `assertThat(...)` reads like a sentence
+        - `@SpringBootTest` starts the whole app; `MockMvc` sends requests to it without a real network
+        - **Slices**: `@DataJpaTest` (database only, with H2) and `@WebMvcTest` (web only, with a mocked service via `@MockitoBean`)
+        - How to read a failing test: expected value, actual value, line number
+      tr: |
+        - Test, `@Test` ile işaretli bir metottur (JUnit 5); AssertJ'in `assertThat(...)` ifadesi cümle gibi okunur
+        - `@SpringBootTest` tüm uygulamayı başlatır; `MockMvc` gerçek ağ olmadan ona istek gönderir
+        - **Slice**'lar: `@DataJpaTest` (sadece veritabanı, H2 ile) ve `@WebMvcTest` (sadece web, `@MockitoBean` ile taklit edilmiş service ile)
+        - Başarısız bir test nasıl okunur: beklenen değer, gelen değer, satır numarası
+    do:
+      en: |
+        1. Make sure no profile is active (`echo $SPRING_PROFILES_ACTIVE` should print nothing), so the tests use H2.
+        2. Add the three test files below in `src/test/java/dev/godeye/library/`. Keep the `LibraryApplicationTests` file that start.spring.io created: it checks that the app starts.
+        3. Run `./mvnw test`. You should see `Tests run: 6, Failures: 0`.
+        4. Break something on purpose, for example change `.isCreated()` to `.isOk()`, and read the failure. Fix it again.
+        5. Commit the tests with the code. From now on run `./mvnw test` before every commit.
+      tr: |
+        1. Hiçbir profile'ın aktif olmadığından emin ol (`echo $SPRING_PROFILES_ACTIVE` hiçbir şey yazmamalı); böylece testler H2 kullanır.
+        2. Aşağıdaki üç test dosyasını `src/test/java/dev/godeye/library/` içine ekle. start.spring.io'nun oluşturduğu `LibraryApplicationTests` dosyasını tut: uygulamanın başladığını kontrol eder.
+        3. `./mvnw test` çalıştır. `Tests run: 6, Failures: 0` görmelisin.
+        4. Bilerek bir şeyi boz, mesela `.isCreated()` yerine `.isOk()` yaz, ve hatayı oku. Sonra düzelt.
+        5. Testleri kodla birlikte commit'le. Bundan sonra her commit'ten önce `./mvnw test` çalıştır.
+    code:
+      - file: src/test/java/dev/godeye/library/BookRepositoryTest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.assertj.core.api.Assertions.assertThat;
+
+          import java.util.List;
+
+          import org.junit.jupiter.api.Test;
+          import org.springframework.beans.factory.annotation.Autowired;
+          import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+
+          // @DataJpaTest starts only the database part, with an in-memory H2 database.
+          @DataJpaTest
+          class BookRepositoryTest {
+
+              @Autowired
+              BookRepository repository;
+
+              @Test
+              void findsBooksByAuthorIgnoringCase() {
+                  repository.save(new Book("Emma", "Jane Austen", 1815));
+                  repository.save(new Book("Persuasion", "Jane Austen", 1817));
+                  repository.save(new Book("Dune", "Frank Herbert", 1965));
+
+                  List<Book> found = repository.findByAuthorIgnoreCaseOrderById("jane austen");
+
+                  assertThat(found).extracting(Book::getTitle).containsExactly("Emma", "Persuasion");
+              }
+          }
+      - file: src/test/java/dev/godeye/library/BookControllerTest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.hamcrest.Matchers.containsString;
+          import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+          import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+          import org.junit.jupiter.api.Test;
+          import org.springframework.beans.factory.annotation.Autowired;
+          import org.springframework.boot.test.context.SpringBootTest;
+          import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+          import org.springframework.http.MediaType;
+          import org.springframework.test.web.servlet.MockMvc;
+
+          // The whole application starts; MockMvc sends requests to it without a real network.
+          @SpringBootTest
+          @AutoConfigureMockMvc
+          class BookControllerTest {
+
+              static final String DUNE = """
+                      {"title": "Dune", "author": "Frank Herbert", "year": 1965}
+                      """;
+
+              @Autowired
+              MockMvc mvc;
+
+              @Test
+              void createsAndReadsABook() throws Exception {
+                  mvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON).content(DUNE))
+                          .andExpect(status().isCreated())
+                          .andExpect(header().string("Location", containsString("/api/books/")))
+                          .andExpect(jsonPath("$.title").value("Dune"));
+
+                  mvc.perform(get("/api/books").param("author", "frank herbert"))
+                          .andExpect(status().isOk())
+                          .andExpect(jsonPath("$[0].title").value("Dune"));
+              }
+
+              @Test
+              void rejectsABookWithoutTitle() throws Exception {
+                  mvc.perform(post("/api/books")
+                                  .contentType(MediaType.APPLICATION_JSON)
+                                  .content("""
+                                          {"title": "", "author": "Someone", "year": 2000}
+                                          """))
+                          .andExpect(status().isBadRequest())
+                          .andExpect(jsonPath("$.errors.title").exists());
+              }
+
+              @Test
+              void returns404ForAnUnknownBook() throws Exception {
+                  mvc.perform(get("/api/books/99999"))
+                          .andExpect(status().isNotFound())
+                          .andExpect(jsonPath("$.detail").value("No book with id 99999"));
+              }
+          }
+      - file: src/test/java/dev/godeye/library/BookControllerWebTest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.mockito.BDDMockito.given;
+          import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+          import java.util.List;
+
+          import org.junit.jupiter.api.Test;
+          import org.springframework.beans.factory.annotation.Autowired;
+          import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+          import org.springframework.test.context.bean.override.mockito.MockitoBean;
+          import org.springframework.test.web.servlet.MockMvc;
+
+          // @WebMvcTest starts only the web layer; the service is replaced by a mock.
+          @WebMvcTest(BookController.class)
+          class BookControllerWebTest {
+
+              @Autowired
+              MockMvc mvc;
+
+              @MockitoBean
+              BookService service;
+
+              @Test
+              void listsBooksFromTheService() throws Exception {
+                  given(service.list(null)).willReturn(List.of(new Book("Emma", "Jane Austen", 1815)));
+
+                  mvc.perform(get("/api/books"))
+                          .andExpect(status().isOk())
+                          .andExpect(jsonPath("$[0].author").value("Jane Austen"));
+              }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          ./mvnw test
+    mistakes:
+      - problem:
+          en: "Following an older tutorial: \"package org.springframework.boot.test.autoconfigure.web.servlet does not exist\"."
+          tr: "Eski bir eğitimi izlerken: \"package org.springframework.boot.test.autoconfigure.web.servlet does not exist\" hatası."
+        fix:
+          en: "Spring Boot 4 split its test support into modules and moved the packages. Use `org.springframework.boot.webmvc.test.autoconfigure` for `@WebMvcTest` and `@AutoConfigureMockMvc`, `org.springframework.boot.data.jpa.test.autoconfigure` for `@DataJpaTest`, and `org.springframework.test.context.bean.override.mockito.MockitoBean` (`@MockBean` is gone)."
+          tr: "Spring Boot 4 test desteğini modüllere böldü ve paketleri taşıdı. `@WebMvcTest` ve `@AutoConfigureMockMvc` için `org.springframework.boot.webmvc.test.autoconfigure`, `@DataJpaTest` için `org.springframework.boot.data.jpa.test.autoconfigure`, `org.springframework.test.context.bean.override.mockito.MockitoBean` kullan (`@MockBean` kalktı)."
+      - problem:
+          en: "A test passes alone but fails with the others, because it assumes an empty database."
+          tr: "Bir test tek başına geçiyor ama diğerleriyle birlikte başarısız oluyor, çünkü veritabanının boş olduğunu varsayıyor."
+        fix:
+          en: "`@SpringBootTest` tests share one application and one database. Create the data a test needs inside the test and make assertions that other tests cannot break (look up your own book, do not count all rows). `@DataJpaTest` rolls back after each test."
+          tr: "`@SpringBootTest` testleri tek bir uygulamayı ve tek bir veritabanını paylaşır. Bir testin ihtiyacı olan veriyi testin içinde oluştur ve diğer testlerin bozamayacağı kontroller yaz (kendi kitabını ara, tüm satırları sayma). `@DataJpaTest` her testten sonra geri alır."
+      - problem:
+          en: "The tests suddenly talk to your real PostgreSQL."
+          tr: "Testler birden gerçek PostgreSQL'ine bağlanıyor."
+        fix:
+          en: "The environment variable `SPRING_PROFILES_ACTIVE=postgres` is set in your terminal. Unset it (`unset SPRING_PROFILES_ACTIVE`) before running tests."
+          tr: "Terminalinde `SPRING_PROFILES_ACTIVE=postgres` ortam değişkeni ayarlı. Test çalıştırmadan önce kaldır (`unset SPRING_PROFILES_ACTIVE`)."
+    quiz:
+      - q:
+          en: "What does `@MockitoBean BookService service` do in a `@WebMvcTest`?"
+          tr: "Bir `@WebMvcTest` içinde `@MockitoBean BookService service` ne yapar?"
+        options:
+          en: ["Connects to the real database", "Replaces the real service with a fake you can program", "Runs the service twice"]
+          tr: ["Gerçek veritabanına bağlanır", "Gerçek service'i programlayabildiğin sahte bir service ile değiştirir", "Service'i iki kez çalıştırır"]
+        answer: 1
+        why:
+          en: "The web slice does not create services. The mock stands in, so the test checks only the controller: routes, JSON and status codes."
+          tr: "Web slice'ı service oluşturmaz. Mock onun yerine geçer; böylece test sadece controller'ı kontrol eder: route'lar, JSON ve durum kodları."
+    sources:
+      - title: Spring Boot, testing Spring Boot applications
+        url: https://docs.spring.io/spring-boot/reference/testing/spring-boot-applications.html
+      - title: Spring Framework, MockMvc
+        url: https://docs.spring.io/spring-framework/reference/testing/mockmvc.html
+      - title: JUnit 5 user guide
+        url: https://docs.junit.org/current/user-guide/
+
+  - id: security
+    stage: security
+    title:
+      en: "Protect changes with Spring Security"
+      tr: "Spring Security ile değişiklikleri koruma"
+    minutes: 60
+    needs: [tests]
+    why:
+      en: "Right now anyone on the internet can delete your books. Spring Security checks who is calling. In this step everybody may read, but only a logged-in user may add, change or delete."
+      tr: "Şu anda internetteki herkes kitaplarını silebilir. Spring Security kimin çağırdığını kontrol eder. Bu adımda herkes okuyabilir ama sadece giriş yapmış kullanıcı ekleyebilir, değiştirebilir ya da silebilir."
+    learn:
+      en: |
+        - **Authentication** (who are you?) and **authorization** (what may you do?)
+        - HTTP Basic: the client sends the user name and password with each request (only safe over HTTPS)
+        - `401 Unauthorized` means "not logged in", `403 Forbidden` means "logged in but not allowed"
+        - Why a stateless API with no cookies can turn CSRF protection off, and why the password comes from an environment variable
+      tr: |
+        - **Authentication** (kimsin?) ve **authorization** (ne yapabilirsin?)
+        - HTTP Basic: istemci kullanıcı adını ve şifreyi her istekte gönderir (sadece HTTPS üzerinde güvenli)
+        - `401 Unauthorized` "giriş yapılmamış", `403 Forbidden` "giriş yapılmış ama izin yok" demektir
+        - Cookie kullanmayan, durumsuz bir API'nin neden CSRF korumasını kapatabileceği ve şifrenin neden bir ortam değişkeninden geldiği
+    do:
+      en: |
+        1. Add the two dependencies below to `pom.xml`, inside `<dependencies>`: the security starter and its test support.
+        2. Create `SecurityConfig.java`. It says: health checks and all GET requests are public, everything else needs a login, and the login method is HTTP Basic.
+        3. Add the user lines to `application.properties`. The default password is for local work only; the deployed app will get a real one from the environment variable `LIBRARY_PASSWORD`.
+        4. Update the two web tests as shown: add `@WithMockUser` to the tests that create data, add a test that an anonymous POST gets 401, and `@Import(SecurityConfig.class)` on the web slice test.
+        5. Run `./mvnw test` (now 7 tests), then start the app and try the `curl` commands. Check: anonymous POST gives 401, a wrong password gives 401, the right one gives 201, GET stays public.
+      tr: |
+        1. Aşağıdaki iki bağımlılığı `pom.xml`'e, `<dependencies>` içine ekle: security starter'ı ve test desteği.
+        2. `SecurityConfig.java` dosyasını oluştur. Şunu söylüyor: sağlık kontrolleri ve tüm GET istekleri herkese açık, geri kalan her şey giriş ister, giriş yöntemi HTTP Basic.
+        3. Kullanıcı satırlarını `application.properties`'e ekle. Varsayılan şifre sadece yerel çalışma için; yayındaki uygulama gerçek şifreyi `LIBRARY_PASSWORD` ortam değişkeninden alacak.
+        4. İki web testini gösterildiği gibi güncelle: veri oluşturan testlere `@WithMockUser` ekle, anonim bir POST'un 401 aldığını kontrol eden bir test ekle ve web slice testine `@Import(SecurityConfig.class)` ekle.
+        5. `./mvnw test` çalıştır (artık 7 test), sonra uygulamayı başlat ve `curl` komutlarını dene. Kontrol et: anonim POST 401 verir, yanlış şifre 401 verir, doğrusu 201 verir, GET herkese açık kalır.
+    code:
+      - file: pom.xml
+        lang: xml
+        text: |
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-security</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-security-test</artifactId>
+              <scope>test</scope>
+          </dependency>
+      - file: src/main/java/dev/godeye/library/SecurityConfig.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.springframework.security.config.Customizer.withDefaults;
+
+          import org.springframework.context.annotation.Bean;
+          import org.springframework.context.annotation.Configuration;
+          import org.springframework.http.HttpMethod;
+          import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+          import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+          import org.springframework.security.web.SecurityFilterChain;
+
+          @Configuration
+          public class SecurityConfig {
+
+              @Bean
+              SecurityFilterChain api(HttpSecurity http) {
+                  http
+                      .authorizeHttpRequests(auth -> auth
+                          .requestMatchers("/actuator/health/**").permitAll()
+                          .requestMatchers(HttpMethod.GET, "/api/**").permitAll()
+                          .anyRequest().authenticated())
+                      .httpBasic(withDefaults())
+                      // CSRF protects browser sessions with cookies; this API has none
+                      .csrf(AbstractHttpConfigurer::disable);
+                  return http.build();
+              }
+          }
+      - file: src/main/resources/application.properties
+        lang: properties
+        text: |
+          # add to the end:
+
+          # The one user who may change data. Override the password with LIBRARY_PASSWORD.
+          spring.security.user.name=admin
+          spring.security.user.password=${LIBRARY_PASSWORD:dev-only-password}
+      - file: src/test/java/dev/godeye/library/BookControllerTest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.hamcrest.Matchers.containsString;
+          import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+          import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+          import org.junit.jupiter.api.Test;
+          import org.springframework.beans.factory.annotation.Autowired;
+          import org.springframework.boot.test.context.SpringBootTest;
+          import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+          import org.springframework.http.MediaType;
+          import org.springframework.security.test.context.support.WithMockUser;
+          import org.springframework.test.web.servlet.MockMvc;
+
+          // The whole application starts; MockMvc sends requests to it without a real network.
+          @SpringBootTest
+          @AutoConfigureMockMvc
+          class BookControllerTest {
+
+              static final String DUNE = """
+                      {"title": "Dune", "author": "Frank Herbert", "year": 1965}
+                      """;
+
+              @Autowired
+              MockMvc mvc;
+
+              @Test
+              @WithMockUser
+              void createsAndReadsABook() throws Exception {
+                  mvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON).content(DUNE))
+                          .andExpect(status().isCreated())
+                          .andExpect(header().string("Location", containsString("/api/books/")))
+                          .andExpect(jsonPath("$.title").value("Dune"));
+
+                  mvc.perform(get("/api/books").param("author", "frank herbert"))
+                          .andExpect(status().isOk())
+                          .andExpect(jsonPath("$[0].title").value("Dune"));
+              }
+
+              @Test
+              @WithMockUser
+              void rejectsABookWithoutTitle() throws Exception {
+                  mvc.perform(post("/api/books")
+                                  .contentType(MediaType.APPLICATION_JSON)
+                                  .content("""
+                                          {"title": "", "author": "Someone", "year": 2000}
+                                          """))
+                          .andExpect(status().isBadRequest())
+                          .andExpect(jsonPath("$.errors.title").exists());
+              }
+
+              @Test
+              void returns404ForAnUnknownBook() throws Exception {
+                  mvc.perform(get("/api/books/99999"))
+                          .andExpect(status().isNotFound())
+                          .andExpect(jsonPath("$.detail").value("No book with id 99999"));
+              }
+
+              @Test
+              void anonymousUsersCannotCreateBooks() throws Exception {
+                  mvc.perform(post("/api/books").contentType(MediaType.APPLICATION_JSON).content(DUNE))
+                          .andExpect(status().isUnauthorized());
+              }
+          }
+      - file: src/test/java/dev/godeye/library/BookControllerWebTest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.mockito.BDDMockito.given;
+          import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+          import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+          import java.util.List;
+
+          import org.junit.jupiter.api.Test;
+          import org.springframework.beans.factory.annotation.Autowired;
+          import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+          import org.springframework.context.annotation.Import;
+          import org.springframework.test.context.bean.override.mockito.MockitoBean;
+          import org.springframework.test.web.servlet.MockMvc;
+
+          // @WebMvcTest starts only the web layer; the service is replaced by a mock.
+          @WebMvcTest(BookController.class)
+          @Import(SecurityConfig.class)
+          class BookControllerWebTest {
+
+              @Autowired
+              MockMvc mvc;
+
+              @MockitoBean
+              BookService service;
+
+              @Test
+              void listsBooksFromTheService() throws Exception {
+                  given(service.list(null)).willReturn(List.of(new Book("Emma", "Jane Austen", 1815)));
+
+                  mvc.perform(get("/api/books"))
+                          .andExpect(status().isOk())
+                          .andExpect(jsonPath("$[0].author").value("Jane Austen"));
+              }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          ./mvnw test
+          ./mvnw spring-boot:run
+
+          # in a second terminal
+          curl -i -X POST localhost:8080/api/books -H 'Content-Type: application/json' \
+            -d '{"title":"Dune","author":"Frank Herbert","year":1965}'
+          curl -i -u admin:dev-only-password -X POST localhost:8080/api/books \
+            -H 'Content-Type: application/json' \
+            -d '{"title":"Dune","author":"Frank Herbert","year":1965}'
+          curl localhost:8080/api/books
+    mistakes:
+      - problem:
+          en: "The `@WebMvcTest` now fails with 401, although `SecurityConfig` allows GET."
+          tr: "`SecurityConfig` GET'e izin vermesine rağmen `@WebMvcTest` artık 401 ile başarısız oluyor."
+        fix:
+          en: "A web slice test does not load your own `@Configuration` classes, so Spring's default (everything locked) applies. Add `@Import(SecurityConfig.class)` to the test."
+          tr: "Web slice testi kendi `@Configuration` class'larını yüklemez, bu yüzden Spring'in varsayılanı (her şey kilitli) geçerli olur. Teste `@Import(SecurityConfig.class)` ekle."
+      - problem:
+          en: "A POST with the right password still gets 403 Forbidden."
+          tr: "Doğru şifreyle yapılan POST yine de 403 Forbidden alıyor."
+        fix:
+          en: "CSRF protection is on and wants a token. It protects browser sessions that use cookies. This API has no cookies (Basic auth is sent each time), so the config turns it off. Do not turn it off for an app with cookie logins."
+          tr: "CSRF koruması açık ve bir token istiyor. Cookie kullanan tarayıcı oturumlarını korur. Bu API'de cookie yok (Basic auth her seferinde gönderilir), bu yüzden config onu kapatıyor. Cookie ile giriş yapan bir uygulamada kapatma."
+      - problem:
+          en: "Leaving the default password `dev-only-password` on the deployed app."
+          tr: "Yayındaki uygulamada varsayılan `dev-only-password` şifresini bırakmak."
+        fix:
+          en: "Always set `LIBRARY_PASSWORD` on the host (a long random value) and never commit real passwords. The next steps pass it to the jar, the container and the host."
+          tr: "Sunucuda her zaman `LIBRARY_PASSWORD` ayarla (uzun, rastgele bir değer) ve gerçek şifreleri asla commit'leme. Sonraki adımlar onu jar'a, container'a ve sunucuya iletir."
+    quiz:
+      - q:
+          en: "A user sends the right password but is not allowed to do the action. Which status code is correct?"
+          tr: "Bir kullanıcı doğru şifreyi gönderiyor ama o işlemi yapmasına izin yok. Doğru durum kodu hangisi?"
+        options:
+          en: ["401 Unauthorized", "403 Forbidden", "404 Not Found"]
+          tr: ["401 Unauthorized", "403 Forbidden", "404 Not Found"]
+        answer: 1
+        why:
+          en: "401 is for missing or wrong credentials. 403 means the server knows who you are and still refuses."
+          tr: "401 eksik ya da yanlış kimlik bilgisi içindir. 403, sunucunun kim olduğunu bildiği halde yine de reddettiği anlamına gelir."
+    sources:
+      - title: Spring Boot, Spring Security
+        url: https://docs.spring.io/spring-boot/reference/web/spring-security.html
+      - title: Spring Security, authorize HTTP requests
+        url: https://docs.spring.io/spring-security/reference/servlet/authorization/authorize-http-requests.html
+      - title: Spring Security, HTTP Basic authentication
+        url: https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/basic.html
+
+  - id: caching-threads
+    stage: performance
+    title:
+      en: "Cache reads and use virtual threads"
+      tr: "Okumaları cache'leme ve virtual thread kullanma"
+    minutes: 55
+    needs: [security]
+    why:
+      en: "Reading the same book again and again should not hit the database every time, and a web server should not waste a whole operating system thread on every waiting request. A cache and virtual threads fix both with a few lines."
+      tr: "Aynı kitabı tekrar tekrar okumak her seferinde veritabanına gitmemeli ve bir web sunucusu bekleyen her istek için koca bir işletim sistemi thread'i harcamamalı. Bir cache ve virtual thread'ler ikisini de birkaç satırla çözer."
+    learn:
+      en: |
+        - A **cache** keeps the result of a call: `@Cacheable` stores it, `@CachePut` refreshes it, `@CacheEvict` removes it
+        - The price of caching: stale data. A size limit and an expiry time (`expireAfterWrite`) keep it bounded
+        - **Virtual threads** (Java 21+) are very cheap threads. With `spring.threads.virtual.enabled=true` each request gets one, which helps code that mostly waits for the database or the network
+        - Virtual threads do not make calculations faster; measure before and after you tune anything
+      tr: |
+        - **Cache**, bir çağrının sonucunu saklar: `@Cacheable` saklar, `@CachePut` yeniler, `@CacheEvict` siler
+        - Cache'in bedeli: eski veri. Boyut sınırı ve süre sınırı (`expireAfterWrite`) bunu sınırlar
+        - **Virtual thread**'ler (Java 21+) çok ucuz thread'lerdir. `spring.threads.virtual.enabled=true` ile her isteğe biri verilir; çoğunlukla veritabanını ya da ağı bekleyen koda yardım eder
+        - Virtual thread'ler hesaplamaları hızlandırmaz; bir şeyi ayarlamadan önce ve sonra ölç
+    do:
+      en: |
+        1. Add the two dependencies below to `pom.xml`: the cache starter and Caffeine, a fast cache library (its version is managed by Spring Boot).
+        2. Create `CacheConfig.java` and replace `BookService.java` with the version below: `get` is cached, `update` refreshes the cache entry, `delete` removes it.
+        3. Add the cache and virtual thread settings to `application.properties`.
+        4. Add `BookCacheTest.java`. It reads the same book twice and checks (with a Mockito spy) that the repository was asked only once.
+        5. Run `./mvnw test` (now 8 tests).
+        6. Optional check: temporarily add `System.out.println(Thread.currentThread());` to `BookService.create`, start the app, create a book and look for `VirtualThread[...]` in the terminal. Remove the line again.
+      tr: |
+        1. Aşağıdaki iki bağımlılığı `pom.xml`'e ekle: cache starter'ı ve hızlı bir cache kütüphanesi olan Caffeine (sürümünü Spring Boot yönetir).
+        2. `CacheConfig.java` dosyasını oluştur ve `BookService.java` dosyasını aşağıdaki sürümle değiştir: `get` cache'lenir, `update` cache kaydını yeniler, `delete` siler.
+        3. Cache ve virtual thread ayarlarını `application.properties`'e ekle.
+        4. `BookCacheTest.java` dosyasını ekle. Aynı kitabı iki kez okur ve (bir Mockito spy ile) repository'nin sadece bir kez sorulduğunu kontrol eder.
+        5. `./mvnw test` çalıştır (artık 8 test).
+        6. İsteğe bağlı kontrol: `BookService.create` içine geçici olarak `System.out.println(Thread.currentThread());` ekle, uygulamayı başlat, bir kitap oluştur ve terminalde `VirtualThread[...]` ara. Satırı tekrar sil.
+    code:
+      - file: pom.xml
+        lang: xml
+        text: |
+          <dependency>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-starter-cache</artifactId>
+          </dependency>
+          <dependency>
+              <groupId>com.github.ben-manes.caffeine</groupId>
+              <artifactId>caffeine</artifactId>
+          </dependency>
+      - file: src/main/java/dev/godeye/library/CacheConfig.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import org.springframework.cache.annotation.EnableCaching;
+          import org.springframework.context.annotation.Configuration;
+
+          // Kept out of LibraryApplication so that slice tests (@WebMvcTest, @DataJpaTest) do not need a cache.
+          @Configuration
+          @EnableCaching
+          public class CacheConfig {
+          }
+      - file: src/main/java/dev/godeye/library/BookService.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.List;
+
+          import org.springframework.cache.annotation.CacheEvict;
+          import org.springframework.cache.annotation.CachePut;
+          import org.springframework.cache.annotation.Cacheable;
+          import org.springframework.data.domain.Sort;
+          import org.springframework.stereotype.Service;
+          import org.springframework.transaction.annotation.Transactional;
+
+          @Service
+          @Transactional
+          public class BookService {
+
+              private final BookRepository repository;
+
+              public BookService(BookRepository repository) {
+                  this.repository = repository;
+              }
+
+              @Transactional(readOnly = true)
+              public List<Book> list(String author) {
+                  if (author == null) {
+                      return repository.findAll(Sort.by("id"));
+                  }
+                  return repository.findByAuthorIgnoreCaseOrderById(author);
+              }
+
+              @Cacheable(value = "books", key = "#id")
+              @Transactional(readOnly = true)
+              public Book get(long id) {
+                  return repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
+              }
+
+              public Book create(BookRequest request) {
+                  return repository.save(new Book(request.title(), request.author(), request.year()));
+              }
+
+              @CachePut(value = "books", key = "#id")
+              public Book update(long id, BookRequest request) {
+                  Book book = get(id);
+                  book.change(request.title(), request.author(), request.year());
+                  return book; // saved automatically when the transaction ends
+              }
+
+              @CacheEvict(value = "books", key = "#id")
+              public void delete(long id) {
+                  if (!repository.existsById(id)) {
+                      throw new BookNotFoundException(id);
+                  }
+                  repository.deleteById(id);
+              }
+          }
+      - file: src/main/resources/application.properties
+        lang: properties
+        text: |
+          # add to the end:
+
+          # Keep at most 500 books in the cache, each for 10 minutes
+          spring.cache.cache-names=books
+          spring.cache.caffeine.spec=maximumSize=500,expireAfterWrite=10m
+
+          # Run each request on a cheap virtual thread (needs Java 21 or newer)
+          spring.threads.virtual.enabled=true
+      - file: src/test/java/dev/godeye/library/BookCacheTest.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import static org.mockito.Mockito.times;
+          import static org.mockito.Mockito.verify;
+
+          import org.junit.jupiter.api.Test;
+          import org.springframework.beans.factory.annotation.Autowired;
+          import org.springframework.boot.test.context.SpringBootTest;
+          import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+
+          @SpringBootTest
+          class BookCacheTest {
+
+              @Autowired
+              BookService service;
+
+              @MockitoSpyBean
+              BookRepository repository;
+
+              @Test
+              void secondReadComesFromTheCache() {
+                  Book saved = service.create(new BookRequest("Emma", "Jane Austen", 1815));
+
+                  service.get(saved.getId());
+                  service.get(saved.getId());
+
+                  verify(repository, times(1)).findById(saved.getId());
+              }
+          }
+    mistakes:
+      - problem:
+          en: "After adding `@EnableCaching` to `LibraryApplication`, `@WebMvcTest` and `@DataJpaTest` fail to start."
+          tr: "`LibraryApplication`'a `@EnableCaching` ekleyince `@WebMvcTest` ve `@DataJpaTest` başlamıyor."
+        fix:
+          en: "Annotations on the main class also apply to slice tests, which have no cache setup. Put `@EnableCaching` in its own `@Configuration` class (`CacheConfig`), which slices do not load."
+          tr: "Ana class üzerindeki anotasyonlar, cache ayarı olmayan slice testlere de uygulanır. `@EnableCaching`'i kendi `@Configuration` class'ına (`CacheConfig`) koy; slice'lar onu yüklemez."
+      - problem:
+          en: "A cached method is called from another method of the same class and the cache is ignored."
+          tr: "Cache'li bir metot aynı class'taki başka bir metottan çağrılıyor ve cache yok sayılıyor."
+        fix:
+          en: "Spring adds caching through a proxy around the bean, and a call from inside the class skips the proxy. Call the cached method from another bean (like the controller does)."
+          tr: "Spring cache'i bean'in etrafındaki bir proxy ile ekler ve class içinden yapılan çağrı proxy'yi atlar. Cache'li metodu başka bir bean'den çağır (controller'ın yaptığı gibi)."
+      - problem:
+          en: "Old data is returned after someone edited the table directly in the database."
+          tr: "Biri tabloyu doğrudan veritabanında düzenledikten sonra eski veri dönüyor."
+        fix:
+          en: "The cache cannot see changes made outside the app. That is why the entries expire after 10 minutes. Cache only data that may be a little old, and keep the time short for data that changes often."
+          tr: "Cache, uygulamanın dışında yapılan değişiklikleri göremez. Kayıtların 10 dakika sonra silinmesinin sebebi bu. Sadece biraz eski olabilecek veriyi cache'le ve sık değişen veri için süreyi kısa tut."
+    quiz:
+      - q:
+          en: "When do virtual threads help most?"
+          tr: "Virtual thread'ler en çok ne zaman yardım eder?"
+        options:
+          en: ["When the code does heavy calculations", "When many requests mostly wait for a database or network", "When the app has only one user"]
+          tr: ["Kod ağır hesaplamalar yaparken", "Çok sayıda istek çoğunlukla bir veritabanını ya da ağı beklerken", "Uygulamanın tek kullanıcısı varken"]
+        answer: 1
+        why:
+          en: "A waiting virtual thread costs almost nothing, so thousands of waiting requests fit. Calculations still need real CPU time."
+          tr: "Bekleyen bir virtual thread neredeyse hiçbir şeye mal olmaz, bu yüzden binlerce bekleyen istek sığar. Hesaplamalar yine gerçek CPU zamanı ister."
+    sources:
+      - title: Spring Boot, caching
+        url: https://docs.spring.io/spring-boot/reference/io/caching.html
+      - title: Spring Framework, cache annotations
+        url: https://docs.spring.io/spring-framework/reference/integration/cache/annotations.html
+      - title: Java, virtual threads
+        url: https://docs.oracle.com/en/java/javase/25/core/virtual-threads.html
+
+  - id: jar
+    stage: packaging
+    title:
+      en: "Build an executable jar"
+      tr: "Çalıştırılabilir bir jar üretme"
+    minutes: 25
+    needs: [caching-threads]
+    why:
+      en: "A server does not need Maven or your source code. It needs one file it can run. Spring Boot packages your code, its libraries and the web server into a single jar that starts with `java -jar`."
+      tr: "Bir sunucunun Maven'a ya da kaynak koduna ihtiyacı yok. Çalıştırabileceği tek bir dosyaya ihtiyacı var. Spring Boot kodunu, kütüphanelerini ve web sunucusunu `java -jar` ile başlayan tek bir jar'a paketler."
+    learn:
+      en: |
+        - What `./mvnw package` does: compiles, runs the tests, builds `target/library-0.0.1-SNAPSHOT.jar`
+        - A jar is a zip file; Spring Boot's "fat jar" also contains all libraries (about 60 MB here)
+        - Settings from the outside: environment variables such as `LIBRARY_PASSWORD` and `PORT` override `application.properties`
+      tr: |
+        - `./mvnw package` ne yapar: derler, testleri çalıştırır, `target/library-0.0.1-SNAPSHOT.jar` dosyasını üretir
+        - Jar bir zip dosyasıdır; Spring Boot'un "fat jar"ı tüm kütüphaneleri de içerir (burada yaklaşık 60 MB)
+        - Dışarıdan ayar: `LIBRARY_PASSWORD` ve `PORT` gibi ortam değişkenleri `application.properties`'i geçersiz kılar
+    do:
+      en: |
+        1. Hosting services tell your app which port to use through the `PORT` environment variable. Add the first line below to the top of `application.properties` (after the application name); without `PORT` it stays 8080.
+        2. Run `./mvnw package`. When it prints `BUILD SUCCESS`, look at the `target` folder.
+        3. Run the jar with a password from the environment (Linux and macOS first, PowerShell second). Stop any other run of the app first.
+        4. Test it with `curl`: reading works without a password, creating needs `-u admin:s3cret`.
+        5. Stop it with Ctrl+C. To skip the tests when you are in a hurry, use `./mvnw package -DskipTests`; do not make this a habit.
+      tr: |
+        1. Barındırma servisleri uygulamana hangi portu kullanacağını `PORT` ortam değişkeniyle söyler. Aşağıdaki ilk satırı `application.properties` dosyasının başına (uygulama adından sonra) ekle; `PORT` yoksa 8080 kalır.
+        2. `./mvnw package` çalıştır. `BUILD SUCCESS` yazınca `target` klasörüne bak.
+        3. Jar'ı ortamdan gelen bir şifreyle çalıştır (önce Linux ve macOS, sonra PowerShell). Önce uygulamanın diğer çalıştırmalarını durdur.
+        4. `curl` ile dene: okumak şifre istemez, oluşturmak `-u admin:s3cret` ister.
+        5. Ctrl+C ile durdur. Acelen varsa testleri atlamak için `./mvnw package -DskipTests` kullan; bunu alışkanlık yapma.
+    code:
+      - file: src/main/resources/application.properties
+        lang: properties
+        text: |
+          server.port=${PORT:8080}
+      - file: terminal
+        lang: sh
+        text: |
+          ./mvnw package
+          ls -lh target/*.jar
+
+          LIBRARY_PASSWORD=s3cret java -jar target/library-0.0.1-SNAPSHOT.jar
+
+          # PowerShell
+          $env:LIBRARY_PASSWORD = "s3cret"; java -jar target/library-0.0.1-SNAPSHOT.jar
+
+          # second terminal
+          curl -u admin:s3cret -X POST localhost:8080/api/books -H 'Content-Type: application/json' \
+            -d '{"title":"Dune","author":"Frank Herbert","year":1965}'
+          curl localhost:8080/api/books
+    mistakes:
+      - problem:
+          en: "\"Error: Unable to access jarfile target/library-0.0.1-SNAPSHOT.jar\"."
+          tr: "\"Error: Unable to access jarfile target/library-0.0.1-SNAPSHOT.jar\" hatası."
+        fix:
+          en: "You are in the wrong folder, the build failed, or the version in `pom.xml` is different. Run `ls target` and use the exact name you see."
+          tr: "Yanlış klasördesin, build başarısız oldu ya da `pom.xml`'deki sürüm farklı. `ls target` çalıştır ve gördüğün adı aynen kullan."
+      - problem:
+          en: "The build fails in the tests, but the code works when you run it."
+          tr: "Build testlerde başarısız oluyor ama kodu çalıştırınca çalışıyor."
+        fix:
+          en: "Read the first failing test in the output; do not skip tests to get around it. Common cause: the `postgres` profile is active through `SPRING_PROFILES_ACTIVE`, or a test depends on data that another test changed."
+          tr: "Çıktıdaki ilk başarısız testi oku; atlatmak için testleri geçme. Sık sebep: `SPRING_PROFILES_ACTIVE` ile `postgres` profile'ının aktif olması ya da bir testin başka bir testin değiştirdiği veriye bağlı olması."
+      - problem:
+          en: "The jar runs, but anyone can log in with `admin` and `dev-only-password`."
+          tr: "Jar çalışıyor ama herkes `admin` ve `dev-only-password` ile giriş yapabilir."
+        fix:
+          en: "You did not set `LIBRARY_PASSWORD`, so the default applies. Always set it when you run outside your own computer."
+          tr: "`LIBRARY_PASSWORD` ayarlamadın, bu yüzden varsayılan geçerli. Kendi bilgisayarın dışında çalıştırırken her zaman ayarla."
+    quiz:
+      - q:
+          en: "Why can the jar run on a server that has only Java installed?"
+          tr: "Jar neden sadece Java kurulu bir sunucuda çalışabilir?"
+        options:
+          en: ["It contains the app and all its libraries and the web server", "It downloads the code when it starts", "Java installs Maven by itself"]
+          tr: ["Uygulamayı, tüm kütüphaneleri ve web sunucusunu içerir", "Başlarken kodu indirir", "Java Maven'ı kendisi kurar"]
+        answer: 0
+        why:
+          en: "Spring Boot's executable jar is self-contained: your classes, the libraries and an embedded Tomcat."
+          tr: "Spring Boot'un çalıştırılabilir jar'ı kendi kendine yeter: sınıfların, kütüphaneler ve gömülü bir Tomcat."
+    sources:
+      - title: Spring Boot, executable jars
+        url: https://docs.spring.io/spring-boot/specification/executable-jar/index.html
+      - title: Spring Boot, packaging
+        url: https://docs.spring.io/spring-boot/reference/packaging/index.html
+
+  - id: docker
+    stage: packaging
+    title:
+      en: "Package the app as a Docker image"
+      tr: "Uygulamayı Docker image'ı olarak paketleme"
+    minutes: 45
+    needs: [jar]
+    why:
+      en: "A container image carries the app together with the right Java, so it runs the same on your laptop and on any host. Most hosting services, including the free one in the next step, run Docker images."
+      tr: "Container image'ı uygulamayı doğru Java ile birlikte taşır; böylece dizüstü bilgisayarında da, herhangi bir sunucuda da aynı çalışır. Bir sonraki adımdaki ücretsiz servis dahil çoğu barındırma servisi Docker image'ı çalıştırır."
+    learn:
+      en: |
+        - A **multi-stage Dockerfile**: stage one builds the jar with the JDK, stage two copies only the jar into a small JRE image
+        - Layer order: copy `pom.xml` and download libraries first, then copy `src`, so a code change does not download everything again
+        - Running as a normal user instead of root, and a memory limit (`-XX:MaxRAMPercentage=75`)
+        - The alternative: `./mvnw spring-boot:build-image` builds an image with Cloud Native Buildpacks and needs no Dockerfile
+      tr: |
+        - **Multi-stage Dockerfile**: birinci aşama jar'ı JDK ile üretir, ikinci aşama sadece jar'ı küçük bir JRE image'ına kopyalar
+        - Katman sırası: önce `pom.xml`'i kopyala ve kütüphaneleri indir, sonra `src`'yi kopyala; böylece kod değişikliği her şeyi yeniden indirmez
+        - Root yerine normal bir kullanıcıyla çalışmak ve bellek sınırı (`-XX:MaxRAMPercentage=75`)
+        - Alternatif: `./mvnw spring-boot:build-image` Cloud Native Buildpacks ile Dockerfile'sız image üretir
+    do:
+      en: |
+        1. Create `Dockerfile` and `.dockerignore` in the project root (next to `pom.xml`) with the content below.
+        2. Build the image: the first build downloads the JDK image and all libraries, so it takes a few minutes. Later builds are faster.
+        3. Run it with a password and the port published, then test with `curl` as before. If port 8080 is busy, use `-p 8081:8080` and call port 8081.
+        4. Check the size with `docker images library`, and stop the container with Ctrl+C.
+        5. Commit `Dockerfile` and `.dockerignore`.
+      tr: |
+        1. Proje kökünde (`pom.xml`'in yanında) aşağıdaki içerikle `Dockerfile` ve `.dockerignore` oluştur.
+        2. Image'ı üret: ilk build JDK image'ını ve tüm kütüphaneleri indirir, bu yüzden birkaç dakika sürer. Sonrakiler daha hızlı.
+        3. Bir şifre ve yayınlanmış portla çalıştır, sonra `curl` ile eskisi gibi dene. 8080 doluysa `-p 8081:8080` kullan ve 8081 portunu çağır.
+        4. Boyutu `docker images library` ile kontrol et ve container'ı Ctrl+C ile durdur.
+        5. `Dockerfile` ve `.dockerignore` dosyalarını commit'le.
+    code:
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: build the jar with the JDK
+          FROM eclipse-temurin:25-jdk-alpine AS build
+          WORKDIR /app
+          COPY .mvn .mvn
+          COPY mvnw pom.xml ./
+          RUN ./mvnw -q dependency:go-offline
+          COPY src src
+          RUN ./mvnw -q package -DskipTests
+
+          # Stage 2: run it with the smaller JRE, as a normal user (not root)
+          FROM eclipse-temurin:25-jre-alpine
+          WORKDIR /app
+          RUN addgroup -S app && adduser -S app -G app
+          COPY --from=build /app/target/*.jar app.jar
+          USER app
+          EXPOSE 8080
+          ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-jar", "app.jar"]
+      - file: .dockerignore
+        lang: text
+        text: |
+          target
+          .git
+          HELP.md
+      - file: terminal
+        lang: sh
+        text: |
+          docker build -t library .
+          docker run --rm -p 8080:8080 -e LIBRARY_PASSWORD=s3cret library
+
+          # second terminal
+          curl localhost:8080/actuator/health
+          curl -u admin:s3cret -X POST localhost:8080/api/books -H 'Content-Type: application/json' \
+            -d '{"title":"Dune","author":"Frank Herbert","year":1965}'
+
+          # the Dockerfile-free alternative
+          ./mvnw spring-boot:build-image -Dspring-boot.build-image.imageName=library
+    mistakes:
+      - problem:
+          en: "\"Bind for 0.0.0.0:8080 failed: port is already allocated\"."
+          tr: "\"Bind for 0.0.0.0:8080 failed: port is already allocated\" hatası."
+        fix:
+          en: "Something already uses port 8080 on your computer (maybe an older container: `docker ps`). Stop it or publish another host port: `-p 8081:8080`."
+          tr: "Bilgisayarında 8080 portunu zaten bir şey kullanıyor (belki eski bir container: `docker ps`). Onu durdur ya da başka bir host portu yayınla: `-p 8081:8080`."
+      - problem:
+          en: "Every build downloads all libraries again and takes minutes."
+          tr: "Her build tüm kütüphaneleri yeniden indiriyor ve dakikalar sürüyor."
+        fix:
+          en: "Keep the order: copy `pom.xml` and run `dependency:go-offline` *before* `COPY src src`. Docker reuses unchanged layers, so only your code is rebuilt."
+          tr: "Sırayı koru: `pom.xml`'i kopyala ve `dependency:go-offline`'ı `COPY src src`'den *önce* çalıştır. Docker değişmeyen katmanları yeniden kullanır, böylece sadece kodun yeniden derlenir."
+      - problem:
+          en: "The app inside the container cannot reach the PostgreSQL on `localhost`."
+          tr: "Container içindeki uygulama `localhost` üzerindeki PostgreSQL'e ulaşamıyor."
+        fix:
+          en: "Inside a container `localhost` is the container itself. Put both containers in the same Docker network and use the database container's name as the host, or use a hosted database URL."
+          tr: "Container içinde `localhost` container'ın kendisidir. İki container'ı aynı Docker ağına koy ve host olarak veritabanı container'ının adını kullan, ya da barındırılan bir veritabanı URL'si kullan."
+    quiz:
+      - q:
+          en: "Why does the Dockerfile have two `FROM` lines?"
+          tr: "Dockerfile'da neden iki `FROM` satırı var?"
+        options:
+          en: ["To run two apps", "To build with the big JDK but ship only the small JRE image with the jar", "To make the image slower"]
+          tr: ["İki uygulama çalıştırmak için", "Büyük JDK ile build etmek ama sadece jar'lı küçük JRE image'ını göndermek için", "Image'ı yavaşlatmak için"]
+        answer: 1
+        why:
+          en: "Only the last stage becomes the image. The compiler, Maven and the source code stay in the first stage, so the final image is smaller and safer."
+          tr: "Sadece son aşama image olur. Derleyici, Maven ve kaynak kod ilk aşamada kalır; son image daha küçük ve daha güvenli olur."
+    sources:
+      - title: Spring Boot, efficient container images (Dockerfiles)
+        url: https://docs.spring.io/spring-boot/reference/packaging/container-images/dockerfiles.html
+      - title: Spring Boot Maven plugin, build-image
+        url: https://docs.spring.io/spring-boot/maven-plugin/build-image.html
+      - title: Docker, multi-stage builds
+        url: https://docs.docker.com/build/building/multi-stage/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on Render"
+      tr: "Render'da ücretsiz deploy etme"
+    minutes: 40
+    needs: [docker, security]
+    why:
+      en: "A service nobody can reach is only a hobby on your laptop. Render can run your Docker image on a public https address, and has a free plan that is enough to show the project."
+      tr: "Kimsenin ulaşamadığı bir servis, dizüstü bilgisayarındaki bir hobiden ibaret. Render Docker image'ını herkese açık bir https adresinde çalıştırabilir ve projeyi göstermeye yetecek ücretsiz bir planı var."
+    learn:
+      en: |
+        - How a host builds from a Git repository: it reads the `Dockerfile`, builds the image and starts it
+        - Environment variables on the host: `LIBRARY_PASSWORD` is set there, never in Git
+        - A health check path tells the host when the app is ready
+        - **The limits of the free plan** (from Render's documentation, checked 2026-10): a free web service spins down after 15 minutes without traffic and needs about a minute to wake up; its files are lost on every restart or redeploy, so the in-memory H2 data is lost too; each workspace has 750 free instance hours per month; the instance has 512 MB RAM and less than one CPU; free Render Postgres databases expire 30 days after creation
+      tr: |
+        - Bir sunucunun Git deposundan nasıl build aldığı: `Dockerfile`'ı okur, image'ı üretir ve başlatır
+        - Sunucudaki ortam değişkenleri: `LIBRARY_PASSWORD` orada ayarlanır, Git'te asla
+        - Health check yolu, uygulamanın ne zaman hazır olduğunu sunucuya söyler
+        - **Ücretsiz planın sınırları** (Render dokümantasyonundan, 2026-10'da kontrol edildi): ücretsiz bir web servisi 15 dakika trafik almazsa uykuya geçer ve uyanması yaklaşık bir dakika sürer; dosyaları her yeniden başlatmada ya da redeploy'da kaybolur, yani bellekteki H2 verisi de kaybolur; her workspace için ayda 750 ücretsiz instance saati var; instance'ın 512 MB RAM'i ve bir CPU'dan azı var; ücretsiz Render Postgres veritabanları oluşturulduktan 30 gün sonra sona erer
+    do:
+      en: |
+        1. Create a GitHub account and a new repository (private is fine). Push your project: `git remote add origin <repo-url>`, then `git push -u origin main`. Check that `Dockerfile` and `pom.xml` are in the repository root.
+        2. Sign up at render.com. Click **New**, then **Web Service**, connect GitHub and pick the repository.
+        3. Choose the **Docker** language (Render finds the `Dockerfile` in the root) and the **Free** instance type.
+        4. Under environment variables add `LIBRARY_PASSWORD` with a long random value. Render passes `PORT` itself and the app reads it.
+        5. Under advanced settings set the **Health Check Path** to `/actuator/health`.
+        6. Deploy and watch the build log. When it says the service is live, open `https://<your-service>.onrender.com/actuator/health`, then `/api/books`.
+        7. Create a book with `curl -u admin:<your password>` against your Render address. Wait 15 minutes without any request and open the address again: the first answer is slow (the service woke up) and the book is gone (H2 is in memory). This is the free plan, not a bug.
+        8. To keep data you need a database that survives restarts: a PostgreSQL from any provider, with its JDBC URL, user and password in `DATABASE_URL`, `DATABASE_USER` and `DATABASE_PASSWORD`, plus `SPRING_PROFILES_ACTIVE=postgres`. Render's own free Postgres works for 30 days.
+      tr: |
+        1. Bir GitHub hesabı ve yeni bir depo oluştur (private olabilir). Projeni gönder: `git remote add origin <repo-url>`, sonra `git push -u origin main`. `Dockerfile` ve `pom.xml`'in deponun kökünde olduğunu kontrol et.
+        2. render.com'a kaydol. **New**'e, sonra **Web Service**'e tıkla, GitHub'ı bağla ve depoyu seç.
+        3. **Docker** dilini seç (Render kökteki `Dockerfile`'ı bulur) ve **Free** instance tipini seç.
+        4. Ortam değişkenlerine uzun, rastgele bir değerle `LIBRARY_PASSWORD` ekle. `PORT`'u Render kendisi verir ve uygulama onu okur.
+        5. Gelişmiş ayarlardan **Health Check Path**'i `/actuator/health` yap.
+        6. Deploy et ve build log'unu izle. Servisin yayında olduğunu yazınca `https://<servis-adın>.onrender.com/actuator/health` adresini, sonra `/api/books` adresini aç.
+        7. Render adresine `curl -u admin:<şifren>` ile bir kitap oluştur. 15 dakika hiç istek göndermeden bekle ve adresi yeniden aç: ilk cevap yavaş gelir (servis uyandı) ve kitap gitmiştir (H2 bellekte). Bu ücretsiz planın davranışı, hata değil.
+        8. Veriyi tutmak için yeniden başlatmalardan etkilenmeyen bir veritabanı gerekir: herhangi bir sağlayıcıdan bir PostgreSQL, JDBC URL'si, kullanıcı adı ve şifresi `DATABASE_URL`, `DATABASE_USER` ve `DATABASE_PASSWORD` içinde, ayrıca `SPRING_PROFILES_ACTIVE=postgres`. Render'ın kendi ücretsiz Postgres'i 30 gün çalışır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git remote add origin https://github.com/<you>/library.git
+          git push -u origin main
+
+          # after the deploy
+          curl https://<your-service>.onrender.com/actuator/health
+          curl https://<your-service>.onrender.com/api/books
+          curl -u admin:<your-password> -X POST https://<your-service>.onrender.com/api/books \
+            -H 'Content-Type: application/json' \
+            -d '{"title":"Dune","author":"Frank Herbert","year":1965}'
+    mistakes:
+      - problem:
+          en: "The deploy fails with \"no Dockerfile found\" or builds the wrong folder."
+          tr: "Deploy \"no Dockerfile found\" ile başarısız oluyor ya da yanlış klasörü build ediyor."
+        fix:
+          en: "The `Dockerfile` must be in the repository root, or you must set the Dockerfile path and root directory in the service settings. Check with `git ls-files Dockerfile` that it was committed."
+          tr: "`Dockerfile` deponun kökünde olmalı ya da servis ayarlarında Dockerfile yolunu ve kök dizini belirtmelisin. Commit'lendiğini `git ls-files Dockerfile` ile kontrol et."
+      - problem:
+          en: "The service is \"live\" but the page times out, or Render says no open port was detected."
+          tr: "Servis \"live\" görünüyor ama sayfa zaman aşımına uğruyor ya da Render açık port bulunamadı diyor."
+        fix:
+          en: "The app must listen on the port in the `PORT` variable and on all addresses. The `server.port=${PORT:8080}` line does that; check that you added it and committed it."
+          tr: "Uygulama `PORT` değişkenindeki portu ve tüm adresleri dinlemeli. `server.port=${PORT:8080}` satırı bunu yapar; eklediğinden ve commit'lediğinden emin ol."
+      - problem:
+          en: "The first request after a break takes a minute, or the books vanished."
+          tr: "Moladan sonraki ilk istek bir dakika sürüyor ya da kitaplar kayboldu."
+        fix:
+          en: "That is the free plan: it sleeps after 15 minutes without traffic and loses local data. For a demo this is fine; for real use pay for an always-on instance and use a database."
+          tr: "Bu ücretsiz plan: 15 dakika trafik olmazsa uyur ve yerel veriyi kaybeder. Demo için sorun değil; gerçek kullanım için hep açık bir instance için öde ve bir veritabanı kullan."
+    quiz:
+      - q:
+          en: "Where should `LIBRARY_PASSWORD` be stored for the deployed app?"
+          tr: "Yayındaki uygulama için `LIBRARY_PASSWORD` nerede saklanmalı?"
+        options:
+          en: ["In the Git repository so it is not lost", "In the host's environment variables", "In the Dockerfile"]
+          tr: ["Kaybolmasın diye Git deposunda", "Sunucunun ortam değişkenlerinde", "Dockerfile içinde"]
+        answer: 1
+        why:
+          en: "Anything in Git or in an image can be read by anyone who gets the repository or the image. The host keeps its environment variables private."
+          tr: "Git'teki ya da image'daki her şeyi depoya ya da image'a erişen herkes okuyabilir. Sunucu ortam değişkenlerini gizli tutar."
+    sources:
+      - title: Render, deploy for free (limits)
+        url: https://render.com/docs/free
+      - title: Render, Docker on Render
+        url: https://render.com/docs/docker
+      - title: Render, health checks
+        url: https://render.com/docs/health-checks
+
+  - id: actuator-logs
+    stage: monitoring
+    title:
+      en: "Health, metrics and logs with Actuator"
+      tr: "Actuator ile sağlık, metrik ve log"
+    minutes: 40
+    needs: [deploy]
+    why:
+      en: "When something goes wrong in production you can only look at what the app tells you: is it healthy, how much memory does it use, what did it log. Actuator and good log messages give you that."
+      tr: "Production'da bir şey ters gittiğinde sadece uygulamanın sana söylediklerine bakabilirsin: sağlıklı mı, ne kadar bellek kullanıyor, ne logladı. Actuator ve iyi log mesajları bunu sağlar."
+    learn:
+      en: |
+        - `/actuator/health` says UP or DOWN (the host uses it); details such as database and disk are shown only to a logged-in user
+        - `/actuator/metrics` lists numbers like memory use and request counts; `/actuator/health/liveness` and `/readiness` are the probes orchestrators use
+        - Log levels (ERROR, WARN, INFO, DEBUG) and `logging.level.<package>` to change them without code
+        - Never expose every endpoint publicly: list only the ones you need
+        - JSON logs for log tools: `logging.structured.format.console=ecs`
+      tr: |
+        - `/actuator/health` UP ya da DOWN der (sunucu bunu kullanır); veritabanı ve disk gibi ayrıntılar sadece giriş yapmış kullanıcıya gösterilir
+        - `/actuator/metrics` bellek kullanımı ve istek sayısı gibi sayıları listeler; `/actuator/health/liveness` ve `/readiness` orkestratörlerin kullandığı probe'lardır
+        - Log seviyeleri (ERROR, WARN, INFO, DEBUG) ve kod yazmadan değiştirmek için `logging.level.<paket>`
+        - Her endpoint'i herkese açma: sadece ihtiyacın olanları listele
+        - Log araçları için JSON log: `logging.structured.format.console=ecs`
+    do:
+      en: |
+        1. Replace `BookService.java` with the version below. It logs when a book is created or deleted, and warns when someone deletes a book that does not exist.
+        2. Make `application.properties` look like the full file below (it is the final version, with logging and Actuator settings added and `show-sql` removed).
+        3. Run the app, create and delete books, and read the log lines in the terminal.
+        4. Check the endpoints with `curl`: `/actuator/health` is public and short; with `-u admin:...` it shows details; `/actuator/metrics` needs the login.
+        5. Raise the detail of your own logs without changing code: `LOGGING_LEVEL_DEV_GODEYE_LIBRARY=DEBUG ./mvnw spring-boot:run`. Spring reads environment variables in this form for any property.
+        6. On Render open the service's **Logs** tab and find the same lines. Try `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` as an environment variable to get one JSON object per line.
+      tr: |
+        1. `BookService.java` dosyasını aşağıdaki sürümle değiştir. Bir kitap oluşturulunca ya da silinince log yazar, olmayan bir kitabı silmeye çalışan olursa uyarır.
+        2. `application.properties` dosyasını aşağıdaki tam dosya gibi yap (son sürüm: log ve Actuator ayarları eklendi, `show-sql` kaldırıldı).
+        3. Uygulamayı çalıştır, kitap oluştur ve sil, terminaldeki log satırlarını oku.
+        4. Endpoint'leri `curl` ile kontrol et: `/actuator/health` herkese açık ve kısa; `-u admin:...` ile ayrıntı gösterir; `/actuator/metrics` giriş ister.
+        5. Kod değiştirmeden kendi loglarının ayrıntısını artır: `LOGGING_LEVEL_DEV_GODEYE_LIBRARY=DEBUG ./mvnw spring-boot:run`. Spring her ayarı bu biçimdeki ortam değişkenlerinden okur.
+        6. Render'da servisin **Logs** sekmesini aç ve aynı satırları bul. Satır başına bir JSON nesnesi için ortam değişkeni olarak `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` dene.
+    code:
+      - file: src/main/java/dev/godeye/library/BookService.java
+        lang: java
+        text: |
+          package dev.godeye.library;
+
+          import java.util.List;
+
+          import org.slf4j.Logger;
+          import org.slf4j.LoggerFactory;
+          import org.springframework.cache.annotation.CacheEvict;
+          import org.springframework.cache.annotation.CachePut;
+          import org.springframework.cache.annotation.Cacheable;
+          import org.springframework.data.domain.Sort;
+          import org.springframework.stereotype.Service;
+          import org.springframework.transaction.annotation.Transactional;
+
+          @Service
+          @Transactional
+          public class BookService {
+
+              private static final Logger log = LoggerFactory.getLogger(BookService.class);
+
+              private final BookRepository repository;
+
+              public BookService(BookRepository repository) {
+                  this.repository = repository;
+              }
+
+              @Transactional(readOnly = true)
+              public List<Book> list(String author) {
+                  if (author == null) {
+                      return repository.findAll(Sort.by("id"));
+                  }
+                  return repository.findByAuthorIgnoreCaseOrderById(author);
+              }
+
+              @Cacheable(value = "books", key = "#id")
+              @Transactional(readOnly = true)
+              public Book get(long id) {
+                  return repository.findById(id).orElseThrow(() -> new BookNotFoundException(id));
+              }
+
+              public Book create(BookRequest request) {
+                  Book saved = repository.save(new Book(request.title(), request.author(), request.year()));
+                  log.info("Created book {} (\"{}\")", saved.getId(), saved.getTitle());
+                  return saved;
+              }
+
+              @CachePut(value = "books", key = "#id")
+              public Book update(long id, BookRequest request) {
+                  Book book = get(id);
+                  book.change(request.title(), request.author(), request.year());
+                  return book; // saved automatically when the transaction ends
+              }
+
+              @CacheEvict(value = "books", key = "#id")
+              public void delete(long id) {
+                  if (!repository.existsById(id)) {
+                      log.warn("Tried to delete missing book {}", id);
+                      throw new BookNotFoundException(id);
+                  }
+                  repository.deleteById(id);
+                  log.info("Deleted book {}", id);
+              }
+          }
+      - file: src/main/resources/application.properties
+        lang: properties
+        text: |
+          spring.application.name=library
+          server.port=${PORT:8080}
+
+          # Log levels: our code at INFO, everything else at the default
+          logging.level.dev.godeye.library=INFO
+
+          # Actuator: which endpoints are reachable over HTTP
+          management.endpoints.web.exposure.include=health,metrics
+          management.endpoint.health.show-details=when-authorized
+
+          # The one user who may change data. Override the password with LIBRARY_PASSWORD.
+          spring.security.user.name=admin
+          spring.security.user.password=${LIBRARY_PASSWORD:dev-only-password}
+
+          # Keep at most 500 books in the cache, each for 10 minutes
+          spring.cache.cache-names=books
+          spring.cache.caffeine.spec=maximumSize=500,expireAfterWrite=10m
+
+          # Run each request on a cheap virtual thread (needs Java 21 or newer)
+          spring.threads.virtual.enabled=true
+      - file: terminal
+        lang: sh
+        text: |
+          curl localhost:8080/actuator/health
+          curl -u admin:dev-only-password localhost:8080/actuator/health
+          curl -u admin:dev-only-password localhost:8080/actuator/metrics
+          curl -u admin:dev-only-password localhost:8080/actuator/metrics/jvm.memory.used
+          curl localhost:8080/actuator/health/liveness
+    mistakes:
+      - problem:
+          en: "`/actuator/metrics` answers 401 in the browser or with `curl`."
+          tr: "`/actuator/metrics` tarayıcıda ya da `curl` ile 401 dönüyor."
+        fix:
+          en: "That is intended: `SecurityConfig` makes only `/actuator/health/**` public. Send the login (`curl -u admin:...`). Do not open more endpoints to the public."
+          tr: "Bu istenen davranış: `SecurityConfig` sadece `/actuator/health/**` yolunu herkese açar. Girişi gönder (`curl -u admin:...`). Daha fazla endpoint'i herkese açma."
+      - problem:
+          en: "Setting `management.endpoints.web.exposure.include=*` to \"see everything\"."
+          tr: "\"Her şeyi görmek\" için `management.endpoints.web.exposure.include=*` ayarlamak."
+        fix:
+          en: "Some endpoints reveal configuration, environment and internals. List only what you need (`health,metrics`) and keep everything except health behind the login."
+          tr: "Bazı endpoint'ler yapılandırmayı, ortamı ve iç bilgileri gösterir. Sadece ihtiyacın olanları listele (`health,metrics`) ve health dışındakilerin hepsini girişin arkasında tut."
+      - problem:
+          en: "You change a log level in `application.properties` and nothing changes."
+          tr: "`application.properties`'te bir log seviyesini değiştiriyorsun ve hiçbir şey değişmiyor."
+        fix:
+          en: "Restart the app (properties are read at start-up). Also check the package name: `logging.level.dev.godeye.library` must match the real package of the class."
+          tr: "Uygulamayı yeniden başlat (ayarlar başlangıçta okunur). Paket adını da kontrol et: `logging.level.dev.godeye.library` class'ın gerçek paketiyle aynı olmalı."
+    quiz:
+      - q:
+          en: "Why does the host check `/actuator/health` and not `/api/books`?"
+          tr: "Sunucu neden `/api/books` yerine `/actuator/health` yolunu kontrol ediyor?"
+        options:
+          en: ["Because it is faster to type", "Because it is public and answers cheaply whether the app and its database work", "Because /api/books does not exist"]
+          tr: ["Yazması daha kısa olduğu için", "Herkese açık olduğu ve uygulamanın ve veritabanının çalışıp çalışmadığını ucuza cevapladığı için", "/api/books olmadığı için"]
+        answer: 1
+        why:
+          en: "A health endpoint is made for this check. It needs no login and does not depend on your business data."
+          tr: "Health endpoint'i bu kontrol için yapılır. Giriş istemez ve iş verilerine bağlı değildir."
+    sources:
+      - title: Spring Boot, Actuator
+        url: https://docs.spring.io/spring-boot/reference/actuator/index.html
+      - title: Spring Boot, Actuator endpoints
+        url: https://docs.spring.io/spring-boot/reference/actuator/endpoints.html
+      - title: Spring Boot, logging
+        url: https://docs.spring.io/spring-boot/reference/features/logging.html
+
+  - id: ci
+    stage: advanced
+    title:
+      en: "Test every push with GitHub Actions"
+      tr: "Her push'u GitHub Actions ile test etme"
+    minutes: 30
+    needs: [tests, actuator-logs]
+    why:
+      en: "You forget to run the tests sometimes; a robot does not. GitHub Actions builds the project and runs the tests on every push, for free on public repositories, so a broken change is noticed at once."
+      tr: "Bazen testleri çalıştırmayı unutursun; bir robot unutmaz. GitHub Actions her push'ta projeyi build edip testleri çalıştırır, herkese açık depolarda ücretsiz; böylece bozuk bir değişiklik hemen fark edilir."
+    learn:
+      en: |
+        - A workflow is a YAML file in `.github/workflows/` with a trigger and jobs
+        - `actions/checkout` gets the code, `actions/setup-java` installs the JDK and caches Maven's libraries
+        - `./mvnw -B verify` builds and tests; a failing test makes the run red
+        - Where to go next: database migrations with Flyway (instead of `ddl-auto=update`), pagination with `Pageable`, and an OpenAPI page for your API
+      tr: |
+        - Workflow, `.github/workflows/` içindeki, bir tetikleyicisi ve job'ları olan bir YAML dosyasıdır
+        - `actions/checkout` kodu alır, `actions/setup-java` JDK'yı kurar ve Maven kütüphanelerini cache'ler
+        - `./mvnw -B verify` build eder ve test eder; başarısız bir test çalıştırmayı kırmızı yapar
+        - Sonraki adımlar: Flyway ile veritabanı migration'ları (`ddl-auto=update` yerine), `Pageable` ile sayfalama ve API'n için bir OpenAPI sayfası
+    do:
+      en: |
+        1. Create the file `.github/workflows/ci.yml` with the content below.
+        2. Make sure the Maven wrapper keeps its executable flag in Git: `git update-index --chmod=+x mvnw` (on Windows) and commit.
+        3. Commit and push. Open the **Actions** tab of your repository and watch the run turn green.
+        4. Break a test on purpose in a branch, push it, and see the run turn red. Fix it.
+        5. You now have the full path: code, tests, a Docker image, a free deploy and a robot that checks every change. Next, add the Flyway migrations and pagination from the list above.
+      tr: |
+        1. Aşağıdaki içerikle `.github/workflows/ci.yml` dosyasını oluştur.
+        2. Maven wrapper'ın Git'te çalıştırılabilir bayrağını koruduğundan emin ol: `git update-index --chmod=+x mvnw` (Windows'ta) ve commit'le.
+        3. Commit'le ve push et. Deponun **Actions** sekmesini aç ve çalıştırmanın yeşile dönmesini izle.
+        4. Bir branch'te bilerek bir testi boz, push et ve çalıştırmanın kırmızıya döndüğünü gör. Düzelt.
+        5. Artık tam yola sahipsin: kod, testler, bir Docker image'ı, ücretsiz bir deploy ve her değişikliği kontrol eden bir robot. Sıradaki iş, yukarıdaki listeden Flyway migration'ları ve sayfalama.
+    code:
+      - file: .github/workflows/ci.yml
+        lang: yaml
+        text: |
+          name: CI
+
+          on:
+            push:
+              branches: [main]
+            pull_request:
+
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: actions/setup-java@v6
+                  with:
+                    distribution: temurin
+                    java-version: '25'
+                    cache: maven
+                - run: ./mvnw -B verify
+    mistakes:
+      - problem:
+          en: "\"./mvnw: Permission denied\" in the workflow run."
+          tr: "Workflow çalıştırmasında \"./mvnw: Permission denied\" hatası."
+        fix:
+          en: "Git did not store the executable flag. Run `git update-index --chmod=+x mvnw`, commit and push. (Or write `sh ./mvnw -B verify` in the workflow.)"
+          tr: "Git çalıştırılabilir bayrağını saklamadı. `git update-index --chmod=+x mvnw` çalıştır, commit'le ve push et. (Ya da workflow'da `sh ./mvnw -B verify` yaz.)"
+      - problem:
+          en: "The workflow does not start at all."
+          tr: "Workflow hiç başlamıyor."
+        fix:
+          en: "The file must be exactly in `.github/workflows/` and end with `.yml` or `.yaml`, and the YAML indentation must be right (spaces, not tabs). The Actions tab shows a syntax error if there is one."
+          tr: "Dosya tam olarak `.github/workflows/` içinde olmalı ve `.yml` ya da `.yaml` ile bitmeli, YAML girintisi doğru olmalı (tab değil, boşluk). Varsa sözdizimi hatasını Actions sekmesi gösterir."
+      - problem:
+          en: "Tests pass on your computer but fail in the workflow."
+          tr: "Testler bilgisayarında geçiyor ama workflow'da başarısız oluyor."
+        fix:
+          en: "Your computer has something the runner does not: a different Java version, a running database, an environment variable. Use the same Java version in `pom.xml` and the workflow, and make tests use only H2."
+          tr: "Bilgisayarında runner'da olmayan bir şey var: farklı bir Java sürümü, çalışan bir veritabanı, bir ortam değişkeni. `pom.xml` ve workflow'da aynı Java sürümünü kullan ve testlerin sadece H2 kullanmasını sağla."
+    quiz:
+      - q:
+          en: "What makes a GitHub Actions run fail when a test fails?"
+          tr: "Bir test başarısız olunca GitHub Actions çalıştırmasını ne başarısız yapar?"
+        options:
+          en: ["GitHub reads the test code", "The command `./mvnw verify` exits with an error and the step turns red", "Nothing, it always passes"]
+          tr: ["GitHub test kodunu okur", "`./mvnw verify` komutu hatayla biter ve adım kırmızı olur", "Hiçbir şey, her zaman geçer"]
+        answer: 1
+        why:
+          en: "A step fails when its command returns a non-zero exit code, which Maven does when a test fails."
+          tr: "Bir adım, komutu sıfırdan farklı bir çıkış kodu döndürünce başarısız olur; Maven bunu bir test başarısız olunca yapar."
+    sources:
+      - title: GitHub Docs, building and testing Java with Maven
+        url: https://docs.github.com/en/actions/tutorials/build-and-test-code/java-with-maven
+      - title: actions/setup-java
+        url: https://github.com/actions/setup-java
