@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   type ApiMap,
+  type ArchitectureReport,
   CATEGORIES,
   type Category,
   type CategoryDetail,
@@ -27,6 +28,7 @@ import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
 import { scrub } from "../sync/scrub";
 import { coverageMap } from "./coverage";
+import { architectureOf } from "./patterns";
 import { renderAdvice as adviseRender } from "./render";
 import { SENSITIVE, takeSnapshot } from "./snapshot";
 import { planTools, runTool } from "./tools";
@@ -94,6 +96,12 @@ export class Insight {
   onToolFailed: (projectId: string, result: ToolResult) => void = () => undefined;
 
   /** Which code has tests (plan.md 6.1c); computed when asked. */
+  /** The architecture pattern the code follows, and imports that break its rules. */
+  architecture(projectId: string): ArchitectureReport | undefined {
+    const root = this.rootOf(projectId);
+    return root ? architectureOf(takeSnapshot(root)) : undefined;
+  }
+
   /** Render strategy per page (Next.js projects). */
   renderAdvice(projectId: string): RenderAdvice[] | undefined {
     const root = this.rootOf(projectId);

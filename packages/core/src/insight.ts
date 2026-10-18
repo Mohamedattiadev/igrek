@@ -353,3 +353,53 @@ export interface CoverageMap {
   untested: { path: string; lines: number }[];
   at: number;
 }
+
+/** Patterns from Mark Richards, Software Architecture Patterns (O'Reilly, 2015). */
+export type ArchPattern = "layered" | "eventDriven" | "microkernel" | "microservices" | "unknown";
+
+export interface ArchitectureReport {
+  pattern: ArchPattern;
+  /** "layers:0,1,2", "services:api, worker", "brokers:bullmq". */
+  evidence: string[];
+  /** Imports that break the pattern's rules (layered: closed layers). */
+  violations: { rule: "skipsLayer" | "reachesUp"; from: string; to: string }[];
+}
+
+/**
+ * The book's pattern analysis summary: how each pattern rates
+ * on agility, ease of deployment, testability, performance, scalability and ease of development.
+ */
+export const PATTERN_RATINGS: Record<Exclude<ArchPattern, "unknown">, Record<string, "low" | "high">> = {
+  layered: {
+    agility: "low",
+    deployment: "low",
+    testability: "high",
+    performance: "low",
+    scalability: "low",
+    development: "high",
+  },
+  eventDriven: {
+    agility: "high",
+    deployment: "high",
+    testability: "low",
+    performance: "high",
+    scalability: "high",
+    development: "low",
+  },
+  microkernel: {
+    agility: "high",
+    deployment: "high",
+    testability: "high",
+    performance: "high",
+    scalability: "low",
+    development: "low",
+  },
+  microservices: {
+    agility: "high",
+    deployment: "high",
+    testability: "high",
+    performance: "low",
+    scalability: "high",
+    development: "high",
+  },
+};

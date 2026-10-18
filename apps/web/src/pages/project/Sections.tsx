@@ -50,7 +50,7 @@ import { useSettings } from "../../lib/settings";
 import { ApiMapView } from "./ApiMap";
 import { BoardsList } from "./Boards";
 import { EnvView } from "./EnvView";
-import { ImportCard, ScoringDialog, ToolsCard } from "./SectionsExtras";
+import { ArchitectureCard, ImportCard, ScoringDialog, ToolsCard } from "./SectionsExtras";
 import { DepsCard, SecretsCard } from "./Watchers";
 
 const CATEGORY_ICONS: Record<Category, LucideIcon> = {
@@ -410,6 +410,7 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
       </Card>
 
       {category === "testing" && <CoverageCard projectId={project.id} />}
+      {category === "architecture" && <ArchitectureCard projectId={project.id} />}
       {category === "security" && <SecretsCard projectId={project.id} />}
       {category === "dependencies" && <DepsCard projectId={project.id} />}
       <Card className="p-pad">

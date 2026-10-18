@@ -1,4 +1,5 @@
 import {
+  type ArchitectureReport,
   CATEGORIES,
   type Category,
   DEFAULT_WEIGHTS,
@@ -6,6 +7,7 @@ import {
   type ImportStatus,
   type InsightConfig,
   type InsightScan,
+  PATTERN_RATINGS,
   type ToolKind,
   type ToolPlan,
   type ToolResult,
@@ -24,7 +26,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, Dialog } from "../../components/ui";
-import { api } from "../../lib/api";
+import { api, request } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { compactNumber, relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
@@ -330,6 +332,107 @@ export function ImportCard({ projectId }: { projectId: string }) {
           {t("import.start")}
         </Button>
       )}
+    </Card>
+  );
+}
+
+const QUALITIES = ["agility", "deployment", "testability", "performance", "scalability", "development"] as const;
+
+/**
+ * The architecture pattern the code follows (plan.md 15.2, Richards' Software Architecture
+ * Patterns), its rules broken in the code, and how the pattern rates in the book's analysis.
+ */
+export function ArchitectureCard({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [report, setReport] = useState<ArchitectureReport>();
+  // What matters for this project, chosen by the user (kept in this browser).
+  const key = `godeye.archNeeds.${projectId}`;
+  const [needs, setNeeds] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(key) ?? "[]") as string[];
+    } catch {
+      return [];
+    }
+  });
+  const toggle = (q: string) => {
+    const next = needs.includes(q) ? needs.filter((n) => n !== q) : [...needs, q];
+    setNeeds(next);
+    try {
+      localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      // Storage off: the choice lasts until the page closes.
+    }
+  };
+  useEffect(() => {
+    let live = true;
+    request<ArchitectureReport>(`/api/projects/${projectId}/architecture`)
+      .then((r) => live && setReport(r))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [projectId]);
+  if (!report) return null;
+  const ratings = report.pattern === "unknown" ? undefined : PATTERN_RATINGS[report.pattern];
+  return (
+    <Card className="space-y-3 p-pad">
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="text-[13.5px] font-semibold">{t("arch.title")}</h3>
+        <Badge tone={report.pattern === "unknown" ? "neutral" : "accent"}>{t(`arch.pattern_${report.pattern}`)}</Badge>
+      </div>
+      <p className="text-xs text-fg-muted">{t(`arch.about_${report.pattern}`)}</p>
+      {report.evidence.length > 0 && (
+        <p className="font-mono text-[11px] text-fg-subtle">{report.evidence.join(" · ")}</p>
+      )}
+      {ratings && (
+        <div className="space-y-1.5">
+          <p className="text-[11.5px] text-fg-muted">{t("arch.needsHint")}</p>
+          <div className="flex flex-wrap gap-1.5">
+            {QUALITIES.map((q) => (
+              <button
+                type="button"
+                key={q}
+                aria-pressed={needs.includes(q)}
+                onClick={() => toggle(q)}
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[11px]",
+                  ratings[q] === "high" ? "border-success text-success" : "border-border text-fg-muted",
+                  needs.includes(q) && "ring-2 ring-accent",
+                )}
+              >
+                {t(`arch.q_${q}`)}: {t(`arch.${ratings[q]}`)}
+              </button>
+            ))}
+          </div>
+          {needs.length > 0 &&
+            (needs.some((q) => ratings[q] === "low") ? (
+              <p className="text-xs text-warning">
+                {t("arch.misfit", {
+                  qualities: needs
+                    .filter((q) => ratings[q] === "low")
+                    .map((q) => t(`arch.q_${q}`))
+                    .join(", "),
+                })}
+              </p>
+            ) : (
+              <p className="text-xs text-success">{t("arch.fit")}</p>
+            ))}
+        </div>
+      )}
+      {report.violations.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-danger">{t("arch.violations", { count: report.violations.length })}</p>
+          <ul className="space-y-0.5 font-mono text-[11px]">
+            {report.violations.map((v) => (
+              <li key={`${v.from}>${v.to}`}>
+                <span className="text-fg-muted">{v.from}</span> → {v.to}{" "}
+                <span className="font-sans text-fg-subtle">({t(`arch.rule_${v.rule}`)})</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="text-[11px] text-fg-subtle">{t("arch.source")}</p>
     </Card>
   );
 }
