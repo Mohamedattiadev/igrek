@@ -139,7 +139,8 @@
     "dayendFrom": "gün sonu notu:",
     "notice_aiComment": "bir yorumda AI'dan istiyor",
     "notice_secretRequest": "bir AI senden bir sır istiyor",
-    "notice_agentReport": "bir AI senin için bir sayfa hazırladı"
+    "notice_agentReport": "bir AI senin için bir sayfa hazırladı",
+    "notice_agentForm": "bir AI senden bir form doldurmanı istiyor"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -3985,6 +3986,15 @@
     "status_stored": "Kaydedildi. AI'a değişkenin ayarlandığı söylendi.",
     "status_declined": "Reddedildi. AI'a vermediğin söylendi.",
     "status_pending": "Seni bekliyor.",
-    "reportTitle": "Bir AI'ın hazırladığı sayfa"
+    "reportTitle": "Bir AI'ın hazırladığı sayfa",
+    "formTitle": "Bir AI'dan sorular",
+    "formBody": "{{project}} içinde çalışan bir AI soruyor:",
+    "formBodyAny": "Bir AI soruyor:",
+    "required": "zorunlu",
+    "pick": "Seç",
+    "send": "Cevapları gönder",
+    "form_answered": "Gönderildi. AI cevaplarını aldı.",
+    "form_declined": "Reddedildi. AI'a formu doldurmadığın söylendi.",
+    "form_pending": "Seni bekliyor."
   }
 }

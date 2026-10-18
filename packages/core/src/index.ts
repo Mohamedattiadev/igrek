@@ -1,6 +1,7 @@
 export * from "./data";
 export * from "./docs";
 export * from "./flows";
+export * from "./forms";
 export * from "./help";
 export * from "./insight";
 export * from "./knowledge";

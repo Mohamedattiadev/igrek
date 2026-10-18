@@ -139,7 +139,8 @@
     "dayendFrom": "end-of-day note from",
     "notice_aiComment": "asks the AI in a comment",
     "notice_secretRequest": "an AI asks you for a secret",
-    "notice_agentReport": "an AI made a page for you"
+    "notice_agentReport": "an AI made a page for you",
+    "notice_agentForm": "an AI asks you to fill a form"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -3985,6 +3986,15 @@
     "status_stored": "Saved. The AI was told the variable is set.",
     "status_declined": "Declined. The AI was told you did not give it.",
     "status_pending": "Waiting for you.",
-    "reportTitle": "Page from an AI"
+    "reportTitle": "Page from an AI",
+    "formTitle": "Questions from an AI",
+    "formBody": "An AI working in {{project}} asks you:",
+    "formBodyAny": "An AI asks you:",
+    "required": "required",
+    "pick": "Choose",
+    "send": "Send answers",
+    "form_answered": "Sent. The AI has your answers.",
+    "form_declined": "Declined. The AI was told you did not fill it.",
+    "form_pending": "Waiting for you."
   }
 }

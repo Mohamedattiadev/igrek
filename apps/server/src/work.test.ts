@@ -379,6 +379,7 @@ describe("MCP server", () => {
       "godeye_wiki",
       "godeye_persona",
       "godeye_request_secret",
+      "godeye_ask_form",
       "godeye_show_html",
       "godeye_servers",
       "godeye_server_run",

@@ -34,6 +34,8 @@ const AGENT_WRITES = new Set([
   // A secret the user types in God Eye (the agent never sees it), and a page to show.
   "/api/agent/secrets",
   "/api/agent/reports",
+  // A form the user fills in God Eye; the agent gets the answers.
+  "/api/agent/forms",
 ]);
 
 export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes }: AppDeps) {

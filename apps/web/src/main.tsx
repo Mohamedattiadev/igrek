@@ -29,6 +29,7 @@ const router = createBrowserRouter([
       { path: "p/:projectId/s/:sessionId", ...page(() => import("./pages/Session"), "SessionPage") },
       { path: "terminals", ...page(() => import("./pages/Terminals"), "TerminalsPage") },
       { path: "agent/secret/:id", ...page(() => import("./pages/AgentRequests"), "SecretRequestPage") },
+      { path: "agent/form/:id", ...page(() => import("./pages/AgentRequests"), "AgentFormPage") },
       { path: "agent/report/:id", ...page(() => import("./pages/AgentRequests"), "AgentReportPage") },
       { path: "c/new", ...page(() => import("./pages/StartChat"), "StartChatPage") },
       { path: "c/:chatId", ...page(() => import("./pages/Chat"), "ChatPage") },

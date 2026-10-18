@@ -1,5 +1,5 @@
 import { isAbsolute, normalize } from "node:path";
-import type { InboxNotice } from "@godeye/core";
+import { checkAnswers, type FormAnswers, type FormField, formFields, type InboxNotice } from "@godeye/core";
 import type { Hono } from "hono";
 import type { EnvFiles } from "./envfiles";
 import type { Personas } from "./personas";
@@ -28,6 +28,19 @@ interface AgentReport {
   at: number;
 }
 
+/** A form an agent asked the user to fill: the agent waits for the answers. */
+interface FormRequest {
+  id: string;
+  projectId?: string;
+  projectName?: string;
+  title: string;
+  message: string;
+  fields: FormField[];
+  status: "pending" | "answered" | "declined";
+  answers?: FormAnswers;
+  at: number;
+}
+
 const KEY = /^[A-Z][A-Z0-9_]{1,63}$/;
 const KEEP = 30;
 
@@ -45,6 +58,7 @@ function safeFile(file: unknown): string | undefined {
 export class AgentRequests {
   private secrets = new Map<string, SecretRequest>();
   private reports = new Map<string, AgentReport>();
+  private forms = new Map<string, FormRequest>();
 
   constructor(
     private readonly store: Store,
@@ -122,6 +136,38 @@ export class AgentRequests {
     return this.reports.get(id);
   }
 
+  askForm(input: { cwd?: unknown; title?: unknown; message?: unknown; schema?: unknown }): FormRequest {
+    const projectId = typeof input.cwd === "string" ? this.store.knownProjectFor(input.cwd) : undefined;
+    const form: FormRequest = {
+      id: crypto.randomUUID().slice(0, 10),
+      projectId,
+      projectName: projectId ? this.store.projectRow(projectId)?.name : undefined,
+      title: String(input.title ?? "").slice(0, 120) || "Questions",
+      message: String(input.message ?? "").slice(0, 1000),
+      fields: formFields(input.schema),
+      status: "pending",
+      at: Date.now(),
+    };
+    this.forms.set(form.id, form);
+    this.trim(this.forms);
+    return form;
+  }
+
+  form(id: string): FormRequest | undefined {
+    return this.forms.get(id);
+  }
+
+  answerForm(id: string, answers: unknown | null): void {
+    const form = this.forms.get(id);
+    if (!form || form.status !== "pending") throw new Error("This request is no longer open");
+    if (answers === null) {
+      form.status = "declined";
+      return;
+    }
+    form.answers = checkAnswers(form.fields, answers);
+    form.status = "answered";
+  }
+
   /** A persona's profile and what it has written down, for an agent to work in its spirit. */
   persona(id: string, cwd?: string) {
     const persona = this.personas.get(id);
@@ -152,6 +198,17 @@ export class AgentRequests {
           detail: `${r.key}${r.reason ? `: ${r.reason}` : ""}`,
           at: r.at,
           link: `/agent/secret/${r.id}`,
+        })),
+      ...[...this.forms.values()]
+        .filter((f) => f.status === "pending")
+        .map((f) => ({
+          id: `agent-form:${f.id}`,
+          kind: "agentForm" as const,
+          projectId: f.projectId ?? "",
+          projectName: f.projectName ?? "",
+          detail: f.title,
+          at: f.at,
+          link: `/agent/form/${f.id}`,
         })),
       ...[...this.reports.values()].map((r) => ({
         id: `agent-report:${r.id}`,
@@ -191,6 +248,14 @@ export function registerAgentRequestRoutes(app: Hono, requests: AgentRequests): 
     const r = await guard(async () => requests.showReport(await c.req.json().catch(() => ({}))));
     return r.ok ? c.json({ id: (r.value as AgentReport).id }) : c.json({ error: r.error }, 400);
   });
+  app.post("/api/agent/forms", async (c) => {
+    const r = await guard(async () => requests.askForm(await c.req.json().catch(() => ({}))));
+    return r.ok ? c.json({ id: (r.value as FormRequest).id }) : c.json({ error: r.error }, 400);
+  });
+  app.get("/api/agent/forms/:id", (c) => {
+    const f = requests.form(c.req.param("id"));
+    return f ? c.json({ status: f.status, answers: f.answers }) : c.json({ error: "Not found" }, 404);
+  });
   app.get("/api/agent/personas/:id", (c) => {
     const p = requests.persona(c.req.param("id"), c.req.query("cwd"));
     return p ? c.json(p) : c.json({ error: "Not found" }, 404);
@@ -205,6 +270,15 @@ export function registerAgentRequestRoutes(app: Hono, requests: AgentRequests): 
     const r = await guard(() =>
       requests.answerSecret(c.req.param("id"), body.decline === true ? null : String(body.value ?? "")),
     );
+    return r.ok ? c.json({ ok: true }) : c.json({ error: r.error }, 400);
+  });
+  app.get("/api/form-requests/:id", (c) => {
+    const f = requests.form(c.req.param("id"));
+    return f ? c.json(f) : c.json({ error: "Not found" }, 404);
+  });
+  app.post("/api/form-requests/:id", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { answers?: unknown; decline?: unknown };
+    const r = await guard(() => requests.answerForm(c.req.param("id"), body.decline === true ? null : body.answers));
     return r.ok ? c.json({ ok: true }) : c.json({ error: r.error }, 400);
   });
   app.get("/api/agent-reports/:id", (c) => {

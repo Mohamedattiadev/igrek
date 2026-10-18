@@ -81,6 +81,21 @@ const TOOLS = [
     },
   },
   {
+    name: "godeye_ask_form",
+    description:
+      "Ask the user several structured questions at once as a form in God Eye (choices, numbers, yes/no, short text), instead of a long list of questions in the chat. The schema is a flat JSON Schema object: properties of type string (optionally with enum), number, integer or boolean, each with a title and description; list the required ones. Waits up to 10 minutes and returns the answers as JSON.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "What the form is about, in a few words" },
+        message: { type: "string", description: "One or two sentences on why you ask" },
+        schema: { type: "object", description: "Flat JSON Schema: { type: 'object', properties, required }" },
+        path: pathArg,
+      },
+      required: ["title", "schema"],
+    },
+  },
+  {
     name: "godeye_show_html",
     description:
       "Show the user a whole HTML page (a report, a table, a chart) in God Eye: it opens from their inbox in a sandboxed frame with no network, so use inline CSS and JavaScript only.",
@@ -165,6 +180,8 @@ type Args = {
   file?: string;
   title?: string;
   html?: string;
+  message?: string;
+  schema?: unknown;
 };
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -256,6 +273,21 @@ async function callTool(name: string, args: Args): Promise<string> {
       if (state.status === "stored")
         return `The user stored ${state.key} in ${state.file} (and their vault). Read it from the environment; never print it.`;
       if (state.status === "declined") return "The user declined to give this secret. Ask them how to go on.";
+    }
+    return "No answer within 10 minutes. Ask the user in the chat before asking again.";
+  }
+  if (name === "godeye_ask_form") {
+    const { id } = await post<{ id: string }>("/api/agent/forms", {
+      cwd,
+      title: args.title,
+      message: args.message,
+      schema: args.schema,
+    });
+    for (let i = 0; i < 300; i++) {
+      await Bun.sleep(2000);
+      const state = await api<{ status: string; answers?: Record<string, unknown> }>(`/api/agent/forms/${id}`);
+      if (state.status === "answered") return `The user answered: ${JSON.stringify(state.answers ?? {})}`;
+      if (state.status === "declined") return "The user declined to fill the form. Ask them in the chat how to go on.";
     }
     return "No answer within 10 minutes. Ask the user in the chat before asking again.";
   }
