@@ -232,6 +232,8 @@ export function registerChatRoutes(
 type ChatClientMessage =
   | { op: "send"; text: string; images?: { mediaType: string; data: string }[]; how?: SendHow }
   | { op: "unqueue"; queuedId: string }
+  | { op: "resumeAtReset"; text: string }
+  | { op: "cancelResume" }
   | { op: "sendQueued"; queuedId: string }
   | {
       op: "permission";
@@ -266,6 +268,8 @@ export function handleChatMessage(chats: Chats, id: string, raw: string): string
         .slice(0, 8);
       chats.send(id, String(msg.text ?? "").slice(0, 100_000), images, msg.how === "steer" ? "steer" : "queue");
     } else if (msg.op === "unqueue") chats.unqueue(id, String(msg.queuedId));
+    else if (msg.op === "resumeAtReset") chats.resumeAtReset(id, String(msg.text ?? ""));
+    else if (msg.op === "cancelResume") chats.cancelResume(id);
     else if (msg.op === "sendQueued") {
       chats.sendQueued(id, String(msg.queuedId));
     } else if (msg.op === "permission" && ["allow", "deny", "always", "project"].includes(msg.decision))

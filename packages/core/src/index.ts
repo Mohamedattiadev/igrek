@@ -491,13 +491,15 @@ export interface ChatInfo {
   pill?: ChatPill;
   /** How full the AI's working memory is after its last answer (plan.md 16.1). */
   context?: { tokens: number; window: number; cacheRead: number; at: number };
+  /** The plan's usage limit stopped the last turn; when it resets, and when the chat will go on by itself. */
+  limit?: { resetsAt?: number; resumeAt?: number };
 }
 
 /** The result of a chat step the turn ended before (plan.md 16.3); the web app shows it translated. */
 export const STEP_CUT = "The turn ended before this step finished.";
 
 /** In this order of urgency: a step to approve, a question to answer, working, a plan to read, an unseen answer. */
-export type ChatPill = "approval" | "question" | "working" | "plan" | "done";
+export type ChatPill = "approval" | "question" | "limit" | "working" | "plan" | "done";
 
 export interface QueuedMessage {
   id: string;

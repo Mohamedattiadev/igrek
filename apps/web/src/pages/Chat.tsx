@@ -22,6 +22,7 @@ import {
   FilePlus,
   FileText,
   Flag,
+  Gauge,
   Globe,
   Image as ImageIcon,
   ImagePlus,
@@ -468,6 +469,11 @@ function QuestionCard({
   );
 }
 
+/** "15:30" in the interface's language. */
+function clockTime(at: number, lang: string): string {
+  return new Date(at).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
+}
+
 /** How full the AI's working memory is, and how long since its last answer (plan.md 16.1). */
 function ContextMeter({ context }: { context: NonNullable<ChatInfo["context"]> }) {
   const { t } = useTranslation();
@@ -651,7 +657,7 @@ function WeakPointsButton({ text, projectId }: { text: string; projectId: string
 
 /** Chat with Claude in a project (plan.md 2.2): live text, tool cards, approvals as buttons. */
 export function ChatPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
@@ -991,7 +997,7 @@ export function ChatPage() {
                       className={cn("ms-9 text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
                     >
                       {event.isError
-                        ? `${t("chat.failed")}${event.text ? `: ${event.text}` : ""}`
+                        ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
                         : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
                     </p>
                   );
@@ -1127,6 +1133,32 @@ export function ChatPage() {
             active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
             onPick={pickSlash}
           />
+          {info?.limit && !working && (
+            <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">
+              <Gauge size={14} className="shrink-0 text-danger" aria-hidden="true" />
+              <span className="min-w-0 flex-1">
+                {info.limit.resumeAt
+                  ? t("chat.limitResumes", { time: clockTime(info.limit.resumeAt, i18n.language) })
+                  : info.limit.resetsAt
+                    ? t("chat.limitResets", { time: clockTime(info.limit.resetsAt, i18n.language) })
+                    : t("chat.limitHit")}
+              </span>
+              {info.limit.resumeAt ? (
+                <Button size="sm" variant="ghost" onClick={chat.cancelResume}>
+                  {t("chat.limitCancel")}
+                </Button>
+              ) : (
+                info.limit.resetsAt && (
+                  <Button size="sm" onClick={() => chat.resumeAtReset(t("chat.limitResumeText"))}>
+                    {t("chat.limitResume")}
+                  </Button>
+                )
+              )}
+              <Link to="/limits" className="shrink-0 text-[12px] text-accent-hover underline">
+                {t("chat.limitOther")}
+              </Link>
+            </div>
+          )}
           {info?.context && info.context.tokens / info.context.window >= 0.7 && !working && (
             <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft px-2.5 py-1.5 text-[12.5px]">
               <span className="min-w-0 flex-1">

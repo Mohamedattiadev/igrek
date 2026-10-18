@@ -92,6 +92,9 @@ export function useChat(id: string) {
     send: (text: string, images: { mediaType: string; data: string }[] = [], how: "queue" | "steer" = "queue") =>
       post({ op: "send", text, images, how }),
     unqueue: (queuedId: string) => post({ op: "unqueue", queuedId }),
+    /** Go on by itself a minute after the plan's usage limit resets. */
+    resumeAtReset: (text: string) => post({ op: "resumeAtReset", text }),
+    cancelResume: () => post({ op: "cancelResume" }),
     sendQueued: (queuedId: string) => post({ op: "sendQueued", queuedId }),
     answer: (
       requestId: string,

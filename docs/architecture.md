@@ -81,6 +81,7 @@ C4Component
   Rel(api, sync, "uses")
   Rel(chat, api, "uses")
   Rel(chat, insight, "uses")
+  Rel(chat, knowledge, "uses")
   Rel(chat, ops, "uses")
   Rel(chat, sessions, "uses")
   Rel(chat, sync, "uses")

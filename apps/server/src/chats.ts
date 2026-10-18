@@ -15,6 +15,7 @@ import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
 import { readLines } from "./jsonlines";
+import { LIMIT_REACHED } from "./localmodel";
 import { sandboxAvailable } from "./system";
 import type { Worktree } from "./worktrees";
 
@@ -52,6 +53,8 @@ interface Chat {
   recentSteps: string[];
   /** Steps already reported as a loop, so each is said once. */
   loopsSaid: Set<string>;
+  /** Waits for the usage limit to reset, then sends the user's "go on". */
+  resumeTimer?: ReturnType<typeof setTimeout>;
 }
 
 type Image = { mediaType: string; data: string };
@@ -134,6 +137,7 @@ function pillOf(chat: Chat): ChatPill | undefined {
     const last = chat.events[i];
     if (last?.kind === "text" && /\?\s*$/.test(last.text.replace(/[*_`)\]]+\s*$/, ""))) return "question";
   }
+  if (chat.info.limit && !chat.info.limit.resumeAt) return "limit";
   if (chat.info.status === "working") return "working";
   if (pending.length) return "plan";
   if (chat.unseen) return "done";
@@ -158,6 +162,8 @@ function resultText(content: unknown): string {
  * The session is saved like any other, so it shows up in God Eye's history.
  */
 export class Chats {
+  /** How long after the limit resets a chat goes on by itself (the reset time is approximate). */
+  static resumeMargin = 60_000;
   private chats = new Map<string, Chat>();
   /** Called whenever Claude reports limit usage (wired to the Limits page). */
   onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void = () => undefined;
@@ -378,6 +384,10 @@ export class Chats {
   }
 
   private deliver(chat: Chat, text: string, images: Image[]): void {
+    // A new turn starts: whatever stopped the last one is history.
+    clearTimeout(chat.resumeTimer);
+    chat.resumeTimer = undefined;
+    chat.info.limit = undefined;
     const content: Json[] = [
       ...images.map((image) => ({
         type: "image",
@@ -465,7 +475,10 @@ export class Chats {
   }
 
   stopAll(): void {
-    for (const chat of this.chats.values()) chat.kill();
+    for (const chat of this.chats.values()) {
+      clearTimeout(chat.resumeTimer);
+      chat.kill();
+    }
   }
 
   /** Latest limit usage reported by Claude in any chat (feeds the Limits page). */
@@ -630,6 +643,7 @@ export class Chats {
           text: typeof msg.result === "string" && msg.is_error ? msg.result : undefined,
         });
         this.closeOpenSteps(chat, now);
+        this.noticeLimit(chat, msg);
         chat.info.status = "idle";
         // Claude Code says how large the window really is.
         const models = msg.modelUsage as Record<string, { contextWindow?: number }> | undefined;
@@ -724,6 +738,47 @@ export class Chats {
     if (repeats < LOOP_REPEATS || chat.loopsSaid.has(step)) return;
     chat.loopsSaid.add(step);
     this.upsert(chat, { kind: "notice", id: `loop-${now}`, at: now, text: tool, tone: "danger", code: "loop" });
+  }
+
+  /**
+   * The plan's usage limit ended the turn (plan.md 16.3): remember when it resets, from the
+   * "|<epoch>" Claude Code adds to its message or else from the last limit reading.
+   */
+  private noticeLimit(chat: Chat, msg: Json): void {
+    if (msg.is_error !== true && msg.subtype === "success") return;
+    let text = typeof msg.result === "string" ? msg.result : "";
+    const last = [...chat.events].reverse().find((e) => e.kind === "text" || e.kind === "user");
+    if (last?.kind === "text") text += `\n${last.text}`;
+    if (!LIMIT_REACHED.test(text)) return;
+    const epoch = text.match(/\|(\d{10})\b/)?.[1];
+    chat.info.limit = { resetsAt: epoch ? Number(epoch) * 1000 : chat.info.rateLimit?.fiveHourResetsAt };
+  }
+
+  /** Sends `text` a minute after the limit resets, if the chat is still waiting then. */
+  resumeAtReset(id: string, text: string): void {
+    const chat = this.chats.get(id);
+    const resetsAt = chat?.info.limit?.resetsAt;
+    if (!chat || !resetsAt || chat.info.status === "exited") return;
+    clearTimeout(chat.resumeTimer);
+    const at = Math.max(Date.now(), resetsAt + Chats.resumeMargin);
+    chat.info.limit = { resetsAt, resumeAt: at };
+    chat.resumeTimer = setTimeout(() => {
+      chat.resumeTimer = undefined;
+      if (chat.info.status !== "idle" || !chat.info.limit) return;
+      this.deliver(chat, text.slice(0, 2000) || "Continue where you left off.", []);
+    }, at - Date.now());
+    this.emitInfo(chat);
+    this.changed();
+  }
+
+  cancelResume(id: string): void {
+    const chat = this.chats.get(id);
+    if (!chat?.info.limit) return;
+    clearTimeout(chat.resumeTimer);
+    chat.resumeTimer = undefined;
+    chat.info.limit = { resetsAt: chat.info.limit.resetsAt };
+    this.emitInfo(chat);
+    this.changed();
   }
 
   /** A turn that ended (or a process that stopped) leaves no step spinning forever: it was cut off. */

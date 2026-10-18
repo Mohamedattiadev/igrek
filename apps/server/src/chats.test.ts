@@ -235,6 +235,49 @@ for await (const chunk of Bun.stdin.stream()) {
   });
 });
 
+describe("usage limit", () => {
+  test("a turn stopped by the limit says when it resets, and can go on by itself", async () => {
+    const reset = Math.floor(Date.now() / 1000) + 1;
+    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    writeFileSync(
+      join(dir, "claude"),
+      `#!${process.execPath}
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+out({ type: "system", subtype: "init", session_id: "s", model: "m" });
+let n = 0;
+for await (const chunk of Bun.stdin.stream()) {
+  n++;
+  if (n === 1) out({ type: "result", subtype: "error_during_execution", is_error: true, result: "Claude AI usage limit reached|${reset}" });
+  else out({ type: "result", subtype: "success", duration_ms: 1 });
+}
+`,
+    );
+    chmodSync(join(dir, "claude"), 0o755);
+    Chats.resumeMargin = 0;
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(dir, "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    const events: ChatEvent[] = [];
+    chats.attach(info.id, (op) => {
+      if (op.op === "upsert") events.push(op.event);
+    });
+    await Bun.sleep(300);
+    chats.send(info.id, "go");
+    await Bun.sleep(300);
+    expect(chats.get(info.id)?.limit).toEqual({ resetsAt: reset * 1000 });
+    expect(chats.get(info.id)?.pill).toBe("limit");
+    chats.resumeAtReset(info.id, "go on");
+    expect(chats.get(info.id)?.limit?.resumeAt).toBeGreaterThan(0);
+    await Bun.sleep(1500);
+    expect(events.filter((e) => e.kind === "user").map((e) => (e.kind === "user" ? e.text : ""))).toEqual([
+      "go",
+      "go on",
+    ]);
+    expect(chats.get(info.id)?.limit).toBeUndefined();
+    Chats.resumeMargin = 60_000;
+    chats.stopAll();
+  });
+});
+
 describe("chat queue", () => {
   test("a message written while the AI works waits, then goes out when the turn ends", async () => {
     const chats = new Chats(new Bus(), new StopRegistry(), () => join(fakeClaude(), "claude"));

@@ -870,7 +870,15 @@
     "commentRemove": "Remove the comment",
     "commentsHeader": "My comments on the changes:",
     "notice_loop": "The AI ran {{tool}} with the same input three times in a short while; it may be going round in circles. Stop it and say what to do differently.",
-    "stepCut": "The turn ended before this step finished."
+    "stepCut": "The turn ended before this step finished.",
+    "pill_limit": "Limit reached",
+    "limitHit": "Your plan's usage limit stopped this answer.",
+    "limitResets": "Your plan's usage limit stopped this answer. It resets at about {{time}}.",
+    "limitResumes": "This chat goes on by itself at about {{time}}, after the limit resets.",
+    "limitResume": "Go on when it resets",
+    "limitCancel": "Cancel",
+    "limitOther": "Use another account",
+    "limitResumeText": "The usage limit has reset. Continue where you left off."
   },
   "checkpoint": {
     "title": "Snapshots",

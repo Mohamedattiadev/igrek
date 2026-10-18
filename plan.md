@@ -1163,7 +1163,7 @@ god-eye/
 #### 16.3 Çoklu ajan ve güvenilirlik
 - [x] ⭐ Durum hapı: Onay bekliyor > Cevap bekliyor > Çalışıyor > Plan hazır > Bitti (görülmedi); Gelen kutusuna bağlı (#5) — *sunucu her sohbet için tek durum hesaplar: bekleyen onay, soruyla biten cevap, çalışıyor, bekleyen plan onayı (ExitPlanMode), kimse açık değilken biten tur; Terminaller listesinde ve Gelen Kutusu'nda (en acilden) gösterilir, sohbet açılınca "görülmedi" kalkar. "Plan hazır" Claude Code'un ExitPlanMode için onay istemesine dayanıyor, gerçek Claude ile denenmedi*
 - [ ] God Eye'ı ajanlara açan kapsamlı MCP uç noktası: hafıza, persona, sır isteme, HTML çizme (#6)
-- [ ] Limit kurtarma: sıfırlanınca devam et / ertele (#8)
+- [x] Limit kurtarma: sıfırlanınca devam et / ertele (#8) — *sohbet limit yüzünden durunca sıfırlanma saati (Claude Code'un mesajındaki zaman damgasından ya da son limit okumasından) bir kartta görünür: "Sıfırlanınca devam et" sıfırlanmadan bir dakika sonra devam mesajını gönderir (iptal edilebilir), "Başka hesap kullan" Limitler sayfasına götürür; hap ve Gelen Kutusu "Limit doldu" der. Sahte claude ile denendi; God Eye yeniden başlarsa bekleyen devam zamanlayıcısı kaybolur*
 - [ ] Yapılandırılmış ve artımlı devir/özet şablonları (#9)
 - [ ] Adaptör yetenek bayrakları (#10); pi ve opencode adaptörleri, ileride ACP (#17)
 - [x] Döngü tespiti (#11) ve tur kapanışı kuralı: yarım kalan araç çağrıları "kesildi" (#12) — *sohbette aynı araç aynı girdiyle son 10 adımda 3 kez çalışınca bir kez "döngüye girmiş olabilir" uyarısı ve Durdur bağlantısı çıkar; tur bitince ya da süreç kapanınca hâlâ çalışıyor görünen adımlar "Tur, bu adım bitmeden sona erdi" olarak kapanır. Dosyadan okunan oturumların sağlığına döngü işareti henüz eklenmedi*
