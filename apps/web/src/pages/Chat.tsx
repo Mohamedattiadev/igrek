@@ -22,6 +22,7 @@ import {
   Globe,
   Image as ImageIcon,
   ImagePlus,
+  ListChecks,
   ListTodo,
   MessageSquare,
   RotateCcw,
@@ -51,6 +52,7 @@ import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../compon
 import { Badge, Button, EmptyState, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
+import { DETAIL_LEVELS, type DetailLevel, groupWork, workCounts } from "../lib/chat-log";
 import { cn } from "../lib/cn";
 import { modelName } from "../lib/format";
 import { warmHighlighter } from "../lib/highlight";
@@ -162,13 +164,101 @@ function ToolPreview({ name, input }: { name: string; input: Json }) {
   );
 }
 
-function ToolCard({ event, cwd }: { event: Extract<ChatEvent, { kind: "tool" }>; cwd?: string }) {
+const DETAIL_KEY = "godeye.chat.detail";
+
+/** How much of the AI's work to show; remembered in this browser, Simple mode starts plain. */
+function useDetailLevel(): [DetailLevel, (level: DetailLevel) => void] {
+  const { settings } = useSettings();
+  const [level, setLevel] = useState<DetailLevel>(() => {
+    try {
+      const saved = localStorage.getItem(DETAIL_KEY) as DetailLevel | null;
+      if (saved && DETAIL_LEVELS.includes(saved)) return saved;
+    } catch {
+      // Private window: use the default.
+    }
+    return settings.mode === "simple" ? "plain" : "grouped";
+  });
+  return [
+    level,
+    (next) => {
+      setLevel(next);
+      try {
+        localStorage.setItem(DETAIL_KEY, next);
+      } catch {
+        // Only a convenience.
+      }
+    },
+  ];
+}
+
+/** A run of tool calls as one line ("read 3 files, edited 2"); open it for every step (plan.md 16.1). */
+function ToolGroup({ tools, cwd, plain }: { tools: ToolEvent[]; cwd?: string; plain: boolean }) {
+  const { t, i18n } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const running = tools.find((tool) => tool.status === "running");
+  const failed = tools.filter((tool) => tool.status === "error").length;
+  const line = workCounts(tools)
+    .map(([kind, count]) => t(`chat.log_${kind}`, { count }))
+    .join(", ");
+  const header = (
+    <>
+      <ListChecks size={13} className="shrink-0 text-fg-muted" aria-hidden="true" />
+      <span className="min-w-0 flex-1 truncate text-[12px] text-fg-muted">
+        {line.charAt(0).toLocaleUpperCase(i18n.language) + line.slice(1)}
+        {running && (
+          <span className="ms-1.5 font-mono text-[11.5px] text-fg-subtle">
+            · {toolSummary(running.name, (running.input ?? {}) as Json, cwd) || running.name}
+          </span>
+        )}
+      </span>
+      {failed > 0 && (
+        <span className="flex items-center gap-0.5 text-[11px] text-danger">
+          <XCircle size={12} aria-hidden="true" /> {failed}
+        </span>
+      )}
+      {running ? (
+        <span className="size-1.5 shrink-0 animate-pulse rounded-full bg-accent" />
+      ) : (
+        !failed && <Check size={12} className="shrink-0 text-success" aria-hidden="true" />
+      )}
+    </>
+  );
+  if (plain) return <div className="ms-9 flex items-center gap-2 px-2.5 py-1">{header}</div>;
+  return (
+    <div className="ms-9 rounded-ui border border-border">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start"
+      >
+        {open ? (
+          <ChevronDown size={12} className="shrink-0 text-fg-subtle" />
+        ) : (
+          <ChevronRight size={12} className="shrink-0 text-fg-subtle" />
+        )}
+        {header}
+      </button>
+      {open && (
+        <div className="space-y-1.5 border-t border-border p-1.5">
+          {tools.map((tool) => (
+            <ToolCard key={tool.id} event={tool} cwd={cwd} nested />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type ToolEvent = Extract<ChatEvent, { kind: "tool" }>;
+
+function ToolCard({ event, cwd, nested }: { event: ToolEvent; cwd?: string; nested?: boolean }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(event.name === "TodoWrite");
   const Icon = toolIcon(event.name);
   const input = (event.input ?? {}) as Json;
   return (
-    <div className="ms-9 rounded-ui border border-border bg-bg-subtle">
+    <div className={cn("rounded-ui border border-border bg-bg-subtle", !nested && "ms-9")}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -317,6 +407,8 @@ export function ChatPage() {
   const navigate = useNavigate();
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
+  const [detail, setDetail] = useDetailLevel();
+  const units = useMemo(() => groupWork(chat.events, detail), [chat.events, detail]);
   // Answers often carry code: have the highlighter ready before the first block arrives.
   useEffect(() => warmHighlighter(), []);
   const info = chat.info;
@@ -518,6 +610,19 @@ export function ChatPage() {
             </option>
           ))}
         </select>
+        <select
+          value={detail}
+          onChange={(e) => setDetail(e.target.value as DetailLevel)}
+          aria-label={t("chat.detail")}
+          data-tip={t("chat.detailTip")}
+          className="h-7 w-24 rounded-md border border-border bg-bg px-1.5 text-[12px] sm:w-auto"
+        >
+          {DETAIL_LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {t(`chat.detail_${level}`)}
+            </option>
+          ))}
+        </select>
         {info?.sessionId && (
           <Button
             size="sm"
@@ -547,7 +652,10 @@ export function ChatPage() {
               <p className="mx-auto mt-1 max-w-sm text-[13px] text-fg-muted">{t("chat.emptyBody")}</p>
             </div>
           )}
-          {chat.events.map((event) => {
+          {units.map((unit) => {
+            if (unit.kind === "group")
+              return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
+            const event = unit.event;
             switch (event.kind) {
               case "user":
                 return (
