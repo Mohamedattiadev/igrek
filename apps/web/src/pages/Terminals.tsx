@@ -3,6 +3,7 @@ import { ArrowLeft, History, MessageSquare, RotateCcw, SquareTerminal, X } from 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { ChatPill } from "../components/ChatPill";
 import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
 import { NewSession } from "../components/NewSession";
 import { PromptPicker } from "../components/PromptPicker";
@@ -163,11 +164,7 @@ export function TerminalsPage() {
                 >
                   <MessageSquare size={15} className="text-accent" />
                   <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{chat.title}</span>
-                  <StatusDot
-                    tone={chat.status === "working" ? "success" : chat.status === "waiting" ? "warning" : "neutral"}
-                    pulse={chat.status === "working" || chat.status === "waiting"}
-                  />
-                  <span className="text-[11px] text-fg-subtle">{t(`chat.${chat.status}`)}</span>
+                  <ChatPill chat={chat} />
                 </Link>
               ))}
             </div>

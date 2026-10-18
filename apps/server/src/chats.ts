@@ -4,6 +4,7 @@ import {
   type ChatEvent,
   type ChatInfo,
   type ChatMode,
+  type ChatPill,
   type QueuedMessage,
   type RateLimitInfo,
   type RecentChat,
@@ -43,6 +44,8 @@ interface Chat {
   streaming?: { messageId: string; blocks: Map<number, string> };
   /** Messages waiting for the current turn to end, images included. */
   queue: { id: string; text: string; images: Image[] }[];
+  /** The last turn ended while nobody had the chat open. */
+  unseen?: boolean;
 }
 
 type Image = { mediaType: string; data: string };
@@ -103,6 +106,22 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
   return !!m?.[1] && toolName === "Bash" && (command === m[1] || command.startsWith(`${m[1]} `));
 }
 
+function pillOf(chat: Chat): ChatPill | undefined {
+  if (chat.info.status === "exited") return undefined;
+  const pending = chat.events.filter((e) => e.kind === "permission" && e.status === "pending");
+  if (pending.some((e) => e.kind === "permission" && e.toolName !== "ExitPlanMode")) return "approval";
+  if (chat.info.status === "idle") {
+    let i = chat.events.length - 1;
+    while (i >= 0 && chat.events[i]?.kind !== "text" && chat.events[i]?.kind !== "user") i--;
+    const last = chat.events[i];
+    if (last?.kind === "text" && /\?\s*$/.test(last.text.replace(/[*_`)\]]+\s*$/, ""))) return "question";
+  }
+  if (chat.info.status === "working") return "working";
+  if (pending.length) return "plan";
+  if (chat.unseen) return "done";
+  return undefined;
+}
+
 function clip(text: string, max: number): string {
   return text.length > max ? `${text.slice(0, max)}…` : text;
 }
@@ -145,12 +164,12 @@ export class Chats {
   ) {}
 
   list(): ChatInfo[] {
-    return [...this.chats.values()].map((c) => ({ ...c.info })).sort((a, b) => b.startedAt - a.startedAt);
+    return [...this.chats.values()].map((c) => this.view(c)).sort((a, b) => b.startedAt - a.startedAt);
   }
 
   get(id: string): ChatInfo | undefined {
     const chat = this.chats.get(id);
-    return chat ? { ...chat.info } : undefined;
+    return chat ? this.view(chat) : undefined;
   }
 
   start(options: ChatStart): ChatInfo {
@@ -266,7 +285,12 @@ export class Chats {
     const chat = this.chats.get(id);
     if (!chat) return undefined;
     chat.listeners.add(listener);
-    return { info: { ...chat.info }, events: [...chat.events], detach: () => chat.listeners.delete(listener) };
+    // Opening the chat is seeing it.
+    if (chat.unseen) {
+      chat.unseen = false;
+      this.changed();
+    }
+    return { info: this.view(chat), events: [...chat.events], detach: () => chat.listeners.delete(listener) };
   }
 
   /**
@@ -583,6 +607,8 @@ export class Chats {
           text: typeof msg.result === "string" && msg.is_error ? msg.result : undefined,
         });
         chat.info.status = "idle";
+        // Someone watching the chat sees the answer arrive.
+        chat.unseen = chat.listeners.size === 0;
         this.emitInfo(chat);
         this.changed();
         // The turn is over: what the user wrote meanwhile goes out now.
@@ -656,7 +682,12 @@ export class Chats {
   }
 
   private emitInfo(chat: Chat): void {
-    for (const listener of chat.listeners) listener({ op: "info", info: { ...chat.info } });
+    for (const listener of chat.listeners) listener({ op: "info", info: this.view(chat) });
+  }
+
+  private view(chat: Chat): ChatInfo {
+    const pill = pillOf(chat);
+    return { ...chat.info, ...(pill ? { pill } : {}) };
   }
 
   private changed(): void {

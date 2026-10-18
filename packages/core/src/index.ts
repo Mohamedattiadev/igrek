@@ -487,7 +487,12 @@ export interface ChatInfo {
   persona?: { id: string; name?: string; tools: "read" | "edit" };
   /** Messages written while the AI was working; the next one goes out when the turn ends (plan.md 16.1). */
   queued?: QueuedMessage[];
+  /** The one thing to know about the chat at a glance (plan.md 16.3); none when there is nothing to do. */
+  pill?: ChatPill;
 }
+
+/** In this order of urgency: a step to approve, a question to answer, working, a plan to read, an unseen answer. */
+export type ChatPill = "approval" | "question" | "working" | "plan" | "done";
 
 export interface QueuedMessage {
   id: string;

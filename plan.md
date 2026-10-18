@@ -1161,7 +1161,7 @@ god-eye/
 - [ ] AI'ın yaptığı HTML raporlar için temalı, sandbox'lı iframe (#7)
 
 #### 16.3 Çoklu ajan ve güvenilirlik
-- [ ] ⭐ Durum hapı: Onay bekliyor > Cevap bekliyor > Çalışıyor > Plan hazır > Bitti (görülmedi); Gelen kutusuna bağlı (#5)
+- [x] ⭐ Durum hapı: Onay bekliyor > Cevap bekliyor > Çalışıyor > Plan hazır > Bitti (görülmedi); Gelen kutusuna bağlı (#5) — *sunucu her sohbet için tek durum hesaplar: bekleyen onay, soruyla biten cevap, çalışıyor, bekleyen plan onayı (ExitPlanMode), kimse açık değilken biten tur; Terminaller listesinde ve Gelen Kutusu'nda (en acilden) gösterilir, sohbet açılınca "görülmedi" kalkar. "Plan hazır" Claude Code'un ExitPlanMode için onay istemesine dayanıyor, gerçek Claude ile denenmedi*
 - [ ] God Eye'ı ajanlara açan kapsamlı MCP uç noktası: hafıza, persona, sır isteme, HTML çizme (#6)
 - [ ] Limit kurtarma: sıfırlanınca devam et / ertele (#8)
 - [ ] Yapılandırılmış ve artımlı devir/özet şablonları (#9)

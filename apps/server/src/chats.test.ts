@@ -105,6 +105,50 @@ describe("always allow in this project", () => {
   });
 });
 
+describe("status pill", () => {
+  test("approval while a step waits, then done until someone opens the chat", async () => {
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(fakeClaude(), "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    await Bun.sleep(400);
+    chats.send(info.id, "go");
+    await Bun.sleep(500);
+    expect(chats.get(info.id)?.pill).toBe("approval");
+    const attached = chats.attach(info.id, () => undefined);
+    const permission = attached?.events.find((e) => e.kind === "permission");
+    attached?.detach();
+    chats.answer(info.id, permission?.kind === "permission" ? permission.requestId : "", "allow");
+    await Bun.sleep(500);
+    // Nobody had the chat open when the turn ended.
+    expect(chats.get(info.id)?.pill).toBe("done");
+    chats.attach(info.id, () => undefined);
+    expect(chats.get(info.id)?.pill).toBeUndefined();
+    chats.stopAll();
+  });
+
+  test("an answer that ends with a question waits for the user", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    writeFileSync(
+      join(dir, "claude"),
+      `#!${process.execPath}
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+out({ type: "system", subtype: "init", session_id: "s", model: "m" });
+for await (const chunk of Bun.stdin.stream()) {
+  out({ type: "assistant", message: { id: "m1", content: [{ type: "text", text: "Which file should I change?" }] } });
+  out({ type: "result", subtype: "success", duration_ms: 1 });
+}
+`,
+    );
+    chmodSync(join(dir, "claude"), 0o755);
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(dir, "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    await Bun.sleep(300);
+    chats.send(info.id, "fix it");
+    await Bun.sleep(400);
+    expect(chats.get(info.id)?.pill).toBe("question");
+    chats.stopAll();
+  });
+});
+
 describe("chat queue", () => {
   test("a message written while the AI works waits, then goes out when the turn ends", async () => {
     const chats = new Chats(new Bus(), new StopRegistry(), () => join(fakeClaude(), "claude"));

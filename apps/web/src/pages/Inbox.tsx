@@ -31,6 +31,7 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { ApprovalCard } from "../components/ApprovalCard";
+import { ChatPill, needsYou } from "../components/ChatPill";
 import { TeamText } from "../components/TeamText";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
@@ -104,7 +105,7 @@ export function InboxPage() {
     (term) =>
       (term.status === "attention" || term.status === "idle") && !isSnoozed(`term-${term.id}-${term.lastOutputAt}`),
   );
-  const chats = useChats().filter((chat) => chat.status === "waiting" && !isSnoozed(`chat-${chat.id}`));
+  const chats = needsYou(useChats()).filter((chat) => !isSnoozed(`chat-${chat.id}-${chat.pill}`));
   const { data } = useLiveData(() => api.inbox(), []);
   const conflicts = (data?.conflicts ?? []).filter((c) => !isSnoozed(`conflict-${c.projectId}-${c.count}`));
   const { data: alerts } = useLiveData(() => api.limitAlerts(), []);
@@ -190,8 +191,8 @@ export function InboxPage() {
                     >
                       <MessageSquare size={15} className="text-accent" />
                       <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{chat.title}</span>
-                      <Badge tone="warning">{t("chat.waiting")}</Badge>
-                      <SnoozeButton onClick={() => later(`chat-${chat.id}`)} />
+                      <ChatPill chat={chat} />
+                      <SnoozeButton onClick={() => later(`chat-${chat.id}-${chat.pill}`)} />
                     </Link>
                   ))}
                   {[...terminals]

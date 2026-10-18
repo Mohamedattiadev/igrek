@@ -845,7 +845,12 @@
     "alwaysProjectTip": "Bu proje için {{rule}} kuralını kaydeder: buradaki sonraki sohbetler bunu sormaz. Projenin Kurulum sekmesinden kaldırabilirsin.",
     "denyWhy": "Reddet ve nedenini yaz",
     "denyWhyPlaceholder": "Neden olmaz ya da onun yerine ne yapılsın",
-    "permissionEnded": "Bu sohbet bitti, bu isteğe artık cevap verilemez. Devam etmek için sohbeti sürdür."
+    "permissionEnded": "Bu sohbet bitti, bu isteğe artık cevap verilemez. Devam etmek için sohbeti sürdür.",
+    "pill_approval": "Onay bekliyor",
+    "pill_question": "Cevabını bekliyor",
+    "pill_working": "Çalışıyor",
+    "pill_plan": "Plan hazır",
+    "pill_done": "Bitti, görülmedi"
   },
   "checkpoint": {
     "title": "Kayıtlar",

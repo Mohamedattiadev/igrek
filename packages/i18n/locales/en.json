@@ -845,7 +845,12 @@
     "alwaysProjectTip": "Saves the rule {{rule}} for this project: later chats here will not ask for it. Remove it in the project's Setup tab.",
     "denyWhy": "Deny and say why",
     "denyWhyPlaceholder": "Why not, or what to do instead",
-    "permissionEnded": "This chat has ended, so this request can no longer be answered. Continue the chat to go on."
+    "permissionEnded": "This chat has ended, so this request can no longer be answered. Continue the chat to go on.",
+    "pill_approval": "Needs approval",
+    "pill_question": "Waiting for your answer",
+    "pill_working": "Working",
+    "pill_plan": "Plan ready",
+    "pill_done": "Done, not seen"
   },
   "checkpoint": {
     "title": "Snapshots",
