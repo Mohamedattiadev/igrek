@@ -658,7 +658,7 @@ export function PersonaPage() {
   const remove = async () => {
     await api.removePersona(persona.id);
     reload();
-    if (!persona.builtin) navigate("/personas", { replace: true });
+    if (!persona.builtin) void navigate("/personas", { replace: true });
   };
   return (
     <>

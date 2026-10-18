@@ -685,11 +685,11 @@ export function ChatPage() {
     const draft = encodeURIComponent(text);
     if (info.sessionId) {
       const next = await api.chatModel(info.id, model);
-      navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
+      void navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
     } else {
       const next = await api.startChat({ projectId: info.projectId, model, mode: info.mode });
       void api.closeChat(info.id).catch(() => undefined);
-      navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
+      void navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
     }
   };
   /**
@@ -703,7 +703,7 @@ export function ChatPage() {
         .catch(() => undefined);
       if (next) {
         void api.closeChat(info.id).catch(() => undefined);
-        navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
+        void navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
         return;
       }
     }
@@ -782,7 +782,7 @@ export function ChatPage() {
     if (!info) return;
     const next = await api.startChat({ projectId: info.projectId, personaId: personaId || undefined, mode: info.mode });
     void api.closeChat(info.id).catch(() => undefined);
-    navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
+    void navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
   };
   // The last answer of a finished turn can be checked for weak points.
   const lastText = [...chat.events].reverse().find((e) => e.kind === "text");
@@ -811,7 +811,7 @@ export function ChatPage() {
                 icon={RotateCcw}
                 onClick={async () => {
                   const next = await api.startChat({ projectId: known.projectId, resume: known.sessionId });
-                  navigate(`/c/${next.id}`, { replace: true });
+                  void navigate(`/c/${next.id}`, { replace: true });
                 }}
               >
                 {t("chat.goneResume")}
@@ -860,7 +860,7 @@ export function ChatPage() {
           onChange={async (e) => {
             if (!info || !e.target.value) return;
             const next = await api.chatModel(info.id, e.target.value);
-            navigate(`/c/${next.id}`, { replace: true });
+            void navigate(`/c/${next.id}`, { replace: true });
           }}
           aria-label={t("chat.model")}
           data-tip={t("chat.modelTip")}
@@ -896,7 +896,7 @@ export function ChatPage() {
                 tool: "claude",
                 resume: info.sessionId,
               });
-              navigate(`/t/${term.id}`);
+              void navigate(`/t/${term.id}`);
             }}
           >
             <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>

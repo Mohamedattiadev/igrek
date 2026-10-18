@@ -47,7 +47,7 @@ export function HelpGuide() {
   };
   const go = (path: string) => {
     setOpen(false);
-    navigate(path);
+    void navigate(path);
   };
   return (
     <>
@@ -73,7 +73,7 @@ export function HelpGuide() {
               icon={Compass}
               onClick={() => {
                 setOpen(false);
-                navigate("/");
+                void navigate("/");
                 startTour();
               }}
             >

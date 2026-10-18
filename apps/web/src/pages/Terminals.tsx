@@ -73,7 +73,7 @@ function Tabs({ terminals, active }: { terminals: TerminalInfo[]; active?: strin
             aria-label={t("term.close")}
             onClick={async () => {
               await api.closeTerminal(term.id);
-              if (term.id === active && term.status === "exited") navigate("/terminals");
+              if (term.id === active && term.status === "exited") void navigate("/terminals");
             }}
             className="text-fg-subtle opacity-0 hover:text-danger group-hover:opacity-100"
           >
@@ -116,7 +116,7 @@ function RecentChats() {
                 title={t("chat.goneResume")}
                 onClick={async () => {
                   const next = await api.startChat({ projectId: chat.projectId, resume: chat.sessionId });
-                  navigate(`/c/${next.id}`);
+                  void navigate(`/c/${next.id}`);
                 }}
                 className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[12px] text-accent hover:bg-bg-active"
               >

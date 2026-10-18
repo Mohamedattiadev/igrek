@@ -124,7 +124,7 @@ function AddProject() {
     try {
       const { id } = await api.addProject(path.trim());
       setOpen(false);
-      navigate(`/p/${id}`);
+      void navigate(`/p/${id}`);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -187,7 +187,7 @@ function NewProject() {
     try {
       const made = await api.newProject({ name, parent, template, details });
       setOpen(false);
-      navigate(made.runId ? `/runs/${made.runId}` : `/p/${made.projectId}`);
+      void navigate(made.runId ? `/runs/${made.runId}` : `/p/${made.projectId}`);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -290,7 +290,7 @@ function DemoButton({ parent }: { parent?: string }) {
               method: "POST",
               body: JSON.stringify({ parent: parent || undefined }),
             });
-            navigate(`/p/${r.projectId}`);
+            void navigate(`/p/${r.projectId}`);
           } catch (err) {
             setError((err as Error).message);
           } finally {

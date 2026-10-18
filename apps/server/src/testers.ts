@@ -16,6 +16,7 @@ import {
 import { languages } from "@godeye/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
+import { readJsonLines } from "./jsonlines";
 import type { Store } from "./store";
 import { parseModelReply, runClaude } from "./summarizer";
 
@@ -206,35 +207,19 @@ const runTester: RunFn = async ({ cwd, prompt, system, mcpConfig, allowed, model
   const timer = setTimeout(() => proc.kill(), SESSION_TIMEOUT_MS);
   let result = "";
   try {
-    const reader = proc.stdout.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      for (let i = buffer.indexOf("\n"); i >= 0; i = buffer.indexOf("\n")) {
-        const line = buffer.slice(0, i);
-        buffer = buffer.slice(i + 1);
-        let msg: Record<string, unknown>;
-        try {
-          msg = JSON.parse(line);
-        } catch {
-          continue;
-        }
-        if (msg.type === "assistant") {
-          const content = ((msg.message as Record<string, unknown>)?.content ?? []) as Record<string, unknown>[];
-          for (const block of content) {
-            if (block.type === "text" && typeof block.text === "string") {
-              const thought = block.text.replace(/<report>[\s\S]*$/, "").trim();
-              if (thought) onStep({ at: Date.now(), thought: thought.slice(0, 800) });
-            } else if (block.type === "tool_use") {
-              onStep({ at: Date.now(), action: describeAction(String(block.name), block.input) });
-            }
+    await readJsonLines(proc.stdout, (msg) => {
+      if (msg.type === "assistant") {
+        const content = ((msg.message as Record<string, unknown>)?.content ?? []) as Record<string, unknown>[];
+        for (const block of content) {
+          if (block.type === "text" && typeof block.text === "string") {
+            const thought = block.text.replace(/<report>[\s\S]*$/, "").trim();
+            if (thought) onStep({ at: Date.now(), thought: thought.slice(0, 800) });
+          } else if (block.type === "tool_use") {
+            onStep({ at: Date.now(), action: describeAction(String(block.name), block.input) });
           }
-        } else if (msg.type === "result" && typeof msg.result === "string") result = msg.result;
-      }
-    }
+        }
+      } else if (msg.type === "result" && typeof msg.result === "string") result = msg.result;
+    });
     const code = await proc.exited;
     if (!result && code !== 0)
       throw new Error((await new Response(proc.stderr).text()).trim().slice(0, 400) || `claude exited with ${code}`);

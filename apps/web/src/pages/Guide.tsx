@@ -49,7 +49,7 @@ export function GuidePage() {
               variant="primary"
               icon={Compass}
               onClick={() => {
-                navigate("/");
+                void navigate("/");
                 setTimeout(startTour, 300);
               }}
             >

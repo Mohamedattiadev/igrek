@@ -114,7 +114,9 @@ function projectDeps(root: string): Record<keyof Omit<Detect, "files">, Map<stri
     let names: string[] = [];
     try {
       names = readdirSync(dir);
-    } catch {}
+    } catch {
+      // The folder is gone or unreadable: nothing to detect there.
+    }
     for (const n of names) deps.files.add(n);
     const pkg = readJson(join(dir, "package.json"));
     if (pkg)
@@ -498,7 +500,9 @@ export class Learn {
       try {
         if (statSync(path).size > 512_000) continue;
         code.push({ path, text: readFileSync(path, "utf8") });
-      } catch {}
+      } catch {
+        // A file that vanished or can't be read is simply left out of the check.
+      }
     }
     if (!code.length) return [];
     const techs = this.techs(root);

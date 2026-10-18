@@ -118,7 +118,7 @@ export function InboxPage() {
   const acceptMessage = async (m: (typeof messages)[number]) => {
     await api.teamMessageDone(m.id, "accepted");
     const chat = await api.startChat({ projectId: m.projectId });
-    navigate(`/c/${chat.id}?draft=${encodeURIComponent(m.text)}`);
+    void navigate(`/c/${chat.id}?draft=${encodeURIComponent(m.text)}`);
   };
   const empty =
     approvals.length +

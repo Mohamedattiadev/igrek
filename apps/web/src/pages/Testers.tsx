@@ -147,7 +147,7 @@ export function TestersTab() {
         projectId: projectId || undefined,
         model,
       });
-      navigate(`/test-runs/${run.id}`);
+      void navigate(`/test-runs/${run.id}`);
     } catch (err) {
       setError((err as Error).message);
     } finally {

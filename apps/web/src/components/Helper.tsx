@@ -57,7 +57,7 @@ export function Helper() {
     setMessages((m) => [...m, { id: nextId.current++, from, text: body, actions }]);
 
   const go = (to: string) => {
-    navigate(to);
+    void navigate(to);
     setOpen(false);
   };
 
@@ -183,7 +183,7 @@ export function Helper() {
     icon: Compass,
     run: () => {
       setOpen(false);
-      navigate("/");
+      void navigate("/");
       setTimeout(startTour, 300);
       return undefined;
     },

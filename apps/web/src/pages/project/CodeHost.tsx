@@ -27,7 +27,7 @@ function Issues({ projectId }: { projectId: string }) {
     setBusy(i.number);
     try {
       const r = await hostApi.toTask(projectId, i.number, start);
-      if (r.runId) navigate(`/runs/${r.runId}`);
+      if (r.runId) void navigate(`/runs/${r.runId}`);
       else setNote(t("host.addedToBoard", { number: i.number }));
     } catch (err) {
       setNote((err as Error).message);

@@ -49,7 +49,7 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
     }
     try {
       const chat = await api.startChat({ projectId, mode });
-      navigate(`/c/${chat.id}?draft=${encodeURIComponent(value)}&send=1`);
+      void navigate(`/c/${chat.id}?draft=${encodeURIComponent(value)}&send=1`);
     } catch (err) {
       setError((err as Error).message);
       setBusy(false);

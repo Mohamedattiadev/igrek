@@ -36,7 +36,7 @@ const PIXEL_DIFF = `async ([ua, ub]) => {
 export async function freePort(from: number): Promise<number> {
   for (let port = from; port < from + 200; port++) {
     try {
-      const s = Bun.listen({ hostname: "127.0.0.1", port, socket: { data() {} } });
+      const s = Bun.listen({ hostname: "127.0.0.1", port, socket: { data: () => undefined } });
       s.stop(true);
       return port;
     } catch {

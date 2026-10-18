@@ -32,7 +32,7 @@ export function LogView({ path }: { path: string }) {
         .tail(path)
         .then((r) => !stop && setText(r.text))
         .catch(() => undefined);
-    load();
+    void load();
     if (!follow) return;
     const timer = setInterval(load, 2000);
     return () => {

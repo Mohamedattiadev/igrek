@@ -13,6 +13,7 @@ import {
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
+import { readLines } from "./jsonlines";
 import { sandboxAvailable } from "./system";
 import type { Worktree } from "./worktrees";
 
@@ -268,7 +269,7 @@ export class Chats {
     this.chats.set(id, chat);
     const unregister = this.stops.register(`chat-${id}`, { label: chat.info.title, stop: () => proc.kill() });
 
-    void this.readLines(proc.stdout, (line) => this.handle(chat, line));
+    void readLines(proc.stdout, (line) => this.handle(chat, line));
     void new Response(proc.stderr).text().then((err) => {
       if (err.trim())
         this.upsert(chat, {
@@ -480,24 +481,6 @@ export class Chats {
           : { behavior: "deny", message: message || "The user declined this step." },
       },
     });
-  }
-
-  private async readLines(stream: ReadableStream<Uint8Array>, onLine: (line: string) => void): Promise<void> {
-    const reader = stream.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      let newline = buffer.indexOf("\n");
-      while (newline >= 0) {
-        const line = buffer.slice(0, newline).trim();
-        buffer = buffer.slice(newline + 1);
-        if (line) onLine(line);
-        newline = buffer.indexOf("\n");
-      }
-    }
   }
 
   /** Folds one protocol message into the chat's event list. Exported for tests via the class. */

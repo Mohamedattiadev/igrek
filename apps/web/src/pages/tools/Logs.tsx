@@ -313,7 +313,7 @@ export function LogsPanel({ projectId }: { projectId?: string }) {
                             sources: g.sources,
                             count: g.count,
                           });
-                          navigate(`/runs/${runId}`);
+                          void navigate(`/runs/${runId}`);
                         }}
                       >
                         {t("logs.fix")}

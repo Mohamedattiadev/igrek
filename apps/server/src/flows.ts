@@ -16,6 +16,7 @@ import { cleanEnv } from "./env";
 import { BUILTIN_FLOWS } from "./flows-builtin";
 import { SHIP_ASK_RULES } from "./guards";
 import { planTools, runTool } from "./insight/tools";
+import { readJsonLines } from "./jsonlines";
 import { LIMIT_REACHED } from "./localmodel";
 import type { Personas } from "./personas";
 import type { Store } from "./store";
@@ -198,37 +199,21 @@ const runAgent: AgentRun = async (args) => {
   const timer = setTimeout(() => proc.kill(), NODE_TIMEOUT_MS);
   let result: { result?: string; is_error?: boolean; subtype?: string } | undefined;
   try {
-    const reader = proc.stdout.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    for (;;) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      for (let i = buffer.indexOf("\n"); i >= 0; i = buffer.indexOf("\n")) {
-        const line = buffer.slice(0, i);
-        buffer = buffer.slice(i + 1);
-        let msg: Record<string, unknown>;
-        try {
-          msg = JSON.parse(line);
-        } catch {
-          continue;
+    await readJsonLines(proc.stdout, (msg) => {
+      if (msg.type === "assistant") {
+        for (const block of ((msg.message as Record<string, unknown>)?.content ?? []) as Record<string, unknown>[]) {
+          if (block.type === "tool_use") {
+            const input = (block.input ?? {}) as Record<string, unknown>;
+            const target = String(input.file_path ?? input.command ?? input.pattern ?? input.description ?? "").slice(
+              0,
+              120,
+            );
+            onActivity(`${block.name}${target ? ` ${target.replace(`${cwd}/`, "")}` : ""}`);
+          } else if (block.type === "text" && typeof block.text === "string" && block.text.trim())
+            onActivity(block.text.trim().split("\n")[0]?.slice(0, 160) ?? "");
         }
-        if (msg.type === "assistant") {
-          for (const block of ((msg.message as Record<string, unknown>)?.content ?? []) as Record<string, unknown>[]) {
-            if (block.type === "tool_use") {
-              const input = (block.input ?? {}) as Record<string, unknown>;
-              const target = String(input.file_path ?? input.command ?? input.pattern ?? input.description ?? "").slice(
-                0,
-                120,
-              );
-              onActivity(`${block.name}${target ? ` ${target.replace(`${cwd}/`, "")}` : ""}`);
-            } else if (block.type === "text" && typeof block.text === "string" && block.text.trim())
-              onActivity(block.text.trim().split("\n")[0]?.slice(0, 160) ?? "");
-          }
-        } else if (msg.type === "result") result = msg as typeof result;
-      }
-    }
+      } else if (msg.type === "result") result = msg as typeof result;
+    });
     const code = await proc.exited;
     if (!result)
       throw new Error((await new Response(proc.stderr).text()).trim().slice(0, 400) || `claude exited with ${code}`);

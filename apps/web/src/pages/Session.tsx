@@ -89,7 +89,7 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
   const open = async (action: () => Promise<{ id: string }>) => {
     setError(undefined);
     try {
-      navigate(`/t/${(await action()).id}`);
+      void navigate(`/t/${(await action()).id}`);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -146,7 +146,7 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
           onClick={async () => {
             setError(undefined);
             try {
-              navigate(`/c/${(await api.startChat({ projectId, resume: session.id })).id}`);
+              void navigate(`/c/${(await api.startChat({ projectId, resume: session.id })).id}`);
             } catch (err) {
               setError((err as Error).message);
             }

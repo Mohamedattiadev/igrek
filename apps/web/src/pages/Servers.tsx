@@ -532,7 +532,7 @@ export function ServerPage() {
             icon={Trash2}
             onClick={() => {
               deferDelete(`server-${server.id}`, server.name, () => api.removeServer(server.id));
-              navigate("/servers");
+              void navigate("/servers");
             }}
           >
             {t("servers.remove")}

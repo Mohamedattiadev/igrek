@@ -78,7 +78,7 @@ export function AccountChip() {
             type="button"
             onClick={() => {
               setOpen(false);
-              navigate("/limits");
+              void navigate("/limits");
             }}
             className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
           >

@@ -351,7 +351,7 @@ function StepView({
               const id = practiceId ?? (await learnApi.practice(roadmap.id)).projectId;
               setPracticeId(id);
               const { runId } = await learnApi.doStep(roadmap.id, step.id, id);
-              navigate(`/runs/${runId}`);
+              void navigate(`/runs/${runId}`);
             } catch (e) {
               setError((e as Error).message);
             } finally {

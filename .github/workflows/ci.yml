@@ -24,6 +24,7 @@ jobs:
       - run: bun run lint:dead
       - run: bun run lint:arch
       - run: bun run lint:db
+      - run: bun run lint:quality
       - run: bun run typecheck
       - run: bun test
       - run: bun run build

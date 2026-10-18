@@ -18,22 +18,24 @@ export function useSlashItems(projectId?: string): SlashItem[] {
   const [items, setItems] = useState<SlashItem[]>([]);
   useEffect(() => {
     if (!projectId) return;
-    Promise.all([api.slashCommands(projectId).catch(() => []), api.prompts().catch(() => [] as SavedPrompt[])]).then(
-      ([commands, prompts]) =>
-        setItems([
-          ...commands.map((c) => ({
-            kind: "command" as const,
-            name: c.name,
-            description: c.description,
-            insert: `/${c.name} `,
-          })),
-          ...prompts.map((p) => ({
-            kind: "prompt" as const,
-            name: p.title,
-            description: p.body.slice(0, 90),
-            insert: p.body,
-          })),
-        ]),
+    void Promise.all([
+      api.slashCommands(projectId).catch(() => []),
+      api.prompts().catch(() => [] as SavedPrompt[]),
+    ]).then(([commands, prompts]) =>
+      setItems([
+        ...commands.map((c) => ({
+          kind: "command" as const,
+          name: c.name,
+          description: c.description,
+          insert: `/${c.name} `,
+        })),
+        ...prompts.map((p) => ({
+          kind: "prompt" as const,
+          name: p.title,
+          description: p.body.slice(0, 90),
+          insert: p.body,
+        })),
+      ]),
     );
   }, [projectId]);
   return items;

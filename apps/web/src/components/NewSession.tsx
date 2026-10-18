@@ -40,7 +40,7 @@ export function NewSession({ projectId }: { projectId: string }) {
     setError(undefined);
     try {
       const chat = await api.startChat({ projectId, accountId });
-      navigate(`/c/${chat.id}`);
+      void navigate(`/c/${chat.id}`);
     } catch (err) {
       setError((err as Error).message);
     }
@@ -51,7 +51,7 @@ export function NewSession({ projectId }: { projectId: string }) {
     setError(undefined);
     try {
       const term = await api.startTerminal({ projectId, tool });
-      navigate(`/t/${term.id}`);
+      void navigate(`/t/${term.id}`);
     } catch (err) {
       setError((err as Error).message);
     }

@@ -124,7 +124,7 @@ function StartRun({ projectId }: { projectId: string }) {
             setBusy(true);
             setError(undefined);
             try {
-              navigate(`/runs/${(await api.startFlow({ projectId, flow, request })).id}`);
+              void navigate(`/runs/${(await api.startFlow({ projectId, flow, request })).id}`);
             } catch (err) {
               setError((err as Error).message);
             } finally {

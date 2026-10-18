@@ -514,7 +514,7 @@ function CodeEnhance({ projectId }: { projectId: string }) {
       }}
       onUse={async (prompt) => {
         const chat = await api.startChat({ projectId });
-        navigate(`/c/${chat.id}?draft=${encodeURIComponent(prompt)}`);
+        void navigate(`/c/${chat.id}?draft=${encodeURIComponent(prompt)}`);
       }}
     />
   );

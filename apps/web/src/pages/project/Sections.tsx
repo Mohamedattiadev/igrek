@@ -108,7 +108,7 @@ function useFix(projectId: string) {
       personas.filter((p) => p.tools === "edit"),
     );
     const chat = await api.startChat({ projectId, personaId: owner?.id });
-    navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
+    void navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
   };
 }
 
@@ -292,10 +292,14 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
   };
   // biome-ignore lint/correctness/useExhaustiveDependencies: load once per category, explain when nothing is cached
   useEffect(() => {
-    api.insightCategory(project.id, category).then((d) => {
-      setDetail(d);
-      if (!d.explanation) explain(false);
-    });
+    api
+      .insightCategory(project.id, category)
+      .then((d) => {
+        setDetail(d);
+        if (!d.explanation) explain(false);
+      })
+      // Without a scan there is nothing to show yet; the empty state says so.
+      .catch(() => undefined);
   }, [project.id, category, scan.at]);
 
   if (!detail) return null;
@@ -495,7 +499,7 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
           onKeyDown={async (e) => {
             if (e.key !== "Enter" || !ask.trim()) return;
             const chat = await api.startChat({ projectId: project.id });
-            navigate(
+            void navigate(
               `/c/${chat.id}?draft=${encodeURIComponent(`[${i18n.getFixedT("en")(`insight.cat.${category}`)}] ${ask.trim()}`)}`,
             );
           }}
@@ -521,6 +525,8 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
     api
       .insightScan(project.id)
       .then(reload)
+      // A failed scan leaves the last result in place; the button can be pressed again.
+      .catch(() => undefined)
       .finally(() => setScanning(false));
   };
 

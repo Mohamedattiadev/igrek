@@ -67,7 +67,7 @@ export function IncidentButton({ projectId }: { projectId: string }) {
                   method: "POST",
                   body: JSON.stringify({ title }),
                 });
-                navigate(`/incidents/${i.id}`);
+                void navigate(`/incidents/${i.id}`);
               } finally {
                 setBusy(false);
               }

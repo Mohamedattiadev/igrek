@@ -29,10 +29,14 @@ function packaged(path: string): boolean {
   try {
     const pkg = JSON.parse(readFileSync(join(path, "package.json"), "utf8")) as { scripts?: Record<string, string> };
     if (pkg.scripts?.build) return true;
-  } catch {}
+  } catch {
+    // No package.json, or not valid JSON: not a Node build.
+  }
   try {
     if (readFileSync(join(path, "pyproject.toml"), "utf8").includes("[build-system]")) return true;
-  } catch {}
+  } catch {
+    // No pyproject.toml: not a Python build.
+  }
   return existsSync(join(path, "Cargo.toml")) || existsSync(join(path, "go.mod"));
 }
 

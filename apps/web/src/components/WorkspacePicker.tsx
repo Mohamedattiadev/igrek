@@ -79,7 +79,7 @@ export function WorkspacePicker() {
       onClick={() => {
         choose(key);
         setOpen(false);
-        navigate("/");
+        void navigate("/");
       }}
       className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-start hover:bg-bg-hover"
     >
@@ -120,7 +120,7 @@ export function WorkspacePicker() {
                   type="button"
                   onClick={() => {
                     setOpen(false);
-                    navigate(`/servers/${s.id}`);
+                    void navigate(`/servers/${s.id}`);
                   }}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-[13px] hover:bg-bg-hover",

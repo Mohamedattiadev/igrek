@@ -174,7 +174,7 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
   const toChat = async () => {
     const chat = await api.startChat({ projectId });
     const text = t("boards.chatDraft", { title: board?.title ?? "", structure: handle.current?.structure() ?? "" });
-    navigate(`/c/${chat.id}?draft=${encodeURIComponent(text)}`);
+    void navigate(`/c/${chat.id}?draft=${encodeURIComponent(text)}`);
   };
   const tool = (key: string, icon: typeof Sparkles, onClick: () => void, label = t(`boards.ask_${key}`)) => (
     <Button size="sm" variant="ghost" icon={icon} disabled={!!busy} onClick={onClick} data-tip={t(`boards.tip_${key}`)}>
@@ -378,7 +378,7 @@ export function BoardsList({
   useEffect(load, [load]);
   useServerEvent("docs-changed", (m) => m.projectId === projectId && load());
   const open = (id: string) =>
-    compact ? navigate(`/p/${projectId}?tab=docs&board=${id}`) : setParams({ tab: "docs", board: id });
+    compact ? void navigate(`/p/${projectId}?tab=docs&board=${id}`) : setParams({ tab: "docs", board: id });
   const create = async () => {
     const b = await docsApi.createBoard(projectId, {
       title: category
