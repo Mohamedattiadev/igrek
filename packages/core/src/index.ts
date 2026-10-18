@@ -1,5 +1,6 @@
 export * from "./data";
 export * from "./docs";
+export * from "./e2e";
 export * from "./flows";
 export * from "./forms";
 export * from "./help";
