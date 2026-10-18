@@ -2707,7 +2707,9 @@
     "desc_spec": "Gereksinimler, tasarım, ardından kabul kriterli görevler docs/specs içine yazılır ve onayını bekler; ancak sonra takım kodlar, QA her kabul kriterini kontrol eder.",
     "status_waiting_limit": "Limit bekleniyor",
     "waitingLimit": "AI planının limiti doldu. Hiçbir şey kaybolmadı: limit sıfırlanınca, {{time}} civarında takım kendiliğinden devam eder. God Eye hesapları kendiliğinden değiştirmez.",
-    "name_careful": "Dikkatli değişiklik (keşif, plan, eleştiri, iş, inceleme)"
+    "name_careful": "Dikkatli değişiklik (keşif, plan, eleştiri, iş, inceleme)",
+    "name_cleanup": "Güvenli temizlik (ölü kod, önce ve sonra kontroller)",
+    "desc_cleanup": "Önce kontroller geçmeli; ölü kod kanıtıyla listelenir, neyin gideceğini sen seçersin, bir kopyada her silme ayrı commit olarak yapılır, aynı kontroller yeniden geçer ve QA kullanıcı için hiçbir şeyin değişmediğini doğrular."
   },
   "schedules": {
     "title": "Zamanlanmış işler",

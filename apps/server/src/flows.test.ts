@@ -158,6 +158,59 @@ describe("team run", () => {
     expect(done.changes?.map((f) => f.path)).toEqual(["sum.ts"]);
   });
 
+  test("cleanup: nothing is touched when the checks already fail; otherwise each removal is its own commit", async () => {
+    const steps: string[] = [];
+    const agent: AgentRun = async ({ cwd, prompt, readOnly }) => {
+      const step = prompt.match(/one step \("([^"]+)"\)/)?.[1] ?? "?";
+      steps.push(`${step}${readOnly ? " (read)" : ""}`);
+      if (step === "Clean")
+        for (const name of ["old-a", "old-b"]) {
+          writeFileSync(join(cwd, `${name}.txt`), "gone\n");
+          Bun.spawnSync(["git", "-C", cwd, "add", "-A"]);
+          Bun.spawnSync([
+            "git",
+            "-C",
+            cwd,
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "commit",
+            "-qm",
+            `Remove ${name}`,
+          ]);
+        }
+      return prompt.includes("VERDICT") ? "Nothing changed for users.\nVERDICT: PASS" : `${step} done`;
+    };
+    const red = setup(agent, async () => [{ ...pass("test"), ok: false, exitCode: 1 }]);
+    const stopped = red.flows.start({ projectId: red.projectId, flow: "cleanup", request: "src/" });
+    const end = await until(
+      () => red.flows.get(stopped.id),
+      (r) => r.status === "failed" || r.status === "needs_you",
+    );
+    expect(end.status).toBe("failed");
+    expect(steps).toEqual([]);
+
+    const green = setup(agent, async () => [pass("test")]);
+    const run = green.flows.start({ projectId: green.projectId, flow: "cleanup", request: "src/" });
+    await until(
+      () => green.flows.get(run.id),
+      (r) => r.status === "needs_you",
+    );
+    expect(steps).toEqual(["Find dead code (read)"]);
+    green.flows.respond(run.id, "pick", "approve");
+    const done = await until(
+      () => green.flows.get(run.id),
+      (r) => r.status === "ready" || r.status === "failed",
+    );
+    expect(done.status).toBe("ready");
+    expect(steps.slice(1)).toEqual(["Clean", "Nothing changed for users (read)"]);
+    const branch = done.worktree?.branch ?? "";
+    const log = Bun.spawnSync(["git", "-C", green.dir, "log", "--format=%s", branch]).stdout.toString();
+    expect(log).toContain("Remove old-a");
+    expect(log).toContain("Remove old-b");
+  });
+
   test("a QA failure goes back a limited number of times, then the run stops", async () => {
     const agent: AgentRun = async ({ prompt }) => (prompt.includes("VERDICT") ? "Broken.\nVERDICT: FAIL" : "done");
     const { flows, projectId } = setup(agent, async () => [pass("test")]);

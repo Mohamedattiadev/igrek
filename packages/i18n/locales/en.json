@@ -2707,7 +2707,9 @@
     "desc_spec": "Requirements, design, then tasks with acceptance criteria are written into docs/specs and wait for your OK; only then the team codes, and QA checks every acceptance criterion.",
     "status_waiting_limit": "Waiting for the limit",
     "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. God Eye never switches accounts on its own.",
-    "name_careful": "Careful change (explore, plan, critique, work, review)"
+    "name_careful": "Careful change (explore, plan, critique, work, review)",
+    "name_cleanup": "Safe cleanup (dead code, checks before and after)",
+    "desc_cleanup": "The checks must pass first; dead code is listed with evidence, you pick what goes, it is removed in a copy with one commit per removal, the same checks pass again and QA confirms nothing changed for users."
   },
   "schedules": {
     "title": "Scheduled work",

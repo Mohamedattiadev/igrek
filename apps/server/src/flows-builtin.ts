@@ -254,6 +254,51 @@ nodes:
       Plan: $plan.output
       Developer said: $work.output
 `,
+  cleanup: `name: cleanup
+description: "Safe cleanup: the checks must pass before anything is touched, an explorer lists dead code with evidence (reads only), you pick what goes, a cleaner removes it in its own copy with one commit per removal (each can be reverted alone), the same checks must pass again and QA confirms nothing a user could notice changed."
+nodes:
+  - id: before
+    title: Checks before
+    checks: true
+  - id: find
+    title: Find dead code
+    persona: architect
+    depends_on: [before]
+    prompt: |
+      List code this project no longer uses: files, exports, functions, variables, dependencies, env keys, CSS classes, routes and feature flags. For each: the path, what it is, and the evidence it is unused (the search you ran and found nothing, or the output of the project's own dead-code tool if it has one configured, like knip, vulture, staticcheck or clippy; do not install tools). Leave out anything that may be used by name from outside the code (public API, plugin entry points, routes called by clients, config read by tools, dynamic imports, reflection) and say you left it out. Number the list. Read only; do not change any files.
+      Focus, if given: $REQUEST
+      $FEEDBACK
+  - id: pick
+    title: Your pick
+    depends_on: [find]
+    wait:
+      attention: Check the list. Approve to remove all of it, or send it back with the numbers to keep.
+    on_fail: { back_to: [find], max: 3 }
+  - id: clean
+    title: Clean
+    persona: backend
+    depends_on: [pick]
+    worktree: own
+    prompt: |
+      Remove exactly the items on this approved list, nothing else, and change no behavior. Commit each removal on its own with git commit -m "Remove <what>: <why it is safe>" so each one can be reverted alone. Do not edit tests to make them pass; if removing something breaks a test, it was not dead: put it back and say so.
+      List: $find.output
+      $FEEDBACK
+  - id: after
+    title: Same checks after
+    depends_on: [clean]
+    checks: true
+    on_fail: { back_to: [clean], max: 2 }
+  - id: review
+    title: Nothing changed for users
+    persona: qa
+    depends_on: [after]
+    review: true
+    on_fail: { back_to: [clean], max: 1 }
+    prompt: |
+      Confirm the cleanup changed no behavior: only listed items were removed, no public API, route, config key or user-visible text went away, no test was weakened or deleted. Run git log on this branch to see each removal. Do not change files.
+      List: $find.output
+      Cleaner said: $clean.output
+`,
   task: `name: task
 description: "One AI step does the job in its own copy; if it changed code, the project's checks must pass."
 nodes:
