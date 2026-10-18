@@ -56,6 +56,41 @@ const TOOLS = [
     },
   },
   {
+    name: "godeye_persona",
+    description:
+      "One of the user's God Eye personas (architect, security, backend, qa, devils-advocate…): its style, review checklist, known pitfalls, rules and the opinions it wrote down for this project. Use it to review or work the way that expert would.",
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "string", description: "Persona id, e.g. security" }, path: pathArg },
+      required: ["id"],
+    },
+  },
+  {
+    name: "godeye_request_secret",
+    description:
+      "Ask the user for a secret (API key, token, password) instead of asking them to paste it into the chat. They type it in God Eye; it is stored in their vault and written to the project's env file. You never see the value; you get the variable name to use. Waits up to 10 minutes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Variable name, like STRIPE_API_KEY" },
+        reason: { type: "string", description: "Why it is needed, in one sentence" },
+        file: { type: "string", description: "Env file inside the project (default .env)" },
+        path: pathArg,
+      },
+      required: ["name", "reason"],
+    },
+  },
+  {
+    name: "godeye_show_html",
+    description:
+      "Show the user a whole HTML page (a report, a table, a chart) in God Eye: it opens from their inbox in a sandboxed frame with no network, so use inline CSS and JavaScript only.",
+    inputSchema: {
+      type: "object",
+      properties: { title: { type: "string" }, html: { type: "string" }, path: pathArg },
+      required: ["title", "html"],
+    },
+  },
+  {
     name: "godeye_servers",
     description: "Servers the user saved in God Eye (name, ssh target, tag like prod/test).",
     inputSchema: { type: "object", properties: {} },
@@ -125,6 +160,11 @@ type Args = {
   reason?: string;
   persona?: string;
   sentence?: string;
+  id?: string;
+  name?: string;
+  file?: string;
+  title?: string;
+  html?: string;
 };
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -182,6 +222,46 @@ async function callTool(name: string, args: Args): Promise<string> {
     return list.length
       ? list.map((s) => `- ${s.name} (${s.tag}): ${s.target}`).join("\n")
       : "No servers saved in God Eye.";
+  }
+  if (name === "godeye_persona") {
+    const p = await api<{
+      style: string;
+      checklist: string[];
+      pitfalls: string[];
+      rules: string[];
+      opinions: string[];
+    }>(`/api/agent/personas/${encodeURIComponent(String(args.id ?? ""))}?cwd=${encodeURIComponent(cwd)}`);
+    const list = (title: string, items: string[]) =>
+      items.length ? `${title}:\n${items.map((i) => `- ${i}`).join("\n")}` : "";
+    return [
+      `Style: ${p.style}`,
+      list("Checks", p.checklist),
+      list("Pitfalls", p.pitfalls),
+      list("Rules", p.rules),
+      list("Its opinions for this project", p.opinions),
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+  }
+  if (name === "godeye_request_secret") {
+    const { id } = await post<{ id: string }>("/api/agent/secrets", {
+      cwd,
+      key: args.name,
+      reason: args.reason,
+      file: args.file,
+    });
+    for (let i = 0; i < 300; i++) {
+      await Bun.sleep(2000);
+      const state = await api<{ status: string; key: string; file: string }>(`/api/agent/secrets/${id}`);
+      if (state.status === "stored")
+        return `The user stored ${state.key} in ${state.file} (and their vault). Read it from the environment; never print it.`;
+      if (state.status === "declined") return "The user declined to give this secret. Ask them how to go on.";
+    }
+    return "No answer within 10 minutes. Ask the user in the chat before asking again.";
+  }
+  if (name === "godeye_show_html") {
+    await post<{ id: string }>("/api/agent/reports", { cwd, title: args.title, html: args.html });
+    return "The page is in the user's God Eye inbox; they open it from there.";
   }
   if (name === "godeye_server_run") {
     const first = await post<{ status: "done"; run: Run } | { status: "pending"; approvalId: string }>(

@@ -10,6 +10,7 @@ import { registerAccountRoutes } from "./accounts-routes";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
 import { geminiAdapter } from "./adapters/gemini";
+import { AgentRequests, registerAgentRequestRoutes } from "./agent-requests";
 import { AiComments } from "./aicomments";
 import { Analytics } from "./analytics";
 import { createApp } from "./app";
@@ -475,6 +476,8 @@ const knowledge = new Knowledge(
 // The news of each persona's field, on the schedule chosen on the Knowledge page (checked hourly).
 setTimeout(() => void knowledge.tick().catch(() => undefined), 5 * 60_000);
 setInterval(() => void knowledge.tick().catch(() => undefined), 60 * 60_000);
+// Secrets and pages agents ask for through God Eye's MCP server (plan.md 16.3).
+const agentRequests = new AgentRequests(store, vault, envFiles, personas);
 // "// ai: do this!" comments typed in the user's editor become inbox items (plan.md 16.4).
 const aiComments = new AiComments(
   () => store.listProjects(),
@@ -483,6 +486,7 @@ const aiComments = new AiComments(
 aiComments.start();
 insight.extraNotices = () => [
   ...aiComments.notices(),
+  ...agentRequests.notices(),
   ...sync.overlapNotices(),
   ...sync.mentionNotices(),
   ...knowledge.notices(),
@@ -517,6 +521,7 @@ const app = createApp({
   stops,
   startedAt: Date.now(),
   extraRoutes: (hono) => {
+    registerAgentRequestRoutes(hono, agentRequests);
     registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers, accounts });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);

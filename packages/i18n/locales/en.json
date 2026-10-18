@@ -137,7 +137,9 @@
     "notice_regression": "An automatic re-test went worse",
     "notice_rotate": "Time to change a key",
     "dayendFrom": "end-of-day note from",
-    "notice_aiComment": "asks the AI in a comment"
+    "notice_aiComment": "asks the AI in a comment",
+    "notice_secretRequest": "an AI asks you for a secret",
+    "notice_agentReport": "an AI made a page for you"
   },
   "placeholder": {
     "soon": "Coming in a later phase",
@@ -3969,5 +3971,16 @@
     "htmlPage": "Page",
     "htmlFull": "Full screen",
     "htmlSmall": "Back to the chat"
+  },
+  "agentAsk": {
+    "secretTitle": "A secret an AI asked for",
+    "secretBody": "An AI working in {{project}} needs {{key}}. It will be written to {{file}} and kept in your vault.",
+    "secretNote": "The AI never sees what you type; it only learns that {{key}} is set.",
+    "save": "Save",
+    "decline": "Decline",
+    "status_stored": "Saved. The AI was told the variable is set.",
+    "status_declined": "Declined. The AI was told you did not give it.",
+    "status_pending": "Waiting for you.",
+    "reportTitle": "Page from an AI"
   }
 }

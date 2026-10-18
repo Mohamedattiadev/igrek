@@ -855,6 +855,18 @@ export class Store {
     return { sessions: s.n, projects: p.n };
   }
 
+  /** The project a folder belongs to, among those God Eye already has; never adds one (for requests from agents). */
+  knownProjectFor(cwd: string): string | undefined {
+    if (!cwd.startsWith("/")) return undefined;
+    const rows = this.db.query("SELECT id, path FROM projects WHERE hidden = 0").all() as {
+      id: string;
+      path: string;
+    }[];
+    return rows
+      .filter((r) => cwd === r.path || cwd.startsWith(`${r.path}/`))
+      .sort((a, b) => b.path.length - a.path.length)[0]?.id;
+  }
+
   projectForCwd(cwd: string): string | undefined {
     if (!cwd.startsWith("/")) return undefined;
     try {

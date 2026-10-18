@@ -28,7 +28,13 @@ export interface AppDeps {
  * The only writes an agent may make, both waiting for the user: a schedule proposal, and a server
  * command (read-only ones run at once, anything that changes something waits for approval).
  */
-const AGENT_WRITES = new Set(["/api/schedules/propose", "/api/agent/servers/run"]);
+const AGENT_WRITES = new Set([
+  "/api/schedules/propose",
+  "/api/agent/servers/run",
+  // A secret the user types in God Eye (the agent never sees it), and a page to show.
+  "/api/agent/secrets",
+  "/api/agent/reports",
+]);
 
 export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes }: AppDeps) {
   const app = new Hono();

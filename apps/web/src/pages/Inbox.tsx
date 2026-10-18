@@ -7,6 +7,7 @@ import {
   Bug,
   Check,
   CircleX,
+  FileText,
   Forward,
   Gauge,
   Globe,
@@ -43,6 +44,8 @@ import { TerminalStatus } from "./Terminals";
 
 const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
   aiComment: MessageSquareCode,
+  secretRequest: KeyRound,
+  agentReport: FileText,
   tool: CircleX,
   score: TrendingDown,
   overlap: Users,

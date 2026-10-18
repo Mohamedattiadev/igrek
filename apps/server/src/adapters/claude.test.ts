@@ -43,7 +43,8 @@ describe("Claude Code adapter on a recorded session", () => {
   });
 
   test("turns the transcript into readable messages", () => {
-    const roles = messages.reduce<Record<string, number>>((n, m) => ({ ...n, [m.role]: (n[m.role] ?? 0) + 1 }), {});
+    const roles: Record<string, number> = {};
+    for (const m of messages) roles[m.role] = (roles[m.role] ?? 0) + 1;
     expect(roles).toEqual({ user: 46, assistant: 78 });
     expect(messages.every((m) => m.id && m.ts > 0)).toBe(true);
     expect(state.startedAt).toBeLessThan(state.updatedAt ?? 0);

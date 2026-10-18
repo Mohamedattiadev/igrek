@@ -263,7 +263,9 @@ export interface InboxNotice {
     | "backup"
     | "rotate"
     | "regression"
-    | "aiComment";
+    | "aiComment"
+    | "secretRequest"
+    | "agentReport";
   projectId: string;
   projectName: string;
   /** Short fact shown next to the title: the tool, "84 → 76", "Kerim · changed · STRIPE_KEY". */

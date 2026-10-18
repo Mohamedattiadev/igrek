@@ -137,7 +137,9 @@
     "notice_regression": "Otomatik tekrar test kötüleşti",
     "notice_rotate": "Bir anahtarı değiştirme zamanı",
     "dayendFrom": "gün sonu notu:",
-    "notice_aiComment": "bir yorumda AI'dan istiyor"
+    "notice_aiComment": "bir yorumda AI'dan istiyor",
+    "notice_secretRequest": "bir AI senden bir sır istiyor",
+    "notice_agentReport": "bir AI senin için bir sayfa hazırladı"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -3969,5 +3971,16 @@
     "htmlPage": "Sayfa",
     "htmlFull": "Tam ekran",
     "htmlSmall": "Sohbete dön"
+  },
+  "agentAsk": {
+    "secretTitle": "Bir AI'ın istediği sır",
+    "secretBody": "{{project}} projesinde çalışan bir AI'ın {{key}} değerine ihtiyacı var. {{file}} dosyasına yazılacak ve kasanda saklanacak.",
+    "secretNote": "AI yazdığını asla görmez; sadece {{key}} değişkeninin ayarlandığını öğrenir.",
+    "save": "Kaydet",
+    "decline": "Reddet",
+    "status_stored": "Kaydedildi. AI'a değişkenin ayarlandığı söylendi.",
+    "status_declined": "Reddedildi. AI'a vermediğin söylendi.",
+    "status_pending": "Seni bekliyor.",
+    "reportTitle": "Bir AI'ın hazırladığı sayfa"
   }
 }
