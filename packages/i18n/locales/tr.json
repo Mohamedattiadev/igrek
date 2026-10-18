@@ -550,7 +550,9 @@
     "folderName": "Klasör adı",
     "newName": "Yeni ad",
     "protected": "~/.ssh gibi korumalı klasörler asla gösterilmez.",
-    "emptyHint": "Dosyaları buraya bırak ya da Yükle'yi kullan. Başka klasörleri Ayarlar'dan izin verdikten sonra açabilirsin."
+    "emptyHint": "Dosyaları buraya bırak ya da Yükle'yi kullan. Başka klasörleri Ayarlar'dan izin verdikten sonra açabilirsin.",
+    "up": "Bir üst klasör",
+    "backToList": "Dosyalara dön"
   },
   "preview": {
     "rows": "{{count}} satır",
@@ -2006,6 +2008,10 @@
     "helper": {
       "title": "Kayboldun mu? Buraya sor",
       "body": "Yardımcı, God Eye hakkındaki sorulara doğru yeri açan bağlantılarla cevap verir; ör. \"blog projemdeki son sohbet\". Tam kılavuz da orada."
+    },
+    "menu": {
+      "title": "Menü burada",
+      "body": "Menüyü açmak için bu butona dokun: projeler, terminaller, dosyalar, gelen kutusu, öğrenme ve fazlası."
     }
   },
   "panel": {

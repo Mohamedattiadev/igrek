@@ -1,5 +1,6 @@
 import type { FileEntry, TrashItem } from "@godeye/core";
 import {
+  ArrowLeft,
   ArrowUp,
   ChevronRight,
   Copy,
@@ -315,7 +316,7 @@ export function FilesPage() {
       />
       <div className="flex min-h-0 flex-1">
         <aside
-          className="shrink-0 overflow-y-auto border-e border-border bg-bg-subtle py-2"
+          className="hidden shrink-0 overflow-y-auto border-e border-border bg-bg-subtle py-2 md:block"
           style={{ width: placesWidth }}
         >
           <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
@@ -348,11 +349,18 @@ export function FilesPage() {
           </button>
           <p className="px-3 pt-3 text-[10.5px] leading-snug text-fg-subtle">{t("files.protected")}</p>
         </aside>
-        <ResizeHandle size={placesWidth} onSize={setPlacesWidth} min={150} max={420} />
+        <div className="hidden md:flex">
+          <ResizeHandle size={placesWidth} onSize={setPlacesWidth} min={150} max={420} />
+        </div>
 
         {/* biome-ignore lint/a11y/noStaticElementInteractions: drop zone for uploads; the Upload button is the keyboard path */}
         <section
-          className={cn("relative flex min-w-0 flex-1 flex-col", dragging && "ring-2 ring-inset ring-accent")}
+          className={cn(
+            "relative min-w-0 flex-1 flex-col",
+            // On a phone one panel at a time: an open file covers the list.
+            selected?.type === "file" ? "hidden md:flex" : "flex",
+            dragging && "ring-2 ring-inset ring-accent",
+          )}
           onDragOver={(e) => {
             e.preventDefault();
             setDragging(true);
@@ -364,10 +372,29 @@ export function FilesPage() {
             upload(e.dataTransfer.files);
           }}
         >
+          <div className="flex shrink-0 items-center gap-2 border-b border-border px-2 py-1.5 md:hidden">
+            <select
+              value={root?.path ?? ""}
+              onChange={(e) => {
+                if (e.target.value === "+") return setDialog("addRoot");
+                setCwd(e.target.value);
+                setSelected(undefined);
+              }}
+              aria-label={t("files.roots")}
+              className="h-8 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[13px]"
+            >
+              {roots.map((r) => (
+                <option key={r.path} value={r.path}>
+                  {r.label}
+                </option>
+              ))}
+              <option value="+">{t("files.addFolder")}</option>
+            </select>
+          </div>
           <div className="flex min-h-9 shrink-0 flex-wrap items-center gap-1 border-b border-border px-2 py-1">
             <button
               type="button"
-              aria-label="Up"
+              aria-label={t("files.up")}
               disabled={!cwd || cwd === root?.path}
               onClick={() => cwd && setCwd(parentOf(cwd))}
               className="rounded p-1 text-fg-subtle hover:bg-bg-hover hover:text-fg disabled:opacity-30"
@@ -539,8 +566,18 @@ export function FilesPage() {
         </section>
 
         {selected?.type === "file" && (
-          <aside className="w-[44%] min-w-80 shrink-0 border-s border-border">
-            <Viewer entry={selected} />
+          <aside className="flex min-w-0 flex-1 flex-col md:w-[44%] md:min-w-80 md:flex-none md:shrink-0 md:border-s md:border-border">
+            <button
+              type="button"
+              onClick={() => setSelected(undefined)}
+              className="flex h-9 shrink-0 items-center gap-1.5 border-b border-border px-3 text-[13px] text-fg-muted hover:text-fg md:hidden"
+            >
+              <ArrowLeft size={14} className="rtl:rotate-180" />
+              {t("files.backToList")}
+            </button>
+            <div className="min-h-0 flex-1">
+              <Viewer entry={selected} />
+            </div>
           </aside>
         )}
       </div>

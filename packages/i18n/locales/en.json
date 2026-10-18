@@ -550,7 +550,9 @@
     "folderName": "Folder name",
     "newName": "New name",
     "protected": "Protected folders like ~/.ssh are never shown.",
-    "emptyHint": "Drop files here or use Upload. Other folders can be opened after you allow them in Settings."
+    "emptyHint": "Drop files here or use Upload. Other folders can be opened after you allow them in Settings.",
+    "up": "Up one folder",
+    "backToList": "Back to the files"
   },
   "preview": {
     "rows": "{{count}} rows",
@@ -2006,6 +2008,10 @@
     "helper": {
       "title": "Lost? Ask here",
       "body": "The helper answers questions about God Eye with links that open the right place, like \"last chat in my blog project\". The full guide is there too."
+    },
+    "menu": {
+      "title": "The menu is here",
+      "body": "Tap this button to open the menu: projects, terminals, files, inbox, learning and more."
     }
   },
   "panel": {

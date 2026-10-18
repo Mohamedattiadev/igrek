@@ -8,6 +8,8 @@ import { Button } from "./ui";
 const STEPS = [
   { target: '[data-tour="composer"]', key: "composer" },
   { target: '[data-tour="nav"]', key: "nav" },
+  // Phones: the menu lives in a drawer behind this button (the step above is skipped there).
+  { target: '[data-tour="menu"]', key: "menu" },
   { target: 'a[href="/"]', key: "projects" },
   { target: 'a[href="/inbox"]', key: "inbox" },
   { target: '[data-tour="search"]', key: "search" },

@@ -180,6 +180,7 @@ function TopBar({
           type="button"
           onClick={onMenu}
           aria-label={t("nav.menu")}
+          data-tour="menu"
           className="flex size-8 shrink-0 items-center justify-center rounded-ui text-fg-muted hover:bg-bg-hover hover:text-fg"
         >
           <Menu size={18} aria-hidden="true" />
