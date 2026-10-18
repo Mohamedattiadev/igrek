@@ -650,7 +650,7 @@ god-eye/
 #### 4.6 👤 "Kim yaptı, kim yapıyor" (her yerde isim)
 - [x] ⭐ Canlı durum rozetleri: **"Mohamed şu an çalışıyor: Backend → ödeme modülü"**, "Kerim beklemede", "Ayşe çevrimdışı (2 saat önce)" — *yeşil/sarı/gri nokta + ipucu*
 - [x] ⭐ Her kayıtta yapan kişi: **"Kerim yaptı · Claude ile · 14:32"**. Session'larda, commit'lerde, kararlarda, görevlerde, sunucu komutlarında ve dosya değişikliklerinde — *şimdilik session'lar ve hafıza*
-- [ ] İnsan + agent birlikte gösterilir: "Mohamed → 🤖 Backend Senior persona → `payment.ts` değiştirildi" — *panoda başladı: kartı alan kişi ve atandığı persona birlikte görünür ("Kerim → Güvenlik"). Oturum listesi, commit'ler ve dosya değişikliklerinde henüz yok*
+- [x] İnsan + agent birlikte gösterilir: "Mohamed → 🤖 Backend Senior persona → `payment.ts` değiştirildi" — *oturum listesinde persona olarak çalışan oturumlar "Mohamed → Backend persona" diye görünüyordu (Faz 6.3); panoda da kartı alan kişi ve atandığı persona birlikte görünür ("Kerim → Güvenlik"). Commit ve satır bazında "kim yazdı" görünümünde persona adı henüz yok, sadece kişi ve araç*
 - [x] Kod görünümünde satır bazında: "Bu satırı Kerim, 3 gün önce, Codex ile, şu session'da yazdı" — *Kod sekmesinde "Kim yazdı": satır sonunda kişi · araç · oturum · zaman; üzerine gelince commit ve oturuma bağlantı*
 - [x] Proje kartında üye avatarları ve kimin aktif olduğu
 - [x] Kişi sayfası: "Kerim bu hafta ne yaptı" (özet, kendi dilimde)
