@@ -485,6 +485,8 @@ export interface ChatInfo {
   sandboxed?: boolean;
   /** The chat runs as this persona (plan.md 6.3). */
   persona?: { id: string; name?: string; tools: "read" | "edit" };
+  /** The project's own hooks, MCP servers and skills that were left out until the user trusts it (plan.md 16.4). */
+  untrusted?: { hooks: string[]; mcpServers: string[]; skills: string[]; fingerprint: string };
   /** Messages written while the AI was working; the next one goes out when the turn ends (plan.md 16.1). */
   queued?: QueuedMessage[];
   /** The one thing to know about the chat at a glance (plan.md 16.3); none when there is nothing to do. */

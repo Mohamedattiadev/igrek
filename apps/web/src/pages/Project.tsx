@@ -293,6 +293,34 @@ function Sessions({ projectId }: { projectId: string }) {
   );
 }
 
+/** Whether chats may load this project's own hooks, MCP servers and skills (plan.md 16.4). */
+function TrustState({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const { data, reload } = useLiveData(() => api.projectTrust(projectId), [projectId]);
+  if (!data) return null;
+  if (!data.extensions) return <p className="text-xs text-fg-subtle">{t("trust.none")}</p>;
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <Badge tone={data.trusted ? "success" : "warning"}>
+        {data.trusted ? t("trust.trusted") : t("trust.notTrusted")}
+      </Badge>
+      <span className="text-xs text-fg-muted">
+        {[...data.extensions.hooks.map(() => "hook"), ...data.extensions.mcpServers, ...data.extensions.skills].length}{" "}
+        {t("trust.items")}
+      </span>
+      <Button
+        size="sm"
+        onClick={async () => {
+          await api.setProjectTrust(projectId, !data.trusted);
+          reload();
+        }}
+      >
+        {data.trusted ? t("trust.revoke") : t("trust.trustShort")}
+      </Button>
+    </div>
+  );
+}
+
 /** Steps always allowed in this project, saved from a chat's approval card (plan.md 16.1). */
 function ToolRules({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
@@ -361,6 +389,9 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
         <p className="mt-3 text-xs text-fg-subtle">
           {t("setup.file")} <code className="break-all font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
+      </Section>
+      <Section title={t("trust.title")} hint={t("trust.hint")}>
+        <TrustState projectId={project.id} />
       </Section>
       <Section title={t("setup.rulesTitle")} hint={t("setup.rulesHint")}>
         <ToolRules projectId={project.id} />

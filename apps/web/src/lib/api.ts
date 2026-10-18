@@ -199,6 +199,13 @@ export const api = {
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
   projectSessions: (id: string) => request<SessionListItem[]>(`/api/projects/${id}/sessions`),
   projectContext: (id: string) => request<{ context: string }>(`/api/projects/${id}/context`),
+  projectTrust: (id: string) =>
+    request<{
+      extensions: { hooks: string[]; mcpServers: string[]; skills: string[]; fingerprint: string } | null;
+      trusted: boolean;
+    }>(`/api/projects/${id}/trust`),
+  setProjectTrust: (id: string, trust: boolean) =>
+    request<{ ok: boolean }>(`/api/projects/${id}/trust`, { method: "POST", body: JSON.stringify({ trust }) }),
   toolRules: (id: string) => request<string[]>(`/api/projects/${id}/tool-rules`),
   removeToolRule: (id: string, rule: string) =>
     request<{ ok: boolean }>(`/api/projects/${id}/tool-rules?rule=${encodeURIComponent(rule)}`, { method: "DELETE" }),

@@ -469,6 +469,66 @@ function QuestionCard({
   );
 }
 
+/**
+ * The project has its own hooks, MCP servers or skills that this chat left out (plan.md 16.4):
+ * say what they are, and trust them to start again with them.
+ */
+function TrustBanner({ info }: { info: ChatInfo }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const ext = info.untrusted;
+  if (!ext) return null;
+  const parts = [
+    ext.hooks.length ? t("trust.hooks", { count: ext.hooks.length }) : "",
+    ext.mcpServers.length ? t("trust.mcp", { count: ext.mcpServers.length }) : "",
+    ext.skills.length ? t("trust.skills", { count: ext.skills.length }) : "",
+  ].filter(Boolean);
+  return (
+    <div className="shrink-0 border-b border-warning bg-warning-soft px-4 py-2 text-[12.5px]">
+      <div className="mx-auto flex max-w-3xl flex-wrap items-center gap-2">
+        <ShieldAlert size={14} className="shrink-0 text-warning" aria-hidden="true" />
+        <span className="min-w-0 flex-1">{t("trust.left", { what: parts.join(", ") })}</span>
+        <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+          {t("trust.show")}
+        </Button>
+        <Button
+          size="sm"
+          disabled={busy}
+          onClick={async () => {
+            setBusy(true);
+            try {
+              await api.setProjectTrust(info.projectId, true);
+              // Pick the conversation up again; a session God Eye has not read yet starts fresh.
+              const next = await api
+                .startChat({ projectId: info.projectId, resume: info.sessionId })
+                .catch(() => api.startChat({ projectId: info.projectId }));
+              void api.closeChat(info.id).catch(() => undefined);
+              void navigate(`/c/${next.id}`, { replace: true });
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          {t("trust.trust")}
+        </Button>
+      </div>
+      {open && (
+        <ul className="mx-auto mt-1.5 max-w-3xl space-y-0.5 font-mono text-[11.5px] text-fg-muted">
+          {[...ext.hooks, ...ext.mcpServers.map((m) => `MCP: ${m}`), ...ext.skills.map((s) => `skill: ${s}`)].map(
+            (line) => (
+              <li key={line} className="truncate">
+                {line}
+              </li>
+            ),
+          )}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** "15:30" in the interface's language. */
 function clockTime(at: number, lang: string): string {
   return new Date(at).toLocaleTimeString(lang, { hour: "2-digit", minute: "2-digit" });
@@ -911,6 +971,7 @@ export function ChatPage() {
         )}
       </header>
       {info?.worktree && <ChatCopy info={info} />}
+      {info?.untrusted && <TrustBanner info={info} />}
 
       <CommentContext.Provider
         value={(c) => {

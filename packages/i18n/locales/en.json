@@ -3932,5 +3932,24 @@
     "callout_important": "Important",
     "callout_warning": "Warning",
     "callout_caution": "Careful"
+  },
+  "trust": {
+    "hooks_one": "{{count}} hook",
+    "hooks_other": "{{count}} hooks",
+    "mcp_one": "{{count}} MCP server",
+    "mcp_other": "{{count}} MCP servers",
+    "skills_one": "{{count}} skill",
+    "skills_other": "{{count}} skills",
+    "left": "This project brings its own {{what}}. They can run commands on your computer, so this chat started without them.",
+    "show": "Show",
+    "trust": "Trust and start again with them",
+    "title": "The project's own hooks and MCP servers",
+    "hint": "A repository can ship Claude Code hooks, MCP servers and skills that run commands. Chats load them only after you trust them, and ask again when they change.",
+    "none": "This project brings none.",
+    "trusted": "Trusted",
+    "notTrusted": "Not trusted",
+    "items": "items",
+    "revoke": "Stop trusting",
+    "trustShort": "Trust"
   }
 }

@@ -21,6 +21,7 @@ import { LIMIT_REACHED } from "./localmodel";
 import type { Personas } from "./personas";
 import type { Store } from "./store";
 import { sandboxAvailable } from "./system";
+import { unattendedArgs } from "./trust";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, worktreeDiff } from "./worktrees";
 
 const MAX_LOG = 60;
@@ -166,6 +167,8 @@ const runAgent: AgentRun = async (args) => {
       }),
       ...(model ? ["--model", model] : []),
       ...(system ? ["--append-system-prompt", system] : []),
+      // Unattended work never loads the project's own hooks, MCP servers or skills (plan.md 16.4).
+      ...unattendedArgs(cwd),
       ...(readOnly
         ? [
             "--tools",

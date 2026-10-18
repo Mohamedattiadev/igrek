@@ -1170,7 +1170,7 @@ god-eye/
 - [ ] Mesaja bağlı checkpoint ve geri yüklemeyi geri alma (#15); akış protokolü düzeni: sıra numarası, birleştirme, geri basınç (#19)
 
 #### 16.4 Güvenlik ve iş akışı
-- [ ] Proje güven sorusu: yeni repo'nun hook/MCP/skill'leri onaysız yüklenmez (#16)
+- [x] Proje güven sorusu: yeni repo'nun hook/MCP/skill'leri onaysız yüklenmez (#16) — *projede `.claude` hook'u (God Eye'ın kendi hafıza hook'u hariç), `.mcp.json` sunucusu ya da beceri varsa sohbet onları yüklemeden başlar (`--setting-sources user --strict-mcp-config`, beceri varsa `--disable-slash-commands`), sohbetin üstünde neyin yüklenmediği listelenir ve "Güven ve onlarla yeniden başlat" ile güvenilir; güven bu dosyaların parmak izine bağlı, değişirlerse yeniden sorulur, Kurulum sekmesinden geri alınır. Gözetimsiz takım çalışmaları ve zamanlanmış işler bunları hiç yüklemez. Etkileşimli terminalde Claude Code kendi güven sorusunu sorar*
 - [ ] Zamanlanmış ve ajanın oluşturduğu işlerde revizyona bağlı onay ve sınırlar (#21)
 - [ ] "// ai: şunu yap!" yorum izleyici (#20); `when` bağlamlı kısayollar ve palette `>` eylem modu (#22)
 - [ ] Hazır personalar: keşifçi, planlayıcı, inceleyici, işçi zinciri (#23); `AGENTS.md`, knip, kayıttan oynatılan adaptör testleri (#24, Faz 15 ile)

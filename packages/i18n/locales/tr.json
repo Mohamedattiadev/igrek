@@ -3932,5 +3932,24 @@
     "callout_important": "Önemli",
     "callout_warning": "Uyarı",
     "callout_caution": "Dikkat"
+  },
+  "trust": {
+    "hooks_one": "{{count}} hook",
+    "hooks_other": "{{count}} hook",
+    "mcp_one": "{{count}} MCP sunucusu",
+    "mcp_other": "{{count}} MCP sunucusu",
+    "skills_one": "{{count}} beceri",
+    "skills_other": "{{count}} beceri",
+    "left": "Bu projenin kendine ait şunları var: {{what}}. Bilgisayarında komut çalıştırabildikleri için sohbet onlarsız başladı.",
+    "show": "Göster",
+    "trust": "Güven ve onlarla yeniden başlat",
+    "title": "Projenin kendi hook'ları ve MCP sunucuları",
+    "hint": "Bir repo komut çalıştıran Claude Code hook'ları, MCP sunucuları ve becerileri içerebilir. Sohbetler onları ancak sen güvenince yükler, değişirlerse yeniden sorar.",
+    "none": "Bu projede böyle bir şey yok.",
+    "trusted": "Güveniliyor",
+    "notTrusted": "Güvenilmiyor",
+    "items": "öğe",
+    "revoke": "Güvenmeyi bırak",
+    "trustShort": "Güven"
   }
 }

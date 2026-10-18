@@ -7,6 +7,7 @@ import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";
 import { ChatHistory, type ChatStart, type Chats, type SendHow } from "./chats";
 import type { Store } from "./store";
+import { isTrusted, projectExtensions, trust } from "./trust";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
 
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
@@ -42,24 +43,7 @@ export function registerChatRoutes(
 
   // Remember every chat with a saved session, so it can be continued after a restart.
   const history = new ChatHistory(store.db);
-  // "Always allow in this project" rules, kept per project.
-  chats.projectRules = (projectId) =>
-    (
-      store.db.query("SELECT rule FROM tool_rules WHERE project_id = ? ORDER BY rule").all(projectId) as {
-        rule: string;
-      }[]
-    ).map((r) => r.rule);
-  chats.addProjectRule = (projectId, rule) =>
-    store.db
-      .query("INSERT OR IGNORE INTO tool_rules (project_id, rule, created_at) VALUES (?, ?, ?)")
-      .run(projectId, rule, Date.now());
-  app.get("/api/projects/:id/tool-rules", (c) => c.json(chats.projectRules(c.req.param("id"))));
-  app.delete("/api/projects/:id/tool-rules", (c) => {
-    store.db
-      .query("DELETE FROM tool_rules WHERE project_id = ? AND rule = ?")
-      .run(c.req.param("id"), c.req.query("rule") ?? "");
-    return c.json({ ok: true });
-  });
+  registerProjectRules(app, chats, store);
   history.record(chats.list());
   bus.subscribe((message) => {
     if (message.type === "chats") history.record(message.chats);
@@ -105,9 +89,13 @@ export function registerChatRoutes(
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
+    // A project's own hooks, MCP servers and skills load only once the user trusts them.
+    const extensions = projectExtensions(project.path);
+    const untrusted = extensions && !isTrusted(store.db, project.id, extensions.fingerprint) ? extensions : undefined;
     try {
       const started = chats.start({
         projectId: project.id,
+        untrusted,
         cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
         worktree,
         title: session?.title ?? undefined,
@@ -206,9 +194,12 @@ export function registerChatRoutes(
     if (!info?.sessionId) return c.json({ error: "Send a first message before switching model" }, 409);
     if (!body.model || !/^[\w.[\]-]+$/.test(body.model)) return c.json({ error: "Invalid model" }, 400);
     chats.close(info.id);
+    const root = store.projectRow(info.projectId)?.path ?? info.cwd;
+    const extensions = projectExtensions(root);
     return c.json(
       chats.start({
         projectId: info.projectId,
+        untrusted: extensions && !isTrusted(store.db, info.projectId, extensions.fingerprint) ? extensions : undefined,
         cwd: info.cwd,
         title: info.title,
         resume: info.sessionId,
@@ -244,6 +235,43 @@ type ChatClientMessage =
     }
   | { op: "interrupt" }
   | { op: "mode"; mode: ChatMode };
+
+/** Per-project decisions: steps always allowed (plan.md 16.1) and trusted extensions (plan.md 16.4). */
+function registerProjectRules(app: Hono, chats: Chats, store: Store): void {
+  // "Always allow in this project" rules, kept per project.
+  chats.projectRules = (projectId) =>
+    (
+      store.db.query("SELECT rule FROM tool_rules WHERE project_id = ? ORDER BY rule").all(projectId) as {
+        rule: string;
+      }[]
+    ).map((r) => r.rule);
+  chats.addProjectRule = (projectId, rule) =>
+    store.db
+      .query("INSERT OR IGNORE INTO tool_rules (project_id, rule, created_at) VALUES (?, ?, ?)")
+      .run(projectId, rule, Date.now());
+  app.get("/api/projects/:id/trust", (c) => {
+    const project = store.projectRow(c.req.param("id"));
+    if (!project) return c.json({ error: "Project not found" }, 404);
+    const extensions = projectExtensions(project.path) ?? null;
+    return c.json({ extensions, trusted: !!extensions && isTrusted(store.db, project.id, extensions.fingerprint) });
+  });
+  app.post("/api/projects/:id/trust", async (c) => {
+    const project = store.projectRow(c.req.param("id"));
+    if (!project) return c.json({ error: "Project not found" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { trust?: boolean };
+    // Trust what is there now: the fingerprint comes from the files, not from the browser.
+    const extensions = projectExtensions(project.path);
+    trust(store.db, project.id, body.trust === false || !extensions ? null : extensions.fingerprint);
+    return c.json({ ok: true });
+  });
+  app.get("/api/projects/:id/tool-rules", (c) => c.json(chats.projectRules(c.req.param("id"))));
+  app.delete("/api/projects/:id/tool-rules", (c) => {
+    store.db
+      .query("DELETE FROM tool_rules WHERE project_id = ? AND rule = ?")
+      .run(c.req.param("id"), c.req.query("rule") ?? "");
+    return c.json({ ok: true });
+  });
+}
 
 /** Only text answers, a few and short: they go straight into the AI's input. */
 function cleanAnswers(raw: unknown): Record<string, string> | undefined {

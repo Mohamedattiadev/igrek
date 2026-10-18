@@ -17,6 +17,7 @@ import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
 import { readLines } from "./jsonlines";
 import { LIMIT_REACHED } from "./localmodel";
 import { sandboxAvailable } from "./system";
+import { type ProjectExtensions, untrustedArgs } from "./trust";
 import type { Worktree } from "./worktrees";
 
 /** UI modes → Claude Code permission modes. */
@@ -77,6 +78,8 @@ export interface ChatStart {
   worktree?: Worktree;
   /** God Eye's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
   godeyeMcp?: { config: string; allow: string[] };
+  /** The project's own extensions to leave out, because the user has not trusted them yet. */
+  untrusted?: ProjectExtensions;
   /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
   persona?: {
     id: string;
@@ -115,6 +118,13 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
   const m = rule.match(/^Bash\((.+)\)$/);
   const command = String((input as Json | undefined)?.command ?? "").trim();
   return !!m?.[1] && toolName === "Bash" && (command === m[1] || command.startsWith(`${m[1]} `));
+}
+
+/** What the chat shows about the project's extensions it left out. */
+function untrustedInfo(ext: ProjectExtensions | undefined): Pick<ChatInfo, "untrusted"> {
+  return ext
+    ? { untrusted: { hooks: ext.hooks, mcpServers: ext.mcpServers, skills: ext.skills, fingerprint: ext.fingerprint } }
+    : {};
 }
 
 /** Tools that ask the user something: they wait for an answer, never for an approval. */
@@ -216,6 +226,7 @@ export class Chats {
       "stdio",
       "--permission-mode",
       PERMISSION_MODE[mode],
+      ...(options.untrusted ? untrustedArgs(options.untrusted) : []),
       // Shipping work (push, merge, publish, deploy) always asks, whatever the mode.
       // Auto mode also gets Claude Code's sandbox when this computer has what it needs.
       "--settings",
@@ -262,6 +273,7 @@ export class Chats {
         accountId: options.accountId,
         worktree: options.worktree,
         sandboxed,
+        ...untrustedInfo(options.untrusted),
         ...(options.persona
           ? { persona: { id: options.persona.id, name: options.persona.name, tools: options.persona.tools } }
           : {}),

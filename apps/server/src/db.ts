@@ -843,6 +843,12 @@ export const migrations: string[] = [
    CREATE INDEX app_users_daily_day ON app_users_daily(day);
    CREATE INDEX app_error_groups_open ON app_error_groups(status, last_at);
    CREATE INDEX team_messages_inbox ON team_messages(outgoing, status);`,
+  // Projects whose own hooks, MCP servers and skills the user said a chat may load (plan.md 16.4).
+  `CREATE TABLE project_trust (
+     project_id TEXT PRIMARY KEY NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     fingerprint TEXT NOT NULL,
+     decided_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {
