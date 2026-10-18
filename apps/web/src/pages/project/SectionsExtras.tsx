@@ -3,6 +3,8 @@ import {
   CATEGORIES,
   type Category,
   DEFAULT_WEIGHTS,
+  DESIGN_SOURCES,
+  type DesignFinding,
   type ImportEstimate,
   type ImportStatus,
   type InsightConfig,
@@ -433,6 +435,53 @@ export function ArchitectureCard({ projectId }: { projectId: string }) {
         </div>
       )}
       <p className="text-[11px] text-fg-subtle">{t("arch.source")}</p>
+    </Card>
+  );
+}
+
+/** Design patterns and SOLID (plan.md 15.2): what the code shows, grouped by rule, each with its source. */
+export function DesignCard({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [found, setFound] = useState<DesignFinding[]>();
+  useEffect(() => {
+    let live = true;
+    request<DesignFinding[]>(`/api/projects/${projectId}/design`)
+      .then((list) => live && setFound(list))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [projectId]);
+  if (!found) return null;
+  const rules = [...new Set(found.map((f) => f.rule))];
+  return (
+    <Card className="space-y-3 p-pad">
+      <h3 className="text-[13.5px] font-semibold">{t("design.title")}</h3>
+      {!rules.length && <p className="text-xs text-success">{t("design.clean")}</p>}
+      {rules.map((rule) => {
+        const items = found.filter((f) => f.rule === rule);
+        return (
+          <div key={rule} className="space-y-1">
+            <p className="text-[12.5px] font-medium">
+              {t(`design.rule_${rule}`)} <span className="text-fg-subtle">({items.length})</span>
+            </p>
+            <p className="text-xs text-fg-muted">
+              {t(`design.fix_${rule}`)}{" "}
+              <a href={DESIGN_SOURCES[rule]} target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                {t("insight.source")}
+              </a>
+            </p>
+            <ul className="space-y-0.5 font-mono text-[11px] text-fg-muted">
+              {items.slice(0, 6).map((f) => (
+                <li key={`${f.file}:${f.line}`}>
+                  {f.file}:{f.line}
+                  {f.detail ? ` · ${f.detail}` : ""}
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })}
     </Card>
   );
 }

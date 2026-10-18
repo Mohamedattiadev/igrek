@@ -4101,5 +4101,21 @@
     "needsHint": "Bu proje için en önemli olanları seç:",
     "misfit": "Bu desen, önemli diye işaretlediğin şu konularda zayıf: {{qualities}}. Önemli olduğu parçalar için desen değişikliğini mimar personayla tart.",
     "fit": "Desen, önemli diye işaretlediğin her konuda yüksek puanlı."
+  },
+  "design": {
+    "title": "Tasarım desenleri ve SOLID",
+    "clean": "Göze batan bir şey yok: Singleton yığını, yalnız arayüz, uzun tür switch'i ya da SOLID ihlali bulunmadı.",
+    "rule_singleton": "Birçok yerde Singleton",
+    "fix_singleton": "Singleton, desen adı taşıyan global durumdur: bağımlılıkları gizler, testlerin durum paylaşmasına yol açar. Nesneyi gereken yere parametre olarak ver.",
+    "rule_singleImplementation": "Tek uygulaması olan arayüz",
+    "fix_singleImplementation": "Henüz başka hiçbir şeyin kullanmadığı bir soyutlama (spekülatif genellik). İkinci bir uygulama (ya da testte sahte nesne) gerekene kadar sınıfı tek başına bırak.",
+    "rule_bigSwitch": "Bir tür üzerinde uzun switch",
+    "fix_bigSwitch": "Her yeni durum bu switch'i (ve kopyalarını) düzenlemek demek. İşleyicilerden oluşan bir harita ya da Strategy veya State deseni her durumu tek yere koyar.",
+    "rule_refusedBequest": "Alt sınıf miras aldığını reddediyor",
+    "fix_refusedBequest": "'not implemented' fırlatan metot Liskov ilkesini bozar: üst sınıfı kullanan kod bu alt sınıfta kırılır. Bileşim kullan ya da üst sınıfın arayüzünü böl.",
+    "rule_godClass": "Çok fazla iş yapan sınıf",
+    "fix_godClass": "Çok uzun sınıfların değişmek için birden fazla nedeni vardır (tek sorumluluk). Ayrı işleri kendi sınıflarına çıkar.",
+    "rule_hardDependency": "Kurucuda oluşturulan servisler",
+    "fix_hardDependency": "Kendi servislerini new ile oluşturmak sınıfı onlara bağlar (bağımlılığın tersine çevrilmesi): kurucudan parametre olarak al ki değiştirilebilsin ve test edilebilsin."
   }
 }

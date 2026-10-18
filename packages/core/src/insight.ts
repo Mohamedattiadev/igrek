@@ -403,3 +403,22 @@ export const PATTERN_RATINGS: Record<Exclude<ArchPattern, "unknown">, Record<str
     development: "high",
   },
 };
+
+/** A design-pattern or SOLID finding in a project's code (plan.md 15.2). */
+export interface DesignFinding {
+  rule: "singleton" | "singleImplementation" | "bigSwitch" | "refusedBequest" | "godClass" | "hardDependency";
+  file: string;
+  line: number;
+  /** The interface, the class and its length, the number of cases… */
+  detail?: string;
+}
+
+/** Where each design rule is explained. */
+export const DESIGN_SOURCES: Record<DesignFinding["rule"], string> = {
+  singleton: "https://refactoring.guru/design-patterns/singleton",
+  singleImplementation: "https://refactoring.guru/smells/speculative-generality",
+  bigSwitch: "https://refactoring.guru/design-patterns/strategy",
+  refusedBequest: "https://en.wikipedia.org/wiki/Liskov_substitution_principle",
+  godClass: "https://en.wikipedia.org/wiki/Single-responsibility_principle",
+  hardDependency: "https://en.wikipedia.org/wiki/Dependency_inversion_principle",
+};

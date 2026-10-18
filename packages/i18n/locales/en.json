@@ -4101,5 +4101,21 @@
     "needsHint": "Pick what matters most for this project:",
     "misfit": "This pattern is weak on {{qualities}}, which you marked as important. Weigh a change of pattern for the parts where it matters, with the architect persona.",
     "fit": "The pattern rates high on everything you marked as important."
+  },
+  "design": {
+    "title": "Design patterns and SOLID",
+    "clean": "Nothing stands out: no Singleton sprawl, lonely interfaces, long type switches or SOLID breaks were found.",
+    "rule_singleton": "Singletons in many places",
+    "fix_singleton": "A Singleton is global state with a pattern's name: it hides dependencies and makes tests share state. Pass the object in where it is needed.",
+    "rule_singleImplementation": "An interface with one implementation",
+    "fix_singleImplementation": "An abstraction nothing else uses yet (speculative generality). Keep the class alone until a second implementation (or a test double) needs the interface.",
+    "rule_bigSwitch": "A long switch on a type",
+    "fix_bigSwitch": "Each new case means editing this switch (and its copies). A map of handlers, or the Strategy or State pattern, puts each case in one place.",
+    "rule_refusedBequest": "A subclass refuses what it inherits",
+    "fix_refusedBequest": "A method that throws 'not implemented' breaks the Liskov principle: code using the parent breaks on this child. Use composition, or split the parent's interface.",
+    "rule_godClass": "A class that does too much",
+    "fix_godClass": "Very long classes have more than one reason to change (single responsibility). Extract the separate jobs into their own classes.",
+    "rule_hardDependency": "Services built inside a constructor",
+    "fix_hardDependency": "Creating its own services with new ties the class to them (dependency inversion): pass them in through the constructor so they can be swapped and tested."
   }
 }

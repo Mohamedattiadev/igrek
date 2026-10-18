@@ -11,6 +11,7 @@ import {
   type CategoryExplanation,
   type CategoryScore,
   type CoverageMap,
+  type DesignFinding,
   type DiagramSet,
   gradeOf,
   type InboxNotice,
@@ -28,6 +29,7 @@ import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
 import { scrub } from "../sync/scrub";
 import { coverageMap } from "./coverage";
+import { designFindings } from "./design";
 import { architectureOf } from "./patterns";
 import { renderAdvice as adviseRender } from "./render";
 import { SENSITIVE, takeSnapshot } from "./snapshot";
@@ -100,6 +102,12 @@ export class Insight {
   architecture(projectId: string): ArchitectureReport | undefined {
     const root = this.rootOf(projectId);
     return root ? architectureOf(takeSnapshot(root)) : undefined;
+  }
+
+  /** Design patterns used where they add nothing, missed chances, and SOLID breaks. */
+  design(projectId: string): DesignFinding[] | undefined {
+    const root = this.rootOf(projectId);
+    return root ? designFindings(takeSnapshot(root)) : undefined;
   }
 
   /** Render strategy per page (Next.js projects). */
