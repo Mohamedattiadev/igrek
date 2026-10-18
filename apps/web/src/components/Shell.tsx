@@ -1,6 +1,6 @@
 import type { ServerMessage } from "@godeye/core";
 import { APP_VERSION } from "@godeye/core";
-import { Minimize2, Search } from "lucide-react";
+import { Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
@@ -13,6 +13,7 @@ import { useVimNavigation } from "../lib/vim";
 import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CommandPalette } from "./CommandPalette";
+import { Helper } from "./Helper";
 import { HelpGuide } from "./HelpGuide";
 import { IdeaCapture } from "./IdeaCapture";
 import { useLanguagePackSync } from "./LanguagePack";
@@ -27,25 +28,42 @@ import { Kbd, StatusDot } from "./ui";
 import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
-function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
+const WIDE = "godeye.nav.wide";
+
+function readWide(): boolean {
+  try {
+    return localStorage.getItem(WIDE) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+function ToolStripLink({ item, badge, wide }: { item: NavItem; badge?: number; wide: boolean }) {
   const { t } = useTranslation();
   return (
     <NavLink
       to={item.to}
       end={item.to === "/"}
-      data-tip={t(item.label)}
+      data-tip={wide ? undefined : t(item.label)}
       data-tip-side="right"
       aria-label={t(item.label)}
       className={({ isActive }) =>
         cn(
-          "relative flex size-9 items-center justify-center rounded-ui transition-colors",
-          isActive ? "bg-bg-active text-accent" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
+          "relative flex h-9 shrink-0 items-center rounded-ui transition-colors",
+          wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
+          isActive ? "bg-bg-active font-medium text-accent" : "text-fg-subtle hover:bg-bg-hover hover:text-fg",
         )
       }
     >
-      <item.icon size={18} strokeWidth={1.75} />
+      <item.icon size={18} strokeWidth={1.75} className="shrink-0" />
+      {wide && <span className="min-w-0 flex-1 truncate">{t(item.label)}</span>}
       {!!badge && (
-        <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-on-strong">
+        <span
+          className={cn(
+            "flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-on-strong",
+            !wide && "absolute -end-0.5 -top-0.5",
+          )}
+        >
           {badge}
         </span>
       )}
@@ -54,35 +72,65 @@ function ToolStripLink({ item, badge }: { item: NavItem; badge?: number }) {
 }
 
 function ToolStrip() {
+  const { t } = useTranslation();
   const { settings } = useSettings();
+  const [wide, setWide] = useState(readWide);
   const visible = NAV_ITEMS.filter((item) => !item.proOnly || settings.mode === "pro");
   const waiting = useTerminals().filter((term) => term.status === "attention").length;
   const approvals = useApprovals().length;
   const badges: Record<string, number> = { "/terminals": waiting, "/inbox": waiting + approvals };
+  const flip = () =>
+    setWide((on) => {
+      try {
+        localStorage.setItem(WIDE, on ? "0" : "1");
+      } catch {
+        // Only a convenience.
+      }
+      return !on;
+    });
   return (
     <nav
       data-tour="nav"
-      className="flex w-12 shrink-0 flex-col items-center gap-1 border-e border-border bg-bg-subtle py-2 print:hidden"
+      aria-label={t("nav.menu")}
+      className={cn(
+        "flex shrink-0 flex-col gap-0.5 overflow-y-auto overflow-x-hidden border-e border-border bg-bg-subtle py-2 print:hidden",
+        wide ? "w-48 items-stretch px-2" : "w-12 items-center",
+      )}
     >
-      <div className="mb-2 flex size-9 items-center justify-center" aria-hidden>
-        <svg viewBox="0 0 32 32" className="size-6">
+      <div className={cn("mb-2 flex h-9 shrink-0 items-center gap-2", wide ? "px-2" : "justify-center")} aria-hidden>
+        <svg viewBox="0 0 32 32" className="size-6 shrink-0">
           <title>God Eye</title>
           <circle cx="16" cy="16" r="14" fill="var(--accent)" />
           <circle cx="16" cy="16" r="6" fill="white" />
           <circle cx="16" cy="16" r="2.5" fill="var(--fg)" />
         </svg>
+        {wide && <span className="text-[14px] font-semibold tracking-tight">God Eye</span>}
       </div>
       {visible
         .filter((item) => !item.bottom)
         .map((item) => (
-          <ToolStripLink key={item.to} item={item} badge={badges[item.to]} />
+          <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} />
         ))}
       <div className="flex-1" />
       {visible
         .filter((item) => item.bottom)
         .map((item) => (
-          <ToolStripLink key={item.to} item={item} />
+          <ToolStripLink key={item.to} item={item} wide={wide} />
         ))}
+      <button
+        type="button"
+        onClick={flip}
+        aria-label={wide ? t("nav.narrow") : t("nav.wide")}
+        data-tip={wide ? undefined : t("nav.wide")}
+        data-tip-side="right"
+        className={cn(
+          "flex h-9 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
+          wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
+        )}
+      >
+        {wide ? <PanelLeftClose size={18} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
+        {wide && <span>{t("nav.narrow")}</span>}
+      </button>
     </nav>
   );
 }
@@ -206,7 +254,7 @@ export function Shell() {
       {!zen && <ToolStrip />}
       <div className="flex min-w-0 flex-1 flex-col">
         {!zen && <TopBar onSearch={openPalette} onToast={setToast} />}
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto print:overflow-visible">
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-gutter:stable] print:overflow-visible">
           <div key={location.pathname} className="ge-page flex min-h-0 flex-1 flex-col">
             <Outlet />
           </div>
@@ -230,6 +278,7 @@ export function Shell() {
       <TooltipLayer />
       <UndoToast />
       <Tour />
+      {!zen && <Helper />}
       <IdeaCapture onSaved={setToast} />
       {toast && (
         <div

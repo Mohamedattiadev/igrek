@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { BriefingCard } from "../components/BriefingCard";
 import { FocusBanner } from "../components/FocusBanner";
+import { HomeComposer } from "../components/HomeComposer";
 import { LoadError } from "../components/LoadError";
 import { RecapCard } from "../components/RecapCard";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
@@ -26,6 +27,7 @@ import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
 import { api, request } from "../lib/api";
 import { relativeTime } from "../lib/format";
 import { useIndexStatus, useLiveData } from "../lib/live";
+import { useSettings } from "../lib/settings";
 
 function ProjectCard({ project, people }: { project: ProjectListItem; people: ReturnType<typeof useTeamPeople> }) {
   const { t } = useTranslation();
@@ -70,9 +72,11 @@ function ProjectCard({ project, people }: { project: ProjectListItem; people: Re
       </div>
       <p className="mt-0.5 truncate font-mono text-[11px] text-fg-subtle">{project.path}</p>
 
-      <p className="mt-3 line-clamp-2 min-h-[2.6em] text-[13px] leading-relaxed text-fg-muted">
-        {summary?.did[0] ?? project.lastSummary?.title ?? t("project.noSummary")}
-      </p>
+      {(summary?.did[0] ?? project.lastSummary?.title) && (
+        <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-fg-muted">
+          {summary?.did[0] ?? project.lastSummary?.title}
+        </p>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] text-fg-subtle">
         {git?.branch ? (
@@ -333,6 +337,30 @@ function TodayStrip() {
   );
 }
 
+/** Without summaries the cards say little; one quiet offer to turn them on. */
+function SummariesOff() {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  const [busy, setBusy] = useState(false);
+  if (settings.autoSummarize) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-ui border border-border bg-bg-subtle px-4 py-2.5 text-[13px]">
+      <Sparkles size={15} className="shrink-0 text-accent" aria-hidden="true" />
+      <span className="min-w-0 flex-1 text-fg-muted">{t("projects.summariesOff")}</span>
+      <Button
+        size="sm"
+        disabled={busy}
+        onClick={() => {
+          setBusy(true);
+          void update({ autoSummarize: true }).finally(() => setBusy(false));
+        }}
+      >
+        {t("projects.summariesOn")}
+      </Button>
+    </div>
+  );
+}
+
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -409,6 +437,8 @@ export function ProjectsPage() {
       ) : (
         <div className="p-6">
           <div className="mb-4 space-y-3">
+            {projects && <HomeComposer projects={projects} />}
+            <SummariesOff />
             <BriefingCard />
             <RecapCard />
             <TodayStrip />

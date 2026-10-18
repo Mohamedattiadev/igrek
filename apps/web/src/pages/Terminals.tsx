@@ -4,15 +4,36 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
 import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
+import { NewSession } from "../components/NewSession";
 import { PromptPicker } from "../components/PromptPicker";
 import { TerminalView } from "../components/TerminalView";
 import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
-import { useChats, useTerminals } from "../lib/live";
+import { useChats, useLiveData, useTerminals } from "../lib/live";
 
 const TONE = { running: "success", idle: "neutral", attention: "warning", exited: "neutral" } as const;
+
+/** Nothing open yet: the latest projects, each with its "New chat / terminal" button. */
+function StartHere() {
+  const { data: projects } = useLiveData(() => api.projects(), []);
+  const recent = (projects ?? [])
+    .filter((p) => !p.hidden && p.status === "active")
+    .sort((a, b) => b.lastActivity - a.lastActivity)
+    .slice(0, 5);
+  if (!recent.length) return null;
+  return (
+    <ul className="mx-auto w-full max-w-md divide-y divide-border rounded-ui border border-border bg-bg text-start">
+      {recent.map((p) => (
+        <li key={p.id} className="flex items-center gap-3 px-3 py-2">
+          <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{p.name}</span>
+          <NewSession projectId={p.id} />
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function TerminalStatus({ term }: { term: TerminalInfo }) {
   const { t } = useTranslation();
@@ -95,7 +116,7 @@ export function TerminalsPage() {
         </div>
       )}
       {terminals.length === 0 && chats.length === 0 ? (
-        <EmptyState icon={SquareTerminal} title={t("term.empty")} body={t("term.emptyBody")} />
+        <EmptyState icon={SquareTerminal} title={t("term.empty")} body={t("term.emptyBody")} action={<StartHere />} />
       ) : (
         <div className="p-6">
           <Card>

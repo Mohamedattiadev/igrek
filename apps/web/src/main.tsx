@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Shell } from "./components/Shell";
+import { GuidePage } from "./pages/Guide";
 import { LearnPage } from "./pages/learn/Learn";
 import { RoadmapPage } from "./pages/learn/RoadmapPage";
 import { SheetPage } from "./pages/learn/SheetPage";
@@ -71,6 +72,7 @@ const router = createBrowserRouter([
       { path: "tools", element: <ToolsPage /> },
       { path: "incidents/:incidentId", element: <IncidentPage /> },
       { path: "weekly", element: <WeeklyPage /> },
+      { path: "guide", element: <GuidePage /> },
       { path: "learn", element: <LearnPage /> },
       { path: "learn/s/:sheetId", element: <SheetPage /> },
       { path: "learn/r/:roadmapId", element: <RoadmapPage /> },

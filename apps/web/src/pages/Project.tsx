@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   Brain,
   CheckCircle2,
+  ChevronDown,
   EyeOff,
   GitBranch,
   GitCommitHorizontal,
@@ -11,7 +12,7 @@ import {
   RefreshCw,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams, useSearchParams } from "react-router";
 import { NewSession } from "../components/NewSession";
@@ -52,6 +53,74 @@ const TABS = [
   "setup",
 ] as const;
 type Tab = (typeof TABS)[number];
+/** Shown as tabs; the rest sit under "More" so a new user sees five choices, not fourteen. */
+const MAIN_TABS: Tab[] = ["overview", "sessions", "code", "board", "monitor"];
+
+function tabLabel(t: (key: string) => string, name: Tab): string {
+  return name === "code" ? t("code.tab") : t(`project.${name}`);
+}
+
+function MoreTabs({ tab, onPick }: { tab: Tab; onPick: (name: Tab) => void }) {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const rest = TABS.filter((name) => !MAIN_TABS.includes(name));
+  const current = rest.includes(tab) ? tab : undefined;
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const esc = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
+    window.addEventListener("mousedown", close);
+    window.addEventListener("keydown", esc);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("keydown", esc);
+    };
+  }, [open]);
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className={cn(
+          "-mb-px flex shrink-0 items-center gap-1 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors",
+          current ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
+        )}
+      >
+        {current ? tabLabel(t, current) : t("project.more")}
+        <ChevronDown size={13} aria-hidden="true" className={cn("transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div
+          role="menu"
+          className="absolute start-0 top-full z-30 mt-1 w-56 rounded-ui border border-border bg-bg p-1 shadow-ui"
+        >
+          {rest.map((name) => (
+            <button
+              key={name}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onPick(name);
+              }}
+              className={cn(
+                "flex w-full items-center rounded-md px-2.5 py-1.5 text-start text-[13px] hover:bg-bg-hover",
+                tab === name ? "font-medium text-accent" : "text-fg",
+              )}
+            >
+              {tabLabel(t, name)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /** Plain-language warnings about where the code stands vs. the remote (plan.md 1.2c). */
 function gitWarnings(git: GitInfo): { tone: "warning" | "accent"; key: string; count?: number }[] {
@@ -386,8 +455,8 @@ export function ProjectPage() {
           <div className="flex-1" />
           {project && <NewSession projectId={project.id} />}
         </div>
-        <nav className="-mx-6 mt-2 flex gap-1 overflow-x-auto px-6 [scrollbar-width:none]">
-          {TABS.map((name) => (
+        <nav className="-mx-6 mt-2 flex gap-1 px-6">
+          {MAIN_TABS.map((name) => (
             <button
               key={name}
               type="button"
@@ -397,7 +466,7 @@ export function ProjectPage() {
                 tab === name ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
               )}
             >
-              {name === "code" ? t("code.tab") : t(`project.${name}`)}
+              {tabLabel(t, name)}
               {name === "sessions" && project && <span className="ms-1.5 text-fg-subtle">{project.sessionCount}</span>}
               {name === "memory" && project && (
                 <span
@@ -408,6 +477,7 @@ export function ProjectPage() {
               )}
             </button>
           ))}
+          <MoreTabs tab={tab} onPick={(name) => setParams({ tab: name })} />
         </nav>
       </header>
       {project?.teamLinked && project.share === "off" && (

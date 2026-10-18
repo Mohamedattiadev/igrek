@@ -3,6 +3,7 @@
  * and texts are translated (help.t_<id>, help.d_<id>); the helper answers questions from them.
  */
 export const HELP_TOPICS: { id: string; path: string; words: string }[] = [
+  { id: "ask", path: "/", words: "prompt write type ask box home start chat message where" },
   { id: "projects", path: "/", words: "project folder add new template status archive focus" },
   { id: "sessions", path: "/", words: "session claude codex gemini history transcript summary health tired" },
   { id: "chat", path: "/", words: "chat new conversation persona model plan mode approve" },

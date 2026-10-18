@@ -19,7 +19,10 @@
     "library": "Library",
     "schedules": "Scheduled",
     "tools": "Tools",
-    "learn": "Learn"
+    "learn": "Learn",
+    "menu": "Main menu",
+    "wide": "Show names",
+    "narrow": "Hide names"
   },
   "workspace": {
     "local": "My computer",
@@ -46,7 +49,7 @@
     "done": "Stopped. Nothing is running."
   },
   "palette": {
-    "placeholder": "What do you want to do?",
+    "placeholder": "Search pages, projects, commands…",
     "empty": "Nothing found.",
     "goTo": "Pages",
     "actions": "Actions",
@@ -82,7 +85,9 @@
     "status_archived": "Archive",
     "statusTip_active": "Projects you are working on.",
     "statusTip_paused": "Put aside for now: still watched, out of the way.",
-    "statusTip_archived": "Done or dropped: no scans, no watchers, no reports. Nothing is deleted."
+    "statusTip_archived": "Done or dropped: no scans, no watchers, no reports. Nothing is deleted.",
+    "summariesOff": "Automatic summaries are off, so the cards can't say what each project is doing. A small, cheap model writes them after each session.",
+    "summariesOn": "Turn on summaries"
   },
   "inbox": {
     "title": "Inbox",
@@ -257,7 +262,9 @@
     "t_cli": "Command line",
     "d_cli": "godeye status, projects, search, ask, inbox, run, recap, weekly, and godeye api for any endpoint: everything from a script.",
     "t_safety": "Safety and privacy",
-    "d_safety": "God Eye never pushes or deploys by itself, never reads keys or .env values into AI, sends no telemetry (Settings > Network shows every address it opened), and the red Stop all button halts everything at once."
+    "d_safety": "God Eye never pushes or deploys by itself, never reads keys or .env values into AI, sends no telemetry (Settings > Network shows every address it opened), and the red Stop all button halts everything at once.",
+    "t_ask": "Write what you want (home page box)",
+    "d_ask": "The box at the top of the home page: write, pick the project, Enter. A chat opens and the message goes out."
   },
   "project": {
     "overview": "Overview",
@@ -299,7 +306,8 @@
     "docs": "Wiki & boards",
     "host": "Issues & PRs",
     "plugins": "Plugins",
-    "statusLabel": "Project status"
+    "statusLabel": "Project status",
+    "more": "More"
   },
   "memory": {
     "title": "Project memory",
@@ -440,7 +448,7 @@
   "term": {
     "title": "Terminals",
     "empty": "No terminals open",
-    "emptyBody": "Start a Claude, Codex or shell session from any project. It keeps running even if you close this page.",
+    "emptyBody": "Start a chat or a Claude, Codex or shell terminal in one of your projects below. It keeps running even if you close this page.",
     "new": "New session",
     "close": "Close",
     "remove": "Remove",
@@ -1948,12 +1956,12 @@
     "next": "Next",
     "done": "Done",
     "nav": {
-      "title": "Everything in one strip",
-      "body": "Projects, terminals, files, servers, inbox, ideas and more. Hover an icon to see its name."
+      "title": "Everything in one menu",
+      "body": "Projects, terminals, files, servers, inbox, personas, learning and more. \"Hide names\" at the bottom makes the menu narrow."
     },
     "search": {
-      "title": "Ask or jump anywhere",
-      "body": "Press Ctrl+K: search sessions, open a project, or ask a question about your work in plain words."
+      "title": "Jump anywhere",
+      "body": "Press Ctrl+K to find a page, a project, a session or a command by typing a few letters."
     },
     "inbox": {
       "title": "What's waiting for you",
@@ -1970,6 +1978,18 @@
     "settings": {
       "title": "Make it yours",
       "body": "Language, theme, text size, Simple or Pro mode, and how much AI runs in the background."
+    },
+    "composer": {
+      "title": "Write what you want here",
+      "body": "This is where you talk to the AI. Write it like a message to a colleague, pick the project next to it and press Enter: a chat opens in that project and your message goes out."
+    },
+    "projects": {
+      "title": "Your projects",
+      "body": "Every folder you work in, with its latest sessions, code, board and health. Click a card to go inside."
+    },
+    "helper": {
+      "title": "Lost? Ask here",
+      "body": "The helper answers questions about God Eye with links that open the right place, like \"last chat in my blog project\". The full guide is there too."
     }
   },
   "panel": {
@@ -3704,5 +3724,109 @@
     "explain": "Explain it",
     "explaining": "Explaining...",
     "close": "Close"
+  },
+  "home": {
+    "title": "What do you want to do?",
+    "placeholder": "Write it as you would to a colleague: \"Find why login fails and fix it\". Enter sends, Shift+Enter adds a line.",
+    "project": "Project",
+    "mode": "How careful",
+    "enter": "Enter to send",
+    "starting": "Starting…",
+    "s_explain": "Explain this project to me",
+    "s_changes": "Summarize what changed lately",
+    "s_bugs": "Look for bugs and list them",
+    "s_tests": "Run the tests and fix what fails"
+  },
+  "helper": {
+    "title": "Helper",
+    "subtitle": "Ask where something is or what to do",
+    "hello": "Hi. Ask me anything about God Eye: where something is, how to do it, or where you left off. I answer with links that open it.",
+    "placeholder": "e.g. last chat in my blog project",
+    "send": "Send",
+    "close": "Close",
+    "thinking": "Looking…",
+    "q_continue": "Continue where I left off",
+    "q_newChat": "Start a new chat",
+    "q_where": "Where do I write my prompt?",
+    "q_tour": "Show me around",
+    "resume": "Continue this conversation",
+    "chat": "Chat",
+    "openChat": "chat",
+    "openSession": "session",
+    "openProject": "Open {{name}}",
+    "lastIn": "Your latest work in **{{name}}**:",
+    "nothingIn": "Nothing in **{{name}}** yet. You can start a chat there.",
+    "noProjects": "You have no projects yet. Add a folder on the Projects page.",
+    "newChat": "Here you go:",
+    "newChatIn": "New chat in {{name}}",
+    "pickProject": "Write it in the box at the top of the home page and pick the project there. Or tell me the project's name.",
+    "home": "Home page",
+    "terminal": "Terminals run Claude, Codex or a shell in a project. Start one from a project's \"New chat\" menu.",
+    "project": "**{{name}}**: what would you like to do?",
+    "found": "These may help:",
+    "unknown": "I couldn't tell. The guide or the tour shows every part of God Eye.",
+    "tour": "The tour lights up one part at a time and says what it is.",
+    "guide": "The guide explains God Eye step by step:",
+    "startTour": "Start the tour",
+    "whereType": "Type in the big box at the top of the **home page** (\"What do you want to do?\"). Pick the project next to it and press Enter: a chat opens in that project and your message goes out. Inside a project, the blue **New chat** button does the same."
+  },
+  "guide": {
+    "title": "How to use God Eye",
+    "heroTitle": "God Eye in ten steps",
+    "heroBody": "God Eye watches all your AI coding work in one place: every project, chat and terminal, with memory, summaries, checks and a team of expert personas. You only need the first three steps to start; the rest is there when you need it.",
+    "askHelper": "Ask the helper",
+    "steps": "First steps",
+    "all": "Every part of God Eye",
+    "show": "Show",
+    "add": {
+      "title": "Add your project",
+      "body": "A project is a folder on your computer. God Eye reads the AI sessions you already had there and keeps a memory of the project.",
+      "how": "Projects page (first icon on the left) → Add folder at the top right → paste the folder path. Or New project to start from a template."
+    },
+    "ask": {
+      "title": "Write what you want",
+      "body": "This is where you talk to the AI. Write it the way you would to a colleague; no special words needed.",
+      "how": "Home page → the box at the top → pick the project next to it → Enter. A chat opens in that project and your message goes out."
+    },
+    "approve": {
+      "title": "Follow it and approve",
+      "body": "The AI shows what it reads and changes as cards. In the careful mode every change waits for your OK; nothing happens behind your back.",
+      "how": "In the chat: Allow or Deny on each card. Red Stop everything at the top right stops all AI work at once."
+    },
+    "project": {
+      "title": "Look inside a project",
+      "body": "Each project has its own page: the latest sessions, the code, the task board and its health checks.",
+      "how": "Click a project card. Tabs: Overview, Sessions, Code, Board, Monitoring; the rest is under More."
+    },
+    "terminal": {
+      "title": "Use a real terminal when you want",
+      "body": "If you prefer Claude Code, Codex or a shell as they are, God Eye opens them in the browser and keeps them running.",
+      "how": "Inside a project: the small arrow next to New chat → Claude, Codex or Shell. Open ones are on the Terminals page."
+    },
+    "inbox": {
+      "title": "See what needs you",
+      "body": "Approvals, a session that waits for an answer, failed checks, a site that is down: all in one list.",
+      "how": "Inbox (tray icon on the left). A number on the icon means something is waiting."
+    },
+    "personas": {
+      "title": "Ask an expert",
+      "body": "Personas are experts with their own checklists and books: security, architecture, database, frontend and more. They can review, plan or fix.",
+      "how": "Personas page → pick one → Chat. Or pick a persona in the chat box before the first message."
+    },
+    "learn": {
+      "title": "Learn as you go",
+      "body": "Checked cheatsheets for languages and tools, and step-by-step roadmaps from an empty computer to a deployed app.",
+      "how": "Learn (graduation cap on the left), or search a topic with Ctrl+K."
+    },
+    "helper": {
+      "title": "Lost? Ask the helper",
+      "body": "The round button at the bottom right answers questions about God Eye and gives links that open the right place, like \"last chat in my blog project\".",
+      "how": "Click the round button at the bottom right and type your question."
+    },
+    "settings": {
+      "title": "Make it yours",
+      "body": "Theme (light or dark), language, Simple or Pro mode, which AI does what and what runs in the background.",
+      "how": "Settings (gear at the bottom left)."
+    }
   }
 }

@@ -33,7 +33,9 @@ export function SessionRow({ session, projectId }: { session: SessionListItem; p
       <ActiveDot active={session.active} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-[13px] font-medium">{session.summary?.title || session.title}</p>
-        <p className="truncate text-xs text-fg-subtle">{summary?.did[0] ?? session.title}</p>
+        {(summary?.did[0] ?? session.title) !== (session.summary?.title || session.title) && (
+          <p className="truncate text-xs text-fg-subtle">{summary?.did[0] ?? session.title}</p>
+        )}
       </div>
       {session.persona ? (
         <PersonaChip personaId={session.persona} author={session.author} />

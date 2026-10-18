@@ -325,6 +325,8 @@ export function ChatPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   // A prompt prepared elsewhere (a "Fix" button) waits in the box; nothing is sent until the user does.
   const [text, setText] = useState(() => searchParams.get("draft") ?? "");
+  /** Typed on the home page and sent from there: goes out once the chat is ready. */
+  const [autoSend, setAutoSend] = useState(() => searchParams.get("send") === "1");
   // biome-ignore lint/correctness/useExhaustiveDependencies: drop the draft from the URL once it's in the box
   useEffect(() => {
     if (searchParams.has("draft")) setSearchParams({}, { replace: true });
@@ -405,6 +407,13 @@ export function ChatPage() {
     setText("");
     setImages([]);
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: send once, when the chat has started
+  useEffect(() => {
+    if (!autoSend || !info || info.status !== "idle" || !text.trim()) return;
+    setAutoSend(false);
+    send();
+  }, [autoSend, info?.status]);
 
   const onPaste = async (event: ClipboardEvent) => {
     const files = [...event.clipboardData.files].filter((f) => f.type.startsWith("image/"));
@@ -713,7 +722,7 @@ export function ChatPage() {
               disabled={info?.status === "exited"}
               className="w-full resize-none bg-transparent px-2 py-1 text-[13.5px] outline-none placeholder:text-fg-subtle"
             />
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 type="button"
                 onClick={() => fileInput.current?.click()}
@@ -752,29 +761,30 @@ export function ChatPage() {
                 </select>
               )}
               {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
-              <div className="flex-1" />
-              <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)}>
-                <Segmented
-                  value={info?.mode ?? "normal"}
-                  onChange={(mode) => void changeMode(mode)}
-                  options={MODES.map((mode) => ({ value: mode, label: t(`chat.mode_${mode}`) }))}
-                />
-              </span>
-              {working ? (
-                <Button size="sm" variant="danger" icon={Square} onClick={chat.interrupt}>
-                  {t("chat.stop")}
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  icon={Send}
-                  onClick={() => send()}
-                  disabled={!text.trim() && images.length === 0}
-                >
-                  {t("chat.send")}
-                </Button>
-              )}
+              <div className="ms-auto flex items-center gap-1">
+                <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)} className="flex">
+                  <Segmented
+                    value={info?.mode ?? "normal"}
+                    onChange={(mode) => void changeMode(mode)}
+                    options={MODES.map((mode) => ({ value: mode, label: t(`chat.mode_${mode}`) }))}
+                  />
+                </span>
+                {working ? (
+                  <Button size="sm" variant="danger" icon={Square} onClick={chat.interrupt}>
+                    {t("chat.stop")}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    icon={Send}
+                    onClick={() => send()}
+                    disabled={!text.trim() && images.length === 0}
+                  >
+                    {t("chat.send")}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>

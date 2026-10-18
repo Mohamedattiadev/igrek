@@ -1,5 +1,5 @@
 import { HELP_TOPICS } from "@godeye/core";
-import { CircleHelp, Compass } from "lucide-react";
+import { BookOpen, CircleHelp, Compass } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -64,6 +64,9 @@ export function HelpGuide() {
         <div className="space-y-3 p-5">
           <div className="flex items-center gap-2">
             <h2 className="min-w-0 flex-1 text-[15px] font-semibold">{t("help.title")}</h2>
+            <Button size="sm" variant="ghost" icon={BookOpen} onClick={() => go("/guide")}>
+              {t("guide.title")}
+            </Button>
             <Button
               size="sm"
               variant="ghost"

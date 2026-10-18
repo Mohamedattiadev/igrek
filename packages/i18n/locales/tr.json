@@ -19,7 +19,10 @@
     "library": "Kütüphane",
     "schedules": "Zamanlanmış",
     "tools": "Araçlar",
-    "learn": "Öğren"
+    "learn": "Öğren",
+    "menu": "Ana menü",
+    "wide": "Adları göster",
+    "narrow": "Adları gizle"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -46,7 +49,7 @@
     "done": "Durduruldu. Hiçbir şey çalışmıyor."
   },
   "palette": {
-    "placeholder": "Ne yapmak istiyorsun?",
+    "placeholder": "Sayfa, proje veya komut ara…",
     "empty": "Bir şey bulunamadı.",
     "goTo": "Sayfalar",
     "actions": "İşlemler",
@@ -82,7 +85,9 @@
     "status_archived": "Arşiv",
     "statusTip_active": "Üzerinde çalıştığın projeler.",
     "statusTip_paused": "Şimdilik kenara konmuş: izlenmeye devam eder, aradan çekilir.",
-    "statusTip_archived": "Bitmiş ya da bırakılmış: tarama yok, izleyici yok, rapor yok. Hiçbir şey silinmez."
+    "statusTip_archived": "Bitmiş ya da bırakılmış: tarama yok, izleyici yok, rapor yok. Hiçbir şey silinmez.",
+    "summariesOff": "Otomatik özetler kapalı, bu yüzden kartlar her projede ne olduğunu söyleyemiyor. Her session'dan sonra küçük ve ucuz bir model yazar.",
+    "summariesOn": "Özetleri aç"
   },
   "inbox": {
     "title": "Gelen Kutusu",
@@ -257,7 +262,9 @@
     "t_cli": "Komut satırı",
     "d_cli": "godeye status, projects, search, ask, inbox, run, recap, weekly ve her uç nokta için godeye api: her şey script'le de.",
     "t_safety": "Güvenlik ve gizlilik",
-    "d_safety": "God Eye kendiliğinden asla push ya da deploy etmez, anahtarları ya da .env değerlerini AI'a vermez, telemetri göndermez (Ayarlar > Ağ açtığı her adresi gösterir) ve kırmızı Hepsini durdur düğmesi her şeyi bir anda durdurur."
+    "d_safety": "God Eye kendiliğinden asla push ya da deploy etmez, anahtarları ya da .env değerlerini AI'a vermez, telemetri göndermez (Ayarlar > Ağ açtığı her adresi gösterir) ve kırmızı Hepsini durdur düğmesi her şeyi bir anda durdurur.",
+    "t_ask": "Ne istediğini yaz (ana sayfa kutusu)",
+    "d_ask": "Ana sayfanın en üstündeki kutu: yaz, projeyi seç, Enter. Sohbet açılır ve mesaj gider."
   },
   "project": {
     "overview": "Genel Bakış",
@@ -299,7 +306,8 @@
     "docs": "Wiki ve tahtalar",
     "host": "Issue'lar ve PR'lar",
     "plugins": "Eklentiler",
-    "statusLabel": "Proje durumu"
+    "statusLabel": "Proje durumu",
+    "more": "Diğer"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -440,7 +448,7 @@
   "term": {
     "title": "Terminaller",
     "empty": "Açık terminal yok",
-    "emptyBody": "Herhangi bir projeden Claude, Codex ya da shell session'ı başlat. Bu sayfayı kapatsan bile çalışmaya devam eder.",
+    "emptyBody": "Aşağıdaki projelerinden birinde sohbet ya da Claude, Codex veya shell terminali başlat. Bu sayfayı kapatsan bile çalışmaya devam eder.",
     "new": "Yeni session",
     "close": "Kapat",
     "remove": "Kaldır",
@@ -1948,12 +1956,12 @@
     "next": "İleri",
     "done": "Bitti",
     "nav": {
-      "title": "Her şey tek şeritte",
-      "body": "Projeler, terminaller, dosyalar, sunucular, gelen kutusu, fikirler ve fazlası. Adını görmek için ikonun üzerine gel."
+      "title": "Her şey tek menüde",
+      "body": "Projeler, terminaller, dosyalar, sunucular, gelen kutusu, personalar, öğrenme ve fazlası. Alttaki \"Adları gizle\" menüyü daraltır."
     },
     "search": {
-      "title": "Sor ya da istediğin yere git",
-      "body": "Ctrl+K'ye bas: oturumlarda ara, bir proje aç ya da işin hakkında sade bir dille soru sor."
+      "title": "İstediğin yere atla",
+      "body": "Ctrl+K'ye bas ve birkaç harf yaz: bir sayfayı, projeyi, session'ı ya da komutu bulur."
     },
     "inbox": {
       "title": "Seni bekleyenler",
@@ -1970,6 +1978,18 @@
     "settings": {
       "title": "Kendine göre ayarla",
       "body": "Dil, tema, yazı boyutu, Basit ya da Pro mod ve arka planda ne kadar AI çalışacağı."
+    },
+    "composer": {
+      "title": "Ne istediğini buraya yaz",
+      "body": "AI ile konuştuğun yer burası. Bir iş arkadaşına mesaj yazar gibi yaz, yanından projeyi seç ve Enter'a bas: o projede bir sohbet açılır ve mesajın gider."
+    },
+    "projects": {
+      "title": "Projelerin",
+      "body": "Çalıştığın her klasör; son session'ları, kodu, panosu ve sağlığıyla. İçine girmek için bir karta tıkla."
+    },
+    "helper": {
+      "title": "Kayboldun mu? Buraya sor",
+      "body": "Yardımcı, God Eye hakkındaki sorulara doğru yeri açan bağlantılarla cevap verir; ör. \"blog projemdeki son sohbet\". Tam kılavuz da orada."
     }
   },
   "panel": {
@@ -3704,5 +3724,109 @@
     "explain": "Açıkla",
     "explaining": "Açıklanıyor...",
     "close": "Kapat"
+  },
+  "home": {
+    "title": "Ne yapmak istiyorsun?",
+    "placeholder": "Bir iş arkadaşına yazar gibi yaz: \"Giriş neden çalışmıyor, bul ve düzelt\". Enter gönderir, Shift+Enter yeni satır.",
+    "project": "Proje",
+    "mode": "Ne kadar dikkatli",
+    "enter": "Göndermek için Enter",
+    "starting": "Başlıyor…",
+    "s_explain": "Bu projeyi bana anlat",
+    "s_changes": "Son değişiklikleri özetle",
+    "s_bugs": "Hata ara ve listele",
+    "s_tests": "Testleri çalıştır, bozulanları düzelt"
+  },
+  "helper": {
+    "title": "Yardımcı",
+    "subtitle": "Bir şeyin yerini ya da ne yapacağını sor",
+    "hello": "Merhaba. God Eye hakkında ne istersen sor: bir şey nerede, nasıl yapılır ya da en son nerede kalmıştın. Cevabı doğrudan açan bağlantılarla veririm.",
+    "placeholder": "ör. blog projemdeki son sohbet",
+    "send": "Gönder",
+    "close": "Kapat",
+    "thinking": "Bakıyorum…",
+    "q_continue": "Kaldığım yerden devam et",
+    "q_newChat": "Yeni sohbet başlat",
+    "q_where": "Prompt'umu nereye yazacağım?",
+    "q_tour": "Bana uygulamayı tanıt",
+    "resume": "Bu konuşmaya devam et",
+    "chat": "Sohbet",
+    "openChat": "sohbet",
+    "openSession": "session",
+    "openProject": "{{name}} projesini aç",
+    "lastIn": "**{{name}}** projesindeki son çalışman:",
+    "nothingIn": "**{{name}}** projesinde henüz bir şey yok. Orada bir sohbet başlatabilirsin.",
+    "noProjects": "Henüz projen yok. Projeler sayfasından bir klasör ekle.",
+    "newChat": "Buyur:",
+    "newChatIn": "{{name}} projesinde yeni sohbet",
+    "pickProject": "Ana sayfanın en üstündeki kutuya yaz, projeyi de orada seç. Ya da bana projenin adını söyle.",
+    "home": "Ana sayfa",
+    "terminal": "Terminaller bir projede Claude, Codex ya da shell çalıştırır. Bir projenin \"Yeni sohbet\" menüsünden başlatılır.",
+    "project": "**{{name}}**: ne yapmak istersin?",
+    "found": "Bunlar işine yarayabilir:",
+    "unknown": "Tam anlayamadım. Kılavuz ya da tur God Eye'ın her yerini gösterir.",
+    "tour": "Tur, ekranın bir bölümünü aydınlatıp ne olduğunu anlatır; sonra bir sonrakine geçer.",
+    "guide": "Kılavuz God Eye'ı adım adım anlatır:",
+    "startTour": "Turu başlat",
+    "whereType": "**Ana sayfanın** en üstündeki büyük kutuya (\"Ne yapmak istiyorsun?\") yaz. Yanından projeyi seç ve Enter'a bas: o projede bir sohbet açılır ve mesajın gider. Bir projenin içindeyken mavi **Yeni sohbet** butonu da aynı işi yapar."
+  },
+  "guide": {
+    "title": "God Eye nasıl kullanılır",
+    "heroTitle": "On adımda God Eye",
+    "heroBody": "God Eye, AI ile yaptığın bütün kodlama işini tek yerde izler: her proje, sohbet ve terminal; hafıza, özetler, kontroller ve uzman personalardan bir takımla. Başlamak için ilk üç adım yeter; gerisi ihtiyacın olduğunda hazır.",
+    "askHelper": "Yardımcıya sor",
+    "steps": "İlk adımlar",
+    "all": "God Eye'ın bütün bölümleri",
+    "show": "Göster",
+    "add": {
+      "title": "Projeni ekle",
+      "body": "Proje, bilgisayarındaki bir klasördür. God Eye orada daha önce yaptığın AI session'larını okur ve projenin hafızasını tutar.",
+      "how": "Projeler sayfası (soldaki ilk simge) → sağ üstte Klasör ekle → klasörün yolunu yapıştır. Ya da bir şablondan başlamak için Yeni proje."
+    },
+    "ask": {
+      "title": "Ne istediğini yaz",
+      "body": "AI ile konuştuğun yer burası. Bir iş arkadaşına yazar gibi yaz; özel bir kelime gerekmez.",
+      "how": "Ana sayfa → en üstteki kutu → yanından projeyi seç → Enter. O projede bir sohbet açılır ve mesajın gider."
+    },
+    "approve": {
+      "title": "Takip et ve onayla",
+      "body": "AI ne okuduğunu ve neyi değiştirdiğini kartlar halinde gösterir. Dikkatli modda her değişiklik senin onayını bekler; arkandan hiçbir şey olmaz.",
+      "how": "Sohbette her kartta İzin ver ya da Reddet. Sağ üstteki kırmızı Hepsini durdur bütün AI işini bir anda durdurur."
+    },
+    "project": {
+      "title": "Bir projenin içine bak",
+      "body": "Her projenin kendi sayfası var: son session'lar, kod, görev panosu ve sağlık kontrolleri.",
+      "how": "Bir proje kartına tıkla. Sekmeler: Genel bakış, Session'lar, Kod, Pano, İzleme; gerisi Diğer menüsünde."
+    },
+    "terminal": {
+      "title": "İstersen gerçek terminali kullan",
+      "body": "Claude Code, Codex ya da shell'i olduğu gibi kullanmak istersen God Eye onları tarayıcıda açar ve çalışır tutar.",
+      "how": "Bir projenin içinde: Yeni sohbet'in yanındaki küçük ok → Claude, Codex ya da Shell. Açık olanlar Terminaller sayfasında."
+    },
+    "inbox": {
+      "title": "Seni bekleyenleri gör",
+      "body": "Onaylar, cevap bekleyen bir session, başarısız kontroller, çöken bir site: hepsi tek listede.",
+      "how": "Gelen kutusu (soldaki tepsi simgesi). Simgede bir sayı varsa bir şey bekliyor demektir."
+    },
+    "personas": {
+      "title": "Bir uzmana sor",
+      "body": "Personalar kendi kontrol listeleri ve kitapları olan uzmanlardır: güvenlik, mimari, veritabanı, frontend ve fazlası. İnceleyebilir, plan yapabilir ya da düzeltebilirler.",
+      "how": "Personalar sayfası → birini seç → Sohbet. Ya da ilk mesajdan önce sohbet kutusunda bir persona seç."
+    },
+    "learn": {
+      "title": "Yaparken öğren",
+      "body": "Diller ve araçlar için kontrol edilmiş kopya kâğıtları; boş bir bilgisayardan yayındaki bir uygulamaya adım adım yol haritaları.",
+      "how": "Öğren (soldaki mezuniyet kepi) ya da Ctrl+K ile bir konu ara."
+    },
+    "helper": {
+      "title": "Kayboldun mu? Yardımcıya sor",
+      "body": "Sağ alttaki yuvarlak buton God Eye hakkındaki sorulara cevap verir ve doğru yeri açan bağlantılar verir; ör. \"blog projemdeki son sohbet\".",
+      "how": "Sağ alttaki yuvarlak butona tıkla ve sorunu yaz."
+    },
+    "settings": {
+      "title": "Kendine göre ayarla",
+      "body": "Tema (açık ya da koyu), dil, Basit ya da Pro mod, hangi AI'ın ne yaptığı ve arka planda neyin çalıştığı.",
+      "how": "Ayarlar (sol alttaki çark)."
+    }
   }
 }

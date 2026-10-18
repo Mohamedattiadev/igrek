@@ -133,13 +133,13 @@ export function Segmented<T extends string>({
 }) {
   const name = useId();
   return (
-    <fieldset aria-label={label} className="inline-flex rounded-ui border border-border bg-bg-subtle p-0.5">
+    <fieldset aria-label={label} className="inline-flex shrink-0 rounded-ui border border-border bg-bg-subtle p-0.5">
       {options.map((option) => (
         <label
           key={option.value}
           data-tip={option.tip}
           className={cn(
-            "flex h-7 cursor-pointer items-center rounded-[6px] px-3 text-[13px] transition-colors",
+            "flex h-7 cursor-pointer items-center whitespace-nowrap rounded-[6px] px-3 text-[13px] transition-colors",
             "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
             value === option.value ? "bg-bg font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg",
           )}
