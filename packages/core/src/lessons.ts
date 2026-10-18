@@ -24,6 +24,8 @@ export interface Lesson {
   createdAt: number;
   lastSeen: number;
   lastUsed?: number;
+  /** A teammate's lesson, shared through the team (plan.md 4.4). */
+  author?: string;
 }
 
 /** Lessons for the AI's context, short. */

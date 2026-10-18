@@ -442,6 +442,7 @@ const docs = new Docs(
 );
 sync.docs = docs;
 sync.board = board;
+sync.lessons = lessons;
 const product = new Product(
   sqlite,
   store,

@@ -2605,7 +2605,8 @@
     "kind_revert": "Reverted change",
     "kind_wrong": "You said wrong",
     "kind_error": "Error",
-    "kind_manual": "Written by hand"
+    "kind_manual": "Written by hand",
+    "fromTeammate": "From the team: {{name}}"
   },
   "knowledge": {
     "page": "News",

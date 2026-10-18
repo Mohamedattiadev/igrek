@@ -3,12 +3,16 @@ import { afterAll, describe, expect, test } from "bun:test";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { DEFAULT_SETTINGS } from "@godeye/core";
 import { Hub } from "../../../hub/src/hub";
 import { createHubServer } from "../../../hub/src/server";
 import { Board } from "../board";
-import { Bus } from "../bus";
+import { Bus, StopRegistry } from "../bus";
 import { migrate } from "../db";
 import type { Flows } from "../flows";
+import { Lessons } from "../lessons";
+import { Library } from "../library";
+import { Store } from "../store";
 import { Sync } from "./client";
 
 const dir = mkdtempSync(join(tmpdir(), "godeye-sync-"));
@@ -24,7 +28,24 @@ function device(name: string) {
   const sync = new Sync(db, new Bus(), join(dir, `${name}.json`), () => name);
   const board = new Board(db, new Bus(), {} as Flows);
   sync.board = board;
-  return { db, sync, board };
+  const offline = {
+    status: () => ({ state: "missing" as const, model: "x", sizeMb: 1 }),
+    ready: () => false,
+    embed: async () => [],
+  };
+  const lessons = new Lessons(
+    db,
+    new Store(db),
+    new Bus(),
+    new StopRegistry(),
+    () => DEFAULT_SETTINGS,
+    dir,
+    new Library(db, new Bus(), join(dir, `${name}-lib`), offline),
+    offline,
+    async () => "",
+  );
+  sync.lessons = lessons;
+  return { db, sync, board, lessons };
 }
 
 async function until(check: () => boolean, ms = 8000): Promise<void> {
@@ -158,6 +179,29 @@ describe("team sync", () => {
     b.board.update(card.id, { title: "Rate limit the login and signup" });
     await b.sync.flush();
     await until(() => a.board.get(card.id)?.title === "Rate limit the login and signup");
+  });
+
+  test("the lessons book is shared: a teammate's lesson reaches this project's AI", async () => {
+    const lesson = await a.lessons.add({
+      projectId: "p1",
+      title: "Run migrations before the tests",
+      what: "Tests failed on a missing column",
+      prevent: "Run bun run migrate before bun test",
+    });
+    await a.sync.flush();
+    await until(() => !!b.lessons.get(lesson.id));
+    expect(b.lessons.get(lesson.id)).toMatchObject({
+      projectId: "local-p",
+      title: "Run migrations before the tests",
+      author: "mohamed",
+    });
+    // It is part of what Kerim's AI is told before work in the project.
+    expect(b.lessons.forContext("local-p").map((l) => l.id)).toContain(lesson.id);
+    // Global lessons (no project) never leave the computer.
+    await a.lessons.add({ projectId: null, title: "Mine only", prevent: "x" });
+    await a.sync.flush();
+    await Bun.sleep(200);
+    expect(b.lessons.list({}).some((l) => l.title === "Mine only")).toBe(false);
   });
 
   test("the hub only ever sees ciphertext", () => {

@@ -1209,6 +1209,13 @@ export class Sync {
             if (ok) this.docs.markSent("boards", board.id, board.updated_at);
           }
         }
+        // The lessons book (plan.md 4.4): one person's mistake teaches everyone's AI.
+        if (this.lessons) {
+          for (const lesson of this.lessons.unsent(project.id, !sharing)) {
+            const ok = await this.publish(key, "lesson", `lesson-${lesson.id}-${lesson.updatedAt}`, { ...lesson });
+            if (ok) this.lessons.markSent(lesson.id, lesson.updatedAt);
+          }
+        }
         // The shared task board (plan.md 4.4): cards, who they are for and who took them.
         if (this.board) {
           for (const task of this.board.unsent(project.id, !sharing)) {
@@ -1388,6 +1395,7 @@ export class Sync {
         else if (event.kind === "wiki" || event.kind === "board")
           this.docs?.apply(event.kind, projectId, value, author.name);
         else if (event.kind === "task") this.board?.applyRemote(projectId, value, author.name);
+        else if (event.kind === "lesson") this.lessons?.applyRemote(projectId, value, author.name);
         else if (event.kind === "forget")
           // Only the session's own author can take it back.
           this.db
@@ -1556,6 +1564,8 @@ export class Sync {
   docs?: import("../docs").Docs;
   /** The task board (plan.md 4.4), set by the server at startup. */
   board?: import("../board").Board;
+  /** The lessons book (plan.md 4.4), set by the server at startup. */
+  lessons?: import("../lessons").Lessons;
 
   private applyMemory(projectId: string, item: Record<string, unknown>, author: { id: string; name: string }): void {
     const existing = this.db

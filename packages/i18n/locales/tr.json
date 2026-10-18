@@ -2605,7 +2605,8 @@
     "kind_revert": "Geri alınan değişiklik",
     "kind_wrong": "Yanlış dedin",
     "kind_error": "Hata",
-    "kind_manual": "Elle yazıldı"
+    "kind_manual": "Elle yazıldı",
+    "fromTeammate": "Takımdan: {{name}}"
   },
   "knowledge": {
     "page": "Gündem",

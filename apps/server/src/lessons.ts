@@ -25,9 +25,43 @@ type LessonRow = {
   created_at: number;
   last_seen: number;
   last_used: number | null;
+  author_name: string | null;
+  updated_at: number;
 };
 
 const KINDS: LessonKind[] = ["test", "build", "revert", "wrong", "error", "manual"];
+
+type SharedLessonRow = Pick<
+  LessonRow,
+  | "id"
+  | "kind"
+  | "title"
+  | "what"
+  | "why"
+  | "fix"
+  | "prevent"
+  | "repeats"
+  | "status"
+  | "created_at"
+  | "last_seen"
+  | "updated_at"
+>;
+
+/** A lesson as it travels to teammates: no usage counts or vectors, those stay on each computer. */
+export interface SharedLesson {
+  id: string;
+  kind: LessonKind;
+  title: string;
+  what: string;
+  why: string;
+  fix: string;
+  prevent: string;
+  repeats: number;
+  status: Lesson["status"];
+  createdAt: number;
+  lastSeen: number;
+  updatedAt: number;
+}
 
 /** A failing test or build in a tool's output. */
 const TEST_FAIL =
@@ -74,6 +108,7 @@ function toLesson(row: LessonRow): Lesson {
     createdAt: row.created_at,
     lastSeen: row.last_seen,
     ...(row.last_used ? { lastUsed: row.last_used } : {}),
+    ...(row.author_name ? { author: row.author_name } : {}),
   };
 }
 
@@ -163,7 +198,7 @@ export class Lessons {
     if (!["active", "rule", "dismissed"].includes(next.status)) next.status = current.status;
     this.db
       .query(
-        "UPDATE lessons SET title = ?, what = ?, why = ?, fix = ?, prevent = ?, status = ?, vector = NULL WHERE id = ?",
+        "UPDATE lessons SET title = ?, what = ?, why = ?, fix = ?, prevent = ?, status = ?, vector = NULL, updated_at = ?, dirty = 1 WHERE id = ?",
       )
       .run(
         str(next.title, 200),
@@ -172,6 +207,7 @@ export class Lessons {
         str(next.fix, 1500),
         str(next.prevent, 800),
         next.status,
+        Date.now(),
         id,
       );
     this.index(this.get(id) as Lesson);
@@ -182,6 +218,80 @@ export class Lessons {
   remove(id: string): void {
     this.db.query("DELETE FROM lessons WHERE id = ?").run(id);
     this.library.remove(`lesson-${id}`);
+    this.changed();
+  }
+
+  // ---- team sync (plan.md 4.4) ----------------------------------------------------------
+
+  /**
+   * This project's lessons that teammates have not received yet; in a project you only
+   * receive, only your edits to teammates' lessons go out.
+   */
+  unsent(projectId: string, teammatesOnly = false): SharedLesson[] {
+    return (
+      this.db
+        .query(
+          `SELECT id, kind, title, what, why, fix, prevent, repeats, status, created_at, last_seen, updated_at FROM lessons
+           WHERE project_id = ? AND dirty = 1 AND (? = 0 OR author_name IS NOT NULL) LIMIT 50`,
+        )
+        .all(projectId, teammatesOnly ? 1 : 0) as SharedLessonRow[]
+    ).map((r) => ({
+      id: r.id,
+      kind: r.kind,
+      title: r.title,
+      what: r.what,
+      why: r.why,
+      fix: r.fix,
+      prevent: r.prevent,
+      repeats: r.repeats,
+      status: r.status,
+      createdAt: r.created_at,
+      lastSeen: r.last_seen,
+      updatedAt: r.updated_at || r.last_seen,
+    }));
+  }
+
+  markSent(id: string, updatedAt: number): void {
+    this.db
+      .query("UPDATE lessons SET dirty = 0 WHERE id = ? AND (updated_at = ? OR updated_at = 0)")
+      .run(id, updatedAt);
+  }
+
+  /** A teammate's lesson: the newer version wins; it reaches this project's AI like our own. */
+  applyRemote(projectId: string, value: Record<string, unknown>, author: string): void {
+    const id = String(value.id ?? "");
+    const at = Number(value.updatedAt ?? 0);
+    if (!id || !at) return;
+    const existing = this.db.query("SELECT updated_at FROM lessons WHERE id = ?").get(id) as {
+      updated_at: number;
+    } | null;
+    if (existing && existing.updated_at >= at) return;
+    const kind = KINDS.find((k) => k === value.kind) ?? "error";
+    const status = (["active", "rule", "dismissed"] as const).find((s) => s === value.status) ?? "active";
+    this.db
+      .query(
+        `INSERT INTO lessons (id, project_id, kind, title, what, why, fix, prevent, source, repeats, status, created_at, last_seen, updated_at, author_name, dirty)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'team', ?, ?, ?, ?, ?, ?, 0)
+         ON CONFLICT(id) DO UPDATE SET title = excluded.title, what = excluded.what, why = excluded.why, fix = excluded.fix,
+           prevent = excluded.prevent, repeats = excluded.repeats, status = excluded.status, last_seen = excluded.last_seen,
+           updated_at = excluded.updated_at, vector = NULL, dirty = 0`,
+      )
+      .run(
+        id,
+        projectId,
+        kind,
+        str(String(value.title ?? ""), 200),
+        str(String(value.what ?? ""), 1500),
+        str(String(value.why ?? ""), 1500),
+        str(String(value.fix ?? ""), 1500),
+        str(String(value.prevent ?? ""), 800),
+        Math.max(1, Number(value.repeats ?? 1)),
+        status,
+        Number(value.createdAt ?? at),
+        Number(value.lastSeen ?? at),
+        at,
+        author.slice(0, 80),
+      );
     this.changed();
   }
 
@@ -236,15 +346,17 @@ export class Lessons {
     const same = await this.findSame(clean, vector);
     const now = Date.now();
     if (same) {
-      this.db.query("UPDATE lessons SET repeats = repeats + 1, last_seen = ? WHERE id = ?").run(now, same.id);
+      this.db
+        .query("UPDATE lessons SET repeats = repeats + 1, last_seen = ?, updated_at = ?, dirty = 1 WHERE id = ?")
+        .run(now, now, same.id);
       this.changed();
       return this.get(same.id) as Lesson;
     }
     const id = crypto.randomUUID().slice(0, 12);
     this.db
       .query(
-        `INSERT INTO lessons (id, project_id, kind, title, what, why, fix, prevent, source, vector, created_at, last_seen)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO lessons (id, project_id, kind, title, what, why, fix, prevent, source, vector, created_at, last_seen, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
@@ -257,6 +369,7 @@ export class Lessons {
         clean.prevent,
         clean.source ?? null,
         vector ? new Uint8Array(vector.buffer) : null,
+        now,
         now,
         now,
       );
@@ -525,7 +638,9 @@ or
       if (!lesson.projectId) throw new Error("This lesson has no project; turn it into a persona rule instead");
       this.store.addMemory(lesson.projectId, "convention", lesson.prevent);
     } else addPersonaRule(target, lesson.prevent);
-    this.db.query("UPDATE lessons SET status = 'rule', rule_target = ? WHERE id = ?").run(target, id);
+    this.db
+      .query("UPDATE lessons SET status = 'rule', rule_target = ?, updated_at = ?, dirty = 1 WHERE id = ?")
+      .run(target, Date.now(), id);
     this.changed();
     return this.get(id);
   }

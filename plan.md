@@ -635,7 +635,7 @@ god-eye/
 - [x] Yorumlar ve @bahsetme: session'lara, kararlara ve kategori sayfalarına — *@ yazınca isim önerisi çıkar; bahsedilen kişinin Gelen kutusuna düşer*
 - [x] Ortak görev panosu: görev bir insana veya bir personaya atanabilir — *pano kartları paylaşılan projelerde takıma gider (son yazan kazanır, silme de gider; arkadaşın akış kaydı gitmez, akışlar başlatan bilgisayarda çalışır). Kart bir takım arkadaşına ya da bir personaya atanır; personaya atanan kart "Devam ediyor"a çekilince adı belirtilmemiş adımlar o persona olarak çalışır. Sadece alınan projede kişinin kendi kartları gitmez, arkadaşların kartlarına yaptığı düzenlemeler gider. Kartı ekleyen arkadaşın adı kartta görünür*
 - [x] Takım aktivite akışı: "Bugün takımda ne oldu" (her kullanıcının kendi dilinde)
-- [ ] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir
+- [x] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir — *paylaşılan projelerin dersleri takıma gider (gizli bilgi temizlenerek, son yazan kazanır; tekrar sayısı ve kurala dönüşme de gider, kullanım sayıları ve vektörler her bilgisayarda kalır). Arkadaştan gelen ders "Takımdan: Kerim" olarak görünür ve o projede AI'a verilen derslerin içine girer. Projeye bağlı olmayan genel dersler bilgisayardan çıkmaz; sadece alınan projede kişinin kendi dersleri gitmez. İki cihaz ve gerçek hub ile testle denendi. Bir dersi silmek sadece kendi bilgisayarından siler*
 
 #### 4.5 Hub (VPS tarafı)
 - [x] ⭐ Tek küçük binary / Docker imajı (< 80 MB), `docker compose up -d` ile kurulum — *tek dosyalık binary (`bun build --compile`) + distroless taban: 52 MB indirme (eskisi 260 MB). Diskte açılmış hali ~115 MB, çünkü Bun çalışma zamanı tek başına ~90 MB; kabuk ve paket yöneticisi yok*

@@ -1,5 +1,5 @@
 import type { Lesson } from "@godeye/core";
-import { EyeOff, NotebookPen, Plus, Repeat2, ScrollText, Search, Trash2 } from "lucide-react";
+import { EyeOff, NotebookPen, Plus, Repeat2, ScrollText, Search, Trash2, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
@@ -48,6 +48,11 @@ function LessonCard({ lesson, projectName }: { lesson: Lesson; projectName?: str
         )}
         <span>{t("lessons.uses", { count: lesson.uses })}</span>
         <span>{relativeTime(lesson.lastSeen)}</span>
+        {lesson.author && (
+          <span className="flex items-center gap-1">
+            <Users size={12} aria-hidden="true" /> {t("lessons.fromTeammate", { name: lesson.author })}
+          </span>
+        )}
       </p>
       {lesson.status !== "rule" && (
         <div className="flex flex-wrap items-center gap-2 border-t border-border pt-2">
