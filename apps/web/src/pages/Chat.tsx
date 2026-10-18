@@ -14,6 +14,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  CornerDownRight,
   Cpu,
   FileEdit,
   FilePlus,
@@ -23,6 +24,7 @@ import {
   Image as ImageIcon,
   ImagePlus,
   ListChecks,
+  ListPlus,
   ListTodo,
   MessageSquare,
   RotateCcw,
@@ -475,7 +477,7 @@ export function ChatPage() {
   }, [chat.events]);
 
   const openEnhancer = () => text.trim() && setEnhancing(text.trim());
-  const send = (override?: string, allowSecrets = false) => {
+  const send = (override?: string, allowSecrets = false, how: "queue" | "steer" = "queue") => {
     const value = override ?? text.trim();
     if (!value && images.length === 0) return;
     // Prompt firewall: a key or password in the message waits for the user's choice.
@@ -493,6 +495,7 @@ export function ChatPage() {
     chat.send(
       value,
       images.map(({ mediaType, data }) => ({ mediaType, data })),
+      how,
     );
     setText("");
     setImages([]);
@@ -825,6 +828,43 @@ export function ChatPage() {
             active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
             onPick={pickSlash}
           />
+          {info?.queued && info.queued.length > 0 && (
+            <div className="mb-1.5 rounded-ui border border-border bg-bg-subtle p-1.5">
+              <p className="flex items-center gap-1.5 px-1 pb-1 text-[11px] font-medium text-fg-subtle">
+                <ListPlus size={12} aria-hidden="true" />
+                {working ? t("chat.queuedWhile") : t("chat.queuedIdle")}
+              </p>
+              {info.queued.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-2 rounded-md px-1 py-1 text-[12.5px] hover:bg-bg-hover"
+                >
+                  <span className="min-w-0 flex-1 truncate">
+                    {item.images > 0 && (
+                      <ImageIcon size={12} className="me-1 inline text-fg-subtle" aria-hidden="true" />
+                    )}
+                    {item.text}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => chat.sendQueued(item.id)}
+                    className="shrink-0 rounded px-1.5 py-0.5 text-[11.5px] text-accent-hover hover:bg-bg-active"
+                  >
+                    {working ? t("chat.steer") : t("chat.send")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => chat.unqueue(item.id)}
+                    aria-label={t("chat.unqueue")}
+                    title={t("chat.unqueue")}
+                    className="shrink-0 text-fg-subtle hover:text-danger"
+                  >
+                    <X size={13} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="rounded-ui border border-border bg-bg p-1.5 focus-within:border-accent">
             <textarea
               value={text}
@@ -912,9 +952,33 @@ export function ChatPage() {
                   />
                 </span>
                 {working ? (
-                  <Button size="sm" variant="danger" icon={Square} onClick={chat.interrupt}>
-                    {t("chat.stop")}
-                  </Button>
+                  <>
+                    {(text.trim() || images.length > 0) && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          icon={CornerDownRight}
+                          onClick={() => send(undefined, false, "steer")}
+                          data-tip={t("chat.steerTip")}
+                        >
+                          <span className="hidden sm:inline">{t("chat.steer")}</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          icon={ListPlus}
+                          onClick={() => send()}
+                          data-tip={t("chat.queueTip")}
+                        >
+                          <span className="hidden sm:inline">{t("chat.queue")}</span>
+                        </Button>
+                      </>
+                    )}
+                    <Button size="sm" variant="danger" icon={Square} onClick={chat.interrupt}>
+                      {t("chat.stop")}
+                    </Button>
+                  </>
                 ) : (
                   <Button
                     size="sm"

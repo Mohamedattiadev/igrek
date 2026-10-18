@@ -88,7 +88,11 @@ export function useChat(id: string) {
     events,
     error,
     gone,
-    send: (text: string, images: { mediaType: string; data: string }[] = []) => post({ op: "send", text, images }),
+    /** While the AI works the message is queued; "steer" stops the turn and sends it now. */
+    send: (text: string, images: { mediaType: string; data: string }[] = [], how: "queue" | "steer" = "queue") =>
+      post({ op: "send", text, images, how }),
+    unqueue: (queuedId: string) => post({ op: "unqueue", queuedId }),
+    sendQueued: (queuedId: string) => post({ op: "sendQueued", queuedId }),
     answer: (requestId: string, decision: "allow" | "deny" | "always") =>
       post({ op: "permission", requestId, decision }),
     interrupt: () => post({ op: "interrupt" }),

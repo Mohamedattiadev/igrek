@@ -4,6 +4,7 @@ import {
   type ChatEvent,
   type ChatInfo,
   type ChatMode,
+  type QueuedMessage,
   type RateLimitInfo,
   type RecentChat,
   RICH_BLOCKS_HINT,
@@ -40,7 +41,14 @@ interface Chat {
   tainted?: boolean;
   /** Streaming state: which assistant message/block deltas belong to. */
   streaming?: { messageId: string; blocks: Map<number, string> };
+  /** Messages waiting for the current turn to end, images included. */
+  queue: { id: string; text: string; images: Image[] }[];
 }
+
+type Image = { mediaType: string; data: string };
+
+/** What to do with a message written while the AI is still working. */
+export type SendHow = "queue" | "steer";
 
 export type ChatOp = { op: "upsert"; event: ChatEvent } | { op: "info"; info: ChatInfo };
 
@@ -198,6 +206,7 @@ export class Chats {
       },
       kill: () => proc.kill(),
       alwaysAllow: new Set(),
+      queue: [],
     };
     this.chats.set(id, chat);
     const unregister = this.stops.register(`chat-${id}`, { label: chat.info.title, stop: () => proc.kill() });
@@ -234,9 +243,70 @@ export class Chats {
     return { info: { ...chat.info }, events: [...chat.events], detach: () => chat.listeners.delete(listener) };
   }
 
-  send(id: string, text: string, images: { mediaType: string; data: string }[] = []): void {
+  /**
+   * A message from the user. While the AI is working it waits in the queue and goes out when the
+   * turn ends; "steer" stops the turn and sends it right away instead.
+   */
+  send(id: string, text: string, images: Image[] = [], how: SendHow = "queue"): void {
     const chat = this.chats.get(id);
     if (!chat || chat.info.status === "exited") throw new Error("This chat has ended");
+    if (!text && images.length === 0) return;
+    if (chat.info.status === "working" || chat.info.status === "waiting") {
+      const item = { id: `q-${crypto.randomUUID().slice(0, 8)}`, text, images };
+      if (how === "steer") {
+        chat.queue.unshift(item);
+        this.interrupt(id);
+      } else chat.queue.push(item);
+      this.syncQueue(chat);
+      return;
+    }
+    this.deliver(chat, text, images);
+  }
+
+  /** Takes a message out of the queue. */
+  unqueue(id: string, queuedId: string): void {
+    const chat = this.chats.get(id);
+    if (!chat) return;
+    chat.queue = chat.queue.filter((item) => item.id !== queuedId);
+    this.syncQueue(chat);
+  }
+
+  /** Sends one queued message now: right away when idle, by stopping the turn when not. */
+  sendQueued(id: string, queuedId: string): void {
+    const chat = this.chats.get(id);
+    const item = chat?.queue.find((q) => q.id === queuedId);
+    if (!chat || !item || chat.info.status === "exited") return;
+    chat.queue = [item, ...chat.queue.filter((q) => q.id !== queuedId)];
+    if (chat.info.status === "idle") this.next(chat);
+    else {
+      this.syncQueue(chat);
+      this.interrupt(id);
+    }
+  }
+
+  /** Messages kept from before a restart wait in the queue until the user sends them. */
+  restoreQueue(id: string, items: QueuedMessage[]): void {
+    const chat = this.chats.get(id);
+    if (!chat || !items.length) return;
+    chat.queue.push(...items.map((item) => ({ id: item.id, text: item.text, images: [] })));
+    this.syncQueue(chat);
+  }
+
+  private next(chat: Chat): void {
+    const item = chat.queue.shift();
+    this.syncQueue(chat);
+    if (item) this.deliver(chat, item.text, item.images);
+  }
+
+  private syncQueue(chat: Chat): void {
+    chat.info.queued = chat.queue.length
+      ? chat.queue.map((item) => ({ id: item.id, text: item.text, images: item.images.length }))
+      : undefined;
+    this.emitInfo(chat);
+    this.changed();
+  }
+
+  private deliver(chat: Chat, text: string, images: Image[]): void {
     const content: Json[] = [
       ...images.map((image) => ({
         type: "image",
@@ -244,7 +314,6 @@ export class Chats {
       })),
       ...(text ? [{ type: "text", text }] : []),
     ];
-    if (content.length === 0) return;
     if (chat.info.title === "Chat" && text) chat.info.title = clip(text.replace(/\s+/g, " "), 60);
     const checkpointId = this.checkpoint(chat.info.cwd, clip(text.replace(/\s+/g, " "), 60) || "chat turn");
     if (checkpointId) {
@@ -487,6 +556,8 @@ export class Chats {
         chat.info.status = "idle";
         this.emitInfo(chat);
         this.changed();
+        // The turn is over: what the user wrote meanwhile goes out now.
+        if (chat.queue.length) this.next(chat);
         return;
       }
     }
@@ -575,15 +646,17 @@ export class ChatHistory {
 
   record(chats: ChatInfo[], now = Date.now()): void {
     const upsert = this.db.query(
-      `INSERT INTO chat_history (id, project_id, session_id, title, started_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?)
+      `INSERT INTO chat_history (id, project_id, session_id, title, started_at, updated_at, queue)
+       VALUES (?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO UPDATE SET session_id = excluded.session_id, title = excluded.title,
-         updated_at = excluded.updated_at`,
+         updated_at = excluded.updated_at, queue = excluded.queue`,
     );
     let wrote = false;
     for (const chat of chats) {
       if (!chat.sessionId) continue;
-      upsert.run(chat.id, chat.projectId, chat.sessionId, chat.title, chat.startedAt, now);
+      // Images are not kept: only the text of a queued message survives a restart.
+      const queue = (chat.queued ?? []).filter((q) => q.text).map((q) => ({ id: q.id, text: q.text, images: 0 }));
+      upsert.run(chat.id, chat.projectId, chat.sessionId, chat.title, chat.startedAt, now, JSON.stringify(queue));
       wrote = true;
     }
     if (wrote)
@@ -616,6 +689,16 @@ export class ChatHistory {
       )
       .get(id) as HistoryRow | null;
     return row ? toRecent(row) : undefined;
+  }
+
+  /** The messages still queued in the last chat on this session, handed over once. */
+  takeQueue(sessionId: string): QueuedMessage[] {
+    const row = this.db
+      .query("SELECT id, queue FROM chat_history WHERE session_id = ? AND queue != '[]' ORDER BY updated_at DESC")
+      .get(sessionId) as { id: string; queue: string } | null;
+    if (!row) return [];
+    this.db.query("UPDATE chat_history SET queue = '[]' WHERE id = ?").run(row.id);
+    return JSON.parse(row.queue) as QueuedMessage[];
   }
 
   forget(id: string): void {

@@ -828,7 +828,14 @@
     "detail_all": "Her adım",
     "detail_grouped": "Gruplu",
     "detail_plain": "Sade",
-    "detail_text": "Sadece metin"
+    "detail_text": "Sadece metin",
+    "queue": "Kuyruğa ekle",
+    "queueTip": "AI şu anki işini bitirince bunu gönderir (Enter da aynısını yapar).",
+    "steer": "Hemen gönder",
+    "steerTip": "AI'ın şu an yaptığını durdurur ve bunu hemen gönderir.",
+    "queuedWhile": "Şu anki turun bitmesini bekliyor",
+    "queuedIdle": "Öncesinden kaldı; hazır olduğunda gönder",
+    "unqueue": "Kuyruktan kaldır"
   },
   "checkpoint": {
     "title": "Kayıtlar",

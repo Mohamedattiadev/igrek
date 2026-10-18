@@ -828,7 +828,14 @@
     "detail_all": "Every step",
     "detail_grouped": "Grouped",
     "detail_plain": "Plain",
-    "detail_text": "Only text"
+    "detail_text": "Only text",
+    "queue": "Add to queue",
+    "queueTip": "Sends this when the AI finishes what it is doing now (Enter does the same).",
+    "steer": "Send now",
+    "steerTip": "Stops what the AI is doing and sends this right away.",
+    "queuedWhile": "Waiting for the current turn to end",
+    "queuedIdle": "Kept from before; send them when you are ready",
+    "unqueue": "Remove from the queue"
   },
   "checkpoint": {
     "title": "Snapshots",

@@ -5,7 +5,7 @@ import type { ChatMode } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";
-import { ChatHistory, type ChatStart, type Chats } from "./chats";
+import { ChatHistory, type ChatStart, type Chats, type SendHow } from "./chats";
 import type { Store } from "./store";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
 
@@ -88,25 +88,26 @@ export function registerChatRoutes(
       return c.json({ error: (err as Error).message }, 400);
     }
     try {
-      return c.json(
-        chats.start({
-          projectId: project.id,
-          cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
-          worktree,
-          title: session?.title ?? undefined,
-          resume: body.resume,
-          model:
-            typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
-          mode,
-          persona: as?.start,
-          godeyeMcp,
-          ...(() => {
-            const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
-            const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
-            return { accountId: chosen?.id, env: accounts.env(chosen) };
-          })(),
-        }),
-      );
+      const started = chats.start({
+        projectId: project.id,
+        cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
+        worktree,
+        title: session?.title ?? undefined,
+        resume: body.resume,
+        model:
+          typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
+        mode,
+        persona: as?.start,
+        godeyeMcp,
+        ...(() => {
+          const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
+          const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
+          return { accountId: chosen?.id, env: accounts.env(chosen) };
+        })(),
+      });
+      // Messages queued in the chat this one continues (before a restart) come along.
+      if (body.resume) chats.restoreQueue(started.id, history.takeQueue(body.resume));
+      return c.json(chats.get(started.id) ?? started);
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
@@ -211,7 +212,9 @@ export function registerChatRoutes(
 
 /** Messages the browser sends over /ws/chat/:id. */
 export type ChatClientMessage =
-  | { op: "send"; text: string; images?: { mediaType: string; data: string }[] }
+  | { op: "send"; text: string; images?: { mediaType: string; data: string }[]; how?: SendHow }
+  | { op: "unqueue"; queuedId: string }
+  | { op: "sendQueued"; queuedId: string }
   | { op: "permission"; requestId: string; decision: "allow" | "deny" | "always"; message?: string }
   | { op: "interrupt" }
   | { op: "mode"; mode: ChatMode };
@@ -228,7 +231,10 @@ export function handleChatMessage(chats: Chats, id: string, raw: string): string
       const images = (msg.images ?? [])
         .filter((img) => /^image\/(png|jpeg|gif|webp)$/.test(img.mediaType) && typeof img.data === "string")
         .slice(0, 8);
-      chats.send(id, String(msg.text ?? "").slice(0, 100_000), images);
+      chats.send(id, String(msg.text ?? "").slice(0, 100_000), images, msg.how === "steer" ? "steer" : "queue");
+    } else if (msg.op === "unqueue") chats.unqueue(id, String(msg.queuedId));
+    else if (msg.op === "sendQueued") {
+      chats.sendQueued(id, String(msg.queuedId));
     } else if (msg.op === "permission") chats.answer(id, msg.requestId, msg.decision, msg.message);
     else if (msg.op === "interrupt") chats.interrupt(id);
     else if (msg.op === "mode" && MODES.includes(msg.mode)) chats.setMode(id, msg.mode);

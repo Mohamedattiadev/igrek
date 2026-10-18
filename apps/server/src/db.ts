@@ -825,6 +825,7 @@ const migrations: string[] = [
      updated_at INTEGER NOT NULL
    );
    CREATE INDEX chat_history_updated ON chat_history(updated_at);`,
+  `ALTER TABLE chat_history ADD COLUMN queue TEXT NOT NULL DEFAULT '[]';`,
 ];
 
 export function migrate(sqlite: Database): number {

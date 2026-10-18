@@ -87,6 +87,59 @@ describe("chat", () => {
   });
 });
 
+describe("chat queue", () => {
+  test("a message written while the AI works waits, then goes out when the turn ends", async () => {
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(fakeClaude(), "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    const events: ChatEvent[] = [];
+    chats.attach(info.id, (op) => {
+      if (op.op === "upsert") events.push(op.event);
+    });
+    await Bun.sleep(400);
+    chats.send(info.id, "first");
+    await Bun.sleep(500);
+    expect(chats.get(info.id)?.status).toBe("waiting");
+
+    chats.send(info.id, "second");
+    chats.send(info.id, "third");
+    expect(chats.get(info.id)?.queued?.map((q) => q.text)).toEqual(["second", "third"]);
+    const third = chats.get(info.id)?.queued?.[1]?.id ?? "";
+    chats.unqueue(info.id, third);
+    expect(chats.get(info.id)?.queued?.map((q) => q.text)).toEqual(["second"]);
+
+    const permission = events.find((e) => e.kind === "permission");
+    chats.answer(info.id, permission?.kind === "permission" ? permission.requestId : "", "allow");
+    await Bun.sleep(600);
+    // The turn ended, so "second" went out on its own and the queue is empty.
+    expect(events.filter((e) => e.kind === "user").map((e) => (e.kind === "user" ? e.text : ""))).toEqual([
+      "first",
+      "second",
+    ]);
+    expect(chats.get(info.id)?.queued).toBeUndefined();
+    chats.stopAll();
+  });
+
+  test("queued text survives in the history and is handed to the chat that continues it", () => {
+    const { sqlite } = openDb(":memory:");
+    const history = new ChatHistory(sqlite);
+    history.record([
+      {
+        id: "a",
+        projectId: "p",
+        cwd: "/",
+        title: "t",
+        mode: "normal",
+        status: "working",
+        startedAt: 1,
+        sessionId: "s1",
+        queued: [{ id: "q1", text: "next step", images: 1 }],
+      },
+    ]);
+    expect(history.takeQueue("s1")).toEqual([{ id: "q1", text: "next step", images: 0 }]);
+    expect(history.takeQueue("s1")).toEqual([]);
+  });
+});
+
 describe("chat streaming", () => {
   test("a text block after a thinking block is not shown twice", async () => {
     const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));

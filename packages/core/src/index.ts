@@ -485,6 +485,14 @@ export interface ChatInfo {
   sandboxed?: boolean;
   /** The chat runs as this persona (plan.md 6.3). */
   persona?: { id: string; name?: string; tools: "read" | "edit" };
+  /** Messages written while the AI was working; the next one goes out when the turn ends (plan.md 16.1). */
+  queued?: QueuedMessage[];
+}
+
+export interface QueuedMessage {
+  id: string;
+  text: string;
+  images: number;
 }
 
 /** A chat God Eye remembers after it ended or God Eye restarted, so it can be continued from its saved session. */
