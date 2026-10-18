@@ -10,6 +10,7 @@ import { registerAccountRoutes } from "./accounts-routes";
 import { claudeAdapter } from "./adapters/claude";
 import { codexAdapter } from "./adapters/codex";
 import { geminiAdapter } from "./adapters/gemini";
+import { piAdapter } from "./adapters/pi";
 import { AgentRequests, registerAgentRequestRoutes } from "./agent-requests";
 import { AiComments } from "./aicomments";
 import { Analytics } from "./analytics";
@@ -155,6 +156,7 @@ const indexer = new Indexer(store, bus, () => {
     ...(claudeDirs.length ? claudeDirs.map(({ accountId, dir }) => claudeAdapter(dir, accountId)) : [claudeAdapter()]),
     ...(codex.length ? codex.map((a) => codexAdapter(join(a.configDir, "sessions"), a.id)) : [codexAdapter()]),
     geminiAdapter(undefined, () => store.allProjectRows().map((p) => p.path)),
+    piAdapter(),
   ];
 });
 const summarizer = new Summarizer(

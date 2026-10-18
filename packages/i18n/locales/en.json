@@ -478,6 +478,7 @@
     "claude": "Claude",
     "codex": "Codex",
     "gemini": "Gemini",
+    "pi": "pi",
     "open": "Open",
     "project": "Project",
     "resume": "Continue this session",

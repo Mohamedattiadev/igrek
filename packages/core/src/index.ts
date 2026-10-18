@@ -112,7 +112,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const RTL_LANGUAGES = new Set(["ar", "fa", "he", "ur", "ps", "sd", "ug", "yi"]);
 
 export interface ToolCheck {
-  id: "git" | "claude" | "codex" | "gemini" | "ssh" | "docker" | "bwrap" | "socat";
+  id: "git" | "claude" | "codex" | "gemini" | "pi" | "ssh" | "docker" | "bwrap" | "socat";
   found: boolean;
   version?: string;
   required: boolean;
@@ -125,7 +125,37 @@ export interface SystemStatus {
   tools: ToolCheck[];
 }
 
-export type AiTool = "claude" | "codex" | "gemini";
+export type AiTool = "claude" | "codex" | "gemini" | "pi";
+
+/**
+ * What each AI tool can do in God Eye (plan.md 16.3). Screens and routes ask these flags
+ * instead of comparing tool names, so a new adapter only fills in its row.
+ */
+export interface ToolCapabilities {
+  label: string;
+  /** Its sessions can be reopened in a terminal by id. */
+  resume: boolean;
+  /** A resumed session can be forked into a new one. */
+  fork: boolean;
+  /** Its sessions can be continued in a God Eye chat (stream-json driven). */
+  chat: boolean;
+  /** A side question can run on a fork of the session with its full context. */
+  sideQuestion: boolean;
+}
+
+export const TOOL_CAPABILITIES: Record<AiTool, ToolCapabilities> = {
+  claude: { label: "Claude", resume: true, fork: true, chat: true, sideQuestion: true },
+  codex: { label: "Codex", resume: true, fork: false, chat: false, sideQuestion: false },
+  gemini: { label: "Gemini", resume: false, fork: false, chat: false, sideQuestion: false },
+  pi: { label: "pi", resume: true, fork: true, chat: false, sideQuestion: false },
+};
+
+/** Capabilities of a tool name read from storage; unknown tools can do nothing extra. */
+export function capabilitiesOf(tool: string): ToolCapabilities {
+  return (
+    TOOL_CAPABILITIES[tool as AiTool] ?? { label: tool, resume: false, fork: false, chat: false, sideQuestion: false }
+  );
+}
 
 export interface GitInfo {
   branch?: string;
@@ -325,7 +355,7 @@ export interface IndexStatus {
   lastError?: string;
 }
 
-export type TerminalTool = "claude" | "codex" | "gemini" | "shell" | "ssh";
+export type TerminalTool = "claude" | "codex" | "gemini" | "pi" | "shell" | "ssh";
 export type TerminalStatus = "running" | "idle" | "attention" | "exited";
 
 export interface TerminalInfo {

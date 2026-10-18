@@ -1,5 +1,5 @@
 import { homedir } from "node:os";
-import type { SessionSummaryData, TerminalTool } from "@godeye/core";
+import { type AiTool, capabilitiesOf, type SessionSummaryData, type TerminalTool } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import { createCheckpoint } from "./checkpoints";
@@ -7,7 +7,17 @@ import type { Servers } from "./servers";
 import type { Store } from "./store";
 import type { Terminals } from "./terminals";
 
-const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "shell"];
+const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "pi", "shell"];
+
+/** CLI arguments that reopen (or fork) a stored session in its own tool. */
+export function resumeArgs(tool: AiTool, sessionId: string, fork: boolean): string[] {
+  const caps = capabilitiesOf(tool);
+  if (!caps.resume) return [];
+  const id = sessionId.replace(/^(codex|pi)-/, "");
+  if (tool === "codex") return ["resume", id];
+  if (tool === "pi") return fork && caps.fork ? ["--fork", id] : ["--session", id];
+  return ["--resume", id, ...(fork && caps.fork ? ["--fork-session"] : [])];
+}
 
 /**
  * Opening prompt for a fresh session that continues a tired one (plan.md 1.8 / 2.8):
@@ -89,15 +99,16 @@ export function registerTerminalRoutes(
     if (!project) return c.json({ error: "Project not found" }, 404);
     const tool = TOOLS.find((t) => t === body.tool) ?? "claude";
     const args: string[] = [];
-    const label = { claude: "Claude", codex: "Codex", gemini: "Gemini", shell: "Shell", ssh: "SSH" }[tool];
+    const label = tool === "shell" ? "Shell" : tool === "ssh" ? "SSH" : capabilitiesOf(tool).label;
     let title = `${label} · ${project.name}`;
     let sessionAccount: string | null | undefined;
     if (typeof body.resume === "string") {
       const session = store.sessionRow(body.resume);
       sessionAccount = session?.account_id;
       if (!session) return c.json({ error: "Session not found" }, 404);
-      if (session.tool === "codex") args.push("resume", body.resume.replace(/^codex-/, ""));
-      else args.push("--resume", body.resume, ...(body.fork === true ? ["--fork-session"] : []));
+      if (!capabilitiesOf(session.tool).resume)
+        return c.json({ error: `${capabilitiesOf(session.tool).label} sessions cannot be reopened by id` }, 400);
+      args.push(...resumeArgs(session.tool as AiTool, body.resume, body.fork === true));
       title = session.title ?? title;
     }
     // A snapshot before an AI tool starts working, so its changes can be rolled back.

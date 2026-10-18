@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { ChatMode } from "@godeye/core";
+import { type ChatMode, capabilitiesOf } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";
@@ -77,7 +77,7 @@ export function registerChatRoutes(
     const project = body.projectId ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
     const session = body.resume ? store.sessionRow(body.resume) : undefined;
-    if (body.resume && session?.tool !== "claude")
+    if (body.resume && !capabilitiesOf(session?.tool ?? "").chat)
       return c.json({ error: "Only Claude sessions can be continued in chat" }, 400);
     const mode = MODES.find((m) => m === body.mode);
     // A session that ran as a persona continues as that persona.

@@ -5,6 +5,7 @@ const TOOLS: { id: ToolCheck["id"]; bin: string; args: string[]; required: boole
   { id: "claude", bin: "claude", args: ["--version"], required: false },
   { id: "codex", bin: "codex", args: ["--version"], required: false },
   { id: "gemini", bin: "gemini", args: ["--version"], required: false },
+  { id: "pi", bin: "pi", args: ["--version"], required: false },
   { id: "ssh", bin: "ssh", args: ["-V"], required: false },
   { id: "docker", bin: "docker", args: ["--version"], required: false },
   // Claude Code's sandbox for auto mode (Linux): limits files and network for shell commands.

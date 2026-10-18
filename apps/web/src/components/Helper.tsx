@@ -1,4 +1,4 @@
-import { type ChatInfo, HELP_TOPICS, type ProjectListItem, type SessionListItem } from "@godeye/core";
+import { type ChatInfo, capabilitiesOf, HELP_TOPICS, type ProjectListItem, type SessionListItem } from "@godeye/core";
 import { ArrowRight, BookOpen, Bot, Compass, MessageSquarePlus, Play, Send, X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -94,7 +94,7 @@ export function Helper() {
         icon: ArrowRight,
         to: `/p/${target.id}/s/${session.id}`,
       });
-      if (session.tool === "claude") actions.push(resumeAction(session));
+      if (capabilitiesOf(session.tool).chat) actions.push(resumeAction(session));
     }
     actions.push({ label: t("helper.openProject", { name: target.name }), icon: ArrowRight, to: `/p/${target.id}` });
     say(

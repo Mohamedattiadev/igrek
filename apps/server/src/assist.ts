@@ -1,12 +1,13 @@
 import type { Database } from "bun:sqlite";
-import type {
-  Idea,
-  IdeaStatus,
-  IdeaTriage,
-  QuickAnswer,
-  SavedPrompt,
-  SessionSummaryData,
-  Settings,
+import {
+  capabilitiesOf,
+  type Idea,
+  type IdeaStatus,
+  type IdeaTriage,
+  type QuickAnswer,
+  type SavedPrompt,
+  type SessionSummaryData,
+  type Settings,
 } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import type { StopRegistry } from "./bus";
@@ -65,7 +66,7 @@ export class Assist {
       ? `\n\nFILE ${args.attachment.name}:\n<file>\n${args.attachment.text.slice(0, 20_000)}\n</file>`
       : "";
 
-    if (args.mode === "full" && session && session.tool === "claude") {
+    if (args.mode === "full" && session && capabilitiesOf(session.tool).sideQuestion) {
       const answer = await this.runForked(
         session.id,
         session.cwd ?? project?.path ?? this.runnerDir,

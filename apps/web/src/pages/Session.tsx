@@ -1,4 +1,4 @@
-import type { SessionDetail, TranscriptMessage } from "@godeye/core";
+import { capabilitiesOf, type SessionDetail, type TranscriptMessage } from "@godeye/core";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -121,24 +121,30 @@ function ResumeButtons({ session }: { session: SessionDetail }) {
             <span className="hidden xl:inline">{t("term.handTo", { tool: t(`term.${tool}`) })}</span>
           </Button>
         ))}
-      <Button
-        size="sm"
-        variant="ghost"
-        icon={GitFork}
-        title={t("term.forkHint")}
-        onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id, fork: true }))}
-      >
-        <span className="hidden lg:inline">{t("term.fork")}</span>
-      </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        icon={Play}
-        onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id }))}
-      >
-        <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>
-      </Button>
-      {session.tool === "claude" && (
+      {capabilitiesOf(session.tool).fork && (
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={GitFork}
+          title={t("term.forkHint")}
+          onClick={() =>
+            open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id, fork: true }))
+          }
+        >
+          <span className="hidden lg:inline">{t("term.fork")}</span>
+        </Button>
+      )}
+      {capabilitiesOf(session.tool).resume && (
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={Play}
+          onClick={() => open(() => api.startTerminal({ projectId, tool: session.tool, resume: session.id }))}
+        >
+          <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>
+        </Button>
+      )}
+      {capabilitiesOf(session.tool).chat && (
         <Button
           size="sm"
           variant="primary"
