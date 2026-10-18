@@ -164,10 +164,6 @@ export function registerArenaRoutes(app: Hono, arena: import("./arena").Arena): 
   app.get("/api/arena", (c) =>
     c.json({ matches: arena.list(c.req.query("projectId") || undefined), stats: arena.stats(), models: arenaModels() }),
   );
-  app.get("/api/arena/:id", (c) => {
-    const m = arena.get(c.req.param("id"));
-    return m ? c.json(m) : c.json({ error: "Not found" }, 404);
-  });
   app.post("/api/arena", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { projectId?: string; request?: string; models?: string[] };
     try {
