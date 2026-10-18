@@ -868,7 +868,9 @@
     "commentPlaceholder": "Burada ne değişmeli?",
     "commentAdd": "Ekle",
     "commentRemove": "Yorumu kaldır",
-    "commentsHeader": "Değişikliklere yorumlarım:"
+    "commentsHeader": "Değişikliklere yorumlarım:",
+    "notice_loop": "AI kısa sürede {{tool}} adımını aynı girdiyle üç kez çalıştırdı; bir döngüye girmiş olabilir. Durdur ve neyi farklı yapacağını söyle.",
+    "stepCut": "Tur, bu adım bitmeden sona erdi."
   },
   "checkpoint": {
     "title": "Kayıtlar",

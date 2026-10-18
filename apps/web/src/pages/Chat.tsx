@@ -5,6 +5,7 @@ import {
   extractNotebook,
   findSecrets,
   isWeakPrompt,
+  STEP_CUT,
   suggestModel,
   type WeakPoint,
 } from "@godeye/core";
@@ -348,7 +349,7 @@ function ToolCard({ event, cwd, nested }: { event: ToolEvent; cwd?: string; nest
             <details open={event.status === "error"}>
               <summary className="cursor-pointer text-[11px] text-fg-subtle">{t("chat.toolOutput")}</summary>
               <pre className="mt-1 max-h-60 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-fg-muted">
-                {event.result}
+                {event.result === STEP_CUT ? t("chat.stepCut") : event.result}
               </pre>
             </details>
           )}
@@ -1004,6 +1005,23 @@ export function ChatPage() {
                     </div>
                   );
                 case "notice":
+                  if (event.code === "loop")
+                    return (
+                      <p
+                        key={event.id}
+                        className="ms-9 flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                      >
+                        <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                        <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
+                        <button
+                          type="button"
+                          onClick={chat.interrupt}
+                          className="shrink-0 font-medium text-warning underline"
+                        >
+                          {t("chat.stop")}
+                        </button>
+                      </p>
+                    );
                   if (event.code === "notebook" || event.code === "notebookRejected")
                     return (
                       <p key={event.id} className="ms-9 flex items-center gap-1.5 text-[11px] text-fg-subtle">

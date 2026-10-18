@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ChatEvent, ChatInfo } from "@godeye/core";
+import { type ChatEvent, type ChatInfo, STEP_CUT } from "@godeye/core";
 import { Bus, StopRegistry } from "./bus";
 import { ChatHistory, Chats, ruleCovers, ruleFor } from "./chats";
 import { openDb } from "./db";
@@ -194,6 +194,43 @@ for await (const chunk of Bun.stdin.stream()) {
     await Bun.sleep(400);
     expect(events.some((e) => e.kind === "text" && e.text === 'Got: {"Which database?":"SQLite"}')).toBe(true);
     expect(chats.get(info.id)?.context?.window).toBe(1000000);
+    chats.stopAll();
+  });
+});
+
+describe("loops and cut-off steps", () => {
+  test("the same step three times is reported once, and a step left running is cut off at the end of the turn", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    writeFileSync(
+      join(dir, "claude"),
+      `#!${process.execPath}
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+out({ type: "system", subtype: "init", session_id: "s", model: "m" });
+for await (const chunk of Bun.stdin.stream()) {
+  for (let i = 0; i < 4; i++)
+    out({ type: "assistant", message: { id: "m" + i, content: [{ type: "tool_use", id: "t" + i, name: "Bash", input: { command: "npm test" } }] } });
+  for (let i = 0; i < 3; i++)
+    out({ type: "user", message: { content: [{ type: "tool_result", tool_use_id: "t" + i, content: "fail" }] } });
+  out({ type: "result", subtype: "success", duration_ms: 1 });
+}
+`,
+    );
+    chmodSync(join(dir, "claude"), 0o755);
+    const chats = new Chats(new Bus(), new StopRegistry(), () => join(dir, "claude"));
+    const info = chats.start({ projectId: "p", cwd: tmpdir() });
+    const events = new Map<string, ChatEvent>();
+    chats.attach(info.id, (op) => {
+      if (op.op === "upsert") events.set(op.event.id, op.event);
+    });
+    await Bun.sleep(300);
+    chats.send(info.id, "fix the tests");
+    await Bun.sleep(400);
+    const loops = [...events.values()].filter((e) => e.kind === "notice" && e.code === "loop");
+    expect(loops).toHaveLength(1);
+    expect(loops[0]).toMatchObject({ text: "Bash" });
+    // t3 never got a result before the turn ended.
+    expect(events.get("t3")).toMatchObject({ status: "error", result: STEP_CUT });
+    expect(events.get("t2")).toMatchObject({ status: "done" });
     chats.stopAll();
   });
 });

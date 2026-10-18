@@ -9,6 +9,7 @@ import {
   type RateLimitInfo,
   type RecentChat,
   RICH_BLOCKS_HINT,
+  STEP_CUT,
 } from "@godeye/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
@@ -47,6 +48,10 @@ interface Chat {
   queue: { id: string; text: string; images: Image[] }[];
   /** The last turn ended while nobody had the chat open. */
   unseen?: boolean;
+  /** The latest steps as tool + input, to notice the AI going round in circles. */
+  recentSteps: string[];
+  /** Steps already reported as a loop, so each is said once. */
+  loopsSaid: Set<string>;
 }
 
 type Image = { mediaType: string; data: string };
@@ -265,6 +270,8 @@ export class Chats {
       kill: () => proc.kill(),
       alwaysAllow: new Set(),
       queue: [],
+      recentSteps: [],
+      loopsSaid: new Set(),
     };
     this.chats.set(id, chat);
     const unregister = this.stops.register(`chat-${id}`, { label: chat.info.title, stop: () => proc.kill() });
@@ -282,6 +289,7 @@ export class Chats {
     });
     void proc.exited.then((code) => {
       unregister();
+      this.closeOpenSteps(chat, Date.now());
       chat.info.status = "exited";
       chat.info.exitCode = code;
       this.emitInfo(chat);
@@ -561,6 +569,7 @@ export class Chats {
               input: block.input,
               status: "running",
             });
+            this.watchLoop(chat, String(block.name ?? "tool"), block.input, now);
           }
         });
         return;
@@ -620,6 +629,7 @@ export class Chats {
           isError: msg.is_error === true || msg.subtype !== "success",
           text: typeof msg.result === "string" && msg.is_error ? msg.result : undefined,
         });
+        this.closeOpenSteps(chat, now);
         chat.info.status = "idle";
         // Claude Code says how large the window really is.
         const models = msg.modelUsage as Record<string, { contextWindow?: number }> | undefined;
@@ -703,6 +713,26 @@ export class Chats {
     for (const listener of chat.listeners) listener({ op: "info", info: this.view(chat) });
   }
 
+  /**
+   * The same tool with the same input LOOP_REPEATS times among the last LOOP_WINDOW steps: the AI is
+   * going round in circles (plan.md 16.3). Said once per step, as a notice in the chat.
+   */
+  private watchLoop(chat: Chat, tool: string, input: unknown, now: number): void {
+    const step = `${tool} ${JSON.stringify(input ?? {})}`;
+    chat.recentSteps = [...chat.recentSteps, step].slice(-LOOP_WINDOW);
+    const repeats = chat.recentSteps.filter((s) => s === step).length;
+    if (repeats < LOOP_REPEATS || chat.loopsSaid.has(step)) return;
+    chat.loopsSaid.add(step);
+    this.upsert(chat, { kind: "notice", id: `loop-${now}`, at: now, text: tool, tone: "danger", code: "loop" });
+  }
+
+  /** A turn that ended (or a process that stopped) leaves no step spinning forever: it was cut off. */
+  private closeOpenSteps(chat: Chat, now: number): void {
+    for (const event of chat.events)
+      if (event.kind === "tool" && event.status === "running")
+        this.upsert(chat, { ...event, status: "error", result: STEP_CUT, at: now });
+  }
+
   private view(chat: Chat): ChatInfo {
     const pill = pillOf(chat);
     return { ...chat.info, ...(pill ? { pill } : {}) };
@@ -714,6 +744,8 @@ export class Chats {
 }
 
 const KEEP_HISTORY = 200;
+const LOOP_WINDOW = 10;
+const LOOP_REPEATS = 3;
 
 /**
  * Chats outlive the browser and God Eye itself (plan.md 16.5): every chat with a saved

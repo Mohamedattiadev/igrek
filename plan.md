@@ -1166,7 +1166,7 @@ god-eye/
 - [ ] Limit kurtarma: sıfırlanınca devam et / ertele (#8)
 - [ ] Yapılandırılmış ve artımlı devir/özet şablonları (#9)
 - [ ] Adaptör yetenek bayrakları (#10); pi ve opencode adaptörleri, ileride ACP (#17)
-- [ ] Döngü tespiti (#11) ve tur kapanışı kuralı: yarım kalan araç çağrıları "kesildi" (#12)
+- [x] Döngü tespiti (#11) ve tur kapanışı kuralı: yarım kalan araç çağrıları "kesildi" (#12) — *sohbette aynı araç aynı girdiyle son 10 adımda 3 kez çalışınca bir kez "döngüye girmiş olabilir" uyarısı ve Durdur bağlantısı çıkar; tur bitince ya da süreç kapanınca hâlâ çalışıyor görünen adımlar "Tur, bu adım bitmeden sona erdi" olarak kapanır. Dosyadan okunan oturumların sağlığına döngü işareti henüz eklenmedi*
 - [ ] Mesaja bağlı checkpoint ve geri yüklemeyi geri alma (#15); akış protokolü düzeni: sıra numarası, birleştirme, geri basınç (#19)
 
 #### 16.4 Güvenlik ve iş akışı

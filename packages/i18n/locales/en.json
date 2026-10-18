@@ -868,7 +868,9 @@
     "commentPlaceholder": "What should change here?",
     "commentAdd": "Add",
     "commentRemove": "Remove the comment",
-    "commentsHeader": "My comments on the changes:"
+    "commentsHeader": "My comments on the changes:",
+    "notice_loop": "The AI ran {{tool}} with the same input three times in a short while; it may be going round in circles. Stop it and say what to do differently.",
+    "stepCut": "The turn ended before this step finished."
   },
   "checkpoint": {
     "title": "Snapshots",

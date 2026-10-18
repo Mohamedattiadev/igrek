@@ -493,6 +493,9 @@ export interface ChatInfo {
   context?: { tokens: number; window: number; cacheRead: number; at: number };
 }
 
+/** The result of a chat step the turn ended before (plan.md 16.3); the web app shows it translated. */
+export const STEP_CUT = "The turn ended before this step finished.";
+
 /** In this order of urgency: a step to approve, a question to answer, working, a plan to read, an unseen answer. */
 export type ChatPill = "approval" | "question" | "working" | "plan" | "done";
 
@@ -546,8 +549,11 @@ export type ChatEvent =
       at: number;
       text: string;
       tone: "danger" | "neutral";
-      /** "notebook": opinions written down (text = count); "notebookRejected": a change without new evidence. */
-      code?: "external" | "notebook" | "notebookRejected";
+      /**
+       * "notebook": opinions written down (text = count); "notebookRejected": a change without new evidence;
+       * "loop": the same step with the same input again and again (text = the tool's name).
+       */
+      code?: "external" | "notebook" | "notebookRejected" | "loop";
     }
   | { kind: "checkpoint"; id: string; at: number; checkpointId: string; projectId: string };
 
