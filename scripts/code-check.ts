@@ -20,14 +20,17 @@ const WINDOW = 12;
 
 export const RULES: Record<string, string> = {
   noExcessiveCognitiveComplexity:
-    "Code that is hard to follow hides bugs; split it (refactoring.guru: Extract Method, Decompose Conditional).",
-  noExcessiveLinesPerFunction: "Long Method smell (refactoring.guru): split it into named steps.",
-  useMaxParams: "Long Parameter List smell (refactoring.guru): pass an object (Introduce Parameter Object).",
+    "Code that is hard to follow hides bugs; split it with Extract Method or Decompose Conditional (https://refactoring.guru/smells/long-method).",
+  noExcessiveLinesPerFunction:
+    "Long Method smell: split it into named steps with Extract Method (https://refactoring.guru/smells/long-method).",
+  useMaxParams:
+    "Long Parameter List smell: pass one typed object (Introduce Parameter Object, https://refactoring.guru/smells/long-parameter-list).",
   noEmptyBlockStatements:
     "An empty block swallows an error or hides unfinished code; say why in a comment or handle it.",
   noFloatingPromises: "A promise nobody waits for loses its error; await it, catch it, or mark it with void.",
   noMisusedPromises: "A promise used where a boolean or a plain callback is expected.",
-  duplicate: "Duplicate Code smell (refactoring.guru): the same lines in two places drift apart; extract them once.",
+  duplicate:
+    "Duplicate Code smell: the same lines in two places drift apart; extract them once (https://refactoring.guru/smells/duplicate-code).",
   effectLeak:
     "An effect starts a timer, listener, socket or observer and never stops it: it keeps running after the page is gone (react.dev: synchronizing with effects, cleanup).",
   effectRace:

@@ -1,0 +1,467 @@
+id: code-smells
+title:
+  en: "Code smells and refactorings"
+  tr: "Kod kokuları ve refactoring"
+category: concept
+summary:
+  en: The classic code smells grouped as in the refactoring.guru catalog, each with the refactoring that usually cures it, a small example, and which God Eye gate catches it.
+  tr: refactoring.guru kataloğundaki gruplarıyla klasik kod kokuları; her birinde genellikle iyileştiren refactoring, küçük bir örnek ve God Eye'ın hangi kapısının yakaladığı.
+aliases: [code smell, smells, refactoring, anti-pattern, antipattern, clean code, long method, god object, duplicate code, dead code, kod kokusu, kötü kod, temiz kod, yeniden düzenleme]
+checked: 2026-10
+sources:
+  - title: refactoring.guru Code Smells
+    url: https://refactoring.guru/refactoring/smells
+  - title: Martin Fowler, Refactoring (2nd edition)
+    url: https://martinfowler.com/books/refactoring.html
+  - title: Anti-pattern (Wikipedia)
+    url: https://en.wikipedia.org/wiki/Anti-pattern
+roadmap: web
+sections:
+  - id: idea
+    title: { en: "The idea", tr: "Temel fikir" }
+    items:
+      - id: what-is-a-smell
+        level: basic
+        title: { en: "A smell is a hint, not a bug", tr: "Koku bir ipucudur, hata değil" }
+        what:
+          en: A smell is a surface sign that the design makes change harder; the code still works. Each smell has refactorings that remove it without changing behavior.
+          tr: Koku, tasarımın değişikliği zorlaştırdığını gösteren yüzeysel bir işarettir; kod yine çalışır. Her kokunun, davranışı değiştirmeden onu gideren refactoring'leri vardır.
+        lang: text
+        form: smell -> refactoring -> tests still pass
+        example: |
+          1. Tests pass.
+          2. One small refactoring (Extract Method, Move Method...).
+          3. Tests pass again. Commit.
+          Repeat. Never mix a refactoring with a behavior change.
+        mistake:
+          en: Refactoring without tests, or in the same commit as a feature. When something breaks you cannot tell which change did it.
+          tr: Test olmadan ya da bir özellikle aynı commit'te refactoring yapmak. Bir şey bozulunca hangi değişikliğin bozduğunu anlayamazsın.
+        source: https://refactoring.guru/refactoring/smells
+  - id: bloaters
+    title: { en: "Bloaters: grown too big", tr: "Şişkinlikler: fazla büyümüş" }
+    items:
+      - id: long-method
+        level: basic
+        title: { en: "Long Method", tr: "Uzun metot (Long Method)" }
+        what:
+          en: A function that does many steps; you need comments to find your way in it. God Eye's lint:quality catches it (function length, cognitive complexity).
+          tr: Birçok adım yapan fonksiyon; içinde yolunu bulmak için yoruma ihtiyaç duyarsın. God Eye'ın lint:quality kapısı yakalar (fonksiyon uzunluğu, bilişsel karmaşıklık).
+        lang: typescript
+        form: "Extract Method, Decompose Conditional, Replace Temp with Query"
+        example: |
+          // before: validate, price and save in one block
+          function checkout(cart: Cart) { /* 120 lines */ }
+          // after: each step has a name
+          function checkout(cart: Cart) {
+            validate(cart);
+            const total = priceOf(cart);
+            return save(cart, total);
+          }
+        mistake:
+          en: Splitting by line count into part1, part2. Split by meaning so each name says what the step does.
+          tr: Satır sayısına göre part1, part2 diye bölmek. Anlama göre böl ki her ad adımın ne yaptığını söylesin.
+        source: https://refactoring.guru/smells/long-method
+      - id: large-class
+        level: basic
+        title: { en: "Large Class (God Object)", tr: "Büyük sınıf (God Object)" }
+        what:
+          en: A class or module that knows and does too much; every change touches it and it is hard to test.
+          tr: Fazla şey bilen ve yapan sınıf ya da modül; her değişiklik ona dokunur ve test etmesi zordur.
+        lang: text
+        form: "Extract Class, Extract Subclass, Extract Interface"
+        example: |
+          OrderService: pricing, tax, email, PDF, stock
+          -> Pricing, TaxRules, OrderMailer, InvoicePdf, Stock
+             OrderService only coordinates them
+        mistake:
+          en: Moving methods into "Helper" or "Utils" classes. That spreads the god object instead of giving each job a home.
+          tr: Metotları "Helper" ya da "Utils" sınıflarına taşımak. Bu, her işe bir yer vermek yerine god object'i dağıtır.
+        source: https://refactoring.guru/smells/large-class
+      - id: primitive-obsession
+        level: intermediate
+        title: { en: "Primitive Obsession", tr: "İlkel tip takıntısı (Primitive Obsession)" }
+        what:
+          en: Using plain strings and numbers for things that have rules (money, email, ids, status codes), so the rules are checked everywhere or nowhere.
+          tr: Kuralları olan şeyler için (para, e-posta, kimlik, durum kodu) düz string ve sayı kullanmak; kurallar ya her yerde ya hiçbir yerde denetlenir.
+        lang: typescript
+        form: "Replace Data Value with Object, Replace Type Code with Class, Introduce Parameter Object"
+        example: |
+          // before
+          function charge(amount: number, currency: string) {}
+          // after: the type carries the rule
+          type Money = { cents: number; currency: "EUR" | "USD" };
+          function charge(price: Money) {}
+        mistake:
+          en: Wrapping every value in a class. Do it where a rule or a unit lives, not for a plain name.
+          tr: Her değeri bir sınıfa sarmak. Bir kuralın ya da birimin olduğu yerde yap, düz bir ad için değil.
+        source: https://refactoring.guru/smells/primitive-obsession
+      - id: long-parameter-list
+        level: basic
+        title: { en: "Long Parameter List", tr: "Uzun parametre listesi" }
+        what:
+          en: More than three or four parameters; calls are easy to get wrong because the order matters. God Eye's lint:quality allows at most five.
+          tr: Üç dörtten fazla parametre; sıra önemli olduğundan çağrılar kolayca yanlış yazılır. God Eye'ın lint:quality kapısı en çok beşe izin verir.
+        lang: typescript
+        form: "Introduce Parameter Object, Preserve Whole Object, Replace Parameter with Method Call"
+        example: |
+          // before
+          send(to, subject, body, cc, retry, html);
+          // after
+          send({ to, subject, body, cc, retry, html });
+        mistake:
+          en: Replacing the list with an untyped options bag. Give the object a type so wrong keys fail at compile time.
+          tr: Listeyi tipsiz bir seçenek nesnesiyle değiştirmek. Nesneye tip ver ki yanlış anahtar derlemede yakalansın.
+        source: https://refactoring.guru/smells/long-parameter-list
+      - id: data-clumps
+        level: intermediate
+        title: { en: "Data Clumps", tr: "Veri kümeleri (Data Clumps)" }
+        what:
+          en: The same few values always travel together (start and end date, host and port); they want to be one type.
+          tr: Aynı birkaç değer hep birlikte dolaşır (başlangıç ve bitiş tarihi, host ve port); tek bir tip olmak isterler.
+        lang: typescript
+        form: "Extract Class, Introduce Parameter Object"
+        example: |
+          // before
+          overlaps(aStart, aEnd, bStart, bEnd)
+          // after
+          type Range = { start: Date; end: Date };
+          overlaps(a: Range, b: Range)
+        mistake:
+          en: Grouping values that only happen to sit next to each other once. A clump repeats in several places.
+          tr: Sadece bir kez yan yana duran değerleri gruplamak. Küme birçok yerde tekrar eder.
+        source: https://refactoring.guru/smells/data-clumps
+  - id: oo-abusers
+    title: { en: "Object-orientation abusers", tr: "Nesne yönelimini yanlış kullananlar" }
+    items:
+      - id: switch-statements
+        level: intermediate
+        title: { en: "Switch Statements", tr: "Switch ifadeleri" }
+        what:
+          en: The same switch on a type code appears in several places; adding a case means finding them all.
+          tr: Bir tip kodu üzerindeki aynı switch birkaç yerde geçer; yeni bir durum eklemek hepsini bulmayı gerektirir.
+        lang: typescript
+        form: "Replace Conditional with Polymorphism, Replace Type Code with State/Strategy, a lookup table"
+        example: |
+          // before, repeated in three files
+          switch (plan) { case "free": ...; case "pro": ... }
+          // after: one table, one place to add a plan
+          const PLANS = { free: { seats: 1 }, pro: { seats: 10 } } satisfies Record<Plan, PlanRules>;
+        mistake:
+          en: Replacing a single small switch with a class hierarchy. One switch in one place is fine; the smell is the repetition.
+          tr: Tek ve küçük bir switch'i sınıf hiyerarşisiyle değiştirmek. Tek yerdeki bir switch sorun değildir; koku tekrardır.
+        source: https://refactoring.guru/smells/switch-statements
+      - id: temporary-field
+        level: advanced
+        title: { en: "Temporary Field", tr: "Geçici alan (Temporary Field)" }
+        what:
+          en: A field that is set only for one operation and empty the rest of the time, so readers wonder when it is valid.
+          tr: Sadece bir işlem için doldurulan, geri kalan zamanda boş duran alan; okuyan ne zaman geçerli olduğunu merak eder.
+        lang: text
+        form: "Extract Class, Introduce Null Object, pass it as a parameter"
+        example: |
+          class Report { tmpRows?: Row[] }   // only during build()
+          -> build() creates a ReportBuilder that owns the rows
+        mistake:
+          en: Making it optional and adding null checks everywhere. Move it to where it is always valid.
+          tr: Alanı isteğe bağlı yapıp her yere null kontrolü eklemek. Onu her zaman geçerli olduğu yere taşı.
+        source: https://refactoring.guru/smells/temporary-field
+      - id: refused-bequest
+        level: advanced
+        title: { en: "Refused Bequest", tr: "Reddedilen miras (Refused Bequest)" }
+        what:
+          en: A subclass inherits methods it does not want and overrides them to throw or do nothing; the inheritance is wrong (see Liskov in SOLID).
+          tr: Alt sınıf istemediği metotları miras alır ve hata fırlatacak ya da hiçbir şey yapmayacak şekilde ezer; miras yanlıştır (SOLID'deki Liskov'a bak).
+        lang: text
+        form: "Replace Inheritance with Delegation, Extract Superclass"
+        example: |
+          class ReadOnlyList extends List { add() { throw new Error() } }
+          -> ReadOnlyList holds a List and exposes only get/size
+        mistake:
+          en: Keeping the inheritance for code reuse. Reuse through composition; inherit only for a true is-a.
+          tr: Kodu yeniden kullanmak için mirası tutmak. Yeniden kullanımı bileşimle yap; sadece gerçek bir "is-a" için miras al.
+        source: https://refactoring.guru/smells/refused-bequest
+      - id: alternative-classes
+        level: advanced
+        title: { en: "Alternative Classes with Different Interfaces", tr: "Farklı arayüzlü alternatif sınıflar" }
+        what:
+          en: Two classes do the same job with different method names, so callers cannot swap one for the other.
+          tr: İki sınıf aynı işi farklı metot adlarıyla yapar; çağıranlar birini diğerinin yerine koyamaz.
+        lang: text
+        form: "Rename Method, Move Method, Extract Superclass"
+        example: |
+          SmtpMailer.send(msg)  and  ApiMailer.deliver(msg)
+          -> interface Mailer { send(msg): Promise<void> }
+        mistake:
+          en: Writing an adapter for each caller. Agree on one interface once.
+          tr: Her çağıran için ayrı adaptör yazmak. Bir kez tek bir arayüzde anlaş.
+        source: https://refactoring.guru/smells/alternative-classes-with-different-interfaces
+  - id: change-preventers
+    title: { en: "Change preventers", tr: "Değişikliği zorlaştıranlar" }
+    items:
+      - id: divergent-change
+        level: intermediate
+        title: { en: "Divergent Change", tr: "Ayrışan değişiklik (Divergent Change)" }
+        what:
+          en: One module changes for many unrelated reasons (a new report, a new database, a new language); it has too many jobs.
+          tr: Bir modül birbiriyle ilgisiz birçok sebeple değişir (yeni rapor, yeni veritabanı, yeni dil); fazla işi vardır.
+        lang: text
+        form: "Extract Class (one reason to change per module)"
+        example: |
+          user.ts changes for: login, billing, emails
+          -> auth.ts, billing.ts, user-emails.ts
+        mistake:
+          en: Splitting by technical layer only. Split by reason to change.
+          tr: Sadece teknik katmana göre bölmek. Değişme sebebine göre böl.
+        source: https://refactoring.guru/smells/divergent-change
+      - id: shotgun-surgery
+        level: intermediate
+        title: { en: "Shotgun Surgery", tr: "Dağınık ameliyat (Shotgun Surgery)" }
+        what:
+          en: One small change needs edits in many files; it is easy to miss one. The opposite of Divergent Change.
+          tr: Küçük bir değişiklik birçok dosyada düzenleme ister; birini atlamak kolaydır. Ayrışan değişikliğin tersi.
+        lang: text
+        form: "Move Method, Move Field, Inline Class (put what changes together in one place)"
+        example: |
+          adding a currency touches 9 files
+          -> one Currency module the 9 files ask
+        mistake:
+          en: Fixing it with search and replace each time. The repetition is the design problem.
+          tr: Her seferinde bul-değiştir ile çözmek. Tekrarın kendisi tasarım sorunudur.
+        source: https://refactoring.guru/smells/shotgun-surgery
+      - id: parallel-inheritance
+        level: advanced
+        title: { en: "Parallel Inheritance Hierarchies", tr: "Paralel miras hiyerarşileri" }
+        what:
+          en: Every new subclass in one tree needs a matching subclass in another (Shape and ShapeRenderer).
+          tr: Bir ağaçtaki her yeni alt sınıf, başka bir ağaçta eşleşen bir alt sınıf ister (Shape ve ShapeRenderer).
+        lang: text
+        form: "Move Method, Move Field, then remove one hierarchy"
+        example: |
+          Circle + CircleRenderer, Square + SquareRenderer
+          -> each Shape has draw(), one hierarchy left
+        mistake:
+          en: Generating the second tree with code. It hides the coupling instead of removing it.
+          tr: İkinci ağacı kodla üretmek. Bağımlılığı gidermek yerine gizler.
+        source: https://refactoring.guru/smells/parallel-inheritance-hierarchies
+  - id: dispensables
+    title: { en: "Dispensables: could go", tr: "Gereksizler: gidebilir" }
+    items:
+      - id: duplicate-code
+        level: basic
+        title: { en: "Duplicate Code", tr: "Tekrarlanan kod" }
+        what:
+          en: The same logic in two places; a fix in one is forgotten in the other. God Eye's lint:quality finds copied blocks of 12 meaningful lines.
+          tr: Aynı mantık iki yerde; birindeki düzeltme diğerinde unutulur. God Eye'ın lint:quality kapısı 12 anlamlı satırlık kopyaları bulur.
+        lang: text
+        form: "Extract Method, Extract Class, Pull Up Method"
+        example: |
+          three parsers each read a JSONL stream line by line
+          -> one readLines() helper they all use
+        mistake:
+          en: Merging code that only looks the same but changes for different reasons. Duplication is cheaper than the wrong abstraction.
+          tr: Sadece aynı görünen ama farklı sebeplerle değişen kodu birleştirmek. Tekrar, yanlış soyutlamadan ucuzdur.
+        source: https://refactoring.guru/smells/duplicate-code
+      - id: dead-code
+        level: basic
+        title: { en: "Dead Code", tr: "Ölü kod" }
+        what:
+          en: Files, exports, functions and dependencies nothing uses; they cost reading time and keep old bugs around. God Eye's lint:dead (knip) catches them.
+          tr: Hiçbir şeyin kullanmadığı dosya, export, fonksiyon ve bağımlılıklar; okuma zamanı yerler ve eski hataları yaşatırlar. God Eye'ın lint:dead (knip) kapısı yakalar.
+        lang: bash
+        form: "Delete it (git remembers)"
+        example: |
+          npx knip            # unused files, exports, dependencies (JS/TS)
+          vulture src/        # Python
+        mistake:
+          en: Commenting code out "in case". Delete it; the history has it.
+          tr: Kodu "lazım olur" diye yoruma almak. Sil; geçmişte duruyor.
+        source: https://refactoring.guru/smells/dead-code
+      - id: comments
+        level: basic
+        title: { en: "Comments that explain what", tr: "Ne yaptığını anlatan yorumlar" }
+        what:
+          en: A comment that explains what a block does usually means the block wants a name. Comments that explain why stay.
+          tr: Bir bloğun ne yaptığını anlatan yorum genellikle bloğun bir ad istediğini gösterir. Nedenini anlatan yorumlar kalır.
+        lang: typescript
+        form: "Extract Variable, Extract Method, Rename Method"
+        example: |
+          // check if the user can edit
+          if (u.role === "admin" || u.id === doc.ownerId) ...
+          -> if (canEdit(u, doc)) ...
+        mistake:
+          en: Deleting the comments that say why (a workaround, a limit, a decision). Those cannot be expressed in code.
+          tr: Nedeni söyleyen yorumları silmek (bir geçici çözüm, bir sınır, bir karar). Bunlar kodla ifade edilemez.
+        source: https://refactoring.guru/smells/comments
+      - id: lazy-class
+        level: intermediate
+        title: { en: "Lazy Class", tr: "Tembel sınıf (Lazy Class)" }
+        what:
+          en: A class or file that does almost nothing, often left after other refactorings or made for a future that did not come.
+          tr: Neredeyse hiçbir şey yapmayan sınıf ya da dosya; çoğu zaman başka refactoring'lerden kalmış ya da gelmeyen bir gelecek için yazılmıştır.
+        lang: text
+        form: "Inline Class, Collapse Hierarchy"
+        example: |
+          class UserIdFormatter { format(id) { return String(id) } }
+          -> String(id) where it is used
+        mistake:
+          en: Keeping it because it "might grow". Add it back the day it is needed.
+          tr: Büyüyebilir diye tutmak. Gerektiği gün geri eklersin.
+        source: https://refactoring.guru/smells/lazy-class
+      - id: data-class
+        level: intermediate
+        title: { en: "Data Class", tr: "Veri sınıfı (Data Class)" }
+        what:
+          en: A class with only fields, while the logic that uses them lives elsewhere. In TypeScript a plain type is fine; the smell is logic scattered around it.
+          tr: Sadece alanları olan sınıf; onları kullanan mantık başka yerde durur. TypeScript'te düz bir tip sorun değildir; koku, mantığın etrafına dağılmasıdır.
+        lang: text
+        form: "Move Method, Encapsulate Field, Encapsulate Collection"
+        example: |
+          Invoice { lines, tax }  and  invoiceTotal(inv) in 4 places
+          -> one total(invoice) next to the type
+        mistake:
+          en: Turning every plain data type into a class with getters. Move the repeated logic, not the fields.
+          tr: Her düz veri tipini getter'lı bir sınıfa çevirmek. Alanları değil, tekrar eden mantığı taşı.
+        source: https://refactoring.guru/smells/data-class
+      - id: speculative-generality
+        level: intermediate
+        title: { en: "Speculative Generality", tr: "Spekülatif genellik" }
+        what:
+          en: Hooks, parameters and abstract classes "for later" that nothing uses yet (YAGNI). An interface with one implementation is a common sign.
+          tr: Henüz hiçbir şeyin kullanmadığı, "sonra lazım olur" diye eklenmiş kancalar, parametreler ve soyut sınıflar (YAGNI). Tek implementasyonlu arayüz yaygın bir işarettir.
+        lang: text
+        form: "Collapse Hierarchy, Inline Class, Remove Parameter"
+        example: |
+          interface StorageProvider + one LocalStorageProvider
+          -> the class alone until a second one exists
+        mistake:
+          en: Removing a seam that tests need (a fake in tests is a second implementation).
+          tr: Testlerin ihtiyaç duyduğu bir ek yeri kaldırmak (testteki sahte nesne ikinci bir implementasyondur).
+        source: https://refactoring.guru/smells/speculative-generality
+  - id: couplers
+    title: { en: "Couplers: too tangled", tr: "Bağlayıcılar: fazla iç içe" }
+    items:
+      - id: feature-envy
+        level: intermediate
+        title: { en: "Feature Envy", tr: "Özellik kıskançlığı (Feature Envy)" }
+        what:
+          en: A function uses another object's data more than its own; it probably belongs over there.
+          tr: Bir fonksiyon başka bir nesnenin verisini kendisininkinden çok kullanır; muhtemelen orada olmalıdır.
+        lang: typescript
+        form: "Move Method, Extract Method"
+        example: |
+          // in Order
+          shippingCost() { return this.customer.address.zone.rate * this.customer.address.zone.factor }
+          // -> zone.cost() in Zone
+        mistake:
+          en: Moving a function that uses two objects equally. Put it where most of its data lives.
+          tr: İki nesneyi eşit kullanan bir fonksiyonu taşımak. Verisinin çoğunun olduğu yere koy.
+        source: https://refactoring.guru/smells/feature-envy
+      - id: inappropriate-intimacy
+        level: advanced
+        title: { en: "Inappropriate Intimacy", tr: "Uygunsuz yakınlık" }
+        what:
+          en: Two modules reach into each other's internals; changing one breaks the other. God Eye's lint:arch catches import cycles and layer breaks, one form of it.
+          tr: İki modül birbirinin iç detaylarına uzanır; birini değiştirmek diğerini bozar. God Eye'ın lint:arch kapısı bunun bir biçimi olan döngüsel içe aktarma ve katman ihlallerini yakalar.
+        lang: text
+        form: "Move Method, Move Field, Change Bidirectional Association to Unidirectional, Hide Delegate"
+        example: |
+          a.ts imports b.ts internals and b.ts imports a.ts
+          -> the shared part moves to c.ts, both import c.ts
+        mistake:
+          en: Making everything public to stop the errors. Ask what the other module really needs and expose only that.
+          tr: Hataları durdurmak için her şeyi public yapmak. Diğer modülün gerçekten neye ihtiyacı olduğunu sor ve sadece onu aç.
+        source: https://refactoring.guru/smells/inappropriate-intimacy
+      - id: message-chains
+        level: intermediate
+        title: { en: "Message Chains", tr: "Mesaj zincirleri" }
+        what:
+          en: "Long chains like a.b().c().d() tie the caller to the whole path; any change in the middle breaks it (Law of Demeter)."
+          tr: "a.b().c().d() gibi uzun zincirler çağıranı tüm yola bağlar; aradaki herhangi bir değişiklik onu bozar (Demeter yasası)."
+        lang: typescript
+        form: "Hide Delegate, Extract Method, Move Method"
+        example: |
+          order.customer().account().plan().limit()
+          -> order.limit()
+        mistake:
+          en: Treating fluent builders and query chains as this smell. Those return the same kind of object on purpose.
+          tr: Akıcı builder'ları ve sorgu zincirlerini bu koku sanmak. Onlar bilerek aynı tür nesneyi döndürür.
+        source: https://refactoring.guru/smells/message-chains
+      - id: middle-man
+        level: intermediate
+        title: { en: "Middle Man", tr: "Aracı (Middle Man)" }
+        what:
+          en: A class whose methods only forward to another class; it adds a hop and nothing else. Often the overcorrection of Message Chains.
+          tr: Metotları sadece başka bir sınıfa ileten sınıf; bir adım ekler, başka bir şey değil. Çoğu zaman mesaj zincirlerinin aşırı düzeltilmiş hâli.
+        lang: text
+        form: "Remove Middle Man, Inline Method"
+        example: |
+          UserService.get(id) { return repo.get(id) }  (and nothing else)
+          -> callers use repo directly
+        mistake:
+          en: Removing a layer that guards a boundary (an API facade, a port to a third party).
+          tr: Bir sınırı koruyan katmanı kaldırmak (bir API cephesi, üçüncü tarafa açılan bir port).
+        source: https://refactoring.guru/smells/middle-man
+      - id: incomplete-library
+        level: advanced
+        title: { en: "Incomplete Library Class", tr: "Eksik kütüphane sınıfı" }
+        what:
+          en: A library lacks something you need and you cannot change it, so workarounds spread over the code.
+          tr: Bir kütüphanede ihtiyacın olan bir şey eksik ve onu değiştiremezsin; geçici çözümler koda yayılır.
+        lang: text
+        form: "Introduce Foreign Method, Introduce Local Extension (a wrapper)"
+        example: |
+          date math copied in 6 places around the date library
+          -> one dates.ts that wraps the library
+        mistake:
+          en: Patching the library in node_modules. The next install removes it.
+          tr: Kütüphaneyi node_modules içinde yamamak. Sonraki kurulum onu siler.
+        source: https://refactoring.guru/smells/incomplete-library-class
+  - id: anti-patterns
+    title: { en: "Common anti-patterns", tr: "Yaygın anti-pattern'ler" }
+    items:
+      - id: magic-numbers
+        level: basic
+        title: { en: "Magic numbers and strings", tr: "Sihirli sayılar ve metinler" }
+        what:
+          en: Unnamed literals (86400, "pro", 3) whose meaning and other uses are invisible.
+          tr: Anlamı ve başka nerede kullanıldığı görünmeyen adsız değerler (86400, "pro", 3).
+        lang: typescript
+        form: "Replace Magic Number with Symbolic Constant"
+        example: |
+          if (age > 86400000) ...
+          -> const DAY_MS = 24 * 60 * 60 * 1000;  if (age > DAY_MS) ...
+        mistake:
+          en: Naming the value after itself (const THREE = 3). Name it after its meaning (MAX_RETRIES).
+          tr: Değeri kendi adıyla adlandırmak (const THREE = 3). Anlamıyla adlandır (MAX_RETRIES).
+        source: https://en.wikipedia.org/wiki/Magic_number_(programming)
+      - id: golden-hammer
+        level: intermediate
+        title: { en: "Golden hammer and cargo cult", tr: "Altın çekiç ve kargo kültü" }
+        what:
+          en: Using the familiar tool or pattern everywhere (a Singleton, microservices, a framework) because it worked once, not because this problem needs it.
+          tr: Tanıdık bir aracı ya da deseni (Singleton, mikroservis, bir framework) bu problem gerektirdiği için değil, bir kez işe yaradığı için her yerde kullanmak.
+        lang: text
+        form: "Start from the problem; pick the simplest design that solves it"
+        example: |
+          five services for a two-person app with one database
+          -> one well-structured app (a modular monolith)
+        mistake:
+          en: Rejecting a tool just because it is popular. The question is fit, not fashion.
+          tr: Bir aracı sadece popüler olduğu için reddetmek. Soru moda değil, uygunluktur.
+        source: https://en.wikipedia.org/wiki/Law_of_the_instrument
+      - id: swallowed-errors
+        level: basic
+        title: { en: "Swallowed errors", tr: "Yutulan hatalar" }
+        what:
+          en: "An empty catch or a promise nobody waits for hides failures until they show up somewhere else. God Eye's lint:quality allows neither."
+          tr: "Boş bir catch ya da kimsenin beklemediği bir promise, hataları başka bir yerde ortaya çıkana kadar gizler. God Eye'ın lint:quality kapısı ikisine de izin vermez."
+        lang: typescript
+        form: "Handle it, rethrow with context, or say in a comment why it is safe to ignore"
+        example: |
+          try { await save() } catch {}            // lost
+          -> try { await save() } catch (err) { log.warn("save failed", err); throw err }
+          void refresh();  // fire-and-forget made explicit
+        mistake:
+          en: Logging and continuing as if it worked. Decide whether the caller must know.
+          tr: Loglayıp her şey yolundaymış gibi devam etmek. Çağıranın bilmesi gerekip gerekmediğine karar ver.
+        source: https://en.wikipedia.org/wiki/Error_hiding
