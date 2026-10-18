@@ -1,0 +1,2537 @@
+id: react-native
+title: React Native
+summary:
+  en: "From a React web app to a real phone app. You build a habit tracker with Expo, run it on your phone, add screens, a local database, tests, an app icon, and learn how it reaches testers and the stores."
+  tr: "React web uygulamasından gerçek bir telefon uygulamasına. Expo ile bir alışkanlık takip uygulaması yazarsın, telefonunda çalıştırırsın; ekranlar, yerel veritabanı, testler ve uygulama ikonu eklersin; uygulamanın test edenlere ve mağazalara nasıl ulaştığını öğrenirsin."
+teacher: mobile
+project:
+  en: 'A habit tracker for your phone: add habits, tick them off each day, see your streak, keep everything in a local SQLite database, load a daily quote from a public API, store a token safely, with tests, an app icon, an installable Android build and a plan for updates and crash reports.'
+  tr: 'Telefonun için bir alışkanlık takip uygulaması: alışkanlık ekleme, her gün işaretleme, seri (streak) görme, her şeyi yerel bir SQLite veritabanında tutma, herkese açık bir API''den günlük söz yükleme, bir token''ı güvenle saklama; testleri, uygulama ikonu, kurulabilir bir Android build''i ve güncelleme ile çökme raporu planı da var.'
+detect:
+  npm: [expo, react-native]
+version: "58.0"
+latest: npm:expo
+checked: 2026-10
+after: [react]
+sheets: [javascript, typescript, react, git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Get your computer, an Expo account and a phone ready"
+      tr: "Bilgisayarını, bir Expo hesabını ve bir telefonu hazırlama"
+    minutes: 40
+    why:
+      en: "React Native is React that draws real phone screens instead of web pages. Expo is the toolkit around it: it starts your app, builds it in the cloud and lets you try it on a real phone without installing Android or iOS developer tools. You need three things first: Node.js, an editor, and a phone."
+      tr: "React Native, web sayfası yerine gerçek telefon ekranları çizen React'tir. Expo da onun etrafındaki araç setidir: uygulamanı başlatır, bulutta build eder ve Android ya da iOS geliştirici araçlarını kurmadan gerçek telefonda denemeni sağlar. Önce üç şey lazım: Node.js, bir editör ve bir telefon."
+    learn:
+      en: |
+        - What React Native and Expo are, and how they relate to the React you already know
+        - What Expo Go is: a ready-made app that opens your project over the network
+        - Which phones can use Expo Go for free, and which cannot
+      tr: |
+        - React Native ve Expo'nun ne olduğu, bildiğin React ile ilişkisi
+        - Expo Go'nun ne olduğu: projeni ağ üzerinden açan hazır bir uygulama
+        - Hangi telefonlarda Expo Go'nun ücretsiz kullanılabildiği, hangilerinde kullanılamadığı
+    do:
+      en: |
+        1. Install **Node.js LTS** (nodejs.org), **Visual Studio Code** (code.visualstudio.com) and **Git** (git-scm.com). If you did the React roadmap, you already have them.
+        2. Create a free Expo account at expo.dev/signup. You need it later for builds and updates, and Expo Go on an iPhone needs it too.
+        3. Pick how you will see your app. **Android phone:** install **Expo Go** from the Google Play Store. This is the easiest free path. **iPhone:** the current Expo docs say Expo Go on a real iPhone needs an active Apple Developer Program membership (paid, see the stores step). Without it, use an Android phone or the web preview (`w` key later), or an iOS Simulator if you have a Mac with Xcode.
+        4. Connect the phone and the computer to the **same Wi-Fi network**. Expo sends the app over that network.
+        5. Open a terminal and check the tools. Each command should print a version.
+      tr: |
+        1. **Node.js LTS** (nodejs.org), **Visual Studio Code** (code.visualstudio.com) ve **Git**'i (git-scm.com) kur. React yol haritasını yaptıysan zaten kurulu.
+        2. expo.dev/signup adresinden ücretsiz bir Expo hesabı aç. Build ve güncellemeler için sonra lazım olacak; iPhone'da Expo Go için de gerekiyor.
+        3. Uygulamayı nerede göreceğini seç. **Android telefon:** Google Play Store'dan **Expo Go**'yu kur. En kolay ücretsiz yol bu. **iPhone:** güncel Expo dokümanına göre gerçek bir iPhone'da Expo Go için aktif bir Apple Developer Program üyeliği (ücretli, mağazalar adımına bak) gerekiyor. Üyeliğin yoksa Android telefon, web önizlemesi (sonra `w` tuşu) ya da Xcode'lu bir Mac'in varsa iOS Simulator kullan.
+        4. Telefonu ve bilgisayarı **aynı Wi-Fi ağına** bağla. Expo uygulamayı bu ağ üzerinden gönderir.
+        5. Bir terminal aç ve araçları kontrol et. Her komut bir sürüm yazmalı.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          npm --version
+          git --version
+    mistakes:
+      - problem:
+          en: "Installing Android Studio or Xcode first because a tutorial said so."
+          tr: "Bir eğitim öyle dedi diye önce Android Studio ya da Xcode kurmak."
+        fix:
+          en: "You do not need them to start. Expo Go on a phone is enough for the first steps. You only need the full Android or iOS tools if you want an emulator or a local native build."
+          tr: "Başlamak için gerekmezler. İlk adımlar için telefonda Expo Go yeter. Emülatör ya da yerel native build istersen tam Android ya da iOS araçlarına ihtiyacın olur."
+      - problem:
+          en: "Phone and computer are on different networks (guest Wi-Fi, mobile data, VPN)."
+          tr: "Telefon ve bilgisayar farklı ağlarda (misafir Wi-Fi, mobil veri, VPN)."
+        fix:
+          en: "Put both on the same normal Wi-Fi and turn the VPN off. If the network blocks device-to-device traffic, `npx expo start --tunnel` works around it."
+          tr: "İkisini de aynı normal Wi-Fi'a bağla ve VPN'i kapat. Ağ cihazlar arası trafiği engelliyorsa `npx expo start --tunnel` bunu aşar."
+    quiz:
+      - q:
+          en: "What is Expo Go?"
+          tr: "Expo Go nedir?"
+        options:
+          en: ["A cloud service that sells phones", "A ready-made app that opens your project while you develop", "The store where you publish apps"]
+          tr: ["Telefon satan bir bulut servisi", "Geliştirirken projeni açan hazır bir uygulama", "Uygulama yayınladığın mağaza"]
+        answer: 1
+        why:
+          en: "Expo Go is a playground app. It loads your JavaScript from your computer, so you see changes without building a native app."
+          tr: "Expo Go bir deneme uygulamasıdır. JavaScript kodunu bilgisayarından yükler; böylece native uygulama build etmeden değişiklikleri görürsün."
+    sources:
+      - title: Expo, set up your environment
+        url: https://docs.expo.dev/get-started/set-up-your-environment/
+      - title: Expo, introduction
+        url: https://docs.expo.dev/get-started/introduction/
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first app and open it on your phone"
+      tr: "İlk uygulamanı oluşturma ve telefonunda açma"
+    minutes: 35
+    needs: [setup]
+    why:
+      en: "One command creates a working project with everything wired: TypeScript, file-based navigation and a development server. Seeing your own text on a real phone in a few minutes is what makes the rest of the roadmap feel real."
+      tr: "Tek bir komut, her şeyi bağlı çalışan bir proje oluşturur: TypeScript, dosya tabanlı navigasyon ve bir geliştirme sunucusu. Kendi yazını birkaç dakika içinde gerçek bir telefonda görmek, yol haritasının geri kalanını gerçek yapar."
+    learn:
+      en: |
+        - What `create-expo-app` makes: `app.json`, `package.json`, `src/app` and `assets`
+        - How `npx expo start` serves your app and how Fast Refresh updates the phone when you save
+        - Why the project uses TypeScript, and how to type check it with `npx tsc --noEmit`
+      tr: |
+        - `create-expo-app`'in ne ürettiği: `app.json`, `package.json`, `src/app` ve `assets`
+        - `npx expo start`'ın uygulamayı nasıl sunduğu ve kaydedince Fast Refresh'in telefonu nasıl güncellediği
+        - Projenin neden TypeScript kullandığı ve `npx tsc --noEmit` ile nasıl tip kontrolü yapılacağı
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects and run the first command below. It creates a folder `habits` with the default template.
+        2. Go into the folder. The template has demo screens. Run `npm run reset-project` and answer `n` when it asks whether to keep the old files in an example folder. This leaves a tiny empty app: `src/app/_layout.tsx` and `src/app/index.tsx`.
+        3. Start the development server with `npx expo start`. A QR code appears in the terminal.
+        4. On Android, open **Expo Go** and tap **Scan QR code**. (On iPhone you need the paid setup from the previous step; otherwise press `w` in the terminal to see the app in a browser.) The first load takes a little while.
+        5. Open `src/app/index.tsx`, change the text to the code below and save. The phone updates by itself. This is Fast Refresh.
+        6. Open `app.json` and change `"userInterfaceStyle": "automatic"` to `"light"`. We design only a light theme in this roadmap, to keep the code short. Stop the server with Ctrl+C and start it again.
+        7. Save a first version with Git. If `git status` says it is not a repository, run `git init` first.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git ve aşağıdaki ilk komutu çalıştır. Varsayılan şablonla `habits` adında bir klasör oluşturur.
+        2. Klasöre gir. Şablonda demo ekranlar var. `npm run reset-project` çalıştır ve eski dosyaları bir örnek klasöründe tutup tutmayacağını sorunca `n` yaz. Geriye çok küçük, boş bir uygulama kalır: `src/app/_layout.tsx` ve `src/app/index.tsx`.
+        3. Geliştirme sunucusunu `npx expo start` ile başlat. Terminalde bir QR kod çıkar.
+        4. Android'de **Expo Go**'yu aç ve **Scan QR code**'a dokun. (iPhone'da önceki adımdaki ücretli kurulum gerekir; yoksa terminalde `w`'ya basıp uygulamayı tarayıcıda gör.) İlk yükleme biraz sürer.
+        5. `src/app/index.tsx` dosyasını aç, yazıyı aşağıdaki kodla değiştir ve kaydet. Telefon kendiliğinden güncellenir. Buna Fast Refresh denir.
+        6. `app.json` dosyasını aç ve `"userInterfaceStyle": "automatic"` değerini `"light"` yap. Kodu kısa tutmak için bu yol haritasında sadece açık tema tasarlıyoruz. Sunucuyu Ctrl+C ile durdurup yeniden başlat.
+        7. İlk sürümü Git ile kaydet. `git status` bir repo olmadığını söylüyorsa önce `git init` çalıştır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx create-expo-app@latest habits
+          cd habits
+          npm run reset-project
+          npx expo start
+      - file: src/app/index.tsx
+        lang: tsx
+        text: |
+          import { StyleSheet, Text, View } from 'react-native';
+
+          export default function HomeScreen() {
+            return (
+              <View style={styles.screen}>
+                <Text style={styles.title}>Hello, habits</Text>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+            title: { fontSize: 24, fontWeight: '600' },
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npx tsc --noEmit
+          git add .
+          git commit -m "Start the habits app"
+    mistakes:
+      - problem:
+          en: "The QR code opens, but Expo Go shows a network error or loads forever."
+          tr: "QR kod açılıyor ama Expo Go ağ hatası gösteriyor ya da sonsuza kadar yüklüyor."
+        fix:
+          en: "Check that both devices share the same Wi-Fi, turn off VPNs, allow Node.js through the computer firewall, or restart with `npx expo start --tunnel`."
+          tr: "İki cihazın aynı Wi-Fi'da olduğunu kontrol et, VPN'leri kapat, Node.js'e bilgisayarın güvenlik duvarından izin ver ya da `npx expo start --tunnel` ile yeniden başlat."
+      - problem:
+          en: "Writing a bare string inside a View, like <View>Hello</View>, crashes the app."
+          tr: "View içine çıplak bir yazı koymak, örneğin <View>Merhaba</View>, uygulamayı çökertir."
+        fix:
+          en: "On a phone all text must be inside a <Text> component. Wrap it: <View><Text>Hello</Text></View>."
+          tr: "Telefonda bütün yazılar bir <Text> bileşeninin içinde olmalı. Sar: <View><Text>Merhaba</Text></View>."
+    quiz:
+      - q:
+          en: "What does Fast Refresh do?"
+          tr: "Fast Refresh ne yapar?"
+        options:
+          en: ["Makes the phone charge faster", "Updates the running app when you save a file, without a new install", "Deletes the cache of your project"]
+          tr: ["Telefonu daha hızlı şarj eder", "Bir dosyayı kaydedince çalışan uygulamayı yeniden kurmadan günceller", "Projenin önbelleğini siler"]
+        answer: 1
+        why:
+          en: "The development server sends the changed code to the running app, so you see edits in a second or two."
+          tr: "Geliştirme sunucusu değişen kodu çalışan uygulamaya gönderir; düzenlemeleri bir iki saniyede görürsün."
+    sources:
+      - title: Expo, create a project
+        url: https://docs.expo.dev/get-started/create-a-project/
+      - title: Expo, start developing
+        url: https://docs.expo.dev/get-started/start-developing/
+
+  - id: components
+    stage: basics
+    title:
+      en: "Core components and styling"
+      tr: "Temel bileşenler ve stil verme"
+    minutes: 45
+    needs: [first-app]
+    why:
+      en: "A phone app is built from a small set of ready-made pieces: View, Text, Pressable, TextInput. There is no HTML and no CSS file. If you know React and flexbox you already know most of it, but the rules are a little different, and learning them now saves many surprises."
+      tr: "Bir telefon uygulaması, küçük bir hazır parça kümesinden kurulur: View, Text, Pressable, TextInput. HTML yok, CSS dosyası yok. React ve flexbox biliyorsan çoğunu zaten biliyorsun ama kurallar biraz farklı; bunları şimdi öğrenmek sonradan çok sürprizi önler."
+    learn:
+      en: |
+        - `View` is like a `div`, `Text` is the only place text can live, `Pressable` is any tappable thing
+        - Styles are JavaScript objects made with `StyleSheet.create`, with camelCase names like `backgroundColor`
+        - Layout is flexbox, and `flexDirection` is `column` by default (the opposite of the web)
+        - Sizes are plain numbers in density-independent units, not pixels or `rem`
+        - Accessibility props: `accessibilityRole` and `accessibilityLabel`
+      tr: |
+        - `View` bir `div` gibidir, yazı sadece `Text` içinde durabilir, `Pressable` dokunulabilen her şeydir
+        - Stiller `StyleSheet.create` ile yapılan JavaScript nesneleridir ve `backgroundColor` gibi camelCase isimler kullanır
+        - Yerleşim flexbox'tır ve `flexDirection` varsayılan olarak `column`'dur (web'in tersi)
+        - Boyutlar düz sayılardır, yoğunluktan bağımsız birimlerdedir; piksel ya da `rem` değil
+        - Erişilebilirlik özellikleri: `accessibilityRole` ve `accessibilityLabel`
+    do:
+      en: |
+        1. Create `src/theme.ts` with the colors below. One place for colors means one place to change them.
+        2. Create `src/components/habit-row.tsx`. A row shows a habit name, its streak and a button to mark it done. It receives everything through props, like any React component. The `@/` in imports means the `src` folder; the template already configures it in `tsconfig.json`.
+        3. Replace `src/app/index.tsx` with the screen below. For now the habits are a fixed list and the buttons only write to the log.
+        4. Save and look at your phone. Tap a button and watch the terminal: `console.log` output from the phone shows up there.
+        5. Play: change `padding`, `borderRadius` and `flexDirection` and see what moves.
+      tr: |
+        1. Aşağıdaki renklerle `src/theme.ts` oluştur. Renkler tek yerde olursa değiştirmek de tek yerde olur.
+        2. `src/components/habit-row.tsx` oluştur. Bir satır, alışkanlık adını, serisini ve tamamlandı işaretleme düğmesini gösterir. Her şeyi, her React bileşeni gibi, props ile alır. Import'taki `@/` `src` klasörü demek; şablon bunu `tsconfig.json`'da zaten ayarlıyor.
+        3. `src/app/index.tsx` dosyasını aşağıdaki ekranla değiştir. Şimdilik alışkanlıklar sabit bir liste ve düğmeler sadece log yazıyor.
+        4. Kaydet ve telefonuna bak. Bir düğmeye dokun ve terminale bak: telefondaki `console.log` çıktısı orada görünür.
+        5. Oyna: `padding`, `borderRadius` ve `flexDirection` değerlerini değiştir ve neyin oynadığına bak.
+    code:
+      - file: src/theme.ts
+        lang: ts
+        text: |
+          export const colors = {
+            background: '#f3f4f6',
+            card: '#ffffff',
+            border: '#e5e7eb',
+            text: '#111827',
+            muted: '#4b5563',
+            accent: '#2563eb',
+            onAccent: '#ffffff',
+            done: '#15803d',
+            danger: '#b91c1c',
+          };
+      - file: src/components/habit-row.tsx
+        lang: tsx
+        text: |
+          import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { colors } from '@/theme';
+
+          export type HabitRowProps = {
+            id: number;
+            name: string;
+            streak: number;
+            done: boolean;
+            onToggle: (id: number) => void;
+            onOpen: (id: number) => void;
+          };
+
+          export function HabitRow({ id, name, streak, done, onToggle, onOpen }: HabitRowProps) {
+            return (
+              <View style={styles.row}>
+                <Pressable
+                  style={styles.texts}
+                  onPress={() => onOpen(id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open ${name}`}>
+                  <Text style={styles.name}>{name}</Text>
+                  <Text style={styles.streak}>
+                    {streak} {streak === 1 ? 'day' : 'days'} streak
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[styles.button, done && styles.buttonDone]}
+                  onPress={() => onToggle(id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={done ? `Undo ${name}` : `Mark ${name} as done`}>
+                  <Text style={[styles.buttonText, done && styles.buttonTextDone]}>
+                    {done ? 'Done' : 'Mark done'}
+                  </Text>
+                </Pressable>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            row: {
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 12,
+              padding: 16,
+              marginBottom: 12,
+            },
+            texts: { flex: 1 },
+            name: { fontSize: 18, fontWeight: '600', color: colors.text },
+            streak: { marginTop: 4, color: colors.muted },
+            button: {
+              backgroundColor: colors.accent,
+              paddingVertical: 10,
+              paddingHorizontal: 14,
+              borderRadius: 8,
+            },
+            buttonDone: { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.done },
+            buttonText: { color: colors.onAccent, fontWeight: '600' },
+            buttonTextDone: { color: colors.done },
+          });
+      - file: src/app/index.tsx
+        lang: tsx
+        text: |
+          import { StyleSheet, View } from 'react-native';
+
+          import { HabitRow } from '@/components/habit-row';
+          import { colors } from '@/theme';
+
+          const HABITS = [
+            { id: 1, name: 'Drink water', streak: 3, done: true },
+            { id: 2, name: 'Read 10 pages', streak: 0, done: false },
+            { id: 3, name: 'Walk 20 minutes', streak: 5, done: false },
+          ];
+
+          export default function HomeScreen() {
+            return (
+              <View style={styles.screen}>
+                {HABITS.map((habit) => (
+                  <HabitRow
+                    key={habit.id}
+                    {...habit}
+                    onToggle={(id) => console.log('toggle', id)}
+                    onOpen={(id) => console.log('open', id)}
+                  />
+                ))}
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+          });
+    mistakes:
+      - problem:
+          en: "Using web habits: <div>, <p>, className, or a CSS file."
+          tr: "Web alışkanlıklarını kullanmak: <div>, <p>, className ya da CSS dosyası."
+        fix:
+          en: "Use View and Text, and style with the style prop. Browser tags do not exist on a phone."
+          tr: "View ve Text kullan, stili style prop'uyla ver. Tarayıcı etiketleri telefonda yoktur."
+      - problem:
+          en: "Text does not inherit styles like on the web; a color set on a View does nothing for the text inside."
+          tr: "Yazı, web'deki gibi stil devralmaz; View'a verilen renk içindeki yazıya geçmez."
+        fix:
+          en: "Style the Text component itself. Only a Text inside another Text inherits from it."
+          tr: "Stili Text bileşeninin kendisine ver. Sadece başka bir Text'in içindeki Text ondan devralır."
+    quiz:
+      - q:
+          en: "Which direction do children of a View go by default?"
+          tr: "Bir View'in çocukları varsayılan olarak hangi yöne dizilir?"
+        options:
+          en: ["In a row (left to right)", "In a column (top to bottom)", "Stacked on top of each other"]
+          tr: ["Satır halinde (soldan sağa)", "Sütun halinde (yukarıdan aşağıya)", "Üst üste biner"]
+        answer: 1
+        why:
+          en: "React Native flexbox defaults to flexDirection column. On the web the default is row."
+          tr: "React Native flexbox'ında varsayılan flexDirection column'dur. Web'de varsayılan row'dur."
+    sources:
+      - title: React Native, core components
+        url: https://reactnative.dev/docs/intro-react-native-components
+      - title: React Native, style
+        url: https://reactnative.dev/docs/style
+      - title: React Native, layout with flexbox
+        url: https://reactnative.dev/docs/flexbox
+
+  - id: navigation
+    stage: basics
+    title:
+      en: "Screens and navigation with Expo Router"
+      tr: "Expo Router ile ekranlar ve navigasyon"
+    minutes: 40
+    needs: [components]
+    why:
+      en: "A real app has more than one screen. Expo Router makes every file in `src/app` a screen, like routes in a web framework, and gives you the native back button, slide animations and modals for free."
+      tr: "Gerçek bir uygulamada birden fazla ekran olur. Expo Router, `src/app` içindeki her dosyayı bir ekran yapar (web framework'lerindeki route'lar gibi) ve native geri düğmesini, kayma animasyonlarını ve modal'ları bedavaya getirir."
+    learn:
+      en: |
+        - File-based routing: `index.tsx` is `/`, `new.tsx` is `/new`, `habit/[id].tsx` is `/habit/1`
+        - `_layout.tsx` decides how screens are arranged; `Stack` pushes screens on top of each other
+        - Moving around with `Link` and `useRouter`, and reading a route parameter with `useLocalSearchParams`
+        - A screen shown as a `modal`
+      tr: |
+        - Dosya tabanlı routing: `index.tsx` `/`, `new.tsx` `/new`, `habit/[id].tsx` `/habit/1` olur
+        - `_layout.tsx` ekranların nasıl düzenleneceğini belirler; `Stack` ekranları üst üste koyar
+        - `Link` ve `useRouter` ile gezinme, `useLocalSearchParams` ile route parametresi okuma
+        - `modal` olarak gösterilen bir ekran
+    do:
+      en: |
+        1. Replace `src/app/_layout.tsx` with the code below. It declares three screens and their titles.
+        2. Create `src/app/new.tsx`, a placeholder for the form we write later.
+        3. Create the folder `src/app/habit` and the file `src/app/habit/[id].tsx` (the brackets are part of the name). `[id]` is a parameter: `/habit/1` and `/habit/7` use the same file.
+        4. Replace `src/app/index.tsx`. Tapping a habit name now opens its screen, and the button at the bottom opens the modal.
+        5. Test it on the phone: open a habit, go back with the system back gesture or button, open the modal and close it by swiping down (or with the back button on Android).
+        6. Run `npx tsc --noEmit`. The first `npx expo start` also generates route types in `.expo/types`, so a wrong `href` is caught by TypeScript.
+      tr: |
+        1. `src/app/_layout.tsx` dosyasını aşağıdaki kodla değiştir. Üç ekranı ve başlıklarını tanımlar.
+        2. `src/app/new.tsx` oluştur; sonra yazacağımız formun yer tutucusu.
+        3. `src/app/habit` klasörünü ve `src/app/habit/[id].tsx` dosyasını oluştur (köşeli parantezler ismin parçası). `[id]` bir parametredir: `/habit/1` ve `/habit/7` aynı dosyayı kullanır.
+        4. `src/app/index.tsx` dosyasını değiştir. Bir alışkanlığın adına dokununca ekranı açılır, alttaki düğme modal'ı açar.
+        5. Telefonda dene: bir alışkanlığı aç, sistem geri hareketiyle ya da düğmesiyle geri dön, modal'ı aç ve aşağı kaydırarak (Android'de geri düğmesiyle) kapat.
+        6. `npx tsc --noEmit` çalıştır. İlk `npx expo start` ayrıca `.expo/types` içinde route tipleri üretir; yanlış bir `href` TypeScript'te yakalanır.
+    code:
+      - file: src/app/_layout.tsx
+        lang: tsx
+        text: |
+          import { Stack } from 'expo-router';
+
+          export default function RootLayout() {
+            return (
+              <Stack>
+                <Stack.Screen name="index" options={{ title: 'Habits' }} />
+                <Stack.Screen name="new" options={{ title: 'New habit', presentation: 'modal' }} />
+                <Stack.Screen name="habit/[id]" options={{ title: 'Habit' }} />
+              </Stack>
+            );
+          }
+      - file: src/app/new.tsx
+        lang: tsx
+        text: |
+          import { StyleSheet, Text, View } from 'react-native';
+
+          import { colors } from '@/theme';
+
+          export default function NewHabitScreen() {
+            return (
+              <View style={styles.screen}>
+                <Text>The form comes in a later step.</Text>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+          });
+      - file: src/app/habit/[id].tsx
+        lang: tsx
+        text: |
+          import { useLocalSearchParams } from 'expo-router';
+          import { StyleSheet, Text, View } from 'react-native';
+
+          import { colors } from '@/theme';
+
+          export default function HabitScreen() {
+            const { id } = useLocalSearchParams<{ id: string }>();
+            return (
+              <View style={styles.screen}>
+                <Text style={styles.text}>Habit number {id}</Text>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            text: { fontSize: 18, color: colors.text },
+          });
+      - file: src/app/index.tsx
+        lang: tsx
+        text: |
+          import { Link, useRouter } from 'expo-router';
+          import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { HabitRow } from '@/components/habit-row';
+          import { colors } from '@/theme';
+
+          const HABITS = [
+            { id: 1, name: 'Drink water', streak: 3, done: true },
+            { id: 2, name: 'Read 10 pages', streak: 0, done: false },
+            { id: 3, name: 'Walk 20 minutes', streak: 5, done: false },
+          ];
+
+          export default function HomeScreen() {
+            const router = useRouter();
+            return (
+              <View style={styles.screen}>
+                {HABITS.map((habit) => (
+                  <HabitRow
+                    key={habit.id}
+                    {...habit}
+                    onToggle={(id) => console.log('toggle', id)}
+                    onOpen={(id) => router.push({ pathname: '/habit/[id]', params: { id: String(id) } })}
+                  />
+                ))}
+                <Link href="/new" asChild>
+                  <Pressable style={styles.add} accessibilityRole="button">
+                    <Text style={styles.addText}>New habit</Text>
+                  </Pressable>
+                </Link>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            add: {
+              marginTop: 'auto',
+              alignItems: 'center',
+              backgroundColor: colors.accent,
+              padding: 14,
+              borderRadius: 10,
+            },
+            addText: { color: colors.onAccent, fontWeight: '600', fontSize: 16 },
+          });
+    mistakes:
+      - problem:
+          en: "Putting helper files like components in `src/app`, so Expo Router turns them into screens."
+          tr: "Bileşen gibi yardımcı dosyaları `src/app` içine koyup Expo Router'ın onları ekran yapmasına yol açmak."
+        fix:
+          en: "Only screens and layouts live in `src/app`. Components, hooks and logic go next to it in `src/components`, `src/theme.ts` and so on."
+          tr: "`src/app` içinde sadece ekranlar ve layout'lar durur. Bileşenler, hook'lar ve mantık yanında `src/components`, `src/theme.ts` gibi yerlerde olur."
+      - problem:
+          en: "Reading the route parameter as a number: `id` is always a string."
+          tr: "Route parametresini sayı sanmak: `id` her zaman string'dir."
+        fix:
+          en: "Convert it yourself with `Number(id)` and pass it as `String(id)` when navigating."
+          tr: "`Number(id)` ile kendin çevir ve gezinirken `String(id)` olarak gönder."
+    quiz:
+      - q:
+          en: "Which file is the screen for the address /habit/7?"
+          tr: "/habit/7 adresinin ekranı hangi dosyadır?"
+        options:
+          en: ["src/app/habit.tsx", "src/app/habit/[id].tsx", "src/app/habit/7.tsx only"]
+          tr: ["src/app/habit.tsx", "src/app/habit/[id].tsx", "sadece src/app/habit/7.tsx"]
+        answer: 1
+        why:
+          en: "A name in square brackets is a dynamic segment. Any value in that place opens the same file, and useLocalSearchParams gives you the value."
+          tr: "Köşeli parantezli isim dinamik bir bölümdür. O yerdeki herhangi bir değer aynı dosyayı açar, değeri de useLocalSearchParams verir."
+    sources:
+      - title: Expo Router, introduction
+        url: https://docs.expo.dev/router/introduction/
+      - title: Expo Router, navigating between pages
+        url: https://docs.expo.dev/router/basics/navigation/
+      - title: Expo Router, notation (dynamic segments)
+        url: https://docs.expo.dev/router/basics/notation/
+
+  - id: state
+    stage: basics
+    title:
+      en: "State: habits that change"
+      tr: "State: değişen alışkanlıklar"
+    minutes: 50
+    needs: [navigation]
+    why:
+      en: "A fixed list cannot be ticked off. State is the data that changes while the app runs. Because three screens need the same habits, the state lives above the screens, in a context, and every screen reads it from there. The streak logic goes in a plain function, away from the screens, so it can be tested later."
+      tr: "Sabit bir liste işaretlenemez. State, uygulama çalışırken değişen veridir. Üç ekranın da aynı alışkanlıklara ihtiyacı olduğu için state ekranların üstünde, bir context'te durur ve her ekran onu oradan okur. Seri mantığı, sonra test edilebilsin diye ekranlardan uzakta, düz bir fonksiyonda durur."
+    learn:
+      en: |
+        - `useReducer` for state with several kinds of change: add, toggle, remove
+        - React context to share state with every screen
+        - A pure function (`streak`) that only takes values and returns a value
+        - Why days are stored as `YYYY-MM-DD` text in the user's local time
+      tr: |
+        - Birkaç çeşit değişimi olan state için `useReducer`: ekle, işaretle, sil
+        - State'i bütün ekranlarla paylaşmak için React context
+        - Sadece değer alıp değer döndüren saf bir fonksiyon (`streak`)
+        - Günlerin neden kullanıcının yerel saatinde `YYYY-MM-DD` metni olarak saklandığı
+    do:
+      en: |
+        1. Create `src/streak.ts`. `dayKey` turns a date into text like `2026-10-18`. `streak` counts how many days in a row end today, or end yesterday (a streak is still alive until today is over).
+        2. Create `src/habits-context.tsx` with the reducer, the provider and the `useHabits` hook.
+        3. Wrap the `Stack` in `HabitsProvider` in `src/app/_layout.tsx`.
+        4. Replace `src/app/index.tsx`. It now reads habits from `useHabits()` and shows them in a `FlatList`, the standard way to show a list of rows.
+        5. Tap "Mark done" on the phone. The button changes and the streak goes to 1. Tap again to undo. The data resets when you restart the app; we fix that in the persistence step.
+      tr: |
+        1. `src/streak.ts` oluştur. `dayKey` bir tarihi `2026-10-18` gibi metne çevirir. `streak` bugün biten ya da dün biten kaç günlük bir zincir olduğunu sayar (seri, bugün bitene kadar hâlâ canlıdır).
+        2. Reducer, provider ve `useHabits` hook'uyla `src/habits-context.tsx` oluştur.
+        3. `src/app/_layout.tsx` içinde `Stack`'i `HabitsProvider` ile sar.
+        4. `src/app/index.tsx` dosyasını değiştir. Artık alışkanlıkları `useHabits()`'ten okuyor ve satır listesi göstermenin standart yolu olan `FlatList` ile gösteriyor.
+        5. Telefonda "Mark done"a dokun. Düğme değişir ve seri 1 olur. Geri almak için tekrar dokun. Uygulamayı yeniden başlatınca veri sıfırlanır; bunu kalıcılık adımında düzelteceğiz.
+    code:
+      - file: src/streak.ts
+        lang: ts
+        text: |
+          /** A day as text in local time, for example "2026-10-18". */
+          export function dayKey(date: Date = new Date()): string {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+          }
+
+          function previousDay(key: string): string {
+            const [year, month, day] = key.split('-').map(Number);
+            return dayKey(new Date(year, month - 1, day - 1));
+          }
+
+          /** How many days in a row end today (or yesterday, if today is not done yet). */
+          export function streak(days: string[], today: string = dayKey()): number {
+            const done = new Set(days);
+            let cursor = done.has(today) ? today : previousDay(today);
+            let count = 0;
+            while (done.has(cursor)) {
+              count += 1;
+              cursor = previousDay(cursor);
+            }
+            return count;
+          }
+      - file: src/habits-context.tsx
+        lang: tsx
+        text: |
+          import { createContext, useContext, useMemo, useReducer, type ReactNode } from 'react';
+
+          import { dayKey } from '@/streak';
+
+          export type Habit = { id: number; name: string; doneDates: string[] };
+
+          type Action =
+            | { type: 'add'; name: string }
+            | { type: 'toggle'; id: number; day: string }
+            | { type: 'remove'; id: number };
+
+          function reducer(state: Habit[], action: Action): Habit[] {
+            switch (action.type) {
+              case 'add': {
+                const id = state.reduce((max, habit) => Math.max(max, habit.id), 0) + 1;
+                return [...state, { id, name: action.name, doneDates: [] }];
+              }
+              case 'toggle':
+                return state.map((habit) => {
+                  if (habit.id !== action.id) return habit;
+                  const has = habit.doneDates.includes(action.day);
+                  return {
+                    ...habit,
+                    doneDates: has
+                      ? habit.doneDates.filter((day) => day !== action.day)
+                      : [...habit.doneDates, action.day],
+                  };
+                });
+              case 'remove':
+                return state.filter((habit) => habit.id !== action.id);
+            }
+          }
+
+          type HabitsValue = {
+            habits: Habit[];
+            add: (name: string) => void;
+            toggle: (id: number) => void;
+            remove: (id: number) => void;
+          };
+
+          const HabitsContext = createContext<HabitsValue | null>(null);
+
+          export function HabitsProvider({ children }: { children: ReactNode }) {
+            const [habits, dispatch] = useReducer(reducer, [
+              { id: 1, name: 'Drink water', doneDates: [] },
+            ]);
+
+            const value = useMemo<HabitsValue>(
+              () => ({
+                habits,
+                add: (name) => dispatch({ type: 'add', name }),
+                toggle: (id) => dispatch({ type: 'toggle', id, day: dayKey() }),
+                remove: (id) => dispatch({ type: 'remove', id }),
+              }),
+              [habits],
+            );
+
+            return <HabitsContext.Provider value={value}>{children}</HabitsContext.Provider>;
+          }
+
+          export function useHabits(): HabitsValue {
+            const value = useContext(HabitsContext);
+            if (!value) throw new Error('useHabits must be used inside HabitsProvider');
+            return value;
+          }
+      - file: src/app/_layout.tsx
+        lang: tsx
+        text: |
+          import { Stack } from 'expo-router';
+
+          import { HabitsProvider } from '@/habits-context';
+
+          export default function RootLayout() {
+            return (
+              <HabitsProvider>
+                <Stack>
+                  <Stack.Screen name="index" options={{ title: 'Habits' }} />
+                  <Stack.Screen name="new" options={{ title: 'New habit', presentation: 'modal' }} />
+                  <Stack.Screen name="habit/[id]" options={{ title: 'Habit' }} />
+                </Stack>
+              </HabitsProvider>
+            );
+          }
+      - file: src/app/index.tsx
+        lang: tsx
+        text: |
+          import { Link, useRouter } from 'expo-router';
+          import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { HabitRow } from '@/components/habit-row';
+          import { useHabits } from '@/habits-context';
+          import { dayKey, streak } from '@/streak';
+          import { colors } from '@/theme';
+
+          export default function HomeScreen() {
+            const router = useRouter();
+            const { habits, toggle } = useHabits();
+            const today = dayKey();
+
+            return (
+              <View style={styles.screen}>
+                <FlatList
+                  data={habits}
+                  keyExtractor={(habit) => String(habit.id)}
+                  renderItem={({ item }) => (
+                    <HabitRow
+                      id={item.id}
+                      name={item.name}
+                      streak={streak(item.doneDates, today)}
+                      done={item.doneDates.includes(today)}
+                      onToggle={toggle}
+                      onOpen={(id) => router.push({ pathname: '/habit/[id]', params: { id: String(id) } })}
+                    />
+                  )}
+                  ListEmptyComponent={<Text style={styles.empty}>No habits yet. Add your first one.</Text>}
+                />
+                <Link href="/new" asChild>
+                  <Pressable style={styles.add} accessibilityRole="button">
+                    <Text style={styles.addText}>New habit</Text>
+                  </Pressable>
+                </Link>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            empty: { color: colors.muted, textAlign: 'center', marginTop: 32 },
+            add: { alignItems: 'center', backgroundColor: colors.accent, padding: 14, borderRadius: 10 },
+            addText: { color: colors.onAccent, fontWeight: '600', fontSize: 16 },
+          });
+    mistakes:
+      - problem:
+          en: "Changing state directly, like `habit.doneDates.push(day)`. The screen does not update."
+          tr: "State'i doğrudan değiştirmek, örneğin `habit.doneDates.push(day)`. Ekran güncellenmez."
+        fix:
+          en: "Return a new array or object from the reducer (`[...old, new]`, `{ ...habit, doneDates }`). React only notices new values."
+          tr: "Reducer'dan yeni bir dizi ya da nesne döndür (`[...eski, yeni]`, `{ ...habit, doneDates }`). React sadece yeni değerleri fark eder."
+      - problem:
+          en: "Using UTC dates (`toISOString`) as day keys. Late in the evening in some countries the habit counts for tomorrow."
+          tr: "Gün anahtarı olarak UTC tarih (`toISOString`) kullanmak. Bazı ülkelerde akşam geç saatte alışkanlık yarına sayılır."
+        fix:
+          en: "Build the key from the local year, month and day, as `dayKey` does."
+          tr: "Anahtarı `dayKey`'deki gibi yerel yıl, ay ve günden üret."
+    quiz:
+      - q:
+          en: "Why is the streak calculation a separate plain function?"
+          tr: "Seri hesabı neden ayrı, düz bir fonksiyon?"
+        options:
+          en: ["Screens are not allowed to calculate", "It can be reused and tested without a phone or a screen", "It runs faster in a separate file"]
+          tr: ["Ekranların hesap yapması yasak", "Telefon ya da ekran olmadan tekrar kullanılabilir ve test edilebilir", "Ayrı dosyada daha hızlı çalışır"]
+        answer: 1
+        why:
+          en: "A function that only takes values and returns a value is the easiest code to test. We do that in the testing step."
+          tr: "Sadece değer alıp değer döndüren fonksiyon test etmesi en kolay koddur. Bunu test adımında yapacağız."
+    sources:
+      - title: React, useReducer
+        url: https://react.dev/reference/react/useReducer
+      - title: React, scaling up with reducer and context
+        url: https://react.dev/learn/scaling-up-with-reducer-and-context
+      - title: React Native, FlatList
+        url: https://reactnative.dev/docs/flatlist
+
+  - id: form
+    stage: first-project
+    title:
+      en: "A form to add habits and a detail screen"
+      tr: "Alışkanlık eklemek için form ve bir detay ekranı"
+    minutes: 50
+    needs: [state]
+    why:
+      en: "Now the app becomes useful. People type on a small screen with a keyboard that covers half of it, so a form must be short, say what is wrong, and close itself when done. The detail screen shows one habit and lets you delete it, after asking first."
+      tr: "Şimdi uygulama işe yarar hale geliyor. İnsanlar yarısını klavyenin kapladığı küçük bir ekranda yazar; bu yüzden form kısa olmalı, neyin yanlış olduğunu söylemeli ve işi bitince kendi kapanmalı. Detay ekranı tek bir alışkanlığı gösterir ve silmeden önce sorar."
+    learn:
+      en: |
+        - `TextInput` as a controlled input: `value` and `onChangeText`
+        - Validation: trim the text, refuse an empty name, show the message next to the field
+        - `returnKeyType`, `onSubmitEditing` and `maxLength` for a comfortable keyboard
+        - `Alert.alert` to confirm a destructive action
+      tr: |
+        - Kontrollü input olarak `TextInput`: `value` ve `onChangeText`
+        - Doğrulama: metni kırp, boş isme izin verme, mesajı alanın yanında göster
+        - Rahat bir klavye için `returnKeyType`, `onSubmitEditing` ve `maxLength`
+        - Silme gibi geri alınamaz bir işlemi onaylatmak için `Alert.alert`
+    do:
+      en: |
+        1. Replace `src/app/new.tsx` with the real form below.
+        2. Replace `src/app/habit/[id].tsx` with the detail screen. It finds the habit in the context, shows the streak and the total number of days, and has a Delete button that asks first.
+        3. Add a habit on the phone. Try to save an empty name and read the message. Type a name and press the keyboard's done key: the modal closes and the habit is in the list.
+        4. Open the habit, delete it and confirm. You return to the list.
+        5. Run `npx tsc --noEmit` and commit.
+      tr: |
+        1. `src/app/new.tsx` dosyasını aşağıdaki gerçek formla değiştir.
+        2. `src/app/habit/[id].tsx` dosyasını detay ekranıyla değiştir. Alışkanlığı context'te bulur, seriyi ve toplam gün sayısını gösterir, önce soran bir Delete düğmesi vardır.
+        3. Telefonda bir alışkanlık ekle. Boş bir isimle kaydetmeyi dene ve mesajı oku. Bir isim yaz ve klavyenin bitti tuşuna bas: modal kapanır ve alışkanlık listede olur.
+        4. Alışkanlığı aç, sil ve onayla. Listeye dönersin.
+        5. `npx tsc --noEmit` çalıştır ve commit et.
+    code:
+      - file: src/app/new.tsx
+        lang: tsx
+        text: |
+          import { useRouter } from 'expo-router';
+          import { useState } from 'react';
+          import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+          import { useHabits } from '@/habits-context';
+          import { colors } from '@/theme';
+
+          export default function NewHabitScreen() {
+            const router = useRouter();
+            const { add } = useHabits();
+            const [name, setName] = useState('');
+            const [error, setError] = useState<string | null>(null);
+
+            function submit() {
+              const clean = name.trim();
+              if (clean.length === 0) {
+                setError('Give your habit a name.');
+                return;
+              }
+              add(clean);
+              router.back();
+            }
+
+            return (
+              <View style={styles.screen}>
+                <Text style={styles.label}>What will you do every day?</Text>
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={(text) => {
+                    setName(text);
+                    setError(null);
+                  }}
+                  placeholder="Drink water"
+                  maxLength={40}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={submit}
+                  accessibilityLabel="Habit name"
+                />
+                {error ? (
+                  <Text style={styles.error} accessibilityRole="alert">
+                    {error}
+                  </Text>
+                ) : null}
+                <Pressable style={styles.save} onPress={submit} accessibilityRole="button">
+                  <Text style={styles.saveText}>Save habit</Text>
+                </Pressable>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            label: { fontSize: 16, fontWeight: '600', color: colors.text, marginBottom: 8 },
+            input: {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 10,
+              padding: 12,
+              fontSize: 16,
+              color: colors.text,
+            },
+            error: { color: colors.danger, marginTop: 8 },
+            save: {
+              marginTop: 16,
+              alignItems: 'center',
+              backgroundColor: colors.accent,
+              padding: 14,
+              borderRadius: 10,
+            },
+            saveText: { color: colors.onAccent, fontWeight: '600', fontSize: 16 },
+          });
+      - file: src/app/habit/[id].tsx
+        lang: tsx
+        text: |
+          import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+          import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { useHabits } from '@/habits-context';
+          import { streak } from '@/streak';
+          import { colors } from '@/theme';
+
+          export default function HabitScreen() {
+            const { id } = useLocalSearchParams<{ id: string }>();
+            const router = useRouter();
+            const { habits, remove } = useHabits();
+            const habit = habits.find((item) => item.id === Number(id));
+
+            if (!habit) {
+              return (
+                <View style={styles.screen}>
+                  <Text style={styles.muted}>This habit does not exist any more.</Text>
+                </View>
+              );
+            }
+
+            const confirmRemove = () => {
+              Alert.alert('Delete habit?', `"${habit.name}" and its history will be removed.`, [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: () => {
+                    remove(habit.id);
+                    router.back();
+                  },
+                },
+              ]);
+            };
+
+            return (
+              <View style={styles.screen}>
+                <Stack.Screen options={{ title: habit.name }} />
+                <Text style={styles.big}>{streak(habit.doneDates)}</Text>
+                <Text style={styles.muted}>day streak</Text>
+                <Text style={styles.total}>Done on {habit.doneDates.length} days in total</Text>
+                <Pressable style={styles.delete} onPress={confirmRemove} accessibilityRole="button">
+                  <Text style={styles.deleteText}>Delete habit</Text>
+                </Pressable>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16, alignItems: 'center' },
+            big: { fontSize: 72, fontWeight: '700', color: colors.accent, marginTop: 32 },
+            muted: { color: colors.muted, fontSize: 16 },
+            total: { color: colors.text, marginTop: 24, fontSize: 16 },
+            delete: { marginTop: 'auto', padding: 14 },
+            deleteText: { color: colors.danger, fontWeight: '600', fontSize: 16 },
+          });
+    mistakes:
+      - problem:
+          en: "The keyboard covers the Save button on a long form."
+          tr: "Uzun bir formda klavye Kaydet düğmesini kapatıyor."
+        fix:
+          en: "For forms taller than one screen, wrap the content in a `ScrollView` with `keyboardShouldPersistTaps=\"handled\"` or use `KeyboardAvoidingView`. This short form fits above the keyboard."
+          tr: "Bir ekrandan uzun formlarda içeriği `keyboardShouldPersistTaps=\"handled\"` olan bir `ScrollView` içine al ya da `KeyboardAvoidingView` kullan. Bu kısa form klavyenin üstüne sığar."
+      - problem:
+          en: "Saving the name without `trim()`, so a name of only spaces passes."
+          tr: "İsmi `trim()` kullanmadan kaydetmek; sadece boşluktan oluşan isim geçer."
+        fix:
+          en: "Trim first and validate the trimmed text, as in `submit`."
+          tr: "Önce kırp ve kırpılmış metni doğrula, `submit`'teki gibi."
+    quiz:
+      - q:
+          en: "Why ask before deleting a habit?"
+          tr: "Alışkanlığı silmeden önce neden soruyoruz?"
+        options:
+          en: ["Deleting is slow", "A tap is easy to make by mistake and deleting cannot be undone", "Alert is required by the store"]
+          tr: ["Silme yavaş", "Yanlışlıkla dokunmak kolay ve silme geri alınamaz", "Mağaza Alert'i zorunlu kılıyor"]
+        answer: 1
+        why:
+          en: "Fingers slip. A short confirmation protects people from losing their history."
+          tr: "Parmak kayar. Kısa bir onay, insanların geçmişlerini kaybetmesini önler."
+    sources:
+      - title: React Native, TextInput
+        url: https://reactnative.dev/docs/textinput
+      - title: React Native, Alert
+        url: https://reactnative.dev/docs/alert
+      - title: React, reacting to input with state
+        url: https://react.dev/learn/reacting-to-input-with-state
+
+  - id: persist
+    stage: data-api
+    title:
+      en: "Keep the habits on the phone with SQLite"
+      tr: "Alışkanlıkları SQLite ile telefonda saklama"
+    minutes: 55
+    needs: [form]
+    why:
+      en: "Right now everything disappears when the app closes. A phone app must remember. The phone has its own small database engine, SQLite, and Expo gives you `expo-sqlite` to use it. It is a good choice when you have lists of things that relate to each other, like habits and their check-ins."
+      tr: "Şu an uygulama kapanınca her şey kayboluyor. Telefon uygulaması hatırlamak zorunda. Telefonun kendi küçük veritabanı motoru SQLite var ve Expo, onu kullanman için `expo-sqlite` verir. Alışkanlıklar ve işaretleri gibi birbiriyle ilişkili şeylerin listeleri varsa iyi bir seçimdir."
+    learn:
+      en: |
+        - What SQLite is: a database in one file on the phone, no server
+        - Tables, `INSERT`, `SELECT`, `DELETE`, and passing values with `?` so they cannot break the query
+        - Migrations: a version number in the database (`user_version`) so later app versions can change the tables
+        - Why simple key-value data fits `AsyncStorage` or `expo-sqlite/kv-store` better, and relational data fits SQLite
+      tr: |
+        - SQLite nedir: telefonda tek dosyalık veritabanı, sunucu yok
+        - Tablolar, `INSERT`, `SELECT`, `DELETE` ve değerleri `?` ile vermek (sorguyu bozamasınlar diye)
+        - Migration: veritabanında bir sürüm numarası (`user_version`) tutmak; böylece uygulamanın sonraki sürümleri tabloları değiştirebilir
+        - Basit anahtar-değer verisinin neden `AsyncStorage` ya da `expo-sqlite/kv-store`'a, ilişkili verinin SQLite'a daha uygun olduğu
+    do:
+      en: |
+        1. Install the package with Expo's installer, which picks the version that matches your SDK.
+        2. Create `src/db.ts` with the `migrate` function. The first run creates the tables; the next runs see version 1 and do nothing. When you need a new column one day, you add a version 2 step here.
+        3. Replace `src/habits-context.tsx`. The public side (`habits`, `add`, `toggle`, `remove`) is the same, so no screen changes. Inside, every action writes to SQLite and then reloads the list.
+        4. Replace `src/app/_layout.tsx`: `SQLiteProvider` opens `habits.db` and runs `migrate`. With `useSuspense` it shows the fallback until the database is ready.
+        5. Add a habit, mark it done, then close Expo Go completely (swipe it away) and open the project again. The data is still there.
+      tr: |
+        1. Paketi, SDK'na uygun sürümü seçen Expo yükleyicisiyle kur.
+        2. `migrate` fonksiyonuyla `src/db.ts` oluştur. İlk çalıştırma tabloları oluşturur; sonrakiler sürüm 1'i görür ve bir şey yapmaz. Bir gün yeni bir kolon gerekirse buraya 2. sürüm adımını eklersin.
+        3. `src/habits-context.tsx` dosyasını değiştir. Dış yüzü (`habits`, `add`, `toggle`, `remove`) aynı, bu yüzden hiçbir ekran değişmez. İçeride her işlem SQLite'a yazar, sonra listeyi yeniden yükler.
+        4. `src/app/_layout.tsx` dosyasını değiştir: `SQLiteProvider` `habits.db`'yi açar ve `migrate`'i çalıştırır. `useSuspense` ile veritabanı hazır olana kadar fallback gösterir.
+        5. Bir alışkanlık ekle, işaretle, sonra Expo Go'yu tamamen kapat (kaydırıp at) ve projeyi yeniden aç. Veri hâlâ orada.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo install expo-sqlite
+      - file: src/db.ts
+        lang: ts
+        text: |
+          import type { SQLiteDatabase } from 'expo-sqlite';
+
+          const DATABASE_VERSION = 1;
+
+          export async function migrate(db: SQLiteDatabase) {
+            const row = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+            const current = row?.user_version ?? 0;
+            if (current >= DATABASE_VERSION) return;
+
+            if (current < 1) {
+              await db.execAsync(`
+                PRAGMA journal_mode = 'wal';
+                CREATE TABLE habits (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL
+                );
+                CREATE TABLE checkins (
+                  habit_id INTEGER NOT NULL,
+                  day TEXT NOT NULL,
+                  PRIMARY KEY (habit_id, day)
+                );
+              `);
+            }
+
+            await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+          }
+      - file: src/habits-context.tsx
+        lang: tsx
+        text: |
+          import { useSQLiteContext } from 'expo-sqlite';
+          import {
+            createContext,
+            useCallback,
+            useContext,
+            useEffect,
+            useMemo,
+            useState,
+            type ReactNode,
+          } from 'react';
+
+          import { dayKey } from '@/streak';
+
+          export type Habit = { id: number; name: string; doneDates: string[] };
+
+          type HabitsValue = {
+            habits: Habit[];
+            add: (name: string) => void;
+            toggle: (id: number) => void;
+            remove: (id: number) => void;
+          };
+
+          const HabitsContext = createContext<HabitsValue | null>(null);
+
+          export function HabitsProvider({ children }: { children: ReactNode }) {
+            const db = useSQLiteContext();
+            const [habits, setHabits] = useState<Habit[]>([]);
+
+            const reload = useCallback(async () => {
+              const rows = await db.getAllAsync<{ id: number; name: string }>(
+                'SELECT id, name FROM habits ORDER BY id',
+              );
+              const checkins = await db.getAllAsync<{ habit_id: number; day: string }>(
+                'SELECT habit_id, day FROM checkins',
+              );
+              setHabits(
+                rows.map((row) => ({
+                  ...row,
+                  doneDates: checkins.filter((c) => c.habit_id === row.id).map((c) => c.day),
+                })),
+              );
+            }, [db]);
+
+            useEffect(() => {
+              reload().catch(console.error);
+            }, [reload]);
+
+            const value = useMemo<HabitsValue>(
+              () => ({
+                habits,
+                add: (name) => {
+                  db.runAsync('INSERT INTO habits (name) VALUES (?)', name)
+                    .then(reload)
+                    .catch(console.error);
+                },
+                toggle: (id) => {
+                  const day = dayKey();
+                  (async () => {
+                    // The primary key allows one check-in per habit per day.
+                    const result = await db.runAsync(
+                      'INSERT OR IGNORE INTO checkins (habit_id, day) VALUES (?, ?)',
+                      id,
+                      day,
+                    );
+                    if (result.changes === 0) {
+                      await db.runAsync('DELETE FROM checkins WHERE habit_id = ? AND day = ?', id, day);
+                    }
+                    await reload();
+                  })().catch(console.error);
+                },
+                remove: (id) => {
+                  db.withExclusiveTransactionAsync(async (txn) => {
+                    await txn.runAsync('DELETE FROM checkins WHERE habit_id = ?', id);
+                    await txn.runAsync('DELETE FROM habits WHERE id = ?', id);
+                  })
+                    .then(reload)
+                    .catch(console.error);
+                },
+              }),
+              [db, habits, reload],
+            );
+
+            return <HabitsContext.Provider value={value}>{children}</HabitsContext.Provider>;
+          }
+
+          export function useHabits(): HabitsValue {
+            const value = useContext(HabitsContext);
+            if (!value) throw new Error('useHabits must be used inside HabitsProvider');
+            return value;
+          }
+      - file: src/app/_layout.tsx
+        lang: tsx
+        text: |
+          import { Stack } from 'expo-router';
+          import { SQLiteProvider } from 'expo-sqlite';
+          import { Suspense } from 'react';
+          import { ActivityIndicator, View } from 'react-native';
+
+          import { migrate } from '@/db';
+          import { HabitsProvider } from '@/habits-context';
+
+          function Loading() {
+            return (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator />
+              </View>
+            );
+          }
+
+          export default function RootLayout() {
+            return (
+              <Suspense fallback={<Loading />}>
+                <SQLiteProvider databaseName="habits.db" onInit={migrate} useSuspense>
+                  <HabitsProvider>
+                    <Stack>
+                      <Stack.Screen name="index" options={{ title: 'Habits' }} />
+                      <Stack.Screen name="new" options={{ title: 'New habit', presentation: 'modal' }} />
+                      <Stack.Screen name="habit/[id]" options={{ title: 'Habit' }} />
+                    </Stack>
+                  </HabitsProvider>
+                </SQLiteProvider>
+              </Suspense>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Building SQL by gluing text together, like `'... WHERE name = ' + name`."
+          tr: "SQL'i metin yapıştırarak kurmak, örneğin `'... WHERE name = ' + name`."
+        fix:
+          en: "Always pass values as parameters: `db.runAsync('INSERT ... VALUES (?)', name)`. Otherwise a name like `x'); DROP TABLE habits;--` is an SQL injection."
+          tr: "Değerleri her zaman parametre olarak ver: `db.runAsync('INSERT ... VALUES (?)', name)`. Yoksa `x'); DROP TABLE habits;--` gibi bir isim SQL injection olur."
+      - problem:
+          en: "Changing the table definition in `migrate` after users already have the app. Their database stays at the old shape and the app crashes."
+          tr: "Kullanıcılarda uygulama varken `migrate` içindeki tablo tanımını değiştirmek. Onların veritabanı eski şekilde kalır ve uygulama çöker."
+        fix:
+          en: "Never edit an old step. Add a new version step (`if (current < 2) { ALTER TABLE ... }`) and raise `DATABASE_VERSION`."
+          tr: "Eski adımı asla düzenleme. Yeni bir sürüm adımı ekle (`if (current < 2) { ALTER TABLE ... }`) ve `DATABASE_VERSION`'ı artır."
+    quiz:
+      - q:
+          en: "Why does `migrate` check `PRAGMA user_version`?"
+          tr: "`migrate` neden `PRAGMA user_version`'ı kontrol ediyor?"
+        options:
+          en: ["To know the phone model", "To run each schema change only once, in order", "To make queries faster"]
+          tr: ["Telefon modelini öğrenmek için", "Her şema değişikliğini sadece bir kez ve sırayla çalıştırmak için", "Sorguları hızlandırmak için"]
+        answer: 1
+        why:
+          en: "The database remembers its version, so the app can apply only the missing steps, whether it is a fresh install or an old one."
+          tr: "Veritabanı sürümünü hatırlar; böylece uygulama, temiz kurulum da olsa eski bir kurulum da olsa sadece eksik adımları uygular."
+    sources:
+      - title: Expo SDK, SQLite
+        url: https://docs.expo.dev/versions/latest/sdk/sqlite/
+      - title: Expo, local-first data and storage
+        url: https://docs.expo.dev/guides/local-first/
+      - title: SQLite, PRAGMA user_version
+        url: https://www.sqlite.org/pragma.html#pragma_user_version
+
+  - id: fetch
+    stage: data-api
+    title:
+      en: "Load a daily quote from an API"
+      tr: "Bir API'den günlük söz yükleme"
+    minutes: 45
+    needs: [persist]
+    why:
+      en: "Most apps talk to the internet. A phone makes it harder than a laptop: the connection is slow, drops in a lift, and the user leaves the screen while a request is running. So every request needs three visible states: loading, failed, and ready. We use a free quotes API that needs no key."
+      tr: "Çoğu uygulama internetle konuşur. Telefon bunu dizüstüne göre zorlaştırır: bağlantı yavaştır, asansörde kopar ve istek sürerken kullanıcı ekrandan çıkar. Bu yüzden her isteğin üç görünür hali olmalı: yükleniyor, başarısız ve hazır. Anahtar gerektirmeyen ücretsiz bir söz API'si kullanıyoruz."
+    learn:
+      en: |
+        - `fetch` works like in the browser; check `response.ok` yourself, because HTTP errors do not throw
+        - A custom hook that returns one of three states and a `retry` function
+        - Cancelling a request with `AbortController` when the screen goes away
+        - The app must still work offline: the habits come from SQLite, only the quote needs the internet
+      tr: |
+        - `fetch` tarayıcıdaki gibi çalışır; HTTP hataları exception atmadığı için `response.ok`'u kendin kontrol edersin
+        - Üç durumdan birini ve bir `retry` fonksiyonu döndüren özel bir hook
+        - Ekran kapanınca isteği `AbortController` ile iptal etmek
+        - Uygulama çevrimdışıyken de çalışmalı: alışkanlıklar SQLite'tan gelir, sadece söz için internet gerekir
+    do:
+      en: |
+        1. Create `src/quote.ts` with `fetchQuote`. The service is `https://dummyjson.com/quotes/random` and it returns JSON like `{ "id": 1, "quote": "...", "author": "..." }`. Open that address in a browser to see it.
+        2. Create the hook `src/use-quote.ts` and the component `src/components/quote-card.tsx`.
+        3. Replace `src/app/index.tsx` so the card is the header of the list (`ListHeaderComponent`).
+        4. Reload the app: you see "Loading" for a moment and then a quote.
+        5. Turn on airplane mode, reload and see the error message. Turn it off and press "Try again".
+      tr: |
+        1. `fetchQuote` ile `src/quote.ts` oluştur. Servis `https://dummyjson.com/quotes/random` ve `{ "id": 1, "quote": "...", "author": "..." }` gibi bir JSON döndürür. Görmek için o adresi tarayıcıda aç.
+        2. `src/use-quote.ts` hook'unu ve `src/components/quote-card.tsx` bileşenini oluştur.
+        3. Kart listenin başlığı olsun diye `src/app/index.tsx` dosyasını değiştir (`ListHeaderComponent`).
+        4. Uygulamayı yenile: bir an "Loading" görürsün, sonra bir söz.
+        5. Uçak modunu aç, yenile ve hata mesajını gör. Kapat ve "Try again"e bas.
+    code:
+      - file: src/quote.ts
+        lang: ts
+        text: |
+          export type Quote = { text: string; author: string };
+
+          export async function fetchQuote(signal?: AbortSignal): Promise<Quote> {
+            const response = await fetch('https://dummyjson.com/quotes/random', { signal });
+            if (!response.ok) {
+              throw new Error(`Quote request failed with status ${response.status}`);
+            }
+            const data: { quote: string; author: string } = await response.json();
+            return { text: data.quote, author: data.author };
+          }
+      - file: src/use-quote.ts
+        lang: ts
+        text: |
+          import { useCallback, useEffect, useState } from 'react';
+
+          import { fetchQuote, type Quote } from '@/quote';
+
+          export type QuoteState =
+            | { status: 'loading' }
+            | { status: 'error' }
+            | { status: 'ready'; quote: Quote };
+
+          export function useQuote() {
+            const [state, setState] = useState<QuoteState>({ status: 'loading' });
+            const [attempt, setAttempt] = useState(0);
+
+            useEffect(() => {
+              const controller = new AbortController();
+              setState({ status: 'loading' });
+              fetchQuote(controller.signal)
+                .then((quote) => setState({ status: 'ready', quote }))
+                .catch(() => {
+                  if (!controller.signal.aborted) setState({ status: 'error' });
+                });
+              return () => controller.abort();
+            }, [attempt]);
+
+            const retry = useCallback(() => setAttempt((n) => n + 1), []);
+            return { state, retry };
+          }
+      - file: src/components/quote-card.tsx
+        lang: tsx
+        text: |
+          import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { colors } from '@/theme';
+          import { useQuote } from '@/use-quote';
+
+          export function QuoteCard() {
+            const { state, retry } = useQuote();
+
+            return (
+              <View style={styles.card}>
+                {state.status === 'loading' && <Text style={styles.muted}>Loading</Text>}
+                {state.status === 'error' && (
+                  <>
+                    <Text style={styles.muted}>No quote right now. You may be offline.</Text>
+                    <Pressable onPress={retry} accessibilityRole="button">
+                      <Text style={styles.retry}>Try again</Text>
+                    </Pressable>
+                  </>
+                )}
+                {state.status === 'ready' && (
+                  <>
+                    <Text style={styles.quote}>{state.quote.text}</Text>
+                    <Text style={styles.author}>{state.quote.author}</Text>
+                  </>
+                )}
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            card: {
+              backgroundColor: colors.card,
+              borderRadius: 12,
+              borderWidth: 1,
+              borderColor: colors.border,
+              padding: 16,
+              marginBottom: 16,
+            },
+            quote: { fontSize: 16, fontStyle: 'italic', color: colors.text },
+            author: { marginTop: 8, color: colors.muted },
+            muted: { color: colors.muted },
+            retry: { marginTop: 8, color: colors.accent, fontWeight: '600' },
+          });
+      - file: src/app/index.tsx
+        lang: tsx
+        text: |
+          import { Link, useRouter } from 'expo-router';
+          import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { HabitRow } from '@/components/habit-row';
+          import { QuoteCard } from '@/components/quote-card';
+          import { useHabits } from '@/habits-context';
+          import { dayKey, streak } from '@/streak';
+          import { colors } from '@/theme';
+
+          export default function HomeScreen() {
+            const router = useRouter();
+            const { habits, toggle } = useHabits();
+            const today = dayKey();
+
+            return (
+              <View style={styles.screen}>
+                <FlatList
+                  data={habits}
+                  keyExtractor={(habit) => String(habit.id)}
+                  ListHeaderComponent={<QuoteCard />}
+                  ListEmptyComponent={<Text style={styles.empty}>No habits yet. Add your first one.</Text>}
+                  renderItem={({ item }) => (
+                    <HabitRow
+                      id={item.id}
+                      name={item.name}
+                      streak={streak(item.doneDates, today)}
+                      done={item.doneDates.includes(today)}
+                      onToggle={toggle}
+                      onOpen={(id) => router.push({ pathname: '/habit/[id]', params: { id: String(id) } })}
+                    />
+                  )}
+                />
+                <Link href="/new" asChild>
+                  <Pressable style={styles.add} accessibilityRole="button">
+                    <Text style={styles.addText}>New habit</Text>
+                  </Pressable>
+                </Link>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            empty: { color: colors.muted, textAlign: 'center', marginTop: 32 },
+            add: { alignItems: 'center', backgroundColor: colors.accent, padding: 14, borderRadius: 10 },
+            addText: { color: colors.onAccent, fontWeight: '600', fontSize: 16 },
+          });
+    mistakes:
+      - problem:
+          en: "Treating a 404 or 500 answer as success, because `fetch` only throws when the network fails."
+          tr: "404 ya da 500 cevabını başarı sanmak; çünkü `fetch` sadece ağ koparsa exception atar."
+        fix:
+          en: "Check `response.ok` (or `response.status`) and throw your own error, like `fetchQuote` does."
+          tr: "`response.ok`'u (ya da `response.status`'u) kontrol et ve `fetchQuote`'taki gibi kendi hatanı fırlat."
+      - problem:
+          en: "Calling the API with `http://` on a real build. Android and iOS block plain HTTP by default."
+          tr: "Gerçek build'de API'yi `http://` ile çağırmak. Android ve iOS varsayılan olarak düz HTTP'yi engeller."
+        fix:
+          en: "Use `https://` addresses. Only use plain HTTP for a local development server and understand the extra settings it needs."
+          tr: "`https://` adresleri kullan. Düz HTTP'yi sadece yerel geliştirme sunucusu için kullan ve gerektirdiği ek ayarları öğren."
+    quiz:
+      - q:
+          en: "What does `fetch` do when the server answers 500?"
+          tr: "Sunucu 500 cevabı verince `fetch` ne yapar?"
+        options:
+          en: ["It throws an error", "It returns a response with ok set to false", "It retries by itself"]
+          tr: ["Hata fırlatır", "ok değeri false olan bir response döndürür", "Kendi kendine yeniden dener"]
+        answer: 1
+        why:
+          en: "fetch only rejects on network failure. For HTTP errors you must check response.ok yourself."
+          tr: "fetch sadece ağ hatasında reject eder. HTTP hatalarında response.ok'u kendin kontrol etmelisin."
+    sources:
+      - title: React Native, networking
+        url: https://reactnative.dev/docs/network
+      - title: MDN, Using the Fetch API
+        url: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+      - title: MDN, AbortController
+        url: https://developer.mozilla.org/en-US/docs/Web/API/AbortController
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the app with Jest and Testing Library"
+      tr: "Uygulamayı Jest ve Testing Library ile test etme"
+    minutes: 50
+    needs: [fetch]
+    why:
+      en: "On a phone, trying every change by hand is slow, and a store release cannot be taken back quickly. Tests run in seconds on your computer, with no phone. Jest runs the tests, `jest-expo` prepares the React Native world for it, and React Native Testing Library renders components and finds things the way a user sees them: by their text."
+      tr: "Telefonda her değişikliği elle denemek yavaştır ve mağaza sürümü hızla geri alınamaz. Testler telefon olmadan, bilgisayarında saniyeler içinde çalışır. Jest testleri çalıştırır, `jest-expo` React Native dünyasını onun için hazırlar, React Native Testing Library da bileşenleri çizer ve şeyleri kullanıcının gördüğü gibi, yazılarıyla bulur."
+    learn:
+      en: |
+        - A unit test for a pure function (`streak`), a component test (`HabitRow`) and a test with a fake `fetch`
+        - `render`, `screen.getByText`, `fireEvent.press` and the `toBeOnTheScreen` matcher
+        - In this version of Testing Library `render` and `fireEvent` are asynchronous: use `await`
+        - What tests on your computer cannot tell you: real device behaviour, performance, native modules
+      tr: |
+        - Saf bir fonksiyon (`streak`) için unit test, bir bileşen testi (`HabitRow`) ve sahte `fetch` ile bir test
+        - `render`, `screen.getByText`, `fireEvent.press` ve `toBeOnTheScreen` matcher'ı
+        - Testing Library'nin bu sürümünde `render` ve `fireEvent` asenkrondur: `await` kullan
+        - Bilgisayardaki testlerin sana söyleyemedikleri: gerçek cihaz davranışı, performans, native modüller
+    do:
+      en: |
+        1. Install the test tools with Expo's installer (it picks versions that match your SDK).
+        2. In `package.json` add `"test": "jest"` to `scripts` and a `jest` block with the `jest-expo` preset. The `moduleNameMapper` line teaches Jest what `@/` means. If you ever import a library that ships untranspiled code, add Expo's `transformIgnorePatterns` list from the docs.
+        3. In `tsconfig.json` add `"types": ["jest"]` inside `compilerOptions`, so TypeScript knows `test` and `expect`.
+        4. Create the three test files below in `src/__tests__`.
+        5. Run `npm test`. All tests should pass. Then break something on purpose (change `streak` to count 2 days when it should be 1) and watch a test fail, and fix it back.
+      tr: |
+        1. Test araçlarını Expo'nun yükleyicisiyle kur (SDK'na uygun sürümleri seçer).
+        2. `package.json` içinde `scripts`'e `"test": "jest"` ekle ve `jest-expo` preset'li bir `jest` bloğu ekle. `moduleNameMapper` satırı Jest'e `@/`'nin ne demek olduğunu öğretir. Bir gün çevrilmemiş kod yayınlayan bir kütüphane import edersen dokümandaki Expo `transformIgnorePatterns` listesini ekle.
+        3. `tsconfig.json` içinde `compilerOptions`'a `"types": ["jest"]` ekle; TypeScript `test` ve `expect`'i bilsin.
+        4. Aşağıdaki üç test dosyasını `src/__tests__` içinde oluştur.
+        5. `npm test` çalıştır. Bütün testler geçmeli. Sonra bilerek bir şeyi boz (`streak`'in 1 olması gerekirken 2 gün saymasını sağla), bir testin kırıldığını gör ve geri düzelt.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo install jest-expo jest @types/jest --dev
+          npx expo install @testing-library/react-native --dev
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "scripts": {
+              "test": "jest"
+            },
+            "jest": {
+              "preset": "jest-expo",
+              "moduleNameMapper": {
+                "^@/(.*)$": "<rootDir>/src/$1"
+              }
+            }
+          }
+      - file: src/__tests__/streak.test.ts
+        lang: ts
+        text: |
+          import { dayKey, streak } from '@/streak';
+
+          describe('dayKey', () => {
+            test('uses the local year, month and day with two digits', () => {
+              expect(dayKey(new Date(2026, 0, 5))).toBe('2026-01-05');
+            });
+          });
+
+          describe('streak', () => {
+            const today = '2026-10-18';
+
+            test('is 0 when nothing is done', () => {
+              expect(streak([], today)).toBe(0);
+            });
+
+            test('counts the days in a row ending today', () => {
+              expect(streak(['2026-10-16', '2026-10-17', '2026-10-18'], today)).toBe(3);
+            });
+
+            test('keeps a streak that ended yesterday alive', () => {
+              expect(streak(['2026-10-16', '2026-10-17'], today)).toBe(2);
+            });
+
+            test('is 0 when the last day was before yesterday', () => {
+              expect(streak(['2026-10-15'], today)).toBe(0);
+            });
+
+            test('stops at a gap and works across a month border', () => {
+              expect(streak(['2026-09-29', '2026-09-30', '2026-10-01', '2026-10-03'], '2026-10-03')).toBe(1);
+              expect(streak(['2026-09-30', '2026-10-01', '2026-10-02'], '2026-10-02')).toBe(3);
+            });
+          });
+      - file: src/__tests__/habit-row.test.tsx
+        lang: tsx
+        text: |
+          import { fireEvent, render, screen } from '@testing-library/react-native';
+
+          import { HabitRow } from '@/components/habit-row';
+
+          function setup(done: boolean) {
+            const onToggle = jest.fn();
+            const onOpen = jest.fn();
+            return {
+              onToggle,
+              onOpen,
+              ui: (
+                <HabitRow id={7} name="Drink water" streak={3} done={done} onToggle={onToggle} onOpen={onOpen} />
+              ),
+            };
+          }
+
+          test('shows the name and the streak', async () => {
+            await render(setup(false).ui);
+            expect(screen.getByText('Drink water')).toBeOnTheScreen();
+            expect(screen.getByText('3 days streak')).toBeOnTheScreen();
+          });
+
+          test('pressing the button reports the habit id', async () => {
+            const { ui, onToggle } = setup(false);
+            await render(ui);
+            await fireEvent.press(screen.getByRole('button', { name: 'Mark Drink water as done' }));
+            expect(onToggle).toHaveBeenCalledWith(7);
+          });
+
+          test('a finished habit offers to undo', async () => {
+            await render(setup(true).ui);
+            expect(screen.getByText('Done')).toBeOnTheScreen();
+            expect(screen.getByRole('button', { name: 'Undo Drink water' })).toBeOnTheScreen();
+          });
+      - file: src/__tests__/quote.test.ts
+        lang: ts
+        text: |
+          import { fetchQuote } from '@/quote';
+
+          afterEach(() => {
+            jest.restoreAllMocks();
+          });
+
+          test('turns the API answer into a Quote', async () => {
+            jest.spyOn(globalThis, 'fetch').mockResolvedValue({
+              ok: true,
+              json: async () => ({ id: 1, quote: 'Keep going.', author: 'Someone' }),
+            } as Response);
+
+            await expect(fetchQuote()).resolves.toEqual({ text: 'Keep going.', author: 'Someone' });
+          });
+
+          test('throws when the server answers with an error', async () => {
+            jest.spyOn(globalThis, 'fetch').mockResolvedValue({ ok: false, status: 500 } as Response);
+
+            await expect(fetchQuote()).rejects.toThrow('500');
+          });
+    mistakes:
+      - problem:
+          en: "\"Cannot find module '@/streak'\" when running Jest."
+          tr: "Jest çalışırken \"Cannot find module '@/streak'\" hatası."
+        fix:
+          en: "Jest does not read the `paths` of `tsconfig.json`. Add the `moduleNameMapper` entry shown above."
+          tr: "Jest `tsconfig.json`'daki `paths`'i okumaz. Yukarıdaki `moduleNameMapper` satırını ekle."
+      - problem:
+          en: "Forgetting `await` before `render` or `fireEvent` and getting tests that pass or fail at random."
+          tr: "`render` ya da `fireEvent` öncesinde `await` unutmak ve rastgele geçen ya da kalan testler almak."
+        fix:
+          en: "In the current Testing Library these are async. Write `await render(...)` and `await fireEvent.press(...)`."
+          tr: "Güncel Testing Library'de bunlar asenkron. `await render(...)` ve `await fireEvent.press(...)` yaz."
+      - problem:
+          en: "Calling the real API in a test."
+          tr: "Testte gerçek API'yi çağırmak."
+        fix:
+          en: "A test must not depend on the internet. Replace `fetch` with a fake, as in `quote.test.ts`."
+          tr: "Test internete bağlı olmamalı. `quote.test.ts`'teki gibi `fetch`'i sahtesiyle değiştir."
+    quiz:
+      - q:
+          en: "How does Testing Library prefer to find a button?"
+          tr: "Testing Library bir düğmeyi nasıl bulmayı tercih eder?"
+        options:
+          en: ["By its position in the component tree", "By what a user sees or hears: its text, role or label", "By a random generated id"]
+          tr: ["Component ağacındaki konumuyla", "Kullanıcının gördüğü ya da duyduğu şeyle: yazısı, rolü ya da etiketi", "Rastgele üretilmiş bir id ile"]
+        answer: 1
+        why:
+          en: "Tests that look at text, role and label survive refactors and also push you to make the app accessible."
+          tr: "Yazıya, role ve etikete bakan testler yeniden düzenlemeleri atlatır ve seni uygulamayı erişilebilir yapmaya da iter."
+    sources:
+      - title: Expo, unit testing with Jest
+        url: https://docs.expo.dev/develop/unit-testing/
+      - title: React Native Testing Library, introduction
+        url: https://callstack.github.io/react-native-testing-library/docs/start/intro
+      - title: Jest, getting started
+        url: https://jestjs.io/docs/getting-started
+
+  - id: security
+    stage: security
+    title:
+      en: "Keep secrets safe on the phone"
+      tr: "Telefonda sırları güvende tutma"
+    minutes: 40
+    needs: [tests]
+    why:
+      en: "Anyone can unpack an app and read every file in it. Anyone who gets hold of a lost phone can look at its storage. So a secret must never be written into the code, and a login token must not sit in plain storage. The phone has a safe for this: the iOS Keychain and the Android Keystore. `expo-secure-store` is the door to both."
+      tr: "Herkes bir uygulamayı açıp içindeki bütün dosyaları okuyabilir. Kaybolan bir telefonu ele geçiren herkes depolamasına bakabilir. Bu yüzden bir sır asla koda yazılmamalı, bir giriş token'ı da düz depolamada durmamalı. Telefonda bunun için bir kasa var: iOS Keychain ve Android Keystore. `expo-secure-store` ikisine de açılan kapıdır."
+    learn:
+      en: |
+        - The difference between `expo-sqlite` or AsyncStorage (plain, not encrypted) and `expo-secure-store` (encrypted by the system)
+        - Why `EXPO_PUBLIC_` environment variables are not secret: they are copied into the app
+        - Keep a token only as long as needed, never print it to logs, and delete it on sign-out
+        - Use HTTPS everywhere, keep packages updated, and run `npm audit`
+      tr: |
+        - `expo-sqlite` ya da AsyncStorage (düz, şifresiz) ile `expo-secure-store` (sistem tarafından şifrelenir) arasındaki fark
+        - `EXPO_PUBLIC_` ortam değişkenlerinin neden gizli olmadığı: uygulamanın içine kopyalanırlar
+        - Token'ı sadece gerektiği kadar tut, asla log'a yazma, çıkış yapınca sil
+        - Her yerde HTTPS kullan, paketleri güncel tut ve `npm audit` çalıştır
+    do:
+      en: |
+        1. Install the package: `npx expo install expo-secure-store`.
+        2. Create `src/secure.ts`, a tiny wrapper with three functions. Keeping all secure storage in one file makes it easy to review.
+        3. Create `src/app/settings.tsx`. Imagine an optional cloud backup service that gives you a token. The screen lets you paste a token, save it and remove it. It never shows the token back.
+        4. In `src/app/_layout.tsx` register the screen and add a "Settings" link in the header of the first screen.
+        5. Try it: save a token, fully close the app, open it, and see "A token is saved on this device". Remove it and check again.
+        6. Run `npm audit` in the project and read the result. Fix what has a simple fix; do not blindly run `npm audit fix --force`.
+      tr: |
+        1. Paketi kur: `npx expo install expo-secure-store`.
+        2. Üç fonksiyonlu küçük bir sarmalayıcı olan `src/secure.ts` oluştur. Tüm güvenli depolamanın tek dosyada olması incelemeyi kolaylaştırır.
+        3. `src/app/settings.tsx` oluştur. Sana bir token veren isteğe bağlı bir bulut yedekleme servisi düşün. Ekran bir token yapıştırmanı, kaydetmeni ve silmeni sağlar. Token'ı asla geri göstermez.
+        4. `src/app/_layout.tsx` içinde ekranı kaydet ve ilk ekranın başlığına bir "Settings" bağlantısı ekle.
+        5. Dene: bir token kaydet, uygulamayı tamamen kapat, aç ve "A token is saved on this device" yazısını gör. Sil ve tekrar kontrol et.
+        6. Projede `npm audit` çalıştır ve sonucu oku. Basit çözümü olanları düzelt; `npm audit fix --force`'u gözü kapalı çalıştırma.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo install expo-secure-store
+          npm audit
+      - file: src/secure.ts
+        lang: ts
+        text: |
+          import * as SecureStore from 'expo-secure-store';
+
+          const TOKEN_KEY = 'backup-token';
+
+          export function saveToken(token: string): Promise<void> {
+            return SecureStore.setItemAsync(TOKEN_KEY, token);
+          }
+
+          export function loadToken(): Promise<string | null> {
+            return SecureStore.getItemAsync(TOKEN_KEY);
+          }
+
+          export function clearToken(): Promise<void> {
+            return SecureStore.deleteItemAsync(TOKEN_KEY);
+          }
+      - file: src/app/settings.tsx
+        lang: tsx
+        text: |
+          import { useEffect, useState } from 'react';
+          import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+
+          import { clearToken, loadToken, saveToken } from '@/secure';
+          import { colors } from '@/theme';
+
+          export default function SettingsScreen() {
+            const [saved, setSaved] = useState(false);
+            const [input, setInput] = useState('');
+
+            useEffect(() => {
+              loadToken()
+                .then((token) => setSaved(token !== null))
+                .catch(console.error);
+            }, []);
+
+            async function save() {
+              const token = input.trim();
+              if (token.length === 0) return;
+              await saveToken(token);
+              setInput('');
+              setSaved(true);
+            }
+
+            async function remove() {
+              await clearToken();
+              setSaved(false);
+            }
+
+            return (
+              <View style={styles.screen}>
+                <Text style={styles.label}>Backup token</Text>
+                <Text style={styles.muted}>
+                  {saved ? 'A token is saved on this device.' : 'No token saved.'}
+                </Text>
+                <TextInput
+                  style={styles.input}
+                  value={input}
+                  onChangeText={setInput}
+                  placeholder="Paste a token"
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  accessibilityLabel="Backup token"
+                />
+                <Pressable style={styles.save} onPress={save} accessibilityRole="button">
+                  <Text style={styles.saveText}>Save token</Text>
+                </Pressable>
+                {saved && (
+                  <Pressable style={styles.remove} onPress={remove} accessibilityRole="button">
+                    <Text style={styles.removeText}>Remove token</Text>
+                  </Pressable>
+                )}
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            label: { fontSize: 16, fontWeight: '600', color: colors.text },
+            muted: { color: colors.muted, marginTop: 4, marginBottom: 12 },
+            input: {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              borderWidth: 1,
+              borderRadius: 10,
+              padding: 12,
+              fontSize: 16,
+              color: colors.text,
+            },
+            save: { marginTop: 12, alignItems: 'center', backgroundColor: colors.accent, padding: 14, borderRadius: 10 },
+            saveText: { color: colors.onAccent, fontWeight: '600', fontSize: 16 },
+            remove: { marginTop: 12, alignItems: 'center', padding: 14 },
+            removeText: { color: colors.danger, fontWeight: '600', fontSize: 16 },
+          });
+      - file: src/app/_layout.tsx
+        lang: tsx
+        text: |
+          import { Link, Stack } from 'expo-router';
+          import { SQLiteProvider } from 'expo-sqlite';
+          import { Suspense } from 'react';
+          import { ActivityIndicator, View } from 'react-native';
+
+          import { migrate } from '@/db';
+          import { HabitsProvider } from '@/habits-context';
+
+          function Loading() {
+            return (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator />
+              </View>
+            );
+          }
+
+          export default function RootLayout() {
+            return (
+              <Suspense fallback={<Loading />}>
+                <SQLiteProvider databaseName="habits.db" onInit={migrate} useSuspense>
+                  <HabitsProvider>
+                    <Stack>
+                      <Stack.Screen
+                        name="index"
+                        options={{
+                          title: 'Habits',
+                          headerRight: () => <Link href="/settings">Settings</Link>,
+                        }}
+                      />
+                      <Stack.Screen name="new" options={{ title: 'New habit', presentation: 'modal' }} />
+                      <Stack.Screen name="habit/[id]" options={{ title: 'Habit' }} />
+                      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+                    </Stack>
+                  </HabitsProvider>
+                </SQLiteProvider>
+              </Suspense>
+            );
+          }
+    mistakes:
+      - problem:
+          en: "Putting an API key or password in the code or in an `EXPO_PUBLIC_` variable \"because it is hidden in the app\"."
+          tr: "API anahtarını ya da parolayı \"uygulamanın içinde gizli\" diye koda ya da `EXPO_PUBLIC_` değişkenine koymak."
+        fix:
+          en: "Nothing inside an app is hidden. Keep real secrets on a server that your app calls, and give the app only short-lived tokens, stored in SecureStore."
+          tr: "Uygulamanın içinde hiçbir şey gizli değildir. Gerçek sırları uygulamanın çağırdığı bir sunucuda tut, uygulamaya sadece kısa ömürlü token'lar ver ve onları SecureStore'da sakla."
+      - problem:
+          en: "Storing a big blob in SecureStore."
+          tr: "SecureStore'a büyük bir veri yığını koymak."
+        fix:
+          en: "It is meant for small secrets. The docs warn that some platforms refuse values above about 2 KB. Keep a small key or token there and the large data elsewhere."
+          tr: "Küçük sırlar için tasarlanmıştır. Dokümana göre bazı platformlar yaklaşık 2 KB üstü değerleri reddedebilir. Orada küçük bir anahtar ya da token tut, büyük veriyi başka yerde."
+    quiz:
+      - q:
+          en: "Where should a login token be stored on the phone?"
+          tr: "Bir giriş token'ı telefonda nerede saklanmalı?"
+        options:
+          en: ["In a constant in the code", "In plain AsyncStorage or SQLite", "In expo-secure-store"]
+          tr: ["Koddaki bir sabitte", "Düz AsyncStorage ya da SQLite'ta", "expo-secure-store'da"]
+        answer: 2
+        why:
+          en: "SecureStore uses the Keychain on iOS and the Keystore on Android, so the value is encrypted by the system. Code and plain storage can be read."
+          tr: "SecureStore iOS'ta Keychain, Android'de Keystore kullanır; değer sistem tarafından şifrelenir. Kod ve düz depolama okunabilir."
+    sources:
+      - title: Expo SDK, SecureStore
+        url: https://docs.expo.dev/versions/latest/sdk/securestore/
+      - title: Expo, environment variables
+        url: https://docs.expo.dev/guides/environment-variables/
+      - title: React Native, security
+        url: https://reactnative.dev/docs/security
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Fast lists with FlashList"
+      tr: "FlashList ile hızlı listeler"
+    minutes: 35
+    needs: [security]
+    why:
+      en: "A phone has less memory and a weaker processor than your computer, and users notice every dropped frame when they scroll. The list is the screen where this matters most. `FlatList` already draws only what is visible. `FlashList` goes further and re-uses the row components that scroll out of sight instead of creating new ones."
+      tr: "Telefonun bilgisayarından daha az belleği ve daha zayıf bir işlemcisi var; kullanıcı kaydırırken kaçırılan her kareyi fark eder. Liste, bunun en çok önemli olduğu ekran. `FlatList` zaten sadece görünenleri çizer. `FlashList` bir adım ileri gider ve ekrandan çıkan satır bileşenlerini yenisini yaratmak yerine yeniden kullanır."
+    learn:
+      en: |
+        - Never render a long list with `map` inside a `ScrollView`: every row is created at once
+        - `FlatList` and `FlashList` are virtualized: only visible rows exist
+        - `keyExtractor` gives each row a stable key
+        - Test performance in a release build, not in development mode, which is much slower on purpose
+        - This template turns on the React Compiler (`experiments.reactCompiler` in `app.json`), which adds memoization for you. Without it you would wrap rows in `React.memo` and handlers in `useCallback`.
+      tr: |
+        - Uzun bir listeyi `ScrollView` içinde `map` ile asla çizme: bütün satırlar aynı anda yaratılır
+        - `FlatList` ve `FlashList` sanallaştırılmıştır: sadece görünen satırlar vardır
+        - `keyExtractor` her satıra sabit bir anahtar verir
+        - Performansı geliştirme modunda değil, release build'de test et; geliştirme modu bilerek çok daha yavaştır
+        - Bu şablon React Compiler'ı açar (`app.json`'da `experiments.reactCompiler`) ve memoization'ı senin yerine ekler. O olmasaydı satırları `React.memo` ile, işleyicileri `useCallback` ile sarardın.
+    do:
+      en: |
+        1. Install the list: `npx expo install @shopify/flash-list`.
+        2. Replace `src/app/index.tsx` with the version below. The only real changes are the import and the name `FlashList` instead of `FlatList`. FlashList version 2 needs no size estimate.
+        3. Open the app and check that the list looks and works the same. With three habits you will not see a speed difference, and that is fine: the benefit shows with hundreds of rows.
+        4. Learn the tools you will need later: shake the phone (or press `m` in the terminal) to open the developer menu, and turn on the performance monitor. Remember that development mode is slower than the build you ship.
+        5. Run `npm test` and `npx tsc --noEmit`, and commit.
+      tr: |
+        1. Listeyi kur: `npx expo install @shopify/flash-list`.
+        2. `src/app/index.tsx` dosyasını aşağıdaki sürümle değiştir. Gerçek değişiklikler sadece import ve `FlatList` yerine `FlashList` ismi. FlashList 2. sürüm boyut tahmini istemez.
+        3. Uygulamayı aç ve listenin aynı görünüp aynı çalıştığını kontrol et. Üç alışkanlıkla hız farkını görmezsin, sorun yok: faydası yüzlerce satırda belli olur.
+        4. Sonra lazım olacak araçları öğren: geliştirici menüsünü açmak için telefonu salla (ya da terminalde `m`'ye bas) ve performans monitörünü aç. Geliştirme modunun, yayınlayacağın build'den yavaş olduğunu unutma.
+        5. `npm test` ve `npx tsc --noEmit` çalıştır ve commit et.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo install @shopify/flash-list
+      - file: src/app/index.tsx
+        lang: tsx
+        text: |
+          import { FlashList } from '@shopify/flash-list';
+          import { Link, useRouter } from 'expo-router';
+          import { Pressable, StyleSheet, Text, View } from 'react-native';
+
+          import { HabitRow } from '@/components/habit-row';
+          import { QuoteCard } from '@/components/quote-card';
+          import { useHabits } from '@/habits-context';
+          import { dayKey, streak } from '@/streak';
+          import { colors } from '@/theme';
+
+          export default function HomeScreen() {
+            const router = useRouter();
+            const { habits, toggle } = useHabits();
+            const today = dayKey();
+
+            return (
+              <View style={styles.screen}>
+                <FlashList
+                  data={habits}
+                  keyExtractor={(habit) => String(habit.id)}
+                  ListHeaderComponent={<QuoteCard />}
+                  ListEmptyComponent={<Text style={styles.empty}>No habits yet. Add your first one.</Text>}
+                  renderItem={({ item }) => (
+                    <HabitRow
+                      id={item.id}
+                      name={item.name}
+                      streak={streak(item.doneDates, today)}
+                      done={item.doneDates.includes(today)}
+                      onToggle={toggle}
+                      onOpen={(id) => router.push({ pathname: '/habit/[id]', params: { id: String(id) } })}
+                    />
+                  )}
+                />
+                <Link href="/new" asChild>
+                  <Pressable style={styles.add} accessibilityRole="button">
+                    <Text style={styles.addText}>New habit</Text>
+                  </Pressable>
+                </Link>
+              </View>
+            );
+          }
+
+          const styles = StyleSheet.create({
+            screen: { flex: 1, backgroundColor: colors.background, padding: 16 },
+            empty: { color: colors.muted, textAlign: 'center', marginTop: 32 },
+            add: { alignItems: 'center', backgroundColor: colors.accent, padding: 14, borderRadius: 10 },
+            addText: { color: colors.onAccent, fontWeight: '600', fontSize: 16 },
+          });
+    mistakes:
+      - problem:
+          en: "Judging speed by how the app feels in development mode, or in Expo Go, and then optimizing the wrong thing."
+          tr: "Hızı geliştirme modundaki ya da Expo Go'daki hisse bakarak değerlendirmek ve yanlış şeyi optimize etmek."
+        fix:
+          en: "Development mode adds checks and is slower. Measure on a release build (the EAS preview build of a later step) on a modest, real phone."
+          tr: "Geliştirme modu ek kontroller yapar ve yavaştır. Ölçümü mütevazı, gerçek bir telefonda release build ile yap (sonraki bir adımdaki EAS preview build'i)."
+      - problem:
+          en: "Rows with a changing key (for example the array index) or no key. Rows flicker or keep the wrong state."
+          tr: "Anahtarı değişen (örneğin dizi indeksi) ya da anahtarsız satırlar. Satırlar titrer ya da yanlış state tutar."
+        fix:
+          en: "Use a stable id from your data in `keyExtractor`, like the habit id."
+          tr: "`keyExtractor`'da verindeki sabit bir id'yi kullan, örneğin alışkanlık id'si."
+    quiz:
+      - q:
+          en: "Why use FlatList or FlashList instead of map inside a ScrollView for 1000 rows?"
+          tr: "1000 satır için neden ScrollView içinde map yerine FlatList ya da FlashList kullanılır?"
+        options:
+          en: ["They add colors", "They create only the visible rows, so memory and start-up time stay small", "They load the data from the internet"]
+          tr: ["Renk eklerler", "Sadece görünen satırları yaratırlar, bu yüzden bellek ve açılış süresi küçük kalır", "Veriyi internetten yüklerler"]
+        answer: 1
+        why:
+          en: "Virtualization keeps the number of live row components small, however long the list is."
+          tr: "Sanallaştırma, liste ne kadar uzun olursa olsun canlı satır bileşeni sayısını küçük tutar."
+    sources:
+      - title: Expo SDK, FlashList
+        url: https://docs.expo.dev/versions/latest/sdk/flash-list/
+      - title: FlashList documentation
+        url: https://shopify.github.io/flash-list/
+      - title: React Native, performance overview
+        url: https://reactnative.dev/docs/performance
+
+  - id: icon-splash
+    stage: packaging
+    title:
+      en: "App name, icon and splash screen"
+      tr: "Uygulama adı, ikon ve açılış ekranı"
+    minutes: 40
+    needs: [performance]
+    why:
+      en: "Before a build leaves your computer it needs an identity: a name people see under the icon, an icon, a splash screen shown while the app starts, and a unique id that stores use to tell your app from every other app. These live in `app.json`. Get them right now, because the app id cannot be changed after you publish."
+      tr: "Bir build bilgisayarından çıkmadan önce bir kimliğe ihtiyaç duyar: ikonun altında görünen isim, bir ikon, uygulama açılırken görünen açılış ekranı ve mağazaların uygulamanı diğerlerinden ayırmak için kullandığı benzersiz bir id. Bunlar `app.json` içinde durur. Şimdi doğru yap, çünkü yayınladıktan sonra uygulama id'si değiştirilemez."
+    learn:
+      en: |
+        - `name` (shown under the icon), `slug` (used by Expo), `version`
+        - The app id: `android.package` and `ios.bundleIdentifier`, written like `com.yourname.habits`
+        - Icon rules: exactly square, 1024x1024 PNG, fills the whole square with no rounded corners
+        - Android adaptive icon: a foreground layer with a transparent background, a background colour, and keep the artwork in the centre
+        - The splash screen is set up with the `expo-splash-screen` plugin and shows only in a real build, not in Expo Go
+      tr: |
+        - `name` (ikonun altında görünür), `slug` (Expo kullanır), `version`
+        - Uygulama id'si: `android.package` ve `ios.bundleIdentifier`, `com.senin-adin.habits` gibi yazılır
+        - İkon kuralları: tam kare, 1024x1024 PNG, köşesiz ve yuvarlatmasız bütün kareyi doldurur
+        - Android adaptive ikon: arka planı saydam bir ön katman, bir arka plan rengi; çizimi ortada tut
+        - Açılış ekranı `expo-splash-screen` plugin'iyle ayarlanır ve sadece gerçek build'de görünür, Expo Go'da görünmez
+    do:
+      en: |
+        1. Make your artwork. Any drawing tool works. You need: **icon.png** (1024x1024, solid, full square), **android-icon-foreground.png** (1024x1024, transparent background, the drawing inside the centre two thirds because Android crops the edges), **android-icon-monochrome.png** (same shape in one colour, for themed icons) and **splash-icon.png** (transparent background). Put them in `assets/images`, replacing the template files with the same names. The Expo docs link a free Figma template.
+        2. Replace `app.json` with the version below. Change `com.yourname.habits` to an id of your own, with only lowercase letters, digits and dots, in the form of a reversed domain name. If you have no domain, use `com.` plus your username.
+        3. The template stored the iOS icon in `assets/expo.icon`. Delete that folder (`assets/expo.icon`) in your file manager: we use the one `icon` for both systems.
+        4. Check that the config is valid: `npx expo config --type public` prints it. Run `npx expo-doctor`; it should report no issues.
+        5. Commit. You will see the icon and the splash screen on a real phone in the next step.
+      tr: |
+        1. Görselleri hazırla. Herhangi bir çizim aracı olur. Şunlar lazım: **icon.png** (1024x1024, dolu, tam kare), **android-icon-foreground.png** (1024x1024, saydam arka plan, Android kenarları kestiği için çizim ortadaki üçte ikilik alanda), **android-icon-monochrome.png** (aynı şekil tek renkte, temalı ikonlar için) ve **splash-icon.png** (saydam arka plan). Hepsini `assets/images` içine, şablondaki aynı isimli dosyaların yerine koy. Expo dokümanı ücretsiz bir Figma şablonu paylaşıyor.
+        2. `app.json` dosyasını aşağıdaki sürümle değiştir. `com.yourname.habits` yerine kendi id'ni yaz; sadece küçük harf, rakam ve nokta içersin, ters yazılmış alan adı biçiminde olsun. Alan adın yoksa `com.` artı kullanıcı adını kullan.
+        3. Şablon iOS ikonunu `assets/expo.icon` içinde tutuyordu. O klasörü (`assets/expo.icon`) dosya yöneticisinde sil: iki sistem için tek `icon` kullanıyoruz.
+        4. Config'in geçerli olduğunu kontrol et: `npx expo config --type public` yazdırır. `npx expo-doctor` çalıştır; sorun bildirmemeli.
+        5. Commit et. İkonu ve açılış ekranını bir sonraki adımda gerçek telefonda göreceksin.
+    code:
+      - file: app.json
+        lang: json
+        text: |
+          {
+            "expo": {
+              "name": "Habits",
+              "slug": "habits",
+              "version": "1.0.0",
+              "orientation": "portrait",
+              "icon": "./assets/images/icon.png",
+              "scheme": "habits",
+              "userInterfaceStyle": "light",
+              "ios": {
+                "bundleIdentifier": "com.yourname.habits"
+              },
+              "android": {
+                "package": "com.yourname.habits",
+                "adaptiveIcon": {
+                  "backgroundColor": "#2563EB",
+                  "foregroundImage": "./assets/images/android-icon-foreground.png",
+                  "monochromeImage": "./assets/images/android-icon-monochrome.png"
+                }
+              },
+              "web": {
+                "favicon": "./assets/images/favicon.png"
+              },
+              "plugins": [
+                "expo-router",
+                [
+                  "expo-splash-screen",
+                  {
+                    "backgroundColor": "#2563EB",
+                    "image": "./assets/images/splash-icon.png",
+                    "imageWidth": 200
+                  }
+                ]
+              ],
+              "experiments": {
+                "typedRoutes": true,
+                "reactCompiler": true
+              }
+            }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo config --type public
+          npx expo-doctor
+    mistakes:
+      - problem:
+          en: "An icon with a transparent background or rounded corners. The store rejects it or the phone shows black corners."
+          tr: "Saydam arka planlı ya da yuvarlatılmış köşeli ikon. Mağaza reddeder ya da telefon köşeleri siyah gösterir."
+        fix:
+          en: "The main `icon` must be a solid, full square. The system rounds it. Only the Android foreground and the splash icon use transparency."
+          tr: "Ana `icon` dolu, tam bir kare olmalı. Yuvarlatmayı sistem yapar. Sadece Android ön katmanı ve açılış ikonu saydamlık kullanır."
+      - problem:
+          en: "Choosing a placeholder app id like com.example.app and publishing with it."
+          tr: "com.example.app gibi bir yer tutucu uygulama id'si seçip onunla yayınlamak."
+        fix:
+          en: "The id is the permanent identity of your app on the stores and cannot be changed later. Choose the real one now."
+          tr: "Id, uygulamanın mağazalardaki kalıcı kimliğidir ve sonradan değiştirilemez. Gerçeğini şimdi seç."
+    quiz:
+      - q:
+          en: "Where do you see the new splash screen?"
+          tr: "Yeni açılış ekranını nerede görürsün?"
+        options:
+          en: ["In Expo Go, right away", "In a real build of your app", "Only on the store page"]
+          tr: ["Hemen Expo Go'da", "Uygulamanın gerçek bir build'inde", "Sadece mağaza sayfasında"]
+        answer: 1
+        why:
+          en: "Expo Go has its own icon and splash. Yours are part of the native app, so you see them after you build it."
+          tr: "Expo Go'nun kendi ikonu ve açılış ekranı var. Seninkiler native uygulamanın parçası; bu yüzden build ettikten sonra görürsün."
+    sources:
+      - title: Expo, splash screen and app icon
+        url: https://docs.expo.dev/develop/user-interface/splash-screen-and-app-icon/
+      - title: Expo, app config reference
+        url: https://docs.expo.dev/versions/latest/config/app/
+      - title: Android, adaptive icon design
+        url: https://developer.android.com/develop/ui/compose/system/icon_design_adaptive
+
+  - id: eas-build
+    stage: packaging
+    title:
+      en: "Build an installable Android app with EAS Build"
+      tr: "EAS Build ile kurulabilir bir Android uygulaması build etme"
+    minutes: 60
+    needs: [icon-splash]
+    why:
+      en: "Expo Go is a playground. Your real app is a file: an APK or AAB on Android, an IPA on iOS. Building one needs the Android or iOS toolchain, which is big. EAS Build does it on Expo's servers, so you build a real Android app from a laptop without installing Android Studio. A build set to internal distribution gives you a link and a QR code that anyone can open to install it. No store and no fee are needed for that."
+      tr: "Expo Go bir oyun alanı. Gerçek uygulaman bir dosyadır: Android'de APK ya da AAB, iOS'ta IPA. Birini üretmek büyük olan Android ya da iOS araç zincirini gerektirir. EAS Build bunu Expo'nun sunucularında yapar; böylece Android Studio kurmadan bir dizüstüyle gerçek bir Android uygulaması üretirsin. Internal distribution ayarlı bir build, herkesin açıp kurabileceği bir bağlantı ve QR kod verir. Bunun için mağaza da ücret de gerekmez."
+    learn:
+      en: |
+        - What EAS Build does: uploads your project, builds it in the cloud, signs it, gives you a download link
+        - Build profiles in `eas.json`: `preview` for testers, `production` for the stores
+        - APK (installable file) versus AAB (the format the Play Store wants)
+        - The free plan: a limited number of low-priority builds per month, see the numbers below
+      tr: |
+        - EAS Build'in yaptığı: projeni yükler, bulutta build eder, imzalar ve sana bir indirme bağlantısı verir
+        - `eas.json` içindeki build profilleri: test edenler için `preview`, mağazalar için `production`
+        - APK (kurulabilir dosya) ile AAB (Play Store'un istediği biçim) farkı
+        - Ücretsiz plan: ayda sınırlı sayıda düşük öncelikli build, aşağıdaki sayılara bak
+    do:
+      en: |
+        1. Install the EAS command line tool and sign in with your Expo account. (You can also use `npx eas-cli@latest` in place of `eas` every time.)
+        2. Run `eas build:configure`. It links the project to your Expo account and creates `eas.json`. Replace the contents with the version below so that your profiles match this roadmap.
+        3. Build an installable Android app: `eas build --platform android --profile preview`. The first time, let EAS generate the Android keystore (the signing key) for you. Wait: the free plan uses a low-priority queue, so it may take from minutes to much longer.
+        4. When it finishes, the terminal prints a build page link and a QR code. Open the link on your Android phone, download the APK and install it. Android asks you to allow installing from this source once.
+        5. Open the app. You see your icon, your splash screen, and the habits app running without Expo Go and without your computer.
+        6. For iPhones the story is different: an installable iOS build needs a paid Apple Developer account, because Apple only lets signed apps run on real devices. Without the account, test iOS in the Simulator on a Mac. The Stores step explains the costs.
+        7. Free plan numbers, as listed on the Expo pricing page when this was written: up to 15 Android and 15 iOS builds per month on the free plan, low-priority queue (the page warns that waits at peak times can be long), and updates for up to 1,000 monthly active users. The quota resets monthly, a free account is never charged extra, and when the builds are used up, new builds wait until the next month. Check expo.dev/pricing for the current numbers.
+      tr: |
+        1. EAS komut satırı aracını kur ve Expo hesabınla giriş yap. (Her seferinde `eas` yerine `npx eas-cli@latest` de kullanabilirsin.)
+        2. `eas build:configure` çalıştır. Projeyi Expo hesabına bağlar ve `eas.json` oluşturur. Profillerin bu yol haritasıyla uyuşması için içeriği aşağıdaki sürümle değiştir.
+        3. Kurulabilir bir Android uygulaması build et: `eas build --platform android --profile preview`. İlk seferde Android keystore'unu (imzalama anahtarı) EAS'in üretmesine izin ver. Bekle: ücretsiz plan düşük öncelikli kuyruk kullanır, dakikalardan çok daha uzuna kadar sürebilir.
+        4. Bitince terminal bir build sayfası bağlantısı ve bir QR kod yazar. Bağlantıyı Android telefonunda aç, APK'yı indir ve kur. Android bir kereliğine bu kaynaktan kurulum izni ister.
+        5. Uygulamayı aç. İkonunu, açılış ekranını ve alışkanlık uygulamasının Expo Go olmadan ve bilgisayarın olmadan çalıştığını görürsün.
+        6. iPhone'larda durum farklı: kurulabilir bir iOS build'i ücretli bir Apple Developer hesabı ister, çünkü Apple gerçek cihazlarda sadece imzalı uygulamaların çalışmasına izin verir. Hesabın yoksa iOS'u bir Mac'te Simulator'da dene. Maliyetleri Mağazalar adımı anlatıyor.
+        7. Ücretsiz plan sayıları (yazıldığı sırada Expo fiyat sayfasında listelendiği gibi): ücretsiz planda ayda 15'e kadar Android ve 15'e kadar iOS build'i, düşük öncelikli kuyruk (sayfa yoğun saatlerde beklemenin uzun olabileceği uyarısını yapıyor) ve 1.000 aylık aktif kullanıcıya kadar güncelleme. Kota aylık sıfırlanır, ücretsiz hesaptan asla ek ücret alınmaz ve build'ler bittiğinde yeni build'ler bir sonraki aya kadar bekler. Güncel sayılar için expo.dev/pricing sayfasına bak.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npm install --global eas-cli
+          eas login
+          eas build:configure
+          eas build --platform android --profile preview
+      - file: eas.json
+        lang: json
+        text: |
+          {
+            "cli": {
+              "version": ">= 25.0.0",
+              "appVersionSource": "remote"
+            },
+            "build": {
+              "preview": {
+                "distribution": "internal",
+                "channel": "preview"
+              },
+              "production": {
+                "autoIncrement": true,
+                "channel": "production"
+              }
+            },
+            "submit": {
+              "production": {}
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Building the `production` profile and trying to install the result on a phone. The file is an AAB, which cannot be installed directly."
+          tr: "`production` profilini build edip sonucu telefona kurmaya çalışmak. Dosya bir AAB'dir ve doğrudan kurulamaz."
+        fix:
+          en: "For testers use the `preview` profile: `distribution: internal` makes EAS build an APK. Use `production` only to send to the Play Store."
+          tr: "Test edenler için `preview` profilini kullan: `distribution: internal` EAS'in APK üretmesini sağlar. `production`'ı sadece Play Store'a göndermek için kullan."
+      - problem:
+          en: "The build fails and the log is long and confusing."
+          tr: "Build başarısız oluyor ve log uzun ve karışık."
+        fix:
+          en: "Open the build page, find the phase that failed (Install dependencies, Run gradlew) and read the first red error, not the last. Run `npx expo-doctor` locally first, it catches many version problems."
+          tr: "Build sayfasını aç, başarısız olan aşamayı (Install dependencies, Run gradlew) bul ve sonuncuyu değil, ilk kırmızı hatayı oku. Önce yerelde `npx expo-doctor` çalıştır, birçok sürüm sorununu yakalar."
+    quiz:
+      - q:
+          en: "Why can you build for Android from a laptop that has no Android Studio?"
+          tr: "Android Studio olmayan bir dizüstüyle neden Android için build edebiliyorsun?"
+        options:
+          en: ["The build runs on Expo's servers, which have the tools", "Expo Go is the finished app", "Android Studio is not needed for any app"]
+          tr: ["Build, araçları olan Expo sunucularında çalışır", "Expo Go bitmiş uygulamanın kendisidir", "Hiçbir uygulama için Android Studio gerekmez"]
+        answer: 0
+        why:
+          en: "EAS Build uploads your project to a cloud machine with the Android toolchain, builds and signs it, and gives you the file."
+          tr: "EAS Build projeni Android araç zinciri olan bir bulut makinesine yükler, build eder, imzalar ve sana dosyayı verir."
+    sources:
+      - title: Expo, create your first build
+        url: https://docs.expo.dev/build/setup/
+      - title: Expo, internal distribution
+        url: https://docs.expo.dev/build/internal-distribution/
+      - title: Expo, eas.json reference
+        url: https://docs.expo.dev/eas/json/
+      - title: Expo, plans and pricing
+        url: https://docs.expo.dev/billing/plans/
+
+  - id: stores
+    stage: deploy
+    title:
+      en: "Reach people: testers, Google Play and the App Store"
+      tr: "İnsanlara ulaşma: test edenler, Google Play ve App Store"
+    minutes: 60
+    needs: [eas-build]
+    why:
+      en: "A built app can reach people in three ways. Some cost nothing and some cost money, and nobody tells beginners this clearly. You should know the real price before you decide, so that no step surprises you."
+      tr: "Build edilmiş bir uygulama insanlara üç yolla ulaşabilir. Bazıları bedava, bazıları paralı ve bunu yeni başlayanlara kimse net söylemez. Karar vermeden önce gerçek fiyatı bilmelisin ki hiçbir adım seni şaşırtmasın."
+    learn:
+      en: |
+        - The free path: share the APK or the EAS internal distribution link. On Android, anybody can install it. No store account is needed.
+        - Google Play: a one-time registration fee of 25 USD. A new personal account must first run a closed test with at least 12 testers for 14 days before it can apply for production access.
+        - Apple: the Apple Developer Program costs 99 USD per year and is needed for TestFlight, the App Store and installable iOS builds on real devices.
+        - `eas submit` uploads a finished build to the store for you, after the accounts exist
+      tr: |
+        - Ücretsiz yol: APK'yı ya da EAS internal distribution bağlantısını paylaşmak. Android'de herkes kurabilir. Mağaza hesabı gerekmez.
+        - Google Play: bir kereliğe 25 USD kayıt ücreti. Yeni bir kişisel hesap, production erişimi için başvurmadan önce en az 12 test edenle 14 gün boyunca kapalı test yapmak zorundadır.
+        - Apple: Apple Developer Program yılda 99 USD'dir; TestFlight, App Store ve gerçek cihazlarda kurulabilir iOS build'leri için gereklidir.
+        - Hesaplar olduktan sonra `eas submit` bitmiş bir build'i senin yerine mağazaya yükler
+    do:
+      en: |
+        1. Decide your path. For learning, stay on the free path: send the install link from the previous step to friends with Android phones and collect their feedback. This is a real way to ship an app, and nothing more is needed for this roadmap.
+        2. If you want Google Play: register at play.google.com/console and pay the one-time 25 USD fee. Create the app in Play Console, create a service account key as described in the Expo submit guide and upload it to EAS.
+        3. Build an AAB with the production profile, then upload it. For the first upload, `eas submit` creates a release on the **internal testing track**, which is a small, private group of testers (up to a limited number of people you list by email). Later you can promote it to closed testing, open testing and production.
+        4. Know Google's rule for new personal accounts: before production you must run a closed test with at least 12 testers opted in for 14 days in a row. Plan time for it.
+        5. If you want the App Store: join the Apple Developer Program (99 USD per year). Then `eas build --platform ios` builds the app, `eas submit --platform ios` sends it to App Store Connect, where it appears in TestFlight for testers, and you submit it for App Review from there.
+        6. Both stores want a store page: a short and a long description, screenshots, a privacy policy address and answers about what data the app collects (this app stores everything on the device and only contacts the quote service). Reviews take from hours to days.
+        7. Free alternatives to trying iOS without the paid account: the iOS Simulator on a Mac, or running the web version in a browser.
+      tr: |
+        1. Yolunu seç. Öğrenmek için ücretsiz yolda kal: önceki adımdaki kurulum bağlantısını Android telefonu olan arkadaşlarına gönder ve geri bildirimlerini topla. Bu, uygulama yayınlamanın gerçek bir yolu ve bu yol haritası için başka bir şey gerekmez.
+        2. Google Play istersen: play.google.com/console adresinden kayıt ol ve bir kereliğe 25 USD öde. Play Console'da uygulamayı oluştur, Expo submit rehberinde anlatıldığı gibi bir service account anahtarı oluştur ve EAS'e yükle.
+        3. Production profiliyle bir AAB build et, sonra yükle. İlk yüklemede `eas submit` **internal testing track**'inde bir sürüm oluşturur; bu, e-postalarıyla eklediğin sınırlı sayıda kişiden oluşan küçük ve özel bir test grubudur. Sonra bunu kapalı teste, açık teste ve production'a yükseltebilirsin.
+        4. Google'ın yeni kişisel hesaplar için kuralını bil: production'dan önce en az 12 test edenle, 14 gün üst üste açık kalan bir kapalı test yapmalısın. Buna zaman ayır.
+        5. App Store istersen: Apple Developer Program'a katıl (yılda 99 USD). Sonra `eas build --platform ios` uygulamayı build eder, `eas submit --platform ios` App Store Connect'e gönderir; orada test edenler için TestFlight'ta görünür ve oradan App Review'a gönderirsin.
+        6. İki mağaza da bir mağaza sayfası ister: kısa ve uzun açıklama, ekran görüntüleri, bir gizlilik politikası adresi ve uygulamanın hangi verileri topladığına dair cevaplar (bu uygulama her şeyi cihazda saklar ve sadece söz servisine bağlanır). İnceleme saatlerden günlere kadar sürer.
+        7. Ücretli hesap olmadan iOS denemenin ücretsiz alternatifleri: Mac'te iOS Simulator ya da web sürümünü tarayıcıda çalıştırmak.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          eas build --platform android --profile production
+          eas submit --platform android
+          eas build --platform ios --profile production
+          eas submit --platform ios
+    mistakes:
+      - problem:
+          en: "Paying for developer accounts before the app is worth publishing."
+          tr: "Uygulama yayınlamaya değer hale gelmeden geliştirici hesaplarına para ödemek."
+        fix:
+          en: "Start with free internal distribution and real testers. Pay when the app works and you have decided to publish. The Google fee is one-time; the Apple fee is yearly."
+          tr: "Ücretsiz internal distribution ve gerçek test edenlerle başla. Uygulama çalışınca ve yayınlamaya karar verince öde. Google ücreti bir kerelik, Apple ücreti yıllıktır."
+      - problem:
+          en: "Expecting an update to appear on the stores right after `eas submit`."
+          tr: "`eas submit`'ten hemen sonra güncellemenin mağazalarda görünmesini beklemek."
+        fix:
+          en: "Both stores process and review the build first. Allow hours to days, and for a new Google account the closed test period too."
+          tr: "İki mağaza da önce build'i işler ve inceler. Saatlerden günlere kadar süre ver, yeni bir Google hesabı için kapalı test süresini de hesaba kat."
+    quiz:
+      - q:
+          en: "Which way to get your app on other people's Android phones costs no store fee?"
+          tr: "Uygulamanı başkalarının Android telefonlarına ulaştırmanın hangi yolunda mağaza ücreti yoktur?"
+        options:
+          en: ["Publishing on Google Play", "Sharing the APK from an internal distribution build", "Publishing on the App Store"]
+          tr: ["Google Play'de yayınlamak", "Internal distribution build'inin APK'sını paylaşmak", "App Store'da yayınlamak"]
+        answer: 1
+        why:
+          en: "An APK can be installed directly on Android, with no store. Google Play needs a 25 USD account and the App Store needs 99 USD per year."
+          tr: "Bir APK Android'e mağazasız doğrudan kurulabilir. Google Play 25 USD'lik, App Store yılda 99 USD'lik hesap ister."
+    sources:
+      - title: Expo, submit to the Google Play Store
+        url: https://docs.expo.dev/submit/android/
+      - title: Expo, submit to the Apple App Store
+        url: https://docs.expo.dev/submit/ios/
+      - title: Google Play Console Help, app testing requirements for new personal accounts
+        url: https://support.google.com/googleplay/android-developer/answer/14151465
+      - title: Apple Developer Program
+        url: https://developer.apple.com/programs/
+
+  - id: updates
+    stage: deploy
+    title:
+      en: "Ship fixes over the air with EAS Update"
+      tr: "EAS Update ile düzeltmeleri havadan gönderme"
+    minutes: 40
+    needs: [eas-build]
+    why:
+      en: "A store release takes hours or days. A typo or a bug in your JavaScript should not wait that long. EAS Update sends new JavaScript and images straight to installed apps, over the air, so the next time the user opens the app it runs the fixed version. It cannot change native code, so anything that adds a native library still needs a new build."
+      tr: "Mağaza sürümü saatler ya da günler alır. JavaScript'indeki bir yazım hatası ya da bug bu kadar beklememeli. EAS Update yeni JavaScript'i ve görselleri kurulu uygulamalara havadan doğrudan gönderir; kullanıcı uygulamayı bir sonraki açışında düzeltilmiş sürümü çalıştırır. Native kodu değiştiremez; yani native kütüphane ekleyen her şey için yine yeni build gerekir."
+    learn:
+      en: |
+        - Two layers: the native build (changes rarely) and the JavaScript update on top (changes often)
+        - `runtimeVersion` links an update to the builds that can run it, so an update never reaches an app whose native code it does not fit
+        - Channels (`preview`, `production`) in `eas.json` decide which builds receive which updates
+        - The update is downloaded in the background and starts on the next launch
+      tr: |
+        - İki katman: native build (nadiren değişir) ve üstündeki JavaScript güncellemesi (sık değişir)
+        - `runtimeVersion` bir güncellemeyi onu çalıştırabilecek build'lere bağlar; böylece güncelleme, native koduna uymayan bir uygulamaya hiç ulaşmaz
+        - `eas.json` içindeki kanallar (`preview`, `production`) hangi build'in hangi güncellemeyi alacağını belirler
+        - Güncelleme arka planda indirilir ve bir sonraki açılışta başlar
+    do:
+      en: |
+        1. Install the updates library: `npx expo install expo-updates`.
+        2. Run `eas update:configure`. It adds `runtimeVersion` and the `updates.url` of your project to `app.json`, and the project id under `extra.eas`.
+        3. Your `preview` and `production` profiles already have a `channel`. A build is tied to its channel when it is built, so **build again**: `eas build --platform android --profile preview`, and install the new APK.
+        4. Change something visible in the JavaScript, for example the empty-list text in `src/app/index.tsx`, and commit.
+        5. Publish the update to the `preview` channel: `eas update --channel preview --message "Change empty text"`.
+        6. On the phone, close the app completely and open it. EAS Update downloads the new version in the background, so close and open it **a second time** to see the change.
+        7. If an update is bad, publish a fixed one the same way, or run `eas update:rollback` to go back (see the EAS Update docs on rollbacks).
+        8. Know the limits: free accounts get updates for up to 1,000 monthly active users. Never use updates to dodge the store rules for what your app is allowed to change.
+      tr: |
+        1. Güncelleme kütüphanesini kur: `npx expo install expo-updates`.
+        2. `eas update:configure` çalıştır. `app.json`'a `runtimeVersion` ve projenin `updates.url` değerini, `extra.eas` altına da proje id'sini ekler.
+        3. `preview` ve `production` profillerinde zaten bir `channel` var. Bir build, build edilirken kanalına bağlanır; bu yüzden **yeniden build et**: `eas build --platform android --profile preview` ve yeni APK'yı kur.
+        4. JavaScript'te gözle görülür bir şeyi değiştir, örneğin `src/app/index.tsx` içindeki boş liste yazısını, ve commit et.
+        5. Güncellemeyi `preview` kanalına yayınla: `eas update --channel preview --message "Change empty text"`.
+        6. Telefonda uygulamayı tamamen kapat ve aç. EAS Update yeni sürümü arka planda indirir; değişikliği görmek için **ikinci kez** kapatıp aç.
+        7. Bir güncelleme kötüyse düzeltilmişini aynı şekilde yayınla ya da geri dönmek için `eas update:rollback` çalıştır (EAS Update dokümanındaki rollback bölümüne bak).
+        8. Sınırları bil: ücretsiz hesaplar 1.000 aylık aktif kullanıcıya kadar güncelleme alır. Güncellemeleri, uygulamanın neyi değiştirebileceğine dair mağaza kurallarını aşmak için asla kullanma.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo install expo-updates
+          eas update:configure
+          eas build --platform android --profile preview
+          eas update --channel preview --message "Change empty text"
+    mistakes:
+      - problem:
+          en: "Publishing an update that uses a new native library. Old builds crash or never receive it."
+          tr: "Yeni bir native kütüphane kullanan bir güncelleme yayınlamak. Eski build'ler çöker ya da onu hiç almaz."
+        fix:
+          en: "Anything that changes native code needs a new build, and a new `runtimeVersion` so the update only goes to builds that contain it."
+          tr: "Native kodu değiştiren her şey yeni bir build ve yeni bir `runtimeVersion` ister; böylece güncelleme sadece onu içeren build'lere gider."
+      - problem:
+          en: "The update seems not to arrive."
+          tr: "Güncelleme gelmiyor gibi görünüyor."
+        fix:
+          en: "Check that the build and the update use the same channel and runtime version, and remember it takes two launches: the first downloads, the second runs it. Development builds and Expo Go do not behave like a release build."
+          tr: "Build ve güncellemenin aynı kanalı ve runtime sürümünü kullandığını kontrol et ve iki açılış gerektiğini hatırla: ilki indirir, ikincisi çalıştırır. Development build'ler ve Expo Go, release build gibi davranmaz."
+    quiz:
+      - q:
+          en: "Which change needs a new store build instead of an update?"
+          tr: "Hangi değişiklik güncelleme yerine yeni bir mağaza build'i ister?"
+        options:
+          en: ["Fixing a typo in a screen text", "Adding a library that has native code", "Changing a colour"]
+          tr: ["Bir ekran yazısındaki yazım hatasını düzeltmek", "Native kodu olan bir kütüphane eklemek", "Bir rengi değiştirmek"]
+        answer: 1
+        why:
+          en: "Updates carry JavaScript and assets only. Native code is part of the installed binary."
+          tr: "Güncellemeler sadece JavaScript ve asset taşır. Native kod kurulu binary'nin parçasıdır."
+    sources:
+      - title: Expo, EAS Update introduction
+        url: https://docs.expo.dev/eas-update/introduction/
+      - title: Expo, get started with EAS Update
+        url: https://docs.expo.dev/eas-update/getting-started/
+      - title: Expo, runtime versions
+        url: https://docs.expo.dev/eas-update/runtime-versions/
+
+  - id: crashes
+    stage: monitoring
+    title:
+      en: "Find crashes you cannot see with Sentry"
+      tr: "Göremediğin çökmeleri Sentry ile bulma"
+    minutes: 45
+    needs: [updates]
+    why:
+      en: "When your app crashes on someone else's phone you get no message, only a bad review. A crash reporter sends you the error, the screen, the device and the version, so you can fix it. Sentry is the service that Expo's docs recommend, and its free plan is enough for a small app."
+      tr: "Uygulaman başkasının telefonunda çökünce sana mesaj gelmez, sadece kötü bir yorum gelir. Bir çökme raporlayıcı sana hatayı, ekranı, cihazı ve sürümü gönderir; böylece düzeltebilirsin. Sentry, Expo dokümanının önerdiği servis ve ücretsiz planı küçük bir uygulama için yeterli."
+    learn:
+      en: |
+        - What a crash report contains: a stack trace, the device, the app version and the steps before the error
+        - Why source maps matter: the shipped code is compressed, and source maps let Sentry show your real file names and lines
+        - A DSN is an address for sending errors. It is not a secret, but the auth token for uploading source maps is.
+        - Look at the reports, group them, and fix the ones that affect the most people first
+      tr: |
+        - Bir çökme raporunda ne var: stack trace, cihaz, uygulama sürümü ve hatadan önceki adımlar
+        - Source map'ler neden önemli: yayınlanan kod sıkıştırılmıştır, source map'ler Sentry'nin gerçek dosya adlarını ve satırları göstermesini sağlar
+        - DSN, hataları göndermek için bir adrestir. Gizli değildir ama source map yüklemek için kullanılan auth token gizlidir.
+        - Raporlara bak, grupla ve en çok kişiyi etkileyenleri önce düzelt
+    do:
+      en: |
+        1. Create a free account at sentry.io and a project of type **React Native**. The free Developer plan allows 5,000 errors per month for 1 user (sentry.io/pricing). Copy the **DSN** of the project.
+        2. Install the SDK: `npx expo install @sentry/react-native`. You can also run Sentry's wizard (`npx @sentry/wizard@latest -i reactNative`), which does steps 3 to 5 for you.
+        3. Create `metro.config.js` in the project root, so that Sentry's tooling gives every bundle a debug id.
+        4. In `app.json` set the Sentry plugin in `plugins` (only the `plugins` part is shown), with your organization and project slugs. The install command may already have added a bare `"@sentry/react-native"` entry; remove it and keep the one below.
+        5. In `src/app/_layout.tsx` start Sentry and wrap the root layout (see the code). Put the DSN in a `.env` file as `EXPO_PUBLIC_SENTRY_DSN=...`. A DSN may be public, the auth token may not.
+        6. Add the token for source maps as a **secret** in your EAS project (expo.dev, project, environment variables, with the sensitive visibility) named `SENTRY_AUTH_TOKEN`, and never commit it. Add `.env` to `.gitignore` if it is not already there.
+        7. Make a new preview build. Then, in a place you will remove right after, call `Sentry.captureException(new Error('Test error from Habits'))` once, for example in the Save token handler, and see the report in Sentry. Remove your test line.
+        8. With updates, upload the source maps for each update too: `eas update --branch preview && npx sentry-expo-upload-sourcemaps dist` (see the Expo Sentry guide).
+      tr: |
+        1. sentry.io'da ücretsiz bir hesap ve **React Native** tipinde bir proje oluştur. Ücretsiz Developer plan, 1 kullanıcı için ayda 5.000 hataya izin verir (sentry.io/pricing). Projenin **DSN**'ini kopyala.
+        2. SDK'yı kur: `npx expo install @sentry/react-native`. Sentry'nin wizard'ını da çalıştırabilirsin (`npx @sentry/wizard@latest -i reactNative`); 3'ten 5'e kadar olan adımları senin yerine yapar.
+        3. Sentry araçları her bundle'a bir debug id versin diye proje köküne `metro.config.js` oluştur.
+        4. `app.json` içinde `plugins` kısmına, organization ve project slug'larınla Sentry plugin'ini koy (sadece `plugins` kısmı gösteriliyor). Kurulum komutu `"@sentry/react-native"` diye çıplak bir satırı kendiliğinden eklemiş olabilir; onu sil, aşağıdakini tut.
+        5. `src/app/_layout.tsx` içinde Sentry'yi başlat ve kök layout'u sar (koda bak). DSN'i `.env` dosyasına `EXPO_PUBLIC_SENTRY_DSN=...` olarak yaz. DSN herkese açık olabilir, auth token olamaz.
+        6. Source map'ler için token'ı EAS projene **secret** olarak ekle (expo.dev, proje, environment variables, sensitive görünürlükle), adı `SENTRY_AUTH_TOKEN` olsun ve asla commit etme. `.env` yoksa `.gitignore`'a ekle.
+        7. Yeni bir preview build al. Sonra hemen kaldıracağın bir yerde, örneğin Save token işleyicisinde, bir kez `Sentry.captureException(new Error('Test error from Habits'))` çağır ve raporu Sentry'de gör. Test satırını sil.
+        8. Güncellemelerde her güncelleme için de source map yükle: `eas update --branch preview && npx sentry-expo-upload-sourcemaps dist` (Expo Sentry rehberine bak).
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          npx expo install @sentry/react-native
+      - file: metro.config.js
+        lang: js
+        text: |
+          const { getSentryExpoConfig } = require('@sentry/react-native/metro');
+
+          const config = getSentryExpoConfig(__dirname);
+
+          module.exports = config;
+      - file: app.json
+        lang: json
+        text: |
+          {
+            "expo": {
+              "plugins": [
+                "expo-router",
+                [
+                  "expo-splash-screen",
+                  {
+                    "backgroundColor": "#2563EB",
+                    "image": "./assets/images/splash-icon.png",
+                    "imageWidth": 200
+                  }
+                ],
+                [
+                  "@sentry/react-native/expo",
+                  {
+                    "url": "https://sentry.io/",
+                    "project": "your-project-slug",
+                    "organization": "your-organization-slug"
+                  }
+                ]
+              ]
+            }
+          }
+      - file: src/app/_layout.tsx
+        lang: tsx
+        text: |
+          import * as Sentry from '@sentry/react-native';
+          import { Link, Stack } from 'expo-router';
+          import { SQLiteProvider } from 'expo-sqlite';
+          import { Suspense } from 'react';
+          import { ActivityIndicator, View } from 'react-native';
+
+          import { migrate } from '@/db';
+          import { HabitsProvider } from '@/habits-context';
+
+          Sentry.init({
+            dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+            // Only report from real builds, not while you develop.
+            enabled: !__DEV__,
+          });
+
+          function Loading() {
+            return (
+              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator />
+              </View>
+            );
+          }
+
+          function RootLayout() {
+            return (
+              <Suspense fallback={<Loading />}>
+                <SQLiteProvider databaseName="habits.db" onInit={migrate} useSuspense>
+                  <HabitsProvider>
+                    <Stack>
+                      <Stack.Screen
+                        name="index"
+                        options={{
+                          title: 'Habits',
+                          headerRight: () => <Link href="/settings">Settings</Link>,
+                        }}
+                      />
+                      <Stack.Screen name="new" options={{ title: 'New habit', presentation: 'modal' }} />
+                      <Stack.Screen name="habit/[id]" options={{ title: 'Habit' }} />
+                      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+                    </Stack>
+                  </HabitsProvider>
+                </SQLiteProvider>
+              </Suspense>
+            );
+          }
+
+          export default Sentry.wrap(RootLayout);
+    mistakes:
+      - problem:
+          en: "Committing the Sentry auth token (or any `SENTRY_AUTH_TOKEN` in `.env`) to Git."
+          tr: "Sentry auth token'ını (ya da `.env` içindeki `SENTRY_AUTH_TOKEN`'ı) Git'e commit etmek."
+        fix:
+          en: "Keep it only as an EAS secret or in an untracked `.env.local`. If it leaked, revoke it in Sentry and create a new one."
+          tr: "Sadece EAS secret olarak ya da takip edilmeyen bir `.env.local` içinde tut. Sızdıysa Sentry'de iptal et ve yenisini oluştur."
+      - problem:
+          en: "Reports show unreadable minified code."
+          tr: "Raporlar okunamayan sıkıştırılmış kodu gösteriyor."
+        fix:
+          en: "Source maps were not uploaded. Check the build log for the Sentry upload step and that `SENTRY_AUTH_TOKEN` is set for the build. Updates need their own upload."
+          tr: "Source map'ler yüklenmemiş. Build log'unda Sentry yükleme adımına ve build için `SENTRY_AUTH_TOKEN`'ın tanımlı olduğuna bak. Güncellemelerin kendi yüklemesi gerekir."
+    quiz:
+      - q:
+          en: "Which of these may be public, and which must stay secret?"
+          tr: "Bunlardan hangisi herkese açık olabilir, hangisi gizli kalmalı?"
+        options:
+          en: ["Both are secret", "The DSN may be public; the auth token must be secret", "The auth token may be public; the DSN must be secret"]
+          tr: ["İkisi de gizli", "DSN herkese açık olabilir; auth token gizli olmalı", "Auth token herkese açık olabilir; DSN gizli olmalı"]
+        answer: 1
+        why:
+          en: "The DSN only lets the app send errors in. The auth token can create releases and upload files to your account."
+          tr: "DSN sadece uygulamanın hata göndermesini sağlar. Auth token hesabında release oluşturabilir ve dosya yükleyebilir."
+    sources:
+      - title: Expo, using Sentry
+        url: https://docs.expo.dev/guides/using-sentry/
+      - title: Sentry for React Native, Expo setup
+        url: https://docs.sentry.io/platforms/react-native/manual-setup/expo/
+      - title: Expo, EAS Observe
+        url: https://docs.expo.dev/eas/observe/introduction/
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Where to go next"
+      tr: "Sonra nereye gidilir"
+    minutes: 30
+    needs: [crashes]
+    why:
+      en: "You built, tested, built in the cloud and shipped a phone app. These are the next skills that real apps need. Do them one at a time, each in your own habits app, as a small experiment."
+      tr: "Bir telefon uygulaması yazdın, test ettin, bulutta build ettin ve yayınladın. Bunlar gerçek uygulamaların ihtiyaç duyduğu sonraki beceriler. Teker teker, kendi alışkanlık uygulamanda küçük birer deney olarak yap."
+    learn:
+      en: |
+        - Development builds (`expo-dev-client`): your own app with the developer tools, needed once you add libraries Expo Go does not include
+        - Notifications (`expo-notifications`): a daily reminder to tick off your habits, which needs a development build to test
+        - Animations with Reanimated, and gestures with Gesture Handler (both already in the template)
+        - Automating builds and updates with EAS Workflows or GitHub Actions
+        - Accessibility: test with the screen reader (TalkBack on Android) and large text
+        - A back end for sync and login, then use SecureStore for the tokens, as you learned
+      tr: |
+        - Development build'ler (`expo-dev-client`): geliştirici araçlarıyla kendi uygulaman; Expo Go'nun içermediği kütüphaneler ekleyince gerekir
+        - Bildirimler (`expo-notifications`): alışkanlıklarını işaretlemen için günlük hatırlatma; test için development build gerekir
+        - Reanimated ile animasyonlar, Gesture Handler ile hareketler (ikisi de şablonda zaten var)
+        - Build ve güncellemeleri EAS Workflows ya da GitHub Actions ile otomatikleştirmek
+        - Erişilebilirlik: ekran okuyucuyla (Android'de TalkBack) ve büyük yazıyla test et
+        - Senkronizasyon ve giriş için bir back end; token'lar için öğrendiğin gibi SecureStore
+    do:
+      en: |
+        1. Pick one idea: a daily reminder, an edit-name screen, or a weekly history chart. Write down in one sentence what "done" means.
+        2. Create a branch (`git switch -c reminders`), build it, and test on your phone.
+        3. Add a test for the logic you wrote.
+        4. Check the Expo SDK changelog twice a year. Upgrading is easier when you do it often: `npx expo install expo@latest --fix`, then `npx expo-doctor`.
+        5. Read the docs of the things you used: Expo Router, Expo SQLite and EAS. Reading them end to end once teaches more than any video.
+        6. Learn the web side: a Next.js back end for sync, or the Docker and cloud roadmaps for hosting it.
+      tr: |
+        1. Bir fikir seç: günlük hatırlatma, isim düzenleme ekranı ya da haftalık geçmiş grafiği. "Bitti"nin ne demek olduğunu tek cümleyle yaz.
+        2. Bir branch aç (`git switch -c reminders`), build et ve telefonunda test et.
+        3. Yazdığın mantık için bir test ekle.
+        4. Expo SDK changelog'una yılda iki kez bak. Yükseltme sık yapılınca daha kolaydır: `npx expo install expo@latest --fix`, sonra `npx expo-doctor`.
+        5. Kullandığın şeylerin dokümanını oku: Expo Router, Expo SQLite ve EAS. Baştan sona bir kez okumak herhangi bir videodan çok öğretir.
+        6. Web tarafını öğren: senkronizasyon için bir Next.js back end'i ya da barındırmak için Docker ve cloud yol haritaları.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git switch -c reminders
+          npx expo install expo-notifications
+          npx expo install expo@latest --fix
+          npx expo-doctor
+    mistakes:
+      - problem:
+          en: "Upgrading the Expo SDK by editing version numbers in package.json by hand."
+          tr: "Expo SDK'yı package.json'daki sürüm numaralarını elle değiştirerek yükseltmek."
+        fix:
+          en: "Use `npx expo install expo@latest --fix`, which sets every Expo package to the version that matches the SDK, and read the SDK upgrade notes."
+          tr: "Her Expo paketini SDK'ya uyan sürüme ayarlayan `npx expo install expo@latest --fix` kullan ve SDK yükseltme notlarını oku."
+      - problem:
+          en: "Adding a native library and being surprised that it does not work in Expo Go."
+          tr: "Bir native kütüphane eklemek ve Expo Go'da çalışmamasına şaşırmak."
+        fix:
+          en: "Expo Go contains a fixed set of libraries. Make a development build with `expo-dev-client` when you need others."
+          tr: "Expo Go sabit bir kütüphane kümesi içerir. Başkalarına ihtiyacın olunca `expo-dev-client` ile bir development build al."
+    quiz:
+      - q:
+          en: "When do you need a development build instead of Expo Go?"
+          tr: "Ne zaman Expo Go yerine development build gerekir?"
+        options:
+          en: ["When you add a native library that Expo Go does not include", "When you change a colour", "Never"]
+          tr: ["Expo Go'nun içermediği bir native kütüphane eklediğinde", "Bir rengi değiştirdiğinde", "Hiçbir zaman"]
+        answer: 0
+        why:
+          en: "Expo Go ships with a fixed set of native modules. A development build is your own app with exactly the modules you choose."
+          tr: "Expo Go sabit bir native modül kümesiyle gelir. Development build, seçtiğin modüllerle kendi uygulamandır."
+    sources:
+      - title: Expo, development builds
+        url: https://docs.expo.dev/develop/development-builds/introduction/
+      - title: Expo, upgrade the SDK
+        url: https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/
+      - title: React Native, accessibility
+        url: https://reactnative.dev/docs/accessibility
