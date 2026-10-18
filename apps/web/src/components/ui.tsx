@@ -18,7 +18,7 @@ export function Button({
     <button
       type="button"
       className={cn(
-        "inline-flex items-center justify-center gap-1.5 rounded-ui font-medium transition-colors select-none",
+        "inline-flex shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-ui font-medium transition-colors select-none",
         "disabled:pointer-events-none disabled:opacity-50",
         size === "md" ? "h-8 px-3 text-[13px]" : "h-7 px-2 text-xs",
         variant === "primary" && "bg-accent text-accent-fg hover:bg-accent-hover",

@@ -215,8 +215,11 @@ export function Helper() {
     }
   };
 
-  // On chat and terminal pages the corner holds the send button; sit higher there.
+  // On chat and terminal pages the corner holds the send button; sit higher there, and on a phone
+  // stay out of the way altogether (the helper is still on every other page).
   const raised = /^\/(c|t)\//.test(location.pathname);
+  const narrow = typeof window !== "undefined" && window.innerWidth < 768;
+  if (raised && narrow && !open) return null;
   const starters = ["continue", "newChat", "where", "tour"] as const;
 
   let panel: ReactNode = null;

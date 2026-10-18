@@ -794,7 +794,13 @@
     "notice_notebook_one": "Wrote 1 opinion in its notebook",
     "notice_notebook_other": "Wrote {{count}} opinions in its notebook",
     "notice_notebookRejected_one": "1 change of mind was not saved: it had no new evidence",
-    "notice_notebookRejected_other": "{{count}} changes of mind were not saved: they had no new evidence"
+    "notice_notebookRejected_other": "{{count}} changes of mind were not saved: they had no new evidence",
+    "goneTitle": "This chat has ended",
+    "goneBody": "\"{{title}}\" is no longer running (it stopped, or God Eye was restarted). The conversation is saved; you can pick it up where you left off.",
+    "goneUnknown": "This chat is no longer running (it stopped, or God Eye was restarted). Its conversation is saved under the project's Sessions.",
+    "goneResume": "Continue where I left off",
+    "goneOpen": "Read the conversation",
+    "goneProject": "Go to the project"
   },
   "checkpoint": {
     "title": "Snapshots",

@@ -794,7 +794,13 @@
     "notice_notebook_one": "Defterine 1 görüş yazdı",
     "notice_notebook_other": "Defterine {{count}} görüş yazdı",
     "notice_notebookRejected_one": "1 fikir değişikliği kaydedilmedi: yeni kanıt yoktu",
-    "notice_notebookRejected_other": "{{count}} fikir değişikliği kaydedilmedi: yeni kanıt yoktu"
+    "notice_notebookRejected_other": "{{count}} fikir değişikliği kaydedilmedi: yeni kanıt yoktu",
+    "goneTitle": "Bu sohbet bitti",
+    "goneBody": "\"{{title}}\" artık çalışmıyor (durduruldu ya da God Eye yeniden başladı). Konuşma kaydedildi; kaldığın yerden devam edebilirsin.",
+    "goneUnknown": "Bu sohbet artık çalışmıyor (durduruldu ya da God Eye yeniden başladı). Konuşması projenin Session'lar sekmesinde kayıtlı.",
+    "goneResume": "Kaldığım yerden devam et",
+    "goneOpen": "Konuşmayı oku",
+    "goneProject": "Projeye git"
   },
   "checkpoint": {
     "title": "Kayıtlar",

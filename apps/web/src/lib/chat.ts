@@ -7,26 +7,64 @@ type ServerOp =
   | { op: "info"; info: ChatInfo }
   | { op: "error"; error: string };
 
+/** What a chat was about, kept in the browser so it can be picked up again after God Eye restarts. */
+export interface KnownChat {
+  projectId: string;
+  sessionId?: string;
+  title: string;
+}
+const KNOWN = "godeye.chats.known";
+
+function readKnown(): Record<string, KnownChat> {
+  try {
+    return JSON.parse(localStorage.getItem(KNOWN) ?? "{}") as Record<string, KnownChat>;
+  } catch {
+    return {};
+  }
+}
+
+function remember(info: ChatInfo): void {
+  try {
+    const all = readKnown();
+    all[info.id] = { projectId: info.projectId, sessionId: info.sessionId, title: info.title };
+    const keys = Object.keys(all);
+    for (const k of keys.slice(0, Math.max(0, keys.length - 100))) delete all[k];
+    localStorage.setItem(KNOWN, JSON.stringify(all));
+  } catch {
+    // Only a convenience.
+  }
+}
+
 /** Live connection to one chat: its events, status, and the actions you can take. */
 export function useChat(id: string) {
   const [info, setInfo] = useState<ChatInfo>();
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [error, setError] = useState<string>();
+  /** The chat no longer exists on the server (it ended or God Eye restarted); what we knew of it. */
+  const [gone, setGone] = useState<KnownChat | true>();
   const socket = useRef<WebSocket>(undefined);
 
   useEffect(() => {
     let closed = false;
+    let opened = false;
     let retry: ReturnType<typeof setTimeout> | undefined;
+    setGone(undefined);
     const connect = () => {
       const ws = new WebSocket(`${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws/chat/${id}`);
       socket.current = ws;
+      ws.onopen = () => {
+        opened = true;
+      };
       ws.onmessage = (message) => {
         const op = JSON.parse(message.data) as ServerOp;
         if (op.op === "init") {
           setInfo(op.info);
           setEvents(op.events);
-        } else if (op.op === "info") setInfo(op.info);
-        else if (op.op === "error") setError(op.error);
+          remember(op.info);
+        } else if (op.op === "info") {
+          setInfo(op.info);
+          remember(op.info);
+        } else if (op.op === "error") setError(op.error);
         else
           setEvents((list) => {
             const index = list.findIndex((e) => e.id === op.event.id);
@@ -37,7 +75,21 @@ export function useChat(id: string) {
           });
       };
       ws.onclose = () => {
-        if (!closed) retry = setTimeout(connect, 1500);
+        if (closed) return;
+        // Never got in: ask whether the chat still exists before trying again.
+        if (!opened)
+          void fetch("/api/chats")
+            .then((r) => (r.ok ? (r.json() as Promise<ChatInfo[]>) : undefined))
+            .then((list) => {
+              if (closed) return;
+              if (list && !list.some((c) => c.id === id)) setGone(readKnown()[id] ?? true);
+              else retry = setTimeout(connect, 1500);
+            })
+            .catch(() => {
+              if (!closed) retry = setTimeout(connect, 1500);
+            });
+        else retry = setTimeout(connect, 1500);
+        opened = false;
       };
     };
     connect();
@@ -57,6 +109,7 @@ export function useChat(id: string) {
     info,
     events,
     error,
+    gone,
     send: (text: string, images: { mediaType: string; data: string }[] = []) => post({ op: "send", text, images }),
     answer: (requestId: string, decision: "allow" | "deny" | "always") =>
       post({ op: "permission", requestId, decision }),

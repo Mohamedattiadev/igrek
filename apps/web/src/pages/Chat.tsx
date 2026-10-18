@@ -24,6 +24,8 @@ import {
   Image as ImageIcon,
   ImagePlus,
   ListTodo,
+  MessageSquare,
+  RotateCcw,
   Search,
   Send,
   ShieldAlert,
@@ -47,7 +49,7 @@ import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
-import { Badge, Button, Segmented, StatusDot } from "../components/ui";
+import { Badge, Button, EmptyState, Segmented, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
 import { cn } from "../lib/cn";
@@ -445,6 +447,41 @@ export function ChatPage() {
   const status = info?.status ?? "idle";
   const tone = status === "working" ? "success" : status === "waiting" ? "warning" : "neutral";
 
+  if (chat.gone) {
+    const known = chat.gone === true ? undefined : chat.gone;
+    return (
+      <EmptyState
+        icon={MessageSquare}
+        title={t("chat.goneTitle")}
+        body={known ? t("chat.goneBody", { title: known.title }) : t("chat.goneUnknown")}
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            {known?.sessionId && (
+              <Button
+                variant="primary"
+                icon={RotateCcw}
+                onClick={async () => {
+                  const next = await api.startChat({ projectId: known.projectId, resume: known.sessionId });
+                  navigate(`/c/${next.id}`, { replace: true });
+                }}
+              >
+                {t("chat.goneResume")}
+              </Button>
+            )}
+            {known?.sessionId && (
+              <Button onClick={() => navigate(`/p/${known.projectId}/s/${known.sessionId}`)}>
+                {t("chat.goneOpen")}
+              </Button>
+            )}
+            <Button variant="ghost" onClick={() => navigate(known ? `/p/${known.projectId}` : "/")}>
+              {known ? t("chat.goneProject") : t("helper.home")}
+            </Button>
+          </div>
+        }
+      />
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-4">
@@ -761,8 +798,8 @@ export function ChatPage() {
                 </select>
               )}
               {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
-              <div className="ms-auto flex items-center gap-1">
-                <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)} className="flex">
+              <div className="ms-auto flex min-w-0 max-w-full items-center gap-1">
+                <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)} className="flex min-w-0">
                   <Segmented
                     value={info?.mode ?? "normal"}
                     onChange={(mode) => void changeMode(mode)}
