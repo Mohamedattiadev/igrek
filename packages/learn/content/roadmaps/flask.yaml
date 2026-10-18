@@ -1,0 +1,2810 @@
+id: flask
+title: Flask
+summary:
+  en: "From an empty computer to your own Flask web app on the internet. You build Linkbox, a small link saver with accounts, step by step: pages, a SQLite database, forms, login, tests, security, packaging and a free deploy. You understand why each step is there."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Flask web uygulamana. Linkbox adlı, hesapları olan küçük bir link kaydedici yazarsın: sayfalar, SQLite veritabanı, formlar, giriş, testler, güvenlik, paketleme ve ücretsiz deploy. Her adımın neden orada olduğunu anlarsın."
+teacher: backend
+project:
+  en: 'Linkbox: a small web app where people register, log in and save links with a title. It uses an app factory and blueprints, Jinja templates, validated forms, SQLite (sqlite3), hashed passwords, CSRF protection, pytest tests, a pyproject.toml package, the Waitress server, logs and a health check, and runs free on PythonAnywhere.'
+  tr: 'Linkbox: insanların kayıt olup giriş yaptığı ve başlıklı linkler kaydettiği küçük bir web uygulaması. Uygulama fabrikası (app factory) ve blueprint''ler, Jinja şablonları, doğrulanan formlar, SQLite (sqlite3), hash''lenmiş şifreler, CSRF koruması, pytest testleri, pyproject.toml paketi, Waitress sunucusu, loglar ve bir sağlık kontrolü kullanır; PythonAnywhere''de ücretsiz çalışır.'
+detect:
+  pip: [flask]
+version: "3.1"
+latest: pypi:flask
+checked: 2026-10
+after: [python]
+sheets: [python, flask, sql, http, auth, caching, git, github-actions]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Check your tools: uv, Python, an editor and Git"
+      tr: "Araçlarını kontrol et: uv, Python, bir editör ve Git"
+    minutes: 30
+    why:
+      en: "A Flask app is a Python program plus a few packages. uv gives each project its own private folder of packages and runs your commands inside it, so Flask for this project never mixes with anything else on your computer."
+      tr: "Bir Flask uygulaması, bir Python programı ve birkaç pakettir. uv her projeye kendi özel paket klasörünü verir ve komutlarını onun içinde çalıştırır; böylece bu projenin Flask'ı bilgisayarındaki başka hiçbir şeyle karışmaz."
+    learn:
+      en: |
+        - What a **virtual environment** is: a private folder of packages for one project
+        - What uv does: it installs Python, creates that folder for you and runs commands inside it
+        - Flask 3.1 needs Python 3.9 or newer; this roadmap works with any recent Python
+        - If you did the Python roadmap, you already have everything here: just run the checks
+      tr: |
+        - **Sanal ortam** (virtual environment) nedir: tek bir projeye ait özel paket klasörü
+        - uv'nin ne yaptığı: Python'u kurar, bu klasörü senin için oluşturur ve komutları onun içinde çalıştırır
+        - Flask 3.1 için Python 3.9 veya daha yenisi gerekir; bu yol haritası güncel her Python ile çalışır
+        - Python yol haritasını yaptıysan burada her şey hazır: sadece kontrolleri çalıştır
+    do:
+      en: |
+        1. Install **uv**. On macOS or Linux run the first command below in a terminal. On Windows run the second one in PowerShell. Then close the terminal and open a new one, so it sees the new program.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor, and its Python extension.
+        3. Install **Git** (git-scm.com). On macOS, running `git --version` offers to install it.
+        4. Run the check commands below. Each should print a version number.
+        5. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+      tr: |
+        1. **uv**'yi kur. macOS veya Linux'ta bir terminalde aşağıdaki ilk komutu çalıştır. Windows'ta PowerShell'de ikinci komutu çalıştır. Sonra terminali kapatıp yenisini aç ki yeni programı görsün.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u (code.visualstudio.com) ve Python eklentisini kur.
+        3. **Git**'i kur (git-scm.com). macOS'ta `git --version` çalıştırınca kurmayı kendisi önerir.
+        4. Aşağıdaki kontrol komutlarını çalıştır. Her biri bir sürüm numarası yazmalı.
+        5. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          # macOS and Linux
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+      - file: terminal
+        lang: powershell
+        text: |
+          # Windows (PowerShell)
+          powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+      - file: terminal
+        lang: sh
+        text: |
+          uv --version
+          git --version
+          uv python install 3.15
+          uv run --python 3.15 python --version
+    mistakes:
+      - problem:
+          en: "\"command not found: uv\" right after installing."
+          tr: "Kurduktan hemen sonra \"command not found: uv\" hatası."
+        fix:
+          en: "Close the terminal and open a new one so it reloads its list of programs. On Windows, restart the computer if it still fails."
+          tr: "Terminali kapatıp yenisini aç ki program listesini yeniden yüklesin. Windows'ta hâlâ olmuyorsa bilgisayarı yeniden başlat."
+      - problem:
+          en: "Installing Flask into the Python that came with the system with a bare `pip install`, and getting \"externally-managed-environment\"."
+          tr: "Flask'ı çıplak bir `pip install` ile sistemle gelen Python'a kurmaya çalışmak ve \"externally-managed-environment\" hatası almak."
+        fix:
+          en: "Never install project packages into the system Python. Use uv (`uv add`, `uv run`) so every project gets its own environment."
+          tr: "Proje paketlerini asla sistem Python'una kurma. uv'yi (`uv add`, `uv run`) kullan, böylece her proje kendi ortamını alır."
+    quiz:
+      - q:
+          en: "Why does each project get its own virtual environment?"
+          tr: "Her proje neden kendi sanal ortamını alır?"
+        options:
+          en: ["It makes Python run faster", "Projects with different package versions cannot break each other", "Flask refuses to run without it"]
+          tr: ["Python'u hızlandırır", "Farklı paket sürümleri kullanan projeler birbirini bozmaz", "Flask onsuz çalışmayı reddeder"]
+        answer: 1
+        why:
+          en: "One project may need version 3 of a package and another version 4. Separate folders let both live on one computer."
+          tr: "Bir proje bir paketin 3. sürümünü, başkası 4. sürümünü isteyebilir. Ayrı klasörler ikisinin de aynı bilgisayarda yaşamasını sağlar."
+    sources:
+      - title: uv installation
+        url: https://docs.astral.sh/uv/getting-started/installation/
+      - title: Flask, installation
+        url: https://flask.palletsprojects.com/en/stable/installation/
+      - title: Git installation
+        url: https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
+
+  - id: hello
+    stage: first-code
+    title:
+      en: "Create the linkbox project and say hello"
+      tr: "linkbox projesini oluştur ve merhaba de"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "The fastest way to understand a web framework is to see a page in your browser. Flask needs only a few lines for that, and its development server reloads your code every time you save."
+      tr: "Bir web framework'ünü anlamanın en hızlı yolu tarayıcıda bir sayfa görmektir. Flask bunun için birkaç satır ister ve geliştirme sunucusu her kaydettiğinde kodunu yeniden yükler."
+    learn:
+      en: |
+        - A web app answers **requests** (a browser asking for an address) with **responses** (a page)
+        - A **route** connects an address like `/hello/Ada` to a Python function (a **view**)
+        - What `--debug` does: it reloads on every save and shows errors in the browser. Use it only on your own computer.
+        - Why user input must be escaped before it goes into HTML
+      tr: |
+        - Bir web uygulaması **istekleri** (tarayıcının bir adres istemesi) **yanıtlarla** (bir sayfa) karşılar
+        - **Route**, `/hello/Ada` gibi bir adresi bir Python fonksiyonuna (**view**) bağlar
+        - `--debug`'ın ne yaptığı: her kaydedişte yeniden yükler ve hataları tarayıcıda gösterir. Sadece kendi bilgisayarında kullan.
+        - Kullanıcıdan gelen yazının HTML'e girmeden önce neden escape edilmesi gerektiği
+    do:
+      en: |
+        1. Create the project folder and set it up with the commands below. `uv init --bare` writes only a `pyproject.toml`; `uv add flask` installs Flask into a private `.venv` folder and records it.
+        2. Create the folder `linkbox` inside the project and, in it, the file `linkbox/__init__.py` with the code below. A folder with an `__init__.py` is a Python **package**.
+        3. Create `.gitignore` so Git skips files that must not be saved.
+        4. Start the development server and open http://127.0.0.1:5000 and http://127.0.0.1:5000/hello/Ada. Change the text, save, and reload the page.
+        5. Stop the server with Ctrl+C, then save this first version with Git.
+      tr: |
+        1. Proje klasörünü oluştur ve aşağıdaki komutlarla hazırla. `uv init --bare` sadece bir `pyproject.toml` yazar; `uv add flask` Flask'ı özel bir `.venv` klasörüne kurar ve kaydeder.
+        2. Projenin içinde `linkbox` klasörünü, onun içinde de aşağıdaki kodla `linkbox/__init__.py` dosyasını oluştur. İçinde `__init__.py` olan klasör bir Python **paketidir**.
+        3. Git'in kaydetmemesi gereken dosyaları atlaması için `.gitignore` dosyasını oluştur.
+        4. Geliştirme sunucusunu başlat ve http://127.0.0.1:5000 ile http://127.0.0.1:5000/hello/Ada adreslerini aç. Yazıyı değiştir, kaydet ve sayfayı yenile.
+        5. Sunucuyu Ctrl+C ile durdur, sonra bu ilk sürümü Git ile kaydet.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          mkdir linkbox
+          cd linkbox
+          uv init --bare
+          uv add flask
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          from flask import Flask
+          from markupsafe import escape
+
+          app = Flask(__name__)
+
+
+          @app.route("/")
+          def index():
+              return "Hello from Linkbox"
+
+
+          @app.route("/hello/<name>")
+          def hello(name):
+              return f"<p>Hello, {escape(name)}!</p>"
+      - file: .gitignore
+        lang: text
+        text: |
+          .venv/
+          __pycache__/
+          instance/
+          dist/
+          *.egg-info/
+          .pytest_cache/
+      - file: terminal
+        lang: sh
+        text: |
+          uv run flask --app linkbox run --debug
+          # stop with Ctrl+C, then:
+          git init
+          git add .
+          git commit -m "Start Linkbox"
+    mistakes:
+      - problem:
+          en: "\"Error: Could not locate a Flask application\"."
+          tr: "\"Error: Could not locate a Flask application\" hatası."
+        fix:
+          en: "Run the command from the project folder (the one that contains the `linkbox` folder), and check that the file is `linkbox/__init__.py`, with two underscores on each side."
+          tr: "Komutu proje klasöründen (içinde `linkbox` klasörü olan klasör) çalıştır ve dosyanın `linkbox/__init__.py` olduğunu, iki yanında ikişer alt çizgi bulunduğunu kontrol et."
+      - problem:
+          en: "Putting the visitor's text straight into HTML, like `f\"<p>{name}</p>\"`."
+          tr: "Ziyaretçinin yazdığı metni doğrudan HTML'e koymak, örneğin `f\"<p>{name}</p>\"`."
+        fix:
+          en: "Someone could send `<script>` as the name and run code in other people's browsers (XSS). Escape it with `escape()`, or better, use templates, which escape for you (next steps)."
+          tr: "Biri isim olarak `<script>` gönderip başkalarının tarayıcısında kod çalıştırabilir (XSS). `escape()` ile escape et ya da daha iyisi, bunu senin yerine yapan şablonları kullan (sonraki adımlar)."
+      - problem:
+          en: "Leaving `--debug` on when the app is on the internet."
+          tr: "Uygulama internetteyken `--debug`'ı açık bırakmak."
+        fix:
+          en: "The debugger lets anyone who sees an error page run Python on your server. It is for your own computer only. From the deploy steps on, it is never used."
+          tr: "Debugger, bir hata sayfası gören herkesin sunucunda Python çalıştırmasına izin verir. Sadece kendi bilgisayarın içindir. Deploy adımlarından itibaren hiç kullanılmaz."
+    quiz:
+      - q:
+          en: "What does `@app.route(\"/hello/<name>\")` do?"
+          tr: "`@app.route(\"/hello/<name>\")` ne yapar?"
+        options:
+          en: ["It creates a file called hello.html", "It runs the function below it when someone opens an address like /hello/Ada, and passes \"Ada\" as name", "It starts the server"]
+          tr: ["hello.html adlı bir dosya oluşturur", "Biri /hello/Ada gibi bir adresi açınca altındaki fonksiyonu çalıştırır ve name olarak \"Ada\" verir", "Sunucuyu başlatır"]
+        answer: 1
+        why:
+          en: "A route maps an address pattern to a function. The part in angle brackets becomes an argument."
+          tr: "Route, bir adres desenini bir fonksiyona bağlar. Köşeli parantez içindeki kısım fonksiyonun argümanı olur."
+    sources:
+      - title: Flask quickstart, a minimal application
+        url: https://flask.palletsprojects.com/en/stable/quickstart/
+      - title: Flask quickstart, debug mode
+        url: https://flask.palletsprojects.com/en/stable/quickstart/#debug-mode
+      - title: uv, working on projects
+        url: https://docs.astral.sh/uv/guides/projects/
+
+  - id: structure
+    stage: basics
+    title:
+      en: "Grow the app: an app factory and a blueprint"
+      tr: "Uygulamayı büyüt: uygulama fabrikası ve bir blueprint"
+    minutes: 45
+    needs: [hello]
+    why:
+      en: "A single global `app` is fine for ten lines, not for a real app. A function that builds the app (the factory) lets tests create fresh apps with their own settings, and blueprints split the routes into files by topic."
+      tr: "Tek bir global `app` on satır için yeterlidir, gerçek bir uygulama için değil. Uygulamayı kuran bir fonksiyon (fabrika) testlerin kendi ayarlarıyla taze uygulamalar oluşturmasını sağlar; blueprint'ler de route'ları konuya göre dosyalara böler."
+    learn:
+      en: |
+        - **Application factory**: a function `create_app()` that builds and returns the app. Flask finds it by that name.
+        - **Blueprint**: a group of routes in its own file, registered on the app
+        - **Configuration**: settings stored in `app.config`, set in one place
+        - Endpoint names: a blueprint called `links` with a view `index` is `links.index`, and `url_for("links.index")` builds its address
+      tr: |
+        - **Uygulama fabrikası** (application factory): uygulamayı kurup döndüren `create_app()` fonksiyonu. Flask onu bu isimle bulur.
+        - **Blueprint**: kendi dosyasında duran ve uygulamaya kaydedilen bir route grubu
+        - **Yapılandırma** (configuration): `app.config` içinde duran ayarlar, tek yerde belirlenir
+        - Endpoint adları: `links` adlı blueprint'teki `index` view'ı `links.index` olur ve `url_for("links.index")` adresini üretir
+    do:
+      en: |
+        1. Replace the whole content of `linkbox/__init__.py` with the factory below.
+        2. Create `linkbox/links.py` with the blueprint below. It moves the home page out of `__init__.py`.
+        3. Run the server again with the same command as before. The home page still says hello, but now it comes from a blueprint.
+        4. Commit your work.
+      tr: |
+        1. `linkbox/__init__.py` dosyasının bütün içeriğini aşağıdaki fabrikayla değiştir.
+        2. Aşağıdaki blueprint ile `linkbox/links.py` dosyasını oluştur. Ana sayfayı `__init__.py`'den buraya taşır.
+        3. Sunucuyu önceki komutla yeniden çalıştır. Ana sayfa yine merhaba diyor ama artık bir blueprint'ten geliyor.
+        4. Çalışmanı commit'le.
+    code:
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          import os
+
+          from flask import Flask
+
+
+          def create_app(test_config=None):
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(SECRET_KEY="dev")
+
+              if test_config is not None:
+                  app.config.update(test_config)
+
+              os.makedirs(app.instance_path, exist_ok=True)
+
+              from . import links
+
+              app.register_blueprint(links.bp)
+              return app
+      - file: linkbox/links.py
+        lang: py
+        text: |
+          from flask import Blueprint
+
+          bp = Blueprint("links", __name__)
+
+
+          @bp.route("/")
+          def index():
+              return "Hello from Linkbox"
+      - file: terminal
+        lang: sh
+        text: |
+          uv run flask --app linkbox run --debug
+          git add .
+          git commit -m "Add the app factory and a links blueprint"
+    mistakes:
+      - problem:
+          en: "Importing the blueprint at the top of `__init__.py` and getting \"circular import\" errors later."
+          tr: "Blueprint'i `__init__.py`'nin en üstünde import etmek ve sonradan \"circular import\" hataları almak."
+        fix:
+          en: "Import blueprints inside `create_app()`, as in the code above, after the app exists."
+          tr: "Blueprint'leri yukarıdaki gibi `create_app()` içinde, uygulama oluştuktan sonra import et."
+      - problem:
+          en: "`url_for(\"index\")` fails with \"Could not build url for endpoint\"."
+          tr: "`url_for(\"index\")` \"Could not build url for endpoint\" hatası veriyor."
+        fix:
+          en: "Endpoints in a blueprint carry the blueprint name: use `url_for(\"links.index\")`."
+          tr: "Blueprint içindeki endpoint'ler blueprint adını taşır: `url_for(\"links.index\")` kullan."
+    quiz:
+      - q:
+          en: "Why does Linkbox use a `create_app()` function instead of one global `app`?"
+          tr: "Linkbox neden tek bir global `app` yerine `create_app()` fonksiyonu kullanıyor?"
+        options:
+          en: ["It is faster", "Each test can build a fresh app with its own settings", "Flask forbids global apps"]
+          tr: ["Daha hızlıdır", "Her test kendi ayarlarıyla taze bir uygulama kurabilir", "Flask global uygulamaları yasaklar"]
+        answer: 1
+        why:
+          en: "Tests need an app with a test database and test settings, and a new one for every test. A factory makes that easy."
+          tr: "Testlerin test veritabanı ve test ayarları olan, her test için yeni bir uygulamaya ihtiyacı var. Fabrika bunu kolaylaştırır."
+    sources:
+      - title: Flask tutorial, the application setup (factory)
+        url: https://flask.palletsprojects.com/en/stable/tutorial/factory/
+      - title: Flask, application factories
+        url: https://flask.palletsprojects.com/en/stable/patterns/appfactories/
+      - title: Flask, modular applications with blueprints
+        url: https://flask.palletsprojects.com/en/stable/blueprints/
+
+  - id: templates
+    stage: basics
+    title:
+      en: "Pages with Jinja templates and a stylesheet"
+      tr: "Jinja şablonları ve bir stil dosyasıyla sayfalar"
+    minutes: 50
+    needs: [structure]
+    why:
+      en: "Building HTML by joining strings is slow to write and unsafe. A template is an HTML file with holes; Flask fills the holes with your data and escapes everything, so a visitor's text can never become code."
+      tr: "HTML'i metinleri birleştirerek üretmek hem yavaş hem güvensizdir. Şablon, boşlukları olan bir HTML dosyasıdır; Flask boşlukları verinle doldurur ve her şeyi escape eder, böylece ziyaretçinin yazdığı metin asla koda dönüşemez."
+    learn:
+      en: |
+        - `render_template()` fills a template with values
+        - Jinja syntax: `{{ value }}` prints, `{% for %}` and `{% if %}` control, and everything printed is escaped
+        - **Template inheritance**: `base.html` holds the page frame and other templates fill its blocks
+        - Static files (CSS) live in `linkbox/static/` and `url_for("static", ...)` builds their address
+      tr: |
+        - `render_template()` bir şablonu değerlerle doldurur
+        - Jinja sözdizimi: `{{ value }}` yazdırır, `{% for %}` ve `{% if %}` akışı yönetir, yazdırılan her şey escape edilir
+        - **Şablon kalıtımı**: `base.html` sayfanın çerçevesini tutar, diğer şablonlar onun bloklarını doldurur
+        - Statik dosyalar (CSS) `linkbox/static/` içinde durur ve `url_for("static", ...)` adreslerini üretir
+    do:
+      en: |
+        1. Create the folders `linkbox/templates/links` and `linkbox/static`.
+        2. Create `linkbox/templates/base.html`, `linkbox/templates/links/index.html` and `linkbox/static/style.css` with the code below.
+        3. Replace `linkbox/links.py` with the version below. For now the links are a fixed list in the code; the database comes next.
+        4. Reload the page. Then add `<b>bold</b>` to one title and see that it shows as text, not bold: Jinja escaped it.
+        5. Commit your work.
+      tr: |
+        1. `linkbox/templates/links` ve `linkbox/static` klasörlerini oluştur.
+        2. Aşağıdaki kodla `linkbox/templates/base.html`, `linkbox/templates/links/index.html` ve `linkbox/static/style.css` dosyalarını oluştur.
+        3. `linkbox/links.py` dosyasını aşağıdaki sürümle değiştir. Şimdilik linkler kodun içinde sabit bir liste; veritabanı sıradaki adımda.
+        4. Sayfayı yenile. Sonra bir başlığa `<b>kalın</b>` ekle ve kalın değil, düz yazı olarak göründüğünü gör: Jinja onu escape etti.
+        5. Çalışmanı commit'le.
+    code:
+      - file: linkbox/templates/base.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>{% block title %}{% endblock %} - Linkbox</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+          </head>
+          <body>
+            <header>
+              <a class="brand" href="{{ url_for('links.index') }}">Linkbox</a>
+            </header>
+            <main>
+              {% for message in get_flashed_messages() %}
+                <p class="flash">{{ message }}</p>
+              {% endfor %}
+              {% block content %}{% endblock %}
+            </main>
+          </body>
+          </html>
+      - file: linkbox/templates/links/index.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Your links{% endblock %}
+          {% block content %}
+            <h1>Your links</h1>
+            {% for link in links %}
+              <article>
+                <a href="{{ link.url }}">{{ link.title }}</a>
+              </article>
+            {% else %}
+              <p>No links yet.</p>
+            {% endfor %}
+          {% endblock %}
+      - file: linkbox/static/style.css
+        lang: css
+        text: |
+          body {
+            font-family: system-ui, sans-serif;
+            max-width: 40rem;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            line-height: 1.5;
+            color: #1b1b1f;
+          }
+          header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid #c9c9d1;
+            padding-bottom: 0.5rem;
+          }
+          .brand { font-weight: 700; font-size: 1.25rem; text-decoration: none; }
+          nav { display: flex; align-items: center; gap: 0.75rem; }
+          article {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #eee;
+          }
+          article small { color: #5d5d68; }
+          form.inline { display: inline; margin: 0; }
+          label { display: block; margin-top: 1rem; font-weight: 600; }
+          input { display: block; width: 100%; box-sizing: border-box; padding: 0.5rem; font: inherit; }
+          button { padding: 0.4rem 0.9rem; font: inherit; cursor: pointer; }
+          .flash { background: #fff4d6; border: 1px solid #e6c766; padding: 0.5rem 0.75rem; border-radius: 4px; }
+          .pager { display: flex; justify-content: space-between; margin-top: 1rem; }
+      - file: linkbox/links.py
+        lang: py
+        text: |
+          from flask import Blueprint, render_template
+
+          bp = Blueprint("links", __name__)
+
+          LINKS = [
+              {"title": "Flask documentation", "url": "https://flask.palletsprojects.com/"},
+              {"title": "Python tutorial", "url": "https://docs.python.org/3/tutorial/"},
+          ]
+
+
+          @bp.route("/")
+          def index():
+              return render_template("links/index.html", links=LINKS)
+    mistakes:
+      - problem:
+          en: "\"TemplateNotFound: links/index.html\"."
+          tr: "\"TemplateNotFound: links/index.html\" hatası."
+        fix:
+          en: "Templates must be in a folder named exactly `templates` inside the `linkbox` package: `linkbox/templates/links/index.html`. Check the spelling of every folder."
+          tr: "Şablonlar `linkbox` paketinin içinde tam olarak `templates` adlı bir klasörde olmalı: `linkbox/templates/links/index.html`. Her klasörün yazımını kontrol et."
+      - problem:
+          en: "Using `{{ value|safe }}` to \"fix\" text that shows tags."
+          tr: "Etiket gösteren bir metni \"düzeltmek\" için `{{ value|safe }}` kullanmak."
+        fix:
+          en: "`|safe` turns escaping off, which brings back XSS. Only use it for HTML you wrote yourself, never for text from users."
+          tr: "`|safe` escape'i kapatır ve XSS'i geri getirir. Sadece kendi yazdığın HTML için kullan, kullanıcıdan gelen metin için asla."
+    quiz:
+      - q:
+          en: "A visitor saves the title `<script>alert(1)</script>`. What does Jinja do with `{{ link.title }}`?"
+          tr: "Bir ziyaretçi başlığı `<script>alert(1)</script>` olarak kaydetti. Jinja `{{ link.title }}` ile ne yapar?"
+        options:
+          en: ["Runs the script", "Prints it as harmless text by escaping the angle brackets", "Removes the title"]
+          tr: ["Script'i çalıştırır", "Köşeli parantezleri escape ederek zararsız metin olarak yazdırır", "Başlığı siler"]
+        answer: 1
+        why:
+          en: "Flask turns on autoescaping for .html templates: `<` becomes `&lt;`, so the browser shows the text instead of running it."
+          tr: "Flask .html şablonlarında otomatik escape'i açar: `<` karakteri `&lt;` olur, tarayıcı da metni çalıştırmak yerine gösterir."
+    sources:
+      - title: Flask, templates
+        url: https://flask.palletsprojects.com/en/stable/templating/
+      - title: Flask tutorial, templates
+        url: https://flask.palletsprojects.com/en/stable/tutorial/templates/
+      - title: Jinja, template designer documentation
+        url: https://jinja.palletsprojects.com/en/stable/templates/
+
+  - id: database
+    stage: first-project
+    title:
+      en: "Save links in a SQLite database"
+      tr: "Linkleri bir SQLite veritabanına kaydet"
+    minutes: 60
+    needs: [templates]
+    why:
+      en: "A list in the code forgets everything when the server restarts. A database keeps data on disk. SQLite is a whole database in one file and Python includes it (`sqlite3`), so there is nothing to install. The official Flask tutorial uses it the same way."
+      tr: "Kodun içindeki bir liste sunucu yeniden başlayınca her şeyi unutur. Veritabanı veriyi diskte tutar. SQLite tek bir dosyada duran komple bir veritabanıdır ve Python onu içinde getirir (`sqlite3`), yani kurulacak bir şey yok. Resmi Flask eğitimi de aynı şekilde kullanır."
+    learn:
+      en: |
+        - A table, rows and columns, and the SQL to create and read them (see the SQL cheatsheet)
+        - One connection per request: `get_db()` stores it in `g` and `close_db()` closes it after the request
+        - **Always** pass values as `?` placeholders, never by joining strings into SQL (SQL injection)
+        - A custom command, `flask init-db`, that creates the tables
+        - The `instance` folder: files that belong to one installation, like the database, and are not in Git
+      tr: |
+        - Tablo, satır ve sütun; onları oluşturan ve okuyan SQL (SQL kopya kâğıdına bak)
+        - İstek başına tek bağlantı: `get_db()` onu `g` içinde saklar, `close_db()` istek bitince kapatır
+        - Değerleri **her zaman** `?` yer tutucularıyla ver, SQL'e metin birleştirerek asla (SQL injection)
+        - Tabloları oluşturan özel bir komut: `flask init-db`
+        - `instance` klasörü: veritabanı gibi tek bir kuruluma ait ve Git'te olmayan dosyalar
+    do:
+      en: |
+        1. Create `linkbox/schema.sql` and `linkbox/db.py` with the code below.
+        2. Replace `linkbox/__init__.py` so it sets the database path and registers the database helpers.
+        3. Replace `linkbox/links.py` and `linkbox/templates/links/index.html` so the home page reads from the database.
+        4. Create the tables. This makes the file `instance/linkbox.sqlite`.
+        5. Add a first row from the Flask shell (a Python prompt with your app loaded) and reload the home page. Stop the server and start it again: the link is still there.
+        6. Commit your work.
+      tr: |
+        1. Aşağıdaki kodla `linkbox/schema.sql` ve `linkbox/db.py` dosyalarını oluştur.
+        2. `linkbox/__init__.py` dosyasını, veritabanı yolunu belirleyip veritabanı yardımcılarını kaydedecek şekilde değiştir.
+        3. `linkbox/links.py` ve `linkbox/templates/links/index.html` dosyalarını, ana sayfa veritabanından okuyacak şekilde değiştir.
+        4. Tabloları oluştur. Bu, `instance/linkbox.sqlite` dosyasını yaratır.
+        5. Flask shell'den (uygulaman yüklenmiş bir Python istemi) ilk satırı ekle ve ana sayfayı yenile. Sunucuyu durdurup yeniden başlat: link hâlâ orada.
+        6. Çalışmanı commit'le.
+    code:
+      - file: linkbox/schema.sql
+        lang: sql
+        text: |
+          CREATE TABLE IF NOT EXISTS link (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              title TEXT NOT NULL,
+              url TEXT NOT NULL,
+              created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+      - file: linkbox/db.py
+        lang: py
+        text: |
+          import sqlite3
+          from pathlib import Path
+
+          import click
+          from flask import current_app, g
+
+
+          def get_db():
+              if "db" not in g:
+                  g.db = sqlite3.connect(current_app.config["DATABASE"])
+                  g.db.row_factory = sqlite3.Row
+                  g.db.execute("PRAGMA foreign_keys = ON")
+              return g.db
+
+
+          def close_db(error=None):
+              db = g.pop("db", None)
+              if db is not None:
+                  db.close()
+
+
+          def init_db():
+              schema = Path(current_app.root_path, "schema.sql").read_text(encoding="utf-8")
+              get_db().executescript(schema)
+
+
+          @click.command("init-db")
+          def init_db_command():
+              """Create the tables (safe to run again)."""
+              init_db()
+              click.echo("Database ready.")
+
+
+          def init_app(app):
+              app.teardown_appcontext(close_db)
+              app.cli.add_command(init_db_command)
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          import os
+
+          from flask import Flask
+
+
+          def create_app(test_config=None):
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(
+                  SECRET_KEY="dev",
+                  DATABASE=os.path.join(app.instance_path, "linkbox.sqlite"),
+              )
+
+              if test_config is not None:
+                  app.config.update(test_config)
+
+              os.makedirs(app.instance_path, exist_ok=True)
+
+              from . import db, links
+
+              db.init_app(app)
+              app.register_blueprint(links.bp)
+              return app
+      - file: linkbox/links.py
+        lang: py
+        text: |
+          from flask import Blueprint, render_template
+
+          from .db import get_db
+
+          bp = Blueprint("links", __name__)
+
+
+          @bp.route("/")
+          def index():
+              links = get_db().execute(
+                  "SELECT id, title, url, created FROM link ORDER BY id DESC"
+              ).fetchall()
+              return render_template("links/index.html", links=links)
+      - file: linkbox/templates/links/index.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Your links{% endblock %}
+          {% block content %}
+            <h1>Your links</h1>
+            {% for link in links %}
+              <article>
+                <span>
+                  <a href="{{ link.url }}">{{ link.title }}</a><br>
+                  <small>{{ link.created }}</small>
+                </span>
+              </article>
+            {% else %}
+              <p>No links yet.</p>
+            {% endfor %}
+          {% endblock %}
+      - file: terminal
+        lang: sh
+        text: |
+          uv run flask --app linkbox init-db
+          uv run flask --app linkbox shell
+          # at the >>> prompt:
+          #   from linkbox.db import get_db
+          #   db = get_db()
+          #   db.execute("INSERT INTO link (title, url) VALUES (?, ?)", ("Flask docs", "https://flask.palletsprojects.com/"))
+          #   db.commit()
+          #   exit()
+          uv run flask --app linkbox run --debug
+    mistakes:
+      - problem:
+          en: "\"sqlite3.OperationalError: unable to open database file\"."
+          tr: "\"sqlite3.OperationalError: unable to open database file\" hatası."
+        fix:
+          en: "The `instance` folder is missing or `DATABASE` points to a folder that does not exist. `create_app()` makes the folder; run commands from the project folder."
+          tr: "`instance` klasörü yok ya da `DATABASE` olmayan bir klasörü gösteriyor. `create_app()` klasörü oluşturur; komutları proje klasöründen çalıştır."
+      - problem:
+          en: "Forgetting `db.commit()` after an INSERT, so the row is gone."
+          tr: "INSERT'ten sonra `db.commit()` yazmayı unutmak ve satırın kaybolması."
+        fix:
+          en: "Changes are only saved when you commit. Reading needs no commit."
+          tr: "Değişiklikler ancak commit edince kaydedilir. Okumak için commit gerekmez."
+      - problem:
+          en: "Building SQL with an f-string, like `f\"... WHERE id = {id}\"`."
+          tr: "SQL'i f-string ile kurmak, örneğin `f\"... WHERE id = {id}\"`."
+        fix:
+          en: "Use placeholders: `execute(\"... WHERE id = ?\", (id,))`. The database then treats the value only as data, so it can never become SQL."
+          tr: "Yer tutucu kullan: `execute(\"... WHERE id = ?\", (id,))`. Veritabanı değeri sadece veri sayar, böylece asla SQL'e dönüşemez."
+    quiz:
+      - q:
+          en: "Why is the value passed as `(title, url)` after the SQL instead of being put inside the SQL text?"
+          tr: "Değer neden SQL metninin içine konmak yerine SQL'den sonra `(title, url)` olarak veriliyor?"
+        options:
+          en: ["It is shorter to write", "The database never treats it as SQL code, which stops SQL injection", "SQLite requires tuples"]
+          tr: ["Yazması daha kısa", "Veritabanı onu hiçbir zaman SQL kodu saymaz, bu da SQL injection'ı engeller", "SQLite tuple ister"]
+        answer: 1
+        why:
+          en: "With placeholders the SQL is fixed and the values travel separately, so a value like `'; DROP TABLE link; --` is just text."
+          tr: "Yer tutucuyla SQL sabittir ve değerler ayrı gider; `'; DROP TABLE link; --` gibi bir değer sadece metindir."
+    sources:
+      - title: Flask tutorial, define and access the database
+        url: https://flask.palletsprojects.com/en/stable/tutorial/database/
+      - title: Python, sqlite3
+        url: https://docs.python.org/3/library/sqlite3.html
+      - title: Flask, the application context (g)
+        url: https://flask.palletsprojects.com/en/stable/appcontext/
+
+  - id: forms
+    stage: first-project
+    title:
+      en: "Add and delete links with validated forms"
+      tr: "Doğrulanan formlarla link ekle ve sil"
+    minutes: 75
+    needs: [database]
+    why:
+      en: "Everything a browser sends is untrusted: people make typos and attackers send worse. A form handler must check the input, say what is wrong, and only then write to the database."
+      tr: "Tarayıcının gönderdiği her şey güvenilmezdir: insanlar yazım hatası yapar, saldırganlar daha kötüsünü gönderir. Form işleyicisi girdiyi kontrol etmeli, neyin yanlış olduğunu söylemeli ve ancak sonra veritabanına yazmalı."
+    learn:
+      en: |
+        - `methods=("GET", "POST")`: GET shows the form, POST receives it
+        - `request.form` holds the submitted fields
+        - **Validate on the server**: browser checks like `required` are only a convenience
+        - **Post/Redirect/Get**: after a successful POST, redirect, so a page reload does not send the form again
+        - `flash()` shows a one-time message on the next page
+        - Why a link must start with `http://` or `https://` (a `javascript:` link would run code when clicked)
+      tr: |
+        - `methods=("GET", "POST")`: GET formu gösterir, POST formu alır
+        - `request.form` gönderilen alanları tutar
+        - **Sunucuda doğrula**: `required` gibi tarayıcı kontrolleri sadece kolaylıktır
+        - **Post/Redirect/Get**: başarılı bir POST'tan sonra yönlendir, böylece sayfayı yenilemek formu tekrar göndermez
+        - `flash()` sonraki sayfada tek seferlik bir mesaj gösterir
+        - Bir linkin neden `http://` ya da `https://` ile başlaması gerektiği (`javascript:` linki tıklanınca kod çalıştırır)
+    do:
+      en: |
+        1. Replace `linkbox/links.py` with the version below. It adds `check_link()`, the `add` view and the `delete` view.
+        2. Create `linkbox/templates/links/add.html`.
+        3. Replace `linkbox/templates/links/index.html` so it has an "Add a link" button and a Delete button on each row.
+        4. Open http://127.0.0.1:5000/add. Save a link, then try an empty title and the address `javascript:alert(1)` and read the messages.
+        5. Delete a link. Notice that after saving you land on the list with a message, and reloading does not save twice.
+        6. Commit your work.
+      tr: |
+        1. `linkbox/links.py` dosyasını aşağıdaki sürümle değiştir. `check_link()`, `add` view'ı ve `delete` view'ı ekler.
+        2. `linkbox/templates/links/add.html` dosyasını oluştur.
+        3. `linkbox/templates/links/index.html` dosyasını, bir "Add a link" butonu ve her satırda bir Delete butonu olacak şekilde değiştir.
+        4. http://127.0.0.1:5000/add adresini aç. Bir link kaydet, sonra boş başlığı ve `javascript:alert(1)` adresini dene, mesajları oku.
+        5. Bir linki sil. Kaydedince mesajla birlikte listeye geldiğini ve sayfayı yenilemenin iki kez kaydetmediğini fark et.
+        6. Çalışmanı commit'le.
+    code:
+      - file: linkbox/links.py
+        lang: py
+        text: |
+          from urllib.parse import urlparse
+
+          from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+
+          from .db import get_db
+
+          bp = Blueprint("links", __name__)
+
+
+          def check_link(title, url):
+              """Return an error message, or None when the link is fine."""
+              if not title:
+                  return "A title is required."
+              if len(title) > 100:
+                  return "The title can be at most 100 characters."
+              if len(url) > 2000:
+                  return "The address is too long."
+              try:
+                  parts = urlparse(url)
+              except ValueError:
+                  return "That is not a valid address."
+              if parts.scheme not in ("http", "https") or not parts.netloc:
+                  return "The address must start with http:// or https://."
+              return None
+
+
+          @bp.route("/")
+          def index():
+              links = get_db().execute(
+                  "SELECT id, title, url, created FROM link ORDER BY id DESC"
+              ).fetchall()
+              return render_template("links/index.html", links=links)
+
+
+          @bp.route("/add", methods=("GET", "POST"))
+          def add():
+              title = url = ""
+              if request.method == "POST":
+                  title = request.form.get("title", "").strip()
+                  url = request.form.get("url", "").strip()
+                  error = check_link(title, url)
+                  if error is None:
+                      db = get_db()
+                      db.execute("INSERT INTO link (title, url) VALUES (?, ?)", (title, url))
+                      db.commit()
+                      flash("Link saved.")
+                      return redirect(url_for("links.index"))
+                  flash(error)
+              return render_template("links/add.html", title=title, url=url)
+
+
+          @bp.route("/<int:id>/delete", methods=("POST",))
+          def delete(id):
+              db = get_db()
+              cursor = db.execute("DELETE FROM link WHERE id = ?", (id,))
+              db.commit()
+              if cursor.rowcount == 0:
+                  abort(404)
+              flash("Link deleted.")
+              return redirect(url_for("links.index"))
+      - file: linkbox/templates/links/add.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Add a link{% endblock %}
+          {% block content %}
+            <h1>Add a link</h1>
+            <form method="post">
+              <label for="title">Title</label>
+              <input name="title" id="title" value="{{ title }}" maxlength="100" required>
+              <label for="url">Address</label>
+              <input name="url" id="url" type="url" value="{{ url }}" maxlength="2000" required>
+              <p><button type="submit">Save</button></p>
+            </form>
+          {% endblock %}
+      - file: linkbox/templates/links/index.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Your links{% endblock %}
+          {% block content %}
+            <h1>Your links</h1>
+            <p><a href="{{ url_for('links.add') }}">Add a link</a></p>
+            {% for link in links %}
+              <article>
+                <span>
+                  <a href="{{ link.url }}">{{ link.title }}</a><br>
+                  <small>{{ link.created }}</small>
+                </span>
+                <form method="post" action="{{ url_for('links.delete', id=link.id) }}" class="inline">
+                  <button type="submit">Delete</button>
+                </form>
+              </article>
+            {% else %}
+              <p>No links yet.</p>
+            {% endfor %}
+          {% endblock %}
+    mistakes:
+      - problem:
+          en: "Trusting the browser: `type=\"url\"` and `required` are in the HTML, so no server check is written."
+          tr: "Tarayıcıya güvenmek: HTML'de `type=\"url\"` ve `required` var diye sunucu kontrolü yazmamak."
+        fix:
+          en: "Anyone can send a request without a browser (`curl`, a script). Even `javascript:alert(1)` passes `type=\"url\"`. Always validate in the view."
+          tr: "Herkes tarayıcısız istek gönderebilir (`curl`, bir script). `javascript:alert(1)` bile `type=\"url\"`'dan geçer. Her zaman view içinde doğrula."
+      - problem:
+          en: "Rendering the page directly after a successful POST, instead of redirecting."
+          tr: "Başarılı bir POST'tan sonra yönlendirmek yerine sayfayı doğrudan göstermek."
+        fix:
+          en: "Then reloading the page asks the browser to send the form again and saves a duplicate. Redirect after success (Post/Redirect/Get)."
+          tr: "O zaman sayfayı yenilemek tarayıcıdan formu tekrar göndermesini ister ve kopya kayıt oluşur. Başarıdan sonra yönlendir (Post/Redirect/Get)."
+      - problem:
+          en: "A delete link that uses GET, like `<a href=\"/3/delete\">`."
+          tr: "GET kullanan bir silme linki, örneğin `<a href=\"/3/delete\">`."
+        fix:
+          en: "Browsers and crawlers open links without asking. Anything that changes data must be a POST form."
+          tr: "Tarayıcılar ve tarayıcı botları linkleri sormadan açar. Veriyi değiştiren her şey bir POST formu olmalı."
+    quiz:
+      - q:
+          en: "Why does the `add` view redirect after saving instead of rendering the list?"
+          tr: "`add` view'ı kaydettikten sonra listeyi göstermek yerine neden yönlendiriyor?"
+        options:
+          en: ["Redirects are faster", "A page reload then does not send the form a second time", "Flask requires it"]
+          tr: ["Yönlendirme daha hızlıdır", "Böylece sayfayı yenilemek formu ikinci kez göndermez", "Flask bunu zorunlu kılar"]
+        answer: 1
+        why:
+          en: "After a redirect the browser's current page is a normal GET, so reloading only reads the list again."
+          tr: "Yönlendirmeden sonra tarayıcının mevcut sayfası normal bir GET'tir; yenilemek listeyi sadece yeniden okur."
+    sources:
+      - title: Flask tutorial, blueprints and views
+        url: https://flask.palletsprojects.com/en/stable/tutorial/views/
+      - title: Flask, message flashing
+        url: https://flask.palletsprojects.com/en/stable/patterns/flashing/
+      - title: Flask quickstart, the request object
+        url: https://flask.palletsprojects.com/en/stable/quickstart/#the-request-object
+
+  - id: login
+    stage: data-api
+    title:
+      en: "Accounts: register, log in, and see only your own links"
+      tr: "Hesaplar: kayıt ol, giriş yap ve sadece kendi linklerini gör"
+    minutes: 90
+    needs: [forms]
+    why:
+      en: "A link saver where everyone sees everyone's links is not much use. Accounts need three things done right: store passwords as hashes, remember the user between requests with a signed cookie (the session), and check the owner on every read and write."
+      tr: "Herkesin herkesin linklerini gördüğü bir link kaydedici pek işe yaramaz. Hesaplar için üç şey doğru yapılmalı: şifreleri hash olarak saklamak, kullanıcıyı istekler arasında imzalı bir çerezle (session) hatırlamak ve her okuma ve yazmada sahibini kontrol etmek."
+    learn:
+      en: |
+        - **Never store passwords.** Store a **hash**: a one-way scrambled version. `generate_password_hash()` adds a random salt and a slow algorithm; `check_password_hash()` compares.
+        - The **session** is a cookie that Flask signs with `SECRET_KEY`. The browser can read it but cannot change it without Flask noticing.
+        - `g.user` loaded before every request, and a `@login_required` decorator for pages that need an account
+        - **Authorization** is not the same as login: the SQL must also say `AND user_id = ?`, or user A can delete user B's links by guessing ids
+        - Say "Wrong username or password", never which one is wrong
+      tr: |
+        - **Şifreyi asla saklama.** Bir **hash** sakla: tek yönlü karıştırılmış hâli. `generate_password_hash()` rastgele bir salt ve yavaş bir algoritma ekler; `check_password_hash()` karşılaştırır.
+        - **Session**, Flask'ın `SECRET_KEY` ile imzaladığı bir çereziştir. Tarayıcı onu okuyabilir ama Flask fark etmeden değiştiremez.
+        - Her istekten önce yüklenen `g.user` ve hesap isteyen sayfalar için bir `@login_required` decorator'ı
+        - **Yetkilendirme** girişle aynı şey değil: SQL ayrıca `AND user_id = ?` demeli, yoksa A kullanıcısı id tahmin ederek B kullanıcısının linklerini silebilir
+        - "Kullanıcı adı ya da şifre yanlış" de, hangisinin yanlış olduğunu asla söyleme
+    do:
+      en: |
+        1. Replace `linkbox/schema.sql`. It adds a `user` table and a `user_id` column to `link`.
+        2. Because the table shape changed, delete your old database and create it again (`rm instance/linkbox.sqlite` on macOS and Linux, or delete the file in your editor). Later, real apps use **migrations** for this; see the last step.
+        3. Create `linkbox/auth.py` with the code below.
+        4. Replace `linkbox/__init__.py` (it registers the `auth` blueprint), `linkbox/links.py`, `linkbox/templates/base.html` and `linkbox/templates/links/index.html`.
+        5. Create `linkbox/templates/auth/register.html` and `linkbox/templates/auth/login.html`.
+        6. Register two accounts (use a private window for the second). Save a link in each and check that neither can see the other's links. A link you do not own cannot be deleted: the delete query also checks the owner, and the next step tests it.
+        7. Commit your work.
+      tr: |
+        1. `linkbox/schema.sql` dosyasını değiştir. Bir `user` tablosu ve `link`'e bir `user_id` sütunu ekler.
+        2. Tablo yapısı değiştiği için eski veritabanını sil ve yeniden oluştur (macOS ve Linux'ta `rm instance/linkbox.sqlite`, ya da dosyayı editörde sil). Gerçek uygulamalar bunun için **migration** kullanır; son adıma bak.
+        3. Aşağıdaki kodla `linkbox/auth.py` dosyasını oluştur.
+        4. `linkbox/__init__.py` (`auth` blueprint'ini kaydeder), `linkbox/links.py`, `linkbox/templates/base.html` ve `linkbox/templates/links/index.html` dosyalarını değiştir.
+        5. `linkbox/templates/auth/register.html` ve `linkbox/templates/auth/login.html` dosyalarını oluştur.
+        6. İki hesap aç (ikincisi için gizli pencere kullan). Her birinde bir link kaydet ve ikisinin birbirinin linklerini görmediğini kontrol et. Sahibi olmadığın bir link silinemez: silme sorgusu sahibi de kontrol eder ve sonraki adım bunu test eder.
+        7. Çalışmanı commit'le.
+    code:
+      - file: linkbox/schema.sql
+        lang: sql
+        text: |
+          CREATE TABLE IF NOT EXISTS user (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              username TEXT UNIQUE NOT NULL,
+              password_hash TEXT NOT NULL
+          );
+
+          CREATE TABLE IF NOT EXISTS link (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL REFERENCES user (id) ON DELETE CASCADE,
+              title TEXT NOT NULL,
+              url TEXT NOT NULL,
+              created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+      - file: linkbox/auth.py
+        lang: py
+        text: |
+          import functools
+          import sqlite3
+
+          from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for
+          from werkzeug.security import check_password_hash, generate_password_hash
+
+          from .db import get_db
+
+          bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+
+          def login_required(view):
+              @functools.wraps(view)
+              def wrapped_view(**kwargs):
+                  if g.user is None:
+                      return redirect(url_for("auth.login"))
+                  return view(**kwargs)
+
+              return wrapped_view
+
+
+          @bp.before_app_request
+          def load_logged_in_user():
+              user_id = session.get("user_id")
+              if user_id is None:
+                  g.user = None
+              else:
+                  g.user = get_db().execute(
+                      "SELECT id, username FROM user WHERE id = ?", (user_id,)
+                  ).fetchone()
+
+
+          @bp.route("/register", methods=("GET", "POST"))
+          def register():
+              if request.method == "POST":
+                  username = request.form.get("username", "").strip()
+                  password = request.form.get("password", "")
+                  error = None
+                  if not 3 <= len(username) <= 30:
+                      error = "The username must be 3 to 30 characters."
+                  elif not 8 <= len(password) <= 128:
+                      error = "The password must be 8 to 128 characters."
+                  if error is None:
+                      db = get_db()
+                      try:
+                          db.execute(
+                              "INSERT INTO user (username, password_hash) VALUES (?, ?)",
+                              (username, generate_password_hash(password)),
+                          )
+                          db.commit()
+                      except sqlite3.IntegrityError:
+                          error = "That username is already taken."
+                      else:
+                          flash("Account created. You can log in now.")
+                          return redirect(url_for("auth.login"))
+                  flash(error)
+              return render_template("auth/register.html")
+
+
+          @bp.route("/login", methods=("GET", "POST"))
+          def login():
+              if request.method == "POST":
+                  username = request.form.get("username", "").strip()
+                  password = request.form.get("password", "")
+                  user = get_db().execute(
+                      "SELECT id, password_hash FROM user WHERE username = ?", (username,)
+                  ).fetchone()
+                  if user is None or not check_password_hash(user["password_hash"], password):
+                      flash("Wrong username or password.")
+                  else:
+                      session.clear()
+                      session["user_id"] = user["id"]
+                      return redirect(url_for("links.index"))
+              return render_template("auth/login.html")
+
+
+          @bp.route("/logout", methods=("POST",))
+          def logout():
+              session.clear()
+              return redirect(url_for("links.index"))
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          import os
+
+          from flask import Flask
+
+
+          def create_app(test_config=None):
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(
+                  SECRET_KEY="dev",
+                  DATABASE=os.path.join(app.instance_path, "linkbox.sqlite"),
+              )
+
+              if test_config is not None:
+                  app.config.update(test_config)
+
+              os.makedirs(app.instance_path, exist_ok=True)
+
+              from . import auth, db, links
+
+              db.init_app(app)
+              app.register_blueprint(auth.bp)
+              app.register_blueprint(links.bp)
+              return app
+      - file: linkbox/links.py
+        lang: py
+        text: |
+          from urllib.parse import urlparse
+
+          from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+
+          from .auth import login_required
+          from .db import get_db
+
+          bp = Blueprint("links", __name__)
+
+
+          def check_link(title, url):
+              """Return an error message, or None when the link is fine."""
+              if not title:
+                  return "A title is required."
+              if len(title) > 100:
+                  return "The title can be at most 100 characters."
+              if len(url) > 2000:
+                  return "The address is too long."
+              try:
+                  parts = urlparse(url)
+              except ValueError:
+                  return "That is not a valid address."
+              if parts.scheme not in ("http", "https") or not parts.netloc:
+                  return "The address must start with http:// or https://."
+              return None
+
+
+          @bp.route("/")
+          def index():
+              links = []
+              if g.user is not None:
+                  links = get_db().execute(
+                      "SELECT id, title, url, created FROM link WHERE user_id = ? ORDER BY id DESC",
+                      (g.user["id"],),
+                  ).fetchall()
+              return render_template("links/index.html", links=links)
+
+
+          @bp.route("/add", methods=("GET", "POST"))
+          @login_required
+          def add():
+              title = url = ""
+              if request.method == "POST":
+                  title = request.form.get("title", "").strip()
+                  url = request.form.get("url", "").strip()
+                  error = check_link(title, url)
+                  if error is None:
+                      db = get_db()
+                      db.execute(
+                          "INSERT INTO link (user_id, title, url) VALUES (?, ?, ?)",
+                          (g.user["id"], title, url),
+                      )
+                      db.commit()
+                      flash("Link saved.")
+                      return redirect(url_for("links.index"))
+                  flash(error)
+              return render_template("links/add.html", title=title, url=url)
+
+
+          @bp.route("/<int:id>/delete", methods=("POST",))
+          @login_required
+          def delete(id):
+              db = get_db()
+              cursor = db.execute(
+                  "DELETE FROM link WHERE id = ? AND user_id = ?", (id, g.user["id"])
+              )
+              db.commit()
+              if cursor.rowcount == 0:
+                  abort(404)
+              flash("Link deleted.")
+              return redirect(url_for("links.index"))
+      - file: linkbox/templates/base.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>{% block title %}{% endblock %} - Linkbox</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+          </head>
+          <body>
+            <header>
+              <a class="brand" href="{{ url_for('links.index') }}">Linkbox</a>
+              <nav>
+                {% if g.user %}
+                  <span>{{ g.user['username'] }}</span>
+                  <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+                    <button type="submit">Log out</button>
+                  </form>
+                {% else %}
+                  <a href="{{ url_for('auth.register') }}">Register</a>
+                  <a href="{{ url_for('auth.login') }}">Log in</a>
+                {% endif %}
+              </nav>
+            </header>
+            <main>
+              {% for message in get_flashed_messages() %}
+                <p class="flash">{{ message }}</p>
+              {% endfor %}
+              {% block content %}{% endblock %}
+            </main>
+          </body>
+          </html>
+      - file: linkbox/templates/links/index.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Your links{% endblock %}
+          {% block content %}
+            {% if g.user %}
+              <h1>Your links</h1>
+              <p><a href="{{ url_for('links.add') }}">Add a link</a></p>
+              {% for link in links %}
+                <article>
+                  <span>
+                    <a href="{{ link.url }}">{{ link.title }}</a><br>
+                    <small>{{ link.created }}</small>
+                  </span>
+                  <form method="post" action="{{ url_for('links.delete', id=link.id) }}" class="inline">
+                    <button type="submit">Delete</button>
+                  </form>
+                </article>
+              {% else %}
+                <p>No links yet.</p>
+              {% endfor %}
+            {% else %}
+              <h1>Linkbox</h1>
+              <p>Save the links you want to keep. <a href="{{ url_for('auth.register') }}">Create an account</a> or <a href="{{ url_for('auth.login') }}">log in</a>.</p>
+            {% endif %}
+          {% endblock %}
+      - file: linkbox/templates/auth/register.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Register{% endblock %}
+          {% block content %}
+            <h1>Create an account</h1>
+            <form method="post">
+              <label for="username">Username</label>
+              <input name="username" id="username" minlength="3" maxlength="30" autocomplete="username" required>
+              <label for="password">Password (at least 8 characters)</label>
+              <input name="password" id="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
+              <p><button type="submit">Register</button></p>
+            </form>
+          {% endblock %}
+      - file: linkbox/templates/auth/login.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Log in{% endblock %}
+          {% block content %}
+            <h1>Log in</h1>
+            <form method="post">
+              <label for="username">Username</label>
+              <input name="username" id="username" autocomplete="username" required>
+              <label for="password">Password</label>
+              <input name="password" id="password" type="password" autocomplete="current-password" required>
+              <p><button type="submit">Log in</button></p>
+            </form>
+          {% endblock %}
+    mistakes:
+      - problem:
+          en: "Storing the password as typed, or hashing it yourself with `hashlib.sha256`."
+          tr: "Şifreyi yazıldığı gibi saklamak ya da kendin `hashlib.sha256` ile hash'lemek."
+        fix:
+          en: "Plain hashes are far too fast to compute, so stolen databases are cracked quickly. Use `generate_password_hash()`, which salts and uses a slow, designed-for-passwords algorithm."
+          tr: "Düz hash'ler çok hızlı hesaplanır; çalınan veritabanları çabucak kırılır. Salt ekleyen ve şifreler için tasarlanmış yavaş bir algoritma kullanan `generate_password_hash()` kullan."
+      - problem:
+          en: "`DELETE FROM link WHERE id = ?` without `AND user_id = ?` because \"only logged-in users see the button\"."
+          tr: "\"Butonu sadece giriş yapanlar görüyor\" diye `AND user_id = ?` olmadan `DELETE FROM link WHERE id = ?` yazmak."
+        fix:
+          en: "Anyone can send a POST for any id. The server must check ownership on every request. This mistake is called IDOR (insecure direct object reference)."
+          tr: "Herkes istediği id için POST gönderebilir. Sunucu her istekte sahipliği kontrol etmeli. Bu hataya IDOR (insecure direct object reference) denir."
+      - problem:
+          en: "Telling the user which part was wrong: \"No such user\" or \"Wrong password\"."
+          tr: "Kullanıcıya hangi kısmın yanlış olduğunu söylemek: \"Böyle bir kullanıcı yok\" ya da \"Şifre yanlış\"."
+        fix:
+          en: "That lets attackers find out which usernames exist. Use one message for both cases."
+          tr: "Bu, saldırganların hangi kullanıcı adlarının var olduğunu öğrenmesini sağlar. İki durum için tek bir mesaj kullan."
+    quiz:
+      - q:
+          en: "What is stored in the `password_hash` column?"
+          tr: "`password_hash` sütununda ne saklanır?"
+        options:
+          en: ["The password, encrypted with SECRET_KEY", "A salted one-way hash that cannot be turned back into the password", "The first 8 characters of the password"]
+          tr: ["SECRET_KEY ile şifrelenmiş parola", "Parolaya geri çevrilemeyen, salt'lı tek yönlü bir hash", "Parolanın ilk 8 karakteri"]
+        answer: 1
+        why:
+          en: "A hash cannot be reversed. At login Flask hashes the typed password again and compares the results."
+          tr: "Hash geri çevrilemez. Girişte Flask yazılan şifreyi yeniden hash'ler ve sonuçları karşılaştırır."
+      - q:
+          en: "Why does `delete` check `user_id` in the SQL even though only logged-in users see the Delete button?"
+          tr: "Sadece giriş yapanlar Delete butonunu görse de `delete` neden SQL'de `user_id`'yi kontrol ediyor?"
+        options:
+          en: ["Because hiding a button is not security: anyone can send the request by hand", "To make the query faster", "Because SQLite requires it"]
+          tr: ["Çünkü butonu gizlemek güvenlik değil: herkes isteği elle gönderebilir", "Sorguyu hızlandırmak için", "Çünkü SQLite bunu ister"]
+        answer: 0
+        why:
+          en: "The server only sees requests. It must decide on every one of them whether this user owns this row."
+          tr: "Sunucu sadece istekleri görür. Her istekte bu kullanıcının bu satırın sahibi olup olmadığına kendisi karar vermeli."
+    sources:
+      - title: Flask tutorial, blueprints and views (authentication)
+        url: https://flask.palletsprojects.com/en/stable/tutorial/views/
+      - title: Werkzeug, security helpers
+        url: https://werkzeug.palletsprojects.com/en/stable/utils/#module-werkzeug.security
+      - title: Flask, sessions
+        url: https://flask.palletsprojects.com/en/stable/quickstart/#sessions
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Test the app with pytest and the test client"
+      tr: "Uygulamayı pytest ve test client ile test et"
+    minutes: 75
+    needs: [login]
+    why:
+      en: "Clicking through the app after every change gets old, and you will miss things. Tests do it in a second, and they are what lets you change code later without fear."
+      tr: "Her değişiklikten sonra uygulamada tek tek tıklamak sıkıcı olur ve bir şeyleri kaçırırsın. Testler bunu bir saniyede yapar ve ileride kodu korkmadan değiştirmeni sağlar."
+    learn:
+      en: |
+        - `app.test_client()` sends requests to your app without a server
+        - A pytest **fixture** gives each test a fresh app with its own temporary database
+        - `assert` checks a result; a test fails when an assertion is false
+        - Test the unhappy paths too: bad input, wrong password, someone else's data
+        - `TESTING = True` makes errors show up as real exceptions in the test
+      tr: |
+        - `app.test_client()` uygulamana sunucu olmadan istek gönderir
+        - Bir pytest **fixture**'ı her teste kendi geçici veritabanıyla taze bir uygulama verir
+        - `assert` bir sonucu kontrol eder; assertion yanlışsa test başarısız olur
+        - Mutsuz yolları da test et: kötü girdi, yanlış şifre, başkasının verisi
+        - `TESTING = True` hataların testte gerçek exception olarak görünmesini sağlar
+    do:
+      en: |
+        1. Add pytest as a development dependency with the first command below.
+        2. Add the pytest settings block to the end of `pyproject.toml`. It tells pytest where the tests are and lets them import `linkbox`.
+        3. Create the folder `tests` and the three files below.
+        4. Run `uv run pytest`. All tests should pass.
+        5. Break something on purpose: remove `AND user_id = ?` from the delete query and run the tests again. The "other user" test fails, which is exactly its job. Put the code back.
+        6. Commit your work.
+      tr: |
+        1. Aşağıdaki ilk komutla pytest'i bir geliştirme bağımlılığı olarak ekle.
+        2. pytest ayar bloğunu `pyproject.toml` dosyasının sonuna ekle. pytest'e testlerin nerede olduğunu söyler ve testlerin `linkbox`'ı import etmesini sağlar.
+        3. `tests` klasörünü ve aşağıdaki üç dosyayı oluştur.
+        4. `uv run pytest` çalıştır. Bütün testler geçmeli.
+        5. Bilerek bir şeyi boz: delete sorgusundan `AND user_id = ?` kısmını sil ve testleri yeniden çalıştır. "Başka kullanıcı" testi başarısız olur; işi tam olarak bu. Kodu geri koy.
+        6. Çalışmanı commit'le.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add --dev pytest
+          uv run pytest
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          # add this block at the end of the file
+          [tool.pytest.ini_options]
+          testpaths = ["tests"]
+          pythonpath = ["."]
+      - file: tests/conftest.py
+        lang: py
+        text: |
+          import pytest
+
+          from linkbox import create_app
+          from linkbox.db import init_db
+
+
+          @pytest.fixture
+          def app(tmp_path):
+              app = create_app(
+                  {
+                      "TESTING": True,
+                      "SECRET_KEY": "test",
+                      "DATABASE": str(tmp_path / "test.sqlite"),
+                  }
+              )
+              with app.app_context():
+                  init_db()
+              return app
+
+
+          @pytest.fixture
+          def client(app):
+              return app.test_client()
+
+
+          class AuthActions:
+              def __init__(self, client):
+                  self._client = client
+
+              def register(self, username="alice", password="correct horse"):
+                  return self._client.post(
+                      "/auth/register", data={"username": username, "password": password}
+                  )
+
+              def login(self, username="alice", password="correct horse"):
+                  return self._client.post(
+                      "/auth/login", data={"username": username, "password": password}
+                  )
+
+              def logout(self):
+                  return self._client.post("/auth/logout")
+
+
+          @pytest.fixture
+          def auth(client):
+              return AuthActions(client)
+      - file: tests/test_auth.py
+        lang: py
+        text: |
+          from flask import session
+
+          from linkbox.db import get_db
+
+
+          def test_register_stores_a_hash_not_the_password(app, auth):
+              auth.register()
+              with app.app_context():
+                  row = get_db().execute("SELECT password_hash FROM user").fetchone()
+              assert row["password_hash"] != "correct horse"
+              assert "correct horse" not in row["password_hash"]
+
+
+          def test_register_rejects_short_password(client, auth):
+              response = auth.register(password="short")
+              assert b"The password must be 8 to 128 characters." in response.data
+
+
+          def test_register_rejects_taken_username(client, auth):
+              auth.register()
+              response = auth.register()
+              assert b"That username is already taken." in response.data
+
+
+          def test_login_and_logout(client, auth):
+              auth.register()
+              with client:
+                  response = auth.login()
+                  assert response.status_code == 302
+                  client.get("/")
+                  assert session["user_id"] == 1
+                  auth.logout()
+                  assert "user_id" not in session
+
+
+          def test_wrong_password_is_refused(client, auth):
+              auth.register()
+              response = auth.login(password="wrong password")
+              assert b"Wrong username or password." in response.data
+      - file: tests/test_links.py
+        lang: py
+        text: |
+          from linkbox.db import get_db
+
+
+          def add_link(client, title="Flask docs", url="https://flask.palletsprojects.com/"):
+              return client.post("/add", data={"title": title, "url": url}, follow_redirects=True)
+
+
+          def test_home_asks_visitors_to_log_in(client):
+              response = client.get("/")
+              assert b"Create an account" in response.data
+
+
+          def test_add_requires_login(client):
+              response = client.get("/add")
+              assert response.status_code == 302
+              assert "/auth/login" in response.headers["Location"]
+
+
+          def test_add_and_list_a_link(client, auth):
+              auth.register()
+              auth.login()
+              response = add_link(client)
+              assert b"Link saved." in response.data
+              assert b"Flask docs" in response.data
+
+
+          def test_rejects_a_javascript_address(app, client, auth):
+              auth.register()
+              auth.login()
+              response = add_link(client, url="javascript:alert(1)")
+              assert b"The address must start with http:// or https://." in response.data
+              with app.app_context():
+                  assert get_db().execute("SELECT COUNT(*) FROM link").fetchone()[0] == 0
+
+
+          def test_titles_are_escaped(client, auth):
+              auth.register()
+              auth.login()
+              response = add_link(client, title="<script>alert(1)</script>")
+              assert b"<script>alert(1)</script>" not in response.data
+              assert b"&lt;script&gt;" in response.data
+
+
+          def test_delete_own_link(client, auth):
+              auth.register()
+              auth.login()
+              add_link(client)
+              response = client.post("/1/delete", follow_redirects=True)
+              assert b"Link deleted." in response.data
+
+
+          def test_cannot_delete_someone_elses_link(client, auth):
+              auth.register("alice")
+              auth.login("alice")
+              add_link(client)
+              auth.logout()
+              auth.register("bob")
+              auth.login("bob")
+              response = client.post("/1/delete")
+              assert response.status_code == 404
+    mistakes:
+      - problem:
+          en: "\"ModuleNotFoundError: No module named 'linkbox'\" when running pytest."
+          tr: "pytest çalıştırırken \"ModuleNotFoundError: No module named 'linkbox'\" hatası."
+        fix:
+          en: "Check the `pythonpath = [\".\"]` line in `pyproject.toml` and run `uv run pytest` from the project folder."
+          tr: "`pyproject.toml` içindeki `pythonpath = [\".\"]` satırını kontrol et ve `uv run pytest` komutunu proje klasöründen çalıştır."
+      - problem:
+          en: "Tests share one database, so a test passes alone but fails with the others."
+          tr: "Testler tek bir veritabanını paylaşıyor; bir test tek başına geçiyor ama diğerleriyle başarısız oluyor."
+        fix:
+          en: "Give every test its own database, like the `tmp_path` fixture does. Tests must never depend on the order they run in."
+          tr: "Her teste, `tmp_path` fixture'ının yaptığı gibi kendi veritabanını ver. Testler hiçbir zaman çalışma sıralarına bağlı olmamalı."
+      - problem:
+          en: "Only testing the happy path."
+          tr: "Sadece mutlu yolu test etmek."
+        fix:
+          en: "Bugs and attacks live in the unhappy paths: bad input, missing login, other people's data. Write a test for each rule you care about."
+          tr: "Hatalar ve saldırılar mutsuz yollarda yaşar: kötü girdi, eksik giriş, başkalarının verisi. Önemsediğin her kural için bir test yaz."
+    quiz:
+      - q:
+          en: "Why does each test get its own database file in `tmp_path`?"
+          tr: "Her test neden `tmp_path` içinde kendi veritabanı dosyasını alıyor?"
+        options:
+          en: ["pytest cannot read other files", "Tests stay independent and never touch your real data", "SQLite needs a new file for each query"]
+          tr: ["pytest başka dosyaları okuyamaz", "Testler birbirinden bağımsız kalır ve gerçek verine dokunmaz", "SQLite her sorgu için yeni dosya ister"]
+        answer: 1
+        why:
+          en: "A fresh empty database means the result of a test cannot depend on another test, and your own links in `instance/` are safe."
+          tr: "Taze, boş bir veritabanı bir testin sonucunun başka bir teste bağlı olmamasını sağlar ve `instance/` içindeki kendi linklerin güvende kalır."
+    sources:
+      - title: Flask, testing
+        url: https://flask.palletsprojects.com/en/stable/testing/
+      - title: Flask tutorial, test coverage
+        url: https://flask.palletsprojects.com/en/stable/tutorial/tests/
+      - title: pytest, how to use fixtures
+        url: https://docs.pytest.org/en/stable/how-to/fixtures.html
+
+  - id: security
+    stage: security
+    title:
+      en: "Security: CSRF, a real secret key, safe cookies and headers"
+      tr: "Güvenlik: CSRF, gerçek bir secret key, güvenli çerezler ve header'lar"
+    minutes: 70
+    needs: [tests]
+    why:
+      en: "Your app now holds accounts, so it can be attacked. Four cheap defences stop most beginner-level problems: a CSRF token on every form, a secret key that only the server knows, cookies the browser protects, and a few response headers."
+      tr: "Uygulamanda artık hesaplar var, yani saldırıya uğrayabilir. Dört ucuz savunma, yeni başlayan seviyesindeki sorunların çoğunu durdurur: her formda CSRF token'ı, sadece sunucunun bildiği bir secret key, tarayıcının koruduğu çerezler ve birkaç yanıt header'ı."
+    learn:
+      en: |
+        - **CSRF** (cross-site request forgery): another website makes your browser send a POST to your app, with your logged-in cookie. A secret per-session **token** in each form stops it, because the other site cannot know it.
+        - **SECRET_KEY** signs the session. If it leaks or is the default `"dev"`, anyone can forge a login cookie. Read it from the environment, never from Git.
+        - `SECRET_KEY_FALLBACKS`: a list of old keys, so you can change the key without logging everyone out
+        - Session cookie settings: `HttpOnly` (JavaScript cannot read it, the default), `Secure` (only over HTTPS), `SameSite=Lax` (not sent on cross-site POSTs)
+        - **Debug mode must be off** on a public server: the debugger runs code for whoever can reach it
+        - Headers: `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`
+        - Limits on request size (`MAX_CONTENT_LENGTH`)
+      tr: |
+        - **CSRF** (cross-site request forgery): başka bir web sitesi tarayıcının, giriş çerezinle birlikte, uygulamana bir POST göndermesini sağlar. Her formdaki oturuma özel gizli bir **token** bunu durdurur, çünkü diğer site onu bilemez.
+        - **SECRET_KEY** session'ı imzalar. Sızarsa ya da varsayılan `"dev"` ise herkes sahte bir giriş çerezi üretebilir. Onu ortam değişkeninden oku, Git'ten asla.
+        - `SECRET_KEY_FALLBACKS`: eski anahtarların listesi; anahtarı değiştirirken herkesin oturumunu kapatmazsın
+        - Session çerez ayarları: `HttpOnly` (JavaScript okuyamaz, varsayılan), `Secure` (sadece HTTPS üzerinden), `SameSite=Lax` (siteler arası POST'larda gönderilmez)
+        - Herkese açık bir sunucuda **debug modu kapalı olmalı**: debugger erişebilen herkes için kod çalıştırır
+        - Header'lar: `Content-Security-Policy`, `X-Content-Type-Options`, `Referrer-Policy`
+        - İstek boyutu sınırları (`MAX_CONTENT_LENGTH`)
+    do:
+      en: |
+        1. Install Flask-WTF. Linkbox only uses its `CSRFProtect`. Also raise the Flask requirement to 3.1.3, which fixed a session security issue.
+        2. Replace `linkbox/__init__.py` with the version below. It protects every POST with CSRF, refuses to start in production with the default secret key, sets safe cookie options, limits request size and adds the headers.
+        3. Add the hidden `csrf_token` field to every form: replace the five templates below. In a template, `{{ csrf_token() }}` writes the token for the current session.
+        4. Run `uv run pytest`. The tests now fail, because they post without a token. In `tests/conftest.py` add `"WTF_CSRF_ENABLED": False` to the test config; real CSRF behaviour gets its own test.
+        5. Add `tests/test_security.py`, run the tests again, and then try the app in the browser. Saving a link still works.
+        6. Check the secret key rule: start the app without `--debug` and see the error. Then create a key and run it again (the next steps use this). Commands like `init-db` or `shell` need the same: either the key in the terminal, or `--debug` after `--app linkbox`.
+        7. Commit your work.
+      tr: |
+        1. Flask-WTF'i kur. Linkbox sadece onun `CSRFProtect`'ini kullanır. Flask gereksinimini de, bir session güvenlik sorununu düzelten 3.1.3'e çıkar.
+        2. `linkbox/__init__.py` dosyasını aşağıdaki sürümle değiştir. Her POST'u CSRF ile korur, varsayılan secret key ile production'da başlamayı reddeder, güvenli çerez seçeneklerini ayarlar, istek boyutunu sınırlar ve header'ları ekler.
+        3. Her forma gizli `csrf_token` alanını ekle: aşağıdaki beş şablonu değiştir. Bir şablonda `{{ csrf_token() }}` mevcut oturum için token'ı yazar.
+        4. `uv run pytest` çalıştır. Testler artık başarısız olur, çünkü token olmadan POST ediyorlar. `tests/conftest.py` içindeki test ayarına `"WTF_CSRF_ENABLED": False` ekle; gerçek CSRF davranışının kendi testi var.
+        5. `tests/test_security.py` dosyasını ekle, testleri yeniden çalıştır, sonra uygulamayı tarayıcıda dene. Link kaydetmek hâlâ çalışır.
+        6. Secret key kuralını kontrol et: uygulamayı `--debug` olmadan başlat ve hatayı gör. Sonra bir anahtar üretip yeniden çalıştır (sonraki adımlar bunu kullanır). `init-db` ya da `shell` gibi komutlar da aynısını ister: terminalde anahtar ya da `--app linkbox`'tan sonra `--debug`.
+        7. Çalışmanı commit'le.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv add flask-wtf "flask>=3.1.3"
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          import os
+
+          from flask import Flask
+          from flask_wtf.csrf import CSRFProtect
+
+          csrf = CSRFProtect()
+
+
+          def create_app(test_config=None):
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(
+                  SECRET_KEY="dev",
+                  DATABASE=os.path.join(app.instance_path, "linkbox.sqlite"),
+                  MAX_CONTENT_LENGTH=64 * 1024,
+                  SESSION_COOKIE_SAMESITE="Lax",
+              )
+
+              if test_config is None:
+                  # FLASK_SECRET_KEY, FLASK_DATABASE, ... in the environment
+                  app.config.from_prefixed_env()
+              else:
+                  app.config.update(test_config)
+
+              if not (app.debug or app.testing):
+                  if app.config["SECRET_KEY"] == "dev":
+                      raise RuntimeError(
+                          "Set the FLASK_SECRET_KEY environment variable to a long random value."
+                      )
+                  app.config["SESSION_COOKIE_SECURE"] = True
+
+              os.makedirs(app.instance_path, exist_ok=True)
+              csrf.init_app(app)
+
+              from . import auth, db, links
+
+              db.init_app(app)
+              app.register_blueprint(auth.bp)
+              app.register_blueprint(links.bp)
+
+              @app.after_request
+              def add_security_headers(response):
+                  response.headers["X-Content-Type-Options"] = "nosniff"
+                  response.headers["Referrer-Policy"] = "same-origin"
+                  response.headers["Content-Security-Policy"] = (
+                      "default-src 'self'; frame-ancestors 'none'; form-action 'self'"
+                  )
+                  return response
+
+              return app
+      - file: linkbox/templates/base.html
+        lang: html
+        text: |
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>{% block title %}{% endblock %} - Linkbox</title>
+            <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+          </head>
+          <body>
+            <header>
+              <a class="brand" href="{{ url_for('links.index') }}">Linkbox</a>
+              <nav>
+                {% if g.user %}
+                  <span>{{ g.user['username'] }}</span>
+                  <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Log out</button>
+                  </form>
+                {% else %}
+                  <a href="{{ url_for('auth.register') }}">Register</a>
+                  <a href="{{ url_for('auth.login') }}">Log in</a>
+                {% endif %}
+              </nav>
+            </header>
+            <main>
+              {% for message in get_flashed_messages() %}
+                <p class="flash">{{ message }}</p>
+              {% endfor %}
+              {% block content %}{% endblock %}
+            </main>
+          </body>
+          </html>
+      - file: linkbox/templates/links/index.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Your links{% endblock %}
+          {% block content %}
+            {% if g.user %}
+              <h1>Your links</h1>
+              <p><a href="{{ url_for('links.add') }}">Add a link</a></p>
+              {% for link in links %}
+                <article>
+                  <span>
+                    <a href="{{ link.url }}">{{ link.title }}</a><br>
+                    <small>{{ link.created }}</small>
+                  </span>
+                  <form method="post" action="{{ url_for('links.delete', id=link.id) }}" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Delete</button>
+                  </form>
+                </article>
+              {% else %}
+                <p>No links yet.</p>
+              {% endfor %}
+            {% else %}
+              <h1>Linkbox</h1>
+              <p>Save the links you want to keep. <a href="{{ url_for('auth.register') }}">Create an account</a> or <a href="{{ url_for('auth.login') }}">log in</a>.</p>
+            {% endif %}
+          {% endblock %}
+      - file: linkbox/templates/links/add.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Add a link{% endblock %}
+          {% block content %}
+            <h1>Add a link</h1>
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <label for="title">Title</label>
+              <input name="title" id="title" value="{{ title }}" maxlength="100" required>
+              <label for="url">Address</label>
+              <input name="url" id="url" type="url" value="{{ url }}" maxlength="2000" required>
+              <p><button type="submit">Save</button></p>
+            </form>
+          {% endblock %}
+      - file: linkbox/templates/auth/register.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Register{% endblock %}
+          {% block content %}
+            <h1>Create an account</h1>
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <label for="username">Username</label>
+              <input name="username" id="username" minlength="3" maxlength="30" autocomplete="username" required>
+              <label for="password">Password (at least 8 characters)</label>
+              <input name="password" id="password" type="password" minlength="8" maxlength="128" autocomplete="new-password" required>
+              <p><button type="submit">Register</button></p>
+            </form>
+          {% endblock %}
+      - file: linkbox/templates/auth/login.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Log in{% endblock %}
+          {% block content %}
+            <h1>Log in</h1>
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <label for="username">Username</label>
+              <input name="username" id="username" autocomplete="username" required>
+              <label for="password">Password</label>
+              <input name="password" id="password" type="password" autocomplete="current-password" required>
+              <p><button type="submit">Log in</button></p>
+            </form>
+          {% endblock %}
+      - file: tests/conftest.py
+        lang: py
+        text: |
+          import pytest
+
+          from linkbox import create_app
+          from linkbox.db import init_db
+
+
+          @pytest.fixture
+          def app(tmp_path):
+              app = create_app(
+                  {
+                      "TESTING": True,
+                      "SECRET_KEY": "test",
+                      "WTF_CSRF_ENABLED": False,
+                      "DATABASE": str(tmp_path / "test.sqlite"),
+                  }
+              )
+              with app.app_context():
+                  init_db()
+              return app
+
+
+          @pytest.fixture
+          def client(app):
+              return app.test_client()
+
+
+          class AuthActions:
+              def __init__(self, client):
+                  self._client = client
+
+              def register(self, username="alice", password="correct horse"):
+                  return self._client.post(
+                      "/auth/register", data={"username": username, "password": password}
+                  )
+
+              def login(self, username="alice", password="correct horse"):
+                  return self._client.post(
+                      "/auth/login", data={"username": username, "password": password}
+                  )
+
+              def logout(self):
+                  return self._client.post("/auth/logout")
+
+
+          @pytest.fixture
+          def auth(client):
+              return AuthActions(client)
+      - file: tests/test_security.py
+        lang: py
+        text: |
+          import pytest
+
+          from linkbox import create_app
+          from linkbox.db import init_db
+
+
+          def make_app(tmp_path, **extra):
+              app = create_app(
+                  {
+                      "TESTING": True,
+                      "SECRET_KEY": "test",
+                      "DATABASE": str(tmp_path / "test.sqlite"),
+                      **extra,
+                  }
+              )
+              with app.app_context():
+                  init_db()
+              return app
+
+
+          def test_post_without_a_csrf_token_is_refused(tmp_path):
+              client = make_app(tmp_path).test_client()
+              response = client.post("/auth/login", data={"username": "a", "password": "b"})
+              assert response.status_code == 400
+
+
+          def test_forms_carry_a_csrf_token(tmp_path):
+              client = make_app(tmp_path).test_client()
+              response = client.get("/auth/login")
+              assert b'name="csrf_token"' in response.data
+
+
+          def test_security_headers_are_set(client):
+              response = client.get("/")
+              assert response.headers["X-Content-Type-Options"] == "nosniff"
+              assert "frame-ancestors 'none'" in response.headers["Content-Security-Policy"]
+
+
+          def test_default_secret_key_is_refused_in_production(tmp_path):
+              with pytest.raises(RuntimeError):
+                  create_app({"DATABASE": str(tmp_path / "test.sqlite")})
+      - file: terminal
+        lang: sh
+        text: |
+          uv run pytest
+          # without --debug the app now needs a real key
+          uv run flask --app linkbox run
+          # make a random key, then set it (macOS and Linux)
+          uv run python -c "import secrets; print(secrets.token_hex(32))"
+          export FLASK_SECRET_KEY="paste-the-key-here"
+          # Windows PowerShell: $env:FLASK_SECRET_KEY = "paste-the-key-here"
+          uv run flask --app linkbox run
+    mistakes:
+      - problem:
+          en: "Hiding the CSRF problem by turning CSRF protection off, or exempting views."
+          tr: "CSRF korumasını kapatarak ya da view'ları muaf tutarak sorunu gizlemek."
+        fix:
+          en: "Add the hidden token field instead. Only the tests turn it off, and one test checks that the real protection works. A POST that works without a token is exactly what an attacker uses."
+          tr: "Bunun yerine gizli token alanını ekle. Sadece testler onu kapatır ve bir test gerçek korumanın çalıştığını kontrol eder. Token olmadan çalışan bir POST tam olarak saldırganın kullandığı şeydir."
+      - problem:
+          en: "Writing the real `SECRET_KEY` in the code or committing a `.env` file with it."
+          tr: "Gerçek `SECRET_KEY`'i koda yazmak ya da onu içeren bir `.env` dosyasını commit'lemek."
+        fix:
+          en: "Anything in Git is public the day the repo is. Keep the key in an environment variable. If it ever leaked, make a new one: all sessions then end, which is fine."
+          tr: "Git'teki her şey repo açıldığı gün herkese açık olur. Anahtarı bir ortam değişkeninde tut. Sızdıysa yenisini üret: bütün oturumlar kapanır, sorun değil."
+      - problem:
+          en: "Login does not stick when you run the app without `--debug` on `http://` in Safari."
+          tr: "Safari'de uygulamayı `--debug` olmadan `http://` üzerinde çalıştırınca giriş kalıcı olmuyor."
+        fix:
+          en: "Outside debug mode the session cookie is `Secure`, so it is only sent over HTTPS. Chrome and Firefox allow it on `localhost`; Safari does not. Test with `--debug` locally, and use the real HTTPS address after deploy."
+          tr: "Debug modu dışında session çerezi `Secure` olur, yani sadece HTTPS üzerinden gönderilir. Chrome ve Firefox `localhost`'ta buna izin verir, Safari vermez. Yerelde `--debug` ile test et, deploy sonrası gerçek HTTPS adresini kullan."
+    quiz:
+      - q:
+          en: "What does a CSRF token protect against?"
+          tr: "CSRF token'ı neye karşı korur?"
+        options:
+          en: ["Passwords being guessed", "Another website making your logged-in browser send a request to your app", "SQL injection"]
+          tr: ["Şifrelerin tahmin edilmesine", "Başka bir web sitesinin, giriş yapmış tarayıcını uygulamana istek göndermeye zorlamasına", "SQL injection'a"]
+        answer: 1
+        why:
+          en: "The browser sends cookies automatically, even for requests started by another site. The token is only in your own pages, so the other site cannot add it."
+          tr: "Tarayıcı çerezleri, başka bir sitenin başlattığı isteklerde bile otomatik gönderir. Token sadece senin sayfalarında olduğu için diğer site onu ekleyemez."
+      - q:
+          en: "Why does the app refuse to start in production with `SECRET_KEY = \"dev\"`?"
+          tr: "Uygulama production'da `SECRET_KEY = \"dev\"` ile neden başlamayı reddediyor?"
+        options:
+          en: ["Because \"dev\" is too short to type", "Anyone who knows the key can forge a session cookie and log in as any user", "Flask only accepts hex keys"]
+          tr: ["Çünkü \"dev\" yazmak için çok kısa", "Anahtarı bilen herkes sahte bir session çerezi üretip herhangi bir kullanıcı olarak girebilir", "Flask sadece hex anahtar kabul eder"]
+        answer: 1
+        why:
+          en: "The session cookie is signed with the key. The default is public knowledge, so a cookie signed with it would be accepted."
+          tr: "Session çerezi anahtarla imzalanır. Varsayılan anahtar herkesçe bilinir, bu yüzden onunla imzalanmış bir çerez kabul edilir."
+    sources:
+      - title: Flask, security considerations
+        url: https://flask.palletsprojects.com/en/stable/web-security/
+      - title: Flask-WTF, CSRF protection
+        url: https://flask-wtf.readthedocs.io/en/latest/csrf/
+      - title: Flask, configuration (SECRET_KEY, cookies, prefixed env)
+        url: https://flask.palletsprojects.com/en/stable/config/
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Performance: measure a query, add an index, paginate, cache static files"
+      tr: "Performans: bir sorguyu ölç, index ekle, sayfalandır, statik dosyaları cache'le"
+    minutes: 55
+    needs: [security]
+    why:
+      en: "A page with 10 links is fast no matter what. A page for a user with 10,000 links, in a table of 1,000,000 rows, is where careless queries hurt. You learn to measure first, then fix the one thing that is slow."
+      tr: "10 linkli bir sayfa ne yaparsan yap hızlıdır. 1.000.000 satırlık bir tabloda 10.000 linki olan bir kullanıcının sayfasında ise özensiz sorgular acıtır. Önce ölçmeyi, sonra yavaş olan tek şeyi düzeltmeyi öğrenirsin."
+    learn:
+      en: |
+        - `EXPLAIN QUERY PLAN` shows how SQLite will run a query: `SCAN` reads every row, `SEARCH ... USING INDEX` jumps to the right rows
+        - An **index** is a sorted shortcut for a column (or columns) you filter and sort by. It speeds reads and slows writes a little.
+        - **Pagination** (`LIMIT` and `OFFSET`): never send thousands of rows to one page
+        - Avoid the **N+1** pattern: one query for the list plus one more per row. Use one query with a `JOIN`, or fetch what you need at once.
+        - **HTTP caching**: static files can be cached by the browser (`Cache-Control: max-age`); pages with personal data must not be stored by caches (`no-store`)
+        - Server-side caching (like Redis) comes later and only when measuring says you need it
+      tr: |
+        - `EXPLAIN QUERY PLAN` SQLite'ın bir sorguyu nasıl çalıştıracağını gösterir: `SCAN` her satırı okur, `SEARCH ... USING INDEX` doğru satırlara atlar
+        - **Index**, filtrelediğin ve sıraladığın sütun (ya da sütunlar) için sıralı bir kısayoldur. Okumayı hızlandırır, yazmayı biraz yavaşlatır.
+        - **Sayfalandırma** (`LIMIT` ve `OFFSET`): bir sayfaya asla binlerce satır gönderme
+        - **N+1** desenine dikkat: liste için bir sorgu ve her satır için bir sorgu daha. `JOIN` ile tek sorgu kullan ya da ihtiyacın olanı bir seferde çek.
+        - **HTTP cache'i**: statik dosyaları tarayıcı cache'leyebilir (`Cache-Control: max-age`); kişisel veri içeren sayfaları cache'ler saklamamalı (`no-store`)
+        - Sunucu tarafı cache (Redis gibi) daha sonra gelir ve sadece ölçüm ihtiyaç olduğunu gösterirse
+    do:
+      en: |
+        1. Replace `linkbox/schema.sql`: it gets an index on `(user_id, id DESC)`, the exact columns the home page filters and sorts by. The command `init-db` is safe to run again, so run it now. It has `--debug` because, since the security step, the app needs a real secret key outside debug mode.
+        2. Replace `linkbox/links.py` (the home page now shows 20 links per page) and `linkbox/templates/links/index.html` (it gets Newer and Older links).
+        3. Replace `linkbox/__init__.py`: static files may be cached for an hour, and every other response is marked `no-store`.
+        4. Create `scripts/seed.py`. (Run it as `python -m scripts.seed`, as in the code below.) It adds 50,000 fake links for another user and prints how SQLite runs your home-page query without and with the index. You need at least one registered account first.
+        5. Run it and read the two query plans. The first says `SCAN link`, the second `SEARCH link USING INDEX`. On this small data the time difference is a few milliseconds; it grows with the table.
+        6. Open the app: your list is paginated. Run `uv run pytest` again, then commit. The fake links stay in your development database; delete `instance/linkbox.sqlite` and run `init-db` if you want a clean start.
+      tr: |
+        1. `linkbox/schema.sql` dosyasını değiştir: ana sayfanın tam olarak filtrelediği ve sıraladığı sütunlar olan `(user_id, id DESC)` için bir index alır. `init-db` komutunu tekrar çalıştırmak güvenli, şimdi çalıştır. Komutta `--debug` var, çünkü güvenlik adımından beri uygulama debug modu dışında gerçek bir secret key ister.
+        2. `linkbox/links.py` (ana sayfa artık sayfada 20 link gösterir) ve `linkbox/templates/links/index.html` (Newer ve Older linkleri alır) dosyalarını değiştir.
+        3. `linkbox/__init__.py` dosyasını değiştir: statik dosyalar bir saat cache'lenebilir ve diğer her yanıt `no-store` işaretlenir.
+        4. `scripts/seed.py` dosyasını oluştur. (Aşağıdaki gibi `python -m scripts.seed` ile çalıştır.) Başka bir kullanıcı için 50.000 sahte link ekler ve SQLite'ın ana sayfa sorgunu index olmadan ve index ile nasıl çalıştırdığını yazdırır. Önce kayıtlı en az bir hesabın olmalı.
+        5. Çalıştır ve iki sorgu planını oku. Birincisi `SCAN link`, ikincisi `SEARCH link USING INDEX` der. Bu küçük veride süre farkı birkaç milisaniye; tablo büyüdükçe artar.
+        6. Uygulamayı aç: listen sayfalandırılmış. `uv run pytest` komutunu tekrar çalıştır, sonra commit'le. Sahte linkler geliştirme veritabanında kalır; temiz başlamak istersen `instance/linkbox.sqlite` dosyasını sil ve `init-db` çalıştır.
+    code:
+      - file: linkbox/schema.sql
+        lang: sql
+        text: |
+          CREATE TABLE IF NOT EXISTS user (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              username TEXT UNIQUE NOT NULL,
+              password_hash TEXT NOT NULL
+          );
+
+          CREATE TABLE IF NOT EXISTS link (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              user_id INTEGER NOT NULL REFERENCES user (id) ON DELETE CASCADE,
+              title TEXT NOT NULL,
+              url TEXT NOT NULL,
+              created TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+          );
+
+          CREATE INDEX IF NOT EXISTS link_user_id_id ON link (user_id, id DESC);
+      - file: linkbox/links.py
+        lang: py
+        text: |
+          from urllib.parse import urlparse
+
+          from flask import Blueprint, abort, flash, g, redirect, render_template, request, url_for
+
+          from .auth import login_required
+          from .db import get_db
+
+          bp = Blueprint("links", __name__)
+
+          PER_PAGE = 20
+
+
+          def check_link(title, url):
+              """Return an error message, or None when the link is fine."""
+              if not title:
+                  return "A title is required."
+              if len(title) > 100:
+                  return "The title can be at most 100 characters."
+              if len(url) > 2000:
+                  return "The address is too long."
+              try:
+                  parts = urlparse(url)
+              except ValueError:
+                  return "That is not a valid address."
+              if parts.scheme not in ("http", "https") or not parts.netloc:
+                  return "The address must start with http:// or https://."
+              return None
+
+
+          @bp.route("/")
+          def index():
+              links, page, pages = [], 1, 1
+              if g.user is not None:
+                  db = get_db()
+                  total = db.execute(
+                      "SELECT COUNT(*) FROM link WHERE user_id = ?", (g.user["id"],)
+                  ).fetchone()[0]
+                  pages = max(1, -(-total // PER_PAGE))
+                  page = min(max(request.args.get("page", 1, type=int), 1), pages)
+                  links = db.execute(
+                      "SELECT id, title, url, created FROM link WHERE user_id = ? "
+                      "ORDER BY id DESC LIMIT ? OFFSET ?",
+                      (g.user["id"], PER_PAGE, (page - 1) * PER_PAGE),
+                  ).fetchall()
+              return render_template("links/index.html", links=links, page=page, pages=pages)
+
+
+          @bp.route("/add", methods=("GET", "POST"))
+          @login_required
+          def add():
+              title = url = ""
+              if request.method == "POST":
+                  title = request.form.get("title", "").strip()
+                  url = request.form.get("url", "").strip()
+                  error = check_link(title, url)
+                  if error is None:
+                      db = get_db()
+                      db.execute(
+                          "INSERT INTO link (user_id, title, url) VALUES (?, ?, ?)",
+                          (g.user["id"], title, url),
+                      )
+                      db.commit()
+                      flash("Link saved.")
+                      return redirect(url_for("links.index"))
+                  flash(error)
+              return render_template("links/add.html", title=title, url=url)
+
+
+          @bp.route("/<int:id>/delete", methods=("POST",))
+          @login_required
+          def delete(id):
+              db = get_db()
+              cursor = db.execute(
+                  "DELETE FROM link WHERE id = ? AND user_id = ?", (id, g.user["id"])
+              )
+              db.commit()
+              if cursor.rowcount == 0:
+                  abort(404)
+              flash("Link deleted.")
+              return redirect(url_for("links.index"))
+      - file: linkbox/templates/links/index.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Your links{% endblock %}
+          {% block content %}
+            {% if g.user %}
+              <h1>Your links</h1>
+              <p><a href="{{ url_for('links.add') }}">Add a link</a></p>
+              {% for link in links %}
+                <article>
+                  <span>
+                    <a href="{{ link.url }}">{{ link.title }}</a><br>
+                    <small>{{ link.created }}</small>
+                  </span>
+                  <form method="post" action="{{ url_for('links.delete', id=link.id) }}" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Delete</button>
+                  </form>
+                </article>
+              {% else %}
+                <p>No links yet.</p>
+              {% endfor %}
+              {% if pages > 1 %}
+                <nav class="pager">
+                  {% if page > 1 %}
+                    <a href="{{ url_for('links.index', page=page - 1) }}">Newer</a>
+                  {% else %}
+                    <span></span>
+                  {% endif %}
+                  <span>Page {{ page }} of {{ pages }}</span>
+                  {% if page < pages %}
+                    <a href="{{ url_for('links.index', page=page + 1) }}">Older</a>
+                  {% else %}
+                    <span></span>
+                  {% endif %}
+                </nav>
+              {% endif %}
+            {% else %}
+              <h1>Linkbox</h1>
+              <p>Save the links you want to keep. <a href="{{ url_for('auth.register') }}">Create an account</a> or <a href="{{ url_for('auth.login') }}">log in</a>.</p>
+            {% endif %}
+          {% endblock %}
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          import os
+          from datetime import timedelta
+
+          from flask import Flask, request
+          from flask_wtf.csrf import CSRFProtect
+
+          csrf = CSRFProtect()
+
+
+          def create_app(test_config=None):
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(
+                  SECRET_KEY="dev",
+                  DATABASE=os.path.join(app.instance_path, "linkbox.sqlite"),
+                  MAX_CONTENT_LENGTH=64 * 1024,
+                  SESSION_COOKIE_SAMESITE="Lax",
+                  SEND_FILE_MAX_AGE_DEFAULT=timedelta(hours=1),
+              )
+
+              if test_config is None:
+                  # FLASK_SECRET_KEY, FLASK_DATABASE, ... in the environment
+                  app.config.from_prefixed_env()
+              else:
+                  app.config.update(test_config)
+
+              if not (app.debug or app.testing):
+                  if app.config["SECRET_KEY"] == "dev":
+                      raise RuntimeError(
+                          "Set the FLASK_SECRET_KEY environment variable to a long random value."
+                      )
+                  app.config["SESSION_COOKIE_SECURE"] = True
+
+              os.makedirs(app.instance_path, exist_ok=True)
+              csrf.init_app(app)
+
+              from . import auth, db, links
+
+              db.init_app(app)
+              app.register_blueprint(auth.bp)
+              app.register_blueprint(links.bp)
+
+              @app.after_request
+              def add_headers(response):
+                  response.headers["X-Content-Type-Options"] = "nosniff"
+                  response.headers["Referrer-Policy"] = "same-origin"
+                  response.headers["Content-Security-Policy"] = (
+                      "default-src 'self'; frame-ancestors 'none'; form-action 'self'"
+                  )
+                  if request.endpoint != "static":
+                      # personal pages must not be kept by browsers or shared caches
+                      response.headers.setdefault("Cache-Control", "no-store")
+                  return response
+
+              return app
+      - file: scripts/seed.py
+        lang: py
+        text: |
+          """Add 50,000 fake links for another user and show how SQLite runs the home-page query.
+
+          Run from the project folder: uv run python -m scripts.seed
+          """
+          import time
+
+          from linkbox import create_app
+          from linkbox.db import get_db
+
+          QUERY = (
+              "SELECT id, title, url, created FROM link WHERE user_id = ? "
+              "ORDER BY id DESC LIMIT 20 OFFSET 0"
+          )
+
+          app = create_app({"SECRET_KEY": "seed-script"})
+
+          with app.app_context():
+              db = get_db()
+              me = db.execute("SELECT id FROM user ORDER BY id LIMIT 1").fetchone()
+              if me is None:
+                  raise SystemExit("Register an account in the app first.")
+
+              db.execute(
+                  "INSERT OR IGNORE INTO user (username, password_hash) VALUES ('seed-user', 'x')"
+              )
+              other = db.execute("SELECT id FROM user WHERE username = 'seed-user'").fetchone()
+              db.executemany(
+                  "INSERT INTO link (user_id, title, url) VALUES (?, ?, ?)",
+                  [(other["id"], f"Link {i}", f"https://example.com/{i}") for i in range(50_000)],
+              )
+              db.commit()
+
+              def measure(label):
+                  plan = db.execute("EXPLAIN QUERY PLAN " + QUERY, (me["id"],)).fetchall()
+                  start = time.perf_counter()
+                  for _ in range(100):
+                      db.execute(QUERY, (me["id"],)).fetchall()
+                  ms = (time.perf_counter() - start) * 1000 / 100
+                  print(f"{label}: {plan[0]['detail']}  ({ms:.3f} ms per query)")
+
+              db.execute("DROP INDEX IF EXISTS link_user_id_id")
+              measure("without the index")
+              db.execute("CREATE INDEX link_user_id_id ON link (user_id, id DESC)")
+              measure("with the index   ")
+              db.commit()
+      - file: terminal
+        lang: sh
+        text: |
+          uv run flask --app linkbox --debug init-db
+          uv run python -m scripts.seed
+          uv run pytest
+    mistakes:
+      - problem:
+          en: "Adding an index to every column \"to be fast\"."
+          tr: "\"Hızlı olsun\" diye her sütuna index eklemek."
+        fix:
+          en: "Each index costs disk space and slows every INSERT. Add one when a query you measured is slow, for the columns it filters and sorts by."
+          tr: "Her index disk alanı harcar ve her INSERT'i yavaşlatır. Ölçtüğün bir sorgu yavaşsa, filtrelediği ve sıraladığı sütunlar için bir tane ekle."
+      - problem:
+          en: "Loading all rows and filtering them in Python."
+          tr: "Bütün satırları yükleyip Python'da süzmek."
+        fix:
+          en: "The database is built for this. Put the `WHERE`, `ORDER BY` and `LIMIT` in the SQL so only the rows you need leave the database."
+          tr: "Veritabanı bunun için yapıldı. `WHERE`, `ORDER BY` ve `LIMIT`'i SQL'e koy ki sadece ihtiyacın olan satırlar veritabanından çıksın."
+      - problem:
+          en: "Letting a browser or CDN cache pages that show a user's data."
+          tr: "Bir tarayıcının ya da CDN'in kullanıcı verisi gösteren sayfaları cache'lemesine izin vermek."
+        fix:
+          en: "Then another person may be served your page. Personal pages get `Cache-Control: no-store` (or `private`); only static files are cached."
+          tr: "O zaman başka biri senin sayfanı görebilir. Kişisel sayfalara `Cache-Control: no-store` (ya da `private`) ver; sadece statik dosyalar cache'lenir."
+    quiz:
+      - q:
+          en: "What does `SEARCH link USING INDEX link_user_id_id` tell you?"
+          tr: "`SEARCH link USING INDEX link_user_id_id` sana ne söyler?"
+        options:
+          en: ["SQLite reads every row of the table", "SQLite jumps straight to the rows of one user through the index", "The query is wrong"]
+          tr: ["SQLite tablonun her satırını okuyor", "SQLite index sayesinde doğrudan bir kullanıcının satırlarına atlıyor", "Sorgu yanlış"]
+        answer: 1
+        why:
+          en: "`SCAN` means a full read of the table; `SEARCH ... USING INDEX` means the index narrowed the work."
+          tr: "`SCAN` tablonun tamamının okunması demek; `SEARCH ... USING INDEX` index'in işi daralttığı anlamına gelir."
+    sources:
+      - title: SQLite, query planning
+        url: https://www.sqlite.org/queryplanner.html
+      - title: SQLite, EXPLAIN QUERY PLAN
+        url: https://www.sqlite.org/eqp.html
+      - title: MDN, HTTP caching
+        url: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching
+
+  - id: packaging
+    stage: packaging
+    title:
+      en: "Package the app with pyproject.toml and build a wheel"
+      tr: "Uygulamayı pyproject.toml ile paketle ve bir wheel üret"
+    minutes: 40
+    needs: [performance]
+    why:
+      en: "Right now Linkbox only works because you are in its folder. A proper package lists its dependencies, includes its templates and database schema, and can be built into one file (a wheel) that installs anywhere. That is also what servers expect."
+      tr: "Şu an Linkbox sadece klasörünün içinde olduğun için çalışıyor. Düzgün bir paket bağımlılıklarını listeler, şablonlarını ve veritabanı şemasını içerir ve her yere kurulabilen tek bir dosyaya (wheel) dönüştürülebilir. Sunucuların beklediği de budur."
+    learn:
+      en: |
+        - `pyproject.toml` is the standard file that describes a Python project: name, version, dependencies and the build backend
+        - A **build backend** (here `flit_core`) turns the project into a **wheel**, a zip file pip can install
+        - Dependencies in `[project]` are what the app needs to run; the `dev` group holds tools like pytest
+        - A **lock file** (`uv.lock`) pins exact versions, so every install gets the same packages. Commit it.
+        - `.gitignore` keeps `.venv`, `dist` and `instance` out of Git
+      tr: |
+        - `pyproject.toml` bir Python projesini tarif eden standart dosyadır: ad, sürüm, bağımlılıklar ve build backend
+        - **Build backend** (burada `flit_core`) projeyi, pip'in kurabildiği bir zip dosyası olan **wheel**'e çevirir
+        - `[project]` içindeki bağımlılıklar uygulamanın çalışmak için ihtiyaç duyduklarıdır; `dev` grubu pytest gibi araçları tutar
+        - **Kilit dosyası** (`uv.lock`) tam sürümleri sabitler, böylece her kurulum aynı paketleri alır. Commit'le.
+        - `.gitignore`, `.venv`, `dist` ve `instance` klasörlerini Git dışında tutar
+    do:
+      en: |
+        1. Replace the whole `pyproject.toml` with the version below. It names the project, lists the dependencies, picks Flit as the build backend and keeps the pytest settings.
+        2. Run `uv sync` so uv installs Linkbox itself into the environment and updates `uv.lock`, then `uv run pytest` to confirm nothing broke.
+        3. Build the package with `uv build`. It creates the folder `dist` with a `.whl` and a `.tar.gz` file.
+        4. List what is inside the wheel and check that it contains `linkbox/schema.sql`, the templates and `static/style.css`.
+        5. Commit `pyproject.toml` and `uv.lock`. The `dist` folder is ignored by Git.
+      tr: |
+        1. Bütün `pyproject.toml` dosyasını aşağıdaki sürümle değiştir. Projeye ad verir, bağımlılıkları sıralar, build backend olarak Flit'i seçer ve pytest ayarlarını korur.
+        2. `uv sync` çalıştır; uv Linkbox'ı ortama kurar ve `uv.lock` dosyasını günceller. Sonra hiçbir şeyin bozulmadığını `uv run pytest` ile doğrula.
+        3. `uv build` ile paketi üret. İçinde bir `.whl` ve bir `.tar.gz` dosyası olan `dist` klasörünü oluşturur.
+        4. Wheel'in içindekileri listele ve `linkbox/schema.sql`, şablonlar ve `static/style.css` dosyalarının içinde olduğunu kontrol et.
+        5. `pyproject.toml` ve `uv.lock` dosyalarını commit'le. `dist` klasörünü Git yok sayar.
+    code:
+      - file: pyproject.toml
+        lang: toml
+        text: |
+          [build-system]
+          requires = ["flit_core>=3.11,<5"]
+          build-backend = "flit_core.buildapi"
+
+          [project]
+          name = "linkbox"
+          version = "0.1.0"
+          description = "A small link saver built with Flask."
+          requires-python = ">=3.10"
+          dependencies = [
+              "flask>=3.1.3",
+              "flask-wtf>=1.2",
+          ]
+
+          [dependency-groups]
+          dev = ["pytest>=8"]
+
+          [tool.pytest.ini_options]
+          testpaths = ["tests"]
+          pythonpath = ["."]
+      - file: terminal
+        lang: sh
+        text: |
+          uv sync
+          uv run pytest
+          uv build
+          uv run python -m zipfile -l dist/linkbox-0.1.0-py3-none-any.whl
+    mistakes:
+      - problem:
+          en: "The built package starts but pages crash with \"TemplateNotFound\" or the database cannot be created."
+          tr: "Üretilen paket çalışıyor ama sayfalar \"TemplateNotFound\" ile çöküyor ya da veritabanı oluşturulamıyor."
+        fix:
+          en: "Data files (templates, static, schema.sql) were not packed. Always list the wheel with `python -m zipfile -l` and look for them. Flit includes every file inside the package folder."
+          tr: "Veri dosyaları (şablonlar, static, schema.sql) pakete girmemiş. Wheel'i her zaman `python -m zipfile -l` ile listele ve onları ara. Flit paket klasörünün içindeki her dosyayı ekler."
+      - problem:
+          en: "Not committing `uv.lock`, or committing `.venv`."
+          tr: "`uv.lock`'u commit'lememek ya da `.venv`'i commit'lemek."
+        fix:
+          en: "Commit `uv.lock` (it makes installs repeatable). Never commit `.venv`: it is large, specific to your computer and rebuilt by `uv sync`."
+          tr: "`uv.lock`'u commit'le (kurulumları tekrarlanabilir yapar). `.venv`'i asla commit'leme: büyük, bilgisayarına özel ve `uv sync` ile yeniden oluşturulur."
+    quiz:
+      - q:
+          en: "What is a wheel?"
+          tr: "Wheel nedir?"
+        options:
+          en: ["A running server process", "A zip file with your built package that pip can install", "A kind of virtual environment"]
+          tr: ["Çalışan bir sunucu süreci", "Üretilmiş paketini içeren, pip'in kurabildiği bir zip dosyası", "Bir tür sanal ortam"]
+        answer: 1
+        why:
+          en: "A wheel (`.whl`) is a ready-to-install archive of the package. `uv build` makes it from `pyproject.toml`."
+          tr: "Wheel (`.whl`) paketin kurulmaya hazır arşividir. `uv build` onu `pyproject.toml`'dan üretir."
+    sources:
+      - title: Python Packaging, writing your pyproject.toml
+        url: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/
+      - title: Flit, the pyproject.toml file
+        url: https://flit.pypa.io/en/stable/pyproject_toml.html
+      - title: uv, building and publishing a package
+        url: https://docs.astral.sh/uv/guides/package/
+
+  - id: serve
+    stage: deploy
+    title:
+      en: "Run it like production: a real WSGI server"
+      tr: "Production gibi çalıştır: gerçek bir WSGI sunucusu"
+    minutes: 30
+    needs: [packaging]
+    why:
+      en: "`flask run` is a development server: it is slow and not built to be safe on the internet. Production uses a WSGI server, a program that talks to the internet and calls your Flask app. Trying it on your own computer first shows problems before a deploy does."
+      tr: "`flask run` bir geliştirme sunucusudur: yavaştır ve internette güvenli olacak şekilde yapılmamıştır. Production, internetle konuşan ve Flask uygulamanı çağıran bir program olan WSGI sunucusu kullanır. Önce kendi bilgisayarında denemek sorunları deploy'dan önce gösterir."
+    learn:
+      en: |
+        - **WSGI** is the standard way a Python web app and a server talk to each other
+        - Waitress works on Windows, macOS and Linux; Gunicorn is the popular choice on Linux and macOS only
+        - The server needs a way to get the app: a factory call like `linkbox:create_app` or a `wsgi.py` file with a variable called `application`
+        - Secrets come from environment variables, never from files in Git
+      tr: |
+        - **WSGI**, bir Python web uygulamasının ve sunucunun birbiriyle konuşma standart yoludur
+        - Waitress Windows, macOS ve Linux'ta çalışır; Gunicorn sadece Linux ve macOS'ta popüler seçimdir
+        - Sunucunun uygulamayı alması gerekir: `linkbox:create_app` gibi bir fabrika çağrısı ya da `application` adlı değişkeni olan bir `wsgi.py` dosyası
+        - Gizli bilgiler ortam değişkenlerinden gelir, Git'teki dosyalardan asla
+    do:
+      en: |
+        1. Add Waitress with `uv add waitress`.
+        2. Create `wsgi.py` in the project folder with the code below. Some hosts (including PythonAnywhere) need a file like it.
+        3. Set `FLASK_SECRET_KEY` in this terminal, as in the security step (make a new random key if you closed the terminal).
+        4. Start the server with the command below and open http://127.0.0.1:8000. Debug mode is off now. Register, log in and add a link.
+        5. Look at the response headers with `curl -I`: you should see your security headers and `Cache-Control: no-store`.
+        6. Stop with Ctrl+C. On Linux or macOS you can try Gunicorn too (see the Gunicorn line, from a temporary install with `uv run --with gunicorn`).
+        7. Commit your work.
+      tr: |
+        1. `uv add waitress` ile Waitress'i ekle.
+        2. Proje klasöründe aşağıdaki kodla `wsgi.py` dosyasını oluştur. Bazı barındırıcılar (PythonAnywhere dahil) buna benzer bir dosya ister.
+        3. Bu terminalde `FLASK_SECRET_KEY` değerini ayarla, güvenlik adımındaki gibi (terminali kapattıysan yeni rastgele bir anahtar üret).
+        4. Aşağıdaki komutla sunucuyu başlat ve http://127.0.0.1:8000 adresini aç. Debug modu artık kapalı. Kayıt ol, giriş yap ve bir link ekle.
+        5. Yanıt header'larına `curl -I` ile bak: güvenlik header'larını ve `Cache-Control: no-store` değerini görmelisin.
+        6. Ctrl+C ile durdur. Linux veya macOS'ta Gunicorn'u da deneyebilirsin (Gunicorn satırına bak, `uv run --with gunicorn` ile geçici kurulum yapar).
+        7. Çalışmanı commit'le.
+    code:
+      - file: wsgi.py
+        lang: py
+        text: |
+          from linkbox import create_app
+
+          application = create_app()
+      - file: terminal
+        lang: sh
+        text: |
+          uv add waitress
+          # in this terminal, set the key first: export FLASK_SECRET_KEY="..."
+          uv run waitress-serve --host 127.0.0.1 --port 8000 --call linkbox:create_app
+          # in a second terminal
+          curl -I http://127.0.0.1:8000/
+          # Linux and macOS only, instead of Waitress
+          uv run --with gunicorn gunicorn --workers 2 --bind 127.0.0.1:8000 'linkbox:create_app()'
+    mistakes:
+      - problem:
+          en: "Shipping with `app.run(debug=True)` or `flask run --debug` on the server."
+          tr: "Sunucuda `app.run(debug=True)` ya da `flask run --debug` ile yayına çıkmak."
+        fix:
+          en: "Neither is a production server, and debug mode lets visitors run code. Start the app with a WSGI server and no debug flag; Linkbox also refuses to start with the default secret key."
+          tr: "İkisi de production sunucusu değildir ve debug modu ziyaretçilerin kod çalıştırmasına izin verir. Uygulamayı bir WSGI sunucusuyla ve debug bayrağı olmadan başlat; Linkbox varsayılan secret key ile başlamayı da reddeder."
+      - problem:
+          en: "\"RuntimeError: Set the FLASK_SECRET_KEY environment variable\"."
+          tr: "\"RuntimeError: Set the FLASK_SECRET_KEY environment variable\" hatası."
+        fix:
+          en: "That is the guard from the security step working. Set `FLASK_SECRET_KEY` in the same terminal you start the server from."
+          tr: "Bu, güvenlik adımındaki korumanın çalışmasıdır. `FLASK_SECRET_KEY` değerini sunucuyu başlattığın terminalde ayarla."
+      - problem:
+          en: "Port 8000 is already in use."
+          tr: "8000 portu zaten kullanılıyor."
+        fix:
+          en: "Another program (maybe an older server of yours) uses it. Stop it, or choose another port with `--port 8001`."
+          tr: "Başka bir program (belki eski sunucun) kullanıyor. Onu durdur ya da `--port 8001` ile başka bir port seç."
+    quiz:
+      - q:
+          en: "Why not run `flask run` on a public server?"
+          tr: "Herkese açık bir sunucuda neden `flask run` çalıştırılmaz?"
+        options:
+          en: ["Flask does not allow it", "It is a development server, not built for traffic or safety", "It cannot read templates"]
+          tr: ["Flask buna izin vermez", "Bir geliştirme sunucusudur, trafik ve güvenlik için yapılmamıştır", "Şablonları okuyamaz"]
+        answer: 1
+        why:
+          en: "The built-in server is for development only. A WSGI server such as Waitress or Gunicorn is made to handle many requests safely."
+          tr: "Dahili sunucu sadece geliştirme içindir. Waitress ya da Gunicorn gibi bir WSGI sunucusu çok sayıda isteği güvenle karşılamak için yapılmıştır."
+    sources:
+      - title: Flask, deploying to production
+        url: https://flask.palletsprojects.com/en/stable/deploying/
+      - title: Flask, Waitress
+        url: https://flask.palletsprojects.com/en/stable/deploying/waitress/
+      - title: Flask, Gunicorn
+        url: https://flask.palletsprojects.com/en/stable/deploying/gunicorn/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on PythonAnywhere"
+      tr: "PythonAnywhere'de ücretsiz deploy et"
+    minutes: 60
+    needs: [serve]
+    why:
+      en: "Your app is only useful when other people can open it. PythonAnywhere has a free plan with one web app at `yourname.pythonanywhere.com` over HTTPS, and, unlike some free hosts, it keeps files on disk, so your SQLite file survives."
+      tr: "Uygulaman ancak başkaları açabildiğinde işe yarar. PythonAnywhere'in ücretsiz planında HTTPS üzerinden `senin-adin.pythonanywhere.com` adresinde bir web uygulaması var ve bazı ücretsiz barındırıcıların aksine dosyaları diskte tutar; SQLite dosyan kalır."
+    learn:
+      en: |
+        - **Free plan limits** (PythonAnywhere help, "Free Accounts Features"): 1 web app with 1 web worker and a **1 month expiry** (you must extend it before it ends), 512 MiB of disk, 100 CPU seconds, 2 consoles. Outbound internet from the free plan is restricted, which Linkbox does not need.
+        - Other free option, **Render** free web services: they spin down after 15 minutes without traffic (the first visit then takes about a minute), the disk is **ephemeral**, so a local SQLite file is lost on every restart, redeploy or spin-down, and 750 free instance hours a month. For Linkbox that means losing all data, so use Render only with a database that persists (a Render Postgres database, which is free but expires after 30 days).
+        - Config in the host's settings, not in Git: the secret key lives in the WSGI file on the server
+        - Updating a deployed app: pull the new code, then press **Reload**
+      tr: |
+        - **Ücretsiz plan sınırları** (PythonAnywhere yardım sayfası "Free Accounts Features"): 1 web worker'lı 1 web uygulaması ve **1 ay süre sonu** (bitmeden uzatman gerekir), 512 MiB disk, 100 CPU saniyesi, 2 konsol. Ücretsiz planda dışarıya internet erişimi kısıtlıdır; Linkbox'ın buna ihtiyacı yok.
+        - Diğer ücretsiz seçenek **Render** ücretsiz web servisleri: 15 dakika trafik gelmezse uyur (sonraki ilk ziyaret yaklaşık bir dakika sürer), disk **geçicidir**; yani yerel bir SQLite dosyası her yeniden başlatmada, yeniden deploy'da ve uykuya geçişte silinir; ayda 750 ücretsiz instance saati var. Linkbox için bu, bütün verinin kaybı demek; Render'ı sadece kalıcı bir veritabanıyla (Render Postgres ücretsizdir ama 30 gün sonra sona erer) kullan.
+        - Ayarlar barındırıcının panelinde durur, Git'te değil: secret key sunucudaki WSGI dosyasında yaşar
+        - Yayındaki uygulamayı güncelleme: yeni kodu çek, sonra **Reload**'a bas
+    do:
+      en: |
+        1. Export the exact dependency versions to `requirements.txt` with the first command below and commit it. The server installs from it.
+        2. Make a GitHub account if you have none, create an empty repository, and push your project (the second block). A private repository works too, but then PythonAnywhere needs credentials to clone it; to keep this simple, use a public one, or upload a zip of the project in the Files tab.
+        3. Sign up at pythonanywhere.com for the free "Beginner" account.
+        4. Open a **Bash console** (Consoles tab) and run the third block: it clones the code, creates a virtual environment and installs the packages. Use a Python version PythonAnywhere offers (their Flask guide shows 3.13); it must be 3.10 or newer.
+        5. Create the database tables. The key can be any text here, the command does not use sessions.
+        6. In the **Web** tab press *Add a new web app*, choose *Manual configuration*, and the same Python version as the virtual environment. In the *Virtualenv* box enter `linkbox-env`.
+        7. Open the *WSGI configuration file* link of the Web tab, delete its content, and paste the fourth block. Change `yourname` to your PythonAnywhere username and put a new long random key (from `secrets.token_hex(32)`) in place of the example.
+        8. Press the green **Reload** button and open `https://yourname.pythonanywhere.com`. Register, log in and add a link. If there is an error, read the **error log** linked in the Web tab.
+        9. Put a reminder in your calendar to extend the web app before the month ends.
+      tr: |
+        1. Aşağıdaki ilk komutla tam bağımlılık sürümlerini `requirements.txt` dosyasına yaz ve commit'le. Sunucu kurulumu buradan yapar.
+        2. GitHub hesabın yoksa aç, boş bir repository oluştur ve projeni push'la (ikinci blok). Özel repository de olur ama o zaman PythonAnywhere'in clone için kimlik bilgisine ihtiyacı olur; işi basit tutmak için herkese açık bir repository kullan ya da projenin zip'ini Files sekmesinden yükle.
+        3. pythonanywhere.com'da ücretsiz "Beginner" hesabına kaydol.
+        4. Bir **Bash console** aç (Consoles sekmesi) ve üçüncü bloğu çalıştır: kodu clone'lar, bir sanal ortam oluşturur ve paketleri kurar. PythonAnywhere'in sunduğu bir Python sürümünü kullan (Flask rehberlerinde 3.13 görünüyor); 3.10 veya daha yeni olmalı.
+        5. Veritabanı tablolarını oluştur. Buradaki anahtar herhangi bir metin olabilir, komut session kullanmaz.
+        6. **Web** sekmesinde *Add a new web app*'e bas, *Manual configuration* seç ve sanal ortamla aynı Python sürümünü seç. *Virtualenv* kutusuna `linkbox-env` yaz.
+        7. Web sekmesindeki *WSGI configuration file* linkini aç, içeriğini sil ve dördüncü bloğu yapıştır. `yourname` yerine PythonAnywhere kullanıcı adını yaz ve örnek anahtarın yerine yeni uzun rastgele bir anahtar koy (`secrets.token_hex(32)` ile üret).
+        8. Yeşil **Reload** butonuna bas ve `https://yourname.pythonanywhere.com` adresini aç. Kayıt ol, giriş yap ve bir link ekle. Hata varsa Web sekmesindeki **error log** linkini oku.
+        9. Süre ayın sonunda dolmadan web uygulamasını uzatman için takvimine bir hatırlatma koy.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          uv export --no-dev --no-hashes --no-emit-project -o requirements.txt
+          git add requirements.txt
+          git commit -m "Add requirements.txt for deploy"
+      - file: terminal
+        lang: sh
+        text: |
+          # on your computer: connect the folder to your GitHub repository
+          git branch -M main
+          git remote add origin https://github.com/YOUR-NAME/linkbox.git
+          git push -u origin main
+      - file: terminal
+        lang: sh
+        text: |
+          # in a PythonAnywhere Bash console
+          git clone https://github.com/YOUR-NAME/linkbox.git
+          mkvirtualenv --python=/usr/bin/python3.13 linkbox-env
+          cd ~/linkbox
+          pip install -r requirements.txt
+          FLASK_SECRET_KEY=anything python -m flask --app linkbox init-db
+      - file: /var/www/yourname_pythonanywhere_com_wsgi.py
+        lang: py
+        text: |
+          import os
+          import sys
+
+          path = "/home/yourname/linkbox"
+          if path not in sys.path:
+              sys.path.insert(0, path)
+
+          os.environ["FLASK_SECRET_KEY"] = "put-a-long-random-key-here"
+
+          from linkbox import create_app  # noqa: E402
+
+          application = create_app()
+    mistakes:
+      - problem:
+          en: "The site shows \"Something went wrong\" (a 500 or 502) after Reload."
+          tr: "Reload'dan sonra site \"Something went wrong\" (500 ya da 502) gösteriyor."
+        fix:
+          en: "Open the error log from the Web tab. The usual causes: the path in the WSGI file does not match your username, the virtualenv name is wrong, or a package is missing from the virtualenv."
+          tr: "Web sekmesindeki error log'u aç. Sık nedenler: WSGI dosyasındaki yol kullanıcı adınla eşleşmiyor, virtualenv adı yanlış ya da virtualenv'de bir paket eksik."
+      - problem:
+          en: "Pushing changes to GitHub, but the live site does not change."
+          tr: "Değişiklikleri GitHub'a push'lamak ama canlı sitenin değişmemesi."
+        fix:
+          en: "The server has its own copy. In a Bash console run `cd ~/linkbox && git pull`, then press Reload in the Web tab. If you changed the schema, run `init-db` again; it only creates what is missing."
+          tr: "Sunucunun kendi kopyası var. Bir Bash console'da `cd ~/linkbox && git pull` çalıştır, sonra Web sekmesinde Reload'a bas. Şemayı değiştirdiysen `init-db`'yi yeniden çalıştır; sadece eksik olanı oluşturur."
+      - problem:
+          en: "Committing the real secret key, or the `instance` folder with the live database."
+          tr: "Gerçek secret key'i ya da canlı veritabanının olduğu `instance` klasörünü commit'lemek."
+        fix:
+          en: "The key lives only in the WSGI file on the server, and `.gitignore` excludes `instance/`. If a key ever reached Git, treat it as leaked and make a new one."
+          tr: "Anahtar sadece sunucudaki WSGI dosyasında durur ve `.gitignore` `instance/` klasörünü dışarıda bırakır. Bir anahtar Git'e girdiyse sızmış say ve yenisini üret."
+    quiz:
+      - q:
+          en: "Why is a free Render web service a bad home for a SQLite file?"
+          tr: "Ücretsiz bir Render web servisi neden SQLite dosyası için kötü bir yerdir?"
+        options:
+          en: ["SQLite does not run on Linux", "Its disk is ephemeral: the file is lost on restart, redeploy and spin-down", "It blocks all databases"]
+          tr: ["SQLite Linux'ta çalışmaz", "Diski geçicidir: dosya yeniden başlatma, yeniden deploy ve uykuya geçişte silinir", "Bütün veritabanlarını engeller"]
+        answer: 1
+        why:
+          en: "Render's docs say free web services lose local file changes on every restart, redeploy or spin-down. Use an external database there, or a host that keeps its disk."
+          tr: "Render dokümanları ücretsiz web servislerinin her yeniden başlatma, yeniden deploy ve uykuya geçişte yerel dosya değişikliklerini kaybettiğini söyler. Orada harici bir veritabanı ya da diskini koruyan bir barındırıcı kullan."
+    sources:
+      - title: PythonAnywhere, setting up Flask applications
+        url: https://help.pythonanywhere.com/pages/Flask/
+      - title: PythonAnywhere, free account features
+        url: https://help.pythonanywhere.com/pages/FreeAccountsFeatures/
+      - title: Render, deploy for free (limits)
+        url: https://render.com/docs/free
+
+  - id: health
+    stage: monitoring
+    title:
+      en: "Logs, error pages and a health check"
+      tr: "Loglar, hata sayfaları ve bir sağlık kontrolü"
+    minutes: 50
+    needs: [deploy]
+    why:
+      en: "When something breaks on a server you cannot open a debugger, you can only read what the app wrote down. Good logs, friendly error pages and a `/health` address that a monitor can call let you find out about problems before your users tell you."
+      tr: "Sunucuda bir şey bozulduğunda debugger açamazsın, sadece uygulamanın yazdıklarını okuyabilirsin. İyi loglar, anlaşılır hata sayfaları ve bir izleyicinin çağırabileceği `/health` adresi, kullanıcılar sana söylemeden önce sorunları öğrenmeni sağlar."
+    learn:
+      en: |
+        - Python's `logging`: levels (`INFO`, `WARNING`, `ERROR`), and `app.logger.exception()` which also writes the traceback
+        - Configure logging **before** the app is created, as the Flask docs say
+        - One log line per request: method, path, status and time. **Never log passwords, tokens or form bodies.** Leave out query strings too, they can hold secrets.
+        - Custom `404` and `500` pages, so visitors never see a stack trace
+        - A **health check** endpoint: a cheap request that proves the app and its database work. A free uptime checker can call it, and some hosts use it to restart a broken app.
+      tr: |
+        - Python'un `logging` modülü: seviyeler (`INFO`, `WARNING`, `ERROR`) ve traceback'i de yazan `app.logger.exception()`
+        - Flask dokümanlarının dediği gibi logging'i uygulama oluşturulmadan **önce** ayarla
+        - İstek başına bir log satırı: method, path, durum ve süre. **Şifreleri, token'ları ya da form gövdelerini asla loglama.** Query string'leri de çıkar, gizli bilgi taşıyabilirler.
+        - Ziyaretçilerin asla stack trace görmemesi için özel `404` ve `500` sayfaları
+        - **Sağlık kontrolü** endpoint'i: uygulamanın ve veritabanının çalıştığını kanıtlayan ucuz bir istek. Ücretsiz bir uptime kontrolcüsü onu çağırabilir, bazı barındırıcılar bozuk bir uygulamayı yeniden başlatmak için kullanır.
+    do:
+      en: |
+        1. Create `linkbox/health.py` with the code below.
+        2. Replace `linkbox/__init__.py`: it configures logging, writes one log line per request, registers the health blueprint and the error pages.
+        3. Create `linkbox/templates/404.html` and `linkbox/templates/500.html`.
+        4. Add `tests/test_health.py`, run `uv run pytest`, then run the app and open `/health` and a made-up address like `/nope`.
+        5. Watch the terminal while you click through the app: one line per request.
+        6. Commit, push, then on PythonAnywhere run `git pull` and press Reload. Open `https://yourname.pythonanywhere.com/health`, and find the log lines in the **error log** (the Web tab links it; the Flask logger writes to the error stream).
+        7. Point any free uptime checker at the `/health` address so you hear when the site is down. Remember that a PythonAnywhere free web app has a 1 month expiry.
+      tr: |
+        1. Aşağıdaki kodla `linkbox/health.py` dosyasını oluştur.
+        2. `linkbox/__init__.py` dosyasını değiştir: logging'i ayarlar, istek başına bir log satırı yazar, health blueprint'ini ve hata sayfalarını kaydeder.
+        3. `linkbox/templates/404.html` ve `linkbox/templates/500.html` dosyalarını oluştur.
+        4. `tests/test_health.py` dosyasını ekle, `uv run pytest` çalıştır; sonra uygulamayı çalıştırıp `/health` ve `/nope` gibi uydurma bir adresi aç.
+        5. Uygulamada gezinirken terminale bak: her istek için bir satır.
+        6. Commit'le, push'la; sonra PythonAnywhere'de `git pull` çalıştırıp Reload'a bas. `https://yourname.pythonanywhere.com/health` adresini aç ve log satırlarını **error log**'da bul (Web sekmesi linkler; Flask logger'ı hata akışına yazar).
+        7. Sitenin kapandığını duyman için ücretsiz bir uptime kontrolcüsünü `/health` adresine yönlendir. PythonAnywhere ücretsiz web uygulamasının 1 aylık süresi olduğunu unutma.
+    code:
+      - file: linkbox/health.py
+        lang: py
+        text: |
+          import sqlite3
+
+          from flask import Blueprint, current_app
+
+          from .db import get_db
+
+          bp = Blueprint("health", __name__)
+
+
+          @bp.route("/health")
+          def health():
+              try:
+                  get_db().execute("SELECT 1").fetchone()
+              except sqlite3.Error:
+                  current_app.logger.exception("health check failed")
+                  return {"status": "error"}, 503
+              return {"status": "ok"}
+      - file: linkbox/__init__.py
+        lang: py
+        text: |
+          import os
+          import time
+          from datetime import timedelta
+          from logging.config import dictConfig
+
+          from flask import Flask, g, render_template, request
+          from flask_wtf.csrf import CSRFProtect
+
+          csrf = CSRFProtect()
+
+
+          def create_app(test_config=None):
+              # configure logging before the app is created
+              dictConfig(
+                  {
+                      "version": 1,
+                      "disable_existing_loggers": False,
+                      "formatters": {
+                          "default": {
+                              "format": "%(asctime)s %(levelname)s %(name)s: %(message)s",
+                          }
+                      },
+                      "handlers": {
+                          "wsgi": {
+                              "class": "logging.StreamHandler",
+                              "stream": "ext://flask.logging.wsgi_errors_stream",
+                              "formatter": "default",
+                          }
+                      },
+                      "root": {"level": "INFO", "handlers": ["wsgi"]},
+                  }
+              )
+
+              app = Flask(__name__, instance_relative_config=True)
+              app.config.from_mapping(
+                  SECRET_KEY="dev",
+                  DATABASE=os.path.join(app.instance_path, "linkbox.sqlite"),
+                  MAX_CONTENT_LENGTH=64 * 1024,
+                  SESSION_COOKIE_SAMESITE="Lax",
+                  SEND_FILE_MAX_AGE_DEFAULT=timedelta(hours=1),
+              )
+
+              if test_config is None:
+                  # FLASK_SECRET_KEY, FLASK_DATABASE, ... in the environment
+                  app.config.from_prefixed_env()
+              else:
+                  app.config.update(test_config)
+
+              if not (app.debug or app.testing):
+                  if app.config["SECRET_KEY"] == "dev":
+                      raise RuntimeError(
+                          "Set the FLASK_SECRET_KEY environment variable to a long random value."
+                      )
+                  app.config["SESSION_COOKIE_SECURE"] = True
+
+              os.makedirs(app.instance_path, exist_ok=True)
+              csrf.init_app(app)
+
+              from . import auth, db, health, links
+
+              db.init_app(app)
+              app.register_blueprint(auth.bp)
+              app.register_blueprint(links.bp)
+              app.register_blueprint(health.bp)
+
+              @app.errorhandler(404)
+              def not_found(error):
+                  return render_template("404.html"), 404
+
+              @app.errorhandler(500)
+              def server_error(error):
+                  return render_template("500.html"), 500
+
+              @app.before_request
+              def start_timer():
+                  g.start = time.perf_counter()
+
+              @app.after_request
+              def add_headers_and_log(response):
+                  response.headers["X-Content-Type-Options"] = "nosniff"
+                  response.headers["Referrer-Policy"] = "same-origin"
+                  response.headers["Content-Security-Policy"] = (
+                      "default-src 'self'; frame-ancestors 'none'; form-action 'self'"
+                  )
+                  if request.endpoint != "static":
+                      # personal pages must not be kept by browsers or shared caches
+                      response.headers.setdefault("Cache-Control", "no-store")
+                      start = g.get("start")
+                      ms = (time.perf_counter() - start) * 1000 if start else 0.0
+                      app.logger.info(
+                          "%s %s %s %.1f ms", request.method, request.path, response.status_code, ms
+                      )
+                  return response
+
+              return app
+      - file: linkbox/templates/404.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Not found{% endblock %}
+          {% block content %}
+            <h1>Page not found</h1>
+            <p>That address does not exist. <a href="{{ url_for('links.index') }}">Go back to your links</a>.</p>
+          {% endblock %}
+      - file: linkbox/templates/500.html
+        lang: html
+        text: |
+          {% extends "base.html" %}
+          {% block title %}Something went wrong{% endblock %}
+          {% block content %}
+            <h1>Something went wrong</h1>
+            <p>It is our fault, not yours, and it has been logged. Please try again in a moment.</p>
+          {% endblock %}
+      - file: tests/test_health.py
+        lang: py
+        text: |
+          def test_health_is_ok(client):
+              response = client.get("/health")
+              assert response.status_code == 200
+              assert response.json == {"status": "ok"}
+
+
+          def test_unknown_address_shows_the_404_page(client):
+              response = client.get("/nope")
+              assert response.status_code == 404
+              assert b"Page not found" in response.data
+
+
+          def test_unexpected_error_shows_the_500_page(app):
+              app.config["PROPAGATE_EXCEPTIONS"] = False
+
+              @app.route("/boom")
+              def boom():
+                  raise RuntimeError("test error")
+
+              response = app.test_client().get("/boom")
+              assert response.status_code == 500
+              assert b"Something went wrong" in response.data
+      - file: terminal
+        lang: sh
+        text: |
+          uv run pytest
+          uv run flask --app linkbox run --debug
+          # in a second terminal
+          curl http://127.0.0.1:5000/health
+    mistakes:
+      - problem:
+          en: "Logging whole request bodies or `request.form` \"to debug login\"."
+          tr: "\"Girişi debug etmek için\" bütün request body'lerini ya da `request.form`'u loglamak."
+        fix:
+          en: "Then passwords sit in the logs, which many people can read and which are kept for a long time. Log events and ids (\"login failed for user 12\"), never secrets."
+          tr: "O zaman şifreler, birçok kişinin okuyabildiği ve uzun süre saklanan loglarda durur. Olayları ve id'leri logla (\"12 numaralı kullanıcı için giriş başarısız\"), sırları asla."
+      - problem:
+          en: "A health check that only returns \"ok\" without touching the database."
+          tr: "Veritabanına dokunmadan sadece \"ok\" dönen bir sağlık kontrolü."
+        fix:
+          en: "It says \"healthy\" while every real page fails. Do one cheap query, like `SELECT 1`, but nothing heavy: monitors call it every minute."
+          tr: "Her gerçek sayfa hata verirken \"sağlıklı\" der. `SELECT 1` gibi ucuz bir sorgu çalıştır ama ağır bir şey yapma: izleyiciler onu her dakika çağırır."
+      - problem:
+          en: "Showing the error text or traceback in the 500 page."
+          tr: "500 sayfasında hata metnini ya da traceback'i göstermek."
+        fix:
+          en: "Visitors learn nothing useful and attackers learn how the app is built. Show a short message; the details go to the log."
+          tr: "Ziyaretçi işe yarar bir şey öğrenmez, saldırgan uygulamanın nasıl yapıldığını öğrenir. Kısa bir mesaj göster; ayrıntılar loga gider."
+    quiz:
+      - q:
+          en: "Where do the details of an unexpected error belong?"
+          tr: "Beklenmeyen bir hatanın ayrıntıları nereye aittir?"
+        options:
+          en: ["In the 500 page, so users can report them", "In the log, while the user sees a short friendly page", "Nowhere, errors should be hidden"]
+          tr: ["500 sayfasına, kullanıcılar bildirebilsin diye", "Loga; kullanıcı ise kısa ve anlaşılır bir sayfa görür", "Hiçbir yere, hatalar gizlenmeli"]
+        answer: 1
+        why:
+          en: "Logs are for you. The page is for the visitor. Flask logs the full traceback of an unhandled exception for you."
+          tr: "Loglar senin için, sayfa ziyaretçi için. Flask, yakalanmayan bir exception'ın tüm traceback'ini senin yerine loglar."
+    sources:
+      - title: Flask, logging
+        url: https://flask.palletsprojects.com/en/stable/logging/
+      - title: Flask, handling application errors
+        url: https://flask.palletsprojects.com/en/stable/errorhandling/
+      - title: Python, logging HOWTO
+        url: https://docs.python.org/3/howto/logging.html
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Run the tests on every push and plan what comes next"
+      tr: "Her push'ta testleri çalıştır ve sonraki adımları planla"
+    minutes: 30
+    needs: [health]
+    why:
+      en: "Tests only help if they run every time. A small GitHub Actions workflow runs them for every push, so you hear about a break within a minute. After that, the real growth path is a list of well-known next skills."
+      tr: "Testler ancak her seferinde çalışırsa işe yarar. Küçük bir GitHub Actions workflow'u onları her push'ta çalıştırır, böylece bir bozulmayı bir dakika içinde duyarsın. Sonrasında gerçek gelişim yolu, iyi bilinen sıradaki becerilerin listesidir."
+    learn:
+      en: |
+        - A **workflow** file in `.github/workflows/` tells GitHub to run commands on every push. See the GitHub Actions cheatsheet.
+        - **Migrations** (Alembic, through Flask-Migrate, with SQLAlchemy): change a table's shape without deleting data. Linkbox's "delete the database" shortcut only works while there is no real data.
+        - **Rate limiting** (Flask-Limiter) to slow down password guessing, and a real database like PostgreSQL when you outgrow one SQLite file
+        - Password reset by email, a JSON API in its own blueprint, background jobs, and containers with Docker
+        - Read the Flask docs sections on security, configuration and patterns once, start to end
+      tr: |
+        - `.github/workflows/` içindeki bir **workflow** dosyası GitHub'a her push'ta komut çalıştırmasını söyler. GitHub Actions kopya kâğıdına bak.
+        - **Migration**'lar (SQLAlchemy ile Flask-Migrate üzerinden Alembic): veriyi silmeden bir tablonun şeklini değiştirir. Linkbox'ın "veritabanını sil" kısayolu sadece gerçek veri yokken işe yarar.
+        - Şifre tahminini yavaşlatmak için **rate limiting** (Flask-Limiter) ve tek bir SQLite dosyası yetmeyince PostgreSQL gibi gerçek bir veritabanı
+        - E-postayla şifre sıfırlama, kendi blueprint'inde bir JSON API, arka plan işleri ve Docker ile container'lar
+        - Flask dokümanlarındaki güvenlik, yapılandırma ve desenler bölümlerini baştan sona bir kez oku
+    do:
+      en: |
+        1. Create `.github/workflows/test.yml` with the workflow below.
+        2. Commit and push. Open the *Actions* tab of your repository and watch the run turn green.
+        3. Break a test on purpose in a new branch, push it, and see the run fail. Then fix it.
+        4. Pick one item from the list above as your next project. A good first one: add a "tags" column to links and a filter, with a test for it.
+      tr: |
+        1. Aşağıdaki workflow ile `.github/workflows/test.yml` dosyasını oluştur.
+        2. Commit'le ve push'la. Repository'nin *Actions* sekmesini aç ve çalışmanın yeşile dönmesini izle.
+        3. Yeni bir branch'te bilerek bir testi boz, push'la ve çalışmanın başarısız olduğunu gör. Sonra düzelt.
+        4. Yukarıdaki listeden bir maddeyi bir sonraki projen olarak seç. İyi bir ilk fikir: linklere bir "tags" sütunu ve bir filtre ekle, bunun için de test yaz.
+    code:
+      - file: .github/workflows/test.yml
+        lang: yaml
+        text: |
+          name: tests
+
+          on:
+            push:
+            pull_request:
+
+          jobs:
+            test:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: astral-sh/setup-uv@v10.3.0
+                - run: uv sync
+                - run: uv run pytest
+    mistakes:
+      - problem:
+          en: "The workflow does not run at all."
+          tr: "Workflow hiç çalışmıyor."
+        fix:
+          en: "The file must be in `.github/workflows/` (with the dot) and end in `.yml` or `.yaml`, and be pushed to GitHub. Check the *Actions* tab for a YAML error."
+          tr: "Dosya `.github/workflows/` içinde (noktayla) olmalı, `.yml` ya da `.yaml` ile bitmeli ve GitHub'a push'lanmış olmalı. YAML hatası için *Actions* sekmesine bak."
+      - problem:
+          en: "Adding many features at once without tests."
+          tr: "Test yazmadan bir sürü özelliği bir anda eklemek."
+        fix:
+          en: "Add one feature, write its test, push, check that CI is green, then the next one. Small steps keep a project fixable."
+          tr: "Bir özellik ekle, testini yaz, push'la, CI'ın yeşil olduğunu kontrol et, sonra sıradakine geç. Küçük adımlar projeyi onarılabilir tutar."
+    quiz:
+      - q:
+          en: "What does the workflow do on every push?"
+          tr: "Workflow her push'ta ne yapar?"
+        options:
+          en: ["Deploys the app to PythonAnywhere", "Installs the dependencies and runs the tests on a clean machine", "Rewrites your code"]
+          tr: ["Uygulamayı PythonAnywhere'e deploy eder", "Temiz bir makinede bağımlılıkları kurar ve testleri çalıştırır", "Kodunu yeniden yazar"]
+        answer: 1
+        why:
+          en: "It checks out the code, runs `uv sync` and `uv run pytest`. A clean machine finds problems that only worked on yours."
+          tr: "Kodu çeker, `uv sync` ve `uv run pytest` çalıştırır. Temiz bir makine sadece seninkinde çalışan sorunları ortaya çıkarır."
+    sources:
+      - title: GitHub Actions, building and testing Python
+        url: https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-python
+      - title: uv, using uv in GitHub Actions
+        url: https://docs.astral.sh/uv/guides/integration/github/
+      - title: Flask, patterns
+        url: https://flask.palletsprojects.com/en/stable/patterns/
