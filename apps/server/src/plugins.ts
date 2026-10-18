@@ -7,7 +7,7 @@ const MANIFEST = "igrek-plugin.json";
 /** Plugins written before the rename to Igrek keep their old manifest name. */
 const OLD_MANIFEST = "godeye-plugin.json";
 
-/** Checks a manifest and keeps only what God Eye understands. */
+/** Checks a manifest and keeps only what Igrek understands. */
 export function readManifest(dir: string): PluginManifest {
   const file = [join(dir, MANIFEST), join(dir, OLD_MANIFEST)].find((f) => existsSync(f)) ?? join(dir, MANIFEST);
   if (!existsSync(file)) throw new Error(`No ${MANIFEST} in this folder`);
@@ -71,11 +71,11 @@ export function shellLine(run: string[]): string {
 }
 
 /**
- * Plugin system (plan.md 12): a plugin is a folder with a godeye-plugin.json, installed from a
+ * Plugin system (plan.md 12): a plugin is a folder with a igrek-plugin.json, installed from a
  * folder on this computer or a git URL. It stays off until you read and approve what it asks
  * for. Its pages run in a sandbox with no network (they can't send anything out) and read only
  * the data their permissions name, through a message bridge. Its commands run in a terminal you
- * see, in the project's folder, only when you click. Plugins never run inside God Eye's server.
+ * see, in the project's folder, only when you click. Plugins never run inside Igrek's server.
  */
 export class Plugins {
   constructor(

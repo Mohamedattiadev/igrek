@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { reportUiHint, SCHEMAS } from "./index";
 
 describe("report UI hint", () => {
-  test("teaches every God Eye component, positionally, inside Markdown", () => {
+  test("teaches every Igrek component, positionally, inside Markdown", () => {
     const hint = reportUiHint();
     for (const name of Object.keys(SCHEMAS)) expect(hint).toContain(`${name}(`);
     expect(hint).toContain("```openui-lang");

@@ -106,7 +106,7 @@ export class Accounts {
     return name ? { [name]: account.configDir } : {};
   }
 
-  /** Registers the login you already have (~/.claude) the first time God Eye starts. */
+  /** Registers the login you already have (~/.claude) the first time Igrek starts. */
   ensureDefault(provider: AiTool): void {
     const exists = this.db.query("SELECT 1 FROM accounts WHERE provider = ? AND config_dir IS NULL").get(provider);
     if (exists || !existsSync(defaultDir(provider))) return;
@@ -129,7 +129,7 @@ export class Accounts {
     return this.get(id) as Account;
   }
 
-  /** Command that logs this account in (run inside a God Eye terminal). */
+  /** Command that logs this account in (run inside an Igrek terminal). */
   loginCommand(account: Account): string[] {
     return account.provider === "codex" ? ["codex", "login"] : ["claude", "auth", "login"];
   }

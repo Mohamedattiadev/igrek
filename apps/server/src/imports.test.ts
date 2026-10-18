@@ -78,7 +78,7 @@ describe("imports", () => {
   test("cards keep their column without starting the team; a repeated import adds nothing twice", () => {
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-imp-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-imp-")));
     const started: string[] = [];
     const board = new Board(sqlite, new Bus(), { start: () => started.push("run") } as never);
     const cards = readImport("linear", "ID,Title,Status\nENG-1,A,In Progress\nENG-2,B,Todo\n");
@@ -100,7 +100,7 @@ describe("demo project", () => {
     const { Docs } = await import("./docs");
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const home = mkdtempSync(join(tmpdir(), "godeye-home-"));
+    const home = mkdtempSync(join(tmpdir(), "igrek-home-"));
     const board = new Board(sqlite, new Bus(), { start: () => ({ id: "x" }) } as never);
     const docs = new Docs(sqlite, store, new Bus(), { list: () => [] } as never, async () => "");
     const milestones: string[] = [];
@@ -110,7 +110,7 @@ describe("demo project", () => {
       "tr",
       home,
     );
-    expect(path).toBe(join(home, "Projects", "godeye-demo"));
+    expect(path).toBe(join(home, "Projects", "igrek-demo"));
     const log = Bun.spawnSync(["git", "-C", path, "log", "--format=%s"]).stdout.toString().trim().split("\n");
     expect(log).toEqual(["Add tests", "Mark todos as done", "Start the todo API"]);
     expect(
@@ -128,7 +128,7 @@ describe("demo project", () => {
     ).toEqual(["convention", "decision", "issue"]);
     expect(milestones).toEqual(["Demo v1"]);
     const second = createDemo({ store, docs, board, addMilestone: () => undefined }, undefined, "en", home);
-    expect(second.path).toBe(join(home, "Projects", "godeye-demo-2"));
+    expect(second.path).toBe(join(home, "Projects", "igrek-demo-2"));
     // The demo's own tests pass.
     const test = Bun.spawnSync([process.execPath, "test"], { cwd: path, stdout: "pipe", stderr: "pipe" });
     expect(test.exitCode).toBe(0);

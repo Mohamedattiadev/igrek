@@ -42,7 +42,7 @@ function git(cwd: string, args: string[]): string {
 const MAX_PER_MINUTE = 120;
 
 /**
- * Error tracking (plan.md 12), a small Sentry: your app sends its errors to God Eye with a
+ * Error tracking (plan.md 12), a small Sentry: your app sends its errors to Igrek with a
  * per-project key (a snippet of a few lines), they are grouped by message and stack, and each
  * group knows the release (commit) it first came with. The commits between the last release
  * without it and that one are the suspects. Nothing leaves this computer.
@@ -240,9 +240,9 @@ export class AppErrors {
   }
   addEventListener("error", function (e) { send(e.message, e.error && e.error.stack); });
   addEventListener("unhandledrejection", function (e) { var r = e.reason; send((r && r.message) || r, r && r.stack); });
-  // Feedback box: godeyeFeedback("text", "email (optional)"), or call it from your own form.
+  // Feedback box: igrekFeedback("text", "email (optional)"), or call it from your own form.
   var feedbackUrl = "${base}/ingest/feedback/${this.key(projectId)}";
-  window.godeyeFeedback = function (text, contact) {
+  window.igrekFeedback = function (text, contact) {
     return fetch(feedbackUrl, { method: "POST", body: JSON.stringify({ text: text, contact: contact, page: location.pathname }), mode: "no-cors" });
   };
   // Core Web Vitals (LCP, INP, CLS) of this page view, sent once when the page is hidden.
@@ -260,16 +260,16 @@ export class AppErrors {
     vitalsSent = true;
     navigator.sendBeacon(vitalsUrl, JSON.stringify({ page: location.pathname, lcp: Math.round(v.lcp), inp: Math.round(v.inp), cls: Math.round(v.cls * 1000) / 1000 }));
   });
-  // Product analytics: godeyeTrack("export_pdf", user.id). The id is hashed before it is stored.
+  // Product analytics: igrekTrack("export_pdf", user.id). The id is hashed before it is stored.
   var events = "${base}/ingest/events/${this.key(projectId)}";
-  window.godeyeTrack = function (event, user) {
+  window.igrekTrack = function (event, user) {
     var body = JSON.stringify({ event: event, user: user });
     if (navigator.sendBeacon) navigator.sendBeacon(events, body);
     else fetch(events, { method: "POST", body: body, keepalive: true, mode: "no-cors" });
   };
 })();
 </script>`;
-    const server = `// Node or Bun: send uncaught errors to God Eye (does not change how the app crashes).
+    const server = `// Node or Bun: send uncaught errors to Igrek (does not change how the app crashes).
 const IGREK_ERRORS = "${url}";
 const report = (err) =>
   fetch(IGREK_ERRORS, {

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { createWorktree, mergeWorktree, removeWorktree, workFolder, worktreeDiff } from "./worktrees";
 
 function repo(): string {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-wt-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-wt-"));
   const git = (...args: string[]) =>
     Bun.spawnSync(["git", "-C", dir, "-c", "user.name=t", "-c", "user.email=t@t", ...args]);
   git("init", "-q", "-b", "main");
@@ -18,8 +18,8 @@ function repo(): string {
 describe("auto-mode sandbox (worktrees)", () => {
   test("the agent works in its own copy; your folder is untouched until you merge", () => {
     const dir = repo();
-    const wt = createWorktree(dir, "abc123", mkdtempSync(join(tmpdir(), "godeye-wts-")));
-    expect(wt?.branch).toBe("godeye/auto-abc123");
+    const wt = createWorktree(dir, "abc123", mkdtempSync(join(tmpdir(), "igrek-wts-")));
+    expect(wt?.branch).toBe("igrek/auto-abc123");
     expect(wt?.baseBranch).toBe("main");
     if (!wt) return;
     writeFileSync(join(workFolder(wt), "a.txt"), "one\ntwo\n");
@@ -32,10 +32,10 @@ describe("auto-mode sandbox (worktrees)", () => {
     expect(readFileSync(join(dir, "a.txt"), "utf8")).toBe("one\ntwo\n");
     removeWorktree(dir, wt);
     const branches = Bun.spawnSync(["git", "-C", dir, "branch"]).stdout.toString();
-    expect(branches).not.toContain("godeye/auto");
+    expect(branches).not.toContain("igrek/auto");
   });
 
   test("not a git repo: no copy", () => {
-    expect(createWorktree(mkdtempSync(join(tmpdir(), "godeye-nogit-")), "x", tmpdir())).toBeUndefined();
+    expect(createWorktree(mkdtempSync(join(tmpdir(), "igrek-nogit-")), "x", tmpdir())).toBeUndefined();
   });
 });

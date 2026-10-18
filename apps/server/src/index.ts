@@ -136,7 +136,7 @@ import { registerWatcherRoutes } from "./watcher-routes";
 import { DependencyWatcher, SecretScanner } from "./watchers";
 import { Writeups } from "./writeups";
 
-// Everything God Eye writes (database, keys) is readable only by you.
+// Everything Igrek writes (database, keys) is readable only by you.
 process.umask(0o077);
 
 // Every address the server opens on the internet is listed in Settings (plan.md 13.6).
@@ -183,7 +183,7 @@ const summarizer = new Summarizer(
   },
 );
 const hookScript = writeHookScript(config.dataDir, config.publicPort);
-// Projects that already have God Eye's hooks get the newer ones too (the prompt hook for lessons).
+// Projects that already have Igrek's hooks get the newer ones too (the prompt hook for lessons).
 for (const project of store.allProjectRows())
   if (project.hooks_installed && existsSync(project.path))
     try {
@@ -333,7 +333,7 @@ setInterval(() => secretScanner.scanAll(), 10 * 60_000);
 setTimeout(() => void depWatcher.daily(), 3 * 60_000);
 setInterval(() => void depWatcher.daily(), 60 * 60_000);
 const updater = new Updater();
-// New versions of God Eye: checked shortly after start, then every 6 hours (git fetch with your own credentials).
+// New versions of Igrek: checked shortly after start, then every 6 hours (git fetch with your own credentials).
 setTimeout(() => updater.check(), 2 * 60_000);
 setInterval(() => updater.check(), 6 * 60 * 60_000);
 // Small jobs can use a local Ollama model: always, or only while Claude's limit is full (plan.md 13.1).
@@ -502,7 +502,7 @@ const knowledge = new Knowledge(
 // The news of each persona's field, on the schedule chosen on the Knowledge page (checked hourly).
 setTimeout(() => void knowledge.tick().catch(() => undefined), 5 * 60_000);
 setInterval(() => void knowledge.tick().catch(() => undefined), 60 * 60_000);
-// Secrets and pages agents ask for through God Eye's MCP server (plan.md 16.3).
+// Secrets and pages agents ask for through Igrek's MCP server (plan.md 16.3).
 const agentRequests = new AgentRequests(store, vault, envFiles, personas);
 // "// ai: do this!" comments typed in the user's editor become inbox items (plan.md 16.4).
 const aiComments = new AiComments(
@@ -561,7 +561,7 @@ const app = createApp({
       persona: personaChat,
       richUi: () => (readSettings(db).richAnswers ? reportUiHint() : undefined),
       igrekMcp: {
-        // Read when a chat starts: God Eye's own tools plus the user's enabled MCP servers.
+        // Read when a chat starts: Igrek's own tools plus the user's enabled MCP servers.
         get config() {
           return JSON.stringify({
             mcpServers: {
@@ -574,7 +574,7 @@ const app = createApp({
             },
           });
         },
-        // Reading God Eye and proposing a schedule need no prompt; a proposal still waits for the user's OK in God Eye.
+        // Reading Igrek and proposing a schedule need no prompt; a proposal still waits for the user's OK in Igrek.
         allow: [
           "mcp__igrek__igrek_project_memory",
           "mcp__igrek__igrek_search",
@@ -613,7 +613,7 @@ const app = createApp({
       try {
         const answer = await runClaude(
           [
-            `You are the in-app guide of God Eye. Answer the user's question in the language with code "${language}", only from the guide below: where to click and what happens, in two to five short sentences. Name the page or tab. If the guide doesn't cover it, say so plainly. End with one line "TOPICS: id, id" listing the guide entries you used.`,
+            `You are the in-app guide of Igrek. Answer the user's question in the language with code "${language}", only from the guide below: where to click and what happens, in two to five short sentences. Name the page or tab. If the guide doesn't cover it, say so plainly. End with one line "TOPICS: id, id" listing the guide entries you used.`,
             "Guide:",
             guide,
             `Question: ${question}`,
@@ -788,7 +788,7 @@ const app = createApp({
     syncCommits: () => jobs.syncCommits(),
     lessonsAtStart: (projectId) => {
       const top = lessons.forContext(projectId, 6);
-      return top.length ? `## Lessons learned (God Eye lessons book)\n${lessonLines(top)}` : undefined;
+      return top.length ? `## Lessons learned (Igrek lessons book)\n${lessonLines(top)}` : undefined;
     },
     lessonsForPrompt: (prompt, projectId) => lessons.promptContext(prompt, projectId),
   },
@@ -897,7 +897,7 @@ const server = Bun.serve<SocketData>({
   },
 });
 
-console.log(`God Eye ${APP_VERSION} → http://localhost:${server.port}  (data: ${config.dataDir})`);
+console.log(`Igrek ${APP_VERSION} → http://localhost:${server.port}  (data: ${config.dataDir})`);
 
 for (const signal of ["SIGINT", "SIGTERM"] as const) {
   process.on(signal, async () => {

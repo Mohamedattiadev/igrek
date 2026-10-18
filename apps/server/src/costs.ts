@@ -73,7 +73,7 @@ export class Costs {
     this.db.query("DELETE FROM cost_items WHERE id = ?").run(id);
   }
 
-  /** Things God Eye knows you pay for but not how much: AI accounts, servers, watched domains. */
+  /** Things Igrek knows you pay for but not how much: AI accounts, servers, watched domains. */
   suggestions(): { name: string; category: CostItem["category"]; period: CostItem["period"] }[] {
     const have = new Set(this.list().map((i) => i.name.toLowerCase()));
     const out: { name: string; category: CostItem["category"]; period: CostItem["period"] }[] = [];

@@ -270,76 +270,76 @@ dialog[open] {
 
 /* Rendered Markdown (file previews). */
 @layer components {
-  .prose-godeye {
+  .prose-igrek {
     font-size: 14px;
     line-height: 1.7;
     color: var(--fg);
   }
-  .prose-godeye :where(h1, h2, h3, h4) {
+  .prose-igrek :where(h1, h2, h3, h4) {
     font-weight: 600;
     line-height: 1.3;
     margin: 1.6em 0 0.6em;
   }
-  .prose-godeye h1 {
+  .prose-igrek h1 {
     font-size: 1.6em;
   }
-  .prose-godeye h2 {
+  .prose-igrek h2 {
     font-size: 1.3em;
     padding-bottom: 0.3em;
     border-bottom: 1px solid var(--border);
   }
-  .prose-godeye h3 {
+  .prose-igrek h3 {
     font-size: 1.1em;
   }
-  .prose-godeye :where(p, ul, ol, pre, table, blockquote) {
+  .prose-igrek :where(p, ul, ol, pre, table, blockquote) {
     margin: 0.8em 0;
   }
-  .prose-godeye :where(ul, ol) {
+  .prose-igrek :where(ul, ol) {
     padding-inline-start: 1.4em;
   }
-  .prose-godeye ul {
+  .prose-igrek ul {
     list-style: disc;
   }
-  .prose-godeye ol {
+  .prose-igrek ol {
     list-style: decimal;
   }
-  .prose-godeye a {
+  .prose-igrek a {
     color: var(--accent);
     text-decoration: underline;
   }
   /* A [[link]] to a wiki page that doesn't exist yet: click to write it. */
-  .prose-godeye a.wiki-missing {
+  .prose-igrek a.wiki-missing {
     color: var(--fg-muted);
     text-decoration-style: dashed;
   }
-  .prose-godeye code {
+  .prose-igrek code {
     font-family: var(--font-mono);
     font-size: 0.88em;
     background: var(--bg-muted);
     border-radius: 4px;
     padding: 0.1em 0.35em;
   }
-  .prose-godeye pre {
+  .prose-igrek pre {
     background: var(--bg-subtle);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 0.9em 1em;
     overflow-x: auto;
   }
-  .prose-godeye pre code {
+  .prose-igrek pre code {
     background: none;
     padding: 0;
   }
-  .prose-godeye pre.ge-codeblock {
+  .prose-igrek pre.ge-codeblock {
     position: relative;
     padding-top: 1.9em;
   }
-  .prose-godeye blockquote {
+  .prose-igrek blockquote {
     border-inline-start: 3px solid var(--border-strong);
     padding-inline-start: 1em;
     color: var(--fg-muted);
   }
-  .prose-godeye table {
+  .prose-igrek table {
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.92em;
@@ -351,37 +351,37 @@ dialog[open] {
     max-width: 100%;
     overflow-x: auto;
   }
-  .prose-godeye :where(th, td) {
+  .prose-igrek :where(th, td) {
     border-bottom: 1px solid var(--border);
     padding: 0.45em 0.8em;
     text-align: start;
   }
-  .prose-godeye tr:last-child td {
+  .prose-igrek tr:last-child td {
     border-bottom: 0;
   }
-  .prose-godeye th {
+  .prose-igrek th {
     background: var(--bg-subtle);
     font-weight: 600;
     color: var(--fg-muted);
     white-space: nowrap;
   }
-  .prose-godeye tbody tr:nth-child(even) td {
+  .prose-igrek tbody tr:nth-child(even) td {
     background: color-mix(in srgb, var(--bg-subtle) 55%, transparent);
   }
-  .prose-godeye tbody tr:hover td {
+  .prose-igrek tbody tr:hover td {
     background: var(--bg-hover);
   }
   /* Rich blocks (charts, stat tiles) keep their own spacing inside Markdown. */
-  .prose-godeye .not-prose :where(p, ul, li, figure, table) {
+  .prose-igrek .not-prose :where(p, ul, li, figure, table) {
     margin: 0;
   }
-  .prose-godeye .not-prose:where(ul),
-  .prose-godeye .not-prose :where(ul) {
+  .prose-igrek .not-prose:where(ul),
+  .prose-igrek .not-prose :where(ul) {
     list-style: none;
     padding: 0;
   }
   /* GitHub-style alerts ("> [!NOTE]"), turned into boxes by the Markdown component. */
-  .prose-godeye blockquote.ge-callout {
+  .prose-igrek blockquote.ge-callout {
     border: 1px solid var(--border);
     border-inline-start: 3px solid var(--callout, var(--accent));
     border-radius: var(--radius);
@@ -389,27 +389,27 @@ dialog[open] {
     color: var(--fg);
     padding: 0.6em 0.9em;
   }
-  .prose-godeye .ge-callout-title {
+  .prose-igrek .ge-callout-title {
     display: block;
     font-size: 0.82em;
     font-weight: 600;
     color: var(--callout, var(--accent));
     margin-bottom: 0.2em;
   }
-  .prose-godeye .ge-callout-note,
-  .prose-godeye .ge-callout-important {
+  .prose-igrek .ge-callout-note,
+  .prose-igrek .ge-callout-important {
     --callout: var(--accent);
   }
-  .prose-godeye .ge-callout-tip {
+  .prose-igrek .ge-callout-tip {
     --callout: var(--success);
   }
-  .prose-godeye .ge-callout-warning {
+  .prose-igrek .ge-callout-warning {
     --callout: var(--warning);
   }
-  .prose-godeye .ge-callout-caution {
+  .prose-igrek .ge-callout-caution {
     --callout: var(--danger);
   }
-  .prose-godeye input[type="checkbox"] {
+  .prose-igrek input[type="checkbox"] {
     margin-inline-end: 0.4em;
   }
 }
@@ -439,7 +439,7 @@ dialog[open] {
 }
 
 /* "Who wrote this" notes at the end of lines in the code editor. */
-.godeye-annotation {
+.igrek-annotation {
   color: var(--fg-subtle);
   font-style: italic;
   opacity: 0.8;

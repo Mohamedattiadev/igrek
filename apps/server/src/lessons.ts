@@ -625,7 +625,7 @@ or
     const found = await this.relevant(prompt, projectId);
     if (!found.length) return undefined;
     this.markUsed(found.map((l) => l.id));
-    return `Lessons from earlier mistakes in this project (God Eye lessons book). Follow them:\n${lessonLines(found)}`;
+    return `Lessons from earlier mistakes in this project (Igrek lessons book). Follow them:\n${lessonLines(found)}`;
   }
 
   // ---- rules --------------------------------------------------------------------------

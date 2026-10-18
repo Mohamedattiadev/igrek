@@ -2,7 +2,7 @@ import type { FlowNodeState, FlowRun } from "@igrek/core";
 import { cleanEnv } from "./env";
 import type { Flows } from "./flows";
 
-/** Archon steps that ship work (push, open a pull request): God Eye never runs those on its own. */
+/** Archon steps that ship work (push, open a pull request): Igrek never runs those on its own. */
 const SHIPS = /(git\s+push|gh\s+pr\s+create|create[-_ ]pr|pull request|open(s|ing)? a pr\b|\bpr\b.*\bopen)/i;
 
 export function archonBin(): string | undefined {
@@ -53,8 +53,8 @@ export async function archonWorkflows(
 }
 
 /**
- * Runs an Archon workflow and follows it as a God Eye run: its steps show up as nodes as they start.
- * Workflows that push or open pull requests are refused (God Eye never ships on its own); Archon
+ * Runs an Archon workflow and follows it as an Igrek run: its steps show up as nodes as they start.
+ * Workflows that push or open pull requests are refused (Igrek never ships on its own); Archon
  * uses your Claude Code login (CLAUDE_USE_GLOBAL_AUTH), no API key.
  */
 export async function startArchon(
@@ -67,7 +67,7 @@ export async function startArchon(
   if (detail.code !== 0) throw new Error("Archon doesn't know this workflow");
   if (SHIPS.test(detail.out))
     throw new Error(
-      "This Archon workflow pushes or opens a pull request; God Eye never ships on its own. Use a workflow that stops at a commit.",
+      "This Archon workflow pushes or opens a pull request; Igrek never ships on its own. Use a workflow that stops at a commit.",
     );
   const now = Date.now();
   const flowRun: FlowRun = {

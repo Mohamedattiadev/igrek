@@ -36,7 +36,7 @@ export interface RawItem {
   text?: string;
 }
 
-const UA = { "user-agent": "GodEye/0.1 (personal news reader)", accept: "*/*" };
+const UA = { "user-agent": "Igrek/0.1 (personal news reader)", accept: "*/*" };
 const DAY = 86_400_000;
 
 function languageName(code: string): string {

@@ -7,7 +7,7 @@ import { EnvFiles, mask } from "./envfiles";
 const SECRET = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789";
 
 function setup() {
-  const root = mkdtempSync(join(tmpdir(), "godeye-env-"));
+  const root = mkdtempSync(join(tmpdir(), "igrek-env-"));
   writeFileSync(
     join(root, ".env"),
     `# keys\nANTHROPIC_API_KEY=${SECRET}\nPORT=abc\nDATABASE_URL=localhost:5432\nEMPTY=\nOLD=1\n`,

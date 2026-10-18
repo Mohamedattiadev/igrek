@@ -8,7 +8,7 @@ import type { Store } from "./store";
 
 /**
  * Project environments (plan.md 1.2b / 1.2c): the same repo on a server as
- * Staging or Prod. God Eye never copies code: the server pulls from git.
+ * Staging or Prod. Igrek never copies code: the server pulls from git.
  * It only makes the flow visible and the deploy safe (checks, confirm, log).
  */
 
@@ -390,7 +390,7 @@ export class Environments {
     const env = this.env(id);
     const root = this.store.projectRow(env.projectId)?.path ?? "";
     const path = `.github/workflows/deploy-${env.name.toLowerCase().replace(/[^a-z0-9-]/g, "-")}.yml`;
-    const content = `# Created by God Eye. Deploys ${env.name} when ${env.branch} changes.
+    const content = `# Created by Igrek. Deploys ${env.name} when ${env.branch} changes.
 # In GitHub → Settings → Secrets and variables → Actions, add:
 #   DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (a key used only for deploys), DEPLOY_PORT (optional)
 name: Deploy ${env.name}

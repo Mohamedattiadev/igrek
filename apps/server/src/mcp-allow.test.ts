@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Every write God Eye's own MCP server makes must be allowed for agents, or its tools break.
+// Every write Igrek's own MCP server makes must be allowed for agents, or its tools break.
 describe("agent writes", () => {
   test("each POST in mcp.ts is in the app's allow list", () => {
     const mcp = readFileSync(join(import.meta.dir, "mcp.ts"), "utf8");

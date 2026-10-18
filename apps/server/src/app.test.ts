@@ -10,7 +10,7 @@ import { openDb } from "./db";
 import { loadSessionToken, OLD_SESSION_COOKIE, SESSION_COOKIE } from "./security";
 
 function setup() {
-  const dataDir = mkdtempSync(join(tmpdir(), "godeye-test-"));
+  const dataDir = mkdtempSync(join(tmpdir(), "igrek-test-"));
   const config = loadConfig({ IGREK_HOME: dataDir, IGREK_PORT: "7777", IGREK_WEB_DIST: join(dataDir, "none") });
   const { db } = openDb(":memory:");
   const token = loadSessionToken(dataDir);
@@ -135,7 +135,7 @@ describe("emergency stop", () => {
 describe("serving the web build", () => {
   test("text files go out compressed and immutable; an unchanged page costs a 304", async () => {
     const { mkdirSync, writeFileSync } = await import("node:fs");
-    const dataDir = mkdtempSync(join(tmpdir(), "godeye-web-"));
+    const dataDir = mkdtempSync(join(tmpdir(), "igrek-web-"));
     const dist = join(dataDir, "dist");
     mkdirSync(join(dist, "assets"), { recursive: true });
     writeFileSync(join(dist, "index.html"), `<!doctype html><title>x</title>${" ".repeat(2000)}`);

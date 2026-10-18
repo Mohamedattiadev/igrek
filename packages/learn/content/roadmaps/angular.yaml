@@ -2090,15 +2090,15 @@ steps:
       en: |
         1. Create `src/app/error-reporter.ts` and `src/app/error-reporter.spec.ts` below, and replace `src/app/app.config.ts`.
         2. Run `npm test -- --no-watch`; expect `Tests 15 passed`.
-        3. Send the errors somewhere: set the `ERROR_ENDPOINT` value to your collector's address. In God Eye: the project's *Monitoring* tab gives you a snippet that sends errors to God Eye. With the empty default the errors only go to the console.
-        4. Add your site's address as an uptime check (God Eye *Tools → Uptime*).
+        3. Send the errors somewhere: set the `ERROR_ENDPOINT` value to your collector's address. In Igrek: the project's *Monitoring* tab gives you a snippet that sends errors to Igrek. With the empty default the errors only go to the console.
+        4. Add your site's address as an uptime check (Igrek *Tools → Uptime*).
         5. Once a month: `npm outdated`, then `npx ng update` to see and apply Angular updates, run the tests, push.
         6. Commit and push: the workflow deploys the new version.
       tr: |
         1. Aşağıdaki `src/app/error-reporter.ts` ve `src/app/error-reporter.spec.ts` dosyalarını oluştur ve `src/app/app.config.ts` dosyasını değiştir.
         2. `npm test -- --no-watch` çalıştır; `Tests 15 passed` görmelisin.
-        3. Hataları bir yere gönder: `ERROR_ENDPOINT` değerini toplayıcının adresi yap. God Eye'da: projenin *İzleme* sekmesi hataları God Eye'a gönderen bir kod parçası verir. Boş varsayılanla hatalar sadece konsola gider.
-        4. Sitenin adresini uptime kontrolü olarak ekle (God Eye *Araçlar → Uptime*).
+        3. Hataları bir yere gönder: `ERROR_ENDPOINT` değerini toplayıcının adresi yap. Igrek'te: projenin *İzleme* sekmesi hataları Igrek'e gönderen bir kod parçası verir. Boş varsayılanla hatalar sadece konsola gider.
+        4. Sitenin adresini uptime kontrolü olarak ekle (Igrek *Araçlar → Uptime*).
         5. Ayda bir: `npm outdated`, sonra Angular güncellemelerini görmek ve uygulamak için `npx ng update`, testleri çalıştır, push et.
         6. Commit et ve push et: workflow yeni sürümü yayınlar.
     code:

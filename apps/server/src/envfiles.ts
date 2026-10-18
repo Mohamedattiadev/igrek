@@ -16,7 +16,7 @@ import type { EnvBackup, EnvFileInfo, EnvKeyRow, EnvKeyUse, EnvOverview } from "
  * .env editor (plan.md 5.6). Values stay on this computer: they're masked in
  * every listing, revealed one at a time on request, never sent to AI or the
  * hub, and never written to logs or error messages. Every write is preceded
- * by a backup in God Eye's own data folder.
+ * by a backup in Igrek's own data folder.
  */
 
 const ENV_NAME = /^\.env(\.[\w.-]+)?$/;
@@ -341,7 +341,7 @@ export class EnvFiles {
     const added = [...wanted].filter((k) => !have.has(k)).sort();
     if (added.length) {
       if (existsSync(full)) this.backup(root, file);
-      const body = `${text.replace(/\n*$/, text ? "\n\n" : "")}# Added by God Eye (fill in your own values in .env)\n${added.map((k) => `${k}=`).join("\n")}\n`;
+      const body = `${text.replace(/\n*$/, text ? "\n\n" : "")}# Added by Igrek (fill in your own values in .env)\n${added.map((k) => `${k}=`).join("\n")}\n`;
       this.write(full, body);
     }
     return { file, added };

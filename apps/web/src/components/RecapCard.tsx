@@ -126,7 +126,7 @@ export function RecapCard() {
           )}
           {data?.recap ? (
             <>
-              <Markdown text={data.recap.text} className="prose-godeye" />
+              <Markdown text={data.recap.text} className="prose-igrek" />
               <p className="text-[11px] text-fg-subtle">{t("recap.written", { when: relativeTime(data.recap.at) })}</p>
             </>
           ) : stats?.projects.length ? (

@@ -392,7 +392,7 @@ export class Docs {
   }
 
   /**
-   * The other way round: the AI (or God Eye itself) draws on the board. The answer is Mermaid,
+   * The other way round: the AI (or Igrek itself) draws on the board. The answer is Mermaid,
    * which the board turns into editable shapes. A database schema is drawn without AI.
    */
   async draw(
@@ -437,7 +437,7 @@ export class Docs {
 
   /**
    * A page with a Yjs state on either side merges whatever the timestamps say: both edits are kept.
-   * Returns false for plain pages from an older God Eye, which take the last-writer path.
+   * Returns false for plain pages from an older Igrek, which take the last-writer path.
    */
   private mergePage(projectId: string, value: Record<string, unknown>, author: string): boolean {
     const id = String(value.id ?? "");
@@ -451,7 +451,7 @@ export class Docs {
     if (!remoteState && !local?.ydoc) return false;
     const at = Number(value.updatedAt ?? 0);
     const newer = !local || at > local.updated_at;
-    // Plain text from an older God Eye can't merge: only a newer one is applied (as an edit).
+    // Plain text from an older Igrek can't merge: only a newer one is applied (as an edit).
     if (!remoteState && !newer) return true;
     const { state, text } = mergeText(local?.ydoc, local?.body ?? "", {
       state: remoteState,

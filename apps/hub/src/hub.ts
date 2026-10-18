@@ -4,7 +4,7 @@ import { EMAIL_RE } from "./mail";
 import { ipAllowed, newTotpSecret, otpauthUri, verifyTotp } from "./security";
 
 /**
- * God Eye Hub (plan.md Faz 4): logins, roles, and an append-only log of
+ * Igrek Hub (plan.md Faz 4): logins, roles, and an append-only log of
  * end-to-end encrypted events that it stores and relays. It never sees
  * plaintext: project ids are HMACs, payloads are AES-GCM ciphertext made on
  * the members' own computers with a team key the hub never receives.

@@ -15,7 +15,7 @@ import { Library } from "../library";
 import { Store } from "../store";
 import { Sync } from "./client";
 
-const dir = mkdtempSync(join(tmpdir(), "godeye-sync-"));
+const dir = mkdtempSync(join(tmpdir(), "igrek-sync-"));
 const hub = new Hub(join(dir, "hub.db"));
 const handler = createHubServer(hub);
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: handler.fetch, websocket: handler.websocket });
@@ -106,7 +106,7 @@ describe("team sync", () => {
     const now = Date.now();
     a.db
       .query(
-        "INSERT INTO projects (id, name, path, identity, created_at, share) VALUES ('p1', 'God Eye', '/home/m/godeye', 'github.com/m/godeye', ?, 'full')",
+        "INSERT INTO projects (id, name, path, identity, created_at, share) VALUES ('p1', 'Igrek', '/home/m/igrek', 'github.com/m/igrek', ?, 'full')",
       )
       .run(now);
     a.db
@@ -125,7 +125,7 @@ describe("team sync", () => {
     // Kerim has the same repo cloned elsewhere, not shared yet.
     b.db
       .query(
-        "INSERT INTO projects (id, name, path, identity, created_at) VALUES ('local-p', 'godeye', '/home/k/code/godeye', 'github.com/m/godeye', ?)",
+        "INSERT INTO projects (id, name, path, identity, created_at) VALUES ('local-p', 'igrek', '/home/k/code/igrek', 'github.com/m/igrek', ?)",
       )
       .run(now);
 

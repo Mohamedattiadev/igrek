@@ -7,7 +7,7 @@ import "@fontsource-variable/inter/wght.css";
 import "../styles.css";
 
 /**
- * The web member's page (plan.md 4.3), served by the team hub: no God Eye on this computer, so
+ * The web member's page (plan.md 4.3), served by the team hub: no Igrek on this computer, so
  * the language comes from the browser and everything else from the hub, decrypted here.
  */
 const language = navigator.language.toLowerCase().startsWith("tr") ? "tr" : "en";

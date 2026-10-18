@@ -1,11 +1,11 @@
-// God Eye plugin bridge: ask God Eye for data your plugin has permission to read.
+// Igrek plugin bridge: ask Igrek for data your plugin has permission to read.
 // The page runs in a sandbox without network access, so the data can't leave this computer.
 let next = 1;
 const waiting = new Map();
 const hello = new Promise((resolve) => {
   addEventListener("message", (event) => {
     const m = event.data;
-    if (m?.godeye !== 1) return;
+    if (m?.igrek !== 1) return;
     if (m.type === "hello") {
       document.documentElement.dataset.theme = m.theme;
       resolve(m);
@@ -17,13 +17,13 @@ const hello = new Promise((resolve) => {
   });
 });
 
-window.godeye = {
+window.igrek = {
   /** { theme, language, projectId } */
   hello,
   /** methods: projects, project, memory, sessions, costs, uptime */
   ask(method, params = {}) {
     const id = next++;
-    parent.postMessage({ godeye: 1, id, method, params }, "*");
+    parent.postMessage({ igrek: 1, id, method, params }, "*");
     return new Promise((ok, fail) => waiting.set(id, { ok, fail }));
   },
 };

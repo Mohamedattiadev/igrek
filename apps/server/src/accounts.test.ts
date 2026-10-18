@@ -14,7 +14,7 @@ import { Store } from "./store";
 function setup() {
   const sqlite = new Database(":memory:");
   migrate(sqlite);
-  const accounts = new Accounts(sqlite, new Bus(), mkdtempSync(join(tmpdir(), "godeye-accounts-")));
+  const accounts = new Accounts(sqlite, new Bus(), mkdtempSync(join(tmpdir(), "igrek-accounts-")));
   return { sqlite, accounts };
 }
 
@@ -39,7 +39,7 @@ describe("accounts", () => {
   });
 
   test("credential files are locked to the user", () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-lock-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-lock-"));
     writeFileSync(join(dir, ".credentials.json"), "{}", { mode: 0o644 });
     lockDown(dir);
     expect(statSync(join(dir, ".credentials.json")).mode & 0o777).toBe(0o600);
@@ -96,7 +96,7 @@ describe("limits", () => {
     });
     expect(limitAlerts(accounts)).toMatchObject([{ accountId: account.id, window: "fiveHour", value: 0.85 }]);
 
-    const root = mkdtempSync(join(tmpdir(), "godeye-usage-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-usage-"));
     mkdirSync(join(root, "p"));
     const msg = (id: string, input: number) =>
       JSON.stringify({

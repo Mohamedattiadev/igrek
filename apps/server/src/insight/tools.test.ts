@@ -8,7 +8,7 @@ import { parseAudit, planTools, runTool } from "./tools";
 
 describe("project tools", () => {
   test("plans come from the project's own scripts and package manager", () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-tools-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-tools-"));
     writeFileSync(
       join(root, "package.json"),
       JSON.stringify({ scripts: { typecheck: "tsc", lint: "biome check", test: "bun test" } }),
@@ -38,7 +38,7 @@ describe("project tools", () => {
   });
 
   test("a real run: exit code, test counts and secrets removed from output", async () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-tools-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-tools-"));
     const result = await runTool(
       root,
       {
@@ -54,7 +54,7 @@ describe("project tools", () => {
   });
 
   test("tool results and scoring choices change the scores", () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-tools-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-tools-"));
     writeFileSync(join(root, "package.json"), JSON.stringify({ dependencies: { a: "^1" } }));
     writeFileSync(join(root, "index.ts"), "export const a: number = 1;\n");
     writeFileSync(join(root, "README.md"), "# x\n");

@@ -151,7 +151,7 @@ export function parseEnhanceReply(
 
 /**
  * Turns "fix it" into a prompt someone who knows the project would write
- * (plan.md Faz 4.5). Only facts God Eye actually has go into Context; guesses
+ * (plan.md Faz 4.5). Only facts Igrek actually has go into Context; guesses
  * go to Assumptions; nothing outside the request is added.
  */
 export class Enhancer {

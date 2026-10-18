@@ -1,12 +1,12 @@
-// God Eye preview agent (plan.md Faz 10): injected by God Eye's local preview proxy only.
+// Igrek preview agent (plan.md Faz 10): injected by Igrek's local preview proxy only.
 // It highlights and picks elements for the panel next to the preview, and reports console and
-// network errors. It talks to the God Eye window with postMessage and never sends data anywhere else.
+// network errors. It talks to the Igrek window with postMessage and never sends data anywhere else.
 (() => {
-  if (window.__godeyeAgent) return;
-  window.__godeyeAgent = true;
+  if (window.__igrekAgent) return;
+  window.__igrekAgent = true;
   const post = (msg) => {
     try {
-      window.parent.postMessage({ godeye: true, ...msg }, "*");
+      window.parent.postMessage({ igrek: true, ...msg }, "*");
     } catch {
       // not framed
     }
@@ -127,7 +127,7 @@
   window.addEventListener("scroll", () => selected && place(sel, selected), true);
   window.addEventListener("message", (e) => {
     const msg = e.data;
-    if (msg?.godeye !== true || e.source !== window.parent) return;
+    if (msg?.igrek !== true || e.source !== window.parent) return;
     if (msg.type === "pick") {
       picking = !!msg.on;
       if (!picking) box.style.display = label.style.display = "none";
@@ -167,7 +167,7 @@
     const url = String(args[0]?.url ?? args[0]);
     try {
       const res = await fetch0(...args);
-      if (res.status >= 400 && !url.includes("__godeye"))
+      if (res.status >= 400 && !url.includes("__igrek"))
         report("network", `${res.status} ${res.statusText}`, { url, status: res.status });
       return res;
     } catch (err) {

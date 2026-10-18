@@ -11,13 +11,13 @@ const COMMITS: { message: string; daysAgo: number; files: Record<string, string>
     message: "Start the todo API",
     daysAgo: 6,
     files: {
-      "README.md": `# Todo API (God Eye demo)
+      "README.md": `# Todo API (Igrek demo)
 
-A small todo list API to try God Eye safely. Nothing here talks to the internet.
+A small todo list API to try Igrek safely. Nothing here talks to the internet.
 
 Run it with \`bun src/server.ts\` and open http://localhost:3456/todos. Tests: \`bun test\`.
 `,
-      "package.json": `${JSON.stringify({ name: "godeye-demo", private: true, type: "module", scripts: { start: "bun src/server.ts", test: "bun test" } }, null, 2)}\n`,
+      "package.json": `${JSON.stringify({ name: "igrek-demo", private: true, type: "module", scripts: { start: "bun src/server.ts", test: "bun test" } }, null, 2)}\n`,
       ".gitignore": "node_modules\n.env\n",
       "src/todos.ts": `export interface Todo {
   id: number;
@@ -81,7 +81,7 @@ export function add(title: string, due?: string): Todo {
   return todo;
 }
 
-/** Marks a todo as done. (Left for God Eye to find: an unknown id crashes instead of saying so.) */
+/** Marks a todo as done. (Left for Igrek to find: an unknown id crashes instead of saying so.) */
 export function done(id: number): Todo {
   const todo = todos.find((t) => t.id === id) as Todo;
   todo.done = true;
@@ -118,10 +118,10 @@ function git(cwd: string, args: string[], env: Record<string, string> = {}): voi
     stderr: "pipe",
     env: {
       ...process.env,
-      GIT_AUTHOR_NAME: "God Eye Demo",
-      GIT_AUTHOR_EMAIL: "demo@godeye.local",
-      GIT_COMMITTER_NAME: "God Eye Demo",
-      GIT_COMMITTER_EMAIL: "demo@godeye.local",
+      GIT_AUTHOR_NAME: "Igrek Demo",
+      GIT_AUTHOR_EMAIL: "demo@igrek.local",
+      GIT_COMMITTER_NAME: "Igrek Demo",
+      GIT_COMMITTER_EMAIL: "demo@igrek.local",
       ...env,
     },
   });
@@ -131,7 +131,7 @@ function git(cwd: string, args: string[], env: Record<string, string> = {}): voi
 /**
  * The demo project (plan.md 13.6): a small todo API with a short history, a bug left on purpose,
  * a wiki page with a diagram, board cards, a milestone and a few memory items, so every part of
- * God Eye can be tried without touching real work. It never talks to the internet.
+ * Igrek can be tried without touching real work. It never talks to the internet.
  */
 export function createDemo(
   deps: {
@@ -147,8 +147,8 @@ export function createDemo(
   const tr = language === "tr";
   const base = resolve(parent?.trim() || join(home, "Projects"));
   if (!base.startsWith(home)) throw new Error("Pick a folder inside your home folder");
-  let path = join(base, "godeye-demo");
-  for (let n = 2; existsSync(path); n++) path = join(base, `godeye-demo-${n}`);
+  let path = join(base, "igrek-demo");
+  for (let n = 2; existsSync(path); n++) path = join(base, `igrek-demo-${n}`);
   mkdirSync(path, { recursive: true });
   git(path, ["init", "-q", "-b", "main"]);
   for (const c of COMMITS) {

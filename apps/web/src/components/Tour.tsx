@@ -51,11 +51,11 @@ export function Tour() {
 
   useEffect(() => {
     const start = () => setStep(0);
-    window.addEventListener("godeye:tour", start);
+    window.addEventListener("igrek:tour", start);
     let timer: ReturnType<typeof setTimeout> | undefined;
     if (takeQueuedTour() || (!tourSeen() && window.location.pathname === "/")) timer = setTimeout(start, 900);
     return () => {
-      window.removeEventListener("godeye:tour", start);
+      window.removeEventListener("igrek:tour", start);
       clearTimeout(timer);
     };
   }, []);

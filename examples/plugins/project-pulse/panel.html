@@ -13,10 +13,10 @@
     </table>
     <script>
       (async () => {
-        const { language } = await godeye.hello;
-        const projects = await godeye.ask("projects");
+        const { language } = await igrek.hello;
+        const projects = await igrek.ask("projects");
         const rows = await Promise.all(
-          projects.map(async (p) => ({ ...p, memory: (await godeye.ask("memory", { projectId: p.id })).length })),
+          projects.map(async (p) => ({ ...p, memory: (await igrek.ask("memory", { projectId: p.id })).length })),
         );
         const body = document.querySelector("tbody");
         for (const p of rows.sort((a, b) => b.sessions - a.sessions)) {

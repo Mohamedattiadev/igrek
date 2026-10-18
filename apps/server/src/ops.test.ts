@@ -145,7 +145,7 @@ describe("logs", () => {
   test("times in common formats; .log files found but not in node_modules", () => {
     expect(lineTime("[2026-10-17 12:00:01,250] x")).toBe(Date.parse("2026-10-17T12:00:01.250"));
     expect(lineTime("no time")).toBeUndefined();
-    const dir = mkdtempSync(join(tmpdir(), "godeye-logs-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-logs-"));
     Bun.spawnSync(["mkdir", "-p", join(dir, "logs"), join(dir, "node_modules", "x")]);
     writeFileSync(join(dir, "logs", "app.log"), "a\n");
     writeFileSync(join(dir, "node_modules", "x", "y.log"), "b\n");
@@ -220,7 +220,7 @@ describe("app errors", () => {
   test("grouped by message and stack frames; the commits before the first release are suspects; resolved ones reopen", () => {
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const dir = mkdtempSync(join(tmpdir(), "godeye-err-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-err-"));
     const git = (...args: string[]) =>
       Bun.spawnSync(["git", "-C", dir, "-c", "user.name=Ayse", "-c", "user.email=a@a", ...args])
         .stdout.toString()
@@ -299,7 +299,7 @@ describe("code host", () => {
 
   test("an issue becomes a board card; a bug label starts the fix flow", async () => {
     const { CodeHost } = await import("./codehost");
-    const dir = mkdtempSync(join(tmpdir(), "godeye-host-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-host-"));
     Bun.spawnSync(["git", "init", "-q", dir]);
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
@@ -383,7 +383,7 @@ describe("time tracking", () => {
     const { timeReport } = await import("./timetrack");
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const dir = mkdtempSync(join(tmpdir(), "godeye-time-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-time-"));
     const projectId = store.addProject(dir);
     const day = new Date(2026, 9, 15, 10, 0).getTime();
     for (const [sid, offsets] of [
@@ -423,7 +423,7 @@ describe("write-ups", () => {
 describe("pull request review", () => {
   test("your review goes out with gh only as you wrote it; changes need a text", async () => {
     const { CodeHost } = await import("./codehost");
-    const dir = mkdtempSync(join(tmpdir(), "godeye-pr-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-pr-"));
     Bun.spawnSync(["git", "init", "-q", dir]);
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);

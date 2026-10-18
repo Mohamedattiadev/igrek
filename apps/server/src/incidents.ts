@@ -13,7 +13,7 @@ type Ask = (prompt: string, system?: string) => Promise<string>;
 const HOUR = 3_600_000;
 
 /**
- * Incident mode (plan.md 13.4): one click when the site is down. God Eye gathers what it knows
+ * Incident mode (plan.md 13.4): one click when the site is down. Igrek gathers what it knows
  * (uptime, the app's errors, error groups in the logs, recent deploys and commits) into a
  * timeline, and the DevOps/SRE persona reads it and says what is most likely wrong and what to
  * check first. Notes go on the timeline; "Resolved" writes the postmortem into the wiki.
@@ -73,7 +73,7 @@ export class Incidents {
       : undefined;
   }
 
-  /** What God Eye knows about the last hours of a project, as text and as timeline entries. */
+  /** What Igrek knows about the last hours of a project, as text and as timeline entries. */
   async gather(projectId: string, now = Date.now()): Promise<{ evidence: string; timeline: Incident["timeline"] }> {
     const since = now - 24 * HOUR;
     const lines: string[] = [];
@@ -152,7 +152,7 @@ export class Incidents {
       }
     }
     return {
-      evidence: lines.join("\n") || "God Eye has no uptime, error, log or deploy data for this project yet.",
+      evidence: lines.join("\n") || "Igrek has no uptime, error, log or deploy data for this project yet.",
       timeline: timeline.sort((a, b) => a.at - b.at),
     };
   }

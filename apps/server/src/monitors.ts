@@ -247,7 +247,7 @@ export class Monitors {
       const res = await (this.deps.fetcher ?? fetch)(url, {
         redirect: "follow",
         signal: AbortSignal.timeout(15_000),
-        headers: { "user-agent": "GodEye-Uptime/1.0" },
+        headers: { "user-agent": "Igrek-Uptime/1.0" },
       });
       await res.body?.cancel().catch(() => undefined);
       const ms = Math.round(performance.now() - started);

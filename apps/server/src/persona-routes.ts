@@ -179,7 +179,7 @@ export function connectPersonaChats(
   chats: Chats,
   personas: Personas,
   linkSession: (sessionId: string, personaId: string) => void,
-  /** How to start God Eye's MCP server (library_search); none in tests. */
+  /** How to start Igrek's MCP server (library_search); none in tests. */
   mcp?: { command: string; args: string[]; env: Record<string, string> },
 ) {
   chats.onSession = (info) => {

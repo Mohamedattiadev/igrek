@@ -9,7 +9,7 @@ import { Button } from "./ui";
 const DAY = 86_400_000;
 /** More active projects than this splits attention (plan.md 13.2 "Odak modu"). */
 const FOCUS_LIMIT = 3;
-const SNOOZE_KEY = "godeye.focusSnoozedUntil";
+const SNOOZE_KEY = "igrek.focusSnoozedUntil";
 
 function snoozedUntil(): number {
   try {
@@ -28,7 +28,7 @@ function focusPick(active: ProjectListItem[], dates: CalendarItem[], count = 2):
 
 /**
  * Focus mode (plan.md 13.2): too many projects at once is the real problem. When more than three
- * were worked on in the last week, God Eye suggests two to focus on and can put the rest on hold.
+ * were worked on in the last week, Igrek suggests two to focus on and can put the rest on hold.
  */
 export function FocusBanner({ projects, onChange }: { projects: ProjectListItem[]; onChange: () => void }) {
   const { t } = useTranslation();

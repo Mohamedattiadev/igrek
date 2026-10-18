@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { userInfo } from "node:os";
 
 /**
- * Variables Claude Code sets for its own child processes. If God Eye was started
+ * Variables Claude Code sets for its own child processes. If Igrek was started
  * from inside a Claude session they leak into new sessions and, among other
  * things, switch transcript saving off — so they're removed before spawning.
  */
@@ -19,7 +19,7 @@ export function cleanEnv(extra: Record<string, string> = {}): Record<string, str
 
 let cachedShell: string | undefined;
 
-/** The user's real login shell (from /etc/passwd), not whatever $SHELL God Eye inherited. */
+/** The user's real login shell (from /etc/passwd), not whatever $SHELL Igrek inherited. */
 export function loginShell(): string {
   if (cachedShell) return cachedShell;
   try {

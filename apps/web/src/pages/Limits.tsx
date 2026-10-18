@@ -443,7 +443,7 @@ function MonthlyCard() {
     const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/csv" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "god-eye-usage.csv";
+    a.download = "igrek-usage.csv";
     a.click();
     URL.revokeObjectURL(url);
   };

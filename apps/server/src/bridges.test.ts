@@ -51,7 +51,7 @@ describe("notification bridges", () => {
     }) as unknown as typeof fetch;
     const bridges = new Bridges(
       sqlite,
-      new Sealer(mkdtempSync(join(tmpdir(), "godeye-br-"))),
+      new Sealer(mkdtempSync(join(tmpdir(), "igrek-br-"))),
       fetcher,
       "http://localhost:7777",
     );
@@ -69,7 +69,7 @@ describe("notification bridges", () => {
     expect(tg.target).toBe("chat 998877");
     expect(await bridges.send({ event: "approval", title: "rm -rf build", link: "/inbox" })).toBe(1);
     expect(calls[0]?.url).toBe("https://api.telegram.org/bot123456:ABCDEFGHIJKLMNOPQRSTUVWX/sendMessage");
-    expect(JSON.parse(calls[0]?.body ?? "{}").text).toBe("God Eye · rm -rf build\nhttp://localhost:7777/inbox");
+    expect(JSON.parse(calls[0]?.body ?? "{}").text).toBe("Igrek · rm -rf build\nhttp://localhost:7777/inbox");
     expect(await bridges.send({ event: "down", title: "shop.com" })).toBe(2);
     expect(calls[2]?.url).toContain("discord.com");
     const key = ["sk", "live", "Q".repeat(24)].join("_");
@@ -78,10 +78,10 @@ describe("notification bridges", () => {
 
   test("e-mail goes through your own SMTP server", async () => {
     const { sqlite } = openDb(":memory:");
-    const bridges = new Bridges(sqlite, new Sealer(mkdtempSync(join(tmpdir(), "godeye-br-"))));
+    const bridges = new Bridges(sqlite, new Sealer(mkdtempSync(join(tmpdir(), "igrek-br-"))));
     const mail = await bridges.add({
       kind: "email",
-      secrets: { host: "127.0.0.1", port: smtp.port, from: "godeye@me.test", to: "me@me.test" },
+      secrets: { host: "127.0.0.1", port: smtp.port, from: "igrek@me.test", to: "me@me.test" },
     });
     const tested = await bridges.test(mail.id, "tr");
     expect(tested.lastError).toBeUndefined();

@@ -118,7 +118,7 @@ describe("session health", () => {
 
 describe("indexer", () => {
   test("reads a transcript, then only the lines added later", async () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-claude-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-claude-"));
     mkdirSync(join(root, "-tmp-demo"));
     const file = join(root, "-tmp-demo", "s1.jsonl");
     writeFileSync(file, `${userLine("first", 0)}\n${assistantLine("m1", { type: "text", text: "ok" }, 1, "a1")}\n`);
@@ -154,7 +154,7 @@ describe("memory context and hooks", () => {
   });
 
   test("hooks are added next to existing settings and removed cleanly", () => {
-    const project = mkdtempSync(join(tmpdir(), "godeye-hooks-"));
+    const project = mkdtempSync(join(tmpdir(), "igrek-hooks-"));
     mkdirSync(join(project, ".git", "info"), { recursive: true });
     mkdirSync(join(project, ".claude"));
     const file = join(project, ".claude", "settings.local.json");
@@ -338,7 +338,7 @@ describe("memory conflicts", () => {
 
 describe("search and timeline", () => {
   test("questions fall back to any-word matching and skip filler words", async () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-search-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-search-"));
     mkdirSync(join(root, "-tmp-demo"));
     writeFileSync(
       join(root, "-tmp-demo", "s1.jsonl"),
@@ -426,10 +426,10 @@ describe("what the AI sees", () => {
   });
 
   test("lists files the AI mentioned that aren't in the project", async () => {
-    const cwd = mkdtempSync(join(tmpdir(), "godeye-cwd-"));
+    const cwd = mkdtempSync(join(tmpdir(), "igrek-cwd-"));
     mkdirSync(join(cwd, "src"));
     writeFileSync(join(cwd, "src", "real.ts"), "");
-    const root = mkdtempSync(join(tmpdir(), "godeye-claude-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-claude-"));
     mkdirSync(join(root, "p"));
     writeFileSync(
       join(root, "p", "s9.jsonl"),
@@ -451,7 +451,7 @@ describe("what the AI sees", () => {
 
 describe("git changes", () => {
   test("keeps the first file's path intact (status codes start with a space)", () => {
-    const repo = mkdtempSync(join(tmpdir(), "godeye-git-"));
+    const repo = mkdtempSync(join(tmpdir(), "igrek-git-"));
     const run = (...args: string[]) =>
       Bun.spawnSync(["git", "-C", repo, ...args], { stdout: "ignore", stderr: "ignore" });
     run("init", "-q");
@@ -472,7 +472,7 @@ describe("git changes", () => {
 describe("gemini adapter", () => {
   test("reads a whole chat file: prompts, answers, tools, tokens and the project folder", async () => {
     const { geminiAdapter, geminiHash } = await import("./adapters/gemini");
-    const root = mkdtempSync(join(tmpdir(), "godeye-gemini-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-gemini-"));
     const hash = geminiHash("/home/me/shop");
     mkdirSync(join(root, hash, "chats"), { recursive: true });
     const file = join(root, hash, "chats", "session-2026-10-17T10-00-abc123.json");

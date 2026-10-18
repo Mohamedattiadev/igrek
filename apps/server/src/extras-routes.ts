@@ -39,7 +39,7 @@ export function registerExtrasRoutes(
     return new Response(JSON.stringify(file), {
       headers: {
         "content-type": "application/json",
-        "content-disposition": `attachment; filename="godeye-backup-${day}.json"`,
+        "content-disposition": `attachment; filename="igrek-backup-${day}.json"`,
       },
     });
   });

@@ -6,7 +6,7 @@ import { coverageMap, parseLcov } from "./coverage";
 import { takeSnapshot } from "./snapshot";
 
 function project(files: Record<string, string>): string {
-  const root = mkdtempSync(join(tmpdir(), "godeye-cov-"));
+  const root = mkdtempSync(join(tmpdir(), "igrek-cov-"));
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(dirname(join(root, path)), { recursive: true });
     writeFileSync(join(root, path), text);

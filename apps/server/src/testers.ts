@@ -128,13 +128,13 @@ export function checkTarget(raw: string): { url: string; origin: string; local: 
 /** Deuteranopia simulation (Machado, Oliveira and Fernandes, 2009, severity 1.0) as a page filter. */
 const COLOR_BLIND_SCRIPT = `(() => {
   const add = () => {
-    if (document.getElementById("godeye-cvd")) return;
+    if (document.getElementById("igrek-cvd")) return;
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("style", "position:absolute;width:0;height:0");
-    svg.innerHTML = '<filter id="godeye-cvd-f"><feColorMatrix type="matrix" values="0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0"/></filter>';
-    svg.id = "godeye-cvd";
+    svg.innerHTML = '<filter id="igrek-cvd-f"><feColorMatrix type="matrix" values="0.367 0.861 -0.228 0 0  0.280 0.673 0.047 0 0  -0.012 0.043 0.969 0 0  0 0 0 1 0"/></filter>';
+    svg.id = "igrek-cvd";
     document.documentElement.appendChild(svg);
-    document.documentElement.style.filter = "url(#godeye-cvd-f)";
+    document.documentElement.style.filter = "url(#igrek-cvd-f)";
   };
   if (document.documentElement) add(); else document.addEventListener("DOMContentLoaded", add);
 })();`;

@@ -28,7 +28,7 @@ interface Message {
 
 /**
  * The little helper in the corner (plan.md 7.0): ask where something is or what to do and get a
- * link that opens it. Questions about your own work ("last chat in God Eye") are answered from your
+ * link that opens it. Questions about your own work ("last chat in Igrek") are answered from your
  * data right here; anything else goes to the in-app guide.
  */
 export function Helper() {
@@ -49,8 +49,8 @@ export function Helper() {
 
   useEffect(() => {
     const openIt = () => setOpen(true);
-    window.addEventListener("godeye:helper", openIt);
-    return () => window.removeEventListener("godeye:helper", openIt);
+    window.addEventListener("igrek:helper", openIt);
+    return () => window.removeEventListener("igrek:helper", openIt);
   }, []);
 
   const say = (from: Message["from"], body: string, actions?: Action[]) =>
@@ -280,7 +280,7 @@ export function Helper() {
                 <div className="rounded-xl rounded-ss-sm bg-bg-subtle px-3 py-2 text-[13px] leading-relaxed">
                   <Markdown
                     text={m.text}
-                    className="prose-godeye prose-chat text-[13px] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                    className="prose-igrek prose-chat text-[13px] [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
                   />
                 </div>
                 {m.actions?.map((a) => (

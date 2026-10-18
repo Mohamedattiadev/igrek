@@ -8,7 +8,7 @@ import { cn } from "../lib/cn";
 import { useServerEvent } from "../lib/live";
 
 export type Workspace = "all" | "local" | "team";
-const KEY = "godeye.workspace";
+const KEY = "igrek.workspace";
 const target = new EventTarget();
 
 function currentWorkspace(): Workspace {

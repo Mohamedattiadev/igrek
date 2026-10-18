@@ -177,7 +177,7 @@ export class Embedder implements Embed {
 
   /**
    * The model runs in a child process that stops after a few idle minutes: ONNX Runtime keeps its
-   * memory (~350 MB) until the process ends, and God Eye should stay light when idle (plan.md 13.6).
+   * memory (~350 MB) until the process ends, and Igrek should stay light when idle (plan.md 13.6).
    */
   private async embedNow(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]> {
     if (process.env.IGREK_EMBED_WORKER === "1") return this.embedHere(texts, kind);

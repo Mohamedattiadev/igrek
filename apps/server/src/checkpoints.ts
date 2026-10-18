@@ -33,7 +33,7 @@ function git(
 export function createCheckpoint(root: string, label: string): Checkpoint | undefined {
   if (!git(root, ["rev-parse", "--is-inside-work-tree"]).ok) return undefined;
   // Build the tree in a throwaway index so the user's staging area stays as it was.
-  const dir = mkdtempSync(join(tmpdir(), "godeye-ckpt-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-ckpt-"));
   const index = join(dir, "index");
   try {
     const env = { GIT_INDEX_FILE: index };
@@ -51,10 +51,10 @@ export function createCheckpoint(root: string, label: string): Checkpoint | unde
     const at = Date.now();
     const message = `igrek checkpoint: ${label}${skipped.length ? `\n\n${skipped.map((f) => SKIPPED + f).join("\n")}` : ""}`;
     const commit = git(root, ["commit-tree", tree, ...(head ? ["-p", head] : []), "-m", message], {
-      GIT_AUTHOR_NAME: "God Eye",
-      GIT_AUTHOR_EMAIL: "checkpoint@godeye.local",
-      GIT_COMMITTER_NAME: "God Eye",
-      GIT_COMMITTER_EMAIL: "checkpoint@godeye.local",
+      GIT_AUTHOR_NAME: "Igrek",
+      GIT_AUTHOR_EMAIL: "checkpoint@igrek.local",
+      GIT_COMMITTER_NAME: "Igrek",
+      GIT_COMMITTER_EMAIL: "checkpoint@igrek.local",
     }).out.trim();
     if (!commit) return undefined;
     // Skip if nothing changed since the newest checkpoint.
@@ -114,7 +114,7 @@ export function listCheckpoints(root: string, limit = 50): Checkpoint[] {
 
 /** Files that differ between now and a checkpoint (to show before restoring). */
 export function checkpointChanges(root: string, id: string): string[] {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-ckpt-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-ckpt-"));
   try {
     const env = { GIT_INDEX_FILE: join(dir, "index") };
     git(root, ["read-tree", id], env);

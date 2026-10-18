@@ -46,4 +46,4 @@ if (!key) console.log("Backups are off. Set HUB_BACKUP_KEY (openssl rand -base64
 if (hub.users().length === 0) {
   console.log("No users yet. Create the first admin with:  bun src/cli.ts create-admin <username>");
 }
-console.log(`God Eye Hub on :${server.port} (data: ${dataDir})`);
+console.log(`Igrek Hub on :${server.port} (data: ${dataDir})`);

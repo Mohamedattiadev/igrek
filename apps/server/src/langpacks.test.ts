@@ -31,7 +31,7 @@ describe("language packs", () => {
 
   test("a new language is translated in parts and works offline afterwards", async () => {
     const prompts: string[] = [];
-    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "godeye-i18n-")), new Bus(), "/tmp", fakeAsk(prompts));
+    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "igrek-i18n-")), new Bus(), "/tmp", fakeAsk(prompts));
     expect(packs.status("de").state).toBe("none");
     packs.generate("de");
     await settle(packs, "de");
@@ -52,7 +52,7 @@ describe("language packs", () => {
 
   test("languages with more plural forms get them", async () => {
     const prompts: string[] = [];
-    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "godeye-i18n-")), new Bus(), "/tmp", fakeAsk(prompts));
+    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "igrek-i18n-")), new Bus(), "/tmp", fakeAsk(prompts));
     packs.generate("ru");
     await settle(packs, "ru");
     expect(prompts[0]).toContain("_few");
@@ -61,7 +61,7 @@ describe("language packs", () => {
   });
 
   test("corrections win, must keep placeholders, and work for bundled languages too", () => {
-    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "godeye-i18n-")), new Bus(), "/tmp", async () => "{}");
+    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "igrek-i18n-")), new Bus(), "/tmp", async () => "{}");
     packs.setOverride("tr", "projects.title", "Projelerim");
     expect((packs.messages("tr") as { projects: { title: string } }).projects.title).toBe("Projelerim");
     expect(packs.rows("tr").find((r) => r.key === "projects.title")).toMatchObject({

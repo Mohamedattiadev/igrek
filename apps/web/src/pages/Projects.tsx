@@ -421,7 +421,7 @@ function SummariesOff() {
   );
 }
 
-const DAY_OPEN = "godeye.home.dayOpen";
+const DAY_OPEN = "igrek.home.dayOpen";
 
 /** Briefing, day end, today and focus fold into one section; closed at first in Simple mode (plan.md 16.5). */
 function DaySection({ children }: { children: ReactNode }) {

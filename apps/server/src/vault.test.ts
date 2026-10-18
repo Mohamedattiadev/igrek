@@ -10,8 +10,8 @@ import { Vault } from "./vault";
 
 describe("vault", () => {
   test("keys from every project, once each; same values found by hash; rotation and reveal", async () => {
-    const data = mkdtempSync(join(tmpdir(), "godeye-vault-"));
-    const parent = mkdtempSync(join(tmpdir(), "godeye-parent-"));
+    const data = mkdtempSync(join(tmpdir(), "igrek-vault-"));
+    const parent = mkdtempSync(join(tmpdir(), "igrek-parent-"));
     const shop = join(parent, "shop");
     const blog = join(parent, "blog");
     mkdirSync(shop);

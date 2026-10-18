@@ -8,7 +8,7 @@ import { Retention } from "./retention";
 
 describe("retention and network log", () => {
   test("old transcript copies with a summary are dropped; recent ones and summaries stay", () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-ret-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-ret-"));
     const { sqlite } = openDb(":memory:");
     const now = Date.now();
     for (const [id, age, summary] of [

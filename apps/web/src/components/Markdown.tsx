@@ -163,7 +163,7 @@ const Block = memo(function Block({ raw, words, streaming }: { raw: string; word
  */
 export function Markdown({
   text,
-  className = "prose-godeye prose-chat",
+  className = "prose-igrek prose-chat",
   streaming = false,
 }: {
   text: string;

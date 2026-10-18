@@ -24,7 +24,7 @@ export interface DeviceKey {
   privateJwk: JsonWebKey;
 }
 
-/** On a computer the private half is kept as a JWK in God Eye's own (locked-down) config file. */
+/** On a computer the private half is kept as a JWK in Igrek's own (locked-down) config file. */
 export async function generateDeviceKey(): Promise<DeviceKey> {
   const key = await makeDeviceKey(true);
   return { publicKey: key.publicKey, privateJwk: key.privateJwk as JsonWebKey };
@@ -38,7 +38,9 @@ export interface Invite {
   key?: string;
 }
 
-const INVITE_PREFIX = "godeye-invite:";
+const INVITE_PREFIX = "igrek-invite:";
+/** Invites sent before the rename to Igrek. */
+const OLD_INVITE_PREFIX = "godeye-invite:";
 
 /** One string an admin sends to a new member (WhatsApp, email…) to join with everything set up. */
 export function encodeInvite(invite: Invite): string {
@@ -47,10 +49,11 @@ export function encodeInvite(invite: Invite): string {
 
 export function decodeInvite(code: string): Invite {
   const trimmed = code.trim();
-  if (!trimmed.startsWith(INVITE_PREFIX)) throw new Error("This doesn't look like a God Eye invite");
-  const parsed = JSON.parse(
-    Buffer.from(trimmed.slice(INVITE_PREFIX.length), "base64url").toString("utf8"),
-  ) as Invite & { v: number };
+  const prefix = [INVITE_PREFIX, OLD_INVITE_PREFIX].find((p) => trimmed.startsWith(p));
+  if (!prefix) throw new Error("This doesn't look like an Igrek invite");
+  const parsed = JSON.parse(Buffer.from(trimmed.slice(prefix.length), "base64url").toString("utf8")) as Invite & {
+    v: number;
+  };
   if (!parsed.hub || !parsed.username) throw new Error("The invite is incomplete");
   return { hub: parsed.hub, username: parsed.username, password: parsed.password, key: parsed.key };
 }

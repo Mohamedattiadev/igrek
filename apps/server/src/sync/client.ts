@@ -43,7 +43,9 @@ interface SyncConfig {
   user: { id: string; username: string; displayName: string; role: "admin" | "member" | "viewer" };
 }
 
-const RECOVERY_PREFIX = "godeye-recovery:";
+const RECOVERY_PREFIX = "igrek-recovery:";
+/** Recovery keys saved before the rename to Igrek. */
+const OLD_RECOVERY_PREFIX = "godeye-recovery:";
 
 /** Every team key in one string, so an admin can restore access (and history) on a new computer. */
 function encodeRecovery(keys: Record<string, string>): string {
@@ -53,11 +55,9 @@ function encodeRecovery(keys: Record<string, string>): string {
 function decodeRecovery(text: string): Record<string, string> {
   const t = text.trim();
   // An older recovery key was just the epoch-0 key.
-  if (!t.startsWith(RECOVERY_PREFIX)) return { "0": t };
-  return JSON.parse(Buffer.from(t.slice(RECOVERY_PREFIX.length), "base64url").toString("utf8")) as Record<
-    string,
-    string
-  >;
+  const prefix = [RECOVERY_PREFIX, OLD_RECOVERY_PREFIX].find((p) => t.startsWith(p));
+  if (!prefix) return { "0": t };
+  return JSON.parse(Buffer.from(t.slice(prefix.length), "base64url").toString("utf8")) as Record<string, string>;
 }
 
 interface WireEvent {
@@ -524,7 +524,7 @@ export class Sync {
       body: JSON.stringify({
         username: invite?.username ?? input.username,
         password: input.password || invite?.password,
-        device: `God Eye · ${this.myName()}`,
+        device: `Igrek · ${this.myName()}`,
         code: input.code,
       }),
       signal: AbortSignal.timeout(15_000),

@@ -29,7 +29,7 @@ import { Kbd, StatusDot } from "./ui";
 import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
-const WIDE = "godeye.nav.wide";
+const WIDE = "igrek.nav.wide";
 
 function readWide(): boolean {
   try {
@@ -126,12 +126,12 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
     >
       <div className={cn("mb-2 flex h-9 shrink-0 items-center gap-2", wide ? "px-2" : "justify-center")} aria-hidden>
         <svg viewBox="0 0 32 32" className="size-6 shrink-0">
-          <title>God Eye</title>
+          <title>Igrek</title>
           <circle cx="16" cy="16" r="14" fill="var(--accent)" />
           <circle cx="16" cy="16" r="6" fill="white" />
           <circle cx="16" cy="16" r="2.5" fill="var(--fg)" />
         </svg>
-        {wide && <span className="text-[14px] font-semibold tracking-tight">God Eye</span>}
+        {wide && <span className="text-[14px] font-semibold tracking-tight">Igrek</span>}
       </div>
       {visible
         .filter((item) => !item.bottom)
@@ -235,7 +235,7 @@ function StatusBar({ status }: { status: SocketStatus }) {
       {index?.summarizing && <span className="animate-pulse text-accent">{t("session.summarizing")}</span>}
       <div className="flex-1" />
       {settings.keymap === "vim" && <span className="font-mono font-semibold text-accent">VIM</span>}
-      <span>God Eye {APP_VERSION}</span>
+      <span>Igrek {APP_VERSION}</span>
     </footer>
   );
 }
@@ -265,10 +265,10 @@ export function Shell() {
       // The page in front decides what its own shortcuts do (plan.md 16.4).
       runPageShortcut(event);
     };
-    window.addEventListener("godeye:zen", flip);
+    window.addEventListener("igrek:zen", flip);
     window.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("godeye:zen", flip);
+      window.removeEventListener("igrek:zen", flip);
       window.removeEventListener("keydown", onKey);
     };
   }, []);
@@ -340,7 +340,7 @@ export function Shell() {
       {zen && (
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent("godeye:zen"))}
+          onClick={() => window.dispatchEvent(new CustomEvent("igrek:zen"))}
           aria-label={t("zen.exit")}
           data-tip={t("zen.exitTip")}
           className="fixed bottom-3 end-3 z-40 flex size-7 items-center justify-center rounded-ui border border-border bg-bg text-fg-subtle opacity-60 shadow-ui hover:text-fg hover:opacity-100"

@@ -94,7 +94,7 @@ export interface ChatStart {
   accountId?: string;
   env?: Record<string, string>;
   worktree?: Worktree;
-  /** God Eye's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
+  /** Igrek's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
   igrekMcp?: { config: string; allow: string[] };
   /** The OpenUI instructions, when the user turned on rich answers; otherwise the JSON blocks hint. */
   richUi?: string;
@@ -109,7 +109,7 @@ export interface ChatStart {
     /** --tools list; undefined keeps Claude Code's normal set. */
     toolList?: string[];
     maxTurns: number;
-    /** God Eye's MCP server (library search) and its tools that need no prompt. */
+    /** Igrek's MCP server (library search) and its tools that need no prompt. */
     mcpConfig?: string;
     allowTools?: string[];
   };
@@ -195,7 +195,7 @@ function resultText(content: unknown): string {
 /**
  * Chat view over Claude Code (plan.md 2.2): one long-lived `claude -p` process per
  * chat speaking stream-json, with permission prompts answered from the UI.
- * The session is saved like any other, so it shows up in God Eye's history.
+ * The session is saved like any other, so it shows up in Igrek's history.
  */
 export class Chats {
   /** How long after the limit resets a chat goes on by itself (the reset time is approximate). */
@@ -273,7 +273,7 @@ export class Chats {
         ? [
             "--max-turns",
             String(options.persona.maxTurns),
-            // A read-only persona gets only the reading tools and no MCP servers but God Eye's own.
+            // A read-only persona gets only the reading tools and no MCP servers but Igrek's own.
             ...(options.persona.toolList ? ["--tools", options.persona.toolList.join(","), "--strict-mcp-config"] : []),
             ...(options.persona.mcpConfig ? ["--mcp-config", options.persona.mcpConfig] : []),
             ...(options.persona.allowTools?.length ? ["--allowedTools", ...options.persona.allowTools] : []),
@@ -867,7 +867,7 @@ const LOOP_WINDOW = 10;
 const LOOP_REPEATS = 3;
 
 /**
- * Chats outlive the browser and God Eye itself (plan.md 16.5): every chat with a saved
+ * Chats outlive the browser and Igrek itself (plan.md 16.5): every chat with a saved
  * session is written down, so any browser can continue it after a restart.
  */
 export class ChatHistory {

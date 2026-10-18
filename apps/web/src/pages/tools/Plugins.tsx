@@ -54,6 +54,9 @@ const METHODS: Record<
   },
 };
 
+/** Bridge messages carry both names: plugins written before the rename to Igrek look for "godeye". */
+const BRIDGE = { igrek: 1, godeye: 1 };
+
 /** A plugin page in a sandbox (no network, opaque origin); data only through the bridge. */
 export function PluginFrame({ plugin, entry, projectId }: { plugin: PluginInfo; entry: string; projectId?: string }) {
   const { i18n } = useTranslation();
@@ -61,9 +64,15 @@ export function PluginFrame({ plugin, entry, projectId }: { plugin: PluginInfo; 
   useEffect(() => {
     const onMessage = async (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
-      const m = event.data as { godeye?: number; id?: number; method?: string; params?: Record<string, unknown> };
-      if (m?.godeye !== 1 || typeof m.id !== "number") return;
-      const reply = (body: object) => frame.current?.contentWindow?.postMessage({ godeye: 1, id: m.id, ...body }, "*");
+      const m = event.data as {
+        igrek?: number;
+        godeye?: number;
+        id?: number;
+        method?: string;
+        params?: Record<string, unknown>;
+      };
+      if ((m?.igrek !== 1 && m?.godeye !== 1) || typeof m.id !== "number") return;
+      const reply = (body: object) => frame.current?.contentWindow?.postMessage({ ...BRIDGE, id: m.id, ...body }, "*");
       const method = METHODS[String(m.method)];
       if (!method) return reply({ error: "Unknown method" });
       if (!plugin.permissions.includes(method.permission))
@@ -91,7 +100,7 @@ export function PluginFrame({ plugin, entry, projectId }: { plugin: PluginInfo; 
       onLoad={() =>
         frame.current?.contentWindow?.postMessage(
           {
-            godeye: 1,
+            ...BRIDGE,
             type: "hello",
             theme: document.documentElement.dataset.theme ?? "light",
             language: i18n.language,

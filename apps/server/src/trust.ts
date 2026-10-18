@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-/** God Eye's own hook (memory for new sessions) is not something to ask about. */
+/** Igrek's own hook (memory for new sessions) is not something to ask about. */
 const OWN_HOOK = /igrek-hook|godeye-hook/;
 
 /** What a project would make Claude Code run or load on its own: hooks, MCP servers, skills. */
@@ -34,7 +34,7 @@ function names(dir: string, suffix = ""): string[] {
   }
 }
 
-/** [event, command] of every hook in the project's Claude Code settings, except God Eye's own. */
+/** [event, command] of every hook in the project's Claude Code settings, except Igrek's own. */
 function projectHooks(root: string): [string, string][] {
   const out: [string, string][] = [];
   for (const file of ["settings.json", "settings.local.json"]) {
@@ -51,7 +51,7 @@ function projectHooks(root: string): [string, string][] {
 
 /**
  * The project's own Claude Code extensions (plan.md 16.4). A repository someone else wrote can
- * run commands through its hooks and MCP servers, so God Eye asks before a chat loads them.
+ * run commands through its hooks and MCP servers, so Igrek asks before a chat loads them.
  */
 export function projectExtensions(root: string): ProjectExtensions | undefined {
   const commands = projectHooks(root);

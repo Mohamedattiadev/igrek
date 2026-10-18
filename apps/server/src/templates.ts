@@ -170,16 +170,7 @@ export function createProject(
   writeFileSync(join(path, ".gitignore"), "node_modules\n.env\ndist\n");
   git(path, ["init", "-q", "-b", "main"]);
   git(path, ["add", "-A"]);
-  git(path, [
-    "-c",
-    "user.name=God Eye",
-    "-c",
-    "user.email=god-eye@localhost",
-    "commit",
-    "-q",
-    "-m",
-    "Start the project",
-  ]);
+  git(path, ["-c", "user.name=Igrek", "-c", "user.email=igrek@localhost", "commit", "-q", "-m", "Start the project"]);
   const projectId = deps.store.addProject(path);
   const prompt = PROJECT_TEMPLATES[template];
   if (!prompt) return { projectId, path };

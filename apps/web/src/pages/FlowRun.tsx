@@ -293,7 +293,7 @@ export function FlowRunPage() {
                 {t("chat.stop")}
               </Button>
             )}
-            {(run.status === "failed" || run.status === "stopped") && run.engine === "godeye" && (
+            {(run.status === "failed" || run.status === "stopped") && run.engine === "igrek" && (
               <Button
                 size="sm"
                 icon={RotateCcw}

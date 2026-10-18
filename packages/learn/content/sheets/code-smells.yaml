@@ -4,8 +4,8 @@ title:
   tr: "Kod kokuları ve refactoring"
 category: concept
 summary:
-  en: The classic code smells grouped as in the refactoring.guru catalog, each with the refactoring that usually cures it, a small example, and which God Eye gate catches it.
-  tr: refactoring.guru kataloğundaki gruplarıyla klasik kod kokuları; her birinde genellikle iyileştiren refactoring, küçük bir örnek ve God Eye'ın hangi kapısının yakaladığı.
+  en: The classic code smells grouped as in the refactoring.guru catalog, each with the refactoring that usually cures it, a small example, and which Igrek gate catches it.
+  tr: refactoring.guru kataloğundaki gruplarıyla klasik kod kokuları; her birinde genellikle iyileştiren refactoring, küçük bir örnek ve Igrek'in hangi kapısının yakaladığı.
 aliases: [code smell, smells, refactoring, anti-pattern, antipattern, clean code, long method, god object, duplicate code, dead code, kod kokusu, kötü kod, temiz kod, yeniden düzenleme]
 checked: 2026-10
 sources:
@@ -44,8 +44,8 @@ sections:
         level: basic
         title: { en: "Long Method", tr: "Uzun metot (Long Method)" }
         what:
-          en: A function that does many steps; you need comments to find your way in it. God Eye's lint:quality catches it (function length, cognitive complexity).
-          tr: Birçok adım yapan fonksiyon; içinde yolunu bulmak için yoruma ihtiyaç duyarsın. God Eye'ın lint:quality kapısı yakalar (fonksiyon uzunluğu, bilişsel karmaşıklık).
+          en: A function that does many steps; you need comments to find your way in it. Igrek's lint:quality catches it (function length, cognitive complexity).
+          tr: Birçok adım yapan fonksiyon; içinde yolunu bulmak için yoruma ihtiyaç duyarsın. Igrek'in lint:quality kapısı yakalar (fonksiyon uzunluğu, bilişsel karmaşıklık).
         lang: typescript
         form: "Extract Method, Decompose Conditional, Replace Temp with Query"
         example: |
@@ -99,8 +99,8 @@ sections:
         level: basic
         title: { en: "Long Parameter List", tr: "Uzun parametre listesi" }
         what:
-          en: More than three or four parameters; calls are easy to get wrong because the order matters. God Eye's lint:quality allows at most five.
-          tr: Üç dörtten fazla parametre; sıra önemli olduğundan çağrılar kolayca yanlış yazılır. God Eye'ın lint:quality kapısı en çok beşe izin verir.
+          en: More than three or four parameters; calls are easy to get wrong because the order matters. Igrek's lint:quality allows at most five.
+          tr: Üç dörtten fazla parametre; sıra önemli olduğundan çağrılar kolayca yanlış yazılır. Igrek'in lint:quality kapısı en çok beşe izin verir.
         lang: typescript
         form: "Introduce Parameter Object, Preserve Whole Object, Replace Parameter with Method Call"
         example: |
@@ -250,8 +250,8 @@ sections:
         level: basic
         title: { en: "Duplicate Code", tr: "Tekrarlanan kod" }
         what:
-          en: The same logic in two places; a fix in one is forgotten in the other. God Eye's lint:quality finds copied blocks of 12 meaningful lines.
-          tr: Aynı mantık iki yerde; birindeki düzeltme diğerinde unutulur. God Eye'ın lint:quality kapısı 12 anlamlı satırlık kopyaları bulur.
+          en: The same logic in two places; a fix in one is forgotten in the other. Igrek's lint:quality finds copied blocks of 12 meaningful lines.
+          tr: Aynı mantık iki yerde; birindeki düzeltme diğerinde unutulur. Igrek'in lint:quality kapısı 12 anlamlı satırlık kopyaları bulur.
         lang: text
         form: "Extract Method, Extract Class, Pull Up Method"
         example: |
@@ -265,8 +265,8 @@ sections:
         level: basic
         title: { en: "Dead Code", tr: "Ölü kod" }
         what:
-          en: Files, exports, functions and dependencies nothing uses; they cost reading time and keep old bugs around. God Eye's lint:dead (knip) catches them.
-          tr: Hiçbir şeyin kullanmadığı dosya, export, fonksiyon ve bağımlılıklar; okuma zamanı yerler ve eski hataları yaşatırlar. God Eye'ın lint:dead (knip) kapısı yakalar.
+          en: Files, exports, functions and dependencies nothing uses; they cost reading time and keep old bugs around. Igrek's lint:dead (knip) catches them.
+          tr: Hiçbir şeyin kullanmadığı dosya, export, fonksiyon ve bağımlılıklar; okuma zamanı yerler ve eski hataları yaşatırlar. Igrek'in lint:dead (knip) kapısı yakalar.
         lang: bash
         form: "Delete it (git remembers)"
         example: |
@@ -360,8 +360,8 @@ sections:
         level: advanced
         title: { en: "Inappropriate Intimacy", tr: "Uygunsuz yakınlık" }
         what:
-          en: Two modules reach into each other's internals; changing one breaks the other. God Eye's lint:arch catches import cycles and layer breaks, one form of it.
-          tr: İki modül birbirinin iç detaylarına uzanır; birini değiştirmek diğerini bozar. God Eye'ın lint:arch kapısı bunun bir biçimi olan döngüsel içe aktarma ve katman ihlallerini yakalar.
+          en: Two modules reach into each other's internals; changing one breaks the other. Igrek's lint:arch catches import cycles and layer breaks, one form of it.
+          tr: İki modül birbirinin iç detaylarına uzanır; birini değiştirmek diğerini bozar. Igrek'in lint:arch kapısı bunun bir biçimi olan döngüsel içe aktarma ve katman ihlallerini yakalar.
         lang: text
         form: "Move Method, Move Field, Change Bidirectional Association to Unidirectional, Hide Delegate"
         example: |
@@ -453,8 +453,8 @@ sections:
         level: basic
         title: { en: "Swallowed errors", tr: "Yutulan hatalar" }
         what:
-          en: "An empty catch or a promise nobody waits for hides failures until they show up somewhere else. God Eye's lint:quality allows neither."
-          tr: "Boş bir catch ya da kimsenin beklemediği bir promise, hataları başka bir yerde ortaya çıkana kadar gizler. God Eye'ın lint:quality kapısı ikisine de izin vermez."
+          en: "An empty catch or a promise nobody waits for hides failures until they show up somewhere else. Igrek's lint:quality allows neither."
+          tr: "Boş bir catch ya da kimsenin beklemediği bir promise, hataları başka bir yerde ortaya çıkana kadar gizler. Igrek'in lint:quality kapısı ikisine de izin vermez."
         lang: typescript
         form: "Handle it, rethrow with context, or say in a comment why it is safe to ignore"
         example: |

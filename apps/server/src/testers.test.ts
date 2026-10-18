@@ -63,7 +63,7 @@ describe("test users", () => {
       new Bus(),
       new StopRegistry(),
       () => DEFAULT_SETTINGS,
-      mkdtempSync(join(tmpdir(), "godeye-testers-")),
+      mkdtempSync(join(tmpdir(), "igrek-testers-")),
       tmpdir(),
       async ({ mcpConfig, allowed, system, onStep }) => {
         calls.push({ mcp: JSON.parse(mcpConfig), allowed, system });
@@ -118,7 +118,7 @@ describe("test users without a report", () => {
       new Bus(),
       new StopRegistry(),
       () => DEFAULT_SETTINGS,
-      mkdtempSync(join(tmpdir(), "godeye-testers-")),
+      mkdtempSync(join(tmpdir(), "igrek-testers-")),
       tmpdir(),
       async ({ onStep }) => {
         onStep({ at: 1, thought: "I cannot find the save button" });
@@ -143,7 +143,7 @@ describe("test users after each commit", () => {
   test("a marked test runs again on a new commit and a worse result reaches the inbox", async () => {
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const path = mkdtempSync(join(tmpdir(), "godeye-regress-"));
+    const path = mkdtempSync(join(tmpdir(), "igrek-regress-"));
     const git = (...args: string[]) =>
       Bun.spawnSync(["git", "-C", path, "-c", "user.name=T", "-c", "user.email=t@example.com", ...args]);
     git("init", "-q");
@@ -156,7 +156,7 @@ describe("test users after each commit", () => {
       new Bus(),
       new StopRegistry(),
       () => DEFAULT_SETTINGS,
-      mkdtempSync(join(tmpdir(), "godeye-testers-")),
+      mkdtempSync(join(tmpdir(), "igrek-testers-")),
       tmpdir(),
       async () => `<report>{"outcome":"success","ease":${ease},"complaints":[],"issues":[],"quote":"ok"}</report>`,
       () => ({ browser: "/usr/bin/chromium", runtime: "node", mcp: "/x/cli.js" }),

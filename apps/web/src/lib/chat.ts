@@ -51,7 +51,7 @@ function receive(op: ServerOp, seq: number, sinks: Sinks): number {
   return op.seq;
 }
 
-/** What a chat was about, kept by the server so it can be picked up again after God Eye restarts. */
+/** What a chat was about, kept by the server so it can be picked up again after Igrek restarts. */
 export type KnownChat = Pick<RecentChat, "projectId" | "sessionId" | "title">;
 
 /** Live connection to one chat: its events, status, and the actions you can take. */
@@ -59,7 +59,7 @@ export function useChat(id: string) {
   const [info, setInfo] = useState<ChatInfo>();
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [error, setError] = useState<string>();
-  /** The chat no longer exists on the server (it ended or God Eye restarted); what we knew of it. */
+  /** The chat no longer exists on the server (it ended or Igrek restarted); what we knew of it. */
   const [gone, setGone] = useState<KnownChat | true>();
   const socket = useRef<WebSocket>(undefined);
 

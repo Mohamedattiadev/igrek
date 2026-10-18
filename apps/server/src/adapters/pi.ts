@@ -19,7 +19,7 @@ import {
  *   ~/.pi/agent/sessions/--<folder with / as ->--/<timestamp>_<session id>.jsonl
  * The first line is a `session` header with the cwd; then `message` entries holding user,
  * assistant (with usage) and toolResult messages, plus compaction, model_change and session_info.
- * Entries form a tree (id/parentId) for in-place branches; God Eye reads them in file order.
+ * Entries form a tree (id/parentId) for in-place branches; Igrek reads them in file order.
  * Written from pi's docs/session-format.md (pi 1.3); not yet checked against a real install here.
  */
 

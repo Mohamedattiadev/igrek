@@ -83,7 +83,7 @@ describe("wiki and boards", () => {
   function setup() {
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-docs-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-docs-")));
     const asked: { prompt: string; images: number }[] = [];
     const docs = new Docs(
       sqlite,
@@ -208,7 +208,7 @@ describe("incident mode", () => {
     const { AppErrors } = await import("./apperrors");
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-inc-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-inc-")));
     const errors = new AppErrors(sqlite, store, new Bus());
     errors.ingest(errors.key(projectId), {
       message: "x is undefined",
@@ -257,7 +257,7 @@ describe("docs site", () => {
     const JSZip = (await import("jszip")).default;
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const dir = mkdtempSync(join(tmpdir(), "godeye-site-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-site-"));
     await Bun.write(join(dir, "README.md"), "# Shop\n\nSee [[Setup]].");
     const projectId = store.addProject(dir);
     const docs = new Docs(sqlite, store, new Bus(), { list: () => [] } as unknown as Databases, async () => "");
@@ -270,7 +270,7 @@ describe("docs site", () => {
       {} as never,
       {} as never,
       async () => "",
-      mkdtempSync(join(tmpdir(), "godeye-shots-")),
+      mkdtempSync(join(tmpdir(), "igrek-shots-")),
       () => undefined,
     );
     const zip = await JSZip.loadAsync(await product.docsSite(projectId, "en"));

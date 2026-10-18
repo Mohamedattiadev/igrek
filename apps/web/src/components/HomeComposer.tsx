@@ -6,7 +6,7 @@ import { useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { Button, Segmented } from "./ui";
 
-const LAST_PROJECT = "godeye.home.project";
+const LAST_PROJECT = "igrek.home.project";
 const MODES: ChatMode[] = ["normal", "acceptEdits", "plan"];
 const SUGGESTIONS = ["explain", "changes", "bugs", "tests"] as const;
 

@@ -13,7 +13,7 @@ import { Personas } from "./personas";
 import { Store } from "./store";
 
 function repo(): string {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-flow-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-flow-"));
   const git = (...args: string[]) =>
     Bun.spawnSync(["git", "-C", dir, "-c", "user.name=t", "-c", "user.email=t@t", ...args]);
   git("init", "-q", "-b", "main");
@@ -45,7 +45,7 @@ function setup(agent: AgentRun, checks: () => Promise<ToolResult[]>) {
     bus,
     new StopRegistry(),
     personas,
-    mkdtempSync(join(tmpdir(), "godeye-wts-")),
+    mkdtempSync(join(tmpdir(), "igrek-wts-")),
     agent,
     checks,
   );

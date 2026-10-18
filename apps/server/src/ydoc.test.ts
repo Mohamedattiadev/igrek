@@ -22,7 +22,7 @@ describe("shared wiki text (Yjs)", () => {
     expect(merged.text).toBe(`${page}\n\nAyse's note.`);
   });
 
-  test("plain text from an older God Eye is taken as an edit, keeping the history", () => {
+  test("plain text from an older Igrek is taken as an edit, keeping the history", () => {
     const mine = saveText(null, "", page);
     const fromOld = mergeText(mine.state, mine.text, { text: page.replace("copy.", "rsync.") });
     expect(fromOld.text).toBe(page.replace("copy.", "rsync."));

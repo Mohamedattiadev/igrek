@@ -2,7 +2,7 @@ import { createLibrary, defineComponent, tagSchemaId } from "@openuidev/lang-cor
 import { z } from "zod";
 
 /**
- * God Eye's OpenUI components (plan.md 16.2): what each one is called, what it is for and its
+ * Igrek's OpenUI components (plan.md 16.2): what each one is called, what it is for and its
  * arguments. Shared so the server can teach them to the AI and the web app can draw them with
  * its own React pieces. Arguments are positional: add new ones only at the end, never reorder
  * or remove one, or saved reports stop drawing.
@@ -84,7 +84,7 @@ export const SCHEMAS = {
 
 export type ComponentName = keyof typeof SCHEMAS;
 export const ROOT: ComponentName = "Stack";
-export const LIBRARY_ID = "godeye@1";
+export const LIBRARY_ID = "igrek@1";
 
 /** What tells the AI how to add ```openui-lang blocks to a report written in Markdown. */
 export function reportUiHint(): string {

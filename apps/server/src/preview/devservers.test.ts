@@ -7,15 +7,15 @@ import { freePort, injectAgent, planDevServer } from "./devservers";
 describe("live preview", () => {
   test("the picker goes into HTML pages", () => {
     expect(injectAgent("<html><head><title>x</title></head><body></body></html>")).toContain(
-      '<script src="/__godeye/agent.js"></script></head>',
+      '<script src="/__igrek/agent.js"></script></head>',
     );
     expect(injectAgent("<body class='a'><p>hi</p></body>")).toContain(
-      "<body class='a'><script src=\"/__godeye/agent.js\"></script>",
+      "<body class='a'><script src=\"/__igrek/agent.js\"></script>",
     );
   });
 
   test("the dev script and package manager are found; a plain vite script can carry the source plugin", () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-dev-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-dev-"));
     writeFileSync(
       join(dir, "package.json"),
       JSON.stringify({ scripts: { dev: "vite", build: "vite build" }, devDependencies: { vite: "8" } }),

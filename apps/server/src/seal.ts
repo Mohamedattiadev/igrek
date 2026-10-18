@@ -2,7 +2,7 @@ import { chmodSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 /**
- * Encryption at rest for what God Eye keeps for you locally: database addresses, vault secrets.
+ * Encryption at rest for what Igrek keeps for you locally: database addresses, vault secrets.
  * The key is a random file next to the data (mode 600), so a copied database or backup file
  * alone reveals nothing. It does not protect against someone who can read your whole home folder.
  */

@@ -3,7 +3,7 @@
  * error tracking. Everything is read from your own machines and public, free sources.
  */
 
-/** A site God Eye opens every few minutes (plan.md 12 "Uptime izleme"). */
+/** A site Igrek opens every few minutes (plan.md 12 "Uptime izleme"). */
 export interface UptimeMonitor {
   id: string;
   name: string;
@@ -239,7 +239,7 @@ export function groupLines(lines: LogLine[]): LogGroup[] {
   return [...groups.values()].sort((a, b) => (a.level === b.level ? b.count - a.count : a.level === "error" ? -1 : 1));
 }
 
-/** An error your app sent to God Eye (plan.md 12 "Hata takibi"), grouped like Sentry does. */
+/** An error your app sent to Igrek (plan.md 12 "Hata takibi"), grouped like Sentry does. */
 export interface AppErrorGroup {
   id: string;
   projectId: string;
@@ -286,7 +286,7 @@ export interface CodeHostInfo {
   /** owner/repo */
   repo?: string;
   url?: string;
-  /** The CLI God Eye uses with your own login (gh, glab). */
+  /** The CLI Igrek uses with your own login (gh, glab). */
   cli?: "gh" | "glab";
   cliInstalled: boolean;
   signedIn: boolean;
@@ -370,7 +370,7 @@ export interface VaultEntry {
   /** The .env file it is in, relative to the project. */
   file?: string;
   note?: string;
-  /** Last time the value changed (file time for .env keys God Eye saw change, or when saved). */
+  /** Last time the value changed (file time for .env keys Igrek saw change, or when saved). */
   changedAt?: number;
   /** Rotation reminder in days; 0 = none. */
   rotateDays: number;
@@ -465,7 +465,7 @@ export interface PluginManifest {
   description?: string;
   author?: string;
   permissions: PluginPermission[];
-  /** Pages shown in God Eye, in a sandbox: on the Tools page or in each project. */
+  /** Pages shown in Igrek, in a sandbox: on the Tools page or in each project. */
   panels: { id: string; title: string; entry: string; place: "tools" | "project" }[];
   /** Shell commands run in a project's folder, in a terminal you can see, only when you click. */
   commands: { id: string; title: string; run: string[] }[];
@@ -479,11 +479,11 @@ export interface PluginInfo extends PluginManifest {
   error?: string;
 }
 
-/** An MCP server the user added to God Eye (plan.md 13.1): its tools are offered in chats. */
+/** An MCP server the user added to Igrek (plan.md 13.1): its tools are offered in chats. */
 export interface McpServerEntry {
   id: string;
   name: string;
-  /** stdio: a command God Eye starts; http: a URL it connects to. */
+  /** stdio: a command Igrek starts; http: a URL it connects to. */
   kind: "stdio" | "http";
   command?: string;
   args?: string[];
@@ -547,7 +547,7 @@ export const MCP_CATALOG: McpCatalogEntry[] = [
   {
     id: "playwright",
     name: "Playwright (browser)",
-    description: "A real browser the AI can open, click and read (the same one God Eye's test users use).",
+    description: "A real browser the AI can open, click and read (the same one Igrek's test users use).",
     command: "npx",
     args: ["-y", "@playwright/mcp@0.0.83"],
     homepage: "https://github.com/microsoft/playwright-mcp",
@@ -607,7 +607,7 @@ export interface DayRecap {
   at: number;
 }
 
-/** Where God Eye can send a short notice outside the app (plan.md 13.3 "bildirim köprüleri"). */
+/** Where Igrek can send a short notice outside the app (plan.md 13.3 "bildirim köprüleri"). */
 export type BridgeKind = "telegram" | "discord" | "email";
 export const BRIDGE_EVENTS = ["down", "up", "appError", "backupFailed", "approval", "run"] as const;
 export type BridgeEvent = (typeof BRIDGE_EVENTS)[number];

@@ -24,7 +24,7 @@ export async function probeStdio(
       jsonrpc: "2.0",
       id: 1,
       method: "initialize",
-      params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "godeye", version: "1" } },
+      params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "igrek", version: "1" } },
     });
     const reader = proc.stdout.getReader();
     const decoder = new TextDecoder();
@@ -61,7 +61,7 @@ export async function probeStdio(
 
 /**
  * Your own MCP servers (plan.md 13.1): added by hand or from a small catalog of free ones,
- * tested before use, and offered in chats next to God Eye's own tools (the AI asks before it
+ * tested before use, and offered in chats next to Igrek's own tools (the AI asks before it
  * uses one). Environment values (API keys) are encrypted and never shown again.
  */
 export class McpServers {
@@ -167,7 +167,7 @@ export class McpServers {
             jsonrpc: "2.0",
             id: 1,
             method: "initialize",
-            params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "godeye", version: "1" } },
+            params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "igrek", version: "1" } },
           }),
           signal: AbortSignal.timeout(15_000),
         });

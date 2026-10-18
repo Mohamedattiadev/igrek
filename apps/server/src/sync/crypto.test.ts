@@ -41,13 +41,15 @@ describe("team encryption", () => {
       password: "temp-pass-123",
       key: "abc",
     });
-    expect(code.startsWith("godeye-invite:")).toBe(true);
+    expect(code.startsWith("igrek-invite:")).toBe(true);
     expect(decodeInvite(code)).toEqual({
       hub: "https://hub.example.com",
       username: "kerim",
       password: "temp-pass-123",
       key: "abc",
     });
+    // An invite sent before the rename to Igrek still works.
+    expect(decodeInvite(code.replace("igrek-invite:", "godeye-invite:")).username).toBe("kerim");
     expect(() => decodeInvite("hello")).toThrow();
   });
 });

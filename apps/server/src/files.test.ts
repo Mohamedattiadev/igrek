@@ -5,10 +5,10 @@ import { join } from "node:path";
 import { Files } from "./files";
 
 function setup() {
-  const root = mkdtempSync(join(tmpdir(), "godeye-files-"));
-  const outside = mkdtempSync(join(tmpdir(), "godeye-outside-"));
+  const root = mkdtempSync(join(tmpdir(), "igrek-files-"));
+  const outside = mkdtempSync(join(tmpdir(), "igrek-outside-"));
   writeFileSync(join(outside, "secret.txt"), "nope");
-  const files = new Files(() => [root], join(mkdtempSync(join(tmpdir(), "godeye-trash-")), "trash"));
+  const files = new Files(() => [root], join(mkdtempSync(join(tmpdir(), "igrek-trash-")), "trash"));
   return { root, outside, files };
 }
 
@@ -21,7 +21,7 @@ describe("file access", () => {
   });
 
   test("never opens protected places like ~/.ssh", () => {
-    const files = new Files(() => [homedir()], join(mkdtempSync(join(tmpdir(), "godeye-trash-")), "trash"));
+    const files = new Files(() => [homedir()], join(mkdtempSync(join(tmpdir(), "igrek-trash-")), "trash"));
     expect(() => files.list(join(homedir(), ".ssh"))).toThrow(/protected/);
   });
 

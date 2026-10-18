@@ -25,7 +25,7 @@ function sh(cwd: string, ...args: string[]) {
 }
 
 describe("environments", () => {
-  const root = mkdtempSync(join(tmpdir(), "godeye-envs-"));
+  const root = mkdtempSync(join(tmpdir(), "igrek-envs-"));
   sh(root, "init", "-q", "-b", "main");
   writeFileSync(join(root, "a.txt"), "1");
   sh(root, "add", ".");
@@ -112,7 +112,7 @@ describe("environments", () => {
 
 describe("staging and preview", () => {
   test("a staging copy is cloned next to the original as one confirmed command; a preview deploys another branch once", async () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-stg-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-stg-"));
     sh(root, "init", "-q", "-b", "main");
     writeFileSync(join(root, "a.txt"), "1");
     sh(root, "add", ".");

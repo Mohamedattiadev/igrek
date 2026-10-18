@@ -358,7 +358,7 @@ export class BackupJobs {
     const address = await this.databases.address(conn.id);
     const { url, password } = splitPassword(address);
     const env: Record<string, string> = password ? { PGPASSWORD: password } : {};
-    const temp = `godeye_restore_test_${at}`;
+    const temp = `igrek_restore_test_${at}`;
     const admin = new Bun.SQL(address, { max: 1, connectionTimeout: 10 });
     try {
       await admin.unsafe(`CREATE DATABASE ${temp}`);

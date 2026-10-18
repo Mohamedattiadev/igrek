@@ -1,5 +1,5 @@
 /**
- * Built-in flows (plan.md Faz 8), in the same YAML format a project can put in .godeye/flows/
+ * Built-in flows (plan.md Faz 8), in the same YAML format a project can put in .igrek/flows/
  * (or Archon's .archon/workflows/). $REQUEST is what the user asked; $<node>.output is an
  * earlier node's result; $FEEDBACK is what went wrong when a node is sent back.
  */

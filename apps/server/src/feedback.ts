@@ -8,7 +8,7 @@ type Ask = (prompt: string) => Promise<string>;
 const KINDS = ["bug", "feature", "praise", "question", "other"] as const;
 
 /**
- * Feedback box (plan.md 13.5): a small box in your product sends what users write to God Eye
+ * Feedback box (plan.md 13.5): a small box in your product sends what users write to Igrek
  * (same project key as errors). The PM persona's small model sorts each one (bug, feature,
  * praise, question), writes a one-line summary and the mood; a bug or wish becomes a board card
  * in one click. Contact details stay here; the model only sees the text, scrubbed.

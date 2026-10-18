@@ -6,7 +6,7 @@ import type { Personas } from "./personas";
 import type { Store } from "./store";
 import type { Vault } from "./vault";
 
-/** A secret an agent asked for: the user types it in God Eye; the agent only hears that it was stored. */
+/** A secret an agent asked for: the user types it in Igrek; the agent only hears that it was stored. */
 interface SecretRequest {
   id: string;
   projectId: string;
@@ -51,7 +51,7 @@ function safeFile(file: unknown): string | undefined {
 }
 
 /**
- * What agents may ask God Eye for beyond reading (plan.md 16.3): a secret the user provides
+ * What agents may ask Igrek for beyond reading (plan.md 16.3): a secret the user provides
  * (stored in the vault and the project's env file, never shown to the agent) and a page to show.
  * Kept in memory: a restart drops open requests, and the agent is told to ask again.
  */
@@ -70,7 +70,7 @@ export class AgentRequests {
   requestSecret(input: { cwd?: unknown; key?: unknown; reason?: unknown; file?: unknown }): SecretRequest {
     const projectId = typeof input.cwd === "string" ? this.store.knownProjectFor(input.cwd) : undefined;
     const project = projectId ? this.store.projectRow(projectId) : undefined;
-    if (!project) throw new Error("Open this from a project God Eye knows");
+    if (!project) throw new Error("Open this from a project Igrek knows");
     const key = String(input.key ?? "").trim();
     if (!KEY.test(key)) throw new Error("The name must look like API_KEY (capital letters, digits, _)");
     const file = safeFile(input.file);
@@ -235,7 +235,7 @@ export function registerAgentRequestRoutes(app: Hono, requests: AgentRequests): 
       return { ok: false as const, error: (err as Error).message };
     }
   };
-  // The agent side (God Eye's MCP server): ask, then poll; never sees a value.
+  // The agent side (Igrek's MCP server): ask, then poll; never sees a value.
   app.post("/api/agent/secrets", async (c) => {
     const r = await guard(async () => requests.requestSecret(await c.req.json().catch(() => ({}))));
     return r.ok ? c.json({ id: (r.value as SecretRequest).id }) : c.json({ error: r.error }, 400);

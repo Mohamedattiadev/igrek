@@ -14,7 +14,7 @@ import { Insight } from "./index";
 import { takeSnapshot } from "./snapshot";
 
 function repo(files: Record<string, string>): string {
-  const root = mkdtempSync(join(tmpdir(), "godeye-insight-"));
+  const root = mkdtempSync(join(tmpdir(), "igrek-insight-"));
   for (const [path, text] of Object.entries(files)) {
     mkdirSync(join(root, path, ".."), { recursive: true });
     writeFileSync(join(root, path), text);

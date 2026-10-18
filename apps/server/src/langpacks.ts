@@ -50,7 +50,7 @@ const placeholders = (text: string) =>
 
 /**
  * Language packs for languages that don't ship with the app (plan.md 7.4): made once with
- * the user's own Claude login (Haiku), kept in ~/.godeye/i18n, then they work offline.
+ * the user's own Claude login (Haiku), kept in ~/.igrek/i18n, then they work offline.
  * Corrections ("this translation is wrong") are stored separately and win over both.
  */
 export class LanguagePacks {
@@ -191,11 +191,11 @@ export class LanguagePacks {
 function packPrompt(language: string, code: string, input: Flat, plural: string[]): string {
   const extra = plural.filter((p) => p !== "one" && p !== "other");
   return [
-    `Translate these user-interface texts of the app "God Eye" from English to ${language} (language code "${code}").`,
+    `Translate these user-interface texts of the app "Igrek" from English to ${language} (language code "${code}").`,
     "Rules:",
     "- Keep every key exactly as it is.",
     "- Keep {{placeholders}} exactly as they are (same names, same braces).",
-    "- Don't translate product and tool names (God Eye, Claude, Codex, Gemini, Git, GitHub, SSH, Docker, Haiku, Opus), code, file names or keyboard shortcuts.",
+    "- Don't translate product and tool names (Igrek, Claude, Codex, Gemini, Git, GitHub, SSH, Docker, Haiku, Opus), code, file names or keyboard shortcuts.",
     "- Plain, friendly, short words a non-technical person understands. Same tone as the English.",
     extra.length
       ? `- ${language} has more plural forms. For every key ending in _one or _other, also add the forms ${extra.map((p) => `_${p}`).join(", ")} with the same base key.`

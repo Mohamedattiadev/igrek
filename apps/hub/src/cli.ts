@@ -7,8 +7,8 @@ import { Hub } from "./hub";
  * Admin tasks on the VPS. The first admin is only ever created here (never
  * over the network), so nobody can claim an empty hub.
  *
- *   god-eye-hub create-admin mohamed      (or: bun src/cli.ts create-admin mohamed)
- *   god-eye-hub reset-password mohamed
+ *   igrek-hub create-admin mohamed      (or: bun src/cli.ts create-admin mohamed)
+ *   igrek-hub reset-password mohamed
  */
 const [command, username] = process.argv.slice(2);
 const hub = new Hub(join(process.env.HUB_DATA ?? "/data", "hub.db"));
@@ -22,7 +22,7 @@ async function askPassword(): Promise<string> {
 if (command === "create-admin" && username) {
   const user = await hub.createUser({ username, password: await askPassword(), role: "admin", mustChange: false });
   hub.audit(user.id, "admin-created-cli");
-  console.log(`Admin "${user.username}" created. Sign in from God Eye → Team.`);
+  console.log(`Admin "${user.username}" created. Sign in from Igrek → Team.`);
 } else if (command === "reset-password" && username) {
   const user = hub.users().find((u) => u.username.toLowerCase() === username.toLowerCase());
   if (!user) {
@@ -59,7 +59,7 @@ if (command === "create-admin" && username) {
   console.log(`Restored ${username} → ${target}. Start the hub again.`);
 } else {
   console.log(
-    "Usage: god-eye-hub create-admin <username> | reset-password <username> | backup [folder] | restore <file.geb>",
+    "Usage: igrek-hub create-admin <username> | reset-password <username> | backup [folder] | restore <file.geb>",
   );
   process.exit(command ? 1 : 0);
 }

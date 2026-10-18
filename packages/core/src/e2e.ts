@@ -1,6 +1,6 @@
 /**
  * End-to-end encryption for team sync (plan.md 4.2), in plain WebCrypto so the same code runs in
- * God Eye (Bun) and in a browser for web members (plan.md 4.3). The hub only ever sees:
+ * Igrek (Bun) and in a browser for web members (plan.md 4.3). The hub only ever sees:
  *  - project ids as HMAC(teamKey, identity): it cannot tell which repository is which,
  *  - AES-256-GCM ciphertext with a random nonce, bound to project and kind.
  * The byte format is fixed: changing it would cut every existing team off from its history.
@@ -41,7 +41,8 @@ export interface TeamKey {
 export async function importTeamKey(encoded: string): Promise<TeamKey> {
   const raw = fromBase64Url(encoded);
   if (raw.length !== 32) throw new Error("Team key must be 32 bytes");
-  // Separate keys per purpose, derived from the one team secret.
+  // Separate keys per purpose, derived from the one team secret. The "godeye" salts stay as they
+  // were before the rename to Igrek: other values would derive other keys and lock out every team.
   const base = await crypto.subtle.importKey("raw", raw, "HKDF", false, ["deriveKey"]);
   const derive = (info: string, algorithm: AesKeyGenParams | HmacKeyGenParams, usages: KeyUsage[]) =>
     crypto.subtle.deriveKey(

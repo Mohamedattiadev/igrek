@@ -1,5 +1,5 @@
 /**
- * The search model in its own process (plan.md 13.6 "Hafiflik"): God Eye starts it when the
+ * The search model in its own process (plan.md 13.6 "Hafiflik"): Igrek starts it when the
  * library is searched and stops it after a few idle minutes, so its memory is given back.
  * One JSON line in ({id, texts, kind}), one out ({id, vectors} as base64 Float32 arrays).
  */

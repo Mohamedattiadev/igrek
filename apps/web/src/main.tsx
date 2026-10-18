@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import { Shell } from "./components/Shell";
 import "./lib/i18n";
 import { SettingsProvider, useSettings } from "./lib/settings";
+import { renameStoredKeys } from "./lib/storage-rename";
 import { Onboarding } from "./pages/Onboarding";
 import { ProjectsPage } from "./pages/Projects";
 import "@fontsource-variable/inter/wght.css";
@@ -82,6 +83,7 @@ function App() {
   return <RouterProvider router={router} />;
 }
 
+renameStoredKeys();
 const root = document.getElementById("root");
 if (!root) throw new Error("Missing #root");
 createRoot(root).render(

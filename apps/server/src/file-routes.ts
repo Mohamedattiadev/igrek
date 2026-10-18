@@ -73,7 +73,7 @@ export function registerFileRoutes(
   );
 
   // Raw bytes for previews and downloads. Sandboxed so an HTML/SVG file from a repo
-  // can never run scripts with access to God Eye.
+  // can never run scripts with access to Igrek.
   app.get("/api/fs/raw", (c) => {
     try {
       const path = files.resolve(c.req.query("path") ?? "");

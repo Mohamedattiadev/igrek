@@ -67,7 +67,7 @@ export function secretsInPatch(patch: string): { file: string; line: number; hin
 /**
  * Secret scanning (plan.md 11): new commits of every project are read for API keys, tokens and
  * passwords; what is found shows in the inbox (masked) with the commit and line. An optional git
- * pre-commit hook asks God Eye before each commit and stops one that adds a secret.
+ * pre-commit hook asks Igrek before each commit and stops one that adds a secret.
  */
 export class SecretScanner {
   constructor(
@@ -198,7 +198,7 @@ export class SecretScanner {
     });
   }
 
-  /** The pre-commit guard: a small script in .git/hooks that asks God Eye; without God Eye running it lets the commit through. */
+  /** The pre-commit guard: a small script in .git/hooks that asks Igrek; without Igrek running it lets the commit through. */
   installGuard(projectPath: string, dataDir: string, port: number): void {
     const hooks = join(projectPath, ".git", "hooks");
     if (!existsSync(hooks)) throw new Error("Not a git repository");
@@ -208,7 +208,7 @@ export class SecretScanner {
     writeFileSync(
       file,
       `#!/bin/sh
-# ${MARK}: installed by God Eye. Stops commits that add API keys, tokens or passwords.
+# ${MARK}: installed by Igrek. Stops commits that add API keys, tokens or passwords.
 # Skip once with: git commit --no-verify
 KEY=$(cat "${join(dataDir, "session.key")}" 2>/dev/null) || exit 0
 command -v curl >/dev/null 2>&1 || exit 0
@@ -216,7 +216,7 @@ OUT=$(git diff --cached -U0 --no-color | curl -s -m 5 -X POST -H "Host: localhos
   -H "content-type: text/plain" --data-binary @- "http://127.0.0.1:${port}/api/secrets/check" 2>/dev/null) || exit 0
 case "$OUT" in
   OK*|"") exit 0 ;;
-  *) echo "God Eye: this commit adds what looks like a secret:"; echo "$OUT"; echo "Remove it (or commit with --no-verify if it is not a secret)."; exit 1 ;;
+  *) echo "Igrek: this commit adds what looks like a secret:"; echo "$OUT"; echo "Remove it (or commit with --no-verify if it is not a secret)."; exit 1 ;;
 esac
 `,
     );

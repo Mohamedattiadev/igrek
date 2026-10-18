@@ -59,7 +59,7 @@
   "projects": {
     "title": "Projeler",
     "emptyTitle": "Henüz proje yok",
-    "emptyBody": "God Eye projelerini Claude Code oturumlarından otomatik bulur. Herhangi bir projede bir oturum başlattığında burada görünür.",
+    "emptyBody": "Igrek projelerini Claude Code oturumlarından otomatik bulur. Herhangi bir projede bir oturum başlattığında burada görünür.",
     "emptyAction": "Ayarları aç",
     "filter": "Projelerde ara…",
     "sessions_one": "{{count}} oturum",
@@ -160,7 +160,7 @@
     "keymapVim": "Vim",
     "keymapVimHint": "j/k ile gez, gg/G ile atla, / ile ara.",
     "system": "Sistem kontrolü",
-    "systemHint": "God Eye'ın bu bilgisayarda kullanabileceği araçlar.",
+    "systemHint": "Igrek'in bu bilgisayarda kullanabileceği araçlar.",
     "found": "Bulundu",
     "missing": "Bulunamadı",
     "optional": "opsiyonel",
@@ -174,7 +174,7 @@
     "tonePlain": "Sade",
     "toneTechnical": "Teknik",
     "enhance": "Prompt güçlendirici",
-    "enhanceHint": "Kısa, üşengeç istekleri God Eye'ın projen hakkında bildikleriyle net prompt'lara çevirir. Küçük ve ucuz modeli kullanır.",
+    "enhanceHint": "Kısa, üşengeç istekleri Igrek'in projen hakkında bildikleriyle net prompt'lara çevirir. Küçük ve ucuz modeli kullanır.",
     "enhance_off": "Kapalı",
     "enhance_suggest": "Öner",
     "enhance_auto": "Otomatik",
@@ -194,19 +194,19 @@
     "textLarge": "Büyük",
     "textLarger": "Daha büyük",
     "richAnswers": "Sohbetlerde zengin cevaplar",
-    "richAnswersHint": "Sohbetler God Eye'ın kendi parçalarıyla çizilen kutular, grafikler, tablolar ve butonlarla cevap verebilir (OpenUI). Her sohbete yaklaşık bin token'lık ek talimat gider.",
+    "richAnswersHint": "Sohbetler Igrek'in kendi parçalarıyla çizilen kutular, grafikler, tablolar ve butonlarla cevap verebilir (OpenUI). Her sohbete yaklaşık bin token'lık ek talimat gider.",
     "turnGate": "AI'ın işini kontrol et",
     "turnGateHint": "Bir sohbet turu dosya değiştirince projenin tip kontrolü, lint ve testleri çalışır. Sadece önce geçip şimdi kırılan sayılır. 'Geri gönder' bunu düzeltmesi için AI'a verir (art arda en çok iki kez).",
     "turnGateCheck": "Göster",
     "turnGateSendBack": "Geri gönder"
   },
   "onboarding": {
-    "welcome": "God Eye'a hoş geldin",
+    "welcome": "Igrek'e hoş geldin",
     "pickLanguage": "Hangi dili istersin?",
     "search": "Dil ara…",
     "continue": "Devam",
     "readyTitle": "Her şey hazır",
-    "readyBody": "God Eye sadece senin bilgisayarında çalışır. Sen paylaşmaya karar vermedikçe hiçbir şey dışarı çıkmaz.",
+    "readyBody": "Igrek sadece senin bilgisayarında çalışır. Sen paylaşmaya karar vermedikçe hiçbir şey dışarı çıkmaz.",
     "start": "Başla"
   },
   "help": {
@@ -227,7 +227,7 @@
     "t_terminals": "Terminaller",
     "d_terminals": "Tarayıcıda gerçek terminaller; her projede Claude, Codex, Gemini ya da düz kabuk.",
     "t_memory": "Proje hafızası",
-    "d_memory": "God Eye'ın bir proje hakkında öğrendikleri: kararlar, konvansiyonlar, işe yaramayan yollar, açık sorunlar. AI oturumları başlarken okur. Kararları Hafıza sekmesinden ADR olarak dışa aktar.",
+    "d_memory": "Igrek'in bir proje hakkında öğrendikleri: kararlar, konvansiyonlar, işe yaramayan yollar, açık sorunlar. AI oturumları başlarken okur. Kararları Hafıza sekmesinden ADR olarak dışa aktar.",
     "t_inbox": "Gelen Kutusu",
     "d_inbox": "Seni bekleyen her şey: onaylar, bir şey soran sohbet ve terminaller, takım çalışmaları, kapanan siteler, hatalar, süresi dolan sertifikalar, değişmesi gereken anahtarlar.",
     "t_limits": "Limitler",
@@ -267,9 +267,9 @@
     "t_settings": "Ayarlar",
     "d_settings": "Dil, tema, Ollama ile ücretsiz lokal model, kendi MCP sunucuların, Telegram, Discord ya da e-postaya bildirimler, yedekler, güncellemeler, disk ve ağ.",
     "t_cli": "Komut satırı",
-    "d_cli": "godeye status, projects, search, ask, inbox, run, recap, weekly ve her uç nokta için godeye api: her şey script'le de.",
+    "d_cli": "igrek status, projects, search, ask, inbox, run, recap, weekly ve her uç nokta için igrek api: her şey script'le de.",
     "t_safety": "Güvenlik ve gizlilik",
-    "d_safety": "God Eye kendiliğinden asla push ya da deploy etmez, anahtarları ya da .env değerlerini AI'a vermez, telemetri göndermez (Ayarlar > Ağ açtığı her adresi gösterir) ve kırmızı Hepsini durdur düğmesi her şeyi bir anda durdurur.",
+    "d_safety": "Igrek kendiliğinden asla push ya da deploy etmez, anahtarları ya da .env değerlerini AI'a vermez, telemetri göndermez (Ayarlar > Ağ açtığı her adresi gösterir) ve kırmızı Hepsini durdur düğmesi her şeyi bir anda durdurur.",
     "t_ask": "Ne istediğini yaz (ana sayfa kutusu)",
     "d_ask": "Ana sayfanın en üstündeki kutu: yaz, projeyi seç, Enter. Sohbet açılır ve mesaj gider."
   },
@@ -299,13 +299,13 @@
     "fetch": "Uzak repoyu kontrol et",
     "fetching": "Kontrol ediliyor…",
     "rename": "Yeniden adlandır",
-    "renameHint": "Sadece God Eye'da görünen adı değiştirir.",
+    "renameHint": "Sadece Igrek'te görünen adı değiştirir.",
     "save": "Kaydet",
     "commitBy": "{{author}} commit attı",
     "sessionsAndCommits": "{{sessions}} oturum · {{commits}} commit",
     "sections": "Bölümler",
     "gitFlow": "Önerilen git düzeni",
-    "gitFlowHint": "Kendi branch'inde çalış, main'e PR aç ve sadece main'i deploy et. Açıkken, doğrudan main'e commit etmeden önce God Eye sorar. Sunuculardaki kod sadece git'ten gelir.",
+    "gitFlowHint": "Kendi branch'inde çalış, main'e PR aç ve sadece main'i deploy et. Açıkken, doğrudan main'e commit etmeden önce Igrek sorar. Sunuculardaki kod sadece git'ten gelir.",
     "environments": "Ortamlar",
     "board": "Pano",
     "preview": "Önizleme",
@@ -318,7 +318,7 @@
   },
   "memory": {
     "title": "Proje hafızası",
-    "hint": "God Eye'ın bu proje hakkında hatırladıkları. Her yeni AI oturumuna verilir; böylece AI tahmin etmek yerine gerçeklerden başlar.",
+    "hint": "Igrek'in bu proje hakkında hatırladıkları. Her yeni AI oturumuna verilir; böylece AI tahmin etmek yerine gerçeklerden başlar.",
     "empty": "Henüz hatırlanan bir şey yok. Oturumlar özetlendikçe hafıza dolacak.",
     "status": "Durum",
     "decision": "Kararlar",
@@ -361,7 +361,7 @@
     "summarize": "Özetle",
     "summarizing": "Özetleniyor…",
     "resummarize": "Yeniden özetle",
-    "noSummaryBody": "Bu oturumun henüz özeti yok. God Eye sade bir dille yazabilir.",
+    "noSummaryBody": "Bu oturumun henüz özeti yok. Igrek sade bir dille yazabilir.",
     "transcript": "Konuşma",
     "showTools": "Araç adımlarını göster",
     "you": "Sen",
@@ -451,7 +451,7 @@
     "sources": "Kaynaklar"
   },
   "mcp": {
-    "title": "Claude içinde God Eye araçları",
+    "title": "Claude içinde Igrek araçları",
     "hint": "Claude her projede proje hafızasına ve geçmiş oturumlara kendisi bakabilsin.",
     "install": "Claude'a ekle",
     "remove": "Kaldır",
@@ -699,7 +699,7 @@
   "servers": {
     "title": "Sunucular",
     "empty": "Henüz sunucu yok",
-    "emptyBody": "ssh ile bağlandığın bir sunucu ekle. God Eye senin ssh'ını ve ssh-agent'ını kullanır, anahtarlarını asla okumaz.",
+    "emptyBody": "ssh ile bağlandığın bir sunucu ekle. Igrek senin ssh'ını ve ssh-agent'ını kullanır, anahtarlarını asla okumaz.",
     "add": "Sunucu ekle",
     "name": "Ad",
     "targetHint": "kullanıcı@host, host adı ya da ~/.ssh/config'teki bir takma ad",
@@ -797,8 +797,8 @@
     "notice_notebookRejected_one": "1 fikir değişikliği kaydedilmedi: yeni kanıt yoktu",
     "notice_notebookRejected_other": "{{count}} fikir değişikliği kaydedilmedi: yeni kanıt yoktu",
     "goneTitle": "Bu sohbet bitti",
-    "goneBody": "\"{{title}}\" artık çalışmıyor (durduruldu ya da God Eye yeniden başladı). Konuşma kaydedildi; kaldığın yerden devam edebilirsin.",
-    "goneUnknown": "Bu sohbet artık çalışmıyor (durduruldu ya da God Eye yeniden başladı). Konuşması projenin Oturumlar sekmesinde kayıtlı.",
+    "goneBody": "\"{{title}}\" artık çalışmıyor (durduruldu ya da Igrek yeniden başladı). Konuşma kaydedildi; kaldığın yerden devam edebilirsin.",
+    "goneUnknown": "Bu sohbet artık çalışmıyor (durduruldu ya da Igrek yeniden başladı). Konuşması projenin Oturumlar sekmesinde kayıtlı.",
     "goneResume": "Kaldığım yerden devam et",
     "goneOpen": "Konuşmayı oku",
     "goneProject": "Projeye git",
@@ -874,7 +874,7 @@
   },
   "checkpoint": {
     "title": "Kayıtlar",
-    "hint": "God Eye her AI adımından önce kodunun bir kaydını alır. İstediğine geri dönebilirsin.",
+    "hint": "Igrek her AI adımından önce kodunun bir kaydını alır. İstediğine geri dönebilirsin.",
     "saved": "Kayıt alındı",
     "restore": "Bu noktaya geri dön",
     "restoreTitle": "Bu kayda geri dönülsün mü?",
@@ -892,7 +892,7 @@
     "fiveHour": "5 saatlik limit",
     "week": "Haftalık limit",
     "resets": "{{when}} sıfırlanır",
-    "noData": "Henüz limit bilgisi yok. God Eye'daki bir sonraki Claude cevabında (sohbet, hızlı soru ya da özet) görünür.",
+    "noData": "Henüz limit bilgisi yok. Igrek'teki bir sonraki Claude cevabında (sohbet, hızlı soru ya da özet) görünür.",
     "fullAt": "Bu hızla saat {{time}}'da dolar.",
     "pace": "Saatte yaklaşık %{{pct}} kullanılıyor.",
     "safe": "Bu hızla sıfırlanana kadar yeter.",
@@ -933,7 +933,7 @@
     "forProject": "Bu projenin hesabı",
     "followActive": "Aktif hesabı kullan",
     "loginHint": "Aracın girişiyle bir terminal açılır. Orada bitir, sonra Kontrol et'e bas.",
-    "noSwitch": "God Eye hesap değiştirmeyi asla kendi başına yapmaz; sen seçersin."
+    "noSwitch": "Igrek hesap değiştirmeyi asla kendi başına yapmaz; sen seçersin."
   },
   "team": {
     "connectTitle": "Takımına katıl",
@@ -1163,7 +1163,7 @@
     "gainTip": "Bunu düzeltmek puanı yaklaşık {{points}} artırır",
     "fix": "Düzelt",
     "fixTip": "Bunun için hazır bir prompt'la chat aç. Gönder'e basana kadar hiçbir şey gönderilmez.",
-    "fixDone": "God Eye'ın \"{{check}}\" kontrolü geçiyor",
+    "fixDone": "Igrek'in \"{{check}}\" kontrolü geçiyor",
     "fixTests": "Mevcut testler hâlâ geçiyor",
     "fixFocus": "Sadece bunun gerektirdiğini değiştir",
     "sessions": "Burada çalışan oturumlar",
@@ -1173,7 +1173,7 @@
     "unavailable": "Bu proje puanlanamıyor",
     "scanning": "Taranıyor…",
     "noScan": "Henüz taranmadı",
-    "noScanBody": "God Eye kodu okur (hiçbir şey çalıştırılmaz veya bir yere gönderilmez) ve her bölümü kanıtla puanlar.",
+    "noScanBody": "Igrek kodu okur (hiçbir şey çalıştırılmaz veya bir yere gönderilmez) ve her bölümü kanıtla puanlar.",
     "scan": "Şimdi tara",
     "scanTip": "Kodu yeniden oku ve tekrar puanla. Ücretsiz: puanlar için AI kullanılmaz.",
     "overall": "Proje sağlığı",
@@ -1447,7 +1447,7 @@
     "external_other": "{{count}} dış servis",
     "noExternal": "Kodda dış servis bulunamadı.",
     "unknown": "adresten",
-    "unknownTip": "God Eye bu servisi adıyla tanımıyor; koddaki URL'inden bulundu.",
+    "unknownTip": "Igrek bu servisi adıyla tanımıyor; koddaki URL'inden bulundu.",
     "docs": "Dokümantasyon",
     "usedAt_one": "{{count}} yerde kullanılıyor",
     "usedAt_other": "{{count}} yerde kullanılıyor",
@@ -1720,7 +1720,7 @@
     "workflowExists": "Zaten var",
     "workflowWritten": "{{path}} oluşturuldu. Hazır olunca commit edip push et.",
     "remove": "Ortamı kaldır",
-    "removeConfirm": "Bu ortam God Eye'dan kaldırılsın mı? Sunucuda hiçbir şey değişmez.",
+    "removeConfirm": "Bu ortam Igrek'ten kaldırılsın mı? Sunucuda hiçbir şey değişmez.",
     "local": "Bu bilgisayar",
     "localChanged_one": "{{count}} commit edilmemiş değişiklik",
     "localChanged_other": "{{count}} commit edilmemiş değişiklik",
@@ -1731,7 +1731,7 @@
     "noServers": "Önce Sunucular sayfasından bir sunucu ekle.",
     "addServer": "Sunuculara git",
     "add": "Ortam ekle",
-    "addHint": "Sunucudaki proje, bir git kopyası olarak. God Eye kod kopyalamaz; sunucu kodu git'ten çeker.",
+    "addHint": "Sunucudaki proje, bir git kopyası olarak. Igrek kod kopyalamaz; sunucu kodu git'ten çeker.",
     "name": "Ad",
     "path": "Sunucudaki klasör",
     "branch": "Dal",
@@ -1751,7 +1751,7 @@
     "check_testsFailing": "Testler son çalıştığında başarısız oldu",
     "check_envMissing": "Kodun ihtiyaç duyduğu ayarlar sunucudaki .env'de yok:",
     "check_destructiveMigration": "Veri kaybettirebilecek migration'lar (drop, truncate, rename):",
-    "check_noDbBackup": "Bu proje için veritabanı yedeği kurulu değil: Araçlar > Yedekler'den ekle, God Eye her deploy'dan önce yedek alır.",
+    "check_noDbBackup": "Bu proje için veritabanı yedeği kurulu değil: Araçlar > Yedekler'den ekle, Igrek her deploy'dan önce yedek alır.",
     "preview": "Önizleme deploy'u: sadece bu sefer; ortam {{branch}} dalında kalır.",
     "staging": "Staging oluştur",
     "stagingHint": "Repo {{server}} üzerinde yeni bir klasöre klonlanır ve aynı deploy komutuyla kendi ortamı olur. Onayladığında çalışır; sunucunun denetim kaydına girer.",
@@ -1781,7 +1781,7 @@
     "brokenTip_other": "{{count}} kayıt öncekilerle eşleşmedi"
   },
   "keys": {
-    "waiting": "Girdin. Takımın işini okuyabilmesi için bu bilgisayarı bir adminin onaylaması gerekiyor; bu onun God Eye'ında olur, genelde birkaç dakika içinde.",
+    "waiting": "Girdin. Takımın işini okuyabilmesi için bu bilgisayarı bir adminin onaylaması gerekiyor; bu onun Igrek'inde olur, genelde birkaç dakika içinde.",
     "requests": "Onay bekleyenler",
     "requestsHint": "Bu bilgisayarlar giriş yaptı ama takım anahtarı henüz yok. Sadece tanıdığın cihazları onayla: onaylamak, takımın paylaştığı her şeyi okumasına izin verir.",
     "approve": "Onayla",
@@ -1905,11 +1905,11 @@
     "undo": "Geri al"
   },
   "errors": {
-    "offline": "Bu bilgisayardaki God Eye'a ulaşılamıyor. Çalıştığından emin ol, sonra Tekrar dene'ye bas.",
+    "offline": "Bu bilgisayardaki Igrek'e ulaşılamıyor. Çalıştığından emin ol, sonra Tekrar dene'ye bas.",
     "signedOut": "Buradaki oturumun sona erdi. Devam etmek için sayfayı yenile.",
     "notFound": "Bu artık burada değil. Silinmiş ya da taşınmış olabilir.",
     "tooMany": "Kısa sürede çok fazla deneme oldu. Bir dakika bekleyip tekrar dene.",
-    "server": "Bizim tarafta bir sorun oldu. Tekrar dene'ye bas; devam ederse God Eye'ı yeniden başlat.",
+    "server": "Bizim tarafta bir sorun oldu. Tekrar dene'ye bas; devam ederse Igrek'i yeniden başlat.",
     "retry": "Tekrar dene"
   },
   "glossary": {
@@ -1995,7 +1995,7 @@
     },
     "mcp": {
       "word": "MCP",
-      "text": "AI araçlarının başka programları kullanmasının standart yolu. God Eye, Claude proje hafızasını okuyabilsin diye bir tane sunar.",
+      "text": "AI araçlarının başka programları kullanmasının standart yolu. Igrek, Claude proje hafızasını okuyabilsin diye bir tane sunar.",
       "match": "mcp"
     },
     "diff": {
@@ -2081,7 +2081,7 @@
     },
     "helper": {
       "title": "Kayboldun mu? Buraya sor",
-      "body": "Yardımcı, God Eye hakkındaki sorulara doğru yeri açan bağlantılarla cevap verir; ör. \"blog projemdeki son sohbet\". Tam kılavuz da orada."
+      "body": "Yardımcı, Igrek hakkındaki sorulara doğru yeri açan bağlantılarla cevap verir; ör. \"blog projemdeki son sohbet\". Tam kılavuz da orada."
     },
     "menu": {
       "title": "Menü burada",
@@ -2499,7 +2499,7 @@
     "title": "Kütüphane",
     "intro": "Personalarının okudukları: kitaplar, dokümanlar, makaleler, web sayfaları ve GitHub repoları. Cevap vermeden önce burada arar ve sayfa ya da bölüm gösterirler. Her şey bu bilgisayarda kalır.",
     "modelTitle": "Anlamla arama",
-    "modelBody": "Kelimeyle arama hemen çalışır. Anlama göre ve her dilde aramak için (Türkçe bir sorunun İngilizce bir kitabı bulması) God Eye bu bilgisayarda çalışan küçük bir model kullanır. Hugging Face'ten bir kere indirilir ({{mb}} MB, ücretsiz).",
+    "modelBody": "Kelimeyle arama hemen çalışır. Anlama göre ve her dilde aramak için (Türkçe bir sorunun İngilizce bir kitabı bulması) Igrek bu bilgisayarda çalışan küçük bir model kullanır. Hugging Face'ten bir kere indirilir ({{mb}} MB, ücretsiz).",
     "download": "İndir ({{mb}} MB)",
     "downloading": "İndiriliyor… %{{n}}",
     "drop": "PDF, EPUB, Markdown, metin ya da HTML dosyalarını buraya bırak",
@@ -2699,14 +2699,14 @@
     "name_spec": "Önce spec (büyük özellik)",
     "desc_spec": "Gereksinimler, tasarım, ardından kabul kriterli görevler docs/specs içine yazılır ve onayını bekler; ancak sonra takım kodlar, QA her kabul kriterini kontrol eder.",
     "status_waiting_limit": "Limit bekleniyor",
-    "waitingLimit": "AI planının limiti doldu. Hiçbir şey kaybolmadı: limit sıfırlanınca, {{time}} civarında takım kendiliğinden devam eder. God Eye hesapları kendiliğinden değiştirmez.",
+    "waitingLimit": "AI planının limiti doldu. Hiçbir şey kaybolmadı: limit sıfırlanınca, {{time}} civarında takım kendiliğinden devam eder. Igrek hesapları kendiliğinden değiştirmez.",
     "name_careful": "Dikkatli değişiklik (keşif, plan, eleştiri, iş, inceleme)",
     "name_cleanup": "Güvenli temizlik (ölü kod, önce ve sonra kontroller)",
     "desc_cleanup": "Önce kontroller geçmeli; ölü kod kanıtıyla listelenir, neyin gideceğini sen seçersin, bir kopyada her silme ayrı commit olarak yapılır, aynı kontroller yeniden geçer ve QA kullanıcı için hiçbir şeyin değişmediğini doğrular."
   },
   "schedules": {
     "title": "Zamanlanmış işler",
-    "intro": "Ne zaman ne olacağını bir cümleyle yaz. God Eye bunu onaylayacağın bir zamanlamaya çevirir. Zamanı gelince reponun kendi kopyasında, süre ve adım sınırları içinde bir takım akışı olarak çalışır; sonuç kendi sayfasında bekler, değişiklikler senin onayını ister.",
+    "intro": "Ne zaman ne olacağını bir cümleyle yaz. Igrek bunu onaylayacağın bir zamanlamaya çevirir. Zamanı gelince reponun kendi kopyasında, süre ve adım sınırları içinde bir takım akışı olarak çalışır; sonuç kendi sayfasında bekler, değişiklikler senin onayını ister.",
     "sentence": "Ne zaman ne olsun",
     "sentenceHint": "Örnek: her cuma sabahı bağımlılıkları güncelle",
     "propose": "Zamanla",
@@ -2755,7 +2755,7 @@
   },
   "notify": {
     "setting": "Masaüstü bildirimleri",
-    "settingHint": "God Eye arka plandayken: bir sohbet bitti ya da seni bekliyor, bir terminal cevap bekliyor, onay bekleyen bir komut var, bir takım işi seni bekliyor, bir puan düştü, bir limit doluyor.",
+    "settingHint": "Igrek arka plandayken: bir sohbet bitti ya da seni bekliyor, bir terminal cevap bekliyor, onay bekleyen bir komut var, bir takım işi seni bekliyor, bir puan düştü, bir limit doluyor.",
     "chatDone": "Sohbet bitti",
     "chatWaiting": "Bir sohbet onayını bekliyor",
     "terminalWaiting": "Bir terminal cevabını bekliyor",
@@ -2782,7 +2782,7 @@
     "today": "Bugün",
     "stuck": "Takılan ya da bekleyen",
     "quiet": "Dün bir şey olmadı, bugün için de bir plan yok.",
-    "none": "Bugün henüz yazılmadı. Arka plan AI açıksa God Eye'ı açtığında yazılır."
+    "none": "Bugün henüz yazılmadı. Arka plan AI açıksa Igrek'i açtığında yazılır."
   },
   "secrets": {
     "title": "Commit'lerdeki sırlar",
@@ -2794,7 +2794,7 @@
     "howTo": "Önce anahtarı sağlayıcısında yenile: git geçmişinden silmek onu tekrar güvenli yapmaz.",
     "guard": "Commit'leri koru",
     "guardOn": "Commit'ler korunuyor",
-    "guardTip": "Bu repoya (commit'lenmeyen .git/hooks içine) sır ekleyen commit'i durduran bir pre-commit hook ekler. God Eye çalışmıyorsa commit'lere izin verir."
+    "guardTip": "Bu repoya (commit'lenmeyen .git/hooks içine) sır ekleyen commit'i durduran bir pre-commit hook ekler. Igrek çalışmıyorsa commit'lere izin verir."
   },
   "deps": {
     "title": "Bağımlılık izleyici",
@@ -2843,19 +2843,19 @@
   },
   "update": {
     "title": "Güncellemeler",
-    "hint": "God Eye kendi git reposunu 6 saatte bir senin git girişinle kontrol eder. Güncelleme çeker, kurar ve derler; sonra yeniden başlar.",
+    "hint": "Igrek kendi git reposunu 6 saatte bir senin git girişinle kontrol eder. Güncelleme çeker, kurar ve derler; sonra yeniden başlar.",
     "available_one": "1 yeni değişiklik var",
     "available_other": "{{count}} yeni değişiklik var",
-    "upToDate": "God Eye güncel.",
+    "upToDate": "Igrek güncel.",
     "checked": "{{when}} kontrol edildi",
-    "dirty": "God Eye'ın klasöründe yerel değişiklikler var; güncellemeden önce commit'le ya da kenara koy.",
+    "dirty": "Igrek'in klasöründe yerel değişiklikler var; güncellemeden önce commit'le ya da kenara koy.",
     "check": "Şimdi kontrol et",
     "update": "Güncelle",
     "updating": "Güncelleniyor…",
     "failed": "Güncelleme durdu; kayda bak.",
-    "restart": "God Eye'ı yeniden başlat",
+    "restart": "Igrek'i yeniden başlat",
     "docker": "Docker'da çalışıyor: git pull, ardından docker compose up -d --build ile güncelle.",
-    "none": "Bu God Eye kopyası bir git çalışma kopyası değil, kendini güncelleyemez."
+    "none": "Bu Igrek kopyası bir git çalışma kopyası değil, kendini güncelleyemez."
   },
   "suite": {
     "title": "Araçlar",
@@ -2874,7 +2874,7 @@
     "time": "Zaman"
   },
   "uptime": {
-    "intro": "God Eye bu adresleri kendi aralığında bu bilgisayardan açar. Arka arkaya iki başarısız kontrol kapalı sayılır; Gelen Kutusu'na düşer ve masaüstü bildirimi gelir.",
+    "intro": "Igrek bu adresleri kendi aralığında bu bilgisayardan açar. Arka arkaya iki başarısız kontrol kapalı sayılır; Gelen Kutusu'na düşer ve masaüstü bildirimi gelir.",
     "url": "Adres",
     "interval": "Ne sıklıkla",
     "add": "İzle",
@@ -2892,7 +2892,7 @@
     "median": "ortanca {{ms}} ms",
     "checked": "{{when}} kontrol edildi",
     "emptyTitle": "Henüz izlenen site yok",
-    "emptyBody": "Bir sitenin ya da API'nin adresini ekle; cevap vermeyi bırakınca God Eye haber verir."
+    "emptyBody": "Bir sitenin ya da API'nin adresini ekle; cevap vermeyi bırakınca Igrek haber verir."
   },
   "domains": {
     "intro": "Günde bir kez: 443 portundaki sertifika, RDAP'tan (WHOIS'in resmi devamı) alan adının bitiş tarihi ve DNS kayıtları. Bir şeyin süresi dolmadan 30, 14, 7 ve 1 gün önce uyarır.",
@@ -2964,8 +2964,8 @@
   "apperrors": {
     "title": "Uygulamandan gelen hatalar",
     "setup": "Uygulamayı bağla",
-    "setupBody": "Bunu uygulamana yapıştır. Hatalar (mesaj, stack, sayfa, sürüm) ve takip ettiğin olaylar sadece bu bilgisayardaki God Eye'a gider; kullanıcı kimlikleri hash'lenir.",
-    "setupNote": "Bir hatanın hangi commit'lerden sonra başladığını görmek için release'i build'in commit'i yap. Yoksa God Eye projenin o anki commit'ini kullanır. Başka bir bilgisayardaki uygulamalar God Eye'ın lokal adresine ulaşamaz.",
+    "setupBody": "Bunu uygulamana yapıştır. Hatalar (mesaj, stack, sayfa, sürüm) ve takip ettiğin olaylar sadece bu bilgisayardaki Igrek'e gider; kullanıcı kimlikleri hash'lenir.",
+    "setupNote": "Bir hatanın hangi commit'lerden sonra başladığını görmek için release'i build'in commit'i yap. Yoksa Igrek projenin o anki commit'ini kullanır. Başka bir bilgisayardaki uygulamalar Igrek'in lokal adresine ulaşamaz.",
     "browser": "Tarayıcı",
     "server": "Node / Bun",
     "done": "Tamam",
@@ -3033,7 +3033,7 @@
     "isProd": "(canlı veritabanı)",
     "askDraft": "Bu {{kind}} sorgusunu açıkla {{prod}}: ne yapıyor, doğru mu, nasıl daha hızlı olur.\n\nSorgu:\n{{query}}\n\nKullandığı tablolar:\n{{schema}}\n\nPlan:\n{{plan}}",
     "emptyTitle": "Henüz veritabanı yok",
-    "emptyBody": "Adresiyle bir veritabanı ekle ya da God Eye'ın bir projenin .env dosyasında veya klasöründe bulduğunu seç.",
+    "emptyBody": "Adresiyle bir veritabanı ekle ya da Igrek'in bir projenin .env dosyasında veya klasöründe bulduğunu seç.",
     "health": "Veri sağlığı",
     "healthHint": "Veride sorun arar, sadece okuyan sorgularla: olmayan bir kayda işaret eden satırlar, tekil olması gereken yerde tekrar eden değerler (e-posta, slug), neredeyse hep dolu sütunlardaki boşluklar, negatif fiyat ya da miktarlar, aynı değerin farklı yazımları (büyük-küçük harf, boşluk, aksan).",
     "healthScan": "Veriyi tara",
@@ -3098,7 +3098,7 @@
     "restoreCopy": "Kopya olarak geri yükle",
     "restoredTo": "{{file}} olarak geri yüklendi. Aslına dokunulmadı.",
     "emptyTitle": "Henüz yedek yok",
-    "emptyBody": "Bir veritabanı ya da klasör ekle; God Eye zamanında yedekler ve her yedeği test eder.",
+    "emptyBody": "Bir veritabanı ya da klasör ekle; Igrek zamanında yedekler ve her yedeği test eder.",
     "c_tables_one": "1 tablo",
     "c_tables_other": "{{count}} tablo",
     "c_rows_one": "1 satır",
@@ -3168,7 +3168,7 @@
     "toChat": "Sohbete gönder",
     "tip_chat": "Tahtanın yapısı mesaj kutusunda olacak şekilde yeni bir sohbet açar.",
     "chatDraft": "\"{{title}}\" tahtası hakkında:\n\n{{structure}}\n\n",
-    "dragText": "\"{{title}}\" tahtası (God Eye tahtası {{id}})",
+    "dragText": "\"{{title}}\" tahtası (Igrek tahtası {{id}})",
     "history": "Geçmiş",
     "historyHint": "Çizerken birkaç dakikada bir sürüm saklanır. Geri yüklemek mevcut hali de sürüm olarak saklar.",
     "restore": "Geri yükle",
@@ -3206,7 +3206,7 @@
     "checksFailed_other": "{{count}} kontrol başarısız",
     "checksPending_one": "1 kontrol çalışıyor",
     "checksPending_other": "{{count}} kontrol çalışıyor",
-    "readOnly": "Kendi girişinle okunur; God Eye oraya yazmaz.",
+    "readOnly": "Kendi girişinle okunur; Igrek oraya yazmaz.",
     "noRemoteTitle": "GitHub ya da GitLab remote'u yok",
     "noRemoteBody": "Bu projenin GitHub veya GitLab'da origin adlı bir remote'u yok.",
     "otherHost": "Remote ({{repo}}) GitHub ya da GitLab'da değil.",
@@ -3214,7 +3214,7 @@
     "install_gh": "GitHub CLI'yi kur (cli.github.com), sonra terminalde gh auth login çalıştır.",
     "install_glab": "GitLab CLI'yi kur (gitlab.com/gitlab-org/cli), sonra terminalde glab auth login çalıştır.",
     "signInTitle": "{{cli}} ile giriş yap",
-    "signInBody": "Terminalde {{cli}} auth login çalıştır (God Eye senin yerine asla giriş yapmaz).",
+    "signInBody": "Terminalde {{cli}} auth login çalıştır (Igrek senin yerine asla giriş yapmaz).",
     "reviewIt": "İncele",
     "reviewPlaceholder": "İncelemen: neler iyi, neler değişmeli…",
     "approve": "Onayla",
@@ -3270,7 +3270,7 @@
     "every_other": "{{count}} günde bir",
     "noReminder": "Hatırlatma yok",
     "rotated": "Değiştirdim",
-    "rotatedTip": "God Eye'ın göremediği yerde değişen anahtarlar için (sağlayıcının paneli). .env dosyasındaki değişiklikler kendiliğinden fark edilir.",
+    "rotatedTip": "Igrek'in göremediği yerde değişen anahtarlar için (sağlayıcının paneli). .env dosyasındaki değişiklikler kendiliğinden fark edilir.",
     "reveal": "Değeri göster",
     "copy": "Değeri kopyala",
     "remove": "Kaldır",
@@ -3317,15 +3317,15 @@
     "noRates": "Kur yok (çevrimdışı): sadece bu para birimindeki maliyetler toplanır",
     "unconverted": "çevrilemeyen: {{list}}",
     "endedAt": "{{month}} ayına kadar",
-    "suggested": "God Eye bunların olduğunu biliyor; ne kadar tuttuklarını ekle",
+    "suggested": "Igrek bunların olduğunu biliyor; ne kadar tuttuklarını ekle",
     "emptyTitle": "Henüz maliyet yok",
     "emptyBody": "Projelerinin her ay neye mal olduğunu görmek için sunucularını, AI planlarını ve aboneliklerini ekle."
   },
   "analytics": {
     "title": "Ürün rakamları",
     "signups": "Kayıt kaynağı",
-    "signupsHint": "Tabloyu ve kayıt zamanının olduğu sütunu seç; God Eye sadece satır sayar (salt okunur).",
-    "emptyBody": "Kayıtları projenin veritabanındaki bir tablodan say ya da uygulamadan olay gönder (aşağıda Uygulamayı bağla: godeyeTrack(\"özellik\", kullanıcıId)). Kullanıcı kimlikleri saklanmadan önce hash'lenir.",
+    "signupsHint": "Tabloyu ve kayıt zamanının olduğu sütunu seç; Igrek sadece satır sayar (salt okunur).",
+    "emptyBody": "Kayıtları projenin veritabanındaki bir tablodan say ya da uygulamadan olay gönder (aşağıda Uygulamayı bağla: igrekTrack(\"özellik\", kullanıcıId)). Kullanıcı kimlikleri saklanmadan önce hash'lenir.",
     "noDb": "Kayıtları saymak için projenin veritabanını Araçlar > Veritabanları'ndan bağla.",
     "db": "Veritabanı",
     "table": "Tablo",
@@ -3337,24 +3337,24 @@
     "week": "son 7 günde",
     "dayMonth": "bugün {{day}} · 30 gün {{month}}",
     "features": "En çok kullanılan (7 gün)",
-    "noEvents": "Uygulamadan henüz olay gelmedi: aşağıdan bağla ve önemli yerlerde godeyeTrack(\"özellik\") çağır.",
+    "noEvents": "Uygulamadan henüz olay gelmedi: aşağıdan bağla ve önemli yerlerde igrekTrack(\"özellik\") çağır.",
     "ask": "PM'e sor",
     "askTip": "Product Manager personasıyla sadece bu rakamlarla (kullanıcı verisi olmadan) bir sohbet açar.",
     "askDraft": "Bu rakamlar ne söylüyor, sırada ne yapmalıyız? Hangi özellik geliştirilmeli, hangisi bırakılmalı?",
     "isNew": "yeni"
   },
   "plugins": {
-    "intro": "God Eye'da eksik olanı ekle. Eklenti, godeye-plugin.json içeren bir klasördür: God Eye'ın kum havuzunda gösterdiği sayfalar ve tıklayınca terminalde çalıştırdığı komutlar. İstediklerini onaylayana kadar kapalı kalır.",
+    "intro": "Igrek'te eksik olanı ekle. Eklenti, igrek-plugin.json içeren bir klasördür: Igrek'in kum havuzunda gösterdiği sayfalar ve tıklayınca terminalde çalıştırdığı komutlar. İstediklerini onaylayana kadar kapalı kalır.",
     "source": "Klasör yolu (/home/sen/eklentim) ya da https git adresi",
     "install": "Kur",
     "installing": "Kuruluyor…",
-    "example": "Örnek: God Eye'ın kendi reposunda examples/plugins altındaki project-pulse klasörü.",
+    "example": "Örnek: Igrek'in kendi reposunda examples/plugins altındaki project-pulse klasörü.",
     "approve": "Eklentiyi aç",
     "approveTitle": "{{name}} açılsın mı?",
     "reads": "Sayfaları şunları okuyabilir:",
-    "readsNothing": "Sayfaları God Eye'dan hiçbir şey okumaz.",
+    "readsNothing": "Sayfaları Igrek'ten hiçbir şey okumaz.",
     "runs": "Bir projenin klasöründe çalıştırabileceği komutlar (sadece sen tıklayınca, gördüğün bir terminalde):",
-    "sandbox": "Eklenti sayfaları ağı olmayan bir kum havuzunda çalışır: dışarıya hiçbir şey gönderemez, God Eye'da hiçbir şeyi değiştiremez, başka sayfa açamaz.",
+    "sandbox": "Eklenti sayfaları ağı olmayan bir kum havuzunda çalışır: dışarıya hiçbir şey gönderemez, Igrek'te hiçbir şeyi değiştiremez, başka sayfa açamaz.",
     "turnOn": "Aç",
     "turnOff": "Kapat",
     "remove": "Kaldır",
@@ -3374,7 +3374,7 @@
   },
   "localModel": {
     "title": "Lokal model (Ollama)",
-    "hint": "God Eye'ın kendi küçük işleri için bu bilgisayarda ücretsiz bir model: oturum özetleri, sınıflandırma, çeviri. Kod yazan agent'lar her zaman senin AI hesaplarını kullanır. Ollama'yı kur (ollama.com) ve bir model indir, ör. ollama pull qwen2.5:7b.",
+    "hint": "Igrek'in kendi küçük işleri için bu bilgisayarda ücretsiz bir model: oturum özetleri, sınıflandırma, çeviri. Kod yazan agent'lar her zaman senin AI hesaplarını kullanır. Ollama'yı kur (ollama.com) ve bir model indir, ör. ollama pull qwen2.5:7b.",
     "when": "Ne zaman",
     "off": "Kapalı",
     "limit": "Limit dolunca",
@@ -3435,7 +3435,7 @@
     "target": "Neyi test etsin?",
     "targetTip": "Test edilecek fonksiyonu ya da özelliği ve önemli durumları yaz.",
     "env": "Staging mi prod mu?",
-    "envTip": "Hangi ortam olduğunu söyle. God Eye zaten deploy'dan önce hep sorar.",
+    "envTip": "Hangi ortam olduğunu söyle. Igrek zaten deploy'dan önce hep sorar.",
     "split": "Tek mesajda birden çok iş",
     "splitTip": "Birçok adım birden: böl ya da önce AI'ın plan yapması için Plan modunu kullan."
   },
@@ -3460,7 +3460,7 @@
   },
   "mcpServers": {
     "title": "Kendi MCP sunucuların",
-    "hint": "AI'a araç ekle: ücretsiz sunucular listesinden ya da elle. Açık olanlar sohbetlerde God Eye'ın kendi araçlarının yanında sunulur; AI birini kullanmadan önce sorar.",
+    "hint": "AI'a araç ekle: ücretsiz sunucular listesinden ya da elle. Açık olanlar sohbetlerde Igrek'in kendi araçlarının yanında sunulur; AI birini kullanmadan önce sorar.",
     "on": "Açık",
     "test": "Dene",
     "testing": "Deneniyor…",
@@ -3552,7 +3552,7 @@
   },
   "bridges": {
     "title": "Bildirim köprüleri",
-    "hint": "God Eye dışına kısa bildirimler, hepsi ücretsiz: kendi Telegram botun, bir Discord kanalı ya da kendi e-posta sunucun. Sadece başlık gider (asla kod ya da sır), sır temizleyiciden geçtikten sonra.",
+    "hint": "Igrek dışına kısa bildirimler, hepsi ücretsiz: kendi Telegram botun, bir Discord kanalı ya da kendi e-posta sunucun. Sadece başlık gider (asla kod ya da sır), sır temizleyiciden geçtikten sonra.",
     "kind": "Nereye",
     "kind_telegram": "Telegram",
     "kind_discord": "Discord",
@@ -3659,7 +3659,7 @@
   },
   "incident": {
     "title": "Olay modu",
-    "hint": "Site çökünce: God Eye uptime, uygulama hataları, log hataları, son deploy'lar ve commit'leri bir zaman çizelgesinde toplar; SRE personası en olası sorunu ve önce neye bakılacağını söyler. Çözüldü dediğinde postmortem wiki'ye yazılır.",
+    "hint": "Site çökünce: Igrek uptime, uygulama hataları, log hataları, son deploy'lar ve commit'leri bir zaman çizelgesinde toplar; SRE personası en olası sorunu ve önce neye bakılacağını söyler. Çözüldü dediğinde postmortem wiki'ye yazılır.",
     "open": "Olay modunu aç",
     "back": "Açık olaya dön",
     "whatHappened": "Ne oluyor? (ör. \"Ödeme 500 dönüyor\")",
@@ -3682,7 +3682,7 @@
   },
   "feedback": {
     "title": "Kullanıcı geri bildirimi",
-    "empty": "Henüz geri bildirim yok: Uygulamayı bağla altındaki kodda kendi geri bildirim kutun için godeyeFeedback(metin, iletişim) var.",
+    "empty": "Henüz geri bildirim yok: Uygulamayı bağla altındaki kodda kendi geri bildirim kutun için igrekFeedback(metin, iletişim) var.",
     "sort_one": "Bekleyen 1 taneyi sınıflandır",
     "sort_other": "Bekleyen {{count}} taneyi sınıflandır",
     "all": "Hepsi {{count}}",
@@ -3716,10 +3716,10 @@
   },
   "disk": {
     "title": "Disk ve saklama",
-    "hint": "God Eye'ın bu bilgisayarda tuttukları ve bunları küçük tutmak. Sadece God Eye'ın kendi kopyaları silinir: özetler kalır, AI araçlarının kendi oturum dosyalarına asla dokunulmaz.",
-    "total": "God Eye {{size}} kullanıyor",
+    "hint": "Igrek'in bu bilgisayarda tuttukları ve bunları küçük tutmak. Sadece Igrek'in kendi kopyaları silinir: özetler kalır, AI araçlarının kendi oturum dosyalarına asla dokunulmaz.",
+    "total": "Igrek {{size}} kullanıyor",
     "counts": "{{sessions}} oturum, {{messages}} mesaj indekslendi",
-    "part_godeyedb": "Veritabanı",
+    "part_igrekdb": "Veritabanı",
     "part_models": "Arama modeli",
     "part_worktrees": "Takım çalışması kopyaları",
     "part_backups": "Yedekler",
@@ -3743,12 +3743,12 @@
   },
   "network": {
     "title": "Ağ",
-    "hint": "Sıfır telemetri, gösterilerek: God Eye sunucusunun başladığından beri internette açtığı her adres ve ne için açtığı. Senin ya da kodunla ilgili hiçbir şey God Eye'ı yapanlara gönderilmez.",
+    "hint": "Sıfır telemetri, gösterilerek: Igrek sunucusunun başladığından beri internette açtığı her adres ve ne için açtığı. Senin ya da kodunla ilgili hiçbir şey Igrek'i yapanlara gönderilmez.",
     "since": "{{when}} tarihinden beri",
     "times_one": "bir kez",
     "times_other": "{{count}} kez",
-    "none": "God Eye başladığından beri hiçbir internet adresine bağlanmadı.",
-    "note": "God Eye'ın senin için başlattığı araçlar (claude, codex, git, gh, ssh) kendi servisleriyle senin girişlerinle konuşur; burada listelenmez.",
+    "none": "Igrek başladığından beri hiçbir internet adresine bağlanmadı.",
+    "note": "Igrek'in senin için başlattığı araçlar (claude, codex, git, gh, ssh) kendi servisleriyle senin girişlerinle konuşur; burada listelenmez.",
     "p_searchModel": "arama modeli indirme",
     "p_vulns": "açık veritabanı",
     "p_packages": "paket sürümleri",
@@ -3866,7 +3866,7 @@
     "askTeacher": "Öğretmene sor",
     "askDraft": "{{roadmap}} yol haritasında \"{{step}}\" adımındayım. ",
     "doForMe": "Bu adımı bana yaptır",
-    "doForMeTip": "God Eye adımı örnek projenin ayrı bir kopyasında yapar; sen adım adım takip edersin, beğenirsen birleştirirsin.",
+    "doForMeTip": "Igrek adımı örnek projenin ayrı bir kopyasında yapar; sen adım adım takip edersin, beğenirsen birleştirirsin.",
     "reportStep": "Yanlış ya da eskimiş adımı bildir",
     "whereIs": "Projen hangi adımda?",
     "pickProject": "Bir proje seç...",
@@ -3884,7 +3884,7 @@
     "stage_deploy": "Deploy",
     "stage_monitoring": "İzleme ve bakım",
     "stage_advanced": "İleri konular",
-    "reason_project": "God Eye'da",
+    "reason_project": "Igrek'te",
     "reason_commits": "{{v}} commit",
     "reason_apis": "{{v}} uç nokta",
     "reason_noApis": "uç nokta bulunamadı",
@@ -3920,7 +3920,7 @@
   "helper": {
     "title": "Yardımcı",
     "subtitle": "Bir şeyin yerini ya da ne yapacağını sor",
-    "hello": "Merhaba. God Eye hakkında ne istersen sor: bir şey nerede, nasıl yapılır ya da en son nerede kalmıştın. Cevabı doğrudan açan bağlantılarla veririm.",
+    "hello": "Merhaba. Igrek hakkında ne istersen sor: bir şey nerede, nasıl yapılır ya da en son nerede kalmıştın. Cevabı doğrudan açan bağlantılarla veririm.",
     "placeholder": "ör. blog projemdeki son sohbet",
     "send": "Gönder",
     "close": "Kapat",
@@ -3944,23 +3944,23 @@
     "terminal": "Terminaller bir projede Claude, Codex ya da shell çalıştırır. Bir projenin \"Yeni sohbet\" menüsünden başlatılır.",
     "project": "**{{name}}**: ne yapmak istersin?",
     "found": "Bunlar işine yarayabilir:",
-    "unknown": "Tam anlayamadım. Kılavuz ya da tur God Eye'ın her yerini gösterir.",
+    "unknown": "Tam anlayamadım. Kılavuz ya da tur Igrek'in her yerini gösterir.",
     "tour": "Tur, ekranın bir bölümünü aydınlatıp ne olduğunu anlatır; sonra bir sonrakine geçer.",
-    "guide": "Kılavuz God Eye'ı adım adım anlatır:",
+    "guide": "Kılavuz Igrek'i adım adım anlatır:",
     "startTour": "Turu başlat",
     "whereType": "**Ana sayfanın** en üstündeki büyük kutuya (\"Ne yapmak istiyorsun?\") yaz. Yanından projeyi seç ve Enter'a bas: o projede bir sohbet açılır ve mesajın gider. Bir projenin içindeyken mavi **Yeni sohbet** butonu da aynı işi yapar."
   },
   "guide": {
-    "title": "God Eye nasıl kullanılır",
-    "heroTitle": "On adımda God Eye",
-    "heroBody": "God Eye, AI ile yaptığın bütün kodlama işini tek yerde izler: her proje, sohbet ve terminal; hafıza, özetler, kontroller ve uzman personalardan bir takımla. Başlamak için ilk üç adım yeter; gerisi ihtiyacın olduğunda hazır.",
+    "title": "Igrek nasıl kullanılır",
+    "heroTitle": "On adımda Igrek",
+    "heroBody": "Igrek, AI ile yaptığın bütün kodlama işini tek yerde izler: her proje, sohbet ve terminal; hafıza, özetler, kontroller ve uzman personalardan bir takımla. Başlamak için ilk üç adım yeter; gerisi ihtiyacın olduğunda hazır.",
     "askHelper": "Yardımcıya sor",
     "steps": "İlk adımlar",
-    "all": "God Eye'ın bütün bölümleri",
+    "all": "Igrek'in bütün bölümleri",
     "show": "Göster",
     "add": {
       "title": "Projeni ekle",
-      "body": "Proje, bilgisayarındaki bir klasördür. God Eye orada daha önce yaptığın AI oturumlarını okur ve projenin hafızasını tutar.",
+      "body": "Proje, bilgisayarındaki bir klasördür. Igrek orada daha önce yaptığın AI oturumlarını okur ve projenin hafızasını tutar.",
       "how": "Projeler sayfası (soldaki ilk simge) → sağ üstte Klasör ekle → klasörün yolunu yapıştır. Ya da bir şablondan başlamak için Yeni proje."
     },
     "ask": {
@@ -3980,7 +3980,7 @@
     },
     "terminal": {
       "title": "İstersen gerçek terminali kullan",
-      "body": "Claude Code, Codex ya da shell'i olduğu gibi kullanmak istersen God Eye onları tarayıcıda açar ve çalışır tutar.",
+      "body": "Claude Code, Codex ya da shell'i olduğu gibi kullanmak istersen Igrek onları tarayıcıda açar ve çalışır tutar.",
       "how": "Bir projenin içinde: Yeni sohbet'in yanındaki küçük ok → Claude, Codex ya da Shell. Açık olanlar Terminaller sayfasında."
     },
     "inbox": {
@@ -4000,7 +4000,7 @@
     },
     "helper": {
       "title": "Kayboldun mu? Yardımcıya sor",
-      "body": "Sağ alttaki yuvarlak buton God Eye hakkındaki sorulara cevap verir ve doğru yeri açan bağlantılar verir; ör. \"blog projemdeki son sohbet\".",
+      "body": "Sağ alttaki yuvarlak buton Igrek hakkındaki sorulara cevap verir ve doğru yeri açan bağlantılar verir; ör. \"blog projemdeki son sohbet\".",
       "how": "Sağ alttaki yuvarlak butona tıkla ve sorunu yaz."
     },
     "settings": {
@@ -4088,7 +4088,7 @@
     "hint": "Projenin kontrollerini çalıştıran ve biri kırılırsa commit'i durduran bir git pre-commit hook'u; commit'i kim yaparsa yapsın (sen ya da bir AI). git commit --no-verify ile atlanır.",
     "runs": "Çalıştırır:",
     "noGit": "Bu klasör bir git reposu değil.",
-    "other": "Bu projenin kendi pre-commit hook'u var (husky ya da benzeri); God Eye ona dokunmaz.",
+    "other": "Bu projenin kendi pre-commit hook'u var (husky ya da benzeri); Igrek ona dokunmaz.",
     "nothing": "Bu projede tip kontrolü, lint ya da test komutu bulunamadı."
   },
   "arch": {
@@ -4163,7 +4163,7 @@
     "fix_hardDependency": "Kendi servislerini new ile oluşturmak sınıfı onlara bağlar (bağımlılığın tersine çevrilmesi): kurucudan parametre olarak al ki değiştirilebilsin ve test edilebilsin."
   },
   "member": {
-    "title": "God Eye Takım",
+    "title": "Igrek Takım",
     "signInHint": "Takım yöneticinin senin için açtığı hesapla giriş yap. Her şeyin şifresi burada, tarayıcında çözülür; hub okuyamaz.",
     "username": "Kullanıcı adı",
     "password": "Şifre",
@@ -4173,7 +4173,7 @@
     "newPasswordHint": "Yöneticin geçici bir şifre koydu. Sadece senin bildiğin bir şifre seç (en az 8 karakter).",
     "save": "Kaydet",
     "waitTitle": "Bir yöneticinin onayı bekleniyor",
-    "waitBody": "Takımının çalışmaları şifreli. Bir yönetici God Eye > Takım > cihazlar'ı açıp bu tarayıcıyı onaylar; ardından takım anahtarı gelir. Doğru cihazı onaylaması için bu kodu söyle.",
+    "waitBody": "Takımının çalışmaları şifreli. Bir yönetici Igrek > Takım > cihazlar'ı açıp bu tarayıcıyı onaylar; ardından takım anahtarı gelir. Doğru cihazı onaylaması için bu kodu söyle.",
     "fingerprint": "Bu tarayıcı",
     "retry": "Tekrar dene",
     "signOut": "Çıkış yap",
@@ -4192,7 +4192,7 @@
     "role_viewer": "İzleyici",
     "projects": "Projeler",
     "noProjects": "Henüz paylaşılan proje yok",
-    "noProjectsBody": "Bir takım arkadaşı God Eye'dan bir proje paylaşınca burada görünür.",
+    "noProjectsBody": "Bir takım arkadaşı Igrek'ten bir proje paylaşınca burada görünür.",
     "online_one": "{{count}} kişi çevrimiçi",
     "online_other": "{{count}} kişi çevrimiçi",
     "newCard": "Takım için yeni bir kart",

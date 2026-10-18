@@ -14,7 +14,7 @@ import { homedir } from "node:os";
 import { basename, dirname, extname, join, normalize, relative, sep } from "node:path";
 import type { FileContent, FileEntry, TrashItem } from "@igrek/core";
 
-/** Never readable or writable through God Eye, even inside an allowed folder (plan.md 2.4). */
+/** Never readable or writable through Igrek, even inside an allowed folder (plan.md 2.4). */
 const DENIED = [
   ".ssh",
   ".gnupg",
@@ -30,7 +30,7 @@ const DENIED = [
   ".config/BraveSoftware",
   ".local/share/keyrings",
   ".igrek/session.key",
-  ".godeye/session.key",
+  ".igrek/session.key",
   ".claude/.credentials.json",
   ".codex/auth.json",
 ].map((p) => join(homedir(), p));
@@ -175,7 +175,7 @@ export class Files {
     return this.entry(to);
   }
 
-  /** Moves to God Eye's trash instead of deleting, so it can be restored. */
+  /** Moves to Igrek's trash instead of deleting, so it can be restored. */
   trash(input: string): TrashItem {
     const path = this.resolve(input);
     const id = `${Date.now()}-${crypto.randomUUID().slice(0, 6)}`;

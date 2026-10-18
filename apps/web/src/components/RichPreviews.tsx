@@ -163,7 +163,7 @@ export function DocxView({ path }: { path: string }) {
   if (html.error) return <Problem text={html.error} />;
   return (
     <article
-      className="prose-godeye mx-auto h-full max-w-3xl overflow-y-auto px-8 py-6"
+      className="prose-igrek mx-auto h-full max-w-3xl overflow-y-auto px-8 py-6"
       // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with DOMPurify above
       dangerouslySetInnerHTML={{ __html: html.data ?? "" }}
     />

@@ -466,7 +466,7 @@ steps:
           </svelte:head>
 
           <h1>About</h1>
-          <p>A small reading list built with SvelteKit while learning with God Eye.</p>
+          <p>A small reading list built with SvelteKit while learning with Igrek.</p>
     mistakes:
       - problem:
           en: "Forgetting `{@render children()}` in the layout, so the pages never appear."

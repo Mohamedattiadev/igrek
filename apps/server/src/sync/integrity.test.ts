@@ -10,7 +10,7 @@ import { migrate } from "../db";
 import { Sync } from "./client";
 import { encodeInvite } from "./crypto";
 
-const dir = mkdtempSync(join(tmpdir(), "godeye-chain-"));
+const dir = mkdtempSync(join(tmpdir(), "igrek-chain-"));
 const hub = new Hub(join(dir, "hub.db"));
 const handler = createHubServer(hub);
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: handler.fetch, websocket: handler.websocket });

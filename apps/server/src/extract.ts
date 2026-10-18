@@ -151,7 +151,7 @@ export async function extractUrl(raw: string, fetcher: typeof fetch = fetch): Pr
   const url = new URL(raw);
   if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Only http and https addresses");
   const headers = {
-    "user-agent": "GodEye/0.1 (personal library)",
+    "user-agent": "Igrek/0.1 (personal library)",
     accept: "text/html,application/xhtml+xml,text/plain",
   };
   if (/^(www\.)?(x|twitter)\.com$/i.test(url.hostname)) {

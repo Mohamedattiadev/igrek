@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 export function usePanelSize(key: string, initial: number, min: number, max: number) {
   const [size, setSize] = useState(() => {
     try {
-      const saved = Number(localStorage.getItem(`godeye.panel.${key}`));
+      const saved = Number(localStorage.getItem(`igrek.panel.${key}`));
       return saved >= min && saved <= max ? saved : initial;
     } catch {
       return initial;
@@ -16,7 +16,7 @@ export function usePanelSize(key: string, initial: number, min: number, max: num
       const value = Math.round(Math.min(max, Math.max(min, next)));
       setSize(value);
       try {
-        localStorage.setItem(`godeye.panel.${key}`, String(value));
+        localStorage.setItem(`igrek.panel.${key}`, String(value));
       } catch {
         // Not remembered in a private window; still resizes.
       }

@@ -9,7 +9,7 @@ import { LazyMarkdown as Markdown } from "./LazyMarkdown";
 import { Button, Dialog } from "./ui";
 
 /**
- * The in-app guide (plan.md 13.6): every part of God Eye in a sentence with where it is,
+ * The in-app guide (plan.md 13.6): every part of Igrek in a sentence with where it is,
  * searchable as you type; a question gets an answer from the guide (small model) with links.
  */
 export function HelpGuide() {
@@ -104,7 +104,7 @@ export function HelpGuide() {
           {error && <p className="text-xs text-danger">{error}</p>}
           {answer && (
             <div className="space-y-2 rounded-ui border border-accent/40 bg-accent-soft/30 p-3 text-[13px]">
-              <Markdown text={answer.answer} className="prose-godeye" />
+              <Markdown text={answer.answer} className="prose-igrek" />
               <div className="flex flex-wrap gap-1">
                 {answer.topics.map((id) => {
                   const topic = HELP_TOPICS.find((x) => x.id === id);

@@ -42,7 +42,7 @@ export function ReleaseNotesButton({ projectId, onSaved }: { projectId: string; 
                 {t("writeups.since", { since: result.since, count: result.commits })}
               </p>
               <div className="max-h-[60vh] overflow-auto rounded-ui border border-border p-3">
-                <Markdown text={result.markdown} className="prose-godeye" />
+                <Markdown text={result.markdown} className="prose-igrek" />
               </div>
               <div className="flex justify-end gap-2">
                 <CopyButton text={result.markdown} />
@@ -130,7 +130,7 @@ export function AdrExportButton({ projectId }: { projectId: string }) {
           ) : (
             <>
               <div className="max-h-[60vh] overflow-auto rounded-ui border border-border p-3">
-                <Markdown text={markdown(adrs)} className="prose-godeye" />
+                <Markdown text={markdown(adrs)} className="prose-igrek" />
               </div>
               {note && <p className="text-xs text-success">{note}</p>}
               <div className="flex justify-end gap-2">

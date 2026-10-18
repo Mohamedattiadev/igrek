@@ -32,10 +32,10 @@ export interface AppDeps {
 const AGENT_WRITES = new Set([
   "/api/schedules/propose",
   "/api/agent/servers/run",
-  // A secret the user types in God Eye (the agent never sees it), and a page to show.
+  // A secret the user types in Igrek (the agent never sees it), and a page to show.
   "/api/agent/secrets",
   "/api/agent/reports",
-  // A form the user fills in God Eye; the agent gets the answers.
+  // A form the user fills in Igrek; the agent gets the answers.
   "/api/agent/forms",
 ]);
 
@@ -88,8 +88,8 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
     c.header("Referrer-Policy", "no-referrer");
   });
   app.use("*", securityMiddleware(config, token));
-  // What an AI agent may change through God Eye's own channels: it proposes, the user approves
-  // (plan.md 16.4). Requests from God Eye's MCP server say they come from an agent.
+  // What an AI agent may change through Igrek's own channels: it proposes, the user approves
+  // (plan.md 16.4). Requests from Igrek's MCP server say they come from an agent.
   app.use("/api/*", async (c, next) => {
     if (
       (c.req.header("x-igrek-caller") ?? c.req.header("x-godeye-caller")) === "agent" &&
@@ -163,7 +163,7 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
       });
     });
   } else {
-    app.get("*", (c) => c.text("God Eye API is running. Build the web UI with `bun run build`.", 200));
+    app.get("*", (c) => c.text("Igrek API is running. Build the web UI with `bun run build`.", 200));
   }
 
   return app;

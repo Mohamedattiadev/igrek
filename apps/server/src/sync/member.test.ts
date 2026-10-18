@@ -12,9 +12,9 @@ import { migrate } from "../db";
 import type { Flows } from "../flows";
 import { Sync } from "./client";
 
-// A web member (plan.md 4.3) against a real hub and a real God Eye: what the browser does,
+// A web member (plan.md 4.3) against a real hub and a real Igrek: what the browser does,
 // minus the page itself. Encryption and decryption happen in the "browser" (MemberClient).
-const dir = mkdtempSync(join(tmpdir(), "godeye-member-"));
+const dir = mkdtempSync(join(tmpdir(), "igrek-member-"));
 const hub = new Hub(join(dir, "hub.db"));
 const handler = createHubServer(hub);
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: handler.fetch, websocket: handler.websocket });
@@ -82,7 +82,7 @@ describe("web member", () => {
     await until(() => (shop?.tasks.size ?? 0) > 0);
   });
 
-  test("what the web member writes reaches God Eye, and the hub only stores ciphertext", async () => {
+  test("what the web member writes reaches Igrek, and the hub only stores ciphertext", async () => {
     const shop = [...browser.projects.values()][0];
     if (!shop) throw new Error("no project");
     await browser.comment(shop.key, "session", "s1", "Looks good, ship it");
@@ -93,7 +93,7 @@ describe("web member", () => {
       author_name: "ayse",
     });
     await until(() => board.get(card?.id ?? "")?.claimedBy?.name === "ayse");
-    // A card left from the browser lands on God Eye's board, with its author.
+    // A card left from the browser lands on Igrek's board, with its author.
     await browser.addTask(shop.key, "Write the release notes");
     await until(() => board.list("p1").some((t) => t.title === "Write the release notes"));
     expect(board.list("p1").find((t) => t.title === "Write the release notes")?.author).toBe("ayse");

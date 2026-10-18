@@ -28,7 +28,7 @@ export function seal(data: Buffer, key: Buffer): Buffer {
 }
 
 export function open(sealed: Buffer, key: Buffer): Buffer {
-  if (!sealed.subarray(0, 4).equals(MAGIC)) throw new Error("Not a God Eye hub backup");
+  if (!sealed.subarray(0, 4).equals(MAGIC)) throw new Error("Not an Igrek hub backup");
   const iv = sealed.subarray(4, 16);
   const tag = sealed.subarray(sealed.length - 16);
   const decipher = createDecipheriv("aes-256-gcm", key, iv);
@@ -111,7 +111,7 @@ export async function runBackup(hub: Hub, dir: string, key: Buffer, s3?: S3, kee
     .reverse()
     .slice(keep);
   for (const n of old) rmSync(join(dir, n), { force: true });
-  if (s3) await s3Put(s3, `god-eye-hub/${file.split("/").pop()}`, readFileSync(file));
+  if (s3) await s3Put(s3, `igrek-hub/${file.split("/").pop()}`, readFileSync(file));
   hub.audit(undefined, "backup", file.split("/").pop());
   return file;
 }

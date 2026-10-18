@@ -46,7 +46,7 @@ export async function freePort(from: number): Promise<number> {
   throw new Error("No free port found");
 }
 
-/** What to run: the package manager, the script, and whether Vite can carry God Eye's plugin. */
+/** What to run: the package manager, the script, and whether Vite can carry Igrek's plugin. */
 export function planDevServer(
   root: string,
 ): { script: string; command: string[]; framework: DevServerInfo["framework"]; vite: boolean } | undefined {
@@ -76,7 +76,7 @@ export function planDevServer(
           : "npm";
   const body = scripts[script] as string;
   const framework = deps.vite ? "vite" : deps.next ? "next" : "other";
-  // A plain "vite" script is run directly, so God Eye's config wrapper can add the source plugin.
+  // A plain "vite" script is run directly, so Igrek's config wrapper can add the source plugin.
   const vite =
     framework === "vite" &&
     /^vite(\s+(dev|serve))?(\s|$)/.test(body.trim()) &&
@@ -84,7 +84,7 @@ export function planDevServer(
   return { script, command: [pm, "run", script], framework, vite };
 }
 
-/** A Vite config that loads the project's own config and adds God Eye's source plugin (nothing in the project changes). */
+/** A Vite config that loads the project's own config and adds Igrek's source plugin (nothing in the project changes). */
 function viteWrapper(root: string, dir: string): string | undefined {
   let viteEntry: string;
   try {
@@ -93,18 +93,18 @@ function viteWrapper(root: string, dir: string): string | undefined {
     return undefined;
   }
   mkdirSync(dir, { recursive: true });
-  const file = join(dir, `vite.godeye.${Bun.hash(root).toString(36)}.config.mjs`);
+  const file = join(dir, `vite.igrek.${Bun.hash(root).toString(36)}.config.mjs`);
   writeFileSync(
     file,
-    `// Written by God Eye for the live preview. Your own vite config is loaded unchanged.
+    `// Written by Igrek for the live preview. Your own vite config is loaded unchanged.
 import { resolve } from "node:path";
 import { loadConfigFromFile, mergeConfig } from ${JSON.stringify(`file://${viteEntry}`)};
-import godeyeSource from ${JSON.stringify(`file://${PLUGIN}`)};
+import igrekSource from ${JSON.stringify(`file://${PLUGIN}`)};
 const ROOT = ${JSON.stringify(root)};
 export default async (env) => {
   const loaded = await loadConfigFromFile(env, undefined, ROOT);
   const base = loaded?.config ?? {};
-  return mergeConfig({ ...base, root: base.root ? resolve(ROOT, base.root) : ROOT }, { plugins: [godeyeSource({ root: ROOT })] });
+  return mergeConfig({ ...base, root: base.root ? resolve(ROOT, base.root) : ROOT }, { plugins: [igrekSource({ root: ROOT })] });
 };
 `,
   );
@@ -113,7 +113,7 @@ export default async (env) => {
 
 /** Puts the picker into HTML pages. */
 export function injectAgent(html: string): string {
-  const tag = `<script src="/__godeye/agent.js"></script>`;
+  const tag = `<script src="/__igrek/agent.js"></script>`;
   if (/<\/head>/i.test(html)) return html.replace(/<\/head>/i, `${tag}</head>`);
   if (/<body[^>]*>/i.test(html)) return html.replace(/<body[^>]*>/i, (m) => `${m}${tag}`);
   return tag + html;
@@ -128,7 +128,7 @@ type Running = {
 };
 
 /**
- * Dev servers and the live preview (plan.md Faz 10). God Eye starts the project's dev script on a
+ * Dev servers and the live preview (plan.md Faz 10). Igrek starts the project's dev script on a
  * free port, and puts a small proxy on 127.0.0.1 in front of it that adds the picker script to
  * HTML pages and passes everything else through (hot reload included). The proxy only ever
  * forwards to the project's own local dev server.
@@ -281,7 +281,7 @@ export class DevServers {
         port,
         async fetch(req, srv) {
           const url = new URL(req.url);
-          if (url.pathname === "/__godeye/agent.js")
+          if (url.pathname === "/__igrek/agent.js")
             return new Response(AGENT, { headers: { "content-type": "text/javascript", "cache-control": "no-store" } });
           const upstreamUrl = `${target}${url.pathname}${url.search}`;
           if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {

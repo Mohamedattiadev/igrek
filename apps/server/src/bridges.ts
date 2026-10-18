@@ -16,13 +16,13 @@ export interface Notice {
   event: BridgeEvent;
   title: string;
   detail?: string;
-  /** Path in God Eye, added as a link when an address is known. */
+  /** Path in Igrek, added as a link when an address is known. */
   link?: string;
 }
 
 /** One short line, never code or secrets: the scrubber runs over it before it leaves. */
 export function noticeText(n: Notice, base?: string): string {
-  const text = `God Eye · ${n.title}${n.detail ? `\n${n.detail}` : ""}${n.link && base ? `\n${base}${n.link}` : ""}`;
+  const text = `Igrek · ${n.title}${n.detail ? `\n${n.detail}` : ""}${n.link && base ? `\n${base}${n.link}` : ""}`;
   return scrub(text).slice(0, 1500);
 }
 

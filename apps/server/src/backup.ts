@@ -25,7 +25,8 @@ interface BackupData {
 }
 
 export interface BackupFile {
-  format: "godeye-backup";
+  /** "godeye-backup" in files made before the rename to Igrek; both restore. */
+  format: "igrek-backup" | "godeye-backup";
   version: 1;
   app: string;
   at: number;
@@ -56,7 +57,7 @@ function columns(db: Database, table: string): string[] {
 }
 
 /**
- * Backup and export (plan.md 11): one file with everything God Eye learned about your work,
+ * Backup and export (plan.md 11): one file with everything Igrek learned about your work,
  * optionally locked with a password. Restoring adds what is missing and never overwrites.
  */
 export class Backups {
@@ -77,7 +78,7 @@ export class Backups {
 
   async export(password?: string): Promise<BackupFile> {
     const data = this.collect();
-    const base = { format: "godeye-backup" as const, version: 1 as const, app: APP_VERSION, at: Date.now() };
+    const base = { format: "igrek-backup" as const, version: 1 as const, app: APP_VERSION, at: Date.now() };
     if (!password) return { ...base, encrypted: false, data };
     const salt = crypto.getRandomValues(new Uint8Array(16));
     const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -90,7 +91,8 @@ export class Backups {
   }
 
   async open(file: BackupFile, password?: string): Promise<BackupData> {
-    if (file?.format !== "godeye-backup") throw new Error("This is not a God Eye backup");
+    if (file?.format !== "igrek-backup" && file?.format !== "godeye-backup")
+      throw new Error("This is not an Igrek backup");
     if (!file.encrypted) return file.data as BackupData;
     if (!password) throw new Error("This backup is locked with a password");
     try {

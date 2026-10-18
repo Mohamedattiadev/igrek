@@ -314,20 +314,20 @@ steps:
         - `mvnw` (Maven wrapper), Maven kurmadan build'i çalıştırır
     do:
       en: |
-        1. Open **start.spring.io**. Choose: Project **Maven**, Language **Java**, the newest stable Spring Boot (not a SNAPSHOT or M release; this roadmap used **4.1.1**), Group `dev.godeye`, Artifact `library`, Packaging **Jar**, Java **25**.
+        1. Open **start.spring.io**. Choose: Project **Maven**, Language **Java**, the newest stable Spring Boot (not a SNAPSHOT or M release; this roadmap used **4.1.1**), Group `dev.igrek`, Artifact `library`, Packaging **Jar**, Java **25**.
         2. Add these dependencies: **Spring Web**, **Validation**, **Spring Data JPA**, **H2 Database**, **PostgreSQL Driver**, **Spring Boot Actuator**. Click **Generate** and unzip the file. (Instead of the website you can run the `curl` command below, which asks for the same project.)
         3. Open the `library` folder in your editor. Look at `pom.xml`, `LibraryApplication.java` and the test that came with it.
         4. Start the app with `./mvnw spring-boot:run` (on Windows PowerShell: `.\mvnw spring-boot:run`). The first run downloads Maven and the libraries and takes a few minutes.
         5. Wait for the line `Started LibraryApplication`. Open http://localhost:8080/actuator/health in a browser: it shows `{"groups":["liveness","readiness"],"status":"UP"}`. Stop the app with Ctrl+C.
-        6. Add `Book.java` and `BookController.java` below, in `src/main/java/dev/godeye/library/`. Run the app again and open http://localhost:8080/api/books.
+        6. Add `Book.java` and `BookController.java` below, in `src/main/java/dev/igrek/library/`. Run the app again and open http://localhost:8080/api/books.
         7. Put the project under Git: `git init`, `git add .`, `git commit -m "Create the library project"`. The generated `.gitignore` already skips `target/`.
       tr: |
-        1. **start.spring.io**'yu aç. Şunları seç: Project **Maven**, Language **Java**, en yeni kararlı Spring Boot (SNAPSHOT ya da M sürümü değil; bu roadmap **4.1.1** kullandı), Group `dev.godeye`, Artifact `library`, Packaging **Jar**, Java **25**.
+        1. **start.spring.io**'yu aç. Şunları seç: Project **Maven**, Language **Java**, en yeni kararlı Spring Boot (SNAPSHOT ya da M sürümü değil; bu roadmap **4.1.1** kullandı), Group `dev.igrek`, Artifact `library`, Packaging **Jar**, Java **25**.
         2. Şu bağımlılıkları ekle: **Spring Web**, **Validation**, **Spring Data JPA**, **H2 Database**, **PostgreSQL Driver**, **Spring Boot Actuator**. **Generate**'e tıkla ve zip'i aç. (Web sitesi yerine aşağıdaki `curl` komutunu da çalıştırabilirsin, aynı projeyi ister.)
         3. `library` klasörünü editörde aç. `pom.xml`, `LibraryApplication.java` ve yanında gelen teste bak.
         4. Uygulamayı `./mvnw spring-boot:run` ile başlat (Windows PowerShell'de: `.\mvnw spring-boot:run`). İlk çalıştırmada Maven ve kütüphaneler iner, birkaç dakika sürer.
         5. `Started LibraryApplication` satırını bekle. Tarayıcıda http://localhost:8080/actuator/health adresini aç: `{"groups":["liveness","readiness"],"status":"UP"}` görürsün. Uygulamayı Ctrl+C ile durdur.
-        6. Aşağıdaki `Book.java` ve `BookController.java` dosyalarını `src/main/java/dev/godeye/library/` içine ekle. Uygulamayı yeniden çalıştır ve http://localhost:8080/api/books adresini aç.
+        6. Aşağıdaki `Book.java` ve `BookController.java` dosyalarını `src/main/java/dev/igrek/library/` içine ekle. Uygulamayı yeniden çalıştır ve http://localhost:8080/api/books adresini aç.
         7. Projeyi Git'e koy: `git init`, `git add .`, `git commit -m "Create the library project"`. Üretilen `.gitignore` zaten `target/` klasörünü atlar.
     code:
       - file: terminal
@@ -335,22 +335,22 @@ steps:
         text: |
           curl https://start.spring.io/starter.zip -o library.zip \
             -d type=maven-project -d language=java -d bootVersion=4.1.1 -d javaVersion=25 \
-            -d groupId=dev.godeye -d artifactId=library -d name=library -d packageName=dev.godeye.library \
+            -d groupId=dev.igrek -d artifactId=library -d name=library -d packageName=dev.igrek.library \
             -d dependencies=web,validation,data-jpa,h2,postgresql,actuator
           unzip library.zip -d library
           cd library
           ./mvnw spring-boot:run
-      - file: src/main/java/dev/godeye/library/Book.java
+      - file: src/main/java/dev/igrek/library/Book.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           public record Book(long id, String title, String author, int year) {
           }
-      - file: src/main/java/dev/godeye/library/BookController.java
+      - file: src/main/java/dev/igrek/library/BookController.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.List;
 
@@ -438,10 +438,10 @@ steps:
         3. Her cevabı kontrol et: POST `201` ve yeni kitabı döner, geçersiz POST `errors` alanıyla `400` döner, bilinmeyen id `404` döner.
         4. Uygulamayı durdur ve yeniden başlat: kitaplar gitti, çünkü bellek depolama değil. Çözülecek sıradaki sorun bu.
     code:
-      - file: src/main/java/dev/godeye/library/BookRequest.java
+      - file: src/main/java/dev/igrek/library/BookRequest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import jakarta.validation.constraints.Max;
           import jakarta.validation.constraints.Min;
@@ -453,10 +453,10 @@ steps:
                   @NotBlank @Size(max = 100) String author,
                   @Min(1000) @Max(2100) int year) {
           }
-      - file: src/main/java/dev/godeye/library/BookNotFoundException.java
+      - file: src/main/java/dev/igrek/library/BookNotFoundException.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           public class BookNotFoundException extends RuntimeException {
 
@@ -464,10 +464,10 @@ steps:
                   super("No book with id " + id);
               }
           }
-      - file: src/main/java/dev/godeye/library/BookService.java
+      - file: src/main/java/dev/igrek/library/BookService.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.List;
           import java.util.Map;
@@ -517,10 +517,10 @@ steps:
                   }
               }
           }
-      - file: src/main/java/dev/godeye/library/ApiExceptionHandler.java
+      - file: src/main/java/dev/igrek/library/ApiExceptionHandler.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.LinkedHashMap;
           import java.util.Map;
@@ -552,10 +552,10 @@ steps:
                   return problem;
               }
           }
-      - file: src/main/java/dev/godeye/library/BookController.java
+      - file: src/main/java/dev/igrek/library/BookController.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.net.URI;
           import java.util.List;
@@ -701,10 +701,10 @@ steps:
         4. Uygulamayı çalıştır ve son adımdaki `curl` komutlarını tekrarla. Terminale bak: her istek kendi SQL'ini yazdırır.
         5. Uygulamanın yeniden başlatınca kitapları hâlâ unuttuğuna dikkat et. Buradaki H2 *bellekte çalışan* bir veritabanı: her seferinde boş olarak yeniden oluşturulur. Sıradaki adım bunu gerçek bir veritabanıyla çözer.
     code:
-      - file: src/main/java/dev/godeye/library/Book.java
+      - file: src/main/java/dev/igrek/library/Book.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import jakarta.persistence.Column;
           import jakarta.persistence.Entity;
@@ -751,10 +751,10 @@ steps:
                   this.year = year;
               }
           }
-      - file: src/main/java/dev/godeye/library/BookRepository.java
+      - file: src/main/java/dev/igrek/library/BookRepository.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.List;
 
@@ -765,10 +765,10 @@ steps:
 
               List<Book> findByAuthorIgnoreCaseOrderById(String author);
           }
-      - file: src/main/java/dev/godeye/library/BookService.java
+      - file: src/main/java/dev/igrek/library/BookService.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.List;
 
@@ -979,21 +979,21 @@ steps:
     do:
       en: |
         1. Make sure no profile is active (`echo $SPRING_PROFILES_ACTIVE` should print nothing), so the tests use H2.
-        2. Add the three test files below in `src/test/java/dev/godeye/library/`. Keep the `LibraryApplicationTests` file that start.spring.io created: it checks that the app starts.
+        2. Add the three test files below in `src/test/java/dev/igrek/library/`. Keep the `LibraryApplicationTests` file that start.spring.io created: it checks that the app starts.
         3. Run `./mvnw test`. You should see `Tests run: 6, Failures: 0`.
         4. Break something on purpose, for example change `.isCreated()` to `.isOk()`, and read the failure. Fix it again.
         5. Commit the tests with the code. From now on run `./mvnw test` before every commit.
       tr: |
         1. Hiçbir profile'ın aktif olmadığından emin ol (`echo $SPRING_PROFILES_ACTIVE` hiçbir şey yazmamalı); böylece testler H2 kullanır.
-        2. Aşağıdaki üç test dosyasını `src/test/java/dev/godeye/library/` içine ekle. start.spring.io'nun oluşturduğu `LibraryApplicationTests` dosyasını tut: uygulamanın başladığını kontrol eder.
+        2. Aşağıdaki üç test dosyasını `src/test/java/dev/igrek/library/` içine ekle. start.spring.io'nun oluşturduğu `LibraryApplicationTests` dosyasını tut: uygulamanın başladığını kontrol eder.
         3. `./mvnw test` çalıştır. `Tests run: 6, Failures: 0` görmelisin.
         4. Bilerek bir şeyi boz, mesela `.isCreated()` yerine `.isOk()` yaz, ve hatayı oku. Sonra düzelt.
         5. Testleri kodla birlikte commit'le. Bundan sonra her commit'ten önce `./mvnw test` çalıştır.
     code:
-      - file: src/test/java/dev/godeye/library/BookRepositoryTest.java
+      - file: src/test/java/dev/igrek/library/BookRepositoryTest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.assertj.core.api.Assertions.assertThat;
 
@@ -1021,10 +1021,10 @@ steps:
                   assertThat(found).extracting(Book::getTitle).containsExactly("Emma", "Persuasion");
               }
           }
-      - file: src/test/java/dev/godeye/library/BookControllerTest.java
+      - file: src/test/java/dev/igrek/library/BookControllerTest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.hamcrest.Matchers.containsString;
           import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -1082,10 +1082,10 @@ steps:
                           .andExpect(jsonPath("$.detail").value("No book with id 99999"));
               }
           }
-      - file: src/test/java/dev/godeye/library/BookControllerWebTest.java
+      - file: src/test/java/dev/igrek/library/BookControllerWebTest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.mockito.BDDMockito.given;
           import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -1208,10 +1208,10 @@ steps:
               <artifactId>spring-boot-starter-security-test</artifactId>
               <scope>test</scope>
           </dependency>
-      - file: src/main/java/dev/godeye/library/SecurityConfig.java
+      - file: src/main/java/dev/igrek/library/SecurityConfig.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -1246,10 +1246,10 @@ steps:
           # The one user who may change data. Override the password with LIBRARY_PASSWORD.
           spring.security.user.name=admin
           spring.security.user.password=${LIBRARY_PASSWORD:dev-only-password}
-      - file: src/test/java/dev/godeye/library/BookControllerTest.java
+      - file: src/test/java/dev/igrek/library/BookControllerTest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.hamcrest.Matchers.containsString;
           import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -1316,10 +1316,10 @@ steps:
                           .andExpect(status().isUnauthorized());
               }
           }
-      - file: src/test/java/dev/godeye/library/BookControllerWebTest.java
+      - file: src/test/java/dev/igrek/library/BookControllerWebTest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.mockito.BDDMockito.given;
           import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -1454,10 +1454,10 @@ steps:
               <groupId>com.github.ben-manes.caffeine</groupId>
               <artifactId>caffeine</artifactId>
           </dependency>
-      - file: src/main/java/dev/godeye/library/CacheConfig.java
+      - file: src/main/java/dev/igrek/library/CacheConfig.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import org.springframework.cache.annotation.EnableCaching;
           import org.springframework.context.annotation.Configuration;
@@ -1467,10 +1467,10 @@ steps:
           @EnableCaching
           public class CacheConfig {
           }
-      - file: src/main/java/dev/godeye/library/BookService.java
+      - file: src/main/java/dev/igrek/library/BookService.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.List;
 
@@ -1535,10 +1535,10 @@ steps:
 
           # Run each request on a cheap virtual thread (needs Java 21 or newer)
           spring.threads.virtual.enabled=true
-      - file: src/test/java/dev/godeye/library/BookCacheTest.java
+      - file: src/test/java/dev/igrek/library/BookCacheTest.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import static org.mockito.Mockito.times;
           import static org.mockito.Mockito.verify;
@@ -1925,20 +1925,20 @@ steps:
         2. Make `application.properties` look like the full file below (it is the final version, with logging and Actuator settings added and `show-sql` removed).
         3. Run the app, create and delete books, and read the log lines in the terminal.
         4. Check the endpoints with `curl`: `/actuator/health` is public and short; with `-u admin:...` it shows details; `/actuator/metrics` needs the login.
-        5. Raise the detail of your own logs without changing code: `LOGGING_LEVEL_DEV_GODEYE_LIBRARY=DEBUG ./mvnw spring-boot:run`. Spring reads environment variables in this form for any property.
+        5. Raise the detail of your own logs without changing code: `LOGGING_LEVEL_DEV_IGREK_LIBRARY=DEBUG ./mvnw spring-boot:run`. Spring reads environment variables in this form for any property.
         6. On Render open the service's **Logs** tab and find the same lines. Try `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` as an environment variable to get one JSON object per line.
       tr: |
         1. `BookService.java` dosyasını aşağıdaki sürümle değiştir. Bir kitap oluşturulunca ya da silinince log yazar, olmayan bir kitabı silmeye çalışan olursa uyarır.
         2. `application.properties` dosyasını aşağıdaki tam dosya gibi yap (son sürüm: log ve Actuator ayarları eklendi, `show-sql` kaldırıldı).
         3. Uygulamayı çalıştır, kitap oluştur ve sil, terminaldeki log satırlarını oku.
         4. Endpoint'leri `curl` ile kontrol et: `/actuator/health` herkese açık ve kısa; `-u admin:...` ile ayrıntı gösterir; `/actuator/metrics` giriş ister.
-        5. Kod değiştirmeden kendi loglarının ayrıntısını artır: `LOGGING_LEVEL_DEV_GODEYE_LIBRARY=DEBUG ./mvnw spring-boot:run`. Spring her ayarı bu biçimdeki ortam değişkenlerinden okur.
+        5. Kod değiştirmeden kendi loglarının ayrıntısını artır: `LOGGING_LEVEL_DEV_IGREK_LIBRARY=DEBUG ./mvnw spring-boot:run`. Spring her ayarı bu biçimdeki ortam değişkenlerinden okur.
         6. Render'da servisin **Logs** sekmesini aç ve aynı satırları bul. Satır başına bir JSON nesnesi için ortam değişkeni olarak `LOGGING_STRUCTURED_FORMAT_CONSOLE=ecs` dene.
     code:
-      - file: src/main/java/dev/godeye/library/BookService.java
+      - file: src/main/java/dev/igrek/library/BookService.java
         lang: java
         text: |
-          package dev.godeye.library;
+          package dev.igrek.library;
 
           import java.util.List;
 
@@ -2007,7 +2007,7 @@ steps:
           server.port=${PORT:8080}
 
           # Log levels: our code at INFO, everything else at the default
-          logging.level.dev.godeye.library=INFO
+          logging.level.dev.igrek.library=INFO
 
           # Actuator: which endpoints are reachable over HTTP
           management.endpoints.web.exposure.include=health,metrics
@@ -2048,8 +2048,8 @@ steps:
           en: "You change a log level in `application.properties` and nothing changes."
           tr: "`application.properties`'te bir log seviyesini değiştiriyorsun ve hiçbir şey değişmiyor."
         fix:
-          en: "Restart the app (properties are read at start-up). Also check the package name: `logging.level.dev.godeye.library` must match the real package of the class."
-          tr: "Uygulamayı yeniden başlat (ayarlar başlangıçta okunur). Paket adını da kontrol et: `logging.level.dev.godeye.library` class'ın gerçek paketiyle aynı olmalı."
+          en: "Restart the app (properties are read at start-up). Also check the package name: `logging.level.dev.igrek.library` must match the real package of the class."
+          tr: "Uygulamayı yeniden başlat (ayarlar başlangıçta okunur). Paket adını da kontrol et: `logging.level.dev.igrek.library` class'ın gerçek paketiyle aynı olmalı."
     quiz:
       - q:
           en: "Why does the host check `/actuator/health` and not `/api/books`?"

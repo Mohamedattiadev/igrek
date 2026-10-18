@@ -63,10 +63,10 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
   useServerEvent("devservers-changed", (m) => m.projectId === project.id && load());
 
   const send = (msg: Record<string, unknown>) =>
-    frame.current?.contentWindow?.postMessage({ godeye: true, ...msg }, "*");
+    frame.current?.contentWindow?.postMessage({ igrek: true, ...msg }, "*");
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== frame.current?.contentWindow || !e.data?.godeye) return;
+      if (e.source !== frame.current?.contentWindow || !e.data?.igrek) return;
       if (e.data.type === "picked") {
         setPicked(e.data.element as PickedElement);
         setPicking(false);

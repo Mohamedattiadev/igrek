@@ -11,7 +11,7 @@ const MAX_CONTEXT_CHARS = 6000;
 
 /**
  * Small shell script Claude Code runs at session start/end. It forwards the hook
- * payload to God Eye and prints whatever comes back; if God Eye isn't running it
+ * payload to Igrek and prints whatever comes back; if Igrek isn't running it
  * stays silent, so Claude Code is never blocked.
  */
 export function writeHookScript(dataDir: string, port: number): string {
@@ -21,7 +21,7 @@ export function writeHookScript(dataDir: string, port: number): string {
   writeFileSync(
     path,
     `#!/bin/sh
-# God Eye hook (installed by God Eye; safe to delete).
+# Igrek hook (installed by Igrek; safe to delete).
 [ -n "$IGREK_INTERNAL" ] && exit 0
 KEY=$(cat "${join(dataDir, "session.key")}" 2>/dev/null) || exit 0
 command -v curl >/dev/null 2>&1 || exit 0
@@ -133,7 +133,7 @@ export function buildContext(store: Store, projectId: string): string | undefine
   if (memory.length === 0 && sessions.length === 0) return undefined;
 
   const parts = [
-    `# God Eye: project memory for "${project.name}"`,
+    `# Igrek: project memory for "${project.name}"`,
     "Notes collected automatically from earlier sessions. They can be out of date: verify before relying on them, and tell the user if something here looks wrong.",
   ];
   for (const section of Object.keys(HEADINGS) as MemorySection[]) {

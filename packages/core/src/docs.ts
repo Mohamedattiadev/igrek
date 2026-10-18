@@ -54,7 +54,7 @@ export function wikiLinks(body: string): string[] {
   return [...body.matchAll(/\[\[([^\]\n|]{1,80})(?:\|[^\]\n]*)?\]\]/g)].map((m) => slugify(m[1] ?? ""));
 }
 
-/** The parts of an Excalidraw element God Eye reads. Anything else is ignored. */
+/** The parts of an Excalidraw element Igrek reads. Anything else is ignored. */
 export interface SceneElement {
   id: string;
   type: string;

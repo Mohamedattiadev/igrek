@@ -82,10 +82,10 @@ export function emptyState(): SessionState {
   };
 }
 
-/** One AI coding tool whose transcripts God Eye can read. */
+/** One AI coding tool whose transcripts Igrek can read. */
 export interface Adapter {
   tool: AiTool;
-  /** God Eye account the transcripts belong to (each account has its own folder). */
+  /** Igrek account the transcripts belong to (each account has its own folder). */
   accountId?: string;
   listFiles(): SessionFile[];
   /** Folds one transcript line into the session and returns its readable messages. */

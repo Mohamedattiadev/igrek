@@ -36,7 +36,7 @@ function run(cmd: string[], cwd: string, env: Record<string, string> = {}, stdin
 function startPostgres(): void {
   if (pgStarted) return;
   pgStarted = true;
-  run(["docker", "rm", "-f", "godeye-learn-pg"], tmpdir());
+  run(["docker", "rm", "-f", "igrek-learn-pg"], tmpdir());
   run(
     [
       "docker",
@@ -44,7 +44,7 @@ function startPostgres(): void {
       "-d",
       "--rm",
       "--name",
-      "godeye-learn-pg",
+      "igrek-learn-pg",
       "-e",
       "POSTGRES_PASSWORD=learn",
       "-p",
@@ -54,7 +54,7 @@ function startPostgres(): void {
     tmpdir(),
   );
   for (let i = 0; i < 60; i++) {
-    if (run(["docker", "exec", "godeye-learn-pg", "pg_isready", "-U", "postgres"], tmpdir()).code === 0) {
+    if (run(["docker", "exec", "igrek-learn-pg", "pg_isready", "-U", "postgres"], tmpdir()).code === 0) {
       Bun.sleepSync(1000);
       return;
     }
@@ -66,7 +66,7 @@ let pgDb = 0;
 
 /** Runs one example in its own folder; returns what it printed. */
 function execute(kind: Runnable | "pg", code: string): { out: string; err?: string } {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-learn-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-learn-"));
   const env = {
     HOME: dir,
     GIT_CONFIG_GLOBAL: join(dir, ".gitconfig"),
@@ -172,7 +172,7 @@ for (const sheet of content.sheets) {
       }
     }
 }
-if (pgStarted) run(["docker", "rm", "-f", "godeye-learn-pg"], tmpdir());
+if (pgStarted) run(["docker", "rm", "-f", "igrek-learn-pg"], tmpdir());
 console.log(`ran ${ran} examples`);
 
 if (args.includes("--urls")) {
@@ -197,7 +197,7 @@ if (args.includes("--urls")) {
             const res = await fetch(page, {
               redirect: "follow",
               signal: AbortSignal.timeout(20_000),
-              headers: { "user-agent": "Mozilla/5.0 (X11; Linux x86_64) godeye-learn-check" },
+              headers: { "user-agent": "Mozilla/5.0 (X11; Linux x86_64) igrek-learn-check" },
             });
             if (res.ok) return;
             if (attempt === 1 || res.status === 404) {

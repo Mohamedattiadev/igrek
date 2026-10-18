@@ -2651,7 +2651,7 @@ steps:
         5. Add the new tests at the end of `server_test.go` and run `go test ./...`.
         6. Run it with readable logs: `LOG_FORMAT=text go run .` (PowerShell: `$env:LOG_FORMAT="text"; go run .`). Make a few requests with curl and read the lines.
         7. On Render, change the health check path to `/readyz`, so a broken database stops traffic. Push, and wait for the deploy.
-        8. Add your service address to an uptime check (God Eye *Tools → Uptime*). Expect it to look down while the free instance is asleep.
+        8. Add your service address to an uptime check (Igrek *Tools → Uptime*). Expect it to look down while the free instance is asleep.
         9. Once a month: `go list -m -u all` (lists newer versions of your dependencies), `go get -u ./...`, `go mod tidy`, run the tests, deploy.
       tr: |
         1. `store.go` dosyasına `Ping` ekle (aşağıda).
@@ -2661,7 +2661,7 @@ steps:
         5. Yeni testleri `server_test.go` sonuna ekle ve `go test ./...` çalıştır.
         6. Okunur loglarla çalıştır: `LOG_FORMAT=text go run .` (PowerShell: `$env:LOG_FORMAT="text"; go run .`). curl ile birkaç istek yap ve satırları oku.
         7. Render'da sağlık kontrolü yolunu `/readyz` yap; böylece bozuk bir veritabanı trafiği durdurur. Push et ve deploy'u bekle.
-        8. Servis adresini bir uptime kontrolüne ekle (God Eye *Araçlar → Uptime*). Ücretsiz instance uyurken kapalı görünmesini bekle.
+        8. Servis adresini bir uptime kontrolüne ekle (Igrek *Araçlar → Uptime*). Ücretsiz instance uyurken kapalı görünmesini bekle.
         9. Ayda bir: `go list -m -u all` (bağımlılıklarının daha yeni sürümlerini listeler), `go get -u ./...`, `go mod tidy`, testleri çalıştır, deploy et.
     code:
       - file: store.go (add at the end)

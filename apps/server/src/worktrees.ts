@@ -30,7 +30,7 @@ export function createWorktree(projectPath: string, id: string, dir: string): Wo
   if (!root.ok || !head.ok) return undefined; // not a git repo (or no commit yet)
   mkdirSync(dir, { recursive: true });
   const path = join(dir, id);
-  const branch = `godeye/auto-${id}`;
+  const branch = `igrek/auto-${id}`;
   const added = run(root.out, ["worktree", "add", "-b", branch, path, head.out]);
   if (!added.ok) throw new Error(`Couldn't make a separate copy: ${added.err}`);
   const current = run(root.out, ["rev-parse", "--abbrev-ref", "HEAD"]);
@@ -72,8 +72,8 @@ export function worktreeDiff(wt: Worktree): {
 function identity(cwd: string): string[] {
   const has = (key: string) => run(cwd, ["config", key]).out.trim() !== "";
   return [
-    ...(has("user.name") ? [] : ["-c", "user.name=God Eye"]),
-    ...(has("user.email") ? [] : ["-c", "user.email=god-eye@localhost"]),
+    ...(has("user.name") ? [] : ["-c", "user.name=Igrek"]),
+    ...(has("user.email") ? [] : ["-c", "user.email=igrek@localhost"]),
   ];
 }
 
@@ -84,9 +84,9 @@ export function mergeWorktree(projectPath: string, wt: Worktree, title: string):
   if (!pending.ok) {
     const commit = run(wt.path, [
       "-c",
-      "user.name=God Eye",
+      "user.name=Igrek",
       "-c",
-      "user.email=god-eye@localhost",
+      "user.email=igrek@localhost",
       "commit",
       "-m",
       `Auto chat: ${title.slice(0, 72)}`,

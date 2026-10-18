@@ -1,9 +1,9 @@
 /**
  * One entry point for the single-file hub binary (docker/Dockerfile.hub):
  *
- *   god-eye-hub                     run the hub
- *   god-eye-hub health              exit 0 when the local hub answers (Docker health check)
- *   god-eye-hub create-admin <name> | reset-password <name> | backup [folder] | restore <file.geb>
+ *   igrek-hub                     run the hub
+ *   igrek-hub health              exit 0 when the local hub answers (Docker health check)
+ *   igrek-hub create-admin <name> | reset-password <name> | backup [folder] | restore <file.geb>
  */
 const command = process.argv[2];
 if (!command || command === "serve") {

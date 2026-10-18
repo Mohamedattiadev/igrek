@@ -48,7 +48,7 @@ class FakeEmbedder implements Embed {
 
 function setup(embedder: Embed = new FakeEmbedder()) {
   const { sqlite } = openDb(":memory:");
-  const dir = mkdtempSync(join(tmpdir(), "godeye-lib-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-lib-"));
   const library = new Library(sqlite, new Bus(), dir, embedder, async (_url, target) => {
     mkdirSync(join(target, "docs"), { recursive: true });
     writeFileSync(join(target, "README.md"), "# Tiny\n\nA tiny web framework.\n");
@@ -142,7 +142,7 @@ describe("library", () => {
     expect((await library.search("SECRET abc")).length).toBe(0);
   });
 
-  test("God Eye's own texts replace themselves and lessons are for everyone", async () => {
+  test("Igrek's own texts replace themselves and lessons are for everyone", async () => {
     const embedder = new FakeEmbedder();
     const { library } = setup(embedder);
     library.upsertText({

@@ -2,15 +2,15 @@
 
 export interface DevServerInfo {
   projectId: string;
-  /** package.json script it runs ("dev"), or the direct command God Eye chose. */
+  /** package.json script it runs ("dev"), or the direct command Igrek chose. */
   script: string;
   command: string;
   status: "starting" | "running" | "stopped" | "failed";
   /** Where the app itself answers. */
   url?: string;
-  /** God Eye's local proxy in front of it: the same app with the picker script added. */
+  /** Igrek's local proxy in front of it: the same app with the picker script added. */
   previewUrl?: string;
-  /** Elements carry their file and line (God Eye's Vite plugin, added without touching your config). */
+  /** Elements carry their file and line (Igrek's Vite plugin, added without touching your config). */
   sourceMap: boolean;
   framework?: "vite" | "next" | "other";
   startedAt: number;
@@ -48,7 +48,7 @@ export interface QuickEdit {
   summary: string;
   ms: number;
   checkpointId?: string;
-  /** Screenshots of the element before and after (served by God Eye). */
+  /** Screenshots of the element before and after (served by Igrek). */
   before?: string;
   after?: string;
   error?: string;

@@ -159,7 +159,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
           <>
             <textarea
               className={cn(field, "h-24 py-2 font-mono text-[11px]")}
-              placeholder="godeye-invite:…"
+              placeholder="igrek-invite:…"
               value={form.invite}
               onChange={(e) => setForm({ ...form, invite: e.target.value })}
             />
@@ -206,7 +206,7 @@ function Connect({ onDone }: { onDone: (recoveryKey?: string) => void }) {
               <summary className="cursor-pointer text-fg-muted">{t("team.haveRecovery")}</summary>
               <textarea
                 className={cn(field, "mt-2 h-16 py-2 font-mono text-[11px]")}
-                placeholder="godeye-recovery:…"
+                placeholder="igrek-recovery:…"
                 value={form.recovery}
                 onChange={(e) => setForm({ ...form, recovery: e.target.value })}
                 aria-label={t("team.haveRecovery")}

@@ -27,7 +27,7 @@ describe("servers", () => {
   });
 
   test("reads host aliases from ~/.ssh/config, skipping wildcards", () => {
-    const file = join(mkdtempSync(join(tmpdir(), "godeye-ssh-")), "config");
+    const file = join(mkdtempSync(join(tmpdir(), "igrek-ssh-")), "config");
     writeFileSync(
       file,
       "Host *\n  ServerAliveInterval 30\nHost prod-vps vps\n  HostName 195.2.10.4\n  User deploy\n  Port 2222\n",

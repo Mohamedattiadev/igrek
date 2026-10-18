@@ -305,7 +305,7 @@ export function createHubServer(
     return c.json({ ok: true });
   });
   app.get("/api/admin/mail", (c) => adminOnly(c) ?? c.json({ configured: !!options.mail, from: options.mailFrom }));
-  /** Sends an invite or a new sign-in code the admin's God Eye made (the hub only delivers it). */
+  /** Sends an invite or a new sign-in code the admin's Igrek made (the hub only delivers it). */
   app.post("/api/admin/users/:id/email", async (c) => {
     const denied = adminOnly(c);
     if (denied) return denied;

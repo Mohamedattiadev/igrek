@@ -119,7 +119,7 @@ export function FilePreview({ path, kind, text }: { path: string; kind: PreviewK
     case "markdown":
       return (
         <div className="h-full overflow-y-auto">
-          <Markdown text={text ?? ""} className="prose-godeye mx-auto max-w-3xl px-8 py-6" />
+          <Markdown text={text ?? ""} className="prose-igrek mx-auto max-w-3xl px-8 py-6" />
         </div>
       );
     case "csv":

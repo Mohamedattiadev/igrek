@@ -7,7 +7,7 @@ import { McpServers, probeStdio } from "./mcpservers";
 import { Sealer } from "./seal";
 
 describe("MCP servers", () => {
-  test("a stdio server is probed with initialize and tools/list (God Eye's own as the example)", async () => {
+  test("a stdio server is probed with initialize and tools/list (Igrek's own as the example)", async () => {
     const tools = await probeStdio(process.execPath, [join(import.meta.dir, "mcp.ts")], { IGREK_PORT: "1" });
     expect(tools).toContain("igrek_project_memory");
     await expect(probeStdio("no-such-command-xyz", [], {})).rejects.toThrow("not installed");
@@ -15,7 +15,7 @@ describe("MCP servers", () => {
 
   test("added off, env values encrypted and kept out of the list, enabled ones in the chat config", async () => {
     const { sqlite } = openDb(":memory:");
-    const mcp = new McpServers(sqlite, new Sealer(mkdtempSync(join(tmpdir(), "godeye-mcp-"))));
+    const mcp = new McpServers(sqlite, new Sealer(mkdtempSync(join(tmpdir(), "igrek-mcp-"))));
     const s = await mcp.add({
       name: "Docs",
       command: "npx",

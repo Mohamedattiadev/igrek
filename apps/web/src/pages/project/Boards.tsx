@@ -28,7 +28,7 @@ import { dateTime, relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
 import { dataApi, docsApi } from "../../lib/ops-api";
 
-// The whiteboard's fonts are served by God Eye itself (see vite.config.ts), not a CDN.
+// The whiteboard's fonts are served by Igrek itself (see vite.config.ts), not a CDN.
 (window as unknown as { EXCALIDRAW_ASSET_PATH: string }).EXCALIDRAW_ASSET_PATH = "/excalidraw/";
 const BoardEditor = lazy(() => import("../../components/BoardEditor"));
 

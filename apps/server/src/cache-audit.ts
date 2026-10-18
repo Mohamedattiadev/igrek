@@ -75,7 +75,7 @@ export async function auditCaching(url: string, get: typeof fetch = fetch): Prom
   const target = new URL(url);
   if (target.protocol !== "http:" && target.protocol !== "https:") throw new Error("Give an http or https address");
   const init = {
-    headers: { "accept-encoding": "br, gzip", "user-agent": "GodEye-cache-check" },
+    headers: { "accept-encoding": "br, gzip", "user-agent": "Igrek-cache-check" },
     redirect: "follow" as const,
   };
   const page = await get(target.href, { ...init, signal: AbortSignal.timeout(15_000) });

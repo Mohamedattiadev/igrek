@@ -37,7 +37,7 @@ const saveFields = (appState: Record<string, unknown>) => ({
 
 /**
  * The whiteboard (plan.md 12): Excalidraw (MIT), loaded only on the board page. Changes are saved
- * a moment after you stop drawing. Fonts come from God Eye itself, so it works offline.
+ * a moment after you stop drawing. Fonts come from Igrek itself, so it works offline.
  */
 export default function BoardEditor({
   scene,

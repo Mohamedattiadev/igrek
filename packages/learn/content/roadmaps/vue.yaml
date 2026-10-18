@@ -1971,15 +1971,15 @@ steps:
     do:
       en: |
         1. Create `src/components/ErrorBoundary.vue` below and wrap `<RouterView />` with it in `App.vue` (the full `App.vue` is below).
-        2. Replace `src/main.ts` with the code below. `report` is the place to send errors to your error service; the console is the start. In God Eye: the project's *Monitoring* tab gives you a snippet that sends errors to God Eye.
+        2. Replace `src/main.ts` with the code below. `report` is the place to send errors to your error service; the console is the start. In Igrek: the project's *Monitoring* tab gives you a snippet that sends errors to Igrek.
         3. Add the test below as `src/__tests__/ErrorBoundary.spec.ts`: a child throws when clicked, and the boundary shows its message while the error is still reported.
-        4. Add your site's address as an uptime check (God Eye *Tools → Uptime*).
+        4. Add your site's address as an uptime check (Igrek *Tools → Uptime*).
         5. Once a month: `npm outdated`, update, run the tests, deploy.
       tr: |
         1. Aşağıdaki `src/components/ErrorBoundary.vue` dosyasını oluştur ve `App.vue` içinde `<RouterView />`'ı onunla sar (tam `App.vue` aşağıda).
-        2. `src/main.ts` dosyasını aşağıdaki kodla değiştir. `report`, hataları hata servisine göndereceğin yerdir; konsol başlangıçtır. God Eye'da: projenin *İzleme* sekmesi hataları God Eye'a gönderen bir kod parçası verir.
+        2. `src/main.ts` dosyasını aşağıdaki kodla değiştir. `report`, hataları hata servisine göndereceğin yerdir; konsol başlangıçtır. Igrek'te: projenin *İzleme* sekmesi hataları Igrek'e gönderen bir kod parçası verir.
         3. Aşağıdaki testi `src/__tests__/ErrorBoundary.spec.ts` olarak ekle: bir alt component tıklanınca hata fırlatır; boundary mesajını gösterir ve hata yine de raporlanır.
-        4. Sitenin adresini uptime kontrolü olarak ekle (God Eye *Araçlar → Uptime*).
+        4. Sitenin adresini uptime kontrolü olarak ekle (Igrek *Araçlar → Uptime*).
         5. Ayda bir: `npm outdated`, güncelle, testleri çalıştır, deploy et.
     code:
       - file: src/components/ErrorBoundary.vue

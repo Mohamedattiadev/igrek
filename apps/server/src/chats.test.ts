@@ -9,7 +9,7 @@ import { openDb } from "./db";
 
 /** A stand-in `claude` that speaks the same stream-json protocol. */
 function fakeClaude(): string {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
   const script = `#!${process.execPath}
 const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
 out({ type: "system", subtype: "init", session_id: "sess-1", model: "claude-test" });
@@ -126,7 +126,7 @@ describe("status pill", () => {
   });
 
   test("an answer that ends with a question waits for the user", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
     writeFileSync(
       join(dir, "claude"),
       `#!${process.execPath}
@@ -151,7 +151,7 @@ for await (const chunk of Bun.stdin.stream()) {
 
 describe("questions and context", () => {
   test("an AskUserQuestion card waits for an answer, and the answer goes back in the tool's input", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
     writeFileSync(
       join(dir, "claude"),
       `#!${process.execPath}
@@ -200,7 +200,7 @@ for await (const chunk of Bun.stdin.stream()) {
 
 describe("loops and cut-off steps", () => {
   test("the same step three times is reported once, and a step left running is cut off at the end of the turn", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
     writeFileSync(
       join(dir, "claude"),
       `#!${process.execPath}
@@ -238,7 +238,7 @@ for await (const chunk of Bun.stdin.stream()) {
 describe("usage limit", () => {
   test("a turn stopped by the limit says when it resets, and can go on by itself", async () => {
     const reset = Math.floor(Date.now() / 1000) + 1;
-    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
     writeFileSync(
       join(dir, "claude"),
       `#!${process.execPath}
@@ -333,7 +333,7 @@ describe("chat queue", () => {
 
 describe("chat streaming", () => {
   test("a text block after a thinking block is not shown twice", async () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
     writeFileSync(
       join(dir, "claude"),
       `#!${process.execPath}

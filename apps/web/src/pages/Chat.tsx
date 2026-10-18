@@ -229,7 +229,7 @@ function ToolPreview({ name, input }: { name: string; input: Json }) {
   );
 }
 
-const DETAIL_KEY = "godeye.chat.detail";
+const DETAIL_KEY = "igrek.chat.detail";
 
 /** How much of the AI's work to show; remembered in this browser, Simple mode starts plain. */
 function useDetailLevel(): [DetailLevel, (level: DetailLevel) => void] {
@@ -504,7 +504,7 @@ function TrustBanner({ info }: { info: ChatInfo }) {
             setBusy(true);
             try {
               await api.setProjectTrust(info.projectId, true);
-              // Pick the conversation up again; a session God Eye has not read yet starts fresh.
+              // Pick the conversation up again; a session Igrek has not read yet starts fresh.
               const next = await api
                 .startChat({ projectId: info.projectId, resume: info.sessionId })
                 .catch(() => api.startChat({ projectId: info.projectId }));
@@ -1026,7 +1026,7 @@ export function ChatPage() {
                     </div>
                   );
                 case "text": {
-                  // A persona's notebook block is for God Eye, not for reading.
+                  // A persona's notebook block is for Igrek, not for reading.
                   const shown = info?.persona ? extractNotebook(event.text).text : event.text;
                   const isLast = event.id === lastText?.id && lastIsAnswer;
                   return (

@@ -5,7 +5,7 @@ import { createLibrary, defineComponent } from "@openuidev/lang-core";
 import { z } from "zod";
 
 /**
- * God Eye sends nothing anywhere (plan.md 16.2). OpenUI's lang-core has an install script that
+ * Igrek sends nothing anywhere (plan.md 16.2). OpenUI's lang-core has an install script that
  * reports to PostHog, and opt-in runtime telemetry. These tests show that neither reaches out:
  * Bun does not run the script, the flags turn it off, and the runtime stays quiet.
  */

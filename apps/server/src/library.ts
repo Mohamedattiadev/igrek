@@ -72,7 +72,7 @@ function toItem(row: ItemRow): LibraryItem {
   };
 }
 
-/** The title God Eye made up from the file name or address, which the source's own title may replace. */
+/** The title Igrek made up from the file name or address, which the source's own title may replace. */
 function autoTitle(row: Pick<ItemRow, "title" | "source" | "url">): boolean {
   if (row.title === row.source.replace(/\.[^.]+$/, "")) return true;
   try {
@@ -293,7 +293,7 @@ export class Library {
   }
 
   /**
-   * Text God Eye writes itself (notes, lessons, news, example projects). Same id again replaces it,
+   * Text Igrek writes itself (notes, lessons, news, example projects). Same id again replaces it,
    * and nothing is redone when the text did not change.
    */
   upsertText(args: {

@@ -1,7 +1,7 @@
 /**
- * God Eye MCP server (plan.md 1.4): lets any AI session ask God Eye for project
+ * Igrek MCP server (plan.md 1.4): lets any AI session ask Igrek for project
  * memory, past sessions and search. Speaks MCP over stdio and forwards to the
- * local God Eye API, so it needs God Eye running.
+ * local Igrek API, so it needs Igrek running.
  *
  *   claude mcp add --scope user igrek -- bun /path/to/apps/server/src/mcp.ts
  */
@@ -22,7 +22,7 @@ async function api<T>(path: string): Promise<T> {
     headers: { host: `localhost:${PORT}`, cookie: `igrek_session=${key()}`, "x-igrek-caller": "agent" },
     signal: AbortSignal.timeout(10_000),
   });
-  if (!res.ok) throw new Error(`God Eye answered ${res.status}`);
+  if (!res.ok) throw new Error(`Igrek answered ${res.status}`);
   return res.json() as Promise<T>;
 }
 
@@ -32,7 +32,7 @@ const TOOLS = [
   {
     name: "igrek_project_memory",
     description:
-      "What God Eye remembers about this project: current status, decisions already made, rules to follow, approaches that failed before, open problems, and recent session summaries. Read this before making architectural choices.",
+      "What Igrek remembers about this project: current status, decisions already made, rules to follow, approaches that failed before, open problems, and recent session summaries. Read this before making architectural choices.",
     inputSchema: { type: "object", properties: { path: pathArg } },
   },
   {
@@ -48,7 +48,7 @@ const TOOLS = [
   {
     name: "igrek_wiki",
     description:
-      "Search this project's wiki (the team's own documentation pages in God Eye). Use it for how things are meant to work here: setup, architecture notes, decisions written up as pages.",
+      "Search this project's wiki (the team's own documentation pages in Igrek). Use it for how things are meant to work here: setup, architecture notes, decisions written up as pages.",
     inputSchema: {
       type: "object",
       properties: { query: { type: "string" }, path: pathArg },
@@ -58,7 +58,7 @@ const TOOLS = [
   {
     name: "igrek_persona",
     description:
-      "One of the user's God Eye personas (architect, security, backend, qa, devils-advocate…): its style, review checklist, known pitfalls, rules and the opinions it wrote down for this project. Use it to review or work the way that expert would.",
+      "One of the user's Igrek personas (architect, security, backend, qa, devils-advocate…): its style, review checklist, known pitfalls, rules and the opinions it wrote down for this project. Use it to review or work the way that expert would.",
     inputSchema: {
       type: "object",
       properties: { id: { type: "string", description: "Persona id, e.g. security" }, path: pathArg },
@@ -68,7 +68,7 @@ const TOOLS = [
   {
     name: "igrek_request_secret",
     description:
-      "Ask the user for a secret (API key, token, password) instead of asking them to paste it into the chat. They type it in God Eye; it is stored in their vault and written to the project's env file. You never see the value; you get the variable name to use. Waits up to 10 minutes.",
+      "Ask the user for a secret (API key, token, password) instead of asking them to paste it into the chat. They type it in Igrek; it is stored in their vault and written to the project's env file. You never see the value; you get the variable name to use. Waits up to 10 minutes.",
     inputSchema: {
       type: "object",
       properties: {
@@ -83,7 +83,7 @@ const TOOLS = [
   {
     name: "igrek_ask_form",
     description:
-      "Ask the user several structured questions at once as a form in God Eye (choices, numbers, yes/no, short text), instead of a long list of questions in the chat. The schema is a flat JSON Schema object: properties of type string (optionally with enum), number, integer or boolean, each with a title and description; list the required ones. Waits up to 10 minutes and returns the answers as JSON.",
+      "Ask the user several structured questions at once as a form in Igrek (choices, numbers, yes/no, short text), instead of a long list of questions in the chat. The schema is a flat JSON Schema object: properties of type string (optionally with enum), number, integer or boolean, each with a title and description; list the required ones. Waits up to 10 minutes and returns the answers as JSON.",
     inputSchema: {
       type: "object",
       properties: {
@@ -98,7 +98,7 @@ const TOOLS = [
   {
     name: "igrek_show_html",
     description:
-      "Show the user a whole HTML page (a report, a table, a chart) in God Eye: it opens from their inbox in a sandboxed frame with no network, so use inline CSS and JavaScript only.",
+      "Show the user a whole HTML page (a report, a table, a chart) in Igrek: it opens from their inbox in a sandboxed frame with no network, so use inline CSS and JavaScript only.",
     inputSchema: {
       type: "object",
       properties: { title: { type: "string" }, html: { type: "string" }, path: pathArg },
@@ -107,13 +107,13 @@ const TOOLS = [
   },
   {
     name: "igrek_servers",
-    description: "Servers the user saved in God Eye (name, ssh target, tag like prod/test).",
+    description: "Servers the user saved in Igrek (name, ssh target, tag like prod/test).",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "igrek_server_run",
     description:
-      "Run a shell command on one of the user's servers through God Eye. Read-only commands (logs, status, disk) run immediately. Commands that change something wait until the user approves them in God Eye; destructive ones need a double confirmation. Always give a short reason. Prefer this over raw ssh so every step is approved and logged.",
+      "Run a shell command on one of the user's servers through Igrek. Read-only commands (logs, status, disk) run immediately. Commands that change something wait until the user approves them in Igrek; destructive ones need a double confirmation. Always give a short reason. Prefer this over raw ssh so every step is approved and logged.",
     inputSchema: {
       type: "object",
       properties: {
@@ -150,7 +150,7 @@ const TOOLS = [
   {
     name: "igrek_schedule",
     description:
-      'Schedule work for later in this project, from a plain sentence ("every Friday morning update the dependencies", "tomorrow 15:00 run the tests"). God Eye turns it into a proposal the user must approve in God Eye; at its time it runs in its own copy of the repo and the result waits for the user. Use it when the user asks for something to happen later or regularly.',
+      'Schedule work for later in this project, from a plain sentence ("every Friday morning update the dependencies", "tomorrow 15:00 run the tests"). Igrek turns it into a proposal the user must approve in Igrek; at its time it runs in its own copy of the repo and the result waits for the user. Use it when the user asks for something to happen later or regularly.',
     inputSchema: {
       type: "object",
       properties: {
@@ -197,7 +197,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     signal: AbortSignal.timeout(130_000),
   });
   const data = (await res.json()) as T & { error?: string };
-  if (!res.ok) throw new Error(data.error ?? `God Eye answered ${res.status}`);
+  if (!res.ok) throw new Error(data.error ?? `Igrek answered ${res.status}`);
   return data;
 }
 
@@ -211,7 +211,7 @@ async function callTool(name: string, args: Args): Promise<string> {
   const cwd = args.path ?? process.cwd();
   if (name === "igrek_project_memory") {
     const { context } = await api<{ context: string }>(`/api/context?cwd=${encodeURIComponent(cwd)}`);
-    return context || "God Eye has no memory for this project yet.";
+    return context || "Igrek has no memory for this project yet.";
   }
   if (name === "igrek_search") {
     const query = encodeURIComponent(args.query ?? "");
@@ -238,7 +238,7 @@ async function callTool(name: string, args: Args): Promise<string> {
     const list = await api<{ name: string; target: string; tag: string }[]>("/api/agent/servers");
     return list.length
       ? list.map((s) => `- ${s.name} (${s.tag}): ${s.target}`).join("\n")
-      : "No servers saved in God Eye.";
+      : "No servers saved in Igrek.";
   }
   if (name === "igrek_persona") {
     const p = await api<{
@@ -293,7 +293,7 @@ async function callTool(name: string, args: Args): Promise<string> {
   }
   if (name === "igrek_show_html") {
     await post<{ id: string }>("/api/agent/reports", { cwd, title: args.title, html: args.html });
-    return "The page is in the user's God Eye inbox; they open it from there.";
+    return "The page is in the user's Igrek inbox; they open it from there.";
   }
   if (name === "igrek_server_run") {
     const first = await post<{ status: "done"; run: Run } | { status: "pending"; approvalId: string }>(
@@ -305,7 +305,7 @@ async function callTool(name: string, args: Args): Promise<string> {
       },
     );
     if (first.status === "done") return formatRun(first.run);
-    // Wait for the user's decision in God Eye (up to 10 minutes).
+    // Wait for the user's decision in Igrek (up to 10 minutes).
     for (let i = 0; i < 300; i++) {
       await Bun.sleep(2000);
       const state = await api<{ status: string; run?: Run }>(`/api/agent/approvals/${first.approvalId}`);
@@ -344,7 +344,7 @@ async function callTool(name: string, args: Args): Promise<string> {
       sentence: args.sentence,
       cwd,
     });
-    return `Proposed: ${proposal.summary ?? proposal.title}. It waits for the user's approval on God Eye's Schedules page (or the inbox); nothing runs before that.`;
+    return `Proposed: ${proposal.summary ?? proposal.title}. It waits for the user's approval on Igrek's Schedules page (or the inbox); nothing runs before that.`;
   }
   if (name === "igrek_recent_sessions") {
     const sessions = await api<
@@ -389,7 +389,7 @@ async function handle(req: Request): Promise<unknown> {
         return { content: [{ type: "text", text }] };
       } catch (err) {
         return {
-          content: [{ type: "text", text: `God Eye is not reachable: ${(err as Error).message}` }],
+          content: [{ type: "text", text: `Igrek is not reachable: ${(err as Error).message}` }],
           isError: true,
         };
       }

@@ -1,6 +1,6 @@
 /**
  * Team workflows and auto mode (plan.md Faz 8). Flows are YAML in Archon's format (nodes with
- * prompt / bash / wait, depends_on, model), with a few God Eye fields: persona, own worktree,
+ * prompt / bash / wait, depends_on, model), with a few Igrek fields: persona, own worktree,
  * the project's checks as a gate, and going back to earlier nodes when a gate fails.
  */
 
@@ -29,7 +29,7 @@ export interface FlowDef {
   name: string;
   description?: string;
   nodes: FlowNode[];
-  /** Where it came from: built in, the project's .godeye/flows or .archon/workflows. */
+  /** Where it came from: built in, the project's .igrek/flows or .archon/workflows. */
   source?: "builtin" | "project" | "archon";
 }
 
@@ -60,7 +60,7 @@ export interface FlowRun {
   flow: string;
   /** What the user asked for: "Add user login". */
   request: string;
-  engine: "godeye" | "archon";
+  engine: "igrek" | "archon";
   status: "running" | "needs_you" | "ready" | "done" | "failed" | "stopped" | "merged" | "discarded" | "waiting_limit";
   nodes: FlowNodeState[];
   /** One model for every step instead of each persona's own (the model arena, plan.md 13.1): "sonnet", "opus", "codex"… */

@@ -141,7 +141,7 @@ export function TeamChat() {
           {error && <p className="text-xs text-danger">{error}</p>}
           {summary && (
             <Card className="p-pad text-[13px]">
-              <Markdown text={summary} className="prose-godeye" />
+              <Markdown text={summary} className="prose-igrek" />
             </Card>
           )}
           <Comments key={selected.id} projectId={selected.projectId} kind="channel" id={selected.id} />

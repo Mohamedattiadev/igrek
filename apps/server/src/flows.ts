@@ -41,8 +41,8 @@ function git(cwd: string, args: string[]): { ok: boolean; out: string; err: stri
 function identity(cwd: string): string[] {
   const has = (key: string) => git(cwd, ["config", key]).out !== "";
   return [
-    ...(has("user.name") ? [] : ["-c", "user.name=God Eye"]),
-    ...(has("user.email") ? [] : ["-c", "user.email=god-eye@localhost"]),
+    ...(has("user.name") ? [] : ["-c", "user.name=Igrek"]),
+    ...(has("user.email") ? [] : ["-c", "user.email=igrek@localhost"]),
   ];
 }
 
@@ -53,7 +53,7 @@ function commitAll(cwd: string, message: string): boolean {
   return git(cwd, [...identity(cwd), "commit", "-q", "-m", message.slice(0, 200)]).ok;
 }
 
-/** Reads a flow from YAML (Archon's node format plus God Eye's fields). */
+/** Reads a flow from YAML (Archon's node format plus Igrek's fields). */
 export function parseFlow(text: string, source: FlowDef["source"]): FlowDef {
   const raw = parseYaml(text) as Record<string, unknown> | null;
   if (!raw || !Array.isArray(raw.nodes)) throw new Error("A flow needs a list of nodes");
@@ -235,7 +235,7 @@ const runAgent: AgentRun = async (args) => {
 };
 
 /**
- * God Eye's flow engine (plan.md Faz 8). Every run gets its own copy of the repo and its own branch;
+ * Igrek's flow engine (plan.md Faz 8). Every run gets its own copy of the repo and its own branch;
  * nodes whose inputs are ready run at the same time (side-by-side nodes in copies of their own,
  * merged back when done); a failed gate sends the work back with what went wrong; nothing reaches
  * your branch until you approve the final screen, and nothing is ever pushed.
@@ -347,7 +347,7 @@ export class Flows {
       projectId: project.id,
       flow: def.name,
       request,
-      engine: "godeye",
+      engine: "igrek",
       status: "running",
       nodes: def.nodes.map((n) => ({
         id: n.id,
@@ -691,7 +691,7 @@ export class Flows {
         const readOnly = node.review === true || persona?.tools === "read";
         const prompt = `${this.fill(node.prompt, run, node.id)}
 
-You are one step ("${node.title ?? node.id}") of a team workflow in God Eye, working in a separate copy of the project on its own branch. Work only inside this folder. Never push, merge, publish or deploy. ${readOnly ? "Do not change any files." : "Leave your changes in the folder (God Eye commits them)."}
+You are one step ("${node.title ?? node.id}") of a team workflow in Igrek, working in a separate copy of the project on its own branch. Work only inside this folder. Never push, merge, publish or deploy. ${readOnly ? "Do not change any files." : "Leave your changes in the folder (Igrek commits them)."}
 End with a short summary of what you did, for the next step.${node.review ? "\nYour very last line must be VERDICT: PASS or VERDICT: FAIL. FAIL only for problems that must be fixed before this can ship." : ""}`;
         output = await this.agent({
           cwd,
@@ -777,9 +777,9 @@ End with a short summary of what you did, for the next step.${node.review ? "\nY
     for (const run of this.list()) {
       if (run.status !== "running") continue;
       for (const n of run.nodes)
-        if (n.status === "running") Object.assign(n, { status: "failed", error: "God Eye restarted" });
+        if (n.status === "running") Object.assign(n, { status: "failed", error: "Igrek restarted" });
       run.status = "failed";
-      run.error = "God Eye restarted during the run";
+      run.error = "Igrek restarted during the run";
       this.save(run);
     }
   }

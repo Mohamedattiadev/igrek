@@ -23,7 +23,7 @@ const offline: Embed = {
 function world() {
   const { sqlite } = openDb(":memory:");
   const store = new Store(sqlite);
-  const dir = mkdtempSync(join(tmpdir(), "godeye-extra-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-extra-"));
   const bus = new Bus();
   const library = new Library(sqlite, bus, join(dir, ".lib"), offline);
   const lessons = new Lessons(
@@ -94,11 +94,11 @@ describe("project templates", () => {
       w.bus,
       new StopRegistry(),
       personas,
-      mkdtempSync(join(tmpdir(), "godeye-wts-")),
+      mkdtempSync(join(tmpdir(), "igrek-wts-")),
       agent,
       async () => [],
     );
-    const home = mkdtempSync(join(tmpdir(), "godeye-home-"));
+    const home = mkdtempSync(join(tmpdir(), "igrek-home-"));
     const made = createProject(
       { store: w.store, flows, lessons: w.lessons },
       { name: "shop", parent: home, template: "saas", details: "Sells flowers" },

@@ -121,7 +121,7 @@ export function registerLearnRoutes(
     return c.json(learn.techs(project.path));
   });
 
-  /** "Which step is this project at?": each roadmap stage judged from what God Eye knows. */
+  /** "Which step is this project at?": each roadmap stage judged from what Igrek knows. */
   hono.get("/api/projects/:id/learn/stages", (c) => {
     const project = store.projectRow(c.req.param("id"));
     if (!project) return c.json({ error: "Not found" }, 404);
@@ -146,7 +146,7 @@ export function registerLearnRoutes(
 
   /**
    * The practice project of a roadmap: a new git repository in ~/Projects/learn-<roadmap> with a
-   * README that says what will be built. It is added to God Eye like any project.
+   * README that says what will be built. It is added to Igrek like any project.
    */
   hono.post("/api/learn/practice", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { roadmap?: string; parent?: string };

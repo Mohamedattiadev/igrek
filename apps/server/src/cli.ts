@@ -11,12 +11,12 @@ const HELP: Record<string, string> = {
   codex: "Install Codex CLI to use Codex: npm install -g @openai/codex",
   gemini: "Install Gemini CLI to use Gemini: npm install -g @google/gemini-cli",
   ssh: "Needed to work on your servers. Install OpenSSH client",
-  docker: "Optional. Lets God Eye manage your containers",
+  docker: "Optional. Lets Igrek manage your containers",
 };
 
 async function doctor(): Promise<number> {
   const config = loadConfig();
-  console.log(`\nGod Eye ${APP_VERSION} — health check\n`);
+  console.log(`\nIgrek ${APP_VERSION} — health check\n`);
   console.log(`   Data folder: ${config.dataDir}`);
   console.log(`   Address:     http://localhost:${config.port}\n`);
 
@@ -40,7 +40,7 @@ async function doctor(): Promise<number> {
 }
 
 /**
- * The local API from a script (plan.md 13.6): the CLI talks to the God Eye running on this
+ * The local API from a script (plan.md 13.6): the CLI talks to the Igrek running on this
  * computer with the same session key the browser gets (it never leaves this computer).
  */
 async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
@@ -48,7 +48,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
   const base = `http://localhost:${config.publicPort}`;
   const keyFile = join(config.dataDir, "session.key");
   if (!existsSync(keyFile))
-    throw new Error(`God Eye has not run with ${config.dataDir} yet: start it with "bun run start"`);
+    throw new Error(`Igrek has not run with ${config.dataDir} yet: start it with "bun run start"`);
   let res: Response;
   try {
     res = await fetch(`${base}${path}`, {
@@ -61,7 +61,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
   } catch {
-    throw new Error(`God Eye is not running at ${base}: start it with "bun run start"`);
+    throw new Error(`Igrek is not running at ${base}: start it with "bun run start"`);
   }
   const text = await res.text();
   const data = (
@@ -92,7 +92,7 @@ type ProjectRow = {
 async function project(name: string): Promise<ProjectRow> {
   const list = await call<ProjectRow[]>("GET", "/api/projects");
   const found = list.find((p) => p.id === name) ?? list.find((p) => p.name.toLowerCase() === name.toLowerCase());
-  if (!found) throw new Error(`No project called "${name}". Try: godeye projects`);
+  if (!found) throw new Error(`No project called "${name}". Try: igrek projects`);
   return found;
 }
 
@@ -101,12 +101,12 @@ const ago = (at: number) => {
   return m < 60 ? `${m} min ago` : m < 1440 ? `${Math.round(m / 60)} h ago` : `${Math.round(m / 1440)} d ago`;
 };
 
-const USAGE = `God Eye ${APP_VERSION}
+const USAGE = `Igrek ${APP_VERSION}
 
-Usage: godeye <command>
+Usage: igrek <command>
 
-  doctor                          Check the tools God Eye needs
-  status                          Is God Eye running, what is going on
+  doctor                          Check the tools Igrek needs
+  status                          Is Igrek running, what is going on
   projects                        Your projects
   search <words>                  Search everything said in your AI sessions
   ask <question> [--project NAME] Ask about your projects (memory and sessions)
@@ -114,7 +114,7 @@ Usage: godeye <command>
   run <project> <flow> <request>  Start a team run (flows: feature, fix, task, spec, check, report)
   recap [YYYY-MM-DD]              The end-of-day recap ("what did we do")
   weekly                          This week's CEO report
-  api <METHOD> <path> [json]      Call the local API directly, e.g. godeye api GET /api/projects
+  api <METHOD> <path> [json]      Call the local API directly, e.g. igrek api GET /api/projects
 `;
 
 async function main(args: string[]): Promise<number> {
@@ -124,7 +124,7 @@ async function main(args: string[]): Promise<number> {
     const projects = await call<ProjectRow[]>("GET", "/api/projects");
     const notices = await call<unknown[]>("GET", "/api/inbox/notices");
     const runs = await call<{ status: string }[]>("GET", "/api/flows");
-    console.log(`God Eye ${APP_VERSION} is running at http://localhost:${loadConfig().publicPort}`);
+    console.log(`Igrek ${APP_VERSION} is running at http://localhost:${loadConfig().publicPort}`);
     console.log(
       `  ${projects.filter((p) => !p.hidden).length} projects, ${projects.reduce((n, p) => n + p.activeSessions, 0)} AI sessions working now`,
     );
@@ -142,7 +142,7 @@ async function main(args: string[]): Promise<number> {
   }
   if (command === "search") {
     const q = rest.join(" ").trim();
-    if (!q) throw new Error("Usage: godeye search <words>");
+    if (!q) throw new Error("Usage: igrek search <words>");
     const hits = await call<{ projectName?: string; sessionTitle: string; snippet: string; ts: number }[]>(
       "GET",
       `/api/search?q=${encodeURIComponent(q)}`,
@@ -164,7 +164,7 @@ async function main(args: string[]): Promise<number> {
       .filter((_, k) => k !== i && k !== i + 1)
       .join(" ")
       .trim();
-    if (!question) throw new Error("Usage: godeye ask <question> [--project NAME]");
+    if (!question) throw new Error("Usage: igrek ask <question> [--project NAME]");
     const projectId = projectName ? (await project(projectName)).id : undefined;
     const answer = await call<{ answer?: string; text?: string }>("POST", "/api/ask", { question, projectId });
     console.log(answer.answer ?? answer.text ?? JSON.stringify(answer, null, 2));
@@ -184,7 +184,7 @@ async function main(args: string[]): Promise<number> {
   }
   if (command === "run") {
     const [name, flow, ...words] = rest;
-    if (!name || !flow || !words.length) throw new Error("Usage: godeye run <project> <flow> <request>");
+    if (!name || !flow || !words.length) throw new Error("Usage: igrek run <project> <flow> <request>");
     const p = await project(name);
     const run = await call<{ id: string }>("POST", "/api/flows", { projectId: p.id, flow, request: words.join(" ") });
     console.log(`Started. Follow it at http://localhost:${loadConfig().publicPort}/runs/${run.id}`);
@@ -206,7 +206,7 @@ async function main(args: string[]): Promise<number> {
   }
   if (command === "api") {
     const [method, path, json] = rest;
-    if (!method || !path?.startsWith("/api/")) throw new Error("Usage: godeye api <METHOD> </api/path> [json]");
+    if (!method || !path?.startsWith("/api/")) throw new Error("Usage: igrek api <METHOD> </api/path> [json]");
     const out = await call<unknown>(method.toUpperCase(), path, json ? JSON.parse(json) : undefined);
     console.log(typeof out === "string" ? out : JSON.stringify(out, null, 2));
     return 0;

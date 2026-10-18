@@ -1,5 +1,5 @@
 /**
- * Local model through Ollama (plan.md 13.1): free, on this computer, for small jobs God Eye does by
+ * Local model through Ollama (plan.md 13.1): free, on this computer, for small jobs Igrek does by
  * itself (session summaries, sorting, translation). Used when the setting says so, or when
  * Claude's limit is full and the setting allows it. Never for coding agents: those stay on the
  * user's own AI accounts.

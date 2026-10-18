@@ -14,7 +14,7 @@ import {
  * The web member's sync client (plan.md 4.3): signs in to the hub, keeps a device key whose private
  * half cannot be copied out of the browser, receives the team key wrapped for that device once an
  * admin approves it, and decrypts the team's events in the page. The hub never sees a key or a
- * plain value, exactly as with God Eye on a computer. The team key itself is never stored: it is
+ * plain value, exactly as with Igrek on a computer. The team key itself is never stored: it is
  * unwrapped again from the hub's copy each time the page opens.
  */
 
@@ -122,7 +122,7 @@ const MAX_MESSAGES = 2000;
 
 type Fold = (p: MemberProject, v: Record<string, unknown>, e: { author: string; at: number }) => void;
 
-/** How each kind of team event lands in a project, as God Eye on a computer reads them. */
+/** How each kind of team event lands in a project, as Igrek on a computer reads them. */
 const FOLDS: Record<string, Fold> = {
   session: (p, v, e) => {
     const id = String(v.id ?? "");
@@ -421,7 +421,7 @@ export class MemberClient {
     this.send({ op: "pub", project, kind, id: id.slice(0, 40), epoch: this.epoch, ...sealed });
   }
 
-  /** A comment on a session, a decision or a card; teammates see it like one written in God Eye. */
+  /** A comment on a session, a decision or a card; teammates see it like one written in Igrek. */
   async comment(project: string, targetKind: string, targetId: string, text: string): Promise<void> {
     const value = {
       id: crypto.randomUUID().slice(0, 12),
@@ -436,7 +436,7 @@ export class MemberClient {
     this.changed();
   }
 
-  /** A new card on the project's board; God Eye shows it with this member as its author. */
+  /** A new card on the project's board; Igrek shows it with this member as its author. */
   async addTask(project: string, title: string): Promise<void> {
     const now = Date.now();
     const task = {
@@ -474,7 +474,10 @@ export class MemberClient {
   }
 }
 
-/** The page's store: IndexedDB, which can hold a non-extractable CryptoKey as it is. */
+/**
+ * The page's store: IndexedDB, which can hold a non-extractable CryptoKey as it is. It keeps
+ * the name from before the rename to Igrek: the key in it cannot be copied out to a new one.
+ */
 export function indexedDbStore(name = "godeye-member"): MemberStore {
   const open = () =>
     new Promise<IDBDatabase>((resolve, reject) => {

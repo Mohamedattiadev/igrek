@@ -12,14 +12,14 @@ import type { Vault } from "./vault";
 function setup() {
   const { sqlite } = openDb(":memory:");
   const store = new Store(sqlite);
-  const dir = mkdtempSync(join(tmpdir(), "godeye-agentreq-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-agentreq-"));
   store.addProject(dir);
   const vaulted: { name: string; value: string }[] = [];
   const vault = { addItem: async (i: { name: string; value: string }) => (vaulted.push(i), "v1") } as unknown as Vault;
   const requests = new AgentRequests(
     store,
     vault,
-    new EnvFiles(mkdtempSync(join(tmpdir(), "godeye-envb-"))),
+    new EnvFiles(mkdtempSync(join(tmpdir(), "igrek-envb-"))),
     {} as Personas,
   );
   return { requests, dir, vaulted };

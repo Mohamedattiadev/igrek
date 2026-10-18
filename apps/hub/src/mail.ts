@@ -25,7 +25,7 @@ export function mailFromEnv(env: Record<string, string | undefined> = process.en
     secure: env.SMTP_SECURE ? env.SMTP_SECURE === "true" : port === 465,
     user,
     pass: env.SMTP_PASS || undefined,
-    from: env.SMTP_FROM?.trim() || user || `god-eye@${host}`,
+    from: env.SMTP_FROM?.trim() || user || `igrek@${host}`,
   };
 }
 
@@ -53,30 +53,30 @@ type Lang = "en" | "tr";
 const TEXT: Record<Lang, Record<"invite" | "reset" | "code", { subject: string; body: string }>> = {
   en: {
     invite: {
-      subject: "{from} invited you to the {team} team on God Eye",
-      body: 'Hi {name},\n\n{from} added you to the team on God Eye.\n\nOpen God Eye, go to Team, choose "Join with an invite" and paste this code:\n\n{code}\n\nYou\'ll pick your own password on the first sign-in. After that, a teammate approves your device and you can see the shared projects.\n',
+      subject: "{from} invited you to the {team} team on Igrek",
+      body: 'Hi {name},\n\n{from} added you to the team on Igrek.\n\nOpen Igrek, go to Team, choose "Join with an invite" and paste this code:\n\n{code}\n\nYou\'ll pick your own password on the first sign-in. After that, a teammate approves your device and you can see the shared projects.\n',
     },
     reset: {
-      subject: "Your new God Eye sign-in",
-      body: 'Hi {name},\n\n{from} reset your God Eye password. Open God Eye, go to Team, choose "Join with an invite" and paste this code:\n\n{code}\n\nYou\'ll pick a new password right away. Your other devices were signed out.\n',
+      subject: "Your new Igrek sign-in",
+      body: 'Hi {name},\n\n{from} reset your Igrek password. Open Igrek, go to Team, choose "Join with an invite" and paste this code:\n\n{code}\n\nYou\'ll pick a new password right away. Your other devices were signed out.\n',
     },
     code: {
-      subject: "Your God Eye password reset code",
-      body: "Hi {name},\n\nSomeone asked to reset your God Eye password. If it was you, enter this code within 30 minutes:\n\n{code}\n\nIf it wasn't you, ignore this email; nothing changes.\n",
+      subject: "Your Igrek password reset code",
+      body: "Hi {name},\n\nSomeone asked to reset your Igrek password. If it was you, enter this code within 30 minutes:\n\n{code}\n\nIf it wasn't you, ignore this email; nothing changes.\n",
     },
   },
   tr: {
     invite: {
-      subject: "{from} seni God Eye'da {team} takımına davet etti",
-      body: "Merhaba {name},\n\n{from} seni God Eye'daki takıma ekledi.\n\nGod Eye'ı aç, Takım sayfasında \"Davetle katıl\"ı seç ve şu kodu yapıştır:\n\n{code}\n\nİlk girişte kendi şifreni belirleyeceksin. Ardından bir takım arkadaşın cihazını onaylar ve paylaşılan projeleri görürsün.\n",
+      subject: "{from} seni Igrek'te {team} takımına davet etti",
+      body: "Merhaba {name},\n\n{from} seni Igrek'teki takıma ekledi.\n\nIgrek'i aç, Takım sayfasında \"Davetle katıl\"ı seç ve şu kodu yapıştır:\n\n{code}\n\nİlk girişte kendi şifreni belirleyeceksin. Ardından bir takım arkadaşın cihazını onaylar ve paylaşılan projeleri görürsün.\n",
     },
     reset: {
-      subject: "Yeni God Eye girişin",
-      body: 'Merhaba {name},\n\n{from} God Eye şifreni sıfırladı. God Eye\'ı aç, Takım sayfasında "Davetle katıl"ı seç ve şu kodu yapıştır:\n\n{code}\n\nHemen yeni bir şifre belirleyeceksin. Diğer cihazlarından çıkış yapıldı.\n',
+      subject: "Yeni Igrek girişin",
+      body: 'Merhaba {name},\n\n{from} Igrek şifreni sıfırladı. Igrek\'ı aç, Takım sayfasında "Davetle katıl"ı seç ve şu kodu yapıştır:\n\n{code}\n\nHemen yeni bir şifre belirleyeceksin. Diğer cihazlarından çıkış yapıldı.\n',
     },
     code: {
-      subject: "God Eye şifre sıfırlama kodun",
-      body: "Merhaba {name},\n\nGod Eye şifreni sıfırlamak için istek geldi. Sen istediysen bu kodu 30 dakika içinde gir:\n\n{code}\n\nSen istemediysen bu e-postayı yok say; hiçbir şey değişmez.\n",
+      subject: "Igrek şifre sıfırlama kodun",
+      body: "Merhaba {name},\n\nIgrek şifreni sıfırlamak için istek geldi. Sen istediysen bu kodu 30 dakika içinde gir:\n\n{code}\n\nSen istemediysen bu e-postayı yok say; hiçbir şey değişmez.\n",
     },
   },
 };

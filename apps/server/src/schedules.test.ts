@@ -13,7 +13,7 @@ import { Store } from "./store";
 function setup(reply: string) {
   const { sqlite } = openDb(":memory:");
   const store = new Store(sqlite);
-  const dir = mkdtempSync(join(tmpdir(), "godeye-sched-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-sched-"));
   const git = (...args: string[]) =>
     Bun.spawnSync(["git", "-C", dir, "-c", "user.name=t", "-c", "user.email=t@t", ...args]);
   git("init", "-q", "-b", "main");
@@ -30,7 +30,7 @@ function setup(reply: string) {
     bus,
     new StopRegistry(),
     personas,
-    mkdtempSync(join(tmpdir(), "godeye-wts-")),
+    mkdtempSync(join(tmpdir(), "igrek-wts-")),
     agent,
     async () => [],
   );

@@ -31,7 +31,7 @@ export interface DiskUsage {
 }
 
 /**
- * Data retention (plan.md 13.6): what God Eye keeps on disk, and keeping it small. Only God
+ * Data retention (plan.md 13.6): what Igrek keeps on disk, and keeping it small. Only God
  * Eye's own copies are removed: old transcript copies (summaries and numbers stay; your AI
  * tools' own files are untouched, so a session can be read again), copies of finished team
  * runs, and old screenshots.

@@ -129,7 +129,7 @@ export class Vault {
       .run(ref, every, this.now());
   }
 
-  /** "I changed it" for a key whose change God Eye can't see (a dashboard-only secret). */
+  /** "I changed it" for a key whose change Igrek can't see (a dashboard-only secret). */
   markRotated(ref: string): void {
     this.db
       .query(

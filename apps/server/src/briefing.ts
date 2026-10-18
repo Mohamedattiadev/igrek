@@ -21,7 +21,7 @@ function localDay(at: number): string {
 /**
  * The morning briefing (plan.md 11): what happened yesterday across all projects, what is planned
  * today, and where things are stuck, in a few plain lines. Written once a day by the small model
- * from God Eye's own records; nothing is invented.
+ * from Igrek's own records; nothing is invented.
  */
 export class Briefings {
   constructor(

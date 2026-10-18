@@ -17,7 +17,7 @@ export * from "./schedules";
 export * from "./scrub";
 export * from "./testusers";
 
-export const APP_NAME = "God Eye";
+export const APP_NAME = "Igrek";
 export const APP_VERSION = "0.1.0";
 export const DEFAULT_PORT = 7777;
 
@@ -38,7 +38,7 @@ export interface Settings {
   onboarded: boolean;
   /** Summarize finished sessions automatically with a small, cheap model. */
   autoSummarize: boolean;
-  /** Chats may answer with OpenUI blocks drawn with God Eye's components (plan.md 16.2); costs about a thousand tokens per chat. */
+  /** Chats may answer with OpenUI blocks drawn with Igrek's components (plan.md 16.2); costs about a thousand tokens per chat. */
   richAnswers: boolean;
   /**
    * Gate point (plan.md 15.5): when a chat turn changed files, run the project's typecheck, lint
@@ -47,7 +47,7 @@ export interface Settings {
   turnGate: "off" | "check" | "sendBack";
   /** How summaries are written: for anyone, or with technical detail. */
   summaryTone: "plain" | "technical";
-  /** Extra folders (besides projects) God Eye may open in the file manager. */
+  /** Extra folders (besides projects) Igrek may open in the file manager. */
   allowedFolders: string[];
   /** Vim keys inside the code editor (independent of list navigation). Kept for older settings; see editorKeymap. */
   editorVim: boolean;
@@ -73,7 +73,7 @@ export interface Settings {
   /** Where Ollama listens. */
   localModelUrl: string;
   /**
-   * Days God Eye keeps its own copy of session transcripts (plan.md 13.6); 0 keeps them forever.
+   * Days Igrek keeps its own copy of session transcripts (plan.md 13.6); 0 keeps them forever.
    * Summaries, numbers and your AI tools' own files are never removed.
    */
   transcriptDays: number;
@@ -136,7 +136,7 @@ export interface SystemStatus {
 export type AiTool = "claude" | "codex" | "gemini" | "pi";
 
 /**
- * What each AI tool can do in God Eye (plan.md 16.3). Screens and routes ask these flags
+ * What each AI tool can do in Igrek (plan.md 16.3). Screens and routes ask these flags
  * instead of comparing tool names, so a new adapter only fills in its row.
  */
 export interface ToolCapabilities {
@@ -145,7 +145,7 @@ export interface ToolCapabilities {
   resume: boolean;
   /** A resumed session can be forked into a new one. */
   fork: boolean;
-  /** Its sessions can be continued in a God Eye chat (stream-json driven). */
+  /** Its sessions can be continued in an Igrek chat (stream-json driven). */
   chat: boolean;
   /** A side question can run on a fork of the session with its full context. */
   sideQuestion: boolean;
@@ -550,7 +550,7 @@ export interface QueuedMessage {
   images: number;
 }
 
-/** A chat God Eye remembers after it ended or God Eye restarted, so it can be continued from its saved session. */
+/** A chat Igrek remembers after it ended or Igrek restarted, so it can be continued from its saved session. */
 export interface RecentChat {
   id: string;
   projectId: string;
@@ -620,7 +620,7 @@ export type ChatEvent =
 /** The message that hands failures from the gate back to the AI, with the evidence (plan.md 15.5). */
 export function fixRequest(broke: { command: string; output?: string }[]): string {
   const parts = broke.map((c) => `$ ${c.command}\n${(c.output ?? "").trim()}`);
-  return `God Eye ran the project's checks after your changes. These passed before this turn and fail now:\n\n${parts.join("\n\n")}\n\nFix what your changes broke, then say what you changed. Do not weaken or skip the checks.`;
+  return `Igrek ran the project's checks after your changes. These passed before this turn and fail now:\n\n${parts.join("\n\n")}\n\nFix what your changes broke, then say what you changed. Do not weaken or skip the checks.`;
 }
 
 export interface Checkpoint {
@@ -635,7 +635,7 @@ export interface Account {
   /** Name the user gave it, e.g. "Work" or "Personal". */
   label: string;
   configDir: string;
-  /** The login that already existed (~/.claude); can't be removed from God Eye. */
+  /** The login that already existed (~/.claude); can't be removed from Igrek. */
   isDefault: boolean;
   email?: string;
   plan?: string;

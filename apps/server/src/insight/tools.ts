@@ -6,7 +6,7 @@ import { scrub } from "../sync/scrub";
 
 /**
  * The project's own checks (plan.md 5.3): type check, lint, tests and a
- * dependency audit. These run the project's code, so God Eye only proposes
+ * dependency audit. These run the project's code, so Igrek only proposes
  * them; the user sees each exact command and starts it.
  */
 
@@ -82,7 +82,7 @@ export function planTools(root: string): ToolPlan[] {
   return out.filter((p) => (p.command[0] ?? "").startsWith("./") || resolveBin(p.command[0] ?? ""));
 }
 
-/** A program on PATH; `bun` is also the Bun running God Eye, which may not be on PATH itself. */
+/** A program on PATH; `bun` is also the Bun running Igrek, which may not be on PATH itself. */
 function resolveBin(name: string): string | undefined {
   if (Bun.which(name)) return name;
   if (name === "bun" && /\bbun(\.exe)?$/.test(process.execPath)) return process.execPath;

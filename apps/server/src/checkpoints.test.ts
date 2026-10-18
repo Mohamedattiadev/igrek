@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { checkpointChanges, createCheckpoint, listCheckpoints, restoreCheckpoint } from "./checkpoints";
 
 function repo() {
-  const root = mkdtempSync(join(tmpdir(), "godeye-ckpt-repo-"));
+  const root = mkdtempSync(join(tmpdir(), "igrek-ckpt-repo-"));
   const run = (...args: string[]) =>
     Bun.spawnSync(["git", "-C", root, ...args], { stdout: "pipe", stderr: "ignore" })
       .stdout.toString()
@@ -76,7 +76,7 @@ describe("checkpoints", () => {
   });
 
   test("outside git it quietly does nothing", () => {
-    expect(createCheckpoint(mkdtempSync(join(tmpdir(), "godeye-nogit-")), "x")).toBeUndefined();
+    expect(createCheckpoint(mkdtempSync(join(tmpdir(), "igrek-nogit-")), "x")).toBeUndefined();
   });
 });
 

@@ -34,7 +34,7 @@ export function registerChatRoutes(
       personaId: string,
       projectId: string,
     ) => { start: NonNullable<ChatStart["persona"]>; model: string } | undefined;
-    /** God Eye's MCP server, given to every chat. */
+    /** Igrek's MCP server, given to every chat. */
     igrekMcp?: ChatStart["igrekMcp"];
     /** OpenUI instructions when rich answers are on (plan.md 16.2). */
     richUi?: () => string | undefined;

@@ -22,7 +22,7 @@ import { Store } from "./store";
 function setup() {
   const { sqlite } = openDb(":memory:");
   const store = new Store(sqlite);
-  const dir = mkdtempSync(join(tmpdir(), "godeye-persona-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-persona-"));
   const projectId = store.addProject(dir);
   const personas = new Personas(sqlite, store, new Bus(), new StopRegistry(), () => DEFAULT_SETTINGS, dir);
   return { sqlite, store, personas, projectId, dir };
@@ -185,7 +185,7 @@ describe("persona definitions", () => {
     expect(security).toStartWith("---\nname: security\n");
     expect(security).toContain("tools: Read, Grep, Glob");
     expect(security).toContain("model: opus");
-    // The notebook protocol only makes sense inside God Eye.
+    // The notebook protocol only makes sense inside Igrek.
     expect(security).not.toContain("<notebook>");
     expect(readFileSync(join(dir, ".claude/agents/frontend.md"), "utf8")).not.toContain("tools:");
   });
@@ -256,7 +256,7 @@ describe("team meeting", () => {
 
 /** A stand-in `claude` that saves its arguments and answers with a notebook block. */
 function fakeClaude(argsFile: string): string {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
   const script = `#!${process.execPath}
 require("node:fs").writeFileSync(${JSON.stringify(argsFile)}, JSON.stringify(process.argv.slice(2)));
 const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");

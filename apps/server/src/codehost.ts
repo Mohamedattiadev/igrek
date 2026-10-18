@@ -385,7 +385,7 @@ export class CodeHost {
 
   /**
    * A review written by you (plan.md 13.3), sent with your own login when you click: approve,
-   * request changes, or just comment. God Eye never reviews or comments on its own.
+   * request changes, or just comment. Igrek never reviews or comments on its own.
    */
   async review(
     projectId: string,

@@ -27,7 +27,7 @@ function cssVar(name: string): string | undefined {
 /** Editor themes built from the app's color tokens, so it matches light and dark mode. */
 export function applyMonacoTheme(): void {
   const dark = document.documentElement.dataset.theme === "dark";
-  monaco.editor.defineTheme("godeye", {
+  monaco.editor.defineTheme("igrek", {
     base: dark ? "vs-dark" : "vs",
     inherit: true,
     rules: [],
@@ -46,7 +46,7 @@ export function applyMonacoTheme(): void {
       }).filter((entry): entry is [string, string] => !!entry[1]),
     ),
   });
-  monaco.editor.setTheme("godeye");
+  monaco.editor.setTheme("igrek");
 }
 
 const LANGUAGES: Record<string, string> = {

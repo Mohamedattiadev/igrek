@@ -10,7 +10,7 @@ import { compareVersions, DependencyWatcher, SecretScanner, secretsInPatch } fro
 const FAKE_KEY = ["sk", "live", "x".repeat(4) + "Q".repeat(20)].join("_");
 
 function repo() {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-watch-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-watch-"));
   const git = (...args: string[]) =>
     Bun.spawnSync(["git", "-C", dir, "-c", "user.name=t", "-c", "user.email=t@t", ...args]);
   git("init", "-q", "-b", "main");
@@ -97,7 +97,7 @@ describe("dependency watcher", () => {
     expect(compareVersions("4.2.1", "4.2.1")).toBe("none");
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const dir = mkdtempSync(join(tmpdir(), "godeye-deps-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-deps-"));
     writeFileSync(
       join(dir, "package.json"),
       JSON.stringify({ dependencies: { lodash: "^4.17.20", local: "workspace:*" } }),

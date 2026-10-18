@@ -25,7 +25,7 @@ export function registerScheduleRoutes(app: Hono, { schedules, store }: { schedu
           ? store.projectForCwd(body.cwd)
           : undefined;
     return guard(() => {
-      if (!projectId) throw new Error("This folder is not a project in God Eye");
+      if (!projectId) throw new Error("This folder is not a project in Igrek");
       return schedules.propose(String(body.sentence ?? ""), projectId);
     });
   });

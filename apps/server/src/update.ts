@@ -2,11 +2,11 @@ import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 export interface UpdateStatus {
-  /** "git": a checkout God Eye can update itself; "docker": rebuild the image; "none": not updatable from here. */
+  /** "git": a checkout Igrek can update itself; "docker": rebuild the image; "none": not updatable from here. */
   mode: "git" | "docker" | "none";
   behind: number;
   commits: string[];
-  /** Local changes in God Eye's own folder: updating would need them committed or put aside first. */
+  /** Local changes in Igrek's own folder: updating would need them committed or put aside first. */
   dirty: boolean;
   branch?: string;
   checkedAt: number;
@@ -31,8 +31,8 @@ function run(cmd: string[]): { ok: boolean; out: string } {
 }
 
 /**
- * Self-update (plan.md 11). A git checkout of God Eye checks its upstream every few hours (with
- * your own git credentials, nothing else); "Update" pulls, installs and builds, then God Eye
+ * Self-update (plan.md 11). A git checkout of Igrek checks its upstream every few hours (with
+ * your own git credentials, nothing else); "Update" pulls, installs and builds, then Igrek
  * restarts itself. In Docker the image is rebuilt instead, so only the command is shown.
  */
 export class Updater {
@@ -74,8 +74,8 @@ export class Updater {
   /** Pull, install, build. Refused with local changes, so nothing of yours is lost. */
   update(): { ok: boolean; log: string } {
     const status = this.check();
-    if (status.mode !== "git") throw new Error("This copy of God Eye can't update itself");
-    if (status.dirty) throw new Error("God Eye's folder has local changes; commit or put them aside first");
+    if (status.mode !== "git") throw new Error("This copy of Igrek can't update itself");
+    if (status.dirty) throw new Error("Igrek's folder has local changes; commit or put them aside first");
     if (!status.behind) return { ok: true, log: "Already up to date." };
     const steps: [string, () => { ok: boolean; out: string }][] = [
       [
@@ -98,7 +98,7 @@ export class Updater {
     return { ok: true, log: log.join("\n\n") };
   }
 
-  /** Starts a fresh God Eye that waits a moment for this one to let go of the port, then this one exits. */
+  /** Starts a fresh Igrek that waits a moment for this one to let go of the port, then this one exits. */
   restart(): void {
     const entry = join(ROOT, "apps", "server", "src", "index.ts");
     Bun.spawn(["sh", "-c", `sleep 2; exec "${process.execPath}" "${entry}"`], {

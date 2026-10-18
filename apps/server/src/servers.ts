@@ -86,7 +86,7 @@ interface Pending {
 }
 
 /**
- * Servers reached over SSH (plan.md 2.5). God Eye calls the system `ssh`, so
+ * Servers reached over SSH (plan.md 2.5). Igrek calls the system `ssh`, so
  * keys stay with ssh-agent and are never read here. Every command is sorted by
  * risk, approved when it changes something, and written to an audit log.
  */
@@ -213,7 +213,7 @@ export class Servers {
   }
 
   /**
-   * A fixed, read-only command built by God Eye itself (git status of an
+   * A fixed, read-only command built by Igrek itself (git status of an
    * environment, a directory listing). Never user text. Still in the audit log.
    */
   async inspect(id: string, command: string, reason: string): Promise<{ code: number; output: string }> {
@@ -263,7 +263,7 @@ export class Servers {
         clean,
       )
     )
-      throw new Error("God Eye never opens keys or credential folders");
+      throw new Error("Igrek never opens keys or credential folders");
     return clean;
   }
 
@@ -314,8 +314,8 @@ export class Servers {
     if (!server) throw new Error("Server not found");
     const file = this.remotePath(path);
     const qq = (p: string) => (p.startsWith("~/") ? `~/'${p.slice(2)}'` : `'${p}'`);
-    const backup = `${file}.godeye-bak-${Date.now()}`;
-    const command = `set -e; [ -f ${qq(file)} ] && cp -p -- ${qq(file)} ${qq(backup)}; cat > ${qq(`${file}.godeye-tmp`)}; [ -f ${qq(backup)} ] && chmod --reference=${qq(backup)} ${qq(`${file}.godeye-tmp`)} || true; mv -f -- ${qq(`${file}.godeye-tmp`)} ${qq(file)}`;
+    const backup = `${file}.igrek-bak-${Date.now()}`;
+    const command = `set -e; [ -f ${qq(file)} ] && cp -p -- ${qq(file)} ${qq(backup)}; cat > ${qq(`${file}.igrek-tmp`)}; [ -f ${qq(backup)} ] && chmod --reference=${qq(backup)} ${qq(`${file}.igrek-tmp`)} || true; mv -f -- ${qq(`${file}.igrek-tmp`)} ${qq(file)}`;
     const result = await this.exec(server, command, 20_000, text);
     this.logRemote(id, `write ${file} (backup ${backup.split("/").pop()})`, "change", result);
     if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not save the file");
@@ -362,23 +362,27 @@ export class Servers {
     if (!server) throw new Error("Server not found");
     const safe = this.envPath(path);
     const q = this.quote(safe);
-    const backup = `${safe}.godeye-bak-${Date.now()}`;
-    const command = `set -e; umask 077; [ -f ${q} ] && cp -p -- ${q} ${this.quote(backup)}; cat > ${this.quote(`${safe}.godeye-tmp`)}; mv -f -- ${this.quote(`${safe}.godeye-tmp`)} ${q}`;
+    const backup = `${safe}.igrek-bak-${Date.now()}`;
+    const command = `set -e; umask 077; [ -f ${q} ] && cp -p -- ${q} ${this.quote(backup)}; cat > ${this.quote(`${safe}.igrek-tmp`)}; mv -f -- ${this.quote(`${safe}.igrek-tmp`)} ${q}`;
     const result = await this.exec(server, command, 20_000, text);
     this.logRemote(id, `write ${safe} (backup ${backup.split("/").pop()})`, "change", result);
     if (result.code !== 0) throw new Error(result.output.trim().split("\n").pop() || "Could not write the file");
     return { backup };
   }
 
-  /** Dated backups made by writeEnvFile, newest first. */
+  /** Dated backups made by writeEnvFile, newest first (.godeye-bak- ones are from before the rename to Igrek). */
   async envBackups(id: string, path: string): Promise<{ id: string; at: number }[]> {
     const server = this.get(id);
     if (!server) throw new Error("Server not found");
     const safe = this.envPath(path);
-    const result = await this.exec(server, `ls -1 -- ${this.quote(safe)}.godeye-bak-* 2>/dev/null || true`, 20_000);
+    const result = await this.exec(
+      server,
+      `ls -1 -- ${this.quote(safe)}.igrek-bak-* ${this.quote(safe)}.godeye-bak-* 2>/dev/null || true`,
+      20_000,
+    );
     return result.output
       .split("\n")
-      .map((l) => l.trim().match(/\.godeye-bak-(\d+)$/)?.[1])
+      .map((l) => l.trim().match(/\.(?:igrek|godeye)-bak-(\d+)$/)?.[1])
       .filter((n): n is string => !!n)
       .map((n) => ({ id: n, at: Number(n) }))
       .sort((a, b) => b.at - a.at)
@@ -390,7 +394,8 @@ export class Servers {
     const server = this.get(id);
     if (!server) throw new Error("Server not found");
     const safe = this.envPath(path);
-    const text = await this.exec(server, `cat -- ${this.quote(`${safe}.godeye-bak-${backupId}`)}`, 20_000);
+    const [now, old] = [`${safe}.igrek-bak-${backupId}`, `${safe}.godeye-bak-${backupId}`].map((f) => this.quote(f));
+    const text = await this.exec(server, `cat -- ${now} 2>/dev/null || cat -- ${old}`, 20_000);
     if (text.code !== 0) throw new Error("Unknown backup");
     await this.writeEnvFile(id, safe, text.output);
   }
@@ -481,7 +486,7 @@ export class Servers {
     reason?: string,
   ): Promise<{ status: "done"; run: RemoteRun } | { status: "pending"; approvalId: string }> {
     const server = this.get(serverRef);
-    if (!server) throw new Error(`No server called "${serverRef}". Ask the user to add it in God Eye → Servers.`);
+    if (!server) throw new Error(`No server called "${serverRef}". Ask the user to add it in Igrek → Servers.`);
     const { risk } = classifyCommand(command);
     if (risk === "read")
       return { status: "done", run: await this.run(server.id, command, { confirmations: 0, actor: "agent", reason }) };

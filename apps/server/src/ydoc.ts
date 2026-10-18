@@ -61,7 +61,7 @@ export function saveText(
 }
 
 /**
- * A teammate's version arrived. With a Yjs state both sides' edits merge; from an older God Eye
+ * A teammate's version arrived. With a Yjs state both sides' edits merge; from an older Igrek
  * (plain text only) the text is applied as an edit, so the local history is not thrown away.
  */
 export function mergeText(

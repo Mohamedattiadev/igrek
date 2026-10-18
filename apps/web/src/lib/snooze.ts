@@ -1,4 +1,4 @@
-const KEY = "godeye.snoozed";
+const KEY = "igrek.snoozed";
 
 function read(): Record<string, number> {
   try {

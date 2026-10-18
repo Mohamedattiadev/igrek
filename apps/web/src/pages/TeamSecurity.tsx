@@ -430,14 +430,14 @@ export function saveRecoveryFile(value: string): void {
   const url = URL.createObjectURL(
     new Blob(
       [
-        `God Eye team recovery key\n\n${value}\n\nKeep this in a password manager. Anyone with it can read what your team shares.\n`,
+        `Igrek team recovery key\n\n${value}\n\nKeep this in a password manager. Anyone with it can read what your team shares.\n`,
       ],
       { type: "text/plain" },
     ),
   );
   const a = document.createElement("a");
   a.href = url;
-  a.download = "god-eye-recovery-key.txt";
+  a.download = "igrek-recovery-key.txt";
   a.click();
   URL.revokeObjectURL(url);
 }

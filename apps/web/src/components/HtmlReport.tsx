@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CodeBlock } from "./CodeBlock";
 
-/** The God Eye colors the page gets, read from the app at the time it is drawn. */
+/** The Igrek colors the page gets, read from the app at the time it is drawn. */
 const TOKENS = [
   "--bg",
   "--bg-subtle",
@@ -18,8 +18,8 @@ const TOKENS = [
 
 /**
  * A whole HTML page an AI wrote (a ```html-report block, plan.md 16.2), shown in a sandboxed frame:
- * scripts may run but the page has no access to God Eye (no same origin) and cannot load anything
- * from the network (its content security policy allows only what is inline). It gets God Eye's
+ * scripts may run but the page has no access to Igrek (no same origin) and cannot load anything
+ * from the network (its content security policy allows only what is inline). It gets Igrek's
  * colors and font, and grows with its content.
  */
 export function HtmlReport({ html }: { html: string }) {
@@ -36,7 +36,7 @@ export function HtmlReport({ html }: { html: string }) {
       `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; font-src data:">`,
       `<style>:root{${vars}}html,body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.6 system-ui,sans-serif}body{padding:12px}a{color:var(--accent)}table{border-collapse:collapse}td,th{border:1px solid var(--border);padding:4px 8px}</style>`,
       // Tells the app how tall the page is, so the frame needs no scroll bar of its own.
-      "<script>new ResizeObserver(()=>parent.postMessage({godeyeReportHeight:document.documentElement.scrollHeight},'*')).observe(document.documentElement)</script>",
+      "<script>new ResizeObserver(()=>parent.postMessage({igrekReportHeight:document.documentElement.scrollHeight},'*')).observe(document.documentElement)</script>",
       "</head><body>",
       html,
       "</body></html>",
@@ -45,7 +45,7 @@ export function HtmlReport({ html }: { html: string }) {
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
       if (event.source !== frame.current?.contentWindow) return;
-      const h = Number((event.data as { godeyeReportHeight?: unknown })?.godeyeReportHeight);
+      const h = Number((event.data as { igrekReportHeight?: unknown })?.igrekReportHeight);
       if (Number.isFinite(h) && h > 0) setHeight(Math.min(Math.max(h, 80), 4000));
     };
     window.addEventListener("message", onMessage);

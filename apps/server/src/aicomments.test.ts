@@ -28,7 +28,7 @@ describe("AI comments", () => {
   });
 
   test("only changed files of active git projects are read, and a removed comment leaves the inbox", () => {
-    const dir = mkdtempSync(join(tmpdir(), "godeye-aic-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-aic-"));
     const git = (...args: string[]) =>
       Bun.spawnSync(["git", "-C", dir, "-c", "user.name=t", "-c", "user.email=t@t", ...args]);
     git("init", "-q");

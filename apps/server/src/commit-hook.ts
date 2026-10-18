@@ -4,7 +4,7 @@ import type { Hono } from "hono";
 import { planTools } from "./insight/tools";
 import type { Store } from "./store";
 
-const MARK = "# God Eye pre-commit gate";
+const MARK = "# Igrek pre-commit gate";
 
 export type CommitHookState = "none" | "ours" | "other" | "noGit";
 
@@ -23,9 +23,9 @@ const quote = (arg: string) => (/^[\w./:=@+-]+$/.test(arg) ? arg : `'${arg.repla
 export function hookScript(commands: string[][]): string {
   const lines = commands.map((command) => {
     const line = command.map(quote).join(" ");
-    return `${line} || { echo "God Eye: '${line.replace(/'/g, "")}' failed, commit stopped. Fix it, or skip once with git commit --no-verify."; exit 1; }`;
+    return `${line} || { echo "Igrek: '${line.replace(/'/g, "")}' failed, commit stopped. Fix it, or skip once with git commit --no-verify."; exit 1; }`;
   });
-  return `#!/bin/sh\n${MARK}: runs this project's checks before every commit. Remove it from the project's Setup tab in God Eye.\ncd "$(git rev-parse --show-toplevel)" || exit 1\n${lines.join("\n")}\n`;
+  return `#!/bin/sh\n${MARK}: runs this project's checks before every commit. Remove it from the project's Setup tab in Igrek.\ncd "$(git rev-parse --show-toplevel)" || exit 1\n${lines.join("\n")}\n`;
 }
 
 function hookCommands(root: string): string[][] {
@@ -37,7 +37,7 @@ function hookCommands(root: string): string[][] {
 /**
  * An optional git pre-commit hook (plan.md 15.5 gate points) that runs the project's typecheck,
  * lint and tests. It is only written where no other hook is (husky, lefthook and hand-written
- * hooks are left alone) and only removed when it is God Eye's own.
+ * hooks are left alone) and only removed when it is Igrek's own.
  */
 export function commitHookState(root: string): CommitHookState {
   const file = hookFile(root);
@@ -49,7 +49,7 @@ export function commitHookState(root: string): CommitHookState {
 export function installCommitHook(root: string): CommitHookState {
   const state = commitHookState(root);
   if (state === "noGit") throw new Error("This folder is not a git repository");
-  if (state === "other") throw new Error("This project already has a pre-commit hook; God Eye leaves it as it is");
+  if (state === "other") throw new Error("This project already has a pre-commit hook; Igrek leaves it as it is");
   const commands = hookCommands(root);
   if (!commands.length) throw new Error("No typecheck, lint or test command was found in this project");
   const file = hookFile(root) as string;

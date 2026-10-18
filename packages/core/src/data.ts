@@ -122,7 +122,7 @@ export function erDiagram(tables: DbTable[], limit = 40): string {
   return lines.join("\n");
 }
 
-/** Backups God Eye makes on a schedule (plan.md 12 "Yedekleme yöneticisi"). */
+/** Backups Igrek makes on a schedule (plan.md 12 "Yedekleme yöneticisi"). */
 export interface BackupJob {
   id: string;
   name: string;

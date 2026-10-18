@@ -40,7 +40,7 @@ describe("local model", () => {
 
   test("when Claude says the limit is full, the small job finishes locally and later ones go local for a while", async () => {
     // A fake `claude` that answers like a full limit.
-    const bin = mkdtempSync(join(tmpdir(), "godeye-fakeclaude-"));
+    const bin = mkdtempSync(join(tmpdir(), "igrek-fakeclaude-"));
     writeFileSync(
       join(bin, "claude"),
       `#!/bin/sh\necho '{"type":"result","is_error":true,"result":"Claude AI usage limit reached|1800000000"}'\nexit 1\n`,

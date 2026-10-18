@@ -11,7 +11,7 @@ import { migrate } from "../db";
 import { Sync } from "./client";
 import { encodeInvite } from "./crypto";
 
-const dir = mkdtempSync(join(tmpdir(), "godeye-keys-"));
+const dir = mkdtempSync(join(tmpdir(), "igrek-keys-"));
 const hub = new Hub(join(dir, "hub.db"));
 const handler = createHubServer(hub);
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: handler.fetch, websocket: handler.websocket });
@@ -40,7 +40,7 @@ describe("device keys", () => {
   test("an invite without the key: the device waits until an admin approves it", async () => {
     await hub.createUser({ username: "boss", password: "boss-password-1", role: "admin", mustChange: false });
     const first = await admin.sync.connect({ hub: hubUrl, username: "boss", password: "boss-password-1" });
-    expect(first.recoveryKey).toMatch(/^godeye-recovery:/);
+    expect(first.recoveryKey).toMatch(/^igrek-recovery:/);
     await hub.createUser({ username: "ayse", password: "temp-password-1", role: "member" });
     const invite = encodeInvite({ hub: hubUrl, username: "ayse", password: "temp-password-1" });
     expect(invite).not.toContain(admin.sync.teamKey() ?? "nope");
@@ -70,7 +70,7 @@ describe("device keys", () => {
     hub.updateUser(aliUser?.id ?? "", { disabled: true });
     const recovery = await admin.sync.rotateKey();
     expect(admin.sync.status().keyEpoch).toBe(1);
-    expect(recovery).toMatch(/^godeye-recovery:/);
+    expect(recovery).toMatch(/^igrek-recovery:/);
     await until(() => ayse.sync.status().keyEpoch === 1);
     // Disabling signed Ali's device out, so the new key went only to the admin and Ayşe.
     expect(hub.db.query("SELECT 1 FROM devices WHERE substr(token_hash, 1, 16) = ?").get(aliDevice)).toBeNull();
@@ -113,7 +113,8 @@ describe("device keys", () => {
       username: "boss",
       password: "boss-password-1",
       code: totp(secret),
-      recovery: admin.sync.recoveryKey(),
+      // Saved before the rename to Igrek: the old prefix still gives every key.
+      recovery: ((await admin.sync.recoveryKey()) ?? "").replace("igrek-recovery:", "godeye-recovery:"),
     });
     expect(done.status.configured).toBe(true);
     // With the recovery key it has every key, old and new.

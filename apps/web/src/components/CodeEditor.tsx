@@ -58,7 +58,7 @@ export default function CodeEditor({
     editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => handlers.current.onSave?.());
     // Right-click → "Ask AI about this" sends the selection (or the current line) to the quick question panel.
     editor.addAction({
-      id: "godeye.ask",
+      id: "igrek.ask",
       label: i18n.t("preview.askSelection"),
       contextMenuGroupId: "navigation",
       contextMenuOrder: 0,
@@ -77,7 +77,7 @@ export default function CodeEditor({
     });
     // Right-click (or Ctrl+Shift+Enter) → "Write a prompt for this": the selection becomes context for the enhancer.
     editor.addAction({
-      id: "godeye.enhance",
+      id: "igrek.enhance",
       label: i18n.t("enhance.forSelection"),
       contextMenuGroupId: "navigation",
       contextMenuOrder: 1,
@@ -96,7 +96,7 @@ export default function CodeEditor({
     });
     // Right-click → "What is this?": the cheatsheet items for the selection (or the current line).
     editor.addAction({
-      id: "godeye.whatIs",
+      id: "igrek.whatIs",
       label: i18n.t("learn.whatIs"),
       contextMenuGroupId: "navigation",
       contextMenuOrder: 2,
@@ -148,7 +148,7 @@ export default function CodeEditor({
         range: new monaco.Range(a.line, 1, a.line, 1),
         options: {
           isWholeLine: true,
-          after: { content: `    ${a.text}`, inlineClassName: "godeye-annotation" },
+          after: { content: `    ${a.text}`, inlineClassName: "igrek-annotation" },
           hoverMessage: a.hover ? { value: a.hover } : undefined,
         },
       })),

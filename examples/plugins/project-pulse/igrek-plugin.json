@@ -2,8 +2,8 @@
   "id": "project-pulse",
   "name": "Project pulse",
   "version": "1.0.0",
-  "description": "A table of your projects with their health, sessions and how much memory God Eye keeps for each. An example of a God Eye plugin.",
-  "author": "God Eye",
+  "description": "A table of your projects with their health, sessions and how much memory Igrek keeps for each. An example of a Igrek plugin.",
+  "author": "Igrek",
   "permissions": ["projects:read", "memory:read"],
   "panels": [
     { "id": "pulse", "title": "Project pulse", "entry": "panel.html", "place": "tools" },

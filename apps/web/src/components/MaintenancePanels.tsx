@@ -25,7 +25,7 @@ export function BackupPanel() {
       const blob = await api.exportBackup(password || undefined);
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `godeye-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `igrek-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(a.href);
       setNote(t("backup.saved"));
@@ -85,7 +85,7 @@ export function BackupPanel() {
   );
 }
 
-/** New versions of God Eye, and updating in one click (plan.md 11). */
+/** New versions of Igrek, and updating in one click (plan.md 11). */
 export function UpdatePanel() {
   const { t } = useTranslation();
   const [status, setStatus] = useState<Awaited<ReturnType<typeof api.updateStatus>>>();
@@ -178,7 +178,7 @@ export function UpdatePanel() {
   );
 }
 
-/** A free local model through Ollama for God Eye's own small jobs (plan.md 13.1). */
+/** A free local model through Ollama for Igrek's own small jobs (plan.md 13.1). */
 export function LocalModelPanel() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
@@ -568,7 +568,7 @@ const bytes = (n: number) =>
       ? `${(n / 1024 ** 2).toFixed(0)} MB`
       : `${Math.max(1, Math.round(n / 1024))} KB`;
 
-/** What God Eye keeps on disk, and keeping it small (plan.md 13.6). */
+/** What Igrek keeps on disk, and keeping it small (plan.md 13.6). */
 export function DiskPanel() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
@@ -667,7 +667,7 @@ export function DiskPanel() {
   );
 }
 
-/** Every address God Eye's server opened on the internet since it started (plan.md 13.6). */
+/** Every address Igrek's server opened on the internet since it started (plan.md 13.6). */
 export function NetworkPanel() {
   const { t } = useTranslation();
   const [data, setData] = useState<{

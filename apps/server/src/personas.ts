@@ -372,7 +372,7 @@ Rules: use only real, well-known books and milestones; leave a year out rather t
     const written: string[] = [];
     for (const persona of this.list().filter((p) => !ids || ids.includes(p.id))) {
       const { name, role } = personaLabel(persona);
-      // The file is read by Claude Code later, maybe without God Eye: no project memory baked in.
+      // The file is read by Claude Code later, maybe without Igrek: no project memory baked in.
       const prompt = this.systemPrompt(persona, null, { notebook: false, withMemory: false });
       const path = join(dir, `${persona.id}.md`);
       writeFileSync(path, claudeAgentFile(persona, name, role, prompt));

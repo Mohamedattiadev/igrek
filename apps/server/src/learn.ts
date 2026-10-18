@@ -211,13 +211,13 @@ export function texts(value: unknown, path = "", out: [string, string][] = []): 
   return out;
 }
 
-/** The project's progress against a roadmap's stages, from what God Eye already knows about it. */
+/** The project's progress against a roadmap's stages, from what Igrek already knows about it. */
 export interface StageCheck {
   stage: Stage;
   state: "done" | "missing" | "unknown";
   /** Why, in English keys the page translates: "tests", "score:72", "deploys:3". */
   reason: string;
-  /** Where to fix it in God Eye. */
+  /** Where to fix it in Igrek. */
   link?: string;
 }
 
@@ -233,7 +233,7 @@ export interface ProjectFacts {
   errorTracking: boolean;
 }
 
-/** Turns facts into a stage-by-stage picture; stages God Eye cannot judge stay "unknown". */
+/** Turns facts into a stage-by-stage picture; stages Igrek cannot judge stay "unknown". */
 export function stageChecks(projectId: string, f: ProjectFacts): StageCheck[] {
   const page = (tab: string, cat?: string) => `/p/${projectId}?tab=${tab}${cat ? `&cat=${cat}` : ""}`;
   const score = (cat: string, stage: Stage): StageCheck => {

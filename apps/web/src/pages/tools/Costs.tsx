@@ -24,7 +24,7 @@ function money(amount: number, currency: string, language: string): string {
 
 function readCurrency(): string {
   try {
-    return localStorage.getItem("godeye.costCurrency") ?? "USD";
+    return localStorage.getItem("igrek.costCurrency") ?? "USD";
   } catch {
     return "USD";
   }
@@ -202,7 +202,7 @@ export function CostsTab() {
           onChange={(e) => {
             setCurrency(e.target.value);
             try {
-              localStorage.setItem("godeye.costCurrency", e.target.value);
+              localStorage.setItem("igrek.costCurrency", e.target.value);
             } catch {
               // Private window: the choice lasts until reload.
             }

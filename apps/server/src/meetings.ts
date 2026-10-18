@@ -421,7 +421,7 @@ Reply with JSON only, texts in ${lang}:
     for (const meeting of this.list(null, 200)) {
       if (meeting.status !== "running" && meeting.status !== "deciding") continue;
       meeting.status = "failed";
-      meeting.error = "God Eye restarted during the meeting";
+      meeting.error = "Igrek restarted during the meeting";
       for (const view of meeting.views)
         if (view.status === "running" || view.status === "waiting") view.status = "failed";
       this.save(meeting);

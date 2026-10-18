@@ -10,8 +10,8 @@
     <table><tbody></tbody></table>
     <script>
       (async () => {
-        const { projectId } = await godeye.hello;
-        const items = await godeye.ask("memory", { projectId });
+        const { projectId } = await igrek.hello;
+        const items = await igrek.ask("memory", { projectId });
         const counts = {};
         for (const m of items) counts[m.section] = (counts[m.section] ?? 0) + 1;
         const body = document.querySelector("tbody");

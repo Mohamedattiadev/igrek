@@ -21,7 +21,7 @@ const server = Bun.serve({
     return Response.json({ error: "nope" }, { status: 404 });
   },
 });
-const home = mkdtempSync(join(tmpdir(), "godeye-cli-"));
+const home = mkdtempSync(join(tmpdir(), "igrek-cli-"));
 writeFileSync(join(home, "session.key"), "secret-session-key");
 const before = { home: process.env.IGREK_HOME, port: process.env.IGREK_PORT };
 process.env.IGREK_HOME = home;
@@ -35,8 +35,8 @@ afterAll(() => {
   else process.env.IGREK_PORT = before.port;
 });
 
-describe("godeye CLI", () => {
-  test("talks to the local God Eye with this computer's session key; runs a flow by project name", async () => {
+describe("igrek CLI", () => {
+  test("talks to the local Igrek with this computer's session key; runs a flow by project name", async () => {
     const { main } = await import("./cli");
     const log = spyOn(console, "log").mockImplementation(() => undefined);
     expect(await main(["projects"])).toBe(0);

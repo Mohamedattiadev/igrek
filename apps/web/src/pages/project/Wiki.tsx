@@ -37,7 +37,7 @@ function WikiText({ body, pages, onOpen }: { body: string; pages: WikiPage[]; on
           <Markdown
             // biome-ignore lint/suspicious/noArrayIndexKey: parts are positional
             key={i}
-            className="prose-godeye"
+            className="prose-igrek"
             text={part.replace(/\[\[([^\]\n|]{1,80})(?:\|([^\]\n]*))?\]\]/g, (_m, title: string, shown?: string) => {
               const slug = slugify(title);
               const exists = pages.some((p) => p.slug === slug);

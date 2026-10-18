@@ -170,7 +170,7 @@ export function IncidentPage() {
             {incident.postmortem && (
               <Card className="space-y-2 p-pad">
                 <p className="text-[13px] font-semibold">{t("incident.postmortem")}</p>
-                <Markdown text={incident.postmortem} className="prose-godeye" />
+                <Markdown text={incident.postmortem} className="prose-igrek" />
                 <p className="text-xs text-success">{t("incident.inWiki")}</p>
               </Card>
             )}
@@ -195,7 +195,7 @@ export function IncidentPage() {
               {incident.analyzing ? (
                 <p className="text-xs text-fg-muted">{t("incident.analyzing")}</p>
               ) : incident.analysis ? (
-                <Markdown text={incident.analysis} className="prose-godeye" />
+                <Markdown text={incident.analysis} className="prose-igrek" />
               ) : null}
             </Card>
             <details className="rounded-ui border border-border p-pad text-xs">

@@ -81,7 +81,7 @@ export function WeeklyPage() {
         {error && <p className="text-xs text-danger">{error}</p>}
         {report ? (
           <Card className="p-pad">
-            <Markdown text={report.text} className="prose-godeye" />
+            <Markdown text={report.text} className="prose-igrek" />
             <p className="mt-3 text-[11px] text-fg-subtle">
               {report.week} · {t("recap.written", { when: relativeTime(report.at) })}
             </p>

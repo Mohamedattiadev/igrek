@@ -6,7 +6,7 @@ import react from "@vitejs/plugin-react";
 import { defineConfig, type Plugin } from "vite";
 
 /**
- * The whiteboard's fonts are served by God Eye itself instead of a CDN, so boards work offline.
+ * The whiteboard's fonts are served by Igrek itself instead of a CDN, so boards work offline.
  * The Chinese handwriting font (13 MB) is left out; such text falls back to a system font.
  */
 function excalidrawFonts(): Plugin {

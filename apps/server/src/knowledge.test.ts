@@ -56,7 +56,7 @@ describe("knowledge engine", () => {
   test("a scan rates stories as the persona, keeps what matters in its library, and changes an opinion only with evidence", async () => {
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);
-    const dir = mkdtempSync(join(tmpdir(), "godeye-know-"));
+    const dir = mkdtempSync(join(tmpdir(), "igrek-know-"));
     writeFileSync(join(dir, "package.json"), JSON.stringify({ dependencies: { pg: "^8.11.0", react: "^18.2.0" } }));
     store.addProject(dir);
     const bus = new Bus();

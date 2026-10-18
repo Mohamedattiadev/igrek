@@ -104,7 +104,7 @@ describe("the user's marks, newer versions and translations", () => {
   migrate(db);
 
   test("code the AI wrote is compared with the installed version", () => {
-    const root = mkdtempSync(join(tmpdir(), "godeye-apiver-"));
+    const root = mkdtempSync(join(tmpdir(), "igrek-apiver-"));
     writeFileSync(join(root, "package.json"), JSON.stringify({ dependencies: { react: "^18.2.0" } }));
     mkdirSync(join(root, "node_modules/react"), { recursive: true });
     writeFileSync(join(root, "node_modules/react/package.json"), JSON.stringify({ version: "18.3.1" }));

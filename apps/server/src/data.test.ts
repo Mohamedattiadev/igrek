@@ -14,7 +14,7 @@ import type { Servers } from "./servers";
 import { Store } from "./store";
 
 function setup() {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-data-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-data-"));
   const { sqlite } = openDb(":memory:");
   const store = new Store(sqlite);
   const databases = new Databases(sqlite, store, new Sealer(dir), new EnvFiles(join(dir, "env-backups")));
@@ -99,7 +99,7 @@ describe("database explorer (SQLite)", () => {
 
   test("suggestions from .env keys and database files, added without showing the value", async () => {
     const { store, databases, dir } = setup();
-    const project = mkdtempSync(join(tmpdir(), "godeye-proj-"));
+    const project = mkdtempSync(join(tmpdir(), "igrek-proj-"));
     writeFileSync(join(project, ".env"), `DATABASE_URL=file:${join(dir, "shop.db")}\nOTHER=1\n`);
     writeFileSync(join(project, "local.sqlite"), readFileSync(join(dir, "shop.db")));
     const projectId = store.addProject(project);
@@ -201,7 +201,7 @@ describe("product analytics", () => {
     const { Analytics } = await import("./analytics");
     const { AppErrors } = await import("./apperrors");
     const { sqlite, store, databases, dir } = setup();
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-an-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-an-")));
     const errors = new AppErrors(sqlite, store, new Bus());
     const key = errors.key(projectId);
     const now = Date.now();
@@ -252,7 +252,7 @@ describe("performance", () => {
     const { normalizeRoute } = await import("@igrek/core");
     expect(normalizeRoute("/users/42/orders/7f3c9a2b-1111-4222-8333-444455556666?x=1")).toBe("/users/:id/orders/:id");
     const { sqlite, store } = setup();
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-perf-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-perf-")));
     const key = new AppErrors(sqlite, store, new Bus()).key(projectId);
     let now = Date.now() - 8 * 86_400_000;
     const perf = new Perf(sqlite, new AppErrors(sqlite, store, new Bus()), () => now);
@@ -282,7 +282,7 @@ describe("performance", () => {
     const { Perf } = await import("./perf");
     const { AppErrors } = await import("./apperrors");
     const { sqlite, store } = setup();
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-vitals-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-vitals-")));
     const errors = new AppErrors(sqlite, store, new Bus());
     const key = errors.key(projectId);
     const perf = new Perf(sqlite, errors);
@@ -309,7 +309,7 @@ describe("feedback box", () => {
     const { FeedbackBox } = await import("./feedback");
     const { AppErrors } = await import("./apperrors");
     const { sqlite, store } = setup();
-    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-fb-")));
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "igrek-fb-")));
     const errors = new AppErrors(sqlite, store, new Bus());
     const key = errors.key(projectId);
     const cards: { title: string; origin?: string }[] = [];

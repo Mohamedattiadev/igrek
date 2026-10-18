@@ -8,7 +8,7 @@ import { RichBlock } from "./RichBlocks";
 
 /**
  * OpenUI (plan.md 16.2): the model writes a small UI language in a ```openui block and it is drawn
- * with God Eye's own pieces, so colors, dark mode and code highlighting stay the same. Only
+ * with Igrek's own pieces, so colors, dark mode and code highlighting stay the same. Only
  * @openuidev/react-lang and lang-core are used (MIT); their install telemetry never runs (see
  * openui-telemetry.test.ts). Arguments are positional: add new props only at the end, never
  * reorder or remove one, or saved answers stop drawing.
@@ -148,7 +148,7 @@ const Code = defineComponent({
   ),
 });
 
-const godeyeLibrary = createLibrary({
+const igrekLibrary = createLibrary({
   id: LIBRARY_ID,
   root: ROOT,
   components: [Stack, Card, Text, Stats, Chart, Progress, Table, Callout, Button, Code],
@@ -158,7 +158,7 @@ const godeyeLibrary = createLibrary({
 export default function OpenUiBlock({ code, streaming }: { code: string; streaming?: boolean }) {
   return (
     <div className="my-2 space-y-3">
-      <Renderer response={code} library={godeyeLibrary} isStreaming={streaming} onAction={onAction} />
+      <Renderer response={code} library={igrekLibrary} isStreaming={streaming} onAction={onAction} />
     </div>
   );
 }

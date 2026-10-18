@@ -6,7 +6,7 @@ import { Hub } from "./hub";
 import { mailFromEnv, mailText } from "./mail";
 import { createHubServer } from "./server";
 
-const hub = new Hub(join(mkdtempSync(join(tmpdir(), "godeye-mail-")), "hub.db"));
+const hub = new Hub(join(mkdtempSync(join(tmpdir(), "igrek-mail-")), "hub.db"));
 const sent: { to: string; subject: string; text: string }[] = [];
 const handler = createHubServer(hub, {
   mail: async (to, subject, text) => {

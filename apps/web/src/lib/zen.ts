@@ -2,7 +2,7 @@
  * Zen mode (plan.md 7.0): hide the side strip, top bar and status bar, keep only the content.
  * Remembered per browser; Ctrl+Alt+Z or the command palette toggles it.
  */
-const KEY = "godeye.zen";
+const KEY = "igrek.zen";
 
 export function readZen(): boolean {
   try {
@@ -13,7 +13,7 @@ export function readZen(): boolean {
 }
 
 export function toggleZen(): void {
-  window.dispatchEvent(new CustomEvent("godeye:zen"));
+  window.dispatchEvent(new CustomEvent("igrek:zen"));
 }
 
 export function saveZen(on: boolean): void {

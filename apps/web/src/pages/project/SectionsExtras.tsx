@@ -348,7 +348,7 @@ export function ArchitectureCard({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
   const [report, setReport] = useState<ArchitectureReport>();
   // What matters for this project, chosen by the user (kept in this browser).
-  const key = `godeye.archNeeds.${projectId}`;
+  const key = `igrek.archNeeds.${projectId}`;
   const [needs, setNeeds] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(key) ?? "[]") as string[];

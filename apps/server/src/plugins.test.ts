@@ -6,7 +6,7 @@ import { openDb } from "./db";
 import { Plugins, readManifest, shellLine } from "./plugins";
 
 function pluginDir(manifest: object, files: Record<string, string> = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "godeye-plugin-"));
+  const dir = mkdtempSync(join(tmpdir(), "igrek-plugin-"));
   writeFileSync(join(dir, "igrek-plugin.json"), JSON.stringify(manifest));
   for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
   return dir;
@@ -39,7 +39,7 @@ describe("plugins", () => {
 
   test("installed off; files served only when on and only from the plugin's folder", async () => {
     const { sqlite } = openDb(":memory:");
-    const home = mkdtempSync(join(tmpdir(), "godeye-plugins-"));
+    const home = mkdtempSync(join(tmpdir(), "igrek-plugins-"));
     const plugins = new Plugins(sqlite, home);
     const src = pluginDir(
       { id: "hello", name: "Hello", panels: [{ id: "p", entry: "p.html" }] },

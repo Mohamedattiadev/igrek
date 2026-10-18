@@ -1,7 +1,7 @@
 /**
- * Zero telemetry, shown rather than promised (plan.md 13.6): every address God Eye's server
+ * Zero telemetry, shown rather than promised (plan.md 13.6): every address Igrek's server
  * itself opens on the internet is counted here (host, how often, last time, what for), and
- * nothing is sent anywhere about you. Tools God Eye starts (claude, git, gh, ssh) talk to their
+ * nothing is sent anywhere about you. Tools Igrek starts (claude, git, gh, ssh) talk to their
  * own services with your own logins; those are listed separately, not intercepted.
  */
 export interface NetEntry {
@@ -41,12 +41,12 @@ export function recordRequest(url: string, now = Date.now()): void {
 /** Wraps the server's fetch once at start. */
 export function watchFetch(): void {
   const original = globalThis.fetch;
-  if ((original as { godeye?: boolean }).godeye) return;
+  if ((original as { igrek?: boolean }).igrek) return;
   const wrapped = ((input: Parameters<typeof fetch>[0], init?: Parameters<typeof fetch>[1]) => {
     recordRequest(typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url);
     return original(input, init);
   }) as typeof fetch;
-  (wrapped as { godeye?: boolean }).godeye = true;
+  (wrapped as { igrek?: boolean }).igrek = true;
   globalThis.fetch = Object.assign(wrapped, original);
 }
 

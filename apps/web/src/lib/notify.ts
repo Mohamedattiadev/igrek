@@ -15,7 +15,7 @@ export async function askNotificationPermission(): Promise<boolean> {
 /**
  * Desktop notifications (plan.md 11): a chat finished or waits for an approval, a terminal waits
  * for an answer, an approval is pending, a team run needs you, a project score dropped, a limit
- * is filling up. Only while the God Eye tab is in the background, and only when turned on.
+ * is filling up. Only while the Igrek tab is in the background, and only when turned on.
  */
 export function useDesktopNotifications(): void {
   const { t } = useTranslation();

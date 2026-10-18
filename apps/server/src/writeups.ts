@@ -71,7 +71,7 @@ export function adrFileName(a: Pick<AdrRecord, "number" | "title">): string {
 }
 
 /**
- * Things God Eye writes up from what already happened (plan.md 13.2): release notes from commits,
+ * Things Igrek writes up from what already happened (plan.md 13.2): release notes from commits,
  * sessions and merged team runs; ADRs from the decisions in memory; the end-of-day note.
  */
 export class Writeups {
@@ -144,7 +144,7 @@ export class Writeups {
       number: i + 1,
       title: written[i]?.title?.trim() || d.text.split(/[.!?\n]/)[0]?.slice(0, 80) || "Decision",
       date: new Date(d.created_at).toISOString().slice(0, 10),
-      context: written[i]?.context?.trim() || "Recorded from an AI session in God Eye.",
+      context: written[i]?.context?.trim() || "Recorded from an AI session in Igrek.",
       decision: d.text,
       consequences: written[i]?.consequences?.trim() || "To be written.",
     }));

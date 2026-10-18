@@ -20,7 +20,7 @@ interface Turn {
   attachment?: string;
 }
 
-const STORAGE = "godeye.quickAsk";
+const STORAGE = "igrek.quickAsk";
 
 function loadTurns(key: string): Turn[] {
   try {

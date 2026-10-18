@@ -75,7 +75,7 @@ export function DesignPage() {
         <Section title="List" hint="Rows follow the density setting. Try j/k in Vim mode.">
           <Card>
             <ul className="divide-y divide-border">
-              {["PoultryCare", "God Eye", "Landing page"].map((name) => (
+              {["PoultryCare", "Igrek", "Landing page"].map((name) => (
                 <li
                   key={name}
                   data-nav-item

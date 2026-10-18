@@ -1,8 +1,8 @@
 /** The 60-second tour (plan.md 7.0): started after setup, from Settings or the command palette. */
-const PENDING = "godeye.tour.pending";
+const PENDING = "igrek.tour.pending";
 
 export function startTour(): void {
-  window.dispatchEvent(new CustomEvent("godeye:tour"));
+  window.dispatchEvent(new CustomEvent("igrek:tour"));
 }
 
 /** Setup finished: show the tour once the main screen is up. */
@@ -24,7 +24,7 @@ export function takeQueuedTour(): boolean {
   }
 }
 
-const SEEN = "godeye.tour.seen";
+const SEEN = "igrek.tour.seen";
 
 /** The tour starts by itself once; after it was closed or finished it waits to be asked for. */
 export function tourSeen(): boolean {

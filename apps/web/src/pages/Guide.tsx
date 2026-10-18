@@ -33,7 +33,7 @@ const STEPS: { id: string; icon: LucideIcon; to: string }[] = [
   { id: "settings", icon: Settings, to: "/settings" },
 ];
 
-/** The user guide: the first steps one by one, then every part of God Eye in a sentence. */
+/** The user guide: the first steps one by one, then every part of Igrek in a sentence. */
 export function GuidePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -55,7 +55,7 @@ export function GuidePage() {
             >
               {t("helper.startTour")}
             </Button>
-            <Button icon={Bot} onClick={() => window.dispatchEvent(new CustomEvent("godeye:helper"))}>
+            <Button icon={Bot} onClick={() => window.dispatchEvent(new CustomEvent("igrek:helper"))}>
               {t("guide.askHelper")}
             </Button>
           </div>

@@ -1,10 +1,10 @@
 /**
- * God Eye's source-mapping plugin for Vite (plan.md Faz 10). In development only, it adds
+ * Igrek's source-mapping plugin for Vite (plan.md Faz 10). In development only, it adds
  * data-gd-src="file:line:column" to every DOM element written in JSX, so clicking an element in
- * the preview tells the AI exactly which file and line to change. It is loaded through God Eye's
+ * the preview tells the AI exactly which file and line to change. It is loaded through Igrek's
  * own config wrapper; the project's vite config is not touched.
  *
- * Plain JavaScript on purpose: it runs inside the project's Vite (Node), not inside God Eye.
+ * Plain JavaScript on purpose: it runs inside the project's Vite (Node), not inside Igrek.
  */
 import { relative } from "node:path";
 
@@ -141,10 +141,10 @@ export function addSourceAttrs(code, file) {
   return out;
 }
 
-export default function godeyeSource(options = {}) {
+export default function igrekSource(options = {}) {
   const root = options.root ?? process.cwd();
   return {
-    name: "godeye-source",
+    name: "igrek-source",
     enforce: "pre",
     apply: "serve",
     transform(code, id) {

@@ -900,6 +900,8 @@ export const migrations: string[] = [
    );`,
   // Wiki pages as Yjs documents (plan.md 4.1): edits merge instead of the last writer winning.
   `ALTER TABLE wiki_pages ADD COLUMN ydoc TEXT;`,
+  // The rename to Igrek: team runs made by the built-in engine said "igrek".
+  `UPDATE flow_runs SET data = json_set(data, '$.engine', 'igrek') WHERE json_extract(data, '$.engine') = 'godeye';`,
 ];
 
 export function migrate(sqlite: Database): number {

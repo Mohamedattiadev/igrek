@@ -1,5 +1,5 @@
 /**
- * The in-app guide (plan.md 13.6): every part of God Eye in a sentence, with where it is. Titles
+ * The in-app guide (plan.md 13.6): every part of Igrek in a sentence, with where it is. Titles
  * and texts are translated (help.t_<id>, help.d_<id>); the helper answers questions from them.
  */
 export const HELP_TOPICS: { id: string; path: string; words: string }[] = [
@@ -36,7 +36,7 @@ export const HELP_TOPICS: { id: string; path: string; words: string }[] = [
     path: "/settings",
     words: "settings language theme local model ollama mcp bridges telegram discord email backup update disk network",
   },
-  { id: "cli", path: "/settings", words: "cli command line godeye script api" },
+  { id: "cli", path: "/settings", words: "cli command line igrek script api" },
   { id: "safety", path: "/settings", words: "safe secret key push deploy stop privacy telemetry" },
 ];
 
@@ -45,7 +45,7 @@ export const HELP_TOPICS: { id: string; path: string; words: string }[] = [
  * these fenced blocks into charts, stat tiles, meters and diagrams).
  */
 export const RICH_BLOCKS_HINT = [
-  "When numbers or structure are clearer as a picture, you can use fenced blocks that the God Eye app draws (only then; plain text otherwise):",
+  "When numbers or structure are clearer as a picture, you can use fenced blocks that the Igrek app draws (only then; plain text otherwise):",
   '```chart\n{"type":"bar","title":"…","unit":"…","labels":["…"],"series":[{"name":"…","values":[1,2]}]}\n``` (type: bar, hbar for long category names, line for change over time);',
   '```stats\n[{"label":"…","value":"…","delta":"+3","tone":"good"}]\n``` (tone: good, warning, bad; for a few headline numbers);',
   '```progress\n[{"label":"…","value":72,"max":100}]\n``` (for parts of a whole or how far something is);',

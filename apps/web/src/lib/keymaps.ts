@@ -68,7 +68,7 @@ export function applyKeymap(
     );
   }
   // addCommand has no dispose; a command bound to a never-matching context is how we "remove" it.
-  const context = editor.createContextKey<boolean>(`godeyeKeymap_${keymap}`, true);
-  for (const [keys, run] of bindings) editor.addCommand(keys, run, `godeyeKeymap_${keymap}`);
+  const context = editor.createContextKey<boolean>(`igrekKeymap_${keymap}`, true);
+  for (const [keys, run] of bindings) editor.addCommand(keys, run, `igrekKeymap_${keymap}`);
   return () => context.set(false);
 }

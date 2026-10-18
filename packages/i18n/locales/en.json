@@ -59,7 +59,7 @@
   "projects": {
     "title": "Projects",
     "emptyTitle": "No projects yet",
-    "emptyBody": "God Eye finds your projects automatically from your Claude Code sessions. Start a session in any project and it appears here.",
+    "emptyBody": "Igrek finds your projects automatically from your Claude Code sessions. Start a session in any project and it appears here.",
     "emptyAction": "Open settings",
     "filter": "Filter projects…",
     "sessions_one": "{{count}} session",
@@ -160,7 +160,7 @@
     "keymapVim": "Vim",
     "keymapVimHint": "j/k to move, gg/G to jump, / to search.",
     "system": "System check",
-    "systemHint": "Tools God Eye can use on this computer.",
+    "systemHint": "Tools Igrek can use on this computer.",
     "found": "Found",
     "missing": "Not found",
     "optional": "optional",
@@ -174,7 +174,7 @@
     "tonePlain": "Plain",
     "toneTechnical": "Technical",
     "enhance": "Prompt enhancer",
-    "enhanceHint": "Turns short, lazy requests into clear prompts using what God Eye knows about your project. Uses the small, cheap model.",
+    "enhanceHint": "Turns short, lazy requests into clear prompts using what Igrek knows about your project. Uses the small, cheap model.",
     "enhance_off": "Off",
     "enhance_suggest": "Suggest",
     "enhance_auto": "Automatic",
@@ -194,19 +194,19 @@
     "textLarge": "Large",
     "textLarger": "Larger",
     "richAnswers": "Rich answers in chats",
-    "richAnswersHint": "Chats may answer with tiles, charts, tables and buttons drawn with God Eye's own pieces (OpenUI). Each chat gets about a thousand extra tokens of instructions.",
+    "richAnswersHint": "Chats may answer with tiles, charts, tables and buttons drawn with Igrek's own pieces (OpenUI). Each chat gets about a thousand extra tokens of instructions.",
     "turnGate": "Check the AI's work",
     "turnGateHint": "When a chat turn changed files, run the project's typecheck, lint and tests. Only what passed before and fails now counts. 'Send back' gives it to the AI to fix (at most twice in a row).",
     "turnGateCheck": "Show",
     "turnGateSendBack": "Send back"
   },
   "onboarding": {
-    "welcome": "Welcome to God Eye",
+    "welcome": "Welcome to Igrek",
     "pickLanguage": "Which language do you want?",
     "search": "Search languages…",
     "continue": "Continue",
     "readyTitle": "You're all set",
-    "readyBody": "God Eye runs only on your computer. Nothing leaves it unless you decide to share.",
+    "readyBody": "Igrek runs only on your computer. Nothing leaves it unless you decide to share.",
     "start": "Start"
   },
   "help": {
@@ -227,7 +227,7 @@
     "t_terminals": "Terminals",
     "d_terminals": "Real terminals in the browser, in any project, with Claude, Codex, Gemini or a plain shell.",
     "t_memory": "Project memory",
-    "d_memory": "What God Eye learned about a project: decisions, conventions, failed approaches, open problems. AI sessions read it when they start. Export decisions as ADRs from the Memory tab.",
+    "d_memory": "What Igrek learned about a project: decisions, conventions, failed approaches, open problems. AI sessions read it when they start. Export decisions as ADRs from the Memory tab.",
     "t_inbox": "Inbox",
     "d_inbox": "Everything waiting for you: approvals, chats and terminals asking something, team runs, sites down, errors, expiring certificates, keys to change.",
     "t_limits": "Limits",
@@ -267,9 +267,9 @@
     "t_settings": "Settings",
     "d_settings": "Language, theme, a free local model through Ollama, your own MCP servers, notifications to Telegram, Discord or e-mail, backups, updates, disk and network.",
     "t_cli": "Command line",
-    "d_cli": "godeye status, projects, search, ask, inbox, run, recap, weekly, and godeye api for any endpoint: everything from a script.",
+    "d_cli": "igrek status, projects, search, ask, inbox, run, recap, weekly, and igrek api for any endpoint: everything from a script.",
     "t_safety": "Safety and privacy",
-    "d_safety": "God Eye never pushes or deploys by itself, never reads keys or .env values into AI, sends no telemetry (Settings > Network shows every address it opened), and the red Stop all button halts everything at once.",
+    "d_safety": "Igrek never pushes or deploys by itself, never reads keys or .env values into AI, sends no telemetry (Settings > Network shows every address it opened), and the red Stop all button halts everything at once.",
     "t_ask": "Write what you want (home page box)",
     "d_ask": "The box at the top of the home page: write, pick the project, Enter. A chat opens and the message goes out."
   },
@@ -299,13 +299,13 @@
     "fetch": "Check remote",
     "fetching": "Checking…",
     "rename": "Rename",
-    "renameHint": "Only changes the name shown in God Eye.",
+    "renameHint": "Only changes the name shown in Igrek.",
     "save": "Save",
     "commitBy": "{{author}} committed",
     "sessionsAndCommits": "{{sessions}} sessions · {{commits}} commits",
     "sections": "Sections",
     "gitFlow": "Recommended git flow",
-    "gitFlowHint": "Work on your own branch, open a PR to main, and deploy only main. When on, God Eye asks before you commit straight to main. Code on servers comes only from git.",
+    "gitFlowHint": "Work on your own branch, open a PR to main, and deploy only main. When on, Igrek asks before you commit straight to main. Code on servers comes only from git.",
     "environments": "Environments",
     "board": "Board",
     "preview": "Preview",
@@ -318,7 +318,7 @@
   },
   "memory": {
     "title": "Project memory",
-    "hint": "What God Eye remembers about this project. It is given to every new AI session, so the AI starts from the facts instead of guessing.",
+    "hint": "What Igrek remembers about this project. It is given to every new AI session, so the AI starts from the facts instead of guessing.",
     "empty": "Nothing remembered yet. Memory fills in as sessions get summarized.",
     "status": "Where it stands",
     "decision": "Decisions",
@@ -361,7 +361,7 @@
     "summarize": "Summarize",
     "summarizing": "Summarizing…",
     "resummarize": "Summarize again",
-    "noSummaryBody": "This session has no summary yet. God Eye can write one in plain words.",
+    "noSummaryBody": "This session has no summary yet. Igrek can write one in plain words.",
     "transcript": "Conversation",
     "showTools": "Show tool steps",
     "you": "You",
@@ -451,7 +451,7 @@
     "sources": "Sources"
   },
   "mcp": {
-    "title": "God Eye tools inside Claude",
+    "title": "Igrek tools inside Claude",
     "hint": "Lets Claude look up project memory and past sessions by itself, in every project.",
     "install": "Add to Claude",
     "remove": "Remove",
@@ -699,7 +699,7 @@
   "servers": {
     "title": "Servers",
     "empty": "No servers yet",
-    "emptyBody": "Add a server you reach with ssh. God Eye uses your own ssh and ssh-agent; it never reads your keys.",
+    "emptyBody": "Add a server you reach with ssh. Igrek uses your own ssh and ssh-agent; it never reads your keys.",
     "add": "Add server",
     "name": "Name",
     "targetHint": "user@host, a host name, or an alias from ~/.ssh/config",
@@ -797,8 +797,8 @@
     "notice_notebookRejected_one": "1 change of mind was not saved: it had no new evidence",
     "notice_notebookRejected_other": "{{count}} changes of mind were not saved: they had no new evidence",
     "goneTitle": "This chat has ended",
-    "goneBody": "\"{{title}}\" is no longer running (it stopped, or God Eye was restarted). The conversation is saved; you can pick it up where you left off.",
-    "goneUnknown": "This chat is no longer running (it stopped, or God Eye was restarted). Its conversation is saved under the project's Sessions.",
+    "goneBody": "\"{{title}}\" is no longer running (it stopped, or Igrek was restarted). The conversation is saved; you can pick it up where you left off.",
+    "goneUnknown": "This chat is no longer running (it stopped, or Igrek was restarted). Its conversation is saved under the project's Sessions.",
     "goneResume": "Continue where I left off",
     "goneOpen": "Read the conversation",
     "goneProject": "Go to the project",
@@ -874,7 +874,7 @@
   },
   "checkpoint": {
     "title": "Snapshots",
-    "hint": "God Eye saves your code before every AI step. Go back to any of them.",
+    "hint": "Igrek saves your code before every AI step. Go back to any of them.",
     "saved": "Snapshot saved",
     "restore": "Go back to this point",
     "restoreTitle": "Go back to this snapshot?",
@@ -892,7 +892,7 @@
     "fiveHour": "5-hour limit",
     "week": "Weekly limit",
     "resets": "resets {{when}}",
-    "noData": "No limit reading yet. It appears after the next Claude reply in God Eye (chat, quick question or a summary).",
+    "noData": "No limit reading yet. It appears after the next Claude reply in Igrek (chat, quick question or a summary).",
     "fullAt": "At this pace it fills at {{time}}.",
     "pace": "Using about {{pct}}% per hour.",
     "safe": "At this pace it lasts until the reset.",
@@ -933,7 +933,7 @@
     "forProject": "Account for this project",
     "followActive": "Follow the active account",
     "loginHint": "A terminal opens with the tool's login. Finish it there, then press Check.",
-    "noSwitch": "God Eye never switches accounts on its own; you choose."
+    "noSwitch": "Igrek never switches accounts on its own; you choose."
   },
   "team": {
     "connectTitle": "Join your team",
@@ -1163,7 +1163,7 @@
     "gainTip": "Fixing this raises the score by about {{points}} points",
     "fix": "Fix",
     "fixTip": "Open a chat with a ready prompt for this. Nothing is sent until you press Send.",
-    "fixDone": "God Eye's check \"{{check}}\" passes",
+    "fixDone": "Igrek's check \"{{check}}\" passes",
     "fixTests": "Existing tests still pass",
     "fixFocus": "Change only what this needs",
     "sessions": "Sessions that worked here",
@@ -1173,7 +1173,7 @@
     "unavailable": "Can't score this project",
     "scanning": "Scanning…",
     "noScan": "Not scanned yet",
-    "noScanBody": "God Eye reads the code (nothing is run or sent anywhere) and scores each part with evidence.",
+    "noScanBody": "Igrek reads the code (nothing is run or sent anywhere) and scores each part with evidence.",
     "scan": "Scan now",
     "scanTip": "Re-read the code and score again. Free: no AI is used for scores.",
     "overall": "Project health",
@@ -1447,7 +1447,7 @@
     "external_other": "{{count}} outside services",
     "noExternal": "No outside services found in the code.",
     "unknown": "by address",
-    "unknownTip": "God Eye doesn't know this service by name; it was found by its URL in the code.",
+    "unknownTip": "Igrek doesn't know this service by name; it was found by its URL in the code.",
     "docs": "Documentation",
     "usedAt_one": "Used in {{count}} place",
     "usedAt_other": "Used in {{count}} places",
@@ -1720,7 +1720,7 @@
     "workflowExists": "Already exists",
     "workflowWritten": "Created {{path}}. Commit and push it when you're ready.",
     "remove": "Remove environment",
-    "removeConfirm": "Remove this environment from God Eye? Nothing changes on the server.",
+    "removeConfirm": "Remove this environment from Igrek? Nothing changes on the server.",
     "local": "This computer",
     "localChanged_one": "{{count}} uncommitted change",
     "localChanged_other": "{{count}} uncommitted changes",
@@ -1731,7 +1731,7 @@
     "noServers": "Add a server first on the Servers page.",
     "addServer": "Go to Servers",
     "add": "Add environment",
-    "addHint": "The project on a server, as a git checkout. God Eye never copies code; the server pulls it from git.",
+    "addHint": "The project on a server, as a git checkout. Igrek never copies code; the server pulls it from git.",
     "name": "Name",
     "path": "Folder on the server",
     "branch": "Branch",
@@ -1751,7 +1751,7 @@
     "check_testsFailing": "The tests failed the last time they ran",
     "check_envMissing": "Settings the code needs are missing in the server's .env:",
     "check_destructiveMigration": "Migrations that can lose data (drop, truncate, rename):",
-    "check_noDbBackup": "No database backup is set up for this project: add one on Tools > Backups and God Eye backs up before every deploy.",
+    "check_noDbBackup": "No database backup is set up for this project: add one on Tools > Backups and Igrek backs up before every deploy.",
     "preview": "Preview deploy: this time only; the environment stays on {{branch}}.",
     "staging": "Create staging",
     "stagingHint": "The repo is cloned into a new folder on {{server}} and becomes its own environment with the same deploy command. Runs once you confirm; it is in the server's audit log.",
@@ -1781,7 +1781,7 @@
     "brokenTip_other": "{{count}} events didn't link to the ones before them"
   },
   "keys": {
-    "waiting": "You're in. An admin now needs to approve this computer before it can read the team's work; this happens on their God Eye, usually within minutes.",
+    "waiting": "You're in. An admin now needs to approve this computer before it can read the team's work; this happens on their Igrek, usually within minutes.",
     "requests": "Waiting for approval",
     "requestsHint": "These computers signed in but don't have the team key yet. Approve only devices you recognise: approving lets them read everything the team shares.",
     "approve": "Approve",
@@ -1905,11 +1905,11 @@
     "undo": "Undo"
   },
   "errors": {
-    "offline": "Can't reach God Eye on this computer. Check that it's still running, then press Try again.",
+    "offline": "Can't reach Igrek on this computer. Check that it's still running, then press Try again.",
     "signedOut": "Your session here ended. Reload the page to continue.",
     "notFound": "This isn't here anymore. It may have been deleted or moved.",
     "tooMany": "Too many tries in a short time. Wait a minute and try again.",
-    "server": "Something went wrong on our side. Press Try again; if it keeps happening, restart God Eye.",
+    "server": "Something went wrong on our side. Press Try again; if it keeps happening, restart Igrek.",
     "retry": "Try again"
   },
   "glossary": {
@@ -1995,7 +1995,7 @@
     },
     "mcp": {
       "word": "MCP",
-      "text": "A standard way for AI tools to use other programs. God Eye offers one so Claude can read your project memory.",
+      "text": "A standard way for AI tools to use other programs. Igrek offers one so Claude can read your project memory.",
       "match": "mcp"
     },
     "diff": {
@@ -2081,7 +2081,7 @@
     },
     "helper": {
       "title": "Lost? Ask here",
-      "body": "The helper answers questions about God Eye with links that open the right place, like \"last chat in my blog project\". The full guide is there too."
+      "body": "The helper answers questions about Igrek with links that open the right place, like \"last chat in my blog project\". The full guide is there too."
     },
     "menu": {
       "title": "The menu is here",
@@ -2499,7 +2499,7 @@
     "title": "Library",
     "intro": "What your personas read: books, documents, articles, web pages and GitHub repositories. They search it before answering and cite the page or chapter. Everything stays on this computer.",
     "modelTitle": "Search by meaning",
-    "modelBody": "Searching works by words right away. To find passages by meaning, in any language (a Turkish question finding an English book), God Eye uses a small model that runs on this computer. It is downloaded once ({{mb}} MB, free) from Hugging Face.",
+    "modelBody": "Searching works by words right away. To find passages by meaning, in any language (a Turkish question finding an English book), Igrek uses a small model that runs on this computer. It is downloaded once ({{mb}} MB, free) from Hugging Face.",
     "download": "Download ({{mb}} MB)",
     "downloading": "Downloading… {{n}}%",
     "drop": "Drop PDF, EPUB, Markdown, text or HTML files here",
@@ -2699,14 +2699,14 @@
     "name_spec": "Spec first (big feature)",
     "desc_spec": "Requirements, design, then tasks with acceptance criteria are written into docs/specs and wait for your OK; only then the team codes, and QA checks every acceptance criterion.",
     "status_waiting_limit": "Waiting for the limit",
-    "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. God Eye never switches accounts on its own.",
+    "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. Igrek never switches accounts on its own.",
     "name_careful": "Careful change (explore, plan, critique, work, review)",
     "name_cleanup": "Safe cleanup (dead code, checks before and after)",
     "desc_cleanup": "The checks must pass first; dead code is listed with evidence, you pick what goes, it is removed in a copy with one commit per removal, the same checks pass again and QA confirms nothing changed for users."
   },
   "schedules": {
     "title": "Scheduled work",
-    "intro": "Write what should happen and when, in a sentence. God Eye turns it into a schedule you confirm. At its time it runs as a team flow in its own copy of the repo, within its time and step limits; the result waits on its run page and changes need your OK.",
+    "intro": "Write what should happen and when, in a sentence. Igrek turns it into a schedule you confirm. At its time it runs as a team flow in its own copy of the repo, within its time and step limits; the result waits on its run page and changes need your OK.",
     "sentence": "What should happen and when",
     "sentenceHint": "For example: every Friday morning update the dependencies",
     "propose": "Make a schedule",
@@ -2755,7 +2755,7 @@
   },
   "notify": {
     "setting": "Desktop notifications",
-    "settingHint": "When God Eye is in the background: a chat finished or waits for you, a terminal waits for an answer, an approval is pending, a team run needs you, a score dropped, a limit is filling up.",
+    "settingHint": "When Igrek is in the background: a chat finished or waits for you, a terminal waits for an answer, an approval is pending, a team run needs you, a score dropped, a limit is filling up.",
     "chatDone": "Chat finished",
     "chatWaiting": "A chat waits for your approval",
     "terminalWaiting": "A terminal waits for your answer",
@@ -2782,7 +2782,7 @@
     "today": "Today",
     "stuck": "Stuck or waiting",
     "quiet": "Nothing happened yesterday and nothing is planned for today.",
-    "none": "Not written yet today. With background AI on it is written when you open God Eye."
+    "none": "Not written yet today. With background AI on it is written when you open Igrek."
   },
   "secrets": {
     "title": "Secrets in commits",
@@ -2794,7 +2794,7 @@
     "howTo": "Rotate (replace) the key at its provider first: removing it from git history does not make it safe again.",
     "guard": "Guard commits",
     "guardOn": "Commits are guarded",
-    "guardTip": "Adds a pre-commit hook to this repo (in .git/hooks, not committed) that stops a commit adding a secret. Without God Eye running it lets commits through."
+    "guardTip": "Adds a pre-commit hook to this repo (in .git/hooks, not committed) that stops a commit adding a secret. Without Igrek running it lets commits through."
   },
   "deps": {
     "title": "Dependency watcher",
@@ -2843,19 +2843,19 @@
   },
   "update": {
     "title": "Updates",
-    "hint": "God Eye checks its own git repository every 6 hours with your git login. Updating pulls, installs and builds; then it restarts.",
+    "hint": "Igrek checks its own git repository every 6 hours with your git login. Updating pulls, installs and builds; then it restarts.",
     "available_one": "1 new change is available",
     "available_other": "{{count}} new changes are available",
-    "upToDate": "God Eye is up to date.",
+    "upToDate": "Igrek is up to date.",
     "checked": "checked {{when}}",
-    "dirty": "God Eye's folder has local changes; commit or put them aside before updating.",
+    "dirty": "Igrek's folder has local changes; commit or put them aside before updating.",
     "check": "Check now",
     "update": "Update",
     "updating": "Updating…",
     "failed": "The update stopped; see the log.",
-    "restart": "Restart God Eye",
+    "restart": "Restart Igrek",
     "docker": "Running in Docker: update with git pull, then docker compose up -d --build.",
-    "none": "This copy of God Eye is not a git checkout, so it can't update itself."
+    "none": "This copy of Igrek is not a git checkout, so it can't update itself."
   },
   "suite": {
     "title": "Tools",
@@ -2874,7 +2874,7 @@
     "time": "Time"
   },
   "uptime": {
-    "intro": "God Eye opens these addresses on their own schedule from this computer. Two failed checks in a row count as down; you get an inbox item and a desktop notification.",
+    "intro": "Igrek opens these addresses on their own schedule from this computer. Two failed checks in a row count as down; you get an inbox item and a desktop notification.",
     "url": "Address",
     "interval": "How often",
     "add": "Watch",
@@ -2892,7 +2892,7 @@
     "median": "median {{ms}} ms",
     "checked": "checked {{when}}",
     "emptyTitle": "No sites watched yet",
-    "emptyBody": "Add the address of a site or API and God Eye tells you when it stops answering."
+    "emptyBody": "Add the address of a site or API and Igrek tells you when it stops answering."
   },
   "domains": {
     "intro": "Once a day: the certificate on port 443, the domain's expiry from RDAP (the official successor of WHOIS) and the DNS records. Warnings come 30, 14, 7 and 1 days before anything runs out.",
@@ -2964,8 +2964,8 @@
   "apperrors": {
     "title": "Errors from your app",
     "setup": "Connect the app",
-    "setupBody": "Paste this into your app. Errors (message, stack, page, release) and the events you track go only to God Eye on this computer; user ids are hashed.",
-    "setupNote": "Set release to the commit of the build to see which commits an error started after. Without it, God Eye uses the commit the project is on. Apps on another computer can't reach God Eye's local address.",
+    "setupBody": "Paste this into your app. Errors (message, stack, page, release) and the events you track go only to Igrek on this computer; user ids are hashed.",
+    "setupNote": "Set release to the commit of the build to see which commits an error started after. Without it, Igrek uses the commit the project is on. Apps on another computer can't reach Igrek's local address.",
     "browser": "Browser",
     "server": "Node / Bun",
     "done": "Done",
@@ -3033,7 +3033,7 @@
     "isProd": "(production database)",
     "askDraft": "Explain this {{kind}} query {{prod}}: what it does, whether it is correct and how to make it faster.\n\nQuery:\n{{query}}\n\nTables it uses:\n{{schema}}\n\nPlan:\n{{plan}}",
     "emptyTitle": "No databases yet",
-    "emptyBody": "Add a database by address, or pick one God Eye found in a project's .env or folder.",
+    "emptyBody": "Add a database by address, or pick one Igrek found in a project's .env or folder.",
     "health": "Data health",
     "healthHint": "Looks for problems in the data with read-only queries: rows pointing at rows that do not exist, values repeated where they should be unique (email, slug), NULLs in columns that are almost always filled, negative prices or quantities, and the same value written in different ways (case, spaces, accents).",
     "healthScan": "Scan the data",
@@ -3098,7 +3098,7 @@
     "restoreCopy": "Restore as a copy",
     "restoredTo": "Restored to {{file}}. The original was not touched.",
     "emptyTitle": "No backups yet",
-    "emptyBody": "Add a database or a folder; God Eye backs it up on schedule and tests every backup.",
+    "emptyBody": "Add a database or a folder; Igrek backs it up on schedule and tests every backup.",
     "c_tables_one": "1 table",
     "c_tables_other": "{{count}} tables",
     "c_rows_one": "1 row",
@@ -3168,7 +3168,7 @@
     "toChat": "Send to chat",
     "tip_chat": "Opens a new chat with the board's structure in the message box.",
     "chatDraft": "About the board \"{{title}}\":\n\n{{structure}}\n\n",
-    "dragText": "Board \"{{title}}\" (God Eye board {{id}})",
+    "dragText": "Board \"{{title}}\" (Igrek board {{id}})",
     "history": "History",
     "historyHint": "A version is kept every few minutes while you draw. Restoring keeps the current state as a version too.",
     "restore": "Restore",
@@ -3206,7 +3206,7 @@
     "checksFailed_other": "{{count}} checks failed",
     "checksPending_one": "1 check running",
     "checksPending_other": "{{count}} checks running",
-    "readOnly": "Read with your own login; God Eye doesn't write to it.",
+    "readOnly": "Read with your own login; Igrek doesn't write to it.",
     "noRemoteTitle": "No GitHub or GitLab remote",
     "noRemoteBody": "This project has no remote named origin on GitHub or GitLab.",
     "otherHost": "The remote ({{repo}}) is not on GitHub or GitLab.",
@@ -3214,7 +3214,7 @@
     "install_gh": "Install the GitHub CLI (cli.github.com), then run gh auth login in a terminal.",
     "install_glab": "Install the GitLab CLI (gitlab.com/gitlab-org/cli), then run glab auth login in a terminal.",
     "signInTitle": "Sign in to {{cli}}",
-    "signInBody": "Run {{cli}} auth login in a terminal (God Eye never signs in for you).",
+    "signInBody": "Run {{cli}} auth login in a terminal (Igrek never signs in for you).",
     "reviewIt": "Review",
     "reviewPlaceholder": "Your review: what is good, what to change…",
     "approve": "Approve",
@@ -3270,7 +3270,7 @@
     "every_other": "every {{count}} days",
     "noReminder": "No reminder",
     "rotated": "I changed it",
-    "rotatedTip": "For keys changed somewhere God Eye can't see (a provider's dashboard). Changes in a .env file are noticed by themselves.",
+    "rotatedTip": "For keys changed somewhere Igrek can't see (a provider's dashboard). Changes in a .env file are noticed by themselves.",
     "reveal": "Show the value",
     "copy": "Copy the value",
     "remove": "Remove",
@@ -3317,15 +3317,15 @@
     "noRates": "No exchange rates (offline): only costs in this currency are added",
     "unconverted": "not converted: {{list}}",
     "endedAt": "until {{month}}",
-    "suggested": "God Eye knows you have these; add what they cost",
+    "suggested": "Igrek knows you have these; add what they cost",
     "emptyTitle": "No costs yet",
     "emptyBody": "Add your servers, AI plans and subscriptions to see what your projects cost each month."
   },
   "analytics": {
     "title": "Product numbers",
     "signups": "Sign-ups source",
-    "signupsHint": "Pick the table and the column with the sign-up time; God Eye only counts rows (read-only).",
-    "emptyBody": "Count sign-ups from a table in the project's database, or send events from the app (Connect the app below: godeyeTrack(\"feature\", userId)). User ids are hashed before they are stored.",
+    "signupsHint": "Pick the table and the column with the sign-up time; Igrek only counts rows (read-only).",
+    "emptyBody": "Count sign-ups from a table in the project's database, or send events from the app (Connect the app below: igrekTrack(\"feature\", userId)). User ids are hashed before they are stored.",
     "noDb": "Connect the project's database on Tools > Databases to count sign-ups.",
     "db": "Database",
     "table": "Table",
@@ -3337,24 +3337,24 @@
     "week": "in the last 7 days",
     "dayMonth": "today {{day}} · 30 days {{month}}",
     "features": "Most used (7 days)",
-    "noEvents": "No events from the app yet: connect it below and call godeyeTrack(\"feature\") where it matters.",
+    "noEvents": "No events from the app yet: connect it below and call igrekTrack(\"feature\") where it matters.",
     "ask": "Ask the PM",
     "askTip": "Opens a chat with the Product Manager persona with these numbers only (no user data).",
     "askDraft": "What do these numbers say, and what should we do next? Which feature to improve, which to drop?",
     "isNew": "new"
   },
   "plugins": {
-    "intro": "Add what God Eye is missing. A plugin is a folder with a godeye-plugin.json: pages God Eye shows in a sandbox, and commands it runs in a terminal when you click. It stays off until you approve what it asks for.",
+    "intro": "Add what Igrek is missing. A plugin is a folder with a igrek-plugin.json: pages Igrek shows in a sandbox, and commands it runs in a terminal when you click. It stays off until you approve what it asks for.",
     "source": "Folder path (/home/you/my-plugin) or https git URL",
     "install": "Install",
     "installing": "Installing…",
-    "example": "Example: the project-pulse folder under examples/plugins in God Eye's own repository.",
+    "example": "Example: the project-pulse folder under examples/plugins in Igrek's own repository.",
     "approve": "Turn on the plugin",
     "approveTitle": "Turn on {{name}}?",
     "reads": "Its pages may read:",
-    "readsNothing": "Its pages read nothing from God Eye.",
+    "readsNothing": "Its pages read nothing from Igrek.",
     "runs": "Commands it can run in a project's folder (only when you click them, in a terminal you see):",
-    "sandbox": "Plugin pages run in a sandbox with no network: they can't send anything out, can't change anything in God Eye and can't open other pages.",
+    "sandbox": "Plugin pages run in a sandbox with no network: they can't send anything out, can't change anything in Igrek and can't open other pages.",
     "turnOn": "Turn on",
     "turnOff": "Turn off",
     "remove": "Remove",
@@ -3374,7 +3374,7 @@
   },
   "localModel": {
     "title": "Local model (Ollama)",
-    "hint": "A free model on this computer for God Eye's own small jobs: session summaries, sorting, translation. Coding agents always use your own AI accounts. Install Ollama (ollama.com) and pull a model, e.g. ollama pull qwen2.5:7b.",
+    "hint": "A free model on this computer for Igrek's own small jobs: session summaries, sorting, translation. Coding agents always use your own AI accounts. Install Ollama (ollama.com) and pull a model, e.g. ollama pull qwen2.5:7b.",
     "when": "When",
     "off": "Off",
     "limit": "When the limit is full",
@@ -3435,7 +3435,7 @@
     "target": "Test what?",
     "targetTip": "Name the function or feature to test, and the cases that matter.",
     "env": "Staging or prod?",
-    "envTip": "Say which environment. God Eye always asks before a deploy anyway.",
+    "envTip": "Say which environment. Igrek always asks before a deploy anyway.",
     "split": "Several jobs in one",
     "splitTip": "Many steps at once: split them, or use Plan mode so the AI plans first."
   },
@@ -3460,7 +3460,7 @@
   },
   "mcpServers": {
     "title": "Your MCP servers",
-    "hint": "Add tools for the AI: from the list of free servers or by hand. Enabled ones are offered in chats next to God Eye's own tools; the AI asks before it uses one.",
+    "hint": "Add tools for the AI: from the list of free servers or by hand. Enabled ones are offered in chats next to Igrek's own tools; the AI asks before it uses one.",
     "on": "On",
     "test": "Test",
     "testing": "Testing…",
@@ -3552,7 +3552,7 @@
   },
   "bridges": {
     "title": "Notification bridges",
-    "hint": "Short notices outside God Eye, all free: your own Telegram bot, a Discord channel, or your own e-mail server. Only a title goes out (never code or secrets), after the secret scrubber.",
+    "hint": "Short notices outside Igrek, all free: your own Telegram bot, a Discord channel, or your own e-mail server. Only a title goes out (never code or secrets), after the secret scrubber.",
     "kind": "Where",
     "kind_telegram": "Telegram",
     "kind_discord": "Discord",
@@ -3659,7 +3659,7 @@
   },
   "incident": {
     "title": "Incident mode",
-    "hint": "When the site is down: God Eye gathers uptime, the app's errors, log errors, recent deploys and commits into a timeline, and the SRE persona says what is most likely wrong and what to check first. Resolving writes the postmortem into the wiki.",
+    "hint": "When the site is down: Igrek gathers uptime, the app's errors, log errors, recent deploys and commits into a timeline, and the SRE persona says what is most likely wrong and what to check first. Resolving writes the postmortem into the wiki.",
     "open": "Open incident mode",
     "back": "Back to the open incident",
     "whatHappened": "What is happening? (e.g. \"Checkout returns 500\")",
@@ -3682,7 +3682,7 @@
   },
   "feedback": {
     "title": "User feedback",
-    "empty": "No feedback yet: the code under Connect the app has godeyeFeedback(text, contact) for your own feedback box.",
+    "empty": "No feedback yet: the code under Connect the app has igrekFeedback(text, contact) for your own feedback box.",
     "sort_one": "Sort 1 waiting",
     "sort_other": "Sort {{count}} waiting",
     "all": "All {{count}}",
@@ -3716,10 +3716,10 @@
   },
   "disk": {
     "title": "Disk and keeping",
-    "hint": "What God Eye keeps on this computer, and keeping it small. Only God Eye's own copies are removed: summaries stay, and your AI tools' own session files are never touched.",
-    "total": "God Eye uses {{size}}",
+    "hint": "What Igrek keeps on this computer, and keeping it small. Only Igrek's own copies are removed: summaries stay, and your AI tools' own session files are never touched.",
+    "total": "Igrek uses {{size}}",
     "counts": "{{sessions}} sessions, {{messages}} messages indexed",
-    "part_godeyedb": "Database",
+    "part_igrekdb": "Database",
     "part_models": "Search model",
     "part_worktrees": "Team run copies",
     "part_backups": "Backups",
@@ -3743,12 +3743,12 @@
   },
   "network": {
     "title": "Network",
-    "hint": "Zero telemetry, shown: every address God Eye's server opened on the internet since it started, and what for. Nothing about you or your code is sent to God Eye's makers.",
+    "hint": "Zero telemetry, shown: every address Igrek's server opened on the internet since it started, and what for. Nothing about you or your code is sent to Igrek's makers.",
     "since": "Since {{when}}",
     "times_one": "once",
     "times_other": "{{count}} times",
-    "none": "God Eye hasn't opened any internet address since it started.",
-    "note": "Tools God Eye starts for you (claude, codex, git, gh, ssh) talk to their own services with your own logins; they are not listed here.",
+    "none": "Igrek hasn't opened any internet address since it started.",
+    "note": "Tools Igrek starts for you (claude, codex, git, gh, ssh) talk to their own services with your own logins; they are not listed here.",
     "p_searchModel": "search model download",
     "p_vulns": "vulnerability database",
     "p_packages": "package versions",
@@ -3866,7 +3866,7 @@
     "askTeacher": "Ask the teacher",
     "askDraft": "I'm on the step \"{{step}}\" of the {{roadmap}} roadmap. ",
     "doForMe": "Do this step for me",
-    "doForMeTip": "God Eye does the step in its own copy of the practice project; you follow along and merge it if you like it.",
+    "doForMeTip": "Igrek does the step in its own copy of the practice project; you follow along and merge it if you like it.",
     "reportStep": "Report a wrong or outdated step",
     "whereIs": "Which step is your project at?",
     "pickProject": "Pick a project...",
@@ -3884,7 +3884,7 @@
     "stage_deploy": "Deploy",
     "stage_monitoring": "Monitoring and upkeep",
     "stage_advanced": "Advanced topics",
-    "reason_project": "in God Eye",
+    "reason_project": "in Igrek",
     "reason_commits": "{{v}} commits",
     "reason_apis": "{{v}} endpoints",
     "reason_noApis": "no endpoints found",
@@ -3920,7 +3920,7 @@
   "helper": {
     "title": "Helper",
     "subtitle": "Ask where something is or what to do",
-    "hello": "Hi. Ask me anything about God Eye: where something is, how to do it, or where you left off. I answer with links that open it.",
+    "hello": "Hi. Ask me anything about Igrek: where something is, how to do it, or where you left off. I answer with links that open it.",
     "placeholder": "e.g. last chat in my blog project",
     "send": "Send",
     "close": "Close",
@@ -3944,23 +3944,23 @@
     "terminal": "Terminals run Claude, Codex or a shell in a project. Start one from a project's \"New chat\" menu.",
     "project": "**{{name}}**: what would you like to do?",
     "found": "These may help:",
-    "unknown": "I couldn't tell. The guide or the tour shows every part of God Eye.",
+    "unknown": "I couldn't tell. The guide or the tour shows every part of Igrek.",
     "tour": "The tour lights up one part at a time and says what it is.",
-    "guide": "The guide explains God Eye step by step:",
+    "guide": "The guide explains Igrek step by step:",
     "startTour": "Start the tour",
     "whereType": "Type in the big box at the top of the **home page** (\"What do you want to do?\"). Pick the project next to it and press Enter: a chat opens in that project and your message goes out. Inside a project, the blue **New chat** button does the same."
   },
   "guide": {
-    "title": "How to use God Eye",
-    "heroTitle": "God Eye in ten steps",
-    "heroBody": "God Eye watches all your AI coding work in one place: every project, chat and terminal, with memory, summaries, checks and a team of expert personas. You only need the first three steps to start; the rest is there when you need it.",
+    "title": "How to use Igrek",
+    "heroTitle": "Igrek in ten steps",
+    "heroBody": "Igrek watches all your AI coding work in one place: every project, chat and terminal, with memory, summaries, checks and a team of expert personas. You only need the first three steps to start; the rest is there when you need it.",
     "askHelper": "Ask the helper",
     "steps": "First steps",
-    "all": "Every part of God Eye",
+    "all": "Every part of Igrek",
     "show": "Show",
     "add": {
       "title": "Add your project",
-      "body": "A project is a folder on your computer. God Eye reads the AI sessions you already had there and keeps a memory of the project.",
+      "body": "A project is a folder on your computer. Igrek reads the AI sessions you already had there and keeps a memory of the project.",
       "how": "Projects page (first icon on the left) → Add folder at the top right → paste the folder path. Or New project to start from a template."
     },
     "ask": {
@@ -3980,7 +3980,7 @@
     },
     "terminal": {
       "title": "Use a real terminal when you want",
-      "body": "If you prefer Claude Code, Codex or a shell as they are, God Eye opens them in the browser and keeps them running.",
+      "body": "If you prefer Claude Code, Codex or a shell as they are, Igrek opens them in the browser and keeps them running.",
       "how": "Inside a project: the small arrow next to New chat → Claude, Codex or Shell. Open ones are on the Terminals page."
     },
     "inbox": {
@@ -4000,7 +4000,7 @@
     },
     "helper": {
       "title": "Lost? Ask the helper",
-      "body": "The round button at the bottom right answers questions about God Eye and gives links that open the right place, like \"last chat in my blog project\".",
+      "body": "The round button at the bottom right answers questions about Igrek and gives links that open the right place, like \"last chat in my blog project\".",
       "how": "Click the round button at the bottom right and type your question."
     },
     "settings": {
@@ -4088,7 +4088,7 @@
     "hint": "A git pre-commit hook that runs this project's checks and stops the commit if one fails, whoever commits (you or an AI). It skips with git commit --no-verify.",
     "runs": "Runs:",
     "noGit": "This folder is not a git repository.",
-    "other": "This project already has its own pre-commit hook (husky or similar); God Eye leaves it as it is.",
+    "other": "This project already has its own pre-commit hook (husky or similar); Igrek leaves it as it is.",
     "nothing": "No typecheck, lint or test command found in this project."
   },
   "arch": {
@@ -4163,7 +4163,7 @@
     "fix_hardDependency": "Creating its own services with new ties the class to them (dependency inversion): pass them in through the constructor so they can be swapped and tested."
   },
   "member": {
-    "title": "God Eye Team",
+    "title": "Igrek Team",
     "signInHint": "Sign in with the account your team's admin made for you. Everything is decrypted here in your browser; the hub can't read it.",
     "username": "Username",
     "password": "Password",
@@ -4173,7 +4173,7 @@
     "newPasswordHint": "Your admin set a temporary password. Pick one only you know (at least 8 characters).",
     "save": "Save",
     "waitTitle": "Waiting for an admin's approval",
-    "waitBody": "Your team's work is encrypted. An admin opens God Eye > Team > devices and approves this browser; then it receives the team key. Tell them this code so they approve the right one.",
+    "waitBody": "Your team's work is encrypted. An admin opens Igrek > Team > devices and approves this browser; then it receives the team key. Tell them this code so they approve the right one.",
     "fingerprint": "This browser",
     "retry": "Check again",
     "signOut": "Sign out",
@@ -4192,7 +4192,7 @@
     "role_viewer": "Viewer",
     "projects": "Projects",
     "noProjects": "No shared projects yet",
-    "noProjectsBody": "Projects appear here when a teammate shares one from God Eye.",
+    "noProjectsBody": "Projects appear here when a teammate shares one from Igrek.",
     "online_one": "{{count}} online",
     "online_other": "{{count}} online",
     "newCard": "A new card for the team",

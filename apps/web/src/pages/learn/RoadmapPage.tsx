@@ -254,15 +254,15 @@ function StepView({
       )}
       <section className="space-y-1">
         <h3 className="text-[12.5px] font-semibold text-accent">{t("learn.why")}</h3>
-        <Markdown text={tx(step.why, `${p}.why`)} className="prose-godeye text-[13px]" />
+        <Markdown text={tx(step.why, `${p}.why`)} className="prose-igrek text-[13px]" />
       </section>
       <section className="space-y-1">
         <h3 className="text-[12.5px] font-semibold text-accent">{t("learn.learn")}</h3>
-        <Markdown text={tx(step.learn, `${p}.learn`)} className="prose-godeye text-[13px]" />
+        <Markdown text={tx(step.learn, `${p}.learn`)} className="prose-igrek text-[13px]" />
       </section>
       <section className="space-y-1">
         <h3 className="text-[12.5px] font-semibold text-accent">{t("learn.do")}</h3>
-        <Markdown text={tx(step.do, `${p}.do`)} className="prose-godeye text-[13px]" />
+        <Markdown text={tx(step.do, `${p}.do`)} className="prose-igrek text-[13px]" />
       </section>
       {(step.code ?? []).length > 0 && (
         <section className="space-y-2">
@@ -377,7 +377,7 @@ function StepView({
 
 const STATE_ICON = { done: CircleCheck, missing: CircleDashed, unknown: CircleHelp };
 
-/** "Which step is this project at?" — each stage judged from what God Eye knows about the project. */
+/** "Which step is this project at?" — each stage judged from what Igrek knows about the project. */
 function ProjectStages() {
   const { t } = useTranslation();
   const projects = useProjects();
