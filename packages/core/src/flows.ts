@@ -65,6 +65,8 @@ export interface FlowRun {
   nodes: FlowNodeState[];
   /** One model for every step instead of each persona's own (the model arena, plan.md 13.1): "sonnet", "opus", "codex"… */
   model?: string;
+  /** The persona for steps that name none (a fix started from a finding goes to the part's owner). */
+  persona?: string;
   /** Waiting for the AI plan's limit to reset (plan.md 13.1 "Limit kuyruğu"): it goes on by itself at this time. */
   resumeAt?: number;
   /** The run's own copy of the repo and branch. Nothing reaches your branch until you approve. */

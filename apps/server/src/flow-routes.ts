@@ -44,7 +44,12 @@ export function registerFlowRoutes(
     return run ? c.json(run) : c.json({ error: "Not found" }, 404);
   });
   app.post("/api/flows", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { projectId?: unknown; flow?: unknown; request?: unknown };
+    const body = (await c.req.json().catch(() => ({}))) as {
+      projectId?: unknown;
+      flow?: unknown;
+      request?: unknown;
+      persona?: unknown;
+    };
     const projectId = String(body.projectId ?? "");
     const flow = String(body.flow ?? "feature");
     const request = String(body.request ?? "");
@@ -54,7 +59,8 @@ export function registerFlowRoutes(
         if (!project) throw new Error("Project not found");
         return c.json(await startArchon(flows, { projectId, cwd: project.path, workflow: flow.slice(7), request }));
       }
-      return c.json(flows.start({ projectId, flow, request }));
+      const persona = typeof body.persona === "string" && body.persona ? body.persona : undefined;
+      return c.json(flows.start({ projectId, flow, request, persona }));
     } catch (err) {
       return fail(err);
     }

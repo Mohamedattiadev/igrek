@@ -211,6 +211,24 @@ describe("team run", () => {
     expect(log).toContain("Remove old-b");
   });
 
+  test("a run can give its unnamed steps to one persona (a fix by the part's owner)", async () => {
+    const systems: (string | undefined)[] = [];
+    const agent: AgentRun = async ({ cwd, system }) => {
+      systems.push(system);
+      writeFileSync(join(cwd, "fix.ts"), "export const fixed = true;\n");
+      return "Fixed";
+    };
+    const { flows, projectId } = setup(agent, async () => [pass("test")]);
+    expect(() => flows.start({ projectId, flow: "task", request: "Fix it", persona: "nobody" })).toThrow();
+    const run = flows.start({ projectId, flow: "task", request: "Fix the swallowed errors", persona: "backend" });
+    expect(run.nodes.find((n) => n.id === "do")?.persona).toBe("backend");
+    await until(
+      () => flows.get(run.id),
+      (r) => r.status === "ready" || r.status === "failed",
+    );
+    expect(systems[0]).toBeTruthy();
+  });
+
   test("a QA failure goes back a limited number of times, then the run stops", async () => {
     const agent: AgentRun = async ({ prompt }) => (prompt.includes("VERDICT") ? "Broken.\nVERDICT: FAIL" : "done");
     const { flows, projectId } = setup(agent, async () => [pass("test")]);

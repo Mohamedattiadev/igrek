@@ -326,11 +326,14 @@ export class Flows {
     scheduleId?: string;
     limits?: { maxMinutes?: number; maxTurns?: number };
     model?: string;
+    /** Runs the steps that name no persona as this one (a fix by the persona that owns the part). */
+    persona?: string;
   }): FlowRun {
     const project = this.store.projectRow(args.projectId);
     if (!project || !existsSync(project.path)) throw new Error("Project folder not found");
     const def = this.flowsFor(args.projectId).find((f) => f.name === args.flow);
     if (!def) throw new Error("Flow not found");
+    if (args.persona && !this.personas.get(args.persona)) throw new Error("Persona not found");
     const request = args.request.trim().slice(0, 4000);
     if (request.length < 3) throw new Error("Write what the team should do");
     const id = crypto.randomUUID().slice(0, 10);
@@ -347,7 +350,7 @@ export class Flows {
       nodes: def.nodes.map((n) => ({
         id: n.id,
         ...(n.title ? { title: n.title } : {}),
-        ...(n.persona ? { persona: n.persona } : {}),
+        ...((n.persona ?? args.persona) ? { persona: n.persona ?? args.persona } : {}),
         status: "waiting",
         attempts: 0,
         log: [],
@@ -363,6 +366,7 @@ export class Flows {
       ...(args.scheduleId ? { scheduleId: args.scheduleId } : {}),
       ...(args.limits ? { limits: args.limits } : {}),
       ...(args.model ? { model: args.model } : {}),
+      ...(args.persona ? { persona: args.persona } : {}),
       createdAt: now,
       updatedAt: now,
     };
@@ -680,7 +684,8 @@ export class Flows {
         output = `${out}${err}`.trim().slice(-4000);
         if (code !== 0) throw Object.assign(new Error(output || `exit ${code}`), { gate: true });
       } else if (node.prompt) {
-        const persona: Persona | undefined = node.persona ? this.personas.get(node.persona) : undefined;
+        const personaId = node.persona ?? run.persona;
+        const persona: Persona | undefined = personaId ? this.personas.get(personaId) : undefined;
         const readOnly = node.review === true || persona?.tools === "read";
         const prompt = `${this.fill(node.prompt, run, node.id)}
 

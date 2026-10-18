@@ -18,6 +18,7 @@ import {
   FileText,
   FlaskConical,
   Gauge,
+  GitBranch,
   KeyRound,
   type LucideIcon,
   Monitor,
@@ -92,7 +93,7 @@ function useFix(projectId: string) {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { personas } = usePersonas();
-  return async (finding: Finding) => {
+  const prepare = (finding: Finding) => {
     const t = settings.enhanceLanguage === "user" ? i18n.t.bind(i18n) : i18n.getFixedT("en");
     const where = finding.evidence
       .slice(0, 10)
@@ -102,6 +103,7 @@ function useFix(projectId: string) {
       `## Goal\n${t(`insight.check.${finding.id}.fix`, { metric: finding.metric })}`,
       where ? `## Where\n${where}` : "",
       `## Done when\n- ${t("insight.fixDone", { check: t(`insight.check.${finding.id}.title`, { metric: finding.metric }) })}\n- ${t("insight.fixTests")}\n- ${t("insight.fixFocus")}`,
+      CHECK_SOURCES[finding.id] ? `## Source\n${CHECK_SOURCES[finding.id]}` : "",
     ]
       .filter(Boolean)
       .join("\n\n");
@@ -109,8 +111,21 @@ function useFix(projectId: string) {
       finding.category,
       personas.filter((p) => p.tools === "edit"),
     );
-    const chat = await api.startChat({ projectId, personaId: owner?.id });
-    void navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
+    return { draft, owner };
+  };
+  return {
+    /** A chat with the part's owner, the prompt waiting in the box. */
+    inChat: async (finding: Finding) => {
+      const { draft, owner } = prepare(finding);
+      const chat = await api.startChat({ projectId, personaId: owner?.id });
+      void navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
+    },
+    /** The owner fixes it in its own copy; the checks must pass and nothing merges without you. */
+    inCopy: async (finding: Finding) => {
+      const { draft, owner } = prepare(finding);
+      const run = await api.startFlow({ projectId, flow: "task", request: draft, persona: owner?.id });
+      void navigate(`/runs/${run.id}`);
+    },
   };
 }
 
@@ -201,10 +216,12 @@ function FindingRow({
   finding,
   projectId,
   onFix,
+  onFixInCopy,
 }: {
   finding: Finding;
   projectId: string;
   onFix: (f: Finding) => void;
+  onFixInCopy: (f: Finding) => void;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(
@@ -270,6 +287,16 @@ function FindingRow({
             )}
             <Button size="sm" icon={Wrench} onClick={() => onFix(finding)} data-tip={t("insight.fixTip")}>
               {t("insight.fix")}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={GitBranch}
+              onClick={() => onFixInCopy(finding)}
+              data-tip={t("insight.fixInCopyTip")}
+              aria-label={t("insight.fixInCopy")}
+            >
+              <span className="hidden xl:inline">{t("insight.fixInCopy")}</span>
             </Button>
           </>
         )}
@@ -443,7 +470,13 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
         </h3>
         <ul className="divide-y divide-border">
           {problems.map((f) => (
-            <FindingRow key={f.id} finding={f} projectId={project.id} onFix={(x) => void fix(x)} />
+            <FindingRow
+              key={f.id}
+              finding={f}
+              projectId={project.id}
+              onFix={(x) => void fix.inChat(x)}
+              onFixInCopy={(x) => void fix.inCopy(x)}
+            />
           ))}
         </ul>
         {passed.length > 0 && (
@@ -453,7 +486,13 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
             </summary>
             <ul className="divide-y divide-border">
               {passed.map((f) => (
-                <FindingRow key={f.id} finding={f} projectId={project.id} onFix={(x) => void fix(x)} />
+                <FindingRow
+                  key={f.id}
+                  finding={f}
+                  projectId={project.id}
+                  onFix={(x) => void fix.inChat(x)}
+                  onFixInCopy={(x) => void fix.inCopy(x)}
+                />
               ))}
             </ul>
           </details>

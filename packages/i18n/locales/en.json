@@ -1461,7 +1461,9 @@
     "findingsTrend_one": "Open findings: {{count}} (goal 0)",
     "findingsTrend_other": "Open findings: {{count}} (goal 0)",
     "findingsTrendLabel": "Open findings went from {{from}} to {{to}}",
-    "source": "Source"
+    "source": "Source",
+    "fixInCopy": "In a copy",
+    "fixInCopyTip": "The persona that owns this part fixes it in its own copy of the project; the checks must pass and nothing reaches your branch until you approve."
   },
   "apis": {
     "title": "API map",

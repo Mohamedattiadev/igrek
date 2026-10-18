@@ -388,7 +388,7 @@ export const api = {
     }>(`/api/projects/${projectId}/flows`),
   flowRuns: (projectId?: string) => request<FlowRun[]>(`/api/flows${projectId ? `?projectId=${projectId}` : ""}`),
   flowRun: (id: string) => request<FlowRun>(`/api/flows/${id}`),
-  startFlow: (body: { projectId: string; flow: string; request: string }) =>
+  startFlow: (body: { projectId: string; flow: string; request: string; persona?: string }) =>
     request<FlowRun>("/api/flows", { method: "POST", body: JSON.stringify(body) }),
   respondFlow: (id: string, node: string, decision: "approve" | "reject", text?: string) =>
     request<FlowRun>(`/api/flows/${id}/respond`, { method: "POST", body: JSON.stringify({ node, decision, text }) }),

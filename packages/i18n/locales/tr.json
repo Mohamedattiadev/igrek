@@ -1461,7 +1461,9 @@
     "findingsTrend_one": "Açık bulgular: {{count}} (hedef 0)",
     "findingsTrend_other": "Açık bulgular: {{count}} (hedef 0)",
     "findingsTrendLabel": "Açık bulgular {{from}} → {{to}}",
-    "source": "Kaynak"
+    "source": "Kaynak",
+    "fixInCopy": "Kopyada",
+    "fixInCopyTip": "Bu bölümün sahibi persona bunu projenin kendi kopyasında düzeltir; kontroller geçmeli ve sen onaylamadan hiçbir şey senin dalına gelmez."
   },
   "apis": {
     "title": "API Haritası",
