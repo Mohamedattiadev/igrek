@@ -197,7 +197,9 @@
     "textSizeHint": "Her şeyi büyütür: yazılar, ikonlar ve boşluklar.",
     "textNormal": "Normal",
     "textLarge": "Büyük",
-    "textLarger": "Daha büyük"
+    "textLarger": "Daha büyük",
+    "richAnswers": "Sohbetlerde zengin cevaplar",
+    "richAnswersHint": "Sohbetler God Eye'ın kendi parçalarıyla çizilen kutular, grafikler, tablolar ve butonlarla cevap verebilir (OpenUI). Her sohbete yaklaşık bin token'lık ek talimat gider."
   },
   "onboarding": {
     "welcome": "God Eye'a hoş geldin",

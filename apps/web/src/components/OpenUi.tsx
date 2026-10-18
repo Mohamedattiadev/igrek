@@ -1,6 +1,7 @@
 import { type CALLOUT_KINDS, LIBRARY_ID, ROOT, SCHEMAS } from "@godeye/genui";
-import { createLibrary, defineComponent, Renderer } from "@openuidev/react-lang";
+import { type ActionEvent, createLibrary, defineComponent, Renderer, useTriggerAction } from "@openuidev/react-lang";
 import { useTranslation } from "react-i18next";
+import { actions } from "../lib/actions";
 import { CodeBlock } from "./CodeBlock";
 import { Markdown } from "./Markdown";
 import { RichBlock } from "./RichBlocks";
@@ -109,6 +110,36 @@ const Callout = defineComponent({
   component: ({ props }) => <CalloutBox kind={props.kind ?? "note"} text={props.text ?? ""} />,
 });
 
+function ActionButton({ label, action }: { label: string; action: unknown }) {
+  const trigger = useTriggerAction();
+  return (
+    <button
+      type="button"
+      onClick={() => void trigger(label, undefined, action as Parameters<typeof trigger>[2])}
+      className="rounded-ui border border-border bg-bg px-3 py-1.5 text-[13px] hover:border-accent hover:text-accent-hover"
+    >
+      {label}
+    </button>
+  );
+}
+
+const Button = defineComponent({
+  name: "Button",
+  ...SCHEMAS.Button,
+  component: ({ props }) => <ActionButton label={props.label ?? ""} action={props.action} />,
+});
+
+/** What a button asked for: a follow-up goes to the open chat, a web page opens in a new tab (http and https only). */
+function onAction(event: ActionEvent): void {
+  if (event.type === "open_url") {
+    const url = String(event.params.url ?? "");
+    if (/^https?:\/\//i.test(url)) window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+  if (event.type === "continue_conversation")
+    actions.sendToChat(String(event.params.message ?? event.humanFriendlyMessage ?? ""));
+}
+
 const Code = defineComponent({
   name: "Code",
   ...SCHEMAS.Code,
@@ -120,14 +151,14 @@ const Code = defineComponent({
 const godeyeLibrary = createLibrary({
   id: LIBRARY_ID,
   root: ROOT,
-  components: [Stack, Card, Text, Stats, Chart, Progress, Table, Callout, Code],
+  components: [Stack, Card, Text, Stats, Chart, Progress, Table, Callout, Button, Code],
 });
 
 /** One ```openui block; while the answer streams in, it is drawn as far as it is written. */
 export default function OpenUiBlock({ code, streaming }: { code: string; streaming?: boolean }) {
   return (
     <div className="my-2 space-y-3">
-      <Renderer response={code} library={godeyeLibrary} isStreaming={streaming} />
+      <Renderer response={code} library={godeyeLibrary} isStreaming={streaming} onAction={onAction} />
     </div>
   );
 }

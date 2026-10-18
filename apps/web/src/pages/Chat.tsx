@@ -57,6 +57,7 @@ import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
 import { Badge, Button, EmptyState, Segmented, StatusDot } from "../components/ui";
+import { actions } from "../lib/actions";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
 import { DETAIL_LEVELS, type DetailLevel, groupWork, workCounts } from "../lib/chat-log";
@@ -724,6 +725,9 @@ export function ChatPage() {
   const { chatId = "" } = useParams();
   const chat = useChat(chatId);
   const [comments, setComments] = useState<LineComment[]>([]);
+  // A button in an answer (OpenUI) asks a follow-up in this chat.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one listener per chat
+  useEffect(() => actions.onSendToChat((text) => text && chat.send(text)), [chatId]);
   const [detail, setDetail] = useDetailLevel();
   usePageActions([
     { id: "chat-stop", label: t("chat.stop"), icon: Square, keys: "Mod+.", run: chat.interrupt },

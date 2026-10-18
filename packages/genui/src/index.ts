@@ -1,4 +1,4 @@
-import { createLibrary, defineComponent } from "@openuidev/lang-core";
+import { createLibrary, defineComponent, tagSchemaId } from "@openuidev/lang-core";
 import { z } from "zod";
 
 /**
@@ -13,6 +13,9 @@ const env = (globalThis as { process?: { env?: Record<string, string | undefined
 if (env) env.OPENUI_TELEMETRY_DISABLED ??= "1";
 
 const tone = z.enum(["good", "warning", "bad", "neutral"]);
+/** What a button does: Action([@ToAssistant("…")]) sends a message to the chat, @OpenUrl opens a web page. */
+const action = z.any();
+tagSchemaId(action, "ActionExpression");
 export const CALLOUT_KINDS = ["note", "tip", "important", "warning", "caution"] as const;
 
 export const SCHEMAS = {
@@ -68,6 +71,10 @@ export const SCHEMAS = {
   Callout: {
     description: "A highlighted note, tip or warning.",
     props: z.object({ kind: z.enum(CALLOUT_KINDS), text: z.string() }),
+  },
+  Button: {
+    description: "A button; its action asks the assistant a follow-up (@ToAssistant) or opens a web page (@OpenUrl).",
+    props: z.object({ label: z.string(), action }),
   },
   Code: {
     description: "A block of code or a command.",

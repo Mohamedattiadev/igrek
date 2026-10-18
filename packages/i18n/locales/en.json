@@ -197,7 +197,9 @@
     "textSizeHint": "Makes everything bigger, including icons and spacing.",
     "textNormal": "Normal",
     "textLarge": "Large",
-    "textLarger": "Larger"
+    "textLarger": "Larger",
+    "richAnswers": "Rich answers in chats",
+    "richAnswersHint": "Chats may answer with tiles, charts, tables and buttons drawn with God Eye's own pieces (OpenUI). Each chat gets about a thousand extra tokens of instructions."
   },
   "onboarding": {
     "welcome": "Welcome to God Eye",

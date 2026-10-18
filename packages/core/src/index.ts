@@ -36,6 +36,8 @@ export interface Settings {
   onboarded: boolean;
   /** Summarize finished sessions automatically with a small, cheap model. */
   autoSummarize: boolean;
+  /** Chats may answer with OpenUI blocks drawn with God Eye's components (plan.md 16.2); costs about a thousand tokens per chat. */
+  richAnswers: boolean;
   /** How summaries are written: for anyone, or with technical detail. */
   summaryTone: "plain" | "technical";
   /** Extra folders (besides projects) God Eye may open in the file manager. */
@@ -90,6 +92,7 @@ export const DEFAULT_SETTINGS: Settings = {
   keymap: "default",
   onboarded: false,
   autoSummarize: true,
+  richAnswers: false,
   summaryTone: "plain",
   allowedFolders: [],
   editorVim: false,

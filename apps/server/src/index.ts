@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { APP_VERSION, type ClientMessage, citation, HELP_TOPICS, lessonLines, type ServerMessage } from "@godeye/core";
+import { reportUiHint } from "@godeye/genui";
 import { bundledResources } from "@godeye/i18n";
 import type { ServerWebSocket } from "bun";
 import { parse } from "hono/utils/cookie";
@@ -526,6 +527,7 @@ const app = createApp({
       accounts,
       worktreeDir: join(config.dataDir, "worktrees"),
       persona: personaChat,
+      richUi: () => (readSettings(db).richAnswers ? reportUiHint() : undefined),
       godeyeMcp: {
         // Read when a chat starts: God Eye's own tools plus the user's enabled MCP servers.
         get config() {

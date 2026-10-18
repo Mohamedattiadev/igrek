@@ -78,6 +78,8 @@ export interface ChatStart {
   worktree?: Worktree;
   /** God Eye's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
   godeyeMcp?: { config: string; allow: string[] };
+  /** The OpenUI instructions, when the user turned on rich answers; otherwise the JSON blocks hint. */
+  richUi?: string;
   /** The project's own extensions to leave out, because the user has not trusted them yet. */
   untrusted?: ProjectExtensions;
   /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
@@ -118,6 +120,12 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
   const m = rule.match(/^Bash\((.+)\)$/);
   const command = String((input as Json | undefined)?.command ?? "").trim();
   return !!m?.[1] && toolName === "Bash" && (command === m[1] || command.startsWith(`${m[1]} `));
+}
+
+/** The persona's prompt (if any) and how answers may draw: OpenUI when rich answers are on, JSON blocks otherwise. */
+function systemPrompt(options: Pick<ChatStart, "persona" | "richUi">): string {
+  const drawing = options.richUi ?? RICH_BLOCKS_HINT;
+  return options.persona ? `${options.persona.systemPrompt}\n\n${drawing}` : drawing;
 }
 
 /** What the chat shows about the project's extensions it left out. */
@@ -238,7 +246,7 @@ export class Chats {
       ...(options.resume ? ["--resume", options.resume] : []),
       // Every chat may answer with the app's charts and stat tiles; a persona adds its own prompt.
       "--append-system-prompt",
-      options.persona ? `${options.persona.systemPrompt}\n\n${RICH_BLOCKS_HINT}` : RICH_BLOCKS_HINT,
+      systemPrompt(options),
       ...(options.persona
         ? [
             "--max-turns",

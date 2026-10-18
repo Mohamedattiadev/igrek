@@ -206,6 +206,16 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Section title={t("settings.richAnswers")} hint={t("settings.richAnswersHint")}>
+          <Segmented
+            value={settings.richAnswers ? "on" : "off"}
+            onChange={(value) => update({ richAnswers: value === "on" })}
+            options={[
+              { value: "on", label: t("settings.on") },
+              { value: "off", label: t("settings.off") },
+            ]}
+          />
+        </Section>
         <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
           <Segmented
             value={settings.summaryTone}

@@ -22,6 +22,7 @@ export function registerChatRoutes(
     worktreeDir,
     persona,
     godeyeMcp,
+    richUi,
   }: {
     chats: Chats;
     bus: Bus;
@@ -35,6 +36,8 @@ export function registerChatRoutes(
     ) => { start: NonNullable<ChatStart["persona"]>; model: string } | undefined;
     /** God Eye's MCP server, given to every chat. */
     godeyeMcp?: ChatStart["godeyeMcp"];
+    /** OpenUI instructions when rich answers are on (plan.md 16.2). */
+    richUi?: () => string | undefined;
   },
 ): void {
   const account = (projectId: string, sessionAccount?: string | null) =>
@@ -96,6 +99,7 @@ export function registerChatRoutes(
       const started = chats.start({
         projectId: project.id,
         untrusted,
+        richUi: richUi?.(),
         cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
         worktree,
         title: session?.title ?? undefined,

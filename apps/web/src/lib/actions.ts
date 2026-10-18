@@ -44,6 +44,15 @@ export const actions = {
     target.addEventListener("what-is", listener);
     return () => target.removeEventListener("what-is", listener);
   },
+  /** A button in an AI answer asks a follow-up: the open chat sends it (plan.md 16.2). */
+  sendToChat(text: string): void {
+    target.dispatchEvent(new CustomEvent("send-to-chat", { detail: text }));
+  },
+  onSendToChat(handler: (text: string) => void): () => void {
+    const listener = (event: Event) => handler(String((event as CustomEvent).detail ?? ""));
+    target.addEventListener("send-to-chat", listener);
+    return () => target.removeEventListener("send-to-chat", listener);
+  },
   on(type: "quick-ask" | "capture-idea", handler: (detail: QuickAskRequest) => void): () => void {
     const listener = (event: Event) => handler((event as CustomEvent).detail ?? {});
     target.addEventListener(type, listener);
