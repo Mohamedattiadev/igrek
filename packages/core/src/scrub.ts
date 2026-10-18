@@ -62,13 +62,19 @@ export function isPlaceholder(value: string): boolean {
     /^[A-Z][A-Z_-]*$/.test(v) || // PASSWORD, MY_TOKEN
     /^(.)\1+$/.test(v) || // xxxxxxxx
     /^\$(\(|[A-Za-z_])/.test(v) || // $(openssl rand -hex 16), $DB_PASSWORD
-    /^[A-Z][A-Za-z]*(\[\]|<)/.test(v) // a type in code: "SECRET_PATTERNS: RegExp[]"
+    /^[A-Z][A-Za-z]*(\[\]|<)/.test(v) || // a type in code: "SECRET_PATTERNS: RegExp[]"
+    /^(password|passwd|pass|secret|postgres|admin|root|test|user|guest|demo|dev)$/i.test(v) // stock example words
   );
 }
 
-/** The password part of "scheme://user:password@host". */
+/** The password part of a URL with credentials in it. */
 function urlPassword(url: string): string {
   return url.match(/:\/\/[^\s:/@]+:([^\s@/]+)@/)?.[1] ?? "";
+}
+
+/** A database or service on this computer: its password in a dev URL is not a leak. */
+function localUrl(text: string, at: number): boolean {
+  return /^[^\s@]*@(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|host\.docker\.internal)\b/.test(text.slice(at));
 }
 
 /** Where secrets are in a text (for the prompt firewall's warning), without returning them. */
@@ -90,7 +96,8 @@ export function findSecrets(
   for (const pattern of SECRET_PATTERNS)
     for (const m of text.matchAll(new RegExp(pattern.source, pattern.flags))) {
       // "postgres://app:PASSWORD@db" in a guide is an instruction, not a leak.
-      if (m[0].includes("://") && (vendorOnly || isPlaceholder(urlPassword(m[0])))) continue;
+      if (m[0].includes("://") && (vendorOnly || isPlaceholder(urlPassword(m[0])) || localUrl(text, m.index ?? 0)))
+        continue;
       // A real private key has hundreds of characters between the lines; "MIIabc" is an example.
       if (m[0].startsWith("-----BEGIN") && m[0].replace(/-----[^-]+-----|\s|\\n/g, "").length < 64) continue;
       add(m.index ?? 0, m[0]);

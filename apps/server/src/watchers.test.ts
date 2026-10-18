@@ -48,6 +48,8 @@ describe("secret scanning", () => {
     expect(secretsInPatch(code("export const SECRET_PATTERNS: RegExp[] = [];"))).toEqual([]);
     expect(secretsInPatch(code('SECRET_KEY="$(openssl rand -hex 32)"'))).toEqual([]);
     expect(secretsInPatch(code("const env = password ? { PGPASSWORD: password } : {};"))).toEqual([]);
+    expect(secretsInPatch(code('const url = "postgres://postgres:learn@127.0.0.1:55432";'))).toEqual([]);
+    expect(secretsInPatch(code('placeholder="postgres://user:password@host:5432/db"'))).toEqual([]);
     expect(
       secretsInPatch(code('const pem = "-----BEGIN RSA PRIVATE KEY-----\\nMIIabc\\n-----END RSA PRIVATE KEY-----";')),
     ).toEqual([]);

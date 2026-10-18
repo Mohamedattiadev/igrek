@@ -1175,6 +1175,14 @@ god-eye/
 - [ ] "// ai: şunu yap!" yorum izleyici (#20); `when` bağlamlı kısayollar ve palette `>` eylem modu (#22)
 - [ ] Hazır personalar: keşifçi, planlayıcı, inceleyici, işçi zinciri (#23); `AGENTS.md`, knip, kayıttan oynatılan adaptör testleri (#24, Faz 15 ile)
 
+#### 16.5 Kullanıcı testinden kalanlar (`research/kullanici-testi_2026-10-18.md`)
+- [ ] ⭐ Sohbet listesi sunucuda kalıcı: God Eye yeniden başlayınca da her tarayıcıda "Kaldığım yerden devam et"
+- [ ] ⭐ Ana sayfa sade: önce sohbet kutusu ve projeler; brifing, gün sonu, "Bugün" ve odak kartları katlanabilir; Basit modda jargon ("Session", "Dinç/Yoruluyor", model adları) açıklanır ya da gizlenir
+- [ ] Telefonda Dosyalar sayfası tek panel; telefonda turda menü butonu adımı
+- [ ] Öğrenme merkezi başlıklarının Türkçesi (yol haritası ve kâğıt başlıkları şu an tek dil)
+- [ ] Erişilebilirlik taraması (axe ile kontrast ve etiketler; sabit İngilizce aria-label'lar)
+- [ ] Gerçek bir acemiyle ve ekran okuyucu kullanan biriyle deneme
+
 **Bitti sayılır:** Uzun bir Claude cevabı akarken sayfa takılmıyor, araç çağrıları tek satırlık özetlerle görünüyor, ajan çalışırken yazılan mesaj kuyrukta bekliyor, haftalık rapor OpenUI ile grafik ve butonlarla geliyor ve kurulumda hiçbir dış adrese istek gitmediği testle gösteriliyor.
 
 ---

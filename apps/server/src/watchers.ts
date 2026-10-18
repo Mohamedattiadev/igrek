@@ -84,7 +84,7 @@ export class SecretScanner {
    * is read again from its commit, once per project, and closed when it holds no real secret.
    */
   private recheck(projectId: string, path: string): void {
-    const key = `secrets-recheck-v4:${projectId}`;
+    const key = `secrets-recheck-v5:${projectId}`;
     if (this.db.query("SELECT 1 FROM lesson_state WHERE key = ?").get(key)) return;
     const rows = this.db
       .query("SELECT hash, file, line FROM secret_findings WHERE project_id = ? AND dismissed = 0")
