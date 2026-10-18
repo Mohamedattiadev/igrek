@@ -1143,6 +1143,42 @@ god-eye/
 
 ---
 
+### Faz 16 — 🔭 Açık Kaynak Harness'lardan Öğrenilenler
+
+**Hedef:** t3code, pi, opencode, crush, cline, aider, goose ve OpenUI'de işe yaradığı kanıtlanmış ne varsa God Eye'a almak. Ayrıntı, kaynak dosya yolları ve lisanslar: `research/acik-kaynak-harness-raporu_2026-10-18.md` (ve `research/notes/`). MIT/Apache kod telif notuyla alınır, FSL (crush) sadece fikir; Effect-TS sunucu kodu kopyalanmaz, algoritması yazılır.
+
+#### 16.1 Sohbet deneyimi
+- [ ] ⭐ Blok blok akan Markdown, artımlı Shiki ve LRU önbellek: uzun cevaplarda takılma yok (rapor #1)
+- [ ] ⭐ İş günlüğü: ardışık araç çağrıları tek cümlelik satır ("3 dosya okudu, 2 düzenledi"), açılınca ayrıntı; detay seviyeleri (her şey / ayrıntılı / sade / sadece metin) (#2)
+- [ ] ⭐ Ajan çalışırken mesaj yazma: kuyruğa al ya da yönlendir (steer); yeniden başlatmada kuyruk korunur (#3)
+- [ ] Onaylar sohbet kutusunda: "her zaman izin ver" kuralları, "reddet ve neden yaz", proje bazında otomatik onay, "süreç bitti, devam edilemez" durumu (#4)
+- [ ] Ajanın soru kartı: seçenekler ve JSON şemalı form (#13)
+- [ ] Diff satırına yorum, bir sonraki prompt'a eklenir (#14)
+- [ ] Bağlam ölçer, prompt önbelleği süresi, "önbellek doldu, sıkıştıralım mı?" (#18)
+
+#### 16.2 Zengin cevaplar ve raporlar
+- [ ] ⭐ OpenUI (sadece `react-lang` + `lang-core`) God Eye'ın kendi bileşenleriyle, ` ```openui ` bloğu olarak; önce kendi raporlarımızda, sonra sohbette isteğe bağlı. Telemetri kapalı ve testle doğrulanmış (#7, rapor bölüm 4)
+- [ ] AI'ın yaptığı HTML raporlar için temalı, sandbox'lı iframe (#7)
+
+#### 16.3 Çoklu ajan ve güvenilirlik
+- [ ] ⭐ Durum hapı: Onay bekliyor > Cevap bekliyor > Çalışıyor > Plan hazır > Bitti (görülmedi); Gelen kutusuna bağlı (#5)
+- [ ] God Eye'ı ajanlara açan kapsamlı MCP uç noktası: hafıza, persona, sır isteme, HTML çizme (#6)
+- [ ] Limit kurtarma: sıfırlanınca devam et / ertele (#8)
+- [ ] Yapılandırılmış ve artımlı devir/özet şablonları (#9)
+- [ ] Adaptör yetenek bayrakları (#10); pi ve opencode adaptörleri, ileride ACP (#17)
+- [ ] Döngü tespiti (#11) ve tur kapanışı kuralı: yarım kalan araç çağrıları "kesildi" (#12)
+- [ ] Mesaja bağlı checkpoint ve geri yüklemeyi geri alma (#15); akış protokolü düzeni: sıra numarası, birleştirme, geri basınç (#19)
+
+#### 16.4 Güvenlik ve iş akışı
+- [ ] Proje güven sorusu: yeni repo'nun hook/MCP/skill'leri onaysız yüklenmez (#16)
+- [ ] Zamanlanmış ve ajanın oluşturduğu işlerde revizyona bağlı onay ve sınırlar (#21)
+- [ ] "// ai: şunu yap!" yorum izleyici (#20); `when` bağlamlı kısayollar ve palette `>` eylem modu (#22)
+- [ ] Hazır personalar: keşifçi, planlayıcı, inceleyici, işçi zinciri (#23); `AGENTS.md`, knip, kayıttan oynatılan adaptör testleri (#24, Faz 15 ile)
+
+**Bitti sayılır:** Uzun bir Claude cevabı akarken sayfa takılmıyor, araç çağrıları tek satırlık özetlerle görünüyor, ajan çalışırken yazılan mesaj kuyrukta bekliyor, haftalık rapor OpenUI ile grafik ve butonlarla geliyor ve kurulumda hiçbir dış adrese istek gitmediği testle gösteriliyor.
+
+---
+
 ---
 
 ## 9. Açık Sorular ve Riskler
