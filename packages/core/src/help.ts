@@ -39,3 +39,15 @@ export const HELP_TOPICS: { id: string; path: string; words: string }[] = [
   { id: "cli", path: "/settings", words: "cli command line godeye script api" },
   { id: "safety", path: "/settings", words: "safe secret key push deploy stop privacy telemetry" },
 ];
+
+/**
+ * Told to chats and reports so answers can show data the way the app draws it (the web app turns
+ * these fenced blocks into charts, stat tiles, meters and diagrams).
+ */
+export const RICH_BLOCKS_HINT = [
+  "When numbers or structure are clearer as a picture, you can use fenced blocks that the God Eye app draws (only then; plain text otherwise):",
+  '```chart\n{"type":"bar","title":"…","unit":"…","labels":["…"],"series":[{"name":"…","values":[1,2]}]}\n``` (type: bar, hbar for long category names, line for change over time);',
+  '```stats\n[{"label":"…","value":"…","delta":"+3","tone":"good"}]\n``` (tone: good, warning, bad; for a few headline numbers);',
+  '```progress\n[{"label":"…","value":72,"max":100}]\n``` (for parts of a whole or how far something is);',
+  "```mermaid``` for flows and diagrams. The JSON must be valid; numbers in values, never text.",
+].join("\n");

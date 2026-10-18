@@ -1,11 +1,11 @@
-import DOMPurify from "dompurify";
 import { Download } from "lucide-react";
-import { marked } from "marked";
 import { lazy, Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { fs } from "../lib/api";
 import type { PreviewKind } from "../lib/files";
+import { CodeBlock } from "./CodeBlock";
 import { LogView } from "./LogView";
+import { Markdown } from "./Markdown";
 import { Button } from "./ui";
 
 const MAX_ROWS = 500;
@@ -52,10 +52,6 @@ export function FilePreview({ path, kind, text }: { path: string; kind: PreviewK
   const { t } = useTranslation();
   const url = fs.rawUrl(path);
 
-  const markdown = useMemo(
-    () => (kind === "markdown" && text !== undefined ? DOMPurify.sanitize(marked.parse(text, { async: false })) : ""),
-    [kind, text],
-  );
   const csv = useMemo(
     () => (kind === "csv" && text !== undefined ? parseCsv(text, path.endsWith(".tsv") ? "\t" : ",") : []),
     [kind, text, path],
@@ -122,11 +118,9 @@ export function FilePreview({ path, kind, text }: { path: string; kind: PreviewK
       );
     case "markdown":
       return (
-        <article
-          className="prose-godeye mx-auto h-full max-w-3xl overflow-y-auto px-8 py-6"
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: sanitized with DOMPurify above
-          dangerouslySetInnerHTML={{ __html: markdown }}
-        />
+        <div className="h-full overflow-y-auto">
+          <Markdown text={text ?? ""} className="prose-godeye mx-auto max-w-3xl px-8 py-6" />
+        </div>
       );
     case "csv":
       return (
@@ -154,7 +148,7 @@ export function FilePreview({ path, kind, text }: { path: string; kind: PreviewK
     case "log":
       return <LogView path={path} />;
     case "json":
-      return <pre className="h-full overflow-auto p-4 font-mono text-[12px] leading-relaxed">{json}</pre>;
+      return <CodeBlock code={json} lang="json" className="h-full overflow-auto p-4 text-[12px] leading-relaxed" />;
     default:
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3 text-[13px] text-fg-muted">

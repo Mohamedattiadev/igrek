@@ -3828,5 +3828,19 @@
       "body": "Theme (light or dark), language, Simple or Pro mode, which AI does what and what runs in the background.",
       "how": "Settings (gear at the bottom left)."
     }
+  },
+  "rich": {
+    "chart": "Chart",
+    "table": "Show as table",
+    "broken": "This block could not be drawn: {{error}}",
+    "tone_good": "Good",
+    "tone_warning": "Needs a look",
+    "tone_bad": "Problem",
+    "tone_neutral": "Neutral",
+    "callout_note": "Note",
+    "callout_tip": "Tip",
+    "callout_important": "Important",
+    "callout_warning": "Warning",
+    "callout_caution": "Careful"
   }
 }

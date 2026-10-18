@@ -3828,5 +3828,19 @@
       "body": "Tema (açık ya da koyu), dil, Basit ya da Pro mod, hangi AI'ın ne yaptığı ve arka planda neyin çalıştığı.",
       "how": "Ayarlar (sol alttaki çark)."
     }
+  },
+  "rich": {
+    "chart": "Grafik",
+    "table": "Tablo olarak göster",
+    "broken": "Bu blok çizilemedi: {{error}}",
+    "tone_good": "İyi",
+    "tone_warning": "Bakılmalı",
+    "tone_bad": "Sorun",
+    "tone_neutral": "Nötr",
+    "callout_note": "Not",
+    "callout_tip": "İpucu",
+    "callout_important": "Önemli",
+    "callout_warning": "Uyarı",
+    "callout_caution": "Dikkat"
   }
 }

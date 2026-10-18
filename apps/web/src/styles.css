@@ -323,21 +323,84 @@ dialog[open] {
     background: none;
     padding: 0;
   }
+  .prose-godeye pre.ge-codeblock {
+    position: relative;
+    padding-top: 1.9em;
+  }
   .prose-godeye blockquote {
     border-inline-start: 3px solid var(--border-strong);
     padding-inline-start: 1em;
     color: var(--fg-muted);
   }
   .prose-godeye table {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 0.92em;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
   }
   .prose-godeye :where(th, td) {
-    border: 1px solid var(--border);
-    padding: 0.35em 0.7em;
+    border-bottom: 1px solid var(--border);
+    padding: 0.45em 0.8em;
+    text-align: start;
+  }
+  .prose-godeye tr:last-child td {
+    border-bottom: 0;
   }
   .prose-godeye th {
     background: var(--bg-subtle);
+    font-weight: 600;
+    color: var(--fg-muted);
+    white-space: nowrap;
+  }
+  .prose-godeye tbody tr:nth-child(even) td {
+    background: color-mix(in srgb, var(--bg-subtle) 55%, transparent);
+  }
+  .prose-godeye tbody tr:hover td {
+    background: var(--bg-hover);
+  }
+  /* Rich blocks (charts, stat tiles) keep their own spacing inside Markdown. */
+  .prose-godeye .not-prose :where(p, ul, li, figure, table) {
+    margin: 0;
+  }
+  .prose-godeye .not-prose:where(ul),
+  .prose-godeye .not-prose :where(ul) {
+    list-style: none;
+    padding: 0;
+  }
+  /* GitHub-style alerts ("> [!NOTE]"), turned into boxes by the Markdown component. */
+  .prose-godeye blockquote.ge-callout {
+    border: 1px solid var(--border);
+    border-inline-start: 3px solid var(--callout, var(--accent));
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--callout, var(--accent)) 7%, var(--bg));
+    color: var(--fg);
+    padding: 0.6em 0.9em;
+  }
+  .prose-godeye .ge-callout-title {
+    display: block;
+    font-size: 0.82em;
+    font-weight: 600;
+    color: var(--callout, var(--accent));
+    margin-bottom: 0.2em;
+  }
+  .prose-godeye .ge-callout-note,
+  .prose-godeye .ge-callout-important {
+    --callout: var(--accent);
+  }
+  .prose-godeye .ge-callout-tip {
+    --callout: var(--success);
+  }
+  .prose-godeye .ge-callout-warning {
+    --callout: var(--warning);
+  }
+  .prose-godeye .ge-callout-caution {
+    --callout: var(--danger);
   }
   .prose-godeye input[type="checkbox"] {
     margin-inline-end: 0.4em;
@@ -367,4 +430,43 @@ dialog[open] {
   color: var(--fg-subtle);
   font-style: italic;
   opacity: 0.8;
+}
+
+/* Code colored by Shiki (VS Code Light+ / Dark+): each token carries both colors, the theme picks one. */
+.ge-code span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+}
+[data-theme="dark"] .ge-code span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+}
+.ge-code-lang {
+  position: absolute;
+  top: 0.45em;
+  inset-inline-start: 1em;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--fg-subtle);
+  text-transform: lowercase;
+}
+.ge-code-copy {
+  position: absolute;
+  top: 0.35em;
+  inset-inline-end: 0.45em;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 0.1em 0.55em;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg-muted);
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.ge-codeblock:hover .ge-code-copy,
+.ge-code-copy:focus-visible {
+  opacity: 1;
 }

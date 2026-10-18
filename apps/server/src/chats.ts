@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import type { ChatEvent, ChatInfo, ChatMode, RateLimitInfo } from "@godeye/core";
+import { type ChatEvent, type ChatInfo, type ChatMode, type RateLimitInfo, RICH_BLOCKS_HINT } from "@godeye/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
@@ -140,10 +140,11 @@ export class Chats {
       }),
       ...(options.model ? ["--model", options.model] : []),
       ...(options.resume ? ["--resume", options.resume] : []),
+      // Every chat may answer with the app's charts and stat tiles; a persona adds its own prompt.
+      "--append-system-prompt",
+      options.persona ? `${options.persona.systemPrompt}\n\n${RICH_BLOCKS_HINT}` : RICH_BLOCKS_HINT,
       ...(options.persona
         ? [
-            "--append-system-prompt",
-            options.persona.systemPrompt,
             "--max-turns",
             String(options.persona.maxTurns),
             // A read-only persona gets only the reading tools and no MCP servers but God Eye's own.

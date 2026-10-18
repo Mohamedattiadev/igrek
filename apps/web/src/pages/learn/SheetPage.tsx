@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useParams } from "react-router";
+import { CodeBlock } from "../../components/CodeBlock";
 import { Badge, Button, Card, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { learnApi, textIn } from "../../lib/learn-api";
@@ -46,17 +47,17 @@ function CopyIcon({ text }: { text: string }) {
 }
 
 export function Code({ text, lang, label }: { text: string; lang?: string; label?: string }) {
+  const code = text.replace(/\n$/, "");
   return (
     <div className="group relative">
       {label && <p className="mb-0.5 text-[10.5px] uppercase tracking-wide text-fg-subtle">{label}</p>}
       <div className="relative">
-        <pre
-          data-lang={lang}
-          className="overflow-x-auto rounded-ui bg-bg-subtle p-2.5 pe-9 font-mono text-[12px] leading-relaxed whitespace-pre"
-        >
-          {text.replace(/\n$/, "")}
-        </pre>
-        <CopyIcon text={text.replace(/\n$/, "")} />
+        <CodeBlock
+          code={code}
+          lang={lang}
+          className="overflow-x-auto rounded-ui bg-bg-subtle p-2.5 pe-9 text-[12px] leading-relaxed"
+        />
+        <CopyIcon text={code} />
       </div>
     </div>
   );
