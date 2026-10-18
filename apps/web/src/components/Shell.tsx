@@ -299,6 +299,12 @@ export function Shell() {
 
   return (
     <div className="flex h-full">
+      <a
+        href="#main"
+        className="sr-only z-[70] rounded-ui bg-accent px-3 py-2 text-[13px] text-accent-fg focus:not-sr-only focus:fixed focus:start-3 focus:top-3"
+      >
+        {t("nav.skip")}
+      </a>
       {!zen && !narrow && <ToolStrip />}
       {!zen && narrow && drawer && (
         <>
@@ -315,7 +321,11 @@ export function Shell() {
         {!zen && (
           <TopBar onSearch={openPalette} onToast={setToast} onMenu={narrow ? () => setDrawer(true) : undefined} />
         )}
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-gutter:stable] print:overflow-visible">
+        <main
+          id="main"
+          tabIndex={-1}
+          className="flex min-h-0 flex-1 flex-col overflow-y-auto outline-none [scrollbar-gutter:stable] print:overflow-visible"
+        >
           <div key={location.pathname} className="ge-page flex min-h-0 flex-1 flex-col">
             <Outlet />
           </div>

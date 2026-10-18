@@ -184,6 +184,12 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             />
           </Command.Group>
         )}
+        <Command.Group heading={t("palette.goTo")} className={GROUP}>
+          {NAV_ITEMS.map((item) => (
+            <Item key={item.to} icon={item.icon} label={t(item.label)} onSelect={() => run(() => navigate(item.to))} />
+          ))}
+          <Item icon={BookOpen} label={t("guide.title")} onSelect={() => run(() => navigate("/guide"))} />
+        </Command.Group>
         {projects.length > 0 && (
           <Command.Group heading={t("nav.projects")} className={GROUP}>
             {projects
@@ -236,11 +242,6 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             ))}
           </Command.Group>
         )}
-        <Command.Group heading={t("palette.goTo")} className={GROUP}>
-          {NAV_ITEMS.map((item) => (
-            <Item key={item.to} icon={item.icon} label={t(item.label)} onSelect={() => run(() => navigate(item.to))} />
-          ))}
-        </Command.Group>
         <Command.Group heading={t("palette.actions")} className={GROUP}>
           <Item
             icon={Contrast}

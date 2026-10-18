@@ -48,20 +48,61 @@ export function scrubDeep<T>(value: T): T {
   return value;
 }
 
+/**
+ * A value that only stands in for a secret: "paste-the-token-here", "your-key", "PASSWORD",
+ * "xxxxxxxx", "<token>". Used for warnings only; masking stays strict.
+ */
+const PLACEHOLDER =
+  /(paste|replace|change[-_ ]?me|your|xxx|example|placeholder|dummy|fake|sample|redacted|todo|insert|here\b|<|\.\.\.|\*\*\*|\$\{|process\.env|import\.meta|os\.environ)/i;
+
+export function isPlaceholder(value: string): boolean {
+  const v = value.replace(/^['"]|['"]$/g, "");
+  return (
+    PLACEHOLDER.test(v) ||
+    /^[A-Z][A-Z_-]*$/.test(v) || // PASSWORD, MY_TOKEN
+    /^(.)\1+$/.test(v) || // xxxxxxxx
+    /^\$(\(|[A-Za-z_])/.test(v) || // $(openssl rand -hex 16), $DB_PASSWORD
+    /^[A-Z][A-Za-z]*(\[\]|<)/.test(v) // a type in code: "SECRET_PATTERNS: RegExp[]"
+  );
+}
+
+/** The password part of "scheme://user:password@host". */
+function urlPassword(url: string): string {
+  return url.match(/:\/\/[^\s:/@]+:([^\s@/]+)@/)?.[1] ?? "";
+}
+
 /** Where secrets are in a text (for the prompt firewall's warning), without returning them. */
-export function findSecrets(text: string): { start: number; end: number; hint: string }[] {
+/**
+ * `vendorOnly`: only keys with a provider's own format (sk-ant-, ghp_, AKIA…, private keys). Used
+ * for documentation, where "KEY=value" lines and URLs with a password are examples to copy.
+ */
+export function findSecrets(
+  text: string,
+  vendorOnly = false,
+  /** Source code: an unquoted value there is a variable or an expression, not a literal. */
+  code = false,
+): { start: number; end: number; hint: string }[] {
   const out: { start: number; end: number; hint: string }[] = [];
   const add = (start: number, value: string) => {
     if (!out.some((o) => start < o.end && start + value.length > o.start))
       out.push({ start, end: start + value.length, hint: mask(value) });
   };
   for (const pattern of SECRET_PATTERNS)
-    for (const m of text.matchAll(new RegExp(pattern.source, pattern.flags))) add(m.index ?? 0, m[0]);
-  for (const m of text.matchAll(new RegExp(ASSIGNMENT.source, ASSIGNMENT.flags))) {
-    const value = (m[3] ?? "").replace(/^['"]|['"]$/g, "");
-    // "API_KEY=process.env.API_KEY" or an empty placeholder is not a secret.
-    if (value.length >= 8 && !/^(process\.env|import\.meta|os\.environ|\$\{|<|your|xxx|changeme|example)/i.test(value))
-      add((m.index ?? 0) + m[0].indexOf(value), value);
-  }
+    for (const m of text.matchAll(new RegExp(pattern.source, pattern.flags))) {
+      // "postgres://app:PASSWORD@db" in a guide is an instruction, not a leak.
+      if (m[0].includes("://") && (vendorOnly || isPlaceholder(urlPassword(m[0])))) continue;
+      // A real private key has hundreds of characters between the lines; "MIIabc" is an example.
+      if (m[0].startsWith("-----BEGIN") && m[0].replace(/-----[^-]+-----|\s|\\n/g, "").length < 64) continue;
+      add(m.index ?? 0, m[0]);
+    }
+  if (!vendorOnly)
+    for (const m of text.matchAll(new RegExp(ASSIGNMENT.source, ASSIGNMENT.flags))) {
+      const raw = m[3] ?? "";
+      // In code, PGPASSWORD: password or token: cfg.token names a variable.
+      if (code && !/^['"]/.test(raw) && /^[A-Za-z_$][\w$.]*(\(\))?[,;)}\]]*$/.test(raw)) continue;
+      const value = raw.replace(/^['"]|['"]$/g, "");
+      // "API_KEY=process.env.API_KEY" or a placeholder like "paste-the-key-here" is not a secret.
+      if (value.length >= 8 && !isPlaceholder(value)) add((m.index ?? 0) + m[0].indexOf(value), value);
+    }
   return out.sort((a, b) => a.start - b.start);
 }

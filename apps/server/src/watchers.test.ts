@@ -32,6 +32,37 @@ describe("secret scanning", () => {
     ).toEqual([]);
   });
 
+  test("placeholders in guides are not secrets; real-looking values still are", () => {
+    const patch = (line: string) => `+++ b/docs/guide.md\n@@ -0,0 +1 @@\n+${line}`;
+    for (const line of [
+      "TOKEN=paste-the-token-here",
+      'export FLASK_SECRET_KEY="paste-the-key-here"',
+      "MONGODB_URI=mongodb://blog_app:PASSWORD@localhost:27017/?authSource=admin",
+      "DATABASE_URL=postgres://app:<password>@db:5432/app",
+      "API_KEY=your-api-key-goes-in-here",
+      "SECRET_KEY=xxxxxxxxxxxx",
+    ])
+      expect(secretsInPatch(patch(line))).toEqual([]);
+    // In code, a type or a value made at run time is not a secret either.
+    const code = (line: string) => `+++ b/src/x.ts\n@@ -0,0 +1 @@\n+${line}`;
+    expect(secretsInPatch(code("export const SECRET_PATTERNS: RegExp[] = [];"))).toEqual([]);
+    expect(secretsInPatch(code('SECRET_KEY="$(openssl rand -hex 32)"'))).toEqual([]);
+    expect(secretsInPatch(code("const env = password ? { PGPASSWORD: password } : {};"))).toEqual([]);
+    expect(
+      secretsInPatch(code('const pem = "-----BEGIN RSA PRIVATE KEY-----\\nMIIabc\\n-----END RSA PRIVATE KEY-----";')),
+    ).toEqual([]);
+    // Guides and teaching content: example credentials are fine, a real provider key is not.
+    expect(secretsInPatch(patch("DATABASE_URL=postgres://postgres:postgres@localhost:5432/app"))).toEqual([]);
+    expect(secretsInPatch(`+++ b/packages/learn/content/x.yaml\n@@ -0,0 +1 @@\n+  SECRET_KEY=dev-only-1234`)).toEqual(
+      [],
+    );
+    expect(secretsInPatch(patch(`key: ${FAKE_KEY}`))).toHaveLength(1);
+    const real = ["Zq81", "vR2t", "Lm0p", "Wx7c"].join("");
+    expect(secretsInPatch(code(`const SECRET_KEY = "${real}${real}";`))).toHaveLength(1);
+    expect(secretsInPatch(`+++ b/.env\n@@ -0,0 +1 @@\n+SECRET_KEY=${real}${real}`)).toHaveLength(1);
+    expect(secretsInPatch(code(`DATABASE_URL=postgres://app:${real}@db/app`)).length).toBeGreaterThan(0);
+  });
+
   test("new commits are scanned once; the pre-commit check answers OK or the lines", () => {
     const { sqlite } = openDb(":memory:");
     const store = new Store(sqlite);

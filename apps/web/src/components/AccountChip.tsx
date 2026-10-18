@@ -32,7 +32,8 @@ export function AccountChip() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex h-7 items-center gap-2 rounded-ui px-2 text-[12px] hover:bg-bg-hover"
-        title={t("limits.fiveHour")}
+        aria-label={t("limits.chipTip", { name: active.label, pct: pct ?? "?" })}
+        data-tip={t("limits.chipTip", { name: active.label, pct: pct ?? "?" })}
       >
         <span className="hidden max-w-28 truncate font-medium sm:inline">{active.label}</span>
         {pct !== undefined && (

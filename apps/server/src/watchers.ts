@@ -31,6 +31,11 @@ export interface SecretFinding {
 export const PLACEHOLDER_FILE =
   /(^|\/)(\.env\.example|[^/]*\.sample|[^/]*\.template|[^/]*\.(test|spec)\.[cm]?[jt]sx?|[^/]*_test\.(go|py)|test_[^/]*\.py)$|(^|\/)(__tests__|fixtures|testdata)\//;
 
+/** Documentation and teaching material: only real provider keys count there, not example lines. */
+export const DOC_FILE = /(^|\/)(docs?|examples?|content|guides?|tutorials?)\/|\.(md|mdx|rst|adoc|txt)$/i;
+
+const CODE_FILE = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|cs|rb|php|swift|dart)$/i;
+
 export function secretsInPatch(patch: string): { file: string; line: number; hint: string }[] {
   const out: { file: string; line: number; hint: string }[] = [];
   let file = "";
@@ -48,7 +53,8 @@ export function secretsInPatch(patch: string): { file: string; line: number; hin
     if (raw.startsWith("+") && !raw.startsWith("+++")) {
       // Example and template files hold placeholders, and tests hold made-up keys on purpose.
       if (!PLACEHOLDER_FILE.test(file))
-        for (const s of findSecrets(raw.slice(1))) out.push({ file, line, hint: s.hint });
+        for (const s of findSecrets(raw.slice(1), DOC_FILE.test(file), CODE_FILE.test(file)))
+          out.push({ file, line, hint: s.hint });
       line++;
     } else if (!raw.startsWith("-")) line++;
   }
@@ -73,9 +79,29 @@ export class SecretScanner {
     return found;
   }
 
+  /**
+   * Findings saved before placeholders ("paste-the-key-here", "PASSWORD") were recognized: the line
+   * is read again from its commit, once per project, and closed when it holds no real secret.
+   */
+  private recheck(projectId: string, path: string): void {
+    const key = `secrets-recheck-v4:${projectId}`;
+    if (this.db.query("SELECT 1 FROM lesson_state WHERE key = ?").get(key)) return;
+    const rows = this.db
+      .query("SELECT hash, file, line FROM secret_findings WHERE project_id = ? AND dismissed = 0")
+      .all(projectId) as { hash: string; file: string; line: number }[];
+    for (const r of rows) {
+      const text = git(path, ["show", `${r.hash}:${r.file}`]);
+      if (!text) continue;
+      if (!findSecrets(text.split("\n")[r.line - 1] ?? "", DOC_FILE.test(r.file), CODE_FILE.test(r.file)).length)
+        this.dismiss(projectId, r.hash, r.file, r.line);
+    }
+    this.db.query("INSERT OR REPLACE INTO lesson_state (key, value) VALUES (?, ?)").run(key, "1");
+  }
+
   scan(projectId: string): number {
     const project = this.store.projectRow(projectId);
     if (!project) return 0;
+    this.recheck(projectId, project.path);
     const key = `secrets:${projectId}`;
     const last = (
       this.db.query("SELECT value FROM lesson_state WHERE key = ?").get(key) as { value: string } | undefined
@@ -145,18 +171,28 @@ export class SecretScanner {
       .run(projectId, hash, file, line);
   }
 
+  /** One inbox line per commit, not per line: a commit with ten keys is one thing to look at. */
   notices(): InboxNotice[] {
-    return this.list()
-      .slice(0, 20)
-      .map((f) => ({
-        id: `secret:${f.hash}:${f.file}:${f.line}`,
+    const byCommit = new Map<string, SecretFinding[]>();
+    for (const f of this.list()) {
+      const k = `${f.projectId}:${f.hash}`;
+      byCommit.set(k, [...(byCommit.get(k) ?? []), f]);
+    }
+    return [...byCommit.values()].slice(0, 20).map((group) => {
+      const f = group[0] as SecretFinding;
+      return {
+        id: `secret:${f.hash}:${group.length}`,
         kind: "secret" as const,
         projectId: f.projectId,
         projectName: this.store.projectRow(f.projectId)?.name ?? "",
-        detail: `${f.file}:${f.line} · ${f.hash.slice(0, 7)} · ${f.hint}`,
-        at: f.at,
+        detail:
+          group.length === 1
+            ? `${f.file}:${f.line} · ${f.hash.slice(0, 7)} · ${f.hint}`
+            : `${f.file}:${f.line} +${group.length - 1} · ${f.hash.slice(0, 7)}`,
+        at: Math.max(...group.map((g) => g.at)),
         link: `/p/${f.projectId}?tab=sections&cat=security`,
-      }));
+      };
+    });
   }
 
   /** The pre-commit guard: a small script in .git/hooks that asks God Eye; without God Eye running it lets the commit through. */

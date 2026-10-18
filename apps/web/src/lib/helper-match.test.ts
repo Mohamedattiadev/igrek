@@ -16,6 +16,8 @@ describe("helper matching", () => {
     expect(has(q, CHAT)).toBe(true);
     expect(has(fold("Prompt'umu nereye yazacağım?"), WHERE_TYPE)).toBe(true);
     expect(has(fold("sonra bakarız"), ["son "])).toBe(false);
+    const back = fold("Az önceki sohbetime nasıl dönerim?");
+    expect(has(back, LAST) && has(back, CHAT)).toBe(true);
   });
 
   test("a project is named in full or by a part of its name", () => {

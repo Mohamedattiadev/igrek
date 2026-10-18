@@ -125,7 +125,7 @@ export function Helper() {
       ]);
     if (has(q, TOUR)) return say("helper", t("helper.tour"), [tourAction()]);
     if (has(q, GUIDE)) return say("helper", t("helper.guide"), [guideAction(), tourAction()]);
-    if (has(q, LAST) && (has(q, CHAT) || project || has(q, ["kaldigim", "devam", "resume", "continue"])))
+    if (has(q, LAST) && (has(q, CHAT) || project || has(q, ["kaldigim", "devam", "resume", "continue", "donerim"])))
       return lastWork(project, projects);
     if (has(q, NEW) && has(q, CHAT)) {
       if (project) return say("helper", t("helper.newChat"), [newChat(project)]);

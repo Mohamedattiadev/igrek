@@ -14,7 +14,24 @@ export function fold(s: string): string {
 
 export const has = (text: string, words: string[]) => words.some((w) => ` ${text} `.includes(` ${w}`));
 
-export const LAST = ["son", "last", "latest", "recent", "devam", "kaldig", "resume", "continue", "en son"];
+export const LAST = [
+  "son",
+  "last",
+  "latest",
+  "recent",
+  "devam",
+  "kaldig",
+  "resume",
+  "continue",
+  "en son",
+  "onceki",
+  "az once",
+  "previous",
+  "geri don",
+  "donerim",
+  "donmek",
+  "back to",
+];
 export const CHAT = ["sohbet", "chat", "konusma", "session", "oturum", "mesaj"];
 export const NEW = ["yeni", "new", "baslat", "start", "ac "];
 export const TERMINAL = ["terminal", "shell", "konsol"];

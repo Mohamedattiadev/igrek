@@ -22,7 +22,8 @@
     "learn": "Öğren",
     "menu": "Ana menü",
     "wide": "Adları göster",
-    "narrow": "Adları gizle"
+    "narrow": "Adları gizle",
+    "skip": "İçeriğe atla"
   },
   "workspace": {
     "local": "Bilgisayarım",
@@ -836,7 +837,8 @@
     "tokensCol": "Token",
     "emptyTitle": "Henüz kullanım yok",
     "emptyBody": "Herhangi bir projede Claude Code ya da Codex oturumu başlat. Ne kadar kullandığın ve sınırlara ne kadar yaklaştığın burada görünür.",
-    "personas": "Persona bazında"
+    "personas": "Persona bazında",
+    "chipTip": "Yeni session'lar \"{{name}}\" Claude hesabını kullanır. 5 saatlik limitinin %{{pct}}'i doldu. Hesap değiştirmek için tıkla."
   },
   "accounts": {
     "title": "Hesaplar",

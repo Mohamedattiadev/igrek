@@ -275,6 +275,72 @@ export function stageChecks(projectId: string, f: ProjectFacts): StageCheck[] {
 }
 
 /** Ranks sheet items, sheets and roadmap steps for a query, in both written languages. */
+/** Common Turkish endings, already folded (ı→i, ü→u…): "commiti", "almak", "dallar" → "commit", "al", "dal". */
+const TR_SUFFIXES = [
+  "lari",
+  "leri",
+  "mak",
+  "mek",
+  "lar",
+  "ler",
+  "dan",
+  "den",
+  "tan",
+  "ten",
+  "nin",
+  "nun",
+  "ini",
+  "unu",
+  "ma",
+  "me",
+  "yi",
+  "yu",
+  "da",
+  "de",
+  "ta",
+  "te",
+  "in",
+  "un",
+  "si",
+  "su",
+  "ya",
+  "ye",
+  "i",
+  "u",
+  "a",
+  "e",
+];
+const stemCache = new Map<string, string[]>();
+
+/** A word and the stems left after taking off up to two Turkish endings (stems of two letters or more). */
+export function stems(term: string): string[] {
+  const hit = stemCache.get(term);
+  if (hit) return hit;
+  const out = new Set<string>();
+  const strip = (w: string, depth: number) => {
+    for (const suf of TR_SUFFIXES)
+      if (w.endsWith(suf) && w.length - suf.length >= 2) {
+        const stem = w.slice(0, -suf.length);
+        out.add(stem);
+        if (depth < 2) strip(stem, depth + 1);
+      }
+  };
+  strip(term, 1);
+  out.delete(term);
+  const list = [...out];
+  if (stemCache.size > 50_000) stemCache.clear();
+  stemCache.set(term, list);
+  return list;
+}
+
+/** Both sides reduced to stems: "almak" and "alma" meet at "al". */
+function sameStem(term: string, ws: string[]): boolean {
+  const mine = stems(term);
+  if (!mine.length && term.length < 3) return false;
+  const want = new Set([term, ...mine]);
+  return ws.some((w) => want.has(w) || stems(w).some((st) => want.has(st)));
+}
+
 export function searchContent(
   content: Pick<Content, "sheets" | "roadmaps">,
   query: string,
@@ -294,6 +360,7 @@ export function searchContent(
         else if (term === last && term.length >= 2 && ws.some((w) => w.startsWith(term)))
           best = Math.max(best, weight * 0.7);
         else if (term.length >= 4 && text.toLowerCase().includes(term)) best = Math.max(best, weight * 0.4);
+        else if (sameStem(term, ws)) best = Math.max(best, weight * 0.6);
       }
       if (!best) return 0;
       total += best;

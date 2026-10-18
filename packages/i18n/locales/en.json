@@ -22,7 +22,8 @@
     "learn": "Learn",
     "menu": "Main menu",
     "wide": "Show names",
-    "narrow": "Hide names"
+    "narrow": "Hide names",
+    "skip": "Skip to content"
   },
   "workspace": {
     "local": "My computer",
@@ -836,7 +837,8 @@
     "tokensCol": "Tokens",
     "emptyTitle": "No usage yet",
     "emptyBody": "Start a Claude Code or Codex session in any project. How much you use, and how close you are to your limits, shows up here.",
-    "personas": "By persona"
+    "personas": "By persona",
+    "chipTip": "New sessions use the Claude account \"{{name}}\". {{pct}}% of its 5-hour limit is used. Click to switch accounts."
   },
   "accounts": {
     "title": "Accounts",

@@ -22,6 +22,9 @@ describe("learning center content", () => {
     expect(searchContent(content, "dal olustur").some((h) => h.id === "switch")).toBe(true);
     expect(searchContent(content, "git stas")[0]).toMatchObject({ id: "stash" });
     expect(searchContent(content, "")).toEqual([]);
+    // Turkish endings: "commiti", "almak" still find "Son commit'i düzeltme" / "geri al" items.
+    expect(searchContent(content, "son commiti geri almak").length).toBeGreaterThan(0);
+    expect(searchContent(content, "dalları listelemek").some((h) => h.sheet === "git")).toBe(true);
   });
 
   test("words and versions", () => {
