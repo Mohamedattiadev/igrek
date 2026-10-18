@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@godeye/core": "workspace:*",
+    "@godeye/genui": "workspace:*",
     "@godeye/i18n": "workspace:*",
     "@godeye/learn": "workspace:*",
     "@huggingface/tokenizers": "0.2.0",

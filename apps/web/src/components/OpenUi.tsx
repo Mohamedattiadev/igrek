@@ -1,6 +1,6 @@
+import { type CALLOUT_KINDS, LIBRARY_ID, ROOT, SCHEMAS } from "@godeye/genui";
 import { createLibrary, defineComponent, Renderer } from "@openuidev/react-lang";
 import { useTranslation } from "react-i18next";
-import { z } from "zod";
 import { CodeBlock } from "./CodeBlock";
 import { Markdown } from "./Markdown";
 import { RichBlock } from "./RichBlocks";
@@ -13,15 +13,9 @@ import { RichBlock } from "./RichBlocks";
  * reorder or remove one, or saved answers stop drawing.
  */
 
-const tone = z.enum(["good", "warning", "bad", "neutral"]);
-
 const Stack = defineComponent({
   name: "Stack",
-  description: "Places its children one under the other (column) or side by side (row).",
-  props: z.object({
-    children: z.array(z.any()).describe("The components inside"),
-    direction: z.enum(["column", "row"]).optional().describe("column (default) or row"),
-  }),
+  ...SCHEMAS.Stack,
   component: ({ props, renderNode }) => (
     <div className={props.direction === "row" ? "flex flex-wrap gap-3 [&>*]:min-w-0 [&>*]:flex-1" : "space-y-3"}>
       {(props.children ?? []).map((child, i) => (
@@ -34,11 +28,7 @@ const Stack = defineComponent({
 
 const Card = defineComponent({
   name: "Card",
-  description: "A bordered box with a title around related content.",
-  props: z.object({
-    title: z.string().describe("Short heading"),
-    children: z.array(z.any()).describe("The components inside"),
-  }),
+  ...SCHEMAS.Card,
   component: ({ props, renderNode }) => (
     <section className="not-prose space-y-2 rounded-ui border border-border bg-bg p-3">
       {props.title && <h4 className="text-[13px] font-semibold">{props.title}</h4>}
@@ -52,58 +42,31 @@ const Card = defineComponent({
 
 const Text = defineComponent({
   name: "Text",
-  description: "A paragraph of Markdown text.",
-  props: z.object({ markdown: z.string().describe("Markdown text") }),
+  ...SCHEMAS.Text,
   component: ({ props }) => <Markdown text={props.markdown ?? ""} />,
 });
 
 const Stats = defineComponent({
   name: "Stats",
-  description: "A few headline numbers as tiles.",
-  props: z.object({
-    items: z
-      .array(
-        z.object({
-          label: z.string(),
-          value: z.string(),
-          delta: z.string().optional(),
-          tone: tone.optional(),
-        }),
-      )
-      .describe("One tile per number"),
-  }),
+  ...SCHEMAS.Stats,
   component: ({ props }) => <RichBlock lang="stats" code={JSON.stringify(props.items ?? [])} />,
 });
 
 const Chart = defineComponent({
   name: "Chart",
-  description: "A bar chart (bar, or hbar for long names) or a line chart for change over time.",
-  props: z.object({
-    type: z.enum(["bar", "hbar", "line"]),
-    title: z.string(),
-    labels: z.array(z.string()).describe("One label per point or bar"),
-    series: z.array(z.object({ name: z.string(), values: z.array(z.number()) })).describe("Numbers, one per label"),
-    unit: z.string().optional(),
-  }),
+  ...SCHEMAS.Chart,
   component: ({ props }) => <RichBlock lang="chart" code={JSON.stringify(props)} />,
 });
 
 const Progress = defineComponent({
   name: "Progress",
-  description: "Meters for parts of a whole or how far something is.",
-  props: z.object({
-    items: z.array(z.object({ label: z.string(), value: z.number(), max: z.number().optional() })),
-  }),
+  ...SCHEMAS.Progress,
   component: ({ props }) => <RichBlock lang="progress" code={JSON.stringify(props.items ?? [])} />,
 });
 
 const Table = defineComponent({
   name: "Table",
-  description: "A small table: column names and rows of cells.",
-  props: z.object({
-    columns: z.array(z.string()),
-    rows: z.array(z.array(z.union([z.string(), z.number()]))),
-  }),
+  ...SCHEMAS.Table,
   component: ({ props }) => (
     <div className="overflow-x-auto">
       <table>
@@ -130,9 +93,7 @@ const Table = defineComponent({
   ),
 });
 
-const CALLOUTS = ["note", "tip", "important", "warning", "caution"] as const;
-
-function CalloutBox({ kind, text }: { kind: (typeof CALLOUTS)[number]; text: string }) {
+function CalloutBox({ kind, text }: { kind: (typeof CALLOUT_KINDS)[number]; text: string }) {
   const { t } = useTranslation();
   return (
     <blockquote className={`ge-callout ge-callout-${kind}`}>
@@ -144,23 +105,21 @@ function CalloutBox({ kind, text }: { kind: (typeof CALLOUTS)[number]; text: str
 
 const Callout = defineComponent({
   name: "Callout",
-  description: "A highlighted note, tip or warning.",
-  props: z.object({ kind: z.enum(CALLOUTS), text: z.string() }),
+  ...SCHEMAS.Callout,
   component: ({ props }) => <CalloutBox kind={props.kind ?? "note"} text={props.text ?? ""} />,
 });
 
 const Code = defineComponent({
   name: "Code",
-  description: "A block of code or a command.",
-  props: z.object({ language: z.string().describe("sh, ts, py, sql…"), code: z.string() }),
+  ...SCHEMAS.Code,
   component: ({ props }) => (
     <CodeBlock code={props.code ?? ""} lang={props.language} className="ge-codeblock overflow-x-auto p-2.5" />
   ),
 });
 
 const godeyeLibrary = createLibrary({
-  id: "godeye@1",
-  root: "Stack",
+  id: LIBRARY_ID,
+  root: ROOT,
   components: [Stack, Card, Text, Stats, Chart, Progress, Table, Callout, Code],
 });
 

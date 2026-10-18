@@ -22,6 +22,7 @@ const CONTAINERS: Record<string, { label: string; tech: string; what: string }> 
   "packages/core": { label: "core", tech: "TypeScript", what: "Shared types and rules" },
   "packages/i18n": { label: "i18n", tech: "TypeScript, JSON", what: "Interface texts in every language" },
   "packages/learn": { label: "learn", tech: "TypeScript, YAML", what: "Cheat sheets and roadmaps" },
+  "packages/genui": { label: "genui", tech: "TypeScript, OpenUI", what: "The UI components the AI may use in reports" },
 };
 
 /** Server modules by area, matched on the file path; the first match wins. */

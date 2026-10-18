@@ -34,13 +34,16 @@ C4Container
     Container(packages_core, "core", "TypeScript", "Shared types and rules")
     Container(packages_i18n, "i18n", "TypeScript, JSON", "Interface texts in every language")
     Container(packages_learn, "learn", "TypeScript, YAML", "Cheat sheets and roadmaps")
+    Container(packages_genui, "genui", "TypeScript, OpenUI", "The UI components the AI may use in reports")
   }
   Rel(user, apps_web, "Uses", "Browser")
   Rel(apps_web, apps_server, "Calls", "HTTP, WebSocket")
   Rel(apps_server, packages_core, "imports")
+  Rel(apps_server, packages_genui, "imports")
   Rel(apps_server, packages_i18n, "imports")
   Rel(apps_server, packages_learn, "imports")
   Rel(apps_web, packages_core, "imports")
+  Rel(apps_web, packages_genui, "imports")
   Rel(apps_web, packages_i18n, "imports")
   Rel(apps_web, packages_learn, "imports")
 ```

@@ -1,7 +1,8 @@
 import type { Database } from "bun:sqlite";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { RICH_BLOCKS_HINT, slugify, type WikiPage } from "@godeye/core";
+import { slugify, type WikiPage } from "@godeye/core";
+import { reportUiHint } from "@godeye/genui";
 import { languages } from "@godeye/i18n";
 import JSZip from "jszip";
 import type { Docs } from "./docs";
@@ -244,7 +245,8 @@ const a=document.createElement("a");a.href=p.file;a.textContent=p.title+(i>=0?" 
         [
           `Period: the last 7 days, ${new Date(from).toISOString().slice(0, 10)} to ${new Date(now).toISOString().slice(0, 10)}. All numbers below are for this period.`,
           `Write my weekly CEO report in ${languageName(language)}: one page. Sections with headings in that language: The week in three sentences; Projects (one line each: where it stands, green/yellow/red with the reason); Risks; Decisions made; What I should do next week (at most five, ordered). Plain words, no filler, only what the data supports.`,
-          RICH_BLOCKS_HINT,
+          // The report is drawn with God Eye's own charts and tiles (plan.md 16.2).
+          reportUiHint(),
           ...lines,
         ].join("\n"),
         this.persona("ceo-coach", null),
