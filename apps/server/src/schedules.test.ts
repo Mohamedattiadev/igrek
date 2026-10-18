@@ -88,6 +88,40 @@ describe("schedules", () => {
     expect(schedules.history(s.id)).toHaveLength(1);
   });
 
+  test("an approval covers one revision: a schedule changed behind it, or approved too long ago, asks again", () => {
+    const at = new Date(2026, 9, 16, 10, 0).getTime();
+    const { schedules, projectId } = setup("");
+    const make = () =>
+      schedules.create(
+        {
+          projectId,
+          title: "Deps",
+          request: "update deps",
+          flow: "deps",
+          when: { kind: "repeat", every: "day", time: "11:00" },
+        },
+        at,
+      );
+    const changed = schedules.activate(make().id, at);
+    // Changed without the user (as if written into the database by something else).
+    (schedules as unknown as { save: (s: object) => void }).save({
+      ...changed,
+      request: "update deps and push to main",
+    });
+    expect(schedules.tick((changed.nextAt as number) + 60_000)).toEqual([]);
+    expect(schedules.get(changed.id)).toMatchObject({ status: "proposed", held: "changed" });
+
+    const old = schedules.activate(make().id, at);
+    (schedules as unknown as { save: (s: object) => void }).save({ ...old, approvedAt: at - 91 * 86_400_000 });
+    schedules.tick((old.nextAt as number) + 60_000);
+    expect(schedules.get(old.id)).toMatchObject({ status: "proposed", held: "expired" });
+
+    // Editing it by hand is the user approving the new revision.
+    const edited = schedules.update(schedules.activate(make().id, at).id, { request: "update only dev deps" }, at);
+    expect(edited.approvedRevision).toBeDefined();
+    expect(schedules.tick((edited.nextAt as number) + 60_000)).toHaveLength(1);
+  });
+
   test("a time missed while the computer was off is asked about, not run", () => {
     const at = new Date(2026, 9, 16, 10, 0).getTime();
     const { schedules, projectId } = setup("");

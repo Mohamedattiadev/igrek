@@ -19,7 +19,7 @@ function key(): string {
 
 async function api<T>(path: string): Promise<T> {
   const res = await fetch(`http://127.0.0.1:${PORT}${path}`, {
-    headers: { host: `localhost:${PORT}`, cookie: `godeye_session=${key()}` },
+    headers: { host: `localhost:${PORT}`, cookie: `godeye_session=${key()}`, "x-godeye-caller": "agent" },
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error(`God Eye answered ${res.status}`);
@@ -130,7 +130,12 @@ type Args = {
 async function post<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`http://127.0.0.1:${PORT}${path}`, {
     method: "POST",
-    headers: { host: `localhost:${PORT}`, cookie: `godeye_session=${key()}`, "content-type": "application/json" },
+    headers: {
+      host: `localhost:${PORT}`,
+      cookie: `godeye_session=${key()}`,
+      "x-godeye-caller": "agent",
+      "content-type": "application/json",
+    },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(130_000),
   });

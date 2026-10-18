@@ -2727,7 +2727,9 @@
     "every_day": "Her gün {{time}}",
     "every_weekday": "Hafta içi her gün {{time}}",
     "every_week": "Her {{day}} {{time}}",
-    "every_month": "Her ayın {{day}}. günü, {{time}}"
+    "every_month": "Her ayın {{day}}. günü, {{time}}",
+    "held_changed": "Sen onayladıktan sonra değişti, bu yüzden çalışmadan önce yeniden onayını bekliyor.",
+    "held_expired": "Onayın 90 günden eski; çalışmaya devam etmesi için yeniden onay ver."
   },
   "voice": {
     "start": "Konuş",

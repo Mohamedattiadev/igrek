@@ -33,6 +33,20 @@ describe("security", () => {
     expect(res.status).toBe(403);
   });
 
+  test("an agent may read and propose, but not approve or change anything", async () => {
+    const { call, authed } = setup();
+    const agent = { ...authed, "x-godeye-caller": "agent", "content-type": "application/json" };
+    expect((await call("/api/settings", { headers: agent })).status).toBe(200);
+    const write = await call("/api/settings", {
+      method: "PATCH",
+      headers: agent,
+      body: JSON.stringify({ language: "tr" }),
+    });
+    expect(write.status).toBe(403);
+    expect((await call("/api/schedules/x/activate", { method: "POST", headers: agent })).status).toBe(403);
+    expect((await call("/api/schedules/propose", { method: "POST", headers: agent, body: "{}" })).status).not.toBe(403);
+  });
+
   test("rejects requests from other websites", async () => {
     const { call, authed } = setup();
     const res = await call("/api/settings", { headers: { ...authed, origin: "https://evil.example" } });

@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite";
+import { createHash } from "node:crypto";
 import {
   type FlowRun,
   type InboxNotice,
@@ -47,6 +48,18 @@ function cleanWhen(raw: unknown, now: number): ScheduleWhen | undefined {
 }
 
 type Row = { id: string; data: string };
+
+const APPROVAL_MAX_AGE = 90 * 24 * 60 * 60_000;
+const RUNS_PER_HOUR = 4;
+const MAX_PARALLEL = 2;
+
+/** A digest of everything an approval covers: change any of it and the schedule asks again. */
+function revisionOf(s: Pick<Schedule, "projectId" | "request" | "flow" | "when" | "maxMinutes" | "maxTurns">): string {
+  return createHash("sha256")
+    .update(JSON.stringify([s.projectId, s.request, s.flow, s.when, s.maxMinutes, s.maxTurns]))
+    .digest("hex")
+    .slice(0, 16);
+}
 
 /**
  * Scheduled work (plan.md Faz 9). A sentence ("every Friday morning update the dependencies here")
@@ -125,7 +138,11 @@ export class Schedules {
       ...(input.sentence ? { sentence: input.sentence.slice(0, 1000) } : {}),
       createdAt: now,
     };
-    if (s.status === "active") s.nextAt = nextRun(when, now);
+    if (s.status === "active") {
+      s.nextAt = nextRun(when, now);
+      s.approvedRevision = revisionOf(s);
+      s.approvedAt = now;
+    }
     return this.save(s);
   }
 
@@ -174,11 +191,14 @@ Reply with JSON only:
     );
   }
 
-  /** Your OK on a proposal (or turning a paused one back on). */
+  /** Your OK on a proposal (or turning a paused one back on): it covers exactly this revision. */
   activate(id: string, now = Date.now()): Schedule {
     const s = this.get(id);
     if (!s) throw new Error("Schedule not found");
     s.status = "active";
+    s.approvedRevision = revisionOf(s);
+    s.approvedAt = now;
+    s.held = undefined;
     s.nextAt = nextRun(s.when, now);
     if (!s.nextAt) s.status = "done";
     s.missedAt = undefined;
@@ -210,6 +230,11 @@ Reply with JSON only:
     }
     if (typeof patch.maxMinutes === "number") s.maxMinutes = Math.max(5, Math.min(240, Math.round(patch.maxMinutes)));
     if (typeof patch.maxTurns === "number") s.maxTurns = Math.max(5, Math.min(200, Math.round(patch.maxTurns)));
+    // The user changed it by hand (agents cannot reach this): the new revision is what they approved.
+    if (s.status === "active") {
+      s.approvedRevision = revisionOf(s);
+      s.approvedAt = now;
+    }
     return this.save(s);
   }
 
@@ -254,6 +279,7 @@ Reply with JSON only:
         this.save(s);
         continue;
       }
+      if (!this.mayRun(s, now)) continue;
       try {
         started.push(this.runNow(s.id, now).id);
       } catch (err) {
@@ -264,6 +290,41 @@ Reply with JSON only:
       }
     }
     return started;
+  }
+
+  /**
+   * Guardrails before a run nobody started by hand (plan.md 16.4, after Cline's agenda): only the
+   * revision the user approved, not on an approval older than APPROVAL_MAX_AGE, at most
+   * RUNS_PER_HOUR runs of one schedule an hour and MAX_PARALLEL scheduled runs at once.
+   */
+  private mayRun(s: Schedule, now: number): boolean {
+    if (!s.approvedRevision) {
+      // Approved before revisions were kept: what is there now is what the user had approved.
+      s.approvedRevision = revisionOf(s);
+      s.approvedAt = now;
+      this.save(s);
+    }
+    const hold =
+      s.approvedRevision !== revisionOf(s)
+        ? "changed"
+        : now - (s.approvedAt ?? now) > APPROVAL_MAX_AGE
+          ? "expired"
+          : undefined;
+    if (hold) {
+      s.status = "proposed";
+      s.held = hold;
+      s.nextAt = undefined;
+      this.save(s);
+      return false;
+    }
+    const runs = this.flows.list().filter((r) => r.scheduleId);
+    if (runs.filter((r) => r.status === "running").length >= MAX_PARALLEL) return false; // try again next minute
+    if (runs.filter((r) => r.scheduleId === s.id && now - r.createdAt < 60 * 60_000).length >= RUNS_PER_HOUR) {
+      s.nextAt = nextRun(s.when, now);
+      this.save(s);
+      return false;
+    }
+    return true;
   }
 
   history(id: string): FlowRun[] {

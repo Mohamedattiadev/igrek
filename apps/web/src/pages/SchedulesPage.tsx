@@ -68,7 +68,9 @@ function Row({ s, projectName }: { s: Schedule; projectName?: string }) {
       </div>
       {s.status === "proposed" && (
         <div className="flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft/40 p-2">
-          <span className="min-w-0 flex-1 text-xs">{t("schedules.confirm")}</span>
+          <span className="min-w-0 flex-1 text-xs">
+            {s.held ? t(`schedules.held_${s.held}`) : t("schedules.confirm")}
+          </span>
           <Button size="sm" variant="primary" icon={Check} onClick={() => act("activate")}>
             {t("schedules.approve")}
           </Button>

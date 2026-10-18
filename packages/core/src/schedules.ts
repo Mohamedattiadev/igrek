@@ -38,6 +38,11 @@ export interface Schedule {
   /** "Every Friday 09:00, Project X: …" in the user's language. */
   summary?: string;
   createdAt: number;
+  /** What exactly the user approved (a digest of request, flow, time and budget) and when (plan.md 16.4). */
+  approvedRevision?: string;
+  approvedAt?: number;
+  /** Why it went back to waiting for an OK: it changed after approval, or the approval grew old. */
+  held?: "changed" | "expired";
 }
 
 export interface ScheduleTemplate {

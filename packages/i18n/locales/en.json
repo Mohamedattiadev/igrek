@@ -2727,7 +2727,9 @@
     "every_day": "Every day {{time}}",
     "every_weekday": "Weekdays {{time}}",
     "every_week": "Every {{day}} {{time}}",
-    "every_month": "Day {{day}} of every month, {{time}}"
+    "every_month": "Day {{day}} of every month, {{time}}",
+    "held_changed": "It changed after you approved it, so it waits for your OK again before it runs.",
+    "held_expired": "Your approval is over 90 days old; give your OK again to keep it running."
   },
   "voice": {
     "start": "Speak",
