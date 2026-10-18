@@ -9,3 +9,4 @@ coverage/
 *.tsbuildinfo
 .godeye-dev/
 docker/hub.env
+apps/web/dist-member

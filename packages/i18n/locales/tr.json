@@ -1790,7 +1790,8 @@
     "rotateHint": "Biri ayrıldıktan sonra anahtarı değiştir: yeni güncellemeler sadece kalan cihazların aldığı yeni bir anahtarla gider. Eski geçmiş, zaten sahip olanlar için okunur kalır.",
     "rotateNow": "Anahtarı değiştir",
     "rotateConfirm": "Şimdi yeni bir takım anahtarı oluşturulsun mu? Mevcut her cihaz otomatik alır. Saklaman için yeni bir kurtarma anahtarı alacaksın.",
-    "rotateAfter": "{{name}} artık erişemiyor. Cihazları yeni güncellemeleri okuyamasın diye takım anahtarı da değiştirilsin mi? (Önerilir)"
+    "rotateAfter": "{{name}} artık erişemiyor. Cihazları yeni güncellemeleri okuyamasın diye takım anahtarı da değiştirilsin mi? (Önerilir)",
+    "fingerprintTip": "Bu cihazın gösterdiği kod. Web üyesi bunu bekleme ekranında görür: sadece eşleşiyorsa onayla."
   },
   "alerts": {
     "title": "Güvenlik uyarıları",
@@ -4146,5 +4147,41 @@
     "fix_godClass": "Çok uzun sınıfların değişmek için birden fazla nedeni vardır (tek sorumluluk). Ayrı işleri kendi sınıflarına çıkar.",
     "rule_hardDependency": "Kurucuda oluşturulan servisler",
     "fix_hardDependency": "Kendi servislerini new ile oluşturmak sınıfı onlara bağlar (bağımlılığın tersine çevrilmesi): kurucudan parametre olarak al ki değiştirilebilsin ve test edilebilsin."
+  },
+  "member": {
+    "title": "God Eye Takım",
+    "signInHint": "Takım yöneticinin senin için açtığı hesapla giriş yap. Her şeyin şifresi burada, tarayıcında çözülür; hub okuyamaz.",
+    "username": "Kullanıcı adı",
+    "password": "Şifre",
+    "code": "6 haneli kod",
+    "signIn": "Giriş yap",
+    "newPassword": "Kendi şifreni seç",
+    "newPasswordHint": "Yöneticin geçici bir şifre koydu. Sadece senin bildiğin bir şifre seç (en az 8 karakter).",
+    "save": "Kaydet",
+    "waitTitle": "Bir yöneticinin onayı bekleniyor",
+    "waitBody": "Takımının çalışmaları şifreli. Bir yönetici God Eye > Takım > cihazlar'ı açıp bu tarayıcıyı onaylar; ardından takım anahtarı gelir. Doğru cihazı onaylaması için bu kodu söyle.",
+    "fingerprint": "Bu tarayıcı",
+    "retry": "Tekrar dene",
+    "signOut": "Çıkış yap",
+    "comments": "Yorumlar",
+    "commentPlaceholder": "Bir yorum yaz",
+    "send": "Gönder",
+    "sessions": "Oturumlar",
+    "decisions": "Kararlar",
+    "board": "Pano",
+    "summaryOnly": "Bu proje için konuşmanın kendisi değil, sadece özeti paylaşılıyor.",
+    "nothingYet": "Henüz paylaşılan bir şey yok.",
+    "live": "canlı",
+    "offline": "yeniden bağlanıyor",
+    "role_admin": "Yönetici",
+    "role_member": "Üye",
+    "role_viewer": "İzleyici",
+    "projects": "Projeler",
+    "noProjects": "Henüz paylaşılan proje yok",
+    "noProjectsBody": "Bir takım arkadaşı God Eye'dan bir proje paylaşınca burada görünür.",
+    "online_one": "{{count}} kişi çevrimiçi",
+    "online_other": "{{count}} kişi çevrimiçi",
+    "newCard": "Takım için yeni bir kart",
+    "add": "Ekle"
   }
 }

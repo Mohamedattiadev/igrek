@@ -53,3 +53,31 @@ describe("backups", () => {
     );
   });
 });
+
+describe("web member page", () => {
+  test("served with a strict content policy; files outside the build are never served", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const { Hub } = await import("./hub");
+    const { createHubServer } = await import("./server");
+    const dir = mkdtempSync(join(tmpdir(), "gd-hubweb-"));
+    mkdirSync(join(dir, "web/assets"), { recursive: true });
+    writeFileSync(join(dir, "web/member.html"), "<!doctype html><title>member</title>");
+    writeFileSync(join(dir, "web/assets/member-x1.js"), "console.log(1)");
+    writeFileSync(join(dir, "secret.txt"), "nope");
+    const handler = createHubServer(new Hub(join(dir, "hub.db")), { webDir: join(dir, "web") });
+    const get = (path: string) => handler.fetch(new Request(`http://hub.test${path}`), { upgrade: () => false });
+    const page = (await get("/")) as Response;
+    expect(page.headers.get("content-security-policy")).toContain("connect-src 'self'");
+    expect(page.headers.get("x-frame-options")).toBe("DENY");
+    expect(await page.text()).toContain("member");
+    const asset = (await get("/assets/member-x1.js")) as Response;
+    expect(asset.headers.get("cache-control")).toContain("immutable");
+    const outside = (await get("/assets/../../secret.txt")) as Response;
+    expect(await outside.text()).not.toContain("nope");
+    const api = (await get("/api/me")) as Response;
+    expect(api.status).toBe(401);
+    expect(api.headers.get("cache-control")).toBe("no-store");
+  });
+});

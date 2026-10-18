@@ -8,6 +8,7 @@
       "**/scripts/*.ts",
       "!**/node_modules",
       "!**/dist",
+      "!**/dist-member",
       "!**/*.test.ts",
       "!**/*.test.tsx",
       "!**/*.css"

@@ -58,5 +58,10 @@ export default defineConfig({
       "/ws": { ...asServerOrigin, ws: true },
     },
   },
-  build: { outDir: "dist", emptyOutDir: true },
+  build: {
+    outDir: "dist",
+    emptyOutDir: true,
+    // The web member's page (served by the team hub) is a second entry next to the app.
+    rollupOptions: { input: { main: "index.html", member: "member.html" } },
+  },
 });

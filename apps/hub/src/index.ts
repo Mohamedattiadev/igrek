@@ -15,6 +15,7 @@ const handler = createHubServer(hub, {
   trustProxy: process.env.HUB_TRUST_PROXY === "1",
   mail: mail ? smtpSender(mail) : undefined,
   mailFrom: mail?.from,
+  webDir: process.env.HUB_WEB_DIR,
 });
 const server = Bun.serve({
   hostname: process.env.HUB_HOST ?? "0.0.0.0",

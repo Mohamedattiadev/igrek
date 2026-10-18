@@ -39,3 +39,7 @@ jobs:
       - run: docker build -f docker/Dockerfile -t god-eye:ci .
       - name: Image size
         run: docker image inspect god-eye:ci --format '{{.Size}}' | awk '{ printf "%.0f MB\n", $1/1024/1024 }'
+      # The team hub, with the web member's page inside.
+      - run: docker build -f docker/Dockerfile.hub -t god-eye-hub:ci .
+      - name: Hub image size
+        run: docker image inspect god-eye-hub:ci --format '{{.Size}}' | awk '{ printf "%.0f MB\n", $1/1024/1024 }'

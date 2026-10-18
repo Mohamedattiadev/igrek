@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join, normalize, resolve, sep } from "node:path";
 import type { ServerWebSocket } from "bun";
 import { Hono } from "hono";
 import { type Hub, type HubUser, type ProjectRole, ROLES, type Role } from "./hub";
@@ -34,7 +36,16 @@ class RateLimiter {
 
 type BunServer = { requestIP?: (r: Request) => { address: string } | null };
 
-export function createHubServer(hub: Hub, options: { trustProxy?: boolean; mail?: SendMail; mailFrom?: string } = {}) {
+export function createHubServer(
+  hub: Hub,
+  options: {
+    trustProxy?: boolean;
+    mail?: SendMail;
+    mailFrom?: string;
+    /** The built web app: the hub serves its web member page (plan.md 4.3) from here. */
+    webDir?: string;
+  } = {},
+) {
   const app = new Hono<{ Variables: { auth: Ctx }; Bindings: BunServer }>();
   const logins = new RateLimiter(8, 60_000);
   const sockets = new Set<ServerWebSocket<SocketData>>();
@@ -54,7 +65,8 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean; mail?
     await next();
     c.header("X-Content-Type-Options", "nosniff");
     c.header("Referrer-Policy", "no-referrer");
-    c.header("Cache-Control", "no-store");
+    // API answers are never cached; the web page's own files say how long they keep.
+    if (!c.res.headers.has("cache-control")) c.header("Cache-Control", "no-store");
   });
 
   app.get("/health", (c) => c.json({ ok: true }));
@@ -415,6 +427,29 @@ export function createHubServer(hub: Hub, options: { trustProxy?: boolean; mail?
     hub.revokeDevice(c.req.param("id"), c.get("auth").user.id);
     return c.json({ ok: true });
   });
+
+  // ---- the web member's page -----------------------------------------------------------
+  // Only the page and its files; everything it shows comes over the API, still encrypted.
+  if (options.webDir) {
+    const root = resolve(options.webDir);
+    // The page decrypts the team's work, so nothing but its own files may run or be reached.
+    const csp =
+      "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+    app.get("*", (c) => {
+      const path = normalize(join(root, decodeURIComponent(c.req.path)));
+      const asset = path.startsWith(join(root, "assets") + sep) && existsSync(path);
+      const file = asset ? path : join(root, "member.html");
+      if (!existsSync(file)) return c.text("The web member page is not built into this hub.", 404);
+      return new Response(Bun.file(file), {
+        headers: {
+          "content-security-policy": csp,
+          "x-frame-options": "DENY",
+          "cache-control": asset ? "public, max-age=31536000, immutable" : "no-cache",
+          ...(asset ? {} : { "content-type": "text/html; charset=utf-8" }),
+        },
+      });
+    });
+  }
 
   // ---- realtime ----------------------------------------------------------------------
   const broadcast = (project: string, message: unknown, except?: ServerWebSocket<SocketData>) => {

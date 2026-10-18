@@ -1790,7 +1790,8 @@
     "rotateHint": "Replace the key after someone leaves: new updates use a new key only the remaining devices get. Older history stays readable for those who already had it.",
     "rotateNow": "Replace the key",
     "rotateConfirm": "Make a new team key now? Every current device gets it automatically. You'll get a new recovery key to keep.",
-    "rotateAfter": "{{name}} no longer has access. Replace the team key too, so their devices can't read new updates? (Recommended)"
+    "rotateAfter": "{{name}} no longer has access. Replace the team key too, so their devices can't read new updates? (Recommended)",
+    "fingerprintTip": "The code this device shows. A web member sees it on their waiting screen: approve only when it matches."
   },
   "alerts": {
     "title": "Security alerts",
@@ -4146,5 +4147,41 @@
     "fix_godClass": "Very long classes have more than one reason to change (single responsibility). Extract the separate jobs into their own classes.",
     "rule_hardDependency": "Services built inside a constructor",
     "fix_hardDependency": "Creating its own services with new ties the class to them (dependency inversion): pass them in through the constructor so they can be swapped and tested."
+  },
+  "member": {
+    "title": "God Eye Team",
+    "signInHint": "Sign in with the account your team's admin made for you. Everything is decrypted here in your browser; the hub can't read it.",
+    "username": "Username",
+    "password": "Password",
+    "code": "6-digit code",
+    "signIn": "Sign in",
+    "newPassword": "Choose your own password",
+    "newPasswordHint": "Your admin set a temporary password. Pick one only you know (at least 8 characters).",
+    "save": "Save",
+    "waitTitle": "Waiting for an admin's approval",
+    "waitBody": "Your team's work is encrypted. An admin opens God Eye > Team > devices and approves this browser; then it receives the team key. Tell them this code so they approve the right one.",
+    "fingerprint": "This browser",
+    "retry": "Check again",
+    "signOut": "Sign out",
+    "comments": "Comments",
+    "commentPlaceholder": "Write a comment",
+    "send": "Send",
+    "sessions": "Sessions",
+    "decisions": "Decisions",
+    "board": "Board",
+    "summaryOnly": "Only the summary is shared for this project, not the conversation.",
+    "nothingYet": "Nothing shared yet.",
+    "live": "live",
+    "offline": "reconnecting",
+    "role_admin": "Admin",
+    "role_member": "Member",
+    "role_viewer": "Viewer",
+    "projects": "Projects",
+    "noProjects": "No shared projects yet",
+    "noProjectsBody": "Projects appear here when a teammate shares one from God Eye.",
+    "online_one": "{{count}} online",
+    "online_other": "{{count}} online",
+    "newCard": "A new card for the team",
+    "add": "Add"
   }
 }

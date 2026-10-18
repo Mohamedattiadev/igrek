@@ -36,6 +36,10 @@ export function KeyRequestsSection() {
             <span className="min-w-0 flex-1 truncate text-xs text-fg-muted">
               {r.name} · {relativeTime(r.createdAt)}
             </span>
+            {/* The same code the device shows (the web member page prints it), to approve the right one. */}
+            <span className="rounded bg-bg-subtle px-1.5 py-0.5 font-mono text-[11px]" title={t("keys.fingerprintTip")}>
+              {r.publicKey.slice(0, 8)}
+            </span>
             <Button
               size="sm"
               variant="primary"

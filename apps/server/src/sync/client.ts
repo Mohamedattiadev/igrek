@@ -1347,6 +1347,8 @@ export class Sync {
     if (!this.idKey || !this.config) return;
     const mine = deviceOf(this.config.token);
     const changed = new Set<string>();
+    // Someone who joined after the list was loaded (a new web member): learn their name first.
+    if (events.some((e) => e.device !== mine && !this.members.has(e.author))) await this.loadMembers();
     for (const event of events) {
       // Without the key it was made with, keep it for later (don't move the cursor past it).
       const key = this.keys.get(event.epoch ?? 0);

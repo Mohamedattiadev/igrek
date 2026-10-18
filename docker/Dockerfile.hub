@@ -20,11 +20,30 @@ COPY apps/hub/src apps/hub/src
 RUN bun build apps/hub/src/main.ts --compile --minify --outfile /out/god-eye-hub \
  && mkdir -p /out/data
 
+# The web member's page (plan.md 4.3): built here, only its few files go into the image.
+FROM oven/bun:${BUN_VERSION}-slim AS web
+WORKDIR /app
+COPY package.json bun.lock ./
+COPY apps/server/package.json apps/server/
+COPY apps/web/package.json apps/web/
+COPY apps/hub/package.json apps/hub/
+COPY packages/core/package.json packages/core/
+COPY packages/i18n/package.json packages/i18n/
+COPY packages/genui/package.json packages/genui/
+COPY packages/learn/package.json packages/learn/
+RUN bun install --frozen-lockfile --filter '@godeye/web'
+COPY packages/core packages/core
+COPY packages/i18n packages/i18n
+COPY apps/web apps/web
+RUN cd apps/web && bun run build:member
+
 # glibc + libstdc++ only, runs as an unprivileged user (uid 65532).
 FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
 COPY --from=build /out/god-eye-hub /usr/local/bin/god-eye-hub
 COPY --from=build --chown=65532:65532 /out/data /data
+COPY --from=web /app/apps/web/dist-member /web
 ENV NODE_ENV=production \
+    HUB_WEB_DIR=/web \
     HUB_DATA=/data \
     HUB_PORT=7700 \
     HUB_HOST=0.0.0.0
