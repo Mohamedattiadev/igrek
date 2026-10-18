@@ -1,0 +1,2460 @@
+id: laravel
+title: PHP and Laravel
+summary:
+  en: "From an empty computer to your own Laravel app on the internet. You learn PHP first, then build a real task app with login, a database, tests and a free deploy."
+  tr: "Boş bir bilgisayardan internette yayında olan kendi Laravel uygulamana. Önce PHP öğrenirsin, sonra giriş sistemi, veritabanı, testler ve ücretsiz bir deploy ile gerçek bir görev uygulaması yazarsın."
+teacher: backend
+project:
+  en: 'A task app: people register and log in, add tasks with an optional category, tick them off and delete them. Everyone sees only their own tasks. It has tests, a small JSON API, a health check and a Docker image, and it runs on a free host.'
+  tr: 'Bir görev uygulaması: kullanıcılar kayıt olup giriş yapar, isteğe bağlı kategoriyle görev ekler, tamamlandı işaretler ve siler. Herkes sadece kendi görevlerini görür. Testleri, küçük bir JSON API''si, sağlık kontrolü ve Docker image''ı vardır; ücretsiz bir sunucuda çalışır.'
+detect:
+  composer: [laravel/framework]
+version: "13.37"
+latest: eol:laravel
+checked: 2026-10
+after: [web]
+sheets: [php, laravel, sql, http, auth, caching, git, docker]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install PHP, Composer, Node.js and Git"
+      tr: "PHP, Composer, Node.js ve Git kurma"
+    minutes: 45
+    why:
+      en: "Laravel is a PHP framework, so your computer must run PHP. Composer downloads PHP packages (Laravel is one), Node.js builds the CSS and JavaScript files, and Git keeps every version of your work."
+      tr: "Laravel bir PHP framework'ü, yani bilgisayarının PHP çalıştırabilmesi gerekir. Composer PHP paketlerini indirir (Laravel de bir pakettir), Node.js CSS ve JavaScript dosyalarını hazırlar, Git de işinin her sürümünü saklar."
+    learn:
+      en: |
+        - What PHP, Composer and the Laravel installer are, and why you need all three
+        - Which PHP version Laravel 13 needs (8.3 or newer)
+        - How to open a terminal and check that a program is installed
+      tr: |
+        - PHP, Composer ve Laravel installer'ın ne olduğu ve üçünün de neden gerektiği
+        - Laravel 13'ün hangi PHP sürümünü istediği (8.3 ya da daha yenisi)
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+    do:
+      en: |
+        1. Open a terminal. In VS Code: *Terminal → New Terminal*. Install **Visual Studio Code** (code.visualstudio.com) first if you have no editor.
+        2. Install PHP, Composer and the Laravel installer with the official one-line script for your system (first command block below). On Windows, open PowerShell **as administrator** first. The script installs PHP 8.5.
+        3. Close the terminal and open a new one, so it sees the new programs.
+        4. Install **Node.js LTS** from nodejs.org and **Git** from git-scm.com. Laravel needs Node.js only to build CSS and JavaScript.
+        5. Check everything with the second command block. Each command must print a version. `php` must say 8.3 or higher.
+        6. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        7. On macOS or Windows you can use **Laravel Herd** (herd.laravel.com) instead of step 2. It installs PHP, Composer and the `laravel` command with a normal installer.
+      tr: |
+        1. Bir terminal aç. VS Code'da: *Terminal → New Terminal*. Editörün yoksa önce **Visual Studio Code**'u kur (code.visualstudio.com).
+        2. Sistemin için resmî tek satırlık betikle PHP, Composer ve Laravel installer'ı kur (aşağıdaki ilk komut bloğu). Windows'ta önce PowerShell'i **yönetici olarak** aç. Betik PHP 8.5 kurar.
+        3. Terminali kapatıp yenisini aç ki yeni programları görsün.
+        4. nodejs.org'dan **Node.js LTS**, git-scm.com'dan **Git** kur. Laravel, Node.js'e sadece CSS ve JavaScript dosyalarını hazırlamak için ihtiyaç duyar.
+        5. İkinci komut bloğuyla her şeyi kontrol et. Her komut bir sürüm yazmalı. `php` 8.3 ya da üstünü göstermeli.
+        6. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        7. macOS ya da Windows'ta 2. adım yerine **Laravel Herd**'i (herd.laravel.com) kullanabilirsin. PHP'yi, Composer'ı ve `laravel` komutunu normal bir kurulum programıyla kurar.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          # Linux
+          /bin/bash -c "$(curl -fsSL https://php.new/install/linux/8.5)"
+
+          # macOS
+          /bin/bash -c "$(curl -fsSL https://php.new/install/mac/8.5)"
+
+          # Windows (PowerShell, run as administrator)
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://php.new/install/windows/8.5'))
+      - file: terminal
+        lang: sh
+        text: |
+          php --version
+          composer --version
+          laravel --version
+          node --version
+          npm --version
+          git --version
+    mistakes:
+      - problem:
+          en: "\"command not found: php\" (or composer, laravel) right after installing."
+          tr: "Kurduktan hemen sonra \"command not found: php\" (ya da composer, laravel) hatası."
+        fix:
+          en: "Close the terminal completely and open a new one. If it still fails, restart the computer so the PATH (the list of folders where programs are searched) is reloaded."
+          tr: "Terminali tamamen kapatıp yenisini aç. Hâlâ olmuyorsa bilgisayarı yeniden başlat; böylece PATH (programların aranacağı klasörlerin listesi) yeniden yüklenir."
+      - problem:
+          en: "An old PHP (for example 8.1) is found first and Laravel refuses to install."
+          tr: "Önce eski bir PHP (örneğin 8.1) bulunuyor ve Laravel kurulmayı reddediyor."
+        fix:
+          en: "Run `php --version`. Laravel 13 needs PHP 8.3 or newer. Re-run the install script, or remove the old PHP from your PATH."
+          tr: "`php --version` çalıştır. Laravel 13, PHP 8.3 ya da daha yenisini ister. Kurulum betiğini yeniden çalıştır ya da eski PHP'yi PATH'ten çıkar."
+    quiz:
+      - q:
+          en: "Why do you install Composer?"
+          tr: "Composer'ı neden kuruyoruz?"
+        options:
+          en: ["It runs PHP code in the browser", "It downloads and updates PHP packages such as Laravel", "It stores your database"]
+          tr: ["PHP kodunu tarayıcıda çalıştırır", "Laravel gibi PHP paketlerini indirir ve günceller", "Veritabanını saklar"]
+        answer: 1
+        why:
+          en: "Composer is the package manager of PHP. It reads composer.json and installs the packages the project needs."
+          tr: "Composer PHP'nin paket yöneticisidir. composer.json dosyasını okur ve projenin ihtiyaç duyduğu paketleri kurar."
+    sources:
+      - title: Laravel - Installing PHP and the Laravel installer
+        url: https://laravel.com/framework/docs/13.x/installation#installing-php
+      - title: Composer - Introduction
+        url: https://getcomposer.org/doc/00-intro.md
+      - title: Laravel Herd
+        url: https://herd.laravel.com/docs
+
+  - id: php-first
+    stage: first-code
+    title:
+      en: "Write and run your first PHP files"
+      tr: "İlk PHP dosyalarını yazma ve çalıştırma"
+    minutes: 30
+    needs: [setup]
+    why:
+      en: "Laravel is just PHP code. Before you use a big framework, you should see that a PHP file is a plain text file that the `php` program runs, either in the terminal or behind a web server."
+      tr: "Laravel sadece PHP kodudur. Büyük bir framework kullanmadan önce, bir PHP dosyasının `php` programının çalıştırdığı düz bir metin dosyası olduğunu görmelisin; terminalde de, web sunucusunun arkasında da."
+    learn:
+      en: |
+        - A PHP file starts with `<?php` and its statements end with `;`
+        - Variables start with `$`; `echo` prints text; `.` joins strings
+        - How to run a file in the terminal and how to start PHP's built-in web server
+      tr: |
+        - PHP dosyası `<?php` ile başlar, komutlar `;` ile biter
+        - Değişkenler `$` ile başlar; `echo` metin yazar; `.` string'leri birleştirir
+        - Bir dosyayı terminalde nasıl çalıştıracağın ve PHP'nin yerleşik web sunucusunu nasıl başlatacağın
+    do:
+      en: |
+        1. Create a folder `php-demo` somewhere outside your future Laravel project and open it in VS Code.
+        2. Create `hello.php` with the first code block below. Run it in the terminal with `php hello.php`. You should see a greeting and a numbered list.
+        3. Create `index.php` with the second code block. This one mixes HTML and PHP: `<?= ... ?>` prints a value.
+        4. Start the built-in web server in that folder: `php -S localhost:8000`.
+        5. Open http://localhost:8000/?name=Ada in the browser. Change `Ada` in the address and reload.
+        6. Try http://localhost:8000/?name=%3Cb%3EAda. The page shows the tags as text instead of making the name bold. That is what `htmlspecialchars` does.
+        7. Stop the server with `Ctrl+C`.
+      tr: |
+        1. Gelecekteki Laravel projenin dışında bir yerde `php-demo` klasörü oluştur ve VS Code'da aç.
+        2. Aşağıdaki ilk kod bloğuyla `hello.php` dosyasını oluştur. Terminalde `php hello.php` ile çalıştır. Bir selam ve numaralı bir liste görmelisin.
+        3. İkinci kod bloğuyla `index.php` dosyasını oluştur. Bu dosya HTML ile PHP'yi karıştırır: `<?= ... ?>` bir değeri yazdırır.
+        4. O klasörde yerleşik web sunucusunu başlat: `php -S localhost:8000`.
+        5. Tarayıcıda http://localhost:8000/?name=Ada adresini aç. Adresteki `Ada`'yı değiştirip sayfayı yenile.
+        6. http://localhost:8000/?name=%3Cb%3EAda adresini dene. Sayfa etiketleri kalın yazı yapmak yerine metin olarak gösterir. `htmlspecialchars` tam olarak bunu yapar.
+        7. Sunucuyu `Ctrl+C` ile durdur.
+    code:
+      - file: hello.php
+        lang: php
+        text: |
+          <?php
+
+          $name = "Ada";
+          $tasks = ["Buy milk", "Write code", "Sleep"];
+
+          echo "Hello, $name!\n";
+          echo "You have " . count($tasks) . " tasks.\n";
+
+          foreach ($tasks as $i => $task) {
+              echo ($i + 1) . ". " . $task . "\n";
+          }
+      - file: index.php
+        lang: php
+        text: |
+          <?php
+          $name = $_GET['name'] ?? 'world';
+          ?>
+          <h1>Hello, <?= htmlspecialchars($name) ?>!</h1>
+      - file: terminal
+        lang: sh
+        text: |
+          php hello.php
+          php -S localhost:8000
+    mistakes:
+      - problem:
+          en: "The browser shows the PHP source code, or the terminal prints it, instead of running it."
+          tr: "Tarayıcı ya da terminal, PHP kodunu çalıştırmak yerine kaynak kodunu gösteriyor."
+        fix:
+          en: "The file must start with `<?php`, and it must be served by PHP (`php -S ...`), not opened by double-clicking it."
+          tr: "Dosya `<?php` ile başlamalı ve PHP tarafından sunulmalı (`php -S ...`); çift tıklayıp açmak işe yaramaz."
+      - problem:
+          en: "\"Parse error: syntax error, unexpected ...\"."
+          tr: "\"Parse error: syntax error, unexpected ...\" hatası."
+        fix:
+          en: "Almost always a missing `;`, a missing `$` before a variable, or an unclosed quote. The message names the line; look at that line and the one above it."
+          tr: "Neredeyse her zaman eksik bir `;`, değişkenin önünde eksik bir `$` ya da kapanmamış bir tırnaktır. Hata satırı söyler; o satıra ve bir üstüne bak."
+      - problem:
+          en: "Printing user input with `echo $_GET['name']` directly."
+          tr: "Kullanıcı girdisini doğrudan `echo $_GET['name']` ile yazdırmak."
+        fix:
+          en: "Always escape with `htmlspecialchars()`. Otherwise a visitor can inject HTML or JavaScript into your page (XSS). Laravel's Blade `{{ }}` does this for you."
+          tr: "Her zaman `htmlspecialchars()` ile kaçışla. Yoksa ziyaretçi sayfana HTML ya da JavaScript sokabilir (XSS). Laravel'in Blade `{{ }}` yapısı bunu senin yerine yapar."
+    quiz:
+      - q:
+          en: "What does `php -S localhost:8000` do?"
+          tr: "`php -S localhost:8000` ne yapar?"
+        options:
+          en: ["Installs PHP", "Starts a small web server for development", "Deploys your site to the internet"]
+          tr: ["PHP'yi kurar", "Geliştirme için küçük bir web sunucusu başlatır", "Siteni internete yayınlar"]
+        answer: 1
+        why:
+          en: "It is PHP's built-in development server. It is fine for learning, but not for real websites."
+          tr: "PHP'nin yerleşik geliştirme sunucusudur. Öğrenmek için yeterli, ama gerçek siteler için değildir."
+    sources:
+      - title: PHP manual - Your first PHP-enabled page
+        url: https://www.php.net/manual/en/tutorial.firstpage.php
+      - title: PHP manual - Built-in web server
+        url: https://www.php.net/manual/en/features.commandline.webserver.php
+
+  - id: php-basics
+    stage: basics
+    title:
+      en: "PHP basics: functions, classes and arrays"
+      tr: "PHP temelleri: fonksiyonlar, class'lar ve array'ler"
+    minutes: 45
+    needs: [php-first]
+    why:
+      en: "In Laravel almost everything is a class with methods, and data travels in arrays. If you can read a small class, a typed function and an array, Laravel code stops looking like magic."
+      tr: "Laravel'de neredeyse her şey metotları olan bir class'tır ve veri array'lerle taşınır. Küçük bir class'ı, tipli bir fonksiyonu ve bir array'i okuyabilirsen Laravel kodu büyü gibi görünmeyi bırakır."
+    learn:
+      en: |
+        - Functions with typed parameters and return types
+        - Classes: properties, a constructor and methods; `new` creates an object
+        - Indexed arrays (`[1, 2]`) and associative arrays (`['name' => 'Ada']`)
+        - `==` versus `===`, and `??` to give a default for `null`
+        - Namespaces: `namespace App\Models;` names where a class lives and `use` imports it
+      tr: |
+        - Tipli parametreleri ve dönüş tipi olan fonksiyonlar
+        - Class'lar: property'ler, constructor ve metotlar; `new` bir nesne oluşturur
+        - Sıralı array'ler (`[1, 2]`) ve anahtarlı array'ler (`['name' => 'Ada']`)
+        - `==` ile `===` farkı ve `null` için varsayılan değer veren `??`
+        - Namespace'ler: `namespace App\Models;` class'ın nerede durduğunu söyler, `use` onu içe aktarır
+    do:
+      en: |
+        1. In `php-demo`, create `basics.php` with the code below and run `php basics.php`.
+        2. Read the output line by line and match each line with the code that printed it.
+        3. Look at the last line: `"5" == 5` is `true` because `==` converts types, which surprises people. Change it to `===` and run again: now it is `false`.
+        4. Exercise: add a method `reopen()` to `Task` that sets `done` back to `false`, call it, and print the result.
+      tr: |
+        1. `php-demo` içinde aşağıdaki kodla `basics.php` dosyasını oluştur ve `php basics.php` çalıştır.
+        2. Çıktıyı satır satır oku ve her satırı onu yazdıran kodla eşleştir.
+        3. Son satıra bak: `"5" == 5` değeri `true` çıkar, çünkü `==` tipleri çevirir ve bu insanları şaşırtır. `===` yapıp tekrar çalıştır: artık `false`.
+        4. Alıştırma: `Task`'a `done` değerini tekrar `false` yapan bir `reopen()` metodu ekle, çağır ve sonucu yazdır.
+    code:
+      - file: basics.php
+        lang: php
+        text: |
+          <?php
+
+          declare(strict_types=1);
+
+          function shout(string $text): string
+          {
+              return strtoupper($text) . "!";
+          }
+
+          class Task
+          {
+              public function __construct(
+                  public string $title,
+                  public bool $done = false,
+              ) {}
+
+              public function finish(): void
+              {
+                  $this->done = true;
+              }
+          }
+
+          $task = new Task("Write code");
+          $task->finish();
+
+          echo shout($task->title) . "\n";
+          echo $task->done ? "done" : "open", "\n";
+
+          $person = ["name" => "Ada", "age" => 36];
+          echo "{$person['name']} is {$person['age']}\n";
+
+          var_dump(10 / 4, "5" == 5, null ?? "default");
+    mistakes:
+      - problem:
+          en: "Writing `this->title` or `$this.title`."
+          tr: "`this->title` ya da `$this.title` yazmak."
+        fix:
+          en: "Inside a class it is `$this->title`. The arrow `->` reaches a property or method; the dot `.` only joins strings in PHP."
+          tr: "Class'ın içinde doğrusu `$this->title`. Ok `->` bir property'ye ya da metoda ulaşır; PHP'de nokta `.` sadece string birleştirir."
+      - problem:
+          en: "\"Uncaught TypeError\" after adding `declare(strict_types=1)`."
+          tr: "`declare(strict_types=1)` ekledikten sonra \"Uncaught TypeError\" hatası."
+        fix:
+          en: "Strict types forbid silent conversions: passing the number `5` to a `string` parameter now fails. Pass the right type, for example `(string) 5`."
+          tr: "Strict types sessiz dönüşümleri yasaklar: `string` parametreye `5` sayısını vermek artık hata verir. Doğru tipi ver, örneğin `(string) 5`."
+    quiz:
+      - q:
+          en: "What does `$person['name'] ?? 'unknown'` give when the `name` key is missing?"
+          tr: "`name` anahtarı yoksa `$person['name'] ?? 'unknown'` ne verir?"
+        options:
+          en: ["An error", "unknown", "An empty string"]
+          tr: ["Bir hata", "unknown", "Boş bir string"]
+        answer: 1
+        why:
+          en: "`??` returns the left side when it exists and is not null, otherwise the right side. It never raises a warning for a missing key."
+          tr: "`??` solu varsa ve null değilse onu, yoksa sağı verir. Eksik anahtar için uyarı vermez."
+    sources:
+      - title: PHP manual - Language reference
+        url: https://www.php.net/manual/en/langref.php
+      - title: PHP manual - Classes and objects
+        url: https://www.php.net/manual/en/language.oop5.php
+      - title: PHP manual - Namespaces
+        url: https://www.php.net/manual/en/language.namespaces.rationale.php
+
+  - id: composer
+    stage: basics
+    title:
+      en: "Composer: use someone else's PHP code"
+      tr: "Composer: başkasının PHP kodunu kullanma"
+    minutes: 25
+    needs: [php-basics]
+    why:
+      en: "Laravel is installed with Composer and is made of dozens of packages. You will run `composer` often, so you should know what `composer.json`, `composer.lock` and the `vendor` folder are."
+      tr: "Laravel Composer ile kurulur ve onlarca paketten oluşur. `composer` komutunu sık çalıştıracaksın; bu yüzden `composer.json`, `composer.lock` ve `vendor` klasörünün ne olduğunu bilmelisin."
+    learn:
+      en: |
+        - `composer.json` lists what the project needs; `composer.lock` pins the exact versions that were installed
+        - `vendor/` holds the downloaded packages; it is never committed to Git
+        - `vendor/autoload.php` loads classes for you, so you never write `require` for each file
+      tr: |
+        - `composer.json` projenin neye ihtiyaç duyduğunu listeler; `composer.lock` kurulan tam sürümleri sabitler
+        - `vendor/` indirilen paketleri tutar; Git'e asla eklenmez
+        - `vendor/autoload.php` class'ları senin için yükler; her dosya için `require` yazmazsın
+    do:
+      en: |
+        1. In `php-demo`, run the first block below. `composer init` creates `composer.json`; `composer require` downloads the package Carbon (a date library) into `vendor/` and writes `composer.lock`.
+        2. Create `main.php` with the code below and run `php main.php`. It prints today's date and the date in seven days.
+        3. Open `composer.json` and look at the `require` section. Open `vendor/` and see the packages.
+        4. Delete the `vendor` folder, then run `composer install`. Composer rebuilds it from `composer.lock`. This is what you do after cloning any PHP project.
+      tr: |
+        1. `php-demo` içinde aşağıdaki ilk bloğu çalıştır. `composer init` `composer.json` oluşturur; `composer require` Carbon paketini (bir tarih kütüphanesi) `vendor/` içine indirir ve `composer.lock` yazar.
+        2. Aşağıdaki kodla `main.php` oluştur ve `php main.php` çalıştır. Bugünün tarihini ve yedi gün sonrasının tarihini yazar.
+        3. `composer.json` dosyasını aç ve `require` bölümüne bak. `vendor/` klasörünü aç ve paketleri gör.
+        4. `vendor` klasörünü sil, sonra `composer install` çalıştır. Composer onu `composer.lock`'tan yeniden kurar. Bir PHP projesini klonladıktan sonra yaptığın şey budur.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          composer init --name=demo/hello --no-interaction
+          composer require nesbot/carbon
+          php main.php
+          composer install
+      - file: main.php
+        lang: php
+        text: |
+          <?php
+
+          require __DIR__ . '/vendor/autoload.php';
+
+          use Carbon\Carbon;
+
+          echo "Today is " . Carbon::now()->format('l, j F Y') . "\n";
+          echo "In seven days: " . Carbon::now()->addDays(7)->format('l, j F Y') . "\n";
+    mistakes:
+      - problem:
+          en: "\"Class \"Carbon\\Carbon\" not found\"."
+          tr: "\"Class \"Carbon\\Carbon\" not found\" hatası."
+        fix:
+          en: "Add `require __DIR__ . '/vendor/autoload.php';` at the top, and run `composer install` if `vendor/` is missing."
+          tr: "En üste `require __DIR__ . '/vendor/autoload.php';` ekle; `vendor/` yoksa `composer install` çalıştır."
+      - problem:
+          en: "Committing the `vendor` folder to Git."
+          tr: "`vendor` klasörünü Git'e eklemek."
+        fix:
+          en: "Put `/vendor` in `.gitignore`. Commit `composer.json` and `composer.lock` instead; anyone can rebuild `vendor` with `composer install`."
+          tr: "`/vendor` satırını `.gitignore`'a yaz. Onun yerine `composer.json` ve `composer.lock` dosyalarını commit et; herkes `vendor`'ı `composer install` ile yeniden kurabilir."
+    quiz:
+      - q:
+          en: "You cloned a PHP project and there is no `vendor` folder. What do you run?"
+          tr: "Bir PHP projesini klonladın ve `vendor` klasörü yok. Ne çalıştırırsın?"
+        options:
+          en: ["composer install", "php vendor", "composer init"]
+          tr: ["composer install", "php vendor", "composer init"]
+        answer: 0
+        why:
+          en: "`composer install` reads `composer.lock` and downloads exactly those versions into `vendor/`."
+          tr: "`composer install`, `composer.lock`'u okur ve tam o sürümleri `vendor/` içine indirir."
+    sources:
+      - title: Composer - Basic usage
+        url: https://getcomposer.org/doc/01-basic-usage.md
+      - title: Composer - Autoloading
+        url: https://getcomposer.org/doc/01-basic-usage.md#autoloading
+
+  - id: new-app
+    stage: first-project
+    title:
+      en: "Create your Laravel app with a starter kit"
+      tr: "Starter kit ile Laravel uygulamanı oluşturma"
+    minutes: 40
+    needs: [setup, composer]
+    why:
+      en: "The Laravel installer builds a complete app in one command: folders, a SQLite database, a dev server and, with a starter kit, working registration and login pages. You start from something that runs and learn it piece by piece."
+      tr: "Laravel installer tek komutla tam bir uygulama kurar: klasörler, bir SQLite veritabanı, geliştirme sunucusu ve starter kit ile çalışan kayıt ve giriş sayfaları. Çalışan bir şeyle başlar, parça parça öğrenirsin."
+    learn:
+      en: |
+        - What `laravel new` creates, and what a starter kit adds (the Livewire kit: pages written in Blade and PHP, Tailwind CSS, Flux UI components, Laravel Fortify for login)
+        - What each top-level folder is for: `app`, `routes`, `resources/views`, `database`, `tests`, `public`
+        - What `.env` is: settings and secrets for this one computer, never committed to Git
+      tr: |
+        - `laravel new` komutunun ne oluşturduğu ve starter kit'in ne eklediği (Livewire kit'i: Blade ve PHP ile yazılmış sayfalar, Tailwind CSS, Flux UI bileşenleri, giriş için Laravel Fortify)
+        - Üst düzey klasörlerin ne işe yaradığı: `app`, `routes`, `resources/views`, `database`, `tests`, `public`
+        - `.env` dosyasının ne olduğu: sadece bu bilgisayara özel ayarlar ve gizli bilgiler; Git'e asla eklenmez
+    do:
+      en: |
+        1. In the terminal, go to the folder where you keep projects (not inside `php-demo`).
+        2. Run the `laravel new` command below. The flags choose: the Livewire starter kit, the Pest test framework, SQLite, no Laravel Boost (an AI helper you do not need), install and build the npm packages, and create a Git repository. If you run `laravel new tasks` without flags it asks the same questions: pick Livewire, Laravel's own authentication, Pest, SQLite, and no Boost.
+        3. Go into the folder: `cd tasks`.
+        4. This app will not send real email, so turn off email verification for now. Otherwise a new account is stuck on a "verify your email" page. In `app/Models/User.php` remove the `MustVerifyEmail` import and its mention after `implements`. In `config/fortify.php` comment out `Features::emailVerification()`. See the second code block.
+        5. Start everything with `composer run dev`. It runs the web server, the queue worker and Vite (the tool that builds CSS and JavaScript) together.
+        6. Open http://localhost:8000. Click *Register*, create an account (any name, an email like me@example.com, a password of 8 or more characters). You land on a dashboard.
+        7. Look around the project in VS Code: routes in `routes/web.php`, pages in `resources/views`, settings in `.env` and `config/`, the database file in `database/database.sqlite`.
+        8. Run `git log --oneline`. If it prints nothing, save the first version: `git add .` then `git commit -m "Start the tasks app"`.
+        9. Stop the server with `Ctrl+C` when you are done for the day. Next time: `cd tasks`, then `composer run dev`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git (`php-demo`'nun içine değil).
+        2. Aşağıdaki `laravel new` komutunu çalıştır. Bayraklar şunları seçer: Livewire starter kit'i, Pest test framework'ü, SQLite, Laravel Boost yok (ihtiyacın olmayan bir yapay zekâ yardımcısı), npm paketlerini kur ve derle, bir Git deposu oluştur. `laravel new tasks` komutunu bayraksız çalıştırırsan aynı soruları sorar: Livewire, Laravel'in kendi kimlik doğrulaması, Pest, SQLite ve Boost yok seçeneklerini seç.
+        3. Klasöre gir: `cd tasks`.
+        4. Bu uygulama gerçek e-posta göndermeyecek, o yüzden e-posta doğrulamasını şimdilik kapat. Yoksa yeni hesap "e-postanı doğrula" sayfasında takılır. `app/Models/User.php` içinde `MustVerifyEmail` import'unu ve `implements` sonrasındaki adını sil. `config/fortify.php` içinde `Features::emailVerification()` satırını yorum satırı yap. İkinci kod bloğuna bak.
+        5. Her şeyi `composer run dev` ile başlat. Web sunucusunu, queue worker'ı ve Vite'ı (CSS ve JavaScript'i hazırlayan araç) birlikte çalıştırır.
+        6. http://localhost:8000 adresini aç. *Register*'a tıkla, bir hesap oluştur (herhangi bir isim, me@example.com gibi bir e-posta, 8 ya da daha uzun bir parola). Bir dashboard'a düşersin.
+        7. Projeyi VS Code'da gez: route'lar `routes/web.php` içinde, sayfalar `resources/views` içinde, ayarlar `.env` ve `config/` içinde, veritabanı dosyası `database/database.sqlite`.
+        8. `git log --oneline` çalıştır. Hiçbir şey yazmazsa ilk sürümü kaydet: `git add .` sonra `git commit -m "Start the tasks app"`.
+        9. Günlük işin bitince sunucuyu `Ctrl+C` ile durdur. Bir dahaki sefere: `cd tasks`, sonra `composer run dev`.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          laravel new tasks --livewire --pest --database=sqlite --no-boost --npm --git
+          cd tasks
+          composer run dev
+      - file: app/Models/User.php
+        lang: php
+        text: |
+          // 1. Delete this line near the top:
+          use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+          // 2. Change the class line to:
+          class User extends Authenticatable implements PasskeyUser
+          {
+              // ... the rest stays as it is
+          }
+
+          // config/fortify.php, inside the 'features' array:
+          // Features::emailVerification(),
+    mistakes:
+      - problem:
+          en: "\"Vite manifest not found\" error page."
+          tr: "\"Vite manifest not found\" hata sayfası."
+        fix:
+          en: "The CSS and JavaScript are not built yet. Run `npm install && npm run build` once, or keep `composer run dev` running, which builds on the fly."
+          tr: "CSS ve JavaScript henüz derlenmemiş. Bir kez `npm install && npm run build` çalıştır ya da anında derleyen `composer run dev` komutunu açık tut."
+      - problem:
+          en: "\"Failed to listen on 127.0.0.1:8000\" - the port is busy."
+          tr: "\"Failed to listen on 127.0.0.1:8000\" - port dolu."
+        fix:
+          en: "Another server (maybe the `php -S` one from earlier) still runs. Stop it with `Ctrl+C` in its terminal."
+          tr: "Başka bir sunucu (belki daha önceki `php -S`) hâlâ çalışıyor. Onun terminalinde `Ctrl+C` ile durdur."
+      - problem:
+          en: "Putting the `tasks` folder itself on a web server, or committing `.env`."
+          tr: "`tasks` klasörünün kendisini bir web sunucusunda yayınlamak ya da `.env`'i commit etmek."
+        fix:
+          en: "Only the `public/` folder is the web root; everything else (including `.env`) must not be reachable. Laravel's `.gitignore` already excludes `.env`; do not remove that line."
+          tr: "Web kökü sadece `public/` klasörüdür; geri kalan her şeye (`.env` dahil) dışarıdan ulaşılamamalı. Laravel'in `.gitignore` dosyası `.env`'i zaten hariç tutar; o satırı silme."
+    quiz:
+      - q:
+          en: "Which folder is the only one a web server should serve?"
+          tr: "Bir web sunucusunun yayınlaması gereken tek klasör hangisidir?"
+        options:
+          en: ["The project root", "app", "public"]
+          tr: ["Proje kökü", "app", "public"]
+        answer: 2
+        why:
+          en: "`public/index.php` is the entry point of every request. Serving the project root would expose files like `.env`."
+          tr: "`public/index.php` her isteğin giriş noktasıdır. Proje kökünü yayınlamak `.env` gibi dosyaları açığa çıkarır."
+    sources:
+      - title: Laravel - Creating an application
+        url: https://laravel.com/framework/docs/13.x/installation#creating-an-application
+      - title: Laravel - Starter kits
+        url: https://laravel.com/framework/docs/13.x/starter-kits
+      - title: Laravel - Directory structure
+        url: https://laravel.com/framework/docs/13.x/structure
+
+  - id: routes-views
+    stage: first-project
+    title:
+      en: "Routes, a controller and a Blade view"
+      tr: "Route, controller ve Blade view"
+    minutes: 40
+    needs: [new-app]
+    why:
+      en: "Every page of a web app follows the same path: a URL matches a route, the route calls a controller, and the controller returns a view. Build one page that way and you understand the shape of all of Laravel."
+      tr: "Bir web uygulamasının her sayfası aynı yolu izler: URL bir route ile eşleşir, route bir controller'ı çağırır, controller bir view döndürür. Bir sayfayı bu şekilde kurarsan Laravel'in bütün yapısını anlarsın."
+    learn:
+      en: |
+        - A route links a URL and an HTTP method to code; a name (`tasks.index`) lets you build links with `route()`
+        - A controller is a class whose methods answer requests
+        - A Blade view is HTML with `{{ }}` (prints and escapes), `@forelse` and layouts such as `<x-layouts::app>`
+        - Middleware: `auth` sends visitors who are not logged in to the login page
+      tr: |
+        - Route bir URL ve HTTP metodunu koda bağlar; bir isim (`tasks.index`) `route()` ile link üretmeni sağlar
+        - Controller, metotları istekleri cevaplayan bir class'tır
+        - Blade view'ı `{{ }}` (yazar ve kaçışlar), `@forelse` ve `<x-layouts::app>` gibi layout'larla zenginleşmiş HTML'dir
+        - Middleware: `auth`, giriş yapmamış ziyaretçileri giriş sayfasına gönderir
+    do:
+      en: |
+        1. Create the controller: `php artisan make:controller TaskController`. Artisan is Laravel's command line helper that writes files for you.
+        2. Replace the content of `app/Http/Controllers/TaskController.php` with the first code block. For now the titles are a plain PHP array.
+        3. In `routes/web.php`, add the `use` line and the `tasks` route inside the existing `auth` group (second code block). Routes inside that group need a login.
+        4. Create the folder `resources/views/tasks` and the file `index.blade.php` inside it (third code block).
+        5. Add a "Tasks" link to the sidebar: in `resources/views/layouts/app/sidebar.blade.php`, paste the fourth code block right after the closing `</flux:sidebar.item>` of "Dashboard".
+        6. Replace `resources/views/dashboard.blade.php` with the last code block, so the dashboard links to your page.
+        7. Reload the browser, click *Tasks*. You see three titles. Log out and open http://localhost:8000/tasks: you land on the login page.
+        8. Run `php artisan route:list --except-vendor` to see the routes of your own code.
+      tr: |
+        1. Controller'ı oluştur: `php artisan make:controller TaskController`. Artisan, Laravel'in senin için dosya yazan komut satırı yardımcısıdır.
+        2. `app/Http/Controllers/TaskController.php` içeriğini ilk kod bloğuyla değiştir. Şimdilik başlıklar düz bir PHP array'i.
+        3. `routes/web.php` içinde `use` satırını ve `tasks` route'unu mevcut `auth` grubunun içine ekle (ikinci kod bloğu). Bu gruptaki route'lar giriş ister.
+        4. `resources/views/tasks` klasörünü ve içine `index.blade.php` dosyasını oluştur (üçüncü kod bloğu).
+        5. Sidebar'a "Tasks" linki ekle: `resources/views/layouts/app/sidebar.blade.php` içinde, "Dashboard" öğesinin kapanış `</flux:sidebar.item>` satırından hemen sonra dördüncü kod bloğunu yapıştır.
+        6. `resources/views/dashboard.blade.php` dosyasını son kod bloğuyla değiştir; dashboard senin sayfana link versin.
+        7. Tarayıcıyı yenile, *Tasks*'a tıkla. Üç başlık görürsün. Çıkış yapıp http://localhost:8000/tasks adresini aç: giriş sayfasına düşersin.
+        8. Kendi kodunun route'larını görmek için `php artisan route:list --except-vendor` çalıştır.
+    code:
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Controllers;
+
+          use Illuminate\Contracts\View\View;
+
+          class TaskController extends Controller
+          {
+              public function index(): View
+              {
+                  $titles = ['Buy milk', 'Write code', 'Sleep'];
+
+                  return view('tasks.index', ['titles' => $titles]);
+              }
+          }
+      - file: routes/web.php
+        lang: php
+        text: |
+          <?php
+
+          use App\Http\Controllers\TaskController;
+          use Illuminate\Support\Facades\Route;
+
+          Route::view('/', 'welcome')->name('home');
+
+          Route::middleware(['auth', 'verified'])->group(function () {
+              Route::view('dashboard', 'dashboard')->name('dashboard');
+              Route::get('tasks', [TaskController::class, 'index'])->name('tasks.index');
+          });
+
+          require __DIR__.'/settings.php';
+      - file: resources/views/tasks/index.blade.php
+        lang: html
+        text: |
+          <x-layouts::app :title="__('Tasks')">
+              <div class="mx-auto w-full max-w-2xl space-y-6">
+                  <h1 class="text-2xl font-semibold">{{ __('My tasks') }}</h1>
+
+                  <ul class="space-y-2">
+                      @forelse ($titles as $title)
+                          <li>{{ $title }}</li>
+                      @empty
+                          <li>{{ __('No tasks yet.') }}</li>
+                      @endforelse
+                  </ul>
+              </div>
+          </x-layouts::app>
+      - file: resources/views/layouts/app/sidebar.blade.php
+        lang: html
+        text: |
+          <flux:sidebar.item icon="check-circle" :href="route('tasks.index')" :current="request()->routeIs('tasks.*')" wire:navigate>
+              {{ __('Tasks') }}
+          </flux:sidebar.item>
+      - file: resources/views/dashboard.blade.php
+        lang: html
+        text: |
+          <x-layouts::app :title="__('Dashboard')">
+              <div class="mx-auto w-full max-w-2xl space-y-4">
+                  <h1 class="text-2xl font-semibold">{{ __('Welcome, :name', ['name' => auth()->user()->name]) }}</h1>
+                  <p>
+                      <a href="{{ route('tasks.index') }}" class="underline">{{ __('Go to your tasks') }}</a>
+                  </p>
+              </div>
+          </x-layouts::app>
+    mistakes:
+      - problem:
+          en: "\"Target class [TaskController] does not exist\"."
+          tr: "\"Target class [TaskController] does not exist\" hatası."
+        fix:
+          en: "Add `use App\\Http\\Controllers\\TaskController;` at the top of `routes/web.php`."
+          tr: "`routes/web.php` dosyasının en üstüne `use App\\Http\\Controllers\\TaskController;` ekle."
+      - problem:
+          en: "\"View [tasks.index] not found\"."
+          tr: "\"View [tasks.index] not found\" hatası."
+        fix:
+          en: "`view('tasks.index')` means the file `resources/views/tasks/index.blade.php`. Check the folder name and that the file ends with `.blade.php`."
+          tr: "`view('tasks.index')`, `resources/views/tasks/index.blade.php` dosyası demektir. Klasör adını ve dosyanın `.blade.php` ile bittiğini kontrol et."
+      - problem:
+          en: "Writing a link as `href=\"/tasks\"` by hand."
+          tr: "Linki elle `href=\"/tasks\"` diye yazmak."
+        fix:
+          en: "Use the route name: `route('tasks.index')`. If you change the URL later, every link still works."
+          tr: "Route adını kullan: `route('tasks.index')`. URL'yi sonradan değiştirsen bile bütün linkler çalışmaya devam eder."
+    quiz:
+      - q:
+          en: "What does `{{ $title }}` do in a Blade view?"
+          tr: "Blade view'ında `{{ $title }}` ne yapar?"
+        options:
+          en: ["Prints the value with HTML escaped", "Runs the value as PHP code", "Saves the value to the database"]
+          tr: ["Değeri HTML kaçışlanmış olarak yazar", "Değeri PHP kodu olarak çalıştırır", "Değeri veritabanına kaydeder"]
+        answer: 0
+        why:
+          en: "`{{ }}` escapes special characters, so user text cannot inject HTML or scripts. `{!! !!}` prints raw HTML and is dangerous with user input."
+          tr: "`{{ }}` özel karakterleri kaçışlar; böylece kullanıcı metni HTML ya da script sokamaz. `{!! !!}` ham HTML yazar ve kullanıcı girdisiyle tehlikelidir."
+    sources:
+      - title: Laravel - Routing
+        url: https://laravel.com/framework/docs/13.x/routing
+      - title: Laravel - Controllers
+        url: https://laravel.com/framework/docs/13.x/controllers
+      - title: Laravel - Blade templates
+        url: https://laravel.com/framework/docs/13.x/blade
+
+  - id: database
+    stage: data-api
+    title:
+      en: "A tasks table: migration, model, factory and seeder"
+      tr: "Görev tablosu: migration, model, factory ve seeder"
+    minutes: 50
+    needs: [routes-views]
+    why:
+      en: "Real apps keep data in a database. Laravel describes tables in PHP files called migrations, maps each table to a model class (Eloquent), and can fill the tables with fake data so you always have something to look at."
+      tr: "Gerçek uygulamalar veriyi veritabanında tutar. Laravel tabloları migration denen PHP dosyalarıyla tanımlar, her tabloyu bir model class'ına (Eloquent) bağlar ve tabloları sahte veriyle doldurarak her zaman bakacak bir şey sağlar."
+    learn:
+      en: |
+        - A migration creates or changes a table, so every computer gets the same schema; `php artisan migrate` runs the new ones
+        - A model is a class for one table; `#[Fillable([...])]` lists the columns that `create()` and `update()` may set
+        - A factory builds fake rows; a seeder uses factories to fill the database
+        - `foreignId('user_id')` links each task to its owner
+      tr: |
+        - Migration bir tablo oluşturur ya da değiştirir; böylece her bilgisayarda aynı şema olur; `php artisan migrate` yenilerini çalıştırır
+        - Model, bir tablonun class'ıdır; `#[Fillable([...])]`, `create()` ve `update()`'in doldurabileceği kolonları listeler
+        - Factory sahte satırlar üretir; seeder, veritabanını doldurmak için factory kullanır
+        - `foreignId('user_id')` her görevi sahibine bağlar
+    do:
+      en: |
+        1. Generate the files: `php artisan make:model Task -mf`. `-m` adds a migration and `-f` a factory.
+        2. Open the new file in `database/migrations/` whose name ends with `create_tasks_table.php` (the start of the name is the date) and replace its content with the first code block.
+        3. Replace `app/Models/Task.php`, `database/factories/TaskFactory.php` and `database/seeders/DatabaseSeeder.php` with the next three blocks.
+        4. Update the controller and the view (last two blocks) so the page reads tasks from the database.
+        5. Run `php artisan migrate:fresh --seed`. It drops every table, creates them again and runs the seeder. It also deletes the account you registered; the seeder creates `test@example.com` with the password `password` instead.
+        6. Check the data from the terminal: `php artisan tinker --execute="echo App\Models\Task::count();"` prints `3`.
+        7. Log in as `test@example.com` and open *Tasks*. You see three tasks with random titles.
+      tr: |
+        1. Dosyaları üret: `php artisan make:model Task -mf`. `-m` bir migration, `-f` bir factory ekler.
+        2. `database/migrations/` içinde adı `create_tasks_table.php` ile biten yeni dosyayı aç (adın başı tarihtir) ve içeriğini ilk kod bloğuyla değiştir.
+        3. `app/Models/Task.php`, `database/factories/TaskFactory.php` ve `database/seeders/DatabaseSeeder.php` dosyalarını sonraki üç blokla değiştir.
+        4. Sayfa görevleri veritabanından okusun diye controller'ı ve view'ı (son iki blok) güncelle.
+        5. `php artisan migrate:fresh --seed` çalıştır. Bütün tabloları siler, yeniden oluşturur ve seeder'ı çalıştırır. Kayıt olduğun hesabı da siler; onun yerine seeder `password` parolasıyla `test@example.com` hesabını oluşturur.
+        6. Veriyi terminalden kontrol et: `php artisan tinker --execute="echo App\Models\Task::count();"` komutu `3` yazar.
+        7. `test@example.com` ile giriş yap ve *Tasks*'ı aç. Rastgele başlıklı üç görev görürsün.
+    code:
+      - file: database/migrations/xxxx_xx_xx_xxxxxx_create_tasks_table.php
+        lang: php
+        text: |
+          <?php
+
+          use Illuminate\Database\Migrations\Migration;
+          use Illuminate\Database\Schema\Blueprint;
+          use Illuminate\Support\Facades\Schema;
+
+          return new class extends Migration
+          {
+              public function up(): void
+              {
+                  Schema::create('tasks', function (Blueprint $table) {
+                      $table->id();
+                      $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                      $table->string('title');
+                      $table->text('notes')->nullable();
+                      $table->boolean('done')->default(false);
+                      $table->timestamps();
+                  });
+              }
+
+              public function down(): void
+              {
+                  Schema::dropIfExists('tasks');
+              }
+          };
+      - file: app/Models/Task.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Models;
+
+          use Database\Factories\TaskFactory;
+          use Illuminate\Database\Eloquent\Attributes\Fillable;
+          use Illuminate\Database\Eloquent\Factories\HasFactory;
+          use Illuminate\Database\Eloquent\Model;
+          use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+          #[Fillable(['title', 'notes', 'done'])]
+          class Task extends Model
+          {
+              /** @use HasFactory<TaskFactory> */
+              use HasFactory;
+
+              protected function casts(): array
+              {
+                  return ['done' => 'boolean'];
+              }
+
+              /** @return BelongsTo<User, $this> */
+              public function user(): BelongsTo
+              {
+                  return $this->belongsTo(User::class);
+              }
+          }
+      - file: database/factories/TaskFactory.php
+        lang: php
+        text: |
+          <?php
+
+          namespace Database\Factories;
+
+          use App\Models\User;
+          use Illuminate\Database\Eloquent\Factories\Factory;
+
+          /**
+           * @extends Factory<\App\Models\Task>
+           */
+          class TaskFactory extends Factory
+          {
+              /** @return array<string, mixed> */
+              public function definition(): array
+              {
+                  return [
+                      'user_id' => User::factory(),
+                      'title' => fake()->sentence(3),
+                      'notes' => fake()->optional()->sentence(),
+                      'done' => false,
+                  ];
+              }
+
+              public function done(): static
+              {
+                  return $this->state(['done' => true]);
+              }
+          }
+      - file: database/seeders/DatabaseSeeder.php
+        lang: php
+        text: |
+          <?php
+
+          namespace Database\Seeders;
+
+          use App\Models\Task;
+          use App\Models\User;
+          use Illuminate\Database\Seeder;
+
+          class DatabaseSeeder extends Seeder
+          {
+              public function run(): void
+              {
+                  $user = User::factory()->create([
+                      'name' => 'Test User',
+                      'email' => 'test@example.com',
+                  ]);
+
+                  Task::factory()->count(3)->for($user)->create();
+              }
+          }
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Controllers;
+
+          use App\Models\Task;
+          use Illuminate\Contracts\View\View;
+
+          class TaskController extends Controller
+          {
+              public function index(): View
+              {
+                  $tasks = Task::latest()->get();
+
+                  return view('tasks.index', ['tasks' => $tasks]);
+              }
+          }
+      - file: resources/views/tasks/index.blade.php
+        lang: html
+        text: |
+          <x-layouts::app :title="__('Tasks')">
+              <div class="mx-auto w-full max-w-2xl space-y-6">
+                  <h1 class="text-2xl font-semibold">{{ __('My tasks') }}</h1>
+
+                  <ul class="space-y-2">
+                      @forelse ($tasks as $task)
+                          <li>{{ $task->title }}</li>
+                      @empty
+                          <li>{{ __('No tasks yet.') }}</li>
+                      @endforelse
+                  </ul>
+              </div>
+          </x-layouts::app>
+    mistakes:
+      - problem:
+          en: "Editing a migration that already ran and expecting the table to change."
+          tr: "Zaten çalışmış bir migration'ı düzenleyip tablonun değişmesini beklemek."
+        fix:
+          en: "Laravel runs each migration once. While you learn, `php artisan migrate:fresh --seed` rebuilds everything. On a database with real data, write a new migration instead."
+          tr: "Laravel her migration'ı bir kez çalıştırır. Öğrenirken `php artisan migrate:fresh --seed` her şeyi yeniden kurar. Gerçek veri olan bir veritabanında bunun yerine yeni bir migration yaz."
+      - problem:
+          en: "\"SQLSTATE[HY000]: no such table: tasks\"."
+          tr: "\"SQLSTATE[HY000]: no such table: tasks\" hatası."
+        fix:
+          en: "The migration has not run on this database. Run `php artisan migrate`."
+          tr: "Migration bu veritabanında çalışmamış. `php artisan migrate` çalıştır."
+      - problem:
+          en: "Running `migrate:fresh` on a database with data you care about."
+          tr: "Önemsediğin veri olan bir veritabanında `migrate:fresh` çalıştırmak."
+        fix:
+          en: "It deletes every table. Use it only on your local learning database. This starter kit even blocks destructive commands when `APP_ENV` is `production`."
+          tr: "Bütün tabloları siler. Sadece yerel öğrenme veritabanında kullan. Bu starter kit `APP_ENV` değeri `production` iken yıkıcı komutları zaten engeller."
+    quiz:
+      - q:
+          en: "Why does the `Task` model list `title`, `notes` and `done` in `#[Fillable]`?"
+          tr: "`Task` modeli neden `title`, `notes` ve `done` alanlarını `#[Fillable]` içinde listeler?"
+        options:
+          en: ["To make those columns appear in the database", "To say which columns create() and update() may fill from an array", "To hide the other columns from the page"]
+          tr: ["O kolonların veritabanında görünmesi için", "create() ve update()'in bir array'den hangi kolonları doldurabileceğini söylemek için", "Diğer kolonları sayfadan gizlemek için"]
+        answer: 1
+        why:
+          en: "It is a safety list against mass assignment. Columns that are not listed, like `user_id`, cannot be set by accident from request data."
+          tr: "Toplu atamaya (mass assignment) karşı bir güvenlik listesidir. Listede olmayan kolonlar, örneğin `user_id`, istek verisinden yanlışlıkla ayarlanamaz."
+    sources:
+      - title: Laravel - Migrations
+        url: https://laravel.com/framework/docs/13.x/migrations
+      - title: Laravel - Eloquent ORM
+        url: https://laravel.com/framework/docs/13.x/eloquent
+      - title: Laravel - Database seeding
+        url: https://laravel.com/framework/docs/13.x/seeding
+
+  - id: auth
+    stage: data-api
+    title:
+      en: "Login with the starter kit: each user sees their own tasks"
+      tr: "Starter kit ile giriş: herkes kendi görevlerini görür"
+    minutes: 35
+    needs: [database]
+    why:
+      en: "Your starter kit already has registration, login, logout, password reset and two-factor login. You do not write these. You only need to know how to ask Laravel \"who is logged in?\" and use the answer to show the right data."
+      tr: "Starter kit'inde kayıt, giriş, çıkış, parola sıfırlama ve iki adımlı doğrulama zaten var. Bunları yazmazsın. Sadece Laravel'e \"kim giriş yaptı?\" diye sormayı ve cevabı doğru veriyi göstermek için kullanmayı bilmen yeterli."
+    learn:
+      en: |
+        - Laravel Fortify provides the login routes and logic; the pages live in `resources/views/pages/auth`
+        - The `auth` middleware protects routes; `$request->user()` is the logged-in user
+        - Passwords are stored as hashes, never as text (`'password' => 'hashed'` in the User model)
+        - A relationship (`hasMany`) lets you write `$user->tasks()` to get only that user's tasks
+      tr: |
+        - Laravel Fortify giriş route'larını ve mantığını sağlar; sayfalar `resources/views/pages/auth` içindedir
+        - `auth` middleware route'ları korur; `$request->user()` giriş yapmış kullanıcıdır
+        - Parolalar metin olarak değil, hash olarak saklanır (User modelinde `'password' => 'hashed'`)
+        - İlişki (`hasMany`) sayesinde `$user->tasks()` yazarak sadece o kullanıcının görevlerini alırsın
+    do:
+      en: |
+        1. Add the `tasks()` relationship to `app/Models/User.php` (first code block: the `use` line goes with the other imports, the method goes inside the class).
+        2. Change `index()` in `TaskController` to read from `$request->user()->tasks()` (second block).
+        3. See the login routes the kit gives you: `php artisan route:list --path=login`.
+        4. Log in as `test@example.com` with the password `password`. You see the three seeded tasks.
+        5. Log out (the user menu at the bottom of the sidebar). Register a second account, for example `second@example.com`. Its task list is empty: tasks belong to a user.
+        6. Read `app/Actions/Fortify/CreateNewUser.php` to see how registration validates input, and `config/fortify.php` to see which features are on.
+      tr: |
+        1. `app/Models/User.php` dosyasına `tasks()` ilişkisini ekle (ilk kod bloğu: `use` satırı diğer import'ların yanına, metot class'ın içine gider).
+        2. `TaskController` içindeki `index()` metodunu `$request->user()->tasks()` üzerinden okuyacak şekilde değiştir (ikinci blok).
+        3. Kit'in verdiği giriş route'larını gör: `php artisan route:list --path=login`.
+        4. `test@example.com` ve `password` parolasıyla giriş yap. Seeder'ın oluşturduğu üç görevi görürsün.
+        5. Çıkış yap (sidebar'ın altındaki kullanıcı menüsü). İkinci bir hesap kaydet, örneğin `second@example.com`. Görev listesi boş: görevler bir kullanıcıya aittir.
+        6. Kayıt sırasında girdinin nasıl doğrulandığını görmek için `app/Actions/Fortify/CreateNewUser.php` dosyasını, hangi özelliklerin açık olduğunu görmek için `config/fortify.php` dosyasını oku.
+    code:
+      - file: app/Models/User.php
+        lang: php
+        text: |
+          use Illuminate\Database\Eloquent\Relations\HasMany;
+
+          // inside the User class:
+          /** @return HasMany<Task, $this> */
+          public function tasks(): HasMany
+          {
+              return $this->hasMany(Task::class);
+          }
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Controllers;
+
+          use Illuminate\Contracts\View\View;
+          use Illuminate\Http\Request;
+
+          class TaskController extends Controller
+          {
+              public function index(Request $request): View
+              {
+                  $tasks = $request->user()->tasks()->latest()->get();
+
+                  return view('tasks.index', ['tasks' => $tasks]);
+              }
+          }
+    mistakes:
+      - problem:
+          en: "\"Call to a member function tasks() on null\"."
+          tr: "\"Call to a member function tasks() on null\" hatası."
+        fix:
+          en: "`$request->user()` is `null` when nobody is logged in. Make sure the route is inside the `auth` middleware group."
+          tr: "Kimse giriş yapmamışsa `$request->user()` değeri `null` olur. Route'un `auth` middleware grubunun içinde olduğundan emin ol."
+      - problem:
+          en: "\"Too Many Requests\" (429) after a few wrong passwords."
+          tr: "Birkaç yanlış parolanın ardından \"Too Many Requests\" (429) hatası."
+        fix:
+          en: "That is the login rate limit protecting against password guessing. Wait a minute and try again."
+          tr: "Bu, parola tahminine karşı koruyan giriş hız sınırıdır. Bir dakika bekleyip tekrar dene."
+      - problem:
+          en: "Loading every task with `Task::all()` and filtering in PHP."
+          tr: "Bütün görevleri `Task::all()` ile yükleyip PHP'de süzmek."
+        fix:
+          en: "Ask the database for only what you need: `$request->user()->tasks()`. It is faster and it cannot leak other users' rows."
+          tr: "Veritabanından sadece ihtiyacın olanı iste: `$request->user()->tasks()`. Daha hızlıdır ve başka kullanıcıların satırlarını sızdıramaz."
+    quiz:
+      - q:
+          en: "How are passwords stored in the database?"
+          tr: "Parolalar veritabanında nasıl saklanır?"
+        options:
+          en: ["As plain text so you can email them back", "As hashes: one-way scrambled values", "Encrypted with a key you can use to read them"]
+          tr: ["Düz metin olarak, böylece e-postayla geri yollayabilirsin", "Hash olarak: tek yönlü karıştırılmış değerler", "Okuyabileceğin bir anahtarla şifrelenmiş olarak"]
+        answer: 1
+        why:
+          en: "A hash cannot be turned back into the password. Laravel checks a login by hashing the typed password and comparing hashes."
+          tr: "Hash geri parolaya çevrilemez. Laravel girişi, yazılan parolayı hash'leyip hash'leri karşılaştırarak kontrol eder."
+    sources:
+      - title: Laravel - Starter kits (authentication)
+        url: https://laravel.com/framework/docs/13.x/starter-kits#authentication
+      - title: Laravel - Authentication
+        url: https://laravel.com/framework/docs/13.x/authentication
+      - title: Laravel - Eloquent relationships
+        url: https://laravel.com/framework/docs/13.x/eloquent-relationships
+
+  - id: forms
+    stage: data-api
+    title:
+      en: "Forms and validation: add, finish and delete tasks"
+      tr: "Form ve doğrulama: görev ekleme, tamamlama ve silme"
+    minutes: 60
+    needs: [auth]
+    why:
+      en: "Users must be able to change data. A form sends a request, Laravel checks the input against rules, and on failure it sends the user back with error messages and the text they typed."
+      tr: "Kullanıcılar veriyi değiştirebilmeli. Form bir istek yollar, Laravel girdiyi kurallara göre kontrol eder; hata varsa kullanıcıyı hata mesajları ve yazdığı metinle geri gönderir."
+    learn:
+      en: |
+        - Resource routes: one line creates routes for the usual actions (`Route::resource`)
+        - A form request class holds validation rules; the controller runs only when they pass
+        - `@csrf` adds a hidden token that proves the form came from your site; `@method('PATCH')` fakes PATCH and DELETE, because HTML forms only send GET and POST
+        - `old('title')` refills the field and `@error('title')` shows the message
+      tr: |
+        - Resource route'lar: tek satır olağan işlemler için route'lar oluşturur (`Route::resource`)
+        - Form request class'ı doğrulama kurallarını tutar; controller sadece kurallar geçilirse çalışır
+        - `@csrf`, formun senin sitenden geldiğini kanıtlayan gizli bir token ekler; `@method('PATCH')` PATCH ve DELETE'i taklit eder, çünkü HTML formları sadece GET ve POST yollar
+        - `old('title')` alanı tekrar doldurur, `@error('title')` mesajı gösterir
+    do:
+      en: |
+        1. Create the form request: `php artisan make:request StoreTaskRequest` and replace its content with the first block.
+        2. Replace the routes group in `routes/web.php` with the second block. `->only([...])` keeps just three of the seven resource routes; the extra `toggle` route finishes a task.
+        3. Replace `TaskController` with the third block. `$request->user()->tasks()->create(...)` fills `user_id` for you, so users cannot choose an owner.
+        4. Replace `resources/views/tasks/index.blade.php` with the last block: a form on top, the list below with "Done" and "Delete" buttons.
+        5. Try it: add a task, tick it off, delete it. Add an empty title and see the error message.
+        6. Run `php artisan route:list --except-vendor` and find the new routes.
+      tr: |
+        1. Form request'i oluştur: `php artisan make:request StoreTaskRequest` ve içeriğini ilk blokla değiştir.
+        2. `routes/web.php` içindeki route grubunu ikinci blokla değiştir. `->only([...])` yedi resource route'undan sadece üçünü tutar; ekstra `toggle` route'u bir görevi tamamlar.
+        3. `TaskController`'ı üçüncü blokla değiştir. `$request->user()->tasks()->create(...)` `user_id`'yi senin için doldurur; böylece kullanıcılar sahip seçemez.
+        4. `resources/views/tasks/index.blade.php` dosyasını son blokla değiştir: üstte bir form, altında "Done" ve "Delete" butonlu liste.
+        5. Dene: görev ekle, tamamla, sil. Boş başlık ekleyip hata mesajını gör.
+        6. `php artisan route:list --except-vendor` çalıştır ve yeni route'ları bul.
+    code:
+      - file: app/Http/Requests/StoreTaskRequest.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Requests;
+
+          use Illuminate\Contracts\Validation\ValidationRule;
+          use Illuminate\Foundation\Http\FormRequest;
+
+          class StoreTaskRequest extends FormRequest
+          {
+              public function authorize(): bool
+              {
+                  return true;
+              }
+
+              /** @return array<string, ValidationRule|array<mixed>|string> */
+              public function rules(): array
+              {
+                  return [
+                      'title' => ['required', 'string', 'max:255'],
+                      'notes' => ['nullable', 'string', 'max:2000'],
+                  ];
+              }
+          }
+      - file: routes/web.php
+        lang: php
+        text: |
+          Route::middleware(['auth', 'verified'])->group(function () {
+              Route::view('dashboard', 'dashboard')->name('dashboard');
+              Route::patch('tasks/{task}/toggle', [TaskController::class, 'toggle'])->name('tasks.toggle');
+              Route::resource('tasks', TaskController::class)->only(['index', 'store', 'destroy']);
+          });
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Controllers;
+
+          use App\Http\Requests\StoreTaskRequest;
+          use App\Models\Task;
+          use Illuminate\Contracts\View\View;
+          use Illuminate\Http\RedirectResponse;
+          use Illuminate\Http\Request;
+
+          class TaskController extends Controller
+          {
+              public function index(Request $request): View
+              {
+                  $tasks = $request->user()->tasks()->latest()->get();
+
+                  return view('tasks.index', ['tasks' => $tasks]);
+              }
+
+              public function store(StoreTaskRequest $request): RedirectResponse
+              {
+                  $request->user()->tasks()->create($request->validated());
+
+                  return redirect()->route('tasks.index')->with('status', __('Task added.'));
+              }
+
+              public function toggle(Request $request, Task $task): RedirectResponse
+              {
+                  abort_unless($task->user_id === $request->user()->id, 403);
+
+                  $task->update(['done' => ! $task->done]);
+
+                  return redirect()->route('tasks.index');
+              }
+
+              public function destroy(Request $request, Task $task): RedirectResponse
+              {
+                  abort_unless($task->user_id === $request->user()->id, 403);
+
+                  $task->delete();
+
+                  return redirect()->route('tasks.index')->with('status', __('Task deleted.'));
+              }
+          }
+      - file: resources/views/tasks/index.blade.php
+        lang: html
+        text: |
+          <x-layouts::app :title="__('Tasks')">
+              <div class="mx-auto w-full max-w-2xl space-y-6">
+                  <h1 class="text-2xl font-semibold">{{ __('My tasks') }}</h1>
+
+                  @if (session('status'))
+                      <p class="rounded bg-green-100 p-3 text-green-900">{{ session('status') }}</p>
+                  @endif
+
+                  <form method="POST" action="{{ route('tasks.store') }}" class="space-y-3">
+                      @csrf
+
+                      <input name="title" value="{{ old('title') }}" placeholder="{{ __('What needs doing?') }}"
+                             class="w-full rounded border border-zinc-400 p-2 dark:bg-zinc-900">
+                      @error('title') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
+
+                      <textarea name="notes" rows="2" placeholder="{{ __('Notes (optional)') }}"
+                                class="w-full rounded border border-zinc-400 p-2 dark:bg-zinc-900">{{ old('notes') }}</textarea>
+                      @error('notes') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
+
+                      <button class="rounded bg-zinc-900 px-4 py-2 text-white dark:bg-white dark:text-zinc-900">{{ __('Add task') }}</button>
+                  </form>
+
+                  <ul class="divide-y divide-zinc-300 dark:divide-zinc-700">
+                      @forelse ($tasks as $task)
+                          <li class="flex items-center justify-between gap-3 py-3">
+                              <p class="{{ $task->done ? 'text-zinc-500 line-through' : '' }}">{{ $task->title }}</p>
+
+                              <div class="flex gap-2">
+                                  <form method="POST" action="{{ route('tasks.toggle', $task) }}">
+                                      @csrf
+                                      @method('PATCH')
+                                      <button class="underline">{{ $task->done ? __('Reopen') : __('Done') }}</button>
+                                  </form>
+                                  <form method="POST" action="{{ route('tasks.destroy', $task) }}">
+                                      @csrf
+                                      @method('DELETE')
+                                      <button class="text-red-500 underline">{{ __('Delete') }}</button>
+                                  </form>
+                              </div>
+                          </li>
+                      @empty
+                          <li class="py-3">{{ __('No tasks yet.') }}</li>
+                      @endforelse
+                  </ul>
+              </div>
+          </x-layouts::app>
+    mistakes:
+      - problem:
+          en: "\"419 Page Expired\" when you submit a form."
+          tr: "Form gönderince \"419 Page Expired\" hatası."
+        fix:
+          en: "The form has no `@csrf` line (or the page was open for hours and the session ended). Add `@csrf` right after the `<form>` tag and reload."
+          tr: "Formda `@csrf` satırı yok (ya da sayfa saatlerce açık kaldı ve oturum bitti). `<form>` etiketinden hemen sonra `@csrf` ekle ve sayfayı yenile."
+      - problem:
+          en: "\"The DELETE method is not supported for route tasks/1. Supported methods: GET, HEAD.\" (or PATCH)"
+          tr: "\"The DELETE method is not supported for route tasks/1. Supported methods: GET, HEAD.\" (ya da PATCH)"
+        fix:
+          en: "An HTML form can only send GET or POST. Keep `method=\"POST\"` and add `@method('DELETE')` (or `@method('PATCH')`) inside the form."
+          tr: "HTML formu sadece GET ya da POST gönderebilir. `method=\"POST\"` kalsın ve form içine `@method('DELETE')` (ya da `@method('PATCH')`) ekle."
+      - problem:
+          en: "\"NOT NULL constraint failed: tasks.user_id\" when you write `Task::create(['user_id' => ..., ...])` - and you are tempted to add `user_id` to fillable."
+          tr: "`Task::create(['user_id' => ..., ...])` yazınca \"NOT NULL constraint failed: tasks.user_id\" hatası - ve `user_id`'yi fillable'a ekleme isteği."
+        fix:
+          en: "Do not add it. Create through the relationship (`$request->user()->tasks()->create(...)`), which sets `user_id` safely. Making `user_id` fillable lets a request choose the owner."
+          tr: "Ekleme. İlişki üzerinden oluştur (`$request->user()->tasks()->create(...)`); `user_id`'yi güvenli şekilde o ayarlar. `user_id`'yi fillable yapmak isteğin sahibi seçmesine izin verir."
+    quiz:
+      - q:
+          en: "A required field is empty and the form is submitted. What does Laravel do?"
+          tr: "Zorunlu bir alan boş ve form gönderildi. Laravel ne yapar?"
+        options:
+          en: ["Saves the task anyway", "Redirects back with the error messages and the old input", "Shows a blank white page"]
+          tr: ["Görevi yine de kaydeder", "Hata mesajları ve eski girdiyle geri yönlendirir", "Boş beyaz bir sayfa gösterir"]
+        answer: 1
+        why:
+          en: "When validation fails the controller never runs. Laravel redirects back, so `@error` and `old()` can show the messages and the typed text."
+          tr: "Doğrulama başarısız olursa controller hiç çalışmaz. Laravel geri yönlendirir; böylece `@error` ve `old()` mesajları ve yazılan metni gösterebilir."
+    sources:
+      - title: Laravel - Validation
+        url: https://laravel.com/framework/docs/13.x/validation
+      - title: Laravel - Resource controllers
+        url: https://laravel.com/framework/docs/13.x/controllers#resource-controllers
+      - title: Laravel - CSRF protection
+        url: https://laravel.com/framework/docs/13.x/csrf
+
+  - id: testing
+    stage: testing
+    title:
+      en: "Write feature tests with Pest"
+      tr: "Pest ile feature test yazma"
+    minutes: 45
+    needs: [forms]
+    why:
+      en: "A test is code that uses your app the way a user does and checks the result. When you change something next month, the tests tell you in seconds whether you broke the add, finish and delete features."
+      tr: "Test, uygulamanı bir kullanıcı gibi kullanan ve sonucu kontrol eden koddur. Gelecek ay bir şeyi değiştirdiğinde testler, ekleme, tamamlama ve silme özelliklerini bozup bozmadığını saniyeler içinde söyler."
+    learn:
+      en: |
+        - The installer set up **Pest** because of the `--pest` flag (with `--phpunit` you get PHPUnit instead; the checks are the same, the style differs)
+        - A feature test sends a fake HTTP request through the whole app; `actingAs($user)` logs a user in
+        - Tests run on a temporary in-memory SQLite database (see `phpunit.xml`), so they never touch your real data
+        - Factories (`User::factory()->create()`) make test data in one line
+      tr: |
+        - Installer, `--pest` bayrağı yüzünden **Pest**'i kurdu (`--phpunit` ile PHPUnit gelir; kontroller aynı, yazım stili farklıdır)
+        - Feature test, bütün uygulamadan geçen sahte bir HTTP isteği yollar; `actingAs($user)` bir kullanıcıyı giriş yaptırır
+        - Testler geçici, bellekte çalışan bir SQLite veritabanında koşar (`phpunit.xml`'e bak); gerçek verine hiç dokunmaz
+        - Factory'ler (`User::factory()->create()`) test verisini tek satırda üretir
+    do:
+      en: |
+        1. Run the tests that came with the starter kit: `php artisan test`. They pass; a few are skipped because we switched email verification off.
+        2. Create your test file: `php artisan make:test TaskTest --pest`. Replace its content with the code below.
+        3. Run only your file: `php artisan test tests/Feature/TaskTest.php`. Every line should show a check mark.
+        4. Break something on purpose: in `StoreTaskRequest`, change `'required'` to `'nullable'` in the title rule. Run the tests: "a task needs a title" fails and shows why. Undo the change.
+        5. Format your code with the official style tool: `vendor/bin/pint`.
+      tr: |
+        1. Starter kit'le gelen testleri çalıştır: `php artisan test`. Geçerler; e-posta doğrulamasını kapattığımız için birkaçı atlanır (skipped).
+        2. Test dosyanı oluştur: `php artisan make:test TaskTest --pest`. İçeriğini aşağıdaki kodla değiştir.
+        3. Sadece kendi dosyanı çalıştır: `php artisan test tests/Feature/TaskTest.php`. Her satırda bir onay işareti görmelisin.
+        4. Bilerek bir şeyi boz: `StoreTaskRequest` içinde title kuralındaki `'required'` değerini `'nullable'` yap. Testleri çalıştır: "a task needs a title" başarısız olur ve nedenini gösterir. Değişikliği geri al.
+        5. Kodunu resmî stil aracıyla biçimlendir: `vendor/bin/pint`.
+    code:
+      - file: tests/Feature/TaskTest.php
+        lang: php
+        text: |
+          <?php
+
+          use App\Models\Task;
+          use App\Models\User;
+
+          test('guests are sent to the login page', function () {
+              $this->get(route('tasks.index'))->assertRedirect(route('login'));
+          });
+
+          test('a user sees only their own tasks', function () {
+              $me = User::factory()->create();
+              Task::factory()->for($me)->create(['title' => 'My task']);
+              Task::factory()->create(['title' => 'Somebody else task']);
+
+              $this->actingAs($me)
+                  ->get(route('tasks.index'))
+                  ->assertOk()
+                  ->assertSee('My task')
+                  ->assertDontSee('Somebody else task');
+          });
+
+          test('a user can add a task', function () {
+              $me = User::factory()->create();
+
+              $this->actingAs($me)
+                  ->post(route('tasks.store'), ['title' => 'Write tests'])
+                  ->assertRedirect(route('tasks.index'));
+
+              $this->assertDatabaseHas('tasks', ['title' => 'Write tests', 'user_id' => $me->id]);
+          });
+
+          test('a task needs a title', function () {
+              $this->actingAs(User::factory()->create())
+                  ->post(route('tasks.store'), ['title' => ''])
+                  ->assertSessionHasErrors('title');
+
+              expect(Task::count())->toBe(0);
+          });
+
+          test('a user can finish and delete their task', function () {
+              $me = User::factory()->create();
+              $task = Task::factory()->for($me)->create();
+
+              $this->actingAs($me)->patch(route('tasks.toggle', $task))->assertRedirect();
+              expect($task->fresh()->done)->toBeTrue();
+
+              $this->actingAs($me)->delete(route('tasks.destroy', $task))->assertRedirect();
+              $this->assertModelMissing($task);
+          });
+    mistakes:
+      - problem:
+          en: "A test fails with \"Vite manifest not found\"."
+          tr: "Bir test \"Vite manifest not found\" ile başarısız oluyor."
+        fix:
+          en: "Pages that include CSS and JavaScript need the built files. Run `npm run build` once (or keep `composer run dev` running) and run the tests again."
+          tr: "CSS ve JavaScript içeren sayfalar derlenmiş dosyalara ihtiyaç duyar. Bir kez `npm run build` çalıştır (ya da `composer run dev`'i açık tut) ve testleri tekrar çalıştır."
+      - problem:
+          en: "Testing with your real database or real accounts."
+          tr: "Testleri gerçek veritabanı ya da gerçek hesaplarla yapmak."
+        fix:
+          en: "Never. Create users with `User::factory()->create()` inside the test. `RefreshDatabase` (set for the `Feature` folder in `tests/Pest.php`) gives each test a clean database."
+          tr: "Asla. Test içinde `User::factory()->create()` ile kullanıcı oluştur. `RefreshDatabase` (`tests/Pest.php` içinde `Feature` klasörü için ayarlı) her teste temiz bir veritabanı verir."
+      - problem:
+          en: "Writing a test that always passes, because it checks nothing."
+          tr: "Hiçbir şeyi kontrol etmediği için hep geçen bir test yazmak."
+        fix:
+          en: "Break the feature on purpose once (like step 4) and see the test fail. A test you have never seen fail may be useless."
+          tr: "Özelliği bir kez bilerek boz (4. adımdaki gibi) ve testin başarısız olduğunu gör. Hiç başarısız olduğunu görmediğin test işe yaramıyor olabilir."
+    quiz:
+      - q:
+          en: "What does `$this->actingAs($user)` do in a test?"
+          tr: "Bir testte `$this->actingAs($user)` ne yapar?"
+        options:
+          en: ["Creates the user in the database", "Makes the next requests as that logged-in user", "Deletes the user after the test"]
+          tr: ["Kullanıcıyı veritabanında oluşturur", "Sonraki istekleri o giriş yapmış kullanıcı olarak yapar", "Test sonrası kullanıcıyı siler"]
+        answer: 1
+        why:
+          en: "It skips the login form and marks the user as logged in for the fake request. The factory call before it is what creates the user."
+          tr: "Giriş formunu atlar ve sahte istek için kullanıcıyı giriş yapmış sayar. Kullanıcıyı oluşturan, ondan önceki factory çağrısıdır."
+    sources:
+      - title: Laravel - Testing
+        url: https://laravel.com/framework/docs/13.x/testing
+      - title: Laravel - HTTP tests
+        url: https://laravel.com/framework/docs/13.x/http-tests
+      - title: Pest - Documentation
+        url: https://pestphp.com/docs/writing-tests
+
+  - id: security
+    stage: security
+    title:
+      en: "Security: CSRF, mass assignment and policies"
+      tr: "Güvenlik: CSRF, mass assignment ve policy'ler"
+    minutes: 45
+    needs: [testing]
+    why:
+      en: "Right now any logged-in user can finish or delete somebody else's task if they guess its id. Moving the ownership check into a policy closes that hole in one place and makes it testable."
+      tr: "Şu anda giriş yapmış herhangi bir kullanıcı, id'sini tahmin ederse başkasının görevini tamamlayabilir ya da silebilir. Sahiplik kontrolünü bir policy'ye taşımak bu açığı tek yerde kapatır ve test edilebilir yapar."
+    learn:
+      en: |
+        - CSRF: another site must not be able to submit a form to yours with the visitor's cookies. Laravel 13 checks a token and the request origin (`PreventRequestForgery`); you only need `@csrf` in every form
+        - Mass assignment: only columns in `#[Fillable]` can be set from an array; never put `user_id` or `is_admin` there
+        - A policy is a class with one method per action (`update`, `delete`) that answers "may this user do this to this model?"
+        - `#[Authorize('update', 'task')]` on a controller method runs the policy before the method body; a refusal is a 403
+      tr: |
+        - CSRF: başka bir site, ziyaretçinin cookie'leriyle senin sitene form gönderememeli. Laravel 13 bir token'ı ve isteğin kaynağını (origin) kontrol eder (`PreventRequestForgery`); senin tek yapacağın her forma `@csrf` koymak
+        - Mass assignment: sadece `#[Fillable]` içindeki kolonlar bir array'den doldurulabilir; oraya asla `user_id` ya da `is_admin` koyma
+        - Policy, her işlem için bir metodu olan (`update`, `delete`) ve "bu kullanıcı bu modele bunu yapabilir mi?" sorusunu cevaplayan bir class'tır
+        - Controller metodundaki `#[Authorize('update', 'task')]`, metodun gövdesinden önce policy'yi çalıştırır; ret cevabı 403'tür
+    do:
+      en: |
+        1. Create the policy: `php artisan make:policy TaskPolicy --model=Task`. Replace its content with the first block. Laravel finds `App\Policies\TaskPolicy` for `App\Models\Task` by itself.
+        2. Replace `TaskController` with the second block. The two `abort_unless` lines are gone; the `#[Authorize]` attributes do the job. (They exist since Laravel 13; in older versions you call `Gate::authorize()` inside the method.)
+        3. In `StoreTaskRequest`, make `authorize()` ask the policy (third block, with its new `use` line).
+        4. Add the two tests of the last block to `tests/Feature/TaskTest.php` (they need the `use` lines already at the top of the file) and run `php artisan test tests/Feature/TaskTest.php`.
+        5. Check by hand: open the browser dev tools on the tasks page, change the `action` of a form to a task id that belongs to the first user while you are logged in as the second user, and submit. You get a 403 page.
+        6. Review your page for `{!! ... !!}`: you used none, so every value is escaped. Keep it that way.
+      tr: |
+        1. Policy'yi oluştur: `php artisan make:policy TaskPolicy --model=Task`. İçeriğini ilk blokla değiştir. Laravel `App\Models\Task` için `App\Policies\TaskPolicy` class'ını kendisi bulur.
+        2. `TaskController`'ı ikinci blokla değiştir. İki `abort_unless` satırı gitti; işi `#[Authorize]` attribute'ları yapıyor. (Laravel 13'ten beri varlar; eski sürümlerde metodun içinde `Gate::authorize()` çağırırsın.)
+        3. `StoreTaskRequest` içinde `authorize()` metodu policy'ye sorsun (üçüncü blok, yeni `use` satırıyla).
+        4. Son bloktaki iki testi `tests/Feature/TaskTest.php` dosyasına ekle (dosyanın başındaki `use` satırlarına ihtiyaçları var) ve `php artisan test tests/Feature/TaskTest.php` çalıştır.
+        5. Elle kontrol et: görevler sayfasında tarayıcının geliştirici araçlarını aç; ikinci kullanıcıyla giriş yapmışken bir formun `action` değerini birinci kullanıcıya ait bir görev id'siyle değiştir ve gönder. 403 sayfası alırsın.
+        6. Sayfanda `{!! ... !!}` var mı diye bak: hiç kullanmadın, yani her değer kaçışlanıyor. Böyle kalsın.
+    code:
+      - file: app/Policies/TaskPolicy.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Policies;
+
+          use App\Models\Task;
+          use App\Models\User;
+
+          class TaskPolicy
+          {
+              public function create(User $user): bool
+              {
+                  return true;
+              }
+
+              public function update(User $user, Task $task): bool
+              {
+                  return $task->user_id === $user->id;
+              }
+
+              public function delete(User $user, Task $task): bool
+              {
+                  return $task->user_id === $user->id;
+              }
+          }
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Controllers;
+
+          use App\Http\Requests\StoreTaskRequest;
+          use App\Models\Task;
+          use Illuminate\Contracts\View\View;
+          use Illuminate\Http\RedirectResponse;
+          use Illuminate\Http\Request;
+          use Illuminate\Routing\Attributes\Controllers\Authorize;
+
+          class TaskController extends Controller
+          {
+              public function index(Request $request): View
+              {
+                  $tasks = $request->user()->tasks()->latest()->get();
+
+                  return view('tasks.index', ['tasks' => $tasks]);
+              }
+
+              public function store(StoreTaskRequest $request): RedirectResponse
+              {
+                  $request->user()->tasks()->create($request->validated());
+
+                  return redirect()->route('tasks.index')->with('status', __('Task added.'));
+              }
+
+              #[Authorize('update', 'task')]
+              public function toggle(Task $task): RedirectResponse
+              {
+                  $task->update(['done' => ! $task->done]);
+
+                  return redirect()->route('tasks.index');
+              }
+
+              #[Authorize('delete', 'task')]
+              public function destroy(Task $task): RedirectResponse
+              {
+                  $task->delete();
+
+                  return redirect()->route('tasks.index')->with('status', __('Task deleted.'));
+              }
+          }
+      - file: app/Http/Requests/StoreTaskRequest.php
+        lang: php
+        text: |
+          use App\Models\Task;
+
+          // inside the class:
+          public function authorize(): bool
+          {
+              return $this->user()->can('create', Task::class);
+          }
+      - file: tests/Feature/TaskTest.php
+        lang: php
+        text: |
+          test('mass assignment cannot choose the owner', function () {
+              $me = User::factory()->create();
+              $other = User::factory()->create();
+
+              $this->actingAs($me)->post(route('tasks.store'), ['title' => 'Mine', 'user_id' => $other->id]);
+
+              expect(Task::firstOrFail()->user_id)->toBe($me->id);
+          });
+
+          test('a user cannot touch the task of somebody else', function () {
+              $task = Task::factory()->create();
+              $intruder = User::factory()->create();
+
+              $this->actingAs($intruder)->patch(route('tasks.toggle', $task))->assertForbidden();
+              $this->actingAs($intruder)->delete(route('tasks.destroy', $task))->assertForbidden();
+
+              $this->assertModelExists($task);
+          });
+    mistakes:
+      - problem:
+          en: "Checking permissions only in the view (hiding the Delete button) and not on the server."
+          tr: "Yetkiyi sadece view'da kontrol etmek (Delete butonunu gizlemek), sunucuda etmemek."
+        fix:
+          en: "Hiding a button is not security; anyone can send the request by hand. Always check on the server, in a policy."
+          tr: "Butonu gizlemek güvenlik değildir; herkes isteği elle gönderebilir. Her zaman sunucuda, bir policy içinde kontrol et."
+      - problem:
+          en: "A policy method always returns 403, even for the owner."
+          tr: "Policy metodu sahibi için bile hep 403 döndürüyor."
+        fix:
+          en: "Check the types: `user_id` and `$user->id` must have the same type, and the second argument of `#[Authorize('update', 'task')]` must equal the route parameter name (`{task}`)."
+          tr: "Tipleri kontrol et: `user_id` ile `$user->id` aynı tipte olmalı ve `#[Authorize('update', 'task')]` içindeki ikinci argüman route parametresinin adına (`{task}`) eşit olmalı."
+      - problem:
+          en: "Adding `'user_id'` or `'is_admin'` to `#[Fillable]` to \"make it work\"."
+          tr: "\"Çalışsın diye\" `#[Fillable]` içine `'user_id'` ya da `'is_admin'` eklemek."
+        fix:
+          en: "Set those fields in code (through a relationship or a plain assignment). If a request can fill them, a user can make themselves an admin or take over somebody's data."
+          tr: "Bu alanları kodda ayarla (ilişki üzerinden ya da düz atamayla). Bir istek onları doldurabiliyorsa kullanıcı kendini admin yapabilir ya da birinin verisini ele geçirebilir."
+    quiz:
+      - q:
+          en: "Where must an ownership check like \"is this your task?\" live?"
+          tr: "\"Bu senin görevin mi?\" gibi bir sahiplik kontrolü nerede olmalı?"
+        options:
+          en: ["Only in the Blade view", "On the server, for example in a policy", "In the browser with JavaScript"]
+          tr: ["Sadece Blade view'ında", "Sunucuda, örneğin bir policy içinde", "Tarayıcıda JavaScript ile"]
+        answer: 1
+        why:
+          en: "Everything in the browser can be changed by the user. Only server code decides what is allowed."
+          tr: "Tarayıcıdaki her şeyi kullanıcı değiştirebilir. Neye izin verildiğine sadece sunucu kodu karar verir."
+    sources:
+      - title: Laravel - Authorization (policies)
+        url: https://laravel.com/framework/docs/13.x/authorization#creating-policies
+      - title: Laravel - Mass assignment
+        url: https://laravel.com/framework/docs/13.x/eloquent#mass-assignment
+      - title: Laravel - CSRF protection
+        url: https://laravel.com/framework/docs/13.x/csrf
+
+  - id: eager-loading
+    stage: performance
+    title:
+      en: "Categories and the N+1 problem: eager loading"
+      tr: "Kategoriler ve N+1 problemi: eager loading"
+    minutes: 50
+    needs: [security]
+    why:
+      en: "Showing a related row for each item in a list can quietly turn one database query into hundreds. Laravel can warn you about it while you develop, and one method call fixes it."
+      tr: "Bir listedeki her öğe için ilişkili bir satır göstermek, tek bir veritabanı sorgusunu fark ettirmeden yüzlerce sorguya çevirebilir. Laravel geliştirirken seni bu konuda uyarabilir ve tek bir metot çağrısı sorunu çözer."
+    learn:
+      en: |
+        - The N+1 problem: 1 query for the list plus 1 more query for each row's relation
+        - Eager loading: `->with('category')` loads all relations in one extra query
+        - `Model::preventLazyLoading()` throws an error in development when you forget
+        - A `belongsTo` / `hasMany` pair: a task belongs to a category, a category has many tasks
+      tr: |
+        - N+1 problemi: liste için 1 sorgu, her satırın ilişkisi için ayrıca 1 sorgu
+        - Eager loading: `->with('category')` bütün ilişkileri tek bir ekstra sorguyla yükler
+        - `Model::preventLazyLoading()` unuttuğunda geliştirme ortamında hata fırlatır
+        - Bir `belongsTo` / `hasMany` çifti: görev bir kategoriye aittir, kategorinin çok görevi vardır
+    do:
+      en: |
+        1. Generate the files: `php artisan make:model Category -mf` and `php artisan make:migration add_category_id_to_tasks_table --table=tasks`.
+        2. Fill the two new migrations (first two blocks), the `Category` model and its factory (next two blocks) and update `Task` (fifth block: a nullable `category_id`, fillable, and a `category()` relation).
+        3. Replace `DatabaseSeeder` with the sixth block and run `php artisan migrate:fresh --seed` (log in again as `test@example.com`, password `password`).
+        4. Turn on the safety net: in `app/Providers/AppServiceProvider.php`, inside `configureDefaults()` add the line from the seventh block, with its `use` line.
+        5. In `StoreTaskRequest::rules()` add the `category_id` rule (seventh block).
+        6. Show the category: in the view add the `<select>` inside the form and the category name under each title (eighth block). In `TaskController::index()` pass `'categories' => Category::orderBy('name')->get()` to the view, but do NOT add `with('category')` yet.
+        7. Reload /tasks. You get the error "Attempted to lazy load [category] on model [App\Models\Task] but lazy loading is disabled". That is the N+1 problem caught early.
+        8. Fix it with `->with('category')` in the controller (last block). Reload: it works.
+      tr: |
+        1. Dosyaları üret: `php artisan make:model Category -mf` ve `php artisan make:migration add_category_id_to_tasks_table --table=tasks`.
+        2. İki yeni migration'ı (ilk iki blok), `Category` modelini ve factory'sini (sonraki iki blok) doldur, `Task`'ı güncelle (beşinci blok: null olabilen bir `category_id`, fillable ve bir `category()` ilişkisi).
+        3. `DatabaseSeeder`'ı altıncı blokla değiştir ve `php artisan migrate:fresh --seed` çalıştır (`test@example.com` ve `password` ile tekrar giriş yap).
+        4. Güvenlik ağını aç: `app/Providers/AppServiceProvider.php` içinde `configureDefaults()` metoduna yedinci bloktaki satırı, `use` satırıyla birlikte ekle.
+        5. `StoreTaskRequest::rules()` içine `category_id` kuralını ekle (yedinci blok).
+        6. Kategoriyi göster: view'da formun içine `<select>` ekle ve her başlığın altına kategori adını yaz (sekizinci blok). `TaskController::index()` içinde view'a `'categories' => Category::orderBy('name')->get()` gönder, ama `with('category')`'yi henüz EKLEME.
+        7. /tasks sayfasını yenile. "Attempted to lazy load [category] on model [App\Models\Task] but lazy loading is disabled" hatasını alırsın. N+1 problemi erken yakalandı.
+        8. Controller'da `->with('category')` ile düzelt (son blok). Yenile: çalışır.
+    code:
+      - file: database/migrations/xxxx_xx_xx_xxxxxx_create_categories_table.php
+        lang: php
+        text: |
+          <?php
+
+          use Illuminate\Database\Migrations\Migration;
+          use Illuminate\Database\Schema\Blueprint;
+          use Illuminate\Support\Facades\Schema;
+
+          return new class extends Migration
+          {
+              public function up(): void
+              {
+                  Schema::create('categories', function (Blueprint $table) {
+                      $table->id();
+                      $table->string('name')->unique();
+                      $table->timestamps();
+                  });
+              }
+
+              public function down(): void
+              {
+                  Schema::dropIfExists('categories');
+              }
+          };
+      - file: database/migrations/xxxx_xx_xx_xxxxxx_add_category_id_to_tasks_table.php
+        lang: php
+        text: |
+          <?php
+
+          use Illuminate\Database\Migrations\Migration;
+          use Illuminate\Database\Schema\Blueprint;
+          use Illuminate\Support\Facades\Schema;
+
+          return new class extends Migration
+          {
+              public function up(): void
+              {
+                  Schema::table('tasks', function (Blueprint $table) {
+                      $table->foreignId('category_id')->nullable()->constrained()->nullOnDelete();
+                  });
+              }
+
+              public function down(): void
+              {
+                  Schema::table('tasks', function (Blueprint $table) {
+                      $table->dropConstrainedForeignId('category_id');
+                  });
+              }
+          };
+      - file: app/Models/Category.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Models;
+
+          use Database\Factories\CategoryFactory;
+          use Illuminate\Database\Eloquent\Attributes\Fillable;
+          use Illuminate\Database\Eloquent\Factories\HasFactory;
+          use Illuminate\Database\Eloquent\Model;
+          use Illuminate\Database\Eloquent\Relations\HasMany;
+
+          #[Fillable(['name'])]
+          class Category extends Model
+          {
+              /** @use HasFactory<CategoryFactory> */
+              use HasFactory;
+
+              /** @return HasMany<Task, $this> */
+              public function tasks(): HasMany
+              {
+                  return $this->hasMany(Task::class);
+              }
+          }
+      - file: database/factories/CategoryFactory.php
+        lang: php
+        text: |
+          <?php
+
+          namespace Database\Factories;
+
+          use App\Models\Category;
+          use Illuminate\Database\Eloquent\Factories\Factory;
+
+          /**
+           * @extends Factory<Category>
+           */
+          class CategoryFactory extends Factory
+          {
+              /** @return array<string, mixed> */
+              public function definition(): array
+              {
+                  return ['name' => fake()->unique()->word()];
+              }
+          }
+      - file: app/Models/Task.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Models;
+
+          use Database\Factories\TaskFactory;
+          use Illuminate\Database\Eloquent\Attributes\Fillable;
+          use Illuminate\Database\Eloquent\Factories\HasFactory;
+          use Illuminate\Database\Eloquent\Model;
+          use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+          #[Fillable(['title', 'notes', 'done', 'category_id'])]
+          class Task extends Model
+          {
+              /** @use HasFactory<TaskFactory> */
+              use HasFactory;
+
+              protected function casts(): array
+              {
+                  return ['done' => 'boolean'];
+              }
+
+              /** @return BelongsTo<User, $this> */
+              public function user(): BelongsTo
+              {
+                  return $this->belongsTo(User::class);
+              }
+
+              /** @return BelongsTo<Category, $this> */
+              public function category(): BelongsTo
+              {
+                  return $this->belongsTo(Category::class);
+              }
+          }
+      - file: database/seeders/DatabaseSeeder.php
+        lang: php
+        text: |
+          <?php
+
+          namespace Database\Seeders;
+
+          use App\Models\Category;
+          use App\Models\Task;
+          use App\Models\User;
+          use Illuminate\Database\Seeder;
+
+          class DatabaseSeeder extends Seeder
+          {
+              public function run(): void
+              {
+                  $categories = collect(['Home', 'Work', 'Study'])
+                      ->map(fn (string $name) => Category::firstOrCreate(['name' => $name]));
+
+                  $user = User::factory()->create([
+                      'name' => 'Test User',
+                      'email' => 'test@example.com',
+                  ]);
+
+                  Task::factory()
+                      ->count(3)
+                      ->for($user)
+                      ->sequence(fn ($sequence) => ['category_id' => $categories[$sequence->index % 3]->id])
+                      ->create();
+              }
+          }
+      - file: app/Providers/AppServiceProvider.php
+        lang: php
+        text: |
+          use Illuminate\Database\Eloquent\Model;
+
+          // inside configureDefaults(), after Date::use(...):
+          Model::preventLazyLoading(! app()->isProduction());
+
+          // app/Http/Requests/StoreTaskRequest.php, in rules():
+          'category_id' => ['nullable', 'exists:categories,id'],
+      - file: resources/views/tasks/index.blade.php
+        lang: html
+        text: |
+          {{-- inside the form, before the button --}}
+          <select name="category_id" class="w-full rounded border border-zinc-400 p-2 dark:bg-zinc-900">
+              <option value="">{{ __('No category') }}</option>
+              @foreach ($categories as $category)
+                  <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>{{ $category->name }}</option>
+              @endforeach
+          </select>
+          @error('category_id') <p class="text-sm text-red-500">{{ $message }}</p> @enderror
+
+          {{-- in the list, replace the <p> that shows the title --}}
+          <div>
+              <p class="{{ $task->done ? 'text-zinc-500 line-through' : '' }}">{{ $task->title }}</p>
+              @if ($task->category)
+                  <p class="text-sm text-zinc-500">{{ $task->category->name }}</p>
+              @endif
+          </div>
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          // add: use App\Models\Category;
+          public function index(Request $request): View
+          {
+              $tasks = $request->user()->tasks()->with('category')->latest()->get();
+
+              return view('tasks.index', [
+                  'tasks' => $tasks,
+                  'categories' => Category::orderBy('name')->get(),
+              ]);
+          }
+    mistakes:
+      - problem:
+          en: "The lazy loading error shows up in production, or it never shows up at all."
+          tr: "Lazy loading hatası production'da çıkıyor ya da hiç çıkmıyor."
+        fix:
+          en: "`Model::preventLazyLoading(! app()->isProduction())` is on while developing and off in production on purpose: a visitor should get a slower page, not an error. Turn it on in your tests and local runs so you catch the problem early."
+          tr: "`Model::preventLazyLoading(! app()->isProduction())` bilerek geliştirirken açık, production'da kapalıdır: ziyaretçi hata değil, biraz yavaş bir sayfa almalı. Sorunu erken yakalamak için yerelde ve testlerde açık tut."
+      - problem:
+          en: "Calling `->with('category')` after `->get()`."
+          tr: "`->with('category')` çağrısını `->get()`'ten sonra yapmak."
+        fix:
+          en: "`get()` already runs the query. Put `with()` before `get()`: `tasks()->with('category')->latest()->get()`."
+          tr: "`get()` sorguyu zaten çalıştırır. `with()` çağrısını `get()`'ten önce yaz: `tasks()->with('category')->latest()->get()`."
+      - problem:
+          en: "\"SQLSTATE[23000]: FOREIGN KEY constraint failed\" when saving a task with a category."
+          tr: "Kategorili görev kaydederken \"SQLSTATE[23000]: FOREIGN KEY constraint failed\" hatası."
+        fix:
+          en: "The `category_id` does not exist in `categories`. Keep the `exists:categories,id` validation rule, which turns this into a normal form error."
+          tr: "`category_id` değeri `categories` tablosunda yok. `exists:categories,id` doğrulama kuralını koru; bu hatayı normal bir form hatasına çevirir."
+    quiz:
+      - q:
+          en: "A page lists 50 tasks and prints `$task->category->name` for each. Without eager loading, how many queries run?"
+          tr: "Bir sayfa 50 görevi listeliyor ve her biri için `$task->category->name` yazdırıyor. Eager loading olmadan kaç sorgu çalışır?"
+        options:
+          en: ["1", "2", "51"]
+          tr: ["1", "2", "51"]
+        answer: 2
+        why:
+          en: "One query loads the 50 tasks, then each `$task->category` runs its own query: 1 + 50. With `with('category')` it is 2."
+          tr: "Bir sorgu 50 görevi yükler, sonra her `$task->category` kendi sorgusunu çalıştırır: 1 + 50. `with('category')` ile 2 olur."
+    sources:
+      - title: Laravel - Eager loading
+        url: https://laravel.com/framework/docs/13.x/eloquent-relationships#eager-loading
+      - title: Laravel - Preventing lazy loading
+        url: https://laravel.com/framework/docs/13.x/eloquent-relationships#preventing-lazy-loading
+
+  - id: cache-queues
+    stage: performance
+    title:
+      en: "Caching and queues"
+      tr: "Cache ve kuyruklar (queue)"
+    minutes: 45
+    needs: [eager-loading]
+    why:
+      en: "Two more tools keep a page fast: a cache remembers an answer so the database is not asked again, and a queue moves slow work out of the request so the user does not wait for it."
+      tr: "Bir sayfayı hızlı tutan iki araç daha var: cache bir cevabı hatırlar, böylece veritabanına tekrar sorulmaz; queue ise yavaş işi istekten çıkarır, böylece kullanıcı onu beklemez."
+    learn:
+      en: |
+        - `Cache::remember(key, time, fn)` stores a value for a while; you must delete it when the data changes
+        - A job class holds work to do later; `Job::dispatch(...)` puts it on the queue and a worker runs it
+        - The queue driver is set by `QUEUE_CONNECTION`: `database` stores jobs in a table, `sync` runs them immediately
+        - `Queue::fake()` and `Cache` in tests let you check both without waiting
+      tr: |
+        - `Cache::remember(anahtar, süre, fn)` bir değeri bir süre saklar; veri değişince onu silmen gerekir
+        - Job class'ı sonra yapılacak işi tutar; `Job::dispatch(...)` onu kuyruğa koyar ve bir worker çalıştırır
+        - Queue sürücüsünü `QUEUE_CONNECTION` belirler: `database` job'ları bir tabloda saklar, `sync` hemen çalıştırır
+        - Testlerde `Queue::fake()` ve `Cache` ikisini de beklemeden kontrol etmeni sağlar
+    do:
+      en: |
+        1. Create the job: `php artisan make:job LogTaskCreated` and replace its content with the first block. It writes one log line; think of it as a stand-in for slow work such as sending an email.
+        2. Replace `TaskController` with the second block. It caches the number of open tasks for 5 minutes, clears that cache whenever a task changes, and dispatches the job after a task is added.
+        3. Show the number in the page title: in `resources/views/tasks/index.blade.php` replace the `<h1>` with the third block.
+        4. Add the two tests of the last block to `tests/Feature/TaskTest.php` (with their `use` lines) and run `php artisan test tests/Feature/TaskTest.php`.
+        5. Try it: with `composer run dev` running, add a task. Open `storage/logs/laravel.log`: the last line says "Task created". The queue worker that `composer run dev` starts ran your job.
+        6. Stop `composer run dev`, add another task, and look in the `jobs` table (`php artisan tinker --execute="echo DB::table('jobs')->count();"` prints `1`). Run `php artisan queue:work --stop-when-empty` and the job is processed.
+      tr: |
+        1. Job'u oluştur: `php artisan make:job LogTaskCreated` ve içeriğini ilk blokla değiştir. Bir log satırı yazar; e-posta göndermek gibi yavaş bir işin yerine geçtiğini düşün.
+        2. `TaskController`'ı ikinci blokla değiştir. Açık görev sayısını 5 dakika cache'ler, bir görev değişince bu cache'i siler ve görev eklenince job'u kuyruğa atar.
+        3. Sayıyı sayfa başlığında göster: `resources/views/tasks/index.blade.php` içinde `<h1>` etiketini üçüncü blokla değiştir.
+        4. Son bloktaki iki testi `tests/Feature/TaskTest.php` dosyasına ekle (`use` satırlarıyla) ve `php artisan test tests/Feature/TaskTest.php` çalıştır.
+        5. Dene: `composer run dev` açıkken bir görev ekle. `storage/logs/laravel.log` dosyasını aç: son satır "Task created" der. `composer run dev`'in başlattığı queue worker job'unu çalıştırdı.
+        6. `composer run dev`'i durdur, bir görev daha ekle ve `jobs` tablosuna bak (`php artisan tinker --execute="echo DB::table('jobs')->count();"` komutu `1` yazar). `php artisan queue:work --stop-when-empty` çalıştır; job işlenir.
+    code:
+      - file: app/Jobs/LogTaskCreated.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Jobs;
+
+          use App\Models\Task;
+          use Illuminate\Contracts\Queue\ShouldQueue;
+          use Illuminate\Foundation\Queue\Queueable;
+          use Illuminate\Queue\Attributes\Tries;
+          use Illuminate\Queue\SerializesModels;
+          use Illuminate\Support\Facades\Log;
+
+          #[Tries(3)]
+          class LogTaskCreated implements ShouldQueue
+          {
+              use Queueable, SerializesModels;
+
+              public function __construct(public Task $task) {}
+
+              public function handle(): void
+              {
+                  Log::info('Task created', [
+                      'task_id' => $this->task->id,
+                      'user_id' => $this->task->user_id,
+                  ]);
+              }
+          }
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Controllers;
+
+          use App\Http\Requests\StoreTaskRequest;
+          use App\Jobs\LogTaskCreated;
+          use App\Models\Category;
+          use App\Models\Task;
+          use Illuminate\Contracts\View\View;
+          use Illuminate\Http\RedirectResponse;
+          use Illuminate\Http\Request;
+          use Illuminate\Routing\Attributes\Controllers\Authorize;
+          use Illuminate\Support\Facades\Cache;
+
+          class TaskController extends Controller
+          {
+              public function index(Request $request): View
+              {
+                  $user = $request->user();
+
+                  $tasks = $user->tasks()->with('category')->latest()->get();
+
+                  $openCount = Cache::remember(
+                      "open-tasks.{$user->id}",
+                      now()->addMinutes(5),
+                      fn () => $user->tasks()->where('done', false)->count(),
+                  );
+
+                  return view('tasks.index', [
+                      'tasks' => $tasks,
+                      'categories' => Category::orderBy('name')->get(),
+                      'openCount' => $openCount,
+                  ]);
+              }
+
+              public function store(StoreTaskRequest $request): RedirectResponse
+              {
+                  $task = $request->user()->tasks()->create($request->validated());
+
+                  Cache::forget("open-tasks.{$request->user()->id}");
+                  LogTaskCreated::dispatch($task);
+
+                  return redirect()->route('tasks.index')->with('status', __('Task added.'));
+              }
+
+              #[Authorize('update', 'task')]
+              public function toggle(Task $task): RedirectResponse
+              {
+                  $task->update(['done' => ! $task->done]);
+
+                  Cache::forget("open-tasks.{$task->user_id}");
+
+                  return redirect()->route('tasks.index');
+              }
+
+              #[Authorize('delete', 'task')]
+              public function destroy(Task $task): RedirectResponse
+              {
+                  $task->delete();
+
+                  Cache::forget("open-tasks.{$task->user_id}");
+
+                  return redirect()->route('tasks.index')->with('status', __('Task deleted.'));
+              }
+          }
+      - file: resources/views/tasks/index.blade.php
+        lang: html
+        text: |
+          <h1 class="text-2xl font-semibold">
+              {{ __('My tasks') }}
+              <span class="text-base font-normal text-zinc-500">({{ $openCount }} {{ __('open') }})</span>
+          </h1>
+      - file: tests/Feature/TaskTest.php
+        lang: php
+        text: |
+          use App\Jobs\LogTaskCreated;
+          use Illuminate\Support\Facades\Cache;
+          use Illuminate\Support\Facades\Queue;
+
+          test('adding a task puts a log job on the queue', function () {
+              Queue::fake();
+              $me = User::factory()->create();
+
+              $this->actingAs($me)->post(route('tasks.store'), ['title' => 'Write tests']);
+
+              Queue::assertPushed(LogTaskCreated::class);
+          });
+
+          test('the open count is cached and refreshed after a change', function () {
+              $me = User::factory()->create();
+              $task = Task::factory()->for($me)->create();
+
+              $this->actingAs($me)->get(route('tasks.index'));
+              expect(Cache::get("open-tasks.{$me->id}"))->toBe(1);
+
+              $this->actingAs($me)->patch(route('tasks.toggle', $task));
+              expect(Cache::has("open-tasks.{$me->id}"))->toBeFalse();
+          });
+    mistakes:
+      - problem:
+          en: "The number of open tasks does not change after you tick a task."
+          tr: "Bir görevi tamamlayınca açık görev sayısı değişmiyor."
+        fix:
+          en: "The cache still holds the old value. Whenever the data changes, call `Cache::forget(...)` for that key (as `store`, `toggle` and `destroy` do), or use a short time."
+          tr: "Cache hâlâ eski değeri tutuyor. Veri değiştiğinde o anahtar için `Cache::forget(...)` çağır (`store`, `toggle` ve `destroy` gibi) ya da kısa bir süre kullan."
+      - problem:
+          en: "The job never runs; the log line does not appear."
+          tr: "Job hiç çalışmıyor; log satırı görünmüyor."
+        fix:
+          en: "With `QUEUE_CONNECTION=database` a worker must be running: `composer run dev` starts one, or run `php artisan queue:work`. After you change job code, restart the worker, because it keeps the old code in memory."
+          tr: "`QUEUE_CONNECTION=database` ile bir worker çalışıyor olmalı: `composer run dev` bir tane başlatır, ya da `php artisan queue:work` çalıştır. Job kodunu değiştirince worker'ı yeniden başlat, çünkü eski kodu bellekte tutar."
+      - problem:
+          en: "Caching per-user data under a key without the user id, such as `open-tasks`."
+          tr: "Kullanıcıya özel veriyi kullanıcı id'si olmayan bir anahtarla, örneğin `open-tasks`, cache'lemek."
+        fix:
+          en: "Then every user sees the first user's number. Put the id in the key: `open-tasks.{$user->id}`."
+          tr: "O zaman herkes ilk kullanıcının sayısını görür. Id'yi anahtarın içine koy: `open-tasks.{$user->id}`."
+    quiz:
+      - q:
+          en: "Why does the job class take the `Task` model and use `SerializesModels`?"
+          tr: "Job class'ı neden `Task` modelini alır ve `SerializesModels` kullanır?"
+        options:
+          en: ["So the whole database is copied into the queue", "So only the model id is stored and the fresh row is loaded when the job runs", "So the job runs faster than other code"]
+          tr: ["Bütün veritabanı kuyruğa kopyalansın diye", "Sadece model id'si saklansın ve job çalışırken güncel satır yüklensin diye", "Job diğer koddan daha hızlı çalışsın diye"]
+        answer: 1
+        why:
+          en: "A queued job waits before it runs. Storing the id and reloading the model avoids working with stale data."
+          tr: "Kuyruktaki job çalışmadan önce bekler. Id'yi saklayıp modeli yeniden yüklemek eski veriyle çalışmayı önler."
+    sources:
+      - title: Laravel - Cache
+        url: https://laravel.com/framework/docs/13.x/cache
+      - title: Laravel - Queues
+        url: https://laravel.com/framework/docs/13.x/queues
+      - title: Laravel - Queue testing
+        url: https://laravel.com/framework/docs/13.x/queues#testing
+
+  - id: packaging
+    stage: packaging
+    title:
+      en: "Package the app as a Docker image"
+      tr: "Uygulamayı Docker image'ı olarak paketleme"
+    minutes: 60
+    needs: [cache-queues]
+    why:
+      en: "A Docker image holds your app, PHP and the web server in one box that runs the same on your computer and on a host. Most free hosts accept a Docker image, so this is the most portable way to ship Laravel."
+      tr: "Docker image'ı uygulamanı, PHP'yi ve web sunucusunu tek bir kutuda tutar; bu kutu senin bilgisayarında da bir sunucuda da aynı çalışır. Çoğu ücretsiz host Docker image'ı kabul eder; bu yüzden Laravel'i yayınlamanın en taşınabilir yoludur."
+    learn:
+      en: |
+        - A multi-stage Dockerfile: stage 1 installs packages and builds CSS and JavaScript (it needs Node.js), stage 2 copies only the result, so the final image stays small
+        - FrankenPHP: a PHP application server built on Caddy; Laravel's deployment guide lists it as a way to serve an app, `frankenphp php-server --root public/`
+        - `.dockerignore` keeps `vendor`, `node_modules`, `.env` and Git history out of the image
+        - Secrets such as `APP_KEY` are passed at run time as environment variables, never baked into the image
+        - Behind a host's proxy, `trustProxies` lets Laravel know the visitor used https
+      tr: |
+        - Çok aşamalı (multi-stage) Dockerfile: 1. aşama paketleri kurar ve CSS ile JavaScript'i derler (Node.js gerekir), 2. aşama sadece sonucu kopyalar; böylece son image küçük kalır
+        - FrankenPHP: Caddy üzerine kurulu bir PHP uygulama sunucusu; Laravel'in deploy rehberi onu uygulama sunmanın bir yolu olarak listeler, `frankenphp php-server --root public/`
+        - `.dockerignore`, `vendor`, `node_modules`, `.env` ve Git geçmişini image'ın dışında tutar
+        - `APP_KEY` gibi gizli bilgiler çalışma anında ortam değişkeni olarak verilir; image'ın içine asla gömülmez
+        - Bir host'un proxy'sinin arkasında `trustProxies`, Laravel'e ziyaretçinin https kullandığını bildirir
+    do:
+      en: |
+        1. Install Docker (docker.com; see the Docker roadmap) and check it with `docker --version`.
+        2. In `bootstrap/app.php`, inside `withMiddleware`, add the `trustProxies` call (first block). Without it, links and assets may use `http` behind a host's https proxy.
+        3. Create the three files `Dockerfile`, `docker/start.sh` and `.dockerignore` in the project root (next three blocks). The start script creates the SQLite file, runs the migrations, caches config, routes and views with `php artisan optimize`, and starts the server on the port given by `PORT` (default 10000).
+        4. Make a secret key for the container: `php artisan key:generate --show`. It prints something like `base64:...`; copy the whole text.
+        5. Build the image (the first build takes a few minutes): `docker build -t tasks .`
+        6. Run it with the command in the last block. Replace `PASTE_YOUR_KEY` with the key from step 4. On Windows PowerShell put the command on one line.
+        7. Open http://localhost:8080/up (it should answer) and then http://localhost:8080. Register an account. In production mode the password rules are strict: at least 12 characters with upper and lower case letters, numbers, symbols, and not found in known data leaks (this check needs internet).
+        8. Stop the container with `Ctrl+C`. The SQLite file lives inside the container, so the accounts are gone after it stops; the next step explains what that means on a free host.
+      tr: |
+        1. Docker'ı kur (docker.com; Docker yol haritasına bak) ve `docker --version` ile kontrol et.
+        2. `bootstrap/app.php` içinde, `withMiddleware` bloğuna `trustProxies` çağrısını ekle (ilk blok). Bu olmazsa bir host'un https proxy'sinin arkasında linkler ve dosyalar `http` kullanabilir.
+        3. Proje kökünde `Dockerfile`, `docker/start.sh` ve `.dockerignore` dosyalarını oluştur (sonraki üç blok). Start betiği SQLite dosyasını oluşturur, migration'ları çalıştırır, `php artisan optimize` ile config, route ve view'ları cache'ler ve sunucuyu `PORT` ile verilen portta (varsayılan 10000) başlatır.
+        4. Container için gizli bir anahtar üret: `php artisan key:generate --show`. `base64:...` gibi bir şey yazar; metnin tamamını kopyala.
+        5. Image'ı derle (ilk derleme birkaç dakika sürer): `docker build -t tasks .`
+        6. Son bloktaki komutla çalıştır. `PASTE_YOUR_KEY` yerine 4. adımdaki anahtarı yaz. Windows PowerShell'de komutu tek satıra yaz.
+        7. http://localhost:8080/up adresini (cevap vermeli), sonra http://localhost:8080 adresini aç. Bir hesap kaydet. Production modunda parola kuralları sıkıdır: en az 12 karakter, büyük ve küçük harf, rakam, sembol ve bilinen veri sızıntılarında bulunmamalı (bu kontrol internet ister).
+        8. Container'ı `Ctrl+C` ile durdur. SQLite dosyası container'ın içinde durur, yani durunca hesaplar gider; sonraki adım bunun ücretsiz bir host'ta ne demek olduğunu anlatır.
+    code:
+      - file: bootstrap/app.php
+        lang: php
+        text: |
+          ->withMiddleware(function (Middleware $middleware): void {
+              // Behind a host's proxy (Render, Fly...) trust its X-Forwarded-* headers
+              // so Laravel knows the visitor used https.
+              $middleware->trustProxies(at: '*');
+          })
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # Stage 1: install PHP packages and build the CSS/JS files
+          FROM dunglas/frankenphp:php8.4-alpine AS build
+          RUN install-php-extensions @composer && apk add --no-cache nodejs npm
+          WORKDIR /app
+          COPY . .
+          RUN composer install --no-dev --optimize-autoloader --no-interaction \
+              && npm ci \
+              && npm run build \
+              && rm -rf node_modules
+
+          # Stage 2: the small image that actually runs
+          FROM dunglas/frankenphp:php8.4-alpine
+          WORKDIR /app
+          COPY --from=build /app /app
+          RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views \
+                  storage/logs bootstrap/cache database /data/caddy /config/caddy \
+              && chown -R www-data:www-data storage bootstrap/cache database /data/caddy /config/caddy
+          USER www-data
+          ENV PORT=10000
+          EXPOSE 10000
+          CMD ["sh", "docker/start.sh"]
+      - file: docker/start.sh
+        lang: sh
+        text: |
+          #!/bin/sh
+          set -e
+
+          # SQLite needs the file to exist before the first migration.
+          touch database/database.sqlite
+
+          php artisan migrate --force
+          php artisan optimize
+
+          exec frankenphp php-server --root public/ --listen ":${PORT}" --access-log
+      - file: .dockerignore
+        lang: text
+        text: |
+          .git
+          .github
+          node_modules
+          vendor
+          .env
+          database/database.sqlite
+          storage/logs/*
+          storage/framework/cache/data/*
+          storage/framework/sessions/*
+          storage/framework/views/*
+          public/build
+          tests
+      - file: terminal
+        lang: sh
+        text: |
+          php artisan key:generate --show
+          docker build -t tasks .
+          docker run --rm -p 8080:10000 -e APP_KEY="PASTE_YOUR_KEY" -e APP_ENV=production -e APP_DEBUG=false -e APP_URL=http://localhost:8080 -e LOG_CHANNEL=stderr -e QUEUE_CONNECTION=sync tasks
+    mistakes:
+      - problem:
+          en: "The page shows a 500 error, and the container log says \"No application encryption key has been specified\"."
+          tr: "Sayfa 500 hatası veriyor ve container logu \"No application encryption key has been specified\" diyor."
+        fix:
+          en: "Pass `-e APP_KEY=...` to `docker run` (and later set `APP_KEY` on the host). The image has no `.env` on purpose."
+          tr: "`docker run` komutuna `-e APP_KEY=...` ver (sonra host'ta da `APP_KEY` ayarla). Image'da bilerek `.env` yok."
+      - problem:
+          en: "http://localhost:10000 does not open."
+          tr: "http://localhost:10000 açılmıyor."
+        fix:
+          en: "The app listens on 10000 inside the container; `-p 8080:10000` publishes it as 8080 on your computer. Use http://localhost:8080."
+          tr: "Uygulama container'ın içinde 10000'de dinler; `-p 8080:10000` onu bilgisayarında 8080 olarak yayınlar. http://localhost:8080 adresini kullan."
+      - problem:
+          en: "`docker build` is very slow and the image is huge."
+          tr: "`docker build` çok yavaş ve image çok büyük."
+        fix:
+          en: "The `.dockerignore` file is missing or in the wrong folder. It must sit next to the `Dockerfile` and list `vendor`, `node_modules` and `.env`."
+          tr: "`.dockerignore` dosyası yok ya da yanlış klasörde. `Dockerfile`'ın yanında durmalı ve `vendor`, `node_modules` ve `.env` satırlarını içermeli."
+    quiz:
+      - q:
+          en: "Why is `APP_KEY` passed with `-e` at run time instead of being written into the image?"
+          tr: "`APP_KEY` neden image'a yazılmak yerine çalışma anında `-e` ile veriliyor?"
+        options:
+          en: ["Because Docker cannot store text files", "Because anyone who gets the image would also get the secret", "Because it makes the build faster"]
+          tr: ["Docker metin dosyası saklayamadığı için", "Image'ı alan herkes gizli anahtarı da almış olacağı için", "Derlemeyi hızlandırdığı için"]
+        answer: 1
+        why:
+          en: "Images get shared and pushed to registries. Secrets belong to the place where the app runs, not inside the image or Git."
+          tr: "Image'lar paylaşılır ve registry'lere gönderilir. Gizli bilgiler uygulamanın çalıştığı yere aittir; image'a ya da Git'e değil."
+    sources:
+      - title: Laravel - Deployment
+        url: https://laravel.com/framework/docs/13.x/deployment
+      - title: FrankenPHP - Docker images
+        url: https://frankenphp.dev/docs/docker/
+      - title: Docker - Multi-stage builds
+        url: https://docs.docker.com/build/building/multi-stage/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Deploy for free on Render"
+      tr: "Render'da ücretsiz deploy"
+    minutes: 45
+    needs: [packaging]
+    why:
+      en: "Until now the app only lives on your computer. Render builds your Docker image from GitHub and gives you a public https address. Its free plan is good for a learning project, as long as you know its limits."
+      tr: "Şimdiye kadar uygulama sadece bilgisayarında yaşadı. Render, Docker image'ını GitHub'dan derler ve sana herkese açık bir https adresi verir. Ücretsiz planı öğrenme projesi için yeterli, yeter ki sınırlarını bil."
+    learn:
+      en: |
+        - How code gets to the host: push to GitHub, the host builds the Dockerfile on every push
+        - Which settings a production Laravel app needs: `APP_ENV=production`, `APP_DEBUG=false`, a real `APP_KEY`, the right `APP_URL`
+        - The limits of the free plan (they were read from the official docs in October 2026; check them again before you rely on them)
+        - Why SQLite on a free host is only for demos
+        - Laravel Cloud, the Laravel team's own host, has no permanent free plan: its Starter plan costs $5 per month plus usage and includes $5 of monthly usage credits, and the first month is free (pricing page, October 2026)
+      tr: |
+        - Kod host'a nasıl ulaşır: GitHub'a push edersin, host her push'ta Dockerfile'ı derler
+        - Production'daki bir Laravel uygulamasının hangi ayarlara ihtiyacı var: `APP_ENV=production`, `APP_DEBUG=false`, gerçek bir `APP_KEY`, doğru `APP_URL`
+        - Ücretsiz planın sınırları (2026 Ekim'de resmî dokümandan okundu; güvenmeden önce tekrar kontrol et)
+        - Ücretsiz bir host'ta SQLite'ın neden sadece demo için olduğu
+        - Laravel ekibinin kendi host'u Laravel Cloud'un kalıcı bir ücretsiz planı yok: Starter planı ayda 5 dolar artı kullanım ücretidir, aylık 5 dolarlık kullanım kredisi içerir ve ilk ay ücretsizdir (fiyat sayfası, 2026 Ekim)
+    do:
+      en: |
+        1. Create an empty repository on github.com (no README, no .gitignore). Then send your project: run the commands in the first block, with your own user name in the address.
+        2. Create a free account at render.com (signing in with GitHub is easiest).
+        3. In the Render dashboard click *New* and choose *Web Service*. Select your `tasks` repository. Set the *Language* to **Docker** and the instance type to **Free**.
+        4. Add the environment variables of the second block. Make the key with `php artisan key:generate --show` on your computer. You will know the final address only after the first deploy: until then use a guess, then correct `APP_URL` and let Render redeploy.
+        5. In the service's *Settings*, under *Health Checks*, set the path to `/up`. Render calls it to know that the new version works.
+        6. Start the deploy and read the build log. It runs your Dockerfile. When it says the service is live, open the `https://....onrender.com` address and register an account with a strong password.
+        7. Make a small change (for example the heading text), commit and push. Render deploys it by itself.
+      tr: |
+        1. github.com'da boş bir depo oluştur (README yok, .gitignore yok). Sonra projeni gönder: ilk bloktaki komutları, adresteki kullanıcı adını kendininkiyle değiştirerek çalıştır.
+        2. render.com'da ücretsiz bir hesap aç (GitHub ile girmek en kolayı).
+        3. Render panelinde *New*'a tıkla ve *Web Service*'i seç. `tasks` deponu seç. *Language* değerini **Docker**, instance tipini **Free** yap.
+        4. İkinci bloktaki ortam değişkenlerini ekle. Anahtarı bilgisayarında `php artisan key:generate --show` ile üret. Son adresi ancak ilk deploy'dan sonra bileceksin: o zamana kadar bir tahmin yaz, sonra `APP_URL`'yi düzeltip Render'ın yeniden deploy etmesini bekle.
+        5. Servisin *Settings* sayfasında *Health Checks* altında yolu `/up` yap. Render yeni sürümün çalıştığını anlamak için bu adresi çağırır.
+        6. Deploy'u başlat ve build logunu oku. Dockerfile'ını çalıştırır. Servis yayında deyince `https://....onrender.com` adresini aç ve güçlü bir parolayla hesap kaydet.
+        7. Küçük bir değişiklik yap (örneğin başlık metni), commit et ve push et. Render onu kendisi deploy eder.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git add .
+          git commit -m "Add Docker image for deploy"
+          git branch -M main
+          git remote add origin https://github.com/YOUR-NAME/tasks.git
+          git push -u origin main
+      - file: Render environment variables
+        lang: ini
+        text: |
+          APP_KEY=base64:...the key from php artisan key:generate --show...
+          APP_ENV=production
+          APP_DEBUG=false
+          APP_URL=https://YOUR-SERVICE.onrender.com
+          LOG_CHANNEL=stderr
+          QUEUE_CONNECTION=sync
+    mistakes:
+      - problem:
+          en: "Expecting your data to stay. Accounts and tasks vanish after a deploy, a restart or a nap."
+          tr: "Verinin kalıcı olmasını beklemek. Hesaplar ve görevler deploy, yeniden başlatma ya da uyku sonrası kayboluyor."
+        fix:
+          en: "Render says free web services have an ephemeral filesystem: local files are lost on redeploy, restart and spin-down, and they cannot attach a persistent disk. So the SQLite file resets. For real data use a managed database (Render's free Postgres expires after 30 days; paid plans keep data) and change `DB_*` variables."
+          tr: "Render, ücretsiz web servislerin dosya sisteminin geçici (ephemeral) olduğunu söyler: yerel dosyalar yeniden deploy, yeniden başlatma ve uyku sonrası silinir ve kalıcı disk bağlanamaz. Yani SQLite dosyası sıfırlanır. Gerçek veri için yönetilen bir veritabanı kullan (Render'ın ücretsiz Postgres'i 30 gün sonra sona erer; ücretli planlar veriyi korur) ve `DB_*` değişkenlerini değiştir."
+      - problem:
+          en: "The first visit after a quiet time takes about a minute."
+          tr: "Sessiz bir sürenin ardından ilk ziyaret yaklaşık bir dakika sürüyor."
+        fix:
+          en: "A free web service spins down after 15 minutes without traffic and needs about a minute to start again. That is normal for the free plan."
+          tr: "Ücretsiz web servis 15 dakika trafik almazsa uykuya geçer ve tekrar başlamak için yaklaşık bir dakikaya ihtiyaç duyar. Ücretsiz plan için normaldir."
+      - problem:
+          en: "Setting `APP_DEBUG=true` \"just to see the error\"."
+          tr: "\"Hatayı görmek için\" `APP_DEBUG=true` yapmak."
+        fix:
+          en: "With debug on, error pages can show secrets from your configuration to any visitor. Read the error in the Render logs instead (the `stderr` log channel sends it there)."
+          tr: "Debug açıkken hata sayfaları yapılandırmandaki gizli bilgileri her ziyaretçiye gösterebilir. Hatayı bunun yerine Render loglarında oku (`stderr` log kanalı onu oraya yollar)."
+    quiz:
+      - q:
+          en: "Which of these is a real limit of Render's free web service?"
+          tr: "Bunlardan hangisi Render'ın ücretsiz web servisinin gerçek bir sınırıdır?"
+        options:
+          en: ["It spins down after 15 minutes without traffic", "It cannot run Docker images", "It only serves http, never https"]
+          tr: ["15 dakika trafik almazsa uykuya geçer", "Docker image çalıştıramaz", "Sadece http sunar, https asla"]
+        answer: 0
+        why:
+          en: "Free services spin down when idle and take about a minute to wake. Docker images and https work on the free plan."
+          tr: "Ücretsiz servisler boşta kalınca uykuya geçer ve uyanmaları yaklaşık bir dakika sürer. Docker image'ları ve https ücretsiz planda çalışır."
+    sources:
+      - title: Render - Deploy for free (limits)
+        url: https://render.com/docs/free
+      - title: Render - Docker on Render
+        url: https://render.com/docs/docker
+      - title: Laravel Cloud - Pricing
+        url: https://laravel.com/cloud/pricing
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Health check and logs"
+      tr: "Sağlık kontrolü ve loglar"
+    minutes: 40
+    needs: [deploy]
+    why:
+      en: "Once the app is live you are not looking at it. A health route lets the host ask \"are you alive?\", and logs tell you what happened when something went wrong."
+      tr: "Uygulama yayına girince ona bakmıyor olursun. Sağlık route'u host'un \"yaşıyor musun?\" diye sormasını sağlar, loglar da bir şey ters gidince ne olduğunu anlatır."
+    learn:
+      en: |
+        - Laravel has a built-in health route at `/up` (set by `health: '/up'` in `bootstrap/app.php`); it answers 200 when the app booted and 500 otherwise
+        - Every request to `/up` fires the `DiagnosingHealth` event; a listener can check the database and throw an exception to make the check fail
+        - `Log::info('message', ['key' => $value])` writes a log line with context; the log level (`debug`, `info`, `warning`, `error`) says how serious it is
+        - The `LOG_CHANNEL` setting chooses where logs go: a file locally, `stderr` on a host that shows container output
+      tr: |
+        - Laravel'de `/up` adresinde yerleşik bir sağlık route'u vardır (`bootstrap/app.php` içindeki `health: '/up'` ayarı); uygulama açıldıysa 200, açılmadıysa 500 cevap verir
+        - `/up` adresine gelen her istek `DiagnosingHealth` olayını tetikler; bir listener veritabanını kontrol edebilir ve kontrolü başarısız kılmak için exception fırlatabilir
+        - `Log::info('mesaj', ['anahtar' => $deger])` bağlamıyla birlikte bir log satırı yazar; log seviyesi (`debug`, `info`, `warning`, `error`) ne kadar ciddi olduğunu söyler
+        - `LOG_CHANNEL` ayarı logların nereye gideceğini seçer: yerelde dosya, container çıktısını gösteren bir host'ta `stderr`
+    do:
+      en: |
+        1. With the app running locally, open http://localhost:8000/up. You see a small page that says the application is up, with status 200.
+        2. Make the health check look at the database: in `AppServiceProvider::boot()` add the listener of the first block (with its `use` lines).
+        3. Create `tests/Feature/HealthTest.php` with the second block and run `php artisan test tests/Feature/HealthTest.php`. The second test makes a check fail on purpose and expects a 500.
+        4. Write a log line yourself: in `TaskController::destroy()` add the `Log::info(...)` line of the third block (with `use Illuminate\Support\Facades\Log;`). Delete a task in the browser and read the end of `storage/logs/laravel.log`.
+        5. In your Render dashboard open the service's *Logs*. Because `LOG_CHANNEL=stderr`, requests and your `Log::info` lines show up there. Register on the live site and find "Task created" after you add a task.
+        6. If your system has the PCNTL extension (Linux and macOS usually do, Windows does not), `php artisan pail` shows the local log live in the terminal; stop it with `Ctrl+C`.
+      tr: |
+        1. Uygulama yerelde çalışırken http://localhost:8000/up adresini aç. Uygulamanın ayakta olduğunu söyleyen, 200 durumlu küçük bir sayfa görürsün.
+        2. Sağlık kontrolü veritabanına da baksın: `AppServiceProvider::boot()` içine ilk bloktaki listener'ı ekle (`use` satırlarıyla).
+        3. İkinci blokla `tests/Feature/HealthTest.php` oluştur ve `php artisan test tests/Feature/HealthTest.php` çalıştır. İkinci test bilerek bir kontrolü başarısız yapar ve 500 bekler.
+        4. Kendin bir log satırı yaz: `TaskController::destroy()` içine üçüncü bloktaki `Log::info(...)` satırını ekle (`use Illuminate\Support\Facades\Log;` ile). Tarayıcıda bir görev sil ve `storage/logs/laravel.log` dosyasının sonunu oku.
+        5. Render panelinde servisin *Logs* sayfasını aç. `LOG_CHANNEL=stderr` olduğu için istekler ve `Log::info` satırların orada görünür. Canlı sitede kayıt ol, bir görev ekle ve "Task created" satırını bul.
+        6. Sisteminde PCNTL eklentisi varsa (Linux ve macOS'ta genelde var, Windows'ta yok) `php artisan pail` yerel logu terminalde canlı gösterir; `Ctrl+C` ile durdur.
+    code:
+      - file: app/Providers/AppServiceProvider.php
+        lang: php
+        text: |
+          use Illuminate\Foundation\Events\DiagnosingHealth;
+          use Illuminate\Support\Facades\DB;
+          use Illuminate\Support\Facades\Event;
+
+          // inside boot():
+          // Called on every request to /up: throw to make the health check fail.
+          Event::listen(DiagnosingHealth::class, function (): void {
+              DB::select('select 1');
+          });
+      - file: tests/Feature/HealthTest.php
+        lang: php
+        text: |
+          <?php
+
+          use Illuminate\Foundation\Events\DiagnosingHealth;
+          use Illuminate\Support\Facades\Event;
+
+          test('the health route answers 200 when the app is fine', function () {
+              $this->get('/up')->assertOk();
+          });
+
+          test('the health route answers 500 when a check fails', function () {
+              Event::listen(DiagnosingHealth::class, function () {
+                  throw new RuntimeException('database is down');
+              });
+
+              $this->get('/up')->assertStatus(500);
+          });
+      - file: app/Http/Controllers/TaskController.php
+        lang: php
+        text: |
+          // in destroy(), before $task->delete():
+          Log::info('Task deleted', ['task_id' => $task->id, 'user_id' => $task->user_id]);
+    mistakes:
+      - problem:
+          en: "Logging secrets such as passwords, tokens or full request bodies."
+          tr: "Parola, token ya da tüm istek gövdesi gibi gizli bilgileri loglamak."
+        fix:
+          en: "Logs are copied, stored and read by many people. Log ids and short facts (`task_id`), never secrets."
+          tr: "Loglar kopyalanır, saklanır ve birçok kişi tarafından okunur. Id'leri ve kısa gerçekleri (`task_id`) logla, gizli bilgileri asla."
+      - problem:
+          en: "Putting a heavy check (a slow query, an external API call) in the health listener."
+          tr: "Sağlık listener'ına ağır bir kontrol (yavaş sorgu, dış API çağrısı) koymak."
+        fix:
+          en: "The host calls `/up` often. Keep it to a quick `select 1`; a slow health check can make the host think a healthy app is dead."
+          tr: "Host `/up` adresini sık çağırır. Hızlı bir `select 1` ile sınırla; yavaş bir sağlık kontrolü host'un sağlıklı bir uygulamayı ölü sanmasına yol açabilir."
+      - problem:
+          en: "Looking for logs in `storage/logs` on the host."
+          tr: "Host'ta logları `storage/logs` içinde aramak."
+        fix:
+          en: "With `LOG_CHANNEL=stderr` nothing is written to a file. Read the logs in the host's dashboard instead."
+          tr: "`LOG_CHANNEL=stderr` ile hiçbir şey dosyaya yazılmaz. Logları bunun yerine host'un panelinde oku."
+    quiz:
+      - q:
+          en: "What does `/up` answer when the app started fine?"
+          tr: "Uygulama sorunsuz açıldıysa `/up` ne cevap verir?"
+        options:
+          en: ["200", "301", "404"]
+          tr: ["200", "301", "404"]
+        answer: 0
+        why:
+          en: "A 200 means healthy; a 500 means the app did not boot or a health listener threw an exception. Render treats 2xx and 3xx as healthy and 4xx and 5xx as unhealthy."
+          tr: "200 sağlıklı demektir; 500, uygulamanın açılmadığını ya da bir sağlık listener'ının exception fırlattığını gösterir. Render 2xx ve 3xx'i sağlıklı, 4xx ve 5xx'i sağlıksız sayar."
+    sources:
+      - title: Laravel - The health route
+        url: https://laravel.com/framework/docs/13.x/deployment#the-health-route
+      - title: Laravel - Logging
+        url: https://laravel.com/framework/docs/13.x/logging
+      - title: Render - Health checks
+        url: https://render.com/docs/health-checks
+
+  - id: api-ci
+    stage: advanced
+    title:
+      en: "A JSON API with Sanctum, and automatic tests on GitHub"
+      tr: "Sanctum ile JSON API ve GitHub'da otomatik testler"
+    minutes: 60
+    needs: [monitoring]
+    why:
+      en: "Phones, scripts and other programs cannot fill in your login form. An API token lets them read the same tasks as JSON. And a CI workflow runs your tests on every push, so a broken change is caught before it reaches users."
+      tr: "Telefonlar, betikler ve başka programlar giriş formunu dolduramaz. API token'ı onların aynı görevleri JSON olarak okumasını sağlar. CI iş akışı da her push'ta testlerini çalıştırır; böylece bozuk bir değişiklik kullanıcıya ulaşmadan yakalanır."
+    learn:
+      en: |
+        - Laravel Sanctum issues personal access tokens; a client sends them as `Authorization: Bearer <token>`
+        - An API resource class decides which fields a model shows in JSON
+        - `php artisan install:api` adds `routes/api.php` (all routes there start with `/api`) and the token table
+        - Continuous integration (CI): a GitHub Actions workflow runs the checks of `composer ci:check` (code style, static analysis, tests) on every push
+      tr: |
+        - Laravel Sanctum kişisel erişim token'ları üretir; istemci onları `Authorization: Bearer <token>` olarak yollar
+        - API resource class'ı, bir modelin JSON'da hangi alanları göstereceğine karar verir
+        - `php artisan install:api`, `routes/api.php` dosyasını (oradaki bütün route'lar `/api` ile başlar) ve token tablosunu ekler
+        - Sürekli entegrasyon (CI): bir GitHub Actions iş akışı her push'ta `composer ci:check` komutunun kontrollerini (kod stili, statik analiz, testler) çalıştırır
+    do:
+      en: |
+        1. Install the API pieces: `php artisan install:api`. It adds Sanctum, creates `routes/api.php` and runs the migration for the token table.
+        2. Add the `HasApiTokens` trait to `app/Models/User.php` (first block).
+        3. Create the resource: `php artisan make:resource TaskResource` and replace its content with the second block. Replace `routes/api.php` with the third block.
+        4. Create a token and call the API (fourth block). Without the header you get a JSON error "Unauthenticated.".
+        5. Create `tests/Feature/ApiTest.php` with the fifth block and run `php artisan test`.
+        6. Run the full check that CI will run: `composer ci:check`. If it fails on code style, run `vendor/bin/pint` and try again.
+        7. Push to GitHub. The starter kit already contains `.github/workflows/tests.yml`; open the *Actions* tab of your repository and watch it run `composer setup` and `composer ci:check`. GitHub Actions is free for public repositories.
+        8. Where to go next: deploy your `main` branch only when the Actions run is green, add a real database for the deploy, and read about Laravel's other first-party packages (Horizon, Scout, Reverb) when you need them.
+      tr: |
+        1. API parçalarını kur: `php artisan install:api`. Sanctum'u ekler, `routes/api.php` dosyasını oluşturur ve token tablosunun migration'ını çalıştırır.
+        2. `app/Models/User.php` dosyasına `HasApiTokens` trait'ini ekle (ilk blok).
+        3. Resource'u oluştur: `php artisan make:resource TaskResource` ve içeriğini ikinci blokla değiştir. `routes/api.php` dosyasını üçüncü blokla değiştir.
+        4. Bir token oluştur ve API'yi çağır (dördüncü blok). Header olmadan "Unauthenticated." diyen bir JSON hata alırsın.
+        5. Beşinci blokla `tests/Feature/ApiTest.php` oluştur ve `php artisan test` çalıştır.
+        6. CI'ın çalıştıracağı tam kontrolü çalıştır: `composer ci:check`. Kod stilinden başarısız olursa `vendor/bin/pint` çalıştırıp tekrar dene.
+        7. GitHub'a push et. Starter kit zaten `.github/workflows/tests.yml` dosyasını içerir; deponun *Actions* sekmesini aç ve `composer setup` ile `composer ci:check` komutlarını çalıştırmasını izle. GitHub Actions herkese açık depolarda ücretsizdir.
+        8. Sonra nereye: `main` dalını sadece Actions çalışması yeşilse deploy et, deploy için gerçek bir veritabanı ekle ve ihtiyacın olunca Laravel'in diğer resmî paketlerini (Horizon, Scout, Reverb) oku.
+    code:
+      - file: app/Models/User.php
+        lang: php
+        text: |
+          use Laravel\Sanctum\HasApiTokens;
+
+          // in the class, add HasApiTokens to the trait line:
+          use HasApiTokens, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+      - file: app/Http/Resources/TaskResource.php
+        lang: php
+        text: |
+          <?php
+
+          namespace App\Http\Resources;
+
+          use App\Models\Task;
+          use Illuminate\Http\Request;
+          use Illuminate\Http\Resources\Json\JsonResource;
+
+          /** @mixin Task */
+          class TaskResource extends JsonResource
+          {
+              /** @return array<string, mixed> */
+              public function toArray(Request $request): array
+              {
+                  return [
+                      'id' => $this->id,
+                      'title' => $this->title,
+                      'done' => $this->done,
+                  ];
+              }
+          }
+      - file: routes/api.php
+        lang: php
+        text: |
+          <?php
+
+          use App\Http\Resources\TaskResource;
+          use Illuminate\Http\Request;
+          use Illuminate\Support\Facades\Route;
+
+          Route::middleware('auth:sanctum')->get('/tasks', function (Request $request) {
+              return TaskResource::collection($request->user()->tasks()->latest()->get());
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          php artisan tinker --execute="echo App\Models\User::first()->createToken('cli')->plainTextToken;"
+          curl -H "Accept: application/json" -H "Authorization: Bearer PASTE_TOKEN" http://localhost:8000/api/tasks
+      - file: tests/Feature/ApiTest.php
+        lang: php
+        text: |
+          <?php
+
+          use App\Models\Task;
+          use App\Models\User;
+
+          test('the API refuses requests without a token', function () {
+              $this->getJson('/api/tasks')->assertUnauthorized();
+          });
+
+          test('a token gives access to the tasks of its owner only', function () {
+              $me = User::factory()->create();
+              Task::factory()->for($me)->create(['title' => 'Mine']);
+              Task::factory()->create(['title' => 'Not mine']);
+
+              $token = $me->createToken('cli')->plainTextToken;
+
+              $this->withToken($token)
+                  ->getJson('/api/tasks')
+                  ->assertOk()
+                  ->assertJsonCount(1, 'data')
+                  ->assertJsonPath('data.0.title', 'Mine');
+          });
+    mistakes:
+      - problem:
+          en: "The API redirects to the login page (or returns HTML) instead of JSON 401."
+          tr: "API, JSON 401 yerine giriş sayfasına yönlendiriyor (ya da HTML döndürüyor)."
+        fix:
+          en: "Send the header `Accept: application/json` with every API request. Without it Laravel treats the call as a browser visit."
+          tr: "Her API isteğine `Accept: application/json` header'ını ekle. Yoksa Laravel çağrıyı bir tarayıcı ziyareti sayar."
+      - problem:
+          en: "\"Call to undefined method createToken()\"."
+          tr: "\"Call to undefined method createToken()\" hatası."
+        fix:
+          en: "The `User` model is missing the `HasApiTokens` trait (step 2)."
+          tr: "`User` modelinde `HasApiTokens` trait'i eksik (2. adım)."
+      - problem:
+          en: "CI fails in PHPStan with \"reached configured PHP memory limit: 128M\", or complains about `config/sanctum.php`."
+          tr: "CI, PHPStan'da \"reached configured PHP memory limit: 128M\" ile ya da `config/sanctum.php` hakkında şikâyetle başarısız oluyor."
+        fix:
+          en: "In `composer.json` change the `types:check` script to `phpstan analyse --memory-limit=512M`. If it complains about `explode(',', env(...))` in `config/sanctum.php`, write `(string) env(...)` there."
+          tr: "`composer.json` içinde `types:check` betiğini `phpstan analyse --memory-limit=512M` yap. `config/sanctum.php` içindeki `explode(',', env(...))` hakkında şikâyet ederse oraya `(string) env(...)` yaz."
+    quiz:
+      - q:
+          en: "How does an API client prove who it is with Sanctum?"
+          tr: "Bir API istemcisi Sanctum ile kim olduğunu nasıl kanıtlar?"
+        options:
+          en: ["With the user's password in every request", "With a token in the Authorization: Bearer header", "With the CSRF token of the login form"]
+          tr: ["Her istekte kullanıcının parolasıyla", "Authorization: Bearer header'ındaki bir token ile", "Giriş formunun CSRF token'ı ile"]
+        answer: 1
+        why:
+          en: "The token is created once, can be revoked, and never exposes the password."
+          tr: "Token bir kez oluşturulur, iptal edilebilir ve parolayı hiç açığa çıkarmaz."
+    sources:
+      - title: Laravel - Sanctum (API tokens)
+        url: https://laravel.com/framework/docs/13.x/sanctum#api-token-authentication
+      - title: Laravel - API resources
+        url: https://laravel.com/framework/docs/13.x/eloquent-resources
+      - title: GitHub - Understanding GitHub Actions
+        url: https://docs.github.com/en/actions/get-started/understand-github-actions
