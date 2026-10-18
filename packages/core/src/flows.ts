@@ -97,6 +97,12 @@ export interface BoardTask {
   order: number;
   createdAt: number;
   updatedAt: number;
+  /** Who the card is for: a teammate or a persona (plan.md 4.4). */
+  assignee?: { kind: "person" | "persona"; id: string; name: string };
+  /** The teammate who said "I'm taking this", so nobody does it twice. */
+  claimedBy?: { id: string; name: string };
+  /** Set on cards that came from a teammate. */
+  author?: string;
 }
 
 /** When a "limit reached" message says the limit resets (epoch after "|", or in an hour). */

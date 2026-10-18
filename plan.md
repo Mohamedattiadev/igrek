@@ -628,12 +628,12 @@ god-eye/
 - [x] ⭐ **Ortak hafıza:** biri karar alınca herkesin yeni session'ına bu karar otomatik enjekte edilir. Herkesin AI'ı aynı gerçeği bilir — *hafıza öğeleri senkron, son yazan kazanır; mevcut hook bağlamı bunları içerir*
 - [x] ⭐ **Kim ne yapıyor (presence):** proje ve kategori sayfalarında "🟢 Ali şu an Backend → auth modülünde" rozeti — *proje sayfası ve Takım sayfası; kategori sayfaları Faz 5'te*
 - [x] ⭐ **Erken çakışma uyarısı:** aynı dosya veya modülde çalışmaya başlarsam *"Ali 10 dk önce `auth.ts`'i değiştirdi, henüz push etmedi"* uyarısı + AI'a da bu bilgi verilir — *aynı dosyalarda çalışınca sarı rozet; AI'a iletme sonra*
-- [ ] Görev sahiplenme (claim): "Bu işi ben alıyorum". Diğerleri görür, aynı iş iki kez yapılmaz
+- [x] Görev sahiplenme (claim): "Bu işi ben alıyorum". Diğerleri görür, aynı iş iki kez yapılmaz — *panodaki her kartta "Ben alıyorum" (takıma bağlıyken); alan kişinin adı kartta görünür ve takıma gider, başkası aldığı kartı alamaz, "Bırak" ile geri verilir. İki cihaz ve gerçek hub ile testle denendi*
 - [x] **Prompt önerme:** arkadaşımın session'ına prompt veya not gönderebilirim. Onun ekranında öneri olarak çıkar, kabul ederse session'ına eklenir. Kimsenin session'ı izinsiz değiştirilmez
 - [x] **Session devralma:** "Bu işi sen devam ettir". Özet ve bağlam karşı tarafa geçer, iş kendi bilgisayarında devam eder
 - [x] Çapraz çelişki tespiti: iki kişinin aldığı kararlar çelişirse ikisine de haber verilir — *takım arkadaşının yeni kararı seninkilerle Haiku ile karşılaştırılır (otomatik özet açıkken); çelişki işareti senkronla karşıya da gider, kart kimin kararı olduğunu gösterir*
 - [x] Yorumlar ve @bahsetme: session'lara, kararlara ve kategori sayfalarına — *@ yazınca isim önerisi çıkar; bahsedilen kişinin Gelen kutusuna düşer*
-- [ ] Ortak görev panosu: görev bir insana veya bir personaya atanabilir
+- [x] Ortak görev panosu: görev bir insana veya bir personaya atanabilir — *pano kartları paylaşılan projelerde takıma gider (son yazan kazanır, silme de gider; arkadaşın akış kaydı gitmez, akışlar başlatan bilgisayarda çalışır). Kart bir takım arkadaşına ya da bir personaya atanır; personaya atanan kart "Devam ediyor"a çekilince adı belirtilmemiş adımlar o persona olarak çalışır. Sadece alınan projede kişinin kendi kartları gitmez, arkadaşların kartlarına yaptığı düzenlemeler gider. Kartı ekleyen arkadaşın adı kartta görünür*
 - [x] Takım aktivite akışı: "Bugün takımda ne oldu" (her kullanıcının kendi dilinde)
 - [ ] Ortak ders defteri: birinin yaptığı hatadan herkesin AI'ı öğrenir
 
@@ -650,7 +650,7 @@ god-eye/
 #### 4.6 👤 "Kim yaptı, kim yapıyor" (her yerde isim)
 - [x] ⭐ Canlı durum rozetleri: **"Mohamed şu an çalışıyor: Backend → ödeme modülü"**, "Kerim beklemede", "Ayşe çevrimdışı (2 saat önce)" — *yeşil/sarı/gri nokta + ipucu*
 - [x] ⭐ Her kayıtta yapan kişi: **"Kerim yaptı · Claude ile · 14:32"**. Session'larda, commit'lerde, kararlarda, görevlerde, sunucu komutlarında ve dosya değişikliklerinde — *şimdilik session'lar ve hafıza*
-- [ ] İnsan + agent birlikte gösterilir: "Mohamed → 🤖 Backend Senior persona → `payment.ts` değiştirildi"
+- [ ] İnsan + agent birlikte gösterilir: "Mohamed → 🤖 Backend Senior persona → `payment.ts` değiştirildi" — *panoda başladı: kartı alan kişi ve atandığı persona birlikte görünür ("Kerim → Güvenlik"). Oturum listesi, commit'ler ve dosya değişikliklerinde henüz yok*
 - [x] Kod görünümünde satır bazında: "Bu satırı Kerim, 3 gün önce, Codex ile, şu session'da yazdı" — *Kod sekmesinde "Kim yazdı": satır sonunda kişi · araç · oturum · zaman; üzerine gelince commit ve oturuma bağlantı*
 - [x] Proje kartında üye avatarları ve kimin aktif olduğu
 - [x] Kişi sayfası: "Kerim bu hafta ne yaptı" (özet, kendi dilimde)

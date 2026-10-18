@@ -331,3 +331,66 @@ describe("evening recap", () => {
     await expect(w.recap("2001-01-01", "tr")).rejects.toThrow("Nothing happened");
   });
 });
+
+describe("shared task board", () => {
+  test("cards go to a teammate or a persona; one person takes a card; a persona card runs as that persona", async () => {
+    const systems: (string | undefined)[] = [];
+    const agent: AgentRun = async ({ cwd, system }) => {
+      systems.push(system);
+      writeFileSync(join(cwd, "done.ts"), "export const done = true;\n");
+      return "Done.\nVERDICT: PASS";
+    };
+    const { board, flows, projectId } = setup(agent, async () => [pass("test")]);
+    const card = board.add({ projectId, title: "Rate limit the login" });
+    board.assign(card.id, { kind: "person", id: "u2", name: "Kerim" });
+    expect(board.get(card.id)?.assignee).toEqual({ kind: "person", id: "u2", name: "Kerim" });
+    board.claim(card.id, { id: "u1", name: "Mohamed" });
+    expect(() => board.claim(card.id, { id: "u2", name: "Kerim" })).toThrow("Mohamed already took this card");
+    board.claim(card.id, null);
+    expect(board.get(card.id)?.claimedBy).toBeUndefined();
+
+    const personaCard = board.add({ projectId, title: "Fix the flaky test" });
+    board.assign(personaCard.id, { kind: "persona", id: "backend", name: "Backend" });
+    board.move(personaCard.id, "doing", undefined, "task");
+    const runId = board.get(personaCard.id)?.runId ?? "";
+    expect(flows.get(runId)?.nodes.find((n) => n.id === "do")?.persona).toBe("backend");
+    await until(
+      () => flows.get(runId),
+      (r) => r.status !== "running",
+    );
+    expect(systems[0]).toBeTruthy();
+  });
+
+  test("changes wait to be sent, a teammate's newer card wins, an older one does not, removals travel", () => {
+    const { board, projectId } = setup(
+      async () => "ok",
+      async () => [],
+    );
+    const card = board.add({ projectId, title: "Write the README" });
+    const [unsent] = board.unsent(projectId);
+    expect(unsent?.title).toBe("Write the README");
+    expect(unsent && "runId" in unsent).toBe(false);
+    board.markSent(card.id, unsent?.updatedAt ?? 0);
+    expect(board.unsent(projectId)).toEqual([]);
+
+    const later = (unsent?.updatedAt ?? 0) + 1000;
+    board.applyRemote(
+      projectId,
+      { ...unsent, title: "Write the README and a guide", status: "doing", updatedAt: later },
+      "Kerim",
+    );
+    expect(board.get(card.id)).toMatchObject({ title: "Write the README and a guide", status: "doing" });
+    // "author" is who added a card; this one was added here.
+    expect(board.get(card.id)?.author).toBeUndefined();
+    board.applyRemote(projectId, { id: "remote-1", title: "Kerim's card", status: "todo", updatedAt: later }, "Kerim");
+    expect(board.get("remote-1")?.author).toBe("Kerim");
+    board.applyRemote(projectId, { ...unsent, title: "old", updatedAt: later - 5000 }, "Ayse");
+    expect(board.get(card.id)?.title).toBe("Write the README and a guide");
+    // A remote card is not sent back.
+    expect(board.unsent(projectId)).toEqual([]);
+
+    board.remove(card.id);
+    expect(board.list(projectId).map((t) => t.id)).toEqual(["remote-1"]);
+    expect(board.unsent(projectId)[0]?.deleted).toBe(true);
+  });
+});

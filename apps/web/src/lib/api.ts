@@ -406,6 +406,10 @@ export const api = {
   moveCard: (id: string, status: TaskStatus, order?: number, flow?: string) =>
     request<BoardTask>(`/api/board/${id}/move`, { method: "POST", body: JSON.stringify({ status, order, flow }) }),
   removeCard: (id: string) => request<{ ok: boolean }>(`/api/board/${id}`, { method: "DELETE" }),
+  assignCard: (id: string, assignee: BoardTask["assignee"] | null) =>
+    request<BoardTask>(`/api/board/${id}/assign`, { method: "POST", body: JSON.stringify(assignee ?? {}) }),
+  claimCard: (id: string, take: boolean) =>
+    request<BoardTask>(`/api/board/${id}/claim`, { method: "POST", body: JSON.stringify({ take }) }),
   knowledge: (persona?: string) => request<KnowledgeOverview>(`/api/knowledge${persona ? `?persona=${persona}` : ""}`),
   knowledgeSources: (persona: string) => request<KnowledgeSources>(`/api/knowledge/sources/${persona}`),
   setKnowledgeSources: (persona: string, sources: KnowledgeSources) =>

@@ -1209,6 +1209,13 @@ export class Sync {
             if (ok) this.docs.markSent("boards", board.id, board.updated_at);
           }
         }
+        // The shared task board (plan.md 4.4): cards, who they are for and who took them.
+        if (this.board) {
+          for (const task of this.board.unsent(project.id, !sharing)) {
+            const ok = await this.publish(key, "task", `task-${task.id}-${task.updatedAt}`, { ...task });
+            if (ok) this.board.markSent(task.id, task.updatedAt);
+          }
+        }
       }
       this.lastSyncAt = Date.now();
     } finally {
@@ -1380,6 +1387,7 @@ export class Sync {
         else if (event.kind === "memory") this.applyMemory(projectId, value, author);
         else if (event.kind === "wiki" || event.kind === "board")
           this.docs?.apply(event.kind, projectId, value, author.name);
+        else if (event.kind === "task") this.board?.applyRemote(projectId, value, author.name);
         else if (event.kind === "forget")
           // Only the session's own author can take it back.
           this.db
@@ -1546,6 +1554,8 @@ export class Sync {
   onTeammateDecision?: (projectId: string, itemId: string) => void;
   /** Wiki pages and boards (plan.md 12), set by the server at startup. */
   docs?: import("../docs").Docs;
+  /** The task board (plan.md 4.4), set by the server at startup. */
+  board?: import("../board").Board;
 
   private applyMemory(projectId: string, item: Record<string, unknown>, author: { id: string; name: string }): void {
     const existing = this.db

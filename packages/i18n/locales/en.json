@@ -2674,7 +2674,12 @@
     "safety": "The team works in its own copy of the repo, on its own branch, without asking. Nothing reaches your branch until you approve, and nothing is ever pushed.",
     "archonOn": "Archon is installed: its workflows are in the list too (ones that push or open pull requests are refused).",
     "hint": "Drag a card to Doing (or press its arrow) and the team starts. When the work is ready the card moves to Review; merging it moves it to Done.",
-    "runs": "Team runs without a card"
+    "runs": "Team runs without a card",
+    "assign": "Who is this card for",
+    "nobody": "Not assigned",
+    "take": "I'm taking this",
+    "release": "Let it go",
+    "from": "from {{name}}"
   },
   "flows": {
     "title": "Team run",

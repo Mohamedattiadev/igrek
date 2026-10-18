@@ -2674,7 +2674,12 @@
     "safety": "Takım reponun kendi kopyasında, kendi dalında, sormadan çalışır. Sen onaylamadan hiçbir şey senin dalına gelmez ve hiçbir şey push edilmez.",
     "archonOn": "Archon kurulu: akışları da listede (push eden ya da pull request açanlar çalıştırılmaz).",
     "hint": "Bir kartı Devam ediyor sütununa sürükle (ya da okuna bas), takım başlar. İş hazır olunca kart Review'a geçer; birleştirince Bitti'ye geçer.",
-    "runs": "Kartsız takım işleri"
+    "runs": "Kartsız takım işleri",
+    "assign": "Bu kart kimin için",
+    "nobody": "Atanmadı",
+    "take": "Ben alıyorum",
+    "release": "Bırak",
+    "from": "{{name}} ekledi"
   },
   "flows": {
     "title": "Takım işi",

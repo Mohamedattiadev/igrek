@@ -1,17 +1,93 @@
 import type { BoardTask, FlowRun, ProjectDetail, TaskStatus } from "@godeye/core";
-import { ArrowRight, Plus, Trash2, Users, Workflow } from "lucide-react";
+import { ArrowRight, Hand, Plus, Trash2, Users, Workflow } from "lucide-react";
 import { type DragEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
+import { useTeamPeople } from "../../components/TeamAvatar";
 import { Badge, Button, Card, RUN_TONE, Segmented } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
+import { usePersonaLabel, usePersonas } from "../../lib/personas";
 import { ImportCards } from "./ImportCards";
 import { Roadmap } from "./Roadmap";
 
 const COLUMNS: TaskStatus[] = ["todo", "doing", "review", "done"];
+
+/**
+ * Who a card is for and who took it (plan.md 4.4), shown together: "Kerim → Backend persona".
+ * A card can go to a teammate or to a persona; teammates take cards so nothing is done twice.
+ */
+function CardPeople({ task, onError }: { task: BoardTask; onError: (message: string) => void }) {
+  const { t } = useTranslation();
+  const people = useTeamPeople();
+  const { personas } = usePersonas();
+  const label = usePersonaLabel();
+  const personaName = (id: string) =>
+    label(
+      personas.find((p) => p.id === id),
+      id,
+    ).name;
+  const team = people.status?.configured;
+  const me = people.status?.user;
+  const value = task.assignee ? `${task.assignee.kind}:${task.assignee.id}` : "";
+  const pick = (choice: string) => {
+    const [kind, id = ""] = choice.split(":") as ["person" | "persona", string];
+    const name = kind === "person" ? people.status?.members.find((m) => m.id === id)?.displayName : personaName(id);
+    void api
+      .assignCard(task.id, choice ? { kind, id, name: name || id } : null)
+      .catch((e: Error) => onError(e.message));
+  };
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-fg-muted">
+      {task.claimedBy && <span className="font-medium text-fg">{task.claimedBy.name}</span>}
+      {task.claimedBy && task.assignee?.kind === "persona" && <ArrowRight size={11} aria-hidden="true" />}
+      <select
+        value={value}
+        onChange={(e) => pick(e.target.value)}
+        aria-label={t("board.assign")}
+        className="max-w-36 truncate rounded border border-border bg-bg px-1 py-0.5 text-[11px]"
+      >
+        <option value="">{t("board.nobody")}</option>
+        {team &&
+          (people.status?.members ?? []).map((m) => (
+            <option key={m.id} value={`person:${m.id}`}>
+              {m.displayName}
+            </option>
+          ))}
+        {personas.map((p) => (
+          <option key={p.id} value={`persona:${p.id}`}>
+            {personaName(p.id)}
+          </option>
+        ))}
+      </select>
+      {team &&
+        me &&
+        (task.claimedBy?.id === me.id ? (
+          <button
+            type="button"
+            onClick={() => void api.claimCard(task.id, false).catch((e: Error) => onError(e.message))}
+            className="text-accent hover:underline"
+          >
+            {t("board.release")}
+          </button>
+        ) : (
+          !task.claimedBy && (
+            <button
+              type="button"
+              onClick={() => void api.claimCard(task.id, true).catch((e: Error) => onError(e.message))}
+              className="inline-flex items-center gap-0.5 text-accent hover:underline"
+            >
+              <Hand size={11} aria-hidden="true" />
+              {t("board.take")}
+            </button>
+          )
+        ))}
+      {task.author && <span className="text-fg-subtle">· {t("board.from", { name: task.author })}</span>}
+    </div>
+  );
+}
 
 function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; onDragStart: (e: DragEvent) => void }) {
   const { t } = useTranslation();
@@ -27,6 +103,7 @@ function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; 
     >
       <p className="text-[13px] font-medium leading-snug">{task.title}</p>
       {task.description && <p className="line-clamp-3 text-xs text-fg-muted">{task.description}</p>}
+      <CardPeople task={task} onError={setError} />
       <div className="flex flex-wrap items-center gap-1.5">
         {task.origin && <Badge>{task.origin}</Badge>}
         {run && (

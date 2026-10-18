@@ -17,7 +17,8 @@ in two places, and the database gate lists each case.
    written whole with that row, and no query looks inside it (the code only compares the whole value,
    such as `packages != '[]'`). A child table would add a join to every read and buy nothing.
 2. **Names copied next to an id** (`sessions.author_name`, `comments.author_name`,
-   `env_changes.author_name`, `memory_items.author_name`, `team_messages.from_name`). The id points at
+   `env_changes.author_name`, `memory_items.author_name`, `team_messages.from_name`, and on the shared task board
+   `board_tasks.assignee_name`, whose id is a team member or a persona, neither of which has a local row to join). The id points at
    a team member who lives on the team hub, not in this database, so there is no local row to join.
    The name is kept so the app shows who did something even when the hub is out of reach.
 

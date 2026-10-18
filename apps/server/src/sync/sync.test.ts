@@ -5,8 +5,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Hub } from "../../../hub/src/hub";
 import { createHubServer } from "../../../hub/src/server";
+import { Board } from "../board";
 import { Bus } from "../bus";
 import { migrate } from "../db";
+import type { Flows } from "../flows";
 import { Sync } from "./client";
 
 const dir = mkdtempSync(join(tmpdir(), "godeye-sync-"));
@@ -20,7 +22,9 @@ function device(name: string) {
   const db = new Database(":memory:");
   migrate(db);
   const sync = new Sync(db, new Bus(), join(dir, `${name}.json`), () => name);
-  return { db, sync };
+  const board = new Board(db, new Bus(), {} as Flows);
+  sync.board = board;
+  return { db, sync, board };
 }
 
 async function until(check: () => boolean, ms = 8000): Promise<void> {
@@ -135,6 +139,25 @@ describe("team sync", () => {
       () =>
         (a.db.query("SELECT text FROM memory_items WHERE id = 'k1'").get() as { text: string }).text === "Use SQLite",
     );
+  });
+
+  test("the task board is shared: who a card is for and who took it reach the teammate, edits come back", async () => {
+    const card = a.board.add({ projectId: "p1", title: "Rate limit the login" });
+    a.board.assign(card.id, { kind: "persona", id: "security", name: "Security" });
+    a.board.claim(card.id, { id: "u-mohamed", name: "mohamed" });
+    await a.sync.flush();
+    await until(() => !!b.board.get(card.id));
+    expect(b.board.get(card.id)).toMatchObject({
+      projectId: "local-p",
+      title: "Rate limit the login",
+      assignee: { kind: "persona", id: "security", name: "Security" },
+      claimedBy: { id: "u-mohamed", name: "mohamed" },
+      author: "mohamed",
+    });
+    await Bun.sleep(5);
+    b.board.update(card.id, { title: "Rate limit the login and signup" });
+    await b.sync.flush();
+    await until(() => a.board.get(card.id)?.title === "Rate limit the login and signup");
   });
 
   test("the hub only ever sees ciphertext", () => {

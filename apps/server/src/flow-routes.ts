@@ -9,7 +9,18 @@ import { worktreeDiff } from "./worktrees";
 
 export function registerFlowRoutes(
   app: Hono,
-  { flows, board, store }: { flows: Flows; board: Board; store: Store },
+  {
+    flows,
+    board,
+    store,
+    me = () => undefined,
+  }: {
+    flows: Flows;
+    board: Board;
+    store: Store;
+    /** The signed-in teammate (team sync), who takes cards. */
+    me?: () => { id: string; name: string } | undefined;
+  },
 ): void {
   const fail = (err: unknown) =>
     new Response(JSON.stringify({ error: (err as Error).message }), {
@@ -126,6 +137,26 @@ export function registerFlowRoutes(
   app.delete("/api/board/:id", (c) => {
     board.remove(c.req.param("id"));
     return c.json({ ok: true });
+  });
+  // Who a card is for: a teammate or a persona (plan.md 4.4); an empty body clears it.
+  app.post("/api/board/:id/assign", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { kind?: unknown; id?: unknown; name?: unknown };
+    const kind = body.kind === "person" || body.kind === "persona" ? body.kind : undefined;
+    return guard(() =>
+      board.assign(
+        c.req.param("id"),
+        kind && typeof body.id === "string" && body.id
+          ? { kind, id: body.id.slice(0, 80), name: String(body.name ?? body.id).slice(0, 80) }
+          : null,
+      ),
+    );
+  });
+  // "I'm taking this" / let it go; needs a team identity.
+  app.post("/api/board/:id/claim", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { take?: unknown };
+    const who = me();
+    if (body.take !== false && !who) return c.json({ error: "Join a team to take cards" }, 400);
+    return guard(() => board.claim(c.req.param("id"), body.take === false ? null : (who ?? null)));
   });
 }
 

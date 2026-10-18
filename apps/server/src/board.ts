@@ -16,7 +16,28 @@ type Row = {
   ord: number;
   created_at: number;
   updated_at: number;
+  assignee_kind: "person" | "persona" | null;
+  assignee_id: string | null;
+  assignee_name: string | null;
+  claimed_by: string | null;
+  claimed_name: string | null;
+  author_name: string | null;
+  deleted: number;
 };
+
+/** A card as it travels to teammates: no run id (the run lives on the computer that started it). */
+export interface SharedTask {
+  id: string;
+  title: string;
+  description: string;
+  status: TaskStatus;
+  order: number;
+  createdAt: number;
+  updatedAt: number;
+  assignee?: BoardTask["assignee"];
+  claimedBy?: BoardTask["claimedBy"];
+  deleted: boolean;
+}
 
 function toTask(r: Row): BoardTask {
   return {
@@ -30,6 +51,11 @@ function toTask(r: Row): BoardTask {
     order: r.ord,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
+    ...(r.assignee_kind && r.assignee_id
+      ? { assignee: { kind: r.assignee_kind, id: r.assignee_id, name: r.assignee_name ?? r.assignee_id } }
+      : {}),
+    ...(r.claimed_by ? { claimedBy: { id: r.claimed_by, name: r.claimed_name ?? r.claimed_by } } : {}),
+    ...(r.author_name ? { author: r.author_name } : {}),
   };
 }
 
@@ -47,12 +73,20 @@ export class Board {
 
   list(projectId: string): BoardTask[] {
     return (
-      this.db.query("SELECT * FROM board_tasks WHERE project_id = ? ORDER BY status, ord").all(projectId) as Row[]
+      this.db
+        .query(
+          "SELECT id, project_id, title, description, status, run_id, origin, ord, created_at, updated_at, assignee_kind, assignee_id, assignee_name, claimed_by, claimed_name, author_name, deleted FROM board_tasks WHERE project_id = ? AND deleted = 0 ORDER BY status, ord",
+        )
+        .all(projectId) as Row[]
     ).map(toTask);
   }
 
   get(id: string): BoardTask | undefined {
-    const row = this.db.query("SELECT * FROM board_tasks WHERE id = ?").get(id) as Row | undefined;
+    const row = this.db
+      .query(
+        "SELECT id, project_id, title, description, status, run_id, origin, ord, created_at, updated_at, assignee_kind, assignee_id, assignee_name, claimed_by, claimed_name, author_name, deleted FROM board_tasks WHERE id = ?",
+      )
+      .get(id) as Row | undefined;
     return row ? toTask(row) : undefined;
   }
 
@@ -91,7 +125,7 @@ export class Board {
   ): BoardTask {
     const task = this.add({ projectId, title: card.title, description: card.description, origin: card.origin });
     if (card.status !== "todo")
-      this.db.query("UPDATE board_tasks SET status = ? WHERE id = ?").run(card.status, task.id);
+      this.db.query("UPDATE board_tasks SET status = ?, dirty = 1 WHERE id = ?").run(card.status, task.id);
     return this.get(task.id) as BoardTask;
   }
 
@@ -99,7 +133,7 @@ export class Board {
     const task = this.get(id);
     if (!task) return undefined;
     this.db
-      .query("UPDATE board_tasks SET title = ?, description = ?, updated_at = ? WHERE id = ?")
+      .query("UPDATE board_tasks SET title = ?, description = ?, updated_at = ?, dirty = 1 WHERE id = ?")
       .run(
         typeof patch.title === "string" && patch.title.trim() ? patch.title.trim().slice(0, 200) : task.title,
         typeof patch.description === "string" ? patch.description.slice(0, 4000) : task.description,
@@ -123,20 +157,125 @@ export class Board {
         flow,
         request: `${task.title}${task.description ? `\n\n${task.description}` : ""}`,
         taskId: task.id,
+        // A card given to a persona is worked on as that persona.
+        ...(task.assignee?.kind === "persona" ? { persona: task.assignee.id } : {}),
       }).id;
     }
     if (status === "todo" && run && ["running", "needs_you"].includes(run.status)) this.flows.stop(run.id);
     this.db
-      .query("UPDATE board_tasks SET status = ?, ord = ?, run_id = ?, updated_at = ? WHERE id = ?")
+      .query("UPDATE board_tasks SET status = ?, ord = ?, run_id = ?, updated_at = ?, dirty = 1 WHERE id = ?")
       .run(status, order ?? task.order, runId ?? null, Date.now(), id);
     this.changed(task.projectId);
     return this.get(id) as BoardTask;
   }
 
+  /** Kept as a marker so the removal reaches teammates too. */
   remove(id: string): void {
     const task = this.get(id);
-    this.db.query("DELETE FROM board_tasks WHERE id = ?").run(id);
+    this.db.query("UPDATE board_tasks SET deleted = 1, updated_at = ?, dirty = 1 WHERE id = ?").run(Date.now(), id);
     if (task) this.changed(task.projectId);
+  }
+
+  /** Who the card is for: a teammate or a persona; null clears it. */
+  assign(id: string, assignee: BoardTask["assignee"] | null): BoardTask {
+    const task = this.get(id);
+    if (!task) throw new Error("Card not found");
+    this.db
+      .query(
+        "UPDATE board_tasks SET assignee_kind = ?, assignee_id = ?, assignee_name = ?, updated_at = ?, dirty = 1 WHERE id = ?",
+      )
+      .run(assignee?.kind ?? null, assignee?.id ?? null, assignee?.name.slice(0, 80) ?? null, Date.now(), id);
+    this.changed(task.projectId);
+    return this.get(id) as BoardTask;
+  }
+
+  /** "I'm taking this": refused when someone else already took it; null lets it go. */
+  claim(id: string, who: { id: string; name: string } | null): BoardTask {
+    const task = this.get(id);
+    if (!task) throw new Error("Card not found");
+    if (who && task.claimedBy && task.claimedBy.id !== who.id)
+      throw new Error(`${task.claimedBy.name} already took this card`);
+    this.db
+      .query("UPDATE board_tasks SET claimed_by = ?, claimed_name = ?, updated_at = ?, dirty = 1 WHERE id = ?")
+      .run(who?.id ?? null, who?.name.slice(0, 80) ?? null, Date.now(), id);
+    this.changed(task.projectId);
+    return this.get(id) as BoardTask;
+  }
+
+  // ---- team sync -----------------------------------------------------------------------
+
+  /**
+   * Cards changed here that teammates have not received yet. In a project you only receive,
+   * only your edits to teammates' cards go out, never cards of your own.
+   */
+  unsent(projectId: string, teammatesOnly = false): SharedTask[] {
+    return (
+      this.db
+        .query(
+          "SELECT id, project_id, title, description, status, run_id, origin, ord, created_at, updated_at, assignee_kind, assignee_id, assignee_name, claimed_by, claimed_name, author_name, deleted FROM board_tasks WHERE project_id = ? AND dirty = 1 AND (? = 0 OR author_name IS NOT NULL) LIMIT 50",
+        )
+        .all(projectId, teammatesOnly ? 1 : 0) as Row[]
+    ).map((r) => {
+      const task = toTask(r);
+      return {
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        order: task.order,
+        createdAt: task.createdAt,
+        updatedAt: task.updatedAt,
+        ...(task.assignee ? { assignee: task.assignee } : {}),
+        ...(task.claimedBy ? { claimedBy: task.claimedBy } : {}),
+        deleted: r.deleted === 1,
+      };
+    });
+  }
+
+  markSent(id: string, updatedAt: number): void {
+    this.db.query("UPDATE board_tasks SET dirty = 0 WHERE id = ? AND updated_at = ?").run(id, updatedAt);
+  }
+
+  /** A teammate's card: the newer version wins; their runs stay on their computer. */
+  applyRemote(projectId: string, value: Record<string, unknown>, author: string): void {
+    const id = String(value.id ?? "");
+    const at = Number(value.updatedAt ?? 0);
+    const status = STATUSES.find((s) => s === value.status);
+    if (!id || !status) return;
+    const existing = this.db.query("SELECT updated_at FROM board_tasks WHERE id = ?").get(id) as {
+      updated_at: number;
+    } | null;
+    if (existing && existing.updated_at >= at) return;
+    const assignee = value.assignee as BoardTask["assignee"] | undefined;
+    const claimed = value.claimedBy as BoardTask["claimedBy"] | undefined;
+    this.db
+      .query(
+        `INSERT INTO board_tasks (id, project_id, title, description, status, ord, created_at, updated_at,
+           assignee_kind, assignee_id, assignee_name, claimed_by, claimed_name, author_name, deleted, dirty)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+         ON CONFLICT(id) DO UPDATE SET title = excluded.title, description = excluded.description, status = excluded.status,
+           ord = excluded.ord, updated_at = excluded.updated_at, assignee_kind = excluded.assignee_kind,
+           assignee_id = excluded.assignee_id, assignee_name = excluded.assignee_name, claimed_by = excluded.claimed_by,
+           claimed_name = excluded.claimed_name, deleted = excluded.deleted, dirty = 0`,
+      )
+      .run(
+        id,
+        projectId,
+        String(value.title ?? "").slice(0, 200),
+        String(value.description ?? "").slice(0, 4000),
+        status,
+        Number(value.order ?? 0),
+        Number(value.createdAt ?? at),
+        at,
+        assignee?.kind === "person" || assignee?.kind === "persona" ? assignee.kind : null,
+        assignee ? String(assignee.id).slice(0, 80) : null,
+        assignee ? String(assignee.name).slice(0, 80) : null,
+        claimed ? String(claimed.id).slice(0, 80) : null,
+        claimed ? String(claimed.name).slice(0, 80) : null,
+        author.slice(0, 80),
+        value.deleted ? 1 : 0,
+      );
+    this.changed(projectId);
   }
 
   /** Follows the team's run: ready (or waiting for you) → Review, merged → Done. */
@@ -153,7 +292,9 @@ export class Board {
             ? "doing"
             : undefined;
     if (next && next !== task.status) {
-      this.db.query("UPDATE board_tasks SET status = ?, updated_at = ? WHERE id = ?").run(next, Date.now(), task.id);
+      this.db
+        .query("UPDATE board_tasks SET status = ?, updated_at = ?, dirty = 1 WHERE id = ?")
+        .run(next, Date.now(), task.id);
       this.changed(task.projectId);
     }
   }

@@ -14,6 +14,7 @@
     "sql-interpolation": "Reviewed when the check was added: only table names from the schema or a fixed list, quoted identifiers, numbers, or ?-placeholder lists are put into the text; values are always bound with ?."
   },
   "violations": [
+    "denormalized-copy:board_tasks.assignee_name",
     "denormalized-copy:comments.author_name",
     "denormalized-copy:env_changes.author_name",
     "denormalized-copy:memory_items.author_name",
@@ -124,6 +125,7 @@
     "reference-fk:app_perf.project_id",
     "reference-fk:app_users_daily.project_id",
     "reference-fk:backup_runs.job_id",
+    "reference-fk:board_tasks.assignee_id",
     "reference-fk:board_tasks.project_id",
     "reference-fk:board_tasks.run_id",
     "reference-fk:board_versions.board_id",
@@ -177,6 +179,7 @@
     "reference-fk:usage.session_id",
     "reference-fk:vault_items.project_id",
     "reference-fk:wiki_pages.project_id",
+    "reference-index:board_tasks.assignee_id",
     "reference-index:board_tasks.run_id",
     "reference-index:calendar_events.project_id",
     "reference-index:chat_history.project_id",
@@ -224,8 +227,6 @@
     "select-star:apps/server/src/arena.ts:f683d37d",
     "select-star:apps/server/src/assist.ts:441695fc",
     "select-star:apps/server/src/assist.ts:cac96939",
-    "select-star:apps/server/src/board.ts:444e0d26",
-    "select-star:apps/server/src/board.ts:f82f14e1",
     "select-star:apps/server/src/calendar.ts:4ee08d99",
     "select-star:apps/server/src/databases.ts:09f83fd1",
     "select-star:apps/server/src/databases.ts:3fab4eb6",
@@ -382,6 +383,7 @@
     "b2d4860a327639454c67773ab53b0d671a370a0cb1c73b06bc8f2cfafa7683cf",
     "c19265c74a0ac19f0e276925438b48ae7521dd8c96b1b02e2d949d8a9117a41b",
     "ff178f661d4d9833b1e42b285c6f49facda7917da82f04ac78c22d1036e79a6e",
-    "7dc2e69f8b6132e00d3866781204d9f5aeb6ddf972172090152ef88b84963c31"
+    "7dc2e69f8b6132e00d3866781204d9f5aeb6ddf972172090152ef88b84963c31",
+    "654e88e3ddbe9de4427487b7b5f888e21d38f9504d200ae170a9afcd7c6c2c8e"
   ]
 }

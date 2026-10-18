@@ -441,6 +441,7 @@ const docs = new Docs(
   () => sync.identity().name,
 );
 sync.docs = docs;
+sync.board = board;
 const product = new Product(
   sqlite,
   store,
@@ -579,7 +580,15 @@ const app = createApp({
     registerTesterRoutes(hono, testers);
     registerLibraryRoutes(hono, { library, embedder });
     registerKnowledgeRoutes(hono, knowledge);
-    registerFlowRoutes(hono, { flows, board, store });
+    registerFlowRoutes(hono, {
+      flows,
+      board,
+      store,
+      me: () => {
+        const { id, name } = sync.identity();
+        return id ? { id, name: name ?? id } : undefined;
+      },
+    });
     registerArenaRoutes(hono, new Arena(sqlite, flows));
     registerImportRoutes(hono, board, store);
     hono.post("/api/help", async (c) => {

@@ -874,6 +874,16 @@ export const migrations: string[] = [
    );`,
   // Open findings per category in each scan, for the "down to zero" ratchet (plan.md 15.5).
   `ALTER TABLE insight_scans ADD COLUMN findings TEXT NOT NULL DEFAULT '{}';`,
+  // A shared task board (plan.md 4.4): who a card is for (a person or a persona), who took it,
+  // and what still has to go to the team.
+  `ALTER TABLE board_tasks ADD COLUMN assignee_kind TEXT;
+   ALTER TABLE board_tasks ADD COLUMN assignee_id TEXT;
+   ALTER TABLE board_tasks ADD COLUMN assignee_name TEXT;
+   ALTER TABLE board_tasks ADD COLUMN claimed_by TEXT;
+   ALTER TABLE board_tasks ADD COLUMN claimed_name TEXT;
+   ALTER TABLE board_tasks ADD COLUMN author_name TEXT;
+   ALTER TABLE board_tasks ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0;
+   ALTER TABLE board_tasks ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;`,
 ];
 
 export function migrate(sqlite: Database): number {
