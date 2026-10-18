@@ -392,7 +392,7 @@ export function PersonasPage() {
         }
       />
       <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
-        <div className="flex gap-1">
+        <div className="flex flex-wrap gap-1">
           {(["team", "meetings", "testers", "scores", "arena"] as Tab[]).map((value) => (
             <button
               key={value}

@@ -133,7 +133,10 @@ export function Segmented<T extends string>({
 }) {
   const name = useId();
   return (
-    <fieldset aria-label={label} className="inline-flex shrink-0 rounded-ui border border-border bg-bg-subtle p-0.5">
+    <fieldset
+      aria-label={label}
+      className="inline-flex min-w-0 max-w-full shrink-0 overflow-x-auto rounded-ui border border-border bg-bg-subtle p-0.5 [scrollbar-width:none]"
+    >
       {options.map((option) => (
         <label
           key={option.value}
@@ -161,9 +164,9 @@ export function Segmented<T extends string>({
 
 export function PageHeader({ title, actions }: { title: string; actions?: ReactNode }) {
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-6">
+    <header className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-4 py-2 sm:px-6">
       <h1 className="text-[14px] font-semibold">{title}</h1>
-      {actions}
+      {actions && <div className="flex min-w-0 max-w-full overflow-x-auto [scrollbar-width:none]">{actions}</div>}
     </header>
   );
 }

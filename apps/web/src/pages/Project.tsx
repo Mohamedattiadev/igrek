@@ -330,7 +330,7 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
           </Button>
         </div>
         <p className="mt-3 text-xs text-fg-subtle">
-          {t("setup.file")} <code className="font-mono">{project.path}/.claude/settings.local.json</code>
+          {t("setup.file")} <code className="break-all font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
       </Section>
       <Section title={t("project.gitFlow")} hint={t("project.gitFlowHint")}>
@@ -443,8 +443,8 @@ export function ProjectPage() {
   }
   return (
     <>
-      <header className="shrink-0 border-b border-border px-6 pt-3">
-        <div className="flex items-center gap-2">
+      <header className="shrink-0 border-b border-border px-4 pt-3 sm:px-6">
+        <div className="flex flex-wrap items-center gap-2">
           <Link to="/" className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
             <ArrowLeft size={16} className="rtl:rotate-180" />
           </Link>
@@ -455,7 +455,7 @@ export function ProjectPage() {
           <div className="flex-1" />
           {project && <NewSession projectId={project.id} />}
         </div>
-        <nav className="-mx-6 mt-2 flex gap-1 px-6">
+        <nav className="-mx-4 mt-2 flex flex-wrap gap-x-1 px-4 sm:-mx-6 sm:px-6">
           {MAIN_TABS.map((name) => (
             <button
               key={name}

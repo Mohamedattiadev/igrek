@@ -37,15 +37,17 @@ export function SessionRow({ session, projectId }: { session: SessionListItem; p
           <p className="truncate text-xs text-fg-subtle">{summary?.did[0] ?? session.title}</p>
         )}
       </div>
-      {session.persona ? (
-        <PersonaChip personaId={session.persona} author={session.author} />
-      ) : (
-        session.author && <Badge tone="accent">{session.author}</Badge>
-      )}
+      <span className="hidden shrink-0 sm:contents">
+        {session.persona ? (
+          <PersonaChip personaId={session.persona} author={session.author} />
+        ) : (
+          session.author && <Badge tone="accent">{session.author}</Badge>
+        )}
+      </span>
       {session.tool !== "claude" && <Badge>{session.tool}</Badge>}
       {model && <span className="hidden font-mono text-[11px] text-fg-subtle md:inline">{modelName(model)}</span>}
       <HealthBadge health={session.health} />
-      <span className="w-24 shrink-0 text-end text-[11px] text-fg-subtle">{relativeTime(session.updatedAt)}</span>
+      <span className="shrink-0 text-end text-[11px] text-fg-subtle sm:w-24">{relativeTime(session.updatedAt)}</span>
     </Link>
   );
 }

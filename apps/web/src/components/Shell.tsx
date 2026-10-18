@@ -1,6 +1,6 @@
 import type { ServerMessage } from "@godeye/core";
 import { APP_VERSION } from "@godeye/core";
-import { Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
@@ -38,12 +38,36 @@ function readWide(): boolean {
   }
 }
 
-function ToolStripLink({ item, badge, wide }: { item: NavItem; badge?: number; wide: boolean }) {
+/** Phones and narrow windows: the menu becomes a drawer opened from the top bar. */
+function useNarrow(): boolean {
+  const query = "(max-width: 767px)";
+  const [narrow, setNarrow] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const on = () => setNarrow(m.matches);
+    m.addEventListener("change", on);
+    return () => m.removeEventListener("change", on);
+  }, []);
+  return narrow;
+}
+
+function ToolStripLink({
+  item,
+  badge,
+  wide,
+  onPick,
+}: {
+  item: NavItem;
+  badge?: number;
+  wide: boolean;
+  onPick?: () => void;
+}) {
   const { t } = useTranslation();
   return (
     <NavLink
       to={item.to}
       end={item.to === "/"}
+      onClick={onPick}
       data-tip={wide ? undefined : t(item.label)}
       data-tip-side="right"
       aria-label={t(item.label)}
@@ -71,10 +95,11 @@ function ToolStripLink({ item, badge, wide }: { item: NavItem; badge?: number; w
   );
 }
 
-function ToolStrip() {
+function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void }) {
   const { t } = useTranslation();
   const { settings } = useSettings();
-  const [wide, setWide] = useState(readWide);
+  const [wideSetting, setWide] = useState(readWide);
+  const wide = drawer || wideSetting;
   const visible = NAV_ITEMS.filter((item) => !item.proOnly || settings.mode === "pro");
   const waiting = useTerminals().filter((term) => term.status === "attention").length;
   const approvals = useApprovals().length;
@@ -95,6 +120,7 @@ function ToolStrip() {
       className={cn(
         "flex shrink-0 flex-col gap-0.5 overflow-y-auto overflow-x-hidden border-e border-border bg-bg-subtle py-2 print:hidden",
         wide ? "w-48 items-stretch px-2" : "w-12 items-center",
+        drawer && "fixed inset-y-0 start-0 z-50 w-64 shadow-ui",
       )}
     >
       <div className={cn("mb-2 flex h-9 shrink-0 items-center gap-2", wide ? "px-2" : "justify-center")} aria-hidden>
@@ -109,36 +135,56 @@ function ToolStrip() {
       {visible
         .filter((item) => !item.bottom)
         .map((item) => (
-          <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} />
+          <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} onPick={onClose} />
         ))}
       <div className="flex-1" />
       {visible
         .filter((item) => item.bottom)
         .map((item) => (
-          <ToolStripLink key={item.to} item={item} wide={wide} />
+          <ToolStripLink key={item.to} item={item} wide={wide} onPick={onClose} />
         ))}
-      <button
-        type="button"
-        onClick={flip}
-        aria-label={wide ? t("nav.narrow") : t("nav.wide")}
-        data-tip={wide ? undefined : t("nav.wide")}
-        data-tip-side="right"
-        className={cn(
-          "flex h-9 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
-          wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
-        )}
-      >
-        {wide ? <PanelLeftClose size={18} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
-        {wide && <span>{t("nav.narrow")}</span>}
-      </button>
+      {!drawer && (
+        <button
+          type="button"
+          onClick={flip}
+          aria-label={wide ? t("nav.narrow") : t("nav.wide")}
+          data-tip={wide ? undefined : t("nav.wide")}
+          data-tip-side="right"
+          className={cn(
+            "flex h-9 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
+            wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
+          )}
+        >
+          {wide ? <PanelLeftClose size={18} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
+          {wide && <span>{t("nav.narrow")}</span>}
+        </button>
+      )}
     </nav>
   );
 }
 
-function TopBar({ onSearch, onToast }: { onSearch: () => void; onToast: (message: string) => void }) {
+function TopBar({
+  onSearch,
+  onToast,
+  onMenu,
+}: {
+  onSearch: () => void;
+  onToast: (message: string) => void;
+  onMenu?: () => void;
+}) {
   const { t } = useTranslation();
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-bg px-3 sm:gap-3 print:hidden">
+      {onMenu && (
+        <button
+          type="button"
+          onClick={onMenu}
+          aria-label={t("nav.menu")}
+          className="flex size-8 shrink-0 items-center justify-center rounded-ui text-fg-muted hover:bg-bg-hover hover:text-fg"
+        >
+          <Menu size={18} aria-hidden="true" />
+        </button>
+      )}
       <WorkspacePicker />
       <div className="flex-1" />
       <button
@@ -199,6 +245,8 @@ export function Shell() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [toast, setToast] = useState<string>();
   const [zen, setZen] = useState(readZen);
+  const narrow = useNarrow();
+  const [drawer, setDrawer] = useState(false);
   useDesktopNotifications();
   useEffect(() => {
     const flip = () =>
@@ -251,9 +299,22 @@ export function Shell() {
 
   return (
     <div className="flex h-full">
-      {!zen && <ToolStrip />}
+      {!zen && !narrow && <ToolStrip />}
+      {!zen && narrow && drawer && (
+        <>
+          <button
+            type="button"
+            aria-label={t("helper.close")}
+            className="fixed inset-0 z-40 bg-black/40"
+            onClick={() => setDrawer(false)}
+          />
+          <ToolStrip drawer onClose={() => setDrawer(false)} />
+        </>
+      )}
       <div className="flex min-w-0 flex-1 flex-col">
-        {!zen && <TopBar onSearch={openPalette} onToast={setToast} />}
+        {!zen && (
+          <TopBar onSearch={openPalette} onToast={setToast} onMenu={narrow ? () => setDrawer(true) : undefined} />
+        )}
         <main className="flex min-h-0 flex-1 flex-col overflow-y-auto [scrollbar-gutter:stable] print:overflow-visible">
           <div key={location.pathname} className="ge-page flex min-h-0 flex-1 flex-col">
             <Outlet />

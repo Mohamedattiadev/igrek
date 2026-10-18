@@ -458,45 +458,47 @@ function MonthlyCard() {
           CSV
         </Button>
       </div>
-      <table className="w-full text-[12px]">
-        <thead className="text-[11px] text-fg-subtle">
-          <tr>
-            <th className="py-1 text-start font-medium">{t("limits.month")}</th>
-            <th className="py-1 text-end font-medium">{t("limits.tokensCol")}</th>
-            <th className="w-40 py-1" />
-            <th className="py-1 text-end font-medium">{t("limits.sessionCount")}</th>
-            <th className="py-1 ps-4 text-start font-medium">{t("limits.topModel")}</th>
-            <th className="py-1 text-start font-medium">{t("limits.topProjects")}</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {months.map((m) => {
-            const top = Object.entries(m.models).sort((a, b) => b[1] - a[1])[0]?.[0];
-            return (
-              <tr key={m.month}>
-                <td className="py-1.5 capitalize">{label(m.month)}</td>
-                <td className="py-1.5 text-end font-mono">{compactNumber(m.tokens)}</td>
-                <td className="px-2 py-1.5">
-                  <div className="h-1.5 rounded-full bg-bg-muted">
-                    <div
-                      className="h-full rounded-full"
-                      style={{ width: `${(m.tokens / max) * 100}%`, background: "var(--series-1)" }}
-                    />
-                  </div>
-                </td>
-                <td className="py-1.5 text-end font-mono">{m.sessions}</td>
-                <td className="py-1.5 ps-4">{top ? modelName(top) : "—"}</td>
-                <td className="truncate py-1.5 text-fg-muted">
-                  {m.projects
-                    .slice(0, 3)
-                    .map((p) => p.name)
-                    .join(", ")}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12px]">
+          <thead className="text-[11px] text-fg-subtle">
+            <tr>
+              <th className="py-1 text-start font-medium">{t("limits.month")}</th>
+              <th className="py-1 text-end font-medium">{t("limits.tokensCol")}</th>
+              <th className="w-40 py-1" />
+              <th className="py-1 text-end font-medium">{t("limits.sessionCount")}</th>
+              <th className="py-1 ps-4 text-start font-medium">{t("limits.topModel")}</th>
+              <th className="py-1 text-start font-medium">{t("limits.topProjects")}</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {months.map((m) => {
+              const top = Object.entries(m.models).sort((a, b) => b[1] - a[1])[0]?.[0];
+              return (
+                <tr key={m.month}>
+                  <td className="py-1.5 capitalize">{label(m.month)}</td>
+                  <td className="py-1.5 text-end font-mono">{compactNumber(m.tokens)}</td>
+                  <td className="px-2 py-1.5">
+                    <div className="h-1.5 rounded-full bg-bg-muted">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${(m.tokens / max) * 100}%`, background: "var(--series-1)" }}
+                      />
+                    </div>
+                  </td>
+                  <td className="py-1.5 text-end font-mono">{m.sessions}</td>
+                  <td className="py-1.5 ps-4">{top ? modelName(top) : "—"}</td>
+                  <td className="truncate py-1.5 text-fg-muted">
+                    {m.projects
+                      .slice(0, 3)
+                      .map((p) => p.name)
+                      .join(", ")}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }

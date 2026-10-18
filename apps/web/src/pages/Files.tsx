@@ -364,7 +364,7 @@ export function FilesPage() {
             upload(e.dataTransfer.files);
           }}
         >
-          <div className="flex h-9 shrink-0 items-center gap-1 border-b border-border px-2">
+          <div className="flex min-h-9 shrink-0 flex-wrap items-center gap-1 border-b border-border px-2 py-1">
             <button
               type="button"
               aria-label="Up"
@@ -384,7 +384,7 @@ export function FilesPage() {
                 </span>
               ))}
             </nav>
-            <label className="flex h-6 w-44 items-center gap-1.5 rounded-md border border-border bg-bg px-2">
+            <label className="flex h-6 w-full items-center gap-1.5 rounded-md border border-border bg-bg px-2 sm:w-44">
               <Search size={11} className="text-fg-subtle" />
               <input
                 value={filter}

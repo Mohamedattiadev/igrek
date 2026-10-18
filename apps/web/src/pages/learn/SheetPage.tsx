@@ -92,7 +92,7 @@ function ItemCard({
   // The project has an older version than the one this needs.
   const tooOld = tech?.version && item.since && compareVersions(tech.version, item.since) < 0;
   return (
-    <Card className="break-inside-avoid space-y-2 p-pad">
+    <Card className="min-w-0 break-inside-avoid space-y-2 p-pad">
       <div id={item.id} className="flex scroll-mt-20 flex-wrap items-start gap-2">
         <h4 className="min-w-0 flex-1 text-[13.5px] font-semibold">{tx(item.title, `${path}.title`)}</h4>
         <Badge tone={item.level === "basic" ? "success" : item.level === "intermediate" ? "accent" : "warning"}>
