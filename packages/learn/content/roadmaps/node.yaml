@@ -1,5 +1,7 @@
 id: node
-title: Node.js backend
+title:
+  en: "Node.js backend"
+  tr: "Node.js ile backend"
 summary:
   en: "From an empty computer to your own REST API on the internet. You build a URL shortener with Node.js and Express step by step: validation, a SQLite database, logins, tests, security, a Docker image and a free deploy."
   tr: "Boş bir bilgisayardan internette yayında olan kendi REST API'na. Node.js ve Express ile adım adım bir URL kısaltıcı yazarsın: doğrulama, SQLite veritabanı, giriş sistemi, testler, güvenlik, Docker image'ı ve ücretsiz deploy."

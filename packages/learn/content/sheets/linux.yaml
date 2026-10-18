@@ -1,5 +1,7 @@
 id: linux
-title: Linux commands
+title:
+  en: "Linux commands"
+  tr: "Linux komutları"
 category: tool
 summary:
   en: The everyday commands for files, permissions, processes, disks, network, packages and services on a Linux machine.

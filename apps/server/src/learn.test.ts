@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { compareVersions, words } from "@godeye/learn";
+import { compareVersions, titleOf, validateSheet, words } from "@godeye/learn";
 import { loadContent } from "@godeye/learn/load";
 import { migrate } from "./db";
 import { detectTechs, Learn, searchContent, stageChecks, texts } from "./learn";
@@ -25,6 +25,20 @@ describe("learning center content", () => {
     // Turkish endings: "commiti", "almak" still find "Son commit'i düzeltme" / "geri al" items.
     expect(searchContent(content, "son commiti geri almak").length).toBeGreaterThan(0);
     expect(searchContent(content, "dalları listelemek").some((h) => h.sheet === "git")).toBe(true);
+  });
+
+  test("titles are one name for every language or written per language", () => {
+    const content = loadContent();
+    const linux = content.roadmaps.find((r) => r.id === "linux-server");
+    expect(titleOf(linux?.title, "tr")).toBe("Linux sunucu");
+    expect(titleOf(linux?.title, "en")).toBe("Linux server");
+    expect(titleOf("Docker", "tr")).toBe("Docker");
+    expect(validateSheet({ title: { en: "Caching" } }, "x").some((e) => e.includes("x.title.tr"))).toBe(true);
+    expect(validateSheet({ title: "" }, "x")).toContain("x: no title");
+    // Turkish search finds a sheet by its Turkish title.
+    expect(searchContent(content, "önbellekleme", 40, "tr").some((h) => h.kind === "sheet" && h.id === "caching")).toBe(
+      true,
+    );
   });
 
   test("words and versions", () => {

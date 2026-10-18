@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { languages } from "@godeye/i18n";
-import { pick, STAGES } from "@godeye/learn";
+import { pick, STAGES, type Title, titleOf } from "@godeye/learn";
 import type { Hono } from "hono";
 import type { AppErrors } from "./apperrors";
 import type { Environments } from "./environments";
@@ -52,6 +52,11 @@ export function registerLearnRoutes(
 ): void {
   const { learn, store } = deps;
   const lang = (c: { req: { query: (k: string) => string | undefined } }) => c.req.query("lang") || deps.language();
+  /** Turkish and English titles are written; other languages use the cached translation, else English. */
+  const served = <T extends { title: Title }>(doc: T, l: string, translation?: Record<string, string>) => ({
+    ...doc,
+    title: (l !== "en" && l !== "tr" && translation?.title) || titleOf(doc.title, l),
+  });
 
   hono.get("/api/learn", (c) => c.json({ ...learn.index(lang(c)), state: learn.state(), errors: learn.errors.length }));
   hono.get("/api/sessions/:id/api-versions", (c) => {
@@ -65,19 +70,15 @@ export function registerLearnRoutes(
     const sheet = learn.sheet(c.req.param("id"));
     if (!sheet) return c.json({ error: "Not found" }, 404);
     const l = lang(c);
-    return c.json({
-      sheet,
-      translation: l === "en" || l === "tr" ? undefined : learn.translation("sheet", sheet.id, l),
-    });
+    const translation = l === "en" || l === "tr" ? undefined : learn.translation("sheet", sheet.id, l);
+    return c.json({ sheet: served(sheet, l, translation), translation });
   });
   hono.get("/api/learn/roadmaps/:id", (c) => {
     const roadmap = learn.roadmap(c.req.param("id"));
     if (!roadmap) return c.json({ error: "Not found" }, 404);
     const l = lang(c);
-    return c.json({
-      roadmap,
-      translation: l === "en" || l === "tr" ? undefined : learn.translation("roadmap", roadmap.id, l),
-    });
+    const translation = l === "en" || l === "tr" ? undefined : learn.translation("roadmap", roadmap.id, l);
+    return c.json({ roadmap: served(roadmap, l, translation), translation });
   });
   hono.post("/api/learn/translate", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { kind?: string; id?: string; lang?: string };
@@ -164,11 +165,11 @@ export function registerLearnRoutes(
         const l = deps.language();
         writeFileSync(
           join(path, "README.md"),
-          `# ${roadmap.title}\n\n${pick(roadmap.project, l)}\n\n${pick(roadmap.summary, l)}\n`,
+          `# ${titleOf(roadmap.title, l)}\n\n${pick(roadmap.project, l)}\n\n${pick(roadmap.summary, l)}\n`,
         );
         writeFileSync(join(path, ".gitignore"), "node_modules\n.env\n__pycache__\n.venv\ndist\nbuild\ntarget\n");
         git(["add", "-A"]);
-        git(["commit", "-q", "-m", `Start the ${roadmap.title} practice project`]);
+        git(["commit", "-q", "-m", `Start the ${titleOf(roadmap.title, "en")} practice project`]);
       }
       return c.json({ projectId: store.addProject(path), path });
     } catch (err) {
@@ -188,7 +189,7 @@ export function registerLearnRoutes(
     const l = deps.language();
     const code = (step.code ?? []).map((f) => `--- ${f.file} (${f.lang})\n${f.text}`).join("\n\n");
     const request = [
-      `Learning roadmap "${roadmap.title}", step ${STAGES.indexOf(step.stage)}: ${pick(step.title, l)}.`,
+      `Learning roadmap "${titleOf(roadmap.title, l)}", step ${STAGES.indexOf(step.stage)}: ${pick(step.title, l)}.`,
       `Project: ${pick(roadmap.project, "en")}`,
       `Do this step in the project, as a teacher would for a beginner who will read every change:\n${step.do.en}`,
       code ? `Example code from the step (adapt it to the project as it is now):\n${code}` : "",

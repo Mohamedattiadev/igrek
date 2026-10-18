@@ -1,5 +1,7 @@
 id: ci-cd
-title: CI/CD with GitHub Actions
+title:
+  en: "CI/CD with GitHub Actions"
+  tr: "GitHub Actions ile CI/CD"
 summary:
   en: "Make a computer test, check and ship your code for you on every change. You add a real pipeline to a small Node.js web app: tests, lint, protected main branch, a Docker image on GitHub's registry and an automatic deploy."
   tr: "Her değişiklikte kodunu senin yerine test eden, kontrol eden ve yayınlayan bir bilgisayar kur. Küçük bir Node.js web uygulamasına gerçek bir pipeline eklersin: testler, lint, korumalı main dalı, GitHub'ın registry'sinde bir Docker image'ı ve otomatik deploy."

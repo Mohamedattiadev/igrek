@@ -1,5 +1,7 @@
 id: design-patterns
-title: Design patterns
+title:
+  en: "Design patterns"
+  tr: "Tasarım kalıpları"
 category: concept
 summary:
   en: Named, reusable solutions to problems that keep coming up in code, with when each one helps and when it is overkill.

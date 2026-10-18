@@ -1,5 +1,7 @@
 id: cron
-title: cron and systemd timers
+title:
+  en: "cron and systemd timers"
+  tr: "cron ve systemd zamanlayıcıları"
 category: tool
 summary:
   en: Run commands on a schedule, with a crontab line or a systemd timer, and keep those jobs from failing silently.

@@ -1,5 +1,7 @@
 id: postgresql
-title: SQL and PostgreSQL
+title:
+  en: "SQL and PostgreSQL"
+  tr: "SQL ve PostgreSQL"
 summary:
   en: "From an empty computer to a real PostgreSQL database online for free. You build the database of a small library app: tables and keys, queries, migrations, a Node.js script, transactions, roles, indexes, backups and monitoring."
   tr: "Boş bir bilgisayardan internette ücretsiz yayında olan gerçek bir PostgreSQL veritabanına. Küçük bir kütüphane uygulamasının veritabanını kurarsın: tablolar ve anahtarlar, sorgular, migration'lar, bir Node.js betiği, transaction'lar, roller, index'ler, yedekler ve izleme."

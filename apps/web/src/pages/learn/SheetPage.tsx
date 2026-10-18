@@ -1,4 +1,4 @@
-import { compareVersions, LEVELS, type Level, type ProjectTech, type Sheet, type SheetItem } from "@godeye/learn";
+import { compareVersions, LEVELS, type Level, type ProjectTech, type ServedSheet, type SheetItem } from "@godeye/learn";
 import {
   ArrowLeft,
   ArrowUpCircle,
@@ -72,7 +72,7 @@ function ItemCard({
   setIndex,
   tech,
 }: {
-  sheet: Sheet;
+  sheet: ServedSheet;
   item: SheetItem;
   path: string;
   tx: ReturnType<typeof textIn>;
@@ -229,7 +229,7 @@ export function SheetPage() {
   const { index: loaded } = useLearnIndex();
   const [index, setIndex] = useState<LearnIndex>();
   useEffect(() => setIndex(loaded), [loaded]);
-  const [sheet, setSheet] = useState<Sheet>();
+  const [sheet, setSheet] = useState<ServedSheet>();
   const [translation, setTranslation] = useState<Record<string, string>>();
   const [translating, setTranslating] = useState(false);
   const [error, setError] = useState<string>();

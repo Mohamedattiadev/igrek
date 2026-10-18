@@ -17,6 +17,8 @@ import {
   STAGES,
   type Stage,
   type Text,
+  type Title,
+  titleOf,
   versionParts,
   words,
 } from "@godeye/learn";
@@ -367,23 +369,29 @@ export function searchContent(
     }
     return total;
   };
-  const both = (t: Text | undefined): string => (t ? `${t.en} ${t.tr}` : "");
+  const both = (t: Title | undefined): string => (typeof t === "string" ? t : t ? `${t.en} ${t.tr}` : "");
   const hits: LearnHit[] = [];
   for (const s of content.sheets) {
     const sheetWords: [string, number][] = [
-      [s.title, 4],
+      [both(s.title), 4],
       [(s.aliases ?? []).join(" "), 3],
       [both(s.summary), 1],
     ];
     const sheetScore = score(sheetWords);
     if (sheetScore)
-      hits.push({ kind: "sheet", id: s.id, title: s.title, snippet: pick(s.summary, lang), score: sheetScore + 2 });
+      hits.push({
+        kind: "sheet",
+        id: s.id,
+        title: titleOf(s.title, lang),
+        snippet: pick(s.summary, lang),
+        score: sheetScore + 2,
+      });
     for (const sec of s.sections)
       for (const it of sec.items) {
         const sc = score([
           [both(it.title), 4],
           [it.form, 3],
-          [`${s.title} ${(s.aliases ?? []).join(" ")}`, 1.5],
+          [`${both(s.title)} ${(s.aliases ?? []).join(" ")}`, 1.5],
           [both(it.what), 1.5],
           [both(sec.title), 1],
           [it.example ?? "", 0.5],
@@ -396,7 +404,7 @@ export function searchContent(
     for (const st of r.steps) {
       const sc = score([
         [both(st.title), 3],
-        [r.title, 2],
+        [both(r.title), 2],
         [both(st.learn), 1],
       ]);
       if (sc)
@@ -405,7 +413,7 @@ export function searchContent(
           roadmap: r.id,
           id: st.id,
           title: pick(st.title, lang),
-          snippet: r.title,
+          snippet: titleOf(r.title, lang),
           score: sc * 0.8,
         });
     }
@@ -440,7 +448,7 @@ export class Learn {
     return {
       sheets: this.content.sheets.map((s) => ({
         id: s.id,
-        title: s.title,
+        title: titleOf(s.title, lang),
         category: s.category,
         summary: pick(s.summary, lang),
         aliases: s.aliases ?? [],
@@ -451,7 +459,7 @@ export class Learn {
       })),
       roadmaps: this.content.roadmaps.map((r) => ({
         id: r.id,
-        title: r.title,
+        title: titleOf(r.title, lang),
         summary: pick(r.summary, lang),
         teacher: r.teacher,
         ...(r.version ? { version: r.version } : {}),

@@ -1,5 +1,7 @@
 id: cloud
-title: Cloud (AWS, Google Cloud, Azure)
+title:
+  en: "Cloud (AWS, Google Cloud, Azure)"
+  tr: "Bulut (AWS, Google Cloud, Azure)"
 summary:
   en: "Learn what the cloud is and put a small web API with a database on the internet, safely. Budget alerts first, then least-privilege access, secrets, HTTPS, deploys from GitHub without stored keys, monitoring and a full cleanup. The three big clouds are compared; you build on the one with the best free tier today."
   tr: "Bulutun ne olduğunu öğren ve veritabanı olan küçük bir web API'sini güvenle internete çıkar. Önce bütçe uyarıları, sonra en az yetki, sırlar, HTTPS, saklı anahtar olmadan GitHub'dan deploy, izleme ve eksiksiz temizlik. Üç büyük bulut karşılaştırılır; sen bugün en iyi ücretsiz katmanı olanın üzerinde çalışırsın."

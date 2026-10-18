@@ -1,5 +1,7 @@
 id: auth
-title: Authentication and authorization
+title:
+  en: "Authentication and authorization"
+  tr: "Kimlik doğrulama ve yetkilendirme"
 category: concept
 summary:
   en: Logging users in and deciding what they may do; sessions and tokens, OAuth 2.0 and OpenID Connect with PKCE, JWT, and storing passwords safely.

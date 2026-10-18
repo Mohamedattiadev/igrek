@@ -1,5 +1,7 @@
 id: caching
-title: Caching
+title:
+  en: "Caching"
+  tr: "Önbellekleme"
 category: concept
 summary:
   en: Keeping a copy of an answer so the next request is faster and cheaper; covers HTTP cache headers, CDNs, Redis and the patterns and traps of caching in your own code.

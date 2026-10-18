@@ -4,9 +4,9 @@ import type {
   LearnHit,
   LearnState,
   ProjectTech,
-  Roadmap,
   RoadmapInfo,
-  Sheet,
+  ServedRoadmap,
+  ServedSheet,
   SheetInfo,
   Stage,
   Text,
@@ -32,9 +32,9 @@ export const learnApi = {
   search: (query: string, lang: string) =>
     request<LearnHit[]>(`/api/learn/search?q=${encodeURIComponent(query)}&lang=${encodeURIComponent(lang)}`),
   sheet: (id: string, lang: string) =>
-    request<{ sheet: Sheet; translation?: Record<string, string> }>(`/api/learn/sheets/${id}${q(lang)}`),
+    request<{ sheet: ServedSheet; translation?: Record<string, string> }>(`/api/learn/sheets/${id}${q(lang)}`),
   roadmap: (id: string, lang: string) =>
-    request<{ roadmap: Roadmap; translation?: Record<string, string> }>(`/api/learn/roadmaps/${id}${q(lang)}`),
+    request<{ roadmap: ServedRoadmap; translation?: Record<string, string> }>(`/api/learn/roadmaps/${id}${q(lang)}`),
   translate: (kind: "sheet" | "roadmap", id: string, lang: string) =>
     post<Record<string, string>>("/api/learn/translate", { kind, id, lang }),
   mark: (kind: "favorite" | "note" | "report" | "done", key: string, value: string | boolean) =>

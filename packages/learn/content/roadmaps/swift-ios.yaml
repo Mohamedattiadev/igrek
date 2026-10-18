@@ -1,5 +1,7 @@
 id: swift-ios
-title: Swift and SwiftUI (iPhone)
+title:
+  en: "Swift and SwiftUI (iPhone)"
+  tr: "Swift ve SwiftUI (iPhone)"
 summary:
   en: "From an empty Mac to your own iPhone app. You build a habit tracker in Swift and SwiftUI step by step, save its data with SwiftData, test it, run it on your own iPhone and learn how TestFlight and the App Store work."
   tr: "Boş bir Mac'ten kendi iPhone uygulamana. Swift ve SwiftUI ile adım adım bir alışkanlık takip uygulaması yazarsın, verisini SwiftData ile kaydedersin, test edersin, kendi iPhone'unda çalıştırırsın ve TestFlight ile App Store'un nasıl işlediğini öğrenirsin."

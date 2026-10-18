@@ -1,5 +1,7 @@
 id: dotnet
-title: C# and ASP.NET Core
+title:
+  en: "C# and ASP.NET Core"
+  tr: "C# ve ASP.NET Core"
 summary:
   en: "From an empty computer to your own C# web API on the internet. You learn C# in a small console app first, then build a real REST API with ASP.NET Core, a SQLite database, tests, login, a Docker image and a free deploy."
   tr: "Boş bir bilgisayardan internette yayında olan kendi C# web API'ne. Önce küçük bir konsol uygulamasında C# öğrenirsin, sonra ASP.NET Core ile gerçek bir REST API, SQLite veritabanı, test, giriş, Docker image'ı ve ücretsiz bir deploy hazırlarsın."

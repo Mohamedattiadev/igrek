@@ -77,9 +77,12 @@ export interface SheetSection {
   items: SheetItem[];
 }
 
+/** A name that reads the same in every language ("Docker"), or one written per language ("Linux server"). */
+export type Title = string | Text;
+
 export interface Sheet {
   id: string;
-  title: string;
+  title: Title;
   category: SheetCategory;
   summary: Text;
   /** Words people search with ("k8s", "regexp"). */
@@ -151,7 +154,7 @@ export interface RoadmapStep {
 
 export interface Roadmap {
   id: string;
-  title: string;
+  title: Title;
   summary: Text;
   /** The persona that teaches it. */
   teacher: string;
@@ -167,6 +170,10 @@ export interface Roadmap {
   sheets?: string[];
   steps: RoadmapStep[];
 }
+
+/** A sheet or roadmap as the server sends it: the title already in the reader's language. */
+export type ServedSheet = Omit<Sheet, "title"> & { title: string };
+export type ServedRoadmap = Omit<Roadmap, "title"> & { title: string };
 
 /** Short lists for search and the hub page; the full content is loaded one at a time. */
 export interface SheetInfo {
@@ -235,6 +242,10 @@ export function pick(text: Text | undefined, lang: string): string {
   return lang === "tr" ? text.tr : text.en;
 }
 
+export function titleOf(title: Title | undefined, lang: string): string {
+  return typeof title === "string" ? title : pick(title, lang);
+}
+
 /** "19.2.1" → [19, 2, 1]; text around the numbers ("^", "v", ">=") is ignored. */
 export function versionParts(v: string | undefined): number[] {
   const m = v?.match(/\d+(?:\.\d+)*/);
@@ -263,6 +274,13 @@ function text(errors: string[], where: string, value: unknown, required = true):
     if (typeof t[lang] !== "string" || !t[lang]?.trim()) errors.push(`${where}.${lang}: missing`);
 }
 
+function title(errors: string[], file: string, value: unknown): void {
+  if (typeof value === "string") {
+    if (!value.trim()) errors.push(`${file}: no title`);
+  } else if (value === undefined) errors.push(`${file}: no title`);
+  else text(errors, `${file}.title`, value);
+}
+
 function url(errors: string[], where: string, value: unknown): void {
   if (typeof value !== "string" || !/^https:\/\/[^\s]+$/.test(value)) errors.push(`${where}: not an https link`);
 }
@@ -273,7 +291,7 @@ export function validateSheet(raw: unknown, file = "sheet"): string[] {
   const s = raw as Partial<Sheet>;
   if (!s || typeof s !== "object") return [`${file}: not an object`];
   if (!ID.test(s.id ?? "")) e.push(`${file}: bad id`);
-  if (!s.title) e.push(`${file}: no title`);
+  title(e, file, s.title);
   if (!SHEET_CATEGORIES.includes(s.category as SheetCategory)) e.push(`${file}: bad category`);
   text(e, `${file}.summary`, s.summary);
   if (!MONTH.test(String(s.checked ?? ""))) e.push(`${file}: checked must be YYYY-MM`);
@@ -378,7 +396,7 @@ export function validateRoadmap(raw: unknown, file = "roadmap", known?: Set<stri
   const r = raw as Partial<Roadmap>;
   if (!r || typeof r !== "object") return [`${file}: not an object`];
   if (!ID.test(r.id ?? "")) e.push(`${file}: bad id`);
-  if (!r.title) e.push(`${file}: no title`);
+  title(e, file, r.title);
   text(e, `${file}.summary`, r.summary);
   text(e, `${file}.project`, r.project);
   if (!r.teacher) e.push(`${file}: no teacher`);

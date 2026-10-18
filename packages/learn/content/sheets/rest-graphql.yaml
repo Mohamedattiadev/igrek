@@ -1,5 +1,7 @@
 id: rest-graphql
-title: REST and GraphQL
+title:
+  en: "REST and GraphQL"
+  tr: "REST ve GraphQL"
 category: concept
 summary:
   en: How to design a clean REST API on top of HTTP, the basics of GraphQL, and how to choose between them.

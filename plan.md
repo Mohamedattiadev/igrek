@@ -1179,7 +1179,7 @@ god-eye/
 - [x] ⭐ Sohbet listesi sunucuda kalıcı: God Eye yeniden başlayınca da her tarayıcıda "Kaldığım yerden devam et" — *sohbetler oturum kimliğiyle veritabanında saklanır; Terminaller sayfasında "Son sohbetler" listesi ve "Kaldığım yerden devam et" her tarayıcıda, yeniden başlatmadan sonra da çalışır*
 - [x] ⭐ Ana sayfa sade: önce sohbet kutusu ve projeler; brifing, gün sonu, "Bugün" ve odak kartları katlanabilir; Basit modda jargon ("Session", "Dinç/Yoruluyor", model adları) açıklanır ya da gizlenir — *brifing, gün sonu, "Bugün", odak ve özet önerisi tek bir "Günün özeti" bölümünde; Basit modda kapalı başlar, seçim hatırlanır. Sağlık rozeti ve model seçimi bir cümleyle açıklanır, Basit modda "Dinç" rozeti gizlenir; Türkçede "session" yerine "oturum" (sözlükte açıklamalı)*
 - [x] Telefonda Dosyalar sayfası tek panel; telefonda turda menü butonu adımı — *telefonda yerler bir seçim kutusu, açılan dosya listeyi kaplar ve "Dosyalara dön" ile geri gelinir; turda menü butonunu tanıtan adım sadece telefonda görünür*
-- [ ] Öğrenme merkezi başlıklarının Türkçesi (yol haritası ve kâğıt başlıkları şu an tek dil)
+- [x] Öğrenme merkezi başlıklarının Türkçesi (yol haritası ve kâğıt başlıkları şu an tek dil) — *başlık tek bir ad ("Docker") ya da en/tr çifti olabilir; 21 başlığa Türkçe eklendi ("Linux sunucu", "Önbellekleme"); sunucu başlığı okurun dilinde gönderir, Türkçe arama Türkçe başlığı da bulur*
 - [ ] Erişilebilirlik taraması (axe ile kontrast ve etiketler; sabit İngilizce aria-label'lar)
 - [ ] Gerçek bir acemiyle ve ekran okuyucu kullanan biriyle deneme
 

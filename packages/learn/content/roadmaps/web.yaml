@@ -1,5 +1,7 @@
 id: web
-title: Web basics
+title:
+  en: "Web basics"
+  tr: "Web temelleri"
 summary:
   en: "From an empty computer to your own website on the internet. You write HTML, CSS and JavaScript by hand, with no framework and no build tool, and you understand what every line does."
   tr: "Boş bir bilgisayardan internette yayında olan kendi web siteni yapmaya. HTML, CSS ve JavaScript'i framework ve build aracı olmadan elle yazarsın ve her satırın ne yaptığını anlarsın."

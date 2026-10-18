@@ -1,5 +1,7 @@
 id: regex
-title: Regular expressions
+title:
+  en: "Regular expressions"
+  tr: "Düzenli ifadeler (regex)"
 category: tool
 summary:
   en: A small pattern language for finding, checking and replacing text. Examples use JavaScript; notes show where Python, PCRE and POSIX tools (grep, sed) differ.

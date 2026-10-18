@@ -1,5 +1,7 @@
 id: ai-apps
-title: AI apps
+title:
+  en: "AI apps"
+  tr: "AI uygulamaları"
 summary:
   en: "From an empty computer to your own AI app on the internet. You build a docs helper step by step: a small Python program that answers questions about a folder of Markdown notes, runs on a free local model, cites its sources, and you learn how to test, secure and watch it."
   tr: "Boş bir bilgisayardan internette yayında olan kendi yapay zekâ uygulamana. Adım adım bir dokümantasyon yardımcısı yazarsın: Markdown notlarından oluşan bir klasör hakkındaki soruları cevaplayan küçük bir Python programı. Ücretsiz bir yerel modelle çalışır, kaynak gösterir; onu nasıl test edeceğini, güvenli yapacağını ve izleyeceğini de öğrenirsin."

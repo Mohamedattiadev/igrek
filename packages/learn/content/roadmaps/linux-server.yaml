@@ -1,5 +1,7 @@
 id: linux-server
-title: Linux server
+title:
+  en: "Linux server"
+  tr: "Linux sunucu"
 summary:
   en: "From a terminal you have barely used to your own web app on your own Linux server. You practise in a free virtual machine first, then repeat it on a cheap or free VPS with a firewall, safe SSH, HTTPS, logs, backups and automatic updates."
   tr: "Pek kullanmadığın bir terminalden, kendi Linux sunucundaki kendi web uygulamana. Önce ücretsiz bir sanal makinede pratik yaparsın, sonra aynısını ucuz ya da ücretsiz bir VPS'te güvenlik duvarı, güvenli SSH, HTTPS, log, yedek ve otomatik güncellemeyle tekrarlarsın."

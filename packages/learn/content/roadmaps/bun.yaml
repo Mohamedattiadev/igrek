@@ -1,5 +1,7 @@
 id: bun
-title: Bun full-stack
+title:
+  en: "Bun full-stack"
+  tr: "Bun ile full-stack"
 summary:
   en: "From an empty computer to your own full-stack app on the internet, built with Bun alone. You write a small notes app step by step: TypeScript with no build step, a web server, a page, a SQLite database, logins, tests, one executable file, a tiny Docker image and a free deploy."
   tr: "Boş bir bilgisayardan internette yayında olan kendi full-stack uygulamana, sadece Bun ile. Adım adım küçük bir not uygulaması yazarsın: derleme adımı olmayan TypeScript, bir web sunucusu, bir sayfa, SQLite veritabanı, giriş sistemi, testler, tek çalıştırılabilir dosya, küçücük bir Docker image'ı ve ücretsiz deploy."

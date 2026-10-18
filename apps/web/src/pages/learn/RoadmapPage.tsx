@@ -1,4 +1,4 @@
-import { type QuizQuestion, type Roadmap, type RoadmapStep, STAGES } from "@godeye/learn";
+import { type QuizQuestion, type RoadmapStep, type ServedRoadmap, STAGES } from "@godeye/learn";
 import {
   ArrowLeft,
   BookOpen,
@@ -86,7 +86,7 @@ function StepGraph({
   onSelect,
   tx,
 }: {
-  roadmap: Roadmap;
+  roadmap: ServedRoadmap;
   done: Set<string>;
   selected?: string;
   onSelect: (id: string) => void;
@@ -181,7 +181,7 @@ function StepView({
   practiceId,
   setPracticeId,
 }: {
-  roadmap: Roadmap;
+  roadmap: ServedRoadmap;
   step: RoadmapStep;
   index: LearnIndex;
   i: number;
@@ -456,7 +456,7 @@ export function RoadmapPage() {
   const { index: loaded } = useLearnIndex();
   const [index, setIndex] = useState<LearnIndex>();
   useEffect(() => setIndex(loaded), [loaded]);
-  const [roadmap, setRoadmap] = useState<Roadmap>();
+  const [roadmap, setRoadmap] = useState<ServedRoadmap>();
   const [translation, setTranslation] = useState<Record<string, string>>();
   const [translating, setTranslating] = useState(false);
   const [error, setError] = useState<string>();

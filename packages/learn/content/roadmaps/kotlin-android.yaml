@@ -1,5 +1,7 @@
 id: kotlin-android
-title: Kotlin and Android
+title:
+  en: "Kotlin and Android"
+  tr: "Kotlin ve Android"
 summary:
   en: "From an empty computer to a real app on your own phone. You build a habit tracker with Kotlin and Jetpack Compose: screens, state, navigation, a database, a web API, tests, security, an app icon, a signed release build, honest publishing options and crash reports."
   tr: "Boş bir bilgisayardan kendi telefonunda çalışan gerçek bir uygulamaya. Kotlin ve Jetpack Compose ile bir alışkanlık takip uygulaması yazarsın: ekranlar, state, sayfalar arası geçiş, veritabanı, web API, testler, güvenlik, uygulama ikonu, imzalı release build'i, dürüst yayınlama seçenekleri ve çökme raporları."

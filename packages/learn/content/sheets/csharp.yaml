@@ -1,5 +1,7 @@
 id: csharp
-title: C# and .NET
+title:
+  en: "C# and .NET"
+  tr: "C# ve .NET"
 category: language
 summary:
   en: A typed, modern language on .NET for web APIs, desktop apps, games (Unity) and cloud services; dotnet is its command-line tool.

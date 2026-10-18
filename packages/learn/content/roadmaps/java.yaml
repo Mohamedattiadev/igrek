@@ -1,5 +1,7 @@
 id: java
-title: Java and Spring Boot
+title:
+  en: "Java and Spring Boot"
+  tr: "Java ve Spring Boot"
 summary:
   en: "From an empty computer to your own Java web service on the internet. You write plain Java first, then build a real REST API with Spring Boot, a database, tests, login, a Docker image and a free deploy."
   tr: "Boş bir bilgisayardan internette yayında olan kendi Java web servisine. Önce düz Java yazarsın, sonra Spring Boot ile gerçek bir REST API, veritabanı, test, giriş, Docker image'ı ve ücretsiz bir deploy hazırlarsın."

@@ -1,5 +1,7 @@
 id: laravel
-title: PHP and Laravel
+title:
+  en: "PHP and Laravel"
+  tr: "PHP ve Laravel"
 summary:
   en: "From an empty computer to your own Laravel app on the internet. You learn PHP first, then build a real task app with login, a database, tests and a free deploy."
   tr: "Boş bir bilgisayardan internette yayında olan kendi Laravel uygulamana. Önce PHP öğrenirsin, sonra giriş sistemi, veritabanı, testler ve ücretsiz bir deploy ile gerçek bir görev uygulaması yazarsın."
