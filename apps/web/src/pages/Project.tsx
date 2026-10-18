@@ -11,6 +11,7 @@ import {
   Plug,
   RefreshCw,
   Users,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -292,6 +293,34 @@ function Sessions({ projectId }: { projectId: string }) {
   );
 }
 
+/** Steps always allowed in this project, saved from a chat's approval card (plan.md 16.1). */
+function ToolRules({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const { data: rules, reload } = useLiveData(() => api.toolRules(projectId), [projectId]);
+  if (!rules?.length) return <p className="text-xs text-fg-subtle">{t("setup.rulesEmpty")}</p>;
+  return (
+    <ul className="flex flex-wrap gap-1.5">
+      {rules.map((rule) => (
+        <li key={rule} className="flex items-center gap-1 rounded-full border border-border bg-bg-subtle ps-2.5 pe-1">
+          <code className="font-mono text-[12px]">{rule}</code>
+          <button
+            type="button"
+            aria-label={t("setup.rulesRemove", { rule })}
+            title={t("setup.rulesRemove", { rule })}
+            onClick={async () => {
+              await api.removeToolRule(projectId, rule);
+              reload();
+            }}
+            className="rounded-full p-0.5 text-fg-subtle hover:text-danger"
+          >
+            <X size={12} />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => void }) {
   const { t } = useTranslation();
   const accounts = useAccounts();
@@ -332,6 +361,9 @@ function Setup({ project, onChange }: { project: ProjectDetail; onChange: () => 
         <p className="mt-3 text-xs text-fg-subtle">
           {t("setup.file")} <code className="break-all font-mono">{project.path}/.claude/settings.local.json</code>
         </p>
+      </Section>
+      <Section title={t("setup.rulesTitle")} hint={t("setup.rulesHint")}>
+        <ToolRules projectId={project.id} />
       </Section>
       <Section title={t("project.gitFlow")} hint={t("project.gitFlowHint")}>
         <Segmented

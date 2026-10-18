@@ -342,7 +342,11 @@
     "uninstall": "Kapat",
     "on": "Açık",
     "off": "Kapalı",
-    "file": "Yazıldığı yer"
+    "file": "Yazıldığı yer",
+    "rulesTitle": "Her zaman izin verilen adımlar",
+    "rulesHint": "Bir sohbetin onay kartındaki \"Bu projede hep izin ver\" ile kaydedilir. Push, deploy ve web okuduktan sonraki adımlar yine her seferinde sorulur.",
+    "rulesEmpty": "Burada henüz hep izin verilen bir şey yok.",
+    "rulesRemove": "{{rule}} kuralını kaldır"
   },
   "session": {
     "summary": "Özet",
@@ -772,7 +776,7 @@
     "model": "Model",
     "modelDefault": "Varsayılan",
     "allow": "İzin ver",
-    "always": "Hep izin ver",
+    "always": "Bu sohbette hep izin ver",
     "deny": "Reddet",
     "allowed": "İzin verildi",
     "denied": "Reddedildi",
@@ -835,7 +839,13 @@
     "steerTip": "AI'ın şu an yaptığını durdurur ve bunu hemen gönderir.",
     "queuedWhile": "Şu anki turun bitmesini bekliyor",
     "queuedIdle": "Öncesinden kaldı; hazır olduğunda gönder",
-    "unqueue": "Kuyruktan kaldır"
+    "unqueue": "Kuyruktan kaldır",
+    "alwaysTip": "Bu sohbet bitene kadar bu tür adımlara sormadan izin verir.",
+    "alwaysProject": "Bu projede hep izin ver",
+    "alwaysProjectTip": "Bu proje için {{rule}} kuralını kaydeder: buradaki sonraki sohbetler bunu sormaz. Projenin Kurulum sekmesinden kaldırabilirsin.",
+    "denyWhy": "Reddet ve nedenini yaz",
+    "denyWhyPlaceholder": "Neden olmaz ya da onun yerine ne yapılsın",
+    "permissionEnded": "Bu sohbet bitti, bu isteğe artık cevap verilemez. Devam etmek için sohbeti sürdür."
   },
   "checkpoint": {
     "title": "Kayıtlar",

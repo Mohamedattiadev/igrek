@@ -199,6 +199,9 @@ export const api = {
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ status }) }),
   projectSessions: (id: string) => request<SessionListItem[]>(`/api/projects/${id}/sessions`),
   projectContext: (id: string) => request<{ context: string }>(`/api/projects/${id}/context`),
+  toolRules: (id: string) => request<string[]>(`/api/projects/${id}/tool-rules`),
+  removeToolRule: (id: string, rule: string) =>
+    request<{ ok: boolean }>(`/api/projects/${id}/tool-rules?rule=${encodeURIComponent(rule)}`, { method: "DELETE" }),
   installHooks: (id: string) => request<{ ok: boolean }>(`/api/projects/${id}/hooks`, { method: "POST" }),
   uninstallHooks: (id: string) => request<{ ok: boolean }>(`/api/projects/${id}/hooks`, { method: "DELETE" }),
   session: (id: string) => request<SessionDetail>(`/api/sessions/${id}`),

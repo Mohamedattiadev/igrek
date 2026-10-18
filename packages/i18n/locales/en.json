@@ -342,7 +342,11 @@
     "uninstall": "Turn off",
     "on": "On",
     "off": "Off",
-    "file": "Written to"
+    "file": "Written to",
+    "rulesTitle": "Always allowed steps",
+    "rulesHint": "Saved with \"Always in this project\" on a chat's approval card. Pushing, deploying and steps after reading the web are still asked every time.",
+    "rulesEmpty": "Nothing is always allowed here yet.",
+    "rulesRemove": "Remove {{rule}}"
   },
   "session": {
     "summary": "Summary",
@@ -772,7 +776,7 @@
     "model": "Model",
     "modelDefault": "Default",
     "allow": "Allow",
-    "always": "Always allow",
+    "always": "Always in this chat",
     "deny": "Deny",
     "allowed": "Allowed",
     "denied": "Denied",
@@ -835,7 +839,13 @@
     "steerTip": "Stops what the AI is doing and sends this right away.",
     "queuedWhile": "Waiting for the current turn to end",
     "queuedIdle": "Kept from before; send them when you are ready",
-    "unqueue": "Remove from the queue"
+    "unqueue": "Remove from the queue",
+    "alwaysTip": "Allows this kind of step without asking until this chat ends.",
+    "alwaysProject": "Always in this project",
+    "alwaysProjectTip": "Saves the rule {{rule}} for this project: later chats here will not ask for it. Remove it in the project's Setup tab.",
+    "denyWhy": "Deny and say why",
+    "denyWhyPlaceholder": "Why not, or what to do instead",
+    "permissionEnded": "This chat has ended, so this request can no longer be answered. Continue the chat to go on."
   },
   "checkpoint": {
     "title": "Snapshots",

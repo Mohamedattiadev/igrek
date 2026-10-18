@@ -93,8 +93,8 @@ export function useChat(id: string) {
       post({ op: "send", text, images, how }),
     unqueue: (queuedId: string) => post({ op: "unqueue", queuedId }),
     sendQueued: (queuedId: string) => post({ op: "sendQueued", queuedId }),
-    answer: (requestId: string, decision: "allow" | "deny" | "always") =>
-      post({ op: "permission", requestId, decision }),
+    answer: (requestId: string, decision: "allow" | "deny" | "always" | "project", message?: string) =>
+      post({ op: "permission", requestId, decision, message }),
     interrupt: () => post({ op: "interrupt" }),
     setMode: (mode: ChatMode) => post({ op: "mode", mode }),
   };

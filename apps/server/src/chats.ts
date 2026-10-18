@@ -80,6 +80,29 @@ export interface ChatStart {
   };
 }
 
+/**
+ * The narrowest rule that covers a step, for "always allow in this project": the tool's name, or
+ * for a shell command its first two words ("Bash(bun test)"). A command that chains or redirects
+ * gets no rule, so "bun test && rm -rf ~" is never covered by "Bash(bun test)".
+ */
+export function ruleFor(toolName: string, input: unknown): string | undefined {
+  if (toolName !== "Bash") return toolName;
+  const command = String((input as Json | undefined)?.command ?? "").trim();
+  if (!command || /[;&|<>`$()\n\\]/.test(command)) return undefined;
+  const words = command.split(/\s+/).slice(0, 2).join(" ");
+  return `Bash(${words})`;
+}
+
+/** Does a saved rule cover this step? A Bash rule covers commands that start with its words. */
+export function ruleCovers(rule: string, toolName: string, input: unknown): boolean {
+  const own = ruleFor(toolName, input);
+  if (!own) return false;
+  if (rule === own) return true;
+  const m = rule.match(/^Bash\((.+)\)$/);
+  const command = String((input as Json | undefined)?.command ?? "").trim();
+  return !!m?.[1] && toolName === "Bash" && (command === m[1] || command.startsWith(`${m[1]} `));
+}
+
 function clip(text: string, max: number): string {
   return text.length > max ? `${text.slice(0, max)}…` : text;
 }
@@ -101,6 +124,9 @@ export class Chats {
   private chats = new Map<string, Chat>();
   /** Called whenever Claude reports limit usage (wired to the Limits page). */
   onRateLimit: (accountId: string | undefined, info: RateLimitInfo) => void = () => undefined;
+  /** Steps the user always allows in a project (plan.md 16.1); wired to the database. */
+  projectRules: (projectId: string) => string[] = () => [];
+  addProjectRule: (projectId: string, rule: string) => void = () => undefined;
   /** A chat learned its saved session id (links a persona chat to its session). */
   onSession: (info: ChatInfo) => void = () => undefined;
   /** A persona chat finished a turn: its notebook entries are recorded; returns what was kept. */
@@ -340,7 +366,7 @@ export class Chats {
   }
 
   /** Answers a permission prompt. "always" also allows this tool for the rest of the chat. */
-  answer(id: string, requestId: string, decision: "allow" | "deny" | "always", message?: string): void {
+  answer(id: string, requestId: string, decision: "allow" | "deny" | "always" | "project", message?: string): void {
     const chat = this.chats.get(id);
     const index = chat?.index.get(`perm-${requestId}`);
     if (!chat || index === undefined) return;
@@ -348,6 +374,7 @@ export class Chats {
     if (event?.kind !== "permission" || event.status !== "pending") return;
     // "Always" never covers shipping or post-web requests: those are asked each time.
     if (decision === "always" && !event.guard) chat.alwaysAllow.add(event.toolName);
+    if (decision === "project" && !event.guard && event.rule) this.addProjectRule(chat.info.projectId, event.rule);
     this.respond(chat, requestId, decision !== "deny", event.input, message);
     this.upsert(chat, { ...event, status: decision === "deny" ? "denied" : "allowed" });
     chat.info.status = "working";
@@ -522,7 +549,8 @@ export class Chats {
         const requestId = String(msg.request_id);
         const toolName = String(request.tool_name ?? "tool");
         const guard = guardFor(toolName, request.input, !!chat.tainted);
-        if (chat.alwaysAllow.has(toolName) && !guard) {
+        const allowedHere = this.projectRules(chat.info.projectId).some((r) => ruleCovers(r, toolName, request.input));
+        if ((chat.alwaysAllow.has(toolName) || allowedHere) && !guard) {
           this.respond(chat, requestId, true, request.input);
           return;
         }
@@ -535,6 +563,7 @@ export class Chats {
           input: request.input,
           description: typeof request.description === "string" ? request.description : undefined,
           guard,
+          rule: guard ? undefined : ruleFor(toolName, request.input),
           status: "pending",
         });
         chat.info.status = "waiting";

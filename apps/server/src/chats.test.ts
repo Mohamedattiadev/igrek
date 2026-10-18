@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ChatEvent, ChatInfo } from "@godeye/core";
 import { Bus, StopRegistry } from "./bus";
-import { ChatHistory, Chats } from "./chats";
+import { ChatHistory, Chats, ruleCovers, ruleFor } from "./chats";
 import { openDb } from "./db";
 
 /** A stand-in `claude` that speaks the same stream-json protocol. */
@@ -84,6 +84,24 @@ describe("chat", () => {
 
     attached?.detach();
     chats.stopAll();
+  });
+});
+
+describe("always allow in this project", () => {
+  test("a shell rule is the command's first two words, and chained commands get none", () => {
+    expect(ruleFor("Read", { file_path: "/x" })).toBe("Read");
+    expect(ruleFor("Bash", { command: "bun test apps/server" })).toBe("Bash(bun test)");
+    expect(ruleFor("Bash", { command: "bun test && rm -rf ~" })).toBeUndefined();
+    expect(ruleFor("Bash", { command: "cat a > b" })).toBeUndefined();
+    expect(ruleFor("Bash", { command: "echo $(whoami)" })).toBeUndefined();
+  });
+
+  test("a rule covers only the commands that start with its words", () => {
+    expect(ruleCovers("Bash(bun test)", "Bash", { command: "bun test chats" })).toBe(true);
+    expect(ruleCovers("Bash(bun test)", "Bash", { command: "bun testing" })).toBe(false);
+    expect(ruleCovers("Bash(bun test)", "Bash", { command: "bun test; rm -rf ~" })).toBe(false);
+    expect(ruleCovers("Read", "Read", { file_path: "/y" })).toBe(true);
+    expect(ruleCovers("Read", "Edit", { file_path: "/y" })).toBe(false);
   });
 });
 

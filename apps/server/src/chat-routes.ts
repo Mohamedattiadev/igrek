@@ -42,6 +42,24 @@ export function registerChatRoutes(
 
   // Remember every chat with a saved session, so it can be continued after a restart.
   const history = new ChatHistory(store.db);
+  // "Always allow in this project" rules, kept per project.
+  chats.projectRules = (projectId) =>
+    (
+      store.db.query("SELECT rule FROM tool_rules WHERE project_id = ? ORDER BY rule").all(projectId) as {
+        rule: string;
+      }[]
+    ).map((r) => r.rule);
+  chats.addProjectRule = (projectId, rule) =>
+    store.db
+      .query("INSERT OR IGNORE INTO tool_rules (project_id, rule, created_at) VALUES (?, ?, ?)")
+      .run(projectId, rule, Date.now());
+  app.get("/api/projects/:id/tool-rules", (c) => c.json(chats.projectRules(c.req.param("id"))));
+  app.delete("/api/projects/:id/tool-rules", (c) => {
+    store.db
+      .query("DELETE FROM tool_rules WHERE project_id = ? AND rule = ?")
+      .run(c.req.param("id"), c.req.query("rule") ?? "");
+    return c.json({ ok: true });
+  });
   history.record(chats.list());
   bus.subscribe((message) => {
     if (message.type === "chats") history.record(message.chats);
@@ -215,7 +233,7 @@ export type ChatClientMessage =
   | { op: "send"; text: string; images?: { mediaType: string; data: string }[]; how?: SendHow }
   | { op: "unqueue"; queuedId: string }
   | { op: "sendQueued"; queuedId: string }
-  | { op: "permission"; requestId: string; decision: "allow" | "deny" | "always"; message?: string }
+  | { op: "permission"; requestId: string; decision: "allow" | "deny" | "always" | "project"; message?: string }
   | { op: "interrupt" }
   | { op: "mode"; mode: ChatMode };
 
@@ -235,7 +253,8 @@ export function handleChatMessage(chats: Chats, id: string, raw: string): string
     } else if (msg.op === "unqueue") chats.unqueue(id, String(msg.queuedId));
     else if (msg.op === "sendQueued") {
       chats.sendQueued(id, String(msg.queuedId));
-    } else if (msg.op === "permission") chats.answer(id, msg.requestId, msg.decision, msg.message);
+    } else if (msg.op === "permission" && ["allow", "deny", "always", "project"].includes(msg.decision))
+      chats.answer(id, msg.requestId, msg.decision, msg.message ? String(msg.message).slice(0, 2000) : undefined);
     else if (msg.op === "interrupt") chats.interrupt(id);
     else if (msg.op === "mode" && MODES.includes(msg.mode)) chats.setMode(id, msg.mode);
   } catch (err) {

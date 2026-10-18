@@ -528,6 +528,8 @@ export type ChatEvent =
       description?: string;
       /** Why a person must look: it ships work (push, deploy…), or the chat read outside content. */
       guard?: "ship" | "external";
+      /** The rule "always allow in this project" would save ("Bash(bun test)"); none when it can't be narrowed. */
+      rule?: string;
       status: "pending" | "allowed" | "denied";
     }
   | { kind: "result"; id: string; at: number; durationMs?: number; isError: boolean; text?: string }

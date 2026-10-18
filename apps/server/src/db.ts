@@ -826,6 +826,12 @@ const migrations: string[] = [
    );
    CREATE INDEX chat_history_updated ON chat_history(updated_at);`,
   `ALTER TABLE chat_history ADD COLUMN queue TEXT NOT NULL DEFAULT '[]';`,
+  `CREATE TABLE tool_rules (
+     project_id TEXT NOT NULL,
+     rule TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, rule)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

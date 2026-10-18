@@ -303,14 +303,18 @@ function ToolCard({ event, cwd, nested }: { event: ToolEvent; cwd?: string; nest
 
 function PermissionCard({
   event,
+  ended,
   onAnswer,
 }: {
   event: Extract<ChatEvent, { kind: "permission" }>;
-  onAnswer: (decision: "allow" | "deny" | "always") => void;
+  /** The chat's process is gone: a pending request can no longer be answered. */
+  ended: boolean;
+  onAnswer: (decision: "allow" | "deny" | "always" | "project", message?: string) => void;
 }) {
   const { t } = useTranslation();
   const input = (event.input ?? {}) as Json;
-  const pending = event.status === "pending";
+  const pending = event.status === "pending" && !ended;
+  const [why, setWhy] = useState<string>();
   return (
     <div
       className={cn(
@@ -332,20 +336,58 @@ function PermissionCard({
           {t(`chat.guard_${event.guard}`)}
         </p>
       )}
-      {pending ? (
-        <div className="flex gap-2">
+      {pending && why !== undefined ? (
+        <form
+          className="flex flex-wrap gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onAnswer("deny", why.trim() || undefined);
+          }}
+        >
+          <input
+            value={why}
+            onChange={(e) => setWhy(e.target.value)}
+            placeholder={t("chat.denyWhyPlaceholder")}
+            aria-label={t("chat.denyWhy")}
+            // biome-ignore lint/a11y/noAutofocus: the user just asked to write a reason
+            autoFocus
+            className="h-7 min-w-0 flex-1 rounded-md border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+          />
+          <Button size="sm" type="submit">
+            {t("chat.deny")}
+          </Button>
+          <Button size="sm" variant="ghost" type="button" onClick={() => setWhy(undefined)}>
+            {t("persona.cancel")}
+          </Button>
+        </form>
+      ) : pending ? (
+        <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="primary" onClick={() => onAnswer("allow")} autoFocus>
             {t("chat.allow")}
           </Button>
           {!event.guard && (
-            <Button size="sm" onClick={() => onAnswer("always")}>
+            <Button size="sm" onClick={() => onAnswer("always")} data-tip={t("chat.alwaysTip")}>
               {t("chat.always")}
+            </Button>
+          )}
+          {!event.guard && event.rule && (
+            <Button
+              size="sm"
+              onClick={() => onAnswer("project")}
+              data-tip={t("chat.alwaysProjectTip", { rule: event.rule })}
+            >
+              {t("chat.alwaysProject")}
             </Button>
           )}
           <Button size="sm" variant="ghost" onClick={() => onAnswer("deny")}>
             {t("chat.deny")}
           </Button>
+          <Button size="sm" variant="ghost" onClick={() => setWhy("")}>
+            {t("chat.denyWhy")}
+          </Button>
         </div>
+      ) : event.status === "pending" ? (
+        <p className="text-xs text-fg-muted">{t("chat.permissionEnded")}</p>
       ) : (
         <Badge tone={event.status === "allowed" ? "success" : "danger"}>
           {event.status === "allowed" ? t("chat.allowed") : t("chat.denied")}
@@ -701,7 +743,12 @@ export function ChatPage() {
                 return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
               case "permission":
                 return (
-                  <PermissionCard key={event.id} event={event} onAnswer={(d) => chat.answer(event.requestId, d)} />
+                  <PermissionCard
+                    key={event.id}
+                    event={event}
+                    ended={info?.status === "exited"}
+                    onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
+                  />
                 );
               case "result":
                 return (
