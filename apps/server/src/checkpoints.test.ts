@@ -65,3 +65,31 @@ describe("checkpoints", () => {
     expect(createCheckpoint(mkdtempSync(join(tmpdir(), "godeye-nogit-")), "x")).toBeUndefined();
   });
 });
+
+describe("checkpoint limits", () => {
+  test("big untracked files stay out of the snapshot and survive a restore", () => {
+    const { root } = repo();
+    const big = join(root, "dump.bin");
+    writeFileSync(big, Buffer.alloc(3 * 1024 * 1024, 1));
+    const checkpoint = createCheckpoint(root, "with a big file");
+    expect(checkpoint).toBeDefined();
+    const id = checkpoint?.id ?? "";
+    const tree = Bun.spawnSync(["git", "-C", root, "ls-tree", "-r", "--name-only", id]).stdout.toString();
+    expect(tree).not.toContain("dump.bin");
+    writeFileSync(join(root, "app.ts"), "changed");
+    expect(restoreCheckpoint(root, id).ok).toBe(true);
+    expect(readFileSync(join(root, "app.ts"), "utf8")).toBe("v1");
+    expect(existsSync(big)).toBe(true);
+  });
+
+  test("a restore can itself be undone", () => {
+    const { root } = repo();
+    const checkpoint = createCheckpoint(root, "start");
+    writeFileSync(join(root, "app.ts"), "ai work");
+    const result = restoreCheckpoint(root, checkpoint?.id ?? "");
+    expect(readFileSync(join(root, "app.ts"), "utf8")).toBe("v1");
+    expect(result.backup).toBeDefined();
+    expect(restoreCheckpoint(root, result.backup?.id ?? "").ok).toBe(true);
+    expect(readFileSync(join(root, "app.ts"), "utf8")).toBe("ai work");
+  });
+});

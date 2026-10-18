@@ -1085,7 +1085,12 @@ export function ChatPage() {
                       <span className="flex items-center gap-1">
                         <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
                       </span>
-                      <CheckpointRestore compact projectId={event.projectId} checkpointId={event.checkpointId} />
+                      <CheckpointRestore
+                        compact
+                        busy={working}
+                        projectId={event.projectId}
+                        checkpointId={event.checkpointId}
+                      />
                     </div>
                   );
                 case "notice":

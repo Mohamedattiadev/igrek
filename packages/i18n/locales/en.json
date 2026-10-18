@@ -901,7 +901,10 @@
     "restored": "Restored",
     "none": "No snapshots yet.",
     "now": "Save snapshot now",
-    "noGit": "Snapshots need a git repository."
+    "noGit": "Snapshots need a git repository.",
+    "undo": "Undo",
+    "undone": "Undone",
+    "busy": "Stop the AI to go back"
   },
   "limits": {
     "title": "Limits",

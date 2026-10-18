@@ -901,7 +901,10 @@
     "restored": "Geri yüklendi",
     "none": "Henüz kayıt yok.",
     "now": "Şimdi kayıt al",
-    "noGit": "Kayıtlar için git reposu gerekiyor."
+    "noGit": "Kayıtlar için git reposu gerekiyor.",
+    "undo": "Geri al",
+    "undone": "Geri alındı",
+    "busy": "Geri dönmek için AI'ı durdur"
   },
   "limits": {
     "title": "Limitler",

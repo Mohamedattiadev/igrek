@@ -1,9 +1,14 @@
-import { copyFileSync, existsSync, mkdtempSync, rmSync, unlinkSync } from "node:fs";
+import { copyFileSync, existsSync, mkdtempSync, rmSync, statSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import type { Checkpoint } from "@godeye/core";
 
 const REF_PREFIX = "refs/godeye/checkpoints/";
+/** Untracked files larger than this are left out of snapshots (and left alone by restores). */
+const MAX_UNTRACKED_BYTES = 2 * 1024 * 1024;
+/** Snapshots kept per repository; older refs are dropped. */
+const KEEP = 200;
+const SKIPPED = "skipped: ";
 
 function git(
   root: string,
@@ -35,12 +40,14 @@ export function createCheckpoint(root: string, label: string): Checkpoint | unde
     const realPath = isAbsolute(realIndex) ? realIndex : join(root, realIndex);
     if (realIndex && existsSync(realPath)) copyFileSync(realPath, index);
     else if (git(root, ["rev-parse", "--verify", "-q", "HEAD"]).ok) git(root, ["read-tree", "HEAD"], env);
-    if (!git(root, ["add", "-A"], env).ok) return undefined;
+    const skipped = bigUntracked(root);
+    const excludes = skipped.map((file) => `:(exclude,literal)${file}`);
+    if (!git(root, ["add", "-A", "--", ".", ...excludes], env).ok) return undefined;
     const tree = git(root, ["write-tree"], env).out.trim();
     if (!tree) return undefined;
     const head = git(root, ["rev-parse", "--verify", "-q", "HEAD"]).out.trim();
     const at = Date.now();
-    const message = `godeye checkpoint: ${label}`;
+    const message = `godeye checkpoint: ${label}${skipped.length ? `\n\n${skipped.map((f) => SKIPPED + f).join("\n")}` : ""}`;
     const commit = git(root, ["commit-tree", tree, ...(head ? ["-p", head] : []), "-m", message], {
       GIT_AUTHOR_NAME: "God Eye",
       GIT_AUTHOR_EMAIL: "checkpoint@godeye.local",
@@ -53,10 +60,34 @@ export function createCheckpoint(root: string, label: string): Checkpoint | unde
     if (latest && git(root, ["rev-parse", `${latest.id}^{tree}`]).out.trim() === tree) return latest;
     const id = commit.slice(0, 12);
     git(root, ["update-ref", `${REF_PREFIX}${at}-${id}`, commit]);
+    prune(root);
     return { id, label, at };
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+}
+
+/** Untracked, non-ignored files too big to copy into every snapshot (builds, dumps, videos). */
+function bigUntracked(root: string): string[] {
+  return git(root, ["ls-files", "-o", "--exclude-standard", "-z"])
+    .out.split("\0")
+    .filter((file) => {
+      if (!file) return false;
+      try {
+        return statSync(join(root, file)).size > MAX_UNTRACKED_BYTES;
+      } catch {
+        return false;
+      }
+    })
+    .slice(0, 500);
+}
+
+/** Drops the oldest snapshot refs beyond KEEP (their objects go with git's own gc). */
+function prune(root: string): void {
+  const refs = git(root, ["for-each-ref", "--sort=refname", "--format=%(refname)", REF_PREFIX])
+    .out.split("\n")
+    .filter(Boolean);
+  for (const ref of refs.slice(0, Math.max(0, refs.length - KEEP))) git(root, ["update-ref", "-d", ref]);
 }
 
 export function listCheckpoints(root: string, limit = 50): Checkpoint[] {
@@ -100,6 +131,9 @@ export function restoreCheckpoint(root: string, id: string): { ok: boolean; back
   if (!git(root, ["cat-file", "-e", `${id}^{commit}`]).ok) return { ok: false, error: "Unknown checkpoint" };
   const backup = createCheckpoint(root, "before restore");
   const keep = new Set(git(root, ["ls-tree", "-r", "--name-only", id]).out.split("\n").filter(Boolean));
+  // Big untracked files the snapshot left out are kept as they are now.
+  for (const line of git(root, ["log", "-1", "--format=%b", id]).out.split("\n"))
+    if (line.startsWith(SKIPPED)) keep.add(line.slice(SKIPPED.length));
   // Remove files that didn't exist at the checkpoint (tracked or untracked, never ignored ones).
   for (const file of git(root, ["ls-files", "-co", "--exclude-standard"]).out.split("\n").filter(Boolean)) {
     if (!keep.has(file)) {

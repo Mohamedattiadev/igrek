@@ -868,7 +868,9 @@ export const fs = {
   checkpointChanges: (projectId: string, id: string) =>
     request<string[]>(`/api/projects/${projectId}/checkpoints/${id}/changes`),
   restoreCheckpoint: (projectId: string, id: string) =>
-    request<{ ok: boolean }>(`/api/projects/${projectId}/checkpoints/${id}/restore`, { method: "POST" }),
+    request<{ ok: boolean; backup?: Checkpoint }>(`/api/projects/${projectId}/checkpoints/${id}/restore`, {
+      method: "POST",
+    }),
   tail: (path: string, bytes = 200_000) =>
     request<{ text: string; size: number }>(`/api/fs/tail?path=${encodeURIComponent(path)}&bytes=${bytes}`),
   changes: (projectId: string) => request<GitChange[]>(`/api/projects/${projectId}/git/changes`),

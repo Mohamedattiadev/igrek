@@ -718,6 +718,7 @@ const app = createApp({
       db: sqlite,
       onRestore: (projectId, checkpointId, changed) =>
         lessons.checkpointRestored(projectId, checkpointId, "an AI turn", changed),
+      busy: (projectId) => chats.list().some((chat) => chat.projectId === projectId && chat.status === "working"),
     });
     registerLessonRoutes(hono, { lessons, personas, store, scan: scanLessons });
     registerAssistRoutes(hono, assist);

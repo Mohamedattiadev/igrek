@@ -47,12 +47,15 @@ export function registerFileRoutes(
     store,
     db,
     onRestore,
+    busy,
   }: {
     files: Files;
     store: Store;
     db: Database;
     /** A checkpoint was restored: the AI's work since then was undone (a lesson candidate). */
     onRestore?: (projectId: string, checkpointId: string, files: string[]) => void;
+    /** An AI is working in the project right now; restoring under it would mix the two. */
+    busy?: (projectId: string) => boolean;
   },
 ): void {
   app.get("/api/fs/list", (c) => guard(c, () => files.list(c.req.query("path") ?? "", c.req.query("hidden") === "1")));
@@ -171,6 +174,7 @@ export function registerFileRoutes(
   app.post("/api/projects/:id/checkpoints/:cid/restore", (c) => {
     const row = store.projectRow(c.req.param("id"));
     if (!row) return c.json({ error: "Project not found" }, 404);
+    if (busy?.(row.id)) return c.json({ error: "An AI chat is working in this project; stop it first" }, 409);
     const changed = (() => {
       try {
         return checkpointChanges(row.path, c.req.param("cid"));
