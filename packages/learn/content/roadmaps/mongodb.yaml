@@ -1,0 +1,1950 @@
+id: mongodb
+title: MongoDB
+summary:
+  en: "From an empty computer to a real MongoDB data layer. You model, protect, test and back up the database of a small blog, use it from Node.js, and move it to a free Atlas cluster."
+  tr: "Boş bir bilgisayardan gerçek bir MongoDB veri katmanına. Küçük bir blogun veritabanını modelliyor, koruyor, test ediyor ve yedekliyorsun; Node.js'ten kullanıyor ve ücretsiz bir Atlas cluster'a taşıyorsun."
+teacher: database
+project:
+  en: 'The data layer of a small blog: users, posts with embedded comments, validation rules, indexes, reports built with the aggregation pipeline, a Node.js module with tests, transactions, backups, and the same data on a free MongoDB Atlas cluster.'
+  tr: 'Küçük bir blogun veri katmanı: kullanıcılar, içinde yorumlar olan yazılar, doğrulama kuralları, index''ler, aggregation pipeline ile hazırlanan raporlar, testleri olan bir Node.js modülü, transaction''lar, yedekler ve aynı verinin ücretsiz bir MongoDB Atlas cluster''ında durması.'
+detect:
+  npm: [mongodb, mongoose]
+  pip: [pymongo]
+version: "9.0"
+latest: eol:mongodb
+checked: 2026-10
+after: [node]
+sheets: [mongodb, nodejs, javascript, docker]
+steps:
+  - id: install
+    stage: setup
+    title:
+      en: "Run MongoDB on your computer with Docker"
+      tr: "Docker ile bilgisayarında MongoDB çalıştırma"
+    minutes: 40
+    why:
+      en: "You need a real database server to learn on. Docker runs MongoDB in a container, a sealed box that does not touch the rest of your system, and you can delete it in one command. Doing this first also shows you what a database server is: a program that waits for connections on a port."
+      tr: "Üzerinde öğrenmek için gerçek bir veritabanı sunucusuna ihtiyacın var. Docker, MongoDB'yi container içinde çalıştırır; container sistemin geri kalanına dokunmayan kapalı bir kutudur ve tek komutla silinir. Bunu önce yapmak veritabanı sunucusunun ne olduğunu da gösterir: bir portta bağlantı bekleyen bir program."
+    learn:
+      en: |
+        - What a document database is: data is stored as JSON-like documents inside collections, not as rows in tables
+        - What a container, an image and a volume are
+        - Why we start a one-member replica set (transactions, later, need one)
+        - How `mongosh`, the MongoDB shell, connects to the server
+      tr: |
+        - Doküman veritabanının ne olduğu: veri tablolardaki satırlar yerine koleksiyonların içinde JSON benzeri dokümanlar olarak saklanır
+        - Container, image ve volume nedir
+        - Neden tek üyeli bir replica set başlattığımız (transaction'lar ileride bunu ister)
+        - MongoDB shell'i olan `mongosh`'un sunucuya nasıl bağlandığı
+    do:
+      en: |
+        1. Install **Docker**: Docker Desktop on Windows and macOS (docker.com), Docker Engine on Linux. Open a terminal and run `docker --version`. It must print a version.
+        2. Start the server with the first command below. It downloads the `mongo:9.0` image the first time (about 1.5 GB, so be patient). What the flags mean: `--name blog-mongo` is the container name, `--memory 512m` caps its memory, `--user 999:999` runs MongoDB as the unprivileged `mongodb` user of the image, `-p 127.0.0.1:27017:27017` makes the port reachable from your computer only, and `-v blog-mongo-data:/data/db` keeps the data in a volume, so it survives when the container is removed.
+        3. Open the shell inside the container with the second command. The prompt shows `test>`: you are connected to the default database called `test`.
+        4. Start the one-member replica set by pasting the `rs.initiate(...)` line into the shell. Wait a few seconds and press Enter again: the prompt becomes `rs0 [direct: primary] test>`. A replica set is a group of servers that keep copies of the same data; yours has one member, which is enough for learning and gives you transactions later.
+        5. Type `db.version()` to see `9.0.x`, then `exit`.
+        6. Later, if the container is stopped (after a reboot), start it again with `docker start blog-mongo`. Your data and the replica set are still there.
+      tr: |
+        1. **Docker**'ı kur: Windows ve macOS'ta Docker Desktop (docker.com), Linux'ta Docker Engine. Bir terminal aç ve `docker --version` çalıştır. Bir sürüm yazmalı.
+        2. Sunucuyu aşağıdaki ilk komutla başlat. `mongo:9.0` image'ını ilk seferde indirir (yaklaşık 1,5 GB, sabırlı ol). Bayrakların anlamı: `--name blog-mongo` container'ın adı, `--memory 512m` belleğini sınırlar, `--user 999:999` MongoDB'yi image'daki yetkisiz `mongodb` kullanıcısıyla çalıştırır, `-p 127.0.0.1:27017:27017` portu sadece senin bilgisayarından erişilebilir yapar, `-v blog-mongo-data:/data/db` veriyi bir volume'da tutar; böylece container silinse bile veri kalır.
+        3. İkinci komutla container'ın içindeki shell'i aç. Prompt `test>` gösterir: `test` adlı varsayılan veritabanına bağlısın.
+        4. `rs.initiate(...)` satırını shell'e yapıştırarak tek üyeli replica set'i başlat. Birkaç saniye bekle ve Enter'a tekrar bas: prompt `rs0 [direct: primary] test>` olur. Replica set, aynı verinin kopyalarını tutan bir sunucu grubudur; seninki tek üyeli, öğrenmek için yeterli ve ileride transaction'ları sağlıyor.
+        5. `db.version()` yaz, `9.0.x` görürsün; sonra `exit`.
+        6. Sonra container durursa (bilgisayarı yeniden başlatınca) `docker start blog-mongo` ile tekrar başlat. Verin ve replica set yerinde durur.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker run -d --name blog-mongo --memory 512m --user 999:999 -p 127.0.0.1:27017:27017 -v blog-mongo-data:/data/db mongo:9.0 mongod --replSet rs0 --bind_ip_all
+          docker exec -it blog-mongo mongosh
+      - file: mongosh
+        lang: js
+        text: |
+          rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "localhost:27017" }] })
+          db.version()
+          exit
+    mistakes:
+      - problem:
+          en: "\"port is already allocated\" because another MongoDB already uses 27017."
+          tr: "Başka bir MongoDB 27017'yi kullandığı için \"port is already allocated\" hatası."
+        fix:
+          en: "Use another host port, for example `-p 127.0.0.1:27018:27017`, and put 27018 in the connection strings later. Inside the container the port stays 27017."
+          tr: "Başka bir host portu kullan, örneğin `-p 127.0.0.1:27018:27017`, ve ileride connection string'lere 27018 yaz. Container'ın içinde port 27017 kalır."
+      - problem:
+          en: "Starting without `-v` and losing all data when the container is removed."
+          tr: "`-v` olmadan başlatıp container silinince bütün veriyi kaybetmek."
+        fix:
+          en: "Always keep `/data/db` in a volume. Check with `docker volume ls`."
+          tr: "`/data/db` klasörünü her zaman bir volume'da tut. `docker volume ls` ile kontrol et."
+      - problem:
+          en: "Errors like \"not primary\" right after the first start."
+          tr: "İlk başlatmadan hemen sonra \"not primary\" gibi hatalar."
+        fix:
+          en: "You forgot `rs.initiate(...)`, or it is still electing itself. Run it once, wait a few seconds, and the prompt shows `primary`."
+          tr: "`rs.initiate(...)` çalıştırmayı unuttun ya da sunucu henüz kendini seçiyor. Bir kez çalıştır, birkaç saniye bekle; prompt `primary` gösterir."
+    quiz:
+      - q:
+          en: "What does `-v blog-mongo-data:/data/db` do?"
+          tr: "`-v blog-mongo-data:/data/db` ne yapar?"
+        options:
+          en:
+            - "It makes the database faster"
+            - "It keeps the database files in a volume that survives removing the container"
+            - "It lets other computers connect"
+          tr:
+            - "Veritabanını hızlandırır"
+            - "Veritabanı dosyalarını, container silinse de kalan bir volume'da tutar"
+            - "Başka bilgisayarların bağlanmasını sağlar"
+        answer: 1
+        why:
+          en: "A container's own disk is thrown away with the container. A volume lives outside it."
+          tr: "Container'ın kendi diski container ile birlikte atılır. Volume onun dışında yaşar."
+    sources:
+      - title: Install MongoDB Community with Docker
+        url: https://www.mongodb.com/docs/manual/tutorial/install-mongodb-community-with-docker/
+      - title: Convert a standalone to a replica set
+        url: https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/
+      - title: MongoDB Shell (mongosh)
+        url: https://www.mongodb.com/docs/mongodb-shell/
+
+  - id: first-documents
+    stage: first-code
+    title:
+      en: "Your first documents"
+      tr: "İlk dokümanların"
+    minutes: 30
+    needs: [install]
+    why:
+      en: "Before any theory, store something and read it back. It shows the whole idea in a few lines: a document is a JSON-like object, a collection is a pile of documents, and a database is a group of collections."
+      tr: "Teoriden önce bir şey sakla ve geri oku. Bütün fikri birkaç satırda gösterir: doküman JSON benzeri bir nesnedir, koleksiyon bir doküman yığınıdır, veritabanı da koleksiyonlar grubudur."
+    learn:
+      en: |
+        - `use blog` selects a database; it is created when you first write data into it
+        - `insertOne` and `insertMany` add documents; the collection is created for you
+        - `find` and `findOne` read documents back
+        - Every document has a unique `_id`; MongoDB adds an `ObjectId` if you do not
+      tr: |
+        - `use blog` bir veritabanı seçer; içine ilk kez veri yazınca oluşur
+        - `insertOne` ve `insertMany` doküman ekler; koleksiyon senin için oluşturulur
+        - `find` ve `findOne` dokümanları geri okur
+        - Her dokümanın benzersiz bir `_id`'si vardır; sen vermezsen MongoDB bir `ObjectId` ekler
+    do:
+      en: |
+        1. Open the shell: `docker exec -it blog-mongo mongosh`.
+        2. Paste the lines below one by one and read what each prints.
+        3. Look at the `_id` that `insertOne` returned. It is an `ObjectId`: 12 bytes, whose first 4 bytes are the creation time. `getTimestamp()` shows it.
+        4. Compare the second `find` with the first: the documents in one collection do not need the same fields. That is the difference from a table.
+        5. The last line deletes the practice collection, so you start the project clean.
+      tr: |
+        1. Shell'i aç: `docker exec -it blog-mongo mongosh`.
+        2. Aşağıdaki satırları tek tek yapıştır ve her birinin ne yazdığını oku.
+        3. `insertOne`'ın döndürdüğü `_id`'ye bak. Bir `ObjectId`'dir: 12 bayt, ilk 4 baytı oluşturulma zamanıdır. `getTimestamp()` onu gösterir.
+        4. İkinci `find`'ı birinciyle karşılaştır: bir koleksiyondaki dokümanların aynı alanlara sahip olması gerekmez. Tablodan farkı budur.
+        5. Son satır alıştırma koleksiyonunu siler; böylece projeye temiz başlarsın.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          use blog
+          db.notes.insertOne({ text: "My first note", createdAt: new Date() })
+          db.notes.insertMany([
+            { text: "Second note", tags: ["mongodb"] },
+            { text: "Third note", tags: ["mongodb", "node"], pinned: true },
+          ])
+          db.notes.find()
+          db.notes.findOne({ pinned: true })
+          db.notes.findOne()._id.getTimestamp()
+          show collections
+          db.getName()
+          db.notes.drop()
+    mistakes:
+      - problem:
+          en: "Waiting for the new database to show up in `show dbs` right after `use blog`."
+          tr: "`use blog`'dan hemen sonra yeni veritabanının `show dbs`'te görünmesini beklemek."
+        fix:
+          en: "A database exists only after the first write. Insert a document, then run `show dbs`."
+          tr: "Veritabanı ilk yazmadan sonra var olur. Bir doküman ekle, sonra `show dbs` çalıştır."
+      - problem:
+          en: "Naming a collection `hello` or `stats`, and `db.hello.find()` fails with \"is not a function\"."
+          tr: "Bir koleksiyona `hello` ya da `stats` adını verip `db.hello.find()`'ın \"is not a function\" hatası vermesi."
+        fix:
+          en: "`db.hello()` and `db.stats()` are database methods, so they win over a collection with that name. Pick another name, or use `db.getCollection(\"hello\")`."
+          tr: "`db.hello()` ve `db.stats()` veritabanı metotlarıdır, o adlı koleksiyondan önce gelirler. Başka bir ad seç ya da `db.getCollection(\"hello\")` kullan."
+    quiz:
+      - q:
+          en: "What is a collection in MongoDB?"
+          tr: "MongoDB'de koleksiyon nedir?"
+        options:
+          en:
+            - "A group of documents, similar to a table but without a fixed set of columns"
+            - "A single document"
+            - "A backup file"
+          tr:
+            - "Bir doküman grubu; tabloya benzer ama sabit sütunları yoktur"
+            - "Tek bir doküman"
+            - "Bir yedek dosyası"
+        answer: 0
+        why:
+          en: "A collection holds many documents. By default it does not force them to have the same fields; you add rules later with schema validation."
+          tr: "Koleksiyon birçok doküman tutar. Varsayılan olarak aynı alanlara sahip olmalarını zorlamaz; kuralları sonra şema doğrulamayla eklersin."
+    sources:
+      - title: Databases and collections
+        url: https://www.mongodb.com/docs/manual/core/databases-and-collections/
+      - title: Documents
+        url: https://www.mongodb.com/docs/manual/core/document/
+      - title: Insert documents
+        url: https://www.mongodb.com/docs/manual/tutorial/insert-documents/
+
+  - id: crud
+    stage: basics
+    title:
+      en: "Create, read, update, delete"
+      tr: "Oluşturma, okuma, güncelleme, silme"
+    minutes: 50
+    needs: [first-documents]
+    why:
+      en: "Almost everything an app does with a database is one of these four actions. Update operators matter most: they change a value inside the server, so two users never overwrite each other."
+      tr: "Bir uygulamanın veritabanıyla yaptığı hemen her şey bu dört işlemden biridir. En önemlisi update operatörleridir: değeri sunucunun içinde değiştirirler; böylece iki kullanıcı birbirinin yazdığını ezmez."
+    learn:
+      en: |
+        - `updateOne` changes the first match, `updateMany` changes all of them
+        - `$set`, `$inc`, `$unset` change fields; `$push`, `$addToSet`, `$pull` change arrays
+        - `upsert: true` creates the document when nothing matches
+        - `findOneAndUpdate` updates and returns the document in one step
+        - `deleteOne` and `deleteMany`
+      tr: |
+        - `updateOne` eşleşen ilk dokümanı, `updateMany` hepsini değiştirir
+        - `$set`, `$inc`, `$unset` alanları; `$push`, `$addToSet`, `$pull` array'leri değiştirir
+        - `upsert: true`, hiçbir şey eşleşmezse dokümanı oluşturur
+        - `findOneAndUpdate` tek adımda günceller ve dokümanı döndürür
+        - `deleteOne` ve `deleteMany`
+    do:
+      en: |
+        1. In mongosh, run `use blog` and paste the `insertMany` below. It creates a small inventory in a practice collection called `items`.
+        2. Run the update lines one at a time. After each, run `db.items.findOne({ name: "Mouse" })` to see what changed.
+        3. Compare `$push` and `$addToSet` on the same tag: the second one adds nothing, because the tag is already there.
+        4. `findOneAndUpdate` with `returnDocument: "after"` returns the document as it is after the change. Without it you get the old one.
+        5. Before every delete, run the same filter with `find` first to see what will go.
+        6. Keep `items`; the next step queries it.
+      tr: |
+        1. mongosh'ta `use blog` çalıştır ve aşağıdaki `insertMany`'yi yapıştır. `items` adlı bir alıştırma koleksiyonunda küçük bir stok oluşturur.
+        2. Update satırlarını tek tek çalıştır. Her birinden sonra neyin değiştiğini görmek için `db.items.findOne({ name: "Mouse" })` çalıştır.
+        3. Aynı etiket üzerinde `$push` ile `$addToSet`'i karşılaştır: ikincisi bir şey eklemez, çünkü etiket zaten var.
+        4. `returnDocument: "after"` ile `findOneAndUpdate`, dokümanı değişiklikten sonraki haliyle döndürür. Yazmazsan eskisini alırsın.
+        5. Her silmeden önce aynı filtreyi önce `find` ile çalıştır; neyin gideceğini gör.
+        6. `items`'ı sakla; sonraki adım onu sorgular.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          use blog
+          db.items.insertMany([
+            { name: "Keyboard", price: 49.9, qty: 12, tags: ["office", "usb"], status: "active" },
+            { name: "Mouse", price: 19.5, qty: 40, tags: ["office", "usb"], status: "active" },
+            { name: "Monitor", price: 189, qty: 5, tags: ["office"], status: "active", specs: { size: 27, panel: "IPS" } },
+            { name: "Webcam", price: 59, qty: 0, tags: ["usb", "video"], status: "discontinued" },
+            { name: "Desk lamp", price: 24, qty: 18, tags: ["home"], status: "active" },
+          ])
+
+          db.items.updateOne({ name: "Mouse" }, { $set: { price: 17.5 } })
+          db.items.updateOne({ name: "Mouse" }, { $inc: { qty: -1 } })
+          db.items.updateOne({ name: "Mouse" }, { $push: { tags: "wireless" } })
+          db.items.updateOne({ name: "Mouse" }, { $addToSet: { tags: "wireless" } })
+          db.items.updateOne({ name: "Mouse" }, { $pull: { tags: "wireless" } })
+          db.items.updateMany({ qty: 0 }, { $set: { status: "out-of-stock" } })
+          db.items.updateOne({ name: "Headset" }, { $set: { price: 39 }, $setOnInsert: { qty: 0 } }, { upsert: true })
+          db.items.findOneAndUpdate(
+            { name: "Keyboard" },
+            { $inc: { qty: -1 } },
+            { returnDocument: "after", projection: { name: 1, qty: 1, _id: 0 } },
+          )
+
+          db.items.find({ name: "Headset" })
+          db.items.deleteOne({ name: "Headset" })
+    mistakes:
+      - problem:
+          en: "Expecting `updateOne` to change every match."
+          tr: "`updateOne`'ın bütün eşleşenleri değiştireceğini sanmak."
+        fix:
+          en: "It changes only the first match. Use `updateMany` for all of them."
+          tr: "Sadece ilk eşleşeni değiştirir. Hepsi için `updateMany` kullan."
+      - problem:
+          en: "Reading a document, changing it in code and writing it back (`qty = qty - 1`)."
+          tr: "Dokümanı okuyup kodda değiştirip geri yazmak (`qty = qty - 1`)."
+        fix:
+          en: "Two users doing this at the same time lose one change. Let the server do it with `$inc`."
+          tr: "İki kullanıcı bunu aynı anda yaparsa bir değişiklik kaybolur. Bunu sunucu yapsın: `$inc`."
+      - problem:
+          en: "Running `deleteMany({})` by accident."
+          tr: "Yanlışlıkla `deleteMany({})` çalıştırmak."
+        fix:
+          en: "An empty filter matches everything and empties the collection. Run the filter with `find` first."
+          tr: "Boş filtre her şeyle eşleşir ve koleksiyonu boşaltır. Filtreyi önce `find` ile çalıştır."
+    quiz:
+      - q:
+          en: "Which update never loses a change when two users use it at the same moment?"
+          tr: "İki kullanıcı aynı anda kullandığında hangi güncelleme hiçbir değişikliği kaybetmez?"
+        options:
+          en:
+            - "Read the document, add 1 in code, write it back"
+            - "updateOne with { $inc: { views: 1 } }"
+            - "replaceOne with the whole document"
+          tr:
+            - "Dokümanı oku, kodda 1 ekle, geri yaz"
+            - "{ $inc: { views: 1 } } ile updateOne"
+            - "Dokümanın tamamıyla replaceOne"
+        answer: 1
+        why:
+          en: "`$inc` runs inside the server on the current value. The other two work on a copy that may already be old."
+          tr: "`$inc` sunucunun içinde güncel değer üzerinde çalışır. Diğer ikisi çoktan eskimiş olabilecek bir kopya üzerinde çalışır."
+    sources:
+      - title: Update documents
+        url: https://www.mongodb.com/docs/manual/tutorial/update-documents/
+      - title: Update operators
+        url: https://www.mongodb.com/docs/manual/reference/operator/update/
+      - title: Delete documents
+        url: https://www.mongodb.com/docs/manual/tutorial/remove-documents/
+
+  - id: queries
+    stage: basics
+    title:
+      en: "Query operators, projection and sorting"
+      tr: "Sorgu operatörleri, projection ve sıralama"
+    minutes: 50
+    needs: [crud]
+    why:
+      en: "A filter like `{ price: 20 }` only tests equality. Real questions are \"cheaper than 50\", \"has this tag\", \"this or that\". Query operators let you ask them, and projection and sorting shape the answer."
+      tr: "`{ price: 20 }` gibi bir filtre sadece eşitliği sınar. Gerçek sorular \"50'den ucuz\", \"bu etiketi taşıyan\", \"şu ya da bu\" biçimindedir. Sorgu operatörleri bunları sormanı, projection ve sıralama da cevabı şekillendirmeni sağlar."
+    learn:
+      en: |
+        - Comparison: `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$ne`
+        - Logic: fields in one filter are joined with AND; `$or` for alternatives; `$exists`
+        - Arrays and nested documents: `{ tags: "usb" }`, `$all`, `"specs.panel"` with dot notation
+        - Projection (which fields to return), `sort`, `skip`, `limit`
+        - `$regex` and why it is not real search
+      tr: |
+        - Karşılaştırma: `$gt`, `$gte`, `$lt`, `$lte`, `$in`, `$ne`
+        - Mantık: tek filtredeki alanlar AND ile bağlanır; alternatifler için `$or`; `$exists`
+        - Array'ler ve iç içe dokümanlar: `{ tags: "usb" }`, `$all`, nokta gösterimiyle `"specs.panel"`
+        - Projection (hangi alanların döneceği), `sort`, `skip`, `limit`
+        - `$regex` ve neden gerçek arama olmadığı
+    do:
+      en: |
+        1. Run each query on the `items` collection from the last step and guess the result before you press Enter.
+        2. Look at the second argument of `find`: `{ name: 1, price: 1, _id: 0 }` is a projection. `1` means include. `_id` is the only field you may exclude (`0`) in the same projection.
+        3. Try `.sort({ price: -1 })` (descending), then add `.limit(2)`.
+        4. Run `db.items.find({ tags: "usb" })`: a plain value matches when any array element equals it.
+        5. Write one query of your own: active items that cost less than 100 and have `office` in `tags`.
+      tr: |
+        1. Her sorguyu önceki adımdaki `items` koleksiyonunda çalıştır ve Enter'a basmadan önce sonucu tahmin et.
+        2. `find`'ın ikinci argümanına bak: `{ name: 1, price: 1, _id: 0 }` bir projection'dır. `1` dahil et demek. Aynı projection'da `0` ile çıkarabileceğin tek alan `_id`'dir.
+        3. `.sort({ price: -1 })` (azalan) dene, sonra `.limit(2)` ekle.
+        4. `db.items.find({ tags: "usb" })` çalıştır: düz bir değer, array'in herhangi bir elemanı ona eşitse eşleşir.
+        5. Kendi sorgunu yaz: fiyatı 100'den az olan ve `tags` içinde `office` bulunan aktif ürünler.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          db.items.find({ price: { $lt: 50 }, status: "active" }, { name: 1, price: 1, _id: 0 }).sort({ price: 1 })
+          db.items.find({ qty: { $gte: 10, $lte: 20 } }, { name: 1, qty: 1, _id: 0 })
+          db.items.find({ $or: [{ qty: 0 }, { price: { $gt: 100 } }] }, { name: 1, _id: 0 })
+          db.items.find({ status: { $in: ["active", "discontinued"] } }).count()
+          db.items.find({ "specs.panel": "IPS" }, { name: 1, _id: 0 })
+          db.items.find({ tags: "usb" }, { name: 1, _id: 0 })
+          db.items.find({ tags: { $all: ["office", "usb"] } }, { name: 1, _id: 0 })
+          db.items.find({ specs: { $exists: true } }, { name: 1, _id: 0 })
+          db.items.find({ name: /^m/i }, { name: 1, _id: 0 })
+          db.items.find({}, { name: 1, _id: 0 }).sort({ price: -1 }).skip(1).limit(2)
+          db.items.countDocuments({ status: "active" })
+          db.items.distinct("tags")
+    mistakes:
+      - problem:
+          en: "Writing the same key twice in one filter, like `{ price: { $gt: 1 }, price: { $lt: 9 } }`."
+          tr: "Tek filtrede aynı anahtarı iki kez yazmak, örneğin `{ price: { $gt: 1 }, price: { $lt: 9 } }`."
+        fix:
+          en: "The last one wins. Put both operators in one object: `{ price: { $gt: 1, $lt: 9 } }`."
+          tr: "Sonuncusu kazanır. İki operatörü tek nesneye koy: `{ price: { $gt: 1, $lt: 9 } }`."
+      - problem:
+          en: "Mixing `1` and `0` in one projection, like `{ name: 1, price: 0 }`."
+          tr: "Bir projection'da `1` ile `0`'ı karıştırmak, örneğin `{ name: 1, price: 0 }`."
+        fix:
+          en: "Either list the fields to include or the fields to exclude. Only `_id: 0` may be combined with inclusions."
+          tr: "Ya dahil edilecek alanları ya da çıkarılacak alanları yaz. Dahil etmelerle sadece `_id: 0` birleştirilebilir."
+      - problem:
+          en: "Using `skip` for deep pages and wondering why page 500 is slow."
+          tr: "Derin sayfalar için `skip` kullanıp 500. sayfanın neden yavaş olduğunu merak etmek."
+        fix:
+          en: "The server still walks every skipped document. Page by the last value you saw instead (`publishedAt < last`). You will do this in the Node.js step."
+          tr: "Sunucu atlanan her dokümanı yine de dolaşır. Bunun yerine son gördüğün değere göre sayfala (`publishedAt < son`). Bunu Node.js adımında yapacaksın."
+    quiz:
+      - q:
+          en: "What does `db.items.find({ tags: \"usb\" })` return when `tags` is an array?"
+          tr: "`tags` bir array iken `db.items.find({ tags: \"usb\" })` ne döndürür?"
+        options:
+          en:
+            - "Nothing, because tags is not a string"
+            - "Documents whose tags array contains \"usb\""
+            - "Only documents whose tags array is exactly [\"usb\"]"
+          tr:
+            - "Hiçbir şey, çünkü tags bir string değil"
+            - "tags array'inde \"usb\" bulunan dokümanlar"
+            - "Sadece tags array'i tam olarak [\"usb\"] olan dokümanlar"
+        answer: 1
+        why:
+          en: "A plain value is matched against each element of an array field. To match the whole array you would pass the array itself."
+          tr: "Düz bir değer, array alanının her elemanıyla karşılaştırılır. Array'in tamamını eşleştirmek için array'in kendisini verirdin."
+    sources:
+      - title: Query documents
+        url: https://www.mongodb.com/docs/manual/tutorial/query-documents/
+      - title: Query and projection operators
+        url: https://www.mongodb.com/docs/manual/reference/operator/query/
+      - title: Project fields to return from a query
+        url: https://www.mongodb.com/docs/manual/tutorial/project-fields-from-query-results/
+
+  - id: model-blog
+    stage: first-project
+    title:
+      en: "Model the blog: embed or reference"
+      tr: "Blogu modelleme: embed mi reference mı"
+    minutes: 50
+    needs: [queries]
+    why:
+      en: "In MongoDB the shape of your documents decides how fast and how simple your app is. The main question is whether related data lives inside one document (embedding) or in another collection that points back (referencing). A good choice means most pages need one query."
+      tr: "MongoDB'de dokümanlarının şekli uygulamanın ne kadar hızlı ve basit olacağını belirler. Ana soru, ilişkili verinin tek bir dokümanın içinde mi (embedding) yoksa geri işaret eden başka bir koleksiyonda mı (referencing) durduğudur. İyi seçim, çoğu sayfanın tek sorguyla çalışması demektir."
+    learn:
+      en: |
+        - Embed data that is read together and stays small: tags, and the comments of one post
+        - Reference data that many documents share or that grows without limit: the author of many posts
+        - A single document can be at most 16 MiB, so unbounded lists must not be embedded
+        - A change to one document is atomic; spreading data over many documents costs you that
+      tr: |
+        - Birlikte okunan ve küçük kalan veriyi embed et: etiketler ve bir yazının yorumları
+        - Birçok dokümanın paylaştığı ya da sınırsız büyüyen veriyi reference et: birçok yazının yazarı
+        - Tek bir doküman en fazla 16 MiB olabilir; bu yüzden sınırsız listeler embed edilmemeli
+        - Tek bir dokümandaki değişiklik atomiktir; veriyi birçok dokümana yaymak bunu kaybettirir
+    do:
+      en: |
+        1. Create a project folder `blog-data` with a `seed` folder inside it, and save the file below as `seed/seed.js`.
+        2. Read the shape of the data. A **user** has `name`, `email`, `role`. A **post** points to its author with `authorId` (a reference: one author, many posts, and the author can change their name once), but keeps `tags` and `comments` inside itself (embedded: they are always shown with the post, and a post has tens of comments, not millions).
+        3. Copy the folder into the container and run the script: the two commands below. `--file` runs a script and exits. The script clears the collections with `deleteMany`, so you can run it again whenever you want clean data.
+        4. Look at the data with `db.posts.findOne()` and `db.users.find()`.
+        5. The last post is a `draft` without `publishedAt`. A missing field is allowed; the validation rules in the next step decide which ones are required.
+        6. Drop the practice collection: `db.items.drop()`.
+      tr: |
+        1. İçinde `seed` klasörü olan bir `blog-data` proje klasörü oluştur ve aşağıdaki dosyayı `seed/seed.js` olarak kaydet.
+        2. Verinin şeklini oku. **User**'ın `name`, `email`, `role` alanları var. **Post**, yazarına `authorId` ile işaret eder (reference: bir yazar, çok yazı; yazar adını bir kez değiştirebilir), ama `tags` ve `comments` kendi içinde durur (embedded: yazıyla birlikte hep gösterilirler ve bir yazının milyonlarca değil onlarca yorumu olur).
+        3. Klasörü container'a kopyala ve script'i çalıştır: aşağıdaki iki komut. `--file` bir script çalıştırıp çıkar. Script koleksiyonları `deleteMany` ile temizler; böylece temiz veri istediğinde tekrar çalıştırabilirsin.
+        4. Veriye `db.posts.findOne()` ve `db.users.find()` ile bak.
+        5. Son yazı `publishedAt` alanı olmayan bir `draft`. Eksik alana izin var; hangilerinin zorunlu olduğuna sonraki adımdaki doğrulama kuralları karar verecek.
+        6. Alıştırma koleksiyonunu sil: `db.items.drop()`.
+    code:
+      - file: seed/seed.js
+        lang: js
+        text: |
+          const blog = db.getSiblingDB("blog");
+
+          // deleteMany keeps the indexes and the validation rules that you add in later steps.
+          blog.posts.deleteMany({});
+          blog.users.deleteMany({});
+
+          const { insertedIds } = blog.users.insertMany([
+            { name: "Ada Lovelace", email: "ada@example.com", role: "author" },
+            { name: "Linus Torvalds", email: "linus@example.com", role: "author" },
+            { name: "Grace Hopper", email: "grace@example.com", role: "reader" },
+          ]);
+          const [ada, linus, grace] = [insertedIds[0], insertedIds[1], insertedIds[2]];
+
+          blog.posts.insertMany([
+            {
+              authorId: ada,
+              title: "Hello MongoDB",
+              slug: "hello-mongodb",
+              body: "Documents are JSON-like records.",
+              tags: ["mongodb", "intro"],
+              status: "published",
+              views: 120,
+              publishedAt: new Date("2026-09-01T09:00:00Z"),
+              comments: [
+                { author: "Grace", text: "Nice start!", createdAt: new Date("2026-09-01T12:00:00Z") },
+              ],
+            },
+            {
+              authorId: ada,
+              title: "Indexes in five minutes",
+              slug: "indexes-in-five-minutes",
+              body: "An index lets MongoDB skip most documents.",
+              tags: ["mongodb", "performance"],
+              status: "published",
+              views: 80,
+              publishedAt: new Date("2026-09-10T09:00:00Z"),
+              comments: [],
+            },
+            {
+              authorId: linus,
+              title: "Why I like plain text",
+              slug: "why-i-like-plain-text",
+              body: "Simple formats last longest.",
+              tags: ["opinion"],
+              status: "published",
+              views: 300,
+              publishedAt: new Date("2026-09-15T09:00:00Z"),
+              comments: [],
+            },
+            {
+              authorId: linus,
+              title: "Draft: git tips",
+              slug: "draft-git-tips",
+              body: "Not finished yet.",
+              tags: ["git"],
+              status: "draft",
+              views: 0,
+              comments: [],
+            },
+          ]);
+
+          // A copy of the number of posts per author, kept by the app (see the transactions step).
+          for (const id of [ada, linus, grace]) {
+            blog.users.updateOne({ _id: id }, { $set: { postCount: blog.posts.countDocuments({ authorId: id }) } });
+          }
+
+          print("users: " + blog.users.countDocuments() + ", posts: " + blog.posts.countDocuments());
+      - file: terminal
+        lang: sh
+        text: |
+          docker cp seed blog-mongo:/tmp/seed
+          docker exec blog-mongo mongosh --quiet --file /tmp/seed/seed.js
+    mistakes:
+      - problem:
+          en: "Embedding everything, for example all comments of all posts in one document."
+          tr: "Her şeyi embed etmek, örneğin bütün yazıların bütün yorumlarını tek dokümanda tutmak."
+        fix:
+          en: "A document that grows without limit hits the 16 MiB cap and gets slow to rewrite. Embed only bounded lists; reference the rest."
+          tr: "Sınırsız büyüyen doküman 16 MiB sınırına çarpar ve yeniden yazması yavaşlar. Sadece sınırlı listeleri embed et; gerisini reference et."
+      - problem:
+          en: "Designing tables first, like in SQL, and joining everything on every read."
+          tr: "SQL'deki gibi önce tabloları tasarlayıp her okumada her şeyi join'lemek."
+        fix:
+          en: "Start from the questions the app asks (\"show a post with its comments\") and shape documents so that answer comes from one document."
+          tr: "Uygulamanın sorduğu sorulardan başla (\"bir yazıyı yorumlarıyla göster\") ve dokümanları bu cevap tek dokümandan gelecek şekilde biçimlendir."
+    quiz:
+      - q:
+          en: "Where should the comments of a blog post live?"
+          tr: "Bir blog yazısının yorumları nerede durmalı?"
+        options:
+          en:
+            - "Embedded in the post, as long as a post has a limited number of them"
+            - "Always in a separate collection"
+            - "In the user document of each commenter"
+          tr:
+            - "Yazının içinde embed, yazının yorum sayısı sınırlı olduğu sürece"
+            - "Her zaman ayrı bir koleksiyonda"
+            - "Her yorumcunun user dokümanında"
+        answer: 0
+        why:
+          en: "Comments are read together with the post and there are only a few of them, so embedding gives one query per page. If one post could get millions of comments, you would reference instead."
+          tr: "Yorumlar yazıyla birlikte okunur ve sayıları azdır; embedding sayfa başına tek sorgu verir. Bir yazı milyonlarca yorum alabilseydi reference ederdin."
+    sources:
+      - title: Data modeling
+        url: https://www.mongodb.com/docs/manual/data-modeling/
+      - title: Embedded data versus references
+        url: https://www.mongodb.com/docs/manual/data-modeling/concepts/embedding-vs-references/
+      - title: MongoDB limits and thresholds (document size)
+        url: https://www.mongodb.com/docs/manual/reference/limits/
+
+  - id: validation
+    stage: first-project
+    title:
+      en: "Schema validation and unique indexes"
+      tr: "Şema doğrulama ve unique index'ler"
+    minutes: 40
+    needs: [model-blog]
+    why:
+      en: "MongoDB accepts any document by default. That is flexible, but one typo (`titel`) or one wrong type then lives in your data forever. Validation rules make the database itself refuse bad documents, whichever program sends them."
+      tr: "MongoDB varsayılan olarak her dokümanı kabul eder. Bu esnektir ama tek bir yazım hatası (`titel`) ya da yanlış bir tür verinde sonsuza dek kalır. Doğrulama kuralları, dokümanı hangi program gönderirse göndersin veritabanının kötü dokümanı kendisinin reddetmesini sağlar."
+    learn:
+      en: |
+        - `$jsonSchema` describes required fields, types and limits
+        - `collMod` adds a validator to an existing collection
+        - `validationAction: "error"` rejects bad writes; `"warn"` only logs them
+        - A unique index is the way to make `email` and `slug` unique
+        - Existing documents are not checked until you update them
+      tr: |
+        - `$jsonSchema` zorunlu alanları, türleri ve sınırları anlatır
+        - `collMod` var olan bir koleksiyona validator ekler
+        - `validationAction: "error"` kötü yazmaları reddeder; `"warn"` sadece loglar
+        - `email` ve `slug`'ı benzersiz yapmanın yolu unique index'tir
+        - Var olan dokümanlar, güncelleyene kadar kontrol edilmez
+    do:
+      en: |
+        1. Open the shell on the blog database: `docker exec -it blog-mongo mongosh blog`.
+        2. Paste the `collMod` commands below. Each must print `ok: 1`. They attach the rules to the `posts` and `users` collections that the seed created.
+        3. Paste the unique indexes. `createIndex` prints the index name.
+        4. Break the rules on purpose with the three `insertOne` lines. Each fails: the first with "Document failed validation" (code 121), the last one with a duplicate key error (code 11000).
+        5. Read the error with `e.errInfo` if you want the exact reason: `try { ... } catch (e) { printjson(e.errInfo) }`.
+        6. Run the seed again. It still works: the rules accept the seed data.
+      tr: |
+        1. Blog veritabanında shell'i aç: `docker exec -it blog-mongo mongosh blog`.
+        2. Aşağıdaki `collMod` komutlarını yapıştır. Her biri `ok: 1` yazmalı. Kuralları seed'in oluşturduğu `posts` ve `users` koleksiyonlarına bağlarlar.
+        3. Unique index'leri yapıştır. `createIndex` index adını yazar.
+        4. Üç `insertOne` satırıyla kuralları bilerek boz. Her biri hata verir: ilk ikisi "Document failed validation" (kod 121), sonuncusu duplicate key hatası (kod 11000).
+        5. Tam nedeni görmek istersen hatayı `e.errInfo` ile oku: `try { ... } catch (e) { printjson(e.errInfo) }`.
+        6. Seed'i tekrar çalıştır. Yine çalışır: kurallar seed verisini kabul ediyor.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          db.runCommand({
+            collMod: "posts",
+            validator: { $jsonSchema: {
+              bsonType: "object",
+              required: ["authorId", "title", "slug", "status", "views"],
+              properties: {
+                authorId: { bsonType: "objectId" },
+                title: { bsonType: "string", minLength: 3, maxLength: 200 },
+                slug: { bsonType: "string", pattern: "^[a-z0-9]+(-[a-z0-9]+)*$" },
+                status: { enum: ["draft", "published"] },
+                views: { bsonType: "number", minimum: 0 },
+                tags: { bsonType: "array", items: { bsonType: "string" } },
+                publishedAt: { bsonType: "date" },
+                comments: {
+                  bsonType: "array",
+                  maxItems: 500,
+                  items: {
+                    bsonType: "object",
+                    required: ["author", "text", "createdAt"],
+                    properties: {
+                      author: { bsonType: "string" },
+                      text: { bsonType: "string", minLength: 1 },
+                      createdAt: { bsonType: "date" },
+                    },
+                  },
+                },
+              },
+            } },
+            validationLevel: "strict",
+            validationAction: "error",
+          })
+
+          db.runCommand({
+            collMod: "users",
+            validator: { $jsonSchema: {
+              bsonType: "object",
+              required: ["name", "email", "role"],
+              properties: {
+                name: { bsonType: "string", minLength: 1 },
+                email: { bsonType: "string", pattern: "^[^@\\s]+@[^@\\s]+$" },
+                role: { enum: ["author", "reader"] },
+              },
+            } },
+          })
+
+          db.users.createIndex({ email: 1 }, { unique: true })
+          db.posts.createIndex({ slug: 1 }, { unique: true })
+
+          // each of these must fail
+          db.posts.insertOne({ title: "x", slug: "Bad Slug", status: "archived", views: -1 })
+          db.users.insertOne({ name: "Nobody", email: "not-an-email", role: "author" })
+          db.users.insertOne({ name: "Another Ada", email: "ada@example.com", role: "author" })
+    mistakes:
+      - problem:
+          en: "Writing `bsonType: \"string\"` for a number field like `views`, or `\"int\"` when a driver may send decimals."
+          tr: "`views` gibi bir sayı alanı için `bsonType: \"string\"` yazmak ya da bir driver ondalık gönderebilecekken `\"int\"` yazmak."
+        fix:
+          en: "Use `bsonType: \"number\"` when integers and decimals are both fine. `\"int\"` rejects 5.5."
+          tr: "Tam sayı da ondalık da kabulse `bsonType: \"number\"` kullan. `\"int\"` 5.5'i reddeder."
+      - problem:
+          en: "Believing a new validator cleans the old documents."
+          tr: "Yeni bir validator'ın eski dokümanları temizlediğini sanmak."
+        fix:
+          en: "Existing documents are only checked when they are updated. Search for bad ones yourself with `db.posts.find({ $nor: [ { $jsonSchema: yourSchema } ] })` before you rely on the rules."
+          tr: "Var olan dokümanlar sadece güncellenirken kontrol edilir. Kurallara güvenmeden önce kötü olanları kendin ara: `db.posts.find({ $nor: [ { $jsonSchema: seninSemanın } ] })`."
+      - problem:
+          en: "Checking uniqueness in app code only (\"find, and if missing, insert\")."
+          tr: "Benzersizliği sadece uygulama kodunda kontrol etmek (\"bul, yoksa ekle\")."
+        fix:
+          en: "Two requests at the same moment both pass the check. A unique index is checked by the database and cannot be raced."
+          tr: "Aynı anda gelen iki istek de kontrolü geçer. Unique index'i veritabanı kontrol eder ve yarışla aşılamaz."
+    quiz:
+      - q:
+          en: "What makes the database reject a second user with the same email?"
+          tr: "Aynı e-postaya sahip ikinci bir kullanıcıyı veritabanına reddettiren nedir?"
+        options:
+          en:
+            - "A required field in $jsonSchema"
+            - "A unique index on email"
+            - "The _id field"
+          tr:
+            - "$jsonSchema içindeki zorunlu bir alan"
+            - "email üzerinde bir unique index"
+            - "_id alanı"
+        answer: 1
+        why:
+          en: "$jsonSchema looks at one document at a time. Comparing documents with each other is the job of a unique index."
+          tr: "$jsonSchema her seferinde tek bir dokümana bakar. Dokümanları birbiriyle karşılaştırmak unique index'in işidir."
+    sources:
+      - title: Schema validation
+        url: https://www.mongodb.com/docs/manual/core/schema-validation/
+      - title: Unique indexes
+        url: https://www.mongodb.com/docs/manual/core/index-unique/
+      - title: $jsonSchema
+        url: https://www.mongodb.com/docs/manual/reference/operator/query/jsonSchema/
+
+  - id: aggregation
+    stage: data-api
+    title:
+      en: "Reports with the aggregation pipeline"
+      tr: "Aggregation pipeline ile raporlar"
+    minutes: 50
+    needs: [validation]
+    why:
+      en: "`find` returns documents. A blog also needs answers: views per author, the most used tags, posts per month. The aggregation pipeline computes them inside the database, so you do not download everything and count in code."
+      tr: "`find` doküman döndürür. Bir blog cevaplara da ihtiyaç duyar: yazar başına görüntülenme, en çok kullanılan etiketler, aya göre yazı sayısı. Aggregation pipeline bunları veritabanının içinde hesaplar; yani her şeyi indirip kodda saymazsın."
+    learn:
+      en: |
+        - A pipeline is a list of stages; each stage works on the output of the previous one
+        - `$match` filters, `$group` groups and counts, `$sort`, `$limit`, `$project` reshapes
+        - `$lookup` joins another collection (like a left outer join), `$unwind` turns an array into one document per element
+        - Put `$match` first, so less data flows through the stages and an index can be used
+      tr: |
+        - Pipeline bir aşamalar listesidir; her aşama bir öncekinin çıktısı üzerinde çalışır
+        - `$match` filtreler, `$group` gruplar ve sayar, `$sort`, `$limit`, `$project` yeniden şekillendirir
+        - `$lookup` başka bir koleksiyonu join'ler (left outer join gibi), `$unwind` bir array'i her eleman için bir dokümana çevirir
+        - `$match`'i en başa koy; böylece aşamalardan daha az veri geçer ve index kullanılabilir
+    do:
+      en: |
+        1. Run the first pipeline. It keeps published posts, joins each with its author, groups by author name and sorts by views.
+        2. Run the second: `$unwind` makes one document per tag, so you can count posts per tag.
+        3. Run the third: it groups by month, using `$dateToString`.
+        4. Take away the `$unwind` from the first pipeline: what changes? (`$lookup` always returns an array, so the author would stay inside an array.)
+        5. Move `$match` to the end of the second pipeline. The result is the same but the server works on more data. On this tiny blog you will not notice; on millions of posts you would.
+      tr: |
+        1. İlk pipeline'ı çalıştır. Yayınlanmış yazıları tutar, her birini yazarıyla join'ler, yazar adına göre gruplar ve görüntülenmeye göre sıralar.
+        2. İkinciyi çalıştır: `$unwind` her etiket için bir doküman üretir; böylece etiket başına yazı sayabilirsin.
+        3. Üçüncüyü çalıştır: `$dateToString` kullanarak aya göre gruplar.
+        4. İlk pipeline'dan `$unwind`'i çıkar: ne değişir? (`$lookup` her zaman bir array döndürür; yazar array'in içinde kalırdı.)
+        5. İkinci pipeline'da `$match`'i sona taşı. Sonuç aynı ama sunucu daha çok veriyle çalışır. Bu küçük blogda fark etmezsin; milyonlarca yazıda ederdin.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          db.posts.aggregate([
+            { $match: { status: "published" } },
+            { $lookup: { from: "users", localField: "authorId", foreignField: "_id", as: "author" } },
+            { $unwind: "$author" },
+            { $group: { _id: "$author.name", posts: { $sum: 1 }, views: { $sum: "$views" } } },
+            { $sort: { views: -1 } },
+          ])
+
+          db.posts.aggregate([
+            { $match: { status: "published" } },
+            { $unwind: "$tags" },
+            { $group: { _id: "$tags", posts: { $sum: 1 } } },
+            { $sort: { posts: -1, _id: 1 } },
+            { $limit: 3 },
+          ])
+
+          db.posts.aggregate([
+            { $match: { status: "published" } },
+            { $group: {
+              _id: { $dateToString: { format: "%Y-%m", date: "$publishedAt" } },
+              posts: { $sum: 1 },
+              avgViews: { $avg: "$views" },
+            } },
+          ])
+    mistakes:
+      - problem:
+          en: "Writing a field name without the dollar sign: `$sum: \"views\"` instead of `$sum: \"$views\"`."
+          tr: "Alan adını dolar işareti olmadan yazmak: `$sum: \"$views\"` yerine `$sum: \"views\"`."
+        fix:
+          en: "Without `$` the value is just the text \"views\". A field reference always starts with `$`."
+          tr: "`$` olmadan değer sadece \"views\" metnidir. Alan referansı her zaman `$` ile başlar."
+      - problem:
+          en: "Losing documents after `$unwind` because their array is empty or missing."
+          tr: "Array'i boş ya da eksik olduğu için `$unwind`'den sonra dokümanları kaybetmek."
+        fix:
+          en: "Use `{ $unwind: { path: \"$tags\", preserveNullAndEmptyArrays: true } }` if you need them."
+          tr: "Onlara ihtiyacın varsa `{ $unwind: { path: \"$tags\", preserveNullAndEmptyArrays: true } }` kullan."
+      - problem:
+          en: "Joining with `$lookup` on every page view."
+          tr: "Her sayfa görüntülemede `$lookup` ile join yapmak."
+        fix:
+          en: "Use `$lookup` for reports. If a page always needs the same joined data, embed it, as you did with comments."
+          tr: "`$lookup`'ı raporlar için kullan. Bir sayfa hep aynı join'li veriyi istiyorsa, yorumlarda yaptığın gibi onu embed et."
+    quiz:
+      - q:
+          en: "Why put `$match` as the first stage when you can?"
+          tr: "Mümkün olduğunda `$match`'i neden ilk aşamaya koyarız?"
+        options:
+          en:
+            - "The pipeline only works that way"
+            - "Less data flows through the next stages and an index can be used"
+            - "It makes the result sorted"
+          tr:
+            - "Pipeline sadece öyle çalışır"
+            - "Sonraki aşamalardan daha az veri geçer ve index kullanılabilir"
+            - "Sonucu sıralı yapar"
+        answer: 1
+        why:
+          en: "Filtering early shrinks the work of every later stage, and only a leading `$match` can use an index."
+          tr: "Erken filtrelemek sonraki her aşamanın işini küçültür ve index'i sadece baştaki `$match` kullanabilir."
+    sources:
+      - title: Aggregation pipeline
+        url: https://www.mongodb.com/docs/manual/core/aggregation-pipeline/
+      - title: $group
+        url: https://www.mongodb.com/docs/manual/reference/operator/aggregation/group/
+      - title: $lookup
+        url: https://www.mongodb.com/docs/manual/reference/operator/aggregation/lookup/
+
+  - id: node-driver
+    stage: data-api
+    title:
+      en: "Use the database from Node.js"
+      tr: "Veritabanını Node.js'ten kullanma"
+    minutes: 60
+    needs: [aggregation]
+    why:
+      en: "An app does not type into mongosh; it talks to the database through a driver. The official Node.js driver gives you the same operations you just learned as JavaScript functions. The module you write here is the data layer that any API or website can import."
+      tr: "Bir uygulama mongosh'a yazmaz; veritabanıyla bir driver üzerinden konuşur. Resmi Node.js driver'ı az önce öğrendiğin işlemleri JavaScript fonksiyonları olarak verir. Burada yazdığın modül, herhangi bir API'nin ya da web sitesinin içe aktarabileceği veri katmanıdır."
+    learn:
+      en: |
+        - A `MongoClient` is a pool of connections: create one for the whole app, not one per request
+        - The connection string `mongodb://host:port/?directConnection=true` and why we add `directConnection`
+        - Driver methods return promises, so you use `await`; `find` returns a cursor, and `toArray()` reads it
+        - Keep the connection string out of the code, in `.env` and `node --env-file`
+      tr: |
+        - `MongoClient` bir bağlantı havuzudur: bütün uygulama için bir tane oluştur, istek başına bir tane değil
+        - `mongodb://host:port/?directConnection=true` connection string'i ve neden `directConnection` eklediğimiz
+        - Driver metotları promise döndürür, bu yüzden `await` kullanırsın; `find` bir cursor döndürür ve `toArray()` onu okur
+        - Connection string'i koddan uzak tut: `.env` içinde ve `node --env-file` ile
+    do:
+      en: |
+        1. Check Node.js: `node --version` must print 20.19 or newer (driver 7 needs that; take the current LTS if you have none). Install it from nodejs.org if needed.
+        2. In `blog-data`, create the files below: `package.json`, `.env`, `.gitignore`, `src/db.js`, `src/posts.js`, `src/demo.js`.
+        3. Run `npm install mongodb`. It adds the driver to `package.json`.
+        4. Run `npm run demo`. You see the latest posts, a view count that goes up by one each time you run it, the per-author stats and the top tags.
+        5. Read `src/posts.js`. Compare each function with the mongosh command you ran before: `listPublished` is `find` + `sort` + `limit`, `readPost` is `findOneAndUpdate` with `$inc`, `addComment` is `updateOne` with `$push`, the last two are the pipelines.
+        6. `listPublished` takes `before`: the page after this one starts below the last date you saw. This is the fast way to page that the Queries step promised.
+        7. If you started the container on another port, change 27017 in `.env`.
+      tr: |
+        1. Node.js'i kontrol et: `node --version` 20.19 ya da daha yeni bir sürüm yazmalı (driver 7 bunu ister; hiç yoksa güncel LTS'i al). Gerekirse nodejs.org'dan kur.
+        2. `blog-data` içinde aşağıdaki dosyaları oluştur: `package.json`, `.env`, `.gitignore`, `src/db.js`, `src/posts.js`, `src/demo.js`.
+        3. `npm install mongodb` çalıştır. Driver'ı `package.json`'a ekler.
+        4. `npm run demo` çalıştır. Son yazıları, her çalıştırdığında bir artan görüntülenme sayısını, yazar başına istatistikleri ve en çok kullanılan etiketleri görürsün.
+        5. `src/posts.js` dosyasını oku. Her fonksiyonu önceden çalıştırdığın mongosh komutuyla karşılaştır: `listPublished` `find` + `sort` + `limit`, `readPost` `$inc` ile `findOneAndUpdate`, `addComment` `$push` ile `updateOne`, son ikisi pipeline'lar.
+        6. `listPublished` bir `before` alır: bir sonraki sayfa, gördüğün son tarihin altından başlar. Sorgular adımının vaat ettiği hızlı sayfalama yolu budur.
+        7. Container'ı başka bir portta başlattıysan `.env` içindeki 27017'yi değiştir.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "blog-data",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "demo": "node --env-file=.env src/demo.js"
+            },
+            "engines": {
+              "node": ">=20.19.0"
+            },
+            "dependencies": {
+              "mongodb": "^7.7.0"
+            }
+          }
+      - file: .env
+        lang: sh
+        text: |
+          MONGODB_URI=mongodb://localhost:27017/?directConnection=true
+          DB_NAME=blog
+      - file: .gitignore
+        lang: sh
+        text: |
+          node_modules
+          .env*
+          backups
+      - file: src/db.js
+        lang: js
+        text: |
+          import { MongoClient } from "mongodb";
+
+          const uri = process.env.MONGODB_URI;
+          if (!uri) {
+            throw new Error("Set MONGODB_URI (see .env)");
+          }
+
+          // One client for the whole app: it keeps a pool of connections.
+          export const client = new MongoClient(uri);
+
+          export function getDb(name = process.env.DB_NAME ?? "blog") {
+            return client.db(name);
+          }
+
+          export async function close() {
+            await client.close();
+          }
+      - file: src/posts.js
+        lang: js
+        text: |
+          export function posts(db) {
+            return db.collection("posts");
+          }
+
+          export function users(db) {
+            return db.collection("users");
+          }
+
+          // Newest published posts, one page at a time. Pages are cut by date, not by skip().
+          export async function listPublished(db, { limit = 10, before } = {}) {
+            const filter = { status: "published" };
+            if (before) filter.publishedAt = { $lt: before };
+            return posts(db)
+              .find(filter, { projection: { title: 1, slug: 1, tags: 1, views: 1, publishedAt: 1 } })
+              .sort({ publishedAt: -1 })
+              .limit(limit)
+              .toArray();
+          }
+
+          // Reading a post counts a view. The increment happens on the server, so two readers never overwrite each other.
+          export async function readPost(db, slug) {
+            return posts(db).findOneAndUpdate(
+              { slug, status: "published" },
+              { $inc: { views: 1 } },
+              { returnDocument: "after" },
+            );
+          }
+
+          export async function addComment(db, slug, author, text) {
+            const result = await posts(db).updateOne(
+              { slug, status: "published" },
+              { $push: { comments: { author, text, createdAt: new Date() } } },
+            );
+            return result.modifiedCount === 1;
+          }
+
+          // Posts per author, joined with the users collection.
+          export async function statsByAuthor(db) {
+            return posts(db)
+              .aggregate([
+                { $match: { status: "published" } },
+                { $group: { _id: "$authorId", posts: { $sum: 1 }, views: { $sum: "$views" } } },
+                { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "author" } },
+                { $unwind: "$author" },
+                { $project: { _id: 0, author: "$author.name", posts: 1, views: 1 } },
+                { $sort: { views: -1 } },
+              ])
+              .toArray();
+          }
+
+          export async function topTags(db, n = 5) {
+            return posts(db)
+              .aggregate([
+                { $match: { status: "published" } },
+                { $unwind: "$tags" },
+                { $group: { _id: "$tags", posts: { $sum: 1 } } },
+                { $sort: { posts: -1, _id: 1 } },
+                { $limit: n },
+                { $project: { _id: 0, tag: "$_id", posts: 1 } },
+              ])
+              .toArray();
+          }
+      - file: src/demo.js
+        lang: js
+        text: |
+          import { client, close, getDb } from "./db.js";
+          import { addComment, listPublished, readPost, statsByAuthor, topTags } from "./posts.js";
+
+          try {
+            await client.connect();
+            const db = getDb();
+
+            console.log("Latest posts:");
+            for (const p of await listPublished(db, { limit: 3 })) {
+              console.log(" -", p.title, `(${p.views} views)`);
+            }
+
+            const post = await readPost(db, "hello-mongodb");
+            console.log("Read:", post.title, "views now", post.views);
+
+            await addComment(db, "hello-mongodb", "Node app", "Hello from the driver");
+            console.log("Stats:", await statsByAuthor(db));
+            console.log("Top tags:", await topTags(db, 3));
+          } finally {
+            await close();
+          }
+    mistakes:
+      - problem:
+          en: "The driver hangs for 30 seconds and then says \"Server selection timed out\" or tries a strange host name."
+          tr: "Driver 30 saniye takılıp \"Server selection timed out\" diyor ya da garip bir host adını deniyor."
+        fix:
+          en: "Your replica set member is named `localhost:27017` inside the container. Add `?directConnection=true` to the connection string so the driver talks only to the address you gave, and check the container runs (`docker ps`)."
+          tr: "Replica set üyesinin container içindeki adı `localhost:27017`. Driver'ın sadece verdiğin adresle konuşması için connection string'e `?directConnection=true` ekle ve container'ın çalıştığını kontrol et (`docker ps`)."
+      - problem:
+          en: "Creating a new `MongoClient` inside every function or request."
+          tr: "Her fonksiyonda ya da istekte yeni bir `MongoClient` oluşturmak."
+        fix:
+          en: "Every client opens its own pool of connections. Create one client in `db.js`, import it everywhere, and close it only when the program ends."
+          tr: "Her client kendi bağlantı havuzunu açar. `db.js` içinde tek bir client oluştur, her yere onu import et ve sadece program biterken kapat."
+      - problem:
+          en: "Forgetting `await`, so you print a pending Promise or the script exits early."
+          tr: "`await` yazmayı unutup beklemedeki bir Promise yazdırmak ya da script'in erken çıkması."
+        fix:
+          en: "Every call that talks to the server returns a promise. Put `await` in front, and make the function `async`."
+          tr: "Sunucuyla konuşan her çağrı promise döndürür. Önüne `await` koy ve fonksiyonu `async` yap."
+    quiz:
+      - q:
+          en: "How many MongoClient objects should a normal app create?"
+          tr: "Normal bir uygulama kaç tane MongoClient nesnesi oluşturmalı?"
+        options:
+          en:
+            - "One per request"
+            - "One for the whole app, reused everywhere"
+            - "One per collection"
+          tr:
+            - "İstek başına bir tane"
+            - "Bütün uygulama için bir tane, her yerde yeniden kullanılan"
+            - "Koleksiyon başına bir tane"
+        answer: 1
+        why:
+          en: "A MongoClient already manages a pool of connections. More clients just waste connections."
+          tr: "MongoClient zaten bir bağlantı havuzunu yönetir. Daha fazla client sadece bağlantıları boşa harcar."
+    sources:
+      - title: MongoDB Node.js driver
+        url: https://www.mongodb.com/docs/drivers/node/current/
+      - title: Connect to MongoDB (MongoClient)
+        url: https://www.mongodb.com/docs/drivers/node/current/connect/mongoclient/
+      - title: Node.js, --env-file
+        url: https://nodejs.org/api/cli.html#--env-fileconfig
+
+  - id: testing
+    stage: testing
+    title:
+      en: "Test the data layer"
+      tr: "Veri katmanını test etme"
+    minutes: 45
+    needs: [node-driver]
+    why:
+      en: "Database code breaks in quiet ways: a filter that matches too much, an update that touches nothing. Tests run the real code against a real database and tell you at once. They must use a separate test database, never your real data."
+      tr: "Veritabanı kodu sessiz sessiz bozulur: fazla şey eşleştiren bir filtre, hiçbir şeye dokunmayan bir update. Testler gerçek kodu gerçek bir veritabanında çalıştırır ve hemen haber verir. Ayrı bir test veritabanı kullanmaları gerekir; gerçek verini asla kullanmamalılar."
+    learn:
+      en: |
+        - Node.js has a built-in test runner: `node:test` and `node:assert`, no extra package
+        - Each test starts from the same known data, so the order of tests never matters
+        - Use a separate database (`blog_test`) so tests cannot touch real data
+        - A test checks the result of the function and, when needed, the data left in the database
+      tr: |
+        - Node.js'in yerleşik bir test runner'ı var: `node:test` ve `node:assert`, ek paket yok
+        - Her test aynı bilinen veriyle başlar; böylece testlerin sırası hiç önemli olmaz
+        - Testlerin gerçek veriye dokunamaması için ayrı bir veritabanı (`blog_test`) kullan
+        - Bir test fonksiyonun sonucunu ve gerekirse veritabanında kalan veriyi kontrol eder
+    do:
+      en: |
+        1. Create `support/testdb.js` (it resets `blog_test` to known data) and `test/posts.test.js`.
+        2. Replace `package.json` with the version below. The new `test` script runs the test files one after another (`--test-concurrency=1`), because they all share one test database.
+        3. Run `npm test`. All five tests must pass.
+        4. Break something on purpose: in `src/posts.js`, change `$inc: { views: 1 }` to `$inc: { views: 2 }`. Run the tests: `readPost adds one view` fails and shows expected 6, actual 7. Undo the change.
+        5. Check that your real data is untouched: `docker exec -it blog-mongo mongosh blog --eval "db.posts.countDocuments()"` still prints 4.
+      tr: |
+        1. `support/testdb.js` (`blog_test`'i bilinen veriye sıfırlar) ve `test/posts.test.js` dosyalarını oluştur.
+        2. `package.json` dosyasını aşağıdaki sürümle değiştir. Yeni `test` script'i test dosyalarını art arda çalıştırır (`--test-concurrency=1`), çünkü hepsi aynı test veritabanını kullanır.
+        3. `npm test` çalıştır. Beş testin hepsi geçmeli.
+        4. Bilerek bir şeyi boz: `src/posts.js` içinde `$inc: { views: 1 }` ifadesini `$inc: { views: 2 }` yap. Testleri çalıştır: `readPost adds one view` başarısız olur ve beklenen 6, gerçek 7 gösterir. Değişikliği geri al.
+        5. Gerçek verinin ellenmediğini kontrol et: `docker exec -it blog-mongo mongosh blog --eval "db.posts.countDocuments()"` hâlâ 4 yazar.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "blog-data",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "demo": "node --env-file=.env src/demo.js",
+              "test": "node --env-file=.env --test --test-concurrency=1"
+            },
+            "engines": {
+              "node": ">=20.19.0"
+            },
+            "dependencies": {
+              "mongodb": "^7.7.0"
+            }
+          }
+      - file: support/testdb.js
+        lang: js
+        text: |
+          import { client, getDb } from "../src/db.js";
+
+          // Tests never touch the real "blog" database: they use "blog_test" and rebuild it before every test.
+          // Collections are dropped one by one because the app user may not drop a whole database.
+          export const testDb = () => getDb("blog_test");
+
+          export async function resetTestDb() {
+            const db = testDb();
+            for (const name of ["users", "posts"]) {
+              await db.collection(name).drop().catch((err) => {
+                if (err.codeName !== "NamespaceNotFound") throw err;
+              });
+            }
+            const { insertedIds } = await db.collection("users").insertMany([
+              { name: "Ada", email: "ada@example.com", role: "author", postCount: 2 },
+              { name: "Linus", email: "linus@example.com", role: "author", postCount: 0 },
+            ]);
+            await db.collection("posts").insertMany([
+              { authorId: insertedIds[0], title: "First", slug: "first", status: "published", views: 5, tags: ["a"], publishedAt: new Date("2026-01-01"), comments: [] },
+              { authorId: insertedIds[0], title: "Second", slug: "second", status: "published", views: 1, tags: ["a", "b"], publishedAt: new Date("2026-02-01"), comments: [] },
+              { authorId: insertedIds[0], title: "Hidden", slug: "hidden", status: "draft", views: 0, tags: [], comments: [] },
+            ]);
+            return db;
+          }
+
+          export { client };
+      - file: test/posts.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { after, beforeEach, test } from "node:test";
+          import { addComment, listPublished, readPost, statsByAuthor, topTags } from "../src/posts.js";
+          import { client, resetTestDb } from "../support/testdb.js";
+
+          let db;
+          beforeEach(async () => {
+            db = await resetTestDb();
+          });
+          after(() => client.close());
+
+          test("listPublished returns published posts, newest first", async () => {
+            const list = await listPublished(db);
+            assert.deepEqual(list.map((p) => p.slug), ["second", "first"]);
+          });
+
+          test("listPublished can continue after a date", async () => {
+            const list = await listPublished(db, { before: new Date("2026-02-01") });
+            assert.deepEqual(list.map((p) => p.slug), ["first"]);
+          });
+
+          test("readPost adds one view and ignores drafts", async () => {
+            const post = await readPost(db, "first");
+            assert.equal(post.views, 6);
+            assert.equal(await readPost(db, "hidden"), null);
+          });
+
+          test("addComment appends to the comments array", async () => {
+            assert.equal(await addComment(db, "first", "Grace", "Nice"), true);
+            const post = await db.collection("posts").findOne({ slug: "first" });
+            assert.equal(post.comments.length, 1);
+            assert.equal(post.comments[0].author, "Grace");
+            assert.equal(await addComment(db, "missing", "Grace", "Hi"), false);
+          });
+
+          test("statsByAuthor and topTags aggregate published posts only", async () => {
+            assert.deepEqual(await statsByAuthor(db), [{ posts: 2, views: 6, author: "Ada" }]);
+            assert.deepEqual(await topTags(db, 1), [{ posts: 2, tag: "a" }]);
+          });
+    mistakes:
+      - problem:
+          en: "Tests pass alone but fail together with errors like \"database is in the process of being dropped\"."
+          tr: "Testler tek başına geçiyor ama birlikte \"database is in the process of being dropped\" gibi hatalarla başarısız oluyor."
+        fix:
+          en: "Node runs test files in parallel and they share one database. Run them one at a time with `--test-concurrency=1`, or give every file its own database."
+          tr: "Node test dosyalarını paralel çalıştırır ve hepsi aynı veritabanını kullanır. `--test-concurrency=1` ile tek tek çalıştır ya da her dosyaya kendi veritabanını ver."
+      - problem:
+          en: "Running tests against the real `blog` database."
+          tr: "Testleri gerçek `blog` veritabanında çalıştırmak."
+        fix:
+          en: "A test resets its data, so it would delete yours. Tests always use `blog_test`; the helper never opens `blog`."
+          tr: "Test kendi verisini sıfırlar, yani seninkini silerdi. Testler hep `blog_test` kullanır; yardımcı dosya `blog`'u hiç açmaz."
+      - problem:
+          en: "The test process never ends."
+          tr: "Test süreci hiç bitmiyor."
+        fix:
+          en: "An open `MongoClient` keeps Node alive. Close it in an `after` hook, as the tests above do."
+          tr: "Açık bir `MongoClient` Node'u canlı tutar. Yukarıdaki testlerin yaptığı gibi bir `after` hook'unda kapat."
+    quiz:
+      - q:
+          en: "Why does every test start by resetting the test data?"
+          tr: "Her test neden test verisini sıfırlayarak başlar?"
+        options:
+          en:
+            - "To make the tests slower on purpose"
+            - "So a test does not depend on what an earlier test left behind"
+            - "Because MongoDB deletes data by itself"
+          tr:
+            - "Testleri bilerek yavaşlatmak için"
+            - "Bir test, öncekinin bıraktığı veriye bağlı olmasın diye"
+            - "Çünkü MongoDB veriyi kendi kendine siler"
+        answer: 1
+        why:
+          en: "Tests that share leftovers pass or fail depending on their order, which is very hard to debug."
+          tr: "Artıkları paylaşan testler sıralarına göre geçer ya da kalır; bunu ayıklamak çok zordur."
+    sources:
+      - title: Node.js test runner
+        url: https://nodejs.org/api/test.html
+      - title: Node.js assert
+        url: https://nodejs.org/api/assert.html
+      - title: Node.js driver, Delete a collection (drop)
+        url: https://www.mongodb.com/docs/drivers/node/current/crud/delete/
+
+  - id: security
+    stage: security
+    title:
+      en: "Users, roles and network security"
+      tr: "Kullanıcılar, roller ve ağ güvenliği"
+    minutes: 60
+    needs: [testing]
+    why:
+      en: "A MongoDB server started without access control lets anyone who can reach its port read and delete everything. Exposed, unprotected MongoDB servers have been wiped and held for ransom many times. Two rules protect you: turn on authentication, and keep the port off the internet."
+      tr: "Erişim kontrolü olmadan başlatılmış bir MongoDB sunucusu, portuna ulaşabilen herkesin her şeyi okumasına ve silmesine izin verir. Açıkta kalan korumasız MongoDB sunucuları defalarca silinip fidye için rehin tutuldu. İki kural seni korur: authentication'ı aç ve portu internetten uzak tut."
+    learn:
+      en: |
+        - Authentication (who are you) and authorization (what may you do), with roles
+        - Least privilege: the app gets `readWrite` on its own database, not `root`
+        - A replica set with authentication needs a key file, so the members trust each other
+        - Network: bind to localhost, publish the port to `127.0.0.1` only, never to the internet
+        - Passwords go in `.env`, never in Git, and special characters must be percent-encoded in a connection string
+      tr: |
+        - Authentication (sen kimsin) ve authorization (ne yapabilirsin), roller ile
+        - En az yetki: uygulama `root` değil, kendi veritabanında `readWrite` alır
+        - Authentication'lı bir replica set için bir key file gerekir; üyeler birbirine böyle güvenir
+        - Ağ: localhost'a bağlan, portu sadece `127.0.0.1`'e yayınla, asla internete değil
+        - Şifreler `.env` içinde durur, Git'te asla; connection string'te özel karakterler percent-encode edilmelidir
+    do:
+      en: |
+        1. Open the shell on the admin database: `docker exec -it blog-mongo mongosh admin`.
+        2. Create two users with the commands below. `passwordPrompt()` asks for the password without showing it and keeps it out of your shell history. Use long random passwords (`openssl rand -hex 16` makes one, and hex has no special characters). Write them down in a password manager.
+        3. `admin` is for you (backups, monitoring). `blog_app` is for the application: it can read and write only `blog` and `blog_test`.
+        4. Leave the shell with `exit`. Then replace the container: remove it (the volume with your data stays) and create the key file in a second volume with a one-off container.
+        5. Start the server again, now with `--auth` and `--keyFile`. Wait a few seconds.
+        6. Check that it is locked: `docker exec blog-mongo mongosh blog --eval "db.posts.countDocuments()"` now fails with "requires authentication".
+        7. Log in as the app user: `docker exec -it blog-mongo mongosh -u blog_app --authenticationDatabase admin blog` (it asks for the password). Run `db.posts.countDocuments()`: it works. Run `db.getSiblingDB("other").x.insertOne({ a: 1 })`: Unauthorized. That is least privilege at work.
+        8. Put the new connection string in `.env`, replacing `PASSWORD` with the app user's password, and run `npm run demo` and `npm test`.
+        9. Network rules to remember: the port is published to `127.0.0.1` only (look at `docker ps`: `127.0.0.1:27017->27017`). `--bind_ip_all` is fine here because it is inside the container. On a real server, use a firewall, a private network or a VPN, and TLS for traffic that leaves the machine.
+      tr: |
+        1. admin veritabanında shell'i aç: `docker exec -it blog-mongo mongosh admin`.
+        2. Aşağıdaki komutlarla iki kullanıcı oluştur. `passwordPrompt()` şifreyi göstermeden sorar ve shell geçmişine yazmaz. Uzun rastgele şifreler kullan (`openssl rand -hex 16` bir tane üretir ve hex'te özel karakter yok). Bir şifre yöneticisine kaydet.
+        3. `admin` senin içindir (yedek, izleme). `blog_app` uygulama içindir: sadece `blog` ve `blog_test`'i okuyup yazabilir.
+        4. `exit` ile shell'den çık. Sonra container'ı değiştir: sil (verinin olduğu volume kalır) ve tek seferlik bir container ile key file'ı ikinci bir volume'da oluştur.
+        5. Sunucuyu şimdi `--auth` ve `--keyFile` ile yeniden başlat. Birkaç saniye bekle.
+        6. Kilitli olduğunu kontrol et: `docker exec blog-mongo mongosh blog --eval "db.posts.countDocuments()"` artık "requires authentication" hatası verir.
+        7. Uygulama kullanıcısıyla giriş yap: `docker exec -it blog-mongo mongosh -u blog_app --authenticationDatabase admin blog` (şifreyi sorar). `db.posts.countDocuments()` çalıştır: çalışır. `db.getSiblingDB("other").x.insertOne({ a: 1 })` çalıştır: Unauthorized. En az yetki işte budur.
+        8. Yeni connection string'i `.env` içine yaz, `PASSWORD` yerine uygulama kullanıcısının şifresini koy ve `npm run demo` ile `npm test` çalıştır.
+        9. Hatırlanacak ağ kuralları: port sadece `127.0.0.1`'e yayınlanıyor (`docker ps`'e bak: `127.0.0.1:27017->27017`). `--bind_ip_all` burada sorun değil, çünkü container'ın içinde. Gerçek bir sunucuda güvenlik duvarı, özel ağ ya da VPN kullan; makineden çıkan trafik için TLS kullan.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          db.createUser({
+            user: "admin",
+            pwd: passwordPrompt(),
+            roles: [{ role: "root", db: "admin" }],
+          })
+          db.createUser({
+            user: "blog_app",
+            pwd: passwordPrompt(),
+            roles: [{ role: "readWrite", db: "blog" }, { role: "readWrite", db: "blog_test" }],
+          })
+          db.getUsers()
+      - file: terminal
+        lang: sh
+        text: |
+          docker rm -f blog-mongo
+          docker run --rm --user 999:999 -v blog-mongo-config:/data/configdb mongo:9.0 bash -c "openssl rand -base64 756 > /data/configdb/keyfile && chmod 400 /data/configdb/keyfile"
+          docker run -d --name blog-mongo --memory 512m --user 999:999 -p 127.0.0.1:27017:27017 -v blog-mongo-data:/data/db -v blog-mongo-config:/data/configdb mongo:9.0 mongod --replSet rs0 --bind_ip_all --auth --keyFile /data/configdb/keyfile
+      - file: .env
+        lang: sh
+        text: |
+          MONGODB_URI=mongodb://blog_app:PASSWORD@localhost:27017/?directConnection=true&authSource=admin
+          DB_NAME=blog
+    mistakes:
+      - problem:
+          en: "Running `docker rm -f` together with `docker volume rm`, and losing the data."
+          tr: "`docker rm -f` ile birlikte `docker volume rm` çalıştırıp veriyi kaybetmek."
+        fix:
+          en: "Remove only the container. The volume `blog-mongo-data` holds the database; the new container picks it up again."
+          tr: "Sadece container'ı sil. Veritabanı `blog-mongo-data` volume'unda durur; yeni container onu yeniden alır."
+      - problem:
+          en: "\"Authentication failed\" although the password is right."
+          tr: "Şifre doğru olduğu halde \"Authentication failed\" hatası."
+        fix:
+          en: "The users live in the `admin` database. Add `authSource=admin` to the connection string (or `--authenticationDatabase admin` to mongosh). If the password has characters like `@` or `/`, percent-encode them, or use a hex password."
+          tr: "Kullanıcılar `admin` veritabanında durur. Connection string'e `authSource=admin` ekle (mongosh'a `--authenticationDatabase admin`). Şifrede `@` ya da `/` gibi karakterler varsa percent-encode et ya da hex şifre kullan."
+      - problem:
+          en: "Publishing the port as `-p 27017:27017` on a server, or giving the app the `root` role."
+          tr: "Bir sunucuda portu `-p 27017:27017` ile yayınlamak ya da uygulamaya `root` rolü vermek."
+        fix:
+          en: "`-p 27017:27017` listens on every network interface, and Docker skips the usual firewall rules for published ports. Use `127.0.0.1:27017:27017`. Give the app the smallest role that works."
+          tr: "`-p 27017:27017` her ağ arayüzünde dinler ve Docker yayınlanan portlar için olağan güvenlik duvarı kurallarını atlar. `127.0.0.1:27017:27017` kullan. Uygulamaya işe yarayan en küçük rolü ver."
+    quiz:
+      - q:
+          en: "Which role should the blog application use?"
+          tr: "Blog uygulaması hangi rolü kullanmalı?"
+        options:
+          en:
+            - "root, so nothing ever fails"
+            - "readWrite on its own database only"
+            - "No user, because the port is on localhost"
+          tr:
+            - "root, böylece hiçbir şey başarısız olmaz"
+            - "Sadece kendi veritabanında readWrite"
+            - "Kullanıcı yok, çünkü port localhost'ta"
+        answer: 1
+        why:
+          en: "If the app is ever attacked, a `readWrite` user on one database can do far less damage than `root`."
+          tr: "Uygulamaya bir gün saldırılırsa, tek veritabanında `readWrite` bir kullanıcı `root`'tan çok daha az zarar verebilir."
+    sources:
+      - title: Security checklist
+        url: https://www.mongodb.com/docs/manual/administration/security-checklist/
+      - title: Enable access control
+        url: https://www.mongodb.com/docs/manual/tutorial/enable-authentication/
+      - title: Built-in roles
+        url: https://www.mongodb.com/docs/manual/reference/built-in-roles/
+
+  - id: indexes
+    stage: performance
+    title:
+      en: "Indexes and explain()"
+      tr: "Index'ler ve explain()"
+    minutes: 50
+    needs: [security]
+    why:
+      en: "Without an index, MongoDB reads every document of a collection to answer a query. With 50 documents you never notice; with a million the page takes seconds. An index is a sorted list that lets the server jump straight to the right documents."
+      tr: "Index yoksa MongoDB bir sorguyu cevaplamak için koleksiyonun her dokümanını okur. 50 dokümanda hiç fark etmezsin; bir milyonda sayfa saniyeler sürer. Index, sunucunun doğrudan doğru dokümanlara atlamasını sağlayan sıralı bir listedir."
+    learn:
+      en: |
+        - `explain("executionStats")` shows how a query ran: `COLLSCAN` (read everything) or `IXSCAN` (used an index)
+        - Compare `totalDocsExamined` with `nReturned`: the closer they are, the better the index fits
+        - A compound index follows the ESR rule: Equality fields first, then Sort, then Range
+        - Every index costs disk and slows writes: index what your queries use
+        - Check the real numbers on your own data; never guess
+      tr: |
+        - `explain("executionStats")` sorgunun nasıl çalıştığını gösterir: `COLLSCAN` (her şeyi oku) ya da `IXSCAN` (index kullandı)
+        - `totalDocsExamined` ile `nReturned`'ı karşılaştır: ne kadar yakınlarsa index o kadar uygun
+        - Bileşik index ESR kuralını izler: önce Equality alanları, sonra Sort, sonra Range
+        - Her index disk harcar ve yazmaları yavaşlatır: sorgularının kullandığı alanlara index koy
+        - Gerçek rakamları kendi verinde kontrol et; asla tahmin etme
+    do:
+      en: |
+        1. Save `seed/bulk.js` below. It adds 50 000 generated posts, so the effect of an index is visible. Copy the seed folder again and run it as the app user (it asks for the password; the container needs `-it` for that). It takes a few seconds.
+        2. Open the shell as the app user (`docker exec -it blog-mongo mongosh -u blog_app --authenticationDatabase admin blog`) and run the first `explain`. Read `winningPlan`: you see `COLLSCAN` under a `SORT`. Note `totalDocsExamined` (about 50 000) and `nReturned` (10).
+        3. Create the index `{ status: 1, publishedAt: -1 }` and run the same `explain`. Now there is an `IXSCAN`, and `totalDocsExamined` is 10: the index already holds the posts in the right order, so the server reads only the ten it returns.
+        4. This follows ESR: `status` is tested for equality (E), `publishedAt` is the sort (S). A query that also filters by a range on a third field would put that field last (R).
+        5. Run `db.posts.getIndexes()` to list the indexes. You already have two unique ones from the validation step.
+        6. Clean up the generated posts: the last line deletes them.
+      tr: |
+        1. Aşağıdaki `seed/bulk.js` dosyasını kaydet. 50 000 üretilmiş yazı ekler; böylece index'in etkisi görünür. Seed klasörünü tekrar kopyala ve uygulama kullanıcısıyla çalıştır (şifreyi sorar; bunun için container'a `-it` ile bağlanılır). Birkaç saniye sürer.
+        2. Shell'i uygulama kullanıcısıyla aç (`docker exec -it blog-mongo mongosh -u blog_app --authenticationDatabase admin blog`) ve ilk `explain`'i çalıştır. `winningPlan`'ı oku: bir `SORT` altında `COLLSCAN` görürsün. `totalDocsExamined` (yaklaşık 50 000) ve `nReturned` (10) değerlerini not et.
+        3. `{ status: 1, publishedAt: -1 }` index'ini oluştur ve aynı `explain`'i çalıştır. Artık bir `IXSCAN` var ve `totalDocsExamined` 10: index yazıları zaten doğru sırada tutuyor; sunucu sadece döndürdüğü on tanesini okuyor.
+        4. Bu ESR'ye uyar: `status` eşitlikle sınanıyor (E), `publishedAt` sıralama (S). Üçüncü bir alanda aralık filtresi de olan bir sorgu o alanı en sona koyardı (R).
+        5. Index'leri listelemek için `db.posts.getIndexes()` çalıştır. Doğrulama adımından iki unique index zaten var.
+        6. Üretilen yazıları temizle: son satır onları siler.
+    code:
+      - file: seed/bulk.js
+        lang: js
+        text: |
+          // 50 000 extra posts so that indexes make a visible difference. Delete them when you are done.
+          const blog = db.getSiblingDB("blog");
+          const author = blog.users.findOne({ email: "ada@example.com" })._id;
+          const day = 24 * 60 * 60 * 1000;
+          const start = new Date("2025-01-01T00:00:00Z").getTime();
+
+          for (let batch = 0; batch < 50; batch++) {
+            const docs = [];
+            for (let i = 0; i < 1000; i++) {
+              const n = batch * 1000 + i;
+              docs.push({
+                authorId: author,
+                title: "Generated post " + n,
+                slug: "perf-" + n,
+                body: "Filler text for post " + n,
+                tags: ["generated", "tag" + (n % 20)],
+                status: n % 10 === 0 ? "draft" : "published",
+                views: n % 500,
+                publishedAt: new Date(start + (n % 600) * day),
+                comments: [],
+              });
+            }
+            blog.posts.insertMany(docs, { ordered: false });
+          }
+          print("posts: " + blog.posts.countDocuments());
+      - file: terminal
+        lang: sh
+        text: |
+          docker cp seed blog-mongo:/tmp/seed
+          docker exec -it blog-mongo mongosh -u blog_app --authenticationDatabase admin --quiet --file /tmp/seed/bulk.js
+          docker exec -it blog-mongo mongosh -u blog_app --authenticationDatabase admin blog
+      - file: mongosh
+        lang: js
+        text: |
+          db.posts.find({ status: "published" }).sort({ publishedAt: -1 }).limit(10).explain("executionStats")
+
+          db.posts.createIndex({ status: 1, publishedAt: -1 })
+
+          db.posts.find({ status: "published" }).sort({ publishedAt: -1 }).limit(10).explain("executionStats")
+
+          db.posts.getIndexes()
+
+          db.posts.deleteMany({ slug: /^perf-/ })
+    mistakes:
+      - problem:
+          en: "Reading only the stage name in the explain output."
+          tr: "Explain çıktısında sadece aşama adına bakmak."
+        fix:
+          en: "`IXSCAN` can still be a poor fit. Compare `totalDocsExamined` with `nReturned`; if the first is much larger, the index is not selective for that query."
+          tr: "`IXSCAN` yine de kötü bir uyum olabilir. `totalDocsExamined` ile `nReturned`'ı karşılaştır; birincisi çok büyükse index o sorgu için seçici değildir."
+      - problem:
+          en: "Adding an index for every field \"just in case\"."
+          tr: "Her alana \"belki lazım olur\" diye index eklemek."
+        fix:
+          en: "Each index uses memory and disk and slows every insert and update. Index what your queries filter and sort on, and drop the rest with `db.posts.dropIndex(\"name\")`."
+          tr: "Her index bellek ve disk harcar, her insert ve update'i yavaşlatır. Sorgularının filtrelediği ve sıraladığı alanlara index koy; gerisini `db.posts.dropIndex(\"ad\")` ile sil."
+      - problem:
+          en: "Expecting an index on `{ a: 1, b: 1 }` to help a query on `b` alone."
+          tr: "`{ a: 1, b: 1 }` index'inin sadece `b` üzerindeki bir sorguya yardım etmesini beklemek."
+        fix:
+          en: "A compound index helps queries that use a prefix of it (`a`, or `a` and `b`). Create a separate index for `b`."
+          tr: "Bileşik index, kendi baş kısmını (`a` ya da `a` ve `b`) kullanan sorgulara yardım eder. `b` için ayrı bir index oluştur."
+    quiz:
+      - q:
+          en: "A query returns 10 documents and `totalDocsExamined` is 50 000. What does it tell you?"
+          tr: "Bir sorgu 10 doküman döndürüyor ve `totalDocsExamined` 50 000. Bu sana ne söyler?"
+        options:
+          en:
+            - "The query is perfect"
+            - "The server read far more documents than it returned: an index is missing or does not fit"
+            - "The collection has only 10 documents"
+          tr:
+            - "Sorgu mükemmel"
+            - "Sunucu döndürdüğünden çok daha fazla doküman okudu: index eksik ya da uygun değil"
+            - "Koleksiyonda sadece 10 doküman var"
+        answer: 1
+        why:
+          en: "Reading 50 000 documents to return 10 is a collection scan. A fitting index brings the examined count close to the returned count."
+          tr: "10 tane döndürmek için 50 000 doküman okumak koleksiyon taramasıdır. Uygun bir index, okunan sayıyı döndürülen sayıya yaklaştırır."
+    sources:
+      - title: Indexes
+        url: https://www.mongodb.com/docs/manual/indexes/
+      - title: Interpret explain results
+        url: https://www.mongodb.com/docs/manual/reference/explain-results/
+      - title: The ESR (Equality, Sort, Range) guideline
+        url: https://www.mongodb.com/docs/manual/tutorial/equality-sort-range-guideline/
+
+  - id: backup
+    stage: packaging
+    title:
+      en: "Back up and restore with mongodump and mongorestore"
+      tr: "mongodump ve mongorestore ile yedekleme ve geri yükleme"
+    minutes: 40
+    needs: [indexes]
+    why:
+      en: "Disks fail, people run `deleteMany({})`, and a Docker volume can be removed by mistake. A backup is a single file that holds your whole database, and you can carry it to another computer or to Atlas. A backup you have never restored is only a hope, so you will restore one."
+      tr: "Diskler bozulur, insanlar `deleteMany({})` çalıştırır ve bir Docker volume yanlışlıkla silinebilir. Yedek, bütün veritabanını tutan tek bir dosyadır; başka bir bilgisayara ya da Atlas'a taşıyabilirsin. Hiç geri yüklemediğin yedek sadece bir umuttur; bu yüzden bir tane geri yükleyeceksin."
+    learn:
+      en: |
+        - `mongodump` writes a database into one compressed archive file; `mongorestore` reads it back
+        - The dump holds documents, indexes and validation rules
+        - `--nsInclude`, `--nsFrom` and `--nsTo` choose and rename what you restore
+        - Test a restore into a different database name first, so live data is never at risk
+        - Keep backups outside the machine that runs the database
+      tr: |
+        - `mongodump` bir veritabanını tek bir sıkıştırılmış arşiv dosyasına yazar; `mongorestore` onu geri okur
+        - Dump doküman, index ve doğrulama kurallarını içerir
+        - `--nsInclude`, `--nsFrom` ve `--nsTo` neyi geri yükleyeceğini seçer ve yeniden adlandırır
+        - Önce farklı bir veritabanı adına geri yükleyerek dene; canlı veri hiç risk altında olmaz
+        - Yedekleri veritabanını çalıştıran makinenin dışında tut
+    do:
+      en: |
+        1. Create the dump with the first command (the tools are already in the container). It asks for the `admin` password. The archive is written inside the container.
+        2. Copy it to your computer: `mkdir backups` first, then `docker cp`. Use the date in the file name.
+        3. Test the restore without touching live data: restore into a new database called `blog_restore_test` with `--nsFrom` and `--nsTo`. First copy the file back into the container.
+        4. Open the shell as `admin` and compare: the counts are equal, the unique index and the validator came with the data. Then delete the test database with `db.getSiblingDB("blog_restore_test").dropDatabase()`.
+        5. To really restore after a disaster, use `--nsInclude "blog.*" --drop`: `--drop` removes each collection before it is restored.
+        6. Make a habit: run the dump on a schedule (cron on Linux and macOS, Task Scheduler on Windows) and copy the file to another place. For a very busy replica set, `--oplog` (a full-instance dump without `--db`) gives a consistent point in time.
+      tr: |
+        1. Dump'ı ilk komutla oluştur (araçlar container'da zaten var). `admin` şifresini sorar. Arşiv container'ın içine yazılır.
+        2. Bilgisayarına kopyala: önce `mkdir backups`, sonra `docker cp`. Dosya adında tarihi kullan.
+        3. Canlı veriye dokunmadan geri yüklemeyi dene: `--nsFrom` ve `--nsTo` ile `blog_restore_test` adlı yeni bir veritabanına geri yükle. Önce dosyayı container'a geri kopyala.
+        4. Shell'i `admin` olarak aç ve karşılaştır: sayılar eşit, unique index ve validator da veriyle gelmiş. Sonra test veritabanını `db.getSiblingDB("blog_restore_test").dropDatabase()` ile sil.
+        5. Bir felaketten sonra gerçekten geri yüklemek için `--nsInclude "blog.*" --drop` kullan: `--drop` her koleksiyonu geri yüklemeden önce siler.
+        6. Alışkanlık yap: dump'ı zamanlanmış çalıştır (Linux ve macOS'ta cron, Windows'ta Task Scheduler) ve dosyayı başka bir yere kopyala. Çok yoğun bir replica set için `--oplog` (`--db` olmadan tüm instance'ın dump'ı) tutarlı bir zaman noktası verir.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker exec -it blog-mongo mongodump --username admin --authenticationDatabase admin --db blog --gzip --archive=/tmp/blog.archive
+          mkdir backups
+          docker cp blog-mongo:/tmp/blog.archive backups/blog-2026-10-18.archive
+
+          docker cp backups/blog-2026-10-18.archive blog-mongo:/tmp/restore.archive
+          docker exec -it blog-mongo mongorestore --username admin --authenticationDatabase admin --gzip --archive=/tmp/restore.archive --nsInclude "blog.*" --nsFrom "blog.*" --nsTo "blog_restore_test.*"
+
+          docker exec -it blog-mongo mongosh -u admin --authenticationDatabase admin
+      - file: mongosh
+        lang: js
+        text: |
+          const copy = db.getSiblingDB("blog_restore_test")
+          copy.posts.countDocuments()
+          db.getSiblingDB("blog").posts.countDocuments()
+          copy.posts.getIndexes().map((i) => i.name)
+          copy.getCollectionInfos({ name: "posts" })[0].options.validationAction
+          copy.dropDatabase()
+    mistakes:
+      - problem:
+          en: "Restoring straight over the live database to \"see if it works\"."
+          tr: "\"Çalışıyor mu bakmak için\" doğrudan canlı veritabanının üstüne geri yüklemek."
+        fix:
+          en: "Restore under another name first (`--nsFrom` / `--nsTo`). Use `--drop` only when you really mean to replace the data."
+          tr: "Önce başka bir adla geri yükle (`--nsFrom` / `--nsTo`). `--drop`'u sadece veriyi gerçekten değiştirmek istediğinde kullan."
+      - problem:
+          en: "Keeping the only backup on the same disk as the database."
+          tr: "Tek yedeği veritabanıyla aynı diskte tutmak."
+        fix:
+          en: "If the disk or the machine dies, both are gone. Copy backups to another computer or a storage service."
+          tr: "Disk ya da makine ölürse ikisi de gider. Yedekleri başka bir bilgisayara ya da bir depolama servisine kopyala."
+      - problem:
+          en: "Putting the password in the command (`--password abc`) or in a script."
+          tr: "Şifreyi komuta (`--password abc`) ya da bir script'e yazmak."
+        fix:
+          en: "It stays in shell history and process lists. Leave it out and the tool asks for it; for unattended jobs read it from a protected file or a secret store."
+          tr: "Shell geçmişinde ve süreç listelerinde kalır. Yazma, araç sorar; gözetimsiz işlerde korumalı bir dosyadan ya da bir secret deposundan oku."
+    quiz:
+      - q:
+          en: "How do you find out that your backup works?"
+          tr: "Yedeğinin çalıştığını nasıl anlarsın?"
+        options:
+          en:
+            - "The dump command printed no error"
+            - "You restored it (into a test database) and checked the data"
+            - "The file is big"
+          tr:
+            - "Dump komutu hata yazmadı"
+            - "Onu (bir test veritabanına) geri yükledin ve veriyi kontrol ettin"
+            - "Dosya büyük"
+        answer: 1
+        why:
+          en: "Only a restore proves that the file is complete and that you know the steps."
+          tr: "Dosyanın eksiksiz olduğunu ve adımları bildiğini sadece bir geri yükleme kanıtlar."
+    sources:
+      - title: mongodump
+        url: https://www.mongodb.com/docs/database-tools/mongodump/
+      - title: mongorestore
+        url: https://www.mongodb.com/docs/database-tools/mongorestore/
+      - title: Back up and restore with MongoDB tools
+        url: https://www.mongodb.com/docs/manual/tutorial/backup-and-restore-tools/
+
+  - id: atlas
+    stage: deploy
+    title:
+      en: "Put it online for free on MongoDB Atlas"
+      tr: "MongoDB Atlas'ta ücretsiz olarak yayına alma"
+    minutes: 60
+    needs: [backup]
+    why:
+      en: "A database on your laptop is not reachable by an app that runs somewhere else. MongoDB Atlas is the hosted MongoDB of the company that makes it, and its free cluster is enough to run a small blog's data for good. You will move your backup there and point your code at it."
+      tr: "Dizüstü bilgisayarındaki bir veritabanına başka bir yerde çalışan uygulama ulaşamaz. MongoDB Atlas, MongoDB'yi yapan şirketin barındırılan MongoDB'sidir ve ücretsiz cluster'ı küçük bir blogun verisini sürekli tutmaya yeter. Yedeğini oraya taşıyacak ve kodunu ona yönlendireceksin."
+    learn:
+      en: |
+        - Atlas Free cluster (called M0) limits, from the official page: 0.5 GB of storage (documents plus indexes), 100 operations per second, 500 connections, 10 GB of network traffic in and 10 GB out per rolling 7 days, one free cluster per project, 100 databases and 500 collections
+        - It is a three-node replica set, so transactions work; it cannot be sharded, and its MongoDB version (8.0 when this was written) is managed by Atlas and cannot be upgraded by you
+        - It pauses after 30 days without any connection and you resume it from the page; export your data if you stop using it for a long time
+        - Atlas only lets in the addresses on the IP access list, and every connection uses TLS
+        - The connection string starts with `mongodb+srv://`
+      tr: |
+        - Atlas Free cluster (adı M0) sınırları, resmi sayfadan: 0,5 GB depolama (dokümanlar artı index'ler), saniyede 100 işlem, 500 bağlantı, kayan 7 günde 10 GB gelen ve 10 GB giden ağ trafiği, proje başına bir ücretsiz cluster, 100 veritabanı ve 500 koleksiyon
+        - Üç düğümlü bir replica set'tir, yani transaction çalışır; sharding yapılamaz ve MongoDB sürümünü (bu yazı yazılırken 8.0) Atlas yönetir, sen yükseltemezsin
+        - Hiç bağlantı olmadan 30 gün geçerse durdurulur ve sayfadan devam ettirirsin; uzun süre kullanmayacaksan verini dışarı aktar
+        - Atlas sadece IP access list'teki adreslere izin verir ve her bağlantı TLS kullanır
+        - Connection string `mongodb+srv://` ile başlar
+    do:
+      en: |
+        1. Create an account at mongodb.com/cloud/atlas (sign up with e-mail or Google or GitHub). The free cluster needs no payment details; you can check the current rules on the Free Cluster Limits page.
+        2. In your project click **Create** to make a deployment, choose the **M0** (Free) option, a provider and a region close to you (only regions that have Free clusters are listed), give it a name such as `blog` and click **Create**. The names of the buttons change now and then; follow the "Deploy a Free Cluster" page in the sources.
+        3. The Security Quickstart that appears asks you to create a **database user** (a username and a password; use a long random one, and the user needs to read and write the `blog` database) and to add your **current IP address** to the IP access list. Do both. Atlas only accepts connections from that list; avoid `0.0.0.0/0` ("allow from anywhere"), which lets every address try your password.
+        4. On the cluster click **Connect**, choose **Drivers**, and copy the connection string. It looks like `mongodb+srv://USER:<db_password>@cluster0.xxxxx.mongodb.net/`. Replace `<db_password>` with your password (percent-encode special characters).
+        5. Create `.env.atlas` with the string below. Keep the database name in `DB_NAME`.
+        6. Load your backup into Atlas from the same container (it can reach the internet). Copy the archive in if it is not there, then run `mongorestore` with the Atlas string; it asks for the password. Restoring needs a user that may create collections and indexes in `blog`; the user from the quickstart is fine.
+        7. Add the `demo:atlas` script to `package.json` and run `npm run demo:atlas`. The same code now runs against Atlas. Look at the data in Atlas under **Browse Collections**.
+        8. Remember the limits: stay under 0.5 GB, and under 100 operations per second. Above that, Atlas slows your connections down instead of billing you. If you need more later, you move to a paid cluster without changing your code.
+        9. Local MongoDB is 9.0 and the free Atlas cluster may be on an older version (8.0 at the time of writing). The code in this roadmap uses features that exist in both. When you use a new 9.0 feature, check that Atlas has it.
+      tr: |
+        1. mongodb.com/cloud/atlas adresinde bir hesap aç (e-posta, Google ya da GitHub ile). Ücretsiz cluster ödeme bilgisi istemez; güncel kurallara Free Cluster Limits sayfasından bakabilirsin.
+        2. Projende deployment oluşturmak için **Create**'e tıkla, **M0** (Free) seçeneğini, sana yakın bir sağlayıcı ve bölge seç (sadece Free cluster'ı olan bölgeler listelenir), `blog` gibi bir ad ver ve **Create**'e tıkla. Düğme adları zaman zaman değişir; kaynaklardaki "Deploy a Free Cluster" sayfasını izle.
+        3. Çıkan Security Quickstart senden bir **veritabanı kullanıcısı** oluşturmanı (kullanıcı adı ve şifre; uzun rastgele bir şifre kullan, kullanıcı `blog` veritabanını okuyup yazabilmeli) ve **şu anki IP adresini** IP access list'e eklemeni ister. İkisini de yap. Atlas sadece bu listeden gelen bağlantıları kabul eder; `0.0.0.0/0` ("her yerden izin ver") kullanma, her adresin şifreni denemesine izin verir.
+        4. Cluster'da **Connect**'e tıkla, **Drivers**'ı seç ve connection string'i kopyala. `mongodb+srv://KULLANICI:<db_password>@cluster0.xxxxx.mongodb.net/` gibi görünür. `<db_password>` yerine şifreni yaz (özel karakterleri percent-encode et).
+        5. Aşağıdaki string ile `.env.atlas` oluştur. Veritabanı adını `DB_NAME`'de tut.
+        6. Yedeğini aynı container'dan Atlas'a yükle (internete çıkabilir). Arşiv orada yoksa içeri kopyala, sonra Atlas string'iyle `mongorestore` çalıştır; şifreyi sorar. Geri yüklemek için `blog` içinde koleksiyon ve index oluşturabilen bir kullanıcı gerekir; quickstart'taki kullanıcı olur.
+        7. `package.json`'a `demo:atlas` script'ini ekle ve `npm run demo:atlas` çalıştır. Aynı kod artık Atlas'a karşı çalışıyor. Veriye Atlas'ta **Browse Collections** altından bak.
+        8. Sınırları hatırla: 0,5 GB altında ve saniyede 100 işlem altında kal. Aşılınca Atlas fatura kesmek yerine bağlantılarını yavaşlatır. Sonra daha fazlası gerekirse kodunu değiştirmeden ücretli bir cluster'a geçersin.
+        9. Yerel MongoDB 9.0, ücretsiz Atlas cluster'ı ise daha eski bir sürümde olabilir (yazıldığı sırada 8.0). Bu roadmap'teki kod ikisinde de olan özellikleri kullanır. Yeni bir 9.0 özelliği kullandığında Atlas'ta var olup olmadığını kontrol et.
+    code:
+      - file: .env.atlas
+        lang: sh
+        text: |
+          MONGODB_URI=mongodb+srv://USER:PASSWORD@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+          DB_NAME=blog
+      - file: terminal
+        lang: sh
+        text: |
+          docker cp backups/blog-2026-10-18.archive blog-mongo:/tmp/restore.archive
+          docker exec -it blog-mongo mongorestore --uri "mongodb+srv://USER@cluster0.xxxxx.mongodb.net/" --gzip --archive=/tmp/restore.archive --nsInclude "blog.*"
+          npm run demo:atlas
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "blog-data",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "demo": "node --env-file=.env src/demo.js",
+              "demo:atlas": "node --env-file=.env.atlas src/demo.js",
+              "test": "node --env-file=.env --test --test-concurrency=1"
+            },
+            "engines": {
+              "node": ">=20.19.0"
+            },
+            "dependencies": {
+              "mongodb": "^7.7.0"
+            }
+          }
+    mistakes:
+      - problem:
+          en: "\"Server selection timed out\" or \"connection refused\" when connecting to Atlas."
+          tr: "Atlas'a bağlanırken \"Server selection timed out\" ya da \"connection refused\" hatası."
+        fix:
+          en: "Almost always your current IP is not on the IP access list (it changes when you move networks), or the database user or password is wrong. Add your IP in the Atlas **Network Access** page, or the equivalent IP Access List page of the current UI, and try again."
+          tr: "Neredeyse her zaman şu anki IP'n IP access list'te değildir (ağ değiştirince değişir) ya da veritabanı kullanıcısı ya da şifre yanlıştır. IP'ni Atlas'ın **Network Access** sayfasından ya da güncel arayüzdeki eşdeğer IP Access List sayfasından ekle ve tekrar dene."
+      - problem:
+          en: "Committing `.env.atlas` with the real password to Git."
+          tr: "Gerçek şifreli `.env.atlas` dosyasını Git'e commit etmek."
+        fix:
+          en: "The `.gitignore` above ignores `.env*`. If a password was ever pushed, change it in Atlas at once; deleting the file is not enough, because Git remembers."
+          tr: "Yukarıdaki `.gitignore` `.env*` dosyalarını yok sayar. Bir şifre bir kez push edildiyse Atlas'ta hemen değiştir; dosyayı silmek yetmez, çünkü Git hatırlar."
+      - problem:
+          en: "Filling the free cluster with test data and hitting 0.5 GB."
+          tr: "Ücretsiz cluster'ı test verisiyle doldurup 0,5 GB'a çarpmak."
+        fix:
+          en: "Never restore the 50 000 generated posts into Atlas. Run `npm run health` (next step) to watch the storage."
+          tr: "50 000 üretilmiş yazıyı asla Atlas'a geri yükleme. Depolamayı izlemek için `npm run health` çalıştır (sonraki adım)."
+    quiz:
+      - q:
+          en: "Your app cannot connect to Atlas from a new network. What do you check first?"
+          tr: "Uygulaman yeni bir ağdan Atlas'a bağlanamıyor. İlk neye bakarsın?"
+        options:
+          en:
+            - "Whether your current IP address is on the project's IP access list"
+            - "Whether the cluster needs more storage"
+            - "Whether MongoDB 9.0 is installed on your laptop"
+          tr:
+            - "Şu anki IP adresinin projenin IP access list'inde olup olmadığına"
+            - "Cluster'ın daha fazla depolamaya ihtiyacı olup olmadığına"
+            - "Dizüstü bilgisayarında MongoDB 9.0 kurulu olup olmadığına"
+        answer: 0
+        why:
+          en: "Atlas refuses connections from addresses that are not on the list, and your address changes with the network."
+          tr: "Atlas listede olmayan adreslerden gelen bağlantıları reddeder ve adresin ağla birlikte değişir."
+    sources:
+      - title: Atlas Free Cluster Limits
+        url: https://www.mongodb.com/docs/atlas/reference/free-shared-limitations/
+      - title: Deploy a Free Cluster
+        url: https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/
+      - title: Configure IP access list entries
+        url: https://www.mongodb.com/docs/atlas/security/ip-access-list/
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Watch the database: health, slow queries and storage"
+      tr: "Veritabanını izleme: sağlık, yavaş sorgular ve depolama"
+    minutes: 45
+    needs: [atlas]
+    why:
+      en: "Databases rarely fail suddenly. They slow down first, or fill up. If you look at a few numbers regularly (connections, slow queries, storage) you see the problem days before your users do."
+      tr: "Veritabanları nadiren birden bozulur. Önce yavaşlar ya da dolar. Birkaç sayıya düzenli bakarsan (bağlantılar, yavaş sorgular, depolama) sorunu kullanıcılarından günler önce görürsün."
+    learn:
+      en: |
+        - `db.serverStatus()` and `db.stats()` give connections, operation counters and sizes
+        - The database profiler records slow operations in `system.profile`
+        - `mongostat` and `mongotop` show live activity from the command line
+        - On Atlas the cluster **Metrics** tab charts connections, query targeting and disk use; the Free tier has a subset of the metrics, and monitoring pauses after 7 days without a connection
+        - A small script that checks storage against your limit can run on a schedule
+      tr: |
+        - `db.serverStatus()` ve `db.stats()` bağlantıları, işlem sayaçlarını ve boyutları verir
+        - Veritabanı profiler'ı yavaş işlemleri `system.profile` içine kaydeder
+        - `mongostat` ve `mongotop` komut satırından canlı hareketi gösterir
+        - Atlas'ta cluster'ın **Metrics** sekmesi bağlantıları, query targeting'i ve disk kullanımını çizer; Free katmanında metriklerin bir alt kümesi vardır ve 7 gün bağlantı olmazsa izleme durur
+        - Depolamayı sınırınla karşılaştıran küçük bir script zamanlanmış çalışabilir
+    do:
+      en: |
+        1. Log in as `admin`: `docker exec -it blog-mongo mongosh -u admin --authenticationDatabase admin`.
+        2. Run the first block. `connections.current` is how many clients are connected; `opcounters` count operations since the start. In `blog.stats()` and `$collStats`, `size` and `totalIndexSize` are in KiB because of `scale: 1024`.
+        3. Turn the profiler on for the `blog` database with `slowms: 0`, which records every operation (for learning only), run a query and read the entry: `planSummary: "COLLSCAN"` and `docsExamined` are the same numbers `explain` showed. Turn it off again with `setProfilingLevel(0)`. In real life use `slowms: 100` and level 1.
+        4. Watch live activity: `mongostat` prints one line per second; stop it with Ctrl+C.
+        5. Add `src/health.js` and the `health` script. Run `npm run health`: it prints the ping time, the number of documents and how much of the 512 MB limit is used, and exits with an error code at 80%, so a cron job or a CI step can alert you. Run `npm run health:atlas` to check the Atlas cluster too.
+        6. In Atlas open your cluster and look at the **Metrics** tab: **Connections**, **Query Targeting** (documents examined per document returned: if it is high you are missing an index) and disk usage. Check the Free tier subset on the pages in the sources.
+        7. Also keep watching logs: `docker logs --tail 50 blog-mongo`.
+      tr: |
+        1. `admin` olarak giriş yap: `docker exec -it blog-mongo mongosh -u admin --authenticationDatabase admin`.
+        2. İlk bloğu çalıştır. `connections.current` kaç istemcinin bağlı olduğudur; `opcounters` başlangıçtan beri işlemleri sayar. `blog.stats()` ve `$collStats` içinde `size` ve `totalIndexSize`, `scale: 1024` yüzünden KiB cinsindedir.
+        3. `blog` veritabanı için profiler'ı `slowms: 0` ile aç, bu her işlemi kaydeder (sadece öğrenmek için), bir sorgu çalıştır ve kaydı oku: `planSummary: "COLLSCAN"` ve `docsExamined`, `explain`'in gösterdiği sayılarla aynıdır. `setProfilingLevel(0)` ile tekrar kapat. Gerçek hayatta `slowms: 100` ve seviye 1 kullan.
+        4. Canlı hareketi izle: `mongostat` saniyede bir satır yazar; Ctrl+C ile durdur.
+        5. `src/health.js` dosyasını ve `health` script'ini ekle. `npm run health` çalıştır: ping süresini, doküman sayısını ve 512 MB sınırının ne kadarının kullanıldığını yazar, %80'de hata koduyla çıkar; böylece bir cron işi ya da CI adımı seni uyarabilir. Atlas cluster'ını da kontrol etmek için `npm run health:atlas` çalıştır.
+        6. Atlas'ta cluster'ını aç ve **Metrics** sekmesine bak: **Connections**, **Query Targeting** (döndürülen doküman başına okunan doküman: yüksekse index eksiktir) ve disk kullanımı. Free katmanındaki alt kümeyi kaynaklardaki sayfalardan kontrol et.
+        7. Logları da izlemeye devam et: `docker logs --tail 50 blog-mongo`.
+    code:
+      - file: mongosh
+        lang: js
+        text: |
+          const status = db.serverStatus()
+          status.connections.current
+          status.opcounters
+
+          const blog = db.getSiblingDB("blog")
+          blog.stats({ scale: 1024 })
+          blog.posts.aggregate([
+            { $collStats: { storageStats: { scale: 1024 } } },
+            { $project: { "storageStats.count": 1, "storageStats.size": 1, "storageStats.totalIndexSize": 1 } },
+          ])
+
+          blog.setProfilingLevel(1, { slowms: 0 })
+          blog.posts.find({ views: { $gt: 1 } }).toArray()
+          blog.system.profile.find(
+            { ns: "blog.posts", op: "query" },
+            { millis: 1, planSummary: 1, docsExamined: 1, nreturned: 1, _id: 0 },
+          ).sort({ ts: -1 }).limit(1)
+          blog.setProfilingLevel(0)
+      - file: terminal
+        lang: sh
+        text: |
+          docker exec -it blog-mongo mongostat --username admin --authenticationDatabase admin
+          npm run health
+      - file: src/health.js
+        lang: js
+        text: |
+          import { client, close, getDb } from "./db.js";
+
+          // Atlas Free clusters hold 512 MB of data plus indexes. Warn before that is full.
+          const LIMIT_MB = Number(process.env.STORAGE_LIMIT_MB ?? 512);
+
+          try {
+            await client.connect();
+            const db = getDb();
+
+            const started = performance.now();
+            await db.command({ ping: 1 });
+            const pingMs = Math.round(performance.now() - started);
+
+            const stats = await db.command({ dbStats: 1, scale: 1024 * 1024 });
+            const usedMb = stats.dataSize + stats.indexSize; // uncompressed documents plus indexes, in MB
+            const percent = Math.round((usedMb / LIMIT_MB) * 100);
+
+            console.log(`ping ${pingMs} ms, ${stats.objects} documents, ${usedMb.toFixed(2)} MB used (${percent}% of ${LIMIT_MB} MB)`);
+            if (percent >= 80) {
+              console.error("Storage is almost full");
+              process.exitCode = 1;
+            }
+          } finally {
+            await close();
+          }
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "blog-data",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "demo": "node --env-file=.env src/demo.js",
+              "demo:atlas": "node --env-file=.env.atlas src/demo.js",
+              "health": "node --env-file=.env src/health.js",
+              "health:atlas": "node --env-file=.env.atlas src/health.js",
+              "test": "node --env-file=.env --test --test-concurrency=1"
+            },
+            "engines": {
+              "node": ">=20.19.0"
+            },
+            "dependencies": {
+              "mongodb": "^7.7.0"
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Leaving the profiler on with `slowms: 0`."
+          tr: "Profiler'ı `slowms: 0` ile açık bırakmak."
+        fix:
+          en: "It records every operation and slows the database. Use `slowms: 100`, or turn it off with `setProfilingLevel(0)` when you are done."
+          tr: "Her işlemi kaydeder ve veritabanını yavaşlatır. `slowms: 100` kullan ya da işin bitince `setProfilingLevel(0)` ile kapat."
+      - problem:
+          en: "Looking at the averages and missing the slow tail."
+          tr: "Ortalamalara bakıp yavaş kuyruğu kaçırmak."
+        fix:
+          en: "One query that takes 5 seconds hides in an average of 3 ms. Look at the slow-query list (profiler, or Atlas Query Profiler where your tier has it)."
+          tr: "5 saniye süren tek bir sorgu 3 ms'lik bir ortalamanın içinde saklanır. Yavaş sorgu listesine bak (profiler ya da katmanında varsa Atlas Query Profiler)."
+      - problem:
+          en: "Finding out about a full free cluster from an error."
+          tr: "Dolu bir ücretsiz cluster'ı bir hatadan öğrenmek."
+        fix:
+          en: "Run `npm run health` regularly. At 0.5 GB the free cluster cannot grow, and writes fail."
+          tr: "`npm run health`'i düzenli çalıştır. 0,5 GB'ta ücretsiz cluster büyüyemez ve yazmalar başarısız olur."
+    quiz:
+      - q:
+          en: "The profiler shows `planSummary: COLLSCAN` and `docsExamined: 50000` for a slow query. What do you do?"
+          tr: "Profiler yavaş bir sorgu için `planSummary: COLLSCAN` ve `docsExamined: 50000` gösteriyor. Ne yaparsın?"
+        options:
+          en:
+            - "Restart the server"
+            - "Check with explain and add an index that fits the query"
+            - "Raise the memory limit"
+          tr:
+            - "Sunucuyu yeniden başlatırsın"
+            - "explain ile kontrol edip sorguya uyan bir index eklersin"
+            - "Bellek sınırını yükseltirsin"
+        answer: 1
+        why:
+          en: "A collection scan over many documents is the classic cause of a slow query; the fix is an index that fits it."
+          tr: "Çok dokümanı kapsayan koleksiyon taraması yavaş sorgunun klasik nedenidir; çözüm ona uyan bir index'tir."
+    sources:
+      - title: Monitor MongoDB (self-managed)
+        url: https://www.mongodb.com/docs/manual/administration/monitoring/
+      - title: Database profiler
+        url: https://www.mongodb.com/docs/manual/tutorial/manage-the-database-profiler/
+      - title: Monitor your cluster in Atlas (Metrics)
+        url: https://www.mongodb.com/docs/atlas/monitor-cluster-metrics/
+
+  - id: transactions
+    stage: advanced
+    title:
+      en: "Transactions: change several documents safely"
+      tr: "Transaction'lar: birkaç dokümanı güvenle değiştirme"
+    minutes: 45
+    needs: [monitoring]
+    why:
+      en: "A change to one document is always atomic. But when a task must change two documents together (add a post and raise the author's `postCount`), a crash between the two writes leaves wrong data. A transaction makes both writes happen, or none."
+      tr: "Tek bir dokümandaki değişiklik her zaman atomiktir. Ama bir iş iki dokümanı birlikte değiştirmek zorundaysa (yazı ekle ve yazarın `postCount`'unu artır), iki yazma arasındaki bir çökme yanlış veri bırakır. Transaction ya ikisinin de olmasını sağlar ya da hiçbirinin."
+    learn:
+      en: |
+        - A transaction groups writes so that all of them apply or none do (it needs a replica set, which is why you started one)
+        - `session.withTransaction(callback)` starts, commits, and retries on temporary errors
+        - Every operation inside must receive the `session`, or it runs outside the transaction
+        - Keep transactions short; if a design needs them everywhere, reconsider embedding
+      tr: |
+        - Transaction yazmaları gruplar; ya hepsi uygulanır ya hiçbiri (replica set ister, bu yüzden bir tane başlattın)
+        - `session.withTransaction(callback)` başlatır, commit eder ve geçici hatalarda yeniden dener
+        - İçerideki her işlem `session`'ı almalıdır, yoksa transaction'ın dışında çalışır
+        - Transaction'ları kısa tut; bir tasarım her yerde onlara ihtiyaç duyuyorsa embedding'i yeniden düşün
+    do:
+      en: |
+        1. Add the `createPost` function at the end of `src/posts.js`. It runs two writes in one transaction: raise the author's `postCount`, and insert the post. If the author does not exist or the insert fails, everything is rolled back.
+        2. Add `test/transactions.test.js`. The second test inserts a post whose `slug` already exists (unique index, code 11000) and checks that the author's counter went back to 0. The third test checks that an unknown author inserts nothing.
+        3. Run `npm test`. All eight tests pass.
+        4. Make the transaction fail on purpose: remove `{ session }` from the `insertOne` call and run the tests. The rollback test fails, because the insert now runs outside the transaction and the counter is rolled back while the post stays. This is the most common transaction bug.
+        5. Put `{ session }` back. On Atlas the same code works, because Atlas clusters are replica sets.
+        6. You have finished the roadmap. Next: build an API on top of `src/posts.js` (see the Node.js roadmap), try change streams (`collection.watch()`), or read the Atlas Search docs when you need real text search.
+      tr: |
+        1. `createPost` fonksiyonunu `src/posts.js` dosyasının sonuna ekle. İki yazmayı tek transaction'da yapar: yazarın `postCount`'unu artırır ve yazıyı ekler. Yazar yoksa ya da insert başarısız olursa her şey geri alınır.
+        2. `test/transactions.test.js` dosyasını ekle. İkinci test, `slug`'ı zaten var olan bir yazı ekler (unique index, kod 11000) ve yazarın sayacının 0'a döndüğünü kontrol eder. Üçüncü test, bilinmeyen bir yazarın hiçbir şey eklemediğini kontrol eder.
+        3. `npm test` çalıştır. Sekiz testin hepsi geçer.
+        4. Transaction'ı bilerek bozdur: `insertOne` çağrısından `{ session }`'ı çıkar ve testleri çalıştır. Geri alma testi başarısız olur, çünkü insert artık transaction'ın dışında çalışır; sayaç geri alınır ama yazı kalır. En yaygın transaction hatası budur.
+        5. `{ session }`'ı geri koy. Atlas'ta aynı kod çalışır, çünkü Atlas cluster'ları replica set'tir.
+        6. Roadmap'i bitirdin. Sonra: `src/posts.js` üzerine bir API yaz (Node.js roadmap'ine bak), change stream'leri dene (`collection.watch()`) ya da gerçek metin araması gerektiğinde Atlas Search dokümanlarını oku.
+    code:
+      - file: src/posts.js
+        lang: js
+        text: |
+          // add at the end of the file
+          // Insert a post and raise the author's postCount. Two documents must change together,
+          // so both writes run in one transaction: both happen or neither does.
+          export async function createPost(client, db, { authorEmail, title, slug, body = "", tags = [] }) {
+            return client.withSession((session) =>
+              session.withTransaction(async () => {
+                const author = await users(db).findOneAndUpdate(
+                  { email: authorEmail },
+                  { $inc: { postCount: 1 } },
+                  { session, returnDocument: "after" },
+                );
+                if (!author) throw new Error("Unknown author: " + authorEmail);
+
+                const post = { authorId: author._id, title, slug, body, tags, status: "draft", views: 0, comments: [] };
+                const { insertedId } = await posts(db).insertOne(post, { session });
+                return insertedId;
+              }),
+            );
+          }
+      - file: test/transactions.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { after, beforeEach, test } from "node:test";
+          import { createPost } from "../src/posts.js";
+          import { client, resetTestDb } from "../support/testdb.js";
+
+          let db;
+          beforeEach(async () => {
+            db = await resetTestDb();
+          });
+          after(() => client.close());
+
+          test("createPost inserts the post and raises postCount", async () => {
+            const id = await createPost(client, db, { authorEmail: "linus@example.com", title: "New", slug: "new" });
+            assert.ok(await db.collection("posts").findOne({ _id: id }));
+            assert.equal((await db.collection("users").findOne({ email: "linus@example.com" })).postCount, 1);
+          });
+
+          test("a failed insert rolls the counter back", async () => {
+            await db.collection("posts").createIndex({ slug: 1 }, { unique: true });
+            await assert.rejects(
+              createPost(client, db, { authorEmail: "linus@example.com", title: "Copy", slug: "first" }),
+              { code: 11000 },
+            );
+            assert.equal((await db.collection("users").findOne({ email: "linus@example.com" })).postCount, 0);
+          });
+
+          test("an unknown author inserts nothing", async () => {
+            const before = await db.collection("posts").countDocuments();
+            await assert.rejects(createPost(client, db, { authorEmail: "nobody@example.com", title: "X", slug: "x" }), /Unknown author/);
+            assert.equal(await db.collection("posts").countDocuments(), before);
+          });
+    mistakes:
+      - problem:
+          en: "Forgetting to pass `{ session }` to one operation inside the transaction."
+          tr: "Transaction içindeki bir işleme `{ session }` vermeyi unutmak."
+        fix:
+          en: "That operation runs outside the transaction and is never rolled back. Pass the session to every read and write inside the callback."
+          tr: "O işlem transaction'ın dışında çalışır ve asla geri alınmaz. Callback içindeki her okuma ve yazmaya session'ı ver."
+      - problem:
+          en: "\"Transaction numbers are only allowed on a replica set member or mongos\"."
+          tr: "\"Transaction numbers are only allowed on a replica set member or mongos\" hatası."
+        fix:
+          en: "You are on a standalone server. Start `mongod` with `--replSet` and run `rs.initiate(...)` as in the first step. Atlas is always a replica set."
+          tr: "Tek başına çalışan bir sunucudasın. `mongod`'u `--replSet` ile başlat ve ilk adımdaki gibi `rs.initiate(...)` çalıştır. Atlas her zaman bir replica set'tir."
+      - problem:
+          en: "Wrapping every write in a transaction \"to be safe\", or doing slow work (network calls) inside it."
+          tr: "Her yazmayı \"garanti olsun\" diye transaction'a sarmak ya da içinde yavaş iş (ağ çağrıları) yapmak."
+        fix:
+          en: "Single-document writes are already atomic. Use a transaction only when several documents must change together, and keep the callback short; the driver may run it again after a temporary error, so it must be safe to repeat."
+          tr: "Tek dokümanlık yazmalar zaten atomiktir. Transaction'ı sadece birkaç doküman birlikte değişmek zorundaysa kullan ve callback'i kısa tut; driver geçici bir hatadan sonra onu tekrar çalıştırabilir, bu yüzden tekrarı güvenli olmalı."
+    quiz:
+      - q:
+          en: "When do you need a transaction?"
+          tr: "Transaction'a ne zaman ihtiyacın olur?"
+        options:
+          en:
+            - "For every insert"
+            - "When several documents must change together or not at all"
+            - "When you update one field of one document"
+          tr:
+            - "Her insert için"
+            - "Birkaç doküman birlikte ya da hiç değişmek zorundayken"
+            - "Tek bir dokümanın tek bir alanını güncellerken"
+        answer: 1
+        why:
+          en: "A write to one document is already atomic, even with several fields. A transaction is for changes that span documents."
+          tr: "Tek dokümana yazma, birkaç alan olsa bile zaten atomiktir. Transaction, dokümanlara yayılan değişiklikler içindir."
+    sources:
+      - title: Transactions
+        url: https://www.mongodb.com/docs/manual/core/transactions/
+      - title: Node.js driver, Transactions
+        url: https://www.mongodb.com/docs/drivers/node/current/crud/transactions/
+      - title: Production considerations for transactions
+        url: https://www.mongodb.com/docs/manual/core/transactions-production-consideration/
