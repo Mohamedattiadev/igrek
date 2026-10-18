@@ -23,6 +23,7 @@ jobs:
       # Quality gate (plan.md 15): no dead code, no layer violations or import cycles.
       - run: bun run lint:dead
       - run: bun run lint:arch
+      - run: bun run lint:db
       - run: bun run typecheck
       - run: bun test
       - run: bun run build

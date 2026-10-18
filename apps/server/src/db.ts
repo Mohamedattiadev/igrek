@@ -14,7 +14,7 @@ export const settingsTable = sqliteTable("settings", {
  * Ordered schema migrations. Each entry runs once; the index is stored in
  * PRAGMA user_version. Never edit an entry after it ships — append a new one.
  */
-const migrations: string[] = [
+export const migrations: string[] = [
   `CREATE TABLE settings (
      key TEXT PRIMARY KEY,
      value TEXT NOT NULL,
@@ -832,6 +832,17 @@ const migrations: string[] = [
      created_at INTEGER NOT NULL,
      PRIMARY KEY (project_id, rule)
    );`,
+  // Indexes for the columns queries filter on, found by EXPLAIN QUERY PLAN over the code (plan.md 15.3).
+  `CREATE INDEX sessions_updated ON sessions(updated_at);
+   CREATE INDEX commits_at ON commits(at);
+   CREATE INDEX deploys_at ON deploys(at);
+   CREATE INDEX library_items_hash ON library_items(hash);
+   CREATE INDEX comments_project ON comments(project_id);
+   CREATE INDEX team_messages_project ON team_messages(project_id);
+   CREATE INDEX app_events_daily_day ON app_events_daily(day);
+   CREATE INDEX app_users_daily_day ON app_users_daily(day);
+   CREATE INDEX app_error_groups_open ON app_error_groups(status, last_at);
+   CREATE INDEX team_messages_inbox ON team_messages(outgoing, status);`,
 ];
 
 export function migrate(sqlite: Database): number {
