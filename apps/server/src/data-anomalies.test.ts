@@ -5,10 +5,16 @@ import { type AnomalySource, scanAnomalies } from "./data-anomalies";
 
 function source(prod = false): AnomalySource {
   const db = new Database(":memory:");
-  db.run(`CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT, name TEXT);
+  db.run(`CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT, name TEXT, city TEXT);
     CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER REFERENCES users(id), price REAL, note TEXT);`);
+  const cities = ["Istanbul", "İstanbul", "istanbul ", "Ankara", "Izmir"];
   for (let i = 1; i <= 30; i++)
-    db.run("INSERT INTO users VALUES (?, ?, ?)", [i, i <= 2 ? "a@x.io" : `u${i}@x.io`, i === 7 ? null : `U${i}`]);
+    db.run("INSERT INTO users VALUES (?, ?, ?, ?)", [
+      i,
+      i <= 2 ? "a@x.io" : `u${i}@x.io`,
+      i === 7 ? null : `U${i}`,
+      cities[i % 5] ?? null,
+    ]);
   db.run("INSERT INTO orders VALUES (1, 1, 10, NULL), (2, 99, 5, NULL), (3, 2, -4, NULL)");
   const tables: DbTable[] = [
     {
@@ -19,6 +25,7 @@ function source(prod = false): AnomalySource {
         { name: "id", type: "INTEGER", nullable: false, primary: true },
         { name: "email", type: "TEXT", nullable: true, primary: false },
         { name: "name", type: "TEXT", nullable: true, primary: false },
+        { name: "city", type: "TEXT", nullable: true, primary: false },
       ],
     },
     {
@@ -49,6 +56,7 @@ describe("data anomalies", () => {
     const summary = found.map((a) => `${a.kind} ${a.table}.${a.column} ${a.count}`).sort();
     expect(summary).toEqual([
       "duplicate users.email 1",
+      "inconsistent users.city 1",
       "negative orders.price 1",
       "orphan orders.user_id 1",
       "unexpectedNull users.name 1",
@@ -60,6 +68,18 @@ describe("data anomalies", () => {
 
   test("a production database needs a confirmation first", async () => {
     await expect(scanAnomalies(source(true), "d1")).rejects.toThrow("production");
-    expect((await scanAnomalies(source(true), "d1", { confirmProd: true })).length).toBe(4);
+    expect((await scanAnomalies(source(true), "d1", { confirmProd: true })).length).toBe(5);
+  });
+});
+
+describe("inconsistent values", () => {
+  test("values that differ only in case, spaces or accents are grouped", async () => {
+    const { variantGroups } = await import("./data-anomalies");
+    expect(
+      variantGroups(["Istanbul", "İstanbul", "istanbul ", "Ankara", "in_progress", "In progress", "done"]),
+    ).toEqual([
+      ["Istanbul", "İstanbul", "istanbul "],
+      ["in_progress", "In progress"],
+    ]);
   });
 });

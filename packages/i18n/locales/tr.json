@@ -3034,7 +3034,7 @@
     "emptyTitle": "Henüz veritabanı yok",
     "emptyBody": "Adresiyle bir veritabanı ekle ya da God Eye'ın bir projenin .env dosyasında veya klasöründe bulduğunu seç.",
     "health": "Veri sağlığı",
-    "healthHint": "Veride sorun arar, sadece okuyan sorgularla: olmayan bir kayda işaret eden satırlar, tekil olması gereken yerde tekrar eden değerler (e-posta, slug), neredeyse hep dolu sütunlardaki boşluklar, negatif fiyat ya da miktarlar.",
+    "healthHint": "Veride sorun arar, sadece okuyan sorgularla: olmayan bir kayda işaret eden satırlar, tekil olması gereken yerde tekrar eden değerler (e-posta, slug), neredeyse hep dolu sütunlardaki boşluklar, negatif fiyat ya da miktarlar, aynı değerin farklı yazımları (büyük-küçük harf, boşluk, aksan).",
     "healthScan": "Veriyi tara",
     "healthScanning": "Taranıyor…",
     "healthConfirmProd": "Üretimi tara (sadece okur)",
@@ -3048,7 +3048,10 @@
     "anomalyCount_other": "{{count}} satır",
     "anomalyShow": "Satırları göster",
     "anomalyValues_one": "{{count}} değer birden fazla kez geçiyor",
-    "anomalyValues_other": "{{count}} değer birden fazla kez geçiyor"
+    "anomalyValues_other": "{{count}} değer birden fazla kez geçiyor",
+    "anomaly_inconsistent": "Farklı yazılmış",
+    "anomalyVariants_one": "{{count}} değer birden fazla şekilde yazılmış",
+    "anomalyVariants_other": "{{count}} değer birden fazla şekilde yazılmış"
   },
   "backups": {
     "intro": "Zamanlanmış veritabanı ve klasör yedekleri. Her yeni yedek test edilir: geçici bir veritabanına ya da kopyaya geri yüklenip sayılır, bozuk yedek ihtiyaç anından önce fark edilir.",

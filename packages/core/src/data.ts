@@ -168,7 +168,7 @@ export interface BackupRun {
 
 /** One problem in the data itself (plan.md 15.3), with the query that shows it. */
 export interface DataAnomaly {
-  kind: "orphan" | "unexpectedNull" | "duplicate" | "negative";
+  kind: "orphan" | "unexpectedNull" | "duplicate" | "negative" | "inconsistent";
   table: string;
   column: string;
   /** Rows (or distinct values, for duplicates) affected. */

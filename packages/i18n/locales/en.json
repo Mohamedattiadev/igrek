@@ -3034,7 +3034,7 @@
     "emptyTitle": "No databases yet",
     "emptyBody": "Add a database by address, or pick one God Eye found in a project's .env or folder.",
     "health": "Data health",
-    "healthHint": "Looks for problems in the data with read-only queries: rows pointing at rows that do not exist, values repeated where they should be unique (email, slug), NULLs in columns that are almost always filled, and negative prices or quantities.",
+    "healthHint": "Looks for problems in the data with read-only queries: rows pointing at rows that do not exist, values repeated where they should be unique (email, slug), NULLs in columns that are almost always filled, negative prices or quantities, and the same value written in different ways (case, spaces, accents).",
     "healthScan": "Scan the data",
     "healthScanning": "Scanning…",
     "healthConfirmProd": "Scan production (read-only)",
@@ -3048,7 +3048,10 @@
     "anomalyCount_other": "{{count}} rows",
     "anomalyShow": "Show the rows",
     "anomalyValues_one": "{{count}} value appears more than once",
-    "anomalyValues_other": "{{count}} values appear more than once"
+    "anomalyValues_other": "{{count}} values appear more than once",
+    "anomaly_inconsistent": "Written differently",
+    "anomalyVariants_one": "{{count}} value written more than one way",
+    "anomalyVariants_other": "{{count}} values written more than one way"
   },
   "backups": {
     "intro": "Database and folder backups on a schedule. Each new backup is tested: restored into a temporary database or a copy and counted, so a broken backup is found before you need it.",

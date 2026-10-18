@@ -386,9 +386,18 @@ function DataHealth({ conn, onShow }: { conn: DbConnection; onShow: (query: stri
               <span className="font-mono">
                 {a.table}.{a.column}
               </span>
-              {a.target && <span className="text-fg-subtle">→ {a.target}</span>}
+              {a.target && (
+                <span className="text-fg-subtle">{a.kind === "inconsistent" ? a.target : `→ ${a.target}`}</span>
+              )}
               <span className="text-fg-muted">
-                {t(a.kind === "duplicate" ? "db.anomalyValues" : "db.anomalyCount", { count: a.count })}
+                {t(
+                  a.kind === "duplicate"
+                    ? "db.anomalyValues"
+                    : a.kind === "inconsistent"
+                      ? "db.anomalyVariants"
+                      : "db.anomalyCount",
+                  { count: a.count },
+                )}
               </span>
               <span className="flex-1" />
               <button type="button" onClick={() => onShow(a.query)} className="text-[12px] text-accent hover:underline">

@@ -63,6 +63,65 @@ function checksFor(table: DbTable, q: (n: string) => string, from: string): [Omi
   return out;
 }
 
+/** How a value would be written if everyone wrote it the same way: case, spaces and accents aside. */
+function normalForm(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/ı/g, "i")
+    .toLowerCase()
+    .replace(/[\s_-]+/g, " ")
+    .trim();
+}
+
+/** Groups of values that differ only in how they are written: ["Istanbul", "istanbul "]. */
+export function variantGroups(values: string[]): string[][] {
+  const groups = new Map<string, Set<string>>();
+  for (const v of values) {
+    const key = normalForm(v);
+    if (!key) continue;
+    groups.set(key, (groups.get(key) ?? new Set()).add(v));
+  }
+  return [...groups.values()].filter((g) => g.size > 1).map((g) => [...g]);
+}
+
+/**
+ * Text columns with few distinct values (a status, a city, a category) where the same thing is
+ * written in more than one way: lookups and reports then count them as different things.
+ */
+async function inconsistentValues(
+  source: AnomalySource,
+  id: string,
+  table: DbTable,
+  q: (n: string) => string,
+  from: string,
+): Promise<DataAnomaly[]> {
+  if ((table.rows ?? 0) < 20) return [];
+  const out: DataAnomaly[] = [];
+  const text = table.columns.filter((c) => /char|text|string|enum/i.test(c.type) && !c.primary && !c.references);
+  for (const col of text.slice(0, 15)) {
+    const c = q(col.name);
+    // One small grouped read per column of the user's database (at most 15 per table).
+    const rows = (await source.query(id, `SELECT ${c} FROM ${from} WHERE ${c} IS NOT NULL GROUP BY ${c} LIMIT 61`))
+      .rows;
+    if (rows.length > 60) continue; // Many distinct values: free text, not a list of choices.
+    const groups = variantGroups(rows.map((r) => String(r[0])));
+    if (groups.length)
+      out.push({
+        kind: "inconsistent",
+        table: table.name,
+        column: col.name,
+        count: groups.length,
+        target: groups
+          .slice(0, 3)
+          .map((g) => g.map((v) => JSON.stringify(v)).join(" / "))
+          .join("; "),
+        query: `SELECT ${c}, count(*) AS n FROM ${from} GROUP BY ${c} ORDER BY ${c}`,
+      });
+  }
+  return out;
+}
+
 /** Nullable columns that are almost always filled: the few empty rows are probably mistakes. */
 async function rareNulls(
   source: AnomalySource,
@@ -125,6 +184,7 @@ export async function scanAnomalies(
     }
     try {
       out.push(...(await rareNulls(source, id, table, q, from)));
+      out.push(...(await inconsistentValues(source, id, table, q, from)));
     } catch {
       // Counting failed (a view-like table or no rights): skip it.
     }
