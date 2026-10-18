@@ -888,6 +888,15 @@ export const migrations: string[] = [
   `ALTER TABLE lessons ADD COLUMN author_name TEXT;
    ALTER TABLE lessons ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0;
    ALTER TABLE lessons ADD COLUMN dirty INTEGER NOT NULL DEFAULT 1;`,
+  // Core Web Vitals from the user's own app (plan.md 15.4): per page, metric and day, in buckets.
+  `CREATE TABLE app_vitals (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     day TEXT NOT NULL,
+     page TEXT NOT NULL,
+     metric TEXT NOT NULL,
+     buckets TEXT NOT NULL,
+     PRIMARY KEY (project_id, day, page, metric)
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

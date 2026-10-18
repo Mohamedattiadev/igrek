@@ -245,6 +245,21 @@ export class AppErrors {
   window.godeyeFeedback = function (text, contact) {
     return fetch(feedbackUrl, { method: "POST", body: JSON.stringify({ text: text, contact: contact, page: location.pathname }), mode: "no-cors" });
   };
+  // Core Web Vitals (LCP, INP, CLS) of this page view, sent once when the page is hidden.
+  var vitalsUrl = "${base}/ingest/vitals/${this.key(projectId)}";
+  var v = { lcp: 0, cls: 0, inp: 0 };
+  function watch(type, fn, opts) {
+    try { new PerformanceObserver(function (l) { l.getEntries().forEach(fn); }).observe(Object.assign({ type: type, buffered: true }, opts)); } catch (e) {}
+  }
+  watch("largest-contentful-paint", function (e) { v.lcp = e.startTime; });
+  watch("layout-shift", function (e) { if (!e.hadRecentInput) v.cls += e.value; });
+  watch("event", function (e) { if (e.interactionId && e.duration > v.inp) v.inp = e.duration; }, { durationThreshold: 40 });
+  var vitalsSent = false;
+  addEventListener("visibilitychange", function () {
+    if (document.visibilityState !== "hidden" || vitalsSent || !navigator.sendBeacon) return;
+    vitalsSent = true;
+    navigator.sendBeacon(vitalsUrl, JSON.stringify({ page: location.pathname, lcp: Math.round(v.lcp), inp: Math.round(v.inp), cls: Math.round(v.cls * 1000) / 1000 }));
+  });
   // Product analytics: godeyeTrack("export_pdf", user.id). The id is hashed before it is stored.
   var events = "${base}/ingest/events/${this.key(projectId)}";
   window.godeyeTrack = function (event, user) {

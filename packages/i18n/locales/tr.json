@@ -3597,7 +3597,15 @@
     "requests": "İstek (7 gün)",
     "errors": "5xx",
     "slower": "yavaşladı",
-    "faster": "hızlandı"
+    "faster": "hızlandı",
+    "vitalsTitle": "Gerçek ziyaretçilerden Core Web Vitals",
+    "vitalsHint": "Ziyaretçilerinin tarayıcısında hata kodu parçasıyla ölçülür (LCP: yüklenme, INP: tıklama ve yazmaya tepki, CLS: kayan düzen). Son 4 haftanın 75. yüzdeliği, web.dev eşikleriyle değerlendirilir.",
+    "vitalsEmpty": "Henüz ölçülen ziyaret yok. İzleme'deki tarayıcı kodu sitende olunca bunları gönderir.",
+    "page": "Sayfa",
+    "visits": "Ziyaret",
+    "rating_good": "İyi",
+    "rating_needs": "İyileştirilmeli",
+    "rating_poor": "Kötü"
   },
   "incident": {
     "title": "Olay modu",

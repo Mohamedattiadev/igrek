@@ -666,6 +666,51 @@ export function histogramQuantile(buckets: number[], share: number): number {
   return 10_000;
 }
 
+/**
+ * Core Web Vitals from real visitors (plan.md 15.4), with web.dev's thresholds. Values are kept in
+ * buckets whose edges include the "good" and "poor" limits, so the 75th percentile (what Core Web
+ * Vitals judge) lands on the right side of them. CLS is stored times 1000.
+ */
+export const VITALS = {
+  lcp: { buckets: [1000, 2500, 4000, 6000, Number.POSITIVE_INFINITY], good: 2500, poor: 4000 },
+  inp: { buckets: [100, 200, 500, 1000, Number.POSITIVE_INFINITY], good: 200, poor: 500 },
+  cls: { buckets: [50, 100, 250, 500, Number.POSITIVE_INFINITY], good: 100, poor: 250 },
+} as const;
+
+export type VitalName = keyof typeof VITALS;
+
+export interface VitalValue {
+  /** Upper edge of the bucket holding the 75th percentile (ms, or CLS times 1000). */
+  p75: number;
+  rating: "good" | "needs" | "poor";
+  samples: number;
+}
+
+export interface PageVitals {
+  page: string;
+  lcp?: VitalValue;
+  inp?: VitalValue;
+  cls?: VitalValue;
+}
+
+/** The 75th percentile of a vital's buckets and how web.dev rates it. */
+export function vitalOf(name: VitalName, buckets: number[]): VitalValue | undefined {
+  const samples = buckets.reduce((a, b) => a + b, 0);
+  if (!samples) return undefined;
+  const edges = VITALS[name].buckets;
+  let seen = 0;
+  let p75 = edges[edges.length - 2] ?? 0;
+  for (let i = 0; i < buckets.length; i++) {
+    seen += buckets[i] ?? 0;
+    if (seen / samples >= 0.75) {
+      p75 = edges[i] === Number.POSITIVE_INFINITY ? (edges[i - 1] ?? 0) * 2 : (edges[i] as number);
+      break;
+    }
+  }
+  const { good, poor } = VITALS[name];
+  return { p75, rating: p75 <= good ? "good" : p75 <= poor ? "needs" : "poor", samples };
+}
+
 /** A war room for when something is down (plan.md 13.4 "Olay modu"). */
 export interface Incident {
   id: string;

@@ -3597,7 +3597,15 @@
     "requests": "Requests (7 d)",
     "errors": "5xx",
     "slower": "slower",
-    "faster": "faster"
+    "faster": "faster",
+    "vitalsTitle": "Core Web Vitals from real visitors",
+    "vitalsHint": "Measured in your visitors' browsers by the error snippet (LCP: loading, INP: response to clicks and typing, CLS: layout shifts). The 75th percentile over the last 4 weeks, rated with web.dev's thresholds.",
+    "vitalsEmpty": "No visits measured yet. The browser snippet in Monitoring sends these once it is on your site.",
+    "page": "Page",
+    "visits": "Visits",
+    "rating_good": "Good",
+    "rating_needs": "Needs improvement",
+    "rating_poor": "Poor"
   },
   "incident": {
     "title": "Incident mode",

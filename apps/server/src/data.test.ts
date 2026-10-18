@@ -277,6 +277,31 @@ describe("performance", () => {
       previousP95: 100,
     });
   });
+
+  test("Core Web Vitals per page at the 75th percentile, rated with web.dev's thresholds", async () => {
+    const { Perf } = await import("./perf");
+    const { AppErrors } = await import("./apperrors");
+    const { sqlite, store } = setup();
+    const projectId = store.addProject(mkdtempSync(join(tmpdir(), "godeye-vitals-")));
+    const errors = new AppErrors(sqlite, store, new Bus());
+    const key = errors.key(projectId);
+    const perf = new Perf(sqlite, errors);
+    // Eight quick views and two slow ones on the same page (ids are folded into :id).
+    for (let i = 0; i < 8; i++) perf.ingestVitals(key, { page: `/items/${i}`, lcp: 1800, inp: 80, cls: 0.02 });
+    for (let i = 0; i < 2; i++) perf.ingestVitals(key, { page: "/items/9", lcp: 5000, inp: 700, cls: 0.4 });
+    expect(perf.ingestVitals(key, { page: "/x", lcp: "fast" })).toBe(false);
+    expect(perf.ingestVitals("wrong", { page: "/", lcp: 1 })).toBe(false);
+    const [page] = perf.vitals(projectId);
+    expect(page).toMatchObject({
+      page: "/items/:id",
+      lcp: { p75: 2500, rating: "good", samples: 10 },
+      inp: { p75: 100, rating: "good", samples: 10 },
+      cls: { p75: 50, rating: "good", samples: 10 },
+    });
+    // Once a third of the views are slow, the 75th percentile crosses into "poor".
+    for (let i = 0; i < 4; i++) perf.ingestVitals(key, { page: "/items/1", lcp: 7000 });
+    expect(perf.vitals(projectId)[0]?.lcp?.rating).toBe("poor");
+  });
 });
 
 describe("feedback box", () => {

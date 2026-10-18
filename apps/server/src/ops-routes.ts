@@ -617,6 +617,21 @@ export function registerBridgeRoutes(app: Hono, bridges: import("./bridges").Bri
 }
 
 export function registerPerfRoutes(app: Hono, perf: import("./perf").Perf): void {
+  // Core Web Vitals from the browser SDK: one small beacon per page view (plan.md 15.4).
+  app.post("/ingest/vitals/:key", async (c) => {
+    const headers = { "access-control-allow-origin": "*" };
+    const text = await c.req.text();
+    if (text.length > 2000) return c.json({ error: "Too big" }, 413, headers);
+    let body: unknown;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      return c.json({ error: "Not JSON" }, 400, headers);
+    }
+    const ok = perf.ingestVitals(c.req.param("key"), body);
+    return c.json({ ok }, ok ? 202 : 404, headers);
+  });
+  app.get("/api/projects/:id/vitals", (c) => c.json(perf.vitals(c.req.param("id"))));
   app.options("/ingest/perf/:key", (c) =>
     c.body(null, 204, {
       "access-control-allow-origin": "*",
