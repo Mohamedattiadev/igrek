@@ -122,3 +122,38 @@ describe("emergency stop", () => {
     expect(messages).toContain("emergency-stop");
   });
 });
+
+describe("serving the web build", () => {
+  test("text files go out compressed and immutable; an unchanged page costs a 304", async () => {
+    const { mkdirSync, writeFileSync } = await import("node:fs");
+    const dataDir = mkdtempSync(join(tmpdir(), "godeye-web-"));
+    const dist = join(dataDir, "dist");
+    mkdirSync(join(dist, "assets"), { recursive: true });
+    writeFileSync(join(dist, "index.html"), `<!doctype html><title>x</title>${" ".repeat(2000)}`);
+    writeFileSync(join(dist, "assets/app-BkX9_2Qa.js"), `console.log(${JSON.stringify("x".repeat(5000))});`);
+    const config = loadConfig({ GODEYE_HOME: dataDir, GODEYE_PORT: "7777", GODEYE_WEB_DIST: dist });
+    const { db } = openDb(":memory:");
+    const app = createApp({
+      config,
+      db,
+      token: loadSessionToken(dataDir),
+      bus: new Bus(),
+      stops: new StopRegistry(),
+      startedAt: Date.now(),
+    });
+    const get = (path: string, headers: Record<string, string> = {}) =>
+      app.request(`http://localhost:7777${path}`, { headers: { host: "localhost:7777", ...headers } });
+    const js = await get("/assets/app-BkX9_2Qa.js", { "accept-encoding": "gzip, br" });
+    expect(js.headers.get("content-encoding")).toBe("br");
+    expect(js.headers.get("cache-control")).toContain("immutable");
+    expect(js.headers.get("vary")).toBe("accept-encoding");
+    const plain = await get("/assets/app-BkX9_2Qa.js");
+    expect(plain.headers.get("content-encoding")).toBeNull();
+    expect((await plain.text()).length).toBeGreaterThan(5000);
+    const page = await get("/some/route", { "accept-encoding": "gzip" });
+    expect(page.headers.get("content-encoding")).toBe("gzip");
+    expect(page.headers.get("content-type")).toContain("text/html");
+    const again = await get("/", { "if-none-match": page.headers.get("etag") ?? "" });
+    expect(again.status).toBe(304);
+  });
+});

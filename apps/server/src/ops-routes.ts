@@ -1,6 +1,7 @@
 import type { DockerHost, LogLine, LogSource } from "@godeye/core";
 import type { Hono } from "hono";
 import type { AppErrors } from "./apperrors";
+import { auditCaching } from "./cache-audit";
 import type { Docker } from "./docker";
 import type { Flows } from "./flows";
 import type { Logs } from "./logs";
@@ -632,6 +633,15 @@ export function registerPerfRoutes(app: Hono, perf: import("./perf").Perf): void
     return c.json({ ok }, ok ? 202 : 404, headers);
   });
   app.get("/api/projects/:id/vitals", (c) => c.json(perf.vitals(c.req.param("id"))));
+  // The site's cache and compression headers, fetched once on the user's request.
+  app.post("/api/cache-audit", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { url?: unknown };
+    try {
+      return c.json(await auditCaching(String(body.url ?? "")));
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
   app.options("/ingest/perf/:key", (c) =>
     c.body(null, 204, {
       "access-control-allow-origin": "*",

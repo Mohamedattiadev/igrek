@@ -1,5 +1,6 @@
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join, normalize, sep } from "node:path";
+import { brotliCompressSync, constants as zlibConstants } from "node:zlib";
 import { APP_VERSION, type SystemStatus } from "@godeye/core";
 import { languages } from "@godeye/i18n";
 import { Hono } from "hono";
@@ -37,6 +38,45 @@ const AGENT_WRITES = new Set([
   // A form the user fills in God Eye; the agent gets the answers.
   "/api/agent/forms",
 ]);
+
+/** Text files worth compressing; images and fonts are compressed already. */
+const COMPRESSIBLE = /\.(js|mjs|css|html|json|svg|map|txt)$/;
+const packed = new Map<string, { mtime: number; br: Uint8Array<ArrayBuffer>; gz: Uint8Array<ArrayBuffer> }>();
+
+/**
+ * A file of the web build, compressed with brotli or gzip when the browser takes it (once per
+ * file version, kept in memory: the build is a few MB). Files that may change get an ETag so an
+ * unchanged one costs a 304 instead of the whole file.
+ */
+function serveBuilt(
+  file: string,
+  acceptEncoding: string,
+  ifNoneMatch: string | undefined,
+  headers: Record<string, string>,
+) {
+  const stat = statSync(file);
+  const etag = `"${stat.size.toString(36)}-${Math.floor(stat.mtimeMs).toString(36)}"`;
+  if (ifNoneMatch === etag) return new Response(null, { status: 304, headers: { etag, ...headers } });
+  const type = Bun.file(file).type;
+  const base = { "content-type": type, etag, vary: "accept-encoding", ...headers };
+  const wantsBr = /\bbr\b/.test(acceptEncoding);
+  const wantsGz = /\bgzip\b/.test(acceptEncoding);
+  if (!COMPRESSIBLE.test(file) || stat.size < 1024 || (!wantsBr && !wantsGz))
+    return new Response(Bun.file(file), { headers: base });
+  let entry = packed.get(file);
+  if (!entry || entry.mtime !== stat.mtimeMs) {
+    const bytes = readFileSync(file);
+    entry = {
+      mtime: stat.mtimeMs,
+      br: new Uint8Array(brotliCompressSync(bytes, { params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 9 } })),
+      gz: new Uint8Array(Bun.gzipSync(bytes)),
+    };
+    packed.set(file, entry);
+  }
+  return new Response(wantsBr ? entry.br : entry.gz, {
+    headers: { ...base, "content-encoding": wantsBr ? "br" : "gzip" },
+  });
+}
 
 export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes }: AppDeps) {
   const app = new Hono();
@@ -111,14 +151,11 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
         return c.text("Bad request", 400);
       }
       // Never serve anything outside the web build folder.
-      if (candidate.startsWith(root) && isFile(candidate)) {
-        const immutable = candidate.startsWith(join(root, "assets") + sep);
-        return new Response(Bun.file(candidate), {
-          headers: { "cache-control": immutable ? "public, max-age=31536000, immutable" : "no-cache" },
-        });
-      }
-      return new Response(Bun.file(indexHtml), {
-        headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" },
+      const file = candidate.startsWith(root) && isFile(candidate) ? candidate : indexHtml;
+      const immutable = file.startsWith(join(root, "assets") + sep);
+      return serveBuilt(file, c.req.header("accept-encoding") ?? "", c.req.header("if-none-match"), {
+        "cache-control": immutable ? "public, max-age=31536000, immutable" : "no-cache",
+        ...(file === indexHtml ? { "content-type": "text/html; charset=utf-8" } : {}),
       });
     });
   } else {

@@ -747,3 +747,22 @@ export interface Feedback {
   status: "new" | "planned" | "done" | "dismissed";
   taskId?: string;
 }
+
+/** A live site's cache and compression headers, checked (plan.md 15.4). */
+export interface CacheFinding {
+  url: string;
+  kind: "html" | "hashed" | "asset";
+  rule: "htmlCachedLong" | "hashedNotImmutable" | "noValidator" | "notCompressed" | "noCache";
+  /** The header as it came back, to show next to the finding. */
+  seen: string;
+}
+
+export interface CacheAudit {
+  url: string;
+  at: number;
+  checked: number;
+  findings: CacheFinding[];
+  /** A CDN or proxy cache in front of the site, and whether this request was a hit. */
+  cdn?: { name: string; hit?: boolean };
+  serviceWorker: boolean;
+}

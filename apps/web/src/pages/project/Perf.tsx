@@ -1,6 +1,7 @@
-import type { PageVitals, RoutePerf, VitalValue } from "@godeye/core";
+import type { CacheAudit, PageVitals, RoutePerf, VitalValue } from "@godeye/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Button } from "../../components/ui";
 import { request } from "../../lib/api";
 import { cn } from "../../lib/cn";
 
@@ -79,6 +80,80 @@ function VitalsTable({ projectId }: { projectId: string }) {
   );
 }
 
+/** The live site's cache and compression headers (plan.md 15.4), checked on request. */
+function CacheCheck() {
+  const { t } = useTranslation();
+  const [url, setUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [audit, setAudit] = useState<CacheAudit>();
+  const [error, setError] = useState<string>();
+  const run = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      setAudit(await request<CacheAudit>("/api/cache-audit", { method: "POST", body: JSON.stringify({ url }) }));
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <section className="space-y-2">
+      <h2 className="text-[14px] font-semibold">{t("perf.cacheTitle")}</h2>
+      <p className="text-xs text-fg-muted">{t("perf.cacheHint")}</p>
+      <form
+        className="flex flex-wrap gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void run();
+        }}
+      >
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="https://"
+          aria-label={t("perf.cacheUrl")}
+          className="h-8 min-w-60 flex-1 rounded-ui border border-border bg-bg px-2 text-[12.5px] outline-none focus:border-accent"
+        />
+        <Button type="submit" size="sm" variant="primary" disabled={busy || !/^https?:\/\//.test(url)}>
+          {busy ? t("perf.cacheRunning") : t("perf.cacheRun")}
+        </Button>
+      </form>
+      {error && <p className="text-xs text-danger">{error}</p>}
+      {audit && (
+        <div className="space-y-2 text-[12.5px]">
+          <p className="text-xs text-fg-muted">
+            {t("perf.cacheChecked", { count: audit.checked })} ·{" "}
+            {audit.cdn
+              ? t("perf.cacheCdn", {
+                  name: audit.cdn.name,
+                  hit: audit.cdn.hit === undefined ? "" : audit.cdn.hit ? t("perf.cacheHit") : t("perf.cacheMiss"),
+                })
+              : t("perf.cacheNoCdn")}{" "}
+            · {audit.serviceWorker ? t("perf.cacheSw") : t("perf.cacheNoSw")}
+          </p>
+          {audit.findings.length === 0 ? (
+            <p className="text-xs text-success">{t("perf.cacheClean")}</p>
+          ) : (
+            <ul className="divide-y divide-border rounded-ui border border-border">
+              {audit.findings.map((f) => (
+                <li key={`${f.rule}:${f.url}`} className="space-y-0.5 px-3 py-2">
+                  <p className="font-medium">{t(`perf.cache_${f.rule}`)}</p>
+                  <p className="truncate font-mono text-[11px] text-fg-subtle">
+                    {f.url} · {f.seen}
+                  </p>
+                  <p className="text-xs text-fg-muted">{t(`perf.cacheFix_${f.rule}`)}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** Response times per endpoint (plan.md 13.4): slowest first, compared with the week before. */
 export function PerfPanel({ projectId }: { projectId: string }) {
   const { t } = useTranslation();
@@ -91,6 +166,7 @@ export function PerfPanel({ projectId }: { projectId: string }) {
   return (
     <div className="space-y-6">
       <VitalsTable projectId={projectId} />
+      <CacheCheck />
       <section className="space-y-2">
         <h2 className="text-[14px] font-semibold">{t("perf.title")}</h2>
         {!rows?.length ? (
