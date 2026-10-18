@@ -2693,7 +2693,8 @@
     "name_spec": "Spec first (big feature)",
     "desc_spec": "Requirements, design, then tasks with acceptance criteria are written into docs/specs and wait for your OK; only then the team codes, and QA checks every acceptance criterion.",
     "status_waiting_limit": "Waiting for the limit",
-    "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. God Eye never switches accounts on its own."
+    "waitingLimit": "The AI plan's limit is full. Nothing is lost: the team goes on by itself at {{time}}, when the limit resets. God Eye never switches accounts on its own.",
+    "name_careful": "Careful change (explore, plan, critique, work, review)"
   },
   "schedules": {
     "title": "Scheduled work",

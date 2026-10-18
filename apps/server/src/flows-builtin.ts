@@ -192,6 +192,68 @@ nodes:
       Problem: $REQUEST
       Developer said: $fix.output
 `,
+  careful: `name: careful
+description: "Explore, plan, critique, work, review: an explorer maps the code (reads only), a planner writes the steps, a critic attacks the plan before any code is written (it goes back until it holds), you approve, a developer does it in its own copy, the checks must pass and QA reviews the result."
+nodes:
+  - id: explore
+    title: Explore
+    persona: architect
+    prompt: |
+      Map the parts of the project this request touches, before anyone plans: the entry points, the files and functions involved (path and one line each), how data flows through them, the tests that cover them and the conventions the code follows. Read only; do not change any files.
+      Request: $REQUEST
+  - id: plan
+    title: Plan
+    persona: pm-lead
+    depends_on: [explore]
+    prompt: |
+      Write the plan from this map: the steps in order, the exact files each step changes, the tests to add, and "Done when" criteria that can be checked. The smallest change that does the job. Do not change any files.
+      Request: $REQUEST
+      Map of the code: $explore.output
+      $FEEDBACK
+  - id: critique
+    title: Critique
+    persona: devils-advocate
+    depends_on: [plan]
+    review: true
+    on_fail: { back_to: [plan], max: 2 }
+    prompt: |
+      Attack this plan before any code is written: missing cases, wrong files, a simpler way, risks to what already works, tests that would not catch the bug. FAIL only for problems that would make the work wrong.
+      Request: $REQUEST
+      Map of the code: $explore.output
+      Plan: $plan.output
+  - id: approve
+    title: Your OK on the plan
+    depends_on: [critique]
+    wait:
+      attention: The plan held up against the critic. Approve it before code is written, or send it back.
+    on_fail: { back_to: [plan], max: 3 }
+  - id: work
+    title: Work
+    persona: backend
+    depends_on: [approve]
+    worktree: own
+    prompt: |
+      Carry out the approved plan exactly; add the tests it lists and run them.
+      Request: $REQUEST
+      Plan: $plan.output
+      Critic's notes: $critique.output
+      $FEEDBACK
+  - id: checks
+    title: Build and tests
+    depends_on: [work]
+    checks: true
+    on_fail: { back_to: [work], max: 2 }
+  - id: review
+    title: Review
+    persona: qa
+    depends_on: [checks]
+    review: true
+    on_fail: { back_to: [work], max: 2 }
+    prompt: |
+      Review the change against the plan's "Done when" criteria and the critic's notes. Do not change files.
+      Plan: $plan.output
+      Developer said: $work.output
+`,
   task: `name: task
 description: "One AI step does the job in its own copy; if it changed code, the project's checks must pass."
 nodes:

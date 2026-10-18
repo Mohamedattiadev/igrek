@@ -129,6 +129,35 @@ describe("team run", () => {
     expect(board.get(task.id)?.status).toBe("done");
   });
 
+  test("careful: the explorer and the critic only read, a failed critique sends the plan back before any code", async () => {
+    const calls: string[] = [];
+    let critiques = 0;
+    const agent: AgentRun = async ({ cwd, prompt, readOnly }) => {
+      const step = prompt.match(/one step \("([^"]+)"\)/)?.[1] ?? "?";
+      calls.push(`${step}${readOnly ? " (read)" : ""}`);
+      if (step === "Critique")
+        return ++critiques === 1 ? "Misses empty input.\nVERDICT: FAIL" : "Holds.\nVERDICT: PASS";
+      if (step === "Work")
+        writeFileSync(join(cwd, "sum.ts"), "export const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);\n");
+      return prompt.includes("VERDICT") ? "Fine.\nVERDICT: PASS" : `${step} done`;
+    };
+    const { flows, projectId } = setup(agent, async () => [pass("test")]);
+    const run = flows.start({ projectId, flow: "careful", request: "Add a sum helper" });
+    await until(
+      () => flows.get(run.id),
+      (r) => r.status === "needs_you",
+    );
+    expect(calls).toEqual(["Explore (read)", "Plan (read)", "Critique (read)", "Plan (read)", "Critique (read)"]);
+    flows.respond(run.id, "approve", "approve");
+    const done = await until(
+      () => flows.get(run.id),
+      (r) => r.status === "ready" || r.status === "failed",
+    );
+    expect(done.status).toBe("ready");
+    expect(calls.slice(5)).toEqual(["Work", "Review (read)"]);
+    expect(done.changes?.map((f) => f.path)).toEqual(["sum.ts"]);
+  });
+
   test("a QA failure goes back a limited number of times, then the run stops", async () => {
     const agent: AgentRun = async ({ prompt }) => (prompt.includes("VERDICT") ? "Broken.\nVERDICT: FAIL" : "done");
     const { flows, projectId } = setup(agent, async () => [pass("test")]);
