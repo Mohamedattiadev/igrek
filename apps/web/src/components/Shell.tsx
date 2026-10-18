@@ -7,6 +7,7 @@ import { NavLink, Outlet, useLocation } from "react-router";
 import { cn } from "../lib/cn";
 import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
 import { useDesktopNotifications } from "../lib/notify";
+import { runPageShortcut } from "../lib/page-actions";
 import { useSettings } from "../lib/settings";
 import { type SocketStatus, useServerSocket } from "../lib/socket";
 import { useVimNavigation } from "../lib/vim";
@@ -259,7 +260,10 @@ export function Shell() {
       if (event.ctrlKey && event.altKey && event.key.toLowerCase() === "z") {
         event.preventDefault();
         flip();
+        return;
       }
+      // The page in front decides what its own shortcuts do (plan.md 16.4).
+      runPageShortcut(event);
     };
     window.addEventListener("godeye:zen", flip);
     window.addEventListener("keydown", onKey);

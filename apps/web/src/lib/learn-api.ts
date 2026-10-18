@@ -73,3 +73,10 @@ export function optionsIn(
   if (lang === "en") return options.en;
   return options.en.map((o, i) => translation?.[`${path}.en.${i}`] ?? o);
 }
+
+/** Where a search hit lives in the learning center. */
+export function hitLink(h: Pick<LearnHit, "kind" | "sheet" | "roadmap" | "id">): string {
+  if (h.kind === "sheet") return `/learn/s/${h.id}`;
+  if (h.kind === "step") return `/learn/r/${h.roadmap}?step=${h.id}`;
+  return `/learn/s/${h.sheet}#${h.id}`;
+}

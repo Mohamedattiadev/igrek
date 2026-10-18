@@ -55,7 +55,10 @@
     "goTo": "Sayfalar",
     "actions": "İşlemler",
     "toggleTheme": "Açık / koyu tema değiştir",
-    "toggleDensity": "Rahat / kompakt görünüm değiştir"
+    "toggleDensity": "Rahat / kompakt görünüm değiştir",
+    "thisPage": "Bu sayfada",
+    "newChatHere": "Bu projede yeni sohbet",
+    "openSetup": "Kurulum sekmesini aç"
   },
   "projects": {
     "title": "Projeler",
@@ -880,7 +883,8 @@
     "limitCancel": "İptal",
     "limitOther": "Başka hesap kullan",
     "limitResumeText": "Kullanım limiti sıfırlandı. Kaldığın yerden devam et.",
-    "starting": "Sohbet başlatılıyor…"
+    "starting": "Sohbet başlatılıyor…",
+    "detailNext": "Sonraki ayrıntı seviyesi"
   },
   "checkpoint": {
     "title": "Kayıtlar",

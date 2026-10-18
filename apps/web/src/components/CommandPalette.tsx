@@ -18,11 +18,11 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { learnApi } from "../lib/learn-api";
+import { hitLink, learnApi } from "../lib/learn-api";
+import { showKeys, usePageActionList } from "../lib/page-actions";
 import { useSettings } from "../lib/settings";
 import { startTour } from "../lib/tour";
 import { toggleZen } from "../lib/zen";
-import { hitLink } from "../pages/learn/Learn";
 import { NAV_ITEMS } from "./nav";
 import { Kbd } from "./ui";
 
@@ -123,6 +123,11 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
     return () => clearTimeout(timer);
   }, [query, i18n.language]);
 
+  // ">" at the start: only actions, like VS Code's command mode.
+  const actionMode = query.trimStart().startsWith(">");
+  const actionQuery = query.trimStart().slice(1).trim().toLowerCase();
+  const shown = (label: string) => !actionMode || label.toLowerCase().includes(actionQuery);
+
   const run = (action: () => void) => {
     onOpenChange(false);
     action();
@@ -132,6 +137,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
     <Command.Dialog
       open={open}
       onOpenChange={onOpenChange}
+      shouldFilter={!actionMode}
       label={t("palette.placeholder")}
       overlayClassName="fixed inset-0 bg-black/25"
       contentClassName="fixed left-1/2 top-[15vh] w-[min(560px,calc(100vw-32px))] -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-bg text-fg shadow-ui"
@@ -173,7 +179,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
       )}
       <Command.List className="max-h-[360px] overflow-y-auto p-1.5">
         <Command.Empty className="py-8 text-center text-[13px] text-fg-subtle">{t("palette.empty")}</Command.Empty>
-        {query.trim().length >= 4 && (
+        <PageActionGroup shown={shown} run={run} />
+        {!actionMode && query.trim().length >= 4 && (
           <Command.Group heading={t("ask.action")} className={GROUP}>
             <Item
               icon={Sparkles}
@@ -184,13 +191,20 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             />
           </Command.Group>
         )}
-        <Command.Group heading={t("palette.goTo")} className={GROUP}>
-          {NAV_ITEMS.map((item) => (
-            <Item key={item.to} icon={item.icon} label={t(item.label)} onSelect={() => run(() => navigate(item.to))} />
-          ))}
-          <Item icon={BookOpen} label={t("guide.title")} onSelect={() => run(() => navigate("/guide"))} />
-        </Command.Group>
-        {projects.length > 0 && (
+        {!actionMode && (
+          <Command.Group heading={t("palette.goTo")} className={GROUP}>
+            {NAV_ITEMS.map((item) => (
+              <Item
+                key={item.to}
+                icon={item.icon}
+                label={t(item.label)}
+                onSelect={() => run(() => navigate(item.to))}
+              />
+            ))}
+            <Item icon={BookOpen} label={t("guide.title")} onSelect={() => run(() => navigate("/guide"))} />
+          </Command.Group>
+        )}
+        {!actionMode && projects.length > 0 && (
           <Command.Group heading={t("nav.projects")} className={GROUP}>
             {projects
               .filter((p) => !p.hidden)
@@ -205,7 +219,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
               ))}
           </Command.Group>
         )}
-        {hits.length > 0 && (
+        {!actionMode && hits.length > 0 && (
           <Command.Group heading={t("search.results")} className={GROUP}>
             {hits.map((hit) => (
               <Command.Item
@@ -228,7 +242,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             ))}
           </Command.Group>
         )}
-        {learnHits.length > 0 && (
+        {!actionMode && learnHits.length > 0 && (
           <Command.Group heading={t("nav.learn")} className={GROUP}>
             {learnHits.map((h) => (
               <Item
@@ -242,28 +256,62 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
             ))}
           </Command.Group>
         )}
-        <Command.Group heading={t("palette.actions")} className={GROUP}>
-          <Item
-            icon={Contrast}
-            label={t("palette.toggleTheme")}
-            onSelect={() =>
-              run(() => {
-                const dark = document.documentElement.dataset.theme === "dark";
-                void update({ theme: dark ? "light" : "dark" });
-              })
-            }
-          />
-          <Item icon={Maximize2} label={t("zen.toggle")} onSelect={() => run(toggleZen)} />
-          <Item icon={Compass} label={t("tour.start")} onSelect={() => run(startTour)} />
-          <Item
-            icon={Rows3}
-            label={t("palette.toggleDensity")}
-            onSelect={() =>
-              run(() => void update({ density: settings.density === "compact" ? "comfortable" : "compact" }))
-            }
-          />
-        </Command.Group>
+        <ActionGroup shown={shown} run={run} />
       </Command.List>
     </Command.Dialog>
+  );
+}
+
+type GroupProps = { shown: (label: string) => boolean; run: (action: () => void) => void };
+
+/** What the page in front can do, with its shortcut (plan.md 16.4). */
+function PageActionGroup({ shown, run }: GroupProps) {
+  const { t } = useTranslation();
+  const list = usePageActionList().filter((a) => shown(a.label));
+  if (!list.length) return null;
+  return (
+    <Command.Group heading={t("palette.thisPage")} className={GROUP}>
+      {list.map((a) => (
+        <Item
+          key={a.id}
+          icon={a.icon}
+          label={a.keys ? `${a.label} (${showKeys(a.keys)})` : a.label}
+          onSelect={() => run(a.run)}
+        />
+      ))}
+    </Command.Group>
+  );
+}
+
+/** Actions that work anywhere: theme, zen, tour, density. */
+function ActionGroup({ shown, run }: GroupProps) {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  return (
+    <Command.Group heading={t("palette.actions")} className={GROUP}>
+      {shown(t("palette.toggleTheme")) && (
+        <Item
+          icon={Contrast}
+          label={t("palette.toggleTheme")}
+          onSelect={() =>
+            run(() => {
+              const dark = document.documentElement.dataset.theme === "dark";
+              void update({ theme: dark ? "light" : "dark" });
+            })
+          }
+        />
+      )}
+      {shown(t("zen.toggle")) && <Item icon={Maximize2} label={t("zen.toggle")} onSelect={() => run(toggleZen)} />}
+      {shown(t("tour.start")) && <Item icon={Compass} label={t("tour.start")} onSelect={() => run(startTour)} />}
+      {shown(t("palette.toggleDensity")) && (
+        <Item
+          icon={Rows3}
+          label={t("palette.toggleDensity")}
+          onSelect={() =>
+            run(() => void update({ density: settings.density === "compact" ? "comfortable" : "compact" }))
+          }
+        />
+      )}
+    </Command.Group>
   );
 }

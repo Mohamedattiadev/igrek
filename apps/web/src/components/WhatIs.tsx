@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import { actions, type WhatIsRequest } from "../lib/actions";
-import { learnApi } from "../lib/learn-api";
-import { hitLink } from "../pages/learn/Learn";
+import { hitLink, learnApi } from "../lib/learn-api";
 import { Button, Dialog } from "./ui";
 
 /**

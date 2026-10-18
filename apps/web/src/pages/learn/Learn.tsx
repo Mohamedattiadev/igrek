@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { Badge, Card, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
-import { learnApi } from "../../lib/learn-api";
+import { hitLink, learnApi } from "../../lib/learn-api";
 import { useProjects } from "../../lib/live";
 import { usePersonaLabel, usePersonas } from "../../lib/personas";
 
@@ -41,12 +41,6 @@ export function useLearnIndex(): { index?: LearnIndex; error?: string } {
 }
 
 /** "react/hooks" → where it opens. */
-export function hitLink(h: Pick<LearnHit, "kind" | "sheet" | "roadmap" | "id">): string {
-  if (h.kind === "sheet") return `/learn/s/${h.id}`;
-  if (h.kind === "step") return `/learn/r/${h.roadmap}?step=${h.id}`;
-  return `/learn/s/${h.sheet}#${h.id}`;
-}
-
 /** Search across every cheatsheet item and roadmap step. */
 function LearnSearch({ autoFocus }: { autoFocus?: boolean }) {
   const { t, i18n } = useTranslation();

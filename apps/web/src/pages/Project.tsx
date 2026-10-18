@@ -8,14 +8,16 @@ import {
   EyeOff,
   GitBranch,
   GitCommitHorizontal,
+  MessageSquarePlus,
   Plug,
   RefreshCw,
+  SlidersHorizontal,
   Users,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { NewSession } from "../components/NewSession";
 import { TeamPresence } from "../components/TeamPresence";
 import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
@@ -24,6 +26,7 @@ import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useAccounts, useLiveData } from "../lib/live";
+import { usePageActions } from "../lib/page-actions";
 import { BoardTab } from "./project/Board";
 import { CodeTab } from "./project/Code";
 import { CodeHostTab } from "./project/CodeHost";
@@ -480,6 +483,22 @@ export function ProjectPage() {
   const { projectId = "" } = useParams();
   const [params, setParams] = useSearchParams();
   const tab = (TABS.find((name) => name === params.get("tab")) ?? "overview") as Tab;
+  const navigate = useNavigate();
+  usePageActions([
+    {
+      id: "project-chat",
+      label: t("palette.newChatHere"),
+      icon: MessageSquarePlus,
+      keys: "Alt+N",
+      run: () => void navigate(`/c/new?project=${encodeURIComponent(projectId)}`),
+    },
+    {
+      id: "project-setup",
+      label: t("palette.openSetup"),
+      icon: SlidersHorizontal,
+      run: () => setParams({ tab: "setup" }),
+    },
+  ]);
   const {
     data: project,
     error,

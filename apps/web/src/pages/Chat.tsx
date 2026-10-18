@@ -31,6 +31,7 @@ import {
   ListTodo,
   MessageSquare,
   MessageSquarePlus,
+  Minimize2,
   RotateCcw,
   Search,
   Send,
@@ -62,6 +63,7 @@ import { DETAIL_LEVELS, type DetailLevel, groupWork, workCounts } from "../lib/c
 import { cn } from "../lib/cn";
 import { compactNumber, modelName } from "../lib/format";
 import { warmHighlighter } from "../lib/highlight";
+import { usePageActions } from "../lib/page-actions";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
 import { WeakPointList } from "./Meeting";
@@ -723,6 +725,17 @@ export function ChatPage() {
   const chat = useChat(chatId);
   const [comments, setComments] = useState<LineComment[]>([]);
   const [detail, setDetail] = useDetailLevel();
+  usePageActions([
+    { id: "chat-stop", label: t("chat.stop"), icon: Square, keys: "Mod+.", run: chat.interrupt },
+    { id: "chat-compact", label: t("chat.compact"), icon: Minimize2, run: () => chat.send("/compact") },
+    {
+      id: "chat-detail",
+      label: t("chat.detailNext"),
+      icon: ListChecks,
+      keys: "Alt+D",
+      run: () => setDetail(DETAIL_LEVELS[(DETAIL_LEVELS.indexOf(detail) + 1) % DETAIL_LEVELS.length] ?? "grouped"),
+    },
+  ]);
   const units = useMemo(() => groupWork(chat.events, detail), [chat.events, detail]);
   // Answers often carry code: have the highlighter ready before the first block arrives.
   useEffect(() => warmHighlighter(), []);

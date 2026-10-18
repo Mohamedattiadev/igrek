@@ -55,7 +55,10 @@
     "goTo": "Pages",
     "actions": "Actions",
     "toggleTheme": "Switch light / dark",
-    "toggleDensity": "Switch comfortable / compact"
+    "toggleDensity": "Switch comfortable / compact",
+    "thisPage": "On this page",
+    "newChatHere": "New chat in this project",
+    "openSetup": "Open the Setup tab"
   },
   "projects": {
     "title": "Projects",
@@ -880,7 +883,8 @@
     "limitCancel": "Cancel",
     "limitOther": "Use another account",
     "limitResumeText": "The usage limit has reset. Continue where you left off.",
-    "starting": "Starting a chat…"
+    "starting": "Starting a chat…",
+    "detailNext": "Next detail level"
   },
   "checkpoint": {
     "title": "Snapshots",
