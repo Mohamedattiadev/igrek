@@ -1460,7 +1460,8 @@
     "decisions": "İlgili kararlar ve notlar",
     "findingsTrend_one": "Açık bulgular: {{count}} (hedef 0)",
     "findingsTrend_other": "Açık bulgular: {{count}} (hedef 0)",
-    "findingsTrendLabel": "Açık bulgular {{from}} → {{to}}"
+    "findingsTrendLabel": "Açık bulgular {{from}} → {{to}}",
+    "source": "Kaynak"
   },
   "apis": {
     "title": "API Haritası",
@@ -1669,7 +1670,9 @@
     "enableTip": "Kapalı: tekrar saymak için tıkla",
     "disableTip": "Bu proje için bu kontrolü kapatmak için tıkla",
     "reset": "Varsayılana dön",
-    "save": "Kaydet ve yeniden tara"
+    "save": "Kaydet ve yeniden tara",
+    "why": "“{{check}}” bu projede neden kapalı?",
+    "whyPlaceholder": "Örneğin: komut satırı aracı, ekranı yok"
   },
   "import": {
     "title": "Bu projenin geçmişini içeri al",

@@ -506,7 +506,7 @@ ${heads.join("\n\n") || "(none)"}`;
       | { data: string }
       | undefined;
     const parsed = row ? (JSON.parse(row.data) as Partial<InsightConfig>) : {};
-    return { weights: parsed.weights ?? {}, disabled: parsed.disabled ?? [] };
+    return { weights: parsed.weights ?? {}, disabled: parsed.disabled ?? [], reasons: parsed.reasons ?? {} };
   }
 
   setConfig(projectId: string, config: InsightConfig): InsightConfig {
@@ -518,13 +518,20 @@ ${heads.join("\n\n") || "(none)"}`;
     const disabled = (config.disabled ?? [])
       .filter((id) => typeof id === "string" && /^[a-z]+\.[A-Za-z]+$/.test(id))
       .slice(0, 200);
+    // A check is only switched off with a reason, so the next person knows why (plan.md 15.5).
+    const reasons: Record<string, string> = {};
+    for (const id of disabled) {
+      const why = String(config.reasons?.[id] ?? "").trim();
+      if (why.length < 3) throw Object.assign(new Error(`Say why ${id} is turned off`), { check: id });
+      reasons[id] = why.slice(0, 300);
+    }
     this.db
       .query(
         "INSERT INTO insight_config (project_id, data) VALUES (?, ?) ON CONFLICT(project_id) DO UPDATE SET data = excluded.data",
       )
-      .run(projectId, JSON.stringify({ weights, disabled }));
+      .run(projectId, JSON.stringify({ weights, disabled, reasons }));
     void this.scan(projectId).catch(() => undefined);
-    return { weights, disabled };
+    return { weights, disabled, reasons };
   }
 
   // ---- the project's own tools -----------------------------------------------------------

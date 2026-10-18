@@ -1460,7 +1460,8 @@
     "decisions": "Related decisions and notes",
     "findingsTrend_one": "Open findings: {{count}} (goal 0)",
     "findingsTrend_other": "Open findings: {{count}} (goal 0)",
-    "findingsTrendLabel": "Open findings went from {{from}} to {{to}}"
+    "findingsTrendLabel": "Open findings went from {{from}} to {{to}}",
+    "source": "Source"
   },
   "apis": {
     "title": "API map",
@@ -1669,7 +1670,9 @@
     "enableTip": "Turned off: click to count it again",
     "disableTip": "Click to turn this check off for this project",
     "reset": "Back to defaults",
-    "save": "Save and rescan"
+    "save": "Save and rescan",
+    "why": "Why is “{{check}}” off in this project?",
+    "whyPlaceholder": "For example: a CLI tool, it has no screens"
   },
   "import": {
     "title": "Bring in this project's history",

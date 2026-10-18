@@ -196,7 +196,62 @@ export interface ToolResult {
 export interface InsightConfig {
   weights: Partial<Record<Category, number>>;
   disabled: string[];
+  /** Why each check was turned off in this project (plan.md 15.5: a rule is only switched off with a reason). */
+  reasons?: Record<string, string>;
 }
+
+/** Where each project check comes from: the official or standard page that explains the rule and its fix. */
+export const CHECK_SOURCES: Record<string, string> = {
+  "arch.readme": "https://www.makeareadme.com/",
+  "arch.bigFiles": "https://refactoring.guru/smells/large-class",
+  "arch.todo": "https://martinfowler.com/bliki/TechnicalDebt.html",
+  "arch.types": "https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html",
+  "arch.lint": "https://biomejs.dev/linter/",
+  "fe.strict": "https://www.typescriptlang.org/tsconfig/#strict",
+  "fe.bigComponents": "https://react.dev/learn/thinking-in-react",
+  "fe.any": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#any",
+  "fe.errorBoundary": "https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary",
+  "fe.i18n": "https://www.w3.org/International/questions/qa-i18n",
+  "ux.dark": "https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme",
+  "ux.responsive": "https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_Design",
+  "ux.alt": "https://www.w3.org/WAI/tutorials/images/",
+  "ux.focus": "https://www.w3.org/WAI/WCAG22/Understanding/focus-visible.html",
+  "be.validation": "https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html",
+  "be.rateLimit": "https://owasp.org/API-Security/editions/2023/en/0xa4-unrestricted-resource-consumption/",
+  "be.emptyCatch": "https://en.wikipedia.org/wiki/Error_hiding",
+  "db.migrations": "https://martinfowler.com/articles/evodb.html",
+  "db.injection": "https://cheatsheetseries.owasp.org/cheatsheets/SQL_Injection_Prevention_Cheat_Sheet.html",
+  "ops.ci": "https://martinfowler.com/articles/continuousIntegration.html",
+  "ops.dockerUser": "https://docs.docker.com/build/building/best-practices/#user",
+  "ops.dockerignore": "https://docs.docker.com/build/concepts/context/#dockerignore-files",
+  "ops.healthcheck": "https://docs.docker.com/reference/dockerfile/#healthcheck",
+  "ops.pinned": "https://docs.docker.com/build/building/best-practices/#pin-base-image-versions",
+  "sec.envTracked": "https://12factor.net/config",
+  "sec.secrets": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+  "sec.publicKeys": "https://cloud.google.com/docs/authentication/api-keys",
+  "sec.gitignoreEnv": "https://git-scm.com/docs/gitignore",
+  "sec.dangerous": "https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html",
+  "test.exists": "https://martinfowler.com/articles/practical-test-pyramid.html",
+  "test.ratio": "https://martinfowler.com/articles/practical-test-pyramid.html",
+  "test.script": "https://docs.npmjs.com/cli/v11/using-npm/scripts",
+  "test.ci": "https://martinfowler.com/articles/continuousIntegration.html",
+  "perf.assets": "https://web.dev/articles/fast",
+  "perf.lazy": "https://react.dev/reference/react/lazy",
+  "docs.readme": "https://www.makeareadme.com/",
+  "docs.install": "https://www.makeareadme.com/",
+  "docs.license": "https://choosealicense.com/",
+  "docs.envExample": "https://12factor.net/config",
+  "docs.any": "https://www.writethedocs.org/guide/writing/beginners-guide-to-docs/",
+  "deps.lockfile": "https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json",
+  "deps.loose": "https://semver.org/",
+  "deps.mixedLocks": "https://docs.npmjs.com/cli/v11/configuring-npm/package-lock-json",
+  "deps.deprecated": "https://docs.npmjs.com/cli/v11/commands/npm-deprecate",
+  "tool.typecheck": "https://www.typescriptlang.org/docs/handbook/compiler-options.html",
+  "tool.lint": "https://biomejs.dev/linter/",
+  "tool.tests": "https://martinfowler.com/articles/practical-test-pyramid.html",
+  "tool.audit": "https://docs.npmjs.com/cli/v11/commands/npm-audit",
+  "tool.auditSecurity": "https://docs.npmjs.com/cli/v11/commands/npm-audit",
+};
 
 export const DEFAULT_WEIGHTS: Partial<Record<Category, number>> = { security: 1.5, testing: 1.2 };
 

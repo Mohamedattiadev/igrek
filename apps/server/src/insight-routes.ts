@@ -35,7 +35,17 @@ export function registerInsightRoutes(app: Hono, insight: Insight, history: Hist
   app.get("/api/projects/:id/insight-config", (c) => c.json(insight.config(c.req.param("id"))));
   app.put("/api/projects/:id/insight-config", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as InsightConfig;
-    return c.json(insight.setConfig(c.req.param("id"), { weights: body.weights ?? {}, disabled: body.disabled ?? [] }));
+    try {
+      return c.json(
+        insight.setConfig(c.req.param("id"), {
+          weights: body.weights ?? {},
+          disabled: body.disabled ?? [],
+          reasons: body.reasons ?? {},
+        }),
+      );
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
   });
 
   app.get("/api/projects/:id/insight-tools", (c) => c.json(insight.tools(c.req.param("id"))));

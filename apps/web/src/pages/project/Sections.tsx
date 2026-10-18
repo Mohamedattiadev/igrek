@@ -1,6 +1,7 @@
 import {
   type Category,
   type CategoryDetail,
+  CHECK_SOURCES,
   type CoverageMap,
   type Finding,
   type InsightScan,
@@ -13,6 +14,7 @@ import {
   CheckCircle2,
   CircleAlert,
   Database,
+  ExternalLink,
   FileText,
   FlaskConical,
   Gauge,
@@ -219,6 +221,17 @@ function FindingRow({
           {finding.status !== "pass" && (
             <p className="mt-0.5 text-xs leading-relaxed text-fg-muted">
               {t(`insight.check.${finding.id}.fix`, { metric: finding.metric })}
+              {CHECK_SOURCES[finding.id] && (
+                <a
+                  href={CHECK_SOURCES[finding.id]}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ms-1.5 inline-flex items-center gap-0.5 text-accent hover:underline"
+                >
+                  <ExternalLink size={10} aria-hidden="true" />
+                  {t("insight.source")}
+                </a>
+              )}
             </p>
           )}
           {finding.evidence.length > 0 && (

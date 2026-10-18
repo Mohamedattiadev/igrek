@@ -3,6 +3,8 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { CHECK_SOURCES } from "@godeye/core";
+import en from "../../../../packages/i18n/locales/en.json";
 import { Bus, StopRegistry } from "../bus";
 import { migrate } from "../db";
 import { Store } from "../store";
@@ -166,5 +168,25 @@ describe("api map", () => {
     expect(names).not.toContain("CI");
     expect(map.unusedEnv).toEqual(["OLD_KEY"]);
     expect(map.flow).toContain("/api/pay");
+  });
+});
+
+describe("rules", () => {
+  test("every project check names its source", () => {
+    const ids = Object.entries(en.insight.check).flatMap(([group, checks]) =>
+      Object.keys(checks).map((id) => `${group}.${id}`),
+    );
+    expect(ids.filter((id) => !CHECK_SOURCES[id])).toEqual([]);
+    expect(Object.keys(CHECK_SOURCES).filter((id) => !ids.includes(id))).toEqual([]);
+  });
+
+  test("a check is only turned off with a reason", () => {
+    const db = new Database(":memory:");
+    migrate(db);
+    db.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p1', 'Demo', '/nowhere', 0)").run();
+    const insight = new Insight(db, new Store(db), new Bus(), new StopRegistry(), () => ({}) as never, "/nowhere");
+    expect(() => insight.setConfig("p1", { weights: {}, disabled: ["ux.dark"] })).toThrow("Say why ux.dark");
+    insight.setConfig("p1", { weights: {}, disabled: ["ux.dark"], reasons: { "ux.dark": "CLI tool, no screens" } });
+    expect(insight.config("p1").reasons).toEqual({ "ux.dark": "CLI tool, no screens" });
   });
 });

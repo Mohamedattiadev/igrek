@@ -223,16 +223,34 @@ export function ScoringDialog({
                       );
                     })}
                   </div>
+                  {checks
+                    .filter((f) => config.disabled.includes(f.id))
+                    .map((f) => (
+                      <label key={f.id} className="mt-2 block text-[11.5px] text-fg-muted">
+                        {t("scoring.why", {
+                          check: t(`insight.check.${f.id}.title`, { metric: "" }).replace(/[:\s]+$/, ""),
+                        })}
+                        <input
+                          value={config.reasons?.[f.id] ?? ""}
+                          onChange={(e) =>
+                            setConfig({ ...config, reasons: { ...config.reasons, [f.id]: e.target.value } })
+                          }
+                          placeholder={t("scoring.whyPlaceholder")}
+                          className="mt-0.5 h-8 w-full rounded-ui border border-border bg-bg px-2 text-[12.5px] text-fg outline-none focus:border-accent"
+                        />
+                      </label>
+                    ))}
                 </div>
               );
             })}
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setConfig({ weights: {}, disabled: [] })}>
+            <Button variant="ghost" onClick={() => setConfig({ weights: {}, disabled: [], reasons: {} })}>
               {t("scoring.reset")}
             </Button>
             <Button
               variant="primary"
+              disabled={config.disabled.some((id) => (config.reasons?.[id] ?? "").trim().length < 3)}
               onClick={() =>
                 void api.insightSetConfig(projectId, config).then(() => {
                   onClose();
