@@ -140,7 +140,7 @@ async function runCodex({ cwd, prompt, system, readOnly, register }: Parameters<
   }
 }
 
-export const runAgent: AgentRun = async (args) => {
+const runAgent: AgentRun = async (args) => {
   if (args.model === "codex") return runCodex(args);
   const { cwd, prompt, system, model, readOnly, maxTurns, onActivity, register } = args;
   const sandboxed = !readOnly && sandboxAvailable();

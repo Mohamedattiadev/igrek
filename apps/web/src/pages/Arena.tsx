@@ -3,15 +3,12 @@ import { Swords, Trophy } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Badge, Button, Card, EmptyState } from "../components/ui";
+import { Badge, Button, Card, EmptyState, field, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useProjects, useServerEvent } from "../lib/live";
 import { arenaApi } from "../lib/ops-api";
-import { useProjects } from "./Personas";
-import { RUN_TONE } from "./project/Board";
-import { field } from "./tools/Uptime";
 
 function Patch({ patch }: { patch: string }) {
   return (

@@ -106,7 +106,7 @@ export const claudeAccount: {
 } = { env: () => ({ env: {} }), onRateLimit: () => undefined };
 
 /** Reads Claude's rate_limit_event into the shared shape. */
-export function parseRateLimit(message: Record<string, unknown>, now = Date.now()): RateLimitInfo | undefined {
+function parseRateLimit(message: Record<string, unknown>, now = Date.now()): RateLimitInfo | undefined {
   const info = message.rate_limit_info as Record<string, unknown> | undefined;
   const windows = info?.unifiedWindows as Record<string, { utilization?: number; resetsAt?: number }> | undefined;
   if (!windows) return undefined;

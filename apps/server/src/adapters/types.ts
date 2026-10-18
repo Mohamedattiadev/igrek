@@ -1,7 +1,7 @@
 /** Shared shapes every AI-tool adapter produces (plan.md 3: adapter pattern). */
 import type { AiTool } from "@godeye/core";
 
-export interface UsageEvent {
+interface UsageEvent {
   ts: number;
   model?: string;
   input: number;
@@ -101,7 +101,7 @@ export function clip(text: string, max = MAX_TEXT): string {
 const CLAIM =
   /\b(all )?tests? (now )?(pass|passed|passing|are green)\b|\bbuild (succeeded|successful|passes|is green)\b|\b(everything|it) (works|is working)\b|\btestler (geçti|geçiyor)\b|\bçalışıyor\b/i;
 
-export function isClaim(text: string): boolean {
+function isClaim(text: string): boolean {
   return CLAIM.test(text);
 }
 

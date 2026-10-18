@@ -188,7 +188,7 @@ export class LanguagePacks {
   }
 }
 
-export function packPrompt(language: string, code: string, input: Flat, plural: string[]): string {
+function packPrompt(language: string, code: string, input: Flat, plural: string[]): string {
   const extra = plural.filter((p) => p !== "one" && p !== "other");
   return [
     `Translate these user-interface texts of the app "God Eye" from English to ${language} (language code "${code}").`,

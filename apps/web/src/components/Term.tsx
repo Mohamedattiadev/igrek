@@ -2,7 +2,7 @@ import { CircleHelp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 /** Technical words with a one-sentence explanation behind a "?" (plan.md 7.0). Specific words first. */
-export const GLOSSARY = [
+const GLOSSARY = [
   "recoveryKey",
   "twoFactor",
   "e2e",

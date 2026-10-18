@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { useServerEvent } from "../lib/live";
 
-export function usePresence(projectId?: string): Presence[] {
+function usePresence(projectId?: string): Presence[] {
   const [list, setList] = useState<Presence[]>([]);
   const load = () => {
     api

@@ -9,7 +9,7 @@ export function variables(body: string): string[] {
   return [...new Set([...body.matchAll(/\{(\w+)\}/g)].map((m) => m[1] as string))];
 }
 
-export function fill(body: string, values: Record<string, string>): string {
+function fill(body: string, values: Record<string, string>): string {
   return body.replace(/\{(\w+)\}/g, (match, name: string) => values[name] || match);
 }
 

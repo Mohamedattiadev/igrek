@@ -7,7 +7,7 @@ import { mainModel, modelName, relativeTime } from "../../lib/format";
 import { PersonaIcon, useMyName, usePersonaLabel, usePersonas } from "../../lib/personas";
 
 /** "Mohamed → Backend Senior persona" (plan.md 6.3). */
-export function PersonaChip({ personaId, author }: { personaId: string; author?: string }) {
+function PersonaChip({ personaId, author }: { personaId: string; author?: string }) {
   const { personas } = usePersonas();
   const me = useMyName();
   const persona = personas.find((p) => p.id === personaId);

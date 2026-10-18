@@ -14,12 +14,12 @@ import {
   touch,
 } from "./types";
 
-export const CODEX_SESSIONS_DIR = join(process.env.CODEX_HOME ?? join(homedir(), ".codex"), "sessions");
+const CODEX_SESSIONS_DIR = join(process.env.CODEX_HOME ?? join(homedir(), ".codex"), "sessions");
 
 const UUID = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.jsonl$/i;
 
 /** Codex stores sessions as sessions/YYYY/MM/DD/rollout-<time>-<uuid>.jsonl. */
-export function listCodexFiles(root = CODEX_SESSIONS_DIR): SessionFile[] {
+function listCodexFiles(root = CODEX_SESSIONS_DIR): SessionFile[] {
   const files: SessionFile[] = [];
   const walk = (dir: string, depth: number) => {
     let entries: string[];

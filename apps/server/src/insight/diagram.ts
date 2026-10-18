@@ -26,7 +26,7 @@ const safeId = (name: string) => `n_${name.replace(/[^A-Za-z0-9]/g, "_")}`;
 const label = (name: string) => name.replace(/"/g, "'");
 
 /** Which part imports which, from the import statements themselves. */
-export function architectureDiagram(snap: Snapshot): string | undefined {
+function architectureDiagram(snap: Snapshot): string | undefined {
   const workspace = new Map<string, string>();
   for (const p of snap.packages) {
     const name = p.json.name;

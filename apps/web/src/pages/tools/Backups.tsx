@@ -11,13 +11,12 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
 import { dataApi } from "../../lib/ops-api";
-import { field } from "./Uptime";
 
 function size(bytes?: number): string {
   if (bytes === undefined) return "";

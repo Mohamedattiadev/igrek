@@ -12,7 +12,7 @@ import { useServerEvent } from "../../lib/live";
 import { docsApi } from "../../lib/ops-api";
 
 /** Markdown with ```mermaid blocks drawn as diagrams and [[Page]] links that open the page. */
-export function WikiText({ body, pages, onOpen }: { body: string; pages: WikiPage[]; onOpen: (slug: string) => void }) {
+function WikiText({ body, pages, onOpen }: { body: string; pages: WikiPage[]; onOpen: (slug: string) => void }) {
   const parts = useMemo(() => body.split(/```mermaid\s*\n([\s\S]*?)```/), [body]);
   return (
     // biome-ignore lint/a11y/useKeyWithClickEvents lint/a11y/noStaticElementInteractions: links inside rendered Markdown are real anchors

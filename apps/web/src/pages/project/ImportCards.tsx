@@ -1,9 +1,8 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Dialog } from "../../components/ui";
+import { Button, Dialog, field } from "../../components/ui";
 import { request } from "../../lib/api";
-import { field } from "../tools/Uptime";
 
 const SOURCES = ["trello", "jira", "linear", "notion", "github"] as const;
 

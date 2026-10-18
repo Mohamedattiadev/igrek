@@ -20,6 +20,9 @@ jobs:
           bun-version: 1.4.3
       - run: bun install --frozen-lockfile
       - run: bun run lint
+      # Quality gate (plan.md 15): no dead code, no layer violations or import cycles.
+      - run: bun run lint:dead
+      - run: bun run lint:arch
       - run: bun run typecheck
       - run: bun test
       - run: bun run build

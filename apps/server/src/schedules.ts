@@ -24,7 +24,7 @@ function languageName(code: string): string {
 }
 
 /** Checks a "when" coming from the model or the UI. */
-export function cleanWhen(raw: unknown, now: number): ScheduleWhen | undefined {
+function cleanWhen(raw: unknown, now: number): ScheduleWhen | undefined {
   const w = (raw ?? {}) as Record<string, unknown>;
   if (w.kind === "once") {
     const at = typeof w.at === "number" ? w.at : Date.parse(String(w.at ?? ""));

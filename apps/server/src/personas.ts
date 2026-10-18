@@ -30,7 +30,7 @@ const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testin
 const MODELS: PersonaModel[] = ["opus", "sonnet", "haiku"];
 const CONFIDENCE: Confidence[] = ["high", "medium", "low"];
 const ICON = /^[A-Z][A-Za-z0-9]{1,40}$/;
-export const PERSONA_ID = /^[a-z0-9][a-z0-9-]{1,39}$/;
+const PERSONA_ID = /^[a-z0-9][a-z0-9-]{1,39}$/;
 
 type OpinionRow = {
   id: string;

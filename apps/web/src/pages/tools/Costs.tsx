@@ -2,11 +2,10 @@ import type { CostItem, CostSummary } from "@godeye/core";
 import { CircleDollarSign, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
+import { useProjects } from "../../lib/live";
 import { costApi } from "../../lib/ops-api";
-import { useProjects } from "../Personas";
-import { field } from "./Uptime";
 
 const CURRENCIES = ["USD", "EUR", "TRY", "GBP"];
 const CATEGORIES: CostItem["category"][] = ["server", "ai", "api", "saas", "domain", "other"];

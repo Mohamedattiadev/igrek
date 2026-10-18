@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "workspaces": {
+    ".": {},
+    "apps/server": {
+      "entry": ["src/embed-worker.ts", "src/preview/agent.js", "src/preview/vite-source-plugin.mjs"],
+      "ignoreDependencies": ["@playwright/mcp"]
+    },
+    "packages/learn": {
+      "entry": ["scripts/*.ts"]
+    }
+  },
+  "ignore": ["examples/**"]
+}

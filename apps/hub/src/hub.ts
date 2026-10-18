@@ -1,5 +1,5 @@
 import { Database } from "bun:sqlite";
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { EMAIL_RE } from "./mail";
 import { ipAllowed, newTotpSecret, otpauthUri, verifyTotp } from "./security";
 
@@ -148,7 +148,7 @@ const DEFAULT_POLICIES: Policies = {
 };
 
 export type ProjectRole = "owner" | "manager" | "member" | "viewer";
-export const PROJECT_ROLES: ProjectRole[] = ["owner", "manager", "member", "viewer"];
+const PROJECT_ROLES: ProjectRole[] = ["owner", "manager", "member", "viewer"];
 
 function hashToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
@@ -809,10 +809,4 @@ export class Hub {
       ip: r.ip ?? undefined,
     }));
   }
-}
-
-export function safeEqual(a: string, b: string): boolean {
-  const x = Buffer.from(a);
-  const y = Buffer.from(b);
-  return x.length === y.length && timingSafeEqual(x, y);
 }

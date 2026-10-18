@@ -227,3 +227,17 @@ export function CopyButton({ text, label }: { text: string; label?: string }) {
     </Button>
   );
 }
+
+export const field = "h-8 rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent";
+
+export const RUN_TONE = {
+  running: "accent",
+  needs_you: "warning",
+  ready: "warning",
+  done: "success",
+  merged: "success",
+  failed: "danger",
+  stopped: "neutral",
+  discarded: "neutral",
+  waiting_limit: "warning",
+} as const;

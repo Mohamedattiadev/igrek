@@ -2,14 +2,11 @@ import { type DomainWatch, daysLeft, type UptimeCheck, type UptimeMonitor } from
 import { ChevronDown, ChevronRight, Globe, Plus, Radio, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, EmptyState, StatusDot } from "../../components/ui";
+import { Badge, Button, Card, EmptyState, field, StatusDot } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
-import { useServerEvent } from "../../lib/live";
+import { useProjects, useServerEvent } from "../../lib/live";
 import { opsApi } from "../../lib/ops-api";
-import { useProjects } from "../Personas";
-
-export const field = "h-8 rounded-ui border border-border bg-bg px-2.5 text-[13px] outline-none focus:border-accent";
 
 function useMonitors<T>(load: () => Promise<T>): { data?: T; reload: () => void } {
   const [data, setData] = useState<T>();

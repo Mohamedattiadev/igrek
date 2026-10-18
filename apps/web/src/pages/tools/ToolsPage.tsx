@@ -31,7 +31,7 @@ import { TimeTab } from "./Time";
 import { DomainsTab, UptimeTab } from "./Uptime";
 import { VaultTab } from "./Vault";
 
-export const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
+const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
   { key: "uptime", icon: Radio },
   { key: "domains", icon: Globe },
   { key: "docker", icon: Container },

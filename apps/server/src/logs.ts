@@ -16,7 +16,7 @@ export interface SavedSource {
   source: LogSource;
 }
 
-export function sourceLabel(s: LogSource): string {
+function sourceLabel(s: LogSource): string {
   if (s.label) return s.label;
   if (s.kind === "file") return s.path.split("/").slice(-2).join("/");
   if (s.kind === "docker") return `docker:${s.container}`;
@@ -25,7 +25,7 @@ export function sourceLabel(s: LogSource): string {
 }
 
 /** systemd unit names; nothing that could change the shell command. */
-export function validUnit(unit: string): boolean {
+function validUnit(unit: string): boolean {
   return /^[a-zA-Z0-9@._:-]{1,120}$/.test(unit);
 }
 

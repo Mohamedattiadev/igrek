@@ -3,11 +3,10 @@ import { Plug, Plus, Power, ShieldCheck, Terminal, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { costApi, opsApi, pluginApi } from "../../lib/ops-api";
-import { field } from "./Uptime";
 
 /** What each bridge method needs, and what it returns (read-only, plain data). */
 const METHODS: Record<

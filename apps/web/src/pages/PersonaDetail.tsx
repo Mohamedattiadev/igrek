@@ -14,9 +14,8 @@ import { Link, useNavigate, useParams } from "react-router";
 import { Badge, Button, Card, Dialog, PageHeader, Section } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useProjects, useServerEvent } from "../lib/live";
 import { PERSONA_ICONS, PersonaIcon, startPersonaChat, usePersonaLabel, usePersonas } from "../lib/personas";
-import { useProjects } from "./Personas";
 
 const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testing"];
 const MODELS: PersonaModel[] = ["opus", "sonnet", "haiku"];

@@ -50,7 +50,7 @@ import { EnvView } from "./EnvView";
 import { ImportCard, ScoringDialog, ToolsCard } from "./SectionsExtras";
 import { DepsCard, SecretsCard } from "./Watchers";
 
-export const CATEGORY_ICONS: Record<Category, LucideIcon> = {
+const CATEGORY_ICONS: Record<Category, LucideIcon> = {
   architecture: Network,
   frontend: Monitor,
   uiux: Palette,

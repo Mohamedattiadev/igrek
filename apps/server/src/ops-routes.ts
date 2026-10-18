@@ -378,7 +378,7 @@ export function registerAnalyticsRoutes(
 }
 
 /** Plugin pages run sandboxed: no network, no forms, no popups, no top navigation (plan.md 12). */
-export const PLUGIN_CSP =
+const PLUGIN_CSP =
   "sandbox allow-scripts; default-src 'self' 'unsafe-inline' data: blob:; connect-src 'none'; img-src 'self' data: blob:; form-action 'none'; frame-ancestors 'self'";
 
 export function registerPluginRoutes(

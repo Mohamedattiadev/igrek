@@ -15,7 +15,7 @@ export const PROJECT_TEMPLATES = {
   empty: "",
 } as const;
 
-export type TemplateId = keyof typeof PROJECT_TEMPLATES;
+type TemplateId = keyof typeof PROJECT_TEMPLATES;
 
 function git(cwd: string, args: string[]): boolean {
   return Bun.spawnSync(["git", "-C", cwd, ...args], { stdout: "pipe", stderr: "pipe" }).exitCode === 0;

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 /** What the checks look at: tracked files, their text (when small and safe), and manifests. */
@@ -157,8 +157,4 @@ export function takeSnapshot(root: string): Snapshot {
     }
   }
   return { root, files, byPath, packages, deps };
-}
-
-export function exists(root: string, path: string): boolean {
-  return existsSync(join(root, path));
 }

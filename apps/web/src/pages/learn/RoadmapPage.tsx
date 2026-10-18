@@ -21,9 +21,9 @@ import { Markdown } from "../../components/Markdown";
 import { Badge, Button, Card, PageHeader } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { learnApi, optionsIn, type StageCheck, textIn } from "../../lib/learn-api";
+import { useProjects } from "../../lib/live";
 import { usePersonaLabel, usePersonas } from "../../lib/personas";
 import { PersonaChatDialog } from "../PersonaDetail";
-import { useProjects } from "../Personas";
 import { type LearnIndex, useLearnIndex } from "./Learn";
 import { Code } from "./SheetPage";
 

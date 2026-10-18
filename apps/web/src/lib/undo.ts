@@ -49,5 +49,3 @@ export function usePendingDeletes(): { isPending: (id: string) => boolean; list:
     list: [...pending.entries()].map(([id, e]) => ({ id, label: e.label, at: e.at })),
   };
 }
-
-export const UNDO_WAIT_MS = WAIT_MS;

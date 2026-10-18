@@ -158,7 +158,7 @@ const Code = defineComponent({
   ),
 });
 
-export const godeyeLibrary = createLibrary({
+const godeyeLibrary = createLibrary({
   id: "godeye@1",
   root: "Stack",
   components: [Stack, Card, Text, Stats, Chart, Progress, Table, Callout, Code],

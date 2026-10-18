@@ -2,11 +2,10 @@ import type { AnalyticsSummary, DbConnection, DbTable } from "@godeye/core";
 import { ArrowDownRight, ArrowUpRight, BarChart3, Settings2, Sparkles } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button, Card } from "../../components/ui";
+import { Button, Card, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { analyticsApi, dataApi } from "../../lib/ops-api";
 import { PersonaChatDialog } from "../PersonaDetail";
-import { field } from "../tools/Uptime";
 
 function Change({ now, before }: { now: number; before: number }) {
   const { t } = useTranslation();

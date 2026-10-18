@@ -3,11 +3,10 @@ import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Button, Dialog } from "../../components/ui";
+import { Button, Dialog, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
+import { useProjects } from "../../lib/live";
 import { calendarApi } from "../../lib/ops-api";
-import { useProjects } from "../Personas";
-import { field } from "./Uptime";
 
 const KIND_CLASS: Record<CalendarItem["kind"], string> = {
   schedule: "border-accent/40 bg-accent-soft text-accent",

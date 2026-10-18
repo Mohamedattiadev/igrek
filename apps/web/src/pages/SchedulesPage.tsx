@@ -13,18 +13,16 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, EmptyState, PageHeader, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
 import { dateTime, relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
-import { useProjects } from "./Personas";
-import { RUN_TONE } from "./project/Board";
+import { useProjects, useServerEvent } from "../lib/live";
 
 const input = "w-full rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[13px] outline-none focus:border-accent";
 const TEMPLATES = ["nightly-check", "weekly-deps", "daily-report"] as const;
 
 /** "Every Friday 09:00" in the user's language. */
-export function useWhen(): (when: ScheduleWhen) => string {
+function useWhen(): (when: ScheduleWhen) => string {
   const { t, i18n } = useTranslation();
   return (when) => {
     if (when.kind === "once") return t("schedules.once", { at: dateTime(when.at) });

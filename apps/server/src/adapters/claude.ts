@@ -14,10 +14,10 @@ import {
   touch,
 } from "./types";
 
-export const CLAUDE_PROJECTS_DIR = join(process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude"), "projects");
+const CLAUDE_PROJECTS_DIR = join(process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude"), "projects");
 
 /** Top-level session transcripts (subagent transcripts live in subfolders and are skipped). */
-export function listSessionFiles(root = CLAUDE_PROJECTS_DIR): SessionFile[] {
+function listSessionFiles(root = CLAUDE_PROJECTS_DIR): SessionFile[] {
   const files: SessionFile[] = [];
   let dirs: string[];
   try {

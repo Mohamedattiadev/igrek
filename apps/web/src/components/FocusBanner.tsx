@@ -20,7 +20,7 @@ function snoozedUntil(): number {
 }
 
 /** The two projects worth focusing on: a date coming up first, then the most recent work. */
-export function focusPick(active: ProjectListItem[], dates: CalendarItem[], count = 2): ProjectListItem[] {
+function focusPick(active: ProjectListItem[], dates: CalendarItem[], count = 2): ProjectListItem[] {
   const soonest = (id: string) =>
     Math.min(...dates.filter((d) => d.projectId === id).map((d) => d.at), Number.POSITIVE_INFINITY);
   return [...active].sort((a, b) => soonest(a.id) - soonest(b.id) || b.lastActivity - a.lastActivity).slice(0, count);

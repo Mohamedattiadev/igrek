@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Badge } from "./ui";
 
 /** Most urgent first (plan.md 16.3). */
-export const PILL_ORDER: Pill[] = ["approval", "question", "working", "plan", "done"];
+const PILL_ORDER: Pill[] = ["approval", "question", "working", "plan", "done"];
 const TONE = { approval: "warning", question: "accent", working: "success", plan: "accent", done: "neutral" } as const;
 
 /** What a chat needs at a glance: a step to approve, a question to answer, working, a plan, an unseen answer. */

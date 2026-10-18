@@ -38,7 +38,7 @@ export function parseLcov(text: string, root: string): Map<string, FileCov> {
 }
 
 /** istanbul coverage-summary.json: { "<file>": { lines: { total, covered } } }. */
-export function parseSummary(text: string, root: string): Map<string, FileCov> {
+function parseSummary(text: string, root: string): Map<string, FileCov> {
   const out = new Map<string, FileCov>();
   const json = JSON.parse(text) as Record<string, { lines?: { total?: number; covered?: number } }>;
   for (const [key, value] of Object.entries(json)) {

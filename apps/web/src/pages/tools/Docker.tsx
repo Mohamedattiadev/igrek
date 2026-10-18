@@ -2,11 +2,10 @@ import type { DockerContainer, ServerInfo } from "@godeye/core";
 import { Container, Play, RefreshCw, RotateCw, ScrollText, Square } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, EmptyState, field } from "../../components/ui";
 import { api } from "../../lib/api";
 import { opsApi } from "../../lib/ops-api";
 import { LogText } from "./Logs";
-import { field } from "./Uptime";
 
 const STATE_TONE: Record<string, "success" | "warning" | "danger" | "neutral"> = {
   running: "success",

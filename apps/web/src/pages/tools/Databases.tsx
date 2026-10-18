@@ -3,12 +3,11 @@ import { ChevronLeft, ChevronRight, Database, Lock, LockOpen, Play, Plus, Sparkl
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Mermaid } from "../../components/Mermaid";
-import { Badge, Button, Card, Dialog, EmptyState, Segmented } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
+import { useProjects } from "../../lib/live";
 import { dataApi } from "../../lib/ops-api";
 import { PersonaChatDialog } from "../PersonaDetail";
-import { useProjects } from "../Personas";
-import { field } from "./Uptime";
 
 function ResultGrid({ result }: { result: DbResult }) {
   const { t } = useTranslation();

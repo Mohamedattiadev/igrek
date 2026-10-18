@@ -18,11 +18,15 @@
     "godeye": "bun run apps/server/src/cli.ts",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "biome check .",
+    "lint:dead": "knip --no-progress",
+    "lint:arch": "bun scripts/arch-check.ts",
+    "c4": "bun scripts/c4.ts",
     "format": "biome format --write .",
     "test": "bun test"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15"
+    "@biomejs/biome": "^2.5.15",
+    "knip": "6.39.0"
   },
   "overrides": {
     "dompurify": "3.4.17",

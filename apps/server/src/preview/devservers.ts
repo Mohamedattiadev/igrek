@@ -85,7 +85,7 @@ export function planDevServer(
 }
 
 /** A Vite config that loads the project's own config and adds God Eye's source plugin (nothing in the project changes). */
-export function viteWrapper(root: string, dir: string): string | undefined {
+function viteWrapper(root: string, dir: string): string | undefined {
   let viteEntry: string;
   try {
     viteEntry = Bun.resolveSync("vite", root);

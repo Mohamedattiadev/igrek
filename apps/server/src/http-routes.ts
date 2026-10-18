@@ -8,7 +8,7 @@ const MAX_BODY = 200 * 1024;
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"];
 
 /** Where this project's own API most likely listens, from its non-secret settings. */
-export function guessBaseUrl(root: string): string {
+function guessBaseUrl(root: string): string {
   for (const name of [".env.local", ".env", ".env.development"]) {
     const file = join(root, name);
     if (!existsSync(file)) continue;

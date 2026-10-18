@@ -3,7 +3,7 @@ import { ArrowRight, Plus, Trash2, Users, Workflow } from "lucide-react";
 import { type DragEvent, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-import { Badge, Button, Card, Segmented } from "../../components/ui";
+import { Badge, Button, Card, RUN_TONE, Segmented } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
@@ -12,17 +12,6 @@ import { ImportCards } from "./ImportCards";
 import { Roadmap } from "./Roadmap";
 
 const COLUMNS: TaskStatus[] = ["todo", "doing", "review", "done"];
-export const RUN_TONE = {
-  running: "accent",
-  needs_you: "warning",
-  ready: "warning",
-  done: "success",
-  merged: "success",
-  failed: "danger",
-  stopped: "neutral",
-  discarded: "neutral",
-  waiting_limit: "warning",
-} as const;
 
 function CardView({ task, run, onDragStart }: { task: BoardTask; run?: FlowRun; onDragStart: (e: DragEvent) => void }) {
   const { t } = useTranslation();

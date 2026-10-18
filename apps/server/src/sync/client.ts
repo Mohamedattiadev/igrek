@@ -46,11 +46,11 @@ interface SyncConfig {
 const RECOVERY_PREFIX = "godeye-recovery:";
 
 /** Every team key in one string, so an admin can restore access (and history) on a new computer. */
-export function encodeRecovery(keys: Record<string, string>): string {
+function encodeRecovery(keys: Record<string, string>): string {
   return RECOVERY_PREFIX + Buffer.from(JSON.stringify(keys)).toString("base64url");
 }
 
-export function decodeRecovery(text: string): Record<string, string> {
+function decodeRecovery(text: string): Record<string, string> {
   const t = text.trim();
   // An older recovery key was just the epoch-0 key.
   if (!t.startsWith(RECOVERY_PREFIX)) return { "0": t };
@@ -79,7 +79,7 @@ const SHARE_LEVELS: ShareLevel[] = ["off", "summary", "full"];
 const PRESENCE_TTL = 60_000;
 
 /** Each device links its events per project: n counts up, prev is the hash of the one before (plan.md 4.1). */
-export function chainHash(prev: string, n: number, nonce: string, data: string): string {
+function chainHash(prev: string, n: number, nonce: string, data: string): string {
   return createHash("sha256").update(`${prev}|${n}|${nonce}|${data}`).digest("hex").slice(0, 32);
 }
 

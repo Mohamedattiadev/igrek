@@ -6,7 +6,7 @@ import { cleanEnv } from "./env";
 import type { DevServers } from "./preview/devservers";
 
 /** One quick edit: Claude Code with only reading and editing tools, edits accepted (a checkpoint was taken first). */
-export function quickEditRunner(stops: StopRegistry) {
+function quickEditRunner(stops: StopRegistry) {
   return async (prompt: string, cwd: string, system: string | undefined, model: string): Promise<string> => {
     const proc = Bun.spawn(
       [

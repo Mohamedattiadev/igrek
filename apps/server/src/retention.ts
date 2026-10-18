@@ -6,7 +6,7 @@ import type { Flows } from "./flows";
 const DAY = 86_400_000;
 
 /** Bytes of a folder, without following links. */
-export function folderSize(path: string): number {
+function folderSize(path: string): number {
   if (!existsSync(path)) return 0;
   const st = statSync(path, { throwIfNoEntry: false });
   if (!st) return 0;

@@ -168,7 +168,7 @@ type RunFn = (args: {
 }) => Promise<string>;
 
 /** Runs one test user: Claude with only the browser tools, streaming its thoughts and actions. */
-export const runTester: RunFn = async ({ cwd, prompt, system, mcpConfig, allowed, model, onStep, register }) => {
+const runTester: RunFn = async ({ cwd, prompt, system, mcpConfig, allowed, model, onStep, register }) => {
   const proc = Bun.spawn(
     [
       "claude",
@@ -682,7 +682,7 @@ Reply with only the report, texts in ${lang}:
 }
 
 /** Who the test user is and how to behave (the user's own task goes in the prompt). */
-export function testerPrompt(profile: TesterProfile, run: TesterRun, origin: string, reportLanguage: string): string {
+function testerPrompt(profile: TesterProfile, run: TesterRun, origin: string, reportLanguage: string): string {
   const lines = [
     "You are taking part in a usability test of a web app, playing one real person as truthfully as you can.",
     `WHO YOU ARE: ${profile.persona}`,

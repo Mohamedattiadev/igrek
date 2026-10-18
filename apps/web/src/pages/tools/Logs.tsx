@@ -3,13 +3,12 @@ import { Plus, RefreshCw, ScrollText, Search, Wrench, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { Badge, Button, Card, EmptyState, Segmented } from "../../components/ui";
+import { Badge, Button, Card, EmptyState, field, Segmented } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
+import { useProjects } from "../../lib/live";
 import { type LogResult, opsApi, type SavedLogSource } from "../../lib/ops-api";
-import { useProjects } from "../Personas";
-import { field } from "./Uptime";
 
 const LEVEL_CLASS: Record<LogLine["level"], string> = { error: "text-danger", warn: "text-warning", info: "" };
 const ERROR_LINE = /\b(error|fatal|panic|exception|traceback|failed)\b|\b[A-Z][a-zA-Z]*(Error|Exception)\b/i;

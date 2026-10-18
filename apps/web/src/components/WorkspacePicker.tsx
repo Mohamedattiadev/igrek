@@ -11,7 +11,7 @@ export type Workspace = "all" | "local" | "team";
 const KEY = "godeye.workspace";
 const target = new EventTarget();
 
-export function currentWorkspace(): Workspace {
+function currentWorkspace(): Workspace {
   try {
     const v = localStorage.getItem(KEY);
     return v === "local" || v === "team" ? v : "all";

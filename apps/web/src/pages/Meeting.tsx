@@ -6,10 +6,9 @@ import { Link, useNavigate, useParams } from "react-router";
 import { Badge, Button, Card, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useProjects, useServerEvent } from "../lib/live";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { ConfidenceBadge } from "./PersonaDetail";
-import { useProjects } from "./Personas";
 
 const SEVERITY_TONE = { critical: "danger", major: "warning", minor: "neutral" } as const;
 

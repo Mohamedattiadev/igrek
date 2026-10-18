@@ -14,8 +14,8 @@ import { Link, useSearchParams } from "react-router";
 import { Badge, Card, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { learnApi } from "../../lib/learn-api";
+import { useProjects } from "../../lib/live";
 import { usePersonaLabel, usePersonas } from "../../lib/personas";
-import { useProjects } from "../Personas";
 
 const input = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13.5px] outline-none focus:border-accent";
 
@@ -48,7 +48,7 @@ export function hitLink(h: Pick<LearnHit, "kind" | "sheet" | "roadmap" | "id">):
 }
 
 /** Search across every cheatsheet item and roadmap step. */
-export function LearnSearch({ autoFocus }: { autoFocus?: boolean }) {
+function LearnSearch({ autoFocus }: { autoFocus?: boolean }) {
   const { t, i18n } = useTranslation();
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<LearnHit[]>([]);

@@ -1,4 +1,4 @@
-import type { Meeting, Persona, PersonaGroup, PersonaScore, ProjectListItem } from "@godeye/core";
+import type { Meeting, Persona, PersonaGroup, PersonaScore } from "@godeye/core";
 import { Download, MessagesSquare, Plus, Users, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -7,24 +7,13 @@ import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { compactNumber, relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useProjects, useServerEvent } from "../lib/live";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { ArenaTab } from "./Arena";
 import { TestersTab } from "./Testers";
 
 const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testing"];
 type Tab = "team" | "meetings" | "testers" | "scores" | "arena";
-
-export function useProjects(): ProjectListItem[] {
-  const [projects, setProjects] = useState<ProjectListItem[]>([]);
-  useEffect(() => {
-    api
-      .projects()
-      .then((list) => setProjects(list.filter((p) => !p.hidden)))
-      .catch(() => undefined);
-  }, []);
-  return projects;
-}
 
 function PersonaCard({ persona }: { persona: Persona }) {
   const { t } = useTranslation();

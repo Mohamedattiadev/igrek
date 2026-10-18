@@ -28,11 +28,11 @@ export interface SecretFinding {
 
 /** Added lines of a patch that look like secrets: file, line in the new file, masked hint. */
 /** Files where a key-looking value is expected and not a leak: examples, templates, tests, fixtures. */
-export const PLACEHOLDER_FILE =
+const PLACEHOLDER_FILE =
   /(^|\/)(\.env\.example|[^/]*\.sample|[^/]*\.template|[^/]*\.(test|spec)\.[cm]?[jt]sx?|[^/]*_test\.(go|py)|test_[^/]*\.py)$|(^|\/)(__tests__|fixtures|testdata)\//;
 
 /** Documentation and teaching material: only real provider keys count there, not example lines. */
-export const DOC_FILE = /(^|\/)(docs?|examples?|content|guides?|tutorials?)\/|\.(md|mdx|rst|adoc|txt)$/i;
+const DOC_FILE = /(^|\/)(docs?|examples?|content|guides?|tutorials?)\/|\.(md|mdx|rst|adoc|txt)$/i;
 
 const CODE_FILE = /\.(ts|tsx|js|jsx|mjs|cjs|py|go|rs|java|kt|cs|rb|php|swift|dart)$/i;
 

@@ -102,7 +102,7 @@ function hasDep(snap: Snapshot, names: string[]): boolean {
 }
 
 /** Which parts this project has; a part without anything in it gets no page. */
-export function presentCategories(snap: Snapshot): Category[] {
+function presentCategories(snap: Snapshot): Category[] {
   const paths = snap.files.map((f) => f.path);
   const code = paths.filter((p) => CODE.test(p));
   const frontend = hasDep(snap, FRONTEND_DEPS) || paths.filter((p) => UI_FILE.test(p)).length >= 3;
@@ -124,7 +124,7 @@ export function presentCategories(snap: Snapshot): Category[] {
 }
 
 /** Files that make up each part (a file can be in several). */
-export function filesOf(category: Category, path: string): boolean {
+function filesOf(category: Category, path: string): boolean {
   switch (category) {
     case "architecture":
       return (
@@ -218,7 +218,7 @@ const ratio = (bad: number, tolerance: number) => Math.max(0, 1 - bad / toleranc
  * weight, a 0–1 value and evidence pointing at file:line, so every score can
  * be traced back to something the user can open and fix.
  */
-export function runChecks(snap: Snapshot, categories: Category[]): Draft[] {
+function runChecks(snap: Snapshot, categories: Category[]): Draft[] {
   const has = (c: Category) => categories.includes(c);
   const files = snap.files;
   const code = files.filter((f) => CODE.test(f.path) && !TEST_FILE.test(f.path) && !isGenerated(f));

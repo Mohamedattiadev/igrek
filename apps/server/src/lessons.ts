@@ -30,12 +30,12 @@ type LessonRow = {
 const KINDS: LessonKind[] = ["test", "build", "revert", "wrong", "error", "manual"];
 
 /** A failing test or build in a tool's output. */
-export const TEST_FAIL =
+const TEST_FAIL =
   /(\b\d+ (failed|failing)\b|^\s*FAIL\b|\(fail\)|AssertionError|expect\(received\)|Tests?:\s+\d+ failed|\btests? failed\b)/im;
-export const BUILD_FAIL =
+const BUILD_FAIL =
   /(error TS\d+|\bbuild failed\b|compilation failed|SyntaxError:|ModuleNotFoundError|Cannot find module|npm ERR!|error\[E\d+\]|exited with code [1-9]|Traceback \(most recent call last\))/i;
 /** The user saying the AI got it wrong. */
-export const WRONG =
+const WRONG =
   /(\byanlış\b|\bhatalı\b|\bolmadı\b|çalışmıyor|\bbozdun\b|\bgeri al\b|\bwrong\b|doesn'?t work|didn'?t work|not what i (asked|wanted)|that'?s not (it|right)|you broke)/i;
 
 /** Lessons similar enough to count as the same mistake, and close enough to bring up for a prompt. */

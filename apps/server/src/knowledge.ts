@@ -91,7 +91,7 @@ function redditTurn<T>(run: () => Promise<T>, gapMs: number): Promise<T> {
 }
 
 /** Reads every source a persona follows. A source that fails is skipped; the rest still count. */
-export async function fetchSources(
+async function fetchSources(
   sources: KnowledgeSources,
   since: number,
   fetcher: typeof fetch = fetch,

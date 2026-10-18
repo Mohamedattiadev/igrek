@@ -229,7 +229,7 @@ export function registerChatRoutes(
 }
 
 /** Messages the browser sends over /ws/chat/:id. */
-export type ChatClientMessage =
+type ChatClientMessage =
   | { op: "send"; text: string; images?: { mediaType: string; data: string }[]; how?: SendHow }
   | { op: "unqueue"; queuedId: string }
   | { op: "sendQueued"; queuedId: string }

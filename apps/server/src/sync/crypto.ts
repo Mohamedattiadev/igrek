@@ -9,11 +9,11 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
-export function toBase64Url(bytes: Uint8Array): string {
+function toBase64Url(bytes: Uint8Array): string {
   return Buffer.from(bytes).toString("base64url");
 }
 
-export function fromBase64Url(text: string): Uint8Array<ArrayBuffer> {
+function fromBase64Url(text: string): Uint8Array<ArrayBuffer> {
   return new Uint8Array(Buffer.from(text, "base64url"));
 }
 

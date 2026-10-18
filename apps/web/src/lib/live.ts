@@ -1,4 +1,12 @@
-import type { Account, Approval, ChatInfo, IndexStatus, ServerMessage, TerminalInfo } from "@godeye/core";
+import type {
+  Account,
+  Approval,
+  ChatInfo,
+  IndexStatus,
+  ProjectListItem,
+  ServerMessage,
+  TerminalInfo,
+} from "@godeye/core";
 import { type DependencyList, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 
@@ -114,4 +122,15 @@ export function useAccounts(): Account[] {
   useServerEvent("accounts-changed", load);
   useServerEvent("limits-changed", load);
   return accounts;
+}
+
+export function useProjects(): ProjectListItem[] {
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  useEffect(() => {
+    api
+      .projects()
+      .then((list) => setProjects(list.filter((p) => !p.hidden)))
+      .catch(() => undefined);
+  }, []);
+  return projects;
 }

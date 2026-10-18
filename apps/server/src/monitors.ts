@@ -43,7 +43,7 @@ interface DomainRow {
   created_at: number;
 }
 
-export function validUrl(url: string): boolean {
+function validUrl(url: string): boolean {
   try {
     const u = new URL(url);
     return u.protocol === "http:" || u.protocol === "https:";
@@ -52,7 +52,7 @@ export function validUrl(url: string): boolean {
   }
 }
 
-export function validHost(host: string): boolean {
+function validHost(host: string): boolean {
   return /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i.test(host);
 }
 

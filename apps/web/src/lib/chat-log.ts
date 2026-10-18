@@ -36,7 +36,7 @@ export function groupWork(events: ChatEvent[], level: DetailLevel): LogUnit[] {
 }
 
 export type WorkKind = "read" | "edit" | "run" | "search" | "web" | "other";
-export const WORK_KINDS: WorkKind[] = ["read", "edit", "run", "search", "web", "other"];
+const WORK_KINDS: WorkKind[] = ["read", "edit", "run", "search", "web", "other"];
 
 const KIND: Record<string, WorkKind> = {
   Read: "read",

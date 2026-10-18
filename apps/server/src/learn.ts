@@ -16,7 +16,6 @@ import {
   type SheetInfo,
   STAGES,
   type Stage,
-  type Text,
   type Title,
   titleOf,
   versionParts,
@@ -98,7 +97,7 @@ function installedNpm(dir: string, name: string, root: string): { version: strin
 }
 
 /** Every dependency a project declares, by ecosystem, with the version text it asks for. */
-export function projectDeps(root: string): Record<keyof Omit<Detect, "files">, Map<string, string>> & {
+function projectDeps(root: string): Record<keyof Omit<Detect, "files">, Map<string, string>> & {
   files: Set<string>;
   dirs: string[];
 } {
@@ -315,7 +314,7 @@ const TR_SUFFIXES = [
 const stemCache = new Map<string, string[]>();
 
 /** A word and the stems left after taking off up to two Turkish endings (stems of two letters or more). */
-export function stems(term: string): string[] {
+function stems(term: string): string[] {
   const hit = stemCache.get(term);
   if (hit) return hit;
   const out = new Set<string>();

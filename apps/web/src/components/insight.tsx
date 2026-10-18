@@ -5,7 +5,7 @@ import { cn } from "../lib/cn";
 import { dateTime } from "../lib/format";
 
 /** Grade colours are status colours (good / warning / bad), always shown with the letter. */
-export function gradeTone(grade: CategoryScore["grade"]): "success" | "warning" | "danger" {
+function gradeTone(grade: CategoryScore["grade"]): "success" | "warning" | "danger" {
   return grade === "A" || grade === "B" ? "success" : grade === "C" || grade === "D" ? "warning" : "danger";
 }
 

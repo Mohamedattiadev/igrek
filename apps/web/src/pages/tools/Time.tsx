@@ -4,8 +4,8 @@ import { Clock } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, EmptyState, Segmented } from "../../components/ui";
+import { useProjects } from "../../lib/live";
 import { timeApi } from "../../lib/ops-api";
-import { useProjects } from "../Personas";
 
 const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#84cc16"];
 

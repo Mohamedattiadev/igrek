@@ -18,13 +18,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
 import { Markdown } from "../components/Markdown";
-import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
+import { Badge, Button, Card, Dialog, PageHeader, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { dateTime, relativeTime } from "../lib/format";
 import { useServerEvent } from "../lib/live";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
-import { RUN_TONE } from "./project/Board";
 
 /** Columns of the flow: a node sits one column after the last node it waits for. */
 function levels(nodes: FlowNodeState[]): FlowNodeState[][] {

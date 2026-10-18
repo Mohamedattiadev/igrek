@@ -32,9 +32,8 @@ import { Badge, Button, Card, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useProjects, useServerEvent } from "../lib/live";
 import { startPersonaChat } from "../lib/personas";
-import { useProjects } from "./Personas";
 
 const ICONS: Record<string, LucideIcon> = {
   Heart,

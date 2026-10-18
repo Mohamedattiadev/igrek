@@ -2,12 +2,11 @@ import type { VaultEntry } from "@godeye/core";
 import { Check, Copy, Eye, EyeOff, KeyRound, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Badge, Button, Card, Dialog, EmptyState } from "../../components/ui";
+import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
+import { useProjects } from "../../lib/live";
 import { vaultApi } from "../../lib/ops-api";
-import { useProjects } from "../Personas";
-import { field } from "./Uptime";
 
 const ROTATIONS = [0, 30, 90, 180, 365];
 

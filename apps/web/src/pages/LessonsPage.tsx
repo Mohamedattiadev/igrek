@@ -5,10 +5,9 @@ import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { relativeTime } from "../lib/format";
-import { useServerEvent } from "../lib/live";
+import { useProjects, useServerEvent } from "../lib/live";
 import { usePersonaLabel, usePersonas } from "../lib/personas";
 import { LibraryTabs } from "./KnowledgePage";
-import { useProjects } from "./Personas";
 
 const input = "w-full rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[13px] outline-none focus:border-accent";
 

@@ -22,9 +22,9 @@ import {
  * Written from the published format; not yet checked against a real install here.
  */
 
-export const GEMINI_DIR = join(process.env.GEMINI_CLI_HOME ?? join(homedir(), ".gemini"), "tmp");
+const GEMINI_DIR = join(process.env.GEMINI_CLI_HOME ?? join(homedir(), ".gemini"), "tmp");
 
-export function listGeminiFiles(root = GEMINI_DIR): SessionFile[] {
+function listGeminiFiles(root = GEMINI_DIR): SessionFile[] {
   const files: SessionFile[] = [];
   let hashes: string[] = [];
   try {
@@ -80,7 +80,7 @@ function textOf(content: unknown): string {
 const EDIT_TOOLS = new Set(["replace", "write_file", "edit", "edit_file", "smart_edit"]);
 
 /** Reads a whole Gemini chat file into the session totals and its readable messages. */
-export function parseGeminiFile(
+function parseGeminiFile(
   state: SessionState,
   text: string,
   sessionId: string,

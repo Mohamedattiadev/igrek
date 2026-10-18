@@ -20,8 +20,8 @@ import { CodeBlock } from "../../components/CodeBlock";
 import { Badge, Button, Card, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { learnApi, textIn } from "../../lib/learn-api";
+import { useProjects } from "../../lib/live";
 import { useSettings } from "../../lib/settings";
-import { useProjects } from "../Personas";
 import { type LearnIndex, useLearnIndex } from "./Learn";
 
 /** A small copy button in the corner of a code block. */

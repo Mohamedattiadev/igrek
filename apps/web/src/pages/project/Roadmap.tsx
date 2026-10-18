@@ -3,10 +3,9 @@ import { Check, Diamond, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
-import { Button, Card } from "../../components/ui";
+import { Button, Card, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { calendarApi } from "../../lib/ops-api";
-import { field } from "../tools/Uptime";
 
 const DAY = 86_400_000;
 const WEEK = 7 * DAY;
