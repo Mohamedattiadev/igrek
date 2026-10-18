@@ -188,6 +188,13 @@
   #root {
     height: 100%;
   }
+  /* The app scrolls inside its own panes; the page itself never does (no second scrollbar). */
+  @media screen {
+    html,
+    body {
+      overflow: hidden;
+    }
+  }
 
   body {
     margin: 0;

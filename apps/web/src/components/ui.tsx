@@ -139,7 +139,7 @@ export function Segmented<T extends string>({
           key={option.value}
           data-tip={option.tip}
           className={cn(
-            "flex h-7 cursor-pointer items-center whitespace-nowrap rounded-[6px] px-3 text-[13px] transition-colors",
+            "relative flex h-7 cursor-pointer items-center whitespace-nowrap rounded-[6px] px-3 text-[13px] transition-colors",
             "has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent",
             value === option.value ? "bg-bg font-medium text-fg shadow-sm" : "text-fg-muted hover:text-fg",
           )}
