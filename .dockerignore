@@ -4,6 +4,7 @@ node_modules
 .git
 .github
 .igrek-dev
+.godeye-dev
 *.log
 .env
 plan.md

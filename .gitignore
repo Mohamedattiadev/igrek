@@ -8,5 +8,6 @@ dist/
 coverage/
 *.tsbuildinfo
 .igrek-dev/
+.godeye-dev/
 docker/hub.env
 apps/web/dist-member
