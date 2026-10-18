@@ -1,0 +1,3064 @@
+id: flutter
+title: Flutter
+summary:
+  en: "From an empty computer to a real app on phones and the web. You build a habit tracker with Flutter and Dart: screens, state, navigation, saving data, a web API, tests, an app icon, release builds, a free web version on GitHub Pages and crash reports."
+  tr: "Boş bir bilgisayardan telefonlarda ve webde çalışan gerçek bir uygulamaya. Flutter ve Dart ile bir alışkanlık takip uygulaması yazarsın: ekranlar, state, sayfalar arası geçiş, veri saklama, web API, testler, uygulama ikonu, release build'leri, GitHub Pages'te ücretsiz web sürümü ve çökme raporları."
+teacher: mobile
+project:
+  en: 'A habit tracker: add habits, tick them off each day, see your streak, keep everything on the device, load a daily quote from a public API, store a token safely, with tests, an app icon, a signed Android build and a free web version on GitHub Pages.'
+  tr: 'Bir alışkanlık takip uygulaması: alışkanlık ekleme, her gün işaretleme, seri (streak) görme, her şeyi cihazda tutma, herkese açık bir API''den günlük söz yükleme, bir token''ı güvenle saklama; testleri, uygulama ikonu, imzalı bir Android build''i ve GitHub Pages''te ücretsiz bir web sürümü var.'
+detect:
+  files: [.metadata]
+version: "3.47"
+checked: 2026-10
+sheets: [git]
+steps:
+  - id: setup
+    stage: setup
+    title:
+      en: "Install Git, VS Code and the Flutter SDK"
+      tr: "Git, VS Code ve Flutter SDK kurma"
+    minutes: 60
+    why:
+      en: "Flutter is a toolkit from Google that draws your app itself, so one code base can run on Android, iOS and the web. Its apps are written in a language called Dart. You need the Flutter SDK (it includes Dart), an editor and Git. You can start with only a browser as the target: no phone and no emulator yet."
+      tr: "Flutter, Google'ın uygulamanı kendisi çizen bir araç takımıdır; tek bir kod tabanı Android'de, iOS'ta ve webde çalışabilir. Uygulamalar Dart denen bir dille yazılır. Flutter SDK'ya (içinde Dart da var), bir editöre ve Git'e ihtiyacın var. Başlangıçta hedef olarak sadece tarayıcı yeter: telefon da emülatör de şimdilik gerekmiyor."
+    learn:
+      en: |
+        - What an SDK is (a folder of tools) and what Flutter and Dart each are
+        - How to open a terminal and check that a program is installed
+        - What `flutter doctor` checks, and why red marks for Android or Xcode do not matter yet
+      tr: |
+        - SDK'nın ne olduğu (bir araç klasörü) ve Flutter ile Dart'ın ayrı ayrı ne olduğu
+        - Terminal açmak ve bir programın kurulu olup olmadığını kontrol etmek
+        - `flutter doctor`'ın neyi kontrol ettiği ve Android ya da Xcode için çıkan kırmızı işaretlerin şimdilik neden önemli olmadığı
+    do:
+      en: |
+        1. Install **Git**: on Windows from git-scm.com (Git for Windows), on macOS run `xcode-select --install`, on Debian or Ubuntu Linux run `sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa`.
+        2. Install **Visual Studio Code** (code.visualstudio.com), a free editor. Install **Google Chrome** too if you do not have it: your app will run in it first.
+        3. In VS Code open the Extensions panel and install the **Flutter** extension (it brings the **Dart** extension with it).
+        4. Press Ctrl+Shift+P (Cmd+Shift+P on macOS), type `flutter` and choose **Flutter: New Project**. When it says it cannot find the SDK, choose **Download SDK**, pick a folder, wait for the download, then click **Add SDK to PATH**.
+        5. Close every terminal window and restart VS Code. Open a new terminal (*Terminal → New Terminal*) and run the commands below.
+        6. Tell Git who you are (see the Git cheatsheet: "Set your name and email").
+        7. Read the `flutter doctor` output. You need a tick for **Flutter** and **Chrome**. Ignore Android toolchain, Xcode and Visual Studio for now; we fix Android in a later step.
+      tr: |
+        1. **Git**'i kur: Windows'ta git-scm.com'dan (Git for Windows), macOS'ta `xcode-select --install` çalıştır, Debian ya da Ubuntu Linux'ta `sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa` çalıştır.
+        2. Ücretsiz bir editör olan **Visual Studio Code**'u kur (code.visualstudio.com). Yoksa **Google Chrome**'u da kur: uygulaman önce onda çalışacak.
+        3. VS Code'da Extensions panelini aç ve **Flutter** eklentisini kur (yanında **Dart** eklentisi de gelir).
+        4. Ctrl+Shift+P'ye bas (macOS'ta Cmd+Shift+P), `flutter` yaz ve **Flutter: New Project**'i seç. SDK'yı bulamadığını söylediğinde **Download SDK**'yı seç, bir klasör seç, indirmenin bitmesini bekle, sonra **Add SDK to PATH**'e tıkla.
+        5. Bütün terminal pencerelerini kapat ve VS Code'u yeniden başlat. Yeni bir terminal aç (*Terminal → New Terminal*) ve aşağıdaki komutları çalıştır.
+        6. Git'e kim olduğunu söyle (Git kopya kâğıdı: "Adını ve e-postanı ayarlama").
+        7. `flutter doctor` çıktısını oku. **Flutter** ve **Chrome** için tik görmelisin. Android toolchain, Xcode ve Visual Studio satırlarını şimdilik yok say; Android'i sonraki bir adımda hazırlayacağız.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          git --version
+          flutter --version
+          dart --version
+          flutter doctor
+    mistakes:
+      - problem:
+          en: "\"flutter: command not found\" right after installing."
+          tr: "Kurduktan hemen sonra \"flutter: command not found\" hatası."
+        fix:
+          en: "The terminal was opened before the SDK was added to PATH. Close all terminals and VS Code, open them again. Still failing: add the `bin` folder inside the Flutter folder to PATH by hand (docs.flutter.dev/install/add-to-path)."
+          tr: "Terminal, SDK PATH'e eklenmeden önce açılmış. Bütün terminalleri ve VS Code'u kapatıp yeniden aç. Hâlâ olmuyorsa Flutter klasöründeki `bin` klasörünü PATH'e elle ekle (docs.flutter.dev/install/add-to-path)."
+      - problem:
+          en: "Panicking because `flutter doctor` shows red crosses for Android, Xcode or Visual Studio."
+          tr: "`flutter doctor` Android, Xcode ya da Visual Studio için kırmızı çarpı gösterince paniğe kapılmak."
+        fix:
+          en: "Each line is a different target platform. You only need what you build for. Chrome and Flutter are enough for the first steps."
+          tr: "Her satır ayrı bir hedef platform. Sadece hedeflediğin platformlar gerekli. İlk adımlar için Chrome ve Flutter yeter."
+    quiz:
+      - q:
+          en: "What is the difference between Flutter and Dart?"
+          tr: "Flutter ile Dart arasındaki fark nedir?"
+        options:
+          en:
+            - "They are the same thing"
+            - "Dart is the language you write, Flutter is the toolkit that draws the app"
+            - "Flutter is the language, Dart is only for the web"
+          tr:
+            - "İkisi aynı şey"
+            - "Dart yazdığın dil, Flutter uygulamayı çizen araç takımı"
+            - "Flutter dil, Dart sadece web için"
+        answer: 1
+        why:
+          en: "Your code is Dart. Flutter is the framework (widgets, drawing, tools) written in Dart that your code uses."
+          tr: "Senin kodun Dart. Flutter, kodunun kullandığı ve Dart ile yazılmış framework (widget'lar, çizim, araçlar)."
+    sources:
+      - title: Install Flutter with VS Code (quick start)
+        url: https://docs.flutter.dev/install/quick
+      - title: Install Flutter manually
+        url: https://docs.flutter.dev/install/manual
+      - title: Flutter troubleshooting for installs
+        url: https://docs.flutter.dev/install/troubleshoot
+
+  - id: first-app
+    stage: first-code
+    title:
+      en: "Create your first Flutter app and run it in Chrome"
+      tr: "İlk Flutter uygulamanı oluşturma ve Chrome'da çalıştırma"
+    minutes: 40
+    needs: [setup]
+    why:
+      en: "`flutter create` writes a complete working app in seconds, with folders for Android, iOS and the web. Hot reload then shows every change in your running app in under a second, without losing where you were. This fast loop is the best thing about Flutter."
+      tr: "`flutter create` saniyeler içinde Android, iOS ve web klasörleriyle birlikte çalışan eksiksiz bir uygulama yazar. Hot reload ise her değişikliği çalışan uygulamanda bir saniyeden kısa sürede, kaldığın yeri kaybetmeden gösterir. Flutter'ın en güzel yanı bu hızlı döngüdür."
+    learn:
+      en: |
+        - What is inside a new project: `lib/main.dart`, `pubspec.yaml`, `test/`, `android/`, `ios/`, `web/`
+        - What `pubspec.yaml` is: the app name, version and the packages it uses
+        - Hot reload (`r`) versus hot restart (`R`)
+      tr: |
+        - Yeni bir projenin içinde ne olduğu: `lib/main.dart`, `pubspec.yaml`, `test/`, `android/`, `ios/`, `web/`
+        - `pubspec.yaml`'ın ne olduğu: uygulamanın adı, sürümü ve kullandığı paketler
+        - Hot reload (`r`) ile hot restart (`R`) arasındaki fark
+    do:
+      en: |
+        1. In the terminal go to the folder where you keep projects. Run the first command below. `--org` is your reverse domain name; it becomes part of the Android app id (`dev.example.habit_tracker`). Use your own if you have one. Project names use `lowercase_with_underscores`.
+        2. Go into the folder and start the app in Chrome. The first start takes a minute. Chrome opens with a counter app.
+        3. Click the plus button, then look at `lib/main.dart` to find the code behind it.
+        4. Replace everything in `lib/main.dart` with the code below. In the terminal that runs the app press `r`: the page changes at once (hot reload).
+        5. Change the text `Hello, habits!`, save the file in VS Code (it hot reloads by itself) and watch Chrome. Press `q` in the terminal to stop the app.
+        6. Save the first version with Git: `git init`, `git add .`, `git commit -m "Start the habit tracker"`. `flutter create` already wrote a `.gitignore`.
+      tr: |
+        1. Terminalde projelerini tuttuğun klasöre git. Aşağıdaki ilk komutu çalıştır. `--org` ters yazılmış alan adındır; Android uygulama kimliğinin (`dev.example.habit_tracker`) parçası olur. Sende varsa kendi alan adını yaz. Proje adları `kucuk_harf_ve_alt_cizgi` ile yazılır.
+        2. Klasöre gir ve uygulamayı Chrome'da başlat. İlk açılış bir dakika sürer. Chrome'da bir sayaç uygulaması açılır.
+        3. Artı düğmesine tıkla, sonra arkasındaki kodu bulmak için `lib/main.dart`'a bak.
+        4. `lib/main.dart` içindeki her şeyi aşağıdaki kodla değiştir. Uygulamayı çalıştıran terminalde `r`'ye bas: sayfa hemen değişir (hot reload).
+        5. `Hello, habits!` yazısını değiştir, VS Code'da dosyayı kaydet (kendiliğinden hot reload yapar) ve Chrome'a bak. Uygulamayı durdurmak için terminalde `q`'ya bas.
+        6. İlk sürümü Git ile kaydet: `git init`, `git add .`, `git commit -m "Start the habit tracker"`. `flutter create` bir `.gitignore` dosyasını zaten yazdı.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter create --org dev.example --platforms=android,ios,web habit_tracker
+          cd habit_tracker
+          flutter run -d chrome
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+
+          void main() {
+            runApp(const HabitApp());
+          }
+
+          class HabitApp extends StatelessWidget {
+            const HabitApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                title: 'Habit Tracker',
+                home: Scaffold(
+                  appBar: AppBar(title: const Text('Habits')),
+                  body: const Center(child: Text('Hello, habits!')),
+                ),
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "After replacing main.dart, `flutter test` fails because `test/widget_test.dart` still talks about the old counter app."
+          tr: "main.dart'ı değiştirdikten sonra `flutter test` hata veriyor, çünkü `test/widget_test.dart` hâlâ eski sayaç uygulamasından söz ediyor."
+        fix:
+          en: "Delete `test/widget_test.dart`. We write real tests for our own app in a later step."
+          tr: "`test/widget_test.dart` dosyasını sil. Kendi uygulamamızın gerçek testlerini sonraki bir adımda yazacağız."
+      - problem:
+          en: "A change does not show up after pressing `r`."
+          tr: "`r`'ye basınca değişiklik görünmüyor."
+        fix:
+          en: "Hot reload keeps the running state and skips `main()`. Press `R` (capital) for a hot restart, which starts the app over."
+          tr: "Hot reload çalışan state'i korur ve `main()`'i atlar. Uygulamayı baştan başlatan hot restart için büyük `R`'ye bas."
+    quiz:
+      - q:
+          en: "Where do you list the packages your app uses?"
+          tr: "Uygulamanın kullandığı paketleri nerede listelersin?"
+        options:
+          en:
+            - "lib/main.dart"
+            - "pubspec.yaml"
+            - "web/index.html"
+          tr:
+            - "lib/main.dart"
+            - "pubspec.yaml"
+            - "web/index.html"
+        answer: 1
+        why:
+          en: "pubspec.yaml holds the app name, version and dependencies. `flutter pub add <name>` edits it for you."
+          tr: "pubspec.yaml uygulamanın adını, sürümünü ve bağımlılıklarını tutar. `flutter pub add <ad>` onu senin yerine düzenler."
+    sources:
+      - title: Create a new Flutter app
+        url: https://docs.flutter.dev/reference/create-new-app
+      - title: Stateful hot reload
+        url: https://docs.flutter.dev/tools/hot-reload
+      - title: Learn about the pubspec file
+        url: https://docs.flutter.dev/tools/pubspec
+
+  - id: dart-basics
+    stage: basics
+    title:
+      en: "Dart basics and the Habit model"
+      tr: "Dart temelleri ve Habit modeli"
+    minutes: 75
+    needs: [first-app]
+    why:
+      en: "Everything in Flutter is Dart code, so a little Dart goes a long way. Dart checks types before your app runs and does not let a value be empty (null) unless you say so. That catches many mistakes at once. We also write the first real part of the app: the Habit class, with plain Dart that has nothing to do with screens."
+      tr: "Flutter'daki her şey Dart kodudur; biraz Dart çok işe yarar. Dart, uygulama çalışmadan önce tipleri kontrol eder ve sen söylemedikçe bir değerin boş (null) olmasına izin vermez. Bu birçok hatayı baştan yakalar. Uygulamanın ilk gerçek parçasını da yazıyoruz: ekranlarla ilgisi olmayan düz Dart ile Habit sınıfı."
+    learn:
+      en: |
+        - Variables: `var`, `final` (set once) and `const` (known before the app runs)
+        - Types and null safety: `String` can never be null, `String?` can
+        - Lists, sets, maps and the spread operator `...`
+        - Classes, constructors with named parameters, and why we make objects immutable (a change makes a copy)
+        - `Future`, `async` and `await` for things that take time
+      tr: |
+        - Değişkenler: `var`, `final` (bir kez atanır) ve `const` (uygulama çalışmadan önce bilinir)
+        - Tipler ve null safety: `String` asla null olamaz, `String?` olabilir
+        - Liste, set, map ve yayma operatörü `...`
+        - Sınıflar, isimli parametreli constructor'lar ve nesneleri neden değişmez yaptığımız (değişiklik bir kopya üretir)
+        - Zaman alan işler için `Future`, `async` ve `await`
+    do:
+      en: |
+        1. Open dartpad.dev in the browser and paste the first snippet below. Press **Run**. Change values and run again until every line makes sense. DartPad needs no install.
+        2. Back in your project create `lib/models/habit.dart` with the second snippet. A habit remembers on which days it was done as text like `2026-10-18`. `toggled` returns a changed copy instead of changing the habit itself.
+        3. Read `streak` slowly: it starts today (or yesterday if today is not ticked yet) and walks back day by day while the habit was done.
+        4. We test this code properly in the testing step. For now run `flutter analyze`: it must print `No issues found!`.
+      tr: |
+        1. Tarayıcıda dartpad.dev'i aç ve aşağıdaki ilk kod parçasını yapıştır. **Run**'a bas. Her satır anlaşılana kadar değerleri değiştirip yeniden çalıştır. DartPad kurulum gerektirmez.
+        2. Projene dön ve ikinci parçayla `lib/models/habit.dart` dosyasını oluştur. Bir alışkanlık, hangi günlerde yapıldığını `2026-10-18` gibi metinlerle hatırlar. `toggled`, alışkanlığın kendisini değiştirmek yerine değişmiş bir kopya döndürür.
+        3. `streak`'i yavaş yavaş oku: bugünden başlar (bugün henüz işaretli değilse dünden), alışkanlık yapıldığı sürece gün gün geriye yürür.
+        4. Bu kodu test adımında düzgünce test edeceğiz. Şimdilik `flutter analyze` çalıştır: `No issues found!` yazmalı.
+    code:
+      - file: DartPad
+        lang: dart
+        text: |
+          Future<void> main() async {
+            // Variables and types
+            final name = 'Read a book'; // final: set once
+            var minutes = 20; // var: the type (int) is guessed, the value may change
+            minutes = minutes + 5;
+            String? note; // the ? means: this may be null (empty)
+            print('$name for $minutes minutes, note: ${note ?? "none"}');
+
+            // Collections
+            final days = <String>['Mon', 'Tue'];
+            final more = [...days, 'Wed']; // spread: copy the items and add one
+            for (final day in more) {
+              print(day);
+            }
+            print({for (final day in more) day: day.length});
+
+            // A function and a class
+            print(twice(4));
+            print(Counter(3).next());
+
+            // Something that takes time
+            await Future.delayed(const Duration(seconds: 1));
+            print('One second later');
+          }
+
+          int twice(int x) => x * 2;
+
+          class Counter {
+            const Counter(this.value);
+            final int value;
+            Counter next() => Counter(value + 1); // a new object, the old one stays
+            @override
+            String toString() => 'Counter($value)';
+          }
+      - file: lib/models/habit.dart
+        lang: dart
+        text: |
+          /// "2026-10-18": one calendar day as text, so it is easy to store and compare.
+          String dayKey(DateTime day) {
+            final y = day.year.toString().padLeft(4, '0');
+            final m = day.month.toString().padLeft(2, '0');
+            final d = day.day.toString().padLeft(2, '0');
+            return '$y-$m-$d';
+          }
+
+          class Habit {
+            const Habit({required this.id, required this.name, this.doneOn = const {}});
+
+            final String id;
+            final String name;
+
+            /// The days this habit was done, as dayKey text.
+            final Set<String> doneOn;
+
+            bool isDoneOn(DateTime day) => doneOn.contains(dayKey(day));
+
+            /// A copy where [day] is ticked, or un-ticked if it was ticked already.
+            Habit toggled(DateTime day) {
+              final key = dayKey(day);
+              final next = {...doneOn};
+              if (!next.remove(key)) next.add(key);
+              return Habit(id: id, name: name, doneOn: next);
+            }
+
+            /// How many days in a row the habit was done, counting back from [today].
+            /// If today is not ticked yet, the streak still counts up to yesterday.
+            int streak(DateTime today) {
+              var day = DateTime(today.year, today.month, today.day);
+              if (!isDoneOn(day)) day = DateTime(day.year, day.month, day.day - 1);
+              var count = 0;
+              while (isDoneOn(day)) {
+                count++;
+                day = DateTime(day.year, day.month, day.day - 1);
+              }
+              return count;
+            }
+
+            Map<String, Object?> toJson() => {
+                  'id': id,
+                  'name': name,
+                  'doneOn': doneOn.toList()..sort(),
+                };
+
+            factory Habit.fromJson(Map<String, Object?> json) => Habit(
+                  id: json['id'] as String,
+                  name: json['name'] as String,
+                  doneOn: {...(json['doneOn'] as List<Object?>).cast<String>()},
+                );
+          }
+    mistakes:
+      - problem:
+          en: "\"A value of type 'String?' can't be assigned to a variable of type 'String'\"."
+          tr: "\"A value of type 'String?' can't be assigned to a variable of type 'String'\" hatası."
+        fix:
+          en: "Dart is protecting you from null. Decide what should happen when the value is missing: give a fallback (`note ?? 'none'`) or check it first (`if (note != null) ...`). Avoid the `!` operator unless you are sure."
+          tr: "Dart seni null'dan koruyor. Değer yoksa ne olacağına karar ver: bir yedek değer ver (`note ?? 'none'`) ya da önce kontrol et (`if (note != null) ...`). Emin olmadıkça `!` operatörünü kullanma."
+      - problem:
+          en: "Calling `habit.toggled(day)` and expecting `habit` itself to change."
+          tr: "`habit.toggled(day)` çağırıp `habit`'in kendisinin değişmesini beklemek."
+        fix:
+          en: "`toggled` returns a new Habit. Keep the result: `habit = habit.toggled(day)`. Flutter notices changes by comparing old and new objects, so this style fits it well."
+          tr: "`toggled` yeni bir Habit döndürür. Sonucu sakla: `habit = habit.toggled(day)`. Flutter değişiklikleri eski ve yeni nesneyi karşılaştırarak fark eder; bu stil ona çok uyar."
+    quiz:
+      - q:
+          en: "What does `String? note;` mean?"
+          tr: "`String? note;` ne demek?"
+        options:
+          en:
+            - "note is a String and can also be null"
+            - "note is always an empty string"
+            - "note is optional to declare"
+          tr:
+            - "note bir String'tir ve null da olabilir"
+            - "note her zaman boş bir metindir"
+            - "note'u tanımlamak isteğe bağlıdır"
+        answer: 0
+        why:
+          en: "The ? after a type allows null. Without it Dart refuses null for that variable."
+          tr: "Tipten sonraki ? null'a izin verir. Olmadan Dart o değişken için null'ı kabul etmez."
+    sources:
+      - title: Dart language tour
+        url: https://dart.dev/language
+      - title: Dart, sound null safety
+        url: https://dart.dev/null-safety
+      - title: Dart, asynchronous programming
+        url: https://dart.dev/libraries/async/async-await
+
+  - id: widgets
+    stage: basics
+    title:
+      en: "Widgets and layout"
+      tr: "Widget'lar ve yerleşim"
+    minutes: 75
+    needs: [dart-basics]
+    why:
+      en: "In Flutter everything you see is a widget: text, a button, a padding, even the whole app. You build screens by putting small widgets inside bigger ones. Learn this idea and you can read any Flutter screen."
+      tr: "Flutter'da gördüğün her şey bir widget'tır: yazı, düğme, boşluk, hatta uygulamanın tamamı. Ekranları küçük widget'ları büyüklerin içine koyarak kurarsın. Bu fikri öğrenince her Flutter ekranını okuyabilirsin."
+    learn:
+      en: |
+        - `StatelessWidget` and its `build` method: a widget that only shows what it is given
+        - Layout widgets: `Column`, `Row`, `Padding`, `Expanded`, `ListView`, `Card`, `ListTile`
+        - `Scaffold` and `AppBar`: the frame of a Material screen
+        - `const` widgets and why we write `const` wherever we can
+        - Splitting a big `build` into small widgets of your own
+      tr: |
+        - `StatelessWidget` ve `build` metodu: sadece kendisine verileni gösteren widget
+        - Yerleşim widget'ları: `Column`, `Row`, `Padding`, `Expanded`, `ListView`, `Card`, `ListTile`
+        - `Scaffold` ve `AppBar`: bir Material ekranının çerçevesi
+        - `const` widget'lar ve mümkün olan her yere neden `const` yazdığımız
+        - Büyük bir `build`'i kendi küçük widget'larına bölmek
+    do:
+      en: |
+        1. Delete `test/widget_test.dart` if you have not yet (it tests the old counter app).
+        2. Create `lib/widgets/habit_tile.dart` with the first file below. It draws one habit as a card with a checkbox and a streak line.
+        3. Create `lib/screens/home_screen.dart`: a screen with a few sample habits. The checkboxes do nothing yet.
+        4. Replace `lib/main.dart` so the app uses the new screen and a colour theme made from one seed colour.
+        5. Run the app (`flutter run -d chrome`). Resize the Chrome window: the list adapts. Try replacing `ListView` with a `Column` and add many habits: the `Column` overflows (yellow-black stripes) and the `ListView` scrolls.
+      tr: |
+        1. Henüz silmediysen `test/widget_test.dart` dosyasını sil (eski sayaç uygulamasını test ediyor).
+        2. Aşağıdaki ilk dosyayla `lib/widgets/habit_tile.dart` dosyasını oluştur. Bir alışkanlığı onay kutusu ve seri satırı olan bir kart olarak çizer.
+        3. `lib/screens/home_screen.dart` dosyasını oluştur: birkaç örnek alışkanlık gösteren bir ekran. Onay kutuları henüz bir şey yapmıyor.
+        4. `lib/main.dart`'ı, uygulama yeni ekranı ve tek bir tohum renkten üretilmiş bir renk temasını kullanacak şekilde değiştir.
+        5. Uygulamayı çalıştır (`flutter run -d chrome`). Chrome penceresini yeniden boyutlandır: liste uyum sağlar. `ListView`'ı `Column` ile değiştirip çok alışkanlık ekle: `Column` taşar (sarı-siyah çizgiler), `ListView` ise kayar.
+    code:
+      - file: lib/widgets/habit_tile.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+
+          import '../models/habit.dart';
+
+          class HabitTile extends StatelessWidget {
+            const HabitTile({
+              super.key,
+              required this.habit,
+              required this.today,
+              required this.onToggle,
+              this.onTap,
+            });
+
+            final Habit habit;
+            final DateTime today;
+            final VoidCallback onToggle;
+            final VoidCallback? onTap;
+
+            @override
+            Widget build(BuildContext context) {
+              final done = habit.isDoneOn(today);
+              final streak = habit.streak(today);
+              return Card(
+                child: ListTile(
+                  onTap: onTap,
+                  leading: Checkbox(value: done, onChanged: (_) => onToggle()),
+                  title: Text(
+                    habit.name,
+                    style: done
+                        ? const TextStyle(decoration: TextDecoration.lineThrough)
+                        : null,
+                  ),
+                  subtitle: Text(streak == 1 ? '1 day in a row' : '$streak days in a row'),
+                ),
+              );
+            }
+          }
+      - file: lib/screens/home_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+
+          import '../models/habit.dart';
+          import '../widgets/habit_tile.dart';
+
+          class HomeScreen extends StatelessWidget {
+            const HomeScreen({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              final today = DateTime.now();
+              final habits = [
+                const Habit(id: '1', name: 'Read 20 minutes'),
+                const Habit(id: '2', name: 'Drink water'),
+              ];
+              return Scaffold(
+                appBar: AppBar(title: const Text('Habits')),
+                body: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final habit in habits)
+                      HabitTile(habit: habit, today: today, onToggle: () {}),
+                  ],
+                ),
+              );
+            }
+          }
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+
+          import 'screens/home_screen.dart';
+
+          void main() {
+            runApp(const HabitApp());
+          }
+
+          class HabitApp extends StatelessWidget {
+            const HabitApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                title: 'Habit Tracker',
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+                ),
+                home: const HomeScreen(),
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "The yellow-black \"RenderFlex overflowed\" stripes appear."
+          tr: "Sarı-siyah \"RenderFlex overflowed\" çizgileri çıkıyor."
+        fix:
+          en: "A `Column` or `Row` has more content than room. Wrap the overflowing child in `Expanded`, or use a scrolling widget such as `ListView`."
+          tr: "Bir `Column` ya da `Row`'un içeriği yerinden fazla. Taşan çocuğu `Expanded` ile sar ya da `ListView` gibi kayan bir widget kullan."
+      - problem:
+          en: "\"Vertical viewport was given unbounded height\" when a `ListView` sits inside a `Column`."
+          tr: "Bir `Column` içindeki `ListView` için \"Vertical viewport was given unbounded height\" hatası."
+        fix:
+          en: "A `Column` gives its children unlimited height and a `ListView` wants to fill all it gets. Wrap the `ListView` in `Expanded`."
+          tr: "`Column` çocuklarına sınırsız yükseklik verir, `ListView` de verilen her yeri doldurmak ister. `ListView`'ı `Expanded` ile sar."
+    quiz:
+      - q:
+          en: "What does `const` in front of a widget (`const Text('Hi')`) do?"
+          tr: "Bir widget'ın önündeki `const` (`const Text('Hi')`) ne yapar?"
+        options:
+          en:
+            - "It makes the widget faster to type"
+            - "It creates the widget once while compiling so Flutter can reuse it"
+            - "It stops the widget from showing"
+          tr:
+            - "Widget'ı yazmayı hızlandırır"
+            - "Widget'ı derleme sırasında bir kez oluşturur, Flutter da tekrar kullanabilir"
+            - "Widget'ın görünmesini engeller"
+        answer: 1
+        why:
+          en: "A const widget is the same object on every rebuild, so Flutter can skip rebuilding it."
+          tr: "const bir widget her yeniden çizimde aynı nesnedir; Flutter onu yeniden kurmayı atlayabilir."
+    sources:
+      - title: Introduction to widgets
+        url: https://docs.flutter.dev/ui/widgets-intro
+      - title: Layouts in Flutter
+        url: https://docs.flutter.dev/ui/layout
+      - title: Understanding constraints
+        url: https://docs.flutter.dev/ui/layout/constraints
+
+  - id: set-state
+    stage: basics
+    title:
+      en: "State with setState"
+      tr: "setState ile state"
+    minutes: 45
+    needs: [widgets]
+    why:
+      en: "A screen that never changes is only a picture. State is data that changes while the app runs, like which habits are ticked. In Flutter, you change state and ask Flutter to draw the widget again. `setState` is the simplest way, and the first one to learn."
+      tr: "Hiç değişmeyen bir ekran sadece bir resimdir. State, uygulama çalışırken değişen veridir; hangi alışkanlıkların işaretli olduğu gibi. Flutter'da state'i değiştirir ve Flutter'dan widget'ı yeniden çizmesini istersin. `setState` en basit yoldur ve ilk öğrenilecek olandır."
+    learn:
+      en: |
+        - `StatefulWidget` and its `State` class
+        - Calling `setState(() { ... })` after you change data, so Flutter calls `build` again
+        - Callbacks: the tile does not know how to toggle, it tells its parent through `onToggle`
+        - When `setState` is enough (state used by one widget) and when it is not
+      tr: |
+        - `StatefulWidget` ve ona ait `State` sınıfı
+        - Veriyi değiştirdikten sonra `setState(() { ... })` çağırmak; böylece Flutter `build`'i yeniden çağırır
+        - Callback'ler: tile nasıl işaretleneceğini bilmez, `onToggle` ile üstündeki widget'a haber verir
+        - `setState`'in ne zaman yettiği (state'i tek widget kullanıyorsa) ve ne zaman yetmediği
+    do:
+      en: |
+        1. Replace `lib/screens/home_screen.dart` with the version below. The list of habits now lives in the `State` object.
+        2. Run the app and tick a habit. The line-through and the streak change at once.
+        3. Press `R` (hot restart): the ticks are gone. State lives only in memory for now.
+        4. Think about this: if a second screen needed the same list, `setState` in this one widget could not share it. The next step fixes that.
+      tr: |
+        1. `lib/screens/home_screen.dart` dosyasını aşağıdaki sürümle değiştir. Alışkanlık listesi artık `State` nesnesinin içinde yaşıyor.
+        2. Uygulamayı çalıştır ve bir alışkanlığı işaretle. Üstü çizilme ve seri hemen değişir.
+        3. `R`'ye bas (hot restart): işaretler kayboldu. State şimdilik sadece bellekte duruyor.
+        4. Şunu düşün: ikinci bir ekranın da aynı listeye ihtiyacı olsaydı, tek bir widget içindeki `setState` onu paylaşamazdı. Sonraki adım bunu çözer.
+    code:
+      - file: lib/screens/home_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+
+          import '../models/habit.dart';
+          import '../widgets/habit_tile.dart';
+
+          class HomeScreen extends StatefulWidget {
+            const HomeScreen({super.key});
+
+            @override
+            State<HomeScreen> createState() => _HomeScreenState();
+          }
+
+          class _HomeScreenState extends State<HomeScreen> {
+            List<Habit> _habits = [
+              const Habit(id: '1', name: 'Read 20 minutes'),
+              const Habit(id: '2', name: 'Drink water'),
+            ];
+
+            void _toggle(String id) {
+              final today = DateTime.now();
+              setState(() {
+                _habits = [
+                  for (final habit in _habits)
+                    habit.id == id ? habit.toggled(today) : habit,
+                ];
+              });
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              final today = DateTime.now();
+              return Scaffold(
+                appBar: AppBar(title: const Text('Habits')),
+                body: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    for (final habit in _habits)
+                      HabitTile(
+                        habit: habit,
+                        today: today,
+                        onToggle: () => _toggle(habit.id),
+                      ),
+                  ],
+                ),
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Changing the data without `setState`, and the screen does not update."
+          tr: "Veriyi `setState` olmadan değiştirmek ve ekranın güncellenmemesi."
+        fix:
+          en: "Flutter only draws again when told. Put the change inside `setState(() { ... })`."
+          tr: "Flutter sadece söylenince yeniden çizer. Değişikliği `setState(() { ... })` içine koy."
+      - problem:
+          en: "Calling `setState` after an `await` and getting \"setState() called after dispose()\"."
+          tr: "Bir `await`'ten sonra `setState` çağırıp \"setState() called after dispose()\" hatası almak."
+        fix:
+          en: "The user may have left the screen while you waited. Check `if (!mounted) return;` before calling `setState`."
+          tr: "Sen beklerken kullanıcı ekrandan ayrılmış olabilir. `setState`'ten önce `if (!mounted) return;` ile kontrol et."
+    quiz:
+      - q:
+          en: "What does `setState` do?"
+          tr: "`setState` ne yapar?"
+        options:
+          en:
+            - "It saves the data to the disk"
+            - "It runs your change and tells Flutter to call build again"
+            - "It changes the state of the whole app"
+          tr:
+            - "Veriyi diske kaydeder"
+            - "Değişikliğini çalıştırır ve Flutter'a build'i yeniden çağırmasını söyler"
+            - "Bütün uygulamanın state'ini değiştirir"
+        answer: 1
+        why:
+          en: "It does not save anything. It only marks this widget as needing a redraw after your change."
+          tr: "Hiçbir şey kaydetmez. Sadece değişikliğinden sonra bu widget'ı yeniden çizilmesi gereken olarak işaretler."
+    sources:
+      - title: Differentiate between ephemeral state and app state
+        url: https://docs.flutter.dev/data-and-backend/state-mgmt/ephemeral-vs-app
+      - title: setState (API reference)
+        url: https://api.flutter.dev/flutter/widgets/State/setState.html
+
+  - id: provider-state
+    stage: first-project
+    title:
+      en: "Shared state with ChangeNotifier and Provider"
+      tr: "ChangeNotifier ve Provider ile ortak state"
+    minutes: 75
+    needs: [set-state]
+    why:
+      en: "When several screens need the same data, it must live above them, in one place, and the screens must be told when it changes. The Flutter docs recommend starting with the `provider` package and a `ChangeNotifier` class for this. Your logic then sits in a plain class that is easy to test, and the widgets only show it."
+      tr: "Birkaç ekran aynı veriye ihtiyaç duyunca veri onların üstünde, tek bir yerde yaşamalı ve değişince ekranlara haber verilmeli. Flutter dokümanları bunun için `provider` paketi ve bir `ChangeNotifier` sınıfıyla başlamayı önerir. Böylece mantığın test etmesi kolay düz bir sınıfta durur, widget'lar sadece onu gösterir."
+    learn:
+      en: |
+        - `ChangeNotifier` and `notifyListeners()`: a model that tells its listeners it changed
+        - A store interface (`HabitStore`): the model does not care where habits are kept, which makes a database easy to add later
+        - `ChangeNotifierProvider`, `Consumer` and `context.read` / `context.watch`
+        - Other options exist (Riverpod, Bloc, signals); the idea is the same. The docs list them on their state management options page.
+      tr: |
+        - `ChangeNotifier` ve `notifyListeners()`: değiştiğini dinleyenlere haber veren bir model
+        - Bir saklama arayüzü (`HabitStore`): model alışkanlıkların nerede tutulduğunu umursamaz; bu da sonradan veritabanı eklemeyi kolaylaştırır
+        - `ChangeNotifierProvider`, `Consumer` ve `context.read` / `context.watch`
+        - Başka seçenekler de var (Riverpod, Bloc, signals); fikir aynı. Dokümanlar onları state management options sayfasında listeler.
+    do:
+      en: |
+        1. Add the package: `flutter pub add provider`.
+        2. Create `lib/data/habit_store.dart` and `lib/state/habits_model.dart` below. The model holds the list, and every change makes a new list, tells the listeners and saves it.
+        3. Replace `lib/screens/home_screen.dart`. It reads the model with `Consumer`. The plus button opens a small dialog for a name (we replace it by a proper form soon).
+        4. Replace `lib/main.dart`: `ChangeNotifierProvider` creates the model once, above the whole app, and calls `load()`.
+        5. Run it, add two habits and tick them. Everything still disappears on restart: the store only keeps data in memory. The persistence step fixes that.
+      tr: |
+        1. Paketi ekle: `flutter pub add provider`.
+        2. Aşağıdaki `lib/data/habit_store.dart` ve `lib/state/habits_model.dart` dosyalarını oluştur. Model listeyi tutar; her değişiklik yeni bir liste yapar, dinleyenlere haber verir ve kaydeder.
+        3. `lib/screens/home_screen.dart` dosyasını değiştir. Modeli `Consumer` ile okur. Artı düğmesi isim için küçük bir diyalog açar (onu yakında düzgün bir formla değiştireceğiz).
+        4. `lib/main.dart`'ı değiştir: `ChangeNotifierProvider` modeli bütün uygulamanın üstünde bir kez oluşturur ve `load()` çağırır.
+        5. Çalıştır, iki alışkanlık ekle ve işaretle. Yeniden başlatınca her şey yine kaybolur: store veriyi sadece bellekte tutuyor. Kalıcılık adımı bunu çözer.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add provider
+      - file: lib/data/habit_store.dart
+        lang: dart
+        text: |
+          import '../models/habit.dart';
+
+          /// Where habits are kept. The app talks to this, not to a database directly.
+          abstract class HabitStore {
+            Future<List<Habit>> load();
+            Future<void> save(List<Habit> habits);
+          }
+
+          /// Keeps habits in memory only. Good for tests and for the first version.
+          class MemoryHabitStore implements HabitStore {
+            MemoryHabitStore([List<Habit> initial = const []]) : _habits = [...initial];
+
+            List<Habit> _habits;
+
+            @override
+            Future<List<Habit>> load() async => [..._habits];
+
+            @override
+            Future<void> save(List<Habit> habits) async => _habits = [...habits];
+          }
+      - file: lib/state/habits_model.dart
+        lang: dart
+        text: |
+          import 'dart:collection';
+
+          import 'package:flutter/foundation.dart';
+
+          import '../data/habit_store.dart';
+          import '../models/habit.dart';
+
+          class HabitsModel extends ChangeNotifier {
+            HabitsModel(this._store, {DateTime Function()? clock})
+                : _clock = clock ?? DateTime.now;
+
+            final HabitStore _store;
+            final DateTime Function() _clock;
+            List<Habit> _habits = [];
+            bool _loaded = false;
+
+            UnmodifiableListView<Habit> get habits => UnmodifiableListView(_habits);
+            bool get loaded => _loaded;
+            DateTime get today => _clock();
+
+            Habit? byId(String id) {
+              for (final h in _habits) {
+                if (h.id == id) return h;
+              }
+              return null;
+            }
+
+            Future<void> load() async {
+              _habits = await _store.load();
+              _loaded = true;
+              notifyListeners();
+            }
+
+            Future<void> add(String name) async {
+              final id = '${_clock().microsecondsSinceEpoch}-${_habits.length}';
+              _habits = [..._habits, Habit(id: id, name: name.trim())];
+              notifyListeners();
+              await _store.save(_habits);
+            }
+
+            Future<void> toggle(String id) async {
+              final day = today;
+              _habits = [for (final h in _habits) h.id == id ? h.toggled(day) : h];
+              notifyListeners();
+              await _store.save(_habits);
+            }
+
+            Future<void> remove(String id) async {
+              _habits = [for (final h in _habits) if (h.id != id) h];
+              notifyListeners();
+              await _store.save(_habits);
+            }
+          }
+      - file: lib/screens/home_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:provider/provider.dart';
+
+          import '../state/habits_model.dart';
+          import '../widgets/habit_tile.dart';
+
+          class HomeScreen extends StatelessWidget {
+            const HomeScreen({super.key});
+
+            Future<void> _addHabit(BuildContext context) async {
+              final model = context.read<HabitsModel>();
+              final name = await showDialog<String>(
+                context: context,
+                builder: (_) => const _NameDialog(),
+              );
+              if (name != null && name.trim().isNotEmpty) await model.add(name);
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(title: const Text('Habits')),
+                body: Consumer<HabitsModel>(
+                  builder: (context, model, _) {
+                    if (!model.loaded) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (model.habits.isEmpty) {
+                      return const Center(child: Text('No habits yet. Tap + to add one.'));
+                    }
+                    return ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        for (final habit in model.habits)
+                          HabitTile(
+                            habit: habit,
+                            today: model.today,
+                            onToggle: () => model.toggle(habit.id),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () => _addHabit(context),
+                  tooltip: 'Add habit',
+                  child: const Icon(Icons.add),
+                ),
+              );
+            }
+          }
+
+          class _NameDialog extends StatefulWidget {
+            const _NameDialog();
+
+            @override
+            State<_NameDialog> createState() => _NameDialogState();
+          }
+
+          class _NameDialogState extends State<_NameDialog> {
+            final _controller = TextEditingController();
+
+            @override
+            void dispose() {
+              _controller.dispose();
+              super.dispose();
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return AlertDialog(
+                title: const Text('New habit'),
+                content: TextField(
+                  controller: _controller,
+                  autofocus: true,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  onSubmitted: (value) => Navigator.of(context).pop(value),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.of(context).pop(_controller.text),
+                    child: const Text('Add'),
+                  ),
+                ],
+              );
+            }
+          }
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:provider/provider.dart';
+
+          import 'data/habit_store.dart';
+          import 'screens/home_screen.dart';
+          import 'state/habits_model.dart';
+
+          void main() {
+            runApp(
+              ChangeNotifierProvider(
+                create: (_) => HabitsModel(MemoryHabitStore())..load(),
+                child: const HabitApp(),
+              ),
+            );
+          }
+
+          class HabitApp extends StatelessWidget {
+            const HabitApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp(
+                title: 'Habit Tracker',
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+                ),
+                home: const HomeScreen(),
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "\"Could not find the correct Provider<HabitsModel> above this widget\"."
+          tr: "\"Could not find the correct Provider<HabitsModel> above this widget\" hatası."
+        fix:
+          en: "The widget that reads the model must be below the `ChangeNotifierProvider` in the widget tree. Put the provider above `MaterialApp` as shown, and do a hot restart (`R`) after changing `main()`."
+          tr: "Modeli okuyan widget, widget ağacında `ChangeNotifierProvider`'ın altında olmalı. Provider'ı gösterildiği gibi `MaterialApp`'in üstüne koy ve `main()`'i değiştirdikten sonra hot restart (`R`) yap."
+      - problem:
+          en: "Changing the list inside the model (`_habits.add(...)`) and forgetting `notifyListeners()`; the screen stays the same."
+          tr: "Model içindeki listeyi değiştirip (`_habits.add(...)`) `notifyListeners()`'ı unutmak; ekran aynı kalır."
+        fix:
+          en: "Every method that changes data must end in `notifyListeners()`. Replacing the list with a new one, as the code does, also keeps old copies safe."
+          tr: "Veriyi değiştiren her metot `notifyListeners()` ile bitmeli. Kodun yaptığı gibi listeyi yenisiyle değiştirmek eski kopyaları da güvende tutar."
+      - problem:
+          en: "Using `context.watch` inside a button callback like `onPressed`."
+          tr: "`onPressed` gibi bir düğme callback'inin içinde `context.watch` kullanmak."
+        fix:
+          en: "Use `context.read` for actions (it does not listen) and `context.watch` or `Consumer` only to build what you show."
+          tr: "Eylemler için `context.read` kullan (dinlemez); `context.watch` ya da `Consumer`'ı sadece gösterdiğin şeyi kurmak için kullan."
+    quiz:
+      - q:
+          en: "Why does the model end each change with `notifyListeners()`?"
+          tr: "Model neden her değişikliği `notifyListeners()` ile bitiriyor?"
+        options:
+          en:
+            - "To save the data"
+            - "To tell the widgets that listen to rebuild"
+            - "To make the list read-only"
+          tr:
+            - "Veriyi kaydetmek için"
+            - "Dinleyen widget'lara yeniden çizilmelerini söylemek için"
+            - "Listeyi salt okunur yapmak için"
+        answer: 1
+        why:
+          en: "Consumer and context.watch rebuild only when the model calls notifyListeners()."
+          tr: "Consumer ve context.watch sadece model notifyListeners() çağırınca yeniden çizilir."
+    sources:
+      - title: Simple app state management (Provider and ChangeNotifier)
+        url: https://docs.flutter.dev/data-and-backend/state-mgmt/simple
+      - title: State management options
+        url: https://docs.flutter.dev/data-and-backend/state-mgmt/options
+      - title: provider package
+        url: https://pub.dev/packages/provider
+
+  - id: navigation
+    stage: first-project
+    title:
+      en: "Screens and navigation with go_router"
+      tr: "go_router ile ekranlar ve geçişler"
+    minutes: 60
+    needs: [provider-state]
+    why:
+      en: "Real apps have more than one screen. The Flutter docs say small apps without deep links can use the built-in `Navigator`, and apps that need links to screens (like a web app, where every screen has an address) should use a routing package such as go_router. We use go_router because our app also runs on the web."
+      tr: "Gerçek uygulamalarda birden fazla ekran olur. Flutter dokümanları, derin bağlantı (deep link) gerektirmeyen küçük uygulamaların yerleşik `Navigator`'ı kullanabileceğini, ekranlara bağlantı gereken uygulamaların (her ekranın bir adresi olduğu web uygulaması gibi) go_router gibi bir yönlendirme paketi kullanması gerektiğini söyler. Uygulamamız webde de çalıştığı için go_router kullanıyoruz."
+    learn:
+      en: |
+        - A route is an address like `/` or `/habit/42` that maps to a screen
+        - `GoRouter`, `GoRoute`, `MaterialApp.router` and `routerConfig`
+        - Path parameters: `habit/:id` and `state.pathParameters['id']`
+        - `context.go` to move to a screen, `context.pop` to go back; nested routes give you the back button for free
+      tr: |
+        - Rota (route), `/` ya da `/habit/42` gibi bir ekrana karşılık gelen adrestir
+        - `GoRouter`, `GoRoute`, `MaterialApp.router` ve `routerConfig`
+        - Yol parametreleri: `habit/:id` ve `state.pathParameters['id']`
+        - Bir ekrana gitmek için `context.go`, geri dönmek için `context.pop`; iç içe rotalar geri düğmesini bedavaya verir
+    do:
+      en: |
+        1. Add the package: `flutter pub add go_router`.
+        2. Create `lib/router.dart` below. The `habit/:id` route is inside the `/` route, so the full address is `/habit/<id>` and the app bar shows a back button.
+        3. Create `lib/screens/habit_screen.dart`: it shows the streak, the last 14 days and a delete button.
+        4. In `lib/main.dart` switch to `MaterialApp.router`.
+        5. In `lib/screens/home_screen.dart` add `onTap: () => context.go('/habit/${habit.id}')` to the `HabitTile` and import `package:go_router/go_router.dart`.
+        6. Run in Chrome, open a habit and look at the address bar: it ends in `#/habit/...`. Reload the page: you stay on the same screen. Press the browser's back button.
+      tr: |
+        1. Paketi ekle: `flutter pub add go_router`.
+        2. Aşağıdaki `lib/router.dart` dosyasını oluştur. `habit/:id` rotası `/` rotasının içinde; yani tam adres `/habit/<id>` olur ve uygulama çubuğu geri düğmesi gösterir.
+        3. `lib/screens/habit_screen.dart` dosyasını oluştur: seriyi, son 14 günü ve bir silme düğmesini gösterir.
+        4. `lib/main.dart`'ta `MaterialApp.router`'a geç.
+        5. `lib/screens/home_screen.dart`'ta `HabitTile`'a `onTap: () => context.go('/habit/${habit.id}')` ekle ve `package:go_router/go_router.dart`'ı import et.
+        6. Chrome'da çalıştır, bir alışkanlığı aç ve adres çubuğuna bak: `#/habit/...` ile bitiyor. Sayfayı yenile: aynı ekranda kalırsın. Tarayıcının geri düğmesine bas.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add go_router
+      - file: lib/router.dart
+        lang: dart
+        text: |
+          import 'package:go_router/go_router.dart';
+
+          import 'screens/habit_screen.dart';
+          import 'screens/home_screen.dart';
+
+          final router = GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const HomeScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'habit/:id',
+                    builder: (context, state) =>
+                        HabitScreen(id: state.pathParameters['id']!),
+                  ),
+                ],
+              ),
+            ],
+          );
+      - file: lib/screens/habit_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:go_router/go_router.dart';
+          import 'package:provider/provider.dart';
+
+          import '../state/habits_model.dart';
+
+          class HabitScreen extends StatelessWidget {
+            const HabitScreen({super.key, required this.id});
+
+            final String id;
+
+            @override
+            Widget build(BuildContext context) {
+              final model = context.watch<HabitsModel>();
+              final habit = model.byId(id);
+              if (habit == null) {
+                return Scaffold(
+                  appBar: AppBar(),
+                  body: const Center(child: Text('This habit does not exist (any more).')),
+                );
+              }
+              final today = model.today;
+              return Scaffold(
+                appBar: AppBar(title: Text(habit.name)),
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Streak: ${habit.streak(today)} days',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Last 14 days'),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          for (var i = 13; i >= 0; i--)
+                            Icon(
+                              habit.isDoneOn(
+                                DateTime(today.year, today.month, today.day - i),
+                              )
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                            ),
+                        ],
+                      ),
+                      const Spacer(),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          context.pop();
+                          model.remove(habit.id);
+                        },
+                        icon: const Icon(Icons.delete_outline),
+                        label: const Text('Delete habit'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          }
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:provider/provider.dart';
+
+          import 'data/habit_store.dart';
+          import 'router.dart';
+          import 'state/habits_model.dart';
+
+          void main() {
+            runApp(
+              ChangeNotifierProvider(
+                create: (_) => HabitsModel(MemoryHabitStore())..load(),
+                child: const HabitApp(),
+              ),
+            );
+          }
+
+          class HabitApp extends StatelessWidget {
+            const HabitApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp.router(
+                title: 'Habit Tracker',
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+                ),
+                routerConfig: router,
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Using `MaterialApp(home: ...)` together with go_router, and the routes are ignored."
+          tr: "go_router ile birlikte `MaterialApp(home: ...)` kullanmak ve rotaların yok sayılması."
+        fix:
+          en: "Use `MaterialApp.router(routerConfig: router)` and remove `home:`."
+          tr: "`MaterialApp.router(routerConfig: router)` kullan ve `home:`'u kaldır."
+      - problem:
+          en: "The detail screen has no back button."
+          tr: "Detay ekranında geri düğmesi yok."
+        fix:
+          en: "`context.go` replaces the whole stack with the stack that matches the address. Nest the detail route inside `/` as shown, or use `context.push` to put a screen on top."
+          tr: "`context.go` bütün yığını adrese uyan yığınla değiştirir. Detay rotasını gösterildiği gibi `/` içine yerleştir ya da bir ekranı üste koymak için `context.push` kullan."
+      - problem:
+          en: "Using named routes with `Navigator.pushNamed` for everything."
+          tr: "Her şey için `Navigator.pushNamed` ile isimli rotalar kullanmak."
+        fix:
+          en: "The Flutter docs advise against named routes in most apps: they cannot customize deep links and do not support the browser forward button. Use go_router."
+          tr: "Flutter dokümanları çoğu uygulamada isimli rotaları önermez: derin bağlantıları özelleştiremezler ve tarayıcının ileri düğmesini desteklemezler. go_router kullan."
+    quiz:
+      - q:
+          en: "In `GoRoute(path: 'habit/:id', ...)` what is `:id`?"
+          tr: "`GoRoute(path: 'habit/:id', ...)` içinde `:id` nedir?"
+        options:
+          en:
+            - "A path parameter you read with state.pathParameters"
+            - "A comment"
+            - "The name of a widget"
+          tr:
+            - "state.pathParameters ile okuduğun bir yol parametresi"
+            - "Bir yorum"
+            - "Bir widget'ın adı"
+        answer: 0
+        why:
+          en: "A colon marks a part of the address that changes. For /habit/42 the id is the text 42."
+          tr: "İki nokta adresin değişen bir parçasını işaretler. /habit/42 için id, 42 metnidir."
+    sources:
+      - title: Navigation and routing
+        url: https://docs.flutter.dev/ui/navigation
+      - title: go_router package
+        url: https://pub.dev/packages/go_router
+      - title: go_router, get started
+        url: https://pub.dev/documentation/go_router/latest/topics/Get%20started-topic.html
+
+  - id: forms
+    stage: first-project
+    title:
+      en: "A form with validation"
+      tr: "Doğrulamalı bir form"
+    minutes: 60
+    needs: [navigation]
+    why:
+      en: "People type empty names, very long names and the same name twice. A form checks input before it is used and tells the person what to fix. The check lives in a plain Dart function, so you can test it without any screen."
+      tr: "İnsanlar boş isim, çok uzun isim ve aynı ismi iki kez yazar. Form, girdiyi kullanılmadan önce kontrol eder ve kişiye neyi düzelteceğini söyler. Kontrol düz bir Dart fonksiyonunda durur; böylece ekran olmadan test edebilirsin."
+    learn:
+      en: |
+        - `Form`, `GlobalKey<FormState>` and `TextFormField` with a `validator`
+        - A validator returns an error text, or `null` when the input is fine
+        - `TextEditingController` and why you must `dispose` it
+        - After an `await`, check `mounted` before using the screen again
+      tr: |
+        - `Form`, `GlobalKey<FormState>` ve `validator` ile `TextFormField`
+        - Validator, hata metni döndürür; girdi iyiyse `null` döndürür
+        - `TextEditingController` ve neden `dispose` etmen gerektiği
+        - Bir `await`'ten sonra ekranı yeniden kullanmadan önce `mounted` kontrolü
+    do:
+      en: |
+        1. Create `lib/validation.dart` with the check function.
+        2. Create `lib/screens/add_habit_screen.dart`. It validates when you press Save or the keyboard's done key, adds the habit and goes back.
+        3. Add the `add` route next to `habit/:id` in `lib/router.dart`.
+        4. In `lib/screens/home_screen.dart` make the plus button `onPressed: () => context.go('/add')`, then delete `_addHabit` and the whole `_NameDialog` class and import `package:go_router/go_router.dart`.
+        5. Try an empty name, 41 letters, and the same name twice (also in different case). Each shows its own message under the field.
+      tr: |
+        1. Kontrol fonksiyonuyla `lib/validation.dart` dosyasını oluştur.
+        2. `lib/screens/add_habit_screen.dart` dosyasını oluştur. Kaydet'e ya da klavyenin bitti tuşuna basınca doğrular, alışkanlığı ekler ve geri döner.
+        3. `lib/router.dart` içinde `habit/:id`'nin yanına `add` rotasını ekle.
+        4. `lib/screens/home_screen.dart`'ta artı düğmesini `onPressed: () => context.go('/add')` yap, sonra `_addHabit`'i ve bütün `_NameDialog` sınıfını sil ve `package:go_router/go_router.dart`'ı import et.
+        5. Boş bir isim, 41 harf ve aynı ismi iki kez (farklı büyük/küçük harfle de) dene. Her biri alanın altında kendi mesajını gösterir.
+    code:
+      - file: lib/validation.dart
+        lang: dart
+        text: |
+          /// Returns an error message, or null when the name is fine.
+          String? validateHabitName(String? value, {Iterable<String> existing = const []}) {
+            final name = value?.trim() ?? '';
+            if (name.isEmpty) return 'Write a name for the habit.';
+            if (name.length > 40) return 'Keep it under 40 characters.';
+            final taken = existing.any((e) => e.toLowerCase() == name.toLowerCase());
+            if (taken) return 'You already have this habit.';
+            return null;
+          }
+      - file: lib/screens/add_habit_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:go_router/go_router.dart';
+          import 'package:provider/provider.dart';
+
+          import '../state/habits_model.dart';
+          import '../validation.dart';
+
+          class AddHabitScreen extends StatefulWidget {
+            const AddHabitScreen({super.key});
+
+            @override
+            State<AddHabitScreen> createState() => _AddHabitScreenState();
+          }
+
+          class _AddHabitScreenState extends State<AddHabitScreen> {
+            final _formKey = GlobalKey<FormState>();
+            final _controller = TextEditingController();
+
+            @override
+            void dispose() {
+              _controller.dispose();
+              super.dispose();
+            }
+
+            Future<void> _save() async {
+              if (!_formKey.currentState!.validate()) return;
+              await context.read<HabitsModel>().add(_controller.text);
+              if (mounted) context.pop();
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              final names = context.read<HabitsModel>().habits.map((h) => h.name);
+              return Scaffold(
+                appBar: AppBar(title: const Text('New habit')),
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _controller,
+                          autofocus: true,
+                          decoration: const InputDecoration(labelText: 'Name'),
+                          textInputAction: TextInputAction.done,
+                          validator: (value) => validateHabitName(value, existing: names),
+                          onFieldSubmitted: (_) => _save(),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton(onPressed: _save, child: const Text('Save')),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+      - file: lib/router.dart
+        lang: dart
+        text: |
+          import 'package:go_router/go_router.dart';
+
+          import 'screens/add_habit_screen.dart';
+          import 'screens/habit_screen.dart';
+          import 'screens/home_screen.dart';
+
+          final router = GoRouter(
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (context, state) => const HomeScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'add',
+                    builder: (context, state) => const AddHabitScreen(),
+                  ),
+                  GoRoute(
+                    path: 'habit/:id',
+                    builder: (context, state) =>
+                        HabitScreen(id: state.pathParameters['id']!),
+                  ),
+                ],
+              ),
+            ],
+          );
+    mistakes:
+      - problem:
+          en: "`_formKey.currentState!.validate()` crashes with a null error."
+          tr: "`_formKey.currentState!.validate()` null hatasıyla çöküyor."
+        fix:
+          en: "The key must be given to the `Form` widget (`key: _formKey`). Create it once as a field of the State class, not inside `build`."
+          tr: "Anahtar `Form` widget'ına verilmeli (`key: _formKey`). Onu `build` içinde değil, State sınıfının bir alanı olarak bir kez oluştur."
+      - problem:
+          en: "The linter warns \"Don't use 'BuildContext's across async gaps\"."
+          tr: "Linter \"Don't use 'BuildContext's across async gaps\" uyarısı veriyor."
+        fix:
+          en: "After an `await` the screen may be gone. Check `if (mounted)` (or `context.mounted`) before using `context` again, as `_save` does."
+          tr: "Bir `await`'ten sonra ekran gitmiş olabilir. `context`'i yeniden kullanmadan önce `_save`'in yaptığı gibi `if (mounted)` (ya da `context.mounted`) ile kontrol et."
+    quiz:
+      - q:
+          en: "What must a `validator` return when the input is valid?"
+          tr: "Girdi geçerliyse bir `validator` ne döndürmeli?"
+        options:
+          en:
+            - "true"
+            - "null"
+            - "An empty string is the only valid answer"
+          tr:
+            - "true"
+            - "null"
+            - "Tek geçerli cevap boş metindir"
+        answer: 1
+        why:
+          en: "A validator returns the error text to show, or null for no error."
+          tr: "Validator, gösterilecek hata metnini ya da hata yoksa null döndürür."
+    sources:
+      - title: Build a form with validation
+        url: https://docs.flutter.dev/cookbook/forms/validation
+      - title: Form (API reference)
+        url: https://api.flutter.dev/flutter/widgets/Form-class.html
+
+  - id: persistence
+    stage: data-api
+    title:
+      en: "Keep habits on the device with shared_preferences"
+      tr: "shared_preferences ile alışkanlıkları cihazda saklama"
+    minutes: 50
+    needs: [forms]
+    why:
+      en: "Right now closing the app deletes everything. Small data like a list of habits can be saved as text on the device. `shared_preferences` does exactly this on Android, iOS and the web. Because the model only knows the `HabitStore` interface, we add a new store without touching the screens."
+      tr: "Şu an uygulamayı kapatmak her şeyi siler. Alışkanlık listesi gibi küçük veriler cihazda metin olarak saklanabilir. `shared_preferences` bunu Android'de, iOS'ta ve webde yapar. Model sadece `HabitStore` arayüzünü bildiği için ekranlara dokunmadan yeni bir store ekliyoruz."
+    learn:
+      en: |
+        - JSON: turning objects into text (`jsonEncode`) and back (`jsonDecode`)
+        - `SharedPreferencesAsync`, the current API of the package: `setString` and `getString`
+        - Why bad saved data must not crash the app (we return an empty list)
+        - When to use something bigger: a database such as sqflite or drift (see the last step)
+      tr: |
+        - JSON: nesneleri metne çevirmek (`jsonEncode`) ve geri çevirmek (`jsonDecode`)
+        - Paketin güncel API'si `SharedPreferencesAsync`: `setString` ve `getString`
+        - Bozuk kayıtlı verinin neden uygulamayı çökertmemesi gerektiği (boş liste döndürürüz)
+        - Daha büyüğünün ne zaman gerektiği: sqflite ya da drift gibi bir veritabanı (son adıma bak)
+    do:
+      en: |
+        1. Add the package: `flutter pub add shared_preferences`.
+        2. Create `lib/data/habit_codec.dart` (habits to text and back) and `lib/data/prefs_habit_store.dart` below.
+        3. In `lib/main.dart` replace `MemoryHabitStore()` with `PrefsHabitStore()`.
+        4. Run in Chrome with a fixed port: `flutter run -d chrome --web-port=5000`. Add a habit, tick it, press `R`, and it stays. On the web the data sits in the browser's local storage, which belongs to one address; a random port on each run would look like lost data.
+        5. In the Chrome developer tools (F12) open *Application → Local Storage* and find the saved habits.
+      tr: |
+        1. Paketi ekle: `flutter pub add shared_preferences`.
+        2. Aşağıdaki `lib/data/habit_codec.dart` (alışkanlıktan metne ve geri) ve `lib/data/prefs_habit_store.dart` dosyalarını oluştur.
+        3. `lib/main.dart` içinde `MemoryHabitStore()` yerine `PrefsHabitStore()` yaz.
+        4. Chrome'da sabit bir portla çalıştır: `flutter run -d chrome --web-port=5000`. Bir alışkanlık ekle, işaretle, `R`'ye bas; kalır. Webde veri tarayıcının local storage'ında durur ve o bir adrese aittir; her çalıştırmada rastgele port olsaydı veri kaybolmuş gibi görünürdü.
+        5. Chrome geliştirici araçlarında (F12) *Application → Local Storage*'ı aç ve kayıtlı alışkanlıkları bul.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add shared_preferences
+          flutter run -d chrome --web-port=5000
+      - file: lib/data/habit_codec.dart
+        lang: dart
+        text: |
+          import 'dart:convert';
+
+          import '../models/habit.dart';
+
+          String encodeHabits(List<Habit> habits) =>
+              jsonEncode([for (final h in habits) h.toJson()]);
+
+          /// Reads habits from saved text. Missing or damaged text gives an empty list
+          /// instead of crashing the app.
+          List<Habit> decodeHabits(String? text) {
+            if (text == null || text.isEmpty) return [];
+            try {
+              final data = jsonDecode(text) as List<Object?>;
+              return [for (final item in data) Habit.fromJson(item as Map<String, Object?>)];
+            } on FormatException {
+              return [];
+            } on TypeError {
+              return [];
+            }
+          }
+      - file: lib/data/prefs_habit_store.dart
+        lang: dart
+        text: |
+          import 'package:shared_preferences/shared_preferences.dart';
+
+          import '../models/habit.dart';
+          import 'habit_codec.dart';
+          import 'habit_store.dart';
+
+          class PrefsHabitStore implements HabitStore {
+            PrefsHabitStore([SharedPreferencesAsync? prefs])
+                : _prefs = prefs ?? SharedPreferencesAsync();
+
+            static const _key = 'habits';
+            final SharedPreferencesAsync _prefs;
+
+            @override
+            Future<List<Habit>> load() async => decodeHabits(await _prefs.getString(_key));
+
+            @override
+            Future<void> save(List<Habit> habits) =>
+                _prefs.setString(_key, encodeHabits(habits));
+          }
+    mistakes:
+      - problem:
+          en: "Habits vanish on the web after every `flutter run`."
+          tr: "Webde her `flutter run`'dan sonra alışkanlıklar kayboluyor."
+        fix:
+          en: "Local storage is tied to the address, and the port changes on each run. Use `--web-port=5000`."
+          tr: "Local storage adrese bağlıdır ve port her çalıştırmada değişir. `--web-port=5000` kullan."
+      - problem:
+          en: "Keeping passwords or tokens in shared_preferences."
+          tr: "Parolaları ya da token'ları shared_preferences içinde tutmak."
+        fix:
+          en: "It is plain text, and the package warns not to use it for critical data. Use secure storage for secrets (a later step)."
+          tr: "Düz metindir ve paket kritik veriler için kullanılmamasını söyler. Sırlar için güvenli depolama kullan (sonraki bir adım)."
+    quiz:
+      - q:
+          en: "What should `decodeHabits` do when the saved text is damaged?"
+          tr: "Kayıtlı metin bozuksa `decodeHabits` ne yapmalı?"
+        options:
+          en:
+            - "Crash, so the problem is noticed"
+            - "Return an empty list so the app still starts"
+            - "Delete the phone's storage"
+          tr:
+            - "Sorun fark edilsin diye çökmek"
+            - "Uygulama yine de açılsın diye boş liste döndürmek"
+            - "Telefonun depolamasını silmek"
+        answer: 1
+        why:
+          en: "An app that cannot start because of one broken value is worse than an empty list."
+          tr: "Tek bir bozuk değer yüzünden açılmayan uygulama, boş bir listeden kötüdür."
+    sources:
+      - title: shared_preferences package
+        url: https://pub.dev/packages/shared_preferences
+      - title: Store key-value data on disk
+        url: https://docs.flutter.dev/cookbook/persistence/key-value
+      - title: JSON and serialization
+        url: https://docs.flutter.dev/data-and-backend/serialization/json
+
+  - id: http
+    stage: data-api
+    title:
+      en: "Load a daily quote from a web API"
+      tr: "Bir web API'den günlük söz yükleme"
+    minutes: 70
+    needs: [persistence]
+    why:
+      en: "Most apps talk to a server. You send an HTTP request, wait for the answer and show it. Waiting can fail (no network, server error), so the screen needs three states: loading, success and failure."
+      tr: "Çoğu uygulama bir sunucuyla konuşur. Bir HTTP isteği gönderir, cevabı bekler ve gösterirsin. Beklemek başarısız olabilir (ağ yok, sunucu hatası); bu yüzden ekranın üç durumu olmalı: yükleniyor, başarılı ve başarısız."
+    learn:
+      en: |
+        - The `http` package: `Uri.https`, `client.get`, status codes
+        - `Future`, `FutureBuilder` and its three states
+        - Putting the network code in its own class (`QuoteClient`) with our own exception type
+        - A timeout, so the app never waits forever
+        - The Android release build needs the INTERNET permission, or every request fails
+      tr: |
+        - `http` paketi: `Uri.https`, `client.get`, durum kodları
+        - `Future`, `FutureBuilder` ve üç durumu
+        - Ağ kodunu kendi sınıfına (`QuoteClient`) ve kendi hata tipimize koymak
+        - Uygulama sonsuza kadar beklemesin diye zaman aşımı (timeout)
+        - Android release build'inin INTERNET iznine ihtiyacı var, yoksa her istek başarısız olur
+    do:
+      en: |
+        1. Add the package: `flutter pub add http`.
+        2. Create `lib/data/quote_client.dart` and `lib/widgets/quote_card.dart` below. We use the free public API `dummyjson.com/quotes/random`; it answers like `{"id":702,"quote":"...","author":"..."}` and allows requests from browsers.
+        3. Provide the client in `lib/main.dart` with `MultiProvider`.
+        4. Show the card at the top of the list in `lib/screens/home_screen.dart` (full file below). The screen now always shows a list: the quote card first, then an empty message or the habits.
+        5. Run it. Turn off your Wi-Fi and press the retry button: you see the failure message instead of a crash.
+        6. Open `android/app/src/main/AndroidManifest.xml` and add `<uses-permission android:name="android.permission.INTERNET"/>` as the first line inside `<manifest ...>`, above `<application`. Debug builds get this permission automatically, release builds do not.
+      tr: |
+        1. Paketi ekle: `flutter pub add http`.
+        2. Aşağıdaki `lib/data/quote_client.dart` ve `lib/widgets/quote_card.dart` dosyalarını oluştur. Ücretsiz herkese açık `dummyjson.com/quotes/random` API'sini kullanıyoruz; `{"id":702,"quote":"...","author":"..."}` gibi cevap verir ve tarayıcılardan gelen isteklere izin verir.
+        3. İstemciyi `lib/main.dart` içinde `MultiProvider` ile sağla.
+        4. Kartı `lib/screens/home_screen.dart` içinde listenin başında göster (tam dosya aşağıda). Ekran artık hep bir liste gösterir: önce söz kartı, sonra boş mesajı ya da alışkanlıklar.
+        5. Çalıştır. Wi-Fi'ı kapat ve tekrar dene düğmesine bas: çökme yerine hata mesajını görürsün.
+        6. `android/app/src/main/AndroidManifest.xml` dosyasını aç ve `<manifest ...>` içinde, `<application`'ın üstüne ilk satır olarak `<uses-permission android:name="android.permission.INTERNET"/>` ekle. Debug build'ler bu izni otomatik alır, release build'ler almaz.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add http
+      - file: lib/data/quote_client.dart
+        lang: dart
+        text: |
+          import 'dart:convert';
+
+          import 'package:http/http.dart' as http;
+
+          class Quote {
+            const Quote({required this.text, required this.author});
+
+            final String text;
+            final String author;
+          }
+
+          class QuoteException implements Exception {
+            const QuoteException(this.message);
+            final String message;
+
+            @override
+            String toString() => message;
+          }
+
+          class QuoteClient {
+            QuoteClient(this._client);
+
+            final http.Client _client;
+
+            Future<Quote> fetch() async {
+              final http.Response response;
+              try {
+                response = await _client
+                    .get(Uri.https('dummyjson.com', '/quotes/random'))
+                    .timeout(const Duration(seconds: 10));
+              } on Exception {
+                throw const QuoteException('Could not reach the quote service.');
+              }
+              if (response.statusCode != 200) {
+                throw QuoteException('The quote service answered ${response.statusCode}.');
+              }
+              try {
+                final json = jsonDecode(response.body) as Map<String, Object?>;
+                return Quote(text: json['quote'] as String, author: json['author'] as String);
+              } on FormatException {
+                throw const QuoteException('The quote service sent something unexpected.');
+              } on TypeError {
+                throw const QuoteException('The quote service sent something unexpected.');
+              }
+            }
+
+            void close() => _client.close();
+          }
+      - file: lib/widgets/quote_card.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:provider/provider.dart';
+
+          import '../data/quote_client.dart';
+
+          class QuoteCard extends StatefulWidget {
+            const QuoteCard({super.key});
+
+            @override
+            State<QuoteCard> createState() => _QuoteCardState();
+          }
+
+          class _QuoteCardState extends State<QuoteCard> {
+            late Future<Quote> _quote;
+
+            @override
+            void initState() {
+              super.initState();
+              _quote = context.read<QuoteClient>().fetch();
+            }
+
+            void _retry() {
+              setState(() {
+                _quote = context.read<QuoteClient>().fetch();
+              });
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: FutureBuilder<Quote>(
+                    future: _quote,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return const LinearProgressIndicator();
+                      }
+                      if (snapshot.hasError) {
+                        final error = snapshot.error;
+                        return Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                error is QuoteException ? error.message : 'Something went wrong.',
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: _retry,
+                              icon: const Icon(Icons.refresh),
+                              tooltip: 'Try again',
+                            ),
+                          ],
+                        );
+                      }
+                      final quote = snapshot.requireData;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('"${quote.text}"'),
+                          const SizedBox(height: 4),
+                          Text(quote.author, style: Theme.of(context).textTheme.labelMedium),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              );
+            }
+          }
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:http/http.dart' as http;
+          import 'package:provider/provider.dart';
+
+          import 'data/prefs_habit_store.dart';
+          import 'data/quote_client.dart';
+          import 'router.dart';
+          import 'state/habits_model.dart';
+
+          void main() {
+            runApp(
+              MultiProvider(
+                providers: [
+                  ChangeNotifierProvider(
+                    create: (_) => HabitsModel(PrefsHabitStore())..load(),
+                  ),
+                  Provider(
+                    create: (_) => QuoteClient(http.Client()),
+                    dispose: (_, client) => client.close(),
+                  ),
+                ],
+                child: const HabitApp(),
+              ),
+            );
+          }
+
+          class HabitApp extends StatelessWidget {
+            const HabitApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp.router(
+                title: 'Habit Tracker',
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+                ),
+                routerConfig: router,
+              );
+            }
+          }
+      - file: lib/screens/home_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:go_router/go_router.dart';
+          import 'package:provider/provider.dart';
+
+          import '../state/habits_model.dart';
+          import '../widgets/habit_tile.dart';
+          import '../widgets/quote_card.dart';
+
+          class HomeScreen extends StatelessWidget {
+            const HomeScreen({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(title: const Text('Habits')),
+                body: Consumer<HabitsModel>(
+                  builder: (context, model, _) {
+                    if (!model.loaded) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        const QuoteCard(),
+                        const SizedBox(height: 8),
+                        if (model.habits.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text('No habits yet. Tap + to add your first one.'),
+                          ),
+                        for (final habit in model.habits)
+                          HabitTile(
+                            habit: habit,
+                            today: model.today,
+                            onToggle: () => model.toggle(habit.id),
+                            onTap: () => context.go('/habit/${habit.id}'),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () => context.go('/add'),
+                  tooltip: 'Add habit',
+                  child: const Icon(Icons.add),
+                ),
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "The quote works with `flutter run` but the installed release app shows \"Could not reach the quote service\"."
+          tr: "Söz `flutter run` ile çalışıyor ama kurulu release uygulaması \"Could not reach the quote service\" gösteriyor."
+        fix:
+          en: "The release Android manifest has no INTERNET permission. Add the `<uses-permission android:name=\"android.permission.INTERNET\"/>` line (step 6) and build again."
+          tr: "Release Android manifest'inde INTERNET izni yok. `<uses-permission android:name=\"android.permission.INTERNET\"/>` satırını ekle (6. adım) ve yeniden build et."
+      - problem:
+          en: "Calling `fetch()` inside `build`, so a new request starts on every redraw."
+          tr: "`fetch()`'i `build` içinde çağırmak; böylece her yeniden çizimde yeni bir istek başlar."
+        fix:
+          en: "Start the request once (in `initState`) and keep the `Future` in a field, as `QuoteCard` does."
+          tr: "İsteği bir kez başlat (`initState` içinde) ve `Future`'ı `QuoteCard`'ın yaptığı gibi bir alanda tut."
+      - problem:
+          en: "Trusting the answer and casting it blindly, so a changed API crashes the app."
+          tr: "Cevaba güvenip körü körüne dönüştürmek; API değişince uygulama çöker."
+        fix:
+          en: "Wrap parsing in try/catch and turn problems into your own exception, so the screen can show a friendly message."
+          tr: "Ayrıştırmayı try/catch içine al ve sorunları kendi exception'ına çevir; ekran dostça bir mesaj gösterebilsin."
+    quiz:
+      - q:
+          en: "Why do we keep the Future in a field instead of calling `fetch()` in `build`?"
+          tr: "`fetch()`'i `build` içinde çağırmak yerine Future'ı neden bir alanda tutuyoruz?"
+        options:
+          en:
+            - "build can run many times and each run would send a new request"
+            - "Futures cannot be created in build for security reasons"
+            - "It makes the quote shorter"
+          tr:
+            - "build çok kez çalışabilir ve her çalışma yeni bir istek gönderirdi"
+            - "Güvenlik nedeniyle build içinde Future oluşturulamaz"
+            - "Sözü kısaltır"
+        answer: 0
+        why:
+          en: "Flutter may call build at any time, for example on every animation frame or resize."
+          tr: "Flutter build'i her an çağırabilir; örneğin her animasyon karesinde ya da yeniden boyutlandırmada."
+    sources:
+      - title: Fetch data from the internet
+        url: https://docs.flutter.dev/cookbook/networking/fetch-data
+      - title: http package
+        url: https://pub.dev/packages/http
+      - title: Networking and permissions on Android
+        url: https://docs.flutter.dev/data-and-backend/networking
+
+  - id: tests
+    stage: testing
+    title:
+      en: "Unit, widget and integration tests"
+      tr: "Unit, widget ve integration testleri"
+    minutes: 90
+    needs: [http]
+    why:
+      en: "Tests are small programs that check your app for you, every time, in seconds. Flutter has three kinds. Unit tests check plain Dart code. Widget tests build a screen without a phone and tap it. Integration tests run the whole app on a device. Our streak code and our model are exactly the code that breaks silently."
+      tr: "Testler, uygulamanı senin yerine her seferinde saniyeler içinde kontrol eden küçük programlardır. Flutter'da üç çeşit var. Unit testler düz Dart kodunu kontrol eder. Widget testler telefon olmadan bir ekran kurar ve ona dokunur. Integration testler bütün uygulamayı bir cihazda çalıştırır. Seri kodumuz ve modelimiz sessizce bozulan türden kodlar."
+    learn:
+      en: |
+        - `test`, `expect` and matchers (`isTrue`, `isEmpty`, `throwsA`)
+        - Passing a fake clock (`clock: () => today`), so tests do not depend on today's date
+        - `MockClient` from `package:http/testing.dart`: fake answers, no real network
+        - Widget tests: `testWidgets`, `pumpWidget`, `find`, `tap`, `pump`, `pumpAndSettle`
+        - Integration tests with the `integration_test` package
+      tr: |
+        - `test`, `expect` ve matcher'lar (`isTrue`, `isEmpty`, `throwsA`)
+        - Sahte saat vermek (`clock: () => today`); testler bugünün tarihine bağlı kalmaz
+        - `package:http/testing.dart` içinden `MockClient`: sahte cevaplar, gerçek ağ yok
+        - Widget testler: `testWidgets`, `pumpWidget`, `find`, `tap`, `pump`, `pumpAndSettle`
+        - `integration_test` paketiyle integration testleri
+    do:
+      en: |
+        1. Create the three unit test files below in `test/`. Run `flutter test`: all tests pass.
+        2. Break something on purpose (for example change `day - 1` to `day - 2` in `streak`) and watch the test fail with a clear message. Undo it.
+        3. Create `test/home_screen_test.dart`. It builds the home screen with a fake quote answer and a one-habit store, ticks the habit and checks the streak text.
+        4. For the integration test add `integration_test` to `dev_dependencies` in `pubspec.yaml` (next to `flutter_test`) as shown, run `flutter pub get`, and create `integration_test/app_test.dart`.
+        5. Integration tests need a device or an emulator (the Android step shows how to get one). Then run `flutter devices` to see its id and `flutter test integration_test -d <id>`. Until then the unit and widget tests are your safety net.
+      tr: |
+        1. `test/` içinde aşağıdaki üç unit test dosyasını oluştur. `flutter test` çalıştır: bütün testler geçer.
+        2. Bilerek bir şeyi boz (örneğin `streak` içinde `day - 1`'i `day - 2` yap) ve testin açık bir mesajla kırıldığını izle. Geri al.
+        3. `test/home_screen_test.dart` dosyasını oluştur. Ana ekranı sahte bir söz cevabı ve tek alışkanlıklı bir store ile kurar, alışkanlığı işaretler ve seri yazısını kontrol eder.
+        4. Integration test için `pubspec.yaml`'daki `dev_dependencies` altına (`flutter_test`'in yanına) gösterildiği gibi `integration_test` ekle, `flutter pub get` çalıştır ve `integration_test/app_test.dart` dosyasını oluştur.
+        5. Integration testler bir cihaz ya da emülatör ister (Android adımı nasıl edineceğini gösterir). Sonra id'sini görmek için `flutter devices`, sonra `flutter test integration_test -d <id>` çalıştır. O zamana kadar unit ve widget testleri güvenlik ağındır.
+    code:
+      - file: test/habit_test.dart
+        lang: dart
+        text: |
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:habit_tracker/data/habit_codec.dart';
+          import 'package:habit_tracker/models/habit.dart';
+          import 'package:habit_tracker/validation.dart';
+
+          void main() {
+            final today = DateTime(2026, 10, 18);
+
+            test('dayKey pads month and day', () {
+              expect(dayKey(DateTime(2026, 3, 5)), '2026-03-05');
+            });
+
+            test('toggled ticks a day and un-ticks it again', () {
+              const habit = Habit(id: '1', name: 'Read');
+              final ticked = habit.toggled(today);
+              expect(ticked.isDoneOn(today), isTrue);
+              expect(habit.isDoneOn(today), isFalse, reason: 'the original must not change');
+              expect(ticked.toggled(today).isDoneOn(today), isFalse);
+            });
+
+            test('streak counts days in a row, also across a month end', () {
+              final habit = const Habit(id: '1', name: 'Read')
+                  .toggled(DateTime(2026, 10, 18))
+                  .toggled(DateTime(2026, 10, 17))
+                  .toggled(DateTime(2026, 10, 16))
+                  .toggled(DateTime(2026, 10, 13));
+              expect(habit.streak(today), 3);
+              expect(habit.streak(DateTime(2026, 10, 19)), 3, reason: 'yesterday still counts');
+              expect(habit.streak(DateTime(2026, 10, 20)), 0);
+              final overMonth = const Habit(id: '2', name: 'Run')
+                  .toggled(DateTime(2026, 9, 30))
+                  .toggled(DateTime(2026, 10, 1));
+              expect(overMonth.streak(DateTime(2026, 10, 1)), 2);
+            });
+
+            test('habits survive encode and decode', () {
+              final habits = [const Habit(id: '1', name: 'Read').toggled(today)];
+              final back = decodeHabits(encodeHabits(habits));
+              expect(back.single.name, 'Read');
+              expect(back.single.isDoneOn(today), isTrue);
+            });
+
+            test('damaged saved text gives an empty list', () {
+              expect(decodeHabits('not json'), isEmpty);
+              expect(decodeHabits('{"a": 1}'), isEmpty);
+              expect(decodeHabits(null), isEmpty);
+            });
+
+            test('validateHabitName', () {
+              expect(validateHabitName('  '), isNotNull);
+              expect(validateHabitName('a' * 41), isNotNull);
+              expect(validateHabitName('Read', existing: ['read']), isNotNull);
+              expect(validateHabitName(' Read '), isNull);
+            });
+          }
+      - file: test/habits_model_test.dart
+        lang: dart
+        text: |
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:habit_tracker/data/habit_store.dart';
+          import 'package:habit_tracker/state/habits_model.dart';
+
+          void main() {
+            final today = DateTime(2026, 10, 18);
+
+            test('add, toggle and remove change the list and tell listeners', () async {
+              final store = MemoryHabitStore();
+              final model = HabitsModel(store, clock: () => today);
+              var calls = 0;
+              model.addListener(() => calls++);
+
+              await model.load();
+              await model.add('  Read  ');
+              expect(model.habits.single.name, 'Read');
+
+              final id = model.habits.single.id;
+              await model.toggle(id);
+              expect(model.byId(id)!.isDoneOn(today), isTrue);
+
+              expect((await store.load()).single.isDoneOn(today), isTrue,
+                  reason: 'changes are saved');
+
+              await model.remove(id);
+              expect(model.habits, isEmpty);
+              expect(calls, 4);
+            });
+          }
+      - file: test/quote_client_test.dart
+        lang: dart
+        text: |
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:habit_tracker/data/quote_client.dart';
+          import 'package:http/http.dart' as http;
+          import 'package:http/testing.dart';
+
+          void main() {
+            test('reads a quote from the answer', () async {
+              final client = QuoteClient(MockClient((request) async {
+                expect(request.url.host, 'dummyjson.com');
+                return http.Response('{"id":1,"quote":"Keep going.","author":"Ada"}', 200);
+              }));
+              final quote = await client.fetch();
+              expect(quote.text, 'Keep going.');
+              expect(quote.author, 'Ada');
+            });
+
+            test('a server error becomes a QuoteException', () async {
+              final client = QuoteClient(MockClient((_) async => http.Response('oops', 500)));
+              expect(client.fetch(), throwsA(isA<QuoteException>()));
+            });
+
+            test('a strange answer becomes a QuoteException', () async {
+              final client = QuoteClient(MockClient((_) async => http.Response('{"x":1}', 200)));
+              expect(client.fetch(), throwsA(isA<QuoteException>()));
+            });
+
+            test('no network becomes a QuoteException', () async {
+              final client = QuoteClient(MockClient((_) async => throw http.ClientException('down')));
+              expect(client.fetch(), throwsA(isA<QuoteException>()));
+            });
+          }
+      - file: test/home_screen_test.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:habit_tracker/data/habit_store.dart';
+          import 'package:habit_tracker/data/quote_client.dart';
+          import 'package:habit_tracker/models/habit.dart';
+          import 'package:habit_tracker/screens/home_screen.dart';
+          import 'package:habit_tracker/state/habits_model.dart';
+          import 'package:http/http.dart' as http;
+          import 'package:http/testing.dart';
+          import 'package:provider/provider.dart';
+
+          void main() {
+            testWidgets('ticking a habit raises its streak', (tester) async {
+              final model = HabitsModel(
+                MemoryHabitStore([const Habit(id: '1', name: 'Read')]),
+                clock: () => DateTime(2026, 10, 18),
+              );
+              await model.load();
+
+              await tester.pumpWidget(
+                MultiProvider(
+                  providers: [
+                    ChangeNotifierProvider.value(value: model),
+                    Provider(
+                      create: (_) => QuoteClient(
+                        MockClient((_) async =>
+                            http.Response('{"quote":"Keep going.","author":"Ada"}', 200)),
+                      ),
+                    ),
+                  ],
+                  child: const MaterialApp(home: HomeScreen()),
+                ),
+              );
+              await tester.pumpAndSettle();
+
+              expect(find.text('Read'), findsOneWidget);
+              expect(find.text('0 days in a row'), findsOneWidget);
+              expect(find.textContaining('Keep going.'), findsOneWidget);
+
+              await tester.tap(find.byType(Checkbox));
+              await tester.pump();
+
+              expect(find.text('1 day in a row'), findsOneWidget);
+            });
+          }
+      - file: pubspec.yaml
+        lang: yaml
+        text: |
+          dev_dependencies:
+            flutter_test:
+              sdk: flutter
+            integration_test:
+              sdk: flutter
+      - file: integration_test/app_test.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:habit_tracker/main.dart' as app;
+          import 'package:integration_test/integration_test.dart';
+
+          void main() {
+            IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+            testWidgets('add a habit and tick it', (tester) async {
+              app.main();
+              await tester.pumpAndSettle();
+
+              await tester.tap(find.byType(FloatingActionButton));
+              await tester.pumpAndSettle();
+              await tester.enterText(find.byType(TextFormField), 'Stretch');
+              await tester.tap(find.text('Save'));
+              await tester.pumpAndSettle();
+
+              expect(find.text('Stretch'), findsOneWidget);
+              await tester.tap(find.byType(Checkbox).last);
+              await tester.pumpAndSettle();
+              expect(find.text('1 day in a row'), findsOneWidget);
+            });
+          }
+    mistakes:
+      - problem:
+          en: "The widget test hangs or fails with \"A Timer is still pending\" or \"pumpAndSettle timed out\"."
+          tr: "Widget testi takılıyor ya da \"A Timer is still pending\" ya da \"pumpAndSettle timed out\" ile kırılıyor."
+        fix:
+          en: "Something keeps animating or waiting (a spinner, a real network call). Replace network code with a fake like `MockClient`, and use `pump()` with a duration instead of `pumpAndSettle()` for endless animations."
+          tr: "Bir şey durmadan animasyon yapıyor ya da bekliyor (bir spinner, gerçek bir ağ çağrısı). Ağ kodunu `MockClient` gibi sahteyle değiştir ve bitmeyen animasyonlarda `pumpAndSettle()` yerine süreli `pump()` kullan."
+      - problem:
+          en: "Tests that depend on today's date or on the real internet pass today and fail next week."
+          tr: "Bugünün tarihine ya da gerçek internete bağlı testler bugün geçer, haftaya kırılır."
+        fix:
+          en: "Inject the clock and the HTTP client, as the model and `QuoteClient` do, and give the test fixed values."
+          tr: "Modelin ve `QuoteClient`'ın yaptığı gibi saati ve HTTP istemcisini dışarıdan ver; teste sabit değerler ver."
+    quiz:
+      - q:
+          en: "Which kind of test builds a screen and taps a button without a phone?"
+          tr: "Hangi tür test telefon olmadan bir ekran kurar ve bir düğmeye dokunur?"
+        options:
+          en:
+            - "Unit test"
+            - "Widget test"
+            - "Integration test"
+          tr:
+            - "Unit test"
+            - "Widget test"
+            - "Integration test"
+        answer: 1
+        why:
+          en: "Widget tests run in a test environment on your computer. Integration tests run the real app on a device or emulator."
+          tr: "Widget testleri bilgisayarındaki bir test ortamında çalışır. Integration testleri gerçek uygulamayı bir cihazda ya da emülatörde çalıştırır."
+    sources:
+      - title: Testing Flutter apps
+        url: https://docs.flutter.dev/testing/overview
+      - title: An introduction to widget testing
+        url: https://docs.flutter.dev/cookbook/testing/widget/introduction
+      - title: Integration testing
+        url: https://docs.flutter.dev/testing/integration-tests
+
+  - id: secure-storage
+    stage: security
+    title:
+      en: "Keep secrets safe with secure storage"
+      tr: "Güvenli depolama ile sırları koruma"
+    minutes: 50
+    needs: [tests]
+    why:
+      en: "A login token or a key is a secret. `shared_preferences` writes plain text that other tools can read. `flutter_secure_storage` keeps values in the Android Keystore and the iOS Keychain, which are made for this. We add a small settings screen that stores an optional backup token the safe way."
+      tr: "Bir giriş token'ı ya da anahtar bir sırdır. `shared_preferences` başka araçların okuyabileceği düz metin yazar. `flutter_secure_storage` değerleri bunun için yapılmış Android Keystore ve iOS Keychain içinde tutar. Güvenli yoldan isteğe bağlı bir yedekleme token'ı saklayan küçük bir ayarlar ekranı ekliyoruz."
+    learn:
+      en: |
+        - What belongs in secure storage (tokens, keys) and what does not (the habit list)
+        - `FlutterSecureStorage`: `write`, `read`, `delete`
+        - The honest limit: a secret that is compiled into the app (an API key in the code) is not a secret, because anyone can unpack the app
+        - Web: secure storage there is experimental and weaker, so do not rely on it
+      tr: |
+        - Güvenli depolamaya ne girer (token'lar, anahtarlar) ve ne girmez (alışkanlık listesi)
+        - `FlutterSecureStorage`: `write`, `read`, `delete`
+        - Dürüst sınır: uygulamanın içine derlenmiş bir sır (kodda bir API anahtarı) sır değildir, çünkü herkes uygulamayı açıp bakabilir
+        - Web: orada güvenli depolama deneysel ve daha zayıftır; ona güvenme
+    do:
+      en: |
+        1. Add the package: `flutter pub add flutter_secure_storage`.
+        2. Create `lib/data/token_store.dart` and `lib/screens/settings_screen.dart` below.
+        3. Add the route `GoRoute(path: 'settings', builder: (context, state) => const SettingsScreen())` next to the others in `lib/router.dart`, and import the screen.
+        4. In `lib/screens/home_screen.dart` give the `AppBar` an action: `actions: [IconButton(onPressed: () => context.go('/settings'), icon: const Icon(Icons.settings), tooltip: 'Settings')]`.
+        5. Run it on Chrome or, after the Android step, on a phone. Save a token, restart the app and see that it says a token is saved. The screen never shows the token again.
+        6. If the Android build later complains about `minSdkVersion`, the package needs Android 6.0 (API 23) or newer: set `minSdk = 23` (or higher) in `android/app/build.gradle.kts`.
+      tr: |
+        1. Paketi ekle: `flutter pub add flutter_secure_storage`.
+        2. Aşağıdaki `lib/data/token_store.dart` ve `lib/screens/settings_screen.dart` dosyalarını oluştur.
+        3. `lib/router.dart` içinde diğerlerinin yanına `GoRoute(path: 'settings', builder: (context, state) => const SettingsScreen())` rotasını ekle ve ekranı import et.
+        4. `lib/screens/home_screen.dart` içinde `AppBar`'a bir eylem ver: `actions: [IconButton(onPressed: () => context.go('/settings'), icon: const Icon(Icons.settings), tooltip: 'Settings')]`.
+        5. Chrome'da ya da Android adımından sonra telefonda çalıştır. Bir token kaydet, uygulamayı yeniden başlat ve bir token kayıtlı olduğunu yazdığını gör. Ekran token'ı bir daha göstermez.
+        6. Android build'i sonradan `minSdkVersion` hakkında şikâyet ederse: paket Android 6.0 (API 23) veya üstünü ister; `android/app/build.gradle.kts` içinde `minSdk = 23` (ya da daha yüksek) yaz.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add flutter_secure_storage
+      - file: lib/data/token_store.dart
+        lang: dart
+        text: |
+          import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+          class TokenStore {
+            TokenStore([FlutterSecureStorage? storage])
+                : _storage = storage ?? const FlutterSecureStorage();
+
+            static const _key = 'backup_token';
+            final FlutterSecureStorage _storage;
+
+            Future<String?> read() => _storage.read(key: _key);
+            Future<void> save(String token) => _storage.write(key: _key, value: token);
+            Future<void> clear() => _storage.delete(key: _key);
+          }
+      - file: lib/screens/settings_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+
+          import '../data/token_store.dart';
+
+          class SettingsScreen extends StatefulWidget {
+            const SettingsScreen({super.key});
+
+            @override
+            State<SettingsScreen> createState() => _SettingsScreenState();
+          }
+
+          class _SettingsScreenState extends State<SettingsScreen> {
+            final _tokens = TokenStore();
+            final _controller = TextEditingController();
+            String _status = 'Checking...';
+
+            @override
+            void initState() {
+              super.initState();
+              _refresh();
+            }
+
+            @override
+            void dispose() {
+              _controller.dispose();
+              super.dispose();
+            }
+
+            Future<void> _refresh() async {
+              final token = await _tokens.read();
+              if (!mounted) return;
+              setState(() => _status = token == null ? 'No token saved.' : 'A token is saved.');
+            }
+
+            Future<void> _save() async {
+              final text = _controller.text.trim();
+              if (text.isEmpty) return;
+              await _tokens.save(text);
+              _controller.clear();
+              await _refresh();
+            }
+
+            Future<void> _clear() async {
+              await _tokens.clear();
+              await _refresh();
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(title: const Text('Settings')),
+                body: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_status),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _controller,
+                        obscureText: true,
+                        decoration: const InputDecoration(labelText: 'Backup token'),
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          FilledButton(onPressed: _save, child: const Text('Save')),
+                          const SizedBox(width: 8),
+                          TextButton(onPressed: _clear, child: const Text('Remove')),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "Putting an API key into the Dart code or `--dart-define` and calling it secure."
+          tr: "Bir API anahtarını Dart koduna ya da `--dart-define`'a koyup güvenli saymak."
+        fix:
+          en: "Both end up inside the app file, and anyone can extract them. A real secret belongs on a server that your app asks; the app should only hold a short-lived token the user got by signing in."
+          tr: "İkisi de uygulama dosyasının içine girer ve herkes çıkarabilir. Gerçek bir sır, uygulamanın sorduğu bir sunucuda durmalı; uygulama sadece kullanıcının giriş yapınca aldığı kısa ömürlü bir token tutmalı."
+      - problem:
+          en: "Printing a token with `print` while debugging and leaving it in."
+          tr: "Hata ayıklarken bir token'ı `print` ile yazdırıp bırakmak."
+        fix:
+          en: "Logs end up in crash reports and device logs. Never log tokens, passwords or personal data."
+          tr: "Loglar çökme raporlarına ve cihaz loglarına girer. Token, parola ya da kişisel veriyi asla loglama."
+    quiz:
+      - q:
+          en: "Where should a login token be stored?"
+          tr: "Bir giriş token'ı nerede saklanmalı?"
+        options:
+          en:
+            - "In shared_preferences"
+            - "In flutter_secure_storage"
+            - "In a constant in the Dart code"
+          tr:
+            - "shared_preferences içinde"
+            - "flutter_secure_storage içinde"
+            - "Dart kodunda bir sabitte"
+        answer: 1
+        why:
+          en: "Secure storage uses the Keystore (Android) and Keychain (iOS). The other two are readable by anyone who looks."
+          tr: "Güvenli depolama Keystore'u (Android) ve Keychain'i (iOS) kullanır. Diğer ikisini bakan herkes okuyabilir."
+    sources:
+      - title: flutter_secure_storage package
+        url: https://pub.dev/packages/flutter_secure_storage
+      - title: Flutter security
+        url: https://docs.flutter.dev/security
+      - title: Android Keystore system
+        url: https://developer.android.com/privacy-and-security/keystore
+
+  - id: performance
+    stage: performance
+    title:
+      en: "Fast screens: const, lazy lists and DevTools"
+      tr: "Hızlı ekranlar: const, tembel listeler ve DevTools"
+    minutes: 60
+    needs: [secure-storage]
+    why:
+      en: "Flutter draws up to 60 or 120 frames per second, so one frame has about 16 ms (or 8 ms). If your `build` code is slow or builds things nobody sees, the app stutters (jank). Three habits fix most problems: `const` widgets, lazy lists and measuring before guessing."
+      tr: "Flutter saniyede 60 ya da 120 kare çizer; yani bir kare için yaklaşık 16 ms (ya da 8 ms) vardır. `build` kodun yavaşsa ya da kimsenin görmediği şeyleri kuruyorsa uygulama takılır (jank). Üç alışkanlık sorunların çoğunu çözer: `const` widget'lar, tembel listeler ve tahmin etmeden önce ölçmek."
+    learn:
+      en: |
+        - `const` widgets are reused, so their subtree is not rebuilt
+        - `ListView.builder` builds only the items on screen; a `ListView(children: [...])` builds all of them
+        - Keep `build` cheap and keep `setState` or `Consumer` low in the tree
+        - Profile mode and the DevTools Performance view: UI thread, raster thread, red janky frames
+      tr: |
+        - `const` widget'lar yeniden kullanılır, bu yüzden alt ağaçları yeniden kurulmaz
+        - `ListView.builder` sadece ekrandaki öğeleri kurar; `ListView(children: [...])` hepsini kurar
+        - `build`'i ucuz tut; `setState` ya da `Consumer`'ı ağaçta aşağıda kullan
+        - Profile modu ve DevTools Performance görünümü: UI thread, raster thread, kırmızı takılan kareler
+    do:
+      en: |
+        1. Change the habit list in `lib/screens/home_screen.dart` to `ListView.builder` (code below). The quote card is item 0, the empty message and the habits follow.
+        2. Run `flutter analyze`. The linter suggests `const` in many places; add `const` where it says so.
+        3. Make a big list to feel the difference: temporarily put `MemoryHabitStore([for (var i = 0; i < 500; i++) Habit(id: '$i', name: 'Habit $i')])` in `main.dart` instead of the prefs store. Scroll the list.
+        4. Run in profile mode on a real device: `flutter run --profile`. (Debug mode is much slower and says nothing about the real speed. The browser works too, but a phone is the honest test.) Open DevTools from the link the terminal prints, or from VS Code (*Command Palette → Open DevTools*), and open the **Performance** tab.
+        5. Scroll and watch the frame bars. Frames over about 16 ms are red. Click a red frame and read the hint.
+        6. Put the real store back in `main.dart`.
+      tr: |
+        1. `lib/screens/home_screen.dart` içindeki alışkanlık listesini `ListView.builder`'a çevir (kod aşağıda). Söz kartı 0. öğe; boş mesajı ve alışkanlıklar arkasından gelir.
+        2. `flutter analyze` çalıştır. Linter birçok yerde `const` önerir; söylediği yerlere `const` ekle.
+        3. Farkı hissetmek için büyük bir liste yap: `main.dart` içinde geçici olarak prefs store yerine `MemoryHabitStore([for (var i = 0; i < 500; i++) Habit(id: '$i', name: 'Habit $i')])` yaz. Listeyi kaydır.
+        4. Gerçek bir cihazda profile modunda çalıştır: `flutter run --profile`. (Debug modu çok daha yavaştır ve gerçek hız hakkında bir şey söylemez. Tarayıcı da olur ama dürüst test telefondur.) DevTools'u terminalin yazdığı bağlantıdan ya da VS Code'dan (*Command Palette → Open DevTools*) aç ve **Performance** sekmesine gir.
+        5. Kaydır ve kare çubuklarına bak. Yaklaşık 16 ms'yi geçen kareler kırmızıdır. Kırmızı bir kareye tıkla ve ipucunu oku.
+        6. Gerçek store'u `main.dart`'a geri koy.
+    code:
+      - file: lib/screens/home_screen.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:go_router/go_router.dart';
+          import 'package:provider/provider.dart';
+
+          import '../state/habits_model.dart';
+          import '../widgets/habit_tile.dart';
+          import '../widgets/quote_card.dart';
+
+          class HomeScreen extends StatelessWidget {
+            const HomeScreen({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return Scaffold(
+                appBar: AppBar(
+                  title: const Text('Habits'),
+                  actions: [
+                    IconButton(
+                      onPressed: () => context.go('/settings'),
+                      icon: const Icon(Icons.settings),
+                      tooltip: 'Settings',
+                    ),
+                  ],
+                ),
+                body: Consumer<HabitsModel>(
+                  builder: (context, model, _) {
+                    if (!model.loaded) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final habits = model.habits;
+                    // Item 0 is the quote card; one more item is the empty message.
+                    final extra = habits.isEmpty ? 2 : 1;
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: habits.length + extra,
+                      itemBuilder: (context, index) {
+                        if (index == 0) return const QuoteCard();
+                        if (habits.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text('No habits yet. Tap + to add your first one.'),
+                          );
+                        }
+                        final habit = habits[index - 1];
+                        return HabitTile(
+                          key: ValueKey(habit.id),
+                          habit: habit,
+                          today: model.today,
+                          onToggle: () => model.toggle(habit.id),
+                          onTap: () => context.go('/habit/${habit.id}'),
+                        );
+                      },
+                    );
+                  },
+                ),
+                floatingActionButton: FloatingActionButton(
+                  onPressed: () => context.go('/add'),
+                  tooltip: 'Add habit',
+                  child: const Icon(Icons.add),
+                ),
+              );
+            }
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          flutter analyze
+          flutter run --profile
+    mistakes:
+      - problem:
+          en: "Judging speed in debug mode (or in the emulator) and starting to \"optimize\" things that are fine."
+          tr: "Hızı debug modunda (ya da emülatörde) değerlendirip sorunsuz şeyleri \"optimize\" etmeye başlamak."
+        fix:
+          en: "Debug builds are slow on purpose. Measure in profile mode on a real device, find the red frame, and only then change code."
+          tr: "Debug build'ler bilerek yavaştır. Gerçek bir cihazda profile modunda ölç, kırmızı kareyi bul ve ancak sonra kodu değiştir."
+      - problem:
+          en: "Calling `setState` or watching the whole model high up in the tree, so the whole screen rebuilds for one small change."
+          tr: "`setState`'i ya da bütün modeli ağacın üst yerlerinde dinlemek; küçük bir değişiklik için bütün ekran yeniden kurulur."
+        fix:
+          en: "Move the part that changes into its own small widget and listen there. `context.select` lets a widget rebuild only when one value it cares about changes."
+          tr: "Değişen kısmı kendi küçük widget'ına taşı ve orada dinle. `context.select`, bir widget'ın sadece ilgilendiği tek bir değer değişince yeniden kurulmasını sağlar."
+    quiz:
+      - q:
+          en: "Why use `ListView.builder` for a long list?"
+          tr: "Uzun bir liste için neden `ListView.builder` kullanılır?"
+        options:
+          en:
+            - "It builds only the items that are on screen"
+            - "It sorts the list"
+            - "It makes the list save itself"
+          tr:
+            - "Sadece ekrandaki öğeleri kurar"
+            - "Listeyi sıralar"
+            - "Listenin kendini kaydetmesini sağlar"
+        answer: 0
+        why:
+          en: "Items are built lazily while you scroll, so the cost does not grow with the length of the list."
+          tr: "Öğeler kaydırdıkça tembel biçimde kurulur; maliyet listenin uzunluğuyla artmaz."
+    sources:
+      - title: Performance best practices
+        url: https://docs.flutter.dev/perf/best-practices
+      - title: Use the Performance view (DevTools)
+        url: https://docs.flutter.dev/tools/devtools/performance
+      - title: Flutter build modes
+        url: https://docs.flutter.dev/testing/build-modes
+
+  - id: app-icon
+    stage: packaging
+    title:
+      en: "Set up Android, then add an app icon and a splash screen"
+      tr: "Android'i hazırlama, sonra uygulama ikonu ve açılış ekranı ekleme"
+    minutes: 90
+    needs: [performance]
+    why:
+      en: "So far the app ran in a browser. To build an Android app you need the Android toolchain (Android Studio brings it), and a phone or an emulator to try it on. A release also needs its own icon and a splash screen (the picture shown while the app starts), or it shows the default Flutter logo."
+      tr: "Şimdiye kadar uygulama tarayıcıda çalıştı. Bir Android uygulaması derlemek için Android toolchain'e (Android Studio getirir) ve denemek için bir telefona ya da emülatöre ihtiyacın var. Bir sürüm için ayrıca kendi ikonu ve açılış ekranı (uygulama başlarken gösterilen resim) gerekir; yoksa varsayılan Flutter logosu görünür."
+    learn:
+      en: |
+        - What Android Studio gives Flutter: the Android SDK, a device manager and licences
+        - Running the app on a real phone (USB debugging) or on an emulator
+        - Adaptive icons on Android: a background and a foreground that the phone crops to a shape
+        - Generating all icon sizes from one big picture with `flutter_launcher_icons`, and the splash with `flutter_native_splash`
+      tr: |
+        - Android Studio'nun Flutter'a ne verdiği: Android SDK, bir cihaz yöneticisi ve lisanslar
+        - Uygulamayı gerçek bir telefonda (USB hata ayıklama) ya da emülatörde çalıştırmak
+        - Android'de uyarlanabilir (adaptive) ikonlar: telefonun bir şekle kırptığı arka plan ve ön plan
+        - `flutter_launcher_icons` ile tek bir büyük resimden bütün ikon boyutlarını, `flutter_native_splash` ile açılış ekranını üretmek
+    do:
+      en: |
+        1. Install **Android Studio** (developer.android.com/studio) and open it once. Let the setup wizard install the Android SDK.
+        2. In Android Studio open *Settings → Languages & Frameworks → Android SDK → SDK Tools* and tick **Android SDK Command-line Tools (latest)**, then apply.
+        3. Run `flutter doctor --android-licenses` and answer `y` to the licences. Then `flutter doctor`: the Android toolchain line should be green.
+        4. Get a device. **Phone:** open *Settings → About phone*, tap *Build number* seven times, then turn on *Developer options → USB debugging* and plug the phone in. **Emulator:** in Android Studio open *Device Manager* and create a virtual phone. Run `flutter devices` to see it.
+        5. Run `flutter run -d <device id>`. The default icon is still the Flutter logo.
+        6. Make two 1024x1024 PNG pictures in `assets/icon/`: `icon.png` (full square) and `icon_foreground.png` (the symbol on a transparent background, kept in the middle). Draw them in any image editor, or use the ImageMagick commands below for a simple white circle.
+        7. Add the two packages as dev dependencies and put the two configuration blocks at the end of `pubspec.yaml`, as top-level keys (not indented).
+        8. Run both generator commands, then `flutter run` again. You see the new icon on the phone and in the browser tab, and your own colour while the app starts.
+      tr: |
+        1. **Android Studio**'yu kur (developer.android.com/studio) ve bir kez aç. Kurulum sihirbazının Android SDK'yı kurmasına izin ver.
+        2. Android Studio'da *Settings → Languages & Frameworks → Android SDK → SDK Tools*'u aç, **Android SDK Command-line Tools (latest)** kutusunu işaretle ve uygula.
+        3. `flutter doctor --android-licenses` çalıştır ve lisanslara `y` cevabı ver. Sonra `flutter doctor`: Android toolchain satırı yeşil olmalı.
+        4. Bir cihaz edin. **Telefon:** *Settings → About phone*'u aç, *Build number*'a yedi kez dokun, sonra *Developer options → USB debugging*'i aç ve telefonu tak. **Emülatör:** Android Studio'da *Device Manager*'ı aç ve sanal bir telefon oluştur. Görmek için `flutter devices` çalıştır.
+        5. `flutter run -d <cihaz id>` çalıştır. Varsayılan ikon hâlâ Flutter logosu.
+        6. `assets/icon/` içinde 1024x1024 iki PNG resim hazırla: `icon.png` (tam kare) ve `icon_foreground.png` (şeffaf arka plan üstünde, ortada duran sembol). Onları herhangi bir resim editöründe çiz ya da basit beyaz bir daire için aşağıdaki ImageMagick komutlarını kullan.
+        7. İki paketi dev dependency olarak ekle ve iki ayar bloğunu `pubspec.yaml`'ın sonuna, girinti olmadan üst düzey anahtarlar olarak koy.
+        8. İki üretici komutu çalıştır, sonra yeniden `flutter run`. Yeni ikonu telefonda ve tarayıcı sekmesinde, uygulama açılırken de kendi rengini görürsün.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter doctor --android-licenses
+          flutter doctor
+          flutter devices
+          mkdir -p assets/icon
+          magick -size 1024x1024 xc:"#0F766E" -fill white -draw "circle 512,512 512,300" PNG32:assets/icon/icon.png
+          magick -size 1024x1024 xc:none -fill white -draw "circle 512,512 512,300" PNG32:assets/icon/icon_foreground.png
+          flutter pub add --dev flutter_launcher_icons flutter_native_splash
+          dart run flutter_launcher_icons
+          dart run flutter_native_splash:create
+      - file: pubspec.yaml
+        lang: yaml
+        text: |
+          flutter_launcher_icons:
+            android: true
+            ios: true
+            remove_alpha_ios: true
+            image_path: "assets/icon/icon.png"
+            adaptive_icon_background: "#0F766E"
+            adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+            web:
+              generate: true
+              image_path: "assets/icon/icon.png"
+
+          flutter_native_splash:
+            color: "#0F766E"
+            image: assets/icon/icon_foreground.png
+            android_12:
+              color: "#0F766E"
+              image: assets/icon/icon_foreground.png
+    mistakes:
+      - problem:
+          en: "`flutter devices` does not list the phone."
+          tr: "`flutter devices` telefonu listelemiyor."
+        fix:
+          en: "Use a data USB cable (not charge-only), unlock the phone and accept the \"Allow USB debugging?\" question on its screen. On Linux you may need udev rules; the Android docs explain them."
+          tr: "Sadece şarj kablosu değil, veri kablosu kullan; telefonun kilidini aç ve ekrandaki \"Allow USB debugging?\" sorusunu onayla. Linux'ta udev kuralları gerekebilir; Android dokümanları anlatır."
+      - problem:
+          en: "The icon does not change after generating it."
+          tr: "İkon üretildikten sonra değişmiyor."
+        fix:
+          en: "Stop the app and run it again with `flutter run` (a hot reload cannot change native files). Some phones cache icons: uninstall the app first."
+          tr: "Uygulamayı durdur ve `flutter run` ile yeniden çalıştır (hot reload native dosyaları değiştiremez). Bazı telefonlar ikonları önbelleğe alır: önce uygulamayı kaldır."
+      - problem:
+          en: "The generator says it cannot find the image."
+          tr: "Üretici resmi bulamadığını söylüyor."
+        fix:
+          en: "The path in `pubspec.yaml` is relative to the project folder, and the config keys must start at the left edge of the line."
+          tr: "`pubspec.yaml` içindeki yol proje klasörüne görelidir ve ayar anahtarları satırın en solundan başlamalıdır."
+    quiz:
+      - q:
+          en: "Why does an Android adaptive icon have a background and a foreground?"
+          tr: "Android'in uyarlanabilir ikonunda neden arka plan ve ön plan var?"
+        options:
+          en:
+            - "So the phone can crop it to a circle or a rounded square and move the layers a little"
+            - "So the icon can be bigger than 1024 pixels"
+            - "Because iOS requires two files"
+          tr:
+            - "Telefon onu daire ya da yuvarlak kareye kırpabilsin ve katmanları biraz oynatabilsin diye"
+            - "İkon 1024 pikselden büyük olabilsin diye"
+            - "iOS iki dosya istediği için"
+        answer: 0
+        why:
+          en: "Each phone maker picks its own shape. Keep the important part of the foreground in the middle."
+          tr: "Her telefon üreticisi kendi şeklini seçer. Ön planın önemli kısmını ortada tut."
+    sources:
+      - title: Set up Android development
+        url: https://docs.flutter.dev/platform-integration/android/setup
+      - title: flutter_launcher_icons package
+        url: https://pub.dev/packages/flutter_launcher_icons
+      - title: flutter_native_splash package
+        url: https://pub.dev/packages/flutter_native_splash
+
+  - id: release-builds
+    stage: packaging
+    title:
+      en: "Build a signed Android release (and what iOS needs)"
+      tr: "İmzalı bir Android release'i derleme (ve iOS'un ne istediği)"
+    minutes: 75
+    needs: [app-icon]
+    why:
+      en: "A debug build is big and slow. A release build is small, fast and must be signed with a key that proves the updates come from you. Google Play wants an App Bundle (.aab); for sharing directly you use an .apk. The key is the one thing you must never lose or publish."
+      tr: "Debug build büyük ve yavaştır. Release build küçük, hızlıdır ve güncellemelerin senden geldiğini kanıtlayan bir anahtarla imzalanmalıdır. Google Play App Bundle (.aab) ister; doğrudan paylaşmak için .apk kullanırsın. Anahtar, asla kaybetmemen ve yayımlamaman gereken tek şeydir."
+    learn:
+      en: |
+        - Debug, profile and release modes
+        - The app id (`dev.example.habit_tracker`), the version (`1.0.0+1`: name plus build number) and the app label
+        - A keystore file and `key.properties`, and why both stay out of Git
+        - `.aab` versus `.apk`, and `--split-per-abi` (one smaller file per processor type)
+        - iOS: you need a Mac with Xcode to build, and the Apple Developer Program to publish
+      tr: |
+        - Debug, profile ve release modları
+        - Uygulama kimliği (`dev.example.habit_tracker`), sürüm (`1.0.0+1`: ad artı build numarası) ve uygulama etiketi
+        - Bir keystore dosyası ve `key.properties`, ikisinin neden Git dışında kaldığı
+        - `.aab` ile `.apk` farkı ve `--split-per-abi` (işlemci türü başına bir küçük dosya)
+        - iOS: derlemek için Xcode'lu bir Mac, yayımlamak için Apple Developer Program gerekir
+    do:
+      en: |
+        1. In `android/app/src/main/AndroidManifest.xml` set `android:label="Habit Tracker"` on the `<application` tag. Check that the INTERNET permission line from the HTTP step is there.
+        2. In `pubspec.yaml` check `version: 1.0.0+1`. Raise the number after `+` for every upload to a store.
+        3. Create an upload key outside the project folder (first command below, macOS and Linux; the Android docs have the Windows version). Remember the password. It asks a few questions; any answers work.
+        4. Create `android/key.properties` with the second block, using your passwords and the full path of the key file. Make sure `android/.gitignore` lists `key.properties` and `*.jks` (Flutter's template does); if not, add them.
+        5. Open `android/app/build.gradle.kts`. At the top add the two imports and the code that reads `key.properties`. Inside `android { ... }` add `signingConfigs` before `buildTypes`, and in `buildTypes → release` use the `release` signing config (delete the `debug` line that is there).
+        6. Run `flutter clean`, then build. `flutter build apk --release` gives one file you can send to a friend: `build/app/outputs/flutter-apk/app-release.apk`. `flutter build appbundle` gives the file Google Play wants: `build/app/outputs/bundle/release/app.aab`.
+        7. Install the APK on your phone (`flutter install`, or send the file) and use it for a day. Release builds behave differently from debug ones (the network permission is the classic).
+        8. Back the key file up in a safe place (a password manager or an encrypted drive).
+        9. iOS, in short: on a Mac with Xcode run `open ios/Runner.xcworkspace`, choose your Team under *Signing & Capabilities*, then `flutter build ipa`. Uploading to TestFlight or the App Store needs the paid Apple Developer Program (99 USD per year). Without a Mac, skip iOS for now: the web version in the next step works on iPhones too.
+      tr: |
+        1. `android/app/src/main/AndroidManifest.xml` içinde `<application` etiketine `android:label="Habit Tracker"` yaz. HTTP adımındaki INTERNET izni satırının orada olduğunu kontrol et.
+        2. `pubspec.yaml` içinde `version: 1.0.0+1` satırını kontrol et. Mağazaya her yükleme için `+`'dan sonraki sayıyı artır.
+        3. Proje klasörünün dışında bir yükleme anahtarı oluştur (aşağıdaki ilk komut, macOS ve Linux; Windows sürümü Android dokümanlarında). Parolayı hatırla. Birkaç soru sorar; herhangi bir cevap olur.
+        4. İkinci bloğu kullanarak parolalarınla ve anahtar dosyasının tam yoluyla `android/key.properties` dosyasını oluştur. `android/.gitignore` içinde `key.properties` ve `*.jks` olduğundan emin ol (Flutter şablonunda var); yoksa ekle.
+        5. `android/app/build.gradle.kts` dosyasını aç. En üste iki import'u ve `key.properties`'i okuyan kodu ekle. `android { ... }` içinde `buildTypes`'ın öncesine `signingConfigs` ekle ve `buildTypes → release` içinde `release` imza ayarını kullan (orada duran `debug` satırını sil).
+        6. `flutter clean` çalıştır, sonra derle. `flutter build apk --release` bir arkadaşına gönderebileceğin tek bir dosya verir: `build/app/outputs/flutter-apk/app-release.apk`. `flutter build appbundle` Google Play'in istediği dosyayı verir: `build/app/outputs/bundle/release/app.aab`.
+        7. APK'yı telefonuna kur (`flutter install` ya da dosyayı gönder) ve bir gün kullan. Release build'ler debug olanlardan farklı davranır (klasik örnek ağ izni).
+        8. Anahtar dosyasını güvenli bir yere yedekle (parola yöneticisi ya da şifreli disk).
+        9. iOS kısaca: Xcode'lu bir Mac'te `open ios/Runner.xcworkspace` çalıştır, *Signing & Capabilities* altında Team'ini seç, sonra `flutter build ipa`. TestFlight'a ya da App Store'a yüklemek için ücretli Apple Developer Program gerekir (yılda 99 USD). Mac yoksa iOS'u şimdilik atla: sonraki adımdaki web sürümü iPhone'larda da çalışır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
+                  -storetype JKS -keysize 2048 -validity 10000 -alias upload
+          flutter clean
+          flutter build apk --release
+          flutter build appbundle
+          flutter install
+      - file: android/key.properties
+        lang: properties
+        text: |
+          storePassword=your-password
+          keyPassword=your-password
+          keyAlias=upload
+          storeFile=/home/you/upload-keystore.jks
+      - file: android/app/build.gradle.kts
+        lang: kotlin
+        text: |
+          import java.io.FileInputStream
+          import java.util.Properties
+
+          // ...the existing plugins { ... } block stays here...
+
+          val keystoreProperties = Properties()
+          val keystorePropertiesFile = rootProject.file("key.properties")
+          if (keystorePropertiesFile.exists()) {
+              keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+          }
+
+          android {
+              // ...existing settings...
+
+              signingConfigs {
+                  create("release") {
+                      keyAlias = keystoreProperties.getProperty("keyAlias")
+                      keyPassword = keystoreProperties.getProperty("keyPassword")
+                      storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+                      storePassword = keystoreProperties.getProperty("storePassword")
+                  }
+              }
+              buildTypes {
+                  release {
+                      signingConfig = signingConfigs.getByName("release")
+                  }
+              }
+          }
+    mistakes:
+      - problem:
+          en: "Committing `key.properties` or the `.jks` file to GitHub, or losing the key."
+          tr: "`key.properties` ya da `.jks` dosyasını GitHub'a commit'lemek ya da anahtarı kaybetmek."
+        fix:
+          en: "Check with `git status` before every commit. Anyone with the key and passwords can publish updates as you. If you lose it, users must uninstall to get a build signed with a new key (Google Play can reset an upload key, if you enrolled in Play App Signing)."
+          tr: "Her commit'ten önce `git status` ile kontrol et. Anahtara ve parolalara sahip herkes senin adına güncelleme yayımlayabilir. Kaybedersen kullanıcılar yeni anahtarla imzalı sürümü almak için uygulamayı kaldırmak zorunda kalır (Play App Signing'e katıldıysan Google Play yükleme anahtarını sıfırlayabilir)."
+      - problem:
+          en: "The release app is signed with the debug key because `flutter clean` was skipped or the old `signingConfig` line stayed."
+          tr: "`flutter clean` atlandığı ya da eski `signingConfig` satırı kaldığı için release uygulaması debug anahtarıyla imzalanıyor."
+        fix:
+          en: "There must be exactly one `signingConfig` line in `release`, the `release` one. Run `flutter clean` after any Gradle change."
+          tr: "`release` içinde tam olarak bir `signingConfig` satırı olmalı, `release` olanı. Her Gradle değişikliğinden sonra `flutter clean` çalıştır."
+      - problem:
+          en: "Android shows \"Install blocked\" when someone opens your APK."
+          tr: "Biri APK'nı açınca Android \"Install blocked\" gösteriyor."
+        fix:
+          en: "That is normal for apps outside Google Play. The person allows installing from that app (a browser or the file manager) in the phone settings. Tell them in advance."
+          tr: "Google Play dışındaki uygulamalar için bu normaldir. Kişi telefon ayarlarından o uygulamadan (tarayıcı ya da dosya yöneticisi) kuruluma izin verir. Onlara önceden söyle."
+    quiz:
+      - q:
+          en: "Which file must never go to a public Git repository?"
+          tr: "Hangi dosya asla herkese açık bir Git deposuna gitmemeli?"
+        options:
+          en:
+            - "pubspec.yaml"
+            - "The .jks key file and key.properties"
+            - "lib/main.dart"
+          tr:
+            - "pubspec.yaml"
+            - ".jks anahtar dosyası ve key.properties"
+            - "lib/main.dart"
+        answer: 1
+        why:
+          en: "They hold the key that proves who may publish updates of your app."
+          tr: "Uygulamanın güncellemelerini kimin yayımlayabileceğini kanıtlayan anahtarı içerirler."
+    sources:
+      - title: Build and release an Android app
+        url: https://docs.flutter.dev/deployment/android
+      - title: Build and release an iOS app
+        url: https://docs.flutter.dev/deployment/ios
+      - title: Apple Developer Program, enrolment
+        url: https://developer.apple.com/programs/enroll/
+
+  - id: web-pages
+    stage: deploy
+    title:
+      en: "Publish for free: Flutter web on GitHub Pages and an APK on GitHub"
+      tr: "Ücretsiz yayınla: GitHub Pages'te Flutter web ve GitHub'da APK"
+    minutes: 75
+    needs: [release-builds]
+    why:
+      en: "Flutter can build your app as a website. A website costs nothing to share: anyone with a link can use it on Android, iPhone or a laptop, with no store and no review. GitHub Pages hosts it for free from your repository. We let GitHub Actions build and publish it every time you push."
+      tr: "Flutter uygulamanı bir web sitesi olarak da derleyebilir. Web sitesini paylaşmak bedavadır: linki olan herkes Android'de, iPhone'da ya da laptopta mağaza ve onay süreci olmadan kullanabilir. GitHub Pages bunu depondan ücretsiz barındırır. Her push'ta GitHub Actions'ın derleyip yayımlamasını sağlıyoruz."
+    learn:
+      en: |
+        - `flutter build web` and the folder it makes (`build/web`)
+        - `--base-href`: a GitHub Pages project site lives under `/<repository>/`, not at the root
+        - A GitHub Actions workflow: checkout, set up Flutter, test, build, upload, deploy
+        - Honest publishing paths and costs (table in step 6)
+      tr: |
+        - `flutter build web` ve oluşturduğu klasör (`build/web`)
+        - `--base-href`: GitHub Pages proje sitesi kökte değil, `/<depo adı>/` altında yaşar
+        - Bir GitHub Actions workflow'u: checkout, Flutter kurulumu, test, build, yükleme, deploy
+        - Dürüst yayın yolları ve maliyetleri (6. adımdaki tablo)
+    do:
+      en: |
+        1. Try the web build locally without a base path: `flutter build web --release`, then `python3 -m http.server 8000 -d build/web` and open http://localhost:8000. (The `--base-href` flag is only for GitHub, where the site lives under `/habit_tracker/`; the workflow below adds it.)
+        2. On github.com create a **public** repository named `habit_tracker` (GitHub Pages is free for public repositories). Then in the project folder: `git branch -M main`, `git remote add origin https://github.com/<you>/habit_tracker.git`. Do not push yet.
+        3. In the repository open *Settings → Pages* and set **Source** to **GitHub Actions**.
+        4. Create `.github/workflows/pages.yml` with the workflow below. It tests, builds with the repository name as base path, and deploys.
+        5. Commit and push: `git add .`, `git commit -m "Add web deploy"`, `git push -u origin main`. Open the **Actions** tab and watch it. When it is green, open `https://<you>.github.io/habit_tracker/`. Open a habit and reload: the address looks like `.../habit_tracker/#/habit/...` and still works, because Flutter web uses the part after `#` by default, which a static host serves without special rules.
+        6. Know your options before you tell people: the table below is the honest list. For an Android file, create a GitHub **release** and attach `app-release.apk` (the Releases section on the repository page, or `gh release create v1.0.0 build/app/outputs/flutter-apk/app-release.apk --title "v1.0.0"`).
+        7. Costs: the web version and an APK on GitHub are free. A Google Play developer account costs a one-time 25 USD, and new personal accounts must also meet Google's testing requirements before the first public release. The Apple Developer Program costs 99 USD per year and needs a Mac. Decide with a real goal: friends and a portfolio need only a link.
+      tr: |
+        1. Web build'ini yerelde base path olmadan dene: `flutter build web --release`, sonra `python3 -m http.server 8000 -d build/web` ve http://localhost:8000'i aç. (`--base-href` bayrağı sadece GitHub içindir; orada site `/habit_tracker/` altında yaşar ve aşağıdaki workflow onu ekler.)
+        2. github.com'da `habit_tracker` adında **herkese açık (public)** bir depo oluştur (GitHub Pages herkese açık depolar için ücretsizdir). Sonra proje klasöründe: `git branch -M main`, `git remote add origin https://github.com/<sen>/habit_tracker.git`. Henüz push'lama.
+        3. Depoda *Settings → Pages*'i aç ve **Source**'u **GitHub Actions** yap.
+        4. Aşağıdaki workflow ile `.github/workflows/pages.yml` dosyasını oluştur. Test eder, depo adını base path yaparak derler ve deploy eder.
+        5. Commit'le ve push'la: `git add .`, `git commit -m "Add web deploy"`, `git push -u origin main`. **Actions** sekmesini aç ve izle. Yeşil olunca `https://<sen>.github.io/habit_tracker/` adresini aç. Bir alışkanlığı açıp sayfayı yenile: adres `.../habit_tracker/#/habit/...` gibi görünür ve yine çalışır; çünkü Flutter web varsayılan olarak `#`'den sonrasını kullanır ve statik bir sunucu bunu özel kural olmadan sunar.
+        6. İnsanlara söylemeden önce seçeneklerini bil: aşağıdaki liste dürüst listedir. Android dosyası için bir GitHub **release** oluştur ve `app-release.apk`'yı ekle (depo sayfasındaki Releases bölümü ya da `gh release create v1.0.0 build/app/outputs/flutter-apk/app-release.apk --title "v1.0.0"`).
+        7. Maliyetler: web sürümü ve GitHub'daki APK ücretsizdir. Google Play geliştirici hesabı tek seferlik 25 USD'dir ve yeni kişisel hesaplar ilk herkese açık sürümden önce Google'ın test koşullarını da karşılamalıdır. Apple Developer Program yılda 99 USD'dir ve Mac ister. Gerçek bir hedefle karar ver: arkadaşlar ve portföy için bir link yeter.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter build web --release
+          python3 -m http.server 8000 -d build/web
+          git branch -M main
+          git remote add origin https://github.com/YOUR-NAME/habit_tracker.git
+      - file: .github/workflows/pages.yml
+        lang: yaml
+        text: |
+          name: Deploy web
+
+          on:
+            push:
+              branches: [main]
+            workflow_dispatch:
+
+          permissions:
+            contents: read
+            pages: write
+            id-token: write
+
+          concurrency:
+            group: pages
+            cancel-in-progress: true
+
+          jobs:
+            build:
+              runs-on: ubuntu-latest
+              steps:
+                - uses: actions/checkout@v7
+                - uses: subosito/flutter-action@v2
+                  with:
+                    channel: stable
+                    flutter-version: 3.47.7
+                    cache: true
+                - run: flutter pub get
+                - run: flutter test
+                - run: flutter build web --release --base-href "/${{ github.event.repository.name }}/"
+                - uses: actions/upload-pages-artifact@v5
+                  with:
+                    path: build/web
+
+            deploy:
+              needs: build
+              runs-on: ubuntu-latest
+              environment:
+                name: github-pages
+                url: ${{ steps.deployment.outputs.page_url }}
+              steps:
+                - id: deployment
+                  uses: actions/deploy-pages@v5
+    mistakes:
+      - problem:
+          en: "The deployed site is blank and the browser console shows 404 errors for `main.dart.js` and assets."
+          tr: "Yayındaki site boş ve tarayıcı konsolu `main.dart.js` ve varlıklar için 404 hataları gösteriyor."
+        fix:
+          en: "The base path is wrong. A project site needs `--base-href /<repository>/` with a slash at both ends. The workflow takes it from the repository name."
+          tr: "Base path yanlış. Proje sitesi, iki ucunda da eğik çizgi olan `--base-href /<depo adı>/` ister. Workflow bunu depo adından alır."
+      - problem:
+          en: "The Pages deploy step fails with a permission error."
+          tr: "Pages deploy adımı bir izin hatasıyla başarısız oluyor."
+        fix:
+          en: "In *Settings → Pages* the source must be **GitHub Actions**, the repository must be public (on a free plan), and the workflow needs the `pages: write` and `id-token: write` permissions shown above."
+          tr: "*Settings → Pages* içinde kaynak **GitHub Actions** olmalı, depo (ücretsiz planda) herkese açık olmalı ve workflow'un yukarıdaki `pages: write` ve `id-token: write` izinleri olmalı."
+      - problem:
+          en: "Building with `--wasm` for GitHub Pages."
+          tr: "GitHub Pages için `--wasm` ile derlemek."
+        fix:
+          en: "The Flutter docs say WebAssembly builds need special response headers (Cross-Origin-Opener-Policy and Cross-Origin-Embedder-Policy), and GitHub Pages cannot set headers. Keep the default JavaScript build."
+          tr: "Flutter dokümanları WebAssembly build'lerinin özel yanıt başlıkları (Cross-Origin-Opener-Policy ve Cross-Origin-Embedder-Policy) istediğini söyler; GitHub Pages başlık ayarlayamaz. Varsayılan JavaScript build'ini kullan."
+    quiz:
+      - q:
+          en: "Why does the workflow pass `--base-href \"/habit_tracker/\"`?"
+          tr: "Workflow neden `--base-href \"/habit_tracker/\"` veriyor?"
+        options:
+          en:
+            - "A project site is served under /habit_tracker/, so the files must be requested from there"
+            - "It makes the build smaller"
+            - "GitHub requires it for private repositories"
+          tr:
+            - "Proje sitesi /habit_tracker/ altında sunulur, dosyalar oradan istenmeli"
+            - "Build'i küçültür"
+            - "GitHub bunu özel depolar için ister"
+        answer: 0
+        why:
+          en: "Without it the page asks for /main.dart.js at the domain root, where nothing exists."
+          tr: "Olmazsa sayfa /main.dart.js dosyasını alan adının kökünde ister, orada hiçbir şey yoktur."
+    sources:
+      - title: Build and release a web app
+        url: https://docs.flutter.dev/deployment/web
+      - title: GitHub Pages, using custom workflows
+        url: https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+      - title: Google Play Console, create a developer account
+        url: https://support.google.com/googleplay/android-developer/answer/6112435
+
+  - id: crash-reports
+    stage: monitoring
+    title:
+      en: "Find crashes you cannot see with Sentry"
+      tr: "Sentry ile göremediğin çökmeleri bulma"
+    minutes: 45
+    needs: [web-pages]
+    why:
+      en: "When the app crashes on someone else's phone, you see nothing. A crash reporting service sends you the error with its stack trace (the list of calls that led to it), so you can fix it. Sentry has a free plan and a Flutter package that works on Android, iOS and the web."
+      tr: "Uygulama başkasının telefonunda çöktüğünde sen hiçbir şey görmezsin. Çökme raporlama servisi sana hatayı yığın izleriyle (hataya götüren çağrıların listesi) gönderir; böylece düzeltebilirsin. Sentry'nin ücretsiz bir planı ve Android, iOS ve webde çalışan bir Flutter paketi var."
+    learn:
+      en: |
+        - What an error report contains, and why you must not send personal data
+        - `SentryFlutter.init` with `appRunner`: errors that Flutter would only print are reported
+        - `--dart-define` to give the app a value at build time (the DSN, the address where reports are sent)
+        - Alternatives: Firebase Crashlytics (free, mobile only) and the crash reports in Google Play Console and App Store Connect
+      tr: |
+        - Bir hata raporunun neler içerdiği ve kişisel veri göndermemen gerektiği
+        - `appRunner` ile `SentryFlutter.init`: Flutter'ın sadece yazdıracağı hatalar raporlanır
+        - Derleme zamanında uygulamaya değer vermek için `--dart-define` (DSN, raporların gönderildiği adres)
+        - Alternatifler: Firebase Crashlytics (ücretsiz, sadece mobil) ve Google Play Console ile App Store Connect içindeki çökme raporları
+    do:
+      en: |
+        1. Create a free account at sentry.io (the Developer plan is free, with limits: check sentry.io/pricing) and a new project of the platform **Flutter**. Copy its **DSN** (a web address that looks like `https://<key>@o<number>.ingest.sentry.io/<number>`).
+        2. Add the package: `flutter pub add sentry_flutter`.
+        3. Replace `lib/main.dart` with the version below. The DSN comes from `--dart-define`, so no key sits in your code, and without it the app runs exactly as before.
+        4. Run `flutter run -d chrome --web-port=5000 --dart-define=SENTRY_DSN=<your DSN>`.
+        5. Test it: temporarily add `TextButton(onPressed: () => throw StateError('Test crash'), child: const Text('Crash'))` to the `Row` in `lib/screens/settings_screen.dart`, press it, and open the Issues page in Sentry. The error appears after a short while. Remove the button.
+        6. For the live site, add the DSN as a repository secret (*Settings → Secrets and variables → Actions → New repository secret*, name `SENTRY_DSN`) and add `--dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}` to the `flutter build web` line in the workflow. Use the same `--dart-define` when you build the APK.
+        7. Tell your users what you collect. Report errors, not names, habit titles or tokens.
+      tr: |
+        1. sentry.io'da ücretsiz bir hesap aç (Developer planı ücretsizdir ve limitleri vardır: sentry.io/pricing'e bak) ve platformu **Flutter** olan yeni bir proje oluştur. **DSN**'ini kopyala (`https://<anahtar>@o<sayı>.ingest.sentry.io/<sayı>` gibi görünen bir web adresi).
+        2. Paketi ekle: `flutter pub add sentry_flutter`.
+        3. `lib/main.dart` dosyasını aşağıdaki sürümle değiştir. DSN `--dart-define` ile gelir; kodunda anahtar durmaz, o olmadan uygulama eskisi gibi çalışır.
+        4. `flutter run -d chrome --web-port=5000 --dart-define=SENTRY_DSN=<DSN'in>` çalıştır.
+        5. Dene: `lib/screens/settings_screen.dart` içindeki `Row`'a geçici olarak `TextButton(onPressed: () => throw StateError('Test crash'), child: const Text('Crash'))` ekle, ona bas ve Sentry'de Issues sayfasını aç. Hata kısa bir süre sonra görünür. Düğmeyi kaldır.
+        6. Canlı site için DSN'i depoya secret olarak ekle (*Settings → Secrets and variables → Actions → New repository secret*, adı `SENTRY_DSN`) ve workflow'daki `flutter build web` satırına `--dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}` ekle. APK derlerken de aynı `--dart-define`'ı kullan.
+        7. Kullanıcılarına ne topladığını söyle. Hataları raporla; isimleri, alışkanlık başlıklarını ya da token'ları değil.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add sentry_flutter
+          flutter run -d chrome --web-port=5000 --dart-define=SENTRY_DSN=https://KEY@oNUMBER.ingest.sentry.io/NUMBER
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          import 'package:flutter/material.dart';
+          import 'package:http/http.dart' as http;
+          import 'package:provider/provider.dart';
+          import 'package:sentry_flutter/sentry_flutter.dart';
+
+          import 'data/prefs_habit_store.dart';
+          import 'data/quote_client.dart';
+          import 'router.dart';
+          import 'state/habits_model.dart';
+
+          const sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+          Widget buildApp() {
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider(
+                  create: (_) => HabitsModel(PrefsHabitStore())..load(),
+                ),
+                Provider(
+                  create: (_) => QuoteClient(http.Client()),
+                  dispose: (_, client) => client.close(),
+                ),
+              ],
+              child: const HabitApp(),
+            );
+          }
+
+          Future<void> main() async {
+            if (sentryDsn.isEmpty) {
+              runApp(buildApp());
+              return;
+            }
+            await SentryFlutter.init(
+              (options) {
+                options.dsn = sentryDsn;
+                options.sendDefaultPii = false;
+              },
+              appRunner: () => runApp(SentryWidget(child: buildApp())),
+            );
+          }
+
+          class HabitApp extends StatelessWidget {
+            const HabitApp({super.key});
+
+            @override
+            Widget build(BuildContext context) {
+              return MaterialApp.router(
+                title: 'Habit Tracker',
+                theme: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+                ),
+                routerConfig: router,
+              );
+            }
+          }
+    mistakes:
+      - problem:
+          en: "No error shows up in Sentry."
+          tr: "Sentry'de hiç hata görünmüyor."
+        fix:
+          en: "Check that you started the app with the `--dart-define=SENTRY_DSN=...` flag (an empty value turns reporting off) and that the DSN belongs to a Flutter project. Wait a minute and reload the Issues page."
+          tr: "Uygulamayı `--dart-define=SENTRY_DSN=...` bayrağıyla başlattığını (boş değer raporlamayı kapatır) ve DSN'in bir Flutter projesine ait olduğunu kontrol et. Bir dakika bekle ve Issues sayfasını yenile."
+      - problem:
+          en: "Sending user data (names, emails, habit titles) in reports, or publishing source maps of the web build."
+          tr: "Raporlarda kullanıcı verisi (isimler, e-postalar, alışkanlık başlıkları) göndermek ya da web build'inin source map'lerini yayımlamak."
+        fix:
+          en: "Keep `sendDefaultPii = false`. The Flutter docs say not to publish `.map` files on the web; upload them to the monitoring service instead."
+          tr: "`sendDefaultPii = false` olarak bırak. Flutter dokümanları web'de `.map` dosyalarının yayımlanmamasını söyler; onları izleme servisine yükle."
+    quiz:
+      - q:
+          en: "Why is the DSN passed with `--dart-define` and not typed into the code?"
+          tr: "DSN neden koda yazılmak yerine `--dart-define` ile veriliyor?"
+        options:
+          en:
+            - "So the repository holds no project-specific address and each build can choose its own"
+            - "Because Sentry refuses DSNs inside code files"
+            - "To make the app start faster"
+          tr:
+            - "Depoda projeye özel adres durmasın ve her build kendi adresini seçebilsin diye"
+            - "Sentry kod dosyalarındaki DSN'leri reddettiği için"
+            - "Uygulama daha hızlı açılsın diye"
+        answer: 0
+        why:
+          en: "A DSN only lets someone send events, but keeping it out of the code makes forks and test builds clean. It is not a place to hide real secrets: anything in the app can be read."
+          tr: "DSN sadece olay göndermeye izin verir; ama kodun dışında tutmak fork'ları ve test build'lerini temiz tutar. Gerçek sırları saklamak için bir yer değildir: uygulamadaki her şey okunabilir."
+    sources:
+      - title: Sentry for Flutter
+        url: https://docs.sentry.io/platforms/dart/guides/flutter/
+      - title: Sentry Flutter manual setup
+        url: https://docs.sentry.io/platforms/dart/guides/flutter/manual-setup/
+      - title: Firebase Crashlytics for Flutter
+        url: https://firebase.google.com/docs/crashlytics/flutter/get-started
+
+  - id: drift-database
+    stage: advanced
+    title:
+      en: "When data grows: a real database with drift"
+      tr: "Veri büyüyünce: drift ile gerçek bir veritabanı"
+    minutes: 90
+    needs: [crash-reports]
+    why:
+      en: "Saving one text blob is fine for 20 habits. When you need to search, sort, filter or keep years of history, you want a database. Flutter apps use SQLite. `sqflite` gives you raw SQL; `drift` is a typed layer on top: you describe tables in Dart and it writes the query code for you. Because the model only knows `HabitStore`, we swap the storage without touching one screen."
+      tr: "Tek bir metin yığınını kaydetmek 20 alışkanlık için yeter. Arama, sıralama, süzme yapman ya da yıllarca geçmiş tutman gerekince veritabanı istersin. Flutter uygulamaları SQLite kullanır. `sqflite` sana ham SQL verir; `drift` üstünde tipli bir katmandır: tabloları Dart ile tarif edersin, sorgu kodunu o yazar. Model sadece `HabitStore`'u bildiği için tek bir ekrana dokunmadan depolamayı değiştiriyoruz."
+    learn:
+      en: |
+        - Tables as Dart classes, and code generation with `build_runner`
+        - Two tables: habits and their completed days (one row per day)
+        - Writing a second `HabitStore` that fills the same `Habit` objects from the database
+        - Honest limits: this version rewrites everything on each save, which is fine at this size; real apps write only what changed. On the web, drift needs extra files and setup (see its web guide), so we keep shared_preferences there.
+      tr: |
+        - Dart sınıfları olarak tablolar ve `build_runner` ile kod üretimi
+        - İki tablo: alışkanlıklar ve tamamlanan günleri (gün başına bir satır)
+        - Aynı `Habit` nesnelerini veritabanından dolduran ikinci bir `HabitStore` yazmak
+        - Dürüst sınırlar: bu sürüm her kayıtta her şeyi yeniden yazar, bu boyutta sorun değil; gerçek uygulamalar sadece değişeni yazar. Webde drift ekstra dosya ve kurulum ister (web rehberine bak), o yüzden orada shared_preferences kalıyor.
+    do:
+      en: |
+        1. Add the packages with the one command below (three normal ones and two for code generation).
+        2. Create `lib/data/database.dart` and `lib/data/drift_habit_store.dart`.
+        3. Generate the missing file: `dart run build_runner build`. It writes `lib/data/database.g.dart`. Commit this file too, so GitHub Actions can build without running the generator.
+        4. In `lib/main.dart` (the Sentry version) add `import 'package:flutter/foundation.dart' show kIsWeb;` and the imports of `data/database.dart`, `data/drift_habit_store.dart` and `data/habit_store.dart`, then replace the `ChangeNotifierProvider` inside `buildApp()` with the code below. `HabitStore` is the common type of both stores.
+        5. Run the app on your phone. Your older habits (from shared_preferences) are not in the new database: this exercise starts fresh. Tick a habit, restart, and it stays.
+        6. Run `flutter test`: the unit tests still pass, because they use `MemoryHabitStore`.
+        7. Next ideas: a dark theme, reminders with a notifications package, state management with Riverpod, translations (Flutter's `intl` support), or a small server so habits sync between devices.
+      tr: |
+        1. Paketleri aşağıdaki tek komutla ekle (üç normal paket ve kod üretimi için iki paket).
+        2. `lib/data/database.dart` ve `lib/data/drift_habit_store.dart` dosyalarını oluştur.
+        3. Eksik dosyayı üret: `dart run build_runner build`. `lib/data/database.g.dart` dosyasını yazar. Bu dosyayı da commit'le; böylece GitHub Actions üreticiyi çalıştırmadan derleyebilir.
+        4. `lib/main.dart` içinde (Sentry sürümü) `import 'package:flutter/foundation.dart' show kIsWeb;` satırını, `data/database.dart`, `data/drift_habit_store.dart` ve `data/habit_store.dart` import'larını ekle ve `buildApp()` içindeki `ChangeNotifierProvider`'ı aşağıdaki kodla değiştir. `HabitStore` ikisinin ortak tipidir.
+        5. Uygulamayı telefonunda çalıştır. Eski alışkanlıkların (shared_preferences'taki) yeni veritabanında yok: bu alıştırma sıfırdan başlar. Bir alışkanlığı işaretle, yeniden başlat; kalır.
+        6. `flutter test` çalıştır: unit testler hâlâ geçer, çünkü `MemoryHabitStore` kullanırlar.
+        7. Sonraki fikirler: koyu tema, bir bildirim paketiyle hatırlatıcılar, Riverpod ile state yönetimi, çeviriler (Flutter'ın `intl` desteği) ya da alışkanlıkların cihazlar arasında eşitlenmesi için küçük bir sunucu.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          flutter pub add drift drift_flutter path_provider dev:drift_dev dev:build_runner
+          dart run build_runner build
+      - file: lib/data/database.dart
+        lang: dart
+        text: |
+          import 'package:drift/drift.dart';
+          import 'package:drift_flutter/drift_flutter.dart';
+          import 'package:path_provider/path_provider.dart';
+
+          part 'database.g.dart';
+
+          @DataClassName('HabitRow')
+          class HabitRows extends Table {
+            TextColumn get id => text()();
+            TextColumn get name => text().withLength(min: 1, max: 40)();
+
+            @override
+            Set<Column> get primaryKey => {id};
+          }
+
+          class Completions extends Table {
+            TextColumn get habitId => text().references(HabitRows, #id)();
+            TextColumn get day => text()();
+
+            @override
+            Set<Column> get primaryKey => {habitId, day};
+          }
+
+          @DriftDatabase(tables: [HabitRows, Completions])
+          class AppDatabase extends _$AppDatabase {
+            AppDatabase([QueryExecutor? executor]) : super(executor ?? _openConnection());
+
+            @override
+            int get schemaVersion => 1;
+
+            static QueryExecutor _openConnection() {
+              return driftDatabase(
+                name: 'habits',
+                native: const DriftNativeOptions(
+                  databaseDirectory: getApplicationSupportDirectory,
+                ),
+              );
+            }
+          }
+      - file: lib/main.dart
+        lang: dart
+        text: |
+          // Inside buildApp(): choose the store (add the imports at the top).
+          ChangeNotifierProvider(
+            create: (_) {
+              final HabitStore store =
+                  kIsWeb ? PrefsHabitStore() : DriftHabitStore(AppDatabase());
+              return HabitsModel(store)..load();
+            },
+          ),
+      - file: lib/data/drift_habit_store.dart
+        lang: dart
+        text: |
+          import '../models/habit.dart';
+          import 'database.dart';
+          import 'habit_store.dart';
+
+          class DriftHabitStore implements HabitStore {
+            DriftHabitStore(this._db);
+
+            final AppDatabase _db;
+
+            @override
+            Future<List<Habit>> load() async {
+              final rows = await _db.select(_db.habitRows).get();
+              final done = await _db.select(_db.completions).get();
+              return [
+                for (final row in rows)
+                  Habit(
+                    id: row.id,
+                    name: row.name,
+                    doneOn: {
+                      for (final c in done)
+                        if (c.habitId == row.id) c.day,
+                    },
+                  ),
+              ];
+            }
+
+            @override
+            Future<void> save(List<Habit> habits) {
+              return _db.transaction(() async {
+                await _db.delete(_db.completions).go();
+                await _db.delete(_db.habitRows).go();
+                await _db.batch((batch) {
+                  batch.insertAll(_db.habitRows, [
+                    for (final h in habits) HabitRowsCompanion.insert(id: h.id, name: h.name),
+                  ]);
+                  batch.insertAll(_db.completions, [
+                    for (final h in habits)
+                      for (final day in h.doneOn)
+                        CompletionsCompanion.insert(habitId: h.id, day: day),
+                  ]);
+                });
+              });
+            }
+          }
+    mistakes:
+      - problem:
+          en: "\"Target of URI hasn't been generated: database.g.dart\"."
+          tr: "\"Target of URI hasn't been generated: database.g.dart\" hatası."
+        fix:
+          en: "Run `dart run build_runner build`. Run it again after every change to a table class. `dart run build_runner watch` does it on every save."
+          tr: "`dart run build_runner build` çalıştır. Bir tablo sınıfını her değiştirdiğinde yeniden çalıştır. `dart run build_runner watch` her kayıtta bunu yapar."
+      - problem:
+          en: "Changing a table later (a new column) and the app crashes for people who already have the old database."
+          tr: "Sonradan bir tabloyu değiştirmek (yeni sütun) ve eski veritabanı olan kişilerde uygulamanın çökmesi."
+        fix:
+          en: "Raise `schemaVersion` and write a migration. The drift docs explain migrations; plan for them from the first release."
+          tr: "`schemaVersion`'ı artır ve bir migration yaz. drift dokümanları migration'ları anlatır; ilk sürümden itibaren planla."
+    quiz:
+      - q:
+          en: "Why could we add a database without changing any screen?"
+          tr: "Neden hiçbir ekranı değiştirmeden veritabanı ekleyebildik?"
+        options:
+          en:
+            - "The model only talks to the HabitStore interface, so any class that implements it can be plugged in"
+            - "drift redraws the screens by itself"
+            - "SQLite is built into the widgets"
+          tr:
+            - "Model sadece HabitStore arayüzüyle konuşur; onu uygulayan her sınıf takılabilir"
+            - "drift ekranları kendisi yeniden çizer"
+            - "SQLite widget'ların içinde hazır gelir"
+        answer: 0
+        why:
+          en: "Depending on an interface instead of a concrete class is what makes parts replaceable and testable."
+          tr: "Somut bir sınıf yerine bir arayüze bağlı olmak parçaları değiştirilebilir ve test edilebilir yapar."
+    sources:
+      - title: drift, setup
+        url: https://drift.simonbinder.eu/setup/
+      - title: sqflite package
+        url: https://pub.dev/packages/sqflite
+      - title: Persist data with SQLite
+        url: https://docs.flutter.dev/cookbook/persistence/sqlite
