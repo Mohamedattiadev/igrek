@@ -1,0 +1,27 @@
+{
+  "reasons": {
+    "Takes an upper-layer service in its constructor": "A lower area receives a service from a higher one (Flows, Board, Personas, Schedules, Docs, Databases, AppErrors, Lessons) as a constructor argument typed with that class. The fix is a narrow interface owned by the lower area (Dependency Inversion); done when the file is next changed.",
+    "Shares a helper that lives in another area": "extract.ts reuses the code-file and sensitive-file patterns from insight, servers.ts reuses the command risk classifier from chat, knowledge.ts reuses the persona label. The helper should move down to foundation or core."
+  },
+  "edges": [
+    "calendar.ts -> schedules.ts",
+    "codehost.ts -> board.ts",
+    "docs.ts -> databases.ts",
+    "extract.ts -> insight/checks.ts",
+    "extract.ts -> insight/snapshot.ts",
+    "feedback.ts -> board.ts",
+    "imports.ts -> board.ts",
+    "incidents.ts -> docs.ts",
+    "incidents.ts -> personas.ts",
+    "knowledge.ts -> personas.ts",
+    "perf.ts -> apperrors.ts",
+    "preview/devservers.ts -> personas.ts",
+    "product.ts -> docs.ts",
+    "product.ts -> flows.ts",
+    "product.ts -> writeups.ts",
+    "retention.ts -> flows.ts",
+    "servers.ts -> commands.ts",
+    "templates.ts -> flows.ts",
+    "templates.ts -> lessons.ts"
+  ]
+}

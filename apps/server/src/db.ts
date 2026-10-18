@@ -2,7 +2,6 @@ import { Database } from "bun:sqlite";
 import { join } from "node:path";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { SERVER_MIGRATION } from "./servers";
 
 export const settingsTable = sqliteTable("settings", {
   key: text("key").primaryKey(),
@@ -14,6 +13,30 @@ export const settingsTable = sqliteTable("settings", {
  * Ordered schema migrations. Each entry runs once; the index is stored in
  * PRAGMA user_version. Never edit an entry after it ships — append a new one.
  */
+/** Faz 2.5: servers over SSH and their audit log (kept here so the schema has no feature imports). */
+const SERVER_MIGRATION = `CREATE TABLE servers (
+     id TEXT PRIMARY KEY,
+     name TEXT NOT NULL,
+     target TEXT NOT NULL,
+     port INTEGER,
+     tag TEXT NOT NULL DEFAULT 'other',
+     health TEXT,
+     created_at INTEGER NOT NULL
+   );
+   CREATE TABLE remote_audit (
+     id TEXT PRIMARY KEY,
+     server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
+     command TEXT NOT NULL,
+     risk TEXT NOT NULL,
+     actor TEXT NOT NULL,
+     reason TEXT,
+     started_at INTEGER NOT NULL,
+     exit_code INTEGER,
+     output TEXT,
+     duration_ms INTEGER
+   );
+   CREATE INDEX remote_audit_server ON remote_audit(server_id, started_at DESC);`;
+
 export const migrations: string[] = [
   `CREATE TABLE settings (
      key TEXT PRIMARY KEY,

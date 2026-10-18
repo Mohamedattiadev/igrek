@@ -27,6 +27,7 @@ const CONTAINERS: Record<string, { label: string; tech: string; what: string }> 
 
 /** Server modules by area, matched on the file path; the first match wins. */
 const AREAS: [string, string, RegExp][] = [
+  ["foundation", "Foundation", /^\/(bus|db|config|settings|seal|jsonlines|env|files|localmodel|sync\/scrub)\.ts$/],
   ["sync", "Team sync", /\/(sync\/|team-routes)/],
   ["preview", "Live preview", /\/(preview\/|preview-routes)/],
   [
@@ -37,12 +38,12 @@ const AREAS: [string, string, RegExp][] = [
   [
     "sessions",
     "Session reading",
-    /\/(adapters\/|indexer|store|summarizer|extract|embedder|embed-worker|imports|retention|timetrack|costs|limits)/,
+    /\/(adapters\/|indexer|store|summarizer|extract|embedder|embed-worker|imports|retention|timetrack|limits|accounts|health)/,
   ],
   [
     "chat",
     "Chats and terminals",
-    /\/(chats?|chat-routes|terminals?|terminal-routes|worktrees|checkpoints|commands|enhance|enhance-routes|assist|assist-routes|hooks|mcp)/,
+    /\/(chats?|chat-routes|terminals?|terminal-routes|worktrees|checkpoints|commands|trust|enhance|enhance-routes|assist|assist-routes|hooks|mcp)/,
   ],
   [
     "agents",
@@ -52,7 +53,7 @@ const AREAS: [string, string, RegExp][] = [
   [
     "ops",
     "Servers and operations",
-    /\/(servers?|server-routes|deploy|docker|monitors|logs|backup|databases|data|incidents|environments|env|vault|ops|codehost|netlog|health|analytics|feedback|product|calendar|apperrors|system|update|plugins|extras)/,
+    /\/(costs|servers?|server-routes|deploy|docker|monitors|logs|backup|databases|data|incidents|environments|env|vault|ops|codehost|netlog|health|analytics|feedback|product|calendar|apperrors|system|update|plugins|extras)/,
   ],
   [
     "knowledge",
@@ -62,12 +63,47 @@ const AREAS: [string, string, RegExp][] = [
   ["api", "HTTP API and app", /\//],
 ];
 
+/**
+ * The intended architecture of the server (docs/adr/0002-server-layers.md): which areas each
+ * area may use. Lower layers never reach up; "api" is the composition root and may use all.
+ */
+export const INTENDED: Record<string, string[]> = {
+  foundation: [],
+  sessions: ["foundation"],
+  knowledge: ["foundation", "sessions"],
+  ops: ["foundation", "sessions"],
+  insight: ["foundation", "sessions", "knowledge"],
+  sync: ["foundation", "sessions"],
+  chat: ["foundation", "sessions", "knowledge", "insight", "ops"],
+  preview: ["foundation", "sessions", "ops", "chat"],
+  agents: ["foundation", "sessions", "knowledge", "insight", "ops", "chat"],
+  api: ["foundation", "sessions", "knowledge", "ops", "insight", "sync", "chat", "preview", "agents"],
+};
+
+export const DRIFT_BASELINE = join(ROOT, "scripts/c4-drift.json");
+
+/** Imports (file -> file) that go where the intended architecture says they should not. */
+export function drift(): string[] {
+  const out: string[] = [];
+  for (const [file, { all }] of graph(sourceFiles().filter((f) => !/\.test\.tsx?$/.test(f)))) {
+    const from = areaOf(file);
+    for (const to of all) {
+      const target = areaOf(to);
+      if (from && target && from !== target && !INTENDED[from]?.includes(target))
+        out.push(`${file.replace("apps/server/src/", "")} -> ${to.replace("apps/server/src/", "")}`);
+    }
+  }
+  return out.sort();
+}
+
 function containerOf(file: string): string | undefined {
   return Object.keys(CONTAINERS).find((c) => file.startsWith(`${c}/`));
 }
 
 function areaOf(file: string): string | undefined {
   if (!file.startsWith("apps/server/src/")) return undefined;
+  // Route files are the HTTP layer: wiring areas together is their job.
+  if (/-routes\.ts$/.test(file)) return "api";
   return AREAS.find(([, , re]) => re.test(file.slice("apps/server/src".length)))?.[0];
 }
 
@@ -98,6 +134,8 @@ const id = (s: string) => s.replace(/[^a-z0-9]/gi, "_");
 export function render(): string {
   const containers = arrows(containerOf);
   const areas = arrows(areaOf);
+  const drifting = (from: string, to: string) => !INTENDED[from]?.includes(to);
+  const known = drift();
   const lines = [
     "# God Eye architecture (C4)",
     "",
@@ -147,8 +185,23 @@ export function render(): string {
     '  Container_Boundary(server, "Server") {',
     ...AREAS.map(([key, label]) => `    Component(${key}, "${label}", "TypeScript")`),
     "  }",
-    ...areas.map(([from, to]) => `  Rel(${from}, ${to}, "uses")`),
+    ...areas.map(([from, to]) => `  Rel(${from}, ${to}, "${drifting(from, to) ? "drift" : "uses"}")`),
+    ...areas
+      .filter(([from, to]) => drifting(from, to))
+      .map(([from, to]) => `  UpdateRelStyle(${from}, ${to}, $textColor="red", $lineColor="red")`),
     "```",
+    "",
+    "## 4. Intended architecture and drift",
+    "",
+    "What each area may use, written down once in `docs/adr/0002-server-layers.md` and `INTENDED` in `scripts/c4.ts`.",
+    'Red arrows above ("drift") go where the intended architecture says they should not. The imports behind them are',
+    "listed in `scripts/c4-drift.json` with the reason; a new one fails the gate, and a fixed one must leave the list.",
+    "",
+    "| Area | May use |",
+    "| --- | --- |",
+    ...Object.entries(INTENDED).map(([area, may]) => `| ${area} | ${may.join(", ") || "nothing"} |`),
+    "",
+    `Imports that drift today: ${known.length}.`,
     "",
   ];
   return lines.join("\n");

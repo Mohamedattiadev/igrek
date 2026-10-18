@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { check, cycles, RULES, sourceFiles } from "./arch-check";
-import { OUT, render } from "./c4";
+import { DRIFT_BASELINE, drift, OUT, render } from "./c4";
 
 describe("architecture gate", () => {
   test("finds an import cycle and ignores what has none", () => {
@@ -29,5 +29,15 @@ describe("architecture gate", () => {
 
   test("the C4 picture matches the code", () => {
     expect(readFileSync(OUT, "utf8")).toBe(render());
+  });
+});
+
+describe("intended architecture", () => {
+  test("no import goes against the server's layers beyond the known, explained ones", () => {
+    const known = JSON.parse(readFileSync(DRIFT_BASELINE, "utf8")) as { edges: string[] };
+    const now = drift();
+    // New drift fails; fixed drift must leave the list, so it only shrinks.
+    expect(now.filter((e) => !known.edges.includes(e))).toEqual([]);
+    expect(known.edges.filter((e) => !now.includes(e))).toEqual([]);
   });
 });

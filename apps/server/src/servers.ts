@@ -10,29 +10,6 @@ import { cleanEnv } from "./env";
 const TAGS: ServerTag[] = ["prod", "staging", "test", "other"];
 const MAX_OUTPUT = 64 * 1024;
 
-export const SERVER_MIGRATION = `CREATE TABLE servers (
-     id TEXT PRIMARY KEY,
-     name TEXT NOT NULL,
-     target TEXT NOT NULL,
-     port INTEGER,
-     tag TEXT NOT NULL DEFAULT 'other',
-     health TEXT,
-     created_at INTEGER NOT NULL
-   );
-   CREATE TABLE remote_audit (
-     id TEXT PRIMARY KEY,
-     server_id TEXT NOT NULL REFERENCES servers(id) ON DELETE CASCADE,
-     command TEXT NOT NULL,
-     risk TEXT NOT NULL,
-     actor TEXT NOT NULL,
-     reason TEXT,
-     started_at INTEGER NOT NULL,
-     exit_code INTEGER,
-     output TEXT,
-     duration_ms INTEGER
-   );
-   CREATE INDEX remote_audit_server ON remote_audit(server_id, started_at DESC);`;
-
 /** A target is user@host, host, or an ~/.ssh/config alias; nothing that could be read as an ssh option. */
 export function validTarget(target: string): boolean {
   return /^([a-zA-Z0-9._-]+@)?[a-zA-Z0-9._:-]+$/.test(target) && !target.startsWith("-");

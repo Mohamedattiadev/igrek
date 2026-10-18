@@ -55,6 +55,7 @@ Server modules grouped by area (matched on file names in `scripts/c4.ts`); an ar
 ```mermaid
 C4Component
   Container_Boundary(server, "Server") {
+    Component(foundation, "Foundation", "TypeScript")
     Component(sync, "Team sync", "TypeScript")
     Component(preview, "Live preview", "TypeScript")
     Component(insight, "Quality and insight", "TypeScript")
@@ -65,54 +66,75 @@ C4Component
     Component(knowledge, "Learning and knowledge", "TypeScript")
     Component(api, "HTTP API and app", "TypeScript")
   }
-  Rel(agents, api, "uses")
   Rel(agents, chat, "uses")
+  Rel(agents, foundation, "uses")
   Rel(agents, insight, "uses")
-  Rel(agents, knowledge, "uses")
   Rel(agents, ops, "uses")
   Rel(agents, sessions, "uses")
   Rel(api, agents, "uses")
   Rel(api, chat, "uses")
+  Rel(api, foundation, "uses")
   Rel(api, insight, "uses")
   Rel(api, knowledge, "uses")
   Rel(api, ops, "uses")
   Rel(api, preview, "uses")
   Rel(api, sessions, "uses")
   Rel(api, sync, "uses")
-  Rel(chat, api, "uses")
+  Rel(chat, foundation, "uses")
   Rel(chat, insight, "uses")
-  Rel(chat, knowledge, "uses")
   Rel(chat, ops, "uses")
   Rel(chat, sessions, "uses")
-  Rel(chat, sync, "uses")
-  Rel(insight, agents, "uses")
-  Rel(insight, api, "uses")
+  Rel(insight, foundation, "uses")
   Rel(insight, knowledge, "uses")
-  Rel(insight, ops, "uses")
+  Rel(insight, ops, "drift")
   Rel(insight, sessions, "uses")
-  Rel(insight, sync, "uses")
-  Rel(knowledge, agents, "uses")
-  Rel(knowledge, api, "uses")
-  Rel(knowledge, insight, "uses")
-  Rel(knowledge, ops, "uses")
+  Rel(knowledge, agents, "drift")
+  Rel(knowledge, foundation, "uses")
+  Rel(knowledge, insight, "drift")
+  Rel(knowledge, ops, "drift")
   Rel(knowledge, sessions, "uses")
-  Rel(ops, agents, "uses")
-  Rel(ops, api, "uses")
-  Rel(ops, chat, "uses")
-  Rel(ops, insight, "uses")
-  Rel(ops, knowledge, "uses")
+  Rel(ops, agents, "drift")
+  Rel(ops, chat, "drift")
+  Rel(ops, foundation, "uses")
+  Rel(ops, knowledge, "drift")
   Rel(ops, sessions, "uses")
-  Rel(preview, agents, "uses")
-  Rel(preview, api, "uses")
+  Rel(preview, agents, "drift")
   Rel(preview, chat, "uses")
-  Rel(preview, ops, "uses")
+  Rel(preview, foundation, "uses")
   Rel(preview, sessions, "uses")
-  Rel(sessions, agents, "uses")
-  Rel(sessions, api, "uses")
-  Rel(sessions, insight, "uses")
-  Rel(sessions, knowledge, "uses")
-  Rel(sessions, ops, "uses")
-  Rel(sync, api, "uses")
-  Rel(sync, chat, "uses")
-  Rel(sync, sessions, "uses")
+  Rel(sessions, agents, "drift")
+  Rel(sessions, foundation, "uses")
+  Rel(sessions, insight, "drift")
+  Rel(sync, foundation, "uses")
+  UpdateRelStyle(insight, ops, $textColor="red", $lineColor="red")
+  UpdateRelStyle(knowledge, agents, $textColor="red", $lineColor="red")
+  UpdateRelStyle(knowledge, insight, $textColor="red", $lineColor="red")
+  UpdateRelStyle(knowledge, ops, $textColor="red", $lineColor="red")
+  UpdateRelStyle(ops, agents, $textColor="red", $lineColor="red")
+  UpdateRelStyle(ops, chat, $textColor="red", $lineColor="red")
+  UpdateRelStyle(ops, knowledge, $textColor="red", $lineColor="red")
+  UpdateRelStyle(preview, agents, $textColor="red", $lineColor="red")
+  UpdateRelStyle(sessions, agents, $textColor="red", $lineColor="red")
+  UpdateRelStyle(sessions, insight, $textColor="red", $lineColor="red")
 ```
+
+## 4. Intended architecture and drift
+
+What each area may use, written down once in `docs/adr/0002-server-layers.md` and `INTENDED` in `scripts/c4.ts`.
+Red arrows above ("drift") go where the intended architecture says they should not. The imports behind them are
+listed in `scripts/c4-drift.json` with the reason; a new one fails the gate, and a fixed one must leave the list.
+
+| Area | May use |
+| --- | --- |
+| foundation | nothing |
+| sessions | foundation |
+| knowledge | foundation, sessions |
+| ops | foundation, sessions |
+| insight | foundation, sessions, knowledge |
+| sync | foundation, sessions |
+| chat | foundation, sessions, knowledge, insight, ops |
+| preview | foundation, sessions, ops, chat |
+| agents | foundation, sessions, knowledge, insight, ops, chat |
+| api | foundation, sessions, knowledge, ops, insight, sync, chat, preview, agents |
+
+Imports that drift today: 19.
