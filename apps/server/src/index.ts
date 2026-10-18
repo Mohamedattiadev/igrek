@@ -27,6 +27,7 @@ import { Briefings } from "./briefing";
 import { Bus, StopRegistry } from "./bus";
 import { Calendar } from "./calendar";
 import { handleChatMessage, registerChatRoutes } from "./chat-routes";
+import { ChatStream } from "./chat-stream";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
 import { CodeHost } from "./codehost";
@@ -770,7 +771,7 @@ setInterval(() => void accounts.refreshAll(), 30 * 60_000);
 setTimeout(() => void servers.checkAll(), 15_000);
 setInterval(() => void servers.checkAll(), 5 * 60_000);
 
-type SocketData = { unsubscribe?: () => void; terminal?: string; chat?: string };
+type SocketData = { unsubscribe?: () => void; terminal?: string; chat?: string; stream?: ChatStream };
 
 function cookieFrom(req: Request): string | undefined {
   // Same parser Hono's getCookie uses, so WebSocket and HTTP auth agree.
@@ -803,10 +804,20 @@ const server = Bun.serve<SocketData>({
   websocket: {
     open(ws: ServerWebSocket<SocketData>) {
       if (ws.data.chat) {
-        const attached = chats.attach(ws.data.chat, (op) => ws.send(JSON.stringify(op)));
+        const id = ws.data.chat;
+        const stream = new ChatStream(
+          (data) => ws.send(data),
+          () => ws.getBufferedAmount(),
+          () => chats.snapshot(id),
+        );
+        const attached = chats.attach(id, (op) => stream.push(op));
         if (attached) {
-          ws.send(JSON.stringify({ op: "init", info: attached.info, events: attached.events }));
-          ws.data.unsubscribe = attached.detach;
+          stream.start(attached);
+          ws.data.stream = stream;
+          ws.data.unsubscribe = () => {
+            attached.detach();
+            stream.close();
+          };
         }
         return;
       }
@@ -842,6 +853,9 @@ const server = Bun.serve<SocketData>({
         return;
       }
       if (message.type === "ping") ws.send(JSON.stringify({ type: "pong", at: message.at } satisfies ServerMessage));
+    },
+    drain(ws) {
+      ws.data.stream?.drain();
     },
     close(ws) {
       ws.data.unsubscribe?.();

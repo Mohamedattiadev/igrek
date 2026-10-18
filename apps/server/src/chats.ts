@@ -37,6 +37,8 @@ interface Chat {
   info: ChatInfo;
   events: ChatEvent[];
   index: Map<string, number>;
+  /** Counts every change sent to listeners, so a client can tell an old op from a new one. */
+  seq: number;
   listeners: Set<(op: ChatOp) => void>;
   write: (message: unknown) => void;
   kill: () => void;
@@ -63,7 +65,7 @@ type Image = { mediaType: string; data: string };
 /** What to do with a message written while the AI is still working. */
 export type SendHow = "queue" | "steer";
 
-export type ChatOp = { op: "upsert"; event: ChatEvent } | { op: "info"; info: ChatInfo };
+export type ChatOp = { op: "upsert"; seq: number; event: ChatEvent } | { op: "info"; seq: number; info: ChatInfo };
 
 export interface ChatStart {
   projectId: string;
@@ -288,6 +290,7 @@ export class Chats {
       },
       events: [],
       index: new Map(),
+      seq: 0,
       listeners: new Set(),
       write: (message) => {
         proc.stdin.write(`${JSON.stringify(message)}\n`);
@@ -328,7 +331,7 @@ export class Chats {
   attach(
     id: string,
     listener: (op: ChatOp) => void,
-  ): { info: ChatInfo; events: ChatEvent[]; detach: () => void } | undefined {
+  ): { info: ChatInfo; events: ChatEvent[]; seq: number; detach: () => void } | undefined {
     const chat = this.chats.get(id);
     if (!chat) return undefined;
     chat.listeners.add(listener);
@@ -337,7 +340,18 @@ export class Chats {
       chat.unseen = false;
       this.changed();
     }
-    return { info: this.view(chat), events: [...chat.events], detach: () => chat.listeners.delete(listener) };
+    return {
+      info: this.view(chat),
+      events: [...chat.events],
+      seq: chat.seq,
+      detach: () => chat.listeners.delete(listener),
+    };
+  }
+
+  /** The whole chat as it is now, to restart a client that fell behind. */
+  snapshot(id: string): { info: ChatInfo; events: ChatEvent[]; seq: number } | undefined {
+    const chat = this.chats.get(id);
+    return chat && { info: this.view(chat), events: [...chat.events], seq: chat.seq };
   }
 
   /**
@@ -740,11 +754,13 @@ export class Chats {
         chat.index = new Map(chat.events.map((e, i) => [e.id, i]));
       }
     }
-    for (const listener of chat.listeners) listener({ op: "upsert", event });
+    chat.seq++;
+    for (const listener of chat.listeners) listener({ op: "upsert", seq: chat.seq, event });
   }
 
   private emitInfo(chat: Chat): void {
-    for (const listener of chat.listeners) listener({ op: "info", info: this.view(chat) });
+    chat.seq++;
+    for (const listener of chat.listeners) listener({ op: "info", seq: chat.seq, info: this.view(chat) });
   }
 
   /**

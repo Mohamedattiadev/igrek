@@ -2,11 +2,54 @@ import type { ChatEvent, ChatInfo, ChatMode, RecentChat } from "@godeye/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 
+type ChangeOp = { op: "upsert"; event: ChatEvent } | { op: "info"; info: ChatInfo };
+
+/** The server merges changes and sends them in batches; `seq` only grows, so stale batches are dropped. */
 type ServerOp =
-  | { op: "init"; info: ChatInfo; events: ChatEvent[] }
-  | { op: "upsert"; event: ChatEvent }
-  | { op: "info"; info: ChatInfo }
+  | { op: "init"; seq: number; info: ChatInfo; events: ChatEvent[] }
+  | { op: "batch"; seq: number; ops: ChangeOp[] }
   | { op: "error"; error: string };
+
+/** Applies a batch of event changes in one go (one render instead of one per streamed word). */
+export function applyChanges(list: ChatEvent[], ops: ChangeOp[]): ChatEvent[] {
+  let next = list;
+  let positions: Map<string, number> | undefined;
+  for (const op of ops) {
+    if (op.op !== "upsert") continue;
+    if (next === list) next = list.slice();
+    positions ??= new Map(next.map((e, i) => [e.id, i]));
+    const index = positions.get(op.event.id);
+    if (index === undefined) {
+      positions.set(op.event.id, next.length);
+      next.push(op.event);
+    } else next[index] = op.event;
+  }
+  return next;
+}
+
+interface Sinks {
+  setInfo: (info: ChatInfo) => void;
+  setEvents: (update: ChatEvent[] | ((list: ChatEvent[]) => ChatEvent[])) => void;
+  setError: (error: string) => void;
+}
+
+/** Applies one server message and returns the newest sequence number seen. */
+function receive(op: ServerOp, seq: number, sinks: Sinks): number {
+  if (op.op === "error") {
+    sinks.setError(op.error);
+    return seq;
+  }
+  if (op.op === "init") {
+    sinks.setInfo(op.info);
+    sinks.setEvents(op.events);
+    return op.seq;
+  }
+  if (op.seq <= seq) return seq;
+  const info = op.ops.findLast((o) => o.op === "info");
+  if (info?.op === "info") sinks.setInfo(info.info);
+  if (op.ops.some((o) => o.op === "upsert")) sinks.setEvents((list) => applyChanges(list, op.ops));
+  return op.seq;
+}
 
 /** What a chat was about, kept by the server so it can be picked up again after God Eye restarts. */
 export type KnownChat = Pick<RecentChat, "projectId" | "sessionId" | "title">;
@@ -23,6 +66,7 @@ export function useChat(id: string) {
   useEffect(() => {
     let closed = false;
     let opened = false;
+    let seq = -1;
     let retry: ReturnType<typeof setTimeout> | undefined;
     setGone(undefined);
     const connect = () => {
@@ -32,21 +76,7 @@ export function useChat(id: string) {
         opened = true;
       };
       ws.onmessage = (message) => {
-        const op = JSON.parse(message.data) as ServerOp;
-        if (op.op === "init") {
-          setInfo(op.info);
-          setEvents(op.events);
-        } else if (op.op === "info") {
-          setInfo(op.info);
-        } else if (op.op === "error") setError(op.error);
-        else
-          setEvents((list) => {
-            const index = list.findIndex((e) => e.id === op.event.id);
-            if (index < 0) return [...list, op.event];
-            const next = list.slice();
-            next[index] = op.event;
-            return next;
-          });
+        seq = receive(JSON.parse(message.data) as ServerOp, seq, { setInfo, setEvents, setError });
       };
       ws.onclose = () => {
         if (closed) return;
