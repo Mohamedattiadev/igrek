@@ -1,11 +1,7 @@
 {
-  "app": {
-    "tagline": "Tüm AI kod projelerini gör, anla ve yönet."
-  },
   "nav": {
     "projects": "Projeler",
     "inbox": "Gelen Kutusu",
-    "search": "Ara",
     "limits": "Limitler",
     "team": "Takım",
     "settings": "Ayarlar",
@@ -70,14 +66,12 @@
     "sessions_other": "{{count}} oturum",
     "active_one": "{{count}} tanesi şu an çalışıyor",
     "active_other": "{{count}} tanesi şu an çalışıyor",
-    "hidden": "Gizli",
     "showHidden": "Gizlileri göster",
     "noGit": "Git reposu değil",
     "changes_one": "{{count}} commit edilmemiş değişiklik",
     "changes_other": "{{count}} commit edilmemiş değişiklik",
     "ahead": "{{count}} önde",
     "behind": "{{count}} geride",
-    "lastActive": "Son aktivite {{when}}",
     "indexing": "Oturumların okunuyor… {{done}}/{{total}}",
     "add": "Klasör ekle",
     "addTitle": "Proje klasörü ekle",
@@ -101,9 +95,7 @@
     "emptyBody": "Onaylar, bahsetmeler ve uyarılar burada görünecek.",
     "needsYou": "Cevabını bekleyenler",
     "conflicts": "Hafızada karar bekleyenler",
-    "openTerminal": "Aç",
     "snooze": "Bugün sonra",
-    "snoozed": "Ertelendi",
     "urgent": "Acil",
     "today": "Bugün",
     "info": "Bilgi",
@@ -145,10 +137,6 @@
     "notice_deployFailed": "bir deploy başarısız oldu",
     "notice_deployDone": "deploy edildi",
     "done": "Halledildi (gizle)"
-  },
-  "placeholder": {
-    "soon": "Sonraki bir fazda geliyor",
-    "body": "Bu sayfa planlandı. Detaylar plan.md dosyasında."
   },
   "settings": {
     "title": "Ayarlar",
@@ -222,7 +210,6 @@
     "start": "Başla"
   },
   "help": {
-    "what": "Bu nedir?",
     "button": "Yardım",
     "title": "Nasıl yaparım…",
     "search": "Rehberde ara ya da soru sor",
@@ -432,8 +419,7 @@
     "explain_bad": "AI önceki ayrıntıları unutuyor. Daha iyi cevaplar için özetle yeni bir konuşma başlat."
   },
   "search": {
-    "results": "Oturumlarında",
-    "none": "Oturumlarında eşleşme yok."
+    "results": "Oturumlarında"
   },
   "time": {
     "justNow": "az önce",
@@ -506,7 +492,6 @@
     "noChanges": "Commit edilmemiş değişiklik yok.",
     "save": "Kaydet",
     "saved": "Kaydedildi",
-    "unsaved": "Kaydedilmemiş değişiklik",
     "conflict": "Sen düzenlerken bu dosya diskte değişti. Yeni hâlini görmek için yeniden yükle.",
     "reload": "Yeniden yükle",
     "pickFile": "Soldan bir dosya seç",
@@ -515,12 +500,9 @@
     "commit": "Commit",
     "commitPlaceholder": "Ne değiştirdin?",
     "committed": "Commit atıldı",
-    "diff": "Değişiklikler",
     "edit": "Düzenle",
     "preview": "Önizle",
     "search": "Dosyalarda ara…",
-    "vim": "Vim",
-    "explain": "Bu dosyayı açıkla",
     "closeTab": "Kapat",
     "keymap": "Tuş düzeni",
     "keymapTip": "Kod editörünün hangi editörün kısayollarını kullanacağı",
@@ -563,21 +545,17 @@
     "modified": "Değişiklik",
     "usage": "Disk kullanımı",
     "addFolder": "Başka bir klasöre izin ver",
-    "addFolderHint": "God Eye'ın açabileceği klasörün tam yolu",
     "search": "İsimlerde ara…",
     "grid": "Izgara",
     "list": "Liste",
     "hidden": "Gizlileri göster",
     "dropHere": "Yüklemek için dosyaları bırak",
-    "folderName": "Klasör adı",
-    "newName": "Yeni ad",
     "protected": "~/.ssh gibi korumalı klasörler asla gösterilmez.",
     "emptyHint": "Dosyaları buraya bırak ya da Yükle'yi kullan. Başka klasörleri Ayarlar'dan izin verdikten sonra açabilirsin.",
     "up": "Bir üst klasör",
     "backToList": "Dosyalara dön"
   },
   "preview": {
-    "rows": "{{count}} satır",
     "truncated": "İlk {{count}} satır gösteriliyor.",
     "explain": "Açıkla",
     "summarize": "Özetle",
@@ -713,12 +691,10 @@
     "tags": "Etiketler (virgülle)",
     "save": "Kaydet",
     "use": "Kullan",
-    "sendTo": "Şuraya yaz",
     "copy": "Kopyala",
     "uses_one": "{{count}} kez kullanıldı",
     "uses_other": "{{count}} kez kullanıldı",
-    "fill": "Boşlukları doldur",
-    "noTerminal": "Açık terminal yok"
+    "fill": "Boşlukları doldur"
   },
   "servers": {
     "title": "Sunucular",
@@ -726,10 +702,8 @@
     "emptyBody": "ssh ile bağlandığın bir sunucu ekle. God Eye senin ssh'ını ve ssh-agent'ını kullanır, anahtarlarını asla okumaz.",
     "add": "Sunucu ekle",
     "name": "Ad",
-    "target": "Adres",
     "targetHint": "kullanıcı@host, host adı ya da ~/.ssh/config'teki bir takma ad",
     "port": "Port",
-    "tag": "Etiket",
     "tag_prod": "Canlı (prod)",
     "tag_staging": "Staging",
     "tag_test": "Test",
@@ -758,8 +732,6 @@
     "confirmDanger": "Onaylamak için sunucu adını yaz",
     "confirm": "Çalıştır",
     "audit": "Geçmiş",
-    "by_user": "sen",
-    "by_agent": "AI",
     "output": "Çıktı",
     "remove": "Sunucuyu kaldır",
     "lastCheck": "{{when}} kontrol edildi",
@@ -910,7 +882,6 @@
     "restored": "Geri yüklendi",
     "none": "Henüz kayıt yok.",
     "now": "Şimdi kayıt al",
-    "noGit": "Kayıtlar için git reposu gerekiyor.",
     "undo": "Geri al",
     "undone": "Geri alındı",
     "busy": "Geri dönmek için AI'ı durdur"
@@ -950,11 +921,8 @@
   "accounts": {
     "title": "Hesaplar",
     "add": "Hesap ekle",
-    "provider": "Araç",
-    "label": "Ad",
     "labelPlaceholder": "örn. İş, Kişisel",
     "login": "Giriş yap",
-    "relogin": "Tekrar giriş yap",
     "refresh": "Kontrol et",
     "active": "Kullanımda",
     "use": "Bunu kullan",
@@ -1001,7 +969,6 @@
     "shareHint": "Kapalı: hiçbir şey bu bilgisayardan çıkmaz. Özetler: oturum başlıkları, özetler, istatistikler ve proje hafızası. Tam: konuşmaların kendisi de. Sırlar her zaman silinir.",
     "invite": "Birini davet et",
     "inviteReady": "Bu kodu {{name}} kişisine özelden gönder (herkese açık bir kanalda değil). Kendi Takım sayfasına yapıştıracak.",
-    "inviteSecret": "Bu kod takım anahtarını içerir. Kodu bilen herkes paylaşılan projeleri okuyabilir.",
     "done": "Tamam",
     "displayName": "Görünen ad (isteğe bağlı)",
     "createInvite": "Davet oluştur",

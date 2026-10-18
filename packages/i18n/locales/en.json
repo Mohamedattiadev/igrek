@@ -1,11 +1,7 @@
 {
-  "app": {
-    "tagline": "See, understand and manage all your AI coding projects."
-  },
   "nav": {
     "projects": "Projects",
     "inbox": "Inbox",
-    "search": "Search",
     "limits": "Limits",
     "team": "Team",
     "settings": "Settings",
@@ -70,14 +66,12 @@
     "sessions_other": "{{count}} sessions",
     "active_one": "{{count}} working now",
     "active_other": "{{count}} working now",
-    "hidden": "Hidden",
     "showHidden": "Show hidden",
     "noGit": "Not a git repo",
     "changes_one": "{{count}} uncommitted change",
     "changes_other": "{{count}} uncommitted changes",
     "ahead": "{{count}} ahead",
     "behind": "{{count}} behind",
-    "lastActive": "Last active {{when}}",
     "indexing": "Reading your sessions… {{done}}/{{total}}",
     "add": "Add folder",
     "addTitle": "Add a project folder",
@@ -101,9 +95,7 @@
     "emptyBody": "Approvals, mentions and alerts will show up here.",
     "needsYou": "Waiting for your answer",
     "conflicts": "Memory needs a decision",
-    "openTerminal": "Open",
     "snooze": "Later today",
-    "snoozed": "Snoozed",
     "urgent": "Urgent",
     "today": "Today",
     "info": "FYI",
@@ -145,10 +137,6 @@
     "notice_deployFailed": "a deploy failed",
     "notice_deployDone": "deployed",
     "done": "Handled (hide it)"
-  },
-  "placeholder": {
-    "soon": "Coming in a later phase",
-    "body": "This page is planned. See plan.md for the details."
   },
   "settings": {
     "title": "Settings",
@@ -222,7 +210,6 @@
     "start": "Start"
   },
   "help": {
-    "what": "What is this?",
     "button": "Help",
     "title": "How do I…",
     "search": "Search the guide or ask a question",
@@ -432,8 +419,7 @@
     "explain_bad": "the AI is forgetting earlier details. Start a new conversation with a summary for better answers."
   },
   "search": {
-    "results": "In your sessions",
-    "none": "No matches in your sessions."
+    "results": "In your sessions"
   },
   "time": {
     "justNow": "just now",
@@ -506,7 +492,6 @@
     "noChanges": "No uncommitted changes.",
     "save": "Save",
     "saved": "Saved",
-    "unsaved": "Unsaved changes",
     "conflict": "This file changed on disk while you were editing. Reload to see the new version.",
     "reload": "Reload",
     "pickFile": "Pick a file on the left",
@@ -515,12 +500,9 @@
     "commit": "Commit",
     "commitPlaceholder": "What did you change?",
     "committed": "Committed",
-    "diff": "Changes",
     "edit": "Edit",
     "preview": "Preview",
     "search": "Search in files…",
-    "vim": "Vim",
-    "explain": "Explain this file",
     "closeTab": "Close",
     "keymap": "Key bindings",
     "keymapTip": "Which editor's shortcuts the code editor uses",
@@ -563,21 +545,17 @@
     "modified": "Modified",
     "usage": "Disk usage",
     "addFolder": "Allow another folder",
-    "addFolderHint": "Full path of a folder God Eye may open",
     "search": "Search names…",
     "grid": "Grid",
     "list": "List",
     "hidden": "Show hidden",
     "dropHere": "Drop files to upload",
-    "folderName": "Folder name",
-    "newName": "New name",
     "protected": "Protected folders like ~/.ssh are never shown.",
     "emptyHint": "Drop files here or use Upload. Other folders can be opened after you allow them in Settings.",
     "up": "Up one folder",
     "backToList": "Back to the files"
   },
   "preview": {
-    "rows": "{{count}} rows",
     "truncated": "Showing the first {{count}} rows.",
     "explain": "Explain",
     "summarize": "Summarize",
@@ -713,12 +691,10 @@
     "tags": "Tags (comma separated)",
     "save": "Save",
     "use": "Use",
-    "sendTo": "Type into",
     "copy": "Copy",
     "uses_one": "used {{count}} time",
     "uses_other": "used {{count}} times",
-    "fill": "Fill in the blanks",
-    "noTerminal": "No open terminal"
+    "fill": "Fill in the blanks"
   },
   "servers": {
     "title": "Servers",
@@ -726,10 +702,8 @@
     "emptyBody": "Add a server you reach with ssh. God Eye uses your own ssh and ssh-agent; it never reads your keys.",
     "add": "Add server",
     "name": "Name",
-    "target": "Address",
     "targetHint": "user@host, a host name, or an alias from ~/.ssh/config",
     "port": "Port",
-    "tag": "Label",
     "tag_prod": "Production",
     "tag_staging": "Staging",
     "tag_test": "Test",
@@ -758,8 +732,6 @@
     "confirmDanger": "Type the server name to confirm",
     "confirm": "Run it",
     "audit": "History",
-    "by_user": "you",
-    "by_agent": "AI",
     "output": "Output",
     "remove": "Remove server",
     "lastCheck": "Checked {{when}}",
@@ -910,7 +882,6 @@
     "restored": "Restored",
     "none": "No snapshots yet.",
     "now": "Save snapshot now",
-    "noGit": "Snapshots need a git repository.",
     "undo": "Undo",
     "undone": "Undone",
     "busy": "Stop the AI to go back"
@@ -950,11 +921,8 @@
   "accounts": {
     "title": "Accounts",
     "add": "Add account",
-    "provider": "Tool",
-    "label": "Name",
     "labelPlaceholder": "e.g. Work, Personal",
     "login": "Log in",
-    "relogin": "Log in again",
     "refresh": "Check",
     "active": "In use",
     "use": "Use this",
@@ -1001,7 +969,6 @@
     "shareHint": "Off: nothing leaves this computer. Summaries: session titles, summaries, stats and project memory. Full: the conversations too. Secrets are always removed.",
     "invite": "Invite someone",
     "inviteReady": "Send this code to {{name}} privately (not in a public channel). They paste it on their Team page.",
-    "inviteSecret": "This code contains the team key. Anyone who has it can read shared projects.",
     "done": "Done",
     "displayName": "Display name (optional)",
     "createInvite": "Create invite",

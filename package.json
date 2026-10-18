@@ -18,7 +18,7 @@
     "godeye": "bun run apps/server/src/cli.ts",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "biome check .",
-    "lint:dead": "knip --no-progress",
+    "lint:dead": "knip --no-progress && bun scripts/dead-keys.ts",
     "lint:arch": "bun scripts/arch-check.ts",
     "lint:db": "bun scripts/db-check.ts",
     "lint:quality": "bun scripts/code-check.ts",
