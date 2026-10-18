@@ -1,0 +1,2516 @@
+id: redis
+title: Redis
+summary:
+  en: "From an empty computer to a fast Redis layer on a real API. You add Redis to a small Node.js shop API step by step: a cache, rate limiting, sessions, a job queue and live events, then you lock it down, tune its memory, and connect it to a free hosted database."
+  tr: "Boş bir bilgisayardan gerçek bir API'nin önündeki hızlı bir Redis katmanına. Küçük bir Node.js mağaza API'sine adım adım Redis eklersin: cache, rate limiting, oturumlar, iş kuyruğu ve canlı olaylar; sonra Redis'i kilitler, belleğini ayarlar ve ücretsiz barındırılan bir veritabanına bağlarsın."
+teacher: database
+project:
+  en: 'shop-api, a small Node.js API with products: reads go through a Redis cache that is cleared on updates, a rate limiter protects it, users log in with sessions stored in Redis, report jobs run in a background worker through a Redis Stream, and product changes are announced with pub/sub. Redis runs in Docker with a password-protected app user, saved data and a memory limit, the tests run against a real Redis, and the same API runs on Render with a free Redis Cloud database.'
+  tr: 'shop-api, ürünleri olan küçük bir Node.js API''si: okumalar, güncellemede temizlenen bir Redis cache''inden geçer, bir rate limiter onu korur, kullanıcılar Redis''te tutulan oturumlarla giriş yapar, rapor işleri bir Redis Stream üzerinden arka plandaki bir worker''da çalışır ve ürün değişiklikleri pub/sub ile duyurulur. Redis; şifreli bir uygulama kullanıcısı, kaydedilen veri ve bellek sınırıyla Docker''da çalışır, testler gerçek bir Redis''e karşı koşar ve aynı API, ücretsiz bir Redis Cloud veritabanıyla Render''da çalışır.'
+detect:
+  npm: [redis, ioredis, bullmq]
+  pip: [redis]
+version: "8.10"
+latest: eol:redis
+checked: 2026-10
+after: [node]
+sheets: [redis, caching, nodejs, docker]
+steps:
+  - id: install
+    stage: setup
+    title:
+      en: "Run Redis on your computer with Docker"
+      tr: "Docker ile bilgisayarında Redis çalıştırma"
+    minutes: 40
+    why:
+      en: "You need a real Redis server to learn on. Docker runs it in a container, a sealed box that does not touch the rest of your system, and you can throw it away with one command. Doing this first also shows what Redis is: a program that keeps your data in memory and waits for commands on a port."
+      tr: "Üzerinde öğrenmek için gerçek bir Redis sunucusuna ihtiyacın var. Docker onu container içinde çalıştırır; container sistemin geri kalanına dokunmayan kapalı bir kutudur ve tek komutla atılır. Bunu önce yapmak Redis'in ne olduğunu da gösterir: verini bellekte tutan ve bir portta komut bekleyen bir program."
+    learn:
+      en: |
+        - What Redis is: an in-memory data store. Reads and writes are very fast because the data lives in RAM, and that is why it is used for caches, queues, sessions and counters. It can also save data to disk (a later step)
+        - What a container and an image are: the image `redis:8.10-alpine` is the packed program (the `alpine` variant is small), the container is one running copy of it
+        - How `-p 127.0.0.1:6380:6379` works: it connects port 6380 on your computer to port 6379 inside the container (6379 is Redis's usual port). The `127.0.0.1:` part means only your own computer can connect. We use 6380 so this never clashes with another Redis you may have
+        - A note on licenses, from Redis's own license page: Redis 7.2 and earlier are BSD-licensed; since Redis 8 you may choose the Redis Source Available License v2, the Server Side Public License v1 or the GNU AGPLv3. A free fork of Redis called Valkey (BSD license, backed by the Linux Foundation) exists too; the basic commands in this roadmap also work on it (see the last step)
+      tr: |
+        - Redis'in ne olduğu: bellekte çalışan bir veri deposu. Veri RAM'de durduğu için okuma ve yazma çok hızlıdır; cache, kuyruk, oturum ve sayaç için bu yüzden kullanılır. Veriyi diske de kaydedebilir (sonraki adımlardan biri)
+        - Container ve image'in ne olduğu: `redis:8.10-alpine` image'i paketlenmiş programdır (`alpine` varyantı küçüktür), container onun çalışan tek bir kopyasıdır
+        - `-p 127.0.0.1:6380:6379`'un nasıl çalıştığı: bilgisayarındaki 6380 portunu container içindeki 6379 portuna bağlar (6379 Redis'in olağan portudur). `127.0.0.1:` kısmı, sadece kendi bilgisayarının bağlanabileceği anlamına gelir. 6380 kullanıyoruz ki elindeki başka bir Redis'le çakışmasın
+        - Lisanslar hakkında bir not, Redis'in kendi lisans sayfasından: Redis 7.2 ve öncesi BSD lisanslıdır; Redis 8'den beri Redis Source Available License v2, Server Side Public License v1 ya da GNU AGPLv3 lisanslarından birini seçebilirsin. Valkey adında özgür bir Redis fork'u da var (BSD lisansı, Linux Foundation destekli); bu roadmap'teki temel komutlar onda da çalışır (son adıma bak)
+    do:
+      en: |
+        1. Install **Node.js** (version 22 or newer; the LTS version is best) from nodejs.org and **Docker** (Docker Desktop on Windows and macOS, Docker Engine on Linux) from docs.docker.com. Install an editor such as VS Code if you do not have one.
+        2. Open a terminal and check both programs with the first two commands below.
+        3. Start Redis with the `docker run` command. The first time it downloads the image, which takes a minute.
+        4. Check that the container is running with `docker ps`, then send your first command: `PING`. Redis answers `PONG`.
+        5. Ask the server for its version. You should see `8.10`.
+        6. Useful later: `docker stop redis-shop` pauses the server, `docker start redis-shop` starts it again.
+      tr: |
+        1. nodejs.org'dan **Node.js**'i (22 ya da daha yeni bir sürüm; en iyisi LTS) ve docs.docker.com'dan **Docker**'ı kur (Windows ve macOS'ta Docker Desktop, Linux'ta Docker Engine). Elinde yoksa VS Code gibi bir editör de kur.
+        2. Bir terminal aç ve aşağıdaki ilk iki komutla iki programı kontrol et.
+        3. Redis'i `docker run` komutuyla başlat. İlk seferde image'i indirir, bu bir dakika sürer.
+        4. `docker ps` ile container'ın çalıştığına bak, sonra ilk komutunu gönder: `PING`. Redis `PONG` diye cevap verir.
+        5. Sunucudan sürümünü iste. `8.10` görmelisin.
+        6. Sonra işine yarar: `docker stop redis-shop` sunucuyu durdurur, `docker start redis-shop` yeniden başlatır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          node --version
+          docker --version
+          docker run -d --name redis-shop --memory 256m -p 127.0.0.1:6380:6379 redis:8.10-alpine
+          docker ps
+          docker exec redis-shop redis-cli PING
+          docker exec redis-shop redis-server --version
+    mistakes:
+      - problem:
+          en: "\"port is already allocated\" when starting the container."
+          tr: "Container başlatırken \"port is already allocated\" hatası."
+        fix:
+          en: "Something already uses port 6380. Remove the failed container with `docker rm -f redis-shop`, then change both 6380 in the command to a free number (for example 6390) and use that number in every later step."
+          tr: "Başka bir şey 6380 portunu kullanıyor. Başarısız container'ı `docker rm -f redis-shop` ile sil, sonra komuttaki 6380'i boş bir sayıyla değiştir (örneğin 6390) ve sonraki bütün adımlarda o sayıyı kullan."
+      - problem:
+          en: "Writing `-p 6380:6379` without `127.0.0.1:`."
+          tr: "`-p 6380:6379` yazıp `127.0.0.1:` kısmını atlamak."
+        fix:
+          en: "Then Docker publishes the port on every network interface of your computer, so other machines on your network (or the internet, on a server) can reach Redis. Always put `127.0.0.1:` in front, as in the command above."
+          tr: "O zaman Docker portu bilgisayarının bütün ağ arayüzlerinde yayınlar; ağındaki (ya da bir sunucudaysan internetteki) başka makineler Redis'e ulaşabilir. Yukarıdaki komuttaki gibi önüne her zaman `127.0.0.1:` koy."
+      - problem:
+          en: "\"The container name is already in use\"."
+          tr: "\"The container name is already in use\" hatası."
+        fix:
+          en: "A container called redis-shop already exists. Start it with `docker start redis-shop`, or delete it with `docker rm -f redis-shop` and run the command again."
+          tr: "redis-shop adında bir container zaten var. `docker start redis-shop` ile başlat ya da `docker rm -f redis-shop` ile sil ve komutu yeniden çalıştır."
+    quiz:
+      - q:
+          en: "What does the `127.0.0.1:` in `-p 127.0.0.1:6380:6379` do?"
+          tr: "`-p 127.0.0.1:6380:6379` içindeki `127.0.0.1:` ne yapar?"
+        options:
+          en:
+            - "Makes Redis faster"
+            - "Lets only your own computer connect to the published port"
+            - "Gives Redis a password"
+          tr:
+            - "Redis'i hızlandırır"
+            - "Yayınlanan porta sadece kendi bilgisayarının bağlanmasını sağlar"
+            - "Redis'e şifre verir"
+        answer: 1
+        why:
+          en: "127.0.0.1 is the loopback address, reachable only from the same machine. Without it the port is open to the whole network."
+          tr: "127.0.0.1 loopback adresidir, sadece aynı makineden erişilir. O olmadan port bütün ağa açık olur."
+    sources:
+      - title: "Redis: install Redis Open Source with Docker"
+        url: https://redis.io/docs/latest/operate/oss_and_stack/install/install-stack/docker/
+      - title: "Redis: licenses"
+        url: https://redis.io/legal/licenses/
+      - title: "Docker: get Docker"
+        url: https://docs.docker.com/get-started/get-docker/
+
+  - id: cli
+    stage: first-code
+    title:
+      en: "Talk to Redis with redis-cli"
+      tr: "redis-cli ile Redis'le konuşma"
+    minutes: 30
+    needs: [install]
+    why:
+      en: "Redis is driven by short text commands. Typing them yourself in redis-cli, before any code, shows you what your program will really send later, and it is the tool you will use to look inside Redis for the rest of this roadmap."
+      tr: "Redis kısa metin komutlarla yönetilir. Kod yazmadan önce komutları redis-cli'da kendin yazmak, programının sonra gerçekte ne göndereceğini gösterir; ayrıca bu roadmap boyunca Redis'in içine bakmak için kullanacağın araç budur."
+    learn:
+      en: |
+        - What `redis-cli` is: the command line client that ships with Redis. We run it inside the container with `docker exec -it`
+        - The shape of a command: a name followed by arguments, for example `SET greeting hello`. Command names are not case sensitive, key names are
+        - The simplest commands: `SET`, `GET`, `INCR`, `DEL`, `EXISTS`
+        - How to read replies: `OK`, text, a number (`(integer) 1`) or `(nil)` for "nothing here"
+        - How to look up any command: `HELP SET` in the CLI or redis.io/docs/latest/commands
+      tr: |
+        - `redis-cli`'ın ne olduğu: Redis'le birlikte gelen komut satırı istemcisi. Onu container içinde `docker exec -it` ile çalıştırıyoruz
+        - Bir komutun biçimi: bir ad ve ardından argümanlar, örneğin `SET greeting hello`. Komut adlarında büyük/küçük harf fark etmez, anahtar adlarında eder
+        - En basit komutlar: `SET`, `GET`, `INCR`, `DEL`, `EXISTS`
+        - Cevapların nasıl okunacağı: `OK`, metin, bir sayı (`(integer) 1`) ya da "burada hiçbir şey yok" demek olan `(nil)`
+        - Herhangi bir komutun nasıl aranacağı: CLI'da `HELP SET` ya da redis.io/docs/latest/commands
+    do:
+      en: |
+        1. Open the redis-cli prompt inside the container with the first command below. The prompt looks like `127.0.0.1:6379>`. (The 6379 here is the port inside the container, it is correct.)
+        2. Type the commands from the second block one at a time and read each reply. Lines starting with `#` are comments for you, do not type them.
+        3. Try `GET missing`. The reply `(nil)` means the key does not exist; it is not an error.
+        4. Try `INCR visits` three times. Redis creates the key with value 1 and adds one each time. The whole command is atomic: even if a thousand clients run it at once, no increment is lost.
+        5. Type `exit` to leave the prompt.
+      tr: |
+        1. Aşağıdaki ilk komutla container içinde redis-cli istemini aç. İstem `127.0.0.1:6379>` gibi görünür. (Buradaki 6379 container içindeki porttur, doğru.)
+        2. İkinci bloktaki komutları tek tek yaz ve her cevabı oku. `#` ile başlayan satırlar senin için yorumdur, yazma.
+        3. `GET missing` dene. `(nil)` cevabı anahtarın olmadığı anlamına gelir; hata değildir.
+        4. `INCR visits` komutunu üç kez dene. Redis anahtarı 1 değeriyle oluşturur ve her seferinde bir ekler. Komutun tamamı atomiktir: bin istemci aynı anda çalıştırsa bile hiçbir artış kaybolmaz.
+        5. İstemden çıkmak için `exit` yaz.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker exec -it redis-shop redis-cli
+      - file: redis-cli
+        lang: text
+        text: |
+          PING                      # PONG
+          SET greeting hello        # OK
+          GET greeting              # "hello"
+          GET missing               # (nil)
+          EXISTS greeting missing   # (integer) 1, only one of the two keys exists
+          INCR visits               # (integer) 1
+          INCR visits               # (integer) 2
+          INCRBY visits 10          # (integer) 12
+          DEL greeting              # (integer) 1
+          HELP SET                  # shows the syntax of SET
+    mistakes:
+      - problem:
+          en: "Forgetting `-it` and getting a prompt that does nothing, or an error about a TTY."
+          tr: "`-it`'i unutup hiçbir şey yapmayan bir istem ya da TTY hatası almak."
+        fix:
+          en: "`-i` keeps input open and `-t` gives a terminal. For the interactive prompt always use `docker exec -it redis-shop redis-cli`. For a single command, `docker exec redis-shop redis-cli PING` is fine."
+          tr: "`-i` girdiyi açık tutar, `-t` terminal verir. Etkileşimli istem için her zaman `docker exec -it redis-shop redis-cli` kullan. Tek bir komut için `docker exec redis-shop redis-cli PING` yeterli."
+      - problem:
+          en: "Typing `Greeting` and `greeting` and wondering why one is empty."
+          tr: "`Greeting` ve `greeting` yazıp birinin neden boş olduğunu merak etmek."
+        fix:
+          en: "Key names are case sensitive: they are two different keys. Command names are not."
+          tr: "Anahtar adlarında büyük/küçük harf fark eder: bunlar iki ayrı anahtardır. Komut adlarında fark etmez."
+    quiz:
+      - q:
+          en: "What does the reply `(nil)` to `GET missing` mean?"
+          tr: "`GET missing` komutuna gelen `(nil)` cevabı ne demek?"
+        options:
+          en:
+            - "The server crashed"
+            - "The key does not exist"
+            - "The key holds an empty string"
+          tr:
+            - "Sunucu çöktü"
+            - "Anahtar yok"
+            - "Anahtarda boş bir string var"
+        answer: 1
+        why:
+          en: "nil means there is nothing under that key. An empty string would be shown as \"\"."
+          tr: "nil, o anahtarın altında hiçbir şey olmadığı demek. Boş bir string \"\" olarak gösterilirdi."
+    sources:
+      - title: "Redis CLI"
+        url: https://redis.io/docs/latest/develop/tools/cli/
+      - title: "Redis commands"
+        url: https://redis.io/docs/latest/commands/
+
+  - id: types
+    stage: basics
+    title:
+      en: "Strings, hashes, lists, sets and sorted sets"
+      tr: "String, hash, list, set ve sorted set"
+    minutes: 55
+    needs: [cli]
+    why:
+      en: "Redis is not only key and text value. Each key can hold a different data structure, and every structure has commands that do one job in one step. Picking the right structure is most of the skill: it is the difference between a one-line command and a slow loop in your code."
+      tr: "Redis sadece anahtar ve metin değer değildir. Her anahtar farklı bir veri yapısı tutabilir ve her yapının tek adımda tek iş yapan komutları vardır. Doğru yapıyı seçmek becerinin büyük kısmıdır: tek satırlık bir komutla kodundaki yavaş bir döngü arasındaki fark budur."
+    learn:
+      en: |
+        - **String**: one value (text or a number). `SET`, `GET`, `INCR`. Good for cache entries and counters
+        - **Hash**: a small record of field and value pairs under one key. `HSET`, `HGET`, `HGETALL`. Good for a user or a session
+        - **List**: an ordered list you push to and pop from at both ends. `RPUSH`, `LRANGE`, `LPOP`. Good for "latest 10 events" and simple queues
+        - **Set**: unique members, no order. `SADD`, `SISMEMBER`, `SMEMBERS`. Good for tags and "who has liked this"
+        - **Sorted set**: unique members, each with a score, always kept sorted by score. `ZADD`, `ZRANGE`. Good for leaderboards and "most viewed"
+        - `TYPE key` tells you what a key holds. Using a command of the wrong family on a key gives a `WRONGTYPE` error
+      tr: |
+        - **String**: tek bir değer (metin ya da sayı). `SET`, `GET`, `INCR`. Cache kayıtları ve sayaçlar için iyi
+        - **Hash**: tek anahtarın altında alan ve değer çiftlerinden oluşan küçük bir kayıt. `HSET`, `HGET`, `HGETALL`. Bir kullanıcı ya da oturum için iyi
+        - **List**: iki ucundan ekleyip çıkardığın sıralı bir liste. `RPUSH`, `LRANGE`, `LPOP`. "Son 10 olay" ve basit kuyruklar için iyi
+        - **Set**: benzersiz üyeler, sıra yok. `SADD`, `SISMEMBER`, `SMEMBERS`. Etiketler ve "bunu kimler beğendi" için iyi
+        - **Sorted set**: her biri bir skora sahip benzersiz üyeler, her zaman skora göre sıralı tutulur. `ZADD`, `ZRANGE`. Skor tabloları ve "en çok görüntülenen" için iyi
+        - `TYPE key` bir anahtarın ne tuttuğunu söyler. Yanlış aileden bir komutu bir anahtarda kullanırsan `WRONGTYPE` hatası alırsın
+    do:
+      en: |
+        1. Open redis-cli again: `docker exec -it redis-shop redis-cli`.
+        2. Type the commands below group by group. After each group, look at the reply and compare it with the comment.
+        3. Run `SADD tags cache` a second time: the reply is `0` because the member already exists. Sets never hold duplicates.
+        4. Run `ZADD scores 90 ada` and then `ZRANGE scores 0 -1 REV WITHSCORES`. Adding the same member again only changes its score.
+        5. Run `GET user:1` after the hash commands. You get `WRONGTYPE`: a hash cannot be read with a string command. Use `TYPE user:1` to see `hash`.
+        6. Clean up with `FLUSHDB` (this empties the current database; fine on your practice server, never run it on real data).
+      tr: |
+        1. redis-cli'ı yeniden aç: `docker exec -it redis-shop redis-cli`.
+        2. Aşağıdaki komutları grup grup yaz. Her gruptan sonra cevaba bak ve yorumla karşılaştır.
+        3. `SADD tags cache` komutunu ikinci kez çalıştır: üye zaten var olduğu için cevap `0` olur. Set'ler asla tekrar tutmaz.
+        4. `ZADD scores 90 ada` çalıştır, sonra `ZRANGE scores 0 -1 REV WITHSCORES` çalıştır. Aynı üyeyi yeniden eklemek sadece skorunu değiştirir.
+        5. Hash komutlarından sonra `GET user:1` çalıştır. `WRONGTYPE` alırsın: bir hash string komutuyla okunamaz. `hash` görmek için `TYPE user:1` kullan.
+        6. `FLUSHDB` ile temizle (bu, geçerli veritabanını boşaltır; deneme sunucunda sorun yok, gerçek veride asla çalıştırma).
+    code:
+      - file: redis-cli
+        lang: text
+        text: |
+          # hash: a record
+          HSET user:1 name Ada city London        # (integer) 2, two fields were added
+          HGET user:1 name                        # "Ada"
+          HGETALL user:1                          # name, Ada, city, London
+          TYPE user:1                             # hash
+
+          # list: ordered, push and pop at both ends
+          RPUSH todo write test deploy            # (integer) 3
+          LRANGE todo 0 -1                        # write, test, deploy
+          LPOP todo                               # "write"
+
+          # set: unique members
+          SADD tags redis cache fast              # (integer) 3
+          SADD tags cache                         # (integer) 0, already there
+          SISMEMBER tags cache                    # (integer) 1
+          SMEMBERS tags                           # the three members, in no fixed order
+
+          # sorted set: members with a score
+          ZADD scores 50 ada 80 grace 65 linus    # (integer) 3
+          ZRANGE scores 0 -1 REV WITHSCORES       # grace 80, linus 65, ada 50
+          ZRANK scores ada                        # (integer) 0, the lowest score has rank 0
+          ZINCRBY scores 40 ada                   # "90"
+    mistakes:
+      - problem:
+          en: "Using `SMEMBERS` or `HGETALL` and expecting a fixed order."
+          tr: "`SMEMBERS` ya da `HGETALL` kullanıp sabit bir sıra beklemek."
+        fix:
+          en: "A set has no order. If you need order, use a list or a sorted set. Hash fields come back in the order Redis stores them, which you should not rely on."
+          tr: "Set'in sırası yoktur. Sıra gerekiyorsa list ya da sorted set kullan. Hash alanları Redis'in sakladığı sırayla gelir, buna güvenme."
+      - problem:
+          en: "Storing a whole big object as one hash or one list and reading all of it on every request."
+          tr: "Koca bir nesneyi tek hash ya da tek list olarak saklayıp her istekte hepsini okumak."
+        fix:
+          en: "`HGETALL`, `SMEMBERS` and `LRANGE 0 -1` return everything and get slower as the structure grows. Keep structures small, read a part (`HGET`, `LRANGE 0 9`, `ZRANGE 0 9`) and split big ones across keys."
+          tr: "`HGETALL`, `SMEMBERS` ve `LRANGE 0 -1` her şeyi döndürür ve yapı büyüdükçe yavaşlar. Yapıları küçük tut, bir kısmını oku (`HGET`, `LRANGE 0 9`, `ZRANGE 0 9`) ve büyükleri anahtarlara böl."
+    quiz:
+      - q:
+          en: "You want the five most viewed products, always sorted. Which structure fits best?"
+          tr: "En çok görüntülenen beş ürünü her zaman sıralı olarak istiyorsun. Hangi yapı en uygun?"
+        options:
+          en:
+            - "A list"
+            - "A set"
+            - "A sorted set"
+          tr:
+            - "Bir list"
+            - "Bir set"
+            - "Bir sorted set"
+        answer: 2
+        why:
+          en: "A sorted set keeps members ordered by score (the view count), so ZRANGE 0 4 REV gives the top five in one command."
+          tr: "Sorted set üyeleri skora (görüntülenme sayısına) göre sıralı tutar; ZRANGE 0 4 REV ilk beşi tek komutla verir."
+    sources:
+      - title: "Redis data types"
+        url: https://redis.io/docs/latest/develop/data-types/
+      - title: "Redis hashes"
+        url: https://redis.io/docs/latest/develop/data-types/hashes/
+      - title: "Redis sorted sets"
+        url: https://redis.io/docs/latest/develop/data-types/sorted-sets/
+
+  - id: keys-ttl
+    stage: basics
+    title:
+      en: "Naming keys and letting them expire"
+      tr: "Anahtar adlandırma ve süre dolumu"
+    minutes: 35
+    needs: [types]
+    why:
+      en: "A cache must forget. A key with a time to live (TTL) is deleted by Redis by itself, so stale data and forgotten sessions clean themselves up. Good key names also keep a shared server tidy and let you give access rules to one group of keys later."
+      tr: "Bir cache unutmalı. Yaşam süresi (TTL) olan bir anahtarı Redis kendisi siler; eski veri ve unutulan oturumlar kendiliğinden temizlenir. İyi anahtar adları ayrıca ortak bir sunucuyu düzenli tutar ve sonra bir anahtar grubuna erişim kuralı vermeni sağlar."
+    learn:
+      en: |
+        - Key naming: parts separated by colons, from general to specific, like `app:product:42`. Our app will start every key with `app:`
+        - `SET key value EX 60` stores a value that disappears after 60 seconds. `TTL key` shows the seconds left (`-1`: no expiry, `-2`: the key does not exist)
+        - `EXPIRE key seconds` puts a timer on an existing key, `PERSIST key` removes it. `EXPIRE key seconds NX` sets it only when no timer exists yet
+        - Overwriting a key with a plain `SET` removes its timer, so set the TTL again when you rewrite
+        - `DEL` removes keys, `UNLINK` does the same but frees big values in the background. `EXISTS` and `TYPE` inspect a key
+        - Never use `KEYS *` on a server with real data; it walks every key and blocks Redis. Use `SCAN`, which returns a few keys per call
+      tr: |
+        - Anahtar adlandırma: iki noktayla ayrılmış parçalar, genelden özele, `app:product:42` gibi. Uygulamamız her anahtarı `app:` ile başlatacak
+        - `SET key value EX 60` 60 saniye sonra kaybolan bir değer saklar. `TTL key` kalan saniyeyi gösterir (`-1`: süre yok, `-2`: anahtar yok)
+        - `EXPIRE key seconds` var olan bir anahtara zamanlayıcı koyar, `PERSIST key` onu kaldırır. `EXPIRE key seconds NX` sadece henüz zamanlayıcı yoksa koyar
+        - Bir anahtarı düz `SET` ile üzerine yazmak zamanlayıcısını siler; yeniden yazarken TTL'i tekrar ver
+        - `DEL` anahtarları siler, `UNLINK` aynısını yapar ama büyük değerleri arka planda serbest bırakır. `EXISTS` ve `TYPE` bir anahtarı inceler
+        - Gerçek veri olan bir sunucuda asla `KEYS *` kullanma; her anahtarı gezer ve Redis'i bloklar. Her çağrıda birkaç anahtar döndüren `SCAN` kullan
+    do:
+      en: |
+        1. Open `docker exec -it redis-shop redis-cli` and type the commands below.
+        2. Run `SET code 1234 EX 5` and then `TTL code` quickly, then `GET code` after six seconds. It is `(nil)`: Redis deleted it.
+        3. Run `SET page:home cached` then `EXPIRE page:home 100 NX`, then `EXPIRE page:home 500 NX`. The second returns `0` because a timer already exists.
+        4. Run `SET page:home changed` and `TTL page:home`. It is `-1`: the plain SET erased the timer.
+        5. Use `SCAN 0 MATCH page:* COUNT 100` to find keys safely. A reply of cursor `0` means the scan is finished; any other cursor means call it again with that cursor.
+        6. Try `SET lock 1 NX EX 30` twice. The second one returns `(nil)`: NX means "only if the key does not exist". You will use this as a lock in the last step.
+      tr: |
+        1. `docker exec -it redis-shop redis-cli` ile aç ve aşağıdaki komutları yaz.
+        2. `SET code 1234 EX 5` çalıştır, hemen `TTL code` yaz, altı saniye sonra `GET code` yaz. Cevap `(nil)`: Redis sildi.
+        3. `SET page:home cached` çalıştır, sonra `EXPIRE page:home 100 NX`, ardından `EXPIRE page:home 500 NX` yaz. İkincisi `0` döner çünkü zamanlayıcı zaten var.
+        4. `SET page:home changed` ve `TTL page:home` yaz. Sonuç `-1`: düz SET zamanlayıcıyı sildi.
+        5. Anahtarları güvenle bulmak için `SCAN 0 MATCH page:* COUNT 100` kullan. Cursor `0` dönerse tarama bitmiştir; başka bir cursor dönerse onunla yeniden çağır.
+        6. `SET lock 1 NX EX 30` komutunu iki kez dene. İkincisi `(nil)` döner: NX "sadece anahtar yoksa" demektir. Bunu son adımda kilit olarak kullanacaksın.
+    code:
+      - file: redis-cli
+        lang: text
+        text: |
+          SET code 1234 EX 5         # OK
+          TTL code                   # (integer) 5, then counts down
+          GET code                   # "1234", and (nil) after 5 seconds
+
+          SET page:home cached       # OK
+          EXPIRE page:home 100 NX    # (integer) 1, the timer was set
+          EXPIRE page:home 500 NX    # (integer) 0, a timer already exists
+          SET page:home changed      # OK
+          TTL page:home              # (integer) -1, the timer is gone
+          TTL nothing:here           # (integer) -2, no such key
+
+          SCAN 0 MATCH page:* COUNT 100   # cursor 0, and the matching keys
+          TYPE page:home                  # string
+          UNLINK page:home                # (integer) 1
+
+          SET lock 1 NX EX 30        # OK
+          SET lock 1 NX EX 30        # (nil), it already exists
+    mistakes:
+      - problem:
+          en: "Using `KEYS *` to look around, even on a server that has real data."
+          tr: "Gerçek veri olan bir sunucuda bile etrafa bakmak için `KEYS *` kullanmak."
+        fix:
+          en: "KEYS goes through every key in one go and blocks all other clients. Use `SCAN` (or `redis-cli --scan --pattern 'app:*'`)."
+          tr: "KEYS bütün anahtarları tek seferde gezer ve diğer tüm istemcileri bloklar. `SCAN` (ya da `redis-cli --scan --pattern 'app:*'`) kullan."
+      - problem:
+          en: "Rewriting a cache key with `SET` and no `EX`, so it never expires any more."
+          tr: "Bir cache anahtarını `EX` vermeden `SET` ile yeniden yazıp artık hiç dolmamasına yol açmak."
+        fix:
+          en: "A plain SET clears the TTL. Always pass the expiry again when you rewrite a value."
+          tr: "Düz SET TTL'i siler. Bir değeri yeniden yazarken süreyi her seferinde tekrar ver."
+    quiz:
+      - q:
+          en: "`TTL somekey` replies `-1`. What does it mean?"
+          tr: "`TTL somekey` komutu `-1` döndürdü. Ne demek?"
+        options:
+          en:
+            - "The key exists and has no expiry"
+            - "The key does not exist"
+            - "The key will expire in one second"
+          tr:
+            - "Anahtar var ve süresi yok"
+            - "Anahtar yok"
+            - "Anahtarın süresi bir saniye sonra dolacak"
+        answer: 0
+        why:
+          en: "-1 means the key exists without a timer; -2 means there is no such key."
+          tr: "-1 anahtarın var olduğu ama zamanlayıcısının olmadığı demek; -2 öyle bir anahtar olmadığı demek."
+    sources:
+      - title: "Redis keys and values"
+        url: https://redis.io/docs/latest/develop/using-commands/keyspace/
+      - title: "EXPIRE"
+        url: https://redis.io/docs/latest/commands/expire/
+      - title: "SCAN"
+        url: https://redis.io/docs/latest/commands/scan/
+
+  - id: api
+    stage: first-project
+    title:
+      en: "Start shop-api and connect it to Redis"
+      tr: "shop-api'yi başlatma ve Redis'e bağlama"
+    minutes: 50
+    needs: [keys-ttl]
+    why:
+      en: "Now Redis meets code. You build a tiny Node.js API with a slow \"database\" (every read takes 150 ms, like a query over a network). It works without Redis, and in the next steps Redis makes it fast and safe. First you only connect to Redis and check it answers."
+      tr: "Şimdi Redis kodla buluşuyor. Yavaş bir \"veritabanı\" olan (her okuma 150 ms sürer, ağ üzerinden bir sorgu gibi) minik bir Node.js API'si yazıyorsun. Redis olmadan da çalışır; sonraki adımlarda Redis onu hızlı ve güvenli yapacak. Önce sadece Redis'e bağlanıp cevap verdiğini kontrol edersin."
+    learn:
+      en: |
+        - Using the official Node.js client `redis` (node-redis): `createClient({ url })`, `client.on("error", ...)` and `await client.connect()`
+        - Why the `error` handler is required: without it, a lost connection would crash your program
+        - The client's methods are named after the commands in camel case: `SET` is `set`, `HGETALL` is `hGetAll`, `ZRANGE` is `zRange`
+        - Config in an environment variable (`REDIS_URL`) instead of in the code, read from a `.env` file with Node's own `--env-file` option
+        - What `/health` is for: a cheap URL that proves the app and Redis both work
+      tr: |
+        - Resmî Node.js istemcisi `redis`'i (node-redis) kullanma: `createClient({ url })`, `client.on("error", ...)` ve `await client.connect()`
+        - `error` işleyicisinin neden şart olduğu: o olmazsa kopan bir bağlantı programını çökertir
+        - İstemcinin metotları komut adlarının camelCase halidir: `SET` için `set`, `HGETALL` için `hGetAll`, `ZRANGE` için `zRange`
+        - Ayarın kodun içinde değil bir ortam değişkeninde (`REDIS_URL`) durması ve Node'un kendi `--env-file` seçeneğiyle bir `.env` dosyasından okunması
+        - `/health`'in ne işe yaradığı: uygulamanın ve Redis'in ikisinin de çalıştığını kanıtlayan ucuz bir adres
+    do:
+      en: |
+        1. Make sure the container is running (`docker ps`). Create a folder `shop-api` and go into it. Run `npm init -y`, then `npm install express redis`.
+        2. Open `package.json`. Add `"type": "module"` (so `import` works) and the two scripts shown below.
+        3. Create `.env` with the Redis address and `.gitignore` as shown. `.env` will later hold passwords, so it must never be committed.
+        4. Create the four files under `src/`: `db.js` (the fake slow database), `redis.js` (the connection), `app.js` (the routes) and `server.js` (starts everything).
+        5. Run `npm start`. In a second terminal run the two `curl` commands. `/health` answers `{"ok":true,"redis":"PONG"}`, and the product takes about 150 ms every time (the `time_total` line). That slowness is what we fix next.
+      tr: |
+        1. Container'ın çalıştığından emin ol (`docker ps`). `shop-api` adında bir klasör oluştur ve içine gir. `npm init -y` çalıştır, sonra `npm install express redis`.
+        2. `package.json`'u aç. `"type": "module"` ekle (böylece `import` çalışır) ve aşağıdaki iki script'i ekle.
+        3. Redis adresini içeren `.env` dosyasını ve gösterilen `.gitignore`'u oluştur. `.env` sonra şifre tutacak, o yüzden asla commit edilmemeli.
+        4. `src/` altında dört dosya oluştur: `db.js` (sahte yavaş veritabanı), `redis.js` (bağlantı), `app.js` (route'lar) ve `server.js` (her şeyi başlatır).
+        5. `npm start` çalıştır. İkinci bir terminalde iki `curl` komutunu çalıştır. `/health` `{"ok":true,"redis":"PONG"}` döner; ürün her seferinde yaklaşık 150 ms sürer (`time_total` satırı). Sonra düzelteceğimiz yavaşlık bu.
+    code:
+      - file: package.json
+        lang: json
+        text: |
+          {
+            "name": "shop-api",
+            "version": "1.0.0",
+            "private": true,
+            "type": "module",
+            "scripts": {
+              "start": "node --env-file-if-exists=.env src/server.js",
+              "test": "node --env-file-if-exists=.env --test"
+            },
+            "dependencies": {
+              "express": "^5.3.0",
+              "redis": "^6.3.0"
+            }
+          }
+      - file: .env
+        lang: text
+        text: |
+          REDIS_URL=redis://127.0.0.1:6380
+      - file: .gitignore
+        lang: text
+        text: |
+          node_modules
+          .env
+          redis/users.acl
+          *.rdb
+      - file: src/db.js
+        lang: js
+        text: |
+          // A pretend database: every call takes 150 ms, like a query over a network.
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          export function createDb({ delayMs = 150 } = {}) {
+            const rows = new Map([
+              ["1", { id: "1", name: "Keyboard", price: 49 }],
+              ["2", { id: "2", name: "Mouse", price: 19 }],
+              ["3", { id: "3", name: "Monitor", price: 189 }],
+            ]);
+            const db = {
+              reads: 0,
+              async getProduct(id) {
+                db.reads++;
+                await sleep(delayMs);
+                return rows.get(id) ?? null;
+              },
+              async updateProduct(id, patch) {
+                await sleep(delayMs);
+                const row = rows.get(id);
+                if (!row) return null;
+                const updated = { ...row, ...patch, id };
+                rows.set(id, updated);
+                return updated;
+              },
+            };
+            return db;
+          }
+      - file: src/redis.js
+        lang: js
+        text: |
+          import { createClient } from "redis";
+
+          export async function connect(url = process.env.REDIS_URL ?? "redis://127.0.0.1:6380") {
+            const client = createClient({ url });
+            client.on("error", (err) => console.error("Redis error:", err.message));
+            await client.connect();
+            return client;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+
+          export function createApp({ redis, db }) {
+            const app = express();
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.get("/products/:id", async (req, res) => {
+              const product = await db.getProduct(req.params.id);
+              if (!product) return res.status(404).json({ error: "not found" });
+              res.json(product);
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+          import { createDb } from "./db.js";
+          import { connect } from "./redis.js";
+
+          const redis = await connect();
+          const db = createDb();
+
+          const port = Number(process.env.PORT ?? 3000);
+          createApp({ redis, db }).listen(port, () => console.log(`shop-api on :${port}`));
+      - file: terminal
+        lang: sh
+        text: |
+          npm start
+          # in a second terminal:
+          curl -s localhost:3000/health
+          curl -s -o /dev/null -w "%{time_total}s\n" localhost:3000/products/1
+          curl -s localhost:3000/products/1
+    mistakes:
+      - problem:
+          en: "`Error: connect ECONNREFUSED 127.0.0.1:6380`."
+          tr: "`Error: connect ECONNREFUSED 127.0.0.1:6380` hatası."
+        fix:
+          en: "Nothing listens on that port. Check `docker ps`; if the container is stopped run `docker start redis-shop`. If you used another port in step one, put it in `.env`."
+          tr: "O portu dinleyen bir şey yok. `docker ps`'e bak; container durmuşsa `docker start redis-shop` çalıştır. İlk adımda başka bir port kullandıysan onu `.env`'e yaz."
+      - problem:
+          en: "`Cannot use import statement outside a module`."
+          tr: "`Cannot use import statement outside a module` hatası."
+        fix:
+          en: "Add `\"type\": \"module\"` to package.json, and use file names with `.js` in imports, like `./app.js`."
+          tr: "package.json'a `\"type\": \"module\"` ekle ve import'larda `./app.js` gibi `.js` uzantılı dosya adları kullan."
+      - problem:
+          en: "Leaving out `client.on(\"error\", ...)`."
+          tr: "`client.on(\"error\", ...)` satırını atlamak."
+        fix:
+          en: "An error event nobody listens to makes Node throw and stop the whole program when Redis restarts. Always add the handler right after `createClient`."
+          tr: "Kimsenin dinlemediği bir error olayı, Redis yeniden başlayınca Node'un hata fırlatıp bütün programı durdurmasına yol açar. İşleyiciyi `createClient`'tan hemen sonra ekle."
+    quiz:
+      - q:
+          en: "Why do we read the Redis address from `REDIS_URL` and not write it in the code?"
+          tr: "Redis adresini neden kodun içine yazmak yerine `REDIS_URL`'den okuyoruz?"
+        options:
+          en:
+            - "So the same code works on your laptop and on a server with another address and password"
+            - "Because Redis refuses addresses written in code"
+            - "Because it makes queries faster"
+          tr:
+            - "Aynı kod laptopunda ve başka adres ve şifreli bir sunucuda çalışsın diye"
+            - "Redis koda yazılmış adresleri reddettiği için"
+            - "Sorguları hızlandırdığı için"
+        answer: 0
+        why:
+          en: "Settings that change between places, and secrets like passwords, belong outside the code."
+          tr: "Yerden yere değişen ayarlar ve şifre gibi sırlar kodun dışında durmalı."
+    sources:
+      - title: "node-redis guide"
+        url: https://redis.io/docs/latest/develop/clients/nodejs/
+      - title: "Express: routing"
+        url: https://expressjs.com/en/guide/routing.html
+      - title: "Node.js: --env-file"
+        url: https://nodejs.org/api/cli.html#--env-fileconfig
+
+  - id: cache-aside
+    stage: first-project
+    title:
+      en: "A cache with cache-aside and invalidation"
+      tr: "Cache-aside ve invalidation ile bir cache"
+    minutes: 60
+    needs: [api]
+    why:
+      en: "Reading a product from the slow database costs 150 ms every time, even though the product rarely changes. A cache keeps the answer in Redis for a while, so most requests take a few milliseconds and the database is asked much less. The hard part is not storing: it is removing the old answer when the product changes."
+      tr: "Ürünü yavaş veritabanından okumak, ürün nadiren değişse de her seferinde 150 ms tutuyor. Cache cevabı bir süre Redis'te saklar; böylece çoğu istek birkaç milisaniye sürer ve veritabanına çok daha az sorulur. Zor olan saklamak değil: ürün değişince eski cevabı kaldırmaktır."
+    learn:
+      en: |
+        - The **cache-aside** pattern: look in Redis; on a hit return it; on a miss ask the database, store the result in Redis with a TTL, return it
+        - Why every cache entry needs a TTL: it is the safety net that fixes any stale entry sooner or later (we use 60 seconds)
+        - **Invalidation**: after a write to the database, delete the cache key (`DEL`), so the next read loads fresh data. Delete, do not rewrite, it is simpler and safer
+        - The two ways to see it work: the `X-Cache: HIT` or `MISS` header we add, and `redis-cli` (`TTL`, `GET`)
+        - Storing objects as JSON text in a string value (`JSON.stringify` and `JSON.parse`), because a string is the simplest cache value
+        - A first sorted set in code: `ZINCRBY` counts product views and `ZRANGE ... REV` lists the most viewed ones
+        - In node-redis 6 the expiry option is `expiration: { type: "EX", value: 60 }`; the older `EX: 60` form still works but is marked deprecated
+      tr: |
+        - **Cache-aside** deseni: Redis'e bak; varsa (hit) döndür; yoksa (miss) veritabanına sor, sonucu TTL ile Redis'e yaz, döndür
+        - Her cache kaydının neden TTL'e ihtiyacı olduğu: eski kalan her kaydı er ya da geç düzelten güvenlik ağıdır (biz 60 saniye kullanıyoruz)
+        - **Invalidation**: veritabanına yazdıktan sonra cache anahtarını sil (`DEL`), böylece sonraki okuma taze veriyi yükler. Yeniden yazma, sil; daha basit ve daha güvenli
+        - Çalıştığını görmenin iki yolu: eklediğimiz `X-Cache: HIT` ya da `MISS` header'ı ve `redis-cli` (`TTL`, `GET`)
+        - Nesneleri bir string değerin içinde JSON metin olarak saklama (`JSON.stringify` ve `JSON.parse`), çünkü string en basit cache değeridir
+        - Kodda ilk sorted set: `ZINCRBY` ürün görüntülenmelerini sayar, `ZRANGE ... REV` en çok görüntülenenleri listeler
+        - node-redis 6'da süre seçeneği `expiration: { type: "EX", value: 60 }` biçimindedir; eski `EX: 60` biçimi hâlâ çalışır ama deprecated işaretlidir
+    do:
+      en: |
+        1. Create `src/cache.js` with the `key` helper (every key starts with `app:`) and the `cached` function that implements cache-aside.
+        2. Create `src/products.js`: a router with the cached read (`GET /products/:id`), the update (`PUT /products/:id`, which deletes the cache key) and the top list (`GET /products/top`, written before `/:id` so that "top" is not read as an id).
+        3. Replace `src/app.js` so it mounts the router under `/products`. Restart `npm start`.
+        4. Call the product twice with the `curl` commands below. The first answer has `X-Cache: MISS` and takes about 150 ms; the second has `HIT` and takes a few milliseconds.
+        5. Look inside Redis: `docker exec redis-shop redis-cli TTL app:product:1` shows the seconds left, and `GET app:product:1` shows the JSON.
+        6. Update the price with the `PUT` command. Read the product again: it is a `MISS` (the key was deleted) with the new price, then `HIT` again.
+        7. Open `/products/top` to see the ranking from the sorted set `app:views`.
+      tr: |
+        1. `src/cache.js` dosyasını oluştur: `key` yardımcısı (her anahtar `app:` ile başlar) ve cache-aside'ı uygulayan `cached` fonksiyonu.
+        2. `src/products.js` dosyasını oluştur: cache'li okuma (`GET /products/:id`), güncelleme (cache anahtarını silen `PUT /products/:id`) ve en çok görüntülenenler listesi (`GET /products/top`; "top" bir id sanılmasın diye `/:id`'den önce yazılır) olan bir router.
+        3. `src/app.js`'i router'ı `/products` altına bağlayacak şekilde değiştir. `npm start`'ı yeniden başlat.
+        4. Aşağıdaki `curl` komutlarıyla ürünü iki kez çağır. İlk cevapta `X-Cache: MISS` var ve yaklaşık 150 ms sürer; ikincide `HIT` var ve birkaç milisaniye sürer.
+        5. Redis'in içine bak: `docker exec redis-shop redis-cli TTL app:product:1` kalan saniyeyi, `GET app:product:1` JSON'u gösterir.
+        6. `PUT` komutuyla fiyatı güncelle. Ürünü yeniden oku: yeni fiyatla bir `MISS` olur (anahtar silindi), sonra yine `HIT`.
+        7. `app:views` sorted set'inden sıralamayı görmek için `/products/top` adresini aç.
+    code:
+      - file: src/cache.js
+        lang: js
+        text: |
+          // Every key the app writes starts with "app:", so one ACL rule can cover them all.
+          export const key = (...parts) => ["app", ...parts].join(":");
+
+          // Cache-aside: look in Redis first, ask the database only on a miss.
+          export async function cached(redis, k, ttlSeconds, load) {
+            const hit = await redis.get(k);
+            if (hit !== null) return { value: JSON.parse(hit), hit: true };
+
+            const value = await load();
+            if (value !== null) {
+              await redis.set(k, JSON.stringify(value), { expiration: { type: "EX", value: ttlSeconds } });
+            }
+            return { value, hit: false };
+          }
+      - file: src/products.js
+        lang: js
+        text: |
+          import { Router } from "express";
+          import { cached, key } from "./cache.js";
+
+          export function productsRouter({ redis, db, ttl }) {
+            const router = Router();
+
+            // Must come before "/:id", or "top" would be read as an id.
+            router.get("/top", async (_req, res) => {
+              const rows = await redis.zRangeWithScores(key("views"), 0, 4, { REV: true });
+              res.json(rows.map(({ value, score }) => ({ id: value, views: score })));
+            });
+
+            router.get("/:id", async (req, res) => {
+              const { id } = req.params;
+              const { value, hit } = await cached(redis, key("product", id), ttl, () => db.getProduct(id));
+              if (!value) return res.status(404).json({ error: "not found" });
+              await redis.zIncrBy(key("views"), 1, id);
+              res.set("X-Cache", hit ? "HIT" : "MISS").json(value);
+            });
+
+            router.put("/:id", async (req, res) => {
+              const { id } = req.params;
+              const updated = await db.updateProduct(id, req.body);
+              if (!updated) return res.status(404).json({ error: "not found" });
+              await redis.del(key("product", id)); // invalidate: the next read loads the new row
+              res.json(updated);
+            });
+
+            return router;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { productsRouter } from "./products.js";
+
+          export function createApp({ redis, db, ttl = 60 }) {
+            const app = express();
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.use("/products", productsRouter({ redis, db, ttl }));
+
+            return app;
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          curl -si localhost:3000/products/1 | grep -i x-cache
+          curl -si localhost:3000/products/1 | grep -i x-cache
+          docker exec redis-shop redis-cli TTL app:product:1
+          curl -s -X PUT -H "content-type: application/json" -d '{"price":55}' localhost:3000/products/1
+          curl -si localhost:3000/products/1 | grep -i x-cache
+          curl -s localhost:3000/products/top
+    mistakes:
+      - problem:
+          en: "Updating the database but forgetting to delete the cache key. Users keep seeing the old price."
+          tr: "Veritabanını güncelleyip cache anahtarını silmeyi unutmak. Kullanıcılar eski fiyatı görmeye devam eder."
+        fix:
+          en: "Every code path that writes a product must delete `app:product:<id>`. The TTL limits the damage to 60 seconds, but do not rely on it for correctness."
+          tr: "Bir ürünü yazan her kod yolu `app:product:<id>` anahtarını silmeli. TTL zararı 60 saniyeyle sınırlar ama doğruluk için ona güvenme."
+      - problem:
+          en: "Caching without a TTL, or with a very long one."
+          tr: "TTL'siz ya da çok uzun TTL'li cache yapmak."
+        fix:
+          en: "A mistake in invalidation then stays forever and the cache fills Redis. Always set a TTL, short enough that stale data is acceptable."
+          tr: "O zaman invalidation'daki bir hata sonsuza dek kalır ve cache Redis'i doldurur. Her zaman TTL ver; eski verinin kabul edilebilir olacağı kadar kısa olsun."
+      - problem:
+          en: "Putting the \"top\" route after `/:id`."
+          tr: "\"top\" route'unu `/:id`'den sonra yazmak."
+        fix:
+          en: "Express checks routes in order, so `/products/top` would match `/:id` with id `top`. Write the fixed path first."
+          tr: "Express route'ları sırayla kontrol eder; `/products/top`, id'si `top` olan `/:id` ile eşleşirdi. Sabit yolu önce yaz."
+    quiz:
+      - q:
+          en: "A product's price is updated in the database. What should the code do with its cache entry?"
+          tr: "Bir ürünün fiyatı veritabanında güncellendi. Kod cache kaydıyla ne yapmalı?"
+        options:
+          en:
+            - "Nothing, the TTL will fix it"
+            - "Delete it, so the next read loads the fresh row"
+            - "Extend its TTL"
+          tr:
+            - "Hiçbir şey, TTL düzeltir"
+            - "Sil, böylece sonraki okuma taze satırı yükler"
+            - "TTL'ini uzat"
+        answer: 1
+        why:
+          en: "Deleting the key is invalidation. Waiting for the TTL would serve the old price for up to a minute."
+          tr: "Anahtarı silmek invalidation'dır. TTL'i beklemek eski fiyatı bir dakikaya kadar sunmaya devam ederdi."
+    sources:
+      - title: "Redis: SET with expiration options"
+        url: https://redis.io/docs/latest/commands/set/
+      - title: "Redis: ZINCRBY"
+        url: https://redis.io/docs/latest/commands/zincrby/
+      - title: "Redis: key eviction"
+        url: https://redis.io/docs/latest/develop/reference/eviction/
+
+  - id: rate-limit
+    stage: data-api
+    title:
+      en: "Rate limiting with counters"
+      tr: "Sayaçlarla rate limiting"
+    minutes: 40
+    needs: [cache-aside]
+    why:
+      en: "Without a limit one client, or one broken script, can send thousands of requests and slow the API for everyone. A rate limiter counts requests per client in Redis and answers `429 Too Many Requests` after a limit. It must live in Redis, not in the app's memory, so that all copies of the app count together."
+      tr: "Limit olmazsa tek bir istemci ya da bozuk bir script binlerce istek gönderip API'yi herkes için yavaşlatabilir. Rate limiter, istemci başına istekleri Redis'te sayar ve bir limitten sonra `429 Too Many Requests` cevabı verir. Uygulamanın bütün kopyaları birlikte saysın diye uygulamanın belleğinde değil Redis'te durmalı."
+    learn:
+      en: |
+        - The **fixed window** counter: key `app:rate:<client address>`; `INCR` on every request; a timer of N seconds starts at the first request; above the maximum the answer is 429
+        - Why `MULTI`/`EXEC` (a transaction): `INCR` and `EXPIRE` run together with nothing between them, so a crash between the two can never leave a counter without a timer
+        - `EXPIRE key seconds NX`: sets the timer only if there is none, so later requests do not push the window forward
+        - The `Retry-After` header tells the client how many seconds to wait; `TTL` gives that number
+        - **Fail open**: if Redis is down, the limiter lets requests through (and logs the problem) instead of taking the whole API down. For a login form you might choose the opposite
+        - The honest limit of a fixed window: a client can send a burst at the end of one window and another at the start of the next
+      tr: |
+        - **Sabit pencere** sayacı: `app:rate:<istemci adresi>` anahtarı; her istekte `INCR`; N saniyelik bir zamanlayıcı ilk istekte başlar; maksimumun üstünde cevap 429
+        - `MULTI`/`EXEC`'in (transaction) neden gerektiği: `INCR` ve `EXPIRE` aralarına hiçbir şey girmeden birlikte çalışır; ikisi arasında bir çökme sayacı zamanlayıcısız bırakamaz
+        - `EXPIRE key seconds NX`: zamanlayıcıyı sadece yoksa koyar, böylece sonraki istekler pencereyi ileri kaydırmaz
+        - `Retry-After` header'ı istemciye kaç saniye bekleyeceğini söyler; o sayıyı `TTL` verir
+        - **Fail open**: Redis çökmüşse limiter bütün API'yi düşürmek yerine istekleri geçirir (ve sorunu loglar). Bir giriş formu için tersini seçebilirsin
+        - Sabit pencerenin dürüst sınırı: bir istemci bir pencerenin sonunda bir salvo, sonrakinin başında bir salvo daha gönderebilir
+    do:
+      en: |
+        1. Create `src/ratelimit.js` with the middleware below. A middleware is a function that runs before your routes.
+        2. Replace `src/app.js` with the new version: it takes a `limit` setting (100 requests per 60 seconds by default) and registers the limiter after `/health`, so health checks are never limited.
+        3. Restart `npm start`. Send 110 requests with the loop below (it prints how many got each status). The first 100 (minus the ones you sent earlier in the same minute) are `200`, the rest `429`.
+        4. Look at the counter in Redis with the second command. For a local client the key ends with `::1` or `127.0.0.1`.
+        5. Wait for the window to end (the `Retry-After` seconds) and call again: it works.
+      tr: |
+        1. Aşağıdaki middleware ile `src/ratelimit.js` dosyasını oluştur. Middleware, route'larından önce çalışan bir fonksiyondur.
+        2. `src/app.js`'i yeni sürümle değiştir: bir `limit` ayarı alır (varsayılan 60 saniyede 100 istek) ve limiter'ı `/health`'ten sonra kaydeder; böylece health check'ler asla sınırlanmaz.
+        3. `npm start`'ı yeniden başlat. Aşağıdaki döngüyle 110 istek gönder (her durumdan kaç tane geldiğini yazar). İlk 100'ü (aynı dakikada daha önce gönderdiklerin hariç) `200`, kalanı `429` olur.
+        4. İkinci komutla Redis'teki sayaca bak. Yerel bir istemci için anahtar `::1` ya da `127.0.0.1` ile biter.
+        5. Pencerenin bitmesini bekle (`Retry-After` saniyesi) ve yeniden çağır: çalışır.
+    code:
+      - file: src/ratelimit.js
+        lang: js
+        text: |
+          import { key } from "./cache.js";
+
+          // Fixed window: at most `max` requests per client address in each `windowSeconds`.
+          export function rateLimit(redis, { max, windowSeconds }) {
+            return async (req, res, next) => {
+              try {
+                const k = key("rate", req.ip);
+                // MULTI/EXEC runs both commands together. EXPIRE ... NX sets the timer only on the first hit.
+                const [count] = await redis.multi().incr(k).expire(k, windowSeconds, "NX").exec();
+                if (count > max) {
+                  const wait = await redis.ttl(k);
+                  res.set("Retry-After", String(Math.max(wait, 1)));
+                  return res.status(429).json({ error: "too many requests" });
+                }
+              } catch (err) {
+                // If Redis is down, let the request through instead of breaking the whole API.
+                console.error("rate limit skipped:", err.message);
+              }
+              next();
+            };
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { productsRouter } from "./products.js";
+          import { rateLimit } from "./ratelimit.js";
+
+          export function createApp({ redis, db, ttl = 60, limit = { max: 100, windowSeconds: 60 } }) {
+            const app = express();
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.use(rateLimit(redis, limit));
+
+            app.use("/products", productsRouter({ redis, db, ttl }));
+
+            return app;
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          for i in $(seq 1 110); do curl -s -o /dev/null -w "%{http_code}\n" localhost:3000/products/2; done | sort | uniq -c
+          docker exec redis-shop redis-cli --scan --pattern 'app:rate:*'
+          curl -si localhost:3000/products/2 | head -3
+    mistakes:
+      - problem:
+          en: "Counting with `GET` and then `SET` in your code instead of `INCR`."
+          tr: "`INCR` yerine kodunda `GET` ve sonra `SET` ile saymak."
+        fix:
+          en: "Two requests can read the same number and both write the same result, so counts get lost. `INCR` is atomic: Redis does the read-add-write in one step."
+          tr: "İki istek aynı sayıyı okuyup aynı sonucu yazabilir, sayılar kaybolur. `INCR` atomiktir: Redis oku-ekle-yaz işlemini tek adımda yapar."
+      - problem:
+          en: "Behind a proxy or hosting platform, every client looks the same, so everybody shares one counter."
+          tr: "Bir proxy ya da barındırma platformunun arkasında bütün istemciler aynı görünür, herkes tek bir sayacı paylaşır."
+        fix:
+          en: "`req.ip` is then the proxy's address. Tell Express how many proxies are in front with `app.set(\"trust proxy\", 1)`. The deploy step does this."
+          tr: "O zaman `req.ip` proxy'nin adresidir. Express'e önünde kaç proxy olduğunu `app.set(\"trust proxy\", 1)` ile söyle. Deploy adımı bunu yapıyor."
+    quiz:
+      - q:
+          en: "Why do `INCR` and `EXPIRE ... NX` run inside `MULTI`/`EXEC`?"
+          tr: "`INCR` ve `EXPIRE ... NX` neden `MULTI`/`EXEC` içinde çalışıyor?"
+        options:
+          en:
+            - "To make them slower on purpose"
+            - "So both run together and a counter can never be left without a timer"
+            - "Because EXPIRE only works inside a transaction"
+          tr:
+            - "Bilerek yavaşlatmak için"
+            - "İkisi birlikte çalışsın ve bir sayaç asla zamanlayıcısız kalmasın diye"
+            - "EXPIRE sadece transaction içinde çalıştığı için"
+        answer: 1
+        why:
+          en: "A transaction executes its commands one after another with no other client's command in between."
+          tr: "Transaction, komutlarını araya başka bir istemcinin komutu girmeden art arda çalıştırır."
+    sources:
+      - title: "INCR (with the rate limiter pattern)"
+        url: https://redis.io/docs/latest/commands/incr/
+      - title: "Redis transactions"
+        url: https://redis.io/docs/latest/develop/using-commands/transactions/
+      - title: "Express behind proxies"
+        url: https://expressjs.com/en/guide/behind-proxies.html
+
+  - id: sessions
+    stage: data-api
+    title:
+      en: "Login sessions stored in Redis"
+      tr: "Redis'te tutulan giriş oturumları"
+    minutes: 45
+    needs: [rate-limit]
+    why:
+      en: "After a user logs in, the server must remember who they are on the next requests. If the memory is inside one app process, a restart logs everybody out and a second copy of the app does not know the user. Redis is shared and survives app restarts, and its key timers expire idle sessions for you."
+      tr: "Bir kullanıcı giriş yaptıktan sonra sunucu, sonraki isteklerde onun kim olduğunu hatırlamalı. Hafıza tek bir uygulama process'inin içindeyse yeniden başlatma herkesi çıkarır ve uygulamanın ikinci kopyası kullanıcıyı tanımaz. Redis ortaktır, uygulama yeniden başlayınca kaybolmaz ve anahtar zamanlayıcıları boşta kalan oturumları senin yerine bitirir."
+    learn:
+      en: |
+        - A session is a small record about one login, stored under a random, unguessable id (the token). Here a **hash** `app:session:<token>` with the fields `user` and `createdAt`
+        - `crypto.randomUUID()` makes a random token. Never build tokens from a counter or the user's name
+        - A **sliding timeout**: each time the session is used, `EXPIRE` resets the timer to 30 minutes, so active users stay logged in and idle ones are logged out
+        - `HSET` with an object, `HGETALL` to read it, `DEL` to log out. A missing hash reads as an empty object, which is how we notice an expired session
+        - Redis stores field values as text, so numbers are converted to strings on the way in
+        - This demo logs in with just a name. A real app must check a password hash first (see the Node.js roadmap); the Redis part stays the same
+      tr: |
+        - Oturum, tek bir girişle ilgili küçük bir kayıttır; rastgele, tahmin edilemez bir id (token) altında saklanır. Burada `user` ve `createdAt` alanlarıyla bir **hash**: `app:session:<token>`
+        - `crypto.randomUUID()` rastgele bir token üretir. Token'ı asla bir sayaçtan ya da kullanıcı adından üretme
+        - **Kayan zaman aşımı**: oturum her kullanıldığında `EXPIRE` zamanlayıcıyı 30 dakikaya sıfırlar; aktif kullanıcılar girişte kalır, boşta olanlar çıkarılır
+        - Nesneyle `HSET`, okumak için `HGETALL`, çıkış için `DEL`. Olmayan bir hash boş nesne olarak okunur; süresi dolmuş oturumu böyle fark ederiz
+        - Redis alan değerlerini metin olarak saklar, bu yüzden sayılar girerken string'e çevrilir
+        - Bu demo sadece bir isimle giriş yapıyor. Gerçek bir uygulama önce bir şifre hash'ini kontrol etmeli (Node.js roadmap'ine bak); Redis kısmı aynı kalır
+    do:
+      en: |
+        1. Create `src/sessions.js`: a `sessions` store with `create`, `get` and `destroy`, and a `requireSession` middleware that reads the `Authorization: Bearer <token>` header.
+        2. Replace `src/app.js` with the version below: it adds `POST /login`, `GET /me` and `POST /logout`. Restart `npm start`.
+        3. Log in with the first `curl` command. Copy the `token` from the answer and put it into a shell variable as shown (`TOKEN=...`).
+        4. Call `/me` with the token: it returns your name. Look at the session in Redis with `HGETALL` and `TTL`; the TTL is near 1800.
+        5. Log out with `POST /logout`, then call `/me` again: `401`, and the key is gone.
+      tr: |
+        1. `src/sessions.js` dosyasını oluştur: `create`, `get` ve `destroy` içeren bir `sessions` deposu ve `Authorization: Bearer <token>` header'ını okuyan bir `requireSession` middleware'i.
+        2. `src/app.js`'i aşağıdaki sürümle değiştir: `POST /login`, `GET /me` ve `POST /logout` eklenir. `npm start`'ı yeniden başlat.
+        3. İlk `curl` komutuyla giriş yap. Cevaptaki `token`'ı kopyala ve gösterildiği gibi bir shell değişkenine koy (`TOKEN=...`).
+        4. Token'la `/me`'yi çağır: adını döndürür. Oturuma Redis'te `HGETALL` ve `TTL` ile bak; TTL 1800'e yakındır.
+        5. `POST /logout` ile çıkış yap, sonra `/me`'yi yeniden çağır: `401`, ve anahtar silinmiştir.
+    code:
+      - file: src/sessions.js
+        lang: js
+        text: |
+          import { randomUUID } from "node:crypto";
+          import { key } from "./cache.js";
+
+          export function sessions(redis, ttlSeconds = 1800) {
+            return {
+              async create(user) {
+                const token = randomUUID();
+                const k = key("session", token);
+                await redis.multi().hSet(k, { user, createdAt: String(Date.now()) }).expire(k, ttlSeconds).exec();
+                return token;
+              },
+              async get(token) {
+                const k = key("session", token);
+                const data = await redis.hGetAll(k);
+                if (!data.user) return null;
+                await redis.expire(k, ttlSeconds); // every use keeps the session alive
+                return data;
+              },
+              async destroy(token) {
+                await redis.del(key("session", token));
+              },
+            };
+          }
+
+          export function requireSession(store) {
+            return async (req, res, next) => {
+              const token = (req.get("authorization") ?? "").replace(/^Bearer /, "");
+              const session = token && (await store.get(token));
+              if (!session) return res.status(401).json({ error: "log in first" });
+              req.token = token;
+              req.session = session;
+              next();
+            };
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { productsRouter } from "./products.js";
+          import { rateLimit } from "./ratelimit.js";
+          import { requireSession, sessions } from "./sessions.js";
+
+          export function createApp({ redis, db, ttl = 60, limit = { max: 100, windowSeconds: 60 } }) {
+            const app = express();
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.use(rateLimit(redis, limit));
+            const store = sessions(redis);
+
+            app.post("/login", async (req, res) => {
+              const name = String(req.body?.name ?? "").trim();
+              if (!name) return res.status(400).json({ error: "name is required" });
+              res.status(201).json({ token: await store.create(name) });
+            });
+            app.get("/me", requireSession(store), (req, res) => res.json(req.session));
+            app.post("/logout", requireSession(store), async (req, res) => {
+              await store.destroy(req.token);
+              res.status(204).end();
+            });
+
+            app.use("/products", productsRouter({ redis, db, ttl }));
+
+            return app;
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          curl -s -X POST -H "content-type: application/json" -d '{"name":"Ada"}' localhost:3000/login
+          TOKEN=paste-the-token-here
+          curl -s -H "authorization: Bearer $TOKEN" localhost:3000/me
+          docker exec redis-shop redis-cli HGETALL app:session:$TOKEN
+          docker exec redis-shop redis-cli TTL app:session:$TOKEN
+          curl -s -X POST -H "authorization: Bearer $TOKEN" localhost:3000/logout
+          curl -s -H "authorization: Bearer $TOKEN" localhost:3000/me
+    mistakes:
+      - problem:
+          en: "Using a guessable session id (a number, a name, a timestamp)."
+          tr: "Tahmin edilebilir bir oturum id'si kullanmak (sayı, isim, zaman damgası)."
+        fix:
+          en: "Anyone could guess another user's id and become them. Use a long random value such as `crypto.randomUUID()`."
+          tr: "Herkes başka bir kullanıcının id'sini tahmin edip onun yerine geçebilir. `crypto.randomUUID()` gibi uzun ve rastgele bir değer kullan."
+      - problem:
+          en: "Creating the hash and the timer with two separate calls and no transaction."
+          tr: "Hash'i ve zamanlayıcıyı transaction olmadan iki ayrı çağrıyla oluşturmak."
+        fix:
+          en: "If the app stops between them, a session without a timer lives forever. Send both in one `multi()...exec()`, as the code does."
+          tr: "Araya uygulamanın durması girerse zamanlayıcısız bir oturum sonsuza dek yaşar. Kodun yaptığı gibi ikisini tek bir `multi()...exec()` ile gönder."
+    quiz:
+      - q:
+          en: "What does calling `EXPIRE` on every use of a session do?"
+          tr: "Oturumun her kullanımında `EXPIRE` çağırmak ne yapar?"
+        options:
+          en:
+            - "Logs the user out sooner"
+            - "Restarts the timer, so only idle sessions end"
+            - "Deletes the session"
+          tr:
+            - "Kullanıcıyı daha erken çıkarır"
+            - "Zamanlayıcıyı yeniden başlatır, böylece sadece boşta kalan oturumlar biter"
+            - "Oturumu siler"
+        answer: 1
+        why:
+          en: "It is a sliding timeout: the session lives 30 minutes after its last use."
+          tr: "Bu kayan bir zaman aşımıdır: oturum son kullanımından 30 dakika sonra biter."
+    sources:
+      - title: "Redis hashes"
+        url: https://redis.io/docs/latest/develop/data-types/hashes/
+      - title: "HSET"
+        url: https://redis.io/docs/latest/commands/hset/
+      - title: "Node.js: crypto.randomUUID"
+        url: https://nodejs.org/api/crypto.html#cryptorandomuuidoptions
+
+  - id: queue
+    stage: data-api
+    title:
+      en: "A background job queue with Redis Streams"
+      tr: "Redis Streams ile arka plan iş kuyruğu"
+    minutes: 70
+    needs: [sessions]
+    why:
+      en: "Some work is too slow to do while the user waits, like building a report or sending an email. The API should put a job on a queue and answer at once, and a separate worker should do the job in the background. A Redis Stream is a queue that keeps jobs until a worker confirms it finished them, so a crash does not lose work."
+      tr: "Bazı işler kullanıcı beklerken yapılamayacak kadar yavaştır; rapor hazırlamak ya da e-posta göndermek gibi. API işi bir kuyruğa koyup hemen cevap vermeli, ayrı bir worker işi arka planda yapmalı. Redis Stream, worker işi bitirdiğini onaylayana kadar işleri saklayan bir kuyruktur; bu yüzden bir çökme işi kaybettirmez."
+    learn:
+      en: |
+        - A **stream** is an append-only log of entries; each has an id (like `1792296814994-0`) and field-value pairs. `XADD` adds an entry
+        - A **consumer group** shares the entries between workers: every entry goes to one worker of the group. `XGROUP CREATE`, `XREADGROUP`
+        - **Acknowledge**: after finishing a job the worker sends `XACK`. Entries that were read but not acknowledged stay in the *pending list* (`XPENDING`), so they are not lost
+        - **Recovery**: `XAUTOCLAIM` lets a worker take over entries that another worker has held for too long (here 30 seconds), for example after a crash. This gives at-least-once delivery, so a job handler should be safe to run twice
+        - `XREADGROUP ... BLOCK` waits for new entries without busy looping, and it holds its connection while waiting, so the worker gets its own connection (`duplicate()`)
+        - `XADD ... MAXLEN ~ 1000` trims the stream roughly to the last 1000 entries so it cannot grow forever. The `~` means "approximately", which is faster
+        - Other choices: the library **BullMQ** (built on Redis, with retries, delays and a dashboard) is a popular way to get a ready-made job queue. Streams teach you what such libraries do underneath
+      tr: |
+        - **Stream**, sadece sona eklenen bir kayıt günlüğüdür; her kaydın bir id'si (`1792296814994-0` gibi) ve alan-değer çiftleri vardır. `XADD` kayıt ekler
+        - **Consumer group** kayıtları worker'lar arasında paylaştırır: her kayıt grubun tek bir worker'ına gider. `XGROUP CREATE`, `XREADGROUP`
+        - **Acknowledge (onay)**: işi bitirince worker `XACK` gönderir. Okunup onaylanmayan kayıtlar *pending listesinde* (`XPENDING`) kalır, yani kaybolmaz
+        - **Kurtarma**: `XAUTOCLAIM`, bir worker'ın başka bir worker'ın çok uzun süre (burada 30 saniye) elinde tuttuğu kayıtları, örneğin bir çökmeden sonra, devralmasını sağlar. Bu en az bir kez teslim demektir; yani bir iş işleyicisi iki kez çalışmaya karşı güvenli olmalı
+        - `XREADGROUP ... BLOCK` yeni kayıtları meşgul döngü olmadan bekler ve beklerken bağlantısını tutar; bu yüzden worker kendi bağlantısını alır (`duplicate()`)
+        - `XADD ... MAXLEN ~ 1000` stream'i kabaca son 1000 kayda kırpar, böylece sonsuza dek büyüyemez. `~` "yaklaşık" demektir, daha hızlıdır
+        - Başka seçenekler: **BullMQ** kütüphanesi (Redis üzerine kurulu; yeniden deneme, gecikme ve panel var) hazır bir iş kuyruğu için popüler bir yoldur. Stream'ler, bu tür kütüphanelerin altta ne yaptığını öğretir
+    do:
+      en: |
+        1. Create `src/queue.js`: `enqueue` adds a job with `XADD`, `startWorker` creates the group, reads jobs, runs a handler and acknowledges, and `reportHandler` is the job itself (here it only marks the job as done in a hash).
+        2. Replace `src/app.js` with the new version: `POST /reports` (needs a login) puts a job on the stream and answers `202 Accepted` with the job id; `GET /reports/:id` shows the status.
+        3. Replace `src/server.js`: it starts the worker on its own connection and, on `SIGTERM` (the stop signal hosts send), finishes the current job and closes the connections.
+        4. Restart `npm start`, log in as in the last step, and send a report request with the first command below. It answers at once.
+        5. After a second, ask for the status with the job id: `{"status":"done",...}`.
+        6. Look inside: `XRANGE app:jobs - +` lists the entries, and `XPENDING app:jobs workers` shows `0` pending, because the worker acknowledged the job.
+      tr: |
+        1. `src/queue.js` dosyasını oluştur: `enqueue` `XADD` ile iş ekler, `startWorker` grubu oluşturur, işleri okur, bir işleyici çalıştırır ve onaylar; `reportHandler` işin kendisidir (burada sadece bir hash'te işi bitti diye işaretler).
+        2. `src/app.js`'i yeni sürümle değiştir: `POST /reports` (giriş gerekir) bir işi stream'e koyar ve iş id'siyle `202 Accepted` cevabı verir; `GET /reports/:id` durumu gösterir.
+        3. `src/server.js`'i değiştir: worker'ı kendi bağlantısında başlatır ve `SIGTERM`'de (host'ların gönderdiği durdurma sinyali) mevcut işi bitirip bağlantıları kapatır.
+        4. `npm start`'ı yeniden başlat, son adımdaki gibi giriş yap ve aşağıdaki ilk komutla bir rapor isteği gönder. Hemen cevap verir.
+        5. Bir saniye sonra iş id'siyle durumu sor: `{"status":"done",...}`.
+        6. İçine bak: `XRANGE app:jobs - +` kayıtları listeler, `XPENDING app:jobs workers` `0` bekleyen gösterir, çünkü worker işi onayladı.
+    code:
+      - file: src/queue.js
+        lang: js
+        text: |
+          import { key } from "./cache.js";
+
+          export const STREAM = key("jobs");
+          export const GROUP = "workers";
+
+          export function enqueue(redis, job) {
+            return redis.xAdd(STREAM, "*", job, {
+              TRIM: { strategy: "MAXLEN", strategyModifier: "~", threshold: 1000 },
+            });
+          }
+
+          // `redis` must be its own connection: XREADGROUP ... BLOCK holds the connection while it waits.
+          export async function startWorker(redis, handler, { consumer = "worker-1", blockMs = 500 } = {}) {
+            try {
+              await redis.xGroupCreate(STREAM, GROUP, "0", { MKSTREAM: true });
+            } catch (err) {
+              if (!String(err.message).includes("BUSYGROUP")) throw err; // the group already exists: fine
+            }
+
+            const run = async (id, message) => {
+              try {
+                await handler(id, message);
+                await redis.xAck(STREAM, GROUP, id); // acknowledged jobs leave the pending list
+              } catch (err) {
+                console.error("job failed, it stays pending:", id, err.message);
+              }
+            };
+
+            let running = true;
+            const loop = (async () => {
+              while (running) {
+                // Take over jobs that another worker read more than 30 seconds ago and never acknowledged.
+                const stale = await redis.xAutoClaim(STREAM, GROUP, consumer, 30_000, "0-0", { COUNT: 10 });
+                for (const m of stale.messages) if (m) await run(m.id, m.message);
+
+                const batch = await redis.xReadGroup(GROUP, consumer, { key: STREAM, id: ">" }, { COUNT: 10, BLOCK: blockMs });
+                for (const s of batch ?? []) for (const m of s.messages) await run(m.id, m.message);
+              }
+            })();
+
+            return {
+              async stop() {
+                running = false;
+                await loop;
+              },
+            };
+          }
+
+          export const reportHandler = (redis) => async (id, message) => {
+            await redis.hSet(key("job", id), { status: "done", user: message.user });
+          };
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { key } from "./cache.js";
+          import { productsRouter } from "./products.js";
+          import { enqueue } from "./queue.js";
+          import { rateLimit } from "./ratelimit.js";
+          import { requireSession, sessions } from "./sessions.js";
+
+          export function createApp({ redis, db, ttl = 60, limit = { max: 100, windowSeconds: 60 } }) {
+            const app = express();
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.use(rateLimit(redis, limit));
+            const store = sessions(redis);
+
+            app.post("/login", async (req, res) => {
+              const name = String(req.body?.name ?? "").trim();
+              if (!name) return res.status(400).json({ error: "name is required" });
+              res.status(201).json({ token: await store.create(name) });
+            });
+            app.get("/me", requireSession(store), (req, res) => res.json(req.session));
+            app.post("/logout", requireSession(store), async (req, res) => {
+              await store.destroy(req.token);
+              res.status(204).end();
+            });
+
+            app.use("/products", productsRouter({ redis, db, ttl }));
+
+            app.post("/reports", requireSession(store), async (req, res) => {
+              const jobId = await enqueue(redis, { type: "report", user: req.session.user });
+              res.status(202).json({ jobId });
+            });
+            app.get("/reports/:id", async (req, res) => {
+              const job = await redis.hGetAll(key("job", req.params.id));
+              if (!job.status) return res.json({ status: "waiting" });
+              res.json(job);
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+          import { createDb } from "./db.js";
+          import { reportHandler, startWorker } from "./queue.js";
+          import { connect } from "./redis.js";
+
+          const redis = await connect();
+          const db = createDb();
+
+          // The worker waits for jobs, so it gets its own connection.
+          const workerConn = redis.duplicate();
+          workerConn.on("error", (err) => console.error("Redis worker error:", err.message));
+          await workerConn.connect();
+          const worker = await startWorker(workerConn, reportHandler(redis));
+
+          const port = Number(process.env.PORT ?? 3000);
+          const server = createApp({ redis, db }).listen(port, () => console.log(`shop-api on :${port}`));
+
+          // A host stops the app with SIGTERM: finish the current job, then close the connections.
+          process.on("SIGTERM", async () => {
+            server.close();
+            await worker.stop();
+            await Promise.all([workerConn.close(), redis.close()]);
+            process.exit(0);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          curl -s -X POST -H "authorization: Bearer $TOKEN" localhost:3000/reports
+          curl -s localhost:3000/reports/PASTE-THE-JOB-ID
+          docker exec redis-shop redis-cli XRANGE app:jobs - +
+          docker exec redis-shop redis-cli XPENDING app:jobs workers
+    mistakes:
+      - problem:
+          en: "Using the same connection for the worker's blocking read and for the rest of the app."
+          tr: "Worker'ın bloklayan okumasında ve uygulamanın geri kalanında aynı bağlantıyı kullanmak."
+        fix:
+          en: "While `XREADGROUP ... BLOCK` waits, the connection serves nothing else, so every other request would hang. Give the worker its own connection with `client.duplicate()`."
+          tr: "`XREADGROUP ... BLOCK` beklerken bağlantı başka bir şeye hizmet etmez, diğer bütün istekler takılırdı. Worker'a `client.duplicate()` ile kendi bağlantısını ver."
+      - problem:
+          en: "Forgetting `XACK`, so jobs run again and again."
+          tr: "`XACK` unutulduğu için işlerin tekrar tekrar çalışması."
+        fix:
+          en: "Unacknowledged entries stay pending and are handed out again after the idle time. Acknowledge only after the work succeeded; if it failed, leave it pending so it is retried."
+          tr: "Onaylanmayan kayıtlar pending kalır ve boşta kalma süresinden sonra yeniden dağıtılır. Sadece iş başarılı olunca onayla; başarısız olduysa yeniden denensin diye pending bırak."
+      - problem:
+          en: "Using a list with `LPUSH` and `RPOP` as a queue and losing a job when the worker crashes after popping."
+          tr: "Kuyruk olarak `LPUSH` ve `RPOP` içeren bir list kullanıp worker çıkardıktan sonra çökünce bir işi kaybetmek."
+        fix:
+          en: "A popped item exists nowhere else. A stream with a consumer group keeps the entry pending until it is acknowledged."
+          tr: "Çıkarılan öğe başka hiçbir yerde yoktur. Consumer group'lu bir stream, kayıt onaylanana kadar onu pending tutar."
+    quiz:
+      - q:
+          en: "A worker reads a job from a stream group and crashes before finishing. What happens to the job?"
+          tr: "Bir worker stream grubundan bir iş okuyup bitirmeden çöküyor. İşe ne olur?"
+        options:
+          en:
+            - "It is lost"
+            - "It stays pending, and another worker can claim it later"
+            - "It is run immediately by Redis itself"
+          tr:
+            - "Kaybolur"
+            - "Pending kalır ve başka bir worker sonra devralabilir"
+            - "Redis'in kendisi hemen çalıştırır"
+        answer: 1
+        why:
+          en: "Until XACK, the entry is in the pending list; XAUTOCLAIM lets a worker take it over."
+          tr: "XACK'e kadar kayıt pending listesindedir; XAUTOCLAIM bir worker'ın onu devralmasını sağlar."
+    sources:
+      - title: "Redis Streams"
+        url: https://redis.io/docs/latest/develop/data-types/streams/
+      - title: "XREADGROUP"
+        url: https://redis.io/docs/latest/commands/xreadgroup/
+      - title: "XAUTOCLAIM"
+        url: https://redis.io/docs/latest/commands/xautoclaim/
+
+  - id: pubsub
+    stage: data-api
+    title:
+      en: "Live events with pub/sub"
+      tr: "Pub/sub ile canlı olaylar"
+    minutes: 40
+    needs: [queue]
+    why:
+      en: "A queue hands each job to one worker. Sometimes you want the opposite: tell everyone who is listening that something happened, such as a product changed. Pub/sub does this: a publisher sends a message to a channel and every current subscriber gets it. Several copies of your app can then react to what one copy saw."
+      tr: "Kuyruk her işi tek bir worker'a verir. Bazen tersini istersin: dinleyen herkese bir şeyin olduğunu söylemek, örneğin bir ürünün değiştiğini. Pub/sub bunu yapar: yayıncı bir kanala mesaj gönderir ve o an abone olan herkes alır. Böylece uygulamanın birkaç kopyası, bir kopyanın gördüğüne tepki verebilir."
+    learn:
+      en: |
+        - `PUBLISH channel message` sends; `SUBSCRIBE channel` receives. The channel needs no setup
+        - **Fire and forget**: messages are not stored. A subscriber that is offline or slow misses them. Use a stream (previous step) when you must not lose messages
+        - A connection in subscribe mode can do nothing else, so the subscriber gets its own connection (`duplicate()`)
+        - A message is text: send JSON and parse it on the other side
+        - Our use: when a product is updated, publish `product.updated`; the subscriber keeps the last 10 events in a **list** (`LPUSH` then `LTRIM 0 9`, in one transaction), and `GET /events/recent` shows them
+        - A list used this way is a "recent items" box. `LTRIM` keeps its size fixed
+      tr: |
+        - `PUBLISH channel message` gönderir; `SUBSCRIBE channel` alır. Kanalın kurulumu gerekmez
+        - **Gönder ve unut**: mesajlar saklanmaz. Çevrimdışı ya da yavaş bir abone onları kaçırır. Mesaj kaybetmemen gerekiyorsa stream kullan (önceki adım)
+        - Abonelik modundaki bir bağlantı başka bir şey yapamaz, bu yüzden abone kendi bağlantısını alır (`duplicate()`)
+        - Mesaj metindir: JSON gönder ve öbür tarafta parse et
+        - Bizim kullanımımız: bir ürün güncellenince `product.updated` yayınlanır; abone son 10 olayı bir **list**'te tutar (`LPUSH` sonra `LTRIM 0 9`, tek transaction'da) ve `GET /events/recent` onları gösterir
+        - Bu şekilde kullanılan list bir "son öğeler" kutusudur. `LTRIM` boyutunu sabit tutar
+    do:
+      en: |
+        1. First watch it in the CLI. In one terminal run `docker exec -it redis-shop redis-cli SUBSCRIBE demo` (it waits). In a second terminal run `docker exec redis-shop redis-cli PUBLISH demo hello`. The first terminal prints the message and the second prints `1`, the number of receivers. Stop the first with Ctrl+C.
+        2. Create `src/events.js`: `publishEvent` and `subscribeEvents`.
+        3. Replace `src/products.js` so `PUT` publishes an event after deleting the cache key.
+        4. Replace `src/app.js` with the final version (it adds `GET /events/recent`) and `src/server.js` so it starts the subscriber too. Restart `npm start`.
+        5. Update a product with `PUT` and open `/events/recent`: the event is there. Inside Redis, `LRANGE app:events:recent 0 -1` shows the same list.
+      tr: |
+        1. Önce CLI'da izle. Bir terminalde `docker exec -it redis-shop redis-cli SUBSCRIBE demo` çalıştır (bekler). İkinci terminalde `docker exec redis-shop redis-cli PUBLISH demo hello` çalıştır. Birinci terminal mesajı yazar, ikincisi alıcı sayısı olan `1`'i yazar. Birincisini Ctrl+C ile durdur.
+        2. `src/events.js` dosyasını oluştur: `publishEvent` ve `subscribeEvents`.
+        3. `src/products.js`'i, `PUT` cache anahtarını sildikten sonra bir olay yayınlasın diye değiştir.
+        4. `src/app.js`'i son sürümle (`GET /events/recent` ekler) ve `src/server.js`'i aboneyi de başlatacak şekilde değiştir. `npm start`'ı yeniden başlat.
+        5. `PUT` ile bir ürünü güncelle ve `/events/recent`'ı aç: olay orada. Redis içinde `LRANGE app:events:recent 0 -1` aynı listeyi gösterir.
+    code:
+      - file: src/events.js
+        lang: js
+        text: |
+          import { key } from "./cache.js";
+
+          export const CHANNEL = key("events");
+          export const RECENT = key("events", "recent");
+
+          export function publishEvent(redis, event) {
+            return redis.publish(CHANNEL, JSON.stringify(event));
+          }
+
+          // A subscribed connection can do nothing else, so it gets its own client (duplicate()).
+          export async function subscribeEvents(redis) {
+            const sub = redis.duplicate();
+            sub.on("error", (err) => console.error("Redis subscriber error:", err.message));
+            await sub.connect();
+            await sub.subscribe(CHANNEL, async (message) => {
+              try {
+                await redis.multi().lPush(RECENT, message).lTrim(RECENT, 0, 9).exec();
+              } catch (err) {
+                console.error("event not stored:", err.message);
+              }
+            });
+            return sub;
+          }
+      - file: src/products.js
+        lang: js
+        text: |
+          import { Router } from "express";
+          import { cached, key } from "./cache.js";
+          import { publishEvent } from "./events.js";
+
+          export function productsRouter({ redis, db, ttl }) {
+            const router = Router();
+
+            // Must come before "/:id", or "top" would be read as an id.
+            router.get("/top", async (_req, res) => {
+              const rows = await redis.zRangeWithScores(key("views"), 0, 4, { REV: true });
+              res.json(rows.map(({ value, score }) => ({ id: value, views: score })));
+            });
+
+            router.get("/:id", async (req, res) => {
+              const { id } = req.params;
+              const { value, hit } = await cached(redis, key("product", id), ttl, () => db.getProduct(id));
+              if (!value) return res.status(404).json({ error: "not found" });
+              await redis.zIncrBy(key("views"), 1, id);
+              res.set("X-Cache", hit ? "HIT" : "MISS").json(value);
+            });
+
+            router.put("/:id", async (req, res) => {
+              const { id } = req.params;
+              const updated = await db.updateProduct(id, req.body);
+              if (!updated) return res.status(404).json({ error: "not found" });
+              await redis.del(key("product", id)); // invalidate: the next read loads the new row
+              await publishEvent(redis, { type: "product.updated", id });
+              res.json(updated);
+            });
+
+            return router;
+          }
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { key } from "./cache.js";
+          import { RECENT } from "./events.js";
+          import { productsRouter } from "./products.js";
+          import { enqueue } from "./queue.js";
+          import { rateLimit } from "./ratelimit.js";
+          import { requireSession, sessions } from "./sessions.js";
+
+          export function createApp({ redis, db, ttl = 60, limit = { max: 100, windowSeconds: 60 } }) {
+            const app = express();
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.use(rateLimit(redis, limit));
+            const store = sessions(redis);
+
+            app.post("/login", async (req, res) => {
+              const name = String(req.body?.name ?? "").trim();
+              if (!name) return res.status(400).json({ error: "name is required" });
+              res.status(201).json({ token: await store.create(name) });
+            });
+            app.get("/me", requireSession(store), (req, res) => res.json(req.session));
+            app.post("/logout", requireSession(store), async (req, res) => {
+              await store.destroy(req.token);
+              res.status(204).end();
+            });
+
+            app.use("/products", productsRouter({ redis, db, ttl }));
+
+            app.post("/reports", requireSession(store), async (req, res) => {
+              const jobId = await enqueue(redis, { type: "report", user: req.session.user });
+              res.status(202).json({ jobId });
+            });
+            app.get("/reports/:id", async (req, res) => {
+              const job = await redis.hGetAll(key("job", req.params.id));
+              if (!job.status) return res.json({ status: "waiting" });
+              res.json(job);
+            });
+
+            app.get("/events/recent", async (_req, res) => {
+              const rows = await redis.lRange(RECENT, 0, -1);
+              res.json(rows.map((row) => JSON.parse(row)));
+            });
+
+            return app;
+          }
+      - file: src/server.js
+        lang: js
+        text: |
+          import { createApp } from "./app.js";
+          import { createDb } from "./db.js";
+          import { subscribeEvents } from "./events.js";
+          import { reportHandler, startWorker } from "./queue.js";
+          import { connect } from "./redis.js";
+
+          const redis = await connect();
+          const db = createDb();
+
+          const subscriber = await subscribeEvents(redis);
+          const workerConn = redis.duplicate();
+          workerConn.on("error", (err) => console.error("Redis worker error:", err.message));
+          await workerConn.connect();
+          const worker = await startWorker(workerConn, reportHandler(redis));
+
+          const port = Number(process.env.PORT ?? 3000);
+          const server = createApp({ redis, db }).listen(port, () => console.log(`shop-api on :${port}`));
+
+          process.on("SIGTERM", async () => {
+            server.close();
+            await worker.stop();
+            await Promise.all([workerConn.close(), subscriber.close(), redis.close()]);
+            process.exit(0);
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          curl -s -X PUT -H "content-type: application/json" -d '{"price":60}' localhost:3000/products/1
+          curl -s localhost:3000/events/recent
+          docker exec redis-shop redis-cli LRANGE app:events:recent 0 -1
+    mistakes:
+      - problem:
+          en: "Expecting a subscriber to receive messages sent while it was offline."
+          tr: "Bir abonenin çevrimdışıyken gönderilen mesajları alacağını sanmak."
+        fix:
+          en: "Pub/sub keeps nothing. If a message must not be lost, write it to a stream (or a list) and read it from there."
+          tr: "Pub/sub hiçbir şey saklamaz. Bir mesaj kaybolmamalıysa onu bir stream'e (ya da list'e) yaz ve oradan oku."
+      - problem:
+          en: "Calling normal commands on the connection that is subscribed."
+          tr: "Abone olan bağlantıda normal komutlar çağırmak."
+        fix:
+          en: "A subscribed connection only accepts subscribe-related commands. Do the other work (like writing the list) on the main connection, as `subscribeEvents` does."
+          tr: "Abone bağlantı sadece abonelikle ilgili komutları kabul eder. Diğer işleri (list'e yazmak gibi) ana bağlantıda yap, `subscribeEvents`'in yaptığı gibi."
+    quiz:
+      - q:
+          en: "Which statement about pub/sub is true?"
+          tr: "Pub/sub hakkında hangisi doğru?"
+        options:
+          en:
+            - "Every message is saved until someone reads it"
+            - "Only the subscribers connected at the moment of publishing receive the message"
+            - "Each message goes to exactly one subscriber"
+          tr:
+            - "Her mesaj biri okuyana kadar saklanır"
+            - "Mesajı sadece yayın anında bağlı olan aboneler alır"
+            - "Her mesaj tam olarak bir aboneye gider"
+        answer: 1
+        why:
+          en: "Pub/sub is fire and forget and fans out to all current subscribers; queues and streams are for \"one worker per job\"."
+          tr: "Pub/sub gönder-unut çalışır ve o an bağlı bütün abonelere dağıtır; \"iş başına bir worker\" için kuyruk ve stream'ler var."
+    sources:
+      - title: "Redis pub/sub"
+        url: https://redis.io/docs/latest/develop/pubsub/
+      - title: "PUBLISH"
+        url: https://redis.io/docs/latest/commands/publish/
+      - title: "LTRIM"
+        url: https://redis.io/docs/latest/commands/ltrim/
+
+  - id: testing
+    stage: testing
+    title:
+      en: "Test the API against a real Redis"
+      tr: "API'yi gerçek bir Redis'e karşı test etme"
+    minutes: 50
+    needs: [pubsub]
+    why:
+      en: "Redis behavior (expiry, atomic counters, groups) is exactly what can break, and a fake Redis would hide it. So the tests talk to a real Redis, kept apart from your data. Tests are what let you change the cache or the limiter later without fear."
+      tr: "Redis davranışı (süre dolumu, atomik sayaçlar, gruplar) tam olarak bozulabilecek şeydir ve sahte bir Redis bunu gizler. Bu yüzden testler, verinden ayrı tutulan gerçek bir Redis'le konuşur. Testler, cache'i ya da limiter'ı sonradan korkmadan değiştirmeni sağlar."
+    learn:
+      en: |
+        - Node's built-in test runner: `import { test, before, after } from "node:test"` and `node --test`; no extra package is needed
+        - Why tests use **database 15**: a Redis server has 16 numbered databases (0 to 15). The URL ending in `/15` selects one that the app never uses, so `FLUSHDB` in the tests cannot touch your real keys
+        - Starting the real app on a random port (`listen(0)`) and calling it with `fetch`
+        - Using a small limit in the test app (5 requests) and a short database delay (20 ms) to keep tests fast
+        - Testing asynchronous things (the worker, pub/sub) by checking a few times with a short wait, not with one long sleep
+        - Closing every connection in `after`, or the test run never exits
+      tr: |
+        - Node'un yerleşik test çalıştırıcısı: `import { test, before, after } from "node:test"` ve `node --test`; ek paket gerekmez
+        - Testlerin neden **15 numaralı veritabanını** kullandığı: bir Redis sunucusunda numaralı 16 veritabanı vardır (0'dan 15'e). `/15` ile biten URL, uygulamanın hiç kullanmadığı birini seçer; böylece testlerdeki `FLUSHDB` gerçek anahtarlarına dokunamaz
+        - Gerçek uygulamayı rastgele bir portta (`listen(0)`) başlatıp `fetch` ile çağırma
+        - Testleri hızlı tutmak için test uygulamasında küçük bir limit (5 istek) ve kısa bir veritabanı gecikmesi (20 ms) kullanma
+        - Asenkron şeyleri (worker, pub/sub) tek bir uzun bekleme yerine kısa beklemelerle birkaç kez kontrol ederek test etme
+        - `after` içinde her bağlantıyı kapatma; yoksa test çalışması hiç bitmez
+    do:
+      en: |
+        1. Create `test/app.test.js` with the code below.
+        2. Make sure the Redis container is running. Then run `npm test`.
+        3. You should see 7 passing tests: cache hit and miss, invalidation, the top list, the 429, the session, the job and the event.
+        4. Break something on purpose: in `src/products.js` comment out the `redis.del(...)` line in the `PUT` handler and run `npm test` again. The invalidation test fails and shows the old price. Put the line back.
+      tr: |
+        1. Aşağıdaki kodla `test/app.test.js` dosyasını oluştur.
+        2. Redis container'ının çalıştığından emin ol. Sonra `npm test` çalıştır.
+        3. 7 geçen test görmelisin: cache hit ve miss, invalidation, en çok görüntülenenler listesi, 429, oturum, iş ve olay.
+        4. Bilerek bir şeyi boz: `src/products.js` içinde `PUT` işleyicisindeki `redis.del(...)` satırını yoruma al ve `npm test`'i yeniden çalıştır. Invalidation testi başarısız olur ve eski fiyatı gösterir. Satırı geri koy.
+    code:
+      - file: test/app.test.js
+        lang: js
+        text: |
+          import assert from "node:assert/strict";
+          import { after, before, beforeEach, test } from "node:test";
+          import { createApp } from "../src/app.js";
+          import { createDb } from "../src/db.js";
+          import { subscribeEvents } from "../src/events.js";
+          import { reportHandler, startWorker } from "../src/queue.js";
+          import { connect } from "../src/redis.js";
+
+          // Database 15 is only for tests: FLUSHDB below must never touch your real data.
+          const URL = process.env.REDIS_TEST_URL ?? "redis://127.0.0.1:6380/15";
+          let redis, db, server, base, subscriber, workerConn, worker;
+
+          before(async () => {
+            redis = await connect(URL);
+            await redis.flushDb();
+            db = createDb({ delayMs: 20 });
+            subscriber = await subscribeEvents(redis);
+            workerConn = redis.duplicate();
+            await workerConn.connect();
+            worker = await startWorker(workerConn, reportHandler(redis), { blockMs: 100 });
+            server = createApp({ redis, db, limit: { max: 5, windowSeconds: 60 } }).listen(0);
+            base = `http://127.0.0.1:${server.address().port}`;
+          });
+
+          beforeEach(async () => {
+            const old = await redis.keys("app:rate:*");
+            if (old.length) await redis.del(old); // DEL with no keys is an error
+            db.reads = 0;
+          });
+
+          after(async () => {
+            server.close();
+            await worker.stop();
+            await Promise.all([workerConn.close(), subscriber.close(), redis.close()]);
+          });
+
+          const call = (path, options) => fetch(base + path, options);
+          const json = (body, extra = {}) => ({ headers: { "content-type": "application/json", ...extra }, body: JSON.stringify(body) });
+
+          test("second read of a product comes from the cache", async () => {
+            await redis.del("app:product:1");
+            const first = await call("/products/1");
+            const second = await call("/products/1");
+            assert.equal(first.headers.get("x-cache"), "MISS");
+            assert.equal(second.headers.get("x-cache"), "HIT");
+            assert.equal(db.reads, 1);
+          });
+
+          test("an update clears the cache entry", async () => {
+            await call("/products/2");
+            await call("/products/2", { method: "PUT", ...json({ price: 25 }) });
+            const res = await call("/products/2");
+            assert.equal(res.headers.get("x-cache"), "MISS");
+            assert.equal((await res.json()).price, 25);
+          });
+
+          test("the most viewed products are ranked", async () => {
+            await call("/products/3");
+            await call("/products/3");
+            const top = await (await call("/products/top")).json();
+            assert.equal(top[0].id, "3");
+            assert.ok(top[0].views >= 2);
+          });
+
+          test("the sixth request in a window gets 429", async () => {
+            const codes = [];
+            for (let i = 0; i < 6; i++) codes.push((await call("/products/1")).status);
+            assert.deepEqual(codes, [200, 200, 200, 200, 200, 429]);
+          });
+
+          test("login, use and end a session", async () => {
+            const { token } = await (await call("/login", { method: "POST", ...json({ name: "Ada" }) })).json();
+            const auth = { authorization: `Bearer ${token}` };
+            assert.equal((await (await call("/me", { headers: auth })).json()).user, "Ada");
+            assert.ok((await redis.ttl(`app:session:${token}`)) > 0);
+            await call("/logout", { method: "POST", headers: auth });
+            assert.equal((await call("/me", { headers: auth })).status, 401);
+          });
+
+          test("a report job is picked up by the worker", async () => {
+            const { token } = await (await call("/login", { method: "POST", ...json({ name: "Grace" }) })).json();
+            const { jobId } = await (await call("/reports", { method: "POST", headers: { authorization: `Bearer ${token}` } })).json();
+            let job;
+            for (let i = 0; i < 20 && job?.status !== "done"; i++) {
+              await new Promise((r) => setTimeout(r, 100));
+              job = await (await call(`/reports/${jobId}`)).json();
+            }
+            assert.equal(job.status, "done");
+            assert.equal((await redis.xPending("app:jobs", "workers")).pending, 0);
+          });
+
+          test("a product update shows up in the event list via pub/sub", async () => {
+            await call("/products/1", { method: "PUT", ...json({ price: 50 }) });
+            let events = [];
+            for (let i = 0; i < 20 && !events.length; i++) {
+              await new Promise((r) => setTimeout(r, 50));
+              events = await (await call("/events/recent")).json();
+            }
+            assert.equal(events[0].type, "product.updated");
+          });
+      - file: terminal
+        lang: sh
+        text: |
+          npm test
+    mistakes:
+      - problem:
+          en: "Pointing the tests at database 0 and running `FLUSHDB` there."
+          tr: "Testleri 0 numaralı veritabanına yöneltip orada `FLUSHDB` çalıştırmak."
+        fix:
+          en: "That deletes your real keys. Tests use `/15` in the URL. Never run flush commands against data you care about."
+          tr: "Bu gerçek anahtarlarını siler. Testler URL'de `/15` kullanır. Önemsediğin veriye karşı asla flush komutu çalıştırma."
+      - problem:
+          en: "The test run hangs after the tests passed."
+          tr: "Testler geçtikten sonra çalışmanın takılı kalması."
+        fix:
+          en: "An open connection or server keeps Node alive. Close the HTTP server, stop the worker and close every Redis client (the main one, the worker's and the subscriber's) in `after`."
+          tr: "Açık bir bağlantı ya da sunucu Node'u ayakta tutar. `after` içinde HTTP sunucusunu kapat, worker'ı durdur ve her Redis istemcisini (ana, worker'ın ve abonenin) kapat."
+      - problem:
+          en: "Tests that depend on each other's leftovers in Redis (flaky tests)."
+          tr: "Redis'te birbirlerinin artıklarına bağlı testler (kararsız testler)."
+        fix:
+          en: "Reset what a test depends on before it runs, like `beforeEach` does for the rate-limit keys, and give each test its own product or user."
+          tr: "Bir testin bağlı olduğu şeyleri, `beforeEach`'in rate-limit anahtarları için yaptığı gibi, çalışmadan önce sıfırla ve her teste kendi ürününü ya da kullanıcısını ver."
+    quiz:
+      - q:
+          en: "Why do the tests use `redis://127.0.0.1:6380/15`?"
+          tr: "Testler neden `redis://127.0.0.1:6380/15` kullanıyor?"
+        options:
+          en:
+            - "Database 15 is faster"
+            - "It is a separate database, so flushing it cannot delete the app's real keys"
+            - "Redis only allows tests in database 15"
+          tr:
+            - "15 numaralı veritabanı daha hızlı"
+            - "Ayrı bir veritabanı olduğu için boşaltmak uygulamanın gerçek anahtarlarını silemez"
+            - "Redis testlere sadece 15 numaralı veritabanında izin verir"
+        answer: 1
+        why:
+          en: "Each numbered database has its own keys. The app uses database 0, the tests use 15."
+          tr: "Numaralı her veritabanının kendi anahtarları vardır. Uygulama 0'ı, testler 15'i kullanır."
+    sources:
+      - title: "Node.js test runner"
+        url: https://nodejs.org/api/test.html
+      - title: "SELECT (numbered databases)"
+        url: https://redis.io/docs/latest/commands/select/
+      - title: "FLUSHDB"
+        url: https://redis.io/docs/latest/commands/flushdb/
+
+  - id: security
+    stage: security
+    title:
+      en: "Lock Redis down: ACL users and a closed port"
+      tr: "Redis'i kilitleme: ACL kullanıcıları ve kapalı port"
+    minutes: 55
+    needs: [testing]
+    why:
+      en: "By default Redis has no password and trusts every client that can reach its port. Servers with an open Redis port are found by scanners within hours, and an attacker can read or erase everything. Redis security has two layers: keep the port closed to the outside, and make every client log in as a user that can do only what it needs."
+      tr: "Redis varsayılan olarak şifresizdir ve portuna ulaşabilen her istemciye güvenir. Redis portu açık sunucular tarayıcılar tarafından saatler içinde bulunur ve bir saldırgan her şeyi okuyabilir ya da silebilir. Redis güvenliğinin iki katmanı var: portu dışarıya kapalı tut ve her istemciyi sadece ihtiyacı olanı yapabilen bir kullanıcı olarak giriş yaptır."
+    learn:
+      en: |
+        - **Never expose the Redis port to the internet.** Publish it on `127.0.0.1` only (as we did), or keep it on a private network. A firewall rule or a cloud security group is a second guard
+        - **Protected mode**: Redis answers only local clients when it has no password and no explicit bind address. The `redis` Docker image turns it off (we checked: `CONFIG GET protected-mode` returns `no`), because a published port reaches the container from a non-local address. In Docker your protection is therefore the `127.0.0.1:` in `-p` plus real passwords
+        - **ACL** (access control list) users: each user has a password, a list of commands it may run, and key patterns it may touch. Redis users are defined with `ACL SETUSER`, or in an ACL file loaded at start
+        - The categories used here: `+@read +@write` data commands, `+@stream`, `+@pubsub`, `+@keyspace` (`DEL`, `EXPIRE`, `SCAN`...), `+@connection`, `+@transaction`, and `-@dangerous` that removes `FLUSHALL`, `CONFIG`, `KEYS`, `INFO` and similar
+        - `~app:*` allows only keys that start with `app:` (this is why every key of the app does), and `&app:*` allows only channels with that prefix
+        - Passwords in the ACL file can be stored as SHA-256 hashes (`#<hash>`), so the file never contains the password itself
+        - Two users: **admin** (everything, for you in redis-cli) and **app** (limited, for the API). The **default** user is switched off
+        - Also exist: TLS for encrypted connections, needed whenever traffic crosses a network you do not control
+      tr: |
+        - **Redis portunu asla internete açma.** Sadece `127.0.0.1` üzerinde yayınla (bizim yaptığımız gibi) ya da özel bir ağda tut. Güvenlik duvarı kuralı ya da bir bulut güvenlik grubu ikinci koruma olur
+        - **Protected mode**: Redis, şifresi ve açık bir bind adresi yoksa sadece yerel istemcilere cevap verir. `redis` Docker image'i bunu kapatır (kontrol ettik: `CONFIG GET protected-mode` `no` döner), çünkü yayınlanan bir port container'a yerel olmayan bir adresten ulaşır. Docker'da korumanız bu yüzden `-p` içindeki `127.0.0.1:` ve gerçek şifrelerdir
+        - **ACL** (erişim kontrol listesi) kullanıcıları: her kullanıcının bir şifresi, çalıştırabileceği komutların listesi ve dokunabileceği anahtar desenleri vardır. Redis kullanıcıları `ACL SETUSER` ile ya da başlangıçta yüklenen bir ACL dosyasında tanımlanır
+        - Burada kullanılan kategoriler: `+@read +@write` veri komutları, `+@stream`, `+@pubsub`, `+@keyspace` (`DEL`, `EXPIRE`, `SCAN`...), `+@connection`, `+@transaction` ve `FLUSHALL`, `CONFIG`, `KEYS`, `INFO` gibilerini kaldıran `-@dangerous`
+        - `~app:*` sadece `app:` ile başlayan anahtarlara izin verir (uygulamanın her anahtarının bu yüzden öyle başlaması), `&app:*` sadece o önekli kanallara izin verir
+        - ACL dosyasındaki şifreler SHA-256 hash'i (`#<hash>`) olarak saklanabilir; dosya şifrenin kendisini hiç içermez
+        - İki kullanıcı: **admin** (her şey, redis-cli'daki sen için) ve **app** (sınırlı, API için). **default** kullanıcı kapatılır
+        - Şifreli bağlantı için TLS de var; kontrol etmediğin bir ağdan trafik geçtiği her yerde gerekir
+    do:
+      en: |
+        1. In the project folder run `node scripts/hash.js "admin-secret-456"` and `node scripts/hash.js "app-secret-123"`. These two demo passwords are fine on your own laptop; for anything else choose your own long random ones and hash those.
+        2. Create `redis/users.acl` with the content below, replacing the two hashes with yours if you chose other passwords. Three lines: the default user off, the admin, the app user.
+        3. Replace the container so it loads the file (this empties the practice data, which is fine): the `docker rm` and `docker run` commands below. The file is mounted read-only, so you change users by editing it and restarting the container.
+        4. Try it as nobody: `docker exec redis-shop redis-cli PING` now answers `NOAUTH Authentication required`.
+        5. Try the app user. `PING` works, `SET app:key 1` works, but `SET other:key 1` (wrong key), `FLUSHALL` and `KEYS *` answer `NOPERM`.
+        6. Put the users into `.env`: the app uses the app user, the tests and the helper scripts use the admin. Restart `npm start` and run `npm test`: everything still works with the limited app user.
+        7. As admin, run `ACL LOG 3` in redis-cli to see the refused attempts. From now on use the admin form of the CLI command everywhere an earlier step says `docker exec redis-shop redis-cli ...`.
+      tr: |
+        1. Proje klasöründe `node scripts/hash.js "admin-secret-456"` ve `node scripts/hash.js "app-secret-123"` çalıştır. Bu iki demo şifre kendi laptopunda sorun değil; başka her yer için kendi uzun, rastgele şifrelerini seç ve onları hash'le.
+        2. Aşağıdaki içerikle `redis/users.acl` dosyasını oluştur; başka şifre seçtiysen iki hash'i kendininkilerle değiştir. Üç satır: kapalı default kullanıcı, admin, app kullanıcısı.
+        3. Container'ı dosyayı yükleyecek şekilde değiştir (deneme verisini boşaltır, sorun değil): aşağıdaki `docker rm` ve `docker run` komutları. Dosya salt okunur bağlanır; kullanıcıları dosyayı düzenleyip container'ı yeniden başlatarak değiştirirsin.
+        4. Kimsesiz dene: `docker exec redis-shop redis-cli PING` artık `NOAUTH Authentication required` cevabı verir.
+        5. App kullanıcısını dene. `PING` çalışır, `SET app:key 1` çalışır; ama `SET other:key 1` (yanlış anahtar), `FLUSHALL` ve `KEYS *` `NOPERM` cevabı verir.
+        6. Kullanıcıları `.env`'e koy: uygulama app kullanıcısını, testler ve yardımcı script'ler admin'i kullanır. `npm start`'ı yeniden başlat ve `npm test` çalıştır: her şey sınırlı app kullanıcısıyla hâlâ çalışır.
+        7. Admin olarak redis-cli'da `ACL LOG 3` çalıştır ve reddedilen denemeleri gör. Bundan sonra, önceki bir adım `docker exec redis-shop redis-cli ...` dediği her yerde CLI komutunun admin biçimini kullan.
+    code:
+      - file: redis/users.acl
+        lang: text
+        text: |
+          user default off
+          user admin on #18ac3c42b0ca553277927b835d8e8fa8ea7d2540686a960d942bcd613b2bb38e ~* &* +@all
+          user app on #b3ab68d00db78bdb6d9cd70e1d451183e6e04cc12d1556636c4df44d2ccd3734 ~app:* &app:* +@read +@write +@stream +@pubsub +@keyspace +@connection +@transaction -@dangerous
+      - file: .env
+        lang: text
+        text: |
+          REDIS_URL=redis://app:app-secret-123@127.0.0.1:6380
+          REDIS_ADMIN_URL=redis://admin:admin-secret-456@127.0.0.1:6380
+          REDIS_TEST_URL=redis://admin:admin-secret-456@127.0.0.1:6380/15
+      - file: scripts/hash.js
+        lang: js
+        text: |
+          // Prints the SHA-256 of a password, the form users.acl stores: node scripts/hash.js "my password"
+          import { createHash } from "node:crypto";
+
+          if (!process.argv[2]) {
+            console.error('Usage: node scripts/hash.js "the password"');
+            process.exit(1);
+          }
+          console.log(createHash("sha256").update(process.argv[2]).digest("hex"));
+      - file: terminal
+        lang: sh
+        text: |
+          docker rm -f redis-shop
+          docker run -d --name redis-shop --memory 256m -p 127.0.0.1:6380:6379 -v "$PWD/redis/users.acl:/etc/redis/users.acl:ro" redis:8.10-alpine redis-server --aclfile /etc/redis/users.acl
+
+          docker exec redis-shop redis-cli PING
+          docker exec redis-shop redis-cli --user app --pass app-secret-123 --no-auth-warning SET app:key 1
+          docker exec redis-shop redis-cli --user app --pass app-secret-123 --no-auth-warning SET other:key 1
+          docker exec redis-shop redis-cli --user app --pass app-secret-123 --no-auth-warning FLUSHALL
+          docker exec -it redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning
+
+          npm test
+    mistakes:
+      - problem:
+          en: "Starting the container with an ACL file path that does not exist: it exits at once."
+          tr: "Var olmayan bir ACL dosyası yoluyla container başlatmak: hemen kapanır."
+        fix:
+          en: "Redis refuses to start when the ACL file cannot be read. `docker logs redis-shop` shows `Error loading ACLs`. Run the `docker run` command from the project folder, where `redis/users.acl` exists (on Windows PowerShell use `${PWD}` instead of `$PWD`)."
+          tr: "ACL dosyası okunamazsa Redis başlamayı reddeder. `docker logs redis-shop` `Error loading ACLs` gösterir. `docker run` komutunu `redis/users.acl` dosyasının olduğu proje klasöründen çalıştır (Windows PowerShell'de `$PWD` yerine `${PWD}` kullan)."
+      - problem:
+          en: "Letting the app connect as an all-powerful user."
+          tr: "Uygulamanın her şeye yetkili bir kullanıcıyla bağlanmasına izin vermek."
+        fix:
+          en: "A bug or an injection in the app could then run `FLUSHALL` or `CONFIG`. Give the app a user with only the commands and key prefix it uses, and keep the admin password for people."
+          tr: "O zaman uygulamadaki bir hata ya da injection `FLUSHALL` veya `CONFIG` çalıştırabilir. Uygulamaya sadece kullandığı komutları ve anahtar önekini içeren bir kullanıcı ver, admin şifresini insanlar için sakla."
+      - problem:
+          en: "Committing `users.acl` or `.env` to Git, or leaving the demo passwords on a real server."
+          tr: "`users.acl` ya da `.env` dosyasını Git'e commit etmek ya da demo şifrelerini gerçek bir sunucuda bırakmak."
+        fix:
+          en: "Both are in `.gitignore`. On a real server generate long random passwords, hash them with `scripts/hash.js` and keep the real values in the host's secret settings."
+          tr: "İkisi de `.gitignore` içinde. Gerçek bir sunucuda uzun rastgele şifreler üret, `scripts/hash.js` ile hash'le ve gerçek değerleri host'un gizli ayarlarında tut."
+    quiz:
+      - q:
+          en: "You publish Redis with `-p 6380:6379` on a server that has a public IP and set no password. What can happen?"
+          tr: "Herkese açık IP'si olan bir sunucuda Redis'i `-p 6380:6379` ile yayınlıyor ve şifre koymuyorsun. Ne olabilir?"
+        options:
+          en:
+            - "Nothing, protected mode always blocks outsiders"
+            - "Anyone on the internet can connect and read, change or delete all data"
+            - "Redis refuses to start"
+          tr:
+            - "Hiçbir şey, protected mode dışarıdakileri her zaman engeller"
+            - "İnternetteki herkes bağlanıp bütün veriyi okuyabilir, değiştirebilir ya da silebilir"
+            - "Redis başlamayı reddeder"
+        answer: 1
+        why:
+          en: "The Docker image runs with protected mode off and Docker publishes the port on all interfaces unless you write 127.0.0.1. Close the port and require passwords."
+          tr: "Docker image'i protected mode kapalı çalışır ve 127.0.0.1 yazmazsan Docker portu bütün arayüzlerde yayınlar. Portu kapat ve şifre iste."
+      - q:
+          en: "What does `~app:*` in an ACL rule do?"
+          tr: "Bir ACL kuralındaki `~app:*` ne yapar?"
+        options:
+          en:
+            - "Lets the user touch only keys that start with app:"
+            - "Allows every command"
+            - "Sets the password"
+          tr:
+            - "Kullanıcının sadece app: ile başlayan anahtarlara dokunmasına izin verir"
+            - "Her komuta izin verir"
+            - "Şifreyi belirler"
+        answer: 0
+        why:
+          en: "A rule starting with ~ is a key pattern; commands on other keys answer NOPERM."
+          tr: "~ ile başlayan kural bir anahtar desenidir; diğer anahtarlardaki komutlar NOPERM cevabı verir."
+    sources:
+      - title: "Redis security"
+        url: https://redis.io/docs/latest/operate/oss_and_stack/management/security/
+      - title: "Redis ACL"
+        url: https://redis.io/docs/latest/operate/oss_and_stack/management/security/acl/
+      - title: "ACL SETUSER"
+        url: https://redis.io/docs/latest/commands/acl-setuser/
+
+  - id: memory
+    stage: performance
+    title:
+      en: "Memory limits and eviction policies"
+      tr: "Bellek sınırları ve eviction politikaları"
+    minutes: 45
+    needs: [security]
+    why:
+      en: "Redis keeps everything in RAM, and RAM is limited. Without a limit Redis grows until the system kills it. With a limit you must decide what happens when it is full: refuse new writes, or delete old keys to make room. The right answer depends on what your keys are, a cache can lose data, a job queue cannot."
+      tr: "Redis her şeyi RAM'de tutar ve RAM sınırlıdır. Sınır olmazsa Redis, sistem onu öldürene kadar büyür. Sınır varsa dolduğunda ne olacağına karar vermelisin: yeni yazmaları reddet ya da yer açmak için eski anahtarları sil. Doğru cevap anahtarlarının ne olduğuna bağlı; bir cache veri kaybedebilir, bir iş kuyruğu kaybedemez."
+    learn:
+      en: |
+        - `maxmemory` is the limit for your data. The default is `0`, which means no limit
+        - `maxmemory-policy` says what to do at the limit. The default `noeviction` refuses writes with an `OOM command not allowed` error
+        - Eviction policies: `allkeys-lru` removes the least recently used key of any kind (the usual choice for a pure cache); `volatile-lru` does the same but only among keys that have a TTL; others are `allkeys-lfu`, `volatile-lfu` (least frequently used), `allkeys-random`, `volatile-random` and `volatile-ttl` (the keys closest to expiring)
+        - For shop-api we choose **`volatile-lru`**: the cache entries, sessions and rate counters all have a TTL, so they may be evicted. The job stream and the views ranking have no TTL, so they are never evicted. The price is that if only non-TTL keys fill the memory, writes fail, so you must watch memory (monitoring step)
+        - Keep `maxmemory` clearly below the container or machine limit: Redis also needs memory for connection buffers and, while saving to disk, for copies of changed data
+        - Look at it with `INFO memory` (`used_memory_human`, `maxmemory_human`), `INFO stats` (`evicted_keys`) and `MEMORY USAGE key`
+        - `CONFIG SET` changes the running server only; a restart returns to the start flags. We put the real values in the start command (next step)
+      tr: |
+        - `maxmemory` verin için sınırdır. Varsayılan `0`'dır, yani sınır yok
+        - `maxmemory-policy` sınırda ne yapılacağını söyler. Varsayılan `noeviction` yazmaları `OOM command not allowed` hatasıyla reddeder
+        - Eviction politikaları: `allkeys-lru` her türden, en az yakın zamanda kullanılan anahtarı siler (saf bir cache için olağan seçim); `volatile-lru` aynısını yapar ama sadece TTL'i olan anahtarlar arasında; diğerleri `allkeys-lfu`, `volatile-lfu` (en az sık kullanılan), `allkeys-random`, `volatile-random` ve `volatile-ttl` (süresi dolmaya en yakın anahtarlar)
+        - shop-api için **`volatile-lru`** seçiyoruz: cache kayıtlarının, oturumların ve rate sayaçlarının hepsinin TTL'i var, o yüzden silinebilirler. İş stream'inin ve görüntülenme sıralamasının TTL'i yok, o yüzden asla silinmezler. Bedeli: bellek sadece TTL'siz anahtarlarla dolarsa yazmalar başarısız olur; bu yüzden belleği izlemelisin (monitoring adımı)
+        - `maxmemory`'yi container ya da makine sınırının belirgin biçimde altında tut: Redis bağlantı tamponları ve diske kaydederken değişen verinin kopyaları için de bellek ister
+        - `INFO memory` (`used_memory_human`, `maxmemory_human`), `INFO stats` (`evicted_keys`) ve `MEMORY USAGE key` ile bak
+        - `CONFIG SET` sadece çalışan sunucuyu değiştirir; yeniden başlatma başlangıç bayraklarına döner. Gerçek değerleri başlatma komutuna koyuyoruz (sonraki adım)
+    do:
+      en: |
+        1. Create `scripts/fill.js` below: it writes 60 000 small keys without a TTL and reports how many writes were stored or refused. It uses the admin address from `.env`.
+        2. Open the admin CLI (`docker exec -it redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning`). Run `CONFIG GET maxmemory-policy` (the default is `noeviction`), then `CONFIG SET maxmemory 3mb` and `CONFIG SET maxmemory-policy volatile-lru`, and `CONFIG RESETSTAT`.
+        3. In a normal terminal run `node --env-file=.env scripts/fill.js`. Many writes are refused with `OOM command not allowed`: the filler keys have no TTL, so `volatile-lru` finds nothing it may delete. The exact numbers differ on your machine.
+        4. In the CLI run `INFO stats` and look at `evicted_keys:0`. Then `FLUSHALL` and `CONFIG SET maxmemory-policy allkeys-lru`, `CONFIG RESETSTAT`.
+        5. Run the script again. Now all 60 000 writes succeed, but most old keys are gone: `DBSIZE` is far below 60 000 and `evicted_keys` is large. That is `allkeys-lru` making room.
+        6. Put the real settings back: `FLUSHALL`, `CONFIG SET maxmemory 100mb`, `CONFIG SET maxmemory-policy volatile-lru`.
+      tr: |
+        1. Aşağıdaki `scripts/fill.js` dosyasını oluştur: TTL'siz 60 000 küçük anahtar yazar ve kaç yazmanın saklandığını ya da reddedildiğini raporlar. `.env` içindeki admin adresini kullanır.
+        2. Admin CLI'ı aç (`docker exec -it redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning`). `CONFIG GET maxmemory-policy` çalıştır (varsayılan `noeviction`), sonra `CONFIG SET maxmemory 3mb` ve `CONFIG SET maxmemory-policy volatile-lru`, ardından `CONFIG RESETSTAT`.
+        3. Normal bir terminalde `node --env-file=.env scripts/fill.js` çalıştır. Birçok yazma `OOM command not allowed` ile reddedilir: dolgu anahtarlarının TTL'i yok, o yüzden `volatile-lru` silebileceği bir şey bulamaz. Tam sayılar makinene göre değişir.
+        4. CLI'da `INFO stats` çalıştır ve `evicted_keys:0` değerine bak. Sonra `FLUSHALL` ve `CONFIG SET maxmemory-policy allkeys-lru`, `CONFIG RESETSTAT`.
+        5. Script'i yeniden çalıştır. Şimdi 60 000 yazmanın hepsi başarılı olur ama eski anahtarların çoğu gitmiştir: `DBSIZE` 60 000'in çok altındadır ve `evicted_keys` büyüktür. Yer açan `allkeys-lru`'dur.
+        6. Gerçek ayarları geri koy: `FLUSHALL`, `CONFIG SET maxmemory 100mb`, `CONFIG SET maxmemory-policy volatile-lru`.
+    code:
+      - file: scripts/fill.js
+        lang: js
+        text: |
+          // Writes 60 000 small keys, to see what Redis does when memory is full.
+          import { connect } from "../src/redis.js";
+
+          const redis = await connect(process.env.REDIS_ADMIN_URL); // the admin user: the app user may not write "filler:" keys
+          let stored = 0;
+          let refused = 0;
+          let lastError = "";
+
+          for (let start = 0; start < 60_000; start += 1000) {
+            const batch = Array.from({ length: 1000 }, (_, i) => redis.set(`filler:${start + i}`, "x".repeat(100)));
+            for (const result of await Promise.allSettled(batch)) {
+              if (result.status === "fulfilled") stored++;
+              else {
+                refused++;
+                lastError = result.reason.message;
+              }
+            }
+          }
+
+          console.log({ stored, refused, lastError, keysNow: await redis.dbSize() });
+          await redis.close();
+      - file: redis-cli
+        lang: text
+        text: |
+          CONFIG GET maxmemory-policy             # noeviction
+          CONFIG SET maxmemory 3mb                # OK
+          CONFIG SET maxmemory-policy volatile-lru
+          CONFIG RESETSTAT
+          INFO stats                              # look for evicted_keys
+          INFO memory                             # used_memory_human, maxmemory_human, maxmemory_policy
+          DBSIZE
+          MEMORY USAGE app:product:1              # bytes used by one key
+      - file: terminal
+        lang: sh
+        text: |
+          node --env-file=.env scripts/fill.js
+    mistakes:
+      - problem:
+          en: "Using `allkeys-lru` on a Redis that also holds a job queue or sessions you cannot lose."
+          tr: "Kaybedemeyeceğin bir iş kuyruğu ya da oturum da tutan bir Redis'te `allkeys-lru` kullanmak."
+        fix:
+          en: "Eviction picks keys of any kind, so queued jobs could vanish. Use `volatile-lru` and give only the disposable keys a TTL, or use a separate Redis for the cache."
+          tr: "Eviction her türden anahtarı seçer, kuyruktaki işler kaybolabilir. `volatile-lru` kullan ve sadece harcanabilir anahtarlara TTL ver ya da cache için ayrı bir Redis kullan."
+      - problem:
+          en: "Setting `maxmemory` equal to the container limit (256m)."
+          tr: "`maxmemory`'yi container sınırına (256m) eşitlemek."
+        fix:
+          en: "Redis uses more memory than the data alone, so the system would kill it first. Keep `maxmemory` well below the limit (here 100mb of 256m)."
+          tr: "Redis sadece veriden fazla bellek kullanır, sistem onu önce öldürür. `maxmemory`'yi sınırın belirgin biçimde altında tut (burada 256m'den 100mb)."
+      - problem:
+          en: "Changing the policy with `CONFIG SET` and thinking it is permanent."
+          tr: "Politikayı `CONFIG SET` ile değiştirip kalıcı sanmak."
+        fix:
+          en: "The change is lost when the container restarts. Put `--maxmemory` and `--maxmemory-policy` in the start command, as the next step does."
+          tr: "Container yeniden başlayınca değişiklik kaybolur. `--maxmemory` ve `--maxmemory-policy` bayraklarını, sonraki adımın yaptığı gibi başlatma komutuna koy."
+    quiz:
+      - q:
+          en: "Memory is full and the policy is `noeviction`. A client sends `SET`. What happens?"
+          tr: "Bellek dolu ve politika `noeviction`. Bir istemci `SET` gönderiyor. Ne olur?"
+        options:
+          en:
+            - "The oldest key is deleted"
+            - "The write is refused with an OOM error"
+            - "Redis restarts"
+          tr:
+            - "En eski anahtar silinir"
+            - "Yazma bir OOM hatasıyla reddedilir"
+            - "Redis yeniden başlar"
+        answer: 1
+        why:
+          en: "noeviction never deletes anything; commands that need more memory fail, while reads still work."
+          tr: "noeviction hiçbir şeyi silmez; daha fazla bellek isteyen komutlar başarısız olur, okumalar çalışmaya devam eder."
+    sources:
+      - title: "Redis key eviction"
+        url: https://redis.io/docs/latest/develop/reference/eviction/
+      - title: "CONFIG SET"
+        url: https://redis.io/docs/latest/commands/config-set/
+      - title: "MEMORY USAGE"
+        url: https://redis.io/docs/latest/commands/memory-usage/
+
+  - id: persistence
+    stage: packaging
+    title:
+      en: "Keep the data: RDB, AOF and a Docker volume"
+      tr: "Veriyi saklama: RDB, AOF ve bir Docker volume"
+    minutes: 45
+    needs: [memory]
+    why:
+      en: "Redis lives in memory, so a restart empties it unless it saved the data to disk. Sessions and queued jobs should survive a restart, and the disk files themselves must survive the container being replaced. This step also gives you the final, complete start command for the Redis container."
+      tr: "Redis bellekte yaşar, bu yüzden veriyi diske kaydetmediyse yeniden başlatma onu boşaltır. Oturumlar ve kuyruktaki işler yeniden başlatmadan sağ çıkmalı, disk dosyalarının kendileri de container değiştirilince kaybolmamalı. Bu adım ayrıca Redis container'ı için son, eksiksiz başlatma komutunu da verir."
+    learn:
+      en: |
+        - **RDB**: a compact snapshot file (`dump.rdb`) written now and then. Default rules save after 3600 s with 1 change, 300 s with 100 changes, or 60 s with 10 000 changes. Good for backups and fast restarts, but you can lose the changes since the last snapshot
+        - **AOF** (append-only file): a log of every write, flushed to disk. With `appendfsync everysec` (the default) you can lose about one second at most. It is bigger and a little slower than RDB. With `--appendonly yes` Redis writes it into `appendonlydir/`
+        - Using both is common: AOF for durability, RDB files for backups. When both exist at start, Redis loads the AOF because it is more complete
+        - A **volume** is storage that lives outside the container. `-v redis-shop-data:/data` keeps Redis's files (`/data`) when the container is deleted and recreated
+        - `BGSAVE` makes a snapshot in the background, `LASTSAVE` shows when the last one finished
+        - A pure cache needs no persistence at all, losing it only costs some slow requests. Persistence matters for sessions, queues and anything you cannot rebuild
+        - Persistence is not a backup strategy by itself; copy the snapshot file somewhere else on a schedule
+      tr: |
+        - **RDB**: zaman zaman yazılan kompakt bir anlık görüntü dosyası (`dump.rdb`). Varsayılan kurallar 1 değişiklikle 3600 sn, 100 değişiklikle 300 sn ya da 10 000 değişiklikle 60 sn sonra kaydeder. Yedek ve hızlı yeniden başlatma için iyi ama son görüntüden beri olan değişiklikleri kaybedebilirsin
+        - **AOF** (append-only file): her yazmanın diske yazılan günlüğü. `appendfsync everysec` ile (varsayılan) en fazla yaklaşık bir saniye kaybedebilirsin. RDB'den büyük ve biraz yavaştır. `--appendonly yes` ile Redis onu `appendonlydir/` içine yazar
+        - İkisini birlikte kullanmak yaygın: dayanıklılık için AOF, yedek için RDB dosyaları. Başlangıçta ikisi de varsa Redis daha eksiksiz olduğu için AOF'u yükler
+        - **Volume**, container'ın dışında yaşayan depolamadır. `-v redis-shop-data:/data` container silinip yeniden oluşturulsa bile Redis'in dosyalarını (`/data`) saklar
+        - `BGSAVE` arka planda bir anlık görüntü alır, `LASTSAVE` sonuncunun ne zaman bittiğini gösterir
+        - Saf bir cache'in kalıcılığa hiç ihtiyacı yok; kaybetmek sadece birkaç yavaş isteğe mal olur. Kalıcılık oturumlar, kuyruklar ve yeniden üretemeyeceğin her şey için önemli
+        - Kalıcılık tek başına bir yedekleme stratejisi değildir; anlık görüntü dosyasını düzenli olarak başka bir yere kopyala
+    do:
+      en: |
+        1. Replace the container with the complete command below. It combines everything so far: the ACL file, the memory limit and policy, AOF, and a named volume.
+        2. Write a test key as admin: `SET persisted yes`, then run `BGSAVE`. Wait a second and check `LASTSAVE`.
+        3. Look at the files: `docker exec redis-shop ls -R /data` shows `dump.rdb` and the folder `appendonlydir`.
+        4. Simulate a crash: wait two seconds, run `docker kill redis-shop`, then `docker start redis-shop`. Connect as admin and run `GET persisted`: it answers `yes`.
+        5. Remove the container and start it again with the same `docker run`. The volume brings the data back. (`docker rm -f redis-shop` removes the container only, not the volume.)
+        6. Copy a backup out of the container: `docker cp redis-shop:/data/dump.rdb ./dump-backup.rdb` after a `BGSAVE`.
+        7. Run `npm start` and `npm test` once more to check that everything works with the final container.
+      tr: |
+        1. Container'ı aşağıdaki eksiksiz komutla değiştir. Şimdiye kadarki her şeyi birleştirir: ACL dosyası, bellek sınırı ve politikası, AOF ve adlandırılmış bir volume.
+        2. Admin olarak bir test anahtarı yaz: `SET persisted yes`, sonra `BGSAVE` çalıştır. Bir saniye bekle ve `LASTSAVE`'e bak.
+        3. Dosyalara bak: `docker exec redis-shop ls -R /data` `dump.rdb` dosyasını ve `appendonlydir` klasörünü gösterir.
+        4. Bir çökmeyi taklit et: iki saniye bekle, `docker kill redis-shop` çalıştır, sonra `docker start redis-shop`. Admin olarak bağlan ve `GET persisted` çalıştır: `yes` döner.
+        5. Container'ı sil ve aynı `docker run` ile yeniden başlat. Volume veriyi geri getirir. (`docker rm -f redis-shop` sadece container'ı siler, volume'ü silmez.)
+        6. Bir `BGSAVE`'den sonra container'dan bir yedek kopyala: `docker cp redis-shop:/data/dump.rdb ./dump-backup.rdb`.
+        7. Son container'la her şeyin çalıştığını görmek için `npm start` ve `npm test` komutlarını bir kez daha çalıştır.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          docker rm -f redis-shop
+          docker run -d --name redis-shop --memory 256m -p 127.0.0.1:6380:6379 \
+            -v redis-shop-data:/data \
+            -v "$PWD/redis/users.acl:/etc/redis/users.acl:ro" \
+            redis:8.10-alpine redis-server \
+            --appendonly yes \
+            --aclfile /etc/redis/users.acl \
+            --maxmemory 100mb --maxmemory-policy volatile-lru
+
+          docker exec redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning SET persisted yes
+          docker exec redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning BGSAVE
+          docker exec redis-shop ls -R /data
+          docker kill redis-shop
+          docker start redis-shop
+          docker exec redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning GET persisted
+          docker cp redis-shop:/data/dump.rdb ./dump-backup.rdb
+    mistakes:
+      - problem:
+          en: "Running without a volume and being surprised that `docker rm` deleted the data."
+          tr: "Volume olmadan çalıştırıp `docker rm`'in veriyi silmesine şaşırmak."
+        fix:
+          en: "Without `-v name:/data` the files live inside the container and go with it. Always mount a volume when the data matters."
+          tr: "`-v ad:/data` olmazsa dosyalar container'ın içinde yaşar ve onunla gider. Veri önemliyse her zaman bir volume bağla."
+      - problem:
+          en: "Believing `appendonly yes` means no data can ever be lost."
+          tr: "`appendonly yes` demenin hiç veri kaybedilemeyeceği anlamına geldiğini sanmak."
+        fix:
+          en: "With `everysec` the last second of writes can be lost in a crash. Use `appendfsync always` if you cannot accept that, and accept that it is much slower."
+          tr: "`everysec` ile bir çökmede son saniyenin yazmaları kaybolabilir. Bunu kabul edemiyorsan `appendfsync always` kullan ve çok daha yavaş olduğunu kabul et."
+      - problem:
+          en: "Copying the live `appendonlydir` folder as a backup."
+          tr: "Çalışan `appendonlydir` klasörünü yedek diye kopyalamak."
+        fix:
+          en: "The files change while you copy and the copy may be inconsistent. Take a `BGSAVE` and copy the single `dump.rdb` file."
+          tr: "Dosyalar sen kopyalarken değişir ve kopya tutarsız olabilir. Bir `BGSAVE` al ve tek dosya olan `dump.rdb`'yi kopyala."
+    quiz:
+      - q:
+          en: "Which setting can lose at most about one second of writes in a crash?"
+          tr: "Hangi ayar bir çökmede en fazla yaklaşık bir saniyelik yazmayı kaybettirebilir?"
+        options:
+          en:
+            - "RDB with the default rules"
+            - "AOF with appendfsync everysec"
+            - "No persistence"
+          tr:
+            - "Varsayılan kurallarla RDB"
+            - "appendfsync everysec ile AOF"
+            - "Kalıcılık yok"
+        answer: 1
+        why:
+          en: "AOF with everysec flushes the write log to disk every second. RDB loses everything since the last snapshot."
+          tr: "everysec'li AOF yazma günlüğünü her saniye diske boşaltır. RDB son anlık görüntüden beri her şeyi kaybeder."
+    sources:
+      - title: "Redis persistence"
+        url: https://redis.io/docs/latest/operate/oss_and_stack/management/persistence/
+      - title: "BGSAVE"
+        url: https://redis.io/docs/latest/commands/bgsave/
+      - title: "Docker: volumes"
+        url: https://docs.docker.com/engine/storage/volumes/
+
+  - id: deploy
+    stage: deploy
+    title:
+      en: "Go live: a free Redis Cloud database and Render"
+      tr: "Canlıya çıkma: ücretsiz Redis Cloud veritabanı ve Render"
+    minutes: 60
+    needs: [persistence]
+    why:
+      en: "Both the API and Redis must be online. You do not run Redis on a free web host (its disk is not kept and it is hard to keep the port closed to outsiders). Redis Cloud offers a free hosted database, and Render runs the API for free. You only change one setting in the app: `REDIS_URL`."
+      tr: "API de Redis de çevrimiçi olmalı. Redis'i ücretsiz bir web host'ta çalıştırmazsın (diski saklanmaz ve portu dışarıya kapalı tutmak zor). Redis Cloud ücretsiz barındırılan bir veritabanı sunar, Render da API'yi ücretsiz çalıştırır. Uygulamada sadece tek ayarı değiştirirsin: `REDIS_URL`."
+    learn:
+      en: |
+        - The free Redis Cloud plan, from Redis's docs: a free Essentials database with **30 MB** of memory and **30 concurrent connections**; you can have **one free database per account**; the plan is meant for training and prototyping and can be upgraded later without data loss. Its security features are password protection, role-based auth and encryption in transit. Check the current limits in the docs before you rely on them, plans change
+        - Our API opens 3 connections (main, worker, subscriber), well below 30. A second copy of the app would use 3 more. Connection counts matter on small plans
+        - Connection URLs: `redis://user:password@host:port`, and `rediss://` (two s) when the server uses TLS. node-redis reads both from the `url` option. Copy the exact address from the Redis Cloud connection wizard
+        - The free Render web service, from Render's docs: it spins down after 15 minutes without traffic and takes about a minute to wake up; the filesystem is ephemeral; 750 free instance hours a month per workspace; free instances are not meant for production. Redis Cloud keeps the data, not the web service
+        - Because the worker lives inside the web process, jobs wait in the stream while the service sleeps and run after it wakes up
+        - Behind Render's proxy `req.ip` would be the proxy's address; `TRUST_PROXY=1` tells Express to read the real client address
+        - Secrets (the Redis URL contains a password) go into the host's environment settings, never into Git
+      tr: |
+        - Ücretsiz Redis Cloud planı, Redis'in dokümanından: **30 MB** bellekli ve **30 eşzamanlı bağlantılı** ücretsiz bir Essentials veritabanı; hesap başına **bir ücretsiz veritabanı** açabilirsin; plan eğitim ve prototip içindir ve sonra veri kaybı olmadan yükseltilebilir. Güvenlik özellikleri şifre koruması, rol tabanlı yetkilendirme ve aktarımda şifrelemedir. Güvenmeden önce güncel sınırlara dokümandan bak, planlar değişir
+        - API'miz 3 bağlantı açar (ana, worker, abone), 30'un çok altında. Uygulamanın ikinci bir kopyası 3 tane daha kullanır. Küçük planlarda bağlantı sayısı önemlidir
+        - Bağlantı URL'leri: `redis://user:password@host:port` ve sunucu TLS kullanıyorsa `rediss://` (iki s). node-redis ikisini de `url` seçeneğinden okur. Tam adresi Redis Cloud bağlantı sihirbazından kopyala
+        - Ücretsiz Render web servisi, Render'ın dokümanından: 15 dakika trafik almazsa kapanır ve uyanması yaklaşık bir dakika sürer; dosya sistemi geçicidir; workspace başına ayda 750 ücretsiz instance saati; ücretsiz instance'lar production için değildir. Veriyi Redis Cloud tutar, web servisi değil
+        - Worker web process'inin içinde yaşadığı için servis uyurken işler stream'de bekler ve uyandıktan sonra çalışır
+        - Render'ın proxy'sinin arkasında `req.ip` proxy'nin adresi olurdu; `TRUST_PROXY=1` Express'e gerçek istemci adresini okumasını söyler
+        - Sırlar (Redis URL'si bir şifre içerir) host'un ortam ayarlarına gider, asla Git'e değil
+    do:
+      en: |
+        1. Create a free account at redis.io/try-free (email, Google or GitHub). After activating, the console opens the *Create database* page with the **Free** plan selected. Give it a name, pick a cloud vendor and a region close to where your web service will run, and click *Create database*.
+        2. On the database page open the *Security* section, find the **Default user** and reveal its password. Then click *Connect* to see the host and port (and the ready-made connection details).
+        3. Check the connection from your computer with the local CLI: `docker exec -it redis-shop redis-cli -u "redis://default:<password>@<host>:<port>"` and type `PING`. If the wizard shows a `rediss://` address, use that form.
+        4. Try the app against it: temporarily put that URL as `REDIS_URL` in `.env`, run `npm start` and call `/health`. Put the old value back afterwards.
+        5. In `src/app.js` add the `trust proxy` lines from the new version below. This is the only code change.
+        6. Make sure `.env`, `node_modules` and `redis/users.acl` are not tracked (`git status`), then push the project to a new GitHub repository.
+        7. Create a free account at render.com, choose *New → Web Service* and connect the repository. Set *Build Command* `npm ci`, *Start Command* `node src/server.js`, *Instance type* **Free**.
+        8. Add environment variables: `REDIS_URL` (the Redis Cloud address with the password) and `TRUST_PROXY` = `1`. In *Advanced* set *Health Check Path* to `/health`. Render's default Node.js version is recent enough; if a build complains, set `NODE_VERSION`.
+        9. Deploy and call your address with the `curl` commands below. The first call after a quiet time is slow because the service wakes up.
+      tr: |
+        1. redis.io/try-free adresinde ücretsiz bir hesap aç (e-posta, Google ya da GitHub). Etkinleştirdikten sonra konsol, **Free** planı seçili *Create database* sayfasını açar. Bir ad ver, bir bulut sağlayıcı ve web servisinin çalışacağı yere yakın bir bölge seç ve *Create database*'e tıkla.
+        2. Veritabanı sayfasında *Security* bölümünü aç, **Default user**'ı bul ve şifresini göster. Sonra host ve port'u (ve hazır bağlantı bilgilerini) görmek için *Connect*'e tıkla.
+        3. Bağlantıyı bilgisayarından yerel CLI ile kontrol et: `docker exec -it redis-shop redis-cli -u "redis://default:<password>@<host>:<port>"` ve `PING` yaz. Sihirbaz `rediss://` adresi gösteriyorsa o biçimi kullan.
+        4. Uygulamayı ona karşı dene: o URL'yi geçici olarak `.env` içine `REDIS_URL` diye koy, `npm start` çalıştır ve `/health`'i çağır. Sonra eski değeri geri koy.
+        5. `src/app.js` içine aşağıdaki yeni sürümdeki `trust proxy` satırlarını ekle. Tek kod değişikliği bu.
+        6. `.env`, `node_modules` ve `redis/users.acl` dosyalarının takip edilmediğinden emin ol (`git status`), sonra projeyi yeni bir GitHub reposuna push et.
+        7. render.com'da ücretsiz bir hesap aç, *New → Web Service*'i seç ve repoyu bağla. *Build Command* `npm ci`, *Start Command* `node src/server.js`, *Instance type* **Free** olsun.
+        8. Ortam değişkenlerini ekle: `REDIS_URL` (şifreli Redis Cloud adresi) ve `TRUST_PROXY` = `1`. *Advanced* içinde *Health Check Path* alanını `/health` yap. Render'ın varsayılan Node.js sürümü yeterince yeni; build şikâyet ederse `NODE_VERSION` ayarla.
+        9. Deploy et ve adresini aşağıdaki `curl` komutlarıyla çağır. Sessiz bir dönemden sonraki ilk çağrı, servis uyandığı için yavaştır.
+    code:
+      - file: src/app.js
+        lang: js
+        text: |
+          import express from "express";
+          import { key } from "./cache.js";
+          import { RECENT } from "./events.js";
+          import { productsRouter } from "./products.js";
+          import { enqueue } from "./queue.js";
+          import { rateLimit } from "./ratelimit.js";
+          import { requireSession, sessions } from "./sessions.js";
+
+          export function createApp({ redis, db, ttl = 60, limit = { max: 100, windowSeconds: 60 } }) {
+            const app = express();
+            // Behind a host's proxy every request seems to come from the proxy. Tell Express how many proxies sit in front.
+            if (process.env.TRUST_PROXY) app.set("trust proxy", Number(process.env.TRUST_PROXY));
+            app.use(express.json());
+
+            app.get("/health", async (_req, res) => {
+              res.json({ ok: true, redis: await redis.ping() });
+            });
+
+            app.use(rateLimit(redis, limit));
+            const store = sessions(redis);
+
+            app.post("/login", async (req, res) => {
+              const name = String(req.body?.name ?? "").trim();
+              if (!name) return res.status(400).json({ error: "name is required" });
+              res.status(201).json({ token: await store.create(name) });
+            });
+            app.get("/me", requireSession(store), (req, res) => res.json(req.session));
+            app.post("/logout", requireSession(store), async (req, res) => {
+              await store.destroy(req.token);
+              res.status(204).end();
+            });
+
+            app.use("/products", productsRouter({ redis, db, ttl }));
+
+            app.post("/reports", requireSession(store), async (req, res) => {
+              const jobId = await enqueue(redis, { type: "report", user: req.session.user });
+              res.status(202).json({ jobId });
+            });
+            app.get("/reports/:id", async (req, res) => {
+              const job = await redis.hGetAll(key("job", req.params.id));
+              if (!job.status) return res.json({ status: "waiting" });
+              res.json(job);
+            });
+
+            app.get("/events/recent", async (_req, res) => {
+              const rows = await redis.lRange(RECENT, 0, -1);
+              res.json(rows.map((row) => JSON.parse(row)));
+            });
+
+            return app;
+          }
+      - file: terminal
+        lang: sh
+        text: |
+          git status
+          git remote add origin https://github.com/<your-user>/shop-api.git
+          git branch -M main
+          git push -u origin main
+
+          curl -s https://<your-service>.onrender.com/health
+          curl -si https://<your-service>.onrender.com/products/1 | grep -i x-cache
+          curl -si https://<your-service>.onrender.com/products/1 | grep -i x-cache
+    mistakes:
+      - problem:
+          en: "The deployed app cannot connect: `ECONNREFUSED` or `NOAUTH`."
+          tr: "Deploy edilen uygulama bağlanamıyor: `ECONNREFUSED` ya da `NOAUTH`."
+        fix:
+          en: "`REDIS_URL` on Render is still empty or points to localhost, or the password is missing. Copy the address from the Redis Cloud wizard, with `default` as the user and the password, into Render's environment settings."
+          tr: "Render'daki `REDIS_URL` hâlâ boş ya da localhost'u gösteriyor ya da şifre eksik. Adresi, kullanıcı olarak `default` ve şifreyle birlikte Redis Cloud sihirbazından kopyala ve Render'ın ortam ayarlarına yapıştır."
+      - problem:
+          en: "Connection errors on a free Redis Cloud database after you start several copies of the app."
+          tr: "Uygulamanın birkaç kopyasını başlattıktan sonra ücretsiz Redis Cloud veritabanında bağlantı hataları."
+        fix:
+          en: "The free plan allows 30 connections and every copy of this app uses 3. Run one copy, or upgrade the plan."
+          tr: "Ücretsiz plan 30 bağlantıya izin verir ve bu uygulamanın her kopyası 3 kullanır. Tek kopya çalıştır ya da planı yükselt."
+      - problem:
+          en: "Pasting the Redis URL with its password into the code or committing `.env`."
+          tr: "Şifreli Redis URL'sini koda yapıştırmak ya da `.env`'i commit etmek."
+        fix:
+          en: "Anyone who reads the repository gets full access to your database. If it happened, change the password in the Redis Cloud console at once and keep the URL only in Render's environment settings."
+          tr: "Repoyu okuyan herkes veritabanına tam erişim kazanır. Olduysa Redis Cloud konsolunda şifreyi hemen değiştir ve URL'yi sadece Render'ın ortam ayarlarında tut."
+    quiz:
+      - q:
+          en: "What is the best place for the Redis URL of the deployed app?"
+          tr: "Deploy edilen uygulamanın Redis URL'si için en iyi yer neresi?"
+        options:
+          en:
+            - "In src/redis.js, in the code"
+            - "In the host's environment variables"
+            - "In a public README"
+          tr:
+            - "src/redis.js içinde, kodda"
+            - "Host'un ortam değişkenlerinde"
+            - "Herkese açık bir README'de"
+        answer: 1
+        why:
+          en: "The URL contains a password, so it must stay out of the repository. The code reads it from REDIS_URL."
+          tr: "URL bir şifre içerir, bu yüzden repodan uzak durmalı. Kod onu REDIS_URL'den okur."
+    sources:
+      - title: "Redis Cloud quick start"
+        url: https://redis.io/docs/latest/operate/rc/rc-quickstart/
+      - title: "Redis Cloud subscription plans"
+        url: https://redis.io/docs/latest/operate/rc/subscriptions/
+      - title: "Render: free instances"
+        url: https://render.com/docs/free
+
+  - id: monitoring
+    stage: monitoring
+    title:
+      en: "Watch Redis: INFO, SLOWLOG and latency"
+      tr: "Redis'i izleme: INFO, SLOWLOG ve gecikme"
+    minutes: 50
+    needs: [deploy]
+    why:
+      en: "A cache that quietly stops helping, or a memory that slowly fills, is only noticed when the site gets slow. Redis can tell you its own health: how much memory it uses, whether the cache is hit, which commands are slow. A few numbers, looked at regularly, catch most problems early."
+      tr: "Sessizce işe yaramaz hale gelen bir cache ya da yavaş yavaş dolan bir bellek, ancak site yavaşlayınca fark edilir. Redis kendi sağlığını söyleyebilir: ne kadar bellek kullanıyor, cache isabet alıyor mu, hangi komutlar yavaş. Düzenli bakılan birkaç sayı çoğu sorunu erken yakalar."
+    learn:
+      en: |
+        - `INFO` prints server statistics in sections; `INFO memory`, `INFO stats`, `INFO clients`, `INFO keyspace`, `INFO commandstats` show one section
+        - The numbers to watch: `used_memory_human` against `maxmemory_human`; `evicted_keys` (rising means the cache is too small); `connected_clients`; `keyspace_hits` and `keyspace_misses`
+        - **Hit rate** = hits / (hits + misses). A low or falling rate means the cache is not doing its job (TTL too short, keys too specific, or eviction)
+        - **SLOWLOG** keeps the commands that took longer than `slowlog-log-slower-than` microseconds (default 10 000, that is 10 ms). `SLOWLOG GET 5`, `SLOWLOG LEN`, `SLOWLOG RESET`. The time counted is the command's own run time, not the network
+        - **Latency**: `redis-cli --latency` pings the server again and again and prints min, max and average in milliseconds; `LATENCY LATEST` and `LATENCY DOCTOR` need `latency-monitor-threshold` to be set first
+        - Redis runs commands one at a time, so one slow command (`KEYS *`, a huge `HGETALL`, a big `SMEMBERS`) delays every client behind it. This is why slow commands matter so much
+        - `MONITOR` shows every command live. It is useful for a few seconds while debugging, but it slows the server, so never leave it running
+        - On Redis Cloud the console has a metrics page with memory, operations per second and connections (see the link below). `docker stats` shows the container's real memory against its limit
+      tr: |
+        - `INFO` sunucu istatistiklerini bölümler halinde yazar; `INFO memory`, `INFO stats`, `INFO clients`, `INFO keyspace`, `INFO commandstats` tek bir bölümü gösterir
+        - İzlenecek sayılar: `maxmemory_human`'a karşı `used_memory_human`; `evicted_keys` (artıyorsa cache çok küçük); `connected_clients`; `keyspace_hits` ve `keyspace_misses`
+        - **İsabet oranı (hit rate)** = hits / (hits + misses). Düşük ya da düşen bir oran cache'in işini yapmadığı demektir (TTL çok kısa, anahtarlar çok özel ya da eviction)
+        - **SLOWLOG**, `slowlog-log-slower-than` mikrosaniyeden uzun süren komutları tutar (varsayılan 10 000, yani 10 ms). `SLOWLOG GET 5`, `SLOWLOG LEN`, `SLOWLOG RESET`. Sayılan süre ağ değil, komutun kendi çalışma süresidir
+        - **Gecikme**: `redis-cli --latency` sunucuya tekrar tekrar ping atar ve min, max ve ortalamayı milisaniye olarak yazar; `LATENCY LATEST` ve `LATENCY DOCTOR` için önce `latency-monitor-threshold` ayarlanmalı
+        - Redis komutları teker teker çalıştırır, bu yüzden tek bir yavaş komut (`KEYS *`, dev bir `HGETALL`, büyük bir `SMEMBERS`) arkasındaki her istemciyi geciktirir. Yavaş komutlar bu yüzden bu kadar önemli
+        - `MONITOR` her komutu canlı gösterir. Hata ayıklarken birkaç saniye işe yarar ama sunucuyu yavaşlatır, bu yüzden asla çalışır halde bırakma
+        - Redis Cloud'da konsolda bellek, saniyedeki işlem ve bağlantıları gösteren bir metrik sayfası var (aşağıdaki bağlantıya bak). `docker stats` container'ın gerçek belleğini sınırına karşı gösterir
+    do:
+      en: |
+        1. Open the admin CLI: `docker exec -it redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning`. Generate some traffic first (open product URLs in the browser or run the loop from the rate-limit step).
+        2. Run `INFO memory`, `INFO stats` and `INFO clients`. Find `used_memory_human`, `keyspace_hits`, `keyspace_misses`, `evicted_keys` and `connected_clients`. Your app shows 3 clients plus your CLI.
+        3. Run `INFO commandstats` to see which commands your app uses most and how long each call takes on average (`usec_per_call`).
+        4. Make the slow log record everything for a moment: `CONFIG SET slowlog-log-slower-than 0`, run a command, then `SLOWLOG GET 2`. Each entry has an id, a time, the duration in microseconds and the command. Set the threshold back to `10000` and run `SLOWLOG RESET`.
+        5. Create `scripts/stats.js` below and run `node --env-file=.env scripts/stats.js`. It prints the version, memory, client count, evictions and the hit rate.
+        6. In a normal terminal run `docker exec redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning --latency` for a few seconds, then stop it with Ctrl+C. Also run `docker stats --no-stream redis-shop` to compare the container's memory with its 256 MiB limit.
+        7. Decide on alerts you would want on a real service: memory above 80% of `maxmemory`, `evicted_keys` rising, hit rate falling, slow log entries appearing, `connected_clients` near the limit.
+      tr: |
+        1. Admin CLI'ı aç: `docker exec -it redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning`. Önce biraz trafik üret (tarayıcıda ürün URL'lerini aç ya da rate-limit adımındaki döngüyü çalıştır).
+        2. `INFO memory`, `INFO stats` ve `INFO clients` çalıştır. `used_memory_human`, `keyspace_hits`, `keyspace_misses`, `evicted_keys` ve `connected_clients` değerlerini bul. Uygulaman 3 istemci gösterir, bir de senin CLI'ın.
+        3. Uygulamanın hangi komutları en çok kullandığını ve her çağrının ortalama ne kadar sürdüğünü (`usec_per_call`) görmek için `INFO commandstats` çalıştır.
+        4. Slow log'u bir an her şeyi kaydettir: `CONFIG SET slowlog-log-slower-than 0`, bir komut çalıştır, sonra `SLOWLOG GET 2`. Her kayıtta bir id, bir zaman, mikrosaniye cinsinden süre ve komut var. Eşiği `10000`'e geri koy ve `SLOWLOG RESET` çalıştır.
+        5. Aşağıdaki `scripts/stats.js` dosyasını oluştur ve `node --env-file=.env scripts/stats.js` çalıştır. Sürümü, belleği, istemci sayısını, eviction'ları ve isabet oranını yazar.
+        6. Normal bir terminalde birkaç saniye `docker exec redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning --latency` çalıştır, sonra Ctrl+C ile durdur. Ayrıca container'ın belleğini 256 MiB sınırıyla karşılaştırmak için `docker stats --no-stream redis-shop` çalıştır.
+        7. Gerçek bir serviste isteyeceğin alarmlara karar ver: bellek `maxmemory`'nin yüzde 80'inin üstünde, `evicted_keys` artıyor, isabet oranı düşüyor, slow log kayıtları çıkıyor, `connected_clients` sınıra yakın.
+    code:
+      - file: redis-cli
+        lang: text
+        text: |
+          INFO memory                           # used_memory_human, maxmemory_human
+          INFO stats                            # keyspace_hits, keyspace_misses, evicted_keys
+          INFO clients                          # connected_clients
+          INFO commandstats                     # calls and usec_per_call of each command
+          INFO keyspace                         # db0:keys=...,expires=...
+
+          CONFIG SET slowlog-log-slower-than 0  # record every command, just for the demo
+          SET app:demo 1
+          SLOWLOG GET 2
+          CONFIG SET slowlog-log-slower-than 10000
+          SLOWLOG RESET
+
+          CONFIG SET latency-monitor-threshold 100
+          LATENCY LATEST                        # empty when nothing was slower than 100 ms
+          LATENCY DOCTOR
+      - file: scripts/stats.js
+        lang: js
+        text: |
+          // A small health report from INFO. Run it as the admin user.
+          import { connect } from "../src/redis.js";
+
+          const redis = await connect(process.env.REDIS_ADMIN_URL);
+          const info = Object.fromEntries(
+            (await redis.info())
+              .split("\r\n")
+              .filter((line) => line && !line.startsWith("#"))
+              .map((line) => line.split(":")),
+          );
+
+          const hits = Number(info.keyspace_hits);
+          const misses = Number(info.keyspace_misses);
+          console.log({
+            version: info.redis_version,
+            usedMemory: info.used_memory_human,
+            maxMemory: info.maxmemory_human,
+            clients: info.connected_clients,
+            evictedKeys: info.evicted_keys,
+            hitRate: hits + misses > 0 ? (hits / (hits + misses)).toFixed(2) : "n/a",
+          });
+          await redis.close();
+      - file: terminal
+        lang: sh
+        text: |
+          node --env-file=.env scripts/stats.js
+          docker exec redis-shop redis-cli --user admin --pass admin-secret-456 --no-auth-warning --latency
+          docker stats --no-stream redis-shop
+          docker logs --tail 20 redis-shop
+    mistakes:
+      - problem:
+          en: "Running `MONITOR` on a busy production server and leaving it."
+          tr: "Yoğun bir production sunucusunda `MONITOR` çalıştırıp bırakmak."
+        fix:
+          en: "MONITOR copies every command to your screen and slows the server down. Use it for seconds, on purpose. For ongoing insight use `INFO`, `SLOWLOG` and your host's metrics."
+          tr: "MONITOR her komutu ekranına kopyalar ve sunucuyu yavaşlatır. Saniyeler boyunca, bilerek kullan. Sürekli içgörü için `INFO`, `SLOWLOG` ve host'unun metriklerini kullan."
+      - problem:
+          en: "Reading the hit rate right after start and worrying."
+          tr: "Hemen başlangıçtan sonra isabet oranına bakıp endişelenmek."
+        fix:
+          en: "A new or just-flushed cache starts with misses. Judge the rate after traffic has run for a while, and watch the trend, not one number. `CONFIG RESETSTAT` resets the counters if you want a clean measurement."
+          tr: "Yeni ya da yeni boşaltılmış bir cache miss'lerle başlar. Oranı trafik bir süre aktıktan sonra değerlendir ve tek bir sayıya değil eğilime bak. Temiz bir ölçüm istersen `CONFIG RESETSTAT` sayaçları sıfırlar."
+      - problem:
+          en: "Looking only at the SLOWLOG when the app is slow."
+          tr: "Uygulama yavaşken sadece SLOWLOG'a bakmak."
+        fix:
+          en: "SLOWLOG counts only the time the command runs inside Redis. A slow network, many small round trips or a busy app server do not show up there. Measure the latency from the app's side too (`redis-cli --latency` from the app's machine)."
+          tr: "SLOWLOG sadece komutun Redis içinde çalışma süresini sayar. Yavaş bir ağ, çok sayıda küçük gidiş-dönüş ya da meşgul bir uygulama sunucusu orada görünmez. Gecikmeyi uygulamanın tarafından da ölç (uygulamanın makinesinden `redis-cli --latency`)."
+    quiz:
+      - q:
+          en: "`keyspace_hits` is 900 and `keyspace_misses` is 100. What is the hit rate?"
+          tr: "`keyspace_hits` 900 ve `keyspace_misses` 100. İsabet oranı nedir?"
+        options:
+          en:
+            - "0.1"
+            - "0.9"
+            - "9"
+          tr:
+            - "0,1"
+            - "0,9"
+            - "9"
+        answer: 1
+        why:
+          en: "900 / (900 + 100) = 0.9, so nine of ten lookups were found in the cache."
+          tr: "900 / (900 + 100) = 0,9; yani on aramanın dokuzu cache'te bulundu."
+      - q:
+          en: "Why can one slow command hurt every client?"
+          tr: "Tek bir yavaş komut neden her istemciye zarar verebilir?"
+        options:
+          en:
+            - "Redis runs commands one at a time, so others wait behind it"
+            - "Slow commands delete other keys"
+            - "Each client shares one password"
+          tr:
+            - "Redis komutları teker teker çalıştırır, diğerleri arkasında bekler"
+            - "Yavaş komutlar diğer anahtarları siler"
+            - "Her istemci aynı şifreyi paylaşır"
+        answer: 0
+        why:
+          en: "Command execution is single threaded, so a long command blocks the ones queued after it."
+          tr: "Komut çalıştırma tek iş parçacıklıdır, bu yüzden uzun bir komut arkasındakileri bloklar."
+    sources:
+      - title: "INFO"
+        url: https://redis.io/docs/latest/commands/info/
+      - title: "SLOWLOG GET"
+        url: https://redis.io/docs/latest/commands/slowlog-get/
+      - title: "Monitor Redis Cloud performance"
+        url: https://redis.io/docs/latest/operate/rc/databases/monitor-performance/
+
+  - id: advanced
+    stage: advanced
+    title:
+      en: "Stop cache stampedes with a lock, and meet Valkey"
+      tr: "Kilitle cache stampede'i önleme ve Valkey ile tanışma"
+    minutes: 50
+    needs: [monitoring]
+    why:
+      en: "When a popular cache entry expires, hundreds of requests can miss at the same moment and all ask the slow database together. This is called a cache stampede. A short lock in Redis lets one request rebuild the entry while the others wait for it. It also shows how far the basic commands take you, and that your knowledge carries over to Valkey."
+      tr: "Popüler bir cache kaydının süresi dolunca yüzlerce istek aynı anda miss alıp hep birlikte yavaş veritabanına sorabilir. Buna cache stampede denir. Redis'te kısa bir kilit, bir isteğin kaydı yeniden oluşturmasını, diğerlerinin onu beklemesini sağlar. Ayrıca temel komutların seni ne kadar götürdüğünü ve bildiklerinin Valkey'e de taşındığını gösterir."
+    learn:
+      en: |
+        - The lock is one command: `SET lock:key 1 NX EX 10`. `NX` means "only if absent", so exactly one caller gets `OK`; `EX 10` makes the lock vanish after 10 seconds even if its owner crashes
+        - The winner loads from the database, writes the cache entry and deletes the lock (in a `finally` block). The losers wait 50 ms and read the cache again
+        - A limit on waiting (20 tries here) keeps a request from waiting forever
+        - The lock key lives under `app:` too, so the app user is allowed to use it
+        - The honest limits: this lock guards one Redis server and short jobs. If the lock expires while its owner is still working, a second owner can start. Do not use it for tasks where two owners would cause damage; look at the Redis docs on distributed locks first
+        - Other ideas for stampedes: add a small random amount to each TTL so entries do not expire together, or refresh popular entries before they expire
+        - **Valkey** is an open source (BSD) fork of Redis OSS maintained under the Linux Foundation, as its own site says. Its basic commands match, and this project's whole test suite also passes on `valkey/valkey:8-alpine` (Valkey 8.1) with no code changes. Newer Redis-only features may not exist in Valkey and the other way round, so check each one's documentation. Valkey 8 even reports `redis_version:7.2.4` in `INFO` for compatibility, which is good to know if a tool checks that number
+        - For Redis, license terms changed with version 8 (AGPLv3, RSALv2 or SSPLv1 to choose from; see the license page). For an app that only uses Redis as a database server these usually change nothing in daily work, but read the terms if you redistribute Redis or offer it as a service
+      tr: |
+        - Kilit tek bir komuttur: `SET lock:key 1 NX EX 10`. `NX` "sadece yoksa" demektir, yani tam olarak bir çağıran `OK` alır; `EX 10`, sahibi çökse bile kilidin 10 saniye sonra kaybolmasını sağlar
+        - Kazanan veritabanından yükler, cache kaydını yazar ve kilidi siler (`finally` bloğunda). Kaybedenler 50 ms bekler ve cache'i yeniden okur
+        - Beklemeye konan sınır (burada 20 deneme) bir isteğin sonsuza dek beklemesini önler
+        - Kilit anahtarı da `app:` altında yaşar, bu yüzden app kullanıcısının kullanmasına izin var
+        - Dürüst sınırlar: bu kilit tek bir Redis sunucusunu ve kısa işleri korur. Sahibi hâlâ çalışırken kilidin süresi dolarsa ikinci bir sahip başlayabilir. İki sahibin zarar vereceği işler için kullanma; önce Redis'in dağıtık kilitler dokümanına bak
+        - Stampede için başka fikirler: kayıtlar birlikte dolmasın diye her TTL'e küçük rastgele bir miktar ekle ya da popüler kayıtları süreleri dolmadan yenile
+        - **Valkey**, kendi sitesinin dediği gibi, Linux Foundation altında sürdürülen, Redis OSS'in açık kaynak (BSD) bir fork'udur. Temel komutları aynıdır ve bu projenin bütün test paketi `valkey/valkey:8-alpine` (Valkey 8.1) üzerinde de kod değişikliği olmadan geçer. Yeni Redis'e özel özellikler Valkey'de olmayabilir ve tersi de geçerli; her birinin dokümanına bak. Valkey 8, uyumluluk için `INFO` içinde `redis_version:7.2.4` bile bildirir; bir araç bu sayıya bakıyorsa bilmekte fayda var
+        - Redis için lisans koşulları 8. sürümle değişti (AGPLv3, RSALv2 ya da SSPLv1 arasından seçilir; lisans sayfasına bak). Redis'i sadece veritabanı sunucusu olarak kullanan bir uygulama için bunlar genelde günlük işte bir şey değiştirmez; ama Redis'i yeniden dağıtıyor ya da servis olarak sunuyorsan koşulları oku
+    do:
+      en: |
+        1. Replace `src/cache.js` with the version below: it keeps `key` and `cached` and adds `cachedOnce`.
+        2. In `src/products.js` change the import to `cachedOnce` and the read to `await cachedOnce(redis, ...)` (two small edits).
+        3. Add the extra test at the end of `test/app.test.js`: it deletes the cache entry and sends 4 requests at the same moment, then checks that the database was read only once. Run `npm test` (8 passing tests).
+        4. To see the difference, change `cachedOnce` back to `cached` in `src/products.js` and run the tests again: the new test fails because the database was read 4 times. Change it back.
+        5. Optional, to try Valkey: stop Redis (`docker stop redis-shop`) and run `docker run --rm --name valkey-try --memory 256m -p 127.0.0.1:6380:6379 valkey/valkey:8-alpine`. In another terminal run the tests with `REDIS_TEST_URL=redis://127.0.0.1:6380/15` and `REDIS_URL=redis://127.0.0.1:6380` (put those two lines into `.env` temporarily). Stop it with Ctrl+C, restore `.env` and run `docker start redis-shop`.
+        6. Where to go next: Redis Insight (the free graphical tool), the Redis University courses, replicas and Sentinel or cluster for high availability, TLS, and queue libraries like BullMQ.
+      tr: |
+        1. `src/cache.js`'i aşağıdaki sürümle değiştir: `key` ve `cached` kalır, `cachedOnce` eklenir.
+        2. `src/products.js` içinde import'u `cachedOnce` yap ve okumayı `await cachedOnce(redis, ...)` olarak değiştir (iki küçük düzenleme).
+        3. `test/app.test.js` sonuna ek testi ekle: cache kaydını siler ve aynı anda 4 istek gönderir, sonra veritabanının sadece bir kez okunduğunu kontrol eder. `npm test` çalıştır (8 geçen test).
+        4. Farkı görmek için `src/products.js` içinde `cachedOnce`'ı yeniden `cached` yap ve testleri tekrar çalıştır: yeni test başarısız olur çünkü veritabanı 4 kez okundu. Geri değiştir.
+        5. İsteğe bağlı, Valkey'i denemek için: Redis'i durdur (`docker stop redis-shop`) ve `docker run --rm --name valkey-try --memory 256m -p 127.0.0.1:6380:6379 valkey/valkey:8-alpine` çalıştır. Başka bir terminalde testleri `REDIS_TEST_URL=redis://127.0.0.1:6380/15` ve `REDIS_URL=redis://127.0.0.1:6380` ile çalıştır (bu iki satırı geçici olarak `.env`'e koy). Ctrl+C ile durdur, `.env`'i geri yükle ve `docker start redis-shop` çalıştır.
+        6. Sonra nereye: Redis Insight (ücretsiz grafik araç), Redis University kursları, yüksek erişilebilirlik için replica'lar ile Sentinel ya da cluster, TLS ve BullMQ gibi kuyruk kütüphaneleri.
+    code:
+      - file: src/cache.js
+        lang: js
+        text: |
+          // Every key the app writes starts with "app:", so one ACL rule can cover them all.
+          export const key = (...parts) => ["app", ...parts].join(":");
+
+          // Cache-aside: look in Redis first, ask the database only on a miss.
+          export async function cached(redis, k, ttlSeconds, load) {
+            const hit = await redis.get(k);
+            if (hit !== null) return { value: JSON.parse(hit), hit: true };
+
+            const value = await load();
+            if (value !== null) {
+              await redis.set(k, JSON.stringify(value), { expiration: { type: "EX", value: ttlSeconds } });
+            }
+            return { value, hit: false };
+          }
+
+          const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+          // Like cached(), but when the entry is missing only ONE caller asks the database.
+          // The others wait a moment and read what the first one stored (a "cache stampede" guard).
+          export async function cachedOnce(redis, k, ttlSeconds, load) {
+            for (let attempt = 0; attempt < 20; attempt++) {
+              const hit = await redis.get(k);
+              if (hit !== null) return { value: JSON.parse(hit), hit: true };
+
+              // SET ... NX only succeeds for the first caller. EX makes the lock vanish if that caller crashes.
+              const gotLock = await redis.set(key("lock", k), "1", { condition: "NX", expiration: { type: "EX", value: 10 } });
+              if (gotLock) {
+                try {
+                  const value = await load();
+                  if (value !== null) {
+                    await redis.set(k, JSON.stringify(value), { expiration: { type: "EX", value: ttlSeconds } });
+                  }
+                  return { value, hit: false };
+                } finally {
+                  await redis.del(key("lock", k));
+                }
+              }
+              await sleep(50);
+            }
+            throw new Error("cache is busy, try again");
+          }
+      - file: src/products.js
+        lang: js
+        text: |
+          // change these two lines, the rest stays as it was
+          import { cachedOnce, key } from "./cache.js";
+          // ...
+          const { value, hit } = await cachedOnce(redis, key("product", id), ttl, () => db.getProduct(id));
+      - file: test/app.test.js
+        lang: js
+        text: |
+          // add at the end of the file
+          test("four parallel misses ask the database once", async () => {
+            await redis.del("app:product:3");
+            const replies = await Promise.all(Array.from({ length: 4 }, () => fetch(`${base}/products/3`)));
+            assert.ok(replies.every((r) => r.status === 200));
+            assert.equal(db.reads, 1);
+          });
+    mistakes:
+      - problem:
+          en: "A lock without an expiry (`SET lock 1 NX`)."
+          tr: "Süresi olmayan bir kilit (`SET lock 1 NX`)."
+        fix:
+          en: "If the owner crashes, nobody can ever take the lock. Always add `EX` so the lock removes itself."
+          tr: "Sahibi çökerse kimse kilidi bir daha alamaz. Kilit kendini kaldırsın diye her zaman `EX` ekle."
+      - problem:
+          en: "Setting the lock time shorter than the slowest load, then expecting only one load."
+          tr: "Kilit süresini en yavaş yüklemeden kısa ayarlayıp tek bir yükleme beklemek."
+        fix:
+          en: "When the lock expires early a second request gets it and loads too. Set the lock time clearly longer than the normal load time."
+          tr: "Kilit erken dolarsa ikinci bir istek onu alır ve o da yükler. Kilit süresini normal yükleme süresinden belirgin biçimde uzun ayarla."
+      - problem:
+          en: "Assuming a command that works on Redis 8.10 is also in Valkey."
+          tr: "Redis 8.10'da çalışan bir komutun Valkey'de de olduğunu varsaymak."
+        fix:
+          en: "The two projects have grown apart. The basics in this roadmap work on both, but for newer features read the documentation of the one you run."
+          tr: "İki proje birbirinden uzaklaştı. Bu roadmap'teki temeller ikisinde de çalışır ama yeni özellikler için çalıştırdığının dokümanını oku."
+    quiz:
+      - q:
+          en: "What does `SET lock 1 NX EX 10` give you?"
+          tr: "`SET lock 1 NX EX 10` sana ne verir?"
+        options:
+          en:
+            - "A lock that only one caller can take, and that removes itself after 10 seconds"
+            - "A key that is always overwritten"
+            - "A list of 10 locks"
+          tr:
+            - "Sadece bir çağıranın alabildiği ve 10 saniye sonra kendini kaldıran bir kilit"
+            - "Her zaman üzerine yazılan bir anahtar"
+            - "10 kilitlik bir liste"
+        answer: 0
+        why:
+          en: "NX makes the command succeed only for the first caller and EX gives it a time limit."
+          tr: "NX komutun sadece ilk çağıran için başarılı olmasını, EX ona bir süre sınırı vermesini sağlar."
+    sources:
+      - title: "SET (NX and EX options)"
+        url: https://redis.io/docs/latest/commands/set/
+      - title: "Redis distributed locks"
+        url: https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/
+      - title: "Valkey"
+        url: https://valkey.io/
