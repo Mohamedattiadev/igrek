@@ -1,0 +1,1819 @@
+id: kubernetes
+title: Kubernetes
+summary:
+  en: "Take a small containerized web API and its database and run them on Kubernetes: pods, a Deployment, Services, config and secrets, probes, a gateway, rolling updates, security basics, autoscaling and debugging, first on a local cluster and then on a real one."
+  tr: "Container'a konmuş küçük bir web API'sini ve veritabanını Kubernetes'te çalıştır: pod'lar, Deployment, Service'ler, yapılandırma ve sırlar, probe'lar, bir gateway, kademeli güncellemeler, güvenlik temelleri, otomatik ölçekleme ve hata ayıklama; önce yerel bir cluster'da, sonra gerçek bir cluster'da."
+teacher: devops
+project:
+  en: 'Notes API on Kubernetes: the Node.js API from the Docker roadmap plus PostgreSQL, running in a kind cluster as a Deployment with probes and resource limits, a StatefulSet with a volume for the database, config and secrets, a Gateway API route, rolling updates and rollbacks, RBAC, a NetworkPolicy, an autoscaler and Kustomize overlays ready for a real cluster.'
+  tr: 'Kubernetes''te Notes API: Docker yol haritasındaki Node.js API''si ve PostgreSQL; kind cluster''ında probe''lu ve kaynak sınırlı bir Deployment, volume''lü bir StatefulSet veritabanı, yapılandırma ve sırlar, bir Gateway API yönlendirmesi, kademeli güncelleme ve geri alma, RBAC, bir NetworkPolicy, bir autoscaler ve gerçek bir cluster''a hazır Kustomize overlay''leri.'
+detect:
+  files: [kustomization.yaml, Chart.yaml, skaffold.yaml]
+version: "1.37"
+latest: eol:kubernetes
+checked: 2026-10
+after: [docker]
+sheets: [kubernetes, docker, linux]
+steps:
+  - id: tools
+    stage: setup
+    title:
+      en: "What Kubernetes is, and a practice cluster on your computer"
+      tr: "Kubernetes nedir ve bilgisayarında bir deneme cluster'ı"
+    minutes: 50
+    why:
+      en: "Kubernetes runs containers on a group of machines and keeps them in the state you describe. That power costs complexity, so first you decide if you need it, then you get a safe cluster to break."
+      tr: "Kubernetes, container'ları bir grup makinede çalıştırır ve senin tarif ettiğin durumda tutar. Bu güç karmaşıklık getirir; o yüzden önce buna ihtiyacın olup olmadığına karar verirsin, sonra bozabileceğin güvenli bir cluster kurarsın."
+    learn:
+      en: |
+        - What a cluster, a node and the control plane are
+        - When NOT to use Kubernetes: one small app on one server is simpler with Docker Compose, and a managed platform (Render, Fly.io and similar) hides all of this
+        - Local cluster options: kind, minikube, k3d
+        - What `kubectl` is and how it finds your cluster (the kubeconfig and its context)
+      tr: |
+        - Cluster, node ve control plane'in ne olduğu
+        - Kubernetes'i NE ZAMAN kullanmamalı: tek sunucudaki küçük bir uygulama için Docker Compose daha basit; yönetilen platformlar (Render, Fly.io gibi) bunların hepsini senin yerine halleder
+        - Yerel cluster seçenekleri: kind, minikube, k3d
+        - `kubectl`'in ne olduğu ve cluster'ını nasıl bulduğu (kubeconfig ve context)
+    do:
+      en: |
+        1. Be honest about the need. If you have one or two small services and a few users, Docker Compose on one server (see the Docker roadmap) is enough. Learn Kubernetes when you need several machines, zero-downtime updates, autoscaling, or because your team or employer uses it.
+        2. Make sure Docker works (`docker version`). The local cluster below runs inside Docker containers.
+        3. Install **kubectl**, the command-line tool that talks to a cluster. Use the official page (Linux, macOS and Windows: `brew install kubectl`, `winget install -e --id Kubernetes.kubectl`). On Linux the official binary install is shown below. kubectl may differ from the cluster by at most one minor version.
+        4. Pick a local cluster. All three run on your computer and are free. **kind** ("Kubernetes IN Docker") makes each node a Docker container; it is made for testing Kubernetes itself and is what the Kubernetes docs recommend first. **minikube** runs a single-node cluster in a container or VM and has many add-ons. **k3d** runs K3s (a small Kubernetes) in Docker; it is a community project, not an official Rancher (SUSE) product. This roadmap uses kind.
+        5. Install kind (Linux x86-64 below; macOS has `brew install kind`, Windows has `choco install kind`; other systems are on the kind quick start page) and create a cluster called `notes`.
+        6. Check that kubectl talks to it. `kubectl get nodes` must show one node in the `Ready` state.
+      tr: |
+        1. İhtiyacın konusunda dürüst ol. Bir ya da iki küçük servisin ve az kullanıcın varsa tek sunucuda Docker Compose (Docker yol haritasına bak) yeter. Kubernetes'i birkaç makineye, kesintisiz güncellemeye, otomatik ölçeklemeye ihtiyacın olduğunda ya da ekibin ve işin onu kullandığı için öğren.
+        2. Docker'ın çalıştığından emin ol (`docker version`). Aşağıdaki yerel cluster Docker container'ları içinde çalışır.
+        3. Bir cluster ile konuşan komut satırı aracı **kubectl**'i kur. Resmi sayfayı kullan (macOS'ta `brew install kubectl`, Windows'ta `winget install -e --id Kubernetes.kubectl`). Linux'ta resmi binary kurulumu aşağıda. kubectl ile cluster arasında en fazla bir minor sürüm fark olabilir.
+        4. Bir yerel cluster seç. Üçü de bilgisayarında çalışır ve ücretsizdir. **kind** ("Kubernetes IN Docker") her node'u bir Docker container'ı yapar; Kubernetes'in kendisini test etmek için yapılmıştır ve Kubernetes dokümanlarının önce önerdiği araçtır. **minikube** tek node'lu bir cluster'ı container ya da VM içinde çalıştırır ve birçok eklentisi vardır. **k3d**, K3s'i (küçük bir Kubernetes) Docker'da çalıştırır; topluluk projesidir, resmi bir Rancher (SUSE) ürünü değildir. Bu yol haritası kind kullanır.
+        5. kind'ı kur (aşağıda Linux x86-64; macOS'ta `brew install kind`, Windows'ta `choco install kind`; diğer sistemler kind quick start sayfasında) ve `notes` adında bir cluster oluştur.
+        6. kubectl'in onunla konuştuğunu kontrol et. `kubectl get nodes` `Ready` durumunda bir node göstermeli.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          # kubectl (Linux x86-64), from the official docs
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+          # kind (Linux x86-64)
+          [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.33.0/kind-linux-amd64
+          chmod +x ./kind
+          sudo mv ./kind /usr/local/bin/kind
+
+          kind create cluster --name notes
+          kubectl cluster-info --context kind-notes
+          kubectl get nodes
+    mistakes:
+      - problem:
+          en: "Starting with Kubernetes for a hobby site that one container could serve."
+          tr: "Tek bir container'ın sunabileceği bir hobi sitesi için Kubernetes ile başlamak."
+        fix:
+          en: "Use Docker Compose or a managed platform first. Move to Kubernetes when a real need shows up."
+          tr: "Önce Docker Compose ya da yönetilen bir platform kullan. Gerçek bir ihtiyaç çıkınca Kubernetes'e geç."
+      - problem:
+          en: "kubectl says it cannot connect to a server, or talks to the wrong cluster."
+          tr: "kubectl bir sunucuya bağlanamadığını söylüyor ya da yanlış cluster ile konuşuyor."
+        fix:
+          en: "Run `kubectl config current-context`; it must say `kind-notes`. Switch with `kubectl config use-context kind-notes`. Check that Docker is running."
+          tr: "`kubectl config current-context` çalıştır; `kind-notes` yazmalı. `kubectl config use-context kind-notes` ile değiştir. Docker'ın çalıştığını kontrol et."
+    quiz:
+      - q:
+          en: "Which case is a good reason to use Kubernetes?"
+          tr: "Hangisi Kubernetes kullanmak için iyi bir neden?"
+        options:
+          en: [One small site with ten visitors a day, Several machines with zero-downtime updates and autoscaling, A single script that runs once a week]
+          tr: [Günde on ziyaretçisi olan küçük bir site, Kesintisiz güncelleme ve otomatik ölçekleme isteyen birkaç makine, Haftada bir çalışan tek bir script]
+        answer: 1
+        why:
+          en: "Kubernetes pays off when you run many containers across machines and need updates and scaling without downtime. For small cases it is extra work."
+          tr: "Kubernetes, makinelere yayılmış çok sayıda container çalıştırdığında ve kesintisiz güncelleme ile ölçekleme istediğinde karşılığını verir. Küçük işler için fazladan iştir."
+    sources:
+      - title: Learning environment
+        url: https://kubernetes.io/docs/setup/learning-environment/
+      - title: Install and set up kubectl on Linux
+        url: https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/
+      - title: kind quick start
+        url: https://kind.sigs.k8s.io/docs/user/quick-start/
+
+  - id: first-pod
+    stage: first-code
+    title:
+      en: "Run your first Pod and read what the cluster says"
+      tr: "İlk Pod'unu çalıştır ve cluster'ın söylediklerini oku"
+    minutes: 30
+    needs: [tools]
+    why:
+      en: "A Pod is the smallest thing Kubernetes runs. Starting one by hand and looking at it teaches you the four commands you will use all the time: get, describe, logs and port-forward."
+      tr: "Pod, Kubernetes'in çalıştırdığı en küçük şeydir. Birini elle başlatıp incelemek, her zaman kullanacağın dört komutu öğretir: get, describe, logs ve port-forward."
+    learn:
+      en: |
+        - A Pod is one or more containers that share a network and run together on one node
+        - Every Kubernetes object is described in YAML: `apiVersion`, `kind`, `metadata`, `spec`
+        - `kubectl apply -f` sends a file to the cluster; `get`, `describe`, `logs` read the state
+        - `kubectl port-forward` opens a private tunnel from your computer to a Pod
+      tr: |
+        - Pod, ağı paylaşan ve aynı node'da birlikte çalışan bir ya da birkaç container'dır
+        - Her Kubernetes nesnesi YAML ile tarif edilir: `apiVersion`, `kind`, `metadata`, `spec`
+        - `kubectl apply -f` bir dosyayı cluster'a gönderir; `get`, `describe`, `logs` durumu okur
+        - `kubectl port-forward` bilgisayarından bir Pod'a özel bir tünel açar
+    do:
+      en: |
+        1. Make a folder `notes-k8s` and, inside it, a folder `k8s`. All manifests (the YAML files) of this roadmap live in `k8s/`.
+        2. Create `k8s/hello-pod.yaml` with the file below.
+        3. Send it to the cluster and watch it start. The first start pulls the image, so `ContainerCreating` for a few seconds is normal.
+        4. Read the details. The **Events** at the bottom of `describe` tell the story: scheduled, pulled, created, started.
+        5. Open a tunnel and call the Pod from another terminal. Stop the tunnel with Ctrl+C.
+        6. Delete the Pod. Nothing brings it back, because nothing owns it. The next steps fix that with a Deployment.
+      tr: |
+        1. `notes-k8s` adında bir klasör ve içinde `k8s` adında bir klasör oluştur. Bu yol haritasının bütün manifest'leri (YAML dosyaları) `k8s/` içinde duracak.
+        2. Aşağıdaki dosyayla `k8s/hello-pod.yaml` oluştur.
+        3. Cluster'a gönder ve başlamasını izle. İlk başlangıç image'ı çeker; birkaç saniye `ContainerCreating` görmek normal.
+        4. Ayrıntıları oku. `describe` çıktısının altındaki **Events** hikâyeyi anlatır: yerleştirildi, çekildi, oluşturuldu, başlatıldı.
+        5. Bir tünel aç ve Pod'u başka bir terminalden çağır. Tüneli Ctrl+C ile durdur.
+        6. Pod'u sil. Onu geri getiren yok, çünkü ona sahip olan yok. Sonraki adımlar bunu bir Deployment ile çözer.
+    code:
+      - file: k8s/hello-pod.yaml
+        lang: yaml
+        text: |
+          apiVersion: v1
+          kind: Pod
+          metadata:
+            name: hello
+          spec:
+            containers:
+              - name: web
+                image: nginx:1.30
+                ports:
+                  - containerPort: 80
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -f k8s/hello-pod.yaml
+          kubectl get pods -w
+          kubectl describe pod hello
+          kubectl logs hello
+
+          kubectl port-forward pod/hello 8080:80
+          # in another terminal:
+          curl -I http://localhost:8080
+
+          kubectl delete -f k8s/hello-pod.yaml
+    mistakes:
+      - problem:
+          en: "The Pod stays in `ImagePullBackOff` or `ErrImagePull`."
+          tr: "Pod `ImagePullBackOff` ya da `ErrImagePull` durumunda kalıyor."
+        fix:
+          en: "The image name or tag is wrong, or the cluster cannot reach the registry. `kubectl describe pod hello` shows the exact error in Events."
+          tr: "Image adı ya da tag yanlış, ya da cluster registry'ye ulaşamıyor. `kubectl describe pod hello` tam hatayı Events içinde gösterir."
+      - problem:
+          en: "Running a Pod by itself for a real app."
+          tr: "Gerçek bir uygulama için tek başına Pod çalıştırmak."
+        fix:
+          en: "A bare Pod is not rebuilt when its node dies or you delete it. Use a Deployment (next steps)."
+          tr: "Tek başına bir Pod, node'u ölünce ya da onu sildiğinde yeniden oluşturulmaz. Deployment kullan (sonraki adımlar)."
+    quiz:
+      - q:
+          en: "Where do you look first to learn why a Pod does not start?"
+          tr: "Bir Pod'un neden başlamadığını öğrenmek için önce nereye bakarsın?"
+        options:
+          en: [The Events at the bottom of kubectl describe, The node's hard disk, The kubectl version]
+          tr: [kubectl describe çıktısının altındaki Events, Node'un sabit diski, kubectl sürümü]
+        answer: 0
+        why:
+          en: "describe lists recent events such as failed image pulls or failed scheduling."
+          tr: "describe, image çekme hatası ya da yerleştirememe gibi son olayları listeler."
+    sources:
+      - title: Pods
+        url: https://kubernetes.io/docs/concepts/workloads/pods/
+      - title: kubectl port-forward
+        url: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_port-forward/
+      - title: Understanding Kubernetes objects
+        url: https://kubernetes.io/docs/concepts/overview/working-with-objects/
+
+  - id: config
+    stage: basics
+    title:
+      en: "A namespace, a ConfigMap and a Secret for the Notes API"
+      tr: "Notes API için bir namespace, ConfigMap ve Secret"
+    minutes: 30
+    needs: [first-pod]
+    why:
+      en: "The Notes API reads its settings from environment variables. In Kubernetes the settings live in objects next to the app: a ConfigMap for plain values and a Secret for the password."
+      tr: "Notes API ayarlarını ortam değişkenlerinden okur. Kubernetes'te ayarlar uygulamanın yanındaki nesnelerde durur: düz değerler için ConfigMap, şifre için Secret."
+    learn:
+      en: |
+        - A namespace groups your objects and keeps them apart from others
+        - A ConfigMap holds non-secret settings; a Secret holds passwords and tokens
+        - base64 in a Secret is encoding, not encryption; limit who can read Secrets and never commit them to Git
+        - Pod Security labels on a namespace make the cluster warn about risky Pods
+      tr: |
+        - Namespace nesnelerini gruplar ve diğerlerinden ayırır
+        - ConfigMap gizli olmayan ayarları, Secret şifreleri ve token'ları tutar
+        - Secret içindeki base64 şifreleme değil kodlamadır; Secret'ları kimin okuyabileceğini sınırla ve asla Git'e commit etme
+        - Namespace üzerindeki Pod Security label'ları, riskli Pod'lar için cluster'ın uyarı vermesini sağlar
+    do:
+      en: |
+        1. Create `k8s/namespace.yaml` and `k8s/base/configmap.yaml` with the files below. The `notes` namespace enforces the *baseline* Pod Security level and warns about anything that would fail the stricter *restricted* level.
+        2. Apply both. From now on, add `-n notes` to commands, or set it once as the default for your context.
+        3. Create the Secret from the terminal, not from a file, so the password never lands in Git. The password is random and only lives in the cluster.
+        4. Look at the Secret. `kubectl get secret -o yaml` shows the value as base64; decode it to see that anyone with read access can do the same.
+      tr: |
+        1. Aşağıdaki dosyalarla `k8s/namespace.yaml` ve `k8s/base/configmap.yaml` oluştur. `notes` namespace'i *baseline* Pod Security seviyesini zorunlu kılar ve daha sıkı olan *restricted* seviyesinde başarısız olacak her şey için uyarır.
+        2. İkisini de uygula. Bundan sonra komutlara `-n notes` ekle ya da context'in için bir kez varsayılan yap.
+        3. Secret'ı dosyadan değil terminalden oluştur; şifre hiçbir zaman Git'e düşmesin. Şifre rastgeledir ve sadece cluster'da yaşar.
+        4. Secret'a bak. `kubectl get secret -o yaml` değeri base64 olarak gösterir; çözerek okuma yetkisi olan herkesin aynısını yapabileceğini gör.
+    code:
+      - file: k8s/namespace.yaml
+        lang: yaml
+        text: |
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: notes
+            labels:
+              pod-security.kubernetes.io/enforce: baseline
+              pod-security.kubernetes.io/warn: restricted
+      - file: k8s/base/configmap.yaml
+        lang: yaml
+        text: |
+          apiVersion: v1
+          kind: ConfigMap
+          metadata:
+            name: notes-config
+          data:
+            DB_HOST: postgres
+            POSTGRES_USER: notes
+            POSTGRES_DB: notes
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl apply -n notes -f k8s/base/configmap.yaml
+          kubectl config set-context --current --namespace=notes
+
+          kubectl create secret generic db-credentials \
+            --from-literal=POSTGRES_PASSWORD="$(openssl rand -hex 16)"
+
+          kubectl get configmap,secret
+          kubectl get secret db-credentials -o jsonpath='{.data.POSTGRES_PASSWORD}' | base64 -d; echo
+    mistakes:
+      - problem:
+          en: "Putting the password in a ConfigMap, or committing Secret YAML to Git."
+          tr: "Şifreyi ConfigMap'e koymak ya da Secret YAML'ını Git'e commit etmek."
+        fix:
+          en: "Passwords go in Secrets, created outside Git (or by a secret manager). Anyone who can read the Git repo can decode base64."
+          tr: "Şifreler Secret'a girer ve Git dışında (ya da bir secret manager ile) oluşturulur. Git repo'sunu okuyan herkes base64'ü çözebilir."
+      - problem:
+          en: "Resources are 'missing' because you looked in the wrong namespace."
+          tr: "Kaynaklar yanlış namespace'e baktığın için 'kayıp' görünüyor."
+        fix:
+          en: "Add `-n notes`, or `-A` for all namespaces. `kubectl config view --minify` shows your current namespace."
+          tr: "`-n notes` ekle, tüm namespace'ler için `-A` kullan. `kubectl config view --minify` geçerli namespace'ini gösterir."
+    quiz:
+      - q:
+          en: "Is the base64 text in a Secret encrypted?"
+          tr: "Secret içindeki base64 metni şifreli midir?"
+        options:
+          en: [Yes and nobody can read it, No it only encodes the value and anyone with read access can decode it, Yes but only on kind]
+          tr: [Evet ve kimse okuyamaz, Hayır sadece kodlar ve okuma yetkisi olan herkes çözebilir, Evet ama sadece kind'da]
+        answer: 1
+        why:
+          en: "base64 is a reversible encoding. Protection comes from limiting access (RBAC) and, in production, encryption at rest."
+          tr: "base64 geri çevrilebilir bir kodlamadır. Koruma, erişimi sınırlamaktan (RBAC) ve production'da diskte şifrelemeden gelir."
+    sources:
+      - title: ConfigMaps
+        url: https://kubernetes.io/docs/concepts/configuration/configmap/
+      - title: Secrets
+        url: https://kubernetes.io/docs/concepts/configuration/secret/
+      - title: Pod Security Admission
+        url: https://kubernetes.io/docs/concepts/security/pod-security-admission/
+
+  - id: deployment
+    stage: basics
+    title:
+      en: "Run the Notes API with a Deployment and a Service"
+      tr: "Notes API'yi bir Deployment ve bir Service ile çalıştır"
+    minutes: 45
+    needs: [config]
+    why:
+      en: "A Deployment keeps the number of Pods you ask for running and replaces them when they die. A Service gives those Pods one stable name, because Pod IPs change."
+      tr: "Deployment, istediğin sayıda Pod'u çalışır tutar ve ölenleri yenisiyle değiştirir. Service, o Pod'lara tek ve sabit bir ad verir; çünkü Pod IP'leri değişir."
+    learn:
+      en: |
+        - A Deployment creates a ReplicaSet, which creates the Pods
+        - Labels and selectors connect a Deployment and a Service to its Pods
+        - A Service of type ClusterIP is reachable only inside the cluster
+        - A kind cluster cannot pull images from your local Docker; you load them with `kind load docker-image`
+      tr: |
+        - Deployment bir ReplicaSet oluşturur, o da Pod'ları oluşturur
+        - Label'lar ve selector'lar bir Deployment'ı ve bir Service'i Pod'larına bağlar
+        - ClusterIP türündeki bir Service sadece cluster içinden erişilir
+        - kind cluster'ı yerel Docker'ındaki image'ları çekemez; onları `kind load docker-image` ile yüklersin
+    do:
+      en: |
+        1. You need the Notes API image from the Docker roadmap (`notes-api:1.3`, the small non-root image). If you do not have it, build it from that project folder: `docker build -t notes-api:1.3 .`
+        2. Load the image into the kind cluster. The tag is a version, not `latest`, so Kubernetes will use the loaded image instead of trying to pull it.
+        3. Create `k8s/base/api.yaml` with the file below: a Deployment and a Service. The Service listens on port 80 and sends traffic to the container's port named `http` (3000).
+        4. Apply it and wait for the rollout to finish.
+        5. Call the API through a tunnel to the Service. `/health` answers `ok`. `/notes` answers `503 database unavailable` because there is no database yet. That is the next step.
+        6. Delete one Pod and watch the Deployment create a new one: `kubectl delete pod <name>` then `kubectl get pods`.
+      tr: |
+        1. Docker yol haritasındaki Notes API image'ına ihtiyacın var (`notes-api:1.3`, küçük ve root olmayan image). Yoksa o proje klasöründe build et: `docker build -t notes-api:1.3 .`
+        2. Image'ı kind cluster'ına yükle. Tag bir sürüm, `latest` değil; bu yüzden Kubernetes çekmeye çalışmak yerine yüklenen image'ı kullanır.
+        3. Aşağıdaki dosyayla `k8s/base/api.yaml` oluştur: bir Deployment ve bir Service. Service 80 portunu dinler ve trafiği container'ın `http` adlı portuna (3000) gönderir.
+        4. Uygula ve rollout'un bitmesini bekle.
+        5. API'yi Service'e açtığın bir tünelle çağır. `/health` `ok` döner. `/notes` `503 database unavailable` döner, çünkü henüz veritabanı yok. Bu sonraki adım.
+        6. Bir Pod'u sil ve Deployment'ın yenisini oluşturmasını izle: `kubectl delete pod <ad>` sonra `kubectl get pods`.
+    code:
+      - file: k8s/base/api.yaml
+        lang: yaml
+        text: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: api
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: api
+            template:
+              metadata:
+                labels:
+                  app: api
+              spec:
+                containers:
+                  - name: api
+                    image: notes-api:1.3
+                    ports:
+                      - name: http
+                        containerPort: 3000
+                    envFrom:
+                      - configMapRef:
+                          name: notes-config
+                    env:
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: db-credentials
+                            key: POSTGRES_PASSWORD
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: api
+          spec:
+            selector:
+              app: api
+            ports:
+              - name: http
+                port: 80
+                targetPort: http
+      - file: terminal
+        lang: sh
+        text: |
+          kind load docker-image notes-api:1.3 --name notes
+
+          kubectl apply -f k8s/base/api.yaml
+          kubectl rollout status deployment/api
+          kubectl get pods,svc
+
+          kubectl port-forward svc/api 8080:80
+          # in another terminal:
+          curl http://localhost:8080/health
+          curl -i http://localhost:8080/notes
+    mistakes:
+      - problem:
+          en: "The Pods show `ErrImagePull` or `ImagePullBackOff` for `notes-api:1.3`."
+          tr: "Pod'lar `notes-api:1.3` için `ErrImagePull` ya da `ImagePullBackOff` gösteriyor."
+        fix:
+          en: "The image is not in the cluster. Run `kind load docker-image notes-api:1.3 --name notes`. Do not use the tag `latest` for loaded images: it makes Kubernetes always try to pull."
+          tr: "Image cluster'da yok. `kind load docker-image notes-api:1.3 --name notes` çalıştır. Yüklenen image'lar için `latest` tag'ini kullanma: Kubernetes'in her zaman çekmeye çalışmasına yol açar."
+      - problem:
+          en: "The Pods are `CreateContainerConfigError`."
+          tr: "Pod'lar `CreateContainerConfigError` durumunda."
+        fix:
+          en: "A ConfigMap or Secret the Pod refers to does not exist in this namespace. Create them first (previous step) and check with `kubectl get configmap,secret -n notes`."
+          tr: "Pod'un başvurduğu bir ConfigMap ya da Secret bu namespace'te yok. Önce onları oluştur (önceki adım) ve `kubectl get configmap,secret -n notes` ile kontrol et."
+    quiz:
+      - q:
+          en: "Why does a Service use a selector with labels?"
+          tr: "Service neden label'lı bir selector kullanır?"
+        options:
+          en: [To find the Pods it sends traffic to, To choose the node, To set the image tag]
+          tr: [Trafik göndereceği Pod'ları bulmak için, Node'u seçmek için, Image tag'ini belirlemek için]
+        answer: 0
+        why:
+          en: "The Service forwards traffic to every ready Pod whose labels match its selector, however often Pods are replaced."
+          tr: "Service, Pod'lar ne kadar sık değişirse değişsin, label'ları selector'ıyla eşleşen her hazır Pod'a trafik gönderir."
+    sources:
+      - title: Deployments
+        url: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+      - title: Service
+        url: https://kubernetes.io/docs/concepts/services-networking/service/
+      - title: kind, loading an image into your cluster
+        url: https://kind.sigs.k8s.io/docs/user/quick-start/#loading-an-image-into-your-cluster
+
+  - id: database
+    stage: first-project
+    title:
+      en: "PostgreSQL with a StatefulSet and a PersistentVolumeClaim"
+      tr: "StatefulSet ve PersistentVolumeClaim ile PostgreSQL"
+    minutes: 40
+    needs: [deployment]
+    why:
+      en: "A database must keep its data when its Pod is replaced. A volume that outlives the Pod does that, and a StatefulSet gives the Pod a fixed name and its own volume."
+      tr: "Bir veritabanı, Pod'u değiştiğinde verisini korumalıdır. Pod'dan uzun yaşayan bir volume bunu yapar; StatefulSet de Pod'a sabit bir ad ve kendi volume'unu verir."
+    learn:
+      en: |
+        - A PersistentVolumeClaim (PVC) asks for disk space; the cluster's default StorageClass creates the disk
+        - A StatefulSet keeps `postgres-0` with its own volume across restarts
+        - A headless Service (`clusterIP: None`) gives the StatefulSet a stable DNS name
+        - Running a database in a cluster is for learning and small setups; many teams use a managed database instead
+      tr: |
+        - PersistentVolumeClaim (PVC) disk alanı ister; cluster'ın varsayılan StorageClass'ı diski oluşturur
+        - StatefulSet, `postgres-0`'ı kendi volume'uyla yeniden başlatmalar boyunca korur
+        - Headless Service (`clusterIP: None`) StatefulSet'e sabit bir DNS adı verir
+        - Veritabanını cluster içinde çalıştırmak öğrenme ve küçük kurulumlar içindir; birçok ekip bunun yerine yönetilen bir veritabanı kullanır
+    do:
+      en: |
+        1. Create `k8s/base/postgres.yaml` with the file below. The Service is named `postgres`, the same as `DB_HOST` in the ConfigMap, so the API finds the database by that name. The data directory of the PostgreSQL 18 image lives under `/var/lib/postgresql`, so the volume is mounted there (same as in the Docker roadmap).
+        2. Apply it and wait until `postgres-0` is `Running` and `1/1` ready.
+        3. Look at the volume that was created for you: `kubectl get pvc`. On kind, the default StorageClass is `standard`.
+        4. Restart the API Pods so they retry the connection, then add a note through a tunnel and read it back.
+        5. Prove the data survives: delete the database Pod (`kubectl delete pod postgres-0`), wait for it to return and list the notes again. The note is still there.
+      tr: |
+        1. Aşağıdaki dosyayla `k8s/base/postgres.yaml` oluştur. Service'in adı `postgres`, ConfigMap'teki `DB_HOST` ile aynı; API veritabanını bu adla bulur. PostgreSQL 18 image'ının veri dizini `/var/lib/postgresql` altındadır, bu yüzden volume oraya bağlanır (Docker yol haritasındaki gibi).
+        2. Uygula ve `postgres-0` `Running` ve `1/1` hazır olana kadar bekle.
+        3. Senin için oluşturulan volume'a bak: `kubectl get pvc`. kind'da varsayılan StorageClass `standard`'dır.
+        4. API Pod'larını yeniden başlat ki bağlantıyı yeniden denesinler; sonra bir tünelle not ekle ve geri oku.
+        5. Verinin kaldığını kanıtla: veritabanı Pod'unu sil (`kubectl delete pod postgres-0`), geri gelmesini bekle ve notları yine listele. Not yerinde duruyor.
+    code:
+      - file: k8s/base/postgres.yaml
+        lang: yaml
+        text: |
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: postgres
+          spec:
+            clusterIP: None
+            selector:
+              app: postgres
+            ports:
+              - name: postgres
+                port: 5432
+          ---
+          apiVersion: apps/v1
+          kind: StatefulSet
+          metadata:
+            name: postgres
+          spec:
+            serviceName: postgres
+            replicas: 1
+            selector:
+              matchLabels:
+                app: postgres
+            template:
+              metadata:
+                labels:
+                  app: postgres
+              spec:
+                containers:
+                  - name: postgres
+                    image: postgres:18-alpine
+                    ports:
+                      - name: postgres
+                        containerPort: 5432
+                    envFrom:
+                      - configMapRef:
+                          name: notes-config
+                    env:
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: db-credentials
+                            key: POSTGRES_PASSWORD
+                    readinessProbe:
+                      exec:
+                        command:
+                          - sh
+                          - -c
+                          - pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
+                      periodSeconds: 5
+                    resources:
+                      requests:
+                        cpu: 100m
+                        memory: 256Mi
+                      limits:
+                        memory: 512Mi
+                    volumeMounts:
+                      - name: data
+                        mountPath: /var/lib/postgresql
+            volumeClaimTemplates:
+              - metadata:
+                  name: data
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 1Gi
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -f k8s/base/postgres.yaml
+          kubectl rollout status statefulset/postgres
+          kubectl get pvc
+
+          kubectl rollout restart deployment/api
+          kubectl rollout status deployment/api
+
+          kubectl port-forward svc/api 8080:80
+          # in another terminal:
+          curl -X POST -H 'content-type: application/json' -d '{"text":"buy milk"}' http://localhost:8080/notes
+          curl http://localhost:8080/notes
+
+          kubectl delete pod postgres-0
+          kubectl get pods -w
+    mistakes:
+      - problem:
+          en: "`postgres-0` is `Pending` and the PVC is `Pending` too."
+          tr: "`postgres-0` `Pending` ve PVC de `Pending`."
+        fix:
+          en: "The cluster has no default StorageClass. `kubectl get storageclass` must show one marked `(default)`; kind has one. Check `kubectl describe pvc data-postgres-0`."
+          tr: "Cluster'ın varsayılan bir StorageClass'ı yok. `kubectl get storageclass` `(default)` işaretli bir tane göstermeli; kind'da vardır. `kubectl describe pvc data-postgres-0` ile bak."
+      - problem:
+          en: "Setting `replicas: 3` on this StatefulSet to get a 'highly available' database."
+          tr: "'Yüksek erişilebilir' bir veritabanı için bu StatefulSet'e `replicas: 3` yazmak."
+        fix:
+          en: "Three PostgreSQL Pods do not replicate to each other by themselves; each would have its own empty data. Replication needs an operator or a managed database."
+          tr: "Üç PostgreSQL Pod'u kendiliğinden birbirine replikasyon yapmaz; her birinin kendi boş verisi olur. Replikasyon için bir operator ya da yönetilen veritabanı gerekir."
+    quiz:
+      - q:
+          en: "Why a StatefulSet and not a Deployment for the database?"
+          tr: "Veritabanı için neden Deployment değil de StatefulSet?"
+        options:
+          en: [It is faster, Each Pod keeps a fixed name and its own volume, It needs no YAML]
+          tr: [Daha hızlıdır, Her Pod sabit bir ad ve kendi volume'unu korur, YAML gerektirmez]
+        answer: 1
+        why:
+          en: "A StatefulSet gives `postgres-0` the same identity and the same volume every time it is recreated."
+          tr: "StatefulSet, `postgres-0`'a her yeniden oluşturulduğunda aynı kimliği ve aynı volume'u verir."
+    sources:
+      - title: StatefulSets
+        url: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/
+      - title: Persistent Volumes
+        url: https://kubernetes.io/docs/concepts/storage/persistent-volumes/
+      - title: Run a single-instance stateful application
+        url: https://kubernetes.io/docs/tasks/run-application/run-single-instance-stateful-application/
+
+  - id: probes
+    stage: first-project
+    title:
+      en: "Probes and resource requests and limits"
+      tr: "Probe'lar ve kaynak istekleri ile sınırları"
+    minutes: 35
+    needs: [database]
+    why:
+      en: "Kubernetes sends traffic to a Pod as soon as it starts, even if the app is not ready. Probes tell it when the app is ready or stuck. Requests and limits tell it how much CPU and memory each Pod needs, so it can place Pods and protect the node."
+      tr: "Kubernetes bir Pod'a, uygulama hazır olmasa bile başlar başlamaz trafik gönderir. Probe'lar ona uygulamanın ne zaman hazır ya da takılmış olduğunu söyler. İstekler ve sınırlar her Pod'un ne kadar CPU ve belleğe ihtiyacı olduğunu söyler; böylece Pod'ları yerleştirebilir ve node'u koruyabilir."
+    learn:
+      en: |
+        - Readiness probe: should this Pod receive traffic? Liveness probe: should this container be restarted?
+        - The liveness probe must check only the process itself (`/health`), never the database
+        - `requests` are reserved by the scheduler; a memory `limit` kills the container (OOMKilled) when exceeded
+        - Why this file also sets a rolling update strategy: `maxUnavailable: 0` keeps all old Pods until the new ones are ready
+      tr: |
+        - Readiness probe: bu Pod trafik almalı mı? Liveness probe: bu container yeniden başlatılmalı mı?
+        - Liveness probe sadece sürecin kendisini (`/health`) kontrol etmeli, asla veritabanını
+        - `requests` scheduler tarafından ayrılır; bellek `limit`'i aşılırsa container öldürülür (OOMKilled)
+        - Bu dosya neden bir rolling update stratejisi de ayarlıyor: `maxUnavailable: 0`, yeniler hazır olana kadar bütün eski Pod'ları tutar
+    do:
+      en: |
+        1. Replace `k8s/base/api.yaml` with the version below. New parts: the `strategy`, a readiness probe on `/notes` (it answers 200 only when the database works), a liveness probe on `/health` (the process only), and `resources`.
+        2. Apply it and watch the rollout. The new Pods only count as ready when the readiness probe passes.
+        3. Look at the probes in `kubectl describe pod`: lines starting with `Liveness:` and `Readiness:`.
+        4. Experiment: scale the database down with `kubectl scale statefulset/postgres --replicas=0`. After a few seconds `kubectl get pods` shows the API Pods as `0/1` ready, but they are not restarted, because liveness does not look at the database. Scale back to 1.
+      tr: |
+        1. `k8s/base/api.yaml` dosyasını aşağıdaki sürümle değiştir. Yeni kısımlar: `strategy`, `/notes` üzerinde bir readiness probe (sadece veritabanı çalışıyorsa 200 döner), `/health` üzerinde bir liveness probe (sadece süreç) ve `resources`.
+        2. Uygula ve rollout'u izle. Yeni Pod'lar readiness probe geçince hazır sayılır.
+        3. Probe'ları `kubectl describe pod` içinde gör: `Liveness:` ve `Readiness:` ile başlayan satırlar.
+        4. Deney: veritabanını `kubectl scale statefulset/postgres --replicas=0` ile kapat. Birkaç saniye sonra `kubectl get pods` API Pod'larını `0/1` hazır gösterir ama yeniden başlatılmazlar, çünkü liveness veritabanına bakmaz. Tekrar 1'e çıkar.
+    code:
+      - file: k8s/base/api.yaml
+        lang: yaml
+        text: |
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: api
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: api
+            strategy:
+              type: RollingUpdate
+              rollingUpdate:
+                maxSurge: 1
+                maxUnavailable: 0
+            template:
+              metadata:
+                labels:
+                  app: api
+              spec:
+                containers:
+                  - name: api
+                    image: notes-api:1.3
+                    ports:
+                      - name: http
+                        containerPort: 3000
+                    envFrom:
+                      - configMapRef:
+                          name: notes-config
+                    env:
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: db-credentials
+                            key: POSTGRES_PASSWORD
+                    readinessProbe:
+                      httpGet:
+                        path: /notes
+                        port: http
+                      periodSeconds: 5
+                    livenessProbe:
+                      httpGet:
+                        path: /health
+                        port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                    resources:
+                      requests:
+                        cpu: 50m
+                        memory: 128Mi
+                      limits:
+                        memory: 256Mi
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: api
+          spec:
+            selector:
+              app: api
+            ports:
+              - name: http
+                port: 80
+                targetPort: http
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -f k8s/base/api.yaml
+          kubectl rollout status deployment/api
+          kubectl describe pod -l app=api | grep -E "Liveness|Readiness"
+
+          kubectl scale statefulset/postgres --replicas=0
+          kubectl get pods
+          kubectl scale statefulset/postgres --replicas=1
+    mistakes:
+      - problem:
+          en: "A liveness probe that checks the database."
+          tr: "Veritabanını kontrol eden bir liveness probe."
+        fix:
+          en: "When the database is slow, every Pod restarts at once and makes things worse. Liveness checks only the process; readiness may check dependencies."
+          tr: "Veritabanı yavaşlayınca bütün Pod'lar aynı anda yeniden başlar ve durumu kötüleştirir. Liveness sadece süreci kontrol eder; readiness bağımlılıkları kontrol edebilir."
+      - problem:
+          en: "A memory limit that is too low: the Pod restarts with `OOMKilled`."
+          tr: "Çok düşük bir bellek sınırı: Pod `OOMKilled` ile yeniden başlıyor."
+        fix:
+          en: "`kubectl describe pod` shows `Reason: OOMKilled` under Last State. Raise the limit after measuring real use with `kubectl top pod` (needs metrics-server, see the autoscaling step)."
+          tr: "`kubectl describe pod` Last State altında `Reason: OOMKilled` gösterir. Gerçek kullanımı `kubectl top pod` ile ölçtükten sonra sınırı yükselt (metrics-server gerekir, ölçekleme adımına bak)."
+    quiz:
+      - q:
+          en: "A readiness probe fails. What does Kubernetes do?"
+          tr: "Bir readiness probe başarısız oluyor. Kubernetes ne yapar?"
+        options:
+          en: [Restarts the container, Stops sending traffic to that Pod without restarting it, Deletes the Deployment]
+          tr: [Container'ı yeniden başlatır, O Pod'a trafik göndermeyi bırakır ama yeniden başlatmaz, Deployment'ı siler]
+        answer: 1
+        why:
+          en: "The Pod is removed from the Service endpoints until the probe passes again. Restarts are the job of the liveness probe."
+          tr: "Probe tekrar geçene kadar Pod Service endpoint'lerinden çıkarılır. Yeniden başlatma liveness probe'un işidir."
+    sources:
+      - title: Liveness, readiness and startup probes
+        url: https://kubernetes.io/docs/concepts/workloads/pods/probes/
+      - title: Resource management for Pods and containers
+        url: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+      - title: Configure liveness, readiness and startup probes
+        url: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
+
+  - id: gateway
+    stage: data-api
+    title:
+      en: "Let traffic in with the Gateway API"
+      tr: "Gateway API ile trafiği içeri alma"
+    minutes: 45
+    needs: [probes]
+    why:
+      en: "A ClusterIP Service is private. To serve real users you need something at the edge that takes HTTP requests and routes them to Services. The Kubernetes project recommends the Gateway API for this."
+      tr: "ClusterIP Service özeldir. Gerçek kullanıcılara hizmet vermek için kenarda HTTP isteklerini alıp Service'lere yönlendiren bir şey gerekir. Kubernetes projesi bunun için Gateway API'yi önerir."
+    learn:
+      en: |
+        - Gateway API objects: a GatewayClass (which controller), a Gateway (listeners) and an HTTPRoute (rules to Services)
+        - A controller you install actually does the work; here Envoy Gateway
+        - Ingress is the older API: it still works but is frozen, and the popular ingress-nginx controller was retired in March 2026, so do not start new setups on it
+        - A LoadBalancer Service needs a cloud; on kind you reach the gateway with a port-forward
+      tr: |
+        - Gateway API nesneleri: bir GatewayClass (hangi controller), bir Gateway (dinleyiciler) ve bir HTTPRoute (Service'lere kurallar)
+        - İşi gerçekten kurduğun bir controller yapar; burada Envoy Gateway
+        - Ingress eski API'dir: hâlâ çalışır ama dondurulmuştur ve popüler ingress-nginx controller'ı Mart 2026'da emekliye ayrıldı; yeni kurulumlara onunla başlama
+        - LoadBalancer Service bir bulut ister; kind'da gateway'e port-forward ile ulaşırsın
+    do:
+      en: |
+        1. Install Envoy Gateway. This manifest from the project's release also installs the Gateway API CRDs (the new object types). `--server-side` is needed because the CRDs are large.
+        2. Wait until the controller is available.
+        3. Create `k8s/gateway/gateway.yaml` with the file below. The GatewayClass names the Envoy Gateway controller. The Gateway listens on HTTP port 80. The HTTPRoute sends every path to the `api` Service.
+        4. Apply it. `kubectl get gateway -n notes` shows `Programmed` when it is ready (the address stays pending on kind, which is fine).
+        5. Find the Service Envoy created for your Gateway and open a tunnel to it, then call the API through the gateway.
+        6. Compare with Ingress: read the Ingress page in the sources. You would write an `Ingress` with `ingressClassName` and `rules`, and install a controller such as Traefik; the idea is the same, the API is older.
+      tr: |
+        1. Envoy Gateway'i kur. Projenin release'indeki bu manifest Gateway API CRD'lerini (yeni nesne türlerini) de kurar. CRD'ler büyük olduğu için `--server-side` gerekir.
+        2. Controller hazır olana kadar bekle.
+        3. Aşağıdaki dosyayla `k8s/gateway/gateway.yaml` oluştur. GatewayClass Envoy Gateway controller'ını belirtir. Gateway HTTP 80 portunu dinler. HTTPRoute her path'i `api` Service'ine gönderir.
+        4. Uygula. `kubectl get gateway -n notes` hazır olduğunda `Programmed` gösterir (adres kind'da beklemede kalır, sorun değil).
+        5. Envoy'un Gateway'in için oluşturduğu Service'i bul, ona bir tünel aç ve API'yi gateway üzerinden çağır.
+        6. Ingress ile karşılaştır: kaynaklardaki Ingress sayfasını oku. `ingressClassName` ve `rules` olan bir `Ingress` yazar ve Traefik gibi bir controller kurardın; fikir aynı, API daha eski.
+    code:
+      - file: k8s/gateway/gateway.yaml
+        lang: yaml
+        text: |
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: GatewayClass
+          metadata:
+            name: eg
+          spec:
+            controllerName: gateway.envoyproxy.io/gatewayclass-controller
+          ---
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: Gateway
+          metadata:
+            name: public
+            namespace: notes
+          spec:
+            gatewayClassName: eg
+            listeners:
+              - name: http
+                protocol: HTTP
+                port: 80
+          ---
+          apiVersion: gateway.networking.k8s.io/v1
+          kind: HTTPRoute
+          metadata:
+            name: api
+            namespace: notes
+          spec:
+            parentRefs:
+              - name: public
+            rules:
+              - matches:
+                  - path:
+                      type: PathPrefix
+                      value: /
+                backendRefs:
+                  - name: api
+                    port: 80
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply --server-side -f https://github.com/envoyproxy/gateway/releases/download/v1.9.2/install.yaml
+          kubectl wait --timeout=5m -n envoy-gateway-system deployment/envoy-gateway --for=condition=Available
+
+          kubectl apply -f k8s/gateway/gateway.yaml
+          kubectl get gateway,httproute -n notes
+
+          export ENVOY_SERVICE=$(kubectl get svc -n envoy-gateway-system \
+            --selector=gateway.envoyproxy.io/owning-gateway-namespace=notes,gateway.envoyproxy.io/owning-gateway-name=public \
+            -o jsonpath='{.items[0].metadata.name}')
+          kubectl -n envoy-gateway-system port-forward service/${ENVOY_SERVICE} 8888:80
+          # in another terminal:
+          curl http://localhost:8888/notes
+    mistakes:
+      - problem:
+          en: "`kubectl apply` says `no matches for kind \"Gateway\"`."
+          tr: "`kubectl apply` `no matches for kind \"Gateway\"` diyor."
+        fix:
+          en: "The Gateway API CRDs are not installed. Run the Envoy Gateway install command first, then apply your file."
+          tr: "Gateway API CRD'leri kurulu değil. Önce Envoy Gateway kurulum komutunu çalıştır, sonra dosyanı uygula."
+      - problem:
+          en: "Expecting an external IP on kind and waiting for it."
+          tr: "kind'da dış bir IP beklemek ve onu beklemek."
+        fix:
+          en: "kind has no cloud load balancer, so the address stays pending. Use `kubectl port-forward` to test; on a real cloud cluster the address appears by itself."
+          tr: "kind'da bulut load balancer'ı yoktur, bu yüzden adres beklemede kalır. Test için `kubectl port-forward` kullan; gerçek bulut cluster'ında adres kendiliğinden gelir."
+    quiz:
+      - q:
+          en: "What does an HTTPRoute do?"
+          tr: "HTTPRoute ne yapar?"
+        options:
+          en: [Builds the container image, Sends requests for a host or path to a Service through a Gateway, Stores the database password]
+          tr: [Container image'ını build eder, Bir host ya da path için gelen istekleri bir Gateway üzerinden bir Service'e gönderir, Veritabanı şifresini saklar]
+        answer: 1
+        why:
+          en: "The route holds the rules; the Gateway is the entry point; a controller you install makes it real."
+          tr: "Route kuralları tutar; Gateway giriş noktasıdır; kurduğun bir controller onu gerçekleştirir."
+    sources:
+      - title: Gateway API
+        url: https://kubernetes.io/docs/concepts/services-networking/gateway/
+      - title: Envoy Gateway quickstart
+        url: https://gateway.envoyproxy.io/docs/tasks/quickstart/
+      - title: Ingress
+        url: https://kubernetes.io/docs/concepts/services-networking/ingress/
+
+  - id: validate
+    stage: testing
+    title:
+      en: "Check manifests before they reach the cluster"
+      tr: "Manifest'leri cluster'a gitmeden önce kontrol etme"
+    minutes: 30
+    needs: [gateway]
+    why:
+      en: "Typos in YAML are the most common Kubernetes error. Checking files first, with a dry run and a schema checker, finds them in seconds instead of after a failed deploy."
+      tr: "YAML'daki yazım hataları en yaygın Kubernetes hatasıdır. Dosyaları önce dry run ve şema denetleyicisiyle kontrol etmek, onları başarısız bir deploy'dan sonra değil saniyeler içinde bulur."
+    learn:
+      en: |
+        - `kubectl apply --dry-run=server` sends the object to the API server for validation without saving it
+        - `kubectl diff` shows what an apply would change
+        - `kubeconform` checks files against the official schemas, without a cluster, so it also works in CI
+        - `kubectl explain` shows the documentation of any field
+      tr: |
+        - `kubectl apply --dry-run=server` nesneyi kaydetmeden doğrulama için API sunucusuna gönderir
+        - `kubectl diff` bir apply'ın neyi değiştireceğini gösterir
+        - `kubeconform` dosyaları resmi şemalara karşı cluster olmadan kontrol eder; bu yüzden CI'da da çalışır
+        - `kubectl explain` herhangi bir alanın dokümantasyonunu gösterir
+    do:
+      en: |
+        1. Run a server-side dry run on all base files. It uses the real cluster, so it knows about every field and about admission rules.
+        2. Break a file on purpose: in `k8s/base/postgres.yaml` change `containerPort` to `containerPorts`. Run the dry run again and read the error. Undo the change.
+        3. Change `replicas` in `api.yaml` from 2 to 3 and run `kubectl diff -f k8s/base/api.yaml`. It prints the change and applies nothing. Undo it.
+        4. Run kubeconform from its official image. It needs no cluster. `-strict` also rejects unknown fields. Replace the version with your cluster's minor version if it differs.
+        5. For the Gateway API files, add the community CRD schema catalog as a second schema location (see the kubeconform page); the core files need only the default.
+      tr: |
+        1. Bütün base dosyalarında server-side dry run çalıştır. Gerçek cluster'ı kullanır, bu yüzden her alanı ve admission kurallarını bilir.
+        2. Bir dosyayı bilerek boz: `k8s/base/postgres.yaml` içinde `containerPort` yerine `containerPorts` yaz. Dry run'ı tekrar çalıştır ve hatayı oku. Değişikliği geri al.
+        3. `api.yaml` içinde `replicas`'ı 2'den 3'e çıkar ve `kubectl diff -f k8s/base/api.yaml` çalıştır. Değişikliği yazdırır, hiçbir şey uygulamaz. Geri al.
+        4. kubeconform'u resmi image'ından çalıştır. Cluster gerektirmez. `-strict` bilinmeyen alanları da reddeder. Sürümü, farklıysa, cluster'ının minor sürümüyle değiştir.
+        5. Gateway API dosyaları için topluluğun CRD şema kataloğunu ikinci bir şema konumu olarak ekle (kubeconform sayfasına bak); çekirdek dosyalar için varsayılan yeter.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply --dry-run=server -f k8s/base/postgres.yaml -f k8s/base/api.yaml
+          kubectl diff -f k8s/base/api.yaml
+
+          docker run --rm -v "$PWD/k8s:/k8s:ro" ghcr.io/yannh/kubeconform:latest \
+            -strict -summary -kubernetes-version 1.37.0 /k8s/base /k8s/namespace.yaml
+
+          kubectl explain deployment.spec.strategy.rollingUpdate
+    mistakes:
+      - problem:
+          en: "kubeconform reports many resources as skipped or errors for a custom kind (Gateway, HTTPRoute)."
+          tr: "kubeconform özel bir tür (Gateway, HTTPRoute) için birçok kaynağı atlanmış ya da hatalı gösteriyor."
+        fix:
+          en: "Custom resources need their own schemas. Add a second `-schema-location` with a CRD catalog, or pass `-ignore-missing-schemas` knowingly."
+          tr: "Özel kaynakların kendi şemaları gerekir. CRD kataloğuyla ikinci bir `-schema-location` ekle ya da bilerek `-ignore-missing-schemas` ver."
+      - problem:
+          en: "Thinking a passing dry run means the app works."
+          tr: "Geçen bir dry run'ın uygulamanın çalıştığı anlamına geldiğini sanmak."
+        fix:
+          en: "It only proves the objects are valid. Wrong image names, missing Secrets or bad probes show up only when the Pods run."
+          tr: "Sadece nesnelerin geçerli olduğunu kanıtlar. Yanlış image adı, eksik Secret ya da hatalı probe'lar ancak Pod'lar çalışınca ortaya çıkar."
+    quiz:
+      - q:
+          en: "What does kubectl diff do?"
+          tr: "kubectl diff ne yapar?"
+        options:
+          en: [Applies the file and shows the result, Shows what an apply would change and applies nothing, Compares two clusters]
+          tr: [Dosyayı uygular ve sonucu gösterir, Bir apply'ın neyi değiştireceğini gösterir ve hiçbir şey uygulamaz, İki cluster'ı karşılaştırır]
+        answer: 1
+        why:
+          en: "diff compares your file with the live object and only prints the difference."
+          tr: "diff, dosyanı canlı nesneyle karşılaştırır ve sadece farkı yazdırır."
+    sources:
+      - title: Declarative management of objects (diff and dry run)
+        url: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/declarative-config/
+      - title: kubeconform
+        url: https://github.com/yannh/kubeconform
+      - title: kubectl explain
+        url: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_explain/
+
+  - id: rollouts
+    stage: testing
+    title:
+      en: "Rolling updates and rollbacks"
+      tr: "Kademeli güncelleme ve geri alma"
+    minutes: 40
+    needs: [validate]
+    why:
+      en: "Shipping a new version without downtime, and going back in seconds when it is bad, is the main reason teams use Kubernetes. You will see both, including a release that fails."
+      tr: "Yeni sürümü kesintisiz yayına almak ve kötüyse saniyeler içinde geri dönmek, ekiplerin Kubernetes kullanmasının ana nedenidir. Hatalı bir sürüm dahil ikisini de göreceksin."
+    learn:
+      en: |
+        - A change in the Pod template (like the image) starts a rolling update: new Pods come up, old ones go away
+        - `maxSurge` and `maxUnavailable` control how many extra and how many missing Pods are allowed during the update
+        - With a readiness probe, a broken release never gets traffic; the old Pods stay
+        - `kubectl rollout undo` goes back to the previous ReplicaSet
+        - Use a new tag for every release; the same tag with new content does not roll out
+      tr: |
+        - Pod template'indeki bir değişiklik (image gibi) kademeli güncellemeyi başlatır: yeni Pod'lar gelir, eskiler gider
+        - `maxSurge` ve `maxUnavailable`, güncelleme sırasında kaç fazla ve kaç eksik Pod'a izin verildiğini belirler
+        - Readiness probe ile bozuk bir sürüm hiç trafik almaz; eski Pod'lar kalır
+        - `kubectl rollout undo` önceki ReplicaSet'e döner
+        - Her sürüm için yeni bir tag kullan; aynı tag'e yeni içerik koymak rollout başlatmaz
+    do:
+      en: |
+        1. Make version 1.4 visible. In `src/server.js` change the `/health` line as shown below, so it also reports the version. In the `Dockerfile`, add the two `APP_VERSION` lines after `ENV NODE_ENV=production`.
+        2. Build `notes-api:1.4` with the build argument and load it into kind.
+        3. Update the Deployment's image and watch the rolling update. `kubectl get pods -w` in a second terminal shows new Pods starting before old ones stop.
+        4. Check the version through the gateway or a tunnel: `/health` now says `"version":"1.4"`.
+        5. Ship a bad release on purpose: an image tag that does not exist. The new Pod cannot start (`ImagePullBackOff`), and the rollout waits. Because of the readiness probe and `maxUnavailable: 0`, the old Pods keep serving.
+        6. Roll back, and read the history. Finally record the right version in your file: change `image:` in `k8s/base/api.yaml` to `notes-api:1.4`, so Git matches the cluster.
+      tr: |
+        1. 1.4 sürümünü görünür yap. `src/server.js` içinde `/health` satırını aşağıdaki gibi değiştir; böylece sürümü de bildirir. `Dockerfile` içinde `ENV NODE_ENV=production` satırından sonra iki `APP_VERSION` satırını ekle.
+        2. `notes-api:1.4`'ü build argument ile build et ve kind'a yükle.
+        3. Deployment'ın image'ını güncelle ve kademeli güncellemeyi izle. İkinci bir terminalde `kubectl get pods -w`, yeni Pod'ların eskiler durmadan önce başladığını gösterir.
+        4. Sürümü gateway ya da bir tünel üzerinden kontrol et: `/health` artık `"version":"1.4"` der.
+        5. Bilerek hatalı bir sürüm çıkar: var olmayan bir image tag'i. Yeni Pod başlayamaz (`ImagePullBackOff`) ve rollout bekler. Readiness probe ve `maxUnavailable: 0` sayesinde eski Pod'lar hizmet vermeye devam eder.
+        6. Geri al ve geçmişi oku. Son olarak doğru sürümü dosyana yaz: `k8s/base/api.yaml` içindeki `image:` değerini `notes-api:1.4` yap; böylece Git cluster ile aynı olur.
+    code:
+      - file: src/server.js
+        lang: js
+        text: |
+          // the /health line inside the request handler
+          if (req.method === "GET" && req.url === "/health") {
+            return send(res, 200, { status: "ok", version: process.env.APP_VERSION ?? "dev" });
+          }
+      - file: Dockerfile
+        lang: dockerfile
+        text: |
+          # in the last stage, right after ENV NODE_ENV=production
+          ARG APP_VERSION=dev
+          ENV APP_VERSION=$APP_VERSION
+      - file: terminal
+        lang: sh
+        text: |
+          docker build --build-arg APP_VERSION=1.4 -t notes-api:1.4 .
+          kind load docker-image notes-api:1.4 --name notes
+
+          kubectl set image deployment/api api=notes-api:1.4
+          kubectl rollout status deployment/api
+          kubectl port-forward svc/api 8080:80
+          # in another terminal:
+          curl http://localhost:8080/health
+
+          # a bad release
+          kubectl set image deployment/api api=notes-api:does-not-exist
+          kubectl rollout status deployment/api --timeout=30s
+          kubectl get pods
+
+          # go back
+          kubectl rollout undo deployment/api
+          kubectl rollout status deployment/api
+          kubectl rollout history deployment/api
+    mistakes:
+      - problem:
+          en: "Pushing a fixed image under the same tag and expecting Pods to update."
+          tr: "Düzeltilmiş image'ı aynı tag ile push edip Pod'ların güncellenmesini beklemek."
+        fix:
+          en: "The Deployment spec did not change, so nothing rolls out. Give every release a new tag, or run `kubectl rollout restart deployment/api`."
+          tr: "Deployment spec'i değişmedi, bu yüzden hiçbir şey yayına alınmaz. Her sürüme yeni bir tag ver ya da `kubectl rollout restart deployment/api` çalıştır."
+      - problem:
+          en: "`kubectl rollout status` waits forever on a broken release."
+          tr: "`kubectl rollout status` hatalı bir sürümde sonsuza dek bekliyor."
+        fix:
+          en: "That is by design: the rollout cannot finish. Press Ctrl+C, look at `kubectl describe pod`, and run `kubectl rollout undo`. Use `--timeout` in scripts."
+          tr: "Bu tasarım gereği: rollout bitemez. Ctrl+C bas, `kubectl describe pod`'a bak ve `kubectl rollout undo` çalıştır. Script'lerde `--timeout` kullan."
+    quiz:
+      - q:
+          en: "During a rolling update with `maxUnavailable: 0`, what happens when the new Pod never becomes ready?"
+          tr: "`maxUnavailable: 0` ile kademeli güncelleme sırasında yeni Pod hiç hazır olmazsa ne olur?"
+        options:
+          en: [All old Pods are stopped anyway, The old Pods keep running and serving while the rollout waits, The cluster deletes the Deployment]
+          tr: [Eski Pod'ların hepsi yine de durdurulur, Rollout beklerken eski Pod'lar çalışmaya ve hizmet vermeye devam eder, Cluster Deployment'ı siler]
+        answer: 1
+        why:
+          en: "Old Pods are only removed after new Pods are ready, so a broken release does not cause downtime."
+          tr: "Eski Pod'lar ancak yeniler hazır olduktan sonra kaldırılır; bu yüzden bozuk bir sürüm kesintiye yol açmaz."
+    sources:
+      - title: Deployments, updating and rolling back
+        url: https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+      - title: kubectl rollout undo
+        url: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_rollout/kubectl_rollout_undo/
+      - title: Performing a rolling update
+        url: https://kubernetes.io/docs/tutorials/kubernetes-basics/update/update-intro/
+
+  - id: pod-security
+    stage: security
+    title:
+      en: "A locked-down Pod: securityContext and a service account"
+      tr: "Kilitlenmiş bir Pod: securityContext ve bir service account"
+    minutes: 35
+    needs: [rollouts]
+    why:
+      en: "If someone breaks into your app, what they can do next depends on how much power the container has. Run it as a normal user, with no extra rights and a read-only filesystem, and give it no cluster token it does not need."
+      tr: "Biri uygulamana girerse, sonrasında ne yapabileceği container'ın ne kadar güce sahip olduğuna bağlıdır. Onu normal bir kullanıcı olarak, ek yetkisiz ve salt okunur dosya sistemiyle çalıştır ve ihtiyacı olmayan bir cluster token'ı verme."
+    learn:
+      en: |
+        - `runAsNonRoot`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `readOnlyRootFilesystem` and the `RuntimeDefault` seccomp profile are the restricted baseline for most apps
+        - Pod Security Admission checks these by namespace labels: `enforce` blocks, `warn` only warns
+        - By default every Pod gets a service-account token mounted; an app that never calls the Kubernetes API should not have it
+      tr: |
+        - `runAsNonRoot`, `allowPrivilegeEscalation: false`, `capabilities.drop: [ALL]`, `readOnlyRootFilesystem` ve `RuntimeDefault` seccomp profili çoğu uygulama için restricted temel ayarlardır
+        - Pod Security Admission bunları namespace label'larıyla kontrol eder: `enforce` engeller, `warn` sadece uyarır
+        - Varsayılan olarak her Pod'a bir service-account token'ı bağlanır; Kubernetes API'sini hiç çağırmayan bir uygulamada bu olmamalı
+    do:
+      en: |
+        1. Replace `k8s/base/api.yaml` with the hardened version below (it keeps image `notes-api:1.4` and everything from before). New parts: a `ServiceAccount` with the token turned off, a Pod-level `securityContext`, and a container-level one.
+        2. The image already runs as the `node` user (uid 1000), and the Node.js app writes no files, so a read-only filesystem is safe. If your app needs a temporary folder, mount an `emptyDir` volume there instead of making the filesystem writable.
+        3. Apply it. The `warn: restricted` label on the namespace now stays quiet for the API. It still warns about the PostgreSQL StatefulSet, which is fine: the official image starts as root to prepare its data folder.
+        4. Check the user inside the container, and that writing is refused.
+      tr: |
+        1. `k8s/base/api.yaml` dosyasını aşağıdaki sertleştirilmiş sürümle değiştir (`notes-api:1.4` image'ı ve öncekilerin hepsi durur). Yeni kısımlar: token'ı kapalı bir `ServiceAccount`, Pod seviyesinde bir `securityContext` ve container seviyesinde bir tane.
+        2. Image zaten `node` kullanıcısıyla (uid 1000) çalışıyor ve Node.js uygulaması dosya yazmıyor, bu yüzden salt okunur dosya sistemi güvenli. Uygulaman geçici bir klasöre ihtiyaç duyarsa dosya sistemini yazılabilir yapmak yerine oraya bir `emptyDir` volume bağla.
+        3. Uygula. Namespace'teki `warn: restricted` label'ı artık API için sessiz kalır. PostgreSQL StatefulSet'i için hâlâ uyarır, bu sorun değil: resmi image veri klasörünü hazırlamak için root olarak başlar.
+        4. Container içindeki kullanıcıyı ve yazmanın reddedildiğini kontrol et.
+    code:
+      - file: k8s/base/api.yaml
+        lang: yaml
+        text: |
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: api
+          automountServiceAccountToken: false
+          ---
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: api
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: api
+            strategy:
+              type: RollingUpdate
+              rollingUpdate:
+                maxSurge: 1
+                maxUnavailable: 0
+            template:
+              metadata:
+                labels:
+                  app: api
+              spec:
+                serviceAccountName: api
+                securityContext:
+                  runAsNonRoot: true
+                  runAsUser: 1000
+                  runAsGroup: 1000
+                  seccompProfile:
+                    type: RuntimeDefault
+                containers:
+                  - name: api
+                    image: notes-api:1.4
+                    ports:
+                      - name: http
+                        containerPort: 3000
+                    envFrom:
+                      - configMapRef:
+                          name: notes-config
+                    env:
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                          secretKeyRef:
+                            name: db-credentials
+                            key: POSTGRES_PASSWORD
+                    securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                        drop: ["ALL"]
+                    readinessProbe:
+                      httpGet:
+                        path: /notes
+                        port: http
+                      periodSeconds: 5
+                    livenessProbe:
+                      httpGet:
+                        path: /health
+                        port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                    resources:
+                      requests:
+                        cpu: 50m
+                        memory: 128Mi
+                      limits:
+                        memory: 256Mi
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: api
+          spec:
+            selector:
+              app: api
+            ports:
+              - name: http
+                port: 80
+                targetPort: http
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -f k8s/base/api.yaml
+          kubectl rollout status deployment/api
+
+          kubectl exec deploy/api -- id
+          kubectl exec deploy/api -- touch /app/test.txt
+    mistakes:
+      - problem:
+          en: "The Pod fails with `container has runAsNonRoot and image will run as root`."
+          tr: "Pod `container has runAsNonRoot and image will run as root` hatasıyla başarısız oluyor."
+        fix:
+          en: "The image runs as root. Add `USER node` in the Dockerfile (the Docker roadmap does) or set `runAsUser` to a non-zero number that the image supports."
+          tr: "Image root olarak çalışıyor. Dockerfile'a `USER node` ekle (Docker yol haritası ekliyor) ya da `runAsUser`'ı image'ın desteklediği sıfırdan farklı bir sayıya ayarla."
+      - problem:
+          en: "Making the filesystem writable or the container privileged 'to make it work'."
+          tr: "'Çalışsın diye' dosya sistemini yazılabilir ya da container'ı privileged yapmak."
+        fix:
+          en: "Find what is being written and give just that path a volume (`emptyDir`). Never use `privileged: true` for a normal app."
+          tr: "Neyin yazıldığını bul ve sadece o yola bir volume (`emptyDir`) ver. Normal bir uygulama için asla `privileged: true` kullanma."
+    quiz:
+      - q:
+          en: "What does `readOnlyRootFilesystem: true` do?"
+          tr: "`readOnlyRootFilesystem: true` ne yapar?"
+        options:
+          en: [Makes the container's root filesystem read-only so an attacker cannot drop files in it, Hides the Secret from the app, Stops the container from using the network]
+          tr: [Container'ın kök dosya sistemini salt okunur yapar; saldırgan oraya dosya bırakamaz, Secret'ı uygulamadan gizler, Container'ın ağı kullanmasını engeller]
+        answer: 0
+        why:
+          en: "Writes to the image's filesystem fail; only mounted volumes such as an emptyDir stay writable."
+          tr: "Image dosya sistemine yazma başarısız olur; sadece emptyDir gibi bağlanmış volume'lar yazılabilir kalır."
+    sources:
+      - title: Configure a security context for a Pod or container
+        url: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+      - title: Pod Security Standards
+        url: https://kubernetes.io/docs/concepts/security/pod-security-standards/
+      - title: Service accounts
+        url: https://kubernetes.io/docs/concepts/security/service-accounts/
+
+  - id: rbac-netpol
+    stage: security
+    title:
+      en: "RBAC, a NetworkPolicy and a scanned image"
+      tr: "RBAC, bir NetworkPolicy ve taranmış bir image"
+    minutes: 50
+    needs: [pod-security]
+    why:
+      en: "Three more doors to close: who may change the cluster (RBAC), which Pods may talk to which (NetworkPolicy), and what known bugs are in the image you run (scanning)."
+      tr: "Kapatılacak üç kapı daha var: cluster'ı kim değiştirebilir (RBAC), hangi Pod hangisiyle konuşabilir (NetworkPolicy) ve çalıştırdığın image'da hangi bilinen açıklar var (tarama)."
+    learn:
+      en: |
+        - RBAC: a Role lists allowed actions, a RoleBinding gives the Role to a user or service account; start with the least rights
+        - NetworkPolicy: by default every Pod can talk to every Pod. Start with "deny all incoming", then allow only what is needed
+        - NetworkPolicy works only if the cluster's network plugin enforces it; kind does since v0.24
+        - Scan images for known vulnerabilities (CVEs) before you ship them
+      tr: |
+        - RBAC: bir Role izin verilen işlemleri listeler, bir RoleBinding Role'ü bir kullanıcıya ya da service account'a verir; en az yetkiyle başla
+        - NetworkPolicy: varsayılan olarak her Pod her Pod'la konuşabilir. "Gelen her şeyi reddet" ile başla, sonra sadece gerekeni aç
+        - NetworkPolicy ancak cluster'ın ağ eklentisi onu uyguluyorsa çalışır; kind v0.24'ten beri uygular
+        - Image'ları yayına çıkarmadan önce bilinen açıklar (CVE) için tara
+    do:
+      en: |
+        1. Create `k8s/rbac/deployer.yaml` with the first file below: a `deployer` service account that may only read Pods and change Deployments in `notes` (for example for a CI job that ships new versions).
+        2. Apply it and test the rights with `kubectl auth can-i`, acting as that account. It may patch deployments, but not delete Pods or read Secrets.
+        3. Create `k8s/base/networkpolicy.yaml` with the second file below. Three policies: deny all incoming traffic to every Pod in the namespace; allow the API to receive traffic on port 3000 from the Envoy Gateway namespace and from Pods labeled `role: api-client`; allow PostgreSQL to receive traffic on 5432 only from the API Pods.
+        4. Apply it, then prove it: a Pod without the label cannot call the API (it times out), a Pod with the label can, and a Pod cannot reach PostgreSQL directly.
+        5. Scan the image. Trivy runs from its official image and needs the image as a file. The command lists HIGH and CRITICAL problems that have a fix. Findings in the base image change weekly: rebuild with `docker build --pull` and scan again. (Trivy downloads its vulnerability database on first run, so it needs internet.)
+      tr: |
+        1. İlk dosyayla `k8s/rbac/deployer.yaml` oluştur: `notes` içinde sadece Pod'ları okuyabilen ve Deployment'ları değiştirebilen bir `deployer` service account'u (örneğin yeni sürümleri yayına alan bir CI işi için).
+        2. Uygula ve haklarını o hesap gibi davranarak `kubectl auth can-i` ile test et. Deployment'ları patch edebilir ama Pod silemez ve Secret okuyamaz.
+        3. İkinci dosyayla `k8s/base/networkpolicy.yaml` oluştur. Üç politika: namespace'teki her Pod'a gelen tüm trafiği reddet; API'nin 3000 portunda Envoy Gateway namespace'inden ve `role: api-client` label'lı Pod'lardan trafik almasına izin ver; PostgreSQL'in 5432 portunda sadece API Pod'larından trafik almasına izin ver.
+        4. Uygula ve kanıtla: label'sız bir Pod API'yi çağıramaz (zaman aşımı), label'lı olan çağırabilir ve hiçbir Pod PostgreSQL'e doğrudan ulaşamaz.
+        5. Image'ı tara. Trivy resmi image'ından çalışır ve image'ı dosya olarak ister. Komut, düzeltmesi olan HIGH ve CRITICAL sorunları listeler. Temel image'daki bulgular her hafta değişir: `docker build --pull` ile yeniden build et ve tekrar tara. (Trivy ilk çalışmada zafiyet veritabanını indirir, bu yüzden internet gerekir.)
+    code:
+      - file: k8s/rbac/deployer.yaml
+        lang: yaml
+        text: |
+          apiVersion: v1
+          kind: ServiceAccount
+          metadata:
+            name: deployer
+          ---
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: Role
+          metadata:
+            name: deployer
+          rules:
+            - apiGroups: ["apps"]
+              resources: ["deployments"]
+              verbs: ["get", "list", "watch", "patch", "update"]
+            - apiGroups: ["apps"]
+              resources: ["replicasets"]
+              verbs: ["get", "list", "watch"]
+            - apiGroups: [""]
+              resources: ["pods"]
+              verbs: ["get", "list", "watch"]
+          ---
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: RoleBinding
+          metadata:
+            name: deployer
+          subjects:
+            - kind: ServiceAccount
+              name: deployer
+          roleRef:
+            kind: Role
+            name: deployer
+            apiGroup: rbac.authorization.k8s.io
+      - file: k8s/base/networkpolicy.yaml
+        lang: yaml
+        text: |
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: default-deny-ingress
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+          ---
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: api-allow-clients
+          spec:
+            podSelector:
+              matchLabels:
+                app: api
+            policyTypes:
+              - Ingress
+            ingress:
+              - from:
+                  - namespaceSelector:
+                      matchLabels:
+                        kubernetes.io/metadata.name: envoy-gateway-system
+                  - podSelector:
+                      matchLabels:
+                        role: api-client
+                ports:
+                  - port: 3000
+          ---
+          apiVersion: networking.k8s.io/v1
+          kind: NetworkPolicy
+          metadata:
+            name: postgres-allow-api
+          spec:
+            podSelector:
+              matchLabels:
+                app: postgres
+            policyTypes:
+              - Ingress
+            ingress:
+              - from:
+                  - podSelector:
+                      matchLabels:
+                        app: api
+                ports:
+                  - port: 5432
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -n notes -f k8s/rbac/deployer.yaml
+          kubectl auth can-i patch deployments -n notes --as=system:serviceaccount:notes:deployer
+          kubectl auth can-i delete pods -n notes --as=system:serviceaccount:notes:deployer
+          kubectl auth can-i get secrets -n notes --as=system:serviceaccount:notes:deployer
+
+          kubectl apply -n notes -f k8s/base/networkpolicy.yaml
+          # no label: this must time out
+          kubectl run probe-a --rm -i --restart=Never --image=busybox:1.37 -n notes -- \
+            wget -q -T 3 -O- http://api/health
+          # with the label: this works
+          kubectl run probe-b --rm -i --restart=Never --image=busybox:1.37 -n notes \
+            --labels=role=api-client -- wget -q -T 3 -O- http://api/health
+
+          docker save notes-api:1.4 -o notes-api.tar
+          docker run --rm -v "$PWD:/work:ro" aquasec/trivy:latest image \
+            --input /work/notes-api.tar --severity HIGH,CRITICAL --ignore-unfixed
+    mistakes:
+      - problem:
+          en: "A NetworkPolicy seems to do nothing."
+          tr: "NetworkPolicy hiçbir şey yapmıyor gibi."
+        fix:
+          en: "The network plugin must enforce policies; the object is accepted by the API either way. On kind it works out of the box. Also check that your labels match, with `kubectl get pods --show-labels`."
+          tr: "Ağ eklentisi politikaları uygulamalı; nesne API tarafından her halükarda kabul edilir. kind'da kutudan çıktığı gibi çalışır. Ayrıca label'larının eşleştiğini `kubectl get pods --show-labels` ile kontrol et."
+      - problem:
+          en: "Giving `cluster-admin` to a CI service account 'to make it work'."
+          tr: "Bir CI service account'una 'çalışsın diye' `cluster-admin` vermek."
+        fix:
+          en: "Write a small Role like `deployer` above. A leaked cluster-admin token controls the whole cluster."
+          tr: "Yukarıdaki `deployer` gibi küçük bir Role yaz. Sızan bir cluster-admin token'ı bütün cluster'ı yönetir."
+    quiz:
+      - q:
+          en: "With only the `default-deny-ingress` policy applied, who can send traffic to the API Pods?"
+          tr: "Sadece `default-deny-ingress` politikası uygulandığında API Pod'larına kim trafik gönderebilir?"
+        options:
+          en: [Every Pod in the cluster, Nobody until another policy allows it, Only the Pods of the same Deployment]
+          tr: [Cluster'daki her Pod, Başka bir politika izin verene kadar hiç kimse, Sadece aynı Deployment'ın Pod'ları]
+        answer: 1
+        why:
+          en: "Once a Pod is selected by a policy for Ingress, only traffic that some policy allows is accepted."
+          tr: "Bir Pod Ingress için bir politika tarafından seçildiğinde, sadece bir politikanın izin verdiği trafik kabul edilir."
+    sources:
+      - title: Using RBAC authorization
+        url: https://kubernetes.io/docs/reference/access-authn-authz/rbac/
+      - title: Network Policies
+        url: https://kubernetes.io/docs/concepts/services-networking/network-policies/
+      - title: Trivy, scanning container images
+        url: https://trivy.dev/latest/docs/target/container_image/
+
+  - id: hpa
+    stage: performance
+    title:
+      en: "Autoscale the API with a HorizontalPodAutoscaler"
+      tr: "API'yi HorizontalPodAutoscaler ile otomatik ölçekleme"
+    minutes: 40
+    needs: [rbac-netpol]
+    why:
+      en: "Traffic changes during the day. An autoscaler adds Pods when CPU use is high and removes them when it is low, so you pay for what you use."
+      tr: "Trafik gün içinde değişir. Autoscaler CPU kullanımı yüksekken Pod ekler, düşükken çıkarır; böylece kullandığın kadar ödersin."
+    learn:
+      en: |
+        - The HorizontalPodAutoscaler (HPA) compares measured CPU with the CPU `request` of the Pods
+        - It needs metrics-server to measure; most clusters do not have it by default
+        - Do not set `replicas` by hand on a Deployment that an HPA manages
+        - `kubectl top` shows current CPU and memory
+      tr: |
+        - HorizontalPodAutoscaler (HPA) ölçülen CPU'yu Pod'ların CPU `request` değeriyle karşılaştırır
+        - Ölçmek için metrics-server gerekir; çoğu cluster'da varsayılan olarak yoktur
+        - Bir HPA'nın yönettiği Deployment'ta `replicas`'ı elle ayarlama
+        - `kubectl top` anlık CPU ve belleği gösterir
+    do:
+      en: |
+        1. Install metrics-server from the project's release manifest. On kind the kubelets use self-signed certificates, so add the `--kubelet-insecure-tls` flag. Do that only on a local practice cluster; real clusters do not need it.
+        2. Wait for it, then run `kubectl top pods`. It can take a minute before numbers appear.
+        3. Create `k8s/base/hpa.yaml` with the file below: keep between 2 and 5 Pods, aim at 70% of the CPU request (50m, so about 35m per Pod).
+        4. Apply it. `kubectl get hpa` shows current and target use.
+        5. Create load from inside the cluster with a Pod that carries the `role: api-client` label (the NetworkPolicy lets it in). Watch `kubectl get hpa -w` in another terminal. When the load is heavy enough, `REPLICAS` goes up; after you stop the load it goes down again, slowly (a few minutes), on purpose.
+        6. Stop the load with Ctrl+C. Because the HPA now owns the replica count, remove the `replicas:` line from `api.yaml` so a later apply does not fight it. (The fine print is in the autoscaling docs.)
+      tr: |
+        1. metrics-server'ı projenin release manifest'inden kur. kind'da kubelet'ler self-signed sertifika kullanır, bu yüzden `--kubelet-insecure-tls` flag'ini ekle. Bunu sadece yerel deneme cluster'ında yap; gerçek cluster'larda gerekmez.
+        2. Bekle ve `kubectl top pods` çalıştır. Sayıların görünmesi bir dakika sürebilir.
+        3. Aşağıdaki dosyayla `k8s/base/hpa.yaml` oluştur: 2 ile 5 Pod arasında tut, CPU request'inin %70'ini hedefle (50m, yani Pod başına yaklaşık 35m).
+        4. Uygula. `kubectl get hpa` mevcut ve hedef kullanımı gösterir.
+        5. Cluster içinden, `role: api-client` label'lı bir Pod ile yük oluştur (NetworkPolicy onu içeri alır). Başka bir terminalde `kubectl get hpa -w` izle. Yük yeterince ağırsa `REPLICAS` artar; yükü durdurunca yavaşça (birkaç dakika) ve bilerek tekrar düşer.
+        6. Yükü Ctrl+C ile durdur. Replica sayısı artık HPA'da olduğu için `api.yaml` içindeki `replicas:` satırını sil; böylece sonraki apply onunla kavga etmez. (Ayrıntılar ölçekleme dokümanında.)
+    code:
+      - file: k8s/base/hpa.yaml
+        lang: yaml
+        text: |
+          apiVersion: autoscaling/v2
+          kind: HorizontalPodAutoscaler
+          metadata:
+            name: api
+          spec:
+            scaleTargetRef:
+              apiVersion: apps/v1
+              kind: Deployment
+              name: api
+            minReplicas: 2
+            maxReplicas: 5
+            metrics:
+              - type: Resource
+                resource:
+                  name: cpu
+                  target:
+                    type: Utilization
+                    averageUtilization: 70
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+          # kind only: allow the self-signed kubelet certificates
+          kubectl patch -n kube-system deployment metrics-server --type=json \
+            -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+          kubectl rollout status -n kube-system deployment/metrics-server
+          kubectl top pods -n notes
+
+          kubectl apply -n notes -f k8s/base/hpa.yaml
+          kubectl get hpa -n notes
+
+          kubectl run load -n notes --rm -i --restart=Never --image=busybox:1.37 \
+            --labels=role=api-client -- /bin/sh -c 'while true; do wget -q -O- http://api/notes >/dev/null; done'
+    mistakes:
+      - problem:
+          en: "`kubectl get hpa` shows `<unknown>` for the CPU target."
+          tr: "`kubectl get hpa` CPU hedefi için `<unknown>` gösteriyor."
+        fix:
+          en: "Either metrics-server is missing or not ready (`kubectl top pods` fails), or the Pods have no CPU `requests`. Both are needed."
+          tr: "Ya metrics-server yok ya da hazır değil (`kubectl top pods` hata verir) ya da Pod'larda CPU `requests` yok. İkisi de gerekir."
+      - problem:
+          en: "Expecting the Pods to scale down immediately when the load stops."
+          tr: "Yük durunca Pod'ların hemen azalmasını beklemek."
+        fix:
+          en: "The autoscaler waits several minutes before scaling down (stabilization) to avoid flapping. This is normal."
+          tr: "Autoscaler, sürekli aç-kapa olmasın diye azaltmadan önce birkaç dakika bekler (stabilization). Bu normaldir."
+    quiz:
+      - q:
+          en: "Why must the Pods have a CPU request for a CPU-based HPA?"
+          tr: "CPU tabanlı bir HPA için Pod'ların neden CPU request'i olmalı?"
+        options:
+          en: [The request is the baseline the percentage is calculated from, It makes the Pods faster, It is only for the scheduler logs]
+          tr: [Yüzde değeri request üzerinden hesaplanır, Pod'ları hızlandırır, Sadece scheduler logları içindir]
+        answer: 0
+        why:
+          en: "'70% utilization' means 70% of the requested CPU. Without a request there is nothing to compare with."
+          tr: "'%70 kullanım', istenen CPU'nun %70'i demektir. Request yoksa karşılaştıracak bir şey yoktur."
+    sources:
+      - title: Horizontal Pod Autoscaling
+        url: https://kubernetes.io/docs/concepts/workloads/autoscaling/horizontal-pod-autoscale/
+      - title: HorizontalPodAutoscaler walkthrough
+        url: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale-walkthrough/
+      - title: metrics-server
+        url: https://github.com/kubernetes-sigs/metrics-server
+
+  - id: kustomize
+    stage: packaging
+    title:
+      en: "One base, many environments: Kustomize (and what Helm is)"
+      tr: "Tek temel, birçok ortam: Kustomize (ve Helm nedir)"
+    minutes: 40
+    needs: [hpa]
+    why:
+      en: "Your laptop and a real cluster need almost the same YAML with small differences (image name, replica count). Kustomize builds each environment from one base plus small patches, without copying files."
+      tr: "Laptopun ve gerçek bir cluster neredeyse aynı YAML'a, küçük farklarla (image adı, replica sayısı) ihtiyaç duyar. Kustomize her ortamı, dosyaları kopyalamadan, tek bir temelden ve küçük yamalardan üretir."
+    learn:
+      en: |
+        - A `kustomization.yaml` lists resources and changes: `namespace`, `images`, `patches`
+        - `kubectl kustomize <folder>` prints the result; `kubectl apply -k <folder>` applies it
+        - Helm is the other common tool: a *chart* is a package of templates, `helm install` creates a *release*. Use it to install other people's software (a database, a gateway); Kustomize is simpler for your own app
+        - Never keep two copies of the same YAML for two environments
+      tr: |
+        - `kustomization.yaml` kaynakları ve değişiklikleri listeler: `namespace`, `images`, `patches`
+        - `kubectl kustomize <klasör>` sonucu yazdırır; `kubectl apply -k <klasör>` uygular
+        - Helm diğer yaygın araçtır: *chart* şablonlardan oluşan bir pakettir, `helm install` bir *release* oluşturur. Başkalarının yazılımını (veritabanı, gateway) kurmak için kullan; kendi uygulaman için Kustomize daha basit
+        - Aynı YAML'ın iki ortam için iki kopyasını asla tutma
+    do:
+      en: |
+        1. Create `k8s/base/kustomization.yaml` listing the base files. The Secret and the namespace are not in it on purpose: the Secret is created outside Git, and the namespace is created once.
+        2. Create the two overlays: `local` (just the base in the `notes` namespace) and `prod` (a real registry image name and tag, and a higher maximum for the autoscaler).
+        3. Print what each overlay builds: `kubectl kustomize k8s/overlays/prod`. Find the `image:` line and the `maxReplicas`.
+        4. Apply the local overlay to your cluster: `kubectl apply -k k8s/overlays/local`. Nothing changes, because the base is already running. That is the point: the same state, described from one place.
+        5. Try Helm by reading: `helm template` prints the YAML of a chart without installing it, `helm install` installs it, `helm upgrade` changes it and `helm rollback` goes back. Envoy Gateway also installs with a Helm chart (see its quickstart).
+      tr: |
+        1. Temel dosyaları listeleyen `k8s/base/kustomization.yaml` oluştur. Secret ve namespace bilerek içinde yok: Secret Git dışında oluşturulur, namespace bir kez oluşturulur.
+        2. İki overlay oluştur: `local` (sadece `notes` namespace'inde temel) ve `prod` (gerçek bir registry image adı ve tag'i, ve autoscaler için daha yüksek bir üst sınır).
+        3. Her overlay'in neyi ürettiğini yazdır: `kubectl kustomize k8s/overlays/prod`. `image:` satırını ve `maxReplicas`'ı bul.
+        4. Local overlay'i cluster'ına uygula: `kubectl apply -k k8s/overlays/local`. Hiçbir şey değişmez, çünkü temel zaten çalışıyor. Mesele bu: aynı durum, tek yerden tarif edildi.
+        5. Helm'i okuyarak dene: `helm template` bir chart'ın YAML'ını kurmadan yazdırır, `helm install` kurar, `helm upgrade` değiştirir ve `helm rollback` geri alır. Envoy Gateway de bir Helm chart'ıyla kurulur (quickstart'ına bak).
+    code:
+      - file: k8s/base/kustomization.yaml
+        lang: yaml
+        text: |
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - configmap.yaml
+            - postgres.yaml
+            - api.yaml
+            - hpa.yaml
+            - networkpolicy.yaml
+      - file: k8s/overlays/local/kustomization.yaml
+        lang: yaml
+        text: |
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - ../../base
+          namespace: notes
+      - file: k8s/overlays/prod/kustomization.yaml
+        lang: yaml
+        text: |
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          resources:
+            - ../../base
+          namespace: notes
+          images:
+            - name: notes-api
+              newName: ghcr.io/your-user/notes-api
+              newTag: "1.4"
+          patches:
+            - target:
+                kind: HorizontalPodAutoscaler
+                name: api
+              patch: |-
+                - op: replace
+                  path: /spec/maxReplicas
+                  value: 10
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl kustomize k8s/overlays/local
+          kubectl kustomize k8s/overlays/prod | grep -E "image:|maxReplicas"
+          kubectl apply -k k8s/overlays/local
+    mistakes:
+      - problem:
+          en: "`images:` in the overlay does nothing."
+          tr: "Overlay'deki `images:` hiçbir şey yapmıyor."
+        fix:
+          en: "`name` must be the image name exactly as written in the base (here `notes-api`, without the tag). Then `newName` and `newTag` replace it."
+          tr: "`name`, temelde yazıldığı gibi image adı olmalı (burada tag'siz `notes-api`). O zaman `newName` ve `newTag` onu değiştirir."
+      - problem:
+          en: "Putting the real Secret into the base."
+          tr: "Gerçek Secret'ı temele koymak."
+        fix:
+          en: "Keep Secrets out of Git. Create them with `kubectl create secret`, or use a tool made for it (sealed secrets, an external secrets operator, your cloud's secret manager)."
+          tr: "Secret'ları Git dışında tut. `kubectl create secret` ile oluştur ya da bunun için yapılmış bir araç kullan (sealed secrets, external secrets operator, bulutunun secret manager'ı)."
+    quiz:
+      - q:
+          en: "What does `kubectl apply -k folder` do?"
+          tr: "`kubectl apply -k klasör` ne yapar?"
+        options:
+          en: [Builds the Kustomize result of the folder and applies it, Installs a Helm chart, Deletes the folder]
+          tr: [Klasörün Kustomize sonucunu üretir ve uygular, Bir Helm chart'ı kurar, Klasörü siler]
+        answer: 0
+        why:
+          en: "`-k` means Kustomize; it is the same as building with `kubectl kustomize` and applying the output."
+          tr: "`-k` Kustomize demektir; `kubectl kustomize` ile üretip çıktıyı uygulamakla aynıdır."
+    sources:
+      - title: Declarative management with Kustomize
+        url: https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+      - title: Helm, using Helm
+        url: https://helm.sh/docs/intro/using_helm/
+      - title: Helm, quickstart
+        url: https://helm.sh/docs/intro/quickstart/
+
+  - id: real-cluster
+    stage: deploy
+    title:
+      en: "A real cluster: honest options and how to ship"
+      tr: "Gerçek bir cluster: dürüst seçenekler ve yayına alma"
+    minutes: 60
+    needs: [kustomize]
+    why:
+      en: "A kind cluster dies with your laptop. To serve real users you need a cluster that runs all the time. No managed Kubernetes is fully free, so this step is about choosing with open eyes."
+      tr: "kind cluster'ı laptopunla birlikte ölür. Gerçek kullanıcılara hizmet vermek için sürekli çalışan bir cluster gerekir. Hiçbir yönetilen Kubernetes tamamen ücretsiz değildir; bu adım gözü açık seçim yapmakla ilgili."
+    learn:
+      en: |
+        - Managed Kubernetes (GKE, EKS, AKS, DigitalOcean and others) runs the control plane for you, but you pay for worker machines and load balancers. GKE has a free tier of monthly credit that covers the management fee of one zonal or Autopilot cluster, not the machines
+        - A cheap and honest path: install K3s (a small Kubernetes) on one small server; the K3s docs list 2 CPU cores and 2 GB RAM for a server node
+        - Oracle Cloud lists Arm Ampere A1 compute as Always Free, a possible place for a K3s node; capacity and sign-up rules change, so check their page
+        - Images must be in a registry the cluster can pull from, such as ghcr.io
+        - Many people never need a real cluster for learning: kind is enough
+      tr: |
+        - Yönetilen Kubernetes (GKE, EKS, AKS, DigitalOcean ve diğerleri) control plane'i senin yerine çalıştırır ama worker makineler ve load balancer'lar için ödersin. GKE'nin aylık kredi veren bir ücretsiz katmanı var; bu kredi bir zonal ya da Autopilot cluster'ın yönetim ücretini karşılar, makineleri değil
+        - Ucuz ve dürüst bir yol: tek bir küçük sunucuya K3s (küçük bir Kubernetes) kur; K3s dokümanı server node için 2 CPU çekirdeği ve 2 GB RAM yazıyor
+        - Oracle Cloud, Arm Ampere A1 hesaplamayı Always Free listeliyor; bir K3s node'u için olası bir yer. Kapasite ve kayıt kuralları değişir, sayfalarına bak
+        - Image'lar cluster'ın çekebileceği bir registry'de olmalı, örneğin ghcr.io
+        - Öğrenmek için birçok kişinin gerçek bir cluster'a hiç ihtiyacı olmaz: kind yeter
+    do:
+      en: |
+        1. Push the image to GitHub Container Registry as in the Docker roadmap (`ghcr.io/your-user/notes-api:1.4`, user name in lower case). For a first try make the package public so the cluster needs no pull credentials; for a private package create an `imagePullSecret` and set it on the Pod (see the docs).
+        2. Choose the cluster. Cheapest path to try: a small VPS or an Always Free Arm instance running Ubuntu. Install K3s with its install script (it also installs `kubectl`). K3s ships with Traefik and a built-in load balancer; for this roadmap you can use your Gateway, but a simpler first test is a `port-forward` over SSH.
+        3. Get the kubeconfig: copy `/etc/rancher/k3s/k3s.yaml` from the server to your computer as `~/.kube/config`, and change the `server:` line to the server's address. Check with `kubectl get nodes`. Protect this file: it is a full administrator.
+        4. In `k8s/overlays/prod/kustomization.yaml` set your real image name. Create the namespace, then the Secret, then apply the prod overlay. Install the Gateway API pieces from the Gateway step only if you want to use them; K3s's own docs describe turning on Gateway support in its bundled Traefik.
+        5. Watch it come up and test it with a port-forward. Then plan: a domain name, TLS certificates (cert-manager is the standard tool), backups of the database volume and a monitoring setup.
+        6. Switch kubectl back to the practice cluster when you are done (`kubectl config use-context kind-notes`) and delete the server if you no longer need it, so you are not billed.
+      tr: |
+        1. Image'ı Docker yol haritasındaki gibi GitHub Container Registry'ye gönder (`ghcr.io/kullanici-adin/notes-api:1.4`, kullanıcı adı küçük harf). İlk denemede paketi herkese açık yap ki cluster'ın çekme kimlik bilgisine ihtiyacı olmasın; özel paket için bir `imagePullSecret` oluştur ve Pod'a ver (dokümana bak).
+        2. Cluster'ı seç. Denemek için en ucuz yol: Ubuntu çalışan küçük bir VPS ya da Always Free bir Arm instance. K3s'i kurulum script'iyle kur (`kubectl`'i de kurar). K3s Traefik ve yerleşik bir load balancer ile gelir; bu yol haritası için Gateway'ini kullanabilirsin ama daha basit bir ilk test SSH üzerinden `port-forward`'dır.
+        3. kubeconfig'i al: `/etc/rancher/k3s/k3s.yaml` dosyasını sunucudan bilgisayarına `~/.kube/config` olarak kopyala ve `server:` satırını sunucunun adresiyle değiştir. `kubectl get nodes` ile kontrol et. Bu dosyayı koru: tam yetkili bir yöneticidir.
+        4. `k8s/overlays/prod/kustomization.yaml` içine gerçek image adını yaz. Önce namespace'i, sonra Secret'ı oluştur, sonra prod overlay'i uygula. Gateway adımındaki Gateway API parçalarını sadece kullanmak istersen kur; K3s'in kendi dokümanı, yerleşik Traefik'inde Gateway desteğinin açılmasını anlatır.
+        5. Ayağa kalkışını izle ve bir port-forward ile test et. Sonra planla: alan adı, TLS sertifikaları (standart araç cert-manager), veritabanı volume'unun yedekleri ve bir izleme düzeni.
+        6. İşin bitince kubectl'i deneme cluster'ına geri al (`kubectl config use-context kind-notes`) ve artık gerekmiyorsa sunucuyu sil; böylece fatura gelmez.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          # build and push (see the Docker roadmap for the login)
+          docker tag notes-api:1.4 ghcr.io/your-user/notes-api:1.4
+          docker push ghcr.io/your-user/notes-api:1.4
+
+          # on the server (Ubuntu): install K3s
+          curl -sfL https://get.k3s.io | sh -
+          sudo k3s kubectl get nodes
+
+          # on your computer, after copying the kubeconfig
+          kubectl get nodes
+          kubectl apply -f k8s/namespace.yaml
+          kubectl create secret generic db-credentials -n notes \
+            --from-literal=POSTGRES_PASSWORD="$(openssl rand -hex 16)"
+          kubectl apply -k k8s/overlays/prod
+          kubectl rollout status deployment/api -n notes
+    mistakes:
+      - problem:
+          en: "Leaving a managed cluster or a VM running after the experiment."
+          tr: "Deneyden sonra yönetilen bir cluster'ı ya da bir VM'i açık bırakmak."
+        fix:
+          en: "Delete the cluster and its load balancers and disks, then check the billing page. Set a budget alert before you start."
+          tr: "Cluster'ı, load balancer'ları ve diskleri sil, sonra faturalama sayfasına bak. Başlamadan önce bir bütçe uyarısı kur."
+      - problem:
+          en: "Pods in `ImagePullBackOff` on the real cluster for a private image."
+          tr: "Özel bir image için gerçek cluster'da Pod'lar `ImagePullBackOff` durumunda."
+        fix:
+          en: "Make the package public, or create a registry Secret with `kubectl create secret docker-registry` and set `imagePullSecrets` in the Pod template."
+          tr: "Paketi herkese açık yap ya da `kubectl create secret docker-registry` ile bir registry Secret'ı oluştur ve Pod template'inde `imagePullSecrets` ayarla."
+    quiz:
+      - q:
+          en: "Which statement about 'free Kubernetes' is true?"
+          tr: "'Ücretsiz Kubernetes' hakkında hangisi doğru?"
+        options:
+          en: [Every cloud gives a full free cluster, A local cluster is free and managed clouds mostly charge for machines and load balancers, Kubernetes cannot run on a single small server]
+          tr: [Her bulut tam ücretsiz bir cluster verir, Yerel cluster ücretsizdir; yönetilen bulutlar çoğunlukla makineler ve load balancer'lar için ücret alır, Kubernetes tek bir küçük sunucuda çalışamaz]
+        answer: 1
+        why:
+          en: "Free tiers and credits exist but are limited. K3s runs on one small server, and kind runs free on your computer."
+          tr: "Ücretsiz katmanlar ve krediler var ama sınırlı. K3s tek bir küçük sunucuda çalışır, kind da bilgisayarında ücretsiz çalışır."
+    sources:
+      - title: K3s quick start
+        url: https://docs.k3s.io/quick-start
+      - title: K3s requirements
+        url: https://docs.k3s.io/installation/requirements
+      - title: GKE pricing, free tier
+        url: https://cloud.google.com/kubernetes-engine/pricing
+      - title: Pull an image from a private registry
+        url: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+
+  - id: debugging
+    stage: monitoring
+    title:
+      en: "Logs, events, metrics and debugging"
+      tr: "Loglar, olaylar, metrikler ve hata ayıklama"
+    minutes: 45
+    needs: [real-cluster]
+    why:
+      en: "Things will break. A fixed routine for reading what the cluster says finds most problems in minutes."
+      tr: "Bir şeyler bozulacak. Cluster'ın söylediklerini okumak için sabit bir rutin, çoğu sorunu dakikalar içinde bulur."
+    learn:
+      en: |
+        - The debugging order: `get` (what state?), `describe` (what events?), `logs` (what did the app say?), then `exec` or `port-forward`
+        - Common states: `Pending` (cannot be placed), `ImagePullBackOff` (image), `CrashLoopBackOff` (app crashes), `CreateContainerConfigError` (missing ConfigMap or Secret), `OOMKilled` (memory limit)
+        - `kubectl logs --previous` shows the run before the last crash
+        - `kubectl top` shows live resource use; for history and alerts you add a monitoring stack
+      tr: |
+        - Hata ayıklama sırası: `get` (durum ne?), `describe` (hangi olaylar?), `logs` (uygulama ne dedi?), sonra `exec` ya da `port-forward`
+        - Yaygın durumlar: `Pending` (yerleştirilemiyor), `ImagePullBackOff` (image), `CrashLoopBackOff` (uygulama çöküyor), `CreateContainerConfigError` (eksik ConfigMap ya da Secret), `OOMKilled` (bellek sınırı)
+        - `kubectl logs --previous` son çökmeden önceki çalışmayı gösterir
+        - `kubectl top` canlı kaynak kullanımını gösterir; geçmiş ve alarmlar için bir izleme stack'i eklersin
+    do:
+      en: |
+        1. Switch to your practice cluster and look at the whole namespace: `kubectl get all -n notes`.
+        2. Follow the logs of all API Pods at once: `kubectl logs -f -l app=api -n notes --tail 20`. Call the API from another terminal and see the lines appear. Add `--previous` to a crashed Pod to read the crash.
+        3. Break it on purpose, then fix it. Change the Secret name in the Deployment to `db-credential` (a typo) and apply. Run `kubectl get pods`, find `CreateContainerConfigError`, then read the reason with `kubectl describe pod`. Fix the typo.
+        4. Break something else: in the ConfigMap set `DB_HOST` to `postgress`, restart the API (`kubectl rollout restart deployment/api`). Pods stay not ready; the logs show `getaddrinfo ENOTFOUND`. Fix and restart.
+        5. List recent events of the whole namespace in time order, and check live use with `kubectl top`.
+        6. Open a shell in a Pod to look around, and use a temporary debug container if the image has no shell. Our API image is Alpine, so `sh` is there.
+      tr: |
+        1. Deneme cluster'ına geç ve tüm namespace'e bak: `kubectl get all -n notes`.
+        2. Bütün API Pod'larının loglarını aynı anda izle: `kubectl logs -f -l app=api -n notes --tail 20`. Başka bir terminalden API'yi çağır ve satırların geldiğini gör. Çöken bir Pod'da çökmeyi okumak için `--previous` ekle.
+        3. Bilerek boz, sonra düzelt. Deployment'taki Secret adını `db-credential` yap (yazım hatası) ve uygula. `kubectl get pods` çalıştır, `CreateContainerConfigError`'u bul ve nedenini `kubectl describe pod` ile oku. Yazım hatasını düzelt.
+        4. Başka bir şeyi boz: ConfigMap'te `DB_HOST`'u `postgress` yap, API'yi yeniden başlat (`kubectl rollout restart deployment/api`). Pod'lar hazır olmaz; loglarda `getaddrinfo ENOTFOUND` görünür. Düzelt ve yeniden başlat.
+        5. Namespace'in son olaylarını zaman sırasıyla listele ve canlı kullanımı `kubectl top` ile kontrol et.
+        6. Etrafa bakmak için bir Pod'da shell aç; image'da shell yoksa geçici bir debug container kullan. Bizim API image'ı Alpine, yani `sh` var.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl config use-context kind-notes
+          kubectl get all -n notes
+
+          kubectl logs -f -l app=api -n notes --tail 20
+          kubectl logs <pod-name> -n notes --previous
+
+          kubectl get pods -n notes
+          kubectl describe pod <pod-name> -n notes
+
+          kubectl get events -n notes --sort-by=.metadata.creationTimestamp
+          kubectl top pods -n notes
+
+          kubectl exec -it deploy/api -n notes -- sh
+          kubectl debug -it <pod-name> -n notes --image=busybox:1.37 --target=api
+    mistakes:
+      - problem:
+          en: "`kubectl logs` of a crash-looping Pod is empty or shows only the start."
+          tr: "Sürekli çöken bir Pod'un `kubectl logs` çıktısı boş ya da sadece başlangıcı gösteriyor."
+        fix:
+          en: "The crash is in the previous run. Add `--previous`. Also look at the exit code and reason in `describe`."
+          tr: "Çökme önceki çalışmada. `--previous` ekle. Ayrıca `describe` içinde çıkış kodu ve nedene bak."
+      - problem:
+          en: "`kubectl top` says `Metrics API not available`."
+          tr: "`kubectl top` `Metrics API not available` diyor."
+        fix:
+          en: "metrics-server is not installed or not ready yet. Install it (autoscaling step) and wait a minute."
+          tr: "metrics-server kurulu değil ya da henüz hazır değil. Kur (ölçekleme adımı) ve bir dakika bekle."
+    quiz:
+      - q:
+          en: "A Pod shows `CrashLoopBackOff`. What is the best first command?"
+          tr: "Bir Pod `CrashLoopBackOff` gösteriyor. En iyi ilk komut hangisi?"
+        options:
+          en: [kubectl logs <pod> --previous, kubectl delete namespace notes, kind delete cluster]
+          tr: [kubectl logs <pod> --previous, kubectl delete namespace notes, kind delete cluster]
+        answer: 0
+        why:
+          en: "The log of the previous run holds the error that made the container exit. Deleting things destroys the evidence."
+          tr: "Önceki çalışmanın logu, container'ın çıkmasına neden olan hatayı içerir. Bir şeyleri silmek kanıtı yok eder."
+    sources:
+      - title: Debug Pods
+        url: https://kubernetes.io/docs/tasks/debug/debug-application/debug-pods/
+      - title: kubectl logs
+        url: https://kubernetes.io/docs/reference/kubectl/generated/kubectl_logs/
+      - title: Debug running Pods
+        url: https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/
+
+  - id: next
+    stage: advanced
+    title:
+      en: "Clean up, and where to go next"
+      tr: "Temizlik ve sonraki adımlar"
+    minutes: 25
+    needs: [debugging]
+    why:
+      en: "A tidy cluster is easier to learn on, and you now know the map: what else exists, and when you really need it."
+      tr: "Derli toplu bir cluster üzerinde öğrenmek daha kolay; ve artık haritayı biliyorsun: başka neler var ve ne zaman gerçekten gerekir."
+    learn:
+      en: |
+        - How to delete everything you made, in the right order
+        - GitOps: keeping the cluster in sync with a Git repository (Argo CD or Flux) instead of running `kubectl apply` by hand
+        - Operators and managed databases for production PostgreSQL (backups, failover)
+        - Observability: Prometheus and Grafana for metrics, a log collector for central logs
+        - Useful limits: ResourceQuota and LimitRange per namespace, PodDisruptionBudget for safe node maintenance
+        - When to stop: if a managed platform serves your app, Kubernetes is optional
+      tr: |
+        - Yaptığın her şeyi doğru sırayla nasıl silersin
+        - GitOps: cluster'ı elle `kubectl apply` çalıştırmak yerine bir Git repository'siyle senkron tutmak (Argo CD ya da Flux)
+        - Production PostgreSQL için operator'lar ve yönetilen veritabanları (yedek, failover)
+        - Gözlemlenebilirlik: metrikler için Prometheus ve Grafana, merkezi loglar için bir log toplayıcı
+        - Faydalı sınırlar: namespace başına ResourceQuota ve LimitRange, güvenli node bakımı için PodDisruptionBudget
+        - Ne zaman durmalı: yönetilen bir platform uygulamanı sunuyorsa Kubernetes isteğe bağlıdır
+    do:
+      en: |
+        1. Delete the namespace. This removes everything inside it: Deployment, Pods, Service, StatefulSet, ConfigMap, Secret, HPA, policies and the PVC with the data. The PVC is deleted too, so the notes are gone.
+        2. Remove the Gateway controller (it lives in its own namespace) and the cluster-wide GatewayClass if you do not need them.
+        3. Delete the whole practice cluster. `kind get clusters` lists them. A new one takes about a minute, so tear it down freely.
+        4. Remove the loaded image tars and build cache you created: `docker image prune` and `rm notes-api.tar`.
+        5. Write down your own next steps: for example try a `Job` and a `CronJob`, add cert-manager and a domain, replace the in-cluster database with a managed one, or try Argo CD.
+      tr: |
+        1. Namespace'i sil. İçindeki her şeyi kaldırır: Deployment, Pod'lar, Service, StatefulSet, ConfigMap, Secret, HPA, politikalar ve veriyle birlikte PVC. PVC de silinir, yani notlar gider.
+        2. Gerekmiyorsa Gateway controller'ını (kendi namespace'inde) ve cluster çapındaki GatewayClass'ı kaldır.
+        3. Bütün deneme cluster'ını sil. `kind get clusters` onları listeler. Yenisi yaklaşık bir dakika sürer, bu yüzden rahatça yık.
+        4. Oluşturduğun tar dosyalarını ve build cache'ini temizle: `docker image prune` ve `rm notes-api.tar`.
+        5. Kendi sonraki adımlarını yaz: örneğin bir `Job` ve `CronJob` dene, cert-manager ve bir alan adı ekle, cluster içi veritabanını yönetilen biriyle değiştir ya da Argo CD dene.
+    code:
+      - file: terminal
+        lang: sh
+        text: |
+          kubectl delete namespace notes
+          kubectl delete gatewayclass eg
+          kubectl delete -f https://github.com/envoyproxy/gateway/releases/download/v1.9.2/install.yaml --ignore-not-found
+
+          kind get clusters
+          kind delete cluster --name notes
+
+          docker image prune
+          rm -f notes-api.tar
+    mistakes:
+      - problem:
+          en: "Deleting a namespace to remove one thing."
+          tr: "Tek bir şeyi kaldırmak için namespace'i silmek."
+        fix:
+          en: "Everything in the namespace goes with it, data included. Delete the one object (`kubectl delete deployment api -n notes`)."
+          tr: "Namespace'teki her şey, veri dahil, onunla gider. Tek nesneyi sil (`kubectl delete deployment api -n notes`)."
+      - problem:
+          en: "Running `kubectl delete` while the context points to a production cluster."
+          tr: "Context bir production cluster'ı gösterirken `kubectl delete` çalıştırmak."
+        fix:
+          en: "Run `kubectl config current-context` first, every time. Many teams show the context in their shell prompt."
+          tr: "Her seferinde önce `kubectl config current-context` çalıştır. Birçok ekip context'i shell prompt'unda gösterir."
+    quiz:
+      - q:
+          en: "What happens to the database data when you delete the `notes` namespace?"
+          tr: "`notes` namespace'ini silince veritabanı verisine ne olur?"
+        options:
+          en: [It stays on the node forever, It is deleted with the PVC (on kind and most clusters), It moves to the default namespace]
+          tr: [Node'da sonsuza dek kalır, PVC ile birlikte silinir (kind'da ve çoğu cluster'da), default namespace'e taşınır]
+        answer: 1
+        why:
+          en: "The PVC lives in the namespace and the default reclaim policy of dynamic volumes is Delete, so the disk goes too. Back up what matters first."
+          tr: "PVC namespace içinde yaşar ve dinamik volume'ların varsayılan reclaim politikası Delete'tir; disk de gider. Önemli olanı önce yedekle."
+    sources:
+      - title: Kubernetes documentation
+        url: https://kubernetes.io/docs/home/
+      - title: Resource Quotas
+        url: https://kubernetes.io/docs/concepts/policy/resource-quotas/
+      - title: Pod disruption budgets
+        url: https://kubernetes.io/docs/tasks/run-application/configure-pdb/
