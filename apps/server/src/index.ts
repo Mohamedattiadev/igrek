@@ -109,7 +109,14 @@ import { Retention } from "./retention";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
 import { Sealer } from "./seal";
-import { hasValidSession, isAllowedHost, isAllowedOrigin, loadSessionToken, SESSION_COOKIE } from "./security";
+import {
+  hasValidSession,
+  isAllowedHost,
+  isAllowedOrigin,
+  loadSessionToken,
+  OLD_SESSION_COOKIE,
+  SESSION_COOKIE,
+} from "./security";
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
@@ -287,7 +294,7 @@ const personaChat = connectPersonaChats(
   {
     command: process.execPath,
     args: [join(import.meta.dir, "mcp.ts")],
-    env: { GODEYE_PORT: String(config.publicPort), GODEYE_HOME: config.dataDir },
+    env: { IGREK_PORT: String(config.publicPort), IGREK_HOME: config.dataDir },
   },
 );
 const enhancer = new Enhancer(
@@ -553,28 +560,28 @@ const app = createApp({
       worktreeDir: join(config.dataDir, "worktrees"),
       persona: personaChat,
       richUi: () => (readSettings(db).richAnswers ? reportUiHint() : undefined),
-      godeyeMcp: {
+      igrekMcp: {
         // Read when a chat starts: God Eye's own tools plus the user's enabled MCP servers.
         get config() {
           return JSON.stringify({
             mcpServers: {
               ...mcpServers.config(),
-              godeye: {
+              igrek: {
                 command: process.execPath,
                 args: [join(import.meta.dir, "mcp.ts")],
-                env: { GODEYE_PORT: String(config.publicPort), GODEYE_HOME: config.dataDir },
+                env: { IGREK_PORT: String(config.publicPort), IGREK_HOME: config.dataDir },
               },
             },
           });
         },
         // Reading God Eye and proposing a schedule need no prompt; a proposal still waits for the user's OK in God Eye.
         allow: [
-          "mcp__godeye__godeye_project_memory",
-          "mcp__godeye__godeye_search",
-          "mcp__godeye__godeye_recent_sessions",
-          "mcp__godeye__library_search",
-          "mcp__godeye__godeye_lessons",
-          "mcp__godeye__godeye_schedule",
+          "mcp__igrek__igrek_project_memory",
+          "mcp__igrek__igrek_search",
+          "mcp__igrek__igrek_recent_sessions",
+          "mcp__igrek__library_search",
+          "mcp__igrek__igrek_lessons",
+          "mcp__igrek__igrek_schedule",
         ],
       },
     });
@@ -801,7 +808,8 @@ type SocketData = { unsubscribe?: () => void; terminal?: string; chat?: string; 
 
 function cookieFrom(req: Request): string | undefined {
   // Same parser Hono's getCookie uses, so WebSocket and HTTP auth agree.
-  return parse(req.headers.get("cookie") ?? "", SESSION_COOKIE)[SESSION_COOKIE];
+  const cookies = parse(req.headers.get("cookie") ?? "");
+  return cookies[SESSION_COOKIE] ?? cookies[OLD_SESSION_COOKIE];
 }
 
 const server = Bun.serve<SocketData>({

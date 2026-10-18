@@ -7,7 +7,7 @@ import { Plugins, readManifest, shellLine } from "./plugins";
 
 function pluginDir(manifest: object, files: Record<string, string> = {}) {
   const dir = mkdtempSync(join(tmpdir(), "godeye-plugin-"));
-  writeFileSync(join(dir, "godeye-plugin.json"), JSON.stringify(manifest));
+  writeFileSync(join(dir, "igrek-plugin.json"), JSON.stringify(manifest));
   for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
   return dir;
 }

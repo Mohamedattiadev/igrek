@@ -5,7 +5,9 @@ import type { MiddlewareHandler } from "hono";
 import { getCookie, setCookie } from "hono/cookie";
 import type { Config } from "./config";
 
-export const SESSION_COOKIE = "godeye_session";
+export const SESSION_COOKIE = "igrek_session";
+/** The cookie name before the rename; git hooks installed back then still send it. */
+export const OLD_SESSION_COOKIE = "godeye_session";
 
 /** Loads the per-install session secret, creating it (mode 600) on first run. */
 export function loadSessionToken(dataDir: string): string {
@@ -65,7 +67,7 @@ export function securityMiddleware(config: Config, token: string): MiddlewareHan
       return next();
     }
     if (PUBLIC_API.has(path)) return next();
-    if (!hasValidSession(getCookie(c, SESSION_COOKIE), token)) {
+    if (!hasValidSession(getCookie(c, SESSION_COOKIE) ?? getCookie(c, OLD_SESSION_COOKIE), token)) {
       return c.json({ error: "Not signed in" }, 401);
     }
     return next();

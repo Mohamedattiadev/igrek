@@ -24,7 +24,7 @@ describe("retention and network log", () => {
         .run(`m-${id}`, id, now);
     }
     mkdirSync(join(dir, "worktrees", "flow-gone"), { recursive: true });
-    writeFileSync(join(dir, "godeye.db"), "");
+    writeFileSync(join(dir, "igrek.db"), "");
     const flows = { list: () => [] } as never;
     const r = new Retention(sqlite, dir, flows, () => now + 2 * 86_400_000);
     expect(r.usage(30).prunable).toBe(1);

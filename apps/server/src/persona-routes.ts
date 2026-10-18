@@ -207,12 +207,8 @@ export function connectPersonaChats(
         maxTurns: persona.maxTurns,
         ...(mcp
           ? {
-              mcpConfig: JSON.stringify({ mcpServers: { godeye: mcp } }),
-              allowTools: [
-                "mcp__godeye__library_search",
-                "mcp__godeye__godeye_project_memory",
-                "mcp__godeye__godeye_wiki",
-              ],
+              mcpConfig: JSON.stringify({ mcpServers: { igrek: mcp } }),
+              allowTools: ["mcp__igrek__library_search", "mcp__igrek__igrek_project_memory", "mcp__igrek__igrek_wiki"],
             }
           : {}),
       },

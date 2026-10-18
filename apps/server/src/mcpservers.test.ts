@@ -8,8 +8,8 @@ import { Sealer } from "./seal";
 
 describe("MCP servers", () => {
   test("a stdio server is probed with initialize and tools/list (God Eye's own as the example)", async () => {
-    const tools = await probeStdio(process.execPath, [join(import.meta.dir, "mcp.ts")], { GODEYE_PORT: "1" });
-    expect(tools).toContain("godeye_project_memory");
+    const tools = await probeStdio(process.execPath, [join(import.meta.dir, "mcp.ts")], { IGREK_PORT: "1" });
+    expect(tools).toContain("igrek_project_memory");
     await expect(probeStdio("no-such-command-xyz", [], {})).rejects.toThrow("not installed");
   });
 

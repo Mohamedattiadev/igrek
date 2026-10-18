@@ -18,6 +18,7 @@ import { SHIP_ASK_RULES } from "./guards";
 import { runChecks } from "./insight/tools";
 import { readJsonLines } from "./jsonlines";
 import { LIMIT_REACHED } from "./localmodel";
+import { INTERNAL_ENV } from "./names";
 import type { Personas } from "./personas";
 import type { Store } from "./store";
 import { sandboxAvailable } from "./system";
@@ -110,7 +111,7 @@ export type AgentRun = (args: {
 /** OpenAI's Codex CLI as a team step (the model arena): workspace-write sandbox, only in the run's copy. */
 async function runCodex({ cwd, prompt, system, readOnly, register }: Parameters<AgentRun>[0]): Promise<string> {
   if (!Bun.which("codex")) throw new Error("Codex CLI is not installed (npm install -g @openai/codex)");
-  const last = join(cwd, ".godeye-codex-last.txt");
+  const last = join(cwd, ".igrek-codex-last.txt");
   const proc = Bun.spawn(
     [
       "codex",
@@ -122,7 +123,7 @@ async function runCodex({ cwd, prompt, system, readOnly, register }: Parameters<
       last,
       `${system ? `${system}\n\n` : ""}${prompt}`,
     ],
-    { cwd, stdout: "pipe", stderr: "pipe", env: cleanEnv({ GODEYE_INTERNAL: "1" }) },
+    { cwd, stdout: "pipe", stderr: "pipe", env: cleanEnv(INTERNAL_ENV) },
   );
   const unregister = register(() => proc.kill());
   const timer = setTimeout(() => proc.kill(), NODE_TIMEOUT_MS);
@@ -195,7 +196,7 @@ const runAgent: AgentRun = async (args) => {
       stdin: new Blob([prompt]),
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ GODEYE_INTERNAL: "1", GIT_CEILING_DIRECTORIES: dirname(cwd) }),
+      env: cleanEnv({ ...INTERNAL_ENV, GIT_CEILING_DIRECTORIES: dirname(cwd) }),
     },
   );
   const unregister = register(() => proc.kill());
@@ -262,12 +263,13 @@ export class Flows {
 
   // ---- flows ---------------------------------------------------------------------
 
-  /** Built-in flows plus the project's own (.godeye/flows and .archon/workflows). */
+  /** Built-in flows plus the project's own (.igrek/flows, .godeye/flows from before the rename, .archon/workflows). */
   flowsFor(projectId: string): FlowDef[] {
     const out: FlowDef[] = Object.values(BUILTIN_FLOWS).map((text) => parseFlow(text, "builtin"));
     const project = this.store.projectRow(projectId);
     if (!project) return out;
     for (const [dir, source] of [
+      [join(project.path, ".igrek", "flows"), "project"],
       [join(project.path, ".godeye", "flows"), "project"],
       [join(project.path, ".archon", "workflows"), "archon"],
     ] as const) {

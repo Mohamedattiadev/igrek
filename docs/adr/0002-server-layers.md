@@ -13,7 +13,7 @@ changed or tested on its own and nobody could say which direction was right.
 The server is layered (Mark Richards, *Software Architecture Patterns*, "Layered Architecture"). An area may
 use the areas below it, never the ones above:
 
-1. **foundation**: the event bus, the database and its migrations, config, settings, sealing, JSON-lines reading,
+1. **foundation**: the event bus, the database and its migrations, config, the old-name compatibility (names.ts), settings, sealing, JSON-lines reading,
    process environment, file access rules, the local model runner, secret scrubbing and shared-text merging (Yjs). Uses nothing.
 2. **sessions**: reading AI session files, the store, summaries, accounts and limits, session health.
 3. **knowledge** (learning, library, docs), **ops** (servers, deploys, monitors, env files, costs),

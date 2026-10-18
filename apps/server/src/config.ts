@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 import { DEFAULT_PORT } from "@igrek/core";
+import { defaultDataDir, envValue } from "./names";
 
 export interface Config {
   host: string;
@@ -24,21 +24,22 @@ function splitList(value: string | undefined): string[] {
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
-  const port = Number(env.GODEYE_PORT ?? DEFAULT_PORT);
-  const dataDir = env.GODEYE_HOME ?? join(homedir(), ".godeye");
+  const value = (name: string) => envValue(env, name);
+  const port = Number(value("PORT") ?? DEFAULT_PORT);
+  const dataDir = value("HOME") ?? defaultDataDir(undefined, true);
   mkdirSync(dataDir, { recursive: true, mode: 0o700 });
 
-  const hosts = [`localhost:${port}`, `127.0.0.1:${port}`, `[::1]:${port}`, ...splitList(env.GODEYE_ALLOWED_HOSTS)];
-  const origins = [...hosts.map((host) => `http://${host}`), ...splitList(env.GODEYE_ALLOWED_ORIGINS)];
+  const hosts = [`localhost:${port}`, `127.0.0.1:${port}`, `[::1]:${port}`, ...splitList(value("ALLOWED_HOSTS"))];
+  const origins = [...hosts.map((host) => `http://${host}`), ...splitList(value("ALLOWED_ORIGINS"))];
 
   return {
     // Inside Docker this is 0.0.0.0, but compose only publishes the port on 127.0.0.1.
-    host: env.GODEYE_HOST ?? "127.0.0.1",
+    host: value("HOST") ?? "127.0.0.1",
     port,
-    publicPort: Number(env.GODEYE_PUBLIC_PORT ?? port),
+    publicPort: Number(value("PUBLIC_PORT") ?? port),
     dataDir,
     allowedHosts: new Set(hosts),
     allowedOrigins: new Set(origins),
-    webDist: env.GODEYE_WEB_DIST ?? join(import.meta.dir, "../../web/dist"),
+    webDist: value("WEB_DIST") ?? join(import.meta.dir, "../../web/dist"),
   };
 }

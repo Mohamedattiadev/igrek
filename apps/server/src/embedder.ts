@@ -1,6 +1,7 @@
 import { createWriteStream, existsSync, mkdirSync, renameSync, rmSync, statSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { EmbedderStatus } from "@igrek/core";
+import { envValue } from "./names";
 
 /**
  * Local meaning vectors for the library (plan.md 7.1): a small multilingual model that runs on
@@ -166,7 +167,10 @@ export class Embedder implements Embed {
       return await this.embedNow(texts, kind);
     } finally {
       this.busy--;
-      this.idleTimer = setTimeout(() => void this.unload(), Number(process.env.GODEYE_EMBED_IDLE_MS) || 3 * 60_000);
+      this.idleTimer = setTimeout(
+        () => void this.unload(),
+        Number(envValue(process.env, "EMBED_IDLE_MS")) || 3 * 60_000,
+      );
       this.idleTimer.unref?.();
     }
   }
@@ -176,7 +180,7 @@ export class Embedder implements Embed {
    * memory (~350 MB) until the process ends, and God Eye should stay light when idle (plan.md 13.6).
    */
   private async embedNow(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]> {
-    if (process.env.GODEYE_EMBED_WORKER === "1") return this.embedHere(texts, kind);
+    if (process.env.IGREK_EMBED_WORKER === "1") return this.embedHere(texts, kind);
     if (!this.ready()) throw new Error("The search model is not downloaded");
     const worker = this.startWorker();
     const id = ++this.nextId;
@@ -196,7 +200,7 @@ export class Embedder implements Embed {
       stdin: "pipe",
       stdout: "pipe",
       stderr: "inherit",
-      env: { ...process.env, GODEYE_EMBED_WORKER: "1" },
+      env: { ...process.env, IGREK_EMBED_WORKER: "1" },
     });
     this.worker = proc;
     void (async () => {

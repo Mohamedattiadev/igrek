@@ -160,8 +160,8 @@ describe("memory context and hooks", () => {
     const file = join(project, ".claude", "settings.local.json");
     writeFileSync(file, JSON.stringify({ permissions: { allow: ["Bash(ls)"] } }));
 
-    installHooks(project, "/x/godeye-hook.sh");
-    installHooks(project, "/x/godeye-hook.sh");
+    installHooks(project, "/x/igrek-hook.sh");
+    installHooks(project, "/x/igrek-hook.sh");
     const installed = JSON.parse(readFileSync(file, "utf8"));
     expect(installed.permissions.allow).toEqual(["Bash(ls)"]);
     expect(installed.hooks.SessionStart).toHaveLength(1);
@@ -371,22 +371,22 @@ describe("MCP server", () => {
     })) as {
       serverInfo: { name: string };
     };
-    expect(init.serverInfo.name).toBe("godeye");
+    expect(init.serverInfo.name).toBe("igrek");
     const list = (await handle({ jsonrpc: "2.0", id: 2, method: "tools/list" })) as { tools: { name: string }[] };
     expect(list.tools.map((t) => t.name)).toEqual([
-      "godeye_project_memory",
-      "godeye_search",
-      "godeye_wiki",
-      "godeye_persona",
-      "godeye_request_secret",
-      "godeye_ask_form",
-      "godeye_show_html",
-      "godeye_servers",
-      "godeye_server_run",
+      "igrek_project_memory",
+      "igrek_search",
+      "igrek_wiki",
+      "igrek_persona",
+      "igrek_request_secret",
+      "igrek_ask_form",
+      "igrek_show_html",
+      "igrek_servers",
+      "igrek_server_run",
       "library_search",
-      "godeye_lessons",
-      "godeye_schedule",
-      "godeye_recent_sessions",
+      "igrek_lessons",
+      "igrek_schedule",
+      "igrek_recent_sessions",
     ]);
   });
 });

@@ -4,7 +4,10 @@ import { join } from "node:path";
 import { findSecrets, type InboxNotice } from "@igrek/core";
 import type { Store } from "./store";
 
-const MARK = "godeye-secret-guard";
+const MARK = "igrek-secret-guard";
+/** Guards installed before the rename count as ours: recognised and replaced. */
+const OLD_MARK = "godeye-secret-guard";
+const isGuard = (script: string) => script.includes(MARK) || script.includes(OLD_MARK);
 
 function git(cwd: string, args: string[]): string {
   const p = Bun.spawnSync(["git", "-C", cwd, ...args], {
@@ -200,7 +203,7 @@ export class SecretScanner {
     const hooks = join(projectPath, ".git", "hooks");
     if (!existsSync(hooks)) throw new Error("Not a git repository");
     const file = join(hooks, "pre-commit");
-    if (existsSync(file) && !readFileSync(file, "utf8").includes(MARK))
+    if (existsSync(file) && !isGuard(readFileSync(file, "utf8")))
       throw new Error("This project already has its own pre-commit hook");
     writeFileSync(
       file,
@@ -209,7 +212,7 @@ export class SecretScanner {
 # Skip once with: git commit --no-verify
 KEY=$(cat "${join(dataDir, "session.key")}" 2>/dev/null) || exit 0
 command -v curl >/dev/null 2>&1 || exit 0
-OUT=$(git diff --cached -U0 --no-color | curl -s -m 5 -X POST -H "Host: localhost:${port}" -H "Cookie: godeye_session=$KEY" \\
+OUT=$(git diff --cached -U0 --no-color | curl -s -m 5 -X POST -H "Host: localhost:${port}" -H "Cookie: igrek_session=$KEY" \\
   -H "content-type: text/plain" --data-binary @- "http://127.0.0.1:${port}/api/secrets/check" 2>/dev/null) || exit 0
 case "$OUT" in
   OK*|"") exit 0 ;;
@@ -222,7 +225,7 @@ esac
 
   guardInstalled(projectPath: string): boolean {
     const file = join(projectPath, ".git", "hooks", "pre-commit");
-    return existsSync(file) && readFileSync(file, "utf8").includes(MARK);
+    return existsSync(file) && isGuard(readFileSync(file, "utf8"));
   }
 
   /** For the hook: "OK" or one line per secret found in the staged change. */

@@ -27,7 +27,11 @@ const CONTAINERS: Record<string, { label: string; tech: string; what: string }> 
 
 /** Server modules by area, matched on the file path; the first match wins. */
 const AREAS: [string, string, RegExp][] = [
-  ["foundation", "Foundation", /^\/(bus|db|config|settings|seal|jsonlines|env|files|localmodel|ydoc|sync\/scrub)\.ts$/],
+  [
+    "foundation",
+    "Foundation",
+    /^\/(bus|db|config|names|settings|seal|jsonlines|env|files|localmodel|ydoc|sync\/scrub)\.ts$/,
+  ],
   ["sync", "Team sync", /\/(sync\/|team-routes)/],
   ["preview", "Live preview", /\/(preview\/|preview-routes)/],
   [

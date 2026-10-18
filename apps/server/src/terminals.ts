@@ -100,7 +100,7 @@ export class Terminals {
 
     const proc = Bun.spawn(cmd, {
       cwd: options.cwd,
-      env: cleanEnv({ ...options.env, TERM: "xterm-256color", COLORTERM: "truecolor", GODEYE_TERMINAL: id }),
+      env: cleanEnv({ ...options.env, TERM: "xterm-256color", COLORTERM: "truecolor", IGREK_TERMINAL: id }),
       terminal: {
         cols,
         rows,

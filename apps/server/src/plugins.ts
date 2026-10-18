@@ -3,11 +3,13 @@ import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, stat
 import { join, normalize, resolve, sep } from "node:path";
 import { PLUGIN_PERMISSIONS, type PluginInfo, type PluginManifest, type PluginPermission } from "@igrek/core";
 
-const MANIFEST = "godeye-plugin.json";
+const MANIFEST = "igrek-plugin.json";
+/** Plugins written before the rename to Igrek keep their old manifest name. */
+const OLD_MANIFEST = "godeye-plugin.json";
 
 /** Checks a manifest and keeps only what God Eye understands. */
 export function readManifest(dir: string): PluginManifest {
-  const file = join(dir, MANIFEST);
+  const file = [join(dir, MANIFEST), join(dir, OLD_MANIFEST)].find((f) => existsSync(f)) ?? join(dir, MANIFEST);
   if (!existsSync(file)) throw new Error(`No ${MANIFEST} in this folder`);
   const raw = JSON.parse(readFileSync(file, "utf8")) as Partial<PluginManifest>;
   const id = String(raw.id ?? "");

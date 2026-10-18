@@ -54,7 +54,7 @@ async function call<T>(method: string, path: string, body?: unknown): Promise<T>
     res = await fetch(`${base}${path}`, {
       method,
       headers: {
-        cookie: `godeye_session=${readFileSync(keyFile, "utf8").trim()}`,
+        cookie: `igrek_session=${readFileSync(keyFile, "utf8").trim()}`,
         origin: base,
         "content-type": "application/json",
       },

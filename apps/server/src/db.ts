@@ -2,6 +2,7 @@ import { Database } from "bun:sqlite";
 import { join } from "node:path";
 import { drizzle } from "drizzle-orm/bun-sqlite";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { databaseFile } from "./names";
 
 export const settingsTable = sqliteTable("settings", {
   key: text("key").primaryKey(),
@@ -913,7 +914,7 @@ export function migrate(sqlite: Database): number {
 }
 
 export function openDb(dataDir: string | ":memory:") {
-  const sqlite = new Database(dataDir === ":memory:" ? ":memory:" : join(dataDir, "godeye.db"), { create: true });
+  const sqlite = new Database(dataDir === ":memory:" ? ":memory:" : databaseFile(dataDir), { create: true });
   sqlite.run("PRAGMA journal_mode = WAL");
   sqlite.run("PRAGMA foreign_keys = ON");
   migrate(sqlite);

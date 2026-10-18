@@ -12,13 +12,13 @@ describe("terminals", () => {
     const info = terminals.start({ projectId: "p", cwd: tmpdir(), tool: "shell", cols: 80, rows: 20 });
     let live = "";
     terminals.attach(info.id, (data) => (live += data));
-    terminals.input(info.id, "echo GODEYE_OK\n");
+    terminals.input(info.id, "echo IGREK_OK\n");
     await Bun.sleep(1500);
-    expect(live).toContain("GODEYE_OK");
+    expect(live).toContain("IGREK_OK");
 
     let replay = "";
     terminals.attach(info.id, (data) => (replay += data));
-    expect(replay).toContain("GODEYE_OK");
+    expect(replay).toContain("IGREK_OK");
 
     expect(await stops.stopAll()).toBe(1);
     await Bun.sleep(1800);

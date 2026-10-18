@@ -21,6 +21,20 @@ function repo() {
 }
 
 describe("checkpoints", () => {
+  test("checkpoints taken before the rename to Igrek are still listed and restorable", () => {
+    const { root, run } = repo();
+    const old = createCheckpoint(root, "old one");
+    expect(old).toBeDefined();
+    const ref = run("for-each-ref", "--format=%(refname)", "refs/igrek/checkpoints/");
+    run("update-ref", ref.replace("refs/igrek/", "refs/godeye/"), ref);
+    run("update-ref", "-d", ref);
+    const [listed] = listCheckpoints(root);
+    expect(listed?.label).toBe("old one");
+    writeFileSync(join(root, "app.ts"), "changed");
+    expect(restoreCheckpoint(root, listed?.id ?? "").ok).toBe(true);
+    expect(readFileSync(join(root, "app.ts"), "utf8")).toBe("v1");
+  });
+
   test("snapshot and restore bring back edits, deleted and new files — without touching git history", () => {
     const { root, run } = repo();
     writeFileSync(join(root, "draft.md"), "untracked work");

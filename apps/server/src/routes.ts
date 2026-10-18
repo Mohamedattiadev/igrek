@@ -215,34 +215,28 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   });
 
   app.get("/api/mcp", (c) => {
-    const status = runClaudeCli(["mcp", "get", "godeye"]);
+    // An entry added before the rename (named godeye) still works, so it counts as installed.
+    const installed = runClaudeCli(["mcp", "get", "igrek"]).ok || runClaudeCli(["mcp", "get", "godeye"]).ok;
     return c.json({
-      installed: status.ok,
-      command: `claude mcp add --scope user godeye -- ${process.execPath} ${MCP_SCRIPT}`,
+      installed,
+      command: `claude mcp add --scope user igrek -- ${process.execPath} ${MCP_SCRIPT}`,
       inContainer: existsSync("/.dockerenv"),
     });
   });
 
   app.post("/api/mcp", (c) => {
     if (existsSync("/.dockerenv")) return c.json({ error: "Run the command on your computer, not in Docker" }, 409);
-    const env = [`GODEYE_PORT=${deps.publicPort}`, `GODEYE_HOME=${deps.dataDir}`].flatMap((e) => ["-e", e]);
-    const result = runClaudeCli([
-      "mcp",
-      "add",
-      "--scope",
-      "user",
-      ...env,
-      "godeye",
-      "--",
-      process.execPath,
-      MCP_SCRIPT,
-    ]);
+    const env = [`IGREK_PORT=${deps.publicPort}`, `IGREK_HOME=${deps.dataDir}`].flatMap((e) => ["-e", e]);
+    const result = runClaudeCli(["mcp", "add", "--scope", "user", ...env, "igrek", "--", process.execPath, MCP_SCRIPT]);
+    // The entry from before the rename would give the same tools twice.
+    if (result.ok) runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
     return result.ok ? c.json({ ok: true }) : c.json({ error: result.output || "claude mcp add failed" }, 500);
   });
 
   app.delete("/api/mcp", (c) => {
-    const result = runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
-    return result.ok ? c.json({ ok: true }) : c.json({ error: result.output }, 500);
+    const result = runClaudeCli(["mcp", "remove", "--scope", "user", "igrek"]);
+    const old = runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
+    return result.ok || old.ok ? c.json({ ok: true }) : c.json({ error: result.output }, 500);
   });
 
   // Called by the hook script inside Claude Code (see hooks.ts).

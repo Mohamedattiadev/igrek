@@ -3,6 +3,7 @@ import type { PickedElement } from "@igrek/core";
 import type { Hono } from "hono";
 import type { StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
+import { INTERNAL_ENV } from "./names";
 import type { DevServers } from "./preview/devservers";
 
 /** One quick edit: Claude Code with only reading and editing tools, edits accepted (a checkpoint was taken first). */
@@ -30,7 +31,7 @@ function quickEditRunner(stops: StopRegistry) {
         stdin: new Blob([prompt]),
         stdout: "pipe",
         stderr: "pipe",
-        env: cleanEnv({ GODEYE_INTERNAL: "1", GIT_CEILING_DIRECTORIES: dirname(cwd) }),
+        env: cleanEnv({ ...INTERNAL_ENV, GIT_CEILING_DIRECTORIES: dirname(cwd) }),
       },
     );
     const off = stops.register(`preview-edit-${proc.pid}`, { label: "preview edit", stop: () => proc.kill() });

@@ -3,7 +3,10 @@ import { join } from "node:path";
 import type { MemorySection, SessionSummaryData } from "@igrek/core";
 import type { Store } from "./store";
 
-const MARKER = "godeye-hook";
+const MARKER = "igrek-hook";
+/** Hook commands installed before the rename; recognised and replaced with the new script. */
+const OLD_MARKER = "godeye-hook";
+const isOurs = (command: string) => command.includes(MARKER) || command.includes(OLD_MARKER);
 const MAX_CONTEXT_CHARS = 6000;
 
 /**
@@ -19,10 +22,10 @@ export function writeHookScript(dataDir: string, port: number): string {
     path,
     `#!/bin/sh
 # God Eye hook (installed by God Eye; safe to delete).
-[ -n "$GODEYE_INTERNAL" ] && exit 0
+[ -n "$IGREK_INTERNAL" ] && exit 0
 KEY=$(cat "${join(dataDir, "session.key")}" 2>/dev/null) || exit 0
 command -v curl >/dev/null 2>&1 || exit 0
-curl -s -m 3 -X POST -H "Host: localhost:${port}" -H "Cookie: godeye_session=$KEY" \\
+curl -s -m 3 -X POST -H "Host: localhost:${port}" -H "Cookie: igrek_session=$KEY" \\
   -H "content-type: application/json" --data-binary @- "http://127.0.0.1:${port}/api/hooks/$1" 2>/dev/null || true
 `,
   );
@@ -71,7 +74,9 @@ export function installHooks(projectPath: string, script: string): void {
   for (const [event, arg] of EVENTS) {
     const entries = hooks[event] ?? [];
     hooks[event] = entries;
-    const already = entries.some((e) => e.hooks?.some((h) => h.command.includes(MARKER)));
+    for (const entry of entries)
+      for (const hook of entry.hooks ?? []) if (hook.command.includes(OLD_MARKER)) hook.command = `${script} ${arg}`;
+    const already = entries.some((e) => e.hooks?.some((h) => isOurs(h.command)));
     if (!already) entries.push({ hooks: [{ type: "command", command: `${script} ${arg}` }] });
   }
   mkdirSync(join(projectPath, ".claude"), { recursive: true });
@@ -89,7 +94,7 @@ export function uninstallHooks(projectPath: string): void {
     const entries = hooks[event];
     if (!entries) continue;
     const kept = entries
-      .map((e) => ({ ...e, hooks: e.hooks.filter((h) => !h.command.includes(MARKER)) }))
+      .map((e) => ({ ...e, hooks: e.hooks.filter((h) => !isOurs(h.command)) }))
       .filter((e) => e.hooks.length > 0);
     if (kept.length) hooks[event] = kept;
     else delete hooks[event];
@@ -101,9 +106,7 @@ export function uninstallHooks(projectPath: string): void {
 export function hooksInstalled(projectPath: string): boolean {
   try {
     const settings = readSettingsFile(settingsPath(projectPath));
-    return REQUIRED.every(([event]) =>
-      settings.hooks?.[event]?.some((e) => e.hooks?.some((h) => h.command.includes(MARKER))),
-    );
+    return REQUIRED.every(([event]) => settings.hooks?.[event]?.some((e) => e.hooks?.some((h) => isOurs(h.command))));
   } catch {
     return false;
   }

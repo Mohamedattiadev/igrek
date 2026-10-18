@@ -13,6 +13,7 @@ import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { LIMIT_REACHED, type LocalModelConfig, ollamaChat } from "./localmodel";
+import { INTERNAL_ENV } from "./names";
 import type { Store } from "./store";
 
 /** Which model each kind of background job uses (plan.md 1.6): cheap work goes to the cheap model. */
@@ -232,7 +233,7 @@ async function runClaudeNow(
       stderr: "pipe",
       env: cleanEnv({
         ...account.env,
-        GODEYE_INTERNAL: "1",
+        ...INTERNAL_ENV,
         ...(isolated ? { GIT_CEILING_DIRECTORIES: dirname(cwd) } : {}),
       }),
     },

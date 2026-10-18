@@ -21,7 +21,7 @@ export function registerChatRoutes(
     accounts,
     worktreeDir,
     persona,
-    godeyeMcp,
+    igrekMcp,
     richUi,
   }: {
     chats: Chats;
@@ -35,7 +35,7 @@ export function registerChatRoutes(
       projectId: string,
     ) => { start: NonNullable<ChatStart["persona"]>; model: string } | undefined;
     /** God Eye's MCP server, given to every chat. */
-    godeyeMcp?: ChatStart["godeyeMcp"];
+    igrekMcp?: ChatStart["igrekMcp"];
     /** OpenUI instructions when rich answers are on (plan.md 16.2). */
     richUi?: () => string | undefined;
   },
@@ -108,7 +108,7 @@ export function registerChatRoutes(
           typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
         mode,
         persona: as?.start,
-        godeyeMcp,
+        igrekMcp,
         ...(() => {
           const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;
           const chosen = picked?.provider === "claude" ? picked : account(project.id, session?.account_id);
@@ -210,7 +210,7 @@ export function registerChatRoutes(
         model: body.model,
         mode: info.mode,
         persona: info.persona && persona ? persona(info.persona.id, info.projectId)?.start : undefined,
-        godeyeMcp,
+        igrekMcp,
         accountId: info.accountId,
         env: accounts.env(info.accountId ? accounts.get(info.accountId) : undefined),
       }),

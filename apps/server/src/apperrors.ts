@@ -270,9 +270,9 @@ export class AppErrors {
 })();
 </script>`;
     const server = `// Node or Bun: send uncaught errors to God Eye (does not change how the app crashes).
-const GODEYE_ERRORS = "${url}";
+const IGREK_ERRORS = "${url}";
 const report = (err) =>
-  fetch(GODEYE_ERRORS, {
+  fetch(IGREK_ERRORS, {
     method: "POST",
     body: JSON.stringify({ message: String(err?.message ?? err), stack: err?.stack, release: process.env.GIT_COMMIT, userAgent: "node" }),
   }).catch(() => {});

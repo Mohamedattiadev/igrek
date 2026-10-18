@@ -29,6 +29,7 @@ const DENIED = [
   ".config/chromium",
   ".config/BraveSoftware",
   ".local/share/keyrings",
+  ".igrek/session.key",
   ".godeye/session.key",
   ".claude/.credentials.json",
   ".codex/auth.json",

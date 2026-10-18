@@ -91,7 +91,11 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
   // What an AI agent may change through God Eye's own channels: it proposes, the user approves
   // (plan.md 16.4). Requests from God Eye's MCP server say they come from an agent.
   app.use("/api/*", async (c, next) => {
-    if (c.req.header("x-godeye-caller") === "agent" && c.req.method !== "GET" && !AGENT_WRITES.has(c.req.path))
+    if (
+      (c.req.header("x-igrek-caller") ?? c.req.header("x-godeye-caller")) === "agent" &&
+      c.req.method !== "GET" &&
+      !AGENT_WRITES.has(c.req.path)
+    )
       return c.json({ error: "Agents may propose, not approve or change this" }, 403);
     return next();
   });

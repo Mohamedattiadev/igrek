@@ -7,11 +7,11 @@ import { createApp } from "./app";
 import { Bus, StopRegistry } from "./bus";
 import { loadConfig } from "./config";
 import { openDb } from "./db";
-import { loadSessionToken, SESSION_COOKIE } from "./security";
+import { loadSessionToken, OLD_SESSION_COOKIE, SESSION_COOKIE } from "./security";
 
 function setup() {
   const dataDir = mkdtempSync(join(tmpdir(), "godeye-test-"));
-  const config = loadConfig({ GODEYE_HOME: dataDir, GODEYE_PORT: "7777", GODEYE_WEB_DIST: join(dataDir, "none") });
+  const config = loadConfig({ IGREK_HOME: dataDir, IGREK_PORT: "7777", IGREK_WEB_DIST: join(dataDir, "none") });
   const { db } = openDb(":memory:");
   const token = loadSessionToken(dataDir);
   const bus = new Bus();
@@ -35,7 +35,7 @@ describe("security", () => {
 
   test("an agent may read and propose, but not approve or change anything", async () => {
     const { call, authed } = setup();
-    const agent = { ...authed, "x-godeye-caller": "agent", "content-type": "application/json" };
+    const agent = { ...authed, "x-igrek-caller": "agent", "content-type": "application/json" };
     expect((await call("/api/settings", { headers: agent })).status).toBe(200);
     const write = await call("/api/settings", {
       method: "PATCH",
@@ -57,6 +57,15 @@ describe("security", () => {
   test("API requires the session cookie", async () => {
     const { call } = setup();
     expect((await call("/api/settings")).status).toBe(401);
+  });
+
+  test("the cookie and agent header from before the rename still count", async () => {
+    const { call, token } = setup();
+    const legacy = { cookie: `${OLD_SESSION_COOKIE}=${token}` };
+    expect((await call("/api/settings", { headers: legacy })).status).toBe(200);
+    const agent = { ...legacy, "x-godeye-caller": "agent", "content-type": "application/json" };
+    const write = await call("/api/settings", { method: "PATCH", headers: agent, body: "{}" });
+    expect(write.status).toBe(403);
   });
 
   test("bootstrap endpoint hands out an HttpOnly, SameSite=Strict cookie", async () => {
@@ -131,7 +140,7 @@ describe("serving the web build", () => {
     mkdirSync(join(dist, "assets"), { recursive: true });
     writeFileSync(join(dist, "index.html"), `<!doctype html><title>x</title>${" ".repeat(2000)}`);
     writeFileSync(join(dist, "assets/app-BkX9_2Qa.js"), `console.log(${JSON.stringify("x".repeat(5000))});`);
-    const config = loadConfig({ GODEYE_HOME: dataDir, GODEYE_PORT: "7777", GODEYE_WEB_DIST: dist });
+    const config = loadConfig({ IGREK_HOME: dataDir, IGREK_PORT: "7777", IGREK_WEB_DIST: dist });
     const { db } = openDb(":memory:");
     const app = createApp({
       config,

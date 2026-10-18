@@ -3,7 +3,9 @@ import { tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import type { Checkpoint } from "@igrek/core";
 
-const REF_PREFIX = "refs/godeye/checkpoints/";
+const REF_PREFIX = "refs/igrek/checkpoints/";
+/** Checkpoints taken before the rename to Igrek stay listed and restorable. */
+const OLD_REF_PREFIX = "refs/godeye/checkpoints/";
 /** Untracked files larger than this are left out of snapshots (and left alone by restores). */
 const MAX_UNTRACKED_BYTES = 2 * 1024 * 1024;
 /** Snapshots kept per repository; older refs are dropped. */
@@ -47,7 +49,7 @@ export function createCheckpoint(root: string, label: string): Checkpoint | unde
     if (!tree) return undefined;
     const head = git(root, ["rev-parse", "--verify", "-q", "HEAD"]).out.trim();
     const at = Date.now();
-    const message = `godeye checkpoint: ${label}${skipped.length ? `\n\n${skipped.map((f) => SKIPPED + f).join("\n")}` : ""}`;
+    const message = `igrek checkpoint: ${label}${skipped.length ? `\n\n${skipped.map((f) => SKIPPED + f).join("\n")}` : ""}`;
     const commit = git(root, ["commit-tree", tree, ...(head ? ["-p", head] : []), "-m", message], {
       GIT_AUTHOR_NAME: "God Eye",
       GIT_AUTHOR_EMAIL: "checkpoint@godeye.local",
@@ -84,7 +86,7 @@ function bigUntracked(root: string): string[] {
 
 /** Drops the oldest snapshot refs beyond KEEP (their objects go with git's own gc). */
 function prune(root: string): void {
-  const refs = git(root, ["for-each-ref", "--sort=refname", "--format=%(refname)", REF_PREFIX])
+  const refs = git(root, ["for-each-ref", "--sort=refname", "--format=%(refname)", OLD_REF_PREFIX, REF_PREFIX])
     .out.split("\n")
     .filter(Boolean);
   for (const ref of refs.slice(0, Math.max(0, refs.length - KEEP))) git(root, ["update-ref", "-d", ref]);
@@ -97,6 +99,7 @@ export function listCheckpoints(root: string, limit = 50): Checkpoint[] {
     `--count=${limit}`,
     "--format=%(refname)%09%(objectname:short=12)%09%(contents:subject)",
     REF_PREFIX,
+    OLD_REF_PREFIX,
   ]);
   if (!out.ok) return [];
   return out.out
@@ -104,8 +107,8 @@ export function listCheckpoints(root: string, limit = 50): Checkpoint[] {
     .filter(Boolean)
     .map((line) => {
       const [ref = "", id = "", subject = ""] = line.split("\t");
-      const at = Number(ref.slice(REF_PREFIX.length).split("-")[0]);
-      return { id, at, label: subject.replace(/^godeye checkpoint: /, "") };
+      const at = Number(ref.slice(ref.lastIndexOf("/") + 1).split("-")[0]);
+      return { id, at, label: subject.replace(/^(igrek|godeye) checkpoint: /, "") };
     });
 }
 

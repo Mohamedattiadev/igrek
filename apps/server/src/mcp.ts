@@ -3,15 +3,15 @@
  * memory, past sessions and search. Speaks MCP over stdio and forwards to the
  * local God Eye API, so it needs God Eye running.
  *
- *   claude mcp add --scope user godeye -- bun /path/to/apps/server/src/mcp.ts
+ *   claude mcp add --scope user igrek -- bun /path/to/apps/server/src/mcp.ts
  */
 import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
 import { APP_VERSION } from "@igrek/core";
+import { currentToolName, defaultDataDir, envValue } from "./names";
 
-const PORT = Number(process.env.GODEYE_PORT ?? 7777);
-const HOME = process.env.GODEYE_HOME ?? join(homedir(), ".godeye");
+const PORT = Number(envValue(process.env, "PORT") ?? 7777);
+const HOME = envValue(process.env, "HOME") ?? defaultDataDir();
 
 function key(): string {
   return readFileSync(join(HOME, "session.key"), "utf8").trim();
@@ -19,7 +19,7 @@ function key(): string {
 
 async function api<T>(path: string): Promise<T> {
   const res = await fetch(`http://127.0.0.1:${PORT}${path}`, {
-    headers: { host: `localhost:${PORT}`, cookie: `godeye_session=${key()}`, "x-godeye-caller": "agent" },
+    headers: { host: `localhost:${PORT}`, cookie: `igrek_session=${key()}`, "x-igrek-caller": "agent" },
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error(`God Eye answered ${res.status}`);
@@ -30,13 +30,13 @@ const pathArg = { type: "string", description: "Project folder. Defaults to the 
 
 const TOOLS = [
   {
-    name: "godeye_project_memory",
+    name: "igrek_project_memory",
     description:
       "What God Eye remembers about this project: current status, decisions already made, rules to follow, approaches that failed before, open problems, and recent session summaries. Read this before making architectural choices.",
     inputSchema: { type: "object", properties: { path: pathArg } },
   },
   {
-    name: "godeye_search",
+    name: "igrek_search",
     description:
       "Search everything said in past AI coding sessions (all tools, all projects unless a path is given). Use it to find how or when something was done before.",
     inputSchema: {
@@ -46,7 +46,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_wiki",
+    name: "igrek_wiki",
     description:
       "Search this project's wiki (the team's own documentation pages in God Eye). Use it for how things are meant to work here: setup, architecture notes, decisions written up as pages.",
     inputSchema: {
@@ -56,7 +56,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_persona",
+    name: "igrek_persona",
     description:
       "One of the user's God Eye personas (architect, security, backend, qa, devils-advocate…): its style, review checklist, known pitfalls, rules and the opinions it wrote down for this project. Use it to review or work the way that expert would.",
     inputSchema: {
@@ -66,7 +66,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_request_secret",
+    name: "igrek_request_secret",
     description:
       "Ask the user for a secret (API key, token, password) instead of asking them to paste it into the chat. They type it in God Eye; it is stored in their vault and written to the project's env file. You never see the value; you get the variable name to use. Waits up to 10 minutes.",
     inputSchema: {
@@ -81,7 +81,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_ask_form",
+    name: "igrek_ask_form",
     description:
       "Ask the user several structured questions at once as a form in God Eye (choices, numbers, yes/no, short text), instead of a long list of questions in the chat. The schema is a flat JSON Schema object: properties of type string (optionally with enum), number, integer or boolean, each with a title and description; list the required ones. Waits up to 10 minutes and returns the answers as JSON.",
     inputSchema: {
@@ -96,7 +96,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_show_html",
+    name: "igrek_show_html",
     description:
       "Show the user a whole HTML page (a report, a table, a chart) in God Eye: it opens from their inbox in a sandboxed frame with no network, so use inline CSS and JavaScript only.",
     inputSchema: {
@@ -106,18 +106,18 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_servers",
+    name: "igrek_servers",
     description: "Servers the user saved in God Eye (name, ssh target, tag like prod/test).",
     inputSchema: { type: "object", properties: {} },
   },
   {
-    name: "godeye_server_run",
+    name: "igrek_server_run",
     description:
       "Run a shell command on one of the user's servers through God Eye. Read-only commands (logs, status, disk) run immediately. Commands that change something wait until the user approves them in God Eye; destructive ones need a double confirmation. Always give a short reason. Prefer this over raw ssh so every step is approved and logged.",
     inputSchema: {
       type: "object",
       properties: {
-        server: { type: "string", description: "Server name from godeye_servers" },
+        server: { type: "string", description: "Server name from igrek_servers" },
         command: { type: "string" },
         reason: { type: "string", description: "Why this command is needed, in one sentence" },
       },
@@ -138,7 +138,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_lessons",
+    name: "igrek_lessons",
     description:
       "Lessons from earlier mistakes in this project (what went wrong, why, the fix, how to avoid it). Check before risky work like migrations, deploys, refactors or anything that failed before.",
     inputSchema: {
@@ -148,7 +148,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_schedule",
+    name: "igrek_schedule",
     description:
       'Schedule work for later in this project, from a plain sentence ("every Friday morning update the dependencies", "tomorrow 15:00 run the tests"). God Eye turns it into a proposal the user must approve in God Eye; at its time it runs in its own copy of the repo and the result waits for the user. Use it when the user asks for something to happen later or regularly.',
     inputSchema: {
@@ -161,7 +161,7 @@ const TOOLS = [
     },
   },
   {
-    name: "godeye_recent_sessions",
+    name: "igrek_recent_sessions",
     description: "The latest sessions in this project with their plain-language summaries.",
     inputSchema: { type: "object", properties: { path: pathArg } },
   },
@@ -189,8 +189,8 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     method: "POST",
     headers: {
       host: `localhost:${PORT}`,
-      cookie: `godeye_session=${key()}`,
-      "x-godeye-caller": "agent",
+      cookie: `igrek_session=${key()}`,
+      "x-igrek-caller": "agent",
       "content-type": "application/json",
     },
     body: JSON.stringify(body),
@@ -209,11 +209,11 @@ function formatRun(run: Run): string {
 
 async function callTool(name: string, args: Args): Promise<string> {
   const cwd = args.path ?? process.cwd();
-  if (name === "godeye_project_memory") {
+  if (name === "igrek_project_memory") {
     const { context } = await api<{ context: string }>(`/api/context?cwd=${encodeURIComponent(cwd)}`);
     return context || "God Eye has no memory for this project yet.";
   }
-  if (name === "godeye_search") {
+  if (name === "igrek_search") {
     const query = encodeURIComponent(args.query ?? "");
     const scope = args.path ? `&cwd=${encodeURIComponent(args.path)}` : "";
     const hits = await api<{ projectName?: string; sessionTitle: string; snippet: string; ts: number }[]>(
@@ -228,19 +228,19 @@ async function callTool(name: string, args: Args): Promise<string> {
       )
       .join("\n");
   }
-  if (name === "godeye_wiki") {
+  if (name === "igrek_wiki") {
     const pages = await api<{ title: string; excerpt: string }[]>(
       `/api/agent/wiki?cwd=${encodeURIComponent(cwd)}&q=${encodeURIComponent(args.query ?? "")}`,
     );
     return pages.length ? pages.map((p) => `## ${p.title}\n${p.excerpt}`).join("\n\n") : "No wiki pages match.";
   }
-  if (name === "godeye_servers") {
+  if (name === "igrek_servers") {
     const list = await api<{ name: string; target: string; tag: string }[]>("/api/agent/servers");
     return list.length
       ? list.map((s) => `- ${s.name} (${s.tag}): ${s.target}`).join("\n")
       : "No servers saved in God Eye.";
   }
-  if (name === "godeye_persona") {
+  if (name === "igrek_persona") {
     const p = await api<{
       style: string;
       checklist: string[];
@@ -260,7 +260,7 @@ async function callTool(name: string, args: Args): Promise<string> {
       .filter(Boolean)
       .join("\n\n");
   }
-  if (name === "godeye_request_secret") {
+  if (name === "igrek_request_secret") {
     const { id } = await post<{ id: string }>("/api/agent/secrets", {
       cwd,
       key: args.name,
@@ -276,7 +276,7 @@ async function callTool(name: string, args: Args): Promise<string> {
     }
     return "No answer within 10 minutes. Ask the user in the chat before asking again.";
   }
-  if (name === "godeye_ask_form") {
+  if (name === "igrek_ask_form") {
     const { id } = await post<{ id: string }>("/api/agent/forms", {
       cwd,
       title: args.title,
@@ -291,11 +291,11 @@ async function callTool(name: string, args: Args): Promise<string> {
     }
     return "No answer within 10 minutes. Ask the user in the chat before asking again.";
   }
-  if (name === "godeye_show_html") {
+  if (name === "igrek_show_html") {
     await post<{ id: string }>("/api/agent/reports", { cwd, title: args.title, html: args.html });
     return "The page is in the user's God Eye inbox; they open it from there.";
   }
-  if (name === "godeye_server_run") {
+  if (name === "igrek_server_run") {
     const first = await post<{ status: "done"; run: Run } | { status: "pending"; approvalId: string }>(
       "/api/agent/servers/run",
       {
@@ -333,20 +333,20 @@ async function callTool(name: string, args: Args): Promise<string> {
       )
       .join("\n\n")}`;
   }
-  if (name === "godeye_lessons") {
+  if (name === "igrek_lessons") {
     const { context } = await api<{ context?: string }>(
       `/api/lessons/relevant?${new URLSearchParams({ q: args.query ?? "", cwd })}`,
     );
     return context || "No lesson in this project matches. Go ahead carefully.";
   }
-  if (name === "godeye_schedule") {
+  if (name === "igrek_schedule") {
     const proposal = await post<{ summary?: string; title: string }>("/api/schedules/propose", {
       sentence: args.sentence,
       cwd,
     });
     return `Proposed: ${proposal.summary ?? proposal.title}. It waits for the user's approval on God Eye's Schedules page (or the inbox); nothing runs before that.`;
   }
-  if (name === "godeye_recent_sessions") {
+  if (name === "igrek_recent_sessions") {
     const sessions = await api<
       {
         title: string;
@@ -376,7 +376,7 @@ async function handle(req: Request): Promise<unknown> {
       return {
         protocolVersion: (req.params?.protocolVersion as string) ?? "2025-06-18",
         capabilities: { tools: {} },
-        serverInfo: { name: "godeye", version: APP_VERSION },
+        serverInfo: { name: "igrek", version: APP_VERSION },
       };
     case "ping":
       return {};
@@ -385,7 +385,7 @@ async function handle(req: Request): Promise<unknown> {
     case "tools/call": {
       const name = String(req.params?.name ?? "");
       try {
-        const text = await callTool(name, (req.params?.arguments ?? {}) as Args);
+        const text = await callTool(currentToolName(name), (req.params?.arguments ?? {}) as Args);
         return { content: [{ type: "text", text }] };
       } catch (err) {
         return {

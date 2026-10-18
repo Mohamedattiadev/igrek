@@ -23,16 +23,16 @@ const server = Bun.serve({
 });
 const home = mkdtempSync(join(tmpdir(), "godeye-cli-"));
 writeFileSync(join(home, "session.key"), "secret-session-key");
-const before = { home: process.env.GODEYE_HOME, port: process.env.GODEYE_PORT };
-process.env.GODEYE_HOME = home;
-process.env.GODEYE_PORT = String(server.port);
+const before = { home: process.env.IGREK_HOME, port: process.env.IGREK_PORT };
+process.env.IGREK_HOME = home;
+process.env.IGREK_PORT = String(server.port);
 afterAll(() => {
   server.stop(true);
   // Other test files run in the same process.
-  if (before.home === undefined) delete process.env.GODEYE_HOME;
-  else process.env.GODEYE_HOME = before.home;
-  if (before.port === undefined) delete process.env.GODEYE_PORT;
-  else process.env.GODEYE_PORT = before.port;
+  if (before.home === undefined) delete process.env.IGREK_HOME;
+  else process.env.IGREK_HOME = before.home;
+  if (before.port === undefined) delete process.env.IGREK_PORT;
+  else process.env.IGREK_PORT = before.port;
 });
 
 describe("godeye CLI", () => {
@@ -47,7 +47,7 @@ describe("godeye CLI", () => {
     expect(seen.find((s) => s.path === "/api/flows")?.body).toBe(
       '{"projectId":"p1","flow":"task","request":"Rename the helper"}',
     );
-    expect(seen.every((s) => s.cookie === "godeye_session=secret-session-key")).toBe(true);
+    expect(seen.every((s) => s.cookie === "igrek_session=secret-session-key")).toBe(true);
     await expect(main(["run", "nope", "task", "x"])).rejects.toThrow('No project called "nope"');
   });
 });

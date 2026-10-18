@@ -17,6 +17,7 @@ import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { readJsonLines } from "./jsonlines";
+import { INTERNAL_ENV } from "./names";
 import type { Store } from "./store";
 import { parseModelReply, runClaude } from "./summarizer";
 
@@ -200,7 +201,7 @@ const runTester: RunFn = async ({ cwd, prompt, system, mcpConfig, allowed, model
       stdin: new Blob([prompt]),
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ GODEYE_INTERNAL: "1", GIT_CEILING_DIRECTORIES: dirname(cwd) }),
+      env: cleanEnv({ ...INTERNAL_ENV, GIT_CEILING_DIRECTORIES: dirname(cwd) }),
     },
   );
   const unregister = register(() => proc.kill());

@@ -4,7 +4,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 /** God Eye's own hook (memory for new sessions) is not something to ask about. */
-const OWN_HOOK = "godeye-hook";
+const OWN_HOOK = /igrek-hook|godeye-hook/;
 
 /** What a project would make Claude Code run or load on its own: hooks, MCP servers, skills. */
 export interface ProjectExtensions {
@@ -44,7 +44,7 @@ function projectHooks(root: string): [string, string][] {
     >;
     for (const [event, entries] of Object.entries(byEvent))
       for (const command of (entries ?? []).flatMap((e) => (e.hooks ?? []).map((h) => h.command ?? "")))
-        if (command && !command.includes(OWN_HOOK)) out.push([event, command]);
+        if (command && !OWN_HOOK.test(command)) out.push([event, command]);
   }
   return out;
 }

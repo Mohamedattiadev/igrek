@@ -46,7 +46,7 @@ export class Retention {
 
   usage(days: number): DiskUsage {
     const parts = [
-      "godeye.db",
+      "igrek.db",
       "models",
       "worktrees",
       "backups",
@@ -60,7 +60,7 @@ export class Retention {
     ].map((key) => ({
       key,
       bytes:
-        key === "godeye.db"
+        key === "igrek.db"
           ? folderSize(join(this.dataDir, key)) + folderSize(join(this.dataDir, `${key}-wal`))
           : folderSize(join(this.dataDir, key)),
     }));

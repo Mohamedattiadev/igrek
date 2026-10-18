@@ -95,7 +95,7 @@ export interface ChatStart {
   env?: Record<string, string>;
   worktree?: Worktree;
   /** God Eye's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
-  godeyeMcp?: { config: string; allow: string[] };
+  igrekMcp?: { config: string; allow: string[] };
   /** The OpenUI instructions, when the user turned on rich answers; otherwise the JSON blocks hint. */
   richUi?: string;
   /** The project's own extensions to leave out, because the user has not trusted them yet. */
@@ -278,8 +278,8 @@ export class Chats {
             ...(options.persona.mcpConfig ? ["--mcp-config", options.persona.mcpConfig] : []),
             ...(options.persona.allowTools?.length ? ["--allowedTools", ...options.persona.allowTools] : []),
           ]
-        : options.godeyeMcp
-          ? ["--mcp-config", options.godeyeMcp.config, "--allowedTools", ...options.godeyeMcp.allow]
+        : options.igrekMcp
+          ? ["--mcp-config", options.igrekMcp.config, "--allowedTools", ...options.igrekMcp.allow]
           : []),
     ];
     const proc = Bun.spawn(args, {
@@ -287,7 +287,7 @@ export class Chats {
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ ...options.env, GODEYE_CHAT: id }),
+      env: cleanEnv({ ...options.env, IGREK_CHAT: id }),
     });
     const chat: Chat = {
       info: {
