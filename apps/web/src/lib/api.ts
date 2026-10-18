@@ -60,6 +60,7 @@ import type {
   ProjectListItem,
   QuickAnswer,
   QuickEdit,
+  RecentChat,
   RemoteEntry,
   RemoteRun,
   SavedPrompt,
@@ -514,6 +515,9 @@ export const api = {
       body: JSON.stringify({ approve }),
     }),
   chats: () => request<ChatInfo[]>("/api/chats"),
+  recentChats: () => request<RecentChat[]>("/api/chats/recent"),
+  recentChat: (id: string) => request<RecentChat>(`/api/chats/recent/${id}`),
+  forgetChat: (id: string) => request<{ ok: boolean }>(`/api/chats/recent/${id}`, { method: "DELETE" }),
   startChat: (body: {
     projectId: string;
     resume?: string;

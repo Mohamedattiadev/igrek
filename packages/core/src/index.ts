@@ -487,6 +487,17 @@ export interface ChatInfo {
   persona?: { id: string; name?: string; tools: "read" | "edit" };
 }
 
+/** A chat God Eye remembers after it ended or God Eye restarted, so it can be continued from its saved session. */
+export interface RecentChat {
+  id: string;
+  projectId: string;
+  projectName?: string;
+  sessionId: string;
+  title: string;
+  startedAt: number;
+  updatedAt: number;
+}
+
 export type ChatEvent =
   | { kind: "user"; id: string; at: number; text: string; images: number }
   | { kind: "text"; id: string; at: number; text: string }

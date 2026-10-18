@@ -816,6 +816,15 @@ const migrations: string[] = [
      at INTEGER NOT NULL,
      PRIMARY KEY (kind, id, lang)
    );`,
+  `CREATE TABLE chat_history (
+     id TEXT PRIMARY KEY,
+     project_id TEXT NOT NULL,
+     session_id TEXT NOT NULL,
+     title TEXT NOT NULL,
+     started_at INTEGER NOT NULL,
+     updated_at INTEGER NOT NULL
+   );
+   CREATE INDEX chat_history_updated ON chat_history(updated_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

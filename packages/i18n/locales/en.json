@@ -800,7 +800,9 @@
     "goneUnknown": "This chat is no longer running (it stopped, or God Eye was restarted). Its conversation is saved under the project's Sessions.",
     "goneResume": "Continue where I left off",
     "goneOpen": "Read the conversation",
-    "goneProject": "Go to the project"
+    "goneProject": "Go to the project",
+    "recent": "Recent chats",
+    "forget": "Remove from the list"
   },
   "checkpoint": {
     "title": "Snapshots",

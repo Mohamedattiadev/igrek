@@ -1,5 +1,6 @@
-import type { ChatEvent, ChatInfo, ChatMode } from "@godeye/core";
+import type { ChatEvent, ChatInfo, ChatMode, RecentChat } from "@godeye/core";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { api } from "./api";
 
 type ServerOp =
   | { op: "init"; info: ChatInfo; events: ChatEvent[] }
@@ -7,33 +8,8 @@ type ServerOp =
   | { op: "info"; info: ChatInfo }
   | { op: "error"; error: string };
 
-/** What a chat was about, kept in the browser so it can be picked up again after God Eye restarts. */
-export interface KnownChat {
-  projectId: string;
-  sessionId?: string;
-  title: string;
-}
-const KNOWN = "godeye.chats.known";
-
-function readKnown(): Record<string, KnownChat> {
-  try {
-    return JSON.parse(localStorage.getItem(KNOWN) ?? "{}") as Record<string, KnownChat>;
-  } catch {
-    return {};
-  }
-}
-
-function remember(info: ChatInfo): void {
-  try {
-    const all = readKnown();
-    all[info.id] = { projectId: info.projectId, sessionId: info.sessionId, title: info.title };
-    const keys = Object.keys(all);
-    for (const k of keys.slice(0, Math.max(0, keys.length - 100))) delete all[k];
-    localStorage.setItem(KNOWN, JSON.stringify(all));
-  } catch {
-    // Only a convenience.
-  }
-}
+/** What a chat was about, kept by the server so it can be picked up again after God Eye restarts. */
+export type KnownChat = Pick<RecentChat, "projectId" | "sessionId" | "title">;
 
 /** Live connection to one chat: its events, status, and the actions you can take. */
 export function useChat(id: string) {
@@ -60,10 +36,8 @@ export function useChat(id: string) {
         if (op.op === "init") {
           setInfo(op.info);
           setEvents(op.events);
-          remember(op.info);
         } else if (op.op === "info") {
           setInfo(op.info);
-          remember(op.info);
         } else if (op.op === "error") setError(op.error);
         else
           setEvents((list) => {
@@ -82,7 +56,11 @@ export function useChat(id: string) {
             .then((r) => (r.ok ? (r.json() as Promise<ChatInfo[]>) : undefined))
             .then((list) => {
               if (closed) return;
-              if (list && !list.some((c) => c.id === id)) setGone(readKnown()[id] ?? true);
+              if (list && !list.some((c) => c.id === id))
+                void api
+                  .recentChat(id)
+                  .then((known) => !closed && setGone(known))
+                  .catch(() => !closed && setGone(true));
               else retry = setTimeout(connect, 1500);
             })
             .catch(() => {

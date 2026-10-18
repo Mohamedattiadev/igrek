@@ -2,9 +2,10 @@ import { describe, expect, test } from "bun:test";
 import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ChatEvent } from "@godeye/core";
+import type { ChatEvent, ChatInfo } from "@godeye/core";
 import { Bus, StopRegistry } from "./bus";
-import { Chats } from "./chats";
+import { ChatHistory, Chats } from "./chats";
+import { openDb } from "./db";
 
 /** A stand-in `claude` that speaks the same stream-json protocol. */
 function fakeClaude(): string {
@@ -116,5 +117,35 @@ for await (const chunk of Bun.stdin.stream()) {
       ["Hello there"],
     );
     chats.stopAll();
+  });
+});
+
+describe("chat history", () => {
+  const info = (id: string, sessionId?: string, title = id): ChatInfo => ({
+    id,
+    projectId: "p1",
+    cwd: "/tmp",
+    title,
+    mode: "normal",
+    status: "idle",
+    startedAt: 1,
+    sessionId,
+  });
+
+  test("keeps chats with a saved session, newest first, and skips live ones", () => {
+    const { sqlite } = openDb(":memory:");
+    const history = new ChatHistory(sqlite);
+    history.record([info("a", "s-a"), info("b")], 10);
+    history.record([info("c", "s-c")], 20);
+    history.record([info("a", "s-a", "renamed")], 30);
+    expect(history.recent(10).map((c) => [c.id, c.title])).toEqual([
+      ["a", "renamed"],
+      ["c", "c"],
+    ]);
+    expect(history.recent(10, new Set(["a"])).map((c) => c.id)).toEqual(["c"]);
+    expect(history.get("b")).toBeUndefined();
+    expect(history.get("c")?.sessionId).toBe("s-c");
+    history.forget("c");
+    expect(history.get("c")).toBeUndefined();
   });
 });

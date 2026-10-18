@@ -1,5 +1,13 @@
+import type { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
-import { type ChatEvent, type ChatInfo, type ChatMode, type RateLimitInfo, RICH_BLOCKS_HINT } from "@godeye/core";
+import {
+  type ChatEvent,
+  type ChatInfo,
+  type ChatMode,
+  type RateLimitInfo,
+  type RecentChat,
+  RICH_BLOCKS_HINT,
+} from "@godeye/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
@@ -554,4 +562,85 @@ export class Chats {
   private changed(): void {
     this.bus.publish({ type: "chats", chats: this.list() });
   }
+}
+
+const KEEP_HISTORY = 200;
+
+/**
+ * Chats outlive the browser and God Eye itself (plan.md 16.5): every chat with a saved
+ * session is written down, so any browser can continue it after a restart.
+ */
+export class ChatHistory {
+  constructor(private readonly db: Database) {}
+
+  record(chats: ChatInfo[], now = Date.now()): void {
+    const upsert = this.db.query(
+      `INSERT INTO chat_history (id, project_id, session_id, title, started_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET session_id = excluded.session_id, title = excluded.title,
+         updated_at = excluded.updated_at`,
+    );
+    let wrote = false;
+    for (const chat of chats) {
+      if (!chat.sessionId) continue;
+      upsert.run(chat.id, chat.projectId, chat.sessionId, chat.title, chat.startedAt, now);
+      wrote = true;
+    }
+    if (wrote)
+      this.db
+        .query(
+          "DELETE FROM chat_history WHERE id NOT IN (SELECT id FROM chat_history ORDER BY updated_at DESC LIMIT ?)",
+        )
+        .run(KEEP_HISTORY);
+  }
+
+  /** Most recent first; chats still running are left out (they are in the live list). */
+  recent(limit: number, live: Set<string> = new Set()): RecentChat[] {
+    const rows = this.db
+      .query(
+        `SELECT h.*, p.name AS project_name FROM chat_history h LEFT JOIN projects p ON p.id = h.project_id
+         ORDER BY h.updated_at DESC LIMIT ?`,
+      )
+      .all(limit + live.size) as HistoryRow[];
+    return rows
+      .filter((row) => !live.has(row.id))
+      .slice(0, limit)
+      .map(toRecent);
+  }
+
+  get(id: string): RecentChat | undefined {
+    const row = this.db
+      .query(
+        `SELECT h.*, p.name AS project_name FROM chat_history h LEFT JOIN projects p ON p.id = h.project_id
+         WHERE h.id = ?`,
+      )
+      .get(id) as HistoryRow | null;
+    return row ? toRecent(row) : undefined;
+  }
+
+  forget(id: string): void {
+    this.db.query("DELETE FROM chat_history WHERE id = ?").run(id);
+  }
+}
+
+interface HistoryRow {
+  id: string;
+  project_id: string;
+  project_name: string | null;
+  session_id: string;
+  title: string;
+  started_at: number;
+  updated_at: number;
+}
+
+function toRecent(row: HistoryRow): RecentChat {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    projectName: row.project_name ?? undefined,
+    sessionId: row.session_id,
+    title: row.title,
+    startedAt: row.started_at,
+    updatedAt: row.updated_at,
+  };
 }

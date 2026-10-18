@@ -4,7 +4,8 @@ import { join } from "node:path";
 import type { ChatMode } from "@godeye/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
-import type { ChatStart, Chats } from "./chats";
+import type { Bus } from "./bus";
+import { ChatHistory, type ChatStart, type Chats } from "./chats";
 import type { Store } from "./store";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
 
@@ -14,6 +15,7 @@ export function registerChatRoutes(
   app: Hono,
   {
     chats,
+    bus,
     store,
     accounts,
     worktreeDir,
@@ -21,6 +23,7 @@ export function registerChatRoutes(
     godeyeMcp,
   }: {
     chats: Chats;
+    bus: Bus;
     store: Store;
     accounts: Accounts;
     worktreeDir: string;
@@ -36,6 +39,22 @@ export function registerChatRoutes(
   const account = (projectId: string, sessionAccount?: string | null) =>
     (sessionAccount && accounts.get(sessionAccount)) || accounts.forProject("claude", projectId);
   app.get("/api/chats", (c) => c.json(chats.list()));
+
+  // Remember every chat with a saved session, so it can be continued after a restart.
+  const history = new ChatHistory(store.db);
+  history.record(chats.list());
+  bus.subscribe((message) => {
+    if (message.type === "chats") history.record(message.chats);
+  });
+  app.get("/api/chats/recent", (c) => c.json(history.recent(30, new Set(chats.list().map((chat) => chat.id)))));
+  app.get("/api/chats/recent/:id", (c) => {
+    const chat = history.get(c.req.param("id"));
+    return chat ? c.json(chat) : c.json({ error: "Chat not found" }, 404);
+  });
+  app.delete("/api/chats/recent/:id", (c) => {
+    history.forget(c.req.param("id"));
+    return c.json({ ok: true });
+  });
 
   app.post("/api/chats", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as {

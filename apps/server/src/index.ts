@@ -513,6 +513,7 @@ const app = createApp({
     registerServerRoutes(hono, servers);
     registerChatRoutes(hono, {
       chats,
+      bus,
       store,
       accounts,
       worktreeDir: join(config.dataDir, "worktrees"),

@@ -296,7 +296,7 @@ god-eye/
   - [x] Volume'lar: `~/.godeye`, `~/.claude`, `~/.codex`, proje klasörleri (kullanıcı seçer)
   - [x] Container içinde kullanıcının UID/GID'si ile çalışır, dosya sahipliği bozulmaz
   - [x] Healthcheck, otomatik yeniden başlama
-- [ ] Docker'sız alternatif: `bunx god-eye` (Docker kurmak istemeyenler için)
+- [ ] Docker'sız alternatif: `bunx god-eye` (Docker kurmak istemeyenler için) — *Karar (Ekim 2026): şimdilik npm'e yayınlanmıyor; repo özel kalıyor*
 - [x] 🔒 Sunucu sadece `127.0.0.1`'e bağlanır; oturum token'ı; Origin ve Host kontrolü (DNS rebinding koruması)
 - [x] 🔒 **Prompt güvenlik duvarı:** kullanıcının yazdığı prompt'ta şifre, API key veya kişisel veri varsa AI'a gitmeden önce uyarır ve maskeler — *chat ve Hızlı Soru'da; güçlendirici ve senkron zaten temizler*
 - [x] 🔒 **Prompt injection koruması:** web sayfaları, dokümanlar, issue'lar ve loglar gibi dışarıdan okunan içerik **veri** olarak işaretlenir, talimat olarak uygulanmaz. Dışarıdan içerik okuyan agent'ların tehlikeli araçları kapalıdır **Yapıldı:** God Eye'ın kendi AI işleri hiç araçsız çalışır (`--tools ""`), okudukları metin bir şey yaptıramaz. Sohbet internetten içerik okuyunca (WebFetch/WebSearch/tarayıcı MCP) soran moda döner, riskli araçlar her seferinde sorulur ve "her zaman izin ver" onları kapsamaz.
@@ -1176,7 +1176,7 @@ god-eye/
 - [ ] Hazır personalar: keşifçi, planlayıcı, inceleyici, işçi zinciri (#23); `AGENTS.md`, knip, kayıttan oynatılan adaptör testleri (#24, Faz 15 ile)
 
 #### 16.5 Kullanıcı testinden kalanlar (`research/kullanici-testi_2026-10-18.md`)
-- [ ] ⭐ Sohbet listesi sunucuda kalıcı: God Eye yeniden başlayınca da her tarayıcıda "Kaldığım yerden devam et"
+- [x] ⭐ Sohbet listesi sunucuda kalıcı: God Eye yeniden başlayınca da her tarayıcıda "Kaldığım yerden devam et" — *sohbetler oturum kimliğiyle veritabanında saklanır; Terminaller sayfasında "Son sohbetler" listesi ve "Kaldığım yerden devam et" her tarayıcıda, yeniden başlatmadan sonra da çalışır*
 - [ ] ⭐ Ana sayfa sade: önce sohbet kutusu ve projeler; brifing, gün sonu, "Bugün" ve odak kartları katlanabilir; Basit modda jargon ("Session", "Dinç/Yoruluyor", model adları) açıklanır ya da gizlenir
 - [ ] Telefonda Dosyalar sayfası tek panel; telefonda turda menü butonu adımı
 - [ ] Öğrenme merkezi başlıklarının Türkçesi (yol haritası ve kâğıt başlıkları şu an tek dil)

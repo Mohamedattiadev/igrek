@@ -800,7 +800,9 @@
     "goneUnknown": "Bu sohbet artık çalışmıyor (durduruldu ya da God Eye yeniden başladı). Konuşması projenin Session'lar sekmesinde kayıtlı.",
     "goneResume": "Kaldığım yerden devam et",
     "goneOpen": "Konuşmayı oku",
-    "goneProject": "Projeye git"
+    "goneProject": "Projeye git",
+    "recent": "Son sohbetler",
+    "forget": "Listeden kaldır"
   },
   "checkpoint": {
     "title": "Kayıtlar",

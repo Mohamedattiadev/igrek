@@ -1,5 +1,5 @@
 import type { TerminalInfo } from "@godeye/core";
-import { ArrowLeft, MessageSquare, SquareTerminal, X } from "lucide-react";
+import { ArrowLeft, History, MessageSquare, RotateCcw, SquareTerminal, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
@@ -11,7 +11,7 @@ import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
-import { useChats, useLiveData, useTerminals } from "../lib/live";
+import { useChats, useLiveData, useServerEvent, useTerminals } from "../lib/live";
 
 const TONE = { running: "success", idle: "neutral", attention: "warning", exited: "neutral" } as const;
 
@@ -83,6 +83,64 @@ function Tabs({ terminals, active }: { terminals: TerminalInfo[]; active?: strin
   );
 }
 
+/** Chats that ended or outlived a restart, kept by the server: continue any of them from any browser. */
+function RecentChats() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { data: recent, reload } = useLiveData(() => api.recentChats(), []);
+  useServerEvent("chats", reload);
+  if (!recent?.length) return null;
+  return (
+    <div className="px-6 pt-6">
+      <h2 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-fg-subtle">
+        <History size={13} />
+        {t("chat.recent")}
+      </h2>
+      <Card>
+        <div className="divide-y divide-border">
+          {recent.map((chat) => (
+            <div key={chat.id} className="group flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover">
+              <MessageSquare size={15} className="shrink-0 text-fg-subtle" />
+              <Link to={`/c/${chat.id}`} data-nav-item className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium">{chat.title}</p>
+                <p className="truncate text-[11px] text-fg-subtle">
+                  {chat.projectName ? `${chat.projectName} · ` : ""}
+                  {relativeTime(chat.updatedAt)}
+                </p>
+              </Link>
+              <button
+                type="button"
+                aria-label={t("chat.goneResume")}
+                title={t("chat.goneResume")}
+                onClick={async () => {
+                  const next = await api.startChat({ projectId: chat.projectId, resume: chat.sessionId });
+                  navigate(`/c/${next.id}`);
+                }}
+                className="flex shrink-0 items-center gap-1 rounded-md px-2 py-1 text-[12px] text-accent hover:bg-bg-active"
+              >
+                <RotateCcw size={13} />
+                <span className="hidden sm:inline">{t("chat.goneResume")}</span>
+              </button>
+              <button
+                type="button"
+                aria-label={t("chat.forget")}
+                title={t("chat.forget")}
+                onClick={async () => {
+                  await api.forgetChat(chat.id);
+                  reload();
+                }}
+                className="shrink-0 text-fg-subtle hover:text-danger sm:opacity-0 sm:group-hover:opacity-100"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
 export function TerminalsPage() {
   const { t } = useTranslation();
   const terminals = useTerminals();
@@ -115,6 +173,7 @@ export function TerminalsPage() {
           </Card>
         </div>
       )}
+      <RecentChats />
       {terminals.length === 0 && chats.length === 0 ? (
         <EmptyState icon={SquareTerminal} title={t("term.empty")} body={t("term.emptyBody")} action={<StartHere />} />
       ) : (
