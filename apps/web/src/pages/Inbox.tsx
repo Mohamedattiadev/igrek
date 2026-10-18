@@ -50,6 +50,7 @@ const NOTICE_ICON: Partial<Record<InboxNotice["kind"], LucideIcon>> = {
   agentForm: ClipboardList,
   tool: CircleX,
   score: TrendingDown,
+  ratchet: TrendingDown,
   overlap: Users,
   mention: AtSign,
   lesson: NotebookPen,

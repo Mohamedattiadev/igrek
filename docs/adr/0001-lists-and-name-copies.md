@@ -13,7 +13,7 @@ in two places, and the database gate lists each case.
 ## Decision
 
 1. **Lists kept as JSON in one column** (for example `sessions.files_touched`, `sessions.packages`,
-   `comments.mentions`, `chat_history.queue`). Each list belongs to exactly one row, is always read and
+   `comments.mentions`, `chat_history.queue`, and the per-category counts in `insight_scans.findings`). Each list belongs to exactly one row, is always read and
    written whole with that row, and no query looks inside it (the code only compares the whole value,
    such as `packages != '[]'`). A child table would add a join to every read and buy nothing.
 2. **Names copied next to an id** (`sessions.author_name`, `comments.author_name`,

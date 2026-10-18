@@ -23,6 +23,7 @@
     "full-scan:apps/server/src/library.ts:library_chunks:ead1e15e",
     "list-in-column:chat_history.queue",
     "list-in-column:comments.mentions",
+    "list-in-column:insight_scans.findings",
     "list-in-column:library_items.persona_ids",
     "list-in-column:news_items.affects",
     "list-in-column:prompts.tags",
@@ -371,6 +372,7 @@
     "dbeb0cf3fdc6d7e6702016c2b37c245a228ed5bd14409b930b360e0cbadd7999",
     "b2d4860a327639454c67773ab53b0d671a370a0cb1c73b06bc8f2cfafa7683cf",
     "c19265c74a0ac19f0e276925438b48ae7521dd8c96b1b02e2d949d8a9117a41b",
-    "ff178f661d4d9833b1e42b285c6f49facda7917da82f04ac78c22d1036e79a6e"
+    "ff178f661d4d9833b1e42b285c6f49facda7917da82f04ac78c22d1036e79a6e",
+    "7dc2e69f8b6132e00d3866781204d9f5aeb6ddf972172090152ef88b84963c31"
   ]
 }

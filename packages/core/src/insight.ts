@@ -77,6 +77,8 @@ export interface CategoryDetail extends CategoryScore {
   explanation?: Record<string, CategoryExplanation>;
   explainedAt?: number;
   trend: { at: number; score: number }[];
+  /** Open findings in this category per scan; the goal is zero and the count may only go down. */
+  findingsTrend: { at: number; score: number }[];
   sessions: { id: string; title: string; updatedAt: number; author?: string }[];
   /** Memory items (decisions, conventions, known issues) that mention this part's files. */
   decisions: { id: string; section: string; text: string }[];
@@ -266,7 +268,8 @@ export interface InboxNotice {
     | "aiComment"
     | "secretRequest"
     | "agentReport"
-    | "agentForm";
+    | "agentForm"
+    | "ratchet";
   projectId: string;
   projectName: string;
   /** Short fact shown next to the title: the tool, "84 → 76", "Kerim · changed · STRIPE_KEY". */

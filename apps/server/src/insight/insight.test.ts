@@ -115,7 +115,28 @@ describe("insight service", () => {
     const architecture = insight.detail("p1", "architecture");
     expect(architecture?.sessions.map((s) => s.id)).toEqual(["s1"]);
     expect(architecture?.trend.length).toBe(2);
+    expect(architecture?.findingsTrend.length).toBe(2);
     insight.stop();
+  });
+
+  test("ratchet: a category with more open findings than the scan before is an inbox notice", () => {
+    const db = new Database(":memory:");
+    migrate(db);
+    db.query("INSERT INTO projects (id, name, path, created_at) VALUES ('p1', 'Demo', '/x', 0)").run();
+    const add = (at: number, findings: Record<string, number>) =>
+      db
+        .query(
+          "INSERT INTO insight_scans (project_id, at, overall, scores, data, findings) VALUES ('p1', ?, 80, '{}', '{}', ?)",
+        )
+        .run(at, JSON.stringify(findings));
+    const now = Date.now();
+    add(now - 2000, { security: 2, tests: 5 });
+    add(now - 1000, { security: 4, tests: 3 });
+    const insight = new Insight(db, new Store(db), new Bus(), new StopRegistry(), () => ({}) as never, "/x");
+    const ratchet = insight.notices(now).filter((n) => n.kind === "ratchet");
+    expect(ratchet.map((n) => n.detail)).toEqual(["security 2 → 4"]);
+    add(now, { security: 4, tests: 3 });
+    expect(insight.notices(now + 1).some((n) => n.kind === "ratchet")).toBe(false);
   });
 });
 

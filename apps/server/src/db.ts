@@ -872,6 +872,8 @@ export const migrations: string[] = [
      fingerprint TEXT NOT NULL,
      decided_at INTEGER NOT NULL
    );`,
+  // Open findings per category in each scan, for the "down to zero" ratchet (plan.md 15.5).
+  `ALTER TABLE insight_scans ADD COLUMN findings TEXT NOT NULL DEFAULT '{}';`,
 ];
 
 export function migrate(sqlite: Database): number {

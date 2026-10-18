@@ -335,6 +335,18 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
           <p className="mb-1 text-[11px] font-medium text-fg-subtle">{t("insight.trend")}</p>
           <Trend points={detail.trend} />
         </div>
+        {detail.findingsTrend.length > 1 && (
+          <div>
+            <p className="mb-1 text-[11px] font-medium text-fg-subtle">
+              {t("insight.findingsTrend", { count: detail.findings.length })}
+            </p>
+            <Trend
+              points={detail.findingsTrend}
+              max={Math.max(...detail.findingsTrend.map((p) => p.score))}
+              label="insight.findingsTrendLabel"
+            />
+          </div>
+        )}
         {reviewer && (
           <div className="w-full space-y-1 border-t border-border pt-3 sm:w-auto sm:border-t-0 sm:pt-0">
             <Button

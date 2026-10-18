@@ -55,15 +55,29 @@ export function ScoreRing({
   );
 }
 
-/** Score over time. One series: no legend, the heading names it; hover shows each point. */
-export function Trend({ points, height = 64 }: { points: { at: number; score: number }[]; height?: number }) {
+/**
+ * A value over time. One series: no legend, the heading names it; hover shows each point.
+ * Scores run 0-100; counts (open findings) pass `max` and the label key that reads them.
+ */
+export function Trend({
+  points,
+  height = 64,
+  max = 100,
+  label = "insight.trendLabel",
+}: {
+  points: { at: number; score: number }[];
+  height?: number;
+  max?: number;
+  label?: string;
+}) {
   const { t } = useTranslation();
   const [hover, setHover] = useState<number>();
   const width = 320;
   if (points.length < 2) return <p className="text-xs text-fg-subtle">{t("insight.trendEmpty")}</p>;
   const pad = 6;
+  const top = Math.max(1, max);
   const x = (i: number) => pad + (i * (width - pad * 2)) / (points.length - 1);
-  const y = (score: number) => pad + ((100 - score) * (height - pad * 2)) / 100;
+  const y = (score: number) => pad + ((top - score) * (height - pad * 2)) / top;
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.score).toFixed(1)}`).join(" ");
   const active = hover === undefined ? undefined : points[hover];
   return (
@@ -72,7 +86,7 @@ export function Trend({ points, height = 64 }: { points: { at: number; score: nu
         viewBox={`0 0 ${width} ${height}`}
         className="h-16 w-full max-w-[320px] overflow-visible"
         role="img"
-        aria-label={t("insight.trendLabel", { from: points[0]?.score, to: points.at(-1)?.score })}
+        aria-label={t(label, { from: points[0]?.score, to: points.at(-1)?.score })}
         onPointerLeave={() => setHover(undefined)}
         onPointerMove={(e) => {
           const box = e.currentTarget.getBoundingClientRect();
@@ -80,7 +94,7 @@ export function Trend({ points, height = 64 }: { points: { at: number; score: nu
           setHover(Math.max(0, Math.min(points.length - 1, Math.round(ratio * (points.length - 1)))));
         }}
       >
-        <line x1={pad} x2={width - pad} y1={y(50)} y2={y(50)} stroke="var(--border)" strokeDasharray="2 3" />
+        <line x1={pad} x2={width - pad} y1={y(top / 2)} y2={y(top / 2)} stroke="var(--border)" strokeDasharray="2 3" />
         <path d={path} fill="none" stroke="var(--series-1)" strokeWidth={2} strokeLinejoin="round" />
         {active && hover !== undefined && (
           <>

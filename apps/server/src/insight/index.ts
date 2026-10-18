@@ -119,9 +119,12 @@ export class Insight {
           fileCount: reply.fileCount,
         };
         const scores = Object.fromEntries(reply.categories.map((c) => [c.category, c.score]));
+        const findings = Object.fromEntries(reply.categories.map((c) => [c.category, c.findings.length]));
         this.db
-          .query("INSERT INTO insight_scans (project_id, at, overall, scores, data) VALUES (?, ?, ?, ?, ?)")
-          .run(projectId, at, reply.overall, JSON.stringify(scores), JSON.stringify(scan));
+          .query(
+            "INSERT INTO insight_scans (project_id, at, overall, scores, data, findings) VALUES (?, ?, ?, ?, ?, ?)",
+          )
+          .run(projectId, at, reply.overall, JSON.stringify(scores), JSON.stringify(scan), JSON.stringify(findings));
         // Keep the latest full scan; older rows only need their scores for the trend.
         this.db
           .query("UPDATE insight_scans SET data = '{}' WHERE project_id = ? AND at < ? AND data != '{}'")
@@ -163,17 +166,17 @@ export class Insight {
     if (!("categories" in latest)) return undefined;
     const score = latest.categories.find((c) => c.category === category);
     if (!score) return undefined;
-    const trend = (
+    const rows30 = (
       this.db
-        .query("SELECT at, scores FROM insight_scans WHERE project_id = ? ORDER BY at DESC LIMIT 30")
-        .all(projectId) as {
-        at: number;
-        scores: string;
-      }[]
-    )
-      .reverse()
-      .map((r) => ({ at: r.at, score: (JSON.parse(r.scores) as Record<string, number>)[category] }))
-      .filter((p): p is { at: number; score: number } => typeof p.score === "number");
+        .query("SELECT at, scores, findings FROM insight_scans WHERE project_id = ? ORDER BY at DESC LIMIT 30")
+        .all(projectId) as { at: number; scores: string; findings: string }[]
+    ).reverse();
+    const series = (column: "scores" | "findings") =>
+      rows30
+        .map((r) => ({ at: r.at, score: (JSON.parse(r[column]) as Record<string, number>)[category] }))
+        .filter((p): p is { at: number; score: number } => typeof p.score === "number");
+    const trend = series("scores");
+    const findingsTrend = series("findings");
 
     // Sessions that changed files in this part of the project.
     const root = this.store.projectRow(projectId)?.path ?? "";
@@ -228,6 +231,7 @@ export class Insight {
     return {
       ...score,
       trend,
+      findingsTrend,
       sessions,
       decisions,
       explanation: text ? (JSON.parse(text.texts) as Record<string, CategoryExplanation>) : undefined,
@@ -402,6 +406,12 @@ ${heads.join("\n\n") || "(none)"}`;
           link: `/p/${project_id}?tab=sections`,
         });
     }
+    out.push(
+      ...this.ratchetNotices(
+        projects.map((p) => p.project_id),
+        name,
+      ),
+    );
     for (const r of this.db
       .query(
         "SELECT project_id, file, key, action, author_name, at FROM env_changes WHERE author_id IS NOT NULL AND at > ? ORDER BY at DESC LIMIT 20",
@@ -425,6 +435,38 @@ ${heads.join("\n\n") || "(none)"}`;
       });
     out.push(...(this.extraNotices?.() ?? []));
     return out.sort((a, b) => b.at - a.at).slice(0, 50);
+  }
+
+  /**
+   * The ratchet (plan.md 15.5): open findings in a category may only go down. A scan that finds
+   * more than the one before it in some category is a notice, with the categories and counts.
+   */
+  private ratchetNotices(projectIds: string[], name: (id: string) => string): InboxNotice[] {
+    const out: InboxNotice[] = [];
+    if (!projectIds.length) return out;
+    const rows = this.db
+      .query(
+        "SELECT project_id, findings, at FROM insight_scans WHERE project_id IN (SELECT value FROM json_each(?)) ORDER BY project_id, at DESC",
+      )
+      .all(JSON.stringify(projectIds)) as { project_id: string; findings: string; at: number }[];
+    for (const projectId of projectIds) {
+      const [latest, previous] = rows.filter((r) => r.project_id === projectId);
+      if (!latest || !previous) continue;
+      const now = JSON.parse(latest.findings) as Record<string, number>;
+      const before = JSON.parse(previous.findings) as Record<string, number>;
+      const grew = Object.entries(now).filter(([cat, n]) => before[cat] !== undefined && n > (before[cat] ?? 0));
+      if (!grew.length) continue;
+      out.push({
+        id: `ratchet-${projectId}-${latest.at}`,
+        kind: "ratchet",
+        projectId,
+        projectName: name(projectId),
+        detail: grew.map(([cat, n]) => `${cat} ${before[cat]} → ${n}`).join(", "),
+        at: latest.at,
+        link: `/p/${projectId}?tab=sections`,
+      });
+    }
+    return out;
   }
 
   /** Notices from elsewhere (team overlaps), merged into the same inbox list. */

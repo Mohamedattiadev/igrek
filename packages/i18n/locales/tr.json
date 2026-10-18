@@ -140,7 +140,8 @@
     "notice_aiComment": "bir yorumda AI'dan istiyor",
     "notice_secretRequest": "bir AI senden bir sır istiyor",
     "notice_agentReport": "bir AI senin için bir sayfa hazırladı",
-    "notice_agentForm": "bir AI senden bir form doldurmanı istiyor"
+    "notice_agentForm": "bir AI senden bir form doldurmanı istiyor",
+    "notice_ratchet": "son taramadan beri yeni sorunlar çıktı"
   },
   "placeholder": {
     "soon": "Sonraki bir fazda geliyor",
@@ -1456,7 +1457,10 @@
       "docs": "Yeni biri için anlamanın ve başlamanın ne kadar kolay olduğu.",
       "dependencies": "Dayandığı dış paketler ve sürümlerinin ne kadar güvenli sabitlendiği."
     },
-    "decisions": "İlgili kararlar ve notlar"
+    "decisions": "İlgili kararlar ve notlar",
+    "findingsTrend_one": "Açık bulgular: {{count}} (hedef 0)",
+    "findingsTrend_other": "Açık bulgular: {{count}} (hedef 0)",
+    "findingsTrendLabel": "Açık bulgular {{from}} → {{to}}"
   },
   "apis": {
     "title": "API Haritası",
