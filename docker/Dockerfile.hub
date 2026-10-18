@@ -14,6 +14,7 @@ COPY apps/web/package.json apps/web/
 COPY apps/hub/package.json apps/hub/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
+COPY packages/genui/package.json packages/genui/
 RUN bun install --frozen-lockfile --production --filter '@godeye/hub'
 COPY apps/hub/src apps/hub/src
 RUN bun build apps/hub/src/main.ts --compile --minify --outfile /out/god-eye-hub \
