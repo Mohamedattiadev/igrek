@@ -771,6 +771,15 @@ function toolDrafts(snap: Snapshot, tools: ToolResult[], present: Category[]): D
         evidence: outputEvidence(t.output, snap),
       });
     }
+    if (t.kind === "dead" && t.dead !== undefined && present.includes("architecture"))
+      out.push({
+        id: "tool.dead",
+        category: "architecture",
+        weight: 1.5,
+        value: t.dead === 0 ? 1 : t.dead < 10 ? 0.6 : 0.3,
+        metric: String(t.dead),
+        evidence: outputEvidence(t.output, snap),
+      });
     if (t.kind === "audit" && t.vulnerabilities) {
       const v = t.vulnerabilities;
       const serious = (v.critical ?? 0) + (v.high ?? 0);

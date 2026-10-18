@@ -1398,6 +1398,10 @@
         "auditSecurity": {
           "title": "Serious vulnerabilities in dependencies: {{metric}}",
           "fix": "Update the packages with critical or high vulnerabilities now."
+        },
+        "dead": {
+          "title": "Unused code: {{metric}}",
+          "fix": "Remove the unused files, exports and dependencies the project's dead-code tool lists, one at a time with the tests passing; or run the Safe cleanup team flow."
         }
       }
     },
@@ -1631,7 +1635,10 @@
     "noVulns": "no known vulnerabilities",
     "tests": "{{passed}} passed, {{failed}} failed",
     "exit": "exit",
-    "output": "Show output"
+    "output": "Show output",
+    "kind_dead": "Dead code",
+    "deadCount_one": "{{count}} unused item",
+    "deadCount_other": "{{count}} unused items"
   },
   "scoring": {
     "title": "Scoring",

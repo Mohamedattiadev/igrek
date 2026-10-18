@@ -31,6 +31,18 @@ function scripts(root: string): Record<string, string> {
   }
 }
 
+/** A dead-code tool the project already has (nothing is installed for it). */
+function deadTool(root: string): ToolPlan[] {
+  if (existsSync(join(root, "node_modules/.bin/knip")))
+    return [{ kind: "dead", command: ["./node_modules/.bin/knip", "--no-progress"] }];
+  if (existsSync(join(root, "go.mod")) && Bun.which("staticcheck"))
+    return [{ kind: "dead", command: ["staticcheck", "-checks", "U1000", "./..."] }];
+  const python = existsSync(join(root, "pyproject.toml")) || existsSync(join(root, "requirements.txt"));
+  if (python && Bun.which("vulture"))
+    return [{ kind: "dead", command: ["vulture", ".", "--exclude", ".venv,venv,node_modules"] }];
+  return [];
+}
+
 /** What could be run here, detected from package.json and config files. */
 export function planTools(root: string): ToolPlan[] {
   const out: ToolPlan[] = [];
@@ -55,6 +67,7 @@ export function planTools(root: string): ToolPlan[] {
   ) {
     if (Bun.which("pytest")) out.push({ kind: "test", command: ["pytest", "-q"] });
   }
+  out.push(...deadTool(root));
   if (existsSync(join(root, "package.json"))) {
     const audit: Record<string, string[]> = {
       bun: ["bun", "audit", "--json"],
@@ -66,7 +79,7 @@ export function planTools(root: string): ToolPlan[] {
       out.push({ kind: "audit", command: audit[pm] as string[] });
   } else if (existsSync(join(root, "requirements.txt")) && Bun.which("pip-audit"))
     out.push({ kind: "audit", command: ["pip-audit", "-r", "requirements.txt", "-f", "json"] });
-  return out.filter((p) => resolveBin(p.command[0] ?? ""));
+  return out.filter((p) => (p.command[0] ?? "").startsWith("./") || resolveBin(p.command[0] ?? ""));
 }
 
 /** A program on PATH; `bun` is also the Bun running God Eye, which may not be on PATH itself. */
@@ -131,7 +144,7 @@ export async function runTool(
 ): Promise<ToolResult> {
   const started = Date.now();
   const [bin = "", ...args] = plan.command;
-  const proc = Bun.spawn([resolveBin(bin) ?? bin, ...args], {
+  const proc = Bun.spawn([bin.startsWith("./") ? join(root, bin) : (resolveBin(bin) ?? bin), ...args], {
     cwd: root,
     stdout: "pipe",
     stderr: "pipe",
@@ -162,6 +175,11 @@ export async function runTool(
       // Audit tools exit non-zero when they find something; that's a result, not a failure to run.
       result.ok = !!result.vulnerabilities && Object.values(result.vulnerabilities).every((n) => n === 0);
     }
+    if (plan.kind === "dead") {
+      result.dead = countDead(output);
+      // These tools exit non-zero when they find something; the count is the result.
+      result.ok = result.dead === 0;
+    }
     if (plan.kind === "test") {
       const passed = output.match(/(\d+)\s+(pass|passed|passing)\b/i);
       const failed = output.match(/(\d+)\s+(fail|failed|failing)\b/i);
@@ -174,11 +192,23 @@ export async function runTool(
   }
 }
 
-export const TOOL_KINDS: ToolKind[] = ["typecheck", "lint", "test", "audit"];
+export const TOOL_KINDS: ToolKind[] = ["typecheck", "lint", "test", "audit", "dead"];
+
+/**
+ * Findings in a dead-code tool's output: knip prints "Unused files (3)" style headings,
+ * vulture and staticcheck one "file:line: ..." line per finding.
+ */
+export function countDead(output: string): number {
+  const headings = [...output.matchAll(/^(?:Unused|Unlisted|Unresolved|Duplicate)[^\n(]*\((\d+)\)/gm)];
+  if (headings.length) return headings.reduce((n, m) => n + Number(m[1]), 0);
+  return output.split("\n").filter((line) => /^[^\s:]+:\d+(?::\d+)?:\s/.test(line)).length;
+}
 
 /** Typecheck, lint and tests of a folder, one after another (the audit needs the network, so it is left out). */
 export async function runChecks(root: string, register: (stop: () => void) => () => void): Promise<ToolResult[]> {
   const out: ToolResult[] = [];
-  for (const plan of planTools(root).filter((p) => p.kind !== "audit")) out.push(await runTool(root, plan, register));
+  // The audit needs the network and dead code should not hold work back: both stay out of the gate.
+  for (const plan of planTools(root).filter((p) => p.kind !== "audit" && p.kind !== "dead"))
+    out.push(await runTool(root, plan, register));
   return out;
 }

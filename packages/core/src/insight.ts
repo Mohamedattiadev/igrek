@@ -172,7 +172,7 @@ export interface EnvBackup {
 }
 
 /** The project's own checks, run only when the user starts them (plan.md 5.3). */
-export type ToolKind = "typecheck" | "lint" | "test" | "audit";
+export type ToolKind = "typecheck" | "lint" | "test" | "audit" | "dead";
 
 export interface ToolPlan {
   kind: ToolKind;
@@ -190,6 +190,8 @@ export interface ToolResult {
   output: string;
   vulnerabilities?: Record<string, number>;
   tests?: { passed?: number; failed?: number };
+  /** Unused files, exports, functions or dependencies the project's own dead-code tool found. */
+  dead?: number;
 }
 
 /** Per-project scoring choices: how much each part counts, and checks that don't apply. */
@@ -251,6 +253,7 @@ export const CHECK_SOURCES: Record<string, string> = {
   "tool.tests": "https://martinfowler.com/articles/practical-test-pyramid.html",
   "tool.audit": "https://docs.npmjs.com/cli/v11/commands/npm-audit",
   "tool.auditSecurity": "https://docs.npmjs.com/cli/v11/commands/npm-audit",
+  "tool.dead": "https://refactoring.guru/smells/dead-code",
 };
 
 export const DEFAULT_WEIGHTS: Partial<Record<Category, number>> = { security: 1.5, testing: 1.2 };

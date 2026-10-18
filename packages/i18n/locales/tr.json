@@ -1398,6 +1398,10 @@
         "auditSecurity": {
           "title": "Bağımlılıklarda ciddi açıklar: {{metric}}",
           "fix": "Kritik veya yüksek açığı olan paketleri hemen güncelle."
+        },
+        "dead": {
+          "title": "Kullanılmayan kod: {{metric}}",
+          "fix": "Projenin ölü kod aracının listelediği kullanılmayan dosya, export ve bağımlılıkları testler geçerek tek tek kaldır; ya da Güvenli temizlik takım akışını çalıştır."
         }
       }
     },
@@ -1631,7 +1635,10 @@
     "noVulns": "bilinen açık yok",
     "tests": "{{passed}} geçti, {{failed}} başarısız",
     "exit": "çıkış",
-    "output": "Çıktıyı göster"
+    "output": "Çıktıyı göster",
+    "kind_dead": "Ölü kod",
+    "deadCount_one": "{{count}} kullanılmayan öğe",
+    "deadCount_other": "{{count}} kullanılmayan öğe"
   },
   "scoring": {
     "title": "Puanlama",

@@ -108,9 +108,11 @@ export function ToolsCard({ projectId }: { projectId: string }) {
                             .filter(([, n]) => n)
                             .map(([k, n]) => `${n} ${k}`)
                             .join(", ") || t("tools.noVulns")
-                        : r.tests?.passed !== undefined || r.tests?.failed !== undefined
-                          ? t("tools.tests", { passed: r.tests?.passed ?? 0, failed: r.tests?.failed ?? 0 })
-                          : `${t("tools.exit")} ${r.exitCode}`}
+                        : r.dead !== undefined
+                          ? t("tools.deadCount", { count: r.dead })
+                          : r.tests?.passed !== undefined || r.tests?.failed !== undefined
+                            ? t("tools.tests", { passed: r.tests?.passed ?? 0, failed: r.tests?.failed ?? 0 })
+                            : `${t("tools.exit")} ${r.exitCode}`}
                       {" · "}
                       {relativeTime(r.at)}
                     </span>

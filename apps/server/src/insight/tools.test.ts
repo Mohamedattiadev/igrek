@@ -97,3 +97,34 @@ describe("project tools", () => {
     expect(tuned.catalog.architecture).toContain("arch.readme");
   });
 });
+
+describe("dead code tools", () => {
+  test("knip headings and one-line-per-finding tools are both counted", async () => {
+    const { countDead } = await import("./tools");
+    expect(countDead("Unused files (2)\nsrc/a.ts\nsrc/b.ts\nUnused exports (3)\nx  src/c.ts:1:1\n")).toBe(5);
+    expect(
+      countDead("app.py:12: unused function 'old' (60% confidence)\napp.py:30: unused variable 'x' (60% confidence)\n"),
+    ).toBe(2);
+    expect(countDead("main.go:8:6: func helper is unused (U1000)\n")).toBe(1);
+    expect(countDead("")).toBe(0);
+  });
+
+  test("knip is planned only when the project has it installed, and the gate leaves it out", async () => {
+    const { mkdtempSync, mkdirSync, writeFileSync, chmodSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const { planTools, runChecks, runTool } = await import("./tools");
+    const root = mkdtempSync(join(tmpdir(), "gd-dead-"));
+    writeFileSync(join(root, "package.json"), "{}");
+    expect(planTools(root).some((p) => p.kind === "dead")).toBe(false);
+    mkdirSync(join(root, "node_modules/.bin"), { recursive: true });
+    writeFileSync(join(root, "node_modules/.bin/knip"), "#!/bin/sh\necho 'Unused files (1)'\necho src/x.ts\nexit 1\n");
+    chmodSync(join(root, "node_modules/.bin/knip"), 0o755);
+    expect(planTools(root).find((p) => p.kind === "dead")?.command[0]).toBe("./node_modules/.bin/knip");
+    const plan = planTools(root).find((p) => p.kind === "dead");
+    const result = plan ? await runTool(root, plan, () => () => undefined) : undefined;
+    expect(result).toMatchObject({ kind: "dead", dead: 1, ok: false });
+    const ran = await runChecks(root, () => () => undefined);
+    expect(ran.some((r) => r.kind === "dead")).toBe(false);
+  });
+});
