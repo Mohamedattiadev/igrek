@@ -3,6 +3,7 @@ import { Download, Library, Link2, RotateCw, Search, Trash2, Upload } from "luci
 import { type DragEvent, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
+import { LibrarySuggestions } from "../components/LibrarySuggestions";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -264,6 +265,15 @@ export function LibraryPage() {
           </div>
           {error && <p className="text-xs text-danger">{error}</p>}
         </Card>
+
+        <LibrarySuggestions
+          items={items}
+          onBook={(personaId, book) => {
+            setShelf([personaId]);
+            setTitle(book);
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
 
         <Card className="space-y-2 p-pad">
           <div className="flex items-center gap-2">

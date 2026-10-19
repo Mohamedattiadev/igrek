@@ -10,6 +10,7 @@ export * from "./lessons";
 export * from "./library";
 export * from "./ops";
 export * from "./persona";
+export * from "./persona-knowledge";
 export * from "./personas";
 export * from "./preview";
 export * from "./prompt";
@@ -600,9 +601,10 @@ export type ChatEvent =
       tone: "danger" | "neutral";
       /**
        * "notebook": opinions written down (text = count); "notebookRejected": a change without new evidence;
-       * "loop": the same step with the same input again and again (text = the tool's name).
+       * "loop": the same step with the same input again and again (text = the tool's name);
+       * "history": the end of the earlier conversation a continued chat shows (text = how many messages).
        */
-      code?: "external" | "notebook" | "notebookRejected" | "loop";
+      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history";
     }
   | {
       /** The project's checks after a turn that changed files (plan.md 15.5). */
@@ -620,6 +622,34 @@ export type ChatEvent =
       sentBack?: boolean;
     }
   | { kind: "checkpoint"; id: string; at: number; checkpointId: string; projectId: string };
+
+/**
+ * A continued session opens with its last messages, so the chat does not look empty while Claude
+ * remembers everything; a divider then marks where the new part begins.
+ */
+export function historyEvents(messages: TranscriptMessage[], limit = 80): ChatEvent[] {
+  const shown = messages.slice(-limit);
+  if (!shown.length) return [];
+  const events = shown.map((m): ChatEvent => {
+    const id = `history-${m.id}`;
+    if (m.kind === "prompt") return { kind: "user", id, at: m.ts, text: m.text, images: 0 };
+    if (m.kind === "text") return { kind: "text", id, at: m.ts, text: m.text };
+    return {
+      kind: "tool",
+      id,
+      at: m.ts,
+      name: m.toolName ?? "tool",
+      input: {},
+      status: m.kind === "error" ? "error" : "done",
+      result: m.text,
+    };
+  });
+  const last = shown[shown.length - 1]?.ts ?? 0;
+  return [
+    ...events,
+    { kind: "notice", id: "history-end", at: last, text: String(shown.length), tone: "neutral", code: "history" },
+  ];
+}
 
 /** The message that hands failures from the gate back to the AI, with the evidence (plan.md 15.5). */
 export function fixRequest(broke: { command: string; output?: string }[]): string {

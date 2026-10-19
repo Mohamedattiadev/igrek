@@ -5,6 +5,7 @@
  */
 import type { Category } from "./insight";
 import type { Persona, PersonaGroup, PersonaModel, PersonaProfile, PersonaTools } from "./persona";
+import { PERSONA_KNOWLEDGE } from "./persona-knowledge";
 
 type Year = [string, string];
 type Book = [string, string, number?];
@@ -25,14 +26,21 @@ function def(
   },
 ): Persona {
   const tools = opts.tools ?? "edit";
+  // The field's knowledge lives in persona-knowledge.ts; the story above, the expertise there.
+  const known = PERSONA_KNOWLEDGE[id];
+  const reading = [...profile.reading, ...(known?.reading ?? [])].filter(
+    ([title], i, all) => all.findIndex(([other]) => other === title) === i,
+  );
   const full: PersonaProfile = {
     bio: profile.bio,
     style: profile.style,
     timeline: profile.timeline.map(([year, event]) => ({ year, event })),
-    reading: profile.reading.map(([title, author, year]) => ({ title, author, ...(year ? { year } : {}) })),
-    checklist: profile.checklist,
-    pitfalls: profile.pitfalls,
+    reading: reading.map(([title, author, year]) => ({ title, author, ...(year ? { year } : {}) })),
+    checklist: [...profile.checklist, ...(known?.checklist ?? [])],
+    pitfalls: [...profile.pitfalls, ...(known?.pitfalls ?? [])],
     rules: profile.rules ?? [],
+    mastery: known?.mastery ?? [],
+    decisions: known?.decisions ?? [],
   };
   return {
     id,

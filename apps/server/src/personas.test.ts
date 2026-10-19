@@ -8,6 +8,7 @@ import {
   type ChatEvent,
   DEFAULT_SETTINGS,
   extractNotebook,
+  PERSONA_KNOWLEDGE,
   personaForCategory,
   personaPrompt,
 } from "@igrek/core";
@@ -42,6 +43,27 @@ describe("built-in personas", () => {
     }
     // plan.md 6.2: Security only reads.
     expect(BUILTIN_PERSONAS.find((p) => p.id === "security")?.tools).toBe("read");
+  });
+
+  test("every built-in persona masters its field: concepts, decisions, no repeated books", () => {
+    for (const p of BUILTIN_PERSONAS) {
+      expect(p.profile.mastery?.length ?? 0, p.id).toBeGreaterThanOrEqual(6);
+      expect(p.profile.decisions?.length ?? 0, p.id).toBeGreaterThanOrEqual(3);
+      const titles = p.profile.reading.map((r) => r.title);
+      expect(new Set(titles).size, p.id).toBe(titles.length);
+    }
+    // Knowledge written for a persona that does not exist would never be read.
+    const ids = new Set(BUILTIN_PERSONAS.map((p) => p.id));
+    for (const id of Object.keys(PERSONA_KNOWLEDGE)) expect(ids.has(id), id).toBe(true);
+  });
+
+  test("the prompt carries what the persona masters and how it decides", () => {
+    const frontend = BUILTIN_PERSONAS.find((p) => p.id === "frontend");
+    if (!frontend) throw new Error("missing");
+    const prompt = personaPrompt(frontend, { language: "Turkish", displayName: "Frontend", role: "Frontend" });
+    expect(prompt).toContain("What you master");
+    expect(prompt).toContain("INP at most 200 ms");
+    expect(prompt).toContain("How you decide:");
   });
 
   test("the prompt carries the rules, the notebook and the reply language", () => {
@@ -187,7 +209,9 @@ describe("persona definitions", () => {
     expect(security).toContain("model: opus");
     // The notebook protocol only makes sense inside Igrek.
     expect(security).not.toContain("<notebook>");
-    expect(readFileSync(join(dir, ".claude/agents/frontend.md"), "utf8")).not.toContain("tools:");
+    // An editing persona keeps Claude Code's normal tools: no tools line in its front matter.
+    const frontMatter = readFileSync(join(dir, ".claude/agents/frontend.md"), "utf8").split("\n---\n")[0] ?? "";
+    expect(frontMatter).not.toMatch(/^tools:/m);
   });
 });
 

@@ -21,6 +21,10 @@ export interface PersonaProfile {
   pitfalls: string[];
   /** Extra rules for this persona only. */
   rules: string[];
+  /** What it masters: the concepts, standards and numbers of its field (built-ins; own personas may add). */
+  mastery?: string[];
+  /** How it decides: "when X, choose Y, because Z". */
+  decisions?: string[];
 }
 
 export interface Persona {
@@ -130,6 +134,11 @@ export function personaPrompt(persona: Persona, ctx: PersonaPromptContext): stri
     `Background: ${p.bio}`,
   ];
   if (p.style) lines.push(`How you work and talk: ${p.style}`);
+  if (p.mastery?.length)
+    lines.push(
+      `What you master (use it with its exact terms, standards and numbers; go deeper whenever the question needs it):\n${p.mastery.map((m) => `- ${m}`).join("\n")}`,
+    );
+  if (p.decisions?.length) lines.push(`How you decide:\n${p.decisions.map((d) => `- ${d}`).join("\n")}`);
   if (p.timeline.length)
     lines.push(
       `The history of your field you lived through (use it for context, cite it accurately):\n${p.timeline.map((m) => `- ${m.year}: ${m.event}`).join("\n")}`,

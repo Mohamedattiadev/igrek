@@ -3,22 +3,16 @@ import { BookMarked, Copy, CornerDownLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { fill, PROMPT_LIBRARY, variables } from "../lib/prompt-library";
 import { Button, Dialog } from "./ui";
-
-export function variables(body: string): string[] {
-  return [...new Set([...body.matchAll(/\{(\w+)\}/g)].map((m) => m[1] as string))];
-}
-
-function fill(body: string, values: Record<string, string>): string {
-  return body.replace(/\{(\w+)\}/g, (match, name: string) => values[name] || match);
-}
 
 /** Pick a saved prompt, fill its blanks, then type it into a terminal or copy it (plan.md 2.7). */
 export function PromptPicker({ onUse }: { onUse: (text: string) => void }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
-  const [chosen, setChosen] = useState<SavedPrompt>();
+  /** A saved prompt (with its id) or a ready-made one (without). */
+  const [chosen, setChosen] = useState<{ id?: string; title: string; body: string }>();
   const [values, setValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -33,8 +27,8 @@ export function PromptPicker({ onUse }: { onUse: (text: string) => void }) {
     }
   }, [open]);
 
-  const apply = async (prompt: SavedPrompt, text: string) => {
-    await api.markPromptUsed(prompt.id);
+  const apply = async (prompt: { id?: string }, text: string) => {
+    if (prompt.id) await api.markPromptUsed(prompt.id);
     onUse(text);
     setOpen(false);
   };
@@ -49,7 +43,6 @@ export function PromptPicker({ onUse }: { onUse: (text: string) => void }) {
           {!chosen ? (
             <>
               <h2 className="text-[15px] font-semibold">{t("nav.prompts")}</h2>
-              {prompts.length === 0 && <p className="text-[13px] text-fg-muted">{t("prompts.empty")}</p>}
               {prompts.map((prompt) => (
                 <button
                   key={prompt.id}
@@ -61,6 +54,23 @@ export function PromptPicker({ onUse }: { onUse: (text: string) => void }) {
                   <p className="line-clamp-2 text-xs text-fg-muted">{prompt.body}</p>
                 </button>
               ))}
+              <h3 className="pt-2 text-[11px] font-semibold uppercase tracking-wide text-fg-subtle">
+                {t("prompts.library")}
+              </h3>
+              {PROMPT_LIBRARY.map(({ id }) => {
+                const ready = { title: t(`prompts.lib_${id}_title`), body: t(`prompts.lib_${id}_body`) };
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => (variables(ready.body).length ? setChosen(ready) : apply({}, ready.body))}
+                    className="block w-full rounded-ui border border-border p-2.5 text-start hover:border-accent"
+                  >
+                    <p className="text-[13px] font-medium">{ready.title}</p>
+                    <p className="line-clamp-2 text-xs text-fg-muted">{ready.body}</p>
+                  </button>
+                );
+              })}
             </>
           ) : (
             <>

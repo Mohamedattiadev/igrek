@@ -3,6 +3,16 @@
 export type LibraryKind = "book" | "doc" | "article" | "web" | "repo" | "note" | "example" | "news" | "lesson";
 export type LibraryStatus = "queued" | "reading" | "embedding" | "ready" | "failed";
 
+/** A source the library could add: docs of what a project uses, or an expert's reference. */
+export interface LibrarySuggestion {
+  url: string;
+  title: string;
+  personaIds: string[];
+  kind: "doc" | "web";
+  /** The projects that use the tool these docs are for. */
+  projects?: string[];
+}
+
 export interface LibraryItem {
   id: string;
   kind: LibraryKind;

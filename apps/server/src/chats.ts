@@ -68,6 +68,11 @@ export type SendHow = "queue" | "steer";
 const WRITE_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
 
 /** Files the AI wrote since the last user message. */
+/** A chat's first events: what the continued session said before, indexed like any other event. */
+function seeded(history: ChatEvent[] = []): { events: ChatEvent[]; index: Map<string, number> } {
+  return { events: [...history], index: new Map(history.map((e, i) => [e.id, i])) };
+}
+
 export function editedThisTurn(events: ChatEvent[]): string[] {
   const files = new Set<string>();
   for (let i = events.length - 1; i >= 0; i--) {
@@ -90,6 +95,8 @@ export interface ChatStart {
   model?: string;
   mode?: ChatMode;
   resume?: string;
+  /** What the continued session said before, shown first (Claude itself reads it from the session). */
+  history?: ChatEvent[];
   /** Account the chat runs as (its folder goes in env). */
   accountId?: string;
   env?: Record<string, string>;
@@ -309,8 +316,7 @@ export class Chats {
           ? { persona: { id: options.persona.id, name: options.persona.name, tools: options.persona.tools } }
           : {}),
       },
-      events: [],
-      index: new Map(),
+      ...seeded(options.history),
       seq: 0,
       listeners: new Set(),
       write: (message) => {

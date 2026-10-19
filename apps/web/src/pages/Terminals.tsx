@@ -3,6 +3,7 @@ import { ArrowLeft, History, MessageSquare, RotateCcw, SquareTerminal, X } from 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { ChatPill } from "../components/ChatPill";
 import { EnhanceButton, EnhanceDialog } from "../components/Enhance";
 import { NewSession } from "../components/NewSession";
@@ -214,7 +215,7 @@ export function TerminalPage() {
     <div className="flex h-full min-h-0 flex-col">
       <Tabs terminals={terminals} active={termId} />
       <header className="flex h-10 shrink-0 items-center gap-2 border-b border-border px-4">
-        <Link
+        <BackLink
           to={
             !term
               ? "/terminals"
@@ -228,7 +229,7 @@ export function TerminalPage() {
           aria-label={t("term.project")}
         >
           <ArrowLeft size={15} className="rtl:rotate-180" />
-        </Link>
+        </BackLink>
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{term?.title ?? "…"}</h1>
         {term && term.status !== "exited" && aiTerminal && <EnhanceButton onClick={() => setEnhancing(true)} />}
         {term && term.status !== "exited" && <PromptPicker onUse={(text) => api.terminalInput(term.id, text)} />}

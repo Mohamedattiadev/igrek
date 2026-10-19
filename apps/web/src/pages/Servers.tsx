@@ -3,6 +3,7 @@ import { ArrowLeft, Bot, Download, Plus, RefreshCw, Rocket, Server, SquareTermin
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { RemoteFiles } from "../components/RemoteFiles";
 import { RiskBadge } from "../components/RiskBadge";
 import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented, StatusDot } from "../components/ui";
@@ -391,9 +392,9 @@ export function ServerPage() {
   return (
     <>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-6">
-        <Link to="/servers" className="text-fg-subtle hover:text-fg" aria-label={t("servers.title")}>
+        <BackLink to="/servers" className="text-fg-subtle hover:text-fg" aria-label={t("servers.title")}>
           <ArrowLeft size={16} className="rtl:rotate-180" />
-        </Link>
+        </BackLink>
         <StatusDot tone={!health ? "neutral" : health.ok ? "success" : "danger"} />
         <h1 className="text-[15px] font-semibold">{server.name}</h1>
         <Badge tone={server.tag === "prod" ? "danger" : "neutral"}>{t(`servers.tag_${server.tag}`)}</Badge>

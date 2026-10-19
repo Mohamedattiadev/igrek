@@ -53,6 +53,7 @@ import {
 import { type ClipboardEvent, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { ChatCopy } from "../components/ChatCopy";
 import { SplitPicker } from "../components/ChatSplit";
 import { CheckpointRestore } from "../components/CheckpointRestore";
@@ -1187,6 +1188,11 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
           {settings.consultExperts && !info?.persona && (
             <ExpertPicker
+              onMeeting={() =>
+                void navigate(
+                  `/personas?${new URLSearchParams({ tab: "meetings", question: text.trim(), project: info?.projectId ?? "" })}`,
+                )
+              }
               onPick={(mention) => {
                 setText((v) => (v.includes(mention) ? v : v ? `${v.trimEnd()} ${mention} ` : `${mention} `));
                 input.current?.focus();
@@ -1279,13 +1285,13 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex h-12 shrink-0 items-center gap-2 px-4">
-        <Link
+        <BackLink
           to={info ? `/p/${info.projectId}` : "/terminals"}
           className="text-fg-subtle hover:text-fg"
           aria-label={t("term.project")}
         >
           <ArrowLeft size={15} className="rtl:rotate-180" />
-        </Link>
+        </BackLink>
         <StatusDot tone={tone} pulse={status === "working" || status === "waiting"} />
         {info?.persona && (
           <Link
@@ -1514,6 +1520,14 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                   case "gate":
                     return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
                   case "notice":
+                    if (event.code === "history")
+                      return (
+                        <div key={event.id} className="flex items-center gap-3 py-1 text-[11.5px] text-fg-subtle">
+                          <span className="h-px flex-1 bg-border" />
+                          {t("chat.notice_history", { count: Number(event.text) || 0 })}
+                          <span className="h-px flex-1 bg-border" />
+                        </div>
+                      );
                     if (event.code === "loop")
                       return (
                         <p

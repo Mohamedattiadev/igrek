@@ -28,6 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { Badge, Button, Card, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
@@ -519,9 +520,12 @@ export function TestRunPage() {
         }
       />
       <div className="mx-auto w-full max-w-5xl space-y-4 p-6">
-        <Link to="/personas?tab=testers" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
+        <BackLink
+          to="/personas?tab=testers"
+          className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg"
+        >
           <ArrowLeft size={13} className="rtl:rotate-180" aria-hidden="true" /> {t("testers.title")}
-        </Link>
+        </BackLink>
         <div>
           <h2 className="text-[15px] font-semibold">{run.task}</h2>
           <p className="mt-1 font-mono text-[11px] text-fg-subtle">

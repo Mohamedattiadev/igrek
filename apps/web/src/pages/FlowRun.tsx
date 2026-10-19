@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router";
+import { useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { Markdown } from "../components/Markdown";
 import { Badge, Button, Card, Dialog, PageHeader, RUN_TONE } from "../components/ui";
 import { api } from "../lib/api";
@@ -306,12 +307,12 @@ export function FlowRunPage() {
         }
       />
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
-        <Link
+        <BackLink
           to={`/p/${run.projectId}?tab=board`}
           className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg"
         >
           <ArrowLeft size={13} className="rtl:rotate-180" aria-hidden="true" /> {t("project.board")}
-        </Link>
+        </BackLink>
         <div>
           <h2 className="whitespace-pre-wrap text-[15px] font-semibold">{run.request}</h2>
           <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-fg-subtle">

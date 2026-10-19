@@ -1,5 +1,5 @@
 import type { Meeting, Persona, PersonaGroup, PersonaScore } from "@igrek/core";
-import { Download, MessagesSquare, Plus, Users, X } from "lucide-react";
+import { Download, FlaskConical, MessageSquare, MessagesSquare, Plus, Search, UserPlus, Users, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
@@ -39,13 +39,54 @@ function PersonaCard({ persona }: { persona: Persona }) {
   );
 }
 
+/** One thing this page is for: what it is, in a sentence, and the way in. */
+function ActionCard({
+  icon: Icon,
+  title,
+  body,
+  onClick,
+}: {
+  icon: typeof Users;
+  title: string;
+  body: string;
+  onClick?: () => void;
+}) {
+  const inner = (
+    <>
+      <Icon size={16} className="text-accent" aria-hidden="true" />
+      <span className="mt-1.5 block text-[13px] font-semibold">{title}</span>
+      <span className="mt-0.5 block text-[12px] leading-snug text-fg-muted">{body}</span>
+    </>
+  );
+  return onClick ? (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-ui border border-border bg-bg-subtle p-3 text-start hover:border-border-strong hover:bg-bg-hover"
+    >
+      {inner}
+    </button>
+  ) : (
+    <div className="rounded-ui border border-border bg-bg-subtle p-3">{inner}</div>
+  );
+}
+
 /** Ask the team: a question, a project and who joins (about five, suggested from the question). */
-function NewMeeting({ personas, onStarted }: { personas: Persona[]; onStarted: (m: Meeting) => void }) {
+function NewMeeting({
+  personas,
+  onStarted,
+  initial,
+}: {
+  personas: Persona[];
+  onStarted: (m: Meeting) => void;
+  /** A question brought from a chat ("Hold a meeting"), and its project. */
+  initial?: { question?: string; projectId?: string };
+}) {
   const { t } = useTranslation();
   const label = usePersonaLabel();
   const projects = useProjects();
-  const [question, setQuestion] = useState("");
-  const [projectId, setProjectId] = useState("");
+  const [question, setQuestion] = useState(initial?.question ?? "");
+  const [projectId, setProjectId] = useState(initial?.projectId ?? "");
   const [team, setTeam] = useState<string[]>([]);
   const [touched, setTouched] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -360,10 +401,19 @@ export function PersonasPage() {
   };
   useEffect(loadMeetings, []);
   useServerEvent("meetings-changed", loadMeetings);
-  const grouped = useMemo(
-    () => GROUPS.map((g) => ({ group: g, list: personas.filter((p) => p.group === g) })).filter((g) => g.list.length),
-    [personas],
-  );
+  const label = usePersonaLabel();
+  const [query, setQuery] = useState("");
+  const grouped = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase();
+    const matches = (p: Persona) => {
+      const { name, role } = label(p);
+      return !q || `${p.id} ${name} ${role}`.toLocaleLowerCase().includes(q);
+    };
+    return GROUPS.map((g) => ({ group: g, list: personas.filter((p) => p.group === g && matches(p)) })).filter(
+      (g) => g.list.length,
+    );
+  }, [personas, query, label]);
+  const go = (value: Tab) => setParams(value === "team" ? {} : { tab: value }, { replace: true });
 
   return (
     <>
@@ -386,7 +436,7 @@ export function PersonasPage() {
             <button
               key={value}
               type="button"
-              onClick={() => setParams(value === "team" ? {} : { tab: value }, { replace: true })}
+              onClick={() => go(value)}
               className={cn(
                 "rounded-ui px-3 py-1 text-[13px]",
                 tab === value ? "bg-bg-active font-medium text-fg" : "text-fg-muted hover:bg-bg-hover",
@@ -396,12 +446,46 @@ export function PersonasPage() {
             </button>
           ))}
         </div>
+        {tab !== "team" && <p className="text-[13px] text-fg-muted">{t(`persona.tabHint_${tab}`)}</p>}
         {tab === "team" &&
           (personas.length === 0 ? (
             <EmptyState icon={Users} title={t("persona.title")} body={t("persona.loading")} />
           ) : (
             <>
               <p className="text-[13px] leading-relaxed text-fg-muted">{t("persona.intro")}</p>
+              {/* What can be done here, in four plain choices, so nothing hides behind a tab name. */}
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                <ActionCard icon={MessageSquare} title={t("persona.do_chat")} body={t("persona.do_chatBody")} />
+                <ActionCard
+                  icon={MessagesSquare}
+                  title={t("persona.do_meeting")}
+                  body={t("persona.do_meetingBody")}
+                  onClick={() => go("meetings")}
+                />
+                <ActionCard
+                  icon={FlaskConical}
+                  title={t("persona.do_testers")}
+                  body={t("persona.do_testersBody")}
+                  onClick={() => go("testers")}
+                />
+                <ActionCard
+                  icon={UserPlus}
+                  title={t("persona.do_new")}
+                  body={t("persona.do_newBody")}
+                  onClick={() => navigate("/personas/new")}
+                />
+              </div>
+              <label className="flex h-9 items-center gap-2 rounded-ui border border-border bg-bg px-3 focus-within:border-accent">
+                <Search size={14} className="text-fg-subtle" aria-hidden="true" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={t("persona.search")}
+                  aria-label={t("persona.search")}
+                  className="min-w-0 flex-1 bg-transparent text-[13px] outline-none"
+                />
+              </label>
+              {grouped.length === 0 && <p className="text-[13px] text-fg-muted">{t("persona.noMatch")}</p>}
               {grouped.map(({ group, list }) => (
                 <section key={group} className="space-y-2">
                   <h2 className="text-[12px] font-semibold uppercase tracking-wide text-fg-subtle">
@@ -418,7 +502,11 @@ export function PersonasPage() {
           ))}
         {tab === "meetings" && (
           <>
-            <NewMeeting personas={personas} onStarted={(m) => navigate(`/meetings/${m.id}`)} />
+            <NewMeeting
+              personas={personas}
+              onStarted={(m) => navigate(`/meetings/${m.id}`)}
+              initial={{ question: params.get("question") ?? undefined, projectId: params.get("project") ?? undefined }}
+            />
             <MeetingList meetings={meetings} personas={personas} />
           </>
         )}

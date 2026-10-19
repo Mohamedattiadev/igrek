@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { Markdown } from "../components/Markdown";
 import { Badge, Button, Card, PageHeader } from "../components/ui";
 import { request } from "../lib/api";
@@ -151,12 +152,12 @@ export function IncidentPage() {
         }
       />
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
-        <Link
+        <BackLink
           to={`/p/${incident.projectId}?tab=monitor`}
           className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg"
         >
           <ArrowLeft size={13} aria-hidden="true" /> {t("project.monitor")}
-        </Link>
+        </BackLink>
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="min-w-0 flex-1 text-[16px] font-semibold">{incident.title}</h2>
           <Badge tone={incident.status === "open" ? "danger" : "success"}>

@@ -17,6 +17,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { BackLink } from "../../components/BackLink";
 import { Markdown } from "../../components/Markdown";
 import { Badge, Button, Card, PageHeader } from "../../components/ui";
 import { cn } from "../../lib/cn";
@@ -520,9 +521,9 @@ export function RoadmapPage() {
         }
       />
       <div className="mx-auto w-full max-w-6xl space-y-4 p-6">
-        <Link to="/learn?view=roadmaps" className="flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
+        <BackLink to="/learn?view=roadmaps" className="flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
           <ArrowLeft size={13} aria-hidden="true" /> {t("learn.back")}
-        </Link>
+        </BackLink>
         {error && <p className="text-xs text-danger">{error}</p>}
         {roadmap && index && (
           <>

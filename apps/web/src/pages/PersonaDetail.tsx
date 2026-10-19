@@ -11,8 +11,10 @@ import { ArrowLeft, MessageSquare, Pencil, RotateCcw, Save, Sparkles, Trash2 } f
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { Badge, Button, Card, Dialog, PageHeader, Section } from "../components/ui";
 import { api } from "../lib/api";
+import { sameBook } from "../lib/books";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
 import { PERSONA_ICONS, PersonaIcon, startPersonaChat, usePersonaLabel, usePersonas } from "../lib/personas";
@@ -423,18 +425,6 @@ function List({ items }: { items: string[] }) {
   );
 }
 
-/** Loose title match: "Accelerate" matches "Accelerate: The Science of Lean Software". */
-function sameBook(have: string, want: string): boolean {
-  const norm = (s: string) =>
-    s
-      .toLowerCase()
-      .replace(/[^\p{L}\p{N}]+/gu, " ")
-      .trim();
-  const a = norm(have);
-  const b = norm(want);
-  return !!a && !!b && (a.includes(b) || b.includes(a));
-}
-
 function Profile({ persona }: { persona: Persona }) {
   const { t } = useTranslation();
   const p = persona.profile;
@@ -508,6 +498,16 @@ function Profile({ persona }: { persona: Persona }) {
               );
             })}
           </ul>
+        </Section>
+      )}
+      {(p.mastery?.length ?? 0) > 0 && (
+        <Section title={t("persona.s_mastery")} hint={t("persona.s_masteryHint")}>
+          <List items={p.mastery ?? []} />
+        </Section>
+      )}
+      {(p.decisions?.length ?? 0) > 0 && (
+        <Section title={t("persona.s_decisions")} hint={t("persona.s_decisionsHint")}>
+          <List items={p.decisions ?? []} />
         </Section>
       )}
       {p.checklist.length > 0 && (
@@ -592,9 +592,9 @@ export function NewPersonaPage() {
     <>
       <PageHeader title={t("persona.new")} />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <Link to="/personas" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
+        <BackLink to="/personas" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
           <ArrowLeft size={13} className="rtl:rotate-180" aria-hidden="true" /> {t("persona.title")}
-        </Link>
+        </BackLink>
         {!draft ? (
           <Card className="space-y-3 p-pad">
             <label className="block space-y-1">
@@ -688,9 +688,9 @@ export function PersonaPage() {
         }
       />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
-        <Link to="/personas" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
+        <BackLink to="/personas" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
           <ArrowLeft size={13} className="rtl:rotate-180" aria-hidden="true" /> {t("persona.title")}
-        </Link>
+        </BackLink>
         <div className="flex items-center gap-3">
           <PersonaIcon persona={persona} size={20} />
           <div>

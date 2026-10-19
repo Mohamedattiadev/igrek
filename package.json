@@ -28,7 +28,8 @@
     "format": "biome format --write .",
     "test": "bun test",
     "test:e2e": "bun test ./scripts/e2e/browser.e2e.ts",
-    "test:all": "biome check . && bun run typecheck && bun run lint:dead && bun run lint:arch && bun run lint:db && bun run lint:quality && bun test && bun run build && bun run lint:bundle && bun run test:e2e"
+    "test:crawl": "bun test ./scripts/e2e/crawl.e2e.ts",
+    "test:all": "biome check . && bun run typecheck && bun run lint:dead && bun run lint:arch && bun run lint:db && bun run lint:quality && bun test && bun run build && bun run lint:bundle && bun run test:e2e && bun run test:crawl"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",

@@ -1,5 +1,5 @@
 import type { ChatEvent, Persona, PersonaGroup } from "@igrek/core";
-import { ChevronDown, ChevronRight, UsersRound, XCircle } from "lucide-react";
+import { ChevronDown, ChevronRight, MessagesSquare, UsersRound, XCircle } from "lucide-react";
 import { type KeyboardEvent, type RefObject, type SyntheticEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
@@ -72,7 +72,14 @@ export function ExpertCard({ event }: { event: ToolEvent }) {
 }
 
 /** Composer button: pick experts to bring in; the chat consults each one it is given as @id. */
-export function ExpertPicker({ onPick }: { onPick: (mention: string) => void }) {
+export function ExpertPicker({
+  onPick,
+  onMeeting,
+}: {
+  onPick: (mention: string) => void;
+  /** Hold a meeting on what is in the box instead: several experts discuss it together. */
+  onMeeting?: () => void;
+}) {
   const { t } = useTranslation();
   const { personas } = usePersonas();
   const label = usePersonaLabel();
@@ -92,16 +99,23 @@ export function ExpertPicker({ onPick }: { onPick: (mention: string) => void }) 
             <h2 className="text-[15px] font-semibold">{t("chat.experts")}</h2>
             <p className="mt-1 text-[12.5px] text-fg-muted">{t("chat.expertsHint")}</p>
           </div>
-          <Button
-            variant="primary"
-            icon={UsersRound}
-            onClick={() => {
-              onPick("@all");
-              setOpen(false);
-            }}
-          >
-            {t("chat.mentionAll")}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="primary"
+              icon={UsersRound}
+              onClick={() => {
+                onPick("@all");
+                setOpen(false);
+              }}
+            >
+              {t("chat.mentionAll")}
+            </Button>
+            {onMeeting && (
+              <Button icon={MessagesSquare} onClick={onMeeting} data-tip={t("chat.meetingTip")}>
+                {t("persona.do_meeting")}
+              </Button>
+            )}
+          </div>
           {GROUPS.map((group) => {
             const members = personas.filter((p) => p.group === group);
             if (!members.length) return null;

@@ -43,11 +43,14 @@ function sealedPath(stubDir?: string): string {
   return [...(stubDir ? [stubDir] : []), ...dirs].join(":");
 }
 
-/** A "claude" that only waits: a chat can be opened and typed into, and nothing ever answers. */
+/**
+ * A "claude" that only waits: a chat can be opened and typed into, and nothing ever answers. It gives
+ * up after a minute, so a button that asks a model once does not leave a process behind.
+ */
 function stubAgent(home: string): string {
   const dir = join(home, "stub-bin");
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "claude"), "#!/bin/sh\nexec cat >/dev/null\n");
+  writeFileSync(join(dir, "claude"), "#!/bin/sh\nexec timeout 60 cat >/dev/null\n");
   chmodSync(join(dir, "claude"), 0o755);
   return dir;
 }
@@ -211,13 +214,18 @@ export function getRoutes(): string[] {
  * the user's Docker containers and images, a `git pull` and restart of this repository, a real shell,
  * and a project's dev server.
  */
-const REACHES_OUT = [/^\/api\/docker\//, /^\/api\/update/, /^\/api\/terminals$/, /^\/api\/projects\/:\w+\/launch$/];
+const REACHES_OUT = [/^\/api\/docker\//, /^\/api\/update/, /^\/api\/terminals$/, /^\/api\/projects\/[^/]+\/launch$/];
+
+/** A change (not a read) that would reach past the sealed-off server; works on routes and real paths. */
+export function reachesOut(method: string, path: string): boolean {
+  return method.toLowerCase() !== "get" && REACHES_OUT.some((re) => re.test(path));
+}
 
 /** Every route that changes something and is safe to call on the sealed-off server; deletions last. */
 export function writeRoutes(): { method: Exclude<Method, "get">; route: string }[] {
   const order: Method[] = ["post", "put", "patch", "delete"];
   return routes()
-    .filter((r) => r.method !== "get" && !REACHES_OUT.some((re) => re.test(r.route)))
+    .filter((r) => r.method !== "get" && !reachesOut(r.method, r.route))
     .sort((a, b) => order.indexOf(a.method) - order.indexOf(b.method)) as {
     method: Exclude<Method, "get">;
     route: string;

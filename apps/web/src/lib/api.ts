@@ -47,6 +47,7 @@ import type {
   Lesson,
   LibraryHit,
   LibraryItem,
+  LibrarySuggestion,
   LimitsOverview,
   Meeting,
   MemorySection,
@@ -451,6 +452,7 @@ export const api = {
     request<{ id: string }>(`/api/projects/${projectId}/retrospective`, { method: "POST" }),
   library: (persona?: string) => request<LibraryItem[]>(`/api/library${persona ? `?persona=${persona}` : ""}`),
   libraryStatus: () => request<EmbedderStatus>("/api/library/status"),
+  librarySuggestions: () => request<LibrarySuggestion[]>("/api/library/suggestions"),
   downloadLibraryModel: () => request<EmbedderStatus>("/api/library/model", { method: "POST" }),
   addLibraryFile: async (file: File, opts: { personaIds?: string[]; title?: string; author?: string }) => {
     const form = new FormData();

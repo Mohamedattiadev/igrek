@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { type ChatMode, capabilitiesOf } from "@igrek/core";
+import { type ChatMode, capabilitiesOf, historyEvents } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";
@@ -103,6 +103,7 @@ export function registerChatRoutes(
         cwd: worktree ? workFolder(worktree) : (session?.cwd ?? project.path),
         worktree,
         title: session?.title ?? undefined,
+        history: body.resume ? historyEvents(store.sessionDetail(body.resume, 120)?.messages ?? []) : undefined,
         resume: body.resume,
         model:
           typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
@@ -197,6 +198,8 @@ export function registerChatRoutes(
     const body = (await c.req.json().catch(() => ({}))) as { model?: string };
     if (!info?.sessionId) return c.json({ error: "Send a first message before switching model" }, 409);
     if (!body.model || !/^[\w.[\]-]+$/.test(body.model)) return c.json({ error: "Invalid model" }, 400);
+    // The conversation so far stays on screen in the restarted chat.
+    const before = chats.snapshot(info.id)?.events;
     chats.close(info.id);
     const root = store.projectRow(info.projectId)?.path ?? info.cwd;
     const extensions = projectExtensions(root);
@@ -207,6 +210,7 @@ export function registerChatRoutes(
         cwd: info.cwd,
         title: info.title,
         resume: info.sessionId,
+        history: before,
         model: body.model,
         mode: info.mode,
         persona: info.persona && persona ? persona(info.persona.id, info.projectId)?.start : undefined,

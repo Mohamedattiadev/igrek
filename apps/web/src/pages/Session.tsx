@@ -24,6 +24,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { Comments } from "../components/Comments";
 import { Replay } from "../components/Replay";
 import { useTeamPeople } from "../components/TeamAvatar";
@@ -370,9 +371,9 @@ export function SessionPage() {
   return (
     <>
       <header className="flex h-12 shrink-0 items-center gap-2 border-b border-border px-6">
-        <Link to={`/p/${projectId}`} className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
+        <BackLink to={`/p/${projectId}`} className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
           <ArrowLeft size={16} className="rtl:rotate-180" />
-        </Link>
+        </BackLink>
         {session && <ActiveDot active={session.active} />}
         <h1 className="min-w-0 flex-1 truncate text-[14px] font-semibold">
           {session?.authorId ? (

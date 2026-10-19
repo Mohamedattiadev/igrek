@@ -3,6 +3,7 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
@@ -32,9 +33,9 @@ export function PersonPage() {
     <div className="flex h-full flex-col">
       <PageHeader title={member?.displayName ?? t("nav.team")} />
       <div className="mx-auto w-full max-w-4xl space-y-4 overflow-auto p-6">
-        <Link to="/team" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
+        <BackLink to="/team" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
           <ArrowLeft size={13} className="rtl:rotate-180" /> {t("nav.team")}
-        </Link>
+        </BackLink>
         {member && (
           <Card className="flex items-center gap-3 p-pad">
             <TeamAvatar member={member} size={40} state={people.stateOf(member)} doing={doing?.title} />

@@ -2,6 +2,7 @@ import type { LibraryKind } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Embedder } from "./embedder";
 import type { Library } from "./library";
+import { librarySuggestions } from "./library-suggest";
 
 const KINDS: LibraryKind[] = ["book", "doc", "article", "web", "repo", "note", "example", "news", "lesson"];
 
@@ -18,7 +19,11 @@ function personaList(value: unknown): string[] | undefined {
 
 export function registerLibraryRoutes(
   app: Hono,
-  { library, embedder }: { library: Library; embedder: Embedder },
+  {
+    library,
+    embedder,
+    projects = () => [],
+  }: { library: Library; embedder: Embedder; projects?: () => { name: string; path: string }[] },
 ): void {
   const fail = (err: unknown) =>
     new Response(JSON.stringify({ error: (err as Error).message }), {
@@ -28,6 +33,10 @@ export function registerLibraryRoutes(
 
   app.get("/api/library", (c) => c.json(library.list(c.req.query("persona") || undefined)));
   app.get("/api/library/status", (c) => c.json(embedder.status()));
+  app.get("/api/library/suggestions", (c) => {
+    const have = new Set(library.list().flatMap((item) => [item.url, item.source].filter((x): x is string => !!x)));
+    return c.json(librarySuggestions(projects(), have));
+  });
   /** "Download the search model" (118 MB, once). */
   app.post("/api/library/model", (c) => {
     void embedder.download().then(() => library.embedMissing());

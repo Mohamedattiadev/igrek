@@ -602,7 +602,11 @@ const app = createApp({
       },
     });
     registerTesterRoutes(hono, testers);
-    registerLibraryRoutes(hono, { library, embedder });
+    registerLibraryRoutes(hono, {
+      library,
+      embedder,
+      projects: () => store.listProjects().map((p) => ({ name: p.name, path: p.path })),
+    });
     registerKnowledgeRoutes(hono, knowledge);
     registerFlowRoutes(hono, {
       flows,

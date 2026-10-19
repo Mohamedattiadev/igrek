@@ -16,6 +16,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useParams } from "react-router";
+import { BackLink } from "../../components/BackLink";
 import { CodeBlock } from "../../components/CodeBlock";
 import { Badge, Button, Card, PageHeader, Segmented } from "../../components/ui";
 import { cn } from "../../lib/cn";
@@ -298,9 +299,9 @@ export function SheetPage() {
         }
       />
       <div className="mx-auto w-full max-w-5xl space-y-4 p-6 print:p-0">
-        <Link to="/learn" className="flex items-center gap-1 text-xs text-fg-muted hover:text-fg print:hidden">
+        <BackLink to="/learn" className="flex items-center gap-1 text-xs text-fg-muted hover:text-fg print:hidden">
           <ArrowLeft size={13} aria-hidden="true" /> {t("learn.back")}
-        </Link>
+        </BackLink>
         {error && <p className="text-xs text-danger">{error}</p>}
         {sheet && index && (
           <>

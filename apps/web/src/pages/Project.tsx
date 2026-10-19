@@ -18,6 +18,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
+import { BackLink } from "../components/BackLink";
 import { NewSession } from "../components/NewSession";
 import { TeamPresence } from "../components/TeamPresence";
 import { Badge, Button, Card, EmptyState, Section, Segmented } from "../components/ui";
@@ -569,9 +570,9 @@ export function ProjectPage() {
     <>
       <header className="shrink-0 border-b border-border px-4 pt-3 sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
-          <Link to="/" className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
+          <BackLink to="/" className="text-fg-subtle hover:text-fg" aria-label={t("nav.projects")}>
             <ArrowLeft size={16} className="rtl:rotate-180" />
-          </Link>
+          </BackLink>
           {project && <ActiveDot active={project.activeSessions > 0} />}
           <h1 className="text-[15px] font-semibold">{project?.name ?? "…"}</h1>
           {project?.health && <HealthBadge health={project.health} />}
