@@ -13,21 +13,21 @@ export function GateCard({ event, onSend }: { event: Gate; onSend: (text: string
   const failedBefore = event.checks.filter((c) => !c.ok && !c.broke);
   if (event.status === "running")
     return (
-      <p className="ms-9 flex items-center gap-1.5 text-[11.5px] text-fg-subtle">
+      <p className="flex items-center gap-1.5 text-[11.5px] text-fg-subtle">
         <Loader2 size={12} className="animate-spin" aria-hidden="true" />
         {t("gate.running")}
       </p>
     );
   if (event.status === "none")
     return (
-      <p className="ms-9 flex items-center gap-1.5 text-[11.5px] text-fg-subtle">
+      <p className="flex items-center gap-1.5 text-[11.5px] text-fg-subtle">
         <ShieldCheck size={12} aria-hidden="true" />
         {t("gate.none")}
       </p>
     );
   if (!broke.length)
     return (
-      <p className="ms-9 flex items-center gap-1.5 text-[11.5px] text-fg-subtle">
+      <p className="flex items-center gap-1.5 text-[11.5px] text-fg-subtle">
         <CircleCheck size={12} className="text-success" aria-hidden="true" />
         {failedBefore.length
           ? t("gate.passNew", { count: failedBefore.length })
@@ -35,7 +35,7 @@ export function GateCard({ event, onSend }: { event: Gate; onSend: (text: string
       </p>
     );
   return (
-    <div className="ms-9 space-y-2 rounded-md border border-danger bg-danger-soft p-2.5 text-xs">
+    <div className="space-y-2 rounded-md border border-danger bg-danger-soft p-2.5 text-xs">
       <p className="flex items-center gap-1.5 font-medium text-danger">
         <CircleX size={13} aria-hidden="true" />
         {t("gate.broke", { count: broke.length })}
