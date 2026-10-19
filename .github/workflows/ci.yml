@@ -30,6 +30,10 @@ jobs:
       - run: bun run build
       # What the first screen downloads stays within its budget (plan.md 15.4).
       - run: bun run lint:bundle
+      # The built app in a real browser (the runner has Chrome); no model is ever called.
+      - run: bun run test:e2e
+        env:
+          IGREK_E2E_BROWSER: /usr/bin/google-chrome
 
   docker:
     runs-on: ubuntu-latest

@@ -26,11 +26,14 @@
     "lint:bundle": "bun scripts/bundle-check.ts",
     "c4": "bun scripts/c4.ts",
     "format": "biome format --write .",
-    "test": "bun test"
+    "test": "bun test",
+    "test:e2e": "bun test ./scripts/e2e/browser.e2e.ts",
+    "test:all": "biome check . && bun run typecheck && bun run lint:dead && bun run lint:arch && bun run lint:db && bun run lint:quality && bun test && bun run build && bun run lint:bundle && bun run test:e2e"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
-    "knip": "6.39.0"
+    "knip": "6.39.0",
+    "playwright-core": "1.63.0"
   },
   "overrides": {
     "dompurify": "3.4.17",

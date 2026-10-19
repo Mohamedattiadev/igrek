@@ -16,6 +16,8 @@ export PATH="$HOME/.bun/bin:$PATH"
 bun run typecheck && bun run lint:dead && bun run lint:arch && bun run lint:db && bun run lint:quality
 bun test && bun run build && bun run lint:bundle
 ```
+- `bun run test:all` runs all of the above plus `test:e2e`: the built app in a real browser (Chromium,
+  or IGREK_E2E_BROWSER), against a sealed-off server that cannot reach your data or call a model.
 - `lint:arch`: layer rules and no import cycles. `lint:db`: schema, query and migration rules.
 - `lint:quality`: complexity, function length, parameters, empty blocks, floating promises, copies.
 - These gates are ratchets: what existed when they came in is in `scripts/*-baseline.json` with a reason.
