@@ -53,6 +53,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
+import { ExpertCard, ExpertPicker } from "../components/Experts";
 import { GateCard } from "../components/GateCard";
 import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
@@ -63,7 +64,7 @@ import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
-import { DETAIL_LEVELS, type DetailLevel, groupWork, workCounts } from "../lib/chat-log";
+import { DETAIL_LEVELS, type DetailLevel, EXPERT_TOOL, groupWork, workCounts } from "../lib/chat-log";
 import { cn } from "../lib/cn";
 import { compactNumber, modelName } from "../lib/format";
 import { warmHighlighter } from "../lib/highlight";
@@ -1156,6 +1157,14 @@ export function ChatPage() {
             }}
           />
           <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
+          {settings.consultExperts && !info?.persona && (
+            <ExpertPicker
+              onPick={(mention) => {
+                setText((v) => (v.includes(mention) ? v : v ? `${v.trimEnd()} ${mention} ` : `${mention} `));
+                input.current?.focus();
+              }}
+            />
+          )}
           <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
           {info && !info.sessionId && chat.events.length === 0 && personas.length > 0 && (
             <select
@@ -1397,6 +1406,7 @@ export function ChatPage() {
                     );
                   }
                   case "tool":
+                    if (event.name === EXPERT_TOOL) return <ExpertCard key={event.id} event={event} />;
                     return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
                   case "permission":
                     if (event.toolName === "AskUserQuestion")

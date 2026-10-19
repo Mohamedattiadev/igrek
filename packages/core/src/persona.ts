@@ -322,3 +322,10 @@ export interface IdeaReview {
   items: { id: string; verdict: "now" | "later" | "drop"; why: string }[];
   at: number;
 }
+
+/** One expert persona's view of a project, from its own field (the project's Experts tab). */
+export interface ExpertView {
+  personaId: string;
+  text: string;
+  at: number;
+}

@@ -56,6 +56,20 @@ const TOOLS = [
     },
   },
   {
+    name: "igrek_ask_expert",
+    description:
+      "Ask one of Igrek's expert personas (architect, security, uiux, database, qa, performance, ...) a question about this project. The expert reads the code read-only and answers from its field in a minute or two. Use it for specialist judgement, or when the user names an expert with @id. The chat's instructions list the expert ids.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        expert: { type: "string", description: "Expert id, e.g. architect, security, uiux" },
+        question: { type: "string", description: "A self-contained question: the expert does not see this chat." },
+        path: pathArg,
+      },
+      required: ["expert", "question"],
+    },
+  },
+  {
     name: "igrek_persona",
     description:
       "One of the user's Igrek personas (architect, security, backend, qa, devils-advocate…): its style, review checklist, known pitfalls, rules and the opinions it wrote down for this project. Use it to review or work the way that expert would.",
@@ -170,6 +184,8 @@ const TOOLS = [
 type Args = {
   path?: string;
   query?: string;
+  expert?: string;
+  question?: string;
   server?: string;
   command?: string;
   reason?: string;
@@ -259,6 +275,14 @@ async function callTool(name: string, args: Args): Promise<string> {
     ]
       .filter(Boolean)
       .join("\n\n");
+  }
+  if (name === "igrek_ask_expert") {
+    const { name: who, answer } = await post<{ name: string; answer: string }>("/api/agent/experts/ask", {
+      cwd,
+      expert: args.expert,
+      question: args.question,
+    });
+    return `${who} answered:\n\n${answer || "(no answer)"}`;
   }
   if (name === "igrek_request_secret") {
     const { id } = await post<{ id: string }>("/api/agent/secrets", {

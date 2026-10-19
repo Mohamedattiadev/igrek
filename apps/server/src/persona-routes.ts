@@ -5,6 +5,7 @@ import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Chats } from "./chats";
 import type { Meetings } from "./meetings";
+import type { Experts } from "./persona-experts";
 import { type Personas, personaLabel } from "./personas";
 
 export function registerPersonaRoutes(
@@ -214,4 +215,36 @@ export function connectPersonaChats(
       },
     };
   };
+}
+
+/** Experts on call: a chat's question to one persona, and each persona's view of a project. */
+export function registerExpertRoutes(
+  app: Hono,
+  experts: Experts,
+  projectForCwd: (cwd: string) => string | undefined,
+): void {
+  const fail = (err: unknown) =>
+    new Response(JSON.stringify({ error: (err as Error).message }), {
+      status: 400,
+      headers: { "content-type": "application/json" },
+    });
+  // Called by Igrek's MCP server from inside a chat (an agent may ask, never change anything).
+  app.post("/api/agent/experts/ask", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { cwd?: unknown; expert?: unknown; question?: unknown };
+    const projectId = projectForCwd(String(body.cwd ?? ""));
+    if (!projectId) return fail(new Error("This folder is not a project in Igrek"));
+    try {
+      return c.json(await experts.ask(projectId, String(body.expert ?? ""), String(body.question ?? "")));
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.get("/api/projects/:id/experts", (c) => c.json(experts.views(c.req.param("id"))));
+  app.post("/api/projects/:id/experts/:personaId", async (c) => {
+    try {
+      return c.json(await experts.refreshView(c.req.param("id"), c.req.param("personaId")));
+    } catch (err) {
+      return fail(err);
+    }
+  });
 }

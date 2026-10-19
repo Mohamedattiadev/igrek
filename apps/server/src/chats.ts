@@ -95,7 +95,7 @@ export interface ChatStart {
   env?: Record<string, string>;
   worktree?: Worktree;
   /** Igrek's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
-  igrekMcp?: { config: string; allow: string[] };
+  igrekMcp?: { config: string; allow: string[]; hint?: string };
   /** The OpenUI instructions, when the user turned on rich answers; otherwise the JSON blocks hint. */
   richUi?: string;
   /** The project's own extensions to leave out, because the user has not trusted them yet. */
@@ -141,9 +141,10 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
 }
 
 /** The persona's prompt (if any) and how answers may draw: OpenUI when rich answers are on, JSON blocks otherwise. */
-function systemPrompt(options: Pick<ChatStart, "persona" | "richUi">): string {
+function systemPrompt(options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp">): string {
   const drawing = options.richUi ?? RICH_BLOCKS_HINT;
-  return options.persona ? `${options.persona.systemPrompt}\n\n${drawing}` : drawing;
+  if (options.persona) return `${options.persona.systemPrompt}\n\n${drawing}`;
+  return options.igrekMcp?.hint ? `${drawing}\n\n${options.igrekMcp.hint}` : drawing;
 }
 
 /** What the chat shows about the project's extensions it left out. */

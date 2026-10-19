@@ -200,7 +200,9 @@
     "turnGate": "Check the AI's work",
     "turnGateHint": "When a chat turn changed files, run the project's typecheck, lint and tests. Only what passed before and fails now counts. 'Send back' gives it to the AI to fix (at most twice in a row).",
     "turnGateCheck": "Show",
-    "turnGateSendBack": "Send back"
+    "turnGateSendBack": "Send back",
+    "consultExperts": "Consult experts in chats",
+    "consultExpertsHint": "While it works, Claude may ask Igrek's expert personas (architect, security, UI/UX...) in the background and use their answers. Each question is one extra model call."
   },
   "onboarding": {
     "welcome": "Welcome to Igrek",
@@ -316,7 +318,8 @@
     "host": "Issues & PRs",
     "plugins": "Plugins",
     "statusLabel": "Project status",
-    "more": "More"
+    "more": "More",
+    "experts": "Experts"
   },
   "memory": {
     "title": "Project memory",
@@ -878,7 +881,14 @@
     "starter_explain": "Explain this project to me",
     "starter_bugs": "Find a bug and fix it",
     "starter_tests": "Write the missing tests",
-    "starter_review": "Review the latest changes"
+    "starter_review": "Review the latest changes",
+    "experts": "Experts",
+    "expertsTip": "Bring an expert in: Claude asks them in the background",
+    "expertsHint": "Pick who should weigh in. Claude asks each expert you mention (@id) in the background, reads the answer and goes on. It also asks them on its own when a question needs one.",
+    "expertAsking": "Asking {{name}}…",
+    "expertAsked": "{{name}} was consulted",
+    "expertFailed": "{{name}} could not answer",
+    "expertQuestion": "Question"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -4205,5 +4215,18 @@
     "online_other": "{{count}} online",
     "newCard": "A new card for the team",
     "add": "Add"
+  },
+  "experts": {
+    "title": "Experts on this project",
+    "intro": "Each expert looks at this project from its own field: the architect at how it is built, UI/UX at the screens, security at the risks. They only read the code. A look is one model call; chats also ask them when a question needs one.",
+    "look": "Look at the project",
+    "refresh": "Look again",
+    "chat": "Chat",
+    "reading": "{{name}} is reading the project…",
+    "noView": "{{name}} has not looked at this project yet.",
+    "more": "Read all",
+    "less": "Show less",
+    "showOthers": "All experts ({{count}} more)",
+    "hideOthers": "Hide the other experts"
   }
 }

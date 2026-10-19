@@ -200,7 +200,9 @@
     "turnGate": "AI'ın işini kontrol et",
     "turnGateHint": "Bir sohbet turu dosya değiştirince projenin tip kontrolü, lint ve testleri çalışır. Sadece önce geçip şimdi kırılan sayılır. 'Geri gönder' bunu düzeltmesi için AI'a verir (art arda en çok iki kez).",
     "turnGateCheck": "Göster",
-    "turnGateSendBack": "Geri gönder"
+    "turnGateSendBack": "Geri gönder",
+    "consultExperts": "Sohbette uzmanlara danış",
+    "consultExpertsHint": "Claude çalışırken Igrek'in uzman personalarına (mimar, güvenlik, UI/UX...) arka planda sorabilir ve cevaplarını kullanır. Her soru ek bir model çağrısıdır."
   },
   "onboarding": {
     "welcome": "Igrek'e hoş geldin",
@@ -316,7 +318,8 @@
     "host": "Issue'lar ve PR'lar",
     "plugins": "Eklentiler",
     "statusLabel": "Proje durumu",
-    "more": "Diğer"
+    "more": "Diğer",
+    "experts": "Uzmanlar"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -878,7 +881,14 @@
     "starter_explain": "Bu projeyi bana anlat",
     "starter_bugs": "Bir hata bul ve düzelt",
     "starter_tests": "Eksik testleri yaz",
-    "starter_review": "Son değişiklikleri incele"
+    "starter_review": "Son değişiklikleri incele",
+    "experts": "Uzmanlar",
+    "expertsTip": "Bir uzmanı dahil et: Claude ona arka planda sorar",
+    "expertsHint": "Kimin fikir vermesini istediğini seç. Claude andığın (@id) her uzmana arka planda sorar, cevabı okur ve devam eder. Bir soru uzman gerektirdiğinde kendiliğinden de sorar.",
+    "expertAsking": "{{name}} danışılıyor…",
+    "expertAsked": "{{name}} danışıldı",
+    "expertFailed": "{{name}} cevap veremedi",
+    "expertQuestion": "Soru"
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -4205,5 +4215,18 @@
     "online_other": "{{count}} kişi çevrimiçi",
     "newCard": "Takım için yeni bir kart",
     "add": "Ekle"
+  },
+  "experts": {
+    "title": "Bu projedeki uzmanlar",
+    "intro": "Her uzman bu projeye kendi alanından bakar: mimar nasıl kurulduğuna, UI/UX ekranlara, güvenlik risklere. Sadece kodu okurlar. Her bakış bir model çağrısıdır; sohbetler de bir soru uzman gerektirdiğinde onlara sorar.",
+    "look": "Projeye bak",
+    "refresh": "Yeniden bak",
+    "chat": "Sohbet",
+    "reading": "{{name}} projeyi okuyor…",
+    "noView": "{{name}} bu projeye henüz bakmadı.",
+    "more": "Hepsini oku",
+    "less": "Daha az göster",
+    "showOthers": "Tüm uzmanlar ({{count}} tane daha)",
+    "hideOthers": "Diğer uzmanları gizle"
   }
 }

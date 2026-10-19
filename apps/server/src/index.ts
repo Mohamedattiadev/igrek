@@ -101,7 +101,8 @@ import {
   registerWriteupRoutes,
 } from "./ops-routes";
 import { Perf } from "./perf";
-import { connectPersonaChats, registerPersonaRoutes } from "./persona-routes";
+import { Experts, expertsHint } from "./persona-experts";
+import { connectPersonaChats, registerExpertRoutes, registerPersonaRoutes } from "./persona-routes";
 import { Personas, personaLabel } from "./personas";
 import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
@@ -273,6 +274,7 @@ const meetings = new Meetings(
   join(config.dataDir, "runner"),
 );
 meetings.recover();
+const experts = new Experts(sqlite, personas, store, stops);
 const testers = new Testers(
   sqlite,
   store,
@@ -581,14 +583,21 @@ const app = createApp({
           });
         },
         // Reading Igrek and proposing a schedule need no prompt; a proposal still waits for the user's OK in Igrek.
-        allow: [
-          "mcp__igrek__igrek_project_memory",
-          "mcp__igrek__igrek_search",
-          "mcp__igrek__igrek_recent_sessions",
-          "mcp__igrek__library_search",
-          "mcp__igrek__igrek_lessons",
-          "mcp__igrek__igrek_schedule",
-        ],
+        // Experts only read the project, so asking one needs no prompt either (when the user allows it).
+        get allow() {
+          return [
+            "mcp__igrek__igrek_project_memory",
+            "mcp__igrek__igrek_search",
+            "mcp__igrek__igrek_recent_sessions",
+            "mcp__igrek__library_search",
+            "mcp__igrek__igrek_lessons",
+            "mcp__igrek__igrek_schedule",
+            ...(readSettings(db).consultExperts ? ["mcp__igrek__igrek_ask_expert"] : []),
+          ];
+        },
+        get hint() {
+          return readSettings(db).consultExperts ? expertsHint(experts.roster()) : undefined;
+        },
       },
     });
     registerTesterRoutes(hono, testers);
@@ -751,6 +760,7 @@ const app = createApp({
         projects: new Map(store.listProjects().map((p) => [p.id, p.name])),
       }),
     });
+    registerExpertRoutes(hono, experts, (cwd) => store.projectForCwd(cwd));
     registerCommitHookRoutes(hono, store);
     registerFileRoutes(hono, {
       files,

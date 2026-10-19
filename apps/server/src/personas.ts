@@ -194,7 +194,12 @@ export class Personas {
 
   /** Built-in: back to the original. Own persona: removed (its notebook stays readable in history). */
   remove(id: string): void {
-    this.db.query("DELETE FROM personas WHERE id = ?").run(id);
+    // A built-in only goes back to how it ships; an own persona goes, and its project views with it.
+    const own = !BUILTIN_PERSONAS.some((p) => p.id === id);
+    this.db.transaction(() => {
+      this.db.query("DELETE FROM personas WHERE id = ?").run(id);
+      if (own) this.db.query("DELETE FROM persona_views WHERE persona = ?").run(id);
+    })();
     this.bus.publish({ type: "personas-changed" });
   }
 

@@ -9,7 +9,9 @@ export const DETAIL_LEVELS: DetailLevel[] = ["all", "grouped", "plain", "text"];
 export type LogUnit = { kind: "event"; event: ChatEvent } | { kind: "group"; id: string; tools: ToolEvent[] };
 
 /** The to-do list stays a card of its own: it is what the AI plans, not a step it took. */
-const ALONE = new Set(["TodoWrite"]);
+/** A chat consulting an expert persona: always its own card, even when tool steps are hidden. */
+export const EXPERT_TOOL = "mcp__igrek__igrek_ask_expert";
+const ALONE = new Set(["TodoWrite", EXPERT_TOOL]);
 /** A question to the user is shown as its own card; the tool call behind it adds nothing. */
 const HIDDEN = new Set(["AskUserQuestion"]);
 
@@ -34,7 +36,8 @@ export function groupWork(events: ChatEvent[], level: DetailLevel): LogUnit[] {
       continue;
     }
     flush();
-    if (level === "text" && (event.kind === "tool" || event.kind === "checkpoint")) continue;
+    if (level === "text" && ((event.kind === "tool" && event.name !== EXPERT_TOOL) || event.kind === "checkpoint"))
+      continue;
     units.push({ kind: "event", event });
   }
   flush();

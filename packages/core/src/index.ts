@@ -40,6 +40,8 @@ export interface Settings {
   autoSummarize: boolean;
   /** Chats may answer with OpenUI blocks drawn with Igrek's components (plan.md 16.2); costs about a thousand tokens per chat. */
   richAnswers: boolean;
+  /** Chats may consult the expert personas in the background (each consultation is one model call). */
+  consultExperts: boolean;
   /**
    * Gate point (plan.md 15.5): when a chat turn changed files, run the project's typecheck, lint
    * and tests. "check" shows what newly broke; "sendBack" also hands it to the AI to fix.
@@ -100,6 +102,7 @@ export const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   autoSummarize: true,
   richAnswers: false,
+  consultExperts: true,
   turnGate: "off",
   summaryTone: "plain",
   allowedFolders: [],

@@ -902,6 +902,17 @@ export const migrations: string[] = [
   `ALTER TABLE wiki_pages ADD COLUMN ydoc TEXT;`,
   // The rename to Igrek: team runs made by the built-in engine said "igrek".
   `UPDATE flow_runs SET data = json_set(data, '$.engine', 'igrek') WHERE json_extract(data, '$.engine') = 'godeye';`,
+  // Each expert persona's view of a project (plan.md 6): the project's Experts tab. `persona` names a
+  // built-in persona (defined in code, like category_texts.category) or an own one; removing an own
+  // persona removes its views (Personas.remove).
+  `CREATE TABLE persona_views (
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     persona TEXT NOT NULL,
+     text TEXT NOT NULL,
+     created_at INTEGER NOT NULL,
+     PRIMARY KEY (project_id, persona)
+   );
+   CREATE INDEX persona_views_persona ON persona_views(persona);`,
 ];
 
 export function migrate(sqlite: Database): number {

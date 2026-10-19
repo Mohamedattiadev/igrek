@@ -377,6 +377,7 @@ describe("MCP server", () => {
       "igrek_project_memory",
       "igrek_search",
       "igrek_wiki",
+      "igrek_ask_expert",
       "igrek_persona",
       "igrek_request_secret",
       "igrek_ask_form",

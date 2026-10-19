@@ -82,7 +82,14 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     }
     patch.allowedFolders = [...new Set(folders.map((f) => f.replace(/\/+$/, "") || "/"))].slice(0, 50);
   }
-  for (const key of ["onboarded", "autoSummarize", "richAnswers", "editorVim", "notifications"] as const) {
+  for (const key of [
+    "onboarded",
+    "autoSummarize",
+    "richAnswers",
+    "consultExperts",
+    "editorVim",
+    "notifications",
+  ] as const) {
     if (key in body) {
       if (typeof body[key] !== "boolean") return { error: `Invalid ${key}` };
       patch[key] = body[key] as boolean;

@@ -37,6 +37,8 @@ const AGENT_WRITES = new Set([
   "/api/agent/reports",
   // A form the user fills in Igrek; the agent gets the answers.
   "/api/agent/forms",
+  // A question to an expert persona, which only reads the project.
+  "/api/agent/experts/ask",
 ]);
 
 /** Text files worth compressing; images and fonts are compressed already. */

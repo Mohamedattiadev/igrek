@@ -32,6 +32,7 @@ import { CodeTab } from "./project/Code";
 import { CodeHostTab } from "./project/CodeHost";
 import { DocsTab } from "./project/Docs";
 import { EnvironmentsTab } from "./project/Environments";
+import { ExpertsTab } from "./project/Experts";
 import { MemoryTab } from "./project/Memory";
 import { MonitorTab } from "./project/Monitor";
 import { PreviewTab } from "./project/Preview";
@@ -47,6 +48,7 @@ const TABS = [
   "sections",
   "timeline",
   "sessions",
+  "experts",
   "code",
   "memory",
   "docs",
@@ -57,8 +59,8 @@ const TABS = [
   "setup",
 ] as const;
 type Tab = (typeof TABS)[number];
-/** Shown as tabs; the rest sit under "More" so a new user sees five choices, not fourteen. */
-const MAIN_TABS: Tab[] = ["overview", "sessions", "code", "board", "monitor"];
+/** Shown as tabs; the rest sit under "More" so a new user sees six choices, not fifteen. */
+const MAIN_TABS: Tab[] = ["overview", "sessions", "experts", "code", "board", "monitor"];
 
 function tabLabel(t: (key: string) => string, name: Tab): string {
   return name === "code" ? t("code.tab") : t(`project.${name}`);
@@ -642,6 +644,8 @@ export function ProjectPage() {
           <ProjectPlugins projectId={project.id} />
         ) : tab === "monitor" ? (
           <MonitorTab project={project} />
+        ) : tab === "experts" ? (
+          <ExpertsTab project={project} />
         ) : tab === "memory" ? (
           <MemoryTab project={project} onChange={reload} />
         ) : (

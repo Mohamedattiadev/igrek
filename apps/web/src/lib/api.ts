@@ -24,6 +24,7 @@ import type {
   EnvironmentInfo,
   EnvironmentState,
   EnvOverview,
+  ExpertView,
   FileContent,
   FileEntry,
   FlowRun,
@@ -272,6 +273,9 @@ export const api = {
     request<PersonaOpinion[]>(
       `/api/personas/${id}/opinions?${new URLSearchParams({ ...(projectId ? { projectId } : {}), ...(all ? { all: "1" } : {}) })}`,
     ),
+  projectExperts: (projectId: string) => request<ExpertView[]>(`/api/projects/${projectId}/experts`),
+  refreshExpertView: (projectId: string, personaId: string) =>
+    request<ExpertView>(`/api/projects/${projectId}/experts/${personaId}`, { method: "POST" }),
   deleteOpinion: (id: string) => request<{ ok: boolean }>(`/api/persona-opinions/${id}`, { method: "DELETE" }),
   exportPersonas: (body: { target: "claude" | "codex"; projectId?: string; ids?: string[] }) =>
     request<{ files: string[] }>("/api/personas/export", { method: "POST", body: JSON.stringify(body) }),
