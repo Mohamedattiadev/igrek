@@ -889,7 +889,19 @@
     "expertAsked": "{{name}} was consulted",
     "expertFailed": "{{name}} could not answer",
     "mentionTitle": "Experts to mention",
-    "expertQuestion": "Question"
+    "expertQuestion": "Question",
+    "split": "Open a chat beside this one",
+    "splitTitle": "A chat beside this one",
+    "splitHint": "Two chats side by side: compare two answers, or let one plan while the other builds. Each has its own box.",
+    "splitNew": "New chat in this project",
+    "splitOpen": "Open chats",
+    "fullscreen": "Full screen",
+    "fullscreenExit": "Leave full screen (Esc)",
+    "closePane": "Close this side (the chat stays open)",
+    "mentionAll": "Ask all experts",
+    "mentionAllRole": "Architect, UI/UX, security, database, QA, performance, DevOps and product, at once",
+    "starter_experts": "Ask all the experts",
+    "starterText_experts": "@all Look at this project from your field: what is the biggest risk, and what should I do first?"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -4228,6 +4240,20 @@
     "more": "Read all",
     "less": "Show less",
     "showOthers": "All experts ({{count}} more)",
-    "hideOthers": "Hide the other experts"
+    "hideOthers": "Hide the other experts",
+    "rereading": "{{name}} is reading the project again…",
+    "failed": "The last look did not finish: {{error}}",
+    "use": "Use in a chat",
+    "useTip": "Opens a new chat with this view in the box; add your question and send",
+    "useDraft": "Here is how {{name}} sees this project:\n\n{{view}}\n\nBased on this, ",
+    "discuss": "Talk about it",
+    "discussTip": "Chat with {{name}}; it remembers what it wrote here",
+    "useAll": "All views to a chat",
+    "useAllTip": "Opens a new chat with every expert's view in the box",
+    "useAllDraft": "The experts' views of this project:\n\n{{views}}\n\nBased on these, ",
+    "askAll": "Ask all experts",
+    "askAllTip": "The core experts who have not looked yet read the project, three at a time",
+    "askAllConfirm": "{{count}} experts will read the project. Each look is one model call and uses your plan's limit. You can leave this page; the views appear here when they are ready.",
+    "askAllGo": "Start ({{count}})"
   }
 }

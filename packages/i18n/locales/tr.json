@@ -889,7 +889,19 @@
     "expertAsked": "{{name}} danışıldı",
     "expertFailed": "{{name}} cevap veremedi",
     "mentionTitle": "Anılacak uzmanlar",
-    "expertQuestion": "Soru"
+    "expertQuestion": "Soru",
+    "split": "Yanına bir sohbet aç",
+    "splitTitle": "Yanına bir sohbet",
+    "splitHint": "İki sohbet yan yana: iki cevabı karşılaştır ya da biri planlarken diğeri yapsın. Her birinin kendi yazı kutusu var.",
+    "splitNew": "Bu projede yeni sohbet",
+    "splitOpen": "Açık sohbetler",
+    "fullscreen": "Tam ekran",
+    "fullscreenExit": "Tam ekrandan çık (Esc)",
+    "closePane": "Bu tarafı kapat (sohbet açık kalır)",
+    "mentionAll": "Tüm uzmanlara sor",
+    "mentionAllRole": "Mimar, UI/UX, güvenlik, veritabanı, QA, performans, DevOps ve ürün, hepsi birden",
+    "starter_experts": "Tüm uzmanlara danış",
+    "starterText_experts": "@all Bu projeye kendi alanından bak: en büyük risk ne, ilk ne yapmalıyım?"
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -4228,6 +4240,20 @@
     "more": "Hepsini oku",
     "less": "Daha az göster",
     "showOthers": "Tüm uzmanlar ({{count}} tane daha)",
-    "hideOthers": "Diğer uzmanları gizle"
+    "hideOthers": "Diğer uzmanları gizle",
+    "rereading": "{{name}} projeyi yeniden okuyor…",
+    "failed": "Son bakış tamamlanamadı: {{error}}",
+    "use": "Sohbette kullan",
+    "useTip": "Bu görüşle yeni bir sohbet açar; sorunu ekleyip gönder",
+    "useDraft": "{{name}} bu projeye şöyle bakıyor:\n\n{{view}}\n\nBuna göre, ",
+    "discuss": "Bunu konuş",
+    "discussTip": "{{name}} ile sohbet et; burada yazdıklarını hatırlar",
+    "useAll": "Tüm görüşleri sohbete taşı",
+    "useAllTip": "Her uzmanın görüşüyle yeni bir sohbet açar",
+    "useAllDraft": "Uzmanların bu projeye bakışı:\n\n{{views}}\n\nBunlara göre, ",
+    "askAll": "Tüm uzmanlara baktır",
+    "askAllTip": "Henüz bakmamış temel uzmanlar projeyi üçer üçer okur",
+    "askAllConfirm": "{{count}} uzman projeyi okuyacak. Her bakış bir model çağrısıdır ve planının limitinden düşer. Bu sayfadan çıkabilirsin; görüşler hazır olunca burada görünür.",
+    "askAllGo": "Başlat ({{count}})"
   }
 }

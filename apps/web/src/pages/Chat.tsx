@@ -18,6 +18,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  Columns2,
   CornerDownRight,
   Cpu,
   FileEdit,
@@ -32,6 +33,7 @@ import {
   ListChecks,
   ListPlus,
   ListTodo,
+  Maximize2,
   MessageSquare,
   MessageSquarePlus,
   Minimize2,
@@ -43,6 +45,7 @@ import {
   SquareTerminal,
   Swords,
   Terminal,
+  UsersRound,
   Wrench,
   X,
   XCircle,
@@ -51,6 +54,7 @@ import { type ClipboardEvent, createContext, useContext, useEffect, useMemo, use
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
+import { SplitPicker } from "../components/ChatSplit";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
@@ -71,6 +75,7 @@ import { warmHighlighter } from "../lib/highlight";
 import { usePageActions } from "../lib/page-actions";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
+import { useFullscreen } from "../lib/zen";
 import { WeakPointList } from "./Meeting";
 
 type Json = Record<string, unknown>;
@@ -83,6 +88,8 @@ const STARTERS = [
   { key: "bugs", icon: Bug },
   { key: "tests", icon: FlaskConical },
   { key: "review", icon: Search },
+  // Shown only where experts can be asked; it puts "@all" and a question in the box.
+  { key: "experts", icon: UsersRound },
 ] as const;
 
 /** A note on one line of a change, added to the next message (plan.md 16.1). */
@@ -487,9 +494,8 @@ function QuestionCard({
  * The project has its own hooks, MCP servers or skills that this chat left out (plan.md 16.4):
  * say what they are, and trust them to start again with them.
  */
-function TrustBanner({ info }: { info: ChatInfo }) {
+function TrustBanner({ info, go }: { info: ChatInfo; go: (chatId: string) => void }) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const ext = info.untrusted;
@@ -519,7 +525,7 @@ function TrustBanner({ info }: { info: ChatInfo }) {
                 .startChat({ projectId: info.projectId, resume: info.sessionId })
                 .catch(() => api.startChat({ projectId: info.projectId }));
               void api.closeChat(info.id).catch(() => undefined);
-              void navigate(`/c/${next.id}`, { replace: true });
+              go(next.id);
             } finally {
               setBusy(false);
             }
@@ -730,40 +736,55 @@ function WeakPointsButton({ text, projectId }: { text: string; projectId: string
 }
 
 /** Chat with Claude in a project (plan.md 2.2): live text, tool cards, approvals as buttons. */
-export function ChatPage() {
+const HEADER_ICON = "rounded-full p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-fg";
+
+interface PaneProps {
+  chatId: string;
+  /** The left (or only) chat: it owns the page's shortcuts and the "send to chat" buttons. */
+  primary: boolean;
+  draft?: string;
+  autoSend?: boolean;
+  /** Put another chat in this pane's place (a restart on a new model, persona or mode). */
+  go: (chatId: string, draft?: string) => void;
+  /** Two chats side by side: open a second one, or close this one. */
+  split?: () => void;
+  close?: () => void;
+}
+
+function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, close }: PaneProps) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { chatId = "" } = useParams();
   const chat = useChat(chatId);
+  const [full, toggleFull] = useFullscreen();
   const [comments, setComments] = useState<LineComment[]>([]);
   // A button in an answer (OpenUI) asks a follow-up in this chat.
   // biome-ignore lint/correctness/useExhaustiveDependencies: one listener per chat
-  useEffect(() => actions.onSendToChat((text) => text && chat.send(text)), [chatId]);
+  useEffect(() => (primary ? actions.onSendToChat((text) => text && chat.send(text)) : undefined), [chatId]);
   const [detail, setDetail] = useDetailLevel();
-  usePageActions([
-    { id: "chat-stop", label: t("chat.stop"), icon: Square, keys: "Mod+.", run: chat.interrupt },
-    { id: "chat-compact", label: t("chat.compact"), icon: Minimize2, run: () => chat.send("/compact") },
-    {
-      id: "chat-detail",
-      label: t("chat.detailNext"),
-      icon: ListChecks,
-      keys: "Alt+D",
-      run: () => setDetail(DETAIL_LEVELS[(DETAIL_LEVELS.indexOf(detail) + 1) % DETAIL_LEVELS.length] ?? "grouped"),
-    },
-  ]);
+  usePageActions(
+    primary
+      ? [
+          { id: "chat-stop", label: t("chat.stop"), icon: Square, keys: "Mod+.", run: chat.interrupt },
+          { id: "chat-compact", label: t("chat.compact"), icon: Minimize2, run: () => chat.send("/compact") },
+          {
+            id: "chat-detail",
+            label: t("chat.detailNext"),
+            icon: ListChecks,
+            keys: "Alt+D",
+            run: () =>
+              setDetail(DETAIL_LEVELS[(DETAIL_LEVELS.indexOf(detail) + 1) % DETAIL_LEVELS.length] ?? "grouped"),
+          },
+        ]
+      : undefined,
+  );
   const units = useMemo(() => groupWork(chat.events, detail), [chat.events, detail]);
   // Answers often carry code: have the highlighter ready before the first block arrives.
   useEffect(() => warmHighlighter(), []);
   const info = chat.info;
-  const [searchParams, setSearchParams] = useSearchParams();
   // A prompt prepared elsewhere (a "Fix" button) waits in the box; nothing is sent until the user does.
-  const [text, setText] = useState(() => searchParams.get("draft") ?? "");
+  const [text, setText] = useState(draft ?? "");
   /** Typed on the home page and sent from there: goes out once the chat is ready. */
-  const [autoSend, setAutoSend] = useState(() => searchParams.get("send") === "1");
-  // biome-ignore lint/correctness/useExhaustiveDependencies: drop the draft from the URL once it's in the box
-  useEffect(() => {
-    if (searchParams.has("draft")) setSearchParams({}, { replace: true });
-  }, []);
+  const [autoSend, setAutoSend] = useState(!!sendDraft);
   const { settings } = useSettings();
   const slashItems = useSlashItems(chat.info?.projectId);
   const slashMatches = filterSlash(slashItems, text);
@@ -777,14 +798,13 @@ export function ChatPage() {
   /** Restart on the suggested model, keeping the session (if any) and the typed text. */
   const switchModel = async (model: string) => {
     if (!info) return;
-    const draft = encodeURIComponent(text);
     if (info.sessionId) {
       const next = await api.chatModel(info.id, model);
-      void navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
+      go(next.id, text);
     } else {
       const next = await api.startChat({ projectId: info.projectId, model, mode: info.mode });
       void api.closeChat(info.id).catch(() => undefined);
-      void navigate(`/c/${next.id}?draft=${draft}`, { replace: true });
+      go(next.id, text);
     }
   };
   /**
@@ -798,7 +818,7 @@ export function ChatPage() {
         .catch(() => undefined);
       if (next) {
         void api.closeChat(info.id).catch(() => undefined);
-        void navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
+        go(next.id, text);
         return;
       }
     }
@@ -880,7 +900,7 @@ export function ChatPage() {
     if (!info) return;
     const next = await api.startChat({ projectId: info.projectId, personaId: personaId || undefined, mode: info.mode });
     void api.closeChat(info.id).catch(() => undefined);
-    void navigate(`/c/${next.id}?draft=${encodeURIComponent(text)}`, { replace: true });
+    go(next.id, text);
   };
   // The last answer of a finished turn can be checked for weak points.
   const lastText = [...chat.events].reverse().find((e) => e.kind === "text");
@@ -909,7 +929,7 @@ export function ChatPage() {
                 icon={RotateCcw}
                 onClick={async () => {
                   const next = await api.startChat({ projectId: known.projectId, resume: known.sessionId });
-                  void navigate(`/c/${next.id}`, { replace: true });
+                  go(next.id);
                 }}
               >
                 {t("chat.goneResume")}
@@ -1285,7 +1305,7 @@ export function ChatPage() {
           onChange={async (e) => {
             if (!info || !e.target.value) return;
             const next = await api.chatModel(info.id, e.target.value);
-            void navigate(`/c/${next.id}`, { replace: true });
+            go(next.id);
           }}
           aria-label={t("chat.model")}
           data-tip={t("chat.modelTip")}
@@ -1327,9 +1347,42 @@ export function ChatPage() {
             <span className="hidden lg:inline">{t("chat.openInTerminal")}</span>
           </Button>
         )}
+        {split && (
+          <button
+            type="button"
+            onClick={split}
+            aria-label={t("chat.split")}
+            data-tip={t("chat.split")}
+            className={HEADER_ICON}
+          >
+            <Columns2 size={15} aria-hidden="true" />
+          </button>
+        )}
+        {primary && (
+          <button
+            type="button"
+            onClick={toggleFull}
+            aria-label={full ? t("chat.fullscreenExit") : t("chat.fullscreen")}
+            data-tip={full ? t("chat.fullscreenExit") : t("chat.fullscreen")}
+            className={HEADER_ICON}
+          >
+            {full ? <Minimize2 size={15} aria-hidden="true" /> : <Maximize2 size={15} aria-hidden="true" />}
+          </button>
+        )}
+        {close && (
+          <button
+            type="button"
+            onClick={close}
+            aria-label={t("chat.closePane")}
+            data-tip={t("chat.closePane")}
+            className={HEADER_ICON}
+          >
+            <X size={15} aria-hidden="true" />
+          </button>
+        )}
       </header>
       {info?.worktree && <ChatCopy info={info} />}
-      {info?.untrusted && <TrustBanner info={info} />}
+      {info?.untrusted && <TrustBanner info={info} go={go} />}
 
       <CommentContext.Provider
         value={(c) => {
@@ -1353,20 +1406,22 @@ export function ChatPage() {
               {composer}
               {info?.status !== "exited" && (
                 <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  {STARTERS.map(({ key, icon: Icon }) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => {
-                        setText(t(`chat.starter_${key}`));
-                        input.current?.focus();
-                      }}
-                      className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg"
-                    >
-                      <Icon size={13} aria-hidden="true" />
-                      {t(`chat.starter_${key}`)}
-                    </button>
-                  ))}
+                  {STARTERS.filter(({ key }) => key !== "experts" || (settings.consultExperts && !info?.persona)).map(
+                    ({ key, icon: Icon }) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => {
+                          setText(key === "experts" ? t("chat.starterText_experts") : t(`chat.starter_${key}`));
+                          input.current?.focus();
+                        }}
+                        className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg"
+                      >
+                        <Icon size={13} aria-hidden="true" />
+                        {t(`chat.starter_${key}`)}
+                      </button>
+                    ),
+                  )}
                 </div>
               )}
             </div>
@@ -1521,6 +1576,67 @@ export function ChatPage() {
       </CommentContext.Provider>
 
       {!empty && <footer className="shrink-0 px-4 pt-1 pb-4">{composer}</footer>}
+    </div>
+  );
+}
+
+/** `/c/<id>` with the chat beside it (`?with=<id>`) and the text each box should start with. */
+function chatUrl(left: string, right?: string, drafts: { left?: string; right?: string } = {}): string {
+  const query = new URLSearchParams();
+  if (right) query.set("with", right);
+  if (drafts.left) query.set("draft", drafts.left);
+  if (drafts.right) query.set("draft2", drafts.right);
+  const rest = query.toString();
+  return `/c/${left}${rest ? `?${rest}` : ""}`;
+}
+
+/** One chat, or two side by side (`?with=`): each keeps its own box, shortcuts stay with the left one. */
+export function ChatPage() {
+  const { chatId = "" } = useParams();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const other = params.get("with") ?? undefined;
+  const [picking, setPicking] = useState(false);
+  // Drafts and "send" are read once by the box they belong to, then leave the address.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only when the address changes
+  useEffect(() => {
+    if (params.has("draft") || params.has("draft2") || params.has("send"))
+      void navigate(chatUrl(chatId, other), { replace: true });
+  }, [params]);
+  return (
+    <div className="flex h-full min-h-0 flex-col lg:flex-row">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <ChatPane
+          key={chatId}
+          chatId={chatId}
+          primary
+          draft={params.get("draft") ?? undefined}
+          autoSend={params.get("send") === "1"}
+          go={(id, draft) => void navigate(chatUrl(id, other, { left: draft }), { replace: true })}
+          split={other ? undefined : () => setPicking(true)}
+        />
+      </div>
+      {other && (
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col border-border border-t lg:border-t-0 lg:border-s">
+          <ChatPane
+            key={other}
+            chatId={other}
+            primary={false}
+            draft={params.get("draft2") ?? undefined}
+            go={(id, draft) => void navigate(chatUrl(chatId, id, { right: draft }), { replace: true })}
+            close={() => void navigate(chatUrl(chatId))}
+          />
+        </div>
+      )}
+      <SplitPicker
+        open={picking}
+        current={chatId}
+        onClose={() => setPicking(false)}
+        onPick={(id) => {
+          setPicking(false);
+          void navigate(chatUrl(chatId, id));
+        }}
+      />
     </div>
   );
 }

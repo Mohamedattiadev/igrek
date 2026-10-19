@@ -23,9 +23,13 @@ function publish(list: PageAction[]): void {
   for (const listener of listeners) listener();
 }
 
-/** A page says what it can do while it is shown. */
-export function usePageActions(list: PageAction[]): void {
+/**
+ * A page says what it can do while it is shown. Nothing (undefined) leaves the list alone, for a
+ * second copy of a page next to the first (two chats side by side): only one may own the shortcuts.
+ */
+export function usePageActions(list: PageAction[] | undefined): void {
   useEffect(() => {
+    if (!list) return;
     publish(list);
     return () => publish([]);
   });

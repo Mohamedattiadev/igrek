@@ -412,7 +412,8 @@ export function Shell() {
       <TooltipLayer />
       <UndoToast />
       <Tour />
-      {!zen && <Helper />}
+      {/* A chat is already a conversation, and the button would sit on its send box. */}
+      {!zen && !location.pathname.startsWith("/c/") && <Helper />}
       <IdeaCapture onSaved={setToast} />
       {toast && (
         <div

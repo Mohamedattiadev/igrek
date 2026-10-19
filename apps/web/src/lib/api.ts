@@ -24,7 +24,7 @@ import type {
   EnvironmentInfo,
   EnvironmentState,
   EnvOverview,
-  ExpertView,
+  ExpertsState,
   FileContent,
   FileEntry,
   FlowRun,
@@ -273,9 +273,16 @@ export const api = {
     request<PersonaOpinion[]>(
       `/api/personas/${id}/opinions?${new URLSearchParams({ ...(projectId ? { projectId } : {}), ...(all ? { all: "1" } : {}) })}`,
     ),
-  projectExperts: (projectId: string) => request<ExpertView[]>(`/api/projects/${projectId}/experts`),
+  projectExperts: (projectId: string) => request<ExpertsState>(`/api/projects/${projectId}/experts`),
+  /** Starts in the background; "experts-changed" says when a view is written. */
   refreshExpertView: (projectId: string, personaId: string) =>
-    request<ExpertView>(`/api/projects/${projectId}/experts/${personaId}`, { method: "POST" }),
+    request<ExpertsState>(`/api/projects/${projectId}/experts/${personaId}`, { method: "POST" }),
+  /** The core panel (or the named experts) looks at the project, a few at a time. */
+  askAllExperts: (projectId: string, personas?: string[]) =>
+    request<ExpertsState>(`/api/projects/${projectId}/experts`, {
+      method: "POST",
+      body: JSON.stringify(personas ? { personas } : {}),
+    }),
   deleteOpinion: (id: string) => request<{ ok: boolean }>(`/api/persona-opinions/${id}`, { method: "DELETE" }),
   exportPersonas: (body: { target: "claude" | "codex"; projectId?: string; ids?: string[] }) =>
     request<{ files: string[] }>("/api/personas/export", { method: "POST", body: JSON.stringify(body) }),

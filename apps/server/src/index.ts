@@ -275,6 +275,7 @@ const meetings = new Meetings(
 );
 meetings.recover();
 const experts = new Experts(sqlite, personas, store, stops);
+experts.onChange = (projectId) => bus.publish({ type: "experts-changed", projectId });
 const testers = new Testers(
   sqlite,
   store,

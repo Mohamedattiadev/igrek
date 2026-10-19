@@ -1,49 +1,54 @@
-import type { ExpertView, Persona, PersonaGroup, ProjectDetail } from "@igrek/core";
-import { ChevronDown, MessageSquare, RefreshCw, Sparkles } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  CORE_EXPERTS,
+  type ExpertsState,
+  type ExpertView,
+  type Persona,
+  type PersonaGroup,
+  type ProjectDetail,
+  viewSummary,
+} from "@igrek/core";
+import { ChevronDown, MessageSquare, MessageSquarePlus, RefreshCw, Sparkles, UsersRound } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { Markdown } from "../../components/Markdown";
-import { Button } from "../../components/ui";
+import { Button, Dialog } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
+import { useServerEvent } from "../../lib/live";
 import { PersonaIcon, startPersonaChat, usePersonaLabel, usePersonas } from "../../lib/personas";
 
-/** The experts most projects want a word from first; the rest are one click away. */
-const FIRST = ["architect", "uiux", "security", "database", "qa", "performance", "devops", "product-manager"];
 const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testing"];
+const EMPTY: ExpertsState = { views: [], running: [], errors: {} };
+
+/** A new chat in the project with this text waiting in the box (nothing is sent yet). */
+async function chatWith(projectId: string, draft: string, navigate: (to: string) => void): Promise<void> {
+  const chat = await api.startChat({ projectId });
+  navigate(`/c/${chat.id}?draft=${encodeURIComponent(draft)}`);
+}
 
 function ExpertCard({
   persona,
   view,
+  running,
+  error,
   projectId,
-  onView,
+  onLook,
 }: {
   persona: Persona;
   view?: ExpertView;
+  running: boolean;
+  error?: string;
   projectId: string;
-  onView: (view: ExpertView) => void;
+  onLook: () => void;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const label = usePersonaLabel();
   const { name, role } = label(persona);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
   const [open, setOpen] = useState(false);
-  const look = async () => {
-    setBusy(true);
-    setError(undefined);
-    try {
-      onView(await api.refreshExpertView(projectId, persona.id));
-      setOpen(true);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const parts = view ? viewSummary(view.text) : undefined;
   return (
     <article className="flex flex-col rounded-2xl border border-border bg-bg-subtle p-4">
       <header className="flex items-start gap-3">
@@ -54,45 +59,61 @@ function ExpertCard({
         </div>
         {view && <span className="shrink-0 text-[11px] text-fg-subtle">{relativeTime(view.at)}</span>}
       </header>
-      <div className="mt-3 min-h-0 flex-1">
-        {busy ? (
+      <div className="mt-3 min-h-0 flex-1 space-y-2">
+        {running && (
           <p className="flex items-center gap-2 text-[12.5px] text-fg-muted">
             <span className="size-1.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
-            {t("experts.reading", { name })}
+            {t(view ? "experts.rereading" : "experts.reading", { name })}
           </p>
-        ) : view ? (
-          <div className={cn("relative", !open && "max-h-40 overflow-hidden")}>
-            <Markdown text={view.text} className="prose-igrek prose-chat text-[13px]" />
+        )}
+        {parts?.summary && <p className="text-[13.5px] font-medium leading-snug">{parts.summary}</p>}
+        {parts ? (
+          <div className={cn("relative", !open && "max-h-28 overflow-hidden")}>
+            <Markdown text={parts.rest} className="prose-igrek prose-chat text-[13px]" />
             {!open && (
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-bg-subtle" />
             )}
           </div>
         ) : (
-          <p className="text-[12.5px] text-fg-muted">{t("experts.noView", { name })}</p>
+          !running && <p className="text-[12.5px] text-fg-muted">{t("experts.noView", { name })}</p>
         )}
-        {error && <p className="mt-2 text-[12px] text-danger">{error}</p>}
+        {error && !running && <p className="text-[12px] text-danger">{t("experts.failed", { error })}</p>}
       </div>
       <footer className="mt-3 flex flex-wrap items-center gap-1.5">
-        {view && !busy && (
+        {view && (
           <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>
             {open ? t("experts.less") : t("experts.more")}
           </Button>
         )}
         <span className="flex-1" />
+        {view && (
+          <Button
+            size="sm"
+            variant="ghost"
+            icon={MessageSquarePlus}
+            data-tip={t("experts.useTip")}
+            onClick={() =>
+              void chatWith(projectId, t("experts.useDraft", { name, view: view.text }), (to) => void navigate(to))
+            }
+          >
+            {t("experts.use")}
+          </Button>
+        )}
         <Button
           size="sm"
           variant="ghost"
           icon={MessageSquare}
+          data-tip={view ? t("experts.discussTip", { name }) : undefined}
           onClick={() => void startPersonaChat(persona.id, projectId, navigate)}
         >
-          {t("experts.chat")}
+          {view ? t("experts.discuss") : t("experts.chat")}
         </Button>
         <Button
           size="sm"
           variant={view ? "secondary" : "primary"}
           icon={view ? RefreshCw : Sparkles}
-          onClick={look}
-          disabled={busy}
+          onClick={onLook}
+          disabled={running}
         >
           {view ? t("experts.refresh") : t("experts.look")}
         </Button>
@@ -104,37 +125,94 @@ function ExpertCard({
 /** Every expert persona's view of this project, each from its own field (plan.md 6). */
 export function ExpertsTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { personas } = usePersonas();
-  const [views, setViews] = useState<ExpertView[]>([]);
+  const label = usePersonaLabel();
+  const [state, setState] = useState<ExpertsState>(EMPTY);
   const [all, setAll] = useState(false);
-  useEffect(() => {
+  const [confirm, setConfirm] = useState(false);
+  const [error, setError] = useState<string>();
+  const load = useCallback(() => {
     // Another project opened before the answer came: drop the old answer.
     let current = true;
     api
       .projectExperts(project.id)
-      .then((list) => current && setViews(list))
-      .catch(() => current && setViews([]));
+      .then((next) => current && setState(next))
+      .catch(() => current && setState(EMPTY));
     return () => {
       current = false;
     };
   }, [project.id]);
-  const viewOf = (id: string) => views.find((v) => v.personaId === id);
-  const onView = (view: ExpertView) =>
-    setViews((list) => [...list.filter((v) => v.personaId !== view.personaId), view]);
-  // Experts who already looked come first, then the usual first round.
+  useEffect(load, [load]);
+  // Views are written on the server; this page may have been left and opened again meanwhile.
+  useServerEvent("experts-changed", (message) => {
+    if (message.projectId === project.id) load();
+  });
+  const start = (ids?: string[]) => {
+    setError(undefined);
+    (ids?.length === 1 ? api.refreshExpertView(project.id, ids[0] ?? "") : api.askAllExperts(project.id, ids))
+      .then(setState)
+      .catch((err: Error) => setError(err.message));
+  };
+  const viewOf = (id: string) => state.views.find((v) => v.personaId === id);
+  // Experts who already looked (or are looking) come first, then the core panel.
+  const shown = (p: Persona) => !!viewOf(p.id) || state.running.includes(p.id) || CORE_EXPERTS.includes(p.id);
   const first = personas
-    .filter((p) => viewOf(p.id) || FIRST.includes(p.id))
-    .sort((a, b) => Number(!!viewOf(b.id)) - Number(!!viewOf(a.id)) || FIRST.indexOf(a.id) - FIRST.indexOf(b.id));
+    .filter(shown)
+    .sort(
+      (a, b) =>
+        Number(!!viewOf(b.id)) - Number(!!viewOf(a.id)) || CORE_EXPERTS.indexOf(a.id) - CORE_EXPERTS.indexOf(b.id),
+    );
   const rest = personas.filter((p) => !first.includes(p));
+  const missing = CORE_EXPERTS.filter((id) => !viewOf(id) && !state.running.includes(id));
+  const toChat = () => {
+    const views = state.views
+      .map(
+        (v) =>
+          `## ${
+            label(
+              personas.find((p) => p.id === v.personaId),
+              v.personaId,
+            ).name
+          }\n\n${v.text}`,
+      )
+      .join("\n\n");
+    void chatWith(project.id, t("experts.useAllDraft", { views }), (to) => void navigate(to));
+  };
   const card = (persona: Persona) => (
-    <ExpertCard key={persona.id} persona={persona} view={viewOf(persona.id)} projectId={project.id} onView={onView} />
+    <ExpertCard
+      key={persona.id}
+      persona={persona}
+      view={viewOf(persona.id)}
+      running={state.running.includes(persona.id)}
+      error={state.errors[persona.id]}
+      projectId={project.id}
+      onLook={() => start([persona.id])}
+    />
   );
   return (
     <div className="space-y-5">
-      <div>
-        <h2 className="text-[15px] font-semibold">{t("experts.title")}</h2>
-        <p className="mt-1 max-w-2xl text-[13px] text-fg-muted">{t("experts.intro")}</p>
+      <div className="flex flex-wrap items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[15px] font-semibold">{t("experts.title")}</h2>
+          <p className="mt-1 max-w-2xl text-[13px] text-fg-muted">{t("experts.intro")}</p>
+        </div>
+        {state.views.length > 0 && (
+          <Button icon={MessageSquarePlus} onClick={toChat} data-tip={t("experts.useAllTip")}>
+            {t("experts.useAll")}
+          </Button>
+        )}
+        <Button
+          variant="primary"
+          icon={UsersRound}
+          disabled={missing.length === 0}
+          onClick={() => setConfirm(true)}
+          data-tip={t("experts.askAllTip")}
+        >
+          {t("experts.askAll")}
+        </Button>
       </div>
+      {error && <p className="text-[12.5px] text-danger">{error}</p>}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{first.map(card)}</div>
       {rest.length > 0 && (
         <div className="space-y-4">
@@ -161,6 +239,38 @@ export function ExpertsTab({ project }: { project: ProjectDetail }) {
             })}
         </div>
       )}
+      <Dialog open={confirm} onClose={() => setConfirm(false)} label={t("experts.askAll")}>
+        <div className="space-y-3 p-5">
+          <h2 className="text-[15px] font-semibold">{t("experts.askAll")}</h2>
+          <p className="text-[13px] text-fg-muted">{t("experts.askAllConfirm", { count: missing.length })}</p>
+          <p className="text-[12.5px]">
+            {missing
+              .map(
+                (id) =>
+                  label(
+                    personas.find((p) => p.id === id),
+                    id,
+                  ).name,
+              )
+              .join(", ")}
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setConfirm(false)}>
+              {t("persona.cancel")}
+            </Button>
+            <Button
+              variant="primary"
+              icon={UsersRound}
+              onClick={() => {
+                setConfirm(false);
+                start(missing);
+              }}
+            >
+              {t("experts.askAllGo", { count: missing.length })}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 }

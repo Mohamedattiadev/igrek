@@ -775,6 +775,7 @@ export type ServerMessage =
   | { type: "deploys-changed"; projectId: string }
   | { type: "presence" }
   | { type: "personas-changed" }
+  | { type: "experts-changed"; projectId: string }
   | { type: "meetings-changed"; meetingId: string }
   | { type: "testers-changed"; runId: string }
   | { type: "library-changed" }

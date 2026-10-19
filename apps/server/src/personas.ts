@@ -330,7 +330,16 @@ export class Personas {
       notebook: opts.notebook ?? true,
       libraryTool: opts.libraryTool,
       passages: opts.passages?.map((p) => ({ citation: p.citation, text: scrub(p.text).slice(0, 1500) })),
+      view: project ? this.view(persona.id, project.id) : undefined,
     });
+  }
+
+  /** The persona's view of the project from the Experts tab, if it wrote one. */
+  private view(personaId: string, projectId: string): { text: string; at: number } | undefined {
+    const row = this.db
+      .query("SELECT text, created_at FROM persona_views WHERE project_id = ? AND persona = ?")
+      .get(projectId, personaId) as { text: string; created_at: number } | null;
+    return row ? { text: scrub(row.text).slice(0, 4000), at: row.created_at } : undefined;
   }
 
   // ---- sessions --------------------------------------------------------------------

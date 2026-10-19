@@ -5,7 +5,9 @@ import {
   Download,
   History,
   ListChecks,
+  Maximize2,
   MessageSquare,
+  Minimize2,
   Network,
   PenLine,
   Plus,
@@ -27,6 +29,7 @@ import { cn } from "../../lib/cn";
 import { dateTime, relativeTime } from "../../lib/format";
 import { useServerEvent } from "../../lib/live";
 import { dataApi, docsApi } from "../../lib/ops-api";
+import { useFullscreen } from "../../lib/zen";
 
 // The whiteboard's fonts are served by Igrek itself (see vite.config.ts), not a CDN.
 (window as unknown as { EXCALIDRAW_ASSET_PATH: string }).EXCALIDRAW_ASSET_PATH = "/excalidraw/";
@@ -171,6 +174,9 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
       setBusy(undefined);
     }
   };
+  // Full screen takes the board with its tools and answers, not the rest of the page.
+  const frame = useRef<HTMLDivElement>(null);
+  const [full, toggleFull] = useFullscreen(frame);
   const toChat = async () => {
     const chat = await api.startChat({ projectId });
     const text = t("boards.chatDraft", { title: board?.title ?? "", structure: handle.current?.structure() ?? "" });
@@ -182,7 +188,7 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
     </Button>
   );
   return (
-    <div className="-m-6 flex h-[calc(100vh-150px)] min-h-[480px] flex-col">
+    <div ref={frame} className="-m-6 flex h-[calc(100vh-150px)] min-h-[480px] flex-col bg-bg">
       <div className="flex flex-wrap items-center gap-1 border-b border-border px-3 py-1.5">
         <Button size="sm" variant="ghost" icon={ArrowLeft} onClick={onBack} aria-label={t("boards.back")} />
         <input
@@ -225,6 +231,14 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
           onClick={() => setHistory(true)}
           aria-label={t("boards.history")}
           data-tip={t("boards.history")}
+        />
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={full ? Minimize2 : Maximize2}
+          onClick={toggleFull}
+          aria-label={full ? t("chat.fullscreenExit") : t("chat.fullscreen")}
+          data-tip={full ? t("chat.fullscreenExit") : t("chat.fullscreen")}
         />
         <details className="relative">
           <summary className="flex h-7 cursor-pointer list-none items-center gap-1 rounded-ui px-2 text-[12.5px] hover:bg-bg-hover">

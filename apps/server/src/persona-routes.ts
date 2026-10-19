@@ -239,10 +239,20 @@ export function registerExpertRoutes(
       return fail(err);
     }
   });
-  app.get("/api/projects/:id/experts", (c) => c.json(experts.views(c.req.param("id"))));
-  app.post("/api/projects/:id/experts/:personaId", async (c) => {
+  app.get("/api/projects/:id/experts", (c) => c.json(experts.state(c.req.param("id"))));
+  // Both start in the background and answer at once; the page follows "experts-changed".
+  app.post("/api/projects/:id/experts", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { personas?: unknown };
+    const ids = Array.isArray(body.personas) ? body.personas.map(String) : undefined;
     try {
-      return c.json(await experts.refreshView(c.req.param("id"), c.req.param("personaId")));
+      return c.json(experts.start(c.req.param("id"), ids), 202);
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.post("/api/projects/:id/experts/:personaId", (c) => {
+    try {
+      return c.json(experts.start(c.req.param("id"), [c.req.param("personaId")]), 202);
     } catch (err) {
       return fail(err);
     }

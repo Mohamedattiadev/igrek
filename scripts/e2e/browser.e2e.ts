@@ -191,4 +191,46 @@ describe.skipIf(!ready)("the app in a browser", () => {
     await opened.ctx.close();
     await settings({ consultExperts: true });
   }, 30_000);
+
+  test("a chat page has no helper button; other pages do", async () => {
+    const opened = await open("light", `/c/${await chat({})}`);
+    await opened.page.locator("textarea").first().waitFor();
+    expect(await opened.page.getByRole("button", { name: "Helper" }).count()).toBe(0);
+    await opened.page.goto(`${server.url}/inbox`, { waitUntil: "networkidle" });
+    expect(await opened.page.getByRole("button", { name: "Helper" }).count()).toBe(1);
+    await opened.ctx.close();
+  }, 30_000);
+
+  test("two chats side by side, each with its own box; closing one side keeps the other", async () => {
+    const left = await chat({});
+    const { page, ctx, errors } = await open("light", `/c/${left}`);
+    await page.getByRole("button", { name: "Full screen" }).waitFor();
+    await page.getByRole("button", { name: "Open a chat beside this one" }).click();
+    await page.getByRole("button", { name: "New chat in this project" }).click();
+    await page.waitForURL(/\?with=/);
+    // The second chat loads on its own; its box appears when it is ready.
+    await page.locator("textarea").nth(1).waitFor();
+    expect(await page.locator("textarea").count()).toBe(2);
+    await page.locator("textarea").nth(1).fill("right side");
+    expect(await page.locator("textarea").first().inputValue()).toBe("");
+    await page.getByRole("button", { name: "Close this side (the chat stays open)" }).click();
+    await page.waitForURL((url) => !url.search.includes("with="));
+    await page.locator("textarea").nth(1).waitFor({ state: "detached" });
+    expect(await page.locator("textarea").count()).toBe(1);
+    await ctx.close();
+    expect(errors).toEqual([]);
+  }, 30_000);
+
+  test("the Experts tab offers to ask them all and says what it costs before starting", async () => {
+    const { page, ctx, errors } = await open("light", `/p/${project}?tab=experts`);
+    await page.getByRole("button", { name: "Ask all experts" }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByText("Each look is one model call").waitFor();
+    await dialog.getByRole("button", { name: "Cancel" }).click();
+    // Nothing was started: no expert is reading the project.
+    const state = (await (await server.call(`/api/projects/${project}/experts`)).json()) as { running: string[] };
+    expect(state.running).toEqual([]);
+    await ctx.close();
+    expect(errors).toEqual([]);
+  }, 30_000);
 });

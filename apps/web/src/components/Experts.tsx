@@ -92,6 +92,16 @@ export function ExpertPicker({ onPick }: { onPick: (mention: string) => void }) 
             <h2 className="text-[15px] font-semibold">{t("chat.experts")}</h2>
             <p className="mt-1 text-[12.5px] text-fg-muted">{t("chat.expertsHint")}</p>
           </div>
+          <Button
+            variant="primary"
+            icon={UsersRound}
+            onClick={() => {
+              onPick("@all");
+              setOpen(false);
+            }}
+          >
+            {t("chat.mentionAll")}
+          </Button>
           {GROUPS.map((group) => {
             const members = personas.filter((p) => p.group === group);
             if (!members.length) return null;
@@ -138,6 +148,7 @@ export function useExpertMentions(
   input: RefObject<HTMLTextAreaElement | null>,
   enabled: boolean,
 ) {
+  const { t } = useTranslation();
   const { personas } = usePersonas();
   const label = usePersonaLabel();
   const [caret, setCaret] = useState(0);
@@ -145,12 +156,11 @@ export function useExpertMentions(
   // Escape closes the list for the "@" it was opened for; a new "@" opens it again.
   const [closedAt, setClosedAt] = useState<number>();
   const at = enabled ? mentionQuery(text, caret) : undefined;
+  // "@all" asks the core panel at once; it comes first, then each expert.
+  const everyone = { id: "all", name: t("chat.mentionAll"), role: t("chat.mentionAllRole") };
   const items =
     at && closedAt !== at.start
-      ? filterMentions(
-          personas.map((p) => ({ id: p.id, ...label(p) })),
-          at.query,
-        )
+      ? filterMentions([everyone, ...personas.map((p) => ({ id: p.id, ...label(p) }))], at.query)
       : [];
   const current = Math.min(active, Math.max(0, items.length - 1));
   const track = (e: SyntheticEvent<HTMLTextAreaElement>) => {
@@ -224,7 +234,13 @@ export function MentionMenu({
             i === active ? "bg-bg-active" : "hover:bg-bg-hover",
           )}
         >
-          <PersonaIcon persona={personas.find((p) => p.id === item.id)} size={12} className="size-6 rounded-full" />
+          {item.id === "all" ? (
+            <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-accent text-bg">
+              <UsersRound size={12} strokeWidth={1.75} aria-hidden="true" />
+            </span>
+          ) : (
+            <PersonaIcon persona={personas.find((p) => p.id === item.id)} size={12} className="size-6 rounded-full" />
+          )}
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[12.5px] font-medium">{item.name}</span>
             {item.role && <span className="block truncate text-[11px] text-fg-subtle">{item.role}</span>}

@@ -1,5 +1,5 @@
 import type { Database } from "bun:sqlite";
-import { type ExpertView, extractNotebook, type Persona } from "@igrek/core";
+import { CORE_EXPERTS, type ExpertsState, type ExpertView, extractNotebook, type Persona } from "@igrek/core";
 import type { StopRegistry } from "./bus";
 import { type Personas, personaLabel } from "./personas";
 import type { Store } from "./store";
@@ -18,13 +18,25 @@ Answer only the question, from your own field, in at most 250 words. Read the co
 Say plainly when the code does not tell you enough.`;
 
 /** The view a persona gives of the whole project on the Experts tab. */
-const VIEW_QUESTION = `Describe this project from your field, for its owner. Use these short sections:
-what is there today (how it is built in your area), what works well, the main risks or gaps,
-and the three most useful next steps. Ground it in the code (path:line), plain words, at most 350 words.`;
+const VIEW_QUESTION = `Describe this project from your field, for its owner. Start with one plain sentence
+that sums up your view for someone with no time (no heading, no label, nothing before it). Then these
+short sections: what is there today (how it is built in your area), what works well, the main risks or
+gaps, and the three most useful next steps. Ground it in the code (path:line), plain words, at most 350 words.`;
+
+/** How many experts read a project at the same time when several are asked at once. */
+const PARALLEL = 3;
 
 type Ask = (prompt: string, cwd: string, model: string, system: string) => Promise<string>;
 
 export class Experts {
+  /** Told when a project's views, or who is reading it, change (the Experts tab updates live). */
+  onChange: (projectId: string) => void = () => undefined;
+  /** "project persona" pairs being read now or waiting their turn. */
+  private readonly running = new Set<string>();
+  private readonly errors = new Map<string, string>();
+  private readonly queue: { projectId: string; personaId: string }[] = [];
+  private active = 0;
+
   constructor(
     private readonly db: Database,
     private readonly personas: Personas,
@@ -83,6 +95,54 @@ export class Experts {
     return { name: personaLabel(persona).name, answer: text.trim() };
   }
 
+  /** The Experts tab's state: views, who is reading now, and why a last look failed. */
+  state(projectId: string): ExpertsState {
+    const mine = (key: string) => key.startsWith(`${projectId} `);
+    const persona = (key: string) => key.slice(projectId.length + 1);
+    return {
+      views: this.views(projectId),
+      running: [...this.running].filter(mine).map(persona),
+      errors: Object.fromEntries(
+        [...this.errors].filter(([key]) => mine(key)).map(([key, why]) => [persona(key), why]),
+      ),
+    };
+  }
+
+  /**
+   * Starts views in the background (all core experts when none are named), a few at a time. The
+   * page can close meanwhile: the state stays here and onChange says when something finished.
+   */
+  start(projectId: string, personaIds: string[] = CORE_EXPERTS): ExpertsState {
+    for (const personaId of personaIds) this.resolve(projectId, personaId);
+    for (const personaId of personaIds) {
+      const key = `${projectId} ${personaId}`;
+      if (this.running.has(key)) continue;
+      this.running.add(key);
+      this.errors.delete(key);
+      this.queue.push({ projectId, personaId });
+    }
+    this.next();
+    this.onChange(projectId);
+    return this.state(projectId);
+  }
+
+  private next(): void {
+    while (this.active < PARALLEL && this.queue.length) {
+      const job = this.queue.shift();
+      if (!job) return;
+      this.active++;
+      const key = `${job.projectId} ${job.personaId}`;
+      void this.refreshView(job.projectId, job.personaId)
+        .catch((err: Error) => this.errors.set(key, err.message))
+        .finally(() => {
+          this.active--;
+          this.running.delete(key);
+          this.onChange(job.projectId);
+          this.next();
+        });
+    }
+  }
+
   views(projectId: string): ExpertView[] {
     return (
       this.db.query("SELECT persona, text, created_at FROM persona_views WHERE project_id = ?").all(projectId) as {
@@ -112,7 +172,8 @@ export function expertsHint(roster: string): string {
 (expert id + a self-contained question). Each one reads this project read-only and answers from its
 field. Ask one when the user's request needs a specialist judgement you are unsure of (architecture,
 security, UI/UX, database, performance, tests, ...), or whenever the user names one with @<id>.
-Ask several in parallel when the question spans fields. Weigh their answers; you decide and tell the
+Ask several in parallel when the question spans fields. "@all" means: ask each of these in parallel,
+${CORE_EXPERTS.join(", ")}. Weigh their answers; you decide and tell the
 user briefly whom you asked and what they said. Do not consult anyone for small, clear tasks.
 Experts:
 ${roster}`;
