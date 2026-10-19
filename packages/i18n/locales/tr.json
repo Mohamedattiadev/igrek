@@ -888,6 +888,7 @@
     "expertAsking": "{{name}} danışılıyor…",
     "expertAsked": "{{name}} danışıldı",
     "expertFailed": "{{name}} cevap veremedi",
+    "mentionTitle": "Anılacak uzmanlar",
     "expertQuestion": "Soru"
   },
   "checkpoint": {

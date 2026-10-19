@@ -53,7 +53,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { ChatCopy } from "../components/ChatCopy";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
-import { ExpertCard, ExpertPicker } from "../components/Experts";
+import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
 import { GateCard } from "../components/GateCard";
 import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
@@ -811,6 +811,8 @@ export function ChatPage() {
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
+  // "@" brings in an expert, only where experts can be asked: not inside a persona's own chat.
+  const mentions = useExpertMentions(text, setText, input, settings.consultExperts && !info?.persona);
   const fileInput = useRef<HTMLInputElement>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every new event
@@ -999,6 +1001,7 @@ export function ChatPage() {
         active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
         onPick={pickSlash}
       />
+      <MentionMenu items={mentions.items} active={mentions.active} onPick={mentions.pick} />
       {info?.limit && !working && (
         <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">
           <Gauge size={14} className="shrink-0 text-danger" aria-hidden="true" />
@@ -1098,9 +1101,14 @@ export function ChatPage() {
           // biome-ignore lint/a11y/noAutofocus: the box is what an empty chat is for, as in other chat apps
           autoFocus={empty}
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => {
+            setText(e.target.value);
+            mentions.track(e);
+          }}
+          onSelect={mentions.track}
           onPaste={onPaste}
           onKeyDown={(e) => {
+            if (mentions.onKeyDown(e)) return;
             if (slashMatches.length) {
               if (e.key === "ArrowDown" || e.key === "ArrowUp") {
                 e.preventDefault();

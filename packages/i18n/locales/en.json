@@ -888,6 +888,7 @@
     "expertAsking": "Asking {{name}}…",
     "expertAsked": "{{name}} was consulted",
     "expertFailed": "{{name}} could not answer",
+    "mentionTitle": "Experts to mention",
     "expertQuestion": "Question"
   },
   "checkpoint": {
