@@ -1,3 +1,5 @@
+<img src="docs/logo.svg" width="64" height="64" alt="Igrek logo">
+
 # Igrek
 
 *Igrek: know why.* (Eski adı / formerly: God Eye)

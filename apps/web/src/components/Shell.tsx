@@ -18,6 +18,7 @@ import { Helper } from "./Helper";
 import { HelpGuide } from "./HelpGuide";
 import { IdeaCapture } from "./IdeaCapture";
 import { useLanguagePackSync } from "./LanguagePack";
+import { Logo } from "./Logo";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
 import { StopButton } from "./StopButton";
@@ -199,12 +200,7 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
       )}
     >
       <div className={cn("mb-2 flex h-9 shrink-0 items-center gap-2", wide ? "px-2" : "justify-center")} aria-hidden>
-        <svg viewBox="0 0 32 32" className="size-6 shrink-0">
-          <title>Igrek</title>
-          <circle cx="16" cy="16" r="14" fill="var(--accent)" />
-          <circle cx="16" cy="16" r="6" fill="white" />
-          <circle cx="16" cy="16" r="2.5" fill="var(--fg)" />
-        </svg>
+        <Logo />
         {wide && <span className="text-[14px] font-semibold tracking-tight">Igrek</span>}
       </div>
       {/* Only the middle scrolls, without a visible bar; settings and the width toggle stay put. */}

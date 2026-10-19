@@ -1,6 +1,7 @@
 import { Check, Hand, KeyRound, LogOut, MessageSquare, RefreshCw, Shield } from "lucide-react";
 import { type FormEvent, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
+import { Logo } from "../components/Logo";
 import { Badge, Button, Card, EmptyState, Segmented, StatusDot } from "../components/ui";
 import { relativeTime } from "../lib/format";
 import type { MemberClient, MemberProject, MemberTask } from "./client";
@@ -36,7 +37,7 @@ function SignIn({ client }: { client: MemberClient }) {
   return (
     <form onSubmit={(e) => void submit(e)} className="mx-auto mt-24 max-w-sm space-y-3 px-4">
       <h1 className="flex items-center gap-2 text-[17px] font-semibold">
-        <Shield size={18} className="text-accent" aria-hidden="true" /> {t("member.title")}
+        <Logo className="size-7" /> {t("member.title")}
       </h1>
       <p className="text-xs text-fg-muted">{t("member.signInHint")}</p>
       <input
@@ -370,7 +371,7 @@ function Ready({ client }: { client: MemberClient }) {
   return (
     <div className="min-h-screen">
       <header className="flex items-center gap-3 border-b border-border px-4 py-2">
-        <Shield size={16} className="text-accent" aria-hidden="true" />
+        <Logo />
         <span className="text-[13.5px] font-semibold">{t("member.title")}</span>
         <StatusDot tone={connected ? "success" : "warning"} />
         <span className="text-[11.5px] text-fg-subtle">{connected ? t("member.live") : t("member.offline")}</span>
