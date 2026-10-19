@@ -77,7 +77,6 @@ function Item({
 export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { settings, update } = useSettings();
   const [query, setQuery] = useState("");
   const [projects, setProjects] = useState<ProjectListItem[]>([]);
   const [hits, setHits] = useState<SearchHit[]>([]);

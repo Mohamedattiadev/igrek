@@ -65,6 +65,7 @@ export const RULES: Record<string, string> = {
   "select-star": "SELECT * reads columns nobody asked for and changes meaning when a column is added.",
   "n-plus-one": "A SELECT inside a loop runs once per item; one query with IN or a JOIN does the same work at once.",
   "sql-interpolation":
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the message names the ${...} syntax it warns about
     "SQL built with ${...} can carry injection; values must be bound with ?, identifiers quoted or picked from a fixed list.",
   "multi-write":
     "Two or more writes in one method without a transaction: a crash or error between them leaves half the change (atomicity, Elmasri 20.3). Wrap them in db.transaction().",

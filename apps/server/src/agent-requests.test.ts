@@ -15,7 +15,12 @@ function setup() {
   const dir = mkdtempSync(join(tmpdir(), "igrek-agentreq-"));
   store.addProject(dir);
   const vaulted: { name: string; value: string }[] = [];
-  const vault = { addItem: async (i: { name: string; value: string }) => (vaulted.push(i), "v1") } as unknown as Vault;
+  const vault = {
+    addItem: async (i: { name: string; value: string }) => {
+      vaulted.push(i);
+      return "v1";
+    },
+  } as unknown as Vault;
   const requests = new AgentRequests(
     store,
     vault,

@@ -102,7 +102,7 @@ export class AgentRequests {
 
   async answerSecret(id: string, value: string | null): Promise<void> {
     const r = this.secrets.get(id);
-    if (!r || r.status !== "pending") throw new Error("This request is no longer open");
+    if (r?.status !== "pending") throw new Error("This request is no longer open");
     if (value === null) {
       r.status = "declined";
       return;
@@ -159,7 +159,7 @@ export class AgentRequests {
 
   answerForm(id: string, answers: unknown | null): void {
     const form = this.forms.get(id);
-    if (!form || form.status !== "pending") throw new Error("This request is no longer open");
+    if (form?.status !== "pending") throw new Error("This request is no longer open");
     if (answers === null) {
       form.status = "declined";
       return;

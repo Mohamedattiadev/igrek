@@ -17,6 +17,7 @@ describe("render strategy", () => {
   const root = project({
     "app/page.tsx": "export default function Home() { return <h1>Hi</h1>; }",
     "app/blog/[slug]/page.tsx":
+      // biome-ignore lint/suspicious/noTemplateCurlyInString: a source file of the sample project, as text
       "export default async function Post({ params }) { const post = await fetch(`https://cms/x/${params.slug}`).then(r => r.json()); return <p>{post.title}</p>; }",
     "app/(shop)/products/page.tsx":
       '"use client";\nimport { useEffect, useState } from "react";\nexport default function P() { const [x, setX] = useState([]); useEffect(() => { fetch("/api/products").then(r => r.json()).then(setX); }, []); return <ul />; }',

@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: the strings are source files of a sample project, written out as text
 import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";

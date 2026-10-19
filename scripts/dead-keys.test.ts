@@ -11,6 +11,7 @@ describe("unused interface texts", () => {
   };
 
   test("written-out keys, prefixes and plural forms count as used; the rest is reported", () => {
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: sample source code the checker reads, as text
     const src = 't("files.title"); t(`servers.tag_${tag}`); t(`check.${id}.title`); t("items", { count });';
     expect(keysOf(tree)).toHaveLength(7);
     expect(unusedKeys(tree, src)).toEqual(["files.old"]);
