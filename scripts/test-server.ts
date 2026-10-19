@@ -178,17 +178,48 @@ export async function seededProjectId(server: TestServer): Promise<string | unde
   return undefined;
 }
 
-/** Every GET route the server registers, read from its source: "/api/projects", "/api/chats/:id", ... */
-export function getRoutes(dir = join(ROOT, "apps/server/src")): string[] {
+type Method = "get" | "post" | "put" | "patch" | "delete";
+
+/** Every route the server registers, read from its source, as "method path" ("get /api/chats/:id"). */
+function routes(dir = join(ROOT, "apps/server/src")): { method: Method; route: string }[] {
   const found = new Set<string>();
   const walk = (folder: string) => {
     for (const entry of readdirSync(folder, { withFileTypes: true })) {
       const path = join(folder, entry.name);
       if (entry.isDirectory()) walk(path);
       else if (/\.ts$/.test(entry.name) && !/\.test\.ts$/.test(entry.name))
-        for (const m of readFileSync(path, "utf8").matchAll(/\.get\(\s*"(\/api\/[^"]+)"/g)) if (m[1]) found.add(m[1]);
+        for (const m of readFileSync(path, "utf8").matchAll(/\.(get|post|put|patch|delete)\(\s*"(\/api\/[^"]+)"/g))
+          found.add(`${m[1]} ${m[2]}`);
     }
   };
   walk(dir);
-  return [...found].sort();
+  return [...found].sort().map((line) => {
+    const [method, route] = line.split(" ") as [Method, string];
+    return { method, route };
+  });
+}
+
+/** Every GET route: "/api/projects", "/api/chats/:id", ... */
+export function getRoutes(): string[] {
+  return routes()
+    .filter((r) => r.method === "get")
+    .map((r) => r.route);
+}
+
+/**
+ * Routes that reach past the sealed-off server into the real machine, so a test never calls them:
+ * the user's Docker containers and images, a `git pull` and restart of this repository, a real shell,
+ * and a project's dev server.
+ */
+const REACHES_OUT = [/^\/api\/docker\//, /^\/api\/update/, /^\/api\/terminals$/, /^\/api\/projects\/:\w+\/launch$/];
+
+/** Every route that changes something and is safe to call on the sealed-off server; deletions last. */
+export function writeRoutes(): { method: Exclude<Method, "get">; route: string }[] {
+  const order: Method[] = ["post", "put", "patch", "delete"];
+  return routes()
+    .filter((r) => r.method !== "get" && !REACHES_OUT.some((re) => re.test(r.route)))
+    .sort((a, b) => order.indexOf(a.method) - order.indexOf(b.method)) as {
+    method: Exclude<Method, "get">;
+    route: string;
+  }[];
 }

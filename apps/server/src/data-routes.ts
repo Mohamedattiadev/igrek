@@ -36,7 +36,13 @@ export function registerDataRoutes(
     databases.remove(c.req.param("id"));
     return c.json({ ok: true });
   });
-  app.post("/api/databases/:id/test", async (c) => c.json(await databases.test(c.req.param("id"))));
+  app.post("/api/databases/:id/test", async (c) => {
+    try {
+      return c.json(await databases.test(c.req.param("id")));
+    } catch (err) {
+      return c.json(fail(err), 400);
+    }
+  });
   app.get("/api/databases/:id/tables", async (c) => {
     try {
       return c.json(await databases.tables(c.req.param("id")));

@@ -230,13 +230,14 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
     const result = runClaudeCli(["mcp", "add", "--scope", "user", ...env, "igrek", "--", process.execPath, MCP_SCRIPT]);
     // The entry from before the rename would give the same tools twice.
     if (result.ok) runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
-    return result.ok ? c.json({ ok: true }) : c.json({ error: result.output || "claude mcp add failed" }, 500);
+    // 502: Claude Code's own command failed (or is missing), not Igrek.
+    return result.ok ? c.json({ ok: true }) : c.json({ error: result.output || "claude mcp add failed" }, 502);
   });
 
   app.delete("/api/mcp", (c) => {
     const result = runClaudeCli(["mcp", "remove", "--scope", "user", "igrek"]);
     const old = runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
-    return result.ok || old.ok ? c.json({ ok: true }) : c.json({ error: result.output }, 500);
+    return result.ok || old.ok ? c.json({ ok: true }) : c.json({ error: result.output }, 502);
   });
 
   // Called by the hook script inside Claude Code (see hooks.ts).
