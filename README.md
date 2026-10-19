@@ -201,6 +201,12 @@ If you like, the hub can also **email** invite codes and "forgot password" codes
 
 ---
 
-## License
+## Lisans / License
 
-MIT
+**Tüm hakları saklıdır.** © 2026 Mohamed Attia. Igrek açık kaynak değildir. Mohamed Attia'nın önceden verdiği açık,
+yazılı izin olmadan kullanılamaz, kopyalanamaz, değiştirilemez, dağıtılamaz ve satılamaz. Başka projelerden gelen
+bileşenler kendi lisanslarıyla kalır. Ayrıntılar: [LICENSE](LICENSE).
+
+**All rights reserved.** © 2026 Mohamed Attia. Igrek is not open source. It may not be used, copied, modified,
+distributed or sold without Mohamed Attia's prior, express, written permission. Components from other projects keep
+their own licenses. Details: [LICENSE](LICENSE).

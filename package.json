@@ -2,6 +2,7 @@
   "name": "igrek",
   "version": "0.1.0",
   "private": true,
+  "license": "UNLICENSED",
   "type": "module",
   "bin": {
     "igrek": "apps/server/src/cli.ts"

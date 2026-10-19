@@ -1,0 +1,25 @@
+Copyright (c) 2026 Mohamed Attia. All rights reserved.
+
+This software and everything in this repository that Mohamed Attia wrote (source code, documentation,
+interface texts, designs, logos and other material; together "the Software") is proprietary and confidential.
+
+No license is granted. Without the prior, express, written permission of Mohamed Attia, no one may:
+
+  - use, run or install the Software;
+  - copy or reproduce it, in whole or in part;
+  - modify it, translate it or make works based on it;
+  - distribute, publish, sublicense or otherwise make it available to anyone;
+  - sell, rent, lease or otherwise use it for commercial purposes.
+
+Having access to this repository, or a copy of the Software, does not give any of these rights. Any
+permission must be given in writing and only covers what it names.
+
+Third-party components (for example the packages the Software depends on, and material from other
+projects that is credited where it is used) are not covered by this notice. They remain under their own
+licenses and with their own owners.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR ITS USE.
+
+For permission requests: Mohamed Attia, mohamedattia.dev@gmail.com

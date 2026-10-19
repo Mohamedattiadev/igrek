@@ -86,7 +86,7 @@
 | **Claude Code'un kendi özellikleri** | `/btw`, subagent'lar, hook'lar, skill'ler, routine'ler (zamanlanmış işler) | Bunları **yeniden yazmayacağız, kullanacağız**: subagent = persona, hook = otomasyon | Dağınık, CLI'a gömülü, görsel değil |
 
 **Sonuç:** Her parçanın bir örneği var ama hepsini birleştiren, hafızalı, öğrenen, uzman takımlı ve sade dilli bir uygulama yok.
-**Lisans kuralı:** GPL veya AGPL lisanslı projelerin kodunu kopyalamıyoruz, sadece fikirlerinden ilham alıyoruz. Bizim lisansımız MIT olacak.
+**Lisans kuralı:** GPL veya AGPL lisanslı projelerin kodunu kopyalamıyoruz, sadece fikirlerinden ilham alıyoruz. Bizim lisansımız MIT olacak. — *Karar (Ekim 2026): MIT değil; "Tüm hakları saklıdır" (LICENSE), paketler "UNLICENSED" ve özel*
 
 ---
 
