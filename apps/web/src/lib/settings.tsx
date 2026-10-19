@@ -21,7 +21,7 @@ function resolveTheme(theme: Settings["theme"]): "light" | "dark" {
   return matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
-function applyToDocument(settings: Settings): void {
+function applyToDocument(settings: Settings, loaded: boolean): void {
   const root = document.documentElement;
   root.dataset.theme = resolveTheme(settings.theme);
   root.dataset.density = settings.density;
@@ -29,7 +29,9 @@ function applyToDocument(settings: Settings): void {
   if (settings.theme === "darcula" || settings.theme === "notion") root.dataset.palette = settings.theme;
   else delete root.dataset.palette;
   root.dataset.mode = settings.mode;
-  applyLanguage(settings.language);
+  // The language pack comes from the API, which needs the session cookie: before the settings have
+  // loaded, the bootstrap call may not have set it yet and the request would fail with a 401.
+  if (loaded) applyLanguage(settings.language);
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
@@ -51,13 +53,13 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    applyToDocument(settings);
+    applyToDocument(settings, loaded);
     if (settings.theme !== "system") return;
     const media = matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyToDocument(settings);
+    const onChange = () => applyToDocument(settings, loaded);
     media.addEventListener("change", onChange);
     return () => media.removeEventListener("change", onChange);
-  }, [settings]);
+  }, [settings, loaded]);
 
   const update = useCallback(async (patch: Partial<Settings>) => {
     setSettings((current) => ({ ...current, ...patch }));

@@ -84,9 +84,7 @@ describe.skipIf(!ready)("the app in a browser", () => {
     });
     // The guided tour would cover the page; people who finished it don't see it either.
     await ctx.addInitScript(() => localStorage.setItem("igrek.tour.seen", "1"));
-    // A returning user already holds the session cookie. (On a very first visit straight to a deep link
-    // the language request can race the cookie and get one 401 before it retries; reported separately.)
-    await ctx.request.get(`${server.url}/api/session`);
+    // Every page opens as a first visit, without the session cookie, so no request may run ahead of it.
     const page = await ctx.newPage();
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(`${path}: ${e.message}`));
