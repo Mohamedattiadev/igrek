@@ -162,6 +162,8 @@ function parseGeminiFile(
 export interface WholeFileAdapter extends Adapter {
   /** Read the whole file again whenever it changes (instead of appended lines). */
   parseFile(state: SessionState, text: string, sessionId: string): ParsedMessage[];
+  /** The text to parse, for sessions that live somewhere other than their own file (opencode's SQLite). */
+  readFile?(file: SessionFile): string;
 }
 
 export function geminiAdapter(root = GEMINI_DIR, projectPaths: () => string[] = () => []): WholeFileAdapter {

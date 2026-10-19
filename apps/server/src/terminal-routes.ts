@@ -7,14 +7,15 @@ import type { Servers } from "./servers";
 import type { Store } from "./store";
 import type { Terminals } from "./terminals";
 
-const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "pi", "shell"];
+const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "pi", "opencode", "shell"];
 
 /** CLI arguments that reopen (or fork) a stored session in its own tool. */
 export function resumeArgs(tool: AiTool, sessionId: string, fork: boolean): string[] {
   const caps = capabilitiesOf(tool);
   if (!caps.resume) return [];
-  const id = sessionId.replace(/^(codex|pi)-/, "");
+  const id = sessionId.replace(/^(codex|pi|opencode)-/, "");
   if (tool === "codex") return ["resume", id];
+  if (tool === "opencode") return ["--session", id, ...(fork && caps.fork ? ["--fork"] : [])];
   if (tool === "pi") return fork && caps.fork ? ["--fork", id] : ["--session", id];
   return ["--resume", id, ...(fork && caps.fork ? ["--fork-session"] : [])];
 }

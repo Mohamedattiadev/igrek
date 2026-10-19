@@ -7,7 +7,7 @@ import { api } from "../lib/api";
 import { useAccounts } from "../lib/live";
 import { Button } from "./ui";
 
-const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "pi", "shell"];
+const TOOLS: TerminalTool[] = ["claude", "codex", "gemini", "pi", "opencode", "shell"];
 
 /** "New session" button with a tool menu; opens the new terminal right away. */
 export function NewSession({ projectId }: { projectId: string }) {

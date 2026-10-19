@@ -108,13 +108,15 @@ export class Indexer {
     file: SessionFile,
     adapter: Adapter,
   ): Promise<{ projectId: string | null; sessionId: string } | undefined> {
-    // Whole-file formats (Gemini): read again from scratch whenever the file changed.
+    // Whole-file formats (Gemini, opencode): read again from scratch whenever the session changed.
     if ("parseFile" in adapter) {
       const seen = this.store.fileOffset(file.path);
       if (seen && seen.size === file.size && seen.mtime === file.mtime) return undefined;
+      const whole = adapter as WholeFileAdapter;
+      const text = whole.readFile ? whole.readFile(file) : await Bun.file(file.path).text();
       this.store.resetSession(file.sessionId, file.path);
       const state = this.store.loadState(file.sessionId);
-      const messages = (adapter as WholeFileAdapter).parseFile(state, await Bun.file(file.path).text(), file.sessionId);
+      const messages = whole.parseFile(state, text, file.sessionId);
       const projectId = this.store.saveChunk({
         sessionId: file.sessionId,
         tool: adapter.tool,

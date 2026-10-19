@@ -120,7 +120,7 @@ export const DEFAULT_SETTINGS: Settings = {
 export const RTL_LANGUAGES = new Set(["ar", "fa", "he", "ur", "ps", "sd", "ug", "yi"]);
 
 export interface ToolCheck {
-  id: "git" | "claude" | "codex" | "gemini" | "pi" | "ssh" | "docker" | "bwrap" | "socat";
+  id: "git" | "claude" | "codex" | "gemini" | "pi" | "opencode" | "ssh" | "docker" | "bwrap" | "socat";
   found: boolean;
   version?: string;
   required: boolean;
@@ -133,7 +133,7 @@ export interface SystemStatus {
   tools: ToolCheck[];
 }
 
-export type AiTool = "claude" | "codex" | "gemini" | "pi";
+export type AiTool = "claude" | "codex" | "gemini" | "pi" | "opencode";
 
 /**
  * What each AI tool can do in Igrek (plan.md 16.3). Screens and routes ask these flags
@@ -156,6 +156,7 @@ export const TOOL_CAPABILITIES: Record<AiTool, ToolCapabilities> = {
   codex: { label: "Codex", resume: true, fork: false, chat: false, sideQuestion: false },
   gemini: { label: "Gemini", resume: false, fork: false, chat: false, sideQuestion: false },
   pi: { label: "pi", resume: true, fork: true, chat: false, sideQuestion: false },
+  opencode: { label: "opencode", resume: true, fork: true, chat: false, sideQuestion: false },
 };
 
 /** Capabilities of a tool name read from storage; unknown tools can do nothing extra. */
@@ -363,7 +364,7 @@ export interface IndexStatus {
   lastError?: string;
 }
 
-export type TerminalTool = "claude" | "codex" | "gemini" | "pi" | "shell" | "ssh";
+export type TerminalTool = "claude" | "codex" | "gemini" | "pi" | "opencode" | "shell" | "ssh";
 export type TerminalStatus = "running" | "idle" | "attention" | "exited";
 
 export interface TerminalInfo {
