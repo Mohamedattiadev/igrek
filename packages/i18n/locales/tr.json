@@ -753,7 +753,7 @@
   "chat": {
     "title": "Sohbet",
     "new": "Yeni sohbet",
-    "placeholder": "Claude'dan bir şey iste… (Enter gönderir, Shift+Enter yeni satır)",
+    "placeholder": "Claude'dan bir şey iste…",
     "send": "Gönder",
     "stop": "Durdur",
     "mode_normal": "Bana sor",
@@ -871,7 +871,12 @@
     "limitOther": "Başka hesap kullan",
     "limitResumeText": "Kullanım limiti sıfırlandı. Kaldığın yerden devam et.",
     "starting": "Sohbet başlatılıyor…",
-    "detailNext": "Sonraki ayrıntı seviyesi"
+    "detailNext": "Sonraki ayrıntı seviyesi",
+    "modeLabel": "Claude nasıl çalışsın",
+    "starter_explain": "Bu projeyi bana anlat",
+    "starter_bugs": "Bir hata bul ve düzelt",
+    "starter_tests": "Eksik testleri yaz",
+    "starter_review": "Son değişiklikleri incele"
   },
   "checkpoint": {
     "title": "Kayıtlar",

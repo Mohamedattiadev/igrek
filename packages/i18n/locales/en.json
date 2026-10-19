@@ -753,7 +753,7 @@
   "chat": {
     "title": "Chat",
     "new": "New chat",
-    "placeholder": "Ask Claude to do something… (Enter to send, Shift+Enter for a new line)",
+    "placeholder": "Ask Claude to do something…",
     "send": "Send",
     "stop": "Stop",
     "mode_normal": "Ask me",
@@ -871,7 +871,12 @@
     "limitOther": "Use another account",
     "limitResumeText": "The usage limit has reset. Continue where you left off.",
     "starting": "Starting a chat…",
-    "detailNext": "Next detail level"
+    "detailNext": "Next detail level",
+    "modeLabel": "How Claude works",
+    "starter_explain": "Explain this project to me",
+    "starter_bugs": "Find a bug and fix it",
+    "starter_tests": "Write the missing tests",
+    "starter_review": "Review the latest changes"
   },
   "checkpoint": {
     "title": "Snapshots",

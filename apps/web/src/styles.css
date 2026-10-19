@@ -416,8 +416,8 @@ dialog[open] {
 
 @layer components {
   .prose-chat {
-    font-size: 13.5px;
-    line-height: 1.65;
+    font-size: 14px;
+    line-height: 1.7;
   }
   /* Markdown is drawn block by block; the wrapper takes no space of its own. */
   .ge-md-block {

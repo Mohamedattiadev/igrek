@@ -11,8 +11,10 @@ import {
 } from "@igrek/core";
 import {
   ArrowLeft,
+  ArrowUp,
   BookOpen,
   Bot,
+  Bug,
   Check,
   ChevronDown,
   ChevronRight,
@@ -22,6 +24,7 @@ import {
   FilePlus,
   FileText,
   Flag,
+  FlaskConical,
   Gauge,
   Globe,
   Image as ImageIcon,
@@ -34,7 +37,6 @@ import {
   Minimize2,
   RotateCcw,
   Search,
-  Send,
   ShieldAlert,
   ShieldQuestion,
   Square,
@@ -57,7 +59,7 @@ import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
-import { Badge, Button, EmptyState, Segmented, StatusDot } from "../components/ui";
+import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
@@ -74,6 +76,13 @@ type Json = Record<string, unknown>;
 
 const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
 const MODELS = ["", "opus", "sonnet", "haiku"];
+/** First messages offered on an empty chat, as other chat apps do; picking one only fills the box. */
+const STARTERS = [
+  { key: "explain", icon: BookOpen },
+  { key: "bugs", icon: Bug },
+  { key: "tests", icon: FlaskConical },
+  { key: "review", icon: Search },
+] as const;
 
 /** A note on one line of a change, added to the next message (plan.md 16.1). */
 interface LineComment {
@@ -288,9 +297,9 @@ function ToolGroup({ tools, cwd, plain }: { tools: ToolEvent[]; cwd?: string; pl
       )}
     </>
   );
-  if (plain) return <div className="ms-9 flex items-center gap-2 px-2.5 py-1">{header}</div>;
+  if (plain) return <div className="flex items-center gap-2 px-2.5 py-1">{header}</div>;
   return (
-    <div className="ms-9 rounded-ui border border-border">
+    <div className="rounded-ui border border-border">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -307,7 +316,7 @@ function ToolGroup({ tools, cwd, plain }: { tools: ToolEvent[]; cwd?: string; pl
       {open && (
         <div className="space-y-1.5 border-t border-border p-1.5">
           {tools.map((tool) => (
-            <ToolCard key={tool.id} event={tool} cwd={cwd} nested />
+            <ToolCard key={tool.id} event={tool} cwd={cwd} />
           ))}
         </div>
       )}
@@ -317,13 +326,13 @@ function ToolGroup({ tools, cwd, plain }: { tools: ToolEvent[]; cwd?: string; pl
 
 type ToolEvent = Extract<ChatEvent, { kind: "tool" }>;
 
-function ToolCard({ event, cwd, nested }: { event: ToolEvent; cwd?: string; nested?: boolean }) {
+function ToolCard({ event, cwd }: { event: ToolEvent; cwd?: string }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(event.name === "TodoWrite");
   const Icon = toolIcon(event.name);
   const input = (event.input ?? {}) as Json;
   return (
-    <div className={cn("rounded-ui border border-border bg-bg-subtle", !nested && "ms-9")}>
+    <div className={"rounded-ui border border-border bg-bg-subtle"}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -400,7 +409,7 @@ function QuestionCard({
   return (
     <div
       className={cn(
-        "ms-9 space-y-3 rounded-ui border p-3",
+        "space-y-3 rounded-ui border p-3",
         pending ? "border-accent bg-accent-soft/40" : "border-border opacity-70",
       )}
     >
@@ -592,7 +601,7 @@ function PermissionCard({
   return (
     <div
       className={cn(
-        "ms-9 space-y-2 rounded-ui border p-3",
+        "space-y-2 rounded-ui border p-3",
         pending ? "border-warning bg-warning-soft/40" : "border-border opacity-70",
       )}
     >
@@ -689,12 +698,12 @@ function WeakPointsButton({ text, projectId }: { text: string; projectId: string
   const [error, setError] = useState<string>();
   if (points)
     return (
-      <div className="ms-9">
+      <div>
         <WeakPointList points={points} />
       </div>
     );
   return (
-    <div className="ms-9">
+    <div>
       <Button
         size="sm"
         variant="ghost"
@@ -800,6 +809,7 @@ export function ChatPage() {
   const [enhancing, setEnhancing] = useState<string>();
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
   const list = useRef<HTMLDivElement>(null);
+  const input = useRef<HTMLTextAreaElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every new event
@@ -916,9 +926,322 @@ export function ChatPage() {
     );
   }
 
+  const empty = chat.events.length === 0;
+  const composer = (
+    <div className="mx-auto w-full max-w-3xl space-y-2">
+      {chat.error && <p className="text-xs text-danger">{chat.error}</p>}
+      {images.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {images.map((image, i) => (
+            <span key={image.data.slice(0, 32) + image.data.length} className="relative">
+              <img
+                src={`data:${image.mediaType};base64,${image.data}`}
+                alt={image.name}
+                className="h-14 w-14 rounded-md border border-border object-cover"
+              />
+              <button
+                type="button"
+                aria-label={t("chat.removeImage")}
+                onClick={() => setImages(images.filter((_, j) => j !== i))}
+                className="absolute -end-1.5 -top-1.5 rounded-full bg-fg p-0.5 text-bg"
+              >
+                <X size={10} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      {guarded !== undefined && (
+        <SecretGuard
+          text={guarded}
+          onMask={() => send(maskSecrets(guarded), true)}
+          onSendAnyway={() => send(guarded, true)}
+          onCancel={() => setGuarded(undefined)}
+        />
+      )}
+      {enhancing !== undefined && info && (
+        <div className="mb-2">
+          <EnhancePanel
+            key={enhancing}
+            text={enhancing}
+            target={{
+              projectId: info.projectId,
+              sessionId: info.sessionId,
+              tool: "claude",
+              personaId: info.persona?.id,
+            }}
+            onClose={() => setEnhancing(undefined)}
+            onUse={(prompt) => send(prompt)}
+            onPlanMode={info.mode === "plan" ? undefined : () => chat.setMode("plan")}
+          />
+        </div>
+      )}
+      {enhancing === undefined && text.trim() && (
+        <div className="mb-1.5 flex flex-wrap gap-1.5">
+          <EnhanceHint text={text} onEnhance={openEnhancer} />
+          <PromptCoach text={text} />
+          {suggestedModel && suggestedModel !== currentModel && !working && (
+            <button
+              type="button"
+              onClick={() => void switchModel(suggestedModel)}
+              data-tip={t(`chat.suggestTip_${suggestedModel}`)}
+              className="inline-flex items-center gap-1 rounded-full bg-bg-muted px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg"
+            >
+              <Cpu size={11} aria-hidden="true" />{" "}
+              {t("chat.suggestModel", { model: modelName(`claude-${suggestedModel}`) })}
+            </button>
+          )}
+        </div>
+      )}
+      <SlashMenu
+        items={slashMatches}
+        active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
+        onPick={pickSlash}
+      />
+      {info?.limit && !working && (
+        <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">
+          <Gauge size={14} className="shrink-0 text-danger" aria-hidden="true" />
+          <span className="min-w-0 flex-1">
+            {info.limit.resumeAt
+              ? t("chat.limitResumes", { time: clockTime(info.limit.resumeAt, i18n.language) })
+              : info.limit.resetsAt
+                ? t("chat.limitResets", { time: clockTime(info.limit.resetsAt, i18n.language) })
+                : t("chat.limitHit")}
+          </span>
+          {info.limit.resumeAt ? (
+            <Button size="sm" variant="ghost" onClick={chat.cancelResume}>
+              {t("chat.limitCancel")}
+            </Button>
+          ) : (
+            info.limit.resetsAt && (
+              <Button size="sm" onClick={() => chat.resumeAtReset(t("chat.limitResumeText"))}>
+                {t("chat.limitResume")}
+              </Button>
+            )
+          )}
+          <Link to="/limits" className="shrink-0 text-[12px] text-accent-hover underline">
+            {t("chat.limitOther")}
+          </Link>
+        </div>
+      )}
+      {info?.context && info.context.tokens / info.context.window >= 0.7 && !working && (
+        <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft px-2.5 py-1.5 text-[12.5px]">
+          <span className="min-w-0 flex-1">
+            {t("chat.compactHint", { pct: Math.round((info.context.tokens / info.context.window) * 100) })}
+          </span>
+          <Button size="sm" onClick={() => chat.send("/compact")}>
+            {t("chat.compact")}
+          </Button>
+        </div>
+      )}
+      {comments.length > 0 && (
+        <div className="mb-1.5 flex flex-wrap gap-1.5">
+          {comments.map((c, i) => (
+            <span
+              // biome-ignore lint/suspicious/noArrayIndexKey: comments are only added and removed here
+              key={i}
+              className="flex max-w-full items-center gap-1 rounded-full border border-border bg-bg ps-2.5 pe-1 text-[12px]"
+            >
+              <MessageSquarePlus size={12} className="shrink-0 text-accent" aria-hidden="true" />
+              <span className="min-w-0 truncate">
+                <code className="font-mono text-[11px]">{c.line.slice(0, 40)}</code> {c.text}
+              </span>
+              <button
+                type="button"
+                onClick={() => setComments((all) => all.filter((_, j) => j !== i))}
+                aria-label={t("chat.commentRemove")}
+                title={t("chat.commentRemove")}
+                className="shrink-0 rounded-full p-0.5 text-fg-subtle hover:text-danger"
+              >
+                <X size={12} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+      {info?.queued && info.queued.length > 0 && (
+        <div className="mb-1.5 rounded-ui border border-border bg-bg-subtle p-1.5">
+          <p className="flex items-center gap-1.5 px-1 pb-1 text-[11px] font-medium text-fg-subtle">
+            <ListPlus size={12} aria-hidden="true" />
+            {working ? t("chat.queuedWhile") : t("chat.queuedIdle")}
+          </p>
+          {info.queued.map((item) => (
+            <div key={item.id} className="flex items-center gap-2 rounded-md px-1 py-1 text-[12.5px] hover:bg-bg-hover">
+              <span className="min-w-0 flex-1 truncate">
+                {item.images > 0 && <ImageIcon size={12} className="me-1 inline text-fg-subtle" aria-hidden="true" />}
+                {item.text}
+              </span>
+              <button
+                type="button"
+                onClick={() => chat.sendQueued(item.id)}
+                className="shrink-0 rounded px-1.5 py-0.5 text-[11.5px] text-accent-hover hover:bg-bg-active"
+              >
+                {working ? t("chat.steer") : t("chat.send")}
+              </button>
+              <button
+                type="button"
+                onClick={() => chat.unqueue(item.id)}
+                aria-label={t("chat.unqueue")}
+                title={t("chat.unqueue")}
+                className="shrink-0 text-fg-subtle hover:text-danger"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="rounded-3xl border border-border bg-bg-subtle px-2.5 pt-2.5 pb-2 shadow-[0_2px_16px_rgb(0_0_0/0.08)] transition-colors focus-within:border-fg-subtle">
+        <textarea
+          ref={input}
+          // biome-ignore lint/a11y/noAutofocus: the box is what an empty chat is for, as in other chat apps
+          autoFocus={empty}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onPaste={onPaste}
+          onKeyDown={(e) => {
+            if (slashMatches.length) {
+              if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                e.preventDefault();
+                const step = e.key === "ArrowDown" ? 1 : -1;
+                setSlashActive((i) => (i + step + slashMatches.length) % slashMatches.length);
+                return;
+              }
+              if (e.key === "Enter" || e.key === "Tab") {
+                e.preventDefault();
+                const item = slashMatches[Math.min(slashActive, slashMatches.length - 1)];
+                if (item) pickSlash(item);
+                return;
+              }
+              if (e.key === "Escape") {
+                setText("");
+                return;
+              }
+            }
+            if (e.key === "Enter" && e.shiftKey && (e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              openEnhancer();
+              return;
+            }
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          rows={Math.min(10, Math.max(empty ? 2 : 1, text.split("\n").length))}
+          placeholder={t("chat.placeholder")}
+          disabled={info?.status === "exited"}
+          className="w-full resize-none bg-transparent px-2 py-1 text-[14.5px] leading-relaxed outline-none placeholder:text-fg-subtle"
+        />
+        <div className="mt-1 flex flex-wrap items-center gap-1">
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            aria-label={t("chat.image")}
+            title={t("chat.image")}
+            className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-fg"
+          >
+            <ImagePlus size={15} />
+          </button>
+          <input
+            ref={fileInput}
+            type="file"
+            accept="image/png,image/jpeg,image/gif,image/webp"
+            multiple
+            hidden
+            onChange={async (e) => {
+              const files = [...(e.target.files ?? [])];
+              setImages([...images, ...(await Promise.all(files.map(readImage)))]);
+              e.target.value = "";
+            }}
+          />
+          <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
+          <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
+          {info && !info.sessionId && chat.events.length === 0 && personas.length > 0 && (
+            <select
+              value={info.persona?.id ?? ""}
+              onChange={(e) => void switchPersona(e.target.value)}
+              aria-label={t("persona.picker")}
+              className="h-7 max-w-40 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12px] text-fg-muted hover:bg-bg-hover"
+            >
+              <option value="">{t("persona.none")}</option>
+              {personas.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {personaLabel(p).name}
+                </option>
+              ))}
+            </select>
+          )}
+          {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
+          <div className="ms-auto flex min-w-0 max-w-full items-center gap-1">
+            <select
+              value={info?.mode ?? "normal"}
+              onChange={(e) => void changeMode(e.target.value as ChatMode)}
+              aria-label={t("chat.modeLabel")}
+              title={t(`chat.modeHint_${info?.mode ?? "normal"}`)}
+              className="h-8 min-w-0 max-w-48 cursor-pointer [field-sizing:content] truncate rounded-full bg-transparent px-2.5 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
+            >
+              {MODES.map((mode) => (
+                <option key={mode} value={mode}>
+                  {t(`chat.mode_${mode}`)}
+                </option>
+              ))}
+            </select>
+            {working ? (
+              <>
+                {(text.trim() || images.length > 0) && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={CornerDownRight}
+                      onClick={() => send(undefined, false, "steer")}
+                      data-tip={t("chat.steerTip")}
+                    >
+                      <span className="hidden sm:inline">{t("chat.steer")}</span>
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      icon={ListPlus}
+                      onClick={() => send()}
+                      data-tip={t("chat.queueTip")}
+                    >
+                      <span className="hidden sm:inline">{t("chat.queue")}</span>
+                    </Button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={chat.interrupt}
+                  aria-label={t("chat.stop")}
+                  title={t("chat.stop")}
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full bg-fg text-bg transition-opacity hover:opacity-85"
+                >
+                  <Square size={12} fill="currentColor" aria-hidden="true" />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => send()}
+                disabled={!text.trim() && images.length === 0 && comments.length === 0}
+                aria-label={t("chat.send")}
+                title={t("chat.send")}
+                className="flex size-8 shrink-0 items-center justify-center rounded-full bg-fg text-bg transition-opacity hover:opacity-85 disabled:cursor-default disabled:opacity-25"
+              >
+                <ArrowUp size={16} strokeWidth={2.4} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-4">
+      <header className="flex h-12 shrink-0 items-center gap-2 px-4">
         <Link
           to={info ? `/p/${info.projectId}` : "/terminals"}
           className="text-fg-subtle hover:text-fg"
@@ -949,7 +1272,7 @@ export function ChatPage() {
           }}
           aria-label={t("chat.model")}
           data-tip={t("chat.modelTip")}
-          className="h-7 rounded-md border border-border bg-bg px-1.5 text-[12px]"
+          className="h-7 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12px] text-fg-muted hover:bg-bg-hover hover:text-fg"
         >
           {MODELS.map((m) => (
             <option key={m} value={m}>
@@ -962,7 +1285,7 @@ export function ChatPage() {
           onChange={(e) => setDetail(e.target.value as DetailLevel)}
           aria-label={t("chat.detail")}
           data-tip={t("chat.detailTip")}
-          className="h-7 w-24 rounded-md border border-border bg-bg px-1.5 text-[12px] sm:w-auto"
+          className="h-7 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12px] text-fg-muted hover:bg-bg-hover hover:text-fg"
         >
           {DETAIL_LEVELS.map((level) => (
             <option key={level} value={level}>
@@ -998,460 +1321,188 @@ export function ChatPage() {
           setComments((all) => [...all, { ...c, file }]);
         }}
       >
-        <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-3xl space-y-3 px-4 py-5">
-            {chat.events.length === 0 && (
-              <div className="py-20 text-center">
-                <Bot size={28} className="mx-auto mb-3 text-fg-subtle" />
-                <p className="text-[15px] font-semibold">{t("chat.empty")}</p>
-                <p className="mx-auto mt-1 max-w-sm text-[13px] text-fg-muted">{t("chat.emptyBody")}</p>
+        {empty ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-[12vh]">
+            <div className="w-full max-w-3xl">
+              <div className="mb-7 text-center">
+                {persona ? (
+                  <PersonaIcon persona={persona} size={18} className="mx-auto mb-4 size-10 rounded-full" />
+                ) : (
+                  <Bot size={30} className="mx-auto mb-4 text-fg-subtle" aria-hidden="true" />
+                )}
+                <h2 className="text-[26px] font-semibold tracking-tight">{t("chat.empty")}</h2>
+                <p className="mx-auto mt-2 max-w-md text-[13.5px] text-fg-muted">{t("chat.emptyBody")}</p>
               </div>
-            )}
-            {units.map((unit) => {
-              if (unit.kind === "group")
-                return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
-              const event = unit.event;
-              switch (event.kind) {
-                case "user":
-                  return (
-                    <div key={event.id} className="flex justify-end">
-                      <div className="max-w-[85%] whitespace-pre-wrap rounded-xl rounded-ee-sm bg-accent px-3.5 py-2 text-[13.5px] text-accent-fg">
-                        {event.images > 0 && (
-                          <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
-                            <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
-                          </p>
-                        )}
-                        {event.text}
-                      </div>
-                    </div>
-                  );
-                case "text": {
-                  // A persona's notebook block is for Igrek, not for reading.
-                  const shown = info?.persona ? extractNotebook(event.text).text : event.text;
-                  const isLast = event.id === lastText?.id && lastIsAnswer;
-                  return (
-                    <div key={event.id} className="space-y-2">
-                      <div className="flex gap-3">
-                        {persona ? (
-                          <PersonaIcon persona={persona} size={13} />
-                        ) : (
-                          <div className="flex size-6 shrink-0 items-center justify-center rounded-md bg-bg-muted text-fg-muted">
-                            <Bot size={13} />
-                          </div>
-                        )}
-                        <div className="min-w-0 flex-1 text-[13.5px]">
-                          <Markdown text={shown} streaming={working && event.id === lastText?.id} />
+              {composer}
+              {info?.status !== "exited" && (
+                <div className="mt-4 flex flex-wrap justify-center gap-2">
+                  {STARTERS.map(({ key, icon: Icon }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => {
+                        setText(t(`chat.starter_${key}`));
+                        input.current?.focus();
+                      }}
+                      className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg"
+                    >
+                      <Icon size={13} aria-hidden="true" />
+                      {t(`chat.starter_${key}`)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+              {units.map((unit) => {
+                if (unit.kind === "group")
+                  return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
+                const event = unit.event;
+                switch (event.kind) {
+                  case "user":
+                    return (
+                      <div key={event.id} className="flex justify-end">
+                        <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-bg-muted px-4 py-2.5 text-[14px] leading-relaxed text-fg">
+                          {event.images > 0 && (
+                            <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
+                              <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
+                            </p>
+                          )}
+                          {event.text}
                         </div>
                       </div>
-                      {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
-                        <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
-                      )}
-                    </div>
-                  );
-                }
-                case "tool":
-                  return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
-                case "permission":
-                  if (event.toolName === "AskUserQuestion")
+                    );
+                  case "text": {
+                    // A persona's notebook block is for Igrek, not for reading.
+                    const shown = info?.persona ? extractNotebook(event.text).text : event.text;
+                    const isLast = event.id === lastText?.id && lastIsAnswer;
                     return (
-                      <QuestionCard
+                      <div key={event.id} className="space-y-2">
+                        <div className="min-w-0">
+                          {persona && (
+                            <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-fg-muted">
+                              <PersonaIcon persona={persona} size={11} className="size-5 rounded-full" />
+                              {personaName}
+                            </p>
+                          )}
+                          <Markdown text={shown} streaming={working && event.id === lastText?.id} />
+                        </div>
+                        {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
+                          <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
+                        )}
+                      </div>
+                    );
+                  }
+                  case "tool":
+                    return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
+                  case "permission":
+                    if (event.toolName === "AskUserQuestion")
+                      return (
+                        <QuestionCard
+                          key={event.id}
+                          event={event}
+                          ended={info?.status === "exited"}
+                          onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                        />
+                      );
+                    return (
+                      <PermissionCard
                         key={event.id}
                         event={event}
                         ended={info?.status === "exited"}
-                        onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                        onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
                       />
                     );
-                  return (
-                    <PermissionCard
-                      key={event.id}
-                      event={event}
-                      ended={info?.status === "exited"}
-                      onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
-                    />
-                  );
-                case "result":
-                  return (
-                    <p
-                      key={event.id}
-                      className={cn("ms-9 text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
-                    >
-                      {event.isError
-                        ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
-                        : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
-                    </p>
-                  );
-                case "checkpoint":
-                  return (
-                    <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
-                      <span className="flex items-center gap-1">
-                        <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
-                      </span>
-                      <CheckpointRestore
-                        compact
-                        busy={working}
-                        projectId={event.projectId}
-                        checkpointId={event.checkpointId}
-                      />
-                    </div>
-                  );
-                case "gate":
-                  return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
-                case "notice":
-                  if (event.code === "loop")
+                  case "result":
                     return (
-                      <p
-                        key={event.id}
-                        className="ms-9 flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
-                      >
-                        <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                        <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
-                        <button
-                          type="button"
-                          onClick={chat.interrupt}
-                          className="shrink-0 font-medium text-warning underline"
+                      <p key={event.id} className={cn("text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}>
+                        {event.isError
+                          ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
+                          : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
+                      </p>
+                    );
+                  case "checkpoint":
+                    return (
+                      <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
+                        <span className="flex items-center gap-1">
+                          <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
+                        </span>
+                        <CheckpointRestore
+                          compact
+                          busy={working}
+                          projectId={event.projectId}
+                          checkpointId={event.checkpointId}
+                        />
+                      </div>
+                    );
+                  case "gate":
+                    return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
+                  case "notice":
+                    if (event.code === "loop")
+                      return (
+                        <p
+                          key={event.id}
+                          className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
                         >
-                          {t("chat.stop")}
-                        </button>
-                      </p>
-                    );
-                  if (event.code === "notebook" || event.code === "notebookRejected")
+                          <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                          <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
+                          <button
+                            type="button"
+                            onClick={chat.interrupt}
+                            className="shrink-0 font-medium text-warning underline"
+                          >
+                            {t("chat.stop")}
+                          </button>
+                        </p>
+                      );
+                    if (event.code === "notebook" || event.code === "notebookRejected")
+                      return (
+                        <p key={event.id} className="flex items-center gap-1.5 text-[11px] text-fg-subtle">
+                          <BookOpen size={12} aria-hidden="true" />
+                          {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
+                        </p>
+                      );
+                    if (event.code)
+                      return (
+                        <p
+                          key={event.id}
+                          className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                        >
+                          <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                          {t(`chat.notice_${event.code}`)}
+                        </p>
+                      );
                     return (
-                      <p key={event.id} className="ms-9 flex items-center gap-1.5 text-[11px] text-fg-subtle">
-                        <BookOpen size={12} aria-hidden="true" />
-                        {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
-                      </p>
-                    );
-                  if (event.code)
-                    return (
-                      <p
+                      <pre
                         key={event.id}
-                        className="ms-9 flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                        className="whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
                       >
-                        <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                        {t(`chat.notice_${event.code}`)}
-                      </p>
+                        {event.text}
+                      </pre>
                     );
-                  return (
-                    <pre
-                      key={event.id}
-                      className="ms-9 whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
-                    >
-                      {event.text}
-                    </pre>
-                  );
-                default:
-                  return null;
-              }
-            })}
-            {working && (
-              <p className="ms-9 flex items-center gap-1.5 text-xs text-fg-muted">
-                <span className="size-1.5 animate-pulse rounded-full bg-accent" />
-                {t("chat.working")}
-              </p>
-            )}
+                  default:
+                    return null;
+                }
+              })}
+              {working && (
+                <p className="flex items-center gap-2 text-xs text-fg-muted" aria-live="polite">
+                  <span className="flex gap-1" aria-hidden="true">
+                    <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.3s]" />
+                    <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.15s]" />
+                    <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle" />
+                  </span>
+                  {t("chat.working")}
+                </p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </CommentContext.Provider>
 
-      <footer className="shrink-0 border-t border-border bg-bg-subtle p-3">
-        <div className="mx-auto max-w-3xl space-y-2">
-          {chat.error && <p className="text-xs text-danger">{chat.error}</p>}
-          {images.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {images.map((image, i) => (
-                <span key={image.data.slice(0, 32) + image.data.length} className="relative">
-                  <img
-                    src={`data:${image.mediaType};base64,${image.data}`}
-                    alt={image.name}
-                    className="h-14 w-14 rounded-md border border-border object-cover"
-                  />
-                  <button
-                    type="button"
-                    aria-label={t("chat.removeImage")}
-                    onClick={() => setImages(images.filter((_, j) => j !== i))}
-                    className="absolute -end-1.5 -top-1.5 rounded-full bg-fg p-0.5 text-bg"
-                  >
-                    <X size={10} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-          {guarded !== undefined && (
-            <SecretGuard
-              text={guarded}
-              onMask={() => send(maskSecrets(guarded), true)}
-              onSendAnyway={() => send(guarded, true)}
-              onCancel={() => setGuarded(undefined)}
-            />
-          )}
-          {enhancing !== undefined && info && (
-            <div className="mb-2">
-              <EnhancePanel
-                key={enhancing}
-                text={enhancing}
-                target={{
-                  projectId: info.projectId,
-                  sessionId: info.sessionId,
-                  tool: "claude",
-                  personaId: info.persona?.id,
-                }}
-                onClose={() => setEnhancing(undefined)}
-                onUse={(prompt) => send(prompt)}
-                onPlanMode={info.mode === "plan" ? undefined : () => chat.setMode("plan")}
-              />
-            </div>
-          )}
-          {enhancing === undefined && text.trim() && (
-            <div className="mb-1.5 flex flex-wrap gap-1.5">
-              <EnhanceHint text={text} onEnhance={openEnhancer} />
-              <PromptCoach text={text} />
-              {suggestedModel && suggestedModel !== currentModel && !working && (
-                <button
-                  type="button"
-                  onClick={() => void switchModel(suggestedModel)}
-                  data-tip={t(`chat.suggestTip_${suggestedModel}`)}
-                  className="inline-flex items-center gap-1 rounded-full bg-bg-muted px-2 py-0.5 text-[11px] text-fg-muted hover:text-fg"
-                >
-                  <Cpu size={11} aria-hidden="true" />{" "}
-                  {t("chat.suggestModel", { model: modelName(`claude-${suggestedModel}`) })}
-                </button>
-              )}
-            </div>
-          )}
-          <SlashMenu
-            items={slashMatches}
-            active={Math.min(slashActive, Math.max(0, slashMatches.length - 1))}
-            onPick={pickSlash}
-          />
-          {info?.limit && !working && (
-            <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">
-              <Gauge size={14} className="shrink-0 text-danger" aria-hidden="true" />
-              <span className="min-w-0 flex-1">
-                {info.limit.resumeAt
-                  ? t("chat.limitResumes", { time: clockTime(info.limit.resumeAt, i18n.language) })
-                  : info.limit.resetsAt
-                    ? t("chat.limitResets", { time: clockTime(info.limit.resetsAt, i18n.language) })
-                    : t("chat.limitHit")}
-              </span>
-              {info.limit.resumeAt ? (
-                <Button size="sm" variant="ghost" onClick={chat.cancelResume}>
-                  {t("chat.limitCancel")}
-                </Button>
-              ) : (
-                info.limit.resetsAt && (
-                  <Button size="sm" onClick={() => chat.resumeAtReset(t("chat.limitResumeText"))}>
-                    {t("chat.limitResume")}
-                  </Button>
-                )
-              )}
-              <Link to="/limits" className="shrink-0 text-[12px] text-accent-hover underline">
-                {t("chat.limitOther")}
-              </Link>
-            </div>
-          )}
-          {info?.context && info.context.tokens / info.context.window >= 0.7 && !working && (
-            <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft px-2.5 py-1.5 text-[12.5px]">
-              <span className="min-w-0 flex-1">
-                {t("chat.compactHint", { pct: Math.round((info.context.tokens / info.context.window) * 100) })}
-              </span>
-              <Button size="sm" onClick={() => chat.send("/compact")}>
-                {t("chat.compact")}
-              </Button>
-            </div>
-          )}
-          {comments.length > 0 && (
-            <div className="mb-1.5 flex flex-wrap gap-1.5">
-              {comments.map((c, i) => (
-                <span
-                  // biome-ignore lint/suspicious/noArrayIndexKey: comments are only added and removed here
-                  key={i}
-                  className="flex max-w-full items-center gap-1 rounded-full border border-border bg-bg ps-2.5 pe-1 text-[12px]"
-                >
-                  <MessageSquarePlus size={12} className="shrink-0 text-accent" aria-hidden="true" />
-                  <span className="min-w-0 truncate">
-                    <code className="font-mono text-[11px]">{c.line.slice(0, 40)}</code> {c.text}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setComments((all) => all.filter((_, j) => j !== i))}
-                    aria-label={t("chat.commentRemove")}
-                    title={t("chat.commentRemove")}
-                    className="shrink-0 rounded-full p-0.5 text-fg-subtle hover:text-danger"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-          {info?.queued && info.queued.length > 0 && (
-            <div className="mb-1.5 rounded-ui border border-border bg-bg-subtle p-1.5">
-              <p className="flex items-center gap-1.5 px-1 pb-1 text-[11px] font-medium text-fg-subtle">
-                <ListPlus size={12} aria-hidden="true" />
-                {working ? t("chat.queuedWhile") : t("chat.queuedIdle")}
-              </p>
-              {info.queued.map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center gap-2 rounded-md px-1 py-1 text-[12.5px] hover:bg-bg-hover"
-                >
-                  <span className="min-w-0 flex-1 truncate">
-                    {item.images > 0 && (
-                      <ImageIcon size={12} className="me-1 inline text-fg-subtle" aria-hidden="true" />
-                    )}
-                    {item.text}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => chat.sendQueued(item.id)}
-                    className="shrink-0 rounded px-1.5 py-0.5 text-[11.5px] text-accent-hover hover:bg-bg-active"
-                  >
-                    {working ? t("chat.steer") : t("chat.send")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => chat.unqueue(item.id)}
-                    aria-label={t("chat.unqueue")}
-                    title={t("chat.unqueue")}
-                    className="shrink-0 text-fg-subtle hover:text-danger"
-                  >
-                    <X size={13} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          <div className="rounded-ui border border-border bg-bg p-1.5 focus-within:border-accent">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onPaste={onPaste}
-              onKeyDown={(e) => {
-                if (slashMatches.length) {
-                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                    e.preventDefault();
-                    const step = e.key === "ArrowDown" ? 1 : -1;
-                    setSlashActive((i) => (i + step + slashMatches.length) % slashMatches.length);
-                    return;
-                  }
-                  if (e.key === "Enter" || e.key === "Tab") {
-                    e.preventDefault();
-                    const item = slashMatches[Math.min(slashActive, slashMatches.length - 1)];
-                    if (item) pickSlash(item);
-                    return;
-                  }
-                  if (e.key === "Escape") {
-                    setText("");
-                    return;
-                  }
-                }
-                if (e.key === "Enter" && e.shiftKey && (e.ctrlKey || e.metaKey)) {
-                  e.preventDefault();
-                  openEnhancer();
-                  return;
-                }
-                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
-                  e.preventDefault();
-                  send();
-                }
-              }}
-              rows={Math.min(8, Math.max(2, text.split("\n").length))}
-              placeholder={t("chat.placeholder")}
-              disabled={info?.status === "exited"}
-              className="w-full resize-none bg-transparent px-2 py-1 text-[13.5px] outline-none placeholder:text-fg-subtle"
-            />
-            <div className="flex flex-wrap items-center gap-1">
-              <button
-                type="button"
-                onClick={() => fileInput.current?.click()}
-                aria-label={t("chat.image")}
-                className="rounded-md p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-fg"
-              >
-                <ImagePlus size={15} />
-              </button>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/png,image/jpeg,image/gif,image/webp"
-                multiple
-                hidden
-                onChange={async (e) => {
-                  const files = [...(e.target.files ?? [])];
-                  setImages([...images, ...(await Promise.all(files.map(readImage)))]);
-                  e.target.value = "";
-                }}
-              />
-              <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
-              <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
-              {info && !info.sessionId && chat.events.length === 0 && personas.length > 0 && (
-                <select
-                  value={info.persona?.id ?? ""}
-                  onChange={(e) => void switchPersona(e.target.value)}
-                  aria-label={t("persona.picker")}
-                  className="h-7 max-w-40 rounded-md border border-border bg-bg px-1.5 text-[12px] text-fg-muted"
-                >
-                  <option value="">{t("persona.none")}</option>
-                  {personas.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {personaLabel(p).name}
-                    </option>
-                  ))}
-                </select>
-              )}
-              {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
-              <div className="ms-auto flex min-w-0 max-w-full items-center gap-1">
-                <span title={t(`chat.modeHint_${info?.mode ?? "normal"}`)} className="flex min-w-0">
-                  <Segmented
-                    value={info?.mode ?? "normal"}
-                    onChange={(mode) => void changeMode(mode)}
-                    options={MODES.map((mode) => ({ value: mode, label: t(`chat.mode_${mode}`) }))}
-                  />
-                </span>
-                {working ? (
-                  <>
-                    {(text.trim() || images.length > 0) && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          icon={CornerDownRight}
-                          onClick={() => send(undefined, false, "steer")}
-                          data-tip={t("chat.steerTip")}
-                        >
-                          <span className="hidden sm:inline">{t("chat.steer")}</span>
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="primary"
-                          icon={ListPlus}
-                          onClick={() => send()}
-                          data-tip={t("chat.queueTip")}
-                        >
-                          <span className="hidden sm:inline">{t("chat.queue")}</span>
-                        </Button>
-                      </>
-                    )}
-                    <Button size="sm" variant="danger" icon={Square} onClick={chat.interrupt}>
-                      {t("chat.stop")}
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="primary"
-                    icon={Send}
-                    onClick={() => send()}
-                    disabled={!text.trim() && images.length === 0 && comments.length === 0}
-                  >
-                    {t("chat.send")}
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {!empty && <footer className="shrink-0 px-4 pt-1 pb-4">{composer}</footer>}
     </div>
   );
 }
