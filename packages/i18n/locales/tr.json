@@ -19,7 +19,9 @@
     "menu": "Ana menü",
     "wide": "Adları göster",
     "narrow": "Adları gizle",
-    "skip": "İçeriğe atla"
+    "skip": "İçeriğe atla",
+    "more": "Daha fazla",
+    "less": "Daha az"
   },
   "workspace": {
     "local": "Bilgisayarım",

@@ -19,7 +19,9 @@
     "menu": "Main menu",
     "wide": "Show names",
     "narrow": "Hide names",
-    "skip": "Skip to content"
+    "skip": "Skip to content",
+    "more": "More",
+    "less": "Less"
   },
   "workspace": {
     "local": "My computer",

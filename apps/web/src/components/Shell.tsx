@@ -1,6 +1,6 @@
 import type { ServerMessage } from "@igrek/core";
 import { APP_VERSION } from "@igrek/core";
-import { Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
+import { ChevronDown, Menu, Minimize2, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
@@ -30,6 +30,15 @@ import { WhatIs } from "./WhatIs";
 import { WorkspacePicker } from "./WorkspacePicker";
 
 const WIDE = "igrek.nav.wide";
+const MORE = "igrek.nav.more";
+
+function readMore(): boolean {
+  try {
+    return localStorage.getItem(MORE) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function readWide(): boolean {
   try {
@@ -96,6 +105,55 @@ function ToolStripLink({
   );
 }
 
+const stripRow = (wide: boolean) => (wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center");
+
+function MoreToggle({ open, wide, onClick }: { open: boolean; wide: boolean; onClick: () => void }) {
+  const { t } = useTranslation();
+  const label = open ? t("nav.less") : t("nav.more");
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-expanded={open}
+      aria-label={label}
+      data-tip={wide ? undefined : label}
+      data-tip-side="right"
+      className={cn(
+        "mt-1 flex h-8 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
+        stripRow(wide),
+      )}
+    >
+      <ChevronDown
+        size={16}
+        strokeWidth={1.75}
+        className={cn("shrink-0 transition-transform", open && "rotate-180")}
+        aria-hidden="true"
+      />
+      {wide && <span className="min-w-0 flex-1 truncate text-start">{label}</span>}
+    </button>
+  );
+}
+
+function WidthToggle({ wide, onClick }: { wide: boolean; onClick: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={wide ? t("nav.narrow") : t("nav.wide")}
+      data-tip={wide ? undefined : t("nav.wide")}
+      data-tip-side="right"
+      className={cn(
+        "flex h-9 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
+        stripRow(wide),
+      )}
+    >
+      {wide ? <PanelLeftClose size={18} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
+      {wide && <span>{t("nav.narrow")}</span>}
+    </button>
+  );
+}
+
 function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void }) {
   const { t } = useTranslation();
   const { settings } = useSettings();
@@ -114,12 +172,28 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
       }
       return !on;
     });
+  const { pathname } = useLocation();
+  const [moreSetting, setMore] = useState(readMore);
+  const inMore = visible.some((item) => item.more && item.to !== "/" && pathname.startsWith(item.to));
+  const showMore = moreSetting || inMore;
+  const flipMore = () =>
+    setMore((on) => {
+      try {
+        localStorage.setItem(MORE, on ? "0" : "1");
+      } catch {
+        // Only a convenience.
+      }
+      return !on;
+    });
+  const link = (item: NavItem) => (
+    <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} onPick={onClose} />
+  );
   return (
     <nav
       data-tour="nav"
       aria-label={t("nav.menu")}
       className={cn(
-        "flex shrink-0 flex-col gap-0.5 overflow-y-auto overflow-x-hidden border-e border-border bg-bg-subtle py-2 print:hidden",
+        "flex shrink-0 flex-col overflow-hidden border-e border-border bg-bg-subtle py-2 print:hidden",
         wide ? "w-48 items-stretch px-2" : "w-12 items-center",
         drawer && "fixed inset-y-0 start-0 z-50 w-64 shadow-ui",
       )}
@@ -133,33 +207,21 @@ function ToolStrip({ drawer, onClose }: { drawer?: boolean; onClose?: () => void
         </svg>
         {wide && <span className="text-[14px] font-semibold tracking-tight">Igrek</span>}
       </div>
-      {visible
-        .filter((item) => !item.bottom)
-        .map((item) => (
-          <ToolStripLink key={item.to} item={item} badge={badges[item.to]} wide={wide} onPick={onClose} />
-        ))}
-      <div className="flex-1" />
-      {visible
-        .filter((item) => item.bottom)
-        .map((item) => (
-          <ToolStripLink key={item.to} item={item} wide={wide} onPick={onClose} />
-        ))}
-      {!drawer && (
-        <button
-          type="button"
-          onClick={flip}
-          aria-label={wide ? t("nav.narrow") : t("nav.wide")}
-          data-tip={wide ? undefined : t("nav.wide")}
-          data-tip-side="right"
-          className={cn(
-            "flex h-9 shrink-0 items-center rounded-ui text-fg-subtle transition-colors hover:bg-bg-hover hover:text-fg",
-            wide ? "w-full gap-2.5 px-2.5 text-[13px]" : "w-9 justify-center",
-          )}
-        >
-          {wide ? <PanelLeftClose size={18} strokeWidth={1.75} /> : <PanelLeftOpen size={18} strokeWidth={1.75} />}
-          {wide && <span>{t("nav.narrow")}</span>}
-        </button>
-      )}
+      {/* Only the middle scrolls, without a visible bar; settings and the width toggle stay put. */}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overflow-x-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+          !wide && "items-center",
+        )}
+      >
+        {visible.filter((item) => !item.bottom && !item.more).map(link)}
+        <MoreToggle open={showMore} wide={wide} onClick={flipMore} />
+        {showMore && visible.filter((item) => !item.bottom && item.more).map(link)}
+      </div>
+      <div className={cn("flex shrink-0 flex-col gap-0.5 border-t border-border pt-2", !wide && "items-center")}>
+        {visible.filter((item) => item.bottom).map(link)}
+        {!drawer && <WidthToggle wide={wide} onClick={flip} />}
+      </div>
     </nav>
   );
 }

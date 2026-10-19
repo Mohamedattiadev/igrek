@@ -24,6 +24,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Shown at the bottom of the tool strip, like JetBrains' secondary tool windows. */
   bottom?: boolean;
+  /** Used less often: folded under "More" so the strip stays short (opens by itself when one is open). */
+  more?: boolean;
   proOnly?: boolean;
 }
 
@@ -31,17 +33,17 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/", label: "nav.projects", icon: FolderKanban },
   { to: "/terminals", label: "nav.terminals", icon: SquareTerminal },
   { to: "/files", label: "nav.files", icon: FolderOpen },
-  { to: "/servers", label: "nav.servers", icon: Server },
-  { to: "/tools", label: "nav.tools", icon: Wrench },
   { to: "/inbox", label: "nav.inbox", icon: Inbox },
-  { to: "/schedules", label: "nav.schedules", icon: CalendarClock },
-  { to: "/ideas", label: "nav.ideas", icon: Lightbulb },
-  { to: "/prompts", label: "nav.prompts", icon: BookMarked },
-  { to: "/limits", label: "nav.limits", icon: Gauge },
   { to: "/personas", label: "nav.personas", icon: UsersRound },
-  { to: "/library", label: "nav.library", icon: Library },
-  { to: "/learn", label: "nav.learn", icon: GraduationCap },
-  { to: "/team", label: "nav.team", icon: Users },
+  { to: "/servers", label: "nav.servers", icon: Server },
+  { to: "/tools", label: "nav.tools", icon: Wrench, more: true },
+  { to: "/schedules", label: "nav.schedules", icon: CalendarClock, more: true },
+  { to: "/ideas", label: "nav.ideas", icon: Lightbulb, more: true },
+  { to: "/prompts", label: "nav.prompts", icon: BookMarked, more: true },
+  { to: "/limits", label: "nav.limits", icon: Gauge, more: true },
+  { to: "/library", label: "nav.library", icon: Library, more: true },
+  { to: "/learn", label: "nav.learn", icon: GraduationCap, more: true },
+  { to: "/team", label: "nav.team", icon: Users, more: true },
   { to: "/design", label: "nav.design", icon: Palette, bottom: true, proOnly: true },
   { to: "/settings", label: "nav.settings", icon: Settings, bottom: true },
 ];
