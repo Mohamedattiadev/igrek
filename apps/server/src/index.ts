@@ -81,6 +81,7 @@ import { Logs } from "./logs";
 import { McpServers } from "./mcpservers";
 import { Meetings } from "./meetings";
 import { Monitors } from "./monitors";
+import { relocateStoredPaths } from "./names";
 import { HOST_PURPOSE, netLog, watchFetch } from "./netlog";
 import {
   registerAnalyticsRoutes,
@@ -145,6 +146,9 @@ watchFetch();
 const startedAt = Date.now();
 const config = loadConfig();
 const { db, sqlite } = openDb(config.dataDir);
+// Paths stored before the data folder moved (the rename to Igrek, or a manual move) point at it again.
+const movedFrom = relocateStoredPaths(sqlite, config.dataDir);
+if (movedFrom) console.log(`Data folder moved from ${movedFrom}: stored paths now point at ${config.dataDir}`);
 const token = loadSessionToken(config.dataDir);
 const bus = new Bus();
 const stops = new StopRegistry();

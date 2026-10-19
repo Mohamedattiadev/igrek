@@ -1,6 +1,7 @@
+import type { Database } from "bun:sqlite";
 import { existsSync, renameSync, symlinkSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { basename, dirname, join } from "node:path";
 
 /**
  * The product was called God Eye until 2026-10-18. What older installs wrote under
@@ -61,6 +62,41 @@ export function databaseFile(dataDir: string): string {
   } catch {
     return old;
   }
+}
+
+/**
+ * Absolute paths into the data folder that were stored before it moved (each account's own
+ * Claude folder, the transcripts read from it, team-run worktrees) are pointed at the new place.
+ * The folder counts as moved when an account's stored folder is gone but a folder of the same
+ * name sits in this data folder's accounts. Without this a moved account looks logged out, and
+ * its transcripts would be read again from the start under the new path. Returns the old folder.
+ */
+export function relocateStoredPaths(sqlite: Database, dataDir: string): string | undefined {
+  const dirs = sqlite.query("SELECT config_dir AS dir FROM accounts WHERE config_dir IS NOT NULL").all() as {
+    dir: string;
+  }[];
+  const moved = dirs.find(
+    ({ dir }) =>
+      !existsSync(dir) && basename(dirname(dir)) === "accounts" && existsSync(join(dataDir, "accounts", basename(dir))),
+  );
+  if (!moved) return undefined;
+  const old = dirname(dirname(moved.dir));
+  if (old === dataDir) return undefined;
+  const from = `${old}/`;
+  const to = `${dataDir}/`;
+  const prefix = [from.length, from] as const;
+  sqlite.transaction(() => {
+    sqlite
+      .query("UPDATE accounts SET config_dir = ? || substr(config_dir, ?) WHERE substr(config_dir, 1, ?) = ?")
+      .run(to, from.length + 1, ...prefix);
+    // A transcript already known under the new path keeps that row; the stale one goes.
+    sqlite
+      .query("UPDATE OR IGNORE source_files SET path = ? || substr(path, ?) WHERE substr(path, 1, ?) = ?")
+      .run(to, from.length + 1, ...prefix);
+    sqlite.query("DELETE FROM source_files WHERE substr(path, 1, ?) = ?").run(...prefix);
+    sqlite.query("UPDATE flow_runs SET data = replace(data, ?, ?) WHERE instr(data, ?) > 0").run(from, to, from);
+  })();
+  return old;
 }
 
 /** Old MCP tool names (godeye_search) still answer, for sessions and allow lists from before. */
