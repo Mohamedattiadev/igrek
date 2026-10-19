@@ -72,7 +72,7 @@ const TEXT: Record<Lang, Record<"invite" | "reset" | "code", { subject: string; 
     },
     reset: {
       subject: "Yeni Igrek girişin",
-      body: 'Merhaba {name},\n\n{from} Igrek şifreni sıfırladı. Igrek\'ı aç, Takım sayfasında "Davetle katıl"ı seç ve şu kodu yapıştır:\n\n{code}\n\nHemen yeni bir şifre belirleyeceksin. Diğer cihazlarından çıkış yapıldı.\n',
+      body: 'Merhaba {name},\n\n{from} Igrek şifreni sıfırladı. Igrek\'i aç, Takım sayfasında "Davetle katıl"ı seç ve şu kodu yapıştır:\n\n{code}\n\nHemen yeni bir şifre belirleyeceksin. Diğer cihazlarından çıkış yapıldı.\n',
     },
     code: {
       subject: "Igrek şifre sıfırlama kodun",

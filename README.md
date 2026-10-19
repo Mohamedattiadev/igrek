@@ -27,7 +27,7 @@ neyin yapıldığı, neyin kaldığı ve neyin bozuk olduğu kayboluyor.
 - **Uzman bir takım sunar:** Tasarımcı, yazılımcı, güvenlik uzmanı gibi AI uzmanları projen üzerinde birlikte çalışır.
 - **Canlı gösterir:** Uygulamanı ekranda açar. Bir yere tıklayıp "bunu değiştir" yazman yeterli.
 - **Hesapları yönetir:** Birden fazla AI hesabın arasında tek tıkla geçersin ve ne kadar limitin kaldığını görürsün.
-- ⏰ **Zamanlı iş yapar:** "Cuma sabahı şunu yap" dersin, zamanı gelince kendisi yapar.
+- **Zamanlı iş yapar:** "Cuma sabahı şunu yap" dersin, zamanı gelince kendisi yapar.
 - **Öğrenir:** Her hatadan ve senin eklediğin kitaplardan öğrenir, aynı hatayı bir daha yapmaz.
 - **Takımla çalışır:** Arkadaşların ne yaptığını canlı görürsün, herkes aynı bilgiyle çalışır.
 - **Sunucularını yönetir:** "Şu sunucuya gir, şunu yap" dersin, onayınla yapar.
@@ -126,7 +126,7 @@ track of what was done, what's left and what's broken.
 - **Gives you an expert team:** AI experts (designer, developer, security…) work on your project together.
 - **Shows it live:** Opens your app on screen. Click on something, type "change this", done.
 - **Manages accounts:** Switch between AI accounts in one click and see how much limit is left.
-- ⏰ **Runs scheduled jobs:** Say "do this on Friday morning" and it does it on its own.
+- **Runs scheduled jobs:** Say "do this on Friday morning" and it does it on its own.
 - **Learns:** Learns from every mistake and from the books you add, so the same mistake doesn't happen twice.
 - **Works with your team:** See what your teammates are doing live; everyone works from the same knowledge.
 - **Manages your servers:** Say "log into that server and do this", and it does it with your approval.
