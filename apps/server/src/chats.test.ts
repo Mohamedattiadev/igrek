@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type ChatEvent, type ChatInfo, STEP_CUT } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
-import { ChatHistory, Chats, ruleCovers, ruleFor } from "./chats";
+import { ChatHistory, Chats, ruleCovers, ruleFor, turnSpend } from "./chats";
 import { openDb } from "./db";
 
 /** A stand-in `claude` that speaks the same stream-json protocol. */
@@ -391,5 +391,35 @@ describe("chat history", () => {
     expect(history.get("c")?.sessionId).toBe("s-c");
     history.forget("c");
     expect(history.get("c")).toBeUndefined();
+  });
+});
+
+describe("what a turn used", () => {
+  const info = (fiveHour?: number) =>
+    ({ rateLimit: fiveHour === undefined ? undefined : { fiveHour, at: 0 } }) as ChatInfo;
+
+  test("tokens of the turn, its share of the limit and its cost from the running total", () => {
+    const chat = { info: info(0.3), limitAtStart: 0.25, costSoFar: 0.4 };
+    const usage = {
+      input_tokens: 10,
+      output_tokens: 200,
+      cache_read_input_tokens: 5000,
+      cache_creation_input_tokens: 90,
+    };
+    const spend = turnSpend(chat, { usage, total_cost_usd: 0.55 });
+    expect(spend.turn).toEqual({ tokens: 5300, outputTokens: 200, costUsd: 0.55 - 0.4, limitPct: 0.3 - 0.25 });
+    expect(chat.costSoFar).toBe(0.55);
+    expect(spend.total.turns).toBe(1);
+  });
+
+  test("the chat's total adds the turns up", () => {
+    const chat = { info: info(), costSoFar: 0 };
+    chat.info.spend = turnSpend(chat, { usage: { output_tokens: 100 }, total_cost_usd: 0.1 });
+    const second = turnSpend(chat, { usage: { output_tokens: 50 }, total_cost_usd: 0.25 });
+    expect(second.total).toEqual({ tokens: 150, outputTokens: 150, costUsd: 0.25, limitPct: undefined, turns: 2 });
+  });
+
+  test("a limit that reset during the turn says nothing about the turn", () => {
+    expect(turnSpend({ info: info(0.02), limitAtStart: 0.9 }, {}).turn.limitPct).toBeUndefined();
   });
 });

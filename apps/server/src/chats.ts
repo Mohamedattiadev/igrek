@@ -5,11 +5,13 @@ import {
   type ChatInfo,
   type ChatMode,
   type ChatPill,
+  type ChatSpend,
   type QueuedMessage,
   type RateLimitInfo,
   type RecentChat,
   RICH_BLOCKS_HINT,
   STEP_CUT,
+  type TurnSpend,
 } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
@@ -58,9 +60,45 @@ interface Chat {
   loopsSaid: Set<string>;
   /** Waits for the usage limit to reset, then sends the user's "go on". */
   resumeTimer?: ReturnType<typeof setTimeout>;
+  /** The 5-hour limit when the current turn started, to tell what the turn took. */
+  limitAtStart?: number;
+  /** Claude Code's running cost total for this process; a turn's cost is the step since the last one. */
+  costSoFar?: number;
 }
 
 type Image = { mediaType: string; data: string };
+
+/**
+ * What a finished turn used. The result's `usage` is the turn's own; `total_cost_usd` is Claude
+ * Code's running total for the process, so the turn's cost is the difference from the last one.
+ */
+export function turnSpend(chat: Pick<Chat, "info" | "limitAtStart" | "costSoFar">, msg: Record<string, unknown>) {
+  const usage = (msg.usage ?? {}) as Record<string, unknown>;
+  const n = (value: unknown) => (typeof value === "number" && value > 0 ? value : 0);
+  const outputTokens = n(usage.output_tokens);
+  const tokens =
+    n(usage.input_tokens) + outputTokens + n(usage.cache_read_input_tokens) + n(usage.cache_creation_input_tokens);
+  const running = typeof msg.total_cost_usd === "number" ? msg.total_cost_usd : undefined;
+  const costUsd = running === undefined ? undefined : Math.max(0, running - (chat.costSoFar ?? 0));
+  if (running !== undefined) chat.costSoFar = running;
+  const before = chat.limitAtStart;
+  const after = chat.info.rateLimit?.fiveHour;
+  // A reset during the turn makes the limit drop; then the turn's share is not known.
+  const limitPct = before !== undefined && after !== undefined && after >= before ? after - before : undefined;
+  const turn: TurnSpend = { tokens, outputTokens, costUsd, limitPct };
+  const total = chat.info.spend?.total;
+  const add = (a?: number, b?: number) => (a === undefined && b === undefined ? undefined : (a ?? 0) + (b ?? 0));
+  return {
+    turn,
+    total: {
+      tokens: (total?.tokens ?? 0) + tokens,
+      outputTokens: (total?.outputTokens ?? 0) + outputTokens,
+      costUsd: add(total?.costUsd, costUsd),
+      limitPct: add(total?.limitPct, limitPct),
+      turns: (total?.turns ?? 0) + 1,
+    },
+  } satisfies ChatSpend;
+}
 
 /** What to do with a message written while the AI is still working. */
 export type SendHow = "queue" | "steer";
@@ -477,6 +515,7 @@ export class Chats {
     }
     this.upsert(chat, { kind: "user", id: `u-${Date.now()}`, at: Date.now(), text, images: images.length });
     chat.write({ type: "user", message: { role: "user", content } });
+    chat.limitAtStart = chat.info.rateLimit?.fiveHour;
     chat.info.status = "working";
     this.emitInfo(chat);
     this.changed();
@@ -713,6 +752,7 @@ export class Chats {
         });
         this.closeOpenSteps(chat, now);
         this.noticeLimit(chat, msg);
+        chat.info.spend = turnSpend(chat, msg);
         chat.info.status = "idle";
         // Claude Code says how large the window really is.
         const models = msg.modelUsage as Record<string, { contextWindow?: number }> | undefined;

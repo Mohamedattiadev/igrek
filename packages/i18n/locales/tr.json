@@ -4383,5 +4383,15 @@
     "expertUnknown": "Bir uzman",
     "none": "Sohbet bunun nedenini söylemiyor: değişiklik bu sohbette bir istek, plan adımı ya da uzman notu olmadan geldi.",
     "source": "Bu sohbetin kendi mesajlarından ve adımlarından alındı; hiçbir şey tahmin edilmedi."
+  },
+  "spend": {
+    "label": "Bu tur: {{what}}",
+    "limit": "limitten %{{pct}}",
+    "tokens": "{{tokens}} token",
+    "turnTip": "Son tur {{tokens}} token kullandı ({{output}} tanesini AI yazdı).",
+    "turnLimit": "5 saatlik limitinden %{{pct}} gitti.",
+    "chatTip_one": "Bütün sohbet: {{count}} tur, {{tokens}} token.",
+    "chatTip_other": "Bütün sohbet: {{count}} tur, {{tokens}} token.",
+    "cost": "API fiyatlarıyla bu tur yaklaşık {{turn}}, bütün sohbet {{total}} tutardı; bir planın varsa ek ödeme yok."
   }
 }

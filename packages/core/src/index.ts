@@ -546,6 +546,24 @@ export interface ChatInfo {
   context?: { tokens: number; window: number; cacheRead: number; at: number };
   /** The plan's usage limit stopped the last turn; when it resets, and when the chat will go on by itself. */
   limit?: { resetsAt?: number; resumeAt?: number };
+  /** What the last turn and the whole chat used: tokens, the 5-hour limit and an API-price estimate. */
+  spend?: ChatSpend;
+}
+
+/**
+ * One turn's use. `limitPct`: how much of the 5-hour limit it took (0 to 1), known only when the
+ * plan reported the limit before and after; `costUsd`: what it would cost at API prices (an estimate).
+ */
+export interface TurnSpend {
+  tokens: number;
+  outputTokens: number;
+  costUsd?: number;
+  limitPct?: number;
+}
+
+export interface ChatSpend {
+  turn: TurnSpend;
+  total: TurnSpend & { turns: number };
 }
 
 /** The result of a chat step the turn ended before (plan.md 16.3); the web app shows it translated. */

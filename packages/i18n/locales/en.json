@@ -4383,5 +4383,15 @@
     "expertUnknown": "An expert",
     "none": "The conversation does not say why: the change came without a request, plan step or expert note in this chat.",
     "source": "Taken from this chat's own messages and steps; nothing is guessed."
+  },
+  "spend": {
+    "label": "This turn: {{what}}",
+    "limit": "{{pct}}% of the limit",
+    "tokens": "{{tokens}} tokens",
+    "turnTip": "The last turn used {{tokens}} tokens ({{output}} written by the AI).",
+    "turnLimit": "That is {{pct}}% of your 5-hour limit.",
+    "chatTip_one": "The whole chat: {{count}} turn, {{tokens}} tokens.",
+    "chatTip_other": "The whole chat: {{count}} turns, {{tokens}} tokens.",
+    "cost": "At API prices that would be about {{turn}} for the turn and {{total}} for the chat; with a plan you pay nothing extra."
   }
 }

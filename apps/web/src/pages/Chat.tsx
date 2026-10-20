@@ -66,6 +66,7 @@ import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
+import { SpendMeter } from "../components/SpendMeter";
 import { TodoStrip } from "../components/TodoStrip";
 import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
 import { WhyButton, WhyContext } from "../components/Why";
@@ -1312,6 +1313,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         )}
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{info?.title ?? "…"}</h1>
         {info?.context && <ContextMeter context={info.context} />}
+        {info?.spend && <SpendMeter spend={info.spend} />}
         <span className="text-[11px] text-fg-subtle">{t(`chat.${status}`)}</span>
         {info?.sessionId && (
           <Button
