@@ -983,7 +983,9 @@
     "todoView_list": "As a list",
     "todoView_board": "As a board",
     "expertWorking": "{{name}} is working on it…",
-    "expertDelegated": "{{name}} did a part of the work"
+    "expertDelegated": "{{name}} did a part of the work",
+    "settings": "Settings",
+    "settingsExpertHint": "Only before the first message: the chat starts again as this expert, keeping what you typed."
   },
   "checkpoint": {
     "title": "Snapshots",

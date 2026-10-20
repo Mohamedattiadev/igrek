@@ -55,6 +55,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { ChatCopy } from "../components/ChatCopy";
+import { CHAT_MODELS, ChatSettings } from "../components/ChatSettings";
 import { SplitPicker } from "../components/ChatSplit";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
@@ -91,8 +92,6 @@ import { WeakPointList } from "./Meeting";
 
 type Json = Record<string, unknown>;
 
-const MODES: ChatMode[] = ["normal", "acceptEdits", "auto", "plan"];
-const MODELS = ["", "opus", "sonnet", "haiku"];
 /** First messages offered on an empty chat, as other chat apps do; picking one only fills the box. */
 const STARTERS = [
   { key: "explain", icon: BookOpen },
@@ -814,7 +813,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
     setSlashActive(0);
   };
   const suggestedModel = text.trim() ? suggestModel(text) : undefined;
-  const currentModel = MODELS.find((m) => m && info?.model?.includes(m));
+  const currentModel = CHAT_MODELS.find((m) => m && info?.model?.includes(m));
   /** Restart on the suggested model, keeping the session (if any) and the typed text. */
   const switchModel = async (model: string) => {
     if (!info) return;
@@ -1220,36 +1219,17 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
             />
           )}
           <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
-          {info && !info.sessionId && chat.events.length === 0 && personas.length > 0 && (
-            <select
-              value={info.persona?.id ?? ""}
-              onChange={(e) => void switchPersona(e.target.value)}
-              aria-label={t("persona.picker")}
-              className="h-7 max-w-40 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12px] text-fg-muted hover:bg-bg-hover"
-            >
-              <option value="">{t("persona.none")}</option>
-              {personas.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {personaLabel(p).name}
-                </option>
-              ))}
-            </select>
-          )}
           {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
           <div className="ms-auto flex min-w-0 max-w-full items-center gap-1">
-            <select
-              value={info?.mode ?? "normal"}
-              onChange={(e) => void changeMode(e.target.value as ChatMode)}
-              aria-label={t("chat.modeLabel")}
-              title={t(`chat.modeHint_${info?.mode ?? "normal"}`)}
-              className="h-8 min-w-0 max-w-48 cursor-pointer [field-sizing:content] truncate rounded-full bg-transparent px-2.5 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
-            >
-              {MODES.map((mode) => (
-                <option key={mode} value={mode}>
-                  {t(`chat.mode_${mode}`)}
-                </option>
-              ))}
-            </select>
+            <ChatSettings
+              info={info}
+              fresh={!!info && !info.sessionId && chat.events.length === 0}
+              detail={detail}
+              onDetail={setDetail}
+              onMode={(mode) => void changeMode(mode)}
+              onModel={(model) => void switchModel(model)}
+              onPersona={(id) => void switchPersona(id)}
+            />
             {working ? (
               <>
                 {(text.trim() || images.length > 0) && (
@@ -1326,36 +1306,6 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{info?.title ?? "…"}</h1>
         {info?.context && <ContextMeter context={info.context} />}
         <span className="text-[11px] text-fg-subtle">{t(`chat.${status}`)}</span>
-        <select
-          value={MODELS.find((m) => m && info?.model?.includes(m)) ?? ""}
-          onChange={async (e) => {
-            if (!info || !e.target.value) return;
-            const next = await api.chatModel(info.id, e.target.value);
-            go(next.id);
-          }}
-          aria-label={t("chat.model")}
-          data-tip={t("chat.modelTip")}
-          className="h-7 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12px] text-fg-muted hover:bg-bg-hover hover:text-fg"
-        >
-          {MODELS.map((m) => (
-            <option key={m} value={m}>
-              {m ? modelName(`claude-${m}`) : info?.model ? modelName(info.model) : t("chat.modelDefault")}
-            </option>
-          ))}
-        </select>
-        <select
-          value={detail}
-          onChange={(e) => setDetail(e.target.value as DetailLevel)}
-          aria-label={t("chat.detail")}
-          data-tip={t("chat.detailTip")}
-          className="h-7 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12px] text-fg-muted hover:bg-bg-hover hover:text-fg"
-        >
-          {DETAIL_LEVELS.map((level) => (
-            <option key={level} value={level}>
-              {t(`chat.detail_${level}`)}
-            </option>
-          ))}
-        </select>
         {info?.sessionId && (
           <Button
             size="sm"

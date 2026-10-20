@@ -983,7 +983,9 @@
     "todoView_list": "Liste olarak",
     "todoView_board": "Pano olarak",
     "expertWorking": "{{name}} üzerinde çalışıyor…",
-    "expertDelegated": "{{name}} işin bir kısmını yaptı"
+    "expertDelegated": "{{name}} işin bir kısmını yaptı",
+    "settings": "Ayarlar",
+    "settingsExpertHint": "Sadece ilk mesajdan önce: sohbet yazdığın metin korunarak bu uzmanla yeniden başlar."
   },
   "checkpoint": {
     "title": "Kayıtlar",
