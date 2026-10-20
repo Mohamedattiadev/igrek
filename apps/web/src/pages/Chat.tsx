@@ -68,6 +68,7 @@ import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
 import { TodoStrip } from "../components/TodoStrip";
 import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
+import { WhyButton, WhyContext } from "../components/Why";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
@@ -87,6 +88,7 @@ import { usePageActions } from "../lib/page-actions";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
 import { latestTodos } from "../lib/todos";
+import { editedPath, whyOf } from "../lib/why";
 import { useFullscreen } from "../lib/zen";
 import { WeakPointList } from "./Meeting";
 
@@ -349,31 +351,35 @@ function ToolCard({ event, cwd }: { event: ToolEvent; cwd?: string }) {
   const [open, setOpen] = useState(event.name === "TodoWrite");
   const Icon = toolIcon(event.name);
   const input = (event.input ?? {}) as Json;
+  const edited = event.status === "done" ? editedPath(event) : undefined;
   return (
     <div className={"rounded-ui border border-border bg-bg-subtle"}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 px-2.5 py-1.5 text-start"
-      >
-        {open ? (
-          <ChevronDown size={12} className="text-fg-subtle" />
-        ) : (
-          <ChevronRight size={12} className="text-fg-subtle" />
-        )}
-        <Icon size={13} className={event.status === "error" ? "text-danger" : "text-fg-muted"} />
-        <span className="text-[12px] font-medium">{event.name}</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-fg-muted">
-          {toolSummary(event.name, input, cwd)}
-        </span>
-        {event.status === "running" ? (
-          <span className="size-1.5 animate-pulse rounded-full bg-accent" />
-        ) : event.status === "error" ? (
-          <XCircle size={12} className="text-danger" />
-        ) : (
-          <Check size={12} className="text-success" />
-        )}
-      </button>
+      <div className="flex items-center pe-1.5">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="flex min-w-0 flex-1 items-center gap-2 px-2.5 py-1.5 text-start"
+        >
+          {open ? (
+            <ChevronDown size={12} className="text-fg-subtle" />
+          ) : (
+            <ChevronRight size={12} className="text-fg-subtle" />
+          )}
+          <Icon size={13} className={event.status === "error" ? "text-danger" : "text-fg-muted"} />
+          <span className="text-[12px] font-medium">{event.name}</span>
+          <span className="min-w-0 flex-1 truncate font-mono text-[11.5px] text-fg-muted">
+            {toolSummary(event.name, input, cwd)}
+          </span>
+          {event.status === "running" ? (
+            <span className="size-1.5 animate-pulse rounded-full bg-accent" />
+          ) : event.status === "error" ? (
+            <XCircle size={12} className="text-danger" />
+          ) : (
+            <Check size={12} className="text-success" />
+          )}
+        </button>
+        {edited && <WhyButton eventId={event.id} file={toolSummary(event.name, input, cwd)} />}
+      </div>
       {open && (
         <div className="space-y-2 border-t border-border p-2.5">
           <ToolPreview name={event.name} input={input} />
@@ -1361,206 +1367,211 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       {info?.worktree && <ChatCopy info={info} />}
       {info?.untrusted && <TrustBanner info={info} go={go} />}
 
-      <CommentContext.Provider
-        value={(c) => {
-          const cwd = info?.cwd;
-          const file = cwd && c.file?.startsWith(`${cwd}/`) ? c.file.slice(cwd.length + 1) : c.file;
-          setComments((all) => [...all, { ...c, file }]);
-        }}
-      >
-        {empty ? (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-[12vh]">
-            <div className="w-full max-w-3xl">
-              <div className="mb-7 text-center">
-                {persona ? (
-                  <PersonaIcon persona={persona} size={18} className="mx-auto mb-4 size-10 rounded-full" />
-                ) : (
-                  <Bot size={30} className="mx-auto mb-4 text-fg-subtle" aria-hidden="true" />
-                )}
-                <h2 className="text-[26px] font-semibold tracking-tight">{t("chat.empty")}</h2>
-                <p className="mx-auto mt-2 max-w-md text-[13.5px] text-fg-muted">{t("chat.emptyBody")}</p>
-              </div>
-              {composer}
-              {info?.status !== "exited" && (
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  {STARTERS.filter(({ key }) => key !== "experts" || (settings.consultExperts && !info?.persona)).map(
-                    ({ key, icon: Icon }) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => {
-                          setText(key === "experts" ? t("chat.starterText_experts") : t(`chat.starter_${key}`));
-                          input.current?.focus();
-                        }}
-                        className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg"
-                      >
-                        <Icon size={13} aria-hidden="true" />
-                        {t(`chat.starter_${key}`)}
-                      </button>
-                    ),
+      <WhyContext.Provider value={(eventId) => whyOf(chat.events, eventId)}>
+        <CommentContext.Provider
+          value={(c) => {
+            const cwd = info?.cwd;
+            const file = cwd && c.file?.startsWith(`${cwd}/`) ? c.file.slice(cwd.length + 1) : c.file;
+            setComments((all) => [...all, { ...c, file }]);
+          }}
+        >
+          {empty ? (
+            <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-4 pb-[12vh]">
+              <div className="w-full max-w-3xl">
+                <div className="mb-7 text-center">
+                  {persona ? (
+                    <PersonaIcon persona={persona} size={18} className="mx-auto mb-4 size-10 rounded-full" />
+                  ) : (
+                    <Bot size={30} className="mx-auto mb-4 text-fg-subtle" aria-hidden="true" />
                   )}
+                  <h2 className="text-[26px] font-semibold tracking-tight">{t("chat.empty")}</h2>
+                  <p className="mx-auto mt-2 max-w-md text-[13.5px] text-fg-muted">{t("chat.emptyBody")}</p>
                 </div>
-              )}
+                {composer}
+                {info?.status !== "exited" && (
+                  <div className="mt-4 flex flex-wrap justify-center gap-2">
+                    {STARTERS.filter(({ key }) => key !== "experts" || (settings.consultExperts && !info?.persona)).map(
+                      ({ key, icon: Icon }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => {
+                            setText(key === "experts" ? t("chat.starterText_experts") : t(`chat.starter_${key}`));
+                            input.current?.focus();
+                          }}
+                          className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[12.5px] text-fg-muted transition-colors hover:bg-bg-hover hover:text-fg"
+                        >
+                          <Icon size={13} aria-hidden="true" />
+                          {t(`chat.starter_${key}`)}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ) : (
-          <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
-              {units.map((unit) => {
-                if (unit.kind === "group")
-                  return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
-                const event = unit.event;
-                switch (event.kind) {
-                  case "user":
-                    return (
-                      <div key={event.id} className="flex justify-end">
-                        <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-bg-muted px-4 py-2.5 text-[14px] leading-relaxed text-fg">
-                          {event.images > 0 && (
-                            <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
-                              <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
-                            </p>
-                          )}
-                          {event.text}
-                        </div>
-                      </div>
-                    );
-                  case "text": {
-                    // A persona's notebook block is for Igrek, not for reading.
-                    const shown = info?.persona ? extractNotebook(event.text).text : event.text;
-                    const isLast = event.id === lastText?.id && lastIsAnswer;
-                    return (
-                      <div key={event.id} className="space-y-2">
-                        <div className="min-w-0">
-                          {persona && (
-                            <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-fg-muted">
-                              <PersonaIcon persona={persona} size={11} className="size-5 rounded-full" />
-                              {personaName}
-                            </p>
-                          )}
-                          <Markdown text={shown} streaming={working && event.id === lastText?.id} />
-                        </div>
-                        {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
-                          <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
-                        )}
-                      </div>
-                    );
-                  }
-                  case "tool":
-                    if (event.name === EXPERT_TOOL) return <ExpertCard key={event.id} event={event} />;
-                    if (DELEGATE_TOOLS.has(event.name) && personas.some((p) => p.id === delegatedTo(event)))
-                      return <ExpertCard key={event.id} event={event} delegated />;
-                    return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
-                  case "permission":
-                    if (event.toolName === "AskUserQuestion")
+          ) : (
+            <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
+              <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+                {units.map((unit) => {
+                  if (unit.kind === "group")
+                    return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
+                  const event = unit.event;
+                  switch (event.kind) {
+                    case "user":
                       return (
-                        <QuestionCard
+                        <div key={event.id} className="flex justify-end">
+                          <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-bg-muted px-4 py-2.5 text-[14px] leading-relaxed text-fg">
+                            {event.images > 0 && (
+                              <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
+                                <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
+                              </p>
+                            )}
+                            {event.text}
+                          </div>
+                        </div>
+                      );
+                    case "text": {
+                      // A persona's notebook block is for Igrek, not for reading.
+                      const shown = info?.persona ? extractNotebook(event.text).text : event.text;
+                      const isLast = event.id === lastText?.id && lastIsAnswer;
+                      return (
+                        <div key={event.id} className="space-y-2">
+                          <div className="min-w-0">
+                            {persona && (
+                              <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-fg-muted">
+                                <PersonaIcon persona={persona} size={11} className="size-5 rounded-full" />
+                                {personaName}
+                              </p>
+                            )}
+                            <Markdown text={shown} streaming={working && event.id === lastText?.id} />
+                          </div>
+                          {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
+                            <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
+                          )}
+                        </div>
+                      );
+                    }
+                    case "tool":
+                      if (event.name === EXPERT_TOOL) return <ExpertCard key={event.id} event={event} />;
+                      if (DELEGATE_TOOLS.has(event.name) && personas.some((p) => p.id === delegatedTo(event)))
+                        return <ExpertCard key={event.id} event={event} delegated />;
+                      return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
+                    case "permission":
+                      if (event.toolName === "AskUserQuestion")
+                        return (
+                          <QuestionCard
+                            key={event.id}
+                            event={event}
+                            ended={info?.status === "exited"}
+                            onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                          />
+                        );
+                      return (
+                        <PermissionCard
                           key={event.id}
                           event={event}
                           ended={info?.status === "exited"}
-                          onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                          onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
                         />
                       );
-                    return (
-                      <PermissionCard
-                        key={event.id}
-                        event={event}
-                        ended={info?.status === "exited"}
-                        onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
-                      />
-                    );
-                  case "result":
-                    return (
-                      <p key={event.id} className={cn("text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}>
-                        {event.isError
-                          ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
-                          : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
-                      </p>
-                    );
-                  case "checkpoint":
-                    return (
-                      <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
-                        <span className="flex items-center gap-1">
-                          <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
-                        </span>
-                        <CheckpointRestore
-                          compact
-                          busy={working}
-                          projectId={event.projectId}
-                          checkpointId={event.checkpointId}
-                        />
-                      </div>
-                    );
-                  case "gate":
-                    return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
-                  case "notice":
-                    if (event.code === "history")
+                    case "result":
                       return (
-                        <div key={event.id} className="flex items-center gap-3 py-1 text-[11.5px] text-fg-subtle">
-                          <span className="h-px flex-1 bg-border" />
-                          {t("chat.notice_history", { count: Number(event.text) || 0 })}
-                          <span className="h-px flex-1 bg-border" />
+                        <p
+                          key={event.id}
+                          className={cn("text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
+                        >
+                          {event.isError
+                            ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
+                            : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
+                        </p>
+                      );
+                    case "checkpoint":
+                      return (
+                        <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
+                          <span className="flex items-center gap-1">
+                            <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
+                          </span>
+                          <CheckpointRestore
+                            compact
+                            busy={working}
+                            projectId={event.projectId}
+                            checkpointId={event.checkpointId}
+                          />
                         </div>
                       );
-                    if (event.code === "loop")
-                      return (
-                        <p
-                          key={event.id}
-                          className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
-                        >
-                          <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                          <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
-                          <button
-                            type="button"
-                            onClick={chat.interrupt}
-                            className="shrink-0 font-medium text-warning underline"
+                    case "gate":
+                      return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
+                    case "notice":
+                      if (event.code === "history")
+                        return (
+                          <div key={event.id} className="flex items-center gap-3 py-1 text-[11.5px] text-fg-subtle">
+                            <span className="h-px flex-1 bg-border" />
+                            {t("chat.notice_history", { count: Number(event.text) || 0 })}
+                            <span className="h-px flex-1 bg-border" />
+                          </div>
+                        );
+                      if (event.code === "loop")
+                        return (
+                          <p
+                            key={event.id}
+                            className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
                           >
-                            {t("chat.stop")}
-                          </button>
-                        </p>
-                      );
-                    if (event.code === "notebook" || event.code === "notebookRejected")
+                            <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                            <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
+                            <button
+                              type="button"
+                              onClick={chat.interrupt}
+                              className="shrink-0 font-medium text-warning underline"
+                            >
+                              {t("chat.stop")}
+                            </button>
+                          </p>
+                        );
+                      if (event.code === "notebook" || event.code === "notebookRejected")
+                        return (
+                          <p key={event.id} className="flex items-center gap-1.5 text-[11px] text-fg-subtle">
+                            <BookOpen size={12} aria-hidden="true" />
+                            {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
+                          </p>
+                        );
+                      if (event.code)
+                        return (
+                          <p
+                            key={event.id}
+                            className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                          >
+                            <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                            {t(`chat.notice_${event.code}`)}
+                          </p>
+                        );
                       return (
-                        <p key={event.id} className="flex items-center gap-1.5 text-[11px] text-fg-subtle">
-                          <BookOpen size={12} aria-hidden="true" />
-                          {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
-                        </p>
-                      );
-                    if (event.code)
-                      return (
-                        <p
+                        <pre
                           key={event.id}
-                          className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                          className="whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
                         >
-                          <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                          {t(`chat.notice_${event.code}`)}
-                        </p>
+                          {event.text}
+                        </pre>
                       );
-                    return (
-                      <pre
-                        key={event.id}
-                        className="whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
-                      >
-                        {event.text}
-                      </pre>
-                    );
-                  default:
-                    return null;
-                }
-              })}
-              {working && (
-                <p className="flex items-center gap-2 text-xs text-fg-muted" aria-live="polite">
-                  <span className="flex gap-1" aria-hidden="true">
-                    <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.3s]" />
-                    <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.15s]" />
-                    <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle" />
-                  </span>
-                  {t("chat.working")}
-                </p>
-              )}
+                    default:
+                      return null;
+                  }
+                })}
+                {working && (
+                  <p className="flex items-center gap-2 text-xs text-fg-muted" aria-live="polite">
+                    <span className="flex gap-1" aria-hidden="true">
+                      <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.3s]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.15s]" />
+                      <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle" />
+                    </span>
+                    {t("chat.working")}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        )}
-      </CommentContext.Provider>
+          )}
+        </CommentContext.Provider>
+      </WhyContext.Provider>
 
       {!empty && <footer className="shrink-0 px-4 pt-1 pb-4">{composer}</footer>}
     </div>

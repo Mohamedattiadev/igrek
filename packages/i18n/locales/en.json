@@ -4372,5 +4372,16 @@
     "askAllTip": "The core experts who have not looked yet read the project, three at a time",
     "askAllConfirm": "{{count}} experts will read the project. Each look is one model call and uses your plan's limit. You can leave this page; the views appear here when they are ready.",
     "askAllGo": "Start ({{count}})"
+  },
+  "why": {
+    "button": "Why?",
+    "tip": "What led to this change: your request, the plan step and the expert's note",
+    "title": "Why did this file change?",
+    "request": "Your request",
+    "step": "Plan step",
+    "expert": "Expert's note",
+    "expertUnknown": "An expert",
+    "none": "The conversation does not say why: the change came without a request, plan step or expert note in this chat.",
+    "source": "Taken from this chat's own messages and steps; nothing is guessed."
   }
 }

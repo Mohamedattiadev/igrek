@@ -4372,5 +4372,16 @@
     "askAllTip": "Henüz bakmamış temel uzmanlar projeyi üçer üçer okur",
     "askAllConfirm": "{{count}} uzman projeyi okuyacak. Her bakış bir model çağrısıdır ve planının limitinden düşer. Bu sayfadan çıkabilirsin; görüşler hazır olunca burada görünür.",
     "askAllGo": "Başlat ({{count}})"
+  },
+  "why": {
+    "button": "Neden?",
+    "tip": "Bu değişikliğe neyin yol açtığı: isteğin, plan adımı ve uzman notu",
+    "title": "Bu dosya neden değişti?",
+    "request": "İsteğin",
+    "step": "Plan adımı",
+    "expert": "Uzman notu",
+    "expertUnknown": "Bir uzman",
+    "none": "Sohbet bunun nedenini söylemiyor: değişiklik bu sohbette bir istek, plan adımı ya da uzman notu olmadan geldi.",
+    "source": "Bu sohbetin kendi mesajlarından ve adımlarından alındı; hiçbir şey tahmin edilmedi."
   }
 }

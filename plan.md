@@ -1189,6 +1189,7 @@ god-eye/
 - [x] Sohbet kutusunda sadece yazı, resim, prompt'lar, uzmanlar ve gönder; uzman, onay modu, model ve ayrıntı tek "Ayarlar" düğmesinde — *mod "Bana sor" değilse düğmenin üstünde yazar ("Ayarlar · Otomatik"); uzman seçimi sadece ilk mesajdan önce*
 - [x] Model çağıran her düğmede aynı küçük işaret ve "limitini kullanır" ipucu — *ortak `ModelMark` bileşeni ve `Button`'da `usesModel`; özetler, yazılar, uzman bakışları ve toplantılar, test koşuları, prompt yardımı, dil paketleri*
 - [x] Uzman sayfasında profil Türkçe arayüzde Türkçe görünür, model İngilizcesini okur — *biyografi, tarz, hâkim olduğu konular, karar kuralları, kontrol listesi ve tuzaklar (863 cümle) `packages/i18n/personas/tr.json` içinde İngilizce metne göre; değiştirilen cümle olduğu gibi kalır, bir test her cümlenin çevirisi olduğunu denetler*
+- [x] "Neden?" (ürünün imzası): değişen her dosyanın yanında, o değişikliğe yol açan istek, plan adımı (TodoWrite) ve aynı turda sorulan uzmanın notu — *sadece sohbetin kendi mesajlarından ve adımlarından okunur, hiçbir şey tahmin edilmez; düzenleme kartlarında ve değişen dosyalar listesinde*
 
 **Bitti sayılır:** Uzun bir Claude cevabı akarken sayfa takılmıyor, araç çağrıları tek satırlık özetlerle görünüyor, ajan çalışırken yazılan mesaj kuyrukta bekliyor, haftalık rapor OpenUI ile grafik ve butonlarla geliyor ve kurulumda hiçbir dış adrese istek gitmediği testle gösteriliyor.
 
