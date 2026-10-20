@@ -4437,5 +4437,12 @@
     "use": "Hand to the AI",
     "useTip": "Puts what is left into the box; you send it.",
     "handOver": "These are still left in this chat's list:"
+  },
+  "install": {
+    "title": "Igrek as an app",
+    "hint": "Opens in a window of its own, with no tabs or address bar, and gets a place in the start menu or the dock. It is still the same Igrek on this computer; nothing new is downloaded.",
+    "button": "Install as an app",
+    "done": "Igrek is running as an app.",
+    "manual": "Your browser does not offer it from here. In Chrome or Edge use the install icon at the end of the address bar (or the menu: Cast, save and share > Install page as app); Safari: File > Add to Dock."
   }
 }

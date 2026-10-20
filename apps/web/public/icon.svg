@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none" stroke-linecap="round" stroke-linejoin="round" role="img" aria-labelledby="title">
+  <title id="title">Igrek</title>
+  <rect width="512" height="512" fill="#ffffff"/>
+  <g transform="translate(96 96) scale(10)">
+    <path d="M8 6.5 16 16.5V26" stroke="#1e1f22" stroke-width="3.5"/>
+    <path d="M24 6.5 16 16.5" stroke="#2267ef" stroke-width="3.5"/>
+  </g>
+</svg>

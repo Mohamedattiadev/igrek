@@ -1,5 +1,5 @@
 import type { SystemStatus } from "@igrek/core";
-import { CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
+import { AppWindow, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
@@ -17,6 +17,7 @@ import {
 } from "../components/MaintenancePanels";
 import { Badge, Button, Card, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
 import { api } from "../lib/api";
+import { useInstallApp } from "../lib/install";
 import { askNotificationPermission } from "../lib/notify";
 import { useSettings } from "../lib/settings";
 import { startTour } from "../lib/tour";
@@ -110,6 +111,19 @@ function McpSetup() {
   );
 }
 
+/** Igrek in a window of its own, from the browser's install offer; otherwise how to find it. */
+function InstallApp() {
+  const { t } = useTranslation();
+  const app = useInstallApp();
+  if (app.installed) return <p className="text-[12.5px] text-success">{t("install.done")}</p>;
+  if (!app.available) return <p className="text-[12.5px] text-fg-muted">{t("install.manual")}</p>;
+  return (
+    <Button icon={AppWindow} onClick={() => void app.install()}>
+      {t("install.button")}
+    </Button>
+  );
+}
+
 export function SettingsPage() {
   const { t } = useTranslation();
   const modelTip = useModelTip();
@@ -122,6 +136,9 @@ export function SettingsPage() {
         <Section title={t("settings.language")} hint={t("settings.languageHint")}>
           <LanguagePicker value={settings.language} onChange={(language) => chooseLanguage(language, update)} />
           <LanguagePackPanel code={settings.language} />
+        </Section>
+        <Section title={t("install.title")} hint={t("install.hint")}>
+          <InstallApp />
         </Section>
         <Section title={t("settings.theme")}>
           <Segmented

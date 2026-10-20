@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { createBrowserRouter, RouterProvider } from "react-router";
 import { Shell } from "./components/Shell";
 import "./lib/i18n";
+import "./lib/install";
 import { SettingsProvider, useSettings } from "./lib/settings";
 import { renameStoredKeys } from "./lib/storage-rename";
 import { Onboarding } from "./pages/Onboarding";

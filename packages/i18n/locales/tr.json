@@ -4437,5 +4437,12 @@
     "use": "AI'a ver",
     "useTip": "Kalanları kutuya yazar; göndermek sana kalır.",
     "handOver": "Bu sohbetin listesinde kalanlar:"
+  },
+  "install": {
+    "title": "Igrek'i uygulama olarak kullan",
+    "hint": "Sekme ve adres çubuğu olmadan kendi penceresinde açılır, başlat menüsünde ya da Dock'ta yeri olur. Yine bu bilgisayardaki aynı Igrek'tir; yeni bir şey indirilmez.",
+    "button": "Uygulama olarak yükle",
+    "done": "Igrek uygulama olarak çalışıyor.",
+    "manual": "Tarayıcın bunu buradan sunmuyor. Chrome ya da Edge'de adres çubuğunun sonundaki yükleme simgesine bas (ya da menüden: Yayınla, kaydet ve paylaş > Sayfayı uygulama olarak yükle); Safari'de: Dosya > Dock'a Ekle."
   }
 }
