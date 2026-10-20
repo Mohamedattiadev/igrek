@@ -2474,7 +2474,8 @@
     "tabHint_meetings": "A meeting asks several experts one question at once. Write the question, check who joins, and start; the team lead sums up.",
     "tabHint_testers": "Test users are made-up people with different skills who try your app and report where they got stuck.",
     "tabHint_scores": "How each expert's advice turned out: kept, changed or proven wrong.",
-    "tabHint_arena": "Give two models the same task and compare their answers side by side."
+    "tabHint_arena": "Give two models the same task and compare their answers side by side.",
+    "profileTranslated": "The expert reads its profile in English; this is a translation for you."
   },
   "meeting": {
     "title": "Team meeting",

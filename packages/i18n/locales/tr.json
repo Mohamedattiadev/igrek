@@ -2474,7 +2474,8 @@
     "tabHint_meetings": "Toplantı, birkaç uzmana aynı soruyu birden sorar. Soruyu yaz, katılanları kontrol et ve başlat; takım lideri özetler.",
     "tabHint_testers": "Test kullanıcıları farklı becerilerde hayali kişilerdir; uygulamanı dener ve nerede takıldıklarını yazarlar.",
     "tabHint_scores": "Her uzmanın önerisinin sonucu: tutuldu, değişti ya da yanlış çıktı.",
-    "tabHint_arena": "İki modele aynı görevi ver ve cevaplarını yan yana karşılaştır."
+    "tabHint_arena": "İki modele aynı görevi ver ve cevaplarını yan yana karşılaştır.",
+    "profileTranslated": "Uzman profilini İngilizce okur; burada senin için çevirisi gösteriliyor."
   },
   "meeting": {
     "title": "Takım toplantısı",

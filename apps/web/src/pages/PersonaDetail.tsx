@@ -17,6 +17,7 @@ import { api } from "../lib/api";
 import { sameBook } from "../lib/books";
 import { relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
+import { usePersonaText } from "../lib/persona-text";
 import { PERSONA_ICONS, PersonaIcon, startPersonaChat, usePersonaLabel, usePersonas } from "../lib/personas";
 
 const GROUPS: PersonaGroup[] = ["engineering", "leadership", "research", "testing"];
@@ -426,8 +427,11 @@ function List({ items }: { items: string[] }) {
 }
 
 function Profile({ persona }: { persona: Persona }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const p = persona.profile;
+  // The expert reads its profile in English; the screen shows it in the interface's language.
+  const show = usePersonaText();
+  const translated = !i18n.language.startsWith("en") && show(p.bio) !== p.bio;
   const [shelf, setShelf] = useState<LibraryItem[]>([]);
   useEffect(() => {
     api
@@ -439,8 +443,9 @@ function Profile({ persona }: { persona: Persona }) {
   return (
     <div>
       <Section title={t("persona.s_bio")}>
-        <p className="text-[13px] leading-relaxed">{p.bio}</p>
-        {p.style && <p className="mt-2 text-[13px] leading-relaxed text-fg-muted">{p.style}</p>}
+        <p className="text-[13px] leading-relaxed">{show(p.bio)}</p>
+        {p.style && <p className="mt-2 text-[13px] leading-relaxed text-fg-muted">{show(p.style)}</p>}
+        {translated && <p className="mt-2 text-[11px] text-fg-subtle">{t("persona.profileTranslated")}</p>}
       </Section>
       <Section title={t("persona.s_settings")}>
         <div className="flex flex-wrap gap-1.5">
@@ -502,22 +507,22 @@ function Profile({ persona }: { persona: Persona }) {
       )}
       {(p.mastery?.length ?? 0) > 0 && (
         <Section title={t("persona.s_mastery")} hint={t("persona.s_masteryHint")}>
-          <List items={p.mastery ?? []} />
+          <List items={(p.mastery ?? []).map(show)} />
         </Section>
       )}
       {(p.decisions?.length ?? 0) > 0 && (
         <Section title={t("persona.s_decisions")} hint={t("persona.s_decisionsHint")}>
-          <List items={p.decisions ?? []} />
+          <List items={(p.decisions ?? []).map(show)} />
         </Section>
       )}
       {p.checklist.length > 0 && (
         <Section title={t("persona.s_checklist")}>
-          <List items={p.checklist} />
+          <List items={p.checklist.map(show)} />
         </Section>
       )}
       {p.pitfalls.length > 0 && (
         <Section title={t("persona.s_pitfalls")}>
-          <List items={p.pitfalls} />
+          <List items={p.pitfalls.map(show)} />
         </Section>
       )}
       <Section title={t("persona.s_rules")} hint={t("persona.rulesAll")}>

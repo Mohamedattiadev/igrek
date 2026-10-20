@@ -1185,6 +1185,11 @@ god-eye/
 - [x] Erişilebilirlik taraması (axe ile kontrast ve etiketler; sabit İngilizce aria-label'lar) — *axe-core 4.13 ile 22 sayfa, açık ve koyu tema, masaüstü (1366) ve telefon (390) tarandı: seçili menü yazısının kontrastı, klavyeyle odaklanamayan kayan kod blokları ve tablo, grafikte iç içe etkileşim ve 3 sabit İngilizce etiket düzeltildi; tarama artık 0 ihlal veriyor. Ekran okuyucuyla elle deneme yapılmadı*
 - [ ] Gerçek bir acemiyle ve ekran okuyucu kullanan biriyle deneme
 
+#### 16.6 Sohbet, "Neden?" ve taşınabilirlik (Ekim 2026)
+- [x] Sohbet kutusunda sadece yazı, resim, prompt'lar, uzmanlar ve gönder; uzman, onay modu, model ve ayrıntı tek "Ayarlar" düğmesinde — *mod "Bana sor" değilse düğmenin üstünde yazar ("Ayarlar · Otomatik"); uzman seçimi sadece ilk mesajdan önce*
+- [x] Model çağıran her düğmede aynı küçük işaret ve "limitini kullanır" ipucu — *ortak `ModelMark` bileşeni ve `Button`'da `usesModel`; özetler, yazılar, uzman bakışları ve toplantılar, test koşuları, prompt yardımı, dil paketleri*
+- [x] Uzman sayfasında profil Türkçe arayüzde Türkçe görünür, model İngilizcesini okur — *biyografi, tarz, hâkim olduğu konular, karar kuralları, kontrol listesi ve tuzaklar (863 cümle) `packages/i18n/personas/tr.json` içinde İngilizce metne göre; değiştirilen cümle olduğu gibi kalır, bir test her cümlenin çevirisi olduğunu denetler*
+
 **Bitti sayılır:** Uzun bir Claude cevabı akarken sayfa takılmıyor, araç çağrıları tek satırlık özetlerle görünüyor, ajan çalışırken yazılan mesaj kuyrukta bekliyor, haftalık rapor OpenUI ile grafik ve butonlarla geliyor ve kurulumda hiçbir dış adrese istek gitmediği testle gösteriliyor.
 
 ---

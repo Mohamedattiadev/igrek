@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./locales/*": "./locales/*"
+    "./locales/*": "./locales/*",
+    "./personas/*": "./personas/*"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json"
