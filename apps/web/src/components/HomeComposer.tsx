@@ -4,11 +4,10 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../lib/api";
-import { Button, Segmented } from "./ui";
+import { Button } from "./ui";
 
 const LAST_PROJECT = "igrek.home.project";
 const MODES: ChatMode[] = ["normal", "acceptEdits", "plan"];
-const SUGGESTIONS = ["explain", "changes", "bugs", "tests"] as const;
 
 function readLast(): string | undefined {
   try {
@@ -58,13 +57,8 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
 
   if (!choices.length) return null;
   return (
-    <section
-      data-tour="composer"
-      aria-label={t("home.title")}
-      className="rounded-xl border border-border bg-bg-subtle p-4"
-    >
-      <h2 className="mb-2 text-[15px] font-semibold">{t("home.title")}</h2>
-      <div className="rounded-ui border border-border bg-bg p-2 transition-colors focus-within:border-accent">
+    <section data-tour="composer" aria-label={t("home.title")}>
+      <div className="rounded-xl border border-border bg-bg-subtle p-2 transition-colors focus-within:border-fg-subtle">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -74,19 +68,19 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
               void send();
             }
           }}
-          rows={Math.min(8, Math.max(3, text.split("\n").length))}
+          rows={Math.min(8, Math.max(1, text.split("\n").length))}
           placeholder={t("home.placeholder")}
           aria-label={t("home.title")}
           className="w-full resize-none bg-transparent px-2 py-1 text-[14px] outline-none placeholder:text-fg-subtle"
         />
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <label className="flex h-8 min-w-0 items-center gap-1.5 rounded-ui border border-border bg-bg-subtle ps-2 text-[12.5px]">
-            <FolderKanban size={14} className="shrink-0 text-fg-subtle" aria-hidden="true" />
+        <div className="flex flex-wrap items-center gap-1.5">
+          <label className="flex h-7 min-w-0 items-center gap-1.5 rounded-full px-2 text-[12.5px] text-fg-muted hover:bg-bg-hover">
+            <FolderKanban size={13} className="shrink-0 text-fg-subtle" aria-hidden="true" />
             <span className="sr-only">{t("home.project")}</span>
             <select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
-              className="h-full min-w-0 max-w-56 truncate rounded-ui bg-transparent pe-1 outline-none"
+              className="h-full min-w-0 max-w-56 cursor-pointer [field-sizing:content] truncate bg-transparent outline-none"
             >
               {choices.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -95,32 +89,26 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
               ))}
             </select>
           </label>
-          <Segmented
-            label={t("home.mode")}
+          <select
             value={mode}
-            onChange={setMode}
-            options={MODES.map((m) => ({ value: m, label: t(`chat.mode_${m}`), tip: t(`chat.modeHint_${m}`) }))}
-          />
+            onChange={(e) => setMode(e.target.value as ChatMode)}
+            aria-label={t("home.mode")}
+            data-tip={t(`chat.modeHint_${mode}`)}
+            className="h-7 cursor-pointer [field-sizing:content] rounded-full bg-transparent px-2 text-[12.5px] text-fg-muted outline-none hover:bg-bg-hover"
+          >
+            {MODES.map((m) => (
+              <option key={m} value={m}>
+                {t(`chat.mode_${m}`)}
+              </option>
+            ))}
+          </select>
           <div className="flex-1" />
-          <span className="hidden text-[11px] text-fg-subtle md:inline">{t("home.enter")}</span>
-          <Button variant="primary" icon={Send} onClick={() => void send()} disabled={!text.trim() || busy}>
+          <Button size="sm" variant="primary" icon={Send} onClick={() => void send()} disabled={!text.trim() || busy}>
             {busy ? t("home.starting") : t("chat.send")}
           </Button>
         </div>
       </div>
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
-      <div className="mt-2.5 flex flex-wrap gap-1.5">
-        {SUGGESTIONS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => setText(t(`home.s_${key}`))}
-            className="rounded-full border border-border bg-bg px-2.5 py-1 text-[12px] text-fg-muted transition-colors hover:border-accent hover:text-fg"
-          >
-            {t(`home.s_${key}`)}
-          </button>
-        ))}
-      </div>
     </section>
   );
 }

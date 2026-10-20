@@ -4074,12 +4074,7 @@
     "placeholder": "Bir iş arkadaşına yazar gibi yaz: \"Giriş neden çalışmıyor, bul ve düzelt\". Enter gönderir, Shift+Enter yeni satır.",
     "project": "Proje",
     "mode": "Ne kadar dikkatli",
-    "enter": "Göndermek için Enter",
-    "starting": "Başlıyor…",
-    "s_explain": "Bu projeyi bana anlat",
-    "s_changes": "Son değişiklikleri özetle",
-    "s_bugs": "Hata ara ve listele",
-    "s_tests": "Testleri çalıştır, bozulanları düzelt"
+    "starting": "Başlıyor…"
   },
   "helper": {
     "title": "Yardımcı",

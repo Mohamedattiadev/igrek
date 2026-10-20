@@ -4074,12 +4074,7 @@
     "placeholder": "Write it as you would to a colleague: \"Find why login fails and fix it\". Enter sends, Shift+Enter adds a line.",
     "project": "Project",
     "mode": "How careful",
-    "enter": "Enter to send",
-    "starting": "Starting…",
-    "s_explain": "Explain this project to me",
-    "s_changes": "Summarize what changed lately",
-    "s_bugs": "Look for bugs and list them",
-    "s_tests": "Run the tests and fix what fails"
+    "starting": "Starting…"
   },
   "helper": {
     "title": "Helper",

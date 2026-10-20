@@ -407,18 +407,17 @@ function SummariesOff() {
 
 const DAY_OPEN = "igrek.home.dayOpen";
 
-/** Briefing, day end, today and focus fold into one section; closed at first in Simple mode (plan.md 16.5). */
+/** Briefing, day end, today and focus fold into one section below the projects, closed at first (plan.md 16.5). */
 function DaySection({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
-  const { settings } = useSettings();
   const [open, setOpen] = useState(() => {
     try {
       const saved = localStorage.getItem(DAY_OPEN);
       if (saved) return saved === "1";
     } catch {
-      // Private window: fall back to the mode.
+      // Private window: closed, as at first.
     }
-    return settings.mode === "pro";
+    return false;
   });
   const toggle = () => {
     setOpen(!open);
@@ -514,10 +513,6 @@ export function ProjectsPage() {
         actions={
           projects && projects.length > 0 ? (
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="ghost" icon={Briefcase} onClick={() => navigate("/weekly")}>
-                {t("weekly.title")}
-              </Button>
-              <DayEndButton />
               <NewProject />
               <AddProject />
               <label className="flex h-7 w-56 items-center gap-2 rounded-ui border border-border bg-bg-subtle px-2">
@@ -557,13 +552,6 @@ export function ProjectsPage() {
         <div className="p-6">
           <div className="mb-4 space-y-3">
             {projects && visible.length > 0 && <HomeComposer projects={visible} />}
-            <DaySection>
-              <SummariesOff />
-              <BriefingCard />
-              <RecapCard />
-              <TodayStrip />
-              {projects && <FocusBanner projects={projects} onChange={reload} />}
-            </DaySection>
             {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
               <Segmented
                 label={t("projects.status")}
@@ -605,6 +593,22 @@ export function ProjectsPage() {
               {showHidden && <FoundList projects={found} onChange={reload} />}
             </div>
           )}
+          {/* About the day, not about one project: below the projects, closed until opened. */}
+          <div className="mt-6">
+            <DaySection>
+              <div className="flex flex-wrap gap-2">
+                <Button size="sm" variant="ghost" icon={Briefcase} onClick={() => navigate("/weekly")}>
+                  {t("weekly.title")}
+                </Button>
+                <DayEndButton />
+              </div>
+              <SummariesOff />
+              <BriefingCard />
+              <RecapCard />
+              <TodayStrip />
+              {projects && <FocusBanner projects={projects} onChange={reload} />}
+            </DaySection>
+          </div>
         </div>
       )}
     </>
