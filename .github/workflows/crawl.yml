@@ -1,0 +1,31 @@
+name: Crawl
+
+# Every page and every button clicked in the built app (about 20 minutes, too long for each push):
+# once a night, and by hand from the Actions tab. The sealed test server never reaches real data
+# or calls a model (scripts/test-server.ts).
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+# Igrek sends nothing anywhere: OpenUI's install telemetry stays off (plan.md 16.2).
+env:
+  OPENUI_TELEMETRY_DISABLED: "1"
+  DO_NOT_TRACK: "1"
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      # The crawl skips itself without a browser; here that would be a green run that tested nothing.
+      - run: test -x /usr/bin/google-chrome
+      - run: bun run test:crawl
+        env:
+          IGREK_E2E_BROWSER: /usr/bin/google-chrome
