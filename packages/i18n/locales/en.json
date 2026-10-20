@@ -2489,7 +2489,9 @@
     "tabHint_testers": "Test users are made-up people with different skills who try your app and report where they got stuck.",
     "tabHint_scores": "How each expert's advice turned out: kept, changed or proven wrong.",
     "tabHint_arena": "Give two models the same task and compare their answers side by side.",
-    "profileTranslated": "The expert reads its profile in English; this is a translation for you."
+    "profileTranslated": "The expert reads its profile in English; this is a translation for you.",
+    "tab_packs": "Packages",
+    "tabHint_packs": "Experts and team flows other people made, and a way to share your own. Nothing is saved before you see what a package holds."
   },
   "meeting": {
     "title": "Team meeting",
@@ -4444,5 +4446,36 @@
     "button": "Install as an app",
     "done": "Igrek is running as an app.",
     "manual": "Your browser does not offer it from here. In Chrome or Edge use the install icon at the end of the address bar (or the menu: Cast, save and share > Install page as app); Safari: File > Add to Dock."
+  },
+  "packs": {
+    "catalog": "Igrek's catalog",
+    "catalogHint": "Packages Igrek has reviewed, read from Igrek's GitHub page when you ask.",
+    "loadCatalog": "Show the catalog",
+    "catalogEmpty": "The catalog is empty for now.",
+    "preview": "See what is inside",
+    "openOwn": "Open a package of your own",
+    "fromFile": "From a file",
+    "fromUrl": "Package address",
+    "notJson": "That file is not a package.",
+    "by": "by {{author}}",
+    "rules": "From someone else, so: its experts start read-only and without the web, an expert you already have is never replaced, flows that run shell commands are refused, and flows are kept in Igrek's own folder, not in your projects.",
+    "experts": "Experts",
+    "flows": "Team flows",
+    "exists": "You already have an expert with this id; it stays as it is.",
+    "downgraded": "Asks to change files or use the web; it comes in read-only and off the web (change that later if you trust it).",
+    "steps_one": "{{count}} step",
+    "steps_other": "{{count}} steps",
+    "refused_shell": "Refused: it runs shell commands.",
+    "refused_builtinName": "Refused: it has the name of a built-in flow.",
+    "refused_badName": "Refused: its name is not valid.",
+    "refused_unreadable": "Refused: it could not be read.",
+    "replaces": "Replaces the package flow of the same name.",
+    "install": "Add what is ticked",
+    "installed": "Added {{experts}} expert(s) and {{flows}} flow(s).",
+    "make": "Share your own",
+    "makeHint": "Your own experts (and built-ins you changed) and your package flows, as one file. Others open it under Packages.",
+    "name": "Package name",
+    "download": "Download the package",
+    "nothingToShare": "You have no experts of your own yet; make one on the Team tab, then share it here."
   }
 }

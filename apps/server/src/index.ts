@@ -103,6 +103,7 @@ import {
 } from "./ops-routes";
 import { Perf } from "./perf";
 import { Experts, expertsHint } from "./persona-experts";
+import { PersonaPacks } from "./persona-packs";
 import { TurnReviews } from "./persona-review";
 import { connectPersonaChats, registerExpertRoutes, registerPersonaRoutes } from "./persona-routes";
 import { Personas, personaLabel } from "./personas";
@@ -342,6 +343,7 @@ const enhancer = new Enhancer(
   },
 );
 const flows = new Flows(sqlite, store, bus, stops, personas, join(config.dataDir, "worktrees"));
+flows.marketDir = join(config.dataDir, "flows");
 const board = new Board(sqlite, bus, flows);
 const devServers = new DevServers(store, bus, stops, personas, join(config.dataDir, "preview"));
 flows.onChange = (run) => board.followRun(run);
@@ -802,6 +804,7 @@ const app = createApp({
         list: assist.listIdeas(),
         projects: new Map(store.listProjects().map((p) => [p.id, p.name])),
       }),
+      packs: new PersonaPacks(personas, flows.marketDir ?? join(config.dataDir, "flows")),
     });
     registerExpertRoutes(hono, experts, (cwd) => store.projectForCwd(cwd));
     registerCommitHookRoutes(hono, store);

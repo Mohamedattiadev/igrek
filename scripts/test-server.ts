@@ -245,7 +245,14 @@ export function getRoutes(): string[] {
  * the user's Docker containers and images, a `git pull` and restart of this repository, a real shell,
  * and a project's dev server.
  */
-const REACHES_OUT = [/^\/api\/docker\//, /^\/api\/update/, /^\/api\/terminals$/, /^\/api\/projects\/[^/]+\/launch$/];
+const REACHES_OUT = [
+  /^\/api\/docker\//,
+  /^\/api\/update/,
+  /^\/api\/terminals$/,
+  /^\/api\/projects\/[^/]+\/launch$/,
+  // Igrek's package catalog is read from GitHub.
+  /^\/api\/packs\/catalog$/,
+];
 
 /** A change (not a read) that would reach past the sealed-off server; works on routes and real paths. */
 export function reachesOut(method: string, path: string): boolean {

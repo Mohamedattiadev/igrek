@@ -1,0 +1,11 @@
+{
+  "about": "Igrek's catalog of packages (experts and team flows). A package is listed here only after review; anyone may still open a package from a file or an address of their own.",
+  "packs": [
+    {
+      "name": "Release check",
+      "description": "A release manager expert and a read-only flow that checks a release before it goes out.",
+      "author": "Igrek",
+      "url": "https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/market/packs/release-check.igrek-pack.json"
+    }
+  ]
+}

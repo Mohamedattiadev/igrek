@@ -1256,6 +1256,6 @@ god-eye/
 
 - [ ] 📱 Telefondan erişim (Tailscale + mobil arayüz)
 - [ ] Tauri masaüstü uygulaması + işletim sistemi genelinde `Ctrl+Space` — *Karar (Ekim 2026): yapılacak, Faz 17'ye taşındı*
-- [ ] Persona ve iş akışı marketi (paylaşılabilir paketler)
+- [x] Persona ve iş akışı marketi (paylaşılabilir paketler) — *Uzmanlar > Paketler: Igrek'in incelenmiş kataloğu (`market/index.json`), dosyadan ya da https adresinden açma, önce önizleme, seçilenleri ekleme; kendi uzmanların ve paket akışlarından paket yapma. Kurallar: paketten gelen uzman salt okunur ve web'e kapalı başlar, var olan uzman değişmez, kabuk komutlu akış alınmaz, akışlar repoya değil Igrek'in klasörüne yazılır*
 - [ ] Herkese açık yayın: web sitesi, kurulum betiği, dokümantasyon sitesi
 - [ ] Cursor ve diğer IDE adaptörleri

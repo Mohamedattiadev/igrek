@@ -5,6 +5,7 @@ import type {
   AskAnswer,
   BoardTask,
   Briefing,
+  CatalogEntry,
   Category,
   CategoryDetail,
   ChatInfo,
@@ -54,6 +55,7 @@ import type {
   MemorySection,
   MonthlyReport,
   PackageComparison,
+  PackPreview,
   Persona,
   PersonaOpinion,
   PersonaScore,
@@ -288,6 +290,23 @@ export const api = {
       body: JSON.stringify(personas ? { personas } : {}),
     }),
   deleteOpinion: (id: string) => request<{ ok: boolean }>(`/api/persona-opinions/${id}`, { method: "DELETE" }),
+  packFlows: () => request<string[]>("/api/packs/flows"),
+  packCatalog: () =>
+    request<CatalogEntry[]>("/api/packs/catalog", {
+      method: "POST",
+    }),
+  previewPack: (source: { pack?: unknown; url?: string }) =>
+    request<{ preview: PackPreview; pack: unknown }>("/api/packs/preview", {
+      method: "POST",
+      body: JSON.stringify(source),
+    }),
+  installPack: (pack: unknown, pick: { personas: string[]; flows: string[] }) =>
+    request<{ personas: string[]; flows: string[] }>("/api/packs/install", {
+      method: "POST",
+      body: JSON.stringify({ pack, ...pick }),
+    }),
+  buildPack: (body: { name: string; description?: string; author?: string; personas: string[]; flows: string[] }) =>
+    request<unknown>("/api/packs/build", { method: "POST", body: JSON.stringify(body) }),
   exportPersonas: (body: { target: "claude" | "codex"; projectId?: string; ids?: string[] }) =>
     request<{ files: string[] }>("/api/personas/export", { method: "POST", body: JSON.stringify(body) }),
   meetings: (projectId?: string) => request<Meeting[]>(`/api/meetings${projectId ? `?projectId=${projectId}` : ""}`),

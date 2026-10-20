@@ -2489,7 +2489,9 @@
     "tabHint_testers": "Test kullanıcıları farklı becerilerde hayali kişilerdir; uygulamanı dener ve nerede takıldıklarını yazarlar.",
     "tabHint_scores": "Her uzmanın önerisinin sonucu: tutuldu, değişti ya da yanlış çıktı.",
     "tabHint_arena": "İki modele aynı görevi ver ve cevaplarını yan yana karşılaştır.",
-    "profileTranslated": "Uzman profilini İngilizce okur; burada senin için çevirisi gösteriliyor."
+    "profileTranslated": "Uzman profilini İngilizce okur; burada senin için çevirisi gösteriliyor.",
+    "tab_packs": "Paketler",
+    "tabHint_packs": "Başkalarının yaptığı uzmanlar ve takım akışları, ve kendininkileri paylaşmanın yolu. Bir paketin içinde ne olduğunu görmeden hiçbir şey kaydedilmez."
   },
   "meeting": {
     "title": "Takım toplantısı",
@@ -4444,5 +4446,36 @@
     "button": "Uygulama olarak yükle",
     "done": "Igrek uygulama olarak çalışıyor.",
     "manual": "Tarayıcın bunu buradan sunmuyor. Chrome ya da Edge'de adres çubuğunun sonundaki yükleme simgesine bas (ya da menüden: Yayınla, kaydet ve paylaş > Sayfayı uygulama olarak yükle); Safari'de: Dosya > Dock'a Ekle."
+  },
+  "packs": {
+    "catalog": "Igrek kataloğu",
+    "catalogHint": "Igrek'in incelediği paketler; istediğinde Igrek'in GitHub sayfasından okunur.",
+    "loadCatalog": "Kataloğu göster",
+    "catalogEmpty": "Katalog şimdilik boş.",
+    "preview": "İçinde ne var, bak",
+    "openOwn": "Kendi paketini aç",
+    "fromFile": "Dosyadan",
+    "fromUrl": "Paket adresi",
+    "notJson": "Bu dosya bir paket değil.",
+    "by": "Yapan: {{author}}",
+    "rules": "Başkasından geldiği için: uzmanları salt okunur ve web'e kapalı başlar, sende zaten olan bir uzman asla değiştirilmez, kabuk komutu çalıştıran akışlar alınmaz, akışlar projelerine değil Igrek'in kendi klasörüne yazılır.",
+    "experts": "Uzmanlar",
+    "flows": "Takım akışları",
+    "exists": "Bu kimlikte bir uzmanın zaten var; olduğu gibi kalır.",
+    "downgraded": "Dosya değiştirmek ya da web'i kullanmak istiyor; salt okunur ve web'e kapalı gelir (güvenirsen sonra değiştirirsin).",
+    "steps_one": "{{count}} adım",
+    "steps_other": "{{count}} adım",
+    "refused_shell": "Alınmadı: kabuk komutu çalıştırıyor.",
+    "refused_builtinName": "Alınmadı: hazır bir akışla aynı adı taşıyor.",
+    "refused_badName": "Alınmadı: adı geçerli değil.",
+    "refused_unreadable": "Alınmadı: okunamadı.",
+    "replaces": "Aynı adlı paket akışının yerine geçer.",
+    "install": "İşaretlileri ekle",
+    "installed": "{{experts}} uzman ve {{flows}} akış eklendi.",
+    "make": "Kendininkini paylaş",
+    "makeHint": "Kendi uzmanların (ve değiştirdiğin hazır uzmanlar) ve paket akışların tek bir dosyada. Başkaları onu Paketler'den açar.",
+    "name": "Paketin adı",
+    "download": "Paketi indir",
+    "nothingToShare": "Henüz kendi uzmanın yok; Takım sekmesinde bir tane yap, sonra burada paylaş."
   }
 }

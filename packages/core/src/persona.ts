@@ -377,3 +377,20 @@ export function viewSummary(text: string): { summary?: string; rest: string } {
   if (first.startsWith("#") || first.startsWith("-") || first.length > 400) return { rest: trimmed };
   return { summary: first.replace(/^\*\*(.+)\*\*$/, "$1"), rest: trimmed.slice(cut).trim() };
 }
+
+/** What a package of experts and flows would add, before anything is saved (plan.md 10). */
+export interface PackPreview {
+  name: string;
+  description?: string;
+  author?: string;
+  personas: { id: string; name: string; role?: string; exists: boolean; asked: { tools: string; web: boolean } }[];
+  flows: { name: string; description?: string; steps: number; ok: boolean; reason?: string; exists: boolean }[];
+}
+
+/** A package in Igrek's reviewed catalog. */
+export interface CatalogEntry {
+  name: string;
+  description: string;
+  author: string;
+  url: string;
+}

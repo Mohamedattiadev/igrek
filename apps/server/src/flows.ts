@@ -261,6 +261,9 @@ export class Flows {
     ) => Promise<ToolResult[]> = runChecks,
   ) {}
 
+  /** Flows that came in a package (persona-packs.ts), for every project; kept in Igrek's folder, never the repo. */
+  marketDir?: string;
+
   // ---- flows ---------------------------------------------------------------------
 
   /** Built-in flows plus the project's own (.igrek/flows, .godeye/flows from before the rename, .archon/workflows). */
@@ -269,6 +272,7 @@ export class Flows {
     const project = this.store.projectRow(projectId);
     if (!project) return out;
     for (const [dir, source] of [
+      ...(this.marketDir ? [[this.marketDir, "market"] as const] : []),
       [join(project.path, ".igrek", "flows"), "project"],
       [join(project.path, ".godeye", "flows"), "project"],
       [join(project.path, ".archon", "workflows"), "archon"],

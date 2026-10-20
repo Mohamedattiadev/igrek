@@ -6,6 +6,7 @@ import type { Accounts } from "./accounts";
 import type { Chats } from "./chats";
 import type { Meetings } from "./meetings";
 import type { Experts } from "./persona-experts";
+import type { PersonaPacks } from "./persona-packs";
 import { type Personas, personaLabel } from "./personas";
 
 export function registerPersonaRoutes(
@@ -15,8 +16,11 @@ export function registerPersonaRoutes(
     meetings,
     accounts,
     ideas,
+    packs,
   }: {
     personas: Personas;
+    /** Packages of experts and flows to share (persona-packs.ts). */
+    packs?: PersonaPacks;
     meetings: Meetings;
     accounts: Accounts;
     /** The idea box and project names, for the CEO advisor's review. */
@@ -30,6 +34,7 @@ export function registerPersonaRoutes(
     });
 
   app.get("/api/personas", (c) => c.json(personas.list()));
+  if (packs) registerPackRoutes(app, packs, fail);
   app.get("/api/personas/scores", (c) => c.json(personas.scores()));
 
   app.post("/api/personas", async (c) => {
@@ -253,6 +258,56 @@ export function registerExpertRoutes(
   app.post("/api/projects/:id/experts/:personaId", (c) => {
     try {
       return c.json(experts.start(c.req.param("id"), [c.req.param("personaId")]), 202);
+    } catch (err) {
+      return fail(err);
+    }
+  });
+}
+
+/** Packages: made from your own experts and flows, previewed, then installed by the parts you pick. */
+function registerPackRoutes(app: Hono, packs: PersonaPacks, fail: (err: unknown) => Response): void {
+  /** A package sent along, or one fetched from the https address given. */
+  const packOf = async (body: { pack?: unknown; url?: unknown }) =>
+    body.pack ?? (typeof body.url === "string" && body.url ? packs.fetchPack(body.url) : undefined);
+  app.get("/api/packs/flows", (c) => c.json(packs.flows()));
+  app.post("/api/packs/catalog", async (c) => {
+    try {
+      return c.json(await packs.catalog());
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.post("/api/packs/preview", async (c) => {
+    try {
+      const pack = await packOf((await c.req.json().catch(() => ({}))) as { pack?: unknown; url?: unknown });
+      if (!pack) throw new Error("Give a package file or its https address");
+      return c.json({ preview: packs.preview(pack), pack });
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.post("/api/packs/install", async (c) => {
+    try {
+      const body = (await c.req.json().catch(() => ({}))) as { pack?: unknown; personas?: unknown; flows?: unknown };
+      const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+      return c.json(packs.install(body.pack, { personas: list(body.personas), flows: list(body.flows) }));
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.post("/api/packs/build", async (c) => {
+    try {
+      const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+      const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+      return c.json(
+        packs.build({
+          name: typeof body.name === "string" ? body.name : "",
+          description: typeof body.description === "string" ? body.description : undefined,
+          author: typeof body.author === "string" ? body.author : undefined,
+          personaIds: list(body.personas),
+          flows: list(body.flows),
+        }),
+      );
     } catch (err) {
       return fail(err);
     }

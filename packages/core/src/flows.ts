@@ -29,8 +29,8 @@ export interface FlowDef {
   name: string;
   description?: string;
   nodes: FlowNode[];
-  /** Where it came from: built in, the project's .igrek/flows or .archon/workflows. */
-  source?: "builtin" | "project" | "archon";
+  /** Where it came from: built in, the project's .igrek/flows or .archon/workflows, or a package. */
+  source?: "builtin" | "project" | "archon" | "market";
 }
 
 export type FlowNodeStatus = "waiting" | "running" | "done" | "failed" | "skipped" | "needs_you";
