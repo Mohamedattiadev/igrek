@@ -2,12 +2,12 @@ import type { FlowRun, Schedule, ScheduleWhen } from "@igrek/core";
 import {
   AlarmClock,
   CalendarClock,
+  CalendarPlus,
   Check,
   ChevronDown,
   ChevronRight,
   Pause,
   Play,
-  Sparkles,
   Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -230,7 +230,7 @@ export function SchedulesPage() {
             />
             <Button
               variant="primary"
-              icon={Sparkles}
+              icon={CalendarPlus}
               disabled={busy || sentence.trim().length < 5 || !projectId}
               onClick={() => void propose()}
             >

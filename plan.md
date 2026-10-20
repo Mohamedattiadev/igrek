@@ -1189,6 +1189,22 @@ god-eye/
 
 ---
 
+### Faz 17 — Masaüstü Uygulaması (Tauri)
+
+**Hedef:** Igrek, Claude ve Codex uygulamaları gibi kurulup açılan bir uygulama olsun: tarayıcı, sekme ya da localhost görünmesin. Linux, Windows ve macOS'ta çalışsın. *Karar (Ekim 2026): Tauri ile yapılacak; ücretli kod imzası şimdilik yok (imzasız da çalışır, ilk açılışta işletim sistemi bir kez izin ister).*
+
+- [ ] Tauri penceresi mevcut web arayüzünü açar; sunucu (`bun build --compile` ile tek dosya) uygulamanın içinde gizlice başlar, kapanınca durur
+- [ ] Linux (AppImage, .deb), Windows (.msi) ve macOS (.dmg) paketleri GitHub Actions'ta ücretsiz derlenir
+- [ ] Sistem tepsisi ikonu, yerel bildirimler, bilgisayar açılınca başlama (isteğe bağlı)
+- [ ] İşletim sistemi genelinde `Ctrl+Space` ile hızlı soru
+- [ ] Tauri'nin kendi anahtarıyla imzalanan otomatik güncelleme (işletim sistemi sertifikası gerekmez)
+- [ ] İmzasız kurulumda ilk açılış adımları kurulum sayfasında anlatılır (Windows: "Ek bilgi > Yine de çalıştır", macOS: "Gizlilik ve Güvenlik > Yine de Aç")
+- [ ] Claude Code ve Codex uygulamaya gömülmez; kurulu değilse ilk açılışta nasıl kurulacağı gösterilir
+
+**Bitti sayılır:** Üç işletim sisteminde indirilen paket kurulup açılıyor, Igrek tarayıcı açmadan kendi penceresinde çalışıyor, kapatınca arkada süreç kalmıyor.
+
+---
+
 ---
 
 ## 9. Açık Sorular ve Riskler
@@ -1223,7 +1239,7 @@ god-eye/
 ## 10. Sonraki Planlar (şimdilik değil)
 
 - [ ] 📱 Telefondan erişim (Tailscale + mobil arayüz)
-- [ ] Tauri masaüstü uygulaması + işletim sistemi genelinde `Ctrl+Space`
+- [ ] Tauri masaüstü uygulaması + işletim sistemi genelinde `Ctrl+Space` — *Karar (Ekim 2026): yapılacak, Faz 17'ye taşındı*
 - [ ] Persona ve iş akışı marketi (paylaşılabilir paketler)
 - [ ] Herkese açık yayın: web sitesi, kurulum betiği, dokümantasyon sitesi
 - [ ] Cursor ve diğer IDE adaptörleri

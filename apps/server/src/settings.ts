@@ -87,6 +87,7 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
     "autoSummarize",
     "richAnswers",
     "consultExperts",
+    "autoProjects",
     "editorVim",
     "notifications",
   ] as const) {

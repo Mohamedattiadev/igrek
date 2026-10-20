@@ -136,8 +136,12 @@ export async function startTestServer(
 /** The chat seeded by `seedProject`. */
 export const SESSION = "e2e-session-1";
 
-/** A small git project with one Claude Code chat in it, where Claude Code would have left it. */
+/**
+ * A small git project with one Claude Code chat in it, where Claude Code would have left it, and a
+ * second folder Claude also worked in that nobody added (it shows under "Found folders").
+ */
 export function seedProject(home: string): void {
+  seedChat(home, "side-project", "side-1", "Try an idea");
   const project = join(home, "demo-shop");
   mkdirSync(join(project, "src"), { recursive: true });
   writeFileSync(join(project, "package.json"), JSON.stringify({ name: "demo-shop", version: "1.0.0" }));
@@ -169,13 +173,40 @@ export function seedProject(home: string): void {
   writeFileSync(join(transcripts, `${SESSION}.jsonl`), `${lines.map((l) => JSON.stringify(l)).join("\n")}\n`);
 }
 
-/** Waits for the indexer to turn the seeded chat into a project and returns its id. */
+/** One question in a folder, as a Claude Code transcript. */
+function seedChat(home: string, folder: string, sessionId: string, prompt: string): void {
+  const cwd = join(home, folder);
+  mkdirSync(cwd, { recursive: true });
+  const transcripts = join(home, ".claude/projects", cwd.replace(/[^a-zA-Z0-9]/g, "-"));
+  mkdirSync(transcripts, { recursive: true });
+  const line = {
+    sessionId,
+    cwd,
+    type: "user",
+    uuid: "u1",
+    timestamp: new Date().toISOString(),
+    message: { role: "user", content: prompt },
+  };
+  writeFileSync(join(transcripts, `${sessionId}.jsonl`), `${JSON.stringify(line)}\n`);
+}
+
+/**
+ * Waits for the indexer to find the seeded chat, then adds its folder as a project, the way a user
+ * does (only added folders are projects), and returns its id.
+ */
 export async function seededProjectId(server: TestServer): Promise<string | undefined> {
   const until = Date.now() + 20_000;
   while (Date.now() < until) {
-    const list = (await (await server.call("/api/projects")).json()) as { id: string; name: string }[];
-    const found = list.find((p) => p.name === "demo-shop")?.id;
-    if (found) return found;
+    const list = (await (await server.call("/api/projects")).json()) as { id: string; name: string; path: string }[];
+    const found = list.find((p) => p.name === "demo-shop");
+    if (found) {
+      await server.call("/api/projects", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ path: found.path }),
+      });
+      return found.id;
+    }
     await Bun.sleep(250);
   }
   return undefined;

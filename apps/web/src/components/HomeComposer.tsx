@@ -1,5 +1,5 @@
 import type { ChatMode, ProjectListItem } from "@igrek/core";
-import { FolderKanban, Send, Sparkles } from "lucide-react";
+import { FolderKanban, Send } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -61,12 +61,9 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
     <section
       data-tour="composer"
       aria-label={t("home.title")}
-      className="rounded-xl border border-border bg-gradient-to-br from-accent-soft/70 via-bg to-bg p-4 shadow-ui"
+      className="rounded-xl border border-border bg-bg-subtle p-4"
     >
-      <h2 className="mb-2 flex items-center gap-2 text-[15px] font-semibold">
-        <Sparkles size={16} className="text-accent" aria-hidden="true" />
-        {t("home.title")}
-      </h2>
+      <h2 className="mb-2 text-[15px] font-semibold">{t("home.title")}</h2>
       <div className="rounded-ui border border-border bg-bg p-2 transition-colors focus-within:border-accent">
         <textarea
           value={text}

@@ -225,8 +225,10 @@ export const api = {
   summarize: (id: string) => request<SessionSummaryData>(`/api/sessions/${id}/summarize`, { method: "POST" }),
   forget: (id: string) => request<{ ok: boolean }>(`/api/memory/${id}`, { method: "DELETE" }),
   search: (q: string) => request<SearchHit[]>(`/api/search?q=${encodeURIComponent(q)}`),
-  addProject: (path: string) =>
-    request<{ id: string }>("/api/projects", { method: "POST", body: JSON.stringify({ path }) }),
+  /** "one": the folder is one project; "folder": each folder inside it is a project. */
+  addProject: (path: string, as: "one" | "folder" = "one") =>
+    request<{ id: string }>("/api/projects", { method: "POST", body: JSON.stringify({ path, as }) }),
+  hideFoundProjects: () => request<{ hidden: number }>("/api/projects/hide-found", { method: "POST" }),
   renameProject: (id: string, name: string) =>
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name }) }),
   fetchRemote: (id: string) => request<{ git: GitInfo }>(`/api/projects/${id}/fetch`, { method: "POST" }),

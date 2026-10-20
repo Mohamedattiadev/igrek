@@ -19,9 +19,9 @@ import {
   Signal,
   Skull,
   Smartphone,
-  Sparkles,
   Square,
   Trash2,
+  UserPlus,
   UserRound,
   Zap,
 } from "lucide-react";
@@ -257,7 +257,7 @@ export function TestersTab() {
               className={input}
             />
           </label>
-          <Button icon={Sparkles} onClick={() => void draft()} disabled={drafting || audience.trim().length < 8}>
+          <Button icon={UserPlus} onClick={() => void draft()} disabled={drafting || audience.trim().length < 8}>
             {drafting ? t("persona.drafting") : t("testers.makeProfiles")}
           </Button>
         </div>

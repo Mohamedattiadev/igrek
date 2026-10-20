@@ -9,13 +9,13 @@ import {
   GitBranch,
   GitCommitHorizontal,
   History,
+  Lightbulb,
   Pencil,
   Plus,
   RefreshCw,
   Replace,
   Save,
   Search,
-  Sparkles,
   UserSearch,
   X,
 } from "lucide-react";
@@ -811,7 +811,7 @@ export function CodeTab({ project }: { project: ProjectDetail }) {
               }
               className="flex items-center gap-1 px-2 text-[11.5px] text-fg-muted hover:text-accent"
             >
-              <Sparkles size={12} />
+              <Lightbulb size={12} />
               {t("quick.explain")}
             </button>
           )}

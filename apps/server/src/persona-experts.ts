@@ -1,5 +1,14 @@
 import type { Database } from "bun:sqlite";
-import { CORE_EXPERTS, type ExpertsState, type ExpertView, extractNotebook, type Persona } from "@igrek/core";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import {
+  CORE_EXPERTS,
+  type ExpertsState,
+  type ExpertView,
+  extractNotebook,
+  type Persona,
+  personaToolList,
+} from "@igrek/core";
 import type { StopRegistry } from "./bus";
 import { type Personas, personaLabel } from "./personas";
 import type { Store } from "./store";
@@ -143,6 +152,34 @@ export class Experts {
     }
   }
 
+  /**
+   * The experts as Claude Code subagents of a chat (`--agents`): the chat can hand one a piece of
+   * work in its field, and the expert does it with its own prompt, tools and model and reports back.
+   * Read-only experts stay read-only. Written to a file, since all prompts together are too long
+   * for one command-line argument.
+   */
+  writeSubagents(projectId: string, dir: string): string {
+    const agents = Object.fromEntries(
+      this.personas.list().map((persona) => {
+        const { name, role } = personaLabel(persona);
+        const tools = personaToolList(persona);
+        return [
+          persona.id,
+          {
+            description: `${name}: ${role}. Hand it work in its field to do and report back.`,
+            prompt: this.personas.systemPrompt(persona, projectId, { notebook: false }),
+            ...(tools ? { tools } : {}),
+            model: persona.model,
+          },
+        ];
+      }),
+    );
+    mkdirSync(dir, { recursive: true });
+    const file = join(dir, `${projectId}.json`);
+    writeFileSync(file, JSON.stringify(agents), { mode: 0o600 });
+    return file;
+  }
+
   views(projectId: string): ExpertView[] {
     return (
       this.db.query("SELECT persona, text, created_at FROM persona_views WHERE project_id = ?").all(projectId) as {
@@ -172,7 +209,9 @@ export function expertsHint(roster: string): string {
 (expert id + a self-contained question). Each one reads this project read-only and answers from its
 field. Ask one when the user's request needs a specialist judgement you are unsure of (architecture,
 security, UI/UX, database, performance, tests, ...), or whenever the user names one with @<id>.
-Ask several in parallel when the question spans fields. "@all" means: ask each of these in parallel,
+Ask several in parallel when the question spans fields. To have one of them do a piece of work in
+its field (write the tests, review the security of a change, draft the schema), hand it over as a
+subagent with the Task tool (subagent_type = the expert id) and use what it reports. "@all" means: ask each of these in parallel,
 ${CORE_EXPERTS.join(", ")}. Weigh their answers; you decide and tell the
 user briefly whom you asked and what they said. Do not consult anyone for small, clear tasks.
 Experts:

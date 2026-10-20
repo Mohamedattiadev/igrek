@@ -1,5 +1,5 @@
 import { findSecrets, type QuickAnswer } from "@igrek/core";
-import { Copy, CornerDownLeft, Paperclip, Send, Sparkles, Trash2, X, Zap } from "lucide-react";
+import { Copy, CornerDownLeft, Paperclip, Send, Trash2, X, Zap } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
@@ -217,7 +217,7 @@ export function QuickAsk() {
               <p className="px-1 text-xs text-danger">{turn.error}</p>
             ) : (
               <p className="flex items-center gap-1.5 px-1 text-xs text-fg-muted">
-                <Sparkles size={12} className="animate-pulse text-accent" />
+                <span className="size-1.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
                 {t("quick.thinking")}
               </p>
             )}

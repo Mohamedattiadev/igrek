@@ -7,7 +7,7 @@ import {
   type PersonaModel,
   type PersonaOpinion,
 } from "@igrek/core";
-import { ArrowLeft, MessageSquare, Pencil, RotateCcw, Save, Sparkles, Trash2 } from "lucide-react";
+import { ArrowLeft, MessageSquare, Pencil, PenLine, RotateCcw, Save, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "react-router";
@@ -615,7 +615,7 @@ export function NewPersonaPage() {
               </Button>
               <Button
                 variant="primary"
-                icon={Sparkles}
+                icon={PenLine}
                 onClick={() => void make()}
                 disabled={busy || description.trim().length < 8}
               >

@@ -11,7 +11,6 @@ import {
   Maximize2,
   MessageSquare,
   Rows3,
-  Sparkles,
 } from "lucide-react";
 import { Fragment, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -186,7 +185,7 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
         {!actionMode && query.trim().length >= 4 && (
           <Command.Group heading={t("ask.action")} className={GROUP}>
             <Item
-              icon={Sparkles}
+              icon={MessageSquare}
               label={`${t("ask.action")}: “${query.trim()}”`}
               value={`ask ${query}`}
               keywords={[query]}

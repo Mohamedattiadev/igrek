@@ -4,13 +4,12 @@ import {
   ArrowUp,
   Briefcase,
   ChevronRight,
+  FileText,
   FlaskConical,
   FolderKanban,
   FolderPlus,
   GitBranch,
   Search,
-  Settings,
-  Sparkles,
 } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -118,13 +117,15 @@ function AddProject() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [path, setPath] = useState("");
+  const [as, setAs] = useState<"one" | "folder">("one");
   const [error, setError] = useState<string>();
   const add = async () => {
     setError(undefined);
     try {
-      const { id } = await api.addProject(path.trim());
+      const { id } = await api.addProject(path.trim(), as);
       setOpen(false);
-      void navigate(`/p/${id}`);
+      // A folder of projects lands back on the list, where its projects now show.
+      void navigate(as === "one" ? `/p/${id}` : "/");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -145,6 +146,13 @@ function AddProject() {
             autoFocus
             className="h-9 w-full rounded-ui border border-border bg-bg px-3 font-mono text-[13px] outline-none focus:border-accent"
           />
+          <Segmented
+            label={t("projects.addAs")}
+            value={as}
+            onChange={setAs}
+            options={(["one", "folder"] as const).map((value) => ({ value, label: t(`projects.addAs_${value}`) }))}
+          />
+          <p className="text-[12px] text-fg-muted">{t(`projects.addAsHint_${as}`)}</p>
           {error && <p className="text-xs text-danger">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" onClick={() => setOpen(false)}>
@@ -254,7 +262,7 @@ function NewProject() {
   const field = "h-9 w-full rounded-ui border border-border bg-bg px-3 text-[13px] outline-none focus:border-accent";
   return (
     <>
-      <Button size="sm" variant="ghost" icon={Sparkles} onClick={() => setOpen(true)}>
+      <Button size="sm" variant="ghost" icon={FolderPlus} onClick={() => setOpen(true)}>
         {t("templates.new")}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("templates.new")}>
@@ -405,7 +413,7 @@ function SummariesOff() {
   if (settings.autoSummarize) return null;
   return (
     <div className="flex flex-wrap items-center gap-3 rounded-ui border border-border bg-bg-subtle px-4 py-2.5 text-[13px]">
-      <Sparkles size={15} className="shrink-0 text-accent" aria-hidden="true" />
+      <FileText size={15} className="shrink-0 text-fg-subtle" aria-hidden="true" />
       <span className="min-w-0 flex-1 text-fg-muted">{t("projects.summariesOff")}</span>
       <Button
         size="sm"
@@ -461,6 +469,64 @@ function DaySection({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * The folders Igrek saw Claude work in that are not projects: kept, out of the way, one click from
+ * being added. Nothing found is ever lost or hidden for good.
+ */
+function FoundList({ projects, onChange }: { projects: ProjectListItem[]; onChange: () => void }) {
+  const { t } = useTranslation();
+  const add = (path: string) =>
+    void api
+      .addProject(path)
+      .then(onChange)
+      .catch(() => undefined);
+  return (
+    <Card>
+      <p className="border-b border-border px-pad py-2 text-[12px] text-fg-muted">{t("projects.foundHint")}</p>
+      <ul className="divide-y divide-border">
+        {[...projects]
+          .sort((a, b) => b.lastActivity - a.lastActivity)
+          .map((p) => (
+            <li key={p.id} className="flex items-center gap-3 px-pad py-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium">{p.name}</p>
+                <p className="truncate font-mono text-[11.5px] text-fg-subtle">{p.path}</p>
+              </div>
+              <span className="shrink-0 text-[11.5px] text-fg-subtle">
+                {t("projects.foundSessions", { count: p.sessionCount })} · {relativeTime(p.lastActivity)}
+              </span>
+              <Button size="sm" icon={FolderPlus} onClick={() => add(p.path)}>
+                {t("projects.addAction")}
+              </Button>
+            </li>
+          ))}
+      </ul>
+    </Card>
+  );
+}
+
+/**
+ * Before this setting, every folder Claude touched became a project. Once, the user chooses: keep
+ * only their own folders (the rest go to "found"), or keep adding everything on its own.
+ */
+function FoundBanner({ projects, onChange }: { projects: ProjectListItem[]; onChange: () => void }) {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  const foundHere = projects.filter((p) => !p.addedByHand).length;
+  if (settings.autoProjects || foundHere === 0) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-2 rounded-ui border border-border bg-bg-subtle px-3 py-2 text-[12.5px]">
+      <span className="min-w-0 flex-1">{t("projects.foundBanner", { count: foundHere })}</span>
+      <Button size="sm" variant="primary" onClick={() => void api.hideFoundProjects().then(onChange)}>
+        {t("projects.foundKeepMine")}
+      </Button>
+      <Button size="sm" variant="ghost" onClick={() => void update({ autoProjects: true })}>
+        {t("projects.foundKeepAll")}
+      </Button>
+    </div>
+  );
+}
+
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -477,14 +543,15 @@ export function ProjectsPage() {
     return (projects ?? []).filter(
       (p) =>
         (workspace === "all" || p.workspace === workspace) &&
-        (showHidden || !p.hidden) &&
+        !p.hidden &&
         (q ? true : p.status === statusView) &&
         (!q || `${p.name} ${p.path}`.toLowerCase().includes(q)),
     );
-  }, [projects, filter, showHidden, workspace, statusView]);
+  }, [projects, filter, workspace, statusView]);
   const statusCount = (s: ProjectListItem["status"]) =>
     (projects ?? []).filter((p) => p.status === s && !p.hidden).length;
-  const hiddenCount = (projects ?? []).filter((p) => p.hidden).length;
+  const visible = (projects ?? []).filter((p) => !p.hidden);
+  const found = (projects ?? []).filter((p) => p.hidden);
 
   return (
     <>
@@ -527,9 +594,7 @@ export function ProjectsPage() {
           body={t("projects.emptyBody")}
           action={
             <div className="flex flex-wrap justify-center gap-2">
-              <Button icon={Settings} onClick={() => navigate("/settings")}>
-                {t("projects.emptyAction")}
-              </Button>
+              <AddProject />
               <DemoButton />
             </div>
           }
@@ -537,7 +602,8 @@ export function ProjectsPage() {
       ) : (
         <div className="p-6">
           <div className="mb-4 space-y-3">
-            {projects && <HomeComposer projects={projects} />}
+            {projects && visible.length > 0 && <HomeComposer projects={visible} />}
+            {projects && <FoundBanner projects={visible} onChange={reload} />}
             <DaySection>
               <SummariesOff />
               <BriefingCard />
@@ -558,19 +624,33 @@ export function ProjectsPage() {
               />
             )}
           </div>
+          {projects && visible.length === 0 && (
+            <Card className="flex flex-wrap items-center gap-3 p-pad">
+              <FolderKanban size={18} className="text-fg-subtle" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <p className="text-[13.5px] font-medium">{t("projects.noneAdded")}</p>
+                <p className="text-[12.5px] text-fg-muted">{t("projects.noneAddedBody")}</p>
+              </div>
+              <AddProject />
+            </Card>
+          )}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-3">
             {projects
               ? shown.map((project) => <ProjectCard key={project.id} project={project} people={people} />)
               : [0, 1, 2, 3].map((i) => <Card key={i} className="h-40 animate-pulse bg-bg-subtle" />)}
           </div>
-          {hiddenCount > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowHidden((v) => !v)}
-              className="mt-4 text-xs text-fg-subtle hover:text-fg"
-            >
-              {showHidden ? t("project.hide") : `${t("projects.showHidden")} (${hiddenCount})`}
-            </button>
+          {found.length > 0 && (
+            <div className="mt-5 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowHidden((v) => !v)}
+                aria-expanded={showHidden}
+                className="text-xs text-fg-subtle hover:text-fg"
+              >
+                {showHidden ? t("projects.foundHide") : t("projects.foundShow", { count: found.length })}
+              </button>
+              {showHidden && <FoundList projects={found} onChange={reload} />}
+            </div>
           )}
         </div>
       )}

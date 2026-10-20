@@ -1,5 +1,5 @@
 import type { Digest, TimelineEntry } from "@igrek/core";
-import { CalendarDays, FileText, GitCommitHorizontal, Sparkles } from "lucide-react";
+import { CalendarDays, FileText, GitCommitHorizontal } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card } from "../../components/ui";
@@ -143,7 +143,7 @@ export function ReportsCard({ projectId }: { projectId: string }) {
           {t("project.reports")}
         </h3>
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" icon={Sparkles} onClick={() => write("day")} disabled={!!busy}>
+          <Button size="sm" variant="ghost" icon={FileText} onClick={() => write("day")} disabled={!!busy}>
             {busy === "day" ? t("project.writing") : t("project.today")}
           </Button>
           <Button size="sm" variant="ghost" onClick={() => write("week")} disabled={!!busy}>

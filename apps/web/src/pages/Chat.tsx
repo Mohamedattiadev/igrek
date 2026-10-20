@@ -65,17 +65,27 @@ import { MicButton } from "../components/MicButton";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
+import { TodoStrip } from "../components/TodoStrip";
 import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
 import { lineDiff, useChat } from "../lib/chat";
-import { DETAIL_LEVELS, type DetailLevel, EXPERT_TOOL, groupWork, workCounts } from "../lib/chat-log";
+import {
+  DELEGATE_TOOLS,
+  DETAIL_LEVELS,
+  type DetailLevel,
+  delegatedTo,
+  EXPERT_TOOL,
+  groupWork,
+  workCounts,
+} from "../lib/chat-log";
 import { cn } from "../lib/cn";
 import { compactNumber, modelName } from "../lib/format";
 import { warmHighlighter } from "../lib/highlight";
 import { usePageActions } from "../lib/page-actions";
 import { PersonaIcon, usePersonaLabel, usePersonas } from "../lib/personas";
 import { useSettings } from "../lib/settings";
+import { latestTodos } from "../lib/todos";
 import { useFullscreen } from "../lib/zen";
 import { WeakPointList } from "./Meeting";
 
@@ -778,7 +788,16 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         ]
       : undefined,
   );
-  const units = useMemo(() => groupWork(chat.events, detail), [chat.events, detail]);
+  // The plan sits pinned above the box (TodoStrip), so its updates stay out of the conversation.
+  const todos = useMemo(() => latestTodos(chat.events), [chat.events]);
+  const units = useMemo(
+    () =>
+      groupWork(
+        chat.events.filter((e) => !(e.kind === "tool" && e.name === "TodoWrite")),
+        detail,
+      ),
+    [chat.events, detail],
+  );
   // Answers often carry code: have the highlighter ready before the first block arrives.
   useEffect(() => warmHighlighter(), []);
   const info = chat.info;
@@ -1023,6 +1042,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         onPick={pickSlash}
       />
       <MentionMenu items={mentions.items} active={mentions.active} onPick={mentions.pick} />
+      {todos && <TodoStrip todos={todos} working={working} />}
       {info?.limit && !working && (
         <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">
           <Gauge size={14} className="shrink-0 text-danger" aria-hidden="true" />
@@ -1476,6 +1496,8 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                   }
                   case "tool":
                     if (event.name === EXPERT_TOOL) return <ExpertCard key={event.id} event={event} />;
+                    if (DELEGATE_TOOLS.has(event.name) && personas.some((p) => p.id === delegatedTo(event)))
+                      return <ExpertCard key={event.id} event={event} delegated />;
                     return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
                   case "permission":
                     if (event.toolName === "AskUserQuestion")

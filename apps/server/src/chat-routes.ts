@@ -22,6 +22,7 @@ export function registerChatRoutes(
     worktreeDir,
     persona,
     igrekMcp,
+    subagents,
     richUi,
   }: {
     chats: Chats;
@@ -36,6 +37,8 @@ export function registerChatRoutes(
     ) => { start: NonNullable<ChatStart["persona"]>; model: string } | undefined;
     /** Igrek's MCP server, given to every chat. */
     igrekMcp?: ChatStart["igrekMcp"];
+    /** The experts as subagents for a project's chats (a file path), when experts are on. */
+    subagents?: (projectId: string) => string | undefined;
     /** OpenUI instructions when rich answers are on (plan.md 16.2). */
     richUi?: () => string | undefined;
   },
@@ -104,6 +107,8 @@ export function registerChatRoutes(
         worktree,
         title: session?.title ?? undefined,
         history: body.resume ? historyEvents(store.sessionDetail(body.resume, 120)?.messages ?? []) : undefined,
+        // A persona's own chat works alone; other chats can hand work to the experts.
+        agents: as ? undefined : subagents?.(project.id),
         resume: body.resume,
         model:
           typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),

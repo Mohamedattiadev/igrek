@@ -17,12 +17,21 @@ function answerText(result: string | undefined): string {
   return (result ?? "").replace(/^[^\n]*answered:\n+/, "").trim();
 }
 
-/** A chat asked an expert persona in the background: who, what, and the answer (folded). */
-export function ExpertCard({ event }: { event: ToolEvent }) {
+/**
+ * A chat asked an expert in the background, or handed it a piece of work as a subagent
+ * (`delegated`): who, what, and the answer (folded).
+ */
+export function ExpertCard({ event, delegated }: { event: ToolEvent; delegated?: boolean }) {
   const { t } = useTranslation();
   const { personas } = usePersonas();
   const label = usePersonaLabel();
-  const input = (event.input ?? {}) as { expert?: string; question?: string };
+  const raw = (event.input ?? {}) as {
+    expert?: string;
+    question?: string;
+    subagent_type?: string;
+    description?: string;
+  };
+  const input = delegated ? { expert: raw.subagent_type, question: raw.description } : raw;
   const persona = personas.find((p) => p.id === input.expert);
   const name = label(persona, input.expert).name;
   const [open, setOpen] = useState(false);
@@ -40,10 +49,10 @@ export function ExpertCard({ event }: { event: ToolEvent }) {
         <span className="min-w-0 flex-1">
           <span className="block text-[12.5px] font-medium">
             {running
-              ? t("chat.expertAsking", { name })
+              ? t(delegated ? "chat.expertWorking" : "chat.expertAsking", { name })
               : failed
                 ? t("chat.expertFailed", { name })
-                : t("chat.expertAsked", { name })}
+                : t(delegated ? "chat.expertDelegated" : "chat.expertAsked", { name })}
           </span>
           {input.question && <span className="block truncate text-[11.5px] text-fg-muted">{input.question}</span>}
         </span>

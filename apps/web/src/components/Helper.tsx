@@ -1,5 +1,5 @@
 import { type ChatInfo, capabilitiesOf, HELP_TOPICS, type ProjectListItem, type SessionListItem } from "@igrek/core";
-import { ArrowRight, BookOpen, Bot, Compass, MessageSquarePlus, Play, Send, X } from "lucide-react";
+import { ArrowRight, BookOpen, CircleHelp, Compass, MessageSquarePlus, Play, Send, X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router";
@@ -146,8 +146,10 @@ export function Helper() {
     // Pages of the guide whose words match.
     const words = q.split(" ").filter((w) => w.length > 2);
     const topics = HELP_TOPICS.map((topic) => {
-      const hay = fold(`${t(`help.t_${topic.id}`)} ${t(`help.d_${topic.id}`)} ${topic.words}`);
-      return { topic, score: words.filter((w) => hay.includes(w)).length };
+      // A word in the page's name or keywords says more than one in its description.
+      const name = fold(`${t(`help.t_${topic.id}`)} ${topic.words}`);
+      const about = fold(t(`help.d_${topic.id}`));
+      return { topic, score: words.reduce((sum, w) => sum + (name.includes(w) ? 3 : about.includes(w) ? 1 : 0), 0) };
     })
       .filter((x) => x.score > 0)
       .sort((a, b) => b.score - a.score)
@@ -233,10 +235,8 @@ export function Helper() {
           raised ? "bottom-[9.5rem]" : "bottom-24",
         )}
       >
-        <header className="flex items-center gap-2 border-b border-border bg-gradient-to-r from-accent-soft to-bg px-3 py-2.5">
-          <span className="flex size-7 items-center justify-center rounded-full bg-accent text-accent-fg">
-            <Bot size={15} aria-hidden="true" />
-          </span>
+        <header className="flex items-center gap-2 border-b border-border bg-bg-subtle px-3 py-2.5">
+          <CircleHelp size={16} className="shrink-0 text-fg-muted" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <h2 className="text-[13.5px] font-semibold">{t("helper.title")}</h2>
             <p className="truncate text-[11px] text-fg-subtle">{t("helper.subtitle")}</p>
@@ -347,11 +347,12 @@ export function Helper() {
         data-tip={open ? undefined : t("helper.title")}
         data-tip-side="left"
         className={cn(
-          "fixed end-4 z-50 flex size-12 items-center justify-center rounded-full bg-accent text-accent-fg shadow-ui transition-transform hover:scale-105 hover:bg-accent-hover print:hidden",
+          // Quiet on purpose: help is there when wanted, not a bright button asking for attention.
+          "fixed end-4 z-50 flex size-10 items-center justify-center rounded-full border border-border bg-bg-subtle text-fg-muted shadow-ui hover:bg-bg-hover hover:text-fg print:hidden",
           raised ? "bottom-[6rem]" : "bottom-10",
         )}
       >
-        {open ? <X size={20} aria-hidden="true" /> : <Bot size={22} aria-hidden="true" />}
+        {open ? <X size={18} aria-hidden="true" /> : <CircleHelp size={19} aria-hidden="true" />}
       </button>
     </>
   );

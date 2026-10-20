@@ -216,6 +216,16 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Section title={t("settings.autoProjects")} hint={t("settings.autoProjectsHint")}>
+          <Segmented
+            value={settings.autoProjects ? "on" : "off"}
+            onChange={(value) => update({ autoProjects: value === "on" })}
+            options={[
+              { value: "on", label: t("settings.on") },
+              { value: "off", label: t("settings.off") },
+            ]}
+          />
+        </Section>
         <Section title={t("settings.consultExperts")} hint={t("settings.consultExpertsHint")}>
           <Segmented
             value={settings.consultExperts ? "on" : "off"}

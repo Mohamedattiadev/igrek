@@ -29,7 +29,8 @@ function PersonaCard({ persona }: { persona: Persona }) {
         <p className="truncate text-[13px] font-semibold">{label.name}</p>
         <p className="line-clamp-2 text-xs text-fg-muted">{label.role}</p>
         <div className="mt-1.5 flex flex-wrap gap-1">
-          <Badge>{t(`persona.tools_${persona.tools}`)}</Badge>
+          {/* Editing is the usual case; only the exception is worth a label on every card. */}
+          {persona.tools === "read" && <Badge>{t("persona.tools_read")}</Badge>}
           {persona.web && <Badge>{t("persona.web")}</Badge>}
           {persona.edited && <Badge tone="accent">{t("persona.edited")}</Badge>}
           {!persona.builtin && <Badge tone="accent">{t("persona.own")}</Badge>}

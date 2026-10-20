@@ -68,6 +68,11 @@ export type SendHow = "queue" | "steer";
 const WRITE_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
 
 /** Files the AI wrote since the last user message. */
+/** Igrek's own tools for a chat, and the experts it can hand work to (a file of subagents). */
+function igrekArgs(mcp: NonNullable<ChatStart["igrekMcp"]>, agents?: string): string[] {
+  return ["--mcp-config", mcp.config, "--allowedTools", ...mcp.allow, ...(agents ? ["--agents", agents] : [])];
+}
+
 /** A chat's first events: what the continued session said before, indexed like any other event. */
 function seeded(history: ChatEvent[] = []): { events: ChatEvent[]; index: Map<string, number> } {
   return { events: [...history], index: new Map(history.map((e, i) => [e.id, i])) };
@@ -103,6 +108,8 @@ export interface ChatStart {
   worktree?: Worktree;
   /** Igrek's own MCP server for every chat (memory, search, library, lessons, schedule proposals). */
   igrekMcp?: { config: string; allow: string[]; hint?: string };
+  /** A file of Claude Code subagents (`--agents`): the experts a chat can hand work to. */
+  agents?: string;
   /** The OpenUI instructions, when the user turned on rich answers; otherwise the JSON blocks hint. */
   richUi?: string;
   /** The project's own extensions to leave out, because the user has not trusted them yet. */
@@ -287,7 +294,7 @@ export class Chats {
             ...(options.persona.allowTools?.length ? ["--allowedTools", ...options.persona.allowTools] : []),
           ]
         : options.igrekMcp
-          ? ["--mcp-config", options.igrekMcp.config, "--allowedTools", ...options.igrekMcp.allow]
+          ? igrekArgs(options.igrekMcp, options.agents)
           : []),
     ];
     const proc = Bun.spawn(args, {

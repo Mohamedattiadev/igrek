@@ -14,8 +14,8 @@ import {
   Pencil,
   Plus,
   RotateCcw,
+  ScanSearch,
   Search,
-  Sparkles,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -142,7 +142,7 @@ function Viewer({ entry }: { entry: FileEntry }) {
             <Button
               size="sm"
               variant="ghost"
-              icon={Sparkles}
+              icon={ScanSearch}
               onClick={() =>
                 actions.quickAsk({
                   question: t("preview.explainAsk"),

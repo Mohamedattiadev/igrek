@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { ChatEvent } from "@igrek/core";
-import { EXPERT_TOOL, groupWork, workCounts } from "./chat-log";
+import { delegatedTo, EXPERT_TOOL, groupWork, workCounts } from "./chat-log";
 
 const tool = (id: string, name: string): ChatEvent => ({ kind: "tool", id, at: 0, name, input: {}, status: "done" });
 const text = (id: string): ChatEvent => ({ kind: "text", id, at: 0, text: "hi" });
@@ -46,6 +46,14 @@ describe("work log", () => {
     const units = groupWork([text("t1"), tool("q", "AskUserQuestion"), text("t2")], "grouped");
     expect(units.map((u) => (u.kind === "event" ? u.event.id : "group"))).toEqual(["t1", "t2"]);
     expect(groupWork([tool("q", "AskUserQuestion")], "all")).toEqual([]);
+  });
+
+  test("work handed to a subagent stays its own card, even when only text is shown", () => {
+    const handOver = { ...tool("h", "Task"), input: { subagent_type: "architect", description: "Review the layers" } };
+    const units = groupWork([tool("a", "Read"), handOver as ChatEvent, tool("b", "Read"), text("t")], "text");
+    expect(units.map((u) => (u.kind === "event" ? u.event.id : "group"))).toEqual(["h", "t"]);
+    expect(delegatedTo(handOver as Extract<ChatEvent, { kind: "tool" }>)).toBe("architect");
+    expect(delegatedTo(tool("x", "Task") as Extract<ChatEvent, { kind: "tool" }>)).toBeUndefined();
   });
 
   test("counts steps by kind in a fixed order", () => {

@@ -1,5 +1,5 @@
 import type { Idea, IdeaReview, IdeaStatus, ProjectListItem } from "@igrek/core";
-import { Briefcase, Lightbulb, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Briefcase, Lightbulb, ListFilter, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
@@ -152,7 +152,7 @@ export function IdeasPage() {
             <Button
               size="sm"
               variant="ghost"
-              icon={Sparkles}
+              icon={ListFilter}
               onClick={triage}
               disabled={busy}
               aria-label={t("ideas.triage")}

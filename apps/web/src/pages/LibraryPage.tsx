@@ -210,7 +210,6 @@ export function LibraryPage() {
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
         <LibraryTabs active="library" />
         <p className="text-[13px] leading-relaxed text-fg-muted">{t("library.intro")}</p>
-        {status && <ModelCard status={status} />}
         <Card className="space-y-3 p-pad">
           {/* biome-ignore lint/a11y/noStaticElementInteractions: the drop zone has a real button inside for keyboard users */}
           <div
@@ -334,6 +333,7 @@ export function LibraryPage() {
             </ul>
           </Card>
         )}
+        {status && <ModelCard status={status} />}
       </div>
     </>
   );

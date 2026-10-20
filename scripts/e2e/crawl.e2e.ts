@@ -56,7 +56,14 @@ describe.skipIf(!ready)("every page, every button", () => {
     chat = ((await started.json()) as { id: string }).id;
     browser = await chromium.launch({ executablePath, args: ["--no-sandbox"] });
     ctx = await browser.newContext({ locale: "en-US", viewport: { width: 1366, height: 860 }, acceptDownloads: true });
-    await ctx.addInitScript(() => localStorage.setItem("igrek.tour.seen", "1"));
+    // The try: this also runs in sandboxed plugin frames, where storage is off.
+    await ctx.addInitScript(() => {
+      try {
+        localStorage.setItem("igrek.tour.seen", "1");
+      } catch {
+        // No storage in a sandboxed frame; nothing to remember there.
+      }
+    });
     await ctx.route("**/api/**", (route) => {
       const url = new URL(route.request().url());
       if (reachesOut(route.request().method(), url.pathname))

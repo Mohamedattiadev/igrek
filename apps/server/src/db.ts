@@ -912,6 +912,10 @@ export const migrations: string[] = [
      PRIMARY KEY (project_id, persona)
    );
    CREATE INDEX persona_views_persona ON persona_views(persona);`,
+  // Projects are the folders the user adds (plan.md 1.1): 0 found on its own (hidden unless the user lets
+  // Igrek add them), 1 a folder that is one project, 2 a folder of projects, 3 a project inside one.
+  `ALTER TABLE projects ADD COLUMN added INTEGER NOT NULL DEFAULT 0;
+   CREATE INDEX sessions_cwd ON sessions(cwd);`,
 ];
 
 export function migrate(sqlite: Database): number {

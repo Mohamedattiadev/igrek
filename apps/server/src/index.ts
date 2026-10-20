@@ -154,6 +154,7 @@ const token = loadSessionToken(config.dataDir);
 const bus = new Bus();
 const stops = new StopRegistry();
 const store = new Store(sqlite);
+store.autoProjects = () => readSettings(db).autoProjects;
 const accounts = new Accounts(sqlite, bus, join(config.dataDir, "accounts"));
 accounts.ensureDefault("claude");
 accounts.ensureDefault("codex");
@@ -600,6 +601,8 @@ const app = createApp({
           return readSettings(db).consultExperts ? expertsHint(experts.roster()) : undefined;
         },
       },
+      subagents: (projectId) =>
+        readSettings(db).consultExperts ? experts.writeSubagents(projectId, join(config.dataDir, "agents")) : undefined,
     });
     registerTesterRoutes(hono, testers);
     registerLibraryRoutes(hono, {
@@ -633,9 +636,11 @@ const app = createApp({
       try {
         const answer = await runClaude(
           [
-            `You are the in-app guide of Igrek. Answer the user's question in the language with code "${language}", only from the guide below: where to click and what happens, in two to five short sentences. Name the page or tab. If the guide doesn't cover it, say so plainly. End with one line "TOPICS: id, id" listing the guide entries you used.`,
+            `You are the in-app guide of Igrek. Answer the user's question in the language with code "${language}", only from the guide below: where to click and what happens, in two to five short sentences. Name the page or tab by its name; never write web paths like /personas, because the app shows buttons for the pages under your answer. If the guide doesn't cover it, say so plainly. End with one line "TOPICS: id, id" listing the guide entries you used.`,
             "Guide:",
             guide,
+            // The experts change (own ones can be added), so the guide gets the real list, not a number.
+            `The experts on the Personas page, each can be chatted with (open its page, then Chat):\n${experts.roster()}`,
             `Question: ${question}`,
           ].join("\n\n"),
           join(config.dataDir, "runner"),

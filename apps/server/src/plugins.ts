@@ -2,8 +2,50 @@ import type { Database } from "bun:sqlite";
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, statSync } from "node:fs";
 import { join, normalize, resolve, sep } from "node:path";
 import { PLUGIN_PERMISSIONS, type PluginInfo, type PluginManifest, type PluginPermission } from "@igrek/core";
+import { PLUGIN_GLOBALS } from "./names";
 
 const MANIFEST = "igrek-plugin.json";
+
+/**
+ * The bridge, put into every plugin page Igrek serves, under both names (see names.ts). A page then
+ * works even when its own bridge.js is missing, out of date or blocked by the browser; a bridge.js
+ * the page loads itself still runs and simply defines the same thing again.
+ */
+const BRIDGE_SCRIPT = `<script>(() => {
+  let next = 1;
+  const waiting = new Map();
+  const hello = new Promise((resolve) => {
+    addEventListener("message", (event) => {
+      const m = event.data;
+      if (!m || (m.${PLUGIN_GLOBALS[0]} !== 1 && m.${PLUGIN_GLOBALS[1]} !== 1)) return;
+      if (m.type === "hello") {
+        document.documentElement.dataset.theme = m.theme;
+        resolve(m);
+      } else if (waiting.has(m.id)) {
+        const { ok, fail } = waiting.get(m.id);
+        waiting.delete(m.id);
+        m.error ? fail(new Error(m.error)) : ok(m.result);
+      }
+    });
+  });
+  const bridge = {
+    hello,
+    ask(method, params = {}) {
+      const id = next++;
+      parent.postMessage({ ${PLUGIN_GLOBALS[0]}: 1, id, method, params }, "*");
+      return new Promise((ok, fail) => waiting.set(id, { ok, fail }));
+    },
+  };
+  ${PLUGIN_GLOBALS.map((name) => `window.${name} = bridge;`).join(" ")}
+})();</script>`;
+
+/** A plugin page with the bridge first in its head (or at the very start when it has none). */
+export function withBridge(html: string): string {
+  const head = html.match(/<head[^>]*>/i);
+  if (!head || head.index === undefined) return BRIDGE_SCRIPT + html;
+  const at = head.index + head[0].length;
+  return html.slice(0, at) + BRIDGE_SCRIPT + html.slice(at);
+}
 /** Plugins written before the rename to Igrek keep their old manifest name. */
 const OLD_MANIFEST = "godeye-plugin.json";
 

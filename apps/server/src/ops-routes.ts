@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { DockerHost, LogLine, LogSource } from "@igrek/core";
 import type { Hono } from "hono";
 import type { AppErrors } from "./apperrors";
@@ -6,6 +7,7 @@ import type { Docker } from "./docker";
 import type { Flows } from "./flows";
 import type { Logs } from "./logs";
 import type { Monitors } from "./monitors";
+import { withBridge } from "./plugins";
 
 const fail = (err: unknown) => ({ error: (err as Error).message });
 
@@ -443,13 +445,17 @@ export function registerPluginRoutes(
     const rest = decodeURIComponent(c.req.path.split("/").slice(3).join("/"));
     const file = plugins.file(c.req.param("id"), rest);
     if (!file) return c.text("Not found", 404);
-    return new Response(Bun.file(file), {
-      headers: {
-        "content-security-policy": PLUGIN_CSP,
-        "x-content-type-options": "nosniff",
-        "cache-control": "no-cache",
-      },
-    });
+    const headers = {
+      "content-security-policy": PLUGIN_CSP,
+      "x-content-type-options": "nosniff",
+      "cache-control": "no-cache",
+    };
+    // Pages get the bridge from Igrek itself, so they never depend on their own copy loading.
+    if (/\.html?$/i.test(file))
+      return new Response(withBridge(readFileSync(file, "utf8")), {
+        headers: { ...headers, "content-type": "text/html; charset=utf-8" },
+      });
+    return new Response(Bun.file(file), { headers });
   });
 }
 

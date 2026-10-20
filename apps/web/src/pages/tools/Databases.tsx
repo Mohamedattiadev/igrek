@@ -5,9 +5,9 @@ import {
   Database,
   Lock,
   LockOpen,
+  MessageSquare,
   Play,
   Plus,
-  Sparkles,
   Stethoscope,
   Trash2,
 } from "lucide-react";
@@ -308,7 +308,7 @@ function QueryEditor({ conn, initial }: { conn: DbConnection; initial?: string }
         {conn.kind !== "mongodb" && (
           <Button
             variant="ghost"
-            icon={Sparkles}
+            icon={MessageSquare}
             disabled={!text.trim()}
             onClick={() => void ask()}
             data-tip={t("db.askTip")}

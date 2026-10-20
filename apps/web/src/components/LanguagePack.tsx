@@ -1,4 +1,4 @@
-import { Languages, PencilLine, RefreshCw, Search, Sparkles } from "lucide-react";
+import { Languages, PencilLine, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, type PackStatus } from "../lib/api";
@@ -40,7 +40,7 @@ export function LanguagePackPanel({ code }: { code: string }) {
     <div className="mt-3 space-y-2 text-xs">
       {!status.bundled && (
         <div className="flex flex-wrap items-center gap-2">
-          <Sparkles size={13} className="text-accent" aria-hidden="true" />
+          <Languages size={13} className="text-accent" aria-hidden="true" />
           <span className="text-fg-muted">
             {status.state === "generating"
               ? t("langpack.generating", { percent })
@@ -65,7 +65,7 @@ export function LanguagePackPanel({ code }: { code: string }) {
             status.state !== "ready" && (
               <Button
                 size="sm"
-                icon={status.state === "none" ? Sparkles : RefreshCw}
+                icon={status.state === "none" ? Languages : RefreshCw}
                 onClick={() => void api.generatePack(code).then(setStatus)}
                 data-tip={t("langpack.makeTip")}
               >

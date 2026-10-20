@@ -21,6 +21,7 @@ import {
   GitBranch,
   KeyRound,
   type LucideIcon,
+  MessageSquare,
   Monitor,
   Network,
   Package,
@@ -30,7 +31,6 @@ import {
   Server,
   ShieldCheck,
   SlidersHorizontal,
-  Sparkles,
   TriangleAlert,
   Wrench,
 } from "lucide-react";
@@ -558,7 +558,7 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
 
       {/* Context-aware prompt box: opens a chat about this part with the question waiting. */}
       <Card className="flex items-center gap-2 p-2">
-        <Sparkles size={15} className="ms-1 text-accent" />
+        <MessageSquare size={15} className="ms-1 text-accent" />
         <input
           value={ask}
           onChange={(e) => setAsk(e.target.value)}

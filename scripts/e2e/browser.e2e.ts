@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { type Browser, type BrowserContext, chromium, type Page } from "playwright-core";
 import { NAV_ITEMS } from "../../apps/web/src/components/nav";
@@ -83,7 +83,14 @@ describe.skipIf(!ready)("the app in a browser", () => {
       viewport: { width: 1280, height: 800 },
     });
     // The guided tour would cover the page; people who finished it don't see it either.
-    await ctx.addInitScript(() => localStorage.setItem("igrek.tour.seen", "1"));
+    // The try: this also runs in sandboxed plugin frames, where storage is off.
+    await ctx.addInitScript(() => {
+      try {
+        localStorage.setItem("igrek.tour.seen", "1");
+      } catch {
+        // No storage in a sandboxed frame; nothing to remember there.
+      }
+    });
     // Every page opens as a first visit, without the session cookie, so no request may run ahead of it.
     const page = await ctx.newPage();
     const errors: string[] = [];
@@ -130,6 +137,20 @@ describe.skipIf(!ready)("the app in a browser", () => {
       // Both strokes stand out from the sidebar: 3:1 is the WCAG floor for graphics.
       for (const stroke of colors.paths) expect(contrast(stroke, colors.background)).toBeGreaterThan(3);
     }, 30_000);
+
+  test("a folder Claude worked in but nobody added waits under found folders, one click from a project", async () => {
+    const { page, ctx, errors } = await open("light", "/");
+    await page.getByText("demo-shop", { exact: true }).filter({ visible: true }).first().waitFor();
+    expect(await page.getByText("side-project", { exact: true }).filter({ visible: true }).count()).toBe(0);
+    await page.getByRole("button", { name: /Found folders \(1\)/ }).click();
+    await page.getByRole("button", { name: "Add" }).last().click();
+    await page
+      .getByRole("link", { name: /side-project/ })
+      .first()
+      .waitFor();
+    await ctx.close();
+    expect(errors).toEqual([]);
+  }, 30_000);
 
   test("the projects page lists the seeded project", async () => {
     const { page, ctx } = await open("light", "/");
@@ -190,6 +211,58 @@ describe.skipIf(!ready)("the app in a browser", () => {
     expect(await opened.page.getByRole("listbox", { name: "Experts to mention" }).count()).toBe(0);
     await opened.ctx.close();
     await settings({ consultExperts: true });
+  }, 30_000);
+
+  test("the helper's answer cards take you to the page they name", async () => {
+    const { page, ctx, errors } = await open("light", "/inbox");
+    // No model here: the helper's question fails at once, as it does offline, and the helper
+    // answers from its own topic list.
+    await ctx.route("**/api/help", (route) => route.fulfill({ status: 503, json: { error: "offline" } }));
+    await page.getByRole("button", { name: "Helper" }).click();
+    const box = page.getByRole("textbox", { name: "e.g. last chat in my blog project" });
+    await box.fill("how do I talk to the expert team");
+    await box.press("Enter");
+    await page
+      .getByRole("button", { name: /Expert team/ })
+      .first()
+      .click();
+    await page.waitForURL((url) => url.pathname === "/personas");
+    await ctx.close();
+    // The only error allowed is the offline answer this test made up.
+    expect(errors.filter((e) => !e.includes("503"))).toEqual([]);
+  }, 30_000);
+
+  test("a plugin page works without its own bridge file, also one written before the rename", async () => {
+    // A page that never loads bridge.js and talks to the old name: Igrek's own bridge must carry it.
+    const dir = join(server.home, "old-plugin");
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, "godeye-plugin.json"),
+      JSON.stringify({
+        id: "old-plugin",
+        name: "Old plugin",
+        version: "1.0.0",
+        permissions: ["projects:read"],
+        panels: [{ id: "p", title: "Old plugin", entry: "page.html", place: "project" }],
+      }),
+    );
+    writeFileSync(
+      join(dir, "page.html"),
+      '<html><head></head><body><p id="out">waiting</p><script>godeye.ask("projects").then((list) => { document.getElementById("out").textContent = "projects: " + list.length; });</script></body></html>',
+    );
+    const post = (path: string, body: object) =>
+      server.call(path, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    expect((await post("/api/plugins", { source: dir })).status).toBe(200);
+    await post("/api/plugins/old-plugin/enabled", { enabled: true });
+    const { page, ctx, errors } = await open("light", `/p/${project}?tab=plugins`);
+    const frame = page.frameLocator('iframe[title="Old plugin"]');
+    await frame.getByText(/^projects: \d+$/).waitFor();
+    await ctx.close();
+    expect(errors).toEqual([]);
   }, 30_000);
 
   test("a chat page has no helper button; other pages do", async () => {

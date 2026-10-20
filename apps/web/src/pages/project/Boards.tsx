@@ -12,7 +12,6 @@ import {
   PenLine,
   Plus,
   ScanSearch,
-  Sparkles,
   SquareCode,
   Trash2,
   Wand2,
@@ -182,7 +181,7 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
     const text = t("boards.chatDraft", { title: board?.title ?? "", structure: handle.current?.structure() ?? "" });
     void navigate(`/c/${chat.id}?draft=${encodeURIComponent(text)}`);
   };
-  const tool = (key: string, icon: typeof Sparkles, onClick: () => void, label = t(`boards.ask_${key}`)) => (
+  const tool = (key: string, icon: typeof MessageSquare, onClick: () => void, label = t(`boards.ask_${key}`)) => (
     <Button size="sm" variant="ghost" icon={icon} disabled={!!busy} onClick={onClick} data-tip={t(`boards.tip_${key}`)}>
       {busy === key ? t("boards.thinking") : label}
     </Button>
@@ -326,7 +325,7 @@ function BoardView({ boardId, projectId, onBack }: { boardId: string; projectId:
         {answer && (
           <aside className="flex w-[min(380px,45vw)] shrink-0 flex-col border-s border-border">
             <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-              <Sparkles size={14} className="text-accent" aria-hidden="true" />
+              <MessageSquare size={14} className="text-accent" aria-hidden="true" />
               <p className="min-w-0 flex-1 truncate text-[13px] font-medium">{answer.title}</p>
               <Button size="sm" variant="ghost" onClick={() => setAnswer(undefined)}>
                 {t("boards.close")}

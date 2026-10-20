@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { CORE_EXPERTS, DEFAULT_SETTINGS, viewSummary } from "@igrek/core";
@@ -124,11 +124,31 @@ describe("experts on call", () => {
     expect(viewSummary("One paragraph only.")).toEqual({ rest: "One paragraph only." });
   });
 
+  test("the experts become subagents a chat can hand work to; read-only ones stay read-only", () => {
+    const { experts, personas, projectId, dir } = setup();
+    const file = experts.writeSubagents(projectId, join(dir, "agents"));
+    const agents = JSON.parse(readFileSync(file, "utf8")) as Record<
+      string,
+      { description: string; prompt: string; tools?: string[]; model: string }
+    >;
+    expect(Object.keys(agents).sort()).toEqual(
+      personas
+        .list()
+        .map((p) => p.id)
+        .sort(),
+    );
+    expect(agents.security?.tools).toEqual(["Read", "Grep", "Glob"]);
+    expect(agents.frontend?.tools).toBeUndefined();
+    expect(agents.frontend?.prompt).toContain("What you master");
+    expect(agents.architect?.description).toContain("Hand it work");
+  });
+
   test("the chat is told which experts it can call and when", () => {
     const { experts } = setup();
     const hint = expertsHint(experts.roster());
     expect(hint).toContain("igrek_ask_expert");
     expect(hint).toContain("@<id>");
+    expect(hint).toContain("subagent with the Task tool");
     expect(hint).toContain(`"@all" means: ask each of these in parallel,\n${CORE_EXPERTS.join(", ")}`);
     expect(hint).toMatch(/- architect: /);
     expect(hint).toMatch(/- security: /);

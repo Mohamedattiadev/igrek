@@ -58,7 +58,6 @@ export function LanguagePicker({ value, onChange }: { value: string; onChange: (
                 <span className="font-medium text-fg">{language.native}</span>
                 {language.native !== language.english && <span className="text-fg-subtle">{language.english}</span>}
               </span>
-              {!language.bundled && <span className="text-[11px] text-fg-subtle">{t("settings.languageSoon")}</span>}
               {value === language.code && <Check size={15} className="text-accent" />}
             </button>
           </li>

@@ -41,7 +41,7 @@ export function GuidePage() {
     <>
       <PageHeader title={t("guide.title")} />
       <div className="mx-auto w-full max-w-4xl space-y-8 p-6">
-        <section className="rounded-xl border border-border bg-gradient-to-br from-accent-soft/80 via-bg to-bg p-6 shadow-ui">
+        <section className="rounded-xl border border-border bg-bg-subtle p-6">
           <h2 className="text-[20px] font-semibold tracking-tight">{t("guide.heroTitle")}</h2>
           <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-fg-muted">{t("guide.heroBody")}</p>
           <div className="mt-4 flex flex-wrap gap-2">

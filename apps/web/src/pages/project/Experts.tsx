@@ -7,7 +7,7 @@ import {
   type ProjectDetail,
   viewSummary,
 } from "@igrek/core";
-import { ChevronDown, MessageSquare, MessageSquarePlus, RefreshCw, Sparkles, UsersRound } from "lucide-react";
+import { ChevronDown, MessageSquare, MessageSquarePlus, RefreshCw, ScanSearch, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -111,7 +111,7 @@ function ExpertCard({
         <Button
           size="sm"
           variant={view ? "secondary" : "primary"}
-          icon={view ? RefreshCw : Sparkles}
+          icon={view ? RefreshCw : ScanSearch}
           onClick={onLook}
           disabled={running}
         >

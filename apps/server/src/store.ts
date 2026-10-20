@@ -74,7 +74,11 @@ interface ProjectRow {
   team_linked?: number | null;
   /** active, paused (on hold) or archived (plan.md 13.2). */
   status?: string | null;
+  /** How the user added it: 0 found on its own, 1 one project, 2 a folder of projects, 3 a project inside one. */
+  added?: number | null;
 }
+
+const ADDED = { found: 0, one: 1, folder: 2, inside: 3 } as const;
 
 function rowToState(row: SessionRow): SessionState {
   return {
@@ -127,26 +131,126 @@ export class Store {
 
   private projectIdCache = new Map<string, string>();
 
-  /** Maps a session's working folder to its project (repo root when inside git). */
+  /**
+   * Whether every folder Claude works in becomes a project on its own. Off (the default setting),
+   * only folders the user added show; work elsewhere is kept, hidden, and offered as "found".
+   */
+  autoProjects: () => boolean = () => true;
+
+  /** The folder the user added that holds this one, the deepest first. */
+  private addedFolderOf(cwd: string): { id: string; path: string; added: number } | undefined {
+    const rows = this.db.query("SELECT id, path, added FROM projects WHERE added IN (1, 2)").all() as {
+      id: string;
+      path: string;
+      added: number;
+    }[];
+    return rows
+      .filter((r) => cwd === r.path || cwd.startsWith(`${r.path}/`))
+      .sort((a, b) => b.path.length - a.path.length)[0];
+  }
+
+  /** The project row for a folder: found, or made with the given visibility and origin. */
+  private ensureProject(root: string, opts: { hidden: boolean; added?: number }): string {
+    return this.db.transaction(() => this.ensureProjectRow(root, opts))();
+  }
+
+  private ensureProjectRow(root: string, opts: { hidden: boolean; added?: number }): string {
+    const byPath = () =>
+      (this.db.query("SELECT id FROM projects WHERE path = ?").get(root) as { id: string } | undefined)?.id;
+    const existing = byPath();
+    if (existing && opts.added === undefined) return existing;
+    const remote = existing || !existsSync(root) ? undefined : gitRemote(root);
+    const identity = remote ?? `path:${root}`;
+    const id = createHash("sha1").update(identity).digest("hex").slice(0, 12);
+    // One write: a new row, or the user adding a folder Igrek had found (it becomes theirs and shows).
+    // Another clone of the same repo shares the id and stays with the first one, as before.
+    this.db
+      .query(
+        `INSERT INTO projects (id, name, path, git_remote, identity, workspace, created_at, hidden, added)
+         VALUES (?, ?, ?, ?, ?, 'local', ?, ?, ?)
+         ON CONFLICT(path) DO UPDATE SET added = excluded.added, hidden = 0
+         ON CONFLICT(id) DO NOTHING`,
+      )
+      .run(
+        id,
+        basename(root) || root,
+        root,
+        remote ?? null,
+        identity,
+        Date.now(),
+        opts.hidden ? 1 : 0,
+        opts.added ?? 0,
+      );
+    return byPath() ?? id;
+  }
+
+  /**
+   * Maps a session's working folder to its project. Inside a folder the user added as one project,
+   * that project; inside a folder of projects, the project of its first-level folder; anywhere else
+   * the repo root (or the folder), hidden unless projects may be added on their own.
+   */
   resolveProject(cwd: string): string {
     const cached = this.projectIdCache.get(cwd);
     if (cached) return cached;
-    const root = existsSync(cwd) ? (gitRoot(cwd) ?? cwd) : cwd;
-    const existing = this.db.query("SELECT id FROM projects WHERE path = ?").get(root) as { id: string } | undefined;
-    let id = existing?.id;
-    if (!id) {
-      const remote = existsSync(root) ? gitRemote(root) : undefined;
-      const identity = remote ?? `path:${root}`;
-      id = createHash("sha1").update(identity).digest("hex").slice(0, 12);
-      this.db
-        .query(
-          `INSERT INTO projects (id, name, path, git_remote, identity, workspace, created_at)
-           VALUES (?, ?, ?, ?, ?, 'local', ?) ON CONFLICT(id) DO NOTHING`,
-        )
-        .run(id, basename(root) || root, root, remote ?? null, identity, Date.now());
+    const owner = this.addedFolderOf(cwd);
+    let id: string;
+    if (owner && (owner.added === ADDED.one || cwd === owner.path)) id = owner.id;
+    else if (owner) {
+      const child = join(owner.path, cwd.slice(owner.path.length + 1).split("/")[0] ?? "");
+      id = this.ensureProject(child, { hidden: false, added: ADDED.inside });
+    } else {
+      const root = existsSync(cwd) ? (gitRoot(cwd) ?? cwd) : cwd;
+      id = this.ensureProject(root, { hidden: !this.autoProjects() });
     }
     this.projectIdCache.set(cwd, id);
     return id;
+  }
+
+  /**
+   * The user adds a folder: as one project (its sessions, wherever inside, move to it and the
+   * projects found inside step aside) or as a folder of projects (each first-level folder is one).
+   */
+  addFolder(path: string, as: "one" | "folder" = "one"): string {
+    this.projectIdCache.clear();
+    return as === "folder" ? this.addProjectsFolder(path) : this.addOneProject(path);
+  }
+
+  private addProjectsFolder(path: string): string {
+    return this.db.transaction(() => {
+      const id = this.ensureProjectRow(path, { hidden: false, added: ADDED.folder });
+      // What was found directly inside becomes its projects.
+      this.db
+        .query(
+          `UPDATE projects SET added = ?, hidden = 0 WHERE added = 0 AND substr(path, 1, ?) = ? AND instr(substr(path, ?), '/') = 0`,
+        )
+        .run(ADDED.inside, path.length + 1, `${path}/`, path.length + 2);
+      return id;
+    })();
+  }
+
+  /** The folder becomes one project: its sessions move to it and what was found inside steps aside. */
+  private addOneProject(path: string): string {
+    const root = existsSync(path) ? (gitRoot(path) ?? path) : path;
+    const inside = `${root}/`;
+    return this.db.transaction(() => {
+      const id = this.ensureProjectRow(root, { hidden: false, added: ADDED.one });
+      // "root/" up to "root0" ('0' follows '/') is everything inside, as a range the cwd index can use.
+      this.db
+        .query(
+          `UPDATE sessions SET project_id = ? WHERE (cwd = ? OR (cwd >= ? AND cwd < ?))
+             AND (project_id IS NULL OR project_id NOT IN (SELECT id FROM projects WHERE added > 0 AND id != ?))`,
+        )
+        .run(id, root, inside, `${root}0`, id);
+      this.db
+        .query("UPDATE projects SET hidden = 1 WHERE added = 0 AND substr(path, 1, ?) = ?")
+        .run(inside.length, inside);
+      return id;
+    })();
+  }
+
+  /** Hides every project Igrek found on its own; the user's folders stay. Returns how many. */
+  hideFound(): number {
+    return this.db.query("UPDATE projects SET hidden = 1 WHERE added = 0 AND hidden = 0").run().changes;
   }
 
   /** "What happened today, everywhere" (plan.md 1.2b): sessions, commits and deploys since midnight. */
@@ -240,6 +344,7 @@ export class Store {
       activeSessions: sessions.filter((s) => isActive(s.updated_at ?? 0, now)).length,
       lastActivity: row.last_activity,
       hidden: !!row.hidden,
+      addedByHand: !!row.added,
       status: (row.status as ProjectListItem["status"]) ?? "active",
       hooksInstalled: !!row.hooks_installed,
       accountId: row.account_id ?? undefined,
@@ -819,10 +924,9 @@ export class Store {
 
   // ---- manual project management -----------------------------------------------
 
-  /** Adds a folder by hand (it doesn't need any AI sessions yet). */
+  /** Adds a folder by hand as one project (it doesn't need any AI sessions yet). */
   addProject(path: string): string {
-    this.projectIdCache.delete(path);
-    return this.resolveProject(path);
+    return this.addFolder(path, "one");
   }
 
   renameProject(id: string, name: string): void {

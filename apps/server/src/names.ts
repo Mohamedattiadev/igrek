@@ -12,6 +12,9 @@ import { basename, dirname, join } from "node:path";
 const OLD = "godeye";
 const NEW = "igrek";
 
+/** The global a plugin page talks to Igrek through; pages written before the rename use the old one. */
+export const PLUGIN_GLOBALS = [NEW, OLD] as const;
+
 /** IGREK_<name>, or the GODEYE_<name> an older setup still exports. */
 export function envValue(env: Record<string, string | undefined>, name: string): string | undefined {
   return env[`IGREK_${name}`] ?? env[`GODEYE_${name}`];

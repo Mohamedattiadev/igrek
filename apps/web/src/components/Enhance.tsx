@@ -17,7 +17,7 @@ import {
   ListChecks,
   LoaderCircle,
   MessagesSquare,
-  Sparkles,
+  PenLine,
   SquareTerminal,
   Users,
   X,
@@ -58,9 +58,9 @@ export function EnhanceHint({ text, onEnhance }: { text: string; onEnhance: () =
       type="button"
       onClick={onEnhance}
       data-tip={t("enhance.hintTip")}
-      className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[11px] text-accent hover:opacity-80"
+      className="inline-flex items-center gap-1 text-[11.5px] text-fg-subtle hover:text-fg"
     >
-      <Sparkles size={11} /> {t("enhance.hint")}
+      <PenLine size={11} /> {t("enhance.hint")}
     </button>
   );
 }
@@ -77,7 +77,7 @@ export function EnhanceButton({ onClick, disabled }: { onClick: () => void; disa
       data-tip-kbd="Ctrl ⇧ Enter"
       className="rounded-md p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-accent disabled:opacity-40"
     >
-      <Sparkles size={15} />
+      <PenLine size={15} />
     </button>
   );
 }
@@ -187,7 +187,7 @@ export function EnhancePanel({
       }}
     >
       <div className="flex items-center gap-2">
-        <Sparkles size={15} className="text-accent" />
+        <PenLine size={15} className="text-accent" />
         <h3 className="text-[13px] font-semibold">{t("enhance.title")}</h3>
         {refining ? (
           <span
@@ -207,7 +207,7 @@ export function EnhancePanel({
           <Button
             size="sm"
             variant="ghost"
-            icon={Sparkles}
+            icon={PenLine}
             onClick={() => {
               setResult(pendingAi);
               setPendingAi(undefined);
@@ -405,7 +405,7 @@ export function EnhancePanel({
             <Button
               size="sm"
               variant="primary"
-              icon={Sparkles}
+              icon={PenLine}
               onClick={() => use(draft !== undefined ? "edited" : "enhanced")}
               data-tip-kbd="Ctrl Enter"
             >
@@ -443,7 +443,7 @@ export function EnhanceDialog({
         {submitted === undefined ? (
           <div className="space-y-3">
             <h2 className="flex items-center gap-2 text-[14px] font-semibold">
-              <Sparkles size={15} className="text-accent" /> {t("enhance.title")}
+              <PenLine size={15} className="text-accent" /> {t("enhance.title")}
             </h2>
             <textarea
               autoFocus
@@ -462,7 +462,7 @@ export function EnhanceDialog({
             <div className="flex justify-end">
               <Button
                 variant="primary"
-                icon={Sparkles}
+                icon={PenLine}
                 disabled={!text.trim()}
                 onClick={() => setSubmitted(text.trim())}
               >

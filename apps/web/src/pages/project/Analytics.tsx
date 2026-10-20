@@ -1,5 +1,5 @@
 import type { AnalyticsSummary, DbConnection, DbTable } from "@igrek/core";
-import { ArrowDownRight, ArrowUpRight, BarChart3, Settings2, Sparkles } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, BarChart3, MessageSquare, Settings2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Card, field } from "../../components/ui";
@@ -151,7 +151,7 @@ export function AnalyticsPanel({ projectId }: { projectId: string }) {
           {t("analytics.signups")}
         </Button>
         {!empty && (
-          <Button variant="ghost" icon={Sparkles} onClick={() => setAsk(true)} data-tip={t("analytics.askTip")}>
+          <Button variant="ghost" icon={MessageSquare} onClick={() => setAsk(true)} data-tip={t("analytics.askTip")}>
             {t("analytics.ask")}
           </Button>
         )}

@@ -60,15 +60,18 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   });
 
   app.post("/api/projects", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as { path?: unknown };
+    const body = (await c.req.json().catch(() => ({}))) as { path?: unknown; as?: unknown };
     const path = typeof body.path === "string" ? body.path.trim().replace(/\/+$/, "") : "";
     if (!path.startsWith("/") || !existsSync(path) || !statSync(path).isDirectory()) {
       return c.json({ error: "Folder not found" }, 400);
     }
-    const id = store.addProject(path);
+    const id = store.addFolder(path, body.as === "folder" ? "folder" : "one");
     syncCommits();
     return c.json({ id });
   });
+
+  // "Only the folders I add": hides what Igrek found on its own (the hidden list keeps it).
+  app.post("/api/projects/hide-found", (c) => c.json({ hidden: store.hideFound() }));
 
   app.patch("/api/projects/:id", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as {

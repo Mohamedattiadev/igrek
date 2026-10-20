@@ -1,18 +1,33 @@
 import type { GitInfo, ProjectDetail } from "@igrek/core";
 import {
+  Activity,
   AlertTriangle,
+  AppWindow,
   ArrowLeft,
+  BookOpen,
   Brain,
   CheckCircle2,
   ChevronDown,
+  Code,
   EyeOff,
+  Gauge,
   GitBranch,
   GitCommitHorizontal,
+  GitPullRequest,
+  History,
+  Layers,
+  LayoutDashboard,
+  type LucideIcon,
   MessageSquarePlus,
+  MessagesSquare,
   Plug,
+  Puzzle,
   RefreshCw,
+  Settings2,
   SlidersHorizontal,
+  SquareKanban,
   Users,
+  UsersRound,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -60,8 +75,32 @@ const TABS = [
   "setup",
 ] as const;
 type Tab = (typeof TABS)[number];
-/** Shown as tabs; the rest sit under "More" so a new user sees six choices, not fifteen. */
-const MAIN_TABS: Tab[] = ["overview", "sessions", "experts", "code", "board", "monitor"];
+/** Shown as tabs; the rest sit under "More" so a new user sees a handful of choices, not fifteen. */
+const MAIN_TABS: Tab[] = ["overview", "sessions", "experts", "code", "board", "monitor", "sections"];
+
+/** One small icon per tab, so a tab is found by shape as well as by name. */
+const TAB_ICONS: Record<Tab, LucideIcon> = {
+  overview: LayoutDashboard,
+  board: SquareKanban,
+  preview: AppWindow,
+  sections: Gauge,
+  timeline: History,
+  sessions: MessagesSquare,
+  experts: UsersRound,
+  code: Code,
+  memory: Brain,
+  docs: BookOpen,
+  host: GitPullRequest,
+  environments: Layers,
+  monitor: Activity,
+  plugins: Puzzle,
+  setup: Settings2,
+};
+
+function TabIcon({ name }: { name: Tab }) {
+  const Icon = TAB_ICONS[name];
+  return <Icon size={14} strokeWidth={1.75} className="shrink-0" aria-hidden="true" />;
+}
 
 function tabLabel(t: (key: string) => string, name: Tab): string {
   return name === "code" ? t("code.tab") : t(`project.${name}`);
@@ -98,6 +137,7 @@ function MoreTabs({ tab, onPick }: { tab: Tab; onPick: (name: Tab) => void }) {
           current ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
         )}
       >
+        {current && <TabIcon name={current} />}
         {current ? tabLabel(t, current) : t("project.more")}
         <ChevronDown size={13} aria-hidden="true" className={cn("transition-transform", open && "rotate-180")} />
       </button>
@@ -120,7 +160,8 @@ function MoreTabs({ tab, onPick }: { tab: Tab; onPick: (name: Tab) => void }) {
                 tab === name ? "font-medium text-accent" : "text-fg",
               )}
             >
-              {tabLabel(t, name)}
+              <TabIcon name={name} />
+              <span className="ms-2">{tabLabel(t, name)}</span>
             </button>
           ))}
         </div>
@@ -587,10 +628,11 @@ export function ProjectPage() {
               type="button"
               onClick={() => setParams(name === "overview" ? {} : { tab: name })}
               className={cn(
-                "-mb-px shrink-0 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors",
+                "-mb-px flex shrink-0 items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] transition-colors",
                 tab === name ? "border-accent font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
               )}
             >
+              <TabIcon name={name} />
               {tabLabel(t, name)}
               {name === "sessions" && project && <span className="ms-1.5 text-fg-subtle">{project.sessionCount}</span>}
               {name === "memory" && project && (

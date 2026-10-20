@@ -11,9 +11,18 @@ export type LogUnit = { kind: "event"; event: ChatEvent } | { kind: "group"; id:
 /** The to-do list stays a card of its own: it is what the AI plans, not a step it took. */
 /** A chat consulting an expert persona: always its own card, even when tool steps are hidden. */
 export const EXPERT_TOOL = "mcp__igrek__igrek_ask_expert";
-const ALONE = new Set(["TodoWrite", EXPERT_TOOL]);
+/** Work handed to a subagent (an expert, or Claude Code's own): also its own card, never hidden. */
+export const DELEGATE_TOOLS = new Set(["Task", "Agent"]);
+const ALONE = new Set(["TodoWrite", EXPERT_TOOL, ...DELEGATE_TOOLS]);
+const SHOWN_IN_TEXT = new Set([EXPERT_TOOL, ...DELEGATE_TOOLS]);
 /** A question to the user is shown as its own card; the tool call behind it adds nothing. */
 const HIDDEN = new Set(["AskUserQuestion"]);
+
+/** Which subagent a hand-over went to ("architect"), if it named one. */
+export function delegatedTo(event: ToolEvent): string | undefined {
+  const type = (event.input as { subagent_type?: unknown } | undefined)?.subagent_type;
+  return typeof type === "string" ? type : undefined;
+}
 
 /** Runs of two or more tool calls in a row become one line; the rest stays as it is. */
 export function groupWork(events: ChatEvent[], level: DetailLevel): LogUnit[] {
@@ -36,7 +45,7 @@ export function groupWork(events: ChatEvent[], level: DetailLevel): LogUnit[] {
       continue;
     }
     flush();
-    if (level === "text" && ((event.kind === "tool" && event.name !== EXPERT_TOOL) || event.kind === "checkpoint"))
+    if (level === "text" && ((event.kind === "tool" && !SHOWN_IN_TEXT.has(event.name)) || event.kind === "checkpoint"))
       continue;
     units.push({ kind: "event", event });
   }

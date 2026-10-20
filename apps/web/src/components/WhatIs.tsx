@@ -1,5 +1,5 @@
 import type { LearnHit } from "@igrek/learn";
-import { BookOpen, Sparkles } from "lucide-react";
+import { BookOpen, Lightbulb } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -65,7 +65,7 @@ export function WhatIs() {
           {!answer && (
             <Button
               size="sm"
-              icon={Sparkles}
+              icon={Lightbulb}
               disabled={busy || !request}
               onClick={() => {
                 if (!request) return;

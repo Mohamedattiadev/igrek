@@ -43,6 +43,8 @@ export interface Settings {
   richAnswers: boolean;
   /** Chats may consult the expert personas in the background (each consultation is one model call). */
   consultExperts: boolean;
+  /** Every folder Claude works in becomes a project on its own; off, only the folders the user adds. */
+  autoProjects: boolean;
   /**
    * Gate point (plan.md 15.5): when a chat turn changed files, run the project's typecheck, lint
    * and tests. "check" shows what newly broke; "sendBack" also hands it to the AI to fix.
@@ -104,6 +106,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoSummarize: true,
   richAnswers: false,
   consultExperts: true,
+  autoProjects: false,
   turnGate: "off",
   summaryTone: "plain",
   allowedFolders: [],
@@ -331,6 +334,8 @@ export interface ProjectListItem {
   activeSessions: number;
   lastActivity: number;
   hidden: boolean;
+  /** The user added it (or a folder holding it); otherwise Igrek found it on its own. */
+  addedByHand: boolean;
   /** Active, on hold or archived (plan.md 13.2). Archived projects use no background resources. */
   status: "active" | "paused" | "archived";
   hooksInstalled: boolean;

@@ -1,5 +1,5 @@
 import type { TeamActivity } from "@igrek/core";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router";
@@ -52,7 +52,7 @@ export function PersonPage() {
               </p>
             </div>
             <Button
-              icon={Sparkles}
+              icon={FileText}
               disabled={busy || !week?.sessions.length}
               onClick={() => {
                 setBusy(true);
@@ -76,7 +76,7 @@ export function PersonPage() {
           </Card>
         )}
         {!week?.sessions.length && !week?.decisions.length && (
-          <EmptyState icon={Sparkles} title={t("person.quiet")} body={t("person.quietBody")} />
+          <EmptyState icon={FileText} title={t("person.quiet")} body={t("person.quietBody")} />
         )}
         {[...byProject.entries()].map(([project, sessions]) => (
           <Card key={project} className="p-pad">

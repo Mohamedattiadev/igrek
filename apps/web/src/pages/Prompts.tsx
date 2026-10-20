@@ -1,9 +1,9 @@
 import type { SavedPrompt } from "@igrek/core";
-import { BookMarked, Copy, MessageSquarePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Copy, MessageSquarePlus, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PromptUse } from "../components/PromptUse";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader } from "../components/ui";
+import { Badge, Button, Card, Dialog, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { duplicates, PROMPT_CATEGORIES, PROMPT_LIBRARY, variables } from "../lib/prompt-library";
@@ -139,7 +139,7 @@ export function PromptsPage() {
         <section className="space-y-3">
           <h2 className="text-[14px] font-semibold">{t("prompts.mine")}</h2>
           {visible.length === 0 ? (
-            <EmptyState icon={BookMarked} title={t("prompts.mine")} body={t("prompts.emptyMine")} />
+            <p className="text-[13px] text-fg-muted">{t("prompts.emptyMine")}</p>
           ) : (
             <>
               <div className="flex flex-wrap items-center gap-2">

@@ -1,4 +1,4 @@
-import { Hash, Plus, Sparkles } from "lucide-react";
+import { FileText, Hash, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
@@ -114,7 +114,7 @@ export function TeamChat() {
             <Button
               size="sm"
               variant="ghost"
-              icon={Sparkles}
+              icon={FileText}
               disabled={busy || !selected.messages}
               onClick={async () => {
                 setBusy(true);
