@@ -102,6 +102,7 @@ import {
 } from "./ops-routes";
 import { Perf } from "./perf";
 import { Experts, expertsHint } from "./persona-experts";
+import { TurnReviews } from "./persona-review";
 import { connectPersonaChats, registerExpertRoutes, registerPersonaRoutes } from "./persona-routes";
 import { Personas, personaLabel } from "./personas";
 import { Plugins } from "./plugins";
@@ -276,6 +277,17 @@ const meetings = new Meetings(
 );
 meetings.recover();
 const experts = new Experts(sqlite, personas, store, stops);
+// Turns that touch auth, payment or database code get the matching expert's review (when turned on).
+const reviews = new TurnReviews(
+  () => readSettings(db).autoReview,
+  chats,
+  (projectId, personaId, question) => experts.ask(projectId, personaId, question),
+);
+const gateTurnEnd = chats.onTurnEnd;
+chats.onTurnEnd = (id, cwd, edited) => {
+  gateTurnEnd(id, cwd, edited);
+  void reviews.turnEnded(id, edited).catch(() => undefined);
+};
 experts.onChange = (projectId) => bus.publish({ type: "experts-changed", projectId });
 const testers = new Testers(
   sqlite,

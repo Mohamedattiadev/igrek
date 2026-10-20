@@ -217,7 +217,9 @@
     "consultExperts": "Sohbette uzmanlara danış",
     "consultExpertsHint": "Claude çalışırken Igrek'in uzmanlarına (mimar, güvenlik, UI/UX...) arka planda sorabilir ve cevaplarını kullanır. Her soru ek bir model çağrısıdır.",
     "autoProjects": "Projeleri kendiliğinden ekle",
-    "autoProjectsHint": "Açık: Claude'un çalıştığı her klasör proje olur. Kapalı: sadece senin eklediğin klasörler; diğerleri projeler sayfasında 'Bulunan klasörler' altında bekler."
+    "autoProjectsHint": "Açık: Claude'un çalıştığı her klasör proje olur. Kapalı: sadece senin eklediğin klasörler; diğerleri projeler sayfasında 'Bulunan klasörler' altında bekler.",
+    "autoReview": "Hassas değişikliklere uzman incelemesi",
+    "autoReviewHint": "Bir sohbet turu giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) değişikliği okur ve notlarını sohbete bırakır. Sadece okur; hiçbir şeyi değiştirmez, AI'a da geri göndermez."
   },
   "onboarding": {
     "welcome": "Igrek'e hoş geldin",
@@ -985,7 +987,12 @@
     "expertWorking": "{{name}} üzerinde çalışıyor…",
     "expertDelegated": "{{name}} işin bir kısmını yaptı",
     "settings": "Ayarlar",
-    "settingsExpertHint": "Sadece ilk mesajdan önce: sohbet yazdığın metin korunarak bu uzmanla yeniden başlar."
+    "settingsExpertHint": "Sadece ilk mesajdan önce: sohbet yazdığın metin korunarak bu uzmanla yeniden başlar.",
+    "reviewing": "{{name}}, {{what}} değişikliğini inceliyor",
+    "reviewed": "{{name}}, {{what}} değişikliğini inceledi",
+    "review_auth": "giriş",
+    "review_payment": "ödeme",
+    "review_database": "veritabanı"
   },
   "checkpoint": {
     "title": "Kayıtlar",

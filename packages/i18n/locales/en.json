@@ -217,7 +217,9 @@
     "consultExperts": "Consult experts in chats",
     "consultExpertsHint": "While it works, Claude may ask Igrek's experts (architect, security, UI/UX...) in the background and use their answers. Each question is one extra model call.",
     "autoProjects": "Add projects on their own",
-    "autoProjectsHint": "On: every folder Claude works in becomes a project. Off: only the folders you add; the others wait under 'Found folders' on the projects page."
+    "autoProjectsHint": "On: every folder Claude works in becomes a project. Off: only the folders you add; the others wait under 'Found folders' on the projects page.",
+    "autoReview": "Expert review of sensitive changes",
+    "autoReviewHint": "When a chat turn changes login, payment or database code, the matching expert (security, back end, database) reads the change and leaves its notes in the chat. It only reads; nothing is changed or sent back to the AI."
   },
   "onboarding": {
     "welcome": "Welcome to Igrek",
@@ -985,7 +987,12 @@
     "expertWorking": "{{name}} is working on it…",
     "expertDelegated": "{{name}} did a part of the work",
     "settings": "Settings",
-    "settingsExpertHint": "Only before the first message: the chat starts again as this expert, keeping what you typed."
+    "settingsExpertHint": "Only before the first message: the chat starts again as this expert, keeping what you typed.",
+    "reviewing": "{{name}} is reviewing the {{what}} change",
+    "reviewed": "{{name}} reviewed the {{what}} change",
+    "review_auth": "login",
+    "review_payment": "payment",
+    "review_database": "database"
   },
   "checkpoint": {
     "title": "Snapshots",

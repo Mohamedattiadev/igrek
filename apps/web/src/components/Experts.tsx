@@ -21,6 +21,13 @@ function answerText(result: string | undefined): string {
  * A chat asked an expert in the background, or handed it a piece of work as a subagent
  * (`delegated`): who, what, and the answer (folded).
  */
+/** The card's title for each kind of call (asked, handed work, reviewing a turn) and its state. */
+const STATE_KEY = {
+  asked: { running: "expertAsking", failed: "expertFailed", done: "expertAsked" },
+  delegated: { running: "expertWorking", failed: "expertFailed", done: "expertDelegated" },
+  review: { running: "reviewing", failed: "expertFailed", done: "reviewed" },
+} as const;
+
 export function ExpertCard({ event, delegated }: { event: ToolEvent; delegated?: boolean }) {
   const { t } = useTranslation();
   const { personas } = usePersonas();
@@ -30,6 +37,8 @@ export function ExpertCard({ event, delegated }: { event: ToolEvent; delegated?:
     question?: string;
     subagent_type?: string;
     description?: string;
+    /** Set when Igrek asked the expert to review a turn's changes (auth, payment, database). */
+    review?: string[];
   };
   const input = delegated ? { expert: raw.subagent_type, question: raw.description } : raw;
   const persona = personas.find((p) => p.id === input.expert);
@@ -37,6 +46,7 @@ export function ExpertCard({ event, delegated }: { event: ToolEvent; delegated?:
   const [open, setOpen] = useState(false);
   const running = event.status === "running";
   const failed = event.status === "error";
+  const state = running ? "running" : failed ? "failed" : "done";
   return (
     <div className="rounded-2xl border border-border bg-bg-subtle">
       <button
@@ -48,11 +58,12 @@ export function ExpertCard({ event, delegated }: { event: ToolEvent; delegated?:
         <PersonaIcon persona={persona} size={12} className="size-6 rounded-full" />
         <span className="min-w-0 flex-1">
           <span className="block text-[12.5px] font-medium">
-            {running
-              ? t(delegated ? "chat.expertWorking" : "chat.expertAsking", { name })
-              : failed
-                ? t("chat.expertFailed", { name })
-                : t(delegated ? "chat.expertDelegated" : "chat.expertAsked", { name })}
+            {raw.review
+              ? t(`chat.${STATE_KEY.review[state]}`, {
+                  name,
+                  what: raw.review.map((topic) => t(`chat.review_${topic}`)).join(", "),
+                })
+              : t(`chat.${STATE_KEY[delegated ? "delegated" : "asked"][state]}`, { name })}
           </span>
           {input.question && <span className="block truncate text-[11.5px] text-fg-muted">{input.question}</span>}
         </span>

@@ -14,7 +14,7 @@ import {
   NetworkPanel,
   UpdatePanel,
 } from "../components/MaintenancePanels";
-import { Badge, Button, Card, PageHeader, Section, Segmented } from "../components/ui";
+import { Badge, Button, Card, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
 import { api } from "../lib/api";
 import { askNotificationPermission } from "../lib/notify";
 import { useSettings } from "../lib/settings";
@@ -111,6 +111,7 @@ function McpSetup() {
 
 export function SettingsPage() {
   const { t } = useTranslation();
+  const modelTip = useModelTip();
   const { settings, update } = useSettings();
 
   return (
@@ -230,6 +231,16 @@ export function SettingsPage() {
           <Segmented
             value={settings.consultExperts ? "on" : "off"}
             onChange={(value) => update({ consultExperts: value === "on" })}
+            options={[
+              { value: "on", label: t("settings.on") },
+              { value: "off", label: t("settings.off") },
+            ]}
+          />
+        </Section>
+        <Section title={t("settings.autoReview")} hint={modelTip(t("settings.autoReviewHint"))}>
+          <Segmented
+            value={settings.autoReview ? "on" : "off"}
+            onChange={(value) => update({ autoReview: value === "on" })}
             options={[
               { value: "on", label: t("settings.on") },
               { value: "off", label: t("settings.off") },
