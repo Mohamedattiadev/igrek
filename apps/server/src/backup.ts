@@ -41,7 +41,7 @@ const ITERATIONS = 310_000;
 const b64 = (bytes: Uint8Array) => Buffer.from(bytes).toString("base64");
 const unb64 = (text: string) => new Uint8Array(Buffer.from(text, "base64"));
 
-async function keyFrom(password: string, salt: Uint8Array): Promise<CryptoKey> {
+export async function keyFrom(password: string, salt: Uint8Array): Promise<CryptoKey> {
   const base = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
   return crypto.subtle.deriveKey(
     { name: "PBKDF2", salt: salt as unknown as BufferSource, iterations: ITERATIONS, hash: "SHA-256" },

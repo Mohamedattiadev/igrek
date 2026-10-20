@@ -353,6 +353,26 @@ export const api = {
     if (!res.ok) throw new Error(friendly(res.status, body.error));
     return body as { added: Record<string, number> };
   },
+  moveStatus: () => request<{ waiting: boolean }>("/api/move"),
+  exportMove: async (password: string) => {
+    const res = await fetch("/api/move/export", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) throw new Error(friendly(res.status, (await res.json().catch(() => ({}))).error));
+    return res.blob();
+  },
+  importMove: async (file: File, password: string) => {
+    const form = new FormData();
+    form.set("file", file);
+    form.set("password", password);
+    const res = await fetch("/api/move/import", { method: "POST", body: form, credentials: "same-origin" });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(friendly(res.status, body.error));
+    return body as { waiting: boolean };
+  },
   briefing: (refresh = false) => request<Briefing | null>(`/api/briefing${refresh ? "?refresh=1" : ""}`),
   preview: (projectId: string) =>
     request<{ server: DevServerInfo | null; plan: { script: string; framework: string; vite: boolean } | null }>(

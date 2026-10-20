@@ -85,6 +85,100 @@ export function BackupPanel() {
   );
 }
 
+/**
+ * Igrek to another computer in one file: download it here (locked with a password), open it there;
+ * it takes over after a restart, and the folder it replaces is kept.
+ */
+export function MovePanel() {
+  const { t } = useTranslation();
+  const [password, setPassword] = useState("");
+  const [note, setNote] = useState<string>();
+  const [busy, setBusy] = useState(false);
+  const [waiting, setWaiting] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    let current = true;
+    api
+      .moveStatus()
+      .then((s) => current && setWaiting(s.waiting))
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, []);
+  const act = async (fn: () => Promise<void>) => {
+    setBusy(true);
+    setNote(undefined);
+    try {
+      await fn();
+    } catch (err) {
+      setNote((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const short = password.length < 8;
+  return (
+    <div className="space-y-3">
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        placeholder={t("move.password")}
+        aria-label={t("move.password")}
+        className={field}
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          icon={Download}
+          disabled={busy || short}
+          onClick={() =>
+            void act(async () => {
+              const blob = await api.exportMove(password);
+              const a = document.createElement("a");
+              a.href = URL.createObjectURL(blob);
+              a.download = `igrek-move-${new Date().toISOString().slice(0, 10)}.igrek`;
+              a.click();
+              URL.revokeObjectURL(a.href);
+              setNote(t("move.saved"));
+            })
+          }
+        >
+          {t("move.export")}
+        </Button>
+        <Button variant="ghost" icon={Upload} disabled={busy || short} onClick={() => input.current?.click()}>
+          {t("move.import")}
+        </Button>
+        <input
+          ref={input}
+          type="file"
+          accept=".igrek"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file)
+              void act(async () => {
+                await api.importMove(file, password);
+                setWaiting(true);
+              });
+          }}
+        />
+      </div>
+      {short && <p className="text-[11.5px] text-fg-subtle">{t("move.passwordRule")}</p>}
+      {waiting && (
+        <div className="flex flex-wrap items-center gap-2 rounded-ui border border-warning bg-warning-soft px-2.5 py-1.5 text-[12.5px]">
+          <span className="min-w-0 flex-1">{t("move.waiting")}</span>
+          <Button size="sm" onClick={() => void act(async () => void (await api.restartApp()))}>
+            {t("move.restart")}
+          </Button>
+        </div>
+      )}
+      {note && <p className="text-xs text-fg-muted">{note}</p>}
+    </div>
+  );
+}
+
 /** New versions of Igrek, and updating in one click (plan.md 11). */
 export function UpdatePanel() {
   const { t } = useTranslation();

@@ -21,7 +21,20 @@ function needsOf(raw: unknown): ProjectNeeds | undefined {
 
 export function registerExtrasRoutes(
   app: Hono,
-  deps: { backups: Backups; updater: Updater; store: Store; flows: Flows; lessons: Lessons; library: Library },
+  deps: {
+    backups: Backups;
+    updater: Updater;
+    store: Store;
+    flows: Flows;
+    lessons: Lessons;
+    library: Library;
+    /** The whole data folder to another computer (backup-move.ts). */
+    move?: {
+      export: (password: string) => Promise<Uint8Array<ArrayBuffer>>;
+      stage: (file: Uint8Array, password: string) => Promise<void>;
+      waiting: () => boolean;
+    };
+  },
 ): void {
   const fail = (err: unknown) =>
     new Response(JSON.stringify({ error: (err as Error).message }), {
@@ -55,6 +68,39 @@ export function registerExtrasRoutes(
       );
       void deps.library.embedMissing();
       return c.json({ added });
+    } catch (err) {
+      return fail(err);
+    }
+  });
+
+  // ---- moving to another computer ---------------------------------------------------
+  app.get("/api/move", (c) => c.json({ waiting: deps.move?.waiting() ?? false }));
+  app.post("/api/move/export", async (c) => {
+    if (!deps.move) return c.json({ error: "Not available" }, 404);
+    const body = (await c.req.json().catch(() => ({}))) as { password?: unknown };
+    try {
+      const file = await deps.move.export(typeof body.password === "string" ? body.password : "");
+      const day = new Date().toISOString().slice(0, 10);
+      return new Response(file, {
+        headers: {
+          "content-type": "application/octet-stream",
+          "content-disposition": `attachment; filename="igrek-move-${day}.igrek"`,
+        },
+      });
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.post("/api/move/import", async (c) => {
+    if (!deps.move) return c.json({ error: "Not available" }, 404);
+    try {
+      const body = await c.req.parseBody();
+      if (!(body.file instanceof File)) throw new Error("No file");
+      await deps.move.stage(
+        new Uint8Array(await body.file.arrayBuffer()),
+        typeof body.password === "string" ? body.password : "",
+      );
+      return c.json({ waiting: true });
     } catch (err) {
       return fail(err);
     }

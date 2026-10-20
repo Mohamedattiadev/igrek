@@ -4417,5 +4417,16 @@
     "added": "A new file: it did not exist before the chat.",
     "deleted": "The chat removed this file.",
     "binary": "Not a text file, so there is no line-by-line view."
+  },
+  "move": {
+    "title": "Move to another computer",
+    "hint": "Everything Igrek keeps (projects, chats' history, memory, library, experts, settings) in one file locked with a password. Open it in Igrek on the other computer and restart; the folder it replaces is kept. AI logins are not in it: log in again there. Projects whose folders sit elsewhere on the new computer are added again on the Projects page.",
+    "password": "Password for the file (at least 8 characters)",
+    "passwordRule": "The file holds your database and keys, so it is always locked: choose a password of at least 8 characters, and use the same one to open it.",
+    "export": "Download the move file",
+    "import": "Open a move file",
+    "saved": "Move file downloaded. Copy it to the other computer and open it there.",
+    "waiting": "The moved-in data is ready; it takes over when Igrek restarts.",
+    "restart": "Restart now"
   }
 }

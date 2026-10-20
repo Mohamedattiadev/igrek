@@ -11,6 +11,7 @@ import {
   DiskPanel,
   LocalModelPanel,
   McpServersPanel,
+  MovePanel,
   NetworkPanel,
   UpdatePanel,
 } from "../components/MaintenancePanels";
@@ -307,6 +308,9 @@ export function SettingsPage() {
         </Section>
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />
+        </Section>
+        <Section title={t("move.title")} hint={t("move.hint")}>
+          <MovePanel />
         </Section>
         <Section title={t("disk.title")} hint={t("disk.hint")}>
           <DiskPanel />

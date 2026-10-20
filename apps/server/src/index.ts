@@ -22,6 +22,7 @@ import { Assist } from "./assist";
 import { registerAssistRoutes } from "./assist-routes";
 import { Backups } from "./backup";
 import { BackupJobs } from "./backup-jobs";
+import { applyMovedIn, exportDataFolder, movedInWaiting, stageDataFolder } from "./backup-move";
 import { Board } from "./board";
 import { Bridges } from "./bridges";
 import { Briefings } from "./briefing";
@@ -147,6 +148,9 @@ process.umask(0o077);
 watchFetch();
 const startedAt = Date.now();
 const config = loadConfig();
+// A data folder brought from another computer replaces this one before the database opens.
+const movedIn = applyMovedIn(config.dataDir);
+if (movedIn) console.log(`Igrek: moved-in data in place; the previous folder is kept at ${movedIn}`);
 const { db, sqlite } = openDb(config.dataDir);
 // Paths stored before the data folder moved (the rename to Igrek, or a manual move) point at it again.
 const movedFrom = relocateStoredPaths(sqlite, config.dataDir);
@@ -693,7 +697,19 @@ const app = createApp({
     });
     registerScheduleRoutes(hono, { schedules, store });
     registerPreviewRoutes(hono, { devServers, stops });
-    registerExtrasRoutes(hono, { backups: new Backups(sqlite), updater, store, flows, lessons, library });
+    registerExtrasRoutes(hono, {
+      backups: new Backups(sqlite),
+      updater,
+      store,
+      flows,
+      lessons,
+      library,
+      move: {
+        export: (password) => exportDataFolder(config.dataDir, sqlite, password),
+        stage: (file, password) => stageDataFolder(config.dataDir, file, password),
+        waiting: () => movedInWaiting(config.dataDir),
+      },
+    });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerMcpRoutes(hono, mcpServers);

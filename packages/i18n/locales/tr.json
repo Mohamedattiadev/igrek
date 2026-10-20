@@ -4417,5 +4417,16 @@
     "added": "Yeni bir dosya: sohbetten önce yoktu.",
     "deleted": "Sohbet bu dosyayı sildi.",
     "binary": "Metin dosyası değil, bu yüzden satır satır görünüm yok."
+  },
+  "move": {
+    "title": "Başka bilgisayara taşı",
+    "hint": "Igrek'in tuttuğu her şey (projeler, sohbet geçmişi, hafıza, kütüphane, uzmanlar, ayarlar) şifreyle kilitli tek bir dosyada. Diğer bilgisayarda Igrek'te bu dosyayı aç ve yeniden başlat; yerine geçtiği klasör silinmez, saklanır. AI girişleri dosyada yoktur: orada yeniden giriş yap. Klasörleri yeni bilgisayarda başka yerde duran projeleri Projeler sayfasından yeniden eklersin.",
+    "password": "Dosyanın şifresi (en az 8 karakter)",
+    "passwordRule": "Dosya veritabanını ve anahtarlarını içerir, bu yüzden hep kilitlidir: en az 8 karakterlik bir şifre seç ve açarken de aynısını kullan.",
+    "export": "Taşıma dosyasını indir",
+    "import": "Taşıma dosyasını aç",
+    "saved": "Taşıma dosyası indirildi. Onu diğer bilgisayara kopyala ve orada aç.",
+    "waiting": "Taşınan veriler hazır; Igrek yeniden başlayınca devreye girer.",
+    "restart": "Şimdi yeniden başlat"
   }
 }
