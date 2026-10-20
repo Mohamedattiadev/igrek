@@ -102,10 +102,13 @@ describe.skipIf(!ready)("the app in a browser", () => {
     return { page, ctx, errors };
   }
 
-  test("before setup is done, the welcome screen comes first", async () => {
+  test("before setup is done, the welcome screen comes first, then the project folders", async () => {
     expect((await settings({ onboarded: false })).status).toBe(200);
     const { page, ctx } = await open("light", "/");
     await page.getByRole("heading", { name: "Welcome to Igrek" }).waitFor();
+    // Projects are only the folders the user adds, so the next step asks for one.
+    await page.getByRole("button", { name: "Continue" }).click();
+    await page.getByRole("heading", { name: "Where are your projects?" }).waitFor();
     await ctx.close();
     await settings({ onboarded: true });
   }, 30_000);

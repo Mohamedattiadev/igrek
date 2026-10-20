@@ -228,7 +228,14 @@
     "continue": "Devam",
     "readyTitle": "Her şey hazır",
     "readyBody": "Igrek sadece senin bilgisayarında çalışır. Sen paylaşmaya karar vermedikçe hiçbir şey dışarı çıkmaz.",
-    "start": "Başla"
+    "start": "Başla",
+    "projectsTitle": "Projelerin nerede?",
+    "projectsBody": "Bir projenin klasörünü ya da birkaç projeyi içeren bir klasörü yaz. Igrek sadece burada eklediğin klasörleri gösterir; daha sonra Projeler sayfasından yenilerini ekleyebilirsin.",
+    "projectsFound": "Claude'un daha önce çalıştığı klasörler",
+    "projectsAdded_one": "{{count}} proje eklendi",
+    "projectsAdded_other": "{{count}} proje eklendi",
+    "projectsAuto": "Claude'un çalıştığı her klasörü ekle",
+    "projectsAutoTip": "Claude Code'un çalıştığı her klasör kendiliğinden proje olur. Bunu Ayarlar'dan kapatabilirsin."
   },
   "help": {
     "button": "Yardım",

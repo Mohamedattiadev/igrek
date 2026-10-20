@@ -1193,6 +1193,7 @@ god-eye/
 - [x] Sohbet başlığında "bu tur ne yedi": limitten yüzde kaç (plan bildirdiyse), yoksa token; ipucunda bütün sohbet ve API fiyatıyla karşılığı — *turun kendi `usage`'ı; maliyet Claude Code'un süreç boyunca biriken `total_cost_usd`'sinden fark olarak; limit payı turun başı ve sonundaki 5 saatlik doluluktan*
 - [x] Değişen dosyalar paneli: sohbet çalışırken değişen dosyalar kutunun üstünde, tıklayınca fark, tek tıkla dosyayı sohbetten önceki hâline döndürme — *ilk mesajdan önceki checkpoint'e göre, komutların yaptığı değişiklikler de sayılır; geri almadan önce o anki hâl kaydedilir*
 - [x] Otomatik uzman incelemesi: bir tur giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) farkı okur, notu sohbette kartı olarak çıkar — *Ayarlar'dan, varsayılan kapalı (her inceleme bir model çağrısı); dosya adlarına bakılır, stil/metin dosyaları sayılmaz; uzmanın kendi sohbeti incelenmez*
+- [x] İlk açılışta dilden hemen sonra proje klasörü seçilir (autoProjects kapalı olduğu için şart) — *"Tek proje" ya da "Proje klasörü"; Claude'un çalıştığı klasörler tek tıkla eklenir; ya da "Claude'un çalıştığı her klasörü ekle"; en az bir proje olmadan devam edilmez*
 
 **Bitti sayılır:** Uzun bir Claude cevabı akarken sayfa takılmıyor, araç çağrıları tek satırlık özetlerle görünüyor, ajan çalışırken yazılan mesaj kuyrukta bekliyor, haftalık rapor OpenUI ile grafik ve butonlarla geliyor ve kurulumda hiçbir dış adrese istek gitmediği testle gösteriliyor.
 

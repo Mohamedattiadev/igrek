@@ -14,6 +14,7 @@ import {
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
+import { AddProjectForm } from "../components/AddProjectForm";
 import { BriefingCard } from "../components/BriefingCard";
 import { FocusBanner } from "../components/FocusBanner";
 import { HomeComposer } from "../components/HomeComposer";
@@ -116,20 +117,6 @@ function AddProject() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [path, setPath] = useState("");
-  const [as, setAs] = useState<"one" | "folder">("one");
-  const [error, setError] = useState<string>();
-  const add = async () => {
-    setError(undefined);
-    try {
-      const { id } = await api.addProject(path.trim(), as);
-      setOpen(false);
-      // A folder of projects lands back on the list, where its projects now show.
-      void navigate(as === "one" ? `/p/${id}` : "/");
-    } catch (err) {
-      setError((err as Error).message);
-    }
-  };
   return (
     <>
       <Button size="sm" variant="ghost" icon={FolderPlus} onClick={() => setOpen(true)}>
@@ -138,30 +125,19 @@ function AddProject() {
       <Dialog open={open} onClose={() => setOpen(false)} label={t("projects.addTitle")}>
         <div className="space-y-3 p-5">
           <h2 className="text-[15px] font-semibold">{t("projects.addTitle")}</h2>
-          <input
-            value={path}
-            onChange={(e) => setPath(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && add()}
-            placeholder={t("projects.addHint")}
+          <AddProjectForm
             autoFocus
-            className="h-9 w-full rounded-ui border border-border bg-bg px-3 font-mono text-[13px] outline-none focus:border-accent"
+            onAdded={(id, as) => {
+              setOpen(false);
+              // A folder of projects lands back on the list, where its projects now show.
+              void navigate(as === "one" ? `/p/${id}` : "/");
+            }}
+            actions={
+              <Button variant="ghost" onClick={() => setOpen(false)}>
+                {t("memory.cancel")}
+              </Button>
+            }
           />
-          <Segmented
-            label={t("projects.addAs")}
-            value={as}
-            onChange={setAs}
-            options={(["one", "folder"] as const).map((value) => ({ value, label: t(`projects.addAs_${value}`) }))}
-          />
-          <p className="text-[12px] text-fg-muted">{t(`projects.addAsHint_${as}`)}</p>
-          {error && <p className="text-xs text-danger">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              {t("memory.cancel")}
-            </Button>
-            <Button variant="primary" onClick={add} disabled={!path.trim()}>
-              {t("projects.addAction")}
-            </Button>
-          </div>
         </div>
       </Dialog>
     </>

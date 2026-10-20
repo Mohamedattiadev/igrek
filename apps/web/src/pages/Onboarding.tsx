@@ -1,17 +1,93 @@
-import { ArrowRight, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import type { ProjectListItem } from "@igrek/core";
+import { ArrowRight, Check, FolderPlus, ShieldCheck } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AddProjectForm } from "../components/AddProjectForm";
 import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { Button } from "../components/ui";
+import { api } from "../lib/api";
 import { isBundled } from "../lib/i18n";
 import { useSettings } from "../lib/settings";
 import { queueTour } from "../lib/tour";
 
 /**
- * First-run wizard. Step 1 is always the language (plan.md 7.4); AI tools,
- * accounts and project folders join as their phases land.
+ * Projects are only the folders the user adds (autoProjects is off by default), so the first run
+ * asks for one right after the language: without it Igrek has nothing to show. Folders Igrek saw
+ * Claude work in are offered with one click; letting Igrek add every such folder is the other way.
  */
+function ProjectStep({ onDone }: { onDone: () => void }) {
+  const { t } = useTranslation();
+  const { update } = useSettings();
+  const [projects, setProjects] = useState<ProjectListItem[]>([]);
+  const load = useCallback(() => {
+    let current = true;
+    api
+      .projects()
+      .then((list) => current && setProjects(list))
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, []);
+  useEffect(load, [load]);
+  const added = projects.filter((p) => !p.hidden);
+  const found = projects
+    .filter((p) => p.hidden)
+    .sort((a, b) => b.lastActivity - a.lastActivity)
+    .slice(0, 5);
+  const add = (path: string) =>
+    void api
+      .addProject(path)
+      .then(load)
+      .catch(() => undefined);
+  return (
+    <>
+      <h1 className="text-[18px] font-semibold">{t("onboarding.projectsTitle")}</h1>
+      <p className="mt-1 mb-4 text-[13px] leading-relaxed text-fg-muted">{t("onboarding.projectsBody")}</p>
+      <AddProjectForm autoFocus onAdded={load} />
+      {found.length > 0 && (
+        <div className="mt-4">
+          <p className="mb-1.5 text-[12px] font-medium text-fg-muted">{t("onboarding.projectsFound")}</p>
+          <ul className="space-y-1">
+            {found.map((p) => (
+              <li key={p.id} className="flex items-center gap-2 rounded-ui border border-border px-2.5 py-1.5">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-medium">{p.name}</span>
+                  <span className="block truncate font-mono text-[11px] text-fg-subtle">{p.path}</span>
+                </span>
+                <Button size="sm" icon={FolderPlus} onClick={() => add(p.path)}>
+                  {t("projects.addAction")}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {added.length > 0 && (
+        <p className="mt-4 flex items-center gap-1.5 text-[12.5px] text-success">
+          <Check size={14} aria-hidden="true" />
+          {t("onboarding.projectsAdded", { count: added.length })}
+        </p>
+      )}
+      <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+        <Button
+          variant="ghost"
+          onClick={() => void update({ autoProjects: true }).then(onDone)}
+          data-tip={t("onboarding.projectsAutoTip")}
+        >
+          {t("onboarding.projectsAuto")}
+        </Button>
+        <Button variant="primary" disabled={added.length === 0} onClick={onDone}>
+          {t("onboarding.continue")}
+          <ArrowRight size={14} className="rtl:rotate-180" />
+        </Button>
+      </div>
+    </>
+  );
+}
+
+/** First-run wizard: the language (plan.md 7.4), then the project folders, then a word on privacy. */
 export function Onboarding() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
@@ -22,7 +98,7 @@ export function Onboarding() {
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="w-full max-w-md rounded-xl border border-border bg-bg p-6 shadow-ui">
           <div className="mb-6 flex items-center gap-2">
-            {[0, 1].map((i) => (
+            {[0, 1, 2].map((i) => (
               <span key={i} className={`h-1 flex-1 rounded-full ${i <= step ? "bg-accent" : "bg-bg-muted"}`} />
             ))}
           </div>
@@ -40,6 +116,8 @@ export function Onboarding() {
                 </Button>
               </div>
             </>
+          ) : step === 1 ? (
+            <ProjectStep onDone={() => setStep(2)} />
           ) : (
             <>
               <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-success-soft text-success">

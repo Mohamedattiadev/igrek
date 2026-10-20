@@ -228,7 +228,14 @@
     "continue": "Continue",
     "readyTitle": "You're all set",
     "readyBody": "Igrek runs only on your computer. Nothing leaves it unless you decide to share.",
-    "start": "Start"
+    "start": "Start",
+    "projectsTitle": "Where are your projects?",
+    "projectsBody": "Give the folder of a project, or a folder that holds several. Igrek only shows the folders you add here; you can add more later on the Projects page.",
+    "projectsFound": "Folders where Claude has already worked",
+    "projectsAdded_one": "{{count}} project added",
+    "projectsAdded_other": "{{count}} projects added",
+    "projectsAuto": "Add every folder Claude works in",
+    "projectsAutoTip": "Every folder Claude Code works in becomes a project by itself. You can turn this off in Settings."
   },
   "help": {
     "button": "Help",
