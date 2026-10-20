@@ -6,6 +6,7 @@ import { reportUiHint } from "@igrek/genui";
 import { languages } from "@igrek/i18n";
 import JSZip from "jszip";
 import type { Docs } from "./docs";
+import { findBrowser } from "./env";
 import type { Flows } from "./flows";
 import type { Store } from "./store";
 import { unfence, type Writeups } from "./writeups";
@@ -130,11 +131,7 @@ const a=document.createElement("a");a.href=p.file;a.textContent=p.title+(i>=0?" 
     const u = new URL(url);
     if (!["http:", "https:"].includes(u.protocol)) throw new Error("Give an http(s) address");
     const { chromium } = await import("playwright-core");
-    const executablePath = ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome"].find((p) =>
-      existsSync(p),
-    );
-    if (!executablePath) throw new Error("Chromium or Google Chrome is needed for screenshots");
-    const browser = await chromium.launch({ executablePath });
+    const browser = await chromium.launch({ executablePath: findBrowser() });
     const names: string[] = [];
     try {
       for (const [kind, viewport] of [

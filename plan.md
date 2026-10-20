@@ -1212,6 +1212,7 @@ god-eye/
 - [ ] Tauri'nin kendi anahtarıyla imzalanan otomatik güncelleme (işletim sistemi sertifikası gerekmez)
 - [ ] İmzasız kurulumda ilk açılış adımları kurulum sayfasında anlatılır (Windows: "Ek bilgi > Yine de çalıştır", macOS: "Gizlilik ve Güvenlik > Yine de Aç")
 - [ ] Claude Code ve Codex uygulamaya gömülmez; kurulu değilse ilk açılışta nasıl kurulacağı gösterilir
+- [ ] Docker'sız çalıştırmada kalan Linux'a özgü yerler — *Ekim 2026'da yapılanlar: tarayıcı Linux, macOS ve Windows'ta bilinen yerlerde aranır (Chrome, Chromium, Edge; IGREK_BROWSER ile seçilir), yoksa ne yapılacağı söylenir; akışların kabuk adımları Windows'ta Git for Windows'un bash'iyle çalışır, yoksa açık hata verir; yeniden başlatma kabuk kullanmaz. Kalanlar: gömülü terminal Windows'ta (PTY), Claude Code'un sandbox'ı Windows'ta yok, kancalar (hooks) sh betiği*
 
 **Bitti sayılır:** Üç işletim sisteminde indirilen paket kurulup açılıyor, Igrek tarayıcı açmadan kendi penceresinde çalışıyor, kapatınca arkada süreç kalmıyor.
 

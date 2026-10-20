@@ -12,7 +12,7 @@ import {
 } from "@igrek/core";
 import { parse as parseYaml } from "yaml";
 import type { Bus, StopRegistry } from "./bus";
-import { cleanEnv } from "./env";
+import { cleanEnv, shellCommand } from "./env";
 import { BUILTIN_FLOWS } from "./flows-builtin";
 import { SHIP_ASK_RULES } from "./guards";
 import { runChecks } from "./insight/tools";
@@ -670,7 +670,7 @@ export class Flows {
         verdict = results.length && !failed.length ? "pass" : failed.length ? "fail" : undefined;
         if (failed.length) throw Object.assign(new Error(output), { gate: true });
       } else if (node.bash) {
-        const p = Bun.spawn(["sh", "-c", this.fill(node.bash, run, node.id)], {
+        const p = Bun.spawn(shellCommand(this.fill(node.bash, run, node.id)), {
           cwd,
           stdout: "pipe",
           stderr: "pipe",

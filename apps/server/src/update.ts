@@ -98,12 +98,16 @@ export class Updater {
     return { ok: true, log: log.join("\n\n") };
   }
 
-  /** Starts a fresh Igrek that waits a moment for this one to let go of the port, then this one exits. */
+  /**
+   * Starts a fresh Igrek that waits a moment for this one to let go of the port (and the data
+   * folder), then this one exits. The wait is the new process's own (IGREK_START_DELAY_MS), so
+   * no shell is needed and it works the same on Linux, macOS and Windows.
+   */
   restart(): void {
     const entry = join(ROOT, "apps", "server", "src", "index.ts");
-    Bun.spawn(["sh", "-c", `sleep 2; exec "${process.execPath}" "${entry}"`], {
+    Bun.spawn([process.execPath, entry], {
       cwd: ROOT,
-      env: process.env,
+      env: { ...process.env, IGREK_START_DELAY_MS: "2000" },
       stdin: "ignore",
       stdout: "inherit",
       stderr: "inherit",

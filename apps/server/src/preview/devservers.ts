@@ -4,7 +4,7 @@ import type { DevServerInfo, PickedElement, QuickEdit, VisualCheck } from "@igre
 import type { Server, ServerWebSocket } from "bun";
 import type { Bus, StopRegistry } from "../bus";
 import { createCheckpoint } from "../checkpoints";
-import { cleanEnv } from "../env";
+import { cleanEnv, findBrowser } from "../env";
 import type { Personas } from "../personas";
 import type { Store } from "../store";
 
@@ -371,11 +371,7 @@ export class DevServers {
 
   private async browser() {
     const { chromium } = await import("playwright-core");
-    const executablePath = ["/usr/bin/chromium", "/usr/bin/chromium-browser", "/usr/bin/google-chrome"].find((p) =>
-      existsSync(p),
-    );
-    if (!executablePath) throw new Error("Chromium or Google Chrome is needed for screenshots");
-    return chromium.launch({ executablePath });
+    return chromium.launch({ executablePath: findBrowser() });
   }
 
   /** A picture of one element (or the page), saved for the panel; returns its name. */

@@ -141,6 +141,11 @@ import { registerWatcherRoutes } from "./watcher-routes";
 import { DependencyWatcher, SecretScanner } from "./watchers";
 import { Writeups } from "./writeups";
 
+// A restart from inside Igrek waits here until the old process has let go of the port and the data.
+const startDelay = Number(process.env.IGREK_START_DELAY_MS ?? 0);
+if (startDelay > 0) await Bun.sleep(Math.min(startDelay, 10_000));
+delete process.env.IGREK_START_DELAY_MS;
+
 // Everything Igrek writes (database, keys) is readable only by you.
 process.umask(0o077);
 
