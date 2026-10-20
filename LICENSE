@@ -1,25 +1,63 @@
-Copyright (c) 2026 Mohamed Attia. All rights reserved.
+Igrek Use License 1.0
 
-This software and everything in this repository that Mohamed Attia wrote (source code, documentation,
-interface texts, designs, logos and other material; together "the Software") is proprietary and confidential.
+Copyright (c) 2026 Mohamed Attia. All rights reserved except the ones this license gives.
 
-No license is granted. Without the prior, express, written permission of Mohamed Attia, no one may:
+This license covers the software in this repository and everything in it that Mohamed Attia wrote:
+source code, documentation, interface texts, designs, the Igrek name and logo, and other material
+(together "the Software"). The Software is source-available. It is not open source.
 
-  - use, run or install the Software;
-  - copy or reproduce it, in whole or in part;
-  - modify it, translate it or make works based on it;
-  - distribute, publish, sublicense or otherwise make it available to anyone;
-  - sell, rent, lease or otherwise use it for commercial purposes.
+1. What you may do
 
-Having access to this repository, or a copy of the Software, does not give any of these rights. Any
-permission must be given in writing and only covers what it names.
+   You may, free of charge, for any purpose, including at work and inside a company:
 
-Third-party components (for example the packages the Software depends on, and material from other
-projects that is credited where it is used) are not covered by this notice. They remain under their own
-licenses and with their own owners.
+   a. download the Software from its official source (github.com/Mohamedattiadev/igrek, or a place
+      named there), install it and run it on computers you or your organization use;
+   b. read the source code, to learn how it works, to check its security, or to report problems;
+   c. change your own installed copy for your own use, as long as you do not share the changed copy;
+   d. make backups of your installed copy.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE
-AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR ITS USE.
+2. What you may not do
 
-For permission requests: Mohamed Attia, mohamedattia.dev@gmail.com
+   Without the prior, express, written permission of Mohamed Attia, you may not:
+
+   a. copy the Software, or any part of it, into another product, project or service, whether it is
+      free or paid, open or closed;
+   b. distribute, publish, sublicense, sell, rent or lend the Software or a copy of it, changed or not,
+      including uploading it to a package registry, an app store, a container registry or a mirror;
+      pointing people to the official source is always allowed;
+   c. publish or distribute a changed version ("fork") or a work based on the Software, except a fork
+      on GitHub kept only to send changes back as described in CONTRIBUTING.md;
+   d. offer the Software, or what it does, to others as a hosted or managed service;
+   e. remove or change copyright notices, this license, or the attribution in the Software;
+   f. use the Igrek name or logo, or a name or logo that could be confused with them, for another
+      product, service, project or company, or in a way that suggests Mohamed Attia endorses you;
+   g. use the Software, its code or its texts to train or tune a machine learning model, or to build
+      a dataset for that purpose.
+
+3. Third-party parts
+
+   Third-party components (for example the packages the Software depends on, and material from other
+   projects that is credited where it is used) are not covered by this license. They stay under their
+   own licenses and with their own owners.
+
+4. Contributions
+
+   What you send to the project (issues, pull requests, ideas) is covered by CONTRIBUTING.md. A pull
+   request is only accepted with the grant described there.
+
+5. Ending
+
+   If you break this license, your rights under it end at once. They come back if you stop within 30
+   days of being told and it was the first time. Copies made under a broken license must be deleted.
+
+6. No warranty, no liability
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHOR
+   BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+   SOFTWARE OR ITS USE.
+
+7. Other permissions
+
+   Anything this license does not allow needs written permission. Ask: Mohamed Attia,
+   mohamedattia.dev@gmail.com. A permission only covers what it names.

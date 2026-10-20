@@ -2,7 +2,7 @@
   "name": "@igrek/server",
   "version": "0.1.0",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",

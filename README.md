@@ -68,7 +68,7 @@ Docker gerekmez; Igrek doğrudan bilgisayarında çalışır.
 4. Igrek'i indir ve başlat:
 
 ```bash
-git clone <bu repo> igrek && cd igrek
+git clone https://github.com/Mohamedattiadev/igrek.git igrek && cd igrek
 bun install
 bun run build      # arayüzü derler
 bun run start      # http://localhost:7777
@@ -180,7 +180,7 @@ No Docker needed; Igrek runs directly on your computer.
 4. Get Igrek and start it:
 
 ```bash
-git clone <this repo> igrek && cd igrek
+git clone https://github.com/Mohamedattiadev/igrek.git igrek && cd igrek
 bun install
 bun run build      # build the web UI
 bun run start      # http://localhost:7777
@@ -235,10 +235,14 @@ If you like, the hub can also **email** invite codes and "forgot password" codes
 
 ## Lisans / License
 
-**Tüm hakları saklıdır.** © 2026 Mohamed Attia. Igrek açık kaynak değildir. Mohamed Attia'nın önceden verdiği açık,
-yazılı izin olmadan kullanılamaz, kopyalanamaz, değiştirilemez, dağıtılamaz ve satılamaz. Başka projelerden gelen
-bileşenler kendi lisanslarıyla kalır. Ayrıntılar: [LICENSE](LICENSE).
+**Kaynağı açık, açık kaynak değil.** © 2026 Mohamed Attia. Igrek'i herkes (şirketler dahil) ücretsiz kurup
+kullanabilir ve kodunu okuyabilir. Kodu başka bir ürüne koymak, kopyasını dağıtmak ya da satmak, değiştirilmiş
+sürüm yayınlamak, servis olarak sunmak, Igrek adını ve logosunu kullanmak ve kodla yapay zekâ eğitmek yazılı izin
+olmadan yasaktır. Başka projelerden gelen bileşenler kendi lisanslarıyla kalır. Ayrıntılar: [LICENSE](LICENSE),
+katkı kuralları: [CONTRIBUTING.md](CONTRIBUTING.md), güvenlik: [SECURITY.md](SECURITY.md).
 
-**All rights reserved.** © 2026 Mohamed Attia. Igrek is not open source. It may not be used, copied, modified,
-distributed or sold without Mohamed Attia's prior, express, written permission. Components from other projects keep
-their own licenses. Details: [LICENSE](LICENSE).
+**Source-available, not open source.** © 2026 Mohamed Attia. Anyone, companies included, may install and use Igrek
+for free and read its code. Copying it into another product, distributing or selling copies, publishing changed
+versions, offering it as a service, using the Igrek name and logo, and training AI on the code need written
+permission. Components from other projects keep their own licenses. Details: [LICENSE](LICENSE), contributing:
+[CONTRIBUTING.md](CONTRIBUTING.md), security: [SECURITY.md](SECURITY.md).
