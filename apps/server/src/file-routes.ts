@@ -3,7 +3,7 @@ import { basename, extname, join } from "node:path";
 import type { Hono } from "hono";
 import { gitBlame, gitBranches, gitChanges, gitCommit, gitShowHead, gitSwitch, gitWorktrees } from "./adapters/git";
 import { checkpointChanges, createCheckpoint, listCheckpoints, restoreCheckpoint } from "./checkpoints";
-import { FileAccessError, type Files } from "./files";
+import { FileAccessError, type Files, folderNames } from "./files";
 import type { Store } from "./store";
 
 const MIME: Record<string, string> = {
@@ -58,6 +58,7 @@ export function registerFileRoutes(
     busy?: (projectId: string) => boolean;
   },
 ): void {
+  app.get("/api/fs/folders", (c) => guard(c, () => folderNames(c.req.query("path"))));
   app.get("/api/fs/list", (c) => guard(c, () => files.list(c.req.query("path") ?? "", c.req.query("hidden") === "1")));
   app.get("/api/fs/read", (c) => guard(c, () => files.read(c.req.query("path") ?? "")));
   // The end of a (possibly huge) log file, for live following.

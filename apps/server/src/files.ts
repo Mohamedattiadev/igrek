@@ -66,6 +66,37 @@ function real(path: string): string {
  * All file access goes through here: only inside allowed roots (projects and
  * folders the user added), never into secrets, and deletes go to a trash folder.
  */
+/**
+ * The folders inside one folder, by name only, for choosing a project folder (the Add folder
+ * dialog). It sees the whole disk, so it shows less than a listing: folders only, never a file or
+ * what is in one, and never hidden ones (.ssh, .config and the like). Starts in the home folder.
+ */
+export function folderNames(input?: string): { path: string; parent?: string; folders: string[] } {
+  const path = normalize(input?.trim() ? input.trim() : homedir());
+  if (!path.startsWith(sep) && !/^[A-Za-z]:[\\/]/.test(path)) throw new FileAccessError("Give a full path", 400);
+  let entries: import("node:fs").Dirent[];
+  try {
+    entries = readdirSync(path, { withFileTypes: true });
+  } catch {
+    throw new FileAccessError("This folder cannot be opened", 404);
+  }
+  const folders = entries
+    .filter((e) => !e.name.startsWith(".") && (e.isDirectory() || (e.isSymbolicLink() && isDir(join(path, e.name)))))
+    .map((e) => e.name)
+    .sort((a, b) => a.localeCompare(b))
+    .slice(0, 500);
+  const parent = dirname(path);
+  return { path, ...(parent !== path ? { parent } : {}), folders };
+}
+
+function isDir(path: string): boolean {
+  try {
+    return statSync(path).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 export class Files {
   constructor(
     private readonly roots: () => string[],

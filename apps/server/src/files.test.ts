@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
-import { Files } from "./files";
+import { dirname, join } from "node:path";
+import { Files, folderNames } from "./files";
 
 function setup() {
   const root = mkdtempSync(join(tmpdir(), "igrek-files-"));
@@ -55,5 +55,19 @@ describe("file access", () => {
     mkdirSync(join(root, "src"));
     writeFileSync(join(root, "src", "LoginPage.tsx"), "");
     expect(files.search(root, "login").map((h) => h.path)).toEqual([join(root, "src", "LoginPage.tsx")]);
+  });
+});
+
+describe("choosing a project folder", () => {
+  test("only folder names, never files or hidden folders, with the way up", () => {
+    const root = mkdtempSync(join(tmpdir(), "igrek-folders-"));
+    for (const dir of ["shop", "blog", ".ssh", "blog/src"]) mkdirSync(join(root, dir), { recursive: true });
+    writeFileSync(join(root, "notes.txt"), "x");
+    const listed = folderNames(root);
+    expect(listed.folders).toEqual(["blog", "shop"]);
+    expect(listed.parent).toBe(dirname(root));
+    expect(folderNames(join(root, "blog")).folders).toEqual(["src"]);
+    expect(() => folderNames("relative/path")).toThrow();
+    expect(() => folderNames(join(root, "missing"))).toThrow();
   });
 });

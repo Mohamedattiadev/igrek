@@ -99,7 +99,11 @@
     "foundHide": "Hide found folders",
     "foundHint": "Claude worked in these folders, but they are not projects. Their history is kept; add one to see it as a project.",
     "foundSessions_one": "{{count}} session",
-    "foundSessions_other": "{{count}} sessions"
+    "foundSessions_other": "{{count}} sessions",
+    "browse": "Browse",
+    "browseUp": "Up one folder",
+    "browsePick": "Choose this folder",
+    "browseEmpty": "No folders in here."
   },
   "inbox": {
     "title": "Inbox",

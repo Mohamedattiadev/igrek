@@ -99,7 +99,11 @@
     "foundHide": "Bulunan klasörleri gizle",
     "foundHint": "Claude bu klasörlerde çalıştı ama bunlar proje değil. Geçmişleri saklanıyor; birini eklersen proje olarak görünür.",
     "foundSessions_one": "{{count}} oturum",
-    "foundSessions_other": "{{count}} oturum"
+    "foundSessions_other": "{{count}} oturum",
+    "browse": "Gözat",
+    "browseUp": "Bir üst klasör",
+    "browsePick": "Bu klasörü seç",
+    "browseEmpty": "Burada klasör yok."
   },
   "inbox": {
     "title": "Gelen Kutusu",

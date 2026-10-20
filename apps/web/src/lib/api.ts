@@ -916,6 +916,10 @@ export const api = {
 };
 
 export const fs = {
+  folders: (path?: string) =>
+    request<{ path: string; parent?: string; folders: string[] }>(
+      `/api/fs/folders${path ? `?path=${encodeURIComponent(path)}` : ""}`,
+    ),
   list: (path: string, hidden = false) =>
     request<FileEntry[]>(`/api/fs/list?path=${encodeURIComponent(path)}${hidden ? "&hidden=1" : ""}`),
   read: (path: string) => request<FileContent>(`/api/fs/read?path=${encodeURIComponent(path)}`),
