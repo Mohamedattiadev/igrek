@@ -564,6 +564,15 @@ export interface TurnSpend {
   limitPct?: number;
 }
 
+/** One line of a chat's own to-do list, written and ticked off by the user. */
+export interface ChatTodo {
+  id: string;
+  text: string;
+  done: boolean;
+  createdAt: number;
+  doneAt?: number;
+}
+
 export interface ChatSpend {
   turn: TurnSpend;
   total: TurnSpend & { turns: number };

@@ -916,6 +916,18 @@ export const migrations: string[] = [
   // Igrek add them), 1 a folder that is one project, 2 a folder of projects, 3 a project inside one.
   `ALTER TABLE projects ADD COLUMN added INTEGER NOT NULL DEFAULT 0;
    CREATE INDEX sessions_cwd ON sessions(cwd);`,
+  // The user's own to-do list of a chat: what is done and what is left. `chat_key` is the chat's
+  // session id, or "chat:<id>" until the chat has one (then the rows move to the session id), so the
+  // list stays with the conversation when it is continued after a restart.
+  `CREATE TABLE chat_todos (
+     id TEXT PRIMARY KEY NOT NULL,
+     chat_key TEXT NOT NULL,
+     text TEXT NOT NULL,
+     done INTEGER NOT NULL DEFAULT 0,
+     created_at INTEGER NOT NULL,
+     done_at INTEGER
+   );
+   CREATE INDEX chat_todos_key ON chat_todos(chat_key, created_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

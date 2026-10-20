@@ -58,6 +58,7 @@ import { ChatChanges } from "../components/ChatChanges";
 import { ChatCopy } from "../components/ChatCopy";
 import { CHAT_MODELS, ChatSettings } from "../components/ChatSettings";
 import { SplitPicker } from "../components/ChatSplit";
+import { ChatTodoList } from "../components/ChatTodoList";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
@@ -1052,6 +1053,15 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       <MentionMenu items={mentions.items} active={mentions.active} onPick={mentions.pick} />
       {info && <ChatChanges info={info} events={chat.events} />}
       {todos && <TodoStrip todos={todos} working={working} />}
+      {info && (
+        <ChatTodoList
+          chatId={info.id}
+          onUse={(list) => {
+            setText((v) => (v ? `${v}\n\n${list}` : list));
+            input.current?.focus();
+          }}
+        />
+      )}
       {info?.limit && !working && (
         <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">
           <Gauge size={14} className="shrink-0 text-danger" aria-hidden="true" />

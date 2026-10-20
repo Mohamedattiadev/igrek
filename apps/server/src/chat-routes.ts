@@ -5,6 +5,7 @@ import { type ChatMode, capabilitiesOf, historyEvents } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";
+import { ChatTodos } from "./chat-todos";
 import { ChatHistory, type ChatStart, type Chats, type SendHow } from "./chats";
 import { checkpointChanges, checkpointFile, restoreCheckpointFile } from "./checkpoints";
 import type { Store } from "./store";
@@ -52,6 +53,7 @@ export function registerChatRoutes(
   const history = new ChatHistory(store.db);
   registerProjectRules(app, chats, store);
   registerChatChanges(app, chats);
+  registerChatTodos(app, chats, history, new ChatTodos(store.db));
   history.record(chats.list());
   bus.subscribe((message) => {
     if (message.type === "chats") history.record(message.chats);
@@ -381,4 +383,46 @@ function registerChatChanges(app: Hono, chats: Chats): void {
     const result = restoreCheckpointFile(found.info.cwd, found.checkpointId, path);
     return result.ok ? c.json(result) : c.json({ error: result.error }, 409);
   });
+}
+
+/**
+ * A chat's own to-do list. It belongs to the conversation (its session id), so a chat continued
+ * after a restart, or opened from the recent list, shows the same list.
+ */
+function registerChatTodos(app: Hono, chats: Chats, history: ChatHistory, todos: ChatTodos): void {
+  const keyOf = (id: string) => {
+    const live = chats.get(id);
+    const session = live?.sessionId || history.get(id)?.sessionId;
+    if (session) {
+      todos.adopt(`chat:${id}`, session);
+      return session;
+    }
+    return live ? `chat:${id}` : undefined;
+  };
+  const withKey = (id: string, run: (key: string) => unknown) => {
+    const key = keyOf(id);
+    if (!key) return Response.json({ error: "Chat not found" }, { status: 404 });
+    try {
+      return Response.json(run(key));
+    } catch (err) {
+      return Response.json({ error: (err as Error).message }, { status: 400 });
+    }
+  };
+  app.get("/api/chats/:id/todos", (c) => withKey(c.req.param("id"), (key) => todos.list(key)));
+  app.post("/api/chats/:id/todos", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };
+    return withKey(c.req.param("id"), (key) => todos.add(key, typeof body.text === "string" ? body.text : ""));
+  });
+  app.patch("/api/chats/:id/todos/:todo", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { done?: unknown; text?: unknown };
+    return withKey(c.req.param("id"), (key) =>
+      todos.update(key, c.req.param("todo"), {
+        done: typeof body.done === "boolean" ? body.done : undefined,
+        text: typeof body.text === "string" ? body.text : undefined,
+      }),
+    );
+  });
+  app.delete("/api/chats/:id/todos/:todo", (c) =>
+    withKey(c.req.param("id"), (key) => todos.remove(key, c.req.param("todo"))),
+  );
 }

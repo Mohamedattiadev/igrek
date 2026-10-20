@@ -1196,6 +1196,7 @@ god-eye/
 - [x] İlk açılışta dilden hemen sonra proje klasörü seçilir (autoProjects kapalı olduğu için şart) — *"Tek proje" ya da "Proje klasörü"; Claude'un çalıştığı klasörler tek tıkla eklenir; ya da "Claude'un çalıştığı her klasörü ekle"; en az bir proje olmadan devam edilmez*
 - [x] Igrek'i başka bilgisayara taşı: veri klasörü şifreyle kilitli tek dosyada, diğer bilgisayarda açılıp yeniden başlatınca devreye girer — *veritabanının tutarlı kopyası, kütüphane, dil paketleri, kasa anahtarı; AI girişleri, çalışma kopyaları, modeller ve önbellekler dosyada yok; yerine geçtiği klasör silinmez, saklanır*
 - [x] Tarama testi (her sayfa, her düğme) GitHub Actions'ta her gece ve elle çalışır — *`.github/workflows/crawl.yml`, Chrome yolu IGREK_E2E_BROWSER; tarayıcı yoksa iş kırmızı olur, sessizce atlanmaz*
+- [x] Her sohbete bağlı küçük yapılacaklar listesi: yapılan ve kalan işler, kutunun üstünde — *kullanıcının kendi listesi (ajanın planı ayrı şeritte); işaretle, ekle, sil; "AI'a ver" kalanları kutuya yazar, göndermez; oturum kimliğine bağlı, sohbet yeniden başlasa da kalır*
 
 **Bitti sayılır:** Uzun bir Claude cevabı akarken sayfa takılmıyor, araç çağrıları tek satırlık özetlerle görünüyor, ajan çalışırken yazılan mesaj kuyrukta bekliyor, haftalık rapor OpenUI ile grafik ve butonlarla geliyor ve kurulumda hiçbir dış adrese istek gitmediği testle gösteriliyor.
 

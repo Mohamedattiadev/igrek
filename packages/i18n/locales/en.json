@@ -4428,5 +4428,14 @@
     "saved": "Move file downloaded. Copy it to the other computer and open it there.",
     "waiting": "The moved-in data is ready; it takes over when Igrek restarts.",
     "restart": "Restart now"
+  },
+  "chatTodos": {
+    "title": "To-do list for this chat",
+    "count": "To do · {{done}} of {{total}} done",
+    "placeholder": "Add something to do, then Enter",
+    "remove": "Remove",
+    "use": "Hand to the AI",
+    "useTip": "Puts what is left into the box; you send it.",
+    "handOver": "These are still left in this chat's list:"
   }
 }

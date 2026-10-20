@@ -4428,5 +4428,14 @@
     "saved": "Taşıma dosyası indirildi. Onu diğer bilgisayara kopyala ve orada aç.",
     "waiting": "Taşınan veriler hazır; Igrek yeniden başlayınca devreye girer.",
     "restart": "Şimdi yeniden başlat"
+  },
+  "chatTodos": {
+    "title": "Bu sohbetin yapılacaklar listesi",
+    "count": "Yapılacaklar · {{total}} işten {{done}} tanesi bitti",
+    "placeholder": "Yapılacak bir şey yaz, Enter'a bas",
+    "remove": "Kaldır",
+    "use": "AI'a ver",
+    "useTip": "Kalanları kutuya yazar; göndermek sana kalır.",
+    "handOver": "Bu sohbetin listesinde kalanlar:"
   }
 }

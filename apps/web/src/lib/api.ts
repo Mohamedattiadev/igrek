@@ -9,6 +9,7 @@ import type {
   CategoryDetail,
   ChatInfo,
   ChatMode,
+  ChatTodo,
   Checkpoint,
   CommandRisk,
   CoverageMap,
@@ -596,6 +597,13 @@ export const api = {
     ),
   revertChatChange: (id: string, path: string) =>
     request<{ ok: boolean }>(`/api/chats/${id}/changes/revert`, { method: "POST", body: JSON.stringify({ path }) }),
+  chatTodos: (id: string) => request<ChatTodo[]>(`/api/chats/${id}/todos`),
+  addChatTodo: (id: string, text: string) =>
+    request<ChatTodo[]>(`/api/chats/${id}/todos`, { method: "POST", body: JSON.stringify({ text }) }),
+  updateChatTodo: (id: string, todo: string, patch: { done?: boolean; text?: string }) =>
+    request<ChatTodo[]>(`/api/chats/${id}/todos/${todo}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  removeChatTodo: (id: string, todo: string) =>
+    request<ChatTodo[]>(`/api/chats/${id}/todos/${todo}`, { method: "DELETE" }),
   chatModel: (id: string, model: string) =>
     request<ChatInfo>(`/api/chats/${id}/model`, { method: "POST", body: JSON.stringify({ model }) }),
   closeChat: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}`, { method: "DELETE" }),
