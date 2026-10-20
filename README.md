@@ -58,7 +58,10 @@ Sonra tarayıcında şu adresi aç: **http://localhost:7777**
 
 ### Docker'sız kurulum (Windows, macOS, Linux)
 
-Docker gerekmez; Igrek doğrudan bilgisayarında çalışır.
+Docker gerekmez; Igrek doğrudan bilgisayarında çalışır. Tek komutla: Linux ve macOS'ta
+`curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh`, Windows'ta
+PowerShell'de `irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex`.
+Elle kurmak istersen:
 
 1. **Bun** kur: macOS ve Linux'ta `curl -fsSL https://bun.sh/install | bash`, Windows'ta PowerShell'de
    `powershell -c "irm bun.sh/install.ps1 | iex"`.
@@ -170,7 +173,10 @@ Then open **http://localhost:7777** and pick your language. That's it.
 
 ### Install without Docker (Windows, macOS, Linux)
 
-No Docker needed; Igrek runs directly on your computer.
+No Docker needed; Igrek runs directly on your computer. In one command: on Linux and macOS
+`curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh`, on Windows in
+PowerShell `irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex`.
+To do it by hand:
 
 1. Install **Bun**: on macOS and Linux `curl -fsSL https://bun.sh/install | bash`, on Windows in PowerShell
    `powershell -c "irm bun.sh/install.ps1 | iex"`.

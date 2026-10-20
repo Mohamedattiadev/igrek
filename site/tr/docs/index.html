@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Igrek belgeleri</title>
+    <meta name="description" content="Igrek'i kur, ilk sohbetini başlat; Neden?, uzmanlar, paketler ve takımlar." />
+    <link rel="icon" href="../../logo.svg" />
+    <link rel="alternate" hreflang="en" href="../../docs/" />
+    <link rel="stylesheet" href="../../style.css" />
+  </head>
+  <body class="docs">
+    <header class="top">
+      <div class="wrap">
+        <a class="brand" href="../"><img src="../../logo.svg" width="22" height="22" alt="" /> Igrek</a>
+        <nav>
+          <a href="./">Belgeler</a>
+          <a href="https://github.com/Mohamedattiadev/igrek">GitHub</a>
+          <a href="../../docs/">English</a>
+        </nav>
+      </div>
+    </header>
+    <main class="wrap">
+      <div class="hero" style="padding-bottom: 16px">
+        <h1>Belgeler</h1>
+        <nav class="toc">
+          <a href="#kurulum">Kurulum</a><a href="#ilk-acilis">İlk açılış</a><a href="#sohbetler">Sohbetler</a><a href="#neden">Neden?</a>
+          <a href="#uzmanlar">Uzmanlar</a><a href="#paketler">Paketler</a><a href="#takim">Takım</a><a href="#tasima">Taşıma</a>
+          <a href="#gizlilik">Gizlilik</a><a href="#guncelleme">Güncelleme ve kaldırma</a>
+        </nav>
+      </div>
+      <section id="kurulum">
+        <h2>Kurulum</h2>
+        <p><a href="https://git-scm.com">Git</a> ve Claude Code gerekir (giriş için bir kez <code>claude</code> yaz). Bun yoksa betik kurar.</p>
+        <h3>Linux ve macOS</h3>
+        <pre>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</pre>
+        <h3>Windows (PowerShell)</h3>
+        <pre>irm https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.ps1 | iex</pre>
+        <p class="muted">Windows'ta önce <a href="https://git-scm.com/download/win">Git for Windows</a> kur: Claude Code onunla gelen bash'i kullanır. Gömülü terminal Windows'ta henüz çalışmıyor; sohbetler çalışır.</p>
+        <h3>Docker ile</h3>
+        <pre>git clone https://github.com/Mohamedattiadev/igrek.git && cd igrek
+docker compose up -d</pre>
+        <p>Sonra <code>http://localhost:7777</code> adresini aç. Ayarlar'daki <em>Igrek'i uygulama olarak kullan</em> ile kendi penceresinde açılır.</p>
+      </section>
+      <section id="ilk-acilis">
+        <h2>İlk açılış</h2>
+        <p>Dilini, sonra proje klasörlerini seç: tek bir proje ya da birkaç proje içeren bir klasör. Igrek sadece eklediğin klasörleri gösterir; Claude'un daha önce çalıştığı klasörler tek tıkla eklenir.</p>
+      </section>
+      <section id="sohbetler">
+        <h2>Sohbetler</h2>
+        <p>Kutuda her mesajın ihtiyacı olanlar var: yazı, resim, hazır prompt'lar ve uzmanlar. Onay modu, model ve ayrıntı <em>Ayarlar</em> düğmesinde. Kutunun üstünde: ajanın planı, sohbetin yapılacaklar listesi ve sohbetin değiştirdiği dosyalar (fark ve tek tıkla geri alma). Başlık son turun limitinden ne kadar yediğini söyler. Model çağıran her şeyde küçük bir gösterge işareti var.</p>
+      </section>
+      <section id="neden">
+        <h2>Neden?</h2>
+        <p>Değişen her dosyanın bir <em>Neden?</em> düğmesi var: değişikliğe yol açan istek, ait olduğu plan adımı ve aynı turda sorulan uzman. Sohbetin kendisinden okunur; hiçbir şey tahmin edilmez.</p>
+      </section>
+      <section id="uzmanlar">
+        <h2>Uzmanlar</h2>
+        <p>Igrek'te güvenlikten veritabanına, üründen finansa otuz kadar uzman var; her biri alanına hâkim (standartlar, sayılar, nasıl karar verdiği). Sohbette <code>@</code> ile birini çağır, bir projeyi hepsine sor, ya da Ayarlar'dan <em>Hassas değişikliklere uzman incelemesi</em>ni aç: bir tur giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman farkı okur. Her inceleme bir model çağrısıdır, bu yüzden varsayılan olarak kapalı.</p>
+      </section>
+      <section id="paketler">
+        <h2>Paketler</h2>
+        <p>Uzmanlar, Paketler: Igrek'in incelenmiş kataloğunu, bir dosyayı ya da https adresini aç. Bir şey kaydedilmeden önce paketin içinde ne olduğunu görürsün ve parçaları sen seçersin. Paketten gelen uzmanlar salt okunur ve web'e kapalı başlar, seninkilerin yerine geçmez; kabuk komutu çalıştıran akışlar alınmaz; akışlar reponda değil Igrek'in klasöründe tutulur. Kendi uzmanlarından paket yapıp paylaşabilirsin.</p>
+      </section>
+      <section id="takim">
+        <h2>Takım</h2>
+        <p>İsteğe bağlı bir hub, kendi kurduğun bir sunucuda, seçtiğin projeleri uçtan uca şifreli paylaşır. Herkes kendi AI hesabını kullanır; hesaplar asla paylaşılmaz. Hub kurulumu README'de.</p>
+      </section>
+      <section id="tasima">
+        <h2>Başka bilgisayara taşıma</h2>
+        <p>Ayarlar, <em>Başka bilgisayara taşı</em>: şifreyle kilitli tek bir dosya Igrek'in tuttuğu her şeyi taşır. Diğer bilgisayarda Igrek'te aç ve yeniden başlat. AI girişleri dosyada yok; orada yeniden giriş yap.</p>
+      </section>
+      <section id="gizlilik">
+        <h2>Gizlilik</h2>
+        <p>Her şey senin bilgisayarında çalışır. Telemetri yok, ücretli API çağrılmaz; Igrek'in internette açtığı her adres Ayarlar'da listelenir. Güvenlik açıkları: <a href="https://github.com/Mohamedattiadev/igrek/blob/main/SECURITY.md">SECURITY.md</a>.</p>
+      </section>
+      <section id="guncelleme">
+        <h2>Güncelleme ve kaldırma</h2>
+        <p>Güncellemek için kurulum komutunu yeniden çalıştır. Kaldırmak için klasörünü (<code>~/.local/share/igrek-app</code>, Windows'ta <code>%LOCALAPPDATA%\igrek-app</code>), <code>igrek</code> başlatıcısını ve <code>~/.igrek</code> içindeki verisini sil.</p>
+      </section>
+    </main>
+    <footer><div class="wrap">© 2026 Mohamed Attia. <a href="https://github.com/Mohamedattiadev/igrek/blob/main/LICENSE">Igrek Use License</a>.</div></footer>
+  </body>
+</html>
