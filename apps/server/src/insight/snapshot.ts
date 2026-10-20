@@ -67,7 +67,8 @@ function walk(root: string, dir = "", out: string[] = []): string[] {
   if (out.length >= MAX_FILES) return out;
   let entries: import("node:fs").Dirent[];
   try {
-    entries = readdirSync(join(root, dir), { withFileTypes: true });
+    // Sorted: the order a disk lists a folder in differs between systems, and reports must not.
+    entries = readdirSync(join(root, dir), { withFileTypes: true }).sort((a, b) => (a.name < b.name ? -1 : 1));
   } catch {
     return out;
   }
