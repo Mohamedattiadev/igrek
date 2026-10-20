@@ -4393,5 +4393,15 @@
     "chatTip_one": "Bütün sohbet: {{count}} tur, {{tokens}} token.",
     "chatTip_other": "Bütün sohbet: {{count}} tur, {{tokens}} token.",
     "cost": "API fiyatlarıyla bu tur yaklaşık {{turn}}, bütün sohbet {{total}} tutardı; bir planın varsa ek ödeme yok."
+  },
+  "changes": {
+    "count_one": "Bu sohbette {{count}} dosya değişti",
+    "count_other": "Bu sohbette {{count}} dosya değişti",
+    "undo": "Geri al",
+    "undoTip": "Bu dosyayı sohbetten önceki hâline döndürür (şu anki hâli önce kaydedilir, yani bu da geri alınabilir).",
+    "diffTitle": "Ne değişti",
+    "added": "Yeni bir dosya: sohbetten önce yoktu.",
+    "deleted": "Sohbet bu dosyayı sildi.",
+    "binary": "Metin dosyası değil, bu yüzden satır satır görünüm yok."
   }
 }

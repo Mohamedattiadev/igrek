@@ -1,6 +1,6 @@
-import { copyFileSync, existsSync, mkdtempSync, rmSync, statSync, unlinkSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { isAbsolute, join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import type { Checkpoint } from "@igrek/core";
 
 const REF_PREFIX = "refs/igrek/checkpoints/";
@@ -149,4 +149,44 @@ export function restoreCheckpoint(root: string, id: string): { ok: boolean; back
   }
   const restore = git(root, ["restore", `--source=${id}`, "--worktree", "--", "."]);
   return restore.ok ? { ok: true, backup } : { ok: false, backup, error: restore.err.trim() };
+}
+
+/** A path inside the repository as git names it, never one that climbs out of it. */
+function safeRelative(file: string): boolean {
+  return !!file && !isAbsolute(file) && !file.split(/[\\/]/).includes("..") && !file.includes("\0");
+}
+
+/** One file as it was at the checkpoint; undefined when it did not exist then. */
+export function checkpointFile(root: string, id: string, file: string): Buffer | undefined {
+  if (!/^[0-9a-f]{7,40}$/.test(id) || !safeRelative(file)) return undefined;
+  const proc = Bun.spawnSync(["git", "-C", root, "show", `${id}:${file}`], { stdout: "pipe", stderr: "pipe" });
+  return proc.exitCode === 0 ? Buffer.from(proc.stdout) : undefined;
+}
+
+/**
+ * Puts one file back as it was at the checkpoint (a file that did not exist then is removed). The
+ * current state is saved first, so this can be undone like a whole restore.
+ */
+export function restoreCheckpointFile(
+  root: string,
+  id: string,
+  file: string,
+): { ok: boolean; backup?: Checkpoint; error?: string } {
+  if (!/^[0-9a-f]{7,40}$/.test(id) || !git(root, ["cat-file", "-e", `${id}^{commit}`]).ok)
+    return { ok: false, error: "Unknown checkpoint" };
+  if (!safeRelative(file)) return { ok: false, error: "Not a file in this project" };
+  const backup = createCheckpoint(root, `before undoing ${file}`);
+  const before = checkpointFile(root, id, file);
+  const path = join(root, file);
+  try {
+    if (before === undefined) {
+      if (existsSync(path)) unlinkSync(path);
+    } else {
+      mkdirSync(dirname(path), { recursive: true });
+      writeFileSync(path, before);
+    }
+    return { ok: true, backup };
+  } catch (err) {
+    return { ok: false, backup, error: (err as Error).message };
+  }
 }

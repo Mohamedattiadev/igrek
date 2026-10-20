@@ -1,11 +1,12 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { type ChatMode, capabilitiesOf, historyEvents } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
 import type { Bus } from "./bus";
 import { ChatHistory, type ChatStart, type Chats, type SendHow } from "./chats";
+import { checkpointChanges, checkpointFile, restoreCheckpointFile } from "./checkpoints";
 import type { Store } from "./store";
 import { isTrusted, projectExtensions, trust } from "./trust";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
@@ -50,6 +51,7 @@ export function registerChatRoutes(
   // Remember every chat with a saved session, so it can be continued after a restart.
   const history = new ChatHistory(store.db);
   registerProjectRules(app, chats, store);
+  registerChatChanges(app, chats);
   history.record(chats.list());
   bus.subscribe((message) => {
     if (message.type === "chats") history.record(message.chats);
@@ -327,4 +329,56 @@ export function handleChatMessage(chats: Chats, id: string, raw: string): string
     return (err as Error).message;
   }
   return undefined;
+}
+
+/** Text or not: a NUL byte near the start means a binary file, which gets no line diff. */
+const isBinary = (bytes: Buffer) => bytes.subarray(0, 8000).includes(0);
+
+/**
+ * The files a chat changed (plan.md 2.2): everything that differs from the checkpoint taken
+ * before its first message, whichever tool made the change, with the diff and a one-file undo.
+ */
+function registerChatChanges(app: Hono, chats: Chats): void {
+  const base = (id: string) => {
+    const snap = chats.snapshot(id);
+    const first = snap?.events.find((e) => e.kind === "checkpoint");
+    return snap && first?.kind === "checkpoint" ? { info: snap.info, checkpointId: first.checkpointId } : undefined;
+  };
+  app.get("/api/chats/:id/changes", (c) => {
+    const found = base(c.req.param("id"));
+    if (!found) return c.json({ files: [] });
+    try {
+      return c.json({ checkpointId: found.checkpointId, files: checkpointChanges(found.info.cwd, found.checkpointId) });
+    } catch {
+      return c.json({ files: [] });
+    }
+  });
+  app.get("/api/chats/:id/changes/diff", (c) => {
+    const found = base(c.req.param("id"));
+    const path = c.req.query("path") ?? "";
+    // Only paths inside the chat's folder, as git names them.
+    if (!found || !path || isAbsolute(path) || path.split(/[\\/]/).includes(".."))
+      return c.json({ error: "Not found" }, 404);
+    const before = checkpointFile(found.info.cwd, found.checkpointId, path);
+    const full = join(found.info.cwd, path);
+    const now = existsSync(full) ? readFileSync(full) : undefined;
+    const binary = (before && isBinary(before)) || (now && isBinary(now));
+    return c.json({
+      original: binary ? "" : (before?.toString("utf8") ?? ""),
+      modified: binary ? "" : (now?.toString("utf8") ?? ""),
+      binary: !!binary,
+      added: before === undefined,
+      deleted: now === undefined,
+    });
+  });
+  app.post("/api/chats/:id/changes/revert", async (c) => {
+    const found = base(c.req.param("id"));
+    if (!found) return c.json({ error: "This chat has no checkpoint to go back to" }, 404);
+    if (found.info.status === "working" || found.info.status === "waiting")
+      return c.json({ error: "The AI is working in this chat; stop it first" }, 409);
+    const body = (await c.req.json().catch(() => ({}))) as { path?: unknown };
+    const path = typeof body.path === "string" ? body.path : "";
+    const result = restoreCheckpointFile(found.info.cwd, found.checkpointId, path);
+    return result.ok ? c.json(result) : c.json({ error: result.error }, 409);
+  });
 }

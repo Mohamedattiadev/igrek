@@ -569,6 +569,13 @@ export const api = {
   chatCopyMerge: (id: string) =>
     request<{ merged: boolean; message: string }>(`/api/chats/${id}/worktree/merge`, { method: "POST" }),
   chatCopyDiscard: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}/worktree`, { method: "DELETE" }),
+  chatChanges: (id: string) => request<{ checkpointId?: string; files: string[] }>(`/api/chats/${id}/changes`),
+  chatChangeDiff: (id: string, path: string) =>
+    request<{ original: string; modified: string; binary: boolean; added: boolean; deleted: boolean }>(
+      `/api/chats/${id}/changes/diff?path=${encodeURIComponent(path)}`,
+    ),
+  revertChatChange: (id: string, path: string) =>
+    request<{ ok: boolean }>(`/api/chats/${id}/changes/revert`, { method: "POST", body: JSON.stringify({ path }) }),
   chatModel: (id: string, model: string) =>
     request<ChatInfo>(`/api/chats/${id}/model`, { method: "POST", body: JSON.stringify({ model }) }),
   closeChat: (id: string) => request<{ ok: boolean }>(`/api/chats/${id}`, { method: "DELETE" }),

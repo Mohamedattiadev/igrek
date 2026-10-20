@@ -54,6 +54,7 @@ import { type ClipboardEvent, createContext, useContext, useEffect, useMemo, use
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
+import { ChatChanges } from "../components/ChatChanges";
 import { ChatCopy } from "../components/ChatCopy";
 import { CHAT_MODELS, ChatSettings } from "../components/ChatSettings";
 import { SplitPicker } from "../components/ChatSplit";
@@ -1049,6 +1050,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         onPick={pickSlash}
       />
       <MentionMenu items={mentions.items} active={mentions.active} onPick={mentions.pick} />
+      {info && <ChatChanges info={info} events={chat.events} />}
       {todos && <TodoStrip todos={todos} working={working} />}
       {info?.limit && !working && (
         <div className="mb-1.5 flex flex-wrap items-center gap-2 rounded-ui border border-danger bg-danger-soft px-2.5 py-1.5 text-[12.5px]">

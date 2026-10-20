@@ -4393,5 +4393,15 @@
     "chatTip_one": "The whole chat: {{count}} turn, {{tokens}} tokens.",
     "chatTip_other": "The whole chat: {{count}} turns, {{tokens}} tokens.",
     "cost": "At API prices that would be about {{turn}} for the turn and {{total}} for the chat; with a plan you pay nothing extra."
+  },
+  "changes": {
+    "count_one": "{{count}} file changed in this chat",
+    "count_other": "{{count}} files changed in this chat",
+    "undo": "Undo",
+    "undoTip": "Puts this file back as it was before the chat (the current version is saved first, so this can be undone too).",
+    "diffTitle": "What changed",
+    "added": "A new file: it did not exist before the chat.",
+    "deleted": "The chat removed this file.",
+    "binary": "Not a text file, so there is no line-by-line view."
   }
 }

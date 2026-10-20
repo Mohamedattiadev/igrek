@@ -2,7 +2,14 @@ import { describe, expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { checkpointChanges, createCheckpoint, listCheckpoints, restoreCheckpoint } from "./checkpoints";
+import {
+  checkpointChanges,
+  checkpointFile,
+  createCheckpoint,
+  listCheckpoints,
+  restoreCheckpoint,
+  restoreCheckpointFile,
+} from "./checkpoints";
 
 function repo() {
   const root = mkdtempSync(join(tmpdir(), "igrek-ckpt-repo-"));
@@ -105,5 +112,30 @@ describe("checkpoint limits", () => {
     expect(result.backup).toBeDefined();
     expect(restoreCheckpoint(root, result.backup?.id ?? "").ok).toBe(true);
     expect(readFileSync(join(root, "app.ts"), "utf8")).toBe("ai work");
+  });
+
+  test("one file goes back as it was, the others keep their changes, and a new file goes away", () => {
+    const { root } = repo();
+    writeFileSync(join(root, "other.ts"), "o1");
+    const before = createCheckpoint(root, "before the chat");
+    writeFileSync(join(root, "app.ts"), "v2");
+    writeFileSync(join(root, "other.ts"), "o2");
+    writeFileSync(join(root, "new.ts"), "fresh");
+    const id = before?.id ?? "";
+    expect(checkpointFile(root, id, "app.ts")?.toString()).toBe("v1");
+    expect(checkpointFile(root, id, "new.ts")).toBeUndefined();
+    expect(restoreCheckpointFile(root, id, "app.ts").ok).toBe(true);
+    expect(restoreCheckpointFile(root, id, "new.ts").ok).toBe(true);
+    expect(readFileSync(join(root, "app.ts"), "utf8")).toBe("v1");
+    expect(readFileSync(join(root, "other.ts"), "utf8")).toBe("o2");
+    expect(existsSync(join(root, "new.ts"))).toBe(false);
+  });
+
+  test("a path that leaves the project is refused", () => {
+    const { root } = repo();
+    const id = createCheckpoint(root, "x")?.id ?? "";
+    expect(restoreCheckpointFile(root, id, "../outside.txt").ok).toBe(false);
+    expect(restoreCheckpointFile(root, id, "/etc/passwd").ok).toBe(false);
+    expect(checkpointFile(root, id, "../app.ts")).toBeUndefined();
   });
 });
