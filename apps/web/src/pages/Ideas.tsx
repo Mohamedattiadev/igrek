@@ -139,6 +139,7 @@ export function IdeasPage() {
         actions={
           <div className="flex gap-1">
             <Button
+              usesModel
               size="sm"
               variant="ghost"
               icon={Briefcase}
@@ -150,6 +151,7 @@ export function IdeasPage() {
               <span className="hidden md:inline">{reviewing ? t("ideas.reviewing") : t("ideas.review")}</span>
             </Button>
             <Button
+              usesModel
               size="sm"
               variant="ghost"
               icon={ListFilter}

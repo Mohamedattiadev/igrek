@@ -109,6 +109,7 @@ function ExpertCard({
           {view ? t("experts.discuss") : t("experts.chat")}
         </Button>
         <Button
+          usesModel
           size="sm"
           variant={view ? "secondary" : "primary"}
           icon={view ? RefreshCw : ScanSearch}
@@ -203,6 +204,7 @@ export function ExpertsTab({ project }: { project: ProjectDetail }) {
           </Button>
         )}
         <Button
+          usesModel
           variant="primary"
           icon={UsersRound}
           disabled={missing.length === 0}
@@ -259,6 +261,7 @@ export function ExpertsTab({ project }: { project: ProjectDetail }) {
               {t("persona.cancel")}
             </Button>
             <Button
+              usesModel
               variant="primary"
               icon={UsersRound}
               onClick={() => {

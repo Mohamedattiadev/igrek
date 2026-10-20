@@ -36,6 +36,7 @@ export function FeedbackPanel({ projectId }: { projectId: string }) {
         <h2 className="min-w-0 flex-1 text-[14px] font-semibold">{t("feedback.title")}</h2>
         {unsorted > 0 && (
           <Button
+            usesModel
             size="sm"
             variant="ghost"
             onClick={() => void request(`/api/projects/${projectId}/feedback/sort`, { method: "POST", body: "{}" })}

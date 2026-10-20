@@ -78,7 +78,7 @@ export function BriefingCard() {
             aria-label={t("briefing.read")}
           />
         )}
-        <Button size="sm" variant="ghost" icon={RefreshCw} disabled={busy} onClick={() => void refresh()}>
+        <Button usesModel size="sm" variant="ghost" icon={RefreshCw} disabled={busy} onClick={() => void refresh()}>
           {busy ? t("briefing.writing") : briefing ? t("briefing.again") : t("briefing.write")}
         </Button>
       </div>

@@ -229,6 +229,7 @@ export function SchedulesPage() {
               className={`${input} min-w-60 flex-1`}
             />
             <Button
+              usesModel
               variant="primary"
               icon={CalendarPlus}
               disabled={busy || sentence.trim().length < 5 || !projectId}

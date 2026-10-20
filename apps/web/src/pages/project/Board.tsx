@@ -194,6 +194,7 @@ function StartRun({ projectId }: { projectId: string }) {
           {chosen ? t(`flows.desc_${chosen.name}`, { defaultValue: chosen.description }) : ""}
         </span>
         <Button
+          usesModel
           variant="primary"
           icon={Workflow}
           disabled={busy || request.trim().length < 3}

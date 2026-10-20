@@ -1031,7 +1031,8 @@
     "emptyTitle": "No usage yet",
     "emptyBody": "Start a Claude Code or Codex session in any project. How much you use, and how close you are to your limits, shows up here.",
     "personas": "By expert",
-    "chipTip": "New sessions use the Claude account \"{{name}}\". {{pct}}% of its 5-hour limit is used. Click to switch accounts."
+    "chipTip": "New sessions use the Claude account \"{{name}}\". {{pct}}% of its 5-hour limit is used. Click to switch accounts.",
+    "usesLimit": "Asks an AI model, so it uses your plan's limit."
   },
   "accounts": {
     "title": "Accounts",

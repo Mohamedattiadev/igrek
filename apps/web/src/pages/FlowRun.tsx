@@ -223,7 +223,11 @@ function Approval({ run }: { run: FlowRun }) {
         >
           {t("flows.discard")}
         </Button>
-        <Button disabled={busy || text.trim().length < 3} onClick={() => void act(() => api.reviseFlow(run.id, text))}>
+        <Button
+          usesModel
+          disabled={busy || text.trim().length < 3}
+          onClick={() => void act(() => api.reviseFlow(run.id, text))}
+        >
           {t("flows.sendBack")}
         </Button>
         <Button

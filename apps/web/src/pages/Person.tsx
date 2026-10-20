@@ -52,6 +52,7 @@ export function PersonPage() {
               </p>
             </div>
             <Button
+              usesModel
               icon={FileText}
               disabled={busy || !week?.sessions.length}
               onClick={() => {

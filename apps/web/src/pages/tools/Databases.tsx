@@ -307,6 +307,7 @@ function QueryEditor({ conn, initial }: { conn: DbConnection; initial?: string }
         <div className="flex-1" />
         {conn.kind !== "mongodb" && (
           <Button
+            usesModel
             variant="ghost"
             icon={MessageSquare}
             disabled={!text.trim()}

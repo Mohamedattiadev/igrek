@@ -310,6 +310,7 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
                       ))}
                     </select>
                     <Button
+                      usesModel
                       size="sm"
                       variant="primary"
                       icon={Wand2}

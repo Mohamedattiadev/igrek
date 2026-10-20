@@ -64,6 +64,7 @@ export function LanguagePackPanel({ code }: { code: string }) {
           ) : (
             status.state !== "ready" && (
               <Button
+                usesModel
                 size="sm"
                 icon={status.state === "none" ? Languages : RefreshCw}
                 onClick={() => void api.generatePack(code).then(setStatus)}

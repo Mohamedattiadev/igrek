@@ -393,7 +393,7 @@ export function SessionPage() {
             <Card className="p-pad">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-fg-subtle">{t("session.summary")}</h3>
-                <Button size="sm" variant="ghost" icon={FileText} onClick={summarize} disabled={busy}>
+                <Button usesModel size="sm" variant="ghost" icon={FileText} onClick={summarize} disabled={busy}>
                   {busy
                     ? t("session.summarizing")
                     : session.summary

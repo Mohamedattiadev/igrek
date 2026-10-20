@@ -206,6 +206,7 @@ function NewMeeting({
       {error && <p className="text-xs text-danger">{error}</p>}
       <div className="flex justify-end">
         <Button
+          usesModel
           variant="primary"
           icon={MessagesSquare}
           onClick={() => void start()}

@@ -143,10 +143,10 @@ export function ReportsCard({ projectId }: { projectId: string }) {
           {t("project.reports")}
         </h3>
         <div className="flex gap-1">
-          <Button size="sm" variant="ghost" icon={FileText} onClick={() => write("day")} disabled={!!busy}>
+          <Button usesModel size="sm" variant="ghost" icon={FileText} onClick={() => write("day")} disabled={!!busy}>
             {busy === "day" ? t("project.writing") : t("project.today")}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => write("week")} disabled={!!busy}>
+          <Button usesModel size="sm" variant="ghost" onClick={() => write("week")} disabled={!!busy}>
             {busy === "week" ? t("project.writing") : t("project.week")}
           </Button>
         </div>

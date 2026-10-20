@@ -1031,7 +1031,8 @@
     "emptyTitle": "Henüz kullanım yok",
     "emptyBody": "Herhangi bir projede Claude Code ya da Codex oturumu başlat. Ne kadar kullandığın ve sınırlara ne kadar yaklaştığın burada görünür.",
     "personas": "Uzman bazında",
-    "chipTip": "Yeni oturumlar \"{{name}}\" Claude hesabını kullanır. 5 saatlik limitinin %{{pct}}'i doldu. Hesap değiştirmek için tıkla."
+    "chipTip": "Yeni oturumlar \"{{name}}\" Claude hesabını kullanır. 5 saatlik limitinin %{{pct}}'i doldu. Hesap değiştirmek için tıkla.",
+    "usesLimit": "Bir AI modeline sorar, bu yüzden limitini kullanır."
   },
   "accounts": {
     "title": "Hesaplar",

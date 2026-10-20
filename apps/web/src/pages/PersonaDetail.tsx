@@ -614,6 +614,7 @@ export function NewPersonaPage() {
                 {t("persona.blank")}
               </Button>
               <Button
+                usesModel
                 variant="primary"
                 icon={PenLine}
                 onClick={() => void make()}

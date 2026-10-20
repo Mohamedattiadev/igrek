@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 import { useSettings } from "../lib/settings";
-import { Badge, Button, Dialog } from "./ui";
+import { Badge, Button, Dialog, ModelMark, useModelTip } from "./ui";
 
 export interface EnhanceTarget {
   projectId?: string;
@@ -52,32 +52,36 @@ const CONTEXT_ICONS: Record<EnhanceContextKind, typeof Brain> = {
 export function EnhanceHint({ text, onEnhance }: { text: string; onEnhance: () => void }) {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const modelTip = useModelTip();
   if (settings.enhanceMode === "off" || !isWeakPrompt(text)) return null;
   return (
     <button
       type="button"
       onClick={onEnhance}
-      data-tip={t("enhance.hintTip")}
+      data-tip={modelTip(t("enhance.hintTip"))}
       className="inline-flex items-center gap-1 text-[11.5px] text-fg-subtle hover:text-fg"
     >
       <PenLine size={11} /> {t("enhance.hint")}
+      <ModelMark />
     </button>
   );
 }
 
 export function EnhanceButton({ onClick, disabled }: { onClick: () => void; disabled?: boolean }) {
   const { t } = useTranslation();
+  const modelTip = useModelTip();
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-label={t("enhance.button")}
-      data-tip={t("enhance.buttonTip")}
+      data-tip={modelTip(t("enhance.buttonTip"))}
       data-tip-kbd="Ctrl ⇧ Enter"
-      className="rounded-md p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-accent disabled:opacity-40"
+      className="inline-flex items-center gap-0.5 rounded-md p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-accent disabled:opacity-40"
     >
       <PenLine size={15} />
+      <ModelMark />
     </button>
   );
 }
@@ -313,6 +317,7 @@ export function EnhancePanel({
               {t("enhance.skip")}
             </Button>
             <Button
+              usesModel
               size="sm"
               variant="primary"
               disabled={!result.questions.every((q) => answers[q.question]?.trim())}
@@ -461,6 +466,7 @@ export function EnhanceDialog({
             />
             <div className="flex justify-end">
               <Button
+                usesModel
                 variant="primary"
                 icon={PenLine}
                 disabled={!text.trim()}

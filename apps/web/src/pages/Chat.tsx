@@ -722,6 +722,7 @@ function WeakPointsButton({ text, projectId }: { text: string; projectId: string
   return (
     <div>
       <Button
+        usesModel
         size="sm"
         variant="ghost"
         icon={Swords}

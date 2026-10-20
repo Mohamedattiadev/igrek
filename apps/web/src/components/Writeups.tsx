@@ -26,7 +26,14 @@ export function ReleaseNotesButton({ projectId, onSaved }: { projectId: string; 
   };
   return (
     <>
-      <Button size="sm" variant="ghost" icon={FileClock} onClick={() => void run()} data-tip={t("writeups.notesTip")}>
+      <Button
+        usesModel
+        size="sm"
+        variant="ghost"
+        icon={FileClock}
+        onClick={() => void run()}
+        data-tip={t("writeups.notesTip")}
+      >
         {t("writeups.notes")}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("writeups.notes")} wide>
@@ -117,7 +124,14 @@ export function AdrExportButton({ projectId }: { projectId: string }) {
       .join("\n\n");
   return (
     <>
-      <Button size="sm" variant="ghost" icon={ScrollText} onClick={() => void run()} data-tip={t("writeups.adrTip")}>
+      <Button
+        usesModel
+        size="sm"
+        variant="ghost"
+        icon={ScrollText}
+        onClick={() => void run()}
+        data-tip={t("writeups.adrTip")}
+      >
         {t("writeups.adr")}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("writeups.adr")} wide>
@@ -173,7 +187,14 @@ export function DayEndButton() {
   };
   return (
     <>
-      <Button size="sm" variant="ghost" icon={Moon} onClick={() => void run()} data-tip={t("writeups.dayTip")}>
+      <Button
+        usesModel
+        size="sm"
+        variant="ghost"
+        icon={Moon}
+        onClick={() => void run()}
+        data-tip={t("writeups.dayTip")}
+      >
         {t("writeups.day")}
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} label={t("writeups.day")} wide>
@@ -225,6 +246,7 @@ export function DocsSiteButton({ projectId }: { projectId: string }) {
   return (
     <>
       <Button
+        usesModel
         size="sm"
         variant="ghost"
         icon={Globe}

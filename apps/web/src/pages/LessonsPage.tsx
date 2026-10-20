@@ -190,6 +190,7 @@ export function LessonsPage() {
         actions={
           <div className="flex gap-1">
             <Button
+              usesModel
               size="sm"
               variant="ghost"
               icon={Search}
@@ -244,6 +245,7 @@ export function LessonsPage() {
           </label>
           <div className="flex-1" />
           <Button
+            usesModel
             size="sm"
             icon={ScrollText}
             disabled={!projectId || busy !== undefined}

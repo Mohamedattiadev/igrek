@@ -98,6 +98,7 @@ export function RecapCard() {
           ))}
         </select>
         <Button
+          usesModel
           size="sm"
           variant="ghost"
           icon={RefreshCw}

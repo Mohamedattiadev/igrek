@@ -1,4 +1,4 @@
-import { Check, Copy, type LucideIcon } from "lucide-react";
+import { Check, Copy, Gauge, type LucideIcon } from "lucide-react";
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
@@ -6,14 +6,43 @@ import { Term, useTermIn } from "./Term";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
+/**
+ * The same small mark on everything that asks an AI model, so nobody spends their plan's limit
+ * without knowing it. Inside a button it reads "uses your limit" to screen readers too.
+ */
+export function ModelMark({ className }: { className?: string }) {
+  const { t } = useTranslation();
+  return (
+    <span className={cn("inline-flex shrink-0 opacity-60", className)}>
+      <Gauge size={11} strokeWidth={2} aria-hidden="true" />
+      <span className="sr-only">{t("limits.usesLimit")}</span>
+    </span>
+  );
+}
+
+/** The hint for something that asks a model: its own hint first, then that it uses the limit. */
+export function useModelTip(): (tip?: string) => string {
+  const { t } = useTranslation();
+  return (tip) => (tip ? `${tip} ${t("limits.usesLimit")}` : t("limits.usesLimit"));
+}
+
 export function Button({
   variant = "secondary",
   size = "md",
   icon: Icon,
+  usesModel,
   className,
   children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: ButtonVariant; size?: "sm" | "md"; icon?: LucideIcon }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: ButtonVariant;
+  size?: "sm" | "md";
+  icon?: LucideIcon;
+  /** It asks an AI model: shows the ModelMark and says so in the hint. */
+  usesModel?: boolean;
+}) {
+  const modelTip = useModelTip();
+  const tip = (props as { "data-tip"?: string })["data-tip"];
   return (
     <button
       type="button"
@@ -28,9 +57,11 @@ export function Button({
         className,
       )}
       {...props}
+      data-tip={usesModel ? modelTip(tip) : tip}
     >
       {Icon && <Icon size={size === "md" ? 15 : 13} strokeWidth={1.75} />}
       {children}
+      {usesModel && <ModelMark />}
     </button>
   );
 }

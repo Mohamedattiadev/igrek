@@ -151,7 +151,13 @@ export function AnalyticsPanel({ projectId }: { projectId: string }) {
           {t("analytics.signups")}
         </Button>
         {!empty && (
-          <Button variant="ghost" icon={MessageSquare} onClick={() => setAsk(true)} data-tip={t("analytics.askTip")}>
+          <Button
+            usesModel
+            variant="ghost"
+            icon={MessageSquare}
+            onClick={() => setAsk(true)}
+            data-tip={t("analytics.askTip")}
+          >
             {t("analytics.ask")}
           </Button>
         )}

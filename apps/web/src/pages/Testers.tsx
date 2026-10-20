@@ -257,7 +257,12 @@ export function TestersTab() {
               className={input}
             />
           </label>
-          <Button icon={UserPlus} onClick={() => void draft()} disabled={drafting || audience.trim().length < 8}>
+          <Button
+            usesModel
+            icon={UserPlus}
+            onClick={() => void draft()}
+            disabled={drafting || audience.trim().length < 8}
+          >
             {drafting ? t("persona.drafting") : t("testers.makeProfiles")}
           </Button>
         </div>
@@ -302,6 +307,7 @@ export function TestersTab() {
         {error && <p className="text-xs text-danger">{error}</p>}
         <div className="flex justify-end">
           <Button
+            usesModel
             variant="primary"
             icon={Play}
             onClick={() => void start()}
@@ -507,6 +513,7 @@ export function TestRunPage() {
                   {t("persona.delete")}
                 </Button>
                 <Button
+                  usesModel
                   size="sm"
                   icon={Repeat}
                   onClick={async () => navigate(`/test-runs/${(await api.repeatTesterRun(run.id)).id}`)}

@@ -64,6 +64,7 @@ export function WhatIs() {
         <div className="flex justify-end gap-2">
           {!answer && (
             <Button
+              usesModel
               size="sm"
               icon={Lightbulb}
               disabled={busy || !request}

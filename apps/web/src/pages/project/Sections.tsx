@@ -289,6 +289,7 @@ function FindingRow({
               {t("insight.fix")}
             </Button>
             <Button
+              usesModel
               size="sm"
               variant="ghost"
               icon={GitBranch}

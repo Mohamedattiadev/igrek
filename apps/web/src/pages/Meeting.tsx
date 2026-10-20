@@ -203,6 +203,7 @@ export function MeetingPage() {
                 </select>
               )}
               <Button
+                usesModel
                 variant="ghost"
                 icon={Swords}
                 onClick={() => void act("weak", () => api.meetingWeakPoints(meeting.id))}

@@ -112,6 +112,7 @@ export function TeamChat() {
               # {selected.name} <span className="font-normal text-fg-muted">· {selected.project}</span>
             </p>
             <Button
+              usesModel
               size="sm"
               variant="ghost"
               icon={FileText}
