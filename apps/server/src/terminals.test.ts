@@ -31,6 +31,13 @@ describe("terminals", () => {
     expect(() => terminals.start({ projectId: "p", cwd: "/no/such/folder", tool: "shell" })).toThrow();
     terminals.stopAll();
   });
+
+  test("on Windows it says the terminal is not there yet instead of opening a broken one", () => {
+    const terminals = new Terminals(new Bus(), new StopRegistry());
+    expect(() => terminals.start({ projectId: "p", cwd: tmpdir(), tool: "shell" }, "win32")).toThrow("Windows");
+    expect(terminals.list()).toEqual([]);
+    terminals.stopAll();
+  });
 });
 
 describe("environment for new sessions", () => {

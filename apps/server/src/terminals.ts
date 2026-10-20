@@ -70,7 +70,12 @@ export class Terminals {
     return term ? { ...term.info } : undefined;
   }
 
-  start(options: StartOptions): TerminalInfo {
+  start(options: StartOptions, platform: NodeJS.Platform = process.platform): TerminalInfo {
+    // Bun's terminal (a PTY) exists only on Linux and macOS; on Windows say so instead of a broken window.
+    if (platform === "win32")
+      throw new Error(
+        "The built-in terminal does not work on Windows yet. Use a chat, or run the tool in your own terminal (Windows Terminal or Git Bash).",
+      );
     if (!existsSync(options.cwd)) throw new Error("Project folder not found");
     const id = crypto.randomUUID().slice(0, 8);
     const cmd = [...commandFor(options.tool), ...(options.args ?? [])];
