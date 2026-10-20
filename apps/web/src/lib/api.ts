@@ -231,7 +231,6 @@ export const api = {
   /** "one": the folder is one project; "folder": each folder inside it is a project. */
   addProject: (path: string, as: "one" | "folder" = "one") =>
     request<{ id: string }>("/api/projects", { method: "POST", body: JSON.stringify({ path, as }) }),
-  hideFoundProjects: () => request<{ hidden: number }>("/api/projects/hide-found", { method: "POST" }),
   renameProject: (id: string, name: string) =>
     request<{ ok: boolean }>(`/api/projects/${id}`, { method: "PATCH", body: JSON.stringify({ name }) }),
   fetchRemote: (id: string) => request<{ git: GitInfo }>(`/api/projects/${id}/fetch`, { method: "POST" }),

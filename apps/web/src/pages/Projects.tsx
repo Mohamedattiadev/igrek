@@ -481,28 +481,6 @@ function FoundList({ projects, onChange }: { projects: ProjectListItem[]; onChan
   );
 }
 
-/**
- * Before this setting, every folder Claude touched became a project. Once, the user chooses: keep
- * only their own folders (the rest go to "found"), or keep adding everything on its own.
- */
-function FoundBanner({ projects, onChange }: { projects: ProjectListItem[]; onChange: () => void }) {
-  const { t } = useTranslation();
-  const { settings, update } = useSettings();
-  const foundHere = projects.filter((p) => !p.addedByHand).length;
-  if (settings.autoProjects || foundHere === 0) return null;
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-ui border border-border bg-bg-subtle px-3 py-2 text-[12.5px]">
-      <span className="min-w-0 flex-1">{t("projects.foundBanner", { count: foundHere })}</span>
-      <Button size="sm" variant="primary" onClick={() => void api.hideFoundProjects().then(onChange)}>
-        {t("projects.foundKeepMine")}
-      </Button>
-      <Button size="sm" variant="ghost" onClick={() => void update({ autoProjects: true })}>
-        {t("projects.foundKeepAll")}
-      </Button>
-    </div>
-  );
-}
-
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -579,7 +557,6 @@ export function ProjectsPage() {
         <div className="p-6">
           <div className="mb-4 space-y-3">
             {projects && visible.length > 0 && <HomeComposer projects={visible} />}
-            {projects && <FoundBanner projects={visible} onChange={reload} />}
             <DaySection>
               <SummariesOff />
               <BriefingCard />

@@ -166,6 +166,12 @@ const bus = new Bus();
 const stops = new StopRegistry();
 const store = new Store(sqlite);
 store.autoProjects = () => readSettings(db).autoProjects;
+// Projects are only the folders the user adds: while that holds, a folder Igrek found on its own (one
+// from before the setting too) waits under found folders, and never shows on the list unasked.
+if (!readSettings(db).autoProjects) store.hideFound();
+bus.subscribe((m) => {
+  if (m.type === "settings" && !m.settings.autoProjects) store.hideFound();
+});
 const accounts = new Accounts(sqlite, bus, join(config.dataDir, "accounts"));
 accounts.ensureDefault("claude");
 accounts.ensureDefault("codex");

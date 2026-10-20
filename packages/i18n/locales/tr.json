@@ -99,11 +99,7 @@
     "foundHide": "Bulunan klasörleri gizle",
     "foundHint": "Claude bu klasörlerde çalıştı ama bunlar proje değil. Geçmişleri saklanıyor; birini eklersen proje olarak görünür.",
     "foundSessions_one": "{{count}} oturum",
-    "foundSessions_other": "{{count}} oturum",
-    "foundBanner_one": "Bu projelerden {{count}} tanesini Igrek kendisi ekledi. Sadece senin eklediğin klasörler kalsın mı?",
-    "foundBanner_other": "Bu projelerden {{count}} tanesini Igrek kendisi ekledi. Sadece senin eklediğin klasörler kalsın mı?",
-    "foundKeepMine": "Sadece benimkiler (gerisi bulunan klasörlere)",
-    "foundKeepAll": "Kendiliğinden eklemeye devam et"
+    "foundSessions_other": "{{count}} oturum"
   },
   "inbox": {
     "title": "Gelen Kutusu",

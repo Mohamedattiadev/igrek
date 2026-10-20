@@ -71,7 +71,6 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   });
 
   // "Only the folders I add": hides what Igrek found on its own (the hidden list keeps it).
-  app.post("/api/projects/hide-found", (c) => c.json({ hidden: store.hideFound() }));
 
   app.patch("/api/projects/:id", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as {

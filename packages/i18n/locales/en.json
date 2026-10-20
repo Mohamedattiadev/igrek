@@ -99,11 +99,7 @@
     "foundHide": "Hide found folders",
     "foundHint": "Claude worked in these folders, but they are not projects. Their history is kept; add one to see it as a project.",
     "foundSessions_one": "{{count}} session",
-    "foundSessions_other": "{{count}} sessions",
-    "foundBanner_one": "Igrek added {{count}} of these projects on its own. Keep only the folders you add?",
-    "foundBanner_other": "Igrek added {{count}} of these projects on its own. Keep only the folders you add?",
-    "foundKeepMine": "Only mine (the rest go to found folders)",
-    "foundKeepAll": "Keep adding them on their own"
+    "foundSessions_other": "{{count}} sessions"
   },
   "inbox": {
     "title": "Inbox",
