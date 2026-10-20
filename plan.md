@@ -296,7 +296,7 @@ god-eye/
   - [x] Volume'lar: `~/.godeye`, `~/.claude`, `~/.codex`, proje klasörleri (kullanıcı seçer)
   - [x] Container içinde kullanıcının UID/GID'si ile çalışır, dosya sahipliği bozulmaz
   - [x] Healthcheck, otomatik yeniden başlama
-- [ ] Docker'sız alternatif: `bunx god-eye` (Docker kurmak istemeyenler için) — *Karar (Ekim 2026): şimdilik npm'e yayınlanmıyor; repo özel kalıyor*
+- [x] Docker'sız alternatif: `bunx god-eye` (Docker kurmak istemeyenler için) — *Karar (Ekim 2026): şimdilik npm'e yayınlanmıyor; repo özel kalıyor. 20 Ekim 2026: yerine tek komutluk kurulum betiği (`scripts/install.sh`, `install.ps1`) GitHub'dan kurar ve günceller; npm'e yayın hâlâ yok (lisans dağıtımı sadece resmî kaynaktan istiyor)*
 - [x] 🔒 Sunucu sadece `127.0.0.1`'e bağlanır; oturum token'ı; Origin ve Host kontrolü (DNS rebinding koruması)
 - [x] 🔒 **Prompt güvenlik duvarı:** kullanıcının yazdığı prompt'ta şifre, API key veya kişisel veri varsa AI'a gitmeden önce uyarır ve maskeler — *chat ve Hızlı Soru'da; güçlendirici ve senkron zaten temizler*
 - [x] 🔒 **Prompt injection koruması:** web sayfaları, dokümanlar, issue'lar ve loglar gibi dışarıdan okunan içerik **veri** olarak işaretlenir, talimat olarak uygulanmaz. Dışarıdan içerik okuyan agent'ların tehlikeli araçları kapalıdır **Yapıldı:** God Eye'ın kendi AI işleri hiç araçsız çalışır (`--tools ""`), okudukları metin bir şey yaptıramaz. Sohbet internetten içerik okuyunca (WebFetch/WebSearch/tarayıcı MCP) soran moda döner, riskli araçlar her seferinde sorulur ve "her zaman izin ver" onları kapsamaz.
