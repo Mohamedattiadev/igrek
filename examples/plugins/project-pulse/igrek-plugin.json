@@ -2,7 +2,7 @@
   "id": "project-pulse",
   "name": "Project pulse",
   "version": "1.0.0",
-  "description": "A table of your projects with their health, sessions and how much memory Igrek keeps for each. An example of a Igrek plugin.",
+  "description": "A table of your projects with their health, sessions and how much memory Igrek keeps for each. An example of an Igrek plugin.",
   "author": "Igrek",
   "permissions": ["projects:read", "memory:read"],
   "panels": [

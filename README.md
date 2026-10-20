@@ -56,14 +56,29 @@ Sonra tarayıcında şu adresi aç: **http://localhost:7777**
 
 **AI araçlarını imaja eklemek (isteğe bağlı):** `.env` dosyasında `IGREK_INSTALL_CLAUDE=true` ve/veya `IGREK_INSTALL_CODEX=true`, sonra `docker compose up -d --build`. Codex imajı yaklaşık 300 MB büyütür (kendi programı bu boyutta).
 
-### Docker'sız çalıştırmak (geliştirici)
+### Docker'sız kurulum (Windows, macOS, Linux)
+
+Docker gerekmez; Igrek doğrudan bilgisayarında çalışır.
+
+1. **Bun** kur: macOS ve Linux'ta `curl -fsSL https://bun.sh/install | bash`, Windows'ta PowerShell'de
+   `powershell -c "irm bun.sh/install.ps1 | iex"`.
+2. **Git** kur. Windows'ta [Git for Windows](https://git-scm.com/download/win): Claude Code da akışların kabuk
+   adımları da onunla gelen bash'i kullanır.
+3. **Claude Code**'u kur ve bir kez `claude` yazıp giriş yap (Codex isteğe bağlı).
+4. Igrek'i indir ve başlat:
 
 ```bash
+git clone <bu repo> igrek && cd igrek
 bun install
 bun run build      # arayüzü derler
 bun run start      # http://localhost:7777
 bun run doctor     # kurulum kontrolü
 ```
+
+5. Tarayıcıda `http://localhost:7777` aç. Ayarlar → **Igrek'i uygulama olarak kullan** ile kendi penceresinde açılır.
+
+Ekran görüntüleri için Chrome, Chromium ya da Edge gerekir (başka yerdeyse `IGREK_BROWSER` ile yolunu ver).
+Windows'ta henüz denenmeyenler: gömülü terminal ve Claude Code'un otomatik moddaki sandbox'ı (Windows'ta yok).
 
 ### Kapatmak / güncellemek
 
@@ -153,14 +168,29 @@ Then open **http://localhost:7777** and pick your language. That's it.
 
 **Adding AI tools to the image (optional):** set `IGREK_INSTALL_CLAUDE=true` and/or `IGREK_INSTALL_CODEX=true` in `.env`, then `docker compose up -d --build`. Codex adds about 300 MB (its own binary is that size).
 
-### Run without Docker (developers)
+### Install without Docker (Windows, macOS, Linux)
+
+No Docker needed; Igrek runs directly on your computer.
+
+1. Install **Bun**: on macOS and Linux `curl -fsSL https://bun.sh/install | bash`, on Windows in PowerShell
+   `powershell -c "irm bun.sh/install.ps1 | iex"`.
+2. Install **Git**. On Windows, [Git for Windows](https://git-scm.com/download/win): Claude Code and the shell steps
+   of flows use the bash it brings.
+3. Install **Claude Code** and run `claude` once to log in (Codex is optional).
+4. Get Igrek and start it:
 
 ```bash
+git clone <this repo> igrek && cd igrek
 bun install
 bun run build      # build the web UI
 bun run start      # http://localhost:7777
 bun run doctor     # check your setup
 ```
+
+5. Open `http://localhost:7777`. Settings → **Igrek as an app** opens it in a window of its own.
+
+Screenshots need Chrome, Chromium or Edge (set `IGREK_BROWSER` if yours is elsewhere). Not yet tried on Windows:
+the built-in terminal, and Claude Code's sandbox for auto mode (it does not exist on Windows).
 
 ### Stop / update
 

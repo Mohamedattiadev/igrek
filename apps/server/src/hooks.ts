@@ -14,9 +14,10 @@ const MAX_CONTEXT_CHARS = 6000;
  * payload to Igrek and prints whatever comes back; if Igrek isn't running it
  * stays silent, so Claude Code is never blocked.
  */
-export function writeHookScript(dataDir: string, port: number): string {
+export function writeHookScript(dataDir: string, port: number, platform: NodeJS.Platform = process.platform): string {
   const dir = join(dataDir, "bin");
   mkdirSync(dir, { recursive: true });
+  if (platform === "win32") return writeBunHook(dir, dataDir, port);
   const path = join(dir, `${MARKER}.sh`);
   writeFileSync(
     path,
@@ -31,6 +32,39 @@ curl -s -m 3 -X POST -H "Host: localhost:${port}" -H "Cookie: igrek_session=$KEY
   );
   chmodSync(path, 0o700);
   return path;
+}
+
+/**
+ * Windows has neither sh nor, always, curl: there the hook is a small script run by the same Bun
+ * that runs Igrek, doing what the shell script does. Returned as the whole command, quoted.
+ */
+function writeBunHook(dir: string, dataDir: string, port: number): string {
+  const path = join(dir, `${MARKER}.mjs`);
+  writeFileSync(
+    path,
+    `// Igrek hook (installed by Igrek; safe to delete).
+import { readFileSync } from "node:fs";
+if (process.env.IGREK_INTERNAL) process.exit(0);
+let key;
+try {
+  key = readFileSync(${JSON.stringify(join(dataDir, "session.key"))}, "utf8").trim();
+} catch {
+  process.exit(0);
+}
+try {
+  const res = await fetch("http://127.0.0.1:${port}/api/hooks/" + process.argv[2], {
+    method: "POST",
+    headers: { host: "localhost:${port}", cookie: "igrek_session=" + key, "content-type": "application/json" },
+    body: await Bun.stdin.text(),
+    signal: AbortSignal.timeout(3000),
+  });
+  process.stdout.write(await res.text());
+} catch {
+  // Igrek is not running: Claude Code goes on as if there were no hook.
+}
+`,
+  );
+  return `"${process.execPath}" "${path}"`;
 }
 
 type HookEntry = { matcher?: string; hooks: { type: string; command: string }[] };
