@@ -13,7 +13,7 @@ import {
 } from "@igrek/core";
 import { parse as parseYaml } from "yaml";
 import type { Bus, StopRegistry } from "./bus";
-import { aiEnv, cleanEnv, shellCommand } from "./env";
+import { aiEnv, cleanEnv, codexArgs, shellCommand } from "./env";
 import { BUILTIN_FLOWS } from "./flows-builtin";
 import { SHIP_ASK_RULES } from "./guards";
 import { runChecks } from "./insight/tools";
@@ -118,6 +118,7 @@ async function runCodex({ cwd, prompt, system, readOnly, register }: Parameters<
   const proc = Bun.spawn(
     [
       "codex",
+      ...codexArgs(),
       "exec",
       "--skip-git-repo-check",
       "--sandbox",

@@ -1,0 +1,53 @@
+name: Windows install
+
+# The Windows installer, run the way a person runs it on a fresh Windows machine: Bun is installed
+# by it, Igrek is cloned (from this checkout), built, started with the "igrek" launcher it writes,
+# and must answer. Nothing calls a model; the server's data goes to a temporary folder.
+on:
+  push:
+    branches: [main]
+    paths: ["scripts/install.ps1", ".github/workflows/windows-install.yml"]
+  schedule:
+    - cron: "30 3 * * 1"
+  workflow_dispatch:
+
+env:
+  OPENUI_TELEMETRY_DISABLED: "1"
+  DO_NOT_TRACK: "1"
+
+jobs:
+  install:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run the installer
+        shell: powershell
+        env:
+          IGREK_REPO: ${{ github.workspace }}
+          IGREK_DIR: ${{ runner.temp }}\igrek-app
+        run: |
+          # The runner may have Bun already; hide it so the installer's own Bun step runs.
+          $env:Path = ($env:Path -split ";" | Where-Object { $_ -notmatch "bun" }) -join ";"
+          .\scripts\install.ps1
+      - name: Start it with the launcher and ask it
+        shell: powershell
+        env:
+          IGREK_HOME: ${{ runner.temp }}\igrek-data
+          IGREK_PORT: "7799"
+        run: |
+          $launcher = Join-Path $env:LOCALAPPDATA "igrek-bin\igrek.cmd"
+          if (-not (Test-Path $launcher)) { throw "The installer wrote no launcher" }
+          $userPath = [Environment]::GetEnvironmentVariable("Path", "User")
+          if (-not ($userPath -split ";" | Where-Object { $_ -like "*igrek-bin" })) { throw "igrek-bin is not on the user Path" }
+          $server = Start-Process -FilePath $launcher -PassThru -NoNewWindow -RedirectStandardOutput server.log -RedirectStandardError server.err
+          $ok = $false
+          for ($i = 0; $i -lt 60 -and -not $ok; $i++) {
+            Start-Sleep -Seconds 2
+            try { $ok = (Invoke-RestMethod http://localhost:7799/api/health).ok } catch { }
+          }
+          Get-Content server.log, server.err -ErrorAction SilentlyContinue | Select-Object -Last 40
+          Stop-Process -Id $server.Id -Force -ErrorAction SilentlyContinue
+          Get-Process bun -ErrorAction SilentlyContinue | Stop-Process -Force
+          if (-not $ok) { throw "Igrek did not answer on /api/health" }
+          Write-Host "Igrek answered after the Windows install."

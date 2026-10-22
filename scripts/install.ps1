@@ -46,9 +46,12 @@ if "%~1"=="" (bun run start) else (bun run apps\server\src\cli.ts %*)
 "@
 Set-Content -Path (Join-Path $Bin "igrek.cmd") -Value $Launcher -Encoding ASCII
 
+# A new account can have no user Path at all: then the folder is the whole of it.
 $UserPath = [Environment]::GetEnvironmentVariable("Path", "User")
-if (-not ($UserPath -split ";" | Where-Object { $_ -eq $Bin })) {
-  [Environment]::SetEnvironmentVariable("Path", "$UserPath;$Bin", "User")
+if (-not $UserPath) {
+  [Environment]::SetEnvironmentVariable("Path", $Bin, "User")
+} elseif (-not ($UserPath -split ";" | Where-Object { $_ -eq $Bin })) {
+  [Environment]::SetEnvironmentVariable("Path", "$($UserPath.TrimEnd(';'));$Bin", "User")
 }
 
 Write-Host ""

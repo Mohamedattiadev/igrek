@@ -1,6 +1,8 @@
 import { describe, expect, test } from "bun:test";
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findBrowser, shellCommand } from "./env";
+import { codexArgs, findBrowser, setAiGateway, shellCommand } from "./env";
 
 describe("running outside Docker on Linux, macOS and Windows", () => {
   const only = (path: string) => (candidate: string) => candidate === path;
@@ -27,5 +29,19 @@ describe("running outside Docker on Linux, macOS and Windows", () => {
       "echo hi",
     ]);
     expect(() => shellCommand("echo hi", "win32", () => null)).toThrow("Git for Windows");
+  });
+});
+
+describe("Codex through the privacy gateway", () => {
+  test("a ChatGPT sign-in keeps the Codex backend's path, an API key the API's; off means nothing", () => {
+    const chatgpt = mkdtempSync(join(tmpdir(), "codex-home-"));
+    writeFileSync(join(chatgpt, "auth.json"), JSON.stringify({ OPENAI_API_KEY: null, tokens: { id_token: "x" } }));
+    const key = mkdtempSync(join(tmpdir(), "codex-home-"));
+    writeFileSync(join(key, "auth.json"), JSON.stringify({ OPENAI_API_KEY: "sk-test" }));
+    setAiGateway("http://127.0.0.1:1", "http://127.0.0.1:2");
+    expect(codexArgs(chatgpt)).toEqual(["-c", 'openai_base_url="http://127.0.0.1:2/backend-api/codex"']);
+    expect(codexArgs(key)).toEqual(["-c", 'openai_base_url="http://127.0.0.1:2/v1"']);
+    setAiGateway(undefined, "http://127.0.0.1:2");
+    expect(codexArgs(chatgpt)).toEqual([]);
   });
 });

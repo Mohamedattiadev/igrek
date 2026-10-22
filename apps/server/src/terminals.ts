@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import type { TerminalInfo, TerminalTool } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
-import { aiEnv, cleanEnv, loginShell } from "./env";
+import { aiEnv, cleanEnv, codexArgs, loginShell } from "./env";
 
 const SCROLLBACK_BYTES = 512 * 1024;
 const ESC = String.fromCharCode(27);
@@ -78,7 +78,9 @@ export class Terminals {
       );
     if (!existsSync(options.cwd)) throw new Error("Project folder not found");
     const id = crypto.randomUUID().slice(0, 8);
-    const cmd = [...commandFor(options.tool), ...(options.args ?? [])];
+    // Codex goes through the privacy gateway too, set for this run only.
+    const gateway = options.tool === "codex" ? codexArgs(options.env?.CODEX_HOME) : [];
+    const cmd = [...commandFor(options.tool), ...gateway, ...(options.args ?? [])];
     const cols = options.cols ?? 120;
     const rows = options.rows ?? 32;
     const decoder = new TextDecoder();

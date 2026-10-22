@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
 import { LoadError } from "../components/LoadError";
 import { api } from "../lib/api";
+import { ChiefChat } from "./Chat";
 
-/** "/chief": opens the chief's one chat (started, or continued from its last session) and goes there. */
+/** "/chief": the chief's one chat (started, or continued from its last session), right here. */
 export function ChiefPage() {
-  const navigate = useNavigate();
+  const [chatId, setChatId] = useState<string>();
   const [error, setError] = useState<string>();
   const [attempt, setAttempt] = useState(0);
   // biome-ignore lint/correctness/useExhaustiveDependencies: `attempt` starts it again after an error
@@ -13,11 +13,12 @@ export function ChiefPage() {
     let current = true;
     api
       .chief()
-      .then((chat) => current && void navigate(`/c/${chat.id}`, { replace: true }))
+      .then((chat) => current && setChatId(chat.id))
       .catch((err: Error) => current && setError(err.message));
     return () => {
       current = false;
     };
   }, [attempt]);
+  if (chatId) return <ChiefChat chatId={chatId} />;
   return <LoadError error={error} onRetry={() => setAttempt((n) => n + 1)} />;
 }

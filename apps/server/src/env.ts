@@ -21,8 +21,35 @@ export function cleanEnv(extra: Record<string, string> = {}): Record<string, str
 let gatewayUrl: string | undefined;
 
 /** Igrek's privacy gateway (gateway.ts) for the AI tools it starts; undefined turns it off. */
-export function setAiGateway(url: string | undefined): void {
+export function setAiGateway(url: string | undefined, openAi?: string): void {
   gatewayUrl = url;
+  codexGatewayUrl = url ? openAi : undefined;
+}
+
+let codexGatewayUrl: string | undefined;
+
+/** Whether this Codex home signed in with ChatGPT (its requests go to ChatGPT's Codex backend) or an API key. */
+function codexUsesChatGpt(codexHome: string): boolean {
+  try {
+    const auth = JSON.parse(readFileSync(join(codexHome, "auth.json"), "utf8")) as {
+      tokens?: unknown;
+      OPENAI_API_KEY?: unknown;
+    };
+    return Boolean(auth.tokens) || !auth.OPENAI_API_KEY;
+  } catch {
+    return true;
+  }
+}
+
+/**
+ * Codex's arguments for the privacy gateway: its OpenAI address set for this run only (`-c`), so
+ * the user's own ~/.codex/config.toml is never changed. A ChatGPT sign-in keeps the Codex backend's
+ * path, which Codex needs to recognise it; an API key goes to the API's path.
+ */
+export function codexArgs(codexHome = process.env.CODEX_HOME || join(homedir(), ".codex")): string[] {
+  if (!codexGatewayUrl) return [];
+  const base = codexUsesChatGpt(codexHome) ? `${codexGatewayUrl}/backend-api/codex` : `${codexGatewayUrl}/v1`;
+  return ["-c", `openai_base_url="${base}"`];
 }
 
 /**

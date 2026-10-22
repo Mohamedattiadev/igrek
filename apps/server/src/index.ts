@@ -463,9 +463,17 @@ const gatewayStats = { hidden: 0 };
 const gateway = startGateway(gatewayValues, undefined, (n) => {
   gatewayStats.hidden += n;
 });
-setAiGateway(readSettings(db).privacyGateway ? gateway.url : undefined);
+// Codex's own gateway: ChatGPT's Codex backend for a ChatGPT sign-in, OpenAI's API for a key.
+const codexGateway = startGateway(
+  gatewayValues,
+  (path) => (path.startsWith("/backend-api/") ? "https://chatgpt.com" : "https://api.openai.com"),
+  (n) => {
+    gatewayStats.hidden += n;
+  },
+);
+setAiGateway(readSettings(db).privacyGateway ? gateway.url : undefined, codexGateway.url);
 bus.subscribe((m) => {
-  if (m.type === "settings") setAiGateway(m.settings.privacyGateway ? gateway.url : undefined);
+  if (m.type === "settings") setAiGateway(m.settings.privacyGateway ? gateway.url : undefined, codexGateway.url);
 });
 const mcpServers = new McpServers(sqlite, sealer);
 const bridges = new Bridges(sqlite, sealer, fetch, `http://localhost:${config.publicPort}`);
