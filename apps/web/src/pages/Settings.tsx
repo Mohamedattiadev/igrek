@@ -3,6 +3,7 @@ import { AppWindow, CheckCircle2, Circle, Compass, XCircle } from "lucide-react"
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
+import { ExtensionPanel } from "../components/ExtensionPanel";
 import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import {
@@ -326,6 +327,9 @@ export function SettingsPage() {
         </Section>
         <Section title={t("private.title")} hint={t("private.hint")}>
           <PrivatePanel />
+        </Section>
+        <Section title={t("extension.title")} hint={t("extension.hint")}>
+          <ExtensionPanel />
         </Section>
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />

@@ -947,6 +947,12 @@ export const migrations: string[] = [
      value TEXT NOT NULL,
      created_at INTEGER NOT NULL
    );`,
+  // The browser extension's pairing keys (extension-routes.ts): hashes only, a key opens only /api/ext/.
+  `CREATE TABLE ext_keys (
+     hash TEXT PRIMARY KEY NOT NULL,
+     created_at INTEGER NOT NULL,
+     used_at INTEGER
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

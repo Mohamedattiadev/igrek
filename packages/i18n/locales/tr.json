@@ -4557,5 +4557,18 @@
     "copy": "Bilgilerimle kopyala",
     "copyTip": "Cevabı, yer tutucuların yerine gerçek değerlerinle kopyalar. AI onları hiç görmedi.",
     "inStep": "Igrek bu adım çalışırken yer tutucuların yerine gerçek özel bilgilerini koyar; AI onları görmez. Adım bir değeri ekrana yazdırırsa, çıktısı AI'a ulaşabilir."
+  },
+  "extension": {
+    "title": "Tarayıcı eklentisi",
+    "hint": "Tarayıcıdaki formlar için (iş ve burs başvuruları, şirket evrakı): özel bilgilerini isteyen alanları doldurur ve bir alanın metnini yazdırır; AI bu bilgileri hiç görmez. Sadece bu bilgisayardaki Igrek'le konuşur.",
+    "step1": "Chrome, Brave ya da Edge'de eklentiler sayfasını aç (chrome://extensions), Geliştirici modunu aç ve Paketlenmemiş öğe yükle'yi seç.",
+    "step2": "Igrek klasörünün içindeki extension klasörünü seç.",
+    "step3": "Aşağıdan bir eşleştirme anahtarı oluştur ve eklentinin paneline yapıştır.",
+    "pair": "Eşleştirme anahtarı oluştur",
+    "forget": "Bütün tarayıcıların bağlantısını kes",
+    "forgetConfirm": "Eşleşmiş bütün tarayıcıların bağlantısı kesilsin mi? Her biri sonra yeni bir anahtar ister.",
+    "paired_one": "{{count}} tarayıcı eşleşmiş",
+    "paired_other": "{{count}} tarayıcı eşleşmiş",
+    "keyOnce": "Sadece şimdi gösteriliyor. Eklentinin bu bilgisayardaki özel bilgilerini okumasını sağlar; sadece kendi tarayıcına yapıştır."
   }
 }

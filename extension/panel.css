@@ -1,0 +1,139 @@
+/* The app's calm look: one accent, no gradients, light and dark. */
+:root {
+  --bg: #ffffff;
+  --bg-subtle: #f6f7f9;
+  --fg: #1e1f22;
+  --fg-muted: #5c616b;
+  --border: #e3e5e9;
+  --accent: #2267ef;
+  --danger: #c4314b;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181b;
+    --bg-subtle: #1f2024;
+    --fg: #dfe1e5;
+    --fg-muted: #9aa0aa;
+    --border: #2e3036;
+    --accent: #6b9bf8;
+    --danger: #f0798c;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 12px 14px 20px;
+  background: var(--bg);
+  color: var(--fg);
+  font:
+    13.5px / 1.5 Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+header #status {
+  margin-inline-start: auto;
+  font-size: 12px;
+}
+h2 {
+  font-size: 14px;
+  margin: 18px 0 4px;
+}
+.muted {
+  color: var(--fg-muted);
+  margin: 0 0 8px;
+}
+.small {
+  font-size: 12px;
+}
+label {
+  display: block;
+  margin: 8px 0;
+}
+label span {
+  display: block;
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin-bottom: 2px;
+}
+input,
+textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+}
+textarea {
+  resize: vertical;
+}
+button {
+  margin: 6px 0;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.primary {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+button.ghost {
+  border: none;
+  color: var(--fg-muted);
+  font-weight: 400;
+  padding-inline: 0;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0;
+}
+li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+}
+li:first-child {
+  border-top: none;
+}
+li span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+}
+.note.error {
+  color: var(--danger);
+}

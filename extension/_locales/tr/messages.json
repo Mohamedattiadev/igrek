@@ -1,0 +1,86 @@
+{
+  "name": {
+    "message": "Igrek"
+  },
+  "description": {
+    "message": "Formları özel bilgilerinle doldur ve cevaplarını yazdır; AI o bilgileri hiç görmesin."
+  },
+  "pairTitle": {
+    "message": "Igrek'e bağlan"
+  },
+  "pairHint": {
+    "message": "Igrek'te Ayarlar, Tarayıcı eklentisi'ni aç ve bir eşleştirme anahtarı oluştur. Buraya yapıştır."
+  },
+  "address": {
+    "message": "Igrek'in adresi"
+  },
+  "key": {
+    "message": "Eşleştirme anahtarı"
+  },
+  "connect": {
+    "message": "Bağlan"
+  },
+  "disconnect": {
+    "message": "Bu tarayıcının bağlantısını kes"
+  },
+  "connected": {
+    "message": "$1 özel bilgi"
+  },
+  "notPaired": {
+    "message": "Bu anahtar artık Igrek'le eşleşmiyor. Igrek'in Ayarlar'ından yenisini oluştur."
+  },
+  "noPage": {
+    "message": "Önce formun olduğu sayfayı aç."
+  },
+  "fillTitle": {
+    "message": "Bu formu doldur"
+  },
+  "fillHint": {
+    "message": "Özel bilgilerinden birini (T.C. kimlik, IBAN, öğrenci no...) isteyen alanları bulur ve burada, tarayıcıda doldurur."
+  },
+  "scan": {
+    "message": "Alanları bul"
+  },
+  "fill": {
+    "message": "İşaretli alanları doldur"
+  },
+  "found": {
+    "message": "$1 alan özel bilgilerinle eşleşti. Boş kalması gerekenlerin işaretini kaldır."
+  },
+  "nothingFound": {
+    "message": "Buradaki hiçbir alan özel bilgilerinden birini istemiyor."
+  },
+  "filled": {
+    "message": "$1 alan dolduruldu."
+  },
+  "writeTitle": {
+    "message": "Bir alanın metnini yazdır"
+  },
+  "writeHint": {
+    "message": "Önce sayfadaki alanın içine tıkla (örneğin \"Bu bursu neden istiyorsun?\"), sonra ne yazılacağını söyle."
+  },
+  "writePlaceholder": {
+    "message": "Örneğin: okuduğum bölümle ilgili kısa ve samimi bir cevap"
+  },
+  "write": {
+    "message": "Yaz"
+  },
+  "usesLimit": {
+    "message": "Bir AI modeline sorar, bu yüzden limitini kullanır. AI yer tutucuları görür, özel bilgilerini asla görmez."
+  },
+  "sayWhat": {
+    "message": "Ne yazılacağını söyle."
+  },
+  "clickField": {
+    "message": "Önce sayfadaki alanın içine tıkla, sonra tekrar dene."
+  },
+  "writing": {
+    "message": "Yazılıyor..."
+  },
+  "written": {
+    "message": "Alana yazıldı. Formu göndermeden önce oku."
+  },
+  "rules": {
+    "message": "Bilgilerin bu bilgisayardaki Igrek'ten doğrudan sayfaya gider. Başka hiçbir yere gönderilmez."
+  }
+}

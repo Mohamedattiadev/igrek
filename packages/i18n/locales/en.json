@@ -4557,5 +4557,18 @@
     "copy": "Copy with my details",
     "copyTip": "Copies the answer with your real values in place of the placeholders. The AI never saw them.",
     "inStep": "Igrek puts your real private details in place of the placeholders when this step runs; the AI does not see them. If the step prints a value, its output can reach the AI."
+  },
+  "extension": {
+    "title": "Browser extension",
+    "hint": "For forms in your browser (job and scholarship applications, company paperwork): it fills the fields that ask for your private details and has a field's text written, and the AI never sees those details. It talks only to Igrek on this computer.",
+    "step1": "In Chrome, Brave or Edge open the extensions page (chrome://extensions), turn on Developer mode and choose Load unpacked.",
+    "step2": "Pick the extension folder inside Igrek's folder.",
+    "step3": "Make a pairing key below and paste it into the extension's panel.",
+    "pair": "Make a pairing key",
+    "forget": "Disconnect all browsers",
+    "forgetConfirm": "Disconnect every paired browser? Each needs a new key afterwards.",
+    "paired_one": "{{count}} browser paired",
+    "paired_other": "{{count}} browsers paired",
+    "keyOnce": "Shown only now. It lets the extension read your private details on this computer, so paste it only into your own browser."
   }
 }

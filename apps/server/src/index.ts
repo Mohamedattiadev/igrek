@@ -52,6 +52,7 @@ import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
 import { syncExamples } from "./examples";
+import { ExtensionKeys, registerExtensionRoutes } from "./extension-routes";
 import { registerExtrasRoutes } from "./extras-routes";
 import { FeedbackBox } from "./feedback";
 import { registerFileRoutes } from "./file-routes";
@@ -584,6 +585,7 @@ insight.extraNotices = () => [
       link: "/lessons",
     })),
 ];
+const extensionKeys = new ExtensionKeys(sqlite);
 const app = createApp({
   config,
   db,
@@ -591,6 +593,7 @@ const app = createApp({
   bus,
   stops,
   startedAt: Date.now(),
+  extensionKey: (key) => extensionKeys.valid(key),
   extraRoutes: (hono) => {
     registerAgentRequestRoutes(hono, agentRequests);
     registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers, accounts });
@@ -736,6 +739,12 @@ const app = createApp({
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerPrivateRoutes(hono, privateValues);
+    registerExtensionRoutes(hono, {
+      keys: extensionKeys,
+      values: privateValues,
+      // A form field's text: the stronger model, no tools, in an empty folder.
+      write: (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "sonnet"),
+    });
     registerMcpRoutes(hono, mcpServers);
     hono.get("/api/disk", (c) => c.json(retention.usage(readSettings(db).transcriptDays)));
     hono.post("/api/disk/prune", (c) => c.json(retention.prune(readSettings(db).transcriptDays)));

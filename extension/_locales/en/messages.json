@@ -1,0 +1,86 @@
+{
+  "name": {
+    "message": "Igrek"
+  },
+  "description": {
+    "message": "Fill forms with your private details and write their answers, without the AI ever seeing those details."
+  },
+  "pairTitle": {
+    "message": "Connect to Igrek"
+  },
+  "pairHint": {
+    "message": "In Igrek, open Settings, Browser extension, and make a pairing key. Paste it here."
+  },
+  "address": {
+    "message": "Igrek's address"
+  },
+  "key": {
+    "message": "Pairing key"
+  },
+  "connect": {
+    "message": "Connect"
+  },
+  "disconnect": {
+    "message": "Disconnect this browser"
+  },
+  "connected": {
+    "message": "$1 private details"
+  },
+  "notPaired": {
+    "message": "This key is not paired with Igrek any more. Make a new one in Igrek's Settings."
+  },
+  "noPage": {
+    "message": "Open the page with the form first."
+  },
+  "fillTitle": {
+    "message": "Fill this form"
+  },
+  "fillHint": {
+    "message": "Finds the fields that ask for one of your private details (T.C. kimlik, IBAN, student number...) and fills them here in the browser."
+  },
+  "scan": {
+    "message": "Find fields"
+  },
+  "fill": {
+    "message": "Fill the ticked fields"
+  },
+  "found": {
+    "message": "$1 fields match your private details. Untick what should stay empty."
+  },
+  "nothingFound": {
+    "message": "No field here asks for one of your private details."
+  },
+  "filled": {
+    "message": "Filled $1 fields."
+  },
+  "writeTitle": {
+    "message": "Write a field's text"
+  },
+  "writeHint": {
+    "message": "Click into the field on the page first (for example \"Why do you want this scholarship?\"), then say what to write."
+  },
+  "writePlaceholder": {
+    "message": "For example: a short, sincere answer about my studies"
+  },
+  "write": {
+    "message": "Write it"
+  },
+  "usesLimit": {
+    "message": "Asks an AI model, so it uses your plan's limit. The AI sees placeholders, never your private details."
+  },
+  "sayWhat": {
+    "message": "Say what to write."
+  },
+  "clickField": {
+    "message": "Click into the field on the page first, then try again."
+  },
+  "writing": {
+    "message": "Writing..."
+  },
+  "written": {
+    "message": "Written into the field. Read it before you send the form."
+  },
+  "rules": {
+    "message": "Your details go from Igrek on this computer straight into the page. Nothing is sent anywhere else."
+  }
+}

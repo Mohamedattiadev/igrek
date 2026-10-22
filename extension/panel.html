@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Igrek</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <!-- The English text below is what shows until panel.js puts in the browser's language. -->
+    <header>
+      <img src="icons/48.png" width="20" height="20" alt="" />
+      <strong data-i18n="name">Igrek</strong>
+      <span id="status" class="muted"></span>
+    </header>
+
+    <section id="pairing" hidden>
+      <h2 data-i18n="pairTitle">Connect to Igrek</h2>
+      <p class="muted" data-i18n="pairHint">In Igrek, open Settings, Browser extension, and make a pairing key.</p>
+      <label>
+        <span data-i18n="address">Igrek's address</span>
+        <input id="address" value="http://localhost:7777" />
+      </label>
+      <label>
+        <span data-i18n="key">Pairing key</span>
+        <input id="key" type="password" autocomplete="off" />
+      </label>
+      <button id="pair" type="button" class="primary" data-i18n="connect">Connect</button>
+    </section>
+
+    <section id="main" hidden>
+      <h2 data-i18n="fillTitle">Fill this form</h2>
+      <p class="muted" data-i18n="fillHint">Finds the fields that ask for one of your private details.</p>
+      <button id="scan" type="button" class="primary" data-i18n="scan">Find fields</button>
+      <ul id="matches"></ul>
+      <button id="fill" type="button" hidden data-i18n="fill">Fill the ticked fields</button>
+
+      <h2 data-i18n="writeTitle">Write a field's text</h2>
+      <p class="muted" data-i18n="writeHint">Click into the field on the page first, then say what to write.</p>
+      <label>
+        <span data-i18n="writeTitle">Write a field's text</span>
+        <textarea id="instruction" rows="3"></textarea>
+      </label>
+      <button id="write" type="button" data-i18n="write">Write it</button>
+      <p class="muted small" data-i18n="usesLimit">Asks an AI model, so it uses your plan's limit.</p>
+
+      <p class="muted small" data-i18n="rules">Your details go from Igrek on this computer straight into the page.</p>
+      <button id="unpair" type="button" class="ghost" data-i18n="disconnect">Disconnect this browser</button>
+    </section>
+
+    <p id="note" class="note" hidden></p>
+    <script src="panel.js"></script>
+  </body>
+</html>

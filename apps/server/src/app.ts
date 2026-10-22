@@ -23,6 +23,8 @@ export interface AppDeps {
   work?: WorkDeps;
   /** More API routes registered before the 404 fallback. */
   extraRoutes?: (app: Hono) => void;
+  /** Checks a browser extension's pairing key; without it the extension's routes stay closed. */
+  extensionKey?: (key: string | undefined) => boolean;
 }
 
 /**
@@ -80,7 +82,7 @@ function serveBuilt(
   });
 }
 
-export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes }: AppDeps) {
+export function createApp({ config, db, token, bus, stops, startedAt, work, extraRoutes, extensionKey }: AppDeps) {
   const app = new Hono();
 
   app.use("*", async (c, next) => {
@@ -89,7 +91,7 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
     c.header("X-Frame-Options", "DENY");
     c.header("Referrer-Policy", "no-referrer");
   });
-  app.use("*", securityMiddleware(config, token));
+  app.use("*", securityMiddleware(config, token, extensionKey));
   // What an AI agent may change through Igrek's own channels: it proposes, the user approves
   // (plan.md 16.4). Requests from Igrek's MCP server say they come from an agent.
   app.use("/api/*", async (c, next) => {
