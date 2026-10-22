@@ -156,6 +156,11 @@
     "done": "Halledildi (gizle)"
   },
   "settings": {
+    "groupsLabel": "Bu sayfanın bölümleri",
+    "group_look": "Görünüm ve dil",
+    "group_ai": "Yapay zekâ",
+    "group_privacy": "Gizlilik ve güvenlik",
+    "group_data": "Veriler ve sistem",
     "title": "Ayarlar",
     "language": "Dil",
     "languageHint": "Türkçe ve İngilizce hazır. Diğer diller, ilk seçtiğinde senin için hazırlanacak.",
@@ -223,6 +228,9 @@
     "autoReviewHint": "Bir sohbet turu giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) değişikliği okur ve notlarını sohbete bırakır. Sadece okur; hiçbir şeyi değiştirmez, AI'a da geri göndermez."
   },
   "onboarding": {
+    "allLanguages": "Tüm dilleri göster ({{count}})",
+    "addNamed": "{{name}} klasörünü ekle",
+    "projectsAddedNames": "Eklendi: {{names}}",
     "welcome": "Igrek'e hoş geldin",
     "pickLanguage": "Hangi dili istersin?",
     "search": "Dil ara…",
@@ -233,8 +241,6 @@
     "projectsTitle": "Projelerin nerede?",
     "projectsBody": "Bir projenin klasörünü ya da birkaç projeyi içeren bir klasörü yaz. Igrek sadece burada eklediğin klasörleri gösterir; daha sonra Projeler sayfasından yenilerini ekleyebilirsin.",
     "projectsFound": "Claude'un daha önce çalıştığı klasörler",
-    "projectsAdded_one": "{{count}} proje eklendi",
-    "projectsAdded_other": "{{count}} proje eklendi",
     "projectsAuto": "Claude'un çalıştığı her klasörü ekle",
     "projectsAutoTip": "Claude Code'un çalıştığı her klasör kendiliğinden proje olur. Bunu Ayarlar'dan kapatabilirsin."
   },
@@ -999,7 +1005,8 @@
     "todoView_board": "Pano olarak",
     "expertWorking": "{{name}} üzerinde çalışıyor…",
     "expertDelegated": "{{name}} işin bir kısmını yaptı",
-    "settings": "Ayarlar",
+    "settings": "Sohbet ayarları",
+    "addImage": "Resim ekle",
     "settingsExpertHint": "Sadece ilk mesajdan önce: sohbet yazdığın metin korunarak bu uzmanla yeniden başlar.",
     "reviewing": "{{name}}, {{what}} değişikliğini inceliyor",
     "reviewed": "{{name}}, {{what}} değişikliğini inceledi",
@@ -4629,12 +4636,12 @@
   },
   "private": {
     "title": "Özel bilgilerim",
-    "hint": "T.C. kimlik, öğrenci numarası, IBAN, API anahtarları, şirketin rakamları: burada saklanır, bu bilgisayarda şifreli durur. Bir sohbet mesajında geçerse Igrek onun yerine [[private:ad]] gönderir, yani AI değeri hiç görmez. Gerçek değer sadece burada yerine konur: onayladığın bir adımda, kopyaladığın metinde ya da tarayıcı eklentisinin doldurduğu formda.",
+    "hint": "Kimlik numarası, öğrenci numarası, IBAN, şifreler, şirket rakamları gibi bilgilerini buraya yaz. Bu bilgisayarda kilitli durur. Yapay zekâ bu bilgileri hiç görmez: ona gerçek değerin yerine yalnızca bir takma ad gider. Gerçek değer sadece senin bilgisayarında, gerektiğinde (onayladığın bir adımda, kopyaladığın bir cevapta, tarayıcı eklentisinin doldurduğu bir formda) yerine konur.",
     "label": "Ne olduğu (örneğin T.C. kimlik)",
     "kind": "Türü",
     "value": "Değeri",
     "name": "Kısa adı",
-    "nameTip": "AI bu adı yer tutucuda görür: [[private:ad]]. a-z harfleri, rakamlar ve _.",
+    "nameTip": "Yapay zekâ bu bilgiyi yalnızca bu takma adla görür. Küçük harf, rakam ve _ kullan.",
     "add": "Kaydet",
     "remove": "Kaldır",
     "removeConfirm": "\"{{label}}\" kaldırılsın mı? Sohbetler onu artık gizlemez.",
@@ -4655,9 +4662,9 @@
     "copy": "Bilgilerimle kopyala",
     "copyTip": "Cevabı, yer tutucuların yerine gerçek değerlerinle kopyalar. AI onları hiç görmedi.",
     "inStep": "Igrek bu adım çalışırken yer tutucuların yerine gerçek özel bilgilerini koyar; AI onları görmez. Adım bir değeri ekrana yazdırırsa, çıktısı AI'a ulaşabilir.",
-    "gateway": "Gizlilik ağ geçidi",
-    "gatewayOn": "Açık: Igrek'in başlattığı AI araçlarının gönderdiği her şey (sohbetler, arka plan işleri, akışlar, terminallerindeki Claude) önce Igrek'ten geçer. Özel bilgilerin ve projelerinin .env sırları nerede geçerse geçsin, AI'ın okuduğu bir dosyada ya da bir komutun çıktısında bile gizlenir ve sadece burada geri konur. AI .env dosyalarını hiç okuyamaz.",
-    "gatewayOff": "Kapalı: sadece sohbete yazdığın gizlenir. AI'ın okuduğu dosyalar ve komut çıktıları olduğu gibi gider.",
+    "gateway": "Her yerde gizle",
+    "gatewayOn": "Açık: Yapay zekânın gördüğü her yerde (mesajlarında, okuduğu dosyalarda, çalıştırdığı komutların sonuçlarında) bu bilgiler ve projelerindeki gizli anahtarlar takma adla değiştirilir. Claude da Codex de böyle çalışır. Yapay zekâ gizli anahtar dosyalarını hiç açamaz.",
+    "gatewayOff": "Kapalı: yalnızca sohbete yazdıkların gizlenir; yapay zekânın okuduğu dosyalar ve komut sonuçları olduğu gibi gider.",
     "gatewayStats": "{{values}} değeri izliyor, şimdiye kadar {{hidden}} yerde gizledi."
   },
   "extension": {

@@ -126,6 +126,46 @@ function InstallApp() {
   );
 }
 
+/** The page's four parts, so a long page can be jumped through (a screen reader user could not find privacy). */
+const GROUPS = ["look", "ai", "privacy", "data"] as const;
+
+function GroupIndex() {
+  const { t } = useTranslation();
+  return (
+    <nav aria-label={t("settings.groupsLabel")} className="flex flex-wrap gap-1.5 pt-4">
+      {GROUPS.map((id) => (
+        <a
+          key={id}
+          href={`#settings-${id}`}
+          onClick={(event) => {
+            // The router owns the address: move to the part and put focus on its heading.
+            event.preventDefault();
+            const heading = document.getElementById(`settings-${id}`);
+            heading?.scrollIntoView({ block: "start" });
+            heading?.focus();
+          }}
+          className="rounded-full border border-border px-3 py-1 text-[12.5px] text-fg-muted hover:bg-bg-hover hover:text-fg"
+        >
+          {t(`settings.group_${id}`)}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
+function Group({ id }: { id: (typeof GROUPS)[number] }) {
+  const { t } = useTranslation();
+  return (
+    <h2
+      id={`settings-${id}`}
+      tabIndex={-1}
+      className="scroll-mt-4 border-b border-border pt-8 pb-2 text-[15px] font-semibold outline-none"
+    >
+      {t(`settings.group_${id}`)}
+    </h2>
+  );
+}
+
 export function SettingsPage() {
   const { t } = useTranslation();
   const modelTip = useModelTip();
@@ -135,6 +175,8 @@ export function SettingsPage() {
     <>
       <PageHeader title={t("settings.title")} />
       <div className="mx-auto w-full max-w-4xl px-6">
+        <GroupIndex />
+        <Group id="look" />
         <Section title={t("settings.language")} hint={t("settings.languageHint")}>
           <LanguagePicker value={settings.language} onChange={(language) => chooseLanguage(language, update)} />
           <LanguagePackPanel code={settings.language} />
@@ -217,6 +259,7 @@ export function SettingsPage() {
             ]}
           />
         </Section>
+        <Group id="ai" />
         <Section title={t("settings.autoSummarize")} hint={t("settings.autoSummarizeHint")}>
           <Segmented
             value={settings.autoSummarize ? "on" : "off"}
@@ -325,12 +368,17 @@ export function SettingsPage() {
         <Section title={t("localModel.title")} hint={t("localModel.hint")}>
           <LocalModelPanel />
         </Section>
+        <Group id="privacy" />
         <Section title={t("private.title")} hint={t("private.hint")}>
           <PrivatePanel />
         </Section>
         <Section title={t("extension.title")} hint={t("extension.hint")}>
           <ExtensionPanel />
         </Section>
+        <Section title={t("network.title")} hint={t("network.hint")}>
+          <NetworkPanel />
+        </Section>
+        <Group id="data" />
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />
         </Section>
@@ -339,9 +387,6 @@ export function SettingsPage() {
         </Section>
         <Section title={t("disk.title")} hint={t("disk.hint")}>
           <DiskPanel />
-        </Section>
-        <Section title={t("network.title")} hint={t("network.hint")}>
-          <NetworkPanel />
         </Section>
         <Section title={t("update.title")} hint={t("update.hint")}>
           <UpdatePanel />

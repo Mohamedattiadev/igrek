@@ -71,4 +71,15 @@ describe("projects are the folders the user adds", () => {
     expect(store.hideFound()).toBe(1);
     expect(visible()).toEqual(["blog"]);
   });
+
+  test("adding every folder Claude worked in shows the ones found so far, not those inside an added project", () => {
+    const { store, home, session, visible } = setup();
+    store.addFolder(join(home, "work/shop"));
+    session("s1", join(home, "scratch/try"));
+    session("s2", join(home, "work/shop/src"));
+    expect(visible()).toEqual(["shop"]);
+    store.autoProjects = () => true;
+    expect(store.showFound()).toBe(1);
+    expect(visible()).toEqual(["shop", "try"]);
+  });
 });

@@ -156,6 +156,11 @@
     "done": "Handled (hide it)"
   },
   "settings": {
+    "groupsLabel": "Parts of this page",
+    "group_look": "Look and language",
+    "group_ai": "The AI",
+    "group_privacy": "Privacy and security",
+    "group_data": "Data and system",
     "title": "Settings",
     "language": "Language",
     "languageHint": "Turkish and English are ready. Other languages will be prepared for you the first time you pick them.",
@@ -223,6 +228,9 @@
     "autoReviewHint": "When a chat turn changes login, payment or database code, the matching expert (security, back end, database) reads the change and leaves its notes in the chat. It only reads; nothing is changed or sent back to the AI."
   },
   "onboarding": {
+    "allLanguages": "Show all {{count}} languages",
+    "addNamed": "Add {{name}}",
+    "projectsAddedNames": "Added: {{names}}",
     "welcome": "Welcome to Igrek",
     "pickLanguage": "Which language do you want?",
     "search": "Search languages…",
@@ -233,8 +241,6 @@
     "projectsTitle": "Where are your projects?",
     "projectsBody": "Give the folder of a project, or a folder that holds several. Igrek only shows the folders you add here; you can add more later on the Projects page.",
     "projectsFound": "Folders where Claude has already worked",
-    "projectsAdded_one": "{{count}} project added",
-    "projectsAdded_other": "{{count}} projects added",
     "projectsAuto": "Add every folder Claude works in",
     "projectsAutoTip": "Every folder Claude Code works in becomes a project by itself. You can turn this off in Settings."
   },
@@ -999,7 +1005,8 @@
     "todoView_board": "As a board",
     "expertWorking": "{{name}} is working on it…",
     "expertDelegated": "{{name}} did a part of the work",
-    "settings": "Settings",
+    "settings": "Chat settings",
+    "addImage": "Add an image",
     "settingsExpertHint": "Only before the first message: the chat starts again as this expert, keeping what you typed.",
     "reviewing": "{{name}} is reviewing the {{what}} change",
     "reviewed": "{{name}} reviewed the {{what}} change",
@@ -4629,12 +4636,12 @@
   },
   "private": {
     "title": "My private details",
-    "hint": "T.C. identity number, student number, IBAN, API keys, a company's figures: saved here, sealed on this computer. When one of them is in a chat message, Igrek sends [[private:name]] instead, so the AI never sees the value; the real value is put back only here, in a step you approve, in text you copy, or in a form the browser extension fills.",
+    "hint": "Write details like your ID number, student number, IBAN, passwords or your company's figures here. They stay locked on this computer. The AI never sees them: it only gets a nickname in their place. The real value is put back only on your computer, when it is needed (in a step you approve, in an answer you copy, in a form the browser extension fills).",
     "label": "What it is (for example T.C. kimlik)",
     "kind": "Kind",
     "value": "The value",
     "name": "Short name",
-    "nameTip": "The AI sees this name in the placeholder: [[private:name]]. Letters a-z, digits and _.",
+    "nameTip": "The AI sees this detail only under this nickname. Use lowercase letters, digits and _.",
     "add": "Save it",
     "remove": "Remove",
     "removeConfirm": "Remove \"{{label}}\"? Chats will no longer hide it.",
@@ -4655,9 +4662,9 @@
     "copy": "Copy with my details",
     "copyTip": "Copies the answer with your real values in place of the placeholders. The AI never saw them.",
     "inStep": "Igrek puts your real private details in place of the placeholders when this step runs; the AI does not see them. If the step prints a value, its output can reach the AI.",
-    "gateway": "Privacy gateway",
-    "gatewayOn": "On: everything the AI tools Igrek starts send (chats, background jobs, flows, Claude in its terminals) passes through Igrek first. Your private details and your projects' .env secrets are hidden wherever they appear, even in a file the AI read or a command's output, and put back only here. The AI cannot read .env files at all.",
-    "gatewayOff": "Off: only what you type in a chat is hidden. Files the AI reads and command outputs go out as they are.",
+    "gateway": "Hide everywhere",
+    "gatewayOn": "On: wherever the AI looks (your messages, files it reads, the results of commands it runs), these details and the secret keys in your projects are replaced by their nicknames. This works for Claude and Codex. The AI can never open your secret key files.",
+    "gatewayOff": "Off: only what you type in a chat is hidden; files the AI reads and command results go as they are.",
     "gatewayStats": "It watches for {{values}} values and has hidden {{hidden}} so far."
   },
   "extension": {

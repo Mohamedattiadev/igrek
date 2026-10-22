@@ -191,7 +191,10 @@ store.autoProjects = () => readSettings(db).autoProjects;
 // from before the setting too) waits under found folders, and never shows on the list unasked.
 if (!readSettings(db).autoProjects) store.hideFound();
 bus.subscribe((m) => {
-  if (m.type === "settings" && !m.settings.autoProjects) store.hideFound();
+  if (m.type !== "settings") return;
+  if (m.settings.autoProjects) {
+    if (store.showFound()) bus.publish({ type: "sessions-changed", projectIds: [], sessionIds: [] });
+  } else store.hideFound();
 });
 const accounts = new Accounts(sqlite, bus, join(config.dataDir, "accounts"));
 accounts.ensureDefault("claude");

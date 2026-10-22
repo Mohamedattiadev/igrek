@@ -56,7 +56,12 @@ function ProjectStep({ onDone }: { onDone: () => void }) {
                   <span className="block truncate text-[13px] font-medium">{p.name}</span>
                   <span className="block truncate font-mono text-[11px] text-fg-subtle">{p.path}</span>
                 </span>
-                <Button size="sm" icon={FolderPlus} onClick={() => add(p.path)}>
+                <Button
+                  size="sm"
+                  icon={FolderPlus}
+                  onClick={() => add(p.path)}
+                  aria-label={t("onboarding.addNamed", { name: p.name })}
+                >
                   {t("projects.addAction")}
                 </Button>
               </li>
@@ -65,9 +70,9 @@ function ProjectStep({ onDone }: { onDone: () => void }) {
         </div>
       )}
       {added.length > 0 && (
-        <p className="mt-4 flex items-center gap-1.5 text-[12.5px] text-success">
+        <p role="status" className="mt-4 flex items-center gap-1.5 text-[12.5px] text-success">
           <Check size={14} aria-hidden="true" />
-          {t("onboarding.projectsAdded", { count: added.length })}
+          {t("onboarding.projectsAddedNames", { names: added.map((p) => p.name).join(", ") })}
         </p>
       )}
       <div className="mt-5 flex flex-wrap items-center justify-end gap-2">

@@ -362,12 +362,14 @@ export function Shell() {
 
   return (
     <div className="flex h-full">
-      <a
-        href="#main"
+      {/* The router owns the address, so a "#main" link moved nothing: a button puts focus on the page itself. */}
+      <button
+        type="button"
+        onClick={() => document.getElementById("main")?.focus()}
         className="sr-only z-[70] rounded-ui bg-accent px-3 py-2 text-[13px] text-accent-fg focus:not-sr-only focus:fixed focus:start-3 focus:top-3"
       >
         {t("nav.skip")}
-      </a>
+      </button>
       {!zen && !narrow && <ToolStrip />}
       {!zen && narrow && drawer && (
         <>

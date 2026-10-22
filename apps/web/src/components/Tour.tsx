@@ -19,6 +19,13 @@ const STEPS = [
   { target: 'a[href="/settings"]', key: "settings" },
 ] as const;
 
+type Step = (typeof STEPS)[number];
+
+/** The steps whose area is on this screen (a phone, Simple mode): counted 1/7, not 3/10, and Back works. */
+function visibleSteps(): Step[] {
+  return STEPS.filter((s) => (document.querySelector(s.target)?.getBoundingClientRect().width ?? 0) > 0);
+}
+
 /** Four dimmed, blurred panels around the lit area, so only that area stays sharp. */
 function Veil({ rect, pad }: { rect: DOMRect; pad: number }) {
   const top = Math.max(0, rect.top - pad);
@@ -43,6 +50,7 @@ function Veil({ rect, pad }: { rect: DOMRect; pad: number }) {
 export function Tour() {
   const { t } = useTranslation();
   const [step, setStep] = useState<number>();
+  const [steps, setSteps] = useState<Step[]>([]);
   const [rect, setRect] = useState<DOMRect>();
   const close = useCallback(() => {
     setStep(undefined);
@@ -50,7 +58,11 @@ export function Tour() {
   }, []);
 
   useEffect(() => {
-    const start = () => setStep(0);
+    const start = () => {
+      const shown = visibleSteps();
+      setSteps(shown);
+      setStep(shown.length ? 0 : undefined);
+    };
     window.addEventListener("igrek:tour", start);
     let timer: ReturnType<typeof setTimeout> | undefined;
     if (takeQueuedTour() || (!tourSeen() && window.location.pathname === "/")) timer = setTimeout(start, 900);
@@ -63,40 +75,36 @@ export function Tour() {
   useLayoutEffect(() => {
     if (step === undefined) return;
     const measure = () => {
-      const el = document.querySelector(STEPS[step]?.target ?? "");
-      if (el && el.getBoundingClientRect().width === 0) {
-        setStep((s) => (s !== undefined && s + 1 < STEPS.length ? s + 1 : undefined));
+      const el = document.querySelector(steps[step]?.target ?? "");
+      // Gone since the tour started (the window got narrower): go on to the next one.
+      if (!el || el.getBoundingClientRect().width === 0) {
+        setStep((s) => (s !== undefined && s + 1 < steps.length ? s + 1 : undefined));
         return;
       }
-      el?.scrollIntoView({ block: "nearest" });
-      if (!el) {
-        // Not on screen (e.g. Simple mode hides it): go on to the next one.
-        setStep((s) => (s !== undefined && s + 1 < STEPS.length ? s + 1 : undefined));
-        return;
-      }
+      el.scrollIntoView({ block: "nearest" });
       setRect(el.getBoundingClientRect());
     };
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [step]);
+  }, [step, steps]);
 
   useEffect(() => {
     if (step === undefined) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
       if (e.key === "ArrowRight") {
-        if (step + 1 < STEPS.length) setStep(step + 1);
+        if (step + 1 < steps.length) setStep(step + 1);
         else close();
       }
       if (e.key === "ArrowLeft") setStep((s) => (s ? s - 1 : s));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [step, close]);
+  }, [step, steps, close]);
 
   if (step === undefined || !rect) return null;
-  const current = STEPS[step];
+  const current = steps[step];
   if (!current) return null;
   const pad = 6;
   const below = rect.bottom + 200 < window.innerHeight;
@@ -104,7 +112,7 @@ export function Tour() {
   const top = below ? rect.bottom + pad + 10 : Math.max(12, rect.top - pad - 10 - 190);
   const sideways = rect.height > window.innerHeight / 2;
   const fromEnd = rect.left > window.innerWidth / 2 && rect.width < 120;
-  const last = step === STEPS.length - 1;
+  const last = step === steps.length - 1;
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={t("tour.title")}>
       <button
@@ -141,7 +149,7 @@ export function Tour() {
           </span>
           <h2 className="min-w-0 flex-1 pt-1 text-[14px] font-semibold">{t(`tour.${current.key}.title`)}</h2>
           <span className="pt-1.5 text-[11px] text-fg-subtle">
-            {step + 1}/{STEPS.length}
+            {step + 1}/{steps.length}
           </span>
           <button type="button" onClick={close} aria-label={t("tour.skip")} className="text-fg-subtle hover:text-fg">
             <X size={14} aria-hidden="true" />
@@ -149,7 +157,7 @@ export function Tour() {
         </div>
         <p className="text-[13px] leading-relaxed text-fg-muted">{t(`tour.${current.key}.body`)}</p>
         <div className="flex gap-1" aria-hidden="true">
-          {STEPS.map((s, i) => (
+          {steps.map((s, i) => (
             <span key={s.key} className={cn("h-1 flex-1 rounded-full", i <= step ? "bg-accent" : "bg-bg-muted")} />
           ))}
         </div>

@@ -6,16 +6,22 @@ import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 
+/** Shown first, before "all languages": the two Igrek ships and the most spoken ones. */
+const FIRST = ["tr", "en", "ar", "es", "fr", "de", "ru", "zh", "hi", "pt", "ja"];
+
+/** The short list: the chosen language, the browser's, then FIRST (a screen reader user met 200+ buttons). */
+function firstLanguages(all: LanguageOption[], value: string): LanguageOption[] {
+  const browser = navigator.language.split("-")[0] ?? "";
+  const codes = [...new Set([value, browser, ...FIRST])];
+  return codes.flatMap((code) => all.filter((l) => l.code === code));
+}
+
 export function LanguagePicker({ value, onChange }: { value: string; onChange: (code: string) => void }) {
   const { t } = useTranslation();
   const [all, setAll] = useState<LanguageOption[]>(fallbackLanguages);
   const [query, setQuery] = useState("");
-  // The first screenful right away, the rest of the ~180 languages a moment later (keeps opening Settings fast).
+  // A few languages first; the other ~180 when asked, or by searching.
   const [full, setFull] = useState(false);
-  useEffect(() => {
-    const timer = setTimeout(() => setFull(true), 50);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     api
@@ -42,7 +48,7 @@ export function LanguagePicker({ value, onChange }: { value: string; onChange: (
         />
       </label>
       <ul className="max-h-72 overflow-y-auto p-1" aria-label={t("settings.language")}>
-        {(full || query ? shown : shown.slice(0, 30)).map((language) => (
+        {(full || query ? shown : firstLanguages(all, value)).map((language) => (
           <li key={language.code}>
             <button
               type="button"
@@ -62,6 +68,17 @@ export function LanguagePicker({ value, onChange }: { value: string; onChange: (
             </button>
           </li>
         ))}
+        {!full && !query && (
+          <li>
+            <button
+              type="button"
+              onClick={() => setFull(true)}
+              className="h-9 w-full rounded-md px-2.5 text-start text-[13px] text-accent-hover hover:bg-bg-hover"
+            >
+              {t("onboarding.allLanguages", { count: all.length })}
+            </button>
+          </li>
+        )}
       </ul>
     </div>
   );

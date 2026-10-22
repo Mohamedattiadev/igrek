@@ -1271,8 +1271,8 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           <button
             type="button"
             onClick={() => fileInput.current?.click()}
-            aria-label={t("chat.image")}
-            title={t("chat.image")}
+            aria-label={t("chat.addImage")}
+            title={t("chat.addImage")}
             className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-fg"
           >
             <ImagePlus size={15} />

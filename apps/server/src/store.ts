@@ -249,6 +249,17 @@ export class Store {
   }
 
   /** Hides every project Igrek found on its own; the user's folders stay. Returns how many. */
+  /** "Add every folder Claude worked in": the ones found so far come onto the list too, not only later ones. */
+  showFound(): number {
+    // Not the ones inside an added project: their sessions already belong to it.
+    return this.db
+      .query(
+        `UPDATE projects SET hidden = 0 WHERE added = 0 AND hidden = 1 AND NOT EXISTS (
+           SELECT 1 FROM projects AS parent WHERE parent.added > 0 AND substr(projects.path, 1, length(parent.path) + 1) = parent.path || '/')`,
+      )
+      .run().changes;
+  }
+
   hideFound(): number {
     return this.db.query("UPDATE projects SET hidden = 1 WHERE added = 0 AND hidden = 0").run().changes;
   }
