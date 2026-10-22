@@ -99,6 +99,7 @@ import type {
   ToolPlan,
   ToolResult,
   TrashItem,
+  UiAudit,
   VisualCheck,
   WeakPoint,
 } from "@igrek/core";
@@ -409,6 +410,8 @@ export const api = {
     projectId: string,
     body: { instruction: string; element: PickedElement; personaId?: string; model?: string },
   ) => request<QuickEdit>(`/api/projects/${projectId}/preview/edit`, { method: "POST", body: JSON.stringify(body) }),
+  uiAudits: (projectId: string) => request<UiAudit[]>(`/api/projects/${projectId}/ui-audits`),
+  runUiAudit: (projectId: string) => request<UiAudit>(`/api/projects/${projectId}/ui-audit`, { method: "POST" }),
   previewVisual: (projectId: string, path: string, action: "baseline" | "compare") =>
     request<VisualCheck>(`/api/projects/${projectId}/preview/visual`, {
       method: "POST",

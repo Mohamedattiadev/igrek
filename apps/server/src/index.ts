@@ -109,6 +109,7 @@ import { connectPersonaChats, registerExpertRoutes, registerPersonaRoutes } from
 import { Personas, personaLabel } from "./personas";
 import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
+import { UiAudits } from "./preview/ui-audit";
 import { registerPreviewRoutes } from "./preview-routes";
 import { isoWeek, Product } from "./product";
 import { Retention } from "./retention";
@@ -709,7 +710,12 @@ const app = createApp({
       }
     });
     registerScheduleRoutes(hono, { schedules, store });
-    registerPreviewRoutes(hono, { devServers, stops });
+    registerPreviewRoutes(hono, {
+      devServers,
+      stops,
+      uiAudits: new UiAudits(sqlite),
+      rescan: (projectId) => void insight.scan(projectId).catch(() => undefined),
+    });
     registerExtrasRoutes(hono, {
       backups: new Backups(sqlite),
       updater,

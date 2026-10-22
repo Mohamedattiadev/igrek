@@ -23,6 +23,7 @@ import {
   type ToolKind,
   type ToolPlan,
   type ToolResult,
+  type UiAudit,
 } from "@igrek/core";
 import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "../bus";
@@ -87,8 +88,22 @@ export class Insight {
     const id = this.next++;
     return new Promise((resolve) => {
       this.pending.set(id, resolve);
-      this.worker?.postMessage({ id, root, config: this.config(projectId), tools: this.toolResults(projectId) });
+      this.worker?.postMessage({
+        id,
+        root,
+        config: this.config(projectId),
+        tools: this.toolResults(projectId),
+        ui: this.uiAudit(projectId),
+      });
     });
+  }
+
+  /** The latest real-screen check (written by the preview, preview/ui-audit.ts), if there is one. */
+  private uiAudit(projectId: string): UiAudit | undefined {
+    const row = this.db
+      .query("SELECT data FROM ui_audits WHERE project_id = ? ORDER BY created_at DESC LIMIT 1")
+      .get(projectId) as { data: string } | undefined;
+    return row ? (JSON.parse(row.data) as UiAudit) : undefined;
   }
 
   private rootOf(projectId: string): string | undefined {
@@ -150,6 +165,12 @@ export class Insight {
           apis: reply.apis,
           fileCount: reply.fileCount,
         };
+        const before = this.db
+          .query("SELECT scores FROM insight_scans WHERE project_id = ? ORDER BY at DESC LIMIT 1")
+          .get(projectId) as { scores: string } | undefined;
+        if (before) scan.previous = JSON.parse(before.scores) as InsightScan["previous"];
+        const ui = this.uiAudit(projectId);
+        if (ui) scan.uiAuditAt = ui.at;
         const scores = Object.fromEntries(reply.categories.map((c) => [c.category, c.score]));
         const findings = Object.fromEntries(reply.categories.map((c) => [c.category, c.findings.length]));
         this.db

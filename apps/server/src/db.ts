@@ -928,6 +928,16 @@ export const migrations: string[] = [
      done_at INTEGER
    );
    CREATE INDEX chat_todos_key ON chat_todos(chat_key, created_at);`,
+  // The real-screen check (plan.md 5.3): the running preview measured in a browser, kept per project so
+  // a score can show what changed. `data` is the UiAudit as JSON; screenshots are files in the preview
+  // folder, named in it.
+  `CREATE TABLE ui_audits (
+     id INTEGER PRIMARY KEY,
+     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+     created_at INTEGER NOT NULL,
+     data TEXT NOT NULL
+   );
+   CREATE INDEX ui_audits_project ON ui_audits(project_id, created_at);`,
 ];
 
 export function migrate(sqlite: Database): number {

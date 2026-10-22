@@ -5,6 +5,7 @@ import type { StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { INTERNAL_ENV } from "./names";
 import type { DevServers } from "./preview/devservers";
+import type { UiAudits } from "./preview/ui-audit";
 
 /** One quick edit: Claude Code with only reading and editing tools, edits accepted (a checkpoint was taken first). */
 function quickEditRunner(stops: StopRegistry) {
@@ -60,7 +61,19 @@ function quickEditRunner(stops: StopRegistry) {
 
 export function registerPreviewRoutes(
   app: Hono,
-  { devServers, stops }: { devServers: DevServers; stops: StopRegistry },
+  {
+    devServers,
+    stops,
+    uiAudits,
+    rescan,
+  }: {
+    devServers: DevServers;
+    stops: StopRegistry;
+    /** Where real-screen checks are kept; without it the check is not offered. */
+    uiAudits?: UiAudits;
+    /** Scores the project again, so a check shows in its scores at once. */
+    rescan?: (projectId: string) => void;
+  },
 ): void {
   const fail = (err: unknown) =>
     new Response(JSON.stringify({ error: (err as Error).message }), {
@@ -126,6 +139,20 @@ export function registerPreviewRoutes(
       return fail(err);
     }
   });
+  if (uiAudits) {
+    // The two newest checks: what the app shows now, and what it showed the time before.
+    app.get("/api/projects/:id/ui-audits", (c) => c.json(uiAudits.recent(c.req.param("id"))));
+    app.post("/api/projects/:id/ui-audit", async (c) => {
+      try {
+        const audit = await devServers.auditUi(c.req.param("id"));
+        uiAudits.save(audit);
+        rescan?.(audit.projectId);
+        return c.json(audit);
+      } catch (err) {
+        return fail(err);
+      }
+    });
+  }
   app.get("/api/preview/shots/:name", (c) => {
     const file = devServers.shotFile(c.req.param("name"));
     return file

@@ -63,6 +63,44 @@ export interface InsightScan {
   diagrams: DiagramSet;
   apis?: ApiMap;
   fileCount: number;
+  /** Each part's score in the scan before this one, to show what changed ("59 to 72"). */
+  previous?: Partial<Record<Category, number>>;
+  /** When the real screen was last checked, if it ever was. */
+  uiAuditAt?: number;
+}
+
+/** One page of the running app, at one width, as a browser saw it (the real-screen check). */
+export interface UiPageCheck {
+  /** The page's path in the app ("/", "/settings"). */
+  path: string;
+  viewport: "desktop" | "phone";
+  /** The screenshot's name, served by the preview (`/api/preview/shots/<name>`). */
+  shot?: string;
+  /** Accessibility problems axe-core found (WCAG 2 A and AA), with how many elements each. */
+  violations: {
+    id: string;
+    impact: "minor" | "moderate" | "serious" | "critical";
+    help: string;
+    nodes: number;
+    target?: string;
+  }[];
+  /** The page is wider than the screen: it scrolls sideways. */
+  overflowX: boolean;
+  consoleErrors: string[];
+  brokenImages: number;
+  /** Largest contentful paint and cumulative layout shift, when the browser reported them. */
+  lcpMs?: number;
+  cls?: number;
+  /** The page did not load (an error or a timeout). */
+  error?: string;
+}
+
+/** The real-screen check of a project: its running preview opened in a browser and measured. */
+export interface UiAudit {
+  projectId: string;
+  at: number;
+  url: string;
+  pages: UiPageCheck[];
 }
 
 export interface CategoryExplanation {
@@ -210,6 +248,13 @@ export const CHECK_SOURCES: Record<string, string> = {
   "arch.types": "https://www.typescriptlang.org/docs/handbook/migrating-from-javascript.html",
   "arch.lint": "https://biomejs.dev/linter/",
   "fe.strict": "https://www.typescriptlang.org/tsconfig/#strict",
+  // The real-screen check: what the running app shows in a browser.
+  "ui.a11y": "https://www.w3.org/TR/WCAG22/",
+  "ui.contrast": "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+  "ui.overflow": "https://www.w3.org/WAI/WCAG22/Understanding/reflow.html",
+  "ui.console": "https://developer.chrome.com/docs/devtools/console/reference",
+  "ui.images": "https://developer.mozilla.org/en-US/docs/Web/HTML/Element/img",
+  "ui.vitals": "https://web.dev/articles/vitals",
   "fe.bigComponents": "https://react.dev/learn/thinking-in-react",
   "fe.any": "https://www.typescriptlang.org/docs/handbook/2/everyday-types.html#any",
   "fe.errorBoundary": "https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary",

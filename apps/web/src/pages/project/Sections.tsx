@@ -31,6 +31,7 @@ import {
   Server,
   ShieldCheck,
   SlidersHorizontal,
+  TrendingUp,
   TriangleAlert,
   Wrench,
 } from "lucide-react";
@@ -39,6 +40,7 @@ import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Comments } from "../../components/Comments";
 import { Diagram, ScoreRing, Trend } from "../../components/insight";
+import { ScreenCheckCard } from "../../components/ScreenCheck";
 import { Badge, Button, Card, EmptyState } from "../../components/ui";
 import { api } from "../../lib/api";
 import { cn } from "../../lib/cn";
@@ -123,6 +125,34 @@ function useFix(projectId: string) {
     /** The owner fixes it in its own copy; the checks must pass and nothing merges without you. */
     inCopy: async (finding: Finding) => {
       const { draft, owner } = prepare(finding);
+      const run = await api.startFlow({ projectId, flow: "task", request: draft, persona: owner?.id });
+      void navigate(`/runs/${run.id}`);
+    },
+    /**
+     * "Raise it to 100": every open finding of a part, most valuable first, as one task for the
+     * part's owner in its own copy. The same rules: the checks must pass, nothing merges without you,
+     * and the next scan shows what it changed.
+     */
+    allInCopy: async (category: Category, findings: Finding[]) => {
+      const t = settings.enhanceLanguage === "user" ? i18n.t.bind(i18n) : i18n.getFixedT("en");
+      const open = [...findings].filter((f) => f.status !== "pass").sort((a, b) => b.gain - a.gain);
+      if (!open.length) return;
+      const steps = open.map((f, n) => {
+        const where = f.evidence
+          .slice(0, 6)
+          .map((e) => `  - ${e.path}${e.line ? `:${e.line}` : ""}${e.note ? ` (${e.note})` : ""}`)
+          .join("\n");
+        return `${n + 1}. ${t(`insight.check.${f.id}.title`, { metric: f.metric })}: ${t(`insight.check.${f.id}.fix`, { metric: f.metric })}${where ? `\n${where}` : ""}`;
+      });
+      const draft = [
+        `## Goal\n${t("insight.raiseGoal", { part: t(`insight.cat.${category}`) })}`,
+        `## Findings, most valuable first\n${steps.join("\n")}`,
+        `## Done when\n- ${t("insight.raiseDone")}\n- ${t("insight.fixTests")}\n- ${t("insight.fixFocus")}`,
+      ].join("\n\n");
+      const owner = personaForCategory(
+        category,
+        personas.filter((p) => p.tools === "edit"),
+      );
       const run = await api.startFlow({ projectId, flow: "task", request: draft, persona: owner?.id });
       void navigate(`/runs/${run.id}`);
     },
@@ -376,6 +406,17 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
           <p className="mb-1 text-[11px] font-medium text-fg-subtle">{t("insight.trend")}</p>
           <Trend points={detail.trend} />
         </div>
+        {problems.length > 0 && (
+          <Button
+            variant="primary"
+            icon={TrendingUp}
+            usesModel
+            onClick={() => void fix.allInCopy(category, detail.findings)}
+            data-tip={t("insight.raiseTip", { count: problems.length })}
+          >
+            {t("insight.raise")}
+          </Button>
+        )}
         {detail.findingsTrend.length > 1 && (
           <div>
             <p className="mb-1 text-[11px] font-medium text-fg-subtle">
@@ -578,6 +619,20 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
   );
 }
 
+/** "59 → 72" beside a part's name: what the last scan changed; nothing when it stayed the same. */
+function ScoreChange({ before, now }: { before?: number; now: number }) {
+  const { t } = useTranslation();
+  if (before === undefined || before === now) return null;
+  return (
+    <span
+      className={cn("ms-auto text-[11px] font-medium", now > before ? "text-success" : "text-danger")}
+      data-tip={t("insight.changeTip")}
+    >
+      {before} → {now}
+    </span>
+  );
+}
+
 export function SectionsTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
@@ -650,6 +705,7 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
       <ScoringDialog projectId={project.id} scan={latest} open={scoring} onClose={() => setScoring(false)} />
       <ImportCard projectId={project.id} />
       <ToolsCard projectId={project.id} />
+      <ScreenCheckCard projectId={project.id} lastAt={latest.uiAuditAt} onChecked={reload} />
       <div className="grid gap-3 sm:grid-cols-2">
         <button
           type="button"
@@ -697,6 +753,7 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
               <div className="min-w-0 flex-1">
                 <p className="flex items-center gap-1.5 text-[13px] font-semibold">
                   <Icon size={14} className="text-fg-muted" /> {t(`insight.cat.${c.category}`)}
+                  <ScoreChange before={latest.previous?.[c.category]} now={c.score} />
                 </p>
                 <p
                   className={cn(

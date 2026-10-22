@@ -4,7 +4,7 @@
     ".": {},
     "apps/server": {
       "entry": ["src/embed-worker.ts", "src/preview/agent.js", "src/preview/vite-source-plugin.mjs"],
-      "ignoreDependencies": ["@playwright/mcp"]
+      "ignoreDependencies": ["@playwright/mcp", "axe-core"]
     },
     "packages/learn": {
       "entry": ["scripts/*.ts"]

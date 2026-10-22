@@ -7,6 +7,8 @@ import {
   gradeOf,
   type InsightConfig,
   type ToolResult,
+  type UiAudit,
+  type UiPageCheck,
 } from "@igrek/core";
 import { SECRET_PATTERNS } from "../sync/scrub";
 import { isEnvExample, type RepoFile, SENSITIVE, type Snapshot } from "./snapshot";
@@ -798,13 +800,105 @@ function toolDrafts(snap: Snapshot, tools: ToolResult[], present: Category[]): D
   return out;
 }
 
+/** "page at width": where a real-screen finding was seen. */
+const seenAt = (p: UiPageCheck) => `${p.path} (${p.viewport})`;
+
+/**
+ * The real-screen check as findings (plan.md 5.3): what the running app showed in a browser, next
+ * to what its code says. Accessibility and layout count for the interface, errors and broken images
+ * for the front end, loading and layout shift for performance. Only when there is a check to read.
+ */
+function uiDrafts(audit: UiAudit | undefined, present: Category[]): Draft[] {
+  const pages = (audit?.pages ?? []).filter((p) => !p.error);
+  if (!pages.length) return [];
+  const out: Draft[] = [];
+  const ux: Category = present.includes("uiux") ? "uiux" : "frontend";
+  const fe: Category = "frontend";
+  if (!present.includes(fe)) return out;
+  const serious = pages.flatMap((p) =>
+    p.violations
+      .filter((v) => v.id !== "color-contrast" && (v.impact === "serious" || v.impact === "critical"))
+      .map((v) => ({ page: p, v })),
+  );
+  out.push({
+    id: "ui.a11y",
+    category: ux,
+    weight: 2,
+    value: ratio(
+      serious.reduce((n, x) => n + x.v.nodes, 0),
+      15,
+    ),
+    metric: String(serious.length),
+    evidence: serious.slice(0, 10).map(({ page, v }) => ({ path: seenAt(page), note: `${v.help} (${v.nodes})` })),
+  });
+  const contrast = pages.flatMap((p) =>
+    p.violations.filter((v) => v.id === "color-contrast").map((v) => ({ page: p, v })),
+  );
+  out.push({
+    id: "ui.contrast",
+    category: ux,
+    weight: 1.5,
+    value: ratio(
+      contrast.reduce((n, x) => n + x.v.nodes, 0),
+      20,
+    ),
+    metric: String(contrast.reduce((n, x) => n + x.v.nodes, 0)),
+    evidence: contrast.slice(0, 10).map(({ page, v }) => ({ path: seenAt(page), note: v.target ?? v.help })),
+  });
+  const overflow = pages.filter((p) => p.overflowX);
+  out.push({
+    id: "ui.overflow",
+    category: ux,
+    weight: 1,
+    value: ratio(overflow.length, Math.max(1, pages.length / 2)),
+    metric: String(overflow.length),
+    evidence: overflow.map((p) => ({ path: seenAt(p) })),
+  });
+  const errors = pages.filter((p) => p.consoleErrors.length);
+  out.push({
+    id: "ui.console",
+    category: fe,
+    weight: 1.5,
+    value: ratio(errors.length, Math.max(1, pages.length / 2)),
+    metric: String(errors.reduce((n, p) => n + p.consoleErrors.length, 0)),
+    evidence: errors.slice(0, 8).map((p) => ({ path: seenAt(p), note: p.consoleErrors[0] })),
+  });
+  const broken = pages.filter((p) => p.brokenImages > 0);
+  out.push({
+    id: "ui.images",
+    category: fe,
+    weight: 0.5,
+    value: broken.length ? 0 : 1,
+    metric: String(broken.reduce((n, p) => n + p.brokenImages, 0)),
+    evidence: broken.map((p) => ({ path: seenAt(p), note: String(p.brokenImages) })),
+  });
+  // Web Vitals "good" thresholds (web.dev): LCP at most 2.5 s, CLS at most 0.1.
+  const timed = pages.filter((p) => p.lcpMs !== undefined || p.cls !== undefined);
+  if (timed.length) {
+    const slow = timed.filter((p) => (p.lcpMs ?? 0) > 2500 || (p.cls ?? 0) > 0.1);
+    out.push({
+      id: "ui.vitals",
+      category: present.includes("performance") ? "performance" : fe,
+      weight: 1.5,
+      value: ratio(slow.length, Math.max(1, timed.length / 2)),
+      metric: String(slow.length),
+      evidence: slow.map((p) => ({ path: seenAt(p), note: `LCP ${p.lcpMs ?? "?"} ms, CLS ${p.cls ?? "?"}` })),
+    });
+  }
+  return out;
+}
+
 export function scoreCategories(
   snap: Snapshot,
-  opts: { config?: InsightConfig; tools?: ToolResult[] } = {},
+  opts: { config?: InsightConfig; tools?: ToolResult[]; ui?: UiAudit } = {},
 ): { categories: CategoryScore[]; overall: number; catalog: Partial<Record<Category, string[]>> } {
   const present = presentCategories(snap);
   const disabled = new Set(opts.config?.disabled ?? []);
-  const all = [...runChecks(snap, present), ...toolDrafts(snap, opts.tools ?? [], present)];
+  const all = [
+    ...runChecks(snap, present),
+    ...toolDrafts(snap, opts.tools ?? [], present),
+    ...uiDrafts(opts.ui, present),
+  ];
   // Every check that applies here, including ones the user turned off (so they can be turned back on).
   const catalog: Partial<Record<Category, string[]>> = {};
   for (const d of all) catalog[d.category] = [...(catalog[d.category] ?? []), d.id];

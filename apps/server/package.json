@@ -15,12 +15,13 @@
     "typescript": "^7.0.2"
   },
   "dependencies": {
+    "@huggingface/tokenizers": "0.2.0",
     "@igrek/core": "workspace:*",
     "@igrek/genui": "workspace:*",
     "@igrek/i18n": "workspace:*",
     "@igrek/learn": "workspace:*",
-    "@huggingface/tokenizers": "0.2.0",
     "@playwright/mcp": "0.0.83",
+    "axe-core": "4.14.0",
     "drizzle-orm": "^0.45.4",
     "hono": "^4.13.13",
     "jszip": "3.10.2",

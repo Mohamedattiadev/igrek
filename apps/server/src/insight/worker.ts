@@ -1,5 +1,5 @@
 /// <reference lib="webworker" />
-import type { InsightConfig, ToolResult } from "@igrek/core";
+import type { InsightConfig, ToolResult, UiAudit } from "@igrek/core";
 import { apiMap } from "./apis";
 import { scoreCategories } from "./checks";
 import { diagrams } from "./diagram";
@@ -7,12 +7,15 @@ import { takeSnapshot } from "./snapshot";
 
 /** Scans run here so a big repository never freezes terminals and chats. */
 declare const self: Worker;
-self.onmessage = (event: MessageEvent<{ id: number; root: string; config?: InsightConfig; tools?: ToolResult[] }>) => {
+self.onmessage = (
+  event: MessageEvent<{ id: number; root: string; config?: InsightConfig; tools?: ToolResult[]; ui?: UiAudit }>,
+) => {
   try {
     const snap = takeSnapshot(event.data.root);
     const { categories, overall, catalog } = scoreCategories(snap, {
       config: event.data.config,
       tools: event.data.tools,
+      ui: event.data.ui,
     });
     self.postMessage({
       id: event.data.id,

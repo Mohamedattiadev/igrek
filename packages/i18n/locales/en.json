@@ -1533,6 +1533,32 @@
           "title": "Unused code: {{metric}}",
           "fix": "Remove the unused files, exports and dependencies the project's dead-code tool lists, one at a time with the tests passing; or run the Safe cleanup team flow."
         }
+      },
+      "ui": {
+        "a11y": {
+          "title": "Accessibility problems on screen: {{metric}}",
+          "fix": "Fix the accessibility problems the real-screen check found (missing labels, names and roles, keyboard traps), starting with the serious ones, on the pages listed."
+        },
+        "contrast": {
+          "title": "Hard-to-read text on screen: {{metric}}",
+          "fix": "Raise the contrast of the listed text to at least 4.5:1 (3:1 for large text), by changing the colors in the styles, not by hiding the text."
+        },
+        "overflow": {
+          "title": "Pages wider than the screen: {{metric}}",
+          "fix": "Make the listed pages fit the screen so nothing scrolls sideways (fixed widths, long words, wide tables or images), checking at phone width."
+        },
+        "console": {
+          "title": "Errors in the browser: {{metric}}",
+          "fix": "Fix the errors the browser logged on the listed pages."
+        },
+        "images": {
+          "title": "Pictures that do not load: {{metric}}",
+          "fix": "Fix the broken image addresses on the listed pages, or remove the pictures."
+        },
+        "vitals": {
+          "title": "Slow or jumpy pages: {{metric}}",
+          "fix": "Make the listed pages show their main content within 2.5 seconds and stop moving while they load (layout shift below 0.1): size images and placeholders, load less up front."
+        }
       }
     },
     "cat": {
@@ -1567,7 +1593,13 @@
     "findingsTrendLabel": "Open findings went from {{from}} to {{to}}",
     "source": "Source",
     "fixInCopy": "In a copy",
-    "fixInCopyTip": "The expert that owns this part fixes it in its own copy of the project; the checks must pass and nothing reaches your branch until you approve."
+    "fixInCopyTip": "The expert that owns this part fixes it in its own copy of the project; the checks must pass and nothing reaches your branch until you approve.",
+    "raise": "Raise to 100",
+    "raiseTip_one": "Its owner fixes the {{count}} open finding in its own copy. The checks must pass and nothing merges without your OK.",
+    "raiseTip_other": "Its owner fixes all {{count}} open findings in its own copy, most valuable first. The checks must pass and nothing merges without your OK.",
+    "raiseGoal": "Raise the {{part}} score to 100 by fixing every finding below, most valuable first. Keep what the app does the same.",
+    "raiseDone": "Every finding below passes when Igrek scans the project again",
+    "changeTip": "The score in the scan before this one, and now."
   },
   "apis": {
     "title": "API map",
@@ -4472,5 +4504,29 @@
     "name": "Package name",
     "download": "Download the package",
     "nothingToShare": "You have no experts of your own yet; make one on the Team tab, then share it here."
+  },
+  "screen": {
+    "title": "The real screen",
+    "hint": "Opens the running app in a browser at laptop and phone width and measures what a person meets: accessibility, contrast, pages wider than the screen, errors, broken pictures and loading. No model is called.",
+    "last": "Last checked {{when}}. The pictures show the time before next to now.",
+    "check": "Check the screen",
+    "checking": "Checking…",
+    "checkTip": "Opens the app's home page and a few pages it links to; takes about a minute.",
+    "openPreview": "Start the live preview",
+    "needPreview": "The check opens the running app, so the live preview must be running.",
+    "before": "Before",
+    "now": "Now",
+    "viewport_desktop": "laptop",
+    "viewport_phone": "phone",
+    "problems_one": "{{count}} problem",
+    "problems_other": "{{count}} problems",
+    "clean": "Nothing found",
+    "was_one": "was {{count}}",
+    "was_other": "was {{count}}",
+    "loadFailed": "Did not load: {{error}}",
+    "overflow": "Wider than the screen: it scrolls sideways",
+    "console": "Browser error: {{error}}",
+    "images_one": "{{count}} picture does not load",
+    "images_other": "{{count}} pictures do not load"
   }
 }

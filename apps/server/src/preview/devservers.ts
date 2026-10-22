@@ -1,12 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { DevServerInfo, PickedElement, QuickEdit, VisualCheck } from "@igrek/core";
+import type { DevServerInfo, PickedElement, QuickEdit, UiAudit, VisualCheck } from "@igrek/core";
 import type { Server, ServerWebSocket } from "bun";
 import type { Bus, StopRegistry } from "../bus";
 import { createCheckpoint } from "../checkpoints";
 import { cleanEnv, findBrowser } from "../env";
 import type { Personas } from "../personas";
 import type { Store } from "../store";
+import { auditUi } from "./ui-audit";
 
 const AGENT = readFileSync(join(import.meta.dir, "agent.js"), "utf8");
 const PLUGIN = join(import.meta.dir, "vite-source-plugin.mjs");
@@ -395,6 +396,26 @@ export class DevServers {
       if (el) await el.screenshot({ path: file });
       else await page.screenshot({ path: file, fullPage: !selector });
       return name;
+    } finally {
+      await browser.close();
+    }
+  }
+
+  /**
+   * The real-screen check (ui-audit.ts) of the running preview: pages at laptop and phone width,
+   * their screenshots kept with the others. Needs the preview to be running.
+   */
+  async auditUi(projectId: string): Promise<UiAudit> {
+    const url = this.get(projectId)?.url;
+    if (!url) throw new Error("Start the live preview first: the check opens the running app");
+    const browser = await this.browser();
+    try {
+      mkdirSync(join(this.dir, "shots"), { recursive: true });
+      return await auditUi(projectId, url, browser, (png) => {
+        const name = `${projectId}-ui-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}.png`;
+        writeFileSync(join(this.dir, "shots", name), png);
+        return name;
+      });
     } finally {
       await browser.close();
     }

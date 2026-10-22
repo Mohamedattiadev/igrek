@@ -1533,6 +1533,32 @@
           "title": "Kullanılmayan kod: {{metric}}",
           "fix": "Projenin ölü kod aracının listelediği kullanılmayan dosya, export ve bağımlılıkları testler geçerek tek tek kaldır; ya da Güvenli temizlik takım akışını çalıştır."
         }
+      },
+      "ui": {
+        "a11y": {
+          "title": "Ekranda erişilebilirlik sorunu: {{metric}}",
+          "fix": "Gerçek ekran kontrolünün bulduğu erişilebilirlik sorunlarını (eksik etiketler, adlar ve roller, klavye tuzakları) listelenen sayfalarda, ciddi olanlardan başlayarak düzelt."
+        },
+        "contrast": {
+          "title": "Ekranda zor okunan yazı: {{metric}}",
+          "fix": "Listelenen yazıların kontrastını en az 4.5:1'e (büyük yazıda 3:1) çıkar; yazıyı gizleyerek değil, stillerdeki renkleri değiştirerek."
+        },
+        "overflow": {
+          "title": "Ekrandan geniş sayfa: {{metric}}",
+          "fix": "Listelenen sayfaları ekrana sığdır, hiçbir şey yana kaymasın (sabit genişlikler, uzun kelimeler, geniş tablolar ya da resimler); telefon genişliğinde kontrol et."
+        },
+        "console": {
+          "title": "Tarayıcıda hata: {{metric}}",
+          "fix": "Listelenen sayfalarda tarayıcının yazdığı hataları düzelt."
+        },
+        "images": {
+          "title": "Yüklenmeyen resim: {{metric}}",
+          "fix": "Listelenen sayfalardaki bozuk resim adreslerini düzelt ya da resimleri kaldır."
+        },
+        "vitals": {
+          "title": "Yavaş ya da zıplayan sayfa: {{metric}}",
+          "fix": "Listelenen sayfalar ana içeriğini 2.5 saniye içinde göstersin ve yüklenirken yerinden oynamasın (yerleşim kayması 0.1'in altında): resimlere ve yer tutuculara boyut ver, ilk anda daha az şey yükle."
+        }
       }
     },
     "cat": {
@@ -1567,7 +1593,13 @@
     "findingsTrendLabel": "Açık bulgular {{from}} → {{to}}",
     "source": "Kaynak",
     "fixInCopy": "Kopyada",
-    "fixInCopyTip": "Bu bölümün sahibi uzman bunu projenin kendi kopyasında düzeltir; kontroller geçmeli ve sen onaylamadan hiçbir şey senin dalına gelmez."
+    "fixInCopyTip": "Bu bölümün sahibi uzman bunu projenin kendi kopyasında düzeltir; kontroller geçmeli ve sen onaylamadan hiçbir şey senin dalına gelmez.",
+    "raise": "100'e çıkar",
+    "raiseTip_one": "Sahibi uzman açıktaki {{count}} bulguyu kendi kopyasında düzeltir. Kontroller geçmeli ve sen onaylamadan hiçbir şey birleşmez.",
+    "raiseTip_other": "Sahibi uzman açıktaki {{count}} bulgunun hepsini, en değerlisinden başlayarak kendi kopyasında düzeltir. Kontroller geçmeli ve sen onaylamadan hiçbir şey birleşmez.",
+    "raiseGoal": "Aşağıdaki her bulguyu, en değerlisinden başlayarak düzeltip {{part}} puanını 100'e çıkar. Uygulamanın yaptığı şey aynı kalsın.",
+    "raiseDone": "Igrek projeyi yeniden taradığında aşağıdaki her bulgu geçiyor",
+    "changeTip": "Bir önceki taramadaki puan ve şimdiki."
   },
   "apis": {
     "title": "API Haritası",
@@ -4472,5 +4504,29 @@
     "name": "Paketin adı",
     "download": "Paketi indir",
     "nothingToShare": "Henüz kendi uzmanın yok; Takım sekmesinde bir tane yap, sonra burada paylaş."
+  },
+  "screen": {
+    "title": "Gerçek ekran",
+    "hint": "Çalışan uygulamayı tarayıcıda dizüstü ve telefon genişliğinde açar ve bir insanın karşılaştığını ölçer: erişilebilirlik, kontrast, ekrandan geniş sayfalar, hatalar, kırık resimler ve yüklenme. Model çağrılmaz.",
+    "last": "Son kontrol {{when}}. Resimler bir öncekini şimdikinin yanında gösterir.",
+    "check": "Ekranı kontrol et",
+    "checking": "Kontrol ediliyor…",
+    "checkTip": "Uygulamanın ana sayfasını ve bağlantı verdiği birkaç sayfayı açar; yaklaşık bir dakika sürer.",
+    "openPreview": "Canlı önizlemeyi başlat",
+    "needPreview": "Kontrol çalışan uygulamayı açar, bu yüzden canlı önizleme çalışıyor olmalı.",
+    "before": "Önce",
+    "now": "Şimdi",
+    "viewport_desktop": "dizüstü",
+    "viewport_phone": "telefon",
+    "problems_one": "{{count}} sorun",
+    "problems_other": "{{count}} sorun",
+    "clean": "Sorun bulunmadı",
+    "was_one": "önce {{count}}",
+    "was_other": "önce {{count}}",
+    "loadFailed": "Yüklenmedi: {{error}}",
+    "overflow": "Ekrandan geniş: yana kayıyor",
+    "console": "Tarayıcı hatası: {{error}}",
+    "images_one": "{{count}} resim yüklenmiyor",
+    "images_other": "{{count}} resim yüklenmiyor"
   }
 }
