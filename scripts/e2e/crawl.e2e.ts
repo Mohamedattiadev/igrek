@@ -116,6 +116,8 @@ describe.skipIf(!ready)("every page, every button", () => {
   /** Clicks the n-th clickable thing; after a move to another page, the back button must return. */
   async function clickOne(path: string, n: number): Promise<boolean> {
     const home = pathOf(`${server.url}${path}`);
+    // The last click's navigation may still be landing; let it, so it is not taken for this click's.
+    await settle();
     if (pathOf(page.url()) !== home) await visit(path);
     const items = page.locator(CLICKABLE);
     if (n >= (await items.count())) return false;
