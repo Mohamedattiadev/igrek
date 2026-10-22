@@ -24,7 +24,9 @@ export function ChatOutline({ events, list }: { events: ChatEvent[]; list: RefOb
     list.current?.scrollTo({ top: where === "top" ? 0 : list.current.scrollHeight, behavior: "smooth" });
   const button = "flex size-7 items-center justify-center rounded-md text-fg-subtle hover:bg-bg-hover hover:text-fg";
   return (
-    <div className="pointer-events-none absolute inset-y-0 end-1 hidden flex-col items-end justify-center gap-1 py-4 md:flex">
+    // Clipped to the chat: an absolutely placed strip taller than the chat stretched the page around it
+    // and gave it a second scrollbar.
+    <div className="pointer-events-none absolute inset-y-0 end-1 hidden flex-col items-end justify-center gap-1 overflow-hidden py-4 md:flex">
       <button
         type="button"
         onClick={() => edge("top")}
@@ -37,14 +39,14 @@ export function ChatOutline({ events, list }: { events: ChatEvent[]; list: RefOb
       {asks.length > 1 && (
         <nav
           aria-label={t("chat.outline")}
-          className="pointer-events-auto relative flex flex-col items-end"
+          className="pointer-events-auto relative flex min-h-0 flex-col items-end"
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
           onFocus={() => setOpen(true)}
           onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setOpen(false)}
         >
           {open ? (
-            <ul className="max-h-[60vh] w-64 overflow-y-auto rounded-ui border border-border bg-bg p-1 shadow-ui">
+            <ul className="max-h-full w-64 overflow-y-auto rounded-ui border border-border bg-bg p-1 shadow-ui">
               {asks.map((e) => (
                 <li key={e.id}>
                   <button
@@ -58,7 +60,7 @@ export function ChatOutline({ events, list }: { events: ChatEvent[]; list: RefOb
               ))}
             </ul>
           ) : (
-            <ul className="flex flex-col items-end gap-2 px-1 py-2">
+            <ul className="flex min-h-0 flex-col items-end gap-1.5 overflow-hidden px-1 py-2">
               {asks.map((e) => (
                 <li key={e.id}>
                   <button

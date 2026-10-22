@@ -21,6 +21,7 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
+  CircleDot,
   Columns2,
   CornerDownRight,
   Cpu,
@@ -37,10 +38,12 @@ import {
   ListPlus,
   ListTodo,
   Lock,
+  type LucideIcon,
   Maximize2,
   MessageSquare,
   MessageSquarePlus,
   Minimize2,
+  Pencil,
   RotateCcw,
   Search,
   ShieldAlert,
@@ -92,6 +95,7 @@ import {
   delegatedTo,
   EXPERT_TOOL,
   groupWork,
+  type WorkKind,
   workCounts,
 } from "../lib/chat-log";
 import { cn } from "../lib/cn";
@@ -298,20 +302,36 @@ function useDetailLevel(): [DetailLevel, (level: DetailLevel) => void] {
   ];
 }
 
+const WORK_LOOK: Record<WorkKind, { icon: LucideIcon; color: string }> = {
+  read: { icon: FileText, color: "text-sky-500" },
+  edit: { icon: Pencil, color: "text-amber-500" },
+  run: { icon: SquareTerminal, color: "text-violet-400" },
+  search: { icon: Search, color: "text-teal-500" },
+  web: { icon: Globe, color: "text-blue-400" },
+  other: { icon: CircleDot, color: "text-fg-subtle" },
+};
+
 /** A run of tool calls as one line ("read 3 files, edited 2"); open it for every step (plan.md 16.1). */
 function ToolGroup({ tools, cwd, plain }: { tools: ToolEvent[]; cwd?: string; plain: boolean }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const running = tools.find((tool) => tool.status === "running");
   const failed = tools.filter((tool) => tool.status === "error").length;
-  const line = workCounts(tools)
-    .map(([kind, count]) => t(`chat.log_${kind}`, { count }))
-    .join(", ");
+  const counts = workCounts(tools);
   const header = (
     <>
       <ListChecks size={13} className="shrink-0 text-fg-muted" aria-hidden="true" />
-      <span className="min-w-0 flex-1 truncate text-[12px] text-fg-muted">
-        {line.charAt(0).toLocaleUpperCase(i18n.language) + line.slice(1)}
+      <span className="flex min-w-0 flex-1 items-center gap-x-2.5 truncate text-[12px] text-fg-muted">
+        {/* Each kind of work in its own colour, so reading, changing and running are told apart at a glance. */}
+        {counts.map(([kind, count]) => {
+          const { icon: Icon, color } = WORK_LOOK[kind];
+          return (
+            <span key={kind} className="inline-flex shrink-0 items-center gap-1">
+              <Icon size={12} className={color} aria-hidden="true" />
+              {t(`chat.log_${kind}`, { count })}
+            </span>
+          );
+        })}
         {running && (
           <span className="ms-1.5 font-mono text-[11.5px] text-fg-subtle">
             · {toolSummary(running.name, (running.input ?? {}) as Json, cwd) || running.name}
@@ -1514,7 +1534,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
               </div>
             </div>
           ) : (
-            <div className="relative flex min-h-0 flex-1 flex-col">
+            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
               <div ref={list} onScroll={onListScroll} className="min-h-0 flex-1 overflow-y-auto">
                 <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
                   {units.map((unit) => {
@@ -1525,7 +1545,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                       case "user":
                         return (
                           <div key={event.id} id={messageId(event.id)} className="flex scroll-mt-4 justify-end">
-                            <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-bg-muted px-4 py-2.5 text-[14px] leading-relaxed text-fg">
+                            <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-accent-soft px-4 py-2.5 text-[14px] leading-relaxed text-fg">
                               {event.images > 0 && (
                                 <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
                                   <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
