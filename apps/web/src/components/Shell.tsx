@@ -320,6 +320,14 @@ export function Shell() {
         flip();
         return;
       }
+      // Esc leaves zen too, when nothing else is there to close first (a dialog, the helper, the tour)
+      // and the key is not for a text box.
+      const typing = (event.target as HTMLElement | null)?.closest("input, textarea, [contenteditable=true]");
+      const open = document.querySelector("dialog[open], [role=dialog], [role=listbox]");
+      if (event.key === "Escape" && readZen() && !event.defaultPrevented && !typing && !open) {
+        flip();
+        return;
+      }
       // The page in front decides what its own shortcuts do (plan.md 16.4).
       runPageShortcut(event);
     };
@@ -401,11 +409,12 @@ export function Shell() {
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("igrek:zen"))}
-          aria-label={t("zen.exit")}
           data-tip={t("zen.exitTip")}
-          className="fixed bottom-3 end-3 z-40 flex size-7 items-center justify-center rounded-ui border border-border bg-bg text-fg-subtle opacity-60 shadow-ui hover:text-fg hover:opacity-100"
+          className="fixed bottom-3 end-3 z-40 flex h-8 items-center gap-1.5 rounded-ui border border-border bg-bg px-2.5 text-[12px] text-fg-muted shadow-ui hover:bg-bg-hover hover:text-fg"
         >
           <Minimize2 size={14} aria-hidden="true" />
+          {/* Written out: a lone faint icon was not found by someone who wanted out. */}
+          {t("zen.exit")}
         </button>
       )}
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
