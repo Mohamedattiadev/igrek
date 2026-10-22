@@ -2945,9 +2945,13 @@
   "voice": {
     "start": "Konuş",
     "stop": "Dinlemeyi bitir",
-    "tip": "Yazmak yerine konuş. Chrome'da tarayıcı sesi yazıya çevirmek için Google'ın konuşma servisine gönderir.",
+    "tip": "Yazmak yerine konuş. Sesin bu bilgisayarda Igrek tarafından yazıya çevrilir ve kimseye gitmez. Durdurmak için tekrar tıkla (en çok 30 saniye).",
     "denied": "Bu sayfada mikrofon engelli",
-    "failed": "Anlaşılamadı; tekrar dene"
+    "failed": "Anlaşılamadı; tekrar dene",
+    "download": "Konuşmak için bu bilgisayarda yaklaşık {{size}} MB'lık bir ses modeli gerekiyor; Hugging Face'ten bir kez indirilir. Şimdi indirilsin mi?",
+    "downloading": "Ses modeli indiriliyor: %{{pct}}",
+    "working": "Sesin yazıya çevriliyor…",
+    "nothing": "Hiçbir şey duyulmadı; mikrofona biraz daha yakın tekrar dene."
   },
   "notify": {
     "setting": "Masaüstü bildirimleri",

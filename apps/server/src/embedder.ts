@@ -29,6 +29,51 @@ export interface Embed {
   embed(texts: string[], kind: "query" | "passage"): Promise<Float32Array[]>;
 }
 
+/**
+ * A model's files from Hugging Face into `dir`, each written to a .part file first so a cut-off
+ * download is never mistaken for a model. Files already there are kept. Reports progress (0 to 1)
+ * about once a second. Used for the library's search model and the local speech model.
+ */
+export async function downloadModel(
+  model: { id: string; files: string[]; sizeMb: number },
+  dir: string,
+  onProgress: (progress: number) => void,
+): Promise<void> {
+  const total = model.sizeMb * 1024 * 1024;
+  let done = 0;
+  let lastReport = 0;
+  for (const file of model.files) {
+    const target = join(dir, file);
+    if (existsSync(target) && statSync(target).size > 0) continue;
+    mkdirSync(dirname(target), { recursive: true });
+    const res = await fetch(`https://huggingface.co/${model.id}/resolve/main/${file}`, {
+      signal: AbortSignal.timeout(30 * 60_000),
+    });
+    if (!res.ok || !res.body) throw new Error(`Download failed (${res.status}) for ${file}`);
+    const part = `${target}.part`;
+    const out = createWriteStream(part);
+    const reader = res.body.getReader();
+    try {
+      for (;;) {
+        const { value, done: end } = await reader.read();
+        if (end) break;
+        out.write(value);
+        done += value.byteLength;
+        if (Date.now() - lastReport > 1000) {
+          lastReport = Date.now();
+          onProgress(Math.min(0.99, done / total));
+        }
+      }
+    } catch (err) {
+      out.destroy();
+      rmSync(part, { force: true });
+      throw err;
+    }
+    await new Promise<void>((resolve, reject) => out.end((err?: Error | null) => (err ? reject(err) : resolve())));
+    renameSync(part, target);
+  }
+}
+
 export class Embedder implements Embed {
   private state: EmbedderStatus["state"];
   private progress = 0;
@@ -88,40 +133,10 @@ export class Embedder implements Embed {
   }
 
   private async fetchAll(): Promise<void> {
-    const total = EMBED_MODEL.sizeMb * 1024 * 1024;
-    let done = 0;
-    let lastReport = 0;
-    for (const file of EMBED_MODEL.files) {
-      const target = join(this.dir, file);
-      if (existsSync(target) && statSync(target).size > 0) continue;
-      mkdirSync(dirname(target), { recursive: true });
-      const res = await fetch(`https://huggingface.co/${EMBED_MODEL.id}/resolve/main/${file}`, {
-        signal: AbortSignal.timeout(30 * 60_000),
-      });
-      if (!res.ok || !res.body) throw new Error(`Download failed (${res.status}) for ${file}`);
-      const part = `${target}.part`;
-      const out = createWriteStream(part);
-      const reader = res.body.getReader();
-      try {
-        for (;;) {
-          const { value, done: end } = await reader.read();
-          if (end) break;
-          out.write(value);
-          done += value.byteLength;
-          this.progress = Math.min(0.99, done / total);
-          if (Date.now() - lastReport > 1000) {
-            lastReport = Date.now();
-            this.onChange();
-          }
-        }
-      } catch (err) {
-        out.destroy();
-        rmSync(part, { force: true });
-        throw err;
-      }
-      await new Promise<void>((resolve, reject) => out.end((err?: Error | null) => (err ? reject(err) : resolve())));
-      renameSync(part, target);
-    }
+    await downloadModel(EMBED_MODEL, this.dir, (progress) => {
+      this.progress = progress;
+      this.onChange();
+    });
   }
 
   private load() {

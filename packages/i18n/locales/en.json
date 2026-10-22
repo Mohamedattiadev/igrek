@@ -2945,9 +2945,13 @@
   "voice": {
     "start": "Speak",
     "stop": "Stop listening",
-    "tip": "Speak instead of typing. In Chrome the browser sends the audio to Google's speech service to turn it into text.",
+    "tip": "Speak instead of typing. Your voice is turned into text by Igrek on this computer and goes to no one. Click again to stop (at most 30 seconds).",
     "denied": "The microphone is blocked for this page",
-    "failed": "Could not understand; try again"
+    "failed": "Could not understand; try again",
+    "download": "Speaking needs a speech model on this computer, about {{size}} MB, downloaded once from Hugging Face. Download it now?",
+    "downloading": "Downloading the speech model: {{pct}}%",
+    "working": "Turning your voice into text…",
+    "nothing": "Nothing was heard; try again, a little closer to the microphone."
   },
   "notify": {
     "setting": "Desktop notifications",

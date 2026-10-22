@@ -129,6 +129,7 @@ import {
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
+import { registerSpeechRoutes, Speech } from "./speech";
 import { Store } from "./store";
 import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
@@ -586,6 +587,8 @@ insight.extraNotices = () => [
     })),
 ];
 const extensionKeys = new ExtensionKeys(sqlite);
+// Speech from the microphone, recognised on this computer (downloaded once, when the user asks).
+const speech = new Speech(join(config.dataDir, "models", "whisper-base"));
 const app = createApp({
   config,
   db,
@@ -739,6 +742,7 @@ const app = createApp({
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerPrivateRoutes(hono, privateValues);
+    registerSpeechRoutes(hono, speech);
     registerExtensionRoutes(hono, {
       keys: extensionKeys,
       values: privateValues,
