@@ -6,6 +6,7 @@ import { type ChatEvent, type ChatInfo, STEP_CUT } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
 import { ChatHistory, Chats, ruleCovers, ruleFor, turnSpend } from "./chats";
 import { openDb } from "./db";
+import { setAiGateway } from "./env";
 
 /** A stand-in `claude` that speaks the same stream-json protocol. */
 function fakeClaude(): string {
@@ -431,7 +432,7 @@ describe("private details in a chat", () => {
     const script = `#!${process.execPath}
 const { appendFileSync } = require("node:fs");
 const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
-appendFileSync(${JSON.stringify(log)}, JSON.stringify({ argv: process.argv.slice(2) }) + "\\n");
+appendFileSync(${JSON.stringify(log)}, JSON.stringify({ argv: process.argv.slice(2), base: process.env.ANTHROPIC_BASE_URL ?? "" }) + "\\n");
 out({ type: "system", subtype: "init", session_id: "sess-p", model: "claude-test" });
 let buf = "";
 for await (const chunk of Bun.stdin.stream()) {
@@ -459,6 +460,7 @@ for await (const chunk of Bun.stdin.stream()) {
     const log = join(mkdtempSync(join(tmpdir(), "igrek-privatelog-")), "log.jsonl");
     const chats = new Chats(new Bus(), new StopRegistry(), () => recordingClaude(log));
     chats.privacy = { values: () => [{ name: "tc_kimlik", value: "10000000146" }] };
+    setAiGateway("http://127.0.0.1:9");
     const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal" });
     const events = new Map<string, ChatEvent>();
     chats.attach(info.id, (op) => op.op === "upsert" && events.set(op.event.id, op.event));
@@ -477,6 +479,10 @@ for await (const chunk of Bun.stdin.stream()) {
     expect(JSON.stringify(sent)).not.toContain("10000000146");
     expect(JSON.stringify(sent)).toContain("[[private:tc_kimlik]]");
     expect(lines[0].argv.join(" ")).toContain("[[private:tc_kimlik]]");
+    // Secret files are never read, and the AI's requests go through the privacy gateway.
+    expect(lines[0].argv.join(" ")).toContain("Read(**/.env)");
+    expect(lines[0].base).toBe("http://127.0.0.1:9");
+    setAiGateway(undefined);
     expect(reply.response.response.updatedInput).toEqual({ command: "echo 10000000146 > form.txt" });
     expect([...events.values()].find((e) => e.kind === "user")).toMatchObject({
       text: "Fill the form with my id [[private:tc_kimlik]]",

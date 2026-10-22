@@ -44,6 +44,8 @@ export interface Settings {
   richAnswers: boolean;
   /** Chats may consult the expert personas in the background (each consultation is one model call). */
   consultExperts: boolean;
+  /** Every request the AI tools Igrek starts make goes through the privacy gateway, which hides private details and .env secrets. */
+  privacyGateway: boolean;
   /** When a chat turn changes auth, payment or database code, the matching expert reads the diff (one model call each). */
   autoReview: boolean;
   /** Every folder Claude works in becomes a project on its own; off, only the folders the user adds. */
@@ -109,6 +111,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoSummarize: true,
   richAnswers: false,
   consultExperts: true,
+  privacyGateway: true,
   autoReview: false,
   autoProjects: false,
   turnGate: "off",

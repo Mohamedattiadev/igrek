@@ -4561,7 +4561,11 @@
     "hidden_other": "{{count}} details hidden from the AI: {{what}}",
     "copy": "Copy with my details",
     "copyTip": "Copies the answer with your real values in place of the placeholders. The AI never saw them.",
-    "inStep": "Igrek puts your real private details in place of the placeholders when this step runs; the AI does not see them. If the step prints a value, its output can reach the AI."
+    "inStep": "Igrek puts your real private details in place of the placeholders when this step runs; the AI does not see them. If the step prints a value, its output can reach the AI.",
+    "gateway": "Privacy gateway",
+    "gatewayOn": "On: everything the AI tools Igrek starts send (chats, background jobs, flows, Claude in its terminals) passes through Igrek first. Your private details and your projects' .env secrets are hidden wherever they appear, even in a file the AI read or a command's output, and put back only here. The AI cannot read .env files at all.",
+    "gatewayOff": "Off: only what you type in a chat is hidden. Files the AI reads and command outputs go out as they are.",
+    "gatewayStats": "It watches for {{values}} values and has hidden {{hidden}} so far."
   },
   "extension": {
     "title": "Browser extension",

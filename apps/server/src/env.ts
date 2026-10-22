@@ -18,6 +18,22 @@ export function cleanEnv(extra: Record<string, string> = {}): Record<string, str
   return { ...env, ...extra };
 }
 
+let gatewayUrl: string | undefined;
+
+/** Igrek's privacy gateway (gateway.ts) for the AI tools it starts; undefined turns it off. */
+export function setAiGateway(url: string | undefined): void {
+  gatewayUrl = url;
+}
+
+/**
+ * What an AI tool Igrek starts (Claude Code in a chat, a background job, a flow, a terminal) gets
+ * on top of the clean environment: its API address pointed at the privacy gateway, so private
+ * details are hidden before anything leaves this computer. Your own apps never get this.
+ */
+export function aiEnv(): Record<string, string> {
+  return gatewayUrl ? { ANTHROPIC_BASE_URL: gatewayUrl } : {};
+}
+
 let cachedShell: string | undefined;
 
 /** The user's real login shell (from /etc/passwd), not whatever $SHELL Igrek inherited. */

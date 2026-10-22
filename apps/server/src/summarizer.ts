@@ -11,7 +11,7 @@ import type {
 } from "@igrek/core";
 import { languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "./bus";
-import { cleanEnv } from "./env";
+import { aiEnv, cleanEnv } from "./env";
 import { LIMIT_REACHED, type LocalModelConfig, ollamaChat } from "./localmodel";
 import { INTERNAL_ENV } from "./names";
 import type { Store } from "./store";
@@ -232,6 +232,7 @@ async function runClaudeNow(
       stdout: "pipe",
       stderr: "pipe",
       env: cleanEnv({
+        ...aiEnv(),
         ...account.env,
         ...INTERNAL_ENV,
         ...(isolated ? { GIT_CEILING_DIRECTORIES: dirname(cwd) } : {}),

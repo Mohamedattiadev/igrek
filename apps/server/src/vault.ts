@@ -57,9 +57,8 @@ export class Vault {
     return r.changed_at ?? fallbackAt;
   }
 
-  list(): VaultEntry[] {
-    const rows: (Omit<VaultEntry, "sameAs" | "due" | "rotateDays"> & { hash: string })[] = [];
-    // A folder added as a project can hold other projects: each .env file belongs to the deepest one.
+  /** Every project's .env files (not examples); a folder added as a project can hold others, and each file belongs to the deepest. */
+  private envFiles(): Map<string, { projectId: string; root: string; file: string }> {
     const owner = new Map<string, { projectId: string; root: string; file: string }>();
     for (const p of this.store.allProjectRows()) {
       if (p.hidden || !existsSync(p.path)) continue;
@@ -70,7 +69,38 @@ export class Vault {
         if (!seen || p.path.length > seen.root.length) owner.set(full, { projectId: p.id, root: p.path, file });
       }
     }
-    for (const [full, { projectId, file }] of owner) {
+    return owner;
+  }
+
+  /**
+   * The secret values of every project's .env files, for the privacy gateway to hide (gateway.ts):
+   * keys that look like secrets, values long enough not to match ordinary text. Named env_<key>.
+   */
+  secretValues(): { name: string; value: string }[] {
+    const out = new Map<string, { name: string; value: string }>();
+    for (const full of this.envFiles().keys()) {
+      let text = "";
+      try {
+        text = readFileSync(full, "utf8");
+      } catch {
+        continue;
+      }
+      for (const e of parse(text))
+        if (e.key && e.value && e.value.length >= 8 && SECRETISH.test(e.key))
+          out.set(e.value, {
+            name: `env_${e.key
+              .toLowerCase()
+              .replace(/[^a-z0-9_]/g, "_")
+              .slice(0, 36)}`,
+            value: e.value,
+          });
+    }
+    return [...out.values()];
+  }
+
+  list(): VaultEntry[] {
+    const rows: (Omit<VaultEntry, "sameAs" | "due" | "rotateDays"> & { hash: string })[] = [];
+    for (const [full, { projectId, file }] of this.envFiles()) {
       let text = "";
       try {
         text = readFileSync(full, "utf8");

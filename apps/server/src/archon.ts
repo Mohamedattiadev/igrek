@@ -1,5 +1,5 @@
 import type { FlowNodeState, FlowRun } from "@igrek/core";
-import { cleanEnv } from "./env";
+import { aiEnv, cleanEnv } from "./env";
 import type { Flows } from "./flows";
 
 /** Archon steps that ship work (push, open a pull request): Igrek never runs those on its own. */
@@ -28,7 +28,7 @@ async function run(bin: string, args: string[], cwd: string): Promise<{ code: nu
     cwd,
     stdout: "pipe",
     stderr: "pipe",
-    env: cleanEnv({ CLAUDE_USE_GLOBAL_AUTH: "true" }),
+    env: cleanEnv({ ...aiEnv(), CLAUDE_USE_GLOBAL_AUTH: "true" }),
   });
   const [out, err, code] = await Promise.all([new Response(p.stdout).text(), new Response(p.stderr).text(), p.exited]);
   return { code, out: `${out}${err}` };
@@ -86,7 +86,7 @@ export async function startArchon(
     cwd: args.cwd,
     stdout: "pipe",
     stderr: "pipe",
-    env: cleanEnv({ CLAUDE_USE_GLOBAL_AUTH: "true" }),
+    env: cleanEnv({ ...aiEnv(), CLAUDE_USE_GLOBAL_AUTH: "true" }),
   });
   void (async () => {
     const reader = proc.stdout.getReader();

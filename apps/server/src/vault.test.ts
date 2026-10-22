@@ -51,3 +51,18 @@ describe("vault", () => {
     expect(await vault.reveal(`item:${id}`)).toBe("abc-123");
   });
 });
+
+describe("secrets for the privacy gateway", () => {
+  test("secret-looking keys of every project's .env, once each; settings, short values and examples left out", () => {
+    const data = mkdtempSync(join(tmpdir(), "igrek-vault-"));
+    const shop = mkdtempSync(join(tmpdir(), "igrek-shop-"));
+    writeFileSync(join(shop, ".env"), "STRIPE_SECRET_KEY=sk_live_1234567890\nPORT=3000\nAPI_TOKEN=short\n");
+    writeFileSync(join(shop, ".env.local"), "STRIPE_SECRET_KEY=sk_live_1234567890\n");
+    writeFileSync(join(shop, ".env.example"), "DATABASE_URL=postgres://user:pass@localhost/db\n");
+    const { sqlite } = openDb(":memory:");
+    const store = new Store(sqlite);
+    store.addProject(shop);
+    const vault = new Vault(sqlite, store, new EnvFiles(join(data, "env-backups")), new Sealer(data));
+    expect(vault.secretValues()).toEqual([{ name: "env_stripe_secret_key", value: "sk_live_1234567890" }]);
+  });
+});

@@ -96,7 +96,6 @@
     "noExcessiveCognitiveComplexity:apps/server/src/team-routes.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/terminal-routes.ts": 1,
     "noExcessiveCognitiveComplexity:apps/server/src/testers.ts": 1,
-    "noExcessiveCognitiveComplexity:apps/server/src/vault.ts": 1,
     "noExcessiveCognitiveComplexity:apps/web/src/components/Helper.tsx": 1,
     "noExcessiveCognitiveComplexity:apps/web/src/components/Markdown.tsx": 1,
     "noExcessiveCognitiveComplexity:apps/web/src/lib/chat.ts": 1,

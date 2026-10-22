@@ -17,7 +17,7 @@ import {
   type TurnSpend,
 } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
-import { cleanEnv } from "./env";
+import { aiEnv, cleanEnv } from "./env";
 import { guardFor, readsOutside, SHIP_ASK_RULES } from "./guards";
 import { readLines } from "./jsonlines";
 import { LIMIT_REACHED } from "./localmodel";
@@ -112,6 +112,25 @@ function fillInput(input: unknown, values: { name: string; value: string }[]): u
   const escaped = values.map((v) => ({ name: v.name, value: JSON.stringify(v.value).slice(1, -1) }));
   return JSON.parse(fillPrivate(text, escaped));
 }
+
+/**
+ * Files that hold secrets are never read by the AI in Igrek's chats (Claude Code's own deny rules):
+ * .env files and private keys. A command that prints one still passes the privacy gateway, which
+ * hides the values; this keeps the plain reading out altogether.
+ */
+const SECRET_FILE_RULES = [
+  ".env",
+  ".env.local",
+  ".env.development",
+  ".env.production",
+  ".env.test",
+  ".env.development.local",
+  ".env.production.local",
+  "*.pem",
+  "*.key",
+  "id_rsa",
+  "id_ed25519",
+].map((f) => `Read(**/${f})`);
 
 /** What to do with a message written while the AI is still working. */
 export type SendHow = "queue" | "steer";
@@ -334,7 +353,7 @@ export class Chats {
       // Auto mode also gets Claude Code's sandbox when this computer has what it needs.
       "--settings",
       JSON.stringify({
-        permissions: { ask: SHIP_ASK_RULES },
+        permissions: { ask: SHIP_ASK_RULES, deny: SECRET_FILE_RULES },
         ...(sandboxed ? { sandbox: { enabled: true, autoAllowBashIfSandboxed: false } } : {}),
       }),
       ...(options.model ? ["--model", options.model] : []),
@@ -360,7 +379,7 @@ export class Chats {
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ ...options.env, IGREK_CHAT: id }),
+      env: cleanEnv({ ...aiEnv(), ...options.env, IGREK_CHAT: id }),
     });
     const chat: Chat = {
       info: {

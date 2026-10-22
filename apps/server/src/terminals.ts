@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import type { TerminalInfo, TerminalTool } from "@igrek/core";
 import type { Bus, StopRegistry } from "./bus";
-import { cleanEnv, loginShell } from "./env";
+import { aiEnv, cleanEnv, loginShell } from "./env";
 
 const SCROLLBACK_BYTES = 512 * 1024;
 const ESC = String.fromCharCode(27);
@@ -105,7 +105,7 @@ export class Terminals {
 
     const proc = Bun.spawn(cmd, {
       cwd: options.cwd,
-      env: cleanEnv({ ...options.env, TERM: "xterm-256color", COLORTERM: "truecolor", IGREK_TERMINAL: id }),
+      env: cleanEnv({ ...aiEnv(), ...options.env, TERM: "xterm-256color", COLORTERM: "truecolor", IGREK_TERMINAL: id }),
       terminal: {
         cols,
         rows,

@@ -4561,7 +4561,11 @@
     "hidden_other": "AI'dan {{count}} bilgi gizlendi: {{what}}",
     "copy": "Bilgilerimle kopyala",
     "copyTip": "Cevabı, yer tutucuların yerine gerçek değerlerinle kopyalar. AI onları hiç görmedi.",
-    "inStep": "Igrek bu adım çalışırken yer tutucuların yerine gerçek özel bilgilerini koyar; AI onları görmez. Adım bir değeri ekrana yazdırırsa, çıktısı AI'a ulaşabilir."
+    "inStep": "Igrek bu adım çalışırken yer tutucuların yerine gerçek özel bilgilerini koyar; AI onları görmez. Adım bir değeri ekrana yazdırırsa, çıktısı AI'a ulaşabilir.",
+    "gateway": "Gizlilik ağ geçidi",
+    "gatewayOn": "Açık: Igrek'in başlattığı AI araçlarının gönderdiği her şey (sohbetler, arka plan işleri, akışlar, terminallerindeki Claude) önce Igrek'ten geçer. Özel bilgilerin ve projelerinin .env sırları nerede geçerse geçsin, AI'ın okuduğu bir dosyada ya da bir komutun çıktısında bile gizlenir ve sadece burada geri konur. AI .env dosyalarını hiç okuyamaz.",
+    "gatewayOff": "Kapalı: sadece sohbete yazdığın gizlenir. AI'ın okuduğu dosyalar ve komut çıktıları olduğu gibi gider.",
+    "gatewayStats": "{{values}} değeri izliyor, şimdiye kadar {{hidden}} yerde gizledi."
   },
   "extension": {
     "title": "Tarayıcı eklentisi",

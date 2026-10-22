@@ -12,7 +12,7 @@ import {
 } from "@igrek/core";
 import { parse as parseYaml } from "yaml";
 import type { Bus, StopRegistry } from "./bus";
-import { cleanEnv, shellCommand } from "./env";
+import { aiEnv, cleanEnv, shellCommand } from "./env";
 import { BUILTIN_FLOWS } from "./flows-builtin";
 import { SHIP_ASK_RULES } from "./guards";
 import { runChecks } from "./insight/tools";
@@ -196,7 +196,7 @@ const runAgent: AgentRun = async (args) => {
       stdin: new Blob([prompt]),
       stdout: "pipe",
       stderr: "pipe",
-      env: cleanEnv({ ...INTERNAL_ENV, GIT_CEILING_DIRECTORIES: dirname(cwd) }),
+      env: cleanEnv({ ...aiEnv(), ...INTERNAL_ENV, GIT_CEILING_DIRECTORIES: dirname(cwd) }),
     },
   );
   const unregister = register(() => proc.kill());

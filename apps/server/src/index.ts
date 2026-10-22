@@ -48,6 +48,7 @@ import { registerDocsRoutes } from "./docs-routes";
 import { Embedder } from "./embedder";
 import { Enhancer } from "./enhance";
 import { registerEnhanceRoutes } from "./enhance-routes";
+import { setAiGateway } from "./env";
 import { registerEnvRoutes } from "./env-routes";
 import { EnvFiles } from "./envfiles";
 import { Environments } from "./environments";
@@ -59,6 +60,7 @@ import { registerFileRoutes } from "./file-routes";
 import { Files } from "./files";
 import { registerArenaRoutes, registerFlowRoutes, registerImportRoutes } from "./flow-routes";
 import { Flows } from "./flows";
+import { startGateway } from "./gateway";
 import { installHooks, writeHookScript } from "./hooks";
 import { registerHttpRoutes } from "./http-routes";
 import { registerI18nRoutes } from "./i18n-routes";
@@ -436,6 +438,20 @@ const vault = new Vault(sqlite, store, envFiles, sealer);
 // Private details stay on this computer: chats hide them before a message leaves (core/private.ts).
 const privateValues = new PrivateValues(sqlite, sealer);
 chats.privacy = privateValues;
+// The privacy gateway: what the AI tools send leaves with private details and .env secrets hidden.
+let envSecrets = { at: 0, values: [] as { name: string; value: string }[] };
+const gatewayValues = () => {
+  if (Date.now() - envSecrets.at > 60_000) envSecrets = { at: Date.now(), values: vault.secretValues() };
+  return [...privateValues.values(), ...envSecrets.values];
+};
+const gatewayStats = { hidden: 0 };
+const gateway = startGateway(gatewayValues, undefined, (n) => {
+  gatewayStats.hidden += n;
+});
+setAiGateway(readSettings(db).privacyGateway ? gateway.url : undefined);
+bus.subscribe((m) => {
+  if (m.type === "settings") setAiGateway(m.settings.privacyGateway ? gateway.url : undefined);
+});
 const mcpServers = new McpServers(sqlite, sealer);
 const bridges = new Bridges(sqlite, sealer, fetch, `http://localhost:${config.publicPort}`);
 void bridges.load().catch(() => undefined);
@@ -743,6 +759,9 @@ const app = createApp({
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
     registerPrivateRoutes(hono, privateValues);
+    hono.get("/api/private/gateway", (c) =>
+      c.json({ on: readSettings(db).privacyGateway, hidden: gatewayStats.hidden, values: gatewayValues().length }),
+    );
     registerSpeechRoutes(hono, speech);
     registerPhoneRoutes(hono, new Phone(), (projectId) => {
       const row = store.projectRow(projectId);
