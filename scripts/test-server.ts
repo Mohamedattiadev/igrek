@@ -105,6 +105,8 @@ export async function startTestServer(
       IGREK_HOME: join(home, ".igrek"),
       IGREK_PORT: String(port),
       IGREK_WEB_DIST: options.webDist ?? join(home, "no-web"),
+      // No phone is ever reached from a test: adb points nowhere.
+      IGREK_ADB: join(home, "no-adb"),
       OPENUI_TELEMETRY_DISABLED: "1",
       DO_NOT_TRACK: "1",
     },
@@ -252,6 +254,8 @@ const REACHES_OUT = [
   /^\/api\/projects\/[^/]+\/launch$/,
   // Igrek's package catalog is read from GitHub.
   /^\/api\/packs\/catalog$/,
+  // The user's own phone (adb): never touched by a test.
+  /^\/api\/phone\//,
 ];
 
 /** A change (not a read) that would reach past the sealed-off server; works on routes and real paths. */

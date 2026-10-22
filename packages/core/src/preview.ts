@@ -60,3 +60,21 @@ export interface VisualCheck {
   at: number;
   baselineAt?: number;
 }
+
+/** A phone Igrek can reach over adb (apps/server/src/phone.ts). */
+export interface PhoneDevice {
+  serial: string;
+  /** "unauthorized": the phone still asks to allow this computer. */
+  state: "ready" | "unauthorized" | "offline";
+  model?: string;
+  /** Connected over Wi-Fi (wireless debugging) rather than USB. */
+  wifi: boolean;
+}
+
+/** The phone's screen checked: targets too small for a finger, buttons with no name, recent crashes. */
+export interface PhoneCheck {
+  at: number;
+  small: { bounds: [number, number, number, number]; id: string; width: number; height: number }[];
+  unnamed: { bounds: [number, number, number, number]; id: string; kind: string }[];
+  crashes: string[];
+}

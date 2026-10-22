@@ -108,6 +108,7 @@ import { PersonaPacks } from "./persona-packs";
 import { TurnReviews } from "./persona-review";
 import { connectPersonaChats, registerExpertRoutes, registerPersonaRoutes } from "./persona-routes";
 import { Personas, personaLabel } from "./personas";
+import { Phone, registerPhoneRoutes } from "./phone";
 import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
 import { UiAudits } from "./preview/ui-audit";
@@ -743,6 +744,10 @@ const app = createApp({
     registerVaultRoutes(hono, vault);
     registerPrivateRoutes(hono, privateValues);
     registerSpeechRoutes(hono, speech);
+    registerPhoneRoutes(hono, new Phone(), (projectId) => {
+      const row = store.projectRow(projectId);
+      return row && !row.path.startsWith("team:") && existsSync(row.path) ? row.path : undefined;
+    });
     registerExtensionRoutes(hono, {
       keys: extensionKeys,
       values: privateValues,
