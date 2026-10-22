@@ -3,7 +3,7 @@ import { marked } from "marked";
 import { lazy, memo, Suspense, useEffect, useMemo, useRef } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { useTranslation } from "react-i18next";
-import { highlight, highlightCached, langKey } from "../lib/highlight";
+import { guessLang, highlight, highlightCached, langKey } from "../lib/highlight";
 import { Lru } from "../lib/lru";
 import { healBlock, splitBlocks } from "../lib/markdown-blocks";
 import { innerCode } from "../lib/useHighlight";
@@ -37,12 +37,20 @@ function enhanceCode(root: HTMLElement, words: Words, streaming: boolean): () =>
     title.textContent = words.callout[kind] ?? kind;
     quote.prepend(title);
   }
+  // A web address in an answer opens in a new tab, so the chat stays where it was.
+  for (const a of root.querySelectorAll<HTMLAnchorElement>("a[href]")) {
+    if (a.origin === window.location.origin) continue;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+  }
   const pres = [...root.querySelectorAll("pre")];
   for (const pre of pres) {
     const code = pre.querySelector("code");
     if (!code) continue;
-    const lang = [...code.classList].find((c) => c.startsWith("language-"))?.slice(9);
+    const named = [...code.classList].find((c) => c.startsWith("language-"))?.slice(9);
     const text = code.textContent ?? "";
+    // A bare fence gets a language from how it starts, so a command or a query is coloured too.
+    const lang = named ?? guessLang(text);
     if (lang === "html-report" && !streaming) {
       const box = document.createElement("div");
       pre.replaceWith(box);

@@ -1544,7 +1544,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                     switch (event.kind) {
                       case "user":
                         return (
-                          <div key={event.id} id={messageId(event.id)} className="flex scroll-mt-4 justify-end">
+                          <div key={event.id} id={messageId(event.id)} className="ge-rise flex scroll-mt-4 justify-end">
                             <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-accent-soft px-4 py-2.5 text-[14px] leading-relaxed text-fg">
                               {event.images > 0 && (
                                 <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
@@ -1560,7 +1560,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                         const shown = info?.persona ? extractNotebook(event.text).text : event.text;
                         const isLast = event.id === lastText?.id && lastIsAnswer;
                         return (
-                          <div key={event.id} className="space-y-2">
+                          <div key={event.id} className="ge-rise space-y-2">
                             <div className="min-w-0">
                               {persona && (
                                 <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-fg-muted">

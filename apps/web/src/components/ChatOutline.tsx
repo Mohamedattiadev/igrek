@@ -46,7 +46,7 @@ export function ChatOutline({ events, list }: { events: ChatEvent[]; list: RefOb
           onBlur={(e) => !e.currentTarget.contains(e.relatedTarget) && setOpen(false)}
         >
           {open ? (
-            <ul className="max-h-full w-64 overflow-y-auto rounded-ui border border-border bg-bg p-1 shadow-ui">
+            <ul className="ge-pop-in max-h-full w-64 origin-right overflow-y-auto rounded-ui border border-border bg-bg p-1 shadow-ui">
               {asks.map((e) => (
                 <li key={e.id}>
                   <button
@@ -67,7 +67,7 @@ export function ChatOutline({ events, list }: { events: ChatEvent[]; list: RefOb
                     type="button"
                     onClick={() => jump(e.id)}
                     aria-label={e.text.slice(0, 80)}
-                    className="block h-0.5 w-3 rounded-full bg-fg-subtle/60 hover:w-5 hover:bg-accent"
+                    className="block h-0.5 w-3 rounded-full bg-accent/50 transition-all duration-150 hover:w-5 hover:bg-accent"
                   />
                 </li>
               ))}

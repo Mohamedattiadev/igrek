@@ -96,6 +96,32 @@ const ALIAS: Record<string, string> = {
   sqlite: "sql",
 };
 
+const SHELL_START =
+  /^\s*(\$ |sudo |docker |git |npm |npx |pnpm |yarn |bun |bunx |cd |ls |cat |curl |wget |ssh |scp |kubectl |psql |mkdir |rm |cp |mv |chmod |export [A-Z_][A-Z0-9_]*=|echo |apt |brew |pip |python3? |node |make |systemctl |journalctl )/;
+
+/**
+ * The language of a block that names none (a model often writes a bare fence), from how it starts,
+ * so a shell command or a query is coloured too. Undefined when it is not clear: plain text stays plain.
+ */
+export function guessLang(code: string): string | undefined {
+  const text = code.trim();
+  if (!text) return undefined;
+  if (SHELL_START.test(text)) return "sh";
+  if (/^(select|insert|update|delete|create|alter|with|drop)\b/i.test(text)) return "sql";
+  if (/^[[{]/.test(text)) {
+    try {
+      JSON.parse(text);
+      return "json";
+    } catch {
+      // not JSON
+    }
+  }
+  if (/^(import |export |const |let |function |interface |type \w+ =)/m.test(text)) return "ts";
+  if (/^(def |class \w+[(:]|from \w+ import )/m.test(text)) return "py";
+  if (/^<(!doctype|html|div|template)\b/i.test(text)) return "html";
+  return undefined;
+}
+
 export function langKey(lang: string | undefined): string | undefined {
   if (!lang) return undefined;
   const key = lang.toLowerCase().trim();
