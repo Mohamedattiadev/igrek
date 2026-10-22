@@ -96,8 +96,22 @@ describe.skipIf(!ready)("every page, every button", () => {
     if (await blank()) problems.push(`${path}: blank screen`);
   }
 
-  /** A page's code loads before the address changes, so a click is given a moment to land. */
-  const settle = () => page.waitForTimeout(450);
+  /**
+   * A page's code loads before the address changes, so a click is given time to land: until the
+   * network is quiet and the address has stopped changing. A fixed wait was too short on a busy
+   * machine and read a late navigation as a broken back button.
+   */
+  const settle = async () => {
+    await page.waitForTimeout(300);
+    await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
+    let last = page.url();
+    for (let i = 0; i < 20; i++) {
+      await page.waitForTimeout(150);
+      const now = page.url();
+      if (now === last) return;
+      last = now;
+    }
+  };
 
   /** Clicks the n-th clickable thing; after a move to another page, the back button must return. */
   async function clickOne(path: string, n: number): Promise<boolean> {
