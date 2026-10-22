@@ -156,6 +156,13 @@
     "done": "Halledildi (gizle)"
   },
   "settings": {
+    "aiMay": "Yapay zekâ neye izinli?",
+    "aiMay_files": "Eklediğin projelerin dosyalarını okur; birini değiştirmeden önce sorar (sohbette başka bir mod seçmediysen).",
+    "aiMay_ship": "Gönderme, yayına alma ya da paylaşma her zaman onayını bekler.",
+    "aiMay_private": "Özel bilgilerini ve projelerindeki gizli anahtarları hiç görmez: onların yerine takma adlar görür.",
+    "aiMay_privateOff": "\"Her yerde gizle\" kapalı: yalnızca sohbete yazdıkların ondan gizlenir.",
+    "aiMay_keys": "Gizli anahtarların durduğu dosyaları açamaz.",
+    "aiMay_nothing": "Igrek senin hakkında hiçbir yere bir şey göndermez; mesajlarını yalnızca seçtiğin yapay zekâ alır.",
     "groupsLabel": "Bu sayfanın bölümleri",
     "group_look": "Görünüm ve dil",
     "group_ai": "Yapay zekâ",
@@ -228,6 +235,8 @@
     "autoReviewHint": "Bir sohbet turu giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) değişikliği okur ve notlarını sohbete bırakır. Sadece okur; hiçbir şeyi değiştirmez, AI'a da geri göndermez."
   },
   "onboarding": {
+    "startTour": "Kısa turla başla",
+    "startNoTour": "Tursuz başla",
     "allLanguages": "Tüm dilleri göster ({{count}})",
     "addNamed": "{{name}} klasörünü ekle",
     "projectsAddedNames": "Eklendi: {{names}}",
@@ -237,7 +246,6 @@
     "continue": "Devam",
     "readyTitle": "Her şey hazır",
     "readyBody": "Igrek sadece senin bilgisayarında çalışır. Sen paylaşmaya karar vermedikçe hiçbir şey dışarı çıkmaz.",
-    "start": "Başla",
     "projectsTitle": "Projelerin nerede?",
     "projectsBody": "Bir projenin klasörünü ya da birkaç projeyi içeren bir klasörü yaz. Igrek sadece burada eklediğin klasörleri gösterir; daha sonra Projeler sayfasından yenilerini ekleyebilirsin.",
     "projectsFound": "Claude'un daha önce çalıştığı klasörler",
@@ -498,7 +506,6 @@
     "title": "Terminaller",
     "empty": "Açık terminal yok",
     "emptyBody": "Aşağıdaki projelerinden birinde sohbet ya da Claude, Codex veya shell terminali başlat. Bu sayfayı kapatsan bile çalışmaya devam eder.",
-    "new": "Yeni oturum",
     "close": "Kapat",
     "remove": "Kaldır",
     "running": "Çalışıyor",
@@ -843,6 +850,8 @@
     "why": "Neden"
   },
   "chat": {
+    "untitled": "Yeni sohbet",
+    "otherWays": "Başka yolla başlat: terminal, başka hesap",
     "title": "Sohbet",
     "new": "Yeni sohbet",
     "placeholder": "Claude'dan bir şey iste…",
@@ -4665,7 +4674,7 @@
     "gateway": "Her yerde gizle",
     "gatewayOn": "Açık: Yapay zekânın gördüğü her yerde (mesajlarında, okuduğu dosyalarda, çalıştırdığı komutların sonuçlarında) bu bilgiler ve projelerindeki gizli anahtarlar takma adla değiştirilir. Claude da Codex de böyle çalışır. Yapay zekâ gizli anahtar dosyalarını hiç açamaz.",
     "gatewayOff": "Kapalı: yalnızca sohbete yazdıkların gizlenir; yapay zekânın okuduğu dosyalar ve komut sonuçları olduğu gibi gider.",
-    "gatewayStats": "{{values}} değeri izliyor, şimdiye kadar {{hidden}} yerde gizledi."
+    "gatewayStats": "Korunan bilgi sayısı: {{values}}. Yapay zekâdan şimdiye kadar {{hidden}} kez gizlendi."
   },
   "extension": {
     "title": "Tarayıcı eklentisi",

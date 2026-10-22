@@ -156,6 +156,13 @@
     "done": "Handled (hide it)"
   },
   "settings": {
+    "aiMay": "What the AI may do",
+    "aiMay_files": "It reads the files of the projects you add, and asks before it changes one (unless you choose another mode in a chat).",
+    "aiMay_ship": "Pushing, deploying or publishing always waits for your OK.",
+    "aiMay_private": "It never sees your private details or the secret keys in your projects: it gets nicknames in their place.",
+    "aiMay_privateOff": "\"Hide everywhere\" is off: only what you type in a chat is hidden from it.",
+    "aiMay_keys": "It cannot open the files that hold secret keys.",
+    "aiMay_nothing": "Igrek sends nothing about you anywhere; only the AI you chose gets your messages.",
     "groupsLabel": "Parts of this page",
     "group_look": "Look and language",
     "group_ai": "The AI",
@@ -228,6 +235,8 @@
     "autoReviewHint": "When a chat turn changes login, payment or database code, the matching expert (security, back end, database) reads the change and leaves its notes in the chat. It only reads; nothing is changed or sent back to the AI."
   },
   "onboarding": {
+    "startTour": "Start with a short tour",
+    "startNoTour": "Start without the tour",
     "allLanguages": "Show all {{count}} languages",
     "addNamed": "Add {{name}}",
     "projectsAddedNames": "Added: {{names}}",
@@ -237,7 +246,6 @@
     "continue": "Continue",
     "readyTitle": "You're all set",
     "readyBody": "Igrek runs only on your computer. Nothing leaves it unless you decide to share.",
-    "start": "Start",
     "projectsTitle": "Where are your projects?",
     "projectsBody": "Give the folder of a project, or a folder that holds several. Igrek only shows the folders you add here; you can add more later on the Projects page.",
     "projectsFound": "Folders where Claude has already worked",
@@ -498,7 +506,6 @@
     "title": "Terminals",
     "empty": "No terminals open",
     "emptyBody": "Start a chat or a Claude, Codex or shell terminal in one of your projects below. It keeps running even if you close this page.",
-    "new": "New session",
     "close": "Close",
     "remove": "Remove",
     "running": "Working",
@@ -843,6 +850,8 @@
     "why": "Why"
   },
   "chat": {
+    "untitled": "New chat",
+    "otherWays": "Other ways to start: a terminal, another account",
     "title": "Chat",
     "new": "New chat",
     "placeholder": "Ask Claude to do something…",
@@ -4665,7 +4674,7 @@
     "gateway": "Hide everywhere",
     "gatewayOn": "On: wherever the AI looks (your messages, files it reads, the results of commands it runs), these details and the secret keys in your projects are replaced by their nicknames. This works for Claude and Codex. The AI can never open your secret key files.",
     "gatewayOff": "Off: only what you type in a chat is hidden; files the AI reads and command results go as they are.",
-    "gatewayStats": "It watches for {{values}} values and has hidden {{hidden}} so far."
+    "gatewayStats": "Details protected: {{values}}. Hidden from the AI so far: {{hidden}} times."
   },
   "extension": {
     "title": "Browser extension",

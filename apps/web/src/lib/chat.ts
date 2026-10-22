@@ -55,6 +55,13 @@ function receive(op: ServerOp, seq: number, sinks: Sinks): number {
 export type KnownChat = Pick<RecentChat, "projectId" | "sessionId" | "title">;
 
 /** Live connection to one chat: its events, status, and the actions you can take. */
+/** The server names a new chat "Chat" (and the chief's "Chief") in English: shown in the user's language. */
+export function shownTitle(title: string | undefined, t: (key: string) => string): string {
+  if (title === "Chat") return t("chat.untitled");
+  if (title === "Chief") return t("nav.chief");
+  return title ?? "…";
+}
+
 export function useChat(id: string) {
   const [info, setInfo] = useState<ChatInfo>();
   const [events, setEvents] = useState<ChatEvent[]>([]);

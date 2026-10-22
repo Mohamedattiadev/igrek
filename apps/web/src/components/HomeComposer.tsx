@@ -7,7 +7,26 @@ import { api } from "../lib/api";
 import { Button } from "./ui";
 
 const LAST_PROJECT = "igrek.home.project";
+/** What was typed and not sent yet: it waits for the user when they come back (a tester lost hers). */
+const DRAFT = "igrek.home.draft";
 const MODES: ChatMode[] = ["normal", "acceptEdits", "plan"];
+
+function readDraft(): string {
+  try {
+    return sessionStorage.getItem(DRAFT) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function keepDraft(value: string): void {
+  try {
+    if (value) sessionStorage.setItem(DRAFT, value);
+    else sessionStorage.removeItem(DRAFT);
+  } catch {
+    // Keeping the draft is only a convenience.
+  }
+}
 
 function readLast(): string | undefined {
   try {
@@ -32,7 +51,11 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
     const last = readLast();
     return choices.find((p) => p.id === last)?.id ?? choices[0]?.id ?? "";
   });
-  const [text, setText] = useState("");
+  const [text, setTextState] = useState(readDraft);
+  const setText = (value: string) => {
+    setTextState(value);
+    keepDraft(value);
+  };
   const [mode, setMode] = useState<ChatMode>("normal");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -48,6 +71,7 @@ export function HomeComposer({ projects }: { projects: ProjectListItem[] }) {
     }
     try {
       const chat = await api.startChat({ projectId, mode });
+      keepDraft("");
       void navigate(`/c/${chat.id}?draft=${encodeURIComponent(value)}&send=1`);
     } catch (err) {
       setError((err as Error).message);

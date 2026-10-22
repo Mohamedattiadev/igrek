@@ -39,6 +39,7 @@ import { ChatPill, needsYou } from "../components/ChatPill";
 import { TeamText } from "../components/TeamText";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
+import { shownTitle } from "../lib/chat";
 import { relativeTime } from "../lib/format";
 import { useApprovals, useChats, useLiveData, useTerminals } from "../lib/live";
 import { isSnoozed, snooze } from "../lib/snooze";
@@ -224,7 +225,9 @@ export function InboxPage() {
                       className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
                     >
                       <MessageSquare size={15} className="text-accent" />
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{chat.title}</span>
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium">
+                        {shownTitle(chat.title, t)}
+                      </span>
                       <ChatPill chat={chat} />
                       <SnoozeButton onClick={() => later(`chat-${chat.id}-${chat.pill}`)} />
                     </Link>

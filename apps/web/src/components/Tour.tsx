@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
-import { markTourSeen, takeQueuedTour, tourSeen } from "../lib/tour";
+import { markTourSeen, takeQueuedTour } from "../lib/tour";
 import { Button } from "./ui";
 
 const STEPS = [
@@ -65,7 +65,8 @@ export function Tour() {
     };
     window.addEventListener("igrek:tour", start);
     let timer: ReturnType<typeof setTimeout> | undefined;
-    if (takeQueuedTour() || (!tourSeen() && window.location.pathname === "/")) timer = setTimeout(start, 900);
+    // Only when asked for (the setup's last step, or Settings): a tour that opens by itself cut into a screen reader.
+    if (takeQueuedTour()) timer = setTimeout(start, 900);
     return () => {
       window.removeEventListener("igrek:tour", start);
       clearTimeout(timer);
@@ -115,13 +116,14 @@ export function Tour() {
   const last = step === steps.length - 1;
   return (
     <div className="fixed inset-0 z-[60]" role="dialog" aria-modal="true" aria-label={t("tour.title")}>
+      {/* A click beside the card ends the tour too; for the mouse only, so readers hear one "Skip". */}
       <button
         type="button"
         data-no-tip
         tabIndex={-1}
+        aria-hidden="true"
         className="absolute inset-0 cursor-default"
         onClick={close}
-        aria-label={t("tour.skip")}
       />
       <Veil rect={rect} pad={pad} />
       <div

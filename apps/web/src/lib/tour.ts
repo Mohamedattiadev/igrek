@@ -26,15 +26,6 @@ export function takeQueuedTour(): boolean {
 
 const SEEN = "igrek.tour.seen";
 
-/** The tour starts by itself once; after it was closed or finished it waits to be asked for. */
-export function tourSeen(): boolean {
-  try {
-    return localStorage.getItem(SEEN) === "1";
-  } catch {
-    return true;
-  }
-}
-
 export function markTourSeen(): void {
   try {
     localStorage.setItem(SEEN, "1");

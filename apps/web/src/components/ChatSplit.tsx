@@ -3,6 +3,7 @@ import { MessageSquare, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { shownTitle } from "../lib/chat";
 import { relativeTime } from "../lib/format";
 import { Button, Dialog } from "./ui";
 
@@ -71,7 +72,7 @@ export function SplitPicker({
               >
                 <MessageSquare size={14} className="shrink-0 text-fg-subtle" aria-hidden="true" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px]">{chat.title}</span>
+                  <span className="block truncate text-[13px]">{shownTitle(chat.title, t)}</span>
                   <span className="block truncate text-[11.5px] text-fg-muted">
                     {chat.cwd.split("/").pop()} · {relativeTime(chat.startedAt)}
                   </span>

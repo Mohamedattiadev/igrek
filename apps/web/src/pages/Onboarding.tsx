@@ -130,7 +130,10 @@ export function Onboarding() {
               </div>
               <h1 className="text-[18px] font-semibold">{t("onboarding.readyTitle")}</h1>
               <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">{t("onboarding.readyBody")}</p>
-              <div className="mt-6 flex justify-end">
+              <div className="mt-6 flex flex-wrap justify-end gap-2">
+                <Button variant="ghost" onClick={() => void update({ onboarded: true })}>
+                  {t("onboarding.startNoTour")}
+                </Button>
                 <Button
                   variant="primary"
                   onClick={() => {
@@ -139,7 +142,7 @@ export function Onboarding() {
                   }}
                   autoFocus
                 >
-                  {t("onboarding.start")}
+                  {t("onboarding.startTour")}
                 </Button>
               </div>
             </>

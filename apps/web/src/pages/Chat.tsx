@@ -83,7 +83,7 @@ import { Badge, Button, EmptyState, StatusDot } from "../components/ui";
 import { WhyButton, WhyContext } from "../components/Why";
 import { actions } from "../lib/actions";
 import { api } from "../lib/api";
-import { lineDiff, useChat } from "../lib/chat";
+import { lineDiff, shownTitle, useChat } from "../lib/chat";
 import {
   DELEGATE_TOOLS,
   DETAIL_LEVELS,
@@ -948,6 +948,8 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
     setText("");
     setImages([]);
     setComments([]);
+    // The box stays where the keyboard is: a screen reader user lost focus after every message.
+    input.current?.focus();
   };
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: send once, when the chat has started
@@ -1393,7 +1395,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
             <Badge tone="accent">{t("rea.badge")}</Badge>
           </span>
         )}
-        <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{info?.title ?? "…"}</h1>
+        <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{shownTitle(info?.title, t)}</h1>
         {info?.context && <ContextMeter context={info.context} />}
         {info?.spend && <SpendMeter spend={info.spend} />}
         <span className="text-[11px] text-fg-subtle">{t(`chat.${status}`)}</span>

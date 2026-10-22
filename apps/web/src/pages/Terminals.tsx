@@ -11,6 +11,7 @@ import { PromptPicker } from "../components/PromptPicker";
 import { TerminalView } from "../components/TerminalView";
 import { Badge, Card, EmptyState, PageHeader, StatusDot } from "../components/ui";
 import { api } from "../lib/api";
+import { shownTitle } from "../lib/chat";
 import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useChats, useLiveData, useServerEvent, useTerminals } from "../lib/live";
@@ -105,7 +106,7 @@ function RecentChats() {
             <div key={chat.id} className="group flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover">
               <MessageSquare size={15} className="shrink-0 text-fg-subtle" />
               <Link to={`/c/${chat.id}`} data-nav-item className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-medium">{chat.title}</p>
+                <p className="truncate text-[13px] font-medium">{shownTitle(chat.title, t)}</p>
                 <p className="truncate text-[11px] text-fg-subtle">
                   {chat.projectName ? `${chat.projectName} · ` : ""}
                   {relativeTime(chat.updatedAt)}
@@ -164,7 +165,7 @@ export function TerminalsPage() {
                   className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
                 >
                   <MessageSquare size={15} className="text-accent" />
-                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{chat.title}</span>
+                  <span className="min-w-0 flex-1 truncate text-[13px] font-medium">{shownTitle(chat.title, t)}</span>
                   <ChatPill chat={chat} />
                 </Link>
               ))}

@@ -1,5 +1,5 @@
 import type { SystemStatus } from "@igrek/core";
-import { AppWindow, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
+import { AppWindow, Check, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnhanceSettings } from "../components/EnhanceSettings";
@@ -126,6 +126,22 @@ function InstallApp() {
   );
 }
 
+/** What the AI may and may not do here, in plain sentences (a first-time user could not find it). */
+function AiMay({ gateway }: { gateway: boolean }) {
+  const { t } = useTranslation();
+  const lines = ["files", "ship", gateway ? "private" : "privateOff", "keys", "nothing"] as const;
+  return (
+    <ul className="space-y-1.5 text-[13px]">
+      {lines.map((key) => (
+        <li key={key} className="flex gap-2">
+          <Check size={14} className="mt-0.5 shrink-0 text-success" aria-hidden="true" />
+          <span>{t(`settings.aiMay_${key}`)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** The page's four parts, so a long page can be jumped through (a screen reader user could not find privacy). */
 const GROUPS = ["look", "ai", "privacy", "data"] as const;
 
@@ -170,6 +186,8 @@ export function SettingsPage() {
   const { t } = useTranslation();
   const modelTip = useModelTip();
   const { settings, update } = useSettings();
+  // Simple mode (the default) leaves out what only developers set: MCP, keymaps, local models...
+  const pro = settings.mode === "pro";
 
   return (
     <>
@@ -213,16 +231,18 @@ export function SettingsPage() {
             ]}
           />
         </Section>
-        <Section title={t("settings.density")}>
-          <Segmented
-            value={settings.density}
-            onChange={(density) => update({ density })}
-            options={[
-              { value: "comfortable", label: t("settings.densityComfortable") },
-              { value: "compact", label: t("settings.densityCompact") },
-            ]}
-          />
-        </Section>
+        {pro && (
+          <Section title={t("settings.density")}>
+            <Segmented
+              value={settings.density}
+              onChange={(density) => update({ density })}
+              options={[
+                { value: "comfortable", label: t("settings.densityComfortable") },
+                { value: "compact", label: t("settings.densityCompact") },
+              ]}
+            />
+          </Section>
+        )}
         <Section
           title={t("settings.mode")}
           hint={settings.mode === "simple" ? t("settings.modeSimpleHint") : t("settings.modeProHint")}
@@ -236,16 +256,18 @@ export function SettingsPage() {
             ]}
           />
         </Section>
-        <Section title={t("settings.keymap")} hint={t("settings.keymapVimHint")}>
-          <Segmented
-            value={settings.keymap}
-            onChange={(keymap) => update({ keymap })}
-            options={[
-              { value: "default", label: t("settings.keymapDefault") },
-              { value: "vim", label: t("settings.keymapVim") },
-            ]}
-          />
-        </Section>
+        {pro && (
+          <Section title={t("settings.keymap")} hint={t("settings.keymapVimHint")}>
+            <Segmented
+              value={settings.keymap}
+              onChange={(keymap) => update({ keymap })}
+              options={[
+                { value: "default", label: t("settings.keymapDefault") },
+                { value: "vim", label: t("settings.keymapVim") },
+              ]}
+            />
+          </Section>
+        )}
         <Section title={t("notify.setting")} hint={t("notify.settingHint")}>
           <Segmented
             value={settings.notifications ? "on" : "off"}
@@ -310,27 +332,31 @@ export function SettingsPage() {
             ]}
           />
         </Section>
-        <Section title={t("settings.turnGate")} hint={t("settings.turnGateHint")}>
-          <Segmented
-            value={settings.turnGate}
-            onChange={(turnGate) => update({ turnGate })}
-            options={[
-              { value: "off", label: t("settings.off") },
-              { value: "check", label: t("settings.turnGateCheck") },
-              { value: "sendBack", label: t("settings.turnGateSendBack") },
-            ]}
-          />
-        </Section>
-        <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
-          <Segmented
-            value={settings.summaryTone}
-            onChange={(summaryTone) => update({ summaryTone })}
-            options={[
-              { value: "plain", label: t("settings.tonePlain") },
-              { value: "technical", label: t("settings.toneTechnical") },
-            ]}
-          />
-        </Section>
+        {pro && (
+          <Section title={t("settings.turnGate")} hint={t("settings.turnGateHint")}>
+            <Segmented
+              value={settings.turnGate}
+              onChange={(turnGate) => update({ turnGate })}
+              options={[
+                { value: "off", label: t("settings.off") },
+                { value: "check", label: t("settings.turnGateCheck") },
+                { value: "sendBack", label: t("settings.turnGateSendBack") },
+              ]}
+            />
+          </Section>
+        )}
+        {pro && (
+          <Section title={t("settings.tone")} hint={t("settings.toneHint")}>
+            <Segmented
+              value={settings.summaryTone}
+              onChange={(summaryTone) => update({ summaryTone })}
+              options={[
+                { value: "plain", label: t("settings.tonePlain") },
+                { value: "technical", label: t("settings.toneTechnical") },
+              ]}
+            />
+          </Section>
+        )}
         <Section title={t("settings.enhance")} hint={t("settings.enhanceHint")}>
           <div className="space-y-3">
             <Segmented
@@ -356,19 +382,30 @@ export function SettingsPage() {
             <EnhanceSettings />
           </div>
         </Section>
-        <Section title={t("mcp.title")} hint={t("mcp.hint")}>
-          <McpSetup />
-        </Section>
-        <Section title={t("bridges.title")} hint={t("bridges.hint")}>
-          <BridgesPanel />
-        </Section>
-        <Section title={t("mcpServers.title")} hint={t("mcpServers.hint")}>
-          <McpServersPanel />
-        </Section>
-        <Section title={t("localModel.title")} hint={t("localModel.hint")}>
-          <LocalModelPanel />
-        </Section>
+        {pro && (
+          <Section title={t("mcp.title")} hint={t("mcp.hint")}>
+            <McpSetup />
+          </Section>
+        )}
+        {pro && (
+          <Section title={t("bridges.title")} hint={t("bridges.hint")}>
+            <BridgesPanel />
+          </Section>
+        )}
+        {pro && (
+          <Section title={t("mcpServers.title")} hint={t("mcpServers.hint")}>
+            <McpServersPanel />
+          </Section>
+        )}
+        {pro && (
+          <Section title={t("localModel.title")} hint={t("localModel.hint")}>
+            <LocalModelPanel />
+          </Section>
+        )}
         <Group id="privacy" />
+        <Section title={t("settings.aiMay")}>
+          <AiMay gateway={settings.privacyGateway} />
+        </Section>
         <Section title={t("private.title")} hint={t("private.hint")}>
           <PrivatePanel />
         </Section>
@@ -382,15 +419,21 @@ export function SettingsPage() {
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />
         </Section>
-        <Section title={t("move.title")} hint={t("move.hint")}>
-          <MovePanel />
-        </Section>
-        <Section title={t("disk.title")} hint={t("disk.hint")}>
-          <DiskPanel />
-        </Section>
-        <Section title={t("update.title")} hint={t("update.hint")}>
-          <UpdatePanel />
-        </Section>
+        {pro && (
+          <Section title={t("move.title")} hint={t("move.hint")}>
+            <MovePanel />
+          </Section>
+        )}
+        {pro && (
+          <Section title={t("disk.title")} hint={t("disk.hint")}>
+            <DiskPanel />
+          </Section>
+        )}
+        {pro && (
+          <Section title={t("update.title")} hint={t("update.hint")}>
+            <UpdatePanel />
+          </Section>
+        )}
         <Section title={t("settings.system")} hint={t("settings.systemHint")}>
           <SystemCheck />
         </Section>

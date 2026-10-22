@@ -53,6 +53,21 @@ export function Helper() {
     return () => window.removeEventListener("igrek:helper", openIt);
   }, []);
 
+  // Esc closes it from anywhere in it, and focus goes back to its button (a screen reader user was stuck).
+  const toggle = useRef<HTMLButtonElement>(null);
+  const close = () => {
+    setOpen(false);
+    toggle.current?.focus();
+  };
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   const say = (from: Message["from"], body: string, actions?: Action[]) =>
     setMessages((m) => [...m, { id: nextId.current++, from, text: body, actions }]);
 
@@ -243,7 +258,7 @@ export function Helper() {
           </div>
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={close}
             aria-label={t("helper.close")}
             className="rounded-md p-1 text-fg-subtle hover:bg-bg-hover hover:text-fg"
           >
@@ -339,6 +354,7 @@ export function Helper() {
     <>
       {panel}
       <button
+        ref={toggle}
         type="button"
         data-tour="helper"
         onClick={() => setOpen((v) => !v)}

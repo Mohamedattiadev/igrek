@@ -67,7 +67,9 @@ export function NewSession({ projectId }: { projectId: string }) {
           variant="primary"
           size="sm"
           onClick={() => setOpen((v) => !v)}
-          aria-label={t("term.new")}
+          aria-label={t("chat.otherWays")}
+          aria-expanded={open}
+          data-tip={t("chat.otherWays")}
           className="rounded-s-none border-s border-white/20 px-1.5"
         >
           <ChevronDown size={13} />
