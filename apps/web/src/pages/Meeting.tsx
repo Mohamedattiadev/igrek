@@ -122,7 +122,7 @@ export function MeetingPage() {
   if (!meeting)
     return (
       <>
-        <PageHeader title={t("meeting.title")} />
+        <PageHeader back={false} title={t("meeting.title")} />
         <p className="p-6 text-[13px] text-fg-muted">{error ?? t("persona.loading")}</p>
       </>
     );
@@ -133,6 +133,7 @@ export function MeetingPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={t("meeting.title")}
         actions={
           <Button

@@ -117,7 +117,7 @@ export function IncidentPage() {
   if (!incident)
     return (
       <>
-        <PageHeader title={t("incident.title")} />
+        <PageHeader back={false} title={t("incident.title")} />
         <p className="p-6 text-[13px] text-fg-muted">{error ?? t("persona.loading")}</p>
       </>
     );
@@ -125,6 +125,7 @@ export function IncidentPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={t("incident.title")}
         actions={
           incident.status === "open" ? (

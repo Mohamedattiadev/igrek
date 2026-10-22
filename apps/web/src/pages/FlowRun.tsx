@@ -320,7 +320,7 @@ export function FlowRunPage() {
   if (!run)
     return (
       <>
-        <PageHeader title={t("flows.title")} />
+        <PageHeader back={false} title={t("flows.title")} />
         <p className="p-6 text-[13px] text-fg-muted">{error ?? t("persona.loading")}</p>
       </>
     );
@@ -328,6 +328,7 @@ export function FlowRunPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={t("flows.title")}
         actions={
           <div className="flex gap-1">

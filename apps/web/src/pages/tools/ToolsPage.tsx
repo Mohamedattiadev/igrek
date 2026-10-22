@@ -111,7 +111,7 @@ export function ToolsPage() {
     <>
       <PageHeader title={t("suite.title")} />
       <nav
-        className="flex gap-1 overflow-x-auto border-b border-border px-6 [scrollbar-width:none]"
+        className="flex shrink-0 gap-1 overflow-x-auto border-b border-border px-6 [scrollbar-width:none]"
         aria-label={t("suite.title")}
       >
         {TOOL_TABS.map(({ key, icon }) => button(key, icon, t(`suite.${key}`)))}

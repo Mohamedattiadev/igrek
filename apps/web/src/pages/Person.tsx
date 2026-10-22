@@ -31,7 +31,7 @@ export function PersonPage() {
 
   return (
     <div className="flex h-full flex-col">
-      <PageHeader title={member?.displayName ?? t("nav.team")} />
+      <PageHeader back={false} title={member?.displayName ?? t("nav.team")} />
       <div className="mx-auto w-full max-w-4xl space-y-4 overflow-auto p-6">
         <BackLink to="/team" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
           <ArrowLeft size={13} className="rtl:rotate-180" /> {t("nav.team")}

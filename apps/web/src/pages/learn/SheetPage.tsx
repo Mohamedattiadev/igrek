@@ -272,6 +272,7 @@ export function SheetPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={sheet?.title ?? t("learn.title")}
         actions={
           <div className="flex items-center gap-1.5 print:hidden">

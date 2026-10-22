@@ -595,7 +595,7 @@ export function NewPersonaPage() {
   };
   return (
     <>
-      <PageHeader title={t("persona.new")} />
+      <PageHeader back={false} title={t("persona.new")} />
       <div className="mx-auto w-full max-w-4xl space-y-4 p-6">
         <BackLink to="/personas" className="inline-flex items-center gap-1 text-xs text-fg-muted hover:text-fg">
           <ArrowLeft size={13} className="rtl:rotate-180" aria-hidden="true" /> {t("persona.title")}
@@ -657,7 +657,7 @@ export function PersonaPage() {
   if (!persona)
     return (
       <>
-        <PageHeader title={t("persona.title")} />
+        <PageHeader back={false} title={t("persona.title")} />
         <p className="p-6 text-[13px] text-fg-muted">{loaded ? t("errors.notFound") : t("persona.loading")}</p>
       </>
     );
@@ -669,6 +669,7 @@ export function PersonaPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={label.name}
         actions={
           <div className="flex gap-1">

@@ -194,7 +194,7 @@ export function ServersPage() {
   const servers = useServers();
   return (
     <>
-      <PageHeader title={t("servers.title")} actions={<AddServer onDone={() => undefined} />} />
+      <PageHeader back={false} title={t("servers.title")} actions={<AddServer onDone={() => undefined} />} />
       {servers && servers.length === 0 ? (
         <EmptyState icon={Server} title={t("servers.empty")} body={t("servers.emptyBody")} />
       ) : (

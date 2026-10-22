@@ -1,7 +1,8 @@
-import { Check, Copy, Gauge, type LucideIcon } from "lucide-react";
+import { ArrowLeft, Check, Copy, Gauge, type LucideIcon } from "lucide-react";
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { cn } from "../lib/cn";
+import { BackLink } from "./BackLink";
 import { Term, useTermIn } from "./Term";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
@@ -193,10 +194,23 @@ export function Segmented<T extends string>({
   );
 }
 
-export function PageHeader({ title, actions }: { title: string; actions?: ReactNode }) {
+/**
+ * A page's title bar. A back arrow shows when this tab came here from another page of the app (a user
+ * missed it on Tools and other top pages); a page with its own back link turns it off with `back`.
+ */
+export function PageHeader({ title, actions, back = true }: { title: string; actions?: ReactNode; back?: boolean }) {
+  const { t } = useTranslation();
+  const earlier = back && ((window.history.state as { idx?: number } | null)?.idx ?? 0) > 0;
   return (
     <header className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-4 py-2 sm:px-6">
-      <h1 className="text-[14px] font-semibold">{title}</h1>
+      <span className="flex min-w-0 items-center gap-2">
+        {earlier && (
+          <BackLink to="/" aria-label={t("nav.back")} className="text-fg-subtle hover:text-fg">
+            <ArrowLeft size={15} className="rtl:rotate-180" aria-hidden="true" />
+          </BackLink>
+        )}
+        <h1 className="truncate text-[14px] font-semibold">{title}</h1>
+      </span>
       {actions && <div className="flex min-w-0 max-w-full overflow-x-auto [scrollbar-width:none]">{actions}</div>}
     </header>
   );

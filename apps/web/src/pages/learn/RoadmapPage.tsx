@@ -499,6 +499,7 @@ export function RoadmapPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={roadmap?.title ?? t("learn.title")}
         actions={
           other && !translation ? (

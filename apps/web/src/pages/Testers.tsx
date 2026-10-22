@@ -476,7 +476,7 @@ export function TestRunPage() {
   if (!run)
     return (
       <>
-        <PageHeader title={t("testers.title")} />
+        <PageHeader back={false} title={t("testers.title")} />
         <p className="p-6 text-[13px] text-fg-muted">{error ?? t("persona.loading")}</p>
       </>
     );
@@ -495,6 +495,7 @@ export function TestRunPage() {
   return (
     <>
       <PageHeader
+        back={false}
         title={t("testers.title")}
         actions={
           <div className="flex gap-1">
