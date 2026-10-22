@@ -6,6 +6,9 @@ import {
   type ChatMode,
   type ChatPill,
   type ChatSpend,
+  fillPrivate,
+  hidePrivate,
+  PRIVATE_HINT,
   type QueuedMessage,
   type RateLimitInfo,
   type RecentChat,
@@ -98,6 +101,16 @@ export function turnSpend(chat: Pick<Chat, "info" | "limitAtStart" | "costSoFar"
       turns: (total?.turns ?? 0) + 1,
     },
   } satisfies ChatSpend;
+}
+
+/** A step's input with [[private:name]] replaced by the values, for running it on this computer only. */
+function fillInput(input: unknown, values: { name: string; value: string }[]): unknown {
+  if (!values.length || input === undefined) return input;
+  const text = JSON.stringify(input);
+  if (!text.includes("[[private:")) return input;
+  // Filled inside the JSON strings, escaped so a value with quotes or backslashes stays one string.
+  const escaped = values.map((v) => ({ name: v.name, value: JSON.stringify(v.value).slice(1, -1) }));
+  return JSON.parse(fillPrivate(text, escaped));
 }
 
 /** What to do with a message written while the AI is still working. */
@@ -193,10 +206,15 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
 }
 
 /** The persona's prompt (if any) and how answers may draw: OpenUI when rich answers are on, JSON blocks otherwise. */
-function systemPrompt(options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp">): string {
+function systemPrompt(options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp">, privateDetails = false): string {
   const drawing = options.richUi ?? RICH_BLOCKS_HINT;
-  if (options.persona) return `${options.persona.systemPrompt}\n\n${drawing}`;
-  return options.igrekMcp?.hint ? `${drawing}\n\n${options.igrekMcp.hint}` : drawing;
+  const base = options.persona
+    ? `${options.persona.systemPrompt}\n\n${drawing}`
+    : options.igrekMcp?.hint
+      ? `${drawing}\n\n${options.igrekMcp.hint}`
+      : drawing;
+  // Only when the user keeps private details: the AI is told what the placeholders are.
+  return privateDetails ? `${base}\n\n${PRIVATE_HINT}` : base;
 }
 
 /** What the chat shows about the project's extensions it left out. */
@@ -260,6 +278,8 @@ export class Chats {
   onStart: (cwd: string) => void = () => undefined;
   /** A turn finished; `edited` are the files it wrote. */
   onTurnEnd: (id: string, cwd: string, edited: string[]) => void = () => undefined;
+  /** The user's private details (private-values.ts): hidden in messages, put back in approved steps. */
+  privacy?: { values(): { name: string; value: string }[] };
   /** Steps the user always allows in a project (plan.md 16.1); wired to the database. */
   projectRules: (projectId: string) => string[] = () => [];
   addProjectRule: (projectId: string, rule: string) => void = () => undefined;
@@ -321,7 +341,7 @@ export class Chats {
       ...(options.resume ? ["--resume", options.resume] : []),
       // Every chat may answer with the app's charts and stat tiles; a persona adds its own prompt.
       "--append-system-prompt",
-      systemPrompt(options),
+      systemPrompt(options, (this.privacy?.values().length ?? 0) > 0),
       ...(options.persona
         ? [
             "--max-turns",
@@ -490,7 +510,9 @@ export class Chats {
     this.changed();
   }
 
-  private deliver(chat: Chat, text: string, images: Image[]): void {
+  private deliver(chat: Chat, typed: string, images: Image[]): void {
+    // Private details never leave: the AI gets [[private:name]] where the user wrote the value.
+    const { text, hidden } = hidePrivate(typed, this.privacy?.values() ?? []);
     // A new turn starts: whatever stopped the last one is history.
     clearTimeout(chat.resumeTimer);
     chat.resumeTimer = undefined;
@@ -514,6 +536,15 @@ export class Chats {
       });
     }
     this.upsert(chat, { kind: "user", id: `u-${Date.now()}`, at: Date.now(), text, images: images.length });
+    if (hidden.length)
+      this.upsert(chat, {
+        kind: "notice",
+        id: `private-${Date.now()}`,
+        at: Date.now(),
+        text: hidden.join(","),
+        tone: "neutral",
+        code: "private",
+      });
     chat.write({ type: "user", message: { role: "user", content } });
     chat.limitAtStart = chat.info.rateLimit?.fiveHour;
     chat.info.status = "working";
@@ -605,8 +636,9 @@ export class Chats {
       response: {
         subtype: "success",
         request_id: requestId,
+        // The approved step runs with the real values where the AI wrote their placeholders.
         response: allow
-          ? { behavior: "allow", updatedInput: input }
+          ? { behavior: "allow", updatedInput: fillInput(input, this.privacy?.values() ?? []) }
           : { behavior: "deny", message: message || "The user declined this step." },
       },
     });

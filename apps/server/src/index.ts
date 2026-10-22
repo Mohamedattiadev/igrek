@@ -111,6 +111,7 @@ import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
 import { UiAudits } from "./preview/ui-audit";
 import { registerPreviewRoutes } from "./preview-routes";
+import { PrivateValues, registerPrivateRoutes } from "./private-values";
 import { isoWeek, Product } from "./product";
 import { Retention } from "./retention";
 import { registerScheduleRoutes } from "./schedule-routes";
@@ -429,6 +430,9 @@ const sealer = new Sealer(config.dataDir);
 const envFiles = new EnvFiles(join(config.dataDir, "env-backups"));
 const databases = new Databases(sqlite, store, sealer, envFiles);
 const vault = new Vault(sqlite, store, envFiles, sealer);
+// Private details stay on this computer: chats hide them before a message leaves (core/private.ts).
+const privateValues = new PrivateValues(sqlite, sealer);
+chats.privacy = privateValues;
 const mcpServers = new McpServers(sqlite, sealer);
 const bridges = new Bridges(sqlite, sealer, fetch, `http://localhost:${config.publicPort}`);
 void bridges.load().catch(() => undefined);
@@ -731,6 +735,7 @@ const app = createApp({
     });
     registerCodeHostRoutes(hono, new CodeHost(store, board));
     registerVaultRoutes(hono, vault);
+    registerPrivateRoutes(hono, privateValues);
     registerMcpRoutes(hono, mcpServers);
     hono.get("/api/disk", (c) => c.json(retention.usage(readSettings(db).transcriptDays)));
     hono.post("/api/disk/prune", (c) => c.json(retention.prune(readSettings(db).transcriptDays)));

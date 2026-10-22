@@ -61,6 +61,8 @@ import type {
   PersonaScore,
   PickedElement,
   Presence,
+  PrivateShape,
+  PrivateValueInfo,
   ProjectDetail,
   ProjectListItem,
   ProjectNeeds,
@@ -410,6 +412,20 @@ export const api = {
     projectId: string,
     body: { instruction: string; element: PickedElement; personaId?: string; model?: string },
   ) => request<QuickEdit>(`/api/projects/${projectId}/preview/edit`, { method: "POST", body: JSON.stringify(body) }),
+  privateValues: () => request<PrivateValueInfo[]>("/api/private"),
+  savePrivateValue: (body: { name: string; label: string; kind: string; value?: string }) =>
+    request<PrivateValueInfo[]>("/api/private", { method: "POST", body: JSON.stringify(body) }),
+  removePrivateValue: (name: string) =>
+    request<PrivateValueInfo[]>(`/api/private/${encodeURIComponent(name)}`, { method: "DELETE" }),
+  /** Identity numbers, IBANs and cards in a text that are not saved as private details yet. */
+  checkPrivate: (text: string) =>
+    request<{ start: number; end: number; kind: PrivateShape; value: string }[]>("/api/private/check", {
+      method: "POST",
+      body: JSON.stringify({ text }),
+    }),
+  /** Text with the real values in place of [[private:...]], for copying on this computer. */
+  fillPrivate: (text: string) =>
+    request<{ text: string }>("/api/private/fill", { method: "POST", body: JSON.stringify({ text }) }),
   uiAudits: (projectId: string) => request<UiAudit[]>(`/api/projects/${projectId}/ui-audits`),
   runUiAudit: (projectId: string) => request<UiAudit>(`/api/projects/${projectId}/ui-audit`, { method: "POST" }),
   previewVisual: (projectId: string, path: string, action: "baseline" | "compare") =>

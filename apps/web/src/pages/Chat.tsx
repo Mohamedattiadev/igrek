@@ -3,8 +3,10 @@ import {
   type ChatInfo,
   type ChatMode,
   extractNotebook,
+  findPrivateShapes,
   findSecrets,
   isWeakPrompt,
+  type PrivateShape,
   STEP_CUT,
   suggestModel,
   type WeakPoint,
@@ -33,6 +35,7 @@ import {
   ListChecks,
   ListPlus,
   ListTodo,
+  Lock,
   Maximize2,
   MessageSquare,
   MessageSquarePlus,
@@ -65,6 +68,7 @@ import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../com
 import { GateCard } from "../components/GateCard";
 import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
+import { CopyWithPrivate, PrivateGuard, PrivateNotice } from "../components/PrivateGuard";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
@@ -639,6 +643,12 @@ function PermissionCard({
         {event.description && <span className="min-w-0 truncate text-fg-muted">{event.description}</span>}
       </p>
       <ToolPreview name={event.toolName} input={input} />
+      {JSON.stringify(input).includes("[[private:") && (
+        <p className="flex items-start gap-1.5 text-xs text-fg-muted">
+          <Lock size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
+          {t("private.inStep")}
+        </p>
+      )}
       {event.guard && (
         <p className="flex items-start gap-1.5 text-xs text-warning">
           <ShieldAlert size={13} className="mt-0.5 shrink-0" aria-hidden="true" />
@@ -855,6 +865,12 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   };
   /** A message held back because it seems to contain a secret. */
   const [guarded, setGuarded] = useState<string>();
+  /** A message holding private details that are not saved yet, waiting for the user's choice. */
+  const [privateFound, setPrivateFound] = useState<{
+    value: string;
+    found: { kind: PrivateShape; value: string }[];
+    how: "queue" | "steer";
+  }>();
   /** The text the enhancer was opened with; undefined while closed. */
   const [enhancing, setEnhancing] = useState<string>();
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
@@ -870,19 +886,21 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   }, [chat.events]);
 
   const openEnhancer = () => text.trim() && setEnhancing(text.trim());
-  const send = (override?: string, allowSecrets = false, how: "queue" | "steer" = "queue") => {
+  /** `ready`: the text already carries its line comments (it comes back from a guard), so they are not added twice. */
+  const send = (override?: string, allowSecrets = false, how: "queue" | "steer" = "queue", ready = false) => {
     const typed = override ?? text.trim();
     // Comments on diff lines go with the next message, file and line first.
-    const value = comments.length
-      ? [
-          typed,
-          `${t("chat.commentsHeader")}\n${comments
-            .map((c) => `- ${c.file ? `${c.file}, ` : ""}\`${c.line.slice(0, 200)}\`: ${c.text}`)
-            .join("\n")}`,
-        ]
-          .filter(Boolean)
-          .join("\n\n")
-      : typed;
+    const value =
+      comments.length && !ready
+        ? [
+            typed,
+            `${t("chat.commentsHeader")}\n${comments
+              .map((c) => `- ${c.file ? `${c.file}, ` : ""}\`${c.line.slice(0, 200)}\`: ${c.text}`)
+              .join("\n")}`,
+          ]
+            .filter(Boolean)
+            .join("\n\n")
+        : typed;
     if (!value && images.length === 0) return;
     // Prompt firewall: a key or password in the message waits for the user's choice.
     if (!allowSecrets && findSecrets(value).length) {
@@ -890,6 +908,15 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       return;
     }
     setGuarded(undefined);
+    // An identity number, IBAN or card that is not saved yet: ask before it can leave (saved ones are hidden anyway).
+    if (!allowSecrets && findPrivateShapes(value).length) {
+      void api
+        .checkPrivate(value)
+        .then((found) => (found.length ? setPrivateFound({ value, found, how }) : send(value, true, how, true)))
+        .catch(() => setPrivateFound({ value, found: findPrivateShapes(value), how }));
+      return;
+    }
+    setPrivateFound(undefined);
     // "auto": a weak prompt opens the enhancer first instead of going out as is.
     if (override === undefined && settings.enhanceMode === "auto" && isWeakPrompt(value)) {
       setEnhancing(value);
@@ -1006,9 +1033,17 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       {guarded !== undefined && (
         <SecretGuard
           text={guarded}
-          onMask={() => send(maskSecrets(guarded), true)}
-          onSendAnyway={() => send(guarded, true)}
+          onMask={() => send(maskSecrets(guarded), true, "queue", true)}
+          onSendAnyway={() => send(guarded, true, "queue", true)}
           onCancel={() => setGuarded(undefined)}
+        />
+      )}
+      {privateFound && (
+        <PrivateGuard
+          key={privateFound.value}
+          found={privateFound.found}
+          onSend={() => send(privateFound.value, true, privateFound.how, true)}
+          onCancel={() => setPrivateFound(undefined)}
         />
       )}
       {enhancing !== undefined && info && (
@@ -1460,6 +1495,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                             )}
                             <Markdown text={shown} streaming={working && event.id === lastText?.id} />
                           </div>
+                          <CopyWithPrivate text={shown} />
                           {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
                             <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
                           )}
@@ -1542,6 +1578,8 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                             </button>
                           </p>
                         );
+                      if (event.code === "private")
+                        return <PrivateNotice key={event.id} names={event.text.split(",").filter(Boolean)} />;
                       if (event.code === "notebook" || event.code === "notebookRejected")
                         return (
                           <p key={event.id} className="flex items-center gap-1.5 text-[11px] text-fg-subtle">

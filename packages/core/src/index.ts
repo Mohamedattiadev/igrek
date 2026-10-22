@@ -13,6 +13,7 @@ export * from "./persona";
 export * from "./persona-knowledge";
 export * from "./personas";
 export * from "./preview";
+export * from "./private";
 export * from "./prompt";
 export * from "./schedules";
 export * from "./scrub";
@@ -637,9 +638,10 @@ export type ChatEvent =
       /**
        * "notebook": opinions written down (text = count); "notebookRejected": a change without new evidence;
        * "loop": the same step with the same input again and again (text = the tool's name);
-       * "history": the end of the earlier conversation a continued chat shows (text = how many messages).
+       * "history": the end of the earlier conversation a continued chat shows (text = how many messages);
+       * "private": private details were hidden in the message before it left (text = their names, comma-separated).
        */
-      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history";
+      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history" | "private";
     }
   | {
       /** The project's checks after a turn that changed files (plan.md 15.5). */

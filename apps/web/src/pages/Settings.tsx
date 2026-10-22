@@ -15,6 +15,7 @@ import {
   NetworkPanel,
   UpdatePanel,
 } from "../components/MaintenancePanels";
+import { PrivatePanel } from "../components/PrivatePanel";
 import { Badge, Button, Card, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
 import { api } from "../lib/api";
 import { useInstallApp } from "../lib/install";
@@ -322,6 +323,9 @@ export function SettingsPage() {
         </Section>
         <Section title={t("localModel.title")} hint={t("localModel.hint")}>
           <LocalModelPanel />
+        </Section>
+        <Section title={t("private.title")} hint={t("private.hint")}>
+          <PrivatePanel />
         </Section>
         <Section title={t("backup.title")} hint={t("backup.hint")}>
           <BackupPanel />

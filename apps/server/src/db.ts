@@ -938,6 +938,15 @@ export const migrations: string[] = [
      data TEXT NOT NULL
    );
    CREATE INDEX ui_audits_project ON ui_audits(project_id, created_at);`,
+  // Private details (T.C. identity number, IBAN, API keys...) that never go to an AI: chats carry
+  // [[private:name]] instead. `value` is sealed with the local key (seal.ts), never stored in clear.
+  `CREATE TABLE private_values (
+     name TEXT PRIMARY KEY NOT NULL,
+     label TEXT NOT NULL,
+     kind TEXT NOT NULL,
+     value TEXT NOT NULL,
+     created_at INTEGER NOT NULL
+   );`,
 ];
 
 export function migrate(sqlite: Database): number {

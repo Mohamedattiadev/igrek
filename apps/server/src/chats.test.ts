@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type ChatEvent, type ChatInfo, STEP_CUT } from "@igrek/core";
@@ -421,5 +421,67 @@ describe("what a turn used", () => {
 
   test("a limit that reset during the turn says nothing about the turn", () => {
     expect(turnSpend({ info: info(0.02), limitAtStart: 0.9 }, {}).turn.limitPct).toBeUndefined();
+  });
+});
+
+describe("private details in a chat", () => {
+  /** A stand-in claude that writes what it was started with and every line it received to a log. */
+  function recordingClaude(log: string): string {
+    const dir = mkdtempSync(join(tmpdir(), "igrek-privateclaude-"));
+    const script = `#!${process.execPath}
+const { appendFileSync } = require("node:fs");
+const out = (o) => process.stdout.write(JSON.stringify(o) + "\\n");
+appendFileSync(${JSON.stringify(log)}, JSON.stringify({ argv: process.argv.slice(2) }) + "\\n");
+out({ type: "system", subtype: "init", session_id: "sess-p", model: "claude-test" });
+let buf = "";
+for await (const chunk of Bun.stdin.stream()) {
+  buf += new TextDecoder().decode(chunk);
+  let i;
+  while ((i = buf.indexOf("\\n")) >= 0) {
+    const line = buf.slice(0, i); buf = buf.slice(i + 1);
+    appendFileSync(${JSON.stringify(log)}, line + "\\n");
+    const msg = JSON.parse(line);
+    if (msg.type === "user") {
+      const input = { command: "echo [[private:tc_kimlik]] > form.txt" };
+      out({ type: "assistant", message: { id: "m1", content: [{ type: "tool_use", id: "tu1", name: "Bash", input }] } });
+      out({ type: "control_request", request_id: "req-1", request: { subtype: "can_use_tool", tool_name: "Bash", input } });
+    }
+    if (msg.type === "control_response") out({ type: "result", subtype: "success", duration_ms: 1 });
+  }
+}
+`;
+    writeFileSync(join(dir, "claude"), script);
+    chmodSync(join(dir, "claude"), 0o755);
+    return join(dir, "claude");
+  }
+
+  test("the AI gets the placeholder, is told what it is, and only the approved step gets the value", async () => {
+    const log = join(mkdtempSync(join(tmpdir(), "igrek-privatelog-")), "log.jsonl");
+    const chats = new Chats(new Bus(), new StopRegistry(), () => recordingClaude(log));
+    chats.privacy = { values: () => [{ name: "tc_kimlik", value: "10000000146" }] };
+    const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal" });
+    const events = new Map<string, ChatEvent>();
+    chats.attach(info.id, (op) => op.op === "upsert" && events.set(op.event.id, op.event));
+    await Bun.sleep(400);
+    chats.send(info.id, "Fill the form with my id 10000000146");
+    await Bun.sleep(600);
+    const permission = [...events.values()].find((e) => e.kind === "permission");
+    chats.answer(info.id, permission?.kind === "permission" ? permission.requestId : "", "allow");
+    await Bun.sleep(400);
+    const lines = readFileSync(log, "utf8")
+      .trim()
+      .split("\n")
+      .map((l) => JSON.parse(l));
+    const sent = lines.find((l) => l.type === "user");
+    const reply = lines.find((l) => l.type === "control_response");
+    expect(JSON.stringify(sent)).not.toContain("10000000146");
+    expect(JSON.stringify(sent)).toContain("[[private:tc_kimlik]]");
+    expect(lines[0].argv.join(" ")).toContain("[[private:tc_kimlik]]");
+    expect(reply.response.response.updatedInput).toEqual({ command: "echo 10000000146 > form.txt" });
+    expect([...events.values()].find((e) => e.kind === "user")).toMatchObject({
+      text: "Fill the form with my id [[private:tc_kimlik]]",
+    });
+    expect([...events.values()].find((e) => e.kind === "notice")).toMatchObject({ code: "private", text: "tc_kimlik" });
+    chats.stopAll();
   });
 });
