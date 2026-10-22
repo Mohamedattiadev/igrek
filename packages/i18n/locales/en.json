@@ -620,6 +620,15 @@
     "backToList": "Back to the files"
   },
   "preview": {
+    "app": "App to preview",
+    "appChecking": "checking",
+    "appPage": "web page",
+    "appApi": "API, not a page",
+    "services": "Services",
+    "servicesTip": "Runs docker compose up -d with the project's compose file: what is not running starts, what runs stays as it is.",
+    "servicesStart_one": "Start {{count}} service",
+    "servicesStart_other": "Start {{count}} services",
+    "servicesStarting": "Starting...",
     "truncated": "Showing the first {{count}} rows.",
     "explain": "Explain",
     "summarize": "Summarize",
@@ -870,6 +879,18 @@
     "why": "Why"
   },
   "chat": {
+    "madeCount_one": "{{count}} file made in this chat",
+    "madeCount_other": "{{count}} files made in this chat",
+    "madeCopy": "Copy",
+    "madeCopied": "Copied",
+    "madeEdit": "Change it in the chat",
+    "madeEditAsk": "Change {{path}}: ",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "zoomFit": "Fit",
+    "toTop": "To the top",
+    "toBottom": "To the newest",
+    "outline": "Your messages in this chat",
     "untitled": "New chat",
     "otherWays": "Other ways to start: a terminal, another account",
     "title": "Chat",
@@ -992,7 +1013,6 @@
     "limitOther": "Use another account",
     "codexGo": "Continue in Codex",
     "codexTip": "Codex takes over in a terminal here, told what this chat asked, Claude's last answer and the files it changed. Private details stay out.",
-    "made": "Made in this chat:",
     "madeDownload": "Download",
     "madeClose": "Close",
     "limitResumeText": "The usage limit has reset. Continue where you left off.",
@@ -4529,6 +4549,11 @@
     "add": "Add"
   },
   "experts": {
+    "askWhich": "Which experts should look at the project? Each one reads it and writes their view; three work at a time, the rest wait their turn.",
+    "coreTeam": "Main team ({{count}})",
+    "askCost": "Each look is one model call from your plan's limit.",
+    "askCore": "Main team ({{count}})",
+    "askEvery": "All experts ({{count}})",
     "title": "Experts on this project",
     "intro": "Each expert looks at this project from its own field: the architect at how it is built, UI/UX at the screens, security at the risks. They only read the code. A look is one model call; chats also ask them when a question needs one.",
     "look": "Look at the project",
@@ -4551,9 +4576,7 @@
     "useAllTip": "Opens a new chat with every expert's view in the box",
     "useAllDraft": "The experts' views of this project:\n\n{{views}}\n\nBased on these, ",
     "askAll": "Ask all experts",
-    "askAllTip": "The core experts who have not looked yet read the project, three at a time",
-    "askAllConfirm": "{{count}} experts will read the project. Each look is one model call and uses your plan's limit. You can leave this page; the views appear here when they are ready.",
-    "askAllGo": "Start ({{count}})"
+    "askAllTip": "The core experts who have not looked yet read the project, three at a time"
   },
   "why": {
     "button": "Why?",

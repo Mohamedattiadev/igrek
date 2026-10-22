@@ -256,6 +256,8 @@ const REACHES_OUT = [
   /^\/api\/packs\/catalog$/,
   // REA's setup runs npx and changes the user's agent settings.
   /^\/api\/rea\/setup$/,
+  // A project's Docker services are started with docker compose.
+  /^\/api\/projects\/[^/]+\/preview\/services\/start$/,
   // A Telegram bot token is checked with Telegram.
   /^\/api\/telegram$/,
   // Skills are downloaded from GitHub.

@@ -5,6 +5,7 @@ import type { StopRegistry } from "./bus";
 import { cleanEnv } from "./env";
 import { INTERNAL_ENV } from "./names";
 import type { DevServers } from "./preview/devservers";
+import type { Services } from "./preview/services";
 import type { UiAudits } from "./preview/ui-audit";
 
 /** One quick edit: Claude Code with only reading and editing tools, edits accepted (a checkpoint was taken first). */
@@ -66,8 +67,13 @@ export function registerPreviewRoutes(
     stops,
     uiAudits,
     rescan,
+    services,
+    rootOf = () => undefined,
   }: {
     devServers: DevServers;
+    /** The project's Docker Compose services (a database, a cache) its app needs; started by the user. */
+    services?: Services;
+    rootOf?: (projectId: string) => string | undefined;
     stops: StopRegistry;
     /** Where real-screen checks are kept; without it the check is not offered. */
     uiAudits?: UiAudits;
@@ -94,6 +100,31 @@ export function registerPreviewRoutes(
           url: typeof body.url === "string" && body.url ? body.url : undefined,
         }),
       );
+    } catch (err) {
+      return fail(err);
+    }
+  });
+  app.get("/api/projects/:id/preview/services", async (c) => {
+    const root = rootOf(c.req.param("id"));
+    if (!root || !services) return c.json(null);
+    return services
+      .list(root)
+      .then((list) => c.json(list ?? null))
+      .catch((err: Error) => c.json({ error: err.message }));
+  });
+  app.post("/api/projects/:id/preview/services/start", async (c) => {
+    const root = rootOf(c.req.param("id"));
+    if (!root || !services) return fail(new Error("Project folder not found"));
+    return services
+      .start(root)
+      .then((list) => c.json(list ?? null))
+      .catch(fail);
+  });
+  // Another of the project's apps (from the addresses its dev command printed) in the preview.
+  app.post("/api/projects/:id/preview/target", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { url?: unknown };
+    try {
+      return c.json(devServers.target(c.req.param("id"), String(body.url ?? "")));
     } catch (err) {
       return fail(err);
     }

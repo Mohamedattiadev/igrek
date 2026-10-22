@@ -410,6 +410,21 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ url }),
     }),
+  /** Another of the project's apps (an address its dev command printed) in the preview. */
+  previewTarget: (projectId: string, url: string) =>
+    request<DevServerInfo>(`/api/projects/${projectId}/preview/target`, {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    }),
+  previewServices: (projectId: string) =>
+    request<{ file: string; services: { name: string; running: boolean }[] } | { error: string } | null>(
+      `/api/projects/${projectId}/preview/services`,
+    ),
+  startPreviewServices: (projectId: string) =>
+    request<{ file: string; services: { name: string; running: boolean }[] } | null>(
+      `/api/projects/${projectId}/preview/services/start`,
+      { method: "POST" },
+    ),
   stopPreview: (projectId: string) =>
     request<{ ok: boolean }>(`/api/projects/${projectId}/preview/stop`, { method: "POST" }),
   previewEdit: (

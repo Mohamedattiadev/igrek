@@ -33,6 +33,26 @@ const PIXEL_DIFF = `async ([ua, ub]) => {
   return { changed: changed / (w * h), image: out.toDataURL("image/png") };
 }`;
 
+/**
+ * Whether an address answers with a web page (HTML) rather than an API's JSON or nothing. A dev
+ * server can take a while to compile its first page, so it is asked a few times.
+ */
+export async function servesPage(url: string, tries = 6, wait = 2500): Promise<boolean> {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(8000) });
+      const type = res.headers.get("content-type") ?? "";
+      await res.body?.cancel();
+      if (type.includes("text/html")) return true;
+      if (res.status < 500) return false;
+    } catch {
+      // not answering yet
+    }
+    await Bun.sleep(wait);
+  }
+  return false;
+}
+
 /** A free TCP port on 127.0.0.1, from `from` upwards. */
 export async function freePort(from: number): Promise<number> {
   for (let port = from; port < from + 200; port++) {
@@ -231,10 +251,7 @@ export class DevServers {
       r.logs.push(clean);
       if (r.logs.length > MAX_LOG) r.logs.splice(0, r.logs.length - MAX_LOG);
       const found = clean.match(URL_IN_LOG)?.[1];
-      if (found && !r.info.url) {
-        r.info.url = found.replace("0.0.0.0", "127.0.0.1").replace("localhost", "127.0.0.1");
-        void this.startProxy(r).then(() => this.changed(projectId));
-      }
+      if (found) this.found(r, found.replace("0.0.0.0", "127.0.0.1").replace("localhost", "127.0.0.1"));
     };
     for (const stream of [proc.stdout, proc.stderr])
       void (async () => {
@@ -272,6 +289,41 @@ export class DevServers {
     return { ...r.info };
   }
 
+  /**
+   * An address in the dev command's output. The first one is shown at once; each is asked whether it
+   * serves a web page, and while the shown one does not (an API answering JSON), a page takes its place.
+   */
+  private found(r: Running, url: string): void {
+    r.info.apps ??= [];
+    const apps = r.info.apps;
+    if (apps.some((a) => a.url === url)) return;
+    const app: { url: string; page?: boolean } = { url };
+    apps.push(app);
+    if (!r.info.url) {
+      r.info.url = url;
+      void this.startProxy(r).then(() => this.changed(r.info.projectId));
+    }
+    void servesPage(url).then((page) => {
+      app.page = page;
+      const shown = apps.find((a) => a.url === r.info.url);
+      if (page && shown?.page === false) r.info.url = url;
+      if (!page && shown === app) {
+        const better = apps.find((a) => a.page);
+        if (better) r.info.url = better.url;
+      }
+      this.changed(r.info.projectId);
+    });
+  }
+
+  /** The user picked another of the project's apps to preview. */
+  target(projectId: string, url: string): DevServerInfo {
+    const r = this.running.get(projectId);
+    if (!r?.info.apps?.some((a) => a.url === url)) throw new Error("Not one of this project's apps");
+    r.info.url = url;
+    this.changed(projectId);
+    return { ...r.info };
+  }
+
   private async startProxy(r: Running): Promise<void> {
     if (r.proxy || !r.info.url) return;
     const target = r.info.url;
@@ -284,7 +336,8 @@ export class DevServers {
           const url = new URL(req.url);
           if (url.pathname === "/__igrek/agent.js")
             return new Response(AGENT, { headers: { "content-type": "text/javascript", "cache-control": "no-store" } });
-          const upstreamUrl = `${target}${url.pathname}${url.search}`;
+          // The target can change (another app of the project chosen): read it for every request.
+          const upstreamUrl = `${r.info.url ?? target}${url.pathname}${url.search}`;
           if (req.headers.get("upgrade")?.toLowerCase() === "websocket") {
             const protocols = (req.headers.get("sec-websocket-protocol") ?? "")
               .split(",")

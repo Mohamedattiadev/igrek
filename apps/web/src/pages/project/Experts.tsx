@@ -165,7 +165,10 @@ export function ExpertsTab({ project }: { project: ProjectDetail }) {
         Number(!!viewOf(b.id)) - Number(!!viewOf(a.id)) || CORE_EXPERTS.indexOf(a.id) - CORE_EXPERTS.indexOf(b.id),
     );
   const rest = personas.filter((p) => !first.includes(p));
-  const missing = CORE_EXPERTS.filter((id) => !viewOf(id) && !state.running.includes(id));
+  const waiting = (id: string) => !viewOf(id) && !state.running.includes(id);
+  // The core panel by default; every expert when asked for (a user expected "all" to mean all of them).
+  const missing = CORE_EXPERTS.filter(waiting);
+  const missingAll = personas.map((p) => p.id).filter(waiting);
   const toChat = () => {
     const views = state.views
       .map(
@@ -207,7 +210,7 @@ export function ExpertsTab({ project }: { project: ProjectDetail }) {
           usesModel
           variant="primary"
           icon={UsersRound}
-          disabled={missing.length === 0}
+          disabled={missingAll.length === 0}
           onClick={() => setConfirm(true)}
           data-tip={t("experts.askAllTip")}
         >
@@ -244,32 +247,48 @@ export function ExpertsTab({ project }: { project: ProjectDetail }) {
       <Dialog open={confirm} onClose={() => setConfirm(false)} label={t("experts.askAll")}>
         <div className="space-y-3 p-5">
           <h2 className="text-[15px] font-semibold">{t("experts.askAll")}</h2>
-          <p className="text-[13px] text-fg-muted">{t("experts.askAllConfirm", { count: missing.length })}</p>
-          <p className="text-[12.5px]">
-            {missing
-              .map(
-                (id) =>
-                  label(
-                    personas.find((p) => p.id === id),
-                    id,
-                  ).name,
-              )
-              .join(", ")}
-          </p>
-          <div className="flex justify-end gap-2">
+          <p className="text-[13px] text-fg-muted">{t("experts.askWhich")}</p>
+          {missing.length > 0 && (
+            <p className="text-[12.5px]">
+              <span className="font-medium">{t("experts.coreTeam", { count: missing.length })}: </span>
+              {missing
+                .map(
+                  (id) =>
+                    label(
+                      personas.find((p) => p.id === id),
+                      id,
+                    ).name,
+                )
+                .join(", ")}
+            </p>
+          )}
+          <p className="text-[12px] text-fg-subtle">{t("experts.askCost")}</p>
+          <div className="flex flex-wrap justify-end gap-2">
             <Button variant="ghost" onClick={() => setConfirm(false)}>
               {t("persona.cancel")}
             </Button>
+            {missing.length > 0 && (
+              <Button
+                usesModel
+                icon={UsersRound}
+                onClick={() => {
+                  setConfirm(false);
+                  start(missing);
+                }}
+              >
+                {t("experts.askCore", { count: missing.length })}
+              </Button>
+            )}
             <Button
               usesModel
               variant="primary"
               icon={UsersRound}
               onClick={() => {
                 setConfirm(false);
-                start(missing);
+                start(missingAll);
               }}
             >
-              {t("experts.askAllGo", { count: missing.length })}
+              {t("experts.askEvery", { count: missingAll.length })}
             </Button>
           </div>
         </div>

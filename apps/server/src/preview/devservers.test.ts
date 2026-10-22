@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { freePort, injectAgent, planDevServer } from "./devservers";
+import { freePort, injectAgent, planDevServer, servesPage } from "./devservers";
 
 describe("live preview", () => {
   test("the picker goes into HTML pages", () => {
@@ -41,5 +41,20 @@ describe("live preview", () => {
   test("a free port is found", async () => {
     const port = await freePort(45000);
     expect(port).toBeGreaterThanOrEqual(45000);
+  });
+});
+
+describe("a project with several apps", () => {
+  test("an address that serves a web page is told from an API's", async () => {
+    const page = Bun.serve({
+      port: 0,
+      fetch: () => new Response("<html></html>", { headers: { "content-type": "text/html" } }),
+    });
+    const api = Bun.serve({ port: 0, fetch: () => Response.json({ ok: true }) });
+    expect(await servesPage(`http://127.0.0.1:${page.port}`, 1, 0)).toBe(true);
+    expect(await servesPage(`http://127.0.0.1:${api.port}`, 1, 0)).toBe(false);
+    expect(await servesPage("http://127.0.0.1:9", 1, 0)).toBe(false);
+    page.stop(true);
+    api.stop(true);
   });
 });

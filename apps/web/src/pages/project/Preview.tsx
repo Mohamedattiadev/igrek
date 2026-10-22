@@ -17,7 +17,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
-import { Badge, Button, Card } from "../../components/ui";
+import { Badge, Button, Card, StatusDot } from "../../components/ui";
 import { api, fs } from "../../lib/api";
 import { cn } from "../../lib/cn";
 import { useServerEvent } from "../../lib/live";
@@ -28,6 +28,83 @@ type Device = keyof typeof DEVICES;
 const PERSONAS = ["frontend", "uiux", "a11y-tester", "security"];
 
 /** Live preview with pick-and-change (plan.md Faz 10). */
+/** The project's apps, when its dev command started several (an API, a web app, docs): pick the one to see. */
+function AppPicker({ projectId, server }: { projectId: string; server: DevServerInfo }) {
+  const { t } = useTranslation();
+  return (
+    <select
+      value={server.url}
+      onChange={(e) => void api.previewTarget(projectId, e.target.value).catch(() => undefined)}
+      aria-label={t("preview.app")}
+      className="h-7 max-w-64 rounded-ui border border-border bg-bg px-2 font-mono text-[11.5px]"
+    >
+      {(server.apps ?? []).map((a) => (
+        <option key={a.url} value={a.url}>
+          {a.url.replace("http://127.0.0.1", "")} ·{" "}
+          {a.page === undefined ? t("preview.appChecking") : a.page ? t("preview.appPage") : t("preview.appApi")}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
+ * The Docker services the app needs (from the project's compose file), with their state and one
+ * button to start what is not running: a preview of an app whose database is down stays white.
+ */
+function ServicesBar({ projectId }: { projectId: string }) {
+  const { t } = useTranslation();
+  const [list, setList] = useState<{ file: string; services: { name: string; running: boolean }[] }>();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    let current = true;
+    void api
+      .previewServices(projectId)
+      .then((r) => {
+        if (!current || !r) return;
+        if ("error" in r) setError(r.error);
+        else setList(r);
+      })
+      .catch(() => undefined);
+    return () => {
+      current = false;
+    };
+  }, [projectId]);
+  if (!list && !error) return null;
+  const down = list?.services.filter((s) => !s.running) ?? [];
+  const start = async () => {
+    setBusy(true);
+    setError(undefined);
+    try {
+      setList((await api.startPreviewServices(projectId)) ?? undefined);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card className="flex flex-wrap items-center gap-2 p-2 text-[12.5px]">
+      <span className="font-medium">{t("preview.services")}</span>
+      {list && <span className="font-mono text-[11px] text-fg-subtle">{list.file}</span>}
+      {list?.services.map((s) => (
+        <span key={s.name} className="inline-flex items-center gap-1">
+          <StatusDot tone={s.running ? "success" : "neutral"} />
+          {s.name}
+        </span>
+      ))}
+      <div className="flex-1" />
+      {error && <span className="text-[12px] text-danger">{error}</span>}
+      {down.length > 0 && (
+        <Button size="sm" disabled={busy} onClick={() => void start()} data-tip={t("preview.servicesTip")}>
+          {busy ? t("preview.servicesStarting") : t("preview.servicesStart", { count: down.length })}
+        </Button>
+      )}
+    </Card>
+  );
+}
+
 export function PreviewTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -126,11 +203,16 @@ export function PreviewTab({ project }: { project: ProjectDetail }) {
 
   return (
     <div className="space-y-3">
+      <ServicesBar projectId={project.id} />
       <Card className="flex flex-wrap items-center gap-2 p-2">
         {running ? (
           <>
             <Badge tone="success">{t("preview.running")}</Badge>
-            <span className="font-mono text-[11px] text-fg-subtle">{server?.url}</span>
+            {server && (server.apps?.length ?? 0) > 1 ? (
+              <AppPicker projectId={project.id} server={server} />
+            ) : (
+              <span className="font-mono text-[11px] text-fg-subtle">{server?.url}</span>
+            )}
             {server?.sourceMap ? (
               <Badge tone="accent">{t("preview.sourceOn")}</Badge>
             ) : (

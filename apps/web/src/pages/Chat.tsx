@@ -60,6 +60,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import { BackLink } from "../components/BackLink";
 import { ChatChanges } from "../components/ChatChanges";
 import { ChatCopy } from "../components/ChatCopy";
+import { ChatOutline, messageId } from "../components/ChatOutline";
 import { CHAT_MODELS, ChatSettings } from "../components/ChatSettings";
 import { SplitPicker } from "../components/ChatSplit";
 import { ChatTodoList } from "../components/ChatTodoList";
@@ -897,9 +898,15 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   const mentions = useExpertMentions(text, setText, input, settings.consultExperts && !info?.persona);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // New events keep the newest in view, unless the user scrolled up to read (or jumped there from the outline).
+  const atBottom = useRef(true);
+  const onListScroll = () => {
+    const el = list.current;
+    if (el) atBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 160;
+  };
   // biome-ignore lint/correctness/useExhaustiveDependencies: scroll on every new event
   useEffect(() => {
-    list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" });
+    if (atBottom.current) list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" });
   }, [chat.events]);
 
   const openEnhancer = () => text.trim() && setEnhancing(text.trim());
@@ -1116,7 +1123,16 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         }}
       />
       {info && <ChatChanges info={info} events={chat.events} />}
-      {info && <MadeFiles events={chat.events} cwd={info.worktree?.path ?? info.cwd} />}
+      {info && (
+        <MadeFiles
+          events={chat.events}
+          cwd={info.worktree?.path ?? info.cwd}
+          onAsk={(ask) => {
+            setText((v) => (v ? `${v}\n\n${ask}` : ask));
+            input.current?.focus();
+          }}
+        />
+      )}
       {info?.focus === "chief" && <ChiefTools />}
       {todos && <TodoStrip todos={todos} working={working} />}
       {info && (
@@ -1498,167 +1514,173 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
               </div>
             </div>
           ) : (
-            <div ref={list} className="min-h-0 flex-1 overflow-y-auto">
-              <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
-                {units.map((unit) => {
-                  if (unit.kind === "group")
-                    return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
-                  const event = unit.event;
-                  switch (event.kind) {
-                    case "user":
-                      return (
-                        <div key={event.id} className="flex justify-end">
-                          <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-bg-muted px-4 py-2.5 text-[14px] leading-relaxed text-fg">
-                            {event.images > 0 && (
-                              <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
-                                <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
-                              </p>
-                            )}
-                            {event.text}
-                          </div>
-                        </div>
-                      );
-                    case "text": {
-                      // A persona's notebook block is for Igrek, not for reading.
-                      const shown = info?.persona ? extractNotebook(event.text).text : event.text;
-                      const isLast = event.id === lastText?.id && lastIsAnswer;
-                      return (
-                        <div key={event.id} className="space-y-2">
-                          <div className="min-w-0">
-                            {persona && (
-                              <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-fg-muted">
-                                <PersonaIcon persona={persona} size={11} className="size-5 rounded-full" />
-                                {personaName}
-                              </p>
-                            )}
-                            <Markdown text={shown} streaming={working && event.id === lastText?.id} />
-                          </div>
-                          <CopyWithPrivate text={shown} />
-                          {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
-                            <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
-                          )}
-                        </div>
-                      );
-                    }
-                    case "tool":
-                      if (event.name === EXPERT_TOOL) return <ExpertCard key={event.id} event={event} />;
-                      if (DELEGATE_TOOLS.has(event.name) && personas.some((p) => p.id === delegatedTo(event)))
-                        return <ExpertCard key={event.id} event={event} delegated />;
-                      return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
-                    case "permission":
-                      if (event.toolName === "AskUserQuestion")
+            <div className="relative flex min-h-0 flex-1 flex-col">
+              <div ref={list} onScroll={onListScroll} className="min-h-0 flex-1 overflow-y-auto">
+                <div className="mx-auto max-w-3xl space-y-5 px-4 py-6">
+                  {units.map((unit) => {
+                    if (unit.kind === "group")
+                      return <ToolGroup key={unit.id} tools={unit.tools} cwd={info?.cwd} plain={detail === "plain"} />;
+                    const event = unit.event;
+                    switch (event.kind) {
+                      case "user":
                         return (
-                          <QuestionCard
+                          <div key={event.id} id={messageId(event.id)} className="flex scroll-mt-4 justify-end">
+                            <div className="max-w-[80%] whitespace-pre-wrap rounded-3xl bg-bg-muted px-4 py-2.5 text-[14px] leading-relaxed text-fg">
+                              {event.images > 0 && (
+                                <p className="mb-1 flex items-center gap-1 text-[11px] opacity-80">
+                                  <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
+                                </p>
+                              )}
+                              {event.text}
+                            </div>
+                          </div>
+                        );
+                      case "text": {
+                        // A persona's notebook block is for Igrek, not for reading.
+                        const shown = info?.persona ? extractNotebook(event.text).text : event.text;
+                        const isLast = event.id === lastText?.id && lastIsAnswer;
+                        return (
+                          <div key={event.id} className="space-y-2">
+                            <div className="min-w-0">
+                              {persona && (
+                                <p className="mb-1.5 flex items-center gap-1.5 text-[12px] font-medium text-fg-muted">
+                                  <PersonaIcon persona={persona} size={11} className="size-5 rounded-full" />
+                                  {personaName}
+                                </p>
+                              )}
+                              <Markdown text={shown} streaming={working && event.id === lastText?.id} />
+                            </div>
+                            <CopyWithPrivate text={shown} />
+                            {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
+                              <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
+                            )}
+                          </div>
+                        );
+                      }
+                      case "tool":
+                        if (event.name === EXPERT_TOOL) return <ExpertCard key={event.id} event={event} />;
+                        if (DELEGATE_TOOLS.has(event.name) && personas.some((p) => p.id === delegatedTo(event)))
+                          return <ExpertCard key={event.id} event={event} delegated />;
+                        return <ToolCard key={event.id} event={event} cwd={info?.cwd} />;
+                      case "permission":
+                        if (event.toolName === "AskUserQuestion")
+                          return (
+                            <QuestionCard
+                              key={event.id}
+                              event={event}
+                              ended={info?.status === "exited"}
+                              onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                            />
+                          );
+                        return (
+                          <PermissionCard
                             key={event.id}
                             event={event}
                             ended={info?.status === "exited"}
-                            onAnswer={(d, message, answers) => chat.answer(event.requestId, d, message, answers)}
+                            onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
                           />
                         );
-                      return (
-                        <PermissionCard
-                          key={event.id}
-                          event={event}
-                          ended={info?.status === "exited"}
-                          onAnswer={(d, message) => chat.answer(event.requestId, d, message)}
-                        />
-                      );
-                    case "result":
-                      return (
-                        <p
-                          key={event.id}
-                          className={cn("text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
-                        >
-                          {event.isError
-                            ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
-                            : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
-                        </p>
-                      );
-                    case "checkpoint":
-                      return (
-                        <div key={event.id} className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle">
-                          <span className="flex items-center gap-1">
-                            <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
-                          </span>
-                          <CheckpointRestore
-                            compact
-                            busy={working}
-                            projectId={event.projectId}
-                            checkpointId={event.checkpointId}
-                          />
-                        </div>
-                      );
-                    case "gate":
-                      return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
-                    case "notice":
-                      if (event.code === "history")
+                      case "result":
                         return (
-                          <div key={event.id} className="flex items-center gap-3 py-1 text-[11.5px] text-fg-subtle">
-                            <span className="h-px flex-1 bg-border" />
-                            {t("chat.notice_history", { count: Number(event.text) || 0 })}
-                            <span className="h-px flex-1 bg-border" />
+                          <p
+                            key={event.id}
+                            className={cn("text-[11px]", event.isError ? "text-danger" : "text-fg-subtle")}
+                          >
+                            {event.isError
+                              ? `${t("chat.failed")}${event.text ? `: ${event.text.replace(/\|\d{10}\b/, "")}` : ""}`
+                              : t("chat.done", { s: ((event.durationMs ?? 0) / 1000).toFixed(1) })}
+                          </p>
+                        );
+                      case "checkpoint":
+                        return (
+                          <div
+                            key={event.id}
+                            className="flex items-center justify-end gap-2 text-[11px] text-fg-subtle"
+                          >
+                            <span className="flex items-center gap-1">
+                              <Flag size={11} aria-hidden="true" /> {t("checkpoint.saved")}
+                            </span>
+                            <CheckpointRestore
+                              compact
+                              busy={working}
+                              projectId={event.projectId}
+                              checkpointId={event.checkpointId}
+                            />
                           </div>
                         );
-                      if (event.code === "loop")
-                        return (
-                          <p
-                            key={event.id}
-                            className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
-                          >
-                            <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                            <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
-                            <button
-                              type="button"
-                              onClick={chat.interrupt}
-                              className="shrink-0 font-medium text-warning underline"
+                      case "gate":
+                        return <GateCard key={event.id} event={event} onSend={(text) => chat.send(text)} />;
+                      case "notice":
+                        if (event.code === "history")
+                          return (
+                            <div key={event.id} className="flex items-center gap-3 py-1 text-[11.5px] text-fg-subtle">
+                              <span className="h-px flex-1 bg-border" />
+                              {t("chat.notice_history", { count: Number(event.text) || 0 })}
+                              <span className="h-px flex-1 bg-border" />
+                            </div>
+                          );
+                        if (event.code === "loop")
+                          return (
+                            <p
+                              key={event.id}
+                              className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
                             >
-                              {t("chat.stop")}
-                            </button>
-                          </p>
-                        );
-                      if (event.code === "private")
-                        return <PrivateNotice key={event.id} names={event.text.split(",").filter(Boolean)} />;
-                      if (event.code === "notebook" || event.code === "notebookRejected")
+                              <RotateCcw size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                              <span className="min-w-0 flex-1">{t("chat.notice_loop", { tool: event.text })}</span>
+                              <button
+                                type="button"
+                                onClick={chat.interrupt}
+                                className="shrink-0 font-medium text-warning underline"
+                              >
+                                {t("chat.stop")}
+                              </button>
+                            </p>
+                          );
+                        if (event.code === "private")
+                          return <PrivateNotice key={event.id} names={event.text.split(",").filter(Boolean)} />;
+                        if (event.code === "notebook" || event.code === "notebookRejected")
+                          return (
+                            <p key={event.id} className="flex items-center gap-1.5 text-[11px] text-fg-subtle">
+                              <BookOpen size={12} aria-hidden="true" />
+                              {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
+                            </p>
+                          );
+                        if (event.code === "run") return <RunReport key={event.id} text={event.text} />;
+                        if (event.code)
+                          return (
+                            <p
+                              key={event.id}
+                              className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                            >
+                              <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+                              {t(`chat.notice_${event.code}`)}
+                            </p>
+                          );
                         return (
-                          <p key={event.id} className="flex items-center gap-1.5 text-[11px] text-fg-subtle">
-                            <BookOpen size={12} aria-hidden="true" />
-                            {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
-                          </p>
-                        );
-                      if (event.code === "run") return <RunReport key={event.id} text={event.text} />;
-                      if (event.code)
-                        return (
-                          <p
+                          <pre
                             key={event.id}
-                            className="flex items-start gap-2 rounded-md border border-warning bg-warning-soft p-2 text-xs"
+                            className="whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
                           >
-                            <ShieldAlert size={13} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-                            {t(`chat.notice_${event.code}`)}
-                          </p>
+                            {event.text}
+                          </pre>
                         );
-                      return (
-                        <pre
-                          key={event.id}
-                          className="whitespace-pre-wrap rounded-md bg-danger-soft p-2 font-mono text-[11px] text-danger"
-                        >
-                          {event.text}
-                        </pre>
-                      );
-                    default:
-                      return null;
-                  }
-                })}
-                {working && (
-                  <p className="flex items-center gap-2 text-xs text-fg-muted" aria-live="polite">
-                    <span className="flex gap-1" aria-hidden="true">
-                      <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.3s]" />
-                      <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.15s]" />
-                      <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle" />
-                    </span>
-                    {t("chat.working")}
-                  </p>
-                )}
+                      default:
+                        return null;
+                    }
+                  })}
+                  {working && (
+                    <p className="flex items-center gap-2 text-xs text-fg-muted" aria-live="polite">
+                      <span className="flex gap-1" aria-hidden="true">
+                        <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.3s]" />
+                        <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle [animation-delay:-0.15s]" />
+                        <span className="size-1.5 animate-bounce rounded-full bg-fg-subtle" />
+                      </span>
+                      {t("chat.working")}
+                    </p>
+                  )}
+                </div>
               </div>
+              <ChatOutline events={chat.events} list={list} />
             </div>
           )}
         </CommentContext.Provider>

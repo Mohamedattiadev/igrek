@@ -13,6 +13,11 @@ export interface DevServerInfo {
   /** Elements carry their file and line (Igrek's Vite plugin, added without touching your config). */
   sourceMap: boolean;
   framework?: "vite" | "next" | "other";
+  /**
+   * Every address the dev command printed (a monorepo starts several: an API, a web app, docs), and
+   * whether it answers with a web page. The preview shows a page, not the first address it saw.
+   */
+  apps?: { url: string; page?: boolean }[];
   startedAt: number;
   exitCode?: number;
   error?: string;

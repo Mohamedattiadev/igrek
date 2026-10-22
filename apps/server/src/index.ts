@@ -123,6 +123,7 @@ import { Personas, personaLabel } from "./personas";
 import { Phone, registerPhoneRoutes } from "./phone";
 import { Plugins } from "./plugins";
 import { DevServers } from "./preview/devservers";
+import { Services } from "./preview/services";
 import { UiAudits } from "./preview/ui-audit";
 import { registerPreviewRoutes } from "./preview-routes";
 import { PrivateValues, registerPrivateRoutes } from "./private-values";
@@ -826,6 +827,11 @@ const app = createApp({
       stops,
       uiAudits: new UiAudits(sqlite),
       rescan: (projectId) => void insight.scan(projectId).catch(() => undefined),
+      services: new Services(),
+      rootOf: (projectId) => {
+        const row = store.projectRow(projectId);
+        return row && !row.path.startsWith("team:") && existsSync(row.path) ? row.path : undefined;
+      },
     });
     registerExtrasRoutes(hono, {
       backups: new Backups(sqlite),

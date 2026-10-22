@@ -620,6 +620,15 @@
     "backToList": "Dosyalara dön"
   },
   "preview": {
+    "app": "Önizlenecek uygulama",
+    "appChecking": "bakılıyor",
+    "appPage": "web sayfası",
+    "appApi": "API, sayfa değil",
+    "services": "Servisler",
+    "servicesTip": "Projenin compose dosyasıyla docker compose up -d çalıştırır: çalışmayan başlar, çalışan olduğu gibi kalır.",
+    "servicesStart_one": "{{count}} servisi başlat",
+    "servicesStart_other": "{{count}} servisi başlat",
+    "servicesStarting": "Başlatılıyor...",
     "truncated": "İlk {{count}} satır gösteriliyor.",
     "explain": "Açıkla",
     "summarize": "Özetle",
@@ -870,6 +879,18 @@
     "why": "Neden"
   },
   "chat": {
+    "madeCount_one": "Bu sohbette {{count}} dosya yapıldı",
+    "madeCount_other": "Bu sohbette {{count}} dosya yapıldı",
+    "madeCopy": "Kopyala",
+    "madeCopied": "Kopyalandı",
+    "madeEdit": "Sohbette değiştir",
+    "madeEditAsk": "{{path}} dosyasını değiştir: ",
+    "zoomIn": "Yakınlaştır",
+    "zoomOut": "Uzaklaştır",
+    "zoomFit": "Sığdır",
+    "toTop": "En üste çık",
+    "toBottom": "En alta in",
+    "outline": "Bu sohbetteki mesajların",
     "untitled": "Yeni sohbet",
     "otherWays": "Başka yolla başlat: terminal, başka hesap",
     "title": "Sohbet",
@@ -992,7 +1013,6 @@
     "limitOther": "Başka hesap kullan",
     "codexGo": "Codex'le devam et",
     "codexTip": "Codex buradaki bir terminalde işi devralır: bu sohbette ne istendiğini, Claude'un son cevabını ve değişen dosyaları bilir. Özel bilgiler gönderilmez.",
-    "made": "Bu sohbette yapılanlar:",
     "madeDownload": "İndir",
     "madeClose": "Kapat",
     "limitResumeText": "Kullanım limiti sıfırlandı. Kaldığın yerden devam et.",
@@ -4529,6 +4549,11 @@
     "add": "Ekle"
   },
   "experts": {
+    "askWhich": "Projeye hangi uzmanlar baksın? Her biri projeyi okur ve görüşünü yazar; aynı anda üçü çalışır, diğerleri sırasını bekler.",
+    "coreTeam": "Ana ekip ({{count}})",
+    "askCost": "Her bakış planının limitinden bir model çağrısıdır.",
+    "askCore": "Ana ekip ({{count}})",
+    "askEvery": "Tüm uzmanlar ({{count}})",
     "title": "Bu projedeki uzmanlar",
     "intro": "Her uzman bu projeye kendi alanından bakar: mimar nasıl kurulduğuna, UI/UX ekranlara, güvenlik risklere. Sadece kodu okurlar. Her bakış bir model çağrısıdır; sohbetler de bir soru uzman gerektirdiğinde onlara sorar.",
     "look": "Projeye bak",
@@ -4551,9 +4576,7 @@
     "useAllTip": "Her uzmanın görüşüyle yeni bir sohbet açar",
     "useAllDraft": "Uzmanların bu projeye bakışı:\n\n{{views}}\n\nBunlara göre, ",
     "askAll": "Tüm uzmanlara baktır",
-    "askAllTip": "Henüz bakmamış temel uzmanlar projeyi üçer üçer okur",
-    "askAllConfirm": "{{count}} uzman projeyi okuyacak. Her bakış bir model çağrısıdır ve planının limitinden düşer. Bu sayfadan çıkabilirsin; görüşler hazır olunca burada görünür.",
-    "askAllGo": "Başlat ({{count}})"
+    "askAllTip": "Henüz bakmamış temel uzmanlar projeyi üçer üçer okur"
   },
   "why": {
     "button": "Neden?",
