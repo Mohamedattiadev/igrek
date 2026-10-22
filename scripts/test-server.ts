@@ -256,6 +256,8 @@ const REACHES_OUT = [
   /^\/api\/packs\/catalog$/,
   // REA's setup runs npx and changes the user's agent settings.
   /^\/api\/rea\/setup$/,
+  // A Telegram bot token is checked with Telegram.
+  /^\/api\/telegram$/,
   // Skills are downloaded from GitHub.
   /^\/api\/skills\/install$/,
   // The user's own phone (adb): never touched by a test.

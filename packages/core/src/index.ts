@@ -524,6 +524,8 @@ export interface RateLimitInfo {
   at: number;
 }
 
+export type ChatFocus = "reverse" | "chief";
+
 export interface ChatInfo {
   id: string;
   projectId: string;
@@ -543,8 +545,11 @@ export interface ChatInfo {
   sandboxed?: boolean;
   /** The chat runs as this persona (plan.md 6.3). */
   persona?: { id: string; name?: string; tools: "read" | "edit" };
-  /** Reverse-engineering mode (REA): only for software the user owns or may examine. */
-  focus?: "reverse";
+  /**
+   * What the chat is for: "reverse", reverse-engineering mode (REA), only for software the user owns
+   * or may examine; "chief", the one assistant that hands work to the projects and reports back.
+   */
+  focus?: ChatFocus;
   /** The project's own hooks, MCP servers and skills that were left out until the user trusts it (plan.md 16.4). */
   untrusted?: { hooks: string[]; mcpServers: string[]; skills: string[]; fingerprint: string };
   /** Messages written while the AI was working; the next one goes out when the turn ends (plan.md 16.1). */
@@ -644,9 +649,10 @@ export type ChatEvent =
        * "notebook": opinions written down (text = count); "notebookRejected": a change without new evidence;
        * "loop": the same step with the same input again and again (text = the tool's name);
        * "history": the end of the earlier conversation a continued chat shows (text = how many messages);
-       * "private": private details were hidden in the message before it left (text = their names, comma-separated).
+       * "private": private details were hidden in the message before it left (text = their names, comma-separated);
+       * "run": a run the chief started has a result (text = "runId|status|project|changed files").
        */
-      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history" | "private";
+      code?: "external" | "notebook" | "notebookRejected" | "loop" | "history" | "private" | "run";
     }
   | {
       /** The project's checks after a turn that changed files (plan.md 15.5). */
@@ -862,7 +868,14 @@ export type ServerMessage =
   | { type: "docs-changed"; projectId: string }
   | { type: "ops-changed"; what: string }
   /** Something that needs a desktop notification right away (a site went down, a new app error). */
-  | { type: "alert"; kind: "down" | "up" | "appError" | "backupFailed"; title: string; link: string };
+  | {
+      type: "alert";
+      kind: "down" | "up" | "appError" | "backupFailed";
+      title: string;
+      link: string;
+      /** The project it is about, when there is one (routines listen for it). */
+      projectId?: string;
+    };
 
 /** Messages sent from UI to server over the WebSocket. */
 export type ClientMessage = { type: "ping"; at: number };
@@ -1031,4 +1044,14 @@ export interface InstalledSkill {
   description: string;
   /** Where it came from, when Igrek installed it. */
   source?: string;
+}
+
+/** The Telegram bot that reaches the chief from a phone: its name, and whether a chat is paired. */
+export interface TelegramStatus {
+  configured: boolean;
+  bot?: string;
+  paired: boolean;
+  /** Sent to the bot as "/start <code>" to pair the user's own Telegram chat. */
+  pairCode?: string;
+  error?: string;
 }

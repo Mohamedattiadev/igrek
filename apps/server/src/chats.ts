@@ -1,7 +1,9 @@
 import type { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
 import {
+  CHIEF_HINT,
   type ChatEvent,
+  type ChatFocus,
   type ChatInfo,
   type ChatMode,
   type ChatPill,
@@ -185,8 +187,8 @@ export interface ChatStart {
   richUi?: string;
   /** The project's own extensions to leave out, because the user has not trusted them yet. */
   untrusted?: ProjectExtensions;
-  /** Reverse-engineering mode (rea.ts): the user confirmed they may examine what they ask about. */
-  focus?: "reverse";
+  /** Reverse-engineering mode (rea.ts), with the user's word that they may examine the target; or the chief (chief.ts). */
+  focus?: ChatFocus;
   /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
   persona?: {
     id: string;
@@ -238,7 +240,8 @@ function systemPrompt(
     : options.igrekMcp?.hint
       ? `${drawing}\n\n${options.igrekMcp.hint}`
       : drawing;
-  const base = options.focus === "reverse" ? `${plain}\n\n${REVERSE_HINT}` : plain;
+  const focused = options.focus ? { reverse: REVERSE_HINT, chief: CHIEF_HINT }[options.focus] : undefined;
+  const base = focused ? `${plain}\n\n${focused}` : plain;
   // Only when the user keeps private details: the AI is told what the placeholders are.
   return privateDetails ? `${base}\n\n${PRIVATE_HINT}` : base;
 }

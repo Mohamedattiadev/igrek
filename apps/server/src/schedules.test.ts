@@ -146,3 +146,25 @@ describe("schedules", () => {
     expect(schedules.get(s.id)?.missedAt).toBeUndefined();
   });
 });
+
+describe("routines that wait for an event", () => {
+  test("only approved ones run, with what happened added; they stay on afterwards", () => {
+    const { schedules, flows, projectId } = setup("");
+    const routine = schedules.create({
+      projectId,
+      title: "Fix CI",
+      request: "Find why CI failed and fix it.",
+      flow: "task",
+      when: { kind: "event", event: "ci-failed" },
+    });
+    expect(schedules.watching("ci-failed")).toEqual([]);
+    expect(schedules.fire("ci-failed", projectId, "CI failed: Build")).toEqual([]);
+    expect(schedules.activate(routine.id).status).toBe("active");
+    expect(schedules.watching("ci-failed")).toEqual([projectId]);
+    expect(schedules.fire("issue-opened", projectId, "Issue #1")).toEqual([]);
+    const [runId] = schedules.fire("ci-failed", projectId, "CI failed: Build");
+    expect(flows.get(runId ?? "")?.request).toContain("What happened: CI failed: Build");
+    expect(schedules.get(routine.id)?.status).toBe("active");
+    for (const id of [runId]) if (id) flows.stop(id);
+  });
+});

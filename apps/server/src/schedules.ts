@@ -4,6 +4,8 @@ import {
   type FlowRun,
   type InboxNotice,
   nextRun,
+  ROUTINE_EVENTS,
+  type RoutineEvent,
   SCHEDULE_TEMPLATES,
   type Schedule,
   type ScheduleWhen,
@@ -30,6 +32,10 @@ function cleanWhen(raw: unknown, now: number): ScheduleWhen | undefined {
   if (w.kind === "once") {
     const at = typeof w.at === "number" ? w.at : Date.parse(String(w.at ?? ""));
     return Number.isFinite(at) && at > now - 60_000 ? { kind: "once", at } : undefined;
+  }
+  if (w.kind === "event") {
+    const event = ROUTINE_EVENTS.find((e) => e === w.event);
+    return event ? { kind: "event", event } : undefined;
   }
   if (w.kind !== "repeat") return undefined;
   const every = EVERY.find((e) => e === w.every);
@@ -170,7 +176,7 @@ Vague times: morning 09:00, noon 12:00, evening 19:00, night 02:00.
 
 Reply with JSON only:
 {"title":"short title in ${lang}","request":"the job, written as an instruction to the AI (English)","flow":"task|check|deps|report|fix|feature",
- "when":{"kind":"once","at":"ISO 8601 date-time with the local offset"} or {"kind":"repeat","every":"hour|day|weekday|week|month","time":"HH:MM","weekday":0-6,"day":1-28},
+ "when":{"kind":"once","at":"ISO 8601 date-time with the local offset"} or {"kind":"repeat","every":"hour|day|weekday|week|month","time":"HH:MM","weekday":0-6,"day":1-28} or {"kind":"event","event":"ci-failed|issue-opened|site-down|app-error"} (for "when CI fails", "when an issue is opened", "when the site goes down", "when the app throws an error"),
  "summary":"one sentence in ${lang}: when, which project, what (e.g. Every Friday 09:00, Project X: update the dependencies)"}`;
     const parsed = parseModelReply(await this.ask(prompt)) as unknown as Record<string, unknown> | undefined;
     if (!parsed) throw new Error("Could not understand the request");
@@ -200,7 +206,8 @@ Reply with JSON only:
     s.approvedAt = now;
     s.held = undefined;
     s.nextAt = nextRun(s.when, now);
-    if (!s.nextAt) s.status = "done";
+    // A routine that waits for an event has no next time and stays on.
+    if (!s.nextAt && s.when.kind !== "event") s.status = "done";
     s.missedAt = undefined;
     return this.save(s);
   }
@@ -238,14 +245,14 @@ Reply with JSON only:
     return this.save(s);
   }
 
-  /** Starts it now, in its own copy, with its budget. */
-  runNow(id: string, now = Date.now()): FlowRun {
+  /** Starts it now, in its own copy, with its budget; `happened` says what started a routine. */
+  runNow(id: string, now = Date.now(), happened?: string): FlowRun {
     const s = this.get(id);
     if (!s) throw new Error("Schedule not found");
     const run = this.flows.start({
       projectId: s.projectId,
       flow: s.flow,
-      request: s.request,
+      request: happened ? `${s.request}\n\nWhat happened: ${scrub(happened).slice(0, 800)}` : s.request,
       scheduleId: s.id,
       limits: { maxMinutes: s.maxMinutes, maxTurns: s.maxTurns },
     });
@@ -290,6 +297,35 @@ Reply with JSON only:
       }
     }
     return started;
+  }
+
+  /**
+   * Something happened in a project (routines.ts): the routines that wait for it run, with what
+   * happened added to their job, under the same guardrails as a timed run.
+   */
+  fire(event: RoutineEvent, projectId: string, happened: string, now = Date.now()): string[] {
+    const started: string[] = [];
+    for (const s of this.list()) {
+      if (s.status !== "active" || s.projectId !== projectId) continue;
+      if (s.when.kind !== "event" || s.when.event !== event || !this.mayRun(s, now)) continue;
+      try {
+        started.push(this.runNow(s.id, now, happened).id);
+      } catch (err) {
+        console.error(`routine ${s.id}: ${(err as Error).message}`);
+      }
+    }
+    return started;
+  }
+
+  /** Projects with a routine waiting for this event, so only they are watched. */
+  watching(event: RoutineEvent): string[] {
+    return [
+      ...new Set(
+        this.list()
+          .filter((s) => s.status === "active" && s.when.kind === "event" && s.when.event === event)
+          .map((s) => s.projectId),
+      ),
+    ];
   }
 
   /**

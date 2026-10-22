@@ -152,6 +152,7 @@ export class AppErrors {
           kind: "appError",
           title: existing.message.slice(0, 80),
           link: `/p/${projectId}?tab=monitor`,
+          projectId,
         });
     } else {
       const id = crypto.randomUUID().slice(0, 12);
@@ -179,6 +180,7 @@ export class AppErrors {
         kind: "appError",
         title: event.message.slice(0, 80),
         link: `/p/${projectId}?tab=monitor`,
+        projectId,
       });
     }
     this.bus.publish({ type: "ops-changed", what: "errors" });

@@ -64,6 +64,7 @@ import { CHAT_MODELS, ChatSettings } from "../components/ChatSettings";
 import { SplitPicker } from "../components/ChatSplit";
 import { ChatTodoList } from "../components/ChatTodoList";
 import { CheckpointRestore } from "../components/CheckpointRestore";
+import { ChiefTools, RunReport } from "../components/ChiefTools";
 import { ContinueInCodex } from "../components/ContinueInCodex";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
@@ -1114,6 +1115,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       />
       {info && <ChatChanges info={info} events={chat.events} />}
       {info && <MadeFiles events={chat.events} cwd={info.worktree?.path ?? info.cwd} />}
+      {info?.focus === "chief" && <ChiefTools />}
       {todos && <TodoStrip todos={todos} working={working} />}
       {info && (
         <ChatTodoList
@@ -1369,7 +1371,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
     <div className="flex h-full min-h-0 flex-col">
       <header className="flex h-12 shrink-0 items-center gap-2 px-4">
         <BackLink
-          to={info ? `/p/${info.projectId}` : "/terminals"}
+          to={info?.focus === "chief" ? "/" : info ? `/p/${info.projectId}` : "/terminals"}
           className="text-fg-subtle hover:text-fg"
           aria-label={t("term.project")}
         >
@@ -1620,6 +1622,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                             {t(`chat.notice_${event.code}`, { count: Number(event.text) || 1 })}
                           </p>
                         );
+                      if (event.code === "run") return <RunReport key={event.id} text={event.text} />;
                       if (event.code)
                         return (
                           <p

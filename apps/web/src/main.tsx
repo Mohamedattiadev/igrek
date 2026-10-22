@@ -53,6 +53,7 @@ const router = createBrowserRouter([
       { path: "test-runs/:runId", ...page(() => import("./pages/Testers"), "TestRunPage") },
       { path: "runs/:runId", ...page(() => import("./pages/FlowRun"), "FlowRunPage") },
       { path: "schedules", ...page(() => import("./pages/SchedulesPage"), "SchedulesPage") },
+      { path: "chief", ...page(() => import("./pages/ChiefPage"), "ChiefPage") },
       { path: "tools", ...page(() => import("./pages/tools/ToolsPage"), "ToolsPage") },
       { path: "incidents/:incidentId", ...page(() => import("./pages/Incident"), "IncidentPage") },
       { path: "weekly", ...page(() => import("./pages/Weekly"), "WeeklyPage") },

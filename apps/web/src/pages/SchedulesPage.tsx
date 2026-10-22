@@ -19,13 +19,14 @@ import { dateTime, relativeTime } from "../lib/format";
 import { useProjects, useServerEvent } from "../lib/live";
 
 const input = "w-full rounded-ui border border-border bg-bg px-2.5 py-1.5 text-[13px] outline-none focus:border-accent";
-const TEMPLATES = ["nightly-check", "weekly-deps", "daily-report"] as const;
+const TEMPLATES = ["nightly-check", "weekly-deps", "daily-report", "ci-fix", "issue-triage", "down-check"] as const;
 
 /** "Every Friday 09:00" in the user's language. */
 function useWhen(): (when: ScheduleWhen) => string {
   const { t, i18n } = useTranslation();
   return (when) => {
     if (when.kind === "once") return t("schedules.once", { at: dateTime(when.at) });
+    if (when.kind === "event") return t(`schedules.on_${when.event}`);
     if (when.every === "week") {
       const day = new Date(2026, 0, 4 + (when.weekday ?? 1)).toLocaleDateString(i18n.language, { weekday: "long" });
       return t("schedules.every_week", { day, time: when.time });

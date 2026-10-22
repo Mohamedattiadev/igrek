@@ -388,6 +388,9 @@ describe("MCP server", () => {
       "igrek_lessons",
       "igrek_schedule",
       "igrek_recent_sessions",
+      "igrek_projects",
+      "igrek_delegate",
+      "igrek_runs",
     ]);
   });
 });

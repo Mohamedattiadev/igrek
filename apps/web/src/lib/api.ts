@@ -94,6 +94,7 @@ import type {
   TeamInvite,
   TeamStatus,
   TeamUser,
+  TelegramStatus,
   TerminalInfo,
   TerminalTool,
   TesterProfile,
@@ -645,6 +646,15 @@ export const api = {
     focus?: "reverse";
     authorized?: boolean;
   }) => request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
+  /** The chief's one chat: started, or continued from its last session. */
+  chief: () => request<ChatInfo>("/api/chief", { method: "POST" }),
+  chiefNotes: () => request<{ text: string }>("/api/chief/notes"),
+  saveChiefNotes: (text: string) =>
+    request<{ ok: boolean }>("/api/chief/notes", { method: "PUT", body: JSON.stringify({ text }) }),
+  telegram: () => request<TelegramStatus>("/api/telegram"),
+  connectTelegram: (token: string) =>
+    request<TelegramStatus>("/api/telegram", { method: "PUT", body: JSON.stringify({ token }) }),
+  disconnectTelegram: () => request<TelegramStatus>("/api/telegram", { method: "DELETE" }),
   rea: () => request<{ installed: boolean; node: boolean; package: string }>("/api/rea"),
   reaSetup: () => request<TerminalInfo>("/api/rea/setup", { method: "POST" }),
   chatCopy: (id: string) =>

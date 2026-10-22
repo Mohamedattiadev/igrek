@@ -1,7 +1,15 @@
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { APP_VERSION, type ClientMessage, citation, HELP_TOPICS, lessonLines, type ServerMessage } from "@igrek/core";
+import {
+  APP_VERSION,
+  type ClientMessage,
+  citation,
+  HELP_TOPICS,
+  historyEvents,
+  lessonLines,
+  type ServerMessage,
+} from "@igrek/core";
 import { reportUiHint } from "@igrek/genui";
 import { bundledResources } from "@igrek/i18n";
 import type { ServerWebSocket } from "bun";
@@ -33,6 +41,7 @@ import { handleChatMessage, registerChatRoutes } from "./chat-routes";
 import { ChatStream } from "./chat-stream";
 import { Chats } from "./chats";
 import { createCheckpoint } from "./checkpoints";
+import { Chief, registerChiefRoutes } from "./chief";
 import { CodeHost } from "./codehost";
 import { registerCommitHookRoutes } from "./commit-hook";
 import { loadConfig } from "./config";
@@ -120,6 +129,7 @@ import { PrivateValues, registerPrivateRoutes } from "./private-values";
 import { isoWeek, Product } from "./product";
 import { registerReaRoutes } from "./rea";
 import { Retention } from "./retention";
+import { Routines } from "./routines";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
 import { Sealer } from "./seal";
@@ -140,6 +150,7 @@ import { Store } from "./store";
 import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
 import { Sync } from "./sync/client";
 import { registerTeamRoutes } from "./team-routes";
+import { registerTelegramRoutes, Telegram } from "./telegram";
 import { registerTerminalRoutes } from "./terminal-routes";
 import { Terminals } from "./terminals";
 import { registerTesterRoutes } from "./tester-routes";
@@ -364,7 +375,6 @@ flows.marketDir = join(config.dataDir, "flows");
 flows.measure = (root, projectId, category) => insight.measure(root, projectId, category);
 const board = new Board(sqlite, bus, flows);
 const devServers = new DevServers(store, bus, stops, personas, join(config.dataDir, "preview"));
-flows.onChange = (run) => board.followRun(run);
 flows.recover();
 // Team runs waiting for a full limit go on by themselves once it resets (plan.md 13.1).
 setInterval(() => flows.resumeWaiting(), 60_000);
@@ -632,6 +642,40 @@ const app = createApp({
     });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);
+    const igrekMcp = {
+      // Read when a chat starts: Igrek's own tools plus the user's enabled MCP servers.
+      get config() {
+        return JSON.stringify({
+          mcpServers: {
+            ...mcpServers.config(),
+            igrek: {
+              command: process.execPath,
+              args: [join(import.meta.dir, "mcp.ts")],
+              env: { IGREK_PORT: String(config.publicPort), IGREK_HOME: config.dataDir },
+            },
+          },
+        });
+      },
+      // Reading Igrek and proposing a schedule need no prompt; a proposal still waits for the user's OK in Igrek.
+      // Experts only read the project, so asking one needs no prompt either (when the user allows it).
+      get allow() {
+        return [
+          "mcp__igrek__igrek_project_memory",
+          "mcp__igrek__igrek_search",
+          "mcp__igrek__igrek_recent_sessions",
+          "mcp__igrek__library_search",
+          "mcp__igrek__igrek_lessons",
+          "mcp__igrek__igrek_schedule",
+          // The list of projects and of runs only reads; handing work over (igrek_delegate) asks.
+          "mcp__igrek__igrek_projects",
+          "mcp__igrek__igrek_runs",
+          ...(readSettings(db).consultExperts ? ["mcp__igrek__igrek_ask_expert"] : []),
+        ];
+      },
+      get hint() {
+        return readSettings(db).consultExperts ? expertsHint(experts.roster()) : undefined;
+      },
+    };
     registerChatRoutes(hono, {
       chats,
       bus,
@@ -640,39 +684,47 @@ const app = createApp({
       worktreeDir: join(config.dataDir, "worktrees"),
       persona: personaChat,
       richUi: () => (readSettings(db).richAnswers ? reportUiHint() : undefined),
-      igrekMcp: {
-        // Read when a chat starts: Igrek's own tools plus the user's enabled MCP servers.
-        get config() {
-          return JSON.stringify({
-            mcpServers: {
-              ...mcpServers.config(),
-              igrek: {
-                command: process.execPath,
-                args: [join(import.meta.dir, "mcp.ts")],
-                env: { IGREK_PORT: String(config.publicPort), IGREK_HOME: config.dataDir },
-              },
-            },
-          });
-        },
-        // Reading Igrek and proposing a schedule need no prompt; a proposal still waits for the user's OK in Igrek.
-        // Experts only read the project, so asking one needs no prompt either (when the user allows it).
-        get allow() {
-          return [
-            "mcp__igrek__igrek_project_memory",
-            "mcp__igrek__igrek_search",
-            "mcp__igrek__igrek_recent_sessions",
-            "mcp__igrek__library_search",
-            "mcp__igrek__igrek_lessons",
-            "mcp__igrek__igrek_schedule",
-            ...(readSettings(db).consultExperts ? ["mcp__igrek__igrek_ask_expert"] : []),
-          ];
-        },
-        get hint() {
-          return readSettings(db).consultExperts ? expertsHint(experts.roster()) : undefined;
-        },
-      },
+      igrekMcp,
       subagents: (projectId) =>
         readSettings(db).consultExperts ? experts.writeSubagents(projectId, join(config.dataDir, "agents")) : undefined,
+    });
+    // The chief: one chat about everything, which hands work to the projects (chief.ts).
+    const chief = new Chief(
+      join(config.dataDir, "chief"),
+      chats,
+      (cwd, resume) => {
+        const account = accounts.active("claude");
+        return chats.start({
+          projectId: "chief",
+          cwd,
+          title: "Chief",
+          mode: "normal",
+          focus: "chief",
+          resume,
+          history: resume ? historyEvents(store.sessionDetail(resume, 120)?.messages ?? []) : undefined,
+          igrekMcp,
+          richUi: readSettings(db).richAnswers ? reportUiHint() : undefined,
+          accountId: account?.id,
+          env: accounts.env(account),
+        });
+      },
+      (projectId) => store.projectRow(projectId)?.name ?? projectId,
+    );
+    flows.onChange = (run) => {
+      board.followRun(run);
+      chief.onRun(run);
+    };
+    // The chief from a phone (telegram.ts); it starts only once the user connected a bot.
+    const telegram = new Telegram(config.dataDir, sealer, chief, gatewayValues);
+    registerTelegramRoutes(hono, telegram);
+    void telegram.start();
+    registerChiefRoutes(hono, chief, (project, request, persona) => {
+      const wanted = project.trim().toLowerCase();
+      const found = store
+        .listProjects()
+        .find((p) => p.id === project || p.path === project || p.name.toLowerCase() === wanted);
+      if (!found) throw new Error(`No project "${project}"; igrek_projects lists them`);
+      return flows.start({ projectId: found.id, flow: "task", request, persona, by: "chief" });
     });
     registerTesterRoutes(hono, testers);
     registerLibraryRoutes(hono, {
@@ -769,7 +821,18 @@ const app = createApp({
         waiting: () => movedInWaiting(config.dataDir),
       },
     });
-    registerCodeHostRoutes(hono, new CodeHost(store, board));
+    const codeHost = new CodeHost(store, board);
+    registerCodeHostRoutes(hono, codeHost);
+    // Routines that start when something happens: CI fails, an issue is opened, the site or app breaks.
+    const routines = new Routines(
+      {
+        fire: (event, projectId, happened) => schedules.fire(event, projectId, happened),
+        watching: (event) => schedules.watching(event),
+      },
+      { runs: (projectId) => codeHost.runs(projectId), issues: (projectId) => codeHost.issues(projectId) },
+    );
+    bus.subscribe((m) => routines.onMessage(m));
+    routines.start();
     registerVaultRoutes(hono, vault);
     registerPrivateRoutes(hono, privateValues);
     hono.get("/api/private/gateway", (c) =>

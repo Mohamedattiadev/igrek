@@ -286,13 +286,23 @@ export class Monitors {
         this.db.query("DELETE FROM uptime_checks WHERE monitor_id = ? AND at < ?").run(id, at - 30 * DAY);
         this.db.query("UPDATE uptime_monitors SET state = ? WHERE id = ?").run(JSON.stringify(state), id);
       })();
-      if (before.up !== undefined && before.up !== up)
-        this.bus.publish({ type: "alert", kind: up ? "up" : "down", title: now.name, link: "/tools?tab=uptime" });
+      if (before.up !== undefined && before.up !== up) this.alert(now, up);
       this.bus.publish({ type: "monitors-changed" });
       return this.toMonitor({ ...now, state: JSON.stringify(state) });
     } finally {
       this.checking.delete(id);
     }
+  }
+
+  /** A site went down or came back: said once, with its project so routines can start. */
+  private alert(row: MonitorRow, up: boolean): void {
+    this.bus.publish({
+      type: "alert",
+      kind: up ? "up" : "down",
+      title: row.name,
+      link: "/tools?tab=uptime",
+      ...(row.project_id ? { projectId: row.project_id } : {}),
+    });
   }
 
   // ---- domains and certificates -------------------------------------------------------------

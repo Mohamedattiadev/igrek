@@ -90,6 +90,8 @@ export interface FlowRun {
   limits?: { maxMinutes?: number; maxTurns?: number };
   scheduleId?: string;
   raise?: RaiseState;
+  /** Started by the chief (chief.ts): its result is reported back in the chief's chat. */
+  by?: "chief";
   error?: string;
   createdAt: number;
   updatedAt: number;

@@ -41,6 +41,8 @@ const AGENT_WRITES = new Set([
   "/api/agent/forms",
   // A question to an expert persona, which only reads the project.
   "/api/agent/experts/ask",
+  // The chief hands work to a project: a run in its own copy, merged only with the user's OK.
+  "/api/agent/delegate",
 ]);
 
 /** Text files worth compressing; images and fonts are compressed already. */

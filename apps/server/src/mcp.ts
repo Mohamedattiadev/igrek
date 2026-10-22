@@ -179,7 +179,64 @@ const TOOLS = [
     description: "The latest sessions in this project with their plain-language summaries.",
     inputSchema: { type: "object", properties: { path: pathArg } },
   },
+  {
+    name: "igrek_projects",
+    description: "The user's projects in Igrek: name, folder and id. Use it before handing work to a project.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "igrek_delegate",
+    description:
+      "Hand a job to one of the user's projects: Igrek starts a run in the project's own copy of the repo, done by the persona you name (or the default), and the project's checks must pass. Nothing reaches the user's branch until they approve it; the result is written back into this chat when it is ready.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: { type: "string", description: "The project's name, folder or id (from igrek_projects)" },
+        request: { type: "string", description: "The job, written as a complete instruction" },
+        persona: { type: "string", description: "Optional persona id: backend, frontend, qa, security, devops…" },
+      },
+      required: ["project", "request"],
+    },
+  },
+  {
+    name: "igrek_runs",
+    description: "The latest runs across the user's projects: what they were asked, their state and their page.",
+    inputSchema: { type: "object", properties: {} },
+  },
 ];
+
+/** The chief's tools (chief.ts): projects, handing work to them, and how that work goes. */
+async function chiefTool(
+  name: string,
+  args: Args & { project?: string; request?: string },
+): Promise<string | undefined> {
+  if (name === "igrek_projects") {
+    const projects = await api<{ id: string; name: string; path: string; hidden?: boolean }[]>("/api/projects");
+    const shown = projects.filter((p) => !p.hidden);
+    return shown.length ? shown.map((p) => `- ${p.name} (id ${p.id}): ${p.path}`).join("\n") : "No projects yet.";
+  }
+  if (name === "igrek_delegate") {
+    const run = await post<{ id: string; link: string }>("/api/agent/delegate", {
+      project: args.project,
+      request: args.request,
+      persona: args.persona,
+    });
+    return `Started run ${run.id} (${run.link} in Igrek). Its result will be written into this chat.`;
+  }
+  if (name === "igrek_runs") {
+    const runs =
+      await api<{ id: string; projectId: string; request: string; status: string; updatedAt: number }[]>("/api/flows");
+    if (!runs.length) return "No runs yet.";
+    return runs
+      .slice(0, 15)
+      .map(
+        (r) =>
+          `- ${r.id} · ${r.status} · ${new Date(r.updatedAt).toISOString().slice(0, 16)} · ${r.request.slice(0, 100)}`,
+      )
+      .join("\n");
+  }
+  return undefined;
+}
 
 type Args = {
   path?: string;
@@ -224,6 +281,8 @@ function formatRun(run: Run): string {
 }
 
 async function callTool(name: string, args: Args): Promise<string> {
+  const chief = await chiefTool(name, args);
+  if (chief !== undefined) return chief;
   const cwd = args.path ?? process.cwd();
   if (name === "igrek_project_memory") {
     const { context } = await api<{ context: string }>(`/api/context?cwd=${encodeURIComponent(cwd)}`);

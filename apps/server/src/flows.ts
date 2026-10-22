@@ -349,6 +349,8 @@ export class Flows {
     persona?: string;
     /** "Raise to 100": the part and its score now; the copy is measured again after each round. */
     raise?: Pick<RaiseState, "category" | "before">;
+    /** Started by the chief, which hears the result. */
+    by?: FlowRun["by"];
   }): FlowRun {
     const project = this.store.projectRow(args.projectId);
     if (!project || !existsSync(project.path)) throw new Error("Project folder not found");
@@ -389,6 +391,7 @@ export class Flows {
       ...(args.model ? { model: args.model } : {}),
       ...(args.persona ? { persona: args.persona } : {}),
       ...(args.raise ? { raise: { ...args.raise, rounds: [] } } : {}),
+      ...(args.by ? { by: args.by } : {}),
       createdAt: now,
       updatedAt: now,
     };

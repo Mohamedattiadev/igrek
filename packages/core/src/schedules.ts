@@ -1,7 +1,13 @@
 /** Scheduled work (plan.md Faz 9): say it once in plain words, it runs on time in its own copy. */
 
+/** Things that can start a routine (routines.ts): checked on this computer, no model needed. */
+export const ROUTINE_EVENTS = ["ci-failed", "issue-opened", "site-down", "app-error"] as const;
+export type RoutineEvent = (typeof ROUTINE_EVENTS)[number];
+
 export type ScheduleWhen =
   | { kind: "once"; at: number }
+  /** When something happens in the project: CI fails, an issue is opened, the site or the app breaks. */
+  | { kind: "event"; event: RoutineEvent }
   | {
       kind: "repeat";
       every: "hour" | "day" | "weekday" | "week" | "month";
@@ -46,7 +52,7 @@ export interface Schedule {
 }
 
 export interface ScheduleTemplate {
-  id: "nightly-check" | "weekly-deps" | "daily-report";
+  id: "nightly-check" | "weekly-deps" | "daily-report" | "ci-fix" | "issue-triage" | "down-check";
   flow: string;
   when: ScheduleWhen;
 }
@@ -55,6 +61,10 @@ export const SCHEDULE_TEMPLATES: ScheduleTemplate[] = [
   { id: "nightly-check", flow: "check", when: { kind: "repeat", every: "day", time: "02:00" } },
   { id: "weekly-deps", flow: "deps", when: { kind: "repeat", every: "week", time: "09:00", weekday: 5 } },
   { id: "daily-report", flow: "report", when: { kind: "repeat", every: "weekday", time: "08:30" } },
+  // Routines that wait for something to happen (routines.ts).
+  { id: "ci-fix", flow: "fix", when: { kind: "event", event: "ci-failed" } },
+  { id: "issue-triage", flow: "report", when: { kind: "event", event: "issue-opened" } },
+  { id: "down-check", flow: "report", when: { kind: "event", event: "site-down" } },
 ];
 
 function at(base: Date, time: string): Date {
@@ -67,6 +77,8 @@ function at(base: Date, time: string): Date {
 /** The next time a schedule should run after `from` (local time). */
 export function nextRun(when: ScheduleWhen, from: number): number | undefined {
   if (when.kind === "once") return when.at > from ? when.at : undefined;
+  // A routine that waits for something to happen has no time of its own.
+  if (when.kind === "event") return undefined;
   const now = new Date(from);
   if (when.every === "hour") {
     const [, m] = when.time.split(":").map(Number);

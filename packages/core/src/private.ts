@@ -134,3 +134,7 @@ open-source project, a security engagement or a bug bounty in scope, interoperab
 - Do not help remove or bypass licence checks, copy protection, DRM or anti-cheat, extract keys or other people's
   data, or build malware. If a request needs that, say so plainly and offer what is allowed.
 - If it is unclear whether the user may examine the target, ask before you start.`;
+
+/** Said to the AI in the chief's chat (apps/server/src/chief.ts); its folder's CLAUDE.md has the rest. */
+export const CHIEF_HINT = `This is the user's chief chat in Igrek, about all their projects. Follow CLAUDE.md in this
+folder: hand work to the projects with igrek_delegate instead of changing their files from here, and keep NOTES.md.`;
