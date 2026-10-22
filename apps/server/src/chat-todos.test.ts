@@ -27,4 +27,22 @@ describe("a chat's to-do list", () => {
     todos.adopt("chat:c1", "sess-1");
     expect(todos.list("sess-1").map((t) => [t.text, t.done])).toEqual([["Mine", false]]);
   });
+
+  test("the AI's plan joins the list and is ticked off as it works; the user's own items stay", () => {
+    const todos = new ChatTodos(openDb(":memory:").sqlite);
+    todos.add("s1", "Ask the designer about colours", 1);
+    todos.fromPlan("s1", [
+      { content: "Add the cart page", status: "in_progress" },
+      { content: "Write its tests", status: "pending" },
+    ]);
+    const after = todos.fromPlan("s1", [
+      { content: "Add the cart page", status: "completed" },
+      { content: "Write its tests", status: "pending" },
+    ]);
+    expect(after.map((t) => [t.text, t.done])).toEqual([
+      ["Ask the designer about colours", false],
+      ["Add the cart page", true],
+      ["Write its tests", false],
+    ]);
+  });
 });

@@ -142,6 +142,8 @@ function ErrorRow({ g }: { g: AppErrorGroup }) {
 }
 
 /** Errors the app reported and its logs (plan.md 12). */
+const VIEWS = ["errors", "logs", "users", "speed"] as const;
+
 export function MonitorTab({ project }: { project: ProjectDetail }) {
   const { t } = useTranslation();
   const [groups, setGroups] = useState<AppErrorGroup[]>();
@@ -156,36 +158,50 @@ export function MonitorTab({ project }: { project: ProjectDetail }) {
   );
   useEffect(load, [load]);
   useServerEvent("ops-changed", (m) => m.what === "errors" && load());
+  // One part at a time (a user found the whole tab at once too much): errors first, where trouble shows.
+  const [view, setView] = useState<(typeof VIEWS)[number]>("errors");
   return (
-    <div className="space-y-8">
-      <IncidentButton projectId={project.id} />
-      <AnalyticsPanel projectId={project.id} />
-      <FeedbackPanel projectId={project.id} />
-      <PerfPanel projectId={project.id} />
-      <section className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="min-w-0 flex-1 text-[14px] font-semibold">{t("apperrors.title")}</h2>
-          <Button variant="ghost" icon={Code} onClick={() => setSetup(true)}>
-            {t("apperrors.setup")}
-          </Button>
+    <div className="space-y-5">
+      <p className="text-[13px] text-fg-muted">{t("monitor.intro")}</p>
+      <Segmented
+        label={t("monitor.parts")}
+        value={view}
+        onChange={setView}
+        options={VIEWS.map((v) => ({ value: v, label: t(`monitor.view_${v}`), tip: t(`monitor.viewTip_${v}`) }))}
+      />
+      {view === "errors" && (
+        <div className="space-y-6">
+          <IncidentButton projectId={project.id} />
+          <section className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="min-w-0 flex-1 text-[14px] font-semibold">{t("apperrors.title")}</h2>
+              <Button variant="ghost" icon={Code} onClick={() => setSetup(true)}>
+                {t("apperrors.setup")}
+              </Button>
+            </div>
+            {groups && !groups.length ? (
+              <EmptyState icon={Bug} title={t("apperrors.emptyTitle")} body={t("apperrors.emptyBody")} />
+            ) : (
+              <Card>
+                <ul className="divide-y divide-border">
+                  {(groups ?? []).map((g) => (
+                    <ErrorRow key={g.id} g={g} />
+                  ))}
+                </ul>
+              </Card>
+            )}
+            <Snippet projectId={project.id} open={setup} onClose={() => setSetup(false)} />
+          </section>
         </div>
-        {groups && !groups.length ? (
-          <EmptyState icon={Bug} title={t("apperrors.emptyTitle")} body={t("apperrors.emptyBody")} />
-        ) : (
-          <Card>
-            <ul className="divide-y divide-border">
-              {(groups ?? []).map((g) => (
-                <ErrorRow key={g.id} g={g} />
-              ))}
-            </ul>
-          </Card>
-        )}
-        <Snippet projectId={project.id} open={setup} onClose={() => setSetup(false)} />
-      </section>
-      <section className="space-y-3">
-        <h2 className="text-[14px] font-semibold">{t("logs.title")}</h2>
-        <LogsPanel projectId={project.id} />
-      </section>
+      )}
+      {view === "logs" && <LogsPanel projectId={project.id} />}
+      {view === "users" && (
+        <div className="space-y-8">
+          <AnalyticsPanel projectId={project.id} />
+          <FeedbackPanel projectId={project.id} />
+        </div>
+      )}
+      {view === "speed" && <PerfPanel projectId={project.id} />}
     </div>
   );
 }

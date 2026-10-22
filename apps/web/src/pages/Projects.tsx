@@ -11,17 +11,14 @@ import {
   GitBranch,
   Search,
 } from "lucide-react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { lazy, type ReactNode, Suspense, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router";
 import { AddProjectForm } from "../components/AddProjectForm";
-import { BriefingCard } from "../components/BriefingCard";
-import { FocusBanner } from "../components/FocusBanner";
-import { HomeComposer } from "../components/HomeComposer";
+import { ChiefLine } from "../components/HomeComposer";
 import { LoadError } from "../components/LoadError";
-import { RecapCard } from "../components/RecapCard";
 import { TeamAvatar, useTeamPeople } from "../components/TeamAvatar";
-import { Badge, Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
+import { Button, Card, Dialog, EmptyState, PageHeader, Segmented } from "../components/ui";
 import { useWorkspace } from "../components/WorkspacePicker";
 import { DayEndButton } from "../components/Writeups";
 import { ActiveDot, HealthBadge, useSummaryText } from "../components/work";
@@ -31,82 +28,116 @@ import { relativeTime } from "../lib/format";
 import { useIndexStatus, useLiveData } from "../lib/live";
 import { useSettings } from "../lib/settings";
 
+/** "~/Projects/shop" for "/home/me/Projects/shop": the start of a path says little and takes the room. */
+function shortPath(path: string): string {
+  return path.replace(/^\/home\/[^/]+|^\/Users\/[^/]+|^[A-Za-z]:\\Users\\[^\\]+/, "~");
+}
+
+/** A steady colour per project, so a card is found by its look before its name is read. */
+function hueOf(name: string): number {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return h;
+}
+
+function TeamFaces({ project, people }: { project: ProjectListItem; people: ReturnType<typeof useTeamPeople> }) {
+  // Teammates who worked here lately; the one working right now has a green dot.
+  const here = people.presence.filter((p) => p.projectId === project.id);
+  const members = (people.status?.members ?? []).filter(
+    (m) =>
+      m.id !== people.status?.user?.id && (project.teamAuthors.includes(m.id) || here.some((p) => p.userId === m.id)),
+  );
+  if (!members.length) return null;
+  return (
+    <span className="flex -space-x-1.5">
+      {members.slice(0, 4).map((m) => {
+        const doing = here.find((p) => p.userId === m.id);
+        return (
+          <TeamAvatar
+            key={m.id}
+            member={m}
+            size={20}
+            state={doing ? "working" : m.online ? "idle" : "offline"}
+            doing={doing?.title}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
+const DayCards = lazy(() => import("../components/DayCards").then((m) => ({ default: m.DayCards })));
+
 function ProjectCard({ project, people }: { project: ProjectListItem; people: ReturnType<typeof useTeamPeople> }) {
   const { t } = useTranslation();
   const summary = useSummaryText(project.lastSummary);
   const git = project.git;
+  const working = project.activeSessions > 0;
+  const said = summary?.did[0] ?? project.lastSummary?.title;
   return (
     <Link
       to={`/p/${project.id}`}
       data-nav-item
-      className="group block rounded-ui border border-border bg-bg p-pad transition-colors hover:border-border-strong hover:bg-bg-subtle"
+      className="group flex min-h-36 flex-col rounded-ui border border-border bg-bg p-pad transition-colors hover:border-border-strong hover:bg-bg-subtle"
     >
-      <div className="flex items-center gap-2">
-        <ActiveDot active={project.activeSessions > 0} />
-        <h3 className="min-w-0 flex-1 truncate text-[14px] font-semibold">{project.name}</h3>
-        {/* Teammates who worked here lately; the one working right now has a green dot. */}
-        {(() => {
-          const here = people.presence.filter((p) => p.projectId === project.id);
-          const members = (people.status?.members ?? []).filter(
-            (m) =>
-              m.id !== people.status?.user?.id &&
-              (project.teamAuthors.includes(m.id) || here.some((p) => p.userId === m.id)),
-          );
-          if (!members.length) return null;
-          return (
-            <span className="flex -space-x-1.5">
-              {members.slice(0, 4).map((m) => {
-                const doing = here.find((p) => p.userId === m.id);
-                return (
-                  <TeamAvatar
-                    key={m.id}
-                    member={m}
-                    size={20}
-                    state={doing ? "working" : m.online ? "idle" : "offline"}
-                    doing={doing?.title}
-                  />
-                );
-              })}
-            </span>
-          );
-        })()}
+      <div className="flex items-center gap-2.5">
+        <span
+          aria-hidden="true"
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[14px] font-semibold text-white"
+          style={{ background: `hsl(${hueOf(project.name)} 45% 42%)` }}
+        >
+          {project.name.slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-[14px] font-semibold">{project.name}</h3>
+          <p className="truncate font-mono text-[11px] text-fg-subtle" title={project.path}>
+            {shortPath(project.path)}
+          </p>
+        </div>
+        <TeamFaces project={project} people={people} />
         {project.health && <HealthBadge health={project.health} />}
       </div>
-      <p className="mt-0.5 truncate font-mono text-[11px] text-fg-subtle">{project.path}</p>
 
-      {(summary?.did[0] ?? project.lastSummary?.title) && (
-        <p className="mt-3 line-clamp-2 text-[13px] leading-relaxed text-fg-muted">
-          {summary?.did[0] ?? project.lastSummary?.title}
-        </p>
-      )}
-
-      <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] text-fg-subtle">
-        {git?.branch ? (
-          <Badge>
-            <GitBranch size={11} className="me-1" />
-            {git.branch}
-          </Badge>
-        ) : (
-          <Badge>{t("projects.noGit")}</Badge>
+      <p
+        className={cn(
+          "mt-3 line-clamp-2 flex-1 text-[13px] leading-relaxed",
+          said ? "text-fg-muted" : "text-fg-subtle",
         )}
-        {git && git.changed > 0 && <Badge tone="warning">{t("projects.changes", { count: git.changed })}</Badge>}
+      >
+        {said ?? t("projects.noSummary")}
+      </p>
+
+      <div className="mt-3 flex items-center gap-2 border-t border-border pt-2.5 text-[11.5px] text-fg-subtle">
+        {git?.branch ? (
+          <span className="inline-flex min-w-0 items-center gap-1 truncate">
+            <GitBranch size={12} className="shrink-0" aria-hidden="true" />
+            <span className="truncate">{git.branch}</span>
+          </span>
+        ) : (
+          <span>{t("projects.noGit")}</span>
+        )}
+        {git && git.changed > 0 && (
+          <span className="shrink-0 text-warning">· {t("projects.changes", { count: git.changed })}</span>
+        )}
         {git && git.ahead > 0 && (
-          <Badge tone="accent">
-            <ArrowUp size={10} className="me-0.5" />
+          <span className="inline-flex shrink-0 items-center text-accent" data-tip={t("projects.aheadTip")}>
+            <ArrowUp size={11} aria-hidden="true" />
             {git.ahead}
-          </Badge>
+          </span>
         )}
         {git && git.behind > 0 && (
-          <Badge tone="warning">
-            <ArrowDown size={10} className="me-0.5" />
+          <span className="inline-flex shrink-0 items-center text-warning" data-tip={t("projects.behindTip")}>
+            <ArrowDown size={11} aria-hidden="true" />
             {git.behind}
-          </Badge>
+          </span>
         )}
-        <span className="ms-auto">
-          {project.activeSessions > 0
+        <span className="ms-auto flex shrink-0 items-center gap-1.5">
+          {working && <ActiveDot active />}
+          {working
             ? t("projects.active", { count: project.activeSessions })
-            : t("projects.sessions", { count: project.sessionCount })}
-          {project.lastActivity > 0 && ` · ${relativeTime(project.lastActivity)}`}
+            : project.lastActivity > 0
+              ? relativeTime(project.lastActivity)
+              : t("projects.sessions", { count: project.sessionCount })}
         </span>
       </div>
     </Link>
@@ -348,39 +379,6 @@ function DemoButton({ parent }: { parent?: string }) {
 }
 
 /** One line: what happened today in every workspace. */
-function TodayStrip() {
-  const { t } = useTranslation();
-  const { data } = useLiveData(() => api.today(), []);
-  if (!data || data.sessions + data.teamSessions + data.commits + data.deploys === 0) return null;
-  const parts = [
-    t("today.sessions", { count: data.sessions }),
-    data.teamSessions ? t("today.team", { count: data.teamSessions }) : "",
-    t("today.commits", { count: data.commits }),
-    data.deploys
-      ? t("today.deploys", { count: data.deploys }) +
-        (data.failedDeploys ? ` (${t("today.failed", { count: data.failedDeploys })})` : "")
-      : "",
-  ].filter(Boolean);
-  return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-ui border border-border bg-bg-subtle px-3 py-2 text-xs">
-      <span className="font-semibold">{t("today.title")}</span>
-      <span className="text-fg-muted">{parts.join(" · ")}</span>
-      <span className="flex-1" />
-      {data.projects.map((p) => (
-        <Link
-          key={p.id}
-          to={`/p/${p.id}?tab=timeline`}
-          className="rounded-full border border-border bg-bg px-2 py-0.5 hover:border-accent"
-          data-tip={t("today.projectTip", { sessions: p.sessions, commits: p.commits })}
-        >
-          {p.name}
-          {p.team && <span className="ms-1 text-fg-subtle">·{t("workspace.team")}</span>}
-        </Link>
-      ))}
-    </div>
-  );
-}
-
 /** Without summaries the cards say little; one quiet offer to turn them on. */
 function SummariesOff() {
   const { t } = useTranslation();
@@ -388,28 +386,34 @@ function SummariesOff() {
   const [busy, setBusy] = useState(false);
   if (settings.autoSummarize) return null;
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-ui border border-border bg-bg-subtle px-4 py-2.5 text-[13px]">
-      <FileText size={15} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-      <span className="min-w-0 flex-1 text-fg-muted">{t("projects.summariesOff")}</span>
-      <Button
-        size="sm"
+    <p className="flex flex-wrap items-center gap-2 text-[12px] text-fg-subtle">
+      <FileText size={13} className="shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{t("projects.summariesOff")}</span>
+      <button
+        type="button"
         disabled={busy}
+        className="shrink-0 font-medium text-accent-hover underline"
         onClick={() => {
           setBusy(true);
           void update({ autoSummarize: true }).finally(() => setBusy(false));
         }}
       >
         {t("projects.summariesOn")}
-      </Button>
-    </div>
+      </button>
+    </p>
   );
 }
 
 const DAY_OPEN = "igrek.home.dayOpen";
 
-/** Briefing, day end, today and focus fold into one section below the projects, closed at first (plan.md 16.5). */
+/**
+ * Briefing, day end and focus fold into one line below the projects, closed at first (plan.md 16.5):
+ * the day's numbers and its two buttons sit on that line; opened, the cards stand side by side.
+ */
 function DaySection({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { data: today } = useLiveData(() => api.today(), []);
   const [open, setOpen] = useState(() => {
     try {
       const saved = localStorage.getItem(DAY_OPEN);
@@ -427,19 +431,28 @@ function DaySection({ children }: { children: ReactNode }) {
       // Only a convenience.
     }
   };
+  const numbers = today
+    ? [t("today.sessions", { count: today.sessions }), t("today.commits", { count: today.commits })].join(" · ")
+    : "";
   return (
-    <section className="space-y-3">
-      <button
-        type="button"
-        onClick={toggle}
-        aria-expanded={open}
-        className="flex w-full items-center gap-1.5 text-start text-xs font-semibold uppercase tracking-wide text-fg-subtle hover:text-fg"
-      >
-        <ChevronRight size={14} className={cn("shrink-0 transition-transform", open && "rotate-90")} />
-        {t("projects.day")}
-        <span className="min-w-0 truncate font-normal normal-case tracking-normal">{t("projects.dayHint")}</span>
-      </button>
-      {open && children}
+    <section className="rounded-ui border border-border">
+      <div className="flex flex-wrap items-center gap-2 px-3 py-2">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-expanded={open}
+          className="flex min-w-0 flex-1 items-center gap-1.5 text-start text-[13px] font-medium hover:text-fg"
+        >
+          <ChevronRight size={14} className={cn("shrink-0 transition-transform", open && "rotate-90")} />
+          {t("projects.day")}
+          {numbers && <span className="truncate text-[12px] font-normal text-fg-subtle">· {numbers}</span>}
+        </button>
+        <Button size="sm" variant="ghost" icon={Briefcase} onClick={() => navigate("/weekly")}>
+          {t("weekly.title")}
+        </Button>
+        <DayEndButton />
+      </div>
+      {open && <div className="grid gap-3 border-t border-border p-3 md:grid-cols-2">{children}</div>}
     </section>
   );
 }
@@ -482,7 +495,6 @@ function FoundList({ projects, onChange }: { projects: ProjectListItem[]; onChan
 
 export function ProjectsPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const [filter, setFilter] = useState("");
   const [showHidden, setShowHidden] = useState(false);
   const [statusView, setStatusView] = useState<ProjectListItem["status"]>("active");
@@ -551,7 +563,7 @@ export function ProjectsPage() {
       ) : (
         <div className="p-6">
           <div className="mb-4 space-y-3">
-            {projects && visible.length > 0 && <HomeComposer projects={visible} />}
+            {projects && visible.length > 0 && <ChiefLine />}
             {(statusCount("paused") > 0 || statusCount("archived") > 0 || statusView !== "active") && (
               <Segmented
                 label={t("projects.status")}
@@ -596,17 +608,13 @@ export function ProjectsPage() {
           {/* About the day, not about one project: below the projects, closed until opened. */}
           <div className="mt-6">
             <DaySection>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="ghost" icon={Briefcase} onClick={() => navigate("/weekly")}>
-                  {t("weekly.title")}
-                </Button>
-                <DayEndButton />
+              {/* Loaded when the section is opened: it starts closed, so the first screen stays light. */}
+              <Suspense fallback={null}>
+                <DayCards projects={projects ?? []} onChange={reload} />
+              </Suspense>
+              <div className="md:col-span-2">
+                <SummariesOff />
               </div>
-              <SummariesOff />
-              <BriefingCard />
-              <RecapCard />
-              <TodayStrip />
-              {projects && <FocusBanner projects={projects} onChange={reload} />}
             </DaySection>
           </div>
         </div>

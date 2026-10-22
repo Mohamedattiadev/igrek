@@ -647,7 +647,9 @@ export const api = {
     authorized?: boolean;
   }) => request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
   /** The chief's one chat: started, or continued from its last session. */
-  chief: () => request<ChatInfo>("/api/chief", { method: "POST" }),
+  chief: (thread?: string) => request<ChatInfo>("/api/chief", { method: "POST", body: JSON.stringify({ thread }) }),
+  /** The chief's threads with a talk: "general" and project ids. */
+  chiefThreads: () => request<string[]>("/api/chief/threads"),
   chiefNotes: () => request<{ text: string }>("/api/chief/notes"),
   saveChiefNotes: (text: string) =>
     request<{ ok: boolean }>("/api/chief/notes", { method: "PUT", body: JSON.stringify({ text }) }),

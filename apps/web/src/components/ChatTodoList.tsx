@@ -17,15 +17,25 @@ function readOpen(): boolean {
 
 /**
  * The user's own small list for this chat, above the box: what is done and what is left. It stays
- * with the conversation (continued chats show it too). The agent's plan is the strip above; this is
- * yours. "Hand to the AI" puts what is left into the box, nothing is sent by itself.
+ * with the conversation (continued chats show it too). The agent's plan steps join it by themselves
+ * and are ticked off as it works; the user's own items stay. "Hand to the AI" puts what is left into the box, nothing is sent by itself.
  */
-export function ChatTodoList({ chatId, onUse }: { chatId: string; onUse: (text: string) => void }) {
+export function ChatTodoList({
+  chatId,
+  onUse,
+  plan,
+}: {
+  chatId: string;
+  onUse: (text: string) => void;
+  /** The AI's plan as it stands ("step:status,..."): when it changes, the list is read again. */
+  plan?: string;
+}) {
   const { t } = useTranslation();
   const [todos, setTodos] = useState<ChatTodo[]>([]);
   const [open, setOpenState] = useState(readOpen);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string>();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new plan from the AI means the list changed on the server
   useEffect(() => {
     let current = true;
     api
@@ -35,7 +45,7 @@ export function ChatTodoList({ chatId, onUse }: { chatId: string; onUse: (text: 
     return () => {
       current = false;
     };
-  }, [chatId]);
+  }, [chatId, plan]);
   const setOpen = (next: boolean) => {
     setOpenState(next);
     try {

@@ -189,6 +189,8 @@ export interface ChatStart {
   untrusted?: ProjectExtensions;
   /** Reverse-engineering mode (rea.ts), with the user's word that they may examine the target; or the chief (chief.ts). */
   focus?: ChatFocus;
+  /** One more line for the AI's instructions: which project a chief's thread is about. */
+  note?: string;
   /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
   persona?: {
     id: string;
@@ -231,7 +233,7 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
 
 /** The persona's prompt (if any) and how answers may draw: OpenUI when rich answers are on, JSON blocks otherwise. */
 function systemPrompt(
-  options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp" | "focus">,
+  options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp" | "focus" | "note">,
   privateDetails = false,
 ): string {
   const drawing = options.richUi ?? RICH_BLOCKS_HINT;
@@ -241,7 +243,7 @@ function systemPrompt(
       ? `${drawing}\n\n${options.igrekMcp.hint}`
       : drawing;
   const focused = options.focus ? { reverse: REVERSE_HINT, chief: CHIEF_HINT }[options.focus] : undefined;
-  const base = focused ? `${plain}\n\n${focused}` : plain;
+  const base = [plain, focused, options.note].filter(Boolean).join("\n\n");
   // Only when the user keeps private details: the AI is told what the placeholders are.
   return privateDetails ? `${base}\n\n${PRIVATE_HINT}` : base;
 }
@@ -315,6 +317,8 @@ export class Chats {
   onStart: (cwd: string) => void = () => undefined;
   /** A turn finished; `edited` are the files it wrote. */
   onTurnEnd: (id: string, cwd: string, edited: string[]) => void = () => undefined;
+  /** The AI wrote or updated its plan (TodoWrite): the chat's to-do list follows it. */
+  onPlan: (id: string, plan: { content: string; status: string }[]) => void = () => undefined;
   /** The user's private details (private-values.ts): hidden in messages, put back in approved steps. */
   privacy?: { values(): { name: string; value: string }[] };
   /** Steps the user always allows in a project (plan.md 16.1); wired to the database. */
@@ -893,6 +897,14 @@ export class Chats {
   }
 
   private upsert(chat: Chat, event: ChatEvent): void {
+    if (event.kind === "tool" && event.name === "TodoWrite") {
+      const plan = (event.input as { todos?: unknown })?.todos;
+      if (Array.isArray(plan))
+        this.onPlan(
+          chat.info.id,
+          plan.filter((s): s is { content: string; status: string } => typeof s?.content === "string"),
+        );
+    }
     const index = chat.index.get(event.id);
     if (index !== undefined) chat.events[index] = event;
     else {

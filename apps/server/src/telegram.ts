@@ -28,9 +28,11 @@ interface Saved {
 
 interface ChiefLike {
   send: (text: string) => void;
-  answer: (requestId: string, decision: "allow" | "deny") => void;
-  listen: (listener: (op: ChatOp) => void) => () => void;
-  events: () => ChatEvent[];
+  answer: (requestId: string, decision: "allow" | "deny", thread?: string) => void;
+  listen: (listener: (op: ChatOp, thread: string) => void) => () => void;
+  events: (thread?: string) => ChatEvent[];
+  /** A thread's name for the phone: "" for the general one, the project's name for a project's. */
+  threadName: (thread: string) => string;
 }
 
 interface Update {
@@ -56,7 +58,7 @@ export class Telegram {
   private polling?: AbortController;
   private error?: string;
   /** Approvals waiting, by the short number the phone answers with. */
-  private approvals = new Map<string, string>();
+  private approvals = new Map<string, { requestId: string; thread: string }>();
   private sent = new Set<string>();
   private unlisten?: () => void;
 
@@ -131,7 +133,7 @@ export class Telegram {
       this.error = "The saved token could not be opened; connect the bot again";
       return;
     }
-    this.unlisten ??= this.chief.listen((op) => this.onChief(op));
+    this.unlisten ??= this.chief.listen((op, thread) => this.onChief(op, thread));
     const controller = new AbortController();
     this.polling = controller;
     void this.loop(controller);
@@ -182,31 +184,36 @@ export class Telegram {
     if (chatId !== this.saved.chatId) return;
     const decision = text.match(/^\/(allow|deny)_?(\d+)$/);
     if (decision) {
-      const requestId = this.approvals.get(decision[2] ?? "");
-      if (!requestId) return this.say("That approval is no longer waiting.");
+      const waiting = this.approvals.get(decision[2] ?? "");
+      if (!waiting) return this.say("That approval is no longer waiting.");
       this.approvals.delete(decision[2] ?? "");
-      this.chief.answer(requestId, decision[1] === "allow" ? "allow" : "deny");
+      this.chief.answer(waiting.requestId, decision[1] === "allow" ? "allow" : "deny", waiting.thread);
       return;
     }
     if (text === "/start") return;
     this.chief.send(text);
   }
 
-  /** What the chief does, told to the phone: answers, approvals it waits for, results of runs. */
-  private onChief(op: ChatOp): void {
+  /**
+   * What the chief does in any of its threads, told to the phone: answers, approvals it waits for,
+   * results of runs. A project thread's messages start with the project's name.
+   */
+  private onChief(op: ChatOp, thread: string): void {
     if (op.op !== "upsert" || this.saved.chatId === undefined) return;
     const event = op.event;
     if (this.sent.has(event.id)) return;
+    const name = this.chief.threadName(thread);
+    const from = name ? `[${name}] ` : "";
     if (event.kind === "result") {
       this.sent.add(event.id);
-      const answer = lastAnswer(this.chief.events());
-      if (answer) void this.say(answer);
+      const answer = lastAnswer(this.chief.events(thread));
+      if (answer) void this.say(`${from}${answer}`);
     } else if (event.kind === "permission" && event.status === "pending") {
       this.sent.add(event.id);
       const n = String(this.approvals.size + 1);
-      this.approvals.set(n, event.requestId);
+      this.approvals.set(n, { requestId: event.requestId, thread });
       const what = JSON.stringify(event.input ?? {}).slice(0, 600);
-      void this.say(`The chief asks to use ${event.toolName}:\n${what}\n\n/allow_${n} or /deny_${n}`);
+      void this.say(`${from}The chief asks to use ${event.toolName}:\n${what}\n\n/allow_${n} or /deny_${n}`);
     } else if (event.kind === "notice" && event.code === "run") {
       this.sent.add(event.id);
       const [, status, project, changed] = event.text.split("|");

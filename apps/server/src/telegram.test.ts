@@ -13,8 +13,8 @@ function setup() {
   const dir = mkdtempSync(join(tmpdir(), "telegram-"));
   const said: { chat_id: number; text: string }[] = [];
   const toChief: string[] = [];
-  const answers: [string, string][] = [];
-  let listener: (op: ChatOp) => void = () => undefined;
+  const answers: [string, string, string][] = [];
+  let listener: (op: ChatOp, thread: string) => void = () => undefined;
   let events: ChatEvent[] = [];
   const web = async (url: string, init?: RequestInit) => {
     const body = JSON.parse(String(init?.body ?? "{}"));
@@ -30,12 +30,13 @@ function setup() {
     new Sealer(dir),
     {
       send: (text) => toChief.push(text),
-      answer: (id, d) => answers.push([id, d]),
+      answer: (id, d, thread) => answers.push([id, d, thread ?? ""]),
       listen: (l) => {
         listener = l;
         return () => undefined;
       },
       events: () => events,
+      threadName: (thread) => (thread === "p1" ? "Shop" : ""),
     },
     () => [{ name: "iban", value: "TR330006100519786457841326" }],
     web,
@@ -45,9 +46,9 @@ function setup() {
     said,
     toChief,
     answers,
-    emit: (event: ChatEvent, all: ChatEvent[] = [event]) => {
+    emit: (event: ChatEvent, all: ChatEvent[] = [event], thread = "general") => {
       events = all;
-      listener({ op: "upsert", seq: 1, event });
+      listener({ op: "upsert", seq: 1, event }, thread);
     },
   };
 }
@@ -76,20 +77,25 @@ describe("telegram", () => {
     const text: ChatEvent = { kind: "text", id: "t", at: 1, text: "Your IBAN TR330006100519786457841326 is saved." };
     const result: ChatEvent = { kind: "result", id: "r", at: 2, isError: false };
     emit(result, [{ kind: "user", id: "u", at: 0, text: "hi", images: 0 }, text, result]);
-    emit({
-      kind: "permission",
-      id: "p",
-      requestId: "req-1",
-      at: 3,
-      toolName: "mcp__igrek__igrek_delegate",
-      input: { project: "Shop" },
-      status: "pending",
-    });
+    emit(
+      {
+        kind: "permission",
+        id: "p",
+        requestId: "req-1",
+        at: 3,
+        toolName: "mcp__igrek__igrek_delegate",
+        input: { project: "Shop" },
+        status: "pending",
+      },
+      undefined,
+      "p1",
+    );
     await Bun.sleep(20);
     expect(said[0]?.text).toBe("Your IBAN [[private:iban]] is saved.");
     expect(said[1]?.text).toContain("/allow_1");
+    expect(said[1]?.text.startsWith("[Shop] ")).toBe(true);
     await telegram.handle({ update_id: 2, message: { chat: { id: 7 }, text: "/allow_1" } });
-    expect(answers).toEqual([["req-1", "allow"]]);
+    expect(answers).toEqual([["req-1", "allow", "p1"]]);
     telegram.stop();
   });
 

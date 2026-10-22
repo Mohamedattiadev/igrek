@@ -405,6 +405,11 @@ function registerChatTodos(app: Hono, chats: Chats, history: ChatHistory, todos:
     }
     return live ? `chat:${id}` : undefined;
   };
+  // The AI's plan steps land on the list too (a user asked whether it fills itself).
+  chats.onPlan = (id, plan) => {
+    const key = keyOf(id);
+    if (key) todos.fromPlan(key, plan);
+  };
   const withKey = (id: string, run: (key: string) => unknown) => {
     const key = keyOf(id);
     if (!key) return Response.json({ error: "Chat not found" }, { status: 404 });

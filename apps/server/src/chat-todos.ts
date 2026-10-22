@@ -55,6 +55,42 @@ export class ChatTodos {
     return this.list(key);
   }
 
+  /**
+   * The AI wrote its plan (Claude Code's TodoWrite): its steps join the chat's list and are ticked off
+   * as the AI finishes them. The user's own items stay as they are; a step is matched by its text.
+   */
+  fromPlan(key: string, plan: { content: string; status: string }[], now = Date.now()): ChatTodo[] {
+    this.db.transaction(() => {
+      const have = new Map(this.list(key).map((todo) => [todo.text.toLowerCase(), todo]));
+      for (const step of plan) this.planStep(key, step, have, now);
+    })();
+    return this.list(key);
+  }
+
+  /** One plan step (inside fromPlan's transaction): ticked as the AI says, or added when it is new and there is room. */
+  private planStep(key: string, step: { content: string; status: string }, have: Map<string, ChatTodo>, now: number) {
+    const text = step.content.replace(/\s+/g, " ").trim().slice(0, MAX_TEXT);
+    const done = step.status === "completed";
+    const existing = have.get(text.toLowerCase());
+    if (existing) {
+      if (existing.done !== done) this.tick(key, existing.id, done, now);
+    } else if (text && have.size < MAX_ITEMS) have.set(text.toLowerCase(), this.insert(key, text, done, now));
+  }
+
+  private tick(key: string, id: string, done: boolean, now: number): void {
+    this.db
+      .query("UPDATE chat_todos SET done = ?, done_at = ? WHERE id = ? AND chat_key = ?")
+      .run(done ? 1 : 0, done ? now : null, id, key);
+  }
+
+  private insert(key: string, text: string, done: boolean, now: number): ChatTodo {
+    const id = crypto.randomUUID();
+    this.db
+      .query("INSERT INTO chat_todos (id, chat_key, text, done, created_at, done_at) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(id, key, text, done ? 1 : 0, now, done ? now : null);
+    return { id, text, done, createdAt: now };
+  }
+
   /** The chat got its session id: the items written before move to it. */
   adopt(from: string, to: string): void {
     this.db.query("UPDATE chat_todos SET chat_key = ? WHERE chat_key = ?").run(to, from);

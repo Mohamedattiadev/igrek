@@ -60,6 +60,9 @@
     "openSetup": "Open the Setup tab"
   },
   "projects": {
+    "noSummary": "No summary yet: it appears after a chat here.",
+    "aheadTip": "Commits not pushed yet",
+    "behindTip": "Commits on the remote you do not have yet",
     "title": "Projects",
     "emptyTitle": "No projects yet",
     "emptyBody": "Add a folder you work in. Work Claude does inside it shows up here, with summaries, checks and experts.",
@@ -88,7 +91,6 @@
     "summariesOff": "Automatic summaries are off, so the cards can't say what each project is doing. A small, cheap model writes them after each session.",
     "summariesOn": "Turn on summaries",
     "day": "Your day",
-    "dayHint": "briefing, day end, today and focus",
     "addAs": "What is this folder?",
     "addAs_one": "One project",
     "addAs_folder": "A folder of projects",
@@ -107,6 +109,15 @@
     "browseEmpty": "No folders in here."
   },
   "inbox": {
+    "general": "Igrek",
+    "allDone": "Mark all done",
+    "topics": "Topics",
+    "topic_all": "All",
+    "topic_security": "Security",
+    "topic_packages": "Packages",
+    "topic_checks": "Checks",
+    "topic_site": "Site and deploys",
+    "topic_other": "Other",
     "title": "Inbox",
     "emptyTitle": "All clear",
     "emptyBody": "Approvals, mentions and alerts will show up here.",
@@ -503,6 +514,14 @@
     "manual": "Run this on your computer:"
   },
   "term": {
+    "startIn": "Project to start in",
+    "openNow": "Open now",
+    "openNowHint": "Chats and terminals that are running, with what each is doing.",
+    "pastHint": "Earlier chats by project: continue one where it stopped.",
+    "noHistory": "No earlier chats yet.",
+    "noProject": "Without a project",
+    "chatCount_one": "{{count}} chat",
+    "chatCount_other": "{{count}} chats",
     "title": "Terminals",
     "empty": "No terminals open",
     "emptyBody": "Start a chat or a Claude, Codex or shell terminal in one of your projects below. It keeps running even if you close this page.",
@@ -1896,6 +1915,9 @@
     "start": "Start a REA chat"
   },
   "chief": {
+    "threads": "The chief's talks",
+    "general": "General",
+    "byProject": "By project",
     "intro": "Your chief: tell it what you want across your projects. It hands the work to them and reports back here.",
     "notes": "Notebook",
     "notesHint": "What the chief remembers: your preferences, ongoing responsibilities, decisions. It reads this at every start and keeps it up to date; you can change it.",
@@ -1917,6 +1939,18 @@
     "run_other": "Run in {{project}}: {{status}}, {{count}} files changed.",
     "openRun": "Open"
   },
+  "monitor": {
+    "intro": "How the live project is doing: errors its users hit, its logs, what they use, and how fast it is for them.",
+    "parts": "Parts of monitoring",
+    "view_errors": "Errors",
+    "view_logs": "Logs",
+    "view_users": "Users",
+    "view_speed": "Speed",
+    "viewTip_errors": "Errors from the running app, grouped, and the incident mode for when the site is down",
+    "viewTip_logs": "The app's log lines, searchable",
+    "viewTip_users": "Product numbers and what users wrote to you",
+    "viewTip_speed": "Real visitors' load and response times, and the live site's caching"
+  },
   "slash": {
     "skill": "skill",
     "find": "catalog",
@@ -1927,18 +1961,10 @@
     "prompt": "saved prompt"
   },
   "today": {
-    "title": "Today",
     "sessions_one": "{{count}} session",
     "sessions_other": "{{count}} sessions",
-    "team_one": "{{count}} by teammates",
-    "team_other": "{{count}} by teammates",
     "commits_one": "{{count}} commit",
-    "commits_other": "{{count}} commits",
-    "deploys_one": "{{count}} deploy",
-    "deploys_other": "{{count}} deploys",
-    "failed_one": "{{count}} failed",
-    "failed_other": "{{count}} failed",
-    "projectTip": "{{sessions}} sessions, {{commits}} commits today"
+    "commits_other": "{{count}} commits"
   },
   "deploy": {
     "title": "Deploy",
@@ -3240,7 +3266,6 @@
     "emptyBody": "Docker has no containers here."
   },
   "logs": {
-    "title": "Logs",
     "intro": "Files, Docker containers and systemd services, here or on a server, read together. The same error repeated with other numbers and ids is one group.",
     "kind": "Kind",
     "kind_docker": "Docker container",
@@ -4216,11 +4241,10 @@
     "close": "Close"
   },
   "home": {
-    "title": "What do you want to do?",
-    "placeholder": "Write it as you would to a colleague: \"Find why login fails and fix it\". Enter sends, Shift+Enter adds a line.",
-    "project": "Project",
-    "mode": "How careful",
-    "starting": "Starting…"
+    "chiefLabel": "Write to the chief",
+    "chiefPlaceholder": "Tell the chief what you want, in any project: \"Add a cart page to the shop\"",
+    "chiefSend": "Send to the chief",
+    "title": "What do you want to do?"
   },
   "helper": {
     "title": "Helper",

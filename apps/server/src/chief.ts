@@ -34,8 +34,14 @@ work to the projects instead of doing it here.
 @${NOTES}
 `;
 
+/** The general thread's key; a project's thread is keyed by the project's id. */
+const GENERAL = "general";
+
 interface State {
+  /** Before threads there was one session. */
   sessionId?: string;
+  /** Each thread's last Claude Code session, so it goes on after a restart. */
+  sessions?: Record<string, string>;
 }
 
 /** A run's result as one line for the chief's chat: "runId|status|project|changed files". */
@@ -45,18 +51,26 @@ function runReport(run: FlowRun, projectName: string): string {
 
 const REPORTED: FlowRun["status"][] = ["ready", "done", "failed", "needs_you", "stopped"];
 
+interface Thread {
+  chatId?: string;
+  detach?: () => void;
+}
+
+/**
+ * The chief's threads: a general one about everything, and one per project the user opens, so a long
+ * talk about one project does not bury the others (asked for by the user). They share the notebook.
+ */
 export class Chief {
-  private chatId?: string;
+  private threads = new Map<string, Thread>();
   private reported = new Map<string, FlowRun["status"]>();
-  /** Telegram listens here: everything that happens in the chief's chat. */
-  private listeners = new Set<(op: ChatOp) => void>();
-  private detach?: () => void;
+  /** Telegram listens here: everything that happens in the chief's threads, with the thread's key. */
+  private listeners = new Set<(op: ChatOp, thread: string) => void>();
 
   constructor(
     readonly dir: string,
     private readonly chats: Chats,
-    /** Starts the chief's chat (or continues its session) with the account, MCP server and focus. */
-    private readonly startChat: (cwd: string, resume?: string) => ChatInfo,
+    /** Starts a thread's chat (or continues its session); `projectId` for a project's thread. */
+    private readonly startChat: (cwd: string, resume?: string, projectId?: string) => ChatInfo,
     private readonly projectName: (projectId: string) => string,
   ) {
     mkdirSync(dir, { recursive: true });
@@ -64,53 +78,72 @@ export class Chief {
     if (!existsSync(join(dir, NOTES))) writeFileSync(join(dir, NOTES), "# What I remember\n\n");
   }
 
-  private state(): State {
+  private sessions(): Record<string, string> {
     try {
-      return JSON.parse(readFileSync(join(this.dir, STATE), "utf8")) as State;
+      const state = JSON.parse(readFileSync(join(this.dir, STATE), "utf8")) as State;
+      return { ...(state.sessionId ? { [GENERAL]: state.sessionId } : {}), ...state.sessions };
     } catch {
       return {};
     }
   }
 
-  /** The chief's chat, started (or continued from its last session) when there is none running. */
-  open(): ChatInfo {
-    const live = this.chatId ? this.chats.get(this.chatId) : undefined;
+  private remember(thread: string, sessionId: string): void {
+    const sessions = this.sessions();
+    if (sessions[thread] === sessionId) return;
+    writeFileSync(join(this.dir, STATE), JSON.stringify({ sessions: { ...sessions, [thread]: sessionId } }));
+  }
+
+  /** A thread's chat, started (or continued from its last session) when there is none running. */
+  open(thread = GENERAL): ChatInfo {
+    const state = this.threads.get(thread) ?? {};
+    this.threads.set(thread, state);
+    const live = state.chatId ? this.chats.get(state.chatId) : undefined;
     if (live && live.status !== "exited") return live;
-    const info = this.startChat(this.dir, live?.sessionId ?? this.state().sessionId);
-    this.chatId = info.id;
-    this.detach?.();
-    this.detach = this.chats.attach(info.id, (op) => {
-      if (op.op === "info" && op.info.sessionId && op.info.sessionId !== this.state().sessionId)
-        writeFileSync(join(this.dir, STATE), JSON.stringify({ sessionId: op.info.sessionId }));
-      for (const listener of this.listeners) listener(op);
+    const info = this.startChat(
+      this.dir,
+      live?.sessionId ?? this.sessions()[thread],
+      thread === GENERAL ? undefined : thread,
+    );
+    state.chatId = info.id;
+    state.detach?.();
+    state.detach = this.chats.attach(info.id, (op) => {
+      if (op.op === "info" && op.info.sessionId) this.remember(thread, op.info.sessionId);
+      for (const listener of this.listeners) listener(op, thread);
     })?.detach;
     return info;
   }
 
-  send(text: string): void {
-    this.chats.send(this.open().id, text);
+  /** The threads that have a talk (started now or before), general first. */
+  list(): string[] {
+    return [...new Set([GENERAL, ...Object.keys(this.sessions()), ...this.threads.keys()])];
   }
 
-  /** The chat's events now, for a reader that joins late (Telegram finding the last answer). */
-  events(): ChatEvent[] {
-    return this.chatId ? (this.chats.snapshot(this.chatId)?.events ?? []) : [];
+  send(text: string, thread = GENERAL): void {
+    this.chats.send(this.open(thread).id, text);
   }
 
-  answer(requestId: string, decision: "allow" | "deny"): void {
-    if (this.chatId) this.chats.answer(this.chatId, requestId, decision);
+  /** A thread's events now, for a reader that joins late (Telegram finding the last answer). */
+  events(thread = GENERAL): ChatEvent[] {
+    const chatId = this.threads.get(thread)?.chatId;
+    return chatId ? (this.chats.snapshot(chatId)?.events ?? []) : [];
   }
 
-  listen(listener: (op: ChatOp) => void): () => void {
+  answer(requestId: string, decision: "allow" | "deny", thread = GENERAL): void {
+    const chatId = this.threads.get(thread)?.chatId;
+    if (chatId) this.chats.answer(chatId, requestId, decision);
+  }
+
+  listen(listener: (op: ChatOp, thread: string) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
 
-  /** A run the chief started changed: its result goes into the chief's chat, once per state. */
+  /** A run the chief started changed: its result goes to the project's thread (or the general one), once per state. */
   onRun(run: FlowRun): void {
     if (run.by !== "chief" || !REPORTED.includes(run.status) || this.reported.get(run.id) === run.status) return;
     this.reported.set(run.id, run.status);
-    const chatId = this.open().id;
-    this.chats.addEvent(chatId, {
+    const thread = this.list().includes(run.projectId) ? run.projectId : GENERAL;
+    this.chats.addEvent(this.open(thread).id, {
       kind: "notice",
       id: `run-${run.id}-${run.status}`,
       at: Date.now(),
@@ -118,6 +151,11 @@ export class Chief {
       code: "run",
       text: runReport(run, this.projectName(run.projectId)),
     });
+  }
+
+  /** "" for the general thread, the project's name for a project's thread. */
+  threadName(thread: string): string {
+    return thread === GENERAL ? "" : this.projectName(thread);
   }
 
   notes(): string {
@@ -150,13 +188,16 @@ export function registerChiefRoutes(
       return c.json({ error: (err as Error).message }, 400);
     }
   });
-  app.post("/api/chief", (c) => {
+  // A thread: the general one, or a project's (its id).
+  app.post("/api/chief", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as { thread?: unknown };
     try {
-      return c.json(chief.open());
+      return c.json(chief.open(typeof body.thread === "string" && body.thread ? body.thread : GENERAL));
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400);
     }
   });
+  app.get("/api/chief/threads", (c) => c.json(chief.list()));
   app.get("/api/chief/notes", (c) => c.json({ text: chief.notes() }));
   app.put("/api/chief/notes", async (c) => {
     const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };

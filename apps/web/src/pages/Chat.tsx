@@ -1122,6 +1122,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       {info && (
         <ChatTodoList
           chatId={info.id}
+          plan={todos?.map((step) => `${step.content}:${step.status}`).join(",")}
           onUse={(list) => {
             setText((v) => (v ? `${v}\n\n${list}` : list));
             input.current?.focus();
@@ -1680,12 +1681,19 @@ function chatUrl(left: string, right?: string, drafts: { left?: string; right?: 
 
 /** One chat, or two side by side (`?with=`): each keeps its own box, shortcuts stay with the left one. */
 /** The chief's chat, shown at /chief itself so going back returns there (pages/ChiefPage.tsx). */
-export function ChiefChat({ chatId }: { chatId: string }) {
+export function ChiefChat({ chatId, draft, autoSend }: { chatId: string; draft?: string; autoSend?: boolean }) {
   const navigate = useNavigate();
   return (
     <div className="flex h-full min-h-0 flex-col">
       {/* A restart on another model is a new chat: it opens on its own page. */}
-      <ChatPane key={chatId} chatId={chatId} primary go={(id) => void navigate(`/c/${id}`)} />
+      <ChatPane
+        key={chatId}
+        chatId={chatId}
+        primary
+        draft={draft}
+        autoSend={autoSend}
+        go={(id) => void navigate(`/c/${id}`)}
+      />
     </div>
   );
 }

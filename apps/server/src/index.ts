@@ -703,12 +703,20 @@ const app = createApp({
     const chief = new Chief(
       join(config.dataDir, "chief"),
       chats,
-      (cwd, resume) => {
+      (cwd, resume, projectId) => {
         const account = accounts.active("claude");
+        const project = projectId ? store.projectRow(projectId) : undefined;
+        if (projectId && !project) throw new Error("Project not found");
         return chats.start({
           projectId: "chief",
           cwd,
-          title: "Chief",
+          title: project ? project.name : "Chief",
+          // A project's thread stays on that project; the general one is for everything else.
+          ...(project
+            ? {
+                note: `This thread is only about the project "${project.name}" (folder ${project.path}, id ${project.id}). Hand its work to it with igrek_delegate; for other projects the user has the general thread.`,
+              }
+            : {}),
           mode: "normal",
           focus: "chief",
           resume,

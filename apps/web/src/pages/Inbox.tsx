@@ -40,6 +40,7 @@ import { TeamText } from "../components/TeamText";
 import { Badge, Button, Card, EmptyState, PageHeader } from "../components/ui";
 import { api } from "../lib/api";
 import { shownTitle } from "../lib/chat";
+import { cn } from "../lib/cn";
 import { relativeTime } from "../lib/format";
 import { useApprovals, useChats, useLiveData, useTerminals } from "../lib/live";
 import { isSnoozed, snooze } from "../lib/snooze";
@@ -124,15 +125,118 @@ function SnoozeButton({ onClick }: { onClick: () => void }) {
  * Everything waiting for you, most urgent first (plan.md 2.6b):
  * approvals · sessions waiting for an answer · things to decide when you have time.
  */
+/** What a notice is about, for the filter at the top of the list. */
+const TOPIC: Record<string, "security" | "packages" | "checks" | "site" | "other"> = {
+  secret: "security",
+  secretRequest: "security",
+  cert: "security",
+  rotate: "security",
+  vuln: "packages",
+  update: "packages",
+  tool: "checks",
+  score: "checks",
+  ratchet: "checks",
+  regression: "checks",
+  down: "site",
+  appError: "site",
+  domain: "site",
+  deployFailed: "site",
+  deployDone: "site",
+};
+const TOPICS = ["all", "security", "packages", "checks", "site", "other"] as const;
+type Topic = (typeof TOPICS)[number];
+const topicOf = (n: InboxNotice): Topic => TOPIC[n.kind] ?? "other";
+
+/**
+ * The long tail of notices, made easy to go through (a user found one flat list too much): a topic
+ * filter with counts, one group per project, and "Mark all done" for what is shown.
+ */
+function Notices({
+  notices,
+  onLater,
+  onDone,
+}: {
+  notices: InboxNotice[];
+  onLater: (id: string) => void;
+  onDone: (ids: string[]) => void;
+}) {
+  const { t } = useTranslation();
+  const [topic, setTopic] = useState<Topic>("all");
+  const shown = notices.filter((n) => topic === "all" || topicOf(n) === topic);
+  const groups = new Map<string, InboxNotice[]>();
+  for (const n of shown) {
+    const key = n.projectName ?? t("inbox.general");
+    groups.set(key, [...(groups.get(key) ?? []), n]);
+  }
+  const count = (x: Topic) => (x === "all" ? notices.length : notices.filter((n) => topicOf(n) === x).length);
+  return (
+    <section className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <Heading dot="bg-fg-subtle">
+          {t("inbox.info")} · {t("inbox.notices")}
+        </Heading>
+        <div className="flex-1" />
+        <Button size="sm" variant="ghost" icon={Check} onClick={() => onDone(shown.map((n) => n.id))}>
+          {t("inbox.allDone")}
+        </Button>
+      </div>
+      <fieldset aria-label={t("inbox.topics")} className="flex flex-wrap gap-1.5">
+        {TOPICS.filter((x) => count(x) > 0).map((x) => (
+          <button
+            key={x}
+            type="button"
+            aria-pressed={topic === x}
+            onClick={() => setTopic(x)}
+            className={cn(
+              "rounded-full border px-2.5 py-0.5 text-[12px]",
+              topic === x ? "border-accent bg-accent-soft text-fg" : "border-border text-fg-muted hover:bg-bg-hover",
+            )}
+          >
+            {t(`inbox.topic_${x}`)} <span className="text-fg-subtle">{count(x)}</span>
+          </button>
+        ))}
+      </fieldset>
+      {[...groups].map(([name, list]) => (
+        <Card key={name}>
+          <p className="flex items-center gap-2 border-b border-border px-3 py-2 text-[12.5px] font-medium">
+            <span className="min-w-0 flex-1 truncate">{name}</span>
+            <span className="text-[11.5px] font-normal text-fg-subtle">{list.length}</span>
+          </p>
+          <div className="divide-y divide-border">
+            {list.map((n) => {
+              const Icon = NOTICE_ICON[n.kind] ?? KeyRound;
+              return (
+                <Link
+                  key={n.id}
+                  to={n.link}
+                  data-nav-item
+                  className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
+                >
+                  <Icon size={15} className={n.kind === "env" ? "text-fg-subtle" : "text-warning"} aria-hidden="true" />
+                  <span className="min-w-0 flex-1 truncate text-[13px]">
+                    {t(`inbox.notice_${n.kind}`)}
+                    <span className="ms-2 font-mono text-[11px] text-fg-subtle">
+                      {n.kind === "tool" ? t(`tools.kind_${n.detail}`) : n.detail}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-[11px] text-fg-subtle">{relativeTime(n.at)}</span>
+                  <SnoozeButton onClick={() => onLater(n.id)} />
+                  <DoneButton onClick={() => onDone([n.id])} />
+                </Link>
+              );
+            })}
+          </div>
+        </Card>
+      ))}
+    </section>
+  );
+}
+
 export function InboxPage() {
   const { t } = useTranslation();
   const [, refresh] = useState(0);
   const later = (id: string) => {
     snooze(id);
-    refresh((n) => n + 1);
-  };
-  const done = (id: string) => {
-    snooze(id, 10 * 365 * 86_400_000);
     refresh((n) => n + 1);
   };
   const approvals = useApprovals();
@@ -306,42 +410,14 @@ export function InboxPage() {
           )}
 
           {notices.length > 0 && (
-            <section>
-              <Heading dot="bg-fg-subtle">
-                {t("inbox.info")} · {t("inbox.notices")}
-              </Heading>
-              <Card>
-                <div className="divide-y divide-border">
-                  {notices.map((n) => {
-                    const Icon = NOTICE_ICON[n.kind] ?? KeyRound;
-                    return (
-                      <Link
-                        key={n.id}
-                        to={n.link}
-                        data-nav-item
-                        className="flex items-center gap-3 px-3 py-2.5 hover:bg-bg-hover"
-                      >
-                        <Icon
-                          size={15}
-                          className={n.kind === "env" ? "text-fg-subtle" : "text-warning"}
-                          aria-hidden="true"
-                        />
-                        <span className="min-w-0 flex-1 truncate text-[13px]">
-                          {n.projectName && <span className="font-medium">{n.projectName} · </span>}
-                          {t(`inbox.notice_${n.kind}`)}
-                          <span className="ms-2 font-mono text-[11px] text-fg-subtle">
-                            {n.kind === "tool" ? t(`tools.kind_${n.detail}`) : n.detail}
-                          </span>
-                        </span>
-                        <span className="text-[11px] text-fg-subtle">{relativeTime(n.at)}</span>
-                        <SnoozeButton onClick={() => later(n.id)} />
-                        <DoneButton onClick={() => done(n.id)} />
-                      </Link>
-                    );
-                  })}
-                </div>
-              </Card>
-            </section>
+            <Notices
+              notices={notices}
+              onLater={later}
+              onDone={(ids) => {
+                for (const id of ids) snooze(id, 10 * 365 * 86_400_000);
+                refresh((n) => n + 1);
+              }}
+            />
           )}
 
           {conflicts.length > 0 && (

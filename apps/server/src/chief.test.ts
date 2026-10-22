@@ -69,4 +69,17 @@ describe("chief", () => {
     chief.onRun(run("ready", "chief"));
     expect(added.flatMap(([, e]) => (e.kind === "notice" ? [e.code, e.text] : []))).toEqual(["run", "r1|ready|Shop|1"]);
   });
+
+  test("each project has its own thread, and a run reports to its project's thread", () => {
+    const { chats, added, start } = fakeChats();
+    const chief = new Chief(mkdtempSync(join(tmpdir(), "chief-")), chats, start, () => "Shop");
+    const general = chief.open();
+    const shop = chief.open("p1");
+    expect(shop.id).not.toBe(general.id);
+    expect(chief.open("p1").id).toBe(shop.id);
+    expect(chief.list()).toEqual(["general", "p1"]);
+    expect(chief.threadName("p1")).toBe("Shop");
+    chief.onRun({ ...run("ready", "chief"), id: "r2" });
+    expect(added.at(-1)?.[0]).toBe(shop.id);
+  });
 });

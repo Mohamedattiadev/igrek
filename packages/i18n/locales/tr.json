@@ -60,6 +60,9 @@
     "openSetup": "Kurulum sekmesini aç"
   },
   "projects": {
+    "noSummary": "Henüz özet yok: burada bir sohbetten sonra görünür.",
+    "aheadTip": "Henüz gönderilmemiş commit'ler",
+    "behindTip": "Uzak depoda olup sende olmayan commit'ler",
     "title": "Projeler",
     "emptyTitle": "Henüz proje yok",
     "emptyBody": "Çalıştığın bir klasörü ekle. Claude'un onun içinde yaptığı işler özetler, kontroller ve uzmanlarla burada görünür.",
@@ -88,7 +91,6 @@
     "summariesOff": "Otomatik özetler kapalı, bu yüzden kartlar her projede ne olduğunu söyleyemiyor. Her oturumdan sonra küçük ve ucuz bir model yazar.",
     "summariesOn": "Özetleri aç",
     "day": "Günün özeti",
-    "dayHint": "brifing, gün sonu, bugün ve odak",
     "addAs": "Bu klasör ne?",
     "addAs_one": "Tek proje",
     "addAs_folder": "Proje klasörü",
@@ -107,6 +109,15 @@
     "browseEmpty": "Burada klasör yok."
   },
   "inbox": {
+    "general": "Igrek",
+    "allDone": "Hepsini tamam say",
+    "topics": "Konular",
+    "topic_all": "Hepsi",
+    "topic_security": "Güvenlik",
+    "topic_packages": "Paketler",
+    "topic_checks": "Kontroller",
+    "topic_site": "Site ve yayın",
+    "topic_other": "Diğer",
     "title": "Gelen Kutusu",
     "emptyTitle": "Her şey yolunda",
     "emptyBody": "Onaylar, bahsetmeler ve uyarılar burada görünecek.",
@@ -503,6 +514,14 @@
     "manual": "Bunu bilgisayarında çalıştır:"
   },
   "term": {
+    "startIn": "Başlatılacak proje",
+    "openNow": "Şu an açık",
+    "openNowHint": "Çalışan sohbetler ve terminaller, her birinin ne yaptığıyla.",
+    "pastHint": "Eski sohbetler, projeye göre: birini kaldığı yerden sürdür.",
+    "noHistory": "Henüz eski sohbet yok.",
+    "noProject": "Projesiz",
+    "chatCount_one": "{{count}} sohbet",
+    "chatCount_other": "{{count}} sohbet",
     "title": "Terminaller",
     "empty": "Açık terminal yok",
     "emptyBody": "Aşağıdaki projelerinden birinde sohbet ya da Claude, Codex veya shell terminali başlat. Bu sayfayı kapatsan bile çalışmaya devam eder.",
@@ -1896,6 +1915,9 @@
     "start": "REA sohbeti başlat"
   },
   "chief": {
+    "threads": "Şefle konuşmalar",
+    "general": "Genel",
+    "byProject": "Projeye göre",
     "intro": "Şefin: projelerinle ilgili ne istediğini söyle. İşi projelere dağıtır ve sonucu buraya yazar.",
     "notes": "Defter",
     "notesHint": "Şefin hatırladıkları: tercihlerin, süren sorumluluklar, kararlar. Her başlangıçta okur ve güncel tutar; sen de değiştirebilirsin.",
@@ -1917,6 +1939,18 @@
     "run_other": "{{project}} projesindeki iş: {{status}}, {{count}} dosya değişti.",
     "openRun": "Aç"
   },
+  "monitor": {
+    "intro": "Canlı projenin durumu: kullanıcıların karşılaştığı hatalar, kayıtları, neyi kullandıkları ve onlar için ne kadar hızlı olduğu.",
+    "parts": "İzlemenin bölümleri",
+    "view_errors": "Hatalar",
+    "view_logs": "Kayıtlar",
+    "view_users": "Kullanıcılar",
+    "view_speed": "Hız",
+    "viewTip_errors": "Çalışan uygulamanın hataları, gruplanmış; site çökünce olay modu",
+    "viewTip_logs": "Uygulamanın kayıt satırları, aranabilir",
+    "viewTip_users": "Ürün rakamları ve kullanıcıların sana yazdıkları",
+    "viewTip_speed": "Gerçek ziyaretçilerin yükleme ve tepki süreleri, canlı sitenin önbelleği"
+  },
   "slash": {
     "skill": "beceri",
     "find": "katalog",
@@ -1927,18 +1961,10 @@
     "prompt": "kayıtlı prompt"
   },
   "today": {
-    "title": "Bugün",
     "sessions_one": "{{count}} oturum",
     "sessions_other": "{{count}} oturum",
-    "team_one": "takımdan {{count}}",
-    "team_other": "takımdan {{count}}",
     "commits_one": "{{count}} commit",
-    "commits_other": "{{count}} commit",
-    "deploys_one": "{{count}} deploy",
-    "deploys_other": "{{count}} deploy",
-    "failed_one": "{{count}} başarısız",
-    "failed_other": "{{count}} başarısız",
-    "projectTip": "Bugün {{sessions}} oturum, {{commits}} commit"
+    "commits_other": "{{count}} commit"
   },
   "deploy": {
     "title": "Deploy",
@@ -3240,7 +3266,6 @@
     "emptyBody": "Burada Docker'da hiç container yok."
   },
   "logs": {
-    "title": "Loglar",
     "intro": "Dosyalar, Docker container'ları ve systemd servisleri, burada ya da bir sunucuda, birlikte okunur. Farklı sayı ve id'lerle tekrarlanan aynı hata tek grup olur.",
     "kind": "Tür",
     "kind_docker": "Docker container",
@@ -4216,11 +4241,10 @@
     "close": "Kapat"
   },
   "home": {
-    "title": "Ne yapmak istiyorsun?",
-    "placeholder": "Bir iş arkadaşına yazar gibi yaz: \"Giriş neden çalışmıyor, bul ve düzelt\". Enter gönderir, Shift+Enter yeni satır.",
-    "project": "Proje",
-    "mode": "Ne kadar dikkatli",
-    "starting": "Başlıyor…"
+    "chiefLabel": "Şefe yaz",
+    "chiefPlaceholder": "Şefe ne istediğini söyle, hangi projede olursa: \"Mağazaya sepet sayfası ekle\"",
+    "chiefSend": "Şefe gönder",
+    "title": "Ne yapmak istiyorsun?"
   },
   "helper": {
     "title": "Yardımcı",
