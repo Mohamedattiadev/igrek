@@ -11,6 +11,7 @@ import {
   PRIVATE_HINT,
   type QueuedMessage,
   type RateLimitInfo,
+  REVERSE_HINT,
   type RecentChat,
   RICH_BLOCKS_HINT,
   STEP_CUT,
@@ -184,6 +185,8 @@ export interface ChatStart {
   richUi?: string;
   /** The project's own extensions to leave out, because the user has not trusted them yet. */
   untrusted?: ProjectExtensions;
+  /** Reverse-engineering mode (rea.ts): the user confirmed they may examine what they ask about. */
+  focus?: "reverse";
   /** Run as a persona (plan.md 6.3): its prompt, its tools, its turn limit. */
   persona?: {
     id: string;
@@ -225,15 +228,27 @@ export function ruleCovers(rule: string, toolName: string, input: unknown): bool
 }
 
 /** The persona's prompt (if any) and how answers may draw: OpenUI when rich answers are on, JSON blocks otherwise. */
-function systemPrompt(options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp">, privateDetails = false): string {
+function systemPrompt(
+  options: Pick<ChatStart, "persona" | "richUi" | "igrekMcp" | "focus">,
+  privateDetails = false,
+): string {
   const drawing = options.richUi ?? RICH_BLOCKS_HINT;
-  const base = options.persona
+  const plain = options.persona
     ? `${options.persona.systemPrompt}\n\n${drawing}`
     : options.igrekMcp?.hint
       ? `${drawing}\n\n${options.igrekMcp.hint}`
       : drawing;
+  const base = options.focus === "reverse" ? `${plain}\n\n${REVERSE_HINT}` : plain;
   // Only when the user keeps private details: the AI is told what the placeholders are.
   return privateDetails ? `${base}\n\n${PRIVATE_HINT}` : base;
+}
+
+/** Who the chat is (a persona) and what it is for (REA mode), as the chat shows them. */
+function roleInfo({ persona, focus }: Pick<ChatStart, "persona" | "focus">): Pick<ChatInfo, "persona" | "focus"> {
+  return {
+    ...(persona ? { persona: { id: persona.id, name: persona.name, tools: persona.tools } } : {}),
+    ...(focus ? { focus } : {}),
+  };
 }
 
 /** What the chat shows about the project's extensions it left out. */
@@ -396,9 +411,7 @@ export class Chats {
         worktree: options.worktree,
         sandboxed,
         ...untrustedInfo(options.untrusted),
-        ...(options.persona
-          ? { persona: { id: options.persona.id, name: options.persona.name, tools: options.persona.tools } }
-          : {}),
+        ...roleInfo(options),
       },
       ...seeded(options.history),
       seq: 0,

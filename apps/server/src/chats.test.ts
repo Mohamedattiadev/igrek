@@ -490,4 +490,16 @@ for await (const chunk of Bun.stdin.stream()) {
     expect([...events.values()].find((e) => e.kind === "notice")).toMatchObject({ code: "private", text: "tc_kimlik" });
     chats.stopAll();
   });
+
+  test("a REA chat is told the mode and its legal limits", async () => {
+    const log = join(mkdtempSync(join(tmpdir(), "igrek-realog-")), "log.jsonl");
+    const chats = new Chats(new Bus(), new StopRegistry(), () => recordingClaude(log));
+    const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal", focus: "reverse" });
+    expect(info.focus).toBe("reverse");
+    await Bun.sleep(400);
+    const argv = (JSON.parse(readFileSync(log, "utf8").split("\n")[0] ?? "{}") as { argv: string[] }).argv.join(" ");
+    expect(argv).toContain("reverse-engineering mode");
+    expect(argv).toContain("DRM");
+    chats.stopAll();
+  });
 });

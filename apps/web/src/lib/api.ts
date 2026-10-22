@@ -43,6 +43,7 @@ import type {
   IndexStatus,
   InsightConfig,
   InsightScan,
+  InstalledSkill,
   KeyRequest,
   KnowledgeOverview,
   KnowledgeSources,
@@ -83,6 +84,8 @@ import type {
   Settings,
   ShareLevel,
   SharePreview,
+  SkillHit,
+  SkillPreview,
   SystemStatus,
   TaskStatus,
   TeamActivity,
@@ -461,8 +464,14 @@ export const api = {
     }>(`/api/projects/${projectId}/flows`),
   flowRuns: (projectId?: string) => request<FlowRun[]>(`/api/flows${projectId ? `?projectId=${projectId}` : ""}`),
   flowRun: (id: string) => request<FlowRun>(`/api/flows/${id}`),
-  startFlow: (body: { projectId: string; flow: string; request: string; persona?: string }) =>
-    request<FlowRun>("/api/flows", { method: "POST", body: JSON.stringify(body) }),
+  startFlow: (body: {
+    projectId: string;
+    flow: string;
+    request: string;
+    persona?: string;
+    /** "Raise to 100": the copy is measured again after each round, and sent back while findings stay open. */
+    raise?: { category: Category; before: number };
+  }) => request<FlowRun>("/api/flows", { method: "POST", body: JSON.stringify(body) }),
   respondFlow: (id: string, node: string, decision: "approve" | "reject", text?: string) =>
     request<FlowRun>(`/api/flows/${id}/respond`, { method: "POST", body: JSON.stringify({ node, decision, text }) }),
   flowAction: (id: string, action: "stop" | "retry" | "merge" | "discard") =>
@@ -578,6 +587,17 @@ export const api = {
   deleteIdea: (id: string) => request<{ ok: boolean }>(`/api/ideas/${id}`, { method: "DELETE" }),
   triageIdeas: () => request<Idea[]>("/api/ideas/triage", { method: "POST" }),
   prompts: () => request<SavedPrompt[]>("/api/prompts"),
+  skills: () => request<InstalledSkill[]>("/api/skills"),
+  searchSkills: (q: string) =>
+    request<{ hits: SkillHit[]; errors: string[] }>(`/api/skills/search?q=${encodeURIComponent(q)}`),
+  previewSkill: (source: string, skill: string) =>
+    request<SkillPreview>(
+      `/api/skills/preview?source=${encodeURIComponent(source)}&skill=${encodeURIComponent(skill)}`,
+    ),
+  installSkill: (source: string, skill: string) =>
+    request<InstalledSkill>("/api/skills/install", { method: "POST", body: JSON.stringify({ source, skill }) }),
+  removeSkill: (name: string) =>
+    request<{ ok: boolean }>(`/api/skills/${encodeURIComponent(name)}`, { method: "DELETE" }),
   slashCommands: (projectId: string) =>
     request<{ name: string; description: string; source: "project" | "user" }[]>(
       `/api/projects/${projectId}/slash-commands`,
@@ -621,7 +641,12 @@ export const api = {
     personaId?: string;
     accountId?: string;
     isolate?: boolean;
+    /** Reverse-engineering mode (REA), with the user's word that they may examine the target. */
+    focus?: "reverse";
+    authorized?: boolean;
   }) => request<ChatInfo>("/api/chats", { method: "POST", body: JSON.stringify(body) }),
+  rea: () => request<{ installed: boolean; node: boolean; package: string }>("/api/rea"),
+  reaSetup: () => request<TerminalInfo>("/api/rea/setup", { method: "POST" }),
   chatCopy: (id: string) =>
     request<{ files: { path: string; added: number; removed: number }[]; patch: string }>(`/api/chats/${id}/worktree`),
   chatCopyMerge: (id: string) =>
@@ -667,6 +692,9 @@ export const api = {
     request<TerminalInfo>("/api/terminals", { method: "POST", body: JSON.stringify(body) }),
   handoff: (sessionId: string, tool?: TerminalTool) =>
     request<TerminalInfo>(`/api/sessions/${sessionId}/handoff`, { method: "POST", body: JSON.stringify({ tool }) }),
+  /** A live chat goes on in a Codex terminal, told what the chat did. */
+  continueInCodex: (chatId: string) =>
+    request<TerminalInfo>(`/api/chats/${chatId}/continue`, { method: "POST", body: "{}" }),
   closeTerminal: (id: string) => request<{ ok: boolean }>(`/api/terminals/${id}`, { method: "DELETE" }),
   enhance: (body: {
     text: string;

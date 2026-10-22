@@ -13,6 +13,7 @@ import {
 } from "@igrek/core";
 import {
   ArrowLeft,
+  ArrowRightLeft,
   ArrowUp,
   BookOpen,
   Bot,
@@ -63,14 +64,17 @@ import { CHAT_MODELS, ChatSettings } from "../components/ChatSettings";
 import { SplitPicker } from "../components/ChatSplit";
 import { ChatTodoList } from "../components/ChatTodoList";
 import { CheckpointRestore } from "../components/CheckpointRestore";
+import { ContinueInCodex } from "../components/ContinueInCodex";
 import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
 import { GateCard } from "../components/GateCard";
+import { MadeFiles } from "../components/MadeFiles";
 import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
 import { CopyWithPrivate, PrivateGuard, PrivateNotice } from "../components/PrivateGuard";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
+import { SkillsDialog } from "../components/SkillsDialog";
 import { filterSlash, type SlashItem, SlashMenu, useSlashItems } from "../components/SlashMenu";
 import { SpendMeter } from "../components/SpendMeter";
 import { TodoStrip } from "../components/TodoStrip";
@@ -797,6 +801,12 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           { id: "chat-stop", label: t("chat.stop"), icon: Square, keys: "Mod+.", run: chat.interrupt },
           { id: "chat-compact", label: t("chat.compact"), icon: Minimize2, run: () => chat.send("/compact") },
           {
+            id: "chat-codex",
+            label: t("chat.codexGo"),
+            icon: ArrowRightLeft,
+            run: () => void api.continueInCodex(chatId).then((term) => navigate(`/t/${term.id}`)),
+          },
+          {
             id: "chat-detail",
             label: t("chat.detailNext"),
             icon: ListChecks,
@@ -828,9 +838,15 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   const slashItems = useSlashItems(chat.info?.projectId);
   const slashMatches = filterSlash(slashItems, text);
   const [slashActive, setSlashActive] = useState(0);
+  const [skillSearch, setSkillSearch] = useState<string>();
   const pickSlash = (item: SlashItem) => {
-    setText(item.insert);
     setSlashActive(0);
+    if (item.kind === "find") {
+      setSkillSearch(item.name);
+      setText("");
+      return;
+    }
+    setText(item.insert);
   };
   const suggestedModel = text.trim() ? suggestModel(text) : undefined;
   const currentModel = CHAT_MODELS.find((m) => m && info?.model?.includes(m));
@@ -1086,7 +1102,18 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
         onPick={pickSlash}
       />
       <MentionMenu items={mentions.items} active={mentions.active} onPick={mentions.pick} />
+      <SkillsDialog
+        open={skillSearch !== undefined}
+        query={skillSearch ?? ""}
+        onClose={() => setSkillSearch(undefined)}
+        onUse={(insert) => {
+          setSkillSearch(undefined);
+          setText(insert);
+          input.current?.focus();
+        }}
+      />
       {info && <ChatChanges info={info} events={chat.events} />}
+      {info && <MadeFiles events={chat.events} cwd={info.worktree?.path ?? info.cwd} />}
       {todos && <TodoStrip todos={todos} working={working} />}
       {info && (
         <ChatTodoList
@@ -1118,6 +1145,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
               </Button>
             )
           )}
+          <ContinueInCodex chatId={info.id} />
           <Link to="/limits" className="shrink-0 text-[12px] text-accent-hover underline">
             {t("chat.limitOther")}
           </Link>
@@ -1357,6 +1385,11 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
             <PersonaIcon persona={persona} size={12} className="size-5 rounded-full" />
             {personaName}
           </Link>
+        )}
+        {info?.focus === "reverse" && (
+          <span data-tip={t("rea.limits")}>
+            <Badge tone="accent">{t("rea.badge")}</Badge>
+          </span>
         )}
         <h1 className="min-w-0 flex-1 truncate text-[13px] font-semibold">{info?.title ?? "…"}</h1>
         {info?.context && <ContextMeter context={info.context} />}

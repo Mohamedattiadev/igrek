@@ -4,6 +4,18 @@
  * the project's checks as a gate, and going back to earlier nodes when a gate fails.
  */
 
+import type { Category } from "./insight";
+
+/**
+ * "Raise to 100" (plan.md 5): the part's score before the run, then after each round, measured
+ * again on the run's copy. A round that leaves findings open sends the work back, up to three times.
+ */
+export interface RaiseState {
+  category: Category;
+  before: number;
+  rounds: { score: number; open: number; at: number }[];
+}
+
 export interface FlowNode {
   id: string;
   title?: string;
@@ -77,6 +89,7 @@ export interface FlowRun {
   /** Set by a schedule (plan.md Faz 9): stop after this long; fewer steps per AI step. */
   limits?: { maxMinutes?: number; maxTurns?: number };
   scheduleId?: string;
+  raise?: RaiseState;
   error?: string;
   createdAt: number;
   updatedAt: number;

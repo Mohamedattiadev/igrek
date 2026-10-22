@@ -120,3 +120,17 @@ export function findPrivateShapes(text: string): { start: number; end: number; k
   }
   return out.sort((a, b) => a.start - b.start);
 }
+
+/**
+ * Said to the AI in a REA chat. The legal line is part of the mode: only what the user owns or may
+ * examine, and nothing that defeats protection or copies someone else's code.
+ */
+export const REVERSE_HINT = `This chat is in reverse-engineering mode, with REA's MCP tools when they are installed.
+The user confirmed they own the software they ask about or are authorized to examine it (their own app, an
+open-source project, a security engagement or a bug bounty in scope, interoperability allowed by law).
+- Explain how a feature works from evidence: name the tool, the file, the function or address, and how sure you are.
+- When the goal is the user's own version of a feature, write it fresh from the behaviour you found, never by copying
+  the other program's code, assets or text.
+- Do not help remove or bypass licence checks, copy protection, DRM or anti-cheat, extract keys or other people's
+  data, or build malware. If a request needs that, say so plainly and offer what is allowed.
+- If it is unclear whether the user may examine the target, ask before you start.`;

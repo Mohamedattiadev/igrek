@@ -1,19 +1,20 @@
 import type { SavedPrompt } from "@igrek/core";
-import { BookMarked, SquareSlash } from "lucide-react";
+import { BookMarked, Search, Sparkles, SquareSlash } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
 
 export interface SlashItem {
-  kind: "command" | "prompt";
+  /** "find" opens the skill search (the "/" dictionary) instead of filling the box. */
+  kind: "command" | "skill" | "prompt" | "find";
   name: string;
   description: string;
   /** Text that replaces the box: "/name " for a command, the prompt's body for a saved prompt. */
   insert: string;
 }
 
-/** The "/" list: the project's and user's Claude commands, then saved prompts (plan.md 2.2, 2.7). */
+/** The "/" list: the project's and user's Claude commands, installed skills, then saved prompts (plan.md 2.2, 2.7). */
 export function useSlashItems(projectId?: string): SlashItem[] {
   const [items, setItems] = useState<SlashItem[]>([]);
   useEffect(() => {
@@ -21,7 +22,8 @@ export function useSlashItems(projectId?: string): SlashItem[] {
     void Promise.all([
       api.slashCommands(projectId).catch(() => []),
       api.prompts().catch(() => [] as SavedPrompt[]),
-    ]).then(([commands, prompts]) =>
+      api.skills().catch(() => []),
+    ]).then(([commands, prompts, skills]) =>
       setItems([
         ...commands.map((c) => ({
           kind: "command" as const,
@@ -29,6 +31,14 @@ export function useSlashItems(projectId?: string): SlashItem[] {
           description: c.description,
           insert: `/${c.name} `,
         })),
+        ...skills
+          .filter((s) => !commands.some((c) => c.name === s.name))
+          .map((s) => ({
+            kind: "skill" as const,
+            name: s.name,
+            description: s.description,
+            insert: `/${s.name} `,
+          })),
         ...prompts.map((p) => ({
           kind: "prompt" as const,
           name: p.title,
@@ -45,7 +55,10 @@ export function filterSlash(items: SlashItem[], text: string): SlashItem[] {
   const m = text.match(/^\/([\w:.-]*)$/);
   if (!m) return [];
   const q = (m[1] ?? "").toLowerCase();
-  return items.filter((i) => i.name.toLowerCase().replace(/\s+/g, "-").includes(q)).slice(0, 8);
+  const found = items.filter((i) => i.name.toLowerCase().replace(/\s+/g, "-").includes(q)).slice(0, 7);
+  // Last: look for a new skill, with what was typed as the search. Not when nothing matched, so
+  // Enter still sends a built-in command such as /compact.
+  return found.length || !q ? [...found, { kind: "find", name: q, description: "", insert: "" }] : [];
 }
 
 export function SlashMenu({
@@ -66,7 +79,7 @@ export function SlashMenu({
       className="mb-1 max-h-72 overflow-auto rounded-ui border border-border bg-bg p-1 shadow-ui"
     >
       {items.map((item, i) => {
-        const Icon = item.kind === "command" ? SquareSlash : BookMarked;
+        const Icon = { command: SquareSlash, skill: Sparkles, prompt: BookMarked, find: Search }[item.kind];
         return (
           <button
             key={`${item.kind}-${item.name}`}
@@ -84,9 +97,12 @@ export function SlashMenu({
           >
             <Icon size={14} className="mt-0.5 shrink-0 text-fg-subtle" aria-hidden="true" />
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-mono text-[12px]">
-                {item.kind === "command" ? `/${item.name}` : item.name}
+              <span className={cn("block truncate text-[12px]", item.kind !== "find" && "font-mono")}>
+                {item.kind === "find" ? t("slash.findTitle") : item.kind === "prompt" ? item.name : `/${item.name}`}
               </span>
+              {item.kind === "find" && (
+                <span className="block truncate text-[11px] text-fg-subtle">{t("slash.findHint")}</span>
+              )}
               {item.description && (
                 <span className="block truncate text-[11px] text-fg-subtle">{item.description}</span>
               )}

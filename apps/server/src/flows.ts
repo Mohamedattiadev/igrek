@@ -8,6 +8,7 @@ import {
   type FlowRun,
   limitResetAt,
   type Persona,
+  type RaiseState,
   type ToolResult,
 } from "@igrek/core";
 import { parse as parseYaml } from "yaml";
@@ -27,6 +28,8 @@ import { createWorktree, mergeWorktree, removeWorktree, type Worktree, worktreeD
 
 const MAX_LOG = 60;
 const NODE_TIMEOUT_MS = 40 * 60_000;
+/** Rounds of "Raise to 100" at most: each one is a full AI run, so the cost stays bounded. */
+const RAISE_ROUNDS = 3;
 
 function git(cwd: string, args: string[]): { ok: boolean; out: string; err: string } {
   const p = Bun.spawnSync(["git", "-C", cwd, ...args], {
@@ -261,6 +264,16 @@ export class Flows {
     ) => Promise<ToolResult[]> = runChecks,
   ) {}
 
+  /**
+   * Scores a part of the project in a folder (the run's copy) with the same checks as the Sections
+   * page: its score and the findings still open. Set by the server; without it there is one round.
+   */
+  measure?: (
+    root: string,
+    projectId: string,
+    category: RaiseState["category"],
+  ) => Promise<{ score: number; open: string[] }>;
+
   /** Flows that came in a package (persona-packs.ts), for every project; kept in Igrek's folder, never the repo. */
   marketDir?: string;
 
@@ -334,6 +347,8 @@ export class Flows {
     model?: string;
     /** Runs the steps that name no persona as this one (a fix by the persona that owns the part). */
     persona?: string;
+    /** "Raise to 100": the part and its score now; the copy is measured again after each round. */
+    raise?: Pick<RaiseState, "category" | "before">;
   }): FlowRun {
     const project = this.store.projectRow(args.projectId);
     if (!project || !existsSync(project.path)) throw new Error("Project folder not found");
@@ -373,6 +388,7 @@ export class Flows {
       ...(args.limits ? { limits: args.limits } : {}),
       ...(args.model ? { model: args.model } : {}),
       ...(args.persona ? { persona: args.persona } : {}),
+      ...(args.raise ? { raise: { ...args.raise, rounds: [] } } : {}),
       createdAt: now,
       updatedAt: now,
     };
@@ -549,6 +565,40 @@ export class Flows {
     }
   }
 
+  /**
+   * After a "Raise to 100" round: the copy is scored again. When findings are still open and rounds
+   * are left, the steps that change code go again, told the score and what is still open; then true.
+   */
+  private async raiseAgain(run: FlowRun, def: FlowDef): Promise<boolean> {
+    const raise = run.raise;
+    if (!raise || !this.measure || !run.worktree) return false;
+    const wt = this.wt(run);
+    const result = await this.measure(wt.sub ? join(wt.path, wt.sub) : wt.path, run.projectId, raise.category).catch(
+      () => undefined,
+    );
+    if (!result) return false;
+    const last = raise.rounds.at(-1)?.score ?? raise.before;
+    raise.rounds.push({ score: result.score, open: result.open.length, at: Date.now() });
+    const editors = def.nodes.filter((n) => n.prompt && !n.review).map((n) => n.id);
+    const again = result.score < 100 && result.open.length > 0 && raise.rounds.length < RAISE_ROUNDS;
+    if (!again || !editors.length) {
+      this.save(run);
+      return false;
+    }
+    const moved = result.score > last ? `went from ${last} to ${result.score}` : `stayed at ${result.score}`;
+    this.reset(
+      run,
+      def,
+      editors,
+      `Igrek measured the ${raise.category} score again on this copy: it ${moved} (the goal is 100). Still open:\n${result.open
+        .slice(0, 20)
+        .map((f) => `- ${f}`)
+        .join("\n")}\nFix these now; check each one before you finish.`,
+    );
+    this.save(run);
+    return true;
+  }
+
   /** On failure: go back to earlier nodes if the flow allows and the budget lasts. */
   private sendBack(run: FlowRun, def: FlowDef, node: FlowNode, state: FlowNodeState, why: string): boolean {
     const budget = node.on_fail;
@@ -567,6 +617,7 @@ export class Flows {
       const ready = run.nodes.filter((n) => n.status === "waiting" && n.dependsOn.every(done));
       if (run.nodes.every((n) => n.status === "done")) {
         run.changes = worktreeDiff(this.wt(run)).files.slice(0, 200);
+        if (run.changes.length && (await this.raiseAgain(run, def))) continue;
         // Nothing changed (a report, a check): done, and the copy is cleaned up. Otherwise it waits for your OK.
         run.status = run.changes.length ? "ready" : "done";
         if (!run.changes.length) {

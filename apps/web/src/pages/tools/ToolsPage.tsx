@@ -12,8 +12,10 @@ import {
   Plug,
   Puzzle,
   Radio,
+  ScanSearch,
   ScrollText,
   Smartphone,
+  Sparkles,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -29,6 +31,8 @@ import { DockerTab } from "./Docker";
 import { LogsPanel } from "./Logs";
 import { PhoneTab } from "./Phone";
 import { PluginFrame, PluginsTab } from "./Plugins";
+import { ReaTab } from "./Rea";
+import { SkillsTab } from "./Skills";
 import { TimeTab } from "./Time";
 import { DomainsTab, UptimeTab } from "./Uptime";
 import { VaultTab } from "./Vault";
@@ -40,6 +44,8 @@ const TOOL_TABS: { key: string; icon: LucideIcon }[] = [
   { key: "logs", icon: ScrollText },
   { key: "databases", icon: Database },
   { key: "phone", icon: Smartphone },
+  { key: "skills", icon: Sparkles },
+  { key: "rea", icon: ScanSearch },
   { key: "backups", icon: HardDriveDownload },
   { key: "calendar", icon: CalendarDays },
   { key: "vault", icon: KeyRound },
@@ -55,6 +61,8 @@ const TABS: Record<string, () => React.ReactNode> = {
   logs: () => <LogsPanel />,
   databases: () => <DatabasesTab />,
   phone: () => <PhoneTab />,
+  skills: () => <SkillsTab />,
+  rea: () => <ReaTab />,
   backups: () => <BackupsTab />,
   calendar: () => <CalendarTab />,
   vault: () => <VaultTab />,

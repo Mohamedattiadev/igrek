@@ -543,6 +543,8 @@ export interface ChatInfo {
   sandboxed?: boolean;
   /** The chat runs as this persona (plan.md 6.3). */
   persona?: { id: string; name?: string; tools: "read" | "edit" };
+  /** Reverse-engineering mode (REA): only for software the user owns or may examine. */
+  focus?: "reverse";
   /** The project's own hooks, MCP servers and skills that were left out until the user trusts it (plan.md 16.4). */
   untrusted?: { hooks: string[]; mcpServers: string[]; skills: string[]; fingerprint: string };
   /** Messages written while the AI was working; the next one goes out when the turn ends (plan.md 16.1). */
@@ -998,4 +1000,35 @@ export interface TeamActivity {
     updatedAt: number;
   }[];
   decisions: { section: string; text: string; projectId: string; at: number }[];
+}
+
+/** A skill for Claude Code found in a catalog: the official Anthropic one or skills.sh. */
+export interface SkillHit {
+  /** "owner/repo/skill" */
+  id: string;
+  source: string;
+  skill: string;
+  name: string;
+  description?: string;
+  installs?: number;
+  official: boolean;
+  installed: boolean;
+}
+
+/** What a skill would put on this computer, read before it is installed. */
+export interface SkillPreview extends SkillHit {
+  /** The skill's folder in its repository. */
+  path: string;
+  text: string;
+  license?: string;
+  files: { path: string; size: number }[];
+  /** Programs in it (Python, shell, JavaScript…): they run on this computer when the skill uses them. */
+  scripts: string[];
+}
+
+export interface InstalledSkill {
+  name: string;
+  description: string;
+  /** Where it came from, when Igrek installed it. */
+  source?: string;
 }

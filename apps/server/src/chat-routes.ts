@@ -80,6 +80,9 @@ export function registerChatRoutes(
       isolate?: boolean;
       /** Talk to one persona (plan.md 6.3). */
       personaId?: string;
+      /** Reverse-engineering mode, only with the user's word that they may examine the target. */
+      focus?: string;
+      authorized?: boolean;
     };
     const project = body.projectId ? store.projectRow(body.projectId) : undefined;
     if (!project) return c.json({ error: "Project not found" }, 404);
@@ -87,6 +90,8 @@ export function registerChatRoutes(
     if (body.resume && !capabilitiesOf(session?.tool ?? "").chat)
       return c.json({ error: "Only Claude sessions can be continued in chat" }, 400);
     const mode = MODES.find((m) => m === body.mode);
+    if (body.focus === "reverse" && body.authorized !== true)
+      return c.json({ error: "Confirm that you own the software or may examine it" }, 400);
     // A session that ran as a persona continues as that persona.
     const personaId =
       typeof body.personaId === "string" ? body.personaId : body.resume ? store.sessionPersona(body.resume) : undefined;
@@ -118,6 +123,7 @@ export function registerChatRoutes(
           typeof body.model === "string" && /^[\w.[\]-]+$/.test(body.model) ? body.model : (as?.model ?? undefined),
         mode,
         persona: as?.start,
+        ...(body.focus === "reverse" ? { focus: "reverse" as const } : {}),
         igrekMcp,
         ...(() => {
           const picked = !session && body.accountId ? accounts.get(body.accountId) : undefined;

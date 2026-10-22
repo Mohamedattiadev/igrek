@@ -14,6 +14,7 @@ import {
   type CoverageMap,
   type DesignFinding,
   type DiagramSet,
+  type Finding,
   gradeOf,
   type InboxNotice,
   type InsightConfig,
@@ -25,7 +26,7 @@ import {
   type ToolResult,
   type UiAudit,
 } from "@igrek/core";
-import { languages } from "@igrek/i18n";
+import { bundledResources, languages } from "@igrek/i18n";
 import type { Bus, StopRegistry } from "../bus";
 import type { Store } from "../store";
 import { parseModelReply, runClaude } from "../summarizer";
@@ -50,6 +51,18 @@ interface WorkerReply {
   diagrams: DiagramSet;
   apis: ApiMap;
   fileCount: number;
+}
+
+/** A finding as the AI reads it: what to fix (in English, like every prompt) and where. */
+function findingText(f: Finding): string {
+  const [part = "", check = ""] = f.id.split(".");
+  const texts = bundledResources.en.insight.check as unknown as Record<string, Record<string, { fix?: string }>>;
+  const fix = (texts[part]?.[check]?.fix ?? f.id).replace(/\{\{metric\}\}/g, f.metric ?? "");
+  const where = f.evidence
+    .slice(0, 4)
+    .map((e) => `${e.path}${e.line ? `:${e.line}` : ""}`)
+    .join(", ");
+  return where ? `${fix} (${where})` : fix;
 }
 
 function languageName(code: string): string {
@@ -598,6 +611,19 @@ ${heads.join("\n\n") || "(none)"}`;
       results: this.toolResults(projectId),
       running: this.toolsRunning.has(projectId),
     };
+  }
+
+  /**
+   * One part scored in another folder (a run's copy) with this project's settings, for "Raise to
+   * 100": its score and what is still open, most valuable first. Tool results and the real-screen
+   * check are the project's last ones; they are measured again after the merge.
+   */
+  async measure(root: string, projectId: string, category: Category): Promise<{ score: number; open: string[] }> {
+    const reply = await this.scanInWorker(root, projectId);
+    const part = reply.ok ? reply.categories.find((c) => c.category === category) : undefined;
+    if (!part) throw new Error(reply.error ?? "The scan found no such part");
+    const open = part.findings.filter((f) => f.status !== "pass").sort((a, b) => b.gain - a.gain);
+    return { score: part.score, open: open.map(findingText) };
   }
 
   toolResults(projectId: string): ToolResult[] {

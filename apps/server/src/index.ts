@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { join } from "node:path";
 import { APP_VERSION, type ClientMessage, citation, HELP_TOPICS, lessonLines, type ServerMessage } from "@igrek/core";
 import { reportUiHint } from "@igrek/genui";
@@ -117,6 +118,7 @@ import { UiAudits } from "./preview/ui-audit";
 import { registerPreviewRoutes } from "./preview-routes";
 import { PrivateValues, registerPrivateRoutes } from "./private-values";
 import { isoWeek, Product } from "./product";
+import { registerReaRoutes } from "./rea";
 import { Retention } from "./retention";
 import { registerScheduleRoutes } from "./schedule-routes";
 import { Schedules } from "./schedules";
@@ -132,6 +134,7 @@ import {
 import { registerServerRoutes } from "./server-routes";
 import { Servers } from "./servers";
 import { readSettings } from "./settings";
+import { registerSkillRoutes, Skills } from "./skills";
 import { registerSpeechRoutes, Speech } from "./speech";
 import { Store } from "./store";
 import { claudeAccount, localModel, runClaude, Summarizer } from "./summarizer";
@@ -357,6 +360,8 @@ const enhancer = new Enhancer(
 );
 const flows = new Flows(sqlite, store, bus, stops, personas, join(config.dataDir, "worktrees"));
 flows.marketDir = join(config.dataDir, "flows");
+// "Raise to 100" measures the run's copy with the same checks as the Sections page.
+flows.measure = (root, projectId, category) => insight.measure(root, projectId, category);
 const board = new Board(sqlite, bus, flows);
 const devServers = new DevServers(store, bus, stops, personas, join(config.dataDir, "preview"));
 flows.onChange = (run) => board.followRun(run);
@@ -616,7 +621,15 @@ const app = createApp({
   extensionKey: (key) => extensionKeys.valid(key),
   extraRoutes: (hono) => {
     registerAgentRequestRoutes(hono, agentRequests);
-    registerTerminalRoutes(hono, { store, terminals, language: () => readSettings(db).language, servers, accounts });
+    registerTerminalRoutes(hono, {
+      store,
+      terminals,
+      language: () => readSettings(db).language,
+      servers,
+      accounts,
+      chat: (id) => chats.snapshot(id),
+      privateValues: gatewayValues,
+    });
     registerAccountRoutes(hono, { accounts, terminals, db: sqlite });
     registerServerRoutes(hono, servers);
     registerChatRoutes(hono, {
@@ -767,6 +780,15 @@ const app = createApp({
       const row = store.projectRow(projectId);
       return row && !row.path.startsWith("team:") && existsSync(row.path) ? row.path : undefined;
     });
+    registerReaRoutes(hono, terminals);
+    // Skills go where the active Claude account reads them, so every chat can use them.
+    registerSkillRoutes(
+      hono,
+      new Skills(() => {
+        const account = accounts.active("claude");
+        return join(account?.configDir || join(homedir(), ".claude"), "skills");
+      }),
+    );
     registerExtensionRoutes(hono, {
       keys: extensionKeys,
       values: privateValues,

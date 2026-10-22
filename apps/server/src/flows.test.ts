@@ -244,6 +244,42 @@ describe("team run", () => {
   });
 });
 
+describe("raise to 100", () => {
+  test("the copy is scored after each round and sent back while findings stay open", async () => {
+    const prompts: string[] = [];
+    const agent: AgentRun = async ({ cwd, prompt }) => {
+      prompts.push(prompt);
+      writeFileSync(join(cwd, `fix-${prompts.length}.ts`), "export const ok = true;\n");
+      return "Fixed";
+    };
+    const { flows, projectId } = setup(agent, async () => [pass("test")]);
+    const scores = [
+      { score: 70, open: ["Add tests for cart.ts"] },
+      { score: 100, open: [] },
+    ];
+    const roots: string[] = [];
+    flows.measure = async (root) => {
+      roots.push(root);
+      return scores[roots.length - 1] ?? { score: 100, open: [] };
+    };
+    const run = flows.start({
+      projectId,
+      flow: "task",
+      request: "Raise testing",
+      raise: { category: "testing", before: 60 },
+    });
+    const done = await until(
+      () => flows.get(run.id),
+      (r) => r.status === "ready" || r.status === "failed",
+    );
+    expect(done.status).toBe("ready");
+    expect(done.raise?.rounds.map((r) => r.score)).toEqual([70, 100]);
+    expect(roots[0]).toBe(done.worktree?.path);
+    expect(prompts[1]).toContain("went from 60 to 70");
+    expect(prompts[1]).toContain("Add tests for cart.ts");
+  });
+});
+
 describe("limit queue", () => {
   test("a full limit puts the run on hold instead of failing it; it goes on by itself after the reset", async () => {
     let calls = 0;

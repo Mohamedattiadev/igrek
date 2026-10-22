@@ -1,6 +1,7 @@
 import type { FlowNodeState, FlowRun } from "@igrek/core";
 import {
   ArrowLeft,
+  ArrowRight,
   Check,
   ChevronDown,
   ChevronRight,
@@ -12,6 +13,7 @@ import {
   RotateCcw,
   Square,
   Trash2,
+  TrendingUp,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -265,6 +267,42 @@ function Approval({ run }: { run: FlowRun }) {
 }
 
 /** A team run, live: who is doing what, and the one approval at the end (plan.md Faz 8). */
+/** "Raise to 100": the part's score before, and after each round as measured on the run's copy. */
+function RaiseRounds({ raise, working }: { raise: NonNullable<FlowRun["raise"]>; working: boolean }) {
+  const { t } = useTranslation();
+  const last = raise.rounds.at(-1);
+  const part = t(`insight.cat.${raise.category}`);
+  return (
+    <Card className="flex flex-wrap items-center gap-x-4 gap-y-2 p-3 text-[13px]">
+      <TrendingUp size={15} className="shrink-0 text-accent" aria-hidden="true" />
+      <span className="font-medium">{t("flows.raiseTitle", { part })}</span>
+      <span className="tabular-nums">
+        {t("flows.raiseBefore", { score: raise.before })}
+        {raise.rounds.map((r, i) => (
+          <span key={r.at}>
+            {" "}
+            <ArrowRight size={12} className="inline rtl:rotate-180" aria-hidden="true" />{" "}
+            <span
+              className={cn(r.score > (raise.rounds[i - 1]?.score ?? raise.before) ? "text-success" : "text-fg-muted")}
+            >
+              {t("flows.raiseRound", { n: i + 1, score: r.score })}
+            </span>
+          </span>
+        ))}
+      </span>
+      <span className="basis-full text-xs text-fg-muted">
+        {working
+          ? t("flows.raiseWorking")
+          : !last
+            ? t("flows.raiseNone")
+            : last.open
+              ? t("flows.raiseOpen", { count: last.open })
+              : t("flows.raiseAll")}
+      </span>
+    </Card>
+  );
+}
+
 export function FlowRunPage() {
   const { t } = useTranslation();
   const { runId = "" } = useParams();
@@ -332,6 +370,7 @@ export function FlowRunPage() {
           </p>
         )}
         {error && <p className="text-xs text-danger">{error}</p>}
+        {run.raise && <RaiseRounds raise={run.raise} working={run.status === "running"} />}
         {run.status === "ready" && <Approval run={run} />}
         {run.status === "merged" && (
           <p className="text-[13px] text-success">

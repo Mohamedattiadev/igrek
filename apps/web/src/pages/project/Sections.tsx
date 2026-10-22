@@ -130,10 +130,10 @@ function useFix(projectId: string) {
     },
     /**
      * "Raise it to 100": every open finding of a part, most valuable first, as one task for the
-     * part's owner in its own copy. The same rules: the checks must pass, nothing merges without you,
-     * and the next scan shows what it changed.
+     * part's owner in its own copy. The same rules: the checks must pass, nothing merges without you.
+     * Igrek scores the copy after each round and sends it back while findings stay open (up to three).
      */
-    allInCopy: async (category: Category, findings: Finding[]) => {
+    allInCopy: async (category: Category, findings: Finding[], score: number) => {
       const t = settings.enhanceLanguage === "user" ? i18n.t.bind(i18n) : i18n.getFixedT("en");
       const open = [...findings].filter((f) => f.status !== "pass").sort((a, b) => b.gain - a.gain);
       if (!open.length) return;
@@ -153,7 +153,13 @@ function useFix(projectId: string) {
         category,
         personas.filter((p) => p.tools === "edit"),
       );
-      const run = await api.startFlow({ projectId, flow: "task", request: draft, persona: owner?.id });
+      const run = await api.startFlow({
+        projectId,
+        flow: "task",
+        request: draft,
+        persona: owner?.id,
+        raise: { category, before: score },
+      });
       void navigate(`/runs/${run.id}`);
     },
   };
@@ -411,7 +417,7 @@ function CategoryView({ project, category, scan }: { project: ProjectDetail; cat
             variant="primary"
             icon={TrendingUp}
             usesModel
-            onClick={() => void fix.allInCopy(category, detail.findings)}
+            onClick={() => void fix.allInCopy(category, detail.findings, detail.score)}
             data-tip={t("insight.raiseTip", { count: problems.length })}
           >
             {t("insight.raise")}

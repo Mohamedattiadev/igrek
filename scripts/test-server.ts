@@ -254,6 +254,10 @@ const REACHES_OUT = [
   /^\/api\/projects\/[^/]+\/launch$/,
   // Igrek's package catalog is read from GitHub.
   /^\/api\/packs\/catalog$/,
+  // REA's setup runs npx and changes the user's agent settings.
+  /^\/api\/rea\/setup$/,
+  // Skills are downloaded from GitHub.
+  /^\/api\/skills\/install$/,
   // The user's own phone (adb): never touched by a test.
   /^\/api\/phone\//,
 ];

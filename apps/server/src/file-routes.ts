@@ -1,4 +1,5 @@
 import type { Database } from "bun:sqlite";
+import { existsSync } from "node:fs";
 import { basename, extname, join } from "node:path";
 import type { Hono } from "hono";
 import { gitBlame, gitBranches, gitChanges, gitCommit, gitShowHead, gitSwitch, gitWorktrees } from "./adapters/git";
@@ -78,6 +79,8 @@ export function registerFileRoutes(
   app.get("/api/fs/raw", (c) => {
     try {
       const path = files.resolve(c.req.query("path") ?? "");
+      // A name in a chat answer may point at nothing: say so, instead of an empty file.
+      if (!existsSync(path)) return c.json({ error: "File not found" }, 404);
       const ext = extname(path).slice(1).toLowerCase();
       const download = c.req.query("download") === "1";
       return new Response(Bun.file(path), {

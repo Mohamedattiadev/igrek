@@ -1,7 +1,15 @@
 import { homedir } from "node:os";
-import { type AiTool, capabilitiesOf, type SessionSummaryData, type TerminalTool } from "@igrek/core";
+import {
+  type AiTool,
+  type ChatEvent,
+  type ChatInfo,
+  capabilitiesOf,
+  type SessionSummaryData,
+  type TerminalTool,
+} from "@igrek/core";
 import type { Hono } from "hono";
 import type { Accounts } from "./accounts";
+import { chatHandoffPrompt } from "./chat-handoff";
 import { createCheckpoint } from "./checkpoints";
 import type { Servers } from "./servers";
 import type { Store } from "./store";
@@ -59,7 +67,19 @@ export function registerTerminalRoutes(
     language,
     servers,
     accounts,
-  }: { store: Store; terminals: Terminals; language: () => string; servers: Servers; accounts: Accounts },
+    chat = () => undefined,
+    privateValues = () => [],
+  }: {
+    store: Store;
+    terminals: Terminals;
+    language: () => string;
+    servers: Servers;
+    accounts: Accounts;
+    /** A live chat as it is now, for handing it to another tool. */
+    chat?: (id: string) => { info: ChatInfo; events: ChatEvent[] } | undefined;
+    /** Private details and .env secrets, kept out of what goes to a tool outside the gateway. */
+    privateValues?: () => { name: string; value: string }[];
+  },
 ): void {
   /** Account env: a resumed session must use the account it was created in; otherwise the project's/active one. */
   const accountEnv = (provider: "claude" | "codex", projectId: string, sessionAccount?: string | null) => {
@@ -154,6 +174,33 @@ export function registerTerminalRoutes(
             branch: session.git_branch ?? undefined,
           }),
         ],
+      });
+      return c.json(info);
+    } catch (err) {
+      return c.json({ error: (err as Error).message }, 400);
+    }
+  });
+
+  // A live chat goes on in Codex (Claude's limit is spent): a Codex terminal, told what the chat did.
+  app.post("/api/chats/:id/continue", (c) => {
+    const live = chat(c.req.param("id"));
+    const project = live ? store.projectRow(live.info.projectId) : undefined;
+    if (!live || !project) return c.json({ error: "Chat not found" }, 404);
+    const prompt = chatHandoffPrompt(
+      { title: live.info.title, branch: live.info.worktree?.branch },
+      live.events,
+      privateValues(),
+    );
+    try {
+      createCheckpoint(project.path, "Codex took over a chat");
+      const info = terminals.start({
+        projectId: project.id,
+        // Auto mode's chat worked in its own copy; Codex goes on there, not in the main folder.
+        cwd: live.info.worktree?.path ?? live.info.cwd,
+        tool: "codex",
+        env: accountEnv("codex", project.id),
+        title: `Codex · ${live.info.title}`,
+        args: [prompt],
       });
       return c.json(info);
     } catch (err) {

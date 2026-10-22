@@ -1,4 +1,4 @@
-import type { TaskStatus } from "@igrek/core";
+import { CATEGORIES, type Category, type TaskStatus } from "@igrek/core";
 import type { Hono } from "hono";
 import { archonBin, archonWorkflows, startArchon } from "./archon";
 import { arenaModels } from "./arena";
@@ -6,6 +6,13 @@ import type { Board } from "./board";
 import type { Flows } from "./flows";
 import type { Store } from "./store";
 import { worktreeDiff } from "./worktrees";
+
+/** "Raise to 100" from the Sections page: a known part and its score now, or nothing. */
+function raiseOf(raise?: { category?: unknown; before?: unknown }): { category: Category; before: number } | undefined {
+  const category = CATEGORIES.find((c) => c === raise?.category);
+  const before = Number(raise?.before);
+  return category && Number.isFinite(before) ? { category, before: Math.max(0, Math.min(100, before)) } : undefined;
+}
 
 export function registerFlowRoutes(
   app: Hono,
@@ -60,6 +67,7 @@ export function registerFlowRoutes(
       flow?: unknown;
       request?: unknown;
       persona?: unknown;
+      raise?: { category?: unknown; before?: unknown };
     };
     const projectId = String(body.projectId ?? "");
     const flow = String(body.flow ?? "feature");
@@ -71,7 +79,7 @@ export function registerFlowRoutes(
         return c.json(await startArchon(flows, { projectId, cwd: project.path, workflow: flow.slice(7), request }));
       }
       const persona = typeof body.persona === "string" && body.persona ? body.persona : undefined;
-      return c.json(flows.start({ projectId, flow, request, persona }));
+      return c.json(flows.start({ projectId, flow, request, persona, raise: raiseOf(body.raise) }));
     } catch (err) {
       return fail(err);
     }
