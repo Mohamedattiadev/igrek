@@ -32,6 +32,15 @@
       <section id="kurulum">
         <h2>Kurulum</h2>
         <p><a href="https://git-scm.com">Git</a> ve Claude Code gerekir (giriş için bir kez <code>claude</code> yaz). Bun yoksa betik kurar.</p>
+        <h3>Masaüstü uygulaması</h3>
+        <p>Igrek kendi penceresinde, başka bir şey kurmadan: bilgisayarına uygun paketi <a href="https://github.com/Mohamedattiadev/igrek/releases">Releases sayfasından</a> indir. Linux için AppImage ya da .deb, Windows için .msi, macOS için .dmg (Apple işlemci: <em>aarch64</em>, Intel: <em>x64</em>). Claude Code ve Codex içinde değildir; ilk açılışta Igrek nasıl kurulacaklarını gösterir.</p>
+        <p>Paketler ücretli bir sertifikayla imzalanmadığı için ilk açılışta işletim sistemi bir kez sorar:</p>
+        <ul>
+          <li><strong>Windows:</strong> "Windows bilgisayarınızı korudu" çıkar. <em>Ek bilgi</em>'ye, sonra <em>Yine de çalıştır</em>'a tıkla.</li>
+          <li><strong>macOS:</strong> "Igrek açılamıyor" çıkar. Kapat, <em>Sistem Ayarları &gt; Gizlilik ve Güvenlik</em>'i aç, aşağı kaydırıp Igrek'in yanındaki <em>Yine de Aç</em>'a, sonra <em>Aç</em>'a tıkla.</li>
+          <li><strong>Linux (AppImage):</strong> çalıştırılabilir yap (<code>chmod +x Igrek_*.AppImage</code> ya da Özellikler &gt; Çalıştırmaya izin ver), sonra aç. Bazı sistemlerde önce <code>libfuse2</code> gerekir.</li>
+        </ul>
+        <p class="muted">Pencereyi kapatınca Igrek, sunucusu ve başlattığı her şey durur. Tepsi ikonu pencereyi gizleyebilir; herhangi bir programdayken Ctrl+Space hızlı soru açar.</p>
         <h3>Linux ve macOS</h3>
         <pre>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</pre>
         <h3>Windows (PowerShell)</h3>

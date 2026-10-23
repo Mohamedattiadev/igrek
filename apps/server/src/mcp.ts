@@ -486,7 +486,8 @@ function send(message: unknown): void {
   process.stdout.write(`${JSON.stringify(message)}\n`);
 }
 
-if (import.meta.main) {
+/** Answers MCP requests on stdin, one JSON line each, until stdin closes. */
+export async function serveStdio(): Promise<void> {
   let buffer = "";
   for await (const chunk of Bun.stdin.stream()) {
     buffer += new TextDecoder().decode(chunk);
@@ -512,5 +513,7 @@ if (import.meta.main) {
     }
   }
 }
+
+if (import.meta.main) await serveStdio();
 
 export { handle };

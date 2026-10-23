@@ -5,12 +5,15 @@ import type { Server, ServerWebSocket } from "bun";
 import type { Bus, StopRegistry } from "../bus";
 import { createCheckpoint } from "../checkpoints";
 import { cleanEnv, findBrowser } from "../env";
+import { PACKAGED, resourcePath } from "../packaged";
 import type { Personas } from "../personas";
 import type { Store } from "../store";
 import { auditUi } from "./ui-audit";
 
-const AGENT = readFileSync(join(import.meta.dir, "agent.js"), "utf8");
-const PLUGIN = join(import.meta.dir, "vite-source-plugin.mjs");
+// The desktop app's single-file server keeps these two beside it; the plugin must be a real file for Vite.
+const OWN = PACKAGED ? resourcePath("preview") : import.meta.dir;
+const AGENT = readFileSync(join(OWN, "agent.js"), "utf8");
+const PLUGIN = join(OWN, "vite-source-plugin.mjs");
 const URL_IN_LOG = /(https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]):\d+)/;
 const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;]*[A-Za-z]`, "g");
 const MAX_LOG = 400;

@@ -262,7 +262,13 @@
     "projectsBody": "Give the folder of a project, or a folder that holds several. Igrek only shows the folders you add here; you can add more later on the Projects page.",
     "projectsFound": "Folders where Claude has already worked",
     "projectsAuto": "Add every folder Claude works in",
-    "projectsAutoTip": "Every folder Claude Code works in becomes a project by itself. You can turn this off in Settings."
+    "projectsAutoTip": "Every folder Claude Code works in becomes a project by itself. You can turn this off in Settings.",
+    "toolsTitle": "Your AI tools",
+    "toolsBody": "Igrek works with the Claude Code and Codex on this computer; it does not bring them along. Install at least one, then sign in to it once in a terminal.",
+    "toolsFound": "{{tool}} is installed",
+    "toolsMissing": "{{tool}} is not installed. In a terminal:",
+    "toolsMore": "How to install {{tool}}",
+    "toolsRecheck": "Check again"
   },
   "help": {
     "button": "Help",
@@ -4635,6 +4641,20 @@
     "button": "Install as an app",
     "done": "Igrek is running as an app.",
     "manual": "Your browser does not offer it from here. In Chrome or Edge use the install icon at the end of the address bar (or the menu: Cast, save and share > Install page as app); Safari: File > Add to Dock."
+  },
+  "desktop": {
+    "trayOpen": "Open Igrek",
+    "trayHide": "Hide",
+    "trayQuit": "Quit",
+    "serverFailed": "Igrek's server did not start",
+    "serverLog": "What it wrote is in",
+    "autostart": "Start with the computer",
+    "autostartHint": "Igrek opens by itself when you sign in to your computer. Off until you turn it on.",
+    "updateHint": "The app downloads the new version, checks that Igrek signed it with its own key, and restarts.",
+    "updateOff": "This copy of the app was built without an update key, so it cannot update itself. Download the new version from the Releases page.",
+    "updateFound": "Version {{version}} is ready.",
+    "updateInstall": "Install and restart",
+    "updateInstalling": "Installing…"
   },
   "packs": {
     "catalog": "Igrek's catalog",

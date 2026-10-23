@@ -1,7 +1,16 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "files": {
-    "includes": ["**", "!**/node_modules", "!**/dist", "!**/dist-member", "!.igrek-dev", "!.godeye-dev", "!bun.lock"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/dist-member",
+      "!.igrek-dev",
+      "!apps/desktop/src-tauri/{resources,binaries,gen,target}",
+      "!.godeye-dev",
+      "!bun.lock"
+    ]
   },
   "formatter": {
     "indentStyle": "space",

@@ -2,6 +2,7 @@ import { createWriteStream, existsSync, mkdirSync, renameSync, rmSync, statSync 
 import { dirname, join } from "node:path";
 import type { EmbedderStatus } from "@igrek/core";
 import { envValue } from "./names";
+import { ownScript } from "./packaged";
 
 /**
  * Local meaning vectors for the library (plan.md 7.1): a small multilingual model that runs on
@@ -211,7 +212,8 @@ export class Embedder implements Embed {
 
   private startWorker(): Bun.Subprocess<"pipe", "pipe", "inherit"> {
     if (this.worker && !this.worker.killed && this.worker.exitCode === null) return this.worker;
-    const proc = Bun.spawn([process.execPath, join(import.meta.dir, "embed-worker.ts"), this.dir], {
+    const worker = ownScript("embed-worker");
+    const proc = Bun.spawn([worker.command, ...worker.args, this.dir], {
       stdin: "pipe",
       stdout: "pipe",
       stderr: "inherit",

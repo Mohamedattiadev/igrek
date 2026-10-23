@@ -125,7 +125,7 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
       version: APP_VERSION,
       dataDir: config.dataDir,
       uptimeSeconds: Math.round((Date.now() - startedAt) / 1000),
-      tools: await checkTools(),
+      tools: await checkTools(c.req.query("fresh") === "1"),
     };
     return c.json(status);
   });

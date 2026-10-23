@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { cn } from "../lib/cn";
+import { useDesktopTray } from "../lib/desktop";
 import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
 import { useDesktopNotifications } from "../lib/notify";
 import { runPageShortcut } from "../lib/page-actions";
@@ -308,6 +309,7 @@ export function Shell() {
   const narrow = useNarrow();
   const [drawer, setDrawer] = useState(false);
   useDesktopNotifications();
+  useDesktopTray();
   useEffect(() => {
     const flip = () =>
       setZen((on) => {

@@ -3,6 +3,7 @@ import { ArrowRight, Check, FolderPlus, ShieldCheck } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddProjectForm } from "../components/AddProjectForm";
+import { AiToolsCheck } from "../components/AiToolsCheck";
 import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { Button } from "../components/ui";
@@ -92,7 +93,10 @@ function ProjectStep({ onDone }: { onDone: () => void }) {
   );
 }
 
-/** First-run wizard: the language (plan.md 7.4), then the project folders, then a word on privacy. */
+/**
+ * First-run wizard: the language (plan.md 7.4), then the project folders, then a word on privacy
+ * with what to install if Claude Code or Codex is missing (Igrek does not bring them).
+ */
 export function Onboarding() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
@@ -130,6 +134,9 @@ export function Onboarding() {
               </div>
               <h1 className="text-[18px] font-semibold">{t("onboarding.readyTitle")}</h1>
               <p className="mt-1.5 text-[13px] leading-relaxed text-fg-muted">{t("onboarding.readyBody")}</p>
+              <div className="mt-4">
+                <AiToolsCheck />
+              </div>
               <div className="mt-6 flex flex-wrap justify-end gap-2">
                 <Button variant="ghost" onClick={() => void update({ onboarded: true })}>
                   {t("onboarding.startNoTour")}

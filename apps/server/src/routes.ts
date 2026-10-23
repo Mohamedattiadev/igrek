@@ -1,11 +1,11 @@
 import { existsSync, statSync } from "node:fs";
-import { join } from "node:path";
 import type { MemorySection, ProjectDetail, ProjectListItem } from "@igrek/core";
 import type { Hono } from "hono";
 import { gitFetch, gitInfo } from "./adapters/git";
 import { buildContext, hooksInstalled, installHooks, uninstallHooks } from "./hooks";
 import type { Indexer } from "./indexer";
 import { localDay } from "./jobs";
+import { ownScript } from "./packaged";
 import type { Store } from "./store";
 import type { Summarizer } from "./summarizer";
 
@@ -24,7 +24,8 @@ export interface WorkDeps {
 }
 
 const SECTIONS: MemorySection[] = ["status", "decision", "convention", "failed", "issue"];
-const MCP_SCRIPT = join(import.meta.dir, "mcp.ts");
+/** Written into Claude Code's settings, so it names a command that lasts across restarts. */
+const MCP = ownScript("mcp", true);
 
 function runClaudeCli(args: string[]): { ok: boolean; output: string } {
   try {
@@ -221,7 +222,7 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
     const installed = runClaudeCli(["mcp", "get", "igrek"]).ok || runClaudeCli(["mcp", "get", "godeye"]).ok;
     return c.json({
       installed,
-      command: `claude mcp add --scope user igrek -- ${process.execPath} ${MCP_SCRIPT}`,
+      command: `claude mcp add --scope user igrek -- ${[MCP.command, ...MCP.args].join(" ")}`,
       inContainer: existsSync("/.dockerenv"),
     });
   });
@@ -229,7 +230,7 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
   app.post("/api/mcp", (c) => {
     if (existsSync("/.dockerenv")) return c.json({ error: "Run the command on your computer, not in Docker" }, 409);
     const env = [`IGREK_PORT=${deps.publicPort}`, `IGREK_HOME=${deps.dataDir}`].flatMap((e) => ["-e", e]);
-    const result = runClaudeCli(["mcp", "add", "--scope", "user", ...env, "igrek", "--", process.execPath, MCP_SCRIPT]);
+    const result = runClaudeCli(["mcp", "add", "--scope", "user", ...env, "igrek", "--", MCP.command, ...MCP.args]);
     // The entry from before the rename would give the same tools twice.
     if (result.ok) runClaudeCli(["mcp", "remove", "--scope", "user", "godeye"]);
     // 502: Claude Code's own command failed (or is missing), not Igrek.

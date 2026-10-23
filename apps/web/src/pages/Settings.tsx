@@ -2,6 +2,7 @@ import type { SystemStatus } from "@igrek/core";
 import { AppWindow, Check, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { ExtensionPanel } from "../components/ExtensionPanel";
 import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
@@ -19,6 +20,7 @@ import {
 import { PrivatePanel } from "../components/PrivatePanel";
 import { Badge, Button, Card, PageHeader, Section, Segmented, useModelTip } from "../components/ui";
 import { api } from "../lib/api";
+import { inDesktopApp } from "../lib/desktop";
 import { useInstallApp } from "../lib/install";
 import { askNotificationPermission } from "../lib/notify";
 import { useSettings } from "../lib/settings";
@@ -126,6 +128,37 @@ function InstallApp() {
   );
 }
 
+/** In the desktop app: whether it starts with the computer. In a browser: how to get a window of its own. */
+function AppSection() {
+  const { t } = useTranslation();
+  return inDesktopApp ? (
+    <Section title={t("desktop.autostart")} hint={t("desktop.autostartHint")}>
+      <AutostartPanel />
+    </Section>
+  ) : (
+    <Section title={t("install.title")} hint={t("install.hint")}>
+      <InstallApp />
+    </Section>
+  );
+}
+
+/** The desktop app updates itself for everyone; a copy from source shows its git update in Pro mode. */
+function UpdateSection({ pro }: { pro: boolean }) {
+  const { t } = useTranslation();
+  if (inDesktopApp)
+    return (
+      <Section title={t("update.title")} hint={t("desktop.updateHint")}>
+        <DesktopUpdatePanel />
+      </Section>
+    );
+  if (!pro) return null;
+  return (
+    <Section title={t("update.title")} hint={t("update.hint")}>
+      <UpdatePanel />
+    </Section>
+  );
+}
+
 /** What the AI may and may not do here, in plain sentences (a first-time user could not find it). */
 function AiMay({ gateway }: { gateway: boolean }) {
   const { t } = useTranslation();
@@ -199,9 +232,7 @@ export function SettingsPage() {
           <LanguagePicker value={settings.language} onChange={(language) => chooseLanguage(language, update)} />
           <LanguagePackPanel code={settings.language} />
         </Section>
-        <Section title={t("install.title")} hint={t("install.hint")}>
-          <InstallApp />
-        </Section>
+        <AppSection />
         <Section title={t("settings.theme")}>
           <Segmented
             value={settings.theme}
@@ -429,11 +460,7 @@ export function SettingsPage() {
             <DiskPanel />
           </Section>
         )}
-        {pro && (
-          <Section title={t("update.title")} hint={t("update.hint")}>
-            <UpdatePanel />
-          </Section>
-        )}
+        <UpdateSection pro={pro} />
         <Section title={t("settings.system")} hint={t("settings.systemHint")}>
           <SystemCheck />
         </Section>

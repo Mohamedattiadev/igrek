@@ -199,7 +199,7 @@ export const api = {
     request<{ key: string; en: string; text: string; corrected: boolean }[]>(`/api/i18n/${code}/rows`),
   fixTranslation: (code: string, key: string, text: string | null) =>
     request<{ ok: boolean }>(`/api/i18n/${code}/override`, { method: "PUT", body: JSON.stringify({ key, text }) }),
-  system: () => request<SystemStatus>("/api/system"),
+  system: (fresh = false) => request<SystemStatus>(`/api/system${fresh ? "?fresh=1" : ""}`),
   emergencyStop: () => request<{ stopped: number; stoppedAt: string }>("/api/emergency-stop", { method: "POST" }),
   indexStatus: () => request<IndexStatus>("/api/index/status"),
   projects: () => request<ProjectListItem[]>("/api/projects"),

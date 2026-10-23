@@ -74,6 +74,9 @@ export function QuickAsk() {
       } else if (event.key === "Escape" && open) setOpen(false);
     };
     window.addEventListener("keydown", onKey);
+    // Ctrl+Space pressed in another program, passed on by the desktop app.
+    const fromDesktop = () => setOpen(true);
+    window.addEventListener("igrek:quick-ask", fromDesktop);
     const off = actions.on("quick-ask", (request) => {
       setOpen(true);
       if (request.attachment) setAttachment(request.attachment);
@@ -81,6 +84,7 @@ export function QuickAsk() {
     });
     return () => {
       window.removeEventListener("keydown", onKey);
+      window.removeEventListener("igrek:quick-ask", fromDesktop);
       off();
     };
   }, [open]);

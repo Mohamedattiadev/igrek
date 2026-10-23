@@ -10,6 +10,7 @@ COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
 COPY apps/hub/package.json apps/hub/
+COPY apps/desktop/package.json apps/desktop/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 COPY packages/learn/package.json packages/learn/
@@ -26,6 +27,7 @@ COPY package.json bun.lock ./
 COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
 COPY apps/hub/package.json apps/hub/
+COPY apps/desktop/package.json apps/desktop/
 COPY packages/core/package.json packages/core/
 COPY packages/i18n/package.json packages/i18n/
 COPY packages/learn/package.json packages/learn/

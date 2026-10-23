@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Igrek</title>
+    <!-- Shown for the second or two the server takes to start; the app replaces it (src-tauri/src/main.rs). -->
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #ffffff;
+        --fg: #1e1f22;
+        --muted: #6b6f76;
+        --accent: #2267ef;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1b1c1f;
+          --fg: #e8e9eb;
+          --muted: #9a9ea6;
+        }
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font: 14px/1.5 system-ui, sans-serif;
+      }
+      main {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        padding: 0 24px;
+        text-align: center;
+      }
+      svg {
+        width: 56px;
+        height: 56px;
+      }
+      .dots {
+        display: flex;
+        gap: 6px;
+      }
+      .dots span {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--muted);
+        animation: pulse 1.2s ease-in-out infinite;
+      }
+      .dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      #error {
+        display: none;
+        max-width: 560px;
+      }
+      #detail {
+        color: var(--muted);
+        font-family: ui-monospace, monospace;
+        font-size: 12px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <svg viewBox="0 0 32 32" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 6.5 16 16.5V26" stroke="currentColor" stroke-width="3.5" />
+        <path d="M24 6.5 16 16.5" stroke="#2267ef" stroke-width="3.5" />
+      </svg>
+      <div class="dots" id="dots"><span></span><span></span><span></span></div>
+      <div id="error">
+        <p id="message"></p>
+        <p id="detail"></p>
+      </div>
+    </main>
+    <script>
+      document.documentElement.lang = navigator.language;
+      // Called by the app when the server did not start; the words come from Igrek's text files.
+      window.showError = (message, detail) => {
+        document.getElementById("dots").style.display = "none";
+        document.getElementById("error").style.display = "block";
+        document.getElementById("message").textContent = message;
+        document.getElementById("detail").textContent = detail;
+      };
+    </script>
+  </body>
+</html>

@@ -1206,13 +1206,13 @@ god-eye/
 
 **Hedef:** Igrek, Claude ve Codex uygulamaları gibi kurulup açılan bir uygulama olsun: tarayıcı, sekme ya da localhost görünmesin. Linux, Windows ve macOS'ta çalışsın. *Karar (Ekim 2026): Tauri ile yapılacak; ücretli kod imzası şimdilik yok (imzasız da çalışır, ilk açılışta işletim sistemi bir kez izin ister).*
 
-- [ ] Tauri penceresi mevcut web arayüzünü açar; sunucu (`bun build --compile` ile tek dosya) uygulamanın içinde gizlice başlar, kapanınca durur
+- [x] Tauri penceresi mevcut web arayüzünü açar; sunucu (`bun build --compile` ile tek dosya) uygulamanın içinde gizlice başlar, kapanınca durur
 - [ ] Linux (AppImage, .deb), Windows (.msi) ve macOS (.dmg) paketleri GitHub Actions'ta ücretsiz derlenir
-- [ ] Sistem tepsisi ikonu, yerel bildirimler, bilgisayar açılınca başlama (isteğe bağlı)
+- [x] Sistem tepsisi ikonu, yerel bildirimler, bilgisayar açılınca başlama (isteğe bağlı)
 - [ ] İşletim sistemi genelinde `Ctrl+Space` ile hızlı soru
 - [ ] Tauri'nin kendi anahtarıyla imzalanan otomatik güncelleme (işletim sistemi sertifikası gerekmez)
-- [ ] İmzasız kurulumda ilk açılış adımları kurulum sayfasında anlatılır (Windows: "Ek bilgi > Yine de çalıştır", macOS: "Gizlilik ve Güvenlik > Yine de Aç")
-- [ ] Claude Code ve Codex uygulamaya gömülmez; kurulu değilse ilk açılışta nasıl kurulacağı gösterilir
+- [x] İmzasız kurulumda ilk açılış adımları kurulum sayfasında anlatılır (Windows: "Ek bilgi > Yine de çalıştır", macOS: "Gizlilik ve Güvenlik > Yine de Aç")
+- [x] Claude Code ve Codex uygulamaya gömülmez; kurulu değilse ilk açılışta nasıl kurulacağı gösterilir
 - [ ] Docker'sız çalıştırmada kalan Linux'a özgü yerler — *Ekim 2026'da yapılanlar: tarayıcı Linux, macOS ve Windows'ta bilinen yerlerde aranır (Chrome, Chromium, Edge; IGREK_BROWSER ile seçilir), yoksa ne yapılacağı söylenir; akışların kabuk adımları Windows'ta Git for Windows'un bash'iyle çalışır, yoksa açık hata verir; yeniden başlatma kabuk kullanmaz. Sonra: kancalar Windows'ta Bun betiği; gömülü terminal Windows'ta açık bir hata verir (Bun'ın PTY'si sadece Linux ve macOS'ta). Kalanlar: Windows'ta gömülü terminal, Claude Code'un sandbox'ı Windows'ta yok*
 - [x] Docker'sız kurulum Windows, macOS ve Linux için adım adım README'de; Windows'ta kanca sh/curl yerine Bun betiği — *Karar (20 Ekim 2026): "herkes kullanabilsin" önce Docker'sız kurulum demek*
 - [x] Tauri'den önce "uygulama olarak yükle" (PWA): kendi penceresi, başlat menüsü/Dock'ta yeri; Ayarlar'da düğme — *Karar (20 Ekim 2026): Tauri şimdilik başlamıyor, önce PWA*

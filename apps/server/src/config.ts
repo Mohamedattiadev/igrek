@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { DEFAULT_PORT } from "@igrek/core";
 import { defaultDataDir, envValue } from "./names";
+import { PACKAGED, resourcePath } from "./packaged";
 
 export interface Config {
   host: string;
@@ -40,6 +41,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     dataDir,
     allowedHosts: new Set(hosts),
     allowedOrigins: new Set(origins),
-    webDist: value("WEB_DIST") ?? join(import.meta.dir, "../../web/dist"),
+    webDist: value("WEB_DIST") ?? (PACKAGED ? resourcePath("web") : join(import.meta.dir, "../../web/dist")),
   };
 }

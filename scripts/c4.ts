@@ -30,7 +30,7 @@ const AREAS: [string, string, RegExp][] = [
   [
     "foundation",
     "Foundation",
-    /^\/(bus|db|config|names|settings|seal|jsonlines|env|files|localmodel|ydoc|sync\/scrub)\.ts$/,
+    /^\/(bus|db|config|names|packaged|settings|seal|jsonlines|env|files|localmodel|ydoc|sync\/scrub)\.ts$/,
   ],
   ["sync", "Team sync", /\/(sync\/|team-routes)/],
   ["preview", "Live preview", /\/(preview\/|preview-routes)/],

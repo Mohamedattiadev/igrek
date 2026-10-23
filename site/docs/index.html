@@ -32,6 +32,15 @@
       <section id="install">
         <h2>Install</h2>
         <p>You need <a href="https://git-scm.com">Git</a> and Claude Code (run <code>claude</code> once to log in). The script installs Bun when it is missing.</p>
+        <h3>Desktop app</h3>
+        <p>Igrek in a window of its own, with nothing else to install: download the package for your computer from the <a href="https://github.com/Mohamedattiadev/igrek/releases">Releases page</a>. AppImage or .deb for Linux, .msi for Windows, .dmg for macOS (Apple silicon: <em>aarch64</em>, Intel: <em>x64</em>). Claude Code and Codex are not inside it; on first run Igrek shows how to install them.</p>
+        <p>The packages are not signed with a paid certificate, so the first start asks once:</p>
+        <ul>
+          <li><strong>Windows:</strong> "Windows protected your PC" appears. Click <em>More info</em>, then <em>Run anyway</em>.</li>
+          <li><strong>macOS:</strong> "Igrek cannot be opened" appears. Close it, open <em>System Settings &gt; Privacy &amp; Security</em>, scroll down and click <em>Open Anyway</em> next to Igrek, then <em>Open</em>.</li>
+          <li><strong>Linux (AppImage):</strong> make it runnable (<code>chmod +x Igrek_*.AppImage</code>, or Properties &gt; Allow executing), then open it. Some systems need <code>libfuse2</code> first.</li>
+        </ul>
+        <p class="muted">Closing the window stops Igrek, its server and everything it started. The tray icon can hide the window instead; Ctrl+Space from any program opens a quick question.</p>
         <h3>Linux and macOS</h3>
         <pre>curl -fsSL https://raw.githubusercontent.com/Mohamedattiadev/igrek/main/scripts/install.sh | sh</pre>
         <h3>Windows (PowerShell)</h3>

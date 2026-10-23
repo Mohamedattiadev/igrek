@@ -38,8 +38,9 @@ async function check(tool: (typeof TOOLS)[number]): Promise<ToolCheck> {
 
 let cache: { at: number; tools: ToolCheck[] } | undefined;
 
-export async function checkTools(): Promise<ToolCheck[]> {
-  if (cache && Date.now() - cache.at < 60_000) return cache.tools;
+/** `fresh` looks again now, for "Check again" right after the user installed something. */
+export async function checkTools(fresh = false): Promise<ToolCheck[]> {
+  if (!fresh && cache && Date.now() - cache.at < 60_000) return cache.tools;
   const tools = await Promise.all(TOOLS.map(check));
   cache = { at: Date.now(), tools };
   return tools;

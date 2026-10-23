@@ -35,6 +35,24 @@ neyin yapıldığı, neyin kaldığı ve neyin bozuk olduğu kayboluyor.
 
 Her şey **senin bilgisayarında** çalışır. Takımla paylaştığın veriler şifrelenerek gönderilir. Aradaki sunucu bile içeriğini okuyamaz.
 
+### Masaüstü uygulaması (en kolayı)
+
+Igrek kendi penceresinde açılır; tarayıcı, Docker ya da Bun gerekmez. Bilgisayarına uygun paketi
+[Releases](https://github.com/Mohamedattiadev/igrek/releases) sayfasından indir: Linux için `.AppImage` ya da `.deb`,
+Windows için `.msi`, macOS için `.dmg` (Apple işlemci: `aarch64`, Intel: `x64`). Claude Code ve Codex pakette
+yoktur; kurulu değillerse ilk açılışta Igrek nasıl kurulacaklarını gösterir.
+
+Paketler ücretli bir sertifikayla imzalı değildir; ilk açılışta işletim sistemi bir kez sorar:
+
+- **Windows:** "Windows bilgisayarınızı korudu" çıkar: **Ek bilgi > Yine de çalıştır**.
+- **macOS:** "Igrek açılamıyor" çıkar: kapat, **Sistem Ayarları > Gizlilik ve Güvenlik**'te aşağı kaydır,
+  Igrek'in yanındaki **Yine de Aç**'a, sonra **Aç**'a tıkla.
+- **Linux (AppImage):** `chmod +x Igrek_*.AppImage` ile çalıştırılabilir yap ve aç (bazı sistemlerde önce `libfuse2` gerekir).
+
+Pencereyi kapatınca Igrek ve başlattığı her şey durur, arkada bir şey kalmaz. Tepsi ikonuyla pencere gizlenebilir;
+herhangi bir programdayken `Ctrl+Space` hızlı soru açar. Ayarlar'da "Bilgisayar açılınca başlat" (varsayılan kapalı) ve
+güncelleme var. Ayrıntılar: [docs/desktop.md](docs/desktop.md).
+
 ### Kurulum (tek komut)
 
 **Gerekenler:** [Docker](https://docs.docker.com/get-docker/) ve en az bir AI aracı (örneğin Claude Code).
@@ -151,6 +169,24 @@ track of what was done, what's left and what's broken.
 - **Speaks your language:** Any language you choose.
 
 Everything runs **on your own computer**. Anything you share with your team is encrypted first. Even the server in between can't read it.
+
+### Desktop app (the easiest)
+
+Igrek opens in a window of its own; no browser, Docker or Bun needed. Download the package for your computer from
+[Releases](https://github.com/Mohamedattiadev/igrek/releases): `.AppImage` or `.deb` for Linux, `.msi` for Windows,
+`.dmg` for macOS (Apple silicon: `aarch64`, Intel: `x64`). Claude Code and Codex are not in the package; when they
+are missing, Igrek shows on first run how to install them.
+
+The packages are not signed with a paid certificate, so the system asks once on the first start:
+
+- **Windows:** "Windows protected your PC" appears: **More info > Run anyway**.
+- **macOS:** "Igrek cannot be opened" appears: close it, scroll down in **System Settings > Privacy & Security**,
+  click **Open Anyway** next to Igrek, then **Open**.
+- **Linux (AppImage):** make it runnable with `chmod +x Igrek_*.AppImage` and open it (some systems need `libfuse2` first).
+
+Closing the window stops Igrek and everything it started; nothing is left running. The tray icon can hide the window;
+`Ctrl+Space` from any program opens a quick question. Settings has "Start with the computer" (off by default) and
+updates. Details: [docs/desktop.md](docs/desktop.md).
 
 ### Install (one command)
 

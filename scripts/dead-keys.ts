@@ -15,6 +15,9 @@ const PLURAL = /_(zero|one|two|few|many|other)$/;
 
 type Tree = { [key: string]: string | Tree };
 
+/** Folders with no code of ours: packages, the texts themselves, and what builds make. */
+const SKIP = new Set(["node_modules", "locales", "dist", "target", "resources", "binaries", "gen"]);
+
 export function keysOf(tree: Tree, prefix = ""): string[] {
   return Object.entries(tree).flatMap(([k, v]) =>
     typeof v === "string" ? [`${prefix}${k}`] : keysOf(v, `${prefix}${k}.`),
@@ -26,9 +29,10 @@ function sourceText(): string {
   const walk = (dir: string) => {
     for (const name of readdirSync(dir)) {
       const path = join(dir, name);
-      if (name === "node_modules" || name === "locales" || name === "dist") continue;
+      if (SKIP.has(name)) continue;
       if (statSync(path).isDirectory()) walk(path);
-      else if (/\.(ts|tsx)$/.test(name) && !/\.test\.tsx?$/.test(name)) parts.push(readFileSync(path, "utf8"));
+      // .rs: the desktop app's own few words (apps/desktop/src-tauri/src/texts.rs).
+      else if (/\.(ts|tsx|rs)$/.test(name) && !/\.test\.tsx?$/.test(name)) parts.push(readFileSync(path, "utf8"));
     }
   };
   for (const dir of ["apps", "packages"]) walk(join(ROOT, dir));

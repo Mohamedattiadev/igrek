@@ -114,6 +114,7 @@ import {
   registerVaultRoutes,
   registerWriteupRoutes,
 } from "./ops-routes";
+import { ownScript, PACKAGED, resourcePath } from "./packaged";
 import { Perf } from "./perf";
 import { Experts, expertsHint } from "./persona-experts";
 import { PersonaPacks } from "./persona-packs";
@@ -355,8 +356,7 @@ const personaChat = connectPersonaChats(
   personas,
   (sessionId, personaId) => personas.linkSession(sessionId, personaId),
   {
-    command: process.execPath,
-    args: [join(import.meta.dir, "mcp.ts")],
+    ...ownScript("mcp"),
     env: { IGREK_PORT: String(config.publicPort), IGREK_HOME: config.dataDir },
   },
 );
@@ -446,7 +446,12 @@ monitors.start();
 const docker = new Docker(servers);
 const logs = new Logs(sqlite, store, files, docker, servers);
 const appErrors = new AppErrors(sqlite, store, bus);
-const learn = new Learn(sqlite, (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"));
+const learn = new Learn(
+  sqlite,
+  (prompt) => runClaude(prompt, join(config.dataDir, "runner"), stops, "haiku"),
+  fetch,
+  PACKAGED ? resourcePath("learn") : undefined,
+);
 // Newest versions of the technologies the cheatsheets cover, once a day.
 setTimeout(() => void learn.checkLatest().catch(() => undefined), 90_000);
 setInterval(() => void learn.checkLatest().catch(() => undefined), 6 * 3_600_000);
@@ -661,8 +666,7 @@ const app = createApp({
           mcpServers: {
             ...mcpServers.config(),
             igrek: {
-              command: process.execPath,
-              args: [join(import.meta.dir, "mcp.ts")],
+              ...ownScript("mcp"),
               env: { IGREK_PORT: String(config.publicPort), IGREK_HOME: config.dataDir },
             },
           },

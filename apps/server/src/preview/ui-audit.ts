@@ -4,6 +4,7 @@ import type { Database } from "bun:sqlite";
 import { readFileSync } from "node:fs";
 import type { UiAudit, UiPageCheck } from "@igrek/core";
 import type { Browser, Page } from "playwright-core";
+import { PACKAGED, resourcePath } from "../packaged";
 
 /** Widths a real person uses: a laptop and a phone. */
 const VIEWPORTS = [
@@ -17,7 +18,10 @@ const IMPACTS = new Set(["minor", "moderate", "serious", "critical"]);
 let axeSource: string | undefined;
 /** axe-core (MPL-2.0), the accessibility checker browsers' own tools use, loaded once. */
 function axe(): string {
-  axeSource ??= readFileSync(Bun.resolveSync("axe-core/axe.min.js", import.meta.dir), "utf8");
+  axeSource ??= readFileSync(
+    PACKAGED ? resourcePath("axe.min.js") : Bun.resolveSync("axe-core/axe.min.js", import.meta.dir),
+    "utf8",
+  );
   return axeSource;
 }
 

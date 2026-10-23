@@ -1,0 +1,117 @@
+name: Desktop app
+
+# The desktop app (apps/desktop, plan.md Faz 17) for Linux (AppImage, .deb), Windows (.msi) and
+# macOS (.dmg), on GitHub's free runners. Run by hand, or by pushing a v* tag. Nothing is published:
+# the packages stay on the run as artifacts, and a person puts them on a release (docs/desktop.md).
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+env:
+  OPENUI_TELEMETRY_DISABLED: "1"
+  DO_NOT_TRACK: "1"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # 22.04: an AppImage made on an older system runs on newer ones, not the other way round.
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bundles: appimage,deb
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: msi
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            bundles: app,dmg
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            bundles: app,dmg
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Updates are signed with Igrek's own key (not an OS certificate). Without these the packages
+      # are still made, only without update files, and that app cannot update itself.
+      TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+      TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+      IGREK_UPDATER_PUBKEY: ${{ vars.TAURI_UPDATER_PUBKEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Linux libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: The server as one file, and the files beside it
+        run: bun apps/desktop/scripts/sidecar.ts --target ${{ matrix.target }}
+      - name: Package
+        working-directory: apps/desktop
+        run: |
+          # Update files only when there is a key to sign them; on a tag the version is the tag's.
+          updater=false
+          [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && updater=true
+          config="{\"bundle\":{\"createUpdaterArtifacts\":$updater}}"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            config="{\"version\":\"${GITHUB_REF_NAME#v}\",\"bundle\":{\"createUpdaterArtifacts\":$updater}}"
+          fi
+          bun run tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --config "$config"
+      - name: Collect the packages
+        run: |
+          # Inside the checkout: on Windows a relative path avoids the runner's backslash paths.
+          out="desktop-packages"
+          mkdir -p "$out"
+          bundle="apps/desktop/src-tauri/target/${{ matrix.target }}/release/bundle"
+          find "$bundle" -maxdepth 2 -type f \
+            \( -name '*.AppImage' -o -name '*.AppImage.sig' -o -name '*.deb' -o -name '*.msi' -o -name '*.msi.sig' \
+               -o -name '*.dmg' -o -name '*.app.tar.gz' -o -name '*.app.tar.gz.sig' \) \
+            -exec cp {} "$out" \;
+          # Both Macs make Igrek.app.tar.gz; the name says which one it is.
+          arch="${{ matrix.target }}"; arch="${arch%%-*}"
+          for f in "$out"/*.app.tar.gz*; do
+            [ -e "$f" ] && mv "$f" "${f/Igrek.app/Igrek_${arch}.app}"
+          done
+          ls -la "$out"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: igrek-${{ matrix.target }}
+          path: desktop-packages
+          if-no-files-found: error
+
+  # What the app asks to learn of a new version (latest.json), made from the signatures above. It is
+  # uploaded with the packages to the release; the app reads it from the newest release.
+  update-manifest:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.3
+      - uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/packages
+          merge-multiple: true
+      - run: bun apps/desktop/scripts/latest-json.ts "$RUNNER_TEMP/packages" "${GITHUB_REF_NAME}" > "$RUNNER_TEMP/latest.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: latest-json
+          path: ${{ runner.temp }}/latest.json

@@ -262,7 +262,13 @@
     "projectsBody": "Bir projenin klasörünü ya da birkaç projeyi içeren bir klasörü yaz. Igrek sadece burada eklediğin klasörleri gösterir; daha sonra Projeler sayfasından yenilerini ekleyebilirsin.",
     "projectsFound": "Claude'un daha önce çalıştığı klasörler",
     "projectsAuto": "Claude'un çalıştığı her klasörü ekle",
-    "projectsAutoTip": "Claude Code'un çalıştığı her klasör kendiliğinden proje olur. Bunu Ayarlar'dan kapatabilirsin."
+    "projectsAutoTip": "Claude Code'un çalıştığı her klasör kendiliğinden proje olur. Bunu Ayarlar'dan kapatabilirsin.",
+    "toolsTitle": "Yapay zekâ araçların",
+    "toolsBody": "Igrek bu bilgisayardaki Claude Code ve Codex ile çalışır; onları kendisi getirmez. En az birini kur, sonra bir terminalde bir kez giriş yap.",
+    "toolsFound": "{{tool}} kurulu",
+    "toolsMissing": "{{tool}} kurulu değil. Bir terminalde:",
+    "toolsMore": "{{tool}} nasıl kurulur",
+    "toolsRecheck": "Yeniden kontrol et"
   },
   "help": {
     "button": "Yardım",
@@ -4635,6 +4641,20 @@
     "button": "Uygulama olarak yükle",
     "done": "Igrek uygulama olarak çalışıyor.",
     "manual": "Tarayıcın bunu buradan sunmuyor. Chrome ya da Edge'de adres çubuğunun sonundaki yükleme simgesine bas (ya da menüden: Yayınla, kaydet ve paylaş > Sayfayı uygulama olarak yükle); Safari'de: Dosya > Dock'a Ekle."
+  },
+  "desktop": {
+    "trayOpen": "Igrek'i aç",
+    "trayHide": "Gizle",
+    "trayQuit": "Çıkış",
+    "serverFailed": "Igrek'in sunucusu başlamadı",
+    "serverLog": "Yazdıkları şurada",
+    "autostart": "Bilgisayar açılınca başlat",
+    "autostartHint": "Bilgisayarına giriş yapınca Igrek kendiliğinden açılır. Sen açana kadar kapalı.",
+    "updateHint": "Uygulama yeni sürümü indirir, Igrek'in kendi anahtarıyla imzalandığını kontrol eder ve yeniden başlar.",
+    "updateOff": "Uygulamanın bu kopyası güncelleme anahtarı olmadan derlendi, kendini güncelleyemez. Yeni sürümü Releases sayfasından indir.",
+    "updateFound": "{{version}} sürümü hazır.",
+    "updateInstall": "Kur ve yeniden başlat",
+    "updateInstalling": "Kuruluyor…"
   },
   "packs": {
     "catalog": "Igrek kataloğu",

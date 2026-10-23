@@ -1,0 +1,5 @@
+# Made by scripts/sidecar.ts and `tauri build`.
+src-tauri/binaries/
+src-tauri/resources/
+src-tauri/gen/
+src-tauri/target/

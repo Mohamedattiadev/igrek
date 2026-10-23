@@ -2,11 +2,13 @@ import type { ChatInfo, FlowRun, TerminalInfo } from "@igrek/core";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "./api";
+import { desktop, inDesktopApp } from "./desktop";
 import { useAccounts, useApprovals, useChats, useServerEvent, useTerminals } from "./live";
 import { useSettings } from "./settings";
 
-/** Asks the browser for permission (from a click in Settings). */
+/** Asks the browser for permission (from a click in Settings). The desktop app needs none. */
 export async function askNotificationPermission(): Promise<boolean> {
+  if (inDesktopApp) return true;
   if (!("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   return (await Notification.requestPermission()) === "granted";
@@ -15,7 +17,8 @@ export async function askNotificationPermission(): Promise<boolean> {
 /**
  * Desktop notifications (plan.md 11): a chat finished or waits for an approval, a terminal waits
  * for an answer, an approval is pending, a team run needs you, a project score dropped, a limit
- * is filling up. Only while the Igrek tab is in the background, and only when turned on.
+ * is filling up. Only while the Igrek tab is in the background, and only when turned on. In the
+ * desktop app they are the system's own notifications, shown while its window is not in front.
  */
 export function useDesktopNotifications(): void {
   const { t } = useTranslation();
@@ -32,9 +35,15 @@ export function useDesktopNotifications(): void {
     scores: new Map<string, number>(),
     limits: new Set<string>(),
   });
-  const enabled = settings.notifications && "Notification" in window && Notification.permission === "granted";
+  const enabled =
+    settings.notifications && (inDesktopApp || ("Notification" in window && Notification.permission === "granted"));
   const show = (title: string, body: string, link?: string) => {
-    if (!enabled || !document.hidden) return;
+    if (!enabled) return;
+    if (inDesktopApp) {
+      if (!document.hasFocus()) void desktop("notify", { title, body }).catch(() => undefined);
+      return;
+    }
+    if (!document.hidden) return;
     const n = new Notification(title, { body, tag: `${title}:${body}`.slice(0, 60) });
     n.onclick = () => {
       window.focus();

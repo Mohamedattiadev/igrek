@@ -3,8 +3,11 @@
   "workspaces": {
     ".": {},
     "apps/server": {
-      "entry": ["src/embed-worker.ts", "src/preview/agent.js", "src/preview/vite-source-plugin.mjs"],
+      "entry": ["src/desktop.ts", "src/embed-worker.ts", "src/preview/agent.js", "src/preview/vite-source-plugin.mjs"],
       "ignoreDependencies": ["@playwright/mcp", "axe-core"]
+    },
+    "apps/desktop": {
+      "entry": ["scripts/*.ts"]
     },
     "packages/learn": {
       "entry": ["scripts/*.ts"]
