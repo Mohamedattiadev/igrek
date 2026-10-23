@@ -1207,7 +1207,7 @@ god-eye/
 **Hedef:** Igrek, Claude ve Codex uygulamaları gibi kurulup açılan bir uygulama olsun: tarayıcı, sekme ya da localhost görünmesin. Linux, Windows ve macOS'ta çalışsın. *Karar (Ekim 2026): Tauri ile yapılacak; ücretli kod imzası şimdilik yok (imzasız da çalışır, ilk açılışta işletim sistemi bir kez izin ister).*
 
 - [x] Tauri penceresi mevcut web arayüzünü açar; sunucu (`bun build --compile` ile tek dosya) uygulamanın içinde gizlice başlar, kapanınca durur
-- [ ] Linux (AppImage, .deb), Windows (.msi) ve macOS (.dmg) paketleri GitHub Actions'ta ücretsiz derlenir
+- [x] Linux (AppImage, .deb), Windows (.msi) ve macOS (.dmg) paketleri GitHub Actions'ta ücretsiz derlenir
 - [x] Sistem tepsisi ikonu, yerel bildirimler, bilgisayar açılınca başlama (isteğe bağlı)
 - [ ] İşletim sistemi genelinde `Ctrl+Space` ile hızlı soru
 - [ ] Tauri'nin kendi anahtarıyla imzalanan otomatik güncelleme (işletim sistemi sertifikası gerekmez)
