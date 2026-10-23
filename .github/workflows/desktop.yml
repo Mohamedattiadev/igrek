@@ -65,13 +65,16 @@ jobs:
       - name: Package
         working-directory: apps/desktop
         run: |
-          # Update files only when there is a key to sign them; on a tag the version is the tag's.
-          updater=false
-          [ -n "$TAURI_SIGNING_PRIVATE_KEY" ] && updater=true
-          config="{\"bundle\":{\"createUpdaterArtifacts\":$updater}}"
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            config="{\"version\":\"${GITHUB_REF_NAME#v}\",\"bundle\":{\"createUpdaterArtifacts\":$updater}}"
-          fi
+          # Update files only when there is a key to sign them; the packager then checks them against
+          # the public key in the config, which is empty in the repository. On a tag the version is the tag's.
+          config=$(bun -e '
+            const e = process.env;
+            const updater = Boolean(e.TAURI_SIGNING_PRIVATE_KEY && e.IGREK_UPDATER_PUBKEY);
+            const config = { bundle: { createUpdaterArtifacts: updater } };
+            if (updater) config.plugins = { updater: { pubkey: e.IGREK_UPDATER_PUBKEY } };
+            if (e.GITHUB_REF?.startsWith("refs/tags/v")) config.version = e.GITHUB_REF_NAME.slice(1);
+            console.log(JSON.stringify(config));
+          ')
           bun run tauri build --target ${{ matrix.target }} --bundles ${{ matrix.bundles }} --config "$config"
       - name: Collect the packages
         run: |
