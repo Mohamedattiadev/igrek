@@ -3,7 +3,6 @@ import {
   type ChatInfo,
   type ChatMode,
   extractNotebook,
-  findPrivateShapes,
   findSecrets,
   isWeakPrompt,
   type PrivateShape,
@@ -76,7 +75,7 @@ import { GateCard } from "../components/GateCard";
 import { MadeFiles } from "../components/MadeFiles";
 import { Markdown } from "../components/Markdown";
 import { MicButton } from "../components/MicButton";
-import { CopyWithPrivate, PrivateGuard, PrivateNotice } from "../components/PrivateGuard";
+import { CopyWithPrivate, PrivateGuard, PrivateNotice, PrivateText } from "../components/PrivateGuard";
 import { PromptPicker } from "../components/PromptPicker";
 import { maskSecrets, SecretGuard } from "../components/SecretGuard";
 import { SkillsDialog } from "../components/SkillsDialog";
@@ -930,8 +929,17 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   }, [chat.events]);
 
   const openEnhancer = () => text.trim() && setEnhancing(text.trim());
-  /** `ready`: the text already carries its line comments (it comes back from a guard), so they are not added twice. */
-  const send = (override?: string, allowSecrets = false, how: "queue" | "steer" = "queue", ready = false) => {
+  /**
+   * `ready`: the text already carries its line comments (it comes back from a guard), so they are not added twice.
+   * `allowSecrets`: true once both guards have had their say; "secrets" after the key guard only, so a
+   * masked message is still checked for private details.
+   */
+  const send = (
+    override?: string,
+    allowSecrets: boolean | "secrets" = false,
+    how: "queue" | "steer" = "queue",
+    ready = false,
+  ) => {
     const typed = override ?? text.trim();
     // Comments on diff lines go with the next message, file and line first.
     const value =
@@ -952,12 +960,14 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       return;
     }
     setGuarded(undefined);
-    // An identity number, IBAN or card that is not saved yet: ask before it can leave (saved ones are hidden anyway).
-    if (!allowSecrets && findPrivateShapes(value).length) {
+    // An identity number, IBAN, card, money figure or account not saved yet: ask before it can leave
+    // (saved ones are hidden anyway). The server looks, so the detector is not in the page's code;
+    // if it cannot be reached, neither can the chat, so the message goes on to fail there.
+    if (allowSecrets !== true) {
       void api
-        .checkPrivate(value)
+        .checkPrivate(value, chatId)
         .then((found) => (found.length ? setPrivateFound({ value, found, how }) : send(value, true, how, true)))
-        .catch(() => setPrivateFound({ value, found: findPrivateShapes(value), how }));
+        .catch(() => send(value, true, how, true));
       return;
     }
     setPrivateFound(undefined);
@@ -1079,8 +1089,8 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
       {guarded !== undefined && (
         <SecretGuard
           text={guarded}
-          onMask={() => send(maskSecrets(guarded), true, "queue", true)}
-          onSendAnyway={() => send(guarded, true, "queue", true)}
+          onMask={() => send(maskSecrets(guarded), "secrets", "queue", true)}
+          onSendAnyway={() => send(guarded, "secrets", "queue", true)}
           onCancel={() => setGuarded(undefined)}
         />
       )}
@@ -1089,6 +1099,10 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           key={privateFound.value}
           found={privateFound.found}
           onSend={() => send(privateFound.value, true, privateFound.how, true)}
+          onHideOnce={() => {
+            chat.hideOnce(privateFound.found);
+            send(privateFound.value, true, privateFound.how, true);
+          }}
           onCancel={() => setPrivateFound(undefined)}
         />
       )}
@@ -1551,7 +1565,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                                   <ImageIcon size={12} aria-hidden="true" /> {event.images} {t("chat.image")}
                                 </p>
                               )}
-                              {event.text}
+                              <PrivateText text={event.text} />
                             </div>
                           </div>
                         );
@@ -1570,7 +1584,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                               )}
                               <Markdown text={shown} streaming={working && event.id === lastText?.id} />
                             </div>
-                            <CopyWithPrivate text={shown} />
+                            <CopyWithPrivate text={shown} chatId={chatId} />
                             {isLast && info && shown.length > 300 && info.persona?.id !== "devils-advocate" && (
                               <WeakPointsButton key={event.id} text={shown} projectId={info.projectId} />
                             )}

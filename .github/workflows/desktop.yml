@@ -97,6 +97,11 @@ jobs:
           name: igrek-${{ matrix.target }}
           path: desktop-packages
           if-no-files-found: error
+      # A package that builds can still hold a server that does not run, or does not stop with the
+      # app. After the upload, so the packages are there to look at when this fails.
+      - name: The server starts and stops
+        working-directory: apps/desktop
+        run: bun scripts/smoke.ts --target ${{ matrix.target }}
 
   # What the app asks to learn of a new version (latest.json), made from the signatures above. It is
   # uploaded with the packages to the release; the app reads it from the newest release.

@@ -10,6 +10,7 @@ import {
   type ChatSpend,
   fillPrivate,
   hidePrivate,
+  namesForOnce,
   PRIVATE_HINT,
   type QueuedMessage,
   type RateLimitInfo,
@@ -70,6 +71,13 @@ interface Chat {
   limitAtStart?: number;
   /** Claude Code's running cost total for this process; a turn's cost is the step since the last one. */
   costSoFar?: number;
+  /**
+   * Details the user hid for this chat only ("hide here only"): not saved, hidden in its messages
+   * and put back in its approved steps and copied answers while it runs (Chats.hideOnce).
+   */
+  once: { name: string; value: string }[];
+  /** The AI has been told what placeholders are (in its system prompt, or with the first one). */
+  hinted: boolean;
 }
 
 type Image = { mediaType: string; data: string };
@@ -134,6 +142,19 @@ const SECRET_FILE_RULES = [
   "id_rsa",
   "id_ed25519",
 ].map((f) => `Read(**/${f})`);
+
+/**
+ * The user's own private files (Settings, privateFiles) as deny rules like the ones above: a bare
+ * name or a pattern is matched in every folder ("bordro*.pdf", "finans/*.xlsx"); a full path or one
+ * under the home folder only there. Claude Code writes a full path with two slashes.
+ */
+export function privateFileRules(patterns: string[]): string[] {
+  return patterns.map((p) => {
+    if (p.startsWith("~/")) return `Read(${p})`;
+    if (p.startsWith("/")) return `Read(/${p})`;
+    return `Read(**/${p.replace(/^\.\//, "")})`;
+  });
+}
 
 /** What to do with a message written while the AI is still working. */
 export type SendHow = "queue" | "steer";
@@ -321,6 +342,8 @@ export class Chats {
   onPlan: (id: string, plan: { content: string; status: string }[]) => void = () => undefined;
   /** The user's private details (private-values.ts): hidden in messages, put back in approved steps. */
   privacy?: { values(): { name: string; value: string }[] };
+  /** The user's private file patterns (Settings): never read, like .env files. */
+  privateFiles: () => string[] = () => [];
   /** Steps the user always allows in a project (plan.md 16.1); wired to the database. */
   projectRules: (projectId: string) => string[] = () => [];
   addProjectRule: (projectId: string, rule: string) => void = () => undefined;
@@ -356,6 +379,7 @@ export class Chats {
     if (!claude) throw new Error("Claude Code is not installed on this computer");
     const id = crypto.randomUUID().slice(0, 8);
     const mode = options.mode ?? "normal";
+    const hinted = (this.privacy?.values().length ?? 0) > 0;
     const sandboxed = mode === "auto" && sandboxAvailable();
     const args = [
       claude,
@@ -375,14 +399,14 @@ export class Chats {
       // Auto mode also gets Claude Code's sandbox when this computer has what it needs.
       "--settings",
       JSON.stringify({
-        permissions: { ask: SHIP_ASK_RULES, deny: SECRET_FILE_RULES },
+        permissions: { ask: SHIP_ASK_RULES, deny: [...SECRET_FILE_RULES, ...privateFileRules(this.privateFiles())] },
         ...(sandboxed ? { sandbox: { enabled: true, autoAllowBashIfSandboxed: false } } : {}),
       }),
       ...(options.model ? ["--model", options.model] : []),
       ...(options.resume ? ["--resume", options.resume] : []),
       // Every chat may answer with the app's charts and stat tiles; a persona adds its own prompt.
       "--append-system-prompt",
-      systemPrompt(options, (this.privacy?.values().length ?? 0) > 0),
+      systemPrompt(options, hinted),
       ...(options.persona
         ? [
             "--max-turns",
@@ -432,6 +456,8 @@ export class Chats {
       queue: [],
       recentSteps: [],
       loopsSaid: new Set(),
+      once: [],
+      hinted,
     };
     this.chats.set(id, chat);
     const unregister = this.stops.register(`chat-${id}`, { label: chat.info.title, stop: () => proc.kill() });
@@ -549,9 +575,32 @@ export class Chats {
     this.changed();
   }
 
+  /** The saved private details and the ones hidden for this chat only. */
+  private valuesOf(chat: Chat): { name: string; value: string }[] {
+    return [...(this.privacy?.values() ?? []), ...chat.once];
+  }
+
+  /**
+   * Hides these values in this chat's messages from now on, without saving them: the user's "hide
+   * here only" for a figure or a number found in a message (PrivateGuard). Each gets a name from
+   * what it is (amount_1, iban_1), so the AI still knows what stands there.
+   */
+  hideOnce(id: string, found: { kind: string; value: string }[]): void {
+    const chat = this.chats.get(id);
+    if (chat) chat.once.push(...namesForOnce(found, this.valuesOf(chat)));
+  }
+
+  /** What this chat hid for itself only, to put back in text the user copies from it. */
+  onceValues(id: string): { name: string; value: string }[] {
+    return this.chats.get(id)?.once ?? [];
+  }
+
   private deliver(chat: Chat, typed: string, images: Image[]): void {
     // Private details never leave: the AI gets [[private:name]] where the user wrote the value.
-    const { text, hidden } = hidePrivate(typed, this.privacy?.values() ?? []);
+    const { text, hidden } = hidePrivate(typed, this.valuesOf(chat));
+    // Without saved details the system prompt did not say what a placeholder is; the first one does.
+    const told = hidden.length > 0 && !chat.hinted;
+    chat.hinted ||= told;
     // A new turn starts: whatever stopped the last one is history.
     clearTimeout(chat.resumeTimer);
     chat.resumeTimer = undefined;
@@ -561,9 +610,11 @@ export class Chats {
         type: "image",
         source: { type: "base64", media_type: image.mediaType, data: image.data },
       })),
-      ...(text ? [{ type: "text", text }] : []),
+      ...(text ? [{ type: "text", text: told ? `${text}\n\n${PRIVATE_HINT}` : text }] : []),
     ];
-    if (chat.info.title === "Chat" && text) chat.info.title = clip(text.replace(/\s+/g, " "), 60);
+    // The title is read everywhere the chat is listed: a hidden detail shows there as hidden, not as [[private:...]].
+    if (chat.info.title === "Chat" && text)
+      chat.info.title = clip(text.replace(/\[\[private:[a-z0-9_]+\]\]/g, "•••").replace(/\s+/g, " "), 60);
     const checkpointId = this.checkpoint(chat.info.cwd, clip(text.replace(/\s+/g, " "), 60) || "chat turn");
     if (checkpointId) {
       this.upsert(chat, {
@@ -677,7 +728,7 @@ export class Chats {
         request_id: requestId,
         // The approved step runs with the real values where the AI wrote their placeholders.
         response: allow
-          ? { behavior: "allow", updatedInput: fillInput(input, this.privacy?.values() ?? []) }
+          ? { behavior: "allow", updatedInput: fillInput(input, this.valuesOf(chat)) }
           : { behavior: "deny", message: message || "The user declined this step." },
       },
     });

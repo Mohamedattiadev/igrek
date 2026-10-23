@@ -1209,7 +1209,7 @@ god-eye/
 - [x] Tauri penceresi mevcut web arayüzünü açar; sunucu (`bun build --compile` ile tek dosya) uygulamanın içinde gizlice başlar, kapanınca durur
 - [x] Linux (AppImage, .deb), Windows (.msi) ve macOS (.dmg) paketleri GitHub Actions'ta ücretsiz derlenir
 - [x] Sistem tepsisi ikonu, yerel bildirimler, bilgisayar açılınca başlama (isteğe bağlı)
-- [ ] İşletim sistemi genelinde `Ctrl+Space` ile hızlı soru
+- [x] İşletim sistemi genelinde `Ctrl+Space` ile hızlı soru
 - [ ] Tauri'nin kendi anahtarıyla imzalanan otomatik güncelleme (işletim sistemi sertifikası gerekmez)
 - [x] İmzasız kurulumda ilk açılış adımları kurulum sayfasında anlatılır (Windows: "Ek bilgi > Yine de çalıştır", macOS: "Gizlilik ve Güvenlik > Yine de Aç")
 - [x] Claude Code ve Codex uygulamaya gömülmez; kurulu değilse ilk açılışta nasıl kurulacağı gösterilir

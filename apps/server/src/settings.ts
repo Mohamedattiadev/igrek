@@ -7,6 +7,17 @@ const MODES = ["simple", "pro"];
 const KEYMAPS = ["default", "vim"];
 const TONES = ["plain", "technical"];
 
+/**
+ * The user's private file patterns: plain glob patterns, one per entry. Brackets are refused, as a
+ * pattern ends up inside Claude Code's rule Read(...), where ")" would end it early.
+ */
+function privateFilesPatch(value: unknown): { error: string } | { files: string[] } {
+  if (!Array.isArray(value) || !value.every((f) => typeof f === "string")) return { error: "List the files as text" };
+  const files = [...new Set(value.map((f: string) => f.trim()).filter(Boolean))];
+  if (files.some((f) => f.length > 200 || /[()\n]/.test(f))) return { error: "A file pattern may not hold brackets" };
+  return { files: files.slice(0, 50) };
+}
+
 export function readSettings(db: Db): Settings {
   const rows = db.select().from(settingsTable).all();
   const stored = Object.fromEntries(rows.map((row) => [row.key, JSON.parse(row.value)]));
@@ -81,6 +92,11 @@ export function validatePatch(input: unknown): { error: string } | { patch: Part
       return { error: "Folders must be full paths" };
     }
     patch.allowedFolders = [...new Set(folders.map((f) => f.replace(/\/+$/, "") || "/"))].slice(0, 50);
+  }
+  if ("privateFiles" in body) {
+    const result = privateFilesPatch(body.privateFiles);
+    if ("error" in result) return result;
+    patch.privateFiles = result.files;
   }
   for (const key of [
     "onboarded",

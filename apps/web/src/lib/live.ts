@@ -70,6 +70,19 @@ export function useIndexStatus(): IndexStatus | undefined {
   return status;
 }
 
+/** How many things the emergency stop would stop now, kept current by the server. */
+export function useStoppable(): number {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    api
+      .stoppable()
+      .then((r) => setCount(r.count))
+      .catch(() => undefined);
+  }, []);
+  useServerEvent("stoppable", (message) => setCount(message.count));
+  return count;
+}
+
 /** Open terminals, kept current by the server's "terminals" events. */
 export function useTerminals(): TerminalInfo[] {
   const [terminals, setTerminals] = useState<TerminalInfo[]>([]);

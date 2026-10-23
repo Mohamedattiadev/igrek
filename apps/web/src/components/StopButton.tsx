@@ -2,11 +2,16 @@ import { OctagonX } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api } from "../lib/api";
+import { useStoppable } from "../lib/live";
 import { Button, Dialog } from "./ui";
 
-/** Emergency stop (plan.md Faz 0): always visible, halts everything that runs on its own. */
+/**
+ * Emergency stop (plan.md Faz 0): always visible, halts everything that runs on its own. Red only
+ * while something runs: red on an idle screen told newcomers something was wrong.
+ */
 export function StopButton({ onStopped }: { onStopped: (message: string) => void }) {
   const { t } = useTranslation();
+  const running = useStoppable();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -26,9 +31,11 @@ export function StopButton({ onStopped }: { onStopped: (message: string) => void
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title={t("stop.title")}
+        title={running ? t("stop.running", { count: running }) : t("stop.idle")}
         aria-label={t("stop.title")}
-        className="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-ui px-2 text-xs font-medium text-danger hover:bg-danger-soft"
+        className={`flex h-7 items-center gap-1.5 whitespace-nowrap rounded-ui px-2 text-xs font-medium ${
+          running ? "text-danger hover:bg-danger-soft" : "text-fg-subtle hover:bg-bg-hover hover:text-danger"
+        }`}
       >
         <OctagonX size={14} strokeWidth={2} />
         <span className="hidden lg:inline">{t("stop.button")}</span>

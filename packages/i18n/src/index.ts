@@ -3,8 +3,11 @@ import tr from "../locales/tr.json";
 
 export type Messages = typeof en;
 
-/** Hand-checked language packs that ship with the app. */
-export const bundledResources = { en, tr } satisfies Record<string, Messages>;
+/** The hand-checked languages that ship with the app. */
+const BUNDLED = ["en", "tr"] as const;
+
+/** Their texts (the server's; the web app loads each one only when it is chosen, lib/i18n.ts). */
+export const bundledResources = { en, tr } satisfies Record<(typeof BUNDLED)[number], Messages>;
 
 export interface LanguageOption {
   code: string;
@@ -84,6 +87,8 @@ export const languages: LanguageOption[] = [...raw, ...rest.sort((a, b) => a[2].
     code,
     native,
     english,
-    bundled: code in bundledResources,
+    // Not read from bundledResources: the language list is on the web app's first screen, and that
+    // would bring every bundled language's texts with it.
+    bundled: (BUNDLED as readonly string[]).includes(code),
   }),
 );

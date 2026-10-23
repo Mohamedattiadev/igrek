@@ -1,16 +1,20 @@
-import { findSecrets, type QuickAnswer } from "@igrek/core";
+import { findSecrets, type PrivateShape, type QuickAnswer } from "@igrek/core";
 import { Copy, CornerDownLeft, Paperclip, Send, Trash2, X, Zap } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { actions, contextFromPath } from "../lib/actions";
 import { api } from "../lib/api";
 import { cn } from "../lib/cn";
+import { takeQuickAskFromStart } from "../lib/desktop";
 import { useTerminals } from "../lib/live";
 import { EnhanceButton, EnhancePanel } from "./Enhance";
 import { MicButton } from "./MicButton";
 import { maskSecrets, SecretGuard } from "./SecretGuard";
 import { Badge, Kbd, Segmented } from "./ui";
+
+// This panel is on every page; the private details guard (and what it brings) loads only when needed.
+const PrivateGuard = lazy(() => import("./PrivateGuard").then((m) => ({ default: m.PrivateGuard })));
 
 interface Turn {
   q: string;
@@ -38,7 +42,7 @@ export function QuickAsk() {
   const { t } = useTranslation();
   const location = useLocation();
   const terminals = useTerminals();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(takeQuickAskFromStart);
   const [mode, setMode] = useState<"quick" | "full">("quick");
   const [input, setInput] = useState("");
   const [attachment, setAttachment] = useState<{ name: string; text: string }>();
@@ -95,7 +99,14 @@ export function QuickAsk() {
   }, [open]);
 
   const [guarded, setGuarded] = useState<string>();
-  const ask = async (override?: string, allowSecrets = false) => {
+  const [privateFound, setPrivateFound] = useState<{
+    question: string;
+    found: { kind: PrivateShape; value: string }[];
+  }>();
+  // Hidden for these questions only ("hide here only"): sent with every later one too, as the
+  // earlier questions go along as history.
+  const once = useRef<{ kind: string; value: string }[]>([]);
+  const ask = async (override?: string, allowSecrets = false, allowPrivate = false) => {
     const question = override ?? input.trim();
     if (!question || busy) return;
     if (!allowSecrets && findSecrets(question).length) {
@@ -103,6 +114,18 @@ export function QuickAsk() {
       return;
     }
     setGuarded(undefined);
+    // An identity number, IBAN, card or money figure not saved yet waits for the user, as in a chat.
+    // The server looks (the question goes there anyway), so the detector stays off this page's code.
+    if (!allowPrivate) {
+      const found = (await api.checkPrivate(question).catch(() => [])).filter(
+        (f) => !once.current.some((o) => o.value === f.value),
+      );
+      if (found.length) {
+        setPrivateFound({ question, found });
+        return;
+      }
+    }
+    setPrivateFound(undefined);
     setInput("");
     setBusy(true);
     const turn: Turn = { q: question, attachment: attachment?.name };
@@ -115,6 +138,7 @@ export function QuickAsk() {
         mode,
         history: turns.filter((x) => x.a).map((x) => ({ q: x.q, a: x.a ?? "" })),
         attachment,
+        hideOnce: once.current.length ? once.current : undefined,
       });
       setTurns((all) => all.map((x) => (x === turn ? { ...x, a: result.answer, context: result.context } : x)));
     } catch (err) {
@@ -251,6 +275,20 @@ export function QuickAsk() {
             onSendAnyway={() => void ask(guarded, true)}
             onCancel={() => setGuarded(undefined)}
           />
+        )}
+        {privateFound && (
+          <Suspense fallback={null}>
+            <PrivateGuard
+              key={privateFound.question}
+              found={privateFound.found}
+              onSend={() => void ask(privateFound.question, true, true)}
+              onHideOnce={() => {
+                once.current = [...once.current, ...privateFound.found];
+                void ask(privateFound.question, true, true);
+              }}
+              onCancel={() => setPrivateFound(undefined)}
+            />
+          </Suspense>
         )}
         {enhancing !== undefined && (
           <div className="mb-2">

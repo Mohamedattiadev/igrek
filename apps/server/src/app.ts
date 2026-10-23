@@ -130,6 +130,7 @@ export function createApp({ config, db, token, bus, stops, startedAt, work, extr
     return c.json(status);
   });
 
+  app.get("/api/stoppable", (c) => c.json({ count: stops.count() }));
   app.post("/api/emergency-stop", async (c) => {
     const stopped = await stops.stopAll();
     const stoppedAt = new Date().toISOString();

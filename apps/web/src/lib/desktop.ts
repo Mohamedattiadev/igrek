@@ -25,6 +25,18 @@ export function desktop<T = void>(command: Command, args?: Record<string, unknow
   });
 }
 
+/**
+ * True once when the desktop app was started for a quick question (`--quick-ask`, the user's own
+ * shortcut where the system has no global ones). It cannot send its usual event to a page that is
+ * not there yet, so it opens the first page as `/?quick-ask`; the mark is taken off so a reload does
+ * not open it again. (Kept small: this runs on the first screen, which has a size budget.)
+ */
+export function takeQuickAskFromStart(): boolean {
+  if (!inDesktopApp || location.search !== "?quick-ask") return false;
+  history.replaceState(history.state, "", location.pathname);
+  return true;
+}
+
 /** The tray menu speaks the language the user chose here. */
 export function useDesktopTray(): void {
   const { t } = useTranslation();

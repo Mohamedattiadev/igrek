@@ -43,6 +43,9 @@
   },
   "stop": {
     "button": "Stop all",
+    "running_one": "Emergency stop: 1 thing is running now",
+    "running_other": "Emergency stop: {{count}} things are running now",
+    "idle": "Emergency stop: nothing runs on its own right now",
     "title": "Emergency stop",
     "body": "This stops every running agent, scheduled job and remote command right away.",
     "confirm": "Stop everything",
@@ -262,6 +265,7 @@
     "projectsBody": "Give the folder of a project, or a folder that holds several. Igrek only shows the folders you add here; you can add more later on the Projects page.",
     "projectsFound": "Folders where Claude has already worked",
     "projectsAuto": "Add every folder Claude works in",
+    "projectsLater": "No project yet, I will add one later",
     "projectsAutoTip": "Every folder Claude Code works in becomes a project by itself. You can turn this off in Settings.",
     "toolsTitle": "Your AI tools",
     "toolsBody": "Igrek works with the Claude Code and Codex on this computer; it does not bring them along. Install at least one, then sign in to it once in a terminal.",
@@ -330,7 +334,7 @@
     "t_cli": "Command line",
     "d_cli": "igrek status, projects, search, ask, inbox, run, recap, weekly, and igrek api for any endpoint: everything from a script.",
     "t_safety": "Safety and privacy",
-    "d_safety": "Igrek never pushes or deploys by itself, never reads keys or .env values into AI, sends no telemetry (Settings > Network shows every address it opened), and the red Stop all button halts everything at once.",
+    "d_safety": "Igrek never pushes or deploys by itself, never reads keys or .env values into AI, sends no telemetry (Settings > Network shows every address it opened), and the Stop all button (red while something runs) halts everything at once.",
     "t_ask": "Write what you want (home page box)",
     "d_ask": "The box at the top of the home page: write, pick the project, Enter. A chat opens and the message goes out."
   },
@@ -4327,7 +4331,7 @@
     "approve": {
       "title": "Follow it and approve",
       "body": "The AI shows what it reads and changes as cards. In the careful mode every change waits for your OK; nothing happens behind your back.",
-      "how": "In the chat: Allow or Deny on each card. Red Stop everything at the top right stops all AI work at once."
+      "how": "In the chat: Allow or Deny on each card. Stop all at the top right (red while something runs) stops all AI work at once."
     },
     "project": {
       "title": "Look inside a project",
@@ -4731,9 +4735,14 @@
     "shape_tcKimlik": "T.C. identity number",
     "shape_iban": "IBAN",
     "shape_card": "Card number",
-    "guard": "This message seems to hold a {{what}} that is not among your private details. Save it, and the AI gets only a placeholder.",
+    "shape_amount": "Money figure",
+    "shape_account": "Account number",
+    "guard": "This message seems to hold a {{what}} that is not among your private details. Hide it, and the AI sees only a nickname, not the real value.",
+    "hiddenTip": "Hidden: the AI saw a nickname in its place. The real value stays on this computer.",
     "guardSave": "Save and hide",
     "guardSend": "Send as it is",
+    "guardOnce": "Hide here only",
+    "guardOnceTip": "Not saved: hidden in this chat or quick question only. Its answers show the real value while it is open; after Igrek restarts they keep the placeholder.",
     "hidden_one": "Hidden from the AI: {{what}}",
     "hidden_other": "{{count}} details hidden from the AI: {{what}}",
     "copy": "Copy with my details",
@@ -4742,7 +4751,13 @@
     "gateway": "Hide everywhere",
     "gatewayOn": "On: wherever the AI looks (your messages, files it reads, the results of commands it runs), these details and the secret keys in your projects are replaced by their nicknames. This works for Claude and Codex. The AI can never open your secret key files.",
     "gatewayOff": "Off: only what you type in a chat is hidden; files the AI reads and command results go as they are.",
-    "gatewayStats": "Details protected: {{values}}. Hidden from the AI so far: {{hidden}} times."
+    "gatewayStats": "Details protected: {{values}}. Hidden from the AI so far: {{hidden}} times.",
+    "filesTitle": "Files the AI never opens",
+    "filesHint": "Like your .env files: in Igrek's chats with Claude, the AI cannot read these, in any project. A name or pattern counts in every folder (bordro*.pdf, finans/*.xlsx); a full path only there. A command that prints one still goes through the privacy gateway, which hides only your saved details.",
+    "filesPattern": "File name or pattern",
+    "filesAdd": "Add",
+    "filesRemove": "Remove {{pattern}}",
+    "filesBrackets": "A file pattern may not hold brackets."
   },
   "extension": {
     "title": "Browser extension",

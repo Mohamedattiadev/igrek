@@ -7,6 +7,7 @@
  */
 import { cpSync, existsSync, mkdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { serverFile, targetTriple } from "./target";
 
 const ROOT = resolve(import.meta.dir, "..", "..", "..");
 const TAURI = resolve(import.meta.dir, "..", "src-tauri");
@@ -21,15 +22,7 @@ const BUN_TARGETS: Record<string, string> = {
   "aarch64-apple-darwin": "bun-darwin-arm64",
 };
 
-function hostTriple(): string {
-  const out = Bun.spawnSync(["rustc", "-vV"]).stdout.toString();
-  const host = out.match(/^host: (\S+)/m)?.[1];
-  if (!host) throw new Error("rustc not found: install Rust (https://rustup.rs)");
-  return host;
-}
-
-const flag = process.argv.indexOf("--target");
-const triple = flag > 0 ? (process.argv[flag + 1] ?? "") : hostTriple();
+const triple = targetTriple();
 const bunTarget = BUN_TARGETS[triple];
 if (!bunTarget) throw new Error(`No Bun build for ${triple}`);
 
@@ -38,8 +31,7 @@ if (!existsSync(join(web, "index.html"))) throw new Error("Build the web app fir
 
 // Tauri looks for <name>-<target triple> and puts it beside the app as <name>.
 mkdirSync(join(TAURI, "binaries"), { recursive: true });
-const exe = triple.includes("windows") ? ".exe" : "";
-const outfile = join(TAURI, "binaries", `igrek-server-${triple}${exe}`);
+const outfile = join(TAURI, "binaries", serverFile(triple));
 const server = join(ROOT, "apps/server/src");
 const build = Bun.spawnSync(
   [

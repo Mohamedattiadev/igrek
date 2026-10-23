@@ -55,12 +55,12 @@ cd apps/desktop
 bun run app -- --bundles appimage   # or deb, msi, dmg; the package is in src-tauri/target/release/bundle
 ```
 
-After changing `apps/server/src/desktop.ts`, check that the built server stops when its stdin closes (it should
-exit about 5 seconds later, when `sleep` ends):
+To check the built server without the app: it starts as the app starts it, must answer with the web app, and must
+stop once its stdin closes, which is how the app stops it. The workflow runs this on every system.
 
 ```sh
 bun run sidecar
-sleep 5 | IGREK_HOME=$(mktemp -d) IGREK_PORT=35999 IGREK_RESOURCES=src-tauri/resources src-tauri/binaries/igrek-server-*
+bun scripts/smoke.ts
 ```
 
 The Rust build takes a few GB; `CARGO_TARGET_DIR` can put it elsewhere, and deleting it afterwards is safe.

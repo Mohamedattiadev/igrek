@@ -129,6 +129,8 @@ export function useChat(id: string) {
     send: (text: string, images: { mediaType: string; data: string }[] = [], how: "queue" | "steer" = "queue") =>
       post({ op: "send", text, images, how }),
     unqueue: (queuedId: string) => post({ op: "unqueue", queuedId }),
+    /** Hides these in this chat's messages from now on, without saving them (sent before the message). */
+    hideOnce: (found: { kind: string; value: string }[]) => post({ op: "hideOnce", found }),
     /** Go on by itself a minute after the plan's usage limit resets. */
     resumeAtReset: (text: string) => post({ op: "resumeAtReset", text }),
     cancelResume: () => post({ op: "cancelResume" }),

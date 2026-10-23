@@ -20,7 +20,7 @@ export * from "./scrub";
 export * from "./testusers";
 
 export const APP_NAME = "Igrek";
-export const APP_VERSION = "0.1.0";
+export const APP_VERSION = "0.1.1";
 export const DEFAULT_PORT = 7777;
 
 export type Theme = "system" | "light" | "dark" | "darcula" | "notion";
@@ -59,6 +59,11 @@ export interface Settings {
   summaryTone: "plain" | "technical";
   /** Extra folders (besides projects) Igrek may open in the file manager. */
   allowedFolders: string[];
+  /**
+   * Files the AI never reads in Igrek's chats, as .env files: the user's own patterns, such as
+   * "finans/*.xlsx" or "bordro*.pdf" (chats.ts privateFileRules).
+   */
+  privateFiles: string[];
   /** Vim keys inside the code editor (independent of list navigation). Kept for older settings; see editorKeymap. */
   editorVim: boolean;
   /** Key bindings in the code editor. */
@@ -117,6 +122,7 @@ export const DEFAULT_SETTINGS: Settings = {
   turnGate: "off",
   summaryTone: "plain",
   allowedFolders: [],
+  privateFiles: [],
   editorVim: false,
   editorKeymap: "vscode",
   enhanceMode: "suggest",
@@ -838,6 +844,8 @@ export type ServerMessage =
   | { type: "hello"; version: string }
   | { type: "settings"; settings: Settings }
   | { type: "emergency-stop"; stoppedAt: string; stopped: number }
+  /** How many things the emergency stop would stop now (chats, jobs, remote commands). */
+  | { type: "stoppable"; count: number }
   | { type: "pong"; at: number }
   | { type: "index"; status: IndexStatus }
   | { type: "sessions-changed"; projectIds: string[]; sessionIds: string[] }

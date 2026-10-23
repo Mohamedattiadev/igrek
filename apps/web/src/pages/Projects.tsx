@@ -234,7 +234,8 @@ function NewProject() {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [parent, setParent] = useState("");
-  const [template, setTemplate] = useState<(typeof TEMPLATE_IDS)[number]>("saas");
+  // Empty unless chosen: a newcomer who only clicks Create should not get a whole SaaS app.
+  const [template, setTemplate] = useState<(typeof TEMPLATE_IDS)[number]>("empty");
   const [details, setDetails] = useState("");
   const [needs, setNeeds] = useState<ProjectNeeds>({
     team: "solo",

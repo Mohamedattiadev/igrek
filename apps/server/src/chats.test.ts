@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { type ChatEvent, type ChatInfo, STEP_CUT } from "@igrek/core";
 import { Bus, StopRegistry } from "./bus";
-import { ChatHistory, Chats, ruleCovers, ruleFor, turnSpend } from "./chats";
+import { ChatHistory, Chats, privateFileRules, ruleCovers, ruleFor, turnSpend } from "./chats";
 import { openDb } from "./db";
 import { setAiGateway } from "./env";
 
@@ -426,6 +426,15 @@ describe("what a turn used", () => {
 });
 
 describe("private details in a chat", () => {
+  test("private files become rules in every folder, or at their own place", () => {
+    expect(privateFileRules(["bordro*.pdf", "./finans/*.xlsx", "/srv/maaslar.csv", "~/Belgeler/vergi.pdf"])).toEqual([
+      "Read(**/bordro*.pdf)",
+      "Read(**/finans/*.xlsx)",
+      "Read(//srv/maaslar.csv)",
+      "Read(~/Belgeler/vergi.pdf)",
+    ]);
+  });
+
   /** A stand-in claude that writes what it was started with and every line it received to a log. */
   function recordingClaude(log: string): string {
     const dir = mkdtempSync(join(tmpdir(), "igrek-privateclaude-"));
@@ -456,10 +465,41 @@ for await (const chunk of Bun.stdin.stream()) {
     return join(dir, "claude");
   }
 
+  test("hidden here only: the AI gets a placeholder named for what it is, and is told once what it is", async () => {
+    const log = join(mkdtempSync(join(tmpdir(), "igrek-oncelog-")), "log.jsonl");
+    const chats = new Chats(new Bus(), new StopRegistry(), () => recordingClaude(log));
+    let saved: { name: string; value: string }[] = [];
+    chats.privacy = { values: () => saved };
+    const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal" });
+    await Bun.sleep(400);
+    chats.hideOnce(info.id, [
+      { kind: "amount", value: "85.000 TL" },
+      { kind: "amount", value: "85.000 TL" },
+    ]);
+    chats.send(info.id, "Maaşım 85.000 TL, yıllık ne eder?");
+    await Bun.sleep(500);
+    const sent = readFileSync(log, "utf8")
+      .trim()
+      .split("\n")
+      .map((l) => JSON.parse(l))
+      .find((l) => l.type === "user");
+    const text = JSON.stringify(sent);
+    expect(text).not.toContain("85.000");
+    expect(text).toContain("[[private:amount_1]]");
+    // No saved details, so the system prompt did not explain placeholders; this message does.
+    expect(text).toContain("Never ask for the real value");
+    expect(chats.onceValues(info.id)).toEqual([{ name: "amount_1", value: "85.000 TL" }]);
+    // Nothing was saved: a later chat hides only what is saved.
+    saved = [];
+    expect(chats.onceValues("another")).toEqual([]);
+    chats.close(info.id);
+  });
+
   test("the AI gets the placeholder, is told what it is, and only the approved step gets the value", async () => {
     const log = join(mkdtempSync(join(tmpdir(), "igrek-privatelog-")), "log.jsonl");
     const chats = new Chats(new Bus(), new StopRegistry(), () => recordingClaude(log));
     chats.privacy = { values: () => [{ name: "tc_kimlik", value: "10000000146" }] };
+    chats.privateFiles = () => ["bordro*.pdf", "/home/me/finans.xlsx"];
     setAiGateway("http://127.0.0.1:9");
     const info = chats.start({ projectId: "p", cwd: tmpdir(), mode: "normal" });
     const events = new Map<string, ChatEvent>();
@@ -481,6 +521,9 @@ for await (const chunk of Bun.stdin.stream()) {
     expect(lines[0].argv.join(" ")).toContain("[[private:tc_kimlik]]");
     // Secret files are never read, and the AI's requests go through the privacy gateway.
     expect(lines[0].argv.join(" ")).toContain("Read(**/.env)");
+    // And neither are the files the user named private.
+    expect(lines[0].argv.join(" ")).toContain("Read(**/bordro*.pdf)");
+    expect(lines[0].argv.join(" ")).toContain("Read(//home/me/finans.xlsx)");
     expect(lines[0].base).toBe("http://127.0.0.1:9");
     setAiGateway(undefined);
     expect(reply.response.response.updatedInput).toEqual({ command: "echo 10000000146 > form.txt" });

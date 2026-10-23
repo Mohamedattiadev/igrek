@@ -4,8 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 // The desktop app stops its server only by closing the server's stdin. This runs it from source;
-// the single-file build once missed that end where the source did not (a for-await over
-// Bun.stdin.stream()), so after changing desktop.ts try the built file by hand too (docs/desktop.md).
+// the desktop workflow does the same with the single-file build on every system
+// (apps/desktop/scripts/smoke.ts), which is where it once stayed running.
 test("the desktop server stops when its stdin closes", async () => {
   const home = mkdtempSync(join(tmpdir(), "igrek-desktop-"));
   const free = Bun.serve({ port: 0, fetch: () => new Response() });

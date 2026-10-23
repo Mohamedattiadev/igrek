@@ -1,41 +1,71 @@
+import { fillPrivate, hidePrivate, namesForOnce, PRIVATE_HINT } from "@igrek/core";
 import type { Hono } from "hono";
 import type { Assist } from "./assist";
+import { cleanFound, type PrivateValues } from "./private-values";
 
-export function registerAssistRoutes(app: Hono, assist: Assist): void {
+/**
+ * A quick question hides the user's private details itself, as a chat does (chats.ts deliver), so
+ * they stay here even with the privacy gateway off; the answer gets the real values back.
+ */
+function privately(values: { name: string; value: string }[]) {
+  let hidden = false;
+  const hide = (text: string) => {
+    const r = hidePrivate(text, values);
+    if (r.hidden.length) hidden = true;
+    return r.text;
+  };
+  return { hide, hint: () => (hidden ? `\n\n${PRIVATE_HINT}` : "") };
+}
+
+type QuickBody = {
+  question?: unknown;
+  projectId?: unknown;
+  sessionId?: unknown;
+  mode?: unknown;
+  history?: unknown;
+  attachment?: unknown;
+  /** Found in the question and hidden for it only, not saved ("hide here only"). */
+  hideOnce?: unknown;
+};
+
+/** A quick question as Assist takes it, with the private details hidden (privately). */
+function quickArgs(body: QuickBody, question: string, values: { name: string; value: string }[]) {
+  const { hide, hint } = privately(values);
+  const history = Array.isArray(body.history)
+    ? (body.history as { q?: unknown; a?: unknown }[])
+        .filter((h) => typeof h.q === "string" && typeof h.a === "string")
+        .map((h) => ({ q: hide(String(h.q)), a: hide(String(h.a)) }))
+    : undefined;
+  const attachment =
+    body.attachment && typeof body.attachment === "object"
+      ? (body.attachment as { name?: unknown; text?: unknown })
+      : undefined;
+  const asked = hide(question.slice(0, 2000));
+  const file =
+    attachment && typeof attachment.name === "string" && typeof attachment.text === "string"
+      ? { name: attachment.name, text: hide(attachment.text) }
+      : undefined;
+  return {
+    question: asked + hint(),
+    projectId: typeof body.projectId === "string" ? body.projectId : undefined,
+    sessionId: typeof body.sessionId === "string" ? body.sessionId : undefined,
+    mode: body.mode === "full" ? ("full" as const) : ("quick" as const),
+    history,
+    attachment: file,
+  };
+}
+
+export function registerAssistRoutes(app: Hono, assist: Assist, privacy?: PrivateValues): void {
   app.post("/api/quick-ask", async (c) => {
-    const body = (await c.req.json().catch(() => ({}))) as {
-      question?: unknown;
-      projectId?: unknown;
-      sessionId?: unknown;
-      mode?: unknown;
-      history?: unknown;
-      attachment?: unknown;
-    };
+    const body = (await c.req.json().catch(() => ({}))) as QuickBody;
     const question = typeof body.question === "string" ? body.question.trim() : "";
     if (!question) return c.json({ error: "Ask something" }, 400);
-    const history = Array.isArray(body.history)
-      ? (body.history as { q?: unknown; a?: unknown }[])
-          .filter((h) => typeof h.q === "string" && typeof h.a === "string")
-          .map((h) => ({ q: String(h.q), a: String(h.a) }))
-      : undefined;
-    const attachment =
-      body.attachment && typeof body.attachment === "object"
-        ? (body.attachment as { name?: unknown; text?: unknown })
-        : undefined;
+    await privacy?.ready;
+    const saved = privacy?.values() ?? [];
+    const values = [...saved, ...namesForOnce(cleanFound(body.hideOnce), saved)];
     try {
-      return c.json(
-        await assist.quickAsk({
-          question: question.slice(0, 2000),
-          projectId: typeof body.projectId === "string" ? body.projectId : undefined,
-          sessionId: typeof body.sessionId === "string" ? body.sessionId : undefined,
-          mode: body.mode === "full" ? "full" : "quick",
-          history,
-          attachment:
-            attachment && typeof attachment.name === "string" && typeof attachment.text === "string"
-              ? { name: attachment.name, text: attachment.text }
-              : undefined,
-        }),
-      );
+      const result = await assist.quickAsk(quickArgs(body, question, values));
+      return c.json({ ...result, answer: fillPrivate(result.answer, values) });
     } catch (err) {
       return c.json({ error: (err as Error).message }, 502);
     }

@@ -8,6 +8,7 @@ import type { Bus } from "./bus";
 import { ChatTodos } from "./chat-todos";
 import { ChatHistory, type ChatStart, type Chats, type SendHow } from "./chats";
 import { checkpointChanges, checkpointFile, restoreCheckpointFile } from "./checkpoints";
+import { cleanFound } from "./private-values";
 import type { Store } from "./store";
 import { isTrusted, projectExtensions, trust } from "./trust";
 import { createWorktree, mergeWorktree, removeWorktree, type Worktree, workFolder, worktreeDiff } from "./worktrees";
@@ -257,7 +258,8 @@ type ChatClientMessage =
       answers?: Record<string, string>;
     }
   | { op: "interrupt" }
-  | { op: "mode"; mode: ChatMode };
+  | { op: "mode"; mode: ChatMode }
+  | { op: "hideOnce"; found: unknown };
 
 /** Per-project decisions: steps always allowed (plan.md 16.1) and trusted extensions (plan.md 16.4). */
 function registerProjectRules(app: Hono, chats: Chats, store: Store): void {
@@ -333,6 +335,7 @@ export function handleChatMessage(chats: Chats, id: string, raw: string): string
       );
     else if (msg.op === "interrupt") chats.interrupt(id);
     else if (msg.op === "mode" && MODES.includes(msg.mode)) chats.setMode(id, msg.mode);
+    else if (msg.op === "hideOnce") chats.hideOnce(id, cleanFound(msg.found));
   } catch (err) {
     return (err as Error).message;
   }

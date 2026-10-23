@@ -17,8 +17,8 @@ if (role === "mcp") {
   // The app holds our stdin open for as long as it runs. When it closes, normally or because the app
   // was killed, stop the way Ctrl+C does, so chats, terminals and dev servers are stopped too and
   // nothing is left running behind a closed window. Nothing is ever sent; only the end matters.
-  // ("end" rather than a for-await over Bun.stdin.stream(), which in Bun 1.4 can miss the end of
-  // a pipe and leave the server running.)
+  // (Read with "end": with a for-await over Bun.stdin.stream() the server was seen running after
+  // the app was killed, once or twice, and that did not happen again this way. Why is not known.)
   process.stdin.once("end", () => process.emit("SIGTERM"));
   process.stdin.resume();
 }

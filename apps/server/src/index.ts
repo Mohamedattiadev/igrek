@@ -187,6 +187,7 @@ if (movedFrom) console.log(`Data folder moved from ${movedFrom}: stored paths no
 const token = loadSessionToken(config.dataDir);
 const bus = new Bus();
 const stops = new StopRegistry();
+stops.onChange = (count) => bus.publish({ type: "stoppable", count });
 const store = new Store(sqlite);
 store.autoProjects = () => readSettings(db).autoProjects;
 // Projects are only the folders the user adds: while that holds, a folder Igrek found on its own (one
@@ -462,6 +463,7 @@ const vault = new Vault(sqlite, store, envFiles, sealer);
 // Private details stay on this computer: chats hide them before a message leaves (core/private.ts).
 const privateValues = new PrivateValues(sqlite, sealer);
 chats.privacy = privateValues;
+chats.privateFiles = () => readSettings(db).privateFiles;
 // The privacy gateway: what the AI tools send leaves with private details and .env secrets hidden.
 let envSecrets = { at: 0, values: [] as { name: string; value: string }[] };
 const gatewayValues = () => {
@@ -863,7 +865,7 @@ const app = createApp({
     bus.subscribe((m) => routines.onMessage(m));
     routines.start();
     registerVaultRoutes(hono, vault);
-    registerPrivateRoutes(hono, privateValues);
+    registerPrivateRoutes(hono, privateValues, (chatId) => chats.onceValues(chatId));
     hono.get("/api/private/gateway", (c) =>
       c.json({ on: readSettings(db).privacyGateway, hidden: gatewayStats.hidden, values: gatewayValues().length }),
     );
@@ -985,7 +987,7 @@ const app = createApp({
       busy: (projectId) => chats.list().some((chat) => chat.projectId === projectId && chat.status === "working"),
     });
     registerLessonRoutes(hono, { lessons, personas, store, scan: scanLessons });
-    registerAssistRoutes(hono, assist);
+    registerAssistRoutes(hono, assist, privateValues);
     registerTeamRoutes(hono, sync, store, {
       language: () => readSettings(db).language,
       runnerDir: join(config.dataDir, "runner"),

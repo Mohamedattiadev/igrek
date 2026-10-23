@@ -1,5 +1,5 @@
 import { PRIVATE_KINDS, PRIVATE_NAME, type PrivateKind, type PrivateValueInfo, placeholderOf } from "@igrek/core";
-import { Lock, Plus, ShieldCheck, Trash2 } from "lucide-react";
+import { FileLock, Lock, Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, request } from "../lib/api";
@@ -55,6 +55,68 @@ function GatewayStatus() {
           stats &&
           ` ${t("private.gatewayStats", { values: stats.values, hidden: stats.hidden })}`}
       </p>
+    </div>
+  );
+}
+
+/** Files the AI never opens in a chat, like .env files (Settings privateFiles, chats.ts privateFileRules). */
+function PrivateFiles() {
+  const { t } = useTranslation();
+  const { settings, update } = useSettings();
+  const [pattern, setPattern] = useState("");
+  const [error, setError] = useState<string>();
+  const files = settings.privateFiles ?? [];
+  const save = (next: string[]) => void update({ privateFiles: next });
+  const add = () => {
+    const file = pattern.trim();
+    if (!file) return;
+    // The server refuses these too: the pattern goes inside the AI's rule Read(...).
+    if (/[()]/.test(file)) return setError(t("private.filesBrackets"));
+    setError(undefined);
+    save([...files, file]);
+    setPattern("");
+  };
+  return (
+    <div className="space-y-2 rounded-ui border border-border p-3 text-[12.5px]">
+      <p className="flex items-center gap-2 font-medium">
+        <FileLock size={14} className="text-fg-subtle" aria-hidden="true" />
+        {t("private.filesTitle")}
+      </p>
+      <p className="text-fg-muted">{t("private.filesHint")}</p>
+      {files.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5">
+          {files.map((file) => (
+            <li
+              key={file}
+              className="flex items-center gap-1 rounded-ui bg-bg-subtle px-2 py-0.5 font-mono text-[11.5px]"
+            >
+              {file}
+              <button
+                type="button"
+                onClick={() => save(files.filter((f) => f !== file))}
+                aria-label={t("private.filesRemove", { pattern: file })}
+                className="rounded p-0.5 text-fg-subtle hover:text-danger"
+              >
+                <Trash2 size={11} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={pattern}
+          onChange={(e) => setPattern(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && add()}
+          placeholder="bordro*.pdf"
+          aria-label={t("private.filesPattern")}
+          className={`${field} min-w-0 flex-1 font-mono`}
+        />
+        <Button size="sm" icon={Plus} disabled={!pattern.trim()} onClick={add}>
+          {t("private.filesAdd")}
+        </Button>
+      </div>
+      {error && <p className="text-danger">{error}</p>}
     </div>
   );
 }
@@ -170,6 +232,7 @@ export function PrivatePanel({ initial }: { initial?: { label?: string; value?: 
       >
         {t("private.add")}
       </Button>
+      <PrivateFiles />
     </div>
   );
 }

@@ -201,6 +201,7 @@ export const api = {
     request<{ ok: boolean }>(`/api/i18n/${code}/override`, { method: "PUT", body: JSON.stringify({ key, text }) }),
   system: (fresh = false) => request<SystemStatus>(`/api/system${fresh ? "?fresh=1" : ""}`),
   emergencyStop: () => request<{ stopped: number; stoppedAt: string }>("/api/emergency-stop", { method: "POST" }),
+  stoppable: () => request<{ count: number }>("/api/stoppable"),
   indexStatus: () => request<IndexStatus>("/api/index/status"),
   projects: () => request<ProjectListItem[]>("/api/projects"),
   project: (id: string) => request<ProjectDetail>(`/api/projects/${id}`),
@@ -266,6 +267,8 @@ export const api = {
     mode: "quick" | "full";
     history?: { q: string; a: string }[];
     attachment?: { name: string; text: string };
+    /** Hidden for this question and its history only, not saved. */
+    hideOnce?: { kind: string; value: string }[];
   }) => request<QuickAnswer>("/api/quick-ask", { method: "POST", body: JSON.stringify(body) }),
   terminalInput: (id: string, text: string, paste = false) =>
     request<{ ok: boolean }>(`/api/terminals/${id}/input`, { method: "POST", body: JSON.stringify({ text, paste }) }),
@@ -437,14 +440,15 @@ export const api = {
   removePrivateValue: (name: string) =>
     request<PrivateValueInfo[]>(`/api/private/${encodeURIComponent(name)}`, { method: "DELETE" }),
   /** Identity numbers, IBANs and cards in a text that are not saved as private details yet. */
-  checkPrivate: (text: string) =>
+  /** In a chat, what it already hid for itself is not asked about again. */
+  checkPrivate: (text: string, chatId?: string) =>
     request<{ start: number; end: number; kind: PrivateShape; value: string }[]>("/api/private/check", {
       method: "POST",
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text, chatId }),
     }),
   /** Text with the real values in place of [[private:...]], for copying on this computer. */
-  fillPrivate: (text: string) =>
-    request<{ text: string }>("/api/private/fill", { method: "POST", body: JSON.stringify({ text }) }),
+  fillPrivate: (text: string, chatId?: string) =>
+    request<{ text: string }>("/api/private/fill", { method: "POST", body: JSON.stringify({ text, chatId }) }),
   uiAudits: (projectId: string) => request<UiAudit[]>(`/api/projects/${projectId}/ui-audits`),
   runUiAudit: (projectId: string) => request<UiAudit>(`/api/projects/${projectId}/ui-audit`, { method: "POST" }),
   previewVisual: (projectId: string, path: string, action: "baseline" | "compare") =>

@@ -148,21 +148,29 @@ describe.skipIf(!ready)("every page, every button", () => {
     for (let n = 0; n < CLICKS; n++) if (!(await clickOne(path, n))) break;
   }
 
-  test("every page in the sidebar", async () => {
-    problems.length = 0;
-    for (const item of NAV_ITEMS) await crawl(item.to);
-    expect(problems).toEqual([]);
-  }, 900_000);
+  // One test per page: all the sidebar's pages in one test ran close to its time limit on a busy
+  // machine and failed for that alone, and a failure now names the page.
+  for (const item of NAV_ITEMS)
+    test(`the sidebar page ${item.to}`, async () => {
+      problems.length = 0;
+      await crawl(item.to);
+      expect(problems).toEqual([]);
+    }, 300_000);
 
-  test("every tab of a project, a session and a chat", async () => {
+  const TABS = ["overview", "board", "preview", "sections", "timeline", "sessions", "experts", "code", "memory"];
+  for (const tab of [...TABS, "docs", "host", "environments", "monitor", "plugins", "setup"])
+    test(`the project tab ${tab}`, async () => {
+      problems.length = 0;
+      await crawl(`/p/${project}?tab=${tab}`);
+      expect(problems).toEqual([]);
+    }, 300_000);
+
+  test("a session and a chat", async () => {
     problems.length = 0;
-    const tabs = ["overview", "board", "preview", "sections", "timeline", "sessions", "experts", "code", "memory"];
-    const more = ["docs", "host", "environments", "monitor", "plugins", "setup"];
-    for (const tab of [...tabs, ...more]) await crawl(`/p/${project}?tab=${tab}`);
     await crawl(`/p/${project}/s/${SESSION}`);
     await crawl(`/c/${chat}`);
     expect(problems).toEqual([]);
-  }, 900_000);
+  }, 300_000);
 
   test("the pages one level down", async () => {
     problems.length = 0;

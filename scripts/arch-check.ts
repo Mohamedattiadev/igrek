@@ -12,7 +12,10 @@ import { dirname, join, relative, resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dir, "..");
 const SOURCE = /\.(ts|tsx|js|mjs|cjs)$/;
-const SKIP = /(^|\/)(node_modules|dist|fixtures)(\/|$)/;
+// Also what the desktop build copies or makes (the web app and the server again, Rust output):
+// gitignored, and thousands of files that made this gate slow enough to time out.
+const SKIP =
+  /(^|\/)(node_modules|dist|fixtures)(\/|$)|^apps\/desktop\/src-tauri\/(resources|binaries|gen|target)(\/|$)/;
 const TEST = /\.test\.tsx?$/;
 
 interface Rule {

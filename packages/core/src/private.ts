@@ -5,6 +5,8 @@
  * extension fills.
  */
 
+import { findMoney, type MoneyShape } from "./money";
+
 export type PrivateKind = "identity" | "student" | "finance" | "key" | "contact" | "other";
 export const PRIVATE_KINDS: PrivateKind[] = ["identity", "student", "finance", "key", "contact", "other"];
 
@@ -32,9 +34,41 @@ value in on the user's computer when the step runs or the text is used.`;
 function looseRegex(value: string): RegExp {
   const compact = value.replace(/[\s-]/g, "");
   const literal = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // A saved figure is not found inside a longer one: 300 is not hidden in 3000 or in 300.50.
+  const edges = (source: string) =>
+    `${/^\d/.test(value) ? "(?<!\\d)" : ""}${source}${/\d$/.test(value) ? "(?!\\d|[.,]\\d)" : ""}`;
   if (/^[A-Za-z0-9]{6,}$/.test(compact) && /\d{4,}/.test(compact))
-    return new RegExp(compact.split("").map(literal).join("[\\s-]?"), "gi");
-  return new RegExp(literal(value), "g");
+    return new RegExp(edges(compact.split("").map(literal).join("[\\s-]?")), "gi");
+  return new RegExp(edges(literal(value)), "g");
+}
+
+/**
+ * Names for details hidden in one chat or question only, not saved ("hide here only"): from what
+ * each is (amount_1, iban_1), so the AI still knows what stands there, and clear of names in use.
+ * One already hidden, or too short to hide reliably, is left out.
+ */
+export function namesForOnce(
+  found: { kind: string; value: string }[],
+  inUse: { name: string; value: string }[],
+): { name: string; value: string }[] {
+  const taken = new Set(inUse.map((v) => v.name));
+  const known = new Set(inUse.map((v) => v.value));
+  const out: { name: string; value: string }[] = [];
+  for (const { kind, value } of found) {
+    const clean = value.trim();
+    if (clean.length < 3 || known.has(clean)) continue;
+    const base =
+      kind
+        .toLowerCase()
+        .replace(/[^a-z]/g, "")
+        .slice(0, 20) || "private";
+    let n = 1;
+    while (taken.has(`${base}_${n}`)) n++;
+    taken.add(`${base}_${n}`);
+    known.add(clean);
+    out.push({ name: `${base}_${n}`, value: clean });
+  }
+  return out;
 }
 
 /** Every saved value in the text becomes its placeholder; says which ones were hidden. */
@@ -104,11 +138,12 @@ export function isCardNumber(digits: string): boolean {
   return sum % 10 === 0;
 }
 
-export type PrivateShape = "tcKimlik" | "iban" | "card";
+export type PrivateShape = "tcKimlik" | "iban" | "card" | MoneyShape;
+type Found = { start: number; end: number; kind: PrivateShape; value: string };
 
-/** Private details by their shape, even when not saved yet: identity numbers, IBANs, card numbers. */
-export function findPrivateShapes(text: string): { start: number; end: number; kind: PrivateShape; value: string }[] {
-  const out: { start: number; end: number; kind: PrivateShape; value: string }[] = [];
+/** Private details by their shape, even when not saved yet: identity numbers, IBANs, card numbers, money figures. */
+export function findPrivateShapes(text: string): Found[] {
+  const out: Found[] = [];
   for (const m of text.matchAll(/\b[A-Z]{2}\d{2}(?:\s?[A-Z0-9]{4}){3,7}(?:\s?[A-Z0-9]{1,4})?\b/g))
     if (isIban(m[0])) out.push({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length, kind: "iban", value: m[0] });
   for (const m of text.matchAll(/\b\d(?:[\s-]?\d){10,18}\b/g)) {
@@ -118,6 +153,7 @@ export function findPrivateShapes(text: string): { start: number; end: number; k
     const kind = digits.length === 11 && isTcKimlik(digits) ? "tcKimlik" : isCardNumber(digits) ? "card" : undefined;
     if (kind) out.push({ start, end: start + m[0].length, kind, value: m[0] });
   }
+  out.push(...findMoney(text, out));
   return out.sort((a, b) => a.start - b.start);
 }
 

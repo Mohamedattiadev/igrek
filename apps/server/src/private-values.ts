@@ -82,11 +82,25 @@ export class PrivateValues {
   }
 }
 
+/** What a "hide here only" names: a kind and a value each, as findPrivateShapes gives them. */
+export function cleanFound(found: unknown): { kind: string; value: string }[] {
+  if (!Array.isArray(found)) return [];
+  return found
+    .filter((f): f is { kind: string; value: string } => typeof f?.kind === "string" && typeof f?.value === "string")
+    .slice(0, 50)
+    .map((f) => ({ kind: f.kind, value: f.value.slice(0, 4000) }));
+}
+
 /**
  * The private details from the interface: names and labels to list, the value only when saving,
  * and "fill in" for text the user copies or a form the browser extension fills (on this computer).
  */
-export function registerPrivateRoutes(app: Hono, values: PrivateValues): void {
+export function registerPrivateRoutes(
+  app: Hono,
+  values: PrivateValues,
+  /** What a chat hid for itself only (Chats.onceValues), for text copied from that chat. */
+  onceValues: (chatId: string) => { name: string; value: string }[] = () => [],
+): void {
   const fail = (err: unknown) => Response.json({ error: (err as Error).message }, { status: 400 });
   app.get("/api/private", async (c) => {
     await values.ready;
@@ -104,14 +118,17 @@ export function registerPrivateRoutes(app: Hono, values: PrivateValues): void {
   // Identity numbers, IBANs and cards in a message that are not saved yet (saved ones are hidden anyway).
   app.post("/api/private/check", async (c) => {
     await values.ready;
-    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };
+    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown; chatId?: unknown };
     const text = typeof body.text === "string" ? body.text : "";
-    const saved = new Set(values.values().map((v) => v.value.replace(/[\s-]/g, "").toUpperCase()));
+    // What the chat already hid for itself counts as saved there: it is not asked about again.
+    const once = typeof body.chatId === "string" ? onceValues(body.chatId) : [];
+    const saved = new Set([...values.values(), ...once].map((v) => v.value.replace(/[\s-]/g, "").toUpperCase()));
     return c.json(findPrivateShapes(text).filter((f) => !saved.has(f.value.replace(/[\s-]/g, "").toUpperCase())));
   });
   app.post("/api/private/fill", async (c) => {
     await values.ready;
-    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown };
-    return c.json({ text: fillPrivate(typeof body.text === "string" ? body.text : "", values.values()) });
+    const body = (await c.req.json().catch(() => ({}))) as { text?: unknown; chatId?: unknown };
+    const once = typeof body.chatId === "string" ? onceValues(body.chatId) : [];
+    return c.json({ text: fillPrivate(typeof body.text === "string" ? body.text : "", [...values.values(), ...once]) });
   });
 }

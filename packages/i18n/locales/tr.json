@@ -44,6 +44,9 @@
   "stop": {
     "button": "Hepsini durdur",
     "title": "Acil durdurma",
+    "running_one": "Acil durdurma: şu an 1 şey çalışıyor",
+    "running_other": "Acil durdurma: şu an {{count}} şey çalışıyor",
+    "idle": "Acil durdurma: şu an kendi başına çalışan bir şey yok",
     "body": "Çalışan tüm agent'ları, zamanlanmış işleri ve uzak komutları hemen durdurur.",
     "confirm": "Her şeyi durdur",
     "cancel": "Vazgeç",
@@ -262,6 +265,7 @@
     "projectsBody": "Bir projenin klasörünü ya da birkaç projeyi içeren bir klasörü yaz. Igrek sadece burada eklediğin klasörleri gösterir; daha sonra Projeler sayfasından yenilerini ekleyebilirsin.",
     "projectsFound": "Claude'un daha önce çalıştığı klasörler",
     "projectsAuto": "Claude'un çalıştığı her klasörü ekle",
+    "projectsLater": "Henüz projem yok, sonra eklerim",
     "projectsAutoTip": "Claude Code'un çalıştığı her klasör kendiliğinden proje olur. Bunu Ayarlar'dan kapatabilirsin.",
     "toolsTitle": "Yapay zekâ araçların",
     "toolsBody": "Igrek bu bilgisayardaki Claude Code ve Codex ile çalışır; onları kendisi getirmez. En az birini kur, sonra bir terminalde bir kez giriş yap.",
@@ -330,7 +334,7 @@
     "t_cli": "Komut satırı",
     "d_cli": "igrek status, projects, search, ask, inbox, run, recap, weekly ve her uç nokta için igrek api: her şey script'le de.",
     "t_safety": "Güvenlik ve gizlilik",
-    "d_safety": "Igrek kendiliğinden asla push ya da deploy etmez, anahtarları ya da .env değerlerini AI'a vermez, telemetri göndermez (Ayarlar > Ağ açtığı her adresi gösterir) ve kırmızı Hepsini durdur düğmesi her şeyi bir anda durdurur.",
+    "d_safety": "Igrek kendiliğinden asla push ya da deploy etmez, anahtarları ya da .env değerlerini AI'a vermez, telemetri göndermez (Ayarlar > Ağ açtığı her adresi gösterir) ve Hepsini durdur düğmesi (bir şey çalışırken kırmızı) her şeyi bir anda durdurur.",
     "t_ask": "Ne istediğini yaz (ana sayfa kutusu)",
     "d_ask": "Ana sayfanın en üstündeki kutu: yaz, projeyi seç, Enter. Sohbet açılır ve mesaj gider."
   },
@@ -4327,7 +4331,7 @@
     "approve": {
       "title": "Takip et ve onayla",
       "body": "AI ne okuduğunu ve neyi değiştirdiğini kartlar halinde gösterir. Dikkatli modda her değişiklik senin onayını bekler; arkandan hiçbir şey olmaz.",
-      "how": "Sohbette her kartta İzin ver ya da Reddet. Sağ üstteki kırmızı Hepsini durdur bütün AI işini bir anda durdurur."
+      "how": "Sohbette her kartta İzin ver ya da Reddet. Sağ üstteki Hepsini durdur (bir şey çalışırken kırmızı) bütün AI işini bir anda durdurur."
     },
     "project": {
       "title": "Bir projenin içine bak",
@@ -4731,18 +4735,29 @@
     "shape_tcKimlik": "T.C. kimlik numarası",
     "shape_iban": "IBAN",
     "shape_card": "Kart numarası",
-    "guard": "Bu mesajda özel bilgilerin arasında olmayan bir {{what}} var gibi görünüyor. Kaydedersen AI sadece yer tutucuyu görür.",
+    "shape_amount": "Mali rakam",
+    "shape_account": "Hesap numarası",
+    "guard": "Bu mesajda bir {{what}} var gibi görünüyor ve özel bilgilerinde kayıtlı değil. Gizlersen yapay zekâ gerçek değeri değil, sadece takma adını görür.",
+    "hiddenTip": "Gizlendi: yapay zekâ bunun yerine bir takma ad gördü. Gerçek değer sadece bu bilgisayarda.",
     "guardSave": "Kaydet ve gizle",
     "guardSend": "Olduğu gibi gönder",
-    "hidden_one": "AI'dan gizlendi: {{what}}",
-    "hidden_other": "AI'dan {{count}} bilgi gizlendi: {{what}}",
+    "guardOnce": "Sadece burada gizle",
+    "guardOnceTip": "Kaydedilmez: sadece bu sohbette ya da hızlı soruda gizlenir. Açık kaldıkça cevaplarda gerçek değer görünür; Igrek yeniden başlarsa yer tutucu olarak kalır.",
+    "hidden_one": "Yapay zekâdan gizlendi: {{what}}",
+    "hidden_other": "Yapay zekâdan {{count}} bilgi gizlendi: {{what}}",
     "copy": "Bilgilerimle kopyala",
     "copyTip": "Cevabı, yer tutucuların yerine gerçek değerlerinle kopyalar. AI onları hiç görmedi.",
     "inStep": "Igrek bu adım çalışırken yer tutucuların yerine gerçek özel bilgilerini koyar; AI onları görmez. Adım bir değeri ekrana yazdırırsa, çıktısı AI'a ulaşabilir.",
     "gateway": "Her yerde gizle",
     "gatewayOn": "Açık: Yapay zekânın gördüğü her yerde (mesajlarında, okuduğu dosyalarda, çalıştırdığı komutların sonuçlarında) bu bilgiler ve projelerindeki gizli anahtarlar takma adla değiştirilir. Claude da Codex de böyle çalışır. Yapay zekâ gizli anahtar dosyalarını hiç açamaz.",
     "gatewayOff": "Kapalı: yalnızca sohbete yazdıkların gizlenir; yapay zekânın okuduğu dosyalar ve komut sonuçları olduğu gibi gider.",
-    "gatewayStats": "Korunan bilgi sayısı: {{values}}. Yapay zekâdan şimdiye kadar {{hidden}} kez gizlendi."
+    "gatewayStats": "Korunan bilgi sayısı: {{values}}. Yapay zekâdan şimdiye kadar {{hidden}} kez gizlendi.",
+    "filesTitle": "Yapay zekânın hiç açmadığı dosyalar",
+    "filesHint": ".env dosyaların gibi: Igrek'te Claude ile yapılan sohbetlerde yapay zekâ bunları hiçbir projede okuyamaz. Bir ad ya da desen her klasörde geçerli (bordro*.pdf, finans/*.xlsx); tam bir yol sadece orada. Böyle bir dosyayı yazdıran bir komut yine gizlilik ağ geçidinden geçer, o da sadece kayıtlı bilgilerini gizler.",
+    "filesPattern": "Dosya adı ya da desen",
+    "filesAdd": "Ekle",
+    "filesRemove": "{{pattern}} kaldır",
+    "filesBrackets": "Dosya deseninde parantez olamaz."
   },
   "extension": {
     "title": "Tarayıcı eklentisi",

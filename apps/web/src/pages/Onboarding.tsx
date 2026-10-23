@@ -77,6 +77,12 @@ function ProjectStep({ onDone }: { onDone: () => void }) {
         </p>
       )}
       <div className="mt-5 flex flex-wrap items-center justify-end gap-2">
+        {/* Someone with no project yet is not stuck here: the Projects page can make or add one later. */}
+        {added.length === 0 && (
+          <Button variant="ghost" onClick={onDone}>
+            {t("onboarding.projectsLater")}
+          </Button>
+        )}
         <Button
           variant="ghost"
           onClick={() => void update({ autoProjects: true }).then(onDone)}
@@ -101,6 +107,14 @@ export function Onboarding() {
   const { t } = useTranslation();
   const { settings, update } = useSettings();
   const [step, setStep] = useState(0);
+  // Start in the browser's language when Igrek ships it (Turkish): a Turkish newcomer should not have
+  // to find "Türkçe" in an English list first. Other languages are a choice: their texts are made
+  // by a model, which is not asked unasked.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, on the first screen
+  useEffect(() => {
+    const browser = navigator.language.split("-")[0] ?? "";
+    if (settings.language === "en" && browser !== "en" && isBundled(browser)) void update({ language: browser });
+  }, []);
 
   return (
     <div className="h-full overflow-y-auto bg-bg-subtle">

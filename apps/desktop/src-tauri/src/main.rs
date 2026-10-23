@@ -25,6 +25,7 @@ use tauri_plugin_updater::UpdaterExt;
 
 const MAIN: &str = "main";
 const QUICK_ASK: &str = "ctrl+space";
+const QUICK_ASK_ARG: &str = "--quick-ask";
 
 /// The public half of Igrek's update key, set when the release build is made (docs/desktop.md).
 /// Without it the app is built without updates.
@@ -57,6 +58,10 @@ fn quick_ask(app: &AppHandle) {
     if let Some(window) = main_window(app) {
         let _ = window.eval("window.dispatchEvent(new CustomEvent('igrek:quick-ask'))");
     }
+}
+
+fn quick_ask_at_start() -> bool {
+    std::env::args().any(|a| a == QUICK_ASK_ARG)
 }
 
 fn updates_enabled() -> bool {
@@ -175,7 +180,8 @@ fn start_server(app: &AppHandle) {
                 // might show (a link, a project's dev server) can.
                 let _ = app.add_capability(
                     CapabilityBuilder::new("igrek-server")
-                        .remote(origin.clone())
+                        // Every page of it, not only the first (Settings calls them too).
+                        .remote(format!("{origin}/*"))
                         .window(MAIN)
                         .permission("allow-notify")
                         .permission("allow-autostart")
@@ -184,7 +190,10 @@ fn start_server(app: &AppHandle) {
                         .permission("allow-update-install")
                         .permission("allow-tray-texts"),
                 );
-                if let Ok(url) = origin.parse() {
+                // Started by the user's quick-question shortcut while Igrek was closed: the page
+                // opens with it (takeQuickAskFromStart in the web app).
+                let start = if quick_ask_at_start() { format!("{origin}/?quick-ask") } else { origin.clone() };
+                if let Ok(url) = start.parse() {
                     let _ = window.navigate(url);
                 }
             }
@@ -222,7 +231,7 @@ fn main() {
         // `--quick-ask` opens the quick question too: where the system does not let a program take a
         // shortcut for itself (Wayland), the user binds Ctrl+Space to that command instead.
         .plugin(tauri_plugin_single_instance::init(|app, args, _| {
-            if args.iter().any(|a| a == "--quick-ask") {
+            if args.iter().any(|a| a == QUICK_ASK_ARG) {
                 quick_ask(app)
             } else {
                 show(app)
