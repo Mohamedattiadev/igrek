@@ -22,6 +22,10 @@ Igrek in a window of its own (plan.md Faz 17), made with [Tauri 2](https://tauri
 - Only pages of this server (the exact `http://127.0.0.1:<port>`) may call the app's commands: notifications,
   start with the computer, the tray menu's words, updates (`src-tauri/src/main.rs`).
 
+On Linux the .deb puts Igrek in the desktop's app search. An AppImage is not installed by anything, so on
+each start it writes that entry itself (`~/.local/share/applications/igrek-desktop.desktop` and its icon),
+pointing at where the file is now; save it somewhere lasting (for example `~/Applications`) and start it once.
+
 Around the window: a tray icon (Open, Hide, Quit), the system's notifications for Igrek's desktop notifications,
 "Start with the computer" in Settings (off by default), and `Ctrl+Space` from any program for a quick question.
 While Igrek's window has the focus the shortcut is left to the web app, so `Ctrl+Space` in the code editor
@@ -49,6 +53,14 @@ bun install
 bun run build                       # the web app
 cd apps/desktop
 bun run app -- --bundles appimage   # or deb, msi, dmg; the package is in src-tauri/target/release/bundle
+```
+
+After changing `apps/server/src/desktop.ts`, check that the built server stops when its stdin closes (it should
+exit about 5 seconds later, when `sleep` ends):
+
+```sh
+bun run sidecar
+sleep 5 | IGREK_HOME=$(mktemp -d) IGREK_PORT=35999 IGREK_RESOURCES=src-tauri/resources src-tauri/binaries/igrek-server-*
 ```
 
 The Rust build takes a few GB; `CARGO_TARGET_DIR` can put it elsewhere, and deleting it afterwards is safe.

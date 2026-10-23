@@ -16,11 +16,11 @@ if (role === "mcp") {
   await import("./index");
   // The app holds our stdin open for as long as it runs. When it closes, normally or because the app
   // was killed, stop the way Ctrl+C does, so chats, terminals and dev servers are stopped too and
-  // nothing is left running behind a closed window.
-  for await (const _ of Bun.stdin.stream()) {
-    // Nothing is ever sent; only the end matters.
-  }
-  process.emit("SIGTERM");
+  // nothing is left running behind a closed window. Nothing is ever sent; only the end matters.
+  // ("end" rather than a for-await over Bun.stdin.stream(), which in Bun 1.4 can miss the end of
+  // a pipe and leave the server running.)
+  process.stdin.once("end", () => process.emit("SIGTERM"));
+  process.stdin.resume();
 }
 
 // A module, so it may wait at the top level.

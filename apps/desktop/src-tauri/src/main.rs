@@ -6,6 +6,8 @@
 // No console window next to the app on Windows.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[cfg(target_os = "linux")]
+mod launcher;
 mod server;
 mod texts;
 
@@ -254,6 +256,8 @@ fn main() {
     let app = builder
         .setup(|app| {
             let handle = app.handle();
+            #[cfg(target_os = "linux")]
+            launcher::register();
             tray(handle)?;
             let window = window(handle)?;
             if let Ok(shortcut) = QUICK_ASK.parse::<Shortcut>() {
