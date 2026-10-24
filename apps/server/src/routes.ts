@@ -67,6 +67,16 @@ export function registerWorkRoutes(app: Hono, deps: WorkDeps): void {
       return c.json({ error: "Folder not found" }, 400);
     }
     const id = store.addFolder(path, body.as === "folder" ? "folder" : "one");
+    // A project the user adds gets the memory hook at once, instead of waiting for a click in Setup:
+    // it writes only .claude/settings.local.json, kept out of git. Turning it off there sticks.
+    const row = body.as === "folder" ? undefined : store.projectRow(id);
+    if (row && !row.hooks_installed)
+      try {
+        installHooks(row.path, hookScript);
+        store.setHooksInstalled(row.id, true);
+      } catch {
+        // an unreadable settings file: the button in Setup still works
+      }
     syncCommits();
     return c.json({ id });
   });

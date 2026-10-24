@@ -17,6 +17,31 @@ function personaList(value: unknown): string[] | undefined {
   return Array.isArray(value) ? value.filter((x): x is string => typeof x === "string").slice(0, 50) : undefined;
 }
 
+/**
+ * The library does not start empty, and nobody has to press "Add all": the free references the
+ * experts work from and the docs of what the projects use are added once, then the search model
+ * comes down. Returns what was added.
+ */
+export function seedLibrary(library: Library, embedder: Embedder, projects: { name: string; path: string }[]): number {
+  const have = new Set(library.list().flatMap((item) => [item.url, item.source].filter((x): x is string => !!x)));
+  let added = 0;
+  for (const suggestion of librarySuggestions(projects, have)) {
+    if (suggestion.kind !== "doc" && suggestion.kind !== "web") continue;
+    try {
+      library.addUrl(suggestion.url, { personaIds: suggestion.personaIds });
+      added++;
+    } catch {
+      // a page that cannot be added now: the suggestion stays on the Library page
+    }
+  }
+  if (!embedder.ready())
+    void embedder
+      .download()
+      .then(() => library.embedMissing())
+      .catch(() => undefined);
+  return added;
+}
+
 export function registerLibraryRoutes(
   app: Hono,
   {

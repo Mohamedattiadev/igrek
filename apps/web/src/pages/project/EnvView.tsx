@@ -290,6 +290,9 @@ export function EnvView({ projectId }: { projectId: string }) {
           <p className="mt-1 flex items-center gap-1.5 text-xs text-fg-muted">
             <Lock size={12} /> {t("env.privacy")}
           </p>
+          <Link to="/tools?tab=vault" className="mt-1 inline-block text-xs text-accent hover:underline">
+            {t("env.allInVault")}
+          </Link>
         </div>
         <Button
           icon={RefreshCw}

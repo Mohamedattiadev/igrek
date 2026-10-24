@@ -2,7 +2,7 @@ import { Languages, PencilLine, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { api, type PackStatus } from "../lib/api";
-import { loadPack } from "../lib/i18n";
+import { isBundled, loadPack } from "../lib/i18n";
 import { useServerEvent } from "../lib/live";
 import { Button, Dialog } from "./ui";
 
@@ -13,12 +13,41 @@ export function useLanguagePackSync(code: string): void {
   });
 }
 
-/** Choosing a language without a pack starts making one (once; it then works offline). */
-export function chooseLanguage(code: string, update: (patch: { language: string }) => Promise<void>): void {
-  void update({ language: code }).then(async () => {
-    const { status } = await api.languagePack(code);
-    if (status.state === "none" || status.state === "failed") await api.generatePack(code);
-  });
+/**
+ * Across the top of every page while the chosen language is being made. Until it is done half the
+ * screen is still English, and a tester who picked Arabic took that for "Arabic does not work".
+ */
+export function LanguagePackBanner({ code }: { code: string }) {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<PackStatus>();
+  const [tick, setTick] = useState(0);
+  useServerEvent("i18n-progress", (message) => message.code === code && setTick((n) => n + 1));
+  // biome-ignore lint/correctness/useExhaustiveDependencies: tick is the "read again" signal from the server
+  useEffect(() => {
+    if (isBundled(code)) return setStatus(undefined);
+    let live = true;
+    api
+      .languagePack(code)
+      .then((r) => live && setStatus(r.status))
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [code, tick]);
+  if (status?.state !== "generating") return null;
+  const percent = Math.round((status.done / Math.max(1, status.total)) * 100);
+  return (
+    <div
+      role="status"
+      className="flex shrink-0 items-center gap-3 border-b border-border bg-accent-soft px-4 py-1.5 text-[12px]"
+    >
+      <Languages size={13} className="shrink-0 text-accent" aria-hidden="true" />
+      <span className="min-w-0 flex-1 truncate">{t("langpack.banner", { percent })}</span>
+      <div className="h-1.5 w-32 shrink-0 overflow-hidden rounded-full bg-bg-muted" aria-hidden="true">
+        <div className="h-full bg-accent transition-[width]" style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
 }
 
 /** Under the language list: how complete the pack is, update it, and fix wrong translations. */

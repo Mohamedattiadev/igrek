@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   ArrowRightLeft,
   ArrowUp,
+  BookMarked,
   BookOpen,
   Bot,
   Bug,
@@ -43,6 +44,7 @@ import {
   MessageSquarePlus,
   Minimize2,
   Pencil,
+  PenLine,
   RotateCcw,
   Search,
   ShieldAlert,
@@ -68,8 +70,9 @@ import { SplitPicker } from "../components/ChatSplit";
 import { ChatTodoList } from "../components/ChatTodoList";
 import { CheckpointRestore } from "../components/CheckpointRestore";
 import { ChiefTools, RunReport } from "../components/ChiefTools";
+import { ComposerMenu } from "../components/ComposerMenu";
 import { ContinueInCodex } from "../components/ContinueInCodex";
-import { EnhanceButton, EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
+import { EnhanceHint, EnhancePanel, PromptCoach } from "../components/Enhance";
 import { ExpertCard, ExpertPicker, MentionMenu, useExpertMentions } from "../components/Experts";
 import { GateCard } from "../components/GateCard";
 import { MadeFiles } from "../components/MadeFiles";
@@ -918,6 +921,8 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
   /** The text the enhancer was opened with; undefined while closed. */
   const [enhancing, setEnhancing] = useState<string>();
   const [images, setImages] = useState<{ mediaType: string; data: string; name: string }[]>([]);
+  /** Which window the "+" menu opened. */
+  const [picker, setPicker] = useState<"prompts" | "experts">();
   const list = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLTextAreaElement>(null);
   // "@" brings in an expert, only where experts can be asked: not inside a persona's own chat.
@@ -1328,15 +1333,27 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
           className="w-full resize-none bg-transparent px-2 py-1 text-[14.5px] leading-relaxed outline-none placeholder:text-fg-subtle"
         />
         <div className="mt-1 flex flex-wrap items-center gap-1">
-          <button
-            type="button"
-            onClick={() => fileInput.current?.click()}
-            aria-label={t("chat.addImage")}
-            title={t("chat.addImage")}
-            className="rounded-full p-1.5 text-fg-subtle hover:bg-bg-hover hover:text-fg"
-          >
-            <ImagePlus size={15} />
-          </button>
+          <ComposerMenu
+            actions={[
+              { key: "image", label: t("chat.addImage"), icon: ImagePlus, onClick: () => fileInput.current?.click() },
+              { key: "prompts", label: t("nav.prompts"), icon: BookMarked, onClick: () => setPicker("prompts") },
+              ...(settings.consultExperts && !info?.persona
+                ? [{ key: "experts", label: t("chat.experts"), icon: UsersRound, onClick: () => setPicker("experts") }]
+                : []),
+              ...(settings.enhanceMode !== "off"
+                ? [
+                    {
+                      key: "enhance",
+                      label: t("enhance.button"),
+                      icon: PenLine,
+                      onClick: openEnhancer,
+                      disabled: !text.trim(),
+                      hint: "Ctrl ⇧ Enter",
+                    },
+                  ]
+                : []),
+            ]}
+          />
           <input
             ref={fileInput}
             type="file"
@@ -1349,9 +1366,15 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
               e.target.value = "";
             }}
           />
-          <PromptPicker onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))} />
+          <PromptPicker
+            open={picker === "prompts"}
+            onOpenChange={(open) => setPicker(open ? "prompts" : undefined)}
+            onUse={(prompt) => setText((v) => (v ? `${v}\n${prompt}` : prompt))}
+          />
           {settings.consultExperts && !info?.persona && (
             <ExpertPicker
+              open={picker === "experts"}
+              onOpenChange={(open) => setPicker(open ? "experts" : undefined)}
               onMeeting={() =>
                 void navigate(
                   `/personas?${new URLSearchParams({ tab: "meetings", question: text.trim(), project: info?.projectId ?? "" })}`,
@@ -1364,7 +1387,6 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
             />
           )}
           <MicButton onText={(spoken) => setText((v) => (v ? `${v} ${spoken}` : spoken))} />
-          {settings.enhanceMode !== "off" && <EnhanceButton onClick={openEnhancer} disabled={!text.trim()} />}
           <div className="ms-auto flex min-w-0 max-w-full items-center gap-1">
             <ChatSettings
               info={info}

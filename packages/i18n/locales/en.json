@@ -276,14 +276,6 @@
     "toolsRecheck": "Check again"
   },
   "help": {
-    "button": "Help",
-    "title": "How do I…",
-    "search": "Search the guide or ask a question",
-    "ask": "Ask",
-    "asking": "Thinking…",
-    "tour": "Show the tour",
-    "go": "Open",
-    "none": "Nothing in the guide for that. Ask the question instead.",
     "t_projects": "Projects",
     "d_projects": "Every folder you work in. Add one with Add folder, start one from a template with New project, or try the demo project. Set a project On hold or Archive in its Setup tab; focus mode suggests which ones to put aside.",
     "t_sessions": "AI sessions",
@@ -1077,7 +1069,8 @@
     "emptyBody_chief": "The Chief can look at all your projects. Steps that change things wait for your approval.",
     "starter_chiefToday": "What changed in which project today?",
     "starter_chiefOpen": "Which projects have unfinished work?",
-    "starter_chiefWeek": "Sum up this week across my projects"
+    "starter_chiefWeek": "Sum up this week across my projects",
+    "more": "More: image, prompt, expert"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1861,7 +1854,8 @@
     "action_changed": "changed",
     "action_removed": "removed",
     "action_restored": "restored",
-    "wholeFile": "the whole file"
+    "wholeFile": "the whole file",
+    "allInVault": "Every project's keys in one place: Vault"
   },
   "tools": {
     "title": "Run the project's own checks",
@@ -2209,7 +2203,8 @@
     "fixHint": "Click a text to correct it. Your corrections are kept on this computer and win over the pack.",
     "search": "Search texts",
     "undo": "Undo my fix",
-    "undoTip": "Go back to the original translation"
+    "undoTip": "Go back to the original translation",
+    "banner": "Preparing this language with your Claude login: {{percent}}%. Texts change as they are done; the rest stays English until then."
   },
   "translate": {
     "do": "Translate",
@@ -3204,7 +3199,7 @@
     "d_empty": "Just git and your conventions; no code."
   },
   "backup": {
-    "title": "Backup",
+    "title": "Igrek's own backup",
     "hint": "One file with project memory, the lessons book, the library's texts, experts and their notebooks, schedules and ideas. Accounts, keys and .env backups are never in it. Restoring only adds what is missing.",
     "password": "Password (optional, locks the file)",
     "export": "Download backup",
@@ -3241,7 +3236,7 @@
     "project": "Project",
     "noProject": "Not tied to a project",
     "databases": "Databases",
-    "backups": "Backups",
+    "backups": "Project backups",
     "calendar": "Calendar",
     "vault": "Vault",
     "costs": "Costs",
@@ -4669,7 +4664,9 @@
     "updateInstall": "Install and restart",
     "updateInstalling": "Installing…",
     "updateProgress": "{{done}} of {{total}} MB downloaded ({{pct}}%)",
-    "updateProgressNoSize": "{{done}} MB downloaded"
+    "updateProgressNoSize": "{{done}} MB downloaded",
+    "updateNoticeTitle": "A new version of Igrek",
+    "updateNotice": "Igrek {{version}} is ready. Install it in Settings > Updates."
   },
   "packs": {
     "catalog": "Igrek's catalog",

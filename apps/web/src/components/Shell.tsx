@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useLocation } from "react-router";
 import { cn } from "../lib/cn";
-import { useDesktopTray } from "../lib/desktop";
+import { useDesktopTray, useDesktopUpdateCheck } from "../lib/desktop";
 import { dispatchServerMessage, useApprovals, useIndexStatus, useTerminals } from "../lib/live";
 import { useDesktopNotifications } from "../lib/notify";
 import { runPageShortcut } from "../lib/page-actions";
@@ -16,9 +16,8 @@ import { readZen, saveZen } from "../lib/zen";
 import { AccountChip } from "./AccountChip";
 import { CommandPalette } from "./CommandPalette";
 import { Helper } from "./Helper";
-import { HelpGuide } from "./HelpGuide";
 import { IdeaCapture } from "./IdeaCapture";
-import { useLanguagePackSync } from "./LanguagePack";
+import { LanguagePackBanner, useLanguagePackSync } from "./LanguagePack";
 import { Logo } from "./Logo";
 import { NAV_ITEMS, type NavItem } from "./nav";
 import { QuickAsk } from "./QuickAsk";
@@ -262,7 +261,7 @@ function TopBar({
         </span>
       </button>
       <div className="flex-1" />
-      <HelpGuide />
+      {/* No "?" here: the helper in the corner answers the same questions and opens the guide and the tour. */}
       <SyncChip />
       <span data-tour="account" className="flex">
         <AccountChip />
@@ -310,6 +309,7 @@ export function Shell() {
   const [drawer, setDrawer] = useState(false);
   useDesktopNotifications();
   useDesktopTray();
+  useDesktopUpdateCheck();
   useEffect(() => {
     const flip = () =>
       setZen((on) => {
@@ -396,6 +396,7 @@ export function Shell() {
         {!zen && (
           <TopBar onSearch={openPalette} onToast={setToast} onMenu={narrow ? () => setDrawer(true) : undefined} />
         )}
+        <LanguagePackBanner code={settings.language} />
         <main
           id="main"
           tabIndex={-1}

@@ -18,7 +18,8 @@ export interface PackStatus {
 }
 
 const CHUNK = 150;
-const PARALLEL = 3;
+// Six at once: a whole pack (about 30 parts) took 6 to 8 minutes with three.
+const PARALLEL = 6;
 
 export function flatten(value: unknown, prefix = "", out: Flat = {}): Flat {
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
@@ -90,7 +91,7 @@ export class LanguagePacks {
   /** What to add on top of the app's bundled texts: the generated pack (if any) and corrections. */
   messages(code: string): Record<string, unknown> {
     const bundled = code in bundledResources;
-    return unflatten({ ...(bundled ? {} : this.generated(code)), ...this.overrides(code) });
+    return unflatten({ ...(bundled ? {} : withPluralForms(this.generated(code), code)), ...this.overrides(code) });
   }
 
   status(code: string): PackStatus {
@@ -133,6 +134,16 @@ export class LanguagePacks {
     writeFileSync(join(this.dir, `${code}.overrides.json`), JSON.stringify(fixes, null, 1));
   }
 
+  /**
+   * The chosen language is kept whole without anyone asking: at start, after an update brought new
+   * texts, and after a part failed last time. Nothing happens for a shipped or finished language.
+   */
+  complete(code: string): void {
+    if (!LanguagePacks.known(code) || code in bundledResources) return;
+    const { state } = this.status(code);
+    if (state !== "ready" && state !== "generating") this.generate(code);
+  }
+
   /** Translates what's missing (all of it the first time, only new texts after an update). */
   generate(code: string): PackStatus {
     if (code in bundledResources || this.running.has(code)) return this.status(code);
@@ -158,6 +169,9 @@ export class LanguagePacks {
     }
     const file = join(this.dir, `${code}.json`);
     let failed = 0;
+    // A part that fails (a cut-off reply, a busy moment) is tried once more at the end.
+    const retry: string[][] = [];
+    const retried = new Set<string[]>();
     const work = async () => {
       for (let chunk = chunks.shift(); chunk; chunk = chunks.shift()) {
         const input = Object.fromEntries(chunk.map((k) => [k, this.source[k] as string]));
@@ -175,17 +189,41 @@ export class LanguagePacks {
           }
           writeFileSync(file, JSON.stringify(pack, null, 1));
         } catch {
-          failed++;
+          if (retried.has(chunk)) failed++;
+          else retry.push(chunk);
         }
         progress.done = Object.keys(this.source).filter((k) => k in pack || this.isPluralSibling(k, pack)).length;
         this.bus.publish({ type: "i18n-progress", code });
       }
     };
     await Promise.all(Array.from({ length: PARALLEL }, work));
+    for (const chunk of retry) retried.add(chunk);
+    chunks.push(...retry.splice(0));
+    await Promise.all(Array.from({ length: PARALLEL }, work));
     this.running.delete(code);
     if (failed) this.failures.set(code, `${failed} part(s) couldn't be translated; try again to fill them in`);
     this.bus.publish({ type: "i18n-progress", code });
   }
+}
+
+/**
+ * A plural form the model left out (Arabic "two", "few", "many") falls back to the language's own
+ * "other" form, not to English: "2 sessions" showed in an Arabic screen.
+ */
+function withPluralForms(pack: Flat, code: string): Flat {
+  let forms: string[];
+  try {
+    forms = new Intl.PluralRules(code).resolvedOptions().pluralCategories as string[];
+  } catch {
+    return pack;
+  }
+  const out = { ...pack };
+  for (const [key, value] of Object.entries(pack)) {
+    if (!key.endsWith("_other")) continue;
+    const base = key.slice(0, -"_other".length);
+    for (const form of forms) if (!(`${base}_${form}` in out)) out[`${base}_${form}`] = value;
+  }
+  return out;
 }
 
 function packPrompt(language: string, code: string, input: Flat, plural: string[]): string {

@@ -50,6 +50,43 @@ describe("language packs", () => {
     expect(prompts.length - before).toBe(1);
   });
 
+  test("a part that fails is tried again, and the chosen language completes itself", async () => {
+    const prompts: string[] = [];
+    const echo = fakeAsk(prompts);
+    let calls = 0;
+    // The second part fails the first time it is asked, as a cut-off reply would.
+    const ask = async (prompt: string) => (++calls === 2 ? "{ cut off" : echo(prompt));
+    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "igrek-i18n-")), new Bus(), "/tmp", ask);
+    packs.complete("en");
+    packs.complete("xx");
+    expect(packs.status("de").state).toBe("none");
+    packs.complete("de");
+    await settle(packs, "de");
+    const status = packs.status("de");
+    expect(status.error).toBeUndefined();
+    expect(status.total - status.done).toBeLessThanOrEqual(1);
+    // Already whole (but for the one broken text): completing again asks only for that.
+    const before = calls;
+    packs.complete("de");
+    await settle(packs, "de");
+    expect(calls - before).toBeLessThanOrEqual(1);
+  });
+
+  test("a plural form the model left out falls back to the same language, not English", async () => {
+    // A translator that writes only _other, as Haiku did for some Arabic texts.
+    const ask = async (prompt: string) => {
+      const input = JSON.parse(prompt.slice(prompt.indexOf("\n{"))) as Record<string, string>;
+      return JSON.stringify(Object.fromEntries(Object.entries(input).map(([k, v]) => [k, `[ar] ${v}`])));
+    };
+    const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "igrek-i18n-")), new Bus(), "/tmp", ask);
+    packs.generate("ar");
+    await settle(packs, "ar");
+    const flat = flatten(packs.messages("ar"));
+    const other = Object.keys(flat).find((k) => k.endsWith("_other")) as string;
+    const base = other.slice(0, -"_other".length);
+    for (const form of ["zero", "one", "two", "few", "many"]) expect(flat[`${base}_${form}`]).toStartWith("[ar] ");
+  });
+
   test("languages with more plural forms get them", async () => {
     const prompts: string[] = [];
     const packs = new LanguagePacks(mkdtempSync(join(tmpdir(), "igrek-i18n-")), new Bus(), "/tmp", fakeAsk(prompts));

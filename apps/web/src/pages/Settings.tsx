@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
 import { EnhanceSettings } from "../components/EnhanceSettings";
 import { ExtensionPanel } from "../components/ExtensionPanel";
-import { chooseLanguage, LanguagePackPanel } from "../components/LanguagePack";
+import { LanguagePackPanel } from "../components/LanguagePack";
 import { LanguagePicker } from "../components/LanguagePicker";
 import {
   BackupPanel,
@@ -233,7 +233,7 @@ export function SettingsPage() {
         <GroupIndex />
         <Group id="look" />
         <Section title={t("settings.language")} hint={t("settings.languageHint")}>
-          <LanguagePicker value={settings.language} onChange={(language) => chooseLanguage(language, update)} />
+          <LanguagePicker value={settings.language} onChange={(language) => void update({ language })} />
           <LanguagePackPanel code={settings.language} />
         </Section>
         <AppSection />

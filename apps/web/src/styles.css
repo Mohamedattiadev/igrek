@@ -534,3 +534,14 @@ summary {
 .ge-code-copy:focus-visible {
   opacity: 1;
 }
+
+/*
+ * In a right-to-left language, paths, code and commands still read left to right: without this an
+ * Arabic screen showed "~/tmp/demo-shop" as "tmp/demo-shop/~". Each keeps its own direction.
+ */
+[dir="rtl"] .font-mono,
+[dir="rtl"] code,
+[dir="rtl"] pre,
+[dir="rtl"] kbd {
+  unicode-bidi: plaintext;
+}

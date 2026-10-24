@@ -107,6 +107,8 @@ export async function startTestServer(
       IGREK_WEB_DIST: options.webDist ?? join(home, "no-web"),
       // No phone is ever reached from a test: adb points nowhere.
       IGREK_ADB: join(home, "no-adb"),
+      // Nothing is fetched on its own (the library's first references, update checks).
+      IGREK_SEALED: "1",
       OPENUI_TELEMETRY_DISABLED: "1",
       DO_NOT_TRACK: "1",
     },

@@ -56,3 +56,51 @@ export function useDesktopTray(): void {
     }).catch(() => undefined);
   }, [t]);
 }
+
+const DAY = 24 * 60 * 60 * 1000;
+const TOLD = "igrek.update.told";
+
+/**
+ * Looks for a new version when the app opens and then once a day, and says so once per version with
+ * a system notification. Installing stays a click in Settings: it restarts the app.
+ */
+export function useDesktopUpdateCheck(): void {
+  const { t } = useTranslation();
+  useEffect(() => {
+    if (!inDesktopApp) return;
+    let live = true;
+    const look = () =>
+      void desktop<string | null>("update_check")
+        .then((version) => {
+          if (!live || !version || readTold() === version) return;
+          writeTold(version);
+          return desktop("notify", {
+            title: t("desktop.updateNoticeTitle"),
+            body: t("desktop.updateNotice", { version }),
+          });
+        })
+        .catch(() => undefined);
+    look();
+    const timer = setInterval(look, DAY);
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [t]);
+}
+
+function readTold(): string | null {
+  try {
+    return localStorage.getItem(TOLD);
+  } catch {
+    return null;
+  }
+}
+
+function writeTold(version: string): void {
+  try {
+    localStorage.setItem(TOLD, version);
+  } catch {
+    // No storage: the notice may come again next time, which is harmless.
+  }
+}

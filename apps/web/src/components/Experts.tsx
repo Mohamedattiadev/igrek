@@ -95,24 +95,39 @@ export function ExpertCard({ event, delegated }: { event: ToolEvent; delegated?:
 export function ExpertPicker({
   onPick,
   onMeeting,
+  open: shown,
+  onOpenChange,
 }: {
   onPick: (mention: string) => void;
   /** Hold a meeting on what is in the box instead: several experts discuss it together. */
   onMeeting?: () => void;
+  /** Opened from elsewhere (the chat's "+" menu); then it shows no button of its own. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const { t } = useTranslation();
   const { personas } = usePersonas();
   const label = usePersonaLabel();
-  const [open, setOpen] = useState(false);
+  const [own, setOwn] = useState(false);
+  const open = shown ?? own;
+  const setOpen = (value: boolean) => (onOpenChange ?? setOwn)(value);
   const pick = (persona: Persona) => {
     onPick(`@${persona.id}`);
     setOpen(false);
   };
   return (
     <>
-      <Button size="sm" variant="ghost" icon={UsersRound} onClick={() => setOpen(true)} data-tip={t("chat.expertsTip")}>
-        {t("chat.experts")}
-      </Button>
+      {shown === undefined && (
+        <Button
+          size="sm"
+          variant="ghost"
+          icon={UsersRound}
+          onClick={() => setOpen(true)}
+          data-tip={t("chat.expertsTip")}
+        >
+          {t("chat.experts")}
+        </Button>
+      )}
       <Dialog open={open} onClose={() => setOpen(false)} label={t("chat.experts")}>
         <div className="max-h-[70vh] space-y-4 overflow-y-auto p-5">
           <div>

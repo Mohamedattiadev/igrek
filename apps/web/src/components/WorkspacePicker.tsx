@@ -72,6 +72,8 @@ export function WorkspacePicker() {
     return () => window.removeEventListener("mousedown", close);
   }, [open]);
 
+  // Only this computer to choose from (no server, no team): the picker would offer nothing.
+  if (ws === "all" && servers.length === 0 && !team) return null;
   const Icon = ws === "team" ? Users : ws === "local" ? Laptop : Layers;
   const item = (key: Workspace, ItemIcon: typeof Laptop, label: string, hint: string) => (
     <button

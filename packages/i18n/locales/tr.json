@@ -276,14 +276,6 @@
     "toolsRecheck": "Yeniden kontrol et"
   },
   "help": {
-    "button": "Yardım",
-    "title": "Nasıl yaparım…",
-    "search": "Rehberde ara ya da soru sor",
-    "ask": "Sor",
-    "asking": "Düşünüyor…",
-    "tour": "Turu göster",
-    "go": "Aç",
-    "none": "Rehberde bununla ilgili bir şey yok. Soruyu sormayı dene.",
     "t_projects": "Projeler",
     "d_projects": "Çalıştığın her klasör. Klasör ekle ile ekle, Yeni proje ile şablondan başlat ya da demo projeyi dene. Bir projeyi Kurulum sekmesinden Beklemeye al ya da Arşivle; odak modu hangilerini kenara koyacağını önerir.",
     "t_sessions": "AI oturumları",
@@ -1077,7 +1069,8 @@
     "emptyBody_chief": "Şef bütün projelerine bakabilir. Bir şeyi değiştiren adımlar senin onayını bekler.",
     "starter_chiefToday": "Bugün hangi projede ne değişti?",
     "starter_chiefOpen": "Hangi projelerde yarım kalan iş var?",
-    "starter_chiefWeek": "Bu haftayı projelerim için özetle"
+    "starter_chiefWeek": "Bu haftayı projelerim için özetle",
+    "more": "Daha fazla: resim, prompt, uzman"
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -1861,7 +1854,8 @@
     "action_changed": "değiştirdi",
     "action_removed": "sildi",
     "action_restored": "geri yükledi",
-    "wholeFile": "tüm dosya"
+    "wholeFile": "tüm dosya",
+    "allInVault": "Bütün projelerin anahtarları tek yerde: Kasa"
   },
   "tools": {
     "title": "Projenin kendi kontrollerini çalıştır",
@@ -2209,7 +2203,8 @@
     "fixHint": "Düzeltmek için bir metne tıkla. Düzeltmelerin bu bilgisayarda saklanır ve paketin önüne geçer.",
     "search": "Metinlerde ara",
     "undo": "Düzeltmemi geri al",
-    "undoTip": "Asıl çeviriye dön"
+    "undoTip": "Asıl çeviriye dön",
+    "banner": "Bu dil Claude girişinle hazırlanıyor: %{{percent}}. Hazır olan metinler hemen değişir; kalanlar o zamana kadar İngilizce."
   },
   "translate": {
     "do": "Çevir",
@@ -3204,7 +3199,7 @@
     "d_empty": "Sadece git ve konvansiyonların; kod yok."
   },
   "backup": {
-    "title": "Yedekleme",
+    "title": "Igrek'in kendi yedeği",
     "hint": "Proje hafızası, ders defteri, kütüphane metinleri, uzmanlar ve defterleri, zamanlanmış işler ve fikirler tek dosyada. Hesaplar, anahtarlar ve .env yedekleri asla içinde olmaz. Geri yüklemek sadece eksik olanları ekler.",
     "password": "Şifre (isteğe bağlı, dosyayı kilitler)",
     "export": "Yedeği indir",
@@ -3241,7 +3236,7 @@
     "project": "Proje",
     "noProject": "Projeye bağlama",
     "databases": "Veritabanları",
-    "backups": "Yedekler",
+    "backups": "Proje yedekleri",
     "calendar": "Takvim",
     "vault": "Kasa",
     "costs": "Maliyet",
@@ -4669,7 +4664,9 @@
     "updateInstall": "Kur ve yeniden başlat",
     "updateInstalling": "Kuruluyor…",
     "updateProgress": "{{total}} MB'ın {{done}} MB'ı indi (%{{pct}})",
-    "updateProgressNoSize": "{{done}} MB indi"
+    "updateProgressNoSize": "{{done}} MB indi",
+    "updateNoticeTitle": "Igrek'in yeni sürümü",
+    "updateNotice": "Igrek {{version}} hazır. Ayarlar > Güncellemeler'den kurabilirsin."
   },
   "packs": {
     "catalog": "Igrek kataloğu",

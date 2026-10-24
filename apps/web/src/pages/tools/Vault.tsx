@@ -2,6 +2,7 @@ import type { VaultEntry } from "@igrek/core";
 import { Check, Copy, Eye, EyeOff, KeyRound, Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
 import { Badge, Button, Card, Dialog, EmptyState, field } from "../../components/ui";
 import { cn } from "../../lib/cn";
 import { relativeTime } from "../../lib/format";
@@ -21,7 +22,14 @@ function Row({ e, projectName, onChange }: { e: VaultEntry; projectName?: string
       <div className="min-w-0 flex-1">
         <p className="truncate font-mono text-[12.5px] font-medium">{e.name}</p>
         <p className="truncate text-[11px] text-fg-subtle">
-          {projectName ?? t("vault.noProject")}
+          {/* The project's own .env page edits the same keys; one click there instead of two places to look. */}
+          {projectName && e.projectId ? (
+            <Link to={`/p/${e.projectId}?tab=sections&view=env`} className="hover:text-accent hover:underline">
+              {projectName}
+            </Link>
+          ) : (
+            (projectName ?? t("vault.noProject"))
+          )}
           {e.file && ` · ${e.file}`}
           {e.note && ` · ${e.note}`}
           {e.changedAt && ` · ${t("vault.changed", { when: relativeTime(e.changedAt) })}`}

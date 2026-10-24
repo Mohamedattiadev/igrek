@@ -92,14 +92,17 @@ export function DesktopUpdatePanel() {
   const [version, setVersion] = useState<string>();
   const [error, setError] = useState<string>();
   const progress = useUpdateProgress(state === "installing");
-  const check = async () => {
+  /** `live` is false once the page is left, so a late answer is dropped. */
+  const check = async (live = () => true) => {
     setState("checking");
     setError(undefined);
     try {
       const found = await desktop<string | null>("update_check");
+      if (!live()) return;
       setVersion(found ?? undefined);
       setState(found ? "idle" : "current");
     } catch (err) {
+      if (!live()) return;
       const message = (err as Error).message;
       if (message === "off") setState("off");
       else {
@@ -108,6 +111,15 @@ export function DesktopUpdatePanel() {
       }
     }
   };
+  // Settings looks by itself when opened; the button is for "look again now".
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, when the panel opens
+  useEffect(() => {
+    let live = true;
+    void check(() => live);
+    return () => {
+      live = false;
+    };
+  }, []);
   const install = async () => {
     setState("installing");
     setError(undefined);

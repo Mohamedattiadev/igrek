@@ -76,8 +76,12 @@ const TABS = [
   "setup",
 ] as const;
 type Tab = (typeof TABS)[number];
-/** Shown as tabs; the rest sit under "More" so a new user sees a handful of choices, not fifteen. */
-const MAIN_TABS: Tab[] = ["overview", "sessions", "experts", "code", "board", "monitor", "sections"];
+/**
+ * Shown as tabs; the rest sit under "More" so a new user sees a handful of choices, not fifteen.
+ * Five: Experts and Monitor went under "More" too (the Experts page has them all, and Monitor is
+ * for a project that runs somewhere).
+ */
+const MAIN_TABS: Tab[] = ["overview", "sessions", "code", "board", "sections"];
 
 /** One small icon per tab, so a tab is found by shape as well as by name. */
 const TAB_ICONS: Record<Tab, LucideIcon> = {

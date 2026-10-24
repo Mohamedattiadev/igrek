@@ -6,10 +6,23 @@ import { api } from "../lib/api";
 import { fill, PROMPT_LIBRARY, variables } from "../lib/prompt-library";
 import { Button, Dialog } from "./ui";
 
-/** Pick a saved prompt, fill its blanks, then type it into a terminal or copy it (plan.md 2.7). */
-export function PromptPicker({ onUse }: { onUse: (text: string) => void }) {
+/**
+ * Pick a saved prompt, fill its blanks, then type it into a terminal or copy it (plan.md 2.7).
+ * With `open` it is opened from elsewhere (the chat's "+" menu) and shows no button of its own.
+ */
+export function PromptPicker({
+  onUse,
+  open: shown,
+  onOpenChange,
+}: {
+  onUse: (text: string) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [own, setOwn] = useState(false);
+  const open = shown ?? own;
+  const setOpen = (value: boolean) => (onOpenChange ?? setOwn)(value);
   const [prompts, setPrompts] = useState<SavedPrompt[]>([]);
   /** A saved prompt (with its id) or a ready-made one (without). */
   const [chosen, setChosen] = useState<{ id?: string; title: string; body: string }>();
@@ -35,9 +48,11 @@ export function PromptPicker({ onUse }: { onUse: (text: string) => void }) {
 
   return (
     <>
-      <Button size="sm" variant="ghost" icon={BookMarked} onClick={() => setOpen(true)}>
-        {t("nav.prompts")}
-      </Button>
+      {shown === undefined && (
+        <Button size="sm" variant="ghost" icon={BookMarked} onClick={() => setOpen(true)}>
+          {t("nav.prompts")}
+        </Button>
+      )}
       <Dialog open={open} onClose={() => setOpen(false)} label={t("nav.prompts")}>
         <div className="max-h-[70vh] space-y-3 overflow-y-auto p-5">
           {!chosen ? (

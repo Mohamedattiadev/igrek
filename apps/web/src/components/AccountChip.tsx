@@ -37,7 +37,8 @@ export function AccountChip() {
       >
         {/* The icon says it is an account: testers read a bare "Main" as a branch or a workspace. */}
         <UserRound size={13} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-        <span className="hidden max-w-28 truncate font-medium sm:inline">{active.label}</span>
+        {/* With one account its name says nothing new; the limit bar is what matters. */}
+        {accounts.length > 1 && <span className="hidden max-w-28 truncate font-medium sm:inline">{active.label}</span>}
         {pct !== undefined && (
           <span className="flex items-center gap-1">
             <span className="hidden h-1.5 w-10 overflow-hidden rounded-full bg-bg-muted sm:block">

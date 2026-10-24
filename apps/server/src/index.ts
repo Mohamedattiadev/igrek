@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import {
@@ -89,7 +89,7 @@ import { registerLearnRoutes } from "./learn-routes";
 import { registerLessonRoutes } from "./lesson-routes";
 import { Lessons } from "./lessons";
 import { Library } from "./library";
-import { registerLibraryRoutes } from "./library-routes";
+import { registerLibraryRoutes, seedLibrary } from "./library-routes";
 import { ollamaModels } from "./localmodel";
 import { Logs } from "./logs";
 import { McpServers } from "./mcpservers";
@@ -267,6 +267,15 @@ const files = new Files(
 const sync = new Sync(sqlite, bus, join(config.dataDir, "sync.json"));
 const translator = new Translator(sqlite, () => readSettings(db), join(config.dataDir, "runner"));
 const languagePacks = new LanguagePacks(join(config.dataDir, "i18n"), bus, join(config.dataDir, "runner"));
+// The chosen language's pack fills itself in: now (a pack cut short, new texts after an update) and
+// whenever the language changes, with no button to press.
+let packLanguage = readSettings(db).language;
+setTimeout(() => languagePacks.complete(packLanguage), 5_000);
+bus.subscribe((m) => {
+  if (m.type !== "settings" || m.settings.language === packLanguage) return;
+  packLanguage = m.settings.language;
+  languagePacks.complete(packLanguage);
+});
 const crossCheck = new CrossCheck(sqlite, bus, () => readSettings(db), join(config.dataDir, "runner"));
 sync.onTeammateDecision = (projectId, itemId) => crossCheck.add(projectId, itemId);
 const insight = new Insight(sqlite, store, bus, stops, () => readSettings(db), join(config.dataDir, "runner"));
@@ -758,6 +767,19 @@ const app = createApp({
       embedder,
       projects: () => store.listProjects().map((p) => ({ name: p.name, path: p.path })),
     });
+    // Once, a few minutes after the first start with setup done (the projects are known by then).
+    // The sealed test server fetches nothing on its own.
+    const seeded = join(config.dataDir, "library-seeded");
+    if (!process.env.IGREK_SEALED && !existsSync(seeded))
+      setTimeout(() => {
+        if (!readSettings(db).onboarded) return;
+        writeFileSync(seeded, "");
+        seedLibrary(
+          library,
+          embedder,
+          store.listProjects().map((p) => ({ name: p.name, path: p.path })),
+        );
+      }, 3 * 60_000);
     registerKnowledgeRoutes(hono, knowledge);
     registerFlowRoutes(hono, {
       flows,

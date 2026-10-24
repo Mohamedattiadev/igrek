@@ -543,16 +543,16 @@ ${heads.join("\n\n") || "(none)"}`;
   private unsubscribe?: () => void;
   private rescans = new Map<string, ReturnType<typeof setTimeout>>();
 
-  /** Rescans a project a few minutes after its sessions change (a session ended, files were edited). */
+  /**
+   * Rescans a project a few minutes after its sessions change (a session ended, files were edited).
+   * Every project, not only those whose Health tab was opened: a scan reads files on this computer
+   * and calls no model, and the user asked for nothing to wait on a button.
+   */
   watch(delayMs = 3 * 60_000): void {
     this.unsubscribe = this.bus.subscribe((message) => {
       if (message.type !== "sessions-changed") return;
       for (const projectId of message.projectIds) {
         if (!this.rootOf(projectId)) continue;
-        const last = this.db.query("SELECT MAX(at) AS at FROM insight_scans WHERE project_id = ?").get(projectId) as {
-          at: number | null;
-        };
-        if (!last.at) continue; // never opened the Sections tab: don't scan behind the user's back
         clearTimeout(this.rescans.get(projectId));
         this.rescans.set(
           projectId,
