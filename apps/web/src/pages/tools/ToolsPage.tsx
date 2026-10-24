@@ -110,10 +110,8 @@ export function ToolsPage() {
   return (
     <>
       <PageHeader title={t("suite.title")} />
-      <nav
-        className="flex shrink-0 gap-1 overflow-x-auto border-b border-border px-6 [scrollbar-width:none]"
-        aria-label={t("suite.title")}
-      >
+      {/* Wrapped, not scrolled: with fourteen tabs the last ones were cut off and nothing said there was more. */}
+      <nav className="flex shrink-0 flex-wrap gap-x-1 border-b border-border px-6" aria-label={t("suite.title")}>
         {TOOL_TABS.map(({ key, icon }) => button(key, icon, t(`suite.${key}`)))}
         {pluginTabs.map((x) => button(x.key, Puzzle, x.title))}
       </nav>

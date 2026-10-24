@@ -30,7 +30,8 @@ const DENIED = [
   ".config/BraveSoftware",
   ".local/share/keyrings",
   ".igrek/session.key",
-  ".igrek/session.key",
+  // Tauri's signing keys: the one that signs Igrek's own updates lives here.
+  ".tauri",
   ".claude/.credentials.json",
   ".codex/auth.json",
 ].map((p) => join(homedir(), p));

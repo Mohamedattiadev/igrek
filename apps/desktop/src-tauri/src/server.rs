@@ -47,7 +47,9 @@ fn hide_console(command: &mut Command) {
 fn user_path() -> Option<String> {
     use std::io::Read;
     let shell = std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into());
-    let mut child = Command::new(shell)
+    let mut shell = Command::new(shell);
+    outside_appimage(&mut shell);
+    let mut child = shell
         .args(["-ilc", "env"])
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -73,10 +75,41 @@ fn with_user_path(command: &mut Command) {
     #[cfg(unix)]
     if let Some(path) = user_path() {
         let current = std::env::var("PATH").unwrap_or_default();
+        let current = appimage_dir().map_or(current.clone(), |dir| outside(&current, &dir));
         command.env("PATH", if current.is_empty() { path } else { format!("{path}:{current}") });
     }
     #[cfg(not(unix))]
     let _ = command;
+}
+
+/// Where the AppImage is mounted while it runs, if Igrek was started from one.
+fn appimage_dir() -> Option<String> {
+    std::env::var("APPDIR").ok().filter(|dir| !dir.is_empty())
+}
+
+/// A list of paths ("a:b:c") without the ones inside `dir`.
+fn outside(list: &str, dir: &str) -> String {
+    list.split(':').filter(|p| !p.is_empty() && !p.starts_with(dir)).collect::<Vec<_>>().join(":")
+}
+
+/// The AppImage starts Igrek with its own libraries first: LD_LIBRARY_PATH, PYTHONHOME, GTK_PATH
+/// and the like all point into its mount. Passed on, they reached every program the server starts
+/// and broke the ones built for the system's libraries (Codex stopped with "symbol lookup error").
+/// Those that point into the mount are dropped; a list keeps its entries outside it. PATH is left
+/// to with_user_path.
+fn outside_appimage(command: &mut Command) {
+    let Some(dir) = appimage_dir() else { return };
+    for (name, value) in std::env::vars() {
+        if name == "PATH" || !value.contains(&dir) {
+            continue;
+        }
+        let rest = outside(&value, &dir);
+        if rest.is_empty() || !value.contains(':') {
+            command.env_remove(&name);
+        } else {
+            command.env(&name, rest);
+        }
+    }
 }
 
 /// A port nobody listens on now. The server binds it a moment later; another program taking it in
@@ -101,6 +134,7 @@ pub fn start(resources: &Path, log: &Path) -> Result<(Child, u16), String> {
         .stdout(out)
         .stderr(err);
     hide_console(&mut command);
+    outside_appimage(&mut command);
     with_user_path(&mut command);
     let mut child = command.spawn().map_err(|e| e.to_string())?;
 
@@ -141,6 +175,7 @@ pub fn run_helper(role: &str) -> i32 {
     let mut command = Command::new(file);
     command.arg(role).args(std::env::args_os().skip(2));
     hide_console(&mut command);
+    outside_appimage(&mut command);
     match command.status() {
         Ok(status) => status.code().unwrap_or(1),
         Err(_) => 1,

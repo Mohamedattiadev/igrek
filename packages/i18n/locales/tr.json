@@ -8,7 +8,7 @@
     "team": "Takım",
     "settings": "Ayarlar",
     "design": "Tasarım sistemi",
-    "terminals": "Terminaller",
+    "terminals": "Sohbetler",
     "files": "Dosyalar",
     "ideas": "Fikirler",
     "prompts": "Prompt'lar",
@@ -73,8 +73,8 @@
     "filter": "Projelerde ara…",
     "sessions_one": "{{count}} oturum",
     "sessions_other": "{{count}} oturum",
-    "active_one": "{{count}} tanesi şu an çalışıyor",
-    "active_other": "{{count}} tanesi şu an çalışıyor",
+    "active_one": "{{count}} AI oturumu şu an çalışıyor",
+    "active_other": "{{count}} AI oturumu şu an çalışıyor",
     "noGit": "Git reposu değil",
     "changes_one": "{{count}} commit edilmemiş değişiklik",
     "changes_other": "{{count}} commit edilmemiş değişiklik",
@@ -247,7 +247,8 @@
     "autoProjects": "Projeleri kendiliğinden ekle",
     "autoProjectsHint": "Açık: Claude'un çalıştığı her klasör proje olur. Kapalı: sadece senin eklediğin klasörler; diğerleri projeler sayfasında 'Bulunan klasörler' altında bekler.",
     "autoReview": "Hassas değişikliklere uzman incelemesi",
-    "autoReviewHint": "Bir sohbet turu giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) değişikliği okur ve notlarını sohbete bırakır. Sadece okur; hiçbir şeyi değiştirmez, AI'a da geri göndermez."
+    "autoReviewHint": "Bir sohbet turu giriş, ödeme ya da veritabanı koduna dokunursa ilgili uzman (güvenlik, sunucu tarafı, veritabanı) değişikliği okur ve notlarını sohbete bırakır. Sadece okur; hiçbir şeyi değiştirmez, AI'a da geri göndermez.",
+    "broken": "Bulundu, açılmıyor"
   },
   "onboarding": {
     "startTour": "Kısa turla başla",
@@ -289,7 +290,7 @@
     "d_sessions": "Her Claude Code, Codex ve Gemini oturumu kendi dosyalarından okunur: özet, sağlık (yorgun, bağlam dolu), neler değişti. Birini açıp oku, devam et ya da adım adım tekrar oynat.",
     "t_chat": "Sohbetler",
     "d_chat": "Yeni sohbet bir projede Claude'u başlatır: kendin olarak ya da bir uzman olarak. Plan modu bir şeyi değiştirmeden önce plan yapar; onaylar düğme olarak çıkar. Prompt koçu neyi eklemen gerektiğini önerir.",
-    "t_terminals": "Terminaller",
+    "t_terminals": "Sohbetler ve terminaller",
     "d_terminals": "Tarayıcıda gerçek terminaller; her projede Claude, Codex, Gemini ya da düz kabuk.",
     "t_memory": "Proje hafızası",
     "d_memory": "Igrek'in bir proje hakkında öğrendikleri: kararlar, konvansiyonlar, işe yaramayan yollar, açık sorunlar. AI oturumları başlarken okur. Kararları Hafıza sekmesinden ADR olarak dışa aktar.",
@@ -305,7 +306,7 @@
     "d_schedules": "Tek cümleyle söyle (\"her gece bağımlılıkları kontrol et\"); zamanında kendi kopyasında çalışır ve onayını bekler.",
     "t_preview": "Canlı önizleme",
     "d_preview": "Uygulama bir panelde çalışır: bir öğeye tıkla, neyin değişeceğini söyle, saniyeler içinde değiştiğini gör.",
-    "t_sections": "Bölümler ve puanlar",
+    "t_sections": "Sağlık ve puanlar",
     "d_sections": "Her proje kategori kategori puanlanır (güvenlik, testler, performans…); önce neyin düzeltileceği ve kategori başına bir inceleyen uzman.",
     "t_library": "Kütüphane, dersler, bilgi",
     "d_library": "Uzmanların atıf yaptığı kitap ve dokümanlar, tekrarlanmaması gereken hataların ders defteri ve her uzmanın alanından haberler.",
@@ -368,7 +369,7 @@
     "save": "Kaydet",
     "commitBy": "{{author}} commit attı",
     "sessionsAndCommits": "{{sessions}} oturum · {{commits}} commit",
-    "sections": "Bölümler",
+    "sections": "Sağlık",
     "gitFlow": "Önerilen git düzeni",
     "gitFlowHint": "Kendi branch'inde çalış, main'e PR aç ve sadece main'i deploy et. Açıkken, doğrudan main'e commit etmeden önce Igrek sorar. Sunuculardaki kod sadece git'ten gelir.",
     "environments": "Ortamlar",
@@ -380,7 +381,8 @@
     "plugins": "Eklentiler",
     "statusLabel": "Proje durumu",
     "more": "Diğer",
-    "experts": "Uzmanlar"
+    "experts": "Uzmanlar",
+    "openChats": "Açık sohbetler"
   },
   "memory": {
     "title": "Proje hafızası",
@@ -533,7 +535,7 @@
     "noProject": "Projesiz",
     "chatCount_one": "{{count}} sohbet",
     "chatCount_other": "{{count}} sohbet",
-    "title": "Terminaller",
+    "title": "Sohbetler ve terminaller",
     "empty": "Açık terminal yok",
     "emptyBody": "Aşağıdaki projelerinden birinde sohbet ya da Claude, Codex veya shell terminali başlat. Bu sayfayı kapatsan bile çalışmaya devam eder.",
     "close": "Kapat",
@@ -1071,7 +1073,11 @@
     "reviewed": "{{name}}, {{what}} değişikliğini inceledi",
     "review_auth": "giriş",
     "review_payment": "ödeme",
-    "review_database": "veritabanı"
+    "review_database": "veritabanı",
+    "emptyBody_chief": "Şef bütün projelerine bakabilir. Bir şeyi değiştiren adımlar senin onayını bekler.",
+    "starter_chiefToday": "Bugün hangi projede ne değişti?",
+    "starter_chiefOpen": "Hangi projelerde yarım kalan iş var?",
+    "starter_chiefWeek": "Bu haftayı projelerim için özetle"
   },
   "checkpoint": {
     "title": "Kayıtlar",
@@ -1118,7 +1124,8 @@
     "emptyBody": "Herhangi bir projede Claude Code ya da Codex oturumu başlat. Ne kadar kullandığın ve sınırlara ne kadar yaklaştığın burada görünür.",
     "personas": "Uzman bazında",
     "chipTip": "Yeni oturumlar \"{{name}}\" Claude hesabını kullanır. 5 saatlik limitinin doluluğu: %{{pct}}. Hesap değiştirmek için tıkla.",
-    "usesLimit": "Bir AI modeline sorar, bu yüzden limitini kullanır."
+    "usesLimit": "Bir AI modeline sorar, bu yüzden limitini kullanır.",
+    "chipHeader": "Yeni sohbetlerin Claude hesabı"
   },
   "accounts": {
     "title": "Hesaplar",
@@ -1671,7 +1678,9 @@
     "raiseTip_other": "Sahibi uzman açıktaki {{count}} bulgunun hepsini, en değerlisinden başlayarak kendi kopyasında düzeltir. Igrek her turdan sonra kopyayı yeniden puanlar, açık bulgu kaldıkça geri gönderir (en fazla 3 tur). Kontroller geçmeli ve sen onaylamadan hiçbir şey birleşmez.",
     "raiseGoal": "Aşağıdaki her bulguyu, en değerlisinden başlayarak düzeltip {{part}} puanını 100'e çıkar. Uygulamanın yaptığı şey aynı kalsın.",
     "raiseDone": "Igrek projeyi yeniden taradığında aşağıdaki her bulgu geçiyor",
-    "changeTip": "Bir önceki taramadaki puan ve şimdiki."
+    "changeTip": "Bir önceki taramadaki puan ve şimdiki.",
+    "failed": "Geçmedi · {{what}}",
+    "partly": "Kısmen · {{what}}"
   },
   "apis": {
     "title": "API Haritası",
@@ -2055,7 +2064,7 @@
     "check_uncommitted": "Buradaki commit edilmemiş değişiklikler deploy edilmez",
     "check_migrations": "Veritabanı migration'ları gelecek:",
     "check_nothingNew": "Deploy edilecek yeni bir şey yok",
-    "check_testsUnknown": "Testler burada yakın zamanda çalıştırılmadı (Bölümler → Projenin kendi kontrolleri)",
+    "check_testsUnknown": "Testler burada yakın zamanda çalıştırılmadı (Sağlık → Projenin kendi kontrolleri)",
     "check_testsFailing": "Testler son çalıştığında başarısız oldu",
     "check_envMissing": "Kodun ihtiyaç duyduğu ayarlar sunucudaki .env'de yok:",
     "check_destructiveMigration": "Veri kaybettirebilecek migration'lar (drop, truncate, rename):",
@@ -2978,7 +2987,7 @@
   "board": {
     "col_todo": "Yapılacak",
     "col_doing": "Devam ediyor",
-    "col_review": "Review",
+    "col_review": "İnceleme",
     "col_done": "Bitti",
     "newCard": "Yeni kart…",
     "add": "Kart ekle",
@@ -2991,7 +3000,7 @@
     "start": "Takımı başlat",
     "safety": "Takım reponun kendi kopyasında, kendi dalında, sormadan çalışır. Sen onaylamadan hiçbir şey senin dalına gelmez ve hiçbir şey push edilmez.",
     "archonOn": "Archon kurulu: akışları da listede (push eden ya da pull request açanlar çalıştırılmaz).",
-    "hint": "Bir kartı Devam ediyor sütununa sürükle (ya da okuna bas), takım başlar. İş hazır olunca kart Review'a geçer; birleştirince Bitti'ye geçer.",
+    "hint": "Bir kartı Devam ediyor sütununa sürükle (ya da okuna bas), takım başlar. İş hazır olunca kart İnceleme'ye geçer; birleştirince Bitti'ye geçer.",
     "runs": "Kartsız takım işleri",
     "assign": "Bu kart kimin için",
     "nobody": "Atanmadı",
@@ -3225,12 +3234,12 @@
     "skills": "Beceriler",
     "rea": "Tersine mühendislik",
     "title": "Araçlar",
-    "uptime": "Uptime",
+    "uptime": "Site izleme",
     "domains": "Domain ve SSL",
     "docker": "Docker",
     "logs": "Loglar",
     "project": "Proje",
-    "noProject": "Proje yok",
+    "noProject": "Projeye bağlama",
     "databases": "Veritabanları",
     "backups": "Yedekler",
     "calendar": "Takvim",
@@ -4301,7 +4310,7 @@
     "newChatIn": "{{name}} projesinde yeni sohbet",
     "pickProject": "Ana sayfanın en üstündeki kutuya yaz, projeyi de orada seç. Ya da bana projenin adını söyle.",
     "home": "Ana sayfa",
-    "terminal": "Terminaller bir projede Claude, Codex ya da shell çalıştırır. Bir projenin \"Yeni sohbet\" menüsünden başlatılır.",
+    "terminal": "Terminaller bir projede Claude, Codex ya da shell çalıştırır. Bir projenin \"Yeni sohbet\" menüsünden başlatılır; açık olanlar Sohbetler sayfasında.",
     "project": "**{{name}}**: ne yapmak istersin?",
     "found": "Bunlar işine yarayabilir:",
     "unknown": "Tam anlayamadım. Kılavuz ya da tur Igrek'in her yerini gösterir.",
@@ -4341,7 +4350,7 @@
     "terminal": {
       "title": "İstersen gerçek terminali kullan",
       "body": "Claude Code, Codex ya da shell'i olduğu gibi kullanmak istersen Igrek onları tarayıcıda açar ve çalışır tutar.",
-      "how": "Bir projenin içinde: Yeni sohbet'in yanındaki küçük ok → Claude, Codex ya da Shell. Açık olanlar Terminaller sayfasında."
+      "how": "Bir projenin içinde: Yeni sohbet'in yanındaki küçük ok → Claude, Codex ya da Shell. Açık olanlar Sohbetler sayfasında."
     },
     "inbox": {
       "title": "Seni bekleyenleri gör",
@@ -4658,7 +4667,9 @@
     "updateOff": "Uygulamanın bu kopyası güncelleme anahtarı olmadan derlendi, kendini güncelleyemez. Yeni sürümü Releases sayfasından indir.",
     "updateFound": "{{version}} sürümü hazır.",
     "updateInstall": "Kur ve yeniden başlat",
-    "updateInstalling": "Kuruluyor…"
+    "updateInstalling": "Kuruluyor…",
+    "updateProgress": "{{total}} MB'ın {{done}} MB'ı indi (%{{pct}})",
+    "updateProgressNoSize": "{{done}} MB indi"
   },
   "packs": {
     "catalog": "Igrek kataloğu",

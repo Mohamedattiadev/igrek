@@ -12,6 +12,7 @@ mod server;
 mod texts;
 
 use server::Server;
+use std::sync::Mutex;
 use tauri::ipc::CapabilityBuilder;
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -95,6 +96,10 @@ async fn update_check(app: AppHandle) -> Result<Option<String>, String> {
     Ok(update.map(|u| u.version))
 }
 
+/// How much of the update has come down: bytes so far, and the size when the server gave one.
+#[derive(Default)]
+struct UpdateProgress(Mutex<(u64, Option<u64>)>);
+
 /// Downloads the update, checks its signature against Igrek's key, installs it and restarts.
 #[tauri::command]
 async fn update_install(app: AppHandle) -> Result<(), String> {
@@ -102,8 +107,31 @@ async fn update_install(app: AppHandle) -> Result<(), String> {
     let Some(update) = updater.check().await.map_err(|e| e.to_string())? else {
         return Ok(());
     };
-    update.download_and_install(|_, _| {}, || {}).await.map_err(|e| e.to_string())?;
+    let progress = app.state::<UpdateProgress>();
+    let set = |value: (u64, Option<u64>)| {
+        if let Ok(mut p) = progress.0.lock() {
+            *p = value;
+        }
+    };
+    set((0, None));
+    let mut done = 0u64;
+    let downloaded = update
+        .download_and_install(
+            |chunk, total| {
+                done += chunk as u64;
+                set((done, total));
+            },
+            || {},
+        )
+        .await;
+    downloaded.map_err(|e| e.to_string())?;
     app.restart();
+}
+
+/// Read by Settings while an update installs: the download took minutes and showed nothing moving.
+#[tauri::command]
+fn update_progress(progress: State<UpdateProgress>) -> (u64, Option<u64>) {
+    progress.0.lock().map(|p| *p).unwrap_or_default()
 }
 
 /// The tray menu in the language the user chose in Igrek.
@@ -188,6 +216,7 @@ fn start_server(app: &AppHandle) {
                         .permission("allow-set-autostart")
                         .permission("allow-update-check")
                         .permission("allow-update-install")
+                        .permission("allow-update-progress")
                         .permission("allow-tray-texts"),
                 );
                 // Started by the user's quick-question shortcut while Igrek was closed: the page
@@ -250,12 +279,14 @@ fn main() {
                 .build(),
         )
         .manage(Server(Default::default()))
+        .manage(UpdateProgress::default())
         .invoke_handler(tauri::generate_handler![
             notify,
             autostart,
             set_autostart,
             update_check,
             update_install,
+            update_progress,
             tray_texts
         ]);
     if let Some(key) = UPDATER_KEY.filter(|_| updates_enabled()) {

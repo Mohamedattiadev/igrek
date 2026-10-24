@@ -120,6 +120,13 @@ const STARTERS = [
   { key: "experts", icon: UsersRound },
 ] as const;
 
+/** The Chief is about all projects at once, so its starters are too ("this project" made no sense there). */
+const CHIEF_STARTERS = [
+  { key: "chiefToday", icon: Search },
+  { key: "chiefOpen", icon: Bug },
+  { key: "chiefWeek", icon: BookOpen },
+] as const;
+
 /** A note on one line of a change, added to the next message (plan.md 16.1). */
 interface LineComment {
   file?: string;
@@ -1522,13 +1529,16 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                     <Bot size={30} className="mx-auto mb-4 text-fg-subtle" aria-hidden="true" />
                   )}
                   <h2 className="text-[26px] font-semibold tracking-tight">{t("chat.empty")}</h2>
-                  <p className="mx-auto mt-2 max-w-md text-[13.5px] text-fg-muted">{t("chat.emptyBody")}</p>
+                  <p className="mx-auto mt-2 max-w-md text-[13.5px] text-fg-muted">
+                    {t(info?.focus === "chief" ? "chat.emptyBody_chief" : "chat.emptyBody")}
+                  </p>
                 </div>
                 {composer}
                 {info?.status !== "exited" && (
                   <div className="mt-4 flex flex-wrap justify-center gap-2">
-                    {STARTERS.filter(({ key }) => key !== "experts" || (settings.consultExperts && !info?.persona)).map(
-                      ({ key, icon: Icon }) => (
+                    {(info?.focus === "chief" ? CHIEF_STARTERS : STARTERS)
+                      .filter(({ key }) => key !== "experts" || (settings.consultExperts && !info?.persona))
+                      .map(({ key, icon: Icon }) => (
                         <button
                           key={key}
                           type="button"
@@ -1541,8 +1551,7 @@ function ChatPane({ chatId, primary, draft, autoSend: sendDraft, go, split, clos
                           <Icon size={13} aria-hidden="true" />
                           {t(`chat.starter_${key}`)}
                         </button>
-                      ),
-                    )}
+                      ))}
                   </div>
                 )}
               </div>

@@ -1,5 +1,5 @@
 import type { MemoryItem, MemorySection, ProjectDetail } from "@igrek/core";
-import { AlertTriangle, Brain, Check, MessageSquare, Pencil, Plus, Trash2, X } from "lucide-react";
+import { AlertTriangle, Brain, Check, Eye, MessageSquare, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
@@ -230,9 +230,10 @@ export function MemoryTab({ project, onChange }: { project: ProjectDetail; onCha
         })
       )}
       <div>
+        {/* Bordered and with an icon: as a bare ghost button it read as a plain line of text. */}
         <Button
-          variant="ghost"
           size="sm"
+          icon={Eye}
           onClick={async () =>
             setContext(context !== undefined ? undefined : (await api.projectContext(project.id)).context)
           }

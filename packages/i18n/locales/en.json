@@ -8,7 +8,7 @@
     "team": "Team",
     "settings": "Settings",
     "design": "Design system",
-    "terminals": "Terminals",
+    "terminals": "Chats",
     "files": "Files",
     "ideas": "Ideas",
     "prompts": "Prompts",
@@ -73,8 +73,8 @@
     "filter": "Filter projects…",
     "sessions_one": "{{count}} session",
     "sessions_other": "{{count}} sessions",
-    "active_one": "{{count}} working now",
-    "active_other": "{{count}} working now",
+    "active_one": "{{count}} AI session working now",
+    "active_other": "{{count}} AI sessions working now",
     "noGit": "Not a git repo",
     "changes_one": "{{count}} uncommitted change",
     "changes_other": "{{count}} uncommitted changes",
@@ -247,7 +247,8 @@
     "autoProjects": "Add projects on their own",
     "autoProjectsHint": "On: every folder Claude works in becomes a project. Off: only the folders you add; the others wait under 'Found folders' on the projects page.",
     "autoReview": "Expert review of sensitive changes",
-    "autoReviewHint": "When a chat turn changes login, payment or database code, the matching expert (security, back end, database) reads the change and leaves its notes in the chat. It only reads; nothing is changed or sent back to the AI."
+    "autoReviewHint": "When a chat turn changes login, payment or database code, the matching expert (security, back end, database) reads the change and leaves its notes in the chat. It only reads; nothing is changed or sent back to the AI.",
+    "broken": "Found, does not start"
   },
   "onboarding": {
     "startTour": "Start with a short tour",
@@ -289,7 +290,7 @@
     "d_sessions": "Every Claude Code, Codex and Gemini session is read from their own files: summary, health (tired, context full), what changed. Open one to read it, resume it, or replay it step by step.",
     "t_chat": "Chats",
     "d_chat": "New chat starts Claude in a project, as yourself or as an expert. Plan mode plans before changing anything; approvals show as buttons. The prompt coach suggests what to add.",
-    "t_terminals": "Terminals",
+    "t_terminals": "Chats and terminals",
     "d_terminals": "Real terminals in the browser, in any project, with Claude, Codex, Gemini or a plain shell.",
     "t_memory": "Project memory",
     "d_memory": "What Igrek learned about a project: decisions, conventions, failed approaches, open problems. AI sessions read it when they start. Export decisions as ADRs from the Memory tab.",
@@ -305,7 +306,7 @@
     "d_schedules": "Say it in a sentence (\"every night check dependencies\"); it runs on time in its own copy and waits for your approval.",
     "t_preview": "Live preview",
     "d_preview": "The app running in a panel: click an element, say what to change, see it change in seconds.",
-    "t_sections": "Sections and scores",
+    "t_sections": "Health and scores",
     "d_sections": "Each project scored by category (security, tests, performance…), with what to fix first and a reviewer expert per category.",
     "t_library": "Library, lessons, knowledge",
     "d_library": "Books and documents experts cite, the lessons book of mistakes not to repeat, and the news of each expert's field.",
@@ -368,7 +369,7 @@
     "save": "Save",
     "commitBy": "{{author}} committed",
     "sessionsAndCommits": "{{sessions}} sessions · {{commits}} commits",
-    "sections": "Sections",
+    "sections": "Health",
     "gitFlow": "Recommended git flow",
     "gitFlowHint": "Work on your own branch, open a PR to main, and deploy only main. When on, Igrek asks before you commit straight to main. Code on servers comes only from git.",
     "environments": "Environments",
@@ -380,7 +381,8 @@
     "plugins": "Plugins",
     "statusLabel": "Project status",
     "more": "More",
-    "experts": "Experts"
+    "experts": "Experts",
+    "openChats": "Open chats"
   },
   "memory": {
     "title": "Project memory",
@@ -533,7 +535,7 @@
     "noProject": "Without a project",
     "chatCount_one": "{{count}} chat",
     "chatCount_other": "{{count}} chats",
-    "title": "Terminals",
+    "title": "Chats and terminals",
     "empty": "No terminals open",
     "emptyBody": "Start a chat or a Claude, Codex or shell terminal in one of your projects below. It keeps running even if you close this page.",
     "close": "Close",
@@ -1071,7 +1073,11 @@
     "reviewed": "{{name}} reviewed the {{what}} change",
     "review_auth": "login",
     "review_payment": "payment",
-    "review_database": "database"
+    "review_database": "database",
+    "emptyBody_chief": "The Chief can look at all your projects. Steps that change things wait for your approval.",
+    "starter_chiefToday": "What changed in which project today?",
+    "starter_chiefOpen": "Which projects have unfinished work?",
+    "starter_chiefWeek": "Sum up this week across my projects"
   },
   "checkpoint": {
     "title": "Snapshots",
@@ -1118,7 +1124,8 @@
     "emptyBody": "Start a Claude Code or Codex session in any project. How much you use, and how close you are to your limits, shows up here.",
     "personas": "By expert",
     "chipTip": "New sessions use the Claude account \"{{name}}\". {{pct}}% of its 5-hour limit is used. Click to switch accounts.",
-    "usesLimit": "Asks an AI model, so it uses your plan's limit."
+    "usesLimit": "Asks an AI model, so it uses your plan's limit.",
+    "chipHeader": "Claude account for new chats"
   },
   "accounts": {
     "title": "Accounts",
@@ -1671,7 +1678,9 @@
     "raiseTip_other": "Its owner fixes all {{count}} open findings in its own copy, most valuable first. Igrek scores the copy after each round and sends it back while findings stay open (up to 3 rounds). The checks must pass and nothing merges without your OK.",
     "raiseGoal": "Raise the {{part}} score to 100 by fixing every finding below, most valuable first. Keep what the app does the same.",
     "raiseDone": "Every finding below passes when Igrek scans the project again",
-    "changeTip": "The score in the scan before this one, and now."
+    "changeTip": "The score in the scan before this one, and now.",
+    "failed": "Failed · {{what}}",
+    "partly": "Partly · {{what}}"
   },
   "apis": {
     "title": "API map",
@@ -2055,7 +2064,7 @@
     "check_uncommitted": "Uncommitted changes here won't be deployed",
     "check_migrations": "Database migrations will arrive:",
     "check_nothingNew": "Nothing new to deploy",
-    "check_testsUnknown": "Tests haven't been run here recently (Sections → Run the project's own checks)",
+    "check_testsUnknown": "Tests haven't been run here recently (Health → Run the project's own checks)",
     "check_testsFailing": "The tests failed the last time they ran",
     "check_envMissing": "Settings the code needs are missing in the server's .env:",
     "check_destructiveMigration": "Migrations that can lose data (drop, truncate, rename):",
@@ -3230,7 +3239,7 @@
     "docker": "Docker",
     "logs": "Logs",
     "project": "Project",
-    "noProject": "No project",
+    "noProject": "Not tied to a project",
     "databases": "Databases",
     "backups": "Backups",
     "calendar": "Calendar",
@@ -4301,7 +4310,7 @@
     "newChatIn": "New chat in {{name}}",
     "pickProject": "Write it in the box at the top of the home page and pick the project there. Or tell me the project's name.",
     "home": "Home page",
-    "terminal": "Terminals run Claude, Codex or a shell in a project. Start one from a project's \"New chat\" menu.",
+    "terminal": "Terminals run Claude, Codex or a shell in a project. Start one from a project's \"New chat\" menu; open ones are on the Chats page.",
     "project": "**{{name}}**: what would you like to do?",
     "found": "These may help:",
     "unknown": "I couldn't tell. The guide or the tour shows every part of Igrek.",
@@ -4341,7 +4350,7 @@
     "terminal": {
       "title": "Use a real terminal when you want",
       "body": "If you prefer Claude Code, Codex or a shell as they are, Igrek opens them in the browser and keeps them running.",
-      "how": "Inside a project: the small arrow next to New chat → Claude, Codex or Shell. Open ones are on the Terminals page."
+      "how": "Inside a project: the small arrow next to New chat → Claude, Codex or Shell. Open ones are on the Chats page."
     },
     "inbox": {
       "title": "See what needs you",
@@ -4658,7 +4667,9 @@
     "updateOff": "This copy of the app was built without an update key, so it cannot update itself. Download the new version from the Releases page.",
     "updateFound": "Version {{version}} is ready.",
     "updateInstall": "Install and restart",
-    "updateInstalling": "Installing…"
+    "updateInstalling": "Installing…",
+    "updateProgress": "{{done}} of {{total}} MB downloaded ({{pct}}%)",
+    "updateProgressNoSize": "{{done}} MB downloaded"
   },
   "packs": {
     "catalog": "Igrek's catalog",

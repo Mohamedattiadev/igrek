@@ -6,7 +6,14 @@ import { useTranslation } from "react-i18next";
  * browser tab cannot have: system notifications, starting with the computer, a tray menu and signed
  * updates. Outside it none of this exists and the browser's own ways are used.
  */
-type Command = "notify" | "autostart" | "set_autostart" | "update_check" | "update_install" | "tray_texts";
+type Command =
+  | "notify"
+  | "autostart"
+  | "set_autostart"
+  | "update_check"
+  | "update_install"
+  | "update_progress"
+  | "tray_texts";
 
 interface Tauri {
   core: { invoke<T>(command: Command, args?: Record<string, unknown>): Promise<T> };

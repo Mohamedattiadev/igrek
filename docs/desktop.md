@@ -17,6 +17,9 @@ Igrek in a window of its own (plan.md Faz 17), made with [Tauri 2](https://tauri
   shipped as Tauri resources; `apps/server/src/packaged.ts` finds them (`IGREK_RESOURCES`).
 - Started from a launcher or Finder, programs get a short PATH. The app asks the user's login shell for its PATH
   (`$SHELL -ilc env`), so `claude`, `codex` and `git` are found as in a terminal.
+- The AppImage runs with its own libraries first (`LD_LIBRARY_PATH`, `PYTHONHOME`, `GTK_PATH` and others point
+  into its mount). The server gets the environment without them, so the programs it starts load the system's
+  libraries; passed on, they broke Codex ("symbol lookup error").
 - Claude Code and Codex are not inside. When they are missing, the first-run wizard shows each one's install
   command.
 - Only pages of this server (the exact `http://127.0.0.1:<port>`) may call the app's commands: notifications,

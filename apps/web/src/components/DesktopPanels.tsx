@@ -40,6 +40,48 @@ export function AutostartPanel() {
   );
 }
 
+/** Bytes of the update downloaded so far and its size, read every half second while it installs. */
+function useUpdateProgress(installing: boolean): [number, number | null] | undefined {
+  const [progress, setProgress] = useState<[number, number | null]>();
+  useEffect(() => {
+    if (!installing) return setProgress(undefined);
+    let live = true;
+    const timer = setInterval(
+      () =>
+        void desktop<[number, number | null]>("update_progress")
+          .then((p) => live && setProgress(p))
+          .catch(() => undefined),
+      500,
+    );
+    return () => {
+      live = false;
+      clearInterval(timer);
+    };
+  }, [installing]);
+  return progress;
+}
+
+const MB = 1024 * 1024;
+
+function UpdateProgressBar({ done, total }: { done: number; total: number | null }) {
+  const { t } = useTranslation();
+  const pct = total ? Math.min(100, Math.round((done / total) * 100)) : undefined;
+  return (
+    <div className="max-w-sm space-y-1">
+      {pct !== undefined && (
+        <div className="h-1.5 overflow-hidden rounded-full bg-bg-muted">
+          <div className="h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
+        </div>
+      )}
+      <p className="text-xs text-fg-muted">
+        {total
+          ? t("desktop.updateProgress", { done: (done / MB).toFixed(1), total: (total / MB).toFixed(1), pct })
+          : t("desktop.updateProgressNoSize", { done: (done / MB).toFixed(1) })}
+      </p>
+    </div>
+  );
+}
+
 /**
  * The desktop app updates itself: the new version is downloaded, its signature is checked against
  * Igrek's own key, and the app restarts into it. A build made without that key cannot update.
@@ -49,6 +91,7 @@ export function DesktopUpdatePanel() {
   const [state, setState] = useState<"idle" | "checking" | "current" | "installing" | "off">("idle");
   const [version, setVersion] = useState<string>();
   const [error, setError] = useState<string>();
+  const progress = useUpdateProgress(state === "installing");
   const check = async () => {
     setState("checking");
     setError(undefined);
@@ -96,6 +139,7 @@ export function DesktopUpdatePanel() {
           </Button>
         )}
       </div>
+      {progress && <UpdateProgressBar done={progress[0]} total={progress[1]} />}
     </div>
   );
 }

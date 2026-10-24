@@ -767,7 +767,12 @@ export function SectionsTab({ project }: { project: ProjectDetail }) {
                     top ? (top.status === "fail" ? "text-danger" : "text-warning") : "text-fg-subtle",
                   )}
                 >
-                  {top ? t(`insight.check.${top.id}.title`, { metric: top.metric }) : t("insight.allGood")}
+                  {/* The titles name the check ("Versions locked"), so in red they read like good news without this. */}
+                  {top
+                    ? t(top.status === "fail" ? "insight.failed" : "insight.partly", {
+                        what: t(`insight.check.${top.id}.title`, { metric: top.metric }),
+                      })
+                    : t("insight.allGood")}
                 </p>
               </div>
             </button>

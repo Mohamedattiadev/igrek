@@ -141,7 +141,10 @@ const SECRET_FILE_RULES = [
   "*.key",
   "id_rsa",
   "id_ed25519",
-].map((f) => `Read(**/${f})`);
+]
+  .map((f) => `Read(**/${f})`)
+  // Tauri keeps signing keys and their password files here; the password is no *.key.
+  .concat("Read(~/.tauri/**)");
 
 /**
  * The user's own private files (Settings, privateFiles) as deny rules like the ones above: a bare

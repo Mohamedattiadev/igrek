@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Gauge } from "lucide-react";
+import { Check, ChevronDown, Gauge, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
@@ -35,6 +35,8 @@ export function AccountChip() {
         aria-label={t("limits.chipTip", { name: active.label, pct: pct ?? "?" })}
         data-tip={t("limits.chipTip", { name: active.label, pct: pct ?? "?" })}
       >
+        {/* The icon says it is an account: testers read a bare "Main" as a branch or a workspace. */}
+        <UserRound size={13} className="shrink-0 text-fg-subtle" aria-hidden="true" />
         <span className="hidden max-w-28 truncate font-medium sm:inline">{active.label}</span>
         {pct !== undefined && (
           <span className="flex items-center gap-1">
@@ -48,6 +50,7 @@ export function AccountChip() {
       </button>
       {open && (
         <div className="absolute end-0 top-full z-30 mt-1 w-64 rounded-ui border border-border bg-bg p-1 shadow-ui">
+          <p className="px-2 pb-1 pt-1.5 text-[11px] font-medium text-fg-subtle">{t("limits.chipHeader")}</p>
           {accounts.map((account) => (
             <button
               key={account.id}

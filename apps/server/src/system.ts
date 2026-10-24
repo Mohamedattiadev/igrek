@@ -20,17 +20,27 @@ export function sandboxAvailable(): boolean {
   return process.platform === "linux" && !!Bun.which("bwrap") && !!Bun.which("socat");
 }
 
+const firstLine = (text: string) => text.trim().split("\n")[0];
+
 async function check(tool: (typeof TOOLS)[number]): Promise<ToolCheck> {
-  const path = Bun.which(tool.bin);
+  // PATH as it is now: Bun.which alone keeps the one the process started with.
+  const path = Bun.which(tool.bin, { PATH: process.env.PATH ?? "" });
   if (!path) return { id: tool.id, found: false, required: tool.required };
   try {
     const proc = Bun.spawn([path, ...tool.args], { stdout: "pipe", stderr: "pipe" });
     const timeout = setTimeout(() => proc.kill(), 3000);
-    const [out, err] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+    const [out, err, code] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
     clearTimeout(timeout);
+    // A tool that is there but cannot start (a broken install, missing libraries) is not "found":
+    // its error is shown instead of a version.
+    if (code !== 0)
+      return { id: tool.id, found: true, broken: true, version: firstLine(err || out), required: tool.required };
     // `ssh -V` prints to stderr; everything else to stdout.
-    const version = (out || err).trim().split("\n")[0];
-    return { id: tool.id, found: true, version, required: tool.required };
+    return { id: tool.id, found: true, version: firstLine(out || err), required: tool.required };
   } catch {
     return { id: tool.id, found: true, required: tool.required };
   }

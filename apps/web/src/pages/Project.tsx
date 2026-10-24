@@ -51,6 +51,7 @@ import { EnvironmentsTab } from "./project/Environments";
 import { ExpertsTab } from "./project/Experts";
 import { MemoryTab } from "./project/Memory";
 import { MonitorTab } from "./project/Monitor";
+import { OpenChats } from "./project/OpenChats";
 import { PreviewTab } from "./project/Preview";
 import { SectionsTab } from "./project/Sections";
 import { SessionRow } from "./project/SessionRow";
@@ -330,13 +331,16 @@ function Sessions({ projectId }: { projectId: string }) {
     (ids) => ids.includes(projectId),
   );
   return (
-    <Card>
-      <div className="divide-y divide-border">
-        {data?.map((session) => (
-          <SessionRow key={session.id} session={session} projectId={projectId} />
-        ))}
-      </div>
-    </Card>
+    <div className="space-y-4">
+      <OpenChats projectId={projectId} />
+      <Card>
+        <div className="divide-y divide-border">
+          {data?.map((session) => (
+            <SessionRow key={session.id} session={session} projectId={projectId} />
+          ))}
+        </div>
+      </Card>
+    </div>
   );
 }
 

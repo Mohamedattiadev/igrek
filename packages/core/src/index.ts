@@ -20,7 +20,7 @@ export * from "./scrub";
 export * from "./testusers";
 
 export const APP_NAME = "Igrek";
-export const APP_VERSION = "0.1.1";
+export const APP_VERSION = "0.1.2";
 export const DEFAULT_PORT = 7777;
 
 export type Theme = "system" | "light" | "dark" | "darcula" | "notion";
@@ -142,6 +142,8 @@ export const RTL_LANGUAGES = new Set(["ar", "fa", "he", "ur", "ps", "sd", "ug", 
 export interface ToolCheck {
   id: "git" | "claude" | "codex" | "gemini" | "pi" | "opencode" | "ssh" | "docker" | "bwrap" | "socat";
   found: boolean;
+  /** Found, but it fails to start (its version command ended with an error, printed in `version`). */
+  broken?: boolean;
   version?: string;
   required: boolean;
 }

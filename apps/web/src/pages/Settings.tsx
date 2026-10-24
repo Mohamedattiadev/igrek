@@ -1,5 +1,5 @@
 import type { SystemStatus } from "@igrek/core";
-import { AppWindow, Check, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
+import { AlertTriangle, AppWindow, Check, CheckCircle2, Circle, Compass, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AutostartPanel, DesktopUpdatePanel } from "../components/DesktopPanels";
@@ -43,7 +43,9 @@ function SystemCheck() {
       <ul className="divide-y divide-border">
         {status.tools.map((tool) => (
           <li key={tool.id} data-nav-item tabIndex={-1} className="flex h-row items-center gap-3 px-3 text-[13px]">
-            {tool.found ? (
+            {tool.broken ? (
+              <AlertTriangle size={15} className="text-warning" />
+            ) : tool.found ? (
               <CheckCircle2 size={15} className="text-success" />
             ) : tool.required ? (
               <XCircle size={15} className="text-danger" />
@@ -52,7 +54,9 @@ function SystemCheck() {
             )}
             <span className="w-16 font-medium">{tool.id}</span>
             <span className="flex-1 truncate font-mono text-xs text-fg-subtle">{tool.version}</span>
-            {tool.found ? (
+            {tool.broken ? (
+              <Badge tone="warning">{t("settings.broken")}</Badge>
+            ) : tool.found ? (
               <Badge tone="success">{t("settings.found")}</Badge>
             ) : (
               <Badge tone={tool.required ? "danger" : "neutral"}>
